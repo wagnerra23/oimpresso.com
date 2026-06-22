@@ -19,7 +19,7 @@ charter_version: 1
 
 # Page Charter — `/team-mcp/cc-sessions` (DRAFT)
 
-> Criado no PR **Forja PR-2** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] (admin, `jana.cc.read.all`) + cada dev (vê só as próprias). Backend: `CcSessionsController` (Inertia::defer). Ref visual: [cc-sessions-visual-comparison.md](../../../../memory/requisitos/TeamMcp/cc-sessions-visual-comparison.md).
+> Criado no PR **Forja PR-2** (re-skin DS v6, 2026-06-16). Persona: Wagner [W] (admin, `jana.cc.read.all`) + cada dev (vê só as próprias). Backend: `CcSessionsController` (Inertia::defer). Ref visual: [cc-sessions-visual-comparison.md](../../../../../memory/requisitos/TeamMcp/cc-sessions-visual-comparison.md).
 
 ## Mission
 

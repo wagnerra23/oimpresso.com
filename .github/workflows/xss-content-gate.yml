@@ -1,0 +1,63 @@
+name: XSS content ratchet (.tsx · dSIH + scheme)
+
+# Funde dsih-gate.yml + scheme-gate.yml (poda Movimento 1 — consolidação de irmãos).
+# Os dois oráculos de conteúdo anti-XSS nasceram do mesmo red-team 2026-06-17 e se espelhavam:
+# estrutura idêntica (checkout -> node -> selftest -> --all). Agora 1 job roda os dois em
+# sequência -> 1 runner em vez de 2. Cobertura preservada: ambos os selftests + ambos os
+# ratchets vs baseline (o 2º com if: success()||failure() pra reportar mesmo se o 1º falhar).
+#
+# parcela 1 (dSIH): bloqueia dangerouslySetInnerHTML NOVO em resources/js/**/*.tsx.
+# parcela 2 (scheme): bloqueia javascript:/vbscript:/data:text/html NOVO em href/src.
+# Ratchet only-down: os tetos (.dsih-baseline.json / .scheme-baseline.json) só podem CAIR.
+# SEM path filter no pull_request (ADR 0263): roda em TODO PR, pra poder virar required sem
+# o deadlock de "Expected" em PR sem .tsx. Refs: ADR 0283 §9 · PRs #2891/#2893 (stored-XSS).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/**/*.tsx'
+      - 'scripts/dsih-gate.mjs'
+      - 'scripts/scheme-gate.mjs'
+      - '.dsih-baseline.json'
+      - '.scheme-baseline.json'
+      - '.github/workflows/xss-content-gate.yml'
+  pull_request:
+
+concurrency:
+  group: xss-content-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  xss-content:
+    name: XSS content ratchet (dSIH + scheme vs baseline)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Self-tests (provam que os dois gates mordem — quem vigia o vigia)
+        run: |
+          node scripts/dsih-gate.mjs --selftest
+          node scripts/scheme-gate.mjs --selftest
+
+      - name: dSIH ratchet (dangerouslySetInnerHTML novo vs baseline)
+        run: node scripts/dsih-gate.mjs --all
+
+      - name: scheme ratchet (javascript:/vbscript:/data:text/html novo vs baseline)
+        if: success() || failure()
+        run: node scripts/scheme-gate.mjs --all
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "🔴 XSS content ratchet: sink de XSS NOVO num .tsx."
+          echo "  dSIH   -> renderize como texto {valor}; se precisar de HTML, sanitize (DOMPurify)."
+          echo "  scheme -> use https:/rota relativa; nunca javascript:/vbscript:/data:text/html."
+          echo "  Removeu um sink? re-crave o teto: node scripts/<dsih|scheme>-gate.mjs --update (commit separado)."
+          echo "  Refs: red-team 2026-06-17 · PRs #2891/#2893 · ADR 0283 §9."

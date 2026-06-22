@@ -1,0 +1,64 @@
+{
+  "$description": "DTCG base (primitive) tokens — extracted verbatim from the canonical CSS the build consumes (ADR 0300 errata). NÃO inventar token: cada $value abaixo é cópia literal do valor encontrado na fonte citada em $extensions.com.oimpresso.source. Fonte canônica permanece os .css; este JSON é fonte PARALELA provada (não consumida pelo build vivo). Camada base→semantic.",
+  "$extensions": {
+    "com.oimpresso.dtcg": {
+      "spec": "W3C Design Tokens Community Group (application/design-tokens+json)",
+      "layer": "base",
+      "anchors": ["ADR 0300 (errata 0239 — nome real da fonte)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)"],
+      "build_consumes_this": false
+    }
+  },
+  "font": {
+    "$type": "fontFamily",
+    "sans": {
+      "$value": "ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+      "$description": "--font-sans (Tailwind @theme). Cockpit redefine localmente como IBM Plex Sans (ver semantic.cockpit.font).",
+      "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --font-sans" }
+    },
+    "cockpit-sans": {
+      "$value": "\"IBM Plex Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "$description": "--font-sans do shell .cockpit (override local IBM Plex).",
+      "$extensions": { "com.oimpresso.source": "resources/css/cockpit.css .cockpit --font-sans" }
+    },
+    "cockpit-mono": {
+      "$value": "\"IBM Plex Mono\", ui-monospace, \"SF Mono\", Menlo, monospace",
+      "$description": "--font-mono do shell .cockpit.",
+      "$extensions": { "com.oimpresso.source": "resources/css/cockpit.css .cockpit --font-mono" }
+    }
+  },
+  "fontSize": {
+    "$type": "dimension",
+    "$description": "Type RAMP — âncora única de tamanho (foundations.css :root). 9 degraus. [W] 2026-06-10.",
+    "1": { "$value": "10.5px", "$description": "caption / eyebrow uppercase", "$extensions": { "com.oimpresso.source": "resources/css/foundations.css :root --fs-1" } },
+    "2": { "$value": "11.5px", "$description": "label · chip · hint", "$extensions": { "com.oimpresso.source": "resources/css/foundations.css :root --fs-2" } },
+    "3": { "$value": "12.5px", "$description": "corpo denso (células, drawer)", "$extensions": { "com.oimpresso.source": "resources/css/foundations.css :root --fs-3" } },
+    "4": { "$value": "13.5px", "$description": "corpo padrão (= body)", "$extensions": { "com.oimpresso.source": "resources/css/foundations.css :root --fs-4" } },
+    "5": { "$value": "15px", "$description": "título de seção/card", "$extensions": { "com.oimpresso.source": "resources/css/foundations.css :root --fs-5" } },
+    "6": { "$value": "18px", "$description": "subtítulo de página", "$extensions": { "com.oimpresso.source": "resources/css/foundations.css :root --fs-6" } },
+    "7": { "$value": "22px", "$description": "h1 de página · KPI médio", "$extensions": { "com.oimpresso.source": "resources/css/foundations.css :root --fs-7" } },
+    "8": { "$value": "28px", "$description": "número grande", "$extensions": { "com.oimpresso.source": "resources/css/foundations.css :root --fs-8" } },
+    "9": { "$value": "38px", "$description": "número hero", "$extensions": { "com.oimpresso.source": "resources/css/foundations.css :root --fs-9" } }
+  },
+  "radius": {
+    "$type": "dimension",
+    "$description": "Tailwind @theme radius scale (inertia.css). Cockpit tem escala própria numérica (semantic.cockpit.radius).",
+    "lg": { "$value": "0.5rem", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --radius-lg" } },
+    "md": { "$value": "calc(0.5rem - 2px)", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --radius-md" } },
+    "sm": { "$value": "calc(0.5rem - 4px)", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --radius-sm" } }
+  },
+  "duration": {
+    "$type": "duration",
+    "$description": "Motion — Onda M1 vocabulário nomeado (inertia.css @theme).",
+    "fast": { "$value": "120ms", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --duration-fast" } },
+    "base": { "$value": "150ms", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --duration-base" } },
+    "slow": { "$value": "240ms", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --duration-slow" } },
+    "slower": { "$value": "360ms", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --duration-slower" } }
+  },
+  "easing": {
+    "$type": "cubicBezier",
+    "$description": "Easing curves (inertia.css @theme). Valores armazenados como string CSS (cubic-bezier) — DTCG cubicBezier-as-string para fidelidade 1:1 com o CSS.",
+    "standard": { "$value": "cubic-bezier(0.2, 0, 0, 1)", "$description": "default — entra e sai", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --ease-standard" } },
+    "out": { "$value": "cubic-bezier(0, 0, 0.2, 1)", "$description": "entrada", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --ease-out" } },
+    "in": { "$value": "cubic-bezier(0.4, 0, 1, 1)", "$description": "saída", "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --ease-in" } }
+  }
+}

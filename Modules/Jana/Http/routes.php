@@ -259,6 +259,11 @@ Route::group(
         Route::get('/version', 'HealthController@versao')
             ->name('jana.mcp.version');
 
+        // G6 (porta de saída do loop): cycle ATIVO pro cron do shipped-log descobrir
+        // cycle+janela sem depender do shipped-log anterior. Mesmo token do /version.
+        Route::get('/cycle-active', 'HealthController@cicloAtivo')
+            ->name('jana.mcp.cycle-active');
+
         // Autenticados via McpAuth
         Route::group(['middleware' => 'mcp.auth'], function () {
             Route::get('/health/auth', 'HealthController@autenticado')

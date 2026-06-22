@@ -1,8 +1,8 @@
 {
   "_meta": {
-    "generated_at": "2026-06-17T11:50:59.387Z",
-    "total_lines": 20551,
-    "file_count": 29,
+    "generated_at": "2026-06-22T19:42:49.322Z",
+    "total_lines": 20533,
+    "file_count": 35,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
       "MANUAL-CSS-JS#1",
@@ -10,7 +10,7 @@
     ]
   },
   "files": {
-    "resources/css/cockpit.css": 2380,
+    "resources/css/cockpit.css": 2259,
     "resources/css/cowork-canon-financeiro-bundle.css": 4859,
     "resources/css/cowork-compras-bundle.css": 182,
     "resources/css/cowork-fields.css": 409,
@@ -21,8 +21,8 @@
     "resources/css/fin-mobile.css": 67,
     "resources/css/fin-output.css": 1004,
     "resources/css/fiscal-cockpit.css": 1381,
-    "resources/css/foundations.css": 45,
-    "resources/css/inertia.css": 418,
+    "resources/css/foundations.css": 20,
+    "resources/css/inertia.css": 295,
     "resources/css/kb.css": 184,
     "resources/css/screen-grade.css": 16,
     "resources/css/sells-cowork-curadoria.css": 312,
@@ -38,6 +38,12 @@
     "resources/css/sells-kb975-cheatsheet.css": 242,
     "resources/css/sells-kb975-emit-modals.css": 505,
     "resources/css/sells-kb975-next-action.css": 280,
-    "resources/css/sells-kb975-print.css": 675
+    "resources/css/sells-kb975-print.css": 675,
+    "resources/css/tokens/_generated-cockpit-dark.css": 52,
+    "resources/css/tokens/_generated-cockpit-light.css": 68,
+    "resources/css/tokens/_generated-foundations-dark.css": 10,
+    "resources/css/tokens/_generated-foundations-light.css": 22,
+    "resources/css/tokens/_generated-inertia-dark.css": 44,
+    "resources/css/tokens/_generated-inertia-theme.css": 55
   }
 }

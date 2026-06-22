@@ -27,7 +27,7 @@ superadmin_only: true
 
 ## Mission
 
-Cockpit de **governança do MCP server** ([ADR 0053](../../../../../memory/decisions/0053-mcp-server-governanca-como-produto.md)) — único ERP BR com MCP exposto como produto. Wagner monitora: quem usa, quanto custa, quais docs sincronizam, quais tokens estão ativos, quais skills foram publicadas.
+Cockpit de **governança do MCP server** ([ADR 0053](../../../../../../memory/decisions/0053-mcp-server-governanca-como-produto.md)) — único ERP BR com MCP exposto como produto. Wagner monitora: quem usa, quanto custa, quais docs sincronizam, quais tokens estão ativos, quais skills foram publicadas.
 
 Audiência primária: **Wagner (superadmin único)**. Eventualmente Felipe quando promovido. Larissa NÃO acessa (sem permissão `copiloto.mcp.usage.all`).
 
@@ -51,7 +51,7 @@ Audiência primária: **Wagner (superadmin único)**. Eventualmente Felipe quand
 
 ## UX targets
 
-- Padrão Chat Cockpit V2 ([ADR 0039](../../../../../memory/decisions/0039-cockpit-pattern-canon.md)) — shared components (`KpiGrid`, `KpiCard`, `StatusBadge`, `EmptyState`, `SubNav`, `PageHeader`)
+- Padrão Chat Cockpit V2 ([ADR 0039](../../../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md)) — shared components (`KpiGrid`, `KpiCard`, `StatusBadge`, `EmptyState`, `SubNav`, `PageHeader`)
 - LocalStorage persiste preset filtros + seção ativa (`LS_PRESET_KEY`, `LS_SECAO_KEY`)
 - Render < 300ms p95 com `Inertia::defer()` em audit log paginated
 - Dark mode obrigatório

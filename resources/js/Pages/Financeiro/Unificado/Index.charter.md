@@ -5,7 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-06-16"
 parent_module: Financeiro
-parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
+parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94]
 related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (aprovado Wagner 2026-05-19)
@@ -206,7 +206,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 | Mobile responsive | Desktop only | Eliana persona desktop |
 | `delta_pct` (+12% vs mês anterior) | Não calcula | F1 simplifica; comparativo é US futura |
 
-**Apend a [ADR ui/0002](../../../../memory/requisitos/Financeiro/adr/ui/0002-dashboard-unificado-4-estados.md) ou nova ADR superseding** quando próxima sessão tocar — formaliza divergência.
+**Apend a [ADR ui/0002](../../../../../memory/requisitos/Financeiro/adr/ui/0002-dashboard-unificado-4-estados.md) ou nova ADR superseding** quando próxima sessão tocar — formaliza divergência.
 
 ---
 
@@ -227,4 +227,4 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ## Refs ADR
 
 - **`related_adrs` (frontmatter):** `0093` (multi-tenant Tier 0) · `0094` (Constituição V2).
-- **ADRs namespaced** (fora do `related_adrs` — o schema canônico `scripts/memory-schemas/charter.schema.json` só aceita ADR top-level integer/slug): [arq/0005 — Financeiro vs Accounting paralelo](../../../../memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md) · [ui/0002 — dashboard unificado 4 estados](../../../../memory/requisitos/Financeiro/adr/ui/0002-dashboard-unificado-4-estados.md) · ui/0114 — gate visual F1.5 / mwart-comparative.
+- **ADRs namespaced** (fora do `related_adrs` — o schema canônico `scripts/memory-schemas/charter.schema.json` só aceita ADR top-level integer/slug): [arq/0005 — Financeiro vs Accounting paralelo](../../../../../memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md) · [ui/0002 — dashboard unificado 4 estados](../../../../../memory/requisitos/Financeiro/adr/ui/0002-dashboard-unificado-4-estados.md) · ui/0114 — gate visual F1.5 / mwart-comparative.

@@ -5,6 +5,7 @@ name: Governance script tests (advisory)
 # governanca: ate aqui esses .test.mjs so rodavam na maquina do dev.
 #   - adr-index-generate.test.mjs       decoder de titulo !!binary (Onda 1, gap #1, PR #3056)
 #   - settings-r10-registration.test.mjs R10 registrado em settings.json (gap #3, PR #3058)
+#   - shipped-log-generate.test.mjs     fonte honesta do shipped-log (porta de saida, ADR 0294 ext)
 # Node puro, sem deps/DB/rede -- segundos. Advisory de nascenca (gates novos nunca
 # nascem required -- ADR 0271/0275); nao entra em branch protection.
 
@@ -33,3 +34,15 @@ jobs:
         run: node scripts/governance/adr-index-generate.test.mjs
       - name: Registro R10 em settings.json
         run: node scripts/governance/settings-r10-registration.test.mjs
+      - name: Shipped-log gerador honesto (fixtures-armadilha)
+        run: node scripts/governance/shipped-log-generate.test.mjs
+      - name: Dup-detector L3 (overlap/ack/exclude)
+        run: node scripts/governance/dup-detector.test.mjs
+      - name: Outcome metrics (medidor de aceitacao · fixtures-armadilha · Onda O1)
+        run: node scripts/governance/outcome-metrics.test.mjs
+      - name: Registro Figma-não-é-fonte em settings.json (camada L4)
+        run: node scripts/governance/settings-figma-registration.test.mjs
+      - name: Baseline armado Figma-não-é-fonte (camada L5 · vetores de ataque)
+        run: node scripts/evals/design-source-of-truth.eval.mjs
+      - name: Design-memory gates wired no CI (Onda O3)
+        run: node scripts/governance/design-memory-gates.test.mjs

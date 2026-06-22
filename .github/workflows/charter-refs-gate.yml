@@ -1,0 +1,57 @@
+name: Charter refs (catraca de integridade — advisory na adoção)
+
+# Catraca de mão única do `charter_refs_broken` (espelha o advisory do jana:health-check,
+# Modules/Jana/Services/CharterHealthChecker.php). Floor em governance/charter-refs-baseline.json.
+#
+# REGRA ANTI-TEATRO (mesma do contrato-de-tela.yml): SEM continue-on-error, SEM skip-as-pass.
+# O "advisory" vem de NÃO estar nos required checks (branch protection — decisão [W]), NÃO de
+# esconder o vermelho. O job mostra vermelho de verdade; só não BLOQUEIA o merge até promovido.
+# Promoção a required (enforce_admins) = quando o falso-positivo medido = 0 por 1-2 semanas.
+#
+# Afrouxar o teto é coberto pelo baseline-tamper-guard.yml (anti-grandfather).
+
+on:
+  # SEM paths-filter de propósito (require-safe): GitHub TRAVA um required check que
+  # não reporta. Path-filtrado + required = PRs que não tocam charter ficam "Expected —
+  # waiting for status" pra sempre. O `--check` é ~1s (scan filesystem), roda barato em
+  # TODO PR e fica verde quando o count não muda. Rodar em todo PR também alimenta o
+  # soak de falso-positivo (regra anti-teatro: advisory até FP=0 por 1-2 semanas).
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  # Integridade do próprio gate — HARD (se o gate não morde, nada disto vale).
+  selftest:
+    name: Self-test — a catraca morde e libera certo
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node scripts/governance/charter-refs.test.mjs
+
+  # Catraca: conta refs quebradas na árvore do PR vs teto. Exit code real.
+  catraca:
+    name: charter_refs_broken <= teto
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: node scripts/governance/charter-refs.mjs --check
+        run: node scripts/governance/charter-refs.mjs --check
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ charter_refs_broken acima do teto (governance/charter-refs-baseline.json)."
+          echo "   - off-by-one de profundidade '../'  → node scripts/governance/charter-refs.mjs --fix"
+          echo "   - ref morta de vez (alvo movido/deletado) → remova a ref do charter"
+          echo "   - NÃO suba o teto pra mascarar (baseline-tamper-guard pega)."
+          echo "   Checker espelha: Modules/Jana/Services/CharterHealthChecker.php"

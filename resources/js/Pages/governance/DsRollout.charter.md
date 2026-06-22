@@ -67,5 +67,5 @@ Mostrar, numa tela só, o **plano medível** de portar o Design System inteiro p
 
 - Protótipo Cowork: `DS Rollout - Ondas e Testes.html` (handoff claude.ai/design 2026-06-12).
 - [ADR 0189/0190 PageHeader canon + primary roxo universal](../../../../memory/requisitos/_DesignSystem/templates/PageHeader-canon-v3-1.md)
-- [ADR 0209 ratchet](../../../../memory/decisions/0209-ratchet-cor-crua-stylelint.md) · [ADR 0239 gov DS git=SSOT] · [ADR 0240 evidência fecha task]
+- ADR 0209 ratchet · [ADR 0239 gov DS git=SSOT] · [ADR 0240 evidência fecha task]
 - Gates do "teste": `scripts/ds-report.mjs` · `scripts/conformance-gate.mjs` · `scripts/design-identity-grade.mjs` · `scripts/a11y-ratchet.mjs`

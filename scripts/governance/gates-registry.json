@@ -1,7 +1,8 @@
 {
   "_meta": {
-    "gate": "memory-health Check G (Onda Q5 — registry canonico de gates, ADR 0256)",
+    "gate": "memory-health Check G (Onda Q5 — registry canonico de gates, ADR 0256) + Check M (teto de governanca, ADR 0298)",
     "nota": "TODO workflow em .github/workflows DEVE estar registrado aqui (nome + classe + proposito). Workflow novo fora do registry = FAIL no memory-health (umbrella, todo PR). Tirar workflow = remover a entrada junto (entrada orfa = warn).",
+    "teto": "ADR 0298 (Check M — teto de governanca): workflow NOVO (fora do baseline grandfather .memory-health-baseline.json checkM) DEVE declarar `terminal` (required|cron|automacao|advisory) + `anchor` (ADR/incidente/PR de custo); advisory exige `promote_by` (data — vencimento <=14d cobrado pelo ZELADOR, nao pelo gate). Gate nasce required-ou-cron, nunca advisory eterno. So nasce com sinal de custo. ADR 0105 aplicado a gates. Os gates pre-existentes ficam isentos via baseline (ratchet).",
     "classes": {
       "gate": "bloqueia/valida PR",
       "meta": "testa os proprios gates",
@@ -14,9 +15,16 @@
       "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
       "classe": "gate"
     },
-    "jana-audit-chain-pest.yml": {
-      "nome": "Jana audit-chain Pest (T5 · hash-chain mcp_audit_log lógica pura · ADR 0294)",
+    "jana-logica-pura-pest.yml": {
+      "nome": "Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295)",
       "classe": "gate"
+    },
+    "component-registry.yml": {
+      "nome": "Component Registry Drift (Onda O2 · sentinela bloco-de-protótipo → componente React · prototipo-ui/component-registry.json · self-test obrigatório + drift advisory)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "Onda O2 (registro de componentes máquina-legível) · custo: re-tradução manual bloco→componente no handoff Cowork gera regressão (M-AP-6 / LICOES_F3)",
+      "promote_by": "2026-07-06"
     },
     "gitleaks-history.yml": {
       "nome": "Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215)",
@@ -54,9 +62,13 @@
       "nome": "Casos-coverage ratchet (trio-de-tela + caso↔teste)",
       "classe": "gate"
     },
-    "casos-meta-gate.yml": {
-      "nome": "Casos-guard meta-teste (vitest)",
+    "guards-meta-gate.yml": {
+      "nome": "Guards meta-gate (vitest · casos + domínio · funde casos-meta + dominio-meta)",
       "classe": "meta"
+    },
+    "charter-refs-gate.yml": {
+      "nome": "Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256)",
+      "classe": "gate"
     },
     "ci.yml": {
       "nome": "CI",
@@ -78,12 +90,8 @@
       "nome": "Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md)",
       "classe": "gate"
     },
-    "dsih-gate.yml": {
-      "nome": "dSIH ratchet (anti-XSS · conteúdo em .tsx · oráculo parcela 1)",
-      "classe": "gate"
-    },
-    "scheme-gate.yml": {
-      "nome": "scheme ratchet (anti-XSS · href/scheme cru em .tsx · oráculo parcela 2)",
+    "xss-content-gate.yml": {
+      "nome": "XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo)",
       "classe": "gate"
     },
     "cowork-inbox.yml": {
@@ -125,10 +133,6 @@
     "dominio-gate.yml": {
       "nome": "Dominio-dict ratchet (coerência de domínio)",
       "classe": "gate"
-    },
-    "dominio-meta-gate.yml": {
-      "nome": "Dominio-guard meta-teste (vitest)",
-      "classe": "meta"
     },
     "e2e-gate.yml": {
       "nome": "E2E Playwright (UCs críticos) — G-3",
@@ -180,14 +184,6 @@
     },
     "infra-contract-required.yml": {
       "nome": "Infra Contract Required",
-      "classe": "gate"
-    },
-    "jana-bitemporal-pest.yml": {
-      "nome": "Jana bi-temporal Pest (T4 · predicado event-time BiTemporalResolver · ADR 0295)",
-      "classe": "gate"
-    },
-    "jana-bitemporal-slice2-pest.yml": {
-      "nome": "Jana bi-temporal Pest (T4 slice 2 · HistoricoMemoriaService normalizarAsOf/violacaoCrossTenant · ADR 0295)",
       "classe": "gate"
     },
     "jana-pest.yml": {
@@ -349,6 +345,46 @@
     "visual-regression.yml": {
       "nome": "Visual Regression (Pest 4 Browser)",
       "classe": "gate"
+    },
+    "shipped-log-cron.yml": {
+      "nome": "Shipped log cron (auto-PR + auto-merge · regenera registro de entrega do cycle · porta de saída ADR 0294)",
+      "classe": "automacao"
+    },
+    "shipped-log-gate.yml": {
+      "nome": "Shipped log gate (advisory · freshness do registro de entrega via --check · porta de saída ADR 0294)",
+      "classe": "gate"
+    },
+    "dup-detector-gate.yml": {
+      "nome": "Dup detector (advisory · L3 anti-duplicação de trabalho entre sessões paralelas · arquivo hot-path em PR aberto sem Dedup-ack · proposta anti-duplicacao-work-claim-gate)",
+      "classe": "gate"
+    },
+    "outcome-metrics.yml": {
+      "nome": "Outcome metrics (advisory · medidor de aceitação Cowork→code · rework/revert/first-pass via SYNC_LOG proxy + git Pages/*.tsx · Onda O1)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "ADR 0294 (loop/porta de saída) + ADR 0105 (sinal qualificado) — Onda O1 medidor de aceitação",
+      "promote_by": "2026-09-30"
+    },
+    "design-memory-gates.yml": {
+      "nome": "Design-memory gates (advisory · ds-guard §8 nos arquivos tocados + relatório de dívida + integrity-check §15 da espinha · wire dos gates de design-memory no CI)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 + auditoria IA OS (buraco confessado: ds-guard.mjs e integrity-check.mjs rodavam em NENHUM workflow, dependiam do humano lembrar)",
+      "promote_by": "2026-07-06"
+    },
+    "dtcg-equivalence.yml": {
+      "nome": "DTCG equivalence (advisory · Onda DTCG ATIVADA: tokens editados no JSON portável, CSS é SAÍDA via _generated-*.css importados por inertia/foundations/cockpit.css; o check prova JSON == CSS-emitido-consumido-pelo-build, escopo-aware + self-test que morde)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "ADR 0239 (DS git SSOT — git é a fonte única do Design System) + ADR 0249 (DS v6 naming) + auditoria de maturidade transporte design→code (gap D3 42%: tokens eram CSS bespoke single-platform, não DTCG W3C portável). Fonte real dos .css (inertia/foundations/cockpit) confirmada pela errata ao 0239 (proposta — não-citada-como-dependência-de-runtime).",
+      "promote_by": "2026-09-30"
+    },
+    "reconcile-triplet.yml": {
+      "nome": "Reconcile triplet (advisory · paridade por setor 3-way charter↔protótipo↔produção · 6 slots PT-01 · reconcile-triplet.mjs --all + charter-blueprint-pointers.mjs · self-test que morde)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "Onda reconcile-triplet (o loop design→code comparava 2-way protótipo×código e o CHARTER não era coluna · quando o protótipo contradiz o charter o conflito SOME e o diff vira lixo · custo provado: Produto · charter MANDA card-grid, produção É card-grid, mas protótipo Cowork de hoje é lista densa + 3 ponteiros de protótipo apontam pro vácuo). PT-01-Lista.md (6 slots canônicos) + DesignIngestPlanner.php (conceito do diff por content-sha).",
+      "promote_by": "2026-09-20"
     }
   }
 }

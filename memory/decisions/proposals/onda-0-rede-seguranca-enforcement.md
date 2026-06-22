@@ -67,3 +67,16 @@ Alta. A/B são aditivos (testes + config de CI). D é um flip de branch protecti
 - [ ] Rejeitar / pedir mais investigação.
 
 > Recomendação: aprovar com **D = `multi-tenant-gate`** como 1º required — é Tier 0 (a quebra mais cara), já está pronto (skip-as-pass), e o baseline grandfathera a dívida existente sem travar o time.
+
+## Reconciliação (2026-06-22) — de-confliction com programa paralelo
+
+Reconferência pós-execução revelou que esta Onda 0 **sobrepôs um programa "armamento SDD" ativo e mais adiantado** (sessões paralelas Claude). Estado real consolidado:
+
+| Brick | Resultado real |
+|---|---|
+| **A** · oráculo `format_date` +3h | ✅ genuíno — merged [#3178](https://github.com/wagnerra23/oimpresso.com/pull/3178) |
+| **B** · pcov/coverage | ❌ **REVERTIDO** ([#3184](https://github.com/wagnerra23/oimpresso.com/pull/3184)) — duplicava [#3150](https://github.com/wagnerra23/oimpresso.com/pull/3150) (pcov CT100 + `measureCoverage` full-suite, fonte única) |
+| **C** · migration scorecard em prod | ✅ feito — tabela `mcp_sdd_scorecard_history` aplicada + 1 row (snapshot 2026-06-21, composta 50) |
+| **D** · ratchet → required | ⏭️ **não executado aqui** — [#3181](https://github.com/wagnerra23/oimpresso.com/pull/3181) (required-candidate) + [#3143](https://github.com/wagnerra23/oimpresso.com/pull/3143) (foundation-ratchet→required, DRAFT pré-14d) já cobrem. Agendamento de 29/jun **cancelado**. |
+
+**Lição estrutural:** a checagem "tem outro fazendo isso?" tem que rodar **antes** de construir, mecanicamente — não por disciplina (o handoff [#3092](../../handoffs/2026-06-20-2115-sessao-duplicada-armamento-sdd.md) já avisava e a duplicação reincidiu). Proposta do mecanismo preventivo: [anti-duplicacao-work-claim-gate.md](anti-duplicacao-work-claim-gate.md).
