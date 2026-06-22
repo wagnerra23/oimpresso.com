@@ -2,7 +2,7 @@
 date: "2026-06-22"
 time: "23:32 BRT"
 slug: sessao-epica-figma-dtcg-seguranca
-tldr: "Sessão épica (~13 PRs). '[W] por que não achou a fonte de design?' → conflito de autoridade (Figma MCP always-on venceu canon-em-docs); red-team matou minha 1ª proposta (teatro) → rede block-figma L0-L5 (#3213, ADR 0299). Pesquisas: Figma não é o protocolo (o MCP é; fonte portável = token DTCG). DTCG ativado (#3230). Pivot receita → auditoria de segurança: 3/10 client-ready, INSEGURO (APP_KEY de prod no git, IDOR de escrita cross-tenant em dinheiro, webhook Asaas sem auth). Onda 0: #3235/#3236/#3244 mergeados. Rotação de segredos pendente [W]."
+tldr: "Sessão épica (~13 PRs). '[W] por que não achou a fonte de design?' → Figma MCP always-on venceu o canon-em-docs; red-team matou minha proposta-teatro → rede block-figma L0-L5 (#3213, ADR 0299). Figma não é o protocolo (o MCP é; fonte portável = token DTCG); DTCG ativado (#3230). Pivot receita → auditoria: 3/10 client-ready, INSEGURO (APP_KEY de prod no git, IDOR cross-tenant em dinheiro, webhook Asaas sem auth). Onda 0: #3235/#3236/#3244. Segredos: rotação pendente [W]."
 decided_by: [W]
 cycle: CYCLE-08
 prs: [3213, 3214, 3215, 3216, 3217, 3218, 3219, 3220, 3230, 3235, 3236]
