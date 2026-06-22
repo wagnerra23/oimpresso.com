@@ -93,8 +93,21 @@ function extractBlock(css, selector) {
   return map;
 }
 
+// Pós-ativação DTCG (#3230): os tokens saíram do cockpit.css e vivem nos @import
+// gerados (tokens/_generated-cockpit-*.css). Resolve os @import (1 nível) e normaliza
+// ".cockpit {" -> ".cockpit{" pra o extractBlock casar onde os tokens realmente estão.
+// Os VALORES são byte-idênticos (dtcg-equivalence prova), então PALETA.html não muda.
+function readResolved(file) {
+  const dir = dirname(file);
+  let css = readFileSync(file, "utf8");
+  css = css.replace(/@import\s+["']([^"']+)["']\s*;/g, (_, p) => {
+    try { return "\n" + readFileSync(resolve(dir, p), "utf8") + "\n"; } catch { return ""; }
+  });
+  return css.replace(/(\.cockpit(?:\[[^\]]*\])?)\s+\{/g, "$1{");
+}
+
 function build() {
-  const css = readFileSync(SRC, "utf8");
+  const css = readResolved(SRC);
   const light = extractBlock(css, ".cockpit{");
   const dark = extractBlock(css, '.cockpit[data-theme="dark"]{');
 
