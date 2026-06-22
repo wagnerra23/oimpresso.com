@@ -62,6 +62,10 @@
       "nome": "CI",
       "classe": "gate"
     },
+    "coverage.yml": {
+      "nome": "Coverage (advisory · CI sqlite-lane · pcov · Brick B Onda 0)",
+      "classe": "automacao"
+    },
     "components-tree-guard.yml": {
       "nome": "Components tree guard (árvore canônica de Components/)",
       "classe": "gate"

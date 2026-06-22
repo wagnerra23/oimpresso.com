@@ -1,0 +1,124 @@
+name: Coverage (advisory · CI sqlite-lane)
+
+# Brick B da Onda 0 (rede anti-quebra) — LIGA o pcov pra produzir um número de
+# cobertura REAL, sem fingir métrica.
+#
+# ── ESCOPO HONESTO ───────────────────────────────────────────────────────────
+# Mede a cobertura da MESMA lane sqlite-safe que a required "PHP / Pest (Unit)"
+# roda (.github/ci-sqlite-pest.list) — NÃO o full-suite. A cobertura real do
+# full-suite virá do nightly CT100 + pcov (mesma arquitetura do floor, ADR 0279),
+# que é infra do write-side. Por isso este número é PARCIAL (lane sqlite) e NÃO é
+# plugado no `coverage_pct` do scorecard ainda — evita "métrica de forma, não
+# correção" (o anti-padrão que o próprio avaliador SDD condena). Quando o
+# write-side CT100 publicar a cobertura do full-suite, aí o scorecard lê.
+#
+# ADVISORY DE NASCENÇA (ADR 0261/0271/0275): workflow separado, fora do
+# required-checks-baseline.json → nunca bloqueia PR. Roda no nightly + manual
+# (NÃO em todo PR — pcov deixa a suíte mais lenta, não vale atrasar o fluxo).
+
+on:
+  schedule:
+    - cron: '10 5 * * *' # 02:10 BRT diário (off-peak, depois do nightly)
+  workflow_dispatch:
+
+concurrency:
+  group: coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  coverage:
+    name: Coverage sqlite-lane (advisory · pcov)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4 (com pcov)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, bcmath, intl, gd, pdo_mysql, zip, opentelemetry
+          coverage: pcov
+          tools: composer:v2
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-cov-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-cov-${{ runner.os }}-
+
+      - name: Prepare storage + bootstrap dirs
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache coverage
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Prepare .env (sqlite, igual ao job Unit do ci.yml)
+        run: |
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-coverage
+          APP_ENV=testing
+          APP_DEBUG=true
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          BCRYPT_ROUNDS=4
+          EOF
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Pest com pcov — clover da lane sqlite
+        # Mesmos alvos da required Unit (.github/ci-sqlite-pest.list), agora COM
+        # cobertura. O <source> (app/ + Modules/) já está no phpunit.xml.
+        run: |
+          mapfile -t PEST_TARGETS < <(grep -vE '^[[:space:]]*(#|$)' .github/ci-sqlite-pest.list | sort -u)
+          if [ "${#PEST_TARGETS[@]}" -eq 0 ]; then
+            echo "::error::.github/ci-sqlite-pest.list vazio — nenhum alvo de teste"; exit 1
+          fi
+          echo "Lane sqlite (coverage) — ${#PEST_TARGETS[@]} alvos:"; printf '  %s\n' "${PEST_TARGETS[@]}"
+          vendor/bin/pest "${PEST_TARGETS[@]}" --coverage-clover=coverage/clover.xml
+
+      - name: Resumo da cobertura (parcial · lane sqlite)
+        if: always()
+        run: |
+          if [ ! -f coverage/clover.xml ]; then
+            echo "::warning::clover.xml não gerado (pcov ativo? testes rodaram?)"; exit 0
+          fi
+          PCT=$(node -e '
+            const fs=require("fs");
+            const xml=fs.readFileSync("coverage/clover.xml","utf8");
+            const proj=xml.match(/<metrics\b([^>]*)\/>\s*<\/project>/);
+            if(!proj){console.log("0.00");process.exit(0);}
+            const a=proj[1];
+            const st=+((a.match(/\bstatements="(\d+)"/)||[])[1]||0);
+            const cov=+((a.match(/\bcoveredstatements="(\d+)"/)||[])[1]||0);
+            console.log(st? (cov/st*100).toFixed(2) : "0.00");
+          ')
+          echo "Cobertura de statements (lane sqlite, PARCIAL): ${PCT}%"
+          {
+            echo '## Coverage (advisory · lane sqlite — PARCIAL)';
+            echo '';
+            echo "**Statements cobertos (lane sqlite):** ${PCT}%";
+            echo '';
+            echo '> ⚠️ Número PARCIAL: cobre só a lane sqlite-safe (`.github/ci-sqlite-pest.list`),';
+            echo '> não o full-suite. Cobertura real do full-suite virá do nightly CT100 + pcov';
+            echo '> (ADR 0279). Este job NÃO alimenta o `coverage_pct` do scorecard ainda.';
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload clover artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-clover-sqlite-lane
+          path: coverage/clover.xml
+          retention-days: 14
+          if-no-files-found: warn
