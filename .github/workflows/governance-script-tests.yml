@@ -38,3 +38,5 @@ jobs:
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)
         run: node scripts/governance/dup-detector.test.mjs
+      - name: Outcome metrics (medidor de aceitacao · fixtures-armadilha · Onda O1)
+        run: node scripts/governance/outcome-metrics.test.mjs

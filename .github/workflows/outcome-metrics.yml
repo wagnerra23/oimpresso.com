@@ -1,0 +1,61 @@
+name: Outcome metrics (advisory)
+
+# MEDIDOR DE ACEITACAO do transporte Cowork->code (Onda O1).
+# Roda scripts/governance/outcome-metrics.mjs e imprime a "%" REAL (rework/revert/
+# first-pass) no job summary. Cruza duas fontes honestas: SYNC_LOG.md (proxy texto)
+# e git log dos .tsx de Pages (proxy medido). NAO funde num numero so -- reporta lado
+# a lado + os gaps de instrumentacao.
+#
+# ADVISORY DE NASCENCA (ADR 0271/0275 -- gate novo nunca nasce required): continue-on-error
+# no passo da metrica + nao entra em branch protection. So mede; nunca bloqueia o PR.
+# Node puro, sem DB/rede. fetch-depth:0 pra a fonte git ter historico completo (sem ela,
+# o proprio script DETECTA shallow e marca o numero como PISO, nao mente 0%).
+#
+# Registrado em scripts/governance/gates-registry.json classe "automacao" (Check G/M).
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: outcome-metrics-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    name: medidor de aceitacao (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # historico completo -> fonte git confiavel (anti-shallow)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Self-test (fixtures-armadilha)
+        run: node scripts/governance/outcome-metrics.test.mjs
+
+      - name: Medir aceitacao (advisory)
+        id: measure
+        continue-on-error: true  # advisory: o numero nunca derruba o PR (ADR 0271/0275)
+        run: |
+          node scripts/governance/outcome-metrics.mjs --json > /tmp/outcome.json
+          node scripts/governance/outcome-metrics.mjs | tee /tmp/outcome.txt
+
+      - name: Job summary (a "%" no painel)
+        if: always()
+        run: |
+          {
+            echo '## Medidor de aceitacao — Cowork->code (Onda O1)'
+            echo ''
+            echo 'ADVISORY (nao bloqueia). Cruza SYNC_LOG.md (proxy texto) + git Pages/*.tsx (proxy medido).'
+            echo ''
+            echo '```'
+            cat /tmp/outcome.txt 2>/dev/null || echo '(sem saida — ver passo anterior)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

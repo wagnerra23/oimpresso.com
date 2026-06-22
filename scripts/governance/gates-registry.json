@@ -350,6 +350,13 @@
     "dup-detector-gate.yml": {
       "nome": "Dup detector (advisory · L3 anti-duplicação de trabalho entre sessões paralelas · arquivo hot-path em PR aberto sem Dedup-ack · proposta anti-duplicacao-work-claim-gate)",
       "classe": "gate"
+    },
+    "outcome-metrics.yml": {
+      "nome": "Outcome metrics (advisory · medidor de aceitação Cowork→code · rework/revert/first-pass via SYNC_LOG proxy + git Pages/*.tsx · Onda O1)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "ADR 0294 (loop/porta de saída) + ADR 0105 (sinal qualificado) — Onda O1 medidor de aceitação",
+      "promote_by": "2026-09-30"
     }
   }
 }
