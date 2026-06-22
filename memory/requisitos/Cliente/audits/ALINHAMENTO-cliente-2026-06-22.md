@@ -1,8 +1,8 @@
 ---
 tipo: alinhamento-fidelidade
 tela: Cliente (cadastro)
-modulo: Crm
-spec: memory/requisitos/Crm/SPEC-us-063-078.md
+modulo: Cliente (código ainda em Modules/Crm)
+spec: memory/requisitos/Cliente/SPEC.md
 base: origin/main@3cf2b52
 data: "2026-06-22"
 autor: W+Claude (skill /alinhar-tela — instância #1)
@@ -65,17 +65,18 @@ Backlog secundário (não bloqueia "pronto"): ViaCEP automático · Tab Atividad
 
 Drift menor não-corrigido (só anotado): `_form/EnderecoBRSection.tsx` e `_show/DadosFiscaisBRBlock.tsx` citados em US-073 não existem com esse nome (migraram pro drawer) — âncora aponta o que existe.
 
-## 🔌 Ligar a máquina (decisão estrutural — Wagner)
+## 🔌 Ligar a máquina — RESOLVIDO (2026-06-22)
 
-**Achado-chave:** `scripts/governance/anchor-lint.mjs` (a "máquina") só varre arquivos chamados **exatamente `SPEC.md`** (glob `memory/requisitos/*/SPEC.md`). A spec viva do cadastro é **`SPEC-us-063-078.md`** → **a máquina não lê as âncoras que acabamos de criar.** Hoje ela só lê `Crm/SPEC.md`, que é o *pipeline pré-venda silenciado* (não o cadastro).
+**Achado-chave:** `scripts/governance/anchor-lint.mjs` (a "máquina") só varre arquivos chamados **exatamente `SPEC.md`** (glob `memory/requisitos/*/SPEC.md`). A spec do cadastro era `Crm/SPEC-us-063-078.md` → a máquina não a lia.
 
-Resultado: o cadastro está **degrau 2-ready** (âncoras corretas e verificadas) mas **não machine-checked**. Pra fechar o circuito, uma destas decisões (todas do Wagner — módulo silenciado + a opção C mexe em tooling compartilhado):
+**Decisão Wagner (2026-06-22): "contacts ≠ crm" → separar e deprecar o CRM.** Em vez de renomear pra `Crm/SPEC.md` (o que re-grudaria cadastro no CRM), a spec foi movida pra **`memory/requisitos/Cliente/SPEC.md`** — pasta própria, separada do pipeline. Efeitos:
 
-- **(A) Renomear `SPEC-us-063-078.md` → `Crm/SPEC.md`** e arquivar o pipeline silenciado como `SPEC-pipeline-prevenda-legado.md`. Faz o cadastro virar o SPEC canônico que a máquina lê. _Recomendado_ — alinhado com a desambiguação "Crm É o módulo de Cliente" e com o silêncio do pipeline.
-- **(B) Consolidar** as US do cadastro dentro do `Crm/SPEC.md` atual. Mistura com o pipeline silenciado — não recomendado.
-- **(C) Ensinar `anchor-lint.mjs` a varrer `SPEC*.md`** — mexe em ferramenta compartilhada (afeta todos os módulos, baseline, ADR 0273 §scope). Precisa de emenda à ADR 0273.
+- ✅ `anchor-lint.mjs` (full-tree) **agora lê** `Cliente/SPEC.md` → cadastro passa a contar no `anchor_coverage` (15 US ancoradas, 0 path-morto). Máquina **ligada**.
+- ✅ `memory-schema-gate` passa a validar o frontmatter (glob `*/SPEC.md`) — frontmatter conferido schema-válido.
+- 🔁 Pipeline CRM (leads/propostas/campanhas/schedules/calllogs) entra em **depreciação** — plano à parte (agente `deprecar-modulo`), preservando 100% o cadastro.
+- 📌 Código backend ainda em `Modules/Crm/` (rename de módulo NÃO feito — fora de escopo desta passagem); RUNBOOKs/visual-comparisons ainda em `Crm/` (links `../Crm/`), a mover na execução do plano.
 
-Enquanto a decisão não vem: âncoras ficam corretas e prontas; a verificação roda manual (script da skill).
+Doc de desambiguação [crm-e-o-modulo-de-cliente.md](../../../reference/crm-e-o-modulo-de-cliente.md) atualizado pra refletir a separação.
 
 ## Como reproduzir / próxima tela
 
