@@ -1,0 +1,74 @@
+name: Design-memory gates (advisory)
+
+# Roda os gates de design-memory (prototipo-ui/) no CI -- fecha o buraco confessado
+# na auditoria: ds-guard.mjs (PROCESSO_MEMORIA_CC.md §8) e integrity-check.mjs (§15)
+# hoje rodam em NENHUM workflow, dependem do humano lembrar de rodar no fim da build.
+#
+#   - ds-guard.mjs        anti-padrao L-02/L-21/L-23 (paleta inventada · tela na raiz)
+#                         nos arquivos design-memory TOCADOS no PR (modo arquivos = bloqueia
+#                         localmente, mas o job e' advisory) + relatorio de divida (--all).
+#   - integrity-check.mjs estrutura da propria memoria sa (IT1..IT7 da espinha).
+#
+# Node puro, sem deps/DB/rede -- segundos. ADVISORY de nascenca (gates novos nunca
+# nascem required -- ADR 0271/0275); nao entra em branch protection. continue-on-error
+# em cada step de gate garante que vermelho aqui NAO bloqueia o merge.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'prototipo-ui/**'
+      - 'resources/js/Pages/**/*.tsx'
+  workflow_dispatch:
+
+concurrency:
+  group: design-memory-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    name: design-memory gates (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # historico suficiente pro git diff vs origin/main funcionar
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # DS-GUARD nos arquivos TOCADOS (css/html de design-memory). O ds-guard so
+      # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
+      # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
+      # uso e sai 0 (nao bloqueia). continue-on-error = advisory.
+      - name: DS-GUARD (arquivos tocados · §8)
+        continue-on-error: true
+        run: |
+          BASE="origin/${{ github.base_ref }}"
+          if [ -z "${{ github.base_ref }}" ]; then BASE="origin/main"; fi
+          CHANGED=$(git diff --name-only "$BASE"...HEAD -- 'prototipo-ui/**' 'resources/js/Pages/**' | grep -E '\.(css|html)$' || true)
+          if [ -z "$CHANGED" ]; then
+            echo "Nenhum .css/.html de design-memory tocado neste PR — nada a checar (ds-guard so checa css/html)."
+            exit 0
+          fi
+          echo "Arquivos tocados (css/html) que o ds-guard vai checar:"
+          echo "$CHANGED"
+          echo "---"
+          node prototipo-ui/ds-guard.mjs $CHANGED
+
+      # DS-GUARD --all: relatorio de divida da arvore (NAO bloqueia por design · §8).
+      # Sempre roda, da visibilidade da divida acumulada (paleta inventada / tela na raiz).
+      - name: DS-GUARD relatorio de divida (--all · §8)
+        continue-on-error: true
+        run: node prototipo-ui/ds-guard.mjs --all
+
+      # integrity-check: a propria memoria nao corrompeu (espinha · pares charter/decisoes ·
+      # LICOES contiguas · benchmark). Sai 1 se algum IT duro falhar; advisory aqui.
+      - name: Integrity check (espinha da memoria · §15)
+        continue-on-error: true
+        run: node prototipo-ui/integrity-check.mjs
