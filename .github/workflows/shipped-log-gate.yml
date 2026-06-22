@@ -1,0 +1,38 @@
+name: Shipped log gate (advisory)
+
+# Catraca de freshness do registro de entrega — porta de saída do loop (ADR 0294 ext).
+# Roda o gerador --check: falha (exit 1) se algum shipped-log versionado está STALE
+# (> FRESH_DAYS=4 desde `generated`), sinal de que o cron/auto-PR parou.
+#
+# Dois gatilhos:
+#   - pull_request (paths): valida cada auto-PR do cron + edição humana de shipped/.
+#   - schedule diário: backstop que avermelha no Actions se o cron morrer silencioso.
+# Advisory de nascença (ADR 0271/0275) — NÃO entra em branch protection.
+# A linha proativa no Daily Brief (avisar antes de ficar vermelho) é o resíduo
+# server-side (MCP) — fase 2.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'memory/governance/shipped/**'
+      - 'scripts/governance/shipped-log-generate.mjs'
+      - '.github/workflows/shipped-log-gate.yml'
+  schedule:
+    - cron: '0 12 * * *'   # 09:00 BRT — backstop diário
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: shipped-log fresco (--check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Gerador --check (freshness)
+        run: node scripts/governance/shipped-log-generate.mjs --check
