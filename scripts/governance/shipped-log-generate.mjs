@@ -10,9 +10,11 @@
  *   G4 truncação silenciosa     → cross-check: soma das sub-janelas vs total_count do Search → exit 1 ao divergir
  *   G7 merged ≠ entregue        → reconcilia pares de revert (líquido zero)
  *   G9 ruído de agrupamento     → aliases de scope + normalize NFD (acento)
+ *   G8 merge ≠ deploy           → cruza /api/mcp/version (SHA+data do deploy de produção) → marca 🚀 no-ar / ⏳ aguardando
  *
- * Rótulo HONESTO: lista o que foi MERGEADO em `main`, não "entregue". Merge ≠ deploy ≠ funciona (G8, fora de escopo).
- * Limites conhecidos declarados no doc: área = scope do título (G5 paths-por-PR fora por custo); janela via args/cron (G6 MCP-live pendente).
+ * Rótulo HONESTO: lista o que foi MERGEADO em `main`, e cruza com o deploy real (G8): 🚀 no-ar / ⏳ aguardando-deploy.
+ * Limites conhecidos declarados no doc: área = scope do título (G5 paths-por-PR fora por custo); janela via args/cron (G6 MCP-live pendente);
+ * deploy marcado por DATA do último deploy (aproximação barata, não ancestralidade por-PR).
  *
  * Funções puras exportadas → testáveis sem rede (shipped-log-generate.test.mjs). Execução só quando rodado direto.
  *
@@ -84,7 +86,7 @@ export function groupByArea(prs, reverted = new Map()) {
     if (!areas.has(area)) areas.set(area, { meaningful: [], noise: 0 });
     const b = areas.get(area);
     const ds = isDS(pr.title, scope);
-    const row = { n: pr.number, type, subject, date: (pr.mergedAt || '').slice(0, 10), ds, rev: reverted.get(pr.number) };
+    const row = { n: pr.number, type, subject, date: (pr.mergedAt || '').slice(0, 10), ds, rev: reverted.get(pr.number), deployed: pr._deployed };
     if (NOISE.has(type)) b.noise += 1; else b.meaningful.push(row);
     if (ds) dsAll.push(row);
   }
@@ -103,7 +105,23 @@ export function crossCheck(collectedInUtcRange, independentTotal, anyDayHitCap) 
   return { ok: true, reason: 'bate com total_count' };
 }
 
-export function buildDoc({ cycle, since, until, prs, direct, reverted, partial }) {
+/**
+ * Marca cada PR como no-ar via DATA do deploy (aproximação barata — sem 1 git/PR).
+ * O deploy faz `git reset --hard origin/main` num instante → PR mergeado ATÉ deployed_at
+ * está no ar; mergeado depois = aguardando deploy. Seta pr._deployed e devolve contagem.
+ */
+export function markDeployed(prs, deployedAtIso) {
+  if (!deployedAtIso) { for (const p of prs) p._deployed = null; return { onAir: null, waiting: null }; }
+  const dep = Date.parse(deployedAtIso);
+  let onAir = 0, waiting = 0;
+  for (const p of prs) {
+    p._deployed = Date.parse(p.mergedAt) <= dep;
+    if (p._deployed) onAir++; else waiting++;
+  }
+  return { onAir, waiting };
+}
+
+export function buildDoc({ cycle, since, until, prs, direct, reverted, partial, deploy }) {
   const { sorted, dsAll, totalMean, totalNoise } = groupByArea(prs, reverted);
   const L = [];
   L.push('<!-- GERADO por scripts/governance/shipped-log-generate.mjs (v2, fonte completa). NÃO editar à mão. Rode --write. -->');
@@ -119,7 +137,7 @@ export function buildDoc({ cycle, since, until, prs, direct, reverted, partial }
   if (partial) L.push(`> ⚠️ **PARCIAL** — janela ainda aberta. Regenerar ao fechar o cycle.`);
   L.push(`> **Rótulo honesto:** lista o que foi **mergeado em \`main\`** em \`${since}..${until}\` (BRT). Merge ≠ deploy ≠ funciona em produção.`);
   L.push(`> Fonte: REST por sub-janela de dia (sem teto da Search API) + API \`/commits\` pra push-direto + revert reconciliado. **Não** depende de \`Refs: US-XXX\`.`);
-  L.push(`> Limites: área = scope do conventional-commit (PR multi-área cai na área do título); deploy real fora de escopo (G8).`);
+  L.push(`> 🚀 = no ar (mergeado ≤ deploy de produção) · ⏳ = mergeado, aguardando deploy (G8, via /api/mcp/version, por data). Limite: área = scope do título (G5 paths-por-PR fora por custo).`);
   L.push('');
   L.push('## Contagem');
   L.push('');
@@ -127,6 +145,11 @@ export function buildDoc({ cycle, since, until, prs, direct, reverted, partial }
   L.push(`- **${direct.length} entregas push-direto** (commits sem objeto-PR — invisíveis a query de PR)`);
   L.push(`- **${reverted.size} revert reconciliado** (par riscado — entrega líquida zero)`);
   L.push(`- **${dsAll.length} tocam Design System**`);
+  if (deploy && deploy.commit_short) {
+    L.push(`- 🚀 **Deploy de produção:** \`${deploy.commit_short}\` (${deploy.deployed_at || '?'}) · **${deploy.onAir ?? '?'}** no ar · **${deploy.waiting ?? '?'}** mergeados **aguardando deploy**`);
+  } else {
+    L.push(`- ⏳ Deploy: status indisponível (sem MCP_DRIFT_TOKEN/endpoint) — PRs não marcados 🚀/⏳`);
+  }
   L.push('');
   L.push('## Reconciliação — merge ≠ entrega');
   L.push('');
@@ -148,7 +171,8 @@ export function buildDoc({ cycle, since, until, prs, direct, reverted, partial }
     for (const r of b.meaningful) {
       const ds = r.ds ? ' · `DS`' : '';
       const rev = r.rev ? ` — ⚠️ REVERTIDO por #${r.rev} (líquido 0)` : '';
-      L.push(`- ${r.type}: ${r.subject} (#${r.n})${ds}${rev}`);
+      const dep = r.deployed === true ? ' 🚀' : r.deployed === false ? ' ⏳' : '';
+      L.push(`- ${r.type}: ${r.subject} (#${r.n})${ds}${dep}${rev}`);
     }
     L.push('');
   }
@@ -224,6 +248,28 @@ function resolveRepo(repoArg) {
   try { return gh(['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner']).trim(); } catch { return ''; }
 }
 
+/**
+ * SHA + data do deploy de produção via /api/mcp/version (G8). Mesmo padrão da
+ * sentinela mcp-drift-sentinel.mjs: endpoint público, Bearer MCP_DRIFT_TOKEN, sem RBAC.
+ * Degrada → null (sem token / endpoint fora / pré-rollout): o doc sai sem marcação.
+ */
+async function fetchDeployed() {
+  const token = (process.env.MCP_DRIFT_TOKEN || '').trim();
+  if (!token || typeof fetch !== 'function') return null;
+  const url = process.env.MCP_HEALTH_URL || 'https://mcp.oimpresso.com/api/mcp/version';
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 12000);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal, headers: { 'user-agent': 'shipped-log-generate', authorization: `Bearer ${token}` } });
+    if (!r.ok) return null;
+    const j = await r.json();
+    const commit = (j.commit || '').trim() || null;
+    if (!commit) return null;
+    return { commit, commit_short: j.commit_short || commit.slice(0, 9), deployed_at: j.deployed_at || null };
+  } catch { return null; }
+  finally { clearTimeout(t); }
+}
+
 // ── --check (gate CI) / --json (Brief): nenhum shipped-log versionado pode estar stale ──
 function runHealth(root, jsonOut) {
   const dir = join(root, SHIPPED_DIR);
@@ -251,7 +297,7 @@ function runHealth(root, jsonOut) {
 // ── main (só quando rodado direto) ───────────────────────────────────────────────
 function arg(name, def = '') { const h = process.argv.find((a) => a.startsWith(`--${name}=`)); return h ? h.slice(name.length + 3) : def; }
 
-function main() {
+async function main() {
   const ROOT = process.cwd();
   const JSON_OUT = process.argv.includes('--json');
   if (process.argv.includes('--check') || JSON_OUT) process.exit(runHealth(ROOT, JSON_OUT));
@@ -275,11 +321,15 @@ function main() {
 
   const direct = collectDirect(repo, since, until);
   const reverted = reconcileReverts(inWindow);
-  const out = buildDoc({ cycle, since, until, prs: inWindow, direct, reverted, partial });
+  const deployedInfo = await fetchDeployed();
+  const { onAir, waiting } = markDeployed(inWindow, deployedInfo?.deployed_at);
+  const deploy = deployedInfo ? { ...deployedInfo, onAir, waiting } : null;
+  const out = buildDoc({ cycle, since, until, prs: inWindow, direct, reverted, partial, deploy });
 
   if (!WRITE) {
     console.log(out.slice(0, 3500));
-    console.log(`\n--- dry-run · ${inWindow.length} PRs · ${direct.length} push-direto · ${reverted.size} revert · cross-check: ${cc.reason} ---`);
+    const depStr = deploy ? `${deploy.commit_short} (${onAir} no ar/${waiting} aguard)` : 'indisponível';
+    console.log(`\n--- dry-run · ${inWindow.length} PRs · ${direct.length} push-direto · ${reverted.size} revert · deploy: ${depStr} · cross-check: ${cc.reason} ---`);
     process.exit(0);
   }
   const outPath = join(ROOT, SHIPPED_DIR, `${cycle}.md`);
@@ -288,4 +338,4 @@ function main() {
   console.log(`✓ ${SHIPPED_DIR}/${cycle}.md — ${inWindow.length} PRs · ${direct.length} push-direto · ${reverted.size} revert (cross-check ok).`);
 }
 
-if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) main();
+if (process.argv[1] && pathToFileURL(process.argv[1]).href === import.meta.url) main().catch((e) => { console.error(e); process.exit(1); });
