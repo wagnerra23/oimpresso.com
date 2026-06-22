@@ -113,6 +113,9 @@ class HealthController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        // Tier 0 (ADR 0093) N/A aqui: mcp_jira_projects/mcp_cycles são gestão INTERNA
+        // do projeto (COPI), NÃO multi-tenant por business_id — não têm BusinessScope
+        // (idêntico a CyclesActiveTool). Comentário explícito p/ o guard no-missing-tenant-scope.
         $projectKey = strtoupper((string) $request->query('project', 'COPI'));
         $project = McpProject::where('key', $projectKey)->first();
         $cycle = $project
