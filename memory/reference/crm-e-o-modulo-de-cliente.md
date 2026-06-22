@@ -12,7 +12,7 @@
 - **"Cliente" / "contatos do cliente"** = o **cadastro** (PF/PJ, drawer 760px, dados fiscais BR, endereços). É o que se mantém e evolui.
 - **"CRM"** = o **pipeline pré-venda** (leads, funil life_stage, propostas, campanhas, follow-ups, call logs). É o que está **em depreciação**.
 - **NÃO são a mesma coisa** (correção de 2026-06-22 — o canon antigo dizia que eram).
-- **Código:** ambos ainda em `Modules/Crm/` (legacy UPOS). Os controllers do cadastro (`ClienteAutosaveController`, `ClienteLookupController` CEP/CNPJ, `ClienteIaController`, `ClienteAuditoriaController` LGPD, `ClienteOssDataController`, `ClienteVeiculosController`, `ContactAddressController`) **não** fazem parte do pipeline. **Não existe `Modules/Cliente`** (ainda).
+- **Código:** ambos ainda em `Modules/Crm/` (legacy UPOS). Os controllers do cadastro (`ClienteAutosaveController`, `ClienteLookupController` CEP/CNPJ, `ClienteIaController`, `ClienteAuditoriaController` LGPD, `ClienteOssDataController`, `ClienteVeiculosController`, `ContactAddressController`) **não** fazem parte do pipeline. **Não há um módulo `Cliente` separado** (ainda) — o código fica em `Modules/Crm`.
 - **Dados** do cadastro são core `App\`: `app/Contact.php` + `app/ContactAddress.php` + tabelas `contacts`/`contact_addresses`.
 
 ## Onde está o conhecimento canônico
@@ -22,7 +22,7 @@
 | **Cadastro de Cliente** (requisitos) | **`memory/requisitos/Cliente/`** — `SPEC.md` (US 063–078, machine-read) + `audits/` | movido de `Crm/SPEC-us-063-078.md` em 2026-06-22 |
 | Cadastro — docs ainda em `Crm/` (a mover) | `memory/requisitos/Crm/` — BRIEFING, ARCHITECTURE, RUNBOOK-cliente-*, UI-CATALOG, `_legado-fullpage/` | migram pra `Cliente/` na execução do plano de separação |
 | **Pipeline CRM** (em depreciação) | `memory/requisitos/Crm/SPEC.md` (US 001–062) | TARGET da depreciação — ver plano |
-| Código (cadastro + pipeline) | `Modules/Crm/` | rename de módulo não feito; não existe `Modules/Cliente` |
+| Código (cadastro + pipeline) | `Modules/Crm/` | rename de módulo não feito; sem módulo `Cliente` separado |
 | Modelo de dados (cadastro) | `app/Contact.php`, `app/ContactAddress.php` | core `App\`, não um módulo |
 
 ## Por que confunde (e como falar)

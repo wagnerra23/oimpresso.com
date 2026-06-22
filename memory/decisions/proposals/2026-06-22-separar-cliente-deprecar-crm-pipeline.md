@@ -32,7 +32,7 @@ Problema secundário (governança): a spec viva do cadastro estava em `Crm/SPEC-
 1. **Cliente ≠ CRM** no canon. O cadastro de Cliente é concern próprio; o pipeline CRM é outro, **em depreciação**.
 2. **Canon do cadastro → `memory/requisitos/Cliente/SPEC.md`** (movido de `Crm/SPEC-us-063-078.md`). Efeito: `anchor-lint` passa a lê-lo (máquina ligada para o cadastro) e o `memory-schema-gate` valida o frontmatter. Âncoras ADR 0273 nas 15 US (0 path-morto).
 3. **Deprecar o pipeline CRM (B)** conforme [`memory/requisitos/Crm/DEPRECATION-PLAN-pipeline.md`](../../requisitos/Crm/DEPRECATION-PLAN-pipeline.md) — 6 etapas reversíveis com gate Wagner por etapa, preservando 100% o cadastro (A). Tabela `contacts` e colunas `crm_*` ficam **PRESERVE in-place** (dormentes). DROP de qualquer `crm_*` está **BLOQUEADO** até verificação de row count por business + auditoria do consumidor externo Connector.
-4. **Sem rename de módulo agora.** O código (A e B) permanece fisicamente em `Modules/Crm/` — `Modules/Crm` → `Modules/Cliente` fica fora deste escopo (esforço grande, módulo vivo). Não existe `Modules/Cliente`.
+4. **Sem rename de módulo agora.** O código (A e B) permanece fisicamente em `Modules/Crm/` — renomear o módulo `Modules/Crm` para `Cliente` fica fora deste escopo (esforço grande, módulo vivo). Não há um módulo `Cliente` separado.
 
 ## Consequências
 
@@ -48,7 +48,7 @@ Problema secundário (governança): a spec viva do cadastro estava em `Crm/SPEC-
 
 1. **Renomear `SPEC-us-063-078.md` → `Crm/SPEC.md`** (recomendação inicial): rejeitada — re-grudaria o cadastro na identidade "Crm", contra "contacts não é o crm".
 2. **Ensinar `anchor-lint` a varrer `SPEC*.md`**: rejeitada agora — mexe em tooling compartilhado (afeta todos os módulos + baseline) e mantém o cadastro sob a pasta `Crm`. Exigiria emenda à ADR 0273.
-3. **Rename de módulo `Modules/Crm`→`Modules/Cliente` já**: adiada — blast radius alto (namespaces, rotas, testes) num módulo vivo; não necessária pra ligar a máquina.
+3. **Rename do módulo `Modules/Crm` para `Cliente` já**: adiada — blast radius alto (namespaces, rotas, testes) num módulo vivo; não necessária pra ligar a máquina.
 
 ## Refs
 
