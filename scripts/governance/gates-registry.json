@@ -322,6 +322,10 @@
       "nome": "SDD floor commit-back — publica o floor vivo (branch órfã governance/nightly-floor) em governance/sdd-scorecard.json no main (P01/Gap-1a · ADR 0279)",
       "classe": "automacao"
     },
+    "sdd-scorecard-ratchet.yml": {
+      "nome": "SDD Scorecard Ratchet (2º dente SDD · GT-G3 — métrica armada não regride; hard, candidato a required; ADR 0275 §3)",
+      "classe": "gate"
+    },
     "sdd-scorecard.yml": {
       "nome": "SDD Scorecard meta-catraca (advisory · determinismo + staleness + ratchet vs baseline — GT-G3, ADR 0275)",
       "classe": "meta"

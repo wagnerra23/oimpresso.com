@@ -25,6 +25,7 @@
       "Dominio-dict · ratchet (enum ⇔ dicionário)",
       "E2E Playwright · UCs críticos",
       "Foundation ratchet (quarentena/RefreshDatabase/Business::first)",
+      "SDD scorecard ratchet (métrica armada não regride · GT-G3)",
       "Frontend / Vite build",
       "No hardcode business_id (Tier 0)",
       "No-mock-in-prod · ratchet",
