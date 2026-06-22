@@ -13,7 +13,7 @@ tier: A
 
 # Page Charter — /repair/producao-oficina
 
-> **Status:** F3 implementação inicial baseada em [F1 aprovado por Wagner em 2026-05-09](../../../../prototipo-ui/prototipos/producao-oficina/F1.html). Greenfield — sem tela Blade legacy.
+> **Status:** F3 implementação inicial baseada em F1 aprovado por Wagner em 2026-05-09. Greenfield — sem tela Blade legacy.
 > **Vocabulário shared (refactor 2026-05-10 US-REPA-002 Caminho A — [ADR 0121 §P8](../../../../../memory/decisions/0121-oimpresso-modular-especializado-por-vertical.md)):** kanban opera em vocabulário **genérico** consumível por qualquer vertical (Vestuario / ComunicacaoVisual / OficinaAuto). `code/item/usage_meter/executor/slot/area` em vez de termos específicos automotivos. Labels e slot_config vêm de `business.repair_settings` JSON.
 > Query real `JobSheet` (US-REPAIR-PROD-2) com fallback gracioso pra mock data se biz não tem `repair_statuses` configurado.
 

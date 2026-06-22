@@ -5,7 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-05-21"
 parent_module: Financeiro
-parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
+parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [0005-financeiro-vs-accounting-paralelo, 0114-prototipo-ui-cowork-loop-formalizado, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho]
 related_us: [US-FIN-014, US-FIN-014c]
 related_prototype: prototipo Cowork "Fluxo de Caixa" (Financeiro.html), aprovado [W] 2026-05-09
@@ -197,7 +197,7 @@ it('totais.saldo = totais.entradas - totais.saidas (invariante contábil)')
 ## Refs
 
 - [Visual comparison F1.5](../../../../../memory/requisitos/Financeiro/fluxo-visual-comparison.md) — 8 dimensões + score 88/100 + 4 decisões aprovadas
-- [Protótipo F1](../../../../prototipo-ui/prototipos/financeiro-fluxo/page.tsx) — aprovado [W] 2026-05-09
+- Protótipo F1 — aprovado [W] 2026-05-09
 - [Lições F3 Financeiro rejeitado](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pre-flight aplicado nesta entrega
 - [ADR 0093 — Multi-tenant Tier 0 IRREVOGÁVEL](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 - [ADR ui/0114 — Loop Cowork formalizado](../../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)

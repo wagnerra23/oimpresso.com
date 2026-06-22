@@ -5,7 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-06-16"
 parent_module: Financeiro
-parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
+parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94]
 related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: canon REAL public/cowork-preview/Oimpresso ERP - Chat.html (aprovado Wagner 2026-05-19)

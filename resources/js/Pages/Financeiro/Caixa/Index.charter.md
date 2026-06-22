@@ -5,7 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-05-21"
 parent_module: Financeiro
-parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
+parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94, 104]
 related_us: [US-FIN-CAIXA-F6-SOFT]
 related_prototype: n/a (F6 Soft wrapper — sem protótipo Cowork; reusa tabela cash_registers core UltimatePOS)

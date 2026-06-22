@@ -4,7 +4,6 @@ component: resources/js/Pages/StockTransfer/Create.tsx
 tela: stock_transfers/create
 tipo: FORM CREATE
 modulo: Inventory / StockTransfer
-runbook: memory/requisitos/Inventory/RUNBOOK-stock-transfer-create.md
 status: draft
 status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]

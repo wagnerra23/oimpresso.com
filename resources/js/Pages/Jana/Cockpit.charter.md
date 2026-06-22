@@ -26,7 +26,7 @@ permissao: copiloto.access
 
 > **Status:** `spec-ahead-of-impl` — charter define o destino · `Cockpit.tsx` atual (138 lin) é MVP-piloto-em-validacao com anti-patterns do amendment-block-renderer 2026-05-14 (tabs `Todos/OS/Equipe/Clientes`, `setTimeout` 2400ms, resposta humana literal *"Recebido, vou verificar e te respondo já já 👍"*). Substituição em-place quando F1.5 ≥80 + screenshot Wagner.
 >
-> **Fonte canônica visual:** [`prototipo-ui/_cowork-export-2026-05-15/chat-jana.jsx`](../../../prototipo-ui/_cowork-export-2026-05-15/chat-jana.jsx) (491 lin) + [`chat-jana.css`](../../../prototipo-ui/_cowork-export-2026-05-15/chat-jana.css) (645 lin) — score F1.5 interim 78/100 ([CRITIQUE](../../../prototipo-ui/_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md)).
+> **Fonte canônica visual:** `prototipo-ui/_cowork-export-2026-05-15/chat-jana.jsx` (491 lin) + `chat-jana.css` (645 lin) — score F1.5 interim 78/100 (CRITIQUE).
 
 ---
 
@@ -147,11 +147,11 @@ Substitui `Cockpit.tsx` atual que erroneamente implementou um chat WhatsApp-styl
 
 > Violações detectadas no `chat-jana.jsx` (export 2026-05-15). Refator Cowork V2.1 obrigatório antes de F3.
 
-- ❌ **Avatar gradient + emoji 🤖** — `linear-gradient(135deg, #8a6cf5, #5b3ec8)` em [chat-jana.css:44-49](../../../prototipo-ui/_cowork-export-2026-05-15/chat-jana.css). Substituir por `JanaAvatar` mono `bg-primary text-primary-foreground` letra "J".
-- ❌ **Bubbles com tail asimétrico** — `border-bottom-right-radius:4px` (user) + `border-bottom-left-radius:4px` (jana) em [chat-jana.css:498,505](../../../prototipo-ui/_cowork-export-2026-05-15/chat-jana.css). Substituir por simétrico.
+- ❌ **Avatar gradient + emoji 🤖** — `linear-gradient(135deg, #8a6cf5, #5b3ec8)` em chat-jana.css:44-49. Substituir por `JanaAvatar` mono `bg-primary text-primary-foreground` letra "J".
+- ❌ **Bubbles com tail asimétrico** — `border-bottom-right-radius:4px` (user) + `border-bottom-left-radius:4px` (jana) em chat-jana.css:498,505. Substituir por simétrico.
 - ❌ **Streaming ausente** — `onSend()` linha 395 só ecoa user msg. Implementar `mock-stream.js` SSE fake com chunks `delta`/`final`.
 - ❌ **Atalhos globais ausentes** — sem `useEffect` keydown. Implementar listener `/` `J` `K` `Esc`.
-- ❌ **Apenas 1 kind bubble** — só `list-card` em [chat-jana.jsx:412](../../../prototipo-ui/_cowork-export-2026-05-15/chat-jana.jsx). Implementar switch 4 kinds.
+- ❌ **Apenas 1 kind bubble** — só `list-card` em chat-jana.jsx:412. Implementar switch 4 kinds.
 - ❌ **Citations ausentes** — sem schema `sources`. Adicionar.
 - ❌ **PII detector ausente** — composer sem regex. Adicionar.
 - ❌ **Markdown render frágil** — regex custom `**bold**` split (linha 156-163) sem sanitizer. Trocar por `react-markdown` + `rehype-sanitize` (já no projeto via `Chat.tsx`).
@@ -198,7 +198,7 @@ Substitui `Cockpit.tsx` atual que erroneamente implementou um chat WhatsApp-styl
 
 ### F1.5 (atual) — Cowork V2.1 com 8 refinos · gate ≥80
 
-Lista canônica: ver §UX Anti-patterns acima. Estimativa Cowork: ~3-4h. CRITIQUE vivo em [`_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md`](../../../prototipo-ui/_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md).
+Lista canônica: ver §UX Anti-patterns acima. Estimativa Cowork: ~3-4h. CRITIQUE vivo em `_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md`.
 
 ### F2 — Backend baseline · Pest fixtures
 

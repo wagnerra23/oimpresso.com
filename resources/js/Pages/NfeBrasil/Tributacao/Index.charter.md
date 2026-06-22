@@ -136,7 +136,7 @@ it('confirms destructively when applying template over existing config')
 - [US-NFE-010](../../../../../memory/requisitos/NfeBrasil/SPEC.md) — fase 2 UI tributação
 - [US-NFE-TPL-001](../../../../../memory/requisitos/NfeBrasil/SPEC.md) — Templates L1
 - [ADR satélite NfeBrasil/arq/0006](../../../../../memory/requisitos/NfeBrasil/adr/arq/0006-cascade-defaults-ncm-produto.md) — cascade NCM→produto
-- [ADR 0029](../../../../memory/decisions/0029-inertia-upos.md) — Inertia + UltimatePOS
+- [ADR 0029](../../../../../memory/decisions/0029-padrao-inertia-react-ultimatepos.md) — Inertia + UltimatePOS
 - [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 (gate per-business auto-emission)
 - [ADR 0094](../../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
 

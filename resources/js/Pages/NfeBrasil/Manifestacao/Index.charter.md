@@ -158,8 +158,8 @@ it('logs activity on each manifestation event with business_id')
 ## Refs
 
 - [US-NFE-052](../../../../../memory/requisitos/NfeBrasil/SPEC.md) — Manifestação Destinatário UI
-- [ADR 0116](../../../../memory/decisions/0116-caso-gold-manifestacao.md) — caso Gold (origem)
-- [ADR 0029](../../../../memory/decisions/0029-inertia-upos.md) — Inertia + UltimatePOS
+- [ADR 0116](../../../../../memory/decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md) — caso Gold (origem)
+- [ADR 0029](../../../../../memory/decisions/0029-padrao-inertia-react-ultimatepos.md) — Inertia + UltimatePOS
 - [ADR 0039](../../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md) — Cockpit pattern (list+detail base)
 - [ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0
 - [ADR 0094](../../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2
