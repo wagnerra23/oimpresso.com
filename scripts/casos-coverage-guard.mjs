@@ -283,12 +283,15 @@ function loadManifest() {
 function declaredStatus(block) {
   const m = block.match(/Status\s*[:：]\s*([^\n]*)/);
   if (!m) return null;
-  const line = m[1];
-  if (line.includes('✅')) return 'green';
-  if (line.includes('❌')) return 'broken';
-  if (line.includes('🧪')) return 'testing';
-  if (line.includes('⬜')) return 'unverified';
-  return 'other';
+  // Lê só o PRIMEIRO glyph de status na linha (ordem de documento). A prosa explicativa
+  // depois do glyph pode citar OUTROS glyphs ("…volta a ✅ quando o teste passar…") e NÃO
+  // pode sobrescrever o status que o autor declarou. Antes checávamos ✅-primeiro: um 🧪
+  // honesto com ✅ na nota virava 'green' e reativava G-7 contra um status rebaixado de boa-fé
+  // (ADR 0264; repro PR #3234 commit 51a4a2b4ab → status:stale-results em UC-S10).
+  // Flag `u` é obrigatória: 🧪 (U+1F9EA) é astral; sem ela a classe casaria meia surrogate.
+  const first = m[1].match(/[✅❌🧪⬜]/u);
+  if (!first) return 'other';
+  return { '✅': 'green', '❌': 'broken', '🧪': 'testing', '⬜': 'unverified' }[first[0]];
 }
 
 function statusViolations(casosFiles, manifest) {
