@@ -28,10 +28,24 @@ const JSON_OUT = process.argv.includes('--json');
 const DETAIL = process.argv.includes('--detail');
 
 const TOKENS_DIR = join(ROOT, 'resources', 'css', 'tokens');
-const CSS = {
-  inertia: join(ROOT, 'resources', 'css', 'inertia.css'),
-  foundations: join(ROOT, 'resources', 'css', 'foundations.css'),
-  cockpit: join(ROOT, 'resources', 'css', 'cockpit.css'),
+
+// ── ATIVAÇÃO (feat/onda-dtcg-ativar) ────────────────────────────────────────
+// Antes da ativação a fonte VIVA das vars era inline em inertia/foundations/
+// cockpit.css e este check provava DTCG ≡ esses blocos inline.
+// Pós-ativação esses blocos foram movidos pros _generated-*.css (SAÍDA do Style
+// Dictionary, importados pelos .css canônicos — é o CSS que o build consome).
+// O check segue provando DTCG ≡ CSS-consumido-pelo-build, agora lendo os
+// arquivos gerados. Continua mordendo: pega edição manual nos _generated-*.css
+// ou regressão do gerador (gerado ≠ JSON). Se os gerados sumirem, FALHA (rc2) —
+// o build precisa deles. Cada arquivo gerado tem UM bloco (light XOR dark).
+const GEN = (f) => join(TOKENS_DIR, f);
+const GENERATED = {
+  inertiaTheme: GEN('_generated-inertia-theme.css'),   // @theme (light)
+  inertiaDark: GEN('_generated-inertia-dark.css'),     // .dark,[data-theme="dark"]
+  foundLight: GEN('_generated-foundations-light.css'), // :root
+  foundDark: GEN('_generated-foundations-dark.css'),   // [data-theme="dark"]
+  cockpitLight: GEN('_generated-cockpit-light.css'),   // .cockpit
+  cockpitDark: GEN('_generated-cockpit-dark.css'),     // .cockpit[data-theme="dark"]
 };
 
 // ── parser de bloco por casamento de chaves ─────────────────────────────────
@@ -63,24 +77,30 @@ function defsOf(body) {
 }
 
 // ── escopos canônicos (light + dark) por arquivo ────────────────────────────
-// O `source` de cada token referencia um destes escopos.
+// Pós-ativação cada escopo vive num _generated-*.css de bloco único. O `source`
+// de cada token referencia o escopo lógico (inertia/foundations/cockpit) —
+// mapeamos cada um pro arquivo gerado correspondente.
 function buildCanonScopes() {
-  const inertia = readFileSync(CSS.inertia, 'utf8');
-  const foundations = readFileSync(CSS.foundations, 'utf8');
-  const cockpit = readFileSync(CSS.cockpit, 'utf8');
+  const rd = (p) => {
+    if (!existsSync(p)) {
+      console.error(`FALHA: ${p} ausente — rode \`npm run tokens:build\` (Style Dictionary). O build vivo consome esse arquivo.`);
+      process.exit(2);
+    }
+    return readFileSync(p, 'utf8');
+  };
 
-  // inertia.css: @theme (light) + ".dark,\n[data-theme=\"dark\"] {" (dark)
-  const inertiaThemeLight = defsOf(blockBody(inertia, '@theme'));
-  // o bloco dark começa em ".dark," seguido de "[data-theme..." — ancorar em "[data-theme=\"dark\"] {"
-  const inertiaDark = defsOf(blockBody(inertia, '[data-theme="dark"] {'));
+  // inertia: @theme (light) no _generated-inertia-theme.css;
+  //          .dark,[data-theme="dark"] (dark) no _generated-inertia-dark.css
+  const inertiaThemeLight = defsOf(blockBody(rd(GENERATED.inertiaTheme), '@theme'));
+  const inertiaDark = defsOf(blockBody(rd(GENERATED.inertiaDark), '[data-theme="dark"]'));
 
-  // foundations.css: ":root{" (light) + "[data-theme=\"dark\"]{" (dark)
-  const foundLight = defsOf(blockBody(foundations, ':root{'));
-  const foundDark = defsOf(blockBody(foundations, '[data-theme="dark"]{'));
+  // foundations: :root (light) + [data-theme="dark"] (dark) em arquivos separados
+  const foundLight = defsOf(blockBody(rd(GENERATED.foundLight), ':root'));
+  const foundDark = defsOf(blockBody(rd(GENERATED.foundDark), '[data-theme="dark"]'));
 
-  // cockpit.css: ".cockpit{" (light, primeiro com tokens) + ".cockpit[data-theme=\"dark\"]{" (dark)
-  const cockpitLight = defsOf(blockBody(cockpit, '.cockpit{'));
-  const cockpitDark = defsOf(blockBody(cockpit, '.cockpit[data-theme="dark"]{'));
+  // cockpit: .cockpit (light) + .cockpit[data-theme="dark"] (dark) em arquivos separados
+  const cockpitLight = defsOf(blockBody(rd(GENERATED.cockpitLight), '.cockpit '));
+  const cockpitDark = defsOf(blockBody(rd(GENERATED.cockpitDark), '.cockpit[data-theme="dark"]'));
 
   return {
     light: {
