@@ -38,5 +38,9 @@ jobs:
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)
         run: node scripts/governance/dup-detector.test.mjs
+      - name: Registro Figma-não-é-fonte em settings.json (camada L4)
+        run: node scripts/governance/settings-figma-registration.test.mjs
+      - name: Baseline armado Figma-não-é-fonte (camada L5 · vetores de ataque)
+        run: node scripts/evals/design-source-of-truth.eval.mjs
       - name: Design-memory gates wired no CI (Onda O3)
         run: node scripts/governance/design-memory-gates.test.mjs
