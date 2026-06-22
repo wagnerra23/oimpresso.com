@@ -1,6 +1,6 @@
 # 07 — Roadmap e Status
 
-Este arquivo é o **mapa vivo** do que está feito, o que está em andamento, e o que vem pela frente. Atualize ao fim de cada sessão.
+> **⚠️ ARQUIVADO 2026-06-22 — este NÃO é o roadmap canônico.** O roadmap de **entrega** é o **cycle** ([ADR 0294](decisions/0294-metodo-dual-track-shapeup-catraca.md)) + o **shipped-log** (`memory/governance/shipped/`); o de **descoberta** vive em `memory/decisions/proposals/`. Este arquivo (Fase 0 do PontoWR2, abr/2026) fica como **registro histórico** — não atualizar. Rider **G17** da porta-de-saída do loop (proposta `proposals/2026-06-21-fechar-loop-cycle-shipped-log.md`).
 
 ---
 
