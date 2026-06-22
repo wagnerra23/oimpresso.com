@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Modules\Officeimpresso\Http\Controllers\DataController;
@@ -43,10 +42,7 @@ it('declara officeimpresso.clientes.liberar no user_permissions (assinável na U
 });
 
 it('concede liberar clientes SEM abrir superadmin nem Financeiro (no-leak)', function () {
-    $business = Business::first();
-    if (! $business) {
-        $this->markTestSkipped('Nenhum business — precisa seeder UltimatePOS.');
-    }
+    $business = $this->seededTenant();
 
     Permission::firstOrCreate(['name' => PERM_OI_LIBERAR, 'guard_name' => 'web']);
     Permission::firstOrCreate(['name' => 'superadmin', 'guard_name' => 'web']);
@@ -64,10 +60,7 @@ it('concede liberar clientes SEM abrir superadmin nem Financeiro (no-leak)', fun
 });
 
 it('ClientController@index barra quem não tem a permissão e libera quem tem', function () {
-    $business = Business::first();
-    if (! $business) {
-        $this->markTestSkipped('Nenhum business — precisa seeder UltimatePOS.');
-    }
+    $business = $this->seededTenant();
 
     Permission::firstOrCreate(['name' => PERM_OI_LIBERAR, 'guard_name' => 'web']);
 
