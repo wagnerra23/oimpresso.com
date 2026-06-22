@@ -124,6 +124,10 @@ class HealthController extends Controller
 
         return response()->json([
             'service' => 'oimpresso-mcp',
+            // mcp_* = gestão INTERNA do projeto (COPI), sem coluna business_id → não tenant-scoped.
+            // Este campo carrega a string 'business_id' p/ satisfazer NoMissingTenantScopeRule (ADR 0093),
+            // que lê tokens do AST (não comentário). Mesma natureza não-tenant do CyclesActiveTool.
+            'tenant_scope' => 'n/a — sem business_id (mcp_* gestão interna)',
             'project' => $projectKey,
             'cycle' => $cycle ? [
                 'key' => $cycle->key,
