@@ -8,13 +8,16 @@ related_adrs:
   - 0154-rubrica-module-grade-v2
   - 0155-rubrica-module-grade-v3
   - 0156-rubrica-module-grade-v3-detail
+  - 0093-multi-tenant-isolation-tier-0
+  - 0273-anchor-spec-codigo-formato-canonico-fluxo-novo
+anchor_format: "v1"
 na_justified_v3:
   D1.c: "Job `CriarTituloDeVendaJob` é `@deprecated` órfão (Onda 2, 2026-04-25) e nunca foi dispatched em produção; sincronização canônica de títulos a partir de transactions ocorre via `TituloAutoService::sincronizarDeTransacao` chamado diretamente pelo `TransactionObserver`. O constructor do Job recebe apenas `$transactionId` e extrai `business_id` da Eloquent (pattern legítimo de Job-por-ID), portanto a checagem `$businessId` no constructor não se aplica ao módulo."
 pii: false
-updated_at: 2026-05-16
-last_updated: '2026-05-27'
-version: '1.2'
+last_updated: '2026-06-22'
+version: '1.3'
 owner: wagner
+owners: ["W"]
 ---
 
 # Especificação funcional — Financeiro
@@ -68,7 +71,7 @@ owner: wagner
 **Quero** cadastrar título a receber sem venda associada (ex: aluguel sublocação, comissão extra)
 **Para** ter visão integral do que entra, mesmo o que não passa pelo POS
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasReceber/Create.tsx` não construída)
+**Implementado em:** `resources/js/Pages/Financeiro/Unificado/_components/TituloCreateSheet.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `UnificadoController@store` · verificado@ee798b6 (2026-06-22) — lançamento manual via Sheet no cockpit Unificado, sem tela Create dedicada
 
 **Definition of Done:**
 - [ ] FormRequest valida: `cliente_id` ou `cliente_descricao` (livre); `valor>0`; `vencimento >= hoje` (ou flag `retroativo` true); `categoria_id` opcional; `plano_conta_id` opcional; `parcelas[]` se `parcelado=true`
@@ -89,7 +92,7 @@ owner: wagner
 **Quero** baixar título quando recebo o pagamento (parcial ou total) com data, valor, conta bancária e meio
 **Para** atualizar saldo da conta + status do título sem dupla digitação
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasReceber/Show.tsx` modal de baixa não construída)
+**Implementado em:** `resources/js/Pages/Financeiro/Unificado/_components/FinBaixaSheet.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `UnificadoController@baixar` · verificado@ee798b6 (2026-06-22) — baixa parcial/total via Sheet no cockpit Unificado
 
 **Definition of Done:**
 - [ ] FormRequest valida: `valor_baixa > 0`, `valor_baixa <= titulo.valor_aberto`, `data_baixa <= hoje`, `conta_bancaria_id` exists business, `meio_pagamento` enum
@@ -130,7 +133,7 @@ owner: wagner
 **Quero** anexar PDF/imagem do boleto e o sistema preencher fornecedor, valor, vencimento, linha digitável
 **Para** lançar 10 boletos em 5 minutos em vez de 25
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasPagar/Create.tsx` não construída)
+**Implementado em:** _parcial_ · `resources/js/Pages/Financeiro/Unificado/_components/FinOcrBoletoSheet.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `UnificadoController@ocrBoleto` · verificado@ee798b6 (2026-06-22) — upload+OCR de boleto via Sheet no Unificado (US-FIN-029); cadastro a pagar dedicado ainda parcial
 
 **Definition of Done:**
 - [ ] Upload aceita `application/pdf`, `image/png`, `image/jpeg` até 5MB
@@ -151,7 +154,7 @@ owner: wagner
 **Quero** marcar título como pago indicando data, valor, conta bancária debitada e meio
 **Para** atualizar saldo + ter histórico auditável
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasPagar/Show.tsx` modal pagar não construída)
+**Implementado em:** `resources/js/Pages/Financeiro/Unificado/_components/FinBaixaSheet.tsx` · `Modules/Financeiro/Http/Controllers/ContaPagarController.php` · `ContaPagarController@pagar` · verificado@ee798b6 (2026-06-22) — pagamento via Sheet no Unificado + endpoint contas-pagar/pagar
 
 **Definition of Done:**
 - [ ] Cria `caixa_movimentos` row (saída) com `idempotency_key`
@@ -170,7 +173,7 @@ owner: wagner
 **Quero** ver gráfico de barras com saldo projetado dia-a-dia nos próximos 30/60/90 dias
 **Para** decidir antecipar recebível, pegar empréstimo, segurar pagamento, etc.
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/Caixa/Projetado.tsx` não construída)
+**Implementado em:** `resources/js/Pages/Financeiro/Fluxo/Index.tsx` · `Modules/Financeiro/Http/Controllers/FluxoController.php` · verificado@ee798b6 (2026-06-22) — fluxo de caixa projetado entregue como tela /financeiro/fluxo (não Caixa/Projetado)
 
 **Definition of Done:**
 - [ ] Endpoint retorna shape `{dias: [{data, saldo_inicial, entradas, saidas, saldo_final, alertas[]}], saldo_atual, periodo}` (não Model)
@@ -192,7 +195,7 @@ owner: wagner
 **Quero** cadastrar contas bancárias do business com banco, agência, conta, saldo inicial
 **Para** segregar fluxo por conta e conciliar OFX por conta
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasBancarias/Form.tsx` não construída)
+**Implementado em:** `resources/js/Pages/Financeiro/ContasBancarias/Index.tsx` · `resources/js/Pages/Financeiro/ContasBancarias/components/ConfigurarBoletoSheet.tsx` · verificado@ee798b6 (2026-06-22) — cadastro/upsert via tela ContasBancarias/Index (não Form)
 
 **Definition of Done:**
 - [ ] FormRequest valida: `banco_codigo` (FEBRABAN), `agencia`, `conta`, `digito`, `tipo` enum (cc/poup/inv/caixa), `saldo_inicial >= 0`, `saldo_data` (default hoje)
@@ -234,7 +237,7 @@ owner: wagner
 **Quero** gerar boleto pra título a receber em 1 clique e mandar pro cliente por e-mail/WhatsApp
 **Para** não depender do sistema do banco
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/ContasReceber/Show.tsx` botão "Emitir boleto" não construída)
+**Implementado em:** `resources/js/Pages/Financeiro/Cobranca/Index.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `UnificadoController@emitirBoletoTitulo` · verificado@ee798b6 (2026-06-22) — emissão via tela /cobranca + ação "Gerar boleto" no drawer Unificado
 
 **Definition of Done:**
 - [ ] BoletoService strategy: `CnabDirectStrategy` (lib `eduardokum/laravel-boleto`) OU `GatewayStrategy` (Asaas/Iugu) baseado em config do business
@@ -255,7 +258,7 @@ owner: wagner
 **Quero** DRE do período (mês/trimestre/ano) com receita, custo, despesa, lucro líquido
 **Para** declarar imposto / tomar decisão estratégica sem ligar pra Larissa
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/Relatorios/Dre.tsx` não construída)
+**Implementado em:** `resources/js/Pages/Financeiro/Dre/Index.tsx` · `Modules/Financeiro/Http/Controllers/DreController.php` · verificado@ee798b6 (2026-06-22) — DRE entregue como tela /financeiro/dre (não Relatorios/Dre)
 
 **Definition of Done:**
 - [ ] Considera regime do business (`caixa` ou `competência`)
@@ -276,7 +279,7 @@ owner: wagner
 **Quero** ver quem deve, agrupado por bucket (`<30 / 30-60 / 60-90 / >90 / >180`) com total e detalhe
 **Para** atacar inadimplência da maior pra menor (régua manual ou via Dunning futuro)
 
-**Implementado em:** _pendente_ — tela planejada (`resources/js/Pages/Financeiro/Relatorios/Aging.tsx` não construída)
+**Implementado em:** `resources/js/Pages/Financeiro/Unificado/_components/FinAgeing.tsx` · `resources/js/Pages/Financeiro/Unificado/Index.tsx` · verificado@ee798b6 (2026-06-22) — aging por bucket integrado ao cockpit Unificado (US-FIN-030), não tela Relatorios/Aging separada
 
 **Definition of Done:**
 - [ ] Buckets configuráveis por tenant (default: 30/60/90/180)
@@ -295,7 +298,7 @@ owner: wagner
 **Quero** abrir o módulo e ver os 4 estados (a receber abertos, a pagar abertos, recebidos no mês, pagos no mês) **na mesma tela**, com drill-down por click
 **Para** ter overview do caixa em 5 segundos sem navegar entre 4 telas separadas
 
-**Implementado em:** `resources/js/Pages/Financeiro/Dashboard/Index.tsx` · verificado@fd96258 (2026-06-13)
+**Implementado em:** `resources/js/Pages/Financeiro/Unificado/Index.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · verificado@ee798b6 (2026-06-22) — entry point real é a Visão Unificada; Dashboard/Index.tsx DEPRECADO 2026-06-06 (/financeiro → 301 /unificado), tela dormente não-deletada
 
 **Layout obrigatório (ADR ui/0002):**
 
@@ -410,6 +413,8 @@ Pré-req: titulo precisa ter `nosso_numero` populado (emissão prévia manual vi
 
 > owner: wagner · priority: p0 · estimate: 3h · status: todo · type: story
 > blocked_by: —
+
+> ⚠️ **STATUS 2026-06-22 (reconciliação):** o plano abaixo manda editar `Modules\Financeiro\Listeners\CriarTituloDeVenda` — classe **morta/órfã** (ver `na_justified_v3` no frontmatter; só sobrevive em `_grade_v3.json`/`phpstan-baseline.neon`, não há classe viva). O caminho canônico hoje é `TituloAutoService::sincronizarDeTransacao` via `TransactionObserver`, e a criação de título a pagar pra compra/despesa já tem testes vivos (`TituloAutoServiceExpenseTest`, `BridgeExpenseToTitulosCommandTest`). **Antes de executar, confirmar se BUG-3 já não foi resolvido por esse caminho** — provável que esta US esteja DONE/obsoleta. Plano original preservado abaixo só como histórico.
 
 ## Contexto
 
@@ -621,7 +626,7 @@ Então recebe 403
 ```
 
 **Implementação:** `Route::middleware('can:financeiro.contas_receber.view')` no group do módulo. Permissões registradas no `ServiceProvider::boot` via `Permission::create()` se não existir, gated por config flag.
-**Testado em:** `Modules/Financeiro/Tests/Feature/SpatiePermissionsTest` — 12 permissões × 2 direções (sem/com) = 24 asserts.
+**Testado em:** `Modules/Financeiro/Tests/Feature/ImpostosGuardTest.php`, `Modules/Financeiro/Tests/Feature/UnificadoLentesGuardTest.php`, `Modules/Financeiro/Tests/Feature/Onda22AnexosPillPermissionTest.php` — guards de permissão por área (não há um único `SpatiePermissionsTest`). _(reconciliado 2026-06-22)_
 
 ### R-FIN-003 · Auto-criação de título a partir de venda `due`
 
@@ -634,7 +639,7 @@ E criar 2x não duplica (idempotência por `origem + origem_id`)
 ```
 
 **Implementação:** `Modules\Financeiro\Listeners\CriarTituloDeVenda` escuta `TransactionSaved` (do core) e roda em queue `financeiro`. Idempotência: `unique index (business_id, origem, origem_id, parcela_numero)`.
-**Testado em:** `Modules/Financeiro/Tests/Feature/AutoCriacaoTituloVendaTest` — 6 cenários (paga/parcial/due/parcelado/cancelada/refunded).
+**Testado em:** `Modules/Financeiro/Tests/Feature/TituloAutoServiceTest.php`, `Modules/Financeiro/Tests/Feature/TituloCriadoEventTest.php`, `Modules/Financeiro/Tests/Feature/OnCobrancaPagaCreateFinanceiroTituloTest.php`. _(reconciliado 2026-06-22 — AutoCriacaoTituloVendaTest não existe)_
 
 ### R-FIN-004 · Auto-criação de título a partir de compra `due`
 
@@ -645,7 +650,7 @@ Então cria `titulo_pagar` análogo a R-FIN-003
 ```
 
 **Implementação:** Mesmo listener, branch por `transaction.type`.
-**Testado em:** `AutoCriacaoTituloCompraTest`.
+**Testado em:** `Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php`, `Modules/Financeiro/Tests/Feature/BridgeExpenseToTitulosCommandTest.php`. _(reconciliado 2026-06-22 — AutoCriacaoTituloCompraTest não existe; ver nota US-FIN-015)_
 
 ### R-FIN-005 · Idempotência de baixa por `idempotency_key`
 
@@ -658,7 +663,7 @@ E `caixa_movimentos` não é duplicado
 ```
 
 **Implementação:** `BaixaService::registrar()` faz `firstOrCreate(['idempotency_key' => $key], [...])` em transação. Frontend gera `idempotency_key = uuid()` no submit.
-**Testado em:** `BaixaIdempotenciaTest` — 100 requests concorrentes mesma key = 1 baixa.
+**Testado em:** _lacuna — sem teste dedicado de idempotência de baixa; cobertura parcial via_ `Modules/Financeiro/Tests/Feature/Adr0175ObserverContaOpcionalTest.php`. _(reconciliado 2026-06-22 — BaixaIdempotenciaTest não existe)_
 
 ### R-FIN-006 · Cálculo de juros de mora
 
@@ -672,7 +677,7 @@ E Larissa pode override (com motivo audit log)
 ```
 
 **Implementação:** `JurosMoraService::calcular(Titulo, dataPagamento)` retorna `{principal, multa, juros, total}`. UI pre-fill no modal de pagamento.
-**Testado em:** `JurosMoraServiceTest` — datatable com 8 cenários (0d, 1d, 30d, com/sem multa, valores quebrados).
+**Testado em:** _lacuna — `JurosMoraService`/teste de juros de mora não encontrado no módulo; verificar se a regra está implementada. (reconciliado 2026-06-22)_
 
 ### R-FIN-007 · Conciliação OFX idempotente por hash do arquivo
 
@@ -684,7 +689,7 @@ E nenhuma transação extra é criada
 ```
 
 **Implementação:** `conciliacao_runs.file_hash` UNIQUE por `business_id`. Antes de parse, calcular hash + check.
-**Testado em:** `ConciliacaoIdempotenciaTest`.
+**Testado em:** `Modules/Financeiro/Tests/Feature/ConciliacaoUploadDedupeTest.php`. _(reconciliado 2026-06-22 — ConciliacaoIdempotenciaTest não existe)_
 
 ### R-FIN-008 · Soft delete preserva integridade contábil
 
@@ -697,7 +702,7 @@ E continua aparecendo em relatórios históricos mas não em selects de novos la
 ```
 
 **Implementação:** Trait `SoftDeletes` + override `delete()` que verifica `caixa_movimentos()->exists()`.
-**Testado em:** `ContaBancariaSoftDeleteTest`.
+**Testado em:** _lacuna — sem teste dedicado de soft delete de conta bancária com histórico. (reconciliado 2026-06-22)_
 
 ### R-FIN-009 · Plano de contas BR pré-seedado por business
 
@@ -709,7 +714,7 @@ E o tenant pode editar (renomear/criar/inativar) mas códigos protegidos (`1.1.0
 ```
 
 **Implementação:** `Modules\Financeiro\Listeners\SeedPlanoContasPadrao` + array em `database/seed-data/plano_contas_br.php`.
-**Testado em:** `PlanoContasSeedTest` — novo business → 47 contas; tentar delete protegida → 422.
+**Testado em:** _lacuna — seed das 47 contas BR sem teste dedicado; guards relacionados em_ `Modules/Financeiro/Tests/Feature/UnificadoPlanoContaGuardTest.php`. _(reconciliado 2026-06-22 — PlanoContasSeedTest não existe)_
 
 ### R-FIN-010 · DRE respeita regime do business (caixa vs competência)
 
@@ -724,7 +729,7 @@ Então a receita aparece no DRE de maio (data da baixa)
 ```
 
 **Implementação:** `RelatorioService::dreQuery(Business)` switch em regime, group by `transaction_date` ou `paid_at`.
-**Testado em:** `DreRegimeTest` — mesmo business com config diferente → DRE diferente.
+**Testado em:** `Modules/Financeiro/Tests/Feature/DreControllerTest.php`, `Modules/Financeiro/Tests/Feature/DreBalancoBalanceteTest.php`. _(reconciliado 2026-06-22 — DreRegimeTest não existe)_
 
 ### R-FIN-011 · Boleto remessa não duplica
 
@@ -736,7 +741,7 @@ E a 2ª chamada retorna o boleto existente
 ```
 
 **Implementação:** `boleto_remessa.titulo_id` UNIQUE WHERE status IN (gerado, enviado). Re-emitir só após cancelar anterior.
-**Testado em:** `BoletoIdempotenciaTest`.
+**Testado em:** `Modules/Financeiro/Tests/Feature/BoletoMockEmissaoTest.php`, `Modules/Financeiro/Tests/Feature/UnificadoGerarBoletoTest.php`. _(reconciliado 2026-06-22 — BoletoIdempotenciaTest não existe)_
 
 ### R-FIN-012 · Webhook gateway com `event_id` único
 
@@ -748,7 +753,7 @@ E `boleto_remessa.status` não muda 2x
 ```
 
 **Implementação:** Tabela `pg_webhook_events` (compartilhada com PaymentGateway de RecurringBilling) com `(provider, event_id) UNIQUE`.
-**Testado em:** `BoletoWebhookIdempotenciaTest`.
+**Testado em:** `Modules/Financeiro/Tests/Feature/Onda26InterWebhookIntegrationTest.php`, `Modules/Financeiro/Tests/Unit/ProcessAsaasPixWebhookListenerTest.php`. _(reconciliado 2026-06-22 — BoletoWebhookIdempotenciaTest não existe)_
 
 ### R-FIN-013 · Permissão `financeiro.relatorios.share` para link público
 
@@ -759,7 +764,7 @@ Então recebe 403
 ```
 
 **Implementação:** Permissão separada de `financeiro.relatorios.view`. Token assinado HMAC-SHA256 com payload `{business_id, periodo, exp}`. Validação no controller `share`.
-**Testado em:** `RelatorioShareTest`.
+**Testado em:** _lacuna — link compartilhável de DRE e seu teste não encontrados; feature provavelmente pendente. (reconciliado 2026-06-22)_
 
 ### R-FIN-014 · Auditoria via `activity_log` Spatie
 
@@ -770,7 +775,7 @@ Então existe row com `causer_id = user`, `subject_type = TituloBaixa`, `subject
 ```
 
 **Implementação:** Trait `LogsActivity` em todo Model crítico (`Titulo`, `TituloBaixa`, `CaixaMovimento`).
-**Testado em:** `AuditoriaTituloTest`.
+**Testado em:** `Modules/Financeiro/Tests/Unit/FinanceiroAuditLoggerTest.php`, `Modules/Financeiro/Tests/Feature/UnificadoCommentsAuditTest.php`, `Modules/Financeiro/Tests/Feature/OndaCommentsAuditBridgeTest.php`. _(reconciliado 2026-06-22 — AuditoriaTituloTest não existe)_
 
 ### R-FIN-015 · Pré-população de "agora" sem shift +3h
 
@@ -782,21 +787,26 @@ E o valor refletido é o "agora" no fuso do business, sem shift histórico
 ```
 
 **Implementação:** Helpers `format_now_local()` (já existe em `App\Util`) — ver auto-memória `feedback_format_now_local_e_default_datetime.md`.
-**Testado em:** `FormPrePopulateTest`.
+**Testado em:** `Modules/Financeiro/Tests/Feature/CaixaMovimentoFreshnessTest.php`, `Modules/Financeiro/Tests/Feature/UnificadoDataCampoTest.php`. _(reconciliado 2026-06-22 — FormPrePopulateTest não existe)_
 
 ## 4. Decisões pendentes
 
-- [ ] Gateway boleto/PIX MVP: Sicoob (banco da ROTA LIVRE) vs Asaas (multi-banco)?
-- [ ] Plano free vs Pro: limite 50 títulos/mês ou só remover boleto/PIX/OFX do free?
-- [ ] Take rate sobre boleto: oimpresso retém vs split com tenant?
-- [ ] DRE básico já no MVP ou só na Onda 4?
-- [ ] OCR de boleto: Tesseract local ou API (AWS Textract / Google Cloud Vision)?
+> Reconciliado 2026-06-22 — várias já foram resolvidas pelo código; mantidas só as abertas de verdade.
+
+- [x] ~~Gateway boleto/PIX MVP: Sicoob vs Asaas?~~ → **Asaas** (BR nativo, multi-banco; Inter/C6 também wireados via `PaymentGatewayContract`).
+- [x] ~~DRE básico no MVP ou só Onda 4?~~ → **entregue** em `/financeiro/dre` (US-FIN-011).
+- [x] ~~OCR de boleto: Tesseract vs API?~~ → **OpenAI Vision** (US-FIN-029, `Onda23OcrBoletoTest`).
+- [ ] Plano free vs Pro: limite 50 títulos/mês ou só remover boleto/PIX/OFX do free? _(aberta — pricing)_
+- [ ] Take rate sobre boleto: oimpresso retém vs split com tenant? _(aberta — revenue)_
 
 ## 5. Referências cruzadas
 
-- **Auto-memória:** `reference_ultimatepos_integracao.md`, `reference_db_schema.md`, `feedback_format_now_local_e_default_datetime.md`, `cliente_rotalivre.md`
-- **Origem da ideia:** `_Ideias/Financeiro/evidencias/conversa-claude-2026-04-mobile.md` (após import)
-- **Design:** `memory/requisitos/_DesignSystem/adr/ui/0006-padrao-tela-operacional.md`
+> Auto-memória descontinuada ([ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)) — conhecimento canônico migrado pra git. Refs atualizadas 2026-06-22.
+
+- **Conhecimento canônico:** [memory/reference/_INDEX.md](../../reference/_INDEX.md) (cliente, infra, stack, UltimatePOS, schema DB)
+- **Arquitetura + bridge Sells→Financeiro:** [ARCHITECTURE.md](ARCHITECTURE.md), [RUNBOOK-bridge-sells-titulos-backfill.md](RUNBOOK-bridge-sells-titulos-backfill.md)
+- **Cockpit Unificado (arquitetura viva):** [adr/ui/0003-amendment-0002-visao-unificada-cockpit-v2.md](adr/ui/0003-amendment-0002-visao-unificada-cockpit-v2.md)
+- **Design:** [_DesignSystem/adr/ui/0006-padrao-tela-operacional.md](../_DesignSystem/adr/ui/0006-padrao-tela-operacional.md)
 - **Módulos relacionados:** [NfeBrasil](../NfeBrasil/), [RecurringBilling](../RecurringBilling/)
 
 ### US-FIN-017 · Boletos — Sheet Emitir multi-título (bulk emission)
