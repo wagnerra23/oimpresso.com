@@ -146,8 +146,11 @@ class BusinessLocationController extends Controller
     /**
      * Store a newly created resource in storage.
      *
+     * Devolve um array AJAX (`['success' => bool, 'msg' => string]`) no caminho
+     * normal/validação e um Response (quota/expirado) nos guards de assinatura.
+     *
      * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|array
      */
     public function store(Request $request)
     {
@@ -170,6 +173,13 @@ class BusinessLocationController extends Controller
                 'cnpj', 'razao_social', 'nome_fantasia', 'inscricao_estadual', 'inscricao_municipal']);
 
             $input['business_id'] = $business_id;
+
+            //Esquema/layout de fatura sao NOT NULL + FK; se o select vier vazio o
+            //INSERT estoura constraint e cai no catch generico. Validar antes.
+            $fiscalError = $this->validateInvoiceRefs($input, (int) $business_id);
+            if ($fiscalError !== null) {
+                return ['success' => false, 'msg' => $fiscalError];
+            }
 
             $input['default_payment_accounts'] = ! empty($input['default_payment_accounts']) ? json_encode($input['default_payment_accounts']) : null;
 
@@ -197,6 +207,50 @@ class BusinessLocationController extends Controller
         }
 
         return $output;
+    }
+
+    /**
+     * Valida os campos de esquema/layout de fatura do formulario de filial.
+     *
+     * `invoice_scheme_id` e `invoice_layout_id` sao NOT NULL com FK em
+     * `business_locations`. Quando o select vai vazio o valor vira 0 e o
+     * INSERT/UPDATE estoura `foreign key constraint fails`, que o catch
+     * generico transforma em "Algo deu errado" — sem dizer o que faltou.
+     * Validar aqui devolve uma mensagem clara pro usuario.
+     *
+     * @param  array  $input         dados ja filtrados via $request->only()
+     * @param  int    $business_id   tenant atual (escopo das FKs)
+     * @return string|null           mensagem de erro, ou null se ok
+     */
+    private function validateInvoiceRefs(array $input, int $business_id): ?string
+    {
+        //Obrigatorios (NOT NULL + FK)
+        $required = [
+            'invoice_scheme_id' => InvoiceScheme::class,
+            'invoice_layout_id' => InvoiceLayout::class,
+        ];
+        foreach ($required as $field => $model) {
+            $value = $input[$field] ?? null;
+            if (empty($value)
+                || ! $model::where('business_id', $business_id)->where('id', $value)->exists()) {
+                return __('business.select_invoice_scheme_and_layout');
+            }
+        }
+
+        //Opcionais (nullable) — so valida se enviados
+        $optional = [
+            'sale_invoice_scheme_id' => InvoiceScheme::class,
+            'sale_invoice_layout_id' => InvoiceLayout::class,
+        ];
+        foreach ($optional as $field => $model) {
+            $value = $input[$field] ?? null;
+            if (! empty($value)
+                && ! $model::where('business_id', $business_id)->where('id', $value)->exists()) {
+                return __('business.select_invoice_scheme_and_layout');
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -258,9 +312,12 @@ class BusinessLocationController extends Controller
     /**
      * Update the specified resource in storage.
      *
+     * Devolve um array AJAX (`['success' => bool, 'msg' => string]`) no caminho
+     * normal/validação e um Response (quota/expirado) nos guards de assinatura.
+     *
      * @param  \Illuminate\Http\Request  $request
      * @param  \App\StoreFront  $storeFront
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\Response|array
      */
     public function update(Request $request, $id)
     {
@@ -275,6 +332,13 @@ class BusinessLocationController extends Controller
                 'cnpj', 'razao_social', 'nome_fantasia', 'inscricao_estadual', 'inscricao_municipal' ]);
 
             $business_id = $request->session()->get('user.business_id');
+
+            //Mesma validacao do store(): invoice_scheme_id/invoice_layout_id sao
+            //NOT NULL + FK; bloquear update com select vazio antes de estourar FK.
+            $fiscalError = $this->validateInvoiceRefs($input, (int) $business_id);
+            if ($fiscalError !== null) {
+                return ['success' => false, 'msg' => $fiscalError];
+            }
 
             $input['default_payment_accounts'] = ! empty($input['default_payment_accounts']) ? json_encode($input['default_payment_accounts']) : null;
 
