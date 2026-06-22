@@ -7,7 +7,7 @@
 ## Resumo
 - **306** arquivos · **290** números únicos · máx **0300**
 - **ADRs ATIVOS (lifecycle ativo): 266** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 243 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 244 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 266 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -333,7 +333,7 @@ _(íntegra)_
 | 0290 | recusado | ativo | decision | v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  |
 | 0291 | aceito | ativo | meta | Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + inst |
 | 0292 | proposto | ativo | errata | Errata 0291 D-D — distiller_freshness no scorecard mede staleness vs doc mais no |
-| 0293 | proposto | ativo | decision | Governança da decisão de design: responsável por etapa do ciclo + Decision Regis |
+| 0293 | aceito | ativo | decision | Governança da decisão de design: responsável por etapa do ciclo + Decision Regis |
 | 0294 | aceito | ativo | decision | mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplant |
 | 0294 | aceito | ativo | decision | Método de planejamento: dual-track + Shape Up travado por catraca (incubadora →  |
 | 0295 | aceito | ativo | decision | aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0 |
