@@ -1,10 +1,10 @@
 ---
 proposal_id: anti-duplicacao-work-claim-gate
-status: proposed
+status: accepted
 created: 2026-06-22
 proposed_by: claude-code
 decided_by: wagner
-decided_at:
+decided_at: 2026-06-22
 parent_adr: 0094 (Constituição v2)
 related_adrs: [0070, 0040, 0053, 0256, 0270, 0275]
 type: governanca-anti-duplicacao-sessoes-paralelas
@@ -13,7 +13,10 @@ origem: memory/decisions/proposals/onda-0-rede-seguranca-enforcement.md
 
 # Proposta · Trava anti-duplicação de trabalho entre sessões paralelas (claim + dup-detector gate)
 
-> **Status:** 🟡 **PROPOSED 2026-06-22** — aguarda decisão do Wagner (aprovar escopo + dono único).
+> **Status:** ✅ **ACEITA 2026-06-22** — Wagner aprovou a **L3 como MVP** (recomendação desta proposta).
+> **L3 IMPLEMENTADA** em 2026-06-22 (PR #3200): `scripts/governance/dup-detector.mjs` + `governance/dup-hot-paths.json`
+> + `dup-detector-gate.yml` (advisory) + 14 fixtures no `governance-script-tests` + registro no `gates-registry.json`.
+> **L1 (claim) e L2 (pré-flight) adiados** — dependem do MCP server (tasks/claim, cc-watcher), repo separado (CT 100).
 > Origem: Wagner — *"como garantir SEMPRE uma única fonte de verdade? pode vir outro e estragar isso de novo. é bom botar trava ou um SDD."*
 
 ## Contexto (o problema, com evidência)
@@ -50,7 +53,7 @@ Esboço da L3: `scripts/governance/dup-detector.mjs` + workflow advisory; lê ho
 Nasce com: (a) métrica sobre si — `nº de PRs-duplicados que aterrissam/mês` (tem que CAIR) + `nº de falso-positivos do gate` (tem que ficar baixo); (b) auto-aplicação periódica (a cada 7 PRs barrados, revisar se o hot-paths está calibrado); (c) emenda pelo mesmo gate (PR + Wagner); (d) **núcleo imutável**: a L3 nunca pode ser afrouxada no mesmo PR que ela barraria (anti-grandfather, como o `baseline-tamper-guard`).
 
 ## Caminho de promoção
-L3 entra **advisory** e vira `required` só pelo calendário de 14 dias verde + 0 falso-positivo ([ADR 0275](../0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md) §5) — a mesma regra que segura o resto do net.
+L3 entra **advisory** e vira `required` após **3 dias verdes + 0 falso-positivo** (decisão Wagner 2026-06-22 — ritmo IA-pair torna 14d excessivo; **sobe a 7 dias depois**, quando o sistema amadurecer). Soak menor que o default de 14d da [ADR 0275](../0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md) §5 **só para gates de tempo-puro** como este; métricas SDD compostas (C2/T2/A10/G3) mantêm os critérios técnicos próprios.
 
 ## Kill-criteria
 1. Falso-positivo frequente travando PRs legítimos (overlap de arquivo ≠ overlap de intenção) → recalibrar hot-paths / só advisory.
@@ -62,7 +65,7 @@ Alta. L2/L3 são aditivos (hook + workflow advisory). L1 é convenção sobre o 
 
 ## Decisão a tomar pelo Wagner
 - [ ] Aprovar o escopo (L1+L2+L3) e **nomear UM dono/sessão** pra construir — explicitamente pra **não** virar N sessões construindo o anti-duplicador (a ironia que originou esta proposta), OU
-- [ ] Aprovar só a **L3** (a keystone) como MVP e adiar L1/L2, OU
+- [x] **APROVADO (2026-06-22): só a L3 (keystone) como MVP, L1/L2 adiados.** ✅ implementada (#3200).
 - [ ] Ajustar / rejeitar.
 
 > Recomendação: aprovar **L3 como MVP** (maior alavanca, mecânica, independe de adoção humana) com **um dono único**, advisory→required pelo calendário dos 14 dias. L1/L2 entram depois se a L3 sozinha não bastar.
