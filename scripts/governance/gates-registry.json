@@ -18,10 +18,6 @@
       "nome": "Jana audit-chain Pest (T5 · hash-chain mcp_audit_log lógica pura · ADR 0294)",
       "classe": "gate"
     },
-    "gitleaks-history.yml": {
-      "nome": "Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215)",
-      "classe": "automacao"
-    },
     "a11y-axe-gate.yml": {
       "nome": "A11y axe runtime (jsdom · componentes canon)",
       "classe": "gate"
@@ -178,6 +174,14 @@
       "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1)",
       "classe": "gate"
     },
+    "shipped-log-cron.yml": {
+      "nome": "Shipped log cron (auto-PR + auto-merge · regenera registro de entrega do cycle · porta de saída ADR 0294)",
+      "classe": "automacao"
+    },
+    "shipped-log-gate.yml": {
+      "nome": "Shipped log gate (advisory · freshness do registro de entrega via --check · porta de saída ADR 0294)",
+      "classe": "gate"
+    },
     "infra-contract-required.yml": {
       "nome": "Infra Contract Required",
       "classe": "gate"
@@ -200,10 +204,6 @@
     },
     "jana-ragas-gate.yml": {
       "nome": "Jana RAGAS Eval Gate",
-      "classe": "gate"
-    },
-    "jana-recall-eval.yml": {
-      "nome": "Jana recall-eval (mock gate · golden set determinístico · advisory → required ADR 0275 · P12 roadmap SDD)",
       "classe": "gate"
     },
     "jscpd-gate.yml": {
@@ -316,14 +316,6 @@
     },
     "screen-coverage-gate.yml": {
       "nome": "Screen Coverage Gate (catraca de cobertura)",
-      "classe": "gate"
-    },
-    "sdd-scorecard-publish.yml": {
-      "nome": "SDD floor commit-back — publica o floor vivo (branch órfã governance/nightly-floor) em governance/sdd-scorecard.json no main (P01/Gap-1a · ADR 0279)",
-      "classe": "automacao"
-    },
-    "sdd-scorecard-ratchet.yml": {
-      "nome": "SDD Scorecard Ratchet (2º dente SDD · GT-G3 — métrica armada não regride; hard, candidato a required; ADR 0275 §3)",
       "classe": "gate"
     },
     "sdd-scorecard.yml": {
