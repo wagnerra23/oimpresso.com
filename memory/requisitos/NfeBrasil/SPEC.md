@@ -267,7 +267,7 @@ Então só vê emissões/regras/certificados com `business_id = A`
 ```
 
 **Implementação:** Trait `BusinessScope` em todo Model.
-**Testado em:** `Modules/NfeBrasil/Tests/Feature/MultiTenantIsolationTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php` (global scope `HasBusinessScope` em NfeEmissao/NfeInutilizacao filtra biz=99 sob session biz=1 + `business_id` NOT NULL nas tabelas fiscais).
 
 ### R-NFE-002 · Permissões Spatie por área
 

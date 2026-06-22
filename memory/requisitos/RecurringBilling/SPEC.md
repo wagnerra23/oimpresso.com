@@ -386,7 +386,7 @@ Então existe row em activity_log com causer + subject + properties (valor, stat
 ```
 
 **Implementação:** Trait `LogsActivity` em `Plan`, `Contract`, `Invoice`, `ChargeAttempt`, `Authorization`, `Campaign`.
-**Testado em:** `Modules/RecurringBilling/Tests/Feature/AuditLogMutacoesTest` — 6 modelos × create/update/delete = 18 asserts.
+**Testado em:** _lacuna — AuditLogMutacoesTest (6 modelos × create/update/delete asserindo rows em activity_log) não existe (2026-06-22); cobertura real parcial em LgpdComplianceTest (só verifica presença do trait LogsActivity em Plan/Invoice/ChargeAttempt/Subscription/BoletoCredential, não a escrita por mutação em Contract/Authorization/Campaign)._
 
 ### R-RB-014 · Take rate calculado só se gateway próprio
 ```gherkin

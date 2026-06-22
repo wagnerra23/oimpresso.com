@@ -197,7 +197,7 @@ Quando 31ª chega
 Então retorna 429 com header `Retry-After: 60`
 ```
 **Implementação:** Laravel RateLimiter `ai-chat:user:{id}`.
-**Testado em:** `Tests/Feature/RateLimitTest` no módulo LaravelAI (planejado — não existe) — 30 queries OK + 31ª retorna 429 com header.
+**Testado em:** _lacuna — RateLimitTest (30 queries OK + 31ª retorna 429 com Retry-After) não existe (Modules/LaravelAI não implementado)_.
 
 ### R-AI-010 · Provider fallback (OpenAI down)
 ```gherkin
