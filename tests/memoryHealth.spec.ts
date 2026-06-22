@@ -57,7 +57,7 @@ describe('memory-health — Check G: registry canônico de gates (Onda Q5, físi
 
   it('ESPECIFICIDADE: workflow registrado no censo → sem fail G', () => {
     write('.github/workflows/gate-novo.yml', 'name: x\non: pull_request\n');
-    registry({ 'gate-novo.yml': { nome: 'x', classe: 'gate' } });
+    registry({ 'gate-novo.yml': { nome: 'x', classe: 'gate', terminal: 'required', anchor: 'ADR 0298' } });
     const out = run();
     expect(out).not.toMatch(/workflow-fora-do-registry/);
   });
@@ -70,7 +70,7 @@ describe('memory-health — Check G: registry canônico de gates (Onda Q5, físi
 
   it('🟡 entrada órfã (workflow apagado, censo não atualizado) → warn, não fail', () => {
     mkdirSync(join(tmp, '.github/workflows'), { recursive: true });
-    registry({ 'apagado.yml': { nome: 'morto', classe: 'gate' } });
+    registry({ 'apagado.yml': { nome: 'morto', classe: 'gate', terminal: 'required', anchor: 'ADR 0298' } });
     const out = run();
     expect(out).toMatch(/registry-entrada-orfa/);
     expect(out).toMatch(/"ok": true/); // warn não bloqueia
@@ -149,5 +149,37 @@ describe('memory-health — Check K: decisão em session log sem âncora (Onda a
     write('memory/sessions/2026-06-19-fresco.md', '---\ndate: "2026-06-19"\n---\n\n# Sessão\n\n## Decisão\n\nDecidiu Y. rollout amanhã.\n');
     const out = run();
     expect(out).not.toMatch(/session-decisao-sem-ancora/);
+  });
+});
+
+describe('memory-health — Check M: teto de governança (ADR 0298, físico)', () => {
+  it('SENSIBILIDADE: workflow novo sem terminal/anchor → 🔴 fail M citando o arquivo', () => {
+    write('.github/workflows/gate-novo.yml', 'name: x\non: pull_request\n');
+    registry({ 'gate-novo.yml': { nome: 'x', classe: 'gate' } }); // sem terminal/anchor → fora do teto
+    const out = runExpectFail();
+    expect(out).toMatch(/gate-novo-sem-teto/);
+    expect(out).toMatch(/gate-novo\.yml/);
+  });
+
+  it('ESPECIFICIDADE: workflow novo com terminal+anchor → sem fail M', () => {
+    write('.github/workflows/gate-novo.yml', 'name: x\non: pull_request\n');
+    registry({ 'gate-novo.yml': { nome: 'x', classe: 'gate', terminal: 'required', anchor: 'ADR 0298' } });
+    const out = run();
+    expect(out).not.toMatch(/gate-novo-sem-teto/);
+  });
+
+  it('SENSIBILIDADE: advisory sem promote_by → 🔴 fail M (não nasce eterno)', () => {
+    write('.github/workflows/adv.yml', 'name: a\non: pull_request\n');
+    registry({ 'adv.yml': { nome: 'a', classe: 'gate', terminal: 'advisory', anchor: 'PR #1' } });
+    const out = runExpectFail();
+    expect(out).toMatch(/gate-novo-sem-teto/);
+    expect(out).toMatch(/promote_by/);
+  });
+
+  it('ESPECIFICIDADE: advisory com promote_by → sem fail M', () => {
+    write('.github/workflows/adv.yml', 'name: a\non: pull_request\n');
+    registry({ 'adv.yml': { nome: 'a', classe: 'gate', terminal: 'advisory', anchor: 'PR #1', promote_by: '2026-07-05' } });
+    const out = run();
+    expect(out).not.toMatch(/gate-novo-sem-teto/);
   });
 });
