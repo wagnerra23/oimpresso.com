@@ -5,7 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-05-21"
 parent_module: Financeiro
-parent_capterra: memory/requisitos/Financeiro/CAPTERRA-FICHA.md
+parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [0005-financeiro-vs-accounting-paralelo, 0114-prototipo-ui-cowork-loop-formalizado, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho]
 related_us: [US-FIN-014, US-FIN-014c]
 related_prototype: prototipo Cowork "Fluxo de Caixa" (Financeiro.html), aprovado [W] 2026-05-09
@@ -69,7 +69,7 @@ Mostrar **fluxo de caixa em duas óticas** (Projetado dia-a-dia próximos 35d + 
 - Janela default 12 meses; `?meses=N` aceita 1..36 (clamp defensivo)
 
 ### Universal
-- Multi-tenant Tier 0: `Titulo`, `TituloBaixa`, `ContaBancaria` filtrados por `business_id` global scope ([ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
+- Multi-tenant Tier 0: `Titulo`, `TituloBaixa`, `ContaBancaria` filtrados por `business_id` global scope ([ADR 0093](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md))
 - Read-only: nenhuma mutação (sem botão de marcar baixa, sem editar, sem excluir)
 - Lazy load: tab Projetado NÃO carrega payload Realizado (perf — evita query mensal custosa quando não vai exibir)
 
@@ -159,7 +159,7 @@ Mostrar **fluxo de caixa em duas óticas** (Projetado dia-a-dia próximos 35d + 
 
 ## Métricas vivas
 
-### Pest GUARD Projetado (US-FIN-014) — [FluxoControllerTest.php](../../../../Modules/Financeiro/Tests/Feature/FluxoControllerTest.php)
+### Pest GUARD Projetado (US-FIN-014) — [FluxoControllerTest.php](../../../../../Modules/Financeiro/Tests/Feature/FluxoControllerTest.php)
 ```php
 it('renderiza Inertia component Financeiro/Fluxo/Index')
 it('expõe Props no shape esperado (saldo_hoje, saldo_30d, pior_dia, margem_minima, conta, dias)')
@@ -169,7 +169,7 @@ it('Tier 0 IRREVOGÁVEL: query Titulo respeita business_id global scope (ADR 009
 it('não dispara mutação em GET /fluxo (read-only puro)')
 ```
 
-### Pest GUARD Realizado (US-FIN-014c, Fase 3) — [FluxoRealizadoControllerTest.php](../../../../Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php)
+### Pest GUARD Realizado (US-FIN-014c, Fase 3) — [FluxoRealizadoControllerTest.php](../../../../../Modules/Financeiro/Tests/Feature/FluxoRealizadoControllerTest.php)
 ```php
 it('tab default = projetado (sem query string)')
 it('tab=realizado expõe payload canon (meta + totais + meses)')
@@ -196,12 +196,12 @@ it('totais.saldo = totais.entradas - totais.saidas (invariante contábil)')
 
 ## Refs
 
-- [Visual comparison F1.5](../../../../memory/requisitos/Financeiro/fluxo-visual-comparison.md) — 8 dimensões + score 88/100 + 4 decisões aprovadas
-- [Protótipo F1](../../../../prototipo-ui/prototipos/financeiro-fluxo/page.tsx) — aprovado [W] 2026-05-09
-- [Lições F3 Financeiro rejeitado](../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pre-flight aplicado nesta entrega
-- [ADR 0093 — Multi-tenant Tier 0 IRREVOGÁVEL](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR ui/0114 — Loop Cowork formalizado](../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
-- [ADR 0104 — Processo MWART canônico](../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- [Visual comparison F1.5](../../../../../memory/requisitos/Financeiro/fluxo-visual-comparison.md) — 8 dimensões + score 88/100 + 4 decisões aprovadas
+- Protótipo F1 — aprovado [W] 2026-05-09
+- [Lições F3 Financeiro rejeitado](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) — pre-flight aplicado nesta entrega
+- [ADR 0093 — Multi-tenant Tier 0 IRREVOGÁVEL](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR ui/0114 — Loop Cowork formalizado](../../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
+- [ADR 0104 — Processo MWART canônico](../../../../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - [Charter irmão — Visão Unificada](../Unificado/Index.charter.md)
 
 ---

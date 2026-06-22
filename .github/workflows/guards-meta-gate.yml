@@ -1,0 +1,49 @@
+name: Guards meta-gate (vitest · casos + domínio)
+
+# Funde casos-meta-gate.yml + dominio-meta-gate.yml (poda Movimento 1 — consolidação de irmãos).
+# Os gates casos:check / dominio:check só "valem" se o controle-negativo que os prova roda no CI
+# (método ADR 0258). Antes eram 2 workflows idênticos (checkout → npm ci → vitest); agora 1 job
+# roda `npm ci` UMA vez e executa os 3 meta-testes em sequência — economiza 1 runner + 1 npm ci.
+# Path-scoped à união dos arquivos dos dois guards: quando qualquer um muda, roda os 3 controles
+# (custo trivial, dispara raramente). Cobertura preservada: casosGuard + casosResultsCollect + dominioGuard.
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/casos-coverage-guard.mjs'
+      - 'scripts/casos-coverage-baseline.json'
+      - 'scripts/casos-results-collect.mjs'
+      - 'scripts/casos-test-results.json'
+      - 'tests/casosGuard.spec.ts'
+      - 'tests/casosResultsCollect.spec.ts'
+      - 'scripts/domain-dict-guard.mjs'
+      - 'scripts/domain-dict-baseline.json'
+      - 'tests/dominioGuard.spec.ts'
+      - '.github/workflows/guards-meta-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/casos-coverage-guard.mjs'
+      - 'scripts/casos-results-collect.mjs'
+      - 'tests/casosGuard.spec.ts'
+      - 'tests/casosResultsCollect.spec.ts'
+      - 'scripts/domain-dict-guard.mjs'
+      - 'tests/dominioGuard.spec.ts'
+
+jobs:
+  meta-test:
+    name: meta-teste dos guards (casos + domínio · vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: Controle-negativo do casos-guard + coletor (físico)
+        run: |
+          npm run test:casos-guard
+          npm run test:casos-results
+      - name: Controle-negativo do dominio-guard (físico)
+        run: npm run test:dominio-guard

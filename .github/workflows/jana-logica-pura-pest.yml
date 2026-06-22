@@ -1,0 +1,104 @@
+name: Jana lógica pura Pest (event-time + histórico + audit-chain)
+
+# Funde jana-bitemporal-pest.yml + jana-bitemporal-slice2-pest.yml + jana-audit-chain-pest.yml
+# (poda Movimento 1 — consolidação de irmãos). Os três eram lanes de LÓGICA PURA idênticas
+# (SQLite :memory:, mesmo setup PHP 8.4 + composer + .env), só mudavam os arquivos de teste.
+# Agora 1 job faz composer install UMA vez e roda as 4 suites Unit num único Pest invoke
+# -> 1 runner + 1 composer install em vez de 3. Cobertura preservada (4 testes, ADR 0294/0295).
+#
+# jana-pest.yml (MySQL real, skip-as-pass, required-ready ADR 0271) fica SEPARADO de propósito:
+# tem service container MySQL e always-run — natureza diferente, não funde aqui.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'Modules/Jana/Services/Memoria/BiTemporalResolver.php'
+      - 'Modules/Jana/Services/Memoria/SupersedeDetector.php'
+      - 'Modules/Jana/Services/Memoria/HistoricoMemoriaService.php'
+      - 'Modules/Jana/Services/Mcp/AuditChainService.php'
+      - 'Modules/Jana/Ai/Agents/DetectarSupersedeAgent.php'
+      - 'Modules/Jana/Entities/Mcp/McpAuditLog.php'
+      - 'Modules/Jana/Mcp/Tools/MemoriaHistoricaTool.php'
+      - 'Modules/Jana/Config/memoria.php'
+      - 'Modules/Jana/Tests/Unit/BiTemporalResolverTest.php'
+      - 'Modules/Jana/Tests/Unit/SupersedeDetectorTest.php'
+      - 'Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php'
+      - 'Modules/Jana/Tests/Unit/AuditChainServiceTest.php'
+      - 'Modules/Jana/Database/Migrations/*_add_event_time_to_jana_memoria_facts.php'
+      - 'Modules/Jana/Database/Migrations/*_add_hash_chain_to_mcp_audit_log.php'
+      - '.github/workflows/jana-logica-pura-pest.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: jana-logica-pura-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pest:
+    name: Pest Jana lógica pura (event-time + histórico + audit-chain)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: bcmath, ctype, dom, fileinfo, intl, json, mbstring, openssl, pdo, pdo_sqlite, pdo_mysql, tokenizer, xml, zip, gd, opentelemetry
+          tools: composer:v2
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-${{ runner.os }}-
+
+      - name: Prepare dirs
+        run: mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Create .env
+        run: |
+          printf '%s\n' \
+            'APP_NAME=oimpresso-ci' \
+            'APP_ENV=testing' \
+            'APP_DEBUG=true' \
+            'APP_URL=http://localhost' \
+            'LOG_CHANNEL=stderr' \
+            'DB_CONNECTION=sqlite' \
+            'DB_DATABASE=:memory:' \
+            'CACHE_DRIVER=array' \
+            'QUEUE_CONNECTION=sync' \
+            'SESSION_DRIVER=array' \
+            'MAIL_MAILER=array' \
+            'BCRYPT_ROUNDS=4' \
+            'TELESCOPE_ENABLED=false' \
+            'SCOUT_DRIVER=null' \
+            'MCP_TOOLS_EXPOSED=false' > .env
+          php artisan key:generate
+          php artisan package:discover --ansi
+
+      - name: Run Pest (Jana lógica pura — 4 suites Unit)
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+          CACHE_DRIVER: array
+          SESSION_DRIVER: array
+          QUEUE_CONNECTION: sync
+        run: |
+          vendor/bin/pest \
+            Modules/Jana/Tests/Unit/BiTemporalResolverTest.php \
+            Modules/Jana/Tests/Unit/SupersedeDetectorTest.php \
+            Modules/Jana/Tests/Unit/HistoricoMemoriaServiceTest.php \
+            Modules/Jana/Tests/Unit/AuditChainServiceTest.php \
+            --no-coverage \
+            --colors=always

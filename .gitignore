@@ -99,3 +99,8 @@ governance/nightly-floor.json
 # Scratch/runtime de sessao — nunca versionar (cleanup ds-rollout 2026-06-20)
 .claude/run/
 prototipo-ui/_inbox-onda2/
+
+# DTCG: o _generated.css legado (merge single-block) foi descontinuado na ATIVAÇÃO
+# (feat/onda-dtcg-ativar). Os _generated-*.css per-escopo agora são build inputs
+# RASTREADOS — o source CSS (.cockpit/foundations/inertia) os @importa; precisam
+# existir no repo pro build. Regenerar: npm run tokens:build (Style Dictionary).

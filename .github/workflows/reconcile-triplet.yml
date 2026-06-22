@@ -1,0 +1,46 @@
+name: Reconcile triplet (advisory)
+
+# Gate de PARIDADE POR SETOR 3-way charter↔protótipo↔produção (6 slots PT-01).
+# O loop design→code comparava 2-way (protótipo × código) e o CHARTER (o spec) não era
+# coluna — quando o protótipo contradiz o charter, o conflito sumia. Este gate torna o
+# charter a 1ª coluna e decompõe charter/protótipo/produção nos 6 slots PT-01.
+#
+# ADVISORY de nascença (ADR 0298 / 0275 §5): roda em PRs que tocam telas/charters/protótipos,
+# corre o reconciliador em modo --all (advisory, exit 0) + a auditoria de ponteiros órfãos.
+# NÃO entra em branch protection enquanto v1 heurístico amadurece (promote_by no
+# gates-registry.json). Promover a --strict quando o ruído de v1 estiver domado.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/**/*.tsx'
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'prototipo-ui/**'
+      - 'prototipo-ui/cowork-map.json'
+      - 'scripts/governance/reconcile-triplet.mjs'
+      - 'scripts/governance/charter-blueprint-pointers.mjs'
+      - '.github/workflows/reconcile-triplet.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  reconcile:
+    name: paridade por setor (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Self-test do gate (prova que morde e libera)
+        run: node scripts/governance/reconcile-triplet.test.mjs
+
+      - name: Reconcile triplet — todas as telas (advisory, exit 0)
+        run: node scripts/governance/reconcile-triplet.mjs --all
+
+      - name: Auditoria de ponteiros de protótipo órfãos (advisory)
+        run: node scripts/governance/charter-blueprint-pointers.mjs

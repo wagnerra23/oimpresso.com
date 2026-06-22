@@ -70,8 +70,15 @@ it('verify() retorna null pra signature alterada (tamper)', function () {
     $issuer = new CentrifugoTokenIssuer();
     $token = $issuer->issue(1, ['ch']);
 
-    // Tampera última char da signature
-    $tampered = substr($token, 0, -1) . (substr($token, -1) === 'A' ? 'B' : 'A');
+    // Tampera o PRIMEIRO char da signature — NÃO o último.
+    // O último char base64url de uma signature de 32 bytes carrega só 4 bits
+    // significativos + 2 bits de padding (zerados e descartados no decode). Flipar
+    // 'A'↔'B' ali muda apenas padding, então base64_decode("…A") === base64_decode("…B")
+    // e o tamper passa batido em ~1/16 dos tokens (os que terminam em 'A') → flaky.
+    // O 1º char tem os 6 bits significativos, então a mutação sempre altera os bytes.
+    [$header, $payload, $signature] = explode('.', $token);
+    $signature[0] = $signature[0] === 'A' ? 'B' : 'A';
+    $tampered = $header . '.' . $payload . '.' . $signature;
 
     expect($issuer->verify($tampered))->toBeNull();
 });

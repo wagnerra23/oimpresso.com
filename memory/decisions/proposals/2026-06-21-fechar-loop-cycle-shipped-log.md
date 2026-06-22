@@ -9,12 +9,14 @@ related_adrs:
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
   - 0226-brief-v2-1m-aware-rico
 origem: "Wagner: 'qual a lista do roadmap?' → 'tem coisa feita em PR antigo que não caiu no changelog?' → descoberta: changelog do DS 10d parado, ~80 PRs de DS sumidos, cycle drift 0/24, backlog por módulo desligado do cycle → 'e se roadmap/changelog/backlog dentro de algum ciclo?' → 'A' (detalhar proposta de fechar o loop)."
-prs: []
+prs: [3185, 3188, 3189, 3191]
 ---
 
 # Fechar o loop: porta de saída do cycle (shipped-log gerado + changelog derivado)
 
 > **⚠️ Status 2026-06-21 — v1 REPROVADA por red-team (3 céticos adversariais).** O gerador `shipped-log-generate.mjs` (no disco, não-commitado) **não deve landar como está**: já perde **48 PRs reais** (teto de 1000 da Search API), é cego a **push-direto-na-main** (18+ commits, incl. produto), confunde *merge* com *entrega* (revert/deploy-fail/flag), e põe a parede num locus que não morde (tool MCP vs CI-sobre-git). Detalhe em [Modos de falha conhecidos](#modos-de-falha-conhecidos-red-team-2026-06-21). O sintoma imediato (changelog DS) já foi curado à mão ([#3167](https://github.com/wagnerra23/oimpresso.com/pull/3167)). Esta proposta segue **viva como pitch**, mas só vira aposta após as [Condições de validade](#condições-de-validade--o-que-tem-que-ser-verdade-antes-de-virar-aposta). **Esforço real revisto: ~1-2 dias IA-pair, não 45min.**
+
+> **✅ Atualização 2026-06-22 — Onda 1 + rede de automação IMPLEMENTADAS (Wagner aprovou "espinha completa").** Gerador **reescrito honesto** ([#3188](https://github.com/wagnerra23/oimpresso.com/pull/3188)): REST por sub-janela (sem teto 1000), API `/commits` (push-direto), borda BRT, **cross-check de contagem** (exit 1 ao truncar), revert reconciliado, aliases/NFD — validado em dry-run (**1.073 PRs base=main**, cross-check batendo) + **19 fixtures-armadilha** no CI. Rede que arma+lê ([#3189](https://github.com/wagnerra23/oimpresso.com/pull/3189)): **cron auto-PR + auto-merge** (não rodar à mão), **gate `--check`** de freshness (PR + diário), test no `governance-script-tests`, workflows no `gates-registry`. Registro inaugural em [#3185](https://github.com/wagnerra23/oimpresso.com/pull/3185); **cron provado end-to-end** ([#3191](https://github.com/wagnerra23/oimpresso.com/pull/3191): rodou sozinho → abriu PR → auto-merge). **Resíduos declarados (fase 2):** G8 (cruzar deploy real), linha `shipped-log-health` no Daily Brief (server-side MCP), G6 (cron precisa 1 `dispatch` ao abrir cycle novo até ligar a janela ao cycle ativo do MCP). Sessão: `memory/handoffs/2026-06-22-0850-shipped-log-porta-saida.md`.
 
 ## Contexto
 

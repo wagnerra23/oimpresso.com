@@ -65,13 +65,13 @@ Permitir a Wagner editar policies de governança (rules do `ActionGate`) pelo pa
 
 ## Tests anti-regressão
 
-- [tests/Feature/Governance/PoliciesToggleTest.php](../../tests/Feature/Governance/PoliciesToggleTest.php) — toggle atualiza `enabled` + `updated_at`
-- [tests/Feature/Governance/ActionGateTest.php](../../tests/Feature/Governance/ActionGateTest.php) — gate respeita `enabled=0`
+- tests/Feature/Governance/PoliciesToggleTest.php — toggle atualiza `enabled` + `updated_at`
+- tests/Feature/Governance/ActionGateTest.php — gate respeita `enabled=0`
 
 ---
 
 ## Refs
 
-- [ADR 0079 Constituição Governança](../../../../memory/decisions/0079-constituicao-governanca-7-artigos.md) Art. 8 (Policy Gating)
-- [ADR 0086 Governance Fase 5 MVP](../../../../memory/decisions/0086-governance-fase-5-mvp.md)
+- [ADR 0079 Constituição Governança](../../../../memory/decisions/0079-constituicao-oimpresso-7-camadas-governanca.md) Art. 8 (Policy Gating)
+- [ADR 0086 Governance Fase 5 MVP](../../../../memory/decisions/0086-fase-5-mvp-governance-actiongate-warn.md)
 - [ADR 0094 Constituição V2](../../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)

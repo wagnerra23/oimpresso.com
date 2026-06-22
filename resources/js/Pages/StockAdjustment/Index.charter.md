@@ -4,7 +4,6 @@ component: resources/js/Pages/StockAdjustment/Index.tsx
 tela: stock_adjustment/index
 tipo: LIST
 modulo: Inventory / StockAdjustment
-runbook: memory/requisitos/Inventory/RUNBOOK-stock-adjustment-index.md
 status: draft
 status_note: "F3 implementado"
 adr_refs: [0104, 0093, 0114, 0149]

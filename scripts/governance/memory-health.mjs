@@ -42,9 +42,10 @@ const STALE_MONTHS = 6; // doc canon parado > 6 meses = candidato a revisão
 // acima do teto por arquivo. Aceitos (ex: default Firebird "masterkey") ficam no baseline.
 const BASELINE_FILE = 'scripts/governance/.memory-health-baseline.json';
 const UPDATE_BASELINE = process.argv.includes('--update-baseline');
-const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [] };
+const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [], checkM: [] };
 let checkCByFile = {};
 let checkLSlugs = []; // Check L (ADR vivo-mas-proposto): slugs detectados nesta run
+let checkMKeys = []; // Check M (teto de governança): keys de workflow do registry nesta run
 
 const fails = []; // 🔴 bloqueia CI
 const warns = []; // 🟡 só sinaliza
@@ -260,6 +261,39 @@ function checkGatesRegistry() {
   }
 }
 
+// ── Check M: teto de governança (anti-proliferação de gates · ADR 0298) ─────
+// "A torneira, não o balde": poda manual não vence a taxa de criação (sessão
+// 2026-06-22 — removidos 7 workflows, outras sessões criaram ~10 em 24h; contador
+// 81→85 APESAR da poda). Workflow NOVO (fora do baseline grandfather) DEVE declarar
+// no registry: `terminal` (required|cron|automacao|advisory) + `anchor` (ADR/incidente/
+// PR de custo); se advisory, `promote_by` (data — o vencimento ≤14d é cobrado pelo
+// ZELADOR, não aqui, pra manter o check determinístico). Os gates pré-existentes ficam
+// isentos (baseline checkM, igual ao ratchet dos Checks C/L). ADR 0105 aplicado a gates.
+const TERMINAL_VALIDO = new Set(['required', 'cron', 'automacao', 'advisory']);
+function checkGovernanceCeiling() {
+  const REGISTRY = 'scripts/governance/gates-registry.json';
+  if (!exists(REGISTRY)) return; // Check G já trata ausência
+  let reg;
+  try { reg = JSON.parse(read(REGISTRY)).workflows || {}; } catch { return; } // Check G já trata ilegível
+  checkMKeys = Object.keys(reg);
+  if (UPDATE_BASELINE) return; // no modo update só capturamos as keys atuais
+  const grandfathered = new Set(baseline.checkM || []);
+  const violacoes = [];
+  for (const [wf, meta] of Object.entries(reg)) {
+    if (grandfathered.has(wf)) continue; // gate pré-existente — isento (ratchet)
+    const t = String(meta.terminal || '').trim().toLowerCase();
+    const faltas = [];
+    if (!TERMINAL_VALIDO.has(t)) faltas.push(`terminal∈{required,cron,automacao,advisory} (tem: ${meta.terminal ?? '—'})`);
+    if (!meta.anchor || !String(meta.anchor).trim()) faltas.push('anchor (ADR/incidente/PR de custo)');
+    if (t === 'advisory' && (!meta.promote_by || !String(meta.promote_by).trim())) faltas.push('promote_by (advisory não nasce eterno — ADR 0275 §5)');
+    if (faltas.length) violacoes.push(`${wf}: faltam [${faltas.join(' · ')}]`);
+  }
+  if (violacoes.length) {
+    fails.push({ check: 'M', kind: 'gate-novo-sem-teto', count: violacoes.length, sample: violacoes.slice(0, 15),
+      msg: `workflow(s) NOVO(s) sem o teto de governança (ADR 0298): todo gate novo declara terminal+anchor no gates-registry (advisory exige promote_by). "A torneira, não o balde" — só nasce gate com fim-de-vida e sinal de custo. Preencha os campos, ou rode --update-baseline se for grandfather consciente.` });
+  }
+}
+
 // ── Check H: frescor de doc-cache "✓lido @main <data>" (Onda Q5) ────────────
 // Censos/tabelas derivadas carregam carimbo de leitura contra o main. Carimbo
 // >14 dias = a "verdade cacheada" provavelmente driftou → 🟡 revalidar.
@@ -453,6 +487,7 @@ checkStaleCanon();
 checkAdrEnumDrift();
 checkAntiResurrection();
 checkGatesRegistry();
+checkGovernanceCeiling(); // Check M (teto de governança — ADR 0298)
 checkLidoFreshness();
 checkLicaoSemAssercao();
 checkAdrVivoMasProposto(); // Check L (fail-class) — proposto vs realizado
@@ -460,8 +495,8 @@ try { checkPlanHealth(); } catch (e) { warns.push({ check: 'J', kind: 'plan-heal
 try { checkSessionDecisionAnchor(); } catch (e) { warns.push({ check: 'K', kind: 'session-anchor-error', msg: 'session-anchor falhou (não bloqueia): ' + e.message }); }
 
 if (UPDATE_BASELINE) {
-  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort() }, null, 2) + '\n');
-  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto grandfathered)`);
+  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort(), checkM: checkMKeys.slice().sort() }, null, 2) + '\n');
+  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto · Check M: ${checkMKeys.length} workflows grandfathered)`);
   process.exit(0);
 }
 

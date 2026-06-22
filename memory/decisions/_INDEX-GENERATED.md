@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **303** arquivos · **287** números únicos · máx **0297**
-- **ADRs ATIVOS (lifecycle ativo): 263** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 242 · proposto 34 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 263 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **308** arquivos · **292** números únicos · máx **0303**
+- **ADRs ATIVOS (lifecycle ativo): 268** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 246 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 268 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (303)
+## Todas as ADRs (308)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -333,9 +333,14 @@ _(íntegra)_
 | 0290 | recusado | ativo | decision | v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  |
 | 0291 | aceito | ativo | meta | Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + inst |
 | 0292 | proposto | ativo | errata | Errata 0291 D-D — distiller_freshness no scorecard mede staleness vs doc mais no |
-| 0293 | proposto | ativo | decision | Governança da decisão de design: responsável por etapa do ciclo + Decision Regis |
+| 0293 | aceito | ativo | decision | Governança da decisão de design: responsável por etapa do ciclo + Decision Regis |
 | 0294 | aceito | ativo | decision | mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplant |
 | 0294 | aceito | ativo | decision | Método de planejamento: dual-track + Shape Up travado por catraca (incubadora →  |
 | 0295 | aceito | ativo | decision | aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0 |
 | 0296 | proposto | ativo | infra | Plano de capacidade à prova de falhas — taxonomia canônica de dados + placement  |
 | 0297 | aceito | ativo | meta | Exceção append-only: migração legacy→canônico de frontmatter de ADR sob label, c |
+| 0298 | aceito | ativo | meta | Teto de governança — todo workflow novo nasce com classe terminal e âncora de cu |
+| 0299 | proposto | ativo | decision | Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (C |
+| 0300 | proposto | ativo | decision | Errata ao ADR 0239 — a fonte (SSOT) do Design System que o build consome é resou |
+| 0301 | aceito | ativo | decision | Separar Cliente (cadastro) do CRM (pipeline) e deprecar o pipeline |
+| 0303 | aceito | ativo | decision | Anchor-lint SA-A2-bis — wired-check (zumbi) + testado-check: existir ≠ estar viv |
