@@ -42,7 +42,9 @@ class ContextForTaskService
     public function buildContext(array $input): array
     {
         $userId = isset($input['user_id']) ? (int) $input['user_id'] : null;
-        $intent = $input['intent'] ?? '';
+        // 'intent' é required|string na validação do ContextController → sempre
+        // presente e não-nulo (o shape reflete isso); '?? ' seria dead code.
+        $intent = $input['intent'];
         $domain = $input['domain'] ?? null;
         $filesPlanned = $input['files_planned'] ?? [];
         $eventType = $input['event_type'] ?? null;
