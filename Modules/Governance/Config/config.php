@@ -189,5 +189,5 @@ return [
     |
     | @see Modules\Governance\Services\ShippedLogBriefLineService
     */
-    'shipped_log_brief_line' => env('GOVERNANCE_SHIPPED_LOG_BRIEF_LINE', true),
+    'shipped_log_brief_line' => true, // literal (não env): evita larastan noEnvCallsOutsideOfConfig; toggle via config()
 ];
