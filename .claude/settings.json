@@ -160,6 +160,15 @@
         ]
       },
       {
+        "matcher": "mcp__.*figma.*|mcp__.*__(use_figma|get_design_context|get_figjam|get_variable_defs|search_design_system|get_libraries|get_context_for_code_connect|get_code_connect_map|get_code_connect_suggestions|add_code_connect_map|send_code_connect_mappings|get_screenshot|get_metadata|download_assets|upload_assets|create_new_file|generate_diagram)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-figma-without-optin.mjs"
+          }
+        ]
+      },
+      {
         "matcher": "Bash|PowerShell",
         "hooks": [
           {
@@ -223,6 +232,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/block-pr-without-approval.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-figma-without-optin.mjs"
           }
         ]
       }

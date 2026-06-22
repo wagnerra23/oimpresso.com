@@ -6,6 +6,7 @@ paths:
 # Rule path-scoped — `resources/js/Pages/**/*.tsx`
 
 > Carrega quando Claude lê/edita página Inertia React. Complementa skills Tier A `mwart-process`, `mwart-comparative`, `charter-first`.
+> **Fonte de design (ler 1º):** [INDEX-DESIGN-MEMORIAS.md §0](../../memory/requisitos/_DesignSystem/INDEX-DESIGN-MEMORIAS.md) — protótipo Cowork + Design System + charter são fonte; **Figma/Notion/screenshot NÃO são** (salvo Wagner dizer "figma" explícito; bloqueado por `block-figma-without-optin`). [ADR 0298](../../memory/decisions/0298-figma-nao-e-fonte-de-design.md).
 
 ## MWART canônico — único caminho ([ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md))
 

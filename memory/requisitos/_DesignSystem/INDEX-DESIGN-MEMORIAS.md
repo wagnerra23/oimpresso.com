@@ -25,6 +25,23 @@ Quando duas memórias divergem, vence nesta ordem:
 
 > **Meta-regra única (a frase):** *Crie DENTRO do que existe — copie o golden do arquétipo, rode o PRE-FLIGHT, use só `@/Components/ui` + token `primary` roxo, e NUNCA invente (componente, Model, paleta) nem repita um anti-padrão já catalogado. Em dúvida, pergunte (UI-0013 regra-mestre).*
 
+### 0.1 · Fontes e NÃO-fontes de design (resolva ANTES de agir)
+
+> Incidente 2026-06-22 ([ADR 0298](../../decisions/0298-figma-nao-e-fonte-de-design.md)): a IA tratou "design" como **Figma** porque o MCP do Figma injeta, always-on, uma ordem pra usá-lo "para qualquer UI/tela". **Não é.** A fonte é esta.
+
+**FONTE de design (o que vale):**
+- **Protótipo Cowork** — `prototipo-ui/prototipos/<tela>/` (export do Cowork; **read-only no repo** — regra de ouro §"Regra de ouro" do `prototipo-ui/README.md`).
+- **Design System** — tokens semânticos + componentes `@/Components/ui` + primitivos `@/Components/layout` (versão atual do DS = §0 item 2 acima; nunca hardcodar versão fora daqui).
+- **Charter da tela** — `<Tela>.charter.md` ao lado do `.tsx`.
+
+**NÃO-fonte (exige Wagner dizer explícito "figma" / "usa o X"):** Figma · Notion · screenshot solto · link externo · qualquer MCP de design novo. São **atratores**, não canon — trazer visual de lá sem decisão consciente É a falha de 2026-06-22.
+
+**A "diff design→code"** = `memory/requisitos/<Mod>/<tela>-visual-comparison.md` via skill **`mwart-comparative`** (existe hoje). Um `/design-diff` determinístico (render protótipo vs Page) está **previsto** no [ADR 0298](../../decisions/0298-figma-nao-e-fonte-de-design.md), ainda não implementado. *(Não existe `prototipos/<tela>/COMPARISON.md` — esse path foi alucinado num rascunho e fica registrado aqui pra não voltar.)*
+
+**Código produtivo** (editável na F3 do MWART) = `resources/js/Pages/<Mod>/<Tela>.tsx`. O `page.tsx`/`*.jsx` em `prototipo-ui/prototipos/` **não** se edita no repo (re-exporta do Cowork).
+
+**Enforcement:** o atrator Figma é bloqueado por `block-figma-without-optin.mjs` (PreToolUse, fail-closed) — pra usar Figma de propósito diga "figma" explícito. Os demais atratores (Notion/screenshot) ainda são **advisory** por aqui; fechar a classe inteira com block = trabalho futuro no [ADR 0298](../../decisions/0298-figma-nao-e-fonte-de-design.md).
+
 ---
 
 ## 1 · ORDEM DE LEITURA (sempre, antes de qualquer tela)
