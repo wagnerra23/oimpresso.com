@@ -1,6 +1,12 @@
 ---
 date: "2026-06-22"
-hour: "12:23 BRT"
+time: "12:23 BRT"
+slug: "charter-refs-catraca-promovida-required"
+tldr: "jana:health-check expôs charter_refs_broken apodrecendo (advisory subia 279→282 sozinho); virou catraca completa (279→2 + checker case-exato + gate require-safe + fix da fonte) e foi PROMOVIDA a required no main (flip protection 19→20)."
+cycle: null
+prs: [3190, 3195, 3199]
+us: ["US-GOV-043"]
+decided_by: ["W"]
 topic: "charter_refs_broken — de advisory que apodrecia a gate REQUIRED no main (279→2 + catraca + fonte + flip)"
 duration: "~5h"
 authors: ["claude-code-wagner-laptop", "wagner"]
