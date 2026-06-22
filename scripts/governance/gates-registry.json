@@ -378,6 +378,13 @@
       "terminal": "advisory",
       "anchor": "ADR 0239 (DS git SSOT — git é a fonte única do Design System) + ADR 0249 (DS v6 naming) + auditoria de maturidade transporte design→code (gap D3 42%: tokens eram CSS bespoke single-platform, não DTCG W3C portável). Fonte real dos .css (inertia/foundations/cockpit) confirmada pela errata ao 0239 (proposta — não-citada-como-dependência-de-runtime).",
       "promote_by": "2026-09-30"
+    },
+    "reconcile-triplet.yml": {
+      "nome": "Reconcile triplet (advisory · paridade por setor 3-way charter↔protótipo↔produção · 6 slots PT-01 · reconcile-triplet.mjs --all + charter-blueprint-pointers.mjs · self-test que morde)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "Onda reconcile-triplet (o loop design→code comparava 2-way protótipo×código e o CHARTER não era coluna · quando o protótipo contradiz o charter o conflito SOME e o diff vira lixo · custo provado: Produto · charter MANDA card-grid, produção É card-grid, mas protótipo Cowork de hoje é lista densa + 3 ponteiros de protótipo apontam pro vácuo). PT-01-Lista.md (6 slots canônicos) + DesignIngestPlanner.php (conceito do diff por content-sha).",
+      "promote_by": "2026-09-20"
     }
   }
 }
