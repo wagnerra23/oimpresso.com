@@ -12,7 +12,7 @@ charter_version: 1
 
 # Page Charter — /produto/unificado (DRAFT)
 
-> **Status:** draft criado em batch 2026-05-09 a partir de [`produto-app.jsx`](../../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/produto-app.jsx) (60 KB — material mais robusto do canon). Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
+> **Status:** draft criado em batch 2026-05-09 a partir de `produto-app.jsx` (60 KB — material mais robusto do canon). Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
 > ⚠️ **Backend canon:** `app/Http/Controllers/ProductController.php` (UPOS herdado). Produto = `App\Product` + `App\Variation` + `App\Brands` + `App\Category` direto em `app/`, **NÃO** em `Modules\Produto\` ([LICOES_F3_FINANCEIRO_REJEITADO.md](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) AP-1). BOM = `Modules\Manufacturing\Entities\MfgRecipe`. Tabelas de preço = `App\SellingPriceGroup`. Histórico = `App\TransactionSellLine`.
 
@@ -150,8 +150,8 @@ it('does not access App\\Product without ->where(business_id)')
 
 ## Refs
 
-- Material visual: [`ui_kits/cowork-2026-05-09/produto-app.jsx`](../../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/produto-app.jsx) (60 KB) + [`produto-data.jsx`](../../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/produto-data.jsx) + [`produto-icons.jsx`](../../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/produto-icons.jsx) + [`Produto Unificado.html`](../../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/Produto%20Unificado.html)
-- Screenshot evidência: [`screenshot-06-produto.png`](../../../../memory/requisitos/_DesignSystem/ui_kits/cowork-2026-05-09/screenshot-06-produto.png) (95 KB)
+- Material visual: `ui_kits/cowork-2026-05-09/produto-app.jsx` (60 KB) + `produto-data.jsx` + `produto-icons.jsx` + `Produto Unificado.html`
+- Screenshot evidência: `screenshot-06-produto.png` (95 KB)
 - Canon visual: [ADR ui/0012](../../../../../memory/requisitos/_DesignSystem/adr/ui/0012-zip-cowork-2026-05-09-canon-visual.md)
 - [ADR 0110 — Cockpit Pattern V2](../../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0107 — Visual gate F1.5](../../../../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md)

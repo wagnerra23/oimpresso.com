@@ -138,13 +138,13 @@ it('não dispara mutação em GET /cobranca (read-only puro)')
 ## Refs
 
 - [RUNBOOK Cobrança](../../../../../memory/requisitos/Financeiro/RUNBOOK-cobranca.md)
-- [Cowork F1 components](../../../../prototipo-ui/prototipos/payment-gateway-ui/components/)
-- [Cowork F1.5 critique](../../../../prototipo-ui/prototipos/payment-gateway-ui/critiques/REPORT.md)
+- Cowork F1 components
+- Cowork F1.5 critique
 - [Handoff F2 Cowork](../../../../../COWORK_HANDOFF.paymentgateway-ui.md)
-- [ADR 0144 — PaymentGateway extração](../../../../memory/decisions/0144-paymentgateway-extracao-camada-cobranca.md)
-- [ADR 0170 — PaymentGateway module](../../../../memory/decisions/0170-paymentgateway-module-extraction.md)
+- [ADR 0144 — PaymentGateway extração](../../../../../memory/decisions/0170-paymentgateway-extracao-camada-cobranca.md)
+- [ADR 0170 — PaymentGateway module](../../../../../memory/decisions/0170-paymentgateway-extracao-camada-cobranca.md)
 - [LICOES F3 Financeiro rejeitado](../../../../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md)
-- Charter irmão histórico — [/financeiro/boletos](../Boletos/Index.charter.md) (superseded)
+- Charter irmão histórico — /financeiro/boletos (superseded)
 
 ---
 

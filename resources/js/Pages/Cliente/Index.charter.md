@@ -197,7 +197,7 @@ CREATE INDEX idx_contacts_biz_customer ON contacts(business_id, is_customer);
 - [Migration `2026_05_24_200000_add_role_flags_to_contacts.php`](../../../../database/migrations/2026_05_24_200000_add_role_flags_to_contacts.php)
 - [ADR UI-0013 · Constituição UI v2 · 4 camadas](../../../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) (Slot 2 PT-01 canônico)
 - [PT-01 · Lista canônica](../../../../memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md)
-- [ADR 0040 · ModuleTopNav sub-tabs ghost](../../../memory/decisions/0040-moduletopnav-subtabs-ghost.md)
+- ADR 0040 · ModuleTopNav sub-tabs ghost
 - Delphi WR Comercial · flags bool por papel (pattern legacy 15 anos)
 - HANDOFF_CLIENTES.md (Cowork chat1 + validação produção Wagner 2026-05-24)
 

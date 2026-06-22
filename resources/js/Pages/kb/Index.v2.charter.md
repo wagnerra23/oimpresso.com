@@ -113,7 +113,7 @@ it('keyboard ⌘K opens CommandPalette / opens search')
 
 ## Refs
 
-- Blueprint Cowork: [`prototipo-ui/prototipos/kb/kb-page.jsx`](../../../prototipo-ui/prototipos/kb/kb-page.jsx)
+- Blueprint Cowork: `prototipo-ui/prototipos/kb/kb-page.jsx`
 - Charter v1: [`Index.charter.md`](Index.charter.md) (V3 atual)
 - [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0114 — Loop Cowork formalizado](../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
