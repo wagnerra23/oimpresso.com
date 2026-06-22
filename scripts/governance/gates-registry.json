@@ -82,12 +82,8 @@
       "nome": "Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md)",
       "classe": "gate"
     },
-    "dsih-gate.yml": {
-      "nome": "dSIH ratchet (anti-XSS · conteúdo em .tsx · oráculo parcela 1)",
-      "classe": "gate"
-    },
-    "scheme-gate.yml": {
-      "nome": "scheme ratchet (anti-XSS · href/scheme cru em .tsx · oráculo parcela 2)",
+    "xss-content-gate.yml": {
+      "nome": "XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo)",
       "classe": "gate"
     },
     "cowork-inbox.yml": {
