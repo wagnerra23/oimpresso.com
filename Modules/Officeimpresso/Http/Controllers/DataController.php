@@ -69,13 +69,10 @@ class DataController extends Controller
 
         $isSuperadmin = auth()->user()->can('superadmin');
         $canLiberarClientes = auth()->user()->can('officeimpresso.clientes.liberar');
-
-        if (! $isSuperadmin && ! $canLiberarClientes) {
-            return;
-        }
-
         $module_util = new ModuleUtil();
-        if (! $module_util->isModuleInstalled('Officeimpresso')) {
+
+        // Sem acesso (nem superadmin nem delegado) OU módulo não instalado → nada.
+        if ((! $isSuperadmin && ! $canLiberarClientes) || ! $module_util->isModuleInstalled('Officeimpresso')) {
             return;
         }
 
