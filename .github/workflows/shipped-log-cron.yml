@@ -6,6 +6,8 @@ name: Shipped log cron (auto-PR)
 # gerador honesto (REST sub-janela + cross-check), e abre PR com auto-merge.
 #
 # Padrão copiado de composer-lock-sync.yml (peter-evans). Schedule 2x/semana
+# Usa COWORK_BOT_PAT (não GITHUB_TOKEN): PR aberto pelo GITHUB_TOKEN NÃO dispara CI
+# (regra anti-loop do Actions) → ficaria preso no branch protection. PAT dispara.
 # (seg+qui) mantém abaixo do FRESH_DAYS=4 do gate. workflow_dispatch p/ cycle novo.
 
 on:
@@ -31,7 +33,7 @@ jobs:
     name: Regenera shipped-log + auto-PR
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -77,7 +79,7 @@ jobs:
         id: cpr
         uses: peter-evans/create-pull-request@v7
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.COWORK_BOT_PAT }}
           base: main
           branch: chore/shipped-log-${{ steps.win.outputs.cycle }}-${{ github.run_id }}
           commit-message: |
