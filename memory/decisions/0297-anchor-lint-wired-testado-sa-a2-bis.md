@@ -3,7 +3,7 @@ slug: 0297-anchor-lint-wired-testado-sa-a2-bis
 number: 297
 title: "Anchor-lint SA-A2-bis — wired-check (zumbi) + testado-check: existir ≠ estar vivo"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
@@ -24,7 +24,7 @@ pii: false
 
 ## Status
 
-Proposto — aguarda aceite Wagner (caminho "ADR canon" do CLAUDE.md). O código da detecção já foi implementado e **provado por contrafactual** antes desta ratificação (doutrina Onda 0: cada brick prova que armou). Falta o aceite pra (a) promover o gate e (b) re-armar o baseline do scorecard.
+Aceito — Wagner 2026-06-22 no chat ("aceito merge"). O código da detecção foi implementado e **provado por contrafactual** antes da ratificação (doutrina Onda 0: cada brick prova que armou). Pós-aceite restam 2 atos deliberados e separados: (a) promover o gate `anchor-drift` a `required` (flip de branch protection, ADR 0275 §5) e (b) re-armar o baseline do scorecard (a cobertura cai onde havia mentira — queda honesta, não regressão).
 
 ## Contexto
 
