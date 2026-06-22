@@ -3,7 +3,7 @@ slug: 0302-fonte-unica-doneness-anchor-aposenta-status-spec
 number: 302
 title: "Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pronta; o status: do blockquote é aposentado como sinal de done-ness e a contradição vira catraca"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
@@ -22,7 +22,7 @@ pii: false
 
 ## Status
 
-**Proposto** — aguarda aprovação Wagner (caminho "ADR canon" do [CLAUDE.md](../../CLAUDE.md): mudança de **convenção de SPEC** → ADR canon → Wagner aprova; **não** auto-merge). A catraca advisory companheira (`doneness-lint.mjs`) pode mergear separada com CI verde, sem depender deste aceite (ADR 0271 — gate novo nasce advisory).
+**Aceito** — ratificado por Wagner em 2026-06-22 (caminho "ADR canon" do [CLAUDE.md](../../CLAUDE.md): mudança de **convenção de SPEC** → ADR canon → Wagner aprova). A catraca advisory companheira (`doneness-lint.mjs`) já está viva no `main` e cita esta ADR; a ratificação reconcilia a metadata com a realidade (memory-health Check L · ADR 0256 — "proposto vs realizado").
 
 ## Contexto
 

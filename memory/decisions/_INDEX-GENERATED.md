@@ -7,7 +7,7 @@
 ## Resumo
 - **309** arquivos · **293** números únicos · máx **0303**
 - **ADRs ATIVOS (lifecycle ativo): 269** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 246 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 247 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 269 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -343,5 +343,5 @@ _(íntegra)_
 | 0299 | proposto | ativo | decision | Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (C |
 | 0300 | proposto | ativo | decision | Errata ao ADR 0239 — a fonte (SSOT) do Design System que o build consome é resou |
 | 0301 | aceito | ativo | decision | Separar Cliente (cadastro) do CRM (pipeline) e deprecar o pipeline |
-| 0302 | proposto | ativo | decision | Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pront |
+| 0302 | aceito | ativo | decision | Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pront |
 | 0303 | aceito | ativo | decision | Anchor-lint SA-A2-bis — wired-check (zumbi) + testado-check: existir ≠ estar viv |
