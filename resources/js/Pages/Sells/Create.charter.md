@@ -88,7 +88,7 @@ Cadastrar venda completa (cliente + produtos + pagamento + frete + impostos) num
 
 ## Refs
 
-- [Design.md §16 Cockpit V2](../../../../Design.md)
+- [DESIGN.md §16 Cockpit V2](../../../../DESIGN.md)
 - [ADR 0110 Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - PR #257, #258, #259, #261 — sequência migração visual
 

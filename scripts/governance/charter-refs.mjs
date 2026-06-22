@@ -20,8 +20,18 @@
  *
  * Uso: node scripts/governance/charter-refs.mjs [--check|--fix|--list]
  */
-import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, realpathSync } from 'node:fs';
 import { join, dirname } from 'node:path';
+
+// existsSync é case-INSENSITIVE no Windows/macOS — mente vs CI Linux (e PHP no Hostinger,
+// que é a source-of-truth). existsExact compara o case real on-disk (realpathSync.native)
+// pra dar o MESMO veredito em todo lugar. Sem isto, 4 links `Design.md` (real: DESIGN.md)
+// passavam no Windows e quebravam só no CI.
+function existsExact(p) {
+  if (!p) return false;
+  try { return realpathSync.native(p).replaceAll('\\', '/') === p.replaceAll('\\', '/'); }
+  catch { return false; }
+}
 
 const ROOT = process.cwd();
 const PAGES = join(ROOT, 'resources/js/Pages');
@@ -77,7 +87,7 @@ function collectBroken() {
       const m = fm.match(new RegExp('^' + key + ':\\s*["\\\']?(\\S+?)["\\\']?\\s*$', 'm'));
       if (m) {
         const p = m[1];
-        if (isRepoRelative(p) && !existsSync(join(ROOT, p.replace(/^\//, '')))) {
+        if (isRepoRelative(p) && !existsExact(join(ROOT, p.replace(/^\//, '')))) {
           broken.push({ charter: rel, kind: 'fm:' + key, target: p });
         }
       }
@@ -91,7 +101,7 @@ function collectBroken() {
       const clean = link.replace(/[#:].*$/, '');
       if (!clean) continue;
       const target = resolveRelative(dirname(abs).replaceAll('\\', '/'), clean);
-      if (target && !existsSync(target)) broken.push({ charter: rel, kind: 'link', target: clean, link });
+      if (target && !existsExact(target)) broken.push({ charter: rel, kind: 'link', target: clean, link });
     }
   }
   return broken;
@@ -115,7 +125,7 @@ function applySafeFix() {
       const clean = (b.link || b.target).replace(/[#:].*$/, '');
       let corrected = null;
       for (const extra of ['../', '../../', '../../../']) {
-        if (existsSync(resolveRelative(dir, extra + clean))) { corrected = extra + b.link; break; }
+        if (existsExact(resolveRelative(dir, extra + clean))) { corrected = extra + b.link; break; }
       }
       if (!corrected) { unfixable++; continue; }
       const needle = '](' + b.link + ')';
