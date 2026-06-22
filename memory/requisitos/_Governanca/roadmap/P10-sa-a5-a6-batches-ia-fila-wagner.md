@@ -85,3 +85,21 @@ A frente SA-A5 (backfill IA de anchors SPEC↔código) rodou **só o batch pilot
 - **NÃO promover a enforce se:** P09 não fechou o elo MEDIR→GOVERNAR (scorecard não publica no main), OU o gate teve qualquer vermelho-por-bug nas 2 semanas de janela (precedente visual-regression, ADR 0275 §5 / `:95`), OU `required-checks-baseline.json` não pôde ser atualizado no mesmo PR.
 - **REABRIR se:** após enforce, um lote IA real entrar no main com anchor mentiroso (`anchored_dead` sobe sem PR que o justifique) — sinal de que o refutador G5 está sendo burlado (sessão não-fresca, rank invertido). Auditar a entry e o `sessao_fresca`.
 - **Risco de identidade (gated em E1/KL):** SPECs de pastas marcadas FUNDIR/MATAR em `_TRIAGEM-IDENTIDADE-2026-06.md` NÃO devem receber anchor (`sdd-fase-2.js:52`) — aguardam decisão Wagner da trilha E. Backfillar anchor num módulo que vai morrer é retrabalho.
+
+## Ordem de prioridade dos batches (valor de negócio × buraco) — sugestão 2026-06-21
+
+Derivado de `anchor-lint.mjs --json` (estado pós-#3176): coverage **8.9%** · `sem_campo` 751/847. Ordem recomendada pro loop de batches do motor (Passo 1), priorizando **valor de negócio × nº de US sem anchor** — ancorar primeiro onde a confiança rende mais:
+
+| # | Módulo | US | cov% | sem anchor | racional |
+|---|---|---:|---:|---:|---|
+| 1 | **Sells** | 47 | 0% | 47 | núcleo de receita (POS/vendas), **zerado** — maior ROI de confiança por US |
+| 2 | **Financeiro** | 51 | 25.5% | 38 | dinheiro; já começou (4 ok) → terminar |
+| 3 | **Whatsapp** | 72 | 0% | 72 | maior buraco absoluto, core de operação |
+| 4 | **OficinaAuto** | 48 | 0% | 48 | vertical com cliente pagante ativo |
+| 5 | **NfeBrasil** | 34 | 29.4% | 24 | fiscal, meio-caminho |
+| 6+ | RecurringBilling (37), Inventory (25), Crm (23), ComunicacaoVisual (18), Essentials (11), Compras (10) | — | 0–10% | — | cauda |
+
+**Molde de "como ancorar bem"** (copiar o padrão): Vestuario (9 ok, 42.9%), KB (85.7%), ProjectMgmt (77.8%).
+**Regras:** `anchored_ok` exige path existente + carimbo `verificado@<sha>`; tela não-construída = `_pendente_` (já conta como coberto); **nunca inventar path** (vira `anchored_dead` = mentira). Re-rodar `anchor-lint --json` antes/depois de cada batch; `anchored_dead` não pode subir.
+
+_(Fonte: auditoria de saúde/integridade 2026-06-21 — priorização derivada do ranking por uso. Sells tem SPEC própria em `memory/requisitos/Sells/`.)_
