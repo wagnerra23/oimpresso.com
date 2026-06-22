@@ -7,7 +7,7 @@ last_updated: "2026-06-22"
 anchor_format: "v1"
 us_count: 15
 us_list: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067, US-CRM-068, US-CRM-069, US-CRM-070, US-CRM-071, US-CRM-072, US-CRM-073, US-CRM-074, US-CRM-075, US-CRM-076, US-CRM-078]
-related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0107-emendation-0104-visual-comparison-gate-f3, 0110-cockpit-pattern-v2-canon-list-detail, 0114-prototipo-ui-cowork-loop-formalizado, 0149-mwart-screen-pattern-reuse-cowork, 0179-cliente-drawer-760px-substitui-show-fullpage, 0273-anchor-spec-codigo-formato-canonico-fluxo-novo]
+related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0107-emendation-0104-visual-comparison-gate-f3, 0110-cockpit-pattern-v2-canon-list-detail, 0114-prototipo-ui-cowork-loop-formalizado, 0149-mwart-screen-pattern-reuse-cowork, 0179-cliente-drawer-760px-substitui-show-fullpage, 0273-anchor-spec-codigo-formato-canonico-fluxo-novo, 0301-separar-cliente-deprecar-crm-pipeline]
 ---
 
 # SPEC — Cliente
