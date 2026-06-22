@@ -361,6 +361,10 @@
     "shipped-log-gate.yml": {
       "nome": "Shipped log gate (advisory · freshness do registro de entrega via --check · porta de saída ADR 0294)",
       "classe": "gate"
+    },
+    "dup-detector-gate.yml": {
+      "nome": "Dup detector (advisory · L3 anti-duplicação de trabalho entre sessões paralelas · arquivo hot-path em PR aberto sem Dedup-ack · proposta anti-duplicacao-work-claim-gate)",
+      "classe": "gate"
     }
   }
 }
