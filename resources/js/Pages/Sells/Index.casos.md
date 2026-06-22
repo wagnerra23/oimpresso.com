@@ -19,7 +19,8 @@ last_run: "2026-06-22"
 - **Persona:** Larissa / Kamila — "quem está devendo?" sem montar relatório.
 - **Aceite:** Dado a tela carregada · Então o título **Vendas** renderiza e as pílulas de status por pagamento aparecem (default **Todas**; pagas/a-receber derivadas de `payment_status`).
 - **Teste:** `e2e/sells-index.spec.ts` (Playwright, harness G-3 e2e-gate).
-- **Status: 🧪** — prova de 2026-06-11 ficou stale após a mudança de navegação de 2026-06-22 (link "Caixa do dia" no dropdown Visões). O comportamento de UC-S10 (título **Vendas** + pílulas de pagamento) **não** foi tocado; rebaixado honestamente por G-7 (ADR 0264) até `npm run e2e:check` + `npm run casos:results` no harness CI regravarem o manifesto e devolverem o ✅. Sem fingir prova, sem `casos:baseline:write`.
+- **Status: 🧪** — prova parcial (rebaixado de verde por G-7 até o manifesto regravar).
+- **Nota 🧪 (2026-06-22):** a prova no manifesto (`scripts/casos-test-results.json`, `ran_at: 2026-06-11`) ficou stale após a mudança de navegação de hoje (link "Caixa do dia" no dropdown Visões). O comportamento de UC-S10 (título **Vendas** + pílulas de pagamento) **não** foi tocado — o E2E `sells-index.spec.ts` segue passando no CI. Volta a verde quando `npm run e2e:check` + `npm run casos:results` regravarem o manifesto. Sem fingir prova, sem `casos:baseline:write`.
 
 ---
 
