@@ -1,0 +1,74 @@
+name: DTCG equivalence (advisory)
+
+# PROVA que os tokens DTCG (resources/css/tokens/*.tokens.json) batem 1:1 com o
+# CSS canonico que o build vivo consome (inertia.css / foundations.css / cockpit.css).
+# Onda DTCG: estabelece o pipeline design->code portavel (W3C Design Tokens) SEM
+# trocar o build vivo -- os .css seguem sendo a fonte; o DTCG e fonte PARALELA provada.
+#
+# ADVISORY DE NASCENCA (ADR 0298 teto de governanca + ADR 0271/0275 -- gate novo
+# nunca nasce required): continue-on-error no passo do check + NAO entra em branch
+# protection. So prova/reporta; nunca bloqueia o PR. promote_by no gates-registry.
+#
+# So roda quando os tokens OU os CSS canonicos OU o pipeline mudam (paths-filter).
+# Node puro, sem DB/rede. Self-test primeiro (quem vigia os vigias: prova que o
+# check MORDE antes de confiar no verde).
+#
+# Registrado em scripts/governance/gates-registry.json classe "gate" terminal
+# "advisory" (Check G/M, ADR 0298 teto). Ancora: ADR 0239 (DS git SSOT) + ADR 0249
+# (DS v6 naming). A fonte real dos .css foi confirmada pela errata ao 0239 (proposta;
+# nao-citada-como-dependencia-de-runtime aqui pra nao prender codigo a ADR nao-aceita).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/css/tokens/**'
+      - 'resources/css/inertia.css'
+      - 'resources/css/foundations.css'
+      - 'resources/css/cockpit.css'
+      - 'scripts/governance/dtcg-equivalence.mjs'
+      - 'scripts/governance/dtcg-equivalence.test.mjs'
+      - '.github/workflows/dtcg-equivalence.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: dtcg-equivalence-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  prove:
+    name: equivalencia DTCG <-> CSS canonico (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Self-test (fixture boa passa + fixture ruim falha)
+        run: node scripts/governance/dtcg-equivalence.test.mjs
+
+      - name: Provar equivalencia (advisory)
+        id: prove
+        continue-on-error: true  # advisory: divergencia nunca derruba o PR (ADR 0271/0275)
+        run: |
+          node scripts/governance/dtcg-equivalence.mjs --json > /tmp/dtcg.json
+          node scripts/governance/dtcg-equivalence.mjs --detail | tee /tmp/dtcg.txt
+
+      - name: Job summary (provados iguais / divergencias)
+        if: always()
+        run: |
+          {
+            echo '## DTCG <-> CSS canonico — equivalencia (Onda DTCG)'
+            echo ''
+            echo 'ADVISORY (nao bloqueia). Prova que cada token DTCG tem o MESMO valor que'
+            echo 'o token correspondente em inertia/foundations/cockpit.css (escopo-aware).'
+            echo 'Divergencia aqui = drift real entre o que o DS diz e o que o CSS faz.'
+            echo ''
+            echo '```'
+            cat /tmp/dtcg.txt 2>/dev/null || echo '(sem saida — ver passo anterior)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

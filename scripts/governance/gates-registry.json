@@ -371,6 +371,13 @@
       "terminal": "advisory",
       "anchor": "prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 + auditoria IA OS (buraco confessado: ds-guard.mjs e integrity-check.mjs rodavam em NENHUM workflow, dependiam do humano lembrar)",
       "promote_by": "2026-07-06"
+    },
+    "dtcg-equivalence.yml": {
+      "nome": "DTCG equivalence (advisory · prova que tokens DTCG resources/css/tokens/*.tokens.json batem 1:1 com o CSS canônico do build inertia/foundations/cockpit.css · escopo-aware + self-test que morde · Onda DTCG)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "ADR 0239 (DS git SSOT — git é a fonte única do Design System) + ADR 0249 (DS v6 naming) + auditoria de maturidade transporte design→code (gap D3 42%: tokens eram CSS bespoke single-platform, não DTCG W3C portável). Fonte real dos .css (inertia/foundations/cockpit) confirmada pela errata ao 0239 (proposta — não-citada-como-dependência-de-runtime).",
+      "promote_by": "2026-09-30"
     }
   }
 }

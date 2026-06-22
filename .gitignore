@@ -99,3 +99,6 @@ governance/nightly-floor.json
 # Scratch/runtime de sessao — nunca versionar (cleanup ds-rollout 2026-06-20)
 .claude/run/
 prototipo-ui/_inbox-onda2/
+
+# DTCG: CSS gerado pelo Style Dictionary (output, não fonte — proof lê os .tokens.json)
+resources/css/tokens/_generated.css
