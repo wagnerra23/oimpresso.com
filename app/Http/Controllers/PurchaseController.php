@@ -1452,8 +1452,12 @@ class PurchaseController extends Controller
             return;
         }
 
-        $valid_count = Variation::whereIn('variations.id', $variation_ids->all())
-            ->whereHas('product', fn ($q) => $q->where('business_id', $business_id))
+        // JOIN direto em products (1:1) em vez de whereHas('product') — o larastan não
+        // reconhece relations belongsTo em App\Variation (relationExistence), então evitamos.
+        $valid_count = Variation::query()
+            ->join('products', 'products.id', '=', 'variations.product_id')
+            ->whereIn('variations.id', $variation_ids->all())
+            ->where('products.business_id', $business_id)
             ->count();
 
         abort_if(

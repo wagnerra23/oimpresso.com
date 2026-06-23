@@ -142,7 +142,7 @@ Como Wagner, quero `/purchases/*` (Inertia React MWART Wave 2 B5) e `/compras` (
 **Status:** in_progress (Wave 4.5 — modo grade plugado, aguarda smoke/canary)
 **Persona:** Larissa @ ROTA LIVRE biz=4 vestuário (validação canary)
 **Esforço:** ~6-8h IA-pair (referência [arte 2026-05-21](../../sessions/2026-05-21-arte-grade-matrix-input-vestuario.md))
-**Implementado em:** `resources/js/Pages/Purchase/Create.tsx` (modo grade) + `PurchaseController::gradeMatrix` + `resources/js/Components/purchase/GradeMatrixInput.tsx` · 2026-06-22
+**Implementado em:** `resources/js/Pages/Purchase/Create.tsx` (modo grade) + `PurchaseController::gradeMatrix` + `resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx` · 2026-06-22
 
 > **Placement C1 (2026-06-22):** a grade entra em `Pages/Purchase/Create.tsx` (não `/compras/create`) — convergência C1. **Modelo 2D auto-detectado:** UltimatePOS guarda variação em 1 eixo; o backend monta 2D quando os nomes de variação são compostos e parseáveis, senão cai pra grade de 1 eixo (linhas = variações reais). Nunca grade vazia silenciosa (loga o `mode`). R-COM-405 ajustado: o caller expande as células em `purchases[]` (1 célula = 1 `variation_id`) e POSTa via `form.post('/purchases')`.
 
