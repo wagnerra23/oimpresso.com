@@ -42,6 +42,25 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | PR UI Judge — self-consistency (robustez do juiz · 2026-06-23)
+    |--------------------------------------------------------------------------
+    | samples       — quantas amostras do PrUiJudgeAgent por PR. A mediana de N
+    |                 mata o single-shot que alucina "ok". 3-5 (pesquisa VLM-judge).
+    |                 Custo e latência crescem ×N (gpt-4o-mini ~$0.002/amostra).
+    | abstain_below — confiança geral (0-1) abaixo da qual o juiz ABSTÉM: rebaixa
+    |                 um "approve" pra "comment" (zona cinza · defer humano). Wagner
+    |                 calibra contra a série de 4 semanas (EVAL_PROTOCOL Onda 2).
+    */
+    'ui_judge' => [
+        // Hardcoded (não env): a regra larastan noEnvCallsOutsideOfConfig conta as
+        // chamadas env() deste arquivo num baseline fixo — knobs de tuning de um juiz
+        // de CI não valem furar esse teto. Wagner calibra editando aqui + config:clear.
+        'samples'       => 3,
+        'abstain_below' => 0.6,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Custo da IA — pricing por modelo + câmbio (US-COPI-070)
     |--------------------------------------------------------------------------
     | Preços em USD por 1k tokens (input/output). Modelo default usado quando

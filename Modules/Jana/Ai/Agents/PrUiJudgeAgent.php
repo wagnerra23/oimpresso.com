@@ -7,6 +7,7 @@ namespace Modules\Jana\Ai\Agents;
 use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Attributes\Model;
 use Laravel\Ai\Attributes\Provider;
+use Laravel\Ai\Attributes\Temperature;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Promptable;
 use Stringable;
@@ -57,9 +58,19 @@ use Stringable;
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4.1)
  * @see memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
+ *
+ * SELF-CONSISTENCY (2026-06-23 · dossiê arte-validacao-L3): o juiz roda N vezes
+ * (UiJudgeConsensus) e a MEDIANA das amostras mata o "single-shot com sorte que
+ * alucina ok". Pra isso #[Temperature(0.7)] é OBRIGATÓRIO — sem variância as N
+ * amostras seriam idênticas (greedy) e a confiança derivada da concordância seria
+ * FALSA (sempre 1.0). NÃO remover — catraca R-JANA-UI-JUDGE-005 trava. Sem troca
+ * de modelo: continua gpt-4o-mini (decisão Wagner 2026-06-23).
+ *
+ * @see Modules/Jana/Ai/UiJudgeConsensus.php (agregação mediana + confiança)
  */
 #[Provider('openai')]
 #[Model('gpt-4o-mini')]
+#[Temperature(0.7)]
 #[MaxSteps(3)]
 class PrUiJudgeAgent implements Agent
 {
