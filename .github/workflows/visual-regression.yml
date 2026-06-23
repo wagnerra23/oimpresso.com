@@ -344,9 +344,12 @@ jobs:
       #     sem morder (mesmo padrão do pixel-diff acima). No lighthouserc: CLS = `error`
       #     (morde já, na severidade) @ 0.1; LCP/TBT = `warn`. `lhci assert` roda e imprime,
       #     mas nada reprova o PR. Coletar 3 medições válidas consecutivas (regra de armamento).
-      #   Estágio 1 (armar LCP/TBT): com 3 medianas estáveis confirmando o orçamento, flipar
-      #     no lighthouserc.json `warn` → `error` em largest-contentful-paint e total-blocking-time.
-      #     Step segue advisory (continue-on-error) — agora o assert reprova no LOG, não no PR.
+      #   Estágio 1 (ARMADO 2026-06-23): 3 medianas estáveis (var <1.5%) confirmaram o orçamento —
+      #     LCP 3448/3461/3469ms (Financeiro) e 3528/3543/3569ms (Sells); CLS<0.1 e TBT<300 nas 3.
+      #     Flipado `warn` → `error` no lighthouserc: LCP error@4000 + TBT error@600 (tetos "poor"
+      #     do Web Vitals — anti-regressão acima do real ~3,5s; o alvo "good" 2,5s vira meta de
+      #     otimização à parte). CLS segue error@0.1. Step ainda advisory (continue-on-error) →
+      #     o assert reprova no LOG, não no PR; hoje passa VERDE (tudo dentro do teto).
       #   Estágio 2 (promover a required): pelo CALENDÁRIO ADR 0275 §5 (máx 1/semana, [W] flipa,
       #     evidência linkada = runs, PR atualiza required-checks-baseline.json citando 0275).
       #     Promover = REMOVER o `continue-on-error: true` deste step (sem clique de branch
@@ -364,7 +367,7 @@ jobs:
         # Chrome: o runner ubuntu-latest já traz google-chrome-stable → chrome-launcher acha sozinho.
         run: npm install -g @lhci/cli@0.15.1
 
-      - name: L5 — Perf budget Lighthouse (median-of-3 · ADVISORY — armando ADR 0275)
+      - name: L5 — Perf budget Lighthouse (median-of-3 · ADVISORY · ARMADO ADR 0275)
         if: steps.changes.outputs.ui == 'true'
         id: lhci
         continue-on-error: true
@@ -381,6 +384,10 @@ jobs:
         with:
           name: lighthouse-perf-budget
           path: .lighthouseci/
+          # include-hidden-files: o LHCI escreve em `.lighthouseci/` (dot-dir = "hidden");
+          # upload-artifact@v4 IGNORA hidden por default → o artifact saía vazio. Sem isto
+          # as medianas não eram inspecionáveis (só liam no log). Vide ADR 0275 (armar).
+          include-hidden-files: true
           retention-days: 14
           if-no-files-found: ignore
 
@@ -389,10 +396,10 @@ jobs:
         run: |
           if [ "${{ steps.lhci.outcome }}" = "failure" ]; then
             echo "🟡 L5 PERF BUDGET ADVISORY FALHOU — alguma métrica acima do orçamento (ver artifact lighthouse-perf-budget)."
-            echo "   CLS é error@0.1 (morde já na severidade); LCP/TBT são warn até armarem (ADR 0275 §3)."
-            echo "   Regressão? conserte. Orçamento irreal? ajuste lighthouserc.json com evidência das 3 medianas."
+            echo "   ARMADO (ADR 0275 §3): CLS error@0.1 · LCP error@4000 · TBT error@600 (tetos anti-regressão)."
+            echo "   Regressão? conserte. Orçamento irreal? ajuste lighthouserc.json com evidência das medianas."
           else
-            echo "✅ L5 perf budget OK (advisory — coletando medições p/ armar pelo calendário ADR 0275)."
+            echo "✅ L5 perf budget OK (advisory · ARMADO — verde dentro dos tetos; pronto p/ promoção [W] ADR 0275 §5)."
           fi
 
       - name: Upload screenshots on failure
