@@ -249,14 +249,14 @@ jobs:
         run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php tests/Browser/CoreScreens/Tier0RenderIsolationTest.php
 
       # ── Onda Q4 (US-GOV-013) — GATE VISUAL DE PIXEL das núcleo-6 ─────────────────────
-      # FASE ADVISORY (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing):
-      # `continue-on-error` SÓ neste step — o resto do job continua required-real.
-      # Promover = remover o continue-on-error (sem clique de branch protection: o
+      # FASE ENFORCING (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing).
+      # Promoção L1 = remover o continue-on-error deste step (não muda required
+      # check, só para de mascarar a falha; sem clique de branch protection: o
       # check `visual-regression` já é required). Baseline = snapshot Pest COMMITADO
       # (tests/.pest/snapshots), gerado NESTE runner (rendering determinístico) — a
       # 1ª execução sem baseline GERA e passa; o artifact abaixo permite commitar.
       # Mudança intencional: npm run visreg:update (CI) + aprovação [W] (F1.5).
-      - name: Pixel-diff núcleo-6 (ADVISORY — Onda Q4 · double-threshold L7)
+      - name: Pixel-diff núcleo-6 (ENFORCING — Onda Q4 · double-threshold L7)
         if: steps.changes.outputs.ui == 'true'
         id: pixel-diff
         # DOUBLE-THRESHOLD (L7): o teste roteia cada tela por 3 bandas (PixelBaselineTest
@@ -265,10 +265,10 @@ jobs:
         # ZONA CINZA que NÃO falha (só coleta + diff-view + step summary pro [W] revisar).
         # Calibrar sem mexer no código: setar VISREG_TAU_LOW / VISREG_TAU_HIGH aqui.
         #
-        # `continue-on-error: true` MANTIDO de propósito (NÃO é o L7): é o gate ADVISORY do
-        # [W]. O L1 (flip pra enforcing = remover esta linha) vem DEPOIS de 2 runs verdes +
-        # aprovação [W] — agora seguro porque a zona cinza absorve os diffs pequenos.
-        continue-on-error: true
+        # PROMOVIDO A ENFORCING (L1) — `continue-on-error` REMOVIDO: o step agora BLOQUEIA
+        # o merge se ao menos 1 tela núcleo-6 passar de τ_alto (VISREG_TAU_HIGH, 2%). Seguro
+        # porque o L7 (double-threshold) absorve os diffs pequenos na ZONA CINZA — que NÃO
+        # falha e segue indo pro step summary + artifact pixel-diff-views pro [W] revisar.
         run: ./vendor/bin/pest tests/Browser/CoreScreens/PixelBaselineTest.php
 
       # ── Gate L2 (US derivada do mandato VRT) — SNAPSHOTS DE ESTADOS ISOLADOS ───────────
@@ -412,7 +412,7 @@ jobs:
               '',
               'Screenshots têm diff > threshold contra baseline no **gate real** (Pest Browser smoke: telas públicas + auth-bridge + a11y axe + conformance). Esse check é **REQUIRED** — o PR não mergeia vermelho.',
               '',
-              '> ℹ️ Distinção honesta: o **pixel-diff núcleo-6** (camada de diff de pixel das telas núcleo-6 — Onda Q4 · ADR 0261) é **ADVISORY** (`continue-on-error`) e **não bloqueia merge sozinho** — só vira enforcing após 2 verdes. Se a falha foi apenas dele, o veredito sai no log do step "Veredito advisory do pixel-diff", não neste comentário.',
+              '> ℹ️ Distinção honesta: o **pixel-diff núcleo-6** (camada de diff de pixel das telas núcleo-6 — Onda Q4 · ADR 0261) agora é **ENFORCING** (`continue-on-error` removido) e **bloqueia o merge** se alguma tela passar de τ_alto (2%). O L7 (double-threshold) deixa a ZONA CINZA (τ_baixo..τ_alto) passar sem falhar — só vira diff-view pro [W] revisar.',
               '',
               '### Como resolver',
               '1. Baixar artifact `screenshots-diff` deste workflow run',
