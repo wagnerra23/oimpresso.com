@@ -8,6 +8,7 @@ import { Head, router } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
+import { Inline } from '@/Components/layout';
 
 interface Empresa {
   id: number;
@@ -31,7 +32,7 @@ export default function Empresas({ empresas }: Props) {
       <Head title="Suporte · empresas" />
 
       <div className="p-6 max-w-5xl mx-auto space-y-5">
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <Inline justify="between" align="start" gap={4} wrap>
           <div>
             <h1 className="text-lg font-semibold text-[color:var(--text)]">Suporte · empresas</h1>
             <p className="mt-0.5 text-sm text-[color:var(--text-mute)]">
@@ -45,9 +46,9 @@ export default function Empresas({ empresas }: Props) {
             aria-label="Buscar empresa"
             className="w-full sm:w-64"
           />
-        </header>
+        </Inline>
 
-        <div className="overflow-hidden rounded-xl border border-[color:var(--border)]">
+        <div className="overflow-hidden rounded-lg border border-[color:var(--border)]">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-[color:var(--border)] text-left text-xs uppercase tracking-wide text-[color:var(--text-mute)]">
