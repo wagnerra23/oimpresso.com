@@ -116,6 +116,20 @@ function detectRequiredChecks(base, head) {
   return out;
 }
 
+// scripts/casos-coverage-baseline.json — schema { _meta, violations:[string] } (ADR 0264
+// G-1/G-2). Afrouxamento = violação presente no head e ausente na base = grandfatherou
+// débito novo (tela sem trio / UC órfão absorvido). Mesma forma do detectKnowledgeGhosts:
+// só ENTRAR violação conta (encolher = melhora). Fecha o furo do audit 2026-06-22 — o
+// casos-baseline era um dos únicos ratchets sem anti-grandfather (a allowlist segue aberta).
+function detectViolationList(base, head) {
+  const out = [];
+  const b = new Set((base && base.violations) || []);
+  for (const v of ((head && head.violations) || [])) {
+    if (!b.has(v)) out.push(`grandfatherou violação nova: ${v}`);
+  }
+  return out;
+}
+
 // Mapa path→detector. Estender = adicionar o baseline + seu detector aqui
 // (e o path no trigger do workflow). Só guarda o que tem detector de schema:
 // afrouxamento genérico em formato heterogêneo daria falso-positivo.
@@ -136,6 +150,8 @@ const GUARDED = {
   '.scheme-baseline.json': detectCountRatchet,
   // catraca de refs de Page Charter (ceiling único → ratchet homogêneo)
   'governance/charter-refs-baseline.json': detectCountRatchet,
+  // catraca de cobertura de casos (trio-de-tela + rastreabilidade UC↔teste · ADR 0264)
+  'scripts/casos-coverage-baseline.json': detectViolationList,
 };
 
 // ── resolver base do diff ─────────────────────────────────────────────────────
