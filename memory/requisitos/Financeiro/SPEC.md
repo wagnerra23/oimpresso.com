@@ -1698,3 +1698,28 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 3. `BoletoOcrService::extract()` retorna JSON estruturado em prod, sem 403, validado com boleto real.
 
 Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250
+
+### US-FIN-061 · Otimizar LCP das telas núcleo (Financeiro/Unificado + Sells) — verificar prod real + reduzir bundle JS
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_ — task de perf não iniciada (gate L5 mede; otimização a fazer).
+
+**Contexto:** O gate **L5 (perf budget Lighthouse)** — `lighthouserc.json` + `.github/workflows/visual-regression.yml`, ADR 0275 — mede LCP nas 2 telas núcleo autenticadas. Medianas observadas (desktop CI, Lighthouse 12.6.1, 3 runs estáveis): **Financeiro/Unificado 3448/3461/3469ms · Sells 3528/3543/3569ms** (faixa "needs improvement"; alvo "good" ≤2500ms). Teto armado anti-regressão = error@4000ms.
+
+**⚠️ Nuance crítica — verificar ANTES de otimizar:** o gate mede via `php artisan serve` (servidor PHP dev, **sem gzip/brotli**). A maior "oportunidade" do Lighthouse é **"Enable text compression ~1,66s"** — mas é artefato do servidor de medição: em prod (FrankenPHP/Caddy no CT 100 + Hostinger) a compressão JÁ está ligada. Logo o LCP REAL de prod provavelmente é ~3,5 − 1,66 ≈ **~1,9s (já "good")**. "~162ms multiple redirects" também é só o auth-bridge do teste.
+
+**Passo 0 (obrigatório):** medir o LCP real em produção/staging (com compressão) das 2 telas. Se já <2500ms, fechar como "prod OK — o L5 mede regressão relativa, não UX absoluta" e (opcional) registrar essa limitação do gate. Só investir em otimização se prod realmente >2500ms.
+
+**Targets reais (transferíveis, valem independente do servidor):**
+- Reduzir **unused JavaScript: ~503KB** não usado; **total da página ~2,5MB**. Code-splitting por rota (Inertia lazy pages / dynamic import) nas telas núcleo.
+- Eliminar render-blocking (~200ms).
+- LCP element atual = `<p class="text-sm text-foreground leading-relaxed max-w-3xl">` (texto) — confirmar e priorizar seu caminho de render.
+
+**Acceptance:**
+- [ ] LCP real de prod das 2 telas medido e documentado (não o número do dev server).
+- [ ] Se prod >2500ms: bundle das telas núcleo reduzido (unused JS ↓, total ↓) e LCP <2500ms.
+- [ ] Se prod já <2500ms: documentar + decidir se recalibra o teto do L5 (hoje 4000, dev-inflado).
+
+**Refs:** ADR 0275 (gate L5); artifact `lighthouse-perf-budget` no workflow `visual-regression` (LHR detalhado com treemap/opportunities); `lighthouserc.json`. Afeta também Sells (Vendas) — causa compartilhada = bundle Inertia/Vite (`resources/js`).
