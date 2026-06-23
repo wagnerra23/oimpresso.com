@@ -24,13 +24,13 @@
       "route": "/financeiro/unificado",
       "anchor": "Financeiro",
       "charter": "resources/js/Pages/Financeiro/Unificado/Index.charter.md",
-      "states": ["default", "empty", "loading", "dark", "error"]
+      "states": ["default", "dark", "error"]
     },
     "oficina-os": {
       "route": "/oficina-auto/ordens-servico",
       "anchor": "Oficina Auto",
       "charter": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.charter.md",
-      "states": ["default", "empty", "loading", "dark", "error"]
+      "states": ["default", "empty", "dark", "error"]
     },
     "sells-create": {
       "route": "/sells/create",
