@@ -238,9 +238,18 @@ jobs:
       # (tests/.pest/snapshots), gerado NESTE runner (rendering determinístico) — a
       # 1ª execução sem baseline GERA e passa; o artifact abaixo permite commitar.
       # Mudança intencional: npm run visreg:update (CI) + aprovação [W] (F1.5).
-      - name: Pixel-diff núcleo-6 (ADVISORY — Onda Q4)
+      - name: Pixel-diff núcleo-6 (ADVISORY — Onda Q4 · double-threshold L7)
         if: steps.changes.outputs.ui == 'true'
         id: pixel-diff
+        # DOUBLE-THRESHOLD (L7): o teste roteia cada tela por 3 bandas (PixelBaselineTest
+        # + Tests\Browser\Support\VisregThreshold) — auto-aprova < τ_baixo (VISREG_TAU_LOW,
+        # default 0.1%), auto-falha > τ_alto (VISREG_TAU_HIGH, default 2%), e o MEIO é a
+        # ZONA CINZA que NÃO falha (só coleta + diff-view + step summary pro [W] revisar).
+        # Calibrar sem mexer no código: setar VISREG_TAU_LOW / VISREG_TAU_HIGH aqui.
+        #
+        # `continue-on-error: true` MANTIDO de propósito (NÃO é o L7): é o gate ADVISORY do
+        # [W]. O L1 (flip pra enforcing = remover esta linha) vem DEPOIS de 2 runs verdes +
+        # aprovação [W] — agora seguro porque a zona cinza absorve os diffs pequenos.
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/CoreScreens/PixelBaselineTest.php
 
@@ -253,8 +262,12 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-      - name: Upload diff views do pixel (quando o advisory falhou)
-        if: ${{ !cancelled() && steps.pixel-diff.outcome == 'failure' }}
+      - name: Upload diff views do pixel (falha OU zona cinza — double-threshold L7)
+        # Sobe os diff-views SEMPRE que o pixel-diff rodou: a ZONA CINZA (L7) NÃO falha o
+        # step, mas grava diff-views em tests/Browser/Screenshots/ImageDiffView/ pro [W]
+        # revisar — só uploadar on-failure perderia exatamente o caso de uso do L7.
+        # `if-no-files-found: ignore` cobre o caso "nenhuma tela na zona cinza nem falhou".
+        if: ${{ !cancelled() && steps.changes.outputs.ui == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: pixel-diff-views
@@ -262,14 +275,16 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-      - name: Veredito advisory do pixel-diff (visível no log)
+      - name: Veredito advisory do pixel-diff (visível no log · double-threshold L7)
         if: steps.changes.outputs.ui == 'true'
         run: |
           if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
-            echo "🟡 PIXEL-DIFF ADVISORY FALHOU — diff > threshold contra baseline (ver artifact pixel-snapshots)."
-            echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing."
+            echo "🔴 PIXEL-DIFF ADVISORY FALHOU — ao menos 1 tela com diff > τ_alto (regressão clara) contra baseline."
+            echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing (L1)."
+            echo "   Telas em ZONA CINZA (τ_baixo..τ_alto) NÃO falham — ver o resumo 'Zona Cinza' no step summary + artifact pixel-diff-views."
           else
-            echo "✅ pixel-diff núcleo-6 OK (advisory)."
+            echo "✅ pixel-diff núcleo-6 OK (advisory) — nenhuma tela acima de τ_alto."
+            echo "   Se houve ZONA CINZA, ela está no step summary (resumo 'Pixel-diff — Zona Cinza') + artifact pixel-diff-views pro [W] revisar."
           fi
 
       - name: Upload screenshots on failure
