@@ -1,3 +1,10 @@
+---
+date: "2026-06-23"
+topic: "Estado-da-arte — camada Humano + LLM-Judge da validação de tela (L3): tirar o olho do Wagner do gargalo sem o judge alucinar ok"
+authors: [C]
+type: session
+---
+
 # Estado-da-arte — Camada Humano + LLM-Judge da validação de tela (L3)
 
 > Sessão `estado-da-arte` · 2026-06-23 · worktree `detector-wt`

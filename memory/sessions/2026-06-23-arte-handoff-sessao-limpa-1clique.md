@@ -1,5 +1,7 @@
 ---
 slug: 2026-06-23-arte-handoff-sessao-limpa-1clique
+date: "2026-06-23"
+topic: "Estado-da-arte: handoff por-tela para sessão limpa rule-seeded disparada com 1 clique × oimpresso"
 title: "Estado-da-arte: handoff por-tela → sessão limpa rule-seeded disparada com 1 clique × oimpresso"
 type: session
 status: live

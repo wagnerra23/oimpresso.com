@@ -2,7 +2,8 @@
 slug: 2026-06-23-arte-protocolo-validacao-tela
 title: "Estado-da-arte — protocolo de validação de mudança de tela (antes do merge)"
 type: arte-session
-date: 2026-06-23
+date: "2026-06-23"
+topic: "Estado-da-arte — protocolo de validação de mudança de tela (antes do merge)"
 agent: estado-da-arte
 status: draft
 escopo: "Como validar uma modificação de tela (sessão limpa aplica protótipo na tela viva) ANTES de aceitar/mergear"

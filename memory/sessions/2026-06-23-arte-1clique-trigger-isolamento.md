@@ -1,3 +1,10 @@
+---
+date: "2026-06-23"
+topic: "Estado-da-arte — 1 clique para sessão agêntica limpa, rule-seeded, isolada (mecanismo do gatilho, eixo A)"
+authors: [C]
+type: session
+---
+
 # Estado-da-arte — "1 clique → sessão agêntica limpa, rule-seeded, isolada"
 
 > Eixo A (mecanismo do gatilho). Sessão `estado-da-arte`, 2026-06-23. Pesquisa limpa (Fase 1) ANTES de ler `memory/`/skill. Foco: os 4 elos (trigger / seed / isolamento / aprovação) e o mínimo viável reusando Claude Code nativo.
