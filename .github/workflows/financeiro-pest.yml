@@ -136,7 +136,8 @@ jobs:
             Modules/Financeiro/Tests/Feature/UnificadoCommentsAuditTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoConferirTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoUpdateTest.php \
-            Modules/Financeiro/Tests/Feature/AccountTransactionIdorTest.php
+            Modules/Financeiro/Tests/Feature/AccountTransactionIdorTest.php \
+            Modules/Financeiro/Tests/Feature/ImpostosGuardTest.php
 
       # Onda Q2 (G-7 / Salto #2): o JUnit do Pest alimenta o manifesto por-UC
       # (casos:results MERGE per-UC — vereditos UC-F01..03 do RetencaoLoopE2ETest).

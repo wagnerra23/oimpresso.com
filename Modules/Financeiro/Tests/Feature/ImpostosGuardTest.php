@@ -7,6 +7,7 @@ use App\User;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia;
 use Modules\Financeiro\Models\Titulo;
+use Modules\Financeiro\Models\TituloBaixa;
 use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
@@ -154,6 +155,24 @@ it('UC-IMP-02 · UC-IMP-03 · GUARD I2+I3: lançar a pagar cria título payable 
         expect($guia->numero)->toMatch('/^P-\d{5}$/');
         expect((float) $guia->valor_total)->toBeGreaterThan(0.0);
         expect($guia->status)->toBe('aberto');
+
+        // UC-IMP-02 (regra fiscal): a guia DAS = ≈6% da receita RECEBIDA na
+        // competência (regime caixa). Sem este assert, um bug no fator
+        // (6%→16%) passaria verde. Derivamos a receita recebida do MESMO jeito
+        // que ImpostosController::receitaRecebidaMes (soma valor_baixa+juros+
+        // multa-desconto das baixas não-estorno de títulos receber não-cancelados
+        // no mês) — imune a resíduo de seed/outros testes. Seed deste teste:
+        // impostosSeedReceita lança R$ 1000,00 → DAS esperado R$ 60,00.
+        $inicioComp = \Carbon\Carbon::createFromFormat('Y-m', $comp)->startOfMonth();
+        $fimComp = (clone $inicioComp)->endOfMonth();
+        $receitaRecebida = (float) TituloBaixa::where('business_id', $bizId)
+            ->whereNull('estorno_de_id')
+            ->whereBetween('data_baixa', [$inicioComp->toDateString(), $fimComp->toDateString()])
+            ->whereHas('titulo', fn ($t) => $t->where('tipo', 'receber')->where('status', '!=', 'cancelado'))
+            ->selectRaw('COALESCE(SUM(valor_baixa + juros + multa - desconto), 0) as total')
+            ->value('total');
+        $dasEsperado = round($receitaRecebida * 0.06, 2);
+        expect((float) $guia->valor_total)->toEqualWithDelta($dasEsperado, 0.5);
 
         // I3 — idempotência: re-POST não duplica.
         test()->actingAs($user)->post('/financeiro/impostos/lancar', ['competencia' => $comp])->assertRedirect();
