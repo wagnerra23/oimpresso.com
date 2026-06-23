@@ -531,3 +531,25 @@ O boot-smoke console (`php artisan about` pós-dump-autoload) + o failsafe boot-
 - **Anti-padrão:** NÃO adicionar `dump-autoload` ao deploy (já roda, incondicional) nem outro boot-smoke (já existe, #2912/#2952). O gap é **runtime/cadência**, não deploy-time.
 
 Cross-ref: `hostinger.md` (SSH/composer/php paths) · [session 2026-06-20](../sessions/2026-06-20-incidente-procedure-drift-false-positivo.md) · `deploy.yml` (boot-smoke console #2912 · failsafe boot-gated #2952).
+
+## 11. Variante WEB do classmap stale — middleware web 500 que o `php artisan about` NÃO vê (2026-06-23)
+
+> Mesma física do §10 (source à frente do classmap por deploy cancelado/sobreposto), mas o alvo é **middleware do grupo web** — e aí a WEB cai (oposto do §10, onde a web seguia 200 e só o cron caía). Hardening **deploy-time** desta vez, complementar (não redundante) ao boot-smoke console.
+
+### Assinatura (reconhecer em 30s)
+- `/login` e **toda rota web** = **500**; `laravel.log` MOSTRA `BindingResolutionException: Target class [App\Http\Middleware\…] does not exist` em `handle()` e/ou `terminateMiddleware()` (resolução de middleware é **pós-logger** — por isso aparece, diferente do caso Handler/ErrorReporter pré-logger de 2026-06-18).
+- `grep -c <Middleware> vendor/composer/autoload_classmap.php` = **0**, enquanto o `.php` existe em disco.
+- O run do deploy que introduziu a classe aparece **`cancelled`** (cancelado/superado no meio — entre `git reset --hard` e `composer dump-autoload`). Pista: mtime do `.php` do middleware **depois** do `bootstrap/cache/config.php`.
+
+### Por que o boot-smoke console (§9/§10, `php artisan about`) NÃO cobriu
+`php artisan about` roda no **kernel CLI**, que **não monta o pipeline HTTP** → middleware do grupo `web`/global **nunca é instanciado** no CLI. Então um `\App\Http\Middleware\X::class` fora do classmap passa **verde** pelo `about` (e pelo failsafe boot-gated, que usa o mesmo `about`) e a WEB cai em 500. É um eixo **distinto** do console — não é o caso "outro boot-smoke redundante" que o §10 desaconselha.
+
+### Hardening aplicado no `deploy.yml` (PR `fix/deploy-stale-classmap-hardening`)
+1. **`scripts/deploy/verify-classmap.php` (gate determinístico, pós-dump, em maintenance ON):** escaneia léxico (`token_get_all`) as classes `App\` de `app/Http/Kernel.php` + `app/Exceptions/Handler.php` + `app/Console/Kernel.php` + `bootstrap/app.php` e confere pertencimento ao `autoload_classmap.php`. Se faltar → re-dump 1× + re-verifica → se ainda faltar, **falha o deploy** ANTES de tirar maintenance (503 gracioso, nunca 500). Cobre o caso web (middleware) E o caso Handler (ErrorReporter).
+2. **Boot gate WEB no SAPI real, ANTES do `up`:** `php artisan down --secret=<aleatório>` cria bypass; o deploy smoka `/login` com o cookie de bypass (usuário comum vê 503) — um 5xx confirmado mantém 503 + deploy vermelho. **Fail-safe-degradante:** ambíguo (bypass não engata) não bloqueia. Failsafe ensinado a honrar os gates `classmap`/`webgate` (o `about` não reproduz o caso web).
+3. **Self-heal do `opcache_reset_token`** (estava vazio na recuperação porque o deploy cancelado nem chegou no passo de escrita): seed do secret → reusa arquivo → gera no servidor; reset HTTP lê o token **do arquivo do servidor** (mesma fonte do endpoint) → sempre casa.
+
+### Por que NÃO contradiz o "anti-padrão" do §10
+§10 desaconselha **outro boot-smoke console** e **dump-autoload extra incondicional** — corretos, pois lá o gap era **runtime/cadência do cron** (deploy já cobria seu próprio sinal). Aqui o gap é **deploy-time e de eixo WEB**: o deploy declarava sucesso / deixava o site no ar com middleware web irresolvível que o `about` não enxerga. O `verify-classmap` é **condicional** (re-dump só se stale) e o boot gate é **no SAPI real** (não um about a mais). Mitigação de processo do §10 (bachar merges, não cancelar deploy no meio, não trocar pra `cancel-in-progress:true`) **continua valendo** — o release atômico (avaliado em [session 2026-06-23](../sessions/2026-06-23-incidente-deploy-stale-classmap-web-middleware.md)) é o fix durável da causa-raiz (deploy cancelado nunca toca o que está no ar).
+
+Cross-ref: [session 2026-06-23](../sessions/2026-06-23-incidente-deploy-stale-classmap-web-middleware.md) · `incidente-deploy-stale-classmap-500` (auto-mem) · [ADR 0269](../decisions/0269-deploy-automatico-build-no-runner.md) · `scripts/deploy/verify-classmap.php`.
