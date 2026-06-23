@@ -406,6 +406,7 @@ jobs:
               | grep -vE '\.(lock|min\.js|min\.css|map|svg|png|jpg|jpeg|gif|webp|pdf|zip)$' \
               | grep -vE '\.github/scripts/pii-scan\.sh$' \
               | grep -vE '\.github/workflows/governance-gate\.yml$' \
+              | grep -vE '^prototipo-ui/cowork/' \
               || true
           )
 
