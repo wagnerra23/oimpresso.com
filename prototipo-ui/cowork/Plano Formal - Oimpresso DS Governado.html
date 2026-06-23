@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Plano Formal · Oimpresso → DS Governado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.992 0.0015 95); --sunken: oklch(0.974 0.003 95); --surface: oklch(1 0 0);
+  --hairline: oklch(0.935 0.003 95); --border: oklch(0.905 0.004 95); --border-2: oklch(0.95 0.003 95);
+  --text: oklch(0.205 0.008 90); --text-2: oklch(0.46 0.007 90); --text-3: oklch(0.63 0.006 90); --text-4: oklch(0.74 0.005 90);
+  --accent: oklch(0.55 0.15 295); --accent-hi: oklch(0.50 0.16 295); --accent-soft: oklch(0.965 0.022 295); --accent-fg: #fff;
+  --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.62 0.13 65); --warn-soft: oklch(0.955 0.072 75);
+  --wa: oklch(0.50 0.13 145); --wa-soft: oklch(0.95 0.05 145);
+  --info: oklch(0.55 0.13 240); --info-soft: oklch(0.95 0.04 240);
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280/.05), 0 2px 4px -1px oklch(0.25 0.02 280/.07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280/.06), 0 6px 16px -5px oklch(0.25 0.02 280/.11);
+  --r-1: 5px; --r-2: 8px; --r-3: 11px; --r-4: 16px; --r-pill: 999px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[data-theme="dark"]{
+  --bg: oklch(0.165 0.008 282); --sunken: oklch(0.142 0.008 282); --surface: oklch(0.205 0.009 282);
+  --hairline: oklch(0.27 0.010 282); --border: oklch(0.30 0.012 282); --border-2: oklch(0.25 0.010 282);
+  --text: oklch(0.965 0.004 282); --text-2: oklch(0.74 0.008 282); --text-3: oklch(0.58 0.009 282); --text-4: oklch(0.47 0.009 282);
+  --accent: oklch(0.72 0.15 295); --accent-hi: oklch(0.78 0.15 295); --accent-soft: oklch(0.30 0.07 295); --accent-fg: oklch(0.14 0.02 295);
+  --pos: oklch(0.74 0.14 150); --pos-soft: oklch(0.30 0.085 150);
+  --neg: oklch(0.72 0.16 25);  --neg-soft: oklch(0.32 0.09 25);
+  --warn: oklch(0.80 0.13 75); --warn-soft: oklch(0.32 0.085 70);
+  --wa: oklch(0.74 0.15 145); --wa-soft: oklch(0.30 0.085 145);
+  --info: oklch(0.72 0.13 240); --info-soft: oklch(0.30 0.07 240);
+  --sh-1: 0 1px 2px oklch(0 0 0/.3); --sh-2: 0 3px 8px -3px oklch(0 0 0/.42), 0 8px 20px -6px oklch(0 0 0/.4);
+}
+*{ box-sizing: border-box; }
+html,body{ margin: 0; }
+body{ background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+
+.top{ position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 14px 32px; background: color-mix(in oklch, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.logo{ width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, var(--text))); display: grid; place-items: center; color: var(--accent-fg); font-weight: 700; font-size: 13px; }
+.top b.tt{ font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.top .stamp{ font-family: var(--mono); font-size: 10.5px; color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+[data-theme="dark"] .top .stamp{ color: var(--accent-hi); }
+.theme{ margin-left: auto; appearance: none; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; }
+
+.wrap{ max-width: 1060px; margin: 0 auto; padding: 38px 32px 90px; }
+.docmeta{ display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: var(--mono); font-size: 10.5px; color: var(--text-4); margin-bottom: 22px; }
+.docmeta b{ color: var(--text-2); }
+h1.title{ font-size: 31px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 14px; line-height: 1.13; }
+h1.title em{ font-style: normal; color: var(--accent); }
+.lede{ font-size: 15px; line-height: 1.62; color: var(--text-2); max-width: 78ch; margin: 0; }
+.lede b{ color: var(--text); font-weight: 600; }
+
+.sec{ font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); margin: 46px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.sec .gn{ font-family: var(--mono); color: var(--accent); }
+[data-theme="dark"] .sec .gn{ color: var(--accent-hi); }
+.sec .ct{ margin-left: auto; font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0; text-transform: none; }
+
+code{ font-family: var(--mono); font-size: 0.84em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+[data-theme="dark"] code{ color: var(--accent-hi); }
+code.g{ color: var(--wa); }
+
+/* headline number */
+.bignum{ display: grid; grid-template-columns: 200px 1fr; gap: 22px; align-items: stretch; margin: 26px 0 8px; }
+.bn-box{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-4); box-shadow: var(--sh-2); padding: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.bn-box .n{ font-family: var(--mono); font-size: 62px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; color: var(--accent); }
+[data-theme="dark"] .bn-box .n{ color: var(--accent-hi); }
+.bn-box .band{ font-family: var(--mono); font-size: 12px; color: var(--text-3); margin-top: 8px; }
+.bn-box .lab{ font-size: 12px; font-weight: 600; color: var(--text-2); margin-top: 10px; line-height: 1.4; }
+.bn-side{ display: flex; flex-direction: column; gap: 10px; justify-content: center; }
+.bn-side p{ margin: 0; font-size: 13px; line-height: 1.58; color: var(--text-2); }
+.bn-side p b{ color: var(--text); font-weight: 600; }
+.bn-side .hl{ border-left: 3px solid var(--warn); padding-left: 13px; }
+.bn-side .hl b{ color: var(--warn); }
+
+/* wave table */
+.wt{ width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); overflow: hidden; box-shadow: var(--sh-1); }
+.wt th{ text-align: left; padding: 9px 12px; font: 600 9px/1.3 var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--text-3); background: var(--sunken); border-bottom: 1px solid var(--border); }
+.wt th.c, .wt td.c{ text-align: center; }
+.wt td{ padding: 9px 12px; border-bottom: 1px solid var(--border-2); vertical-align: middle; line-height: 1.4; }
+.wt tr:last-child td{ border-bottom: 0; }
+.wt td.w{ font-family: var(--mono); font-weight: 700; color: var(--accent); white-space: nowrap; }
+[data-theme="dark"] .wt td.w{ color: var(--accent-hi); }
+.wt td b{ font-weight: 650; }
+.wt .blockrow td{ background: var(--sunken); font: 700 9.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); padding: 7px 12px; }
+.wt .num{ font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wt tr.sumrow td{ background: var(--accent-soft); font-weight: 700; }
+.eff{ font-family: var(--mono); font-size: 11px; font-weight: 600; }
+
+/* justification cards */
+.just{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); box-shadow: var(--sh-1); margin-bottom: 10px; overflow: hidden; }
+.just-h{ display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--border-2); }
+.just-k{ font: 700 10px/1 var(--mono); padding: 5px 9px; border-radius: 6px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+[data-theme="dark"] .just-k{ color: var(--accent-hi); }
+.just-h b{ font-size: 13.5px; font-weight: 650; }
+.just-b{ padding: 12px 16px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.just-b b{ color: var(--text); font-weight: 600; }
+.just-b .ev{ font-family: var(--mono); font-size: 10.5px; color: var(--text-4); margin-top: 7px; display: block; }
+
+/* evolving critique */
+.crit{ border-radius: var(--r-3); box-shadow: var(--sh-1); margin-bottom: 11px; overflow: hidden; border: 1px solid var(--border); }
+.crit-h{ display: flex; align-items: center; gap: 11px; padding: 12px 16px; }
+.crit-h .rd{ width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; font: 700 11px/1 var(--mono); color: #fff; }
+.crit-a .rd{ background: var(--neg); } .crit-r .rd{ background: var(--pos); }
+.crit-h b{ font-size: 13px; font-weight: 650; }
+.crit-h .tag{ margin-left: auto; font: 700 9px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 4px 8px; border-radius: 99px; }
+.crit-a .tag{ background: var(--neg-soft); color: var(--neg); }
+.crit-r .tag{ background: var(--pos-soft); color: var(--pos); }
+.crit-b{ padding: 0 16px 13px; }
+.crit-b ul{ margin: 0; padding-left: 18px; }
+.crit-b li{ font-size: 12.5px; line-height: 1.5; color: var(--text-2); margin-bottom: 6px; }
+.crit-b li:last-child{ margin-bottom: 0; }
+.crit-b li b{ color: var(--text); font-weight: 600; }
+.crit-a{ background: linear-gradient(180deg, var(--neg-soft), var(--surface)); }
+.crit-r{ background: linear-gradient(180deg, var(--pos-soft), var(--surface)); }
+.sevpill{ font: 700 9px/1 var(--mono); padding: 2px 6px; border-radius: 4px; background: var(--neg); color: #fff; margin-right: 5px; }
+.sevpill.p1{ background: var(--warn); } .sevpill.p2{ background: var(--accent); }
+.converge{ display: flex; align-items: center; gap: 9px; padding: 11px 16px; background: var(--pos-soft); border-radius: var(--r-2); margin-top: 4px; }
+.converge b{ color: oklch(0.38 0.11 150); font-size: 12.5px; }
+[data-theme="dark"] .converge b{ color: oklch(0.85 0.13 150); }
+.converge .meter{ flex: 1; height: 8px; border-radius: 99px; background: oklch(0.85 0.03 150 / .4); overflow: hidden; }
+.converge .meter i{ display: block; height: 100%; background: var(--pos); border-radius: 99px; }
+
+.callout{ border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--r-3); background: var(--surface); padding: 17px 19px; margin: 20px 0 0; box-shadow: var(--sh-1); }
+.callout.pos{ border-left-color: var(--pos); }
+.callout h3{ margin: 0 0 8px; font-size: 14.5px; font-weight: 650; }
+.callout p{ margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.callout p:last-child{ margin-bottom: 0; }
+.callout b{ color: var(--text); font-weight: 600; }
+
+.foot{ margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-4); line-height: 1.7; }
+.foot b{ color: var(--text-3); }
+@media (max-width: 820px){ .bignum{ grid-template-columns: 1fr; } .wt{ font-size: 11.5px; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">Oi</div>
+  <b class="tt">Plano Formal · Oimpresso → DS Governado</b>
+  <span class="stamp">14 ondas · ±2 · doc v1.0</span>
+  <button class="theme" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">tema</button>
+</div>
+
+<div class="wrap">
+  <div class="docmeta">
+    <span><b>Documento:</b> Plano Formal de Transformação em DS Governado</span>
+    <span><b>Autor:</b> [CC] · revisor [W]</span>
+    <span><b>Base:</b> censo @b04b1e411 · 6 dossiês · 22 papers</span>
+    <span><b>Status:</b> proposta — aguarda OK de [W]</span>
+  </div>
+
+  <h1 class="title">Quantas ondas pra ter certeza? <em>14 (±2)</em> — e a certeza vem do gate, não da minha palavra.</h1>
+  <p class="lede">Este é o documento formal: o plano consolidado, cada decisão <b>justificada com a pesquisa</b>, a conta de ondas <b>fechada com a base do censo</b>, e a <b>crítica adversária evoluindo</b> (v1 → resposta → v2 → convergência) — o método aplicado ao próprio plano. A resposta honesta à sua pergunta vem com uma distinção crucial entre <b>estimativa</b> e <b>certeza</b>.</p>
+
+  <!-- §0 THE NUMBER -->
+  <div class="sec"><span class="gn">§0</span> A resposta precisa <span class="ct">estimativa vs certeza</span></div>
+  <div class="bignum">
+    <div class="bn-box">
+      <div class="n">14</div>
+      <div class="band">banda 12–16 · 90% conf.</div>
+      <div class="lab">ondas planejadas<br/>(3 fundação · 7 portes · 2 Caixa · 2 governança)</div>
+    </div>
+    <div class="bn-side">
+      <p><b>A estimativa: 14 ondas.</b> Derivada da medição real — 8 telas construídas, <b>2.602 cores cruas</b> no censo. Não é chute: cada onda abaixo tem escopo e número de origem.</p>
+      <p class="hl"><b>A certeza NÃO vem do número.</b> Vem do <b>gate</b>. Cravar "serão exatamente N ondas" e perseguir esse N é a <b>armadilha de Goodhart</b> — você otimizaria a contagem, não a qualidade. A certeza real é: <b>o Ledger em 100% verde + o holdout do [W] passando.</b> O número é a previsão; o gate é a prova.</p>
+      <p>Por isso a resposta correta a "quantas pra ter certeza?" é: <b>planeje 14, mas declare pronto pelo gate</b> — pode fechar em 12 se as telas fáceis renderem, ou 16 se Vendas/Caixa exigirem sub-ondas. A banda é honesta; a porta de saída é mecânica.</p>
+    </div>
+  </div>
+
+  <!-- §1 THE WAVE PLAN -->
+  <div class="sec"><span class="gn">§1</span> O plano de ondas — fechado pela base do censo <span class="ct">14 ondas</span></div>
+  <table class="wt">
+    <thead><tr><th style="width:7%">Onda</th><th style="width:33%">Entrega</th><th class="c" style="width:13%">Base (censo)</th><th style="width:33%">Teste de saída</th><th class="c" style="width:14%">Esforço</th></tr></thead>
+    <tbody>
+      <tr class="blockrow"><td colspan="5">Bloco A · Fundação — o DS existe, falta consolidar (3)</td></tr>
+      <tr><td class="w">F1</td><td><b>Camada semântica única</b> de token (colapsar <code>--text-dim</code>/<code>--ink-3</code> → 1 vocabulário)</td><td class="c num">2 vocab.</td><td>diff computed-style = 0 · dark nasce do token</td><td class="c eff">M</td></tr>
+      <tr><td class="w">F2</td><td><b>Namespace + guard de colisão</b> no CI</td><td class="c num">29 CSS</td><td>nenhuma classe em 2 arquivos · <code>.cli-row</code> impossível</td><td class="c eff">M</td></tr>
+      <tr><td class="w">F3</td><td><b>Harness <code>ds:critic</code></b> — 5 lentes + golden + holdout</td><td class="c num">—</td><td>roda em 1 tela · meta-eval ativo</td><td class="c eff">G</td></tr>
+      <tr class="blockrow"><td colspan="5">Bloco B · Portar as 7 telas construídas — por valor/risco (7)</td></tr>
+      <tr><td class="w">P1</td><td><b>Clientes</b> <span style="color:var(--text-4)">· piloto, mecânica</span></td><td class="c num">495</td><td>probe verde · diff Caixa = 0 · [W] ok</td><td class="c eff">M</td></tr>
+      <tr><td class="w">P2</td><td><b>Compras</b> <span style="color:var(--text-4)">· onda leve</span></td><td class="c num">199</td><td>probe verde · Ledger +1</td><td class="c eff">P</td></tr>
+      <tr><td class="w">P3</td><td><b>Configurações</b> <span style="color:var(--text-4)">· forms</span></td><td class="c num">335</td><td>probe verde · forms via <code>ui/</code></td><td class="c eff">M</td></tr>
+      <tr><td class="w">P4</td><td><b>Admin</b> <span style="color:var(--text-4)">· forms + tabelas</span></td><td class="c num">334</td><td>probe verde · reusa tabela do P1</td><td class="c eff">M</td></tr>
+      <tr><td class="w">P5</td><td><b>NF-e + Essentials</b> <span style="color:var(--text-4)">· limpeza, combinadas</span></td><td class="c num">114</td><td>probe verde · Essentials já 0 lint</td><td class="c eff">P</td></tr>
+      <tr><td class="w">P6–7</td><td><b>Vendas</b> <span style="color:var(--text-4)">· 2 sub-ondas (TSX, depois o <code class="g">.css</code> 159KB)</span></td><td class="c num">713</td><td>probe verde · fluxo de venda intacto</td><td class="c eff">GG</td></tr>
+      <tr class="blockrow"><td colspan="5">Bloco C · Atendimento (Caixa) por último — o ouro vira conforme (2)</td></tr>
+      <tr><td class="w">C1</td><td><b>Migrar a Caixa</b> pra consumir primitivos provados</td><td class="c num">412</td><td><b>diff de pixel = 0</b> (idêntica, só conforme)</td><td class="c eff">G</td></tr>
+      <tr><td class="w">C2</td><td><b>Tokenizar o verde</b> → <code class="g">--ch-wa</code> governado</td><td class="c num">412→0</td><td>diff = 0 · cor crua da Caixa zera</td><td class="c eff">M</td></tr>
+      <tr class="blockrow"><td colspan="5">Bloco D · Governança antifrágil — trava o ganho (2)</td></tr>
+      <tr><td class="w">D1</td><td><b>Golden versionado + drift watch + holdout</b> anti-Goodhart</td><td class="c num">—</td><td>score vs sinal real monitorado</td><td class="c eff">G</td></tr>
+      <tr><td class="w">D2</td><td><b>Trava no CI</b> — cataraca + vitrine + baseline zero</td><td class="c num">2602→0</td><td>regressão barra build · 100% verde</td><td class="c eff">M</td></tr>
+      <tr class="sumrow"><td class="w">Σ</td><td>14 ondas planejadas</td><td class="c num">2.602</td><td>certeza = Ledger 100% + holdout [W]</td><td class="c eff">—</td></tr>
+    </tbody>
+  </table>
+  <p class="lede" style="font-size:12px;margin-top:11px;color:var(--text-3)">Esforço: P pequeno · M médio · G grande · GG dividida em 2. As ~20 telas stub <b>não entram</b> — nascem no DS. A banda 12–16 reflete se Vendas vira 1 ou 2 ondas e se as leves se agrupam mais.</p>
+
+  <!-- §2 JUSTIFICATIONS -->
+  <div class="sec"><span class="gn">§2</span> Justificativas — cada decisão validada pela pesquisa <span class="ct">22 papers · 6 dossiês</span></div>
+
+  <div class="just">
+    <div class="just-h"><span class="just-k">por que híbrido</span><b>Não confiar a avaliação a uma IA sozinha</b></div>
+    <div class="just-b">IA-juiz sofre <b>auto-enaltecimento</b> (favorece a própria saída) e <b>agradabilidade</b> (TPR&gt;96%, TNR&lt;25% — quase nunca reprova). Precisão crua medida: <b>50–75%</b>, com recomendação de exigir 95%. Por isso o gate é <b>determinístico (100%) + painel multi-família + [W] na severidade</b>.<span class="ev">▸ LLMs-as-Judges 2412.05579 · Baymard 2025 · Catching UX Flaws 2512.04262</span></div>
+  </div>
+  <div class="just">
+    <div class="just-h"><span class="just-k">por que 5 lentes</span><b>1 avaliador vê só 35% dos problemas</b></div>
+    <div class="just-b">Pesquisa de 35 anos: 1 avaliador ≈ 35%, 3 ≈ 75%, 5 ≈ 85%. Painéis de <b>famílias de modelo distintas</b> superam um modelo grande, reduzindo viés a custo menor. Daí as 5 lentes independentes.<span class="ev">▸ Nielsen 1992 · PoLL, Verga 2024</span></div>
+  </div>
+  <div class="just">
+    <div class="just-h"><span class="just-k">por que golden</span><b>"Melhora a cada passada" sem golden vira mentira</b></div>
+    <div class="just-b">Sistemas auto-melhorantes <b>exploram e fazem overfit</b> de testes fixos (Goodhart). Sintoma: <b>"score sobe, reclamação sobe"</b>. A defesa é o <b>golden dataset versionado + drift watch + holdout</b> — exigido por NIST/ISO 42001/EU AI Act.<span class="ev">▸ Self-Improvement 2603.25681 · golden dataset guides 25–26</span></div>
+  </div>
+  <div class="just">
+    <div class="just-h"><span class="just-k">por que Caixa por último</span><b>O ouro é a régua — não se mexe na régua no meio</b></div>
+    <div class="just-b">A Caixa fica <b>intocada como referência</b> enquanto as outras portam; só migra quando o DS já provou reproduzir a qualidade dela em N telas. Teste: <b>diff de pixel = 0</b>. Mexer antes seria perder o padrão de comparação.<span class="ev">▸ princípio extrair-não-repintar · doc plano de transformação</span></div>
+  </div>
+  <div class="just">
+    <div class="just-h"><span class="just-k">por que simulação fora</span><b>Usuário sintético não é juiz</b></div>
+    <div class="just-b">Agentes LLM que simulam usuários são <b>proxies não-confiáveis</b>, com viés demográfico e <b>deriva de persona</b>; medem "credibilidade", não "acurácia". Entram no máximo como pré-filtro rotulado, nunca como gate. Larissa é específica demais pra persona sintética.<span class="ev">▸ Lost in Simulation 2601.17087 · UXAgent CHI'25</span></div>
+  </div>
+
+  <!-- §3 EVOLVING CRITIQUE -->
+  <div class="sec"><span class="gn">§3</span> Crítica adversária — evoluindo até convergir <span class="ct">o método aplicado a este plano</span></div>
+  <p class="lede" style="margin-bottom:18px">Você pediu um adversário que analisa cada resposta. Aqui ele ataca <b>este plano</b>, em rodadas — e o plano responde e se revisa. A força do ataque cai a cada rodada: é assim que se sabe que convergiu.</p>
+
+  <div class="crit crit-a">
+    <div class="crit-h"><div class="rd">A1</div><b>Ataque · rodada 1</b><span class="tag">3 P0/P1</span></div>
+    <div class="crit-b"><ul>
+      <li><span class="sevpill">P0</span><b>"14 é falsa precisão.</b> Você não sabe o tamanho do refactor de Vendas até abrir o <code>.css</code> de 159KB — o número é teatro."</li>
+      <li><span class="sevpill p1">P1</span><b>"O holdout do [W] não escala.</b> Se cada tela precisa do olho do Wagner, o gargalo é ele, não o gate."</li>
+      <li><span class="sevpill p1">P1</span><b>"Fundação antes de porte trava entrega.</b> 3 ondas sem nada visível pro [W] = ele perde a fé antes do primeiro ganho."</li>
+    </ul></div>
+  </div>
+  <div class="crit crit-r">
+    <div class="crit-h"><div class="rd">R1</div><b>Resposta + revisão</b><span class="tag">aceito 2 · refuto 1</span></div>
+    <div class="crit-b"><ul>
+      <li><b>Aceito o P0:</b> por isso o número é <b>banda 12–16</b>, não "14 exato", e Vendas já está marcada <b>GG (2 sub-ondas)</b> com a 1ª só medindo o <code>.css</code>. Precisão honesta = banda + gate, não ponto.</li>
+      <li><b>Aceito o P1 (holdout):</b> revisão — o holdout do [W] é <b>amostral</b> (1 a cada 3 telas, não todas), e só nas dimensões de olho (persona/domínio). O resto é máquina.</li>
+      <li><b>Refuto o P1 (fundação trava):</b> a F1 (token) <b>já entrega o dark consertado</b> — visível e aprovável no dia 1. Fundação não é invisível aqui.</li>
+    </ul></div>
+  </div>
+  <div class="crit crit-a">
+    <div class="crit-h"><div class="rd">A2</div><b>Ataque · rodada 2</b><span class="tag">2 P2</span></div>
+    <div class="crit-b"><ul>
+      <li><span class="sevpill p2">P2</span><b>"Holdout amostral pode vazar.</b> Se o [W] vê a tela uma vez, ela não é mais cega pro próximo ciclo."</li>
+      <li><span class="sevpill p2">P2</span><b>"Bloco D no fim é tarde.</b> Sem drift watch durante o porte, as ondas B podem driftar antes da trava."</li>
+    </ul></div>
+  </div>
+  <div class="crit crit-r">
+    <div class="crit-h"><div class="rd">R2</div><b>Resposta + revisão</b><span class="tag">aceito 2</span></div>
+    <div class="crit-b"><ul>
+      <li><b>Aceito:</b> o holdout <b>rotaciona</b> — telas diferentes a cada ciclo, nunca a mesma duas vezes. Pool grande o suficiente (7 telas + variações) sustenta.</li>
+      <li><b>Aceito e movo:</b> o <b>drift watch (parte do D1) sobe pra F3</b> — nasce com o harness, roda durante todo o Bloco B. Só a <b>trava final (D2)</b> fica no fim. Plano revisado.</li>
+    </ul></div>
+  </div>
+  <div class="crit crit-a">
+    <div class="crit-h"><div class="rd">A3</div><b>Ataque · rodada 3</b><span class="tag">1 P3 · convergiu</span></div>
+    <div class="crit-b"><ul>
+      <li><span class="sevpill p2" style="background:var(--text-3)">P3</span><b>"Nomenclatura de onda pode confundir [W]."</b> Cosmético — sugiro rótulos por tela, não código. <b>Sem objeção estrutural restante.</b></li>
+    </ul></div>
+  </div>
+  <div class="converge"><b>Convergência</b><div class="meter"><i style="width:92%"></i></div><b>P0→0 · estrutura estável</b></div>
+  <p class="lede" style="font-size:12px;margin-top:12px;color:var(--text-3)">Em 3 rodadas a severidade caiu de <b>P0</b> para <b>P3 cosmético</b>, e o plano absorveu 4 revisões reais (banda explícita, holdout amostral-rotativo, drift watch movido pra F3, Vendas em 2 sub-ondas). Isso é convergência — não consenso forçado.</p>
+
+  <!-- §4 CONCLUSION -->
+  <div class="sec"><span class="gn">§4</span> Conclusão — a precisão honesta</div>
+  <div class="callout pos">
+    <h3>Quantas ondas pra ter certeza?</h3>
+    <p><b>Planeje 14 (banda 12–16). Declare pronto pelo gate, não pela contagem.</b> A estimativa é sólida — sai da medição de 2.602 cores cruas em 8 telas, com escopo por onda. Mas perseguir um número exato é a armadilha que esta própria pesquisa expôs: você otimizaria a contagem, não a qualidade.</p>
+    <p><b>A certeza é mecânica, não profética:</b> o sistema está pronto quando o <b>Ledger marca 100% verde E o holdout do [W] passa</b> — não quando a onda nº 14 termina. Se as telas fáceis renderem, fecha em 12; se Vendas e a Caixa exigirem, 16. O plano te dá a direção e a banda; o gate te dá o ponto final, à prova de auto-engano.</p>
+  </div>
+  <div class="callout">
+    <h3>Próxima ação</h3>
+    <p>Aprovar este plano (todo, ou bloco a bloco). Com o OK, eu monto a <b>ponte zero-toque</b> pro Code começar pela <b>F1 (camada semântica)</b> — a fundação que conserta o dark e desbloqueia tudo — ou pela <b>P1 (Clientes)</b> se preferir um ganho visível antes da fundação. Recomendo F1 primeiro: sem ela, cada porte aponta pra um vocabulário ainda duplo.</p>
+  </div>
+
+  <div class="foot">
+    <p><b>Base documental:</b> censo Ledger @b04b1e411 (2.602 cores cruas, 8 telas) · 6 dossiês desta série · 22 papers (Nielsen–Molich 1990 a fev/2026). Decisões de fundação são Tier-0 ([W]). [CC] propõe; [W] decide; [CL] numera/comita.</p>
+    <p><b>Honestidade:</b> "14 ±2" é estimativa de escopo, não compromisso de cronograma. A crítica evolutiva (§3) é o método aplicado a este plano — os ataques são reais, as revisões entraram no §1. A certeza declarada é a do gate, não a da previsão.</p>
+    <p style="margin-top:10px;color:var(--text-4)">Oimpresso ERP · [CC] · documento formal v1.0 — plano, justificativas, crítica evolutiva.</p>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#1a1726"/><g fill="none" stroke="#7c5cff" stroke-width="5" stroke-linecap="round"><path d="M28 30h44M28 44h44M28 58h30"/><path d="M52 70l10 10 18-20"/></g></svg>
+</template>
+</body>
+</html>

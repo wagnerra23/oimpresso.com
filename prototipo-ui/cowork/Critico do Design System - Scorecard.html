@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Crítico do Design System · Scorecard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.992 0.0015 95); --sunken: oklch(0.974 0.003 95); --surface: oklch(1 0 0);
+  --hairline: oklch(0.935 0.003 95); --border: oklch(0.905 0.004 95); --border-2: oklch(0.95 0.003 95);
+  --text: oklch(0.205 0.008 90); --text-2: oklch(0.46 0.007 90); --text-3: oklch(0.63 0.006 90); --text-4: oklch(0.74 0.005 90);
+  --accent: oklch(0.55 0.15 295); --accent-hi: oklch(0.50 0.16 295); --accent-soft: oklch(0.965 0.022 295); --accent-fg: #fff;
+  --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.62 0.13 65); --warn-soft: oklch(0.955 0.072 75);
+  --wa: oklch(0.50 0.13 145); --wa-soft: oklch(0.95 0.05 145);
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280/.05), 0 2px 4px -1px oklch(0.25 0.02 280/.07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280/.06), 0 6px 16px -5px oklch(0.25 0.02 280/.11);
+  --r-1: 5px; --r-2: 8px; --r-3: 11px; --r-4: 16px; --r-pill: 999px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[data-theme="dark"]{
+  --bg: oklch(0.165 0.008 282); --sunken: oklch(0.142 0.008 282); --surface: oklch(0.205 0.009 282);
+  --hairline: oklch(0.27 0.010 282); --border: oklch(0.30 0.012 282); --border-2: oklch(0.25 0.010 282);
+  --text: oklch(0.965 0.004 282); --text-2: oklch(0.74 0.008 282); --text-3: oklch(0.58 0.009 282); --text-4: oklch(0.47 0.009 282);
+  --accent: oklch(0.72 0.15 295); --accent-hi: oklch(0.78 0.15 295); --accent-soft: oklch(0.30 0.07 295); --accent-fg: oklch(0.14 0.02 295);
+  --pos: oklch(0.74 0.14 150); --pos-soft: oklch(0.30 0.085 150);
+  --neg: oklch(0.72 0.16 25);  --neg-soft: oklch(0.32 0.09 25);
+  --warn: oklch(0.80 0.13 75); --warn-soft: oklch(0.32 0.085 70);
+  --wa: oklch(0.74 0.15 145); --wa-soft: oklch(0.30 0.085 145);
+  --sh-1: 0 1px 2px oklch(0 0 0/.3); --sh-2: 0 3px 8px -3px oklch(0 0 0/.42), 0 8px 20px -6px oklch(0 0 0/.4);
+}
+*{ box-sizing: border-box; }
+html,body{ margin: 0; }
+body{ background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+
+.top{ position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 14px 32px; background: color-mix(in oklch, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.logo{ width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, var(--text))); display: grid; place-items: center; color: var(--accent-fg); font-weight: 700; font-size: 13px; }
+.top b.tt{ font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.top .stamp{ font-family: var(--mono); font-size: 10.5px; color: var(--warn); background: var(--warn-soft); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+.theme{ margin-left: auto; appearance: none; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; }
+
+.wrap{ max-width: 1060px; margin: 0 auto; padding: 38px 32px 90px; }
+h1.title{ font-size: 30px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 14px; line-height: 1.15; }
+h1.title em{ font-style: normal; color: var(--accent); }
+.lede{ font-size: 15px; line-height: 1.62; color: var(--text-2); max-width: 76ch; margin: 0; }
+.lede b{ color: var(--text); font-weight: 600; }
+
+/* score hero */
+.scorehero{ display: grid; grid-template-columns: 220px 1fr; gap: 22px; margin: 26px 0 8px; align-items: stretch; }
+.scorebig{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-4); box-shadow: var(--sh-2); padding: 22px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.scorebig .num{ font-family: var(--mono); font-size: 58px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; color: var(--warn); }
+.scorebig .den{ font-family: var(--mono); font-size: 16px; color: var(--text-4); }
+.scorebig .verdict{ margin-top: 10px; font-size: 12px; font-weight: 600; text-align: center; color: var(--text-2); line-height: 1.4; }
+.scorebig .tag{ margin-top: 8px; font: 700 9.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 4px 9px; border-radius: 99px; background: var(--warn-soft); color: var(--warn); }
+.dims{ display: flex; flex-direction: column; gap: 9px; justify-content: center; }
+.dim{ display: grid; grid-template-columns: 168px 1fr 38px; gap: 12px; align-items: center; }
+.dim .dn{ font-size: 12.5px; font-weight: 500; color: var(--text-2); }
+.dim .track{ height: 8px; border-radius: 99px; background: var(--sunken); overflow: hidden; border: 1px solid var(--border-2); }
+.dim .track i{ display: block; height: 100%; border-radius: 99px; }
+.dim .sc{ font-family: var(--mono); font-size: 12px; font-weight: 700; text-align: right; }
+.f-hi{ background: var(--pos); } .f-md{ background: var(--warn); } .f-lo{ background: var(--neg); }
+.c-hi{ color: var(--pos); } .c-md{ color: var(--warn); } .c-lo{ color: var(--neg); }
+
+.grouph{ font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); margin: 46px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.grouph .gn{ font-family: var(--mono); color: var(--accent); }
+[data-theme="dark"] .grouph .gn{ color: var(--accent-hi); }
+.grouph .ct{ margin-left: auto; font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0; text-transform: none; }
+
+code{ font-family: var(--mono); font-size: 0.84em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+[data-theme="dark"] code{ color: var(--accent-hi); }
+
+/* findings */
+.finding{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); box-shadow: var(--sh-1); margin-bottom: 12px; overflow: hidden; }
+.finding-h{ display: grid; grid-template-columns: auto 1fr auto; gap: 13px; align-items: center; padding: 13px 16px; border-bottom: 1px solid var(--border-2); }
+.sev{ font: 700 10px/1 var(--mono); letter-spacing: .04em; padding: 5px 9px; border-radius: 7px; white-space: nowrap; }
+.sev.p0{ background: var(--neg-soft); color: var(--neg); }
+.sev.p1{ background: var(--warn-soft); color: var(--warn); }
+.sev.p2{ background: var(--accent-soft); color: var(--accent); }
+[data-theme="dark"] .sev.p2{ color: var(--accent-hi); }
+.sev.p3{ background: var(--sunken); color: var(--text-3); }
+.finding-h b.ft{ font-size: 14px; font-weight: 650; letter-spacing: -0.01em; }
+.effort{ font: 600 10px/1 var(--mono); color: var(--text-3); white-space: nowrap; }
+.finding-b{ padding: 13px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 11px 20px; }
+.fb{ display: flex; flex-direction: column; gap: 3px; }
+.fb.full{ grid-column: 1 / -1; }
+.fb .lab{ font: 700 9px/1 var(--mono); letter-spacing: .07em; text-transform: uppercase; color: var(--text-4); }
+.fb .val{ font-size: 12.5px; line-height: 1.5; color: var(--text-2); }
+.fb .val b{ color: var(--text); font-weight: 600; }
+.fb .val.fix b{ color: var(--pos); }
+.ev{ font-family: var(--mono); font-size: 11px; color: var(--text-3); background: var(--sunken); border: 1px solid var(--border-2); border-radius: 6px; padding: 7px 9px; line-height: 1.5; }
+.ev .vd{ color: var(--pos); font-weight: 600; }
+
+.tagread{ font-family: var(--mono); font-size: 9.5px; padding: 2px 7px; border-radius: 99px; font-weight: 600; vertical-align: middle; }
+.tagread.ok{ background: var(--pos-soft); color: var(--pos); }
+.tagread.inf{ background: var(--warn-soft); color: var(--warn); }
+
+/* checklist */
+.checkwrap{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-4); box-shadow: var(--sh-1); overflow: hidden; }
+.checkrow{ display: grid; grid-template-columns: 30px 1fr 120px; gap: 13px; align-items: center; padding: 12px 17px; border-bottom: 1px solid var(--border-2); }
+.checkrow:last-child{ border-bottom: 0; }
+.checkrow .cb{ width: 19px; height: 19px; border-radius: 5px; border: 1.5px solid var(--border); display: grid; place-items: center; color: var(--text-4); font-size: 11px; }
+.checkrow .ct2{ font-size: 12.5px; line-height: 1.45; color: var(--text-2); }
+.checkrow .ct2 b{ color: var(--text); font-weight: 600; }
+.checkrow .gate{ font: 600 10px/1.3 var(--mono); color: var(--text-3); text-align: right; }
+.checkrow .gate b{ color: var(--accent); }
+[data-theme="dark"] .checkrow .gate b{ color: var(--accent-hi); }
+
+.callout{ border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--r-3); background: var(--surface); padding: 17px 19px; margin: 20px 0 0; box-shadow: var(--sh-1); }
+.callout.pos{ border-left-color: var(--pos); }
+.callout h3{ margin: 0 0 8px; font-size: 14px; font-weight: 650; }
+.callout p{ margin: 0 0 7px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.callout p:last-child{ margin-bottom: 0; }
+.callout b{ color: var(--text); font-weight: 600; }
+
+.foot{ margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-4); line-height: 1.75; }
+.foot b{ color: var(--text-3); }
+@media (max-width: 820px){ .scorehero{ grid-template-columns: 1fr; } .dim{ grid-template-columns: 130px 1fr 34px; } .finding-b{ grid-template-columns: 1fr; } .checkrow{ grid-template-columns: 26px 1fr; } .checkrow .gate{ display: none; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">Oi</div>
+  <b class="tt">Crítico do Design System · scorecard adversário</b>
+  <span class="stamp">68 / 100 · bom alicerce, dívidas claras</span>
+  <button class="theme" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">tema</button>
+</div>
+
+<div class="wrap">
+  <h1 class="title">Seu DS tem <em>alicerce bom</em> — e 3 dívidas estruturais que custam tempo.</h1>
+  <p class="lede">Você pediu um crítico que analisa <b>tudo de uma vez</b> pra não perder tempo descobrindo problema tela a tela. Aqui está — cético, com <b>evidência de linha</b>, severidade e correção. A conclusão honesta: a biblioteca de componentes existe e a densidade serve a Larissa, mas <b>três dívidas estruturais</b> (dois vocabulários de token, escopo global sem namespace, cor crua) são a <b>mesma raiz</b> dos sintomas que já te morderam — o dark "sem identidade", a tabela que quebrou, o rollout inteiro. Resolver a raiz mata os três de uma vez.</p>
+
+  <!-- SCORECARD -->
+  <div class="scorehero">
+    <div class="scorebig">
+      <div class="num">68</div>
+      <div class="den">/ 100</div>
+      <div class="verdict">Bom alicerce.<br/>Dívida estrutural<br/>localizada e tratável.</div>
+      <div class="tag">B−</div>
+    </div>
+    <div class="dims">
+      <div class="dim"><span class="dn">Biblioteca de componentes</span><div class="track"><i class="f-hi" style="width:82%"></i></div><span class="sc c-hi">82</span></div>
+      <div class="dim"><span class="dn">Densidade / fit persona</span><div class="track"><i class="f-hi" style="width:85%"></i></div><span class="sc c-hi">85</span></div>
+      <div class="dim"><span class="dn">Gates / governança CI</span><div class="track"><i class="f-hi" style="width:78%"></i></div><span class="sc c-hi">78</span></div>
+      <div class="dim"><span class="dn">Arquitetura de tokens</span><div class="track"><i class="f-md" style="width:52%"></i></div><span class="sc c-md">52</span></div>
+      <div class="dim"><span class="dn">Cor &amp; temas (dark)</span><div class="track"><i class="f-md" style="width:58%"></i></div><span class="sc c-md">58</span></div>
+      <div class="dim"><span class="dn">Adoção real (cor crua)</span><div class="track"><i class="f-md" style="width:48%"></i></div><span class="sc c-md">48</span></div>
+      <div class="dim"><span class="dn">Escopo / nomenclatura</span><div class="track"><i class="f-lo" style="width:40%"></i></div><span class="sc c-lo">40</span></div>
+      <div class="dim"><span class="dn">Versionamento de tokens</span><div class="track"><i class="f-lo" style="width:25%"></i></div><span class="sc c-lo">25</span></div>
+    </div>
+  </div>
+  <p class="lede" style="font-size:12px;margin-top:14px;color:var(--text-3)">Verde = força real, mantenha. Amarelo/vermelho = onde o tempo vaza. As notas baixas <b>não são tela feia</b> — são fundação que ainda não foi consolidada. Cada uma vira um achado abaixo.</p>
+
+  <!-- FINDINGS -->
+  <div class="grouph"><span class="gn">A</span> Achados — ranqueados por quanto tempo custam <span class="ct">7 achados</span></div>
+
+  <div class="finding">
+    <div class="finding-h"><span class="sev p0">P0 · raiz</span><b class="ft">Dois vocabulários de token convivendo</b><span class="effort">~1–2 ondas</span></div>
+    <div class="finding-b">
+      <div class="fb"><span class="lab">Sintoma</span><span class="val">O dark "muito preto sem identidade", cores que não casam entre telas, e o medo de "será que muda o tom certo?".</span></div>
+      <div class="fb"><span class="lab">Causa</span><span class="val"><b>Dois conjuntos de tokens nomeiam a mesma coisa</b> no mesmo arquivo: <code>--text-dim</code>/<code>--border</code> de um lado e <code>--ink-3</code>/<code>--line</code> do outro. Componentes escolhem um ou outro ao acaso.</span></div>
+      <div class="fb full"><span class="lab">Evidência <span class="tagread ok">✓ lido</span></span><div class="ev"><span class="vd">styles.css:3469</span> usa <code>var(--text-dim)</code>, <code>var(--border)</code> &nbsp;·&nbsp; <span class="vd">styles.css:4167–4173</span> usa <code>var(--ink-3)</code>, <code>var(--line)</code> — para o MESMO papel visual.</div></div>
+      <div class="fb full"><span class="lab">Correção</span><span class="val fix"><b>Camada semântica única</b> (padrão W3C 3-tier): bruto → semântico (<code>--text-muted</code>, <code>--line</code>) → componente. Aposentar um vocabulário via alias, sem trocar pixel. É a Fundação do rollout — resolve dark, consistência e o medo de tom, juntos.</span></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-h"><span class="sev p1">P1 · raiz</span><b class="ft">Escopo global sem namespace → colisão de classe</b><span class="effort">~1 onda + guard</span></div>
+    <div class="finding-b">
+      <div class="fb"><span class="lab">Sintoma</span><span class="val">A tabela de Clientes quebrou (células empilhando) — e vai voltar a acontecer em outra tela a qualquer momento.</span></div>
+      <div class="fb"><span class="lab">Causa</span><span class="val"><b>29 arquivos CSS, todos em escopo global.</b> A única proteção é o prefixo (<code>cli-</code>, <code>om-</code>…) — e ele já falhou: <code>.cli-row</code> existe em dois arquivos com sentidos diferentes.</span></div>
+      <div class="fb full"><span class="lab">Evidência <span class="tagread ok">✓ lido</span></span><div class="ev"><span class="vd">styles.css:3468</span> <code>.cli-row</code> = grid de ficha &nbsp;·&nbsp; <span class="vd">clientes-page.css</span> <code>.cli-row</code> = linha de tabela. Colisão real, já corrigida pontualmente — mas a <b>classe de bug</b> segue aberta. Bônus: <code>.cli-section</code> está <b>definido 2×</b> em styles.css (3465 e 4169) com props conflitantes.</div></div>
+      <div class="fb full"><span class="lab">Correção</span><span class="val fix"><b>Namespace por módulo</b> (cada tela prefixa de verdade, ex. <code>c-cli-row</code>) + um <b>guard de colisão</b> no CI que falha se a mesma classe é definida em 2 arquivos. Mata a categoria inteira, não 1 caso.</span></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-h"><span class="sev p1">P1</span><b class="ft">Cor crua não tokenizada (stone / rose)</b><span class="effort">o rollout</span></div>
+    <div class="finding-b">
+      <div class="fb"><span class="lab">Sintoma</span><span class="val">Cada tela "quase" combina, mas nunca 100%; dark precisa de remendo manual por tela.</span></div>
+      <div class="fb"><span class="lab">Causa</span><span class="val">Tailwind cru (<code>bg-stone-50</code>, <code>text-rose-700</code>) em vez de token semântico que se adapta ao tema sozinho.</span></div>
+      <div class="fb full"><span class="lab">Evidência <span class="tagread ok">✓ medido (Ledger)</span></span><div class="ev"><span class="vd">Cliente</span> 495 cruas &nbsp;·&nbsp; <span class="vd">Sells</span> 713 &nbsp;·&nbsp; <span class="vd">Whatsapp</span> 412. O probe <code>ds-ledger.mjs</code> já conta isso por tela.</div></div>
+      <div class="fb full"><span class="lab">Correção</span><span class="val fix"><b>É exatamente o rollout em ondas</b> que já está em curso (Onda 1 = Cliente). Nada novo — só executar. Depende do P0 (camada semântica) pra ter pra onde apontar.</span></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-h"><span class="sev p2">P2</span><b class="ft">Adoção parcial de componentes</b><span class="effort">por tela</span></div>
+    <div class="finding-b">
+      <div class="fb"><span class="lab">Causa</span><span class="val">Telas usam <code>ui/</code> pra uns elementos e fazem à mão outros que <b>já existem</b> no DS.</span></div>
+      <div class="fb"><span class="lab">Evidência <span class="tagread ok">✓ lido @main</span></span><span class="val"><code>Produto/Create.tsx</code>: <code>PageHeader</code> hand-rolled e <code>&lt;input type=checkbox&gt;</code> nativo, existindo <code>shared/PageHeader</code> e <code>ui/checkbox</code>.</span></div>
+      <div class="fb full"><span class="lab">Correção</span><span class="val fix">Parte 2 de cada onda ("terminar a adoção"). Um <b>guard "primitivo existe e não foi usado"</b> no CI evita a recaída.</span></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-h"><span class="sev p2">P2</span><b class="ft">Cor-de-dado (categoria) sem governança</b><span class="effort">1 ADR</span></div>
+    <div class="finding-b">
+      <div class="fb"><span class="lab">Causa</span><span class="val">Os multi-hue por categoria/avatar não têm token de papel — por isso a decisão 1b ficou pendente.</span></div>
+      <div class="fb"><span class="lab">Status</span><span class="val">Tratado como <b>exceção documentada (1b-B)</b> hoje — ok, mas é dívida marcada, não resolvida.</span></div>
+      <div class="fb full"><span class="lab">Correção</span><span class="val fix"><b>ADR "paleta de categoria governada"</b> (<code>--cat-*</code>) quando for investir — provavelmente junto do Sells, onde cor-de-dado mais aparece.</span></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-h"><span class="sev p2">P2</span><b class="ft">Defeitos de borda recorrentes (sem regra)</b><span class="effort">micro-PRs</span></div>
+    <div class="finding-b">
+      <div class="fb"><span class="lab">Causa</span><span class="val">Faltam regras de DS pra casos-limite: número longo, texto que trunca, sobreposição em tela estreita.</span></div>
+      <div class="fb"><span class="lab">Evidência <span class="tagread inf">observado</span></span><span class="val">Badge <b>"15151"</b> estourando (deveria capar <code>99+</code>); "Sem OS" cortado pelo X; vazamento de cor atrás do drawer.</span></div>
+      <div class="fb full"><span class="lab">Correção</span><span class="val fix"><b>Regras no componente</b>: badge capa em 99+, célula com <code>truncate</code> + title, drawer com scrim. Vira teste do probe (não reincide).</span></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <div class="finding-h"><span class="sev p3">P3</span><b class="ft">Tokens sem versionamento / depreciação</b><span class="effort">processo</span></div>
+    <div class="finding-b">
+      <div class="fb"><span class="lab">Causa</span><span class="val">Não há semver nos tokens nem caminho de depreciação — mudança de fundação pode quebrar tela silenciosamente.</span></div>
+      <div class="fb full"><span class="lab">Correção</span><span class="val fix">Versionar o arquivo de tokens (semver) + marcar token aposentado como <code>@deprecated</code> com alias temporário. Padrão dos DS maduros (2025/26). Baixa urgência, alto valor quando a fundação estabilizar.</span></div>
+    </div>
+  </div>
+
+  <!-- REUSABLE CRITIC -->
+  <div class="grouph"><span class="gn">B</span> O crítico reutilizável — rode ANTES de construir cada tela <span class="ct">pré-voo · 8 itens</span></div>
+  <p class="lede" style="margin-bottom:18px">Esta é a parte que te <b>poupa tempo</b>: um pré-voo que [CD] (ou eu) roda em cada tela <b>antes</b> de codar — a maioria já é <b>checável por máquina</b> com os scripts que existem. Verde aqui = a tela não vai te morder depois.</p>
+  <div class="checkwrap">
+    <div class="checkrow"><span class="cb">1</span><span class="ct2"><b>Zero cor crua</b> — nenhum <code>stone-*</code>/<code>rose-*</code>/hex solto; tudo token semântico.</span><span class="gate">auto · <b>ds-ledger</b></span></div>
+    <div class="checkrow"><span class="cb">2</span><span class="ct2"><b>Sem classe colidida</b> — nenhuma classe desta tela existe noutro arquivo com outro sentido.</span><span class="gate">auto · <b>guard novo</b></span></div>
+    <div class="checkrow"><span class="cb">3</span><span class="ct2"><b>Primitivo antes de hand-roll</b> — se o DS tem o componente, usar; não refazer header/checkbox/etc.</span><span class="gate">auto · <b>tree-guard</b></span></div>
+    <div class="checkrow"><span class="cb">4</span><span class="ct2"><b>Colunas alinhadas</b> — em tabela, cada <code>td.left</code> bate com seu <code>th.left</code> (≤2px).</span><span class="gate">auto · <b>probe</b></span></div>
+    <div class="checkrow"><span class="cb">5</span><span class="ct2"><b>Dark com identidade</b> — superfícies tintadas, não preto neutro; contraste AA.</span><span class="gate">auto · <b>G-dark</b></span></div>
+    <div class="checkrow"><span class="cb">6</span><span class="ct2"><b>Casos-limite</b> — número longo capa, texto trunca com title, nada sobrepõe em ~1280.</span><span class="gate">misto</span></div>
+    <div class="checkrow"><span class="cb">7</span><span class="ct2"><b>Fit de persona</b> — densidade/hit-target certos pro contexto (Larissa 1280, técnico touch ≥44px).</span><span class="gate">olho + [W]</span></div>
+    <div class="checkrow"><span class="cb">8</span><span class="ct2"><b>Domínio coerente</b> — campos batem com o tipo (PJ → CNPJ/Razão social, não CPF/RG).</span><span class="gate">olho + [W]</span></div>
+  </div>
+  <div class="callout pos">
+    <h3>Como isso vira o "crítico que não perde tempo"</h3>
+    <p>Os itens <b>1–5 são automáticos</b> — viram um comando só (<code>npm run ds:critic &lt;tela&gt;</code>) que roda os gates existentes + os 2 guards novos e cospe um <b>score por tela antes de você investir nela</b>. Some os itens 6–8 (olho + seu aval) e você tem o pré-voo completo. Nenhuma tela entra numa onda sem passar — então o erro é pego <b>antes</b>, não depois de construído.</p>
+  </div>
+
+  <!-- BOTTOM LINE -->
+  <div class="grouph"><span class="gn">C</span> Veredito do crítico</div>
+  <div class="callout">
+    <h3>O que fazer com isto, em ordem</h3>
+    <p><b>1. P0 primeiro (camada semântica de token).</b> Não é cosmético — é a raiz do dark, da consistência e do "medo de mudar o tom". É a Fundação do rollout; tudo depende dela.</p>
+    <p><b>2. P1 escopo + guard de colisão</b> junto, pra a categoria de bug que quebrou sua tabela não voltar.</p>
+    <p><b>3. Aí as ondas de cor crua (P1 rollout)</b> rodam limpas, com o pré-voo da seção B barrando problema antes de cada tela.</p>
+    <p><b>O número (68) sobe sozinho</b> conforme P0/P1 fecham — e o Ledger prova, célula a célula. Seu DS não precisa ser refeito; precisa <b>consolidar a fundação e travar a regressão</b>. É bom alicerce com dívida localizada — o melhor tipo de problema pra ter.</p>
+  </div>
+
+  <div class="foot">
+    <p><b>Base do crítico:</b> <span class="tagread ok">✓ lido</span> <code>styles.css</code> (colisões + 2 vocabulários, linhas citadas) · <code>clientes-page.{jsx,css}</code> · <code>Produto/Create.tsx</code> @main · inventário de 29 CSS · Ledger medido. <span class="tagread inf">observado</span> = visto em screenshot, não medido por probe.</p>
+    <p><b>Honestidade:</b> as notas são julgamento de design fundamentado, não medição exata — servem pra priorizar, não pra carimbar. O que é mecânico (cor crua, colisão, alinhamento) tem evidência dura; o que é olho (persona, domínio) está marcado.</p>
+    <p style="margin-top:10px;color:var(--text-4)">Oimpresso ERP · [CC] no papel de crítico [CD] · scorecard adversário do Design System.</p>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#241a16"/><circle cx="50" cy="50" r="26" fill="none" stroke="#e0a050" stroke-width="5"/><path d="M50 36v20" stroke="#e0a050" stroke-width="6" stroke-linecap="round"/><circle cx="50" cy="66" r="3.5" fill="#e0a050"/></svg>
+</template>
+</body>
+</html>

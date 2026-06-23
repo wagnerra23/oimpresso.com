@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Header + PageHeader — Diferenças Reais (Protótipo × git @main)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent: oklch(0.55 0.15 295);
+    --accent-dark: oklch(0.45 0.15 295);
+    --accent-soft: oklch(0.95 0.04 295);
+    --bg: oklch(0.985 0.003 90);
+    --surface: oklch(1 0 0);
+    --surface-2: oklch(0.975 0.004 90);
+    --text: oklch(0.22 0.01 285);
+    --text-dim: oklch(0.46 0.012 285);
+    --text-mute: oklch(0.62 0.01 285);
+    --border: oklch(0.91 0.004 90);
+    --border-warm: oklch(0.93 0.004 90);
+    --ok: oklch(0.55 0.13 150);
+    --bad: oklch(0.55 0.18 25);
+    --warn: oklch(0.62 0.14 65);
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+    --sans: "IBM Plex Sans", system-ui, sans-serif;
+    --sh-1: 0 1px 2px oklch(0.2 0.02 295 / .06), 0 2px 8px oklch(0.2 0.02 295 / .05);
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  body{ font-size: 14px; line-height: 1.5; }
+  .wrap{ max-width: 1180px; margin: 0 auto; padding: 56px 32px 120px; }
+
+  /* ── Doc header ── */
+  .doc-eyebrow{ font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.09em; color: var(--accent); font-weight: 500; }
+  .doc-h1{ font-size: 34px; font-weight: 700; letter-spacing: -0.025em; margin: 10px 0 12px; line-height: 1.15; }
+  .doc-lede{ font-size: 16px; color: var(--text-dim); max-width: 70ch; margin: 0; text-wrap: pretty; }
+  .doc-meta{ margin-top: 18px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill{ font-family: var(--mono); font-size: 11px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-dim); }
+  .pill.read{ border-color: oklch(0.82 0.09 150); color: var(--ok); background: oklch(0.97 0.03 150); }
+
+  /* ── Section ── */
+  section{ margin-top: 64px; }
+  .sec-num{ font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 600; }
+  .sec-h{ font-size: 24px; font-weight: 700; letter-spacing: -0.02em; margin: 6px 0 6px; }
+  .sec-sub{ color: var(--text-dim); margin: 0 0 28px; max-width: 74ch; text-wrap: pretty; }
+
+  /* ── Compare grid ── */
+  .cmp{ display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  @media (max-width: 920px){ .cmp{ grid-template-columns: 1fr; } }
+  .panel{ border: 1px solid var(--border); border-radius: 12px; background: var(--surface); overflow: hidden; box-shadow: var(--sh-1); }
+  .panel-h{ display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface-2); }
+  .panel-tag{ font-family: var(--mono); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 3px 8px; border-radius: 5px; }
+  .panel-tag.proto{ background: oklch(0.95 0.04 295); color: var(--accent); }
+  .panel-tag.git{ background: oklch(0.94 0.02 285); color: var(--text); }
+  .panel-h .src{ font-family: var(--mono); font-size: 11px; color: var(--text-mute); margin-left: auto; }
+  .stage{ padding: 20px 16px; background: var(--bg); }
+
+  /* ── Rendered chrome (faithful) ── */
+  .demo-frame{ border: 1px solid var(--border); border-radius: 8px; overflow: hidden; background: var(--surface); }
+
+  /* prototype topbar */
+  .pt-topbar{ height: 40px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: stretch; }
+  .pt-tabs{ display: flex; align-items: stretch; padding: 0 8px; gap: 0; }
+  .pt-tab{ display: inline-flex; align-items: center; gap: 5px; padding: 0 10px; border: 0; background: transparent; border-bottom: 2px solid transparent; margin-bottom: -1px; color: var(--text-mute); font: 12px var(--sans); cursor: default; }
+  .pt-tab.active{ color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .pt-dot{ width: 7px; height: 7px; border-radius: 50%; }
+
+  /* git topbar (breadcrumb + chips) */
+  .gt-topbar{ height: 40px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 8px; padding: 0 14px; }
+  .gt-bc{ display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--text-dim); }
+  .gt-bc b{ color: var(--text); font-weight: 600; }
+  .gt-sep{ color: var(--text-mute); }
+  .gt-chip{ display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 12.5px; color: var(--text-dim); }
+  .gt-chip.active{ background: var(--surface-2); color: var(--text); font-weight: 600; }
+
+  .empty-note{ height: 40px; border-bottom: 1px dashed var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 11px; color: var(--text-mute); background: repeating-linear-gradient(45deg, transparent, transparent 7px, var(--surface-2) 7px, var(--surface-2) 8px); }
+
+  /* prototype os-page-h */
+  .pt-ph{ padding: 28px 24px 16px; display: flex; align-items: flex-start; gap: 16px 12px; flex-wrap: wrap; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .pt-ph-l{ flex: 1 1 auto; min-width: 0; }
+  .pt-ph-l h1{ margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--text); }
+  .pt-ph-l p{ margin: 0; font-size: 13.5px; color: var(--text-dim); line-height: 1.5; max-width: 60ch; }
+  .pt-ph-r{ display: flex; gap: 8px; margin-left: auto; }
+  .os-btn{ display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 6px; font: 500 12.5px var(--sans); border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: default; }
+  .os-btn.primary{ background: var(--accent); border-color: var(--accent-dark); color: #fff; }
+
+  /* prototype cli-pageheader (icon variant) */
+  .pt-cli{ display: flex; align-items: flex-start; gap: 16px; padding: 20px 24px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .pt-cli-icon{ flex: 0 0 40px; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 9px; background: var(--accent-soft); color: var(--accent); }
+  .pt-cli h1{ margin: 0; font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+  .pt-cli p{ margin: 4px 0 0; font-size: 13px; color: var(--text-dim); }
+  .pt-cli .danger{ color: oklch(0.55 0.18 25); font-weight: 600; }
+  .pt-cli-r{ display: flex; gap: 8px; margin-left: auto; align-items: center; }
+
+  /* git PageHeader canon v3.8 */
+  .gt-ph{ border-bottom: 1px solid var(--border-warm); }
+  .gt-ph-inner{ display: flex; align-items: center; gap: 16px; padding: 24px 24px 14px; min-height: 60px; }
+  .gt-ph-l{ flex: 1; min-width: 0; }
+  .gt-ph-l h1{ margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.025em; line-height: 1.375; color: var(--text); }
+  .gt-ph-l h1 .suffix{ font-weight: 600; color: var(--text-mute); }
+  .gt-ph-l p{ margin: 2px 0 0; font-size: 12px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+  .gt-ph-r{ flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+  .gt-overflow{ width: 28px; height: 28px; display: grid; place-items: center; border: 0; background: transparent; color: var(--text-dim); border-radius: 6px; cursor: default; font-size: 18px; }
+  .ph-primary{ display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 12px; border-radius: 6px; font: 500 12.5px ui-sans-serif, system-ui, sans-serif; background: oklch(0.55 0.15 295); border: 1px solid oklch(0.45 0.15 295); color: oklch(0.99 0 0); cursor: default; }
+
+  /* ── Diff table ── */
+  .difftable{ width: 100%; border-collapse: collapse; margin-top: 22px; font-size: 13px; }
+  .difftable th, .difftable td{ text-align: left; padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .difftable thead th{ font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; background: var(--surface-2); }
+  .difftable td:first-child{ font-weight: 600; color: var(--text); white-space: nowrap; }
+  .difftable .mono{ font-family: var(--mono); font-size: 12px; }
+  .difftable tr.same td{ color: var(--text-dim); }
+  .difftable .flag{ display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 600; padding: 1px 6px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+  .flag.diff{ background: oklch(0.95 0.05 65); color: oklch(0.45 0.13 55); }
+  .flag.gate{ background: oklch(0.95 0.05 25); color: var(--bad); }
+  .flag.ok{ background: oklch(0.95 0.04 150); color: var(--ok); }
+  .difftable td .lbl{ font-family: var(--mono); font-size: 10.5px; color: var(--text-mute); display: block; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ── Verdict box ── */
+  .verdict{ margin-top: 22px; border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: 8px; padding: 16px 20px; background: var(--surface); }
+  .verdict h4{ margin: 0 0 6px; font-size: 13px; }
+  .verdict p{ margin: 0; color: var(--text-dim); font-size: 13.5px; }
+  .verdict code{ font-family: var(--mono); font-size: 12px; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; color: var(--text); }
+
+  /* ── Resolution ── */
+  .res{ margin-top: 28px; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .res-h{ padding: 16px 22px; background: var(--accent); color: #fff; }
+  .res-h h3{ margin: 0; font-size: 17px; font-weight: 700; }
+  .res-h p{ margin: 4px 0 0; font-size: 13px; opacity: 0.92; }
+  .res-body{ padding: 8px 22px 6px; background: var(--surface); }
+  .res-row{ display: flex; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--border); align-items: baseline; }
+  .res-row:last-child{ border-bottom: 0; }
+  .res-row .n{ font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent); flex: 0 0 34px; }
+  .res-row .b{ flex: 1; }
+  .res-row .b b{ font-size: 14px; }
+  .res-row .b p{ margin: 3px 0 0; font-size: 13px; color: var(--text-dim); }
+  .res-row code{ font-family: var(--mono); font-size: 12px; background: var(--surface-2); padding: 1px 5px; border-radius: 4px; }
+
+  .handoff{ margin-top: 28px; font-family: var(--mono); font-size: 12.5px; color: var(--text-dim); border: 1px dashed var(--border); border-radius: 8px; padding: 14px 18px; background: var(--surface-2); }
+  .handoff b{ color: var(--text); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="doc-eyebrow">F1 · [CC] · verificação de canon</div>
+    <h1 class="doc-h1">Header &amp; PageHeader — diferenças reais</h1>
+    <p class="doc-lede">Protótipo Cowork (<span style="font-family:var(--mono);font-size:14px">oimpresso.com.html</span>) confrontado com o código real de produção lido do <span style="font-family:var(--mono);font-size:14px">@main</span> nesta sessão. Só valores medidos — sem inferência. Em verde, o que já bate; em âmbar, a divergência a aplicar; em vermelho, o que fere um gate de CI.</p>
+    <div class="doc-meta">
+      <span class="pill read">✓ lido AppShellV2.tsx@main</span>
+      <span class="pill read">✓ lido PageHeader.tsx@main</span>
+      <span class="pill read">✓ lido PageHeaderPrimary.tsx@main</span>
+      <span class="pill">ADR 0189 v3.8 · 0190</span>
+    </div>
+  </header>
+
+  <!-- ════════════ 1 · GLOBAL HEADER ════════════ -->
+  <section>
+    <div class="sec-num">01 — HEADER GLOBAL (topo da coluna main)</div>
+    <h2 class="sec-h">A barra superior já foi aposentada nos dois lados — sobraram resíduos diferentes</h2>
+    <p class="sec-sub">No git, <code style="font-family:var(--mono)">AppShellV2</code> tem <code style="font-family:var(--mono)">hideTopbar = true</code> por padrão desde 2026-05-17 ([W]: topbar global removida do ERP inteiro). No protótipo, o <code style="font-family:var(--mono)">&lt;Header&gt;</code> dá <code style="font-family:var(--mono)">return null</code> em toda rota de módulo — só aparece em <b>Produtos</b> e <b>Chat</b> como filtro contextual. Mesma intenção, implementações divergentes.</p>
+
+    <div class="cmp">
+      <div class="panel">
+        <div class="panel-h"><span class="panel-tag proto">Protótipo</span><span class="src">app.jsx · styles.css .topbar</span></div>
+        <div class="stage">
+          <div class="demo-frame">
+            <div class="pt-topbar">
+              <div class="pt-tabs">
+                <button class="pt-tab active">Todos</button>
+                <button class="pt-tab"><span class="pt-dot" style="background:oklch(0.42 0.10 250)"></span>Produto</button>
+                <button class="pt-tab"><span class="pt-dot" style="background:oklch(0.48 0.13 220)"></span>Serviço</button>
+                <button class="pt-tab"><span class="pt-dot" style="background:oklch(0.48 0.13 145)"></span>Composição</button>
+              </div>
+            </div>
+            <div style="padding:18px;font-size:12px;color:var(--text-mute);font-family:var(--mono)">corpo da tela Produtos…</div>
+          </div>
+          <p style="font-size:12px;color:var(--text-mute);margin:12px 2px 0;font-family:var(--mono)">demais rotas → topbar = <b>null</b> (nav-de-módulo desce p/ <b>.ph-nav</b> abaixo do título)</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h"><span class="panel-tag git">git @main</span><span class="src">AppShellV2.tsx · hideTopbar=true</span></div>
+        <div class="stage">
+          <div class="demo-frame">
+            <div class="empty-note">topbar oculta (default) — nav por sidebar + PageHeader</div>
+            <div style="padding:18px;font-size:12px;color:var(--text-mute);font-family:var(--mono)">corpo da tela…</div>
+          </div>
+          <p style="font-size:12px;color:var(--text-mute);margin:12px 2px 4px;font-family:var(--mono)">quando <b>hideTopbar={'{false}'}</b> (ex. Caixa Unificada):</p>
+          <div class="demo-frame">
+            <div class="gt-topbar">
+              <div class="gt-bc"><b>Rota Livre</b><span class="gt-sep">/</span><span>Produtos ▾</span></div>
+              <span class="gt-sep" style="margin:0 2px">|</span>
+              <span class="gt-chip active">Todos</span>
+              <span class="gt-chip">Produto</span>
+              <span class="gt-chip">Serviço</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <table class="difftable">
+      <thead><tr><th>Dimensão</th><th>Protótipo</th><th>git @main</th></tr></thead>
+      <tbody>
+        <tr><td>Quando aparece</td><td class="mono">só <b>produtos</b> e <b>chat</b></td><td class="mono">nunca (default) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Altura</td><td class="mono">40px</td><td class="mono">40px <span class="flag ok">igual</span></td></tr>
+        <tr><td>Conteúdo</td><td class="mono">tabs sublinhadas (<b>.topbar-tab</b>) c/ dot colorido</td><td class="mono">breadcrumb (<b>.bc</b>) + chips (<b>.topnav-chip</b> r6) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Nav de módulo</td><td class="mono">componente <b>PageHeaderNav</b> (<b>.ph-nav</b>) abaixo do título — usado em Financeiro / Cobrança / Recorrente</td><td class="mono">dropdown no breadcrumb (<b>BreadcrumbModuleDropdown</b>) + chips inline <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Cor ativa</td><td class="mono">var(--accent) (roxo)</td><td class="mono">var(--text) + bg surface-2 <span class="flag diff">divergente</span></td></tr>
+        <tr class="same"><td>Default ERP</td><td class="mono">sem topbar de módulo</td><td class="mono">sem topbar de módulo <span class="flag ok">mesma intenção</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="verdict">
+      <h4>Veredito — Header global</h4>
+      <p>Não há conflito de princípio: os dois removeram a barra global. A divergência é de <b>resíduo</b>. O protótipo escolheu <code>topbar-tab</code> sublinhado + <code>PageHeaderNav</code>; o git escolheu <code>breadcrumb-dropdown</code> + <code>topnav-chip</code>. Para uma só gramática, decidir <b>qual sobrevive</b> (recomendação na §3).</p>
+    </div>
+  </section>
+
+  <!-- ════════════ 2 · PAGEHEADER ════════════ -->
+  <section>
+    <div class="sec-num">02 — PAGEHEADER (bloco título de cada tela)</div>
+    <h2 class="sec-h">O protótipo tem 3 cabeçalhos diferentes; o git tem 1 componente canon</h2>
+    <p class="sec-sub">O git consolidou em <code style="font-family:var(--mono)">&lt;PageHeader&gt;</code> (canon v3.8, ADR 0189) + <code style="font-family:var(--mono)">&lt;PageHeaderPrimary&gt;</code> (botão roxo universal, ADR 0190). O protótipo ainda usa <code style="font-family:var(--mono)">.os-page-h</code> (forja, inbox, financeiro) e <code style="font-family:var(--mono)">.cli-pageheader</code> (clientes, OS — com caixa de ícone e <b>cor crua oklch</b>). Os charters do git já marcam <code style="font-family:var(--mono)">os-page-h</code> como regressão.</p>
+
+    <div class="cmp">
+      <div class="panel">
+        <div class="panel-h"><span class="panel-tag proto">Protótipo · A</span><span class="src">.os-page-h (dominante)</span></div>
+        <div class="stage">
+          <div class="demo-frame">
+            <div class="pt-ph">
+              <div class="pt-ph-l">
+                <h1>Ordens de Serviço</h1>
+                <p><b>5</b> abertas · <b>2</b> atrasadas · <b>R$ 12.345,00</b> em aberto</p>
+              </div>
+              <div class="pt-ph-r">
+                <button class="os-btn">Filtros</button>
+                <button class="os-btn primary">＋ Nova OS</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h"><span class="panel-tag git">git @main</span><span class="src">&lt;PageHeader&gt; canon v3.8</span></div>
+        <div class="stage">
+          <div class="demo-frame">
+            <div class="gt-ph">
+              <div class="gt-ph-inner">
+                <div class="gt-ph-l">
+                  <h1>Ordens de Serviço<span class="suffix"> · Títulos</span></h1>
+                  <p>5 abertas · 2 atrasadas · R$ 12.345,00 em aberto</p>
+                </div>
+                <div class="gt-ph-r">
+                  <button class="gt-overflow">⋮</button>
+                  <button class="ph-primary">＋ Nova OS</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cmp" style="margin-top:20px">
+      <div class="panel">
+        <div class="panel-h"><span class="panel-tag proto">Protótipo · B</span><span class="src">.cli-pageheader (c/ ícone)</span></div>
+        <div class="stage">
+          <div class="demo-frame">
+            <div class="pt-cli">
+              <div class="pt-cli-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+              </div>
+              <div style="min-width:0">
+                <h1>Clientes</h1>
+                <p>128 cadastrados · 97 ativos · <span class="danger">14 frios há 60d+</span></p>
+              </div>
+              <div class="pt-cli-r">
+                <button class="os-btn">⋮</button>
+                <button class="os-btn primary">＋ Novo cliente</button>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:11.5px;color:var(--bad);margin:12px 2px 0;font-family:var(--mono)">⚠ tons em <b>oklch cru</b> (0.55 0.18 25 / 0.55 0.16 60) — reprova no conformance-gate</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-h"><span class="panel-tag git">git @main</span><span class="src">&lt;PageHeader&gt; — caixa de ícone foi removida na v3.8</span></div>
+        <div class="stage">
+          <div class="demo-frame">
+            <div class="gt-ph">
+              <div class="gt-ph-inner">
+                <div class="gt-ph-l">
+                  <h1>Clientes<span class="suffix"> · Pessoas</span></h1>
+                  <p>128 cadastrados · 97 ativos · 14 frios há 60d+</p>
+                </div>
+                <div class="gt-ph-r">
+                  <button class="gt-overflow">⋮</button>
+                  <button class="ph-primary">＋ Novo cliente</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p style="font-size:11.5px;color:var(--ok);margin:12px 2px 0;font-family:var(--mono)">flat · sem ícone · tons via token muted-foreground</p>
+        </div>
+      </div>
+    </div>
+
+    <table class="difftable">
+      <thead><tr><th>Propriedade</th><th>Protótipo (.os-page-h / .cli-pageheader)</th><th>git &lt;PageHeader&gt; v3.8</th></tr></thead>
+      <tbody>
+        <tr><td>Padding</td><td class="mono">28 / 32 / 16</td><td class="mono">24 / 24 / 14 (pt-6 px-6 pb-3.5) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Alinhamento vertical</td><td class="mono">flex-start</td><td class="mono">center (items-center) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Altura mínima</td><td class="mono">— (sem)</td><td class="mono">60px (min-h-[60px]) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Borda inferior</td><td class="mono">var(--border)</td><td class="mono">oklch(0.93 0.004 90) inline (warm) <span class="flag diff">divergente</span></td></tr>
+        <tr class="same"><td>H1 — tamanho</td><td class="mono">22px (var(--fs-7))</td><td class="mono">22px (text-[22px]) <span class="flag ok">igual</span></td></tr>
+        <tr><td>H1 — peso</td><td class="mono">600 (semibold)</td><td class="mono">700 (font-bold) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>H1 — tracking</td><td class="mono">-0.02em</td><td class="mono">-0.025em (tracking-tight) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Sufixo " · X"</td><td class="mono">ad-hoc / ausente</td><td class="mono">&lt;span font-semibold muted&gt; (prop <b>suffix</b>) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Subtítulo — tamanho</td><td class="mono">13.5px (var(--fs-4))</td><td class="mono">12px (text-xs) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Subtítulo — números</td><td class="mono">normal</td><td class="mono">tabular-nums <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Caixa de ícone</td><td class="mono">cli: 40×40 accent-soft · os: nenhuma</td><td class="mono">removida na v3.8 <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Gap das ações</td><td class="mono">8px</td><td class="mono">6px (gap-1.5) <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Botão primário</td><td class="mono">.os-btn.primary / .fj-bell (varia por tela), 30px</td><td class="mono">&lt;PageHeaderPrimary&gt; roxo 295, 32px, r6, 12.5/500, Plus stroke 1.75 <span class="flag diff">divergente</span></td></tr>
+        <tr><td>Cor de tom (danger/warn)</td><td class="mono">cli: oklch cru</td><td class="mono">token semântico <span class="flag gate">fere ui:lint / conformance</span></td></tr>
+      </tbody>
+    </table>
+
+    <div class="verdict">
+      <h4>Veredito — PageHeader</h4>
+      <p>Os tamanhos de título já convergiram (22px nos dois, após o type-ramp 06-10). O que sobra é <b>acabamento</b>: peso 600→700, padding 28/32/16→24/24/14, topo flex-start→center, subtítulo 13.5→12 com tabular-nums, e a <b>caixa de ícone</b> que o protótipo ainda carrega em <code>.cli-pageheader</code> mas a v3.8 do git já abandonou. Dois bloqueadores de gate: tons em <code>oklch</code> cru e botões primários por-tela em vez do <code>&lt;PageHeaderPrimary&gt;</code> roxo único.</p>
+    </div>
+  </section>
+
+  <!-- ════════════ 3 · RESOLUÇÃO ════════════ -->
+  <section>
+    <div class="sec-num">03 — RESOLUÇÃO &amp; HANDOFF</div>
+    <h2 class="sec-h">Um header, um pageheader — convergir para o canon do git</h2>
+    <p class="sec-sub">O canon do git é o lado com ADR (0189 v3.8 / 0190) e gates de CI. A recomendação é alinhar protótipo <b>e</b> as telas remanescentes do git ao componente único, dobrando para dentro do canon as evoluções recentes do protótipo que [W] quiser manter (peso, tempero).</p>
+
+    <div class="res">
+      <div class="res-h">
+        <h3>O que o Code aplica (git @main)</h3>
+        <p>Ordem proposta — cada item é um PR isolado, ratchet, para no gate visual.</p>
+      </div>
+      <div class="res-body">
+        <div class="res-row"><div class="n">H-1</div><div class="b"><b>Migrar telas legadas para <code>&lt;PageHeader&gt;</code></b><p>Trocar headers inline <code>os-page-h</code> / <code>fin-page-h</code> / <code>cli-pageheader</code> que ainda existem (Financeiro/Unificado, DRE, Caixa Unificada) pelo componente canon. Retira a caixa de ícone e os tons crus.</p></div></div>
+        <div class="res-row"><div class="n">H-2</div><div class="b"><b>Padronizar o primário no <code>&lt;PageHeaderPrimary&gt;</code></b><p>Qualquer botão de criação na Zona R vira o roxo universal <code>oklch(0.55 0.15 295)</code>, 32px, Plus stroke 1.75 — mata os <code>.os-btn.primary</code> por-tela.</p></div></div>
+        <div class="res-row"><div class="n">H-3</div><div class="b"><b>Decisão [W] · header global</b><p>Eleger uma gramática de nav-de-módulo: <code>breadcrumb-dropdown + topnav-chip</code> (git atual) <b>ou</b> <code>PageHeaderNav</code> sublinhado (protótipo). Recomendação: manter o do git (já em produção, com <code>hideTopbar</code>), e o protótipo adota a mesma.</p></div></div>
+        <div class="res-row"><div class="n">H-4</div><div class="b"><b>Decisão [W] · evolução do canon</b><p>Se [W] quiser as evoluções do protótipo no canon, vira amendment v3.9: peso H1 600 vs 700, tempero (<code>--sh-1</code>, <code>--ease</code>) no header. Tier 0 — só com OK de [W].</p></div></div>
+      </div>
+    </div>
+
+    <div class="res" style="margin-top:18px">
+      <div class="res-h" style="background:oklch(0.45 0.04 285)">
+        <h3>O que [CC] alinha no protótipo (minha pista)</h3>
+        <p>Para o protótipo deixar de ser fonte de divergência.</p>
+      </div>
+      <div class="res-body">
+        <div class="res-row"><div class="n">P-1</div><div class="b"><b>Unificar os 3 headers do protótipo em um</b><p>Um só padrão (espelhando o canon): <code>.cli-pageheader</code> e o <code>.os-page-h</code> de cada tela passam a render igual — center, padding 24/24/14, peso conforme decisão H-4.</p></div></div>
+        <div class="res-row"><div class="n">P-2</div><div class="b"><b>Erradicar oklch cru de <code>.cli-pageheader</code></b><p>Tons danger/warn por token (<code>var(--bad)</code> / <code>var(--warn)</code>), não literal — para o protótipo passar pela mesma régua do gate.</p></div></div>
+      </div>
+    </div>
+
+    <div class="handoff">
+      <b>Ponte zero-toque:</b> o pacote H-1..H-4 será entregue como <b>prototipo-ui-patch/PROMPT_PARA_CODE_HEADER-PAGEHEADER-CONVERGENCIA.md</b> + URLs públicas (~1h) para o Claude Code aplicar via 1 colagem. Este documento é a especificação visual que acompanha o prompt. Nada está commitado — o Code resolve com o pedido; H-3/H-4 esperam decisão de [W].
+    </div>
+  </section>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Oimpresso — Painel de Controle</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:oklch(0.985 0.003 90); --surface:#fff; --border:oklch(0.90 0.004 90); --border-2:oklch(0.94 0.004 90);
+    --text:oklch(0.22 0.01 80); --dim:oklch(0.48 0.01 80); --mute:oklch(0.62 0.01 80);
+    --accent:oklch(0.55 0.15 295); --accent-soft:oklch(0.965 0.022 295); --accent-line:oklch(0.86 0.05 295);
+    --pos:oklch(0.50 0.12 150); --pos-soft:oklch(0.95 0.075 150);
+    --warn:oklch(0.58 0.12 70); --warn-soft:oklch(0.955 0.072 75);
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:680px;margin:0 auto;padding:44px 24px 80px;}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:6px 0 30px;}
+
+  .action{background:var(--accent-soft);border:1.5px solid var(--accent-line);border-radius:16px;padding:24px;margin-bottom:30px;}
+  .action .tag{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);margin-bottom:10px;}
+  .action h2{font-size:19px;font-weight:600;margin:0 0 8px;}
+  .action p{margin:0 0 16px;color:var(--dim);font-size:14px;}
+  .action .how{display:flex;flex-direction:column;gap:9px;}
+  .step{display:flex;gap:11px;align-items:flex-start;font-size:14px;}
+  .step .n{flex:0 0 22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-family:var(--mono);font-size:12px;font-weight:700;display:grid;place-items:center;margin-top:1px;}
+  .step b{font-weight:600;}
+  .step code{font-family:var(--mono);font-size:12.5px;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:1px 6px;}
+
+  h3{font-family:var(--mono);font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);font-weight:600;margin:30px 0 12px;display:flex;align-items:center;gap:9px;}
+  h3::after{content:"";flex:1;height:1px;background:var(--border);}
+  .list{display:flex;flex-direction:column;gap:8px;}
+  .item{display:flex;gap:11px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 15px;font-size:14px;}
+  .item .ic{flex:0 0 auto;font-size:15px;margin-top:1px;}
+  .item b{font-weight:600;}
+  .item small{display:block;color:var(--mute);font-size:12.5px;margin-top:2px;}
+  .item.done{opacity:.8;}
+  .item.done .ic{color:var(--pos);}
+  .item.wait{border-color:var(--accent-line);background:var(--accent-soft);}
+
+  .auto{margin-top:30px;background:var(--surface);border:1px dashed var(--border);border-radius:12px;padding:18px 20px;font-size:14px;color:var(--dim);}
+  .auto b{color:var(--text);}
+  .auto .big{font-family:var(--mono);font-size:13px;background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:2px 8px;color:var(--accent);font-weight:600;}
+  .foot{margin-top:26px;font-family:var(--mono);font-size:11px;color:var(--mute);text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="eyebrow">Oimpresso ERP · Cowork</div>
+  <h1>Seu painel — tudo num lugar</h1>
+
+  <div class="action">
+    <div class="tag">● sua única ação</div>
+    <h2>Colar os prompts pendentes — o do Financeiro é novo (ondas FA)</h2>
+    <p>Boa notícia de hoje: o pacote Financeiro que você aprovou <b>já está todo no ar</b> (lentes, Impostos, drawer, escala de tipografia — conferido no repo). O que sobrou virou 4 ondas menores num prompt novo.</p>
+    <div class="how">
+      <div class="step"><span class="n">1</span><span>Abra <code>prototipo-ui-patch/PROMPT_PARA_CODE_ONDAS-FINANCEIRO-APLICAR.md</code> → copie tudo → cole no <b>Claude Code</b>. Ele roda as 4 ondas FA em ordem (sombras/luz na fundação · tipografia do Financeiro na escala · acabamento · fechamento).</span></div>
+      <div class="step"><span class="n">2</span><span>Os outros 2 seguem valendo: <code>…CAIXA-UNIFICADA-COMPLETA.md</code> (10 PRs) e <code>…ONDAS-QUALIDADE-GOVERNANCA.md</code> (Q1–Q5).</span></div>
+      <div class="step"><span class="n">3</span><span><small>URLs dentro dos prompts valem ~1h — se passar, me peça "regenera URLs".</small></span></div>
+    </div>
+  </div>
+
+  <h3>Esperando você</h3>
+  <div class="list">
+    <div class="item wait"><span class="ic">🧪</span><span><b>NOVO (06-11): colar o prompt das Ondas de Qualidade Q1–Q5</b><small><code>prototipo-ui-patch/PROMPT_PARA_CODE_ONDAS-QUALIDADE-GOVERNANCA.md</code> — Q1 teste de comportamento vira lei · Q2 todo "✅" passa a ter prova · Q3 dicionários de estoque/faturamento (antes das telas novas) · Q4 regressão visual automática · Q5 o processo se autocobra. Cola 1×, o Code roda as 5 em sequência.</small></span></div>
+    <div class="item wait"><span class="ic">💬</span><span><b>Colar o prompt da Caixa unificada completa (acima)</b><small>10 PRs: atribuição · templates+macros · filas · drawer canais · nova conversa · broadcast · polish · IA · cutover (com seu OK).</small></span></div>
+    <div class="item wait"><span class="ic">📦</span><span><b>NOVO (06-11): colar o prompt das ondas FA do Financeiro</b><small><code>prototipo-ui-patch/PROMPT_PARA_CODE_ONDAS-FINANCEIRO-APLICAR.md</code> — FA-1 sombras/luz/atmosfera na fundação (a metade que faltou) · FA-2 314 tamanhos de letra na escala oficial · FA-3 acabamento aplicado · FA-4 cores residuais + costura venda→caixa. Substitui o prompt antigo do pacote F2 (já aplicado).</small></span></div>
+    <div class="item wait"><span class="ic">🛡️</span><span><b>Colar o prompt das 4 travas no Code (de 06-08, segue valendo)</b><small><code>prototipo-ui-patch/PROMPT_PARA_CODE_PACOTE-ANTI-DRIFT-4-TRAVAS.md</code> — o CI barra drift de cor sozinho.</small></span></div>
+  </div>
+
+  <h3>Já está feito (06-10 → 06-11 — tudo verificado com placar)</h3>
+  <div class="list">
+    <div class="item done"><span class="ic">✓</span><span><b>Pacote Financeiro aprovado: APLICADO no produto real (conferido 06-11)</b><small>3 lentes no header · tela Impostos & obrigações · drawer denso 9.75 · escala de tipografia com trava automática — tudo no repo. O diff achou só o que sobrou, que virou as ondas FA.</small></span></div>
+    <div class="item done"><span class="ic">✓</span><span><b>Caixa unificada — raio-x completo contra produção</b><small>Boa notícia: produção já está à frente do mock em mídia, voz, CRM e filtros. O que falta virou os 10 PRs do prompt acima.</small></span></div>
+    <div class="item done"><span class="ic">✓</span><span><b>Financeiro — onda de qualidade executada</b><small>3 lentes no header (sua direção de 05-31) · tela Impostos & obrigações · drawer denso padrão 9.75 · 0 erros no robo-auditor, claro e escuro.</small></span></div>
+    <div class="item done"><span class="ic">✓</span><span><b>Tipografia do ERP ancorada</b><small>Você apontou "amador, sem padrão" — medimos: 37 tamanhos soltos. Agora: 9 degraus oficiais + trava automática (G8). Financeiro já está 100% na escala.</small></span></div>
+    <div class="item done"><span class="ic">✓</span><span><b>CSS de cada módulo na sua casa + trava de vazamento</b><small>Regra do Financeiro morava no arquivo de Vendas — mudou de casa; o robo-auditor (G7) impede que volte.</small></span></div>
+    <div class="item done"><span class="ic">✓</span><span><b>575 arquivos duplicados removidos</b><small>Faxina da reestruturação (Fase 0) com lápide — uma fonte só por coisa.</small></span></div>
+  </div>
+
+  <div class="auto">
+    🤖 <b>Você não precisa lembrar de nada.</b> A memória guarda o estado. Em qualquer conversa nova, é só dizer <span class="big">continua</span> que eu pego de onde paramos — sem você reexplicar.
+  </div>
+
+  <div class="foot">Atualizado 2026-06-11 · [CC] não commita — você cola 1×, o Code faz o resto.</div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Rodada 2 · simulação de usuários &amp; a armadilha do eval-drift</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.992 0.0015 95); --sunken: oklch(0.974 0.003 95); --surface: oklch(1 0 0);
+  --hairline: oklch(0.935 0.003 95); --border: oklch(0.905 0.004 95); --border-2: oklch(0.95 0.003 95);
+  --text: oklch(0.205 0.008 90); --text-2: oklch(0.46 0.007 90); --text-3: oklch(0.63 0.006 90); --text-4: oklch(0.74 0.005 90);
+  --accent: oklch(0.55 0.15 295); --accent-hi: oklch(0.50 0.16 295); --accent-soft: oklch(0.965 0.022 295); --accent-fg: #fff;
+  --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.62 0.13 65); --warn-soft: oklch(0.955 0.072 75);
+  --wa: oklch(0.50 0.13 145); --wa-soft: oklch(0.95 0.05 145);
+  --info: oklch(0.55 0.13 240); --info-soft: oklch(0.95 0.04 240);
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280/.05), 0 2px 4px -1px oklch(0.25 0.02 280/.07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280/.06), 0 6px 16px -5px oklch(0.25 0.02 280/.11);
+  --r-1: 5px; --r-2: 8px; --r-3: 11px; --r-4: 16px; --r-pill: 999px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[data-theme="dark"]{
+  --bg: oklch(0.165 0.008 282); --sunken: oklch(0.142 0.008 282); --surface: oklch(0.205 0.009 282);
+  --hairline: oklch(0.27 0.010 282); --border: oklch(0.30 0.012 282); --border-2: oklch(0.25 0.010 282);
+  --text: oklch(0.965 0.004 282); --text-2: oklch(0.74 0.008 282); --text-3: oklch(0.58 0.009 282); --text-4: oklch(0.47 0.009 282);
+  --accent: oklch(0.72 0.15 295); --accent-hi: oklch(0.78 0.15 295); --accent-soft: oklch(0.30 0.07 295); --accent-fg: oklch(0.14 0.02 295);
+  --pos: oklch(0.74 0.14 150); --pos-soft: oklch(0.30 0.085 150);
+  --neg: oklch(0.72 0.16 25);  --neg-soft: oklch(0.32 0.09 25);
+  --warn: oklch(0.80 0.13 75); --warn-soft: oklch(0.32 0.085 70);
+  --wa: oklch(0.74 0.15 145); --wa-soft: oklch(0.30 0.085 145);
+  --info: oklch(0.72 0.13 240); --info-soft: oklch(0.30 0.07 240);
+  --sh-1: 0 1px 2px oklch(0 0 0/.3); --sh-2: 0 3px 8px -3px oklch(0 0 0/.42), 0 8px 20px -6px oklch(0 0 0/.4);
+}
+*{ box-sizing: border-box; }
+html,body{ margin: 0; }
+body{ background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+
+.top{ position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 14px 32px; background: color-mix(in oklch, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.logo{ width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, var(--text))); display: grid; place-items: center; color: var(--accent-fg); font-weight: 700; font-size: 13px; }
+.top b.tt{ font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.top .stamp{ font-family: var(--mono); font-size: 10.5px; color: var(--neg); background: var(--neg-soft); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+.theme{ margin-left: auto; appearance: none; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; }
+
+.wrap{ max-width: 1080px; margin: 0 auto; padding: 38px 32px 90px; }
+h1.title{ font-size: 30px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 14px; line-height: 1.15; }
+h1.title em{ font-style: normal; color: var(--accent); }
+.lede{ font-size: 15px; line-height: 1.62; color: var(--text-2); max-width: 78ch; margin: 0; }
+.lede b{ color: var(--text); font-weight: 600; }
+
+.grouph{ font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); margin: 46px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.grouph .gn{ font-family: var(--mono); color: var(--accent); }
+[data-theme="dark"] .grouph .gn{ color: var(--accent-hi); }
+.grouph .ct{ margin-left: auto; font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text-3); letter-spacing: 0; text-transform: none; }
+
+code{ font-family: var(--mono); font-size: 0.84em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+[data-theme="dark"] code{ color: var(--accent-hi); }
+
+/* two-col promise vs problem */
+.split{ display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.scol{ border: 1px solid var(--border); border-radius: var(--r-3); box-shadow: var(--sh-1); overflow: hidden; }
+.scol .sh{ padding: 12px 16px; font-size: 13px; font-weight: 650; display: flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--border-2); }
+.scol.good .sh{ background: var(--pos-soft); color: oklch(0.40 0.11 150); }
+[data-theme="dark"] .scol.good .sh{ color: oklch(0.85 0.13 150); }
+.scol.bad .sh{ background: var(--neg-soft); color: oklch(0.45 0.16 25); }
+[data-theme="dark"] .scol.bad .sh{ color: oklch(0.82 0.15 25); }
+.scol ul{ list-style: none; margin: 0; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.scol li{ font-size: 12.5px; line-height: 1.5; color: var(--text-2); padding-left: 18px; position: relative; }
+.scol li b{ color: var(--text); font-weight: 600; }
+.scol.good li::before{ content: "+"; position: absolute; left: 0; color: var(--pos); font-weight: 700; }
+.scol.bad li::before{ content: "−"; position: absolute; left: 0; color: var(--neg); font-weight: 700; }
+.scol li .src{ display: block; font-family: var(--mono); font-size: 9.5px; color: var(--text-4); margin-top: 2px; }
+
+/* big trap */
+.trap{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-4); box-shadow: var(--sh-2); overflow: hidden; margin: 6px 0; }
+.trap-h{ display: flex; align-items: center; gap: 14px; padding: 18px 22px; background: linear-gradient(180deg, var(--neg-soft), transparent); border-bottom: 1px solid var(--border-2); }
+.trap-h .ic{ width: 42px; height: 42px; border-radius: 11px; background: var(--neg); color: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 700; flex: 0 0 auto; }
+.trap-h b{ font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.trap-h p{ margin: 2px 0 0; font-size: 12.5px; color: var(--text-3); }
+.trap-b{ padding: 18px 22px; }
+.trap-b p{ margin: 0 0 11px; font-size: 13px; line-height: 1.6; color: var(--text-2); }
+.trap-b p:last-child{ margin: 0; }
+.trap-b b{ color: var(--text); font-weight: 600; }
+.quote-bad{ font-style: italic; color: var(--neg); font-weight: 600; }
+.symptom{ display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin: 14px 0; }
+.symptom .sy{ background: var(--sunken); border: 1px solid var(--border-2); border-radius: 9px; padding: 12px 13px; }
+.symptom .sy b{ display: block; font-size: 12px; color: var(--neg); margin-bottom: 4px; }
+.symptom .sy span{ font-size: 11.5px; color: var(--text-2); line-height: 1.45; }
+
+/* defense steps */
+.def{ display: grid; grid-template-columns: 40px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--pos); border-radius: var(--r-3); padding: 15px 18px; box-shadow: var(--sh-1); margin-bottom: 11px; }
+.def .dn{ width: 40px; height: 40px; border-radius: 10px; background: var(--pos-soft); color: var(--pos); display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 16px; }
+.def h3{ margin: 0 0 5px; font-size: 14.5px; font-weight: 650; letter-spacing: -0.01em; }
+.def p{ margin: 0 0 6px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.def p:last-child{ margin: 0; }
+.def b{ color: var(--text); font-weight: 600; }
+.def .ours{ display: inline-block; margin-top: 6px; font: 600 11px/1.4 var(--sans); padding: 6px 11px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); }
+[data-theme="dark"] .def .ours{ color: var(--accent-hi); }
+.def .src{ font-family: var(--mono); font-size: 10px; color: var(--text-4); }
+
+/* governance chips */
+.govrow{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.gov{ font: 600 11px/1 var(--mono); padding: 6px 11px; border-radius: 99px; background: var(--info-soft); color: var(--info); border: 1px solid color-mix(in oklch, var(--info) 25%, transparent); }
+[data-theme="dark"] .gov{ color: oklch(0.78 0.13 240); }
+
+.callout{ border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--r-3); background: var(--surface); padding: 17px 19px; margin: 20px 0 0; box-shadow: var(--sh-1); }
+.callout.pos{ border-left-color: var(--pos); } .callout.neg{ border-left-color: var(--neg); }
+.callout h3{ margin: 0 0 8px; font-size: 14.5px; font-weight: 650; }
+.callout p{ margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.callout p:last-child{ margin-bottom: 0; }
+.callout b{ color: var(--text); font-weight: 600; }
+
+.foot{ margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-4); line-height: 1.7; }
+.foot b{ color: var(--text-3); }
+.refs{ display: grid; grid-template-columns: 1fr 1fr; gap: 3px 18px; margin-top: 8px; }
+.refs span{ font-family: var(--mono); font-size: 10px; color: var(--text-3); line-height: 1.5; }
+@media (max-width: 820px){ .split{ grid-template-columns: 1fr; } .symptom{ grid-template-columns: 1fr; } .refs{ grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">Oi</div>
+  <b class="tt">Rodada 2 · simulação de usuários &amp; o eval-drift</b>
+  <span class="stamp">+8 papers · CHI'25 → fev/26</span>
+  <button class="theme" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">tema</button>
+</div>
+
+<div class="wrap">
+  <h1 class="title">Duas frentes a fundo — e a que <em>ameaça seu "melhora a cada passada"</em>.</h1>
+  <p class="lede">Rodada 2, bem fundo. Duas frentes que faltavam: <b>(A)</b> os agentes LLM que simulam usuários — a fronteira mais "futurista", e por que ela é uma <b>miragem</b> se usada sozinha; <b>(B)</b> a armadilha que ataca exatamente o seu requisito de durar e melhorar — o <b>eval-drift</b> e a <b>lei de Goodhart</b>: um sistema que se auto-melhora contra um portão fixo aprende a <b>vencer o portão, não a melhorar de verdade</b>. E a defesa nomeada: a disciplina de <b>golden dataset</b>.</p>
+
+  <!-- A: SIMULATED USERS -->
+  <div class="grouph"><span class="gn">A</span> Agentes LLM simulando usuários — promessa vs realidade <span class="ct">UXAgent · CHI'25 · "Lost in Simulation" jan/26</span></div>
+  <p class="lede" style="margin-bottom:18px">A ideia sedutora: um <b>gerador de personas</b> cria milhares de usuários sintéticos que navegam sua tela e relatam problemas, sem recrutar ninguém (UXAgent, CHI'25). Em pesquisa social, LLMs simularam 1.052 pessoas com <b>85% de acerto</b>. Mas a literatura de 2025–26 derruba o uso ingênuo:</p>
+  <div class="split">
+    <div class="scol good">
+      <div class="sh">▲ A promessa (real)</div>
+      <ul>
+        <li><b>Escala absurda</b> — milhares de personas em minutos, custo marginal zero<span class="src">UXAgent · AgentA/B</span></li>
+        <li><b>85% em survey social</b> — simulação de 1.052 indivíduos<span class="src">Park et al. 2024</span></li>
+        <li><b>Itera o estudo antes do humano</b> — testa o roteiro de teste<span class="src">UXAgent</span></li>
+        <li><b>A11y automatizada</b> — instruções viram vídeo navegável<span class="src">AXNav, Taeb 2024</span></li>
+      </ul>
+    </div>
+    <div class="scol bad">
+      <div class="sh">▼ A realidade (a miragem)</div>
+      <ul>
+        <li><b>Proxy não-confiável</b> de usuário real; resultado <b>varia conforme o LLM</b> usado<span class="src">"Lost in Simulation" jan/26</span></li>
+        <li><b>Viés demográfico</b> — risco de subservir certos grupos sistematicamente<span class="src">idem</span></li>
+        <li><b>Cego a alucinação</b> — simulado revela menos falhas reais que humano<span class="src">Wang set/25</span></li>
+        <li><b>Deriva de persona</b> em sessões longas sem re-ancoragem + memória<span class="src">Zhang ago/25</span></li>
+        <li><b>Mais atributos = mais deriva</b> do resultado real (contraintuitivo)<span class="src">Li 2025</span></li>
+        <li><b>Mede "credibilidade", não "acurácia"</b> — parece humano ≠ age como humano<span class="src">Park 2023</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout">
+    <h3>Veredito frente A</h3>
+    <p>Simulação de usuário é um <b>pré-filtro barato</b>, nunca uma fonte de verdade. Serve pra varrer fluxos óbvios antes de gastar olho humano — mas <b>"believability ≠ accuracy"</b>: parecer gente não é agir como gente. Pro Oimpresso, onde a persona <b>Larissa</b> é específica (balcão, 1280px, mãos rápidas), uma persona sintética <b>drifta</b> e te dá falsa confiança. <b>Não entra no <code>ds:critic</code> como juiz</b> — no máximo como uma lente exploratória rotulada "sintético, validar com [W]".</p>
+  </div>
+
+  <!-- B: THE TRAP -->
+  <div class="grouph"><span class="gn">B</span> A armadilha do "melhora a cada passada" — eval-drift &amp; Goodhart</div>
+  <div class="trap">
+    <div class="trap-h"><div class="ic">!</div><div><b>Lei de Goodhart aplicada ao seu gate</b><p>"Quando uma medida vira meta, ela deixa de ser uma boa medida."</p></div></div>
+    <div class="trap-b">
+      <p>Aqui está o risco que <b>ninguém te avisou</b> e que ataca direto seu requisito. Um sistema que <b>se auto-melhora contra um portão fixo</b> vai, com o tempo, aprender a <b>maximizar o número do portão — não a qualidade real</b>. A pesquisa de auto-melhoria (mar/26) diz isso com todas as letras: sistemas auto-melhorantes <b>exploram, fazem overfit, e tornam obsoletos</b> conjuntos de teste fixos. O gate vira um jogo a ser vencido.</p>
+      <p>O sintoma tem nome — <b>eval-drift</b> — e é descrito como <span class="quote-bad">"o modelo pontua mais alto, mas as reclamações sobem"</span>. Ninguém escreve um post-mortem; o time só continua confiando num número que <b>parou de descrever a realidade</b>.</p>
+      <div class="symptom">
+        <div class="sy"><b>Deriva de dados</b><span>telas novas, casos que o gate nunca viu → ele não pega</span></div>
+        <div class="sy"><b>Deriva de conceito</b><span>a definição de "bom" muda; o gate continua no critério velho</span></div>
+        <div class="sy"><b>Gaming (Goodhart)</b><span>otimiza-se o que é medido (cor crua=0) e degrada o que não é</span></div>
+      </div>
+      <p>Traduzindo pro Oimpresso: você pode chegar a <b>"Ledger 100% verde"</b> e ainda assim ter telas piores — se o sistema aprendeu a passar nos checks sem servir a Larissa. <b>Verde no placar ≠ bom pro usuário</b>, se o placar parou de medir o que importa.</p>
+    </div>
+  </div>
+
+  <!-- C: THE DEFENSE -->
+  <div class="grouph"><span class="gn">C</span> A defesa nomeada — disciplina de golden dataset <span class="ct">NIST · ISO 42001 · EU AI Act</span></div>
+  <p class="lede" style="margin-bottom:18px">A indústria já resolveu isto pra evals de IA, e o nome é <b>golden dataset</b>: um conjunto <b>versionado e que evolui</b> de casos + resultados esperados, que é a fonte de verdade e o <b>tripwire</b> que transforma deriva em <b>sinal cedo</b>, antes de virar reclamação. Cada peça vira uma defesa no <code>ds:critic</code>:</p>
+
+  <div class="def">
+    <div class="dn">1</div>
+    <div>
+      <h3>O golden é vivo, não congelado</h3>
+      <p>Gestão de deriva = <b>adicionar continuamente casos reais de falha</b> e atualizar domínios pra seguir representativo. Um gate estático apodrece; um que absorve cada falha nova permanece afiado.</p>
+      <span class="ours">▸ no nosso sistema: a "cataraca" + o passo APRENDER (escape → gate) JÁ é isso — mas precisa ser <b>explicitamente versionado</b>, não só acumulado.</span>
+    </div>
+  </div>
+
+  <div class="def">
+    <div class="dn">2</div>
+    <div>
+      <h3>Calibrar contra humano, sempre</h3>
+      <p>Misturar rótulos humanos com nota de LLM-juiz e <b>calibrar regularmente</b> é o que mantém o juiz honesto. O humano é o <b>sinal de mais alta qualidade</b> e a âncora que impede o drift de conceito.</p>
+      <span class="ours">▸ no nosso sistema: as decisões do <b>[W]</b> são o conjunto-âncora. Recalibrar a cada N telas — não "set e esquece".</span>
+    </div>
+  </div>
+
+  <div class="def">
+    <div class="dn">3</div>
+    <div>
+      <h3>Vigia de deriva (drift watch)</h3>
+      <p>Monitorar se <b>score sobe enquanto sinais reais pioram</b>. O golden é a tripwire: model swaps, patches de modelo, edição de prompt — tudo desloca comportamento em silêncio. A vigia pega antes do cliente.</p>
+      <span class="ours">▸ no nosso sistema: o <code>--meta</code> ganha um segundo dever — comparar <b>score vs sinal externo</b> (reclamação do [W], retrabalho), não só auto-consistência.</span>
+    </div>
+  </div>
+
+  <div class="def">
+    <div class="dn">4</div>
+    <div>
+      <h3>Anti-Goodhart: medir o não-medido</h3>
+      <p>A defesa contra gaming é <b>rotacionar e diversificar</b> o que se mede — podar duplicatas, forçar diversidade, puxar casos de logs reais. Se o gate só olha cor crua, otimiza-se cor crua. Então o golden precisa de <b>casos que o sistema não pode prever</b>.</p>
+      <span class="ours">▸ no nosso sistema: um <b>holdout</b> de telas que o ds:critic NÃO vê no treino dos gates — só [W] aplica. Se a tela passa nos gates mas falha no holdout → o gate está sendo gamed.</span>
+    </div>
+  </div>
+
+  <div class="def">
+    <div class="dn">5</div>
+    <div>
+      <h3>Grau de governança (de graça)</h3>
+      <p>Essa disciplina é <b>exigida</b> por NIST AI RMF, ISO 42001 e o EU AI Act como evidência de medição contínua. Você não está só melhorando UI — está construindo a <b>infraestrutura de auditoria</b> que esses frameworks pedem.</p>
+      <div class="govrow"><span class="gov">NIST AI RMF</span><span class="gov">ISO/IEC 42001</span><span class="gov">EU AI Act</span></div>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <div class="callout pos">
+    <h3>O upgrade desta rodada — o sistema fica honesto, não só esperto</h3>
+    <p>A rodada 1 te deu um sistema <b>completo</b> (multi-lente, anti-viés). Esta rodada te dá um sistema <b>honesto ao longo do tempo</b>: ele <b>não pode se enganar</b> de que está melhorando. Três adições nomeadas — <b>golden versionado</b> (não só acumulado), <b>drift watch</b> (score vs realidade), e o <b>holdout anti-Goodhart</b> ([W] testa o que o gate não viu). Sem isso, "melhora a cada passada" é uma promessa que vira mentira em 3 meses. Com isso, é mensurável e auditável.</p>
+    <p><b>Resposta à sua pergunta original</b> — "um sistema que sobreviva ao tempo e melhore a cada passada" — é <b>possível</b>, mas só com a disciplina de golden dataset por baixo. Senão, o que sobrevive é o <b>número</b>, não a <b>qualidade</b>. Agora você sabe a diferença, e como travar a favor da segunda.</p>
+  </div>
+
+  <div class="foot">
+    <p><b>Fontes verificadas nesta rodada (+8):</b></p>
+    <div class="refs">
+      <span>· Lost in Simulation — arXiv 2601.17087 (jan/26)</span>
+      <span>· LLM-Simulated Users (survey) — EmergentMind (jan/26)</span>
+      <span>· Persona reliability — arXiv 2602.18462 (fev/26)</span>
+      <span>· LLM Agents Act Like Us — 2503.20749</span>
+      <span>· UXAgent — Amazon Science · CHI'25</span>
+      <span>· Self-Improvement of LLMs — arXiv 2603.25681 (mar/26)</span>
+      <span>· Eval drift: 7 ways benchmarks rot — (mar/26)</span>
+      <span>· Golden dataset guides — Maxim / Statsig / TrustEvals (25–26)</span>
+    </div>
+    <p style="margin-top:10px"><b>Honestidade:</b> "Goodhart" e "golden dataset" são conceitos consagrados de governança de IA, aqui aplicados ao seu caso de DS — a transferência é minha, fundamentada nas fontes. Números (85%, etc.) são dos papers em seus contextos. Frameworks (NIST/ISO/EU) citados como exigência de medição contínua, não como certificação que você tenha hoje.</p>
+    <p style="margin-top:8px;color:var(--text-4)">Oimpresso ERP · [CC] · rodada 2 de profundidade — simulação de usuários &amp; eval-drift.</p>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#2a1622"/><g fill="none" stroke="#e0507a" stroke-width="5" stroke-linecap="round"><path d="M30 70l18-40 18 40z"/><path d="M48 46v10"/></g><circle cx="48" cy="63" r="3" fill="#e0507a"/></svg>
+</template>
+</body>
+</html>

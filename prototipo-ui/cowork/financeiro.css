@@ -1,0 +1,1901 @@
+/* financeiro.css — escopo .fin-*, FSM financeiro, drawer abas
+   Extraído de styles.css em 2026-05-18 (organização da casa) */
+
+   FINANCEIRO · REFINO #1 KB-9.75 · CURADORIA (2026-05-18)
+   ══════════════════════════════════════════ */
+
+/* Conferido inline (no header do drawer) — Caso 09: mesma receita do StatusChip (chip tonal
+   color-mix + anel), pra uma gramática de selo só no drawer (era uppercase+soft, destoava). */
+.fin-conf-pill-inline{
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 8px; border-radius: 99px;
+  background: color-mix(in oklab, var(--pos) 13%, var(--surface)); color: var(--pos);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--pos) 28%, transparent);
+  font-size: var(--fs-1); font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+/* Editado inline (no header do drawer) */
+.fin-edit-pill-inline{
+  display: inline-flex; align-items: center; gap: 3px;
+  padding: 1px 8px; border-radius: 99px;
+  background: color-mix(in oklab, var(--warn) 15%, var(--surface)); color: color-mix(in oklab, var(--warn) 85%, var(--text));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 32%, transparent);
+  font-size: var(--fs-1); font-weight: 600;
+  letter-spacing: 0.01em;
+  text-transform: none;
+}
+
+/* Row "Conferido + Editar" lado a lado */
+.fin-toggles-row{
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+
+/* Botão "Editar campos" — colapsado */
+.fin-edit-btn{
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 34px; padding: 0 12px 0 9px; border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer; transition: all var(--t-1) var(--ease);
+}
+.fin-edit-btn:hover{ background: var(--sunken); color: var(--text); border-color: var(--text-3); }
+.fin-edit-btn.has-edits{
+  background: var(--warn-soft);
+  border-color: var(--warn);
+  color: var(--warn);
+}
+.fin-edit-ic{
+  display: inline-grid; place-items: center;
+  width: 18px; height: 18px; border-radius: 5px;
+  background: var(--sunken); color: var(--text-3);
+  font-size: var(--fs-2); font-weight: 600;
+}
+.fin-edit-btn.has-edits .fin-edit-ic{ background: var(--warn); color: var(--accent-fg, #fff); }
+.fin-edit-tag{
+  margin-left: 2px;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--neg);
+  display: inline-block;
+}
+
+/* Painel de edição — expandido */
+.fin-edit-panel{
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-soft);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 8px 0 4px;
+}
+.fin-edit-h{
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 10px;
+}
+.fin-edit-h h4{
+  margin: 0; font-size: var(--fs-4); font-weight: 700;
+  color: var(--warn);
+}
+.fin-edit-actions{ margin-left: auto; display: flex; gap: 6px; }
+.fin-edit-reset{
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 4px 9px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
+  color: var(--text-mute); cursor: pointer;
+}
+.fin-edit-reset:hover{ background: var(--bg-2); color: var(--neg); }
+.fin-edit-close{
+  background: var(--accent); border: none;
+  color: var(--accent-fg);
+  padding: 4px 12px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 600;
+  cursor: pointer;
+}
+.fin-edit-close:hover{ background: var(--accent-hi); }
+
+.fin-edit-grid{
+  display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+}
+.fin-edit-grid label{
+  display: flex; flex-direction: column; gap: 4px;
+}
+.fin-edit-grid label.fin-edit-wide{ grid-column: 1 / -1; }
+.fin-edit-grid label > span{
+  font-size: var(--fs-1); font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-mute);
+}
+.fin-edit-grid input,
+.fin-edit-grid select{
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 6px 9px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-3);
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--t-1) var(--ease);
+}
+.fin-edit-grid input[type="number"]{ font-family: var(--font-mono); }
+.fin-edit-grid input:focus,
+.fin-edit-grid select:focus{ border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.fin-edit-grid label small{
+  font-size: var(--fs-1); line-height: 1.3;
+}
+.fin-edit-grid label small.pos{ color: var(--pos); font-weight: 600; }
+.fin-edit-grid label small.neg{ color: var(--neg); font-weight: 600; }
+.fin-edit-grid label small.neu{ color: var(--text-mute); font-style: italic; }
+
+/* ══════════════════════════════════════════
+   FSM STEPPER · genérico cross-módulo (2026-05-18)
+   3 variants: dots-inline · full-stepper · breadcrumb
+   ══════════════════════════════════════════ */
+
+.fsm-stepper{
+  --fsm-color: oklch(0.55 0.13 var(--fsm-hue, 145));
+  --fsm-color-soft: oklch(0.94 0.05 var(--fsm-hue, 145));
+  --fsm-color-dim: oklch(0.42 0.13 var(--fsm-hue, 145));
+}
+
+/* ── Inline (5 bolinhas + label) ── */
+.fsm-stepper.fsm-inline{
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.fsm-stepper.fsm-inline .fsm-dot{
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--border);
+  transition: all var(--t-1) var(--ease);
+  display: inline-block;
+}
+.fsm-stepper.fsm-inline .fsm-dot.done{ background: var(--fsm-color); }
+.fsm-stepper.fsm-inline .fsm-dot.current{
+  background: var(--fsm-color);
+  box-shadow: 0 0 0 2px var(--fsm-color-soft);
+}
+.fsm-stepper.fsm-inline .fsm-dot.term{
+  background: var(--neg);
+}
+.fsm-stepper.fsm-inline .fsm-lbl{
+  margin-left: 4px;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
+  letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--fsm-color-dim);
+}
+
+/* ── Full stepper (drawer) ── */
+.fsm-stepper.fsm-full{
+  list-style: none; margin: 0; padding: 0;
+  display: flex; align-items: flex-start; gap: 0;
+  background: var(--bg-2);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.fsm-stepper.fsm-full .fsm-step{
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 4px;
+  position: relative;
+  font-size: var(--fs-2);
+}
+.fsm-stepper.fsm-full .fsm-step-num{
+  display: grid; place-items: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  color: var(--text-mute);
+  font-family: var(--font-mono); font-size: var(--fs-2); font-weight: 700;
+  z-index: 1; transition: all var(--t-1) var(--ease);
+}
+.fsm-stepper.fsm-full .fsm-step.done .fsm-step-num{
+  background: var(--fsm-color); color: var(--accent-fg); border-color: var(--fsm-color);
+}
+.fsm-stepper.fsm-full .fsm-step.current .fsm-step-num{
+  background: var(--surface); color: var(--fsm-color-dim);
+  border-color: var(--fsm-color);
+  box-shadow: 0 0 0 3px var(--fsm-color-soft);
+}
+.fsm-stepper.fsm-full .fsm-step.term .fsm-step-num{
+  background: var(--neg-soft); color: var(--neg);
+  border-color: var(--neg);
+}
+.fsm-stepper.fsm-full .fsm-step-lbl{
+  font-size: var(--fs-1); font-weight: 600;
+  color: var(--text-mute);
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+.fsm-stepper.fsm-full .fsm-step.done .fsm-step-lbl,
+.fsm-stepper.fsm-full .fsm-step.current .fsm-step-lbl{
+  color: var(--text);
+}
+.fsm-stepper.fsm-full .fsm-step.current .fsm-step-lbl{
+  color: var(--fsm-color-dim);
+  font-weight: 700;
+}
+.fsm-stepper.fsm-full .fsm-step-line{
+  position: absolute;
+  top: 11px; left: 50%; right: -50%;
+  height: 2px; background: var(--border);
+  z-index: 0;
+}
+.fsm-stepper.fsm-full .fsm-step.done .fsm-step-line{
+  background: var(--fsm-color);
+}
+
+/* ── Breadcrumb ── */
+.fsm-stepper.fsm-breadcrumb{
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: var(--fs-2);
+}
+.fsm-stepper.fsm-breadcrumb .fsm-bc-past{
+  color: var(--text-mute);
+}
+.fsm-stepper.fsm-breadcrumb .fsm-bc-current{
+  color: var(--fsm-color-dim);
+  font-weight: 600;
+}
+.fsm-stepper.fsm-breadcrumb .fsm-bc-sep{
+  color: var(--text-mute); opacity: 0.5;
+}
+.fsm-stepper.fsm-breadcrumb .fsm-bc-terminal{
+  color: var(--neg); font-weight: 600;
+}
+
+/* Wrapper no Financeiro Drawer — leve (sem borda pesada; sitúa-se no fluxo) */
+.fin-fsm-wrap{
+  background: var(--sunken);
+  border: 1px solid var(--hairline);
+  border-radius: 9px;
+  padding: 0;
+  overflow: hidden;
+}
+.fin-fsm-wrap .fsm-stepper.fsm-full{
+  background: transparent;
+}
+
+/* Caso 04/05 (O Adversário): resumo de 1 linha pra item terminal — devolve ~70px
+   e diz "acabou" uma vez só, em vez do stepper completo de 4 etapas todas feitas. */
+.fin-fsm-done{
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: var(--fs-2); color: var(--text-2);
+  background: color-mix(in oklab, var(--pos) 8%, var(--surface));
+  border: 1px solid color-mix(in oklab, var(--pos) 22%, var(--hairline));
+  border-radius: 8px; padding: 5px 11px;
+}
+.fin-fsm-done b{ color: var(--text); font-weight: 600; }
+.fin-fsm-done-ic{
+  display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--pos); color: var(--accent-fg, #fff); flex-shrink: 0;
+}
+
+/* ONDA 2 P1 · comparação "vs média" (cadeira Tufte) — neutra, sem cor de valor */
+.fin-vs-avg{
+  margin-top: 4px; font-size: var(--fs-2); color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.fin-vs-avg .fin-vs-pct{ color: var(--text-2); font-weight: 600; font-family: var(--font-mono); }
+.fin-vs-avg .fin-vs-n{ color: var(--text-4); }
+
+/* Seção/lente do drawer — fio divisor único, ritmo consistente */
+.fin-lens{ border-top: 1px solid var(--hairline); }
+.fin-lens:first-child{ border-top: none; }
+
+/* ONDA 2 · veredito inferido (cadeira Victor) — a conclusão em 1 linha, no topo do corpo.
+   A tela diz o que importa antes de o olho varrer. Tom pela situação real do título. */
+.fin-verdict{
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 11px 13px; border-radius: 10px; margin: 12px 0 2px;
+}
+.fin-verdict b{ display: block; font-size: var(--fs-4); font-weight: 600; line-height: 1.3; color: var(--text); }
+.fin-verdict-sub{ display: block; font-size: var(--fs-2); color: var(--text-2); margin-top: 1px; }
+.fin-verdict-ic{
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  flex-shrink: 0; font-weight: 700; font-size: var(--fs-3); margin-top: 1px;
+}
+.fin-verdict-pos{ background: color-mix(in oklab, var(--pos) 9%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--pos) 24%, transparent); }
+.fin-verdict-pos .fin-verdict-ic{ background: var(--pos); color: var(--accent-fg, #fff); }
+.fin-verdict-warn{ background: color-mix(in oklab, var(--warn) 11%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 28%, transparent); }
+.fin-verdict-warn .fin-verdict-ic{ background: var(--warn); color: oklch(0.28 0.05 75); }
+.fin-verdict-neg{ background: color-mix(in oklab, var(--neg) 10%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neg) 26%, transparent); }
+.fin-verdict-neg .fin-verdict-ic{ background: var(--neg); color: var(--accent-fg, #fff); }
+.fin-verdict-neg b{ color: var(--neg); }
+.fin-verdict-muted{ background: var(--sunken); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--text-3) 18%, transparent); }
+.fin-verdict-muted .fin-verdict-ic{ background: var(--text-3); color: var(--surface); }
+
+/* ── Drawer · Camada 1 (hero fixo fora do scroll) — polimento 2026-06-10 ──
+   Gabarito Prova Viva 9.75: fato (quanto/quando/ciclo) fixo; lentes rolam embaixo. */
+.fin-dw-hero .fin-fsm-compact .fsm-stepper.fsm-full{ padding: 7px 10px; }
+.fin-dw-hero .fin-fsm-compact .fsm-stepper.fsm-full .fsm-step-num{ width: 18px; height: 18px; font-size: var(--fs-1); }
+.fin-dw-hero .fin-fsm-compact .fsm-stepper.fsm-full .fsm-step-line{ top: 8px; }
+.fin-dw-hero .fin-fsm-compact .fsm-stepper.fsm-full .fsm-step-lbl{ font-size: var(--fs-1); }
+.fin-dw-hero .fin-toggles-row{ gap: 6px; }
+.fin-dw-hero .fin-toggles-row > button{ font-size: var(--fs-2); padding-top: 3px; padding-bottom: 3px; }
+.fin-dw-hero .fin-conferido-toggle small{ display: none; } /* "Eliana valida" vira só tooltip — ruído no hero */
+
+/* ══════════════════════════════════════════
+   FINANCEIRO · Drawer wide refluido (2026-05-18)
+   ══════════════════════════════════════════ */
+
+/* Drawer mais largo (440→560px) + grid 2col em mais lugares */
+.fin-drawer-wide{ width: 560px !important; box-shadow: var(--sh-2); /* tempero: flutuante, 1 fonte de luz */ }
+/* Tempero — sombras via CSS (classe Tailwind arbitrária shadow-[var()] não gera regra no CDN) */
+.fin-table-card{ box-shadow: var(--sh-1); }
+.fin-footbar{ box-shadow: var(--sh-2); }
+.fin-cmdk-card{ box-shadow: var(--sh-2); }
+/* KV grid — ritmo vertical firme entre as linhas do grid */
+.fin-drawer-wide .grid-cols-2{ gap: 10px 20px; align-items: start; }
+.fin-drawer-wide .grid-cols-2 > *{ min-width: 0; }
+.fin-drawer-wide .fin-toggles-row{
+  flex-wrap: wrap; gap: 8px;
+}
+.fin-drawer-wide .fin-edit-grid{
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+}
+.fin-drawer-wide .fin-edit-wide{ grid-column: 1 / -1; }
+.fin-drawer-wide .fsm-stepper.fsm-full{ padding: 12px 20px; }
+.fin-drawer-wide .fsm-stepper.fsm-full .fsm-step-lbl{ font-size: var(--fs-2); }
+
+/* Footer reorganizado — botões iguais lado a lado */
+.fin-drawer-footer{
+  gap: 6px !important;
+  padding: 0 14px !important;
+}
+.fin-foot-icon-btn{
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 32px; padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
+  color: var(--text-dim); cursor: pointer;
+  transition: all var(--t-1) var(--ease);
+  white-space: nowrap;
+}
+.fin-foot-icon-btn:hover{ background: var(--bg-2); color: var(--text); border-color: var(--text-mute); }
+
+.fin-foot-mark-btn{
+  margin-left: auto;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--accent); color: var(--accent-fg);
+  font-family: inherit; font-size: var(--fs-3); font-weight: 600;
+  cursor: pointer; transition: background var(--t-1) var(--ease);
+  white-space: nowrap;
+}
+.fin-foot-mark-btn:hover{ background: var(--accent-hi); }
+
+/* Trouble button mais compacto quando footer apertado */
+.fin-drawer-footer .fin-trouble-btn{
+  margin-right: 0;
+  padding: 4px 9px 4px 4px;
+  font-size: var(--fs-2);
+}
+/* Footer — NUNCA estoura: troubleshooter encolhe, hint some quando ele existe, botões não quebram */
+.fin-drawer-footer{ overflow: hidden; }
+.fin-drawer-footer .fin-foot-icon-btn,
+.fin-drawer-footer .fin-foot-mark-btn{ flex-shrink: 0; }
+.fin-drawer-footer .fin-trouble-btn{ min-width: 0; flex-shrink: 1; }
+.fin-drawer-footer:has(.fin-trouble-btn) .fin-dw-hint{ display: none; }
+.fin-drawer-footer .fin-trouble-lbl{
+  max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-2);
+}
+.fin-drawer-footer .fin-trouble-lbl b{
+  display: inline; max-width: 100%;
+}
+.fin-drawer-footer .fin-trouble-ic{ width: 20px; height: 20px; font-size: var(--fs-3); }
+.fin-drawer-footer .fin-trouble-ct{ display: none; }
+
+/* Método 9.75 no drawer — P2 atalhos visíveis · N3 navegação J/K · P5 saída (recibo) */
+.fin-dw-nav{ display: flex; align-items: center; gap: 1px; margin-right: 2px; }
+.fin-dw-nav-btn{
+  width: 24px; height: 24px; display: grid; place-items: center;
+  border-radius: 5px; color: var(--text-2);
+  transition: background var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.fin-dw-nav-btn:hover{ background: var(--sunken); color: var(--text); }
+.fin-dw-nav-btn:disabled{ opacity: .3; pointer-events: none; }
+.fin-dw-pos{ font-size: var(--fs-2); color: var(--text-2); padding: 0 3px; white-space: nowrap; }
+.fin-dw-pos i{ font-style: normal; opacity: .45; margin: 0 1px; }
+
+.fin-kbd{
+  display: inline-grid; place-items: center;
+  min-width: 16px; height: 16px; padding: 0 4px;
+  border-radius: 4px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: var(--fs-1); font-weight: 600; line-height: 1;
+  color: var(--text-2);
+  background: color-mix(in oklab, var(--text) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--text) 14%, transparent);
+}
+.fin-kbd-acc{
+  /* currentColor (texto do botão) — não var(--accent-fg): -fg como superfície viola G3 */
+  color: inherit;
+  background: color-mix(in oklab, currentColor 18%, transparent);
+  border-color: color-mix(in oklab, currentColor 30%, transparent);
+  margin-left: 2px;
+}
+.fin-dw-hint{
+  display: inline-flex; align-items: center; gap: 3px;
+  font-size: var(--fs-1); color: var(--text-3); white-space: nowrap;
+}
+.fin-dw-hint em{ font-style: normal; margin-left: 2px; }
+@media (max-width: 720px){ .fin-dw-hint{ display: none; } }
+
+/* ── Refinos R1–R3 + harmonização (bench 06-11: profundidade · cor complementar · frescor · crosslink) ── */
+/* Profundidade — o drawer flutua de verdade; hero com luz sutil da identidade */
+.fin-drawer-wide{ box-shadow: var(--sh-2); }
+.fin-drawer-wide .fin-dw-hero{
+  background: linear-gradient(180deg, color-mix(in oklab, var(--accent) 4%, var(--surface)) 0%, var(--surface) 88%);
+}
+
+/* Lentes — ícone com cor própria por domínio (complementares à identidade roxa) + anel de profundidade */
+.fin-lens-ic{
+  width: 22px; height: 22px; border-radius: 6px;
+  display: grid; place-items: center; flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, currentColor 20%, transparent);
+}
+.fin-lens-ic-accent{ background: var(--accent-soft); color: var(--accent); }
+.fin-lens-ic-pos{ background: var(--pos-soft); color: var(--pos); }
+.fin-lens-ic-warn{ background: var(--warn-soft); color: var(--warn); }
+.fin-lens-ic-neg{ background: var(--neg-soft); color: var(--neg); }
+.fin-lens-ic-muted{ background: var(--sunken); color: var(--text-3); }
+
+/* R1 — copy em tudo ao hover (Stripe) */
+.fin-copyval{
+  display: inline-flex; align-items: center; gap: 5px; max-width: 100%;
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; color: inherit; cursor: pointer; text-align: left;
+}
+.fin-copyval-txt{ overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.fin-copyval-ic{
+  opacity: 0; font-size: var(--fs-1); color: var(--text-3); flex-shrink: 0;
+  transition: opacity var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.fin-copyval:hover .fin-copyval-ic{ opacity: 1; }
+.fin-copyval:hover .fin-copyval-txt{ color: var(--accent); }
+.fin-copyval.ok .fin-copyval-ic{ opacity: 1; color: var(--pos); }
+
+/* R2 — KV editável no lugar (Attio/Linear): select vestido de valor.
+   Truque do espelho: o wrapper é dimensionado por um <span> invisível com o VALOR ATUAL;
+   o select (width:100%) senta por cima na mesma célula — chevron sempre colado no texto,
+   independente da opção mais larga da lista. */
+.fin-kvedit-wrap{
+  display: inline-grid; align-items: center;
+  max-width: 100%; margin-left: -5px;
+  position: relative;
+}
+.fin-kvedit-mirror{
+  grid-area: 1 / 1;
+  visibility: hidden; white-space: nowrap; overflow: hidden;
+  font-family: inherit; font-size: var(--fs-4); font-weight: 500; line-height: 22px;
+  padding: 1px 24px 1px 4px; /* 18px do select + 6px de buffer: glifos com cauda/fallback de fonte não clipam */
+}
+.fin-kvedit select{
+  /* ABSOLUTO sobre o espelho: fora do track sizing do grid — senão o max-content da
+     opção mais larga estica o track e o chevron voa de novo (G11, verifier 06-11). */
+  position: absolute; inset: 0;
+  appearance: none; -webkit-appearance: none;
+  width: 100%; min-width: 0; padding: 1px 18px 1px 4px;
+  border: 1px solid transparent; border-radius: 5px;
+  background: transparent url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23938fa6' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") no-repeat right 5px center;
+  color: var(--text); font-family: inherit;
+  font-size: var(--fs-4); font-weight: 500; line-height: 1.4;
+  cursor: pointer;
+  transition: border-color var(--t-1) var(--ease), background-color var(--t-1) var(--ease);
+}
+.fin-kvedit select:hover{ border-color: var(--border); background-color: var(--sunken); }
+.fin-kvedit select:focus{ outline: none; border-color: var(--accent); background-color: var(--surface); }
+.fin-kvedit-dot{ color: var(--warn); }
+.fin-kvedit-was{ display: block; font-size: var(--fs-1); color: var(--text-3); margin-top: 1px; }
+
+/* R3 — frescor como chip calmo no hero (estado dito 1×; badge saiu) */
+.fin-rel-chip{
+  display: inline-flex; align-items: center; height: 19px; padding: 0 8px;
+  border-radius: 999px; font-size: var(--fs-1); font-weight: 600;
+  letter-spacing: .02em; white-space: nowrap;
+}
+.fin-rel-chip.neg{ background: var(--neg-soft); color: var(--neg); }
+.fin-rel-chip.warn{ background: var(--warn-soft); color: var(--warn); }
+.fin-rel-chip.mut{ background: var(--sunken); color: var(--text-2); }
+
+/* Cross-links — wayfinding por módulo de origem (venda roxo · OS âmbar/oficina · compra verde) */
+.fin-xchip svg{ transition: color var(--t-1) var(--ease); }
+.fin-xchip-venda svg{ color: var(--accent); }
+.fin-xchip-os svg{ color: var(--warn); }
+.fin-xchip-compra svg{ color: var(--pos); }
+.fin-xchip-boleto svg, .fin-xchip-nf svg{ color: var(--text-3); }
+.fin-xchip:hover svg{ color: inherit; }
+
+/* Histórico — header harmonizado com a tipografia das lentes */
+.fin-drawer-wide .fin-audit-h{ margin-bottom: 10px; }
+.fin-drawer-wide .fin-audit-h h4{
+  font-size: var(--fs-3); font-weight: 600;
+  text-transform: none; letter-spacing: 0; color: var(--text);
+}
+
+/* Ficha de campos — ONDA 2 P2 (cadeira Reichenstein): a queixa era "caixa COLORIDA
+   fazendo o trabalho da tipografia". Tiro a cor (lavanda+accent) e deixo fios neutros
+   discretos pra não flutuar em branco (preocupação do [W] 06-11). Tipografia agrupa. */
+.fin-kv-card{
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 4px 2px 6px;
+}
+
+/* [W] 2026-06-16: linha decorativa colorida por domínio no header da lente (wayfinding;
+   "uma linha verdinha/amarelinha/roxa clara"). Curta e fina = clara, não pesada. */
+.fin-lens-h4{ position: relative; padding-bottom: 6px; }
+.fin-lens-h4::after{
+  content: ""; position: absolute; left: 0; bottom: 0;
+  width: 26px; height: 2px; border-radius: 2px;
+  background: color-mix(in oklab, var(--accent) 80%, var(--surface));
+}
+.fin-lens-h4-pos::after{ background: color-mix(in oklab, var(--pos) 80%, var(--surface)); }
+.fin-lens-h4-warn::after{ background: color-mix(in oklab, var(--warn) 82%, var(--surface)); }
+.fin-lens-h4-neg::after{ background: color-mix(in oklab, var(--neg) 80%, var(--surface)); }
+.fin-lens-h4-accent::after{ background: color-mix(in oklab, var(--accent) 80%, var(--surface)); }
+.fin-lens-h4-muted::after{ background: color-mix(in oklab, var(--text-3) 55%, var(--surface)); }
+
+/* [W] 2026-06-16: Histórico menos "cizudo" — tipografia mais leve (nomes sem bold pesado,
+   ícones de evento calmos). */
+.fin-drawer-wide .fin-audit-body header b{ font-weight: 500; }
+.fin-drawer-wide .fin-audit-ic{ font-weight: 500; }
+.fin-drawer-wide .fin-audit-h h4{ font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--text-2); }
+
+/* [W] 2026-06-16: botões de ícone do header do drawer com chrome de repouso (não "sem CSS") */
+.fin-dw-nav-btn{ border: 1px solid var(--border); background: var(--surface); }
+.fin-dw-nav-btn:hover{ background: var(--sunken); border-color: var(--text-3); }
+
+/* ONDA 2 P2 (Victor/Saarinen) — acento de ação na linha da lista */
+.fin-table-card tr.fin-row-act-neg > td:first-child{ box-shadow: inset 3px 0 0 var(--neg); }
+.fin-table-card tr.fin-row-act-warn > td:first-child{ box-shadow: inset 3px 0 0 var(--warn); }
+
+/* Detalhes — select do KVEdit absoluto preenche o wrap (altura vem do espelho) */
+.fin-kvedit select{ display: block; height: 100%; }
+.fin-kvedit-was{ line-height: 1.3 !important; }
+
+/* ── VIDA ([W] 06-11 "cores cruas, sem vida") — chroma real via color-mix dos MESMOS tokens.
+   Nada de cor nova: --accent/--pos/--warn/--neg misturados na superfície; dark adapta sozinho. ── */
+/* Hero — lavanda presente, com foco de luz na identidade (não 4% invisível) */
+.fin-drawer-wide .fin-dw-hero{
+  background:
+    radial-gradient(440px 150px at 88% -35%, color-mix(in oklab, var(--accent) 15%, transparent), transparent 70%),
+    linear-gradient(180deg, color-mix(in oklab, var(--accent) 7%, var(--surface)) 0%, var(--surface) 94%);
+}
+
+/* Lentes — ícones saturados, anel firme */
+.fin-lens-ic{ box-shadow: inset 0 0 0 1px color-mix(in oklab, currentColor 30%, transparent); }
+.fin-lens-ic-accent{ background: color-mix(in oklab, var(--accent) 15%, var(--surface)); }
+.fin-lens-ic-pos{ background: color-mix(in oklab, var(--pos) 15%, var(--surface)); }
+.fin-lens-ic-warn{ background: color-mix(in oklab, var(--warn) 18%, var(--surface)); }
+.fin-lens-ic-neg{ background: color-mix(in oklab, var(--neg) 15%, var(--surface)); }
+.fin-lens-ic-muted{ background: color-mix(in oklab, var(--text-3) 12%, var(--surface)); }
+
+/* Chips de status das lentes — fundo com chroma + anel da própria cor */
+.fin-chip-pos{ background: color-mix(in oklab, var(--pos) 13%, var(--surface)); color: var(--pos); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--pos) 28%, transparent); }
+.fin-chip-neg{ background: color-mix(in oklab, var(--neg) 13%, var(--surface)); color: var(--neg); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neg) 28%, transparent); }
+.fin-chip-warn{ background: color-mix(in oklab, var(--warn) 15%, var(--surface)); color: color-mix(in oklab, var(--warn) 85%, var(--text)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 32%, transparent); }
+.fin-chip-info{ background: color-mix(in oklab, var(--accent) 12%, var(--surface)); color: var(--accent); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--accent) 26%, transparent); }
+.fin-chip-muted{ background: var(--sunken); color: var(--text-2); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--text-3) 22%, transparent); }
+
+/* Conciliação conciliada — verde vivo, não caixa cinza */
+.fin-concil-ok{
+  background: color-mix(in oklab, var(--pos) 7%, var(--surface));
+  border: 1px solid color-mix(in oklab, var(--pos) 24%, var(--border));
+}
+
+/* Cross-links — chip já nasce com a cor do módulo de origem (não só no hover).
+   bg/border moram AQUI (não em classe Tailwind) — o <style> do CDN entra depois do link
+   e vencia o cascade, matando os tints (achado do verifier 06-11). */
+.fin-xchip{ background: var(--surface); border-color: var(--border); }
+.fin-xchip:hover{ background: var(--accent-soft); border-color: var(--accent-line); color: var(--accent); }
+.fin-xchip-venda{ background: color-mix(in oklab, var(--accent) 6%, var(--surface)); border-color: color-mix(in oklab, var(--accent) 22%, var(--border)); }
+.fin-xchip-os{ background: color-mix(in oklab, var(--warn) 7%, var(--surface)); border-color: color-mix(in oklab, var(--warn) 26%, var(--border)); }
+.fin-xchip-compra{ background: color-mix(in oklab, var(--pos) 6%, var(--surface)); border-color: color-mix(in oklab, var(--pos) 22%, var(--border)); }
+.fin-xchip-boleto, .fin-xchip-nf{ background: color-mix(in oklab, var(--text-3) 5%, var(--surface)); }
+
+/* Chip de frescor do hero — mesmo tratamento vivo */
+.fin-rel-chip.neg{ background: color-mix(in oklab, var(--neg) 13%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--neg) 28%, transparent); }
+.fin-rel-chip.warn{ background: color-mix(in oklab, var(--warn) 15%, var(--surface)); color: color-mix(in oklab, var(--warn) 85%, var(--text)); box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--warn) 32%, transparent); }
+.fin-rel-chip.mut{ box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--text-3) 20%, transparent); }
+
+/* Histórico audit row — menos vertical, mais largo */
+.fin-drawer-wide .fin-audit-row{
+  grid-template-columns: 24px 1fr;
+  gap: 12px; padding: 7px 0;
+}
+.fin-drawer-wide .fin-audit-body header{
+  flex-wrap: wrap; gap: 4px 8px;
+}
+.fin-drawer-wide .fin-audit-body header time{
+  font-size: var(--fs-1);
+}
+
+/* Conferir + Editar lado a lado em vez de empilhados */
+.fin-drawer-wide .fin-conferido-toggle,
+.fin-drawer-wide .fin-edit-btn{
+  flex: 1; max-width: 220px;
+  justify-content: flex-start;
+}
+
+/* ══════════════════════════════════════════
+   FINANCEIRO · Drawer com abas (2026-05-18)
+   ══════════════════════════════════════════ */
+.fin-drawer-tabs{
+  display: flex; align-items: center;
+  padding: 0 18px; gap: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+}
+.fin-drawer-tab{
+  background: transparent; border: none;
+  padding: 12px 14px; font-family: inherit;
+  font-size: var(--fs-3); font-weight: 500;
+  color: var(--text-mute); cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all var(--t-1) var(--ease);
+  display: inline-flex; align-items: center; gap: 6px;
+  position: relative;
+}
+.fin-drawer-tab:hover{ color: var(--text); }
+.fin-drawer-tab.on{
+  color: var(--text);
+  border-bottom-color: var(--accent);
+  background: var(--surface);
+}
+.fin-drawer-tab-ct{
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
+  background: var(--surface); color: var(--text-mute);
+  padding: 1px 6px; border-radius: 99px;
+}
+.fin-drawer-tab.on .fin-drawer-tab-ct{
+  background: var(--pos-soft); color: var(--pos);
+}
+.fin-drawer-tab-tag{
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--neg);
+  display: inline-block;
+}
+.fin-drawer-tab-ai{ color: var(--accent); }
+/* Caso 10 (O Adversário): IA é assistência, não uma "view" co-igual ao Detalhes.
+   Empurrada pra direita da barra = afordância de ferramenta, não aba irmã. */
+.fin-drawer-tabs .fin-drawer-tab-ai{ margin-left: auto; }
+.fin-drawer-tab-ai:hover{ color: var(--accent); }
+.fin-drawer-tab-ai.on{
+  border-bottom-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
+.fin-drawer-tab-edit{ color: var(--warn); }
+.fin-drawer-tab-edit:hover{ color: var(--warn); }
+.fin-drawer-tab-edit.on{
+  border-bottom-color: var(--warn);
+  color: var(--warn);
+  background: var(--warn-soft);
+}
+.fin-drawer-tab-edit.has-edits:not(.on){
+  background: var(--warn-soft);
+}
+
+/* Tab Editar — quando inline expandido, painel full-width fica bonito */
+.fin-drawer-wide .fin-toggles-row{
+  flex-wrap: wrap; gap: 8px;
+}
+.fin-drawer-wide .fin-toggles-row > *{
+  flex: 0 0 auto;
+}
+.fin-drawer-wide .fin-edit-panel{
+  flex: 1 1 100%;
+  background: linear-gradient(135deg, var(--warn-soft), var(--warn-soft));
+  border: 1px solid var(--warn-soft);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-top: 4px;
+  animation: finEditOpen 0.18s ease-out;
+}
+@keyframes finEditOpen {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+.fin-drawer-wide .fin-edit-h h4{ font-size: var(--fs-4); color: var(--warn); }
+.fin-drawer-wide .fin-edit-grid{
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+.fin-drawer-wide .fin-edit-grid .fin-edit-wide{ grid-column: 1 / -1; }
+.fin-drawer-wide .fin-edit-close{
+  background: var(--accent); color: var(--accent-fg);
+  font-weight: 600;
+}
+.fin-drawer-wide .fin-edit-close:hover{ background: var(--accent-hi); }
+
+/* Conferido toggle (ação no body do drawer) — harmonizado com Editar */
+.fin-conferido-toggle{
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 34px; padding: 0 12px 0 7px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500;
+  color: var(--text-2);
+  cursor: pointer; transition: all var(--t-1) var(--ease);
+}
+.fin-conferido-toggle:hover{ background: var(--sunken); color: var(--text); border-color: var(--text-3); }
+.fin-conferido-toggle.on{
+  background: var(--accent); color: var(--accent-fg, #fff);
+  border-color: var(--accent);
+}
+.fin-conferido-toggle .fin-conf-check{
+  display: inline-grid; place-items: center;
+  width: 18px; height: 18px; border-radius: 5px;
+  background: var(--sunken); color: var(--pos);
+  border: 1px solid var(--border);
+  font-size: var(--fs-2); font-weight: 700;
+}
+.fin-conferido-toggle.on .fin-conf-check{
+  background: var(--surface); color: var(--accent);
+  border-color: transparent;
+}
+.fin-conferido-toggle .fin-conf-lbl{ font-weight: 600; }
+.fin-conferido-toggle small{
+  font-size: var(--fs-1); font-weight: 400; opacity: 0.7;
+  margin-left: -3px;
+}
+.fin-conferido-toggle.on small{ display: none; }
+
+/* Label de metadados na grade do drawer — calmo, sem gritar (era uppercase tracking-widest) */
+.fin-meta-label{
+  font-size: var(--fs-2); font-weight: 500; color: var(--text-3);
+  letter-spacing: 0.005em;
+}
+
+/* Botões de ação da lente Cobrança (costura título⇄cobrança) */
+.fin-cob-btn{
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 32px; padding: 0 13px; border-radius: 7px;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500;
+  cursor: pointer; transition: all var(--t-1) var(--ease); border: 1px solid transparent;
+}
+.fin-cob-btn--primary{ background: var(--accent); color: var(--accent-fg, #fff); }
+.fin-cob-btn--primary:hover{ background: var(--accent-hi); }
+.fin-cob-btn--ghost{ background: var(--surface); color: var(--text); border-color: var(--border); }
+.fin-cob-btn--ghost:hover{ background: var(--sunken); border-color: var(--text-3); }
+
+/* Indicador de cobrança na linha da tabela */
+.fin-cob-tag{
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 18px; padding: 0 7px; border-radius: 999px;
+  font-size: var(--fs-1); font-weight: 500; letter-spacing: 0.01em;
+  background: var(--accent-soft); color: var(--accent);
+  white-space: nowrap;
+}
+.fin-cob-tag .fin-cob-dot{ width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+/* Painel de "tinta" escura quente — reaproveitado pelas sub-telas (saldo hoje, highlight DRE, tooltip) */
+.fin-ink{ background: oklch(0.24 0.012 80); color: #fff; }
+[data-theme="dark"] .fin-ink{ background: oklch(0.32 0.014 80); }
+.fin-ink .fin-ink-cap{ color: oklch(0.75 0.012 80); }
+.fin-ink .fin-ink-sub{ color: oklch(0.72 0.012 80); }
+
+/* Cabeçalho de card das sub-telas (versalete calmo, consistente com as lentes) */
+.fin-card{ background: var(--surface); border: 1px solid var(--border); border-radius: 11px; box-shadow: var(--sh-1, 0 1px 2px rgba(0,0,0,.05)); overflow: hidden; }
+.fin-card-h{ padding: 12px 18px; border-bottom: 1px solid var(--hairline); display: flex; align-items: center; gap: 12px; }
+.fin-cap{ font-size: var(--fs-1); font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-3); white-space: nowrap; }
+
+/* Pill de frescor (vence em Xd / atrasado / pago) */
+.fin-frescor{
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 7px; border-radius: 4px;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 600;
+  letter-spacing: 0.01em; white-space: nowrap;
+}
+.fin-frescor-ic{ font-size: var(--fs-1); line-height: 1; }
+.fin-frescor-fresh{ background: var(--pos-soft); color: var(--pos); }
+.fin-frescor-soon{ background: var(--pos-soft); color: var(--pos); }
+.fin-frescor-warning{ background: var(--warn-soft); color: var(--warn); }
+.fin-frescor-today{ background: var(--warn-soft); color: var(--warn); }
+.fin-frescor-overdue{ background: var(--neg-soft); color: var(--neg); }
+.fin-frescor-paid{ background: var(--sunken); color: var(--text-mute); }
+
+/* Audit trail */
+.fin-audit{ font-size: var(--fs-3); }
+.fin-audit-h{
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 12px;
+}
+.fin-audit-h h4{ margin: 0; font-size: var(--fs-2); font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-2); }
+.fin-audit-h small{ font-size: var(--fs-2); color: var(--text-mute); }
+.fin-audit-list{
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column;
+}
+.fin-audit-row{
+  display: grid; grid-template-columns: 26px 1fr;
+  gap: 10px; padding: 8px 0;
+  border-bottom: 1px solid var(--hairline);
+  position: relative;
+}
+.fin-audit-row:last-child{ border-bottom: none; }
+.fin-audit-row::before{
+  content: ""; position: absolute;
+  left: 12px; top: 28px; bottom: -2px;
+  width: 2px; background: var(--hairline);
+}
+.fin-audit-row:last-child::before{ display: none; }
+.fin-audit-ic{
+  display: grid; place-items: center;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--bg-2); color: var(--text-mute);
+  font-size: var(--fs-2); font-weight: 700;
+  position: relative; z-index: 1;
+}
+.fin-audit-create .fin-audit-ic{ background: var(--pos-soft); color: var(--pos); }
+.fin-audit-categorize .fin-audit-ic{ background: var(--accent-soft); color: var(--accent); }
+.fin-audit-edit .fin-audit-ic{ background: var(--warn-soft); color: var(--warn); }
+.fin-audit-concil .fin-audit-ic{ background: var(--pos-soft); color: var(--pos); }
+.fin-audit-alert .fin-audit-ic{ background: var(--neg-soft); color: var(--neg); }
+.fin-audit-body header{
+  display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 2px;
+}
+.fin-audit-body header b{ font-size: var(--fs-3); font-weight: 600; }
+.fin-audit-action{
+  font-size: var(--fs-2); color: var(--text-mute);
+}
+.fin-audit-body header time{
+  margin-left: auto;
+  font-family: var(--font-mono); font-size: var(--fs-1);
+  color: var(--text-mute);
+}
+.fin-audit-body p{
+  margin: 0; font-size: var(--fs-3); color: var(--text-dim); line-height: 1.45;
+}
+.fin-audit-diff{
+  margin-top: 4px;
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono); font-size: var(--fs-2);
+  background: var(--bg-2); padding: 2px 7px; border-radius: 4px;
+}
+.fin-audit-diff .diff-from{ color: var(--text-mute); text-decoration: line-through; }
+.fin-audit-diff .diff-arr{ color: var(--text-mute); }
+.fin-audit-diff .diff-to{ color: var(--text); font-weight: 600; }
+.fin-audit-diff .diff-pct.pos{ color: var(--pos); }
+.fin-audit-diff .diff-pct.neg{ color: var(--neg); }
+
+/* Comments thread */
+.fin-comments-h{
+  display: flex; align-items: baseline; gap: 10px;
+  margin-bottom: 10px;
+}
+.fin-comments-h h4{ margin: 0; font-size: var(--fs-3); font-weight: 600; color: var(--text); }
+.fin-comments-h small{ font-size: var(--fs-2); color: var(--text-mute); }
+.fin-comments-list{
+  list-style: none; margin: 0 0 12px; padding: 0;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.fin-comment{
+  display: grid; grid-template-columns: 28px 1fr;
+  gap: 8px;
+  background: color-mix(in oklab, var(--accent) 4%, var(--surface));
+  padding: 8px 10px; border-radius: 6px;
+  border: 1px solid color-mix(in oklab, var(--accent) 14%, var(--hairline));
+}
+.fin-comment-av{
+  display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-fg);
+  font-size: var(--fs-2); font-weight: 700;
+  align-self: start; margin-top: 2px;
+}
+.fin-comment-body header{
+  display: flex; align-items: baseline; gap: 6px;
+  margin-bottom: 3px;
+}
+.fin-comment-body header b{ font-size: var(--fs-3); font-weight: 600; }
+.fin-comment-body header time{
+  font-family: var(--font-mono); font-size: var(--fs-1); color: var(--text-mute);
+}
+.fin-comment-x{
+  margin-left: auto;
+  background: transparent; border: none;
+  color: var(--text-mute); font-size: var(--fs-4);
+  cursor: pointer; padding: 0 4px;
+  line-height: 1;
+}
+.fin-comment-x:hover{ color: var(--neg); }
+.fin-comment-body p{
+  margin: 0; font-size: var(--fs-3); line-height: 1.5; color: var(--text);
+}
+
+.fin-comment-new{
+  display: flex; flex-direction: column; gap: 6px;
+  border: 1px solid var(--hairline);
+  border-radius: 6px; padding: 8px;
+  background: var(--surface);
+  transition: border-color var(--t-1) var(--ease);
+}
+.fin-comment-new:focus-within{ border-color: var(--accent-line); }
+.fin-comment-new textarea{
+  width: 100%; border: none; outline: none; resize: vertical;
+  font-family: inherit; font-size: var(--fs-3); line-height: 1.5;
+  background: transparent;
+  min-height: 34px;
+}
+.fin-comment-new button{
+  align-self: flex-end;
+  background: var(--accent); color: var(--accent-fg);
+  border: none; padding: 5px 12px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 600;
+  cursor: pointer;
+}
+.fin-comment-new button:hover{ background: var(--accent-hi); }
+.fin-comment-new button:disabled{ background: var(--sunken); color: var(--text-3); cursor: not-allowed; }
+
+/* ══════════════════════════════════════════
+   FINANCEIRO · REFINO #2 KB-9.75 · IA (2026-05-18)
+   ══════════════════════════════════════════ */
+
+/* Botão ✦ Resumir mês */
+.fin-root .fin-btn-ai{
+  color: var(--accent);
+}
+.fin-root .fin-btn-ai:hover{
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Anomalia banner (no topo do drawer) */
+.fin-ai-anomalia{
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; margin: 0 0 4px;
+  border-radius: 8px;
+  border-left: 4px solid;
+}
+.fin-ai-anomalia-high{
+  background: var(--neg-soft);
+  border-color: var(--neg);
+  color: var(--neg);
+}
+.fin-ai-anomalia-low{
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.fin-ai-anomalia-ic{
+  display: grid; place-items: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--surface); font-size: var(--fs-4); font-weight: 700;
+  flex-shrink: 0;
+}
+.fin-ai-anomalia-body{ flex: 1; }
+.fin-ai-anomalia-body b{ display: block; font-size: var(--fs-3); font-weight: 600; }
+.fin-ai-anomalia-body small{ display: block; font-size: var(--fs-2); opacity: 0.85; }
+.fin-ai-anomalia-body i{ font-style: normal; font-weight: 500; }
+.fin-ai-anomalia-cta{
+  background: var(--surface); color: inherit;
+  border: 1px solid currentColor;
+  padding: 4px 10px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 600;
+  cursor: pointer;
+}
+
+/* Painel IA dentro do drawer */
+.fin-ai-panel h3{
+  margin: 12px 0 8px;
+  font-size: var(--fs-2); font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--accent); opacity: 0.85;
+}
+.fin-ai-party .vd-ai-stats{ margin-bottom: 12px; }
+
+/* ─── MONTH DIGEST OVERLAY ─── */
+.fin-digest-overlay{
+  position: fixed; inset: 0; z-index: 1100;
+  background: oklch(0.20 0.005 240 / 0.55);
+  display: grid; place-items: center;
+  padding: 20px;
+  animation: finDigestFade 0.18s ease-out;
+}
+@keyframes finDigestFade { from { opacity: 0; } to { opacity: 1; } }
+
+.fin-digest{
+  background: var(--surface);
+  border-radius: 14px;
+  width: 100%; max-width: 760px;
+  max-height: 88vh; overflow: auto;
+  box-shadow: var(--sh-2); /* tempero */
+  display: flex; flex-direction: column;
+  animation: finDigestUp .25s var(--ease);
+}
+@keyframes finDigestUp { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.fin-digest-h{
+  padding: 22px 26px 16px;
+  border-bottom: 1px solid var(--border);
+  position: relative;
+}
+.fin-digest-eyebrow{
+  font-size: var(--fs-1); font-weight: 700;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--accent);
+}
+.fin-digest-h h2{
+  margin: 4px 0 0; font-size: var(--fs-7); font-weight: 700;
+  letter-spacing: -0.018em;
+}
+.fin-digest-x{
+  position: absolute; top: 18px; right: 22px;
+  background: transparent; border: 1px solid var(--border);
+  width: 32px; height: 32px; border-radius: 6px;
+  font-size: var(--fs-6); cursor: pointer; line-height: 1;
+  color: var(--text-mute);
+}
+.fin-digest-x:hover{ background: var(--bg-2); color: var(--text); }
+
+.fin-digest-body{
+  padding: 18px 26px 24px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+
+/* Snapshot cards */
+.fin-digest-snapshot{
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+}
+.fin-digest-card{
+  background: var(--bg-2);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.fin-digest-card.primary{
+  grid-column: 1 / 3;
+  background: linear-gradient(135deg, var(--pos-soft), var(--pos-soft));
+  border: 1px solid var(--pos-soft);
+}
+.fin-digest-card.warn{
+  background: var(--neg-soft);
+  border: 1px solid var(--neg-soft);
+}
+.fin-digest-card small{
+  display: block;
+  font-size: var(--fs-1); font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-mute); margin-bottom: 3px;
+}
+.fin-digest-card b{
+  display: block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-7); font-weight: 700;
+  letter-spacing: -0.015em; line-height: 1.1;
+}
+.fin-digest-card.primary b{ font-size: var(--fs-8); }
+.fin-digest-card b.pos{ color: var(--pos); }
+.fin-digest-card b.neg{ color: var(--neg); }
+.fin-digest-card span{
+  display: block; font-size: var(--fs-1);
+  color: var(--text-dim); margin-top: 3px;
+}
+
+.fin-digest-section{
+  display: flex; flex-direction: column; gap: 10px;
+}
+.fin-digest-section h3{
+  margin: 0; font-size: var(--fs-2); font-weight: 700;
+  letter-spacing: 0.07em; text-transform: uppercase;
+  color: var(--text-mute);
+  display: flex; align-items: center; gap: 8px;
+}
+.fin-digest-tag{
+  background: var(--accent-soft); color: var(--accent);
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 700;
+  padding: 1px 7px; border-radius: 99px;
+  letter-spacing: normal; text-transform: none;
+}
+
+/* Top categories */
+.fin-digest-cats{
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.fin-digest-cats li{
+  display: grid; grid-template-columns: 130px 1fr 130px;
+  align-items: center; gap: 12px;
+  font-size: var(--fs-3);
+}
+.fin-digest-cat-l{ color: var(--text); font-weight: 500; }
+.fin-digest-cat-r{
+  text-align: right; font-family: var(--font-mono); font-weight: 600;
+}
+.fin-digest-cat-r small{ color: var(--text-mute); font-weight: 500; margin-left: 4px; }
+.fin-digest-cat-bar{
+  height: 6px; background: var(--bg-2); border-radius: 99px; overflow: hidden;
+}
+.fin-digest-cat-bar > div{
+  height: 100%; background: var(--accent); border-radius: 99px;
+}
+
+/* Anomalias */
+.fin-digest-anomalias{
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.fin-digest-anomalias li{
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-radius: 6px;
+  background: var(--bg-2);
+}
+.fin-digest-anomalia-tag{
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px 8px; border-radius: 4px;
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 700;
+  flex-shrink: 0;
+}
+.fin-digest-anomalia-tag.high{ background: var(--neg-soft); color: var(--neg); }
+.fin-digest-anomalia-tag.low{ background: var(--accent-soft); color: var(--accent); }
+.fin-digest-anomalias b{ display: block; font-size: var(--fs-3); font-weight: 600; }
+.fin-digest-anomalias small{ display: block; font-size: var(--fs-1); color: var(--text-mute); }
+
+/* ══════════════════════════════════════════
+   FINANCEIRO · REFINO #3 KB-9.75 · GUIA + SAÍDA (2026-05-18)
+   ══════════════════════════════════════════ */
+
+/* Header buttons */
+.fin-root .fin-btn-trilha{ color: var(--pos); }
+.fin-root .fin-btn-trilha:hover{ background: var(--pos-soft); color: var(--pos); }
+.fin-root .fin-btn-present{ color: var(--accent); }
+.fin-root .fin-btn-present:hover{ background: var(--accent-soft); color: var(--accent); }
+
+/* Trouble button no footer do Drawer */
+.fin-trouble-btn{
+  display: inline-flex; align-items: center; gap: 8px;
+  background: var(--warn-soft); color: var(--warn);
+  border: 1px solid var(--warn-soft);
+  padding: 5px 10px 5px 5px; border-radius: 6px;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 600;
+  cursor: pointer; margin-right: auto;
+  transition: all var(--t-1) var(--ease);
+}
+.fin-trouble-btn:hover{ background: var(--warn-soft); border-color: var(--warn); }
+/* Caso 01 (O Adversário): em item resolvido o botão é GUIA neutra, não alarme âmbar */
+.fin-trouble-btn--guide{ background: var(--sunken); color: var(--text-2); border-color: var(--border); }
+.fin-trouble-btn--guide:hover{ background: var(--bg-2); border-color: var(--text-3); }
+.fin-trouble-btn--guide .fin-trouble-ic{ background: var(--text-3); color: var(--surface); }
+.fin-trouble-ic{
+  display: grid; place-items: center;
+  width: 22px; height: 22px; border-radius: 4px;
+  background: var(--warn); color: var(--surface);
+  font-size: var(--fs-4); font-weight: 700;
+}
+.fin-trouble-lbl{ font-size: var(--fs-3); }
+.fin-trouble-lbl b{ font-weight: 700; }
+.fin-trouble-ct{
+  font-family: var(--font-mono); font-size: var(--fs-1);
+  background: var(--surface); color: var(--text-mute);
+  padding: 1px 6px; border-radius: 99px;
+}
+
+/* ─── Trilha de fechamento (overlay) ─── */
+.fin-trilha-overlay{
+  position: fixed; inset: 0; z-index: 1100;
+  background: oklch(0.20 0.005 240 / 0.55);
+  display: grid; place-items: center;
+  padding: 20px;
+}
+.fin-trilha{
+  background: var(--surface);
+  border-radius: 14px;
+  width: 100%; max-width: 760px;
+  max-height: 88vh; overflow: auto;
+  box-shadow: var(--sh-2); /* tempero */
+  display: flex; flex-direction: column;
+}
+.fin-trilha-h{
+  display: grid; grid-template-columns: 1fr auto auto;
+  align-items: center; gap: 18px;
+  padding: 22px 26px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.fin-trilha-h > div:first-child{ min-width: 0; }
+.fin-trilha-eyebrow{
+  font-size: var(--fs-1); font-weight: 700;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--pos);
+}
+.fin-trilha-h h2{
+  margin: 4px 0 2px; font-size: var(--fs-6); font-weight: 700;
+  letter-spacing: -0.018em;
+}
+.fin-trilha-h p{ margin: 0; font-size: var(--fs-2); color: var(--text-mute); }
+.fin-trilha-progress{
+  text-align: center;
+  background: var(--bg-2);
+  border-radius: 10px;
+  padding: 8px 16px;
+}
+.fin-trilha-pct{
+  font-family: var(--font-mono); font-size: var(--fs-7); font-weight: 700;
+  color: var(--pos); letter-spacing: -0.015em;
+}
+.fin-trilha-progress small{
+  display: block; font-size: var(--fs-1); color: var(--text-mute);
+}
+.fin-trilha-x{
+  background: transparent; border: 1px solid var(--border);
+  width: 32px; height: 32px; border-radius: 6px;
+  font-size: var(--fs-6); cursor: pointer; line-height: 1;
+  color: var(--text-mute);
+}
+.fin-trilha-x:hover{ background: var(--bg-2); color: var(--text); }
+.fin-trilha-bar{
+  height: 4px; background: var(--bg-2);
+  margin: 0;
+}
+.fin-trilha-bar > div{
+  height: 100%; background: var(--accent);
+  transition: width var(--t-2) var(--ease);
+}
+.fin-trilha-list{
+  list-style: none; margin: 0; padding: 12px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.fin-trilha-step{
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center; gap: 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  transition: background var(--t-1) var(--ease);
+}
+.fin-trilha-step:hover{ background: var(--bg-2); }
+.fin-trilha-step.done{ opacity: 0.55; }
+.fin-trilha-check{
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-mono); font-size: var(--fs-4); font-weight: 700;
+  color: var(--text-mute);
+  cursor: pointer; transition: all var(--t-1) var(--ease);
+  display: inline-grid; place-items: center;
+}
+.fin-trilha-check:hover{ border-color: var(--accent); color: var(--pos); }
+.fin-trilha-step.done .fin-trilha-check{
+  background: var(--accent); color: var(--accent-fg);
+  border-color: var(--accent);
+}
+.fin-trilha-body b{ display: block; font-size: var(--fs-4); font-weight: 600; }
+.fin-trilha-body small{ display: block; font-size: var(--fs-2); color: var(--text-dim); margin-top: 2px; }
+.fin-trilha-step.done .fin-trilha-body b{ text-decoration: line-through; }
+.fin-trilha-cta{
+  background: transparent;
+  border: 1px solid var(--border);
+  padding: 4px 10px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
+  color: var(--pos); cursor: pointer;
+  transition: all var(--t-1) var(--ease);
+  white-space: nowrap;
+}
+.fin-trilha-cta:hover{ background: var(--pos-soft); border-color: var(--accent); }
+.fin-trilha-ft{
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 22px;
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-2); color: var(--text-mute);
+}
+.fin-trilha-reset{
+  background: transparent; border: none;
+  color: var(--text-mute); font-family: inherit; font-size: var(--fs-2);
+  cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.fin-trilha-reset:hover{ color: var(--neg); }
+
+/* ─── Modo apresentação fullscreen ─── */
+.fin-pres-overlay{
+  position: fixed; inset: 0; z-index: 1200;
+  background: linear-gradient(135deg, oklch(0.16 0.005 240), oklch(0.18 0.01 145));
+  color: white;
+  display: flex; flex-direction: column;
+}
+.fin-pres-top{
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 28px;
+  border-bottom: 1px solid oklch(1 0 0 / 0.08);
+}
+.fin-pres-brand{
+  flex: 1; font-size: var(--fs-2); font-weight: 700;
+  letter-spacing: 0.15em; text-transform: uppercase;
+  color: oklch(1 0 0 / 0.5);
+}
+.fin-pres-counter{
+  font-family: var(--font-mono); font-size: var(--fs-2);
+  color: oklch(1 0 0 / 0.5);
+}
+.fin-pres-close{
+  background: transparent; border: 1px solid oklch(1 0 0 / 0.2);
+  color: white; width: 32px; height: 32px;
+  border-radius: 6px; cursor: pointer;
+  font-size: var(--fs-6); line-height: 1;
+}
+.fin-pres-close:hover{ background: oklch(1 0 0 / 0.08); }
+.fin-pres-stage{
+  flex: 1;
+  display: grid; place-items: center;
+  padding: 40px 80px;
+}
+.fin-pres-slide{ max-width: 900px; width: 100%; text-align: center; }
+.fin-pres-eyebrow{
+  display: block; font-size: var(--fs-4); font-weight: 600;
+  letter-spacing: 0.10em; text-transform: uppercase;
+  color: var(--pos-soft); margin-bottom: 16px;
+}
+.fin-pres-slide h1{
+  font-size: var(--fs-9); font-weight: 700;
+  letter-spacing: -0.025em; line-height: 1.05;
+  margin: 0 0 24px;
+}
+.fin-pres-amount{
+  font-family: var(--font-mono); font-size: var(--fs-9); font-weight: 700;
+  letter-spacing: -0.03em; line-height: 1;
+  margin: 12px 0 36px;
+}
+.fin-pres-amount-mid{
+  font-family: var(--font-mono); font-size: var(--fs-9); font-weight: 700;
+  letter-spacing: -0.02em; line-height: 1;
+  margin: 12px 0 28px;
+}
+.fin-pres-amount.pos, .fin-pres-amount-mid.pos{ color: oklch(0.78 0.13 145); }
+.fin-pres-amount.neg, .fin-pres-amount-mid.neg{ color: oklch(0.72 0.17 25); }
+.fin-pres-row{
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px;
+  max-width: 800px; margin: 0 auto;
+}
+.fin-pres-row > div{
+  background: oklch(1 0 0 / 0.05);
+  border: 1px solid oklch(1 0 0 / 0.08);
+  border-radius: 12px; padding: 16px 20px;
+}
+.fin-pres-row span{
+  display: block; font-size: var(--fs-2);
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: oklch(1 0 0 / 0.5); margin-bottom: 4px;
+}
+.fin-pres-row b{
+  display: block; font-family: var(--font-mono);
+  font-size: var(--fs-6); font-weight: 700;
+}
+.fin-pres-row b.pos{ color: oklch(0.85 0.10 145); }
+.fin-pres-row b.neg{ color: oklch(0.80 0.13 25); }
+.fin-pres-cats{ list-style: none; margin: 24px 0 0; padding: 0; text-align: left; }
+.fin-pres-cats li{
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 24px;
+  background: oklch(1 0 0 / 0.05);
+  border: 1px solid oklch(1 0 0 / 0.08);
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.fin-pres-cat-l{ font-size: var(--fs-7); font-weight: 500; }
+.fin-pres-cat-r{ font-family: var(--font-mono); font-size: var(--fs-7); font-weight: 700; }
+.fin-pres-cat-r small{ font-size: var(--fs-4); color: oklch(1 0 0 / 0.5); margin-left: 6px; font-weight: 500; }
+
+.fin-pres-late{ list-style: none; margin: 24px 0 0; padding: 0; text-align: left; }
+.fin-pres-late li{
+  display: grid; grid-template-columns: 1fr 2fr auto;
+  gap: 16px; padding: 12px 20px;
+  background: oklch(1 0 0 / 0.05);
+  border-left: 3px solid oklch(0.72 0.17 25);
+  border-radius: 6px;
+  margin-bottom: 8px;
+  font-size: var(--fs-5);
+}
+.fin-pres-late-l{ font-weight: 600; }
+.fin-pres-late-m{ color: oklch(1 0 0 / 0.6); }
+.fin-pres-late-r{ font-family: var(--font-mono); font-weight: 700; }
+
+.fin-pres-decisoes{ text-align: left; max-width: 700px; margin: 24px auto 0; padding: 0; list-style: none; counter-reset: pres; }
+.fin-pres-decisoes li{
+  counter-increment: pres;
+  padding: 14px 0 14px 52px;
+  font-size: var(--fs-6); line-height: 1.4;
+  border-top: 1px solid oklch(1 0 0 / 0.08);
+  position: relative;
+}
+.fin-pres-decisoes li::before{
+  content: counter(pres);
+  position: absolute; left: 0; top: 14px;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-fg);
+  display: grid; place-items: center;
+  font-family: var(--font-mono); font-size: var(--fs-4); font-weight: 700;
+}
+.fin-pres-decisoes li:first-child{ border-top: none; }
+.fin-pres-decisoes b{ color: oklch(0.85 0.10 145); }
+
+.fin-pres-bot{
+  display: flex; align-items: center; gap: 18px; justify-content: center;
+  padding: 20px 28px;
+  border-top: 1px solid oklch(1 0 0 / 0.08);
+}
+.fin-pres-bot button{
+  background: oklch(1 0 0 / 0.08);
+  border: 1px solid oklch(1 0 0 / 0.12);
+  color: white;
+  width: 44px; height: 44px;
+  border-radius: 8px;
+  font-size: var(--fs-6); cursor: pointer;
+}
+.fin-pres-bot button:hover:not(:disabled){ background: oklch(1 0 0 / 0.16); }
+.fin-pres-bot button:disabled{ opacity: 0.3; cursor: not-allowed; }
+.fin-pres-dots{ display: flex; gap: 8px; }
+.fin-pres-dot{
+  width: 8px; height: 8px; border-radius: 50%;
+  background: oklch(1 0 0 / 0.2); cursor: pointer; transition: all var(--t-1) var(--ease);
+}
+.fin-pres-dot.on{ background: var(--pos); width: 24px; border-radius: 99px; }
+
+/* ── US-FIN-029 · 3 lentes do header (Caixa · A receber · A pagar) ── */
+.fin-hero .fin-lens-seg{
+  display: inline-flex; align-items: center;
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 2px; gap: 2px;
+  margin-right: 4px;
+  height: 30px; box-sizing: border-box; /* [W] 2026-06-16: igual ao botão Novo lançamento (30px) */
+}
+.fin-hero .fin-lens-btn{
+  border: 0; background: none; cursor: pointer; font: inherit;
+  font-size: var(--fs-3); font-weight: 500; line-height: 1;
+  color: var(--text-2);
+  padding: 0 12px; border-radius: 5px;
+  display: inline-flex; align-items: center;
+  transition: background var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.fin-hero .fin-lens-btn:hover{ color: var(--text); }
+.fin-hero .fin-lens-btn.on{
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+}
+/* KPI clicável → seta a lente */
+.fin-stats .fin-stat-click{ cursor: pointer; }
+.fin-stats .fin-stat-click:focus-visible{ outline: 2px solid var(--accent); outline-offset: -2px; }
+.fin-stats .fin-stat-on{ box-shadow: inset 0 0 0 1.5px var(--accent); }
+
+.fin-toolbar .fin-filter-toggle{
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px; border-radius: 5px;
+  border: 1px dashed var(--border); background: var(--surface);
+  font-size: var(--fs-3); font-weight: 500; color: var(--text-dim);
+  cursor: pointer; user-select: none; transition: all var(--t-1) var(--ease);
+}
+.fin-toolbar .fin-filter-toggle:hover{
+  border-color: var(--text-mute); color: var(--text);
+}
+.fin-toolbar .fin-filter-toggle input{
+  appearance: none; -webkit-appearance: none;
+  width: 13px; height: 13px;
+  border: 1.5px solid var(--text-mute);
+  border-radius: 3px; cursor: pointer;
+  display: inline-grid; place-items: center;
+  margin: 0;
+}
+.fin-toolbar .fin-filter-toggle input:checked{
+  background: var(--neg); border-color: var(--neg);
+}
+.fin-toolbar .fin-filter-toggle input:checked::after{
+  content: ""; width: 7px; height: 4px;
+  border-left: 1.5px solid white; border-bottom: 1.5px solid white;
+  transform: rotate(-45deg) translate(0, -1px);
+}
+.fin-toolbar .fin-filter-toggle.on.warn{
+  border-style: solid;
+  background: var(--neg-soft);
+  border-color: var(--neg);
+  color: var(--neg); font-weight: 600;
+}
+
+/* ══════════════════════════════════════════
+   PERIOD BAR — campo de data + presets + âncora de ano
+   ══════════════════════════════════════════ */
+.fin-periodbar{
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px;
+  margin: 10px 24px 0; padding: 8px 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: var(--sh-1);
+}
+.fin-pb-field{ display: inline-flex; align-items: center; gap: 8px; }
+.fin-pb-cap{
+  font-size: var(--fs-1); text-transform: uppercase; letter-spacing: .12em;
+  font-weight: 600; color: var(--text-3);
+}
+.fin-pb-seg{
+  display: inline-flex; padding: 2px; gap: 2px;
+  background: var(--sunken); border: 1px solid var(--border); border-radius: 7px;
+}
+.fin-pb-segbtn{
+  appearance: none; border: 0; background: transparent; cursor: pointer;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500; color: var(--text-2);
+  padding: 4px 10px; border-radius: 5px; transition: all var(--t-1) var(--ease); white-space: nowrap;
+}
+.fin-pb-segbtn:hover{ color: var(--text); }
+.fin-root .fin-pb-segbtn.on, .cr-root .fin-pb-segbtn.on{ background-color: var(--surface) !important; color: var(--accent) !important; box-shadow: var(--sh-1, 0 1px 2px rgba(0,0,0,.06)); font-weight: 600; }
+
+.fin-pb-nav{ display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.fin-pb-arrow{
+  appearance: none; cursor: pointer;
+  width: 26px; height: 26px; display: grid; place-items: center;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text-2); transition: all var(--t-1) var(--ease);
+}
+.fin-pb-arrow:hover:not(:disabled){ border-color: var(--accent-line); color: var(--accent); background: var(--accent-soft); }
+.fin-pb-arrow:disabled{ opacity: .4; cursor: default; }
+.fin-pb-label{
+  min-width: 132px; text-align: center;
+  font-size: var(--fs-4); font-weight: 600; color: var(--text); letter-spacing: -.01em;
+  font-variant-numeric: tabular-nums;
+}
+.fin-pb-count{ font-size: var(--fs-2); color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+.fin-pb-presets{ display: inline-flex; gap: 4px; }
+.fin-root .fin-pb-preset, .cr-root .fin-pb-preset{
+  appearance: none; cursor: pointer; font-family: inherit;
+  font-size: var(--fs-3); font-weight: 500; color: var(--text-2);
+  padding: 4px 11px; border-radius: 999px;
+  background: var(--surface); border: 1px solid var(--border); transition: all var(--t-1) var(--ease);
+}
+.fin-root .fin-pb-preset:hover, .cr-root .fin-pb-preset:hover{ color: var(--text); border-color: var(--text-3); }
+.fin-root .fin-pb-preset.on, .cr-root .fin-pb-preset.on{
+  background-color: var(--accent) !important; color: var(--accent-fg, #fff) !important;
+  border-color: var(--accent) !important; font-weight: 600;
+}
+
+/* Hero title sub + botões ativos no header */
+.fin-root .fin-hero-title-sub{
+  color: var(--text-mute); font-weight: 600;
+  font-size: inherit; letter-spacing: -0.015em; margin-left: 6px;
+}
+/* Primário do hero não pode quebrar "Novo lançamento" em 2 linhas */
+.fin-root .os-page-h-r .os-btn{ white-space: nowrap; }
+.fin-root .os-page-h-r .os-btn.on{
+  background: var(--pos-soft);
+  color: var(--pos);
+  border-color: var(--pos-soft);
+}
+.fin-root .fin-subnav{ display: none; }
+.vd-subpage .vd-bcrumb{
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 0 12px;
+  font-size: var(--fs-3); color: var(--text-mute);
+  margin-bottom: 0;
+}
+.vd-subpage .vd-bcrumb-back{
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; border: 1px solid transparent;
+  padding: 4px 9px 4px 6px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500;
+  color: var(--vd-green); cursor: pointer;
+  transition: all var(--t-1) var(--ease);
+}
+.vd-subpage .vd-bcrumb-back:hover{
+  background: var(--vd-green-soft);
+  border-color: var(--vd-green-soft);
+}
+.vd-subpage .vd-bcrumb-back svg{ flex-shrink: 0; transition: transform var(--t-1) var(--ease); }
+.vd-subpage .vd-bcrumb-back:hover svg{ transform: translateX(-2px); }
+.vd-subpage .vd-bcrumb-sep{
+  color: var(--text-mute); opacity: 0.5;
+  font-size: var(--fs-4);
+}
+.vd-subpage .vd-bcrumb-here{
+  font-weight: 500; color: var(--text);
+}
+
+/* ══════════════════════════════════════════
+   HEADER LIMPO + TOOLBAR EM LINHA SEPARADA
+   ══════════════════════════════════════════ */
+.vendas-aplus .vd-head-clean{
+  align-items: center; gap: 16px;
+}
+.vendas-aplus .vd-head-clean .os-head-l h1{
+  margin: 0; font-size: var(--fs-7); font-weight: 700;
+  letter-spacing: -0.018em;
+}
+.vendas-aplus .vd-head-clean .os-head-l p{
+  margin: 2px 0 0; font-size: var(--fs-3); color: var(--text-mute);
+}
+.vendas-aplus .vd-head-clean .os-head-r{
+  display: inline-flex; gap: 8px; align-items: center;
+}
+
+/* Toolbar limpa abaixo do header */
+.vendas-aplus .vd-toolbar{
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 0 14px;
+  border-bottom: 1px solid var(--border-2);
+  margin-bottom: 14px;
+}
+.vendas-aplus .vd-toolbar-l{
+  display: inline-flex; align-items: center; gap: 8px; flex: 1;
+}
+.vendas-aplus .vd-toolbar-r{
+  display: inline-flex; align-items: center; gap: 4px;
+}
+.vendas-aplus .vd-toolbar-sep{
+  width: 1px; height: 18px; background: var(--border);
+  margin: 0 4px;
+}
+.vendas-aplus .vd-toolbar-act{
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; border: none;
+  padding: 5px 9px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500;
+  color: var(--text-dim); cursor: pointer;
+  transition: all var(--t-1) var(--ease);
+}
+.vendas-aplus .vd-toolbar-act:hover{
+  background: var(--bg-2); color: var(--text);
+}
+.vendas-aplus .vd-toolbar-act svg{ flex-shrink: 0; }
+
+/* Foco mais discreto na toolbar */
+.vendas-aplus .vd-toolbar .vd-vista{
+  background: var(--bg-2); border-radius: 6px;
+  padding: 2px; gap: 0;
+}
+.vendas-aplus .vd-toolbar .vd-vista-lbl{
+  padding: 0 8px 0 6px;
+  font-size: var(--fs-1);
+}
+.vendas-aplus .vd-toolbar .vd-vista button{
+  border: none; background: transparent;
+  padding: 4px 10px; border-radius: 4px;
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500;
+  color: var(--text-dim); cursor: pointer;
+  transition: all var(--t-1) var(--ease);
+}
+.vendas-aplus .vd-toolbar .vd-vista button:hover{ color: var(--text); }
+.vendas-aplus .vd-toolbar .vd-vista button.on{
+  background: var(--surface); color: var(--vd-green); font-weight: 600;
+  box-shadow: var(--sh-1);
+}
+
+/* Views button na toolbar — sem botão "box" pesado */
+.vendas-aplus .vd-toolbar .vd-views{ position: relative; }
+.vendas-aplus .vd-toolbar .vd-views-btn{
+  background: transparent; border: 1px solid transparent;
+  padding: 5px 9px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500;
+  color: var(--text-dim); cursor: pointer;
+  transition: all var(--t-1) var(--ease);
+}
+.vendas-aplus .vd-toolbar .vd-views-btn::after{
+  content: '▾'; font-size: var(--fs-1); color: var(--text-mute); margin-left: 4px;
+}
+.vendas-aplus .vd-toolbar .vd-views-btn:hover{
+  background: var(--bg-2); color: var(--text);
+}
+
+/* Visões button na toolbar (mais discreto que dropdown standalone) */
+.vendas-aplus .vd-toolbar .vd-toolbar-act.vd-visoes-btn{
+  border: 1px dashed var(--border);
+  color: var(--text-mute);
+}
+.vendas-aplus .vd-toolbar .vd-toolbar-act.vd-visoes-btn:hover{
+  border-color: var(--text-dim);
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+/* ── Sticky table header ── */
+.vendas-aplus .vd-aplus-table thead th{
+  position: sticky; top: 0; z-index: 2;
+  background: var(--surface);
+  box-shadow: 0 1px 0 var(--border);
+}
+
+/* ── Hover-reveal row actions ── */
+.vendas-aplus .vd-row-actions{
+  display: inline-flex; gap: 2px;
+  margin-left: 6px;
+  opacity: 0; transform: translateX(-4px);
+  transition: opacity var(--t-1) var(--ease), transform var(--t-1) var(--ease);
+  vertical-align: middle;
+}
+.vendas-aplus .os-row:hover .vd-row-actions,
+.vendas-aplus .os-row.row-focused .vd-row-actions{
+  opacity: 1; transform: none;
+}
+.vendas-aplus .vd-row-act{
+  width: 22px; height: 22px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 4px; cursor: pointer;
+  display: inline-grid; place-items: center;
+  color: var(--text-mute);
+  transition: all var(--t-1) var(--ease);
+}
+.vendas-aplus .vd-row-act:hover{
+  border-color: var(--vd-green); color: var(--vd-green);
+  background: var(--vd-green-soft);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   PAGE HEADER NAV — sub-navegação enxuta abaixo do título do módulo
+   ═══════════════════════════════════════════════════════════════════ */
+.ph-nav{
+  display: flex; align-items: stretch; gap: 2px;
+  margin: 4px 24px 0; padding: 0;
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto; overflow-y: hidden; flex: 0 0 auto;
+  scrollbar-width: none;
+}
+.ph-nav::-webkit-scrollbar{ height: 0; width: 0; display: none; }
+.ph-nav .topbar-tab{
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 36px; padding: 0 12px; white-space: nowrap;
+  background: transparent; border: 0; border-bottom: 2px solid transparent;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500;
+  color: var(--text-2); cursor: pointer; transition: color var(--t-1) var(--ease), border-color var(--t-1) var(--ease);
+}
+.ph-nav .topbar-tab svg{ opacity: 0.6; }
+.ph-nav .topbar-tab:hover{ color: var(--text); }
+.ph-nav .topbar-tab:hover svg{ opacity: 0.9; }
+.ph-nav .topbar-tab.active{ font-weight: 600; }
+.ph-nav .topbar-tab.active svg{ opacity: 1; }
+.ph-nav-sep{ color: var(--text-3); opacity: 0.5; padding: 0 4px; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   BOTÕES DAS SUB-TELAS — sistema polido (segmented · secundário · ícone)
+   ═══════════════════════════════════════════════════════════════════ */
+.fin-seg{ display: inline-flex; padding: 2px; gap: 2px; background: var(--sunken); border: 1px solid var(--border); border-radius: 8px; }
+.fin-seg-btn{
+  height: 28px; padding: 0 12px; border: 0; background: transparent; border-radius: 6px;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500; color: var(--text-2);
+  cursor: pointer; transition: all var(--t-1) var(--ease); white-space: nowrap;
+}
+.fin-seg-btn:hover:not(.on):not(:disabled){ color: var(--text); }
+.fin-seg-btn.on{ background: var(--surface); color: var(--accent); font-weight: 600; box-shadow: var(--sh-1, 0 1px 2px rgba(0,0,0,.06)); }
+.fin-seg-btn:disabled{ opacity: .38; cursor: not-allowed; }
+
+.fin-sysbtn{
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 12px; border-radius: 7px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500; color: var(--text-2);
+  cursor: pointer; transition: all var(--t-1) var(--ease); white-space: nowrap;
+}
+.fin-sysbtn:hover{ background: var(--sunken); color: var(--text); border-color: var(--text-3); }
+.fin-sysbtn--accent{ background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+.fin-sysbtn--accent:hover{ background: var(--accent-soft); color: var(--accent-hi); border-color: var(--accent-line); }
+.fin-sysbtn--ghost{ background: transparent; border-color: transparent; }
+.fin-sysbtn--ghost:hover{ background: var(--sunken); border-color: transparent; }
+
+.fin-iconbtn{
+  width: 28px; height: 28px; display: grid; place-items: center;
+  border-radius: 7px; border: 1px solid transparent; background: transparent;
+  color: var(--text-3); cursor: pointer; transition: all var(--t-1) var(--ease);
+}
+.fin-iconbtn:hover{ background: var(--sunken); color: var(--neg); border-color: var(--border); }
+
+/* ═══════════════════════════════════════════════════════════════════
+
+/* ═══════════════════════════════════════════════════════════════════
+   Toolbar — density toggle · filter pills · breadcrumb
+   (movido de vendas.css em 2026-06-10 — vazamento de escopo: classes fin-*
+    usadas só por financeiro-page.jsx/financeiro-telas-extras.jsx moravam
+    no CSS de Vendas. Nomes inalterados — prefixo fin- é o autorizado.)
+   ═══════════════════════════════════════════════════════════════════ */
+/* ── Density toggle inline na FilterBar ── */
+.fin-toolbar .fin-density{
+  display: inline-flex; align-items: center;
+  background: var(--bg-2);
+  border-radius: 6px;
+  padding: 2px;
+  gap: 0;
+  margin-right: 8px;
+}
+.fin-toolbar .fin-density button{
+  border: none; background: transparent;
+  width: 30px; height: 26px;
+  border-radius: 4px;
+  color: var(--text-mute); cursor: pointer;
+  transition: all var(--t-1) var(--ease);
+  display: inline-grid; place-items: center;
+}
+.fin-toolbar .fin-density button:hover{ color: var(--text); background: oklch(0 0 0 / 0.04); }
+.fin-toolbar .fin-density button.on{
+  background: var(--surface); color: var(--accent);
+  box-shadow: var(--sh-1);
+}
+.fin-toolbar .fin-density button svg{ display: block; }
+
+/* ── Filter checkbox (4 lifecycle states — multi-select) ── */
+.fin-toolbar .fin-filter-cb{
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 10px; border-radius: 5px;
+  border: 1px solid var(--border); background: var(--surface);
+  font-size: var(--fs-3); font-weight: 500; color: var(--text-dim);
+  cursor: pointer; user-select: none; transition: all var(--t-1) var(--ease);
+  position: relative;
+}
+.fin-toolbar .fin-filter-cb:hover{
+  border-color: var(--text-mute); color: var(--text);
+}
+.fin-toolbar .fin-filter-cb input{
+  position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0;
+}
+.fin-toolbar .fin-filter-cb-box{
+  width: 14px; height: 14px;
+  border: 1.5px solid var(--text-mute);
+  border-radius: 3px;
+  display: inline-grid; place-items: center;
+  transition: all var(--t-1) var(--ease);
+  flex-shrink: 0;
+}
+.fin-toolbar .fin-filter-cb.on{
+  background: oklch(0.96 0.04 var(--cb-hue, 145));
+  border-color: oklch(0.55 0.13 var(--cb-hue, 145));
+  color: oklch(0.32 0.13 var(--cb-hue, 145));
+  font-weight: 600;
+}
+.fin-toolbar .fin-filter-cb.on .fin-filter-cb-box{
+  background: oklch(0.55 0.13 var(--cb-hue, 145));
+  border-color: oklch(0.55 0.13 var(--cb-hue, 145));
+}
+.fin-toolbar .fin-filter-cb.on .fin-filter-cb-box::after{
+  content: "";
+  width: 8px; height: 4px;
+  border-left: 1.5px solid white;
+  border-bottom: 1.5px solid white;
+  transform: rotate(-45deg) translate(0, -1px);
+}
+.fin-toolbar .fin-filter-cb.on .fin-filter-ct{
+/* [W] 2026-06-16: número do filtro SEMPRE na cor do estado, mesmo tratamento on/off
+   (sem pílula branca que desalinhava on × off). */
+.fin-toolbar .fin-filter-ct{
+  background: transparent;
+  color: oklch(0.50 0.14 var(--cb-hue, 145));
+  font-weight: 600;
+}
+.fin-toolbar .fin-filter-cb.on .fin-filter-ct{
+  background: transparent;
+  color: oklch(0.40 0.15 var(--cb-hue, 145));
+}
+/* "Só atrasados" é toggle (não cb) — número em vermelho (estado sempre = atraso) */
+.fin-toolbar .fin-filter-toggle .fin-filter-ct{ color: oklch(0.55 0.16 25); font-weight: 600; }
+
+.fin-toolbar .fin-filter-clear{
+  margin-left: 4px;
+  height: 28px; box-sizing: border-box;
+  display: inline-flex; align-items: center; gap: 5px;
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text-2); font-family: inherit; font-size: var(--fs-2); font-weight: 500;
+  cursor: pointer; padding: 0 11px; border-radius: 5px;
+}
+.fin-toolbar .fin-filter-clear:hover{
+  color: var(--text); background: var(--sunken); border-color: var(--text-3);
+}
+
+/* ── Breadcrumb pras sub-rotas do Financeiro (Conciliação, Plano de contas) ── */
+.fin-bcrumb{
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 24px 12px;
+  font-size: var(--fs-3); color: var(--text-mute);
+}
+.fin-bcrumb-back{
+  display: inline-flex; align-items: center; gap: 5px;
+  background: transparent; border: 1px solid transparent;
+  padding: 4px 9px 4px 6px; border-radius: 5px;
+  font-family: inherit; font-size: var(--fs-3); font-weight: 500;
+  color: var(--accent); cursor: pointer; /* identidade única: voltar = accent, não verde */
+  transition: all var(--t-1) var(--ease);
+}
+.fin-bcrumb-back:hover{
+  background: oklch(0.94 0.05 145);
+  border-color: var(--accent-line);
+}
+.fin-bcrumb-back svg{ flex-shrink: 0; transition: transform var(--t-1) var(--ease); }
+.fin-bcrumb-back:hover svg{ transform: translateX(-2px); }
+.fin-bcrumb-sep{ color: var(--text-mute); opacity: 0.5; font-size: var(--fs-4); }
+.fin-bcrumb-here{ font-weight: 500; color: var(--text); }

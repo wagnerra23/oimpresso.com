@@ -1,0 +1,227 @@
+/* compras-page.css — estilos do módulo Compras, todos escopados em .compras-root
+   para não vazar pro shell unificado. Migrado de Compras.html. */
+
+.compras-root{
+  /* Namespace local mapeado 1:1 nos tokens DS (sem paleta paralela) */
+  --cmp-bg:var(--bg);--cmp-paper:var(--surface);--cmp-ink:var(--text);--cmp-ink-2:var(--text-dim);--cmp-ink-3:var(--text-mute);
+  --cmp-line:var(--border);--cmp-line-2:var(--border-2);
+  --cmp-accent:var(--accent);--cmp-accent-soft:var(--accent-soft);--cmp-accent-2:var(--accent-2);
+  --cmp-ok:var(--ok-fg);--cmp-ok-soft:var(--ok-bg);
+  --cmp-warn:var(--warn-fg);--cmp-warn-soft:var(--warn-bg);
+  --cmp-err:var(--danger-fg);--cmp-err-soft:var(--danger-bg);
+  --cmp-info:var(--info-fg);--cmp-info-soft:var(--info-bg);
+  --cmp-mono:var(--font-mono);
+
+  display:flex;flex-direction:column;height:100%;
+  background:var(--cmp-bg);color:var(--cmp-ink);
+  font:13px/1.45 var(--font-sans);
+  overflow:hidden;
+  position:relative; /* âncora do .os-drawer-back overlay */
+}
+.compras-root button,
+.compras-root input,
+.compras-root select,
+.compras-root textarea{font:inherit}
+
+/* MAIN grid — sem sidebar interna (shell j\u00e1 fornece) */
+.compras-root .cmp-main{display:grid;grid-template-rows:auto auto 1fr auto;overflow:hidden;flex:1}
+
+/* HEAD sticky */
+.compras-root .hd{background:var(--surface);border-bottom:1px solid var(--cmp-line);padding:11px 20px;display:flex;align-items:center;gap:14px}
+.compras-root .hd .crumbs{font-size:10.5px;color:var(--cmp-ink-3);text-transform:uppercase;letter-spacing:.04em;font-family:var(--cmp-mono)}
+.compras-root .hd h1{margin:0;font-size:16px;font-weight:600;letter-spacing:-.01em}
+.compras-root .hd .count{font-size:11px;font-family:var(--cmp-mono);color:var(--cmp-ink-3);background:var(--cmp-line-2);padding:2px 8px;border-radius:99px}
+.compras-root .hd .sp{flex:1}
+.compras-root .os-page-h .search{display:flex;align-items:center;gap:6px;background:var(--bg-2);border:1px solid var(--cmp-line);border-radius:var(--radius);padding:5px 10px;min-width:260px}
+.compras-root .os-page-h .search input{border:none;outline:none;background:transparent;font-size:12.5px;flex:1}
+.compras-root .os-page-h .search span{color:var(--cmp-ink-3);font-size:13px}
+
+/* TABS (sub-rotas dentro de Compras) */
+.compras-root .tbs{background:var(--surface);border-bottom:1px solid var(--cmp-line);padding:0 20px;display:flex;align-items:center;gap:2px;overflow-x:auto}
+.compras-root .tbs a{padding:9px 14px;font-size:12.5px;color:var(--cmp-ink-2);border-bottom:2px solid transparent;text-decoration:none;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap}
+.compras-root .tbs a:hover{color:var(--cmp-ink)}
+.compras-root .tbs a.active{color:var(--cmp-accent);border-bottom-color:var(--cmp-accent);font-weight:600}
+.compras-root .tbs a .ct{font-size:10px;font-family:var(--cmp-mono);color:var(--cmp-ink-3);background:var(--cmp-line-2);padding:1px 6px;border-radius:99px}
+.compras-root .tbs a.active .ct{background:var(--cmp-accent-soft);color:var(--cmp-accent)}
+.compras-root .tbs .sp{flex:1}
+.compras-root .tbs .filters{display:flex;gap:6px;font-size:11.5px;color:var(--cmp-ink-3);align-items:center}
+.compras-root .tbs .filter-pill{padding:3px 9px;border:1px solid var(--cmp-line);background:var(--bg-2);border-radius:99px;color:var(--cmp-ink-2);cursor:pointer;font-size:11px}
+.compras-root .tbs .filter-pill:hover{border-color:var(--cmp-accent);color:var(--cmp-accent)}
+.compras-root .tbs .filter-pill.on{background:var(--cmp-accent-soft);border-color:color-mix(in oklch,var(--accent) 25%,transparent);color:var(--cmp-accent);font-weight:600}
+/* filtros "em breve" — inertes, sem fingir estado ativo (Auto V) */
+.compras-root .tbs .filter-pill.soon{opacity:.55;cursor:default;border-style:dashed}
+.compras-root .tbs .filter-pill.soon:hover{border-color:var(--cmp-line);color:var(--cmp-ink-2)}
+.compras-root .tbs .filter-soon-tag{font-size:9.5px;font-family:var(--cmp-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--cmp-ink-3);background:var(--cmp-line-2);padding:2px 7px;border-radius:99px}
+
+/* BODY: lista (drawer agora é overlay lateral, padrão venda) */
+.compras-root .list{min-width:0;overflow:auto;padding:14px 20px;background:var(--cmp-bg)}
+
+/* DRAWER overlay — reusa shell .os-drawer-back/.os-drawer (padrão venda) */
+.compras-root .os-drawer.wide{width:560px;max-width:92vw}
+@media (max-width:980px){ .compras-root .os-drawer.wide{width:95vw} }
+.compras-root .cmp-drawer-total{font-family:var(--cmp-mono);font-size:18px;font-weight:700;letter-spacing:-.01em;color:var(--cmp-ink);font-variant-numeric:tabular-nums}
+
+/* KPIs */
+.compras-root .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.compras-root .kpi{background:var(--surface);border:1px solid var(--cmp-line);border-radius:var(--radius);padding:10px 12px}
+.compras-root .kpi small{font-size:10px;color:var(--cmp-ink-3);text-transform:uppercase;letter-spacing:.05em;font-weight:600;display:block;margin-bottom:3px}
+.compras-root .kpi b{font-size:18px;font-weight:700;letter-spacing:-.01em;font-family:var(--cmp-mono);font-variant-numeric:tabular-nums;display:block}
+.compras-root .kpi .ln{font-size:10.5px;color:var(--cmp-ink-2);margin-top:3px}
+.compras-root .kpi.warn b{color:var(--cmp-warn)} .compras-root .kpi.warn{background:var(--cmp-warn-soft);border-color:color-mix(in oklch,var(--warn-fg) 35%,transparent)}
+.compras-root .kpi.ok b{color:var(--cmp-ok)}     .compras-root .kpi.ok{background:var(--cmp-ok-soft);border-color:color-mix(in oklch,var(--ok-fg) 30%,transparent)}
+
+/* TABELA */
+.compras-root .tbl{background:var(--surface);border:1px solid var(--cmp-line);border-radius:var(--radius);overflow:hidden}
+.compras-root table.purchases{width:100%;border-collapse:collapse;font-size:12.5px}
+.compras-root table.purchases th{text-align:left;padding:8px 10px;background:var(--bg-2);border-bottom:1px solid var(--cmp-line);font-weight:600;color:var(--cmp-ink-2);font-size:10px;text-transform:uppercase;letter-spacing:.04em;position:sticky;top:0;z-index:1}
+.compras-root table.purchases td{padding:9px 10px;border-bottom:1px solid var(--cmp-line-2);cursor:pointer;vertical-align:middle}
+.compras-root table.purchases tr:last-child td{border-bottom:none}
+.compras-root table.purchases tr:hover td{background:var(--bg-2)}
+.compras-root table.purchases tr.sel td{background:var(--cmp-accent-soft);border-bottom-color:color-mix(in oklch,var(--accent) 25%,transparent)}
+.compras-root table.purchases td.mono{font-family:var(--cmp-mono);font-size:12px}
+.compras-root table.purchases td.num{font-family:var(--cmp-mono);text-align:right;font-variant-numeric:tabular-nums}
+.compras-root table.purchases td b{font-weight:600;font-size:12.5px}
+.compras-root table.purchases td small{display:block;font-size:10.5px;color:var(--cmp-ink-3);margin-top:1px}
+
+/* status pill */
+.compras-root .pill{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.compras-root .pill::before{content:"";width:5px;height:5px;border-radius:50%;background:currentColor}
+.compras-root .pill.rascunho{background:var(--cmp-line-2);color:var(--cmp-ink-2)}
+.compras-root .pill.pedido{background:var(--cmp-info-soft);color:var(--cmp-info)}
+.compras-root .pill.transito{background:var(--cmp-warn-soft);color:var(--cmp-warn)}
+.compras-root .pill.recebido{background:var(--cmp-ok-soft);color:var(--cmp-ok)}
+.compras-root .pill.pago{background:var(--ok-bg);color:var(--ok-fg)}
+.compras-root .pill.cancelada{background:var(--cmp-err-soft);color:var(--cmp-err)}
+
+/* DRAWER (conteúdo interno — chrome via shell .os-drawer*) */
+.compras-root .fsm{padding:12px 18px;border-bottom:1px solid var(--cmp-line-2);background:var(--bg-2)}
+.compras-root .fsm-track{display:flex;gap:0;align-items:stretch;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.compras-root .fsm-step{flex:1;padding:6px 4px;text-align:center;background:var(--surface);border:1px solid var(--cmp-line);border-right:none;color:var(--cmp-ink-3);position:relative}
+.compras-root .fsm-step:first-child{border-radius:var(--radius-sm) 0 0 var(--radius-sm)}
+.compras-root .fsm-step:last-child{border-radius:0 var(--radius-sm) var(--radius-sm) 0;border-right:1px solid var(--cmp-line)}
+.compras-root .fsm-step.done{background:var(--cmp-ok-soft);color:var(--cmp-ok);border-color:color-mix(in oklch,var(--ok-fg) 30%,transparent)}
+.compras-root .fsm-step.now{background:var(--cmp-accent);color:var(--surface);border-color:var(--cmp-accent-2);font-weight:700;z-index:1}
+.compras-root .fsm-step .ic{display:block;font-size:13px;margin-bottom:1px}
+
+.compras-root .drw-tabs{display:flex;padding:0 18px;border-bottom:1px solid var(--cmp-line-2);gap:0}
+.compras-root .drw-tabs button{border:none;background:transparent;padding:9px 12px;font-size:12px;color:var(--cmp-ink-2);border-bottom:2px solid transparent;cursor:pointer;display:flex;align-items:center;gap:5px}
+.compras-root .drw-tabs button.active{color:var(--cmp-accent);border-bottom-color:var(--cmp-accent);font-weight:600}
+.compras-root .drw-tabs button:hover:not(.active){color:var(--cmp-ink)}
+.compras-root .drw-tabs button .ct{font-size:10px;font-family:var(--cmp-mono);color:var(--cmp-ink-3);background:var(--cmp-line-2);padding:0 5px;border-radius:99px}
+
+.compras-root .drw-body{flex:1;overflow:auto;padding:14px 18px}
+.compras-root .drw-foot{padding:11px 18px;border-top:1px solid var(--cmp-line);background:var(--bg-2);display:flex;align-items:center;gap:8px}
+.compras-root .drw-foot .total{flex:1;font-size:11.5px;color:var(--cmp-ink-3)}
+.compras-root .drw-foot .total b{display:block;font-size:17px;font-weight:700;font-family:var(--cmp-mono);color:var(--cmp-ink);font-variant-numeric:tabular-nums;margin-top:1px}
+
+/* SECTION dentro do drawer */
+.compras-root .sec{margin-bottom:14px}
+.compras-root .sec h4{margin:0 0 7px;font-size:10.5px;color:var(--cmp-ink-3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;display:flex;align-items:center;gap:6px}
+.compras-root .sec h4 .badge{background:var(--cmp-line-2);color:var(--cmp-ink-2);font-size:9.5px;padding:1px 6px;border-radius:99px;font-family:var(--cmp-mono)}
+.compras-root .sec .card{background:var(--bg-2);border:1px solid var(--cmp-line);border-radius:var(--radius);padding:11px 13px}
+.compras-root .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;font-size:12px}
+.compras-root .field-grid .f label{font-size:9.5px;color:var(--cmp-ink-3);text-transform:uppercase;letter-spacing:.04em;font-weight:600;display:block;margin-bottom:1px}
+.compras-root .field-grid .f span{color:var(--cmp-ink);font-weight:500}
+.compras-root .field-grid .f span.mono{font-family:var(--cmp-mono);font-size:11.5px}
+.compras-root .field-grid .f.full{grid-column:span 2}
+
+/* ITEMS table */
+.compras-root .items-tbl{width:100%;border-collapse:collapse;font-size:11.5px;background:var(--surface);border:1px solid var(--cmp-line);border-radius:var(--radius);overflow:hidden}
+.compras-root .items-tbl th{background:var(--bg-2);padding:6px 7px;text-align:left;font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--cmp-ink-3);font-weight:700;border-bottom:1px solid var(--cmp-line)}
+.compras-root .items-tbl td{padding:7px 7px;border-bottom:1px solid var(--cmp-line-2);vertical-align:top}
+.compras-root .items-tbl tr:last-child td{border-bottom:none}
+.compras-root .items-tbl b{font-size:11.5px;font-weight:600}
+.compras-root .items-tbl small{display:block;font-size:10px;color:var(--cmp-ink-3);font-family:var(--cmp-mono);margin-top:1px}
+.compras-root .items-tbl .num{font-family:var(--cmp-mono);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* PAGAMENTOS */
+.compras-root .pay-row{display:grid;grid-template-columns:auto 1fr auto;gap:10px;padding:8px 0;border-bottom:1px solid var(--cmp-line-2);align-items:center}
+.compras-root .pay-row:last-child{border-bottom:none}
+.compras-root .pay-icon{width:30px;height:30px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;background:var(--cmp-info-soft);color:var(--cmp-info);font-size:12px;font-weight:700;font-family:var(--cmp-mono)}
+.compras-root .pay-row b{font-size:12px;font-weight:600;display:block}
+.compras-root .pay-row small{font-size:10.5px;color:var(--cmp-ink-3);display:block;font-family:var(--cmp-mono)}
+.compras-root .pay-row .val{font-family:var(--cmp-mono);font-weight:700;font-size:12.5px;font-variant-numeric:tabular-nums}
+.compras-root .pay-row .val.due{color:var(--cmp-warn)}
+.compras-root .pay-row .val.paid{color:var(--cmp-ok)}
+
+/* TIMELINE */
+.compras-root .tl{position:relative;padding-left:18px}
+.compras-root .tl::before{content:"";position:absolute;left:5px;top:5px;bottom:5px;width:1px;background:var(--cmp-line)}
+.compras-root .tl-item{position:relative;padding-bottom:10px;font-size:11.5px}
+.compras-root .tl-item::before{content:"";position:absolute;left:-16px;top:4px;width:9px;height:9px;border-radius:50%;background:var(--surface);border:2px solid var(--cmp-ink-3)}
+.compras-root .tl-item.ok::before{border-color:var(--cmp-ok);background:var(--cmp-ok)}
+.compras-root .tl-item.warn::before{border-color:var(--cmp-warn);background:var(--cmp-warn)}
+.compras-root .tl-item.now::before{border-color:var(--cmp-accent);background:var(--cmp-accent);box-shadow:0 0 0 3px var(--cmp-accent-soft)}
+.compras-root .tl-item b{font-size:12px;font-weight:600;display:block;color:var(--cmp-ink)}
+.compras-root .tl-item .when{font-size:10px;color:var(--cmp-ink-3);font-family:var(--cmp-mono);margin-top:1px}
+.compras-root .tl-item p{margin:3px 0 0;color:var(--cmp-ink-2);font-size:11px}
+
+/* FOOTER sticky */
+.compras-root .ft{background:var(--surface);border-top:1px solid var(--cmp-line);padding:8px 20px;display:flex;align-items:center;gap:14px;font-size:11.5px;color:var(--cmp-ink-3)}
+.compras-root .ft b{color:var(--cmp-ink);font-weight:600}
+.compras-root .ft .sp{flex:1}
+.compras-root .ft kbd{font-family:var(--cmp-mono);font-size:10px;background:var(--cmp-line-2);border:1px solid var(--cmp-line);border-radius:var(--radius-sm);padding:1px 5px;color:var(--cmp-ink-2)}
+
+/* BTN */
+.compras-root .btn{border:1px solid var(--cmp-line);background:var(--surface);padding:5px 11px;border-radius:var(--radius-sm);font-size:11.5px;color:var(--cmp-ink);cursor:pointer}
+.compras-root .btn:hover{border-color:var(--text-mute);background:var(--bg-2)}
+.compras-root .btn.primary{background:var(--cmp-accent);border-color:var(--cmp-accent);color:var(--surface);font-weight:600}
+.compras-root .btn.primary:hover{background:var(--cmp-accent-2)}
+.compras-root .btn.ghost{background:transparent;border-color:transparent;color:var(--cmp-ink-2)}
+.compras-root .btn.ghost:hover{background:var(--cmp-line-2)}
+.compras-root .btn.sm{padding:3px 8px;font-size:11px}
+.compras-root .btn.warn{background:var(--cmp-warn);border-color:var(--cmp-warn);color:var(--surface);font-weight:600}
+.compras-root .btn.warn:hover{background:var(--warn-fg)}
+
+/* XML drop badge */
+.compras-root .xml-badge{background:var(--cmp-info-soft);border:1px dashed color-mix(in oklch,var(--accent) 35%,transparent);color:var(--cmp-info);padding:8px 12px;border-radius:var(--radius);font-size:11.5px;display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.compras-root .xml-badge b{color:var(--cmp-info);font-weight:700}
+.compras-root .xml-badge .key{font-family:var(--cmp-mono);font-size:10.5px;background:var(--surface);padding:2px 6px;border-radius:var(--radius-sm);border:1px solid var(--cmp-line)}
+
+/* ── TOOLBAR (por-página · exports · colunas) ── */
+.compras-root .cmp-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;padding:7px 12px;background:var(--surface);border:1px solid var(--cmp-line);border-radius:var(--radius)}
+.compras-root .cmp-toolbar .sp{flex:1}
+.compras-root .cmp-tb-perpage{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--cmp-ink-2)}
+.compras-root .cmp-tb-perpage select{padding:3px 6px;border:1px solid var(--cmp-line);border-radius:var(--radius-sm);background:var(--bg-2);font-size:11.5px;color:var(--cmp-ink)}
+.compras-root .cmp-tb-total{font-size:11.5px;font-family:var(--cmp-mono);color:var(--cmp-ink-3)}
+
+/* ── Sort arrow no th ── */
+.compras-root table.purchases th .cmp-sort-arr{font-size:10px;margin-left:2px}
+.compras-root table.purchases th .cmp-sort-btn{display:inline-flex;align-items:center;gap:2px;width:100%;border:none;background:transparent;padding:0;margin:0;font:inherit;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--cmp-ink-2);cursor:pointer}
+.compras-root table.purchases th .cmp-sort-btn:hover{color:var(--cmp-ink)}
+.compras-root table.purchases th .cmp-sort-btn:focus-visible{outline:2px solid var(--cmp-accent);outline-offset:2px;border-radius:3px}
+
+/* ── Dropdown "Ações" por linha ── */
+.compras-root .cmp-acoes{position:relative;display:inline-block}
+.compras-root .cmp-acoes-btn{display:inline-flex;align-items:center;gap:4px}
+.compras-root .cmp-acoes-caret{font-size:9px;opacity:.7}
+.compras-root .cmp-acoes-menu{position:absolute;left:0;top:calc(100% + 3px);z-index:20;min-width:218px;background:var(--surface);border:1px solid var(--cmp-line);border-radius:var(--radius);box-shadow:var(--sh-2);padding:4px;display:flex;flex-direction:column}
+.compras-root .cmp-acoes-item{display:flex;align-items:center;gap:9px;width:100%;text-align:left;border:none;background:transparent;padding:6px 9px;border-radius:var(--radius-sm);font-size:12px;color:var(--cmp-ink);cursor:pointer}
+.compras-root .cmp-acoes-item:hover{background:var(--bg-2)}
+.compras-root .cmp-acoes-item.danger{color:var(--cmp-err)}
+.compras-root .cmp-acoes-item.danger:hover{background:var(--cmp-err-soft)}
+.compras-root .cmp-acoes-ic{width:16px;text-align:center;font-size:12px;color:var(--cmp-ink-3)}
+.compras-root .cmp-acoes-item.danger .cmp-acoes-ic{color:var(--cmp-err)}
+.compras-root .cmp-acoes-div{height:1px;background:var(--cmp-line-2);margin:4px 2px}
+
+/* ── Seletor de colunas ── */
+.compras-root .cmp-colsel{position:relative;display:inline-block}
+.compras-root .cmp-colsel-menu{position:absolute;right:0;top:calc(100% + 3px);z-index:20;min-width:176px;background:var(--surface);border:1px solid var(--cmp-line);border-radius:var(--radius);box-shadow:var(--sh-2);padding:5px;display:flex;flex-direction:column;gap:1px}
+.compras-root .cmp-colsel-item{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:var(--radius-sm);font-size:12px;color:var(--cmp-ink);cursor:pointer}
+.compras-root .cmp-colsel-item:hover{background:var(--bg-2)}
+.compras-root .cmp-colsel-item.req{color:var(--cmp-ink-3);cursor:default}
+.compras-root .cmp-colsel-item input{accent-color:var(--cmp-accent)}
+
+/* ── Rodapé de totais + paginação ── */
+.compras-root .cmp-summary{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;padding:10px 14px;background:var(--surface);border:1px solid var(--cmp-line);border-radius:var(--radius)}
+.compras-root .cmp-summary .sp{flex:1}
+.compras-root .cmp-sum-cells{display:flex;gap:20px;flex-wrap:wrap}
+.compras-root .cmp-sum-cell small{display:block;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--cmp-ink-3);font-weight:600;margin-bottom:2px}
+.compras-root .cmp-sum-cell b{font-size:14px;font-weight:700;font-family:var(--cmp-mono);font-variant-numeric:tabular-nums;color:var(--cmp-ink)}
+.compras-root .cmp-sum-cell.ok b{color:var(--cmp-ok)}
+.compras-root .cmp-sum-cell.warn b{color:var(--cmp-warn)}
+.compras-root .cmp-sum-cell.err b{color:var(--cmp-err)}
+.compras-root .cmp-sum-range{font-size:11.5px;color:var(--cmp-ink-3)}
+.compras-root .cmp-sum-range b{color:var(--cmp-ink);font-weight:600}
+.compras-root .cmp-pager{display:flex;gap:4px;align-items:center}
+.compras-root .cmp-pager-cur{padding:3px 10px;background:var(--cmp-accent-soft);border:1px solid color-mix(in oklch,var(--accent) 25%,transparent);border-radius:var(--radius-sm);font-size:11.5px;color:var(--cmp-accent);font-weight:600;font-family:var(--cmp-mono)}

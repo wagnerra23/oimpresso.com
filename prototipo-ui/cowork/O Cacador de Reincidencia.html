@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>O Caçador de Reincidência — erros constantes do Cowork</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: oklch(0.16 0.014 25);
+    --surface: oklch(0.2 0.016 25);
+    --surface-2: oklch(0.235 0.017 25);
+    --text: oklch(0.96 0.006 60);
+    --dim: oklch(0.76 0.012 50);
+    --mute: oklch(0.6 0.013 45);
+    --border: oklch(0.31 0.02 30);
+    --red: oklch(0.7 0.19 25);
+    --red-bg: oklch(0.28 0.1 25);
+    --amber: oklch(0.83 0.15 75);
+    --amber-bg: oklch(0.3 0.08 70);
+    --green: oklch(0.78 0.16 150);
+    --green-bg: oklch(0.28 0.09 150);
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --sans: "IBM Plex Sans", system-ui, sans-serif;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  body{ font-size: 14px; line-height: 1.55; }
+  .wrap{ max-width: 1060px; margin: 0 auto; padding: 56px 32px 120px; }
+
+  .kicker{ font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.13em; color: var(--red); font-weight: 600; }
+  h1.title{ font-size: 44px; font-weight: 700; letter-spacing: -0.035em; margin: 12px 0 14px; line-height: 1.02; }
+  .lede{ font-size: 17px; color: var(--dim); max-width: 70ch; margin: 0; text-wrap: pretty; }
+  .lede b{ color: var(--text); font-weight: 600; }
+
+  .meta-thesis{ margin-top: 30px; border: 1px solid var(--red); border-radius: 14px; background: linear-gradient(165deg, var(--red-bg), var(--surface) 70%); padding: 24px 28px; }
+  .meta-thesis .q{ font-size: 20px; font-weight: 600; line-height: 1.38; margin: 0; text-wrap: pretty; }
+  .meta-thesis .q em{ color: var(--red); font-style: normal; }
+  .meta-thesis .who{ font-family: var(--mono); font-size: 12px; color: var(--red); margin-top: 12px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  h2.sec{ font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.11em; color: var(--mute); margin: 54px 0 8px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+  .sec-sub{ color: var(--dim); margin: 0 0 22px; font-size: 14.5px; max-width: 72ch; }
+
+  /* scoreboard */
+  .score-head{ display: grid; grid-template-columns: 28px 1fr 92px 96px; gap: 14px; padding: 0 20px 8px; font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--mute); }
+  .card{ border: 1px solid var(--border); border-radius: 13px; background: var(--surface); margin-bottom: 14px; overflow: hidden; }
+  .card.armed{ border-color: var(--green); }
+  .card-top{ display: grid; grid-template-columns: 28px 1fr 92px 96px; gap: 14px; padding: 18px 20px 14px; align-items: start; }
+  .cid{ font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--red); }
+  .card.armed .cid{ color: var(--green); }
+  .ctitle{ font-size: 17px; font-weight: 600; letter-spacing: -0.01em; line-height: 1.25; }
+  .ctitle .nick{ display:block; font-family: var(--mono); font-size: 11px; color: var(--mute); font-weight: 500; margin-top: 3px; text-transform: lowercase; letter-spacing: 0.02em; }
+  .badge{ font-family: var(--mono); font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; padding: 4px 0; border-radius: 6px; text-align: center; height: fit-content; }
+  .freq{ background: var(--red-bg); color: var(--red); }
+  .freq.lo{ background: var(--amber-bg); color: var(--amber); }
+  .gate-no{ background: var(--red-bg); color: var(--red); }
+  .gate-yes{ background: var(--green-bg); color: var(--green); }
+
+  .card-body{ padding: 0 20px 18px 62px; }
+  .row{ display: grid; grid-template-columns: 86px 1fr; gap: 12px; padding: 7px 0; border-top: 1px dashed var(--border); align-items: baseline; }
+  .row .k{ font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mute); padding-top: 2px; }
+  .row .v{ color: var(--dim); text-wrap: pretty; }
+  .row .v b{ color: var(--text); font-weight: 600; }
+  .row.evi .v{ color: var(--text); }
+  .row.kill .v{ color: var(--green); }
+  .row.kill .v b{ color: var(--green); }
+  code{ font-family: var(--mono); font-size: 12px; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; color: var(--text); }
+
+  .root{ margin-top: 18px; border: 1px solid var(--amber); border-radius: 14px; background: linear-gradient(165deg, var(--amber-bg), var(--surface) 75%); padding: 24px 28px; }
+  .root h3{ margin: 0 0 10px; font-size: 21px; color: var(--amber); letter-spacing: -0.01em; }
+  .root p{ margin: 0 0 10px; color: var(--text); font-size: 15.5px; text-wrap: pretty; }
+  .root p:last-child{ margin: 0; }
+  .root b{ font-weight: 700; }
+
+  .ritual{ margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px){ .ritual{ grid-template-columns: 1fr; } .card-top,.score-head{ grid-template-columns: 24px 1fr; } .badge{ display:none; } .card-body{ padding-left: 20px; } }
+  .rit{ border: 1px solid var(--border); border-radius: 13px; background: var(--surface); padding: 18px 20px; }
+  .rit h4{ margin: 0 0 4px; font-size: 15px; }
+  .rit .when{ font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--green); }
+  .rit ol{ margin: 10px 0 0; padding-left: 18px; }
+  .rit li{ font-size: 13.5px; color: var(--dim); margin: 6px 0; text-wrap: pretty; }
+  .rit li b{ color: var(--text); }
+
+  .silence{ margin-top: 30px; border: 1px solid var(--green); border-radius: 14px; background: linear-gradient(165deg, var(--green-bg), var(--surface) 75%); padding: 22px 28px; }
+  .silence b{ color: var(--green); }
+  .silence p{ margin: 0; font-size: 15.5px; }
+
+  .footnote{ margin-top: 40px; font-family: var(--mono); font-size: 11.5px; color: var(--mute); border-top: 1px solid var(--border); padding-top: 14px; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">Red team de processo · caçador de reincidência · ferramenta viva, não documento morto</div>
+  <h1 class="title">O Caçador de Reincidência</h1>
+  <p class="lede">O primeiro adversário atacou <b>um</b> protocolo (o handoff). Este é mais forte: ele caça as <b>classes de erro que se repetem</b> aqui — não o erro de hoje, mas o <b>padrão</b> que garante o erro de amanhã. Cada classe vem com a prova colhida <b>nesta própria sessão</b> (a mais incriminadora que existe), a causa-raiz, e a <b>condição de morte</b>: a trava mecânica que faz a classe parar de reincidir. Enquanto a trava não existe, a classe está <b>🔴 armada contra você</b>.</p>
+
+  <div class="meta-thesis">
+    <p class="q">"Todo erro recorrente aqui é a <em>mesma doença</em> que vocês já diagnosticaram no produto: <em>regra sem trava mecânica não é regra — é intenção</em>. A correção de sempre é 'vou lembrar', 'vou prestar atenção', 'da próxima eu confiro'. Isso é o lint aspiracional que vocês caçam no código, agora morando no comportamento do [CC]. Por isso reincide: vocês consertam a instância e deixam a fábrica de pé."</p>
+    <div class="who">— o caçador</div>
+  </div>
+
+  <h2 class="sec">Placar da reincidência — 6 classes, evidência de hoje</h2>
+  <p class="sec-sub">Frequência = nº de vezes que a classe disparou só nesta sessão. Trava = existe máquina que recusa o erro no momento da ação? Verde = já armado; vermelho = ainda depende da minha memória.</p>
+
+  <div class="score-head">
+    <span></span><span>classe de erro</span><span>freq · sessão</span><span>trava?</span>
+  </div>
+
+  <!-- C1 -->
+  <div class="card">
+    <div class="card-top">
+      <span class="cid">C1</span>
+      <span class="ctitle">Explicar em vez de fazer<span class="nick">o loop "como gero?"</span></span>
+      <span class="badge freq">3× ALTA</span>
+      <span class="badge gate-no">🔴 não</span>
+    </div>
+    <div class="card-body">
+      <div class="row"><span class="k">o quê</span><span class="v">Você pede <b>"faça X"</b> e eu respondo com <b>"eis como você poderia fazer X"</b> — trato a entrega como conversa em vez de artefato pronto.</span></div>
+      <div class="row evi"><span class="k">prova hoje</span><span class="v">Você perguntou "como gero o prompt pro Code" <b>3 vezes</b>. O arquivo <code>COLE_NO_CODE.md</code> <b>já existia, pronto pra colar</b> — e eu expliquei os passos em vez de dizer "está feito, é este arquivo". O esforço virou seu, de novo.</span></div>
+      <div class="row"><span class="k">raiz</span><span class="v">Verbosidade defensiva: explicar parece mais seguro que entregar. Mas pra você é fricção pura.</span></div>
+      <div class="row kill"><span class="k">condição de morte</span><span class="v"><b>Entregável tem nome e lugar fixos.</b> Todo handoff atualiza <code>prototipo-ui-patch/COLE_NO_CODE.md</code> automaticamente. Resposta a "como entrego?" é sempre 1 linha: <i>"abre COLE_NO_CODE → copia → cola"</i>. Sem passos, sem explicação.</span></div>
+    </div>
+  </div>
+
+  <!-- C2 -->
+  <div class="card">
+    <div class="card-top">
+      <span class="cid">C2</span>
+      <span class="ctitle">Afirmar sem prova<span class="nick">o ✅ sem recibo</span></span>
+      <span class="badge freq">ALTA</span>
+      <span class="badge gate-no">🔴 parcial</span>
+    </div>
+    <div class="card-body">
+      <div class="row"><span class="k">o quê</span><span class="v">Declaro <b>"entregue / commitado / pousou / pronto"</b> antes de ter prova — muitas vezes afirmando estado do <b>git</b> a partir de cópia local velha.</span></div>
+      <div class="row evi"><span class="k">prova hoje</span><span class="v">Disse "Code resolve com este pedido" <b>antes da tarefa estar sequer na fila</b>. Histórico: "vou commitar no PR" — sendo que sou <b>read-only no git</b>. Viola Regra 1 (prova antes) + Regra 6 (espelho local ≠ git).</span></div>
+      <div class="row"><span class="k">raiz</span><span class="v">"Pronto" (artefato salvo no Cowork) é confundido com "pousou" (rodou no git). São coisas diferentes e eu colapso as duas.</span></div>
+      <div class="row kill"><span class="k">condição de morte</span><span class="v"><b>Estado padrão = <code>⚠ enfileirado, não confirmado</code>.</b> Só posso escrever "pousou" depois de ler <code>CODE_NOTES@main</code> vivo confirmando <code>[PROCESSADO]</code>. Sem leitura = sem afirmação. (É o F5 do primeiro adversário.)</span></div>
+    </div>
+  </div>
+
+  <!-- C3 -->
+  <div class="card">
+    <div class="card-top">
+      <span class="cid">C3</span>
+      <span class="ctitle">Edição que corrompe o vizinho<span class="nick">o str_replace que funde dois blocos</span></span>
+      <span class="badge freq">2× MÉDIA</span>
+      <span class="badge gate-no">🔴 não</span>
+    </div>
+    <div class="card-body">
+      <div class="row"><span class="k">o quê</span><span class="v">Escolho um <code>old_string</code> com fronteira ruim e <b>fundo duas seções vizinhas</b> ou trunco a de baixo — e só percebo relendo.</span></div>
+      <div class="row evi"><span class="k">prova hoje</span><span class="v"><b>Duas vezes</b> no <code>COWORK_NOTES.md</code> eu colei a nota do Caixa dentro do cabeçalho do bloco Financeiro ("…chips. (4 PRs — supersede…"). Tive que reabrir e remendar as duas.</span></div>
+      <div class="row"><span class="k">raiz</span><span class="v">Editar arquivo grande sem reler a vizinhança do ponto de corte. A fronteira do replace some no meio de 888 linhas.</span></div>
+      <div class="row kill"><span class="k">condição de morte</span><span class="v"><b>Toda edição em arquivo de fila/memória &gt;300 linhas é seguida de releitura do trecho editado no mesmo turno</b> — não no próximo. Diff conferido antes de seguir. (Pode virar check de "header de bloco bem-formado" no <code>memory-health</code>.)</span></div>
+    </div>
+  </div>
+
+  <!-- C4 -->
+  <div class="card">
+    <div class="card-top">
+      <span class="cid">C4</span>
+      <span class="ctitle">Órfão & referência morta<span class="nick">criar X sem ligar X · citar o que sumiu</span></span>
+      <span class="badge freq">ALTA</span>
+      <span class="badge gate-yes">🟢 armado</span>
+    </div>
+    <div class="card-body">
+      <div class="row"><span class="k">o quê</span><span class="v">Crio um prompt e <b>esqueço de ligá-lo na fila</b> (tarefa invisível pro Code), ou cito um arquivo que <b>não existe mais</b> (link morto → Code erra o PR). Variante em código: usar símbolo não declarado.</span></div>
+      <div class="row evi"><span class="k">prova hoje</span><span class="v"><b>18 órfãos + 19 refs mortas</b> na fila, achados ao rodar o gate. E eu usei <code>PROMPT_ORFAO_BASELINE</code> <b>sem declarar</b> (ReferenceError) no próprio arquivo do gate — o erro dentro da cura.</span></div>
+      <div class="row"><span class="k">raiz</span><span class="v">Enfileirar exige 5 passos manuais desconexos; esquecer um não dispara nada.</span></div>
+      <div class="row kill"><span class="k">condição de morte</span><span class="v"><b>JÁ ARMADO:</b> <code>memory-health.js</code> CHECK 8 trava 🔴 se houver prompt na pasta fora da fila, ou citação sem arquivo. Rodado, controle-negativo passa. Falta só portar a trava pro <b>git</b> (a entrega de hoje).</span></div>
+    </div>
+  </div>
+
+  <!-- C5 -->
+  <div class="card">
+    <div class="card-top">
+      <span class="cid">C5</span>
+      <span class="ctitle">Retrabalho por não conferir o main<span class="nick">a duplicação</span></span>
+      <span class="badge freq lo">1× MÉDIA</span>
+      <span class="badge gate-no">🔴 não</span>
+    </div>
+    <div class="card-body">
+      <div class="row"><span class="k">o quê</span><span class="v">Enfileiro pro Code algo que <b>já está aplicado no <code>main</code></b> → você retrabalha ou o Code abre PR vazio.</span></div>
+      <div class="row evi"><span class="k">prova hoje</span><span class="v">O <b>Caixa Unificada dark-mode</b> já estava no main (ADR 0281, <code>ConversationThreadV4</code> já dark-aware). Eu tinha enfileirado. <b>Sua pergunta</b> "tudo vai ser duplicado?" foi o que me fez conferir e remover. O gate devia ter sido eu, não você.</span></div>
+      <div class="row"><span class="k">raiz</span><span class="v">Enfileiro pela memória do que "achava pendente" em vez de medir contra o main primeiro.</span></div>
+      <div class="row kill"><span class="k">condição de morte</span><span class="v"><b>Todo item entra na fila com um carimbo <code>verificado vs main @SHA</code>.</b> Sem verificação registrada, nasce <code>⚠ não-verificado</code> e não pode ir pro <code>COLE_NO_CODE</code>. Onda 0 (grep/inventário) obrigatória em todo prompt de migração.</span></div>
+    </div>
+  </div>
+
+  <!-- C6 -->
+  <div class="card">
+    <div class="card-top">
+      <span class="cid">C6</span>
+      <span class="ctitle">Esquecer passo sob pressão de contexto<span class="nick">a meta-causa</span></span>
+      <span class="badge freq">META</span>
+      <span class="badge gate-no">🔴 não</span>
+    </div>
+    <div class="card-body">
+      <div class="row"><span class="k">o quê</span><span class="v">Conforme a conversa fica longa, eu <b>derrubo passos</b> de rituais multi-etapa — e cada queda vira uma das classes acima.</span></div>
+      <div class="row evi"><span class="k">prova hoje</span><span class="v">O handoff tem 5 passos; pulei o 2 e o 3 → virou C4 (órfão). Esta sessão foi <b>truncada</b> várias vezes — exatamente quando o risco de derrubar passo é máximo.</span></div>
+      <div class="row"><span class="k">raiz</span><span class="v">Rituais de N passos guardados só na minha atenção não sobrevivem à pressão de contexto. É a fábrica das outras 5 classes.</span></div>
+      <div class="row kill"><span class="k">condição de morte</span><span class="v"><b>Colapsar N passos em 1 gesto + 1 gate.</b> Um ritual de fim-de-sessão único (não 5 ações soltas) e o <code>memory-health</code> como rede que pega o que escapou. Ritual escrito, não lembrado.</span></div>
+    </div>
+  </div>
+
+  <h2 class="sec">A fábrica (causa que produz as 6)</h2>
+  <div class="root">
+    <h3>Confiabilidade depositada na minha memória = juros de reincidência.</h3>
+    <p>Cinco das seis classes têm a mesma correção histórica registrada: <b>"vou lembrar"</b>. Memória não é trava. Sob pressão de contexto (C6) a memória é a <b>primeira coisa que cede</b> — e aí C1–C5 disparam. O único antídoto que o próprio repo aceita é o que ele exige do produto: <b>uma máquina que recusa o erro no instante da ação</b>, com baseline só-desce, controle-negativo e ratchet.</p>
+    <p>Repare: a única classe já <b>🟢 armada</b> (C4) é a única que parou de depender de mim — porque virou <code>memory-health</code> CHECK 8. As 🔴 ainda dependem. <b>O trabalho não é "tentar mais"; é mover cada 🔴 pra 🟢.</b></p>
+  </div>
+
+  <h2 class="sec">O instrumento — ritual mecânico, não força de vontade</h2>
+  <p class="sec-sub">O caçador não é um texto pra reler. É um par de checagens fixas que eu rodo sem você pedir — começo e fim de toda sessão de handoff.</p>
+  <div class="ritual">
+    <div class="rit">
+      <span class="when">▶ pré-voo · início de sessão</span>
+      <h4>Antes de propor qualquer coisa</h4>
+      <ol>
+        <li><b>Rodar <code>memory-health</code></b> — ver C4 e frescor 🔴 antes de tocar em nada.</li>
+        <li><b>Ler <code>CODE_NOTES@main</code> vivo</b> — saber o que já pousou (mata C5) e o que dá pra afirmar (mata C2).</li>
+        <li><b>Ler só acima da linha d'água</b> da fila — ignorar os 30+ processados.</li>
+      </ol>
+    </div>
+    <div class="rit">
+      <span class="when">■ pós-voo · fim de sessão</span>
+      <h4>Antes de dizer "pronto"</h4>
+      <ol>
+        <li><b>Regenerar <code>COLE_NO_CODE.md</code></b> sem você pedir (mata C1).</li>
+        <li><b>Reler o trecho editado</b> de todo arquivo de fila/memória (mata C3).</li>
+        <li><b>Rodar <code>memory-health</code> de novo</b> — só fecho a sessão com CHECK 8 🟢 (mata C4/C6).</li>
+        <li>Estado de cada item = <code>⚠ enfileirado</code> até <code>CODE_NOTES@main</code> provar (mata C2).</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="silence">
+    <p><b>Como o caçador se cala:</b> uma classe só sai do placar quando vira 🟢 — máquina que recusa, não promessa. C4 já saiu (CHECK 8). A entrega de hoje porta essa trava pro git, a memória permanente. As outras cinco continuam 🔴 <b>até</b> virarem gate ou ritual fixo. Enquanto forem "vou lembrar", o caçador volta toda sessão e te mostra a prova — porque a prova é o que dói o suficiente pra mudar a fábrica, não a instância.</p>
+  </div>
+
+  <p class="footnote">Escopo: tudo aqui é Cowork-side + checks no <code>memory-health.js</code> e rituais de sessão — não é Tier 0, não mexe na constituição (ADR 0094 / UI-0013 / PROTOCOL / BRIEFING = só [W]). C4 já implementado e rodado. Decisão de adotar os rituais e portar a trava pro git = [W].<br>Companheiro de <code>O Adversario do Protocolo.html</code> (que atacou só o handoff). Este caça o conjunto. · Red team [CC] · 2026-06-16</p>
+
+</div>
+</body>
+</html>

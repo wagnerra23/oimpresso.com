@@ -1,0 +1,283 @@
+/* ═══════════════════════════════════════════════════════════════════
+   OIMPRESSO DESIGN SYSTEM v5 — TOKENS (fonte única)
+   Acabamento estado-da-arte · roxo canônico oklch(0.55 0.15 295) preservado
+   Camadas: primitivo → semântico. Componentes consomem o semântico.
+   Eixos ortogonais: [data-theme] (light/dark) × [data-density].
+   ═══════════════════════════════════════════════════════════════════ */
+:root{
+  /* ── Neutros — warm, near-white, verdadeiramente em camadas ── */
+  --bg:        oklch(0.992 0.0015 95);   /* canvas */
+  --sunken:    oklch(0.974 0.003 95);    /* zona rebaixada / toolbar */
+  --surface:   oklch(1 0 0);             /* card / drawer / modal */
+  --raised:    oklch(1 0 0);             /* card elevado */
+  --hairline:  oklch(0.935 0.003 95);    /* divisor sutil */
+  --border:    oklch(0.905 0.004 95);    /* borda padrão */
+  --border-2:  oklch(0.95 0.003 95);     /* borda interna de linha */
+
+  --text:      oklch(0.205 0.008 90);    /* corpo */
+  --text-2:    oklch(0.46 0.007 90);     /* secundário / label */
+  --text-3:    oklch(0.63 0.006 90);     /* terciário / eyebrow */
+  --text-4:    oklch(0.74 0.005 90);     /* placeholder / quaternário */
+
+  /* ── Accent — ROXO canônico (ADR 0235). Mudar = reindexar (só [W]). ── */
+  --accent-h:    295;                     /* hue do accent — Único ponto que o tweak "Tom" rotaciona (inline). Luminância é DONA DO TEMA (fix 2026-06-12 · verifier). */
+  --accent:      oklch(0.55 0.15 var(--accent-h, 295));
+  --accent-hi:   oklch(0.50 0.16 var(--accent-h, 295));   /* hover (mais escuro no claro) */
+  --accent-soft: oklch(0.945 0.045 var(--accent-h, 295)); /* fundo suave · VIDA 06-11 [W]: +chroma */
+  --accent-line: oklch(0.80 0.09 var(--accent-h, 295));   /* borda accent */
+  --accent-fg:   oklch(1 0 0);
+
+  /* ── Número semântico (Mercury) · VIDA 06-11 [W] "cor fosca é erro sistêmico, capriche":
+     chroma de verdade nos sólidos E nos -soft — a fonte estava lavada, não os componentes. ── */
+  --pos:       oklch(0.55 0.17 150);  --pos-soft:  oklch(0.93 0.11 150);
+  --neg:       oklch(0.58 0.21 25);   --neg-soft:  oklch(0.93 0.08 25);
+  --warn:      oklch(0.63 0.16 68);   --warn-soft: oklch(0.93 0.11 80);
+  --info:      var(--accent);          --info-soft: var(--accent-soft);
+
+  /* ── Origens — cor-por-módulo (Attio) · não inventar fora destas · VIDA 06-11: +chroma ── */
+  --origin-OS-bg:  oklch(0.93 0.08 70);    --origin-OS-fg:  oklch(0.50 0.13 60);
+  --origin-CRM-bg: oklch(0.93 0.07 245);   --origin-CRM-fg: oklch(0.50 0.13 250);
+  --origin-FIN-bg: oklch(0.93 0.08 150);   --origin-FIN-fg: oklch(0.47 0.13 150);
+  --origin-PNT-bg: oklch(0.93 0.07 295);   --origin-PNT-fg: oklch(0.50 0.13 295);
+  --origin-MFG-bg: oklch(0.93 0.06 30);    --origin-MFG-fg: oklch(0.50 0.12 30);
+
+  /* ── Pipeline / etapas (tempero 06-03 · [W]) — escala categórica de
+     etapas/kanban (Recepção→Pronto). Antes vivia cru na Oficina; agora é
+     token do DS, reusável por qualquer pipeline. Roxo canon intocado. ── */
+  --stage-slate:   oklch(0.58 0.025 250);  /* recepção / neutro */
+  --stage-indigo:  oklch(0.55 0.16 270);   /* diagnóstico */
+  --stage-rose:    oklch(0.62 0.16 20);    /* aguardando peças */
+  --stage-emerald: oklch(0.60 0.13 155);   /* em execução */
+  --stage-green:   oklch(0.66 0.15 145);   /* pronto */
+
+  /* ── Avatar palette — determinística (hash → c1..c8) ── */
+  --av-1: oklch(0.58 0.14 285); --av-2: oklch(0.55 0.13 150);
+  --av-3: oklch(0.60 0.13 60);  --av-4: oklch(0.57 0.16 25);
+  --av-5: oklch(0.56 0.12 230); --av-6: oklch(0.55 0.12 175);
+  --av-7: oklch(0.57 0.15 330); --av-8: oklch(0.52 0.08 250);
+
+  /* ── Elevação — em camada, suave, intencional ── */
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280 / .05), 0 2px 4px -1px oklch(0.25 0.02 280 / .07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280 / .06), 0 6px 16px -5px oklch(0.25 0.02 280 / .11);
+  --sh-3: 0 4px 9px -4px oklch(0.25 0.02 280 / .08), 0 14px 32px -8px oklch(0.25 0.02 280 / .14);
+  --sh-4: 0 8px 18px -8px oklch(0.25 0.02 280 / .10), 0 26px 56px -14px oklch(0.25 0.02 280 / .20);
+  --sh-key: 0 12px 40px -12px oklch(0.45 0.14 295 / .26);
+
+  /* ── Radius — teto 12px em componentes (16px só drawer/modal) ── */
+  --r-1: 5px;  --r-2: 8px;  --r-3: 11px;  --r-4: 16px;  --r-pill: 999px;
+
+  /* ── Type ── */
+  --sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ── Type RAMP (âncora única de tamanho · [W] "vai" 2026-06-10) ──
+     9 degraus; TODO font-size do sistema snapa aqui. Enforcement = G8 (qa-conformance).
+     Acabamento: pesos só 400/500/600/700 · lh 1 números · 1.2 títulos · 1.45 corpo ·
+     caption uppercase +0.08em · números sempre --font-mono tabular. */
+  --fs-1: 10.5px;  /* caption / eyebrow uppercase */
+  --fs-2: 11.5px;  /* label · chip · hint */
+  --fs-3: 12.5px;  /* corpo denso (células, drawer) */
+  --fs-4: 13.5px;  /* corpo padrão (= body) */
+  --fs-5: 15px;    /* título de seção/card */
+  --fs-6: 18px;    /* subtítulo de página */
+  --fs-7: 22px;    /* h1 de página · KPI médio */
+  --fs-8: 28px;    /* número grande */
+  --fs-9: 38px;    /* número hero */
+
+  /* ── TEMPERO — norte visual do ERP ([W] autorizou 2026-06-10 · fonte: "Norte - Fluxo do Caminhão") ──
+     6 conceitos: contraste tipográfico (ramp acima) · uma família de cor (matriz oklch única,
+     soft-state = color-mix do PRÓPRIO tom) · UMA fonte de luz · fundo com atmosfera ·
+     microfísica (--ease) · medida de linha (título ≤24ch balance · prosa ≤60ch pretty). */
+  --sh-1: 0 4px 14px -6px oklch(0.2 0.02 282 / .10), 0 1px 3px oklch(0.2 0.02 282 / .07);   /* card assentado */
+  --sh-2: 0 18px 50px -18px oklch(0.2 0.02 282 / .30), 0 4px 14px -6px oklch(0.2 0.02 282 / .16); /* flutuante: drawer/modal/popover */
+  --ease: cubic-bezier(.22, 1, .36, 1);  /* desacelera como coisa física — curva Única do ERP */
+  --t-1: .15s; --t-2: .3s;
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.55 0.15 295 / .05), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.55 0.10 250 / .04), transparent 62%);
+
+  /* ── Spacing — base 4 ── */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px;
+
+  /* ── Densidade (default) — sobrescrita por [data-density] ── */
+  --row-h: 32px; --field-h: 34px; --pad-x: 12px; --pad-y: 9px;
+
+  /* ── Foco — anel canônico AA ── */
+  --focus: 0 0 0 3px var(--accent-soft), 0 0 0 1px var(--accent);
+
+  /* ── Motion ── */
+  --t-1: 110ms; --t-2: 180ms; --t-3: 320ms;
+  --ease: cubic-bezier(.22,1,.36,1);
+  --ease-soft: cubic-bezier(.4,0,.2,1);
+
+  /* ── Z-stack ── */
+  --z-sticky: 25; --z-drawer: 40; --z-overlay: 50; --z-toast: 60;
+  --z-modal: 80; --z-popover: 90;
+}
+
+/* ═══════════════════════════════ DARK ═══ */
+[data-theme="dark"]{
+  --bg:        oklch(0.205 0.008 282);   /* [W] 06-22: preto menos agressivo — canvas mais claro, sem exagero */
+  --sunken:    oklch(0.182 0.008 282);
+  --surface:   oklch(0.238 0.009 282);
+  --raised:    oklch(0.268 0.010 282);
+  --hairline:  oklch(0.31 0.010 282);
+  --border:    oklch(0.335 0.012 282);
+  --border-2:  oklch(0.28 0.010 282);
+
+  --text:      oklch(0.965 0.004 282);
+  --text-2:    oklch(0.74 0.008 282);
+  --text-3:    oklch(0.58 0.009 282);
+  --text-4:    oklch(0.46 0.009 282);
+
+  --accent:      oklch(0.70 0.15 var(--accent-h, 295));
+  --accent-hi:   oklch(0.76 0.15 var(--accent-h, 295));
+  --accent-soft: oklch(0.33 0.09 var(--accent-h, 295));  /* VIDA 06-11 */
+  --accent-line: oklch(0.47 0.13 var(--accent-h, 295));
+  --accent-fg:   oklch(0.14 0.02 295);
+
+  /* VIDA 06-11 [W] — mesmos saltos de chroma do light, calibrados pro escuro */
+  --pos: oklch(0.76 0.18 150); --pos-soft: oklch(0.34 0.11 150);
+  --neg: oklch(0.74 0.19 25);  --neg-soft: oklch(0.36 0.12 25);
+  --warn: oklch(0.82 0.16 75); --warn-soft: oklch(0.37 0.11 70);
+
+  /* ── TEMPERO · dark ── */
+  --sh-1: 0 4px 14px -6px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
+  --sh-2: 0 18px 50px -18px rgba(0,0,0,.6), 0 4px 14px -6px rgba(0,0,0,.4);
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.26 0.07 295 / .28), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.24 0.05 250 / .22), transparent 62%);
+
+  --origin-OS-bg:  oklch(0.34 0.08 70);  --origin-OS-fg:  oklch(0.86 0.12 75);
+  --origin-CRM-bg: oklch(0.32 0.08 250); --origin-CRM-fg: oklch(0.83 0.12 250);
+  --origin-FIN-bg: oklch(0.32 0.08 150); --origin-FIN-fg: oklch(0.84 0.14 150);
+  --origin-PNT-bg: oklch(0.33 0.08 295); --origin-PNT-fg: oklch(0.85 0.13 295);
+  --origin-MFG-bg: oklch(0.34 0.07 30);  --origin-MFG-fg: oklch(0.85 0.12 30);
+
+  /* Pipeline / etapas — variante dark (mais brilho p/ contraste no escuro) */
+  --stage-slate:   oklch(0.66 0.03 250);
+  --stage-indigo:  oklch(0.66 0.16 270);
+  --stage-rose:    oklch(0.68 0.16 20);
+  --stage-emerald: oklch(0.68 0.14 155);
+  --stage-green:   oklch(0.74 0.15 145);
+
+  --av-1: oklch(0.66 0.14 285); --av-2: oklch(0.64 0.13 150);
+  --av-3: oklch(0.68 0.13 60);  --av-4: oklch(0.65 0.16 25);
+  --av-5: oklch(0.64 0.12 230); --av-6: oklch(0.63 0.12 175);
+  --av-7: oklch(0.66 0.15 330); --av-8: oklch(0.60 0.08 250);
+
+  --sh-1: 0 1px 2px oklch(0 0 0 / .3), 0 1px 1px oklch(0 0 0 / .2);
+  --sh-2: 0 3px 8px -3px oklch(0 0 0 / .42), 0 8px 20px -6px oklch(0 0 0 / .4);
+  --sh-3: 0 8px 18px -8px oklch(0 0 0 / .5), 0 18px 40px -12px oklch(0 0 0 / .55);
+  --sh-4: 0 12px 26px -10px oklch(0 0 0 / .55), 0 30px 60px -16px oklch(0 0 0 / .65);
+  --sh-key: 0 14px 44px -12px oklch(0.70 0.15 295 / .35);
+
+  --focus: 0 0 0 3px oklch(0.45 0.12 295 / .45), 0 0 0 1px var(--accent);
+}
+
+/* ═══════════════════════════ Densidade ═══ */
+[data-density="compact"]{ --row-h: 28px; --field-h: 30px; --pad-x: 10px; --pad-y: 6px; }
+[data-density="default"] { --row-h: 32px; --field-h: 34px; --pad-x: 12px; --pad-y: 9px; }
+[data-density="comfy"]   { --row-h: 38px; --field-h: 40px; --pad-x: 16px; --pad-y: 13px; }
+
+/* ═══════════════ CAMADA COMPAT / FUSÃO v4→v5 (2026-06-02 · [CC]) ═══════════════
+   Autorizado por [W]: "fundir o melhor, no final só 1". ds-v5/tokens.css é a FONTE
+   ÚNICA. Este bloco absorve os nomes que o tokens.css (v4) provia e que módulos do
+   host ainda consomem — mapeados para o token v5 equivalente VIA var() (assim tema
+   dark + density propagam sozinhos). Roxo canon (ADR 0235) preservado; tipo segue
+   IBM Plex (carregado), não a Hanken do v5. Auditoria: 29 tokens de quebra cobertos
+   + aliases de coerência (neutros/texto v4 passam a apontar pro v5).
+   Depois de verificado tela-a-tela, o tokens.css é removido (lápide). */
+:root{
+  /* — Neutros/texto/accent v4 → v5 (coerência) — */
+  --bg-2:      var(--sunken);
+  --text-dim:  var(--text-2);
+  --text-mute: var(--text-3);
+  --accent-2:  var(--accent-hi);
+
+  /* — Type: manter IBM Plex carregado; v5 (Hanken/JetBrains) NÃO entra — */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --sans: var(--font-sans);
+  --mono: var(--font-mono);
+  --font-display: var(--font-sans);
+
+  /* — Radius v4 → v5 — */
+  --radius-sm: var(--r-1);
+  --radius:    var(--r-1);
+  --radius-md: var(--r-2);
+  --radius-lg: var(--r-4);
+
+  /* — Shadow v4 → v5 — */
+  --shadow-0: none;
+  --shadow-1: var(--sh-1);
+  --shadow-2: var(--sh-2);
+  --shadow-3: var(--sh-3);
+  --shadow-4: var(--sh-4);
+  --shadow-soft: var(--sh-1);
+  --shadow-pop:  var(--sh-3);
+
+  /* — Motion v4 → v5 — */
+  --t-fast: var(--t-1);
+  --t-base: var(--t-2);
+  --t-slow: var(--t-3);
+  --ease-out: var(--ease);
+
+  /* — Z (faltava --z-raised) — */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-max: 100;
+
+  /* — Status semântico v4 → v5 (dark propaga via var) — */
+  --ok-bg:     var(--pos-soft);    --ok-fg:     var(--pos);
+  --warn-bg:   var(--warn-soft);   --warn-fg:   var(--warn);
+  --danger-bg: var(--neg-soft);    --danger-fg: var(--neg);
+  --info-bg:   var(--accent-soft); --info-fg:   var(--accent);
+
+  /* — Camada semântica de intenção (v3) — */
+  --color-action-primary:       var(--accent);
+  --color-action-primary-hover: var(--accent-hi);
+  --color-action-primary-fg:    var(--accent-fg);
+  --color-text-default:    var(--text);
+  --color-text-secondary:  var(--text-2);
+  --color-text-tertiary:   var(--text-3);
+  --color-text-danger:     var(--neg);
+  --color-text-success:    var(--pos);
+  --color-text-link:       var(--accent);
+  --surface-page:    var(--bg);
+  --surface-subtle:  var(--sunken);
+  --surface-default: var(--surface);
+  --surface-raised:  var(--raised);
+  --border-default:  var(--border);
+  --border-subtle:   var(--border-2);
+  --border-focus:    var(--accent);
+  --focus-ring:      var(--focus);
+
+  /* — Primary das Index (PT-03 · roxo universal, ADR 0190) — */
+  --primary-page:        var(--accent);
+  --primary-page-border: var(--accent-hi);
+  --primary-page-fg:     var(--accent-fg);
+
+  /* — Helpers neutros/texto que módulos consomem (fallback; runtime app.jsx pode sobrepor) — */
+  --bg-1:    var(--bg);
+  --bg-3:    var(--sunken);
+  --bg-elev: var(--raised);
+  --panel:   var(--surface);
+  --ink-1:   var(--text);
+  --ink-3:   var(--text-3);
+  --gh:      var(--hairline);
+  --row-c:   var(--sunken);
+  --om-q-color: var(--accent);
+
+  /* — Hue scalars (accent tweak; default roxo canon 295) — */
+  --hue: 295;
+  --cb-hue: 295;
+  --fsm-hue: 295;
+  --accent-h: 295;
+
+  /* — Breakpoints v4 — */
+  --bp-mobile: 640px;  --bp-tablet: 900px;  --bp-desktop: 1200px;
+  --bp-wide: 1440px;   --bp-ultra: 1920px;
+
+  /* — Oficina kanban cols (usos têm fallback ,5) — */
+  --ofc-cols: 5;
+}

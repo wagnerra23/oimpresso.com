@@ -1,0 +1,215 @@
+/* crm-page.css — estilos da página CRM React interativa */
+
+.crm-page { display: flex; flex-direction: column; }
+
+.crm-stats { padding: 16px 24px 0; grid-template-columns: 1.4fr repeat(3, 1fr); gap: 10px; flex-shrink: 0; }
+
+.crm-board {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(220px, 1fr));
+  gap: 10px;
+  padding: 14px 24px 24px;
+  overflow: auto;
+  min-height: 0;
+}
+
+.crm-col {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-top: 3px solid transparent;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex; flex-direction: column;
+  min-height: 240px;
+  min-width: 0;
+}
+
+.crm-col-h {
+  display: flex; align-items: center; gap: 6px;
+  padding: 0 0 10px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--border-2);
+  font-size: 11px;
+}
+.crm-col-dot { width: 8px; height: 8px; border-radius: 50%; }
+.crm-col-h b { font-weight: 600; font-size: 12px; }
+.crm-col-h small { margin-left: auto; font-size: 10.5px; color: var(--text-mute); }
+.crm-col-n { background: var(--border-2); color: var(--text-dim); font-family: 'IBM Plex Mono', monospace; font-size: 10px; padding: 1px 6px; border-radius: 99px; font-weight: 600; }
+
+.crm-col-body { display: flex; flex-direction: column; gap: 6px; }
+
+.crm-empty {
+  border: 1px dashed var(--border);
+  border-radius: 5px;
+  padding: 18px 6px;
+  text-align: center;
+  color: var(--text-mute);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.crm-card {
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  border-radius: 6px;
+  padding: 9px 10px;
+  cursor: grab;
+  transition: transform .12s, box-shadow .12s, border-color .12s;
+  position: relative;
+}
+.crm-card:hover { border-color: oklch(0.85 0.05 220); transform: translateY(-1px); box-shadow: 0 2px 6px rgba(0,0,0,.06); }
+.crm-card:active { cursor: grabbing; }
+.crm-card.dragging { opacity: 0.4; transform: rotate(-1deg); }
+.crm-card.win { background: oklch(0.97 0.04 145); border-color: oklch(0.85 0.06 145); }
+.crm-card.warn { border-color: oklch(0.85 0.08 70); }
+.crm-card.bad { border-color: oklch(0.85 0.10 25); background: oklch(0.98 0.02 25); }
+
+.crm-card-top { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.crm-av {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 9.5px; font-weight: 700;
+  flex-shrink: 0;
+}
+.crm-av.lg { width: 36px; height: 36px; font-size: 12px; }
+.crm-card-top b { font-size: 12px; font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.crm-card-meta { font-size: 10.5px; color: var(--text-mute); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crm-card-val { font-size: 14px; font-weight: 600; margin-top: 4px; letter-spacing: -0.01em; }
+.crm-card-foot { display: flex; align-items: center; gap: 6px; margin-top: 5px; flex-wrap: wrap; }
+.crm-card-age { margin-left: auto; font-size: 10px; color: var(--text-mute); font-family: 'IBM Plex Mono', monospace; }
+
+.crm-badge { font-size: 9.5px; font-weight: 600; padding: 1px 6px; border-radius: 3px; background: var(--border-2); color: var(--text-dim); text-transform: lowercase; }
+.crm-badge.ok { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+.crm-badge.warn { background: oklch(0.95 0.06 70); color: oklch(0.42 0.12 60); }
+.crm-badge.bad { background: oklch(0.95 0.05 25); color: oklch(0.50 0.16 25); }
+.crm-badge.win { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+.crm-badge.info { background: oklch(0.94 0.06 220); color: oklch(0.40 0.10 220); }
+
+/* Drawer */
+.crm-backdrop {
+  position: fixed; inset: 0;
+  background: oklch(0.20 0.01 80 / 0.35);
+  z-index: 100;
+  animation: crmFade .12s ease;
+}
+@keyframes crmFade { from { opacity: 0 } to { opacity: 1 } }
+
+.crm-drawer {
+  position: fixed;
+  top: 0; right: 0; bottom: 0;
+  width: 420px;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  z-index: 101;
+  display: flex; flex-direction: column;
+  box-shadow: -4px 0 20px rgba(0,0,0,.08);
+  animation: crmSlide .18s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes crmSlide { from { transform: translateX(100%) } to { transform: translateX(0) } }
+
+.crm-drawer-h {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+}
+.crm-drawer-h h2 { margin: 0; font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+.crm-drawer-h p { margin: 2px 0 0; font-size: 12px; color: var(--text-mute); }
+.crm-x {
+  background: transparent; border: none;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  color: var(--text-mute);
+  margin-left: auto;
+  cursor: pointer;
+  font-size: 13px;
+}
+.crm-x:hover { background: var(--border-2); color: var(--text); }
+
+.crm-drawer-body { flex: 1; overflow: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 18px; }
+.crm-drawer-val small,
+.crm-drawer-stage small,
+.crm-drawer-tl small { font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-mute); font-weight: 600; display: block; margin-bottom: 6px; }
+.crm-drawer-val b { font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+
+.crm-flow { display: flex; gap: 0; border-radius: 6px; overflow: hidden; }
+.crm-flow-step {
+  flex: 1;
+  border: 1px solid var(--border);
+  border-right: none;
+  background: var(--bg);
+  font: inherit; font-size: 10px; padding: 6px 4px;
+  color: var(--text-mute);
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  transition: background .1s;
+}
+.crm-flow-step:last-child { border-right: 1px solid var(--border); }
+.crm-flow-step:hover { background: var(--border-2); }
+.crm-flow-step.done { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); border-color: oklch(0.86 0.08 145); }
+.crm-flow-step.cur { background: var(--text); color: white; border-color: var(--text); }
+
+.crm-drawer-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.crm-drawer-tl ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.crm-drawer-tl li {
+  padding-left: 16px;
+  position: relative;
+  font-size: 12px;
+  color: var(--text-dim);
+  border-left: 2px solid var(--border-2);
+  padding-bottom: 6px;
+}
+.crm-drawer-tl li::before {
+  content: "";
+  position: absolute;
+  left: -5px; top: 5px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--text-mute);
+}
+.crm-drawer-tl li b { color: var(--text); font-weight: 600; }
+
+/* Toast */
+.crm-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--text);
+  color: white;
+  padding: 10px 18px;
+  border-radius: 99px;
+  font-size: 12.5px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+  z-index: 200;
+  animation: crmToast .2s cubic-bezier(.2, .8, .2, 1);
+}
+@keyframes crmToast { from { opacity: 0; transform: translate(-50%, 8px) } to { opacity: 1; transform: translate(-50%, 0) } }
+
+/* Botão "Só quentes" ativo */
+.os-page-h-r .os-btn.active {
+  background: oklch(0.95 0.06 25);
+  color: oklch(0.50 0.16 25);
+  border-color: oklch(0.85 0.08 25);
+}
+
+
+/* ════════ DARK auto-flip dos soft-chips (Tier-2 · [W] 2026-06-20) ════════
+   Gerado: bg pastel→tom escuro mesma hue, texto→claro. Light intacto.
+   Só selectores SEM override dark prévio. ════════ */
+[data-theme="dark"] .crm-card:hover{ border-color: oklch(0.40 0.050 220); }
+[data-theme="dark"] .crm-card.win{ background: oklch(0.275 0.050 145); border-color: oklch(0.40 0.060 145); }
+[data-theme="dark"] .crm-card.warn{ border-color: oklch(0.40 0.080 70); }
+[data-theme="dark"] .crm-card.bad{ border-color: oklch(0.40 0.100 25); background: oklch(0.275 0.050 25); }
+[data-theme="dark"] .crm-badge.ok{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); }
+[data-theme="dark"] .crm-badge.warn{ background: oklch(0.275 0.060 70); color: oklch(0.84 0.120 60); }
+[data-theme="dark"] .crm-badge.bad{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.160 25); }
+[data-theme="dark"] .crm-badge.win{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); }
+[data-theme="dark"] .crm-badge.info{ background: oklch(0.275 0.060 220); color: oklch(0.84 0.100 220); }
+[data-theme="dark"] .crm-flow-step.done{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); border-color: oklch(0.40 0.080 145); }
+[data-theme="dark"] .os-page-h-r .os-btn.active{ background: oklch(0.275 0.060 25); color: oklch(0.84 0.160 25); border-color: oklch(0.40 0.080 25); }

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"></meta>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"></meta>
+<title>Bench — Drawer Financeiro vs melhores layouts</title>
+<style>
+  :root{
+    --bg: oklch(0.975 0.005 295);
+    --surface: oklch(1 0 0);
+    --sunken: oklch(0.962 0.008 295);
+    --border: oklch(0.90 0.012 295);
+    --hairline: oklch(0.93 0.008 295);
+    --text: oklch(0.22 0.02 295);
+    --text-2: oklch(0.45 0.02 295);
+    --text-3: oklch(0.58 0.015 295);
+    --accent: oklch(0.55 0.15 295);
+    --accent-soft: oklch(0.93 0.04 295);
+    --pos: oklch(0.50 0.12 150);
+    --pos-soft: oklch(0.93 0.05 150);
+    --neg: oklch(0.55 0.18 25);
+    --neg-soft: oklch(0.94 0.05 25);
+    --warn: oklch(0.62 0.13 75);
+    --warn-soft: oklch(0.95 0.06 85);
+    --sh-1: 0 1px 2px oklch(0.2 0.02 295 / .06), 0 2px 8px oklch(0.2 0.02 295 / .05);
+    --ease: cubic-bezier(.22,1,.36,1);
+    --fs-1: 10.5px; --fs-2: 11.5px; --fs-3: 12.5px; --fs-4: 13.5px;
+    --fs-5: 15px; --fs-6: 18px; --fs-7: 22px; --fs-8: 28px; --fs-9: 38px;
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, monospace;
+  }
+  *{ margin:0; padding:0; box-sizing:border-box; }
+  body{
+    background: var(--bg);
+    background-image: radial-gradient(1100px 500px at 75% -8%, oklch(0.55 0.15 295 / .055), transparent 70%);
+    color: var(--text);
+    font: 400 var(--fs-4)/1.55 "Inter var", system-ui, -apple-system, sans-serif;
+    padding: 40px clamp(20px, 5vw, 64px) 80px;
+  }
+  .wrap{ max-width: 1180px; margin: 0 auto; }
+  .eyebrow{ font-size: var(--fs-2); text-transform: uppercase; letter-spacing: .12em; color: var(--accent); font-weight: 600; }
+  h1{ font-size: var(--fs-8); font-weight: 650; letter-spacing: -0.015em; margin-top: 6px; text-wrap: balance; }
+  .lede{ color: var(--text-2); max-width: 62ch; margin-top: 8px; text-wrap: pretty; }
+  .verdict{
+    margin-top: 20px; display: flex; align-items: stretch; gap: 0;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    box-shadow: var(--sh-1); overflow: hidden;
+  }
+  .verdict .score{
+    padding: 18px 26px; display: grid; place-content: center; text-align: center;
+    background: linear-gradient(160deg, oklch(0.55 0.15 295) 0%, oklch(0.42 0.14 295) 100%);
+    color: oklch(0.98 0.005 295);
+  }
+  .verdict .score b{ font: 650 var(--fs-9)/1 var(--mono); letter-spacing: -0.02em; display: block; }
+  .verdict .score small{ font-size: var(--fs-1); text-transform: uppercase; letter-spacing: .1em; opacity: .8; }
+  .verdict .read{ padding: 16px 22px; display: grid; gap: 4px; align-content: center; }
+  .verdict .read b{ font-size: var(--fs-5); font-weight: 600; }
+  .verdict .read p{ color: var(--text-2); font-size: var(--fs-3); max-width: 70ch; text-wrap: pretty; }
+  section{ margin-top: 44px; }
+  .sec-h{ display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .sec-h .n{
+    font: 600 var(--fs-2)/1 var(--mono); color: var(--accent);
+    background: var(--accent-soft); border-radius: 5px; padding: 4px 7px;
+  }
+  .sec-h h2{ font-size: var(--fs-6); font-weight: 650; letter-spacing: -0.01em; }
+  .sec-h p{ color: var(--text-3); font-size: var(--fs-3); }
+
+  /* Referências */
+  .refs{ display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 12px; }
+  .ref{
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px; box-shadow: var(--sh-1); display: grid; gap: 8px; align-content: start;
+  }
+  .ref h3{ font-size: var(--fs-4); font-weight: 650; display: flex; align-items: center; gap: 8px; }
+  .ref h3 .dot{ width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .ref .pat{ color: var(--text-2); font-size: var(--fs-3); text-wrap: pretty; }
+  .ref .rows{ display: grid; gap: 5px; margin-top: 2px; }
+  .ref .row{ display: flex; gap: 8px; font-size: var(--fs-3); align-items: baseline; }
+  .ref .row .st{ font-weight: 650; font-size: var(--fs-1); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; border-radius: 4px; padding: 1.5px 6px; }
+  .st.tem{ color: var(--pos); background: var(--pos-soft); }
+  .st.falta{ color: var(--neg); background: var(--neg-soft); }
+  .st.parcial{ color: var(--warn); background: var(--warn-soft); }
+  .ref .row span:last-child{ color: var(--text-2); }
+
+  /* Scorecard */
+  .card{ background: var(--surface); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--sh-1); overflow: hidden; }
+  table{ width: 100%; border-collapse: collapse; font-size: var(--fs-3); }
+  th{
+    text-align: left; font-size: var(--fs-1); text-transform: uppercase; letter-spacing: .08em;
+    color: var(--text-3); font-weight: 600; padding: 10px 16px; border-bottom: 1px solid var(--border);
+    background: var(--sunken);
+  }
+  td{ padding: 9px 16px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
+  tr:last-child td{ border-bottom: 0; }
+  td.dim b{ display: block; font-weight: 600; font-size: var(--fs-4); }
+  td.dim span{ color: var(--text-3); font-size: var(--fs-2); }
+  td.sc{ width: 170px; }
+  .bar{ display: flex; align-items: center; gap: 10px; }
+  .bar i{ font: 650 var(--fs-4)/1 var(--mono); font-style: normal; min-width: 30px; }
+  .bar .tr{ flex: 1; height: 5px; border-radius: 3px; background: var(--sunken); overflow: hidden; }
+  .bar .tr u{ display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+  .bar.hi i{ color: var(--pos); } .bar.hi .tr u{ background: var(--pos); }
+  .bar.mid i{ color: var(--warn); } .bar.mid .tr u{ background: var(--warn); }
+  .bar.lo i{ color: var(--neg); } .bar.lo .tr u{ background: var(--neg); }
+  td.ev{ color: var(--text-2); max-width: 480px; text-wrap: pretty; }
+  td.ev b{ color: var(--text); font-weight: 600; }
+  .new{ font-size: var(--fs-1); font-weight: 650; color: var(--accent); background: var(--accent-soft); border-radius: 4px; padding: 1.5px 6px; text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+
+  /* Refinos */
+  .refinos{ display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; }
+  .refino{
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 10px; padding: 16px 18px; box-shadow: var(--sh-1); display: grid; gap: 7px; align-content: start;
+  }
+  .refino .top{ display: flex; align-items: center; gap: 10px; }
+  .refino .id{ font: 650 var(--fs-2)/1 var(--mono); color: var(--accent); }
+  .refino h3{ font-size: var(--fs-4); font-weight: 650; flex: 1; }
+  .refino .meta{ font-size: var(--fs-1); color: var(--text-3); text-transform: uppercase; letter-spacing: .07em; white-space: nowrap; }
+  .refino p{ color: var(--text-2); font-size: var(--fs-3); text-wrap: pretty; }
+  .refino .ganho{ font-size: var(--fs-2); color: var(--pos); font-weight: 600; }
+  .foot{ margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); color: var(--text-3); font-size: var(--fs-2); display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<div class="wrap" data-screen-label="Bench Drawer Financeiro">
+
+  <header>
+    <div class="eyebrow">Método 9.75 · Etapa 1 — bench honesto · 2026-06-11</div>
+    <h1>O drawer do Financeiro está ancorado nos melhores layouts?</h1>
+    <p class="lede">Anatomia do nosso drawer contra os padrões de painel-de-detalhe dos comparáveis do GLOSSARY — Linear, Stripe, Mercury, Attio e Front. Avaliado o que está no protótipo HOJE (inclui J/K + teclas visíveis + recibo, de hoje).</p>
+    <div class="verdict">
+      <div class="score"><small>nota do drawer</small><b>8,4</b><small>era 7,8 ontem</small></div>
+      <div class="read">
+        <b>Ancorado na ESTRUTURA. Os gaps restantes são de interação fina.</b>
+        <p>A espinha — fato fixo no topo (Mercury), lentes de domínio (Stripe), teclado visível (Linear), cross-links (Attio), IA em aba (Pylon) — segue os melhores. O que separa 8,4 de 9,5: KV morto (não edita inline), copy só na linha digitável, status dito 3× no hero e a auditoria enterrada no fim do scroll.</p>
+      </div>
+    </div>
+  </header>
+
+  <section data-screen-label="Referências">
+    <div class="sec-h"><span class="n">1</span><h2>Os 5 padrões de referência — o que cada um faz de melhor</h2><p>e o que já copiamos vs o que falta</p></div>
+    <div class="refs">
+
+      <div class="ref">
+        <h3><span class="dot"></span>Mercury — transação bancária</h3>
+        <p class="pat">O FATO primeiro: valor gigante em mono com centavos de-enfatizados, estado em uma linha calma, zero chrome. Recibo/anexo sempre à mão.</p>
+        <div class="rows">
+          <div class="row"><span class="st tem">temos</span><span>Hero fixo fora do scroll · sistema Num 38px · centavos pequenos</span></div>
+          <div class="row"><span class="st tem">temos</span><span>Recibo imprimível com brand (hoje)</span></div>
+          <div class="row"><span class="st falta">falta</span><span>Calma no hero: dizemos o estado 3× (label + badge + cor)</span></div>
+        </div>
+      </div>
+
+      <div class="ref">
+        <h3><span class="dot"></span>Stripe — detalhe de pagamento</h3>
+        <p class="pat">Metadado em KV denso com COPY em tudo ao hover; timeline de eventos como cidadã de primeira classe; objetos relacionados linkados.</p>
+        <div class="rows">
+          <div class="row"><span class="st tem">temos</span><span>KV grid 2-col denso · lentes Conciliação/Fiscal/Cobrança</span></div>
+          <div class="row"><span class="st parcial">parcial</span><span>Copy: só linha digitável/PIX. ID, NF, valor: não copiam</span></div>
+          <div class="row"><span class="st falta">falta</span><span>Timeline rica — nossa auditoria é lista plana no fim do scroll</span></div>
+        </div>
+      </div>
+
+      <div class="ref">
+        <h3><span class="dot"></span>Linear — peek de issue</h3>
+        <p class="pat">Teclado em TUDO e teclas mostradas; navega entre registros sem fechar o painel; toda propriedade é clicável e editável no lugar.</p>
+        <div class="rows">
+          <div class="row"><span class="st tem">temos</span><span>J/K navega títulos · n/N no header · R liquida · kbds visíveis (hoje)</span></div>
+          <div class="row"><span class="st falta">falta</span><span>Propriedade clicável: nosso KV é texto morto, edição só no painel ✎</span></div>
+        </div>
+      </div>
+
+      <div class="ref">
+        <h3><span class="dot"></span>Attio — peek de registro</h3>
+        <p class="pat">Cross-links navegáveis em chips; cada campo edita inline com hover state; abas separam visão geral de atividade.</p>
+        <div class="rows">
+          <div class="row"><span class="st tem">temos</span><span>Chips de vínculo (venda → título → extrato) · abas Detalhes/IA</span></div>
+          <div class="row"><span class="st falta">falta</span><span>Edição inline nos campos (categoria, canal, competência)</span></div>
+        </div>
+      </div>
+
+      <div class="ref">
+        <h3><span class="dot"></span>Front / Pylon — painel de contexto</h3>
+        <p class="pat">Ação primária num footer fixo que nunca rola pra fora; o assistente propõe e o humano aplica.</p>
+        <div class="rows">
+          <div class="row"><span class="st tem">temos</span><span>Footer fixo: Recebi/Paguei + Recibo + NFe + troubleshooter</span></div>
+          <div class="row"><span class="st tem">temos</span><span>IA como copiloto: aba ✦ IA + banner de anomalia (P4)</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section data-screen-label="Scorecard">
+    <div class="sec-h"><span class="n">2</span><h2>Scorecard — 12 dimensões</h2><p>evidência no código, não opinião</p></div>
+    <div class="card">
+      <table>
+        <thead><tr><th>Dimensão · referência</th><th>Nota</th><th>Evidência</th></tr></thead>
+        <tbody>
+          <tr>
+            <td class="dim"><b>Hierarquia do fato</b><span>Mercury</span></td>
+            <td class="sc"><div class="bar hi"><i>9,5</i><div class="tr"><u style="width:95%"></u></div></div></td>
+            <td class="ev">Camada 1 FIXA fora do scroll: quanto (38px mono) · quando · onde no ciclo (FSM). Gabarito Prova Viva aplicado 06-10.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Densidade do balcão</b><span>P1 · Attio</span></td>
+            <td class="sc"><div class="bar hi"><i>9,0</i><div class="tr"><u style="width:90%"></u></div></div></td>
+            <td class="ev">KV empilhado em grid 2-col gap 6/20 — ~2× a densidade de label-esq/valor-dir. 560px de largura úteis.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Teclado visível</b><span>P2 · Linear</span> <span class="new">subiu hoje</span></td>
+            <td class="sc"><div class="bar hi"><i>9,0</i><div class="tr"><u style="width:90%"></u></div></div></td>
+            <td class="ev">Era 6,0: só Esc, invisível. Agora <b>J/K · R · Esc com kbds mostrados</b> no footer e no botão primário.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Navegação em lote</b><span>Linear · Gmail</span> <span class="new">subiu hoje</span></td>
+            <td class="sc"><div class="bar hi"><i>9,0</i><div class="tr"><u style="width:90%"></u></div></div></td>
+            <td class="ev">Era 5,0: abrir-fechar-abrir. Agora <b>↑ n/N ↓ no header + J/K</b> percorrem a lista filtrada sem fechar o drawer.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Cross-links</b><span>Attio · Front</span></td>
+            <td class="sc"><div class="bar hi"><i>9,0</i><div class="tr"><u style="width:90%"></u></div></div></td>
+            <td class="ev">Lente Vínculos com chips navegáveis; costura venda→título→extrato é o fio do "roda o fluxo".</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>IA copiloto</b><span>P4 · Pylon</span></td>
+            <td class="sc"><div class="bar hi"><i>9,0</i><div class="tr"><u style="width:90%"></u></div></div></td>
+            <td class="ev">Aba ✦ IA + banner de anomalia na entrada. IA propõe, Eliana decide — nunca aplica sozinha.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Saída no mundo real</b><span>P5 · Mercury</span> <span class="new">subiu hoje</span></td>
+            <td class="sc"><div class="bar hi"><i>9,0</i><div class="tr"><u style="width:90%"></u></div></div></td>
+            <td class="ev">Era 5,0: título preso na tela. Agora <b>Recibo imprimível com brand Oimpresso</b> + Ver NFe no footer fixo.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Ação no lugar certo</b><span>Front</span></td>
+            <td class="sc"><div class="bar hi"><i>8,5</i><div class="tr"><u style="width:85%"></u></div></div></td>
+            <td class="ev">Footer fixo nunca rola pra fora; Recebi/Paguei sempre visível com a tecla R do lado.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Motion · tempero</b><span>Norte visual</span></td>
+            <td class="sc"><div class="bar hi"><i>8,5</i><div class="tr"><u style="width:85%"></u></div></div></td>
+            <td class="ev">Slide-in com --ease canônico, sombras --sh-2, transições --t-1. Tudo tokenizado.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Status sem redundância</b><span>Stripe · Mercury</span></td>
+            <td class="sc"><div class="bar mid"><i>7,5</i><div class="tr"><u style="width:75%"></u></div></div></td>
+            <td class="ev">Hero diz o estado <b>3×</b>: label uppercase + StatusBadge + cor do valor. Mercury diz 1×. Candidato a poda.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Timeline / auditoria</b><span>Stripe</span></td>
+            <td class="sc"><div class="bar mid"><i>7,0</i><div class="tr"><u style="width:70%"></u></div></div></td>
+            <td class="ev">finAuditTrail existe (criou/editou/conciliou) mas é lista plana <b>enterrada no fim do scroll</b>. Na Stripe, eventos são primeira classe.</td>
+          </tr>
+          <tr>
+            <td class="dim"><b>Edição inline + copy</b><span>Attio · Linear · Stripe</span></td>
+            <td class="sc"><div class="bar lo"><i>6,0</i><div class="tr"><u style="width:60%"></u></div></div></td>
+            <td class="ev"><b>O maior gap.</b> KV é texto morto — categoria/canal/competência editam só pelo painel ✎. Copy ao hover só na linha digitável; ID e NF não copiam.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section data-screen-label="Refinos propostos">
+    <div class="sec-h"><span class="n">3</span><h2>3 refinos para fechar o gap — em ordem de custo/benefício</h2><p>nenhum mexe na estrutura; todos são interação fina</p></div>
+    <div class="refinos">
+
+      <div class="refino">
+        <div class="top"><span class="id">R1</span><h3>Copy em tudo ao hover</h3><span class="meta">barato · Stripe</span></div>
+        <p>Todo valor copiável (ID, NF-e, chave, valor, linha digitável) ganha o ícone ⧉ no hover e copia com 1 clique + feedback "copiado". Reusa o padrão que já existe na lente Cobrança.</p>
+        <div class="ganho">+0,4 · mata o gap mais sentido no balcão (Larissa cola ID no WhatsApp do cliente)</div>
+      </div>
+
+      <div class="refino">
+        <div class="top"><span class="id">R2</span><h3>KV editável inline</h3><span class="meta">médio · Attio/Linear</span></div>
+        <p>Categoria, canal e competência viram campos clicáveis: hover mostra borda, clique abre select no lugar. O painel ✎ continua existindo pra edição em massa; o inline cobre o caso de 1 campo.</p>
+        <div class="ganho">+0,5 · edição vira gesto de 1 clique em vez de abrir-painel-procurar-campo</div>
+      </div>
+
+      <div class="refino">
+        <div class="top"><span class="id">R3</span><h3>Hero calmo + timeline promovida</h3><span class="meta">médio · Mercury/Stripe</span></div>
+        <p>Poda a redundância do hero (estado dito 1×: badge sai, label fica) e promove a auditoria pra timeline vertical com dots e timestamps relativos, acima dos comentários.</p>
+        <div class="ganho">+0,4 · hero respira como Mercury; quem auditou o quê deixa de ser caça ao tesouro</div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="foot">
+    <span>Bench honesto · Método 9.75 Etapa 1 · referências do GLOSSARY (padrões descritos, não recriados) · evidência = código do protótipo em 2026-06-11</span>
+    <span>8,4 hoje → ~9,5 com R1+R2+R3 · decide [W]</span>
+  </div>
+
+</div>
+</body>
+</html>

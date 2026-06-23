@@ -1,0 +1,48 @@
+{
+  "tela": "jana-pro",
+  "fase": "F1.5",
+  "avaliador": "[CC] auto-crítica (overlay autônomo PROTOCOL §2)",
+  "data": "2026-06-01",
+  "arquivo": "Jana Pro - Paywall CC.html",
+  "score": 90,
+  "score_pre_fixes": 86,
+  "fixes_aplicados": ["med#1 reordenou comparacao liderando com vitorias Pro (Brief/Analises/Cockpit) + 'chat dados reais' vira linha-base no fim", "med#2 CTA Ativar ganhou estado Ativando -> 'Pro ativo · 14 dias gratis' + atalho Cmd/Ctrl+Enter"],
+  "first_impression": "Limpo e confiável — lê como tela de checkout séria, não landing. A hierarquia leva o olho do pitch → prova → comparação → preço → CTA sem ruído. O card de prova com números reais é o que diferencia de um paywall genérico.",
+  "strengths": [
+    "Card de prova ao vivo (3 ângulos de faturamento reais do ChatCopilotoAgent) converte 'ERP nativo' de promessa em demonstração — argumento não-replicável",
+    "Uma única ação primária roxa no footer sticky (benchmark Stripe Checkout respeitado)",
+    "Densidade correta pra Larissa: comparação + preço + confiança sem rolar a 1280px",
+    "Tokens canônicos fiéis: roxo oklch(0.55 0.15 295), zero blue-*, status warm, rounded-md, shadow-sm sutil",
+    "Preço honesto posicionado vs concorrentes (Numia R$99 / Copilot R$149) usa a transparência de custo como venda",
+    "Proibições respeitadas: sem WhatsApp ('Falar com a Jana'), sem emoji, sem modal full-screen, PT-BR, sem texto verboso"
+  ],
+  "weaknesses_priority": [
+    {
+      "severity": "med",
+      "issue": "A linha de comparação 'Chat com dados reais' aparece com check nos dois lados (Grátis E Pro) — visualmente enfraquece o topo da tabela, parece que não há diferença logo na primeira linha.",
+      "fix": "Reordenar: começar a tabela por uma linha onde o Pro claramente ganha (Brief diário 06h ou Análises automáticas). Deixar 'chat com dados reais' como reforço no meio, ou anotá-la como 'base dos dois planos' fora da grade de comparação."
+    },
+    {
+      "severity": "med",
+      "issue": "O botão 'Ativar Jana Pro' não tem estado de carregamento/sucesso. Numa tela cuja única função é converter, o clique morto reduz confiança no protótipo.",
+      "fix": "Adicionar micro-estado: clique → spinner 'Ativando…' → confirmação inline 'Pro ativo · 14 dias grátis'. Mesmo mockado, fecha o loop de feedback (dim. 5 Estados)."
+    },
+    {
+      "severity": "low",
+      "issue": "Atalhos de teclado ausentes (Esc pra voltar, Enter pra ativar) — a Larissa é teclado-pesado.",
+      "fix": "Mapear Esc='Voltar ao chat' e ⌘/Ctrl+Enter='Ativar'. Barato, alinha com a persona."
+    },
+    {
+      "severity": "low",
+      "issue": "O '14 dias grátis' aparece em 3 lugares (pricing, footer, lista) — leve redundância pode parecer insistência.",
+      "fix": "Manter no footer (decisão) + pricing (detalhe); remover da lista de bullets."
+    }
+  ],
+  "benchmark_comparable": "Stripe Checkout",
+  "linear_vercel_stripe_test": "parece feita pelo time da Stripe: SIM (com a ressalva da 1ª linha da comparação)",
+  "persona_fit": {
+    "larissa": "alto — densidade, números grandes, decisão rápida",
+    "wagner": "alto — preço posicionado + sinais de governança (LGPD, isolamento)"
+  },
+  "gate": "PASS (90) — 2 fixes 'med' aplicados. Pronto pra F2 (screenshot [W]) e F3 ([CL] traduz). Restam so 2 fixes 'low' (redundancia 14 dias, Esc) opcionais pro F3."
+}
