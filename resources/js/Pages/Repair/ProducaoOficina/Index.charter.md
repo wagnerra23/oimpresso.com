@@ -7,7 +7,7 @@ status_detail: rascunho
 last_validated: "2026-05-10"
 parent_module: Repair
 related_adrs: [94, 101, 114, 121, 93, 192]
-related_prototype: prototipo-ui/prototipos/producao-oficina/F1.html
+related_prototype: prototipo-ui/cowork/oficina-page.jsx
 tier: A
 ---
 

@@ -30,14 +30,11 @@ declare(strict_types=1);
 // path morto falha mesmo assim. [CC]/[W] decide repoint (promover protótipo pra fora do
 // _BACKUP) ou remover o campo. Allowlist só ENCOLHE (mesma filosofia de ratchet).
 const CHARTER_VSOURCE_ALLOWLIST = [
-    'RecurringBilling/Index.charter.md'
-        => 'protótipo recurring arquivado em _BACKUP-NAO-USAR pós-implementação; sem fonte viva — [CC] decidir repoint/remover',
-    'RecurringBilling/Planos/Index.charter.md'
-        => 'idem recurring (protótipo arquivado)',
-    'RecurringBilling/Faturas/Index.charter.md'
-        => 'idem recurring (protótipo arquivado)',
-    'RecurringBilling/Configuracoes/Index.charter.md'
-        => 'idem recurring (protótipo arquivado)',
+    // VAZIA — débito quitado. Os 4 charters RecurringBilling (Index/Planos/Faturas/
+    // Configuracoes) foram re-apontados pro SSOT vivo
+    // `prototipo-ui/cowork/cobranca-recorrente-page.jsx` (migração prototipo-SSOT, PR
+    // #3259) e saíram da allowlist. Allowlist só ENCOLHE (ratchet): re-adicionar exige
+    // motivo explícito em PR.
 ];
 
 function charterGateRepoRoot(): string
