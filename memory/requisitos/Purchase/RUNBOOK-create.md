@@ -92,7 +92,7 @@ preencher a grade com Tab/Enter, "Adicionar à compra", conferir linhas acumulad
 ## 7. Refs
 - Controller: `app/Http/Controllers/PurchaseController.php` (`create`/`createInertia`/`store`/`gradeMatrix`)
 - Linha: `app/Utils/ProductUtil.php@createOrUpdatePurchaseLines`
-- Tela: `resources/js/Pages/Purchase/Create.tsx` · componentes `resources/js/Components/purchase/{GradeMatrixInput,GradeProductCombobox}.tsx`
+- Tela: `resources/js/Pages/Purchase/Create.tsx` · componentes `resources/js/Pages/Purchase/_components/{GradeMatrixInput,GradeProductCombobox}.tsx`
 - Charter: `resources/js/Pages/Purchase/Create.charter.md` · Visual: `create-visual-comparison.md` (ao lado)
 - SPEC: [`memory/requisitos/Compras/SPEC.md`](../Compras/SPEC.md) US-COM-005
 - [ADR 0104 MWART](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0093 Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0114 gate visual](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)

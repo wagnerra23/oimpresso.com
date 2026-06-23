@@ -1489,9 +1489,10 @@ class PurchaseController extends Controller
             ->where('id', $product_id)
             ->firstOrFail();
 
+        // Sem eager-load da relation product_variation — só usamos id + name aqui
+        // (evita 3ª ocorrência do ignore larastan.relationExistence no baseline).
         $variations = Variation::where('product_id', $product->id)
             ->whereNull('deleted_at')
-            ->with('product_variation')
             ->orderBy('id')
             ->get();
 

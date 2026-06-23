@@ -24,8 +24,8 @@ use Illuminate\Support\Facades\Schema;
 const GM_CONTROLLER = 'app/Http/Controllers/PurchaseController.php';
 const GM_ROUTES = 'routes/web.php';
 const GM_PAGE = 'resources/js/Pages/Purchase/Create.tsx';
-const GM_COMPONENT = 'resources/js/Components/purchase/GradeMatrixInput.tsx';
-const GM_COMBOBOX = 'resources/js/Components/purchase/GradeProductCombobox.tsx';
+const GM_COMPONENT = 'resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx';
+const GM_COMBOBOX = 'resources/js/Pages/Purchase/_components/GradeProductCombobox.tsx';
 
 function gmVar(int $id, string $name): array
 {
@@ -117,8 +117,8 @@ it('store() valida ownership Tier 0 das variations (anti payload forjado cross-t
 
 it('Create.tsx pluga o modo grade (imports + fetch grade-matrix + expande células)', function () {
     $src = file_get_contents(base_path(GM_PAGE));
-    expect($src)->toContain('@/Components/purchase/GradeMatrixInput');
-    expect($src)->toContain('@/Components/purchase/GradeProductCombobox');
+    expect($src)->toContain('@/Pages/Purchase/_components/GradeMatrixInput');
+    expect($src)->toContain('@/Pages/Purchase/_components/GradeProductCombobox');
     expect($src)->toContain('/purchases/grade-matrix');
     expect($src)->toContain('adicionarLinhasGrade');
     expect($src)->toContain('purchase_line_tax_id');

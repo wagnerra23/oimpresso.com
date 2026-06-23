@@ -23,8 +23,8 @@ import { Textarea } from '@/Components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { FieldError } from '@/Components/ui/field-state';
 import { Plus, Trash2, Search, ShoppingCart, ArrowLeft, Save, LayoutGrid } from 'lucide-react';
-import GradeMatrixInput, { type GradeCell } from '@/Components/purchase/GradeMatrixInput';
-import GradeProductCombobox, { type PickedProduct } from '@/Components/purchase/GradeProductCombobox';
+import GradeMatrixInput, { type GradeCell } from '@/Pages/Purchase/_components/GradeMatrixInput';
+import GradeProductCombobox, { type PickedProduct } from '@/Pages/Purchase/_components/GradeProductCombobox';
 
 // ---------- Tipos ----------
 

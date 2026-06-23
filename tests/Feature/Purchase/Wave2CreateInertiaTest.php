@@ -143,8 +143,8 @@ it('Controller PRESERVA path Blade legacy (dual safe — não substituiu)', func
 
 it('Page pluga o modo grade tam×cor (US-COM-005)', function () {
     $source = readCreateInertia();
-    expect($source)->toContain('@/Components/purchase/GradeMatrixInput');
-    expect($source)->toContain('@/Components/purchase/GradeProductCombobox');
+    expect($source)->toContain('@/Pages/Purchase/_components/GradeMatrixInput');
+    expect($source)->toContain('@/Pages/Purchase/_components/GradeProductCombobox');
     expect($source)->toContain('/purchases/grade-matrix');
 });
 
