@@ -6,37 +6,37 @@
       "route": "/sells",
       "anchor": "Vendas",
       "charter": "resources/js/Pages/Sells/Index.charter.md",
-      "states": ["default", "empty", "loading", "dark", "error"]
+      "states": ["default", "empty", "loading", "dark"]
     },
     "clientes": {
       "route": "/cliente",
       "anchor": "Clientes",
       "charter": "resources/js/Pages/Cliente/Index.charter.md",
-      "states": ["default", "empty", "loading", "dark", "error"]
+      "states": ["default", "empty", "loading", "dark"]
     },
     "compras": {
       "route": "/compras",
       "anchor": "Compras",
       "charter": "resources/js/Pages/Compras/Index.charter.md",
-      "states": ["default", "empty", "loading", "dark", "error"]
+      "states": ["default", "empty", "loading", "dark"]
     },
     "financeiro-unificado": {
       "route": "/financeiro/unificado",
       "anchor": "Financeiro",
       "charter": "resources/js/Pages/Financeiro/Unificado/Index.charter.md",
-      "states": ["default", "dark", "error"]
+      "states": ["default", "dark"]
     },
     "oficina-os": {
       "route": "/oficina-auto/ordens-servico",
       "anchor": "Oficina Auto",
       "charter": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.charter.md",
-      "states": ["default", "empty", "dark", "error"]
+      "states": ["default", "empty", "dark"]
     },
     "sells-create": {
       "route": "/sells/create",
       "anchor": "Adicionar venda",
       "charter": "resources/js/Pages/Sells/Create.charter.md",
-      "states": ["default", "dark", "error"]
+      "states": ["default", "dark"]
     }
   }
 }

@@ -116,15 +116,13 @@ foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
         // 1 visit: a rota loga o admin certo + grava a flag de estado + redireciona pra tela.
         $page = visit('/_visreg-state/' . $slug . '/' . $estado);
 
-        // Prova que a tela montou (nao caiu em 403/login/erro). Estados que NAO sao 'error':
-        // a ancora tem que aparecer. No 'error' a ancora tambem aparece (a tela carrega e o
-        // toast vem por cima), entao a checagem vale pros 6 estados.
+        // Prova que a tela montou (nao caiu em 403/login/erro).
         $page->assertSee($ancora);
 
         // ESTABILIZACAO (identica ao PixelBaselineTest — runs 27370651063/27370956421):
-        // transitions/animations off (congela o toast do 'error' no frame final + mata
-        // early-paint), fonte Arial normalizada + antialiasing, e controles nativos
-        // (select/date/time) com visibility:hidden (pintam com variancia subpixel run-a-run).
+        // transitions/animations off (mata early-paint), fonte Arial normalizada +
+        // antialiasing, e controles nativos (select/date/time) com visibility:hidden
+        // (pintam com variancia subpixel run-a-run).
         $page->script(<<<'JS'
             (() => {
               const s = document.createElement('style');
@@ -132,12 +130,6 @@ foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
                 * { transition: none !important; animation: none !important; font-family: Arial, sans-serif !important; }
                 body { -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; }
                 select, input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
-                /* estado=error: o toast sonner (app.tsx toast.error, 8s) entra via opacity/
-                   transform ANIMADOS; com animation/transition off acima ele ficava em
-                   opacity:0 (invisivel) → snapshot do error saia == default (gate vacuo,
-                   provado por md5 no run #3288). Forca o frame final visivel e deterministico
-                   (posicao fixa, sem transform de entrada). Telas sem toast: seletor nao casa. */
-                [data-sonner-toaster], [data-sonner-toast] { opacity: 1 !important; transform: none !important; }
               `;
               document.head.appendChild(s);
               return true;
