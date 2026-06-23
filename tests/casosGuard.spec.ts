@@ -102,19 +102,23 @@ describe('casos:check — G-2 rastreabilidade caso↔teste (físico)', () => {
     expect(out).toMatch(/Sem violações novas/);
   });
 
-  it('REGEX: formato com hífen (UC-IMP-01 / UC-FORJA-01) é ENXERGADO', () => {
+  it('REGEX: formato com hífen (UC-ZZA-01 / UC-ZZB-02) é ENXERGADO', () => {
     // O regex antigo (UC-[A-Z]{0,3}\d, sem hífen) era CEGO a prefixo >3 letras + hífen:
     // UC-IMP-*/UC-FORJA-* nunca chegavam ao G-2 → 35 UCs declarados invisíveis (audit
     // 2026-06-22). Trava: UC com hífen sem teste tem que virar ÓRFÃO (= o gate o vê).
+    // ⚠️ ids FICTÍCIOS (UC-ZZA/UC-ZZB) DE PROPÓSITO: o guard varre tests/** pro corpus
+    // string-match — inclusive ESTE .spec. Usar um UC-id REAL aqui faria o UC real contar
+    // como coberto (coverage-fantasma). Bug real pego no PR3 — um UC declarado saía da dívida
+    // sem teste só porque o id aparecia aqui. Nunca escreva UC-id REAL neste arquivo (nem em comentário).
     write(page('H'), 'export default function H() { return null }');
     write('resources/js/Pages/H/Index.charter.md', '# c');
-    write('resources/js/Pages/H/Index.casos.md', '## UC-IMP-01 · x');
-    write('tests/HTest.php', '<?php // UC-IMP-01'); // cobre UC-IMP-01 (string-match)
-    run('--write-baseline'); // limpo: UC-IMP-01 é enxergado E coberto
-    write('resources/js/Pages/H/Index.casos.md', '## UC-IMP-01 · x\n## UC-FORJA-01 · y');
+    write('resources/js/Pages/H/Index.casos.md', '## UC-ZZA-01 · x');
+    write('tests/HTest.php', '<?php // UC-ZZA-01'); // cobre UC-ZZA-01 (string-match)
+    run('--write-baseline'); // limpo: UC-ZZA-01 é enxergado E coberto
+    write('resources/js/Pages/H/Index.casos.md', '## UC-ZZA-01 · x\n## UC-ZZB-02 · y');
     const out = runExpectFail('');
-    expect(out).toMatch(/uc-orphan:resources\/js\/Pages\/H\/Index\.casos\.md#UC-FORJA-01/);
-    expect(out).not.toMatch(/UC-IMP-01/); // coberto → não é órfão (prova que é VISTO)
+    expect(out).toMatch(/uc-orphan:resources\/js\/Pages\/H\/Index\.casos\.md#UC-ZZB-02/);
+    expect(out).not.toMatch(/UC-ZZA-01/); // coberto → não é órfão (prova que é VISTO)
   });
 });
 

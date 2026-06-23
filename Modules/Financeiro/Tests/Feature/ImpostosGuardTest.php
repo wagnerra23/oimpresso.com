@@ -117,7 +117,7 @@ function impostosSeedReceita(int $businessId, int $userId, string $comp): array
     return [$titulo->id, $baixaId];
 }
 
-it('GUARD I1: GET /financeiro/impostos responde com o shape da tela', function () {
+it('UC-IMP-01 · GUARD I1: GET /financeiro/impostos responde com o shape da tela', function () {
     $user = impostosBootstrap();
 
     impostosGet($user)->assertInertia(fn (AssertableInertia $page) => $page
@@ -131,7 +131,7 @@ it('GUARD I1: GET /financeiro/impostos responde com o shape da tela', function (
     );
 });
 
-it('GUARD I2+I3: lançar a pagar cria título payable idempotente (metadata.guia)', function () {
+it('UC-IMP-02 · UC-IMP-03 · GUARD I2+I3: lançar a pagar cria título payable idempotente (metadata.guia)', function () {
     $user = impostosBootstrap();
     $bizId = (int) $user->business_id;
     $comp = now()->format('Y-m');
@@ -167,7 +167,7 @@ it('GUARD I2+I3: lançar a pagar cria título payable idempotente (metadata.guia
     }
 });
 
-it('GUARD I4: Tier 0 — guia de outro business não vaza na tela (ADR 0093)', function () {
+it('UC-IMP-06 · GUARD I4: Tier 0 — guia de outro business não vaza na tela (ADR 0093)', function () {
     $user = impostosBootstrap();
 
     $outroBiz = Business::where('id', '!=', $user->business_id)->first();

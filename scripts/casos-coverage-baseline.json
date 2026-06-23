@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-06-23T01:52:46.602Z",
+    "generated_at": "2026-06-23T02:28:14.942Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "stats": {
       "pages": 276,
@@ -8,7 +8,7 @@
       "ucs_declared": 51,
       "missing_charter": 140,
       "missing_casos": 268,
-      "orphan_ucs": 36,
+      "orphan_ucs": 32,
       "metadata_issues": 0,
       "stale_cases": 0,
       "status_lies": 0,
@@ -431,12 +431,8 @@
     "trio:missing-charter:resources/js/Pages/Tarefas/Index.tsx",
     "trio:missing-charter:resources/js/Pages/Vestuario/Etiquetas/Index.tsx",
     "trio:missing-charter:resources/js/Pages/Whatsapp/Templates/Index.tsx",
-    "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-01",
-    "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-02",
-    "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-03",
     "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-04",
     "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-05",
-    "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-06",
     "uc-orphan:resources/js/Pages/Financeiro/Impostos/Index.casos.md#UC-IMP-07",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-01",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-02",
