@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Process;
 use Modules\Jana\Ai\Agents\PrUiJudgeAgent;
 use Modules\Jana\Ai\UiDeterministicScorer;
+use Modules\Jana\Ai\UiJudgeConsensus;
 use Modules\Jana\Entities\UiJudgeRun;
 
 /**
@@ -19,18 +20,18 @@ use Modules\Jana\Entities\UiJudgeRun;
  * Workflow:
  *   1. Pega metadata do PR (título · descrição · arquivos modificados) via gh CLI
  *   2. Pega diff filtrado (.tsx, .jsx, .css)
- *   3. Manda pro PrUiJudgeAgent (openai / gpt-4o-mini)
- *   4. Parse output JSON
- *   5. Print score + violações no console
+ *   3. Manda pro PrUiJudgeAgent N vezes (UiJudgeConsensus · self-consistency)
+ *   4. Agrega: mediana das amostras + confiança (variância) → mata o "alucina ok"
+ *   5. Print score + confiança + violações no console
  *   6. (Opcional) `--post-comment` posta no PR via gh
- *   7. Exit code 0 (approve) | 1 (request_changes) | 0 (comment)
+ *   7. Exit code 0 (approve) | 1 (request_changes) | 0 (comment/zona-cinza)
  *
  * Uso típico:
  *   php artisan ui:judge-pr 1438                # avaliar local (stdout only)
  *   php artisan ui:judge-pr 1438 --post-comment # postar comentário no PR
  *   php artisan ui:judge-pr 1438 --strict       # exit 1 se verdict=request_changes
  *
- * Custo estimado por run: ~$0.002 (OpenAI gpt-4o-mini, ~10k in + ~1k out).
+ * Custo estimado por run: ~$0.002 × N amostras (OpenAI gpt-4o-mini · default N=3).
  *
  * @see Modules\Jana\Ai\Agents\PrUiJudgeAgent
  * @see memory/requisitos/_DesignSystem/AUTOMATION-ROADMAP.md (Onda 4)
@@ -100,28 +101,48 @@ class UiJudgePrCommand extends Command
 
         $this->line('  Diff UI: '.strlen($diff).' bytes');
 
-        // 4. Mandar pro agent — anúncio lê o modelo REAL por reflexão (nunca "anuncia X, roda Y")
+        // 4. Self-consistency (dossiê 2026-06-23 §3b): roda o juiz N vezes e agrega
+        // a MEDIANA — o single-shot com sorte que alucina "ok" é regredido pra mediana
+        // das N amostras, e a variância entre elas vira o sinal de confiança. Anúncio
+        // lê o modelo REAL por reflexão (nunca "anuncia X, roda Y").
         [$annProvider, $annModel] = $this->agentProviderModel();
-        $this->info("Enviando pra PrUiJudgeAgent ({$annProvider}/{$annModel})...");
-        $output = $this->runAgent($prData, $diff);
-        if ($output === null) {
+        if (! $this->ensureProviderKey($annProvider)) {
             return self::FAILURE;
         }
 
-        // 5. Parse JSON (agora o LLM retorna só as 3 dims semânticas — sem score)
-        $review = $this->parseReview($output);
-        if ($review === null) {
-            $this->warn('Output do LLM não é JSON válido · imprimindo raw:');
-            $this->line($output);
+        $samples = (int) config('copiloto.ui_judge.samples', 3);
+        $abstainBelow = (float) config('copiloto.ui_judge.abstain_below', 0.6);
+        $this->info("Enviando pra PrUiJudgeAgent ({$annProvider}/{$annModel}) · {$samples} amostras (self-consistency)...");
+
+        $review = (new UiJudgeConsensus($samples, $abstainBelow))->collect(
+            function () use ($prData, $diff): ?array {
+                $raw = $this->runAgent($prData, $diff);
+
+                return $raw === null ? null : $this->parseReview($raw);
+            }
+        );
+
+        if ((int) ($review['samples'] ?? 0) === 0) {
+            $this->error('Nenhuma amostra válida do juiz · nada a avaliar');
 
             return $strict ? self::FAILURE : self::SUCCESS;
         }
+
+        $this->line("  Amostras válidas: {$review['samples']}/{$samples} · confiança ".
+            number_format((float) ($review['confianca'] ?? 0), 2));
 
         // 5.5. Onda 1 (LLM-judge → determinístico · ADR 0255): mescla as 6 dimensões
         // DETERMINÍSTICAS (regex · UiDeterministicScorer) com as 3 SEMÂNTICAS do LLM → 9 dims,
         // computa o score total (0-100) + verdict AQUI (não mais no LLM). O juiz não pontua
         // mais as 6 → sem custo/viés/flakiness nelas.
         $review = $this->mergeDeterministic($review, $diff);
+
+        // 5.6. Gate de confiança (self-consistency · 2026-06-23 §3b/§3c): se os N
+        // juízes discordaram (confiança < limiar), um "approve" não é confiável —
+        // rebaixa pra "comment" e marca zona cinza (defer humano). Anti-"alucina ok":
+        // nota alta só vira aprovação automática se as amostras concordaram. Seguro
+        // pro CI (comment = exit 0 · não endurece, só tira o carimbo de approve duvidoso).
+        $review = $this->applyConfidenceGate($review);
 
         // 6. Render no console
         $this->renderReview($review);
@@ -181,7 +202,9 @@ class UiJudgePrCommand extends Command
                     ? count($review['violacoes_estruturais'])
                     : 0,
                 'dimensoes' => $review['dimensoes'] ?? null,
-                'custo_usd_estimado' => $this->estimateCostUsd($model),
+                'confidence' => isset($review['confianca']) ? (float) $review['confianca'] : null,
+                'samples' => isset($review['samples']) ? (int) $review['samples'] : null,
+                'custo_usd_estimado' => $this->estimateCostUsd($model, (int) ($review['samples'] ?? 1)),
                 'judged_at' => now(),
             ]);
 
@@ -212,9 +235,9 @@ class UiJudgePrCommand extends Command
      * Estimativa grosseira de custo por PR (~10k tokens in + ~1k out).
      * NÃO é billing real — só pra dar ordem de grandeza no trend.
      */
-    private function estimateCostUsd(string $model): ?float
+    private function estimateCostUsd(string $model, int $samples = 1): ?float
     {
-        return match (true) {
+        $per = match (true) {
             str_contains($model, 'opus') => 0.165,
             str_contains($model, 'sonnet') => 0.034,
             str_contains($model, 'haiku') => 0.003,
@@ -222,6 +245,9 @@ class UiJudgePrCommand extends Command
             str_contains($model, 'gpt-4o') => 0.050,
             default => null,
         };
+
+        // self-consistency: custo cresce ×N amostras
+        return $per === null ? null : round($per * max(1, $samples), 4);
     }
 
     /**
@@ -317,14 +343,16 @@ class UiJudgePrCommand extends Command
         return implode('', $keep);
     }
 
-    private function runAgent(array $prData, string $diff): ?string
+    /**
+     * Pré-flight ÚNICO da API key do provider do PrUiJudgeAgent (lido por reflexão).
+     *
+     * Roda 1× ANTES do loop de N amostras (não por amostra) — pra não cuspir o erro
+     * N vezes. Wagner troca provider editando o #[Provider] do agent; o check segue
+     * o atributo, sem hardcode.
+     */
+    private function ensureProviderKey(string $provider): bool
     {
-        // Pre-flight: validar API key do provider configurado no PrUiJudgeAgent.
-        // PrUiJudgeAgent = OpenAI gpt-4o (provider canon pós-migração). Wagner
-        // pode trocar editando o @Provider/@Model do agent — o check abaixo lê
-        // o provider por reflexão, então segue o agent sem hardcode.
-        [$provider] = $this->agentProviderModel();
-        $envVar = strtoupper($provider) . '_API_KEY';
+        $envVar = strtoupper($provider).'_API_KEY';
         $providerKey = (string) (config("ai.providers.{$provider}.key") ?? env($envVar) ?? '');
 
         if ($providerKey === '') {
@@ -332,9 +360,14 @@ class UiJudgePrCommand extends Command
             $this->line("  Adicionar em .env: {$envVar}=...");
             $this->line('  Depois: php artisan config:clear');
 
-            return null;
+            return false;
         }
 
+        return true;
+    }
+
+    private function runAgent(array $prData, string $diff): ?string
+    {
         $userPrompt = sprintf(
             "Avalie este PR contra a Constituição UI v2.\n\n## Metadata\nPR #%d · %s\n\n## Descrição\n%s\n\n## Diff UI (.tsx/.jsx/.css)\n```diff\n%s\n```\n\nRetorne JSON estrito conforme schema do system prompt.",
             $prData['number'],
@@ -423,6 +456,35 @@ class UiJudgePrCommand extends Command
         return $review;
     }
 
+    /**
+     * Gate de confiança (self-consistency · dossiê 2026-06-23 §3b/§3c).
+     *
+     * Se o juiz ABSTÉM (confiança geral < limiar — os N amostras discordaram numa
+     * dim semântica), um "approve" não é confiável: rebaixa pra "comment" e marca
+     * `gray_zone` (defer humano · a tela sobe pra fila do Wagner, não passa batido).
+     * É o anti-"alucina ok": nota alta só vira aprovação automática se as amostras
+     * concordaram. NÃO endurece o CI — comment continua exit 0; só remove o carimbo
+     * de approve quando o próprio juiz está inseguro.
+     *
+     * @param  array<string, mixed>  $review
+     * @return array<string, mixed>
+     */
+    private function applyConfidenceGate(array $review): array
+    {
+        if (($review['abstem'] ?? false) === true && ($review['verdict'] ?? '') === 'approve') {
+            $review['verdict'] = 'comment';
+            $review['gray_zone'] = true;
+            $review['confianca_nota'] = sprintf(
+                'Baixa confiança (%.2f < %.2f) entre %d amostras → approve rebaixado pra comment (zona cinza · defer humano)',
+                (float) ($review['confianca'] ?? 0),
+                (float) config('copiloto.ui_judge.abstain_below', 0.6),
+                (int) ($review['samples'] ?? 0),
+            );
+        }
+
+        return $review;
+    }
+
     private function renderReview(array $review): void
     {
         $score = (int) ($review['score'] ?? 0);
@@ -431,6 +493,16 @@ class UiJudgePrCommand extends Command
         $this->newLine();
         $color = $score >= 80 ? 'info' : ($score >= 60 ? 'comment' : 'error');
         $this->{$color}("Score: {$score}/100 · Verdict: {$verdict}");
+
+        if (isset($review['confianca'])) {
+            $conf = (float) $review['confianca'];
+            $nSamples = (int) ($review['samples'] ?? 0);
+            $tag = ($review['gray_zone'] ?? false) ? ' · ZONA CINZA (defer humano)' : '';
+            $this->line('  Confiança self-consistency: '.number_format($conf, 2)." ({$nSamples} amostras){$tag}");
+            if (! empty($review['confianca_nota'])) {
+                $this->line('  '.(string) $review['confianca_nota']);
+            }
+        }
         $this->newLine();
 
         if (isset($review['dimensoes']) && is_array($review['dimensoes'])) {
@@ -497,6 +569,14 @@ class UiJudgePrCommand extends Command
         $verdict = (string) ($review['verdict'] ?? '?');
 
         $out = ["## PR UI Judge · score {$score}/100 · verdict `{$verdict}`", ''];
+
+        if (isset($review['confianca'])) {
+            $conf = number_format((float) $review['confianca'], 2);
+            $nSamples = (int) ($review['samples'] ?? 0);
+            $gz = ($review['gray_zone'] ?? false) ? ' · **zona cinza** (defer humano)' : '';
+            $out[] = "_Self-consistency: confiança {$conf} · {$nSamples} amostras{$gz}_";
+            $out[] = '';
+        }
 
         if (isset($review['dimensoes']) && is_array($review['dimensoes'])) {
             $out[] = '### Dimensões';

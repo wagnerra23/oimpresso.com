@@ -34,6 +34,8 @@ class UiJudgeRun extends Model
         'verdict',
         'violacoes_count',
         'dimensoes',
+        'confidence',
+        'samples',
         'custo_usd_estimado',
         'judged_at',
     ];
@@ -43,6 +45,8 @@ class UiJudgeRun extends Model
         'score' => 'integer',
         'violacoes_count' => 'integer',
         'dimensoes' => 'array',
+        'confidence' => 'decimal:2',
+        'samples' => 'integer',
         'custo_usd_estimado' => 'decimal:4',
         'judged_at' => 'datetime',
     ];
