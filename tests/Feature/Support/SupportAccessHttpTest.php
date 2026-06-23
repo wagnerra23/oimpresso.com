@@ -2,23 +2,25 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\SupportAccessLog;
 use App\SupportAgent;
 use App\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
-use Inertia\Testing\AssertableInertia as Assert;
 
 uses(Tests\TestCase::class);
 
 /**
- * Modo Suporte (ADR 0305) — guarda HTTP read-only (v1 "B"): acesso · auditoria · 403.
+ * Modo Suporte (ADR 0305) — guarda HTTP do middleware EnsureSupportAccess (v1 "B").
+ *
+ * Exercita o middleware via rota sintética (sem controller/Inertia ainda — as telas + rotas
+ * reais vêm na PR-C2 como unidade design-gated, com aprovação visual). Prova: acesso ao
+ * cliente passa + é auditado; operadora 403 + negação auditada; sem capability 403.
  *
  * biz=1 operador (seededTenant — ADR 0101) · biz=99 cliente. NUNCA biz=4.
  *
  * @see app/Http/Middleware/EnsureSupportAccess.php
- * @see app/Http/Controllers/Support/SupportController.php
  */
 
 const BIZ_OPERADOR_HTTP = 1;
@@ -56,22 +58,19 @@ beforeEach(function () {
     config(['constants.operator_business_id' => BIZ_OPERADOR_HTTP]);
     config(['constants.administrator_usernames' => 'um_admin_que_nao_e_o_agente']);
 
-    if (supportHttpReady()) {
-        Business::firstOrCreate(['id' => BIZ_OPERADOR_HTTP], ['name' => 'Operador', 'currency_id' => 1]);
-        Business::firstOrCreate(['id' => BIZ_CLIENTE_HTTP], ['name' => 'Cliente HTTP 99', 'currency_id' => 1]);
-    }
+    // Rotas sintéticas protegidas só pelo middleware sob teste (sem controller/Inertia).
+    Route::middleware('support.access')->get('/__suporte_probe/{business}', fn () => response('ok'))->whereNumber('business');
+    Route::middleware('support.access')->get('/__suporte_probe', fn () => response('list'));
 });
 
-it('agente acessa o cliente e o acesso é AUDITADO (entrou)', function () {
+it('agente acessa o cliente (200) e o acesso é AUDITADO (entrou)', function () {
     if (! supportHttpReady()) {
         test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
     }
 
     $agent = makeHttpAgent('http_agent_ok');
 
-    $this->actingAs($agent)
-        ->get('/suporte/empresas/'.BIZ_CLIENTE_HTTP)
-        ->assertInertia(fn (Assert $page) => $page->component('Suporte/Visao')->has('empresa'));
+    $this->actingAs($agent)->get('/__suporte_probe/'.BIZ_CLIENTE_HTTP)->assertStatus(200);
 
     expect(
         SupportAccessLog::query()
@@ -89,9 +88,7 @@ it('agente é BLOQUEADO na operadora (403) e a negação é AUDITADA', function 
 
     $agent = makeHttpAgent('http_agent_op');
 
-    $this->actingAs($agent)
-        ->get('/suporte/empresas/'.BIZ_OPERADOR_HTTP)
-        ->assertStatus(403);
+    $this->actingAs($agent)->get('/__suporte_probe/'.BIZ_OPERADOR_HTTP)->assertStatus(403);
 
     expect(
         SupportAccessLog::query()
@@ -109,18 +106,16 @@ it('usuário SEM capability é bloqueado (403) na visão e na listagem', functio
 
     $naoAgente = makeHttpAgent('http_nao_agente', grant: false);
 
-    $this->actingAs($naoAgente)->get('/suporte/empresas/'.BIZ_CLIENTE_HTTP)->assertStatus(403);
-    $this->actingAs($naoAgente)->get('/suporte/empresas')->assertStatus(403);
+    $this->actingAs($naoAgente)->get('/__suporte_probe/'.BIZ_CLIENTE_HTTP)->assertStatus(403);
+    $this->actingAs($naoAgente)->get('/__suporte_probe')->assertStatus(403);
 });
 
-it('a listagem do agente NÃO inclui a operadora', function () {
+it('agente autorizado passa na listagem (sem param business, sem auditoria)', function () {
     if (! supportHttpReady()) {
         test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
     }
 
     $agent = makeHttpAgent('http_agent_list');
 
-    $this->actingAs($agent)
-        ->get('/suporte/empresas')
-        ->assertInertia(fn (Assert $page) => $page->component('Suporte/Empresas')->has('empresas'));
+    $this->actingAs($agent)->get('/__suporte_probe')->assertStatus(200);
 });
