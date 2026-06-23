@@ -129,6 +129,37 @@ function runTamperGuard(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// baseline-tamper-grow — irmão do tamper-guard pro casos-coverage-baseline (audit 2026-06-22
+// #4): crescer aquele baseline (absorver violação nova) exige o trailer `BASELINE-GROW:` no
+// commit que o toca, SEMPRE — nem o ramo isolado nem o label dão verde sem ele. Mesmo sandbox
+// git real, mas o afrouxamento é SÓ-DE-BASELINE (isolado) nos dois casos; a diferença é o
+// trailer na mensagem do commit head: good TEM → exit 0; bad NÃO tem → exit 1 (bypass fechado).
+function runTamperGrow(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-tamper-grow-${kind}-`));
+  const fx = join(FIX, 'baseline-tamper-grow');
+  const g = (cmd) => spawnSync('git', cmd, { cwd: sb, encoding: 'utf8', env: { ...process.env, GIT_TERMINAL_PROMPT: '0' } });
+  try {
+    g(['init', '-q', '-b', 'main']);
+    g(['config', 'user.email', 'selftest@oimpresso.local']);
+    g(['config', 'user.name', 'gate-selftest']);
+    g(['config', 'commit.gpgsign', 'false']);
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('baseline-tamper-guard', 'scripts/governance/baseline-tamper-guard.mjs'), join(sb, 'scripts', 'governance', 'baseline-tamper-guard.mjs'));
+    // commit base — casos-coverage com 1 violação legada
+    cpSync(join(fx, 'base', 'casos-coverage-baseline.json'), join(sb, 'scripts', 'casos-coverage-baseline.json'));
+    g(['add', '-A']); g(['commit', '-q', '-m', 'base: casos-coverage apertado (1 violação)']);
+    const baseSha = g(['rev-parse', 'HEAD']).stdout.trim();
+    // commit head — casos-coverage CRESCE (2 violações), ISOLADO; good leva o trailer
+    cpSync(join(fx, kind, 'casos-coverage-baseline.json'), join(sb, 'scripts', 'casos-coverage-baseline.json'));
+    g(['add', '-A']);
+    const msg = kind === 'good'
+      ? 'chore: cresce casos-coverage conscientemente\n\nBASELINE-GROW: tela Fixture/SmuggledDebt absorvida (selftest)'
+      : 'chore: cresce casos-coverage (sem trailer)';
+    g(['commit', '-q', '-m', msg]);
+    return runNode(join(sb, 'scripts', 'governance', 'baseline-tamper-guard.mjs'), ['--base', baseSha], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // anchor-lint --check SA-A2-bis (ADR 0303): existir ≠ estar vivo. Sandbox por cwd (igual
 // knowledge-drift) + o script REAL copiado por cima. good = tela VIVA (controller referenciado
 // nas rotas + teste existente) → exit 0; bad = tela ZUMBI (controller fora das rotas) +
@@ -189,6 +220,17 @@ const CATRACAS = [
     expect: {
       good: /afrouxamento isolado|nenhum baseline guardado afrouxado/,
       bad: /baseline AFROUXADO no mesmo PR que toca código/,
+    },
+  },
+  {
+    // casos-coverage CRESCE (audit 2026-06-22 #4): bypass era o ramo "isolado" dar verde com
+    // violação nova injetada. good = crescer COM trailer `BASELINE-GROW:` (exit 0); bad = crescer
+    // isolado SEM trailer (exit 1, acusação "CRESCEU … sem o trailer auditável BASELINE-GROW").
+    id: 'baseline-tamper-grow',
+    run: runTamperGrow,
+    expect: {
+      good: /afrouxamento isolado|nenhum baseline guardado afrouxado/,
+      bad: /CRESCEU.*sem o trailer auditável `BASELINE-GROW`/s,
     },
   },
   {

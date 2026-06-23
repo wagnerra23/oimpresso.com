@@ -1,0 +1,10 @@
+{
+  "_meta": {
+    "baseline": "FIXTURE — head do gate-selftest: casos-coverage CRESCEU (violação nova absorvida). No caso BAD o crescimento é ISOLADO (PR só-de-baseline) e SEM `BASELINE-GROW:` → tamper-guard MORDE (exit 1). É o bypass do audit 2026-06-22 #4 congelado: o ramo isolado dava verde disfarçado de curadoria. Conteúdo fictício, zero PII.",
+    "gate": "casos:check (ADR 0264)"
+  },
+  "violations": [
+    "trio:missing-casos:resources/js/Pages/Fixture/Legada.tsx",
+    "trio:missing-casos:resources/js/Pages/Fixture/SmuggledDebt.tsx"
+  ]
+}
