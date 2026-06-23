@@ -1,0 +1,13 @@
+{
+  "name": "oimpresso-tokens",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Token pipeline DTCG → Style Dictionary (D-06) — fonte única de tokens do Oimpresso DS.",
+  "scripts": {
+    "build:tokens": "node build.mjs"
+  },
+  "devDependencies": {
+    "style-dictionary": "^4.3.0"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "$description": "Oimpresso DS — camada PRIMITIVA (escalas cruas). Não consumir direto: a UI consome a camada semântica. Grupo `prim` é filtrado na saída.",
+  "prim": {
+    "neutral": {
+      "white": { "$type": "color", "$value": "oklch(1 0 0)" },
+      "50":  { "$type": "color", "$value": "oklch(0.992 0.0015 95)" },
+      "100": { "$type": "color", "$value": "oklch(0.974 0.003 95)" },
+      "200": { "$type": "color", "$value": "oklch(0.935 0.003 95)" },
+      "250": { "$type": "color", "$value": "oklch(0.95 0.003 95)" },
+      "300": { "$type": "color", "$value": "oklch(0.905 0.004 95)" },
+      "500": { "$type": "color", "$value": "oklch(0.74 0.005 90)" },
+      "600": { "$type": "color", "$value": "oklch(0.63 0.006 90)" },
+      "700": { "$type": "color", "$value": "oklch(0.46 0.007 90)" },
+      "900": { "$type": "color", "$value": "oklch(0.205 0.008 90)" }
+    },
+    "ink": {
+      "50":  { "$type": "color", "$value": "oklch(0.965 0.004 282)" },
+      "200": { "$type": "color", "$value": "oklch(0.74 0.008 282)" },
+      "300": { "$type": "color", "$value": "oklch(0.58 0.009 282)" },
+      "400": { "$type": "color", "$value": "oklch(0.46 0.009 282)" },
+      "600": { "$type": "color", "$value": "oklch(0.24 0.010 282)" },
+      "650": { "$type": "color", "$value": "oklch(0.30 0.012 282)" },
+      "700": { "$type": "color", "$value": "oklch(0.27 0.010 282)" },
+      "750": { "$type": "color", "$value": "oklch(0.228 0.010 282)" },
+      "800": { "$type": "color", "$value": "oklch(0.198 0.009 282)" },
+      "850": { "$type": "color", "$value": "oklch(0.165 0.008 282)" },
+      "900": { "$type": "color", "$value": "oklch(0.142 0.008 282)" }
+    },
+    "purple": {
+      "500":  { "$type": "color", "$value": "oklch(0.55 0.15 295)", "$description": "Roxo canônico (ADR 0235). NÃO alterar sem reindexar." },
+      "600":  { "$type": "color", "$value": "oklch(0.50 0.16 295)" },
+      "soft": { "$type": "color", "$value": "oklch(0.965 0.022 295)" },
+      "line": { "$type": "color", "$value": "oklch(0.86 0.05 295)" },
+      "300d": { "$type": "color", "$value": "oklch(0.70 0.15 295)" },
+      "200d": { "$type": "color", "$value": "oklch(0.76 0.15 295)" },
+      "softd":{ "$type": "color", "$value": "oklch(0.30 0.07 295)" },
+      "lined":{ "$type": "color", "$value": "oklch(0.40 0.10 295)" },
+      "ink":  { "$type": "color", "$value": "oklch(0.14 0.02 295)" }
+    },
+    "green": {
+      "500":  { "$type": "color", "$value": "oklch(0.50 0.12 150)" },
+      "soft": { "$type": "color", "$value": "oklch(0.95 0.05 150)" },
+      "d":    { "$type": "color", "$value": "oklch(0.74 0.14 150)" },
+      "softd":{ "$type": "color", "$value": "oklch(0.30 0.07 150)" }
+    },
+    "red": {
+      "500":  { "$type": "color", "$value": "oklch(0.55 0.18 25)" },
+      "soft": { "$type": "color", "$value": "oklch(0.955 0.035 25)" },
+      "d":    { "$type": "color", "$value": "oklch(0.72 0.16 25)" },
+      "softd":{ "$type": "color", "$value": "oklch(0.32 0.09 25)" }
+    },
+    "amber": {
+      "500":  { "$type": "color", "$value": "oklch(0.58 0.12 70)" },
+      "soft": { "$type": "color", "$value": "oklch(0.955 0.05 75)" },
+      "d":    { "$type": "color", "$value": "oklch(0.78 0.13 75)" },
+      "softd":{ "$type": "color", "$value": "oklch(0.32 0.07 70)" }
+    },
+    "radius": {
+      "1": { "$type": "dimension", "$value": "5px" },
+      "2": { "$type": "dimension", "$value": "8px" },
+      "3": { "$type": "dimension", "$value": "11px" },
+      "4": { "$type": "dimension", "$value": "16px" }
+    },
+    "shadow": {
+      "1": { "$type": "shadow", "$value": "0 1px 1px oklch(0.25 0.02 280 / .05), 0 2px 4px -1px oklch(0.25 0.02 280 / .07)" },
+      "2": { "$type": "shadow", "$value": "0 2px 4px -2px oklch(0.25 0.02 280 / .06), 0 6px 16px -5px oklch(0.25 0.02 280 / .11)" },
+      "3": { "$type": "shadow", "$value": "0 4px 9px -4px oklch(0.25 0.02 280 / .08), 0 14px 32px -8px oklch(0.25 0.02 280 / .14)" },
+      "4": { "$type": "shadow", "$value": "0 8px 18px -8px oklch(0.25 0.02 280 / .10), 0 26px 56px -14px oklch(0.25 0.02 280 / .20)" }
+    },
+    "shadowDark": {
+      "1": { "$type": "shadow", "$value": "0 1px 2px oklch(0 0 0 / .3), 0 1px 1px oklch(0 0 0 / .2)" },
+      "2": { "$type": "shadow", "$value": "0 3px 8px -3px oklch(0 0 0 / .42), 0 8px 20px -6px oklch(0 0 0 / .4)" },
+      "3": { "$type": "shadow", "$value": "0 8px 18px -8px oklch(0 0 0 / .5), 0 18px 40px -12px oklch(0 0 0 / .55)" },
+      "4": { "$type": "shadow", "$value": "0 12px 26px -10px oklch(0 0 0 / .55), 0 30px 60px -16px oklch(0 0 0 / .65)" }
+    },
+    "space": {
+      "1": { "$type": "dimension", "$value": "4px" },
+      "2": { "$type": "dimension", "$value": "8px" },
+      "3": { "$type": "dimension", "$value": "12px" },
+      "4": { "$type": "dimension", "$value": "16px" },
+      "6": { "$type": "dimension", "$value": "24px" },
+      "8": { "$type": "dimension", "$value": "32px" }
+    },
+    "font": {
+      "sans": { "$type": "fontFamily", "$value": "Hanken Grotesk, ui-sans-serif, system-ui, sans-serif" },
+      "mono": { "$type": "fontFamily", "$value": "JetBrains Mono, ui-monospace, SF Mono, Menlo, monospace" }
+    }
+  }
+}

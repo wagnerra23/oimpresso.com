@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>ds:critic · runbook antifrágil para o Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.992 0.0015 95); --sunken: oklch(0.974 0.003 95); --surface: oklch(1 0 0);
+  --hairline: oklch(0.935 0.003 95); --border: oklch(0.905 0.004 95); --border-2: oklch(0.95 0.003 95);
+  --text: oklch(0.205 0.008 90); --text-2: oklch(0.46 0.007 90); --text-3: oklch(0.63 0.006 90); --text-4: oklch(0.74 0.005 90);
+  --accent: oklch(0.55 0.15 295); --accent-hi: oklch(0.50 0.16 295); --accent-soft: oklch(0.965 0.022 295); --accent-fg: #fff;
+  --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.62 0.13 65); --warn-soft: oklch(0.955 0.072 75);
+  --wa: oklch(0.50 0.13 145); --wa-soft: oklch(0.95 0.05 145);
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280/.05), 0 2px 4px -1px oklch(0.25 0.02 280/.07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280/.06), 0 6px 16px -5px oklch(0.25 0.02 280/.11);
+  --r-1: 5px; --r-2: 8px; --r-3: 11px; --r-4: 16px; --r-pill: 999px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[data-theme="dark"]{
+  --bg: oklch(0.165 0.008 282); --sunken: oklch(0.142 0.008 282); --surface: oklch(0.205 0.009 282);
+  --hairline: oklch(0.27 0.010 282); --border: oklch(0.30 0.012 282); --border-2: oklch(0.25 0.010 282);
+  --text: oklch(0.965 0.004 282); --text-2: oklch(0.74 0.008 282); --text-3: oklch(0.58 0.009 282); --text-4: oklch(0.47 0.009 282);
+  --accent: oklch(0.72 0.15 295); --accent-hi: oklch(0.78 0.15 295); --accent-soft: oklch(0.30 0.07 295); --accent-fg: oklch(0.14 0.02 295);
+  --pos: oklch(0.74 0.14 150); --pos-soft: oklch(0.30 0.085 150);
+  --neg: oklch(0.72 0.16 25);  --neg-soft: oklch(0.32 0.09 25);
+  --warn: oklch(0.80 0.13 75); --warn-soft: oklch(0.32 0.085 70);
+  --wa: oklch(0.74 0.15 145); --wa-soft: oklch(0.30 0.085 145);
+  --sh-1: 0 1px 2px oklch(0 0 0/.3); --sh-2: 0 3px 8px -3px oklch(0 0 0/.42), 0 8px 20px -6px oklch(0 0 0/.4);
+}
+*{ box-sizing: border-box; }
+html,body{ margin: 0; }
+body{ background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+
+.top{ position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 14px 32px; background: color-mix(in oklch, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.logo{ width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, var(--text))); display: grid; place-items: center; color: var(--accent-fg); font-weight: 700; font-size: 13px; }
+.top b.tt{ font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.top .stamp{ font-family: var(--mono); font-size: 10.5px; color: var(--pos); background: var(--pos-soft); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+.theme{ margin-left: auto; appearance: none; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; }
+
+.wrap{ max-width: 1060px; margin: 0 auto; padding: 38px 32px 90px; }
+h1.title{ font-size: 30px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 14px; line-height: 1.15; }
+h1.title em{ font-style: normal; color: var(--accent); }
+.lede{ font-size: 15px; line-height: 1.62; color: var(--text-2); max-width: 76ch; margin: 0; }
+.lede b{ color: var(--text); font-weight: 600; }
+
+.grouph{ font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); margin: 46px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.grouph .gn{ font-family: var(--mono); color: var(--accent); }
+[data-theme="dark"] .grouph .gn{ color: var(--accent-hi); }
+
+code{ font-family: var(--mono); font-size: 0.84em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+[data-theme="dark"] code{ color: var(--accent-hi); }
+
+/* request box */
+.reqbox{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-4); box-shadow: var(--sh-2); overflow: hidden; margin: 26px 0 8px; }
+.reqbox .rh{ display: flex; align-items: center; gap: 10px; padding: 13px 20px; border-bottom: 1px solid var(--border-2); background: linear-gradient(180deg, var(--pos-soft), transparent); }
+.reqbox .rh b{ font-size: 13px; font-weight: 650; }
+.reqbox .rh .pin{ width: 24px; height: 24px; border-radius: 7px; background: var(--pos); color: #fff; display: grid; place-items: center; font-size: 13px; font-weight: 700; }
+.reqbox .body{ padding: 18px 20px; }
+.reqbox .quote{ font-size: 14px; line-height: 1.6; color: var(--text); font-style: italic; padding-left: 15px; border-left: 3px solid var(--pos); }
+.reqbox .quote b{ font-style: normal; font-weight: 650; color: var(--pos); }
+.reqbox .diff{ margin-top: 13px; font-size: 12px; color: var(--text-3); line-height: 1.5; }
+.reqbox .diff b{ color: var(--text); }
+.add{ background: var(--pos-soft); color: var(--pos); padding: 0 4px; border-radius: 4px; font-weight: 600; font-style: normal; }
+.del{ color: var(--text-4); text-decoration: line-through; }
+
+/* 3 properties */
+.props{ display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.prop{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); padding: 16px 17px; box-shadow: var(--sh-1); border-top: 3px solid var(--accent); }
+.prop.r{ border-top-color: var(--warn); } .prop.l{ border-top-color: var(--pos); }
+.prop .pi{ font: 700 9.5px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--text-4); }
+.prop b.pt{ display: block; font-size: 14.5px; font-weight: 650; margin: 7px 0 6px; letter-spacing: -0.01em; }
+.prop p{ margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-2); }
+.prop p b{ color: var(--text); font-weight: 600; }
+
+/* runbook steps */
+.run{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); box-shadow: var(--sh-1); margin-bottom: 11px; overflow: hidden; }
+.run-h{ display: grid; grid-template-columns: 36px 1fr auto; gap: 13px; align-items: center; padding: 13px 16px; }
+.run-h.open{ border-bottom: 1px solid var(--border-2); }
+.run-n{ width: 36px; height: 36px; border-radius: 9px; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 14px; color: #fff; background: var(--accent); }
+.run-h b.rt{ font-size: 14.5px; font-weight: 650; }
+.run-h .rt small{ display: block; font-size: 11px; font-weight: 400; color: var(--text-3); margin-top: 1px; }
+.modetag{ font: 700 9px/1 var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 4px 8px; border-radius: 99px; white-space: nowrap; }
+.m-auto{ background: var(--pos-soft); color: var(--pos); }
+.m-mix{ background: var(--warn-soft); color: var(--warn); }
+.m-eye{ background: var(--accent-soft); color: var(--accent); }
+[data-theme="dark"] .m-eye{ color: var(--accent-hi); }
+.run-b{ padding: 13px 16px; }
+.run-b p{ margin: 0 0 8px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.run-b p:last-child{ margin-bottom: 0; }
+.run-b b{ color: var(--text); font-weight: 600; }
+.lenslist{ display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin: 4px 0 0; }
+.lensrow{ display: flex; align-items: center; gap: 9px; padding: 8px 11px; background: var(--sunken); border: 1px solid var(--border-2); border-radius: 8px; }
+.lensrow .lk{ font: 700 10px/1 var(--mono); padding: 3px 7px; border-radius: 5px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+[data-theme="dark"] .lensrow .lk{ color: var(--accent-hi); }
+.lensrow .ld{ font-size: 11.5px; color: var(--text-2); line-height: 1.35; }
+.lensrow .ld b{ color: var(--text); }
+.cmd{ font-family: var(--mono); font-size: 11.5px; background: oklch(0.15 0.01 282); color: oklch(0.92 0.02 150); border-radius: 8px; padding: 11px 13px; line-height: 1.7; overflow-x: auto; }
+.cmd .cm{ color: oklch(0.62 0.02 282); }
+.cmd .cg{ color: oklch(0.80 0.12 145); }
+.cmd .cy{ color: oklch(0.85 0.12 80); }
+.artifact{ display: inline-flex; align-items: center; gap: 6px; font-family: var(--mono); font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 6px; background: var(--sunken); border: 1px solid var(--border-2); color: var(--text-2); margin: 3px 4px 0 0; }
+.artifact::before{ content: "›"; color: var(--accent); font-weight: 700; }
+[data-theme="dark"] .artifact::before{ color: var(--accent-hi); }
+
+.loopcard{ background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--pos); border-radius: var(--r-3); padding: 18px 20px; box-shadow: var(--sh-1); }
+.loopflow{ display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 12px 0 0; }
+.loopflow .ls{ flex: 1; min-width: 130px; background: var(--sunken); border: 1px solid var(--border-2); border-radius: 9px; padding: 11px 12px; }
+.loopflow .ls .ln{ font: 700 9px/1 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--pos); }
+.loopflow .ls b{ display: block; font-size: 12.5px; margin: 5px 0 2px; }
+.loopflow .ls span{ font-size: 11px; color: var(--text-3); line-height: 1.4; }
+.loopflow .arr{ color: var(--text-4); font-size: 15px; }
+
+.callout{ border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--r-3); background: var(--surface); padding: 17px 19px; margin: 20px 0 0; box-shadow: var(--sh-1); }
+.callout.pos{ border-left-color: var(--pos); }
+.callout h3{ margin: 0 0 8px; font-size: 14px; font-weight: 650; }
+.callout p{ margin: 0 0 7px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.callout p:last-child{ margin-bottom: 0; }
+.callout b{ color: var(--text); font-weight: 600; }
+
+.foot{ margin-top: 46px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-4); line-height: 1.75; }
+.foot b{ color: var(--text-3); }
+@media (max-width: 820px){ .props{ grid-template-columns: 1fr; } .lenslist{ grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">Oi</div>
+  <b class="tt">ds:critic · runbook antifrágil para o Code</b>
+  <span class="stamp">vive · cataraca · aprende</span>
+  <button class="theme" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">tema</button>
+</div>
+
+<div class="wrap">
+  <h1 class="title">O método que o Code segue <em>toda vez</em> — e que fica mais esperto a cada passada.</h1>
+  <p class="lede">Você quer ensinar o método pro Code aplicar nas telas reais sempre que pedir, e que o sistema <b>sobreviva ao tempo e melhore a cada passada</b>. Sim — é o pedido certo, com <b>uma palavra a mais</b>: <b>que aprende</b>. Um checklist parado apodrece; um que <b>absorve cada defeito que escapou</b> vira um gate novo e nunca mais deixa aquela classe passar. Abaixo: o pedido exato, as 3 propriedades que fazem o sistema durar, e o runbook que o Code executa.</p>
+
+  <!-- THE CORRECT REQUEST -->
+  <div class="reqbox">
+    <div class="rh"><span class="pin">✓</span><b>O pedido correto pro seu sistema</b></div>
+    <div class="body">
+      <p class="quote">"Code, implemente o <b>ds:critic</b>: a Avaliação Heurística multi-lente que roda nas telas reais sempre que eu pedir — que <b>se auto-avalia, cataraca (nunca regride) e aprende</b> (todo defeito que escapa vira um gate novo), vivendo no CI pra <b>sobreviver ao tempo</b> e melhorar a cada passada."</p>
+      <p class="diff"><b>Seu pedido original já estava 90% certo.</b> Faltava a palavra <span class="del">"evolutivo"</span> ser precisada como <span class="add">aprende: cada escape vira teste novo</span>. Sem isso, "evolutivo" vira intenção; com isso, vira mecanismo — o sistema fica mensuravelmente mais completo a cada tela que passa.</p>
+    </div>
+  </div>
+
+  <!-- 3 PROPERTIES -->
+  <div class="grouph"><span class="gn">A</span> As 3 propriedades que fazem durar e melhorar</div>
+  <div class="props">
+    <div class="prop l"><span class="pi">vive</span><b class="pt">Mora no git / CI</b><p>O método não é um doc que alguém lembra de seguir — é <b>código que roda sozinho</b> a cada PR. Sobrevive a trocas de pessoa, de contexto, de tempo. Sua memória (<code>ADR</code>, <code>Ledger</code>) já persiste assim.</p></div>
+    <div class="prop r"><span class="pi">cataraca</span><b class="pt">Só melhora, nunca regride</b><p>Cada merge crava um <b>piso novo</b>: cor crua só pode <b>cair</b>, score só pode <b>subir</b>. Se um PR pioraria a métrica, o CI <b>barra</b>. O ganho fica travado — ninguém desfaz sem querer.</p></div>
+    <div class="prop l"><span class="pi">aprende</span><b class="pt">Cada escape vira gate novo</b><p>Defeito que passou pro seu olho = <b>falha do sistema, não sua</b>. Vira lição (<code>LICOES_CC.md</code>) <b>e</b> um teste automático. Aquela classe <b>nunca mais</b> passa. Antifrágil: erro o deixa mais forte.</p></div>
+  </div>
+  <div class="callout pos">
+    <h3>Seu protocolo já tem metade disto</h3>
+    <p><code>LICOES_CC.md</code> (erros a não repetir) e <code>proibicoes.md</code> <b>já são o corpus de aprendizado</b> — a metade humana. A evolução é só <b>fechar o laço na máquina</b>: toda lição nova também gera um gate. O que hoje você lembra de não repetir, amanhã o CI <b>impede</b> de repetir.</p>
+  </div>
+
+  <!-- THE RUNBOOK -->
+  <div class="grouph"><span class="gn">B</span> O runbook — o que o Code faz em <code>ds:critic &lt;tela&gt;</code></div>
+
+  <div class="run">
+    <div class="run-h open"><div class="run-n">1</div><b class="rt">Pass 1 · ACHAR — 5 lentes independentes<small>cada lente roda sozinha, sem ver as outras (anti-viés)</small></b><span class="modetag m-mix">auto + olho</span></div>
+    <div class="run-b">
+      <div class="lenslist">
+        <div class="lensrow"><span class="lk">token</span><span class="ld"><b>auto</b> · conta cor crua (<code>stone/rose</code>/hex) vs token semântico</span></div>
+        <div class="lensrow"><span class="lk">estrutura</span><span class="ld"><b>auto</b> · colisão de classe + alinhamento de coluna (px)</span></div>
+        <div class="lensrow"><span class="lk">a11y · [CA]</span><span class="ld"><b>auto</b> · contraste AA, foco, alvo ≥44px, dark</span></div>
+        <div class="lensrow"><span class="lk">domínio</span><span class="ld"><b>misto</b> · campo bate com tipo (PJ→CNPJ), estado coerente</span></div>
+        <div class="lensrow"><span class="lk">persona</span><span class="ld"><b>olho</b> · densidade/atalho certos pro contexto ([W])</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="run">
+    <div class="run-h open"><div class="run-n">2</div><b class="rt">DEDUP — consolidar<small>lentes diferentes acham o mesmo bug → fundir antes de pontuar</small></b><span class="modetag m-auto">auto</span></div>
+    <div class="run-b"><p>Junta achados idênticos numa entrada só, com a lista de quais lentes o pegaram. Isso evita inflar a contagem e dá sinal de severidade (bug achado por 3 lentes ≈ mais grave).</p></div>
+  </div>
+
+  <div class="run">
+    <div class="run-h open"><div class="run-n">3</div><b class="rt">Pass 2 · PONTUAR — severidade 0–4<small>pontua a lista consolidada, não durante a caça (regra Nielsen)</small></b><span class="modetag m-mix">auto + olho</span></div>
+    <div class="run-b">
+      <p>Cada achado recebe <b>severidade 0–4</b> (frequência × impacto). Escreve o artefato de máquina:</p>
+      <div class="cmd"><span class="cm"># saída por tela</span><br/>governance/critiques/<span class="cy">&lt;tela&gt;</span>.critique-score.json<br/><span class="cm"># { score, sev4:0, sev3:[...], lentes:{...}, baseline_anterior }</span></div>
+    </div>
+  </div>
+
+  <div class="run">
+    <div class="run-h open"><div class="run-n">4</div><b class="rt">PORTÃO — passa ou vira onda<small>regra dura, não média que dilui catástrofe</small></b><span class="modetag m-auto">auto</span></div>
+    <div class="run-b">
+      <p><b>Passa se: zero sev-4 (P0) E score ≥80.</b> Um único P0 barra, mesmo com score alto. Se reprova: os achados viram <b>PROPOSTA de onda</b> (+ ADR se mexe em fundação). Eu proponho; <b>[W] decide</b>; Code numera.</p>
+    </div>
+  </div>
+
+  <div class="run">
+    <div class="run-h open"><div class="run-n">5</div><b class="rt">CATARACA — cravar o novo piso<small>a métrica não pode voltar atrás</small></b><span class="modetag m-auto">auto</span></div>
+    <div class="run-b">
+      <p>Grava o baseline. No próximo PR, o CI compara: <b>cor crua subiu? alinhamento quebrou? score caiu?</b> → <b>falha o build</b>. O ganho de cada onda fica travado. É o que impede o sistema de derreter no tempo.</p>
+    </div>
+  </div>
+
+  <div class="run">
+    <div class="run-h open"><div class="run-n">6</div><b class="rt">APRENDER — escape vira gate<small>o passo que torna o sistema antifrágil</small></b><span class="modetag m-mix">auto + olho</span></div>
+    <div class="run-b">
+      <p>Se um defeito <b>escapou</b> pro olho do [W] que uma lente <b>deveria</b> ter pego: registra em <code>LICOES_CC.md</code> <b>e gera um teste novo</b> na suíte. Exemplo real: o badge "15151" → vira a regra "todo badge capa em 99+" + um check. A próxima tela já nasce protegida.</p>
+      <div class="loopflow">
+        <div class="ls"><span class="ln">escapou</span><b>[W] vê bug</b><span>que o gate não pegou</span></div>
+        <span class="arr">→</span>
+        <div class="ls"><span class="ln">vira lição</span><b>LICOES_CC</b><span>+ proibição</span></div>
+        <span class="arr">→</span>
+        <div class="ls"><span class="ln">vira gate</span><b>check novo</b><span>na suíte ds:critic</span></div>
+        <span class="arr">→</span>
+        <div class="ls"><span class="ln">nunca+</span><b>classe morta</b><span>não reincide</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="run">
+    <div class="run-h open"><div class="run-n">7</div><b class="rt">INDEXAR — fechar o ciclo<small>a costura com sua memória e o Ledger</small></b><span class="modetag m-auto">auto</span></div>
+    <div class="run-b">
+      <p>Carimba os artefatos e atualiza o índice com <b>histórico</b> (trajetória, não só estado):</p>
+      <div>
+        <span class="artifact">CR-NNNN-&lt;tela&gt;.md</span>
+        <span class="artifact">CRITIQUE_INDEX.md +linha</span>
+        <span class="artifact">ds-ledger.json célula</span>
+        <span class="artifact">sessão AAAA-MM-DD</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- META -->
+  <div class="grouph"><span class="gn">C</span> A auto-avaliação — o crítico critica a si mesmo</div>
+  <div class="loopcard">
+    <p style="margin:0 0 4px;font-size:12.5px;line-height:1.55;color:var(--text-2)">"Auto-avaliativo" de verdade = o sistema <b style="color:var(--text)">mede a própria saúde</b>, não só a das telas. Periodicamente o <code>ds:critic --meta</code> pergunta: <b style="color:var(--text)">os gates ainda pegam?</b> (taxa de escape caindo?) · <b style="color:var(--text)">há falso-positivo</b> irritando à toa? · <b style="color:var(--text)">a cobertura das 5 lentes está completa?</b> Se a taxa de escape parar de cair, o sistema sinaliza que precisa de lente nova. Assim ele não só melhora as telas — <b style="color:var(--text)">melhora a si mesmo</b>.</p>
+  </div>
+
+  <div class="callout">
+    <h3>Resumo: por que isto sobrevive ao tempo</h3>
+    <p><b>Vive</b> no CI (não depende de memória humana) · <b>cataraca</b> (ganho nunca regride) · <b>aprende</b> (cada escape vira gate, cobertura → 100% assintótico) · <b>auto-avalia</b> (mede a própria taxa de escape). Quatro propriedades, e seu protocolo já carrega as raízes de todas — ADR, Ledger, LICOES_CC, proibicoes. Não é sistema novo: é o seu, fechado em laço.</p>
+  </div>
+
+  <div class="foot">
+    <p><b>Encaixe no protocolo:</b> isto É a F1.5 [CD] formalizada. Artefatos (<code>critique-score.json</code>, ≥80) já nomeados no PROTOCOL. Aprendizado usa <code>LICOES_CC.md</code> + <code>proibicoes.md</code> existentes. Soberania honrada: [CC] propõe, [W] decide, [CL] numera/comita — nada na constituição muda sem [W].</p>
+    <p><b>Limite honesto:</b> eu (Cowork) não escrevo no git. Este runbook vira a <b>ponte zero-toque</b> pro Code: patch espelho + 1 prompt. Você cola uma vez; o Code implementa <code>ds:critic</code> com os 7 passos + o meta.</p>
+    <p style="margin-top:10px;color:var(--text-4)">Oimpresso ERP · [CC] · runbook antifrágil do sistema de críticas para o Code.</p>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#16201c"/><g fill="none" stroke="#2bbf6e" stroke-width="5" stroke-linecap="round"><path d="M30 50a20 20 0 1 1 6 14"/><path d="M30 50l-7-7M30 50l8-5"/></g></svg>
+</template>
+</body>
+</html>

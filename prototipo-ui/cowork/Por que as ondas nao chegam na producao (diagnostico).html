@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Por que as ondas não chegam na produção · diagnóstico</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,500;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: oklch(0.155 0.012 285); --bg-2: oklch(0.190 0.013 285);
+    --surface: oklch(0.222 0.014 285); --surface-2: oklch(0.258 0.015 285);
+    --hairline: oklch(0.31 0.014 285); --border: oklch(0.38 0.016 285);
+    --ink: oklch(0.96 0.006 285); --ink-2: oklch(0.80 0.010 285); --ink-3: oklch(0.62 0.012 285); --ink-4: oklch(0.50 0.012 285);
+    --accent: oklch(0.76 0.14 295); --accent-soft: oklch(0.30 0.075 295);
+    --neg: oklch(0.70 0.17 25); --neg-soft: oklch(0.32 0.10 25);
+    --warn: oklch(0.81 0.13 75); --warn-soft: oklch(0.33 0.085 70);
+    --pos: oklch(0.75 0.13 150); --pos-soft: oklch(0.30 0.08 150); --gold: oklch(0.82 0.11 85);
+    --sans: 'IBM Plex Sans', system-ui, sans-serif; --mono: 'IBM Plex Mono', ui-monospace, monospace; --serif: 'Newsreader', Georgia, serif;
+  }
+  *{ box-sizing: border-box; }
+  body{ margin:0; background: var(--bg); color: var(--ink); font-family: var(--sans); font-size: 16px; line-height: 1.62; -webkit-font-smoothing: antialiased;
+    background-image: radial-gradient(760px 420px at 92% -6%, oklch(0.30 0.10 25 / 0.20), transparent 70%), radial-gradient(600px 360px at 2% 6%, oklch(0.30 0.09 295 / 0.16), transparent 70%); background-attachment: fixed; }
+  .wrap{ max-width: 940px; margin: 0 auto; padding: 0 28px; }
+  header.hero{ padding: 80px 0 26px; }
+  .kicker{ font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase; color: var(--neg); display:inline-flex; align-items:center; gap:12px; }
+  .kicker::before{ content:""; width: 38px; height:1px; background: var(--neg); opacity:.7; }
+  h1{ font-size: clamp(40px, 7.4vw, 80px); line-height: 0.98; font-weight: 700; letter-spacing: -0.03em; margin: 20px 0 0; }
+  h1 em{ font-family: var(--serif); font-style: italic; font-weight: 500; color: var(--neg); }
+  .standfirst{ font-family: var(--serif); font-size: clamp(20px, 2.4vw, 26px); line-height: 1.44; color: var(--ink-2); max-width: 720px; margin: 22px 0 0; text-wrap: pretty; }
+  .standfirst b{ color: var(--ink); font-weight: 500; font-style: normal; }
+
+  .tldr{ margin: 36px 0; background: linear-gradient(135deg, var(--surface), var(--bg-2)); border: 1px solid var(--border); border-radius: 18px; padding: 28px 32px; }
+  .tldr .lab{ font-family: var(--mono); font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--neg); font-weight: 600; }
+  .tldr p{ margin: 12px 0 0; font-size: 18px; color: var(--ink); line-height: 1.5; }
+  .tldr p b{ color: var(--neg); font-weight: 600; }
+  .tldr code{ font-family: var(--mono); font-size: 0.86em; background: var(--bg); padding: 1px 6px; border-radius: 5px; border: 1px solid var(--hairline); color: var(--ink); }
+
+  .sec-h{ margin: 70px 0 20px; }
+  .sec-h .n{ font-family: var(--mono); font-size: 13px; color: var(--ink-4); letter-spacing: 0.2em; }
+  .sec-h h2{ font-size: 30px; font-weight: 700; letter-spacing: -0.025em; margin: 6px 0 0; }
+  .sec-h p{ margin: 9px 0 0; color: var(--ink-3); max-width: 680px; font-size: 15px; }
+
+  /* pipeline */
+  .pipe{ display: grid; gap: 0; }
+  .stage{ display: grid; grid-template-columns: 38px 1fr auto; gap: 16px; align-items: start; padding: 16px 0; border-bottom: 1px solid var(--hairline); }
+  .stage:last-child{ border-bottom: none; }
+  .stage .dot{ width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; font-family: var(--mono); font-size: 13px; font-weight: 600; margin-top: 2px; }
+  .stage.ok .dot{ background: color-mix(in oklab, var(--pos) 18%, var(--surface)); color: var(--pos); box-shadow: inset 0 0 0 1px color-mix(in oklab,var(--pos) 35%,transparent); }
+  .stage.break .dot{ background: color-mix(in oklab, var(--neg) 20%, var(--surface)); color: var(--neg); box-shadow: inset 0 0 0 1px color-mix(in oklab,var(--neg) 45%,transparent); }
+  .stage h3{ margin: 0 0 3px; font-size: 16.5px; font-weight: 600; }
+  .stage p{ margin: 0; font-size: 14px; color: var(--ink-2); }
+  .stage p code{ font-family: var(--mono); font-size: 0.85em; background: var(--bg); padding: 1px 5px; border-radius: 4px; color: var(--ink); }
+  .stage .tag{ font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 9px; border-radius: 99px; white-space: nowrap; margin-top: 3px; }
+  .tag.ok{ background: color-mix(in oklab, var(--pos) 16%, var(--surface)); color: var(--pos); }
+  .tag.break{ background: color-mix(in oklab, var(--neg) 18%, var(--surface)); color: var(--neg); }
+
+  /* evidence card */
+  .ev{ background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 28px; margin: 14px 0; }
+  .ev h3{ margin: 0 0 6px; font-size: 18px; font-weight: 600; display:flex; align-items:center; gap:10px; }
+  .ev .src{ font-family: var(--mono); font-size: 11px; color: var(--ink-4); }
+  .ev .quote{ font-family: var(--mono); font-size: 13px; background: var(--bg); border-left: 2px solid var(--gold); padding: 12px 14px; border-radius: 0 8px 8px 0; color: var(--ink-2); margin: 12px 0; white-space: pre-wrap; }
+  .ev .quote b{ color: var(--gold); }
+  .ev p{ margin: 8px 0 0; font-size: 15px; color: var(--ink-2); }
+  .ev p b{ color: var(--ink); }
+
+  /* failure modes */
+  .fm{ display:grid; gap:12px; }
+  .mode{ background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; position: relative; overflow: hidden; }
+  .mode::before{ content:""; position:absolute; left:0; top:0; bottom:0; width: 3px; background: var(--neg); }
+  .mode .rank{ font-family: var(--mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.1em; }
+  .mode h3{ margin: 4px 0 6px; font-size: 17px; font-weight: 600; }
+  .mode p{ margin: 0; font-size: 14.5px; color: var(--ink-2); }
+  .mode p b{ color: var(--ink); }
+  .mode .lk{ color: var(--neg); font-weight: 600; }
+
+  .fix{ background: linear-gradient(135deg, var(--pos-soft), transparent 72%); border: 1px solid color-mix(in oklab, var(--pos) 32%, var(--border)); border-radius: 16px; padding: 26px 30px; margin: 14px 0; }
+  .fix h3{ margin: 0 0 12px; font-size: 19px; color: var(--pos); font-weight: 600; }
+  .fix ol{ margin: 0; padding-left: 22px; }
+  .fix li{ margin: 9px 0; font-size: 15.5px; color: var(--ink-2); }
+  .fix li b{ color: var(--ink); }
+  .fix code{ font-family: var(--mono); font-size: 0.85em; background: var(--bg); padding: 1px 6px; border-radius: 5px; border: 1px solid var(--hairline); color: var(--ink); }
+
+  .closing{ margin: 60px 0 24px; padding: 38px 0; border-top: 1px solid var(--hairline); }
+  .closing .q{ font-family: var(--serif); font-style: italic; font-size: clamp(21px, 2.8vw, 31px); line-height: 1.35; color: var(--ink); text-wrap: pretty; }
+  .closing .q b{ color: var(--gold); font-weight: 500; font-style: normal; }
+  footer{ padding: 24px 0 80px; font-family: var(--mono); font-size: 12px; color: var(--ink-4); }
+  footer .line{ border-top:1px solid var(--hairline); padding-top:16px; display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+  @media (max-width:680px){ .stage{ grid-template-columns: 32px 1fr; } .stage .tag{ grid-column: 2; justify-self: start; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kicker">Diagnóstico · pipeline de design → produção</span>
+    <h1>Por que as ondas<br/><em>não chegam</em></h1>
+    <p class="standfirst">Você viu certo: parte aplicou (o acento colorido nas linhas) e o hero continua a caixa preta. Não é aleatório — é o sintoma de <b>um pipeline com um elo quebrado</b>. Fui ao repo real (<code style="font-size:.8em">@main</code>) e achei a causa. Aqui está, com a prova.</p>
+  </header>
+
+  <div class="tldr">
+    <span class="lab">A causa, em uma frase</span>
+    <p>A produção do Financeiro <b>não lê os meus arquivos de protótipo</b>. Ela lê uma <b>cópia congelada</b> deles — <code>cowork-canon-financeiro-bundle.css</code>, 9054 linhas, tirada em <b>20/05/2026</b>. Minhas ondas editam o protótipo vivo; o bundle de produção é uma foto antiga que <b>só muda quando alguém a re-tira inteira</b>. O hero preto é dessa foto.</p>
+  </div>
+
+  <!-- PIPELINE -->
+  <div class="sec-h">
+    <div class="n">01 — O CAMINHO</div>
+    <h2>Da minha edição até o pixel que você vê</h2>
+    <p>Existem 6 etapas entre eu mexer numa cor e ela aparecer no seu navegador. Eu controlo só a primeira. O elo que quebra é o 3º.</p>
+  </div>
+
+  <div class="pipe">
+    <div class="stage ok"><div class="dot">1</div><div><h3>Eu edito o protótipo (Cowork)</h3><p>Mexo em <code>financeiro.css</code> / <code>fin-boletos.css</code> / <code>financeiro-page.jsx</code> — JS puro, aqui no Cowork. <b>Funciona: você vê no preview.</b></p></div><span class="tag ok">ok</span></div>
+    <div class="stage ok"><div class="dot">2</div><div><h3>Eu gero a ponte (URL pro Code)</h3><p>Escrevo o handoff e gero o link público. Você cola no Claude Code. <b>Funciona.</b></p></div><span class="tag ok">ok</span></div>
+    <div class="stage break"><div class="dot">3</div><div><h3>O Code traduz pro bundle de produção</h3><p>Aqui é JS puro → <b>React/TSX + um CSS-bundle gigante</b> (<code>cowork-canon-financeiro-bundle.css</code>, escopado em <code>.fin-cowork</code>). O bundle é uma <b>cópia inteira</b> do meu CSS, não um link. Se a cópia não for re-tirada da versão atual, a mudança <b>some sem erro nenhum</b>.</p></div><span class="tag break">quebra aqui</span></div>
+    <div class="stage ok"><div class="dot">4</div><div><h3>Commit + PR</h3><p>O Code comita e abre PR. Eu <b>não faço isto</b> (sou read-only no git) — depende do Code + de você.</p></div><span class="tag ok">ok*</span></div>
+    <div class="stage ok"><div class="dot">5</div><div><h3>Merge no <code>main</code></h3><p>O [W2] aprova e mergeia.</p></div><span class="tag ok">ok*</span></div>
+    <div class="stage break"><div class="dot">6</div><div><h3>Deploy / build do bundle</h3><p>O <code>main</code> precisa ser <b>buildado e deployado</b>. Se o build do bundle não rodar (ou rodar sobre versão antiga), o <code>main</code> pode estar certo e a <b>produção continuar velha</b>.</p></div><span class="tag break">suspeito</span></div>
+  </div>
+
+  <!-- EVIDENCE -->
+  <div class="sec-h">
+    <div class="n">02 — A PROVA</div>
+    <h2>Não é palpite — está escrito no repo</h2>
+  </div>
+
+  <div class="ev">
+    <h3>◆ O hero preto é uma cópia datada</h3>
+    <span class="src">fonte: resources/js/Pages/Financeiro/Unificado/Index.charter.md @main</span>
+    <div class="quote">"Bundle copy CSS 9054 LOC — <b>cowork-canon-financeiro-bundle.css</b> importado inteiro escopado em .fin-cowork …
+markup canon: …  fin-stat <b>fin-stat-hero (KPI hero warm dark hue 80)</b>"  — Ondas 12-21, <b>2026-05-20</b></div>
+    <p>Traduzindo: a produção declara o hero como <b>"warm dark, hue 80"</b> — a caixa escura/preta do seu print. Essa definição foi <b>copiada em 20/05</b>. Toda a modernização (hero claro com luz roxa) veio <b>depois</b>, no protótipo — e nunca foi recopiada pra dentro do bundle.</p>
+  </div>
+
+  <div class="ev">
+    <h3>◆ Dois lugares, a mesma verdade</h3>
+    <span class="src">corroboração cruzada</span>
+    <p><b>(1)</b> O charter do <code>@main</code> diz "hero dark hue 80". <b>(2)</b> O seu screenshot mostra a caixa preta. Duas fontes independentes apontam o mesmo: <b>o bundle de produção é a foto velha</b>, anterior à modernização.</p>
+  </div>
+
+  <div class="ev">
+    <h3>◆ Por que o acento das linhas aplicou e o hero não</h3>
+    <span class="src">a pista do seu print</span>
+    <p>O acento colorido na borda da linha é uma regra <b>nova e aditiva</b> — fácil de o Code colar no bundle sem conflito. O hero exige <b>sobrescrever</b> uma regra que já existe (<code>.fin-stat-hero{ background: dark }</code>). Sobrescrita só funciona se a regra nova <b>vencer</b> a antiga (ordem/especificidade) — e há ainda <b>2 bundles Financeiro quase-duplicados</b> + um override <code>fin-cowork</code> no repo, então uma definição antiga pode estar <b>recolorindo o hero depois</b> da minha. Resultado: aditivo passa, sobrescrita perde.</p>
+  </div>
+
+  <!-- FAILURE MODES -->
+  <div class="sec-h">
+    <div class="n">03 — OS TRÊS MODOS DE FALHA</div>
+    <h2>Onde, exatamente, a mudança morre</h2>
+    <p>Em ordem de probabilidade, dado o que li no repo.</p>
+  </div>
+
+  <div class="fm">
+    <div class="mode"><div class="rank">MAIS PROVÁVEL</div><h3>1 · O bundle não foi re-copiado da versão atual</h3><p>A regra do repo é <span class="lk">"aplicar o bundle inteiro"</span> (<code>feedback-cowork-bundle-aplicar-inteiro</code>). Se o Code aplicou só <b>trechos</b> (o acento da linha) em vez de <b>re-copiar o bundle completo</b> a partir do meu <code>financeiro.css</code> + <code>fin-boletos.css</code> atuais, o hero fica na versão de 20/05. <b>É o que o print mostra.</b></p></div>
+    <div class="mode"><div class="rank">PROVÁVEL</div><h3>2 · Minha modernização do hero mora em <code>fin-boletos.css</code>, não no <code>financeiro.css</code></h3><p>Eu pus o hero claro em <b>fin-boletos.css</b> (arquivo separado). Se a geração do bundle copia <code>financeiro.css</code> mas <b>esquece</b> <code>fin-boletos.css</code>, o hero novo <b>nunca entra</b> — mesmo numa regeneração "completa". <b>Risco real e silencioso.</b></p></div>
+    <div class="mode"><div class="rank">POSSÍVEL</div><h3>3 · Deploy atrasado</h3><p>Pode ser que o <code>main</code> já tenha o hero novo, mas o <b>build/deploy</b> não rodou — então a produção serve o CSS antigo. Some quando você força um deploy + <code>Ctrl+Shift+R</code>.</p></div>
+  </div>
+
+  <!-- FIX -->
+  <div class="sec-h">
+    <div class="n">04 — COMO CONSERTAR DE VERDADE</div>
+    <h2>Não "reaplicar a onda" — consertar o elo</h2>
+  </div>
+
+  <div class="fix">
+    <h3>◆ O que mandar o Code fazer</h3>
+    <ol>
+      <li><b>Re-copiar o bundle INTEIRO</b>, não trechos: regenerar <code>cowork-canon-financeiro-bundle.css</code> a partir do <b>conjunto atual</b> do protótipo — <code>financeiro.css</code> <b>+ <code>fin-boletos.css</code></b> + os JSX-CSS. (Modo 1 e 2.)</li>
+      <li><b>Resolver os 2 bundles duplicados</b> (<code>cowork-financeiro-bundle</code> × <code>cowork-canon-financeiro-bundle</code>) + o override <code>fin-cowork</code>: garantir que só <b>um</b> define <code>.fin-stat-hero</code>, senão a sobrescrita do hero perde de novo. (Modo da pista.)</li>
+      <li><b>Verificar no DOM pós-deploy</b>: <code>getComputedStyle($('.fin-stat-hero')).background</code> deve conter o <code>linear-gradient</code> claro, não <code>var(--text)</code>. Se ainda for escuro → é deploy (Modo 3): forçar build + hard-reload.</li>
+      <li><b>Travar com teste</b>: um check que falha se <code>.fin-stat-hero</code> tiver <code>background</code> escuro/dark — pra a regressão não voltar silenciosa na próxima cópia.</li>
+    </ol>
+  </div>
+
+  <div class="closing">
+    <p class="q">A lição não é "a onda falhou" — é que <b>entre o protótipo e a produção existe uma cópia manual</b>, e cópia manual perde pedaço sem avisar. Enquanto o hero viver como foto de 20/05 dentro de um bundle de 9 mil linhas, cada onda vai parecer que "não aplica". <b>Conserte a cópia, não o sintoma.</b></p>
+  </div>
+
+  <footer>
+    <div class="line">
+      <span>DIAGNÓSTICO · pipeline design → produção · grounded em @main</span>
+      <span>Financeiro · cowork-canon-financeiro-bundle.css · hero .fin-stat-hero</span>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

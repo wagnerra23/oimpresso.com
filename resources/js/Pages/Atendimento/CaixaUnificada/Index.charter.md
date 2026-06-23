@@ -8,7 +8,7 @@ cutover_at: "2026-05-15"
 supersedes: resources/js/Pages/Atendimento/Inbox/Index.charter.md
 parent_module: Whatsapp
 parent_adr: memory/decisions/0135-omnichannel-inbox-arquitetura.md
-visual_source: prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx
+visual_source: prototipo-ui/cowork/inbox-page.jsx
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios

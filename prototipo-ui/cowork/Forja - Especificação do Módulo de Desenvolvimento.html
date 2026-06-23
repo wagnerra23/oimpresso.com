@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Forja — Especificação do Módulo de Desenvolvimento</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg:        oklch(0.992 0.0015 95);
+    --sunken:    oklch(0.974 0.003 95);
+    --surface:   oklch(1 0 0);
+    --hairline:  oklch(0.935 0.003 95);
+    --border:    oklch(0.905 0.004 95);
+    --text:      oklch(0.205 0.008 90);
+    --text-2:    oklch(0.46 0.007 90);
+    --text-3:    oklch(0.63 0.006 90);
+    --accent:    oklch(0.55 0.15 295);
+    --accent-hi: oklch(0.50 0.16 295);
+    --accent-soft: oklch(0.945 0.045 295);
+    --accent-line: oklch(0.80 0.09 295);
+    /* camada dev — token semântico de proveniência (NÃO accent de chrome). Proposto como --origin-DEV */
+    --dev:       oklch(0.52 0.09 195);
+    --dev-soft:  oklch(0.95 0.035 195);
+    --dev-line:  oklch(0.82 0.06 195);
+    --pos:  oklch(0.55 0.17 150); --pos-soft: oklch(0.94 0.08 150);
+    --neg:  oklch(0.58 0.21 25);  --neg-soft: oklch(0.95 0.05 25);
+    --warn: oklch(0.63 0.16 68);  --warn-soft: oklch(0.95 0.07 80);
+    --sans: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+    --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
+    --sh-1: 0 4px 14px -6px oklch(0.2 0.02 282 / .10), 0 1px 3px oklch(0.2 0.02 282 / .07);
+    --r-2: 8px; --r-3: 11px;
+    --maxw: 820px;
+  }
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--sans); font-size:15px; line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    font-feature-settings:"ss01","cv01";
+  }
+  .wrap{ display:grid; grid-template-columns: 232px minmax(0,1fr); gap:0; max-width:1180px; margin:0 auto; }
+
+  /* ── índice lateral ── */
+  .toc{ position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto;
+        padding:40px 22px 40px 28px; border-right:1px solid var(--hairline); }
+  .toc-brand{ font-weight:700; font-size:16px; letter-spacing:-0.01em; margin:0 0 2px; }
+  .toc-brand .dot{ display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--dev); margin-right:7px; vertical-align:middle; }
+  .toc-sub{ font-size:11.5px; color:var(--text-3); margin:0 0 22px; line-height:1.4; }
+  .toc nav{ display:flex; flex-direction:column; gap:1px; }
+  .toc a{ color:var(--text-2); text-decoration:none; font-size:12.5px; padding:5px 9px;
+          border-radius:6px; display:flex; gap:9px; align-items:baseline; }
+  .toc a:hover{ background:var(--sunken); color:var(--text); }
+  .toc a .n{ font-family:var(--mono); font-size:10.5px; color:var(--text-3); min-width:18px; }
+  .toc .grp{ font-size:10px; text-transform:uppercase; letter-spacing:0.09em; color:var(--text-3);
+             margin:16px 0 5px 9px; font-weight:600; }
+
+  /* ── coluna do conteúdo ── */
+  main{ padding:56px 64px 120px; max-width: calc(var(--maxw) + 128px); }
+  .cover{ margin-bottom:54px; }
+  .eyebrow{ font-family:var(--mono); font-size:11px; letter-spacing:0.04em; color:var(--dev);
+            text-transform:uppercase; margin:0 0 14px; display:flex; gap:10px; align-items:center; }
+  .eyebrow::before{ content:""; width:24px; height:1px; background:var(--dev-line); }
+  h1{ font-size:36px; line-height:1.1; letter-spacing:-0.02em; font-weight:700; margin:0 0 16px;
+      max-width:18ch; text-wrap:balance; }
+  .lede{ font-size:17px; color:var(--text-2); max-width:62ch; margin:0 0 26px; text-wrap:pretty; }
+  .meta-strip{ display:flex; flex-wrap:wrap; gap:8px 8px; padding-top:22px; border-top:1px solid var(--hairline); }
+  .pill{ font-family:var(--mono); font-size:11px; padding:4px 10px; border-radius:999px;
+         border:1px solid var(--border); color:var(--text-2); background:var(--surface); }
+  .pill b{ color:var(--text); font-weight:600; }
+  .pill.dev{ border-color:var(--dev-line); background:var(--dev-soft); color:oklch(0.40 0.09 195); }
+
+  section.item{ margin:0 0 8px; padding:46px 0 8px; border-top:1px solid var(--hairline); scroll-margin-top:24px; }
+  section.item:first-of-type{ border-top:none; }
+  .item-head{ display:flex; gap:16px; align-items:baseline; margin-bottom:8px; }
+  .item-num{ font-family:var(--mono); font-size:13px; color:var(--dev); font-weight:600; padding-top:4px; }
+  h2{ font-size:25px; line-height:1.15; letter-spacing:-0.018em; font-weight:700; margin:0; }
+  .item-tag{ font-family:var(--mono); font-size:10.5px; color:var(--text-3); text-transform:uppercase;
+             letter-spacing:0.06em; margin-top:6px; }
+  .desc{ color:var(--text-2); max-width:64ch; margin:14px 0 26px; text-wrap:pretty; }
+
+  h3{ font-size:12px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; color:var(--text-3);
+      margin:30px 0 12px; display:flex; align-items:center; gap:10px; }
+  h3::after{ content:""; flex:1; height:1px; background:var(--hairline); }
+
+  table{ width:100%; border-collapse:collapse; margin:6px 0 4px; font-size:13.5px; }
+  th{ text-align:left; font-weight:600; font-size:11px; text-transform:uppercase; letter-spacing:0.05em;
+      color:var(--text-3); padding:0 12px 8px 0; border-bottom:1px solid var(--border); }
+  td{ padding:9px 12px 9px 0; border-bottom:1px solid var(--hairline); vertical-align:top; color:var(--text-2); }
+  td.f{ font-family:var(--mono); font-size:12px; color:var(--accent-hi); white-space:nowrap; font-weight:500; }
+  td.t{ font-family:var(--mono); font-size:11px; color:var(--text-3); white-space:nowrap; }
+  td b{ color:var(--text); font-weight:600; }
+  table.fields td:first-child{ width:30%; }
+  table.fields td:nth-child(2){ width:18%; }
+
+  ul.fn{ list-style:none; padding:0; margin:6px 0; display:grid; gap:7px; }
+  ul.fn li{ position:relative; padding-left:22px; color:var(--text-2); font-size:14px; max-width:66ch; }
+  ul.fn li::before{ content:""; position:absolute; left:4px; top:9px; width:6px; height:6px;
+                    border-radius:1px; background:var(--dev); }
+  ul.fn li b{ color:var(--text); font-weight:600; }
+  ul.fn li code{ font-family:var(--mono); font-size:12px; background:var(--sunken); padding:1px 5px; border-radius:4px; color:var(--accent-hi); }
+
+  /* benchmark */
+  table.bench td:first-child{ width:24%; font-weight:600; color:var(--text); }
+  table.bench .score{ font-family:var(--mono); font-size:12px; white-space:nowrap; }
+  .bar{ display:inline-block; width:54px; height:5px; border-radius:3px; background:var(--sunken); margin-right:8px; vertical-align:middle; overflow:hidden; }
+  .bar i{ display:block; height:100%; background:var(--accent); border-radius:3px; }
+  .bench-steal{ margin-top:10px; font-size:13px; color:var(--text-2); }
+  .bench-steal b{ color:var(--dev); font-weight:600; }
+
+  /* refutação */
+  .refut{ margin:26px 0 6px; background:var(--neg-soft); border-radius:var(--r-3); padding:18px 20px 20px;
+          border:1px solid oklch(0.88 0.06 25); }
+  .refut .lab{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em;
+               color:var(--neg); font-weight:600; margin-bottom:8px; display:flex; gap:8px; align-items:center; }
+  .refut .lab::before{ content:"✕"; font-size:11px; }
+  .refut .attack{ font-size:14.5px; color:oklch(0.32 0.10 25); font-style:italic; margin:0 0 14px; max-width:64ch; text-wrap:pretty; }
+  .refut .resolve{ font-size:14px; color:var(--text); max-width:66ch; text-wrap:pretty; }
+  .refut .resolve .lab2{ display:inline-block; font-family:var(--mono); font-size:10px; text-transform:uppercase;
+              letter-spacing:0.07em; color:var(--pos); font-weight:600; margin-right:8px; }
+  .refut.survive{ background:var(--pos-soft); border-color:oklch(0.86 0.07 150); }
+  .refut.survive .lab{ color:var(--pos); } .refut.survive .lab::before{ content:"⚑"; }
+  .refut.survive .attack{ color:oklch(0.30 0.10 150); }
+
+  .callout{ background:var(--dev-soft); border:1px solid var(--dev-line); border-radius:var(--r-3);
+            padding:18px 20px; margin:22px 0; }
+  .callout .lab{ font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:0.08em;
+                 color:oklch(0.40 0.09 195); font-weight:600; margin-bottom:7px; }
+  .callout p{ margin:0; font-size:14px; color:var(--text); max-width:66ch; text-wrap:pretty; }
+  .callout code{ font-family:var(--mono); font-size:12px; background:oklch(1 0 0 / .6); padding:1px 5px; border-radius:4px; }
+
+  .role{ font-family:var(--mono); font-size:11px; padding:1px 6px; border-radius:5px; font-weight:600;
+         border:1px solid var(--border); }
+  .r-W{ color:oklch(0.42 0.13 25);  background:oklch(0.96 0.04 25); border-color:oklch(0.88 0.06 25); }
+  .r-CC{ color:oklch(0.42 0.13 295); background:var(--accent-soft); border-color:var(--accent-line); }
+  .r-CD{ color:oklch(0.42 0.12 60);  background:oklch(0.95 0.06 70); border-color:oklch(0.86 0.07 70); }
+  .r-CL{ color:oklch(0.40 0.12 195); background:var(--dev-soft); border-color:var(--dev-line); }
+  .r-CA{ color:oklch(0.42 0.13 150); background:oklch(0.95 0.06 150); border-color:oklch(0.86 0.07 150); }
+
+  main em{ color:var(--text); font-style:italic; }
+  main strong{ font-weight:600; color:var(--text); }
+  code.k{ font-family:var(--mono); font-size:12.5px; background:var(--sunken); padding:1px 6px; border-radius:5px; color:var(--accent-hi); }
+
+  .foot{ margin-top:54px; padding-top:26px; border-top:1px solid var(--border); color:var(--text-3); font-size:12.5px; }
+
+  @media (max-width:1000px){
+    .wrap{ grid-template-columns:1fr; }
+    .toc{ position:static; height:auto; border-right:none; border-bottom:1px solid var(--hairline); }
+    .toc nav{ display:none; }
+    main{ padding:40px 28px 90px; }
+  }
+  @media print{
+    .toc{ display:none; }
+    .wrap{ display:block; } main{ max-width:none; padding:0; }
+    body{ font-size:11pt; } section.item{ break-inside:avoid; }
+    .refut, .callout{ break-inside:avoid; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <aside class="toc">
+    <p class="toc-brand"><span class="dot"></span>Forja</p>
+    <p class="toc-sub">Spec do módulo de desenvolvimento · campos · funções · benchmark · refutação</p>
+    <nav>
+      <a href="#visao"><span class="n">00</span><span>Visão &amp; modelo de dados</span></a>
+      <span class="grp">Itens do plano</span>
+      <a href="#backlog"><span class="n">01</span><span>Backlog</span></a>
+      <a href="#workflow"><span class="n">02</span><span>Workflow de fase + drawer</span></a>
+      <a href="#changelog"><span class="n">03</span><span>Changelog</span></a>
+      <a href="#identidade"><span class="n">04</span><span>Identidade</span></a>
+      <a href="#adr"><span class="n">05</span><span>Registro de ADR</span></a>
+      <a href="#roadmap"><span class="n">06</span><span>Roadmap / Ondas</span></a>
+      <a href="#mcp"><span class="n">07</span><span>Camada MCP</span></a>
+      <a href="#saude"><span class="n">08</span><span>Painel de saúde</span></a>
+      <span class="grp">Fecho</span>
+      <a href="#sintese"><span class="n">09</span><span>Síntese &amp; decisões [W]</span></a>
+    </nav>
+  </aside>
+
+  <main>
+    <div class="cover" id="topo">
+      <p class="eyebrow">Forja · spec única · F0→F1</p>
+      <h1>Módulo de desenvolvimento de software, conectado ao MCP</h1>
+      <p class="lede">Cada item do plano aprovado, descrito em detalhe: <strong>quais campos, quais funções</strong>, comparado contra os melhores do mercado e <strong>refutado</strong> — para o plano funcionar de verdade, não no papel.</p>
+      <div class="meta-strip">
+        <span class="pill dev"><b>Forja</b> · nome provisório</span>
+        <span class="pill">funde <b>projects</b> + <b>teammcp</b></span>
+        <span class="pill">rota <b>/projects</b> (hoje stub)</span>
+        <span class="pill">MCP <b>mockado</b> no protótipo</span>
+        <span class="pill">host <b>oimpresso.com.html</b></span>
+      </div>
+    </div>
+
+    <!-- 00 ─────────────────────────────────────────────── -->
+    <section class="item" id="visao">
+      <div class="item-head">
+        <span class="item-num">00</span>
+        <div><h2>Visão &amp; modelo de dados</h2><div class="item-tag">por que existe · entidades ancoradas no repo</div></div>
+      </div>
+      <p class="desc">A Forja não inventa um sistema de gestão novo — ela <strong>torna visível e operável</strong> o que hoje vive espalhado em <code class="k">.md</code> (ADRs, sessões, <code class="k">COWORK_NOTES</code>, <code class="k">TELAS_REVIEW_QUEUE</code>, lições) e expõe esse estado pro MCP. Premissa de ouro: <strong>a fonte da verdade continua sendo o git</strong>; a tela é projeção + sincronização, nunca um banco paralelo. Sem isso, vira a quarta fila divergente.</p>
+
+      <h3>Entidades (nenhuma inventada — todas já existem)</h3>
+      <table class="fields">
+        <thead><tr><th>Entidade</th><th>Hoje no repo</th><th>Vira na Forja</th></tr></thead>
+        <tbody>
+          <tr><td class="f">Issue</td><td class="t">TELAS_REVIEW_QUEUE / COWORK_NOTES</td><td>item de trabalho com fase, papel, prioridade</td></tr>
+          <tr><td class="f">Status</td><td class="t">7 fases F0…F4 (PROTOCOL §2)</td><td>workflow do issue</td></tr>
+          <tr><td class="f">Ator</td><td class="t">6 papéis [W][CC][CD][CL][CA][W2]</td><td>assignee humano <em>ou</em> agente</td></tr>
+          <tr><td class="f">ADR</td><td class="t">decisions/NNNN-*.md (append-only)</td><td>decisão vinculada ao issue</td></tr>
+          <tr><td class="f">Ciclo</td><td class="t">"Ondas" (W1–W4, FA-1, Q1…)</td><td>sprint nativo</td></tr>
+          <tr><td class="f">Entrega</td><td class="t">PR merged / sessão / commit</td><td>linha do changelog</td></tr>
+          <tr><td class="f">Check</td><td class="t">gates de CI (ui:lint, conformance…)</td><td>trava por fase</td></tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        <div class="lab">Decisão estrutural travada</div>
+        <p>A Forja é <strong>read/sync sobre o git</strong>. Toda escrita vinda da tela ou de um agente vira proposta que precisa de transporte ([W] cola 1×) — espelha o limite operacional real ([CC]/MCP não commitam). Isso não é limitação: é o que impede a divergência que matou o <code>§16.2</code> e os censos com espelho local <em>stale</em>.</p>
+      </div>
+    </section>
+
+    <!-- 01 ─────────────────────────────────────────────── -->
+    <section class="item" id="backlog">
+      <div class="item-head">
+        <span class="item-num">01</span>
+        <div><h2>Backlog</h2><div class="item-tag">a espinha · lista densa triável por teclado</div></div>
+      </div>
+      <p class="desc">Visão primária do módulo. Estilo Linear, não Jira: lista densa, teclado-primeiro, sem cerimônia de drag. Cabe ~30 linhas no monitor 1280×1024 da Larissa sem rolar. Agrupável por onda, fase, papel ou prioridade.</p>
+
+      <h3>Campos do issue</h3>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">string</td><td><code class="k">FORJA-142</code> · monotônico, imutável</td></tr>
+          <tr><td class="f">titulo</td><td class="t">string</td><td>uma linha, imperativo</td></tr>
+          <tr><td class="f">tipo</td><td class="t">enum</td><td>tela · gate · adr · bug · refino · infra · doc</td></tr>
+          <tr><td class="f">prioridade</td><td class="t">P0–P3</td><td>espelha a fila P0–P3 da review queue</td></tr>
+          <tr><td class="f">fase</td><td class="t">F0–F4</td><td>status = posição no workflow (item 02)</td></tr>
+          <tr><td class="f">assignee</td><td class="t">papel</td><td><span class="role r-W">[W]</span> <span class="role r-CC">[CC]</span> <span class="role r-CL">[CL]</span> … humano ou agente</td></tr>
+          <tr><td class="f">ciclo</td><td class="t">ref onda</td><td>W1 · FA-1 · Q3 … (item 06)</td></tr>
+          <tr><td class="f">modulo</td><td class="t">enum</td><td>Vendas · Financeiro · Oficina … (área afetada)</td></tr>
+          <tr><td class="f">vinculos</td><td class="t">ref[]</td><td>ADR# · PR# · sessão · tela · arquivo</td></tr>
+          <tr><td class="f">bloqueado_por</td><td class="t">id[]</td><td>dependências entre issues</td></tr>
+          <tr><td class="f">origem</td><td class="t">enum</td><td>cowork_notes · review_queue · agente_mcp</td></tr>
+          <tr><td class="f">criado_por / em</td><td class="t">ator / ts</td><td>proveniência (humano vs agente — item 04)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Funções</h3>
+      <ul class="fn">
+        <li><b>Triagem por teclado</b> — <code>j/k</code> navega, <code>c</code> cria, <code>e</code> edita, <code>x</code> seleciona, <code>⌘K</code> comando.</li>
+        <li><b>Quick-add com sintaxe</b> — <code>Aprovar arte Acme #vendas @CL !p0 ~FA-2</code> resolve módulo, papel, prioridade e ciclo de uma vez.</li>
+        <li><b>Agrupar &amp; filtrar</b> — por onda/fase/papel/prioridade/módulo; <b>visões salvas</b> (ex. "meus P0 desta onda").</li>
+        <li><b>Edição em massa</b> — selecionar N e mudar fase/assignee/ciclo.</li>
+        <li><b>Ordenação manual (rank)</b> dentro do grupo + totalizador no rodapé (N issues · atrasados · por fase).</li>
+      </ul>
+
+      <h3>Benchmark</h3>
+      <table class="bench">
+        <thead><tr><th>Referência</th><th>Nota</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>Linear</td><td class="score"><span class="bar"><i style="width:96%"></i></span>9.6</td><td>padrão-ouro de lista densa, teclado, sub-issues, ciclos</td></tr>
+          <tr><td>Height</td><td class="score"><span class="bar"><i style="width:82%"></i></span>8.2</td><td>chat-nativo, bom pra triagem colaborativa</td></tr>
+          <tr><td>Jira</td><td class="score"><span class="bar"><i style="width:65%"></i></span>6.5</td><td>poderoso, configurável — pesado e cerimonioso</td></tr>
+          <tr><td>GitHub Issues</td><td class="score"><span class="bar"><i style="width:62%"></i></span>6.2</td><td>simples, ligado ao código — falta workflow/visões</td></tr>
+        </tbody>
+      </table>
+      <p class="bench-steal"><b>Roubar do Linear:</b> a velocidade — quick-add com sintaxe, visões salvas, zero modal pra criar. <b>Rejeitar do Jira:</b> campos customizados infinitos e workflow editável por admin (ninguém aqui é admin de processo).</p>
+
+      <div class="refut">
+        <div class="lab">Refutação</div>
+        <p class="attack">"Uma lista densa de issues duplica a <code>TELAS_REVIEW_QUEUE.md</code> e a <code>COWORK_NOTES</code>. Em uma semana a tela e os <code>.md</code> divergem, e ninguém sabe qual é a verdade — exatamente o erro recorrente de afirmar estado lendo espelho local <em>stale</em>."</p>
+        <p class="resolve"><span class="lab2">Como sobrevive</span>O backlog <strong>não é fonte</strong>: é projeção dos <code class="k">.md</code> do git, sincronizada no carregamento. Escrita pela tela/agente gera um <em>patch espelho</em> + entrada na ponte zero-toque — nunca grava direto. A fila roda <em>round-trip</em> com o git via [CL]. Se não sincronizou nesta sessão, a linha aparece marcada <code class="k">⚠ não-verificado</code>, igual à Regra 6.</p>
+      </div>
+    </section>
+
+    <!-- 02 ─────────────────────────────────────────────── -->
+    <section class="item" id="workflow">
+      <div class="item-head">
+        <span class="item-num">02</span>
+        <div><h2>Workflow de fase + drawer do issue</h2><div class="item-tag">F0→F4 com critérios de transição visíveis</div></div>
+      </div>
+      <p class="desc">Clicar num issue abre o drawer lateral (padrão Cockpit V2). O status não é um rótulo solto: é a posição nas 7 fases do <code class="k">PROTOCOL.md §2</code>, e cada transição mostra seus critérios (§3) e os gates que precisam estar verdes.</p>
+
+      <h3>Campos do drawer</h3>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="f">fase_atual</td><td class="t">F0–F4</td><td>F0 brief · F1 design · F1.5 critique · F2 screenshot · F3 code · F3.5 a11y · F4 merge</td></tr>
+          <tr><td class="f">transicoes[]</td><td class="t">evento[]</td><td>quem moveu, de→para, quando (histórico imutável)</td></tr>
+          <tr><td class="f">criterios[]</td><td class="t">checklist</td><td>condições de §3 pra liberar a próxima fase</td></tr>
+          <tr><td class="f">checks[]</td><td class="t">gate[]</td><td>ui:lint · conformance · foundation-guard · a11y — estado verde/vermelho</td></tr>
+          <tr><td class="f">descricao</td><td class="t">markdown</td><td>contexto do trabalho</td></tr>
+          <tr><td class="f">subtarefas[]</td><td class="t">checklist</td><td>quebra interna</td></tr>
+          <tr><td class="f">aprovacoes[]</td><td class="t">[W2]</td><td>F2 (screenshot) e F4 (merge) — síncronas, humanas</td></tr>
+          <tr><td class="f">anexos[]</td><td class="t">arquivo[]</td><td>screenshots F2, critique-score.json F1.5</td></tr>
+          <tr><td class="f">atividade[]</td><td class="t">evento[]</td><td>comentários + ações de agente</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Funções</h3>
+      <ul class="fn">
+        <li><b>Mover de fase com porta</b> — não avança se o critério da transição (§3) não estiver cumprido; o botão mostra <em>o que falta</em>.</li>
+        <li><b>Overrides do protocolo</b> — <code>/design-override</code> <code>/screenshot-override</code> <code>/a11y-override</code> (§5) ficam visíveis e <b>registram quem usou</b>, com motivo.</li>
+        <li><b>Vincular</b> ADR / PR / sessão / tela; <b>atribuir</b> a papel; <b>definir prazo</b>.</li>
+        <li><b>Comentar &amp; mencionar</b> papel; toda ação de agente entra na atividade com selo de proveniência.</li>
+      </ul>
+
+      <h3>Benchmark</h3>
+      <table class="bench">
+        <thead><tr><th>Referência</th><th>Nota</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>Linear (states+cycles)</td><td class="score"><span class="bar"><i style="width:92%"></i></span>9.2</td><td>estados claros, transição instantânea, sem fricção</td></tr>
+          <tr><td>GitHub Projects</td><td class="score"><span class="bar"><i style="width:80%"></i></span>8.0</td><td>status ligado a PR/commit real</td></tr>
+          <tr><td>Jira (workflow+conditions)</td><td class="score"><span class="bar"><i style="width:72%"></i></span>7.2</td><td>condições de transição poderosas — config infernal</td></tr>
+        </tbody>
+      </table>
+      <p class="bench-steal"><b>Roubar:</b> do GitHub, a transição amarrada a um artefato real (PR verde = pode mover). Do Jira, só o conceito de <b>condição de transição</b> — sem o editor de workflow.</p>
+
+      <div class="refut">
+        <div class="lab">Refutação</div>
+        <p class="attack">"Um workflow rígido de 7 fases <em>é</em> a cerimônia do Jira que você jurou evitar. Vai travar o trabalho real numa burocracia de portas e gates."</p>
+        <p class="resolve"><span class="lab2">Como sobrevive</span>As 7 fases <strong>já são a lei</strong> (PROTOCOL §2) — a Forja não cria cerimônia, só torna honesta a que existe. E o protocolo já vem com escape hatch: os <em>overrides</em> §5. A porta nunca é muro: é um aviso do que falta, com botão de pular registrado. Sem a tela, hoje a fase mora na cabeça de quem leu o <code class="k">.md</code> — pior.</p>
+      </div>
+    </section>
+
+    <!-- 03 ─────────────────────────────────────────────── -->
+    <section class="item" id="changelog">
+      <div class="item-head">
+        <span class="item-num">03</span>
+        <div><h2>Changelog</h2><div class="item-tag">o que shippou · feed cronológico de 3 fontes</div></div>
+      </div>
+      <p class="desc">A visão "o que entrou". Une três coisas que o <code class="k">git log</code> não junta: <strong>PR merged + ADR + sessão</strong>, em ordem cronológica reversa, com a dimensão de domínio (qual tela/módulo mudou) que o commit não carrega.</p>
+
+      <h3>Campos da entrada</h3>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="f">tipo</td><td class="t">enum</td><td>pr_merged · adr · sessão · onda_fechada</td></tr>
+          <tr><td class="f">ref</td><td class="t">string</td><td><code class="k">#2417</code> · <code class="k">ADR 0264</code> · slug da sessão</td></tr>
+          <tr><td class="f">resumo</td><td class="t">string</td><td>1–2 linhas do que mudou</td></tr>
+          <tr><td class="f">autor</td><td class="t">papel</td><td>quem entregou (humano/agente)</td></tr>
+          <tr><td class="f">data</td><td class="t">ts</td><td>quando entrou em <code class="k">main</code></td></tr>
+          <tr><td class="f">modulos[]</td><td class="t">enum[]</td><td>áreas afetadas — filtro de domínio</td></tr>
+          <tr><td class="f">flags</td><td class="t">bool</td><td><code class="k">breaking</code> · <code class="k">tier-0</code> (toca constituição/segredo)</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Funções</h3>
+      <ul class="fn">
+        <li><b>Feed cronológico reverso</b>, filtrável por tipo / módulo / papel / período.</li>
+        <li><b>Agrupar por onda</b> — fechar uma onda gera automaticamente o bloco de release notes daquele ciclo.</li>
+        <li><b>Gerar digest</b> — resumo da semana/onda pronto pra colar (o que a [CC] hoje escreve à mão em <code class="k">sessions/</code>).</li>
+        <li><b>Endpoint MCP</b> — agente lê "o que shippou desde X" antes de propor, evitando reinventar o decidido.</li>
+      </ul>
+
+      <h3>Benchmark</h3>
+      <table class="bench">
+        <thead><tr><th>Referência</th><th>Nota</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>Vercel deployments</td><td class="score"><span class="bar"><i style="width:90%"></i></span>9.0</td><td>feed com autor, estado, diff — claríssimo</td></tr>
+          <tr><td>Sentry releases</td><td class="score"><span class="bar"><i style="width:85%"></i></span>8.5</td><td>release ligada a commits + impacto</td></tr>
+          <tr><td>Stripe changelog</td><td class="score"><span class="bar"><i style="width:84%"></i></span>8.4</td><td>editorial, marca breaking, datado</td></tr>
+          <tr><td>GitHub Releases</td><td class="score"><span class="bar"><i style="width:78%"></i></span>7.8</td><td>tags + notas — manual, sem domínio</td></tr>
+        </tbody>
+      </table>
+      <p class="bench-steal"><b>Roubar:</b> da Vercel, autor + estado por linha. Do Stripe, o selo <code class="k">breaking</code>/<code class="k">tier-0</code> e o tom editorial datado.</p>
+
+      <div class="refut">
+        <div class="lab">Refutação</div>
+        <p class="attack">"Changelog é só <code>git log</code> com maquiagem. O GitHub já mostra PRs merged — pra que reconstruir?"</p>
+        <p class="resolve"><span class="lab2">Como sobrevive</span>O <code class="k">git log</code> não une ADR + sessão + PR, e não sabe <em>qual tela</em> mudou. A Forja agrega as três fontes na dimensão de <strong>domínio</strong> (módulo/tela) e <strong>processo</strong> (onda/fase) — que é como o time pensa, não como o git guarda. E serve o MCP: é a memória executável que impede o agente de repropor o já-feito.</p>
+      </div>
+    </section>
+
+    <!-- 04 ─────────────────────────────────────────────── -->
+    <section class="item" id="identidade">
+      <div class="item-head">
+        <span class="item-num">04</span>
+        <div><h2>Identidade</h2><div class="item-tag">visual do módulo + identidade de ator</div></div>
+      </div>
+      <p class="desc">Duas camadas. (a) <strong>Visual do módulo</strong> — como a Forja se distingue dentro do ERP. (b) <strong>Identidade de ator</strong> — marcar consistentemente quem fez cada coisa, e crucialmente <strong>agente vs humano</strong>.</p>
+
+      <h3>Campos</h3>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="f">papel</td><td class="t">enum</td><td>[W] [CC] [CD] [CL] [CA] [W2]</td></tr>
+          <tr><td class="f">classe</td><td class="t">enum</td><td><b>humano</b> ou <b>agente</b></td></tr>
+          <tr><td class="f">cor</td><td class="t">token</td><td>cor fixa por papel (da paleta <code class="k">--av-*</code>)</td></tr>
+          <tr><td class="f">modelo</td><td class="t">string?</td><td>só agentes — ex. <code class="k">claude-opus-4</code></td></tr>
+          <tr><td class="f">proveniencia</td><td class="t">selo</td><td>ícone agente (robô) vs humano em toda ação/linha</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Funções</h3>
+      <ul class="fn">
+        <li><b>Badge consistente</b> por papel em backlog, drawer, changelog, auditoria.</li>
+        <li><b>Selo agente vs humano</b> em toda ação — quem afirma o quê fica explícito (a Regra 6 virada UI).</li>
+        <li>Herdar tema (claro/escuro) e densidade do shell; nada de tema próprio.</li>
+      </ul>
+
+      <h3>Benchmark</h3>
+      <table class="bench">
+        <thead><tr><th>Referência</th><th>Nota</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>GitHub (bot vs user)</td><td class="score"><span class="bar"><i style="width:90%"></i></span>9.0</td><td>sufixo <code class="k">[bot]</code> + badge app — nunca confunde</td></tr>
+          <tr><td>Slack (app vs membro)</td><td class="score"><span class="bar"><i style="width:84%"></i></span>8.4</td><td>tag APP clara ao lado do nome</td></tr>
+          <tr><td>Linear (assignees)</td><td class="score"><span class="bar"><i style="width:82%"></i></span>8.2</td><td>avatares + integrações marcadas</td></tr>
+        </tbody>
+      </table>
+      <p class="bench-steal"><b>Roubar:</b> do GitHub, a regra de ouro — agente <strong>nunca</strong> se disfarça de humano. Toda linha autorada por [CC]/[CL] carrega o selo de máquina.</p>
+
+      <div class="refut survive">
+        <div class="lab">Refutação que corrigiu o plano</div>
+        <p class="attack">"Você propôs um <em>accent escopado próprio</em> (teal) pro chrome da Forja. Isso <strong>viola</strong> o modelo de identidade única que o [W] ratificou em 2026-06-08: <em>chrome = roxo <code>oklch(0.55 0.15 295)</code> único; morre accent-por-módulo</em>. Um teal no chrome seria <code>--accent</code> fora do canon = lint vermelho."</p>
+        <p class="resolve"><span class="lab2">Plano corrigido</span>O chrome da Forja é <strong>roxo canon</strong>, como todo o resto. A distinção dev vive na <strong>camada semântica governada</strong>, não no chrome: proponho um token <code class="k">--origin-DEV</code> (teal <code class="k">oklch(0.52 0.09 195)</code>) só pros <em>selos</em> de proveniência/changelog — exatamente como o âmbar da Oficina é <code class="k">--origin-MFG</code> e não um accent. Token novo no <code class="k">@theme</code> = Tier 0, entra por ADR aprovado por [W]. <em>Foi a refutação que fez o plano caber na constituição.</em></p>
+      </div>
+    </section>
+
+    <!-- 05 ─────────────────────────────────────────────── -->
+    <section class="item" id="adr">
+      <div class="item-head">
+        <span class="item-num">05</span>
+        <div><h2>Registro de ADR</h2><div class="item-tag">append-only · soberania de [W]</div></div>
+      </div>
+      <p class="desc">Lista navegável das decisões de arquitetura (Nygard), com status e grafo de supersessão. Crucial: a tela é <strong>read-only sobre ADR aceito</strong> — só pode criar <code class="k">_PROPOSTA-*</code>. Numerar, versionar e deletar é território exclusivo de [CL]/[W] (regra de soberania).</p>
+
+      <h3>Campos</h3>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="f">numero</td><td class="t">int</td><td>monotônico · <code class="k">0264</code> · só [CL] cunha</td></tr>
+          <tr><td class="f">titulo</td><td class="t">string</td><td>decisão em uma linha</td></tr>
+          <tr><td class="f">status</td><td class="t">enum</td><td>proposto · aceito · superseded · deprecated</td></tr>
+          <tr><td class="f">supersedes / by</td><td class="t">ref</td><td>grafo de substituição</td></tr>
+          <tr><td class="f">tema</td><td class="t">T1–T9</td><td>índice temático (MEMORY_INDEX)</td></tr>
+          <tr><td class="f">corpo</td><td class="t">markdown</td><td>contexto · decisão · consequências</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Funções</h3>
+      <ul class="fn">
+        <li><b>Listar &amp; filtrar</b> por status/tema; <b>grafo de supersessão</b> (qual ADR mata qual).</li>
+        <li><b>Propor ADR</b> — cria <code class="k">_PROPOSTA-*.md</code>; [CL] numera sob OK de [W]. A tela <b>nunca</b> escreve em <code class="k">decisions/NNNN</code>.</li>
+        <li><b>Detectar número livre</b> e colisões (0235/0236) — alerta, não resolve sozinho.</li>
+        <li>Vincular ADR ↔ issue ↔ changelog.</li>
+      </ul>
+
+      <h3>Benchmark</h3>
+      <table class="bench">
+        <thead><tr><th>Referência</th><th>Nota</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>Convenção Nygard / adr-tools</td><td class="score"><span class="bar"><i style="width:88%"></i></span>8.8</td><td>formato canônico, append-only, numerado</td></tr>
+          <tr><td>Backstage TechDocs</td><td class="score"><span class="bar"><i style="width:80%"></i></span>8.0</td><td>docs versionados ligados ao serviço</td></tr>
+          <tr><td>Notion decision log</td><td class="score"><span class="bar"><i style="width:68%"></i></span>6.8</td><td>flexível — sem rigor de append-only</td></tr>
+        </tbody>
+      </table>
+      <p class="bench-steal"><b>Roubar:</b> do adr-tools, a disciplina monotônica e o link de supersessão. <b>Rejeitar:</b> a edição livre do Notion — aqui ADR aceito é imutável.</p>
+
+      <div class="refut">
+        <div class="lab">Refutação</div>
+        <p class="attack">"ADR já é arquivo <code>.md</code> no git, append-only. Uma tela com botão de editar é um convite a furar a soberania — alguém vai renumerar ou mutar um ADR aceito."</p>
+        <p class="resolve"><span class="lab2">Como sobrevive</span>Por isso o registro é deliberadamente <strong>capado</strong>: ADR aceito é read-only na tela; a única escrita possível é <code class="k">_PROPOSTA-*</code>. A permissão MCP (item 07) <strong>nega no contrato</strong> qualquer write em <code class="k">decisions/NNNN</code>. A soberania não fica numa convenção que alguém esquece — vira regra de permissão.</p>
+      </div>
+    </section>
+
+    <!-- 06 ─────────────────────────────────────────────── -->
+    <section class="item" id="roadmap">
+      <div class="item-head">
+        <span class="item-num">06</span>
+        <div><h2>Roadmap / Ondas</h2><div class="item-tag">ciclos nativos · sem story points</div></div>
+      </div>
+      <p class="desc">Planejamento de ciclo usando o vocabulário que o projeto já fala: <strong>Ondas</strong> (W1–W4, FA-1..4, Q1–Q5). Uma onda agrupa issues, tem janela e objetivo, e pode depender de outra (FA-2 depende de FA-1 pelos tokens).</p>
+
+      <h3>Campos da onda</h3>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="f">id</td><td class="t">string</td><td><code class="k">FA-2</code> · <code class="k">Q3</code> · <code class="k">W1</code></td></tr>
+          <tr><td class="f">objetivo</td><td class="t">string</td><td>o resultado da onda em uma frase</td></tr>
+          <tr><td class="f">janela</td><td class="t">data[]</td><td>início → fim (ou "aberta")</td></tr>
+          <tr><td class="f">issues[]</td><td class="t">id[]</td><td>itens do backlog na onda</td></tr>
+          <tr><td class="f">depende_de</td><td class="t">id[]</td><td>ondas pré-requisito</td></tr>
+          <tr><td class="f">estado</td><td class="t">enum</td><td>planejada · ativa · fechada</td></tr>
+          <tr><td class="f">milestone</td><td class="t">ref</td><td>ex. <code class="k">v1.1 protocolo</code></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Funções</h3>
+      <ul class="fn">
+        <li><b>Planejar onda</b> — puxar issues do backlog; ver carga por papel.</li>
+        <li><b>Progresso por fase</b> — % de issues que chegaram a F4 (não <em>velocity</em> fictícia).</li>
+        <li><b>Fechar onda</b> → gera o bloco de release notes no changelog automaticamente.</li>
+        <li><b>Timeline</b> de ondas paralelas/sequenciais respeitando <code class="k">depende_de</code>.</li>
+      </ul>
+
+      <h3>Benchmark</h3>
+      <table class="bench">
+        <thead><tr><th>Referência</th><th>Nota</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>Linear cycles + roadmap</td><td class="score"><span class="bar"><i style="width:93%"></i></span>9.3</td><td>ciclo leve, progresso honesto, roadmap limpo</td></tr>
+          <tr><td>GitHub Milestones</td><td class="score"><span class="bar"><i style="width:76%"></i></span>7.6</td><td>simples, ligado a issues — sem dependência</td></tr>
+          <tr><td>Basecamp Hill Charts</td><td class="score"><span class="bar"><i style="width:80%"></i></span>8.0</td><td>progresso por sensação, não por número falso</td></tr>
+          <tr><td>Jira sprints</td><td class="score"><span class="bar"><i style="width:64%"></i></span>6.4</td><td>burndown/velocity — teatro num time pequeno</td></tr>
+        </tbody>
+      </table>
+      <p class="bench-steal"><b>Roubar:</b> do Linear, o ciclo leve. Do Basecamp, a ideia de que progresso ≠ pontos. <b>Rejeitar:</b> burndown e story points do Jira.</p>
+
+      <div class="refut">
+        <div class="lab">Refutação</div>
+        <p class="attack">"Burndown, story points e velocity são teatro de métrica num projeto de um humano + agentes. Vira gráfico bonito que ninguém usa pra decidir."</p>
+        <p class="resolve"><span class="lab2">Como sobrevive</span>Sem story points, sem velocity. A unidade é <strong>issue + dependência</strong>, e "onda" já é palavra nativa do time. Progresso = % de fases concluídas, real e auditável. A timeline só existe pra mostrar o que <em>depende</em> do quê — que é a dor real (FA-2 travada esperando FA-1).</p>
+      </div>
+    </section>
+
+    <!-- 07 ─────────────────────────────────────────────── -->
+    <section class="item" id="mcp">
+      <div class="item-head">
+        <span class="item-num">07</span>
+        <div><h2>Camada MCP</h2><div class="item-tag">o coração do pedido · tokens · permissões · contrato · auditoria</div></div>
+      </div>
+      <p class="desc">A superfície onde agentes (via MCP) operam a Forja. No protótipo é <strong>mockada</strong> — mostra o <em>contrato</em> e a <em>auditoria</em> como design; a fiação real é do [CL]/módulo TeamMcp. Default de permissão: <strong>ler + propor</strong>; nunca escrever em git ou constituição.</p>
+
+      <h3>Campos</h3>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="f">token</td><td class="t">obj</td><td>id · papel dono · escopo · expiração · último uso</td></tr>
+          <tr><td class="f">escopo[]</td><td class="t">grant[]</td><td>recurso × ação — ver contrato abaixo</td></tr>
+          <tr><td class="f">ferramenta</td><td class="t">tool</td><td>nome · input schema · output · papel permitido</td></tr>
+          <tr><td class="f">log[]</td><td class="t">evento[]</td><td>ts · ator · ferramenta · args · resultado · prova/ref</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Contrato de ferramentas (o que um agente pode)</h3>
+      <table class="fields">
+        <thead><tr><th>Ferramenta</th><th>Ação</th><th>Permissão default</th></tr></thead>
+        <tbody>
+          <tr><td class="f">backlog.read</td><td>ler issues/filtros</td><td><span class="role r-CA">permitido</span></td></tr>
+          <tr><td class="f">changelog.read</td><td>"o que shippou"</td><td><span class="role r-CA">permitido</span></td></tr>
+          <tr><td class="f">issue.transition</td><td>mover fase</td><td><span class="role r-CD">propõe → [W] aprova</span></td></tr>
+          <tr><td class="f">changelog.append</td><td>registrar entrega</td><td><span class="role r-CD">propõe → transporte</span></td></tr>
+          <tr><td class="f">adr.propose</td><td>cria <code class="k">_PROPOSTA</code></td><td><span class="role r-CD">propõe</span></td></tr>
+          <tr><td class="f">git.merge</td><td>fechar PR</td><td><span class="role r-W">negado — só [W2]</span></td></tr>
+          <tr><td class="f">constituicao.edit</td><td>ADR/PROTOCOL/BRIEFING</td><td><span class="role r-W">negado — só [W]</span></td></tr>
+        </tbody>
+      </table>
+
+      <h3>Funções</h3>
+      <ul class="fn">
+        <li><b>Emitir / revogar token</b> por papel, com escopo e expiração.</li>
+        <li><b>Auditoria imutável</b> — toda ação de agente registrada com prova/ref (a Regra 6 mecanizada).</li>
+        <li><b>Aprovação humana</b> pra ações sensíveis — dry-run + transporte zero-toque [W].</li>
+        <li><b>Painel do contrato</b> — visualiza, por papel, exatamente o que cada agente pode e não pode.</li>
+      </ul>
+
+      <h3>Benchmark</h3>
+      <table class="bench">
+        <thead><tr><th>Referência</th><th>Nota</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>Anthropic MCP spec</td><td class="score"><span class="bar"><i style="width:92%"></i></span>9.2</td><td>tools/resources — o protocolo-base em si</td></tr>
+          <tr><td>GitHub App permissions</td><td class="score"><span class="bar"><i style="width:90%"></i></span>9.0</td><td>escopos granulares read/write por recurso</td></tr>
+          <tr><td>Stripe restricted keys</td><td class="score"><span class="bar"><i style="width:88%"></i></span>8.8</td><td>chave com escopo mínimo + log de uso</td></tr>
+          <tr><td>AWS IAM / Datadog audit</td><td class="score"><span class="bar"><i style="width:82%"></i></span>8.2</td><td>trilha imutável de quem fez o quê</td></tr>
+        </tbody>
+      </table>
+      <p class="bench-steal"><b>Roubar:</b> do GitHub Apps, o modelo recurso×ação granular. Do Stripe, escopo mínimo por token. Da MCP spec, o schema de ferramenta como contrato declarado.</p>
+
+      <div class="refut">
+        <div class="lab">Refutação</div>
+        <p class="attack">"No protótipo isso é tudo mock — você arrisca <em>fingir</em> uma segurança que não existe. E dar <code>write</code> a um agente é perigoso: a própria regra diz <em>[CC] propõe, nunca edita</em>."</p>
+        <p class="resolve"><span class="lab2">Como sobrevive</span>O protótipo é rotulado <strong>mockado</strong> em alto contraste — desenha o contrato, não finge servidor. Default = <code class="k">read + propose</code>; <code class="k">merge</code> e <code class="k">constituicao.edit</code> são <strong>negados no contrato</strong>, não por convenção. Ação sensível = aprovação humana via transporte zero-toque. O enforcement real é do servidor TeamMcp ([CL]); a tela só prova que o desenho do contrato é seguro <em>antes</em> de existir código.</p>
+      </div>
+    </section>
+
+    <!-- 08 ─────────────────────────────────────────────── -->
+    <section class="item" id="saude">
+      <div class="item-head">
+        <span class="item-num">08</span>
+        <div><h2>Painel de saúde</h2><div class="item-tag">memory-health virado tela · cada número aciona</div></div>
+      </div>
+      <p class="desc">Semáforo do estado do desenvolvimento, alimentado pelos checks que já existem (<code class="k">memory-health.js</code>, baselines de gate só-desce, censo de frescor). Regra dura contra slop: <strong>nenhuma métrica decorativa</strong> — cada uma linka a uma ação.</p>
+
+      <h3>Campos da métrica</h3>
+      <table class="fields">
+        <thead><tr><th>Campo</th><th>Tipo</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="f">metrica</td><td class="t">enum</td><td>frescor memória · baseline gate · lição-sem-asserção · ondas atrasadas</td></tr>
+          <tr><td class="f">valor / limiar</td><td class="t">num</td><td>atual vs limite (ex. frescor &gt; 14d = vermelho)</td></tr>
+          <tr><td class="f">estado</td><td class="t">enum</td><td>ok · atenção · vermelho</td></tr>
+          <tr><td class="f">tendencia</td><td class="t">sparkline</td><td>só-desce nos baselines (ratchet)</td></tr>
+          <tr><td class="f">acao</td><td class="t">ref</td><td>issue/onda/arquivo que resolve — sempre presente</td></tr>
+        </tbody>
+      </table>
+
+      <h3>Funções</h3>
+      <ul class="fn">
+        <li><b>Semáforo</b> dos checks de saúde como tela (não como script que ninguém roda).</li>
+        <li><b>Alerta de frescor</b> — censo de gates &gt; 14 dias dispara re-derivação.</li>
+        <li><b>Ratchet visível</b> — baseline de cor crua / font-size fora do ramp só pode descer.</li>
+        <li><b>Drill</b> de cada métrica direto pro issue/arquivo que a resolve.</li>
+      </ul>
+
+      <h3>Benchmark</h3>
+      <table class="bench">
+        <thead><tr><th>Referência</th><th>Nota</th><th>O que faz</th></tr></thead>
+        <tbody>
+          <tr><td>Sentry</td><td class="score"><span class="bar"><i style="width:88%"></i></span>8.8</td><td>saúde ligada a release + ação direta</td></tr>
+          <tr><td>Vercel observability</td><td class="score"><span class="bar"><i style="width:84%"></i></span>8.4</td><td>poucos números, todos acionáveis</td></tr>
+          <tr><td>Datadog</td><td class="score"><span class="bar"><i style="width:80%"></i></span>8.0</td><td>poderoso — fácil virar parede de gráfico</td></tr>
+        </tbody>
+      </table>
+      <p class="bench-steal"><b>Roubar:</b> da Vercel, a contenção — poucos números, todos clicáveis. <b>Rejeitar:</b> a parede de dashboards do Datadog.</p>
+
+      <div class="refut">
+        <div class="lab">Refutação</div>
+        <p class="attack">"Dashboard de métrica é o atalho mais rápido pro slop: vira parede de números bonitos que não muda nenhuma decisão."</p>
+        <p class="resolve"><span class="lab2">Como sobrevive</span>Toda métrica tem campo <code class="k">acao</code> obrigatório — sem ação vinculada, não entra. E só medimos o que <strong>já existe</strong> (<code class="k">memory-health.js</code>, baselines de gate, censo de frescor); nada inventado pra encher tela. É o "menos é mais" da regra de conteúdo, aplicado a número.</p>
+      </div>
+    </section>
+
+    <!-- 09 ─────────────────────────────────────────────── -->
+    <section class="item" id="sintese">
+      <div class="item-head">
+        <span class="item-num">09</span>
+        <div><h2>Síntese &amp; decisões para [W]</h2><div class="item-tag">o que mata o plano · o que sobrou aberto</div></div>
+      </div>
+      <p class="desc">O fio comum das oito refutações é um só: <strong>a Forja só funciona se nunca virar fonte de verdade paralela ao git</strong>. Projeção + proposta + transporte. Toda vez que ela tentar ser banco de dados próprio, ela morre por divergência — o erro recorrente do projeto.</p>
+
+      <div class="callout">
+        <div class="lab">O que a refutação já corrigiu no plano</div>
+        <p>1) <b>Identidade</b>: chrome <strong>roxo canon</strong>, não accent teal — a distinção dev vira token semântico <code>--origin-DEV</code> (Tier 0, ADR). 2) <b>Backlog/ADR/changelog</b>: read/sync sobre o git, escrita só por proposta + transporte. 3) <b>MCP</b>: <code>merge</code> e <code>constituicao.edit</code> negados <em>no contrato</em>, não por convenção. 4) <b>Saúde</b>: campo <code>acao</code> obrigatório por métrica.</p>
+      </div>
+
+      <h3>Decisões Tier-0 que faltam de você</h3>
+      <ul class="fn">
+        <li><b>Nome</b> — fico com <code class="k">Forja</code>? (alternativas: Estaleiro, Dev, Oficina-Software)</li>
+        <li><b>Token <code class="k">--origin-DEV</code></b> — autoriza o teal <code class="k">oklch(0.52 0.09 195)</code> pros selos dev? (entra por ADR)</li>
+        <li><b>Round-trip git</b> — confirma que a sincronização backlog↔<code class="k">.md</code> é tarefa do [CL] (a Forja só lê/propõe)?</li>
+        <li><b>Ordem de build</b> — começo por <b>Etapa 0 + 1</b> (modelo de dados + backlog), como planejado?</li>
+      </ul>
+
+      <div class="foot">
+        Forja · spec única F0→F1 · campos · funções · benchmark · refutação — produzida no Cowork, subordinada ao <code class="k">PROTOCOL.md</code> + <code class="k">CLAUDE_DESIGN_BRIEFING.md</code> do git. Não commitada (read-only). Comparáveis citados são referência de mercado, não recriação de UI.
+      </div>
+    </section>
+
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoria &amp; Proposta — Financeiro Oimpresso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:        oklch(0.992 0.0015 95);
+  --sunken:    oklch(0.974 0.003 95);
+  --surface:   oklch(1 0 0);
+  --hairline:  oklch(0.935 0.003 95);
+  --border:    oklch(0.905 0.004 95);
+  --text:      oklch(0.205 0.008 90);
+  --text-2:    oklch(0.46 0.007 90);
+  --text-3:    oklch(0.63 0.006 90);
+  --accent:      oklch(0.55 0.15 295);
+  --accent-hi:   oklch(0.50 0.16 295);
+  --accent-fg:   oklch(0.99 0 0);
+  --accent-soft: oklch(0.965 0.022 295);
+  --accent-line: oklch(0.86 0.05 295);
+  --pos:  oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.072 150);
+  --neg:  oklch(0.55 0.18 25);  --neg-soft: oklch(0.955 0.05 25);
+  --warn: oklch(0.56 0.12 70);  --warn-soft: oklch(0.955 0.07 75);
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280 / .05), 0 2px 4px -1px oklch(0.25 0.02 280 / .07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280 / .06), 0 6px 16px -5px oklch(0.25 0.02 280 / .11);
+  --r-2: 8px; --r-3: 11px; --r-pill: 999px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+*{ box-sizing: border-box; margin: 0; padding: 0; }
+html{ scroll-behavior: smooth; }
+body{ font-family: var(--sans); background: var(--bg); color: var(--text); line-height: 1.55; -webkit-font-smoothing: antialiased; font-feature-settings: "ss01","cv05"; }
+
+.wrap{ max-width: 1140px; margin: 0 auto; padding: 0 40px; }
+.layout{ display: grid; grid-template-columns: 244px 1fr; gap: 56px; align-items: start; }
+@media (max-width: 980px){ .layout{ grid-template-columns: 1fr; gap: 0; } .toc{ display: none; } }
+
+.hero{ padding: 76px 0 38px; border-bottom: 1px solid var(--hairline); }
+.eyebrow{ font-family: var(--mono); font-size: 11.5px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); display: flex; align-items: center; gap: 10px; }
+.eyebrow::before{ content:""; width: 22px; height: 2px; background: var(--accent); border-radius: 2px; }
+h1{ font-size: 42px; font-weight: 600; letter-spacing: -.022em; line-height: 1.07; margin: 18px 0 0; text-wrap: balance; }
+.hero .lede{ font-size: 17px; color: var(--text-2); margin-top: 18px; max-width: 64ch; line-height: 1.6; text-wrap: pretty; }
+.meta-row{ display: flex; flex-wrap: wrap; gap: 8px 28px; margin-top: 26px; font-size: 12.5px; color: var(--text-3); }
+.meta-row b{ color: var(--text-2); font-weight: 500; }
+.meta-row .mono{ font-family: var(--mono); }
+
+.toc{ position: sticky; top: 28px; padding-top: 80px; font-size: 13px; }
+.toc-h{ font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); margin-bottom: 14px; }
+.toc a{ display: block; color: var(--text-2); text-decoration: none; padding: 6px 0 6px 14px; border-left: 2px solid var(--border); line-height: 1.35; transition: all .15s; }
+.toc a:hover{ color: var(--accent); border-left-color: var(--accent-line); }
+.toc a .n{ font-family: var(--mono); font-size: 10.5px; color: var(--text-3); margin-right: 7px; }
+
+.main{ padding-bottom: 100px; min-width: 0; }
+section{ padding-top: 54px; }
+.sec-head{ display: flex; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+.sec-num{ font-family: var(--mono); font-size: 13px; font-weight: 600; color: var(--accent); }
+h2{ font-size: 25px; font-weight: 600; letter-spacing: -.015em; line-height: 1.2; }
+.sec-intro{ font-size: 15px; color: var(--text-2); margin: 12px 0 24px; max-width: 66ch; text-wrap: pretty; }
+h3{ font-size: 15.5px; font-weight: 600; margin: 28px 0 11px; letter-spacing: -.01em; }
+p{ font-size: 14.5px; color: var(--text-2); margin-bottom: 12px; max-width: 66ch; text-wrap: pretty; }
+p strong, li strong{ color: var(--text); font-weight: 600; }
+.mono{ font-family: var(--mono); }
+code{ font-family: var(--mono); font-size: 12px; background: var(--sunken); padding: 1.5px 6px; border-radius: 4px; color: var(--accent-hi); border: 1px solid var(--hairline); }
+
+.callout{ background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: var(--r-3); padding: 24px 28px; margin: 4px 0 8px; }
+.callout .ktag{ font-family: var(--mono); font-size: 10.5px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-hi); margin-bottom: 10px; }
+.callout p{ color: oklch(0.30 0.09 295); font-size: 15.5px; max-width: none; margin: 0; }
+.callout p + p{ margin-top: 10px; }
+
+.legend{ display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0 4px; }
+.badge{ display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; padding: 3px 10px 3px 8px; border-radius: var(--r-pill); white-space: nowrap; border: 1px solid transparent; line-height: 1.4; }
+.badge::before{ content:""; width: 7px; height: 7px; border-radius: 50%; flex: none; }
+.b-ok{ background: var(--pos-soft); color: var(--pos); border-color: oklch(0.50 0.12 150 / .2); }
+.b-ok::before{ background: var(--pos); }
+.b-partial{ background: var(--warn-soft); color: var(--warn); border-color: oklch(0.56 0.12 70 / .22); }
+.b-partial::before{ background: var(--warn); }
+.b-gap{ background: var(--neg-soft); color: var(--neg); border-color: oklch(0.55 0.18 25 / .2); }
+.b-gap::before{ background: var(--neg); }
+.b-shell{ background: var(--accent-soft); color: var(--accent-hi); border-color: var(--accent-line); }
+.b-shell::before{ background: var(--accent); }
+
+.tbl-wrap{ border: 1px solid var(--border); border-radius: var(--r-3); overflow: hidden; box-shadow: var(--sh-1); margin: 8px 0 4px; }
+table{ width: 100%; border-collapse: collapse; font-size: 13.5px; }
+thead th{ background: var(--sunken); text-align: left; font-weight: 600; font-size: 11px; letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); padding: 11px 16px; border-bottom: 1px solid var(--border); }
+tbody td{ padding: 13px 16px; border-bottom: 1px solid var(--hairline); vertical-align: top; color: var(--text-2); }
+tbody tr:last-child td{ border-bottom: none; }
+tbody tr:hover{ background: var(--sunken); }
+td .pt{ font-weight: 600; color: var(--text); font-size: 13px; display: block; margin-bottom: 3px; }
+td.num{ font-family: var(--mono); font-weight: 600; color: var(--accent); text-align: center; width: 34px; font-size: 13px; }
+td.st{ width: 150px; }
+.cell-strong{ color: var(--text); font-weight: 500; }
+
+.cards{ display: grid; gap: 14px; margin: 8px 0; }
+.card{ border: 1px solid var(--border); border-radius: var(--r-3); padding: 18px 20px; background: var(--surface); box-shadow: var(--sh-1); }
+.card-head{ display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+.card-n{ font-family: var(--mono); font-size: 12px; font-weight: 600; color: var(--accent-fg); background: var(--accent); width: 24px; height: 24px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; flex: none; margin-top: 1px; }
+.card-title{ font-size: 15px; font-weight: 600; color: var(--text); flex: 1; letter-spacing: -.01em; }
+.card p{ font-size: 13.5px; margin: 0; max-width: none; }
+.card p + p{ margin-top: 8px; }
+
+.steps{ display: grid; gap: 0; margin: 12px 0; }
+.step{ display: grid; grid-template-columns: 44px 1fr; gap: 18px; padding: 20px 0; border-bottom: 1px solid var(--hairline); align-items: start; }
+.step:last-child{ border-bottom: none; }
+.step-n{ font-family: var(--mono); font-size: 15px; font-weight: 600; color: var(--accent); width: 36px; height: 36px; border: 1.5px solid var(--accent-line); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; background: var(--accent-soft); }
+.step-body h3{ margin: 4px 0 6px; font-size: 16px; }
+.step-body p{ margin: 0; font-size: 13.5px; }
+.step-refs{ margin-top: 9px; display: flex; flex-wrap: wrap; gap: 6px; }
+.chip{ font-family: var(--mono); font-size: 10.5px; font-weight: 500; padding: 2px 8px; border-radius: var(--r-pill); background: var(--sunken); color: var(--text-3); border: 1px solid var(--hairline); }
+.chip.win{ background: var(--pos-soft); color: var(--pos); border-color: transparent; }
+.chip.eff{ background: var(--accent-soft); color: var(--accent-hi); border-color: transparent; }
+
+ul.clean{ list-style: none; margin: 6px 0 14px; }
+ul.clean li{ font-size: 14px; color: var(--text-2); padding: 5px 0 5px 22px; position: relative; max-width: 66ch; }
+ul.clean li::before{ content:""; position: absolute; left: 4px; top: 12px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent-line); }
+ul.clean li strong{ color: var(--text); }
+
+.method{ margin-top: 52px; padding: 22px 26px; background: var(--sunken); border: 1px solid var(--hairline); border-radius: var(--r-3); }
+.method h3{ margin: 0 0 10px; font-size: 14px; }
+.method p{ font-size: 12.5px; margin-bottom: 8px; max-width: none; }
+.method .files{ font-family: var(--mono); font-size: 11px; color: var(--text-3); line-height: 1.9; }
+.note{ font-size: 12.5px; color: var(--text-3); font-style: italic; margin: 8px 0 0; }
+
+@media print{
+  body{ background: #fff; }
+  .toc{ display: none; }
+  .layout{ grid-template-columns: 1fr; }
+  .wrap{ max-width: 100%; padding: 0 20px; }
+  section, .card, .tbl-wrap, .step{ page-break-inside: avoid; }
+  .hero{ padding-top: 20px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hero" data-screen-label="Capa">
+    <div class="eyebrow">Auditoria de Módulo · Proposta F0 · Cowork</div>
+    <h1>Financeiro: o que falta para ficar funcional e integrado</h1>
+    <p class="lede">Auditoria dos 84 arquivos do módulo no <span class="mono">@main</span> (toda tela, componente e charter, sem exceção), confrontada com os 7 pontos do [W] e com a Conta Azul. A conclusão reposiciona o pedido — e a proposta no fim diz por onde começar.</p>
+    <div class="meta-row">
+      <span><b>Fonte</b> &nbsp;<span class="mono">wagnerra23/oimpresso.com@main</span></span>
+      <span><b>Arquivos lidos</b> &nbsp;84 / 84</span>
+      <span><b>Comparável</b> &nbsp;Conta Azul (funcional)</span>
+      <span><b>Data</b> &nbsp;09 jun 2026</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc">
+      <div class="toc-h">Conteúdo</div>
+      <a href="#achado"><span class="n">00</span>O achado central</a>
+      <a href="#inventario"><span class="n">01</span>Inventário do módulo</a>
+      <a href="#pontos"><span class="n">02</span>Os 7 pontos, no código</a>
+      <a href="#casca"><span class="n">03</span>Casca vs. backed</a>
+      <a href="#produto"><span class="n">04</span>Buracos vs. Conta Azul</a>
+      <a href="#proposta"><span class="n">05</span>Proposta — ordem</a>
+      <a href="#metodo"><span class="n">06</span>Método &amp; ressalvas</a>
+    </nav>
+
+    <main class="main">
+      <!-- 00 -->
+      <section id="achado" style="padding-top: 38px;" data-screen-label="Achado central">
+        <div class="sec-head"><span class="sec-num">00</span><h2>O achado central</h2></div>
+        <div class="callout">
+          <div class="ktag">◆ Reposiciona o pedido</div>
+          <p>O Financeiro no <span class="mono">@main</span> <strong>não é esboço</strong>: é <strong>status: live</strong>, multi-tenant Tier 0, com testes Pest de regressão e ~15 telas dedicadas. Quase tudo que você pediu <strong>já existe</strong>.</p>
+          <p>Então o trabalho real <strong>não é construir Fluxo/DRE/Cobrança do zero</strong> — é <strong>acabamento, paridade do protótipo Cowork e fechar as “cascas”</strong> (telas que parecem prontas mas não têm backend) + as direções já aprovadas e não aplicadas (drawer de 3 lentes, presets de período, ano no grid).</p>
+        </div>
+        <div class="legend">
+          <span class="badge b-ok">Existe e funciona</span>
+          <span class="badge b-partial">Parcial / acabamento</span>
+          <span class="badge b-gap">Buraco real</span>
+          <span class="badge b-shell">Casca (UI sem backend)</span>
+        </div>
+      </section>
+
+      <!-- 01 -->
+      <section id="inventario" data-screen-label="Inventário">
+        <div class="sec-head"><span class="sec-num">01</span><h2>Inventário do módulo (o que existe hoje)</h2></div>
+        <p class="sec-intro">Cada linha foi confirmada lendo o <span class="mono">.tsx</span> + charter. “Status” é o do repositório; a coluna final aponta o que ainda falta de verdade.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>Tela</th><th class="st">Estado</th><th>Resumo do que faz · e o gap</th></tr></thead>
+            <tbody>
+              <tr><td><span class="pt">Visão Unificada</span><span class="mono" style="font-size:11px">/unificado</span></td><td class="st"><span class="badge b-ok">Live · rica</span></td><td>Landing. KPI hero + sparkline, ledger agrupado por data, filtro por <strong>campo de data</strong> (Venc/Emissão/Pgto/Competência) + intervalo, lifecycle multi, <strong>aging</strong>, workflow de aprovação, conferido, baixa rica, <strong>gerar boleto Inter</strong>, OCR boleto, anexos, bulk, ⌘K, sort, paginação. <em>Gap: presets de período, ano visível, drawer de 3 lentes.</em></td></tr>
+              <tr><td><span class="pt">Fluxo de Caixa</span><span class="mono" style="font-size:11px">/fluxo</span></td><td class="st"><span class="badge b-ok">Live</span></td><td>Projetado 35d (gráfico + limite mínimo) + Realizado 12 meses (barras gêmeas + tabela com ano). <em>Janelas fixas por design — sem seletor Dia/Semana/Mês/Ano.</em></td></tr>
+              <tr><td><span class="pt">DRE / Relatórios</span><span class="mono" style="font-size:11px">/dre</span></td><td class="st"><span class="badge b-ok">Live</span></td><td>Demonstrativo (% RL, Δ vs mês anterior, margem, top categorias) + Balanço + Balancete. Export CSV real; PDF/XLSX por âncora. <em>Período: só “Mês” ativo; Trim/Ano/12m desabilitados (“em breve”). Versão gerencial, não fiscal-CFC.</em></td></tr>
+              <tr><td><span class="pt">Cobrança</span><span class="mono" style="font-size:11px">/cobranca</span></td><td class="st"><span class="badge b-ok">Live · robusta</span></td><td>17 drivers (REST + 11 bancos CNAB + PIX Automático BCB + cartão), funil, wizard de emissão real, drawer por tipo + timeline, Remessa/Retorno CNAB, resumo IA. <em>Export removido (sem rota); régua automática é anti-hook.</em></td></tr>
+              <tr><td><span class="pt">Conciliação</span><span class="mono" style="font-size:11px">/conciliacao</span></td><td class="st"><span class="badge b-ok">Live</span></td><td>Upload OFX + sync API (Inter), fuzzy match, confirmar/ignorar/reabrir. <em>Match 1:1 (não N:N); CNAB/Open Banking amplo = próxima Onda.</em></td></tr>
+              <tr><td><span class="pt">Extrato</span><span class="mono" style="font-size:11px">/extrato/{conta}</span></td><td class="st"><span class="badge b-ok">Live</span></td><td>Por conta, saldo + créditos/débitos, sync diário 07:00 (Inter). <em>Bank-feed automático só Inter hoje.</em></td></tr>
+              <tr><td><span class="pt">Contas a Pagar / Receber</span></td><td class="st"><span class="badge b-partial">Live · antigas</span></td><td>Tabela de títulos + baixa/“emitir boleto” inline. <em>Estilo mais antigo (shadcn, cores cruas) — redundante com a Unificada; candidatas a absorver.</em></td></tr>
+              <tr><td><span class="pt">Caixa do turno</span><span class="mono" style="font-size:11px">/caixa</span></td><td class="st"><span class="badge b-ok">Live · read-only</span></td><td>Histórico de turnos POS + ponte <code>fin_titulos</code> (cross-link + lançar retroativo). Abrir/fechar continua no POS por design.</td></tr>
+              <tr><td><span class="pt">Plano de Contas · Categorias · Contas Bancárias</span></td><td class="st"><span class="badge b-ok">Live</span></td><td>Plano DCASP BR hierárquico; categorias (tags livres); contas + config de boleto/beneficiário (22 bancos).</td></tr>
+              <tr><td><span class="pt">Dashboard</span><span class="mono" style="font-size:11px">/financeiro</span></td><td class="st"><span class="badge b-ok">Live</span></td><td>KPIs + saldo em bancos + tabela paginada. <em>Convive com a Unificada — overlap de função.</em></td></tr>
+              <tr><td><span class="pt">Portal do Contador</span><span class="mono" style="font-size:11px">/advisor + /config/contador</span></td><td class="st"><span class="badge b-ok">Live</span></td><td>Acesso read-only ao contador, consentimento LGPD, grant/revogar com auditoria.</td></tr>
+              <tr><td><span class="pt">Atualizar Assinatura</span></td><td class="st"><span class="badge b-partial">Draft</span></td><td>Editar valor/ciclo/forma de recorrente + preview de impacto. <em>Charter ainda em draft.</em></td></tr>
+              <tr><td><span class="pt">Prova Viva (primitivos)</span><span class="mono" style="font-size:11px">/prova-viva</span></td><td class="st"><span class="badge b-shell">Pilot · mock</span></td><td><strong>O norte de design (ADR 0253).</strong> Drawer de <strong>3 lentes</strong> (Conciliação · Fiscal ISS/DAS · Cobrança com régua D+0/D+3/D+8). Dados mock — não é produção, mas é o alvo visual.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 02 -->
+      <section id="pontos" data-screen-label="7 pontos">
+        <div class="sec-head"><span class="sec-num">02</span><h2>Os seus 7 pontos, contra o código real</h2></div>
+        <p class="sec-intro">Conferido linha-a-linha no <span class="mono">.tsx</span>. Vários já estão prontos no git — o que muda é onde está o trabalho.</p>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th class="num">#</th><th>Pedido</th><th class="st">Veredito</th><th>O que o código mostra</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td><span class="pt">Filtros mais evoluídos</span></td><td class="st"><span class="badge b-partial">Existe · falta acabamento</span></td><td>A Unificada já tem <code>data_campo</code>, intervalo, lifecycle multi, aging, aprovação, multi-conta, plano de contas, busca, ordenação e densidade. Falta polir e <strong>trazer pro protótipo Cowork</strong>, que está atrás.</td></tr>
+              <tr><td class="num">2</td><td><span class="pt">Acesso às telas do módulo</span></td><td class="st"><span class="badge b-partial">Existe · inconsistente</span></td><td><code>FinanceiroSubNav</code> já lista as sub-telas (ghost tabs + ⋯ + primary). Mas há <strong>dois</strong> <code>PageHeader</code> diferentes e um botão primário <em>deprecated</em>. Gap = consolidar o header e decidir a nav no sidebar (anti-pattern que você reprovou).</td></tr>
+              <tr><td class="num">3</td><td><span class="pt">Período rápido (Dia/Semana/Mês/Ano + tipo de data)</span></td><td class="st"><span class="badge b-partial">Metade pronta</span></td><td><strong>Tipo de data já existe</strong> (<code>data_campo</code>). Faltam os <strong>presets</strong> Dia/Semana/Mês/Ano: hoje a Unificada é “mês + intervalo”, o DRE só tem “Mês” ativo, o Fluxo é fixo.</td></tr>
+              <tr><td class="num">4</td><td><span class="pt">Drawer: densidade, frescor, cross-link Venda/OS/NF/Compra</span></td><td class="st"><span class="badge b-gap">Parcial — falta o essencial</span></td><td>Densidade e frescor existem (pill de 6 estados). Cross-link hoje é <strong>regex no texto</strong> da descrição (<code>#V-</code>→venda, <code>#OS-</code>→OS; <code>#PC-</code>/<code>#BL-</code> são placeholder) + “Ver NF-e” no rodapé. <strong>Falta relação estruturada por <code>origem_id</code></strong> e o <strong>drawer de 3 lentes</strong> da Prova Viva (Conciliação+Fiscal+Cobrança) — hoje só mock.</td></tr>
+              <tr><td class="num">5</td><td><span class="pt">Integração Cobrança (boleto/PIX)</span></td><td class="st"><span class="badge b-ok">Existe · forte</span></td><td>Módulo Cobrança live + <strong>“Gerar boleto” Inter no próprio drawer</strong> da Unificada + “Emitir boleto” em Contas a Receber + hook que cria o título quando a cobrança é paga. Falta: <strong>PIX</strong> no drawer (hoje só boleto Inter) e régua automática.</td></tr>
+              <tr><td class="num">6</td><td><span class="pt">PageHeader + Fluxo/DRE/Plano/Conciliação</span></td><td class="st"><span class="badge b-partial">Telas prontas</span></td><td>Todas existem live. Falta o <strong>PageHeader unificado</strong> (hoje 2 variantes — backlog <code>US-FIN-TOPNAV-COMPONENT</code>) e aplicar a direção “3 lentes” já aprovada.</td></tr>
+              <tr><td class="num">7</td><td><span class="pt">Ano no grid</span></td><td class="st"><span class="badge b-gap">Buraco real (simples)</span></td><td>O protótipo Cowork só tem maio/2026 — “voa” sem âncora de ano. O git já mostra período PT-BR no header e ano no Fluxo/DRE; falta levar isso pra tabela.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 03 -->
+      <section id="casca" data-screen-label="Casca vs backed">
+        <div class="sec-head"><span class="sec-num">03</span><h2>Casca vs. backed — a verdade que importa</h2></div>
+        <p class="sec-intro">Vários recursos do drawer e da IA <strong>parecem prontos mas não têm backend</strong>. Isso é o que faz o Financeiro “sentir” incompleto mesmo com tanta tela. Honestidade aqui evita prometer o que não fecha o ciclo.</p>
+        <div class="cards">
+          <div class="card"><div class="card-head"><span class="card-n">!</span><span class="card-title">Histórico / Auditoria do drawer — <span style="color:var(--neg)">fabricado</span></span></div><p>O “Histórico” é <strong>determinístico, derivado do id</strong> (seed) — não lê um <code>audit_log</code> real. Mostra eventos plausíveis, não os que aconteceram.</p></div>
+          <div class="card"><div class="card-head"><span class="card-n">!</span><span class="card-title">Comentários — <span style="color:var(--warn)">localStorage</span></span></div><p>Thread de comentários por lançamento vive só no navegador. Não sincroniza entre Eliana/Wagner/Bruna nem persiste no servidor.</p></div>
+          <div class="card"><div class="card-head"><span class="card-n">!</span><span class="card-title">IA (anomalia · histórico · resumo do mês) — <span style="color:var(--accent-hi)">compute puro</span></span></div><p>Tudo calculado no cliente a partir dos lançamentos. Sem LLM, sem backend. Útil, mas é heurística — não “IA” de verdade (Fase 2 plugaria o serviço).</p></div>
+          <div class="card"><div class="card-head"><span class="card-n">!</span><span class="card-title">Cross-link — <span style="color:var(--warn)">texto, não relação</span></span></div><p>Depende da descrição conter <code>#V-1234</code>. <code>#PC-</code> (compra) e <code>#BL-</code> (boleto) apontam pra rotas placeholder. Não há link estruturado Venda/Compra/NF a partir de <code>origem_id</code>.</p></div>
+          <div class="card"><div class="card-head"><span class="card-n">!</span><span class="card-title">Lente Fiscal (ISS/DAS) + Régua de cobrança — <span style="color:var(--neg)">só na Prova Viva</span></span></div><p>O drawer de 3 lentes (com impostos e régua D+0/D+3/D+8 WhatsApp) existe na tela-piloto <em>mock</em>. Em produção, a Unificada ainda não tem essas lentes; a régua é anti-hook (não dispara nada).</p></div>
+          <div class="card"><div class="card-head"><span class="card-n">✓</span><span class="card-title">O que é backend de verdade</span></div><p>Baixa (parcial/conta/forma/plano), conferido per-user, anexos (CRUD), <strong>OCR de boleto</strong> (Vision real), gerar boleto Inter, emitir cobrança, conciliação OFX+API, sync Inter, aprovação (gate), autocomplete de contato, sugerir-valor, export CSV do DRE.</p></div>
+        </div>
+      </section>
+
+      <!-- 04 -->
+      <section id="produto" data-screen-label="vs Conta Azul">
+        <div class="sec-head"><span class="sec-num">04</span><h2>Buracos de produto — comparação funcional com a Conta Azul</h2></div>
+        <p class="sec-intro">Comparação de capacidade (não de UI). Você já está em paridade ou à frente em muita coisa; estes são os buracos que ainda separam de um ERP financeiro “completo”.</p>
+        <ul class="clean">
+          <li><strong>Bank-feed automático multibanco / Open Finance.</strong> Hoje: Inter sincroniza + OFX manual + Conciliação. Conta Azul puxa de vários bancos sozinha.</li>
+          <li><strong>Régua de cobrança automática.</strong> Lembrete/cobrança por e-mail/WhatsApp em D-3/D0/D+5. Hoje é anti-hook explícito — não dispara.</li>
+          <li><strong>Emissão fiscal → título automática.</strong> NF-e/NFS-e gerar o título e amarrar por <code>origem_id</code>. Hoje o vínculo é texto na descrição.</li>
+          <li><strong>Auditoria real + comentários persistidos.</strong> Hoje fabricado / localStorage. Conta Azul tem trilha real.</li>
+          <li><strong>Export amplo (PDF/Excel/CSV).</strong> Só o DRE tem CSV; Unificada e Conciliação marcam export como backlog.</li>
+          <li><strong>Impostos / DAS / guias.</strong> Aparecem apenas como casca na Prova Viva; sem módulo real.</li>
+          <li><strong>Conciliação N:N + desfazer em lote.</strong> Hoje 1:1, append-only.</li>
+          <li><strong>Mobile.</strong> Telas desktop-only por persona; Conta Azul tem app.</li>
+        </ul>
+        <p class="note">Onde você já ganha: contas a pagar/receber, fluxo, DRE+Balanço+Balancete, plano de contas, conciliação, cobrança boleto/PIX/CNAB, portal do contador, OCR de boleto. Isso é bastante — e o OCR é, inclusive, um diferencial sobre a Conta Azul.</p>
+      </section>
+
+      <!-- 05 -->
+      <section id="proposta" data-screen-label="Proposta">
+        <div class="sec-head"><span class="sec-num">05</span><h2>Proposta — por onde começar</h2></div>
+        <p class="sec-intro">Trabalho no <strong>protótipo Cowork (F1)</strong>; o resultado vira handoff pro Code. Ordenado por valor/esforço — os primeiros são baratos e destravam o resto.</p>
+        <div class="steps">
+          <div class="step"><span class="step-n">1</span><div class="step-body"><h3>Ano no grid + presets de período</h3><p>Âncora de ano visível na tabela e barra de período Dia/Semana/Mês/Ano reaproveitando o <code>data_campo</code> que já existe. Resolve o “voa sem isso” e os pontos 3 + 7 de uma vez.</p><div class="step-refs"><span class="chip win">ponto 7</span><span class="chip win">ponto 3</span><span class="chip eff">baixo esforço</span></div></div></div>
+          <div class="step"><span class="step-n">2</span><div class="step-body"><h3>PageHeader unificado + sub-nav consistente</h3><p>Um só header pras ~15 telas (hoje 2 variantes) e decisão da navegação — sidebar vs. ghost tabs. Destrava o acesso e mata o anti-pattern. Pontos 2 + 6.</p><div class="step-refs"><span class="chip win">ponto 2</span><span class="chip win">ponto 6</span><span class="chip">base de tudo</span></div></div></div>
+          <div class="step"><span class="step-n">3</span><div class="step-body"><h3>Drawer de 3 lentes (Conciliação · Fiscal · Cobrança)</h3><p>Trazer o drawer da Prova Viva pra Unificada: cross-link estruturado por <code>origem_id</code> (Venda/OS/NF/Compra reais, não texto) + lentes Fiscal e Cobrança. É o ponto 4 e o maior salto de “sentir integrado”.</p><div class="step-refs"><span class="chip win">ponto 4</span><span class="chip eff">alto valor</span></div></div></div>
+          <div class="step"><span class="step-n">4</span><div class="step-body"><h3>Costura Unificada ⇄ Cobrança (boleto + PIX)</h3><p>Hoje o drawer gera boleto Inter; estender pra <strong>PIX</strong> e mostrar o estado da cobrança de volta no título. Fecha o ciclo do ponto 5.</p><div class="step-refs"><span class="chip win">ponto 5</span></div></div></div>
+          <div class="step"><span class="step-n">5</span><div class="step-body"><h3>Fechar as cascas (decisão sua)</h3><p>Auditoria real, comentários persistidos, régua de cobrança. São backend — eu desenho a UI honesta; o Code implementa. Prioridade depende de quanto pesam pra Eliana.</p><div class="step-refs"><span class="chip">precisa backend</span></div></div></div>
+        </div>
+        <p style="margin-top:18px"><strong>Pra começar, me confirme:</strong> ataco o item 1 já (ano + presets) no protótipo Cowork, ou prefere que eu detalhe o item 3 (drawer de 3 lentes) primeiro, por ser o de maior impacto?</p>
+      </section>
+
+      <!-- 06 -->
+      <section id="metodo" data-screen-label="Método">
+        <div class="sec-head"><span class="sec-num">06</span><h2>Método &amp; ressalvas</h2></div>
+        <div class="method">
+          <h3>Como esta auditoria foi feita</h3>
+          <p>Li integralmente os <strong>84 arquivos</strong> do módulo no <span class="mono">@main</span> — toda tela, todo componente, toda lib e todos os charters — além dos componentes de navegação compartilhados e da Prova Viva. Nada foi inferido por tamanho ou nome: cada veredito vem do <span class="mono">.tsx</span> lido.</p>
+          <p style="margin-bottom:4px"><strong>Ressalvas honestas:</strong></p>
+          <p class="files">• Não li os Controllers/Requests PHP nem as migrations — o que afirmo de backend vem das rotas e contratos citados nos componentes. Endpoints podem ter regras que a UI não revela.<br>• “Casca” = a UI existe e o endpoint não; confirmei pelos comentários do próprio código (“Onda futura plugará backend”, “pure compute”, “anti-hook”).<br>• Trabalho no <strong>protótipo Cowork</strong> e produzo handoff — não escrevo no git diretamente.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

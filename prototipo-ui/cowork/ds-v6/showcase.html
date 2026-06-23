@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Oimpresso DS · v6 — Showcase</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════ TOKENS — DS v6 (proposta · soma do v5 + tempero da sessão) ═══════════════ */
+:root{
+  --bg: oklch(0.992 0.0015 95); --sunken: oklch(0.974 0.003 95); --surface: oklch(1 0 0); --raised: oklch(1 0 0);
+  --hairline: oklch(0.935 0.003 95); --border: oklch(0.905 0.004 95); --border-2: oklch(0.95 0.003 95);
+  --text: oklch(0.205 0.008 90); --text-2: oklch(0.46 0.007 90); --text-3: oklch(0.63 0.006 90); --text-4: oklch(0.74 0.005 90);
+  --accent: oklch(0.55 0.15 295); --accent-hi: oklch(0.50 0.16 295); --accent-soft: oklch(0.965 0.022 295); --accent-line: oklch(0.86 0.05 295); --accent-fg: #fff;
+  --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.58 0.12 70); --warn-soft: oklch(0.955 0.072 75);
+  --info: var(--accent); --info-soft: var(--accent-soft);
+  --origin-OS-bg: oklch(0.95 0.045 70); --origin-OS-fg: oklch(0.45 0.10 60);
+  --origin-CRM-bg: oklch(0.94 0.04 245); --origin-CRM-fg: oklch(0.45 0.11 250);
+  --origin-FIN-bg: oklch(0.95 0.05 150); --origin-FIN-fg: oklch(0.40 0.10 150);
+  --stage-slate: oklch(0.58 0.025 250); --stage-indigo: oklch(0.55 0.16 270); --stage-rose: oklch(0.62 0.16 20); --stage-emerald: oklch(0.60 0.13 155); --stage-green: oklch(0.66 0.15 145);
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280/.05), 0 2px 4px -1px oklch(0.25 0.02 280/.07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280/.06), 0 6px 16px -5px oklch(0.25 0.02 280/.11);
+  --sh-3: 0 4px 9px -4px oklch(0.25 0.02 280/.08), 0 14px 32px -8px oklch(0.25 0.02 280/.14);
+  --r-1: 5px; --r-2: 8px; --r-3: 11px; --r-4: 16px; --r-pill: 999px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[data-theme="dark"]{
+  --bg: oklch(0.165 0.008 282); --sunken: oklch(0.142 0.008 282); --surface: oklch(0.205 0.009 282); --raised: oklch(0.235 0.010 282);
+  --hairline: oklch(0.27 0.010 282); --border: oklch(0.30 0.012 282); --border-2: oklch(0.25 0.010 282);
+  --text: oklch(0.965 0.004 282); --text-2: oklch(0.74 0.008 282); --text-3: oklch(0.58 0.009 282); --text-4: oklch(0.47 0.009 282);
+  --accent: oklch(0.72 0.15 295); --accent-hi: oklch(0.78 0.15 295); --accent-soft: oklch(0.30 0.07 295); --accent-line: oklch(0.42 0.10 295); --accent-fg: oklch(0.14 0.02 295);
+  --pos: oklch(0.74 0.14 150); --pos-soft: oklch(0.30 0.085 150);
+  --neg: oklch(0.72 0.16 25);  --neg-soft: oklch(0.32 0.09 25);
+  --warn: oklch(0.80 0.13 75); --warn-soft: oklch(0.32 0.085 70);
+  --origin-OS-bg: oklch(0.32 0.06 70); --origin-OS-fg: oklch(0.85 0.10 75);
+  --origin-CRM-bg: oklch(0.30 0.06 250); --origin-CRM-fg: oklch(0.82 0.10 250);
+  --origin-FIN-bg: oklch(0.30 0.06 150); --origin-FIN-fg: oklch(0.83 0.12 150);
+  --stage-slate: oklch(0.66 0.03 250); --stage-indigo: oklch(0.66 0.16 270); --stage-rose: oklch(0.68 0.16 20); --stage-emerald: oklch(0.68 0.14 155); --stage-green: oklch(0.74 0.15 145);
+  --sh-1: 0 1px 2px oklch(0 0 0/.3); --sh-2: 0 3px 8px -3px oklch(0 0 0/.42), 0 8px 20px -6px oklch(0 0 0/.4); --sh-3: 0 8px 18px -8px oklch(0 0 0/.5), 0 18px 40px -12px oklch(0 0 0/.55);
+}
+*{ box-sizing: border-box; }
+html,body{ margin: 0; }
+body{ background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+
+/* ── chrome ── */
+.ds-top{ position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 16px 32px; background: color-mix(in oklch, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.ds-logo{ width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, var(--text))); display: grid; place-items: center; color: var(--accent-fg); font-weight: 700; font-size: 13px; }
+.ds-top b{ font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.ds-top .ver{ font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--accent-soft); padding: 2px 8px; border-radius: 999px; font-weight: 600; }
+.ds-top .tag{ font-size: 11px; color: var(--text-3); }
+.ds-theme{ margin-left: auto; appearance: none; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 8px; height: 34px; padding: 0 14px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12.5px; font-weight: 500; }
+.ds-theme:hover{ border-color: var(--accent-line); }
+
+.ds-wrap{ max-width: 1180px; margin: 0 auto; padding: 36px 32px 80px; }
+.ds-intro{ margin-bottom: 40px; }
+.ds-intro h1{ font-size: 30px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 10px; }
+.ds-intro p{ font-size: 14.5px; line-height: 1.6; color: var(--text-2); max-width: 64ch; margin: 0; }
+.ds-group-h{ font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); margin: 48px 0 18px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+
+/* spec card: nome + uso + demo */
+.ds-grid{ display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 18px; }
+.spec{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-4); overflow: hidden; box-shadow: var(--sh-1); }
+.spec.wide{ grid-column: 1 / -1; }
+.spec.half{ grid-column: span 1; }
+.spec-h{ padding: 14px 18px 12px; border-bottom: 1px solid var(--border-2); }
+.spec-h b{ font-size: 13.5px; font-weight: 600; }
+.spec-h code{ font-family: var(--mono); font-size: 10.5px; color: var(--accent); background: var(--accent-soft); padding: 1px 6px; border-radius: 4px; margin-left: 7px; }
+.spec-h p{ margin: 5px 0 0; font-size: 12px; color: var(--text-3); line-height: 1.45; }
+.spec-demo{ padding: 20px 18px; background: var(--sunken); display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.spec-demo.col{ flex-direction: column; align-items: stretch; }
+
+/* ════════ swatches (fundamentos) ════════ */
+.sw-row{ display: flex; flex-wrap: wrap; gap: 10px; }
+.sw{ display: flex; flex-direction: column; gap: 6px; }
+.sw-chip{ width: 88px; height: 52px; border-radius: var(--r-2); border: 1px solid var(--border); }
+.sw small{ font-size: 10.5px; color: var(--text-3); font-family: var(--mono); }
+.sw b{ font-size: 11px; font-weight: 600; }
+
+/* ════════ COMPONENTES ════════ */
+/* buttons */
+.c-btn{ appearance: none; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 16px; border-radius: var(--r-2); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 13px; font-weight: 500; }
+.c-btn.primary{ background: var(--accent); border-color: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.c-btn.danger{ background: var(--neg); border-color: var(--neg); color: #fff; font-weight: 600; }
+.c-btn.ghost{ background: transparent; border-color: transparent; color: var(--text-2); }
+
+/* status pill */
+.c-pill{ display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; padding: 3px 10px; border-radius: var(--r-pill); }
+.c-pill::before{ content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.c-pill.pos{ background: var(--pos-soft); color: var(--pos); }
+.c-pill.neg{ background: var(--neg-soft); color: var(--neg); }
+.c-pill.warn{ background: var(--warn-soft); color: var(--warn); }
+.c-pill.info{ background: var(--accent-soft); color: var(--accent); }
+
+/* stage dots */
+.c-stage{ display: inline-flex; align-items: center; gap: 7px; font-size: 12px; color: var(--text-2); }
+.c-stage i{ width: 11px; height: 11px; border-radius: 50%; display: inline-block; }
+
+/* KPI stat */
+.c-kpi{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); padding: 14px 16px; min-width: 150px; }
+.c-kpi small{ display: block; font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-4); }
+.c-kpi b{ display: block; font-size: 24px; font-weight: 600; font-family: var(--mono); margin-top: 5px; letter-spacing: -0.02em; }
+.c-kpi.neg b{ color: var(--neg); } .c-kpi.pos b{ color: var(--pos); }
+
+/* segmented tabs */
+.c-tabs{ display: inline-flex; gap: 2px; background: var(--sunken); border: 1px solid var(--border); border-radius: var(--r-pill); padding: 2px; }
+.c-tab{ appearance: none; cursor: pointer; border: 0; background: none; font: inherit; font-size: 12px; font-weight: 500; color: var(--text-3); padding: 5px 14px; border-radius: var(--r-pill); }
+.c-tab.active{ background: var(--surface); color: var(--text); font-weight: 600; box-shadow: var(--sh-1); }
+
+/* plate */
+.c-plate{ display: inline-flex; flex-direction: column; border: 1.5px solid var(--text-3); border-radius: var(--r-1); overflow: hidden; }
+.c-plate .pt{ background: oklch(0.42 0.13 250); color: #fff; font-size: 7px; text-align: center; padding: 1px 8px; letter-spacing: .05em; font-weight: 600; }
+.c-plate .pn{ font-family: var(--mono); font-weight: 700; font-size: 16px; text-align: center; padding: 3px 0; }
+
+/* asset card */
+.c-asset{ width: 230px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--warn); border-radius: var(--r-3); padding: 13px 14px; }
+.c-asset-top{ display: flex; align-items: center; gap: 8px; margin-bottom: 9px; }
+.c-asset-top .ic{ color: var(--text-3); }
+.c-asset-mod{ font-size: 13.5px; font-weight: 600; margin-bottom: 9px; }
+.c-asset-foot{ display: flex; justify-content: space-between; margin-top: 10px; font-size: 11px; }
+.c-asset-foot .mono{ font-family: var(--mono); color: var(--text-3); } .c-asset-foot .rev{ color: var(--warn); font-weight: 500; }
+
+/* identity header */
+.c-id{ display: flex; align-items: center; gap: 14px; width: 100%; }
+.c-id-av{ width: 48px; height: 48px; border-radius: 13px; background: linear-gradient(135deg, var(--origin-CRM-fg), color-mix(in oklch, var(--origin-CRM-fg) 70%, var(--accent))); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 16px; flex: 0 0 auto; }
+.c-id-name{ font-size: 18px; font-weight: 600; letter-spacing: -0.02em; display: flex; align-items: center; gap: 9px; }
+.c-id-sub{ font-size: 12px; color: var(--text-3); margin-top: 2px; }
+.c-id-acts{ margin-left: auto; display: flex; gap: 7px; }
+
+/* timeline */
+.c-tl{ width: 100%; display: flex; flex-direction: column; }
+.c-tl-row{ display: grid; grid-template-columns: 10px 58px 1fr auto; gap: 11px; align-items: center; padding: 9px 2px; border-bottom: 1px solid var(--border-2); }
+.c-tl-row:last-child{ border-bottom: 0; }
+.c-tl-dot{ width: 8px; height: 8px; border-radius: 50%; background: var(--text-4); justify-self: center; }
+.c-tl-dot.pos{ background: var(--pos); } .c-tl-dot.neg{ background: var(--neg); }
+.c-org{ font-family: var(--mono); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-align: center; }
+.c-org.os{ background: var(--origin-OS-bg); color: var(--origin-OS-fg); }
+.c-org.fin{ background: var(--origin-FIN-bg); color: var(--origin-FIN-fg); }
+.c-org.crm{ background: var(--origin-CRM-bg); color: var(--origin-CRM-fg); }
+.c-tl-txt{ font-size: 12.5px; min-width: 0; } .c-tl-txt.neg{ color: var(--neg); font-weight: 500; }
+.c-tl-when{ font-size: 11px; color: var(--text-4); font-variant-numeric: tabular-nums; }
+
+/* context-rail block */
+.c-rail{ width: 280px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); padding: 14px; }
+.c-rail-h{ display: flex; align-items: center; gap: 8px; margin-bottom: 11px; }
+.c-rail-tag{ display: inline-flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--origin-CRM-bg); color: var(--origin-CRM-fg); }
+.c-rail-h b{ font-size: 13px; font-weight: 600; }
+.c-rail dl{ display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; margin: 0 0 12px; font-size: 12px; }
+.c-rail dt{ color: var(--text-4); } .c-rail dd{ margin: 0; text-align: right; color: var(--text-2); } .c-rail dd.mono{ font-family: var(--mono); }
+
+/* next-best-action */
+.c-nba{ width: 300px; border: 1px solid var(--border); border-left: 3px solid var(--neg); border-radius: var(--r-3); padding: 13px; background: var(--surface); }
+.c-nba-h{ display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+.c-nba-ic{ width: 24px; height: 24px; border-radius: 7px; background: var(--neg-soft); color: var(--neg); display: grid; place-items: center; flex: 0 0 auto; }
+.c-nba-h b{ font-size: 12.5px; font-weight: 600; }
+.c-nba p{ margin: 0 0 10px; font-size: 11.5px; line-height: 1.5; color: var(--text-2); }
+.c-jana{ display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; color: var(--accent); }
+
+svg{ display: block; }
+</style>
+</head>
+<body>
+<div class="ds-top">
+  <div class="ds-logo">Oi</div>
+  <b>Oimpresso Design System</b>
+  <span class="ver">v6</span>
+  <span class="tag">proposta · régua de componentes</span>
+  <button class="ds-theme" id="themeBtn">◐ Tema: Escuro</button>
+</div>
+
+<div class="ds-wrap">
+  <div class="ds-intro">
+    <h1>O kit que faz toda tela nascer coerente.</h1>
+    <p>Os componentes que se repetiram em Oficina, Fila, Norte e Ficha da Frota — agora nomeados, em tokens, e funcionando em claro e escuro de fábrica. Trocar o tema acima muda <b>tudo</b> sozinho: é a prova de que nada aqui usa cor crua. Esta é a fonte da verdade e a régua: tela nova monta daqui.</p>
+  </div>
+
+  <!-- ════════ FUNDAMENTOS ════════ -->
+  <div class="ds-group-h">Fundamentos</div>
+  <div class="ds-grid">
+    <div class="spec half">
+      <div class="spec-h"><b>Accent — roxo canônico</b><code>--accent</code><p>A cor da marca (ADR 0235). Única, universal. Muda = reindexar tudo.</p></div>
+      <div class="spec-demo">
+        <div class="sw"><div class="sw-chip" style="background:var(--accent)"></div><b>--accent</b><small>roxo 295</small></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--accent-soft)"></div><b>--accent-soft</b><small>fundo</small></div>
+      </div>
+    </div>
+    <div class="spec half">
+      <div class="spec-h"><b>Número semântico</b><code>--pos / --neg / --warn</code><p>Significado, não decoração: deu certo · atenção · cuidado. Sempre com <code>-soft</code> de fundo.</p></div>
+      <div class="spec-demo">
+        <div class="sw"><div class="sw-chip" style="background:var(--pos)"></div><b>--pos</b><small>150</small></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--warn)"></div><b>--warn</b><small>70</small></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--neg)"></div><b>--neg</b><small>25</small></div>
+      </div>
+    </div>
+    <div class="spec wide">
+      <div class="spec-h"><b>Paleta de etapas</b><code>--stage-*</code><p>O tempero desta sessão: a escala categórica do pipeline (Recepção→Pronto). Antes vivia crua nas telas; agora é token reusável por qualquer fluxo/kanban.</p></div>
+      <div class="spec-demo">
+        <div class="sw"><div class="sw-chip" style="background:var(--stage-slate)"></div><b>slate</b><small>recepção</small></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--stage-indigo)"></div><b>indigo</b><small>diagnóstico</small></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--stage-rose)"></div><b>rose</b><small>peças</small></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--stage-emerald)"></div><b>emerald</b><small>execução</small></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--stage-green)"></div><b>green</b><small>pronto</small></div>
+      </div>
+    </div>
+    <div class="spec half">
+      <div class="spec-h"><b>Superfícies</b><code>--surface / --sunken / --border</code><p>Em camadas, quentes no claro, cinza-azul no escuro. Tudo flipa junto.</p></div>
+      <div class="spec-demo">
+        <div class="sw"><div class="sw-chip" style="background:var(--bg)"></div><b>--bg</b></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--sunken)"></div><b>--sunken</b></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--surface)"></div><b>--surface</b></div>
+        <div class="sw"><div class="sw-chip" style="background:var(--raised);border-color:var(--border)"></div><b>--raised</b></div>
+      </div>
+    </div>
+    <div class="spec half">
+      <div class="spec-h"><b>Tipo &amp; forma</b><code>IBM Plex · --r-*</code><p>Plex Sans + Plex Mono p/ número/placa. Raio teto 12px (16 só drawer/modal).</p></div>
+      <div class="spec-demo col">
+        <div style="font-size:22px;font-weight:600;letter-spacing:-0.02em">Plex Sans · 600</div>
+        <div style="font-family:var(--mono);font-size:15px;color:var(--text-2)">R$ 5.440,00 · RBA-2H78</div>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <span style="width:46px;height:30px;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:var(--r-1)"></span>
+          <span style="width:46px;height:30px;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:var(--r-2)"></span>
+          <span style="width:46px;height:30px;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:var(--r-3)"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ COMPONENTES ════════ -->
+  <div class="ds-group-h">Componentes — o que paramos de remontar à mão</div>
+  <div class="ds-grid">
+
+    <div class="spec half">
+      <div class="spec-h"><b>Botões</b><code>.c-btn</code><p>Primário roxo, ghost, danger. A ação primária é sempre o accent.</p></div>
+      <div class="spec-demo">
+        <button class="c-btn primary">Nova OS</button>
+        <button class="c-btn">Imprimir</button>
+        <button class="c-btn ghost">Cancelar</button>
+        <button class="c-btn danger">Cobrar</button>
+      </div>
+    </div>
+
+    <div class="spec half">
+      <div class="spec-h"><b>Pílula de status</b><code>.c-pill</code><p>Estado por significado. Fundo <code>-soft</code> + texto semântico.</p></div>
+      <div class="spec-demo">
+        <span class="c-pill pos">em dia</span>
+        <span class="c-pill warn">em breve</span>
+        <span class="c-pill neg">vencida</span>
+        <span class="c-pill info">na oficina</span>
+      </div>
+    </div>
+
+    <div class="spec half">
+      <div class="spec-h"><b>Etapas do pipeline</b><code>.c-stage</code><p>Pontos da esteira, consumindo <code>--stage-*</code>.</p></div>
+      <div class="spec-demo col">
+        <span class="c-stage"><i style="background:var(--stage-slate)"></i>Recepção</span>
+        <span class="c-stage"><i style="background:var(--stage-indigo)"></i>Diagnóstico</span>
+        <span class="c-stage"><i style="background:var(--stage-rose)"></i>Aguardando peças</span>
+        <span class="c-stage"><i style="background:var(--stage-emerald)"></i>Em execução</span>
+        <span class="c-stage"><i style="background:var(--stage-green)"></i>Pronto</span>
+      </div>
+    </div>
+
+    <div class="spec half">
+      <div class="spec-h"><b>Tabs segmentadas</b><code>.c-tabs</code><p>Troca de visão dentro de uma tela. Ativo ganha surface + sombra.</p></div>
+      <div class="spec-demo">
+        <div class="c-tabs">
+          <button class="c-tab active">Visão geral</button>
+          <button class="c-tab">Veículos</button>
+          <button class="c-tab">Histórico</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec half">
+      <div class="spec-h"><b>KPI / stat</b><code>.c-kpi</code><p>Número grande em mono. Tom semântico quando importa (em aberto = neg).</p></div>
+      <div class="spec-demo">
+        <div class="c-kpi neg"><small>Em aberto</small><b>R$ 4.200</b></div>
+        <div class="c-kpi"><small>Ticket médio</small><b>R$ 3.840</b></div>
+      </div>
+    </div>
+
+    <div class="spec half">
+      <div class="spec-h"><b>Placa Mercosul</b><code>.c-plate</code><p>Identidade do veículo. Mono, sempre legível nos dois temas.</p></div>
+      <div class="spec-demo">
+        <div class="c-plate"><span class="pt">BR · MERCOSUL</span><span class="pn">RBA-2H78</span></div>
+        <div class="c-plate"><span class="pt">BR · MERCOSUL</span><span class="pn">GHS-8E22</span></div>
+      </div>
+    </div>
+
+    <div class="spec half">
+      <div class="spec-h"><b>Card de ativo (frota)</b><code>.c-asset</code><p>Veículo/equipamento com status de revisão na borda. O grafo da frota.</p></div>
+      <div class="spec-demo">
+        <div class="c-asset">
+          <div class="c-asset-top"><span class="ic"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v9H3z"/><path d="M14 9h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg></span><span class="c-pill warn" style="margin-left:auto">em breve</span></div>
+          <div class="c-asset-mod">Volvo FH 540</div>
+          <div class="c-plate"><span class="pt">BR · MERCOSUL</span><span class="pn">FZJ-4F12</span></div>
+          <div class="c-asset-foot"><span class="mono">388.100 km</span><span class="rev">revisão em 4.800 km</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec half">
+      <div class="spec-h"><b>Próxima melhor ação</b><code>.c-nba</code><p>Sugestão proativa da Jana, com tom semântico e CTA. O CRM que cutuca.</p></div>
+      <div class="spec-demo">
+        <div class="c-nba">
+          <div class="c-nba-h"><span class="c-nba-ic"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></svg></span><b>Cobrar antes de entregar</b></div>
+          <p>Boleto NF 1198 vencido (R$ 4.200). O Constellation está pronto — cobre na entrega.</p>
+          <span class="c-jana">⚡ Jana</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec wide">
+      <div class="spec-h"><b>Header de identidade</b><code>.c-id</code><p>O cabeçalho de qualquer ficha (cliente, frota, fornecedor): avatar + nome + saúde + ações.</p></div>
+      <div class="spec-demo">
+        <div class="c-id">
+          <div class="c-id-av">BE</div>
+          <div>
+            <div class="c-id-name">Frota Boa Esperança <span class="c-pill warn">atenção financeira</span></div>
+            <div class="c-id-sub">Cliente PJ · Frota · desde mar/2019 · LTV R$ 142.300</div>
+          </div>
+          <div class="c-id-acts">
+            <button class="c-btn">WhatsApp</button>
+            <button class="c-btn primary">Nova OS</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec half">
+      <div class="spec-h"><b>Linha do tempo unificada</b><code>.c-tl</code><p>Eventos de todos os módulos (OS · FIN · CRM) num scroll. Badge de origem + tom.</p></div>
+      <div class="spec-demo col">
+        <div class="c-tl">
+          <div class="c-tl-row"><span class="c-tl-dot"></span><span class="c-org os">OS</span><span class="c-tl-txt">Constellation recepcionado</span><span class="c-tl-when">Hoje</span></div>
+          <div class="c-tl-row"><span class="c-tl-dot neg"></span><span class="c-org fin">FIN</span><span class="c-tl-txt neg">Boleto NF 1198 vencido</span><span class="c-tl-when">Ontem</span></div>
+          <div class="c-tl-row"><span class="c-tl-dot pos"></span><span class="c-org crm">WA</span><span class="c-tl-txt">Cláudia confirmou retirada</span><span class="c-tl-when">03/05</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="spec half">
+      <div class="spec-h"><b>Bloco de contexto (rail)</b><code>.c-rail</code><p>"Apps Vinculados": o app irmão (OS, CRM) ao lado do trabalho. A espinha do ERP.</p></div>
+      <div class="spec-demo">
+        <div class="c-rail">
+          <div class="c-rail-h"><span class="c-rail-tag">CRM</span><b>Frota Boa Esperança</b></div>
+          <dl><dt>Telefone</dt><dd class="mono">(34) 9 9988-7766</dd><dt>Em aberto</dt><dd class="mono">R$ 4.200</dd><dt>Veículos</dt><dd>8</dd></dl>
+          <button class="c-btn" style="width:100%;justify-content:center">Abrir ficha ↗</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var root = document.documentElement, btn = document.getElementById('themeBtn');
+  try{ var s = localStorage.getItem('dsv6.theme'); if(s) root.dataset.theme = s; }catch(e){}
+  function label(){ btn.textContent = (root.dataset.theme === 'dark' ? '◐ Tema: Escuro' : '◑ Tema: Claro'); }
+  label();
+  btn.addEventListener('click', function(){
+    root.dataset.theme = (root.dataset.theme === 'dark' ? 'light' : 'dark');
+    try{ localStorage.setItem('dsv6.theme', root.dataset.theme); }catch(e){}
+    label();
+  });
+  // demo: tabs + segmented toggle active
+  document.querySelectorAll('.c-tabs, .spec-demo').forEach(function(group){
+    group.querySelectorAll('.c-tab').forEach(function(t){
+      t.addEventListener('click', function(){
+        group.querySelectorAll('.c-tab').forEach(function(x){ x.classList.remove('active'); });
+        t.classList.add('active');
+      });
+    });
+  });
+})();
+</script>
+</body>
+</html>

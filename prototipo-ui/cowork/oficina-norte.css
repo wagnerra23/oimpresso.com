@@ -1,0 +1,151 @@
+/* ════════════════════════════════════════════════════════════════════
+   OFICINA / OS — vestida com a identidade Norte (acento âmbar)
+   Reusa o shell de clientes-norte.css (sidebar · header · toggles · spine).
+   Só troca o acento do módulo e adiciona os componentes da OS.
+   ════════════════════════════════════════════════════════════════════ */
+
+/* acento do módulo Oficina = âmbar (mesma família, outra cor) */
+.cli-screen[data-mod="oficina"]{
+  --accent:      oklch(0.60 0.13 70);
+  --accent-soft: oklch(0.95 0.055 78);
+  --accent-line: oklch(0.84 0.09 72);
+  --on-accent:   oklch(0.24 0.05 70);
+}
+.cli-screen[data-mod="oficina"][data-theme="dark"]{
+  --accent:      oklch(0.80 0.13 72);
+  --accent-soft: oklch(0.32 0.08 72);
+  --accent-line: oklch(0.46 0.10 72);
+  --on-accent:   oklch(0.20 0.05 70);
+}
+.cli-screen[data-mod="oficina"][data-theme="dark"] .btn.primary:hover{ background:oklch(0.74 0.13 72); border-color:oklch(0.74 0.13 72); }
+
+/* OS title no header */
+.ofx-osno{ font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:600; }
+
+/* ── stepper interno da OS (lifecycle) ── */
+.ofx-fsm{ display:flex; align-items:center; gap:0; padding:4px 0; }
+.ofx-step{ display:flex; align-items:center; gap:7px; }
+.ofx-step .dot{ width:22px; height:22px; border-radius:50%; display:grid; place-items:center; font-family:var(--mono); font-size:11px; font-weight:600;
+  background:var(--sunken); border:1.5px solid var(--border); color:var(--text-4); flex:0 0 auto; }
+.ofx-step .lbl{ font-size:11.5px; color:var(--text-4); white-space:nowrap; }
+.ofx-step.done .dot{ background:color-mix(in oklch,var(--accent) 55%,var(--bg)); border-color:transparent; color:var(--on-accent); }
+.ofx-step.done .lbl{ color:var(--text-3); }
+.ofx-step.active .dot{ background:var(--accent); border-color:var(--accent); color:var(--on-accent); box-shadow:0 0 0 4px var(--accent-soft); }
+.ofx-step.active .lbl{ color:var(--text); font-weight:600; }
+.ofx-step-line{ width:26px; height:2px; background:var(--border); margin:0 8px; flex:0 0 auto; }
+.ofx-step-line.done{ background:color-mix(in oklch,var(--accent) 55%,var(--bg)); }
+
+/* ── grid da OS ── */
+.ofx-grid{ display:grid; grid-template-columns:1fr 320px; gap:14px; align-items:start; }
+.ofx-col{ display:flex; flex-direction:column; gap:14px; min-width:0; }
+.ofx-card{ background:var(--surface); border:1px solid var(--border); border-radius:13px; box-shadow:var(--sh-1); overflow:hidden; }
+.ofx-card-h{ display:flex; align-items:center; gap:11px; padding:14px 16px 12px; border-bottom:1px solid var(--border-2); }
+.ofx-card-h .ic{ width:30px; height:30px; border-radius:8px; display:grid; place-items:center; color:var(--accent); background:var(--accent-soft); border:1px solid var(--accent-line); flex:0 0 auto; }
+.ofx-card-h h3{ font-size:14px; font-weight:600; letter-spacing:-.01em; margin:0; }
+.ofx-card-h .desc{ font-size:11.5px; color:var(--text-4); margin-top:2px; }
+.ofx-card-h .count{ margin-left:auto; font-size:11px; font-family:var(--mono); color:var(--text-3); background:var(--sunken); padding:3px 9px; border-radius:999px; }
+.ofx-card-b{ padding:14px 16px; }
+
+/* ── hero do veículo ── */
+.ofx-hero{ display:grid; grid-template-columns:auto 1fr auto; gap:18px; align-items:center; }
+.ofx-plate{ border:1.5px solid var(--text-3); border-radius:7px; overflow:hidden; width:118px; }
+.ofx-plate .br{ background:oklch(0.42 0.13 250); color:#fff; font-size:7.5px; text-align:center; padding:2px; letter-spacing:.1em; font-weight:600; }
+.ofx-plate .num{ font-family:var(--mono); font-weight:700; font-size:20px; text-align:center; padding:5px 0; letter-spacing:.05em; }
+.ofx-veh h2{ font-size:18px; font-weight:600; letter-spacing:-.02em; margin:0; }
+.ofx-veh h2 .yr{ color:var(--text-4); font-weight:500; }
+.ofx-veh .sub{ font-size:12px; color:var(--text-4); margin-top:3px; font-family:var(--mono); }
+.ofx-specs{ display:flex; gap:22px; margin-top:12px; }
+.ofx-spec .k{ font-size:10px; color:var(--text-4); letter-spacing:.03em; } .ofx-spec .v{ font-size:13px; font-weight:600; margin-top:2px; }
+.ofx-cust{ text-align:right; display:flex; flex-direction:column; gap:4px; }
+.ofx-cust .nm{ font-size:13px; font-weight:600; }
+.ofx-cust .row{ font-size:11.5px; color:var(--text-3); display:inline-flex; align-items:center; gap:6px; justify-content:flex-end; }
+.ofx-cust .crmlink{ display:inline-flex; align-items:center; gap:5px; font-size:10.5px; color:var(--m-crm); }
+.ofx-cust .crmlink .d{ width:7px; height:7px; border-radius:50%; background:var(--m-crm); }
+
+/* ── relato + avarias ── */
+.ofx-relato{ font-size:13px; color:var(--text-2); line-height:1.5; background:var(--sunken); border:1px solid var(--border-2); border-radius:9px; padding:12px 14px; }
+.ofx-dmg-row{ display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+.ofx-dmg{ display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:500; padding:5px 10px; border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--text-2); cursor:pointer; }
+.ofx-dmg .d{ width:7px; height:7px; border-radius:50%; background:var(--border); }
+.ofx-dmg.on{ border-color:color-mix(in oklch,var(--neg) 40%,var(--border)); background:var(--neg-soft); color:var(--neg); } .ofx-dmg.on .d{ background:var(--neg); }
+
+/* ── DVI (semáforo) ── */
+.ofx-dvi{ display:flex; flex-direction:column; gap:7px; }
+.ofx-dvi-item{ display:grid; grid-template-columns:auto 1fr auto auto; gap:12px; align-items:center; padding:9px 12px; border-radius:9px; background:var(--sunken); border:1px solid var(--border-2); }
+.ofx-dvi-item.is-r{ border-color:color-mix(in oklch,var(--neg) 35%,var(--border)); background:var(--neg-soft); }
+.ofx-traffic{ display:flex; gap:4px; }
+.ofx-tl{ width:14px; height:14px; border-radius:50%; border:1.5px solid var(--border); background:var(--surface); cursor:pointer; padding:0; opacity:.4; }
+.ofx-tl.g{ border-color:var(--pos); } .ofx-tl.y{ border-color:var(--warn); } .ofx-tl.r{ border-color:var(--neg); }
+.ofx-tl.g.on{ background:var(--pos); opacity:1; } .ofx-tl.y.on{ background:var(--warn); opacity:1; } .ofx-tl.r.on{ background:var(--neg); opacity:1; }
+.ofx-dvi-item .nm{ font-size:12.5px; font-weight:600; } .ofx-dvi-item .nm small{ display:block; font-size:10.5px; color:var(--text-4); font-weight:400; margin-top:1px; }
+.ofx-photo{ display:inline-flex; align-items:center; gap:5px; font-size:10.5px; color:var(--text-4); font-family:var(--mono); }
+.ofx-photo.has{ color:var(--accent); }
+.ofx-addbtn{ font-size:10.5px; font-weight:600; color:var(--accent); background:var(--accent-soft); border:1px solid var(--accent-line); border-radius:7px; padding:3px 9px; cursor:pointer; }
+.ofx-added{ display:inline-flex; align-items:center; gap:4px; font-size:10.5px; color:var(--pos); font-weight:600; }
+
+/* ── itens (serviços/peças) ── */
+.ofx-tabs{ display:flex; gap:6px; margin-bottom:12px; }
+.ofx-tab{ font-size:12px; font-weight:600; color:var(--text-3); background:var(--sunken); border:1px solid var(--border-2); border-radius:8px; padding:6px 12px; cursor:pointer; }
+.ofx-tab.on{ background:var(--accent-soft); border-color:var(--accent-line); color:var(--accent); }
+.ofx-line{ display:grid; grid-template-columns:1fr auto auto auto; gap:12px; align-items:center; padding:10px 4px; border-bottom:1px solid var(--border-2); font-size:12.5px; }
+.ofx-line:last-child{ border-bottom:0; }
+.ofx-line .nm{ font-weight:600; } .ofx-line .nm small{ display:block; font-size:10.5px; color:var(--text-4); font-family:var(--mono); font-weight:400; margin-top:1px; }
+.ofx-mech{ display:inline-flex; align-items:center; gap:6px; font-size:10.5px; color:var(--text-4); font-weight:400; margin-top:3px; }
+.ofx-av{ width:17px; height:17px; border-radius:50%; background:var(--accent-soft); color:var(--accent); font-size:8px; font-weight:700; display:inline-grid; place-items:center; }
+.ofx-frominsp{ font-size:9px; color:var(--neg); background:var(--neg-soft); padding:1px 6px; border-radius:5px; font-weight:600; margin-left:4px; }
+.ofx-qty{ font-family:var(--mono); font-size:11.5px; color:var(--text-3); }
+.ofx-stock{ font-size:10px; font-weight:600; font-family:var(--mono); padding:2px 8px; border-radius:999px; }
+.ofx-stock.ok{ background:var(--pos-soft); color:var(--pos); } .ofx-stock.res{ background:var(--warn-soft); color:oklch(0.50 0.11 70); }
+.cli-screen[data-theme="dark"] .ofx-stock.res{ color:var(--warn); }
+.ofx-line .tot{ font-family:var(--mono); font-weight:600; min-width:78px; text-align:right; }
+
+/* ── rail ── */
+.ofx-sum .row{ display:flex; justify-content:space-between; font-size:12.5px; padding:6px 0; color:var(--text-2); }
+.ofx-sum .row .v{ font-family:var(--mono); font-weight:600; color:var(--text); }
+.ofx-sum .total{ display:flex; justify-content:space-between; align-items:baseline; border-top:1px solid var(--border-2); margin-top:8px; padding-top:12px; }
+.ofx-sum .total .k{ font-size:12px; color:var(--text-3); } .ofx-sum .total .v{ font-family:var(--mono); font-size:22px; font-weight:600; letter-spacing:-.02em; }
+
+/* gate de aprovação (a costura crítica OS ↔ cliente) */
+.ofx-gate{ border-color:var(--warn-soft); }
+.ofx-gate-status{ display:inline-flex; align-items:center; gap:7px; font-size:12px; font-weight:600; color:oklch(0.52 0.11 70); padding:4px 0 2px; }
+.cli-screen[data-theme="dark"] .ofx-gate-status{ color:var(--warn); }
+.ofx-gate-status .pulse{ width:8px; height:8px; border-radius:50%; background:var(--warn); box-shadow:0 0 0 0 var(--warn); animation:ofxPulse 1.8s infinite; }
+@keyframes ofxPulse{ 0%{ box-shadow:0 0 0 0 color-mix(in oklch,var(--warn) 50%,transparent); } 70%{ box-shadow:0 0 0 7px transparent; } 100%{ box-shadow:0 0 0 0 transparent; } }
+.ofx-gate-status.aprovado{ color:var(--pos); } .ofx-gate p{ font-size:11.5px; color:var(--text-3); line-height:1.5; margin:9px 0 12px; }
+.ofx-wpp{ width:100%; display:inline-flex; align-items:center; justify-content:center; gap:8px; height:38px; border-radius:9px; border:0; cursor:pointer;
+  background:var(--accent); color:var(--on-accent); font:inherit; font-size:12.5px; font-weight:600; }
+.ofx-wpp.done{ background:var(--pos-soft); color:var(--pos); cursor:default; }
+
+/* fiscal — a costura "peça vira NF-e, serviço vira NFS-e" */
+.ofx-doc{ display:flex; align-items:center; gap:10px; padding:9px 0; }
+.ofx-doc .badge{ font-family:var(--mono); font-size:9.5px; font-weight:700; padding:3px 8px; border-radius:6px; flex:0 0 auto; }
+.ofx-doc .badge.nfe{ background:color-mix(in oklch,var(--m-fiscal) 16%,var(--surface)); color:var(--m-fiscal); }
+.ofx-doc .badge.nfse{ background:color-mix(in oklch,var(--m-vendas) 16%,var(--surface)); color:var(--m-vendas); }
+.ofx-doc .lbl{ font-size:12px; font-weight:600; } .ofx-doc .lbl small{ display:block; font-size:10px; color:var(--text-4); font-weight:400; }
+.ofx-doc .amt{ margin-left:auto; font-family:var(--mono); font-size:12px; font-weight:600; }
+.ofx-warranty{ display:flex; align-items:center; gap:8px; font-size:11px; color:var(--text-3); margin-top:8px; padding-top:11px; border-top:1px solid var(--border-2); }
+
+/* próxima costura → venda */
+.ofx-next{ background:linear-gradient(160deg, color-mix(in oklch,var(--m-vendas) 12%,var(--surface)), var(--surface)); border:1px solid color-mix(in oklch,var(--m-vendas) 28%,var(--border)); }
+.ofx-next .ofx-card-h .ic{ color:var(--m-vendas); background:color-mix(in oklch,var(--m-vendas) 14%,var(--surface)); border-color:color-mix(in oklch,var(--m-vendas) 30%,transparent); }
+.ofx-next p{ font-size:11.5px; color:var(--text-2); line-height:1.5; margin:0; }
+.ofx-next b{ color:var(--text); }
+
+/* spine "here" marker (costura band) */
+.cn-spine-node.here .cn-spine-dot{ width:15px; height:15px; box-shadow:0 0 0 5px color-mix(in oklch, var(--c) 26%, transparent); }
+.cn-spine-node.here .cn-spine-lbl{ font-weight:700; }
+
+/* footer recap */
+.ofx-foot{ flex:0 0 auto; display:flex; align-items:center; gap:14px; padding:13px 24px; border-top:1px solid var(--border-2); background:var(--surface); }
+.ofx-recap{ display:flex; gap:26px; }
+.ofx-recap .k{ font-size:10px; color:var(--text-4); } .ofx-recap .v{ font-family:var(--mono); font-size:14px; font-weight:600; margin-top:2px; } .ofx-recap .v.big{ font-size:18px; color:var(--accent); }
+.ofx-foot .sp{ flex:1; }
+
+/* toast */
+.ofx-toast{ position:fixed; left:50%; bottom:26px; transform:translateX(-50%); z-index:90; display:inline-flex; align-items:center; gap:8px;
+  background:oklch(0.22 0.02 282); color:#fff; font-size:12.5px; font-weight:500; padding:11px 18px; border-radius:10px; box-shadow:var(--sh-2); }
+
+@media (max-width:1080px){ .ofx-grid{ grid-template-columns:1fr; } .ofx-hero{ grid-template-columns:auto 1fr; } .ofx-cust{ grid-column:1 / -1; text-align:left; align-items:flex-start; } .ofx-cust .row{ justify-content:flex-start; } }
+.cli-screen[data-density="compact"] .ofx-card-b{ padding:11px 14px; }
+.cli-screen[data-density="compact"] .ofx-dvi-item{ padding:7px 11px; }
+.cli-screen[data-density="compact"] .ofx-line{ padding:7px 4px; }

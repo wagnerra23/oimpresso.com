@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Mapa de Costuras — Norte × Repo · Oimpresso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.992 0.0015 95); --sunken: oklch(0.974 0.003 95); --surface: oklch(1 0 0);
+  --border: oklch(0.905 0.004 95); --border-2: oklch(0.95 0.003 95);
+  --text: oklch(0.205 0.008 90); --text-2: oklch(0.46 0.007 90); --text-3: oklch(0.63 0.006 90); --text-4: oklch(0.74 0.005 90);
+  --accent: oklch(0.55 0.15 295); --accent-soft: oklch(0.965 0.022 295); --accent-line: oklch(0.86 0.05 295); --accent-fg:#fff;
+  --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150); --neg: oklch(0.55 0.18 25); --neg-soft: oklch(0.955 0.055 25); --warn: oklch(0.58 0.12 70); --warn-soft: oklch(0.955 0.072 75);
+  --r-2: 8px; --r-3: 11px; --r-4: 16px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280/.05), 0 2px 4px -1px oklch(0.25 0.02 280/.07);
+}
+[data-theme="dark"]{
+  --bg: oklch(0.165 0.008 282); --sunken: oklch(0.142 0.008 282); --surface: oklch(0.205 0.009 282);
+  --border: oklch(0.30 0.012 282); --border-2: oklch(0.25 0.010 282);
+  --text: oklch(0.965 0.004 282); --text-2: oklch(0.74 0.008 282); --text-3: oklch(0.58 0.009 282); --text-4: oklch(0.47 0.009 282);
+  --accent: oklch(0.72 0.15 295); --accent-soft: oklch(0.30 0.07 295); --accent-line: oklch(0.42 0.10 295); --accent-fg: oklch(0.14 0.02 295);
+  --pos: oklch(0.74 0.14 150); --pos-soft: oklch(0.30 0.085 150); --neg: oklch(0.72 0.16 25); --neg-soft: oklch(0.32 0.09 25); --warn: oklch(0.80 0.13 75); --warn-soft: oklch(0.32 0.085 70);
+}
+*{ box-sizing: border-box; } html,body{ margin: 0; }
+body{ background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+.top{ position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px; padding: 14px 30px; background: color-mix(in oklch, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.logo{ width: 28px; height: 28px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, var(--text))); display: grid; place-items: center; color: var(--accent-fg); font-weight: 700; font-size: 12px; }
+.top b{ font-size: 14px; } .top .tag{ font-size: 11px; color: var(--text-3); }
+.themeBtn{ margin-left: auto; appearance: none; cursor: pointer; font: inherit; height: 32px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; }
+.wrap{ max-width: 960px; margin: 0 auto; padding: 32px 30px 70px; }
+h1{ font-size: 27px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 8px; }
+.lead{ font-size: 14px; line-height: 1.6; color: var(--text-2); margin: 0 0 6px; max-width: 64ch; }
+.legend{ display: flex; gap: 16px; flex-wrap: wrap; margin: 18px 0 26px; font-size: 12px; color: var(--text-3); }
+.legend span{ display: inline-flex; align-items: center; gap: 6px; }
+.dot{ width: 10px; height: 10px; border-radius: 50%; }
+.dot.ok{ background: var(--pos); } .dot.part{ background: var(--warn); } .dot.miss{ background: var(--neg); }
+
+.seam{ display: grid; grid-template-columns: 30px 1fr; gap: 14px; }
+.seam-rail{ display: flex; flex-direction: column; align-items: center; }
+.seam-n{ width: 30px; height: 30px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 13px; flex: 0 0 auto; }
+.seam-line{ flex: 1 1 auto; width: 2px; background: var(--border); margin: 6px 0; }
+.seam:last-child .seam-line{ display: none; }
+.card{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-4); padding: 16px 18px; margin-bottom: 14px; box-shadow: var(--sh-1); }
+.card-top{ display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.flow{ display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; }
+.chip{ background: var(--sunken); border: 1px solid var(--border-2); border-radius: 7px; padding: 3px 9px; }
+.arr{ color: var(--accent); }
+.status{ margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 999px; }
+.status.ok{ background: var(--pos-soft); color: var(--pos); } .status.part{ background: var(--warn-soft); color: var(--warn); } .status.miss{ background: var(--neg-soft); color: var(--neg); }
+.card h3{ font-size: 14.5px; font-weight: 600; letter-spacing: -0.01em; margin: 2px 0 6px; }
+.card p{ margin: 0 0 10px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.ev{ display: flex; flex-wrap: wrap; gap: 7px; }
+.ev span{ font-family: var(--mono); font-size: 10.5px; padding: 2px 7px; border-radius: 5px; background: var(--sunken); border: 1px solid var(--border-2); color: var(--text-3); }
+.ev span.v{ color: var(--pos); } .ev span.i{ color: var(--text-4); }
+.prio{ font-size: 11px; font-weight: 600; color: var(--accent); }
+.verdict{ margin-top: 30px; background: linear-gradient(180deg, var(--accent-soft), var(--surface)); border: 1px solid var(--accent-line); border-radius: var(--r-4); padding: 20px 22px; }
+.verdict h2{ margin: 0 0 8px; font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+.verdict p{ margin: 0 0 8px; font-size: 13px; line-height: 1.6; color: var(--text-2); }
+.verdict b{ color: var(--text); }
+.note{ font-size: 11px; color: var(--text-4); margin-top: 18px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">Oi</div><b>Mapa de Costuras</b><span class="tag">Norte × Repo · onde o fluxo já existe vs falta</span>
+  <button class="themeBtn" id="themeBtn">◐ Escuro</button>
+</div>
+<div class="wrap">
+  <h1>O ERP-como-fluxo: o que já está costurado.</h1>
+  <p class="lead">As 7 costuras do Norte cruzadas com o estado real do repo. Mostra onde o fluxo já liga sozinho × onde ainda tem buraco — a sua régua de prioridade.</p>
+  <div class="legend">
+    <span><i class="dot ok"></i>existe (verificado · PR/ADR)</span>
+    <span><i class="dot part"></i>parcial (base existe, costura explícita falta)</span>
+    <span><i class="dot miss"></i>falta (gap / inferido)</span>
+  </div>
+
+  <div class="seam">
+    <div class="seam-rail"><div class="seam-n">1</div><div class="seam-line"></div></div>
+    <div class="card">
+      <div class="card-top"><span class="flow"><span class="chip">CRM</span><span class="arr">→</span><span class="chip">Oficina</span></span><span class="status part">parcial</span></div>
+      <h3>Cliente não recadastra — frota puxa do CRM</h3>
+      <p>A entrada do fluxo. Hoje o CRM do repo é <b>Blade legado (UltimatePOS)</b>; a Ficha da Frota 360 (frota→veículos→contatos) é <b>proposta nova</b> desta sessão. A OS ainda não nasce com o grafo da frota.</p>
+      <div class="ev"><span class="i">⚠ CRM Blade legado (L-26)</span><span class="i">⚠ Ficha 360 = proposta</span><span class="prio">→ é o C do plano</span></div>
+    </div>
+  </div>
+
+  <div class="seam">
+    <div class="seam-rail"><div class="seam-n">2</div><div class="seam-line"></div></div>
+    <div class="card">
+      <div class="card-top"><span class="flow"><span class="chip">DVI</span><span class="arr">→</span><span class="chip">Orçamento</span></span><span class="status ok">existe</span></div>
+      <h3>Peça e serviço separados desde o diagnóstico</h3>
+      <p>A Oficina real já tem <b>DVI semáforo + itens + total</b> (verificado por [W]). O kanban do carro foi portado pra <code>ServiceOrders</code> reusando <code>DviPhotoGrid</code>/<code>RichSheet</code>.</p>
+      <div class="ev"><span class="v">✓ ServiceOrders + DVI</span><span class="v">✓ kanban port</span></div>
+    </div>
+  </div>
+
+  <div class="seam">
+    <div class="seam-rail"><div class="seam-n">3</div><div class="seam-line"></div></div>
+    <div class="card">
+      <div class="card-top"><span class="flow"><span class="chip">Oficina</span><span class="arr">→</span><span class="chip">Inbox</span></span><span class="status part">parcial</span></div>
+      <h3>Gate de aprovação do cliente (WhatsApp)</h3>
+      <p>O Inbox/WhatsApp existe; o <b>gate explícito</b> ("execução não inicia sem o cliente aprovar" + enviar orçamento) é um dos 2 elementos do wow marcados <b>a trazer explícito</b> no port do kanban.</p>
+      <div class="ev"><span class="v">✓ Inbox/WhatsApp</span><span class="i">◐ gate explícito = pendente (i)</span></div>
+    </div>
+  </div>
+
+  <div class="seam">
+    <div class="seam-rail"><div class="seam-n">4</div><div class="seam-line"></div></div>
+    <div class="card">
+      <div class="card-top"><span class="flow"><span class="chip">Oficina</span><span class="arr">→</span><span class="chip">Compras</span></span><span class="status miss">falta</span></div>
+      <h3>Peça aplicada baixa do estoque na hora</h3>
+      <p>Módulo de Compras/estoque existe, mas a <b>baixa automática</b> peça-aplicada→estoque (e reposição no mínimo) <b>não foi verificada</b> nesta sessão. Tratar como gap até confirmar no <code>main</code>.</p>
+      <div class="ev"><span class="i">⚠ inferido (não verificado)</span><span class="prio">→ verificar no main</span></div>
+    </div>
+  </div>
+
+  <div class="seam">
+    <div class="seam-rail"><div class="seam-n">5</div><div class="seam-line"></div></div>
+    <div class="card">
+      <div class="card-top"><span class="flow"><span class="chip">Oficina</span><span class="arr">→</span><span class="chip">Vendas</span></span><span class="status ok">existe</span></div>
+      <h3>OS pronta = venda automática (sem digitar)</h3>
+      <p>O coração do fluxo, <b>provado E2E</b>: a chain CU-3→4→5 (venda→fatura→recebe) passou contra DB real; auto-faturar OS→Venda via <code>JobSheetObserver</code> (ADR 0192).</p>
+      <div class="ev"><span class="v">✓ #2135 E2E</span><span class="v">✓ ADR 0192</span></div>
+    </div>
+  </div>
+
+  <div class="seam">
+    <div class="seam-rail"><div class="seam-n">6</div><div class="seam-line"></div></div>
+    <div class="card">
+      <div class="card-top"><span class="flow"><span class="chip">Vendas</span><span class="arr">→</span><span class="chip">Fiscal</span></span><span class="status ok">existe</span></div>
+      <h3>Uma venda, duas notas (NF-e peça + NFS-e serviço)</h3>
+      <p>Emissão wired (NF-e 55 + NFS-e), ambiente fiscal <b>per-business</b> (#2147). Em <b>homologação</b> — a nota REAL em produção é o flip manual de [W] (irreversível, gated).</p>
+      <div class="ev"><span class="v">✓ #2147 per-business</span><span class="v">✓ #2135 wired</span><span class="i">◐ prod = flip [W]</span></div>
+    </div>
+  </div>
+
+  <div class="seam">
+    <div class="seam-rail"><div class="seam-n">7</div></div>
+    <div class="card">
+      <div class="card-top"><span class="flow"><span class="chip">Financeiro</span><span class="arr">→</span><span class="chip">CRM</span></span><span class="status miss">falta</span></div>
+      <h3>O ciclo fecha — histórico + próxima revisão na frota</h3>
+      <p>O fechamento. Baixa no caixa existe, mas <b>alimentar o histórico da frota no CRM + agendar a próxima revisão</b> (que vira o próximo check-in) depende do CRM 360 — que ainda é proposta. É o que <b>fecha o círculo</b>.</p>
+      <div class="ev"><span class="i">⚠ depende da Ficha 360</span><span class="prio">→ é o C do plano</span></div>
+    </div>
+  </div>
+
+  <div class="verdict">
+    <h2>O veredito: o meio é sólido, as pontas-CRM são o buraco.</h2>
+    <p><b>Forte (✓):</b> o núcleo <b>OS → Venda → Fiscal</b> (costuras 2, 5, 6) já liga sozinho e está provado. É o coração do ERP — e funciona.</p>
+    <p><b>Buraco (○):</b> as <b>duas pontas do círculo</b> — entrada (1: CRM→Oficina) e fechamento (7: Financeiro→CRM) — dependem da <b>Ficha da Frota 360</b>, que é proposta. O gate de aprovação (3) e a baixa de estoque (4) são refinos.</p>
+    <p><b>Recomendação:</b> priorizar o <b>C do plano (Ficha → fluxo)</b> — ele fecha as costuras 1 e 7 de uma vez, transformando o fluxo de uma <b>linha</b> num <b>círculo</b>. É o maior salto de produto pelo menor esforço.</p>
+  </div>
+
+  <p class="note">Status marcado com honestidade: <b>✓</b> = verificado nesta sessão (PR/ADR citável) · <b>◐/⚠</b> = parcial ou inferido (não lido no <code>main</code> nesta sessão). Itens "falta/inferido" pedem grep no <code>main</code> antes de virar tarefa firme.</p>
+</div>
+<script>
+(function(){
+  var root=document.documentElement, btn=document.getElementById('themeBtn');
+  try{ var s=localStorage.getItem('dsv6.theme'); if(s) root.dataset.theme=s; }catch(e){}
+  function tl(){ btn.textContent=(root.dataset.theme==='dark'?'◐ Escuro':'◑ Claro'); } tl();
+  btn.onclick=function(){ root.dataset.theme=(root.dataset.theme==='dark'?'light':'dark'); try{localStorage.setItem('dsv6.theme',root.dataset.theme);}catch(e){} tl(); };
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,865 @@
+/* prod-mec.css — TOKENIZADO 2026-06-12 (P0 conformidade · [W] "sim"): 79 cores cruas → tokens DS
+   semânticos (--surface/--bg-2/--ok|warn|danger/--accent-*); fontes → var(--font-*). Dark agora herda
+   dos tokens (era 0 bloco dark = ilegível no tema padrão). Categoria/thumb (hex identidade) mantidos. */
+/* ── Topbar contextual: chips de tipo na página Produtos ── */
+.topbar-tab--type{
+  gap:6px !important;
+  padding:0 12px !important;
+  font-weight:500;
+}
+.topbar-tab--type.active{ font-weight:600; }
+.topbar-tab-dot{
+  display:inline-block;
+  width:7px; height:7px;
+  border-radius:50%;
+  flex-shrink:0;
+}
+
+/* ── Stockbar: filtro rápido de status de estoque ── */
+.pm-stockbar{
+  display:flex; align-items:center; gap:6px;
+  padding:8px 24px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  font-size:11.5px;
+  overflow-x:auto;
+  flex-shrink:0;
+}
+.pm-stockbar-lbl{
+  font-size:10px; font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:var(--text-mute);
+  margin-right:4px;
+  flex-shrink:0;
+}
+.pm-stockbar-chip{
+  appearance:none;
+  background:transparent;
+  border:1px solid var(--border);
+  padding:4px 11px 4px 10px;
+  border-radius:99px;
+  font:inherit; font-size:11.5px;
+  color:var(--text-dim);
+  cursor:pointer;
+  display:inline-flex; align-items:center; gap:6px;
+  white-space:nowrap;
+  flex-shrink:0;
+  transition: border-color .12s, color .12s;
+}
+.pm-stockbar-chip:hover{ background:var(--bg-2); color:var(--text); }
+.pm-stockbar-chip .d{
+  width:7px; height:7px; border-radius:50%;
+  background:var(--text-mute);
+}
+.pm-stockbar-chip.ok   .d{ background:var(--ok-fg); }
+.pm-stockbar-chip.warn .d{ background:var(--warn-fg); }
+.pm-stockbar-chip.out  .d{ background:var(--danger-fg); }
+.pm-stockbar-chip.act{
+  background:var(--accent-soft);
+  border-color:var(--accent-line);
+  color:var(--accent);
+  font-weight:600;
+}
+.pm-stockbar-chip.act.ok   { background:var(--ok-bg); border-color:color-mix(in oklch, var(--ok-fg) 35%, transparent); color:var(--ok-fg); }
+.pm-stockbar-chip.act.warn { background:var(--warn-bg); border-color:color-mix(in oklch, var(--warn-fg) 35%, transparent); color:var(--warn-fg); }
+.pm-stockbar-chip.act.out  { background:var(--bg-2); border-color:var(--border); color:var(--text); }
+.pm-stockbar-n{
+  font-size:10.5px;
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+  color:var(--text-mute);
+  margin-left:3px;
+}
+.pm-stockbar-chip.act .pm-stockbar-n{ color:inherit; opacity:.85; }
+.pm-clear-filters{
+  appearance:none; border:0; background:transparent;
+  font:inherit; font-size:11px;
+  color:var(--text-mute);
+  cursor:pointer; padding:4px 8px;
+  border-radius:4px;
+  flex-shrink:0;
+}
+.pm-clear-filters:hover{ background:var(--bg-2); color:var(--text); }
+
+/* ── Empty state refinado ── */
+.pm-empty{
+  padding:60px 32px; text-align:center;
+  color:var(--text-mute); font-size:13px;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.pm-empty-ico{
+  width:48px; height:48px; border-radius:50%;
+  background:var(--bg-2); color:var(--text-mute);
+  display:grid; place-items:center;
+  font-size:24px;
+  margin-bottom:6px;
+}
+.pm-empty b{ color:var(--text-dim); font-size:14px; }
+.pm-empty span{ color:var(--text-mute); font-size:12px; }
+.pm-empty-btn{
+  margin-top:12px;
+  appearance:none; border:1px solid var(--border);
+  background:var(--surface); padding:6px 14px;
+  border-radius:6px; font:inherit; font-size:12px;
+  color:var(--text); cursor:pointer;
+}
+.pm-empty-btn:hover{ background:var(--bg-2); border-color:var(--accent); color:var(--accent); }
+
+/* ── Drawer refinado ── */
+.pm-drawer{
+  /* Mantém o position:absolute do .os-drawer base — não sobrescrever.
+     Layout interno é flex column (do shell) e isto basta. */
+}
+.pm-drawer-strip{
+  height:4px;
+  flex-shrink:0;
+}
+.pm-drawer-tags{
+  display:flex; align-items:center; gap:6px;
+  margin-bottom:6px;
+}
+.pm-drawer-type{
+  display:inline-block;
+  font-size:9.5px; font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:#fff;
+  padding:2px 8px;
+  border-radius:99px;
+  line-height:1.5;
+}
+.pm-drawer-id{
+  font-size:10.5px;
+  font-family:var(--font-mono);
+  color:var(--text-mute);
+  letter-spacing:.02em;
+}
+.pm-drawer-inact{
+  font-size:9.5px; font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--text-mute);
+  padding:2px 8px;
+  border-radius:99px;
+  border:1px solid var(--border);
+  background:var(--bg-2);
+}
+/* Override pra cli-kpis no drawer — 6 KPIs em 3 colunas (2 filas de 3, balanceado).
+   [W] 2026-06-22 "o drawer era mais bonito" — em 4 col a 2ª fila ficava com 2 vazios. */
+.pm-drawer .cli-kpis{
+  display:grid;
+  grid-template-columns:repeat(3, 1fr);
+  gap:8px;
+}
+.pm-drawer .cli-kpi b.ok{ color:var(--ok-fg); }
+.pm-drawer .cli-kpi b.warn{ color:var(--warn-fg); }
+.pm-drawer .cli-kpi b.low{ color:var(--danger-fg); }
+
+/* ── Tabela de preços (drawer) ── */
+.pm-price-table{
+  display:flex; flex-direction:column;
+  gap:1px;
+  background:var(--border);
+  border-radius:6px;
+  overflow:hidden;
+  margin-bottom:14px;
+}
+.pm-pt-row{
+  background-color:var(--surface);
+  display:grid;
+  grid-template-columns: 1fr 80px 124px 60px;
+  align-items:center;
+  gap:12px;
+  padding:10px 12px;
+  transition: box-shadow .12s;
+}
+.pm-pt-row:hover{ background-color:var(--bg-2); }
+.pm-pt-row.primary{
+  background-color:var(--accent-soft);
+  box-shadow: inset 3px 0 0 var(--accent);
+  padding-left:14px;
+}
+.pm-pt-l{ display:flex; flex-direction:column; gap:1px; min-width:0; }
+.pm-pt-l b{
+  font-size:12.5px; font-weight:600;
+  color:var(--text); line-height:1.2;
+}
+.pm-pt-l small{
+  font-size:10.5px; color:var(--text-mute);
+  line-height:1.35;
+}
+.pm-pt-mid{
+  display:flex; justify-content:flex-start;
+}
+.pm-pt-disc{
+  font-size:10.5px; font-weight:700;
+  color:var(--danger-fg);
+  background:var(--danger-bg);
+  padding:2px 7px; border-radius:99px;
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+}
+.pm-pt-row.primary .pm-pt-disc{
+  background:transparent;
+  color:transparent;
+}
+.pm-pt-price{
+  text-align:right;
+  font-family:var(--font-mono);
+  display:flex; flex-direction:column; align-items:flex-end;
+}
+.pm-pt-price b{
+  font-size:13px; font-weight:700;
+  color:var(--text); line-height:1.15;
+  font-variant-numeric:tabular-nums;
+}
+.pm-pt-price small{
+  font-size:10px;
+  color:var(--text-mute);
+  font-family:var(--font-sans);
+  font-weight:400; margin-top:1px;
+}
+
+/* prod-mec.css — Catálogo Produtos no estilo "Picker Mecânica"
+   Prefixo .pm- pra não colidir com prod-page-extras.css legado.
+   Carrega depois dos outros pra ter precedência via specificity natural. */
+
+/* ── Type nav in-page (Todos/Produto/Serviço/Composição) — abaixo do page header
+   ([W] 2026-06-22). Saiu da topbar global; mesma gramática do cli-moduletopnav. ── */
+.pm-typenav{
+  display:flex; align-items:center; gap:0;
+  flex-shrink:0;
+  padding:0 24px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.pm-typenav::-webkit-scrollbar{ display:none; }
+.pm-typenav-tab{
+  display:inline-flex; align-items:center; gap:7px;
+  padding:9px 14px 8px;
+  margin-bottom:-1px;
+  font-size:13px; font-weight:500; line-height:1;
+  color:var(--text-dim);
+  background:transparent; border:0;
+  border-bottom:2px solid transparent;
+  cursor:pointer; white-space:nowrap;
+  transition: color var(--t-1) var(--ease), border-color var(--t-1) var(--ease), background-color var(--t-1) var(--ease);
+}
+.pm-typenav-tab:hover{ color:var(--text); background:var(--bg-2); }
+.pm-typenav-tab.active{
+  color:var(--text); font-weight:600;
+  border-bottom-color:var(--accent);
+}
+.pm-typenav-dot{
+  width:7px; height:7px; border-radius:50%; flex-shrink:0;
+}
+
+/* ── Barra de busca + toggle de visualização ── */
+.pm-search{
+  display:flex; align-items:center; gap:10px;
+  padding:10px 24px;
+  border-bottom:1px solid var(--border);
+  background:var(--bg-2);
+}
+.pm-s{
+  flex:1; display:flex; align-items:center; gap:8px;
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius); padding:7px 12px;
+  min-width:0;
+  transition:border-color var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease);
+}
+.pm-s:focus-within{ border-color:var(--accent); box-shadow:var(--focus); }
+.pm-s-ic{ color:var(--text-mute); flex-shrink:0; }
+.pm-s input{
+  border:none; outline:none; background:transparent;
+  font:inherit; flex:1; font-size:13.5px; color:var(--text);
+  min-width:0;
+}
+.pm-s input::placeholder{ color:var(--text-mute); }
+.pm-s-scope{
+  font-size:10.5px; color:var(--text-mute);
+  font-family:var(--font-mono);
+  padding-left:8px; border-left:1px solid var(--border);
+  flex-shrink:0;
+}
+
+.pm-toggle-inactive{
+  display:flex; align-items:center; gap:6px;
+  font-size:11.5px; color:var(--text-dim);
+  padding:0 4px; cursor:pointer;
+  flex-shrink:0;
+}
+.pm-toggle-inactive input{ accent-color:var(--accent); margin:0; }
+
+.pm-view-toggle{
+  display:flex; border:1px solid var(--border);
+  border-radius:var(--radius); overflow:hidden; background:var(--surface);
+  flex-shrink:0;
+}
+.pm-view-toggle button{
+  border:none; background:transparent;
+  padding:6px 12px; font:inherit; font-size:var(--fs-2);
+  color:var(--text-dim); cursor:pointer;
+  position:relative;
+  transition:background-color var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.pm-view-toggle button:hover{ background:var(--bg-2); color:var(--text); }
+.pm-view-toggle button.active{
+  background:var(--accent); color:var(--accent-fg); font-weight:600;
+}
+
+/* ── Chips de categoria ── */
+.pm-cats{
+  display:flex; gap:4px;
+  padding:8px 24px;
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  overflow-x:auto;
+  flex-shrink:0;
+}
+.pm-cat{
+  border:1px solid transparent; background:transparent;
+  padding:5px 11px; border-radius:99px;
+  font:inherit; font-size:11.5px;
+  color:var(--text-dim);
+  white-space:nowrap; cursor:pointer;
+  display:inline-flex; align-items:center;
+  flex-shrink:0;
+}
+.pm-cat:hover{ background:var(--bg-2); color:var(--text); }
+.pm-cat.active{
+  background:var(--accent-soft);
+  color:var(--accent);
+  border-color:var(--accent-line);
+  font-weight:600;
+}
+.pm-cat-dot{
+  display:inline-block; width:7px; height:7px;
+  border-radius:50%; margin-right:6px;
+}
+.pm-cat-n{
+  margin-left:6px; font-size:10.5px;
+  color:var(--text-mute);
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+}
+.pm-cat.active .pm-cat-n{ color:var(--accent); }
+
+/* ── Wrap: corpo único (sidebar de marca removida) ── */
+.pm-wrap{
+  display:flex;
+  flex:1 1 auto;
+  min-height:0;
+  overflow:hidden;
+}
+
+/* ── Corpo ── */
+.pm-body{
+  flex:1 1 auto;
+  overflow:auto;
+  padding:14px 20px 24px;
+  background:var(--bg-2);
+  min-width:0;
+  /* container query: a tabela reage à largura REAL do corpo (viewport − sidebar − chat),
+     não à da janela. Conserta o nome do produto esmagado a "A..." quando a área útil
+     é estreita mas a viewport é larga. [W] "ficou mais feia" 2026-06-22 */
+  container: pmbody / inline-size;
+}
+.pm-sec{
+  display:flex; align-items:center; gap:8px;
+  font-size:10.5px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.08em;
+  color:var(--text-mute);
+  margin:8px 0 8px;
+}
+.pm-sec:first-child{ margin-top:0; }
+.pm-sec-n{
+  font-family:var(--font-mono);
+  font-weight:600; letter-spacing:0;
+  color:var(--text-dim);
+}
+.pm-sec-ln{ flex:1; height:1px; background:var(--border); }
+
+.pm-empty{
+  display:flex; flex-direction:column; align-items:center;
+  padding:56px 24px; text-align:center;
+  color:var(--text-mute);
+}
+.pm-empty-ico{
+  width:48px; height:48px; display:grid; place-items:center;
+  margin-bottom:14px; border-radius:50%;
+  background:var(--surface); border:1px solid var(--border);
+  font-size:22px; line-height:1; color:var(--text-mute);
+  box-shadow:var(--sh-1);
+}
+.pm-empty b{ display:block; color:var(--text); font-size:var(--fs-5); font-weight:600; margin-bottom:4px; }
+.pm-empty span{ font-size:var(--fs-3); color:var(--text-dim); max-width:34ch; }
+.pm-empty-btn{
+  margin-top:16px; height:32px; padding:0 16px;
+  border:1px solid var(--border); border-radius:var(--radius);
+  background:var(--surface); color:var(--text-dim);
+  font:600 var(--fs-3)/1 var(--font-sans); cursor:pointer;
+  transition:background-color var(--t-1) var(--ease), color var(--t-1) var(--ease), border-color var(--t-1) var(--ease);
+}
+.pm-empty-btn:hover{ background:var(--accent-soft); color:var(--accent); border-color:var(--accent-line); }
+
+/* ── LIST: tabela densa (sem gap, com header) ── */
+.pm-table{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  margin-bottom:4px;
+}
+.pm-thead{
+  display:grid;
+  grid-template-columns: 34px minmax(0,1fr) 112px 106px 158px 86px 52px 76px;
+  align-items:center; gap:10px;
+  padding:8px 14px 8px 6px;
+  background:var(--bg-2);
+  border-bottom:1px solid var(--border);
+  font-size:10.5px;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  color:var(--text-mute);
+  font-weight:600;
+  position:sticky; top:0; z-index:2;
+}
+.pm-th-thumb{ width:34px; }
+.pm-th{ }
+.pm-th.r{ text-align:right; }
+
+/* Headers clicáveis (sort) */
+.pm-th.sortable{
+  background:transparent; border:0; cursor:pointer;
+  font:inherit; font-size:10.5px; font-weight:600;
+  text-transform:uppercase; letter-spacing:.06em;
+  color:var(--text-mute);
+  padding:0; line-height:1.15;
+  display:inline-flex; align-items:center; gap:5px;
+}
+.pm-th.sortable.r{ justify-content:flex-end; }
+.pm-th.sortable:hover{ color:var(--text); }
+.pm-th.sortable.act{ color:var(--accent); }
+.pm-th-ind{ font-size:11px; opacity:.55; transform:translateY(-1px); }
+.pm-th.sortable.act .pm-th-ind{ opacity:1; }
+
+.pm-tbody{ display:flex; flex-direction:column; }
+
+.pm-row{
+  background-color:var(--surface); border:0;
+  border-bottom:1px solid var(--border);
+  border-radius:0;
+  display:grid;
+  grid-template-columns: 34px minmax(0,1fr) 112px 106px 158px 86px 52px 76px;
+  align-items:center; gap:10px;
+  padding:4px 14px 4px 6px;
+  cursor:pointer;
+  transition: background-color var(--t-1) var(--ease);
+  position:relative;
+}
+.pm-row::before{
+  content:""; position:absolute; left:0; top:0; bottom:0;
+  width:3px; background:transparent;
+  transition: background-color var(--t-1) var(--ease);
+}
+.pm-row:hover::before{ background:var(--row-c, var(--accent)); }
+.pm-row:last-child{ border-bottom:0; }
+.pm-row:hover{ background-color:var(--bg-2); }
+/* seleção: barra via box-shadow inset (robusta) + fundo accent-soft;
+   o ::before fica só pro hover (cor da categoria) — [W] p1 2026-06-12 */
+.pm-row.sel{ background-color:var(--accent-soft); box-shadow:inset 3px 0 0 0 var(--accent); }
+.pm-row.sel:hover::before{ background:transparent; }
+.pm-row.out{ opacity:.55; }
+.pm-row.out .pm-thumb{ filter:grayscale(1); }
+.pm-row.out:hover{ opacity:.85; }
+
+.pm-thumb{
+  width:34px; height:34px; border-radius:5px;
+  display:flex; align-items:center; justify-content:center;
+  font:700 10px var(--font-mono);
+  color:#fff; letter-spacing:-.02em;
+  position:relative; overflow:hidden;
+}
+/* flat e suave como os avatares do Clientes — sem gradiente escuro "industrial" ([W] 06-22) */
+.pm-thumb::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(150deg, rgba(255,255,255,.12) 0%, transparent 55%);
+  pointer-events:none;
+}
+.pm-info{ min-width:0; display:flex; flex-direction:column; gap:0; }
+/* eyebrow de categoria — alinhado ao tom calmo do Clientes ([W] 06-22):
+   sans em vez de mono-uppercase shouty; identidade fica no dot + marca. */
+.pm-info-top{
+  display:flex; align-items:center; gap:8px;
+  font-size:10.5px; color:var(--text-mute);
+  font-family:var(--font-sans);
+  text-transform:uppercase; letter-spacing:.05em; font-weight:500;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  min-width:0;
+}
+.pm-dot{
+  display:inline-block; width:6px; height:6px;
+  border-radius:50%; flex-shrink:0;
+}
+.pm-brand{ color:var(--text-dim); font-weight:600; }
+.pm-info b{
+  font-size:13px; font-weight:600;
+  line-height:1.3; color:var(--text);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.pm-info small{
+  font-size:10.5px; color:var(--text-mute);
+  font-family:var(--font-mono);
+  display:flex; gap:8px; align-items:center;
+  flex-wrap:wrap;
+}
+.pm-loc{
+  color:var(--text-dim); background:var(--bg-2);
+  padding:0 6px; border-radius:3px; font-size:10px;
+}
+.pm-oem{
+  color:var(--text-dim); font-size:10px;
+  background:transparent; border:1px solid var(--border);
+  padding:0 5px; border-radius:3px;
+}
+.pm-oem i{ color:var(--text-mute); font-style:normal; }
+
+/* Pills de estoque (linha) — neutro + ponto de status colorido + valor nítido.
+   [W] 2026-06-22: o fill colorido (verde-no-verde / amarelo-no-amarelo) ficava "fosco"
+   e o texto mono bold pesado. Agora: chip neutro, status pelo ponto, número em --text. */
+.pm-stk-pill{
+  display:inline-flex; align-items:center; gap:6px;
+  justify-self:start;
+  font-size:12px;
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+  font-weight:500;
+  padding:3px 10px; border-radius:99px;
+  background:var(--bg-2);
+  color:var(--text);
+  white-space:nowrap;
+}
+.pm-stk-pill .d{
+  width:6px; height:6px; border-radius:50%;
+  background:var(--text-mute);
+}
+.pm-stk-pill.ok   .d{ background:var(--ok-fg); }
+.pm-stk-pill.warn .d{ background:var(--warn-fg); }
+.pm-stk-pill.warn{ color:var(--warn-fg); }
+.pm-stk-pill.out{ color:var(--text-mute); }
+.pm-stk-pill.out .d{ background:var(--text-mute); }
+
+.pm-unit{
+  font-size:11px; color:var(--text-dim);
+  font-family:var(--font-mono);
+  text-align:right;
+  min-width:48px;
+}
+
+/* Células novas: Custo, Margem, Variantes */
+.pm-cost, .pm-price{
+  font-family:var(--font-mono);
+  text-align:right;
+  display:flex; flex-direction:column;
+  align-items:flex-end;
+  min-width:0;
+}
+.pm-cost b, .pm-price b{
+  display:block; font-size:13px; font-weight:700;
+  color:var(--text); line-height:1.15;
+  font-variant-numeric:tabular-nums;
+}
+.pm-cost small, .pm-price small{
+  display:block; font-size:10px;
+  color:var(--text-mute);
+  font-family:var(--font-sans);
+  font-weight:400; margin-top:1px;
+  letter-spacing:0;
+}
+/* Quando é faixa, fonte reduz pra caber */
+.pm-price-rng{
+  font-size:11.5px !important;
+  letter-spacing:-.02em;
+}
+.pm-card-price .pm-price-rng{ font-size:12px !important; }
+.pm-dash{ color:var(--text-mute); }
+
+.pm-margin{ text-align:right; }
+.pm-margin-pill{
+  display:inline-block;
+  font:600 11px var(--font-mono);
+  padding:2px 8px; border-radius:99px;
+  background:var(--bg-2); color:var(--text-dim);
+  font-variant-numeric:tabular-nums;
+}
+.pm-margin-pill.high{ background:var(--ok-bg); color:var(--ok-fg); }
+.pm-margin-pill.mid { background:var(--warn-bg); color:var(--warn-fg); }
+.pm-margin-pill.low { background:var(--danger-bg); color:var(--danger-fg); }
+
+.pm-var{
+  text-align:right;
+  font-family:var(--font-mono);
+  font-size:13px; color:var(--text);
+  font-variant-numeric:tabular-nums;
+}
+
+.pm-pop{
+  text-align:right;
+  font-family:var(--font-mono);
+  color:var(--text);
+  display:flex; flex-direction:column; align-items:flex-end;
+  gap:2px;
+}
+.pm-pop b{
+  font-size:12.5px; font-weight:700;
+  font-variant-numeric:tabular-nums; line-height:1;
+}
+.pm-pop b i{ font-style:normal; color:var(--text-mute); font-weight:400; font-size:10px; margin-left:1px; }
+.pm-pop-bar{
+  width:60px; height:3px;
+  background:var(--bg-2);
+  border-radius:99px; overflow:hidden;
+}
+.pm-pop-bar > div{
+  height:100%;
+  background:linear-gradient(90deg, var(--accent), var(--accent-hi));
+  border-radius:99px;
+}
+.pm-lead{
+  font-size:11px; color:var(--text-dim);
+  min-width:72px; text-align:right;
+}
+
+/* ── GRID: cards balcão (mais denso e sem desperdiciar espaço) ── */
+.pm-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(180px, 1fr));
+  gap:8px;
+}
+.pm-card{
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:var(--radius-md); overflow:hidden;
+  display:flex; flex-direction:column;
+  cursor:pointer; position:relative;
+  transition: transform var(--t-1) var(--ease), border-color var(--t-1) var(--ease), box-shadow var(--t-1) var(--ease);
+}
+.pm-card:hover{
+  border-color:var(--accent-line); transform:translateY(-1px);
+  box-shadow:var(--sh-2);
+}
+.pm-card.sel{
+  border-color:var(--accent);
+  box-shadow:0 0 0 1px var(--accent) inset, var(--sh-2);
+}
+.pm-card.out{ opacity:.55; filter:grayscale(.65); }
+.pm-card.out:hover{ opacity:.9; }
+
+.pm-img{
+  aspect-ratio:4/3;
+  display:flex; align-items:center; justify-content:center;
+  position:relative; overflow:hidden;
+  color:#fff;
+}
+.pm-img::after{
+  content:""; position:absolute; inset:0;
+  background:linear-gradient(150deg, rgba(255,255,255,.10) 0%, transparent 60%);
+  pointer-events:none;
+}
+.pm-img-cat{
+  position:absolute; top:8px; left:8px;
+  font-size:9px; font-weight:700; text-transform:uppercase;
+  letter-spacing:.05em;
+  background:rgba(255,255,255,.88); color:var(--text);
+  padding:2px 7px; border-radius:99px;
+  line-height:1.5; z-index:1;
+  font-family:var(--font-sans);
+}
+.pm-img-stk{
+  position:absolute; top:8px; right:8px;
+  font-size:9.5px; font-weight:700;
+  background:rgba(255,255,255,.92); color:var(--text);
+  padding:2px 7px; border-radius:99px;
+  line-height:1.5; z-index:1;
+  display:flex; align-items:center; gap:4px;
+  font-family:var(--font-mono);
+}
+.pm-img-stk .d{
+  width:6px; height:6px; border-radius:50%; background:var(--text-mute);
+}
+.pm-img-stk.ok .d{ background:var(--ok-fg); }
+.pm-img-stk.warn .d{ background:var(--warn-fg); }
+.pm-img-stk.danger{ color:var(--danger-fg); }
+.pm-img-stk.danger .d{ display:none; }
+.pm-img-overlay{
+  position:absolute; inset:0;
+  display:flex; align-items:center; justify-content:center;
+  font:700 56px var(--font-mono);
+  letter-spacing:-.04em;
+  opacity:.16; color:#fff;
+  pointer-events:none;
+}
+.pm-img-id{
+  position:relative; z-index:1;
+  font:700 16px var(--font-mono);
+  letter-spacing:-.02em;
+  color:#fff;
+}
+
+.pm-card-body{
+  padding:9px 12px 8px;
+  display:flex; flex-direction:column; gap:2px;
+}
+.pm-card-brand{
+  font-size:9.5px; font-weight:700;
+  text-transform:uppercase; letter-spacing:.06em;
+  color:var(--text-dim);
+  font-family:var(--font-mono);
+}
+.pm-card-name{
+  font-size:12.5px; font-weight:600;
+  line-height:1.3; color:var(--text);
+  text-wrap:pretty;
+}
+.pm-card-meta{
+  font-size:10.5px; color:var(--text-mute);
+  font-family:var(--font-mono);
+  display:flex; gap:8px; align-items:center;
+  margin-top:2px;
+}
+.pm-card-foot{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  padding:8px 12px;
+  border-top:1px solid var(--border);
+  background:var(--bg-2);
+}
+.pm-card-price{
+  font-family:var(--font-mono);
+  font-size:14px; font-weight:700; color:var(--text);
+  letter-spacing:-.01em;
+}
+.pm-card-price b{ display:block; }
+.pm-card-price small{
+  display:block; font-size:10px;
+  color:var(--text-mute);
+  font-family:var(--font-sans);
+  font-weight:400; margin-top:-1px;
+}
+.pm-card-unit{
+  font-size:10.5px; color:var(--text-dim);
+  text-align:right;
+}
+.pm-card-unit b{
+  display:block; font-weight:600; font-size:11.5px;
+  color:var(--text);
+  font-family:var(--font-mono);
+}
+
+/* ── Totalizador (rodapé da página) ── */
+.pm-totals{
+  display:grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap:1px;
+  background:var(--border);
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+.pm-tot{
+  background:var(--surface);
+  padding:8px 14px 9px;
+  display:flex; flex-direction:column;
+  gap:2px;
+  min-width:0;
+}
+.pm-tot small{
+  font-size:10px; text-transform:uppercase;
+  letter-spacing:.08em; color:var(--text-mute);
+  font-weight:700;
+}
+.pm-tot b{
+  font-size:16px; font-weight:700; color:var(--text);
+  line-height:1.15;
+  font-family:var(--font-mono);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.01em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.pm-tot.pm-tot-money b{ font-size:14px; }
+.pm-tot b.ok{ color:var(--ok-fg); }
+.pm-tot b.warn{ color:var(--warn-fg); }
+.pm-tot b.low{ color:var(--danger-fg); }
+.pm-tot-sub{
+  font-size:10.5px; color:var(--text-mute);
+  font-family:var(--font-sans);
+  margin-top:1px;
+}
+.pm-tot-bar{
+  height:3px; background:var(--bg-2);
+  border-radius:99px; overflow:hidden; margin-top:5px;
+}
+.pm-tot-bar > div{
+  height:100%; background:var(--accent);
+  border-radius:99px;
+}
+
+/* ── Responsivo: totalizador em 2 colunas em telas estreitas ── */
+@media (max-width: 1100px){
+  .pm-totals{ /* placeholder — totais ficam fora do container do corpo */ }
+}
+@media (max-width: 900px){
+  .pm-totals{ grid-template-columns: repeat(3, 1fr); }
+}
+
+/* ── Responsivo da TABELA: container queries no .pm-body ──
+   Mede a largura útil do corpo (não da viewport), então o nome do produto
+   nunca é esmagado por colunas numéricas quando a sidebar/chat estreitam a área. */
+@container pmbody (max-width: 1000px){
+  .pm-thead{
+    grid-template-columns: 34px minmax(0,1fr) 110px 110px 86px 76px;
+    gap:10px;
+  }
+  .pm-thead .pm-th.sortable:nth-of-type(3), /* Custo */
+  .pm-thead .pm-th.sortable:nth-of-type(6) /* Var. */
+  { display:none; }
+  .pm-row{
+    grid-template-columns: 34px minmax(0,1fr) 110px 110px 86px 76px;
+    gap:10px;
+  }
+  .pm-cost, .pm-var{ display:none; }
+}
+@container pmbody (max-width: 760px){
+  .pm-thead{
+    grid-template-columns: 34px minmax(0,1fr) 110px 100px 76px;
+    gap:10px;
+  }
+  .pm-thead .pm-th.sortable:nth-of-type(5) /* Margem */
+  { display:none; }
+  .pm-row{
+    grid-template-columns: 34px minmax(0,1fr) 110px 100px 76px;
+    gap:10px;
+  }
+  .pm-margin{ display:none; }
+}
+
+/* ════════════════════════════════════════════════════════════════════
+   P1 9.75 — acabamento ([W] "p1" · 2026-06-12)
+   Lentes nas seções do drawer (= gramática do show/Create reskin):
+   ícone-quadradinho accent-soft antes do título uppercase.
+   ════════════════════════════════════════════════════════════════════ */
+.pm-drawer .prod-bom-h{
+  display:flex; align-items:center; gap:8px;
+  font-size:var(--fs-3); letter-spacing:.02em;
+  margin:20px 0 9px;
+}
+.pm-drawer .prod-bom-h:first-of-type{ margin-top:2px; }
+.pm-lens{
+  flex:0 0 auto; width:22px; height:22px;
+  display:grid; place-items:center;
+  border-radius:var(--radius-sm);
+  background:var(--accent-soft); color:var(--accent);
+}
+/* radius do thumb da linha alinhado ao DS */
+.pm-thumb{ border-radius:var(--radius-sm); }

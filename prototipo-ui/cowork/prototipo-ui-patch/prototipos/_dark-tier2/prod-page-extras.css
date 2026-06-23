@@ -1,0 +1,398 @@
+/* prod-page-extras.css — melhorias visuais para a página Produtos:
+   - thumb com gradient + label do tipo
+   - badge de estoque colorida (em estoque / baixo / sob demanda)
+   - grade de variantes (chips no card + tabela no drawer)
+*/
+
+/* Card: layout vertical com thumb no topo, body abaixo */
+.prod-card {
+  padding: 0 !important;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.prod-card.inactive { opacity: 0.55; }
+.prod-card.inactive .prod-thumb { filter: grayscale(0.6); }
+
+/* Thumb 16:9 com gradient + label centralizada */
+.prod-thumb {
+  aspect-ratio: 16/9;
+  position: relative;
+  display: grid;
+  place-items: center;
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  font-weight: 700;
+  overflow: hidden;
+}
+.prod-thumb::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at top right, rgba(255,255,255,0.18), transparent 60%);
+  pointer-events: none;
+}
+.prod-thumb-label {
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.18);
+}
+.prod-cat-pill {
+  position: absolute; top: 8px; left: 8px;
+  background: rgba(0,0,0,0.35);
+  color: white;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+}
+.prod-thumb .prod-inactive-badge {
+  position: absolute; top: 8px; right: 8px;
+  background: rgba(0,0,0,0.7);
+  color: white;
+}
+
+.prod-card-body { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 6px; }
+.prod-card-body .prod-name { margin: 0; font-size: 13.5px; font-weight: 600; letter-spacing: -0.005em; line-height: 1.25; }
+.prod-card-body .prod-id { font-size: 10.5px; color: var(--text-mute); }
+
+/* Foot: preço a partir de + badge de estoque */
+.prod-card-body .prod-foot {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  margin-top: 4px; gap: 8px;
+}
+.prod-card-body .prod-price small { display: block; font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); font-weight: 600; }
+.prod-card-body .prod-price b { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
+.prod-card-body .prod-price .prod-unit { font-size: 11px; color: var(--text-mute); margin-left: 1px; }
+
+.prod-stock-badge {
+  font-size: 10.5px; font-weight: 600;
+  padding: 3px 9px; border-radius: 99px;
+  display: inline-flex; align-items: center; gap: 4px;
+  white-space: nowrap;
+}
+.prod-stock-badge.ok { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+.prod-stock-badge.warn { background: oklch(0.95 0.06 70); color: oklch(0.42 0.12 60); }
+.prod-stock-badge.muted { background: var(--border-2); color: var(--text-mute); }
+.prod-stock-badge b { font-weight: 700; }
+
+/* Grade de variantes no card */
+.prod-variants {
+  margin-top: 4px;
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 6px 8px;
+  background: var(--bg);
+  border-radius: 5px;
+  border: 1px solid var(--border-2);
+}
+.prod-var {
+  display: flex; justify-content: space-between; gap: 8px;
+  font-size: 10.5px;
+  padding: 2px 0;
+}
+.prod-var.empty { opacity: 0.5; }
+.prod-var-spec { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prod-var-stock { color: var(--ok); font-weight: 600; font-size: 10.5px; }
+.prod-var-stock.low { color: oklch(0.50 0.13 70); }
+.prod-var-stock.zero { color: var(--text-mute); }
+.prod-var-more { font-size: 10px; color: var(--text-mute); margin-top: 2px; font-style: italic; }
+
+/* Tabela de variantes no drawer */
+.prod-var-table { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 6px; margin-bottom: 14px; }
+.prod-var-table thead th { background: var(--bg); padding: 6px 8px; text-align: left; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-mute); font-weight: 600; border-bottom: 1px solid var(--border); }
+.prod-var-table tbody td { padding: 7px 8px; border-bottom: 1px solid var(--border-2); }
+.prod-var-table tbody tr:last-child td { border-bottom: none; }
+.prod-var-table .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.prod-var-table td.mono.low { color: var(--warn-fg); font-weight: 600; }
+.prod-var-table td.mono.zero { color: var(--text-mute); }
+
+/* ─── Grade de aplicação (modo Grade para Mecânica) ─── */
+.prod-view-toggle {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-right: 6px;
+}
+.prod-view-toggle button {
+  background: transparent;
+  border: none;
+  padding: 5px 10px;
+  font: inherit;
+  font-size: 11.5px;
+  color: var(--text-dim);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.prod-view-toggle button:hover { background: var(--border-2); }
+.prod-view-toggle button.active { background: var(--text); color: var(--surface); }
+
+.prod-grade-wrap { padding: 16px 24px; }
+.prod-grade-info {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 8px 14px;
+  background: oklch(0.97 0.02 220);
+  border: 1px solid oklch(0.92 0.04 220);
+  border-radius: 6px;
+  margin-bottom: 12px;
+  font-size: 11.5px;
+}
+.prod-grade-info b { color: oklch(0.36 0.10 220); font-size: 12.5px; }
+.prod-grade-info span { color: var(--text-mute); }
+
+.prod-grade {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 12px;
+}
+.prod-grade thead th {
+  background: var(--bg);
+  padding: 8px 6px;
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-mute);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border-2);
+  text-align: center;
+  white-space: nowrap;
+}
+.prod-grade thead th b { display: block; color: var(--text); font-size: 11px; }
+.prod-grade thead th small { display: block; font-family: var(--font-mono); font-size: 9px; font-weight: 500; color: var(--text-mute); }
+.prod-grade thead th:last-child { border-right: none; }
+.prod-grade .prod-grade-prod {
+  text-align: left;
+  width: 260px;
+  padding: 10px 14px;
+  position: sticky; left: 0;
+  background: var(--bg);
+  z-index: 2;
+}
+.prod-grade tbody .prod-grade-prod {
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11.5px;
+}
+.prod-grade-thumb {
+  width: 44px; height: 44px;
+  border-radius: 5px;
+  display: grid; place-items: center;
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  flex-shrink: 0;
+}
+.prod-grade-prod-meta { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 2px; }
+.prod-grade-prod-meta b { font-size: 12px; font-weight: 600; }
+.prod-grade-prod-meta small { font-size: 10px; color: var(--text-mute); font-family: var(--font-mono); }
+.prod-grade-prod-meta .prod-stock-badge { width: fit-content; padding: 2px 7px; font-size: 9.5px; }
+.prod-grade-c {
+  text-align: center;
+  padding: 0;
+  border-bottom: 1px solid var(--border-2);
+  border-right: 1px solid var(--border-2);
+  height: 60px;
+}
+.prod-grade-c:last-child { border-right: none; }
+.prod-grade tbody tr:hover td { background: oklch(0.98 0.012 220); }
+.prod-grade tbody tr:hover .prod-grade-prod { background: oklch(0.97 0.025 220); }
+.prod-grade tbody tr:last-child td { border-bottom: none; }
+
+.prod-grade-yes {
+  display: inline-grid; place-items: center;
+  width: 24px; height: 24px;
+  background: oklch(0.94 0.05 145);
+  color: oklch(0.36 0.10 145);
+  border-radius: 5px;
+  font-size: 13px; font-weight: 700;
+  font-family: var(--font-mono);
+}
+.prod-grade-no {
+  color: var(--border);
+  font-family: var(--font-mono);
+  font-size: 14px;
+}
+.prod-grade-totals {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 13px;
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+}
+.prod-grade-totals span { font-size: 10px; font-weight: 500; color: var(--text-mute); }
+.prod-grade-empty {
+  text-align: center;
+  padding: 40px 20px !important;
+  color: var(--text-mute);
+  font-size: 12px;
+}
+
+/* Grade · visão densa (catálogo geral) */
+.prod-grade-info-table { font-size: 12px; }
+.prod-grade-info-table thead th { white-space: nowrap; }
+.prod-grade-info-table thead th.r,
+.prod-grade-info-table tbody td.r { text-align: right; }
+.prod-grade-info-table tbody td { padding: 10px 12px; vertical-align: middle; }
+.prod-grade-info-table tbody td b { font-size: 12px; font-weight: 600; }
+.prod-grade-info-table .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.prod-grade-info-table .prod-grade-prod {
+  width: 290px;
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface);
+}
+.prod-grade-info-table tr:hover .prod-grade-prod { background: oklch(0.97 0.025 220); }
+.prod-grade-inactive { opacity: 0.5; }
+
+.prod-oem-inline {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  padding: 2px 6px;
+  border-radius: 3px;
+  color: var(--text);
+}
+
+.prod-margin-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 99px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+.prod-margin-pill.high { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
+.prod-margin-pill.mid  { background: oklch(0.95 0.06 70);  color: oklch(0.42 0.12 60);  }
+.prod-margin-pill.low  { background: oklch(0.95 0.05 25);  color: oklch(0.50 0.16 25);  }
+
+.prod-lead-pill {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  background: var(--bg);
+  border: 1px solid var(--border-2);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.prod-pop-mini {
+  margin-top: 3px;
+  height: 3px;
+  background: var(--border-2);
+  border-radius: 2px;
+  overflow: hidden;
+  width: 60px;
+  margin-left: auto;
+}
+.prod-pop-mini div { height: 100%; background: var(--accent); }
+
+/* ─── Drawer detalhado (cadastro/consulta mecânica) ─── */
+.prod-oem-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.prod-oem {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  color: var(--text);
+  font-weight: 500;
+}
+.prod-oem.alt {
+  border-color: var(--border-2);
+  color: var(--text-mute);
+  background: transparent;
+  border-style: dashed;
+}
+
+.prod-spec-table {
+  width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 12px;
+  background: var(--bg); border: 1px solid var(--border-2); border-radius: 6px; overflow: hidden;
+}
+.prod-spec-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--border-2);
+}
+.prod-spec-table tr:last-child td { border-bottom: none; }
+.prod-spec-table td:first-child {
+  color: var(--text-mute); text-transform: uppercase;
+  font-size: 9.5px; letter-spacing: 0.05em; font-weight: 600;
+  width: 35%;
+}
+.prod-spec-table td:last-child { font-weight: 500; }
+
+.prod-supp-table {
+  width: 100%; border-collapse: collapse; font-size: 11.5px; margin-bottom: 12px;
+}
+.prod-supp-table thead th {
+  background: var(--bg); padding: 6px 8px; text-align: left;
+  font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--text-mute); font-weight: 600; border-bottom: 1px solid var(--border);
+}
+.prod-supp-table tbody td {
+  padding: 7px 8px; border-bottom: 1px solid var(--border-2);
+}
+.prod-supp-table tr.best { background: var(--ok-bg); }
+.prod-supp-table tr.best b { color: var(--ok-fg); }
+.prod-best-badge {
+  display: inline-block;
+  font-size: 9px;
+  margin-left: 6px;
+  padding: 1px 5px;
+  background: var(--ok-fg);
+  color: var(--ok-bg);
+  border-radius: 3px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+.prod-supp-table .mono.high { color: var(--ok-fg); font-weight: 700; }
+.prod-supp-table .mono.mid { color: var(--warn-fg); }
+.prod-supp-table .mono.low { color: var(--danger-fg); }
+
+.prod-compat-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
+.prod-compat-chip {
+  background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145);
+  padding: 4px 8px; border-radius: 5px; font-size: 10.5px;
+  display: inline-flex; align-items: center; gap: 4px;
+  border: 1px solid oklch(0.88 0.06 145);
+}
+.prod-compat-chip b { font-weight: 700; }
+.prod-compat-chip small { color: oklch(0.45 0.10 145); font-size: 9.5px; }
+
+
+/* ════════ DARK auto-flip dos soft-chips (Tier-2 · [W] 2026-06-20) ════════
+   Gerado: bg pastel→tom escuro mesma hue, texto→claro. Light intacto.
+   Só selectores SEM override dark prévio. ════════ */
+[data-theme="dark"] .prod-stock-badge.ok{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); }
+[data-theme="dark"] .prod-stock-badge.warn{ background: oklch(0.275 0.060 70); color: oklch(0.84 0.120 60); }
+[data-theme="dark"] .prod-grade-info{ background: oklch(0.275 0.050 220); border: 1px solid oklch(0.40 0.050 220); }
+[data-theme="dark"] .prod-grade tbody tr:hover td{ background: oklch(0.275 0.050 220); }
+[data-theme="dark"] .prod-grade tbody tr:hover .prod-grade-prod{ background: oklch(0.275 0.050 220); }
+[data-theme="dark"] .prod-grade-yes{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); }
+[data-theme="dark"] .prod-grade-info-table tr:hover .prod-grade-prod{ background: oklch(0.275 0.050 220); }
+[data-theme="dark"] .prod-margin-pill.high{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); }
+[data-theme="dark"] .prod-margin-pill.mid{ background: oklch(0.275 0.060 70); color: oklch(0.84 0.120 60); }
+[data-theme="dark"] .prod-margin-pill.low{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.160 25); }
+[data-theme="dark"] .prod-compat-chip{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); border: 1px solid oklch(0.40 0.060 145); }
