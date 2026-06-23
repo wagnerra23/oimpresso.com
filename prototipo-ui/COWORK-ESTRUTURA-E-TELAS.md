@@ -42,5 +42,41 @@ Antes: cada handoff era um zip flat despejado em pastas espalhadas (`prototipos/
 
 **📋 RESTO DO WORKSPACE (vendas, financeiro, oficina, kb, norte, forja…):** não foi feito frescor por-tela ainda — **não assuma**; rode o frescor (compara seu export × `Pages/<Mod>/<Tela>.tsx` no `main`) antes de tratar como "a desenvolver".
 
+## Roteamento — onde cada arquivo do export vai
+| Tipo de arquivo no export | Destino | Por quê |
+|---|---|---|
+| `*-page.jsx`/`.tsx`/`.css`/`.html` (build da tela) | `prototipo-ui/cowork/` | design SSOT (build) |
+| `*.charter.md` | canon `resources/js/Pages/<Mod>/<Tela>.charter.md` | contrato vivo — você lê/atualiza, não duplica |
+| `*.casos.md` | canon (ao lado do charter) | casos de uso |
+| sessão/análise `.md` (raciocínio) | **destilar** resumo no charter/SPEC; raw fica no zip | conhecimento = canon, não dump |
+| process docs (STATUS/CODE_NOTES/PROTOCOL…) | já são canon em `prototipo-ui/` root | não re-exportar |
+| `memory/**` do export | **ignorar** (canon é o repo/MCP) | fonte única de memória |
+| ADRs | canon `memory/decisions/` | não duplicar |
+| PNG/screenshot/dupes/`.bak` | descartar (transporte) | derivado/lixo |
+
+## Como o Cowork se limpa (auto-limpeza)
+No seu workspace (Claude.ai), antes de exportar:
+1. **Apague sua cópia de `memory/`** — você lê a canônica via MCP, não guarda.
+2. **Apague cópias de process docs** (CLAUDE/STATUS/PROTOCOL/CODE_NOTES…) — são canon no repo.
+3. **Não versione screenshots/PNG** como fonte — são derivados.
+4. **Charters/casos**: edite o canon (via cowork-inbox/PR), nunca cópia divergente.
+5. **Exporte só o build** (jsx/tsx/css/html).
+> Regra checável: se um arquivo tem dono canônico fora do `cowork/`, **não vai no export**.
+
+## Por tela: você sabe O QUE e os DADOS
+Cada tela tem um **charter** (`<Tela>.charter.md`) = o contrato: missão, goals/non-goals, **dados/props/estado**, decisões já tomadas. Antes de desenvolver:
+1. Pegue a tela do **FRESCOR** (🟠 = desenvolver).
+2. Leia o **charter** dela no `main` → o que a tela é + seus dados.
+3. Exporte o build pro `cowork/<arquivo>`.
+> Tela sem charter ainda → pede `charter-write` antes (não inventa dados).
+
+## Canais de pendência (bidirecional)
+- **Cowork → Code** (o que você pede): [`COWORK_NOTES.md`](COWORK_NOTES.md) → seção "📥 Pendentes".
+- **Code → Cowork** (o que falta a você): [`CODE_NOTES.md`](CODE_NOTES.md) + [`FRESCOR-PRODUCAO-vs-PROTOTIPO.md`](FRESCOR-PRODUCAO-vs-PROTOTIPO.md) (telas 🟠 + onde a produção te passou).
+> Já existem — **use, não crie doc novo** (anti-scatter).
+
+## A máquina que protege isso (nunca mais acontece)
+[`scripts/governance/cowork-ssot-guard.mjs`](../scripts/governance/cowork-ssot-guard.mjs) (roda no `design-memory-gates.yml`) **dá erro** se: `.md` no `cowork/` · bundle datado `cowork-*` · protótipo fora do `cowork/`. Allowlist transitório (`compras-grade-matrix`, `inventario-migracao`) = telas que VOCÊ deve exportar pro `cowork/` pra zerar.
+
 ---
 _Origem: handoff 2026-06-23 + red-team adversarial da integração de memória. Pareado com a [ADR-proposta SSOT](../memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md) (método) e [`FRESCOR-PRODUCAO-vs-PROTOTIPO.md`](FRESCOR-PRODUCAO-vs-PROTOTIPO.md) (frescor por-tela)._
