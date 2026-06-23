@@ -331,6 +331,61 @@ describe('casos:check — G-7 status derivado do verde (físico)', () => {
   });
 });
 
+// =====================================================================================
+// MÉTRICA ADVISORY — cobertura "mordida por EXECUÇÃO" (G-2 fase 1, US-GOV-031)
+// =====================================================================================
+// NÃO é gate: não há violação nem mudança de exit code. A métrica só TORNA VISÍVEL quantos
+// UCs DECLARADOS têm prova de EXECUÇÃO VERDE (manifesto verdict==='pass'). UC sem entrada,
+// ou skip/fail, NÃO conta. Surface via stats.exec_backed_* (modo --json/--report).
+// (id UC-ZZC01 FICTÍCIO de propósito — ver convenção no topo do arquivo.)
+describe('casos:check — métrica advisory execução-backed (G-2 fase 1, físico)', () => {
+  // Reusa o padrão dos helpers G-7 (tela compliant + manifesto parametrizável).
+  const compliant = (dir: string, uc: string, statusGlyph: string) => {
+    write(page(dir), 'x');
+    write(`resources/js/Pages/${dir}/Index.charter.md`, '# c');
+    write(
+      `resources/js/Pages/${dir}/Index.casos.md`,
+      `---\nowner: w\nlast_run: "2026-06-09"\n---\n## ${uc} · caso\n- **Status: ${statusGlyph}**`,
+    );
+    write(`tests/${dir}Test.php`, `<?php // ${uc}`);
+  };
+  const manifest = (ucs: Record<string, { verdict: string; ran_at?: string }>) =>
+    write('scripts/casos-test-results.json', JSON.stringify({ ucs }));
+
+  it('CONTA: UC declarado com manifesto verdict=pass → exec-backed (1 de 1, 100%)', () => {
+    compliant('EB', 'UC-ZZC01', '✅');
+    manifest({ 'UC-ZZC01': { verdict: 'pass' } });
+    const out = run('--json'); // 100% compliant + verde → ok, e a métrica conta
+    expect(out).toMatch(/"exec_backed_ucs": 1/);
+    expect(out).toMatch(/"exec_backed_declared": 1/);
+    expect(out).toMatch(/"exec_backed_pct": 100/);
+  });
+
+  it('NÃO CONTA: verdict=skip → exec-backed=0 (skip não é prova de execução verde)', () => {
+    compliant('ES', 'UC-ZZC01', '🧪'); // 🧪 honesto pra não acionar G-7 unverified
+    manifest({ 'UC-ZZC01': { verdict: 'skip' } });
+    const out = run('--json');
+    expect(out).toMatch(/"exec_backed_ucs": 0/);
+    expect(out).toMatch(/"exec_backed_declared": 1/);
+    expect(out).toMatch(/"exec_backed_pct": 0/);
+  });
+
+  it('NÃO CONTA: verdict=fail → exec-backed=0 (falhou não é execução verde)', () => {
+    compliant('EF', 'UC-ZZC01', '❌'); // ❌ honesto pra não acionar G-7 lies
+    manifest({ 'UC-ZZC01': { verdict: 'fail' } });
+    const out = run('--json');
+    expect(out).toMatch(/"exec_backed_ucs": 0/);
+  });
+
+  it('NÃO CONTA: UC ausente do manifesto → exec-backed=0 (sem prova capturada)', () => {
+    compliant('EA', 'UC-ZZC01', '🧪'); // sem entrada no manifesto; 🧪 não exige prova (G-7)
+    manifest({}); // manifesto vazio
+    const out = run('--json');
+    expect(out).toMatch(/"exec_backed_ucs": 0/);
+    expect(out).toMatch(/"exec_backed_declared": 1/);
+  });
+});
+
 // ── Onda Q2 — ratchet SÓ-DESCE do arquivo de baseline (--check-baseline-shrink) ────────
 // O ratchet padrão pega violação nova no repo; este modo impede o BASELINE COMMITADO de
 // crescer vs a referência (main). Método ADR 0258: visto FALHAR (cresceu) e PASSAR (encolheu).
