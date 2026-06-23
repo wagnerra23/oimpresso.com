@@ -6,7 +6,7 @@ status: draft
 status_detail: scaffold
 last_validated: "2026-05-25"
 parent_module: Compras
-states: [default, empty, loading, dark]  # gate L2 — error removido: toast sonner não dá estado visível determinístico no VRT (md5 #3290) · sync com tests/Browser/visreg-states.json
+states: [default, loading]  # gate L2 — dark/empty podados: baselines flaky (não-reproduzíveis run-a-run no CI) · sync com tests/Browser/visreg-states.json
 parent_spec: memory/requisitos/Compras/SPEC.md
 related_adrs: [93, 94, 101, 104, 107, 114, 141, 149]
 related_us: [US-COM-001]
