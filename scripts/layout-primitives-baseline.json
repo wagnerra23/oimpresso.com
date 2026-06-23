@@ -319,7 +319,7 @@
     "resources/js/Pages/ProjectMgmt/MyWork/Index.tsx": 11,
     "resources/js/Pages/ProjectMgmt/Roadmap/Index.tsx": 6,
     "resources/js/Pages/ProjectMgmt/Triage/Index.tsx": 5,
-    "resources/js/Pages/Purchase/Create.tsx": 12,
+    "resources/js/Pages/Purchase/Create.tsx": 15,
     "resources/js/Pages/Purchase/Edit.tsx": 12,
     "resources/js/Pages/Purchase/Index.tsx": 2,
     "resources/js/Pages/Purchase/Show.tsx": 15,

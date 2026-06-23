@@ -364,8 +364,11 @@
             "R1": 8,
             "R3": 5
         },
-        "resources\/js\/Pages\/Compras\/components\/GradeMatrixInput.tsx": {
+        "resources\/js\/Pages\/Purchase\/_components\/GradeMatrixInput.tsx": {
             "R1": 35
+        },
+        "resources\/js\/Pages\/Purchase\/_components\/GradeProductCombobox.tsx": {
+            "R1": 11
         },
         "resources\/js\/Pages\/Compras\/components\/VisibilidadeColunas.tsx": {
             "R1": 4
@@ -831,7 +834,7 @@
             "R3": 1
         },
         "resources\/js\/Pages\/Purchase\/Create.tsx": {
-            "R1": 40
+            "R1": 42
         },
         "resources\/js\/Pages\/Purchase\/Edit.tsx": {
             "R1": 36
