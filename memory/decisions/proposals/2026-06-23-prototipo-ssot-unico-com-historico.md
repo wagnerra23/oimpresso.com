@@ -63,11 +63,21 @@ Como o diff agora funciona e o repo é SSOT, o design precisa saber **onde a pro
 
 **Negativas / riscos:** (a) overwrite total exige o filtro do item 2 — se vazar `memory/` do export, corrompe canon (mitigado por filtro + .gitignore); (b) tensão com anti-entropia (NÚCLEO 12 "não deletar, marcar superseded") — mitigado: git history preserva, e esta ADR registra o que saiu; (c) imagens (560 PNGs/export) incham o repo se versionadas — ver Fork C.
 
-## Forks pra [W] decidir
-- **A — dir canônico:** `prototipo-ui/cowork/` (recomendado, isola o export) **vs** `prototipo-ui/` raiz vira o próprio export.
-- **B — escopo da deleção:** apagar os 10 `prototipos/*` agora **vs** mover pra `_arquivo/` **vs** caso a caso.
-- **C — imagens:** versionar só fontes (jsx/tsx/css/md/html, leve) **vs** incluir screenshots (fiel, pesado).
-- **D — frescor:** arquivo dedicado `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` (recomendado) **vs** seção dentro de `CODE_NOTES.md`.
+## Decisões de [W] (2026-06-23)
+- **A — dir canônico:** `prototipo-ui/cowork/` (isolado). ✅
+- **B — deleção:** apagar os recortes agora — **com ressalva (adversário):** recortes SEM equivalente no export (`inventario-migracao`, `compras-grade-matrix`) são RESTAURADOS; os demais re-apontam as âncoras de charter pro `cowork/`. ✅
+- **C — imagens:** versionar só fontes (leve). ✅
+- **D — frescor:** arquivo dedicado `FRESCOR-PRODUCAO-vs-PROTOTIPO.md`. ✅
+- **Memória:** absorção CRUA revertida → **destilar, não despejar** (1 assunto ancorado + resumo + evolução). ✅
+
+## Método operacional endurecido (pós-adversário 2026-06-23)
+Red-team da integração de memória pegou furos que viraram regra — não repetir:
+1. **Memória: destilar, não despejar.** Sessão crua do export NÃO entra no canon (reprova gate `Session log` + duplica). Destila o resumo por-tela no charter/SPEC ancorado. Não há gate que force a destilação → é **débito consciente registrado no livro-razão**, não promessa.
+2. **Deletar recorte = re-apontar âncora (mesma PR).** `prototipo-ui/prototipos/` é alvo de ~40 ponteiros (`blueprint_cowork`/`visual_source`/`related_prototipo`) de charters vivos. Rodar `node scripts/governance/charter-blueprint-pointers.mjs` antes/depois e re-apontar pro equivalente em `cowork/`. Tela SEM equivalente no export (ex. `inventario-migracao`) → NÃO mapear pra arquivo errado: **restaurar/manter o recorte**.
+3. **`cowork/` não carrega charters/casos.** São canon vivo (`resources/js/Pages/**`); duplicar = espelho que drifta (foram removidos do `cowork/`). cowork/ = só fonte visual + docs de análise (`.html`/`.md`).
+4. **PII esteira.** `cowork/` é mock por contrato (CPF/CNPJ fake) → excluído do PII scan (como `cowork-**`). Produção segue scaneada. Risco residual aceito: PII REAL no export passa batido — contrato "cowork = fake".
+5. **Gates a checar no handoff:** `charter-blueprint-pointers` (âncoras) · `Session log` (sem despejo) · `PII scan` (esteira ok) · `UI architecture`/`CharterVisualSourceGate` (visual_source vivo).
+6. **Contrato do design:** o Cowork lê [`prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md`](../../../prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md) (estrutura + como buscar info + telas a desenvolver).
 
 ## Refs
 - ADR 0114 (loop Cowork formalizado) · ADR 0282 (protocolo v2 Cowork intake) · ADR 0061 (canon no git, zero auto-mem)
