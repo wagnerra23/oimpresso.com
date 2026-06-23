@@ -1,0 +1,9 @@
+{
+  "_meta": {
+    "baseline": "FIXTURE — base APERTADA do gate-selftest (casos-coverage com 1 violação legada). Conteúdo fictício, zero PII.",
+    "gate": "casos:check (ADR 0264)"
+  },
+  "violations": [
+    "trio:missing-casos:resources/js/Pages/Fixture/Legada.tsx"
+  ]
+}

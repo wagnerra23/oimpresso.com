@@ -389,7 +389,8 @@ function main() {
       console.error(
         '\nO baseline de cobertura de casos é catraca: ENCOLHER é sempre OK, crescer não.' +
           '\nFeche o trio/teste da tela em vez de fotografar a dívida nova.' +
-          '\nMudança consciente (refactor move tela com dívida legada): label `casos-baseline-grow-approved` no PR.',
+          '\nMudança consciente (refactor move tela com dívida legada): trailer `BASELINE-GROW: <motivo + ref da tela>`' +
+          '\nno commit que toca o baseline (audit 2026-06-22 #4 — o label sozinho não basta mais).',
       );
       process.exit(1);
     }

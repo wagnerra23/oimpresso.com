@@ -47,17 +47,34 @@ jobs:
       # Onda Q2 (mandato ONDAS-QUALIDADE 2026-06-11) — ratchet SÓ-DESCE do arquivo de
       # baseline: o ratchet acima pega violação nova no REPO, mas não impedia o próprio
       # baseline commitado de CRESCER via `--write-baseline` (fotografar dívida nova).
-      # Crescimento consciente (refactor move tela com dívida legada) = label
-      # `casos-baseline-grow-approved` no PR (decisão visível, não default).
-      - name: Baseline só-desce (cobertura de casos nunca regride)
-        if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'casos-baseline-grow-approved')
+      #
+      # Anti-bypass (audit 2026-06-22 #4): este step roda SEMPRE (era pulado pelo label
+      # `casos-baseline-grow-approved`, auto-aplicável pelo admin solo → desligava a única
+      # catraca real). Crescer agora exige o trailer auditável `BASELINE-GROW: <motivo>` no
+      # range de commits do PR — simétrico ao `BASELINE-ABSORB` do baseline-tamper-guard.
+      # COM o trailer presente, o crescimento é liberado (curadoria deliberada e rastreável);
+      # SEM ele, o shrink-check morde. O label sozinho não basta mais.
+      - name: Baseline só-desce (cobertura de casos nunca regride sem BASELINE-GROW)
+        if: github.event_name == 'pull_request'
         run: |
           git fetch --no-tags origin main
-          if git show origin/main:scripts/casos-coverage-baseline.json > /tmp/casos-baseline-main.json 2>/dev/null; then
-            node scripts/casos-coverage-guard.mjs --check-baseline-shrink /tmp/casos-baseline-main.json
-          else
+          if ! git show origin/main:scripts/casos-coverage-baseline.json > /tmp/casos-baseline-main.json 2>/dev/null; then
             echo "baseline ausente no main (bootstrap) — skip"
+            exit 0
           fi
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          # Trailer ancorado em início de linha (não em prosa) em ALGUM commit do range que
+          # toca o baseline — mesma forma do BASELINE-ABSORB do baseline-tamper-guard.
+          GROW_COMMITS=$(git log "$BASE_SHA"..HEAD --format=%H -- scripts/casos-coverage-baseline.json)
+          HAS_GROW=0
+          for sha in $GROW_COMMITS; do
+            if git log -1 --format=%B "$sha" | grep -qE '^[ \t]*BASELINE-GROW\b'; then HAS_GROW=1; break; fi
+          done
+          if [ "$HAS_GROW" = "1" ]; then
+            echo "✓ trailer BASELINE-GROW presente — crescimento consciente liberado (curadoria deliberada e rastreável)."
+            exit 0
+          fi
+          node scripts/casos-coverage-guard.mjs --check-baseline-shrink /tmp/casos-baseline-main.json
 
       - name: Diagnóstico em caso de falha
         if: failure()

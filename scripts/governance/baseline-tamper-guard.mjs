@@ -14,6 +14,13 @@
  * (override consciente e auditável) OU (b) a mudança de baseline esteja ISOLADA
  * (PR só toca baselines guardados = curadoria deliberada, nada de código pra mascarar).
  *
+ * Regra extra (audit 2026-06-22 #4): pra baselines em GROW_TRAILER_REQUIRED — hoje só
+ * `scripts/casos-coverage-baseline.json` — CRESCER (afrouxar) exige um trailer auditável
+ * `BASELINE-GROW: <motivo>` no commit que toca o baseline, SEMPRE: nem o ramo isolado
+ * nem o label `casos-baseline-grow-approved` dão verde sem ele. Simétrico ao BASELINE-ABSORB,
+ * mas obrigatório pra crescer (fecha o PR só-de-baseline que injetava violação disfarçada
+ * de "curadoria isolada"). Os DEMAIS baselines seguem com a regra original (isolado = ok).
+ *
  * Base do diff: --base <ref> · env BASE_SHA · env GITHUB_BASE_REF (origin/<ref>) ·
  *   fallback `git merge-base HEAD origin/main` · senão SKIP (sem base = nunca falha).
  *
@@ -154,6 +161,16 @@ const GUARDED = {
   'scripts/casos-coverage-baseline.json': detectViolationList,
 };
 
+// Baselines que NÃO podem CRESCER sem um trailer auditável `BASELINE-GROW: <motivo>`
+// no commit que os afrouxa — nem isolado, nem com label. Simétrico ao `BASELINE-ABSORB`
+// (que só governa o ramo afrouxar+código), mas SEMPRE exigido pra crescer.
+// Fecha o furo do audit 2026-06-22 #4 (sev4): o casos-coverage-baseline é um ratchet
+// (lista de violações absorvidas) cujo CRESCIMENTO grandfatherava dívida nova; um PR
+// SÓ-DE-BASELINE injetava `trio:missing-casos:...Evil...` e o ramo "isolado" dava verde,
+// e o label `casos-baseline-grow-approved` desligava o shrink-check do casos-gate.yml.
+// Agora crescer o casos-coverage = sempre exige o trailer (isolado ou pareado).
+const GROW_TRAILER_REQUIRED = new Set(['scripts/casos-coverage-baseline.json']);
+
 // ── resolver base do diff ─────────────────────────────────────────────────────
 function resolveBase() {
   if (argBase) return argBase;
@@ -192,13 +209,14 @@ function expandGuarded() {
 }
 
 const loosenings = [];
+const loosenedPaths = new Set(); // paths de baselines que DE FATO afrouxaram (pra GROW_TRAILER_REQUIRED)
 for (const { file: path, detector } of expandGuarded()) {
   const baseTxt = git(`show ${BASE}:${path}`);
   const base = baseTxt ? parseJson(baseTxt) : {}; // ausente na base = {} (tudo conta como novo)
   if (!existsSync(join(ROOT, path))) continue; // baseline removido do head: não é afrouxamento desta engine
   const head = parseJson(readFileSync(join(ROOT, path), 'utf8'));
   if (head === null) { console.error(`baseline-tamper-guard: ${path} não parseia como JSON.`); process.exit(1); }
-  for (const desc of detector(base, head)) loosenings.push(`${path} — ${desc}`);
+  for (const desc of detector(base, head)) { loosenings.push(`${path} — ${desc}`); loosenedPaths.add(path); }
 }
 
 if (!loosenings.length) {
@@ -213,19 +231,40 @@ const guardedFiles = new Set(Object.keys(GUARDED).filter((k) => !k.endsWith('/')
 const guardedDirs = Object.keys(GUARDED).filter((k) => k.endsWith('/'));
 const isGuarded = (f) => guardedFiles.has(f) || guardedDirs.some((d) => f.startsWith(d));
 const codeTouched = changed.filter((f) => !isGuarded(f));
-// Marcador só vale no commit que DE FATO toca um baseline guardado — não em
-// qualquer commit do range que mencione o token (senão o próprio commit que
-// implementa/documenta o guard auto-justificaria: falso-negativo "o gate se
-// auto-aceita"). E exige o token ancorado em início de linha (trailer), não em prosa.
-const guardedPaths = Object.keys(GUARDED).join(' ');
-const baselineCommits = git(`log ${BASE}..HEAD --format=%H -- ${guardedPaths}`).split('\n').filter(Boolean);
-let hasMarker = false;
-for (const sha of baselineCommits) {
-  if (/^[ \t]*BASELINE-ABSORB\b/m.test(git(`log -1 --format=%B ${sha}`))) { hasMarker = true; break; }
+// Marcador só vale no commit que DE FATO toca um(ns) path(s) — não em qualquer commit
+// do range que mencione o token (senão o próprio commit que implementa/documenta o
+// guard auto-justificaria: falso-negativo "o gate se auto-aceita"). E exige o token
+// ancorado em início de linha (trailer), não em prosa.
+function markerInCommitsTouching(token, paths) {
+  const commits = git(`log ${BASE}..HEAD --format=%H -- ${paths}`).split('\n').filter(Boolean);
+  const re = new RegExp(`^[ \\t]*${token}\\b`, 'm');
+  for (const sha of commits) if (re.test(git(`log -1 --format=%B ${sha}`))) return true;
+  return false;
 }
+const guardedPaths = Object.keys(GUARDED).join(' ');
+const hasMarker = markerInCommitsTouching('BASELINE-ABSORB', guardedPaths);
 
 console.log(`baseline-tamper-guard: ${loosenings.length} afrouxamento(s) vs ${BASE}:`);
 loosenings.forEach((l) => console.log(`  - ${l}`));
+
+// ── GROW-trailer obrigatório (anti-grandfather de crescimento) ─────────────────
+// Pra baselines em GROW_TRAILER_REQUIRED, CRESCER (afrouxar) exige `BASELINE-GROW:`
+// no commit que toca AQUELE baseline — SEMPRE, isolado ou pareado, com label ou sem.
+// Roda ANTES dos ramos isolado/ABSORB: aqui não há escape por isolamento nem por label.
+const growMissing = [...loosenedPaths].filter(
+  (p) => GROW_TRAILER_REQUIRED.has(p) && !markerInCommitsTouching('BASELINE-GROW', p),
+);
+if (growMissing.length) {
+  console.error('\n✗ baseline-tamper-guard: baseline de ratchet CRESCEU (violação nova absorvida)');
+  console.error('  sem o trailer auditável `BASELINE-GROW`. Crescer estes baselines NUNCA é OK');
+  console.error('  por isolamento ou por label — só com justificativa explícita no commit:');
+  growMissing.forEach((p) => console.error(`     - ${p}`));
+  console.error('\n  Isso fecha o bypass do audit 2026-06-22 (PR só-de-baseline injeta violação');
+  console.error('  nova e passa verde disfarçado de "curadoria isolada"). Opção única:');
+  console.error('   • Inclua `BASELINE-GROW: <motivo + ref da tela>` na mensagem do commit que');
+  console.error('     toca o baseline (simétrico ao BASELINE-ABSORB). Sem o trailer, crescer FALHA.');
+  process.exit(1);
+}
 
 if (codeTouched.length && !hasMarker) {
   console.error('\n✗ baseline-tamper-guard: baseline AFROUXADO no mesmo PR que toca código,');

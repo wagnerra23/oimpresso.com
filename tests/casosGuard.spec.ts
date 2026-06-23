@@ -336,7 +336,7 @@ describe('casos:check — só-desce do baseline (Onda Q2, físico)', () => {
     const out = runExpectFail('--check-baseline-shrink ref/baseline-main.json');
     expect(out).toMatch(/Baseline CRESCEU/);
     expect(out).toMatch(/trio:missing-casos:resources\/js\/Pages\/B\/Index\.tsx/);
-    expect(out).toMatch(/casos-baseline-grow-approved/); // caminho consciente documentado
+    expect(out).toMatch(/BASELINE-GROW/); // caminho consciente: trailer auditável (audit 2026-06-22 #4)
   });
 
   it('ESPECIFICIDADE: baseline ENCOLHEU vs referência → passa reportando a queda', () => {
