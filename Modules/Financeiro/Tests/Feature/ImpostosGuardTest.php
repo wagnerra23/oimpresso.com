@@ -121,6 +121,12 @@ function impostosSeedReceita(int $businessId, int $userId, string $comp): array
 it('UC-IMP-01 · GUARD I1: GET /financeiro/impostos responde com o shape da tela', function () {
     $user = impostosBootstrap();
 
+    // A lane do financeiro-pest é backend (sem build do JS) → o check ensure_pages_exist do
+    // Inertia dá FALSO-NEGATIVO ("page component file does not exist") mesmo com o
+    // Financeiro/Impostos/Index.tsx no repo. Desligamos só aqui: a asserção segue checando o
+    // NOME do componente + as props (o que o I1 de fato testa).
+    config(['inertia.testing.ensure_pages_exist' => false]);
+
     impostosGet($user)->assertInertia(fn (AssertableInertia $page) => $page
         ->component('Financeiro/Impostos/Index')
         ->has('kpis.a_recolher.valor')
