@@ -41,7 +41,7 @@ Regra de direção da verdade:
 - **Camada de design** (`*-page.jsx/.tsx`, `*.css`, `*.html`, `*.charter.md`, `*.casos.md`, docs de design) → **Cowork → repo** (o export manda).
 - **Tudo o mais** (`memory/decisions/**`, `memory/requisitos/**`, código em `resources/`, ADRs, lint/tooling) → **repo → Cowork** (o design **lê**, nunca sobrescreve via export).
 
-Na importação: filtra-se o `project/` para a camada de design; **ignora-se** `project/memory/`, qualquer `resources/` e cópias de ADR.
+**Memória = fonte ÚNICA é o canon do repo (Wagner 2026-06-23)** — sincronizado pro **MCP** (webhook GitHub→push→merge `main`). O Cowork **não mantém memória paralela**: ele **lê a SUA** (via MCP / snapshot). Por isso `project/memory/` **NÃO** vira `cowork/memory/`; em vez disso, o que é **NOVO** (não está no canon) é **ABSORVIDO** pro `memory/**` canônico (mesmo path) — e entra no fluxo do MCP no merge. O que já é canon = redundante, descarta. `resources/` e cópias de ADR do export = ignorados (o repo manda). O rastreio idempotente disso vive em [`prototipo-ui/RECONCILIACAO-COWORK-MEMORIA.md`](../../../prototipo-ui/RECONCILIACAO-COWORK-MEMORIA.md) (livro-razão mantido).
 
 ### 3. Apagar os antigos (reversível por git)
 `prototipo-ui/prototipos/*` (10 dirs) são **subsumidos** pelo export completo (que tem todo `*-page.jsx`) → **deletados**. Reversível pelo histórico. Antes de deletar: salvar intel única que não esteja no export (ex.: `compras-grade-matrix/NOTES.md`, `pageheader-canon-v3/SPEC.md`) pra `prototipo-ui/cowork/_intel/` ou pra SPEC do módulo.
@@ -52,9 +52,10 @@ Como o diff agora funciona e o repo é SSOT, o design precisa saber **onde a pro
 ### 5. Processo de handoff (atualiza skill `aplicar-prototipo` Fase 0)
 1. Extrair o zip.
 2. Overwrite `prototipo-ui/cowork/` com a camada de design do `project/` (filtro do item 2).
-3. `git add` + commit `chore(prototipo): sync cowork export <data>`.
-4. `git diff HEAD~1 -- prototipo-ui/cowork/` = **o que mudou** → roda Fase 1 (mapa) **só nas telas que o diff tocou**.
-5. Atualiza `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` + `CODE_NOTES.md`.
+3. **Absorver memória NOVA** (`project/memory/**` ausente no canon) pro `memory/**` + registrar no livro-razão `RECONCILIACAO-COWORK-MEMORIA.md`.
+4. `git add` + commit + **push → PR → merge `main`** → webhook **GitHub→MCP** ingere a memória (é assim que "entra no fluxo do MCP").
+5. `git diff HEAD~1 -- prototipo-ui/cowork/` = **o que mudou** → roda Fase 1 (mapa) **só nas telas que o diff tocou**.
+6. Atualiza `FRESCOR-PRODUCAO-vs-PROTOTIPO.md` + `CODE_NOTES.md`.
 
 ## Consequências
 
