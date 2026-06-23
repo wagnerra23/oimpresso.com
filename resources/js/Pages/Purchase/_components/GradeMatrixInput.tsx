@@ -75,6 +75,12 @@ export default function GradeMatrixInput({
   onChange,
   onCancel,
 }: GradeMatrixInputProps) {
+  // matrix-1d (single-axis): GradeLayoutBuilder emite cols=[{id:'qtd', label:'Qtd'}] quando o
+  // produto tem só 1 eixo de variação (ex: Tamanho, sem Cor — caso biz=4 ROTA LIVRE, confirmado
+  // em prod 2026-06-23). Sem eixo cor, a cópia "Tam / Cor" / "próxima cor" confunde a Larissa
+  // (não-técnica) — troca pra linguagem só-tamanho. 2d (nome composto "P/Preto") mantém cor.
+  const isSingleAxis = cols.length === 1 && String(cols[0]?.id) === 'qtd';
+
   // Matriz qty[rowIdx][colIdx] → number. State 2D pra render rápido.
   const [qtys, setQtys] = useState<number[][]>(() =>
     rows.map((r) =>
@@ -257,7 +263,7 @@ export default function GradeMatrixInput({
           <thead className="sticky top-0 bg-stone-50">
             <tr>
               <th className="border-b border-stone-200 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wide text-stone-500">
-                Tam / Cor
+                {isSingleAxis ? 'Tamanho' : 'Tam / Cor'}
               </th>
               {cols.map((c, ci) => (
                 <th
@@ -313,10 +319,16 @@ export default function GradeMatrixInput({
                             ? 'border-stone-200 bg-white text-stone-900'
                             : 'border-stone-100 bg-stone-50 text-stone-300 cursor-not-allowed'
                         }`}
-                        aria-label={`Quantidade ${r.label} ${c.label}`}
+                        aria-label={
+                          isSingleAxis
+                            ? `Quantidade tamanho ${r.label}`
+                            : `Quantidade ${r.label} ${c.label}`
+                        }
                         title={
                           hasVariation
-                            ? `${r.label} × ${c.label}`
+                            ? isSingleAxis
+                              ? `Tamanho ${r.label}`
+                              : `${r.label} × ${c.label}`
                             : 'SKU não cadastrado pra essa combinação'
                         }
                       />
@@ -360,14 +372,27 @@ export default function GradeMatrixInput({
 
       <div className="border-t border-stone-100 bg-stone-50/50 px-3 py-1.5 text-[11px] text-stone-500">
         Atalhos:{' '}
-        <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">Tab</kbd>{' '}
-        próxima cor ·{' '}
-        <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">Enter</kbd>{' '}
-        próxima linha ·{' '}
-        <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">Esc</kbd>{' '}
-        cancela ·{' '}
-        <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">↑↓←→</kbd>{' '}
-        navega
+        {isSingleAxis ? (
+          <>
+            <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">Enter</kbd>{' '}
+            próximo tamanho ·{' '}
+            <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">↑↓</kbd>{' '}
+            navega ·{' '}
+            <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">Esc</kbd>{' '}
+            cancela
+          </>
+        ) : (
+          <>
+            <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">Tab</kbd>{' '}
+            próxima cor ·{' '}
+            <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">Enter</kbd>{' '}
+            próxima linha ·{' '}
+            <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">Esc</kbd>{' '}
+            cancela ·{' '}
+            <kbd className="rounded border border-stone-200 bg-white px-1 font-mono text-[10px]">↑↓←→</kbd>{' '}
+            navega
+          </>
+        )}
       </div>
     </div>
   );
