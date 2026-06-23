@@ -57,7 +57,7 @@ const skills = ['charter-first', 'preflight-modulo', 'multi-tenant-patterns', 'm
 const instrucao = `Aplica o GAP-SPEC na tela viva ${component}, parte por parte, seguindo o charter + Tier 0. Para no SCREENSHOT pro Wagner aprovar. Não inventa; gap incerto = pergunta.`;
 
 if (asJson) {
-  console.log(JSON.stringify({ tela: arg, component, charter: relCharter, visual_source: visualSource, visual_source_sha: visualSourceSha, gap, parent_module: parentModule, status, permissao, related_adrs: relatedAdrsRaw, skills, instrucao }, null, 2));
+  console.log(JSON.stringify({ tela: arg, component, charter: relCharter, visual_source: visualSource, visual_source_sha: visualSourceSha, gap, parent_module: parentModule, status, permissao, related_adrs: relatedAdrsRaw, skills, instrucao, recall_query: `${parentModule} ${arg.split('/').pop()}`, distill_back_to: relCharter }, null, 2));
   process.exit(0);
 }
 
@@ -81,6 +81,13 @@ L.push('');
 L.push('## Skills (auto-disparam por path/intenção)');
 L.push('- ' + skills.join(' · '));
 L.push('');
+L.push('## Recall (RAG — ANTES de codar; enriquece além do charter)');
+L.push(`- MCP: \`decisions-search "${parentModule} ${arg.split('/').pop()}"\` + \`memoria-search\` (mesmo termo) → puxa ADRs/decisões + lições de telas PARECIDAS que não estão neste charter (cross-screen).`);
+L.push('- Objetivo: não repetir erro já decidido noutra tela. O charter é a memória DESTA tela; o recall traz o resto.');
+L.push('');
 L.push('## Ordem de serviço');
 L.push(`> ${instrucao}`);
+L.push('');
+L.push('## Distill-back (fechar o loop — AO APROVAR)');
+L.push(`- Quando o Wagner aprovar o screenshot, ANTES do PR: **append** a decisão nova na seção "Decisões da tela" do charter (\`${relCharter}\`), formato \`| data | status | decisão |\` (append-only). A memória da tela CRESCE, não só é re-lida.`);
 console.log(L.join('\n'));

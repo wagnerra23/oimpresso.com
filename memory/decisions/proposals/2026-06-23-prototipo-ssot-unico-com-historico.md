@@ -79,6 +79,17 @@ Red-team da integração de memória pegou furos que viraram regra — não repe
 5. **Gates a checar no handoff:** `charter-blueprint-pointers` (âncoras) · `Session log` (sem despejo) · `PII scan` (esteira ok) · `UI architecture`/`CharterVisualSourceGate` (visual_source vivo).
 6. **Contrato do design:** o Cowork lê [`prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md`](../../../prototipo-ui/COWORK-ESTRUTURA-E-TELAS.md) (estrutura + como buscar info + telas a desenvolver).
 
+## G4 — gatilhos separados + loop de aprendizado por tela (2026-06-23)
+**Dois gatilhos, NÃO conflar** (Wagner: "por que essa decisão?"):
+- **Gatilho 1 — Handoff (paste/diff):** SÓ por **MUDANÇA**. `scripts/governance/detect-handoff.mjs` diffa o `cowork/`; tela mudada → 1 chip (`spawn_task`); **0 mudanças → 0 chips**. Proveniência: todo chip rastreia uma mudança real do export.
+- **Gatilho 2 — Backlog (sob demanda):** por **GAP em aberto** (FRESCOR 🟠). Fluxo **SEPARADO** ("groom o backlog → chips"), NÃO acoplado ao paste. Gap costuma ser backend/feature, não "aplicar o design que chegou".
+> Conflar os dois (criar chip de backlog num paste sem mudança) confunde proveniência + mistura tipos de trabalho. O `detect-handoff` é **by-change-only**; FRESCOR nele é só **classificação** das telas mudadas (🔵 produção-à-frente = skip), não gatilho.
+
+**Loop de aprendizado por tela (memória que CRESCE):**
+- **History:** o `<Tela>.charter.md` tem a seção append-only "Decisões da tela" = o histórico autoritativo. `charter-first` obriga ler antes de editar; `seed-tela.mjs` aponta como 1º a ler.
+- **Recall (RAG):** ao re-tratar, o `seed-tela` manda rodar `decisions-search`/`memoria-search` do domínio → enriquece com decisões/lições de telas **PARECIDAS** (cross-screen) que não estão no charter.
+- **Distill-back:** ao aprovar o screenshot, a sessão faz **append** da decisão nova na seção "Decisões da tela" do charter, ANTES do PR. Sem isso a memória é só re-lida, nunca acumulada. _Elo que fecha o loop — hoje o ponto fraco (débito de destilação)._
+
 ## Refs
 - ADR 0114 (loop Cowork formalizado) · ADR 0282 (protocolo v2 Cowork intake) · ADR 0061 (canon no git, zero auto-mem)
 - Skill `aplicar-prototipo` + `prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md`
