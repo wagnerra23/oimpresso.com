@@ -70,6 +70,11 @@ jobs:
               - 'tests/Browser/**/*.php'
               # Gate L2: manifesto de estados isolados (fonte única do IsolatedStatesBaselineTest).
               - 'tests/Browser/visreg-states.json'
+              # Baselines de pixel commitadas: um update de baseline (PixelBaseline OU L2
+              # IsolatedStates) tem que RE-RODAR o gate pra provar que a baseline nova bate
+              # com o render atual — senão um commit de baseline ruim passava sem comparar
+              # (foi o que aconteceu no #3297: PR só-de-.snap pulou via skip-as-pass).
+              - 'tests/.pest/snapshots/Browser/CoreScreens/**'
               - '.github/workflows/visual-regression.yml'
               - 'lighthouserc.json'
 
