@@ -494,13 +494,14 @@ class UiJudgePrCommand extends Command
         $color = $score >= 80 ? 'info' : ($score >= 60 ? 'comment' : 'error');
         $this->{$color}("Score: {$score}/100 · Verdict: {$verdict}");
 
-        if (isset($review['confianca'])) {
-            $conf = (float) $review['confianca'];
+        $conf = $review['confianca'] ?? null;
+        if ($conf !== null) {
             $nSamples = (int) ($review['samples'] ?? 0);
             $tag = ($review['gray_zone'] ?? false) ? ' · ZONA CINZA (defer humano)' : '';
-            $this->line('  Confiança self-consistency: '.number_format($conf, 2)." ({$nSamples} amostras){$tag}");
-            if (! empty($review['confianca_nota'])) {
-                $this->line('  '.(string) $review['confianca_nota']);
+            $this->line('  Confiança self-consistency: '.number_format((float) $conf, 2)." ({$nSamples} amostras){$tag}");
+            $nota = (string) ($review['confianca_nota'] ?? '');
+            if ($nota !== '') {
+                $this->line('  '.$nota);
             }
         }
         $this->newLine();
@@ -570,11 +571,12 @@ class UiJudgePrCommand extends Command
 
         $out = ["## PR UI Judge · score {$score}/100 · verdict `{$verdict}`", ''];
 
-        if (isset($review['confianca'])) {
-            $conf = number_format((float) $review['confianca'], 2);
+        $conf = $review['confianca'] ?? null;
+        if ($conf !== null) {
+            $confFmt = number_format((float) $conf, 2);
             $nSamples = (int) ($review['samples'] ?? 0);
             $gz = ($review['gray_zone'] ?? false) ? ' · **zona cinza** (defer humano)' : '';
-            $out[] = "_Self-consistency: confiança {$conf} · {$nSamples} amostras{$gz}_";
+            $out[] = "_Self-consistency: confiança {$confFmt} · {$nSamples} amostras{$gz}_";
             $out[] = '';
         }
 

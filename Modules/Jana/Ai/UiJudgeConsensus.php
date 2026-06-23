@@ -95,7 +95,7 @@ final class UiJudgeConsensus
     {
         $samples = array_values(array_filter(
             $samples,
-            static fn ($s): bool => is_array($s) && isset($s['dimensoes']) && is_array($s['dimensoes']),
+            static fn (array $s): bool => isset($s['dimensoes']) && is_array($s['dimensoes']),
         ));
         $n = count($samples);
 
@@ -221,11 +221,11 @@ final class UiJudgeConsensus
                     continue;
                 }
                 $key = ($v['tipo'] ?? '').'|'.($v['arquivo'] ?? '').'|'.($v['linha'] ?? '');
-                if (! isset($bucket[$key])) {
+                if (array_key_exists($key, $bucket)) {
+                    $bucket[$key]['_hits']++;
+                } else {
                     $v['_hits'] = 1;
                     $bucket[$key] = $v;
-                } else {
-                    $bucket[$key]['_hits']++;
                 }
             }
         }
