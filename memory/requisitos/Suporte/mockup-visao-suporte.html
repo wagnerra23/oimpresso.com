@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Draft visual — Visão de Suporte (Modo Suporte · ADR 0305 · fase B read-only)</title>
+<!--
+  DRAFT VISUAL pra aprovação Wagner (R2/R7) — NÃO é a tela final.
+  Abrir no navegador → screenshot → aprovar/ajustar ANTES de escrever o .tsx (PR-C2).
+  Pareado com CHARTER-visao-suporte.md. Aproxima o design system (sidebar light UI-0009,
+  primary roxo 295 do PageHeader canon) — exceto o banner de Modo Suporte, em cor de
+  alerta de propósito (deixar claro que não é a sessão normal do operador).
+-->
+<style>
+  :root{
+    --bg:#f5f6f8; --card:#ffffff; --line:#e6e8ec; --ink:#111827; --muted:#6b7280;
+    --primary:#7c3aed; --primary-weak:#f3effe;             /* roxo 295 aprox */
+    --alert-bg:#fff7ed; --alert-line:#fdba74; --alert-ink:#9a3412;  /* âmbar = "modo suporte" */
+    --ok:#0f766e;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45}
+  .frame{max-width:1180px;margin:28px auto;padding:0 20px}
+  .frame > h2{font-size:13px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:34px 0 10px}
+  .browser{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 8px 28px rgba(17,24,39,.06)}
+  .chrome{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);background:#fafbfc}
+  .dot{width:11px;height:11px;border-radius:50%}
+  .url{margin-left:10px;font-size:12px;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 12px}
+  .app{display:grid;grid-template-columns:212px 1fr;min-height:520px}
+  /* sidebar light */
+  .side{background:#fbfbfc;border-right:1px solid var(--line);padding:16px 12px}
+  .brand{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;padding:6px 8px 16px}
+  .brand .logo{width:24px;height:24px;border-radius:7px;background:var(--primary)}
+  .nav a{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;color:#374151;text-decoration:none;font-size:13px;margin-bottom:2px}
+  .nav a.active{background:var(--primary-weak);color:var(--primary);font-weight:600}
+  .nav a .ic{width:16px;text-align:center;opacity:.7}
+  .main{padding:0}
+  /* topbar / pageheader */
+  .top{display:flex;align-items:center;justify-content:space-between;padding:16px 22px;border-bottom:1px solid var(--line)}
+  .top h1{font-size:18px;margin:0}
+  .top .sub{color:var(--muted);font-size:12px;margin-top:2px}
+  .btn{border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;color:#374151}
+  .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+  .content{padding:22px}
+  /* support alert banner */
+  .supbanner{display:flex;align-items:center;gap:12px;background:var(--alert-bg);border:1px solid var(--alert-line);color:var(--alert-ink);border-radius:10px;padding:12px 16px;margin:0 0 20px;font-size:13px}
+  .supbanner .badge{background:var(--alert-ink);color:#fff;border-radius:6px;padding:3px 9px;font-weight:700;font-size:11px;letter-spacing:.03em;white-space:nowrap}
+  .supbanner b{font-weight:700}
+  .supbanner .exit{margin-left:auto}
+  .supbanner .exit a{color:var(--alert-ink);font-weight:600;text-decoration:underline;cursor:pointer;white-space:nowrap}
+  /* cards */
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px}
+  .stat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .stat .k{color:var(--muted);font-size:12px}
+  .stat .v{font-size:28px;font-weight:700;margin-top:4px}
+  .sec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0;margin-bottom:16px}
+  .sec h3{font-size:14px;margin:0;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .sec .body{padding:16px;color:var(--muted);font-size:13px}
+  .ro{display:inline-block;background:#f3f4f6;color:#6b7280;border-radius:6px;padding:2px 8px;font-size:11px;margin-left:8px}
+  /* list (tela 1) */
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:12px 16px;font-size:13px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+  tr:last-child td{border-bottom:none}
+  .search{width:260px;border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:13px}
+  .muted{color:var(--muted)}
+  .note{max-width:1180px;margin:8px auto 40px;padding:0 20px;color:var(--muted);font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="frame">
+
+  <!-- ============ TELA 1 — Empresas ============ -->
+  <h2>Tela 1 · Suporte/Empresas — escolher empresa-cliente</h2>
+  <div class="browser">
+    <div class="chrome">
+      <span class="dot" style="background:#ef4444"></span><span class="dot" style="background:#f59e0b"></span><span class="dot" style="background:#10b981"></span>
+      <span class="url">oimpresso.com/suporte/empresas</span>
+    </div>
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><span class="logo"></span> oimpresso</div>
+        <nav class="nav">
+          <a href="#"><span class="ic">▦</span> Painel</a>
+          <a href="#"><span class="ic">$</span> Vendas</a>
+          <a href="#"><span class="ic">◷</span> Financeiro</a>
+          <a class="active" href="#"><span class="ic">🛟</span> Suporte</a>
+        </nav>
+      </aside>
+      <section class="main">
+        <div class="top">
+          <div><h1>Suporte · empresas</h1><div class="sub">Empresas-cliente que você pode atender — a empresa operadora não aparece.</div></div>
+          <input class="search" placeholder="Buscar empresa…" />
+        </div>
+        <div class="content">
+          <table>
+            <thead><tr><th>Empresa</th><th>ID</th><th style="text-align:right">Ação</th></tr></thead>
+            <tbody>
+              <tr><td>ROTA LIVRE Vestuário</td><td class="muted">#4</td><td style="text-align:right"><button class="btn primary">Entrar (suporte)</button></td></tr>
+              <tr><td>Gráfica Martinho</td><td class="muted">#164</td><td style="text-align:right"><button class="btn primary">Entrar (suporte)</button></td></tr>
+              <tr><td>Extreme Print</td><td class="muted">#37</td><td style="text-align:right"><button class="btn primary">Entrar (suporte)</button></td></tr>
+            </tbody>
+          </table>
+          <p class="muted" style="margin:14px 16px 0">A empresa operadora (biz=1) <b>nunca</b> aparece aqui — excluída na resolução (config <code>OPERATOR_BUSINESS_ID</code>).</p>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ============ TELA 2 — Visão de suporte (read-only) ============ -->
+  <h2>Tela 2 · Suporte/Visao — visão read-only do cliente</h2>
+  <div class="browser">
+    <div class="chrome">
+      <span class="dot" style="background:#ef4444"></span><span class="dot" style="background:#f59e0b"></span><span class="dot" style="background:#10b981"></span>
+      <span class="url">oimpresso.com/suporte/empresas/4</span>
+    </div>
+    <div class="app">
+      <aside class="side">
+        <div class="brand"><span class="logo"></span> oimpresso</div>
+        <nav class="nav">
+          <a href="#"><span class="ic">▦</span> Painel</a>
+          <a href="#"><span class="ic">$</span> Vendas</a>
+          <a href="#"><span class="ic">◷</span> Financeiro</a>
+          <a class="active" href="#"><span class="ic">🛟</span> Suporte</a>
+        </nav>
+      </aside>
+      <section class="main">
+        <div class="top">
+          <div><h1>ROTA LIVRE Vestuário <span class="ro">somente leitura</span></h1><div class="sub">Empresa-cliente #4 · visão de suporte</div></div>
+          <button class="btn">Voltar à lista</button>
+        </div>
+        <div class="content">
+          <div class="supbanner">
+            <span class="badge">🛟 MODO SUPORTE</span>
+            <span>Você está vendo <b>ROTA LIVRE Vestuário</b> como suporte — <b>somente leitura</b>. Toda entrada é auditada.</span>
+            <span class="exit"><a>Sair do suporte →</a></span>
+          </div>
+
+          <div class="cards">
+            <div class="stat"><div class="k">Usuários</div><div class="v">7</div></div>
+            <div class="stat"><div class="k">Transações</div><div class="v">1.311</div></div>
+            <div class="stat"><div class="k">Contatos</div><div class="v">842</div></div>
+          </div>
+
+          <div class="sec">
+            <h3>Financeiro do cliente <span class="ro">somente leitura · v1 enxuto</span></h3>
+            <div class="body">Resumo do financeiro <b>do cliente</b> entra aqui (contas a receber/pagar, últimas baixas) — read-only. v1 começa com as contagens acima; expandimos depois sem mexer no contrato.</div>
+          </div>
+
+          <div class="sec">
+            <h3>Últimas vendas <span class="ro">somente leitura</span></h3>
+            <div class="body">Lista read-only das vendas recentes do cliente (para diagnosticar o chamado). Sem botões de ação que escrevem — "atuar" é a fase A (futuro, com auditoria de scoping).</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+</div>
+<p class="note">Draft visual (não-final) · Modo Suporte fase B read-only · ADR 0305. Cor âmbar do banner é proposital (sinalizar "não é a sessão normal"). Aprovar/ajustar este screenshot antes de eu escrever o <code>.tsx</code> (PR-C2).</p>
+
+</body>
+</html>
