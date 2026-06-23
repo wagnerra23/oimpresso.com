@@ -175,6 +175,20 @@ function runAnchorLintWired(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// anchor-lint --check-covers (G1a · ADR 0303 emenda): teste citado em `**Testado em:**`
+// que EXISTE mas não declara `// @covers-us <US-ID>`. good = teste declara → exit 0;
+// bad = teste sem o marcador → exit 1, acusação "não declara @covers-us". Fixture
+// ISOLADA (SelftestCovers) — não cruza com anchor-lint/anchor-lint-wired.
+function runAnchorLintCovers(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-covers-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-covers', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'), ['--check-covers', 'memory/requisitos/SelftestCovers/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 const CATRACAS = [
   {
     id: 'knowledge-drift',
@@ -260,6 +274,12 @@ const CATRACAS = [
     id: 'anchor-lint-wired',
     run: runAnchorLintWired,
     expect: { good: /ANCHOR COVERAGE GLOBAL/, bad: /tela DESLIGADA/ },
+  },
+  {
+    // G1a (ADR 0303 emenda): testado_sem_covers — teste existe mas não declara @covers-us da US
+    id: 'anchor-lint-covers',
+    run: runAnchorLintCovers,
+    expect: { good: /Testado sem covers[^\n]*: 0/, bad: /não declara @covers-us/ },
   },
 ];
 

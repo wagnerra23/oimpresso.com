@@ -46,6 +46,12 @@ const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
 const JSON_OUT = process.argv.includes('--json');
 const CHECK = process.argv.includes('--check');
+// G1a (ADR 0303 emenda): --check-covers exit 1 se houver `testado_sem_covers` —
+// teste que EXISTE mas não declara `// @covers-us <US-ID>` da US-pai (a brecha do
+// `Testado em: \`SpatiePermissionsTest\``: teste genérico que não prova nada sobre a US).
+// ADVISORY em produção (anchor-drift roda --check, NÃO --check-covers); flag opt-in
+// pro gate-selftest provar que morde + arming futuro por calendário (ADR 0275).
+const CHECK_COVERS = process.argv.includes('--check-covers');
 
 // ── regexes canônicas (ADR 0273 §1 — referência única; NÃO afrouxar sem novo ADR) ──
 const GRAMMAR_RE = /^\*\*Implementado em:\*\* (?:_pendente_(?: — .+)?|(?:_parcial_ · )?(?:`[^`]+`)(?: · `[^`]+`)* · verificado@[0-9a-f]{7} \(\d{4}-\d{2}-\d{2}\)(?: — .+)?)$/;
@@ -125,15 +131,18 @@ function pageZombie(seg) {
   return g.allRendered.has(comp) && !g.liveRendered.has(comp);
 }
 let _testBasenames = null;
+// Map basename(sem .php) → 1º path absoluto. `.has()` segue valendo pro deadTestRefs;
+// o path serve pro covers-check (G1a) ler o arquivo do teste e procurar @covers-us.
 function testBasenames() {
   if (_testBasenames) return _testBasenames;
-  _testBasenames = new Set();
+  _testBasenames = new Map();
   const modsDir = join(ROOT, 'Modules');
   if (existsSync(modsDir)) {
     for (const e of readdirSync(modsDir, { withFileTypes: true })) {
       if (!e.isDirectory()) continue;
       for (const f of listPhp(join(modsDir, e.name, 'Tests'))) {
-        _testBasenames.add(f.split(/[\\/]/).pop().replace(/\.php$/, ''));
+        const base = f.split(/[\\/]/).pop().replace(/\.php$/, '');
+        if (!_testBasenames.has(base)) _testBasenames.set(base, f);
       }
     }
   }
@@ -159,6 +168,39 @@ function deadTestRefs(rest, specDir) {
     } else if (/Test$/.test(seg) && !testBasenames().has(seg)) out.push(seg);
   }
   return out;
+}
+
+// G1a (ADR 0303 emenda): refs de teste numa linha `**Testado em:**` que EXISTEM mas
+// NÃO declaram `// @covers-us <usId>` da US-pai. "covers" = marcador grep no .php
+// (Pest covers()/comentário), NÃO atributo PHP — testes do repo são closures Pest
+// (`uses(Tests\\TestCase::class)` + `it()`), e atributo PHP não anexa a closure. Só
+// checa refs RESOLVÍVEIS a arquivo (markdown-link · backtick-path · basename…Test);
+// ref inexistente já é dead_test (concern separado). usId nulo (linha fora de US) = skip.
+function testadoCoversMissing(rest, specDir, usId) {
+  if (!usId) return [];
+  const refs = []; // {seg, abs} — só os que existem no disco
+  let remaining = rest;
+  for (const m of rest.matchAll(MDLINK_RE)) {
+    const t = m[2].split('#')[0];
+    if (!/^https?:/.test(t) && (m[1].includes('/') || t.includes('/'))) {
+      const abs = resolve(specDir, t);
+      if (existsSync(abs)) refs.push({ seg: m[1], abs });
+    }
+    remaining = remaining.replace(m[0], ' ');
+  }
+  for (const m of remaining.matchAll(/`([^`]+)`/g)) {
+    const seg = m[1].replace(/[.,;:]+$/, '');
+    if (seg.includes('/')) {
+      const abs = [resolve(ROOT, seg), resolve(ROOT, `${seg}.php`)].find((p) => existsSync(p));
+      if (abs) refs.push({ seg, abs });
+    } else if (/Test$/.test(seg)) {
+      const abs = testBasenames().get(seg);
+      if (abs) refs.push({ seg, abs });
+    }
+  }
+  const esc = usId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const coversRe = new RegExp(`@covers-us\\s+${esc}(?:\\b|$)`);
+  return refs.filter((r) => !coversRe.test(readFileSync(r.abs, 'utf8'))).map((r) => r.seg);
 }
 
 function frontmatter(txt) {
@@ -223,7 +265,7 @@ function lintSpec(file) {
     const f = line.match(FIELD_RE);
     if (f) { (cur ? cur.fields : orphans).push({ line: i + 1, raw: line, rest: f[1] }); continue; }
     const t = line.match(TESTADO_RE);
-    if (t) testadoLines.push({ line: i + 1, rest: t[1] });
+    if (t) testadoLines.push({ line: i + 1, rest: t[1], us: cur ? cur.id : null });
   }
   const counts = { sem_campo: 0, placeholder: 0, pendente: 0, parcial: 0, anchored_ok: 0, anchored_dead: 0, anchored_zombie: 0 };
   const deadList = [], zombieList = [], v1Violations = [];
@@ -246,9 +288,12 @@ function lintSpec(file) {
   }
   // lint de `Testado em:` — superfície antes sem governança (testes-fantasma)
   const deadTests = [];
+  const testadoSemCovers = []; // G1a: teste existe mas não declara @covers-us da US-pai
   for (const t of testadoLines) {
     const refs = deadTestRefs(t.rest, specDir);
     if (refs.length) deadTests.push({ line: t.line, missing: refs });
+    const noCovers = testadoCoversMissing(t.rest, specDir, t.us);
+    if (noCovers.length) testadoSemCovers.push({ line: t.line, us: t.us, tests: noCovers });
   }
   const usTotal = usList.length;
   const covered = counts.anchored_ok + counts.pendente + counts.parcial; // zombie/dead NÃO contam
@@ -256,7 +301,7 @@ function lintSpec(file) {
     us_total: usTotal, counts, coverage_pct: usTotal ? Math.round((1000 * covered) / usTotal) / 10 : null,
     fields_total: fieldsTotal, fields_placeholder: fieldsPlaceholder, fields_grammar_ok: grammarOk,
     orphan_fields: orphans.length, anchor_format_v1: isV1, dead: deadList, zombie: zombieList,
-    dead_tests: deadTests, testado_lines: testadoLines.length, v1_violations: v1Violations,
+    dead_tests: deadTests, testado_sem_covers: testadoSemCovers, testado_lines: testadoLines.length, v1_violations: v1Violations,
   };
 }
 
@@ -279,6 +324,7 @@ const usTotal = sum('us_total');
 const covered = byState.anchored_ok + byState.pendente + byState.parcial;
 const coverage = usTotal ? Math.round((1000 * covered) / usTotal) / 10 : null;
 const deadTestsTotal = modules.reduce((a, m) => a + m.dead_tests.length, 0);
+const testadoSemCoversTotal = modules.reduce((a, m) => a + m.testado_sem_covers.length, 0);
 
 for (const m of modules) m.flag = m.us_total === 0 ? '🟡' : (m.counts.anchored_dead > 0 || m.counts.anchored_zombie > 0 || m.dead_tests.length || m.v1_violations.length || m.coverage_pct === 0) ? '🔴' : m.coverage_pct === 100 ? '🟢' : '🟡';
 
@@ -289,6 +335,7 @@ const report = {
     coverage_regra: 'anchor_coverage = (anchored_ok + pendente + parcial) / us_total — _pendente_ é coberto (tela não construída ≠ dívida de anchor); anchored_ok exige TODOS os paths existentes (§2) E vivos no roteador (zumbi não conta)',
     wired_regra: 'Page-âncora ZUMBI = existe no disco + renderizada por controller NÃO-referenciado nas rotas (dormente/atrás de 301). Existir ≠ estar vivo. Conservador: sub-componentes e renders por variável nunca marcados.',
     testado_regra: 'dead_tests = ref em `**Testado em:**` (path .php OU ClassName…Test) inexistente no repo.',
+    covers_regra: 'testado_sem_covers (G1a · ADR 0303 emenda) = teste que EXISTE mas não declara `// @covers-us <US-ID>` da US-pai. ADVISORY: reportado sempre, exit 1 só com --check-covers (anchor-drift roda --check normal).',
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
     fase: 'F1 ADVISORY (ADR 0273 §4) — exit 0 sempre nos modos default/--json; --check (exit 1) reservado pra F2',
     scope: args.length ? 'diff-aware (args)' : 'full-tree',
@@ -297,7 +344,7 @@ const report = {
     specs_total: modules.length, us_total: usTotal, anchor_coverage_pct: coverage, by_state: byState,
     fields_total: sum('fields_total'), fields_placeholder: sum('fields_placeholder'),
     fields_grammar_ok: sum('fields_grammar_ok'), orphan_fields: sum('orphan_fields'),
-    dead_tests_total: deadTestsTotal,
+    dead_tests_total: deadTestsTotal, testado_sem_covers_total: testadoSemCoversTotal,
     v1_files: modules.filter((m) => m.anchor_format_v1).length, v1_violations: sum('v1_violations'),
   },
   modules,
@@ -314,6 +361,7 @@ for (const m of modules) {
   for (const d of m.dead) console.log(`       💀 ${d.us} (L${d.line}): ${d.missing.join(' · ')}`);
   for (const z of m.zombie) console.log(`       🧟 ${z.us} (L${z.line}): tela DESLIGADA (renderizada só por controller fora das rotas) → ${z.dead_screens.join(' · ')}`);
   for (const t of m.dead_tests) console.log(`       🧪 Testado em (L${t.line}): teste inexistente → ${t.missing.join(' · ')}`);
+  for (const tc of m.testado_sem_covers) console.log(`       🎯 Testado em (L${tc.line}): ${tc.us} — teste existe mas não declara @covers-us ${tc.us} → ${tc.tests.join(' · ')}`);
   for (const v of m.v1_violations) console.log(`       ✗ v1 L${v.line}: não casa gramática ADR 0273 §1 → ${v.raw}`);
 }
 console.log('  ' + '─'.repeat(82));
@@ -321,7 +369,9 @@ console.log(`\n  ANCHOR COVERAGE GLOBAL: ${coverage}%  (= (${byState.anchored_ok
 console.log(`  Campos: ${report.summary.fields_total} total · ${report.summary.fields_placeholder} placeholder · ${report.summary.fields_grammar_ok} já na gramática v1 · ${report.summary.orphan_fields} órfãos (fora de bloco US)`);
 console.log(`  Estados por US: sem_campo ${byState.sem_campo} · placeholder ${byState.placeholder} · pendente ${byState.pendente} · parcial ${byState.parcial} · anchored_ok ${byState.anchored_ok} · anchored_dead ${byState.anchored_dead} · anchored_zombie ${byState.anchored_zombie}`);
 console.log(`  Testes-fantasma (dead_tests): ${deadTestsTotal}`);
+console.log(`  Testado sem covers (teste existe mas não declara @covers-us · advisory): ${testadoSemCoversTotal}`);
 console.log(`\n  💀 dead = path inexistente · 🧟 zombie = path existe mas tela desligada · 🧪 = teste citado inexistente. Corrigir via reconciliação — nunca inventar path.\n`);
 
 if (CHECK && (byState.anchored_dead > 0 || byState.anchored_zombie > 0 || deadTestsTotal > 0 || report.summary.v1_violations > 0)) process.exit(1);
+if (CHECK_COVERS && testadoSemCoversTotal > 0) process.exit(1);
 process.exit(0);
