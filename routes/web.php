@@ -786,3 +786,15 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])
     Route::get('/sells/invoice-url/{id}', [SellPosController::class, 'showInvoiceUrl']);
     Route::get('/show-notification/{id}', [HomeController::class, 'showNotification']);
 });
+
+// Modo Suporte (ADR 0305) — Visão read-only cross-tenant pro agente de suporte (exceto operadora).
+// Autorização + auditoria no middleware support.access (service-direct, NÃO via Gate). v1 sem switch de sessão.
+Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'support.access'])
+    ->prefix('suporte')
+    ->group(function () {
+        Route::get('empresas', [\App\Http\Controllers\Support\SupportController::class, 'index'])
+            ->name('suporte.empresas');
+        Route::get('empresas/{business}', [\App\Http\Controllers\Support\SupportController::class, 'show'])
+            ->whereNumber('business')
+            ->name('suporte.empresa.show');
+    });
