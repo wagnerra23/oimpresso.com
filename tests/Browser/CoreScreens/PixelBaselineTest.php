@@ -107,7 +107,7 @@ $screens = [
 ];
 
 foreach ($screens as $nome => [$rota, $ancora]) {
-    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($rota, $ancora, $grayZone) {
+    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $rota, $ancora, $grayZone) {
         $business = Business::first();
         if (! $business) {
             test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
