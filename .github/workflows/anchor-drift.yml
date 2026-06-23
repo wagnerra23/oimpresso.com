@@ -1,5 +1,12 @@
-name: Anchor Drift (advisory)
+name: Anchor & Doneness Drift (advisory)
 
+# 2 lints irmãos sobre as SPECs (mesmo trigger, SoC separado — ADR 0298 teto:
+# job no workflow EXISTENTE, sem criar gate novo):
+#   - anchor-lint  (ADR 0273): saúde da âncora spec↔código (existe/vivo/testado).
+#   - doneness-lint (ADR 0302): conflito `status:` à mão × âncora (fonte-única de done-ness).
+# Ambos diff-aware no PR (--check só SPEC tocado = no-new-lie, grandfather legado),
+# report full-tree no cron. NÃO required ainda: flip do Wagner por calendário (ADR 0275 §5).
+#
 # Lint do anchor spec↔código — SA-A3 do plano SDD (memory/sessions/2026-06-12-
 # plano-reestruturacao-sdd-ondas-paralelas.md, frente SA) · gramática ADR 0273.
 #
@@ -20,6 +27,7 @@ on:
     paths:
       - 'memory/requisitos/**/SPEC.md'
       - 'scripts/governance/anchor-lint.mjs'
+      - 'scripts/governance/doneness-lint.mjs'
       - '.github/workflows/anchor-drift.yml'
   schedule:
     - cron: '0 6 * * 1' # segunda 06:00 UTC — full-tree semanal
@@ -57,4 +65,30 @@ jobs:
             fi
           else
             node scripts/governance/anchor-lint.mjs
+          fi
+
+  doneness-lint:
+    name: doneness-lint ADR 0302 (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # diff contra base do PR
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: doneness-lint (diff-aware no PR · full-tree report no cron/dispatch)
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED=$(git diff --name-only --diff-filter=d "origin/${{ github.base_ref }}...HEAD" -- 'memory/requisitos/*/SPEC.md')
+            if [ -n "$CHANGED" ]; then
+              echo "SPECs tocados no PR (--check: no-new-conflict status×âncora · ADR 0302):"; echo "$CHANGED"
+              # shellcheck disable=SC2086
+              node scripts/governance/doneness-lint.mjs --check $CHANGED
+            else
+              echo "Nenhum SPEC tocado (PR mudou lint/workflow) — full-tree report:"
+              node scripts/governance/doneness-lint.mjs
+            fi
+          else
+            node scripts/governance/doneness-lint.mjs
           fi
