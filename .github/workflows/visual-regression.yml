@@ -58,6 +58,7 @@ jobs:
               - 'resources/js/Components/**/*.tsx'
               - 'tests/Browser/**/*.php'
               - '.github/workflows/visual-regression.yml'
+              - 'lighthouserc.json'
 
       - name: Skip-as-pass (nada de UI mudou)
         if: steps.changes.outputs.ui == 'false'
@@ -285,6 +286,64 @@ jobs:
           else
             echo "✅ pixel-diff núcleo-6 OK (advisory) — nenhuma tela acima de τ_alto."
             echo "   Se houve ZONA CINZA, ela está no step summary (resumo 'Pixel-diff — Zona Cinza') + artifact pixel-diff-views pro [W] revisar."
+          fi
+
+      # ── Camada L5 — PERF BUDGET QUE MORDE (Lighthouse CI · median-of-3) ───────────────
+      # Hoje LCP/CLS só eram coletados pós-merge advisory e nada falhava. Esta camada mede
+      # as telas núcleo AUTENTICADAS no MESMO boot+seed do gate, reusando o auth-bridge
+      # /_visreg-login/{id}?to=<tela> (routes/web.php, env-guarded) — admin id=1 do
+      # VisregTenantSeeder. Config: lighthouserc.json (raiz).
+      #
+      # ARMADURA EM 3 ESTÁGIOS (segue ADR 0275 §3 armamento + §5 calendário; e a LIÇÃO do
+      # visual-regression que mergeou vermelho 2× por virar required cedo — PRs #2544/#2548):
+      #   Estágio 0 (nascimento — AGORA): step `continue-on-error: true` ⇒ ADVISORY. O job
+      #     `visual-regression` JÁ é required, então o continue-on-error é o que mantém L5
+      #     sem morder (mesmo padrão do pixel-diff acima). No lighthouserc: CLS = `error`
+      #     (morde já, na severidade) @ 0.1; LCP/TBT = `warn`. `lhci assert` roda e imprime,
+      #     mas nada reprova o PR. Coletar 3 medições válidas consecutivas (regra de armamento).
+      #   Estágio 1 (armar LCP/TBT): com 3 medianas estáveis confirmando o orçamento, flipar
+      #     no lighthouserc.json `warn` → `error` em largest-contentful-paint e total-blocking-time.
+      #     Step segue advisory (continue-on-error) — agora o assert reprova no LOG, não no PR.
+      #   Estágio 2 (promover a required): pelo CALENDÁRIO ADR 0275 §5 (máx 1/semana, [W] flipa,
+      #     evidência linkada = runs, PR atualiza required-checks-baseline.json citando 0275).
+      #     Promover = REMOVER o `continue-on-error: true` deste step (sem clique de branch
+      #     protection: o check `visual-regression` já é required — idêntico à nota do pixel-diff).
+      - name: Instalar Lighthouse CI (L5 — pin compatível com Node lts/* do runner)
+        if: steps.changes.outputs.ui == 'true'
+        # @lhci/cli@0.15.1 empacota lighthouse@12.6.1 (engine node >=18.20) → compatível com
+        # `node-version: lts/*` (Node 22/24). Pin explícito (NÃO `@latest`) pra build determinístico.
+        # Chrome: o runner ubuntu-latest já traz google-chrome-stable → chrome-launcher acha sozinho.
+        run: npm install -g @lhci/cli@0.15.1
+
+      - name: L5 — Perf budget Lighthouse (median-of-3 · ADVISORY — armando ADR 0275)
+        if: steps.changes.outputs.ui == 'true'
+        id: lhci
+        continue-on-error: true
+        env:
+          # Built-in PHP server é single-thread; sem workers, requests concorrentes de assets
+          # do SPA serializam e inflam o LCP (flake). 4 workers = medição estável.
+          PHP_CLI_SERVER_WORKERS: "4"
+        # autorun = collect (sobe `php artisan serve`, mede 3×, derruba) + assert (median) + upload.
+        run: lhci autorun --config=lighthouserc.json
+
+      - name: Upload resultados Lighthouse (L5 — leitura das medianas p/ armar)
+        if: ${{ !cancelled() && steps.changes.outputs.ui == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-perf-budget
+          path: .lighthouseci/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Veredito advisory L5 perf budget (visível no log)
+        if: steps.changes.outputs.ui == 'true'
+        run: |
+          if [ "${{ steps.lhci.outcome }}" = "failure" ]; then
+            echo "🟡 L5 PERF BUDGET ADVISORY FALHOU — alguma métrica acima do orçamento (ver artifact lighthouse-perf-budget)."
+            echo "   CLS é error@0.1 (morde já na severidade); LCP/TBT são warn até armarem (ADR 0275 §3)."
+            echo "   Regressão? conserte. Orçamento irreal? ajuste lighthouserc.json com evidência das 3 medianas."
+          else
+            echo "✅ L5 perf budget OK (advisory — coletando medições p/ armar pelo calendário ADR 0275)."
           fi
 
       - name: Upload screenshots on failure
