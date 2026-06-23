@@ -5,7 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-06-11"
 parent_module: OficinaAuto
-states: [default, empty, loading, dark, error]  # gate L2 (estados isolados VRT) — sync com tests/Browser/visreg-states.json
+states: [default, empty, dark, error]  # gate L2 — loading podado: render igual ao default nesta tela (md5 #3288) · sync com tests/Browser/visreg-states.json
 related_adrs:
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
