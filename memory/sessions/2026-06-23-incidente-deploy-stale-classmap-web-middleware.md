@@ -1,5 +1,5 @@
 ---
-date: 2026-06-23
+date: "2026-06-23"
 hour: "16:00 BRT"
 duration: "2h"
 topic: "Incidente prod 500 (recorrente) por classmap-authoritative stale — variante middleware WEB; hardening do deploy.yml + verify-classmap + avaliação release atômico"
