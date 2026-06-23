@@ -10,7 +10,7 @@ related_adrs: [104, 110, 149, 93]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/vendas-cockpit/"
+  blueprint_cowork: "prototipo-ui/cowork/vendas-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
   derived_screens: [Drafts]
   divergence_from_blueprint: "Lista simplificada (sem KPI múltiplos, sem filter pills) — só rascunhos pendentes. Reusa endpoint AJAX DataTables legacy."

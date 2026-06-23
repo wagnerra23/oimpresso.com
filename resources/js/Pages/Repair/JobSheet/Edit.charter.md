@@ -8,7 +8,7 @@ parent_module: Repair
 related_adrs: [104, 143, 93]
 tier: A
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/os/"
+  blueprint_cowork: "prototipo-ui/cowork/os-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Edit]
   divergence_from_blueprint: "form de edição completo (blueprint mostra apenas drawer-detail)"

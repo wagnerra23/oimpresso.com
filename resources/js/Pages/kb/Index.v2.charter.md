@@ -17,9 +17,9 @@ related_adrs:
   - 0114-prototipo-ui-cowork-loop-formalizado
 related_briefing: ../../../memory/requisitos/KB/BRIEFING.md
 related_schema: ../../../memory/requisitos/KB/SCHEMA-DB-V1.md
-related_prototipo: ../../../prototipo-ui/prototipos/kb/
+related_prototipo: ../../../prototipo-ui/cowork/kb-page.jsx
 mwart_pattern_reuse:
-  blueprint_cowork: prototipo-ui/prototipos/kb/kb-page.jsx
+  blueprint_cowork: prototipo-ui/cowork/kb-page.jsx
   blueprint_screenshot_approval: pendente (gate F1.5)
   derived_screens: [Index.v2]
   divergence_from_blueprint: "tri-pane sidebar+lista+leitor (port direto JSX→TSX)"
@@ -31,7 +31,7 @@ mwart_pattern_reuse:
 
 ## Mission
 
-Port do protótipo Cowork `prototipo-ui/prototipos/kb/kb-page.jsx` pra Inertia React 19 + TS estrito + AppShellV2 + tokens OKLCH hue 240. Visualizar KB Unificado em layout **tri-pane** (sidebar categorias + lista nós + leitor markdown) com command palette ⌘K, troubleshooter dialog, paths dialog, e health panel.
+Port do protótipo Cowork `prototipo-ui/cowork/kb-page.jsx` pra Inertia React 19 + TS estrito + AppShellV2 + tokens OKLCH hue 240. Visualizar KB Unificado em layout **tri-pane** (sidebar categorias + lista nós + leitor markdown) com command palette ⌘K, troubleshooter dialog, paths dialog, e health panel.
 
 ## Goals (faz)
 
@@ -113,7 +113,7 @@ it('keyboard ⌘K opens CommandPalette / opens search')
 
 ## Refs
 
-- Blueprint Cowork: `prototipo-ui/prototipos/kb/kb-page.jsx`
+- Blueprint Cowork: `prototipo-ui/cowork/kb-page.jsx`
 - Charter v1: [`Index.charter.md`](Index.charter.md) (V3 atual)
 - [ADR 0110 — Cockpit Pattern V2](../../../../memory/decisions/0110-cockpit-pattern-v2-canon-list-detail.md)
 - [ADR 0114 — Loop Cowork formalizado](../../../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)

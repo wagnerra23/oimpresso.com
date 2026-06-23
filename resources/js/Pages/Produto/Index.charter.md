@@ -9,7 +9,7 @@ related_adrs: [110, 107, 93, 104, 149]
 tier: A
 charter_version: 2
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/produto-cockpit/"
+  blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente — Wave 2 B4 Produto 2026-05-15)"
   derived_screens: [Create, Show, Edit, SellingPrices, BulkEdit, StockHistory]
   divergence_from_blueprint: "none — Index é o blueprint canon B4 Produto"
@@ -17,7 +17,7 @@ mwart_pattern_reuse:
 
 # Page Charter — /products (DRAFT — Wave 2 B4 Produto pattern reuse)
 
-> **Status:** draft v2 atualizado 2026-05-15 (Wave 2 B4 Produto Agent W2-C). Blueprint visual definido: `prototipo-ui/prototipos/produto-cockpit/` (cockpit-page.jsx + Produtos Cockpit.html + visual-source.html). Pattern serve de blueprint pras 6 telas derivadas (Create/Show/Edit/SellingPrices/BulkEdit/StockHistory) — ADR 0149.
+> **Status:** draft v2 atualizado 2026-05-15 (Wave 2 B4 Produto Agent W2-C). Blueprint visual definido: `prototipo-ui/cowork/produtos-page.jsx` (cockpit-page.jsx + Produtos Cockpit.html + visual-source.html). Pattern serve de blueprint pras 6 telas derivadas (Create/Show/Edit/SellingPrices/BulkEdit/StockHistory) — ADR 0149.
 >
 > Versão v1 (2026-05-09) referenciava `prod-page.jsx` (6.5 KB grid-first). v2 promove para blueprint cockpit completo. Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >

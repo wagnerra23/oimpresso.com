@@ -36,8 +36,8 @@ function git(args) {
 
 function lint() {
   const all = (git('ls-files') || '').split('\n').filter(Boolean);
-  const bundle = all.filter(p => /^prototipo-ui\/cowork-/.test(p));
-  if (!bundle.length) { log('bundle-lint: nenhum bundle versionado (prototipo-ui/cowork-*) — nada a checar.'); return 0; }
+  const bundle = all.filter(p => /^prototipo-ui\/cowork[-/]/.test(p));
+  if (!bundle.length) { log('bundle-lint: nenhum bundle versionado (prototipo-ui/cowork/ ou cowork-*) — nada a checar.'); return 0; }
   const hits = bundle.filter(f => RESIDUO.some(re => re.test(f)));
   log(`bundle-lint · ${bundle.length} arquivo(s) no bundle · ${hits.length} resíduo(s)`);
   for (const h of hits) log('X resíduo: ' + h);
