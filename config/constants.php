@@ -52,6 +52,12 @@ return [
     'new_notification_count_interval' => 60, //Interval to check for new notifications in seconds;Default is 60sec
 
     'administrator_usernames' => env('ADMINISTRATOR_USERNAMES'),
+
+    // Empresa operadora (oimpresso / WR2). Fonte única do biz do operador — o Modo
+    // Suporte (ADR 0305) NUNCA alcança esta empresa. Default 1; nunca chumbar `=== 1`
+    // espalhado no código (prepara multi-operador no futuro).
+    'operator_business_id' => (int) env('OPERATOR_BUSINESS_ID', 1),
+
     'allow_registration' => env('ALLOW_REGISTRATION', true),
     'app_title' => env('APP_TITLE'),
 
