@@ -73,7 +73,12 @@ afterEach(fn () => \Carbon\Carbon::setTestNow());
  */
 function isolatedStatesCases(): array
 {
-    $path = base_path('tests/Browser/visreg-states.json');
+    // dirname(__DIR__) = tests/Browser (este arquivo vive em tests/Browser/CoreScreens/).
+    // NÃO usar base_path() aqui: esta função roda na COLETA do Pest (top-level do arquivo),
+    // ANTES do app Laravel bootar — `app()` é só um Container cru sem ->basePath(), entao
+    // base_path() dá "Call to undefined method Container::basePath()" e o arquivo inteiro
+    // erra na coleta (0 testes, 0 baselines → gate vácuo). __DIR__ resolve sem o app.
+    $path = dirname(__DIR__) . '/visreg-states.json';
     $manifest = json_decode((string) @file_get_contents($path), true);
 
     if (! is_array($manifest) || ! isset($manifest['screens']) || ! is_array($manifest['screens'])) {
