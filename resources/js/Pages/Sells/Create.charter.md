@@ -5,7 +5,6 @@ owner: wagner
 status: live
 last_validated: "2026-06-02"
 parent_module: Sells
-states: [default, dark]  # gate L2 (form: sem empty/loading) — error removido (toast não determinístico, md5 #3290) · sync com tests/Browser/visreg-states.json
 related_adrs: [110, 107, 104, 93, 105]
 tier: A
 charter_version: 2
