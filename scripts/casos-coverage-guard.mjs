@@ -115,9 +115,12 @@ function trioViolations(pages) {
 // ---------------------------------------------------------------------------
 // G-2 — rastreabilidade caso↔teste
 // ---------------------------------------------------------------------------
-// UC-id canônico: UC-<sufixo opcional letras><dígitos>[letra]. Ex: UC-01, UC-06, UC-V05,
-// UC-F02, UC-10b. Conservador pra não capturar "UC-" solto ou prosa.
-const UC_RE = /\bUC-[A-Z]{0,3}\d{1,3}[a-zA-Z]?\b/g;
+// UC-id canônico: UC-<sufixo opcional letras>[-]<dígitos>[letra]. Ex: UC-01, UC-06,
+// UC-V05, UC-F02, UC-10b, E o formato com hífen UC-IMP-01 / UC-FORJA-01 / UC-SC-08.
+// Prefixo até 6 letras + hífen opcional: o limite antigo ({0,3} sem hífen) era CEGO a
+// UC-IMP-*/UC-FORJA-* — 35 UCs declarados invisíveis ao gate (audit 2026-06-22). Segue
+// conservador pra não capturar "UC-" solto ou prosa.
+const UC_RE = /\bUC-[A-Z]{0,6}-?\d{1,3}[a-zA-Z]?\b/g;
 
 function listCasosFiles() {
   return walk(PAGES_DIR, (full, name) => name.endsWith('.casos.md')).map(norm).sort();
