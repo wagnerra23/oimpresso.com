@@ -1,46 +1,48 @@
 # RECONCILIAÇÃO — Cowork export → memória canônica (livro-razão)
 
-> **REGRA-MÃE (Wagner 2026-06-23):** a **única fonte de memória aceita é a canônica do repo** (`memory/**`, sincronizada pro **MCP** via webhook GitHub→push). Todo conteúdo **novo** de um handoff Cowork é **absorvido** ("sugado") pra cá. O Cowork **NÃO mantém memória paralela** — ele **lê a SUA memória** (via MCP / snapshot read-only). Este arquivo é o **livro-razão mantido**: o que já foi analisado, conciliado e absorvido — pra o processo ser organizado e **idempotente** (não re-absorver, não perder o novo).
+> **REGRA-MÃE (Wagner 2026-06-23):** a **única fonte de memória aceita é a canônica do repo** (`memory/**`, sincronizada pro **MCP** via webhook no merge p/ `main`). O Cowork **NÃO mantém memória paralela** — ele **lê a SUA** (via MCP / snapshot read-only). Este arquivo é o **livro-razão mantido** do que já foi analisado e conciliado — pra o processo ser organizado e **idempotente**.
+
+## ⭐ Memória é DESTILADA, não despejada (qualidade > volume)
+A memória boa é **1 assunto = 1 doc, ancorado à fonte viva, com histórico de evolução, guardando só o RESUMO destilado** — não a conversa crua. É o padrão que o repo já tem: **ADR** (1 decisão, append-only) · **SPEC** (ancorada por `anchor-lint`/ADR 0297) · **charter** (1 tela, versão+evolução) · **reference** (fato destilado).
+
+**Sessão crua = diário de conversa ≠ memória.** Despejar `memory/sessions/*` do export no canon **duplica e vira ruído** (e reprova o gate `Session log`). Por isso:
+- Conhecimento de tela vindo de uma sessão → **destila o resumo no charter/SPEC daquela tela** (atualiza o doc do assunto, não cria outro).
+- A **sessão crua fica no arquivo do Cowork** (recuperável), **fora do canon**.
+- Anti-duplicação: se o assunto já tem doc, **evolui** o doc; nunca um arquivo novo repetindo contexto.
 
 ## Fluxo (repetível a cada handoff)
 1. Extrair o zip do export.
 2. **Camada de design** (jsx/tsx/css/html/charters/casos) → `prototipo-ui/cowork/` (overwrite + commit = linhagem de diff). Ver [ADR-proposta SSOT](../memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md).
-3. **Memória** (`memory/**` do export) → cruza com o canon; **só o que é NOVO** é copiado pro `memory/**` canônico (mesmo path). Registra aqui.
-4. **Push → PR → merge `main`** → webhook **GitHub→MCP** ingere → time + Cowork passam a ler via MCP. _É assim que a memória "entra no fluxo do MCP"._
-5. **Transporte** (imagens, dupes, bridge-prompts já processados) → **descartado** (fica só no zip original).
+3. **Memória** → **DESTILAR** o que é novo por-tela/por-assunto no **charter/SPEC/ADR ancorado** (resumo + evolução). Sessão/conversa crua **NÃO** entra no canon. Registrar aqui.
+4. **Push → PR → merge `main`** → webhook **GitHub→MCP** ingere a memória destilada → time + Cowork leem via MCP.
+5. **Transporte** (imagens, dupes, prompts já processados, sessões cruas) → fora do canon.
 
 ## Conciliação 2026-06-23 (export "Oimpresso ERP Comunicação Visual")
 Export = 1182 entradas (workspace inteiro do Cowork).
 
-### ✅ ABSORVIDO pro `memory/` canônico (75 novos — vão pro fluxo MCP no merge)
-| Grupo | Qtd | Path canônico |
+### 🔄 Memória — DESTILAR (não despejar)
+Primeira passada despejou 75 `memory/` cruas no canon → **revertido** (reprovava `Session log` e duplicava). Disposição correta:
+| Grupo do export | Qtd | Disposição |
 |---|---|---|
-| Sessions por-tela (análises que decidem o build) | 49 | `memory/sessions/2026-05-30..06-12-*.md` |
-| Propostas de decisão (Cowork) | 11 | `memory/decisions/_PROPOSTA-*.md` |
-| Sprint docs (s2-os-listagem, s3-handoff-mcp) | 10 | `memory/sprints/**` |
-| Método de design | 5 | `memory/{CONTEXTO-DE-TELA,FRESCOR-DE-TELA,APRENDER-COM-ERRO,TESTES_ESPINHA,HANDOFF}.md` |
+| `sessions/2026-*` (diários por-tela) | 49 | **Destilar** o resumo por-tela no charter/SPEC; **crua → arquivo Cowork**, não-canon |
+| `decisions/_PROPOSTA-*` | 11 | Avaliar 1-a-1: viva → ADR `memory/decisions/proposals/` (1 assunto, supersede); senão arquiva |
+| `sprints/{s2,s3}` | 10 | Histórico → arquivo (não ativo) |
+| método (`CONTEXTO-DE-TELA`, `FRESCOR-DE-TELA`, `APRENDER-COM-ERRO`, `TESTES_ESPINHA`, `HANDOFF`) | 5 | Checar duplicação vs canon existente antes de virar `reference` |
+| `memory/*` idênticos ao canon | 21 | Descartado (redundante) |
 
-> ⚠️ Estes 75 entraram crus do Cowork — podem precisar normalizar frontmatter pros gates (`memory-schema`, `anchor-lint`) antes do merge. O merge é o que dispara o MCP.
-
-### ⏭️ JÁ NO CANON (21) — não reabsorver
-21 `memory/*` do export idênticos ao repo (cópia redundante do snapshot). Descartados do transporte.
+> **A FAZER (destilação):** por tela tocada nas 49 sessions, extrair o resumo de decisão de build pro charter/SPEC ancorado. Pendente de priorização [W].
 
 ### 🗑️ DESCARTE — transporte/lixo (568) — Cowork pode parar de exportar
-- 560 `.png` (screenshots + capturas de auditoria — derivados regeneráveis)
-- 2 duplicatas cache-bust (`app.jsx?v=eb2`, `clientes-page.jsx?v=ph3`)
-- 6 avulsos (`.thumbnail`, `vendas.css.bak`, `.napkin`, `.proposto`, 1 `.sh`, 1 `.py`)
+- 560 `.png` · 2 duplicatas `?v=` · 6 avulsos (`.thumbnail`/`.bak`/`.napkin`/`.proposto`/`.sh`/`.py`)
 
-### 📦 ARQUIVO do design (70) — NÃO absorvido (arquivado pelo próprio Cowork); raw no zip
-- `_arquivo/bridge-processados/*` (13) — PROMPTs/GAPS já processados
-- `_arquivo/ds-historico/*` (7) + `_arquivo/ds/*` (4) — Design System v1.1→v5 (superados por DS v6)
-- `_arquivo/{exploracoes,referencia,relatorios,telas,sessao-2026-05-30,venda-estado-da-arte,...}` (~46) — diagnósticos/benchmarks arquivados
-- `uploads/*` (4) — Casos de Uso (cobertos pelos `*.casos.md` no `cowork/`) + Mobile DS
-> **Candidatos a absorver sob demanda** (se Wagner marcar fundamental): `_arquivo/referencia/Diagnóstico Vendas KB-9.75`, `.../Cadastro de Contacts - Diagnóstico KB-9.75`, `_arquivo/telas/Frescor - Clientes vs Financeiro`.
+### 📦 ARQUIVO do design (70) — fora do canon; raw no zip
+`_arquivo/**` (66: bridge-prompts processados, DS v1→v5, diagnósticos/benchmarks arquivados) + `uploads/*` (4: casos já cobertos pelos `*.casos.md` no `cowork/`).
+> Candidatos a destilar sob demanda: `_arquivo/referencia/Diagnóstico Vendas KB-9.75`, `.../Cadastro de Contacts - Diagnóstico KB-9.75`, `_arquivo/telas/Frescor - Clientes vs Financeiro`.
 
 ### 🎨 LANDADO no SSOT `cowork/` (447) — camada de design (não-memória)
-Source das telas + `.html` de crítica/tribunal/estado-da-arte + `*.charter.md` + `*.casos.md`. Ver [ADR-proposta SSOT](../memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md).
+Source das telas + `.html` crítica/tribunal/estado-da-arte + `*.charter.md` + `*.casos.md`.
 
 ## Índice de handoffs conciliados
-| Data | Export | Absorvidos | Descartados | Commit |
+| Data | Export | Memória (destilada) | Descartado | Commit |
 |---|---|---|---|---|
-| 2026-06-23 | Oimpresso ERP Comunicação Visual | 75 | 568 transporte + 21 redundante + 70 arquivo | (este PR) |
+| 2026-06-23 | Oimpresso ERP Comunicação Visual | 0 cru no canon · destilação por-tela pendente | 568 transporte + 21 redundante + 70 arquivo + 75 sessions cruas (revertidas) | (este PR) |
