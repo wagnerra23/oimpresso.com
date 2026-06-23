@@ -267,7 +267,7 @@ Então só vê emissões/regras/certificados com `business_id = A`
 ```
 
 **Implementação:** Trait `BusinessScope` em todo Model.
-**Testado em:** `Modules/NfeBrasil/Tests/Feature/MultiTenantIsolationTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php`.
 
 ### R-NFE-002 · Permissões Spatie por área
 
@@ -278,7 +278,7 @@ Então recebe 403
 ```
 
 **Implementação:** `Route::middleware('can:...')` no group. 14 permissões registradas no boot.
-**Testado em:** `SpatiePermissionsTest`.
+**Testado em:** _lacuna — SpatiePermissionsTest não existe em NfeBrasil (só `Modules/Ponto/Tests/Feature/SpatiePermissionsTest.php`, que é de Ponto, não cobre permissões NFe)_.
 
 ### R-NFE-003 · Numeração sequencial garantida (sem gap)
 
@@ -290,7 +290,7 @@ E não há gap nem dupla numeração
 ```
 
 **Implementação:** `NumberSequenceService::next()` com `lockForUpdate` em transação. Para NFC-e, sequencial por `(business_id, serie)`.
-**Testado em:** `NumberSequenceConcorrenciaTest` — 50 jobs em paralelo (Linux only).
+**Testado em:** _lacuna — NumberSequenceConcorrenciaTest (50 jobs concorrentes / no-gap) não existe. A unicidade da numeração por tenant é coberta por `Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php` (UNIQUE biz, modelo, serie, numero) e `Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php` (numeração isolada por business), mas o cenário de concorrência/lockForUpdate em si não tem teste_.
 
 ### R-NFE-004 · Cert digital expirado bloqueia emissão
 
@@ -302,7 +302,7 @@ E aparece banner em todas as telas administrativas pra renovar
 ```
 
 **Implementação:** `CertificadoGuard::ensureValid()` rodada antes de qualquer call SEFAZ.
-**Testado em:** `CertExpiradoTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php` (cenário `rejeita cert expirado` → throw com mensagem `expirado`; complementado por `NfeCertificado::isVencido()` em `Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php`).
 
 ### R-NFE-005 · Idempotência de emissão
 
@@ -313,7 +313,7 @@ Então a 2ª execução retorna a emissão existente (sem chamar SEFAZ de novo)
 ```
 
 **Implementação:** `nfe_emissoes` tem `UNIQUE (business_id, transaction_id, modelo)`. Service faz `firstOrCreate`.
-**Testado em:** `EmissaoIdempotenciaTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php` (idempotência SEFAZ + retry safety: status autorizada/pendente → no-op; complementado por `Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php`, cenário `UNIQUE(business_id, transaction_id) garante idempotência`).
 
 ### R-NFE-006 · Storage cert criptografado at rest
 
@@ -325,7 +325,7 @@ E só é decifrável com a chave de criptografia do business
 ```
 
 **Implementação:** `CertificateStorageService` usa `openssl_encrypt` com chave por business salva em `nfe_business_keys` (rotacionável).
-**Testado em:** `CertStorageEncryptionTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php` (cenário `salvar() persiste cert encrypted + senha encrypted`: conteúdo do storage NÃO é o binary plain — é encrypted; senha roundtrip via `Crypt`).
 
 ### R-NFE-007 · Senha do cert NUNCA é logada
 
@@ -336,7 +336,7 @@ Então a senha não aparece em nenhum log
 ```
 
 **Implementação:** FormRequest tem `dontFlash = ['senha']` + audit log filtra `senha`.
-**Testado em:** `CertSenhaNaoLogadaTest`.
+**Testado em:** _lacuna — CertSenhaNaoLogadaTest não existe; nenhum teste asserta que a senha não aparece em `laravel.log`/`activity_log`. A senha encriptada e oculta em serialização é coberta por `Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php` (cenário `NfeCertificado esconde encrypted_password em toArray()`), mas a redação em log especificamente não tem teste_.
 
 ### R-NFE-008 · Cancelamento dentro do prazo legal
 
@@ -351,7 +351,7 @@ Então recebe 422 com erro "fora do prazo legal NFC-e (24h)"
 ```
 
 **Implementação:** `CancelamentoService::ensureDentroDoPrazo()` switch por modelo (55: 168h; 65: 24h).
-**Testado em:** `CancelamentoPrazoTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php` (cenários `isCancelavel — NFC-e dentro/após 24h` e `NFe modelo 55 tem 168h`; complementado por `Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php`, `isCancelavel() respeita prazos CONFAZ 24h/168h`).
 
 ### R-NFE-009 · Detecção de SEFAZ down → contingência sugerida
 
@@ -363,7 +363,7 @@ E permite forçar emissão online (com risco) ou aceitar contingência
 ```
 
 **Implementação:** Health check job a cada 30s grava `sefaz_status`; UI consulta antes de habilitar emissão online.
-**Testado em:** `ContingenciaSugestaoTest`.
+**Testado em:** _lacuna — ContingenciaSugestaoTest não existe; nenhum teste cobre `SefazHealthCheck` 3 falhas → sugestão de contingência_.
 
 ### R-NFE-010 · Retenção XML 5 anos imutável
 
@@ -375,7 +375,7 @@ Então o XML original ainda está lá, com hash SHA256 batendo com `nfe_emissoes
 ```
 
 **Implementação:** Storage `storage/app/nfe-brasil/{business_id}/xmls/{ano}/{mes}/{chave}.xml` (read-only após escrita); `xml_hash` na tabela; rotina diária verifica integridade.
-**Testado em:** `XmlImutabilidadeTest`.
+**Testado em:** _lacuna — XmlImutabilidadeTest não existe; nenhum teste valida `xml_hash` SHA256 batendo nem imutabilidade read-only do XML após 5 anos_.
 
 ### R-NFE-011 · Schema CBS/IBS vazio em 2026, preenchido conforme legislação
 
@@ -387,7 +387,7 @@ E o XML emitido NÃO inclui blocos CBS/IBS
 ```
 
 **Implementação:** Schema flexível; `MotorTributarioService` skip CBS/IBS se rule é NULL.
-**Testado em:** `MotorTributarioCbsIbsNullTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php` (schema flexível IBS/CBS: colunas nullable `cst_ibs`/`cst_cbs`/`aliquota_ibs`/`aliquota_cbs` em `$fillable` + casts; cascade do motor coberto por `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php`).
 
 ### R-NFE-012 · Não-emissão NÃO bloqueia venda (assíncrono)
 
@@ -400,7 +400,7 @@ E job retentativa fica na fila
 ```
 
 **Implementação:** `EmitirNfceJob` em queue retry exponencial; UI vê fila em `/nfe-brasil/monitor`.
-**Testado em:** `EmissaoAssincronaTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php` (listener despacha `EmitirNfceJob` em queue ao finalizar venda `payment_status=paid` sem bloquear a venda; filtro `payment_status` e gate per-business; dispatch do job em si coberto por `Modules/NfeBrasil/Tests/Feature/EmitirNfceJobTest.php`).
 
 ### R-NFE-013 · Audit log Spatie em toda mutação fiscal
 
@@ -411,7 +411,7 @@ Então existe row com causer + subject + properties (chave, cStat, valor)
 ```
 
 **Implementação:** Trait `LogsActivity` em `NfeEmissao`, `NfeEvento`, `Certificado`, `FiscalRule`.
-**Testado em:** `AuditoriaNfeTest`.
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php` (D7: `NfeEmissao`+`NfeEvento`+`NfeInutilizacao` usam `LogsActivity` + `getActivitylogOptions` loga apenas campos canon; complementado por `Modules/NfeBrasil/Tests/Feature/Wave23SaturationTest.php`).
 
 ### R-NFE-014 · Webhook SEFAZ idempotência (consulta status)
 
@@ -422,7 +422,7 @@ Então `nfe_consultas.cache_key` UNIQUE bloqueia a 2ª de processar de novo
 ```
 
 **Implementação:** Cache de consulta com TTL + UNIQUE em `consultas` por chave + tipo.
-**Testado em:** `ConsultaIdempotenciaTest`.
+**Testado em:** _lacuna — ConsultaIdempotenciaTest não existe; nenhum teste cobre `nfe_consultas.cache_key` UNIQUE bloqueando reprocessamento da 2ª resposta_.
 
 ## 4. Decisões pendentes
 
