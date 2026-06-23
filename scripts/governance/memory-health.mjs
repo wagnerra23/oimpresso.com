@@ -20,6 +20,9 @@
  *   E · ADR ENUM-DRIFT — status/lifecycle de ADR fora do enum canônico
  *       (accepted vs aceito, active vs ativo, canon/feature_wish inválidos).
  *       É o que impede a contagem limpa de "ADRs ativos". (🟡 warn.)
+ *   N · COLISÃO US-ID — US-<MOD>-NNN duplicado entre/dentro dos SPEC.md (sibling do
+ *       Check A pra histórias). Ratchet-grandfathered (como C/L): 🔴 fail só em dup NOVO
+ *       acima do baseline. Use next-id.mjs pra alocar sem colidir. (ADR 0304.)
  *
  * Uso:
  *   node scripts/governance/memory-health.mjs            (CI: exit 1 se algum 🔴)
@@ -42,10 +45,11 @@ const STALE_MONTHS = 6; // doc canon parado > 6 meses = candidato a revisão
 // acima do teto por arquivo. Aceitos (ex: default Firebird "masterkey") ficam no baseline.
 const BASELINE_FILE = 'scripts/governance/.memory-health-baseline.json';
 const UPDATE_BASELINE = process.argv.includes('--update-baseline');
-const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [], checkM: [] };
+const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [], checkM: [], checkN: [] };
 let checkCByFile = {};
 let checkLSlugs = []; // Check L (ADR vivo-mas-proposto): slugs detectados nesta run
 let checkMKeys = []; // Check M (teto de governança): keys de workflow do registry nesta run
+let checkNIds = []; // Check N (colisão US-ID): IDs duplicados detectados nesta run
 
 const fails = []; // 🔴 bloqueia CI
 const warns = []; // 🟡 só sinaliza
@@ -91,6 +95,35 @@ function checkAdrCollisions() {
       fails.push({ check: 'A', kind: 'colisao-adr-nao-registrada', num, files,
         msg: `ADR ${num} colidiu (${files.length} arquivos) e NÃO está registrado em _INDEX-LIFECYCLE.md — registre a colisão (ADR 0180) ou referencie por slug.` });
     }
+  }
+}
+
+// ── Check N: colisão de US-ID (sibling do Check A pra histórias) ────────────
+// US-<MOD>-NNN definido (heading `### US-...`) mais de uma vez entre/dentro dos SPEC.md.
+// Mesma causa-raiz das colisões de ADR: alocação cega (ADR 0304). Ratchet como C/L: os
+// dups LEGADOS ficam no baseline (.checkN); só dup NOVO acima do baseline 🔴 falha — assim
+// não quebra a main (4 dups herdados) mas BARRA colisão nova. Promoção/limpeza encolhe o
+// baseline à vista. Aloque sem colidir com `node scripts/governance/next-id.mjs us <PREFIXO>`.
+function checkUsCollisions() {
+  const reqRoot = 'memory/requisitos';
+  if (!exists(reqRoot)) return;
+  const byId = {};
+  for (const d of readdirSync(join(ROOT, reqRoot), { withFileTypes: true })) {
+    if (!d.isDirectory()) continue;
+    const sp = `${reqRoot}/${d.name}/SPEC.md`;
+    if (!exists(sp)) continue;
+    let txt; try { txt = read(sp); } catch { continue; }
+    for (const m of txt.matchAll(/^###\s+(US-[A-Z]+-\d+)\b/gm)) (byId[m[1]] ??= []).push(d.name);
+  }
+  const dups = Object.entries(byId).filter(([, locs]) => locs.length > 1);
+  checkNIds = dups.map(([id]) => id).sort();
+  if (UPDATE_BASELINE) return; // no modo update só capturamos
+  const grandfathered = new Set(baseline.checkN || []);
+  const novos = dups.filter(([id]) => !grandfathered.has(id));
+  if (novos.length) {
+    fails.push({ check: 'N', kind: 'colisao-us-id', count: novos.length,
+      sample: novos.slice(0, 15).map(([id, locs]) => `${id} (${locs.length}× — ${[...new Set(locs)].join(', ')})`),
+      msg: `${novos.length} US-ID(s) duplicado(s) NOVO(s) nos SPEC.md — alocação cega (ADR 0304). Aloque com \`node scripts/governance/next-id.mjs us <PREFIXO>\`. Se legítimo (ex: renumeração em curso), rode --update-baseline. (Check N · sibling do Check A)` });
   }
 }
 
@@ -481,6 +514,7 @@ function checkAdrVivoMasProposto() {
 
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
+checkUsCollisions(); // Check N (fail-class ratchet) — colisão de US-ID, sibling do Check A
 checkScorecardFantasma();
 checkSecretsInMemory();
 checkStaleCanon();
@@ -495,8 +529,8 @@ try { checkPlanHealth(); } catch (e) { warns.push({ check: 'J', kind: 'plan-heal
 try { checkSessionDecisionAnchor(); } catch (e) { warns.push({ check: 'K', kind: 'session-anchor-error', msg: 'session-anchor falhou (não bloqueia): ' + e.message }); }
 
 if (UPDATE_BASELINE) {
-  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort(), checkM: checkMKeys.slice().sort() }, null, 2) + '\n');
-  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto · Check M: ${checkMKeys.length} workflows grandfathered)`);
+  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort(), checkM: checkMKeys.slice().sort(), checkN: checkNIds.slice().sort() }, null, 2) + '\n');
+  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto · Check M: ${checkMKeys.length} workflows grandfathered · Check N: ${checkNIds.length} US-IDs dup grandfathered)`);
   process.exit(0);
 }
 

@@ -84,6 +84,20 @@ function runMemoryHealth(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// memory-health Check N (colisão de US-ID · ADR 0304): mesmo sandbox por cwd, mas a fixture
+// traz memory/requisitos/<mod>/SPEC.md. good = US-IDs únicos → exit 0 ("saudável"); bad = US-ID
+// duplicado (heading `### US-...` repetido) → exit 1, acusação 🔴 [N]. Baseline ausente no
+// sandbox ⇒ todo dup é NOVO ⇒ morde (prova o ratchet sem grandfather mascarar).
+function runMemoryHealthUs(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-memory-health-us-${kind}-`));
+  try {
+    cpSync(join(FIX, 'memory-health-us', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // baseline-tamper-guard depende de HISTÓRIA git (diff/show/log BASE..HEAD), não só
 // de cwd como os outros. Por isso o runner monta um sandbox git de verdade:
 //   commit base  = baseline APERTADO (ghost_count armado) + o script REAL copiado;
@@ -162,6 +176,12 @@ const CATRACAS = [
     id: 'memory-health',
     run: runMemoryHealth,
     expect: { good: /base de conhecimento saudável/, bad: /colidiu.*_INDEX-LIFECYCLE/ },
+  },
+  {
+    // Check N (colisão de US-ID · ADR 0304) — sibling do Check A pra histórias.
+    id: 'memory-health-us',
+    run: runMemoryHealthUs,
+    expect: { good: /base de conhecimento saudável/, bad: /\[N\][^\n]*duplicado/ },
   },
   {
     id: 'baseline-tamper-guard',
