@@ -352,32 +352,6 @@ jobs:
       #     Promover = REMOVER o `continue-on-error: true` deste step (sem clique de branch
       #     protection: o check `visual-regression` já é required — idêntico à nota do pixel-diff).
 
-      # ── L5 DIAGNÓSTICO (TEMPORÁRIO — NÃO MERGEAR): por que o Lighthouse dá CHROME_INTERSTITIAL? ──
-      # Sobe um serve isolado na 8092, curl-a o bridge + segue com cookie-jar, loga status/título/
-      # corpo do alvo /financeiro/unificado + logs do serve. Removido na PR de fix real.
-      - name: L5 DIAG — curl do app servido (advisory · temporário)
-        if: steps.changes.outputs.ui == 'true'
-        continue-on-error: true
-        env:
-          PHP_CLI_SERVER_WORKERS: "4"
-        run: |
-          php artisan serve --host=127.0.0.1 --port=8092 --no-reload > /tmp/serve8092.log 2>&1 &
-          SVPID=$!
-          for i in $(seq 1 30); do curl -sf -o /dev/null "http://127.0.0.1:8092/login" && { echo "serve 8092 up (try $i)"; break; }; sleep 1; done
-          echo "=== A) bridge SEM follow (headers) ==="
-          curl -sS -i "http://127.0.0.1:8092/_visreg-login/1?to=/financeiro/unificado" | head -20
-          echo "=== B) bridge + follow COM cookie-jar -> alvo ==="
-          curl -sS -L -c /tmp/cj -b /tmp/cj -o /tmp/page.html \
-            -w "HTTP=%{http_code} final=%{url_effective} bytes=%{size_download} redirects=%{num_redirects}\n" \
-            "http://127.0.0.1:8092/_visreg-login/1?to=/financeiro/unificado"
-          echo "=== C) head do corpo do alvo ==="
-          head -c 1800 /tmp/page.html; echo
-          echo "=== D) /financeiro/unificado DIRETO (com cookie) ==="
-          curl -sS -L -b /tmp/cj -o /dev/null -w "HTTP=%{http_code} final=%{url_effective}\n" "http://127.0.0.1:8092/financeiro/unificado"
-          echo "=== E) serve8092.log (tail) ==="
-          tail -40 /tmp/serve8092.log || true
-          kill $SVPID 2>/dev/null || true
-
       - name: Instalar Lighthouse CI (L5 — pin compatível com Node lts/* do runner)
         if: steps.changes.outputs.ui == 'true'
         # continue-on-error PERMANENTE (≠ lever de promoção): instalar o LHCI é INFRA do gate

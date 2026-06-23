@@ -2,7 +2,7 @@
   "ci": {
     "collect": {
       "numberOfRuns": 3,
-      "startServerCommand": "php artisan serve --host=127.0.0.1 --port=8091 --no-reload",
+      "startServerCommand": "APP_URL=http://127.0.0.1:8091 php artisan serve --host=127.0.0.1 --port=8091 --no-reload",
       "startServerReadyPattern": "Server running",
       "startServerReadyTimeout": 90000,
       "url": [
