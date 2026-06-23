@@ -337,6 +337,32 @@ function statusViolations(casosFiles, manifest) {
 }
 
 // ---------------------------------------------------------------------------
+// MÉTRICA ADVISORY — cobertura "mordida por EXECUÇÃO" (G-2 fase 1, US-GOV-031)
+// ---------------------------------------------------------------------------
+// O G-2 prova cobertura por `testCorpus.includes(uc)` — STRING-MATCH (o id aparece em
+// ALGUM teste). É fraco: uma citação/comentário "cobre". O alvo final ("mordida por
+// execução") é UC coberto = teste que EXECUTA e PASSA — sinal que JÁ existe no manifesto
+// scripts/casos-test-results.json (verdict por-UC, derivado de JUnit; o G-7 já o usa).
+//
+// FASE 1 (esta): NÃO flipa o gate, NÃO mexe no baseline, NÃO adiciona violação. Só TORNA
+// VISÍVEL o gap honesto: dos UCs DECLARADOS, quantos têm prova de EXECUÇÃO VERDE (manifesto
+// verdict==='pass')? UC sem entrada no manifesto, ou skip/fail, NÃO conta. É telemetria —
+// surface advisory. FASE 2 (futuro, gated) é exigir manifesto-pass; hoje seria destrutivo
+// (a maioria dos ~50 UCs declarados ainda não está no manifesto → órfão em massa).
+function execBackedMetric(ucDecls, manifest) {
+  const ucs = (manifest && manifest.ucs) || {};
+  // Conta UC-ids DISTINTOS (um mesmo UC pode aparecer em >1 casos.md; não dobra-contar).
+  const declared = new Set(ucDecls.map((d) => d.uc));
+  let backed = 0;
+  for (const uc of declared) {
+    if (ucs[uc] && ucs[uc].verdict === 'pass') backed += 1;
+  }
+  const total = declared.size;
+  const pct = total > 0 ? Math.round((backed / total) * 100) : 0;
+  return { backed, total, pct };
+}
+
+// ---------------------------------------------------------------------------
 // Cálculo
 // ---------------------------------------------------------------------------
 function computeViolations() {
@@ -345,11 +371,16 @@ function computeViolations() {
   const ucDecls = ucsInCasos(casosFiles);
   const testCorpus = buildTestCorpus();
 
+  const manifest = loadManifest();
+
   const trio = trioViolations(pages);
   const orphans = orphanUcViolations(ucDecls, testCorpus);
   const meta = metadataViolations(casosFiles);
   const stale = stalenessViolations(casosFiles);
-  const status = statusViolations(casosFiles, loadManifest());
+  const status = statusViolations(casosFiles, manifest);
+
+  // Advisory (NÃO entra em `violations`, NÃO afeta o baseline nem o exit code).
+  const execBacked = execBackedMetric(ucDecls, manifest);
 
   const all = [...trio, ...orphans, ...meta, ...stale, ...status].sort((a, b) => a.localeCompare(b));
   return {
@@ -366,6 +397,12 @@ function computeViolations() {
       status_lies: status.filter((v) => v.startsWith('status:lies')).length,
       status_unverified: status.filter((v) => v.startsWith('status:unverified')).length,
       status_stale: status.filter((v) => v.startsWith('status:stale-results')).length,
+      // Métrica advisory (G-2 fase 1, US-GOV-031): UCs DECLARADOS com prova de execução
+      // VERDE (manifesto verdict==='pass'). Telemetria honesta — torna visível o gap entre
+      // "string-match cobre" (G-2 hoje) e "teste EXECUTA e PASSA" (alvo). NÃO é violação.
+      exec_backed_ucs: execBacked.backed,
+      exec_backed_declared: execBacked.total,
+      exec_backed_pct: execBacked.pct,
     },
   };
 }
@@ -432,6 +469,13 @@ function main() {
     console.log(`Status SEM PROVA (✅ declarado sem teste verde — G-7): ${stats.status_unverified}`);
     console.log(`Status com RESULTADO velho (✅ provado, tela mudou depois — G-7): ${stats.status_stale}`);
     console.log(`\nTOTAL de violações (débito): ${violations.length}`);
+    // Métrica ADVISORY (G-2 fase 1, US-GOV-031) — "mordida por execução": o G-2 hoje prova
+    // cobertura por string-match (id citado em algum teste). Esta linha mostra quantos UCs têm
+    // prova de EXECUÇÃO VERDE (manifesto verdict==='pass'). NÃO é violação, NÃO entra no baseline.
+    console.log(
+      `\nUCs execução-backed (manifesto pass): ${stats.exec_backed_ucs} de ${stats.exec_backed_declared} declarados ` +
+        `(${stats.exec_backed_pct}%) — o resto é string-match ou sem prova [advisory, G-2 fase 1]`,
+    );
     console.log('\n→ F1 fotografa isso no baseline (não-bloqueante). F3 ratchet zera tela-a-tela.');
     process.exit(0);
   }
