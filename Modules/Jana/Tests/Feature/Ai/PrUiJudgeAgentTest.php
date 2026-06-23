@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Laravel\Ai\Attributes\Model;
 use Laravel\Ai\Attributes\Provider;
+use Laravel\Ai\Attributes\Temperature;
 use Modules\Jana\Ai\Agents\PrUiJudgeAgent;
 
 uses(Tests\TestCase::class);
@@ -27,6 +28,7 @@ uses(Tests\TestCase::class);
  *  002. model declarado = gpt-4o-mini (modelo com acesso confirmado)
  *  003. instructions() carrega contrato G-Eval (rationale ANTES do score)
  *  004. instructions() ainda carrega a Constituição UI v2 (4 camadas + AP1-AP8)
+ *  005. declara #[Temperature] >0 (self-consistency precisa de variância · 2026-06-23)
  *
  * @see memory/handoffs/2026-06-05-1430-parecer-pr2270-julgamento-ia-design.md
  * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
@@ -63,4 +65,14 @@ it('R-JANA-UI-JUDGE-004 — instructions() carrega Constituição UI v2 (4 camad
         ->toContain('PT-01')
         ->toContain('AP1')
         ->toContain('AP8');
+});
+
+it('R-JANA-UI-JUDGE-005 — declara #[Temperature] >0 (self-consistency exige variância)', function () {
+    // Sem temperatura as N amostras do UiJudgeConsensus seriam idênticas (greedy)
+    // e a confiança derivada da concordância seria FALSA (sempre 1.0). Esta catraca
+    // impede que um Edit futuro remova o atributo e reintroduza a "alucinação de ok".
+    $attrs = (new ReflectionClass(PrUiJudgeAgent::class))->getAttributes(Temperature::class);
+
+    expect($attrs)->not->toBeEmpty();
+    expect((float) $attrs[0]->getArguments()[0])->toBeGreaterThan(0.0);
 });
