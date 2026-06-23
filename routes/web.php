@@ -96,6 +96,63 @@ if (! app()->isProduction()) {
 
         return redirect($to);
     })->middleware('web')->name('visreg.login');
+
+    // GATE L2 — ESTADOS ISOLADOS do VRT (snapshot de empty/loading/dark/error por tela).
+    // Espelha o /_visreg-login (loga + redireciona), mas FORCA um estado isolado da tela
+    // antes do snapshot, fechando o maior gap de cobertura visual: hoje so o estado seedado
+    // (default) e snapshotado, entao regressao em empty/loading/dark/error passa batido.
+    //
+    // FONTE UNICA do mapa tela→{rota,estados}: tests/Browser/visreg-states.json (mesmo JSON
+    // que o IsolatedStatesBaselineTest e o scripts/visreg-states-lint.mjs leem — sem drift).
+    //
+    // Cada estado vem de um LEVER deterministico, SEM tocar controller/Page (mesmo principio
+    // nao-invasivo do L3 Tier0RenderIsolation — o estado vem do tenant logado + flag de
+    // sessao lida pelo VisregStateMiddleware):
+    //   - default    → admin do biz=1 (VisregTenantSeeder)
+    //   - empty      → admin do biz=98 (VisregEmptyTenantSeeder — tenant vazio por construcao)
+    //   - dark       → admin do biz=1 + flag 'dark' → middleware seta ui_theme=dark em memoria
+    //   - loading    → admin do biz=1 + flag 'loading' → middleware congela o Inertia::defer
+    //   - error      → admin do biz=1 + redirect()->with('error') → toast.error (app.tsx 8s)
+    //   - long-data  → admin do biz=1 (reservado; nenhuma tela declara no v1)
+    // NUNCA em producao (isProduction guard acima). `to` so path relativo (anti open-redirect).
+    Route::get('/_visreg-state/{tela}/{estado}', function (string $tela, string $estado, \Illuminate\Http\Request $request) {
+        $manifestPath = base_path('tests/Browser/visreg-states.json');
+        if (! is_file($manifestPath)) {
+            abort(404); // manifesto ausente (ex: tests/ nao deployado) — rota inerte.
+        }
+
+        $manifest = json_decode((string) file_get_contents($manifestPath), true);
+        $screen = $manifest['screens'][$tela] ?? null;
+        if (! is_array($screen) || ! in_array($estado, $screen['states'] ?? [], true)) {
+            abort(404); // tela desconhecida ou estado nao declarado pra ela.
+        }
+
+        // Resolve o admin do tenant certo (mesmo idioma skip-graceful dos browser tests):
+        // empty usa o biz=98 (tenant vazio); os demais usam o biz=1 (self seedado).
+        $businessId = $estado === 'empty'
+            ? \Database\Seeders\VisregEmptyTenantSeeder::BIZ_EMPTY
+            : 1;
+        $admin = \App\User::where('business_id', $businessId)->orderBy('id')->first();
+        if ($admin === null) {
+            abort(409, "Tenant biz={$businessId} nao seedado pro estado '{$estado}'.");
+        }
+
+        \Illuminate\Support\Facades\Auth::loginUsingId($admin->id);
+
+        // Flag de estado pro VisregStateMiddleware (dark/loading). Sempre (re)grava — pra
+        // estados sem lever de middleware (default/empty) ela so sobrescreve flag stale de
+        // um teste anterior na mesma sessao do browser (auto-cura entre testes).
+        $request->session()->put(\App\Http\Middleware\VisregStateMiddleware::SESSION_KEY, $estado);
+
+        $redirect = redirect((string) $screen['route']);
+
+        // error: flasheia a mensagem → HandleInertiaRequests expoe flash.error → toast.
+        if ($estado === 'error') {
+            $redirect->with('error', 'Falha ao carregar os dados (estado de teste do VRT — L2).');
+        }
+
+        return $redirect;
+    })->middleware('web')->name('visreg.state');
 }
 
 Route::middleware(['setData'])->group(function () {

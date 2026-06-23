@@ -5,6 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-06-02"
 parent_module: Sells
+states: [default, dark, error]  # gate L2 (estados isolados VRT — form: sem empty/loading) — sync com tests/Browser/visreg-states.json
 related_adrs: [110, 107, 104, 93, 105]
 tier: A
 charter_version: 2

@@ -6,6 +6,7 @@ status: draft
 status_detail: scaffold
 last_validated: "2026-05-25"
 parent_module: Compras
+states: [default, empty, loading, dark, error]  # gate L2 (estados isolados VRT) — sync com tests/Browser/visreg-states.json
 parent_spec: memory/requisitos/Compras/SPEC.md
 related_adrs: [93, 94, 101, 104, 107, 114, 141, 149]
 related_us: [US-COM-001]

@@ -1,0 +1,42 @@
+{
+  "_doc": "FONTE ÚNICA do gate L2 (snapshots de ESTADOS ISOLADOS do VRT). Consumida por 3 lados: (a) routes/web.php /_visreg-state/{tela}/{estado} (forca o estado), (b) tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php (gera 1 snapshot por tela×estado), (c) scripts/visreg-states-lint.mjs (prova que cada `states:` declarado no charter tem entrada aqui — e vice-versa). Editar este arquivo + o `states:` do charter JUNTOS; o lint falha se divergirem. PT-BR (RTL fora). Estados validos: default·empty·loading·dark·error·long-data (vocab em `valid_states`). Nasce ADVISORY (ADR 0271/0275).",
+  "valid_states": ["default", "empty", "loading", "dark", "error", "long-data"],
+  "screens": {
+    "sells-index": {
+      "route": "/sells",
+      "anchor": "Vendas",
+      "charter": "resources/js/Pages/Sells/Index.charter.md",
+      "states": ["default", "empty", "loading", "dark", "error"]
+    },
+    "clientes": {
+      "route": "/cliente",
+      "anchor": "Clientes",
+      "charter": "resources/js/Pages/Cliente/Index.charter.md",
+      "states": ["default", "empty", "loading", "dark", "error"]
+    },
+    "compras": {
+      "route": "/compras",
+      "anchor": "Compras",
+      "charter": "resources/js/Pages/Compras/Index.charter.md",
+      "states": ["default", "empty", "loading", "dark", "error"]
+    },
+    "financeiro-unificado": {
+      "route": "/financeiro/unificado",
+      "anchor": "Financeiro",
+      "charter": "resources/js/Pages/Financeiro/Unificado/Index.charter.md",
+      "states": ["default", "empty", "loading", "dark", "error"]
+    },
+    "oficina-os": {
+      "route": "/oficina-auto/ordens-servico",
+      "anchor": "Oficina Auto",
+      "charter": "resources/js/Pages/OficinaAuto/ServiceOrders/Board.charter.md",
+      "states": ["default", "empty", "loading", "dark", "error"]
+    },
+    "sells-create": {
+      "route": "/sells/create",
+      "anchor": "Adicionar venda",
+      "charter": "resources/js/Pages/Sells/Create.charter.md",
+      "states": ["default", "dark", "error"]
+    }
+  }
+}

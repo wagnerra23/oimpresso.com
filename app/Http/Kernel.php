@@ -53,6 +53,10 @@ class Kernel extends HttpKernel
             // mas NÃO entra no pipeline até Wagner aprovar canary. Pra ativar, descomente:
             // \App\Http\Middleware\RedirectLegacyContacts::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
+            // Gate L2 (estados isolados do VRT): le a flag `_visreg_state` (gravada pela
+            // rota env-guarded /_visreg-state) e forca dark/loading EM MEMORIA. No-op em
+            // producao (isProduction guard interno) e barato no caminho sem flag.
+            \App\Http\Middleware\VisregStateMiddleware::class,
         ],
 
         'api' => [
