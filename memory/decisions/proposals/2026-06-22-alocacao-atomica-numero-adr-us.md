@@ -1,19 +1,20 @@
 ---
 proposal_id: alocacao-atomica-numero-adr-us
-status: proposed
+status: accepted
 created: 2026-06-22
 proposed_by: claude-code
 decided_by: wagner
-decided_at:
+decided_at: 2026-06-22
+realized_by: 0304-alocacao-numero-ciente-trabalho-em-voo
 parent_adr: 0094
-related_adrs: [0028, 0180, 0257, 0271, 0298, 0303]
+related_adrs: [0028, 0180, 0257, 0271, 0298, 0303, 0304]
 type: governanca-mecanismo
 origem: sessão 2026-06-22 (re-montagem do tijolo anchor-fidelity → 3 colisões de número numa só sessão)
 ---
 
 # Proposta · Alocação de número (ADR/US) ciente de trabalho em voo — prevenir na fonte
 
-> **Status:** 🟡 **PROPOSED 2026-06-22** — aguarda decisão do Wagner.
+> **Status:** 🟢 **ACCEPTED 2026-06-22** — aprovada por Wagner ("aprovado merge"); realizada na [ADR 0304](../0304-alocacao-numero-ciente-trabalho-em-voo.md).
 > Origem: ao re-montar o tijolo anchor-fidelity (PR #3240), **3 colisões de número numa única sessão** — ADR 0297→0302→0303 (0297-excecao e doneness-lint #3239 tomaram 0297/0302 em paralelo) e US-GOV-043→044 (043 já era o charter_refs da onda-0). Wagner: *"verdade, precisa"*.
 
 ## Contexto

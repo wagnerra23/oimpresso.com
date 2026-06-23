@@ -116,5 +116,8 @@
     "ui-lint.yml",
     "visual-regression.yml",
     "xss-content-gate.yml"
+  ],
+  "checkN": [
+    "US-NFSE-001"
   ]
 }
