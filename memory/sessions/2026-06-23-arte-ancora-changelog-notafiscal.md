@@ -19,7 +19,7 @@ type: session
 
 ## Contexto e regra anti-stale
 
-Tudo lido de `C:\Users\wagne\_salvage-ap` (= origin/main, `D:\oimpresso.com` está 163 commits atrás). Base já pesquisada e reusada: `memory/sessions/2026-06-23-arte-ancora-spec-codigo.md` (rubrica de 8 propriedades + gaps G1/G2/G3). Âncora real lida linha-a-linha: `scripts/governance/anchor-lint.mjs` + `scripts/governance/doneness-lint.mjs`; ADRs `0273` (gramática), `0302` (fonte única done-ness), `0303` (wired+testado), `0105` (cliente como sinal). SPEC fiscal real: `memory/requisitos/NfeBrasil/SPEC.md` (1083 linhas, US-NFE-001..056 + R-NFE-001..014).
+Tudo lido de `C:\Users\wagne\_salvage-ap` (= origin/main, `D:\oimpresso.com` está 163 commits atrás). Base já pesquisada e reusada: `memory/sessions/2026-06-23-arte-ancora-spec-codigo.md` (rubrica de 8 propriedades + gaps G1/G2/G3). Âncora real lida linha-a-linha: `scripts/governance/anchor-lint.mjs` + `scripts/governance/doneness-lint.mjs`; ADRs `0273-anchor-spec-codigo-formato-canonico-fluxo-novo` (a §1 define a *gramática* canônica do campo `**Implementado em:**`; NÃO existe slug `...-gramatica.md`), `0302` (fonte única done-ness), `0303-anchor-lint-wired-testado-sa-a2-bis` (wired-check anti-zumbi + testado-check — é AQUI que vive o `**Testado em:**`, não no 0273), `0105` (cliente como sinal). SPEC fiscal real: `memory/requisitos/NfeBrasil/SPEC.md` (1083 linhas, US-NFE-001..056 + R-NFE-001..014).
 
 **A rubrica de 8 propriedades** (da base, reusada sem mudar): (1) verificável-por-máquina · (2) prova-existência · (3) prova-está-vivo · (4) prova-comportamento · (5) bidirecional · (6) sobrevive-refactor/rename · (7) não-gameável · (8) barata + grão-certo.
 
