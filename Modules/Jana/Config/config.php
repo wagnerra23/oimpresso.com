@@ -52,8 +52,11 @@ return [
     |                 calibra contra a série de 4 semanas (EVAL_PROTOCOL Onda 2).
     */
     'ui_judge' => [
-        'samples'       => (int) env('COPILOTO_UI_JUDGE_SAMPLES', 3),
-        'abstain_below' => (float) env('COPILOTO_UI_JUDGE_ABSTAIN_BELOW', 0.6),
+        // Hardcoded (não env): a regra larastan noEnvCallsOutsideOfConfig conta as
+        // chamadas env() deste arquivo num baseline fixo — knobs de tuning de um juiz
+        // de CI não valem furar esse teto. Wagner calibra editando aqui + config:clear.
+        'samples'       => 3,
+        'abstain_below' => 0.6,
     ],
 
     /*
