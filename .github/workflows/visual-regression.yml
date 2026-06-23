@@ -189,6 +189,11 @@ jobs:
         run: |
           php artisan db:seed --force
           php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
+          # TENANT-B SENTINELA (gate L3 Tier 0 — Tier0RenderIsolationTest): business 99 +
+          # admin id=99 + dado com token ZZLEAK99 nos campos visíveis. Sem este segundo
+          # tenant é IMPOSSÍVEL provar não-vazamento no render (o VisregTenantSeeder é
+          # mono-tenant). GATE REAL — se quebrar, o job falha. Vide VisregTenantBLeakSeeder.php.
+          php artisan db:seed --class=Database\\Seeders\\VisregTenantBLeakSeeder --force
           echo "=== seed check ==="
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count();"
 
@@ -217,7 +222,13 @@ jobs:
         # ConformanceProbesTest (PACOTE-Q9 PR-3): espelho CI da semântica G2/G3/G4 do
         # qa-conformance.js v2 (Cowork) — computed-style no Chromium real, drawer Oficina
         # com o estado "adicionando" ABERTO (o que vazava), controle-negativo embutido (L-31).
-        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php
+        #
+        # Tier0RenderIsolationTest (gate L3 — princípio #1 IRREVOGÁVEL, ADR 0093): prova no
+        # RENDER que a tela do biz=1 NÃO vaza dado do biz=99 (token ZZLEAK99) — nem no DOM
+        # visível (assertDontSee) nem no payload cru (data-page Inertia, via ->content()/
+        # ->script()). Dois lados: CONTROLE (biz=99 VÊ o token) + ISOLAMENTO (biz=1 NÃO vê).
+        # BLOCKING (sem continue-on-error): o princípio #1 não admite merge-vermelho.
+        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php tests/Browser/CoreScreens/Tier0RenderIsolationTest.php
 
       # ── Onda Q4 (US-GOV-013) — GATE VISUAL DE PIXEL das núcleo-6 ─────────────────────
       # FASE ADVISORY (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing):
