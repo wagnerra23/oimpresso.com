@@ -36,6 +36,7 @@
 
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, relative } from 'node:path';
+import { ucScanRe } from './lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
 const MANIFEST_PATH = resolve(ROOT, 'scripts/casos-test-results.json');
@@ -51,8 +52,9 @@ const RESULTS_DIR = resolve(ROOT, resultsIdx >= 0 ? argv[resultsIdx + 1] : 'test
 
 const norm = (p) => relative(ROOT, p).replace(/\\/g, '/');
 
-// UC-id canônico — MESMO regex do casos-coverage-guard.mjs (consistência).
-const UC_RE = /\bUC-[A-Z]{0,3}\d{1,3}[a-zA-Z]?\b/g;
+// UC-id: regex da fonte ÚNICA scripts/lib/uc-regex.mjs (ucScanRe). Antes este arquivo tinha
+// uma cópia {0,3} que driftou do guard ({0,6}-?) e o comentário MENTIA "MESMO regex" — UC
+// hifenado (UC-IMP-01/UC-FORJA-01) nunca entrava no manifesto G-7 (bug 2026-06-22).
 
 function walk(dir, filter, acc = []) {
   if (!existsSync(dir)) return acc;
@@ -105,7 +107,7 @@ function collect() {
     parsedAny = true;
     const date = suiteDate(xml);
     for (const { name, status } of parseTestcases(xml)) {
-      const ids = new Set([...name.matchAll(UC_RE)].map((x) => x[0].toUpperCase()));
+      const ids = new Set([...name.matchAll(ucScanRe())].map((x) => x[0].toUpperCase()));
       for (const uc of ids) {
         const a = (ucAgg[uc] ??= { pass: 0, fail: 0, skip: 0, date: null });
         a[status] += 1;

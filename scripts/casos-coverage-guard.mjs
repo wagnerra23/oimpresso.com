@@ -49,6 +49,7 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join, dirname, basename, relative } from 'node:path';
 import { execSync } from 'node:child_process';
+import { ucHeadRe } from './lib/uc-regex.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = resolve(ROOT, 'resources/js/Pages');
@@ -115,37 +116,47 @@ function trioViolations(pages) {
 // ---------------------------------------------------------------------------
 // G-2 — rastreabilidade caso↔teste
 // ---------------------------------------------------------------------------
-// UC-id canônico: UC-<sufixo opcional letras>[-]<dígitos>[letra]. Ex: UC-01, UC-06,
-// UC-V05, UC-F02, UC-10b, E o formato com hífen UC-IMP-01 / UC-FORJA-01 / UC-SC-08.
-// Prefixo até 6 letras + hífen opcional: o limite antigo ({0,3} sem hífen) era CEGO a
-// UC-IMP-*/UC-FORJA-* — 35 UCs declarados invisíveis ao gate (audit 2026-06-22). Segue
-// conservador pra não capturar "UC-" solto ou prosa.
-const UC_RE = /\bUC-[A-Z]{0,6}-?\d{1,3}[a-zA-Z]?\b/g;
+// O regex de UC-id vem de scripts/lib/uc-regex.mjs (fonte ÚNICA — guard + coletor +
+// head-parsers G-5/G-7). Antes eram 4 cópias que drifaram (2026-06-22): o guard foi pra
+// {0,6}-? mas coletor/head-parsers ficaram em {0,3}. `ucHeadRe()` extrai o UC do heading
+// "## UC-XX"; o corpo {0,6}-? enxerga UC-01 E UC-IMP-01/UC-FORJA-01.
 
 function listCasosFiles() {
   return walk(PAGES_DIR, (full, name) => name.endsWith('.casos.md')).map(norm).sort();
 }
 
 function ucsInCasos(casosFiles) {
-  // map: ucId -> casosFile (primeira ocorrência) — declarações de UC
+  // Declarações de UC = SÓ o que está no HEADING "## UC-XX ..." (igual G-5/G-7). NÃO varre
+  // o corpo — senão um "UC-11" citado em prosa/backlog vira UC 'declarado' fantasma, coberto
+  // por teste alheio (bug 2026-06-22: Sells/Index#UC-11 contava coberto por e2e da Oficina).
   const out = [];
   for (const file of casosFiles) {
     const content = readFileSync(resolve(ROOT, file), 'utf8');
     const found = new Set();
-    for (const m of content.matchAll(UC_RE)) found.add(m[0].toUpperCase());
+    for (const block of content.split(/^##\s+/m).slice(1)) {
+      const head = block.match(ucHeadRe());
+      if (head) found.add(head[1].toUpperCase());
+    }
     for (const uc of found) out.push({ uc, file });
   }
   return out;
 }
 
+// Meta-tests do PRÓPRIO guard (casosGuard / casosResultsCollect) testam o guard — não
+// assertam UC de produto. Excluí-los do corpus impede que um UC-id de FIXTURE conte como
+// cobertura-fantasma (bug 2026-06-22: id real em fixture/comentário "cobria" o UC real).
+const META_TEST_RE = /(?:casosGuard|casosResultsCollect)\.spec\.[tj]sx?$/;
+
 function buildTestCorpus() {
-  // Concatena conteúdo de todos os arquivos de teste/spec (string-search dos UC-ids).
-  // Teste = *Test.php, *.test.*, *.spec.*  em Modules/**/Tests, tests/**, e2e/**.
+  // Concatena conteúdo dos arquivos de teste/spec (string-search dos UC-ids).
+  // Teste = *Test.php, *.test.*, *.spec.*  em Modules/**/Tests, tests/**, e2e/** —
+  // EXCETO os meta-tests do guard (META_TEST_RE).
   let corpus = '';
   for (const d of TEST_DIRS) {
     const base = resolve(ROOT, d);
     const files = walk(base, (full, name) =>
-      /Test\.php$/.test(name) || /\.test\.[tj]sx?$/.test(name) || /\.spec\.[tj]sx?$/.test(name),
+      (/Test\.php$/.test(name) || /\.test\.[tj]sx?$/.test(name) || /\.spec\.[tj]sx?$/.test(name))
+      && !META_TEST_RE.test(name),
     );
     for (const f of files) {
       try { corpus += '\n' + readFileSync(f, 'utf8'); } catch { /* ignore */ }
@@ -199,7 +210,7 @@ function metadataViolations(casosFiles) {
     // (até o próximo "## "). É o "se está ativa / passa" que [W] valoriza.
     const blocks = content.split(/^##\s+/m).slice(1);
     for (const block of blocks) {
-      const head = block.match(/^(UC-[A-Z]*\d+[a-zA-Z]?)\b/);
+      const head = block.match(ucHeadRe());
       if (!head) continue;
       if (!/Status\s*[:：]/.test(block)) violations.push(`meta:uc-no-status:${file}#${head[1].toUpperCase()}`);
     }
@@ -308,7 +319,7 @@ function statusViolations(casosFiles, manifest) {
     const tsxDate = (!shallow && existsSync(resolve(ROOT, tsx))) ? gitCommitDate(tsx) : null;
     const blocks = content.split(/^##\s+/m).slice(1);
     for (const block of blocks) {
-      const head = block.match(/^(UC-[A-Z]*\d+[a-zA-Z]?)\b/);
+      const head = block.match(ucHeadRe());
       if (!head) continue;
       if (declaredStatus(block) !== 'green') continue; // só ✅ precisa de prova
       const uc = head[1].toUpperCase();

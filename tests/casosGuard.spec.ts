@@ -243,6 +243,17 @@ describe('casos:check — G-7 status derivado do verde (físico)', () => {
     expect(out).toMatch(/status:unverified:resources\/js\/Pages\/K\/Index\.casos\.md#UC-01/);
   });
 
+  it('REGRESSÃO HÍFEN: ✅ mentiroso num UC HIFENADO (UC-ZZA-01) → unverified (head-parser via lib)', () => {
+    // Bug 2026-06-22: os head-parsers G-5/G-7 usavam /^(UC-[A-Z]*\d+…)/ (SEM hífen) →
+    // UC-IMP-*/UC-FORJA-*/UC-SC-* eram PULADOS e um Status:✅ mentiroso passava batido
+    // (provado pelo adversário). Agora usam ucHeadRe() da fonte única ({0,6}-?). Se algum
+    // consumidor regredir o regex, este teste quebra. (id UC-ZZA fictício de propósito.)
+    compliant('H', 'UC-ZZA-01', '✅');
+    manifest({}); // sem prova
+    const out = runExpectFail('--json');
+    expect(out).toMatch(/status:unverified:resources\/js\/Pages\/H\/Index\.casos\.md#UC-ZZA-01/);
+  });
+
   it('ESPECIFICIDADE: ✅ com teste PASS no manifesto → sem violação de status', () => {
     compliant('P', 'UC-01', '✅');
     manifest({ 'UC-01': { verdict: 'pass' } });
