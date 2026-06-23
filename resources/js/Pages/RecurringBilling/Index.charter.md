@@ -8,7 +8,7 @@ parent_module: RecurringBilling
 related_adrs: [110, 107, 109, 104, 93, 114, 101, 94, 143]
 tier: A
 charter_version: 1
-visual_source: prototipo-ui/prototipos/recurring/recurring-page.jsx
+visual_source: prototipo-ui/cowork/cobranca-recorrente-page.jsx
 canon_method: Cowork KB-9.75
 sidebar_group: fin (FINANCEIRO)
 ---

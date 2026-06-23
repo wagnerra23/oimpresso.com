@@ -20,7 +20,7 @@ on:
     branches: [main]
     paths:
       - 'resources/js/Pages/**/*.tsx'
-      - 'prototipo-ui/prototipos/**'
+      - 'prototipo-ui/cowork/**'
       - 'prototipo-ui/SYNC_LOG.md'
 
 permissions:
@@ -51,7 +51,7 @@ jobs:
 
           # Telas (.tsx em Pages) ou exports de prototipo tocados neste merge.
           tela_ds=$(printf '%s\n' "$changed" \
-            | grep -E '^(resources/js/Pages/.+\.tsx$|prototipo-ui/prototipos/)' || true)
+            | grep -E '^(resources/js/Pages/.+\.tsx$|prototipo-ui/cowork/)' || true)
 
           if [ -z "$tela_ds" ]; then
             echo "Merge nao tocou tela/DS — retorno §10.2 nao se aplica. OK."

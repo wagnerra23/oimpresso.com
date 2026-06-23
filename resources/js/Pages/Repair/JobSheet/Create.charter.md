@@ -8,7 +8,7 @@ parent_module: Repair
 related_adrs: [104, 93]
 tier: A
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/os/"
+  blueprint_cowork: "prototipo-ui/cowork/os-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Create]
   divergence_from_blueprint: "wizard step-by-step substitui NewOsModal compacto do blueprint"

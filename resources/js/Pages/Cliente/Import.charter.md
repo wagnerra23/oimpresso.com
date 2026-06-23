@@ -9,7 +9,7 @@ related_adrs: [110, 107, 93, 94, 104, 149]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/clientes/"
+  blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
   blueprint_screenshot_approval: "N/A (divergente)"
   derived_screens: [Import]
   divergence_from_blueprint: "wizard upload XLSX com preview, divergente do Index lista"

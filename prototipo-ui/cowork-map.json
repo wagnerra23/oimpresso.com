@@ -1,66 +1,66 @@
 {
   "version": "2",
-  "_doc": "Map de roteamento da ingestão de design-zip do Cowork (plano vectorized-badger PR-2 · v2 do handoff completo). Para cada tela, routes[].glob casa o BASENAME do arquivo extraído → .to (destino; se termina em '/', preserva o nome). Arquivo sem rota = EXTRA: o ingestor separa 'casa o glob de OUTRA tela' (agregado) de 'desconhecido' (listado p/ avaliar). REGRAS v2: (1) glob por PREFIXO da tela (inbox-*, vendas-*), NUNCA por sufixo (*-page.jsx colide entre telas num handoff que traz todas juntas); (2) data files (data-os.jsx, data-orc-prod.jsx) NÃO seguem o prefixo da tela → listados explicitamente; (3) chave-tela = pasta destino prototipos/<chave>/. Telas marcadas (aspiracional) ainda não têm Page Inertia — o page_id é o destino pretendido. Bloco oficina/produção curado por adversário (Tese C): oficina-page=produção/kanban, oficina-os-page=Nova OS (canon separa os dois), os/orc/producao=gráfica ComunicacaoVisual (compartilham OS_DATA/ORC_DATA), norte=app-demo North-Star, prod-*=Produto (armadilha de naming, 'prod'≠produção). _handoff-* não são telas: docs de processo + shared/dev vão pra prototipo-ui/cowork-handoff/.",
+  "_doc": "Map de roteamento da ingestão de design-zip do Cowork (plano vectorized-badger PR-2 · v2 do handoff completo). Para cada tela, routes[].glob casa o BASENAME do arquivo extraído → .to (destino; se termina em '/', preserva o nome). Arquivo sem rota = EXTRA: o ingestor separa 'casa o glob de OUTRA tela' (agregado) de 'desconhecido' (listado p/ avaliar). REGRAS v2: (1) glob por PREFIXO da tela (inbox-*, vendas-*), NUNCA por sufixo (*-page.jsx colide entre telas num handoff que traz todas juntas); (2) data files (data-os.jsx, data-orc-prod.jsx) NÃO seguem o prefixo da tela → listados explicitamente; (3) chave-tela = rótulo lógico; destino flat em prototipo-ui/cowork/ (SSOT único pós-consolidação). Telas marcadas (aspiracional) ainda não têm Page Inertia — o page_id é o destino pretendido. Bloco oficina/produção curado por adversário (Tese C): oficina-page=produção/kanban, oficina-os-page=Nova OS (canon separa os dois), os/orc/producao=gráfica ComunicacaoVisual (compartilham OS_DATA/ORC_DATA), norte=app-demo North-Star, prod-*=Produto (armadilha de naming, 'prod'≠produção). _handoff-* não são telas: docs de processo + shared/dev vão pra prototipo-ui/cowork-handoff/.",
   "screens": {
     "caixa-unificada": {
       "module": "Atendimento",
       "page_id": "atendimento-caixa-unificada",
       "routes": [
-        { "glob": "inbox-*.jsx", "to": "prototipo-ui/prototipos/caixa-unificada/" },
-        { "glob": "inbox-*.css", "to": "prototipo-ui/prototipos/caixa-unificada/" }
+        { "glob": "inbox-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "inbox-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "vendas": {
       "module": "Sells",
       "page_id": "sells-index",
       "routes": [
-        { "glob": "vendas-*.jsx", "to": "prototipo-ui/prototipos/vendas/" },
-        { "glob": "vendas-*.css", "to": "prototipo-ui/prototipos/vendas/" },
-        { "glob": "vendas.css", "to": "prototipo-ui/prototipos/vendas/" },
-        { "glob": "data-vendas.jsx", "to": "prototipo-ui/prototipos/vendas/" }
+        { "glob": "vendas-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "vendas-*.css", "to": "prototipo-ui/cowork/" },
+        { "glob": "vendas.css", "to": "prototipo-ui/cowork/" },
+        { "glob": "data-vendas.jsx", "to": "prototipo-ui/cowork/" }
       ]
     },
     "clientes": {
       "module": "Crm",
       "page_id": "crm-clientes",
       "routes": [
-        { "glob": "clientes-*.jsx", "to": "prototipo-ui/prototipos/clientes/" },
-        { "glob": "clientes-*.css", "to": "prototipo-ui/prototipos/clientes/" },
-        { "glob": "data-clientes.jsx", "to": "prototipo-ui/prototipos/clientes/" }
+        { "glob": "clientes-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "clientes-*.css", "to": "prototipo-ui/cowork/" },
+        { "glob": "data-clientes.jsx", "to": "prototipo-ui/cowork/" }
       ]
     },
     "crm": {
       "module": "Crm",
       "page_id": "crm-index",
       "routes": [
-        { "glob": "crm-*.jsx", "to": "prototipo-ui/prototipos/crm/" },
-        { "glob": "crm-*.css", "to": "prototipo-ui/prototipos/crm/" }
+        { "glob": "crm-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "crm-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "compras": {
       "module": "Compras",
       "page_id": "compras-index",
       "routes": [
-        { "glob": "compras-*.jsx", "to": "prototipo-ui/prototipos/compras/" },
-        { "glob": "compras-*.css", "to": "prototipo-ui/prototipos/compras/" }
+        { "glob": "compras-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "compras-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "producao-oficina": {
       "module": "OficinaAuto",
       "page_id": "oficinaauto-producao-oficina",
       "routes": [
-        { "glob": "oficina-page.*", "to": "prototipo-ui/prototipos/producao-oficina/" },
-        { "glob": "oficina-fila.*", "to": "prototipo-ui/prototipos/producao-oficina/" },
-        { "glob": "oficina-forms.jsx", "to": "prototipo-ui/prototipos/producao-oficina/" },
-        { "glob": "oficina-print.*", "to": "prototipo-ui/prototipos/producao-oficina/" },
-        { "glob": "oficina-norte.*", "to": "prototipo-ui/prototipos/producao-oficina/" }
+        { "glob": "oficina-page.*", "to": "prototipo-ui/cowork/" },
+        { "glob": "oficina-fila.*", "to": "prototipo-ui/cowork/" },
+        { "glob": "oficina-forms.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "oficina-print.*", "to": "prototipo-ui/cowork/" },
+        { "glob": "oficina-norte.*", "to": "prototipo-ui/cowork/" }
       ]
     },
     "oficina-os": {
       "module": "OficinaAuto",
       "page_id": "oficinaauto-serviceorders",
       "routes": [
-        { "glob": "oficina-os-page.*", "to": "prototipo-ui/prototipos/oficina-os/" }
+        { "glob": "oficina-os-page.*", "to": "prototipo-ui/cowork/" }
       ]
     },
     "comunicacao-visual": {
@@ -68,11 +68,11 @@
       "page_id": "comunicacao-visual-index",
       "_nota": "aspiracional — OS/Orçamento/Produção da gráfica ainda não têm Page Inertia (schema órfão por BRIEFING). os/orc/producao agregados aqui pois compartilham OS_DATA/ORC_DATA.",
       "routes": [
-        { "glob": "os-page.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" },
-        { "glob": "orc-page.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" },
-        { "glob": "producao-page.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" },
-        { "glob": "data-os.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" },
-        { "glob": "data-orc-prod.jsx", "to": "prototipo-ui/prototipos/comunicacao-visual/" }
+        { "glob": "os-page.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "orc-page.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "producao-page.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "data-os.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "data-orc-prod.jsx", "to": "prototipo-ui/cowork/" }
       ]
     },
     "norte": {
@@ -80,58 +80,58 @@
       "page_id": "norte-northstar-demo",
       "_nota": "app-demo North-Star do ERP inteiro (shell+board+7 cenas) — NÃO é tela de módulo; transversal/vision.",
       "routes": [
-        { "glob": "norte-*.jsx", "to": "prototipo-ui/prototipos/norte/" },
-        { "glob": "norte-*.css", "to": "prototipo-ui/prototipos/norte/" }
+        { "glob": "norte-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "norte-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "financeiro": {
       "module": "Financeiro",
       "page_id": "financeiro-index",
       "routes": [
-        { "glob": "financeiro-*.jsx", "to": "prototipo-ui/prototipos/financeiro/" },
-        { "glob": "financeiro-*.css", "to": "prototipo-ui/prototipos/financeiro/" },
-        { "glob": "financeiro.css", "to": "prototipo-ui/prototipos/financeiro/" },
-        { "glob": "fin-*.css", "to": "prototipo-ui/prototipos/financeiro/" }
+        { "glob": "financeiro-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "financeiro-*.css", "to": "prototipo-ui/cowork/" },
+        { "glob": "financeiro.css", "to": "prototipo-ui/cowork/" },
+        { "glob": "fin-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "cobranca": {
       "module": "RecurringBilling",
       "page_id": "recurring-index",
       "routes": [
-        { "glob": "cobranca-*.jsx", "to": "prototipo-ui/prototipos/cobranca/" },
-        { "glob": "cobranca-*.css", "to": "prototipo-ui/prototipos/cobranca/" }
+        { "glob": "cobranca-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "cobranca-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "boletos": {
       "module": "Financeiro",
       "page_id": "financeiro-boletos",
       "routes": [
-        { "glob": "boletos-*.jsx", "to": "prototipo-ui/prototipos/boletos/" },
-        { "glob": "boletos-*.css", "to": "prototipo-ui/prototipos/boletos/" }
+        { "glob": "boletos-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "boletos-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "kb": {
       "module": "KB",
       "page_id": "kb-index",
       "routes": [
-        { "glob": "kb-*.jsx", "to": "prototipo-ui/prototipos/kb/" },
-        { "glob": "kb-*.css", "to": "prototipo-ui/prototipos/kb/" }
+        { "glob": "kb-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "kb-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "payment-gateway": {
       "module": "PaymentGateway",
       "page_id": "payment-gateway-index",
       "routes": [
-        { "glob": "pg-*.jsx", "to": "prototipo-ui/prototipos/payment-gateway/" },
-        { "glob": "pg-*.css", "to": "prototipo-ui/prototipos/payment-gateway/" }
+        { "glob": "pg-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "pg-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "cockpit": {
       "module": "Jana",
       "page_id": "jana-cockpit",
       "routes": [
-        { "glob": "chat-*.jsx", "to": "prototipo-ui/prototipos/cockpit/" },
-        { "glob": "chat-*.css", "to": "prototipo-ui/prototipos/cockpit/" }
+        { "glob": "chat-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "chat-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "forja": {
@@ -139,26 +139,26 @@
       "page_id": "forja-index",
       "_nota": "aspiracional — Forja é o módulo de desenvolvimento/governança (sem Page Inertia consolidada).",
       "routes": [
-        { "glob": "forja-*.jsx", "to": "prototipo-ui/prototipos/forja/" },
-        { "glob": "forja-*.css", "to": "prototipo-ui/prototipos/forja/" }
+        { "glob": "forja-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "forja-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "equipe": {
       "module": "Ponto",
       "page_id": "ponto-equipe",
       "routes": [
-        { "glob": "equipe-*.jsx", "to": "prototipo-ui/prototipos/equipe/" },
-        { "glob": "equipe-*.css", "to": "prototipo-ui/prototipos/equipe/" },
-        { "glob": "data-people.jsx", "to": "prototipo-ui/prototipos/equipe/" }
+        { "glob": "equipe-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "equipe-*.css", "to": "prototipo-ui/cowork/" },
+        { "glob": "data-people.jsx", "to": "prototipo-ui/cowork/" }
       ]
     },
     "produto": {
       "module": "ProductCatalogue",
       "page_id": "produto-index",
       "routes": [
-        { "glob": "produtos-*.jsx", "to": "prototipo-ui/prototipos/produto/" },
-        { "glob": "produtos-*.css", "to": "prototipo-ui/prototipos/produto/" },
-        { "glob": "prod-*.css", "to": "prototipo-ui/prototipos/produto/" }
+        { "glob": "produtos-*.jsx", "to": "prototipo-ui/cowork/" },
+        { "glob": "produtos-*.css", "to": "prototipo-ui/cowork/" },
+        { "glob": "prod-*.css", "to": "prototipo-ui/cowork/" }
       ]
     },
     "_handoff-docs": {

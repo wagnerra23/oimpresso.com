@@ -10,7 +10,7 @@ related_adrs: [104, 107, 143, 149, 93]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/vendas-cockpit/"
+  blueprint_cowork: "prototipo-ui/cowork/vendas-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
   derived_screens: [Edit]
   divergence_from_blueprint: "Pre-fill via form deferred; submit PUT; guards canBeEdited/isReturnExist preservados como 422 JSON."
