@@ -1,0 +1,15 @@
+# prototipo-ui/cowork/ = espelho da camada de DESIGN do export Cowork (SSOT única).
+# Regra "só fontes" (ADR-proposta 2026-06-23-prototipo-ssot-unico-com-historico):
+# versiona jsx/tsx/ts/js/css/html/md/json/php/sql; imagens e binários ficam FORA
+# (diff de design limpo + repo leve). Screenshots vivem no Cowork, não aqui.
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+*.ico
+*.thumbnail
+*.bak
+*.zip
+*.mp4
+*.mov

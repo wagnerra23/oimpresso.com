@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>O Adversário do Protocolo — handoff Cowork → Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent: oklch(0.55 0.15 295);
+    --accent-soft: oklch(0.95 0.04 295);
+    --bg: oklch(0.18 0.012 290);
+    --surface: oklch(0.21 0.014 290);
+    --surface-2: oklch(0.245 0.014 290);
+    --text: oklch(0.96 0.006 290);
+    --text-dim: oklch(0.76 0.01 290);
+    --text-mute: oklch(0.6 0.012 290);
+    --border: oklch(0.31 0.014 290);
+    --red: oklch(0.7 0.18 25);
+    --red-soft: oklch(0.34 0.11 25);
+    --amber: oklch(0.82 0.15 75);
+    --green: oklch(0.78 0.16 150);
+    --green-soft: oklch(0.32 0.1 150);
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+    --sans: "IBM Plex Sans", system-ui, sans-serif;
+  }
+  *{ box-sizing: border-box; }
+  html,body{ margin:0; background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; }
+  body{ font-size: 14px; line-height: 1.55; }
+  .wrap{ max-width: 1000px; margin: 0 auto; padding: 60px 32px 120px; }
+
+  .kicker{ font-family: var(--mono); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.12em; color: var(--red); font-weight: 600; }
+  h1.title{ font-size: 40px; font-weight: 700; letter-spacing: -0.03em; margin: 12px 0 14px; line-height: 1.05; }
+  h1.title .dim{ color: var(--red); }
+  .lede{ font-size: 17px; color: var(--text-dim); max-width: 68ch; margin: 0; text-wrap: pretty; }
+  .lede b{ color: var(--text); font-weight: 600; }
+
+  .thesis{ margin-top: 32px; border: 1px solid var(--red); border-radius: 12px; background: linear-gradient(180deg, oklch(0.24 0.04 25), var(--surface)); padding: 22px 26px; }
+  .thesis .q{ font-size: 19px; font-weight: 600; line-height: 1.4; margin: 0; text-wrap: pretty; }
+  .thesis .who{ font-family: var(--mono); font-size: 12px; color: var(--red); margin-top: 10px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+  h2.sec{ font-size: 13px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-mute); margin: 56px 0 18px; padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+  .attack{ border: 1px solid var(--border); border-radius: 12px; background: var(--surface); margin-bottom: 16px; overflow: hidden; }
+  .attack-h{ display: flex; gap: 14px; align-items: baseline; padding: 18px 22px 6px; }
+  .attack-n{ font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--red); flex: 0 0 auto; }
+  .attack-t{ font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+  .attack-body{ padding: 4px 22px 20px 50px; }
+  .attack-body p{ margin: 8px 0; color: var(--text-dim); text-wrap: pretty; }
+  .attack-body p strong{ color: var(--text); }
+  .evidence{ margin-top: 12px; border-left: 2px solid var(--red); background: var(--red-soft); border-radius: 0 8px 8px 0; padding: 10px 14px; font-size: 13px; color: var(--text); }
+  .evidence .lbl{ font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--amber); display: block; margin-bottom: 4px; }
+  code{ font-family: var(--mono); font-size: 12px; background: var(--surface-2); padding: 1px 6px; border-radius: 4px; color: var(--text); }
+
+  .root{ margin-top: 16px; border: 1px solid var(--amber); border-radius: 12px; background: oklch(0.26 0.05 75); padding: 22px 26px; }
+  .root h3{ margin: 0 0 8px; font-size: 18px; color: var(--amber); }
+  .root p{ margin: 0; color: var(--text); font-size: 15px; text-wrap: pretty; }
+  .root p b{ font-weight: 700; }
+
+  .fix{ display: grid; grid-template-columns: 34px 1fr; gap: 4px 16px; padding: 16px 0; border-bottom: 1px solid var(--border); align-items: start; }
+  .fix:last-child{ border-bottom: 0; }
+  .fix .n{ font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--green); grid-row: span 2; }
+  .fix .t{ font-size: 15px; font-weight: 600; }
+  .fix .d{ font-size: 13.5px; color: var(--text-dim); text-wrap: pretty; }
+  .fix .d code{ background: var(--surface); }
+  .fix .mech{ display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; padding: 2px 7px; border-radius: 4px; margin-top: 6px; background: var(--green-soft); color: var(--green); }
+
+  .silence{ margin-top: 28px; border: 1px solid var(--green); border-radius: 12px; background: oklch(0.24 0.05 150); padding: 20px 26px; }
+  .silence b{ color: var(--green); }
+  .silence p{ margin: 0; font-size: 15px; }
+
+  .footnote{ margin-top: 40px; font-family: var(--mono); font-size: 11.5px; color: var(--text-mute); border-top: 1px solid var(--border); padding-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="kicker">Red team de processo · advogado do diabo · contra o próprio protocolo</div>
+  <h1 class="title">O Adversário do Protocolo<span class="dim">.</span></h1>
+  <p class="lede">O protocolo Cowork→Code promete <b>"zero-toque: [W] fala uma vez e a coisa acontece"</b>. O adversário existe pra provar que essa promessa é <b>falsa por construção</b> — e que a falha de hoje (a tarefa do header que o Code "não recebia") não foi um acidente: foi o protocolo funcionando exatamente como está desenhado pra funcionar — <b>silenciosamente, na sorte da minha memória</b>.</p>
+
+  <div class="thesis">
+    <p class="q">"Vocês mataram o lint aspiracional no código porque 'regra que não trava no momento da ação não vale'. Mas o handoff inteiro é aspiracional: depende de o [CC] LEMBRAR de 5 passos manuais, de URLs que apodrecem em 1h, e de ninguém nunca confirmar que a tarefa pousou. É o mesmo pecado que vocês caçam no produto — só que no próprio processo que deveria garantir o produto."</p>
+    <div class="who">— o adversário</div>
+  </div>
+
+  <h2 class="sec">Os ataques — cada um com a evidência desta sessão</h2>
+
+  <div class="attack">
+    <div class="attack-h"><span class="attack-n">A1</span><span class="attack-t">"Zero-toque" é ficção: o gatilho é a memória do [CC], não uma máquina</span></div>
+    <div class="attack-body">
+      <p>Enfileirar uma tarefa pro Code exige <strong>5 passos manuais e desconexos</strong>: (1) escrever o <code>PROMPT_PARA_CODE_*.md</code>, (2) adicioná-lo ao topo de <code>COWORK_NOTES → Pendentes</code>, (3) refrescar o snapshot do <code>README</code>, (4) gerar URLs públicas, (5) montar a ponte. Nenhum deles é cobrado por máquina. Esqueça <em>um</em> e a tarefa fica <strong>invisível pro Code</strong> — sem erro, sem aviso.</p>
+      <div class="evidence"><span class="lbl">Evidência · hoje</span>Eu criei o <code>PROMPT_PARA_CODE_HEADER-PAGEHEADER-CONVERGENCIA.md</code> mas <strong>pulei o passo 2 e 3</strong>. O arquivo existia; a lista que o Code lê não o mencionava. [W] tentou transferir "várias vezes" e nada acontecia — porque, do ponto de vista do Code, <strong>a tarefa não existia.</strong></div>
+    </div>
+  </div>
+
+  <div class="attack">
+    <div class="attack-h"><span class="attack-n">A2</span><span class="attack-t">O ponto de entrada envelhece e vira pilha de ruído</span></div>
+    <div class="attack-body">
+      <p>O Code entra pelo <code>README "COMECE AQUI"</code> → lê <code>COWORK_NOTES → Pendentes</code> <strong>de cima pra baixo</strong>. Mas o snapshot do README estava datado de <strong>03/06</strong> (13 dias atrás) e a lista é <strong>append-only</strong>: dezenas de itens de 06-02/03/04, muitos já processados, sem linha d'água clara entre "ativo" e "morto". O Code navega num campo minado de tarefas-fantasma.</p>
+      <div class="evidence"><span class="lbl">Evidência · @main</span>O README dizia "faça DS v6 / Oficina / CRM" (snapshot velho). O <code>Pendentes</code> mistura itens vivos com <code>[PROCESSADO]</code> e <code>VOID</code> no mesmo fluxo de leitura.</div>
+    </div>
+  </div>
+
+  <div class="attack">
+    <div class="attack-h"><span class="attack-n">A3</span><span class="attack-t">Links que apodrecem dentro de documentos duráveis</span></div>
+    <div class="attack-body">
+      <p>O padrão manda <strong>embutir URLs públicas (~1h de validade)</strong> nos prompts. Um prompt é durável; a URL não. [W] cola depois de uma hora → o Code recebe <code>403/expirado</code> e trava. O documento mente sobre si mesmo.</p>
+      <div class="evidence"><span class="lbl">Evidência · padrão</span>Quase todo item do <code>Pendentes</code> diz "URLs públicas embutidas, ~1h — regenerar se expirar". A regeneração depende, de novo, da minha memória (A1).</div>
+    </div>
+  </div>
+
+  <div class="attack">
+    <div class="attack-h"><span class="attack-n">A4</span><span class="attack-t">Não há confirmação de pouso — o loop nunca fecha</span></div>
+    <div class="attack-body">
+      <p>Depois de "entregar", o [CC] <strong>não tem como saber se a tarefa chegou ou rodou</strong>. O canal de volta (<code>CODE_NOTES.md</code>) é lido de uma <strong>cópia local que envelhece</strong> — a própria Regra 6 admite que afirmar estado do repo por cópia local é a causa-raiz recorrente. Resultado: celebro "handoff entregue" sem nenhuma prova de que pousou.</p>
+      <div class="evidence"><span class="lbl">Evidência · STATUS</span>"Espelho local do Cowork ≠ git, SEMPRE" — reincidência tripla registrada em 08/06. O protocolo de handoff <strong>depende exatamente do que a Regra 6 proíbe.</strong></div>
+    </div>
+  </div>
+
+  <div class="attack">
+    <div class="attack-h"><span class="attack-n">A5</span><span class="attack-t">Ponto único de falha humano, sem detecção</span></div>
+    <div class="attack-body">
+      <p>A única ponte real é <strong>[W] colar/handoff uma vez</strong>. Se falha, <strong>ninguém detecta</strong> — não há recibo, não há retry automático, não há alarme. [W] simplesmente "tenta de novo", às cegas, sem nenhum sinal do que deu errado. É o anti-zero-toque.</p>
+      <div class="evidence"><span class="lbl">Evidência · hoje</span>"por mais que eu tente não está funcionando" — o sintoma de um sistema sem feedback. O esforço foi do [W]; o protocolo ficou mudo.</div>
+    </div>
+  </div>
+
+  <div class="attack">
+    <div class="attack-h"><span class="attack-n">A6</span><span class="attack-t">A memória registra a INTENÇÃO, não a ENTREGA</span></div>
+    <div class="attack-body">
+      <p>O <code>STATUS</code> e os logs celebram "handoff zero-toque pronto", "ponte entregue". Mas <strong>"pronto" ≠ "pousou"</strong>. É o mesmo <code>Status:✅ sem prova</code> que vocês caçam nos testes do repo (G-7). O protocolo viola a Regra 1 do próprio núcleo: <strong>prova antes de afirmar.</strong></p>
+      <div class="evidence"><span class="lbl">Evidência · auto</span>Eu escrevi "Code resolve com este pedido" 3 vezes nesta conversa — antes de a tarefa estar sequer visível pro Code.</div>
+    </div>
+  </div>
+
+  <h2 class="sec">Por que reincide (a causa, não o sintoma)</h2>
+  <div class="root">
+    <h3>O handoff é um lint aspiracional disfarçado de protocolo.</h3>
+    <p>Toda a confiabilidade mora em <b>"o [CC] vai lembrar de fazer certo"</b> e <b>"o [W] vai colar e vai dar certo"</b>. Não há <b>nenhum gate que trave no momento da ação</b> — nenhuma máquina que diga "esse prompt não está na fila", "essa URL expirou", "esse handoff nunca pousou". Pelas suas próprias regras, <b>regra sem trava mecânica não é regra — é intenção</b>. Por isso reincide: corrigir o caso de hoje não muda a estrutura que produz o caso de amanhã.</p>
+  </div>
+
+  <h2 class="sec">O que me cala — o conserto é mecânico, não "vou prestar mais atenção"</h2>
+  <div class="attack" style="border-color: var(--green)">
+    <div style="padding: 10px 26px 14px;">
+      <div class="fix">
+        <span class="n">F1</span>
+        <div class="t">Enfileirar é atômico, não 5 passos</div>
+        <div class="d">Criar um <code>PROMPT_PARA_CODE_*.md</code> tem que, no mesmo gesto, inserir no topo de <code>Pendentes</code> + refrescar o README. Um só ritual de fim-de-sessão (o <code>COLE_ISSO_NO_CODE.md</code>/Painel que já foi cogitado) — não 5 ações soltas.<div class="mech">ritual único · não memória</div></div>
+      </div>
+      <div class="fix">
+        <span class="n">F2</span>
+        <div class="t">Check <code>prompt_orfao</code> no memory-health</div>
+        <div class="d">Estender o <code>memory-health.js</code> que já existe: falha (🔴) se houver <code>PROMPT_PARA_CODE_*.md</code> <strong>não referenciado</strong> no <code>Pendentes</code>, OU item do <code>Pendentes</code> apontando arquivo inexistente. Pega o erro de hoje <strong>na hora</strong>, por máquina. <em>Estender o que existe — não inventar guard novo (Regra 7).</em><div class="mech">gate · trava no ato</div></div>
+      </div>
+      <div class="fix">
+        <span class="n">F3</span>
+        <div class="t">Prompt durável = auto-contido. URL efêmera é proibida.</div>
+        <div class="d">Se a tarefa pode ser descrita em texto (como o header — o componente já está no git), <strong>nada de URL</strong>. URL pública só pra binário grande que o Code precisa baixar — e marcada como perecível, fora do corpo durável.<div class="mech">regra de forma · verificável</div></div>
+      </div>
+      <div class="fix">
+        <span class="n">F4</span>
+        <div class="t">Linha d'água no <code>Pendentes</code></div>
+        <div class="d">Tudo <strong>acima</strong> de um marcador <code>━━ PROCESSADOS ABAIXO ━━</code> é ativo; abaixo é histórico, fora da leitura do Code. Item processado <strong>desce</strong> da linha. O Code lê 3 itens vivos, não 40 fantasmas.<div class="mech">estrutura · não disciplina</div></div>
+      </div>
+      <div class="fix">
+        <span class="n">F5</span>
+        <div class="t">Confirmação de pouso obrigatória</div>
+        <div class="d">[CC] só pode escrever "entregue/pousou" depois de <strong>ler <code>CODE_NOTES.md@main</code> vivo</strong> (não cópia local) confirmando o <code>[PROCESSADO]</code>. Sem isso, o estado é <code>⚠ enfileirado, não confirmado</code> — nunca "feito".<div class="mech">fecha o loop · Regra 1+6</div></div>
+      </div>
+      <div class="fix">
+        <span class="n">F6</span>
+        <div class="t">Ondas por padrão, monólitos por exceção</div>
+        <div class="d">Todo prompt nasce <strong>fatiado: 1 tela / 1 arquivo = 1 PR</strong>, com Onda 0 = inventário (grep/guard). Pedido grande sem ondas = o que faz o Code "engasgar" e o [W] sentir que "é grande demais". A intuição do [W] estava certa.<div class="mech">forma do pedido</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="silence">
+    <p><b>Como o adversário se cala:</b> quando criar um prompt <b>fizer</b> ele aparecer na fila (F1), quando a máquina <b>recusar</b> um prompt órfão ou uma URL podre (F2/F3), quando "feito" só puder ser dito com prova de pouso (F5) — aí o handoff para de depender de eu lembrar e do [W] tentar de novo. Até lá, eu (adversário) volto toda semana.</p>
+  </div>
+
+  <p class="footnote">Escopo: o conserto-raiz (F1–F6) é Cowork-side + 1 check no <code>memory-health.js</code> — não é Tier 0, não é mudança de constituição. É a mesma medicina que o repo aplica em si: gate que trava no momento da ação. Decisão de adotar = [W]. · Red team [CC] · 2026-06-16</p>
+
+</div>
+</body>
+</html>

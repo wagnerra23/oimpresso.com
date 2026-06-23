@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="pt-BR" class="">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Financeiro — Prova Viva (primitivos de layout · ADR 0253)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    darkMode: "class",
+    theme: { extend: {
+      fontFamily: { sans:['"IBM Plex Sans"',"ui-sans-serif","system-ui","sans-serif"], mono:['"IBM Plex Mono"',"ui-monospace","Menlo","monospace"] },
+      colors: {
+        background:"hsl(var(--background) / <alpha-value>)", foreground:"hsl(var(--foreground) / <alpha-value>)",
+        card:"hsl(var(--card) / <alpha-value>)", "card-foreground":"hsl(var(--card-foreground) / <alpha-value>)",
+        muted:"hsl(var(--muted) / <alpha-value>)", "muted-foreground":"hsl(var(--muted-foreground) / <alpha-value>)",
+        secondary:"hsl(var(--secondary) / <alpha-value>)", accent:"hsl(var(--accent) / <alpha-value>)",
+        border:"hsl(var(--border) / <alpha-value>)",
+        primary:"oklch(var(--primary) / <alpha-value>)", "primary-foreground":"hsl(var(--primary-foreground) / <alpha-value>)",
+        success:"hsl(var(--success) / <alpha-value>)", warning:"hsl(var(--warning) / <alpha-value>)", destructive:"hsl(var(--destructive) / <alpha-value>)",
+        page:"oklch(var(--page) / <alpha-value>)",
+      },
+      borderRadius:{ sm:"var(--radius-sm)", md:"var(--radius-md)", lg:"var(--radius-lg)", xl:"var(--radius-xl)" },
+    } },
+  };
+</script>
+<style>
+  :root{
+    --background:0 0% 100%; --foreground:230 44% 9%;
+    --card:0 0% 100%; --card-foreground:230 44% 9%;
+    --muted:255 32% 96%; --muted-foreground:232 13% 43%;
+    --secondary:255 32% 96%; --accent:255 32% 95%;
+    --border:250 24% 88%;
+    --primary:0.55 0.15 295; --primary-foreground:0 0% 100%;
+    --success:152 66% 32%; --warning:30 92% 42%; --destructive:2 76% 50%;
+    --page:0.976 0.008 300;
+    --radius-lg:0.55rem; --radius-md:0.4rem; --radius-sm:0.28rem; --radius-xl:0.8rem;
+  }
+  html.dark{
+    --background:264 28% 8%; --foreground:250 24% 95%;
+    --card:262 22% 13%; --card-foreground:250 24% 95%;
+    --muted:260 18% 20%; --muted-foreground:250 12% 63%;
+    --secondary:260 18% 19%; --accent:260 18% 19%;
+    --border:260 16% 25%;
+    --primary:0.72 0.16 295; --primary-foreground:264 28% 9%;
+    --success:150 56% 54%; --warning:36 92% 62%; --destructive:4 80% 65%;
+    --page:0.165 0.022 290;
+  }
+  body{ font-family:"IBM Plex Sans",sans-serif; -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; margin:0; }
+  ::selection{ background:oklch(0.55 0.15 295 / .2); }
+  .hero-shadow{ box-shadow:0 10px 30px -10px oklch(0.55 0.15 295 / .45), 0 4px 10px -4px oklch(0.55 0.15 295 / .3); }
+  @keyframes fadeIn{ from{ opacity:0 } to{ opacity:1 } }
+  @keyframes drawerIn{ from{ transform:translateX(100%) } to{ transform:none } }
+  /* trava: ao trocar tema, desliga transições — senão bg-card com transition-colors congela (CSS não re-dispara transição em mudança de var) */
+  .no-trans, .no-trans *, .no-trans *::before, .no-trans *::after{ transition:none !important; }
+  .nicescroll::-webkit-scrollbar{ width:9px; height:9px; }
+  .nicescroll::-webkit-scrollbar-thumb{ background:hsl(var(--border)); border-radius:6px; border:2px solid transparent; background-clip:content-box; }
+
+  [data-xray="on"] [data-slot]{ outline:1px dashed; outline-offset:-1px; }
+  [data-xray="on"] [data-slot="box"]{ outline-color:oklch(0.6 0.16 250 / .5); }
+  [data-xray="on"] [data-slot="stack"]{ outline-color:oklch(0.6 0.15 150 / .5); }
+  [data-xray="on"] [data-slot="inline"]{ outline-color:oklch(0.68 0.16 60 / .55); }
+  [data-xray="on"] [data-slot="grid"]{ outline-color:oklch(0.6 0.18 300 / .5); }
+  [data-xray="on"] [data-slot="text"]{ outline-color:oklch(0.62 0.17 20 / .3); }
+  [data-xray="on"] [data-slot="container"]{ outline:1px solid oklch(0.6 0.18 300 / .5); }
+</style>
+</head>
+<body class="bg-page text-foreground">
+<div id="app"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" data-presets="react">
+/* ═══ PRIMITIVOS (mesmo contrato de resources/js/Components/layout/ v2) ═══ */
+const cx = (...a) => a.filter(Boolean).join(" ");
+const SP = {0:"0",1:"1",2:"2",3:"3",4:"4",5:"5",6:"6",8:"8",10:"10",12:"12"};
+const ALIGN = {start:"items-start",center:"items-center",end:"items-end",stretch:"items-stretch",baseline:"items-baseline"};
+const JUST = {start:"justify-start",center:"justify-center",end:"justify-end",between:"justify-between",around:"justify-around",evenly:"justify-evenly"};
+function Box({p,px,py,bg,rounded,border,className,children,...r}){const BG={card:"bg-card text-card-foreground",muted:"bg-muted",background:"bg-background",secondary:"bg-secondary",accent:"bg-accent",primary:"bg-primary text-primary-foreground"};
+  return <div data-slot="box" className={cx(p!=null&&`p-${SP[p]}`,px!=null&&`px-${SP[px]}`,py!=null&&`py-${SP[py]}`,bg&&BG[bg],rounded&&`rounded-${rounded}`,border&&"border border-border",className)} {...r}>{children}</div>;}
+function Stack({gap=4,align,justify,divider,className,children,...r}){return <div data-slot="stack" className={cx("flex flex-col",`gap-${SP[gap]}`,align&&ALIGN[align],justify&&JUST[justify],divider&&"divide-y divide-border",className)} {...r}>{children}</div>;}
+function Inline({gap=2,align="center",justify,wrap,divider,className,children,...r}){return <div data-slot="inline" className={cx("flex flex-row",`gap-${SP[gap]}`,align&&ALIGN[align],justify&&JUST[justify],wrap&&"flex-wrap",divider&&"divide-x divide-border",className)} {...r}>{children}</div>;}
+function Grid({cols,min,gap=4,className,children,...r}){const MIN={sm:"grid-cols-[repeat(auto-fill,minmax(14rem,1fr))]",md:"grid-cols-[repeat(auto-fill,minmax(18rem,1fr))]",lg:"grid-cols-[repeat(auto-fill,minmax(22rem,1fr))]"};
+  return <div data-slot="grid" className={cx("grid",min?MIN[min]:`grid-cols-${cols||1}`,`gap-${SP[gap]}`,className)} {...r}>{children}</div>;}
+function Container({size="xl",px=4,className,children,...r}){const SZ={sm:"max-w-3xl",md:"max-w-5xl",lg:"max-w-6xl",xl:"max-w-7xl","2xl":"max-w-[96rem]",full:"max-w-full"};
+  return <div data-slot="container" className={cx("mx-auto w-full",SZ[size],`px-${SP[px]}`,className)} {...r}>{children}</div>;}
+function Text({as="p",size="base",weight="normal",tone="default",family,numeric,leading,align,truncate,className,children,...r}){const TONE={default:"text-foreground",muted:"text-muted-foreground",primary:"text-primary",success:"text-success",warning:"text-warning",destructive:"text-destructive",white:"text-white"};const Comp=as;
+  return <Comp data-slot="text" className={cx(size&&`text-${size}`,`font-${weight}`,TONE[tone],family==="mono"&&"font-mono",family==="sans"&&"font-sans",numeric==="tabular"&&"tabular-nums",leading&&`leading-${leading}`,align&&`text-${align}`,truncate&&"truncate",className)} {...r}>{children}</Comp>;}
+
+/* ═══ DADOS ═══ */
+const parts=(n)=>{const a=Math.abs(n).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});const[i,d]=a.split(",");return{int:i,dec:d};};
+const fmt=(n)=>Math.abs(n).toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+const K=(n)=>Math.abs(n)>=1000?(Math.abs(n)/1000).toLocaleString("pt-BR",{minimumFractionDigits:1,maximumFractionDigits:1})+"k":fmt(n);
+const CAT={Banner:"265",Adesivo:"200",Fachada:"30",Placa:"150",Insumo:"330",Aluguel:"15",Utilidade:"55",Rápida:"285"};
+const ROWS=[
+  {d:"09/05",grp:"Hoje · 09 mai · sexta",kind:"in",desc:"Banner fachada 3×1,5m",who:"Ótica Visão Clara",cat:"Banner",nf:"NF 1204",st:"pendente",amt:1840,when:"vence hoje"},
+  {d:"09/05",grp:"Hoje · 09 mai · sexta",kind:"out",desc:"Lona front-light · bobina",who:"Suprigraf Insumos",cat:"Insumo",nf:"NF 8821",st:"vencendo",amt:2390,when:"vence hoje"},
+  {d:"08/05",grp:"Ontem · 08 mai",kind:"in",desc:"Adesivo perfurado vitrine",who:"Padaria Pão Nosso",cat:"Adesivo",nf:"NF 1203",st:"recebido",amt:760,paid:true,when:"pago 08/05"},
+  {d:"08/05",grp:"Ontem · 08 mai",kind:"in",desc:"Placa PS 2mm c/ acabamento",who:"Condomínio Solar",cat:"Placa",nf:"NF 1202",st:"recebido",amt:1280,paid:true,when:"pago 08/05"},
+  {d:"07/05",grp:"07 mai · quinta",kind:"out",desc:"Aluguel galpão produção",who:"Imobiliária Centro",cat:"Aluguel",nf:"REC 552",st:"pago",amt:4200,paid:true,when:"pago 07/05"},
+  {d:"06/05",grp:"06 mai · quarta",kind:"in",desc:"Fachada ACM + iluminação",who:"Auto Peças Veloz",cat:"Fachada",nf:"NF 1198",st:"atrasado",amt:4200,when:"há 3 dias"},
+  {d:"05/05",grp:"05 mai · terça",kind:"out",desc:"Energia · produção abril",who:"CEMIG",cat:"Utilidade",nf:"FAT 0934",st:"pago",amt:1130,paid:true,when:"pago 05/05"},
+  {d:"05/05",grp:"05 mai · terça",kind:"in",desc:"Gráfica rápida · 500 flyers",who:"Studio Yoga Namastê",cat:"Rápida",nf:"NF 1196",st:"recebido",amt:430,paid:true,when:"pago 05/05"},
+  {d:"05/05",grp:"05 mai · terça",kind:"in",desc:"Placas de obra · 6un",who:"Construtora Horizonte",cat:"Placa",nf:"NF 1195",st:"recebido",amt:2880,paid:true,when:"pago 05/05"},
+];
+const STATUS={
+  recebido:{soft:"bg-success/12 text-success",dot:"bg-success",label:"Recebido"},
+  pago:{soft:"bg-success/12 text-success",dot:"bg-success",label:"Pago"},
+  pendente:{soft:"bg-muted text-muted-foreground",dot:"bg-muted-foreground/60",label:"Pendente"},
+  vencendo:{soft:"bg-warning/15 text-warning",dot:"bg-warning",label:"Vencendo"},
+  atrasado:{soft:"bg-destructive/12 text-destructive",dot:"bg-destructive",label:"Atrasado"},
+};
+const Ic=({d,s=14,w=2})=><svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={w} strokeLinecap="round" strokeLinejoin="round">{d}</svg>;
+const ICN={plus:<path d="M12 5v14M5 12h14"/>,search:<g><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></g>,chev:<path d="M9 6l6 6-6 6"/>,cal:<g><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></g>,refresh:<g><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></g>,check:<path d="M20 6 9 17l-5-5"/>,in:<path d="M17 7 7 17M7 7v10h10"/>,out:<path d="M7 17 17 7M17 17V7H7"/>,bolt:<path d="M13 2 3 14h7l-1 8 10-12h-7z"/>,doc:<g><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></g>,send:<path d="M22 2 11 13M22 2l-7 20-4-9-9-4z"/>,x:<path d="M18 6 6 18M6 6l12 12"/>,link:<g><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></g>};
+
+/* ═══ ÁTOMOS ═══ */
+const Money=({n,signed,tone,size="base",strong})=>{const p=parts(n);return(
+  <Inline gap={0} align="baseline" className="justify-end whitespace-nowrap">
+    {signed&&<Text as="span" size="xs" tone="muted" family="mono" className="mr-0.5">{n>=0?"+":"−"}</Text>}
+    <Text as="span" size="xs" tone="muted" family="mono" className="mr-0.5">R$</Text>
+    <Text as="span" size={size} family="mono" numeric="tabular" weight={strong?"semibold":"medium"} tone={tone||"default"}>{p.int}</Text>
+    <Text as="span" size="xs" tone="muted" family="mono" numeric="tabular">,{p.dec}</Text>
+  </Inline>);};
+const Badge=({st})=>{const s=STATUS[st];return(
+  <Box className={cx("inline-flex items-center gap-1.5 rounded-full pl-1.5 pr-2 py-0.5 w-fit",s.soft)}>
+    <span className={cx("w-1.5 h-1.5 rounded-full",s.dot)}/>
+    <Text as="span" size="xs" weight="semibold" className="leading-none tracking-tight">{s.label}</Text>
+  </Box>);};
+const Dir=({kind,s=22})=>(
+  <Box rounded="md" className={cx("grid place-items-center shrink-0",kind==="in"?"bg-success/12 text-success":"bg-destructive/12 text-destructive")} style={{width:s,height:s}}>
+    <Ic d={kind==="in"?ICN.in:ICN.out} s={s*0.56} w={2.4}/>
+  </Box>);
+const Kbd=({children})=><Box bg="muted" rounded="sm" className="px-1.5 py-0.5 border border-border"><Text as="span" size="xs" family="mono" tone="muted" className="leading-none">{children}</Text></Box>;
+const Btn=({primary,icon,children,...r})=>(
+  <button {...r} className={cx("inline-flex items-center gap-1.5 h-8 rounded-md text-[13px] font-medium border transition-all active:translate-y-px",children?"px-3":"w-8 justify-center",
+    primary?"bg-primary text-primary-foreground border-primary hero-shadow hover:brightness-110":"bg-card text-foreground border-border hover:bg-muted")}>
+    {icon&&<Ic d={icon} s={14} w={2.1}/>}{children}
+  </button>);
+/* tipografia de dinheiro — escala única, R$ e centavos de-enfatizados (tracking apertado, tabular) */
+const NUM={hero:["text-[44px]","text-lg"],xl:["text-[30px]","text-sm"],lg:["text-[22px]","text-xs"],md:["text-[16px]","text-[11px]"],sm:["text-[13px]","text-[11px]"]};
+function Num({n,size="lg",tone="default",signed,white}){const p=parts(n);const[m,sub]=NUM[size];const cur=white?"text-white/55":"text-muted-foreground";return(
+  <Inline gap={0} align="baseline" className="whitespace-nowrap">
+    {signed&&<Text as="span" size={null} tone={null} family="mono" className={cx(sub,cur,"mr-0.5")}>{n>=0?"+":"−"}</Text>}
+    <Text as="span" size={null} tone={null} family="mono" weight="medium" className={cx(sub,cur,"mr-0.5")}>R$</Text>
+    <Text as="span" size={null} tone={white?null:tone} family="mono" numeric="tabular" weight="bold" className={cx(m,white&&"text-white","tracking-[-0.02em] leading-none")}>{p.int}</Text>
+    <Text as="span" size={null} tone={null} family="mono" numeric="tabular" className={cx(sub,cur)}>,{p.dec}</Text>
+  </Inline>);}
+function Label({children,dot,white}){return(
+  <Inline gap={1.5} className="shrink-0">
+    {dot&&<span className={cx("w-1.5 h-1.5 rounded-full shrink-0",dot)}/>}
+    <Text as="span" size={null} tone={null} weight="semibold" className={cx("text-[11px] uppercase tracking-[0.13em] whitespace-nowrap",white?"text-white/70":"text-muted-foreground")}>{children}</Text>
+  </Inline>);}
+
+/* ═══ HERO (roxo cheio — a marca assume a tela) ═══ */
+function Hero({previsto,saldo,pend}){const p=parts(previsto);return(
+  <Box rounded="xl" className="relative overflow-hidden hero-shadow md:col-span-2 text-white" style={{background:"linear-gradient(135deg, oklch(0.56 0.16 296), oklch(0.47 0.15 292))"}}>
+    <div className="absolute -right-10 -top-12 w-48 h-48 rounded-full" style={{background:"radial-gradient(closest-side, oklch(0.75 0.16 300 / .35), transparent)"}}/>
+    <Stack gap={2.5} className="relative p-4">
+      <Inline justify="between" align="start">
+        <Inline gap={2}>
+          <Box rounded="md" className="bg-white/15 grid place-items-center w-6 h-6"><Ic d={ICN.cal} s={13} w={2}/></Box>
+          <Text as="span" size="xs" weight="semibold" className="uppercase tracking-[0.16em] text-white/80 whitespace-nowrap">Saldo previsto · maio</Text>
+        </Inline>
+        <Box className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M5 19 19 5M9 5h10v10"/></svg>
+          <Text as="span" size="xs" weight="bold" family="mono" numeric="tabular" className="leading-none text-white">12,4%</Text>
+        </Box>
+      </Inline>
+      <Inline gap={0} align="baseline"><Num n={previsto} size="hero" white/></Inline>
+      <Inline gap={6} align="center" className="gap-y-2">
+        <Stack gap={1}>
+          <Text as="span" size="xs" className="uppercase tracking-wider text-white/55 leading-none whitespace-nowrap">Realizado</Text>
+          <Inline gap={1} align="baseline"><Text as="span" size="xs" family="mono" className="text-white/55">R$</Text><Text as="span" size="base" family="mono" numeric="tabular" weight="semibold" className="text-white leading-none">{fmt(saldo)}</Text></Inline>
+        </Stack>
+        <span className="w-px h-7 bg-white/20"/>
+        <Stack gap={1}>
+          <Text as="span" size="xs" className="uppercase tracking-wider text-white/55 leading-none whitespace-nowrap">Pendente líq.</Text>
+          <Inline gap={1} align="baseline"><Text as="span" size="xs" family="mono" className="text-white/55">R$</Text><Text as="span" size="base" family="mono" numeric="tabular" weight="semibold" className="text-white leading-none">{K(pend)}</Text></Inline>
+        </Stack>
+      </Inline>
+      <Box className="-mx-1 -mb-1">
+        <svg viewBox="0 0 360 48" preserveAspectRatio="none" className="w-full h-12 block" aria-hidden="true">
+          <defs><linearGradient id="hg" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stopColor="#fff" stopOpacity="0.28"/><stop offset="100%" stopColor="#fff" stopOpacity="0"/></linearGradient></defs>
+          <path d="M0,40 L30,36 L60,38 L90,30 L120,33 L150,24 L180,27 L210,18 L240,21 L270,14 L300,17 L330,9 L360,6 L360,48 L0,48 Z" fill="url(#hg)"/>
+          <path d="M0,40 L30,36 L60,38 L90,30 L120,33 L150,24 L180,27 L210,18 L240,21 L270,14 L300,17 L330,9 L360,6" fill="none" stroke="#fff" strokeWidth="2" strokeOpacity="0.9" vectorEffect="non-scaling-stroke"/>
+          <circle cx="360" cy="6" r="3" fill="#fff"/>
+        </svg>
+      </Box>
+    </Stack>
+  </Box>);}
+
+/* TIER 2 — A receber: acionável, com ageing dobrado dentro (mata a redundância) */
+function ReceberCard({total,atraso,emdia}){return(
+  <Box bg="card" border rounded="xl" className="relative overflow-hidden p-4 shadow-sm transition-colors hover:border-success/40">
+    <span className="absolute inset-y-0 left-0 w-1 bg-success/60"/>
+    <Stack gap={3}>
+      <Inline justify="between"><Label dot="bg-success">A receber</Label><Text as="span" size={null} tone="muted" className="text-[11px]">3 títulos</Text></Inline>
+      <Num n={total} size="xl"/>
+      <Stack gap={2}>
+        <Inline gap={0.5} className="h-1.5 rounded-full overflow-hidden bg-muted">
+          <div className="bg-destructive" style={{flex:atraso}}/>
+          <div className="bg-success" style={{flex:emdia}}/>
+        </Inline>
+        <Inline gap={4} wrap className="gap-y-1">
+          <Inline gap={2}><span className="w-1.5 h-1.5 rounded-full bg-destructive shrink-0"/><Text as="span" size={null} tone="muted" className="text-[11px]">Atraso</Text><Text as="span" size={null} tone="destructive" family="mono" numeric="tabular" weight="semibold" className="text-[11px]">R$ {fmt(atraso)}</Text></Inline>
+          <Inline gap={2}><span className="w-1.5 h-1.5 rounded-full bg-success shrink-0"/><Text as="span" size={null} tone="muted" className="text-[11px]">A vencer</Text><Text as="span" size={null} tone="success" family="mono" numeric="tabular" weight="semibold" className="text-[11px]">R$ {fmt(emdia)}</Text></Inline>
+        </Inline>
+      </Stack>
+    </Stack>
+  </Box>);}
+
+/* TIER 2 — A pagar: acionável, com próximo vencimento */
+function PagarCard({total}){return(
+  <Box bg="card" border rounded="xl" className="relative overflow-hidden p-4 shadow-sm transition-colors hover:border-warning/40">
+    <span className="absolute inset-y-0 left-0 w-1 bg-warning/50"/>
+    <Stack gap={3}>
+      <Inline justify="between"><Label dot="bg-warning">A pagar</Label><Text as="span" size={null} tone="muted" className="text-[11px]">2 títulos</Text></Inline>
+      <Num n={total} size="xl"/>
+      <Stack gap={1.5}>
+        <Text as="span" size={null} tone="muted" className="text-[10px] uppercase tracking-[0.13em] font-semibold">Próximo vencimento</Text>
+        <Inline justify="between" className="rounded-md bg-muted/60 px-2.5 py-1.5">
+          <Inline gap={2}><span className="w-1.5 h-1.5 rounded-full bg-warning"/><Text as="span" size="sm" weight="medium">10 mai · Suprigraf</Text></Inline>
+          <Text as="span" size="sm" family="mono" numeric="tabular" weight="medium">R$ 2.390,00</Text>
+        </Inline>
+      </Stack>
+    </Stack>
+  </Box>);}
+
+/* TIER 3 — Realizado do mês: faixa fina, secundária (leve) */
+function RealizadoStrip({recebido,pago,saldo}){const stat=(l,v,t)=>(
+  <Inline gap={2} align="baseline"><Text as="span" size={null} tone="muted" className="text-[11px] uppercase tracking-wider">{l}</Text><Num n={v} size="sm" tone={t}/></Inline>);
+  return(<Box bg="card" border rounded="lg" className="px-4 py-2.5 shadow-sm">
+    <Inline justify="between" wrap className="gap-y-2">
+      <Label>Realizado · maio</Label>
+      <Inline gap={6} wrap className="gap-y-1.5">
+        {stat("Recebido",recebido,"success")}{stat("Pago",pago,"destructive")}{stat("Saldo",saldo,"default")}
+      </Inline>
+    </Inline>
+  </Box>);}
+
+/* ═══ LEDGER (denso · acento de urgência · tag de categoria) ═══ */
+const COLS="grid-cols-[78px_24px_minmax(0,1fr)_140px_104px_116px_32px] items-center";
+function Ledger({rows,onOpen}){const groups=[];rows.forEach(r=>{const g=groups.find(x=>x.grp===r.grp);g?g.rows.push(r):groups.push({grp:r.grp,rows:[r]});});
+  return(<Box bg="card" border rounded="xl" className="overflow-hidden shadow-sm">
+    <Grid gap={2} className={cx(COLS,"px-3.5 h-8 bg-muted/50 border-b border-border")}>
+      <Text as="span" size="xs" tone="muted" weight="semibold" className="uppercase tracking-wider">Venc.</Text><span/>
+      <Text as="span" size="xs" tone="muted" weight="semibold" className="uppercase tracking-wider">Lançamento</Text>
+      <Text as="span" size="xs" tone="muted" weight="semibold" className="uppercase tracking-wider">Contraparte</Text>
+      <Text as="span" size="xs" tone="muted" weight="semibold" className="uppercase tracking-wider">Status</Text>
+      <Text as="span" size="xs" tone="muted" weight="semibold" align="right" className="uppercase tracking-wider">Valor</Text><span/>
+    </Grid>
+    <Stack gap={0} divider>
+      {groups.map(g=>(
+        <Stack key={g.grp} gap={0} divider>
+          <Box className="px-3.5 h-6 flex items-center bg-muted/25"><Text as="span" size="xs" tone="muted" weight="semibold" className="uppercase tracking-[0.16em]">{g.grp}</Text></Box>
+          {g.rows.map((r,i)=>{const urg=r.st==="atrasado"?"shadow-[inset_3px_0_0_hsl(var(--destructive))]":r.st==="vencendo"?"shadow-[inset_3px_0_0_hsl(var(--warning))]":"";return(
+            <Grid key={i} gap={2} onClick={()=>onOpen&&onOpen(r)} className={cx(COLS,"group px-3.5 h-10 hover:bg-primary/[0.04] transition-colors cursor-pointer",urg,r.paid&&"opacity-[0.62] hover:opacity-100")}>
+              <Stack gap={0}>
+                <Text as="span" size="sm" family="mono" numeric="tabular" weight="semibold" className="leading-tight">{r.d}</Text>
+                <Text as="span" size="xs" tone={r.st==="atrasado"?"destructive":r.st==="vencendo"?"warning":"muted"} className="leading-none">{r.when}</Text>
+              </Stack>
+              <Dir kind={r.kind} s={24}/>
+              <Inline gap={2} className="min-w-0">
+                <Text as="span" size="sm" weight="medium" truncate>{r.desc}</Text>
+                <Inline gap={1} className="shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full" style={{background:`oklch(0.62 0.13 ${CAT[r.cat]||280})`}}/>
+                  <Text as="span" size="xs" tone="muted">{r.cat}</Text>
+                </Inline>
+                <Text as="span" size="xs" tone="muted" family="mono" className="shrink-0">{r.nf}</Text>
+              </Inline>
+              <Text as="span" size="sm" tone="muted" truncate>{r.who}</Text>
+              <Badge st={r.st}/>
+              <Money n={r.kind==="in"?r.amt:-r.amt} signed tone={r.kind==="in"?"success":"default"} size="sm" strong/>
+              <div className="flex justify-end">{!r.paid&&<button onClick={(e)=>e.stopPropagation()} title={r.kind==="in"?"Marcar recebido":"Marcar pago"} className="opacity-0 group-hover:opacity-100 w-6 h-6 grid place-items-center rounded-md text-success hover:bg-success/12 transition-all"><Ic d={ICN.check} s={14} w={2.4}/></button>}</div>
+            </Grid>);})}
+        </Stack>
+      ))}
+    </Stack>
+  </Box>);}
+
+/* ═══ DRAWER DE DETALHE — domínio 9.75 (conciliação · fiscal · cobrança) ═══ */
+function Sec({icon,title,right,children}){return(
+  <Stack gap={2.5} className="py-4">
+    <Inline justify="between">
+      <Inline gap={2}><Box rounded="md" className="w-6 h-6 grid place-items-center bg-primary/10 text-primary shrink-0">{icon}</Box><Text as="span" size="sm" weight="semibold">{title}</Text></Inline>
+      {right}
+    </Inline>
+    {children}
+  </Stack>);}
+function FSM({stage}){const steps=["Emitido","Conferido","Conciliado","Liquidado"];return(
+  <Inline gap={0} className="w-full">
+    {steps.map((s,i)=>{const done=i<stage,cur=i===stage;return(
+      <React.Fragment key={s}>
+        <Stack gap={1.5} align="center" className="shrink-0">
+          <Box className={cx("w-6 h-6 rounded-full grid place-items-center border-2",done?"bg-primary border-primary text-primary-foreground":cur?"border-primary text-primary bg-card":"border-border text-muted-foreground bg-card")}>
+            {done?<Ic d={ICN.check} s={12} w={3}/>:<Text as="span" size="xs" family="mono" weight="bold" className="leading-none">{i+1}</Text>}
+          </Box>
+          <Text as="span" size="xs" tone={done||cur?"default":"muted"} weight={cur?"semibold":"normal"} className="whitespace-nowrap leading-none">{s}</Text>
+        </Stack>
+        {i<3&&<div className={cx("flex-1 h-0.5 mt-3",done?"bg-primary":"bg-border")}/>}
+      </React.Fragment>);})}
+  </Inline>);}
+function KV({k,v,mono}){return(<Stack gap={0}><Text as="span" size="xs" tone="muted" className="uppercase tracking-wider">{k}</Text><Text as="span" size="sm" weight="medium" family={mono?"mono":undefined}>{v}</Text></Stack>);}
+function Drawer({row,onClose}){
+  if(!row) return null;
+  const isIn=row.kind==="in",settled=!!row.paid,late=row.st==="atrasado";
+  const stage=settled?4:2;
+  const p=parts(row.amt);
+  return(
+    <Box className="fixed inset-0 z-[60]">
+      <div onClick={onClose} className="absolute inset-0 bg-foreground/25" style={{animation:"fadeIn .2s ease"}}/>
+      <Box bg="card" className="absolute top-0 right-0 h-full w-[452px] max-w-[94vw] border-l border-border flex flex-col" style={{animation:"drawerIn .28s cubic-bezier(.22,1,.36,1)",boxShadow:"-22px 0 55px -22px rgba(0,0,0,.4)"}}>
+        {/* header */}
+        <Inline gap={3} className="px-5 h-14 border-b border-border shrink-0">
+          <Dir kind={row.kind} s={30}/>
+          <Stack gap={0} className="flex-1 min-w-0">
+            <Text as="span" size="xs" tone="muted" weight="semibold" className="uppercase tracking-wider">{isIn?"A receber":"A pagar"} · #FIN-{row.nf.replace(/\D/g,"")}</Text>
+            <Text as="span" size="sm" weight="semibold" truncate>{row.desc}</Text>
+          </Stack>
+          <button onClick={onClose} className="w-8 h-8 grid place-items-center rounded-md text-muted-foreground hover:bg-muted shrink-0"><Ic d={ICN.x} s={16} w={2.2}/></button>
+        </Inline>
+        {/* hero */}
+        <Box className="px-5 pt-4 pb-4 shrink-0 border-b border-border">
+          <Stack gap={3}>
+            <Inline justify="between" align="end">
+              <Stack gap={0.5}>
+                <Text as="span" size="xs" weight="semibold" tone={late?"destructive":"muted"} className="uppercase tracking-wider">{settled?"Liquidado":"Vencimento"}</Text>
+                <Inline gap={2} align="baseline"><Text as="span" size="lg" weight="semibold" family="mono" numeric="tabular">{row.d}/2026</Text><Text as="span" size="xs" tone={late?"destructive":"muted"}>{row.when}</Text></Inline>
+              </Stack>
+              <Badge st={row.st}/>
+            </Inline>
+            <Inline gap={0} align="baseline">
+              <Text as="span" size="sm" tone="muted" family="mono" className="mr-1">{isIn?"+ R$":"− R$"}</Text>
+              <Text as="span" size="4xl" weight="bold" family="mono" numeric="tabular" tone={isIn?"success":"default"} leading="none" className="tracking-tight">{p.int}</Text>
+              <Text as="span" size="sm" tone="muted" family="mono" className="ml-0.5">,{p.dec}</Text>
+            </Inline>
+            <FSM stage={stage}/>
+          </Stack>
+        </Box>
+        {/* body */}
+        <Box className="flex-1 overflow-y-auto nicescroll px-5">
+          <Stack gap={0} divider>
+            {/* CONCILIAÇÃO (P2) */}
+            <Sec icon={<Ic d={ICN.refresh} s={13} w={2}/>} title="Conciliação" right={<Text as="span" size="xs" tone={settled?"success":"muted"} weight="semibold">{settled?"100% match":"sem match"}</Text>}>
+              {settled?(
+                <Box rounded="lg" className="p-3 border border-success/25 bg-success/[0.06]">
+                  <Inline gap={2.5} align="start">
+                    <Box className="w-5 h-5 rounded-full grid place-items-center bg-success/15 text-success shrink-0 mt-0.5"><Ic d={ICN.check} s={11} w={3}/></Box>
+                    <Stack gap={0.5}><Text as="span" size="sm" weight="medium">Conciliado · extrato OFX 04392</Text><Text as="span" size="xs" tone="muted" family="mono" numeric="tabular">{row.d}/05 · R$ {fmt(row.amt)} · ±R$ 0,00 · ±0 dias</Text></Stack>
+                  </Inline>
+                </Box>
+              ):(
+                <Stack gap={2.5}>
+                  <Box bg="muted" rounded="lg" className="p-3">
+                    <Stack gap={2}>
+                      <Inline gap={2}><Box className="w-5 h-5 rounded-full grid place-items-center bg-primary/15 text-primary shrink-0"><Ic d={ICN.bolt} s={11} w={2}/></Box><Text as="span" size="xs" tone="muted">Sugestão IA · linha provável no extrato (±R$ 5 · ±2 dias)</Text></Inline>
+                      <Inline justify="between" className="pl-7"><Text as="span" size="sm" family="mono" numeric="tabular">{row.d}/05 · {row.who}</Text><Text as="span" size="sm" family="mono" numeric="tabular" weight="medium">R$ {fmt(row.amt)}</Text></Inline>
+                    </Stack>
+                  </Box>
+                  <Inline gap={2}><Btn icon={ICN.check}>Conciliar</Btn><Btn>Importar OFX</Btn></Inline>
+                </Stack>
+              )}
+            </Sec>
+            {/* FISCAL (P3) */}
+            <Sec icon={<Ic d={ICN.doc} s={13} w={2}/>} title="Fiscal" right={<Box className="inline-flex items-center gap-1.5 rounded-full bg-success/12 text-success px-2 py-0.5"><span className="w-1.5 h-1.5 rounded-full bg-success"/><Text as="span" size="xs" weight="semibold">Autorizada</Text></Box>}>
+              <Stack gap={3}>
+                <Grid cols={2} gap={3}>
+                  <KV k="Documento" v={row.nf}/>
+                  <KV k="Natureza" v={isIn?"NF-e · saída":"NF-e · entrada"}/>
+                </Grid>
+                <Stack gap={1}>
+                  <Text as="span" size="xs" tone="muted" className="uppercase tracking-wider">Chave de acesso</Text>
+                  <Box bg="muted" rounded="md" className="px-2.5 py-1.5"><Text as="span" size="xs" family="mono" className="break-all leading-relaxed">3526 0512 3456 7800 0125 5500 1000 0419 8100 0419 8100</Text></Box>
+                </Stack>
+                <Stack gap={0} divider>
+                  <Inline justify="between" className="py-1.5"><Text as="span" size="sm" tone="muted">ISS retido · 5%</Text><Text as="span" size="sm" family="mono" numeric="tabular" weight="medium">R$ {fmt(row.amt*0.05)}</Text></Inline>
+                  <Inline justify="between" className="py-1.5"><Text as="span" size="sm" tone="muted">A recolher · DAS Simples</Text><Text as="span" size="sm" family="mono" numeric="tabular" weight="medium" tone="warning">R$ {fmt(row.amt*0.06)}</Text></Inline>
+                </Stack>
+              </Stack>
+            </Sec>
+            {/* COBRANÇA (P4) */}
+            <Sec icon={<Ic d={ICN.send} s={12} w={2}/>} title="Cobrança" right={<Text as="span" size="xs" tone={settled?"success":late?"destructive":"warning"} weight="semibold">{settled?"pago":late?"vencido":"registrado"}</Text>}>
+              <Stack gap={3}>
+                <Stack gap={1}>
+                  <Text as="span" size="xs" tone="muted" className="uppercase tracking-wider">Linha digitável · boleto</Text>
+                  <Box bg="muted" rounded="md" className="px-2.5 py-1.5"><Text as="span" size="xs" family="mono" numeric="tabular" className="break-all">34191.79001 01043.510047 91020.150008 1 9877000{p.int}00</Text></Box>
+                </Stack>
+                <Stack gap={0}>
+                  <Text as="span" size="xs" tone="muted" className="uppercase tracking-wider mb-1.5">Régua de cobrança</Text>
+                  {[["D+0","Boleto emitido","done"],["D+3","Lembrete WhatsApp",late?"done":"pending"],["D+8","Aviso de vencido",late?"cur":"pending"]].map(([dd,l,s],i)=>(
+                    <Inline key={i} gap={2.5} className="py-1">
+                      <Text as="span" size="xs" family="mono" tone="muted" className="w-7">{dd}</Text>
+                      <span className={cx("w-2 h-2 rounded-full shrink-0",s==="done"?"bg-success":s==="cur"?"bg-destructive":"bg-border")}/>
+                      <Text as="span" size="sm" tone={s==="pending"?"muted":"default"}>{l}</Text>
+                    </Inline>
+                  ))}
+                </Stack>
+                {!settled&&<Inline gap={2} wrap className="gap-y-2"><Btn icon={ICN.link}>2ª via</Btn><Btn icon={ICN.bolt}>Link PIX</Btn><Btn primary icon={ICN.send}>Lembrar cliente</Btn></Inline>}
+              </Stack>
+            </Sec>
+            {/* DETALHE */}
+            <Sec icon={<Ic d={ICN.search} s={12} w={2}/>} title="Detalhe">
+              <Grid cols={2} gap={3}>
+                <KV k="Contraparte" v={row.who}/>
+                <KV k="Categoria" v={row.cat}/>
+                <KV k="Conta" v="Itaú PJ · 4521"/>
+                <KV k="Canal" v="Boleto registrado"/>
+              </Grid>
+            </Sec>
+          </Stack>
+        </Box>
+        {/* footer */}
+        <Inline gap={2} className="px-5 h-16 border-t border-border shrink-0 bg-muted/30">
+          <Btn icon={ICN.doc}>Ver NF-e</Btn>
+          <Box className="flex-1"/>
+          {!settled
+            ? <Btn primary icon={ICN.check}>{isIn?"Recebi":"Paguei"}</Btn>
+            : <Inline gap={1.5}><span className="text-success"><Ic d={ICN.check} s={15} w={2.4}/></span><Text as="span" size="sm" tone="success" weight="semibold">Liquidado</Text></Inline>}
+        </Inline>
+      </Box>
+    </Box>);}
+
+/* ═══ TELA ═══ */
+function FinanceiroPilot(){
+  const[lens,setLens]=React.useState("caixa");
+  const[sel,setSel]=React.useState(null);
+  const recebido=ROWS.filter(r=>r.kind==="in"&&r.paid).reduce((s,r)=>s+r.amt,0);
+  const pago=ROWS.filter(r=>r.kind==="out"&&r.paid).reduce((s,r)=>s+r.amt,0);
+  const aReceber=ROWS.filter(r=>r.kind==="in"&&!r.paid).reduce((s,r)=>s+r.amt,0);
+  const aPagar=ROWS.filter(r=>r.kind==="out"&&!r.paid).reduce((s,r)=>s+r.amt,0);
+  const atraso=ROWS.filter(r=>r.kind==="in"&&!r.paid&&r.st==="atrasado").reduce((s,r)=>s+r.amt,0);
+  const saldo=recebido-pago,previsto=saldo+aReceber-aPagar;
+  const totalIn=ROWS.filter(r=>r.kind==="in").reduce((s,r)=>s+r.amt,0);
+  const totalOut=ROWS.filter(r=>r.kind==="out").reduce((s,r)=>s+r.amt,0);
+  const LENSES=[["caixa","Caixa"],["receber","A receber"],["pagar","A pagar"]];
+  const FILTERS=[["Todas",9],["Aberto",3],["A receber",2],["A pagar",1],["Atraso",1]];
+  return(
+    <Box className="bg-page min-h-screen">
+      <Container size="xl" px={6} className="py-5">
+        <Stack gap={4}>
+          {/* HEADER */}
+          <Inline justify="between" align="end" wrap className="gap-y-3">
+            <Stack gap={1}>
+              <Inline gap={1.5}><Text as="span" size="xs" tone="muted">Financeiro</Text><Ic d={ICN.chev} s={11} w={2}/><Text as="span" size="xs" weight="medium">Visão unificada</Text></Inline>
+              <Inline gap={2.5} align="baseline" wrap><Text as="h1" size={null} weight="bold" className="text-[26px] tracking-[-0.025em] leading-none">Financeiro</Text><Text as="span" size={null} tone="muted" weight="semibold" className="text-[11px] uppercase tracking-[0.16em] whitespace-nowrap">Maio 2026 · ROTA LIVRE</Text></Inline>
+            </Stack>
+            <Inline gap={2} wrap className="gap-y-2">
+              <Box bg="muted" rounded="lg" className="p-0.5">
+                <Inline gap={0.5}>{LENSES.map(([id,l])=>(<button key={id} onClick={()=>setLens(id)} className={cx("h-7 px-3 rounded-md text-[13px] font-medium transition-all",lens===id?"bg-primary text-primary-foreground shadow-sm":"text-muted-foreground hover:text-foreground")}>{l}</button>))}</Inline>
+              </Box>
+              <Box bg="card" border rounded="md" className="h-8 px-2.5 flex items-center gap-2 w-[190px]"><Ic d={ICN.search} s={14} w={2}/><Text as="span" size="sm" tone="muted" className="flex-1 truncate">Buscar…</Text><Kbd>⌘K</Kbd></Box>
+              <Btn icon={ICN.refresh}>Conciliar</Btn>
+              <Btn primary icon={ICN.plus}>Novo</Btn>
+            </Inline>
+          </Inline>
+
+          {/* TIER 2 — acionável (Hero + A receber + A pagar) */}
+          <Grid gap={3} className="grid-cols-1 sm:grid-cols-2 xl:grid-cols-4">
+            <Hero previsto={previsto} saldo={saldo} pend={aReceber-aPagar}/>
+            <ReceberCard total={aReceber} atraso={atraso} emdia={aReceber-atraso}/>
+            <PagarCard total={aPagar}/>
+          </Grid>
+          {/* TIER 3 — realizado do mês (secundário, leve) */}
+          <RealizadoStrip recebido={recebido} pago={pago} saldo={saldo}/>
+
+          {/* FILTROS densos */}
+          <Inline gap={1.5} wrap className="gap-y-2">
+            {FILTERS.map(([f,n],i)=>(
+              <button key={f} className={cx("inline-flex items-center gap-1.5 h-7 rounded-full pl-3 pr-2 text-xs font-semibold border transition-colors",
+                i===0?"bg-primary text-primary-foreground border-primary":"bg-card border-border text-muted-foreground hover:text-foreground hover:border-primary/40")}>
+                {f}<Box className={cx("rounded-full px-1.5 min-w-[16px] text-center",i===0?"bg-white/20":"bg-muted")}><Text as="span" size="xs" family="mono" numeric="tabular" tone={i===0?"white":"muted"}>{n}</Text></Box>
+              </button>
+            ))}
+            <Box className="flex-1 min-w-[8px]"/>
+            <Inline gap={1.5}>
+              <Box bg="card" border rounded="md" className="h-7 px-2.5 flex items-center gap-1.5"><Text as="span" size="xs" tone="muted">Conta</Text><Text as="span" size="xs" weight="medium">Itaú PJ · 4521</Text><Ic d={ICN.chev} s={11} w={2} className="rotate-90 text-muted-foreground"/></Box>
+              <Box bg="muted" rounded="md" className="p-0.5"><Inline gap={0.5}>{["≡","☰","≣"].map((g,i)=><button key={i} className={cx("w-6 h-6 grid place-items-center rounded text-sm transition-all",i===0?"bg-card shadow-sm text-foreground":"text-muted-foreground")}>{g}</button>)}</Inline></Box>
+            </Inline>
+          </Inline>
+
+          <Ledger rows={ROWS} onOpen={setSel}/>
+
+          {/* FOOTER */}
+          <Box bg="card" border rounded="lg" className="h-11 px-4 flex items-center shadow-sm">
+            <Inline justify="between" className="w-full" wrap>
+              <Inline gap={4} divider wrap className="gap-y-1">
+                <Inline gap={1.5}><Text as="span" size="sm" weight="bold" family="mono" numeric="tabular">{ROWS.length}</Text><Text as="span" size="sm" tone="muted">lançamentos</Text></Inline>
+                <Inline gap={1.5} className="pl-4"><Text as="span" size="sm" tone="muted">Entrada</Text><Text as="span" size="sm" family="mono" numeric="tabular" tone="success" weight="semibold">R$ {fmt(totalIn)}</Text></Inline>
+                <Inline gap={1.5} className="pl-4"><Text as="span" size="sm" tone="muted">Saída</Text><Text as="span" size="sm" family="mono" numeric="tabular" weight="semibold">R$ {fmt(totalOut)}</Text></Inline>
+              </Inline>
+              <Inline gap={2.5} wrap className="gap-y-1">
+                <Inline gap={1.5}><Kbd>J</Kbd><Kbd>K</Kbd><Text as="span" size="xs" tone="muted">navegar</Text></Inline>
+                <Inline gap={1.5}><Kbd>␣</Kbd><Text as="span" size="xs" tone="muted">liquidar</Text></Inline>
+                <Inline gap={1.5}><Kbd>/</Kbd><Text as="span" size="xs" tone="muted">buscar</Text></Inline>
+              </Inline>
+            </Inline>
+          </Box>
+        </Stack>
+      </Container>
+      <Drawer row={sel} onClose={()=>setSel(null)}/>
+    </Box>);}
+
+/* ═══ CHROME DA PROVA ═══ */
+function ProofChrome(){
+  const[xray,setXray]=React.useState(false);const[dark,setDark]=React.useState(false);
+  React.useEffect(()=>{const root=document.documentElement;root.classList.add("no-trans");root.classList.toggle("dark",dark);const id=requestAnimationFrame(()=>requestAnimationFrame(()=>root.classList.remove("no-trans")));return ()=>cancelAnimationFrame(id);},[dark]);
+  React.useEffect(()=>{document.body.setAttribute("data-xray",xray?"on":"off");},[xray]);
+  const LEG=[["Box","250"],["Stack","150"],["Inline","60"],["Grid","300"],["Text","20"]];
+  return(<div className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
+    <Container size="xl" px={6} className="h-13 flex items-center" style={{height:"52px"}}>
+      <Inline justify="between" className="w-full" wrap>
+        <Inline gap={2.5}>
+          <div className="w-7 h-7 rounded-md grid place-items-center text-white text-xs font-bold shadow-sm" style={{background:"linear-gradient(135deg,oklch(0.6 0.16 295),oklch(0.5 0.15 295))"}}>Oi</div>
+          <Stack gap={0}><Text as="span" size="sm" weight="semibold" className="leading-tight">Prova viva · Financeiro 100% primitivos</Text><Text as="span" size="xs" tone="muted" className="leading-tight">Box · Stack · Inline · Grid · Text · Container — ADR 0253</Text></Stack>
+        </Inline>
+        <Inline gap={2} wrap className="gap-y-2">
+          {xray&&<Inline gap={2.5} className="mr-1">{LEG.map(([n,h])=>(<Inline key={n} gap={1}><span className="w-3 h-3 rounded-sm" style={{outline:`1px dashed oklch(0.62 0.16 ${h})`,outlineOffset:"-1px"}}/><Text as="span" size="xs" tone="muted" family="mono">{n}</Text></Inline>))}</Inline>}
+          <button onClick={()=>setXray(v=>!v)} className={cx("h-8 px-3 rounded-md text-[13px] font-medium border transition-colors",xray?"bg-primary text-primary-foreground border-primary":"bg-card text-foreground border-border hover:bg-muted")}>{xray?"◉ Raio-x":"◎ Raio-x"}</button>
+          <button onClick={()=>setDark(v=>!v)} className="h-8 px-3 rounded-md text-[13px] font-medium border border-border bg-card text-foreground hover:bg-muted transition-colors">{dark?"◐ Escuro":"◑ Claro"}</button>
+        </Inline>
+      </Inline>
+    </Container>
+  </div>);}
+
+function App(){return(
+  <div className="min-h-screen bg-page nicescroll">
+    <ProofChrome/><FinanceiroPilot/>
+    <Container size="xl" px={6} className="pb-10">
+      <Box bg="card" border rounded="lg" className="p-4 shadow-sm">
+        <Stack gap={2}>
+          <Text as="span" size="sm" weight="semibold">Identidade + densidade + frescor + domínio 9.75 — e o que ainda é do [CL]</Text>
+          <Text size="sm" tone="muted" className="leading-relaxed"><Text as="span" weight="semibold" tone="primary">Clique em qualquer linha</Text> pra abrir o drawer de detalhe — com <Text as="span" weight="medium" tone="default">FSM stepper</Text> (Emitido→Conferido→Conciliado→Liquidado), <Text as="span" weight="medium" tone="default">conciliação</Text> (match OFX ±valor ±dias), <Text as="span" weight="medium" tone="default">fiscal</Text> (NF-e + chave + ISS/DAS) e <Text as="span" weight="medium" tone="default">cobrança</Text> (linha digitável + régua + 2ª via/PIX). São os 3 maiores gaps de domínio da rubrica 9.75 (Cobrança 4,5 · Fiscal 5,0 · Conciliação 5,5). Tudo 100% primitivos.</Text>
+          <Text size="sm" tone="muted" className="leading-relaxed"><Text as="span" weight="semibold" tone="default">Ressalva:</Text> mock fiel do contrato (Tailwind CDN). Prova final = <code className="font-mono text-[12px]">.tsx</code> nos gates do repo. Falta o shell, o drawer e ⌘K — escopo do [CL].</Text>
+        </Stack>
+      </Box>
+    </Container>
+  </div>);}
+ReactDOM.createRoot(document.getElementById("app")).render(<App/>);
+</script>
+</body>
+</html>

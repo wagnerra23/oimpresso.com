@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reavaliação Financeiro — 2026-06-09</title>
+<style>
+  :root{
+    --accent: oklch(0.55 0.15 295);
+    --accent-soft: oklch(0.96 0.025 295);
+    --accent-border: oklch(0.88 0.06 295);
+    --bg: oklch(0.985 0.003 90);
+    --card: #fff;
+    --ink: oklch(0.24 0.01 90);
+    --ink-2: oklch(0.45 0.012 90);
+    --ink-3: oklch(0.60 0.012 90);
+    --line: oklch(0.90 0.006 90);
+    --ok: oklch(0.55 0.13 150);
+    --ok-soft: oklch(0.96 0.04 150);
+    --warn: oklch(0.62 0.13 70);
+    --warn-soft: oklch(0.96 0.05 85);
+    --bad: oklch(0.56 0.16 20);
+    --bad-soft: oklch(0.96 0.03 20);
+    --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:14px/1.55 "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{max-width:980px; margin:0 auto; padding:48px 32px 96px;}
+  header.doc{border-bottom:2px solid var(--ink); padding-bottom:20px; margin-bottom:32px;}
+  .kicker{font-family:var(--mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin:0 0 8px;}
+  h1{font-size:27px; line-height:1.2; margin:0 0 10px; font-weight:600; letter-spacing:-0.01em;}
+  .meta{display:flex; flex-wrap:wrap; gap:8px 20px; font-family:var(--mono); font-size:11.5px; color:var(--ink-2);}
+  .meta strong{color:var(--ink); font-weight:600;}
+  h2{font-size:18px; margin:44px 0 6px; font-weight:600; letter-spacing:-0.005em; display:flex; align-items:baseline; gap:10px;}
+  h2 .n{font-family:var(--mono); font-size:12px; color:var(--accent); font-weight:600;}
+  h3{font-size:14.5px; margin:24px 0 8px; font-weight:600;}
+  p.lead{font-size:15px; color:var(--ink-2); margin:0 0 18px; max-width:72ch; text-wrap:pretty;}
+  p{max-width:76ch; text-wrap:pretty;}
+  .tag{display:inline-block; font-family:var(--mono); font-size:10px; padding:2px 7px; border-radius:4px; vertical-align:1px; white-space:nowrap;}
+  .tag.lido{background:var(--ok-soft); color:var(--ok); border:1px solid color-mix(in oklab, var(--ok) 30%, transparent);}
+  .tag.inferido{background:var(--warn-soft); color:var(--warn); border:1px solid color-mix(in oklab, var(--warn) 35%, transparent);}
+  .tag.stale{background:var(--bad-soft); color:var(--bad); border:1px solid color-mix(in oklab, var(--bad) 30%, transparent);}
+  .callout{background:var(--accent-soft); border:1px solid var(--accent-border); border-radius:8px; padding:16px 20px; margin:20px 0;}
+  .callout .ct{font-family:var(--mono); font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--accent); margin:0 0 6px; font-weight:600;}
+  .callout p{margin:0; font-size:13.5px;}
+  table{width:100%; border-collapse:collapse; margin:14px 0 8px; font-size:13px;}
+  th{text-align:left; font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-3); font-weight:600; padding:8px 10px; border-bottom:2px solid var(--ink);}
+  td{padding:9px 10px; border-bottom:1px solid var(--line); vertical-align:top;}
+  td.num, th.num{text-align:right; font-family:var(--mono); font-variant-numeric:tabular-nums; white-space:nowrap;}
+  .score-pair{font-family:var(--mono); font-size:13px; white-space:nowrap;}
+  .score-pair .was{color:var(--ink-3); text-decoration:line-through; text-decoration-color: color-mix(in oklab, var(--ink-3) 50%, transparent);}
+  .score-pair .arrow{color:var(--ink-3); margin:0 4px;}
+  .score-pair .now{font-weight:700; color:var(--accent); font-size:14px;}
+  .score-pair .now.flat{color:var(--warn);}
+  .pill{display:inline-block; font-family:var(--mono); font-size:10.5px; font-weight:600; padding:2px 8px; border-radius:10px;}
+  .pill.live{background:var(--ok-soft); color:var(--ok);}
+  .pill.gap{background:var(--bad-soft); color:var(--bad);}
+  .pill.part{background:var(--warn-soft); color:var(--warn);}
+  ul.tight{margin:6px 0 14px; padding-left:20px;}
+  ul.tight li{margin:4px 0; max-width:74ch; text-wrap:pretty;}
+  ul.tight li code, td code, p code{font-family:var(--mono); font-size:12px; background:oklch(0.95 0.005 90); border:1px solid var(--line); border-radius:4px; padding:1px 5px;}
+  .prio{display:flex; gap:14px; align-items:flex-start; margin:14px 0; padding:14px 16px; background:var(--card); border:1px solid var(--line); border-radius:8px;}
+  .prio .badge{flex:0 0 auto; font-family:var(--mono); font-size:11px; font-weight:700; padding:3px 9px; border-radius:6px; margin-top:1px;}
+  .prio.p0 .badge{background:var(--accent); color:#fff;}
+  .prio.p1 .badge{background:var(--warn-soft); color:var(--warn); border:1px solid color-mix(in oklab, var(--warn) 35%, transparent);}
+  .prio.p2 .badge{background:oklch(0.94 0.005 90); color:var(--ink-2); border:1px solid var(--line);}
+  .prio .body{min-width:0;}
+  .prio .body > strong{display:block; margin-bottom:3px;}
+  .prio .body p{margin:0; font-size:13px; color:var(--ink-2);}
+  .prio .body .ref{font-family:var(--mono); font-size:11px; color:var(--ink-3); display:block; margin-top:5px;}
+  .composite{display:flex; gap:0; border:1px solid var(--line); border-radius:10px; overflow:hidden; margin:20px 0; background:var(--card);}
+  .composite > div{flex:1; padding:18px 20px; border-right:1px solid var(--line);}
+  .composite > div:last-child{border-right:none;}
+  .composite .cl{font-family:var(--mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--ink-3); margin-bottom:6px;}
+  .composite .cv{font-family:var(--mono); font-size:26px; font-weight:700; font-variant-numeric:tabular-nums;}
+  .composite .cv .frac{font-size:14px; color:var(--ink-3); font-weight:500;}
+  .composite .delta{font-family:var(--mono); font-size:11.5px; color:var(--ok); margin-top:3px;}
+  .composite .hero{background:var(--accent-soft);}
+  .composite .hero .cv{color:var(--accent);}
+  footer.doc{margin-top:56px; padding-top:18px; border-top:1px solid var(--line); font-family:var(--mono); font-size:11px; color:var(--ink-3); line-height:1.7;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header class="doc" data-screen-label="Cabeçalho">
+  <p class="kicker">[CC] · Reavaliação de módulo · mandato [W] “reavaliar o financeiro e o que falta”</p>
+  <h1>Financeiro — reavaliação contra o <code style="font-size:22px;">@main</code> e o que falta</h1>
+  <div class="meta">
+    <span>Data <strong>2026-06-09</strong></span>
+    <span>Fonte <strong>git @main 076c546</strong> <span class="tag lido">✓ lido neste turno</span></span>
+    <span>Régua <strong>Método 9.75 (rubrica de domínio)</strong></span>
+    <span>Charters lidos <strong>Unificado v13 · Fluxo v2 · Cobrança · Conciliação · DRE · ProvaViva</strong></span>
+  </div>
+</header>
+
+<section data-screen-label="Achado 1 — git à frente">
+  <h2><span class="n">01</span>Achado nº 1 — o git está MUITO à frente da memória local</h2>
+  <p class="lead">A rubrica que a memória carregava (composto 7,6 · Cobrança 4,5 · Fiscal 5,0 · Conciliação 5,5) era a nota do <em>protótipo Cowork de 2026-06-02</em>. O produto real no <code>main</code> fechou boa parte desses gaps como telas live com charter + Pest GUARD. Itens que a memória tratava como “mock/roadmap” e que <strong>já são live</strong>:</p>
+  <table>
+    <thead><tr><th>O que a memória dizia</th><th>O que o @main diz <span class="tag lido">✓ lido</span></th></tr></thead>
+    <tbody>
+      <tr><td>“Piloto de primitivos: [CL] executa, ponte pendente”</td><td><code>Financeiro/ProvaViva.tsx</code> <span class="pill live">live</span> validado 06-07 — fecha o critério-de-pronto da ADR 0253 (tela 100% primitivos). A ponte do pilot foi <strong>processada</strong>.</td></tr>
+      <tr><td>“Conciliação de verdade (OFX + match) = mock, 5,5”</td><td><code>Conciliacao/Index</code> <span class="pill live">live</span> — upload OFX + extrato via API do banco (ADR 0236 F1), fuzzy match ±3d, conciliar/ignorar, 6 GUARDs.</td></tr>
+      <tr><td>“Cobrança boleto/PIX + régua = mock, 4,5”</td><td><code>Cobranca/Index</code> <span class="pill live">live</span> (score F1.5 96/100) — boleto · PIX · PIX Automático · cartão, funil 5 etapas, wizard 4 steps, drawer por tipo, AI resumo.</td></tr>
+      <tr><td>“Fluxo projetado real 30/60/90 = mock”</td><td><code>Fluxo/Index</code> <span class="pill live">live</span> — tab Projetado 35d (saldo real <code>ContaBancaria</code> + títulos) e tab Realizado 12M, 16 GUARDs.</td></tr>
+      <tr><td>“DRE gerencial = mock, 6,5”</td><td><code>Dre/Index</code> <span class="pill live">live</span> — DRE hierárquico, Δ% vs mês anterior, % RL, export PDF/Excel, + views Balancete/Balanço.</td></tr>
+      <tr><td>“Baixa = instantânea simples”</td><td>Unificado v12/v13 — <code>FinBaixaSheet</code> com baixa <strong>parcial</strong>, conta destino, forma de pagamento, plano de contas; cancelado não soma; filtro Arquivados; paridade de filtros WR.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout">
+    <p class="ct">Lição reincidente (Regra 6 / L-26)</p>
+    <p>De novo o padrão Sells/Oficina/Compras de 06-08: avaliar o Financeiro pela memória local teria produzido um mapa de gaps em que <strong>~metade dos gaps já estava fechada</strong>. Esta reavaliação só vale porque os 6 charters foram relidos @main neste turno.</p>
+  </div>
+</section>
+
+<section data-screen-label="Re-score rubrica">
+  <h2><span class="n">02</span>Re-score — rubrica Método 9.75, antes → agora</h2>
+  <p class="lead">Régua honesta: notas derivadas dos <strong>charters + GUARDs declarados no @main</strong>, não de app rodando em staging — é avaliação de cobertura/desenho, não de QA. “Antes” = avaliação de 2026-06-02 (protótipo).</p>
+
+  <div class="composite">
+    <div class="hero">
+      <div class="cl">Composto</div>
+      <div class="cv">8,3<span class="frac">/10</span></div>
+      <div class="delta">▲ de 7,6 (06-02)</div>
+    </div>
+    <div>
+      <div class="cl">Usabilidade</div>
+      <div class="cv">8,2<span class="frac">/10</span></div>
+      <div class="delta">▲ de 8,0</div>
+    </div>
+    <div>
+      <div class="cl">Cobertura de domínio</div>
+      <div class="cv">7,9<span class="frac">/10</span></div>
+      <div class="delta">▲ de 6,5</div>
+    </div>
+  </div>
+
+  <table>
+    <thead><tr><th style="width:150px;">Categoria</th><th style="width:120px;" class="num">Nota</th><th>O que sustenta a nota · o que ainda segura</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><strong>Caixa &amp; Fluxo</strong></td>
+        <td class="num"><span class="score-pair"><span class="was">7,5</span><span class="arrow">→</span><span class="now">8,5</span></span></td>
+        <td>Projetado 35d com saldo real + margem mínima e Realizado 12M live, lazy-load, invariante contábil testada. <em>Segura:</em> período fixo (sem 7/15/30/60), margem mínima hardcode, sem drill-down na linha (US-FIN-019), sem filtro por conta.</td>
+      </tr>
+      <tr>
+        <td><strong>Conciliação</strong></td>
+        <td class="num"><span class="score-pair"><span class="was">5,5</span><span class="arrow">→</span><span class="now">7,5</span></span></td>
+        <td>OFX + extrato API unificados (ADR 0236 F1), sugestão fuzzy, idempotência de upload, Tier 0 testado. <em>Segura:</em> match só 1:1, sem desfazer, score fixo 0.85, sem Open Banking direto / CNAB (ADR 0236 Fase 2 atrás de flag).</td>
+      </tr>
+      <tr>
+        <td><strong>Cobrança</strong></td>
+        <td class="num"><span class="score-pair"><span class="was">4,5</span><span class="arrow">→</span><span class="now">8,0</span></span></td>
+        <td>Tela única boleto/PIX/PIX-Aut/cartão, funil, wizard de emissão via <code>PaymentGatewayContract</code>, drawer por tipo. <em>Segura:</em> remessa/retorno CNAB 240 (driver C6) ainda backlog Onda 5 — <strong>baixa por retorno não fecha o ciclo</strong>; etapas “Lembrete/Protesto” do funil são derivação UI, régua automática real não dispara; estorno UI-only; sem real-time (webhook Inter).</td>
+      </tr>
+      <tr>
+        <td><strong>Fiscal</strong></td>
+        <td class="num"><span class="score-pair"><span class="was">5,0</span><span class="arrow">→</span><span class="now flat">5,5</span></span></td>
+        <td><strong>O pilar que ficou pra trás dentro do Financeiro.</strong> O que existe: anexo de XML/NF no título (Onda 20). O que NÃO aparece em nenhum charter lido: card NF-e/SEFAZ vinculado no drawer, “impostos a recolher” (DAS/ISS/DARF), retenções, calendário fiscal. <span class="tag inferido">⚠ módulo Fiscal fora de Pages/Financeiro não auditado neste turno</span> — o gap afirmado é “fiscal <em>dentro da visão financeira</em>”, não “o sistema não tem fiscal”.</td>
+      </tr>
+      <tr>
+        <td><strong>IA &amp; DRE</strong></td>
+        <td class="num"><span class="score-pair"><span class="was">6,5</span><span class="arrow">→</span><span class="now">8,0</span></span></td>
+        <td>DRE hierárquico live com Δ% e export; no Unificado: digest do mês, detector de anomalia, histórico de contraparte, checklist de fechamento (tudo pure-compute, honesto). <em>Segura:</em> auto-categorização IA não existe; previsão de saldo com alerta não existe; DRE só período Mês (Trim/Ano/12m desabilitados), sem orçado×realizado, sem centro de custo, template hardcode.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section data-screen-label="O que falta">
+  <h2><span class="n">03</span>O que falta — priorizado</h2>
+
+  <h3>P0 — design, lado [CC]/[W] (decisão já tomada, só falta executar)</h3>
+  <div class="prio p0">
+    <span class="badge">P0</span>
+    <div class="body">
+      <strong>US-FIN-029 — header “3 lentes” no Unificado live</strong>
+      <p>Caixa · A receber · A pagar (segmented) dirigindo o filtro + menu <code>···</code> (Buscar/Resumir/Fechamento/Apresentar/Imprimir/Exportar) + sub-páginas no sidebar. Direção <strong>aprovada por [W] em 2026-05-31</strong> e registrada no charter v10 como pendente — o live ainda usa a fileira de filter-chips. É o único item onde a NOSSA direção de design aprovada ainda não chegou no produto. Exige MWART + gate F1.5 (não é doc-only). O F1 de referência já existe no protótipo (<code>financeiro-page.jsx</code>, lentes funcionando).</p>
+      <span class="ref">Unificado/Index.charter.md v13 · Backlog US-FIN-029 ✓lido @main</span>
+    </div>
+  </div>
+
+  <h3>P1 — gaps de domínio reais (fecham a rubrica 8,3 → ~9,0)</h3>
+  <div class="prio p1">
+    <span class="badge">P1</span>
+    <div class="body">
+      <strong>Fiscal dentro do Financeiro</strong> — card NF-e/SEFAZ no drawer do título (status + chave), “impostos a recolher” (DAS/ISS) e calendário fiscal. Único pilar quase parado (5,5). Pré-condição barata: o vínculo título→transaction (<code>origem_id</code>) que o próprio charter v13 já aponta como pendência dos filtros NF/Vendas.
+      <span class="ref">gap derivado: nenhum charter Financeiro lido menciona SEFAZ/impostos · ⚠ checar módulo Fiscal antes do F1</span>
+    </div>
+  </div>
+  <div class="prio p1">
+    <span class="badge">P1</span>
+    <div class="body">
+      <strong>Cobrança — fechar o ciclo do dinheiro</strong> — remessa/retorno CNAB 240 com driver C6 real (Onda 5) + baixa automática por retorno + régua de cobrança que realmente dispara (hoje “Lembrete” é derivação visual).
+      <span class="ref">Cobranca/Index.charter.md · Non-Goals “Funil Protesto job real” / “Remessa Onda 5” ✓lido</span>
+    </div>
+  </div>
+  <div class="prio p1">
+    <span class="badge">P1</span>
+    <div class="body">
+      <strong>Conciliação Fase 2 (ADR 0236)</strong> — match N:N, desfazer conciliação, regra de match configurável, Open Banking/CNAB direto.
+      <span class="ref">Conciliacao/Index.charter.md · Non-Goals ✓lido</span>
+    </div>
+  </div>
+  <div class="prio p1">
+    <span class="badge">P1</span>
+    <div class="body">
+      <strong>Fluxo — de leitura pra decisão</strong> — margem mínima configurável (<code>business_settings</code>), drill-down linha→drawer (US-FIN-019), seletor de período/janela na UI, alerta quando projeção cruza a margem (job).
+      <span class="ref">Fluxo/Index.charter.md v2 · Non-Goals F2 ✓lido</span>
+    </div>
+  </div>
+  <div class="prio p1">
+    <span class="badge">P1</span>
+    <div class="body">
+      <strong>DRE — períodos e meta</strong> — Trim/Ano/12m funcionais (hoje <code>opacity-50</code>), orçado×realizado, meta de margem configurável, <code>/dre/mapping</code> pro template.
+      <span class="ref">Dre/Index.charter.md · Non-goals F1 ✓lido</span>
+    </div>
+  </div>
+
+  <h3>P2 — backlog declarado no charter (dor ainda não doeu)</h3>
+  <div class="prio p2">
+    <span class="badge">P2</span>
+    <div class="body">
+      <strong>US explícitas do Unificado</strong> — US-FIN-022 aging buckets · 023 Δ% vs mês anterior · 024 combobox contraparte · 025 mobile · 026 pagination &gt;500 títulos · 028 visual-comparison retroativo · US-FIN-051 re-import de colunas truncadas (data+hora, NF, documento) · decisão de aposentar ou não as telas legacy <code>ContasReceber/ContasPagar</code> (coexistem por decisão em aberto).
+      <span class="ref">Unificado/Index.charter.md v13 · Backlog ✓lido</span>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Residual Cowork">
+  <h2><span class="n">04</span>Residual do lado Cowork (eu arrumo, sem pedir)</h2>
+  <ul class="tight">
+    <li><strong>Rubrica 7,6 aposentada</strong> — STATUS.md atualizado nesta sessão (Financeiro 8,0 → 8,3, ProvaViva live, US-FIN-029 = próximo passo).</li>
+    <li><strong><code>Financeiro.casos.md</code> desalinhado</strong> — os 7 UCs foram derivados do protótipo; a charter canônica é a Unificado v13. Realinhar os casos ao live (lentes do live ainda são chips; baixa agora é Sheet com parcial) = tarefa curta na próxima sessão de Financeiro.</li>
+    <li><strong><code>Financeiro.charter.md</code> local v1</strong> — segue útil só como registro de direção de design ([W] 05-31); carimbado como superseded pela Unificado v13.</li>
+    <li><strong>Ponte do pilot processada</strong> — <code>PROMPT_PARA_CODE_FINANCEIRO-PILOT-PRIMITIVOS.md</code> movido pra <code>_processados/</code> (ProvaViva landou).</li>
+  </ul>
+</section>
+
+<section data-screen-label="Recomendação">
+  <h2><span class="n">05</span>Recomendação de próxima ação</h2>
+  <p class="lead">Se o objetivo é subir a nota com 1 movimento: <strong>disparar a US-FIN-029</strong> — é a única decisão já aprovada parada na fila, é design (nosso F1 já existe), e destrava o anti-pattern de header que o próprio charter registra como reprovado. Em paralelo, o maior gap de <em>domínio</em> é o <strong>Fiscal dentro do Financeiro</strong> — mas esse pede primeiro um censo do módulo Fiscal existente (⚠ não auditado) antes de qualquer F1, pra não reinventar o que já existe (Regra 7).</p>
+</section>
+
+<section data-screen-label="Adendo — executado">
+  <h2><span class="n">06</span>Adendo (mesmo dia) — “sim” do [W]: os dois executados</h2>
+  <h3>6.1 · Censo Fiscal <span class="tag lido">✓ lido @main neste turno</span></h3>
+  <p>O sistema fiscal <strong>existe e é grande</strong> — 3 módulos: <code>Fiscal/</code> (Cockpit de KPIs+alertas, NF-e com pill SEFAZ + janela legal de cancelamento + drawer, NFS-e, DF-e, Eventos, SPED, Config, ações SEFAZ, SendToContabil) · <code>NfeBrasil/</code> (Manifestação, Tributação com regras+CSV, NFC-e status) · <code>Nfse/</code> (Emitir/Index/Show). Charters do Fiscal ainda <code>status: draft</code> (roadmap PR #1/#2: mutações desabilitadas, cockpit eager).</p>
+  <p><strong>O gap P1 se confirma e fica mais preciso — é de COSTURA, não de construção:</strong></p>
+  <ul class="tight">
+    <li><strong>(a) Vínculo título ↔ nota no Financeiro</strong> — o drawer do título não mostra a NF-e/NFS-e vinculada (e o Fiscal não aponta de volta pro título). Os dois lados existem; falta a ponte (<code>origem_id</code>, mesma pendência dos filtros NF/Vendas do charter v13).</li>
+    <li><strong>(b) Impostos a recolher + calendário de obrigações</strong> — não existe em NENHUM dos dois módulos <span class="tag inferido">⚠ inferido dos charters lidos</span>: o Cockpit Fiscal é de <em>emissão</em> (rejeições, cert, DF-e), não de guias DAS/ISS/DARF a pagar. Esse é o único pedaço realmente novo.</li>
+  </ul>
+  <h3>6.2 · US-FIN-029 — handoff zero-toque PRONTO e enfileirado</h3>
+  <p>MWART escrito (<code>unificado-3-lentes-visual-comparison.md</code>) + prompt com URLs públicas embutidas (<code>PROMPT_PARA_CODE_US-FIN-029-3-LENTES.md</code>) + entrada no <code>COWORK_NOTES.md → 📥 Pendentes</code>. Não-Tier-0 → [CL] pode mergear autônomo com CI verde + screenshots. <strong>Você cola o prompt 1× no Claude Code e não toca em mais nada.</strong></p>
+</section>
+
+<footer class="doc">
+  Fontes ✓lidas @main 076c546 (2026-06-09): Unificado/Index.charter.md v13 · Fluxo/Index.charter.md v2 · Cobranca/Index.charter.md · Conciliacao/Index.charter.md · Dre/Index.charter.md · ProvaViva.charter.md · tree Pages/Financeiro (22 entradas).<br>
+  ⚠ Não lidos em detalhe (existência confirmada, conteúdo não): Caixa · Extrato · ContasBancarias · Dashboard · PlanoContas · Categorias · Relatorios · Advisor · Configuracoes/Contador · módulo Fiscal fora de Pages/Financeiro.<br>
+  Régua = charters + GUARDs declarados, não QA em staging. [CC] não escreve no git — qualquer execução vai por handoff zero-toque.
+</footer>
+
+</div>
+</body>
+</html>

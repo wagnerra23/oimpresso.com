@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Para que serve a Forja? — Adversário de Propósito</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Serif:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --accent: oklch(0.55 0.15 295);
+    --accent-2: oklch(0.47 0.16 295);
+    --accent-soft: oklch(0.95 0.03 295);
+    --bg: oklch(0.985 0.004 90);
+    --paper: oklch(1 0 0);
+    --ink: oklch(0.24 0.012 60);
+    --ink-2: oklch(0.42 0.012 60);
+    --ink-3: oklch(0.58 0.01 60);
+    --line: oklch(0.91 0.006 70);
+    --line-2: oklch(0.95 0.005 80);
+    --danger: oklch(0.52 0.18 25);
+    --danger-bg: oklch(0.96 0.04 25);
+    --warn: oklch(0.55 0.13 65);
+    --warn-bg: oklch(0.96 0.05 75);
+    --ok: oklch(0.50 0.12 150);
+    --ok-bg: oklch(0.95 0.05 150);
+    --mono: 'IBM Plex Mono', monospace;
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --serif: 'IBM Plex Serif', Georgia, serif;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:var(--sans); font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased; }
+  .wrap{ max-width:900px; margin:0 auto; padding:0 28px 96px; }
+
+  header.top{ padding:60px 0 28px; border-bottom:2px solid var(--ink); }
+  .mark{ font-family:var(--mono); font-size:11px; letter-spacing:0.3em; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:16px; }
+  header.top h1{ font-family:var(--serif); font-weight:600; font-size:40px; letter-spacing:-0.02em; margin:0 0 12px; line-height:1.08; }
+  header.top .sub{ font-family:var(--serif); font-style:italic; color:var(--ink-2); font-size:18px; margin:0; max-width:700px; }
+  .docket{ display:flex; gap:26px; flex-wrap:wrap; margin-top:22px; font-family:var(--mono); font-size:11.5px; color:var(--ink-3); }
+  .docket b{ color:var(--ink); font-weight:600; }
+
+  .thesis{ font-family:var(--serif); font-size:17px; line-height:1.7; color:var(--ink-2); padding:30px 0 6px; border-bottom:1px solid var(--line); margin-bottom:34px; }
+  .thesis b{ color:var(--ink); font-weight:600; }
+  .thesis .hot{ color:var(--accent); font-weight:600; font-style:normal; }
+
+  /* quem abre */
+  .who{ background:var(--paper); border:1px solid var(--line); border-radius:12px; padding:22px 24px; margin-bottom:38px; box-shadow:0 1px 2px oklch(0.5 0.02 60 / 0.04); }
+  .who h2{ font-family:var(--serif); font-size:19px; font-weight:600; margin:0 0 4px; }
+  .who .lede{ font-size:13px; color:var(--ink-3); margin:0 0 16px; }
+  .wrow{ display:flex; align-items:baseline; gap:12px; padding:9px 0; border-top:1px dashed var(--line); }
+  .wrow:first-of-type{ border-top:none; }
+  .wrow .persona{ flex:0 0 168px; font-weight:600; font-size:13.5px; }
+  .wrow .persona small{ display:block; font-weight:400; color:var(--ink-3); font-size:11.5px; }
+  .wrow .verdict{ flex:1; font-size:13.5px; color:var(--ink-2); }
+  .wrow .tag{ font-family:var(--mono); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.05em; padding:3px 8px; border-radius:5px; white-space:nowrap; flex:0 0 auto; }
+  .tag.no{ background:var(--danger-bg); color:var(--danger); }
+  .tag.some{ background:var(--warn-bg); color:var(--warn); }
+  .tag.yes{ background:var(--ok-bg); color:var(--ok); }
+
+  .section-h{ font-family:var(--mono); font-size:12px; text-transform:uppercase; letter-spacing:0.14em; color:var(--accent-2); font-weight:600; margin:0 0 16px; padding-top:6px; }
+
+  .charge{ background:var(--paper); border:1px solid var(--line); border-radius:11px; margin-bottom:18px; overflow:hidden; box-shadow:0 1px 2px oklch(0.5 0.02 60 / 0.03); }
+  .ch-h{ display:flex; align-items:flex-start; gap:14px; padding:18px 22px 14px; }
+  .ch-no{ font-family:var(--mono); font-size:13px; font-weight:600; color:var(--accent); background:var(--accent-soft); width:34px; height:34px; border-radius:8px; display:grid; place-items:center; flex:0 0 auto; }
+  .ch-ttl{ flex:1; }
+  .ch-ttl h3{ font-family:var(--serif); font-size:19px; font-weight:600; margin:0 0 3px; letter-spacing:-0.01em; line-height:1.25; }
+  .ch-ttl .one{ font-size:13px; color:var(--ink-3); font-style:italic; font-family:var(--serif); }
+  .ch-b{ padding:0 22px 18px; }
+  .row{ padding:13px 0; border-top:1px dashed var(--line); }
+  .row:first-child{ border-top:none; }
+  .row .lbl{ font-family:var(--mono); font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.09em; margin-bottom:6px; display:flex; align-items:center; gap:7px; }
+  .row .lbl .d{ width:7px; height:7px; border-radius:2px; display:inline-block; }
+  .row.acc .lbl{ color:var(--danger); } .row.acc .d{ background:var(--danger); }
+  .row.def .lbl{ color:var(--ok); } .row.def .d{ background:var(--ok); }
+  .row.ver .lbl{ color:var(--accent); } .row.ver .d{ background:var(--accent); }
+  .row p{ margin:0; color:var(--ink-2); }
+  code{ font-family:var(--mono); font-size:12.5px; background:var(--bg); border:1px solid var(--line); padding:1px 6px; border-radius:4px; color:var(--ink); }
+  .vtag{ font-family:var(--mono); font-size:10.5px; font-weight:600; text-transform:uppercase; letter-spacing:0.04em; padding:2px 8px; border-radius:5px; margin-left:8px; }
+  .vtag.cul{ background:var(--danger-bg); color:var(--danger); }
+  .vtag.par{ background:var(--warn-bg); color:var(--warn); }
+  .vtag.ino{ background:var(--ok-bg); color:var(--ok); }
+
+  .verdict-box{ margin-top:46px; padding:32px 30px; background:var(--ink); color:var(--bg); border-radius:13px; }
+  .verdict-box h2{ font-family:var(--serif); font-size:23px; font-weight:600; margin:0 0 8px; color:var(--paper); }
+  .verdict-box .v-lede{ font-family:var(--serif); font-style:italic; color:oklch(0.82 0.01 80); margin:0 0 22px; }
+  .verdict-box .answer{ font-size:15px; color:oklch(0.92 0.006 80); margin:0 0 24px; padding:14px 18px; background:oklch(0.30 0.012 60); border-radius:9px; border-left:3px solid var(--accent); }
+  .verdict-box .answer b{ color:var(--paper); }
+  .verdict-box h3{ font-family:var(--mono); font-size:11px; text-transform:uppercase; letter-spacing:0.12em; color:oklch(0.74 0.01 80); margin:0 0 12px; }
+  .leash{ list-style:none; margin:0; padding:0; counter-reset:l; }
+  .leash li{ counter-increment:l; position:relative; padding:11px 0 11px 42px; border-top:1px solid oklch(0.34 0.012 60); font-size:14px; color:oklch(0.88 0.008 80); }
+  .leash li::before{ content:counter(l); position:absolute; left:0; top:10px; width:26px; height:26px; border-radius:50%; background:var(--accent); color:#fff; font-family:var(--mono); font-size:12px; font-weight:600; display:grid; place-items:center; }
+  .leash li b{ color:var(--paper); font-weight:600; }
+
+  .foot{ margin-top:30px; text-align:center; font-family:var(--mono); font-size:11px; color:var(--ink-3); line-height:1.8; }
+  .foot b{ color:var(--ink-2); }
+
+  @media (max-width:600px){
+    .wrap{ padding:0 18px 64px; }
+    header.top h1{ font-size:28px; }
+    .wrow{ flex-wrap:wrap; } .wrow .persona{ flex-basis:100%; }
+    .ch-h{ flex-wrap:wrap; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="mark">Adversário de Propósito · não de execução</div>
+    <h1>Para que serve a Forja?</h1>
+    <p class="sub">Ela funciona — provado no Chrome. O adversário recusa esse mérito e faz a pergunta que ninguém fez: <i>uma gráfica precisa disso?</i></p>
+    <div class="docket">
+      <span>Réu: <b>Forja + loop de handoff</b></span>
+      <span>Cliente piloto: <b>ROTA LIVRE</b></span>
+      <span>Acusação: <b>serve ao construtor, não ao balcão</b></span>
+    </div>
+  </header>
+
+  <p class="thesis">
+    Os outros adversários perguntaram "está bem-feito?". Este pergunta a única coisa que importa antes disso:
+    <span class="hot">isto devia ter sido construído?</span> A Forja é um cockpit pra coordenar os agentes que
+    constroem o ERP. <b>Larissa, no balcão da ROTA LIVRE, nunca vai abrir <code>/forja</code>.</b> Nenhum cliente
+    paga por um handoff. Cada hora gasta no loop é uma hora que não foi pra <code>Sells/Create</code>, pra NF-e,
+    pro fluxo que a gráfica de fato vende. A acusação é simples e dura: <b>a cauda balançando o cachorro.</b>
+  </p>
+
+  <!-- QUEM ABRE -->
+  <div class="who">
+    <h2>Quem abre a Forja?</h2>
+    <p class="lede">O teste mais honesto de propósito: quem é a audiência real de cada tela. Se ninguém abre, é instrumentação sem plateia.</p>
+    <div class="wrow"><span class="persona">Larissa<small>balcão ROTA LIVRE · 1280px</small></span><span class="verdict">Nunca. Ela atende cliente, bate venda, emite NF-e. <code>/forja</code> é invisível pra ela.</span><span class="tag no">nunca</span></div>
+    <div class="wrow"><span class="persona">Eliana<small>financeiro</small></span><span class="verdict">Nunca. Tabelas, boletos, conciliação — nada na Forja a serve.</span><span class="tag no">nunca</span></div>
+    <div class="wrow"><span class="persona">Técnico Repair<small>tablet, mãos sujas</small></span><span class="verdict">Nunca. Mobile-first de OS, não governança de agentes.</span><span class="tag no">nunca</span></div>
+    <div class="wrow"><span class="persona">Wagner<small>fundador, zero-toque</small></span><span class="verdict">Às vezes — aprova triagem, vê o loop. Mas ele mesmo quis sair do meio.</span><span class="tag some">às vezes</span></div>
+    <div class="wrow"><span class="persona">Os agentes [CC]/[CL]<small>quem constrói</small></span><span class="verdict">Sempre. A Forja é a fábrica deles — fila, fase, gate, memória.</span><span class="tag yes">sempre</span></div>
+  </div>
+
+  <p class="section-h">A acusação — o caso contra a Forja</p>
+
+  <!-- CHARGE 1 -->
+  <div class="charge">
+    <div class="ch-h">
+      <span class="ch-no">1</span>
+      <div class="ch-ttl"><h3>Serve ao construtor, não ao cliente</h3><span class="one">a única persona que usa é o agente</span></div>
+    </div>
+    <div class="ch-b">
+      <div class="row acc"><div class="lbl"><span class="d"></span>Acusação</div><p>O ERP existe pra ROTA LIVRE vender impressão. A Forja não toca nenhum cliente — ela coordena os robôs que escrevem o código. É infra-estrutura voltada pra dentro: <b>os agentes construindo ferramentas pros agentes.</b> Toda a tabela "quem abre" tem 3 "nunca" pras personas que pagam a conta.</p></div>
+      <div class="row def"><div class="lbl"><span class="d"></span>Defesa</div><p>Se 90% do código é escrito por agentes, o gargalo não é feature — é <b>coordenação, drift e qualidade</b>. A Forja é o chão de fábrica. Investir na fábrica que faz todo o resto mais rápido e seguro é alavanca, não desvio.</p></div>
+      <div class="row ver"><div class="lbl"><span class="d"></span>Veredito <span class="vtag par">Culpado em parte</span></div><p>A defesa é válida — mas só enquanto a alavanca for medida em <b>feature de cliente entregue</b>, não em sofisticação do loop. Vira pecado no instante em que a Forja cresce e o roadmap do balcão para.</p></div>
+    </div>
+  </div>
+
+  <!-- CHARGE 2 -->
+  <div class="charge">
+    <div class="ch-h">
+      <span class="ch-no">2</span>
+      <div class="ch-ttl"><h3>O meta-trabalho que se auto-alimenta</h3><span class="one">ferramenta pra fazer ferramenta pra fazer ferramenta</span></div>
+    </div>
+    <div class="ch-b">
+      <div class="row acc"><div class="lbl"><span class="d"></span>Acusação</div><p>Olhe a trilha: construiu o loop → fez um adversário do loop → endureceu o loop → criou o sync → criou a sentinela do sync → o carteiro do sync. <b>Cada peça gera a próxima peça.</b> A entrega do loop é... um loop melhor. Quando isso vira NF-e na mão da Larissa? Risco real de regresso meta infinito.</p></div>
+      <div class="row def"><div class="lbl"><span class="d"></span>Defesa</div><p>Drift e retrabalho são o custo real — e a gente <b>viu acontecer</b>: o Code reportou "pronto" o que não estava, o servidor estava stale 19 dias, um bug Tier-0 no middleware mascarado por teste. Os gates/sentinela/audit pegam exatamente isso. Sem eles, a feature do balcão ship quebrada.</p></div>
+      <div class="row ver"><div class="lbl"><span class="d"></span>Veredito <span class="vtag par">Culpado em parte</span></div><p>O imune-sistema é real e já provou valor. Mas "imunidade" não tem fim natural — sempre dá pra blindar mais. Falta um <b>freio explícito</b>: até onde blindar, e quando voltar pro cliente.</p></div>
+    </div>
+  </div>
+
+  <!-- CHARGE 3 -->
+  <div class="charge">
+    <div class="ch-h">
+      <span class="ch-no">3</span>
+      <div class="ch-ttl"><h3>Governança enterprise num time minúsculo</h3><span class="one">6 papéis × 7 fases × RBAC × tokens pra uma gráfica</span></div>
+    </div>
+    <div class="ch-b">
+      <div class="row acc"><div class="lbl"><span class="d"></span>Acusação</div><p>A Forja modela um protocolo formal de <b>6 papéis × 7 fases</b>, com scopes, tokens, quotas, auditoria, gates. Isso é governança de uma engenharia de 50 pessoas — aplicada a um fundador + alguns + uns agentes. <b>Cerimônia desproporcional ao tamanho do time.</b></p></div>
+      <div class="row def"><div class="lbl"><span class="d"></span>Defesa</div><p>O tamanho do "time" é enganoso: são <b>muitos agentes paralelos</b>, sem memória entre sessões, capazes de pisar uns nos outros. Pra um fundador solo apoiado em IA, a memória institucional (ADRs, sessões, brief) e o RBAC não são luxo — são o que evita perda catastrófica de contexto e mutação descontrolada.</p></div>
+      <div class="row ver"><div class="lbl"><span class="d"></span>Veredito <span class="vtag ino">Inocente, com ressalva</span></div><p>Pra um produto construído-por-agente, essa governança é proporcional ao <b>número de agentes</b>, não de humanos. Ressalva: cada papel/fase/gate precisa justificar o próprio peso; cerimônia que ninguém consome vira teatro (ver carga 4).</p></div>
+    </div>
+  </div>
+
+  <!-- CHARGE 4 -->
+  <div class="charge">
+    <div class="ch-h">
+      <span class="ch-no">4</span>
+      <div class="ch-ttl"><h3>Instrumentação sem plateia vira teatro</h3><span class="one">um painel que só o agente lê é o agente se reportando a si mesmo</span></div>
+    </div>
+    <div class="ch-b">
+      <div class="row acc"><div class="lbl"><span class="d"></span>Acusação</div><p>Quadro, changelog, auditoria, heartbeat — lindos. Mas se o único leitor recorrente é o próprio agente (Wagner é zero-toque, as outras personas nunca abrem), é <b>dashboard sem consumidor</b>. Métrica que ninguém olha não muda decisão nenhuma; é custo de manutenção fingindo de governança.</p></div>
+      <div class="row def"><div class="lbl"><span class="d"></span>Defesa</div><p>Nem toda plateia é humana: os <b>gates</b> consomem a instrumentação pra bloquear merge ruim; a sentinela consome o heartbeat pra gritar drift; o brief consome a memória pra orientar a próxima sessão. O consumidor existe — só não é gente.</p></div>
+      <div class="row ver"><div class="lbl"><span class="d"></span>Veredito <span class="vtag par">Culpado em parte</span></div><p>Onde a tela alimenta um gate/sentinela/brief automático: legítima. Onde é só "bonito de ver" sem consumir nem humano nem máquina: <b>corte.</b> Cada superfície da Forja tem que nomear seu leitor — ou morrer.</p></div>
+    </div>
+  </div>
+
+  <!-- VERDICT -->
+  <section class="verdict-box">
+    <h2>Veredito — para que serve, afinal</h2>
+    <p class="v-lede">A pergunta não tinha resposta limpa de "sim" ou "não". Tem resposta honesta de "para quê, e sob qual rédea".</p>
+    <p class="answer">
+      A Forja <b>não serve à gráfica — serve a quem constrói a gráfica.</b> O propósito legítimo dela é fazer o ERP
+      ser construído <b>mais rápido, mais seguro e com memória</b>, num modelo onde os agentes escrevem o código.
+      Isso é alavanca real — <b>mas é meio, nunca fim.</b> No segundo em que ela vira o evento principal, a cauda
+      balança o cachorro, e ROTA LIVRE paga a conta de um cockpit que nunca abre.
+    </p>
+    <h3>A rédea — as 4 condições pra ela continuar justificada</h3>
+    <ol class="leash">
+      <li><b>Teto de meta.</b> O trabalho de loop/Forja tem orçamento fixo (ex. ≤20% do esforço). O resto é feature de cliente — Sells, NF-e, OS, balcão. Estourou o teto → para e entrega.</li>
+      <li><b>Teste da plateia.</b> Toda superfície da Forja nomeia seu consumidor (decisão de [W], ou um gate/sentinela/brief automático). Sem leitor humano nem de máquina → corta.</li>
+      <li><b>Régua de ship.</b> O valor do loop se mede em <b>features de cliente entregues mais rápido/seguro</b> — não em sofisticação do loop. Roadmap do balcão parado enquanto a Forja cresce = alarme vermelho.</li>
+      <li><b>Freio do regresso meta.</b> Pare de blindar a blindagem. Cada nova peça de loop precisa apontar a feature de cliente que ela destrava — ou não nasce.</li>
+    </ol>
+  </section>
+
+  <p class="foot">
+    <b>Adversário de Propósito · Forja</b> · não questiona se funciona — questiona se devia existir<br>
+    Réu: <b>Forja / loop de handoff (TeamMcp)</b> · Contraparte: <b>o roadmap da ROTA LIVRE</b><br>
+    Não é veto. É a rédea que mantém o meio a serviço do fim. A decisão de puxá-la é de [W].
+  </p>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Ponte F1 · handoff zero-toque para o Code</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.992 0.0015 95); --sunken: oklch(0.974 0.003 95); --surface: oklch(1 0 0);
+  --hairline: oklch(0.935 0.003 95); --border: oklch(0.905 0.004 95); --border-2: oklch(0.95 0.003 95);
+  --text: oklch(0.205 0.008 90); --text-2: oklch(0.46 0.007 90); --text-3: oklch(0.63 0.006 90); --text-4: oklch(0.74 0.005 90);
+  --accent: oklch(0.55 0.15 295); --accent-hi: oklch(0.50 0.16 295); --accent-soft: oklch(0.965 0.022 295); --accent-fg: #fff;
+  --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.62 0.13 65); --warn-soft: oklch(0.955 0.072 75);
+  --info: oklch(0.55 0.13 240); --info-soft: oklch(0.95 0.04 240);
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280/.05), 0 2px 4px -1px oklch(0.25 0.02 280/.07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280/.06), 0 6px 16px -5px oklch(0.25 0.02 280/.11);
+  --r-1: 5px; --r-2: 8px; --r-3: 11px; --r-4: 16px; --r-pill: 999px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[data-theme="dark"]{
+  --bg: oklch(0.165 0.008 282); --sunken: oklch(0.142 0.008 282); --surface: oklch(0.205 0.009 282);
+  --hairline: oklch(0.27 0.010 282); --border: oklch(0.30 0.012 282); --border-2: oklch(0.25 0.010 282);
+  --text: oklch(0.965 0.004 282); --text-2: oklch(0.74 0.008 282); --text-3: oklch(0.58 0.009 282); --text-4: oklch(0.47 0.009 282);
+  --accent: oklch(0.72 0.15 295); --accent-hi: oklch(0.78 0.15 295); --accent-soft: oklch(0.30 0.07 295); --accent-fg: oklch(0.14 0.02 295);
+  --pos: oklch(0.74 0.14 150); --pos-soft: oklch(0.30 0.085 150);
+  --neg: oklch(0.72 0.16 25);  --neg-soft: oklch(0.32 0.09 25);
+  --warn: oklch(0.80 0.13 75); --warn-soft: oklch(0.32 0.085 70);
+  --info: oklch(0.72 0.13 240); --info-soft: oklch(0.30 0.07 240);
+  --sh-1: 0 1px 2px oklch(0 0 0/.3); --sh-2: 0 3px 8px -3px oklch(0 0 0/.42), 0 8px 20px -6px oklch(0 0 0/.4);
+}
+*{ box-sizing: border-box; }
+html,body{ margin: 0; }
+body{ background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+
+.top{ position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 14px 32px; background: color-mix(in oklch, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.logo{ width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, var(--text))); display: grid; place-items: center; color: var(--accent-fg); font-weight: 700; font-size: 13px; }
+.top b.tt{ font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.top .stamp{ font-family: var(--mono); font-size: 10.5px; color: var(--pos); background: var(--pos-soft); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+.theme{ margin-left: auto; appearance: none; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; }
+
+.wrap{ max-width: 1000px; margin: 0 auto; padding: 38px 32px 90px; }
+h1.title{ font-size: 29px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 14px; line-height: 1.15; }
+h1.title em{ font-style: normal; color: var(--accent); }
+.lede{ font-size: 15px; line-height: 1.62; color: var(--text-2); max-width: 76ch; margin: 0; }
+.lede b{ color: var(--text); font-weight: 600; }
+
+.sec{ font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); margin: 42px 0 16px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.sec .gn{ font-family: var(--mono); color: var(--accent); }
+[data-theme="dark"] .sec .gn{ color: var(--accent-hi); }
+
+code{ font-family: var(--mono); font-size: 0.84em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+[data-theme="dark"] code{ color: var(--accent-hi); }
+
+.callout{ border: 1px solid var(--border); border-left: 3px solid var(--warn); border-radius: var(--r-3); background: var(--surface); padding: 17px 19px; box-shadow: var(--sh-1); margin: 22px 0 8px; }
+.callout.honest{ border-left-color: var(--warn); }
+.callout.pos{ border-left-color: var(--pos); }
+.callout h3{ margin: 0 0 8px; font-size: 14px; font-weight: 650; display: flex; align-items: center; gap: 9px; }
+.callout h3 .ic{ width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 700; flex: 0 0 auto; }
+.callout.honest h3 .ic{ background: var(--warn-soft); color: var(--warn); }
+.callout.pos h3 .ic{ background: var(--pos-soft); color: var(--pos); }
+.callout p{ margin: 0 0 7px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.callout p:last-child{ margin-bottom: 0; }
+.callout b{ color: var(--text); font-weight: 600; }
+
+.steps{ display: flex; flex-direction: column; gap: 10px; }
+.step{ display: grid; grid-template-columns: 36px 1fr; gap: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); padding: 14px 16px; box-shadow: var(--sh-1); }
+.step .sn{ width: 36px; height: 36px; border-radius: 9px; background: var(--accent-soft); color: var(--accent); display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 14px; }
+[data-theme="dark"] .step .sn{ color: var(--accent-hi); }
+.step h3{ margin: 0 0 4px; font-size: 14px; font-weight: 650; }
+.step p{ margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-2); }
+.step p b{ color: var(--text); font-weight: 600; }
+.step .gate{ display: inline-block; margin-top: 7px; font: 600 11px/1.4 var(--mono); padding: 5px 10px; border-radius: 7px; background: var(--pos-soft); color: var(--pos); }
+
+.prompt{ background: oklch(0.15 0.01 282); border: 1px solid var(--border); border-radius: var(--r-3); overflow: hidden; box-shadow: var(--sh-1); margin-top: 4px; }
+.prompt-h{ display: flex; align-items: center; gap: 9px; padding: 11px 15px; border-bottom: 1px solid oklch(0.28 0.01 282); background: oklch(0.18 0.01 282); }
+.prompt-h .dot{ width: 11px; height: 11px; border-radius: 50%; }
+.prompt-h .d1{ background: #ff5f57; } .prompt-h .d2{ background: #febc2e; } .prompt-h .d3{ background: #28c840; }
+.prompt-h b{ font-family: var(--mono); font-size: 11px; color: oklch(0.7 0.01 282); margin-left: 6px; }
+.prompt-h .copy{ margin-left: auto; font-family: var(--mono); font-size: 10.5px; color: oklch(0.62 0.02 282); }
+.prompt pre{ margin: 0; padding: 16px 18px; font-family: var(--mono); font-size: 11.5px; line-height: 1.7; color: oklch(0.88 0.01 282); white-space: pre-wrap; word-break: break-word; overflow-x: auto; }
+.prompt pre .c{ color: oklch(0.55 0.02 282); }
+.prompt pre .k{ color: oklch(0.80 0.13 295); font-weight: 600; }
+.prompt pre .g{ color: oklch(0.78 0.12 145); }
+.prompt pre .y{ color: oklch(0.85 0.12 80); }
+.prompt pre .p{ color: oklch(0.74 0.10 30); }
+
+.foot{ margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-4); line-height: 1.7; }
+.foot b{ color: var(--text-3); }
+@media (max-width: 720px){ .step{ grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">Oi</div>
+  <b class="tt">Ponte F1 · handoff zero-toque para o Code</b>
+  <span class="stamp">cole 1× no Claude Code</span>
+  <button class="theme" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">tema</button>
+</div>
+
+<div class="wrap">
+  <h1 class="title">F1 — eu já <em>li o git</em>. O diagnóstico está pronto.</h1>
+  <p class="lede">Você aprovou — e antes de escrever o prompt, <b>li o <code>inertia.css</code> real do repo</b> (@main, hoje). Isso respondeu o Passo 1 da auditoria por nós, e mudou a F1 pra melhor: ela <b>encolheu</b>, ficou mais precisa, e revelou uma surpresa honesta sobre o seu "dark sem identidade".</p>
+
+  <div class="callout honest">
+    <h3><span class="ic">!</span> O que o git revelou — 3 fatos que mudam a F1</h3>
+    <p><b>1 · Duplicação confirmada, porém escopada.</b> Há mesmo dois vocabulários: o <b>canônico</b> (<code>--color-foreground</code>, <code>--color-muted-foreground</code>, <code>--color-border</code>, <code>--color-primary</code> = o roxo) usado pelas Pages Inertia; e o <b>Cowork</b> (<code>--text-dim</code>, <code>--surface</code>, <code>--bg</code>, <code>--accent</code>) que vive dentro dos wrappers <code>.sells-cowork</code> / <code>.fin-cowork</code> / <code>.cockpit</code>. <b>Não colidem</b> (estão escopados) — mas são paralelos. A F1 real é <b>aliasar o Cowork sobre o <code>--color-*</code></b>, não inventar camada nova.</p>
+    <p><b>2 · A fundação já está sendo harmonizada — hoje.</b> O repo tem o marcador <code>DS harmonizado 2026-06-13</code>: pares <code>soft+fg</code> extraídos da tela-ouro Cliente, token <code>info</code> novo, filosofia literal <b>"extrair, não repintar (DsRollout)"</b>. Parte da F1 <b>já foi feita</b> pelo time → a onda encolhe e o plano de 14 diminui.</p>
+    <p><b>3 · Surpresa honesta: o dark cool-neutro é DELIBERADO.</b> O <code>--color-background</code> dark é <code>hsl(222.2 84% 4.9%)</code> (slate quase-preto), e o comentário no repo diz textual: <b>"dark fica COOL neutro — cream warm não inverte coerente, a tela já decidiu isso"</b>. Ou seja: o "sem identidade" que te incomodou foi uma <b>escolha</b>, não um bug. Então a F1 <b>não sobrescreve</b> — ela <b>pergunta a você</b>. Isso é decisão Tier-0 sua.</p>
+  </div>
+
+  <!-- THE F1 STEPS -->
+  <div class="sec"><span class="gn">F1</span> O que a onda faz — em 3 passos com gate</div>
+  <div class="steps">
+    <div class="step">
+      <div class="sn">1</div>
+      <div>
+        <h3>Auditar a camada de cor real</h3>
+        <p>Achar <b>onde os tokens de cor são definidos</b> no repo (CSS? injetado por JS pré-render? o comentário "accent canônica de FALLBACK pré-JS" sugere JS). Mapear se existe <b>mais de um nome pro mesmo papel</b> (ex.: <code>--text-dim</code> e <code>--ink-3</code> ambos = texto secundário).</p>
+        <span class="gate">gate: relatório de tokens · existe duplicação? sim/não</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">2</div>
+      <div>
+        <h3>Colapsar — só se o passo 1 confirmar</h3>
+        <p>Se houver dois vocabulários: eleger <b>um canônico</b>, apontar o outro via <b>alias</b> (<code>--ink-3: var(--text-dim)</code>), sem trocar valor. Se <b>não</b> houver: F1 vira só "promover a camada semântica de cor pro <code>foundations.css</code> governado" — escopo menor, e o plano de 14 ondas <b>encolhe</b>.</p>
+        <span class="gate">gate: diff de computed-style = 0 em todas as telas</span>
+      </div>
+    </div>
+    <div class="step">
+      <div class="sn">3</div>
+      <div>
+        <h3>Provar e travar</h3>
+        <p>Rodar <code>foundation-guard</code> + <code>conformance-gate</code> (já existem). Capturar antes/depois (claro + dark). O dark "sem identidade" deve <b>melhorar ou ficar igual</b>, nunca pior.</p>
+        <span class="gate">gate: guards verdes · screenshot [W] · ledger atualizado</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE PASTE-READY PROMPT -->
+  <div class="sec"><span class="gn">▸</span> O prompt — cole isto uma vez no Claude Code</div>
+  <div class="prompt">
+    <div class="prompt-h"><span class="dot d1"></span><span class="dot d2"></span><span class="dot d3"></span><b>prompt · F1 fundação de token</b><span class="copy">selecione tudo · copie</span></div>
+    <pre><span class="c"># OIMPRESSO · ONDA F1 — Fundação de token (investigar → colapsar → provar)</span>
+<span class="c"># Papel: [CL]. Repo: wagnerra23/oimpresso.com @ main. Tier-0: mudança de fundação.</span>
+<span class="c"># Regra: NÃO assuma. Audite o repo real. Só colapse com prova de diff=0.</span>
+
+<span class="k">PASSO 1 — AUDITAR</span>
+- Liste onde tokens de COR são definidos no repo (resources/css/*.css + qualquer
+  injeção por JS — ver comentário "accent canônica de FALLBACK pré-JS" em styles).
+- Para cada papel visual (texto-2ário, linha/borda, superfície, mute), liste TODOS
+  os nomes de token que o representam. Pergunta-chave: <span class="y">existe mais de um nome
+  pro mesmo papel?</span> (ex.: --text-dim E --ink-3 ; --border E --line)
+- Saída: governance/token-audit.json { papel: [tokens...], duplicado: bool }
+
+<span class="k">PASSO 2 — COLAPSAR (só se PASSO 1 achar duplicado)</span>
+- Eleja 1 token canônico por papel. Aponte os sinônimos via alias SEM trocar valor:
+  <span class="g">--ink-3: var(--text-dim);</span>  /* alias, mesmo pixel */
+- Mova a camada semântica de cor pro foundations.css governado (ADR UI-0013),
+  respeitando foundation-guard (TOKEN_DEF_ALLOW).
+- SE o passo 1 NÃO achar duplicado: pare. Reporte "sem duplicação no repo real;
+  F1 reduzida a documentar a camada semântica". Atualize o plano (14→menos).
+
+<span class="k">PASSO 3 — PROVAR + TRAVAR</span>
+- Prove diff = 0: <span class="p">computed-style de cada Page antes vs depois deve ser idêntico.</span>
+- Rode foundation-guard + conformance-gate (devem ficar verdes).
+- Capture antes/depois claro + dark de 3 telas (Caixa, Clientes, Vendas).
+  Dark deve melhorar ou empatar, nunca piorar.
+- Atualize governance/ds-ledger.json (célula tokens) + registre ADR-proposta.
+
+<span class="k">SOBERANIA</span>
+- Você (CL) NUMERA o ADR e comita sob OK textual de [W]. [CC] só propôs.
+- Mudança de token = Tier-0: PR revisado, nunca css de tela.
+- Abra PR draft. NÃO mergeie sem o "vai" do [W] + screenshot aprovado (F2).</pre>
+  </div>
+
+  <div class="callout pos">
+    <h3><span class="ic">✓</span> Como usar — zero-toque</h3>
+    <p><b>Cole o bloco acima UMA vez no Claude Code.</b> Ele tem acesso ao repo, executa os 3 passos, abre um PR draft e te traz o relatório do passo 1 + o antes/depois. Você não copia arquivo, não baixa zip, não interpreta nada.</p>
+    <p><b>O que volta pra você decidir:</b> (a) o repo real tem duplicação de token? (b) o antes/depois do dark melhorou? Com seu "vai" + screenshot aprovado, o Code mergeia. Aí seguimos pra <b>P1 (Clientes)</b>.</p>
+  </div>
+
+  <div class="foot">
+    <p><b>Limite honesto:</b> eu (Cowork) <b>não escrevo no git</b> — minhas tools GitHub são read-only. Este documento é a ponte: o prompt que você cola no Code, que tem o acesso de escrita. Não afirmo que algo foi commitado; o Code resolve com este prompt.</p>
+    <p><b>Por que investigar antes:</b> o <code>foundations.css</code> real já é governado e NÃO contém os tokens de cor que diagnostiquei no protótipo. Cravar o fix sem auditar o repo seria o tipo de suposição que o <code>ds:critic</code> existe pra impedir. A F1 pratica o próprio método: medir antes de mexer.</p>
+    <p style="margin-top:10px;color:var(--text-4)">Oimpresso ERP · [CC] · ponte zero-toque da Onda F1 para o Code.</p>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#16201c"/><g fill="none" stroke="#2bbf6e" stroke-width="5" stroke-linecap="round"><path d="M24 50h24M58 50h18"/><circle cx="50" cy="50" r="6" fill="#2bbf6e" stroke="none"/><path d="M30 34l-8 16 8 16M70 34l8 16-8 16"/></g></svg>
+</template>
+</body>
+</html>

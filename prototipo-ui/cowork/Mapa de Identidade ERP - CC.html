@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Mapa de Identidade ERP — versão enxuta · CC</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{
+    --bg: oklch(0.985 0.003 90); --bg-2: oklch(0.965 0.004 90); --surface:#fff;
+    --border: oklch(0.90 0.004 90); --border-2: oklch(0.94 0.004 90);
+    --text: oklch(0.22 0.01 80); --text-dim: oklch(0.48 0.01 80); --text-mute: oklch(0.62 0.01 80);
+    --accent: oklch(0.55 0.15 295); --accent-soft: oklch(0.965 0.022 295); --accent-line: oklch(0.86 0.05 295);
+    --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150);
+    --warn: oklch(0.58 0.12 70); --warn-soft: oklch(0.955 0.072 75);
+    --neg: oklch(0.55 0.18 25); --neg-soft: oklch(0.955 0.055 25);
+    --mono:'IBM Plex Mono',ui-monospace,monospace; --sans:'IBM Plex Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:880px;margin:0 auto;padding:40px 32px 70px;}
+  .mono{font-family:var(--mono);font-variant-numeric:tabular-nums;}
+
+  header.h{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:8px;}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:600;}
+  h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin:8px 0 6px;}
+  .sub{color:var(--text-dim);font-size:14.5px;max-width:66ch;}
+  .meta{margin-top:12px;font-family:var(--mono);font-size:11px;color:var(--text-mute);display:flex;gap:14px;flex-wrap:wrap;}
+
+  .verdict{margin:26px 0;padding:18px 20px;background:var(--pos-soft);border:1px solid color-mix(in oklch,var(--pos) 30%,transparent);border-radius:12px;}
+  .verdict b{color:var(--pos);}
+  .verdict .vt{font-size:11px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--pos);font-weight:600;margin-bottom:6px;}
+
+  h2{font-size:13px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);font-weight:600;margin:36px 0 14px;display:flex;align-items:center;gap:10px;}
+  h2::after{content:"";flex:1;height:1px;background:var(--border);}
+  .led{font-size:12.5px;color:var(--text-dim);margin:-4px 0 14px;}
+
+  /* source chain */
+  .chain{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;}
+  .node{flex:1;min-width:200px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 15px;position:relative;}
+  .node + .node{margin-left:30px;}
+  .node + .node::before{content:"▶";position:absolute;left:-23px;top:50%;transform:translateY(-50%);color:var(--text-mute);font-size:11px;}
+  .node .role{font-family:var(--mono);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--accent);font-weight:600;}
+  .node .file{font-family:var(--mono);font-size:12.5px;font-weight:600;margin:4px 0 3px;}
+  .node .note{font-size:12px;color:var(--text-dim);}
+  .node.win{border-color:var(--accent-line);box-shadow:0 0 0 1px var(--accent-line) inset;}
+  .swatch-row{display:flex;align-items:center;gap:8px;margin-top:9px;}
+  .sw{width:20px;height:20px;border-radius:5px;border:1px solid var(--border-2);flex-shrink:0;}
+  .swv{font-family:var(--mono);font-size:11px;color:var(--text-mute);}
+
+  /* two layers */
+  .layers{display:grid;grid-template-columns:0.9fr 1.6fr;gap:16px;}
+  @media(max-width:720px){.layers{grid-template-columns:1fr;}}
+  .layer{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
+  .lhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .ltag{font-family:var(--mono);font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;padding:3px 9px;border-radius:99px;}
+  .ltag.chrome{background:var(--accent-soft);color:var(--accent);}
+  .ltag.sem{background:var(--bg-2);color:var(--text-dim);border:1px solid var(--border);}
+  .lqty{font-family:var(--mono);font-size:11px;color:var(--text-mute);}
+  .bigsw{height:60px;border-radius:9px;border:1px solid var(--border-2);}
+  .lname{font-weight:600;margin:10px 0 4px;}
+  .ldesc{font-size:12.5px;color:var(--text-dim);}
+  .semset{margin-bottom:11px;}
+  .semset .sl{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-mute);margin-bottom:6px;}
+  .chips{display:flex;gap:7px;flex-wrap:wrap;}
+  .chip{display:flex;align-items:center;gap:6px;padding:4px 9px 4px 5px;border-radius:7px;background:var(--bg-2);border:1px solid var(--border-2);font-size:11.5px;}
+  .chip .sw{width:14px;height:14px;border-radius:4px;}
+
+  /* status table */
+  table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;font-size:13px;}
+  thead th{text-align:left;padding:10px 14px;background:var(--bg-2);border-bottom:1px solid var(--border);font-size:10.5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.04em;color:var(--text-mute);font-weight:600;}
+  tbody td{padding:12px 14px;border-bottom:1px solid var(--border-2);vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  .modcell{display:flex;align-items:center;gap:10px;}
+  .modcell .sw{width:16px;height:16px;}
+  .modcell b{font-weight:600;}
+  .how{font-size:12px;color:var(--text-dim);}
+  .verdtag{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap;}
+  .ok{background:var(--pos-soft);color:var(--pos);}
+  .bad{background:var(--neg-soft);color:var(--neg);}
+
+  .rule{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:8px;padding:15px 17px;margin-bottom:11px;}
+  .rule .q{font-weight:600;font-size:14px;margin-bottom:4px;}
+  .rule .ctx{font-size:13px;color:var(--text-dim);}
+  .rule code{font-family:var(--mono);font-size:.9em;background:var(--bg-2);padding:1px 5px;border-radius:4px;border:1px solid var(--border-2);}
+
+  .foot{margin-top:38px;padding-top:18px;border-top:1px solid var(--border);font-size:12px;color:var(--text-mute);font-family:var(--mono);}
+  code{font-family:var(--mono);font-size:.92em;background:var(--bg-2);padding:1px 5px;border-radius:4px;border:1px solid var(--border-2);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="h">
+    <div class="eyebrow">Mapa de identidade · [CC] · versão enxuta</div>
+    <h1>O ERP tem UMA identidade — e ela já está no git</h1>
+    <p class="sub">Versão podada (2026-06-08, 3ª correção). As v1/v2 marcavam ilhas que não existem no git — eram espelhos locais desatualizados. Lido o git ao vivo, módulo por módulo: <b>identidade concluída, zero ilha</b>. Isto é só a verdade que sobrou.</p>
+    <div class="meta">
+      <span>2026-06-08 · sincronizado com @main</span>
+      <span>✓ lido git real, não espelho local</span>
+    </div>
+  </header>
+
+  <div class="verdict">
+    <div class="vt">Veredito em uma linha</div>
+    A identidade <b>existe, é lei e já está 100% aplicada no git</b> — roxo <span class="mono">oklch(0.55 0.15 295)</span> universal (ADR 0190/0235). Oficina, Sells, Financeiro <b>e Compras</b> já herdam o token canon no @main. <b>Não sobrou ilha nenhuma.</b> O trabalho de identidade está concluído.
+  </div>
+
+  <h2>A fonte única — quem decide a cor</h2>
+  <p class="led">No runtime a cadeia é esta. O CSS é só fallback pré-JS; quem manda é o app.</p>
+  <div class="chain">
+    <div class="node win">
+      <div class="role">Runtime · vence</div>
+      <div class="file">app.jsx</div>
+      <div class="note">Seta <code>--accent</code> inline no <code>&lt;html&gt;</code> a partir do tweak <code>accentHue</code> (default 295). Inline vence qualquer <code>:root</code>.</div>
+      <div class="swatch-row"><span class="sw" style="background:oklch(0.55 0.15 295)"></span><span class="swv">roxo · hue 295</span></div>
+    </div>
+    <div class="node">
+      <div class="role">Fallback</div>
+      <div class="file">ds-v6/tokens.css</div>
+      <div class="note">Declara o default. Regra do próprio arquivo: <i>"não redeclarar --accent em outros sheets — editar aqui."</i></div>
+      <div class="swatch-row"><span class="sw" style="background:oklch(0.55 0.15 295)"></span><span class="swv">0.55 0.15 295</span></div>
+    </div>
+  </div>
+
+  <h2>Por que padronizar NÃO apaga a variedade — as 2 camadas</h2>
+  <p class="led">A cor única é obrigatória no <b>chrome</b>. A variedade é necessária na <b>semântica</b>. Fundir as duas é o único erro real — e o teu sistema já as separa.</p>
+  <div class="layers">
+    <div class="layer">
+      <div class="lhead"><span class="ltag chrome">Chrome · identidade</span><span class="lqty">1 cor</span></div>
+      <div class="bigsw" style="background:oklch(0.55 0.15 295)"></div>
+      <div class="lname">Roxo <span class="mono">oklch(0.55 0.15 295)</span></div>
+      <div class="ldesc">Botão · foco · link · estado ativo · primary das telas. Universal, travado. Diz: <i>"é o mesmo produto."</i></div>
+    </div>
+    <div class="layer">
+      <div class="lhead"><span class="ltag sem">Semântica · significado</span><span class="lqty">N governadas</span></div>
+      <div class="semset">
+        <div class="sl">Origem — de onde a tarefa veio (<code>--origin-*</code>)</div>
+        <div class="chips">
+          <span class="chip"><span class="sw" style="background:oklch(0.45 0.11 250)"></span>CRM</span>
+          <span class="chip"><span class="sw" style="background:oklch(0.40 0.10 150)"></span>Financeiro</span>
+          <span class="chip"><span class="sw" style="background:oklch(0.45 0.10 30)"></span>Oficina/OS</span>
+        </div>
+      </div>
+      <div class="semset">
+        <div class="sl">Etapa — pipeline kanban (<code>--stage-*</code>)</div>
+        <div class="chips">
+          <span class="chip"><span class="sw" style="background:oklch(0.58 0.025 250)"></span>recepção</span>
+          <span class="chip"><span class="sw" style="background:oklch(0.55 0.16 270)"></span>diagnóstico</span>
+          <span class="chip"><span class="sw" style="background:oklch(0.62 0.16 20)"></span>peças</span>
+          <span class="chip"><span class="sw" style="background:oklch(0.60 0.13 155)"></span>execução</span>
+        </div>
+      </div>
+      <div class="ldesc">Multi-hue <b>de propósito</b> — é wayfinding, não decoração. Não dilui a identidade porque não é chrome. O âmbar do Oficina é isto (<code>--origin</code> da OS), não um <code>--accent</code> redefinido.</div>
+    </div>
+  </div>
+
+  <h2>Estado real no git (lido hoje, não espelho local)</h2>
+  <table>
+    <thead><tr><th>Módulo</th><th>Chrome</th><th>Estado</th></tr></thead>
+    <tbody>
+      <tr><td><div class="modcell"><span class="sw" style="background:oklch(0.55 0.15 295)"></span><b>Oficina</b></div></td><td class="how">herda, zero hex</td><td><span class="verdtag ok">✓ exemplar</span></td></tr>
+      <tr><td><div class="modcell"><span class="sw" style="background:oklch(0.55 0.15 295)"></span><b>Sells / Vendas</b></div></td><td class="how">roxo 295 @main</td><td><span class="verdtag ok">✓ no padrão</span></td></tr>
+      <tr><td><div class="modcell"><span class="sw" style="background:oklch(0.55 0.15 295)"></span><b>Financeiro</b></div></td><td class="how">roxo 295 @main</td><td><span class="verdtag ok">✓ no padrão</span></td></tr>
+      <tr><td><div class="modcell"><span class="sw" style="background:oklch(0.55 0.15 295)"></span><b>Compras</b></div></td><td class="how">aliasado: <code>--cmp-accent:var(--accent)</code></td><td><span class="verdtag ok">✓ no padrão</span></td></tr>
+    </tbody>
+  </table>
+  <p class="led" style="margin-top:10px;">A v1 deste mapa marcava Sells (azul), Financeiro (dup) e Compras (navy) como problemas — <b>todos eram artefatos dos espelhos locais stale</b>. No git real (lido ao vivo 2026-06-08), os quatro módulos herdam o token canon. Zero ilha.</p>
+
+  <h2>As 2 regras que valem pra sempre</h2>
+  <div class="rule">
+    <div class="q">1 · Chrome = 1 cor; semântica = N governadas</div>
+    <div class="ctx">Escrever no DS: <b>"chrome = roxo único; cor de significado só de <code>--origin-*</code> / <code>--stage-*</code> / status — nunca redefinir <code>--accent</code> por módulo."</b> É o que deixa padronizar sem matar o wayfinding.</div>
+  </div>
+  <div class="rule">
+    <div class="q">2 · Tela nova herda, nunca declara token</div>
+    <div class="ctx">Um bundle de tela (como o do Oficina) pode entrar verbatim <b>desde que só use <code>var(--…)</code></b> e não carregue nenhum bloco de definição de token. Foi o que o Compras violou — e o que todo módulo novo deve seguir.</div>
+  </div>
+
+  <h2>O que falta</h2>
+  <div class="rule" style="border-left-color:var(--pos);">
+    <div class="q">Identidade visual: nada. Está concluída no git.</div>
+    <div class="ctx">Oficina, Sells, Financeiro e Compras todos herdam o roxo canon no @main. A única coisa em aberto é fora de identidade: <b>Oficina Fase 2</b> — 4 retoques de UX já aprovados (borda por prazo, KPI que filtra, lembrar visão, atalhos), <b>opcionais</b>. A convergência de modelo do Oficina já landou (PR #2417).</div>
+  </div>
+
+  <div class="foot">
+    [CC] · read-only no git · artefato de decisão, não escreve no repo. v2 enxuta — a v1 (6 fases / cronograma / censo contaminado) foi arquivada por ter sido montada sobre espelhos locais desatualizados.
+  </div>
+
+</div>
+</body>
+</html>

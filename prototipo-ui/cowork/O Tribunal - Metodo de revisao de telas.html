@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>O Tribunal — Método de revisão de telas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=IBM+Plex+Mono:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: oklch(0.155 0.012 285); --bg-2: oklch(0.190 0.013 285);
+    --surface: oklch(0.222 0.014 285); --surface-2: oklch(0.258 0.015 285);
+    --hairline: oklch(0.31 0.014 285); --border: oklch(0.38 0.016 285);
+    --ink: oklch(0.96 0.006 285); --ink-2: oklch(0.80 0.010 285);
+    --ink-3: oklch(0.62 0.012 285); --ink-4: oklch(0.50 0.012 285);
+    --accent: oklch(0.76 0.14 295); --accent-soft: oklch(0.30 0.075 295);
+    --neg: oklch(0.70 0.17 25); --neg-soft: oklch(0.32 0.10 25);
+    --warn: oklch(0.81 0.13 75); --warn-soft: oklch(0.33 0.085 70);
+    --pos: oklch(0.75 0.13 150); --pos-soft: oklch(0.30 0.08 150);
+    --gold: oklch(0.82 0.11 85);
+    --sans: 'IBM Plex Sans', system-ui, sans-serif;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --serif: 'Newsreader', Georgia, serif;
+  }
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin:0; background: var(--bg); color: var(--ink);
+    font-family: var(--sans); font-size: 16px; line-height: 1.62; -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(760px 420px at 92% -6%, oklch(0.30 0.09 295 / 0.30), transparent 70%),
+      radial-gradient(620px 380px at 0% 8%, oklch(0.30 0.08 85 / 0.10), transparent 70%);
+    background-attachment: fixed;
+  }
+  .wrap{ max-width: 940px; margin: 0 auto; padding: 0 28px; }
+
+  header.hero{ padding: 84px 0 30px; }
+  .kicker{ font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.30em; text-transform: uppercase; color: var(--gold); display:inline-flex; align-items:center; gap:12px; }
+  .kicker::before{ content:""; width: 38px; height: 1px; background: var(--gold); opacity:.7; }
+  h1.title{ font-size: clamp(48px, 9vw, 100px); line-height: 0.95; font-weight: 700; letter-spacing: -0.035em; margin: 22px 0 0; }
+  h1.title em{ font-family: var(--serif); font-style: italic; font-weight: 500; color: var(--gold); }
+  .standfirst{ font-family: var(--serif); font-size: clamp(20px, 2.5vw, 27px); line-height: 1.44; color: var(--ink-2); max-width: 720px; margin: 24px 0 0; text-wrap: pretty; }
+  .standfirst b{ color: var(--ink); font-weight: 500; font-style: normal; }
+
+  .sec-h{ margin: 72px 0 22px; }
+  .sec-h .n{ font-family: var(--mono); font-size: 13px; color: var(--ink-4); letter-spacing: 0.2em; }
+  .sec-h h2{ font-size: 31px; font-weight: 700; letter-spacing: -0.025em; margin: 6px 0 0; }
+  .sec-h p{ margin: 10px 0 0; color: var(--ink-3); max-width: 680px; font-size: 15px; }
+
+  /* Ritual steps */
+  .ritual{ display: grid; gap: 12px; counter-reset: step; }
+  .step{ display: grid; grid-template-columns: 54px 1fr; gap: 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px 22px; align-items: start; }
+  .step .num{ counter-increment: step; font-family: var(--mono); font-size: 22px; font-weight: 600; color: var(--accent); width: 44px; height: 44px; display: grid; place-items: center; border: 1px solid var(--accent-soft); border-radius: 10px; background: color-mix(in oklab, var(--accent) 12%, transparent); }
+  .step .num::before{ content: counter(step, decimal-leading-zero); }
+  .step h3{ margin: 2px 0 4px; font-size: 18px; font-weight: 600; }
+  .step p{ margin: 0; color: var(--ink-2); font-size: 15px; }
+  .step p b{ color: var(--ink); font-weight: 600; }
+  .step .meta{ font-family: var(--mono); font-size: 11px; color: var(--ink-4); letter-spacing: 0.06em; margin-top: 6px; }
+
+  /* Judge/seat cards */
+  .seats{ display: grid; gap: 14px; }
+  .seat{ background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 24px 26px; position: relative; overflow: hidden; }
+  .seat::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background: var(--accent); opacity:.45; }
+  .seat.user::before{ background: var(--gold); opacity: .8; }
+  .seat-h{ display:flex; align-items:baseline; gap: 12px; flex-wrap: wrap; }
+  .seat-name{ font-size: 21px; font-weight: 700; letter-spacing: -0.02em; }
+  .seat-cred{ font-family: var(--mono); font-size: 11.5px; color: var(--ink-4); }
+  .seat-q{ margin: 14px 0 0; font-family: var(--serif); font-style: italic; font-size: 19px; color: var(--gold); line-height: 1.4; }
+  .seat-grid{ margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .seat-box .bl{ font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-4); margin-bottom: 5px; }
+  .seat-box.flag .bl{ color: var(--neg); }
+  .seat-box.test .bl{ color: var(--pos); }
+  .seat-box ul{ margin: 0; padding-left: 16px; }
+  .seat-box li{ font-size: 14px; color: var(--ink-2); margin: 3px 0; }
+  .seat-box p{ margin: 0; font-size: 14.5px; color: var(--ink-2); }
+  .seat-box p b{ color: var(--ink); }
+  @media (max-width: 680px){ .seat-grid{ grid-template-columns: 1fr; } .step{ grid-template-columns: 1fr; } }
+
+  /* Scoring sheet */
+  .sheet{ background: var(--bg-2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+  table{ width: 100%; border-collapse: collapse; font-size: 14.5px; }
+  th, td{ text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--hairline); }
+  th{ font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-4); font-weight: 600; }
+  td:last-child, th:last-child{ text-align: center; width: 90px; font-family: var(--mono); }
+  tr:last-child td{ border-bottom: none; }
+  .seat-cell b{ font-weight: 600; }
+  .seat-cell span{ display:block; color: var(--ink-4); font-size: 12.5px; }
+  .blank{ color: var(--ink-4); }
+
+  /* Compare */
+  .cmp{ display: grid; gap: 10px; }
+  .cmp-row{ display: grid; grid-template-columns: 200px 1fr; gap: 18px; background: var(--surface); border: 1px solid var(--hairline); border-radius: 12px; padding: 15px 18px; align-items: start; }
+  .cmp-row .m{ font-weight: 600; font-size: 15px; }
+  .cmp-row .m span{ display:block; font-family: var(--mono); font-size: 11px; color: var(--ink-4); margin-top: 3px; }
+  .cmp-row .d{ font-size: 14.5px; color: var(--ink-2); }
+  .cmp-row .d b{ color: var(--ink); }
+  @media (max-width: 680px){ .cmp-row{ grid-template-columns: 1fr; gap: 6px; } }
+
+  /* Adversary */
+  .adv{ background: linear-gradient(135deg, var(--neg-soft), transparent 72%); border: 1px solid color-mix(in oklab, var(--neg) 32%, var(--border)); border-radius: 16px; padding: 26px 28px; margin: 14px 0; }
+  .adv h3{ margin: 0 0 4px; font-size: 18px; color: var(--neg); font-weight: 600; }
+  .adv .charge{ font-size: 15.5px; color: var(--ink); margin: 14px 0 4px; font-weight: 500; }
+  .adv .charge::before{ content: "✗ "; color: var(--neg); font-weight: 700; }
+  .adv .defense{ font-size: 14.5px; color: var(--ink-2); margin: 0 0 2px; padding-left: 18px; border-left: 2px solid var(--pos); }
+  .adv .defense::before{ content: "defesa — "; font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pos); }
+
+  .closing{ margin: 62px 0 24px; padding: 40px 0; border-top: 1px solid var(--hairline); }
+  .closing .q{ font-family: var(--serif); font-style: italic; font-size: clamp(22px, 3vw, 33px); line-height: 1.34; color: var(--ink); text-wrap: pretty; }
+  .closing .q b{ color: var(--gold); font-weight: 500; font-style: normal; }
+  footer{ padding: 26px 0 80px; font-family: var(--mono); font-size: 12px; color: var(--ink-4); }
+  footer .line{ border-top: 1px solid var(--hairline); padding-top: 18px; display:flex; justify-content:space-between; flex-wrap: wrap; gap: 10px; }
+  .pill{ display:inline-block; font-family: var(--mono); font-size: 11px; padding: 2px 9px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <span class="kicker">Método · revisão de telas</span>
+    <h1 class="title">O <em>Tribunal</em></h1>
+    <p class="standfirst">Um ritual repetível pra julgar <b>qualquer tela</b> do ERP. Não é checklist de "tá bonito?" — é levar a tela a <b>seis cadeiras</b>: cinco mestres do design de informação e <b>a Larissa</b>, que vive nela. Sai com nota, uma frase de veredito, e a fila de consertos. Roda em ~30 min por tela.</p>
+  </header>
+
+  <!-- COMO RODAR -->
+  <div class="sec-h">
+    <div class="n">COMO RODAR</div>
+    <h2>O ritual, em 5 passos</h2>
+    <p>Sempre nesta ordem. O passo 0 pega defeito; os mestres pegam filosofia; a Larissa tem o voto que desempata.</p>
+  </div>
+
+  <div class="ritual">
+    <div class="step"><div class="num"></div><div>
+      <h3>Caçador de bugs (a varredura)</h3>
+      <p>Antes da filosofia, os <b>erros objetivos</b>: estado que se contradiz, número com locale errado, alarme mudo, cor crua, contraste, toque &lt; 44px. É a régua de <b>coerência</b> — barata e obrigatória.</p>
+      <div class="meta">saída: lista de bugs · conserta antes de julgar mérito</div>
+    </div></div>
+    <div class="step"><div class="num"></div><div>
+      <h3>As cinco cadeiras dos mestres</h3>
+      <p>Passe a tela por cada mestre (abaixo). Para cada um: responda <b>a pergunta dele</b>, marque os <b>red flags</b> que a tela comete, e rode o <b>teste de 10 segundos</b>. Anote a nota /10.</p>
+      <div class="meta">saída: 5 notas + a acusação específica de cada um</div>
+    </div></div>
+    <div class="step"><div class="num"></div><div>
+      <h3>A 6ª cadeira: Larissa (com poder de veto)</h3>
+      <p>A operadora que abre 50 dessas por dia senta no júri. Quando um mestre quer tirar algo que ela <b>usa sob pressão no balcão</b>, ela <b>veta</b>. Teoria não vence realidade de quem opera. Sem essa cadeira, o método vira torre de marfim.</p>
+      <div class="meta">saída: 1 nota + vetos (o que NÃO pode sair, mesmo que o mestre peça)</div>
+    </div></div>
+    <div class="step"><div class="num"></div><div>
+      <h3>A nota + a frase única</h3>
+      <p>Média das 6 cadeiras (a de Larissa tem <b>peso 2</b>). E o mais importante: escreva o veredito em <b>uma frase</b> — "isto é X quando deveria ser Y". Se você não consegue a frase, não entendeu a tela.</p>
+      <div class="meta">saída: nota /10 + 1 frase + 1 métrica medível (ver adversário §3)</div>
+    </div></div>
+    <div class="step"><div class="num"></div><div>
+      <h3>O protótipo "modo mestre"</h3>
+      <p>Crítica sem protótipo é opinião. Construa <b>a versão que os mestres pediram</b> e ponha lado a lado com a atual. Decide-se vendo, não discutindo.</p>
+      <div class="meta">saída: 2 telas comparáveis · [W] escolhe</div>
+    </div></div>
+  </div>
+
+  <!-- AS CADEIRAS -->
+  <div class="sec-h">
+    <div class="n">AS SEIS CADEIRAS</div>
+    <h2>Quem julga, e o que cada um pergunta</h2>
+    <p>Cada mestre é uma <b>lente pra enxergar</b>, não um clube pra ganhar discussão. A pergunta e o teste de 10s tornam a lente aplicável por qualquer um — não só por designer.</p>
+  </div>
+
+  <div class="seats">
+
+    <div class="seat"><div class="seat-h"><span class="seat-name">Bret Victor</span><span class="seat-cred">"Magic Ink" · information software</span></div>
+      <p class="seat-q">"Quem abre esta tela quer <b>saber</b> ou <b>operar</b>? E quanta interação eu impus pra ela saber?"</p>
+      <div class="seat-grid">
+        <div class="seat-box flag"><div class="bl">Reprova na hora</div><ul><li>controles (botões/abas/toggles) num item que só precisa ser lido</li><li>a resposta exige varrer e inferir, em vez de saltar pronta</li><li>a tela parece igual quando está tudo certo e quando está tudo errado</li></ul></div>
+        <div class="seat-box test"><div class="bl">Teste de 10s</div><p>Cubra tudo menos o topo. <b>A conclusão já está lá?</b> ("nada a fazer" / "3 coisas vencem hoje"). Se você precisa ler o corpo pra concluir, falhou.</p></div>
+      </div>
+    </div>
+
+    <div class="seat"><div class="seat-h"><span class="seat-name">Edward Tufte</span><span class="seat-cred">data-ink ratio · inventou a <i>sparkline</i></span></div>
+      <p class="seat-q">"Quanta tinta carrega <b>dado</b>? E cada número tem com o que <b>comparar</b>?"</p>
+      <div class="seat-grid">
+        <div class="seat-box flag"><div class="bl">Reprova na hora</div><ul><li>versaletes/rótulos cinza ocupando mais que os valores</li><li>badge que anuncia sucesso sem carregar número</li><li>número isolado, sem vizinho de comparação</li><li>gráfico decorativo (sem escala/banda/valor)</li></ul></div>
+        <div class="seat-box test"><div class="bl">Teste de 10s</div><p>Conte: <b>pixels de dado vs pixels de cromo</b>. Se rótulo+caixa+ícone superam o valor, está invertido.</p></div>
+      </div>
+    </div>
+
+    <div class="seat"><div class="seat-h"><span class="seat-name">Oliver Reichenstein</span><span class="seat-cred">iA · "design é 95% tipografia"</span></div>
+      <p class="seat-q">"O que <b>peso, tamanho e espaço</b> resolveriam que hoje está sendo resolvido com <b>caixa e cor</b>?"</p>
+      <div class="seat-grid">
+        <div class="seat-box flag"><div class="bl">Reprova na hora</div><ul><li>cartão/fundo separando o que a hierarquia tipográfica separaria</li><li>uppercase tracking-widest como rótulo de leitura</li><li>borda fazendo o trabalho do espaço em branco</li></ul></div>
+        <div class="seat-box test"><div class="bl">Teste de 10s</div><p>Tire mentalmente <b>todas as caixas e bordas</b>. Ainda dá pra ler a hierarquia? Se sim, as caixas eram muleta.</p></div>
+      </div>
+    </div>
+
+    <div class="seat"><div class="seat-h"><span class="seat-name">Dieter Rams</span><span class="seat-cred">Braun · "menos, porém melhor"</span></div>
+      <p class="seat-q">"Quantos <b>dispositivos visuais</b> tem aqui? Quais somem sem perda?"</p>
+      <div class="seat-grid">
+        <div class="seat-box flag"><div class="bl">Reprova na hora</div><ul><li>ícone que rotula o que a palavra ao lado já rotula</li><li>gradiente/sombra/anel onde o branco resolvia</li><li>3 sistemas de selo onde 1 bastava</li></ul></div>
+        <div class="seat-box test"><div class="bl">Teste de 10s</div><p>Aponte <b>um elemento</b> e pergunte "se eu apagar, o que quebra?". Se a resposta é "nada", apague.</p></div>
+      </div>
+    </div>
+
+    <div class="seat"><div class="seat-h"><span class="seat-name">Karri Saarinen</span><span class="seat-cred">Linear · "a interface desaparece"</span></div>
+      <p class="seat-q">"O <b>conteúdo</b> está mais alto que o <b>cromo</b>? Isso é rápido pra quem usa o dia inteiro?"</p>
+      <div class="seat-grid">
+        <div class="seat-box flag"><div class="bl">Reprova na hora</div><ul><li>decoração competindo com os 3 fatos que importam</li><li>sem teclado pra ação repetida (50×/dia)</li><li>a resposta não salta em &lt; 1s</li></ul></div>
+        <div class="seat-box test"><div class="bl">Teste de 10s</div><p>Multiplique cada elemento <b>×50</b> (uso diário da Larissa). O que era "ok uma vez" vira "insuportável" — e tem que sair.</p></div>
+      </div>
+    </div>
+
+    <div class="seat user"><div class="seat-h"><span class="seat-name">Larissa</span><span class="seat-cred">balcão ROTA LIVRE · 1280px · a operadora — <b>voto de veto</b></span></div>
+      <p class="seat-q">"Sob pressão, com fila no balcão — isso me <b>ajuda</b> ou me <b>atrasa</b>? O que o mestre quer tirar, eu uso?"</p>
+      <div class="seat-grid">
+        <div class="seat-box flag"><div class="bl">Veta quando</div><ul><li>o mestre quer remover um atalho/densidade que ela usa correndo</li><li>"elegante" custou um clique a mais por título</li><li>a tela ficou bonita e mais lenta</li></ul></div>
+        <div class="seat-box test"><div class="bl">Teste real</div><p>Rode a tarefa <b>cronometrada</b>, 10 títulos. Se a versão "modo mestre" é mais lenta pra ela, o mestre perde — <b>realidade &gt; teoria</b>.</p></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FICHA -->
+  <div class="sec-h">
+    <div class="n">A FICHA</div>
+    <h2>Ficha de pontuação (copie pra cada tela)</h2>
+    <p>Preencha uma por tela revisada. A coluna "acusação" é obrigatória — nota sem acusação é palpite.</p>
+  </div>
+  <div class="sheet">
+    <table>
+      <thead><tr><th>Cadeira</th><th>A acusação específica (1 linha)</th><th>Nota</th></tr></thead>
+      <tbody>
+        <tr><td class="seat-cell"><b>0 · Bugs</b><span>coerência</span></td><td class="blank">________________________________</td><td class="blank">__/10</td></tr>
+        <tr><td class="seat-cell"><b>Victor</b><span>interação</span></td><td class="blank">________________________________</td><td class="blank">__/10</td></tr>
+        <tr><td class="seat-cell"><b>Tufte</b><span>dado</span></td><td class="blank">________________________________</td><td class="blank">__/10</td></tr>
+        <tr><td class="seat-cell"><b>Reichenstein</b><span>tipografia</span></td><td class="blank">________________________________</td><td class="blank">__/10</td></tr>
+        <tr><td class="seat-cell"><b>Rams</b><span>menos</span></td><td class="blank">________________________________</td><td class="blank">__/10</td></tr>
+        <tr><td class="seat-cell"><b>Saarinen</b><span>velocidade</span></td><td class="blank">________________________________</td><td class="blank">__/10</td></tr>
+        <tr><td class="seat-cell"><b>Larissa ×2</b><span>realidade</span></td><td class="blank">________________________________</td><td class="blank">__/10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="margin-top:16px; color:var(--ink-2); font-size:15.5px;"><span class="pill">frase única</span> &nbsp;"Esta tela é __________ quando deveria ser __________."&nbsp;&nbsp; <span class="pill">métrica</span> &nbsp;tempo/cliques pra concluir a tarefa-âncora: ______</p>
+
+  <!-- COMPARADO A QUEM -->
+  <div class="sec-h">
+    <div class="n">VOCÊ PERGUNTOU: COMPARADO A QUEM?</div>
+    <h2>De onde este método vem — e como difere</h2>
+    <p>Não inventei avaliação de tela. Existe um cânone de métodos; o Tribunal é primo deles, com uma diferença deliberada.</p>
+  </div>
+  <div class="cmp">
+    <div class="cmp-row"><div class="m">Avaliação heurística<span>Nielsen & Molich · 10 heurísticas</span></div><div class="d">O avô do gênero: julgar a UI contra princípios de <b>usabilidade</b> ("consigo usar?"). O Tribunal herda a ideia de "julgar contra princípios", mas troca usabilidade por <b>filosofia de design de informação</b> ("deveria ser assim?"). O passo 0 (caçador de bugs) ≈ Nielsen.</div></div>
+    <div class="cmp-row"><div class="m">Cognitive Walkthrough<span>Wharton et al.</span></div><div class="d">Percorre uma <b>tarefa</b> passo a passo perguntando "o usuário saberia o que fazer?". O Tribunal absorve isso na <b>cadeira da Larissa</b> (tarefa cronometrada real).</div></div>
+    <div class="cmp-row"><div class="m">HEART<span>Google · Kerry Rodden</span></div><div class="d">Framework de <b>métricas</b> (Happiness, Engagement, Adoption, Retention, Task success). O Tribunal pega só o que importa aqui: a <b>métrica medível por veredito</b> (anti-vibes, ver adversário §3).</div></div>
+    <div class="cmp-row"><div class="m">Jobs To Be Done<span>Christensen / Ulwick</span></div><div class="d">"Pra que job esta tela foi contratada?" É o <b>juiz de desempate</b> quando dois mestres se contradizem (Tufte quer mais dado, Rams quer menos): vence quem serve o job.</div></div>
+    <div class="cmp-row"><div class="m">Cultura de crit<span>"Discussing Design" · Connor & Irizarry</span></div><div class="d">A prática de crítica estruturada em equipe. O Tribunal é uma crit com <b>papéis nomeados</b> — mais fácil de rodar sozinho, porque os "críticos" já vêm com pergunta pronta.</div></div>
+  </div>
+
+  <!-- O ADVERSÁRIO DO MÉTODO -->
+  <div class="sec-h">
+    <div class="n">SIM — CRIEI UM ADVERSÁRIO PRA ELE</div>
+    <h2>A acusação contra o próprio método</h2>
+    <p>Um método que critica telas mas não se deixa criticar é hipocrisia. Aqui estão os cinco golpes mais fortes contra o Tribunal — e como ele se defende (ou se corrige).</p>
+  </div>
+  <div class="adv">
+    <h3>5 acusações</h3>
+    <p class="charge"><b>Apelo à autoridade.</b> Invocar Tufte/Rams vira culto: cita-se o mestre pra ganhar a discussão, não pra servir o usuário.</p>
+    <p class="defense">Os mestres são <b>lente pra enxergar, não clube pra vencer</b>. E a Larissa tem veto: nenhum princípio vence a operadora real.</p>
+    <p class="charge"><b>Não tem usuário no júri (versão ingênua).</b> Julgar por teoria sem quem opera a tela é torre de marfim.</p>
+    <p class="defense">Por isso a <b>6ª cadeira existe e tem peso 2 + veto</b>. Foi a primeira correção que o próprio adversário forçou.</p>
+    <p class="charge"><b>Nota subjetiva.</b> 6,3 vs 9,0 é vibe; sem medir, é estética disfarçada de rigor.</p>
+    <p class="defense">O passo 4 <b>exige uma métrica medível</b> por veredito (tempo/cliques na tarefa-âncora). A nota é a conversa; a métrica é a prova.</p>
+    <p class="charge"><b>Dogma do minimalismo.</b> "Menos, porém melhor" pode arrancar densidade que o balcão sob pressão quer.</p>
+    <p class="defense">Rams propõe; <b>Larissa dispõe</b>. Densidade que acelera a tarefa real fica, mesmo "feia".</p>
+    <p class="charge"><b>Os mestres se contradizem.</b> Tufte quer mais dado, Rams quer menos — empilhar opinião não decide.</p>
+    <p class="defense">O <b>JTBD desempata</b>: vence quem serve o trabalho daquela tela. O método adjudica, não só acumula.</p>
+  </div>
+
+  <div class="closing">
+    <p class="q">Um bom método não promete a resposta certa — promete que você vai <b>fazer as perguntas certas, na ordem certa, e provar a conclusão</b>. O Tribunal te dá seis perguntas, uma frase e uma métrica. O resto é rodar em cada tela e deixar a Larissa ter a última palavra.</p>
+  </div>
+
+  <footer>
+    <div class="line">
+      <span>O TRIBUNAL · método de revisão de telas · v1</span>
+      <span>Oimpresso ERP · aplicável a qualquer tela</span>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

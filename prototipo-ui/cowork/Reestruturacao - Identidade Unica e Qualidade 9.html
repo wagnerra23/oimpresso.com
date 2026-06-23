@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Reestruturação — Identidade Única · Qualidade ≥9</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  :root{ --bg:oklch(0.985 0.003 90); --surface:oklch(1 0 0); --sunken:oklch(0.965 0.004 90);
+    --text:oklch(0.22 0.01 290); --text-dim:oklch(0.40 0.012 290); --text-mute:oklch(0.55 0.012 290);
+    --border:oklch(0.88 0.006 290); --border-2:oklch(0.92 0.005 290);
+    --accent:oklch(0.55 0.15 295); --accent-soft:oklch(0.95 0.03 295);
+    --pos:oklch(0.50 0.12 150); --pos-soft:oklch(0.95 0.075 150);
+    --neg:oklch(0.55 0.18 25); --neg-soft:oklch(0.955 0.055 25);
+    --warn:oklch(0.58 0.12 70); --warn-soft:oklch(0.955 0.072 75);
+    --sans:'IBM Plex Sans',system-ui,sans-serif; --mono:'IBM Plex Mono',monospace; }
+  *{ box-sizing:border-box; } body{ margin:0; background:var(--bg); color:var(--text); font:14px/1.55 var(--sans); }
+  .page{ max-width:1000px; margin:0 auto; padding:46px 36px 80px; }
+  .eyebrow{ font:600 11px/1 var(--mono); letter-spacing:.08em; text-transform:uppercase; color:var(--accent); }
+  h1{ font-size:26px; font-weight:700; letter-spacing:-.02em; margin:8px 0 4px; }
+  h2{ font-size:16.5px; font-weight:700; margin:40px 0 8px; } h2 .n{ font:600 12px/1 var(--mono); color:var(--accent); margin-right:8px; }
+  p{ margin:6px 0; max-width:800px; } .sub{ color:var(--text-dim); font-size:13px; }
+  code{ font:12px/1.4 var(--mono); background:var(--sunken); border:1px solid var(--border-2); border-radius:4px; padding:1px 5px; }
+  table{ border-collapse:collapse; width:100%; margin:12px 0; background:var(--surface); border:1px solid var(--border); border-radius:8px; overflow:hidden; font-size:12.5px; }
+  th{ text-align:left; font:600 10.5px/1.3 var(--mono); letter-spacing:.05em; text-transform:uppercase; color:var(--text-mute); padding:8px 12px; border-bottom:1px solid var(--border); background:var(--sunken); }
+  td{ padding:9px 12px; border-bottom:1px solid var(--border-2); vertical-align:top; }
+  tr:last-child td{ border-bottom:0; }
+  .done{ background:var(--pos-soft); color:var(--pos); font:700 11px/1 var(--mono); padding:3px 8px; border-radius:999px; }
+  .next{ background:var(--warn-soft); color:var(--warn); font:700 11px/1 var(--mono); padding:3px 8px; border-radius:999px; }
+  .big{ font:700 30px/1 var(--mono); color:var(--pos); }
+  .kpis{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin:18px 0; }
+  .kpi{ background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:14px 16px; }
+  .kpi small{ display:block; font:600 10px/1.4 var(--mono); letter-spacing:.05em; text-transform:uppercase; color:var(--text-mute); margin-bottom:6px; }
+  .lei{ background:var(--surface); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:8px; padding:14px 20px; margin:14px 0; }
+  .lei ul{ margin:6px 0; padding-left:18px; } .lei li{ margin:5px 0; font-size:13px; }
+  .nota{ font:700 13px/1 var(--mono); padding:4px 0; width:44px; text-align:center; display:inline-block; border-radius:6px; }
+  .n-ok{ background:var(--pos-soft); color:var(--pos); } .n-bad{ background:var(--neg-soft); color:var(--neg); } .n-mid{ background:var(--warn-soft); color:var(--warn); }
+  .rodape{ margin-top:38px; padding-top:12px; border-top:1px solid var(--border); font-size:11.5px; color:var(--text-mute); }
+</style>
+</head>
+<body>
+<div class="page" data-screen-label="Reestruturação Identidade Única">
+
+  <div class="eyebrow">Mandato [W] · 2026-06-10 · "vai ter que ser refeita · sem duplicatas · identidade única · nada abaixo de 9"</div>
+  <h1>Reestruturação — executada e programada</h1>
+  <p class="sub">Fase 0 (duplicatas) <b>executada nesta sessão</b>, com números. Fase 1 (espinha) e o programa ≥9 ficam definidos aqui — 1 onda por sessão, cada uma com prova.</p>
+
+  <h2><span class="n">§1</span>Fase 0 — duplicatas removidas <span class="done">EXECUTADO HOJE</span></h2>
+  <div class="kpis">
+    <div class="kpi"><small>Arquivos de duplicata deletados</small><span class="big">575</span></div>
+    <div class="kpi"><small>Maior ofensor</small><b>cópia COMPLETA do projeto aninhada</b> em <code>_arquivo/legado/uploads</code> (358 arq.)</div>
+    <div class="kpi"><small>Rastro</small><b>Lápide</b> <code>_arquivo/LAPIDE-DEDUP-2026-06-10.md</code> + asserção <b>IT8</b> no memory-health (duplicata não renasce)</div>
+  </div>
+  <table>
+    <thead><tr><th>Removido</th><th>Arq.</th><th>Por que era só custo</th></tr></thead>
+    <tbody>
+      <tr><td><code>_arquivo/legado/uploads/Oimpresso-handoff(1)/…</code></td><td>358</td><td>Projeto inteiro re-importado dentro do arquivo — poluía TODO grep</td></tr>
+      <tr><td><code>_arquivo/legado/backups/2026-05-14-*</code></td><td>112</td><td>Snapshots integrais — o git É o backup</td></tr>
+      <tr><td><code>resources/</code> (espelhos do repo)</td><td>61</td><td><b>Fonte da classe de erro mais recorrente</b> (Regra 6: fotocópia que envelhece; reincidência tripla 06-08). Estado do repo agora SÓ por leitura @main</td></tr>
+      <tr><td><code>prototipo-ui-patch/{3 pontes processadas}</code></td><td>41</td><td>Snapshots de pontes já mergeadas no git</td></tr>
+      <tr><td>uploads duplicados "(N)"</td><td>3</td><td>Cópias de cópias</td></tr>
+    </tbody>
+  </table>
+
+  <h2><span class="n">§2</span>A estrutura-alvo — UM padrão (a lei do que pode existir)</h2>
+  <div class="lei">
+    <ul>
+      <li><b>App vivo (raiz):</b> <code>oimpresso.com.html</code> (único host) + <code>&lt;modulo&gt;-page.jsx</code> + <code>&lt;modulo&gt;.css</code> + <code>&lt;modulo&gt;-data.jsx</code>. Nada fora desse padrão de nome.</li>
+      <li><b>DS:</b> <code>ds-v6/</code> — única fonte de tokens. Identidade = <b>roxo <code>oklch(0.55 0.15 295)</code> universal</b> + semântica governada (<code>--pos/--neg/--warn/--origin-*</code>). Accent-por-módulo NÃO existe.</li>
+      <li><b>Espinha (4 docs, máx):</b> STATUS (núcleo enxuto) · MEMORY_INDEX · PROCESSO_MEMORIA_CC · CARTA. Todo o resto é derivado ou história.</li>
+      <li><b>Memória:</b> <code>memory/sessions/</code> append-only · LICOES como histórico (lei ativa = 4 portões). Log datado NÃO mora no STATUS — vai pro digest.</li>
+      <li><b>Pontes:</b> <code>prototipo-ui-patch/*.md</code> ativos · <code>_processados/</code> depois do merge — só o prompt, NUNCA snapshot.</li>
+      <li><b>PROIBIDO existir</b> (IT8 cobra por máquina): espelho de repo · snapshot integral · upload "(N)" · <code>.html</code> de tela na raiz.</li>
+    </ul>
+  </div>
+
+  <h2><span class="n">§3</span>Fase 1 — espinha refeita <span class="next">PRÓXIMA SESSÃO</span></h2>
+  <p>O STATUS.md tem ~48KB — 80% é log datado que já tem precedente de arquivamento (digest 06-03). Refazer = manter SÓ: os 4 portões · Regra de Ouro · censo de gates · DS vigente · decisões · quadro de telas · em-aberto (~150 linhas). Log 06-04→06-10 → <code>memory/sessions/_STATUS-log-*</code>. MEMORY_INDEX absorve ADR 0253/0254. Critério de pronto: reler a espinha inteira custa <b>1 leitura</b>, não 5.</p>
+
+  <h2><span class="n">§4</span>Programa Identidade Única — qualidade ≥9 em TODAS as telas</h2>
+  <p class="sub">Régua por tela = <b>identidade</b> (roxo canon + ds-v6, zero accent paralelo) + <b>probe G1–G8 com 0 🔴</b> (G7 escopo-módulo · <b>G8 type ramp --fs-1..9, tipografia ancorada [W] 06-10</b>) + <b>15 dimensões do BRIEFING</b> + matriz de estados (§8.1). <b>Tela &lt;9 não se conserta com conformidade — entra no ciclo completo do Método KB-9.75</b> (7 etapas: Bench → Fundação → IA → Curadoria → Hierarquia → Reach → Bench v2 · 22 features-tipo como checklist de ganho — `Método KB-9.75.html`): é o que levou Inbox a 9.75 e o drawer Financeiro Prova Viva a 9.75. Conformidade = piso anti-regressão; método = o que sobe a nota. Nota &lt; 9 = refaz na própria onda; não passa adiante.</p>
+  <table>
+    <thead><tr><th>Tela</th><th>Nota hoje</th><th>Gap conhecido p/ ≥9</th><th>Onda</th></tr></thead>
+    <tbody>
+      <tr><td>Caixa Unificada (Inbox)</td><td><span class="nota n-ok">9.75</span></td><td>régua congelada — referência, não mexe</td><td>—</td></tr>
+      <tr><td>Vendas</td><td><span class="nota n-ok">9.5</span></td><td>calibrar baseline G5 + matriz de estados completa</td><td>W1</td></tr>
+      <tr><td>Oficina</td><td><span class="nota n-ok">9.5</span></td><td>acabamentos de hoje feitos; re-medir com probe pós-G2/G3</td><td>W1</td></tr>
+      <tr><td>Compras</td><td><span class="nota n-ok">9.4</span></td><td>probe + estados nunca rodados</td><td>W2</td></tr>
+      <tr><td>Financeiro</td><td><span class="nota n-mid">8.3 live · protótipo 9.1</span></td><td><b>W2 EXECUTADA 2026-06-10 (protótipo):</b> US-FIN-029 3 lentes + tela Impostos & obrigações (pilar fiscal) + probe 0🔴 nas rotas fin + dark ✓. Live sobe quando [CL] portar (handoff 029 enfileirado; impostos aguarda F2 [W])</td><td><b>W2 ✓ protótipo</b></td></tr>
+      <tr><td>CRM</td><td><span class="nota n-mid">8.6</span></td><td>⏸ parado por [W] — só quando reativar; aí converge pro roxo canon</td><td>pausado</td></tr>
+      <tr><td>Clientes/Contatos</td><td><span class="nota n-mid">—</span></td><td>sem nota formal; identidade indigo 262 = VIOLA identidade única → conformar</td><td>W3</td></tr>
+      <tr><td>Produtos · Boletos · Equipe · KB · Produção · demais rotas do host</td><td><span class="nota n-mid">—</span></td><td>nunca avaliadas com régua — censo + nota na onda</td><td>W3–W4</td></tr>
+    </tbody>
+  </table>
+  <p><b>Mecânica de cada onda (1–2 telas por sessão):</b> abrir rota → probe (placar 0 🔴 obrigatório, baseline G5 medida) → matriz de estados no verificador → nota 15-dim → &lt;9 corrige no ato → registra placar+nota na sessão → atualiza quadro. Sem pedir permissão por onda (REGRA-0); [W] só vê o placar subir.</p>
+
+  <h2><span class="n">§5</span>O que muda na prática</h2>
+  <p>· Grep/releitura param de pagar imposto de 575 fantasmas (já hoje).<br/>
+  · A espinha vira 1 leitura (Fase 1).<br/>
+  · "Qualidade ≥9" deixa de ser adjetivo: é placar do probe + nota de régua, por tela, com prova — e o memory-health cobra o que tentar regredir (IT8, lição→asserção, frescor).</p>
+
+  <div class="rodape">[CC] · 2026-06-10 · Fase 0 provada nesta sessão (575 del. + IT8 + host verificado) · Fases 1/W1–W4 = execução contínua, 1 onda por sessão, sem novo pedido de [W]. Lápide: <code>_arquivo/LAPIDE-DEDUP-2026-06-10.md</code>.</div>
+</div>
+</body>
+</html>

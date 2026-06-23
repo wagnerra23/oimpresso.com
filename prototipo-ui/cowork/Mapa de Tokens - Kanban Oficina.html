@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapa de Tokens — Kanban Oficina (#2228)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: oklch(0.985 0.003 90);
+    --sunken: oklch(0.974 0.003 95);
+    --surface: #fff;
+    --border: oklch(0.905 0.004 95);
+    --hairline: oklch(0.935 0.003 95);
+    --text: oklch(0.24 0.01 80);
+    --text-2: oklch(0.46 0.01 80);
+    --text-3: oklch(0.60 0.01 80);
+    --accent: oklch(0.55 0.15 295);
+    --accent-soft: oklch(0.95 0.04 295);
+
+    /* PROPOSTA — família stage (light) */
+    --stage-slate:   oklch(0.58 0.03 257);
+    --stage-blue:    oklch(0.58 0.13 252);
+    --stage-rose:    oklch(0.60 0.16 18);
+    --stage-violet:  oklch(0.54 0.15 288);
+    --stage-emerald: oklch(0.62 0.13 158);
+
+    /* semânticos do repo (inertia.css @theme) */
+    --warning: oklch(0.75 0.16 70);
+    --warning-ink: oklch(0.45 0.12 55);
+    --destructive: oklch(0.58 0.20 25);
+    --success: oklch(0.62 0.15 150);
+
+    --pos: oklch(0.50 0.12 150);
+    --radius: 8px;
+    --radius-sm: 5px;
+    --font: "IBM Plex Sans", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, monospace;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:var(--font); font-size:14px; line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width: 1120px; margin:0 auto; padding: 0 32px 100px; }
+
+  /* ── Header ── */
+  header.top{
+    border-bottom:1px solid var(--border);
+    padding: 40px 0 28px; margin-bottom:36px;
+  }
+  .eyebrow{
+    font-family:var(--mono); font-size:11px; font-weight:600;
+    letter-spacing:.12em; text-transform:uppercase; color:var(--accent);
+    display:flex; align-items:center; gap:10px; margin-bottom:14px;
+  }
+  .eyebrow .pr{
+    background:var(--accent-soft); color:var(--accent);
+    padding:2px 8px; border-radius:99px; letter-spacing:.04em;
+  }
+  h1{ font-size:30px; font-weight:600; letter-spacing:-0.02em; margin:0 0 12px; }
+  .lede{ font-size:15.5px; color:var(--text-2); max-width:74ch; margin:0; text-wrap:pretty; }
+  .meta-row{
+    display:flex; flex-wrap:wrap; gap:8px; margin-top:20px;
+  }
+  .tag{
+    font-family:var(--mono); font-size:11px; padding:4px 10px;
+    border:1px solid var(--border); border-radius:6px; color:var(--text-2);
+    background:var(--surface);
+  }
+  .tag b{ color:var(--text); font-weight:600; }
+  .tag.ok{ border-color: color-mix(in oklch, var(--pos) 35%, var(--border)); color:var(--pos); }
+
+  /* ── Section ── */
+  section{ margin-bottom:52px; }
+  h2{
+    font-size:13px; font-family:var(--mono); font-weight:600;
+    letter-spacing:.08em; text-transform:uppercase; color:var(--text-3);
+    margin:0 0 6px; display:flex; align-items:center; gap:10px;
+  }
+  h2 .n{
+    width:22px; height:22px; border-radius:6px; background:var(--text);
+    color:var(--bg); display:inline-grid; place-items:center;
+    font-size:11px; font-weight:700;
+  }
+  .h2sub{ font-size:20px; font-weight:600; letter-spacing:-0.01em; margin:0 0 18px; color:var(--text); }
+  p.note{ color:var(--text-2); max-width:80ch; margin:0 0 18px; text-wrap:pretty; }
+  p.note code, .tbl code, li code{
+    font-family:var(--mono); font-size:.86em; background:var(--sunken);
+    border:1px solid var(--hairline); padding:1px 5px; border-radius:4px; color:var(--text);
+  }
+
+  /* ── Diagnosis cards ── */
+  .diag{ display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+  .card{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; padding:20px 22px;
+  }
+  .card h3{ margin:0 0 8px; font-size:14px; font-weight:600; display:flex; align-items:center; gap:8px; }
+  .card p{ margin:0; color:var(--text-2); font-size:13.5px; }
+  .card.bad{ border-color: color-mix(in oklch, var(--destructive) 30%, var(--border)); }
+  .card.good{ border-color: color-mix(in oklch, var(--pos) 35%, var(--border)); }
+  .dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+  /* counts strip */
+  .counts{ display:flex; gap:0; flex-wrap:wrap; margin:18px 0 0; border:1px solid var(--border); border-radius:10px; overflow:hidden; background:var(--surface); }
+  .counts .c{ flex:1; min-width:96px; padding:14px 16px; border-right:1px solid var(--hairline); }
+  .counts .c:last-child{ border-right:0; }
+  .counts .c .num{ font-family:var(--mono); font-size:22px; font-weight:700; line-height:1; }
+  .counts .c .lbl{ font-size:11px; color:var(--text-3); margin-top:5px; font-family:var(--mono); display:flex; align-items:center; gap:6px; }
+
+  /* ── Stage family swatches ── */
+  .stage-grid{ display:grid; grid-template-columns: repeat(5,1fr); gap:14px; }
+  .sw{
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:12px; overflow:hidden;
+  }
+  .sw .chip{ height:64px; position:relative; }
+  .sw .chip .softbar{ position:absolute; left:0; right:0; bottom:0; height:18px; }
+  .sw .body{ padding:12px 13px 14px; }
+  .sw .body .nm{ font-size:13px; font-weight:600; }
+  .sw .body .role{ font-size:11px; color:var(--text-3); margin-top:1px; }
+  .sw .body .val{ font-family:var(--mono); font-size:10px; color:var(--text-2); margin-top:8px; line-height:1.5; }
+  .sw .body .tok{ font-family:var(--mono); font-size:10.5px; font-weight:600; color:var(--accent); margin-top:6px; word-break:break-all; }
+
+  /* ── Tables ── */
+  .tbl{ width:100%; border-collapse:collapse; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; font-size:13px; }
+  .tbl thead th{
+    text-align:left; font-family:var(--mono); font-size:10.5px; font-weight:600;
+    letter-spacing:.05em; text-transform:uppercase; color:var(--text-3);
+    padding:11px 14px; background:var(--sunken); border-bottom:1px solid var(--border);
+  }
+  .tbl td{ padding:10px 14px; border-bottom:1px solid var(--hairline); vertical-align:middle; }
+  .tbl tr:last-child td{ border-bottom:0; }
+  .tbl .tw{ font-family:var(--mono); font-size:12px; color:var(--text-2); }
+  .tbl .arrow{ color:var(--text-3); text-align:center; width:30px; }
+  .tbl .tok{ font-family:var(--mono); font-size:12px; font-weight:600; color:var(--accent); }
+  .tbl .desc{ color:var(--text-2); font-size:12.5px; }
+  .sq{ display:inline-block; width:14px; height:14px; border-radius:4px; vertical-align:-2px; margin-right:8px; border:1px solid rgba(0,0,0,.08); }
+
+  /* ── Before/after columns ── */
+  .ba-grid{ display:grid; grid-template-columns: repeat(5,1fr); gap:14px; }
+  .col-demo{ background:var(--surface); border:1px solid var(--border); border-top-width:2px; border-radius:10px; padding:10px; }
+  .col-demo .ch{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .col-demo .ch .l{ display:flex; align-items:center; gap:6px; font-size:12px; font-weight:600; }
+  .col-demo .ch .cnt{ font-size:11px; font-family:var(--mono); padding:1px 6px; border-radius:5px; }
+  .mini{ border:1px solid var(--border); border-top-width:2px; border-radius:6px; padding:8px; font-size:11px; }
+  .mini .os{ font-family:var(--mono); font-size:10px; color:var(--text-3); }
+  .mini .ti{ font-size:11.5px; font-weight:600; margin-top:3px; }
+  .mini .banner{ margin-top:7px; padding:4px 7px; border-radius:5px; font-size:10px; display:flex; gap:5px; align-items:center; }
+  .mini .banner .bd{ width:6px; height:6px; border-radius:50%; }
+  .pill-mode{ display:inline-flex; gap:0; border:1px solid var(--border); border-radius:6px; overflow:hidden; font-family:var(--mono); font-size:10.5px; }
+  .pill-mode span{ padding:2px 8px; }
+  .pill-mode .a{ background:var(--sunken); color:var(--text-3); }
+  .pill-mode .b{ background:var(--accent-soft); color:var(--accent); font-weight:600; }
+
+  /* judgment call */
+  .flag{
+    background: color-mix(in oklch, var(--warning) 10%, var(--surface));
+    border:1px solid color-mix(in oklch, var(--warning) 40%, var(--border));
+    border-radius:12px; padding:22px 24px;
+  }
+  .flag h3{ margin:0 0 10px; font-size:15px; display:flex; align-items:center; gap:9px; }
+  .flag .compare{ display:flex; gap:24px; margin:16px 0; flex-wrap:wrap; }
+  .flag .compare .it{ display:flex; align-items:center; gap:10px; }
+  .flag .compare .it .s{ width:36px; height:36px; border-radius:8px; }
+  .flag .compare .it .t{ font-size:12px; }
+  .flag .compare .it .t b{ display:block; }
+  .flag .compare .it .t span{ font-family:var(--mono); font-size:10.5px; color:var(--text-2); }
+  .opt{ display:flex; gap:10px; margin-top:10px; align-items:flex-start; font-size:13.5px; color:var(--text-2); }
+  .opt .k{ font-family:var(--mono); font-weight:700; color:var(--text); flex-shrink:0; }
+  .rec{ font-weight:600; color: color-mix(in oklch, var(--warning-ink) 90%, black); }
+
+  /* code block */
+  pre{
+    background: oklch(0.22 0.01 285); color: oklch(0.92 0.01 90);
+    border-radius:10px; padding:18px 20px; overflow-x:auto;
+    font-family:var(--mono); font-size:12.5px; line-height:1.7; margin:0;
+  }
+  pre .c{ color: oklch(0.62 0.02 90); }
+  pre .k{ color: oklch(0.78 0.11 295); }
+  pre .v{ color: oklch(0.80 0.10 155); }
+
+  /* handoff */
+  .handoff{ background:var(--text); color:var(--bg); border-radius:12px; padding:24px 26px; }
+  .handoff h3{ margin:0 0 12px; font-size:15px; color:#fff; }
+  .handoff ol{ margin:0; padding-left:20px; }
+  .handoff li{ margin-bottom:9px; color: oklch(0.82 0.01 90); font-size:13.5px; }
+  .handoff li b{ color:#fff; }
+  .handoff code{ font-family:var(--mono); background:rgba(255,255,255,.12); padding:1px 5px; border-radius:4px; font-size:.88em; }
+
+  .legend{ font-size:11.5px; color:var(--text-3); font-family:var(--mono); margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow"><span class="pr">#2228 · UI-LINT</span> Mapa de tokens · stage do kanban</div>
+    <h1>Cor de status do Kanban Oficina → tokens</h1>
+    <p class="lede">As 185 classes Tailwind cruas que travaram o UI-Lint do #2228 não são "umas cores soltas" — são a <b>espinha de status do kanban de caçambas</b>. Este mapa converte cada uma em token do DS sem deslocar nenhum matiz, separando o que é <b>neutro</b>, o que é <b>identidade de etapa</b> e o que é <b>semântico de verdade</b>. É a referência pra re-tokenização ser mecânica, não um chute.</p>
+    <div class="meta-row">
+      <span class="tag">Fonte: <b>main</b> · <code>ProducaoOficina/_components/*.tsx</code></span>
+      <span class="tag">Modelo: <b>caçamba</b> (disponível·locada·aguardando·manutenção·pronta)</span>
+      <span class="tag ok">Status: <b>PROPOSTA [CC]</b> · provada contra os 3 gates @main · stage = <b>Tier 0</b></span>
+    </div>
+  </header>
+
+  <!-- 1 · DIAGNÓSTICO -->
+  <section>
+    <h2><span class="n">1</span> O diagnóstico</h2>
+    <div class="h2sub">Por que os 4 tokens semânticos não resolvem sozinhos</div>
+    <p class="note">O tema do repo (<code>inertia.css @theme</code>) expõe só os semânticos shadcn: <code>primary</code> (roxo), <code>success</code> (verde), <code>warning</code> (âmbar) e <code>destructive</code> (vermelho), mais neutros. Mas o kanban precisa de <b>5 matizes de etapa distintos e simultâneos</b>. Espremer 5 em 4 destrói a leitura:</p>
+
+    <div class="diag">
+      <div class="card bad">
+        <h3><span class="dot" style="background:var(--destructive)"></span> O mapeamento ingênuo quebra</h3>
+        <p><code>violet→primary</code> faz a coluna <b>Manutenção</b> virar a cor da marca (roxo) — colide com todo CTA. <code>rose→destructive</code> faz <b>Aguardando</b> parecer <b>erro</b>, não "etapa". Some a distinção entre as colunas.</p>
+      </div>
+      <div class="card good">
+        <h3><span class="dot" style="background:var(--pos)"></span> Etapa ≠ status</h3>
+        <p>As colunas são <b>fases de um pipeline</b>, não níveis de severidade. Pipeline merece sua própria família — <code>--color-stage-*</code> — que o DS do Cowork já desenhou em <code>ds-v5/tokens.css</code>. Falta só portá-la pro tema do repo.</p>
+      </div>
+    </div>
+
+    <div class="counts">
+      <div class="c"><div class="num" style="color:var(--stage-slate)">86</div><div class="lbl"><span class="sq" style="background:#94a3b8"></span>slate</div></div>
+      <div class="c"><div class="num" style="color:var(--stage-rose)">41</div><div class="lbl"><span class="sq" style="background:#fb7185"></span>rose</div></div>
+      <div class="c"><div class="num" style="color:var(--stage-emerald)">33</div><div class="lbl"><span class="sq" style="background:#34d399"></span>emerald</div></div>
+      <div class="c"><div class="num" style="color:var(--warning-ink)">19</div><div class="lbl"><span class="sq" style="background:#fbbf24"></span>amber</div></div>
+      <div class="c"><div class="num" style="color:var(--stage-violet)">14</div><div class="lbl"><span class="sq" style="background:#a78bfa"></span>violet</div></div>
+      <div class="c"><div class="num" style="color:var(--stage-blue)">13</div><div class="lbl"><span class="sq" style="background:#60a5fa"></span>blue</div></div>
+    </div>
+    <p class="legend">A maioria das 86 <code>slate</code> NÃO é cor de etapa — é texto e borda neutros (ver Balde A). Só <code>slate-400</code> da coluna "disponível" é identidade.</p>
+  </section>
+
+  <!-- 2 · FAMÍLIA STAGE -->
+  <section>
+    <h2><span class="n">2</span> A família proposta</h2>
+    <div class="h2sub"><code style="font-size:.7em">--color-stage-*</code> — 5 matizes, calibrados ao DS</div>
+    <p class="note">Um token-base por etapa. Soft (fundo), ink (texto) e borda saem por opacidade no Tailwind v4 (<code>bg-stage-blue/10</code>, <code>border-stage-blue/30</code>) — então são só <b>5 tokens novos</b>, não 20. Matiz fiel ao Tailwind original, croma puxado pra baixo pra casar com a paleta calma (Mercury/Linear) do resto do ERP.</p>
+
+    <div class="stage-grid">
+      <div class="sw">
+        <div class="chip" style="background:var(--stage-slate)"><div class="softbar" style="background:color-mix(in oklch, var(--stage-slate) 12%, white)"></div></div>
+        <div class="body"><div class="nm">Disponível</div><div class="role">no pátio · neutro</div><div class="tok">stage-slate</div><div class="val">oklch(.58 .03 257)</div></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:var(--stage-blue)"><div class="softbar" style="background:color-mix(in oklch, var(--stage-blue) 12%, white)"></div></div>
+        <div class="body"><div class="nm">Locada</div><div class="role">em uso · ativa</div><div class="tok">stage-blue</div><div class="val">oklch(.58 .13 252)</div></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:var(--stage-rose)"><div class="softbar" style="background:color-mix(in oklch, var(--stage-rose) 12%, white)"></div></div>
+        <div class="body"><div class="nm">Aguardando</div><div class="role">recolhimento</div><div class="tok">stage-rose</div><div class="val">oklch(.60 .16 18)</div></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:var(--stage-violet)"><div class="softbar" style="background:color-mix(in oklch, var(--stage-violet) 12%, white)"></div></div>
+        <div class="body"><div class="nm">Manutenção</div><div class="role">em oficina</div><div class="tok">stage-violet</div><div class="val">oklch(.54 .15 288)</div></div>
+      </div>
+      <div class="sw">
+        <div class="chip" style="background:var(--stage-emerald)"><div class="softbar" style="background:color-mix(in oklch, var(--stage-emerald) 12%, white)"></div></div>
+        <div class="body"><div class="nm">Pronta</div><div class="role">pra entregar</div><div class="tok">stage-emerald</div><div class="val">oklch(.62 .13 158)</div></div>
+      </div>
+    </div>
+
+    <p class="note" style="margin-top:24px"><b>⚠ Onde definir é decisão Tier 0</b> (ver §6): o único <code>@theme</code> que gera utility vive no <code>inertia.css</code>, que o foundation-guard congela. Os valores abaixo são a proposta; o <i>onde</i> tem 3 caminhos legais. A adição (light + dark, padrão já existente no <code>ds-v5</code>):</p>
+    <pre><span class="c">/* inertia.css @theme — família stage (pipeline kanban) */</span>
+<span class="c">/* light */</span>
+<span class="k">--color-stage-slate</span>:   <span class="v">oklch(0.58 0.03 257)</span>;  <span class="c">/* disponível / neutro */</span>
+<span class="k">--color-stage-blue</span>:    <span class="v">oklch(0.58 0.13 252)</span>;  <span class="c">/* locada / em uso */</span>
+<span class="k">--color-stage-rose</span>:    <span class="v">oklch(0.60 0.16 18)</span>;   <span class="c">/* aguardando */</span>
+<span class="k">--color-stage-violet</span>:  <span class="v">oklch(0.54 0.15 288)</span>;  <span class="c">/* manutenção */</span>
+<span class="k">--color-stage-emerald</span>: <span class="v">oklch(0.62 0.13 158)</span>;  <span class="c">/* pronta */</span>
+
+<span class="c">/* .dark — mesmos matizes, +lightness */</span>
+<span class="k">--color-stage-slate</span>:   <span class="v">oklch(0.66 0.03 257)</span>;
+<span class="k">--color-stage-blue</span>:    <span class="v">oklch(0.68 0.13 252)</span>;
+<span class="k">--color-stage-rose</span>:    <span class="v">oklch(0.68 0.16 18)</span>;
+<span class="k">--color-stage-violet</span>:  <span class="v">oklch(0.66 0.15 288)</span>;
+<span class="k">--color-stage-emerald</span>: <span class="v">oklch(0.70 0.14 158)</span>;</pre>
+  </section>
+
+  <!-- 3 · OS TRÊS BALDES -->
+  <section>
+    <h2><span class="n">3</span> Os três baldes</h2>
+    <div class="h2sub">Para onde vai cada classe crua</div>
+
+    <p class="note"><b>Balde A — Neutros.</b> A maior fatia das 86 <code>slate</code>: texto, borda, fundo. Nada a ver com etapa → tokens neutros que já existem no tema.</p>
+    <table class="tbl" style="margin-bottom:28px">
+      <thead><tr><th>Tailwind cru</th><th class="arrow"></th><th>Token DS</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td class="tw"><span class="sq" style="background:#0f172a"></span>text-slate-900</td><td class="arrow">→</td><td class="tok">text-foreground</td><td class="desc">títulos, valores</td></tr>
+        <tr><td class="tw"><span class="sq" style="background:#334155"></span>text-slate-700</td><td class="arrow">→</td><td class="tok">text-foreground</td><td class="desc">corpo / observação</td></tr>
+        <tr><td class="tw"><span class="sq" style="background:#64748b"></span>text-slate-600 / 500</td><td class="arrow">→</td><td class="tok">text-muted-foreground</td><td class="desc">sub, meta, ETA</td></tr>
+        <tr><td class="tw"><span class="sq" style="background:#94a3b8"></span>text-slate-400 / 300</td><td class="arrow">→</td><td class="tok">text-muted-foreground/60</td><td class="desc">ícones, "sem OS", placeholder</td></tr>
+        <tr><td class="tw"><span class="sq" style="background:#f1f5f9"></span>bg-slate-100 / 50</td><td class="arrow">→</td><td class="tok">bg-muted</td><td class="desc">avatar, contador, track</td></tr>
+        <tr><td class="tw"><span class="sq" style="background:#e2e8f0"></span>border-slate-200 / 100</td><td class="arrow">→</td><td class="tok">border-border</td><td class="desc">divisórias, borda de card</td></tr>
+        <tr><td class="tw"><span class="sq" style="background:#0f172a"></span>bg-slate-900 + text-white</td><td class="arrow">→</td><td class="tok">bg-foreground text-background</td><td class="desc">botão escuro Concluir/Entregar</td></tr>
+      </tbody>
+    </table>
+
+    <p class="note"><b>Balde B — Identidade de etapa.</b> O ponto, a borda-topo, o chip de capacidade e a progress de cada coluna → a família nova. Padrão único: <code>stage-X</code> sólido, <code>/10</code> fundo, <code>/30</code> borda.</p>
+    <table class="tbl" style="margin-bottom:28px">
+      <thead><tr><th>Coluna</th><th>Cruas (dot·borda·chip·progress)</th><th class="arrow"></th><th>Token base</th></tr></thead>
+      <tbody>
+        <tr><td><span class="sq" style="background:var(--stage-slate)"></span><b>Disponível</b></td><td class="tw">slate-400 · slate-50/600/200 · slate-100</td><td class="arrow">→</td><td class="tok">stage-slate</td></tr>
+        <tr><td><span class="sq" style="background:var(--stage-blue)"></span><b>Locada</b></td><td class="tw">blue-400/500 · blue-50/700/200 · blue-100</td><td class="arrow">→</td><td class="tok">stage-blue</td></tr>
+        <tr><td><span class="sq" style="background:var(--stage-rose)"></span><b>Aguardando</b></td><td class="tw">rose-400/500 · rose-50/700/200/300 · rose-100</td><td class="arrow">→</td><td class="tok">stage-rose</td></tr>
+        <tr><td><span class="sq" style="background:var(--stage-violet)"></span><b>Manutenção</b></td><td class="tw">violet-400/500 · violet-50/700/200 · violet-100</td><td class="arrow">→</td><td class="tok">stage-violet</td></tr>
+        <tr><td><span class="sq" style="background:var(--stage-emerald)"></span><b>Pronta</b></td><td class="tw">emerald-400/500 · emerald-50/700/600/200/100</td><td class="arrow">→</td><td class="tok">stage-emerald</td></tr>
+      </tbody>
+    </table>
+
+    <p class="note"><b>Balde C — Semântico de verdade.</b> Não é cor de etapa, é estado: atraso e conclusão. Vai pros semânticos que já existem.</p>
+    <table class="tbl">
+      <thead><tr><th>Onde</th><th>Cruas</th><th class="arrow"></th><th>Token DS</th><th>Por quê</th></tr></thead>
+      <tbody>
+        <tr><td>Realce da coluna Aguardando</td><td class="tw"><span class="sq" style="background:#fde68a"></span>amber-50/100/200 · amber-800</td><td class="arrow">→</td><td class="tok">warning</td><td class="desc">"atenção / prazo apertando"</td></tr>
+        <tr><td>Banner "Atrasada" + valor em atraso</td><td class="tw"><span class="sq" style="background:#e11d48"></span>rose-600/700/800 · rose-100</td><td class="arrow">→</td><td class="tok">destructive</td><td class="desc">overdue = ação urgente, não etapa</td></tr>
+        <tr><td>Banner "Pronta" + valor a receber</td><td class="tw"><span class="sq" style="background:#10b981"></span>emerald-600/700/800</td><td class="arrow">→</td><td class="tok">success</td><td class="desc">conclusão positiva (= stage-emerald)</td></tr>
+        <tr><td>Realce drop/drag (D-01)</td><td class="tw">— já migrado —</td><td class="arrow">✓</td><td class="tok">success / warning / primary</td><td class="desc">feito no #2228 (handoff D-01/02/09)</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- 4 · ANTES / DEPOIS -->
+  <section>
+    <h2><span class="n">4</span> Antes → depois</h2>
+    <div class="h2sub">As 5 colunas continuam idênticas <span style="font-weight:400;color:var(--text-3);font-size:14px">— o que muda é só de onde a cor vem</span></div>
+    <div style="margin-bottom:14px"><span class="pill-mode"><span class="a">cores cruas (hoje)</span><span class="b">tokens (depois) — pixel igual</span></span></div>
+
+    <div class="ba-grid">
+      <!-- Disponível -->
+      <div class="col-demo" style="border-top-color:var(--stage-slate)">
+        <div class="ch"><div class="l"><span class="dot" style="background:var(--stage-slate)"></span>Disponível</div><div class="cnt" style="background:var(--sunken);color:var(--text-3)">4</div></div>
+        <div class="mini" style="border-top-color:var(--stage-slate)">
+          <div class="os">sem OS</div><div class="ti">Caçamba 5m³</div>
+          <p style="margin:5px 0 0;font-style:italic;color:var(--text-3);font-size:10.5px">No pátio · pronta pra locar</p>
+        </div>
+      </div>
+      <!-- Locada -->
+      <div class="col-demo" style="border-top-color:var(--stage-blue)">
+        <div class="ch"><div class="l"><span class="dot" style="background:var(--stage-blue)"></span>Locada</div><div class="cnt" style="background:var(--sunken);color:var(--text-3)">7</div></div>
+        <div class="mini" style="border-top-color:var(--stage-blue)">
+          <div class="os">OS #1042</div><div class="ti">Caçamba 5m³</div>
+          <div style="height:4px;border-radius:4px;background:color-mix(in oklch,var(--stage-blue) 18%,white);margin-top:6px;overflow:hidden"><div style="height:100%;width:60%;background:var(--stage-blue)"></div></div>
+        </div>
+      </div>
+      <!-- Aguardando -->
+      <div class="col-demo" style="border-top-color:var(--stage-rose);background:color-mix(in oklch,var(--warning) 7%,white)">
+        <div class="ch"><div class="l"><span class="dot" style="background:var(--stage-rose)"></span>Aguardando</div><div class="cnt" style="background:color-mix(in oklch,var(--warning) 22%,white);color:var(--warning-ink);font-weight:600">2</div></div>
+        <div class="mini" style="border-top-color:var(--stage-rose);border-color:color-mix(in oklch,var(--stage-rose) 30%,var(--border))">
+          <div class="os">OS #0991</div><div class="ti">Caçamba 7m³</div>
+          <div class="banner" style="background:color-mix(in oklch,var(--destructive) 12%,white);color:color-mix(in oklch,var(--destructive) 75%,black)"><span class="bd" style="background:var(--destructive)"></span><b>Atrasada</b> · recolher</div>
+        </div>
+      </div>
+      <!-- Manutenção -->
+      <div class="col-demo" style="border-top-color:var(--stage-violet)">
+        <div class="ch"><div class="l"><span class="dot" style="background:var(--stage-violet)"></span>Manutenção</div><div class="cnt" style="background:var(--sunken);color:var(--text-3)">3</div></div>
+        <div class="mini" style="border-top-color:var(--stage-violet)">
+          <div class="os">OS #1080</div><div class="ti">Caçamba 5m³</div>
+          <div class="banner" style="background:color-mix(in oklch,var(--stage-violet) 11%,white);color:color-mix(in oklch,var(--stage-violet) 75%,black)"><span class="bd" style="background:var(--stage-violet)"></span><b>Em oficina</b></div>
+        </div>
+      </div>
+      <!-- Pronta -->
+      <div class="col-demo" style="border-top-color:var(--stage-emerald)">
+        <div class="ch"><div class="l"><span class="dot" style="background:var(--stage-emerald)"></span>Pronta</div><div class="cnt" style="background:var(--sunken);color:var(--text-3)">5</div></div>
+        <div class="mini" style="border-top-color:var(--stage-emerald);background:color-mix(in oklch,var(--stage-emerald) 7%,white)">
+          <div class="os">OS #1001</div><div class="ti">Caçamba 5m³</div>
+          <div class="banner" style="background:color-mix(in oklch,var(--success) 12%,white);color:color-mix(in oklch,var(--success) 72%,black)"><span class="bd" style="background:var(--success)"></span><b>Pronta</b> · entregar</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · A DECISÃO -->
+  <section>
+    <h2><span class="n">5</span> A única decisão de [W]</h2>
+    <div class="h2sub">Manutenção (violet) fica perto do roxo da marca</div>
+    <div class="flag">
+      <h3><span class="dot" style="background:var(--warning);width:11px;height:11px"></span> Único julgamento subjetivo do mapa</h3>
+      <p style="margin:0;color:var(--text-2)">O violet do Tailwind (~hue 293) é praticamente o mesmo matiz do roxo da marca (<code>primary</code> oklch 0.55 0.15 <b>295</b>). Mantido cru, a coluna Manutenção "lê" como cor de marca. Já puxei a proposta pra <b>288 com croma menor</b> pra distanciar — mas é teu olho que decide o quanto:</p>
+      <div class="compare">
+        <div class="it"><div class="s" style="background:var(--accent)"></div><div class="t"><b>primary (marca)</b><span>oklch(.55 .15 295)</span></div></div>
+        <div class="it"><div class="s" style="background:var(--stage-violet)"></div><div class="t"><b>stage-violet (proposto)</b><span>oklch(.54 .15 288)</span></div></div>
+        <div class="it"><div class="s" style="background:oklch(0.52 0.14 275)"></div><div class="t"><b>alt: indigo</b><span>oklch(.52 .14 275)</span></div></div>
+      </div>
+      <div class="opt"><span class="k">A.</span><div><span class="rec">Aceitar 288 (recomendado).</span> Colunas raramente ficam lado a lado com um CTA roxo; a separação de 7° + croma menor já basta. Fica fiel ao design aprovado 90/100.</div></div>
+      <div class="opt"><span class="k">B.</span><div>Puxar Manutenção pra <b>indigo (~275)</b> — separação máxima da marca, mas desloca visivelmente o matiz que o dono escolheu.</div></div>
+    </div>
+  </section>
+
+  <!-- 6 · PROVA CONTRA OS GATES -->
+  <section>
+    <h2><span class="n">6</span> Provado contra os gates reais</h2>
+    <div class="h2sub">Simulei a re-tokenização nas 3 regras de CI <span style="font-weight:400;color:var(--text-3);font-size:14px">— lidas do <code style="font-size:.8em">main</code>, não inferidas</span></div>
+    <p class="note"><b>Correção honesta:</b> uma versão anterior deste mapa dizia "adiciona os tokens no <code>inertia.css @theme</code>, mecânico". Ao testar contra os gates, isso <b>quebraria o CI</b>. O quadro real:</p>
+    <table class="tbl" style="margin-bottom:18px">
+      <thead><tr><th>Gate (lido @main)</th><th>O que verifica</th><th class="arrow"></th><th>Veredito da proposta</th></tr></thead>
+      <tbody>
+        <tr><td class="tw">ui:lint R1<br><span style="font-size:10px;color:var(--text-3)">UiLintCommand.php</span></td><td class="desc">flagra <code>(bg|text|border|…)-(família)-(NNN)</code> — bruto, todas as 22 famílias</td><td class="arrow">✓</td><td class="desc"><b style="color:var(--pos)">PASSA.</b> <code>bg-stage-blue</code> e <code>bg-[var(--x)]</code> não têm <code>-NNN</code> → não flagram. Neutros/semânticos viram token existente.</td></tr>
+        <tr><td class="tw">foundation-guard<br><span style="font-size:10px;color:var(--text-3)">.mjs + baseline</span></td><td class="desc">def <code>@theme</code>/<code>--color-*</code> só em <code>foundations.css</code>/<code>cockpit.css</code>; <code>inertia.css</code> congelado em <b>53</b> (só-desce)</td><td class="arrow">⚠</td><td class="desc"><b style="color:var(--destructive)">BLOQUEIA</b> se os <code>--color-stage-*</code> forem pro <code>inertia.css @theme</code> (53→63). É o erro que o teste pegou.</td></tr>
+        <tr><td class="tw">conformance-gate<br><span style="font-size:10px;color:var(--text-3)">.mjs</span></td><td class="desc"><code>--accent*</code> sempre roxo 250–330; cor crua em <code>.css</code> de tela só-desce</td><td class="arrow">✓</td><td class="desc"><b style="color:var(--pos)">PASSA.</b> Stage não usa nome <code>--accent</code>; mudança é em <code>.tsx</code>, não em <code>.css</code> de tela.</td></tr>
+      </tbody>
+    </table>
+
+    <p class="note"><b>Consequência:</b> os <b>neutros (Balde A) e semânticos (Balde C)</b> viram token existente — <span style="color:var(--pos);font-weight:600">grátis, sem gate</span>. O custo está só nas <b>2 colunas sem token</b> — <b>Locada (blue)</b> e <b>Manutenção (violet)</b> não existem no tema. Criar a família stage é mexer na <b>Camada Fundações = Tier 0</b>, nunca "mecânico". Três caminhos legais:</p>
+
+    <div class="flag" style="background:var(--surface);border-color:var(--border)">
+      <div class="opt"><span class="k">A.</span><div><span class="rec" style="color:var(--text)">Nova <code>foundations.css</code> (mais limpo · Tier 0).</span> Define <code>@theme{--color-stage-*}</code> num arquivo novo (que o foundation-guard <b>permite</b>), faz <code>@import</code> no <code>inertia.css</code> (Tailwind gera <code>bg-stage-*</code>) e adiciona o arquivo ao <code>.foundation-guard-files.json</code>. Conta do <code>inertia.css</code> fica em 53. Aterra a Camada Fundações (hoje adiada) só pro stage.</div></div>
+      <div class="opt"><span class="k">B.</span><div><b>Sobe o baseline do <code>inertia.css</code> (pragmático · Tier 0).</b> Adiciona os 10 defs no <code>@theme</code> e re-crava o baseline 53→63 no mesmo PR, com [W] ciente. Mais rápido, mas levanta de propósito o teto do ratchet (enfraquece a "fundação única").</div></div>
+      <div class="opt"><span class="k">C.</span><div><b>Sem token novo — <code>--stage-*</code> puro no <code>cockpit.css</code> (menor fricção).</b> Define <code>--stage-blue</code> (sem prefixo <code>--color</code> → foundation-guard <b>não conta</b>) e consome via <code>bg-[var(--stage-blue)]</code> no <code>.tsx</code> (R1-safe). Zero arquivo novo, zero mudança de ratchet. Custo: utility arbitrária é menos idiomática e perde o açúcar de opacidade (<code>/10</code>) — precisa de <code>--stage-blue-soft</code> ou <code>color-mix</code> explícito.</div></div>
+    </div>
+
+    <div class="handoff" style="margin-top:20px">
+      <h3>Ordem segura (sem conflito com a sessão paralela do #2228)</h3>
+      <ol>
+        <li><b>Este mapa = a referência.</b> Risco zero — é spec no Cowork, não toca o repo.</li>
+        <li><b>[W] escolhe o caminho A/B/C</b> (é Tier 0 — Camada Fundações) <b>e o ponto §5</b> (hue do violet).</li>
+        <li>Quando a sessão paralela do <code>#2228</code> assentar, <b>[CL] aplica</b>: neutros+semânticos → token existente (grátis); stage → pelo caminho escolhido.</li>
+        <li>UI-Lint R1 passa <b>sem baseline</b> — zero cor crua, zero dívida.</li>
+        <li>O protótipo do Cowork (<code>oficina-page.css</code>) já é o gabarito tokenizado — paridade checável 1:1.</li>
+      </ol>
+    </div>
+    <p class="legend" style="margin-top:16px">[CC] propõe + prova contra os gates · [W] decide caminho (Tier 0) + §5 · [CL] aplica. Nada commitado. Gates ✓ lidos @main 2026-06-04.</p>
+  </section>
+
+</div>
+</body>
+</html>

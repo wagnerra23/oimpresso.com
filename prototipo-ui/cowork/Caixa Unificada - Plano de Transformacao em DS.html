@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Caixa Unificada → DS · Plano de Transformação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg: oklch(0.992 0.0015 95); --sunken: oklch(0.974 0.003 95); --surface: oklch(1 0 0);
+  --hairline: oklch(0.935 0.003 95); --border: oklch(0.905 0.004 95); --border-2: oklch(0.95 0.003 95);
+  --text: oklch(0.205 0.008 90); --text-2: oklch(0.46 0.007 90); --text-3: oklch(0.63 0.006 90); --text-4: oklch(0.74 0.005 90);
+  --accent: oklch(0.55 0.15 295); --accent-hi: oklch(0.50 0.16 295); --accent-soft: oklch(0.965 0.022 295); --accent-fg: #fff;
+  --pos: oklch(0.50 0.12 150); --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.58 0.12 70); --warn-soft: oklch(0.955 0.072 75);
+  --wa: oklch(0.50 0.13 145); --wa-soft: oklch(0.95 0.05 145);
+  --sh-1: 0 1px 1px oklch(0.25 0.02 280/.05), 0 2px 4px -1px oklch(0.25 0.02 280/.07);
+  --sh-2: 0 2px 4px -2px oklch(0.25 0.02 280/.06), 0 6px 16px -5px oklch(0.25 0.02 280/.11);
+  --r-1: 5px; --r-2: 8px; --r-3: 11px; --r-4: 16px; --r-pill: 999px;
+  --sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif; --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+[data-theme="dark"]{
+  --bg: oklch(0.165 0.008 282); --sunken: oklch(0.142 0.008 282); --surface: oklch(0.205 0.009 282);
+  --hairline: oklch(0.27 0.010 282); --border: oklch(0.30 0.012 282); --border-2: oklch(0.25 0.010 282);
+  --text: oklch(0.965 0.004 282); --text-2: oklch(0.74 0.008 282); --text-3: oklch(0.58 0.009 282); --text-4: oklch(0.47 0.009 282);
+  --accent: oklch(0.72 0.15 295); --accent-hi: oklch(0.78 0.15 295); --accent-soft: oklch(0.30 0.07 295); --accent-fg: oklch(0.14 0.02 295);
+  --pos: oklch(0.74 0.14 150); --pos-soft: oklch(0.30 0.085 150);
+  --neg: oklch(0.72 0.16 25);  --neg-soft: oklch(0.32 0.09 25);
+  --warn: oklch(0.80 0.13 75); --warn-soft: oklch(0.32 0.085 70);
+  --wa: oklch(0.74 0.15 145); --wa-soft: oklch(0.30 0.085 145);
+  --sh-1: 0 1px 2px oklch(0 0 0/.3); --sh-2: 0 3px 8px -3px oklch(0 0 0/.42), 0 8px 20px -6px oklch(0 0 0/.4);
+}
+*{ box-sizing: border-box; }
+html,body{ margin: 0; }
+body{ background: var(--bg); color: var(--text); font-family: var(--sans); -webkit-font-smoothing: antialiased; line-height: 1.5; }
+
+.top{ position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 14px 32px; background: color-mix(in oklch, var(--bg) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--border); }
+.logo{ width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--accent), color-mix(in oklch, var(--accent) 60%, var(--text))); display: grid; place-items: center; color: var(--accent-fg); font-weight: 700; font-size: 13px; }
+.top b.tt{ font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.top .stamp{ font-family: var(--mono); font-size: 10.5px; color: var(--accent); background: var(--accent-soft); padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+[data-theme="dark"] .top .stamp{ color: var(--accent-hi); }
+.theme{ margin-left: auto; appearance: none; cursor: pointer; font: inherit; display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 13px; border-radius: 9px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; font-weight: 500; }
+
+.wrap{ max-width: 1060px; margin: 0 auto; padding: 38px 32px 90px; }
+h1.title{ font-size: 31px; font-weight: 600; letter-spacing: -0.03em; margin: 0 0 14px; line-height: 1.14; }
+h1.title em{ font-style: normal; color: var(--accent); }
+.lede{ font-size: 15px; line-height: 1.62; color: var(--text-2); max-width: 74ch; margin: 0; }
+.lede b{ color: var(--text); font-weight: 600; }
+
+.grouph{ font-size: 11px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--text-4); margin: 50px 0 18px; padding-bottom: 10px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.grouph .gn{ font-family: var(--mono); color: var(--accent); }
+[data-theme="dark"] .grouph .gn{ color: var(--accent-hi); }
+
+/* principle hero */
+.hero{ margin: 26px 0 8px; border: 1px solid var(--border); border-radius: var(--r-4); background: var(--surface); box-shadow: var(--sh-2); overflow: hidden; }
+.hero-top{ display: flex; align-items: center; gap: 14px; padding: 20px 24px; border-bottom: 1px solid var(--border-2); background: linear-gradient(180deg, var(--accent-soft), transparent); }
+.hero-top .pin{ width: 38px; height: 38px; border-radius: 10px; background: var(--wa-soft); color: var(--wa); display: grid; place-items: center; font-size: 18px; flex: 0 0 auto; }
+.hero-top h2{ margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -0.02em; }
+.hero-top p{ margin: 3px 0 0; font-size: 12.5px; color: var(--text-3); }
+.hero-body{ padding: 18px 24px 20px; display: flex; flex-direction: column; gap: 11px; }
+.hero-body p{ margin: 0; font-size: 13.5px; line-height: 1.6; color: var(--text-2); }
+.hero-body p b{ color: var(--text); font-weight: 600; }
+.hero-body .keep{ color: var(--wa); font-weight: 700; }
+
+code{ font-family: var(--mono); font-size: 0.85em; background: var(--sunken); padding: 1px 5px; border-radius: 4px; color: var(--accent); }
+[data-theme="dark"] code{ color: var(--accent-hi); }
+code.g{ color: var(--wa); }
+
+/* read rules */
+.rules{ display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.rule{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); padding: 15px 16px; box-shadow: var(--sh-1); }
+.rule .rn{ font-family: var(--mono); font-size: 11px; font-weight: 700; color: var(--accent); }
+[data-theme="dark"] .rule .rn{ color: var(--accent-hi); }
+.rule b{ display: block; margin: 7px 0 5px; font-size: 13px; font-weight: 650; }
+.rule p{ margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-2); }
+
+/* phase cards */
+.phase{ background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-4); box-shadow: var(--sh-1); margin-bottom: 16px; overflow: hidden; }
+.phase-h{ display: grid; grid-template-columns: 52px 1fr auto; gap: 15px; align-items: center; padding: 17px 20px; border-bottom: 1px solid var(--border-2); }
+.phase-n{ width: 52px; height: 52px; border-radius: 13px; display: grid; place-items: center; font-family: var(--mono); font-weight: 700; font-size: 20px; color: #fff; }
+.bk-a-bg{ background: var(--pos); } .bk-b-bg{ background: var(--warn); } .bk-c-bg{ background: var(--accent); }
+.bk-0-bg{ background: var(--text-3); } .bk-x-bg{ background: var(--wa); }
+.phase-ti b{ font-size: 16.5px; font-weight: 650; letter-spacing: -0.01em; }
+.phase-ti .bk{ display: inline-block; margin-left: 8px; font: 700 9.5px/1 var(--mono); letter-spacing: .05em; text-transform: uppercase; padding: 3px 7px; border-radius: 99px; vertical-align: middle; }
+.bk-tag-a{ background: var(--pos-soft); color: var(--pos); } .bk-tag-b{ background: var(--warn-soft); color: var(--warn); } .bk-tag-c{ background: var(--accent-soft); color: var(--accent); }
+[data-theme="dark"] .bk-tag-c{ color: var(--accent-hi); }
+.phase-ti p{ margin: 4px 0 0; font-size: 12.5px; color: var(--text-3); }
+.chg{ display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: var(--r-pill); font: 700 11px/1 var(--sans); white-space: nowrap; }
+.chg.none{ background: var(--pos-soft); color: var(--pos); }
+.chg.some{ background: var(--accent-soft); color: var(--accent); }
+[data-theme="dark"] .chg.some{ color: var(--accent-hi); }
+.chg::before{ content:""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.phase-body{ padding: 16px 20px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 14px 22px; }
+.pb-row{ display: flex; flex-direction: column; gap: 4px; }
+.pb-row.full{ grid-column: 1 / -1; }
+.pb-row .lab{ font: 700 9.5px/1 var(--mono); letter-spacing: .07em; text-transform: uppercase; color: var(--text-4); }
+.pb-row .val{ font-size: 12.5px; line-height: 1.5; color: var(--text-2); }
+.pb-row .val b{ color: var(--text); font-weight: 600; }
+.sublist{ list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; gap: 5px; }
+.sublist li{ font-size: 12.5px; color: var(--text-2); padding-left: 22px; position: relative; line-height: 1.45; }
+.sublist li::before{ content: attr(data-k); position: absolute; left: 0; top: 0; font: 700 10px/1.5 var(--mono); color: var(--accent); }
+[data-theme="dark"] .sublist li::before{ color: var(--accent-hi); }
+.sublist li b{ color: var(--text); font-weight: 600; }
+.risk{ display: inline-flex; align-items: center; gap: 5px; font: 700 10.5px/1 var(--mono); padding: 3px 8px; border-radius: 99px; }
+.risk.lo{ background: var(--pos-soft); color: var(--pos); } .risk.md{ background: var(--warn-soft); color: var(--warn); }
+
+/* matrix */
+.matrix{ width: 100%; border-collapse: separate; border-spacing: 0; font-size: 12.5px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-3); overflow: hidden; box-shadow: var(--sh-1); }
+.matrix th{ text-align: left; padding: 11px 13px; font: 600 9.5px/1.2 var(--mono); letter-spacing: .05em; text-transform: uppercase; color: var(--text-3); background: var(--sunken); border-bottom: 1px solid var(--border); }
+.matrix th.c, .matrix td.c{ text-align: center; }
+.matrix td{ padding: 11px 13px; border-bottom: 1px solid var(--border-2); vertical-align: middle; }
+.matrix tr:last-child td{ border-bottom: 0; }
+.matrix td b{ font-weight: 650; }
+.matrix td .pcode{ font-family: var(--mono); font-weight: 700; color: var(--accent); }
+[data-theme="dark"] .matrix td .pcode{ color: var(--accent-hi); }
+.dot{ display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 50%; font: 700 11px/1 var(--mono); }
+.dot.no{ background: var(--pos-soft); color: var(--pos); }
+.dot.yes{ background: var(--accent-soft); color: var(--accent); }
+[data-theme="dark"] .dot.yes{ color: var(--accent-hi); }
+.dot.dash{ color: var(--text-4); }
+
+.callout{ border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--r-3); background: var(--surface); padding: 17px 19px; margin: 18px 0 0; box-shadow: var(--sh-1); }
+.callout h3{ margin: 0 0 8px; font-size: 14px; font-weight: 650; }
+.callout p{ margin: 0 0 7px; font-size: 12.5px; line-height: 1.55; color: var(--text-2); }
+.callout p:last-child{ margin-bottom: 0; }
+.callout b{ color: var(--text); font-weight: 600; }
+
+.flow{ display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0 0; }
+.flow .fp{ display: inline-flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: var(--r-pill); background: var(--surface); border: 1px solid var(--border); font: 600 12px/1 var(--sans); box-shadow: var(--sh-1); }
+.flow .fp .fn{ font-family: var(--mono); font-weight: 700; color: var(--accent); }
+[data-theme="dark"] .flow .fp .fn{ color: var(--accent-hi); }
+.flow .arr{ color: var(--text-4); font-size: 14px; }
+
+.foot{ margin-top: 50px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--text-4); line-height: 1.75; }
+.foot b{ color: var(--text-3); }
+.tagread{ font-family: var(--mono); font-size: 10px; padding: 2px 7px; border-radius: 99px; font-weight: 600; }
+.tagread.ok{ background: var(--pos-soft); color: var(--pos); }
+.tagread.no{ background: var(--warn-soft); color: var(--warn); }
+@media (max-width: 760px){ .rules{ grid-template-columns: 1fr; } .phase-body{ grid-template-columns: 1fr; } .phase-h{ grid-template-columns: 44px 1fr; } .chg{ grid-column: 2; justify-self: start; margin-top: 8px; } }
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="logo">Oi</div>
+  <b class="tt">Caixa Unificada → DS · plano de transformação</b>
+  <span class="stamp">aprovável em partes</span>
+  <button class="theme" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">tema</button>
+</div>
+
+<div class="wrap">
+  <h1 class="title">Como esta tela vira DS <em>sem mudar um pixel dela</em>.</h1>
+  <p class="lede">Você decidiu: a Caixa unificada está do jeito que quer, <b>nenhuma cor muda</b>, e a meta é levar <b>essa qualidade pras outras telas primeiro</b>. Então o plano não é "refazer a Caixa" — é <b>extrair</b> dela os padrões (os 3 baldes) pro Design System, deixando a tela intacta como molde. Cada parte abaixo é <b>aprovável sozinha ou em bloco</b>, explicada, reversível, e diz na cara <b>o que muda visualmente</b> (quase sempre: nada aqui).</p>
+
+  <!-- PRINCIPLE -->
+  <div class="hero">
+    <div class="hero-top">
+      <div class="pin">◆</div>
+      <div>
+        <h2>Princípio: extrair, não repintar.</h2>
+        <p>A Caixa é o ouro. O DS aprende com ela — ela não se ajusta ao DS.</p>
+      </div>
+    </div>
+    <div class="hero-body">
+      <p><b>O verde fica.</b> <span class="keep">Nenhuma cor desta tela é trocada por roxo.</span> O verde do WhatsApp passa a ser tratado como <b>semântica-de-canal governada</b> — um token com nome (<code class="g">--ch-wa</code>) que resolve <b>exatamente no mesmo valor</b> de hoje, igual ao âmbar da Oficina ser <code>--origin-MFG</code>. Ganha nome, não ganha cor nova.</p>
+      <p><b>Prova de "não mudou".</b> Toda parte que toca cor é validada por <b>diff de computed-style</b>: o navegador tem que reportar o mesmo pixel antes e depois. Se mudar, não passa.</p>
+      <p><b>Reversível e sob seu OK.</b> Cada parte é um <code>_PROPOSTA → ADR</code> que <b>você aprova</b> (token/componente novo = Tier 0, só você). Nada vai pro git sem seu sinal.</p>
+    </div>
+  </div>
+
+  <!-- HOW TO READ -->
+  <div class="grouph"><span class="gn">A</span> Como ler e aprovar este plano</div>
+  <div class="rules">
+    <div class="rule"><span class="rn">01</span><b>Parte = aprovação</b><p>Você pode aprovar <b>P1 sozinha</b>, ou P1+P2, ou tudo. Cada uma entrega valor fechado e não depende das seguintes (salvo dependência marcada na matriz).</p></div>
+    <div class="rule"><span class="rn">02</span><b>"Muda esta tela?"</b><p>Cada parte traz um selo. <b>Verde "nada aqui"</b> = a Caixa fica idêntica. <b>Roxo</b> = há mudança visual (só aparece na Fase 4, nas <i>outras</i> telas).</p></div>
+    <div class="rule"><span class="rn">03</span><b>Sempre proposta</b><p>Eu não comito. Cada parte vira um pedido pronto pro Code aplicar no git depois do seu OK — você cola uma vez. Some quando você quiser (reversível).</p></div>
+  </div>
+
+  <!-- PHASES -->
+  <div class="grouph"><span class="gn">B</span> As partes, em ordem sugerida</div>
+
+  <!-- FASE 0 -->
+  <div class="phase">
+    <div class="phase-h">
+      <div class="phase-n bk-0-bg">0</div>
+      <div class="phase-ti"><b>Congelar o ouro</b><span class="bk bk-tag-a">baseline</span><p>O contrato de "não mexer" — antes de qualquer extração.</p></div>
+      <span class="chg none">nada muda aqui</span>
+    </div>
+    <div class="phase-body">
+      <div class="pb-row"><span class="lab">O quê</span><span class="val">Snapshot visual (claro + escuro) + placar do probe <code>qa-conformance</code> da Caixa como está hoje. Vira o "golden master".</span></div>
+      <div class="pb-row"><span class="lab">Por quê</span><span class="val">É a régua que garante que <b>nenhuma parte seguinte</b> mexeu na tela. Tudo é comparado contra este snapshot.</span></div>
+      <div class="pb-row"><span class="lab">Risco</span><span class="val"><span class="risk lo">zero</span> — não toca em código de produção.</span></div>
+      <div class="pb-row"><span class="lab">Aprovação</span><span class="val">Trivial. É só dizer "pode congelar".</span></div>
+    </div>
+  </div>
+
+  <!-- FASE 1 -->
+  <div class="phase">
+    <div class="phase-h">
+      <div class="phase-n bk-a-bg">1</div>
+      <div class="phase-ti"><b>Adotar o que já é DS</b><span class="bk bk-tag-a">balde A</span><p>Coisas que já são padrão — só falta o último passo de nome.</p></div>
+      <span class="chg none">nada muda aqui</span>
+    </div>
+    <div class="phase-body">
+      <div class="pb-row"><span class="lab">O quê</span><span class="val">Apontar os componentes que a Caixa já usa pros nomes canônicos do DS, via <b>alias</b> (a classe local herda o canônico).</span></div>
+      <div class="pb-row"><span class="lab">Como</span><span class="val">Alias em CSS — computed-style idêntico. Sem reescrever marcação.</span></div>
+      <div class="pb-row full"><span class="lab">Itens</span>
+        <ul class="sublist">
+          <li data-k="1.1"><b>Cabeçalho</b> <code>os-page-h</code> → já é o PageHeader do Cockpit. Só registrar.</li>
+          <li data-k="1.2"><b>Botões</b> <code>os-btn</code> → <code>.btn</code> (primary/ghost) — mesmo desenho.</li>
+          <li data-k="1.3"><b>Busca</b> <code>om-list-search</code> → <code>.search</code> canônico.</li>
+          <li data-k="1.4"><b>Avatar</b> <code>om-av</code> → <code>.avatar</code> (cor sai de <code>--av-1..8</code>, mesmo tom).</li>
+        </ul>
+      </div>
+      <div class="pb-row"><span class="lab">Ganho</span><span class="val">As <b>outras</b> telas passam a herdar exatamente esses botões/busca/avatar.</span></div>
+      <div class="pb-row"><span class="lab">Risco</span><span class="val"><span class="risk lo">baixo</span> — alias é aditivo e reversível.</span></div>
+    </div>
+  </div>
+
+  <!-- FASE 2 -->
+  <div class="phase">
+    <div class="phase-h">
+      <div class="phase-n bk-b-bg">2</div>
+      <div class="phase-ti"><b>Tokenizar preservando a cor</b><span class="bk bk-tag-b">balde B</span><p>O verde ganha nome — e continua exatamente o mesmo verde.</p></div>
+      <span class="chg none">nada muda aqui</span>
+    </div>
+    <div class="phase-body">
+      <div class="pb-row"><span class="lab">O quê</span><span class="val">As <b>114 cores verde cruas</b> (e o âmbar das notas) viram <b>tokens governados</b> com o mesmo valor de hoje.</span></div>
+      <div class="pb-row"><span class="lab">Sua decisão</span><span class="val">O verde do WhatsApp é <b>semântica-de-canal</b> e <span style="color:var(--wa);font-weight:700">fica</span>. Não vira roxo. (A alternativa "alinhar ao chrome roxo" existe — você já disse não.)</span></div>
+      <div class="pb-row full"><span class="lab">Sub-partes (cada uma aprovável)</span>
+        <ul class="sublist">
+          <li data-k="2.1"><b>Verde-canal WA</b> → <code class="g">--ch-wa</code> (seleção, bolha, foco, badge, toast) — mesmo valor.</li>
+          <li data-k="2.2"><b>Âmbar da nota interna</b> → token de aviso governado.</li>
+          <li data-k="2.3"><b>Cross-links</b> (KB/OS/conversa/fila) → mapeiam pros <code>--origin-*</code>.</li>
+          <li data-k="2.4"><b>Demais matizes</b> (favorito, SLA) → tokens, sem trocar tom.</li>
+        </ul>
+      </div>
+      <div class="pb-row"><span class="lab">Prova</span><span class="val"><b>Diff de computed-style = 0</b>. Se um pixel mudar, a parte é rejeitada.</span></div>
+      <div class="pb-row"><span class="lab">Ganho</span><span class="val">A cor ganha nome reusável; o DS-guard para de marcar "cor crua"; outras telas usam o mesmo verde por token.</span></div>
+    </div>
+  </div>
+
+  <!-- FASE 3 -->
+  <div class="phase">
+    <div class="phase-h">
+      <div class="phase-n bk-c-bg">3</div>
+      <div class="phase-ti"><b>Promover os primitivos novos</b><span class="bk bk-tag-c">balde C</span><p>O ouro de verdade: padrões que a Caixa inventou viram peças do DS.</p></div>
+      <span class="chg none">nada muda aqui</span>
+    </div>
+    <div class="phase-body">
+      <div class="pb-row full"><span class="lab">Cada primitivo é uma sub-aprovação</span>
+        <ul class="sublist">
+          <li data-k="3.1"><b>Workspace 3-col</b> (lista · thread · contexto) → <code>.workspace-3</code>. <b>Maior reuso</b> — serve ficha de CRM, detalhe de OS, qualquer mestre→corpo→aside.</li>
+          <li data-k="3.2"><b>Avatar + glyph de canal</b> → avatar com selo de origem/canal/status.</li>
+          <li data-k="3.3"><b>Pílula de SLA/frescor</b> → consolida no <code>.frescor</code> que <b>já existe</b> no DS.</li>
+          <li data-k="3.4"><b>Command palette ⌘K</b> → navegação por teclado pro ERP inteiro (persona Larissa).</li>
+          <li data-k="3.5"><b>Chip de fila</b> → <code>.spill</code> por <code>--stage-*</code> (serve pipeline de Vendas, etapas de Produção).</li>
+        </ul>
+      </div>
+      <div class="pb-row"><span class="lab">Como</span><span class="val">Registrar em <code>components.css</code>. A Caixa segue idêntica — consome o primitivo ou mantém sua cópia.</span></div>
+      <div class="pb-row"><span class="lab">Risco</span><span class="val"><span class="risk lo">baixo</span> aqui · cada registro é Tier 0 (seu OK).</span></div>
+    </div>
+  </div>
+
+  <!-- FASE 4 -->
+  <div class="phase">
+    <div class="phase-h">
+      <div class="phase-n bk-x-bg">4</div>
+      <div class="phase-ti"><b>Propagar a qualidade pras outras telas</b><span class="bk" style="background:var(--wa-soft);color:var(--wa)">o que você pediu</span><p>Aqui você vê a qualidade da Caixa replicada — tela por tela.</p></div>
+      <span class="chg some">muda as OUTRAS telas</span>
+    </div>
+    <div class="phase-body">
+      <div class="pb-row"><span class="lab">O quê</span><span class="val">Com os primitivos prontos (Fases 1–3), aplicar nas demais telas: <b>CRM ficha, OS, Financeiro…</b> Cada tela é uma onda.</span></div>
+      <div class="pb-row"><span class="lab">Como</span><span class="val">Por tela: baseline → adota primitivos → probe <code>qa-conformance</code> → revisão 15-dim → seu OK.</span></div>
+      <div class="pb-row"><span class="lab">Ordem</span><span class="val">Você escolhe a fila. Sugestão: começar pela <b>ficha de CRM</b> (mais parecida com a Caixa = ganho rápido e visível).</span></div>
+      <div class="pb-row"><span class="lab">Risco</span><span class="val"><span class="risk md">médio</span> — mexe em telas reais; por isso é <b>uma de cada vez</b>, com prova.</span></div>
+    </div>
+  </div>
+
+  <!-- FASE 5 -->
+  <div class="phase">
+    <div class="phase-h">
+      <div class="phase-n bk-0-bg">5</div>
+      <div class="phase-ti"><b>Fechar o ciclo</b><span class="bk bk-tag-a">guard</span><p>Garantir que o que virou DS não regride.</p></div>
+      <span class="chg none">nada muda aqui</span>
+    </div>
+    <div class="phase-body">
+      <div class="pb-row"><span class="lab">O quê</span><span class="val">DS-guard passa a cobrir os primitivos novos; entram na vitrine <code>ds-v6/showcase</code>; baseline de cor crua desce pra zero.</span></div>
+      <div class="pb-row"><span class="lab">Por quê</span><span class="val">Sem guard, o padrão derrete no tempo. Isto trava o ganho.</span></div>
+    </div>
+  </div>
+
+  <!-- APPROVAL MATRIX -->
+  <div class="grouph"><span class="gn">C</span> Matriz de aprovação — escolha o que liberar</div>
+  <table class="matrix">
+    <thead>
+      <tr><th>Parte</th><th>Entrega</th><th class="c">Muda<br/>esta tela?</th><th class="c">Muda<br/>outras?</th><th>Depende de</th><th class="c">Risco</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><span class="pcode">P0</span></td><td>Congelar baseline (golden master)</td><td class="c"><span class="dot no">∅</span></td><td class="c"><span class="dot no">∅</span></td><td>—</td><td class="c"><span class="risk lo">zero</span></td></tr>
+      <tr><td><span class="pcode">P1</span></td><td>Adotar DS existente por alias (balde A)</td><td class="c"><span class="dot no">∅</span></td><td class="c"><span class="dot yes">✓</span></td><td>P0</td><td class="c"><span class="risk lo">baixo</span></td></tr>
+      <tr><td><span class="pcode">P2</span></td><td>Tokenizar preservando a cor (balde B)</td><td class="c"><span class="dot no">∅</span></td><td class="c"><span class="dot yes">✓</span></td><td>P0</td><td class="c"><span class="risk lo">baixo</span></td></tr>
+      <tr><td><span class="pcode">P3</span></td><td>Promover primitivos novos (balde C)</td><td class="c"><span class="dot no">∅</span></td><td class="c"><span class="dot dash">—</span></td><td>P1·P2</td><td class="c"><span class="risk lo">baixo</span></td></tr>
+      <tr><td><span class="pcode">P4</span></td><td>Propagar pras outras telas (uma onda/tela)</td><td class="c"><span class="dot no">∅</span></td><td class="c"><span class="dot yes">✓</span></td><td>P3</td><td class="c"><span class="risk md">médio</span></td></tr>
+      <tr><td><span class="pcode">P5</span></td><td>Guard + vitrine + baseline zero</td><td class="c"><span class="dot no">∅</span></td><td class="c"><span class="dot dash">—</span></td><td>P3</td><td class="c"><span class="risk lo">baixo</span></td></tr>
+    </tbody>
+  </table>
+  <p class="lede" style="font-size:12px;margin-top:12px;color:var(--text-3)"><span class="dot no" style="width:16px;height:16px;font-size:9px;vertical-align:middle">∅</span> nada muda · <span class="dot yes" style="width:16px;height:16px;font-size:9px;vertical-align:middle">✓</span> muda (pra melhor) · <span class="dot dash" style="vertical-align:middle">—</span> não se aplica. <b>A Caixa só aparece como "∅" — ela nunca muda em nenhuma parte.</b></p>
+
+  <!-- SUGGESTED FLOW -->
+  <div class="grouph"><span class="gn">D</span> Sequência sugerida</div>
+  <div class="flow">
+    <span class="fp"><span class="fn">P0</span> congela</span><span class="arr">→</span>
+    <span class="fp"><span class="fn">P1</span> alias</span><span class="arr">→</span>
+    <span class="fp"><span class="fn">P2</span> tokens</span><span class="arr">→</span>
+    <span class="fp"><span class="fn">P3</span> primitivos</span><span class="arr">→</span>
+    <span class="fp"><span class="fn">P4</span> outras telas</span><span class="arr">→</span>
+    <span class="fp"><span class="fn">P5</span> guard</span>
+  </div>
+  <div class="callout">
+    <h3>Atalho de decisão</h3>
+    <p><b>Quer o mínimo pra começar?</b> Aprove <code>P0+P1</code> — risco baixo, zero mudança visual, e já dá base pras outras telas.</p>
+    <p><b>Quer ver qualidade nas outras telas logo?</b> Aprove <code>P0→P3</code> de uma vez (tudo "∅" na Caixa) e libere <code>P4</code> tela a tela, escolhendo a ordem.</p>
+    <p><b>Quer tudo?</b> Aprovação em bloco <code>P0→P5</code>; eu sequencio e cada parte chega com a prova de "não mudou a Caixa".</p>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="foot">
+    <p><b>Base (proof discipline):</b> &nbsp;<span class="tagread ok">✓ lido nesta sessão (local)</span>&nbsp; <code>inbox-page.css</code> · <code>inbox-page.jsx</code> · <code>ds-v6/{tokens,components,_LEIA}</code> · doc <i>Aproveitamento e Equivalência ao DS</i> (os 3 baldes).</p>
+    <p><span class="tagread no">⚠ não verifiquei @main</span>&nbsp; Nomes-alvo (<code>--ch-wa</code>, <code>.workspace-3</code>…) são <b>propostas</b> — confirmo contra o git antes de virar handoff. Nenhuma numeração de ADR aqui (isso é seu + Code).</p>
+    <p><b>Nada é executado sem seu OK.</b> Este documento é só o mapa pra você aprovar — por parte ou em bloco. Quando aprovar, cada parte vira um pedido pronto pro Code, e a Caixa permanece o molde intocado.</p>
+    <p style="margin-top:10px;color:var(--text-4)">Oimpresso ERP · [CC] · plano de transformação da Caixa unificada em DS.</p>
+  </div>
+</div>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#1a1726"/><g fill="none" stroke="#7c5cff" stroke-width="4"><rect x="26" y="26" width="48" height="48" rx="7"/></g><circle cx="50" cy="50" r="9" fill="#2bbf6e"/></svg>
+</template>
+</body>
+</html>
