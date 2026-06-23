@@ -5,7 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-06-16"
 parent_module: Financeiro
-states: [default, dark, error]  # gate L2 — empty/loading podados: render igual ao default nesta tela (md5 #3288) · sync com tests/Browser/visreg-states.json
+states: [default, dark]  # gate L2 — empty/loading podados (render == default, md5 #3288) + error removido (toast não determinístico, md5 #3290) · sync com tests/Browser/visreg-states.json
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94]
 related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-050-anexos, US-FIN-055-aprovacao]
