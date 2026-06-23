@@ -128,10 +128,24 @@ function audit() {
   return { perCharter, withOrphans, totalOrphans };
 }
 
+/** Advisory B1 (ponte design↔código): charters com `visual_source:` SEM `visual_source_sha:`.
+ *  Sem o sha do export, não dá pra detectar DRIFT quando `cowork/` é sobrescrito no próximo
+ *  handoff. Report-only — NÃO afeta --strict (é base do `<tela>.map.json` por-região, B2). */
+function shaAdvisory() {
+  const missing = [];
+  for (const rel of charterFiles()) {
+    const [fm] = splitFrontmatter(readFileSync(join(PAGES, rel), 'utf8'));
+    if (!/^visual_source:\s*\S/m.test(fm)) continue;
+    if (!/^visual_source_sha:\s*\S/m.test(fm)) missing.push('resources/js/Pages/' + rel);
+  }
+  return missing;
+}
+
 // ── CLI ──────────────────────────────────────────────────────────────────────
 const json = process.argv.includes('--json');
 const strict = process.argv.includes('--strict');
 const r = audit();
+const shaMiss = shaAdvisory();
 
 if (json) {
   console.log(JSON.stringify({
@@ -140,6 +154,7 @@ if (json) {
     charters_com_orfao: r.withOrphans.length,
     total_orfaos: r.totalOrphans,
     detalhe: r.withOrphans,
+    visual_source_sha_faltando: shaMiss,
   }, null, 2));
 } else {
   console.log('charter-blueprint-pointers — auditoria de ponteiros de protótipo/blueprint dos charters\n');
@@ -151,6 +166,9 @@ if (json) {
     for (const o of c.orphans) console.log(`     ✗ ${o.path}   [${o.src}]`);
   }
   if (!r.withOrphans.length) console.log('  ✓ nenhum ponteiro órfão.');
+  console.log(`\n— advisory B1 (ponte design↔código): charters com visual_source: SEM visual_source_sha: = ${shaMiss.length}`);
+  console.log('  (sem sha do export, drift não rastreável quando cowork/ é sobrescrito — base do mapa por-região)');
+  for (const m of shaMiss) console.log(`     ⚠ ${m}`);
 }
 
 if (strict && r.totalOrphans > 0) process.exit(1);
