@@ -12,7 +12,7 @@ prs: []
 
 # Modo Suporte: acesso cross-tenant da equipe de suporte, exceto a empresa operadora (biz=1)
 
-> Proposta de ADR. Pareada com a [SPEC Suporte](../../requisitos/Suporte/SPEC.md). Ratificar (Wagner) → vira ADR canon numerada.
+> Proposta de ADR. Pareada com a [SPEC Suporte](../../requisitos/Suporte/SPEC.md). **Ratificada → [ADR 0305](../0305-modo-suporte-cross-tenant-exceto-operador.md)** (canon). Mantida como registro append-only da proposta original.
 
 ## Contexto
 
