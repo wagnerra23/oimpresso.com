@@ -10,7 +10,7 @@ related_adrs: [101, 104, 149, 143, 93]
 tier: A
 charter_version: 2
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/os/"
+  blueprint_cowork: "prototipo-ui/cowork/os-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Index]
   divergence_from_blueprint: "tabela ainda usa DataTables AJAX legacy (sprint 2.5) — Wave W3-B6 documenta path canônico mas preserva implementação atual"

@@ -10,7 +10,7 @@ related_adrs: [93, 101, 104, 121]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/os/"
+  blueprint_cowork: "prototipo-ui/cowork/os-page.jsx"
   blueprint_screenshot_approval: "n/a (catálogo administrativo, sem screenshot Cowork)"
   derived_screens: [Index]
   divergence_from_blueprint: "tabela simples — DeviceModel é catálogo compartilhado de Repair, não OS"

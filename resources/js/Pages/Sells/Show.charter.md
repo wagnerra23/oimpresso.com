@@ -9,7 +9,7 @@ related_adrs: [104, 107, 110, 143, 149, 93]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/vendas-cockpit/"
+  blueprint_cowork: "prototipo-ui/cowork/vendas-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
   derived_screens: [Show]
   divergence_from_blueprint: "Show é full-page detail (não drawer SaleSheet). Layout 2-col 8/4 espelha pattern Cockpit + sidebar FSM."
@@ -111,7 +111,7 @@ Mostrar detalhe completo de uma venda — linhas, pagamentos, frete, atividades 
 - [ADR 0143 FSM Pipeline](../../../../memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)
 - [RUNBOOK-show.md](../../../../memory/requisitos/Sells/RUNBOOK-show.md)
 - [show-visual-comparison.md](../../../../memory/requisitos/Sells/show-visual-comparison.md)
-- Blueprint Cowork: `prototipo-ui/prototipos/vendas-cockpit/`
+- Blueprint Cowork: `prototipo-ui/cowork/vendas-page.jsx`
 - Parent visual: `resources/js/Pages/Sells/Index.charter.md`
 
 ## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])

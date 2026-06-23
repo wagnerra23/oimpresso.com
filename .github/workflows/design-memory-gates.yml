@@ -42,6 +42,13 @@ jobs:
         with:
           node-version: '20'
 
+      # Cowork SSOT guard: fonte ÚNICA do design — cowork/ build-only (zero .md) ·
+      # sem bundles datados cowork-* · sem protótipo fora do allowlist. SEM
+      # continue-on-error de propósito = falha VERMELHO (Wagner: "deve dar erro").
+      # Workflow segue fora de branch-protection até maturar (ADR 0271/0275).
+      - name: Cowork SSOT guard (fonte única · build-only)
+        run: node scripts/governance/cowork-ssot-guard.mjs
+
       # DS-GUARD nos arquivos TOCADOS (css/html de design-memory). O ds-guard so
       # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime

@@ -9,7 +9,7 @@ related_adrs: [110, 107, 93, 94, 104, 149, 235]
 tier: A
 charter_version: 2
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/clientes/"
+  blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
   blueprint_screenshot_approval: "Wagner 2026-05-29 — PR-A Onda F (componentes aprovados; Create elevado pendente)"
   derived_screens: [Create]
   divergence_from_blueprint: "none"
@@ -58,6 +58,6 @@ Formulário de cadastro de novo cliente/fornecedor — substitui Blade `contact.
 
 ## Refs
 
-- Blueprint: `prototipo-ui/prototipos/clientes/cowork-app.jsx`
+- Blueprint: `prototipo-ui/cowork/clientes-page.jsx`
 - Backend: `ContactController::create()` linha 536
 - Pattern reuse: ADR 0149

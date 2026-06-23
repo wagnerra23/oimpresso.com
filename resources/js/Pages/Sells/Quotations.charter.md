@@ -10,7 +10,7 @@ related_adrs: [104, 110, 143, 149, 93]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/vendas-cockpit/"
+  blueprint_cowork: "prototipo-ui/cowork/vendas-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG pendente verificar Wagner (ADR 0149)"
   derived_screens: [Quotations]
   divergence_from_blueprint: "Pattern Drafts (sub_status='quotation'). Ações específicas cotação: Enviar, Editar, Converter futuramente."

@@ -9,7 +9,7 @@ related_adrs: [104, 149, 93, 107]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/produto-cockpit/"
+  blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente — Wave 2 B4 Produto 2026-05-15)"
   derived_screens: [Create]
   divergence_from_blueprint: "form full-width AppShellV2 (não Cockpit 3-col) — Create é form não-list; preserva tokens + header pattern + design system; não usa drawer pattern"
