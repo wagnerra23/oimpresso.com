@@ -310,6 +310,11 @@ jobs:
       #     protection: o check `visual-regression` já é required — idêntico à nota do pixel-diff).
       - name: Instalar Lighthouse CI (L5 — pin compatível com Node lts/* do runner)
         if: steps.changes.outputs.ui == 'true'
+        # continue-on-error PERMANENTE (≠ lever de promoção): instalar o LHCI é INFRA do gate
+        # ADVISORY — uma falha transitória de npm NÃO pode reprovar o job `visual-regression`
+        # (que já é required). O lever de promoção é remover o continue-on-error do step `lhci`,
+        # NÃO deste. Sem o LHCI, o step `lhci` falha e é engolido → nenhuma medição, sem dano.
+        continue-on-error: true
         # @lhci/cli@0.15.1 empacota lighthouse@12.6.1 (engine node >=18.20) → compatível com
         # `node-version: lts/*` (Node 22/24). Pin explícito (NÃO `@latest`) pra build determinístico.
         # Chrome: o runner ubuntu-latest já traz google-chrome-stable → chrome-launcher acha sozinho.
