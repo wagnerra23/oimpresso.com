@@ -1,7 +1,7 @@
 {
   "_nota": "Primeiro contrato de tela ATIVO (piloto da catraca Contrato de Tela). Cobre o feature QR/Reconectar portado do design Cowork. Roda no CI advisory via contrato-de-tela.yml; promove a required quando estável. Ver RUNBOOK-contrato-de-tela.md.",
   "tela": "Atendimento/CaixaUnificada",
-  "fonte": "prototipo-ui/prototipos/caixa-unificada/inbox-page.jsx",
+  "fonte": "prototipo-ui/cowork/inbox-page.jsx",
   "alvo": ["resources/js/Pages/Atendimento/CaixaUnificada"],
   "secoes": [
     { "id": "reconnect-cta", "copy": ["Reconectar canal"] },
