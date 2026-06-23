@@ -10,7 +10,7 @@ charter_version: 2
 last_validated: "2026-06-22"
 adr_refs: [0104, 0093, 0114, 0149, 0105]
 mwart_pattern_reuse:
-  blueprint_cowork: prototipo-ui/prototipos/compras/visual-source.html
+  blueprint_cowork: prototipo-ui/cowork/compras-page.jsx
   blueprint_grade: prototipo-ui/prototipos/compras-grade-matrix/page.jsx
   blueprint_screenshot_approval: "SYNC_LOG (pendente — inclui modo grade)"
   derived_screens: [Create]

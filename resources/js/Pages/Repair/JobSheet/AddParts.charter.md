@@ -8,7 +8,7 @@ parent_module: Repair
 related_adrs: [104, 93]
 tier: A
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/os/"
+  blueprint_cowork: "prototipo-ui/cowork/os-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [AddParts]
   divergence_from_blueprint: "form add-peças não existe no blueprint OS (assumido fluxo POS) — reuso parcial header+stats apenas"

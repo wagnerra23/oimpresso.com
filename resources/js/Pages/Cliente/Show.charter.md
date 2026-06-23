@@ -13,7 +13,7 @@ superseded_by: [Pages/Cliente/Index.charter.md v3]
 superseded_at: 2026-05-21
 superseded_reason: "Paradigma cadastral 8 tabs drawer 760px lateral substitui página full-page operacional (ADR 0179)"
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/clientes/"
+  blueprint_cowork: "prototipo-ui/cowork/clientes-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [Show]
   divergence_from_blueprint: "tab-based content area (não no blueprint Cowork original)"

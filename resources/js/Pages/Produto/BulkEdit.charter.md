@@ -9,7 +9,7 @@ related_adrs: [104, 149, 93, 107]
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
-  blueprint_cowork: "prototipo-ui/prototipos/produto-cockpit/"
+  blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
   derived_screens: [BulkEdit]
   divergence_from_blueprint: "datatable multi-row edit — pattern distinto de Index Cockpit. ADR 0149 §'Casos que NÃO se qualificam — bulk-edit datatable (interação multi-row distinta de Index)'. Mantém família AppShellV2 + tokens + header pattern; diverge no conteúdo central edit-in-place"
