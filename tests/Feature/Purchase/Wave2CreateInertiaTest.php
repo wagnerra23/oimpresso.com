@@ -15,8 +15,10 @@ declare(strict_types=1);
 const CREATE_INERTIA_PATH = 'resources/js/Pages/Purchase/Create.tsx';
 const CREATE_CHARTER_PATH = 'resources/js/Pages/Purchase/Create.charter.md';
 const CREATE_CONTROLLER_PATH = 'app/Http/Controllers/PurchaseController.php';
-const CREATE_RUNBOOK_PATH = 'memory/requisitos/Inventory/RUNBOOK-purchase-create.md';
-const CREATE_VISUAL_PATH = 'memory/requisitos/Inventory/purchase-create-visual-comparison.md';
+// Reconciliado 2026-06-22 (US-COM-005): RUNBOOK/visual agora vivem em Purchase/ — alinha o hook
+// block-mwart-violation (que deriva o módulo do path da Page). Antes apontavam pra Inventory/ (inexistente).
+const CREATE_RUNBOOK_PATH = 'memory/requisitos/Purchase/RUNBOOK-create.md';
+const CREATE_VISUAL_PATH = 'memory/requisitos/Purchase/create-visual-comparison.md';
 
 function readCreateInertia(): string
 {
@@ -42,7 +44,7 @@ it('Charter Create.charter.md existe ao lado (ADR 0149)', function () {
     expect($content)->toContain('derived_screens:');
 });
 
-it('RUNBOOK existe em memory/requisitos/Inventory/', function () {
+it('RUNBOOK existe em memory/requisitos/Purchase/', function () {
     expect(file_exists(base_path(CREATE_RUNBOOK_PATH)))->toBeTrue();
 });
 
@@ -135,4 +137,19 @@ it('Controller createInertia NÃO usa withoutGlobalScopes sem comentário SUPERA
 it('Controller PRESERVA path Blade legacy (dual safe — não substituiu)', function () {
     $source = readCreateControllerInertia();
     expect($source)->toContain("return view('purchase.create')");
+});
+
+// ─── US-COM-005: modo grade tam×cor (aditivo, não regride o manual) ──────────
+
+it('Page pluga o modo grade tam×cor (US-COM-005)', function () {
+    $source = readCreateInertia();
+    expect($source)->toContain('@/Pages/Purchase/_components/GradeMatrixInput');
+    expect($source)->toContain('@/Pages/Purchase/_components/GradeProductCombobox');
+    expect($source)->toContain('/purchases/grade-matrix');
+});
+
+it('Controller expõe gradeMatrix com Tier 0 scope (firstOrFail por business_id)', function () {
+    $source = readCreateControllerInertia();
+    expect($source)->toContain('public function gradeMatrix');
+    expect($source)->toMatch("/Product::where\\('business_id', \\\$business_id\\)\\s*->where\\('id', \\\$product_id\\)\\s*->firstOrFail\\(\\)/");
 });
