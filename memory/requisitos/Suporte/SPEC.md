@@ -67,6 +67,29 @@ Como o financeiro e os dados privados do operador vivem na biz=1, **excluir a bi
 4. Tela de concessão/revogação do acesso de suporte por conta.
 5. Testes Tier 0: suporte NÃO alcança biz=1 · suporte alcança cliente · auditoria grava · não escala pra `superadmin`.
 
+## Progresso (no `main`)
+
+ADR **0305** ratificado. Backend da fase B **read-only** implementado e dormente (0 rotas em runtime até a tela):
+
+- `config/constants.php` → `operator_business_id` (fonte única).
+- `App\Services\Support\SupportAccessService` — resolução `suporte ⊂ (todas \ operador)` (único ponto de exclusão).
+- `App\SupportAgent` (bridge capability) + migration `support_agents`.
+- `App\SupportAccessLog` (append-only) + `App\Services\Support\SupportAuditService` + migration `support_access_logs`.
+- `App\Http\Middleware\EnsureSupportAccess` (service-direct, **não** via Gate) — gate + auditoria.
+- `App\Services\Support\SupportClientViewService` — montagem read-only do resumo do cliente (business_id **explícito**).
+
+## Desenho seguro — auditoria de scoping (2026-06-23)
+
+> **Switch de contexto de sessão (ler como o cliente reusando as telas dele) = DESCARTADO.** A auditoria abriu o código e achou que ele **não** é uniformemente scopado por sessão: caminhos como `CashRegisterUtil::getRegisterDetails` (filtro Tier-0 dos caixas), `TransactionUtil::payContact` (pagamento) e criação de usuário leem **`auth()->user()->business_id`**, não a sessão. Trocar a sessão criaria **split-brain** — a maioria das telas seguiria pro cliente, mas essas vazariam o **operador** / gravariam dinheiro no **tenant errado**.
+
+**Caminho seguro (escolhido):** view de suporte **somente leitura** com `business_id` **EXPLÍCITO** em toda chamada (imune à ambiguidade sessão/auth-user). É o padrão do Superadmin (`BusinessAuditService`).
+
+- ✅ **Reusável já** (aceitam `$business_id` param): ~**103 métodos** dos Utils core (`TransactionUtil` 40, `ProductUtil` 20, `Util` 16, `ModuleUtil` 10, `BusinessUtil` 7, `ContactUtil` 5).
+- 🟡 Models com global scope por sessão (Financeiro `fin_titulos`, `HasBusinessScope`) → `withoutGlobalScope(...)->where('business_id', X)` (padrão já em uso).
+- ❌ **Não usar** (leem sessão/auth interno): `CashRegisterUtil::getRegisterDetails`, `payContact`, e os Controllers.
+
+**Fora de escopo:** "**atuar**" (escrever) cross-tenant — os caminhos de dinheiro por `auth-user` tornam o write inseguro sem refactor grande. Suporte fica **somente leitura**.
+
 ## Relacionado
 
 - [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) — multi-tenant isolation Tier 0 (e exceções `superadmin`).
