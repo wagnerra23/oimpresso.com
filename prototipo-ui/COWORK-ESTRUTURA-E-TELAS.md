@@ -2,6 +2,25 @@
 
 > **LER NO INÍCIO DE CADA SESSÃO DE DESIGN.** Contrato de adaptação à estrutura SSOT (Wagner 2026-06-23, pós-adversário). Substitui o hábito de "exportar tudo + manter memória própria". Detalhe do método na [ADR-proposta SSOT](../memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md) (§Método operacional endurecido) + livro-razão [`RECONCILIACAO-COWORK-MEMORIA.md`](RECONCILIACAO-COWORK-MEMORIA.md).
 
+## 🚀 O QUE FAZER AGORA (migração — uma vez)
+Você (Cowork) tem que **adotar a estrutura nova + reconstruir** como exporta:
+1. **Limpe seu workspace** (esteira ≠ armazém):
+   - Apague sua cópia de `memory/` (você lê a canônica via MCP, não guarda).
+   - Apague cópias de process docs (CLAUDE/STATUS/PROTOCOL/CODE_NOTES/CONSTITUICAO…) — são canon no repo.
+   - Apague resíduo de processo: `_arquivo/`, `benchmark/`, `uploads/`, screenshots-as-source, prompts `GAPS_*`/`FORCE_*`, e os docs `Adversário`/`Tribunal`/`Avaliação`/`Estado-da-Arte` (a conclusão deles vira `memory/`; o cru sai).
+   - Apague charters/casos do seu export — são canon vivo (`resources/js/Pages/`).
+2. **Reconstrua o export = só BUILD** (jsx/tsx/css/html). Seu zip daqui pra frente leva só isso.
+3. **Re-exporte as 2 telas órfãs** que faltam no `cowork/`: **`compras-grade-matrix`** e **`inventario-migracao`** (a máquina trava nelas até você exportar — allowlist zera).
+4. **Adote o read-order**: no início de cada sessão leia (no `main`/MCP) → **este doc** + **`FRESCOR-PRODUCAO-vs-PROTOTIPO.md`** + o **charter** da tela que vai mexer.
+
+## 🔁 ROTINA (cada handoff)
+1. Pegue a tela no **FRESCOR** (🟠 = desenvolver · 🔵 = puxe o vivo, não refaça · ⚪ = espera [W]).
+2. Leia o **charter** dela no `main` → o que a tela é + seus **dados/props/estado**.
+3. Desenvolva → exporte o **build** pro `cowork/`.
+4. Pendência sua → `COWORK_NOTES.md` "📥 Pendentes"; leia o retorno do Code em `CODE_NOTES.md` + `FRESCOR`.
+5. **Nunca**: memória própria · despejo de sessão · transporte (PNG/dupes) · duplicar charter/process-doc.
+> A máquina `cowork-ssot-guard` **dá erro** se quebrar isso (`.md` no `cowork/` · bundle datado · protótipo fora do lugar).
+
 ## Por que mudou
 Antes: cada handoff era um zip flat despejado em pastas espalhadas (`prototipos/<tela>/`) + cópia da memória → **bagunça, sem diff, fonte stale, duplicação**. Agora: **1 fonte da verdade com histórico**, memória única canônica, e um canal que te diz onde a produção já te passou.
 
