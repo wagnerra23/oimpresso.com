@@ -296,7 +296,7 @@ owner: wagner
 **Quero** abrir o módulo e ver os 4 estados (a receber abertos, a pagar abertos, recebidos no mês, pagos no mês) **na mesma tela**, com drill-down por click
 **Para** ter overview do caixa em 5 segundos sem navegar entre 4 telas separadas
 
-**Implementado em:** `resources/js/Pages/Financeiro/Dashboard/Index.tsx` · verificado@fd96258 (2026-06-13)
+**Implementado em:** _pendente_ — tela Dashboard standalone deprecada 2026-06-06 (dormente, 301→/financeiro/unificado); overview consolidado no workspace Unificado.
 
 **Layout obrigatório (ADR ui/0002):**
 
@@ -622,7 +622,7 @@ Então recebe 403
 ```
 
 **Implementação:** `Route::middleware('can:financeiro.contas_receber.view')` no group do módulo. Permissões registradas no `ServiceProvider::boot` via `Permission::create()` se não existir, gated por config flag.
-**Testado em:** `Modules/Financeiro/Tests/Feature/SpatiePermissionsTest` — 12 permissões × 2 direções (sem/com) = 24 asserts.
+**Testado em:** _lacuna_ — sem teste dedicado da matriz de permissões do Financeiro (reconciliação 2026-06-23; cobertura a criar).
 
 ### R-FIN-003 · Auto-criação de título a partir de venda `due`
 
@@ -635,7 +635,7 @@ E criar 2x não duplica (idempotência por `origem + origem_id`)
 ```
 
 **Implementação:** `Modules\Financeiro\Listeners\CriarTituloDeVenda` escuta `TransactionSaved` (do core) e roda em queue `financeiro`. Idempotência: `unique index (business_id, origem, origem_id, parcela_numero)`.
-**Testado em:** `Modules/Financeiro/Tests/Feature/AutoCriacaoTituloVendaTest` — 6 cenários (paga/parcial/due/parcelado/cancelada/refunded).
+**Testado em:** `Modules/Financeiro/Tests/Feature/TituloAutoServiceTest.php` — auto-criação de título de venda: idempotência (2× não duplica), business_id herdado, payment_status=paid não cria.
 
 ### R-FIN-004 · Auto-criação de título a partir de compra `due`
 
@@ -646,7 +646,7 @@ Então cria `titulo_pagar` análogo a R-FIN-003
 ```
 
 **Implementação:** Mesmo listener, branch por `transaction.type`.
-**Testado em:** `AutoCriacaoTituloCompraTest`.
+**Testado em:** `Modules/Financeiro/Tests/Feature/TituloAutoServiceExpenseTest.php` — auto-criação de título de compra (expense DUE/PAID/PARTIAL) + isolamento Tier 0 cross-business.
 
 ### R-FIN-005 · Idempotência de baixa por `idempotency_key`
 
@@ -659,7 +659,7 @@ E `caixa_movimentos` não é duplicado
 ```
 
 **Implementação:** `BaixaService::registrar()` faz `firstOrCreate(['idempotency_key' => $key], [...])` em transação. Frontend gera `idempotency_key = uuid()` no submit.
-**Testado em:** `BaixaIdempotenciaTest` — 100 requests concorrentes mesma key = 1 baixa.
+**Testado em:** _lacuna_ — sem teste dedicado de idempotência de baixa por idempotency_key (reconciliação 2026-06-23; cobertura a criar).
 
 ### R-FIN-006 · Cálculo de juros de mora
 
@@ -673,7 +673,7 @@ E Larissa pode override (com motivo audit log)
 ```
 
 **Implementação:** `JurosMoraService::calcular(Titulo, dataPagamento)` retorna `{principal, multa, juros, total}`. UI pre-fill no modal de pagamento.
-**Testado em:** `JurosMoraServiceTest` — datatable com 8 cenários (0d, 1d, 30d, com/sem multa, valores quebrados).
+**Testado em:** _lacuna_ — sem teste dedicado de cálculo de juros de mora (reconciliação 2026-06-23; cobertura a criar).
 
 ### R-FIN-007 · Conciliação OFX idempotente por hash do arquivo
 
@@ -685,7 +685,7 @@ E nenhuma transação extra é criada
 ```
 
 **Implementação:** `conciliacao_runs.file_hash` UNIQUE por `business_id`. Antes de parse, calcular hash + check.
-**Testado em:** `ConciliacaoIdempotenciaTest`.
+**Testado em:** `Modules/Financeiro/Tests/Feature/ConciliacaoUploadDedupeTest.php` — dedupe/idempotência de upload de conciliação (mesmo arquivo não reimporta).
 
 ### R-FIN-008 · Soft delete preserva integridade contábil
 
@@ -698,7 +698,7 @@ E continua aparecendo em relatórios históricos mas não em selects de novos la
 ```
 
 **Implementação:** Trait `SoftDeletes` + override `delete()` que verifica `caixa_movimentos()->exists()`.
-**Testado em:** `ContaBancariaSoftDeleteTest`.
+**Testado em:** _lacuna_ — sem teste dedicado de soft-delete de conta bancária (reconciliação 2026-06-23; cobertura a criar).
 
 ### R-FIN-009 · Plano de contas BR pré-seedado por business
 
@@ -710,7 +710,7 @@ E o tenant pode editar (renomear/criar/inativar) mas códigos protegidos (`1.1.0
 ```
 
 **Implementação:** `Modules\Financeiro\Listeners\SeedPlanoContasPadrao` + array em `database/seed-data/plano_contas_br.php`.
-**Testado em:** `PlanoContasSeedTest` — novo business → 47 contas; tentar delete protegida → 422.
+**Testado em:** _lacuna_ — sem teste dedicado de seed do plano de contas (reconciliação 2026-06-23; cobertura a criar).
 
 ### R-FIN-010 · DRE respeita regime do business (caixa vs competência)
 
@@ -725,7 +725,7 @@ Então a receita aparece no DRE de maio (data da baixa)
 ```
 
 **Implementação:** `RelatorioService::dreQuery(Business)` switch em regime, group by `transaction_date` ou `paid_at`.
-**Testado em:** `DreRegimeTest` — mesmo business com config diferente → DRE diferente.
+**Testado em:** _lacuna_ — DreControllerTest cobre render/props do DRE, mas NÃO o switch de regime caixa×competência (reconciliação 2026-06-23; cobertura específica a criar).
 
 ### R-FIN-011 · Boleto remessa não duplica
 
@@ -737,7 +737,7 @@ E a 2ª chamada retorna o boleto existente
 ```
 
 **Implementação:** `boleto_remessa.titulo_id` UNIQUE WHERE status IN (gerado, enviado). Re-emitir só após cancelar anterior.
-**Testado em:** `BoletoIdempotenciaTest`.
+**Testado em:** _lacuna_ — sem teste dedicado de não-duplicação de remessa de boleto (reconciliação 2026-06-23; cobertura a criar).
 
 ### R-FIN-012 · Webhook gateway com `event_id` único
 
@@ -749,7 +749,7 @@ E `boleto_remessa.status` não muda 2x
 ```
 
 **Implementação:** Tabela `pg_webhook_events` (compartilhada com PaymentGateway de RecurringBilling) com `(provider, event_id) UNIQUE`.
-**Testado em:** `BoletoWebhookIdempotenciaTest`.
+**Testado em:** _lacuna_ — sem teste dedicado de idempotência de webhook por event_id (reconciliação 2026-06-23; cobertura a criar).
 
 ### R-FIN-013 · Permissão `financeiro.relatorios.share` para link público
 
@@ -760,7 +760,7 @@ Então recebe 403
 ```
 
 **Implementação:** Permissão separada de `financeiro.relatorios.view`. Token assinado HMAC-SHA256 com payload `{business_id, periodo, exp}`. Validação no controller `share`.
-**Testado em:** `RelatorioShareTest`.
+**Testado em:** _lacuna_ — sem teste dedicado de permissão de share de relatório (reconciliação 2026-06-23; cobertura a criar).
 
 ### R-FIN-014 · Auditoria via `activity_log` Spatie
 
@@ -771,7 +771,7 @@ Então existe row com `causer_id = user`, `subject_type = TituloBaixa`, `subject
 ```
 
 **Implementação:** Trait `LogsActivity` em todo Model crítico (`Titulo`, `TituloBaixa`, `CaixaMovimento`).
-**Testado em:** `AuditoriaTituloTest`.
+**Testado em:** _lacuna_ — auditoria coberta parcialmente por FinanceiroAuditLoggerTest (redação PII/retention), sem teste da estrutura de row activity_log de R-FIN-014 (reconciliação 2026-06-23).
 
 ### R-FIN-015 · Pré-população de "agora" sem shift +3h
 
@@ -783,7 +783,7 @@ E o valor refletido é o "agora" no fuso do business, sem shift histórico
 ```
 
 **Implementação:** Helpers `format_now_local()` (já existe em `App\Util`) — ver auto-memória `feedback_format_now_local_e_default_datetime.md`.
-**Testado em:** `FormPrePopulateTest`.
+**Testado em:** _lacuna_ — sem teste dedicado de pré-população de "agora" sem shift +3h (reconciliação 2026-06-23; cobertura a criar).
 
 ## 4. Decisões pendentes
 
