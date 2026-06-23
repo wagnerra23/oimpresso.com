@@ -14,6 +14,7 @@ morder — e o selftest avermelha. Salda a dívida de evidência do PR #2588
 | `sdd-scorecard --ratchet` | `sdd-scorecard/{good,bad}/` (sandbox temp + scripts reais copiados) |
 | `memory-health` | `memory-health/{good,bad}/` (sandbox temp + script real copiado) — Check A colisão ADR não-registrada |
 | `baseline-tamper-guard` | `baseline-tamper-guard/{base,good,bad}/` (sandbox **git** real: commit base apertado → commit head afrouxado; bad pareia com `code-touched.txt`) — anti-grandfather, vetor #2848 |
+| `baseline-tamper-grow` | `baseline-tamper-grow/{base,good,bad}/` (sandbox **git** real: casos-coverage-baseline cresce 1→2 violações; good leva o trailer `BASELINE-GROW:` no commit → exit 0; bad cresce ISOLADO sem trailer → exit 1) — fecha o bypass do audit 2026-06-22 #4 (crescer casos-coverage exige trailer, isolado não basta) |
 | `anchor-lint --check` | `anchor-lint/{good,bad}/` (sandbox via cwd) — good = anchor p/ path existente (anchored_ok); bad = anchor p/ path morto (anchored_dead · ADR 0273 §2 · P08) |
 | `doneness-lint --check` | `doneness/{good,bad}/` (sandbox via cwd) — good = status×âncora consistentes + zona-cinza tolerada (exit 0); bad = `status=done` sem âncora viva + `status=todo` com âncora viva (conflito status:×âncora · ADR 0302) |
 
