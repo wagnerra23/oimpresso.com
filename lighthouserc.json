@@ -1,0 +1,32 @@
+{
+  "ci": {
+    "collect": {
+      "numberOfRuns": 3,
+      "startServerCommand": "php artisan serve --host=127.0.0.1 --port=8091",
+      "startServerReadyPattern": "Server running",
+      "startServerReadyTimeout": 90000,
+      "url": [
+        "http://127.0.0.1:8091/_visreg-login/1?to=/financeiro/unificado",
+        "http://127.0.0.1:8091/_visreg-login/1?to=/sells"
+      ],
+      "settings": {
+        "preset": "desktop",
+        "onlyCategories": ["performance"],
+        "chromeFlags": "--no-sandbox",
+        "maxWaitForLoad": 60000
+      }
+    },
+    "assert": {
+      "aggregationMethod": "median",
+      "assertions": {
+        "cumulative-layout-shift": ["error", { "maxNumericValue": 0.1 }],
+        "largest-contentful-paint": ["warn", { "maxNumericValue": 2500 }],
+        "total-blocking-time": ["warn", { "maxNumericValue": 300 }]
+      }
+    },
+    "upload": {
+      "target": "filesystem",
+      "outputDir": ".lighthouseci"
+    }
+  }
+}

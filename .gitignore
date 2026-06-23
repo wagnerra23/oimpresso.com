@@ -104,3 +104,6 @@ prototipo-ui/_inbox-onda2/
 # (feat/onda-dtcg-ativar). Os _generated-*.css per-escopo agora são build inputs
 # RASTREADOS — o source CSS (.cockpit/foundations/inertia) os @importa; precisam
 # existir no repo pro build. Regenerar: npm run tokens:build (Style Dictionary).
+
+# L5 perf budget — saída efêmera do Lighthouse CI (gerada no runner; nunca versionar)
+.lighthouseci/
