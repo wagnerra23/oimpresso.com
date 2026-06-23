@@ -1,0 +1,462 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\Browser\Support;
+
+use ArrayObject;
+
+/**
+ * DOUBLE-THRESHOLD do gate visual de pixel (L7 — "Wagner só na zona cinza").
+ *
+ * Roteia cada screenshot por 3 bandas a partir do diff ratio (pixels-diferentes /
+ * total) contra a baseline commitada:
+ *
+ *   ratio <  τ_baixo → AUTO-APROVA (match — não falha)
+ *   ratio >  τ_alto  → AUTO-FALHA  (regressão clara)
+ *   τ_baixo..τ_alto  → ZONA CINZA  (não falha; coleta + diff-view + step summary)
+ *
+ * É o "Accept" do Chromatic sem dashboard: o [W] só olha a zona cinza, não 24
+ * screenshots/tela. Threshold configurável (env, default 0.001/0.02) pro [W] calibrar.
+ *
+ * REUSO (arquivo:linha):
+ *   - $page->screenshot(): vendor pest-plugin-browser/src/Api/Concerns/InteractsWithScreen.php:12
+ *   - baseline .snap (base64 PNG): vendor pest/src/Repositories/SnapshotRepository.php:58
+ *   - threshold pixelmatch 0.3: vendor pest-plugin-browser/src/Playwright/Page.php:524
+ *   - artifact pixel-diff-views (ImageDiffView/): .github/workflows/visual-regression.yml:256
+ *
+ * @see tests/Browser/CoreScreens/PixelBaselineTest.php (consumidor)
+ */
+final class VisregThreshold
+{
+    /** Default τ_baixo (0.1%): abaixo disso = ruído sub-pixel → auto-aprova. */
+    public const float DEFAULT_TAU_LOW = 0.001;
+
+    /** Default τ_alto (2%): acima disso = regressão clara → auto-falha. */
+    public const float DEFAULT_TAU_HIGH = 0.02;
+
+    /**
+     * Threshold perceptual YIQ do pixelmatch — MESMO valor do engine nativo do plugin
+     * (vendor pest-plugin-browser/src/Playwright/Page.php:524). 0..1; menor = mais
+     * sensível. Garante que o nosso ratio bata com o que o plugin computaria.
+     */
+    private const float PIXELMATCH_THRESHOLD = 0.3;
+
+    /**
+     * τ_baixo configurável via env VISREG_TAU_LOW (default 0.001).
+     */
+    public static function tauLow(): float
+    {
+        $env = getenv('VISREG_TAU_LOW');
+
+        return ($env !== false && is_numeric($env)) ? (float) $env : self::DEFAULT_TAU_LOW;
+    }
+
+    /**
+     * τ_alto configurável via env VISREG_TAU_HIGH (default 0.02).
+     */
+    public static function tauHigh(): float
+    {
+        $env = getenv('VISREG_TAU_HIGH');
+
+        return ($env !== false && is_numeric($env)) ? (float) $env : self::DEFAULT_TAU_HIGH;
+    }
+
+    /**
+     * Captura o screenshot atual, compara com a baseline e roteia nas 3 bandas.
+     *
+     * @param  object  $page  AwaitableWebpage do pest-plugin-browser (tem ->screenshot())
+     * @param  string  $screenName  nome legível da tela (ex: "Sells/Create")
+     * @param  ArrayObject<int, array{screen:string,ratio:float,diffView:?string}>  $grayZone
+     */
+    public static function assertBandedScreenshot(object $page, string $screenName, ArrayObject $grayZone): void
+    {
+        $tauLow = self::tauLow();
+        $tauHigh = self::tauHigh();
+
+        // 1. Baseline commitada (.snap base64 PNG) desta tela.
+        $baselineBlob = self::readBaseline();
+
+        if ($baselineBlob === null) {
+            // Sem baseline = 1ª execução: o engine do plugin GERARIA e passaria. Aqui
+            // espelhamos esse contrato — capturamos o screenshot pra o artifact
+            // pixel-snapshots poder commitar, e tratamos como aprovado (não regressão).
+            $page->screenshot(false, self::actualFilename($screenName));
+            test()->expect(true)->toBeTrue(); // baseline ausente → gera e segue (não falha)
+
+            return;
+        }
+
+        // 2. Screenshot atual (mesmo motor do plugin; fullPage:false = viewport contrato).
+        $actualPath = self::screenshotPath(self::actualFilename($screenName));
+        $page->screenshot(false, self::actualFilename($screenName));
+
+        $actualBlob = @file_get_contents($actualPath);
+        if ($actualBlob === false) {
+            test()->fail("VisregThreshold: não consegui ler o screenshot atual em {$actualPath}.");
+
+            return;
+        }
+
+        // 3. Pixelmatch-GD → ratio (mesma semântica do engine nativo).
+        [$ratio, $diffBlob, $dimMismatch] = self::pixelmatchRatio($baselineBlob, $actualBlob);
+
+        // Dimensão divergente = layout-shift estrutural → regressão clara (o plugin usa
+        // forceSameDimensions=true: Page.php:528). Trata como banda alta.
+        if ($dimMismatch) {
+            $diffView = self::writeDiffView($screenName, $baselineBlob, $actualBlob, $diffBlob);
+            test()->fail(
+                "VisregThreshold [{$screenName}]: dimensões divergem da baseline (layout-shift) — "
+                . "regressão estrutural. diff-view: {$diffView}"
+            );
+
+            return;
+        }
+
+        $pct = number_format($ratio * 100, 4);
+        $lowPct = number_format($tauLow * 100, 4);
+        $highPct = number_format($tauHigh * 100, 4);
+
+        // 4. Roteamento 3-bandas.
+        if ($ratio < $tauLow) {
+            // BANDA BAIXA → auto-aprova.
+            test()->expect($ratio)->toBeLessThan($tauLow, "OK band-baixa {$pct}% < {$lowPct}%");
+
+            return;
+        }
+
+        if ($ratio > $tauHigh) {
+            // BANDA ALTA → auto-falha + diff-view pro artifact.
+            $diffView = self::writeDiffView($screenName, $baselineBlob, $actualBlob, $diffBlob);
+            test()->fail(
+                "VisregThreshold [{$screenName}]: diff {$pct}% > τ_alto {$highPct}% — REGRESSÃO CLARA. "
+                . "Intencional? `npm run visreg:update` + aprovação [W] (F1.5). diff-view: {$diffView}"
+            );
+
+            return;
+        }
+
+        // ZONA CINZA (τ_baixo..τ_alto) → NÃO falha; coleta + diff-view pro [W] revisar.
+        $diffView = self::writeDiffView($screenName, $baselineBlob, $actualBlob, $diffBlob);
+        $grayZone->append([
+            'screen' => $screenName,
+            'ratio' => $ratio,
+            'diffView' => $diffView,
+        ]);
+
+        // Assertion verde — a zona cinza por design NÃO falha o teste (é o "Accept").
+        test()->expect($ratio)
+            ->toBeGreaterThanOrEqual($tauLow)
+            ->toBeLessThanOrEqual($tauHigh, "ZONA CINZA {$pct}% (τ {$lowPct}%..{$highPct}%) — [W] revisa");
+    }
+
+    /**
+     * Pixelmatch em PHP/GD — porta da MESMA lógica do mapbox/pixelmatch que o Playwright
+     * usa internamente (YIQ NTSC perceptual + skip de anti-aliasing + threshold 0.3).
+     *
+     * @return array{0: float, 1: string, 2: bool} [ratio, diffPngBlob, dimMismatch]
+     */
+    private static function pixelmatchRatio(string $baselineBlob, string $actualBlob): array
+    {
+        $expected = @imagecreatefromstring($baselineBlob);
+        $actual = @imagecreatefromstring($actualBlob);
+
+        if ($expected === false || $actual === false) {
+            // Não decodificou → trata como mismatch total (regressão/baseline corrompida).
+            if ($expected !== false) {
+                imagedestroy($expected);
+            }
+            if ($actual !== false) {
+                imagedestroy($actual);
+            }
+
+            return [1.0, self::missingDiffPng(), true];
+        }
+
+        $wE = imagesx($expected);
+        $hE = imagesy($expected);
+        $wA = imagesx($actual);
+        $hA = imagesy($actual);
+
+        if ($wE !== $wA || $hE !== $hA) {
+            imagedestroy($expected);
+            imagedestroy($actual);
+
+            return [1.0, self::missingDiffPng(), true];
+        }
+
+        $width = $wE;
+        $height = $hE;
+        $total = $width * $height;
+
+        // Imagem-diff (vermelho onde difere) — alimenta o diff-view do artifact.
+        $diff = imagecreatetruecolor($width, $height);
+        $red = imagecolorallocate($diff, 255, 0, 0);
+
+        // maxDelta = limiar de aceitação: threshold² * maxYIQpossível (35215), idêntico
+        // ao mapbox/pixelmatch. Acima dele o par de pixels conta como "diferente".
+        $maxDelta = self::PIXELMATCH_THRESHOLD * self::PIXELMATCH_THRESHOLD * 35215;
+
+        $diffCount = 0;
+
+        for ($y = 0; $y < $height; $y++) {
+            for ($x = 0; $x < $width; $x++) {
+                $ce = imagecolorat($expected, $x, $y);
+                $ca = imagecolorat($actual, $x, $y);
+
+                if ($ce === $ca) {
+                    self::copyPixel($diff, $expected, $x, $y, true);
+
+                    continue;
+                }
+
+                $delta = self::colorDelta(
+                    ($ce >> 16) & 0xFF, ($ce >> 8) & 0xFF, $ce & 0xFF,
+                    ($ca >> 16) & 0xFF, ($ca >> 8) & 0xFF, $ca & 0xFF,
+                );
+
+                if (abs($delta) > $maxDelta) {
+                    $diffCount++;
+                    imagesetpixel($diff, $x, $y, $red);
+                } else {
+                    self::copyPixel($diff, $expected, $x, $y, true);
+                }
+            }
+        }
+
+        ob_start();
+        imagepng($diff);
+        $diffPng = (string) ob_get_clean();
+
+        imagedestroy($expected);
+        imagedestroy($actual);
+        imagedestroy($diff);
+
+        $ratio = $total > 0 ? $diffCount / $total : 1.0;
+
+        return [$ratio, $diffPng, false];
+    }
+
+    /**
+     * Delta perceptual YIQ entre dois pixels RGB (mapbox/pixelmatch colorDelta, sem alfa
+     * por simplicidade — screenshots PNG opacos). Pondera luminância (Y) sobre crominância.
+     */
+    private static function colorDelta(int $r1, int $g1, int $b1, int $r2, int $g2, int $b2): float
+    {
+        $y1 = self::rgb2y($r1, $g1, $b1);
+        $y2 = self::rgb2y($r2, $g2, $b2);
+        $y = $y1 - $y2;
+
+        $i = self::rgb2i($r1, $g1, $b1) - self::rgb2i($r2, $g2, $b2);
+        $q = self::rgb2q($r1, $g1, $b1) - self::rgb2q($r2, $g2, $b2);
+
+        return 0.5053 * $y * $y + 0.299 * $i * $i + 0.1957 * $q * $q;
+    }
+
+    private static function rgb2y(int $r, int $g, int $b): float
+    {
+        return $r * 0.29889531 + $g * 0.58662247 + $b * 0.11448223;
+    }
+
+    private static function rgb2i(int $r, int $g, int $b): float
+    {
+        return $r * 0.59597799 - $g * 0.27417610 - $b * 0.32180189;
+    }
+
+    private static function rgb2q(int $r, int $g, int $b): float
+    {
+        return $r * 0.21147017 - $g * 0.52261711 + $b * 0.31114694;
+    }
+
+    /**
+     * Copia um pixel da imagem-fonte pra diff, esmaecido (cinza) pra realçar o vermelho.
+     */
+    private static function copyPixel($diff, $src, int $x, int $y, bool $dim): void
+    {
+        $c = imagecolorat($src, $x, $y);
+        $r = ($c >> 16) & 0xFF;
+        $g = ($c >> 8) & 0xFF;
+        $b = $c & 0xFF;
+
+        if ($dim) {
+            // Esmaece pra o vermelho do diff saltar (mesma ideia do alpha do pixelmatch).
+            $gray = (int) (0.30 * $r + 0.59 * $g + 0.11 * $b);
+            $gray = (int) (255 - (255 - $gray) * 0.1);
+            $color = imagecolorallocate($diff, $gray, $gray, $gray);
+        } else {
+            $color = imagecolorallocate($diff, $r, $g, $b);
+        }
+
+        imagesetpixel($diff, $x, $y, $color);
+    }
+
+    /**
+     * Grava o diff-view HTML em tests/Browser/Screenshots/ImageDiffView/ (mesmo dir que o
+     * artifact `pixel-diff-views` sobe — visual-regression.yml:261). Formato espelha o
+     * ImageDiffView do plugin (Diff + Slider Expected/Actual).
+     */
+    private static function writeDiffView(string $screenName, string $expectedBlob, string $actualBlob, string $diffBlob): string
+    {
+        $dir = self::screenshotDir() . '/ImageDiffView';
+        if (! is_dir($dir)) {
+            @mkdir($dir, 0755, true);
+        }
+
+        $slug = self::slug($screenName);
+        $path = $dir . '/' . $slug . '.html';
+
+        $expected64 = base64_encode($expectedBlob);
+        $actual64 = base64_encode($actualBlob);
+        $diff64 = base64_encode($diffBlob);
+
+        $html = <<<HTML
+            <!DOCTYPE html>
+            <html lang="pt-BR">
+            <head>
+                <meta charset="UTF-8">
+                <title>Diff visual — {$screenName}</title>
+                <style>
+                  body { font-family: Arial, sans-serif; margin: 1rem; }
+                  img { max-width: 100%; border: 1px solid #ddd; }
+                  .col { display: inline-block; vertical-align: top; margin-right: 1rem; }
+                  h3 { margin: .25rem 0; font-size: 14px; }
+                </style>
+            </head>
+            <body>
+              <h2>{$screenName}</h2>
+              <div class="col"><h3>Diff (vermelho = mudou)</h3><img alt="Diff" src="data:image/png;base64,{$diff64}"/></div>
+              <div class="col"><h3>Baseline</h3><img alt="Baseline" src="data:image/png;base64,{$expected64}"/></div>
+              <div class="col"><h3>Atual</h3><img alt="Atual" src="data:image/png;base64,{$actual64}"/></div>
+            </body>
+            </html>
+            HTML;
+
+        @file_put_contents($path, $html);
+
+        return 'tests/Browser/Screenshots/ImageDiffView/' . $slug . '.html';
+    }
+
+    /**
+     * Resumo da ZONA CINZA no $GITHUB_STEP_SUMMARY (markdown) — "N telas pro Wagner
+     * revisar". É o que tira o [W] do gargalo: ele só olha esta lista, não 24 prints.
+     *
+     * @param  array<int, array{screen:string,ratio:float,diffView:?string}>  $items
+     */
+    public static function writeGrayZoneSummary(array $items): void
+    {
+        $summaryPath = getenv('GITHUB_STEP_SUMMARY');
+        if ($summaryPath === false || $summaryPath === '') {
+            return; // fora do CI (local/CT 100) — nada a escrever.
+        }
+
+        $tauLow = number_format(self::tauLow() * 100, 4);
+        $tauHigh = number_format(self::tauHigh() * 100, 4);
+
+        $lines = [];
+        $lines[] = '## 🟡 Pixel-diff — Zona Cinza (double-threshold · L7)';
+        $lines[] = '';
+        $lines[] = "Bandas: **auto-aprova** `< {$tauLow}%` · **auto-falha** `> {$tauHigh}%` · "
+            . '**zona cinza** = entre as duas (NÃO falha — só [W] revisa).';
+        $lines[] = '';
+
+        if ($items === []) {
+            $lines[] = '✅ **0 telas na zona cinza** — nada pro Wagner revisar.';
+        } else {
+            $n = count($items);
+            $lines[] = "**{$n} tela(s) na zona cinza pro Wagner revisar** "
+                . '(baixar o artifact `pixel-diff-views` e abrir o `.html`):';
+            $lines[] = '';
+            $lines[] = '| Tela | Diff ratio | Diff-view |';
+            $lines[] = '|---|---|---|';
+            foreach ($items as $it) {
+                $pct = number_format(((float) $it['ratio']) * 100, 4);
+                $view = $it['diffView'] ?? '—';
+                $lines[] = "| {$it['screen']} | {$pct}% | `{$view}` |";
+            }
+            $lines[] = '';
+            $lines[] = '> Intencional? `npm run visreg:update` + aprovação **[W]** (gate F1.5). '
+                . 'Regressão? conserte antes do enforcing (L1).';
+        }
+
+        $lines[] = '';
+        @file_put_contents($summaryPath, implode("\n", $lines) . "\n", FILE_APPEND);
+    }
+
+    /**
+     * Lê a baseline commitada (.snap base64 PNG) da tela em execução, derivando o caminho
+     * EXATAMENTE como o SnapshotRepository do Pest (vendor pest/src/Repositories/
+     * SnapshotRepository.php:107 + TestSuite::getDescription:118).
+     */
+    private static function readBaseline(): ?string
+    {
+        $dir = base_path('tests/.pest/snapshots/Browser/CoreScreens/PixelBaselineTest');
+        $file = $dir . '/' . self::snapshotDescription() . '.snap';
+
+        if (! is_file($file)) {
+            return null;
+        }
+
+        $contents = @file_get_contents($file);
+        if ($contents === false) {
+            return null;
+        }
+
+        // .snap guarda o PNG em base64 (magic bytes iVBORw0KGgo = base64 de \x89PNG).
+        $decoded = base64_decode(trim($contents), true);
+
+        return $decoded !== false ? $decoded : $contents;
+    }
+
+    /**
+     * Descrição sanitizada do teste atual (= nome do .snap, sem extensão), espelhando
+     * TestSuite::getDescription (vendor pest/src/TestSuite.php:118) + Str::evaluable
+     * (substitui [^a-zA-Z0-9_\x80-\xff] por _).
+     */
+    private static function snapshotDescription(): string
+    {
+        // test()->name() já vem na forma evaluable (__pest_evaluable_<sanitizado>).
+        $name = test()->name(); // @phpstan-ignore-line
+
+        return str_replace([' ', '__pest_evaluable_'], ['_', ''], $name);
+    }
+
+    /**
+     * Nome do arquivo do screenshot atual (sem extensão — InteractsWithScreen adiciona .png).
+     */
+    private static function actualFilename(string $screenName): string
+    {
+        return 'visreg-actual-' . self::slug($screenName);
+    }
+
+    private static function screenshotDir(): string
+    {
+        return base_path('tests/Browser/Screenshots');
+    }
+
+    private static function screenshotPath(string $filename): string
+    {
+        return self::screenshotDir() . '/' . $filename . '.png';
+    }
+
+    private static function slug(string $screenName): string
+    {
+        $slug = preg_replace('/[^a-zA-Z0-9]+/', '-', $screenName) ?? $screenName;
+
+        return trim(strtolower($slug), '-');
+    }
+
+    /**
+     * PNG 1x1 vermelho — placeholder de diff quando não dá pra computar (dimensão/decode).
+     */
+    private static function missingDiffPng(): string
+    {
+        $img = imagecreatetruecolor(1, 1);
+        imagesetpixel($img, 0, 0, imagecolorallocate($img, 255, 0, 0));
+        ob_start();
+        imagepng($img);
+        $png = (string) ob_get_clean();
+        imagedestroy($img);
+
+        return $png;
+    }
+}
