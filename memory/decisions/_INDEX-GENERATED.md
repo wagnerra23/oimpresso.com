@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **309** arquivos · **293** números únicos · máx **0303**
-- **ADRs ATIVOS (lifecycle ativo): 269** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 247 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 269 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **310** arquivos · **294** números únicos · máx **0304**
+- **ADRs ATIVOS (lifecycle ativo): 270** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 248 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 270 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (309)
+## Todas as ADRs (310)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -345,3 +345,4 @@ _(íntegra)_
 | 0301 | aceito | ativo | decision | Separar Cliente (cadastro) do CRM (pipeline) e deprecar o pipeline |
 | 0302 | aceito | ativo | decision | Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pront |
 | 0303 | aceito | ativo | decision | Anchor-lint SA-A2-bis — wired-check (zumbi) + testado-check: existir ≠ estar viv |
+| 0304 | aceito | ativo | decision | Alocação de número (ADR/US) ciente de trabalho em voo + Check N (colisão de US-I |

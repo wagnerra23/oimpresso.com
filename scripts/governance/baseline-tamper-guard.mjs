@@ -46,6 +46,8 @@ function detectMemoryHealth(base, head) {
   }
   const bL = new Set(b.checkL || []);
   for (const s of (h.checkL || [])) if (!bL.has(s)) out.push(`checkL grandfatherado novo: ${s}`);
+  const bN = new Set(b.checkN || []);
+  for (const s of (h.checkN || [])) if (!bN.has(s)) out.push(`checkN grandfatherado novo: ${s}`); // ADR 0304
   return out;
 }
 

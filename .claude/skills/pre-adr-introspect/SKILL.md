@@ -4,7 +4,7 @@ description: ATIVAR ANTES de qualquer Write em `memory/decisions/NNNN-*.md` (ADR
 tier: B
 trigger: description-matching
 parent_adr: 0095
-related_adrs: ["0028", "0093", "0094", "0095", "0105", "0120", "0200"]
+related_adrs: ["0028", "0093", "0094", "0095", "0105", "0120", "0200", "0304"]
 ---
 
 # pre-adr-introspect — Tier B auto-trigger
@@ -55,13 +55,19 @@ git grep -rn "officeimpresso_codigo\|officeimpresso_dt_alteracao" database/migra
 ### 3. Precedente de colisão / conflict resolution?
 
 ```bash
-# Verifica colisões registradas + convenções de resolução
+# Número livre CIENTE de trabalho em voo (ADR 0304 — não só a main canônica: vê PRs abertos
+# via gh + branches). É a forma canônica de alocar — substitui o "ls + chute" manual.
+node scripts/governance/next-id.mjs adr        # → próximo número de ADR livre
+node scripts/governance/next-id.mjs us GOV     # → próximo US-<PREFIXO> livre (p/ histórias)
+
+# Convenções de colisão JÁ registradas (precedentes de resolução, se houver colisão):
 grep -n "numbering_collisions\|colis" memory/decisions/_INDEX-LIFECYCLE.md
-ls memory/decisions/NNNN-*.md  # número candidato livre? colisão same-day?
 
 # Ex (caso PR #1741 falhou):
 # → teria mostrado 3 precedentes 0101a/b, 0102a/b, 0119a/b
-#   resolvidos via Bloco apended no INDEX, NÃO via rename
+#   resolvidos via Bloco apended no INDEX, NÃO via rename.
+# Por que next-id e não `ls`: o `ls` lê só a main → cego a PRs/branches em voo (a colisão
+# crônica de 14 ADRs). O alocador vê os dois. Resíduo de corrida = memory-health Check A/N.
 ```
 
 ### 4. Diagnóstico prod ANTES (se ADR depende de estado DB)
