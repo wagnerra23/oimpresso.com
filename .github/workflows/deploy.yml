@@ -222,7 +222,16 @@ jobs:
 
       - name: Maintenance mode ON
         id: maint_on
-        run: /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 || true"
+        # --secret=<token aleatório por deploy>: cria a rota de bypass do maintenance
+        # (https://oimpresso.com/<secret> seta o cookie laravel_maintenance). Usada SÓ pelo
+        # "Boot gate WEB" mais abaixo pra smokar /login no SAPI real ANTES de tirar o site
+        # do ar — usuário comum segue vendo o 503 normal. Secret mascarado nos logs +
+        # exportado pro $GITHUB_ENV (escopo do job). openssl está no ubuntu-latest.
+        run: |
+          SECRET=$(openssl rand -hex 16)
+          echo "::add-mask::$SECRET"
+          echo "DEPLOY_BYPASS_SECRET=$SECRET" >> "$GITHUB_ENV"
+          /tmp/ssh_exec.sh "cd $RDIR && php artisan down --secret='$SECRET' --retry=60 --refresh=60 || true"
 
       - name: Git pull — branch main (apenas código-fonte; bundles vêm do runner)
         run: |
@@ -247,6 +256,36 @@ jobs:
             composer install --optimize-autoloader --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -20 &&
             echo '=== dump-autoload force ===' &&
             composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10
+          "
+
+      - name: Verifica classmap autoritativo (re-dump 1× se stale) — emenda ADR 0269 (incidente 2026-06-23)
+        id: classmap
+        # Gate DETERMINÍSTICO logo após o dump-autoload, AINDA em maintenance ON e ANTES
+        # do migrate / de tirar o site do ar. scripts/deploy/verify-classmap.php confere
+        # (léxico via token_get_all + pertencimento ao classmap, SEM bootar o app) que toda
+        # classe App\ referenciada no Handler / HTTP Kernel (middleware web+global) / Console
+        # Kernel / bootstrap está no classmap-authoritative recém-gerado.
+        #
+        # Pega o modo de falha que o boot-smoke console (php artisan about, passo seguinte)
+        # NÃO vê: middleware WEB fora do classmap. O kernel CLI não monta o pipeline HTTP,
+        # então um \App\Http\Middleware\X::class irresolvível passa "verde" pelo about — mas
+        # em toda request web vira BindingResolutionException → 500. Foi o incidente 2026-06-23
+        # (VisregStateMiddleware, grupo web; deploy a9d0593ff CANCELADO no meio → source à
+        # frente do classmap). Também cobre o caso 2026-06-18 (ErrorReporter no Handler).
+        #
+        # Se faltar classe, re-roda dump-autoload UMA vez (cobre "source pegou arquivo em
+        # fluxo" — deploy-recovery-patterns §10) e re-verifica; se ainda faltar, FALHA o
+        # deploy AQUI. Como ainda estamos em maintenance ON, o site permanece em 503 gracioso
+        # e NUNCA expõe o 500. set -o pipefail: senão o exit do `| tail` do composer mascara
+        # a falha do re-dump.
+        run: |
+          /tmp/ssh_exec.sh "
+            set -o pipefail &&
+            cd $RDIR &&
+            if php scripts/deploy/verify-classmap.php; then exit 0; fi;
+            echo '=== classmap stale — re-dump 1x e re-verifica ===' &&
+            composer dump-autoload -o --classmap-authoritative --no-interaction --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium 2>&1 | tail -10;
+            php scripts/deploy/verify-classmap.php
           "
 
       - name: Boot smoke CONSOLE — falha o deploy AGORA se o artisan não bootar (ADR 0216 + incidente 2026-06-17)
@@ -305,24 +344,32 @@ jobs:
             head -c 200 build-inertia/manifest.json 2>/dev/null; echo
           "
 
-      - name: Garante token de OPcache reset no servidor (fora do git/webroot)
-        # Endpoint _ops_opcache_reset.php lê o token deste arquivo (ADR 0269) porque
-        # script PHP cru NÃO lê o .env da app via getenv() no LSPHP. storage/app é
-        # gitignored e sobrevive a `git reset --hard`. Idempotente.
+      - name: Garante token de OPcache reset no servidor (self-heal — fora do git/webroot)
+        # Endpoint _ops_opcache_reset.php lê o token deste arquivo (ADR 0269) porque script
+        # PHP cru NÃO lê o .env da app via getenv() no LSPHP. storage/app é gitignored e
+        # sobrevive a `git reset --hard`. Idempotente.
+        #
+        # Self-heal (incidente 2026-06-23): o arquivo NUNCA pode ficar vazio. Antes, secret
+        # ausente fazia early-exit SEM escrever → o reset HTTP (obrigatório, ADR 0269) caía
+        # com token vazio (foi o que travou a recuperação manual de 2026-06-23, quando o
+        # deploy cancelado nem chegou neste passo e o arquivo ficou vazio). Ordem do token
+        # efetivo: (1) GitHub Secret OPCACHE_RESET_TOKEN; (2) arquivo existente válido no
+        # servidor; (3) gerar um novo no servidor. `test -s` garante não-vazio ou falha o
+        # passo. O reset HTTP (pré-gate e pós-up) lê este MESMO arquivo → token sempre casa.
         env:
           OPCACHE_TOKEN: ${{ secrets.OPCACHE_RESET_TOKEN }}
         run: |
-          if [ -z "$OPCACHE_TOKEN" ]; then
-            echo "::warning::OPCACHE_RESET_TOKEN secret ausente — pulando escrita do token."
-            exit 0
-          fi
           /tmp/ssh_exec.sh "
             cd $RDIR &&
             mkdir -p storage/app &&
             umask 077 &&
-            printf '%s' '$OPCACHE_TOKEN' > storage/app/opcache_reset_token &&
+            SEED='$OPCACHE_TOKEN' &&
+            EXIST=\$(cat storage/app/opcache_reset_token 2>/dev/null | tr -d '\r\n') &&
+            TOK=\${SEED:-\${EXIST:-\$(openssl rand -hex 32 2>/dev/null || head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')}} &&
+            printf '%s' \"\$TOK\" > storage/app/opcache_reset_token &&
             chmod 600 storage/app/opcache_reset_token &&
-            echo 'opcache token file ok'
+            test -s storage/app/opcache_reset_token &&
+            echo \"opcache token file ok (\$(wc -c < storage/app/opcache_reset_token) bytes)\"
           "
 
       - name: Clear caches + re-cache (sem route:cache — ver hotfix 2026-05-27)
@@ -359,6 +406,66 @@ jobs:
         run: |
           /tmp/ssh_exec.sh "cd $RDIR && find app bootstrap config routes public -name '*.php' -exec touch {} + 2>&1 | tail -3" || echo "::warning::touch best-effort falhou — seguindo (reset confirmado é via HTTP)"
 
+      - name: Reset OPcache (pré-gate, atrás de maintenance) — best-effort
+        # Garante que o "Boot gate WEB" abaixo bata em bytecode FRESCO. LSPHP segura
+        # bytecode entre deploys e validate_timestamps pode estar off → o touch de mtime
+        # acima é best-effort. O endpoint é arquivo PHP cru em public/ → servido direto
+        # pelo webserver mesmo com Laravel em maintenance (o rewrite só manda pro index.php
+        # quando o arquivo NÃO existe). Token lido do arquivo do servidor (mesma fonte do
+        # endpoint). Best-effort: se não confirmar, o gate web degrada (não bloqueia) e o
+        # reset pós-up (ADR 0269) continua sendo o reset obrigatório/confirmado.
+        if: steps.maint_on.outcome == 'success'
+        run: |
+          TOKEN=$(/tmp/ssh_exec.sh "cat $RDIR/storage/app/opcache_reset_token 2>/dev/null" | tr -d '\r\n' || true)
+          if [ -n "$TOKEN" ]; then echo "::add-mask::$TOKEN"; fi
+          if [ -z "$TOKEN" ]; then echo "::warning::sem token pra reset pré-gate — gate web vai degradar"; exit 0; fi
+          RESP=$(curl -fsS --max-time 30 "https://oimpresso.com/_ops_opcache_reset.php?token=$TOKEN" || echo "FAIL")
+          echo "OPcache pré-gate: $RESP"
+
+      - name: Boot gate WEB — smoke /login atrás do maintenance bypass (ANTES de tirar o site do ar)
+        id: webgate
+        # Pega resolução de middleware/Handler WEB quebrada que o boot-smoke console
+        # (php artisan about) NÃO enxerga — o kernel CLI não monta o pipeline HTTP. Foi o
+        # incidente 2026-06-23 (VisregStateMiddleware no grupo web → 500 em /login, mas o
+        # `about` bootava). Smoka /login no SAPI REAL usando o cookie de bypass do
+        # maintenance (rota /<secret> do passo "Maintenance mode ON") — usuário comum segue
+        # vendo 503. Como o site AINDA está em maintenance, um 5xx aqui NÃO foi exposto.
+        #
+        # FAIL-SAFE-DEGRADANTE: só BLOQUEIA (exit 1 → mantém 503 + deploy vermelho) com
+        # evidência POSITIVA de 5xx no SAPI real. Resultado ambíguo (503 = bypass não
+        # engatou; curl falhou; etc.) NÃO bloqueia — degrada pro smoke pós-up + failsafe,
+        # pra não tornar o deploy MAIS frágil. O classmap-verify (determinístico, mais
+        # acima) é a malha primária; este é defesa-em-profundidade no SAPI real.
+        if: steps.maint_on.outcome == 'success'
+        run: |
+          set -uo pipefail
+          SECRET="${DEPLOY_BYPASS_SECRET:-}"
+          if [ -z "$SECRET" ]; then
+            echo "::warning::sem bypass secret — pulando boot gate web (degrada pro smoke pós-up + failsafe)"
+            exit 0
+          fi
+          # 1) hit em /<secret> → 302 + Set-Cookie laravel_maintenance (cookie de bypass)
+          curl -fsS -c /tmp/byp.txt -o /dev/null --max-time 30 "https://oimpresso.com/$SECRET" || true
+          # 2) /login com o cookie → resposta REAL atravessando o grupo web inteiro
+          CODE=$(curl -sL -b /tmp/byp.txt -o /tmp/webgate.html -w '%{http_code}' --max-time 30 "https://oimpresso.com/login" || echo 000)
+          echo "Boot gate WEB: /login (bypass) => HTTP $CODE"
+          case "$CODE" in
+            5*)
+              echo "::error::Boot gate WEB: /login = $CODE atrás do bypass — middleware/Handler WEB não resolve no SAPI real (classmap stale?). Mantendo 503 e falhando o deploy."
+              /tmp/ssh_exec.sh "cd $RDIR && tail -40 storage/logs/laravel.log 2>&1 || true"
+              exit 1
+              ;;
+            200|301|302)
+              echo "✅ Boot gate WEB OK ($CODE)"
+              ;;
+            503)
+              echo "::warning::Boot gate WEB inconclusivo ($CODE — bypass não engatou). Degradando pro smoke pós-up + failsafe."
+              ;;
+            *)
+              echo "::warning::Boot gate WEB inconclusivo (HTTP $CODE). Degradando pro smoke pós-up + failsafe."
+              ;;
+          esac
+
       - name: Maintenance mode OFF
         run: /tmp/ssh_exec.sh "cd $RDIR && php artisan up"
 
@@ -367,14 +474,19 @@ jobs:
         # FPM que serve o site (config:clear roda em CLI, não compartilha OPcache).
         # Sem reset confirmado = deploy vermelho. Única tolerância: extensão opcache
         # genuinamente ausente (OPCACHE_UNAVAILABLE), que não é misconfiguração nossa.
-        env:
-          OPCACHE_TOKEN: ${{ secrets.OPCACHE_RESET_TOKEN }}
+        #
+        # Token lido do ARQUIVO do servidor (storage/app/opcache_reset_token) — a MESMA
+        # fonte que _ops_opcache_reset.php usa — então o token do curl SEMPRE casa com o
+        # que o endpoint espera, mesmo se o secret e o arquivo divergirem ou o self-heal
+        # tiver gerado um (2026-06-23). O passo "Garante token" acima garante não-vazio.
         run: |
-          if [ -z "$OPCACHE_TOKEN" ]; then
-            echo "::error::OPCACHE_RESET_TOKEN secret ausente — reset não pode ser confirmado. Deploy FALHA (ADR 0269)."
+          TOKEN=$(/tmp/ssh_exec.sh "cat $RDIR/storage/app/opcache_reset_token 2>/dev/null" | tr -d '\r\n' || true)
+          if [ -n "$TOKEN" ]; then echo "::add-mask::$TOKEN"; fi
+          if [ -z "$TOKEN" ]; then
+            echo "::error::token OPcache vazio/ausente no servidor — reset não pode ser confirmado. Deploy FALHA (ADR 0269)."
             exit 1
           fi
-          RESP=$(curl -fsS --max-time 30 "https://oimpresso.com/_ops_opcache_reset.php?token=$OPCACHE_TOKEN" || echo "FAIL_CURL")
+          RESP=$(curl -fsS --max-time 30 "https://oimpresso.com/_ops_opcache_reset.php?token=$TOKEN" || echo "FAIL_CURL")
           echo "OPcache reset response: $RESP"
           if echo "$RESP" | grep -q "OPCACHE_RESET_OK"; then
             echo "✅ OPcache resetado"
@@ -426,8 +538,16 @@ jobs:
         # Pré-deploy check flakou (rota SSH 65002 down), maintenance NUNCA ligou → o site já
         # está up → não faz sentido SSHar aqui (route down faria pendurar ~30min). Quando o
         # deploy entrou em maintenance de verdade, este step roda normal (invariante mantido).
+        # Lição 2026-06-23: o `php artisan about` (CLI) NÃO reproduz middleware WEB fora do
+        # classmap (kernel CLI não monta pipeline HTTP) → bootaria e exporia o 500. Se o
+        # gate de classmap OU o boot gate WEB falhou, NÃO dar `up` — manter 503.
         if: always() && steps.maint_on.outcome == 'success'
         run: |
+          if [ "${{ steps.classmap.outcome }}" = "failure" ] || [ "${{ steps.webgate.outcome }}" = "failure" ]; then
+            /tmp/ssh_exec.sh "cd $RDIR && php artisan down --retry=60 --refresh=60 2>&1 || true; echo 'MANTIDO EM MAINTENANCE (503) — gate classmap/web falhou'"
+            echo "::error::Gate de classmap/web falhou — site mantido em MAINTENANCE (503). 'php artisan about' (CLI) não reproduz esse caso (middleware web). Recuperar: 'composer dump-autoload -o --classmap-authoritative --no-scripts --ignore-platform-req=ext-opentelemetry --ignore-platform-req=ext-sodium' + reset OPcache, OU re-deploy do main saudável. Ver Tail laravel.log abaixo."
+            exit 1
+          fi
           if /tmp/ssh_exec.sh "cd $RDIR && php artisan about > /dev/null 2>&1"; then
             /tmp/ssh_exec.sh "cd $RDIR && php artisan up 2>&1 || rm -f storage/framework/down storage/framework/maintenance.php 2>&1 || true; echo 'maintenance OFF (boot OK)'"
           else
