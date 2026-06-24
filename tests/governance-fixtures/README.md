@@ -17,6 +17,7 @@ morder — e o selftest avermelha. Salda a dívida de evidência do PR #2588
 | `baseline-tamper-grow` | `baseline-tamper-grow/{base,good,bad}/` (sandbox **git** real: casos-coverage-baseline cresce 1→2 violações; good leva o trailer `BASELINE-GROW:` no commit → exit 0; bad cresce ISOLADO sem trailer → exit 1) — fecha o bypass do audit 2026-06-22 #4 (crescer casos-coverage exige trailer, isolado não basta) |
 | `anchor-lint --check` | `anchor-lint/{good,bad}/` (sandbox via cwd) — good = anchor p/ path existente (anchored_ok); bad = anchor p/ path morto (anchored_dead · ADR 0273 §2 · P08) |
 | `doneness-lint --check` | `doneness/{good,bad}/` (sandbox via cwd) — good = status×âncora consistentes + zona-cinza tolerada (exit 0); bad = `status=done` sem âncora viva + `status=todo` com âncora viva (conflito status:×âncora · ADR 0302) |
+| `detectar-telas --staging --repo` | `detectar-telas/{good,bad}/{staging,repo}/` (script REAL no lugar — não usa cwd) — good = vendas-page.jsx resolve via ALIAS → Sells/Index.tsx (SEMANTICO) ⇒ 0 órfãos (exit 0); bad = mistero-page.jsx órfão (sem charter nem alias) ⇒ exit 1 "GATE FALHOU" (gate de import Fase 0/0.5) |
 
 REGRA DURA: NENHUM `.php` aqui — o foundation-ratchet real varre `tests/`
 recursivamente e contaria fixture como teste do repo (poluiria os contadores).
