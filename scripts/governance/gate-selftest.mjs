@@ -202,6 +202,21 @@ function runAnchorLintEntry(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// ARMING grandfather (SA-A2-ter · ADR 0275): --check-entry --baseline. Prova o no-new-lie:
+// good = US violadora MAS grandfatherada no baseline → exit 0; bad = MESMA US violadora, baseline
+// só com decoy → exit 1 ("regra de entrada"). Isola a variável estar-no-baseline (mesmo SPEC).
+// É a prova de que armar o gate NÃO avermelha o legado, mas continua mordendo mentira nova.
+function runAnchorLintEntryBaseline(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-entry-baseline-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-entry-baseline', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--check-entry', '--baseline', 'governance/anchor-entry-baseline.json', 'memory/requisitos/SelftestEntryBaseline/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 const CATRACAS = [
   {
     id: 'knowledge-drift',
@@ -298,6 +313,13 @@ const CATRACAS = [
     // G1b gate de entrada: req_sem_aceite / req_sem_covering_test (regra nova sem aceite/teste)
     id: 'anchor-lint-entry',
     run: runAnchorLintEntry,
+    expect: { good: /Gate de entrada \(advisory\): 0 US/, bad: /regra de entrada|regra sem teste/ },
+  },
+  {
+    // ARMING grandfather (SA-A2-ter · ADR 0275): baseline ISENTA o legado MAS morde mentira NOVA.
+    // good = US violadora grandfatherada → exit 0; bad = mesma US fora do baseline (só decoy) → exit 1.
+    id: 'anchor-lint-entry-baseline',
+    run: runAnchorLintEntryBaseline,
     expect: { good: /Gate de entrada \(advisory\): 0 US/, bad: /regra de entrada|regra sem teste/ },
   },
 ];

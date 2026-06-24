@@ -1,0 +1,9 @@
+{
+  "_meta": {
+    "fixture": "anchor-lint-entry-baseline BAD — grandfathera só o decoy US-SLEB-999; US-SLEB-001 NÃO está aqui → mentira NOVA → morde. Prova que o grandfather é per-US, não um desligar-tudo."
+  },
+  "grandfathered": [
+    "entry-aceite:US-SLEB-999",
+    "entry-teste:US-SLEB-999"
+  ]
+}

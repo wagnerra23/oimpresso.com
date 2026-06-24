@@ -137,6 +137,19 @@ function detectViolationList(base, head) {
   return out;
 }
 
+// governance/anchor-entry-baseline.json — schema { _meta, grandfathered:[string] } (arming
+// SA-A2-ter · ADR 0275/0303). Lista de US legadas ISENTAS do gate de entrada/covers (chaves
+// `entry-aceite:`/`entry-teste:`/`covers:`). Afrouxamento = chave presente no head e ausente na
+// base = grandfatherou mentira NOVA pra dentro da isenção (exatamente o que o no-new-lie proíbe).
+// Mesma forma de detectViolationList: só ENTRAR conta (encolher = dívida paga = melhora). Em
+// GROW_TRAILER_REQUIRED → crescer SEMPRE exige `BASELINE-GROW` (ratchet só-desce), isolado ou pareado.
+function detectAnchorEntryBaseline(base, head) {
+  const out = [];
+  const b = new Set((base && base.grandfathered) || []);
+  for (const k of ((head && head.grandfathered) || [])) if (!b.has(k)) out.push(`grandfatherou US legada nova: ${k}`);
+  return out;
+}
+
 // Mapa path→detector. Estender = adicionar o baseline + seu detector aqui
 // (e o path no trigger do workflow). Só guarda o que tem detector de schema:
 // afrouxamento genérico em formato heterogêneo daria falso-positivo.
@@ -159,6 +172,8 @@ const GUARDED = {
   'governance/charter-refs-baseline.json': detectCountRatchet,
   // catraca de cobertura de casos (trio-de-tela + rastreabilidade UC↔teste · ADR 0264)
   'scripts/casos-coverage-baseline.json': detectViolationList,
+  // grandfather do gate de entrada/covers da âncora (arming SA-A2-ter · ADR 0275/0303)
+  'governance/anchor-entry-baseline.json': detectAnchorEntryBaseline,
 };
 
 // Baselines que NÃO podem CRESCER sem um trailer auditável `BASELINE-GROW: <motivo>`
@@ -169,7 +184,11 @@ const GUARDED = {
 // SÓ-DE-BASELINE injetava `trio:missing-casos:...Evil...` e o ramo "isolado" dava verde,
 // e o label `casos-baseline-grow-approved` desligava o shrink-check do casos-gate.yml.
 // Agora crescer o casos-coverage = sempre exige o trailer (isolado ou pareado).
-const GROW_TRAILER_REQUIRED = new Set(['scripts/casos-coverage-baseline.json']);
+const GROW_TRAILER_REQUIRED = new Set([
+  'scripts/casos-coverage-baseline.json',
+  // grandfather da âncora é ratchet só-desce: crescer = grandfatherar mentira nova → sempre trailer.
+  'governance/anchor-entry-baseline.json',
+]);
 
 // ── resolver base do diff ─────────────────────────────────────────────────────
 function resolveBase() {
