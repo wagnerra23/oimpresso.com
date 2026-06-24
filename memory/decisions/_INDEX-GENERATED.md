@@ -7,7 +7,7 @@
 ## Resumo
 - **316** arquivos · **300** números únicos · máx **0310**
 - **ADRs ATIVOS (lifecycle ativo): 276** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 253 · proposto 36 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 254 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 276 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -351,4 +351,4 @@ _(íntegra)_
 | 0307 | aceito | ativo | decision | Onda 0 — rede de segurança / enforcement: travar o caminho do dinheiro + promove |
 | 0308 | aceito | ativo | decision | Modo Suporte fase A: atuar via \"Acessar como\" (login-as) guardado — emenda à 0 |
 | 0309 | aceito | ativo | decision | Modo Suporte: a empresa operadora (biz=1) É o time de suporte — capability por m |
-| 0310 | proposto | ativo | decision | Tokens semânticos de domínio (DS v6) — frescor · kind · kpi-feature · vip · sla  |
+| 0310 | aceito | ativo | decision | Tokens semânticos de domínio (DS v6) — frescor · kind · kpi-feature · vip · sla  |
