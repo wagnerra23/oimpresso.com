@@ -59,6 +59,46 @@ class SupportClientViewService
     }
 
     /**
+     * Fase A (ADR 0306) — usuários da empresa-cliente, read-only (business_id EXPLÍCITO).
+     *
+     * Cada item traz `pode_acessar_como`: se o agente pode "Acessar como" aquele usuário
+     * (false p/ superadmin/operador/inativo). Quem decide é o SupportAccessService — a tela
+     * só reflete; a porta de entrada re-checa no servidor (defesa em profundidade).
+     *
+     * @return list<array{id:int, username:string, nome:string, papel:string, email:string, pode_acessar_como:bool}>
+     */
+    public function clientUsers(User|int $agent, int $businessId): array
+    {
+        if (! $this->access->canAccessBusiness($agent, $businessId)) {
+            throw new \RuntimeException('Empresa fora do alcance do Modo Suporte (ADR 0305).');
+        }
+
+        // SUPORTE: leitura cross-tenant EXPLÍCITA por business_id (ADR 0305) — nunca sessão/auth-user.
+        return User::query()
+            ->where('business_id', $businessId)
+            ->where('is_cmmsn_agnt', 0)
+            ->with('roles')
+            ->orderBy('username')
+            ->get()
+            ->map(function (User $u) use ($agent): array {
+                $roles = $u->getRoleNames();
+                $papel = ! empty($roles[0]) ? (explode('#', (string) $roles[0], 2)[0] ?? '') : '';
+                $nome = trim(implode(' ', array_filter([$u->surname, $u->first_name, $u->last_name])));
+
+                return [
+                    'id'                => (int) $u->id,
+                    'username'          => (string) $u->username,
+                    'nome'              => $nome,
+                    'papel'             => $papel,
+                    'email'             => (string) $u->email,
+                    'pode_acessar_como' => $this->access->canImpersonate($agent, $u),
+                ];
+            })
+            ->values()
+            ->all();
+    }
+
+    /**
      * Contagem cross-tenant EXPLÍCITA (business_id na mão) — defensiva quanto a schema.
      *
      * @param  array<string,mixed>  $extra

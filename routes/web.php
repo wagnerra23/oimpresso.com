@@ -844,11 +844,19 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])
     Route::get('/show-notification/{id}', [HomeController::class, 'showNotification']);
 });
 
-// Modo Suporte (ADR 0305) — lista read-only das empresas-cliente acessíveis (exceto a operadora).
-// Autorização + auditoria no middleware support.access (service-direct, NÃO via Gate). v1 sem switch de sessão.
+// Modo Suporte — empresas-cliente acessíveis (exceto a operadora). Read-only (ADR 0305) +
+// fase A "Acessar como" (login-as guardado, ADR 0306). Autorização nível-empresa + auditoria
+// de entrada no middleware support.access (que lê {business}); a impersonação re-checa no controller.
 Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'support.access'])
     ->prefix('suporte')
     ->group(function () {
         Route::get('empresas', [\App\Http\Controllers\Support\SupportController::class, 'index'])
             ->name('suporte.empresas');
+        Route::get('empresas/{business}', [\App\Http\Controllers\Support\SupportController::class, 'show'])
+            ->whereNumber('business')
+            ->name('suporte.empresas.show');
+        // POST (não GET): "Acessar como" é escrita (troca a identidade) — exige CSRF.
+        Route::post('empresas/{business}/acessar-como/{user}', [\App\Http\Controllers\Support\SupportController::class, 'acessarComo'])
+            ->whereNumber(['business', 'user'])
+            ->name('suporte.empresas.acessar-como');
     });

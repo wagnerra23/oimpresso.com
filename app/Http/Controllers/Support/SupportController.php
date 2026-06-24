@@ -7,26 +7,37 @@ namespace App\Http\Controllers\Support;
 use App\Business;
 use App\Http\Controllers\Controller;
 use App\Services\Support\SupportAccessService;
+use App\Services\Support\SupportAuditService;
+use App\Services\Support\SupportClientViewService;
+use App\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Modo Suporte (ADR 0305) — telas read-only do agente de suporte.
+ * Modo Suporte — telas do agente de suporte (ADR 0305 read-only + ADR 0306 "Acessar como").
  *
- * `index` lista as empresas-cliente acessíveis (todas EXCETO a operadora — resolução
- * central `SupportAccessService::accessibleBusinessIds`). Autorização + auditoria ficam no
- * middleware `EnsureSupportAccess` (service-direct, NÃO via Gate). Leituras cross-tenant são
- * EXPLÍCITAS por `business_id` — nunca trocam o contexto de sessão (ver SPEC §Desenho seguro).
+ * `index`/`show` são read-only com `business_id` EXPLÍCITO (nunca trocam contexto de sessão —
+ * SPEC §Desenho seguro). `acessarComo` (fase A) é a ÚNICA porta de escrita: faz login-as
+ * completo reusando o primitivo do core, atrás da trava Tier 0 `canImpersonate` + auditoria.
+ *
+ * Autorização de nível-empresa + auditoria de ENTRADA ficam no middleware `EnsureSupportAccess`
+ * (service-direct, NÃO via Gate). `acessarComo` re-checa no servidor (defesa em profundidade).
  *
  * @see App\Http\Middleware\EnsureSupportAccess
  * @see App\Services\Support\SupportAccessService
  * @see memory/requisitos/Suporte/RUNBOOK-empresas.md
- * @see memory/decisions/0305-modo-suporte-cross-tenant-exceto-operador.md
+ * @see memory/decisions/0306-modo-suporte-fase-a-acessar-como-login-as-guardado.md
  */
 class SupportController extends Controller
 {
-    public function __construct(private SupportAccessService $access)
-    {
+    public function __construct(
+        private SupportAccessService $access,
+        private SupportClientViewService $view,
+        private SupportAuditService $audit,
+    ) {
     }
 
     /** Lista de empresas-cliente acessíveis pelo suporte (exceto a operadora). */
@@ -45,5 +56,56 @@ class SupportController extends Controller
         return Inertia::render('Suporte/Empresas', [
             'empresas' => $empresas,
         ]);
+    }
+
+    /** Visão read-only de uma empresa-cliente: resumo + usuários (com flag de "Acessar como"). */
+    public function show(int $business): Response
+    {
+        $agent = Auth::user();
+
+        $resumo = $this->view->clientSummary($agent, $business);
+        $usuarios = $this->view->clientUsers($agent, $business);
+
+        return Inertia::render('Suporte/Visao', [
+            'empresa'   => $resumo['empresa'],
+            'contagens' => $resumo['contagens'],
+            'usuarios'  => $usuarios,
+        ]);
+    }
+
+    /**
+     * Fase A (ADR 0306) — "Acessar como": login-as completo de um usuário do cliente.
+     *
+     * Trava Tier 0 antes de trocar a identidade: o alvo precisa pertencer à empresa da rota E
+     * passar `canImpersonate` (empresa acessível ≠ operadora · alvo não-superadmin · ativo).
+     * Auditado em support_access_logs ANTES do loginUsingId. Reusa o primitivo do core.
+     */
+    public function acessarComo(Request $request, int $business, int $user): RedirectResponse
+    {
+        $agent = Auth::user();
+        $target = User::findOrFail($user);
+
+        $route = $request->path();
+        $ip = $request->ip();
+        $userAgent = mb_substr((string) $request->userAgent(), 0, 512);
+
+        // Coerência (o usuário é mesmo daquela empresa) + trava Tier 0.
+        if ((int) $target->business_id !== $business || ! $this->access->canImpersonate($agent, $target)) {
+            $this->audit->record($agent, $business, SupportAuditService::ACTION_NEGADO, $route, $ip, $userAgent, $user);
+            abort(403, 'Usuário fora do alcance do Modo Suporte (ADR 0306).');
+        }
+
+        // RF3: grava a impersonação ANTES de trocar a identidade (append-only).
+        $this->audit->recordImpersonation($agent, $business, $user, $route, $ip, $userAgent);
+
+        // Reusa o primitivo do core (ManageUserController::signInAsUser): guarda quem eu sou e
+        // loga como o cliente. O banner "voltar pra mim" sai de `switched_from` (HandleInertiaRequests).
+        $previousId = (int) $agent->id;
+        $previousUsername = (string) $agent->username;
+        session()->flush();
+        session(['previous_user_id' => $previousId, 'previous_username' => $previousUsername]);
+        Auth::loginUsingId($user);
+
+        return redirect()->route('home');
     }
 }
