@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-NFE-010 — CRUD de regras tributárias (index/create/edit) + ordenação + isolamento multi-tenant 404.
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;

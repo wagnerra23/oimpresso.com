@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-NFE-001 — endpoint de upload/status do certificado A1 (CertificadoController@upload/status).
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;

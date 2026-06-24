@@ -1,0 +1,9 @@
+{
+  "_meta": {
+    "fixture": "anchor-lint-entry-baseline GOOD — grandfathera US-SLEB-001 (dívida legada isenta). Mesma SPEC/violação do BAD; só este baseline muda."
+  },
+  "grandfathered": [
+    "entry-aceite:US-SLEB-001",
+    "entry-teste:US-SLEB-001"
+  ]
+}
