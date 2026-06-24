@@ -86,5 +86,9 @@ jobs:
       # diffavel correto. O modo --staging (bundle->repo) so roda local (bundle vive fora do
       # repo). Advisory de nascenca (ADR 0271/0275). TODO: integrar good/bad em gate-selftest.mjs.
       - name: detectar-telas selftest (gate de import · Fase 0/0.5)
+        # if: always() — roda mesmo quando um step hard-fail antes (ex: cowork-ssot-guard com
+        # drift pre-existente prototipos/perfil) skiparia os steps seguintes. O selftest e'
+        # independente do ssot-guard; continue-on-error mantem o job advisory.
+        if: always()
         continue-on-error: true
         run: node prototipo-ui/detectar-telas.mjs --selftest
