@@ -150,6 +150,18 @@ function detectAnchorEntryBaseline(base, head) {
   return out;
 }
 
+// governance/doneness-baseline.json — schema { _meta, grandfathered:[string] } (arming doneness ·
+// ADR 0302/0275). Lista de conflitos status×âncora legados ISENTOS do doneness-lint --check (chave
+// `<kind>:<US-ID>`, ex conflito_done_sem_ancora:US-NFE-049). Mesma forma de detectAnchorEntryBaseline:
+// só ENTRAR conta (encolher = dívida reconciliada = melhora). Em GROW_TRAILER_REQUIRED → crescer
+// SEMPRE exige `BASELINE-GROW` (ratchet só-desce).
+function detectDonenessBaseline(base, head) {
+  const out = [];
+  const b = new Set((base && base.grandfathered) || []);
+  for (const k of ((head && head.grandfathered) || [])) if (!b.has(k)) out.push(`grandfatherou conflito doneness novo: ${k}`);
+  return out;
+}
+
 // Mapa path→detector. Estender = adicionar o baseline + seu detector aqui
 // (e o path no trigger do workflow). Só guarda o que tem detector de schema:
 // afrouxamento genérico em formato heterogêneo daria falso-positivo.
@@ -174,6 +186,8 @@ const GUARDED = {
   'scripts/casos-coverage-baseline.json': detectViolationList,
   // grandfather do gate de entrada/covers da âncora (arming SA-A2-ter · ADR 0275/0303)
   'governance/anchor-entry-baseline.json': detectAnchorEntryBaseline,
+  // grandfather do conflito status×âncora do doneness-lint (arming · ADR 0302/0275)
+  'governance/doneness-baseline.json': detectDonenessBaseline,
 };
 
 // Baselines que NÃO podem CRESCER sem um trailer auditável `BASELINE-GROW: <motivo>`
@@ -188,6 +202,8 @@ const GROW_TRAILER_REQUIRED = new Set([
   'scripts/casos-coverage-baseline.json',
   // grandfather da âncora é ratchet só-desce: crescer = grandfatherar mentira nova → sempre trailer.
   'governance/anchor-entry-baseline.json',
+  // idem doneness: crescer o grandfather de conflito status×âncora exige trailer (ADR 0302/0275).
+  'governance/doneness-baseline.json',
 ]);
 
 // ── resolver base do diff ─────────────────────────────────────────────────────
