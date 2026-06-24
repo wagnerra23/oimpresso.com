@@ -3,7 +3,7 @@ slug: 0310-tokens-semanticos-dominio-frescor-sla-kind-canal
 number: 310
 title: "Tokens semânticos de domínio (DS v6) — frescor · kind · kpi-feature · vip · sla · canal promovidos ao cockpit.css via DTCG; --sla-* é a escala temporal CANÔNICA (4 passos + paid)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
@@ -23,7 +23,7 @@ related:
 pii: false
 ---
 
-> **Proposta por [CC] (Cowork) na sessão 2026-06-24, portada e numerada por [CL] (Claude Code).** Ratificação formal = merge por [W] (vira `status: aceito`).
+> **Status: aceito** — [W] aprovou na sessão 2026-06-24 (*"aprovo"* no chat). Proposta por [CC] (Cowork), portada e numerada por [CL] (Claude Code); a ratificação se concretiza com o merge desta PR ([#3356](https://github.com/wagnerra23/oimpresso.com/pull/3356)).
 > Origem: `_PROPOSTA-tokens-semanticos-frescor-kind-sla-canal.md` (read-only no Cowork) + entrega DTCG explícita do [CC]. [W] autorizou verbalmente 2026-06-24 ("promover as cores das telas Clientes/Atendimento pro DS, manter 1 só").
 > **Tier 0** (token novo = camada Fundações/Shell). Roxo canônico `oklch(0.55 0.15 295)` ([ADR 0235](0235-ds-v4-accent-roxo-universal.md)/[0190](0190-primary-button-roxo-universal-295.md)) **intocado** — toda mudança é **aditiva**.
 
@@ -107,3 +107,4 @@ Recência de contato/compra (Clientes) ≠ tempo de resposta/vencimento. São co
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-06-24 | [W] autoriza + [CC] propõe/entrega DTCG + [CL] porta/redige | 6 famílias semânticas de domínio promovidas ao DTCG `.cockpit`; `--sla-*` 4 passos vira escala temporal canônica |
+| 2026-06-24 | [W] aprova | ratificada — `proposto`→`aceito` ([W] *"aprovo"* no chat); merge da PR [#3356](https://github.com/wagnerra23/oimpresso.com/pull/3356) |
