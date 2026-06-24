@@ -19,6 +19,13 @@
       "nome": "Jana lógica pura Pest (event-time + histórico + audit-chain · funde 3 lanes Unit · ADR 0294/0295)",
       "classe": "gate"
     },
+    "nfebrasil-pest.yml": {
+      "nome": "NfeBrasil · Pest (MySQL · advisory) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "âncora improvada G1b verde-real (memory/sessions/2026-06-23-robustez-anchor-reavaliada-150-clientes.md) — risco fiscal ×150 clientes: 34/45 testes pulam no sqlite, verde@ mentiria",
+      "promote_by": "2026-07-07"
+    },
     "component-registry.yml": {
       "nome": "Component Registry Drift (Onda O2 · sentinela bloco-de-protótipo → componente React · prototipo-ui/component-registry.json · self-test obrigatório + drift advisory)",
       "classe": "gate",
