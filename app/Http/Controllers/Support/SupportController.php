@@ -61,6 +61,7 @@ class SupportController extends Controller
     /** Visão read-only de uma empresa-cliente: resumo + usuários (com flag de "Acessar como"). */
     public function show(int $business): Response
     {
+        /** @var \App\User $agent */
         $agent = Auth::user();
 
         $resumo = $this->view->clientSummary($agent, $business);
@@ -82,6 +83,7 @@ class SupportController extends Controller
      */
     public function acessarComo(Request $request, int $business, int $user): RedirectResponse
     {
+        /** @var \App\User $agent */
         $agent = Auth::user();
         $target = User::findOrFail($user);
 

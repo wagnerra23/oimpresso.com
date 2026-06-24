@@ -65,7 +65,7 @@ class SupportClientViewService
      * (false p/ superadmin/operador/inativo). Quem decide é o SupportAccessService — a tela
      * só reflete; a porta de entrada re-checa no servidor (defesa em profundidade).
      *
-     * @return list<array{id:int, username:string, nome:string, papel:string, email:string, pode_acessar_como:bool}>
+     * @return array<int, array{id:int, username:string, nome:string, papel:string, email:string, pode_acessar_como:bool}>
      */
     public function clientUsers(User|int $agent, int $businessId): array
     {
@@ -80,7 +80,7 @@ class SupportClientViewService
             ->with('roles')
             ->orderBy('username')
             ->get()
-            ->map(function (User $u) use ($agent): array {
+            ->map(function (User $u) use ($agent) {
                 $roles = $u->getRoleNames();
                 $papel = ! empty($roles[0]) ? (explode('#', (string) $roles[0], 2)[0] ?? '') : '';
                 $nome = trim(implode(' ', array_filter([$u->surname, $u->first_name, $u->last_name])));
