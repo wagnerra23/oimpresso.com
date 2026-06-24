@@ -10,6 +10,7 @@
 - [cliente-rotalivre.md](cliente-rotalivre.md) — ROTA LIVRE (biz=4) Larissa loja vestuário Termas do Gravatal/SC; sensibilidades operacionais; histórico incidentes
 - [cliente-martinho-cacambas.md](cliente-martinho-cacambas.md) — MARTINHO CAÇAMBAS (biz=164) prospect com HiSoft competitor; **migração WR2 Firebird → oimpresso CONCLUÍDA 2026-05-16** (91 caçambas + 9.988 contatos + 44k vendas + 83k títulos); **aging real R$ [redacted Tier 0]k vs R$ [redacted Tier 0]M fóssil pré-2020**
 - [clientes-ativos.md](clientes-ativos.md) — 56 businesses, só 7 com vendas; ROTA LIVRE 99% do volume
+- [escala-migracao-carteira-delphi.md](escala-migracao-carteira-delphi.md) — **ESCALA DE DESIGN = ~150 clientes Delphi (carteira legacy) migrando pro online, NÃO 1.** Corrige a premissa "cliente único" (que era só o online atual = 1 ROTA LIVRE). Drive de risco Tier 0: fragilidade escala por cliente. Wagner 2026-06-23
 - [dominios-verticais-oimpresso.md](dominios-verticais-oimpresso.md) — Vestuario (peça)/ComVis (m²)/OficinaAuto (m³ caçamba/pneu)/Repair (device); 3 erros recorrentes a NÃO repetir
 - [concorrentes-com-visual.md](concorrentes-com-visual.md) — Zênite/Mubisys/Alfa/Visua/Calcgraf/Calcme; copy verbo-de-ação; métrica m²
 
