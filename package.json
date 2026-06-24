@@ -64,6 +64,8 @@
     "contrato:map": "node scripts/contrato-de-tela.mjs --map",
     "contrato:map:check": "node scripts/contrato-de-tela.mjs --map --check",
     "contrato:selftest": "node scripts/contrato-de-tela.test.mjs",
+    "telas:detect": "node prototipo-ui/detectar-telas.mjs",
+    "telas:selftest": "node prototipo-ui/detectar-telas.mjs --selftest",
     "smoke:veredito": "node scripts/smoke-veredito-ledger.mjs",
     "bundle:lint": "node scripts/bundle-lint.mjs",
     "bundle:lint:selftest": "node scripts/bundle-lint.test.mjs",
