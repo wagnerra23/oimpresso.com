@@ -3,7 +3,7 @@ slug: 0310-tokens-semanticos-dominio-frescor-sla-kind-canal
 number: 310
 title: "Tokens semânticos de domínio (DS v6) — frescor · kind · kpi-feature · vip · sla · canal promovidos ao cockpit.css via DTCG; --sla-* é a escala temporal CANÔNICA (4 passos + paid)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
