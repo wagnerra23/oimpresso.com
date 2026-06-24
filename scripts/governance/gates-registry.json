@@ -77,6 +77,13 @@
       "nome": "Charter refs (catraca charter_refs_broken ≤ teto · require-safe · US-GOV-043 · ADR 0256)",
       "classe": "gate"
     },
+    "charter-us-gate.yml": {
+      "nome": "Charter ↔ US join (advisory · related_us nos Page Charters · charter-us-lint.mjs --check diff-aware no PR + cobertura full-tree no cron)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "Frente SA do SDD (join US→tela · SA-A5/P10) · auditoria das máquinas 2026-06-24 achou a correspondência charter→US SEM gate (charter-us-lint.mjs existia mas fora de todo workflow) · cobertura 10.4% (15/144), 129 charters sem related_us = backfill IA futuro (roadmap SDD P10) · grandfather por não-toque (sem baseline JSON)",
+      "promote_by": "2026-09-30"
+    },
     "ci.yml": {
       "nome": "CI",
       "classe": "gate"
