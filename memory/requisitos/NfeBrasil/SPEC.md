@@ -615,6 +615,8 @@ Após o caso Gold concluir, refinar runbook on-prem com aprendizados reais. Deta
 > blocked_by: US-NFE-042
 > code-complete: 2026-05-09 (PR pendente) — 4 migrations + 4 models + legado removido
 
+**Implementado em:** `Modules/NfeBrasil/Models/NfeDfeRecebido.php` · `Modules/NfeBrasil/Models/NfeDfeItem.php` · verificado@3b425d8 (2026-06-24) — models legados Manifesto/ItemDfe migrados pro padrão Modules/ multi-tenant
+
 Resgatar arquivos legados UltimatePOS órfãos e migrar pro padrão `Modules/NfeBrasil/`:
 - `app/Manifesto.php` → `Modules/NfeBrasil/Models/NfeDfeRecebido.php`
 - `app/ItemDfe.php` → `Modules/NfeBrasil/Models/NfeDfeItem.php`
@@ -638,6 +640,8 @@ Resgatar arquivos legados UltimatePOS órfãos e migrar pro padrão `Modules/Nfe
 > blocked_by: US-NFE-049
 > code-complete: 2026-05-09 (PR pendente) — service + 4 testes Pest (idempotência, just ≥15, 4 eventos)
 
+**Implementado em:** `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` · verificado@3b425d8 (2026-06-24) — eventos 210/220/230/240 via sped-nfe (cienciar/confirmar/desconhecer/naoRealizada)
+
 Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` envolvendo `eduardokum/sped-nfe::Tools::sefazManifesta($chave, $tpEvento, $xJust='')`.
 
 **Acceptance criteria:**
@@ -658,6 +662,8 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` en
 > owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 5h · status: done · type: story
 > blocked_by: US-NFE-049
 > code-complete: 2026-05-09 (PR pendente) — service + Job + Command artisan + Kernel schedule 06:15 + 4 testes Pest
+
+**Implementado em:** `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php` · `Modules/NfeBrasil/Jobs/BuscarDfesRecebidosJob.php` · verificado@3b425d8 (2026-06-24) — sefazDistDFe por NSU + Job agendado diário
 
 Implementar `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php` envolvendo `Tools::sefazDistDFe($lastNSU)` + Job agendado.
 
@@ -684,6 +690,8 @@ Implementar `Modules/NfeBrasil/Services/Manifestacao/DistribuicaoDfeService.php`
 > owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 4h · status: done · type: story
 > blocked_by: US-NFE-050, US-NFE-051
 > code-complete: 2026-05-09 (PR pendente) — RUNBOOK + visual-comparison approved + ManifestacaoController + Page Inertia + 3 LinkedApps + 7 testes Pest
+
+**Implementado em:** `Modules/NfeBrasil/Http/Controllers/ManifestacaoController.php` · `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` · `Modules/NfeBrasil/Tests/Feature/ManifestacaoControllerTest.php` · verificado@3b425d8 (2026-06-24) — UI listagem XMLs recebidos + 4 botões manifestar + alerta prazo 180d
 
 Página Inertia `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` listando NFes recebidas com ações de manifestação.
 
@@ -934,6 +942,8 @@ Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/My
 > blocked_by: US-SELL-014
 > done: 2026-05-10 · PR: #509 · Pest: 5/5 ✅ · STUB (sem chamada API real — pacote sped-nfse pendente ADR)
 
+**Implementado em:** _parcial_ · `Modules/NfeBrasil/Jobs/EmitirNFSeJob.php` · `Modules/NfeBrasil/Models/NfseEmissao.php` · verificado@3b425d8 (2026-06-24) — STUB modelo 56 (Job + Model existem; sem chamada API real — pacote sped-nfse pendente ADR)
+
 **Contexto:** caso prático OS Comunicação Visual exige emissão de NFSe (instalação fachada R$ [redacted Tier 0]) em paralelo à NFe55 (banner R$ [redacted Tier 0]). Hoje `Modules/NfeBrasil` só emite modelos 55/65 (NFe/NFC-e via `nfephp-org/sped-nfe`). Falta NFSe modelo 56 nacional — padrão único `nfse.gov.br/sefin` que substituiu emissores municipais Tinus/Issnet/Ginfes (obrigatório MEI desde 09/2023, demais regimes em fases 2025-2026).
 
 **Avaliar pacote PHP:**
@@ -1014,6 +1024,8 @@ Total de gaps NfeBrasil convertidos em US-fix: **3 de 3 detectados.**
 
 > owner: wagner · sprint: cycle-04 · priority: p0 · estimate: 1.5h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `resources/js/Pages/NfeBrasil/Tributacao/Index.charter.md` · `resources/js/Pages/NfeBrasil/Manifestacao/Index.charter.md` · verificado@3b425d8 (2026-06-24) — charters Tributacao + Manifestacao criados (Certificado pendente: tela Configuracao não migrada)
 
 Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 3 Charter — ❌ AUSENTE).
 
