@@ -189,6 +189,19 @@ function runAnchorLintCovers(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// anchor-lint --check-entry (G1b gate de entrada): US que se diz implementada SEM
+// aceite/DoD ou SEM teste que declare @covers-us dela. good = US com DoD + teste que
+// cobre → exit 0; bad = sem aceite + sem teste-que-cobre → exit 1. Fixture ISOLADA.
+function runAnchorLintEntry(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-entry-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-entry', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'), ['--check-entry', 'memory/requisitos/SelftestEntry/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 const CATRACAS = [
   {
     id: 'knowledge-drift',
@@ -280,6 +293,12 @@ const CATRACAS = [
     id: 'anchor-lint-covers',
     run: runAnchorLintCovers,
     expect: { good: /Testado sem covers[^\n]*: 0/, bad: /não declara @covers-us/ },
+  },
+  {
+    // G1b gate de entrada: req_sem_aceite / req_sem_covering_test (regra nova sem aceite/teste)
+    id: 'anchor-lint-entry',
+    run: runAnchorLintEntry,
+    expect: { good: /Gate de entrada \(advisory\): 0 US/, bad: /regra de entrada|regra sem teste/ },
   },
 ];
 
