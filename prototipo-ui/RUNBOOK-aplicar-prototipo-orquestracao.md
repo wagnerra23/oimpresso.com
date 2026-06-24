@@ -19,6 +19,10 @@ O que dava errado: pular direto pra aplicação, sem mapa, carregando contexto g
 ## O fluxo completo (6 fases)
 
 ### FASE 0 — Detectar (1x, barato)
+- **0.0 Pré-voo de sanidade do checkout (antes de qualquer `git log`/Glob):** confirme que o cwd é um checkout **completo**, não worktree órfã/husk:
+  - `git rev-parse --is-inside-work-tree` = `true` **e** `git rev-parse --show-toplevel` aponta pra raiz esperada **e** existem `resources/`, `Modules/`, `prototipo-ui/`.
+  - Se falhar → **PARE**. Mude pra worktree boa (`git worktree add <path> <branch-que-tem-os-artefatos>`). **Por quê:** Glob/`git log`/`ls-tree` rodados de um husk sem código devolvem **falso negativo silencioso** (`arquivo não existe` / `diff vazio`) — não erro — e induzem a inventar/duplicar artefato que já existe. Lição `licao-git-lstree-grep-rev-cwd-scope`; incidente real 2026-06-24 (sessão "perfil" abriu na worktree órfã `frosty-greider` → reportou RUNBOOK e skill como "inexistentes" sendo que estavam no checkout bom).
+  - **Bônus:** confirme também que os artefatos do protocolo (a skill, este RUNBOOK) existem na branch-base; se não, podem estar numa feature branch ainda-não-mergeada (mesmo incidente: skill `aplicar-prototipo` vivia só em `feat/vendas-link-caixa-do-dia`, ausente de `main`).
 - **Ponto de referência por tela = último commit que tocou o protótipo** (o `SYNC_LOG` NÃO guarda sha por tela — não dependa dele): `git log -1 --format=%H -- prototipo-ui/prototipos/<dir>/` → diff desse sha até HEAD.
 - **Mapa nome↔Page NÃO é 1:1** — resolva o alvo real antes: `prototipos/crm` → tela viva é `Pages/Cliente`; `prototipos/vendas` só tem charter (sem html/jsx); a tela viva às vezes está **à frente** do protótipo. Reconciliação no GAP-SPEC.
 - Se o protótipo não mudou (ou está vazio): o protótipo **é** o alvo → compara protótipo × tela viva (gap de implementação).
