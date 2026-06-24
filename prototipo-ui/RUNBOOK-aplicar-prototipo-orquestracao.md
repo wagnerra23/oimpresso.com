@@ -67,7 +67,7 @@ Por tela aprovada:
   - `node_modules/.bin/tsc --noEmit` (typecheck; cuidado com `noUncheckedIndexedAccess` em `Record` → tipe chaves explícitas),
   - PHPStan ratchet (controller: `firstOrFail`/`findOrFail` + guards `is_array`/`is_string` evitam erros de null/mixed-offset),
   - `pageheader-gate` (tela nova usa `@/Components/PageHeader` canon, NÃO o `shared/` congelado),
-  - PII scan (sem CPF/CNPJ literal tipo `000.000.000-00` em placeholder),
+  - PII scan (sem CPF/CNPJ literal formatado em placeholder — use genérico tipo "CPF ou CNPJ"),
   - se tocar `routes/`/middleware/ServiceProvider/Kernel: seção `## Infra Contract` no corpo do PR + evidência curl (`< HTTP/1.1 …`).
   - **Por quê:** incidente perfil 2026-06-24 — tela verificada AO VIVO no staging (render + save persistindo) tripou **6 gates** no PR (layout/casos/eslint/phpstan/PII/infra-contract). "Funciona no staging" ≠ "passa no portão"; rode os gates como parte da Fase 4, não como surpresa no PR.
 - **Zonas de SERIALIZAÇÃO (saem do paralelo) ⚠️:** (1) DS compartilhado (`resources/js/Components/**`, `Layouts/AppShellV2.tsx`) e (2) rebaseline de `config/*baseline*.json` / `.*-baseline.json` → viram **1 PR de FUNDAÇÃO sequencial ANTES** das telas (padrão FA-1..5). Telas só paralelizam DEPOIS que a fundação estabilizou — senão merge-conflict determinístico no baseline (incidente real #2495).

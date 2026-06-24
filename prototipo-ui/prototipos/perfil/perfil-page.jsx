@@ -322,7 +322,7 @@ function PerfilPage() {
                     <input className="pf-input" value={f.bank_branch} onChange={set("bank_branch")} placeholder="0000" />
                   </Field>
                   <Field label="CPF/CNPJ do titular">
-                    <input className="pf-input" value={f.tax_payer_id} onChange={set("tax_payer_id")} placeholder="000.000.000-00" />
+                    <input className="pf-input" value={f.tax_payer_id} onChange={set("tax_payer_id")} placeholder="CPF ou CNPJ" />
                   </Field>
                 </div>
                 <div className="pf-note" style={{ marginTop: 16 }}>
