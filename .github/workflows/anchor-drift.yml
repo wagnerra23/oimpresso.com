@@ -116,16 +116,18 @@ jobs:
           node-version: '20'
       - name: doneness-lint (diff-aware no PR · full-tree report no cron/dispatch)
         run: |
+          # --baseline grandfathera o conflito status×âncora LEGADO (no-new-lie · ADR 0302/0275):
+          # o --check só MORDE conflito NOVO/tocado, nunca a dívida pré-existente do SPEC legado.
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             CHANGED=$(git diff --name-only --diff-filter=d "origin/${{ github.base_ref }}...HEAD" -- 'memory/requisitos/*/SPEC.md')
             if [ -n "$CHANGED" ]; then
-              echo "SPECs tocados no PR (--check: no-new-conflict status×âncora · ADR 0302):"; echo "$CHANGED"
+              echo "SPECs tocados no PR (--check: no-new-conflict status×âncora · baseline grandfather legado · ADR 0302):"; echo "$CHANGED"
               # shellcheck disable=SC2086
-              node scripts/governance/doneness-lint.mjs --check $CHANGED
+              node scripts/governance/doneness-lint.mjs --check --baseline governance/doneness-baseline.json $CHANGED
             else
-              echo "Nenhum SPEC tocado (PR mudou lint/workflow) — full-tree report:"
-              node scripts/governance/doneness-lint.mjs
+              echo "Nenhum SPEC tocado (PR mudou lint/workflow) — full-tree report (grandfather aplicado):"
+              node scripts/governance/doneness-lint.mjs --baseline governance/doneness-baseline.json
             fi
           else
-            node scripts/governance/doneness-lint.mjs
+            node scripts/governance/doneness-lint.mjs --baseline governance/doneness-baseline.json
           fi

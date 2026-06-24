@@ -1,0 +1,8 @@
+{
+  "_meta": {
+    "fixture": "doneness-baseline BAD — grandfathera só o decoy US-SLDB-999; US-SLDB-001 NÃO está aqui → conflito NOVO → morde. Prova que o grandfather é per-conflito, não um desligar-tudo."
+  },
+  "grandfathered": [
+    "conflito_done_sem_ancora:US-SLDB-999"
+  ]
+}

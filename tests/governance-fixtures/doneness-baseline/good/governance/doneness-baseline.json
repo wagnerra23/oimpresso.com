@@ -1,0 +1,8 @@
+{
+  "_meta": {
+    "fixture": "doneness-baseline GOOD — grandfathera US-SLDB-001 (conflito legado isento). Mesma SPEC/conflito do BAD; só este baseline muda."
+  },
+  "grandfathered": [
+    "conflito_done_sem_ancora:US-SLDB-001"
+  ]
+}
