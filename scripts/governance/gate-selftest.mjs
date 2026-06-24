@@ -382,6 +382,15 @@ const CATRACAS = [
     run: (kind) => runNode(script('charter-live-signal', 'scripts/governance/charter-live-signal.mjs'), ['--check'], join(FIX, 'charter-live-signal', kind)),
     expect: { good: /carrega sinal de prod/, bad: /SEM sinal de prod/ },
   },
+  {
+    // G1c (item b · proposta 2026-06-24): teste-que-cobre FORA das lanes de JUnit → verde impossível.
+    // sandbox por cwd (igual anchor-lint): good = .github/ci-sqlite-pest.list lista o teste → req_sem_lane
+    // 0 (exit 0); bad = lista vazia → req_sem_lane 1 → exit 1 ("NENHUM numa lane de JUnit"). A linha-resumo
+    // "fora de lane … : N US" sai nos dois; o ✓ (: 0 US) só no good, o 🚦 da US só no bad.
+    id: 'anchor-lint-lane',
+    run: (kind) => runNode(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), ['--check-lane'], join(FIX, 'anchor-testado-sem-lane', kind)),
+    expect: { good: /fora de lane[^\n]*: 0 US/, bad: /NENHUM numa lane de JUnit/ },
+  },
 ];
 
 const results = [];
