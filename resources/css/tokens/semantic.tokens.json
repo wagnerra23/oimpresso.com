@@ -4,7 +4,7 @@
     "com.oimpresso.dtcg": {
       "spec": "W3C Design Tokens Community Group (application/design-tokens+json)",
       "layer": "semantic",
-      "anchors": ["ADR 0300 (errata 0239)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)", "ADR 0190 (primary roxo 295)", "ADR 0281 (dark dual-seletor)", "ADR 0310 (tokens semânticos domínio frescor/kind/kpi-feature/vip/sla/canal)"],
+      "anchors": ["ADR 0300 (errata 0239)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)", "ADR 0190 (primary roxo 295)", "ADR 0281 (dark dual-seletor)", "ADR 0310 (tokens semânticos domínio kind/kpi-feature/vip/sla/canal)", "ADR 0311 (frescor consolidado em sla — escala temporal única)"],
       "build_consumes_this": false,
       "color_notes": "Cores OKLCH armazenadas como string CSS literal (ex 'oklch(0.55 0.15 295)'). DTCG color-as-string para fidelidade 1:1 com o CSS — o build NÃO consome este JSON, então não há reparse de cor. brand-meta usa hsl() (cor de identidade Meta cross-theme)."
     }
@@ -150,22 +150,6 @@
       "shadow-pop":  { "$value": "0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --shadow-pop" } },
       "shadow-soft": { "$value": "0 1px 2px rgba(0,0,0,.04)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --shadow-soft" } }
     },
-    "frescor": {
-      "$type": "color",
-      "$description": "DS v6 domínio — recência de contato/compra (Clientes). 4 níveis verde→amber→rose. Promovido das telas Clientes/Atendimento ([W] 2026-06-24 · ADR 0310). recência ≠ tempo de resposta (--sla-*); não consolidar.",
-      "recente":       { "$value": "oklch(0.42 0.13 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-recente", "com.oimpresso.dark": "oklch(0.84 0.13 145)" } },
-      "recente-soft":  { "$value": "oklch(0.95 0.04 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-recente-soft", "com.oimpresso.dark": "oklch(0.275 0.05 145)" } },
-      "recente-line":  { "$value": "oklch(0.88 0.06 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-recente-line", "com.oimpresso.dark": "oklch(0.40 0.06 145)" } },
-      "fresc":         { "$value": "oklch(0.48 0.10 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-fresc", "com.oimpresso.dark": "oklch(0.84 0.10 145)" } },
-      "fresc-soft":    { "$value": "oklch(0.96 0.03 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-fresc-soft", "com.oimpresso.dark": "oklch(0.275 0.05 145)" } },
-      "fresc-line":    { "$value": "oklch(0.92 0.05 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-fresc-line", "com.oimpresso.dark": "oklch(0.40 0.05 145)" } },
-      "distante":      { "$value": "oklch(0.50 0.13 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-distante", "com.oimpresso.dark": "oklch(0.84 0.13 60)" } },
-      "distante-soft": { "$value": "oklch(0.95 0.05 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-distante-soft", "com.oimpresso.dark": "oklch(0.275 0.05 60)" } },
-      "distante-line": { "$value": "oklch(0.88 0.08 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-distante-line", "com.oimpresso.dark": "oklch(0.40 0.08 60)" } },
-      "frio":          { "$value": "oklch(0.50 0.13 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-frio", "com.oimpresso.dark": "oklch(0.84 0.13 25)" } },
-      "frio-soft":     { "$value": "oklch(0.95 0.04 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-frio-soft", "com.oimpresso.dark": "oklch(0.275 0.05 25)" } },
-      "frio-line":     { "$value": "oklch(0.88 0.07 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-frio-line", "com.oimpresso.dark": "oklch(0.40 0.07 25)" } }
-    },
     "kind": {
       "$type": "color",
       "$description": "DS v6 domínio — tipo de entidade (Clientes/Fornecedores/Equipe). -soft = fundo do chip. ADR 0310.",
@@ -195,7 +179,7 @@
     },
     "sla": {
       "$type": "color",
-      "$description": "DS v6 domínio — ESCALA OFICIAL de tempo de resposta/vencimento (4 passos + paid · [W] 2026-06-24 · ADR 0310). Convergem aqui Atendimento om-sla-pill, Vendas vd-sla, Financeiro fin-frescor, KB kb-fresh. -dot = ponto · -line = borda. paid/paid-soft = estado neutro (alias var-ref pro neutro do shell — propaga dark sozinho).",
+      "$description": "DS v6 domínio — ESCALA OFICIAL e ÚNICA de tempo/recência (4 passos + paid · [W] 2026-06-24 · ADR 0310 + 0311). Convergem aqui Atendimento om-sla-pill, Vendas vd-sla, Financeiro fin-frescor, KB kb-fresh, e a recência do Clientes cli-frescor recente/fresc/distante/frio → fresh/aging/late/expired (frescor consolidado · ADR 0311). -dot = ponto · -line = borda. paid/paid-soft = estado neutro (alias var-ref pro neutro do shell — propaga dark sozinho).",
       "fresh":        { "$value": "oklch(0.36 0.13 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-fresh", "com.oimpresso.dark": "oklch(0.84 0.13 145)" } },
       "fresh-soft":   { "$value": "oklch(0.95 0.05 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-fresh-soft", "com.oimpresso.dark": "oklch(0.275 0.05 145)" } },
       "fresh-dot":    { "$value": "oklch(0.52 0.13 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-fresh-dot", "com.oimpresso.dark": "oklch(0.70 0.14 145)" } },
