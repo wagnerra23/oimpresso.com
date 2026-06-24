@@ -28,6 +28,9 @@ class SupportAuditService
 
     public const ACTION_NEGADO = 'negado';
 
+    /** Fase A (ADR 0308): o agente passou a operar COMO um usuário do cliente (login-as). */
+    public const ACTION_ACESSOU_COMO = 'acessou_como';
+
     public function record(
         User|int $supportUser,
         int $businessId,
@@ -35,12 +38,14 @@ class SupportAuditService
         ?string $route = null,
         ?string $ip = null,
         ?string $userAgent = null,
+        ?int $targetUserId = null,
     ): SupportAccessLog {
         $userId = $supportUser instanceof User ? (int) $supportUser->id : $supportUser;
 
         return SupportAccessLog::create([
             'support_user_id' => $userId,
             'business_id'     => $businessId,
+            'target_user_id'  => $targetUserId,
             'action'          => $action,
             'route'           => $route,
             'ip'              => $ip,
@@ -58,5 +63,14 @@ class SupportAuditService
     public function recordDenied(User|int $supportUser, int $businessId, ?string $route = null, ?string $ip = null, ?string $userAgent = null): SupportAccessLog
     {
         return $this->record($supportUser, $businessId, self::ACTION_NEGADO, $route, $ip, $userAgent);
+    }
+
+    /**
+     * Fase A (ADR 0308): registra o início de uma impersonação (login-as) — quem · qual
+     * usuário-alvo · qual empresa · quando. Gravado ANTES de trocar a identidade.
+     */
+    public function recordImpersonation(User|int $supportUser, int $businessId, int $targetUserId, ?string $route = null, ?string $ip = null, ?string $userAgent = null): SupportAccessLog
+    {
+        return $this->record($supportUser, $businessId, self::ACTION_ACESSOU_COMO, $route, $ip, $userAgent, $targetUserId);
     }
 }

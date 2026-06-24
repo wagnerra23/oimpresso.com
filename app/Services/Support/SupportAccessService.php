@@ -72,4 +72,37 @@ class SupportAccessService
         // CROSS-TENANT intencional (ADR 0305): existência da empresa-cliente alvo.
         return Business::query()->whereKey($businessId)->exists();
     }
+
+    /**
+     * Fase A (ADR 0308) — o agente PODE "Acessar como" (login-as) este usuário-alvo?
+     *
+     * Trava Tier 0 (ponto único, antes do loginUsingId):
+     *   a) a empresa do alvo é acessível ao agente — reusa canAccessBusiness, que já exige
+     *      agente-de-suporte ativo E exclui a operadora (biz=1);
+     *   b) o alvo NÃO é superadmin/admin-username — sem escalonamento pra god;
+     *   c) o alvo está apto a logar (status active + allow_login).
+     */
+    public function canImpersonate(User|int $agent, User $target): bool
+    {
+        if (! $this->canAccessBusiness($agent, (int) $target->business_id)) {
+            return false;
+        }
+
+        if ($this->isSuperadmin($target)) {
+            return false; // nunca virar um operador/superadmin (escalonamento)
+        }
+
+        return $target->status === 'active' && (bool) $target->allow_login;
+    }
+
+    /**
+     * Espelha o Gate::before (App\Providers\AuthServiceProvider): é superadmin quem tem o
+     * username em `administrator_usernames`. Fonte única — não reimplementar a regra fora daqui.
+     */
+    public function isSuperadmin(User $user): bool
+    {
+        $list = (string) config('constants.administrator_usernames');
+
+        return in_array(strtolower((string) $user->username), explode(',', strtolower($list)), true);
+    }
 }

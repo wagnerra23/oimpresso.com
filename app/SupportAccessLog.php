@@ -27,6 +27,7 @@ class SupportAccessLog extends Model
     protected $fillable = [
         'support_user_id',
         'business_id',
+        'target_user_id',
         'action',
         'route',
         'ip',
@@ -36,6 +37,7 @@ class SupportAccessLog extends Model
     protected $casts = [
         'support_user_id' => 'integer',
         'business_id'     => 'integer',
+        'target_user_id'  => 'integer',
         'created_at'      => 'datetime',
     ];
 
