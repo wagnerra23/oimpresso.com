@@ -233,3 +233,52 @@ it('grava trilha de auditoria (LogsActivity) ao bater a saída — não é bulk 
 
     expect($depois)->toBeGreaterThan($antes); // a saída automática deixou rastro CLT Art. 74 §3
 });
+
+// ------------------------------------------------------------------
+// 7. WRAP DE MEIA-NOITE — janela [23:30, 00:00] não pode virar BETWEEN vazio
+// ------------------------------------------------------------------
+
+it('bate a saída de shift na janela que cruza a meia-noite (agora 23:30 → 00:00)', function () {
+    $biz = Business::find(ACO_BIZ_WAGNER);
+    if (! $biz) {
+        $this->markTestSkipped('biz=1 não existe.');
+    }
+    $tz = $biz->time_zone ?: 'America/Sao_Paulo';
+    // 23:30 local → janela [23:30:00, 00:00:00] (cruza a meia-noite). No MySQL,
+    // BETWEEN '23:30:00' AND '00:00:00' (low > high) retorna vazio: sem o split
+    // em duas faixas o shift abaixo NUNCA seria batido.
+    Carbon::setTestNow(Carbon::parse('2026-06-24 23:30:00', $tz));
+
+    $shift = acoMakeShift(ACO_BIZ_WAGNER, '23:45:00'); // dentro de (23:30, 00:00)
+    $att = acoMakeAttendance(ACO_BIZ_WAGNER, $shift->id);
+
+    Artisan::call('pos:autoClockOutUser');
+
+    $fresh = acoFresh($att->id);
+    expect($fresh->clock_out_time)->not->toBeNull();
+    expect(Carbon::parse($fresh->clock_out_time)->toDateTimeString())->toBe('2026-06-24 23:30:00');
+    expect($fresh->clock_out_note)->toContain('automática');
+});
+
+// ------------------------------------------------------------------
+// 8. WRAP — limite superior continua valendo (o split não vira "pega tudo")
+// ------------------------------------------------------------------
+
+it('NÃO bate shift fora da janela que cruza a meia-noite (00:15 > fim 00:00)', function () {
+    $biz = Business::find(ACO_BIZ_WAGNER);
+    if (! $biz) {
+        $this->markTestSkipped('biz=1 não existe.');
+    }
+    $tz = $biz->time_zone ?: 'America/Sao_Paulo';
+    // Mesma janela wrap [23:30:00, 00:00:00]: um shift às 00:15 está DEPOIS do fim
+    // (00:00) e não pode ser batido — garante que a faixa ['00:00:00', fim] não
+    // virou um catch-all do início da madrugada.
+    Carbon::setTestNow(Carbon::parse('2026-06-24 23:30:00', $tz));
+
+    $shift = acoMakeShift(ACO_BIZ_WAGNER, '00:15:00'); // fora de (23:30, 00:00)
+    $att = acoMakeAttendance(ACO_BIZ_WAGNER, $shift->id);
+
+    Artisan::call('pos:autoClockOutUser');
+
+    expect(acoFresh($att->id)->clock_out_time)->toBeNull(); // intacto
+});
