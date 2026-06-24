@@ -30,12 +30,29 @@ class SupportAccessService
         return (int) config('constants.operator_business_id', 1);
     }
 
-    /** O usuário tem capability de suporte ativa (concessão não revogada)? */
+    /**
+     * O usuário é agente de suporte? (ADR 0309 — emenda à 0305 RF4)
+     *
+     * Verdadeiro se (a) ele pertence à empresa OPERADORA (biz=1) — o time da operadora É o
+     * suporte, decisão Wagner 2026-06-24 — OU (b) tem concessão explícita ativa em
+     * support_agents (caminho RF4, para agentes FORA da operadora, ex. contratado externo).
+     * Usuários-cliente NUNCA são agentes por aqui.
+     */
     public function isSupportAgent(User|int $user): bool
     {
-        $userId = $user instanceof User ? (int) $user->id : $user;
+        $model = $user instanceof User ? $user : User::find($user);
 
-        return SupportAgent::query()->active()->where('user_id', $userId)->exists();
+        if ($model === null) {
+            return false;
+        }
+
+        // (a) operadora (biz=1) = time de suporte — todo usuário dela é agente (ADR 0309).
+        if ((int) $model->business_id === $this->operatorBusinessId()) {
+            return true;
+        }
+
+        // (b) concessão explícita (RF4) — agentes fora da operadora.
+        return SupportAgent::query()->active()->where('user_id', (int) $model->id)->exists();
     }
 
     /**

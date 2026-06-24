@@ -1,6 +1,6 @@
 ---
 module: Suporte
-version: "1.1"
+version: "1.2"
 last_updated: "2026-06-24"
 status: rascunho
 owners:
@@ -8,9 +8,16 @@ owners:
 related_adrs:
   - 0305-modo-suporte-cross-tenant-exceto-operador
   - 0308-modo-suporte-fase-a-acessar-como-login-as-guardado
+  - 0309-modo-suporte-operadora-e-o-time-de-suporte
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
 ---
+
+<!-- v1.2 (2026-06-24, ADR 0309): a capability "suporte" agora é por MEMBERSHIP na operadora
+(biz=1) OU concessão explícita (RF4, comando `suporte:conceder` p/ agentes de fora). Todo
+usuário da biz=1 é agente; clientes nunca. A exclusão da operadora no ALCANCE (e o "Acessar
+como" barrar superadmin/operador) não muda. Ponto único: SupportAccessService::isSupportAgent. -->
+
 
 <!-- schema-allowlist: SPEC rascunho de feature nova ("Modo Suporte") — captura requisitos e desenho ANTES da implementação. Sem seção US formal ainda (roadmap abaixo); sem âncoras "Implementado em:" porque nada foi implementado. Origem: sessão Wagner 2026-06-23. -->
 

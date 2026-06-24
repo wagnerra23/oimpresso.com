@@ -26,13 +26,20 @@ function concSchemaReady(): bool
     return Schema::hasTable('users') && Schema::hasTable('support_agents');
 }
 
+// biz=99 (CLIENTE, ≠ operadora): pela ADR 0309 todo usuário da biz=1 já é agente por
+// membership — então o usuário de teste do comando precisa ser de um cliente, senão o
+// grant/revogar não controlaria isSupportAgent (revogar continuaria "agente" via biz=1).
 function makeConcUser(string $username): User
 {
     return User::firstOrCreate(
         ['username' => $username],
-        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => 1, 'first_name' => 'Conc']
+        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => 99, 'first_name' => 'Conc']
     );
 }
+
+beforeEach(function () {
+    config(['constants.operator_business_id' => 1]); // garante que biz=99 NÃO é a operadora
+});
 
 it('concede a capability por id e o usuário vira agente de suporte', function () {
     if (! concSchemaReady()) {
