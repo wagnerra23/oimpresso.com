@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-06-22T19:42:49.322Z",
-    "total_lines": 20533,
+    "generated_at": "2026-06-24T19:43:43.289Z",
+    "total_lines": 20645,
     "file_count": 35,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
@@ -39,8 +39,8 @@
     "resources/css/sells-kb975-emit-modals.css": 505,
     "resources/css/sells-kb975-next-action.css": 280,
     "resources/css/sells-kb975-print.css": 675,
-    "resources/css/tokens/_generated-cockpit-dark.css": 52,
-    "resources/css/tokens/_generated-cockpit-light.css": 68,
+    "resources/css/tokens/_generated-cockpit-dark.css": 107,
+    "resources/css/tokens/_generated-cockpit-light.css": 125,
     "resources/css/tokens/_generated-foundations-dark.css": 10,
     "resources/css/tokens/_generated-foundations-light.css": 22,
     "resources/css/tokens/_generated-inertia-dark.css": 44,
