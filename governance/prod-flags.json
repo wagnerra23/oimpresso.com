@@ -1,0 +1,18 @@
+{
+  "_meta": {
+    "schema": "prod-flags/v1",
+    "purpose": "Estado de PRODUÇÃO das telas Inertia flag-gated, por tenant — fonte de verdade pra derivar charter status:live honesto (proposta SDD 2026-06-24). Consumido por scripts/governance/charter-live-signal.mjs.",
+    "contrato": "live[<component>] = lista de business_id (string) onde a tela roda em React EM PRODUÇÃO. <component> = path Inertia sem 'resources/js/Pages/' e sem '.tsx' (ex 'Cliente/Create'). Charter status:live cujo component NÃO esteja aqui (e sem campo smoke:) = live_sem_sinal.",
+    "nao_e": "NÃO é a lista de telas que EXISTEM (isso é o charter/anchor). É a lista das que estão LIVE pra tenant real. existir != estar live — foi o ponto cego que deixou promover charter a 'live' sem prova (reconciliação Cliente 2026-06-24).",
+    "fonte": "SEED MANUAL 2026-06-24 — Wagner confirmou biz=4 (ROTA LIVRE) roda o cadastro Cliente em React (flags MWART_CLIENTE_* ON). Produtor AUTOMATIZADO (probe de prod -> branch órfã -> commit-back [skip ci], padrão nightly-floor/ADR 0279) é follow-up de infra.",
+    "legado": "telas live SEM entrada aqui sao dívida legada (grandfather por diff-aware: o gate só morde charter live NOVO/TOCADO sem sinal). Preencher conforme o probe (ou smoke) confirmar cada uma."
+  },
+  "live": {
+    "Cliente/Index": ["4"],
+    "Cliente/Create": ["4"],
+    "Cliente/Edit": ["4"],
+    "Cliente/Ledger": ["4"],
+    "Cliente/Map": ["4"],
+    "Cliente/Import": ["4"]
+  }
+}
