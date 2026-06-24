@@ -47,6 +47,14 @@ beforeEach(function () {
     if (! Schema::hasTable('nfe_inutilizacoes')) {
         $this->markTestSkipped('nfe_inutilizacoes table missing — rode Modules/NfeBrasil migrate primeiro');
     }
+
+    // O global scope ScopeByBusiness só filtra com usuário AUTENTICADO — faz
+    // early-return em `! auth()->check()` (ScopeByBusiness.php:26) e lê a business
+    // ativa de session('user.business_id') (NÃO 'business.id'). Sem actingAs o scope
+    // no-opa e estes "guards de isolamento" passariam vácuo. Autenticamos um usuário
+    // do biz=1 (semeado pelo pest-mysql-setup; sem role → não é superadmin). Cada
+    // teste seta session('user.business_id') pra escolher o tenant ativo. ADR 0093.
+    $this->actingAs(\App\User::where('business_id', NFE_BIZ_WAGNER)->firstOrFail());
 });
 
 afterEach(function () {
@@ -78,16 +86,24 @@ afterEach(function () {
 
 it('nfe_emissoes tem coluna business_id NOT NULL', function () {
     expect(Schema::hasColumn('nfe_emissoes', 'business_id'))->toBeTrue();
-    $col = collect(DB::select('SHOW COLUMNS FROM nfe_emissoes LIKE ?', ['business_id']))->first();
-    expect($col)->not->toBeNull();
-    expect($col->Null)->toBe('NO');
+    // Portável (binding em WHERE) — `SHOW COLUMNS ... LIKE ?` estoura "syntax error
+    // near '?'" no MySQL (placeholder proibido em SHOW). information_schema aceita.
+    $isNullable = DB::table('information_schema.columns')
+        ->where('table_schema', DB::connection()->getDatabaseName())
+        ->where('table_name', 'nfe_emissoes')
+        ->where('column_name', 'business_id')
+        ->value('IS_NULLABLE');
+    expect($isNullable)->toBe('NO'); // NOT NULL
 });
 
 it('nfe_inutilizacoes tem coluna business_id NOT NULL', function () {
     expect(Schema::hasColumn('nfe_inutilizacoes', 'business_id'))->toBeTrue();
-    $col = collect(DB::select('SHOW COLUMNS FROM nfe_inutilizacoes LIKE ?', ['business_id']))->first();
-    expect($col)->not->toBeNull();
-    expect($col->Null)->toBe('NO');
+    $isNullable = DB::table('information_schema.columns')
+        ->where('table_schema', DB::connection()->getDatabaseName())
+        ->where('table_name', 'nfe_inutilizacoes')
+        ->where('column_name', 'business_id')
+        ->value('IS_NULLABLE');
+    expect($isNullable)->toBe('NO'); // NOT NULL
 });
 
 // ------------------------------------------------------------------
@@ -109,7 +125,7 @@ it('NfeEmissao biz=99 NÃO aparece quando session ativa é biz=1', function () {
     ]);
 
     // Session simula usuário Wagner biz=1 ativo
-    session(['business.id' => NFE_BIZ_WAGNER]);
+    session(['user.business_id' => NFE_BIZ_WAGNER]);
 
     // Global scope BusinessScope deve filtrar — biz=1 NÃO enxerga biz=99
     $vaza = NfeEmissao::where('id', $emissaoId)->first();
@@ -134,7 +150,7 @@ it('NfeEmissao biz=1 aparece quando session ativa é biz=1', function () {
         'updated_at'  => now(),
     ]);
 
-    session(['business.id' => NFE_BIZ_WAGNER]);
+    session(['user.business_id' => NFE_BIZ_WAGNER]);
 
     $emissao = NfeEmissao::where('id', $emissaoId)->first();
     expect($emissao)->not->toBeNull();
@@ -159,7 +175,7 @@ it('NfeInutilizacao biz=99 NÃO aparece quando session ativa é biz=1', function
         'updated_at'     => now(),
     ]);
 
-    session(['business.id' => NFE_BIZ_WAGNER]);
+    session(['user.business_id' => NFE_BIZ_WAGNER]);
 
     $vaza = NfeInutilizacao::where('id', $inutId)->first();
     expect($vaza)->toBeNull();
@@ -211,7 +227,7 @@ it('numeração NFe é isolada por business_id — biz=1 e biz=99 podem ter mesm
     expect($contagem)->toBe(2);
 
     // Cada business vê só o seu (via global scope)
-    session(['business.id' => NFE_BIZ_WAGNER]);
+    session(['user.business_id' => NFE_BIZ_WAGNER]);
     $emissaoBiz1 = NfeEmissao::where('numero', 777001)->where('serie', '7')->first();
     expect($emissaoBiz1)->not->toBeNull();
     expect((int) $emissaoBiz1->business_id)->toBe(NFE_BIZ_WAGNER);
