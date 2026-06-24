@@ -142,3 +142,7 @@ Modules/Whatsapp/Tests/Feature/WhatsmeowResubscribeEventsCommandTest.php
 # TaskRegistry não rodava em lane nenhuma.
 Modules/Jana/Tests/Feature/TaskRegistry/TaskCrudServiceCanonicalIdTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/McpTasksOrphansCommandTest.php
+
+# governance:prod-flags — produtor do prod-flags.json (replica shouldRenderInertiaCliente).
+# Config-puro (sem DB) → sqlite-safe. Item b/produtor da proposta SDD 2026-06-24.
+tests/Feature/Governance/ProdFlagsCommandTest.php
