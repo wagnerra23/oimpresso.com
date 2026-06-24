@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-NFE-008 — endpoints de manifestação (confirmar/desconhecer/bulk) + guard cross-tenant 404.
+
 use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
 

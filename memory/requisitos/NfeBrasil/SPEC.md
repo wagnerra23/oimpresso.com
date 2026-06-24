@@ -39,6 +39,8 @@ na_justified:
 
 **Implementado em:** _parcial_ · [`Modules/NfeBrasil/Http/Controllers/CertificadoController.php`](../../../Modules/NfeBrasil/Http/Controllers/CertificadoController.php) · [`Modules/NfeBrasil/Services/CertificadoService.php`](../../../Modules/NfeBrasil/Services/CertificadoService.php) · verificado@08c4a8f (2026-06-21) — backend (upload + validação OpenSSL + cripto) pronto; falta a tela React de upload em Pages/NfeBrasil/Configuracao (não migrada)
 
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php` (covers US-NFE-001) · `Modules/NfeBrasil/Tests/Feature/CertificadoControllerTest.php` (covers US-NFE-001)
+
 **Definition of Done:**
 - [x] FormRequest aceita `.pfx` ≤ 100KB + `senha` (não loga em audit log!)
 - [x] `CertificadoService::validar()` lê o pfx via OpenSSL, extrai CN (CNPJ), valida `not_after > now()`
@@ -185,6 +187,8 @@ na_justified:
 
 **Implementado em:** `Modules/NfeBrasil/Http/Controllers/ManifestacaoController.php` · `Modules/NfeBrasil/Services/Manifestacao/ManifestacaoService.php` · `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` · `Modules/NfeBrasil/Tests/Feature/ManifestacaoControllerTest.php` · verificado@08c4a8f (2026-06-21)
 
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/ManifestacaoServiceTest.php` (covers US-NFE-008) · `Modules/NfeBrasil/Tests/Feature/ManifestacaoControllerTest.php` (covers US-NFE-008)
+
 **Definition of Done:**
 - [ ] Lista NFes destinadas (consulta `WS-NFeDistribuicaoDFe` periódica) com status manifestação
 - [ ] 4 ações em modal: Confirmação / Ciência / Desconhecimento / Operação não realizada
@@ -224,6 +228,8 @@ na_justified:
 **Para** automatizar cálculo na emissão sem digitar imposto a imposto
 
 **Implementado em:** [`Modules/NfeBrasil/Services/MotorTributarioService.php`](../../../Modules/NfeBrasil/Services/MotorTributarioService.php) (motor cascade) · [`Modules/NfeBrasil/Models/NfeFiscalRule.php`](../../../Modules/NfeBrasil/Models/NfeFiscalRule.php) · [`Modules/NfeBrasil/Models/NfeBusinessConfig.php`](../../../Modules/NfeBrasil/Models/NfeBusinessConfig.php) · [`Modules/NfeBrasil/Http/Controllers/TributacaoController.php`](../../../Modules/NfeBrasil/Http/Controllers/TributacaoController.php) · [`Modules/NfeBrasil/Http/Controllers/ConfigDefaultController.php`](../../../Modules/NfeBrasil/Http/Controllers/ConfigDefaultController.php) · [`resources/js/Pages/NfeBrasil/Tributacao/Index.tsx`](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.tsx) · [`.../RegraForm.tsx`](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.tsx) · [`.../ConfigDefault.tsx`](../../../resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx)
+
+**Testado em:** `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` (covers US-NFE-010) · `Modules/NfeBrasil/Tests/Feature/TributacaoControllerTest.php` (covers US-NFE-010)
 
 **Definition of Done:**
 - [x] Tabela `nfe_fiscal_rules` com index `(business_id, ncm, uf_origem, uf_destino)` (ARQ-0004 schema; idempotência via service `firstOrCreate`)

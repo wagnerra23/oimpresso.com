@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-NFE-008 — manifestar NF-e recebida: ciência/confirmação/desconhecimento, justificativa ≥15 chars, idempotência (ManifestacaoService).
+
 use Illuminate\Support\Facades\Schema;
 use Modules\NfeBrasil\Models\NfeDfeEvento;
 use Modules\NfeBrasil\Models\NfeDfeRecebido;
