@@ -101,10 +101,10 @@ jobs:
         #     `SHOW COLUMNS ... LIKE ?` → information_schema (portável). De volta na allowlist.
         #   - Wave25NfeSaturationTest (2026-06-24): mesma causa — actingAs(biz=1) +
         #     session('user.business_id') faz o count() cross-tenant isolar de verdade.
+        #   - NfeServiceIdempotenciaRetryTest (2026-06-24): `new NfeService()` (0 args) →
+        #     `app(NfeService::class)` resolve a dep CertificadoService via container.
         #
         # Ainda excluídos (sobem conforme o fix do teste fica verde):
-        #   - NfeServiceIdempotenciaRetryTest — `new NfeService()` com 0 args (constructor exige
-        #     CertificadoService) → ArgumentCountError.
         #   - CertificadoServiceTest — `salvar(99, ...)` viola FK nfe_certificados→business (biz=99
         #     não semeado; sqlite não enforça FK). Seed dá biz=1/biz=2.
         #   - EmitirNfceAoFinalizarVendaTest — 2 testes setam só a flag GLOBAL, sem NfeBusinessConfig
@@ -125,7 +125,8 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php \
             Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php \
-            Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php
+            Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php
 
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
