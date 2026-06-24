@@ -37,10 +37,19 @@
 //                                                           # dead_tests>0 ou violação v1 —
 //                                                           # RESERVADO pra fase F2 (ADR 0273 §4);
 //                                                           # F1 ADVISORY usa modos acima (exit 0 sempre)
-// Node puro (fs). Sem deps, sem DB, sem PHP. Idioma: clone de knowledge-drift.mjs.
+//   node scripts/governance/anchor-lint.mjs --junit <summary.json> [--check-verde]
+//                                                           # G1b-verde (Phase B): cruza o JUnit
+//                                                           # (junit-summary/v1) e marca req_teste_vermelho
+//                                                           # (US implementada+coberta cujo arquivo-de-teste
+//                                                           # NÃO está verde POR ARQUIVO). --check-verde →
+//                                                           # exit 1 se req_teste_vermelho>0; --check-entry
+//                                                           # ganha essa 3ª exigência. Sem --junit =
+//                                                           # behavior_unknown (advisory, nunca avermelha).
+// Node puro (fs). Sem deps, sem DB, sem PHP — o JUnit entra como JSON via flag, NUNCA roda teste.
+// Idioma: clone de knowledge-drift.mjs.
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
-import { join, dirname, resolve } from 'node:path';
+import { join, dirname, resolve, relative } from 'node:path';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
@@ -59,6 +68,49 @@ const CHECK_COVERS = process.argv.includes('--check-covers');
 // produção (--check normal não inclui); opt-in pro fixture + arming (ADR 0275, com baseline
 // grandfather do legado no flip).
 const CHECK_ENTRY = process.argv.includes('--check-entry');
+// G1b-verde (Phase B · "âncora improvada" design §1b · re-eval prioridade #1): --check-verde
+// exit 1 se houver req_teste_vermelho — uma US que se diz IMPLEMENTADA (anchored_ok/parcial) E
+// TEM teste-que-cobre declarado (@covers-us), mas o ARQUIVO desse teste NÃO está verde no JUnit.
+// "verde POR ARQUIVO" = passed>0 E failed=0 E errors=0 (junit-summary/v1, agrega por arquivo).
+// REGRA DURA: skipped != passed (defesa contra markTestSkipped — 34/45 testes fiscais pulam no
+// lane sqlite; verde lá MENTE ×150 clientes). vermelho/skipped/ausente NÃO contam como verde.
+// O JUnit entra via flag (lê JSON que o CI já produz via scripts/tests/junit-summary.mjs) — NUNCA
+// roda PHP/DB/teste no lint (fs-puro, invariante ADR 0303). Sem --junit → behavior_unknown
+// (advisory, nunca avermelha legado). exit 1 só com --check-verde OU --check-entry (que ganha a 3ª
+// exigência). ADVISORY em produção (anchor-drift roda --check); arming por calendário (ADR 0275).
+const CHECK_VERDE = process.argv.includes('--check-verde');
+const _rawArgv = process.argv.slice(2);
+const _junitIdx = _rawArgv.indexOf('--junit');
+const JUNIT_PATH = _junitIdx !== -1 ? _rawArgv[_junitIdx + 1] : null;
+
+// loadJunit: lê o summary JSON (schema junit-summary/v1, scripts/tests/junit-summary.mjs) e
+// indexa files[] por path-relativo (forward-slash). fs-puro: só JSON.parse, zero exec de teste.
+function loadJunit(p) {
+  const abs = resolve(ROOT, p);
+  if (!existsSync(abs)) { console.error(`anchor-lint: --junit aponta pra arquivo inexistente: ${p}`); process.exit(2); }
+  let data;
+  try { data = JSON.parse(readFileSync(abs, 'utf8')); }
+  catch (e) { console.error(`anchor-lint: --junit nao e JSON valido (${p}): ${e.message}`); process.exit(2); }
+  if (!data || typeof data.schema !== 'string' || !data.schema.startsWith('junit-summary/')) {
+    console.error(`anchor-lint: --junit sem schema junit-summary/* (${p}) — gere com scripts/tests/junit-summary.mjs`); process.exit(2);
+  }
+  const map = new Map();
+  for (const f of (data.files || [])) if (f && f.file) map.set(String(f.file).replace(/\\/g, '/'), f);
+  return { map, schema: data.schema, source: data.source || p, coherent: data.coherent };
+}
+const JUNIT = JUNIT_PATH ? loadJunit(JUNIT_PATH) : null;
+const junitFiles = JUNIT ? JUNIT.map : null;
+// status de um arquivo-de-teste no JUnit: verde só se passou de fato (≥1 passed, 0 fail/error).
+// ausente = não rodou nesse lane · skipped = só pulou (markTestSkipped) · vazio = 0 testcases.
+function junitStatus(rel) {
+  if (!junitFiles) return 'unknown';
+  const f = junitFiles.get(rel);
+  if (!f) return 'ausente';
+  if ((f.failed || 0) > 0 || (f.errors || 0) > 0) return 'vermelho';
+  if ((f.passed || 0) > 0) return 'verde';
+  if ((f.skipped || 0) > 0) return 'skipped';
+  return 'vazio';
+}
 
 // ── regexes canônicas (ADR 0273 §1 — referência única; NÃO afrouxar sem novo ADR) ──
 const GRAMMAR_RE = /^\*\*Implementado em:\*\* (?:_pendente_(?: — .+)?|(?:_parcial_ · )?(?:`[^`]+`)(?: · `[^`]+`)* · verificado@[0-9a-f]{7} \(\d{4}-\d{2}-\d{2}\)(?: — .+)?)$/;
@@ -213,17 +265,24 @@ function testadoCoversMissing(rest, specDir, usId) {
   return refs.filter((r) => !coversRe.test(readFileSync(r.abs, 'utf8'))).map((r) => r.seg);
 }
 
-// G1b-entry: conjunto de US-IDs COBERTAS por teste neste SPEC = todo `@covers-us US-X`
-// achado nos arquivos de teste citados em `**Testado em:**` (resolvidos a path existente).
-// Independe de ONDE o `Testado em:` mora (bloco US ou regra R-NFE) — a verdade é o marcador
-// no teste. Resolve a estrutura US↔regra do NfeBrasil sem falso-positivo.
-function collectCoveredUs(testadoLines, specDir) {
-  const covered = new Set();
+// G1b-entry/verde: índice de cobertura deste SPEC. coveredUs = todo `@covers-us US-X` achado
+// nos arquivos de teste citados em `**Testado em:**` (resolvidos a path existente). usFiles =
+// US-ID → Set<path-relativo-à-raiz> dos arquivos que a declaram cobrir (a chave usada pra cruzar
+// com o JUnit em verde-por-arquivo). Independe de ONDE o `Testado em:` mora (bloco US ou regra
+// R-NFE) — a verdade é o marcador no teste. Resolve a estrutura US↔regra do NfeBrasil sem FP.
+function collectCoversIndex(testadoLines, specDir) {
+  const coveredUs = new Set();
+  const usFiles = new Map(); // US-ID → Set<rel>
   const seenFiles = new Set();
   const addFromFile = (abs) => {
     if (seenFiles.has(abs)) return;
     seenFiles.add(abs);
-    for (const m of readFileSync(abs, 'utf8').matchAll(/@covers-us\s+(US-[A-Z][A-Za-z0-9]*-\d+)/g)) covered.add(m[1]);
+    const rel = relative(ROOT, abs).replace(/\\/g, '/');
+    for (const m of readFileSync(abs, 'utf8').matchAll(/@covers-us\s+(US-[A-Z][A-Za-z0-9]*-\d+)/g)) {
+      coveredUs.add(m[1]);
+      if (!usFiles.has(m[1])) usFiles.set(m[1], new Set());
+      usFiles.get(m[1]).add(rel);
+    }
   };
   for (const t of testadoLines) {
     let remaining = t.rest;
@@ -246,7 +305,7 @@ function collectCoveredUs(testadoLines, specDir) {
       }
     }
   }
-  return covered;
+  return { coveredUs, usFiles };
 }
 
 function frontmatter(txt) {
@@ -343,13 +402,19 @@ function lintSpec(file) {
     if (noCovers.length) testadoSemCovers.push({ line: t.line, us: t.us, tests: noCovers });
   }
   // G1b-entry (gate de entrada): US que se diz IMPLEMENTADA precisa de aceite + teste-que-cobre
-  const coveredUs = collectCoveredUs(testadoLines, specDir);
-  const reqSemAceite = [], reqSemTeste = [];
+  // G1b-verde (Phase B): ...e esse teste-que-cobre tem que estar VERDE no JUnit (se --junit dado).
+  const { coveredUs, usFiles } = collectCoversIndex(testadoLines, specDir);
+  const reqSemAceite = [], reqSemTeste = [], reqTesteVermelho = [];
   for (const u of usList) {
     const st = u.fields[0] && u.fields[0].state;
     if (st !== 'anchored_ok' && st !== 'parcial') continue; // _pendente_/dead/zombie/sem_campo não entram
     if (!u.hasDod) reqSemAceite.push({ us: u.id, line: u.line });
-    if (!coveredUs.has(u.id)) reqSemTeste.push({ us: u.id, line: u.line });
+    if (!coveredUs.has(u.id)) { reqSemTeste.push({ us: u.id, line: u.line }); continue; } // sem teste = G1b-entry, não verde
+    // tem teste-que-cobre declarado → se temos JUnit, exige ≥1 arquivo VERDE (senão behavior_unknown)
+    if (junitFiles) {
+      const tests = [...usFiles.get(u.id)].map((rel) => ({ file: rel, status: junitStatus(rel) }));
+      if (!tests.some((t) => t.status === 'verde')) reqTesteVermelho.push({ us: u.id, line: u.line, tests });
+    }
   }
   const usTotal = usList.length;
   const covered = counts.anchored_ok + counts.pendente + counts.parcial; // zombie/dead NÃO contam
@@ -358,7 +423,7 @@ function lintSpec(file) {
     fields_total: fieldsTotal, fields_placeholder: fieldsPlaceholder, fields_grammar_ok: grammarOk,
     orphan_fields: orphans.length, anchor_format_v1: isV1, dead: deadList, zombie: zombieList,
     dead_tests: deadTests, testado_sem_covers: testadoSemCovers, testado_lines: testadoLines.length, v1_violations: v1Violations,
-    req_sem_aceite: reqSemAceite, req_sem_covering_test: reqSemTeste,
+    req_sem_aceite: reqSemAceite, req_sem_covering_test: reqSemTeste, req_teste_vermelho: reqTesteVermelho,
   };
 }
 
@@ -384,6 +449,7 @@ const deadTestsTotal = modules.reduce((a, m) => a + m.dead_tests.length, 0);
 const testadoSemCoversTotal = modules.reduce((a, m) => a + m.testado_sem_covers.length, 0);
 const reqSemAceiteTotal = modules.reduce((a, m) => a + m.req_sem_aceite.length, 0);
 const reqSemTesteTotal = modules.reduce((a, m) => a + m.req_sem_covering_test.length, 0);
+const reqTesteVermelhoTotal = modules.reduce((a, m) => a + m.req_teste_vermelho.length, 0);
 
 for (const m of modules) m.flag = m.us_total === 0 ? '🟡' : (m.counts.anchored_dead > 0 || m.counts.anchored_zombie > 0 || m.dead_tests.length || m.v1_violations.length || m.coverage_pct === 0) ? '🔴' : m.coverage_pct === 100 ? '🟢' : '🟡';
 
@@ -396,6 +462,8 @@ const report = {
     testado_regra: 'dead_tests = ref em `**Testado em:**` (path .php OU ClassName…Test) inexistente no repo.',
     covers_regra: 'testado_sem_covers (G1a · ADR 0303 emenda) = teste que EXISTE mas não declara `// @covers-us <US-ID>` da US-pai. ADVISORY: reportado sempre, exit 1 só com --check-covers (anchor-drift roda --check normal).',
     entrada_regra: 'GATE DE ENTRADA (G1b-entry): US que se diz IMPLEMENTADA (anchored_ok/parcial) precisa de DoD/aceite (req_sem_aceite) E de teste que declare @covers-us dela (req_sem_covering_test). _pendente_ é exceto. ADVISORY: exit 1 só com --check-entry (arming com baseline grandfather do legado, ADR 0275).',
+    verde_regra: 'GATE VERDE (G1b-verde · Phase B): com --junit <summary.json> (junit-summary/v1), US implementada+coberta cujo arquivo-de-teste NÃO está verde no JUnit → req_teste_vermelho. verde POR ARQUIVO = passed>0 E failed=0 E errors=0; vermelho/skipped/ausente NÃO contam (skipped != passed, defesa markTestSkipped). fs-puro: lê o JSON que o CI já produz, NUNCA roda teste/PHP/DB. Sem --junit → behavior_unknown (nunca avermelha). exit 1 só com --check-verde OU --check-entry.',
+    behavior: JUNIT ? `junit:${JUNIT.schema}${JUNIT.coherent === false ? ' (INCOERENTE)' : ''} · fonte ${JUNIT.source}` : 'behavior_unknown (sem --junit)',
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
     fase: 'F1 ADVISORY (ADR 0273 §4) — exit 0 sempre nos modos default/--json; --check (exit 1) reservado pra F2',
     scope: args.length ? 'diff-aware (args)' : 'full-tree',
@@ -405,6 +473,8 @@ const report = {
     fields_total: sum('fields_total'), fields_placeholder: sum('fields_placeholder'),
     fields_grammar_ok: sum('fields_grammar_ok'), orphan_fields: sum('orphan_fields'),
     dead_tests_total: deadTestsTotal, testado_sem_covers_total: testadoSemCoversTotal,
+    req_sem_aceite_total: reqSemAceiteTotal, req_sem_covering_test_total: reqSemTesteTotal,
+    req_teste_vermelho_total: reqTesteVermelhoTotal, behavior_known: JUNIT ? true : false,
     v1_files: modules.filter((m) => m.anchor_format_v1).length, v1_violations: sum('v1_violations'),
   },
   modules,
@@ -424,6 +494,7 @@ for (const m of modules) {
   for (const tc of m.testado_sem_covers) console.log(`       🎯 Testado em (L${tc.line}): ${tc.us} — teste existe mas não declara @covers-us ${tc.us} → ${tc.tests.join(' · ')}`);
   for (const r of m.req_sem_aceite) console.log(`       📋 ${r.us} (L${r.line}): diz IMPLEMENTADA mas SEM aceite/DoD definido (regra de entrada)`);
   for (const r of m.req_sem_covering_test) console.log(`       🚪 ${r.us} (L${r.line}): diz IMPLEMENTADA mas NENHUM teste declara @covers-us dela (regra sem teste)`);
+  for (const r of m.req_teste_vermelho) console.log(`       🟥 ${r.us} (L${r.line}): diz IMPLEMENTADA + tem teste-que-cobre, mas NENHUM arquivo-de-teste está verde no JUnit → ${r.tests.map((t) => `${t.file} [${t.status}]`).join(' · ')}`);
   for (const v of m.v1_violations) console.log(`       ✗ v1 L${v.line}: não casa gramática ADR 0273 §1 → ${v.raw}`);
 }
 console.log('  ' + '─'.repeat(82));
@@ -433,9 +504,12 @@ console.log(`  Estados por US: sem_campo ${byState.sem_campo} · placeholder ${b
 console.log(`  Testes-fantasma (dead_tests): ${deadTestsTotal}`);
 console.log(`  Testado sem covers (teste existe mas não declara @covers-us · advisory): ${testadoSemCoversTotal}`);
 console.log(`  Gate de entrada (advisory): ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre`);
+console.log(`  Gate verde (advisory): ${JUNIT ? `${reqTesteVermelhoTotal} US implementada com teste-que-cobre NÃO-verde no JUnit (verde=passed>0 & fail=0; skipped/ausente não contam · skipped != passed)` : 'behavior_unknown — sem --junit (nunca avermelha)'}`);
 console.log(`\n  💀 dead = path inexistente · 🧟 zombie = path existe mas tela desligada · 🧪 = teste citado inexistente. Corrigir via reconciliação — nunca inventar path.\n`);
 
 if (CHECK && (byState.anchored_dead > 0 || byState.anchored_zombie > 0 || deadTestsTotal > 0 || report.summary.v1_violations > 0)) process.exit(1);
 if (CHECK_COVERS && testadoSemCoversTotal > 0) process.exit(1);
-if (CHECK_ENTRY && (reqSemAceiteTotal > 0 || reqSemTesteTotal > 0)) process.exit(1);
+// --check-entry ganha a 3ª exigência (verde) — só morde quando --junit dá o sinal (senão behavior_unknown=0).
+if (CHECK_ENTRY && (reqSemAceiteTotal > 0 || reqSemTesteTotal > 0 || reqTesteVermelhoTotal > 0)) process.exit(1);
+if (CHECK_VERDE && reqTesteVermelhoTotal > 0) process.exit(1);
 process.exit(0);
