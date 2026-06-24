@@ -11,7 +11,25 @@
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
 import { tokenDefCount, stripComments } from '../scripts/foundation-guard.mjs';
+
+// Sob a onda DTCG (ativada — PR #3230/#3356) a DEFINIÇÃO dos tokens do Shell saiu de inline no
+// cockpit.css e migrou pra resources/css/tokens/_generated-cockpit-{light,dark}.css, importados no
+// TOPO do cockpit.css via @import. O "home" de token virou o cockpit.css COMPOSTO (arquivo + o que
+// ele puxa). Este helper soma os token-defs do .css MAIS os dos arquivos que ele importa (1 nível —
+// o que o DTCG produz) pra o controle-negativo continuar honesto: se a geração DTCG zerar (import
+// vazio/quebrado/removido), a conta cai a 0 e o teste "está VIVO" pega. Ler só o cru daria 0 (falso-fail).
+function tokenDefCountComposed(entryPath: string): number {
+  const css = readFileSync(entryPath, 'utf8');
+  let total = tokenDefCount(css);
+  const baseDir = dirname(entryPath);
+  for (const stmt of stripComments(css).match(/@import\s+["']([^"']+)["']/g) || []) {
+    const rel = stmt.match(/["']([^"']+)["']/)?.[1];
+    if (rel) total += tokenDefCount(readFileSync(resolve(baseDir, rel), 'utf8'));
+  }
+  return total;
+}
 
 describe('foundation-guard — SENSIBILIDADE (injeta bug → conta sobe)', () => {
   it('@theme duplicado num arquivo conta como definição', () => {
@@ -41,11 +59,12 @@ describe('foundation-guard — ESPECIFICIDADE (não acusa inocente)', () => {
 });
 
 describe('foundation-guard — está VIVO (não passa vacuamente em 0)', () => {
-  it('o token-home real (cockpit.css, Shell na allowlist) TEM definição de token (@theme/--*) > 0', () => {
-    // Se o home de token não definisse nada, o gate seria fajuto (protegeria um vazio).
-    // foundations.css (Fundação) ainda não está no main; cockpit.css é o home vigente.
-    const css = readFileSync('resources/css/cockpit.css', 'utf8');
-    expect(tokenDefCount(css)).toBeGreaterThan(0);
+  it('o token-home real (cockpit.css + @imports DTCG, Shell na allowlist) TEM definição de token (@theme/--*) > 0', () => {
+    // Se o home de token não definisse nada, o gate seria fajuto (protegeria um vazio). Sob DTCG a
+    // def vive nos _generated-cockpit-*.css importados no topo do cockpit.css — por isso COMPOSTO
+    // (cockpit.css + @imports), não o cru (que hoje dá 0). foundations.css também é home (allowlist)
+    // e já existe no main, igualmente DTCG-composto; aqui aferimos o Shell (cockpit.css), home vigente.
+    expect(tokenDefCountComposed('resources/css/cockpit.css')).toBeGreaterThan(0);
   });
   it('um bundle cowork legado real ainda redefine token (o que o ratchet congela)', () => {
     const css = readFileSync('resources/css/cowork-canon-financeiro-bundle.css', 'utf8');
