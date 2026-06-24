@@ -1,11 +1,14 @@
 name: Anchor & Doneness Drift (advisory)
 
-# 2 lints irmãos sobre as SPECs (mesmo trigger, SoC separado — ADR 0298 teto:
-# job no workflow EXISTENTE, sem criar gate novo):
-#   - anchor-lint  (ADR 0273): saúde da âncora spec↔código (existe/vivo/testado).
-#   - doneness-lint (ADR 0302): conflito `status:` à mão × âncora (fonte-única de done-ness).
-# Ambos diff-aware no PR (--check só SPEC tocado = no-new-lie, grandfather legado),
-# report full-tree no cron. NÃO required ainda: flip do Wagner por calendário (ADR 0275 §5).
+# 3 jobs irmãos sobre as SPECs (mesmo trigger, SoC separado — ADR 0298 teto:
+# jobs no workflow EXISTENTE, sem criar workflow novo):
+#   - anchor-lint        (ADR 0273): saúde da âncora spec↔código (existe/vivo/testado · dead/zombie).
+#   - anchor-entry-covers (ADR 0303 SA-A2-ter): gate de entrada (US implementada sem aceite/teste-que-
+#     cobre) + covers (teste citado sem @covers-us), com baseline GRANDFATHER do legado (43 aceite +
+#     56 teste) → morde só mentira NOVA (no-new-lie). Contexto PRÓPRIO pra promoção independente.
+#   - doneness-lint      (ADR 0302): conflito `status:` à mão × âncora (fonte-única de done-ness).
+# Todos diff-aware no PR (--check só SPEC tocado = no-new-lie, grandfather legado), report full-tree
+# no cron. NENHUM required ainda: cada um é flip do Wagner por calendário, 1/semana (ADR 0275 §5).
 #
 # Lint do anchor spec↔código — SA-A3 do plano SDD (memory/sessions/2026-06-12-
 # plano-reestruturacao-sdd-ondas-paralelas.md, frente SA) · gramática ADR 0273.
@@ -66,6 +69,40 @@ jobs:
           else
             node scripts/governance/anchor-lint.mjs
           fi
+
+  # ARMING SA-A2-ter (ADR 0275/0303): job PRÓPRIO (contexto separado) pro gate de entrada/covers,
+  # pra Wagner poder promover SÓ ele a required no calendário (ADR 0275 §5 · 1 armamento/semana)
+  # sem entrelaçar com o anchor-lint dead/zombie. Mesmo workflow (teto ADR 0298 — estende, não cria).
+  anchor-entry-covers:
+    name: anchor entry/covers gate (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # diff contra base do PR
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: gate de entrada + covers (diff-aware no PR · baseline grandfather do legado)
+        if: github.event_name == 'pull_request'
+        run: |
+          # Gate de entrada (US implementada SEM aceite/teste-que-cobre) + covers (teste citado SEM
+          # @covers-us), nos SPECs TOCADOS, com baseline grandfather do legado (43 aceite + 56 teste) →
+          # morde só mentira NOVA (no-new-lie). ADVISORY: não-required até flip do Wagner (ADR 0275 §5).
+          CHANGED=$(git diff --name-only --diff-filter=d "origin/${{ github.base_ref }}...HEAD" -- 'memory/requisitos/*/SPEC.md')
+          if [ -n "$CHANGED" ]; then
+            echo "Gate de entrada + covers (no-new-lie · baseline grandfather · ADR 0275/0303) nos SPECs tocados:"; echo "$CHANGED"
+            # shellcheck disable=SC2086
+            node scripts/governance/anchor-lint.mjs --check-entry --check-covers --baseline governance/anchor-entry-baseline.json $CHANGED
+          else
+            echo "Nenhum SPEC tocado (PR mudou lint/workflow) — gate entrada/covers diff-aware não se aplica (legado segue grandfatherado)."
+          fi
+      - name: report full-tree (cron/dispatch · grandfather aplicado · advisory exit 0)
+        if: github.event_name != 'pull_request'
+        run: |
+          # No cron/dispatch: report full-tree com baseline (mostra ATIVOS pós-grandfather, exit 0
+          # nos modos default) — não trava o legado; visibilidade da dívida ainda-a-pagar.
+          node scripts/governance/anchor-lint.mjs --baseline governance/anchor-entry-baseline.json
 
   doneness-lint:
     name: doneness-lint ADR 0302 (advisory)
