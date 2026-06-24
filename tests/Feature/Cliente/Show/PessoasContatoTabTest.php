@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-068
 
 // Onda Final.C — Tab Pessoas de contato
 // Teste estrutural: componente + integração + scope business_id + crm_contact_id.

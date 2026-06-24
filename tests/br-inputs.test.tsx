@@ -1,3 +1,4 @@
+// @covers-us US-CRM-073
 // BR inputs canon (ui/document-input · ui/phone-input · ui/numeric-input-ptbr) —
 // comportamento de máscara/parse + a11y runtime (axe, idioma de tests/a11y-primitives.test.tsx).
 //

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-070
 
 // Onda Final.E — Tab Reward Points (pontos fidelidade)
 // Teste estrutural: componente + integração + scope business_id + condicional enable_rp.

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-069
 
 // Onda Final.D — Tab Assinaturas (subscriptions / transactions is_recurring=1)
 // Teste estrutural: componente + integração + scope business_id + contact_id.
