@@ -72,6 +72,32 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // PaymentGateway — retry de webhooks ÓRFÃOS (race condition: o webhook do
+        // gateway chega ANTES da Cobrança ser gravada no banco). O Job só
+        // re-dispatcha CobrancaPaga (quita título → mexe em VALOR) pra eventos
+        // com gateway_webhook_events.cobranca_id PREENCHIDO.
+        //
+        // ⚠️ DORMENTE por flag default-OFF (REGRA MESTRE valor/estoque): o fluxo
+        // genérico de webhooks multi-gateway (Onda 3 — asaas/c6/bcb_pix/pagarme/
+        // sicoob) ainda NÃO fez cutover (gateway_webhook_events vazia em prod) NEM
+        // popula cobranca_id, então a branch de quitação do Job é inalcançável hoje.
+        // O schedule fica REGISTRADO (sai do limbo "ghost-scheduled" + aparece em
+        // `schedule:list`) mas NÃO executa até: (1) cutover dos webhooks Onda 3,
+        // (2) linkage cobranca_id no WebhookProcessor, (3) Wagner habilitar
+        // PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED=true após dry-run aprovado.
+        // A quitação PIX biz=1 LIVE roda por outro caminho (inter_webhook_log +
+        // ProcessarWebhookPixInterJob), NÃO tocado aqui.
+        $schedule->command('paymentgateway:retry-orphan-webhooks')
+            ->everyFiveMinutes()
+            ->withoutOverlapping(10)
+            ->environments(['live'])
+            ->when(fn () => (bool) config('paymentgateway.retry_orphan_webhooks_enabled', false))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule paymentgateway:retry-orphan-webhooks FALHOU — webhooks órfãos podem não ser reprocessados'
+                );
+            });
+
         // SRS — sincroniza memória Claude pra dentro do repo todo dia 23:00.
         // Histórico de renames: docvault:sync-memories → memcofre:sync-memories
         // (2026-04-24, DocVault → MemCofre) → Modules/MemCofre → Modules/SRS

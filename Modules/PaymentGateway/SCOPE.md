@@ -56,7 +56,8 @@ db_tables_owned:
   - payment_gateway_credentials
   - cobrancas
   - gateway_webhook_events
-drift_alerts: []
+drift_alerts:
+  - "gateway_webhook_events.cobranca_id NUNCA é populado pelo fluxo genérico (WebhookProcessor grava cobranca_id=NULL; webhooks Onda 3 sem cutover, tabela VAZIA em prod). Logo a branch de quitação do RetryOrphanWebhookJob (dispatch CobrancaPaga) é INALCANÇÁVEL hoje. Cron paymentgateway:retry-orphan-webhooks registrado mas DORMENTE (flag PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED default OFF). A quitação PIX biz=1 LIVE roda por inter_webhook_log + ProcessarWebhookPixInterJob, não por aqui."
 ---
 
 # Modules/PaymentGateway
@@ -88,3 +89,4 @@ Ver [CONTRACTS.md](CONTRACTS.md) pra interface + DTOs + payloads de evento.
 ---
 
 - **v0.1.0** (2026-05-19) — SCOPE.md inicial, ADR 0170 proposto. Módulo registrado mas **não habilitado** (Onda 0 do roadmap).
+- **v0.1.1** (2026-06-24) — Fix ghost-scheduled `paymentgateway:retry-orphan-webhooks` (censo artisan): docblock prometia cron `everyFiveMinutes` que NÃO existia no Kernel. Schedule **registrado** (sai do limbo + aparece em `schedule:list`) porém **DORMENTE** via flag default-OFF `PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED` (REGRA MESTRE valor/estoque — o Job quita título). Backlog prod = **0** (tabela `gateway_webhook_events` vazia, dry-run confirmou). Docblock corrigido + drift_alert + testes (schedule-registration + command). Habilitar só após cutover Onda 3 + linkage cobranca_id + dry-run aprovado.
