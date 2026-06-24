@@ -23,9 +23,9 @@ uses(Tests\TestCase::class);
  * ADR 0093: business_id Tier 0 IRREVOGÁVEL — toda Model que toca dados negócio.
  * ADR 0101: NUNCA usar biz=4 (ROTA LIVRE — Larissa, cliente real prod) em tests.
  *
- * Edge fiscal: CNPJ 11.222.333/0001-44 é o CNPJ de teste oficial documentado por
- * MARTINS no Receita Federal "Manual da NFe" — fictício, NUNCA emite contra SEFAZ
- * com ele em produção (só homolog/test).
+ * Edge fiscal: CNPJ 11.222.333/0001-44 (pii-allowlist: CNPJ fictício oficial da Receita,
+ * NUNCA real) é o CNPJ de teste documentado por MARTINS no Receita Federal "Manual da NFe"
+ * — fictício, NUNCA emite contra SEFAZ com ele em produção (só homolog/test).
  *
  * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  * @see memory/decisions/0101-tests-business-id-1-nunca-cliente.md
