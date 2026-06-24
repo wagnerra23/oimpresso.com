@@ -4,7 +4,7 @@
     "com.oimpresso.dtcg": {
       "spec": "W3C Design Tokens Community Group (application/design-tokens+json)",
       "layer": "semantic",
-      "anchors": ["ADR 0300 (errata 0239)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)", "ADR 0190 (primary roxo 295)", "ADR 0281 (dark dual-seletor)"],
+      "anchors": ["ADR 0300 (errata 0239)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)", "ADR 0190 (primary roxo 295)", "ADR 0281 (dark dual-seletor)", "ADR 0310 (tokens semânticos domínio frescor/kind/kpi-feature/vip/sla/canal)"],
       "build_consumes_this": false,
       "color_notes": "Cores OKLCH armazenadas como string CSS literal (ex 'oklch(0.55 0.15 295)'). DTCG color-as-string para fidelidade 1:1 com o CSS — o build NÃO consome este JSON, então não há reparse de cor. brand-meta usa hsl() (cor de identidade Meta cross-theme)."
     }
@@ -149,6 +149,87 @@
       "$description": "Sombras do shell cockpit (rgba, multi-layer string). Distintas das --sh-1/--sh-2 do TEMPERO (foundations).",
       "shadow-pop":  { "$value": "0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --shadow-pop" } },
       "shadow-soft": { "$value": "0 1px 2px rgba(0,0,0,.04)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --shadow-soft" } }
+    },
+    "frescor": {
+      "$type": "color",
+      "$description": "DS v6 domínio — recência de contato/compra (Clientes). 4 níveis verde→amber→rose. Promovido das telas Clientes/Atendimento ([W] 2026-06-24 · ADR 0310). recência ≠ tempo de resposta (--sla-*); não consolidar.",
+      "recente":       { "$value": "oklch(0.42 0.13 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-recente", "com.oimpresso.dark": "oklch(0.84 0.13 145)" } },
+      "recente-soft":  { "$value": "oklch(0.95 0.04 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-recente-soft", "com.oimpresso.dark": "oklch(0.275 0.05 145)" } },
+      "recente-line":  { "$value": "oklch(0.88 0.06 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-recente-line", "com.oimpresso.dark": "oklch(0.40 0.06 145)" } },
+      "fresc":         { "$value": "oklch(0.48 0.10 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-fresc", "com.oimpresso.dark": "oklch(0.84 0.10 145)" } },
+      "fresc-soft":    { "$value": "oklch(0.96 0.03 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-fresc-soft", "com.oimpresso.dark": "oklch(0.275 0.05 145)" } },
+      "fresc-line":    { "$value": "oklch(0.92 0.05 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-fresc-line", "com.oimpresso.dark": "oklch(0.40 0.05 145)" } },
+      "distante":      { "$value": "oklch(0.50 0.13 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-distante", "com.oimpresso.dark": "oklch(0.84 0.13 60)" } },
+      "distante-soft": { "$value": "oklch(0.95 0.05 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-distante-soft", "com.oimpresso.dark": "oklch(0.275 0.05 60)" } },
+      "distante-line": { "$value": "oklch(0.88 0.08 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-distante-line", "com.oimpresso.dark": "oklch(0.40 0.08 60)" } },
+      "frio":          { "$value": "oklch(0.50 0.13 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-frio", "com.oimpresso.dark": "oklch(0.84 0.13 25)" } },
+      "frio-soft":     { "$value": "oklch(0.95 0.04 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-frio-soft", "com.oimpresso.dark": "oklch(0.275 0.05 25)" } },
+      "frio-line":     { "$value": "oklch(0.88 0.07 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --frescor-frio-line", "com.oimpresso.dark": "oklch(0.40 0.07 25)" } }
+    },
+    "kind": {
+      "$type": "color",
+      "$description": "DS v6 domínio — tipo de entidade (Clientes/Fornecedores/Equipe). -soft = fundo do chip. ADR 0310.",
+      "customer":            { "$value": "oklch(0.40 0.11 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kind-customer", "com.oimpresso.dark": "oklch(0.84 0.11 145)" } },
+      "customer-soft":       { "$value": "oklch(0.94 0.04 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kind-customer-soft", "com.oimpresso.dark": "oklch(0.275 0.05 145)" } },
+      "supplier":            { "$value": "oklch(0.42 0.12 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kind-supplier", "com.oimpresso.dark": "oklch(0.84 0.12 60)" } },
+      "supplier-soft":       { "$value": "oklch(0.94 0.05 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kind-supplier-soft", "com.oimpresso.dark": "oklch(0.275 0.05 60)" } },
+      "employee":            { "$value": "oklch(0.40 0.08 250)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kind-employee", "com.oimpresso.dark": "oklch(0.84 0.08 250)" } },
+      "employee-soft":       { "$value": "oklch(0.94 0.03 250)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kind-employee-soft", "com.oimpresso.dark": "oklch(0.275 0.05 250)" } },
+      "representative":      { "$value": "oklch(0.40 0.12 290)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kind-representative", "com.oimpresso.dark": "oklch(0.84 0.12 290)" } },
+      "representative-soft": { "$value": "oklch(0.93 0.06 290)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kind-representative-soft", "com.oimpresso.dark": "oklch(0.275 0.06 290)" } }
+    },
+    "kpi-feature": {
+      "$type": "color",
+      "$description": "DS v6 domínio — card KPI de destaque escuro (Faturamento). Navy 264 intencional, fora do eixo roxo. ADR 0310.",
+      "bg":    { "$value": "oklch(0.21 0.03 264)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kpi-feature-bg", "com.oimpresso.dark": "oklch(0.238 0.02 264)" } },
+      "bg-hi": { "$value": "oklch(0.23 0.03 264)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kpi-feature-bg-hi", "com.oimpresso.dark": "oklch(0.27 0.025 264)" } },
+      "line":  { "$value": "oklch(0.31 0.04 264)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kpi-feature-line", "com.oimpresso.dark": "oklch(0.34 0.03 264)" } },
+      "fg":    { "$value": "oklch(0.98 0 0)",      "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kpi-feature-fg", "com.oimpresso.dark": "oklch(0.98 0 0)" } },
+      "fg-2":  { "$value": "oklch(0.72 0.02 250)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --kpi-feature-fg-2", "com.oimpresso.dark": "oklch(0.70 0.02 250)" } }
+    },
+    "vip": {
+      "$type": "color",
+      "$description": "DS v6 domínio — selo dourado VIP (qualquer badge VIP). ADR 0310.",
+      "vip":      { "$value": "oklch(0.42 0.13 75)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --vip", "com.oimpresso.dark": "oklch(0.84 0.13 75)" } },
+      "vip-soft": { "$value": "oklch(0.92 0.07 80)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --vip-soft", "com.oimpresso.dark": "oklch(0.275 0.07 80)" } }
+    },
+    "sla": {
+      "$type": "color",
+      "$description": "DS v6 domínio — ESCALA OFICIAL de tempo de resposta/vencimento (4 passos + paid · [W] 2026-06-24 · ADR 0310). Convergem aqui Atendimento om-sla-pill, Vendas vd-sla, Financeiro fin-frescor, KB kb-fresh. -dot = ponto · -line = borda. paid/paid-soft = estado neutro (alias var-ref pro neutro do shell — propaga dark sozinho).",
+      "fresh":        { "$value": "oklch(0.36 0.13 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-fresh", "com.oimpresso.dark": "oklch(0.84 0.13 145)" } },
+      "fresh-soft":   { "$value": "oklch(0.95 0.05 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-fresh-soft", "com.oimpresso.dark": "oklch(0.275 0.05 145)" } },
+      "fresh-dot":    { "$value": "oklch(0.52 0.13 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-fresh-dot", "com.oimpresso.dark": "oklch(0.70 0.14 145)" } },
+      "fresh-line":   { "$value": "oklch(0.80 0.10 145)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-fresh-line", "com.oimpresso.dark": "oklch(0.42 0.08 145)" } },
+      "aging":        { "$value": "oklch(0.42 0.13 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-aging", "com.oimpresso.dark": "oklch(0.84 0.13 60)" } },
+      "aging-soft":   { "$value": "oklch(0.96 0.05 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-aging-soft", "com.oimpresso.dark": "oklch(0.275 0.05 60)" } },
+      "aging-dot":    { "$value": "oklch(0.62 0.13 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-aging-dot", "com.oimpresso.dark": "oklch(0.72 0.14 60)" } },
+      "aging-line":   { "$value": "oklch(0.80 0.10 60)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-aging-line", "com.oimpresso.dark": "oklch(0.42 0.08 60)" } },
+      "late":         { "$value": "oklch(0.45 0.16 30)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-late", "com.oimpresso.dark": "oklch(0.84 0.16 30)" } },
+      "late-soft":    { "$value": "oklch(0.94 0.07 30)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-late-soft", "com.oimpresso.dark": "oklch(0.30 0.07 30)" } },
+      "late-dot":     { "$value": "oklch(0.62 0.18 30)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-late-dot", "com.oimpresso.dark": "oklch(0.72 0.18 30)" } },
+      "late-line":    { "$value": "oklch(0.80 0.12 30)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-late-line", "com.oimpresso.dark": "oklch(0.45 0.10 30)" } },
+      "expired":      { "$value": "oklch(0.46 0.18 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-expired", "com.oimpresso.dark": "oklch(0.84 0.16 25)" } },
+      "expired-soft": { "$value": "oklch(0.94 0.06 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-expired-soft", "com.oimpresso.dark": "oklch(0.30 0.06 25)" } },
+      "expired-dot":  { "$value": "oklch(0.50 0.18 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-expired-dot", "com.oimpresso.dark": "oklch(0.70 0.18 25)" } },
+      "expired-line": { "$value": "oklch(0.80 0.12 25)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-expired-line", "com.oimpresso.dark": "oklch(0.45 0.10 25)" } },
+      "paid":      { "$value": "var(--text-mute)", "$description": "Estado neutro pago/paga — alias var-ref pro --text-mute do shell (propaga dark via cascata).", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-paid", "com.oimpresso.alias_hint": "cockpit.surface.text-mute" } },
+      "paid-soft": { "$value": "var(--bg-2)",     "$description": "Fundo neutro do estado pago — alias var-ref pro --bg-2 do shell.", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --sla-paid-soft", "com.oimpresso.alias_hint": "cockpit.surface.bg-2" } }
+    },
+    "canal": {
+      "$type": "color",
+      "$description": "DS v6 domínio — tom por canal de atendimento (Caixa Unificada). -tint = fundo do thread · -bg = balão · -fg = texto. ADR 0310.",
+      "email-tint": { "$value": "oklch(0.97 0.012 280)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-email-tint", "com.oimpresso.dark": "oklch(0.26 0.04 280)" } },
+      "email-bg":   { "$value": "oklch(0.85 0.07 280)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-email-bg", "com.oimpresso.dark": "oklch(0.40 0.10 280)" } },
+      "email-fg":   { "$value": "oklch(0.20 0.10 280)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-email-fg", "com.oimpresso.dark": "oklch(0.92 0.06 280)" } },
+      "ig-tint":    { "$value": "oklch(0.97 0.012 30)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-ig-tint", "com.oimpresso.dark": "oklch(0.26 0.04 30)" } },
+      "ig-bg":      { "$value": "oklch(0.85 0.08 30)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-ig-bg", "com.oimpresso.dark": "oklch(0.42 0.11 30)" } },
+      "ig-fg":      { "$value": "oklch(0.22 0.10 30)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-ig-fg", "com.oimpresso.dark": "oklch(0.92 0.07 30)" } },
+      "fb-tint":    { "$value": "oklch(0.97 0.012 250)", "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-fb-tint", "com.oimpresso.dark": "oklch(0.26 0.04 250)" } },
+      "fb-bg":      { "$value": "oklch(0.85 0.07 250)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-fb-bg", "com.oimpresso.dark": "oklch(0.40 0.10 250)" } },
+      "fb-fg":      { "$value": "oklch(0.20 0.10 250)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-fb-fg", "com.oimpresso.dark": "oklch(0.92 0.06 250)" } },
+      "ml-tint":    { "$value": "oklch(0.97 0.012 95)",  "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-ml-tint", "com.oimpresso.dark": "oklch(0.26 0.05 95)" } },
+      "ml-bg":      { "$value": "oklch(0.85 0.10 95)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-ml-bg", "com.oimpresso.dark": "oklch(0.42 0.12 95)" } },
+      "ml-fg":      { "$value": "oklch(0.22 0.10 95)",   "$extensions": { "com.oimpresso.source": "cockpit.css .cockpit --canal-ml-fg", "com.oimpresso.dark": "oklch(0.92 0.08 95)" } }
     }
   },
   "tempero": {
