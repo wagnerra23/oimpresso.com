@@ -103,10 +103,10 @@ jobs:
         #     session('user.business_id') faz o count() cross-tenant isolar de verdade.
         #   - NfeServiceIdempotenciaRetryTest (2026-06-24): `new NfeService()` (0 args) →
         #     `app(NfeService::class)` resolve a dep CertificadoService via container.
+        #   - CertificadoServiceTest (2026-06-24): `salvar(99, ...)` (FK nfe_certificados→business,
+        #     biz=99 não semeado) → biz=2 (semeado). Cleanup [1,99] → [1,2].
         #
         # Ainda excluídos (sobem conforme o fix do teste fica verde):
-        #   - CertificadoServiceTest — `salvar(99, ...)` viola FK nfe_certificados→business (biz=99
-        #     não semeado; sqlite não enforça FK). Seed dá biz=1/biz=2.
         #   - EmitirNfceAoFinalizarVendaTest — 2 testes setam só a flag GLOBAL, sem NfeBusinessConfig
         #     por-business; o listener tem per-business gate (ADR 0093) → no-op correto (teste stale).
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema baseline e
@@ -126,7 +126,8 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php \
             Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php
+            Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php
 
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
