@@ -1,0 +1,112 @@
+name: NfeBrasil · Pest (MySQL · advisory)
+
+# Lane MySQL pro Modules/NfeBrasil. Os testes fiscais MySQL-only (UNIQUE / lockForUpdate /
+# isolamento multi-tenant) SKIPam no lane sqlite (modules-pest.yml :memory:), então "verde"
+# lá MENTE. Aqui rodam de verdade contra MySQL + emitem JUnit, que alimenta o verde@ do gate
+# de entrada (G1b · âncora improvada). Reusa .github/actions/pest-mysql-setup (biz=1/biz=2).
+#
+# POR QUE IMPORTA (risco fiscal ×150 clientes — escala-migracao-carteira-delphi.md): uma nota
+# fiscal certificada "verde" por uma suite que pulou as regras tributárias = nota errada ×150.
+#
+# ADVISORY (ADR 0271/0298 — gate novo nasce advisory): continue-on-error no Pest → a falha NÃO
+# derruba o PR; o JUnit registra a VERDADE (qual teste fiscal passa no MySQL). Allowlist =
+# testes que cobrem as US/R-NFE fiscais (reconciliados 2026-06-23, #3312). Cresce (ratchet)
+# conforme prova verde; arming a required por calendário (ADR 0275).
+
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/NfeBrasil/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/nfebrasil-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: nfebrasil-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (NfeBrasil · MySQL · advisory)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do NfeBrasil (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            nfe:
+              - 'Modules/NfeBrasil/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/nfebrasil-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do NfeBrasil mudou)
+        if: steps.changes.outputs.nfe == 'false'
+        run: echo "✅ Sem mudanças no Modules/NfeBrasil — skip-as-pass."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.nfe == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.nfe == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (NfeBrasil · MySQL · ADVISORY — JUnit é a verdade)
+        if: steps.changes.outputs.nfe == 'true'
+        continue-on-error: true # advisory (ADR 0271/0298): a falha NÃO derruba o PR; o JUnit registra qual teste fiscal passa no MySQL
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-nfebrasil-junit.xml \
+            Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php \
+            Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php
+
+      - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
+        if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-nfebrasil-junit
+          path: test-results/pest-nfebrasil-junit.xml
+          retention-days: 14
