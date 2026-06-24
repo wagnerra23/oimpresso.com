@@ -13,7 +13,7 @@
       "0273-anchor-spec-codigo-formato-canonico-fluxo-novo"
     ],
     "escopo": "full-tree",
-    "total": 99
+    "total": 111
   },
   "grandfathered": [
     "entry-aceite:US-COM-001",
@@ -40,6 +40,12 @@
     "entry-aceite:US-KB-004",
     "entry-aceite:US-KB-005",
     "entry-aceite:US-KB-006",
+    "entry-aceite:US-NFE-049",
+    "entry-aceite:US-NFE-050",
+    "entry-aceite:US-NFE-051",
+    "entry-aceite:US-NFE-052",
+    "entry-aceite:US-NFE-060",
+    "entry-aceite:US-NFE-061",
     "entry-aceite:US-PG-001",
     "entry-aceite:US-PG-002",
     "entry-aceite:US-RB-044",
@@ -95,6 +101,12 @@
     "entry-teste:US-KB-004",
     "entry-teste:US-KB-005",
     "entry-teste:US-KB-006",
+    "entry-teste:US-NFE-049",
+    "entry-teste:US-NFE-050",
+    "entry-teste:US-NFE-051",
+    "entry-teste:US-NFE-052",
+    "entry-teste:US-NFE-060",
+    "entry-teste:US-NFE-061",
     "entry-teste:US-PG-001",
     "entry-teste:US-PG-002",
     "entry-teste:US-PG-005",
