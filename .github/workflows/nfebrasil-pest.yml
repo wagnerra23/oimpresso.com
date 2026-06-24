@@ -81,9 +81,32 @@ jobs:
           }
           EOF
 
-      - name: Run Pest (NfeBrasil · MySQL · ADVISORY — JUnit é a verdade)
+      - name: Run Pest (NfeBrasil · MySQL · ADVISORY — JUnit é a verdade) — ALLOWLIST VERDE (catraca)
         if: steps.changes.outputs.nfe == 'true'
         continue-on-error: true # advisory (ADR 0271/0298): a falha NÃO derruba o PR; o JUnit registra qual teste fiscal passa no MySQL
+        #
+        # CATRACA (ratchet — espelha financeiro-pest.yml / US-FIN-053): a lane roda só os
+        # arquivos comprovadamente VERDES contra o MySQL real semeado (biz=1/biz=2). Cada
+        # lote de fix dos testes adiciona arquivos AQUI (ratchet up) — arming a required por
+        # calendário (ADR 0275).
+        #
+        # 1ª run (2026-06-23, run 28066696584 · 12 failed / 60 passed): os 5 arquivos abaixo
+        # excluídos NÃO revelaram bug fiscal de produção — TODAS as 12 falhas são defeito de
+        # TESTE/HARNESS que o lane sqlite escondia (os testes SKIPavam lá). Diagnóstico
+        # arquivo-a-arquivo em memory/sessions/2026-06-23-nfebrasil-mysql-lane-achados.md.
+        #   - NfeBrasilMultiTenantIsolationTest — não faz actingAs() + usa session('business.id')
+        #     enquanto ScopeByBusiness lê session('user.business_id') + early-return sem auth →
+        #     o scope (PRODUÇÃO-CORRETO) no-opa e os asserts negativos falham. Os 2 testes
+        #     `SHOW COLUMNS ... LIKE ?` usam SQL não-portável (placeholder em SHOW).
+        #   - Wave25NfeSaturationTest — 1 teste de count() cross-tenant pela MESMA causa (sem auth).
+        #   - NfeServiceIdempotenciaRetryTest — `new NfeService()` com 0 args (constructor exige
+        #     CertificadoService) → ArgumentCountError.
+        #   - CertificadoServiceTest — `salvar(99, ...)` viola FK nfe_certificados→business (biz=99
+        #     não semeado; sqlite não enforça FK). Seed dá biz=1/biz=2.
+        #   - EmitirNfceAoFinalizarVendaTest — 2 testes setam só a flag GLOBAL, sem NfeBusinessConfig
+        #     por-business; o listener tem per-business gate (ADR 0093) → no-op correto (teste stale).
+        # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema baseline e
+        # limpam o seed biz=1/biz=2, envenenando os demais.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -96,12 +119,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-nfebrasil-junit.xml \
             Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php \
-            Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php \
-            Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php \
-            Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
-            Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php
+            Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php
 
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
