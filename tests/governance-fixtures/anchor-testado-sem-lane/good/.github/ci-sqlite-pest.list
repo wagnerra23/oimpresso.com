@@ -1,0 +1,2 @@
+# fixture GOOD — o teste-que-cobre ESTÁ numa lane de JUnit
+tests/Feature/SelftestLaneTest.php

@@ -79,6 +79,11 @@ const CHECK_ENTRY = process.argv.includes('--check-entry');
 // (advisory, nunca avermelha legado). exit 1 só com --check-verde OU --check-entry (que ganha a 3ª
 // exigência). ADVISORY em produção (anchor-drift roda --check); arming por calendário (ADR 0275).
 const CHECK_VERDE = process.argv.includes('--check-verde');
+// G1c (item b · proposta 2026-06-24): --check-lane exit 1 se houver req_sem_lane — US com
+// teste-que-cobre FORA das lanes de JUnit (de onde o gate verde lê) → o verde é estruturalmente
+// IMPOSSÍVEL (cobertura de fachada). ADVISORY: anchor-drift roda --check normal; opt-in pro
+// gate-selftest + arming futuro (ADR 0275). NÃO grandfatherado (gate à parte, igual o verde).
+const CHECK_LANE = process.argv.includes('--check-lane');
 const _rawArgv = process.argv.slice(2);
 const _junitIdx = _rawArgv.indexOf('--junit');
 const JUNIT_PATH = _junitIdx !== -1 ? _rawArgv[_junitIdx + 1] : null;
@@ -224,6 +229,30 @@ function testBasenames() {
   }
   return _testBasenames;
 }
+// G1c (item b · proposta 2026-06-24): "lane de JUnit" = de onde o gate verde (G1b) lê o status —
+// os produtores de junit-summary: ci.yml (.github/ci-sqlite-pest.list) + financeiro/jana/nfebrasil-pest
+// (Modules/<X>/Tests). Um teste-que-cobre FORA dessas lanes NUNCA pode ficar verde → req_sem_lane
+// (o @covers-us existe mas o verde é estruturalmente impossível — fachada). fs-puro (1 lista + dirs).
+let _laneEntries = null;
+function laneEntries() {
+  if (_laneEntries) return _laneEntries;
+  _laneEntries = [];
+  const list = join(ROOT, '.github', 'ci-sqlite-pest.list');
+  if (existsSync(list)) for (const ln of readFileSync(list, 'utf8').split(/\r?\n/)) {
+    const e = ln.trim().replace(/\/+$/, '');
+    if (e && !e.startsWith('#')) _laneEntries.push(e);
+  }
+  return _laneEntries;
+}
+// lanes de módulo que PRODUZEM junit-summary (financeiro/jana/nfebrasil-pest.yml). Conservador: o
+// resto (modules-pest etc.) NÃO alimenta o verde gate hoje; ci-sqlite-pest.list cobre o avulso.
+const JUNIT_MODULE_LANES = ['Modules/Financeiro/Tests', 'Modules/Jana/Tests', 'Modules/NfeBrasil/Tests'];
+function inLane(rel) {
+  const r = String(rel).replace(/\\/g, '/');
+  if (JUNIT_MODULE_LANES.some((d) => r === d || r.startsWith(`${d}/`))) return true;
+  return laneEntries().some((e) => r === e || r.startsWith(`${e}/`));
+}
+
 // refs de teste mortas numa linha `**Testado em:**` (path .php inexistente OU
 // ClassName…Test sem arquivo correspondente). _lacuna_ em itálico (sem backtick) = ignorado.
 function deadTestRefs(rest, specDir) {
@@ -418,12 +447,15 @@ function lintSpec(file) {
   // G1b-entry (gate de entrada): US que se diz IMPLEMENTADA precisa de aceite + teste-que-cobre
   // G1b-verde (Phase B): ...e esse teste-que-cobre tem que estar VERDE no JUnit (se --junit dado).
   const { coveredUs, usFiles } = collectCoversIndex(testadoLines, specDir);
-  const reqSemAceite = [], reqSemTeste = [], reqTesteVermelho = [];
+  const reqSemAceite = [], reqSemTeste = [], reqTesteVermelho = [], reqSemLane = [];
   for (const u of usList) {
     const st = u.fields[0] && u.fields[0].state;
     if (st !== 'anchored_ok' && st !== 'parcial') continue; // _pendente_/dead/zombie/sem_campo não entram
     if (!u.hasDod) reqSemAceite.push({ us: u.id, line: u.line });
     if (!coveredUs.has(u.id)) { reqSemTeste.push({ us: u.id, line: u.line }); continue; } // sem teste = G1b-entry, não verde
+    // G1c (item b): tem teste-que-cobre, mas NENHUM numa lane de JUnit → verde estruturalmente impossível
+    const coverFiles = [...usFiles.get(u.id)];
+    if (!coverFiles.some((rel) => inLane(rel))) reqSemLane.push({ us: u.id, line: u.line, tests: coverFiles });
     // tem teste-que-cobre declarado → se temos JUnit, exige ≥1 arquivo VERDE (senão behavior_unknown)
     if (junitFiles) {
       const tests = [...usFiles.get(u.id)].map((rel) => ({ file: rel, status: junitStatus(rel) }));
@@ -438,6 +470,7 @@ function lintSpec(file) {
     orphan_fields: orphans.length, anchor_format_v1: isV1, dead: deadList, zombie: zombieList,
     dead_tests: deadTests, testado_sem_covers: testadoSemCovers, testado_lines: testadoLines.length, v1_violations: v1Violations,
     req_sem_aceite: reqSemAceite, req_sem_covering_test: reqSemTeste, req_teste_vermelho: reqTesteVermelho,
+    req_sem_lane: reqSemLane,
   };
 }
 
@@ -513,6 +546,9 @@ const reqSemAceiteTotal = modules.reduce((a, m) => a + m._aceite_active.length, 
 const reqSemTesteTotal = modules.reduce((a, m) => a + m._teste_active.length, 0);
 // verde (G1b Phase B) NÃO é grandfatherado pelo --baseline (gate à parte, dormente sem --junit).
 const reqTesteVermelhoTotal = modules.reduce((a, m) => a + m.req_teste_vermelho.length, 0);
+// req_sem_lane (G1c · item b): teste-que-cobre fora das lanes de JUnit → verde impossível. NÃO
+// grandfatherado (gate à parte, advisory; só morde com --check-lane).
+const reqSemLaneTotal = modules.reduce((a, m) => a + m.req_sem_lane.length, 0);
 
 for (const m of modules) m.flag = m.us_total === 0 ? '🟡' : (m.counts.anchored_dead > 0 || m.counts.anchored_zombie > 0 || m.dead_tests.length || m.v1_violations.length || m.coverage_pct === 0) ? '🔴' : m.coverage_pct === 100 ? '🟢' : '🟡';
 
@@ -540,7 +576,7 @@ const report = {
     fields_grammar_ok: sum('fields_grammar_ok'), orphan_fields: sum('orphan_fields'),
     dead_tests_total: deadTestsTotal, testado_sem_covers_total: testadoSemCoversTotal,
     req_sem_aceite_total: reqSemAceiteTotal, req_sem_covering_test_total: reqSemTesteTotal,
-    req_teste_vermelho_total: reqTesteVermelhoTotal, behavior_known: JUNIT ? true : false,
+    req_teste_vermelho_total: reqTesteVermelhoTotal, req_sem_lane_total: reqSemLaneTotal, behavior_known: JUNIT ? true : false,
     baseline_applied: BASELINE ? BASELINE_PATH : null,
     grandfathered: { aceite: grandfatheredAceite, covering_test: grandfatheredTeste, covers: grandfatheredCovers },
     v1_files: modules.filter((m) => m.anchor_format_v1).length, v1_violations: sum('v1_violations'),
@@ -563,6 +599,7 @@ for (const m of modules) {
   for (const r of m._aceite_active) console.log(`       📋 ${r.us} (L${r.line}): diz IMPLEMENTADA mas SEM aceite/DoD definido (regra de entrada)`);
   for (const r of m._teste_active) console.log(`       🚪 ${r.us} (L${r.line}): diz IMPLEMENTADA mas NENHUM teste declara @covers-us dela (regra sem teste)`);
   for (const r of m.req_teste_vermelho) console.log(`       🟥 ${r.us} (L${r.line}): diz IMPLEMENTADA + tem teste-que-cobre, mas NENHUM arquivo-de-teste está verde no JUnit → ${r.tests.map((t) => `${t.file} [${t.status}]`).join(' · ')}`);
+  for (const r of m.req_sem_lane) console.log(`       🚦 ${r.us} (L${r.line}): tem teste-que-cobre mas NENHUM numa lane de JUnit (verde impossível) → ${r.tests.join(' · ')}`);
   for (const v of m.v1_violations) console.log(`       ✗ v1 L${v.line}: não casa gramática ADR 0273 §1 → ${v.raw}`);
 }
 console.log('  ' + '─'.repeat(82));
@@ -570,6 +607,7 @@ console.log(`\n  ANCHOR COVERAGE GLOBAL: ${coverage}%  (= (${byState.anchored_ok
 console.log(`  Campos: ${report.summary.fields_total} total · ${report.summary.fields_placeholder} placeholder · ${report.summary.fields_grammar_ok} já na gramática v1 · ${report.summary.orphan_fields} órfãos (fora de bloco US)`);
 console.log(`  Estados por US: sem_campo ${byState.sem_campo} · placeholder ${byState.placeholder} · pendente ${byState.pendente} · parcial ${byState.parcial} · anchored_ok ${byState.anchored_ok} · anchored_dead ${byState.anchored_dead} · anchored_zombie ${byState.anchored_zombie}`);
 console.log(`  Testes-fantasma (dead_tests): ${deadTestsTotal}`);
+console.log(`  Cobertura fora de lane (advisory · item b): ${reqSemLaneTotal} US com teste-que-cobre fora das lanes de JUnit (verde impossível até entrar numa lane)`);
 console.log(`  Testado sem covers (teste existe mas não declara @covers-us · advisory): ${testadoSemCoversTotal}`);
 console.log(`  Gate de entrada (advisory): ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre${BASELINE ? ` (ATIVOS, pós-baseline)` : ''}`);
 if (BASELINE) console.log(`  Grandfather (${BASELINE_PATH}): ${grandfatheredAceite} aceite + ${grandfatheredTeste} teste + ${grandfatheredCovers} covers isentos (no-new-lie · ratchet só-desce · ADR 0275)`);
@@ -581,4 +619,5 @@ if (CHECK_COVERS && testadoSemCoversTotal > 0) process.exit(1);
 // --check-entry ganha a 3ª exigência (verde) — só morde quando --junit dá o sinal (senão behavior_unknown=0).
 if (CHECK_ENTRY && (reqSemAceiteTotal > 0 || reqSemTesteTotal > 0 || reqTesteVermelhoTotal > 0)) process.exit(1);
 if (CHECK_VERDE && reqTesteVermelhoTotal > 0) process.exit(1);
+if (CHECK_LANE && reqSemLaneTotal > 0) process.exit(1);
 process.exit(0);
