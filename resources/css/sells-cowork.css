@@ -2802,7 +2802,7 @@
    VENDAS · REFINO #1 KB-9.75 · FUNDAÇÃO (2026-05-15)
    SLA pill · J/K row-nav · tree-view · cheat-sheet · ⌘K prefixos
    ═══════════════════════════════════════════════════════════════════ */
-/* ── SLA pill ── (fresco · atrasando · estourado · paga) */
+/* ── SLA pill ── (fresco · atrasando · estourado · paga) → escala canônica --sla-* (ADR 0310) */
 .sells-cowork .vendas-aplus .vd-sla {
   display: inline-flex; align-items: center; gap: 4px;
   padding: 2px 7px; border-radius: 4px;
@@ -2810,10 +2810,10 @@
   letter-spacing: 0.01em; white-space: nowrap;
 }
 .sells-cowork .vendas-aplus .vd-sla .vd-sla-ic { font-size: var(--fs-1); line-height: 1; }
-.sells-cowork .vendas-aplus .vd-sla-fresh { background: oklch(0.94 0.06 145); color: oklch(0.32 0.13 145); }
-.sells-cowork .vendas-aplus .vd-sla-warning { background: oklch(0.96 0.06 70);  color: oklch(0.42 0.13 60); }
-.sells-cowork .vendas-aplus .vd-sla-overdue { background: oklch(0.95 0.04 25);  color: oklch(0.50 0.18 25); }
-.sells-cowork .vendas-aplus .vd-sla-paid { background: var(--bg-2); color: var(--text-mute); }
+.sells-cowork .vendas-aplus .vd-sla-fresh { background: var(--sla-fresh-soft); color: var(--sla-fresh); }
+.sells-cowork .vendas-aplus .vd-sla-warning { background: var(--sla-aging-soft); color: var(--sla-aging); }
+.sells-cowork .vendas-aplus .vd-sla-overdue { background: var(--sla-expired-soft); color: var(--sla-expired); }
+.sells-cowork .vendas-aplus .vd-sla-paid { background: var(--sla-paid-soft); color: var(--sla-paid); }
 /* SLA mini-pills no KPI A receber */
 .sells-cowork .vendas-aplus .vd-sla-counts {
   display: inline-flex; gap: 6px; flex-wrap: wrap;
