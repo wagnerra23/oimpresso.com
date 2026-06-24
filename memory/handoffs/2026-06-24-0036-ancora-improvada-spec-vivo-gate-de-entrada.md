@@ -1,7 +1,10 @@
 ---
 date: "2026-06-24"
-hour: "00:36 BRT"
+time: "00:36 BRT"
+slug: ancora-improvada-spec-vivo-gate-de-entrada
+tldr: "Programa spec-vivo de endurecer a âncora spec↔código: G1a covers + G1b gate de entrada (advisory) + reconciliação NfeBrasil + lane MySQL fiscal (12 fails reais que o sqlite mascarava) + fato dos ~150 clientes Delphi. 16 PRs mergeados. 3 chips spawnados pra continuar."
 topic: "Programa âncora-improvada (spec-vivo): gate de entrada que exige aceite+teste, sob a escala real de ~150 clientes Delphi"
+cycle: CYCLE-08
 duration: "épica (16 PRs)"
 authors: [C]
 ---
