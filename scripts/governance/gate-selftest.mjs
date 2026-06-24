@@ -391,6 +391,22 @@ const CATRACAS = [
     run: (kind) => runNode(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), ['--check-lane'], join(FIX, 'anchor-testado-sem-lane', kind)),
     expect: { good: /fora de lane[^\n]*: 0 US/, bad: /NENHUM numa lane de JUnit/ },
   },
+  {
+    // detectar-telas (gate de import Fase 0/0.5 · B2 audit 2026-06-24): "0 telas perdidas em
+    // silêncio". NÃO precisa de sandbox — detectar-telas.mjs recebe --staging/--repo explícitos e
+    // resolve seu próprio dir via import.meta.url (não usa process.cwd()) → roda o script REAL no
+    // lugar apontando os dois flags pros subtrees da fixture. good = staging onde vendas-page.jsx
+    // resolve via ALIAS → Sells/Index.tsx (SEMANTICO) ⇒ 0 órfãos (exit 0, "OK — 0 telas órfãs");
+    // bad = staging com mistero-page.jsx órfão (sem charter nem alias) ⇒ exit 1 ("GATE FALHOU").
+    // A acusação sai em stderr — runNode captura stdout+stderr juntos, então o regex casa.
+    id: 'detectar-telas',
+    run: (kind) => {
+      const fx = join(FIX, 'detectar-telas', kind);
+      return runNode(script('detectar-telas', 'prototipo-ui/detectar-telas.mjs'),
+        ['--staging', join(fx, 'staging'), '--repo', join(fx, 'repo')], ROOT);
+    },
+    expect: { good: /0 telas órfãs/, bad: /GATE FALHOU/ },
+  },
 ];
 
 const results = [];
