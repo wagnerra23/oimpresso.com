@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-072
 
 namespace Tests\Feature\Contact;
 

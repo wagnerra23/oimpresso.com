@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-076
 
 use App\Business;
 use App\User;

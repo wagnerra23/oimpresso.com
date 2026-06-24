@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-064
 
 // Wave B — US-CRM-064 Tab Ledger inline
 // Restrição Tier 0 ADR 0093: backend ContactController::getLedger() filtra business_id.

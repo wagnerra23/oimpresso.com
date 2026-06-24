@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-063
 
 // Wave A — US-CRM-063 Tab Pagamentos
 // Restrição Tier 0 ADR 0093: backend endpoint /contacts/payments/{id} já filtra por business_id global scope.

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-065
 
 /**
  * Fix 2026-06-08 — endpoint JSON das vendas do cliente (drawer Operacoes -> Vendas).
