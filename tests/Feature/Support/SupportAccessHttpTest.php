@@ -38,11 +38,11 @@ function supportHttpReady(): bool
         && Schema::hasTable('support_access_logs');
 }
 
-function makeHttpAgent(string $username, bool $grant = true): User
+function makeHttpAgent(string $username, bool $grant = true, int $businessId = BIZ_OPERADOR_HTTP): User
 {
     $user = User::firstOrCreate(
         ['username' => $username],
-        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => BIZ_OPERADOR_HTTP, 'first_name' => 'Ag']
+        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => $businessId, 'first_name' => 'Ag']
     );
 
     if ($grant) {
@@ -104,7 +104,9 @@ it('usuário SEM capability é bloqueado (403) na visão e na listagem', functio
         test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
     }
 
-    $naoAgente = makeHttpAgent('http_nao_agente', grant: false);
+    // Sem capability = usuário de CLIENTE (biz≠operadora) sem concessão. NÃO pode ser
+    // biz=1: pela ADR 0309 todo usuário da operadora já é agente (senão o teste mentiria).
+    $naoAgente = makeHttpAgent('http_nao_agente', grant: false, businessId: BIZ_CLIENTE_HTTP);
 
     $this->actingAs($naoAgente)->get('/__suporte_probe/'.BIZ_CLIENTE_HTTP)->assertStatus(403);
     $this->actingAs($naoAgente)->get('/__suporte_probe')->assertStatus(403);
@@ -118,4 +120,15 @@ it('agente autorizado passa na listagem (sem param business, sem auditoria)', fu
     $agent = makeHttpAgent('http_agent_list');
 
     $this->actingAs($agent)->get('/__suporte_probe')->assertStatus(200);
+});
+
+it('usuário da operadora (biz=1) é agente SEM concessão explícita (ADR 0309)', function () {
+    if (! supportHttpReady()) {
+        test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
+    }
+
+    // biz=1 (operadora) e SEM linha em support_agents — passa só pela regra de membership.
+    $operadorStaff = makeHttpAgent('http_operador_staff', grant: false, businessId: BIZ_OPERADOR_HTTP);
+
+    $this->actingAs($operadorStaff)->get('/__suporte_probe/'.BIZ_CLIENTE_HTTP)->assertStatus(200);
 });

@@ -134,6 +134,27 @@ it('revogar a concessão tira o acesso (isSupportAgent vira false)', function ()
     expect($svc->isSupportAgent($agent))->toBeFalse();
 });
 
+it('usuário da operadora (biz=1) é agente SEM concessão explícita (ADR 0309)', function () {
+    if (! supportSchemaReady()) {
+        test()->markTestSkipped('Schema MySQL UltimatePOS + support_agents ausente (ADR 0101).');
+    }
+
+    $this->seededTenant();
+    Business::firstOrCreate(['id' => BIZ_CLIENTE_SUP], ['name' => 'Cliente Sup 99', 'currency_id' => 1]);
+
+    // biz=1 (operadora) + NENHUMA linha em support_agents — agente só por membership.
+    $operadorStaff = User::firstOrCreate(
+        ['username' => 'sup_operador_staff'],
+        ['email' => 'sup_operador_staff@test.local', 'password' => bcrypt('x'), 'business_id' => BIZ_OPERADOR_SUP, 'first_name' => 'Op']
+    );
+    SupportAgent::query()->where('user_id', $operadorStaff->id)->delete();
+
+    $svc = new SupportAccessService();
+    expect($svc->isSupportAgent($operadorStaff))->toBeTrue();                          // membership
+    expect($svc->canAccessBusiness($operadorStaff, BIZ_CLIENTE_SUP))->toBeTrue();      // alcança cliente
+    expect($svc->canAccessBusiness($operadorStaff, BIZ_OPERADOR_SUP))->toBeFalse();    // nunca a própria operadora
+});
+
 it('agente de suporte NÃO escala pra superadmin (fora de ADMINISTRATOR_USERNAMES)', function () {
     if (! supportSchemaReady()) {
         test()->markTestSkipped('Schema MySQL UltimatePOS + support_agents ausente (ADR 0101).');
