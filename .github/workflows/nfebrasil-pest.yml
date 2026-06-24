@@ -90,14 +90,17 @@ jobs:
         # lote de fix dos testes adiciona arquivos AQUI (ratchet up) — arming a required por
         # calendário (ADR 0275).
         #
-        # 1ª run (2026-06-23, run 28066696584 · 12 failed / 60 passed): os 5 arquivos abaixo
-        # excluídos NÃO revelaram bug fiscal de produção — TODAS as 12 falhas são defeito de
-        # TESTE/HARNESS que o lane sqlite escondia (os testes SKIPavam lá). Diagnóstico
-        # arquivo-a-arquivo em memory/sessions/2026-06-23-nfebrasil-mysql-lane-achados.md.
-        #   - NfeBrasilMultiTenantIsolationTest — não faz actingAs() + usa session('business.id')
-        #     enquanto ScopeByBusiness lê session('user.business_id') + early-return sem auth →
-        #     o scope (PRODUÇÃO-CORRETO) no-opa e os asserts negativos falham. Os 2 testes
-        #     `SHOW COLUMNS ... LIKE ?` usam SQL não-portável (placeholder em SHOW).
+        # 1ª run (2026-06-23, run 28066696584 · 12 failed / 60 passed): os arquivos abaixo,
+        # excluídos na 1ª run, NÃO revelaram bug fiscal de produção — TODAS as 12 falhas são
+        # defeito de TESTE/HARNESS que o lane sqlite escondia (os testes SKIPavam lá).
+        # Diagnóstico arquivo-a-arquivo em memory/sessions/2026-06-23-nfebrasil-mysql-lane-achados.md.
+        #
+        # RATCHET UP — já re-adicionados (verde após fix do teste):
+        #   - NfeBrasilMultiTenantIsolationTest (2026-06-24): actingAs(user biz=1) +
+        #     session('user.business_id') faz o scope exercitar isolamento de verdade;
+        #     `SHOW COLUMNS ... LIKE ?` → information_schema (portável). De volta na allowlist.
+        #
+        # Ainda excluídos (sobem conforme o fix do teste fica verde):
         #   - Wave25NfeSaturationTest — 1 teste de count() cross-tenant pela MESMA causa (sem auth).
         #   - NfeServiceIdempotenciaRetryTest — `new NfeService()` com 0 args (constructor exige
         #     CertificadoService) → ArgumentCountError.
@@ -119,7 +122,8 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-nfebrasil-junit.xml \
             Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php \
-            Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php
+            Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php
 
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
