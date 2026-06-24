@@ -1,0 +1,4 @@
+{
+  "_meta": { "schema": "prod-flags/v1", "fixture": "BAD — prod-flags vazio: o charter live não tem sinal" },
+  "live": {}
+}

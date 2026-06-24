@@ -1,0 +1,6 @@
+{
+  "_meta": { "schema": "prod-flags/v1", "fixture": "GOOD — Selftest/LiveOk está live pra biz=1" },
+  "live": {
+    "Selftest/LiveOk": ["1"]
+  }
+}
