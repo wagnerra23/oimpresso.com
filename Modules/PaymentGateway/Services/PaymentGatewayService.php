@@ -347,4 +347,24 @@ class PaymentGatewayService implements PaymentGatewayContract
 
         return Container::getInstance()->make($class);
     }
+
+    /**
+     * Resolve uma instância de driver direto pela gateway_key (sem credencial).
+     *
+     * Usado pelo linkage de webhook (CobrancaWebhookResolver) onde só temos a
+     * gateway_key da linha de gateway_webhook_events. Diferente de driverFor():
+     * retorna null pra gateway desconhecida em vez de lançar — no contexto de
+     * webhook/cron um driver ausente significa "não dá pra linkar" (fica órfão),
+     * NÃO um erro fatal que derruba a ingestão do webhook.
+     */
+    public function driverForKey(string $gatewayKey): ?PaymentDriverContract
+    {
+        $class = self::DRIVERS[$gatewayKey] ?? null;
+
+        if ($class === null) {
+            return null;
+        }
+
+        return Container::getInstance()->make($class);
+    }
 }
