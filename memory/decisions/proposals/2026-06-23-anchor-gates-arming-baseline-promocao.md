@@ -92,6 +92,13 @@ Ver **Runbook de promoção** abaixo. Só o Wagner flipa a branch protection (AD
 
 > **Opcional no mesmo PR:** renomear o job pra dropar o sufixo `(advisory)` (atualizando o contexto nos 2 lugares juntos) — os jobs irmãos `anchor-lint`/`doneness-lint` seguem a mesma convenção "(advisory) até promover".
 
+## Integração com a Phase B verde ([#3318](https://github.com/wagnerra23/oimpresso.com/pull/3318))
+
+Em paralelo, a [#3318](https://github.com/wagnerra23/oimpresso.com/pull/3318) (G1b-verde) adicionou `anchor-lint --junit --check-verde` (prova de comportamento VERDE-por-arquivo via JUnit). É uma **dimensão ORTOGONAL** à do arming: `--check-entry` ganhou a 3ª exigência (`req_teste_vermelho`). Reconciliado por merge (commit de merge na branch):
+
+- O `--baseline` grandfathera **entry-aceite/entry-teste/covers**; `req_teste_vermelho` (verde) **NÃO** entra no baseline — é gate à parte, **dormente sem `--junit`** (o job `anchor-entry-covers` não passa `--junit`, então a dimensão verde não morde por ele). Grandfather de verde é trabalho futuro acoplado ao lane JUnit (MySQL fiscal).
+- `gate-selftest` ficou **30/30** (13 base + `anchor-lint-verde` da #3318 + `anchor-lint-entry-baseline` deste PR) — ambas as catracas provam que mordem.
+
 ## Consequências
 
 - ✅ Fecha o pedido do Wagner: regra nova (US implementada) sem aceite + teste-que-cobre não entra — sem refazer o que já foi provado.
