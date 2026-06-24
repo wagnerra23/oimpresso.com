@@ -11,7 +11,7 @@ status: ativo
 > `@covers-us US-SLFV-001`, e o JUnit summary marca o arquivo-de-teste como VERDE
 > (passed>0, fail=0) → 0 `req_teste_vermelho` → `--check-verde` sai 0.
 >
-> A diferença good/bad está SÓ no `test-results/pest-verde-junit.summary.json`: o SPEC,
+> A diferença good/bad está SÓ no `junit/pest-verde-junit.summary.json`: o SPEC,
 > o Service e o Test são idênticos — isola a regra verde (não confunde com aceite/cobertura).
 
 **Implementado em:** `Modules/SelftestVerde/Services/VerdeService.php`

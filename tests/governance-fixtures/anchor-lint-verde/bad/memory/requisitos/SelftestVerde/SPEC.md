@@ -12,7 +12,7 @@ status: ativo
 > `skipped` (markTestSkipped: passed=0). Pela regra dura `skipped != passed`, isso NÃO
 > é verde → `req_teste_vermelho` → `--check-verde` sai 1.
 >
-> A diferença good/bad está SÓ no `test-results/pest-verde-junit.summary.json`: o SPEC,
+> A diferença good/bad está SÓ no `junit/pest-verde-junit.summary.json`: o SPEC,
 > o Service e o Test são idênticos — isola a regra verde (não confunde com aceite/cobertura).
 
 **Implementado em:** `Modules/SelftestVerde/Services/VerdeService.php`

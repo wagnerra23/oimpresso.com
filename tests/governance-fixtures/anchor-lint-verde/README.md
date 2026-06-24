@@ -8,9 +8,12 @@ Prova que `anchor-lint --junit <summary.json> --check-verde` MORDE a regra **ver
 - **bad/** → tudo igual ao good, MAS o JUnit summary marca o arquivo só como `skipped:1`
   (`passed:0`) → pela regra dura `skipped != passed` NÃO é verde → `req_teste_vermelho` → **exit 1**.
 
-A diferença good↔bad está **só** no `test-results/pest-verde-junit.summary.json` (o `SPEC.md`, o
+A diferença good↔bad está **só** no `junit/pest-verde-junit.summary.json` (o `SPEC.md`, o
 `Service.php` e o `Test.php` são byte-a-byte idênticos) — isso isola a regra verde, sem confundir
 com o gate de entrada (aceite/cobertura, fixture `anchor-lint-entry`).
+
+> O summary vive em **`junit/`**, não em `test-results/` — esse path é gitignored
+> (`.gitignore:86`), e o JSON precisa estar **committed** pra catraca rodar no CI.
 
 ## Por que o caso `skipped` (e não `failed`)
 

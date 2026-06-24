@@ -204,7 +204,8 @@ function runAnchorLintEntry(kind) {
 }
 
 // anchor-lint --junit <summary.json> --check-verde (G1b Phase B): verde-por-arquivo. Mesmo
-// sandbox por cwd; a fixture carrega o JUnit summary (junit-summary/v1) em test-results/. good =
+// sandbox por cwd; a fixture carrega o JUnit summary (junit-summary/v1) em junit/ (NÃO em
+// test-results/ — esse path é gitignored, o summary não sobreviveria ao commit). good =
 // arquivo-de-teste-que-cobre VERDE (passed) → exit 0; bad = mesmo SPEC/teste, mas o summary só
 // marca skipped (markTestSkipped) → NÃO-verde (skipped != passed) → exit 1, acusação 🟥. Fixture
 // ISOLADA (SelftestVerde) — good/bad diferem SÓ no summary JSON (prova que a regra é a verde).
@@ -215,7 +216,7 @@ function runAnchorLintVerde(kind) {
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
-      ['--junit', 'test-results/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
