@@ -23,15 +23,24 @@ name: SDD Scorecard publish (commit-back do floor · ADR 0279)
 # baseline (armed:true após 3 medições válidas) é P02. Sem P02, o floor MEDE mas
 # ainda não GOVERNA; este workflow garante apenas que o número chega correto.
 #
-# Triggers: APENAS schedule + workflow_dispatch — NUNCA pull_request (evita recursão:
-# governance/sdd-scorecard.json está nos paths: do trigger de sdd-scorecard.yml, então
-# o commit-back podia disparar a suíte; o [skip ci] + ausência de trigger pull_request
-# aqui blindam isso). Cron 10:10 UTC (07:10 BRT) — depois da nightly CT100 (02:00 UTC)
-# e do scorecard advisory (09:50 UTC), pra commitar o floor já fresco do dia.
+# Triggers: schedule + push(main · paths SPEC/scripts) + workflow_dispatch — NUNCA pull_request.
+# O push(main) fecha o item (c) "frescor" da proposta 2026-06-24: SPEC mergeado RECOMPUTA o
+# scorecard na hora (anchor_coverage etc.) em vez de esperar até 1 dia pelo cron — o número que o
+# time enxerga no main para de mentir por defasagem. RECURSÃO-SAFE: o commit-back é [skip ci] (pula
+# todos os workflows) E só toca governance/sdd-scorecard.json, que NÃO está nos paths do push aqui.
+# NUNCA pull_request (sdd-scorecard.json está nos paths de sdd-scorecard.yml — disparo em PR recursaria).
+# Cron 10:10 UTC (07:10 BRT) vira BACKSTOP — pós-nightly CT100 (02:00) + scorecard advisory (09:50);
+# pega o floor nightly + drift de código-move-sem-SPEC (que o push de SPEC não cobre).
 
 on:
   schedule:
-    - cron: '10 10 * * *' # 07:10 BRT diário (pós-nightly CT100 + pós-scorecard advisory)
+    - cron: '10 10 * * *' # 07:10 BRT diário (pós-nightly CT100 + pós-scorecard advisory) — BACKSTOP
+  push:
+    branches: [main]
+    paths: # frescor (item c · proposta 2026-06-24): fontes vivas do scorecard que mudam no merge
+      - 'memory/requisitos/**/SPEC.md'
+      - 'scripts/governance/sdd-scorecard.mjs'
+      - 'scripts/governance/anchor-lint.mjs'
   workflow_dispatch:
 
 concurrency:
