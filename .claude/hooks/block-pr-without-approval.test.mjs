@@ -39,9 +39,31 @@ const PUSH = { hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { c
 const PR = { hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'gh pr create --base main' } };
 const STATUS = { hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'git status --short' } };
 const prompt = (t) => ({ hook_event_name: 'UserPromptSubmit', prompt: t });
+// UserPromptSubmit com transcript_path apontando pra um JSONL fake (gate de contexto).
+const promptTC = (t, tp) => ({ hook_event_name: 'UserPromptSubmit', prompt: t, transcript_path: tp });
+
+// Escreve um transcript JSONL temporario com o turno do assistente (e opcionalmente
+// o turno do usuario depois). Espelha o formato real lido pelo hook.
+let _tc = 0;
+const _transcripts = [];
+function makeTranscript(assistantText, userText) {
+  const file = join(tmpdir(), `oimpresso-r10-tc-${process.pid}-${_tc++}.jsonl`);
+  const lines = [];
+  if (assistantText != null) {
+    lines.push(JSON.stringify({ type: 'assistant', message: { role: 'assistant', content: [{ type: 'text', text: assistantText }] } }));
+  }
+  if (userText != null) {
+    lines.push(JSON.stringify({ type: 'user', message: { role: 'user', content: [{ type: 'text', text: userText }] } }));
+  }
+  writeFileSync(file, lines.join('\n') + '\n', 'utf8');
+  _transcripts.push(file);
+  return file;
+}
 
 let fails = 0;
+let total = 0;
 function check(name, cond) {
+  total++;
   if (cond) {
     console.log(`[OK] ${name}`);
   } else {
@@ -142,10 +164,74 @@ check('gh api /pulls/N/comments (comentario) -> ALLOW', runHook(bash('gh api rep
 clearFlag();
 check('git -c k=v log (nao-push) -> ALLOW', runHook(bash('git -c core.pager=cat log --oneline')).code === 0);
 
+// --- Afirmativos CURTOS sob gate de contexto (opcao a, incidente PR #3358) ---
+
+// 22. "ok" APOS o assistente perguntar "...abro o PR?" -> APROVA -> push ALLOW.
 clearFlag();
+{
+  const tp = makeTranscript('Rodei os testes, tudo verde. Commito + abro o PR?', null);
+  runHook(promptTC('ok', tp));
+  check('"ok" apos "abro o PR?" -> APROVA -> push ALLOW', existsSync(FLAG) && runHook(PUSH).code === 0);
+}
+
+// 23. "aprovo" apos pergunta de merge -> APROVA (flag criada).
+clearFlag();
+{
+  const tp = makeTranscript('Posso mergear o PR #10 agora?', null);
+  runHook(promptTC('aprovo', tp));
+  check('"aprovo" apos "posso mergear?" -> APROVA', existsSync(FLAG));
+}
+
+// 24. CONSERVADORIA: "ok" quando o assistente perguntou OUTRA coisa -> NAO aprova -> BLOCK.
+clearFlag();
+{
+  const tp = makeTranscript('Qual cor voce prefere pro botao primario, azul ou verde?', null);
+  runHook(promptTC('ok', tp));
+  check('"ok" incidental (pergunta nao-publish) -> NAO aprova -> BLOCK', !existsSync(FLAG) && runHook(PUSH).code === 2);
+}
+
+// 25. CONSERVADORIA: "ok" sem transcript_path -> NAO aprova (falha-fecha) -> BLOCK.
+clearFlag();
+runHook(promptTC('ok', undefined));
+check('"ok" sem transcript -> NAO aprova (fail-closed) -> BLOCK', !existsSync(FLAG) && runHook(PUSH).code === 2);
+
+// 26. ROBUSTEZ DE TIMING: o "ok" do usuario ja gravado como ultima linha do transcript
+//     -> hook ainda le o turno do assistente anterior -> APROVA.
+clearFlag();
+{
+  const tp = makeTranscript('Tudo pronto. Quer que eu abra o PR?', 'ok');
+  runHook(promptTC('ok', tp));
+  check('transcript com user "ok" no fim -> le assistant anterior -> APROVA', existsSync(FLAG));
+}
+
+// 27. CONSERVADORIA: "isso" quando o assistente so MENCIONOU um PR (sem oferecer publicar)
+//     -> NAO aprova (menção narrativa nao e oferta) -> BLOCK.
+clearFlag();
+{
+  const tp = makeTranscript('Esse PR #99 ja foi mergeado semana passada. Seguimos no fix entao?', null);
+  runHook(promptTC('isso', tp));
+  check('"isso" apos PR mencionado sem oferta -> NAO aprova -> BLOCK', !existsSync(FLAG) && runHook(PUSH).code === 2);
+}
+
+// 28. CONSERVADORIA: negacao curta apos pergunta de publish -> NAO aprova (deny precede).
+clearFlag();
+{
+  const tp = makeTranscript('Commito e abro o PR?', null);
+  runHook(promptTC('nao, espera', tp));
+  check('"nao, espera" apos pergunta de publish -> NAO aprova -> BLOCK', !existsSync(FLAG) && runHook(PUSH).code === 2);
+}
+
+clearFlag();
+for (const f of _transcripts) {
+  try {
+    if (existsSync(f)) unlinkSync(f);
+  } catch {
+    /* silent */
+  }
+}
 console.log('');
 if (fails === 0) {
-  console.log('[PASS] R10 enforçada pela MÁQUINA — sobrevive sem a skill. (21/21)');
+  console.log(`[PASS] R10 enforçada pela MÁQUINA — sobrevive sem a skill. (${total}/${total})`);
   process.exit(0);
 } else {
   console.log(`[FAIL] ${fails} caso(s) — R10 NÃO está garantida pela máquina. NÃO rebaixar a skill.`);

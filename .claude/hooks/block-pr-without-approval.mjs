@@ -16,6 +16,14 @@
 //   1. UserPromptSubmit: se a mensagem do Wagner contém sinal de aprovação de
 //      PUBLICAÇÃO (pode fazer/pode pushar/merge/manda/aprovado...), grava flag
 //      com timestamp em tmpdir. TTL 15min.
+//   1b. Afirmativo CURTO ("ok", "aprovo", "blz", "isso", "fechou"...) é ambíguo
+//      isolado, então só conta como aprovação quando o ÚLTIMO turno do assistente
+//      (lido do `transcript_path` do payload) perguntou/ofereceu PUBLICAR ("abro o
+//      PR?", "posso mergear?", "quer que eu commite + pushe?"). Casa a intenção real
+//      do Wagner (responder "ok" a uma pergunta de publicação É aprovação genuína)
+//      SEM afrouxar: "ok" solto no meio de outra conversa NÃO cria flag. Incidente
+//      origem: PR #3358 (Wagner respondeu "ok"/"aprovo" a "commito + abro o PR?" e
+//      o hook não casou — só passou via OIMPRESSO_PR_APPROVAL_OVERRIDE=1).
 //   2. PreToolUse Bash/PowerShell: se o Claude tenta PUBLICAR — `gh pr create|merge`,
 //      `gh api` escrevendo em /pulls (criar PR) ou /pulls/N/merge, ou `git push`
 //      (inclusive `ENV=val git push` e `git -c k=v push`) — exige flag válida.
@@ -30,6 +38,11 @@
 //     + enforce_admins (já ativos) — este hook é o PRIMEIRO filtro, não o último.
 //   - Conservador: na dúvida, NÃO aprova (falso-negativo < falso-positivo). Lê (GET)
 //     e comentários (/pulls/N/comments, /issues/N/comments) NÃO bloqueiam.
+//   - Afirmativo curto (1b) é gateado pelo CONTEXTO, não solto: exige que o assistente
+//     tenha oferecido publicar no turno anterior. Risco residual conhecido: se o
+//     assistente mencionar publicar em tom interrogativo e o "ok" do Wagner for sobre
+//     OUTRA coisa, abre janela de 15min — coberto pela defesa de fundo (branch
+//     protection). Falha-fecha: sem transcript legível, afirmativo curto NÃO aprova.
 //   - Escape valve: OIMPRESSO_PR_APPROVAL_OVERRIDE=1 (justificar no chat).
 //
 // Exit: 0 = continua | 2 = bloqueia (stderr vira razão pro Claude)
@@ -37,7 +50,7 @@
 import { stdin } from 'node:process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { existsSync, writeFileSync, readFileSync, unlinkSync } from 'node:fs';
+import { existsSync, writeFileSync, readFileSync, unlinkSync, openSync, fstatSync, readSync, closeSync } from 'node:fs';
 
 const FLAG = join(tmpdir(), 'oimpresso-pr-approval.flag');
 const TTL_MIN = 15;
@@ -61,10 +74,123 @@ const denyPatterns = [
   /\b(pare|espera|aguarda|aguarde|nunca|cancela|cancele|n[aã]o\s+merge)\b/i,
 ];
 
-function isApproval(text) {
+// Afirmativos CURTOS — ambíguos isolados. Só contam como aprovação quando o ÚLTIMO
+// turno do assistente ofereceu PUBLICAR (ver assistantAskedToPublish). Muitos destes
+// já casam um approvePattern FORTE (pode/manda ver/...); duplicar aqui é inofensivo —
+// o forte resolve antes do gate de contexto.
+const SHORT_AFFIRMATIVES = new Set([
+  'ok', 'okay', 'okok', 'blz', 'beleza', 'bele', 'belê',
+  'isso', 'isso mesmo', 'isso ai', 'isso aí', 'exato', 'exatamente',
+  'fechou', 'fechado', 'feito',
+  'aprovo', 'aprovado', 'aprova',
+  'sim', 'sim sim', 'sim pode', 'pode sim', 'pode',
+  'manda', 'manda ver', 'manda bala', 'manda brasa', 'bora', 'vamos', 'vamo',
+  'vai', 'vai la', 'vai lá', 'vai em frente',
+  'perfeito', 'show', 'show de bola', 'certo', 'positivo', 'confirmo', 'confirmado',
+  'ta', 'tá', 'ta bom', 'tá bom', 'ta bem', 'tá bem', 'ok pode', 'ok pode sim',
+  'combinado', 'correto', 'massa', 'top', 'dale',
+  '👍', '✅', '🚀',
+]);
+
+function isShortAffirmative(text) {
+  const t = String(text)
+    .trim()
+    .toLowerCase()
+    .replace(/[\s!.…,]+$/u, '') // pontuação/espaço final
+    .replace(/\s+/g, ' ')
+    .trim();
+  return SHORT_AFFIRMATIVES.has(t);
+}
+
+// Verbos/objetos de PUBLICAÇÃO que indicam que a pergunta/oferta é sobre publicar.
+const ASSIST_PUBLISH_INTENT = [
+  /\b(?:o|a)\s+pr\b/i, // "abro o PR?", "faço o PR?"
+  /\bpull\s+request\b/i,
+  /\bcomit\w*\b/i, // comito, comitar
+  /\bcommit\w*\b/i, // commito, commitar
+  /\bpush\w*\b/i, // push, pushar, pusho
+  /\bmerge\w*\b/i, // merge, mergeio, mergear
+  /\bpublic\w+\b/i, // publico, publicar
+  /\bsub[oi]\w*\b/i, // subo, subir (não casa 'subtotal'/'substituir')
+];
+
+// O último turno do assistente perguntou/ofereceu PUBLICAR? Olha SÓ cláusulas
+// interrogativas ("...?") + ofertas explícitas ("posso/quer que eu/devo ..."), pra
+// não casar uma menção solta de "PR" no meio de texto narrativo.
+function assistantAskedToPublish(text) {
+  if (!text) return false;
+  const questions = (text.match(/[^?!.\n]*\?/g) || []).slice(-6).join(' ');
+  if (questions && ASSIST_PUBLISH_INTENT.some((r) => r.test(questions))) return true;
+  const offers = (text.match(/\b(?:posso|quer(?:\s+que\s+eu)?|deseja(?:\s+que\s+eu)?|se\s+quiser(?:\s+eu)?|devo)\b[^?!.\n]{0,80}/gi) || [])
+    .slice(-6)
+    .join(' ');
+  if (offers && ASSIST_PUBLISH_INTENT.some((r) => r.test(offers))) return true;
+  return false;
+}
+
+// Lê os últimos ~256KB do transcript (JSONL) — barato em UserPromptSubmit recorrente.
+// Fail-open: qualquer erro/ausência → '' (cai pra conservadoria do gate).
+function readTail(path, maxBytes = 262144) {
+  let fd;
+  try {
+    fd = openSync(path, 'r');
+    const size = fstatSync(fd).size;
+    const start = size > maxBytes ? size - maxBytes : 0;
+    const buf = Buffer.alloc(size - start);
+    readSync(fd, buf, 0, buf.length, start);
+    return buf.toString('utf8');
+  } catch {
+    return '';
+  } finally {
+    if (fd !== undefined) {
+      try {
+        closeSync(fd);
+      } catch {
+        /* silent */
+      }
+    }
+  }
+}
+
+// Texto do ÚLTIMO turno 'assistant' no transcript. No momento do UserPromptSubmit
+// esse é o turno que o "ok" do Wagner está respondendo (a mensagem dele chega em
+// p.prompt; pode ou não já estar no transcript — varremos só turnos 'assistant').
+function lastAssistantText(transcriptPath) {
+  if (!transcriptPath || !existsSync(transcriptPath)) return '';
+  const raw = readTail(transcriptPath);
+  if (!raw) return '';
+  const lines = raw.split('\n');
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const ln = lines[i].trim();
+    if (!ln) continue;
+    let o;
+    try {
+      o = JSON.parse(ln);
+    } catch {
+      continue; // linha parcial (corte do tail) ou corrompida → pula
+    }
+    if (o.type === 'assistant' && o.message && Array.isArray(o.message.content)) {
+      const t = o.message.content
+        .filter((b) => b && b.type === 'text' && typeof b.text === 'string')
+        .map((b) => b.text)
+        .join('\n')
+        .trim();
+      if (t) return t;
+    }
+  }
+  return '';
+}
+
+function isApproval(text, transcriptPath) {
   if (!text) return false;
   if (denyPatterns.some((r) => r.test(text))) return false;
-  return approvePatterns.some((r) => r.test(text));
+  if (approvePatterns.some((r) => r.test(text))) return true; // sinal FORTE (contexto-independente)
+  // Sinal CURTO ("ok"/"aprovo"/...): só aprova logo após o assistente oferecer
+  // publicar — casa a intenção real sem afrouxar a conservadoria (opção a).
+  if (isShortAffirmative(text) && assistantAskedToPublish(lastAssistantText(transcriptPath))) {
+    return true;
+  }
+  return false;
 }
 
 // Ancorados no inicio efetivo do comando (apos ; & |) com limite de palavra — evita
@@ -114,7 +240,7 @@ async function readStdin() {
 
   // 1. UserPromptSubmit → grava flag de aprovação
   if (event === 'UserPromptSubmit') {
-    if (isApproval(p.prompt || '')) {
+    if (isApproval(p.prompt || '', p.transcript_path)) {
       try {
         writeFileSync(FLAG, new Date().toISOString(), 'utf8');
       } catch {
