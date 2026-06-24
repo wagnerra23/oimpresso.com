@@ -54,6 +54,7 @@ jobs:
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
       # uso e sai 0 (nao bloqueia). continue-on-error = advisory.
       - name: DS-GUARD (arquivos tocados · §8)
+        if: always()  # advisory roda mesmo se o ssot-guard (hard-fail) falhar antes — senao skipa
         continue-on-error: true
         run: |
           BASE="origin/${{ github.base_ref }}"
@@ -71,12 +72,14 @@ jobs:
       # DS-GUARD --all: relatorio de divida da arvore (NAO bloqueia por design · §8).
       # Sempre roda, da visibilidade da divida acumulada (paleta inventada / tela na raiz).
       - name: DS-GUARD relatorio de divida (--all · §8)
+        if: always()
         continue-on-error: true
         run: node prototipo-ui/ds-guard.mjs --all
 
       # integrity-check: a propria memoria nao corrompeu (espinha · pares charter/decisoes ·
       # LICOES contiguas · benchmark). Sai 1 se algum IT duro falhar; advisory aqui.
       - name: Integrity check (espinha da memoria · §15)
+        if: always()
         continue-on-error: true
         run: node prototipo-ui/integrity-check.mjs
 
