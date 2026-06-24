@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-066
 
 /**
  * Wagner 2026-06-01 — endpoint de anexos do cliente (drawer Operacoes -> Documentos).

@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-071
 
 /**
  * Wave B — ADR 0179 Charter v3 GUARDs Cliente/Index drawer 760px.

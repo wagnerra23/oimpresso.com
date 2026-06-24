@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-CRM-067
 
 // Wave E — US-CRM-067 Actions Menu dropdown + Add Discount Modal
 // Restrição Tier 0 ADR 0093: ContactController::updateStatus + destroy + LedgerDiscountController::store
