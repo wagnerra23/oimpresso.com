@@ -2,8 +2,8 @@
 page: /contacts/create
 component: resources/js/Pages/Cliente/Create.tsx
 owner: wagner
-status: draft
-last_validated: "2026-05-29"
+status: live
+last_validated: "2026-06-24"
 parent_module: Cliente
 related_adrs: [110, 107, 93, 94, 104, 149, 235]
 tier: A
@@ -15,9 +15,9 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "none"
 ---
 
-# Page Charter — /contacts/create (DRAFT)
+# Page Charter — /contacts/create (LIVE)
 
-> **Status:** draft criado em batch W1-B3 2026-05-15. Backend canon: `app/Http/Controllers/ContactController.php::create()`. Pattern reuse blueprint Cowork Index — formulário derivado da mesma família visual.
+> **Status:** live — reconciliado de draft em 2026-06-24: Wagner confirmou que biz=4 (ROTA LIVRE) roda esta tela em React em produção (flag `MWART_CLIENTE_CREATE` ON; `ContactController` mantém fallback Blade pros demais tenants). Criado em batch W1-B3 2026-05-15. Backend canon: `app/Http/Controllers/ContactController.php::create()`. Pattern reuse blueprint Cowork Index — formulário derivado da mesma família visual.
 
 ## Mission
 

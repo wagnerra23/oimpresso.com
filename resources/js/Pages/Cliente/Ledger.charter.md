@@ -2,8 +2,8 @@
 page: /contacts/ledger
 component: resources/js/Pages/Cliente/Ledger.tsx
 owner: wagner
-status: draft
-last_validated: "2026-05-15"
+status: live
+last_validated: "2026-06-24"
 parent_module: Cliente
 related_adrs: [110, 107, 93, 94, 104, 149]
 tier: A
@@ -15,9 +15,9 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "tabela financeira densa diferente do Index card layout"
 ---
 
-# Page Charter — /contacts/ledger (DRAFT)
+# Page Charter — /contacts/ledger (LIVE)
 
-> Backend canon: `ContactController::getLedger()` linha 1326. **Divergência ADR 0149:** Layout densidade financeira (similar a extratos bancários) — tabela débito/crédito/saldo distinta do Index card-list. Não exige novo Cowork F1.5; pattern aceito como utility report.
+> **Status:** live — reconciliado de draft em 2026-06-24: Wagner confirmou biz=4 (ROTA LIVRE) em React em produção (flag `MWART_CLIENTE_LEDGER` ON; fallback Blade no `ContactController`). Backend canon: `ContactController::getLedger()` linha 1326. **Divergência ADR 0149:** Layout densidade financeira (similar a extratos bancários) — tabela débito/crédito/saldo distinta do Index card-list. Não exige novo Cowork F1.5; pattern aceito como utility report.
 
 ## Mission
 
