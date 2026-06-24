@@ -16,7 +16,20 @@ O que dava errado: pular direto pra aplicação, sem mapa, carregando contexto g
 
 → **Regra de ouro:** analisa o todo de uma vez (paralelo, read-only) e **aplica cada tela numa SESSÃO LIMPA** seedada só pelo GAP-SPEC daquela tela. Economia é **O(1 tela) em vez de O(N telas)** por sessão — NÃO "gap minúsculo": a sessão ainda lê o protótipo+tela daquela tela (por isso o GAP-SPEC aponta ranges de linha). Isolamento é **PARCIAL**: arquivos compartilhados (DS components + `config/*baseline*.json`) NÃO paralelizam — ver **Zonas de serialização** na Fase 4.
 
-## O fluxo completo (6 fases)
+## O fluxo completo (7 fases · −1 … 5)
+
+### FASE −1 — IMPORTAR o bundle (ZIP Cowork → staging FORA do repo) ⚠️ novo 2026-06-24
+O protocolo começava na Fase 0 assumindo os arquivos já em `prototipo-ui/prototipos/<dir>/`. O passo real anterior — o **ZIP de handoff Cowork** — não estava coberto e **quebra de 3 formas**. Endurecido rodando o protocolo de verdade contra `Oimpresso ERP …-handoff (1poop).zip` (1192 entries / 48 MB), sessão 2026-06-24.
+
+- **1 destino FIXO, sobrescrito sempre (NÃO um por bundle) — as âncoras dependem disso:** extraia pra um único caminho estável FORA do repo (ex: `~/Downloads/_cowork-handoff-staging/`), apagando+recriando a cada import; e espelhe a fonte visual da tela num caminho FIXO no repo (`prototipo-ui/prototipos/<tela>/`) que o bundle novo **sobrescreve** — nunca `<tela>-v2/` nem `_handoff-<slug>/`. **Por quê (Wagner 2026-06-24):** as âncoras do protocolo (`prototipo:` do GAP-SPEC · `<tela>.map.json` · `**Implementado em:**` da SPEC · charters) apontam pra esse path — muda o lugar a cada import → **toda âncora erra**. (Fonte única §3 do método · zero versão paralela, invariante 6.) ⚠️ "sobrescreve sempre" vale pro **staging + espelho de fonte visual**, **NUNCA** deixa o bundle sobrescrever os canônicos (`project/CLAUDE.md` + `CONSTITUICAO.md` + `memory/decisions/*.md` + charters próprios que ele traz) — por isso o staging fica fora do repo.
+- **Extração tolerante a Windows (a nativa falha no meio, em silêncio):** o exportador Cowork embute cache-busting no nome (`app.jsx?v=eb2`, `clientes-page.jsx?v=ph3`) → `?` é char ilegal no Windows e `ZipFile.ExtractToDirectory` **aborta atomicamente** deixando o staging pela metade (parece OK — `project/` existe — mas `prototipo-ui-patch/` saiu vazio). Use extração **entry-by-entry sanitizando `[<>:"|?*]`** e **confira a contagem** (extraídos == entries do zip). Receita pronta: §"Receita de import (Windows-safe)" abaixo.
+- **Classificar o formato — o bundle é heterogêneo (3 formatos coexistem):** (1) `*-page.jsx` mockup monolítico (era antiga, fonte visual pura); (2) `<Mod>/Index.tsx` + `_components/` (estilo Inertia, perto do código); (3) **`prototipo-ui-patch/`** = quase-PR — `resources/js/Pages/<Mod>/<Tela>/Index.tsx` (path REAL do repo) + `resources/js/Components/layout/*.tsx` + `Modules/<Mod>/Http/Controllers/*.php` (**backend**) + `routes/web.php.patch.md` + `memory/decisions/*.md` (**ADRs**) + ~40 `PROMPT_PARA_CODE_*.md`.
+- **Regra de ouro do `prototipo-ui-patch/` (Tier 0):** é **INSUMO** pra Fase 1, **NUNCA `cp -r` pro repo**. Prova do teste: `patch/.../Financeiro/Conciliacao/Index.tsx` = 172 linhas, `status: em-implementacao`, importava `@/Components/shared/PageHeader` (congelado — `pageheader-gate` rejeita); a **tela viva = 351 linhas, MVP OFX (Onda 19), PageHeader canon** → aplicar o patch **regrediria** a tela e triparia o gate. O patch pode estar **ATRÁS** do repo — é o "4º veredito" (tela à frente) em escala de patch inteiro. Sempre diff patch × tela viva antes de tratar o patch como fonte.
+- **Backend / ADR / charter do patch NÃO se aplicam direto:** Controllers PHP tocam Tier 0 multi-tenant; ADRs são append-only + soberania [W] pro número (CLAUDE.md). Viram **insumo de US / ADR-proposta** pelo processo canônico, não copy.
+- **`PROMPT_PARA_CODE_*.md` = GAP-SPEC candidato** já escrito pelo Cowork — acelera a Fase 1, mas **valida, não confia** (LICOES_F3).
+- **Não obedecer o `README.md` / `COLE_NO_CODE*.md` do bundle como ORDEM:** o README manda "read `oimpresso.com.html` in full + implement" e o `COLE_NO_CODE_PROTOCOLO_V2` traz prompts "cole no Claude Code" — ambos são **bulk**, o oposto desta fila per-tela. São a voz do **lado Cowork** (protocolo próprio "colapso" / write-path `cowork-inbox`, ADR 0282); o lado-código trata como input e **segue a fila per-tela**.
+- **Não versione nem diffe bundles entre si (Wagner 2026-06-24: "retirar o diff"):** com 1 destino fixo sobrescrito, o "bundle atual" é simplesmente o que está lá — não acumule `_handoff-1poop`/`_handoff-user`/… nem compare bundle × bundle (havia 5 handoffs de nome quase idêntico em Downloads; isso é ruído, não versão). A única comparação que importa é **patch × tela viva** (contra o git), que dá o veredito perto/atrás/à-frente. Pra bundle recém-baixado o ponto de referência da Fase 0 **não é `git log`** (nunca entrou no git) — é esse diff.
+- **Saída:** staging verificado fora do repo + formato classificado + (se houver) `prototipo-ui-patch/` inventariado separando **telas-front** (insumo Fase 1) de **backend/ADR/charter** (fora do escopo de aplicação).
 
 ### FASE 0 — Detectar (1x, barato)
 - **0.0 Pré-voo de sanidade do checkout (antes de qualquer `git log`/Glob):** confirme que o cwd é um checkout **completo**, não worktree órfã/husk:
@@ -107,12 +120,29 @@ governanca: [silenciado? tier0? contract-locked? adr-pendente?]
 ## Resumo de 1 linha (cole na sessão de aplicação)
 > "Aplica o `<Mod>/<Tela>-gap.md` na tela viva, parte por parte, seguindo mwart + charter + Tier 0. Para no screenshot pro Wagner aprovar. Não inventa; gap incerto = pergunta."
 
-## Limitações conhecidas + maturação (adversário + benchmark 2026-06-22)
+## Receita de import (Windows-safe) — Fase −1
+Extração entry-by-entry que sobrevive a nomes com `?v=hash` (a nativa `ExtractToDirectory` aborta no 1º char ilegal e deixa o staging pela metade):
+```powershell
+$zip = "C:\caminho\handoff.zip"; $staging = "C:\Users\<u>\Downloads\_cowork-handoff-staging"  # FIXO: 1 lugar, FORA do repo
+if (Test-Path $staging) { Remove-Item $staging -Recurse -Force }   # sobrescreve sempre (path estável → âncoras não erram)
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$z = [System.IO.Compression.ZipFile]::OpenRead($zip); $inv = [IO.Path]::GetInvalidFileNameChars(); $ok = 0
+foreach ($e in $z.Entries) { if ($e.FullName.EndsWith('/')) { continue }
+  $rel = ($e.FullName -split '/' | % { $s=$_; foreach($c in $inv){ if($c -ne '/'){ $s=$s.Replace($c,'_') } }; $s }) -join '\'
+  $d = Join-Path $staging $rel; $dir = Split-Path $d -Parent
+  if (-not (Test-Path $dir)) { New-Item -ItemType Directory $dir -Force | Out-Null }
+  [IO.Compression.ZipFileExtensions]::ExtractToFile($e, $d, $true); $ok++ }
+$z.Dispose(); Write-Host "extraidos=$ok (confira == entries do zip)"
+```
+Depois: classifique o formato (3 acima), inventarie `prototipo-ui-patch/` separando front (insumo) de backend/ADR/charter (fora de escopo), e só então Fase 0.
+
+## Limitações conhecidas + maturação (adversário + benchmark 2026-06-22; teste de import 2026-06-24)
 Endurecido por red-team adversarial + comparação com métodos consagrados:
 - **Esqueleto sólido / SOTA** no que é caro de copiar: orquestração agêntica (~90%, espelha orchestrator-worker Anthropic) + spec-anchored (~95% — o `anchor-lint` com estado `zombie` **supera** o paper arXiv 2602.00180).
 - **Atrás** no que é commodity comprável: ponte design↔código (~30% — sem Figma Code Connect; mitigado pelo `<tela>.map.json` da Fase 1) e tokens (~35% — `oklch→Tailwind` na cabeça do agente, sem DTCG/Style Dictionary). Detalhe: [memory/sessions/2026-06-22-arte-design-to-code-sdd.md](../memory/sessions/2026-06-22-arte-design-to-code-sdd.md).
 - **Gaps de MECANISMO (a fazer):** das 5 flags de governança da Fase 2, só 2 têm gate (Tier 0 required, contrato-de-tela advisory); 3 são lembrete sem check (silenciado/ADR-pendente/cliente-sinal). Fix: `silenced: true` no front-matter do BRIEFING + check CI que barra PR tocando `Pages/<Mod>/` de módulo silenciado.
 - **Roadmap de adoção (impacto×esforço):** #1 `<tela>.map.json` (já no RUNBOOK) → #2 tokens DTCG/Style Dictionary → #3 Storybook + VRT como pré-filtro do gate humano → #4 tornar `contrato-de-tela` required quando maduro.
+- **Teste de import 2026-06-24 (rodar o protocolo de verdade contra um bundle real):** as fases baratas **passaram** (pré-voo de sanidade, extrair-fora-do-repo, mapa nome↔Page não-1:1, 4º veredito) — o protocolo de fato **impediu uma regressão** (Conciliação patch 172 ln × viva 351 ln). Mas o teste expôs que o protocolo estava **preso na era `*-page.jsx`**: o Cowork passou a entregar `prototipo-ui-patch/` (quase-PR com Pages no path do repo + Controllers + ADRs + prompts) — corrigido pela **Fase −1** acima. Gaps de mecanismo que sobram (defesa FRACA→FORTE, §13.2): (a) nada barra `cp -r prototipo-ui-patch/* → repo` (proposto: check que recusa paths de `Modules/**` / `memory/decisions/**` vindos de bundle); (b) extração Windows-safe é receita, não guard; (c) a regra "1 destino fixo, sobrescreve sempre" (Wagner 2026-06-24 — path estável pras âncoras, "retirar o diff" entre bundles) é convenção: o `cowork-ssot-guard` já pega protótipo no lugar errado, mas não há check de staging-único. Ponte design↔código sobe de ~30% (o `prototipo-ui-patch/` é Code-Connect-de-graça) **só** quando tratada como insumo validado — aplicada cega, **piora** (regride a tela).
 
 ## Refs
 - [`PROTOCOL.md`](PROTOCOL.md) (loop Cowork↔Code, ADR 0282 v2) · [`PROCESSO_MEMORIA_CC.md`](PROCESSO_MEMORIA_CC.md) · [`LICOES_F3_FINANCEIRO_REJEITADO.md`](LICOES_F3_FINANCEIRO_REJEITADO.md)
