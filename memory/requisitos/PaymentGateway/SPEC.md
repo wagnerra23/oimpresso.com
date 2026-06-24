@@ -11,8 +11,8 @@ related_adrs:
   - "0106-recalibracao-velocidade-fator-10x-ia-pair"
   - "0170-paymentgateway-extracao-camada-cobranca"
 pii: true
-updated_at: "2026-05-25"
-last_updated: "2026-05-25"
+updated_at: "2026-06-24"
+last_updated: "2026-06-24"
 version: "0.1"
 owner: wagner
 ---
@@ -167,6 +167,25 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 - TLS válido + roteamento do proxy/Caddy pra `/webhooks/inter/{credentialId}`.
 - Confirmar reachability externa (curl de fora) e considerar mTLS no handshake (ver US-PG-006).
 - Documentar a URL final no RUNBOOK do PaymentGateway pra cadastrar no Inter (US-PG-005).
+
+### US-PG-008 · Linkage cobranca_id no webhook genérico + re-resolve do órfão
+
+> owner: wagner · priority: p1 · status: review · type: story
+> blocked_by: —
+
+**Implementado em:** `Modules/PaymentGateway/Services/Webhook/CobrancaWebhookResolver.php` · `Modules/PaymentGateway/Services/PaymentGatewayService.php` (driverForKey) · `Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php` (+ 6 controllers) · `Modules/PaymentGateway/Jobs/RetryOrphanWebhookJob.php` (re-resolve) · `Modules/PaymentGateway/Console/Commands/RetryOrphanWebhookCommand.php` (--dry-run) · Pest `WebhookProcessorLinkageTest` + `RetryOrphanWebhookJobTest`
+
+**Contexto (drift SCOPE.md + censo artisan 2026-06-24):** `gateway_webhook_events.cobranca_id` nascia SEMPRE NULL — o `WebhookProcessor` não resolvia a Cobrança e nenhum outro caminho setava o campo. Logo a branch de quitação do `RetryOrphanWebhookJob` (dispatch `CobrancaPaga` = quita título = VALOR) era INALCANÇÁVEL: todo órfão caía em `still_orphan`. O cron `paymentgateway:retry-orphan-webhooks` está registrado mas DORMENTE (flag `PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED` default OFF — REGRA MESTRE valor/estoque). A quitação PIX biz=1 LIVE roda por outro caminho (`inter_webhook_log` + `ProcessarWebhookPixInterJob`).
+
+**Aceite:**
+- [x] Resolver único `payload → Cobrança` (`CobrancaWebhookResolver`) reusando `driver->processWebhook` (parser puro por driver — correto p/ o caso BCB `idRec` ≠ `txid` e Asaas/Pagar.me `payment.id`/`data.id` ≠ id do evento).
+- [x] `WebhookProcessor` linka `cobranca_id` + persiste `payment_gateway_credential_id` no recebimento (best-effort: falha de linkage NUNCA impede a persistência/idempotência do webhook).
+- [x] `RetryOrphanWebhookJob` re-resolve órfão `cobranca_id` NULL (race: webhook antes da emissão) em vez de desistir.
+- [x] `--dry-run` mostra a taxa de linkage (antes→depois no nível do webhook — ferramenta do gate REGRA MESTRE).
+- [x] Pest: extração por driver + multi-tenant biz=1 nunca casa biz=99 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)/[0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)).
+- [ ] **Gate REGRA MESTRE (pré-flag, humano-limitado, Wagner):** cutover dos webhooks Onda 3 (registrar URLs nos gateways; tabela VAZIA em prod hoje) → `php artisan paymentgateway:retry-orphan-webhooks --dry-run` → tabela antes→depois dos títulos afetados → aprovação explícita ANTES de `PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED=true`.
+
+**Refs:** [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md), SCOPE.md `drift_alerts`, censo [memory/sessions/2026-06-24-censo-artisan.md](../../sessions/2026-06-24-censo-artisan.md).
 
 ## Referências
 
