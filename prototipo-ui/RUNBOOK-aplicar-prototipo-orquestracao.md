@@ -19,6 +19,10 @@ O que dava errado: pular direto pra aplicação, sem mapa, carregando contexto g
 ## O fluxo completo (6 fases)
 
 ### FASE 0 — Detectar (1x, barato)
+- **0.0 Pré-voo de sanidade do checkout (antes de qualquer `git log`/Glob):** confirme que o cwd é um checkout **completo**, não worktree órfã/husk:
+  - `git rev-parse --is-inside-work-tree` = `true` **e** `git rev-parse --show-toplevel` aponta pra raiz esperada **e** existem `resources/`, `Modules/`, `prototipo-ui/`.
+  - Se falhar → **PARE**. Mude pra worktree boa (`git worktree add <path> <branch-que-tem-os-artefatos>`). **Por quê:** Glob/`git log`/`ls-tree` rodados de um husk sem código devolvem **falso negativo silencioso** (`arquivo não existe` / `diff vazio`) — não erro — e induzem a inventar/duplicar artefato que já existe. Lição `licao-git-lstree-grep-rev-cwd-scope`; incidente real 2026-06-24 (sessão "perfil" abriu na worktree órfã `frosty-greider` → reportou RUNBOOK e skill como "inexistentes" sendo que estavam no checkout bom).
+  - **Bônus:** confirme também que os artefatos do protocolo (a skill, este RUNBOOK) existem na branch-base; se não, podem estar numa feature branch ainda-não-mergeada (mesmo incidente: skill `aplicar-prototipo` vivia só em `feat/vendas-link-caixa-do-dia`, ausente de `main`).
 - **Ponto de referência por tela = último commit que tocou o protótipo** (o `SYNC_LOG` NÃO guarda sha por tela — não dependa dele): `git log -1 --format=%H -- prototipo-ui/prototipos/<dir>/` → diff desse sha até HEAD.
 - **Mapa nome↔Page NÃO é 1:1** — resolva o alvo real antes: `prototipos/crm` → tela viva é `Pages/Cliente`; `prototipos/vendas` só tem charter (sem html/jsx); a tela viva às vezes está **à frente** do protótipo. Reconciliação no GAP-SPEC.
 - Se o protótipo não mudou (ou está vazio): o protótipo **é** o alvo → compara protótipo × tela viva (gap de implementação).
@@ -56,6 +60,16 @@ Por tela aprovada:
   - Mecanismo: task MCP retomada em sessão nova, OU `Agent(isolation: "worktree")`, OU `coordenador-paralelo`.
   - A sessão limpa carrega **só**: o `<tela>-gap.md` + as skills que auto-disparam (`mwart-process`, `cowork-prototype-replication`, `charter-first`, `multi-tenant-patterns`, `preflight-modulo`). Não arrasta a análise das outras telas.
 - Dentro de cada sessão: segue o RUNBOOK por-tela (F0–F7) — backend baseline → frontend incremental por PARTE → Pest → ds-guard.
+- **Pré-flight de gates ANTES de abrir o PR (tela nova morre no portão se pular):** rode local e zere —
+  - `node scripts/layout-primitives-guard.mjs` (ADR 0253 — compõe `Stack/Inline/Grid`, zero `flex`/`grid` solto · `grid place-`/`inline-flex` não contam),
+  - `node scripts/casos-coverage-guard.mjs` (trio `<Tela>.tsx`+`.charter.md`+`.casos.md`; UC novo cita o id no Pest; Status ✅ só com teste verde, senão 🧪/⬜ — ADR 0264),
+  - `npm run lint:baseline:check` (ESLint ratchet — ex: `ds/no-native-select` → use `<Select>` de `@/Components/ui/select`),
+  - `node_modules/.bin/tsc --noEmit` (typecheck; cuidado com `noUncheckedIndexedAccess` em `Record` → tipe chaves explícitas),
+  - PHPStan ratchet (controller: `firstOrFail`/`findOrFail` + guards `is_array`/`is_string` evitam erros de null/mixed-offset),
+  - `pageheader-gate` (tela nova usa `@/Components/PageHeader` canon, NÃO o `shared/` congelado),
+  - PII scan (sem CPF/CNPJ literal formatado em placeholder — use genérico tipo "CPF ou CNPJ"),
+  - se tocar `routes/`/middleware/ServiceProvider/Kernel: seção `## Infra Contract` no corpo do PR + evidência curl (`< HTTP/1.1 …`).
+  - **Por quê:** incidente perfil 2026-06-24 — tela verificada AO VIVO no staging (render + save persistindo) tripou **6 gates** no PR (layout/casos/eslint/phpstan/PII/infra-contract). "Funciona no staging" ≠ "passa no portão"; rode os gates como parte da Fase 4, não como surpresa no PR.
 - **Zonas de SERIALIZAÇÃO (saem do paralelo) ⚠️:** (1) DS compartilhado (`resources/js/Components/**`, `Layouts/AppShellV2.tsx`) e (2) rebaseline de `config/*baseline*.json` / `.*-baseline.json` → viram **1 PR de FUNDAÇÃO sequencial ANTES** das telas (padrão FA-1..5). Telas só paralelizam DEPOIS que a fundação estabilizou — senão merge-conflict determinístico no baseline (incidente real #2495).
 - **Paralelo** só entre telas de arquivos disjuntos (suas próprias Pages + controllers distintos).
 - **Portão escalável:** 1ª aplicação de cada tela = screenshot 1280/1440 light+dark → **Wagner aprova o SCREENSHOT** (não a tabela). Re-aplicação de tela já aprovada = gate automático `contrato-de-tela`/pixel-diff; olho do Wagner só quando o diff excede limiar (senão o portão serializa TUDO no Wagner). `pr-ui-judge` + `visual-regression` + `contrato-de-tela` no CI.
