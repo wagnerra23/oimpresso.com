@@ -22730,6 +22730,12 @@ parameters:
 		-
 			message: '#^Relation ''media'' is not found in App\\User model\.$#'
 			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/UserController.php
+
+		-
+			message: '#^Access to an undefined property App\\User\:\:\$media\.$#'
+			identifier: property.notFound
 			count: 1
 			path: app/Http/Controllers/UserController.php
 
