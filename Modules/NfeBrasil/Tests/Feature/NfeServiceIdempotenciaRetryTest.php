@@ -114,7 +114,7 @@ it('emitir() com transaction_id já autorizada retorna emissao existente (idempo
 
     session(['business.id' => NFE_IDEMP_BIZ]);
 
-    $service = new NfeService();
+    $service = app(NfeService::class);
     $reflection = new ReflectionClass(NfeService::class);
     $method = $reflection->getMethod('emitirInterno');
     $method->setAccessible(true);
@@ -154,7 +154,7 @@ it('emitir() com transaction_id pendente retorna emissao existente (permite retr
 
     session(['business.id' => NFE_IDEMP_BIZ]);
 
-    $service = new NfeService();
+    $service = app(NfeService::class);
     $reflection = new ReflectionClass(NfeService::class);
     $method = $reflection->getMethod('emitirInterno');
     $method->setAccessible(true);
@@ -195,7 +195,7 @@ it('emitir() com transaction_id cancelada lança RuntimeException instrutiva', f
 
     session(['business.id' => NFE_IDEMP_BIZ]);
 
-    $service = new NfeService();
+    $service = app(NfeService::class);
     $reflection = new ReflectionClass(NfeService::class);
     $method = $reflection->getMethod('emitirInterno');
     $method->setAccessible(true);
@@ -311,7 +311,7 @@ it('retry pós erro_envio inutiliza com transaction_id=null (libera a UNIQUE biz
 
     session(['business.id' => NFE_IDEMP_BIZ]);
 
-    $service = new NfeService();
+    $service = app(NfeService::class);
     $reflection = new ReflectionClass(NfeService::class);
     $method = $reflection->getMethod('emitirInterno');
     $method->setAccessible(true);
