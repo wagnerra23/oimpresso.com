@@ -11,13 +11,24 @@ use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 /**
  * ADR 0170 Onda 4e — Cron entry-point pra RetryOrphanWebhookJob.
  *
- * Schedule (app/Console/Kernel.php):
+ * Schedule (app/Console/Kernel.php) — REGISTRADO mas DORMENTE por flag:
  *   $schedule->command('paymentgateway:retry-orphan-webhooks')
  *       ->everyFiveMinutes()
- *       ->withoutOverlapping(10);
+ *       ->withoutOverlapping(10)
+ *       ->environments(['live'])
+ *       ->when(fn () => (bool) config('paymentgateway.retry_orphan_webhooks_enabled', false));
  *
- * Race condition coberta: webhook chegou antes da Cobranca ser gravada.
- * Detalhes na PHPDoc de `RetryOrphanWebhookJob`.
+ * ⚠️ default-OFF (PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED — REGRA MESTRE
+ * valor/estoque): o Job quita título (CobrancaPaga → fin_titulo) = mexe em VALOR.
+ * Habilitar SÓ após cutover dos webhooks genéricos (Onda 3) + linkage cobranca_id
+ * no WebhookProcessor + dry-run aprovado pelo Wagner. Hoje gateway_webhook_events
+ * nasce com cobranca_id NULL (WebhookProcessor não resolve a Cobrança), então a
+ * branch de quitação do Job é INALCANÇÁVEL e o cron só marcaria still_orphan.
+ * A quitação PIX biz=1 LIVE roda por OUTRO caminho (inter_webhook_log +
+ * ProcessarWebhookPixInterJob), não por aqui.
+ *
+ * Race condition coberta (quando o linkage existir): webhook chegou antes da
+ * Cobranca ser gravada. Detalhes na PHPDoc de `RetryOrphanWebhookJob`.
  *
  * `--dry-run` lista o que faria sem dispatchar Job (útil pra Wagner inspecionar
  * antes de cutover prod).
