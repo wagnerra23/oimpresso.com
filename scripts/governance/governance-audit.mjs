@@ -36,6 +36,11 @@ const BATTERY = [
   { id: 'knowledge-drift',     runtime: 'node', kind: 'advisory', cmd: ['scripts/governance/knowledge-drift.mjs', '--check'] },
   { id: 'ds-guard',            runtime: 'node', kind: 'advisory', cmd: ['prototipo-ui/ds-guard.mjs', '--all'] },
   { id: 'plan-health',         runtime: 'node', kind: 'advisory', cmd: ['scripts/governance/plan-health.mjs', '--json'] },
+  // Scorecards de cobertura (Onda C audit 2026-06-24): trazem a foto da SPEC-viva pro mesmo painel.
+  // anchor-lint SEM --check = modo report full-tree (exit 0, não morde legado) → só a cobertura.
+  // sdd-scorecard --json = as 10 métricas do scorecard SDD. Ambos advisory (são fotos, não gates).
+  { id: 'anchor-coverage',     runtime: 'node', kind: 'advisory', cmd: ['scripts/governance/anchor-lint.mjs', '--json'] },
+  { id: 'sdd-scorecard',       runtime: 'node', kind: 'advisory', cmd: ['scripts/governance/sdd-scorecard.mjs', '--json'] },
   // PHP health-checks: advisory aqui (dependem de infra prod) — enforcement = cron + Pest bite-tests.
   { id: 'jana:plan-drift',     runtime: 'php',  kind: 'advisory', cmd: ['jana:plan-drift', '--json'] }, // ADR 0294 Onda 2 — drift status-do-plano ≠ tasks MCP (par do plan-health node)
   { id: 'jana:health-check',   runtime: 'php',  kind: 'advisory', cmd: ['jana:health-check', '--json'] },
@@ -93,6 +98,13 @@ function interpret(entry, r) {
         summary = `${j.checks.length} checks · ${bad} duros falhos`;
       } else if (Array.isArray(j.findings)) {
         summary = `${j.planos ?? '?'} planos · ${j.fail ?? 0} fail · ${j.warn ?? 0} warn`;
+      } else if (j.summary && typeof j.summary.anchor_coverage_pct === 'number') {
+        // anchor-lint --json (report full-tree): foto de cobertura da SPEC-viva (ADR 0273).
+        const bs = j.summary.by_state || {};
+        summary = `cobertura ${j.summary.anchor_coverage_pct}% · ${bs.anchored_ok || 0} ok · ${bs.anchored_dead || 0} dead · ${bs.anchored_zombie || 0} zombie`;
+      } else if (j.metrics && typeof j.metrics === 'object') {
+        // sdd-scorecard --json: as métricas do scorecard SDD (foto, não gate).
+        summary = `scorecard SDD · ${Object.keys(j.metrics).length} métricas`;
       }
     } catch { /* não era JSON — cai no fallback */ }
   }
