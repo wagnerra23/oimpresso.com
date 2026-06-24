@@ -79,3 +79,16 @@ jobs:
       - name: Integrity check (espinha da memoria · §15)
         continue-on-error: true
         run: node prototipo-ui/integrity-check.mjs
+
+      # detectar-telas --selftest: trava de regressao do gate de import (Fase 0/0.5 do
+      # protocolo aplicar-prototipo). O fixture hermetico (prototipo-ui/fixtures/detectar-telas/)
+      # prova: mockup sem charter resolvido por ALIAS (P0 lock) · orfao detectado · diff
+      # diffavel correto. O modo --staging (bundle->repo) so roda local (bundle vive fora do
+      # repo). Advisory de nascenca (ADR 0271/0275). TODO: integrar good/bad em gate-selftest.mjs.
+      - name: detectar-telas selftest (gate de import · Fase 0/0.5)
+        # if: always() — roda mesmo quando um step hard-fail antes (ex: cowork-ssot-guard com
+        # drift pre-existente prototipos/perfil) skiparia os steps seguintes. O selftest e'
+        # independente do ssot-guard; continue-on-error mantem o job advisory.
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/detectar-telas.mjs --selftest
