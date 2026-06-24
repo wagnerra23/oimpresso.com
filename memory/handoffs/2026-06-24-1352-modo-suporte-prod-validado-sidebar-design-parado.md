@@ -1,9 +1,13 @@
 ---
-date: 2026-06-24
-hour: "13:45 BRT"
-topic: Modo Suporte validado end-to-end em produção + sidebar/design parados (decisão Wagner)
-duration: ~1h
-authors: [wagner, claude]
+date: "2026-06-24"
+time: "13:52 BRT"
+slug: modo-suporte-prod-validado-sidebar-design-parado
+tldr: 'Modo Suporte validado end-to-end em produção (lista, trava 403, "Acessar como" auditado); #3340 destrava o 403. Sidebar e artefato de design parados por decisão do Wagner.'
+decided_by: [wagner]
+cycle: CYCLE-08
+prs: [3340]
+related_adrs: [0305-modo-suporte-cross-tenant-exceto-operador, 0308-modo-suporte-fase-a-acessar-como-login-as-guardado, 0309-modo-suporte-operadora-e-o-time-de-suporte]
+next_steps: ['retomar Modo Suporte — sidebar + design']
 ---
 
 ## Estado MCP no momento
@@ -50,7 +54,7 @@ Comando: **"retomar Modo Suporte — sidebar + design"**. Dois itens PARADOS por
 
 ## Pointers detalhados
 
-- [ADR 0305](../decisions/0305-modo-suporte-cross-tenant-exceto-operador.md) · [0306](../decisions/0306-modo-suporte-acessar-como-login-as-guardado.md) · [0308](../decisions/0308-modo-suporte-fase-a-acessar-como-login-as-guardado.md) · [0309](../decisions/0309-modo-suporte-operadora-e-o-time-de-suporte.md)
+- [ADR 0305](../decisions/0305-modo-suporte-cross-tenant-exceto-operador.md) · [0308](../decisions/0308-modo-suporte-fase-a-acessar-como-login-as-guardado.md) · [0309](../decisions/0309-modo-suporte-operadora-e-o-time-de-suporte.md)
 - `app/Services/Support/SupportAccessService.php` (`isSupportAgent` / `canImpersonate`) · `app/Http/Controllers/Support/SupportController.php` (`acessarComo`)
 - Sidebar: `app/Http/Middleware/AdminSidebarMenu.php` · `resources/js/Components/cockpit/Sidebar.tsx` (SIDEBAR_GROUPS) · skill `sidebar-menu-arch`
 - Handoff anterior: [2026-06-23 19:15 — fase B tela Empresas](2026-06-23-1915-modo-suporte-fase-b-tela-empresas.md)
