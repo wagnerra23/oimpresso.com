@@ -28,6 +28,16 @@
 //   node scripts/governance/doneness-lint.mjs <SPEC.md ...>   # diff-aware: só os SPECs passados
 //   node scripts/governance/doneness-lint.mjs --check         # exit 1 se houver CONFLITO (não zona-cinza)
 //                                                             # ADVISORY até promoção (calendário ADR 0275)
+//   node scripts/governance/doneness-lint.mjs --baseline <path>      # grandfathera o conflito LEGADO
+//   node scripts/governance/doneness-lint.mjs --emit-baseline        # imprime o baseline da dívida ATUAL
+//
+// SA-A2-ter ARMING (ADR 0275 calendário + ADR 0303), espelho do --baseline do anchor-lint:
+// --baseline <path> grandfathera o conflito status×âncora LEGADO (chave `<kind>:<US-ID>`,
+// ex `conflito_done_sem_ancora:US-NFE-049`) → o --check só MORDE conflito AUSENTE do baseline
+// (no-new-lie · ratchet só-desce). Sem --baseline = comportamento IDÊNTICO ao anterior
+// (raw · advisory zero-regressão). --emit-baseline imprime a dívida ATUAL (determinístico,
+// regenerável). CRESCER o baseline = grandfatherar mentira nova → exige trailer `BASELINE-GROW`
+// (baseline-tamper-guard). DIMINUIR (dívida reconciliada) é livre. fs-puro (1 JSON).
 // Node puro (fs). Sem deps, sem DB, sem PHP. Idioma: clone de anchor-lint.mjs (ADR 0273).
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
@@ -37,6 +47,8 @@ const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
 const JSON_OUT = process.argv.includes('--json');
 const CHECK = process.argv.includes('--check');
+const BASELINE_PATH = (() => { const i = process.argv.indexOf('--baseline'); return i >= 0 ? process.argv[i + 1] : null; })();
+const EMIT_BASELINE = process.argv.includes('--emit-baseline');
 
 // ── regexes (espelham anchor-lint.mjs — fonte única da gramática anchor é ADR 0273 §1) ──
 const FIELD_RE = /^(?:>\s*)?\*\*Implementado em:\*\*\s*(.*)$/;
@@ -102,6 +114,10 @@ function reconcile(status, state) {
 const RECON = ['conflito_done_sem_ancora', 'conflito_aberto_com_ancora', 'zona_cinza_aberto_sem_anc',
   'consistente_done', 'consistente_aberto', 'terminal', 'outro'];
 
+// chave canônica do conflito pro baseline grandfather (espelho keyAceite/keyTeste do anchor-lint):
+// `<kind>:<US-ID>` — estável (sem nº de linha, que driva). ex: conflito_done_sem_ancora:US-NFE-049.
+const keyConflict = (c) => `${c.kind}:${c.us}`;
+
 function lintSpec(file) {
   const txt = readFileSync(file, 'utf8');
   const specDir = dirname(file);
@@ -139,7 +155,10 @@ function lintSpec(file) {
 }
 
 // ── seleção de SPECs: full-tree ou diff-aware (args posicionais) — igual anchor-lint ─────
-const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+// exclui o valor de `--baseline <path>` dos posicionais (é caminho de baseline, não SPEC).
+const _rawArgv = process.argv.slice(2);
+const _baselineValIdx = _rawArgv.includes('--baseline') ? _rawArgv.indexOf('--baseline') + 1 : -1;
+const args = _rawArgv.filter((a, i) => !a.startsWith('--') && i !== _baselineValIdx);
 let specs;
 if (args.length) {
   specs = args.map((a) => resolve(ROOT, a)).filter((p) => /memory[\\/]requisitos[\\/][^\\/]+[\\/]SPEC\.md$/.test(p) && existsSync(p)).sort();
@@ -155,9 +174,43 @@ const usTotal = modules.reduce((a, m) => a + m.us_total, 0);
 const withStatus = modules.reduce((a, m) => a + m.us_with_status, 0);
 const conflictsTotal = byRecon.conflito_done_sem_ancora + byRecon.conflito_aberto_com_ancora;
 
+// ── baseline grandfather (ARMING SA-A2-ter · ADR 0275/0303) — espelho do anchor-lint ──────
+// emit: imprime a dívida de conflito ATUAL (chave canônica, sorted+unique) — fonte regenerável;
+// arming consome o que ele emite. Mesma engine que CHECA é a que EMITE → chaves nunca derivam.
+const _allConflictKeys = modules.flatMap((m) => m.conflicts.map(keyConflict));
+if (EMIT_BASELINE) {
+  const grandfathered = [...new Set(_allConflictKeys)].sort();
+  process.stdout.write(JSON.stringify({
+    _meta: {
+      baseline: 'doneness GRANDFATHER — conflitos status×âncora legados isentos (ratchet só-desce · ADR 0302/0275 advisory→required por calendário)',
+      regra: 'gate --check com --baseline morde só chave AUSENTE daqui (no-new-lie). CRESCER esta lista = grandfatherar conflito novo → exige trailer `BASELINE-GROW` (baseline-tamper-guard). DIMINUIR (reconciliado) é livre.',
+      gerado_por: 'node scripts/governance/doneness-lint.mjs --emit-baseline',
+      consumido_por: ['scripts/governance/doneness-lint.mjs --baseline', '.github/workflows/anchor-drift.yml'],
+      adr: ['0302-fonte-unica-doneness-anchor-aposenta-status-spec', '0273-anchor-spec-codigo-formato-canonico-fluxo-novo', '0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes'],
+      escopo: args.length ? 'diff-aware (args) — NÃO use pra gerar o baseline canônico; rode full-tree' : 'full-tree',
+      total: grandfathered.length,
+    },
+    grandfathered,
+  }, null, 2) + '\n');
+  process.exit(0);
+}
+
+// load + filtro: conflito grandfatherado NÃO conta no veredito de saída (report mantém visibilidade).
+function loadBaseline(p) {
+  if (!p) return null; // sem baseline = comportamento legado (raw)
+  if (!existsSync(p)) return new Set(); // ausente = vazio (ordering-robusto entre PRs; advisory)
+  try { return new Set((JSON.parse(readFileSync(p, 'utf8')).grandfathered) || []); }
+  catch { console.error(`doneness-lint: --baseline ${p} não parseia como JSON.`); process.exit(2); }
+}
+const BASELINE = loadBaseline(BASELINE_PATH);
+for (const m of modules) m._conflicts_active = BASELINE ? m.conflicts.filter((c) => !BASELINE.has(keyConflict(c))) : m.conflicts;
+const grandfatheredConflicts = BASELINE ? _allConflictKeys.filter((k) => BASELINE.has(k)).length : 0;
+// ATIVOS (= raw quando sem --baseline; raw-menos-grandfathered quando com baseline) — é o que MORDE.
+const conflictsActiveTotal = modules.reduce((a, m) => a + m._conflicts_active.length, 0);
+
 for (const m of modules) {
   const c = m.counts;
-  m.flag = (c.conflito_done_sem_ancora + c.conflito_aberto_com_ancora) > 0 ? '🔴'
+  m.flag = m._conflicts_active.length > 0 ? '🔴'
     : c.zona_cinza_aberto_sem_anc > 0 ? '🟡' : m.us_with_status > 0 ? '🟢' : '⚪';
 }
 
@@ -169,11 +222,14 @@ const report = {
     ancora_viva: 'anchored_ok | parcial (paths existem no disco · ADR 0273 §2). _pendente_ NÃO é viva (tela não construída).',
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
     fase: 'ADVISORY (ADR 0271/0275) — exit 0 sempre nos modos default/--json; --check (exit 1) é o primitivo de enforcement, promovido por calendário (ADR 0275)',
+    baseline: BASELINE
+      ? `grandfather aplicado (${BASELINE_PATH}): conflitos legados grandfatherados NÃO mordem (no-new-lie · ADR 0275). conflitos_ativos = conflito NOVO/tocado.`
+      : 'sem --baseline: conflitos_total = brutos (legado + novo). Arming passa --baseline pra grandfatherar o legado.',
     scope: args.length ? 'diff-aware (args)' : 'full-tree',
   },
   summary: {
     specs_total: modules.length, us_total: usTotal, us_with_status: withStatus,
-    conflitos_total: conflictsTotal,
+    conflitos_total: conflictsTotal, conflitos_ativos: conflictsActiveTotal, grandfathered: grandfatheredConflicts,
     conflito_done_sem_ancora: byRecon.conflito_done_sem_ancora,
     conflito_aberto_com_ancora: byRecon.conflito_aberto_com_ancora,
     zona_cinza_aberto_sem_anc: byRecon.zona_cinza_aberto_sem_anc,
@@ -193,14 +249,15 @@ for (const m of modules) {
   const c = m.counts;
   const ok = c.consistente_done + c.consistente_aberto;
   console.log(`  ${m.flag} ${m.module.padEnd(18)} ${String(m.us_total).padStart(4)} ${String(m.us_with_status).padStart(5)} ${String(c.conflito_done_sem_ancora).padStart(6)} ${String(c.conflito_aberto_com_ancora).padStart(6)} ${String(c.zona_cinza_aberto_sem_anc).padStart(6)} ${String(ok).padStart(4)}`);
-  for (const x of m.conflicts) console.log(`       ⚠️  ${x.us} (L${x.line}): status=${x.status} × anchor=${x.anchor} → ${x.kind}`);
+  for (const x of m._conflicts_active) console.log(`       ⚠️  ${x.us} (L${x.line}): status=${x.status} × anchor=${x.anchor} → ${x.kind}`);
 }
 console.log('  ' + '─'.repeat(64));
 console.log(`\n  US: ${usTotal} total · ${withStatus} com status: (superfície do dual-source) · ${usTotal - withStatus} sem status:`);
-console.log(`  CONFLITOS (mordem em --check): ${conflictsTotal}  = ${byRecon.conflito_done_sem_ancora} done-sem-âncora + ${byRecon.conflito_aberto_com_ancora} aberto-com-âncora`);
+console.log(`  CONFLITOS (mordem em --check): ${conflictsActiveTotal}${BASELINE ? ` ativo(s) (bruto ${conflictsTotal} − ${grandfatheredConflicts} grandfathered)` : `  = ${byRecon.conflito_done_sem_ancora} done-sem-âncora + ${byRecon.conflito_aberto_com_ancora} aberto-com-âncora`}`);
+if (BASELINE) console.log(`  Grandfather (${BASELINE_PATH}): ${grandfatheredConflicts} conflito(s) legado(s) isento(s) (no-new-lie · ratchet só-desce · ADR 0275)`);
 console.log(`  Zona-cinza (advisory, NÃO morde): ${byRecon.zona_cinza_aberto_sem_anc} aberto-sem-âncora (ingovernável até backfill)`);
 console.log(`  Consistentes: ${byRecon.consistente_done} done+âncora · ${byRecon.consistente_aberto} aberto+pendente · terminal ${byRecon.terminal} · outro ${byRecon.outro}`);
 console.log(`\n  Fonte única de done-ness = **Implementado em:** (ADR 0273). status: é legado derivado/aposentado (ADR 0302).\n`);
 
-if (CHECK && conflictsTotal > 0) process.exit(1);
+if (CHECK && conflictsActiveTotal > 0) process.exit(1);
 process.exit(0);

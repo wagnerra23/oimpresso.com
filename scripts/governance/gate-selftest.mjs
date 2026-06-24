@@ -235,6 +235,22 @@ function runAnchorLintEntryBaseline(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// ARMING grandfather doneness (ADR 0302/0275): --check --baseline. Irmão do entry-baseline pro
+// doneness-lint. good = US em conflito (conflito_done_sem_ancora) MAS grandfatherada no baseline →
+// exit 0; bad = MESMA US em conflito, baseline só com decoy → exit 1 (acusação ⚠️). Isola a variável
+// estar-no-baseline (mesma SPEC). Prova que armar o doneness NÃO avermelha o conflito legado, mas
+// continua mordendo conflito NOVO. Sandbox por cwd (igual doneness-lint resolve âncora-paths).
+function runDonenessBaseline(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-doneness-baseline-${kind}-`));
+  try {
+    cpSync(join(FIX, 'doneness-baseline', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('doneness-lint', 'scripts/governance/doneness-lint.mjs'), join(sb, 'scripts', 'governance', 'doneness-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'doneness-lint.mjs'),
+      ['--check', '--baseline', 'governance/doneness-baseline.json', 'memory/requisitos/SelftestDonenessBaseline/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 const CATRACAS = [
   {
     id: 'knowledge-drift',
@@ -347,6 +363,14 @@ const CATRACAS = [
     id: 'anchor-lint-entry-baseline',
     run: runAnchorLintEntryBaseline,
     expect: { good: /Gate de entrada \(advisory\): 0 US/, bad: /regra de entrada|regra sem teste/ },
+  },
+  {
+    // ARMING grandfather doneness (ADR 0302/0275): baseline ISENTA o conflito legado MAS morde o NOVO.
+    // good = conflito grandfatherado → exit 0 ("CONFLITOS … : 0"); bad = mesmo conflito fora do baseline
+    // (só decoy) → exit 1 (⚠️ US-SLDB-001 → conflito_done_sem_ancora). Isola estar-no-baseline.
+    id: 'doneness-baseline',
+    run: runDonenessBaseline,
+    expect: { good: /CONFLITOS \(mordem em --check\): 0/, bad: /US-SLDB-001.*conflito_done_sem_ancora/ },
   },
 ];
 
