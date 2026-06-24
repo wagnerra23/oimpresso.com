@@ -82,7 +82,7 @@ class SupportClientViewService
             ->get()
             ->map(function (User $u) use ($agent) {
                 $roles = $u->getRoleNames();
-                $papel = ! empty($roles[0]) ? (explode('#', (string) $roles[0], 2)[0] ?? '') : '';
+                $papel = ! empty($roles[0]) ? explode('#', (string) $roles[0], 2)[0] : '';
                 $nome = trim(implode(' ', array_filter([$u->surname, $u->first_name, $u->last_name])));
 
                 return [
