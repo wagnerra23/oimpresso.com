@@ -5,6 +5,9 @@
     "regra": "required que SUMIR do vivo = 🔴 drift (demoção SÓ via PR editando este arquivo + ADR — ADR 0275 §5); required NOVO no vivo = 🟡 aviso (entrar é permitido, abrir PR incorporando); promoção a required atualiza este arquivo no MESMO PR do flip",
     "capturado_em": "2026-06-20",
     "capturado_de_sha": "e765b4a7f3",
+    "promocoes": [
+      "2026-06-24: +\"anchor entry/covers gate (advisory)\" — gate de entrada/covers armado (PR #3320, baseline grandfather + diff-aware). Flip do vivo: Wagner (ADR 0275 §5). Ver memory/decisions/proposals/2026-06-23-anchor-gates-arming-baseline-promocao.md"
+    ],
     "fonte": "gh api repos/<repo>/branches/main (.protection) + repos/<repo>/rules/branches/main — rota admin não usada (404 pra não-admin)",
     "limitacao": "o resumo público da protection clássica não expõe o flag strict (só rulesets expõem) — strict clássico é verificado no flip R1 pelo humano (ADR 0275 §5)",
     "consumidores": [
@@ -19,6 +22,7 @@
       "ADR 0216 PR scan (governance:audit --diff-only)",
       "ADR frontmatter",
       "A11y axe · runtime nos componentes canon",
+      "anchor entry/covers gate (advisory)",
       "Append-only canon (ADRs, handoffs, Constituição)",
       "Casos-coverage · ratchet (trio + rastreabilidade)",
       "charter_refs_broken <= teto",
