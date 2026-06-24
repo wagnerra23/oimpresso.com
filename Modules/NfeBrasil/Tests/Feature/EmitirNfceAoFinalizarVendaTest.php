@@ -208,11 +208,10 @@ it('flag ON + venda partial → Job dispatched (parcial conta como pago)', funct
     config(['nfebrasil.auto_emission_on_sell_completed' => true]);
     Queue::fake();
 
-    // Per-business gate (ADR 0093): tenant (biz=7) precisa de opt-in explícito.
-    // biz=7 não tem FK em nfe_business_configs (business_id unique, sem FK), então
-    // criar o config direto é seguro mesmo sem row em `business`.
+    // Per-business gate (ADR 0093): tenant precisa de opt-in explícito. biz=1 (Wagner,
+    // semeado) — ADR 0101: testes usam SEMPRE biz=1, nunca id de cliente real (ex: 4/5/7).
     \Modules\NfeBrasil\Models\NfeBusinessConfig::updateOrCreate(
-        ['business_id' => 7],
+        ['business_id' => 1],
         ['regime' => 'simples', 'auto_emission_enabled' => true, 'tributacao_default' => ['cfop' => '5102']],
     );
 
@@ -220,7 +219,7 @@ it('flag ON + venda partial → Job dispatched (parcial conta como pago)', funct
         'type' => 'sell',
         'status' => 'final',
         'payment_status' => 'partial',
-        'business_id' => 7,
+        'business_id' => 1,
         'id' => 999,
     ]);
 
