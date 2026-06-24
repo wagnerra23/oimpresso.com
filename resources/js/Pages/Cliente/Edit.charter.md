@@ -2,8 +2,8 @@
 page: /contacts/{id}/edit
 component: resources/js/Pages/Cliente/Edit.tsx
 owner: wagner
-status: draft
-last_validated: "2026-05-29"
+status: live
+last_validated: "2026-06-24"
 parent_module: Cliente
 related_adrs: [110, 107, 93, 94, 104, 149, 235]
 tier: A
@@ -15,9 +15,9 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "none"
 ---
 
-# Page Charter — /contacts/{id}/edit (DRAFT)
+# Page Charter — /contacts/{id}/edit (LIVE)
 
-> Backend canon: `ContactController::edit($id)` linha 768. Family visual idêntica a Create.
+> **Status:** live — reconciliado de draft em 2026-06-24: Wagner confirmou biz=4 (ROTA LIVRE) em React em produção (flag `MWART_CLIENTE_EDIT` ON; fallback Blade no `ContactController`). Backend canon: `ContactController::edit($id)` linha 768. Family visual idêntica a Create.
 
 ## Mission
 

@@ -1,9 +1,9 @@
 ---
-page: /contacts/contact_map
+page: /contacts/map
 component: resources/js/Pages/Cliente/Map.tsx
 owner: wagner
-status: draft
-last_validated: "2026-05-15"
+status: live
+last_validated: "2026-06-24"
 parent_module: Cliente
 related_adrs: [110, 107, 93, 94, 104, 149]
 tier: A
@@ -15,9 +15,9 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "split-screen com Leaflet/Google Maps lateral, divergente do Index lista"
 ---
 
-# Page Charter — /contacts/contact_map (DRAFT)
+# Page Charter — /contacts/map (LIVE)
 
-> Backend canon: `ContactController::contactMap()` linha 1634. **Divergência ADR 0149:** Layout split-pane com lista lateral 1/3 + mapa 2/3. Wagner aprovou divergência pra utility/visualization page.
+> **Status:** live — reconciliado de draft em 2026-06-24: Wagner confirmou biz=4 (ROTA LIVRE) em React em produção (flag `MWART_CLIENTE_MAP` ON; fallback Blade no `ContactController`). Rota real é `/contacts/map` (corrigido de `/contacts/contact_map`). Backend canon: `ContactController::contactMap()` linha 1634. **Divergência ADR 0149:** Layout split-pane com lista lateral 1/3 + mapa 2/3. Wagner aprovou divergência pra utility/visualization page.
 
 ## Mission
 
