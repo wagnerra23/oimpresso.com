@@ -97,7 +97,6 @@
     "plan-health-gate.yml",
     "protection-drift.yml",
     "quick-sync.yml",
-    "reincidencia-guard.yml",
     "repair-shared-vocab.yml",
     "reuse-gate.yml",
     "run-financeiro-demo-seeder.yml",
