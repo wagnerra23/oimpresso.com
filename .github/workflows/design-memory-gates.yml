@@ -46,6 +46,9 @@ jobs:
       # sem bundles datados cowork-* · sem protótipo fora do allowlist. SEM
       # continue-on-error de propósito = falha VERMELHO (Wagner: "deve dar erro").
       # Workflow segue fora de branch-protection até maturar (ADR 0271/0275).
+      # ATENÇÃO: este step é hard-fail e roda PRIMEIRO. Por isso os steps advisory
+      # abaixo carregam `if: always()` — senão um vermelho aqui PULA ds-guard/integrity
+      # e mata silenciosamente §8/§15 (regressão catalogada 2026-06-24).
       - name: Cowork SSOT guard (fonte única · build-only)
         run: node scripts/governance/cowork-ssot-guard.mjs
 
@@ -54,6 +57,7 @@ jobs:
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
       # uso e sai 0 (nao bloqueia). continue-on-error = advisory.
       - name: DS-GUARD (arquivos tocados · §8)
+        if: always()  # roda mesmo se o SSOT guard (hard-fail) falhou antes
         continue-on-error: true
         run: |
           BASE="origin/${{ github.base_ref }}"
@@ -71,11 +75,13 @@ jobs:
       # DS-GUARD --all: relatorio de divida da arvore (NAO bloqueia por design · §8).
       # Sempre roda, da visibilidade da divida acumulada (paleta inventada / tela na raiz).
       - name: DS-GUARD relatorio de divida (--all · §8)
+        if: always()  # roda mesmo se o SSOT guard (hard-fail) falhou antes
         continue-on-error: true
         run: node prototipo-ui/ds-guard.mjs --all
 
       # integrity-check: a propria memoria nao corrompeu (espinha · pares charter/decisoes ·
       # LICOES contiguas · benchmark). Sai 1 se algum IT duro falhar; advisory aqui.
       - name: Integrity check (espinha da memoria · §15)
+        if: always()  # roda mesmo se o SSOT guard (hard-fail) falhou antes
         continue-on-error: true
         run: node prototipo-ui/integrity-check.mjs

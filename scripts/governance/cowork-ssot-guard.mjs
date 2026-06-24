@@ -19,7 +19,10 @@ const COWORK = 'prototipo-ui/cowork';
 
 // Telas cujo design AINDA não existe no export → só sobrevive o recorte antigo.
 // O DESIGN deve exportá-las pro cowork/ (ver FRESCOR). Migrou → REMOVER daqui (meta: allowlist = 0).
-const PROTOTIPOS_ALLOWLIST = new Set(['compras-grade-matrix', 'inventario-migracao']);
+//   - perfil: baseline importado 2026-06-24 (#3332) pra fechar o furo "sem baseline → sem
+//     diff" da Fase 0 (aplicar-prototipo). Recorte sem equivalente no export = mantido aqui
+//     (proposta 2026-06-23 §3 / decisão [W] item B). Sai quando o Cowork exportar pro cowork/.
+const PROTOTIPOS_ALLOWLIST = new Set(['compras-grade-matrix', 'inventario-migracao', 'perfil']);
 
 const errors = [];
 
