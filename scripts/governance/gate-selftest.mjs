@@ -372,6 +372,16 @@ const CATRACAS = [
     run: runDonenessBaseline,
     expect: { good: /CONFLITOS \(mordem em --check\): 0/, bad: /US-SLDB-001.*conflito_done_sem_ancora/ },
   },
+  {
+    // charter-live-signal (proposta SDD 2026-06-24): `status: live` precisa de sinal de prod.
+    // sandbox por cwd (igual anchor-lint): a fixture traz governance/prod-flags.json + o charter.
+    // good = charter live com component em prod-flags.json `live` → live_ok (exit 0); bad = charter
+    // live sem entrada nem `smoke:` → live_sem_sinal (exit 1). bad regex = a acusação ⚠️ "SEM sinal
+    // de prod" (a linha-resumo sai nos dois; o ✓ só no good, o ⚠️ só no bad).
+    id: 'charter-live-signal',
+    run: (kind) => runNode(script('charter-live-signal', 'scripts/governance/charter-live-signal.mjs'), ['--check'], join(FIX, 'charter-live-signal', kind)),
+    expect: { good: /carrega sinal de prod/, bad: /SEM sinal de prod/ },
+  },
 ];
 
 const results = [];

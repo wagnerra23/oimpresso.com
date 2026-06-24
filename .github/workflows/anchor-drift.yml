@@ -29,8 +29,11 @@ on:
     branches: [main]
     paths:
       - 'memory/requisitos/**/SPEC.md'
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'governance/prod-flags.json'
       - 'scripts/governance/anchor-lint.mjs'
       - 'scripts/governance/doneness-lint.mjs'
+      - 'scripts/governance/charter-live-signal.mjs'
       - '.github/workflows/anchor-drift.yml'
   schedule:
     - cron: '0 6 * * 1' # segunda 06:00 UTC — full-tree semanal
@@ -130,4 +133,34 @@ jobs:
             fi
           else
             node scripts/governance/doneness-lint.mjs --baseline governance/doneness-baseline.json
+          fi
+
+  charter-live-signal:
+    name: charter status:live precisa de sinal de prod (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # diff contra base do PR
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: charter-live-signal (diff-aware no PR · full-tree report no cron/dispatch)
+        run: |
+          # status:live de charter precisa de SINAL de prod (governance/prod-flags.json ou campo smoke:).
+          # Diff-aware nos charters TOCADOS → morde só `live` NOVO/TOCADO sem sinal (os ~57 live legados
+          # sem sinal NÃO avermelham · grandfather por não-toque). ADVISORY: não-required até flip do
+          # Wagner (ADR 0275 §5 · proposta 2026-06-24). Cron/dispatch = report full-tree (exit 0).
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            CHANGED=$(git diff --name-only --diff-filter=d "origin/${{ github.base_ref }}...HEAD" -- 'resources/js/Pages/' | grep '\.charter\.md$' || true)
+            if [ -n "$CHANGED" ]; then
+              echo "charters tocados no PR (--check: no-new-lie · status:live sem sinal de prod):"; echo "$CHANGED"
+              # shellcheck disable=SC2086
+              node scripts/governance/charter-live-signal.mjs --check $CHANGED
+            else
+              echo "Nenhum charter tocado (PR mudou lint/workflow/contrato) — full-tree report (advisory exit 0):"
+              node scripts/governance/charter-live-signal.mjs
+            fi
+          else
+            node scripts/governance/charter-live-signal.mjs
           fi
