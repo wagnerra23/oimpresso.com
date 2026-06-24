@@ -16,11 +16,16 @@ import { spawnSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { existsSync, writeFileSync, unlinkSync } from 'node:fs';
+import { existsSync, writeFileSync, unlinkSync, mkdirSync, utimesSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const HOOK = join(__dirname, 'block-pr-without-approval.mjs');
 const FLAG = join(tmpdir(), 'oimpresso-pr-approval.flag');
+// Mesmo path derivado pelo hook (import.meta.url → raiz da worktree). `.claude/run/` é gitignored.
+const OVERRIDE_FILE = join(__dirname, '..', '..', '.claude', 'run', 'r10-override.txt');
+function clearOverride() {
+  if (existsSync(OVERRIDE_FILE)) unlinkSync(OVERRIDE_FILE);
+}
 
 function clearFlag() {
   if (existsSync(FLAG)) unlinkSync(FLAG);
@@ -221,7 +226,68 @@ clearFlag();
   check('"nao, espera" apos pergunta de publish -> NAO aprova -> BLOCK', !existsSync(FLAG) && runHook(PUSH).code === 2);
 }
 
+// --- LACUNA 1 (2026-06-24): "merge"/"ok merge" como ORDEM curta sob gate de contexto ---
+
+// 29. "ok merge" APOS o assistente perguntar "...abro o PR?" -> APROVA (caso real Wagner).
 clearFlag();
+{
+  const tp = makeTranscript('Tudo verde. Posso abrir o PR?', null);
+  runHook(promptTC('ok merge', tp));
+  check('"ok merge" apos pergunta de publish -> APROVA', existsSync(FLAG));
+}
+
+// 30. CONSERVADORIA: "ok merge" incidental (pergunta NAO-publish) -> NAO aprova -> BLOCK.
+clearFlag();
+{
+  const tp = makeTranscript('Qual branch voce quer usar de base?', null);
+  runHook(promptTC('ok merge', tp));
+  check('"ok merge" incidental (sem pergunta de publish) -> NAO aprova -> BLOCK', !existsSync(FLAG) && runHook(PUSH).code === 2);
+}
+
+// 31. "merge" curto apos pergunta de merge -> APROVA -> gh pr merge ALLOW.
+clearFlag();
+{
+  const tp = makeTranscript('CI verde. Posso mergear o PR #12 agora?', null);
+  runHook(promptTC('merge', tp));
+  check('"merge" curto apos pergunta de merge -> APROVA -> gh pr merge ALLOW', existsSync(FLAG) && runHook(bash('gh pr merge 12 --admin')).code === 0);
+}
+
+// 32. FALSO-POSITIVO: 'merge' so casa afirmativo curto se for o texto INTEIRO; "merge"
+//     embebido numa frase longa NAO aprova (isShortAffirmative exige match exato).
+clearFlag();
+{
+  const tp = makeTranscript('Posso abrir o PR?', null);
+  runHook(promptTC('da um merge conflict ali, resolve antes', tp));
+  check('"...merge conflict..." (frase longa) -> NAO aprova -> BLOCK', !existsSync(FLAG) && runHook(PUSH).code === 2);
+}
+
+// --- LACUNA 2 (2026-06-24): override ACIONAVEL via arquivo-marcador (.claude/run/r10-override.txt) ---
+
+// 33. override file com razao + recente -> ALLOW + consome (1 override = 1 publicacao).
+clearFlag();
+clearOverride();
+mkdirSync(dirname(OVERRIDE_FILE), { recursive: true });
+writeFileSync(OVERRIDE_FILE, 'Wagner aprovou "ok merge" no chat; deteccao por keyword falhou', 'utf8');
+check('override file (razao+recente) -> ALLOW', runHook(PUSH).code === 0);
+check('override file consumido apos usar', !existsSync(OVERRIDE_FILE));
+
+// 34. override file VAZIO (sem razao) -> BLOCK (exige justificativa explicita).
+clearFlag();
+clearOverride();
+writeFileSync(OVERRIDE_FILE, '   \n', 'utf8');
+check('override file vazio (sem razao) -> BLOCK', runHook(PUSH).code === 2);
+clearOverride();
+
+// 35. override file EXPIRADO (mtime velho) -> BLOCK.
+clearFlag();
+clearOverride();
+writeFileSync(OVERRIDE_FILE, 'razao qualquer', 'utf8');
+utimesSync(OVERRIDE_FILE, new Date(), new Date(Date.now() - 30 * 60000));
+check('override file expirado (mtime velho) -> BLOCK', runHook(PUSH).code === 2);
+clearOverride();
+
+clearFlag();
+clearOverride();
 for (const f of _transcripts) {
   try {
     if (existsSync(f)) unlinkSync(f);
