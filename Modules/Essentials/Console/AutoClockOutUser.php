@@ -80,6 +80,12 @@ class AutoClockOutUser extends Command
                     $agora = Carbon::now($tz);
                     $janelaFim = $agora->copy()->addMinutes(30);
 
+                    // auto_clockout_time é HORA DE PAREDE (coluna `time`), comparada como
+                    // hora-do-dia no fuso do business. Os limites são strings 'HH:MM:SS'
+                    // zero-padded, então comparação de string == comparação cronológica.
+                    $janelaInicio = $agora->toTimeString();
+                    $janelaFimStr = $janelaFim->toTimeString();
+
                     // Funcionários ainda "clocados" (sem clock_out_time) cujo shift do
                     // PRÓPRIO business tem auto_clockout_time dentro da janela [agora, agora+30min].
                     // Escopo explícito por business_id nas DUAS tabelas (attendance + shift).
@@ -89,7 +95,19 @@ class AutoClockOutUser extends Command
                         ->where('es.business_id', $businessId)
                         ->where('es.is_allowed_auto_clockout', 1)
                         ->whereNull('essentials_attendances.clock_out_time')
-                        ->whereBetween('es.auto_clockout_time', [$agora->toTimeString(), $janelaFim->toTimeString()])
+                        ->where(function ($q) use ($janelaInicio, $janelaFimStr) {
+                            if ($janelaInicio <= $janelaFimStr) {
+                                // Janela normal dentro do mesmo dia.
+                                $q->whereBetween('es.auto_clockout_time', [$janelaInicio, $janelaFimStr]);
+                            } else {
+                                // WRAP DE MEIA-NOITE (ex: agora=23:30 → janela [23:30:00, 00:00:00]):
+                                // no MySQL `BETWEEN low AND high` com low > high retorna SEMPRE vazio,
+                                // então o shift em (23:30, 00:00) era ignorado e a saída nunca batia.
+                                // Parte a janela em duas faixas: [inicio, 23:59:59] OR [00:00:00, fim].
+                                $q->whereBetween('es.auto_clockout_time', [$janelaInicio, '23:59:59'])
+                                    ->orWhereBetween('es.auto_clockout_time', ['00:00:00', $janelaFimStr]);
+                            }
+                        })
                         ->select('essentials_attendances.*')
                         ->get();
 
