@@ -23,7 +23,7 @@ uses(Tests\TestCase::class);
  * Pattern dual-mode (PR #486 reference):
  *   - SQLite (CI sanity): drop+create isolado em :memory:
  *   - MySQL (Pest local — gate Wagner): preserva schema real;
- *     limpa rows biz=1/99 com FK_CHECKS=0 (cascateia em nfse_provider_configs.cert_id)
+ *     limpa rows biz=1/2 com FK_CHECKS=0 (cascateia em nfse_provider_configs.cert_id)
  */
 
 beforeEach(function () {
@@ -43,9 +43,9 @@ beforeEach(function () {
     } elseif (Schema::hasTable('nfe_certificados')) {
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         if (Schema::hasTable('nfse_provider_configs')) {
-            DB::table('nfse_provider_configs')->whereIn('business_id', [1, 99])->delete();
+            DB::table('nfse_provider_configs')->whereIn('business_id', [1, 2])->delete();
         }
-        DB::table('nfe_certificados')->whereIn('business_id', [1, 99])->delete();
+        DB::table('nfe_certificados')->whereIn('business_id', [1, 2])->delete();
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 
@@ -59,9 +59,9 @@ afterEach(function () {
     } elseif (Schema::hasTable('nfe_certificados')) {
         DB::statement('SET FOREIGN_KEY_CHECKS=0');
         if (Schema::hasTable('nfse_provider_configs')) {
-            DB::table('nfse_provider_configs')->whereIn('business_id', [1, 99])->delete();
+            DB::table('nfse_provider_configs')->whereIn('business_id', [1, 2])->delete();
         }
-        DB::table('nfe_certificados')->whereIn('business_id', [1, 99])->delete();
+        DB::table('nfe_certificados')->whereIn('business_id', [1, 2])->delete();
         DB::statement('SET FOREIGN_KEY_CHECKS=1');
     }
 });
@@ -230,15 +230,18 @@ it('multi-tenant: cert do business A não vaza pro business B', function () {
 
     $svc->salvar(1, base64_encode('biz-1-pfx'), 'pass-1');
     $svcB = fakeService('22222222000199', '+1 year');
-    $svcB->salvar(99, base64_encode('biz-99-pfx'), 'pass-99');
+    // biz=2 (semeado pelo pest-mysql-setup) em vez de biz=99: nfe_certificados tem FK
+    // pra business(id); biz=99 não existe no seed → FK violation no MySQL (sqlite não
+    // enforça FK, por isso só estourava no lane MySQL). Isolamento A↔B segue provado.
+    $svcB->salvar(2, base64_encode('biz-2-pfx'), 'pass-2');
 
     $loadedA = $svc->carregarParaSefaz(1);
-    $loadedB = $svcB->carregarParaSefaz(99);
+    $loadedB = $svcB->carregarParaSefaz(2);
 
     expect($loadedA['pfx_binary'])->toBe('biz-1-pfx')
         ->and($loadedA['senha'])->toBe('pass-1')
-        ->and($loadedB['pfx_binary'])->toBe('biz-99-pfx')
-        ->and($loadedB['senha'])->toBe('pass-99');
+        ->and($loadedB['pfx_binary'])->toBe('biz-2-pfx')
+        ->and($loadedB['senha'])->toBe('pass-2');
 });
 
 it('carregarParaSefaz() lança RuntimeException se business sem cert ativo', function () {
