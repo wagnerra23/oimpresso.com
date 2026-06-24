@@ -18,7 +18,8 @@
 // no MESMO PR — sandbox git real, P05 fecha o grandfather dos baselines-ratchet) ·
 // anchor-lint --check (anchored_dead = anchor morto · ADR 0273 §2 · P08) ·
 // doneness-lint --check (conflito status:×âncora — done-sem-âncora / aberto-com-âncora · ADR 0302) ·
-// anchor-lint-wired --check (wired/zombie + testado-fantasma · ADR 0303 SA-A2-bis: existir ≠ estar vivo).
+// anchor-lint-wired --check (wired/zombie + testado-fantasma · ADR 0303 SA-A2-bis: existir ≠ estar vivo) ·
+// anchor-lint-verde --junit --check-verde (G1b Phase B: verde-por-arquivo via JUnit; skipped != passed).
 //
 // USO (na raiz do repo):
 //   node scripts/governance/gate-selftest.mjs              # N catracas × 2 fixtures
@@ -202,6 +203,23 @@ function runAnchorLintEntry(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// anchor-lint --junit <summary.json> --check-verde (G1b Phase B): verde-por-arquivo. Mesmo
+// sandbox por cwd; a fixture carrega o JUnit summary (junit-summary/v1) em junit/ (NÃO em
+// test-results/ — esse path é gitignored, o summary não sobreviveria ao commit). good =
+// arquivo-de-teste-que-cobre VERDE (passed) → exit 0; bad = mesmo SPEC/teste, mas o summary só
+// marca skipped (markTestSkipped) → NÃO-verde (skipped != passed) → exit 1, acusação 🟥. Fixture
+// ISOLADA (SelftestVerde) — good/bad diferem SÓ no summary JSON (prova que a regra é a verde).
+function runAnchorLintVerde(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-verde-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-verde', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 const CATRACAS = [
   {
     id: 'knowledge-drift',
@@ -299,6 +317,14 @@ const CATRACAS = [
     id: 'anchor-lint-entry',
     run: runAnchorLintEntry,
     expect: { good: /Gate de entrada \(advisory\): 0 US/, bad: /regra de entrada|regra sem teste/ },
+  },
+  {
+    // G1b verde-por-arquivo (Phase B): --junit summary + --check-verde. good = teste-que-cobre VERDE
+    // → "Gate verde (advisory): 0 US"; bad = teste só skipped (skipped != passed) → 🟥 US-SLFV-001.
+    // A linha-resumo "Gate verde … : N US" sai nos dois; a 🟥 da US só no req_teste_vermelho.
+    id: 'anchor-lint-verde',
+    run: runAnchorLintVerde,
+    expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
   },
 ];
 
