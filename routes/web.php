@@ -845,7 +845,7 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])
 });
 
 // Modo Suporte — empresas-cliente acessíveis (exceto a operadora). Read-only (ADR 0305) +
-// fase A "Acessar como" (login-as guardado, ADR 0306). Autorização nível-empresa + auditoria
+// fase A "Acessar como" (login-as guardado, ADR 0308). Autorização nível-empresa + auditoria
 // de entrada no middleware support.access (que lê {business}); a impersonação re-checa no controller.
 Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'support.access'])
     ->prefix('suporte')

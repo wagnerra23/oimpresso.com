@@ -47,6 +47,13 @@ beforeEach(function () {
             $this->markTestSkipped("Tabela {$t} ausente — rode migrate NfeBrasil primeiro");
         }
     }
+
+    // ScopeByBusiness só filtra com usuário AUTENTICADO (early-return em
+    // `! auth()->check()`, ScopeByBusiness.php:26) lendo session('user.business_id').
+    // Sem actingAs o scope no-opa e o count() cross-tenant abaixo não isola. Autenticamos
+    // um usuário do biz=1 (semeado pelo pest-mysql-setup; sem role → não é superadmin);
+    // cada teste seta session('user.business_id') pra escolher o tenant ativo. ADR 0093.
+    $this->actingAs(\App\User::where('business_id', W25_NFE_BIZ_WAGNER)->firstOrFail());
 });
 
 afterEach(function () {
@@ -100,11 +107,11 @@ it('NfeInutilizacao count() biz=99 NÃO conta ranges do biz=1 (cross-tenant)', f
         ],
     ]);
 
-    session(['business.id' => W25_NFE_BIZ_FICTICIO]);
+    session(['user.business_id' => W25_NFE_BIZ_FICTICIO]);
     $contagemBiz99 = NfeInutilizacao::where('justificativa', 'like', '%'.W25_NFE_TAG.'%')->count();
     expect($contagemBiz99)->toBe(1);
 
-    session(['business.id' => W25_NFE_BIZ_WAGNER]);
+    session(['user.business_id' => W25_NFE_BIZ_WAGNER]);
     $contagemBiz1 = NfeInutilizacao::where('justificativa', 'like', '%'.W25_NFE_TAG.'%')->count();
     expect($contagemBiz1)->toBe(2);
 });
@@ -119,7 +126,7 @@ it('NfeInutilizacao::quantidadeNumeros() computa range inclusivo correto', funct
         'created_at'    => now(), 'updated_at' => now(),
     ]);
 
-    session(['business.id' => W25_NFE_BIZ_WAGNER]);
+    session(['user.business_id' => W25_NFE_BIZ_WAGNER]);
     $inut = NfeInutilizacao::where('justificativa', 'like', '%'.W25_NFE_TAG.'%')->first();
     expect($inut)->not->toBeNull();
     // Range [991000..991009] inclusivo = 10 numeros
@@ -256,7 +263,7 @@ it('NfeEmissao::scopeAutorizadas filtra status=autorizada', function () {
         ],
     ]);
 
-    session(['business.id' => W25_NFE_BIZ_WAGNER]);
+    session(['user.business_id' => W25_NFE_BIZ_WAGNER]);
     $autorizadas = NfeEmissao::autorizadas()
         ->whereJsonContains('metadata->tag', W25_NFE_TAG)
         ->count();

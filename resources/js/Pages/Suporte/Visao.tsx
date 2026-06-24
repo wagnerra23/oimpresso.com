@@ -1,4 +1,4 @@
-// Modo Suporte fase A (ADR 0306) — visão read-only de uma empresa-cliente: resumo + usuários,
+// Modo Suporte fase A (ADR 0308) — visão read-only de uma empresa-cliente: resumo + usuários,
 // com "Acessar como" (login-as guardado) por usuário. A faixa "Voltar para X" vem do AppShellV2
 // (switched_from, de graça). Read-only com business_id explícito (SPEC §Desenho seguro); a única
 // escrita é a porta acessarComo, atrás da trava Tier 0 canImpersonate no servidor. Tokens +

@@ -7,7 +7,7 @@ owners:
   - W
 related_adrs:
   - 0305-modo-suporte-cross-tenant-exceto-operador
-  - 0306-modo-suporte-fase-a-acessar-como-login-as-guardado
+  - 0308-modo-suporte-fase-a-acessar-como-login-as-guardado
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
 ---
@@ -90,9 +90,9 @@ ADR **0305** ratificado. Backend da fase B **read-only** implementado e dormente
 - 🟡 Models com global scope por sessão (Financeiro `fin_titulos`, `HasBusinessScope`) → `withoutGlobalScope(...)->where('business_id', X)` (padrão já em uso).
 - ❌ **Não usar** (leem sessão/auth interno): `CashRegisterUtil::getRegisterDetails`, `payContact`, e os Controllers.
 
-**Fora de escopo (à época, 2026-06-23):** "**atuar**" (escrever) cross-tenant — os caminhos de dinheiro por `auth-user` tornam o write **por troca-parcial-de-sessão** inseguro (split-brain). Suporte ficou **somente leitura**. → **Destravado depois** pela [fase A](#fase-a--atuar-via-acessar-como-login-as-guardado-adr-0306) via **login-as completo** (que NÃO sofre split-brain — ver abaixo).
+**Fora de escopo (à época, 2026-06-23):** "**atuar**" (escrever) cross-tenant — os caminhos de dinheiro por `auth-user` tornam o write **por troca-parcial-de-sessão** inseguro (split-brain). Suporte ficou **somente leitura**. → **Destravado depois** pela [fase A](#fase-a--atuar-via-acessar-como-login-as-guardado-adr-0308) via **login-as completo** (que NÃO sofre split-brain — ver abaixo).
 
-## Fase A — atuar via "Acessar como" (login-as guardado) — [ADR 0306](../../decisions/0306-modo-suporte-fase-a-acessar-como-login-as-guardado.md)
+## Fase A — atuar via "Acessar como" (login-as guardado) — [ADR 0308](../../decisions/0308-modo-suporte-fase-a-acessar-como-login-as-guardado.md)
 
 > Decisão Wagner 2026-06-24: read-only não basta pra dar suporte de verdade (corrigir venda, ajustar config, reimprimir). O time ganha **"Acessar como"** — **login-as completo**, com trava.
 

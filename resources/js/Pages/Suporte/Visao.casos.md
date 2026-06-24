@@ -10,7 +10,7 @@ last_run: "2026-06-24"
 # Casos de Uso & Aceite — Suporte / Visão
 
 > Destino do "Entrar (suporte)". Os UCs blindam as invariantes Tier 0 da fase A
-> ([ADR 0306](../../../../memory/decisions/0306-modo-suporte-fase-a-acessar-como-login-as-guardado.md)):
+> ([ADR 0308](../../../../memory/decisions/0308-modo-suporte-fase-a-acessar-como-login-as-guardado.md)):
 > o agente vira QUALQUER usuário do cliente (incl. Admin), mas NUNCA a operadora (biz=1) nem um
 > superadmin; alvo inativo barra; toda impersonação é auditada com o usuário-alvo explícito.
 > Provados por `tests/Feature/Support/SupportAcessarComoTest.php` (biz=1 `seededTenant`, biz=99 cliente).

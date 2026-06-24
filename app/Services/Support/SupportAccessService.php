@@ -74,7 +74,7 @@ class SupportAccessService
     }
 
     /**
-     * Fase A (ADR 0306) — o agente PODE "Acessar como" (login-as) este usuário-alvo?
+     * Fase A (ADR 0308) — o agente PODE "Acessar como" (login-as) este usuário-alvo?
      *
      * Trava Tier 0 (ponto único, antes do loginUsingId):
      *   a) a empresa do alvo é acessível ao agente — reusa canAccessBusiness, que já exige

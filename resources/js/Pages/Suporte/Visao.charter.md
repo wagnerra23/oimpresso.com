@@ -6,7 +6,7 @@ owner: wagner
 status: draft
 parent_module: Suporte
 related_adrs:
-  - 0306-modo-suporte-fase-a-acessar-como-login-as-guardado
+  - 0308-modo-suporte-fase-a-acessar-como-login-as-guardado
   - 0305-modo-suporte-cross-tenant-exceto-operador
   - 0093-multi-tenant-isolation-tier-0
 mission: "Dar ao agente de suporte a visão de uma empresa-cliente (resumo + usuários) e o ponto de entrada 'Acessar como' (login-as guardado) para atuar dentro dela, sem nunca alcançar a operadora nem virar um superadmin."
@@ -14,7 +14,7 @@ mission: "Dar ao agente de suporte a visão de uma empresa-cliente (resumo + usu
 
 # Charter — Suporte / Visão
 
-> Contrato vivo da tela. Lei sobre os [casos](Visao.casos.md). Backend (services + rotas + Pest) no mesmo PR; aval visual do screenshot dado pelo Wagner (2026-06-24). Pareado com [SPEC §fase A](../../../../memory/requisitos/Suporte/SPEC.md) + [ADR 0306](../../../../memory/decisions/0306-modo-suporte-fase-a-acessar-como-login-as-guardado.md).
+> Contrato vivo da tela. Lei sobre os [casos](Visao.casos.md). Backend (services + rotas + Pest) no mesmo PR; aval visual do screenshot dado pelo Wagner (2026-06-24). Pareado com [SPEC §fase A](../../../../memory/requisitos/Suporte/SPEC.md) + [ADR 0308](../../../../memory/decisions/0308-modo-suporte-fase-a-acessar-como-login-as-guardado.md).
 
 ## Mission
 
@@ -33,7 +33,7 @@ Destino do "Entrar (suporte)" da [Empresas](Empresas.charter.md). Mostra, de uma
 - ❌ Mostrar a empresa operadora (biz=1) ou qualquer usuário dela.
 - ❌ "Acessar como" um superadmin/admin-username ou usuário inativo (botão vira "indisponível").
 - ❌ Conceder/revogar a capability de suporte (é outra tela).
-- ❌ Atribuição de auditoria por-ação — o log registra a **entrada** (quem virou quem), não cada ação (caveat assumido, ADR 0306).
+- ❌ Atribuição de auditoria por-ação — o log registra a **entrada** (quem virou quem), não cada ação (caveat assumido, ADR 0308).
 
 ## UX targets
 

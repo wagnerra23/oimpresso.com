@@ -99,15 +99,19 @@ jobs:
         #   - NfeBrasilMultiTenantIsolationTest (2026-06-24): actingAs(user biz=1) +
         #     session('user.business_id') faz o scope exercitar isolamento de verdade;
         #     `SHOW COLUMNS ... LIKE ?` → information_schema (portável). De volta na allowlist.
+        #   - Wave25NfeSaturationTest (2026-06-24): mesma causa — actingAs(biz=1) +
+        #     session('user.business_id') faz o count() cross-tenant isolar de verdade.
+        #   - NfeServiceIdempotenciaRetryTest (2026-06-24): `new NfeService()` (0 args) →
+        #     `app(NfeService::class)` resolve a dep CertificadoService via container.
+        #   - CertificadoServiceTest (2026-06-24): `salvar(99, ...)` (FK nfe_certificados→business,
+        #     biz=99 não semeado) → biz=2 (semeado). Cleanup [1,99] → [1,2].
+        #   - EmitirNfceAoFinalizarVendaTest (2026-06-24): 2 testes de dispatch semeiam
+        #     NfeBusinessConfig(auto_emission_enabled=true) pro per-business gate (ADR 0093).
         #
-        # Ainda excluídos (sobem conforme o fix do teste fica verde):
-        #   - Wave25NfeSaturationTest — 1 teste de count() cross-tenant pela MESMA causa (sem auth).
-        #   - NfeServiceIdempotenciaRetryTest — `new NfeService()` com 0 args (constructor exige
-        #     CertificadoService) → ArgumentCountError.
-        #   - CertificadoServiceTest — `salvar(99, ...)` viola FK nfe_certificados→business (biz=99
-        #     não semeado; sqlite não enforça FK). Seed dá biz=1/biz=2.
-        #   - EmitirNfceAoFinalizarVendaTest — 2 testes setam só a flag GLOBAL, sem NfeBusinessConfig
-        #     por-business; o listener tem per-business gate (ADR 0093) → no-op correto (teste stale).
+        # ✅ Allowlist completa — os 7 arquivos da 1ª run estão de volta, todos VERDES no MySQL
+        #    real. Ratchet concluído (12 falhas eram 100% defeito de teste/harness, 0 bug fiscal).
+        #    Próximo passo: arming a required por calendário (ADR 0275).
+        #
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema baseline e
         # limpam o seed biz=1/biz=2, envenenando os demais.
         env:
@@ -123,7 +127,11 @@ jobs:
             --log-junit test-results/pest-nfebrasil-junit.xml \
             Modules/NfeBrasil/Tests/Feature/NfeDomainModelsTest.php \
             Modules/NfeBrasil/Tests/Feature/OndaIbsCbsScaffoldTest.php \
-            Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php
+            Modules/NfeBrasil/Tests/Feature/NfeBrasilMultiTenantIsolationTest.php \
+            Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php \
+            Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php \
+            Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php \
+            Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php
 
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}

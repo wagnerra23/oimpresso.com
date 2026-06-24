@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
 uses(Tests\TestCase::class);
 
 /**
- * Modo Suporte fase A (ADR 0306) — "Acessar como" (login-as guardado). Invariantes Tier 0.
+ * Modo Suporte fase A (ADR 0308) — "Acessar como" (login-as guardado). Invariantes Tier 0.
  *
  * Regra: o agente vira QUALQUER usuário do cliente (incl. Admin), mas NUNCA a operadora
  * (biz=1) nem um superadmin/admin-username; alvo precisa estar ativo; tudo auditado.
@@ -21,7 +21,7 @@ uses(Tests\TestCase::class);
  *
  * @see app/Services/Support/SupportAccessService.php (canImpersonate)
  * @see app/Http/Controllers/Support/SupportController.php (acessarComo)
- * @see memory/decisions/0306-modo-suporte-fase-a-acessar-como-login-as-guardado.md
+ * @see memory/decisions/0308-modo-suporte-fase-a-acessar-como-login-as-guardado.md
  */
 
 const BIZ_OPERADOR_ACO = 1;

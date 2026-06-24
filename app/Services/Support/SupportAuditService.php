@@ -28,7 +28,7 @@ class SupportAuditService
 
     public const ACTION_NEGADO = 'negado';
 
-    /** Fase A (ADR 0306): o agente passou a operar COMO um usuário do cliente (login-as). */
+    /** Fase A (ADR 0308): o agente passou a operar COMO um usuário do cliente (login-as). */
     public const ACTION_ACESSOU_COMO = 'acessou_como';
 
     public function record(
@@ -66,7 +66,7 @@ class SupportAuditService
     }
 
     /**
-     * Fase A (ADR 0306): registra o início de uma impersonação (login-as) — quem · qual
+     * Fase A (ADR 0308): registra o início de uma impersonação (login-as) — quem · qual
      * usuário-alvo · qual empresa · quando. Gravado ANTES de trocar a identidade.
      */
     public function recordImpersonation(User|int $supportUser, int $businessId, int $targetUserId, ?string $route = null, ?string $ip = null, ?string $userAgent = null): SupportAccessLog

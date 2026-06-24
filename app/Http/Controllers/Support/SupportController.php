@@ -17,7 +17,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Modo Suporte — telas do agente de suporte (ADR 0305 read-only + ADR 0306 "Acessar como").
+ * Modo Suporte — telas do agente de suporte (ADR 0305 read-only + ADR 0308 "Acessar como").
  *
  * `index`/`show` são read-only com `business_id` EXPLÍCITO (nunca trocam contexto de sessão —
  * SPEC §Desenho seguro). `acessarComo` (fase A) é a ÚNICA porta de escrita: faz login-as
@@ -29,7 +29,7 @@ use Inertia\Response;
  * @see App\Http\Middleware\EnsureSupportAccess
  * @see App\Services\Support\SupportAccessService
  * @see memory/requisitos/Suporte/RUNBOOK-empresas.md
- * @see memory/decisions/0306-modo-suporte-fase-a-acessar-como-login-as-guardado.md
+ * @see memory/decisions/0308-modo-suporte-fase-a-acessar-como-login-as-guardado.md
  */
 class SupportController extends Controller
 {
@@ -74,7 +74,7 @@ class SupportController extends Controller
     }
 
     /**
-     * Fase A (ADR 0306) — "Acessar como": login-as completo de um usuário do cliente.
+     * Fase A (ADR 0308) — "Acessar como": login-as completo de um usuário do cliente.
      *
      * Trava Tier 0 antes de trocar a identidade: o alvo precisa pertencer à empresa da rota E
      * passar `canImpersonate` (empresa acessível ≠ operadora · alvo não-superadmin · ativo).
@@ -92,7 +92,7 @@ class SupportController extends Controller
         // Coerência (o usuário é mesmo daquela empresa) + trava Tier 0.
         if ((int) $target->business_id !== $business || ! $this->access->canImpersonate($agent, $target)) {
             $this->audit->record($agent, $business, SupportAuditService::ACTION_NEGADO, $route, $ip, $userAgent, $user);
-            abort(403, 'Usuário fora do alcance do Modo Suporte (ADR 0306).');
+            abort(403, 'Usuário fora do alcance do Modo Suporte (ADR 0308).');
         }
 
         // RF3: grava a impersonação ANTES de trocar a identidade (append-only).

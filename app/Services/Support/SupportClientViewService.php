@@ -59,7 +59,7 @@ class SupportClientViewService
     }
 
     /**
-     * Fase A (ADR 0306) — usuários da empresa-cliente, read-only (business_id EXPLÍCITO).
+     * Fase A (ADR 0308) — usuários da empresa-cliente, read-only (business_id EXPLÍCITO).
      *
      * Cada item traz `pode_acessar_como`: se o agente pode "Acessar como" aquele usuário
      * (false p/ superadmin/operador/inativo). Quem decide é o SupportAccessService — a tela

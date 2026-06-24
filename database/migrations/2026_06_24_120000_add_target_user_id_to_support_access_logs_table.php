@@ -5,13 +5,13 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
 /**
- * Modo Suporte fase A (ADR 0306) — auditoria do "Acessar como" (login-as guardado).
+ * Modo Suporte fase A (ADR 0308) — auditoria do "Acessar como" (login-as guardado).
  *
  * Adiciona `target_user_id` (nullable) ao log append-only: para o action `acessou_como`,
  * registra QUAL usuário do cliente o agente passou a ser. Nullable porque os actions já
  * existentes (`entrou`/`negado`) não têm alvo de impersonação. Aditiva e idempotente.
  *
- * @see memory/decisions/0306-modo-suporte-fase-a-acessar-como-login-as-guardado.md
+ * @see memory/decisions/0308-modo-suporte-fase-a-acessar-como-login-as-guardado.md
  */
 return new class extends Migration
 {

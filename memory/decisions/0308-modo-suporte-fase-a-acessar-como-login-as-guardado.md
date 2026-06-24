@@ -1,6 +1,6 @@
 ---
-slug: 0306-modo-suporte-fase-a-acessar-como-login-as-guardado
-number: 306
+slug: 0308-modo-suporte-fase-a-acessar-como-login-as-guardado
+number: 308
 title: "Modo Suporte fase A: atuar via \"Acessar como\" (login-as) guardado — emenda à 0305"
 type: adr
 status: aceito
@@ -16,7 +16,7 @@ related: ["0305-modo-suporte-cross-tenant-exceto-operador", "0093-multi-tenant-i
 pii: false
 ---
 
-# ADR 0306 — Modo Suporte fase A: atuar via "Acessar como" (login-as) guardado — emenda à 0305
+# ADR 0308 — Modo Suporte fase A: atuar via "Acessar como" (login-as) guardado — emenda à 0305
 
 > **Status:** aceito — decisão do Wagner (sessão 2026-06-24: *"Acessar como é isso que preciso"* → pro time de suporte, com trava, podendo virar qualquer usuário do cliente inclusive Admin). **Emenda** à [ADR 0305](0305-modo-suporte-cross-tenant-exceto-operador.md): não a revoga — destrava a **fase A ("atuar")** que a 0305 deixou explicitamente como futura. A ratificação se concretiza com a aprovação/merge desta PR pelo Wagner. Pareada com a [SPEC Suporte](../requisitos/Suporte/SPEC.md) §fase A.
 
