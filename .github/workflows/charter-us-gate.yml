@@ -1,0 +1,78 @@
+name: Charter ↔ US join (advisory)
+
+# Lint do campo canônico `related_us` nos Page Charters (resources/js/Pages/**/*.charter.md).
+# Frente SA do plano SDD (join US→tela · SA-A5/P10) — gramática/schema em
+# scripts/memory-schemas/charter.schema.json, lint em scripts/governance/charter-us-lint.mjs.
+# Origem: auditoria das máquinas 2026-06-24 achou a correspondência charter→US SEM gate
+# (o charter-us-lint existia mas estava fora de todo workflow).
+#
+# ADVISORY-DE-NASCENÇA (ADR 0271 onda 2 + ADR 0275 §5 · calendário de promoções):
+#   - NÃO entra em branch protection aqui. O "advisory" vem de NÃO estar nos required checks
+#     (governance/required-checks-baseline.json) — NÃO de esconder o vermelho. SEM continue-on-error,
+#     SEM skip-as-pass: o job mostra vermelho de verdade; só não BLOQUEIA o merge até promovido.
+#   - Promoção a required = flip do Wagner por calendário (ADR 0275 §5, 1 armamento/semana), quando
+#     o falso-positivo medido = 0 por 1-2 semanas. O flip atualiza required-checks-baseline.json no
+#     MESMO PR (regra do _meta desse baseline). Registrado em gates-registry.json (promote_by 2026-09-30).
+#
+# DIFF-AWARE (no-new-lie, grandfather por não-toque):
+#   --check morde SÓ charters NOVOS/TOCADOS sem `related_us` válido. Os 129 charters-sem-US legados
+#   NÃO avermelham (não são tocados). Backfill é lote IA futuro (roadmap SDD P10). SEM baseline JSON —
+#   o grandfather é o próprio git diff, não um floor.
+#
+# O script faz o `git diff --diff-filter=ACMR ${BASE_REF}...HEAD` INTERNAMENTE (precisa de
+# fetch-depth:0 + BASE_REF=origin/<base do PR>). Sem flag posicional de arquivos no PR.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'scripts/governance/charter-us-lint.mjs'
+      - 'scripts/memory-schemas/charter.schema.json'
+      - '.github/workflows/charter-us-gate.yml'
+  schedule:
+    - cron: '0 6 * * 1' # segunda 06:00 UTC — relatório de cobertura full-tree semanal
+  workflow_dispatch:
+
+concurrency:
+  group: charter-us-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  charter-us-lint:
+    name: charter related_us join (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # o --check faz git diff ${BASE_REF}...HEAD internamente
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: charter-us-lint (diff-aware no PR · full-tree report no cron/dispatch)
+        run: |
+          # PR: --check morde só charter NOVO/TOCADO sem related_us válido (no-new-lie · grandfather
+          # por não-toque · ADR 0275 §5). Cron/dispatch: relatório full-tree de cobertura (exit 0) —
+          # a dívida dos 129 legados sem US NÃO avermelha o cron.
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            export BASE_REF="origin/${{ github.base_ref }}"
+            echo "BASE_REF=$BASE_REF — --check só nos charters tocados (no-new-lie):"
+            node scripts/governance/charter-us-lint.mjs --check
+          else
+            echo "Cron/dispatch — relatório full-tree de cobertura (advisory exit 0):"
+            node scripts/governance/charter-us-lint.mjs
+          fi
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ charter NOVO/tocado sem related_us válido."
+          echo "   - declare a(s) US que esta tela atende no frontmatter: related_us: [US-XXX-NNN]"
+          echo "   - slug fora do padrão US-… → conferir scripts/memory-schemas/charter.schema.json (related_us.items.pattern)"
+          echo "   - campo legacy 'us:' presente → migrar 100% pra related_us (canônico único)"
+          echo "   Legado (129 charters sem US) NÃO bloqueia — backfill é lote IA futuro (roadmap SDD P10)."
+          echo "   Rodar local: node scripts/governance/charter-us-lint.mjs --check"
