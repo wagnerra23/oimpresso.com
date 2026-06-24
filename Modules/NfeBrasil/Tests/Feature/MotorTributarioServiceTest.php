@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-NFE-010 — motor tributário por NCM: cascade Níveis 1→4 (override→exata→padrão→default), CST/CSOSN, cache, isolamento multi-tenant.
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Schema;

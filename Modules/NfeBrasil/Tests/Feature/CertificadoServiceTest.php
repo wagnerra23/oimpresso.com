@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-NFE-001 — configurar certificado A1: validação OpenSSL, storage encrypted at rest, rotação, isolamento multi-tenant (ADR 0303 covers-check).
+
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;

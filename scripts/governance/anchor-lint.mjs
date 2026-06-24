@@ -112,6 +112,20 @@ function junitStatus(rel) {
   return 'vazio';
 }
 
+// SA-A2-ter ARMING (ADR 0275 calendário + ADR 0303): --baseline <path> grandfathera o
+// DÉBITO LEGADO (US legadas anchored_ok/parcial sem aceite/teste-que-cobre + covers legados)
+// pra o gate morder só mentira NOVA — no-new-lie, igual o anchored_dead já faz por diff-aware.
+// Sem --baseline = comportamento IDÊNTICO ao anterior (advisory zero-regressão). fs-puro (1 JSON).
+// --emit-baseline imprime o baseline da dívida ATUAL (determinístico, regenerável → ratchet só-desce).
+// (Grandfathera entry-aceite/entry-teste/covers; req_teste_vermelho do --junit NÃO entra — verde é
+// gate à parte, dormente sem --junit; grandfather de verde é trabalho futuro acoplado ao lane JUnit.)
+const BASELINE_PATH = (() => { const i = process.argv.indexOf('--baseline'); return i >= 0 ? process.argv[i + 1] : null; })();
+const EMIT_BASELINE = process.argv.includes('--emit-baseline');
+// chaves canônicas de violação (US-ID é único global — memory-health Check N · ADR 0304):
+const keyAceite = (us) => `entry-aceite:${us}`;
+const keyTeste = (us) => `entry-teste:${us}`;
+const keyCovers = (us, testSeg) => `covers:${us}:${String(testSeg).split('/').pop().replace(/\.php$/, '')}`;
+
 // ── regexes canônicas (ADR 0273 §1 — referência única; NÃO afrouxar sem novo ADR) ──
 const GRAMMAR_RE = /^\*\*Implementado em:\*\* (?:_pendente_(?: — .+)?|(?:_parcial_ · )?(?:`[^`]+`)(?: · `[^`]+`)* · verificado@[0-9a-f]{7} \(\d{4}-\d{2}-\d{2}\)(?: — .+)?)$/;
 // detecção LENIENTE de campo (legados usam `> ` blockquote — Vestuario — e espaçamento vário)
@@ -428,7 +442,10 @@ function lintSpec(file) {
 }
 
 // ── seleção de SPECs: full-tree ou diff-aware (args posicionais) ─────────────
-const args = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+// exclui o valor de `--baseline <path>` dos posicionais (é caminho de baseline, não SPEC).
+// (`_rawArgv` já declarado na seção de flags — G1b-verde.)
+const _baselineValIdx = _rawArgv.includes('--baseline') ? _rawArgv.indexOf('--baseline') + 1 : -1;
+const args = _rawArgv.filter((a, i) => !a.startsWith('--') && i !== _baselineValIdx);
 let specs;
 if (args.length) {
   specs = args.map((a) => resolve(ROOT, a)).filter((p) => /memory[\\/]requisitos[\\/][^\\/]+[\\/]SPEC\.md$/.test(p) && existsSync(p)).sort();
@@ -439,6 +456,50 @@ if (args.length) {
 }
 
 const modules = specs.map((f) => ({ module: dirname(f).split(/[\\/]/).pop(), ...lintSpec(f) }));
+
+// ── baseline grandfather (ARMING SA-A2-ter · ADR 0275/0303) ──────────────────
+// emit: imprime o baseline da dívida ATUAL (todos os entry/covers em chave canônica,
+// sorted+unique) — fonte regenerável; arming consome o que ele emite. Mesma engine que
+// CHECA é a que EMITE → as chaves nunca derivam (sem drift entre baseline e gate).
+const _allAceiteKeys = modules.flatMap((m) => m.req_sem_aceite.map((r) => keyAceite(r.us)));
+const _allTesteKeys = modules.flatMap((m) => m.req_sem_covering_test.map((r) => keyTeste(r.us)));
+const _allCoversKeys = modules.flatMap((m) => m.testado_sem_covers.flatMap((e) => e.tests.map((t) => keyCovers(e.us, t))));
+if (EMIT_BASELINE) {
+  const grandfathered = [...new Set([..._allAceiteKeys, ..._allTesteKeys, ..._allCoversKeys])].sort();
+  process.stdout.write(JSON.stringify({
+    _meta: {
+      baseline: 'anchor entry/covers GRANDFATHER — US legadas isentas (ratchet só-desce · ADR 0275 advisory→required por calendário)',
+      regra: 'gate --check-entry/--check-covers com --baseline morde só chave AUSENTE daqui (no-new-lie). CRESCER esta lista = grandfatherar mentira nova → exige trailer `BASELINE-GROW` (baseline-tamper-guard). DIMINUIR (dívida paga) é livre.',
+      gerado_por: 'node scripts/governance/anchor-lint.mjs --emit-baseline',
+      consumido_por: ['scripts/governance/anchor-lint.mjs --baseline', '.github/workflows/anchor-drift.yml'],
+      adr: ['0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes', '0303-anchor-lint-wired-testado-sa-a2-bis', '0273-anchor-spec-codigo-formato-canonico-fluxo-novo'],
+      escopo: args.length ? 'diff-aware (args) — NÃO use pra gerar o baseline canônico; rode full-tree' : 'full-tree',
+      nota_verde: 'req_teste_vermelho (--junit) NÃO entra neste baseline — verde é gate à parte (G1b Phase B), dormente sem --junit.',
+      total: grandfathered.length,
+    },
+    grandfathered,
+  }, null, 2) + '\n');
+  process.exit(0);
+}
+// load + filtro: violação grandfatherada NÃO conta no veredito de saída (report mantém visibilidade).
+function loadBaseline(p) {
+  if (!p) return null; // sem baseline = comportamento legado (raw)
+  if (!existsSync(p)) return new Set(); // ausente = vazio (ordering-robusto entre PRs; advisory)
+  try { return new Set((JSON.parse(readFileSync(p, 'utf8')).grandfathered) || []); }
+  catch { console.error(`anchor-lint: --baseline ${p} não parseia como JSON.`); process.exit(2); }
+}
+const BASELINE = loadBaseline(BASELINE_PATH);
+for (const m of modules) {
+  m._aceite_active = BASELINE ? m.req_sem_aceite.filter((r) => !BASELINE.has(keyAceite(r.us))) : m.req_sem_aceite;
+  m._teste_active = BASELINE ? m.req_sem_covering_test.filter((r) => !BASELINE.has(keyTeste(r.us))) : m.req_sem_covering_test;
+  m._covers_active = BASELINE
+    ? m.testado_sem_covers.map((e) => ({ ...e, tests: e.tests.filter((t) => !BASELINE.has(keyCovers(e.us, t))) })).filter((e) => e.tests.length)
+    : m.testado_sem_covers;
+}
+const grandfatheredAceite = _allAceiteKeys.filter((k) => BASELINE && BASELINE.has(k)).length;
+const grandfatheredTeste = _allTesteKeys.filter((k) => BASELINE && BASELINE.has(k)).length;
+const grandfatheredCovers = _allCoversKeys.filter((k) => BASELINE && BASELINE.has(k)).length;
+
 const sum = (k) => modules.reduce((a, m) => a + m[k], 0);
 const states = ['sem_campo', 'placeholder', 'pendente', 'parcial', 'anchored_ok', 'anchored_dead', 'anchored_zombie'];
 const byState = Object.fromEntries(states.map((s) => [s, modules.reduce((a, m) => a + m.counts[s], 0)]));
@@ -446,9 +507,11 @@ const usTotal = sum('us_total');
 const covered = byState.anchored_ok + byState.pendente + byState.parcial;
 const coverage = usTotal ? Math.round((1000 * covered) / usTotal) / 10 : null;
 const deadTestsTotal = modules.reduce((a, m) => a + m.dead_tests.length, 0);
-const testadoSemCoversTotal = modules.reduce((a, m) => a + m.testado_sem_covers.length, 0);
-const reqSemAceiteTotal = modules.reduce((a, m) => a + m.req_sem_aceite.length, 0);
-const reqSemTesteTotal = modules.reduce((a, m) => a + m.req_sem_covering_test.length, 0);
+// ATIVOS (= raw quando sem --baseline; raw-menos-grandfathered quando com baseline) — é o que MORDE.
+const testadoSemCoversTotal = modules.reduce((a, m) => a + m._covers_active.length, 0);
+const reqSemAceiteTotal = modules.reduce((a, m) => a + m._aceite_active.length, 0);
+const reqSemTesteTotal = modules.reduce((a, m) => a + m._teste_active.length, 0);
+// verde (G1b Phase B) NÃO é grandfatherado pelo --baseline (gate à parte, dormente sem --junit).
 const reqTesteVermelhoTotal = modules.reduce((a, m) => a + m.req_teste_vermelho.length, 0);
 
 for (const m of modules) m.flag = m.us_total === 0 ? '🟡' : (m.counts.anchored_dead > 0 || m.counts.anchored_zombie > 0 || m.dead_tests.length || m.v1_violations.length || m.coverage_pct === 0) ? '🔴' : m.coverage_pct === 100 ? '🟢' : '🟡';
@@ -466,6 +529,9 @@ const report = {
     behavior: JUNIT ? `junit:${JUNIT.schema}${JUNIT.coherent === false ? ' (INCOERENTE)' : ''} · fonte ${JUNIT.source}` : 'behavior_unknown (sem --junit)',
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
     fase: 'F1 ADVISORY (ADR 0273 §4) — exit 0 sempre nos modos default/--json; --check (exit 1) reservado pra F2',
+    baseline_regra: BASELINE
+      ? `grandfather aplicado (${BASELINE_PATH}): entry/covers grandfatherados NÃO mordem (no-new-lie · ADR 0275). Totais entry/covers no summary = ATIVOS (mentira NOVA/tocada).`
+      : 'sem --baseline: totais entry/covers = brutos (legado + novo). Arming passa --baseline pra grandfatherar o legado.',
     scope: args.length ? 'diff-aware (args)' : 'full-tree',
   },
   summary: {
@@ -475,6 +541,8 @@ const report = {
     dead_tests_total: deadTestsTotal, testado_sem_covers_total: testadoSemCoversTotal,
     req_sem_aceite_total: reqSemAceiteTotal, req_sem_covering_test_total: reqSemTesteTotal,
     req_teste_vermelho_total: reqTesteVermelhoTotal, behavior_known: JUNIT ? true : false,
+    baseline_applied: BASELINE ? BASELINE_PATH : null,
+    grandfathered: { aceite: grandfatheredAceite, covering_test: grandfatheredTeste, covers: grandfatheredCovers },
     v1_files: modules.filter((m) => m.anchor_format_v1).length, v1_violations: sum('v1_violations'),
   },
   modules,
@@ -491,9 +559,9 @@ for (const m of modules) {
   for (const d of m.dead) console.log(`       💀 ${d.us} (L${d.line}): ${d.missing.join(' · ')}`);
   for (const z of m.zombie) console.log(`       🧟 ${z.us} (L${z.line}): tela DESLIGADA (renderizada só por controller fora das rotas) → ${z.dead_screens.join(' · ')}`);
   for (const t of m.dead_tests) console.log(`       🧪 Testado em (L${t.line}): teste inexistente → ${t.missing.join(' · ')}`);
-  for (const tc of m.testado_sem_covers) console.log(`       🎯 Testado em (L${tc.line}): ${tc.us} — teste existe mas não declara @covers-us ${tc.us} → ${tc.tests.join(' · ')}`);
-  for (const r of m.req_sem_aceite) console.log(`       📋 ${r.us} (L${r.line}): diz IMPLEMENTADA mas SEM aceite/DoD definido (regra de entrada)`);
-  for (const r of m.req_sem_covering_test) console.log(`       🚪 ${r.us} (L${r.line}): diz IMPLEMENTADA mas NENHUM teste declara @covers-us dela (regra sem teste)`);
+  for (const tc of m._covers_active) console.log(`       🎯 Testado em (L${tc.line}): ${tc.us} — teste existe mas não declara @covers-us ${tc.us} → ${tc.tests.join(' · ')}`);
+  for (const r of m._aceite_active) console.log(`       📋 ${r.us} (L${r.line}): diz IMPLEMENTADA mas SEM aceite/DoD definido (regra de entrada)`);
+  for (const r of m._teste_active) console.log(`       🚪 ${r.us} (L${r.line}): diz IMPLEMENTADA mas NENHUM teste declara @covers-us dela (regra sem teste)`);
   for (const r of m.req_teste_vermelho) console.log(`       🟥 ${r.us} (L${r.line}): diz IMPLEMENTADA + tem teste-que-cobre, mas NENHUM arquivo-de-teste está verde no JUnit → ${r.tests.map((t) => `${t.file} [${t.status}]`).join(' · ')}`);
   for (const v of m.v1_violations) console.log(`       ✗ v1 L${v.line}: não casa gramática ADR 0273 §1 → ${v.raw}`);
 }
@@ -503,7 +571,8 @@ console.log(`  Campos: ${report.summary.fields_total} total · ${report.summary.
 console.log(`  Estados por US: sem_campo ${byState.sem_campo} · placeholder ${byState.placeholder} · pendente ${byState.pendente} · parcial ${byState.parcial} · anchored_ok ${byState.anchored_ok} · anchored_dead ${byState.anchored_dead} · anchored_zombie ${byState.anchored_zombie}`);
 console.log(`  Testes-fantasma (dead_tests): ${deadTestsTotal}`);
 console.log(`  Testado sem covers (teste existe mas não declara @covers-us · advisory): ${testadoSemCoversTotal}`);
-console.log(`  Gate de entrada (advisory): ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre`);
+console.log(`  Gate de entrada (advisory): ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre${BASELINE ? ` (ATIVOS, pós-baseline)` : ''}`);
+if (BASELINE) console.log(`  Grandfather (${BASELINE_PATH}): ${grandfatheredAceite} aceite + ${grandfatheredTeste} teste + ${grandfatheredCovers} covers isentos (no-new-lie · ratchet só-desce · ADR 0275)`);
 console.log(`  Gate verde (advisory): ${JUNIT ? `${reqTesteVermelhoTotal} US implementada com teste-que-cobre NÃO-verde no JUnit (verde=passed>0 & fail=0; skipped/ausente não contam · skipped != passed)` : 'behavior_unknown — sem --junit (nunca avermelha)'}`);
 console.log(`\n  💀 dead = path inexistente · 🧟 zombie = path existe mas tela desligada · 🧪 = teste citado inexistente. Corrigir via reconciliação — nunca inventar path.\n`);
 
