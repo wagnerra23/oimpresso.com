@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **314** arquivos · **298** números únicos · máx **0308**
-- **ADRs ATIVOS (lifecycle ativo): 274** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 252 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 274 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **315** arquivos · **299** números únicos · máx **0309**
+- **ADRs ATIVOS (lifecycle ativo): 275** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 253 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 275 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (314)
+## Todas as ADRs (315)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -350,3 +350,4 @@ _(íntegra)_
 | 0306 | aceito | ativo | decision | Reconstrução do oimpresso = Strangler spec-anchored composto (rejeita rewrite/gr |
 | 0307 | aceito | ativo | decision | Onda 0 — rede de segurança / enforcement: travar o caminho do dinheiro + promove |
 | 0308 | aceito | ativo | decision | Modo Suporte fase A: atuar via \"Acessar como\" (login-as) guardado — emenda à 0 |
+| 0309 | aceito | ativo | decision | Modo Suporte: a empresa operadora (biz=1) É o time de suporte — capability por m |

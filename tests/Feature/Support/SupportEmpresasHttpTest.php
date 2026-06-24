@@ -34,11 +34,11 @@ function empSchemaReady(): bool
     return Schema::hasTable('users') && Schema::hasTable('business') && Schema::hasTable('support_agents');
 }
 
-function makeEmpAgent(string $username, bool $grant = true): User
+function makeEmpAgent(string $username, bool $grant = true, int $businessId = BIZ_OPERADOR_EMP): User
 {
     $user = User::firstOrCreate(
         ['username' => $username],
-        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => BIZ_OPERADOR_EMP, 'first_name' => 'Ag']
+        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => $businessId, 'first_name' => 'Ag']
     );
 
     if ($grant) {
@@ -88,7 +88,9 @@ it('UC-SUP-03 · sem capability 403 — usuário sem suporte é bloqueado na lis
         test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
     }
 
-    $naoAgente = makeEmpAgent('emp_nao_agente', grant: false);
+    // Sem capability = usuário de CLIENTE (biz≠operadora) sem concessão. NÃO pode ser biz=1:
+    // pela ADR 0309 todo usuário da operadora já é agente (senão o teste mentiria).
+    $naoAgente = makeEmpAgent('emp_nao_agente', grant: false, businessId: BIZ_CLIENTE_EMP);
 
     $this->actingAs($naoAgente)->get('/suporte/empresas')->assertStatus(403);
 });

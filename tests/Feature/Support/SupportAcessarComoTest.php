@@ -40,11 +40,11 @@ function acoSchemaReady(): bool
         && Schema::hasColumn('support_access_logs', 'target_user_id');
 }
 
-function makeAcoAgent(string $username, bool $grant = true): User
+function makeAcoAgent(string $username, bool $grant = true, int $businessId = BIZ_OPERADOR_ACO): User
 {
     $user = User::firstOrCreate(
         ['username' => $username],
-        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => BIZ_OPERADOR_ACO, 'first_name' => 'Ag']
+        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => $businessId, 'first_name' => 'Ag']
     );
 
     if ($grant) {
@@ -142,7 +142,9 @@ it('canImpersonate NEGA quando o iniciador não é agente de suporte', function 
 
     $this->seededTenant();
     Business::firstOrCreate(['id' => BIZ_CLIENTE_ACO], ['name' => 'Cliente ACO 99', 'currency_id' => 1]);
-    $naoAgente = makeAcoAgent('aco_nao_agente', grant: false);
+    // Não-agente = usuário de CLIENTE (biz≠operadora) sem concessão. NÃO pode ser biz=1:
+    // pela ADR 0309 todo usuário da operadora já é agente (senão o teste mentiria).
+    $naoAgente = makeAcoAgent('aco_nao_agente', grant: false, businessId: BIZ_CLIENTE_ACO);
     $alvo = makeAcoUser('aco_alvo_p_naoagente', BIZ_CLIENTE_ACO);
 
     expect((new SupportAccessService())->canImpersonate($naoAgente, $alvo))->toBeFalse();
