@@ -75,6 +75,7 @@ class AsaasWebhookController extends Controller
             eventName: $eventName,
             eventId: $eventId,
             signatureValid: true,
+            credential: $credential,
         );
     }
 }

@@ -71,6 +71,7 @@ class C6WebhookController extends Controller
             eventName: $eventName,
             eventId: $eventId,
             signatureValid: true,
+            credential: $credential,
         );
     }
 }
