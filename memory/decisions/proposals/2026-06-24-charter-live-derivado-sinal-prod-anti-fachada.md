@@ -66,4 +66,12 @@ Re-rodar a reconciliação do Cliente. A máquina deve, **sozinha**: (a) recusar
 ## Status
 **proposed** — aguarda Wagner. Pareada com [arming](2026-06-23-anchor-gates-arming-baseline-promocao.md) + [covers](2026-06-23-anchor-covers-check-sa-a2-ter.md) (esta sessão é evidência pra promovê-las).
 
+## Implementação (shipped 2026-06-24)
+Os 3 eixos foram implementados na mesma sessão (mecanismo pronto; armar os bites = calendário ADR 0275):
+- **(a) `live` por sinal de prod** — consumidor `charter-live-signal` (#3339, merged) + arming gate-selftest/anchor-drift (#3341, merged) + **produtor** `governance:prod-flags` (#3346, merged).
+- **(b) covers só em lane** — `req_sem_lane` no `anchor-lint` + `--check-lane` + gate-selftest (#3344).
+- **(c) frescor** — scorecard recomputa no `push→main` (#3342, este PR).
+
+Teste de fogo: de **0/3** → mecanismo dos 3 existe. Pendente: publish automático do produtor (infra), popular as lanes (pré-req do *bite* de (b)) e flip advisory→required (ADR 0275 §5).
+
 [ADR 0279]: ../0279-sdd-medir-governar-floor-nightly.md
