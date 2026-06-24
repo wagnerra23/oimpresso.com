@@ -182,6 +182,13 @@ it('flag ON + venda elegível paid → Job dispatched com (biz_id, tx_id)', func
     config(['nfebrasil.auto_emission_on_sell_completed' => true]);
     Queue::fake();
 
+    // Per-business gate (ADR 0093): além da flag global, o listener exige
+    // NfeBusinessConfig.auto_emission_enabled=true do tenant (EmitirNfceAoFinalizarVenda.php:74).
+    \Modules\NfeBrasil\Models\NfeBusinessConfig::updateOrCreate(
+        ['business_id' => 1],
+        ['regime' => 'simples', 'auto_emission_enabled' => true, 'tributacao_default' => ['cfop' => '5102']],
+    );
+
     $tx = nfceTest_makeFakeTransaction([
         'type' => 'sell',
         'status' => 'final',
@@ -200,6 +207,14 @@ it('flag ON + venda elegível paid → Job dispatched com (biz_id, tx_id)', func
 it('flag ON + venda partial → Job dispatched (parcial conta como pago)', function () {
     config(['nfebrasil.auto_emission_on_sell_completed' => true]);
     Queue::fake();
+
+    // Per-business gate (ADR 0093): tenant (biz=7) precisa de opt-in explícito.
+    // biz=7 não tem FK em nfe_business_configs (business_id unique, sem FK), então
+    // criar o config direto é seguro mesmo sem row em `business`.
+    \Modules\NfeBrasil\Models\NfeBusinessConfig::updateOrCreate(
+        ['business_id' => 7],
+        ['regime' => 'simples', 'auto_emission_enabled' => true, 'tributacao_default' => ['cfop' => '5102']],
+    );
 
     $tx = nfceTest_makeFakeTransaction([
         'type' => 'sell',
