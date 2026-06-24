@@ -1,11 +1,13 @@
 ---
 module: Suporte
-version: "1.0"
-last_updated: "2026-06-23"
+version: "1.1"
+last_updated: "2026-06-24"
 status: rascunho
 owners:
   - W
 related_adrs:
+  - 0305-modo-suporte-cross-tenant-exceto-operador
+  - 0306-modo-suporte-fase-a-acessar-como-login-as-guardado
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
 ---
@@ -88,7 +90,30 @@ ADR **0305** ratificado. Backend da fase B **read-only** implementado e dormente
 - 🟡 Models com global scope por sessão (Financeiro `fin_titulos`, `HasBusinessScope`) → `withoutGlobalScope(...)->where('business_id', X)` (padrão já em uso).
 - ❌ **Não usar** (leem sessão/auth interno): `CashRegisterUtil::getRegisterDetails`, `payContact`, e os Controllers.
 
-**Fora de escopo:** "**atuar**" (escrever) cross-tenant — os caminhos de dinheiro por `auth-user` tornam o write inseguro sem refactor grande. Suporte fica **somente leitura**.
+**Fora de escopo (à época, 2026-06-23):** "**atuar**" (escrever) cross-tenant — os caminhos de dinheiro por `auth-user` tornam o write **por troca-parcial-de-sessão** inseguro (split-brain). Suporte ficou **somente leitura**. → **Destravado depois** pela [fase A](#fase-a--atuar-via-acessar-como-login-as-guardado-adr-0306) via **login-as completo** (que NÃO sofre split-brain — ver abaixo).
+
+## Fase A — atuar via "Acessar como" (login-as guardado) — [ADR 0306](../../decisions/0306-modo-suporte-fase-a-acessar-como-login-as-guardado.md)
+
+> Decisão Wagner 2026-06-24: read-only não basta pra dar suporte de verdade (corrigir venda, ajustar config, reimprimir). O time ganha **"Acessar como"** — **login-as completo**, com trava.
+
+**Por que login-as é seguro onde a troca-parcial não era:** o `signInAsUser` do core faz `Auth::loginUsingId($id)` → o **auth-user inteiro** vira o usuário do cliente, então `auth()->user()->business_id` fica **consistente** em todos os caminhos (inclusive `CashRegisterUtil`/`payContact`). O split-brain só existia quando se trocava **só** o `business_id` da sessão mantendo o agente como auth-user.
+
+**Desenho:**
+
+- **Reusa o primitivo do core** — [`ManageUserController::signInAsUser`](../../../app/Http/Controllers/ManageUserController.php) (`session()->flush()` + `loginUsingId` + `previous_user_id`) e a prop Inertia `switched_from` já exposta em [`HandleInertiaRequests`](../../../app/Http/Middleware/HandleInertiaRequests.php). NÃO duplica auth.
+- **Porta de entrada guardada** (`Suporte/Visao` → botão "Acessar como" por usuário) → `SupportController@acessarComo({business},{user})`, no grupo `support.access`.
+- **Trava Tier 0 num ponto único** (`SupportAccessService::canImpersonate(agent, target)`), antes do `loginUsingId`:
+  - **a.** iniciador é agente de suporte (`isSupportAgent`);
+  - **b.** empresa do alvo ∈ `accessibleBusinessIds()` → **nunca a operadora (biz=1)** (reusa `canAccessBusiness`);
+  - **c.** alvo **não** é `superadmin` nem `ADMINISTRATOR_USERNAMES` → sem escalonamento pra god;
+  - **d.** alvo **ativo** e pertence mesmo à empresa;
+  - **e.** Admin do cliente é **permitido** (poder pra resolver) — só operador/superadmin ficam de fora.
+- **Auditoria append-only (RF3):** cada início de impersonação (e cada negação) grava em `support_access_logs` (`SupportAuditService`).
+- **Volta:** banner no AppShellV2 (de `switched_from`) → rota `sign-in-as-user/{previous_user_id}` do core. De graça.
+
+**Caveat assumido (inerente ao login-as):** durante a impersonação as ações saem com **autor = usuário do cliente** (`created_by`), não o agente. O `support_access_logs` registra a **entrada** (agente→usuário→empresa→quando), mas **não cada ação individual** — auditoria em nível de **sessão**, não de **ação**. Atribuição por-ação exigiria refactor do core (evolução futura).
+
+**Testes Tier 0 (fase A):** suporte impersona usuário do cliente ✅ · **403 ao tentar a biz=1** ✅ · **403 ao tentar superadmin/admin-username** ✅ · alvo inativo barra ✅ · não-agente barra ✅ · auditoria grava a entrada ✅.
 
 ## Relacionado
 

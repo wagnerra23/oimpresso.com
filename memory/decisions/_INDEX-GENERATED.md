@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **311** arquivos · **295** números únicos · máx **0305**
-- **ADRs ATIVOS (lifecycle ativo): 271** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 249 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 271 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **312** arquivos · **296** números únicos · máx **0306**
+- **ADRs ATIVOS (lifecycle ativo): 272** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 250 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 272 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (311)
+## Todas as ADRs (312)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -347,3 +347,4 @@ _(íntegra)_
 | 0303 | aceito | ativo | decision | Anchor-lint SA-A2-bis — wired-check (zumbi) + testado-check: existir ≠ estar viv |
 | 0304 | aceito | ativo | decision | Alocação de número (ADR/US) ciente de trabalho em voo + Check N (colisão de US-I |
 | 0305 | aceito | ativo | decision | Modo Suporte: acesso cross-tenant da equipe, exceto a empresa operadora (biz=1) |
+| 0306 | aceito | ativo | decision | Modo Suporte fase A: atuar via \"Acessar como\" (login-as) guardado — emenda à 0 |
