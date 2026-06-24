@@ -82,6 +82,40 @@ function setupSigValSchema(): void
             $table->unique(['business_id', 'gateway_key', 'gateway_event_id'], 'gw_wh_biz_key_extid_unique');
         });
     }
+    // cobrancas: o linkage do WebhookProcessor (US-PG-008) consulta esta tabela
+    // no happy-path pra resolver cobranca_id. Sem rows aqui o resolve retorna
+    // null (nenhuma Cobranca pré-existe nestes cenários de signature).
+    if (! Schema::hasTable('cobrancas')) {
+        Schema::create('cobrancas', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedInteger('business_id')->index();
+            $table->unsignedBigInteger('payment_gateway_credential_id')->nullable();
+            $table->string('gateway_external_id')->nullable();
+            $table->string('tipo', 20);
+            $table->string('status', 20);
+            $table->bigInteger('valor_centavos');
+            $table->bigInteger('valor_pago_centavos')->nullable();
+            $table->date('vencimento')->nullable();
+            $table->timestamp('paga_em')->nullable();
+            $table->unsignedBigInteger('contact_id')->nullable();
+            $table->string('payer_cpf_cnpj')->nullable();
+            $table->string('payer_name')->nullable();
+            $table->string('payer_email')->nullable();
+            $table->string('descricao')->nullable();
+            $table->string('idempotency_key');
+            $table->string('origem_type')->nullable();
+            $table->unsignedBigInteger('origem_id')->nullable();
+            $table->text('linha_digitavel')->nullable();
+            $table->text('codigo_barras')->nullable();
+            $table->text('pix_emv')->nullable();
+            $table->string('pix_qr_code_path')->nullable();
+            $table->string('boleto_pdf_url')->nullable();
+            $table->string('nosso_numero')->nullable();
+            $table->string('forma_pagamento')->nullable();
+            $table->json('payload_gateway')->nullable();
+            $table->timestamps();
+        });
+    }
 }
 
 function teardownSigValSchema(): void
@@ -90,6 +124,7 @@ function teardownSigValSchema(): void
     // NÃO dropar `activity_log`: é CORE COMPARTILHADA (Spatie activitylog) — em
     // MySQL persistente do nightly o drop destruiria o schema usado por outros testes.
     Schema::dropIfExists('gateway_webhook_events');
+    Schema::dropIfExists('cobrancas');
     Schema::dropIfExists('payment_gateway_credentials');
 }
 
