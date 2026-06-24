@@ -1,11 +1,16 @@
-name: Guards meta-gate (vitest · casos + domínio)
+name: Guards meta-gate (vitest · casos + domínio + fundação)
 
-# Funde casos-meta-gate.yml + dominio-meta-gate.yml (poda Movimento 1 — consolidação de irmãos).
-# Os gates casos:check / dominio:check só "valem" se o controle-negativo que os prova roda no CI
-# (método ADR 0258). Antes eram 2 workflows idênticos (checkout → npm ci → vitest); agora 1 job
-# roda `npm ci` UMA vez e executa os 3 meta-testes em sequência — economiza 1 runner + 1 npm ci.
-# Path-scoped à união dos arquivos dos dois guards: quando qualquer um muda, roda os 3 controles
-# (custo trivial, dispara raramente). Cobertura preservada: casosGuard + casosResultsCollect + dominioGuard.
+# Funde casos-meta-gate.yml + dominio-meta-gate.yml + a META do foundation-guard (consolidação de
+# irmãos — Movimento 1). Os gates casos:check / dominio:check / foundation-guard só "valem" se o
+# controle-negativo que os prova roda no CI (método ADR 0258 — "todo ✅ tem que ter sido visto falhar").
+# 1 job roda `npm ci` UMA vez e executa os meta-testes em sequência — economiza runners + npm ci.
+# Path-scoped à união dos arquivos dos guards: quando qualquer um muda, roda os controles (custo
+# trivial, dispara raramente). Cobertura: casosGuard + casosResultsCollect + dominioGuard + foundationGuard.
+#
+# Foundation-guard (scripts/foundation-guard.mjs) é o gate REQUIRED via "Conformance · cor-crua…"
+# (conformance-gate.yml roda o CLI A+B). Aqui mora só a META (tests/foundationGuard.spec.ts) — que
+# até PR #3356 não rodava em CI nenhum (rotou em silêncio, e o "está VIVO" quebrou na onda DTCG sem
+# ninguém ver). Advisory: prova que o gate está vivo (não passa vacuamente em 0).
 
 on:
   pull_request:
@@ -19,6 +24,10 @@ on:
       - 'scripts/domain-dict-guard.mjs'
       - 'scripts/domain-dict-baseline.json'
       - 'tests/dominioGuard.spec.ts'
+      - 'scripts/foundation-guard.mjs'
+      - 'tests/foundationGuard.spec.ts'
+      - '.foundation-guard-baseline.json'
+      - '.foundation-guard-files.json'
       - '.github/workflows/guards-meta-gate.yml'
   push:
     branches: [main]
@@ -29,10 +38,12 @@ on:
       - 'tests/casosResultsCollect.spec.ts'
       - 'scripts/domain-dict-guard.mjs'
       - 'tests/dominioGuard.spec.ts'
+      - 'scripts/foundation-guard.mjs'
+      - 'tests/foundationGuard.spec.ts'
 
 jobs:
   meta-test:
-    name: meta-teste dos guards (casos + domínio · vitest)
+    name: meta-teste dos guards (casos + domínio + fundação · vitest)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -47,3 +58,5 @@ jobs:
           npm run test:casos-results
       - name: Controle-negativo do dominio-guard (físico)
         run: npm run test:dominio-guard
+      - name: Controle-negativo do foundation-guard (Camada 3 · estrutura · home DTCG não-vazio)
+        run: npm run test:foundation-guard
