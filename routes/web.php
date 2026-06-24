@@ -265,6 +265,11 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone', 
     Route::post('/user/update', [UserController::class, 'updateProfile'])->name('user.updateProfile');
     Route::post('/user/update-password', [UserController::class, 'updatePassword'])->name('user.updatePassword');
 
+    // Meu perfil — tela Inertia nova (redesign ComVis). Legado /user/profile (Blade) intacto.
+    Route::get('/perfil', [UserController::class, 'perfil'])->name('perfil');
+    Route::post('/perfil/update', [UserController::class, 'perfilUpdate'])->name('perfil.update');
+    Route::post('/perfil/password', [UserController::class, 'perfilPassword'])->name('perfil.password');
+
     Route::resource('brands', BrandController::class);
 
     Route::resource('tax-rates', TaxRateController::class);
