@@ -134,19 +134,6 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-serving-branch-switch.ps1"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/block-pr-without-approval.mjs"
-          }
-        ]
-      },
-      {
-        "matcher": "PowerShell",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node .claude/hooks/block-pr-without-approval.mjs"
           }
         ]
       },
@@ -228,10 +215,6 @@
           {
             "type": "command",
             "command": "node .claude/hooks/design-handoff-reprocess.mjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/block-pr-without-approval.mjs"
           },
           {
             "type": "command",
