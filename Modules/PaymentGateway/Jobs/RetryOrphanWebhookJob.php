@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Log;
 use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\Webhook\CobrancaWebhookResolver;
 
 /**
  * ADR 0170 Onda 4e — Retry scheduled de webhook órfão.
@@ -113,9 +115,10 @@ class RetryOrphanWebhookJob implements ShouldQueue
         $replayed = 0;
         $stillOrphan = 0;
         $markedNoDispatch = 0;
+        $resolver = app(CobrancaWebhookResolver::class);
 
         foreach ($orphans as $orphan) {
-            $this->processOrphan($orphan, $replayed, $stillOrphan, $markedNoDispatch);
+            $this->processOrphan($orphan, $resolver, $replayed, $stillOrphan, $markedNoDispatch);
         }
 
         Log::info('paymentgateway.webhook.orphan_scan', [
@@ -129,6 +132,7 @@ class RetryOrphanWebhookJob implements ShouldQueue
 
     private function processOrphan(
         GatewayWebhookEvent $orphan,
+        CobrancaWebhookResolver $resolver,
         int &$replayed,
         int &$stillOrphan,
         int &$markedNoDispatch,
@@ -136,12 +140,21 @@ class RetryOrphanWebhookJob implements ShouldQueue
         $businessId = (int) $orphan->business_id;
         $evento = (string) $orphan->evento;
 
-        // Caso 1: ainda sem cobranca_id ou cobranca não encontrada
+        // Caso 1: ainda sem cobranca_id → re-tenta o linkage AGORA (race: o
+        // webhook chegou antes da emissão gravar a Cobranca). Se resolver, grava
+        // cobranca_id e segue pro fluxo de dispatch; senão fica órfão pro próximo
+        // run (até cutoff 24h). Antes este branch DESISTIA na hora — por isso a
+        // quitação era inalcançável quando o linkage do receive-time falhava.
         if (! $orphan->cobranca_id) {
-            $this->logStillOrphan($orphan, $businessId, 'cobranca_id_null');
-            $stillOrphan++;
+            $cobrancaId = $this->reresolve($orphan, $resolver, $businessId);
+            if ($cobrancaId === null) {
+                $this->logStillOrphan($orphan, $businessId, 'cobranca_id_null');
+                $stillOrphan++;
 
-            return;
+                return;
+            }
+            $orphan->update(['cobranca_id' => $cobrancaId, 'error_message' => null]);
+            $orphan->cobranca_id = $cobrancaId;
         }
 
         // SUPERADMIN: job worker sem sessão; resolve a Cobranca do evento órfão filtrando pelo business_id derivado da própria linha do webhook.
@@ -217,6 +230,55 @@ class RetryOrphanWebhookJob implements ShouldQueue
             'cobranca_id' => $cobranca->id,
             'replay_delay_minutes' => (int) now()->diffInMinutes($orphan->created_at),
         ]);
+    }
+
+    /**
+     * Re-tenta resolver a Cobranca de um órfão (cobranca_id NULL) a partir do
+     * payload guardado. Carrega a credencial de payment_gateway_credential_id
+     * (o driver precisa dela) e delega pro CobrancaWebhookResolver.
+     *
+     * Retorna o id da Cobranca, ou null se não resolver (sem credencial, gateway
+     * desconhecida, payload sem id externo, ou Cobranca ainda inexistente).
+     * Defensivo: qualquer erro vira null + log (nunca derruba o run inteiro).
+     */
+    private function reresolve(
+        GatewayWebhookEvent $orphan,
+        CobrancaWebhookResolver $resolver,
+        int $businessId,
+    ): ?int {
+        $credentialId = $orphan->payment_gateway_credential_id;
+        if (! $credentialId) {
+            return null; // sem credencial não dá pra resolver (driver precisa dela)
+        }
+
+        // SUPERADMIN: cron worker sem sessão; carrega a credencial scopando pelo
+        // business_id da própria linha do webhook (ADR 0093).
+        $credential = PaymentGatewayCredential::withoutGlobalScopes()
+            ->where('id', $credentialId)
+            ->where('business_id', $businessId)
+            ->first();
+
+        if (! $credential) {
+            return null;
+        }
+
+        try {
+            return $resolver->resolve(
+                $businessId,
+                (string) $orphan->gateway_key,
+                (array) ($orphan->payload ?? []),
+                $credential,
+            )?->id;
+        } catch (\Throwable $e) {
+            Log::warning('paymentgateway.webhook.orphan_reresolve_failed', [
+                'webhook_row_id' => $orphan->id,
+                'business_id'    => $businessId,
+                'gateway_key'    => $orphan->gateway_key,
+                'error'          => substr($e->getMessage(), 0, 200),
+            ]);
+
+            return null;
+        }
     }
 
     private function logStillOrphan(

@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\Privacy\PiiRedactor;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
 use Modules\PaymentGateway\Models\PaymentGatewayCredential;
+use Modules\PaymentGateway\Services\Webhook\CobrancaWebhookResolver;
 
 /**
  * Service compartilhado entre Webhook Controllers do PaymentGateway.
@@ -42,8 +43,10 @@ use Modules\PaymentGateway\Models\PaymentGatewayCredential;
  */
 class WebhookProcessor
 {
-    public function __construct(private PiiRedactor $redactor)
-    {
+    public function __construct(
+        private PiiRedactor $redactor,
+        private CobrancaWebhookResolver $resolver,
+    ) {
     }
 
     public function handle(
@@ -53,19 +56,41 @@ class WebhookProcessor
         string $eventName,
         string $eventId,
         bool $signatureValid,
+        ?PaymentGatewayCredential $credential = null,
     ): JsonResponse {
         $payload = $request->all();
+
+        // Linkage cobranca_id (ADR 0170): tenta resolver a Cobranca já no
+        // recebimento. Best-effort — QUALQUER falha aqui NUNCA pode impedir a
+        // persistência do webhook (idempotência + auditoria vêm primeiro). Se a
+        // Cobranca ainda não existe (race: webhook chegou antes da emissão
+        // gravar), fica cobranca_id=NULL e o RetryOrphanWebhookJob re-resolve.
+        $cobrancaId = null;
+        if ($credential !== null) {
+            try {
+                $cobrancaId = $this->resolver->resolve($businessId, $gatewayKey, $payload, $credential)?->id;
+            } catch (\Throwable $e) {
+                Log::warning('paymentgateway.webhook.linkage_failed', [
+                    'business_id' => $businessId,
+                    'gateway_key' => $gatewayKey,
+                    'event_id'    => $eventId,
+                    'error'       => substr($e->getMessage(), 0, 200),
+                ]);
+            }
+        }
 
         // Idempotência at-DB-level: tenta inserir; se UNIQUE viola, ignora.
         try {
             $event = GatewayWebhookEvent::query()->create([
-                'business_id'      => $businessId,
-                'gateway_key'      => $gatewayKey,
-                'evento'           => $eventName,
-                'gateway_event_id' => $eventId,
-                'payload'          => $payload,
-                'signature_valid'  => $signatureValid,
-                'processed_at'     => null,
+                'business_id'                   => $businessId,
+                'payment_gateway_credential_id' => $credential?->id,
+                'gateway_key'                   => $gatewayKey,
+                'evento'                        => $eventName,
+                'gateway_event_id'              => $eventId,
+                'cobranca_id'                   => $cobrancaId,
+                'payload'                       => $payload,
+                'signature_valid'               => $signatureValid,
+                'processed_at'                  => null,
             ]);
 
             Log::info('paymentgateway.webhook.received', [
@@ -74,6 +99,7 @@ class WebhookProcessor
                 'evento'           => $eventName,
                 'event_id'         => $eventId,
                 'webhook_row_id'   => $event->id,
+                'cobranca_id'      => $cobrancaId,
                 'signature_valid'  => $signatureValid,
                 // LGPD — payload bruto contém PII; redact pra log.
                 'payload_redacted' => $this->redactor->redact((string) json_encode($payload)),

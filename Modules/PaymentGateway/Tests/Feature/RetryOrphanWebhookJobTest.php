@@ -10,6 +10,7 @@ use Modules\PaymentGateway\Events\CobrancaPaga;
 use Modules\PaymentGateway\Jobs\RetryOrphanWebhookJob;
 use Modules\PaymentGateway\Models\Cobranca;
 use Modules\PaymentGateway\Models\GatewayWebhookEvent;
+use Modules\PaymentGateway\Models\PaymentGatewayCredential;
 
 uses(Tests\TestCase::class, Illuminate\Foundation\Testing\DatabaseTransactions::class);
 
@@ -85,6 +86,24 @@ function setupOrphanWebhookSchema(): void
             $table->unique(['business_id', 'gateway_key', 'gateway_event_id'], 'gw_wh_biz_key_extid_unique');
         });
     }
+
+    // payment_gateway_credentials: o re-resolve do Job carrega a credencial
+    // (o driver precisa dela) a partir de payment_gateway_credential_id.
+    if (! Schema::hasTable('payment_gateway_credentials')) {
+        Schema::create('payment_gateway_credentials', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedInteger('business_id')->index();
+            $table->string('gateway_key', 20)->index();
+            $table->string('ambiente', 20)->default('production');
+            $table->boolean('ativo')->default(true)->index();
+            $table->string('nome_display')->nullable();
+            $table->json('config_json');
+            $table->unsignedInteger('conta_bancaria_id')->nullable();
+            $table->string('health_status', 20)->default('unknown');
+            $table->timestamp('health_checked_at')->nullable();
+            $table->timestamps();
+        });
+    }
 }
 
 function teardownOrphanWebhookSchema(): void
@@ -95,6 +114,7 @@ function teardownOrphanWebhookSchema(): void
     // persistente do nightly o drop destruiria o schema usado por outros testes.
     Schema::dropIfExists('gateway_webhook_events');
     Schema::dropIfExists('cobrancas');
+    Schema::dropIfExists('payment_gateway_credentials');
 }
 
 /**
@@ -395,4 +415,113 @@ it('GUARD 6: dispatch propaga business_id correto em multi-tenant (biz=99 NÃO c
     Event::assertDispatched(CobrancaPaga::class, function (CobrancaPaga $e) {
         return $e->businessId === 99 && $e->cobrancaId > 0;
     });
+});
+
+// ─── US-PG-008: re-resolve do órfão cobranca_id NULL (race resolvida) ────────
+
+it('GUARD 7: re-resolve linka órfão cobranca_id NULL quando a Cobranca já existe', function () {
+    Event::fake([CobrancaPaga::class]);
+
+    $cred = PaymentGatewayCredential::query()->create([
+        'business_id'  => 1,
+        'gateway_key'  => 'asaas',
+        'ambiente'     => 'sandbox',
+        'ativo'        => true,
+        'nome_display' => 'asaas re-resolve',
+        'config_json'  => ['webhook_token' => 'x'],
+    ]);
+
+    // Cobranca JÁ existe agora (emissão registrou DEPOIS do webhook chegar).
+    $cobranca = Cobranca::query()->create([
+        'business_id'                   => 1,
+        'payment_gateway_credential_id' => $cred->id,
+        'gateway_external_id'           => 'pay-race-001',
+        'tipo'                          => 'pix_cob',
+        'status'                        => 'emitida',
+        'valor_centavos'                => 15000,
+        'valor_pago_centavos'           => 15000,
+        'paga_em'                       => now()->subMinutes(30),
+        'forma_pagamento'               => 'pix',
+        'idempotency_key'               => 'race-001',
+        'payload_gateway'               => [],
+    ]);
+
+    // Órfão: cobranca_id NULL (race), MAS tem credential_id + payload com o
+    // payment.id que casa a Cobranca agora.
+    $orphan = GatewayWebhookEvent::query()->create([
+        'business_id'                   => 1,
+        'payment_gateway_credential_id' => $cred->id,
+        'gateway_key'                   => 'asaas',
+        'evento'                        => 'PAYMENT_RECEIVED',
+        'gateway_event_id'              => 'evt-race-001',
+        'cobranca_id'                   => null,
+        'payload'                       => ['event' => 'PAYMENT_RECEIVED', 'payment' => ['id' => 'pay-race-001']],
+        'signature_valid'               => true,
+    ]);
+    $orphan->created_at = now()->subHours(2);
+    $orphan->saveQuietly();
+
+    (new RetryOrphanWebhookJob())->handle();
+
+    $orphan->refresh();
+    expect($orphan->cobranca_id)->toBe($cobranca->id); // linkado no retry
+    expect($orphan->processed_at)->not->toBeNull();
+    expect($orphan->error_message)->toBeNull();
+
+    Event::assertDispatched(CobrancaPaga::class, function (CobrancaPaga $e) use ($cobranca) {
+        return $e->cobrancaId === $cobranca->id && $e->businessId === 1;
+    });
+});
+
+it('GUARD 8: re-resolve respeita business_id — biz=99 não casa Cobranca biz=1', function () {
+    Event::fake([CobrancaPaga::class]);
+
+    // Cobranca biz=1 com id externo "cross-id".
+    $credBiz1 = PaymentGatewayCredential::query()->create([
+        'business_id'  => 1,
+        'gateway_key'  => 'asaas',
+        'ambiente'     => 'sandbox',
+        'ativo'        => true,
+        'nome_display' => 'asaas biz1',
+        'config_json'  => ['webhook_token' => 'x'],
+    ]);
+    Cobranca::query()->create([
+        'business_id'                   => 1,
+        'payment_gateway_credential_id' => $credBiz1->id,
+        'gateway_external_id'           => 'cross-id',
+        'tipo'                          => 'pix_cob',
+        'status'                        => 'emitida',
+        'valor_centavos'                => 9000,
+        'idempotency_key'               => 'cross-biz1',
+        'payload_gateway'               => [],
+    ]);
+
+    // Credencial + órfão biz=99 com o MESMO id externo, mas SEM Cobranca biz=99.
+    $credBiz99 = PaymentGatewayCredential::query()->withoutGlobalScopes()->create([
+        'business_id'  => 99,
+        'gateway_key'  => 'asaas',
+        'ambiente'     => 'sandbox',
+        'ativo'        => true,
+        'nome_display' => 'asaas biz99',
+        'config_json'  => ['webhook_token' => 'x'],
+    ]);
+    $orphan99 = GatewayWebhookEvent::query()->withoutGlobalScopes()->create([
+        'business_id'                   => 99,
+        'payment_gateway_credential_id' => $credBiz99->id,
+        'gateway_key'                   => 'asaas',
+        'evento'                        => 'PAYMENT_RECEIVED',
+        'gateway_event_id'              => 'evt-cross-99',
+        'cobranca_id'                   => null,
+        'payload'                       => ['payment' => ['id' => 'cross-id']],
+        'signature_valid'               => true,
+    ]);
+    $orphan99->created_at = now()->subHours(2);
+    $orphan99->saveQuietly();
+
+    (new RetryOrphanWebhookJob())->handle();
+
+    $orphan99->refresh();
+    expect($orphan99->cobranca_id)->toBeNull();              // biz=99 não pega Cobranca biz=1
+    expect($orphan99->error_message)->toContain('still_orphan');
+    Event::assertNotDispatched(CobrancaPaga::class);
 });
