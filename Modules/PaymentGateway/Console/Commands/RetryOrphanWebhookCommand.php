@@ -59,6 +59,18 @@ class RetryOrphanWebhookCommand extends Command
 
             $this->line(sprintf('%d órfão(s) na janela 1h..24h.', $orphans->count()));
 
+            // REGRA MESTRE valor/estoque: mostra quantos já têm cobranca_id
+            // linkado (= candidatos a disparar CobrancaPaga = quitam título) vs
+            // ainda sem linkage. É o "antes->depois" no nível do webhook que o
+            // Wagner inspeciona ANTES de ligar a flag. (O delta de fin_titulo em
+            // si sai no cutover, com a tabela populada.)
+            $linked = $orphans->whereNotNull('cobranca_id')->count();
+            $this->line(sprintf(
+                '  %d com cobranca_id linkado (candidatos a CobrancaPaga / quitação) · %d ainda sem linkage.',
+                $linked,
+                $orphans->count() - $linked,
+            ));
+
             foreach ($orphans as $orphan) {
                 $this->line(sprintf(
                     '  #%d biz=%d gateway=%s evento=%s cobranca_id=%s created_at=%s',

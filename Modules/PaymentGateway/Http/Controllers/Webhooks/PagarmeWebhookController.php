@@ -86,6 +86,8 @@ class PagarmeWebhookController extends Controller
             businessId: $businessId,
             eventName: $eventName,
             eventId: $eventId,
+            signatureValid: true,
+            credential: $credential,
         );
     }
 

@@ -146,3 +146,10 @@ Modules/Jana/Tests/Feature/TaskRegistry/McpTasksOrphansCommandTest.php
 # governance:prod-flags — produtor do prod-flags.json (replica shouldRenderInertiaCliente).
 # Config-puro (sem DB) → sqlite-safe. Item b/produtor da proposta SDD 2026-06-24.
 tests/Feature/Governance/ProdFlagsCommandTest.php
+
+# PaymentGateway linkage cobranca_id (US-PG-008) — era-sqlite (schema sintético,
+# DatabaseTransactions, sem RefreshDatabase/ENUM MySQL-only). PaymentGateway NÃO
+# está na matrix do modules-pest.yml → ancoramos aqui pra a lógica de linkage +
+# re-resolve rodar de fato no CI (antes skipava em todo lane).
+Modules/PaymentGateway/Tests/Feature/WebhookProcessorLinkageTest.php
+Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookJobTest.php

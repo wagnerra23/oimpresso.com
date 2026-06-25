@@ -77,6 +77,7 @@ class InterWebhookController extends Controller
             eventName: $eventName,
             eventId: $eventId,
             signatureValid: true,
+            credential: $credential,
         );
     }
 }

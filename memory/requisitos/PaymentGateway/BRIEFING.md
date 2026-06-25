@@ -8,7 +8,7 @@ Camada técnica única de cobrança bancária BR do oimpresso (extraída de Recu
 - **6 drivers API REST** no mapa `DRIVERS`: **Inter** (boleto v3 + PIX cob/cobv + refund + OAuth2/mTLS, 760 linhas), **Asaas** (boleto+pix+cartão+refund), **C6** (boleto+pix), **BCB Pix Automático** (mandato recorrente, Res. BCB 380/2024), **Pagar.me v5** (boleto+pix+cartão), **Sicoob API v3** (boleto, OAuth2+mTLS reusando cert NFe).
 - **11 drivers CNAB file-based** (remessa/retorno, lib eduardokum): Bradesco, Itaú, BB, Santander, Caixa, Sicoob, Ailos, Sicredi, Cresol, Banrisul, BTG.
 - **Webhooks com validação de assinatura real** (`WebhookProcessor::validateSignature`, `hash_equals` constant-time, fail-secure) por provedor. As 3 vulns P0 do SPEC (cast em texto claro, `signature_valid:false` hardcoded) **já corrigidas** — `config_json` é `encrypted:array`.
-- Conciliação PIX Inter por **polling** (`paymentgateway:inter-reconcile-pix`, caminho primário hoje), importação de recebimentos, retry de webhook órfão, CNAB retorno (Job + upload UI), health-check, UI de credenciais (`/settings/payment-gateways`).
+- Conciliação PIX Inter por **polling** (`paymentgateway:inter-reconcile-pix`, caminho primário hoje), importação de recebimentos, retry de webhook órfão **com linkage `cobranca_id`** (US-PG-008 — `CobrancaWebhookResolver` reusa `driver->processWebhook`; cron `retry-orphan-webhooks` **dormente atrás de flag** até cutover Onda 3 + dry-run aprovado), CNAB retorno (Job + upload UI), health-check, UI de credenciais (`/settings/payment-gateways`).
 
 **PLANEJADO, não construído (US no SPEC):**
 - Cadastro automático da URL de webhook PIX no Inter (US-PG-005) — hoje só polling.
