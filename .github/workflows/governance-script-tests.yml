@@ -4,9 +4,8 @@ name: Governance script tests (advisory)
 # Fecha o gap "test local-only" (auditoria IA OS Onda 1, gap #2) para os scripts de
 # governanca: ate aqui esses .test.mjs so rodavam na maquina do dev.
 #   - adr-index-generate.test.mjs       decoder de titulo !!binary (Onda 1, gap #1, PR #3056)
-#   - settings-r10-registration.test.mjs R10 registrado em settings.json (gap #3, PR #3058)
-#   - block-pr-without-approval.test.mjs LOGICA do hook R10 (afirmativo curto sob gate de contexto)
 #   - shipped-log-generate.test.mjs     fonte honesta do shipped-log (porta de saida, ADR 0294 ext)
+# (R10 block-pr-without-approval removido a pedido do Wagner 2026-06-24 — ver commit.)
 # Node puro, sem deps/DB/rede -- segundos. Advisory de nascenca (gates novos nunca
 # nascem required -- ADR 0271/0275); nao entra em branch protection.
 
@@ -33,10 +32,6 @@ jobs:
           node-version: '20'
       - name: Decoder de titulo !!binary (adr-index-generate)
         run: node scripts/governance/adr-index-generate.test.mjs
-      - name: Registro R10 em settings.json
-        run: node scripts/governance/settings-r10-registration.test.mjs
-      - name: Logica R10 (block-pr-without-approval — afirmativo curto sob gate de contexto)
-        run: node .claude/hooks/block-pr-without-approval.test.mjs
       - name: Shipped-log gerador honesto (fixtures-armadilha)
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)
