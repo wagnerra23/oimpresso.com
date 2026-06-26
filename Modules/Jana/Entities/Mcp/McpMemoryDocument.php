@@ -276,6 +276,11 @@ class McpMemoryDocument extends Model
                 'changed_by_user_id'  => $userId,
                 'change_reason'       => $reason,
             ]);
+
+            // Camada 1 (defesa-em-profundidade vs incidente 2026-06-26): teto no
+            // write — mantém só as últimas N versões deste doc. Bounda a tabela em
+            // docs × N permanentemente, independente do cron de poda rodar a tempo.
+            McpMemoryDocumentHistory::podarExcedentePorDoc((int) $this->id);
         }
 
         $this->update($atributos);
