@@ -92,8 +92,25 @@ Legenda: 🔴 = exige Tailscale + Wagner (CT 100/prod). 🟢 = local/CI.
 - **Reversível** por env até o cutover; tabelas originais preservadas ≥7d.
 - **Review triggers:** app sair do Hostinger (Opção A 0060) → reavaliar (b); MCP virar multi-cliente; latência de sync inaceitável.
 
+## Atualização 2026-06-26 — REINCIDÊNCIA (a opção "Adiar" foi desmentida na prática)
+
+O incidente **se repetiu**, exatamente como previsto aqui. `mcp_memory_documents_history` voltou a **5,2 GB / 374.550 linhas** (todas criadas em 4 dias, 21-25/06, durante a maratona de governança/SDD — dezenas de merges/dia em docs quentes). O banco bateu ~6 GB, a Hostinger **auto-revogou INSERT/UPDATE/CREATE** e a **ROTA LIVRE (biz=4) parou de cadastrar produto e salvar venda** por horas — descoberto só quando o cliente (Guilherme) reportou no WhatsApp.
+
+**Por que o "teto preventivo (PR #3130) basta por ora" não bastou:** a poda do #3130 só deletava o que estava **fora da janela de `--days=90` E** além do top-N. Como o burst nasceu todo **dentro** de 90 dias, a janela temporal blindava tudo → a poda não deletava **nada**. A defesa temporal era o buraco.
+
+**Mitigações interinas já aplicadas (PR #3374), que agora REALMENTE seguram a tabela:**
+1. **Poda vira teto duro por doc** (idade ignorada) + roda de 6 em 6h.
+2. **Camada 1 — teto no WRITE** (`McpMemoryDocumentHistory::podarExcedentePorDoc` dentro de `snapshotEAtualizar`): ao gravar versão nova, deleta o excedente do doc na hora → tabela **matematicamente limitada a `docs × 20`** (~28k linhas / ~400 MB), independente do cron.
+3. Confirmado em prod: `db_write_canary` e `db_storage_quota` (já existiam, pós-#3130) estão **verdes** após o reclaim (TRUNCATE: 6 GB → 834 MB). A detecção existia; o que faltou foi **ação a tempo** sobre o alerta de cota.
+
+**Por que a Opção (a) continua necessária mesmo com as mitigações:** o teto bounda *esta* tabela, mas o **acoplamento físico** permanece — `mcp_memory_documents*` (cache de governança, git é canônico) segue dividindo a **mesma cota de 6 GB** do DB do ERP com `transactions`/`fin_titulos`/etc, que crescem pra sempre. Enquanto a memória do MCP viver no MySQL do Hostinger, *qualquer* crescimento ainda ameaça a venda. A reincidência é a 2ª prova (N=2) de que só teto não fecha a raiz.
+
+**Recomendação reforçada:** aceitar a **Opção (a)** (mover o par pro MariaDB CT 100). A reincidência tira o "Adiar" da mesa — o teto interino compra tempo, não resolve.
+
+> Sessão de resposta ao incidente: ver session log 2026-06-26 + PR #3374.
+
 ## Decisão do Wagner
 
 - [ ] Aprovo a Opção (a) + a emenda ao 0062 → vira ADR numerada (`number` + `decided_at`) e o runbook entra em execução.
 - [ ] Prefiro a Opção (b) (refactor maior, desacoplamento total).
-- [ ] Adiar — o teto preventivo (PR #3130) basta por ora.
+- [ ] ~~Adiar — o teto preventivo (PR #3130) basta por ora.~~ **Desmentido pela reincidência 2026-06-26** (ver atualização acima); o teto interino do #3374 segura a tabela, mas o acoplamento de cota permanece.

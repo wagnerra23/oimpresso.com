@@ -15,7 +15,8 @@ uses(Tests\TestCase::class);
  *
  * Invariantes:
  *  001. Preserva as últimas --keep versões por document_id (deleta as mais antigas).
- *  002. Defesa temporal: tudo dentro de --days fica intocado, mesmo passando do top-N.
+ *  002. TETO DURO: poda o excesso além do top-N mesmo que recente (idade ignorada).
+ *       (era "defesa temporal blinda recente" — o buraco do burst 2026-06-26.)
  *  003. --dry-run não deleta nada.
  *  004. Poda é POR document_id — não vaza entre docs.
  *
@@ -82,14 +83,17 @@ it('MemoryHistoryPrune 001 — preserva as últimas --keep versões por doc', fu
         ->not->toContain('Doc 1 v29');         // a mais antiga — podada
 });
 
-it('MemoryHistoryPrune 002 — janela de dias protege history quente (nada podado)', function () {
-    seedHistory(documentId: 1, n: 30, baseDays: 0); // 30 versões, todas dentro de 90d
+it('MemoryHistoryPrune 002 — teto duro: poda o excesso mesmo recente (idade ignorada)', function () {
+    seedHistory(documentId: 1, n: 30, baseDays: 0); // 30 versões, todas recentes (dentro de 90d)
 
-    $exit = Artisan::call('jana:memory-history-prune', ['--keep' => 20, '--days' => 90]);
+    $exit = Artisan::call('jana:memory-history-prune', ['--keep' => 20]);
     expect($exit)->toBe(0);
 
-    // Todas dentro da janela → 0 podadas mesmo passando do top-20.
-    expect(DB::table('mcp_memory_documents_history')->where('document_id', 1)->count())->toBe(30);
+    // Idade NÃO blinda mais: top-20 (mais novas) fica, 10 mais antigas somem —
+    // ainda que recentes. Sem isso, um burst dentro da janela reinfla a tabela.
+    expect(DB::table('mcp_memory_documents_history')->where('document_id', 1)->count())->toBe(20);
+    $titulos = DB::table('mcp_memory_documents_history')->where('document_id', 1)->pluck('title')->all();
+    expect($titulos)->toContain('Doc 1 v0')->toContain('Doc 1 v19')->not->toContain('Doc 1 v20');
 });
 
 it('MemoryHistoryPrune 003 — --dry-run não deleta nada', function () {
