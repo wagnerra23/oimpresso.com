@@ -109,8 +109,26 @@ O incidente **se repetiu**, exatamente como previsto aqui. `mcp_memory_documents
 
 > Sessão de resposta ao incidente: ver session log 2026-06-26 + PR #3374.
 
+## Achados da execução 2026-06-26 (Wagner: "faça a estrutura")
+
+Ao começar o cutover, o inventário real do acoplamento mostrou que a Opção (a) é **maior e mais arriscada** do que o RUNBOOK original capturava — registrado aqui pra a janela de execução não tropeçar:
+
+- **~60 arquivos** referenciam `mcp_memory_documents`; **11+ acessos `DB::table()` raw** (fora dos 2 Models) em ADS/Governance/Admin/KB que **também** precisam virar `DB::connection('memory_ct100')` senão batem no servidor errado pós-cutover. Inventário: `McpServerHealthReader`, `ContextForTaskService`, `DecisionLinksService`, `Governance/DashboardController`, `SeedAdrsCommand`, `KB/GraphController`, `AdminHealthCommand` (+ Jana commands).
+- **JOIN cross-server (novo risco Tier 0, não estava no runbook):** o módulo KB faz JOIN físico `kb_nodes` (fica no ERP) ↔ `mcp_memory_documents` (vai pro CT 100). JOIN entre servidores **é impossível em 1 SQL** — esses pontos têm de virar **join na aplicação** (2 queries) ANTES do cutover. Sem isso, recall/KB quebra.
+- **Subtleza de teste:** `protected $connection = 'memory_ct100'` (driver mysql) quebra a suite **sqlite** do CI. A conexão precisa resolver pro driver default em teste — exige ajuste + validação **Pest no CT 100** (a suite só roda lá).
+- **Já feito (reversível):** conexão `memory_ct100` em `config/database.php` — **no-op** (cada `MEMORY_DB_*` faz fallback pro `DB_*`, idêntica à `mysql` até o env do cutover). App fica "CT-100-ready" sem mudar comportamento. CT 100 confirmado alcançável (Tailscale, Docker).
+
+### Recontextualização importante (mudou a urgência)
+
+A **Camada 1 do #3374 (teto no WRITE)** já bounda a tabela em `docs × 20` (~400 MB) **independente de cron** → o inchaço que causou o incidente é **impossível** agora. Logo esta migração **deixou de ser segurança** e virou **higiene arquitetural** (alinhar memória↔MCP no CT 100, ADR 0060). Continua válida, mas **não é mais emergência** — pode rodar na janela certa, sem pressa, com Pest no CT 100.
+
+### Alternativa mais leve descoberta (mesmo resultado de cota, sem cross-server)
+
+**Metadata-only:** parar de gravar o `content_md` inteiro no `_history` (guardar só git_sha/title/changed_at/reason) → linha cai ~70×, mesma máquina, zero JOIN cross-server, zero risco de recall. **Caveat:** na prod o `git_sha` vem `null` (shell_exec desabilitado no Hostinger) → sem o content o history perde o conteúdo das versões antigas. Viável só se o git_sha for preenchido por outra via primeiro. Fica como Opção (c) a avaliar.
+
 ## Decisão do Wagner
 
-- [ ] Aprovo a Opção (a) + a emenda ao 0062 → vira ADR numerada (`number` + `decided_at`) e o runbook entra em execução.
+- [x] **Aprovo a Opção (a)** + emenda ao 0062 (Wagner 2026-06-26 "faça a estrutura"). Número ADR a alocar no merge (evita colisão com sessão paralela). Scaffold no-op feito; **cutover live fica para janela coordenada** (baixo tráfego + Pest CT 100), por ser recall Tier 0.
 - [ ] Prefiro a Opção (b) (refactor maior, desacoplamento total).
-- [ ] ~~Adiar — o teto preventivo (PR #3130) basta por ora.~~ **Desmentido pela reincidência 2026-06-26** (ver atualização acima); o teto interino do #3374 segura a tabela, mas o acoplamento de cota permanece.
+- [ ] Opção (c) metadata-only (mais leve, resolve cota; caveat git_sha null em prod).
+- [ ] ~~Adiar — o teto preventivo (PR #3130) basta por ora.~~ **Desmentido pela reincidência 2026-06-26**; o teto interino do #3374 segura a tabela, mas o acoplamento de cota permanece.
