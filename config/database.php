@@ -61,8 +61,34 @@ return [
             'options' => extension_loaded('pdo_mysql') ? array_filter([
                 PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
             ]) : [],
-            //'dump' => [ 'dump_binary_path' => 'D:\laragon\bin\mysql\mysql-8.0.30-winx64\bin'] 
+            //'dump' => [ 'dump_binary_path' => 'D:\laragon\bin\mysql\mysql-8.0.30-winx64\bin']
             // Uncomment above line for windows & provide path to mysql dump binary for backup to work
+        ],
+
+        // Conexão da MEMÓRIA do MCP (mcp_memory_documents*) — proposta estrutural
+        // 2026-06-21-mcp-memory-store-ct100 (Camada 5 do incidente 2026-06-26).
+        // NO-OP por enquanto: cada MEMORY_DB_* faz fallback pro DB_* atual, então
+        // é IDÊNTICA à conexão `mysql` (mesmo banco Hostinger) até o .env do app
+        // apontar MEMORY_DB_HOST pro MariaDB do CT 100 no cutover (janela coordenada).
+        // Desacopla o storage da memória da cota do banco do ERP — ver ADR.
+        'memory_ct100' => [
+            'driver' => 'mysql',
+            'url' => env('MEMORY_DATABASE_URL', env('DATABASE_URL')),
+            'host' => env('MEMORY_DB_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('MEMORY_DB_PORT', env('DB_PORT', '3306')),
+            'database' => env('MEMORY_DB_DATABASE', env('DB_DATABASE', 'forge')),
+            'username' => env('MEMORY_DB_USERNAME', env('DB_USERNAME', 'forge')),
+            'password' => env('MEMORY_DB_PASSWORD', env('DB_PASSWORD', '')),
+            'unix_socket' => env('MEMORY_DB_SOCKET', env('DB_SOCKET', '')),
+            'charset' => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => false,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                PDO::MYSQL_ATTR_SSL_CA => env('MEMORY_MYSQL_ATTR_SSL_CA', env('MYSQL_ATTR_SSL_CA')),
+            ]) : [],
         ],
 
         'pgsql' => [
