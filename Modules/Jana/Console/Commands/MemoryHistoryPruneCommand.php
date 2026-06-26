@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Modules\Jana\Console\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
@@ -19,10 +18,18 @@ use Illuminate\Support\Facades\Log;
  * linhas, estourou a cota de disco do Hostinger e o provedor AUTO-REVOGOU a
  * escrita do ERP. Foi dropada+recriada vazia; este comando impede a reincidência.
  *
- * PREVENTIVO (não é reclaim): roda diário e mantém a tabela pequena DESDE O
- * INÍCIO. Por document_id preserva as últimas --keep versões E tudo dentro de
- * --days; deleta só o que reprova AMBAS as defesas. O git é a fonte canônica de
- * longo prazo (ADR 0061) — history antigo no DB é descartável.
+ * PREVENTIVO (não é reclaim): roda a cada poucas horas e mantém a tabela pequena
+ * DESDE O INÍCIO. TETO DURO por document_id: preserva só as --keep versões mais
+ * novas, INDEPENDENTE da idade. O git é a fonte canônica de longo prazo
+ * (ADR 0061) — history antigo no DB é descartável.
+ *
+ * REINCIDÊNCIA 2026-06-26 (motivo desta mudança): a versão anterior só deletava
+ * o que reprovava em AMBAS as defesas (fora de --days=90d E além do top-N). Como
+ * a maratona de governança 21-25/06 gerou dezenas de merges/dia em docs quentes
+ * (handoffs, índices, scorecards), TODAS as ~374k versões nasceram dentro da
+ * janela de 90d → a poda não deletava NADA → tabela reinflou pra 5,2 GB e a
+ * Hostinger AUTO-REVOGOU INSERT/UPDATE do ERP (Larissa/biz=4 não salvava produto
+ * nem venda). A janela temporal era o buraco; agora o teto é só por --keep.
  *
  * Tabela de SISTEMA (sem business_id) — cross-tenant intencional, igual
  * mcp_audit_log / mcp_module_grades_history (ADR 0093 escopo plataforma).
@@ -36,12 +43,12 @@ use Illuminate\Support\Facades\Log;
 class MemoryHistoryPruneCommand extends Command
 {
     protected $signature = 'jana:memory-history-prune
-                            {--keep=20 : Versões mais recentes a preservar por document_id}
-                            {--days=90 : Preservar tudo mais novo que N dias (defesa temporal)}
+                            {--keep=20 : Teto duro de versões a preservar por document_id (idade ignorada)}
+                            {--days= : DEPRECADO (ignorado) — a janela temporal era o buraco do burst 2026-06-26}
                             {--chunk=2000 : Tamanho do lote de DELETE}
                             {--dry-run : Apenas conta o que seria podado, não deleta}';
 
-    protected $description = 'Poda preventiva de mcp_memory_documents_history (mantém últimas N por doc + janela de X dias)';
+    protected $description = 'Poda preventiva de mcp_memory_documents_history (teto duro de N versões por doc)';
 
     private const TABLE = 'mcp_memory_documents_history';
 
@@ -54,24 +61,23 @@ class MemoryHistoryPruneCommand extends Command
         }
 
         $keep = max(1, (int) $this->option('keep'));
-        $days = max(1, (int) $this->option('days'));
         $chunk = max(100, (int) $this->option('chunk'));
         $dryRun = (bool) $this->option('dry-run');
-        $cutoff = Carbon::now()->subDays($days);
 
         $this->info('jana:memory-history-prune — ' . now()->toDateTimeString());
-        $this->line("  keep (por doc): {$keep} · days (janela): {$days} (cutoff {$cutoff->toDateTimeString()})");
+        $this->line("  teto duro (por doc): {$keep} versões mais novas — idade ignorada");
         if ($dryRun) {
             $this->warn('  [DRY-RUN] nada será deletado');
         }
 
         $totalBefore = (int) DB::table(self::TABLE)->count();
 
-        // Candidatos a DELETE: reprovam em AMBAS as defesas — estão FORA da janela
-        // de dias E já saíram do top-N do seu document_id (há >= keep versões mais
-        // novas). Desempate por id pra contagem determinística em changed_at igual.
+        // TETO DURO por document_id: candidato a DELETE = já saiu do top-{keep} do
+        // seu doc (há >= keep versões mais novas), INDEPENDENTE da idade. A antiga
+        // "defesa temporal" (--days) blindava todo recente e foi o buraco que
+        // deixou o burst 21-25/06 reinflar pra 5,2 GB (ver docblock). Desempate por
+        // id pra contagem determinística quando changed_at é igual.
         $idsQuery = DB::table(self::TABLE . ' as h')
-            ->where('h.changed_at', '<', $cutoff)
             ->whereRaw(
                 '(SELECT COUNT(*) FROM ' . self::TABLE . ' AS n
                     WHERE n.document_id = h.document_id
@@ -99,8 +105,6 @@ class MemoryHistoryPruneCommand extends Command
 
         Log::channel('copiloto-ai')->info('MemoryHistoryPrune concluído', [
             'keep' => $keep,
-            'days' => $days,
-            'cutoff' => $cutoff->toIso8601String(),
             'matched' => $matched,
             'deleted' => $deleted,
             'total_before' => $totalBefore,

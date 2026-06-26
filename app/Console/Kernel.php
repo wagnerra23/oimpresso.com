@@ -678,14 +678,14 @@ class Kernel extends ConsoleKernel
         // Incidente 2026-06-21: o history append-only (snapshot do content inteiro por
         // mudança) inflou pra 5 GB, estourou a cota do Hostinger e o provedor REVOGOU a
         // escrita do ERP. Este cron mantém a tabela pequena DESDE O INÍCIO: por
-        // document_id preserva as últimas 20 versões + janela de 90d; o resto é
-        // descartável (git é a fonte canônica — ADR 0061). Sem flag de gate: é seguro
-        // e idempotente (não toca history quente). 03:20 BRT — sem disputa com
-        // retention-purge (03:00).
+        // document_id: TETO DURO de 20 versões por doc, idade ignorada (git é a fonte
+        // canônica — ADR 0061). De 6 em 6h (não mais diário) pra trimar bursts de
+        // governança ANTES de reinflar a cota Hostinger — reincidência 2026-06-26:
+        // janela de 90d blindava o burst, tabela voltou a 5,2 GB e revogou INSERT do ERP.
         $schedule->command('jana:memory-history-prune')
-            ->dailyAt('03:20')
+            ->everySixHours()
             ->timezone('America/Sao_Paulo')
-            ->name('jana-memory-history-prune-daily')
+            ->name('jana-memory-history-prune-6h')
             ->withoutOverlapping(60)
             ->environments(['live'])
             ->appendOutputTo(storage_path('logs/jana-memory-history-prune.log'))
