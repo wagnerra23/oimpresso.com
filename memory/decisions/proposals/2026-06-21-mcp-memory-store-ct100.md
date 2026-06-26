@@ -126,9 +126,19 @@ A **Camada 1 do #3374 (teto no WRITE)** já bounda a tabela em `docs × 20` (~40
 
 **Metadata-only:** parar de gravar o `content_md` inteiro no `_history` (guardar só git_sha/title/changed_at/reason) → linha cai ~70×, mesma máquina, zero JOIN cross-server, zero risco de recall. **Caveat:** na prod o `git_sha` vem `null` (shell_exec desabilitado no Hostinger) → sem o content o history perde o conteúdo das versões antigas. Viável só se o git_sha for preenchido por outra via primeiro. Fica como Opção (c) a avaliar.
 
-## Decisão do Wagner
+## Medição do gate Risk #4 (2026-06-26) — a Opção (a) foi DATA-REPROVADA enquanto o app viver no Hostinger
 
-- [x] **Aprovo a Opção (a)** + emenda ao 0062 (Wagner 2026-06-26 "faça a estrutura"). Número ADR a alocar no merge (evita colisão com sessão paralela). Scaffold no-op feito; **cutover live fica para janela coordenada** (baixo tráfego + Pest CT 100), por ser recall Tier 0.
-- [ ] Prefiro a Opção (b) (refactor maior, desacoplamento total).
-- [ ] Opção (c) metadata-only (mais leve, resolve cota; caveat git_sha null em prod).
-- [ ] ~~Adiar — o teto preventivo (PR #3130) basta por ora.~~ **Desmentido pela reincidência 2026-06-26**; o teto interino do #3374 segura a tabela, mas o acoplamento de cota permanece.
+A proposta condicionava a Opção (a) a *"medir a latência antes de aprovar"* (Risk #4). Medido do app (Hostinger) → CT 100:
+
+```
+RTT Hostinger → CT 100 (177.74.67.30): ping avg 176 ms · TCP connect ~177 ms (3× consistente)
+```
+
+**176 ms por round-trip inviabiliza apontar o app do Hostinger pra um DB no CT 100.** Um banco faz vários round-trips por sessão de query; 1 recall (~10-20 queries) viraria **+2 a 4 s**. Toda tela do app que toca memória penduraria por segundos. App e DB de memória precisam ficar **co-localizados** — hoje ambos no Hostinger (<1 ms). A Opção (a)/(b) só faz sentido **quando o app sair do Hostinger** (gatilho já previsto nos Review triggers + ADR 0060). O scaffold `memory_ct100` (no-op, PR #3375) fica pronto pra esse dia.
+
+## Decisão do Wagner (2026-06-26)
+
+- [ ] ~~Opção (a)~~ — **DATA-REPROVADA por ora** (176 ms RTT app↔CT100). Reavaliar quando o app sair do Hostinger.
+- [ ] Opção (b) (desacoplamento total) — idem (a): espera o app sair do Hostinger.
+- [x] **Opção (c) metadata-only — ESCOLHIDA E EXECUTADA** (Wagner "c", 2026-06-26). `snapshotEAtualizar` grava `content_md = ''` (não o conteúdo) → linha do history cai ~14000×, **mesma máquina, zero latência, zero JOIN cross-server, zero risco de recall**. Caveat do git_sha resolvido na prática: **nada lê `history.content_md` hoje** (só `KbVersionController`, que usa `kb_node_versions`, não esta coluna) → a UI não degrada; o conteúdo de versão, se um dia precisar, vem do git via `git_path` + `changed_at`. Com Camada 1 (#3374) + metadata-only, o history fica permanentemente minúsculo.
+- [ ] ~~Adiar — o teto preventivo (PR #3130) basta.~~ Desmentido pela reincidência 2026-06-26.

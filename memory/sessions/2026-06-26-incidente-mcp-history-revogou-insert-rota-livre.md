@@ -24,8 +24,11 @@ Guilherme (ROTA LIVRE) via Maiara: cadastro de produto (novo + duplicar) e venda
 - Testes Pest sqlite pros dois.
 - **Camadas 3/4 já existiam** (`checkDbWriteCanary` + `checkDbStorageQuota` + `isWriteDenied`, pós-21/06) e estão **verdes** em prod pós-reclaim. A detecção existia; faltou **ação a tempo** sobre o alerta de cota (90% de 6144 → email no fim de semana, ninguém agiu antes do 100%).
 
-## Estrutural (raiz) — proposta reforçada, gated
-[`memory/decisions/proposals/2026-06-21-mcp-memory-store-ct100.md`](../decisions/proposals/2026-06-21-mcp-memory-store-ct100.md) (mover `mcp_memory_documents*` pro MariaDB CT 100) — atualizei com a reincidência como 2ª prova (N=2) de que só teto não fecha a raiz: enquanto a memória do MCP dividir a cota de 6 GB do DB do ERP, qualquer crescimento ameaça a venda. **Aguarda decisão do Wagner** (Opção a/b).
+## Estrutural (raiz) — resolvida via Opção (c) metadata-only
+[`proposta 2026-06-21-mcp-memory-store-ct100`](../decisions/proposals/2026-06-21-mcp-memory-store-ct100.md). Sequência da decisão:
+- Wagner aprovou Opção (a) (mover pro CT 100). Ao executar, o **gate Risk #4 da proposta** (medir latência) reprovou: **RTT app(Hostinger)→CT100 = 176 ms** → cada recall viraria +2-4 s. Opção (a)/(b) só servem quando o app sair do Hostinger.
+- **Scaffold no-op** (`memory_ct100` em `config/database.php`) entregue no PR #3375 pra o dia do êxodo.
+- **Escolhida e executada a Opção (c) metadata-only:** `snapshotEAtualizar` grava `content_md = ''` (não o conteúdo) → linha do history cai ~14000×, mesma máquina, zero latência, zero JOIN cross-server, zero risco de recall. Nada lê `history.content_md` hoje (verificado: só `KbVersionController`, que usa `kb_node_versions`). Git é canônico pro conteúdo (ADR 0061). Com Camada 1 (#3374) + (c), o history fica permanentemente minúsculo.
 
 ## Follow-ups
 - **Wagner decide** a proposta CT 100 (estrutural).
