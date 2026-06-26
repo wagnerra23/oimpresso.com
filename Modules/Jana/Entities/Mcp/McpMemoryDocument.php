@@ -270,7 +270,14 @@ class McpMemoryDocument extends Model
                 'slug'                => $this->slug,
                 'git_sha'             => $this->git_sha,
                 'title'               => $this->title,
-                'content_md'          => $this->content_md,
+                // Opção (c) metadata-only (incidente 2026-06-26): NÃO guarda o
+                // snapshot do conteúdo (era mediumtext ~14 KB/linha — a fonte do
+                // bloat que estourou a cota e revogou a escrita do ERP). O history
+                // mantém só o metadado da versão (slug/git_sha/title/changed_at/
+                // reason); o conteúdo é recuperável pelo git (canônico — ADR 0061).
+                // String vazia (não null) evita migration + risco de ordem deploy↔
+                // schema na coluna NOT NULL. Nada lê history.content_md hoje.
+                'content_md'          => '',
                 'metadata'            => $this->metadata,
                 'changed_at'          => now(),
                 'changed_by_user_id'  => $userId,
