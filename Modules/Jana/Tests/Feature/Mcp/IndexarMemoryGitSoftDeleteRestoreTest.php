@@ -154,6 +154,15 @@ it('restaura McpMemoryDocument soft-deletado em vez de violar UNIQUE constraint'
         expect($restaurada->trashed())->toBeFalse('soft-delete removido');
         expect($restaurada->content_md)->toContain('NOVO');
         expect($stats['atualizados'])->toBeGreaterThanOrEqual(1);
+
+        // Opção (c) metadata-only (incidente 2026-06-26): o restore gera snapshot
+        // no history, mas SEM o conteúdo (content_md vazio) — só metadado; o git é
+        // canônico pro conteúdo (ADR 0061). É o que impede o bloat que revogou a
+        // escrita do ERP. O doc CURRENT (acima) segue com o content_md cheio.
+        $hist = \Illuminate\Support\Facades\DB::table('mcp_memory_documents_history')
+            ->where('document_id', $restaurada->id)->orderByDesc('id')->first();
+        expect($hist)->not->toBeNull('restore deve gerar snapshot no history');
+        expect($hist->content_md)->toBe('', 'metadata-only: history não guarda content_md');
     } finally {
         $repo['cleanup']();
     }
