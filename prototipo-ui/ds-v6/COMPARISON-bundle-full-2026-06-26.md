@@ -80,12 +80,23 @@ edita à mão).
 > Track 2 mexe em **valor de design** (regra-mestre Tier 0: dupla confirmação + antes→depois + screenshot).
 > **Não executar** sem sessão governada e aprovação [W].
 
-## 4. Pendências de decisão [W]
+## 4. Decisões (delegadas por [W] → CC, 2026-06-27)
 
-1. **Track 1 autoridade**: confirmar "SSOT bare-name vence, Cowork conforma"?
-2. **Track 2 escopo**: consolidar os tokens de domínio no SSOT agora (sessão governada) ou depois?
-3. **Extras do bundle** (`--av-c1..8` avatar ramp, `--color-tipo-pf/pj`): entram no SSOT ou só-protótipo?
-4. **Skill `oimpresso-design`**: registrar como skill Claude Code (`.claude/skills/`) ou manter só como kit em `ds-v6/`?
+1. **Track 1 — autoridade de nomenclatura → ✅ SSOT bare-name vence; Cowork conforma.** git é o SSOT
+   (DTCG/Style Dictionary); o bundle é downstream gerado. Caminho de menor churn + mata o failure-mode de
+   token órfão no copy-inteiro. Feed pro Cowork via `CODE_DESIGN_CONTRACT.md` + defesa `ds-guard.mjs`.
+2. **Extras do bundle (`--av-c1..8`, `--color-tipo-pf/pj`) → ✅ prototype-only, por ora.** Disciplina do DS
+   (receita passo 5: não se cunha token sem tela que consuma). Sem consumidor no repo hoje. Revisitar:
+   `--color-tipo-pf/pj` quando a ficha CRM 360 portar; avatar-ramp quando uma tela de avatares pedir.
+3. **Skill `oimpresso-design` → ✅ kit-only em `ds-v6/`; NÃO registrar como skill Claude Code.** Já há
+   ecossistema de skills de design (`cowork-prototype-replication`/`aplicar-prototipo`/`mwart-comparative`/
+   `pageheader-canon`/`ui-component-creator`) — mais uma = overlap + matcher confuso; registro Tier A pede ADR.
+   O valor do bundle é como kit de referência, que `ds-v6/` já entrega.
+4. **Track 2 — consolidar tokens de domínio no SSOT → 🟡 SIM na direção; merge NÃO auto-liberado.** Mexer em
+   `semantic.tokens.json` + rebuild toca **valor de design** (regra-mestre Tier 0). Executar como **PR dedicado
+   com diff antes→depois do `_generated-*.css`** provando zero mudança de valor (consolidação = mover
+   definição, não alterar) — diff vai pro olho de [W] antes de mergear. **Pendente:** investigar o que
+   genuinamente falta no DTCG (parte de `--stage-*`/`--origin-*` já está lá; só o residual hand-rolled migra).
 
 ## 5. Refs
 
