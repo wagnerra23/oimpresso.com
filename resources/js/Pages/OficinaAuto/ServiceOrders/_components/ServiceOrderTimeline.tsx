@@ -173,7 +173,7 @@ export default function ServiceOrderTimeline({ serviceOrderId, enabled, fallback
             <div className="flex flex-wrap items-center gap-x-1.5 text-foreground">
               {pipelineStarted && !item.action ? (
                 <span className="inline-flex items-center gap-1">
-                  <PlayCircle size={11} className="text-emerald-600 dark:text-emerald-400" />
+                  <PlayCircle size={11} className="text-success" />
                   Pipeline iniciado
                 </span>
               ) : item.from_stage && item.to_stage ? (

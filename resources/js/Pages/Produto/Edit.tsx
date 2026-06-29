@@ -172,7 +172,7 @@ function ProdutoEdit(props: ProdutoEditPageProps) {
                     onChange={(e) => setData('name', e.target.value)}
                     required
                   />
-                  {errors.name && <p className="text-[12px] text-rose-700 mt-1">{errors.name}</p>}
+                  {errors.name && <p className="text-[12px] text-destructive mt-1">{errors.name}</p>}
                 </div>
                 <div>
                   <Label htmlFor="sku">SKU</Label>

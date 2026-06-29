@@ -386,7 +386,7 @@ function ProdutoCard({ row, canUpdate }: { row: ProdutoRow; canUpdate: boolean }
               </span>
             )}
             {!row.active && (
-              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider bg-rose-100 text-rose-700">
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] uppercase tracking-wider bg-destructive-soft text-destructive-fg">
                 Inativo
               </span>
             )}

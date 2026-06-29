@@ -174,7 +174,7 @@ function ProdutoCreate(props: ProdutoCreatePageProps) {
                     required
                   />
                   {errors.name && (
-                    <p className="text-[12px] text-rose-700 mt-1">{errors.name}</p>
+                    <p className="text-[12px] text-destructive mt-1">{errors.name}</p>
                   )}
                 </div>
                 <div>
