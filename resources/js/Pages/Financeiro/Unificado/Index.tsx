@@ -1096,11 +1096,13 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
         {row.nfe_numero && <div className="text-[11px] text-stone-500">NF-e {row.nfe_numero}</div>}
       </td>
       <td className="px-2 text-stone-700 truncate max-w-[160px]">{row.contraparte}</td>
-      {/* Onda 9 (2026-05-20): categoria pill com cor semantica (in=verde, out=âmbar)
-          pra visual scan rapido por kind sem ler valor. */}
+      {/* Fidelidade protótipo ([W] 2026-06-29): categoria = dot + texto leve, não
+          pill pesada. Mantém o hue in/out no dot (verde/âmbar); o scan por kind já
+          é redundante com o DirIcon (↘/↗) e a cor do valor. */}
       <td className="px-2 truncate max-w-[140px]">
-        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10.5px] font-medium border ${isIn ? 'bg-success-soft text-success-fg border-success/20' : 'bg-amber-50/60 text-amber-700 border-amber-100'}`}>
-          {row.categoria}
+        <span className="inline-flex items-center gap-1.5 text-[12px] text-stone-600">
+          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isIn ? 'bg-success' : 'bg-amber-500'}`} aria-hidden />
+          <span className="truncate">{row.categoria}</span>
         </span>
       </td>
       {/* 2026-06-03: forma de pagamento (ícone + rótulo compacto). */}
