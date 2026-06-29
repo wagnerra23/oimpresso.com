@@ -2,24 +2,24 @@
 ---
 status: parcial
 cycle: CYCLE-08
-window: "2026-05-31..2026-06-25"
-generated: "2026-06-25"
+window: "2026-05-31..2026-06-29"
+generated: "2026-06-29"
 ---
 
 # Shipped log (PARCIAL) · CYCLE-08
 
 > ⚠️ **PARCIAL** — janela ainda aberta. Regenerar ao fechar o cycle.
-> **Rótulo honesto:** lista o que foi **mergeado em `main`** em `2026-05-31..2026-06-25` (BRT). Merge ≠ deploy ≠ funciona em produção.
+> **Rótulo honesto:** lista o que foi **mergeado em `main`** em `2026-05-31..2026-06-29` (BRT). Merge ≠ deploy ≠ funciona em produção.
 > Fonte: REST por sub-janela de dia (sem teto da Search API) + API `/commits` pra push-direto + revert reconciliado. **Não** depende de `Refs: US-XXX`.
 > 🚀 = no ar (mergeado ≤ deploy de produção) · ⏳ = mergeado, aguardando deploy (G8, via /api/mcp/version, por data). Limite: área = scope do título (G5 paths-por-PR fora por custo).
 
 ## Contagem
 
-- **1248 PRs** mergeados em `main` · 715 de produto · 533 de manutenção (docs/chore/test/ci/build)
+- **1254 PRs** mergeados em `main` · 718 de produto · 536 de manutenção (docs/chore/test/ci/build)
 - **33 entregas push-direto** (commits sem objeto-PR — invisíveis a query de PR)
 - **2 revert reconciliado** (par riscado — entrega líquida zero)
 - **218 tocam Design System**
-- 🚀 **Deploy de produção:** `d804c22fa` (2026-06-25T02:00:53+01:00) · **1248** no ar · **0** mergeados **aguardando deploy**
+- 🚀 **Deploy de produção:** `5bff76dcd` (2026-06-27T07:15:53+01:00) · **1254** no ar · **0** mergeados **aguardando deploy**
 
 ## Reconciliação — merge ≠ entrega
 
@@ -66,7 +66,7 @@ generated: "2026-06-25"
 
 ## Por área (PRs mergeados)
 
-### governance — 128 (+101 manutenção)
+### governance — 128 (+102 manutenção)
 - fix: guard automático de base STALE vs origin/main + PROTOCOL §10.4 Passo 0 (#2033) 🚀
 - feat: G4 retorno automático §10.2 — design_return_skipped + workflow pós-merge (#2064) 🚀
 - feat: governanca:scorecard — placar [CC]×Jana mecanizado (graduação de lições) (#2151) 🚀
@@ -196,7 +196,7 @@ generated: "2026-06-25"
 - fix: R10 aceita afirmativo curto só sob gate de contexto (#3365) 🚀
 - fix: R10 aceita "ok merge" curto + escape acionável via arquivo-marcador (#3370) 🚀
 
-### jana — 63 (+7 manutenção)
+### jana — 66 (+7 manutenção)
 - feat: health-check de charter (advisory) no jana:health-check (#2055) 🚀
 - feat: tela Jana Pro paywall (/ia/pro) — F3 do design aprovado (#2069) 🚀
 - feat: health-check alerta recall backend down (resiliência Meilisearch) + Pest (#2070) 🚀
@@ -260,6 +260,9 @@ generated: "2026-06-25"
 - feat: recall-eval mock gate em CI + schedule real pronto-pra-ligar (P12) (#3138) 🚀
 - feat: G18 — cycles-create propõe corte do backlog por prioridade (#3209) 🚀
 - feat: comando mcp:tasks:unassigned — sentinela US sem cycle/owner (US-INFRA-043) (#3302) 🚀
+- fix: poda de history vira teto duro por doc (não reinfla em burst) (#3374) 🚀
+- feat: scaffold memory_ct100 (no-op) + aceita proposta estrutural CT 100 (#3375) 🚀
+- fix: history metadata-only — para de guardar content_md (Opção c) (#3376) 🚀
 
 ### financeiro — 57 (+19 manutenção)
 - fix: agingBucket usa diffInDays absoluto (Carbon 3 signed) (#2050) 🚀
@@ -815,7 +818,7 @@ generated: "2026-06-25"
 - fix: vendas do cliente aparecem no drawer (SalesTab self-fetch) (#2437) · `DS` 🚀
 - fix: avisar "já existe cadastro" em vez de erro 500 ao salvar CNPJ duplicado (#2444) 🚀
 
-### design-system — 2
+### design-system — 2 (+2 manutenção)
 - feat: tokens semânticos de domínio DS v6 (frescor/kind/kpi-feature/vip/sla/canal) via DTCG — ADR 0310 (#3356) 🚀
 - refactor: consolida frescor em --sla-* (escala temporal única) — ADR 0311 (#3366) 🚀
 
