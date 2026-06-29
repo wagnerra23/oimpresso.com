@@ -168,8 +168,8 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
                 </div>
 
                 {state.kind === 'paid' && state.cob.paga_em && (
-                  <div className="mt-2 pt-2 border-t border-stone-200 text-[11.5px] text-emerald-700 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <div className="mt-2 pt-2 border-t border-stone-200 text-[11.5px] text-success flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success" />
                     Paga em {fmtDateBR(state.cob.paga_em.slice(0, 10))} — liquidação automática via webhook
                   </div>
                 )}
@@ -180,8 +180,8 @@ export default function CobrancaDrawer({ venda, state, onClose }: Props) {
                   </div>
                 )}
                 {state.kind === 'overdue' && (
-                  <div className="mt-2 pt-2 border-t border-stone-200 text-[11.5px] text-rose-700 flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                  <div className="mt-2 pt-2 border-t border-stone-200 text-[11.5px] text-destructive flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-destructive" />
                     Vencida há {-daysFrom(state.cob.vencimento)}d — smart retry agendado
                   </div>
                 )}

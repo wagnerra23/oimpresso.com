@@ -312,7 +312,7 @@ export default function NfseEmitir({ config, venda, flash }: Props) {
                     </div>
                     <div>
                       <p className="text-xs text-[color:var(--text-mute)]">Valor líquido</p>
-                      <p className="font-semibold tabular-nums text-emerald-600 dark:text-emerald-400">{brl(valorLiq)}</p>
+                      <p className="font-semibold tabular-nums text-success">{brl(valorLiq)}</p>
                     </div>
                   </div>
                 )}

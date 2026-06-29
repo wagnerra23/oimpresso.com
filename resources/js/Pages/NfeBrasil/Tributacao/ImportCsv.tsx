@@ -162,7 +162,7 @@ function ImportCsv({ colunas_obrigatorias }: Props) {
               <CardTitle className="text-base flex items-center justify-between">
                 <span>2. Pré-visualização</span>
                 <div className="flex gap-3 text-xs font-normal">
-                  <span className="text-emerald-700">✓ {preview.total_validas} válidas</span>
+                  <span className="text-success">✓ {preview.total_validas} válidas</span>
                   {preview.total_erros > 0 && (
                     <span className="text-destructive">✗ {preview.total_erros} com erro</span>
                   )}

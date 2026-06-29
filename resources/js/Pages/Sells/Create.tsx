@@ -1084,7 +1084,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   ? 'text-amber-700 dark:text-amber-300'
                   : pagamentoStatus === 'troco'
                     ? 'text-blue-700 dark:text-blue-300'
-                    : 'text-emerald-700 dark:text-emerald-300')
+                    : 'text-success')
             }
           >
             {totalGeral === 0
@@ -1595,7 +1595,7 @@ export default function SellsCreate(props: SellsCreatePageProps) {
                   ? 'border-amber-500/50 bg-amber-500/10 text-amber-700 dark:text-amber-300'
                   : pagamentoStatus === 'troco'
                     ? 'border-blue-500/50 bg-blue-500/10 text-blue-700 dark:text-blue-300'
-                    : 'border-emerald-500/50 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300')
+                    : 'border-success/20 bg-success-soft text-success-fg')
               }
             >
               <div>
