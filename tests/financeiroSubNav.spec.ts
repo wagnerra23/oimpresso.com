@@ -10,7 +10,7 @@
 // Fixture = shell.menu real lido ao vivo de prod (window.history.state.page.props.shell.menu).
 
 import { describe, it, expect } from 'vitest';
-import { pickFinanceiroEntry, type FinMenuEntry } from '@/Pages/Financeiro/_shared/financeiroMenu';
+import { pickFinanceiroEntry, FINANCEIRO_SUBNAV_GHOSTS, type FinMenuEntry } from '@/Pages/Financeiro/_shared/financeiroMenu';
 
 const MENU: FinMenuEntry[] = [
   {
@@ -89,5 +89,28 @@ describe('pickFinanceiroEntry — regressão ADR 0180 split (não cair sempre no
   it('menu vazio/undefined → undefined (componente renderiza null)', () => {
     expect(pickFinanceiroEntry([], 'unificado')).toBeUndefined();
     expect(pickFinanceiroEntry(undefined, 'unificado')).toBeUndefined();
+  });
+});
+
+describe('FINANCEIRO_SUBNAV_GHOSTS — barra unificada fiel ao protótipo (ADR 0313)', () => {
+  it('8 primeiras abas = ordem exata do protótipo Cowork aprovado por [W]', () => {
+    expect(FINANCEIRO_SUBNAV_GHOSTS.slice(0, 8).map((g) => g.key)).toEqual([
+      'unificado', 'cobranca', 'recurring-billing', 'fluxo',
+      'conciliacao', 'dre', 'plano-contas', 'impostos',
+    ]);
+    expect(FINANCEIRO_SUBNAV_GHOSTS[0]?.label).toBe('Financeiro');
+    expect(FINANCEIRO_SUBNAV_GHOSTS.find((g) => g.key === 'dre')?.label).toBe('DRE / Relatórios');
+  });
+
+  it('não perde destinos legacy — vão pro overflow ⋯ (nada some)', () => {
+    const keys = FINANCEIRO_SUBNAV_GHOSTS.map((g) => g.key);
+    expect(keys).toEqual(
+      expect.arrayContaining(['contas-pagar', 'contas-receber', 'categorias', 'extrato', 'contador', 'gateway']),
+    );
+  });
+
+  it('keys únicas (sem aba duplicada)', () => {
+    const keys = FINANCEIRO_SUBNAV_GHOSTS.map((g) => g.key);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });
