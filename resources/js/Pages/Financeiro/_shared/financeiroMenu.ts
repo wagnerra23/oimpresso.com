@@ -38,3 +38,37 @@ export function pickFinanceiroEntry(
     fin[0]
   );
 }
+
+/**
+ * Subnav UNIFICADA do Financeiro — fidelidade ao protótipo Cowork aprovado por
+ * [W] 2026-06-29 (ADR 0313, supersede_partial da 0180). A 0180 acoplava a barra
+ * de abas aos ghosts da entry ATIVA do sidebar (cada tela do Financeiro mostrava
+ * só as abas da própria entry). Agora TODA tela do Financeiro renderiza a MESMA
+ * barra (a do protótipo). O sidebar segue com as 4 entries flat da 0180
+ * (preservado) e `pickFinanceiroEntry` continua resolvendo a entry ativa só pra
+ * escolher o PRIMARY contextual por página.
+ *
+ * Ordem = protótipo (8 primeiras, visíveis com maxVisible=8). O restante são
+ * destinos legacy que vão pro overflow `⋯` — nada se perde (Contas a Pagar/
+ * Receber, Categorias, Caixa, Extrato, etc).
+ */
+export const FINANCEIRO_SUBNAV_GHOSTS: PageHeaderGhost[] = [
+  { key: 'unificado',         label: 'Financeiro',            href: '/financeiro/unificado' },
+  { key: 'cobranca',          label: 'Cobrança',              href: '/financeiro/cobranca' },
+  { key: 'recurring-billing', label: 'Assinaturas',           href: '/recurring-billing' },
+  { key: 'fluxo',             label: 'Fluxo de caixa',        href: '/financeiro/fluxo' },
+  { key: 'conciliacao',       label: 'Conciliação',           href: '/financeiro/conciliacao' },
+  { key: 'dre',               label: 'DRE / Relatórios',      href: '/financeiro/dre' },
+  { key: 'plano-contas',      label: 'Plano de contas',       href: '/financeiro/plano-contas' },
+  { key: 'impostos',          label: 'Impostos e obrigações', href: '/financeiro/impostos' },
+  // — abaixo NÃO estão no protótipo: overflow `⋯` (maxVisible=8), nada se perde —
+  { key: 'contas-pagar',      label: 'Contas a Pagar',        href: '/financeiro/contas-pagar' },
+  { key: 'contas-receber',    label: 'Contas a Receber',      href: '/financeiro/contas-receber' },
+  { key: 'relatorios',        label: 'Relatórios',            href: '/financeiro/relatorios' },
+  { key: 'categorias',        label: 'Categorias',            href: '/financeiro/categorias' },
+  { key: 'caixa',             label: 'Caixa',                 href: '/financeiro/caixa' },
+  { key: 'extrato',           label: 'Extrato',               href: '/financeiro/extrato' },
+  { key: 'contas-bancarias',  label: 'Contas Bancárias',      href: '/financeiro/contas-bancarias' },
+  { key: 'contador',          label: 'Contador',              href: '/financeiro/configuracoes/contador' },
+  { key: 'gateway',           label: 'Gateway',               href: '/settings/payment-gateways' },
+];
