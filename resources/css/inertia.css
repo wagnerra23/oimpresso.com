@@ -293,3 +293,13 @@
 .sells-cowork .vd-date-filter-hint-clear:hover {
   filter: brightness(0.97);
 }
+
+/* HOTFIX 2026-06-29 [CL]: Lightning CSS (TW v4) dropava a def custom-prop-only de
+   fin-curadoria.css (`.fin-cowork .fin-curadoria{--fin-*}`) → 0 defs/70 usos no build
+   → UI Financeira (KPI/tabela/header/total) branca. :root sobrevive ao minificador. */
+:root {
+  --fin-text: oklch(0.30 0.005 240);
+  --fin-text-mute: oklch(0.55 0.005 240);
+  --fin-line: oklch(0.92 0.005 240);
+  --fin-bg-soft: oklch(0.97 0.005 240);
+}
