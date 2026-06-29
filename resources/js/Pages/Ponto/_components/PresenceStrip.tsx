@@ -80,7 +80,7 @@ export default function PresenceStrip({ colaboradores, className }: Props) {
     <TooltipProvider delayDuration={150}>
       <div
         data-slot="presence-strip"
-        className={cn('rounded-xl border border-border bg-card p-4 space-y-3', className)}
+        className={cn('rounded-lg border border-border bg-card p-4 space-y-3', className)}
       >
         {/* Header com resumo */}
         <div className="flex items-center justify-between gap-3">
