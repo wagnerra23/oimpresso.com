@@ -546,7 +546,7 @@ export default function PlanosIndex(props: PageProps) {
                             <button
                               type="button"
                               onClick={() => handleDelete(p)}
-                              className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-rose-600 hover:bg-rose-50"
+                              className="inline-flex items-center gap-1 rounded px-2 py-1 text-xs text-destructive hover:bg-destructive/10"
                               title="Excluir"
                             >
                               <Trash2 size={12} />
