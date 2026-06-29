@@ -88,7 +88,7 @@ const formatDateTime = (v: string) => {
 };
 
 const STATUS_PILL: Record<PurchaseStatus, string> = {
-  received: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  received: 'bg-success-soft text-success-fg border-success/20',
   pending: 'bg-amber-50 text-amber-800 border-amber-200',
   ordered: 'bg-blue-50 text-blue-700 border-blue-200',
 };
@@ -100,10 +100,10 @@ const STATUS_LABEL: Record<PurchaseStatus, string> = {
 };
 
 const PAYMENT_PILL: Record<PaymentStatus, string> = {
-  paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  paid: 'bg-success-soft text-success-fg border-success/20',
   due: 'bg-stone-50 text-stone-700 border-stone-200',
   partial: 'bg-amber-50 text-amber-800 border-amber-200',
-  overdue: 'bg-rose-50 text-rose-700 border-rose-200',
+  overdue: 'bg-destructive-soft text-destructive-fg border-destructive/20',
 };
 
 const PAYMENT_LABEL: Record<PaymentStatus, string> = {
@@ -269,7 +269,7 @@ function PurchaseIndex({ rows, filters, business_locations, suppliers, order_sta
                   <td className="pl-4 pr-2 tabular-nums">{formatDateTime(r.transaction_date)}</td>
                   <td className="px-2 font-medium text-stone-900">
                     {r.ref_no}
-                    {r.return_exists && <span className="ml-1 text-[10px] text-rose-700">↶ devolução</span>}
+                    {r.return_exists && <span className="ml-1 text-[10px] text-destructive">↶ devolução</span>}
                   </td>
                   <td className="px-2 text-stone-700">{r.location_name}</td>
                   <td className="px-2 text-stone-700">

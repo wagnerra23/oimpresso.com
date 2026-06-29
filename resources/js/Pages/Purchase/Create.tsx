@@ -348,7 +348,7 @@ function PurchaseCreate({
                   ))}
                 </SelectContent>
               </Select>
-              {form.errors.location_id && <p className="text-rose-700 text-[11px] mt-1">{form.errors.location_id}</p>}
+              {form.errors.location_id && <p className="text-destructive text-[11px] mt-1">{form.errors.location_id}</p>}
             </div>
 
             <div>
@@ -361,7 +361,7 @@ function PurchaseCreate({
                 onChange={(e) => form.setData('contact_id', e.target.value)}
                 required
               />
-              {form.errors.contact_id && <p className="text-rose-700 text-[11px] mt-1">{form.errors.contact_id}</p>}
+              {form.errors.contact_id && <p className="text-destructive text-[11px] mt-1">{form.errors.contact_id}</p>}
             </div>
 
             <div>
@@ -385,7 +385,7 @@ function PurchaseCreate({
                 onChange={(e) => form.setData('transaction_date', e.target.value.replace('T', ' '))}
                 required
               />
-              {form.errors.transaction_date && <p className="text-rose-700 text-[11px] mt-1">{form.errors.transaction_date}</p>}
+              {form.errors.transaction_date && <p className="text-destructive text-[11px] mt-1">{form.errors.transaction_date}</p>}
             </div>
 
             <div>
@@ -404,7 +404,7 @@ function PurchaseCreate({
                   ))}
                 </SelectContent>
               </Select>
-              {form.errors.status && <p className="text-rose-700 text-[11px] mt-1">{form.errors.status}</p>}
+              {form.errors.status && <p className="text-destructive text-[11px] mt-1">{form.errors.status}</p>}
             </div>
           </div>
         </CardContent>
@@ -640,7 +640,7 @@ function PurchaseCreate({
           </CardHeader>
           <CardContent className="px-4 pb-4 text-[13px] space-y-1.5">
             <div className="flex justify-between"><span className="text-stone-500">Subtotal itens</span><span className="tabular-nums">{brl(totais.subtotal)}</span></div>
-            <div className="flex justify-between"><span className="text-stone-500">Desconto</span><span className="tabular-nums text-rose-700">- {brl(totais.descontoValor)}</span></div>
+            <div className="flex justify-between"><span className="text-stone-500">Desconto</span><span className="tabular-nums text-destructive">- {brl(totais.descontoValor)}</span></div>
             <div className="flex justify-between"><span className="text-stone-500">Impostos</span><span className="tabular-nums">+ {brl(totais.totalImpostos)}</span></div>
             {totais.frete > 0 && (
               <div className="flex justify-between"><span className="text-stone-500">Frete</span><span className="tabular-nums">+ {brl(totais.frete)}</span></div>
@@ -649,7 +649,7 @@ function PurchaseCreate({
               <span className="font-semibold">Total final</span>
               <span className="tabular-nums font-semibold text-[15px]">{brl(totais.final)}</span>
             </div>
-            {form.errors.final_total && <p className="text-rose-700 text-[11px] mt-1">{form.errors.final_total}</p>}
+            {form.errors.final_total && <p className="text-destructive text-[11px] mt-1">{form.errors.final_total}</p>}
             {permissions.view_purchase_price === false && (
               <p className="text-stone-400 text-[11px] mt-2">Você não tem permissão pra ver preços de compra.</p>
             )}
