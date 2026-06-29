@@ -12,6 +12,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { Checkbox } from '@/Components/ui/checkbox';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -267,7 +268,7 @@ function BacklogIndex({
       </Card>
 
       {selected.size > 0 && (
-        <div className="sticky top-2 z-20 mt-3 flex flex-wrap items-center gap-2 px-4 py-2 rounded-xl border bg-primary/5 shadow">
+        <div className="sticky top-2 z-20 mt-3 flex flex-wrap items-center gap-2 px-4 py-2 rounded-lg border bg-primary/5 shadow">
           <span className="text-xs font-semibold">{selected.size} selecionada{selected.size > 1 ? 's' : ''}</span>
 
           <span className="text-xs text-muted-foreground">Status:</span>
@@ -314,10 +315,9 @@ function BacklogIndex({
             <thead className="border-b bg-muted/40 sticky top-0 z-10">
               <tr>
                 <th className="text-left py-2 px-3 w-8">
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={tasks.length > 0 && selected.size === tasks.length}
-                    onChange={toggleAll}
+                    onCheckedChange={toggleAll}
                     aria-label="selecionar todas"
                   />
                 </th>
@@ -344,7 +344,7 @@ function BacklogIndex({
                     ].filter(Boolean).join(' ')}
                   >
                     <td className="py-1.5 px-3">
-                      <input type="checkbox" checked={sel} onChange={() => toggle(t.task_id)} />
+                      <Checkbox checked={sel} onCheckedChange={() => toggle(t.task_id)} />
                     </td>
                     <td className="py-1.5 px-3 font-mono text-[10px] text-muted-foreground whitespace-nowrap">
                       {t.display_id}

@@ -298,7 +298,7 @@ function MyWorkIndex({
       <div className="grid mt-4 gap-4" style={{ gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' }}>
         <section
           className={[
-            'rounded-xl border bg-muted/20 p-4 transition-all',
+            'rounded-lg border bg-muted/20 p-4 transition-all',
             focus === 'work' ? 'ring-2 ring-primary/60' : 'opacity-90',
           ].join(' ')}
           onClick={() => setFocus('work')}
@@ -368,7 +368,7 @@ function MyWorkIndex({
 
         <section
           className={[
-            'rounded-xl border bg-muted/20 p-4 transition-all',
+            'rounded-lg border bg-muted/20 p-4 transition-all',
             focus === 'inbox' ? 'ring-2 ring-primary/60' : 'opacity-90',
           ].join(' ')}
           onClick={() => setFocus('inbox')}
