@@ -14,8 +14,13 @@ use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 /**
  * MEM-MCP-1.c (ADR 0053) — Tool decisions-search.
  *
- * Full-text search nos 53 ADRs via MySQL FULLTEXT index na tabela
- * mcp_memory_documents. Retorna top 5 matches com slug + título + snippet.
+ * Full-text search nas ADRs via MySQL FULLTEXT index na tabela
+ * mcp_memory_documents. Retorna top matches com slug + título + resumo.
+ *
+ * O resumo prioriza (1) `summary` curado no frontmatter, (2) 1º parágrafo da
+ * seção "## Decisão"/"## Contexto", (3) snippet posicional legado. Origem:
+ * medição empírica 2026-06-29 — 53% dos snippets caíam em chunk posicional
+ * cego (1ª palavra da query ancorando no meio do doc), sem resumir a decisão.
  */
 class DecisionsSearchTool extends Tool
 {
@@ -23,7 +28,7 @@ class DecisionsSearchTool extends Tool
 
     protected string $title = 'Buscar ADRs do projeto';
 
-    protected string $description = 'Busca full-text nas 90+ ADRs (decisões arquiteturais) do oimpresso. Retorna top 5 matches com slug, título e trecho relevante. Por padrão retorna ADRs ativas (aceito/accepted/accepted-historical) + recusadas (o NÃO consultável — responde "por que não temos X?", anti-relitígio) — use include_archived=true pra ver superseded/deprecated. Triagem 2026-05-06 ([_INDEX-LIFECYCLE](memory/decisions/_INDEX-LIFECYCLE.md)).';
+    protected string $description = 'Busca full-text nas ADRs (decisões arquiteturais) do oimpresso. Retorna top matches com slug, título e resumo da decisão. Por padrão retorna ADRs ativas (aceito/accepted/accepted-historical) + recusadas (o NÃO consultável — responde "por que não temos X?", anti-relitígio) — use include_archived=true pra ver superseded/deprecated. Triagem 2026-05-06 ([_INDEX-LIFECYCLE](memory/decisions/_INDEX-LIFECYCLE.md)).';
 
     public function schema(JsonSchema $schema): array
     {
@@ -98,7 +103,7 @@ class DecisionsSearchTool extends Tool
 
         $output = "Encontrados " . $rows->count() . " ADR(s) pra \"$query\" $scopeNote:\n\n";
         foreach ($rows as $doc) {
-            $snippet = $this->extrairSnippet($doc->content_md, $query, 200);
+            $snippet = $this->montarResumo($doc, $query, 240);
             $output .= "## " . $doc->slug . "\n";
             $output .= "**" . $doc->title . "**\n";
             $output .= $snippet . "\n";
@@ -109,7 +114,107 @@ class DecisionsSearchTool extends Tool
     }
 
     /**
-     * Extrai trecho relevante ao redor da primeira ocorrência da query.
+     * Monta o resumo exibido pra cada ADR no resultado da busca.
+     *
+     * Ordem de qualidade, com degradação graciosa:
+     *   1. `summary` curado no frontmatter (metadata) — melhor, preenchível incrementalmente;
+     *   2. 1º parágrafo da seção "## Decisão"/"## Contexto" — determinístico, resume a decisão;
+     *   3. extrairSnippet posicional (legado) — fallback que nunca regride.
+     *
+     * Medição 2026-06-29: 53% dos snippets caíam no caso (3) com chunk posicional cego.
+     */
+    protected function montarResumo(McpMemoryDocument $doc, string $query, int $maxLen = 240): string
+    {
+        $summary = data_get($doc->metadata, 'summary');
+        if (is_string($summary) && trim($summary) !== '') {
+            return $this->normalizarResumo($summary, $maxLen);
+        }
+
+        $decisao = $this->extrairResumoDecisao((string) $doc->content_md);
+        if ($decisao !== null) {
+            return $this->normalizarResumo($decisao, $maxLen);
+        }
+
+        return $this->extrairSnippet((string) $doc->content_md, $query, $maxLen);
+    }
+
+    /**
+     * Extrai o 1º parágrafo significativo da primeira seção canônica de uma ADR
+     * (Decisão > Contexto > Resumo > TL;DR). Retorna null se nenhuma seção bate.
+     */
+    protected function extrairResumoDecisao(string $body): ?string
+    {
+        foreach (['Decis[ãa]o', 'Contexto', 'Resumo', 'TL;?DR'] as $secao) {
+            if (! preg_match('/^#{1,4}[ \t]*' . $secao . '[ \t]*$/imu', $body, $m, PREG_OFFSET_CAPTURE)) {
+                continue;
+            }
+
+            // PREG_OFFSET_CAPTURE devolve offsets em BYTES mesmo com /u — substr (bytes) é correto.
+            $inicio = $m[0][1] + strlen($m[0][0]);
+            $resto = substr($body, $inicio);
+
+            // Corta no próximo header markdown (fim da seção).
+            if (preg_match('/^#{1,4}[ \t]/mu', $resto, $hm, PREG_OFFSET_CAPTURE)) {
+                $resto = substr($resto, 0, $hm[0][1]);
+            }
+
+            $paragrafo = $this->primeiroParagrafo($resto);
+            if ($paragrafo !== null) {
+                return $paragrafo;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * 1º bloco de texto não-vazio de um trecho, pulando linhas em branco,
+     * blockquotes (>), separadores (---) e linhas de metadata (Status:/Data:/etc).
+     */
+    protected function primeiroParagrafo(string $trecho): ?string
+    {
+        $buffer = [];
+
+        foreach (preg_split('/\r?\n/', $trecho) as $linha) {
+            $t = trim($linha);
+
+            if ($buffer === []) {
+                if ($t === '' || $t === '---' || str_starts_with($t, '>')
+                    || preg_match('/^\*{0,2}(Status|Data|Decisores|Tags|Supersedes)\*{0,2}\s*:/i', $t)) {
+                    continue;
+                }
+                $buffer[] = $t;
+                continue;
+            }
+
+            if ($t === '') {
+                break;
+            }
+            $buffer[] = $t;
+        }
+
+        return $buffer === [] ? null : implode(' ', $buffer);
+    }
+
+    /**
+     * Normaliza um resumo pra exibição: remove markdown inline ruidoso,
+     * colapsa espaços e trunca a maxLen sem cortar caractere multibyte.
+     */
+    protected function normalizarResumo(string $texto, int $maxLen): string
+    {
+        $texto = preg_replace('/\[([^\]]+)\]\([^)]*\)/', '$1', $texto);
+        $texto = str_replace(['**', '`'], '', (string) $texto);
+        $texto = trim((string) preg_replace('/\s+/', ' ', (string) $texto));
+
+        if (mb_strlen($texto) > $maxLen) {
+            $texto = rtrim(mb_substr($texto, 0, $maxLen)) . '…';
+        }
+
+        return $texto;
+    }
+
+    /**
+     * Extrai trecho relevante ao redor da primeira ocorrência da query (fallback legado).
      */
     protected function extrairSnippet(string $body, string $query, int $maxLen = 200): string
     {
