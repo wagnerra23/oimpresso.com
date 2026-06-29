@@ -15,6 +15,7 @@ import { Activity, Info } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 import '../../../css/fiscal-cockpit.css';
 
@@ -92,17 +93,19 @@ export default function Eventos({ filters: initialFilters, counts, rows }: Event
           { keys: ['2'], label: 'NF-e' },
         ]}
         actions={
-          <select
-            value={filters.dias}
-            onChange={(e) => apply({ dias: parseInt(e.target.value, 10) })}
-            className="fx-btn ghost"
-            style={{ padding: '4px 8px' }}
-            aria-label="Período"
+          <Select
+            value={String(filters.dias)}
+            onValueChange={(v) => apply({ dias: parseInt(v, 10) })}
           >
-            <option value={7}>Últimos 7d</option>
-            <option value={30}>Últimos 30d</option>
-            <option value={90}>Últimos 90d</option>
-          </select>
+            <SelectTrigger size="sm" className="w-auto" aria-label="Período">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="7">Últimos 7d</SelectItem>
+              <SelectItem value="30">Últimos 30d</SelectItem>
+              <SelectItem value="90">Últimos 90d</SelectItem>
+            </SelectContent>
+          </Select>
         }
       >
         {/* Callout — janelas legais (port fiscal-page.jsx §9 EventosTab) */}

@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 
 import FxShell from './_components/FxShell';
 import FiscalModuleTopNav from './_components/FiscalModuleTopNav';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 
 import '../../../css/fiscal-cockpit.css';
 
@@ -347,30 +348,23 @@ export default function Config({ certificado, config, painel, seriesMock = [] }:
             <b>Produção</b> = valor fiscal real, vai pra contabilidade.
           </p>
           <form onSubmit={submitAmbiente} style={{ marginTop: 12 }}>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}>
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
-                <input
-                  type="radio"
-                  name="ambiente"
-                  value={2}
-                  checked={ambienteForm.data.ambiente === 2}
-                  onChange={() => ambienteForm.setData('ambiente', 2)}
-                />
+            <RadioGroup
+              value={String(ambienteForm.data.ambiente)}
+              onValueChange={(v) => ambienteForm.setData('ambiente', Number(v) as 1 | 2)}
+              style={{ display: 'flex', gap: 16, alignItems: 'center', marginBottom: 12 }}
+            >
+              {/* htmlFor → clicar no label inteiro ativa o RadioGroupItem (botão labelable) */}
+              <label htmlFor="ambiente-2" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                <RadioGroupItem id="ambiente-2" value="2" />
                 <b>Homologação</b>
                 <small style={{ color: 'var(--fx-text-mute)' }}>(teste)</small>
               </label>
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
-                <input
-                  type="radio"
-                  name="ambiente"
-                  value={1}
-                  checked={ambienteForm.data.ambiente === 1}
-                  onChange={() => ambienteForm.setData('ambiente', 1)}
-                />
+              <label htmlFor="ambiente-1" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: 13 }}>
+                <RadioGroupItem id="ambiente-1" value="1" />
                 <b>Produção</b>
                 <small style={{ color: 'var(--warn)' }}>(valor fiscal real)</small>
               </label>
-            </div>
+            </RadioGroup>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
               <small style={{ color: 'var(--fx-text-mute)' }}>
                 Atual: <code className="fx-mono">{painel.ambiente === 1 ? 'PRODUÇÃO' : 'HOMOLOGAÇÃO'}</code>

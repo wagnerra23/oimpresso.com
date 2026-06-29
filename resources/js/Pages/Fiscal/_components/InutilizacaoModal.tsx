@@ -14,6 +14,8 @@ import { router } from '@inertiajs/react';
 import { Eraser, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+
 interface InutilizacaoModalProps {
   open: boolean;
   onClose: () => void;
@@ -120,17 +122,21 @@ export default function InutilizacaoModal({
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 12 }}>
-          <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11.5, color: 'var(--fx-text-dim)' }}>
+          <label htmlFor="inut-modelo" style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11.5, color: 'var(--fx-text-dim)' }}>
             Modelo
-            <select
+            <Select
               value={modelo}
-              onChange={(e) => setModelo(e.target.value as '55' | '65')}
+              onValueChange={(v) => setModelo(v as '55' | '65')}
               disabled={busy}
-              style={{ padding: 8, fontSize: 12.5, border: '1px solid var(--fx-border)', borderRadius: 7 }}
             >
-              <option value="55">55 (NF-e)</option>
-              <option value="65">65 (NFC-e)</option>
-            </select>
+              <SelectTrigger id="inut-modelo" size="sm" className="w-full" aria-label="Modelo">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="55">55 (NF-e)</SelectItem>
+                <SelectItem value="65">65 (NFC-e)</SelectItem>
+              </SelectContent>
+            </Select>
           </label>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 4, fontSize: 11.5, color: 'var(--fx-text-dim)' }}>
             Série
