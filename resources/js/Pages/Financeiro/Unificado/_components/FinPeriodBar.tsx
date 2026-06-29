@@ -114,17 +114,17 @@ export default function FinPeriodBar({ dataInicio, dataFim, count, onChange }: P
       <div className="inline-flex items-center gap-1">
         <button
           type="button"
-          className="h-7 w-7 grid place-items-center rounded-md border border-stone-200 text-stone-500 hover:bg-stone-50"
+          className="h-7 w-7 grid place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted"
           onClick={() => shiftMonth(-1)}
           aria-label="Mês anterior"
           title="Mês anterior"
         >
           ‹
         </button>
-        <span className="text-[12px] font-medium text-stone-700 capitalize min-w-[96px] text-center tabular-nums">{navLabel}</span>
+        <span className="text-[12px] font-medium text-foreground capitalize min-w-[96px] text-center tabular-nums">{navLabel}</span>
         <button
           type="button"
-          className="h-7 w-7 grid place-items-center rounded-md border border-stone-200 text-stone-500 hover:bg-stone-50"
+          className="h-7 w-7 grid place-items-center rounded-md border border-border text-muted-foreground hover:bg-muted"
           onClick={() => shiftMonth(1)}
           aria-label="Próximo mês"
           title="Próximo mês"
@@ -133,7 +133,7 @@ export default function FinPeriodBar({ dataInicio, dataFim, count, onChange }: P
         </button>
       </div>
 
-      <span className="text-[11px] text-stone-400 tabular-nums whitespace-nowrap">{count} lanç.</span>
+      <span className="text-[11px] text-muted-foreground tabular-nums whitespace-nowrap">{count} lanç.</span>
 
       {/* Presets segmentados */}
       <div className="inline-flex items-center bg-muted rounded-md p-0.5 border border-border">
