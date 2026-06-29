@@ -320,23 +320,23 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
 
         {/* F3b (2026-06-29 · [W]) — intervalo de vencimento (client-side, igual aos demais filtros desta tela). */}
         <div className="inline-flex items-center gap-1" role="group" aria-label="Filtrar por vencimento">
-          <span className="text-[10px] uppercase tracking-widest font-medium text-stone-400 mr-0.5">Vence</span>
+          <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground mr-0.5">Vence</span>
           <input
             type="date"
             value={dateFrom}
             max={dateTo || undefined}
             onChange={e => setDateFrom(e.target.value)}
-            className="h-7 px-2 bg-white border border-stone-300 rounded-md text-[11.5px] text-stone-700 focus:outline-none focus:border-stone-500"
+            className="h-7 px-2 bg-white border border-input rounded-md text-[11.5px] text-foreground focus:outline-none focus:border-ring"
             aria-label="Vencimento inicial"
             title="Vencimento de (vazio = sem limite)"
           />
-          <span className="text-stone-400 text-[11px]" aria-hidden>–</span>
+          <span className="text-muted-foreground text-[11px]" aria-hidden>–</span>
           <input
             type="date"
             value={dateTo}
             min={dateFrom || undefined}
             onChange={e => setDateTo(e.target.value)}
-            className="h-7 px-2 bg-white border border-stone-300 rounded-md text-[11.5px] text-stone-700 focus:outline-none focus:border-stone-500"
+            className="h-7 px-2 bg-white border border-input rounded-md text-[11.5px] text-foreground focus:outline-none focus:border-ring"
             aria-label="Vencimento final"
             title="Vencimento até (vazio = sem limite)"
           />
@@ -344,7 +344,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
             <button
               type="button"
               onClick={() => { setDateFrom(''); setDateTo(''); }}
-              className="h-7 w-6 grid place-items-center text-stone-400 hover:text-stone-700"
+              className="h-7 w-6 grid place-items-center text-muted-foreground hover:text-foreground"
               title="Limpar intervalo de vencimento"
               aria-label="Limpar intervalo de vencimento"
             >
