@@ -1020,6 +1020,9 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
   onToggleBulk: () => void;
 }) {
   const isIn = row.kind === 'receivable';
+  // Refino premium DirIcon ([W] 2026-06-29) — cor base da direção (pos verde / neg rose)
+  // pra borda + sombra translúcidas via color-mix (mesma assinatura dos chips de filtro).
+  const dirBase = isIn ? 'oklch(0.40 0.13 145)' : 'oklch(0.50 0.18 25)';
   const settled = row.status === 'recebido' || row.status === 'pago';
   // FinPillFrescor consome `due`/`paid_at` — adapta de `vencimento`/`liquidacao`.
   const frescorRow = {
@@ -1061,7 +1064,10 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
             background: isIn
               ? (settled ? 'oklch(0.94 0.04 145 / 0.6)' : 'oklch(0.94 0.06 145)')
               : (settled ? 'oklch(0.95 0.03 25 / 0.6)' : 'oklch(0.95 0.04 25)'),
-            color: isIn ? 'oklch(0.40 0.13 145)' : 'oklch(0.50 0.18 25)',
+            color: dirBase,
+            // Refino premium ([W] 2026-06-29) — fio translúcido 22% + sombra 28% color-mix.
+            border: `1px solid color-mix(in oklch, ${dirBase} 22%, transparent)`,
+            boxShadow: `0 1px 3px -1px color-mix(in oklch, ${dirBase} 28%, transparent)`,
             fontSize: 14,
             fontWeight: 700,
           }}
