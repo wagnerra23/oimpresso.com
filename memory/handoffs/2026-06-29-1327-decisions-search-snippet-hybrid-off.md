@@ -1,5 +1,5 @@
 ---
-date: 2026-06-29
+date: "2026-06-29"
 slug: 2026-06-29-1327-decisions-search-snippet-hybrid-off
 hour: "13:27 BRT"
 topic: Busca de ADR consertada — snippet útil (frente 1) + hybrid quebrado desligado (frente 2), tudo medido por workflows adversariais
