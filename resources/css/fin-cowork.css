@@ -280,8 +280,10 @@
   border-radius: 99px;
   /* Onda 12 refine — borda semântica com hue mesmo OFF (paridade canon REAL:
      pill colorido fica visualmente identificável mesmo desligado, ajuda
-     scan rápido do user). */
-  border: 1px solid oklch(0.92 0.04 var(--cb-hue, 240));
+     scan rápido do user).
+     Refino premium ([W] 2026-06-29) — borda translúcida via color-mix:
+     22% off (fio discreto), 50% on (ver .on). Assinatura premium da Produção. */
+  border: 1px solid color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 22%, transparent);
   background: white;
   font-size: var(--fs-2);
   font-weight: 500;
@@ -307,7 +309,9 @@
 }
 .fin-cowork .fin-curadoria .fin-filter-cb.on {
   background: oklch(0.96 0.05 var(--cb-hue, 240));
-  border-color: oklch(0.65 0.13 var(--cb-hue, 240));
+  /* Refino premium ([W] 2026-06-29) — borda translúcida 50% + sombra suave. */
+  border-color: color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 50%, transparent);
+  box-shadow: 0 1px 3px -1px color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 28%, transparent);
   color: oklch(0.36 0.18 var(--cb-hue, 240));
   font-weight: 600;
 }
@@ -332,12 +336,14 @@
   font-weight: 600;
   padding: 0 5px;
   border-radius: 99px;
-  background: oklch(0.95 0.005 240);
+  /* Contador transparente ([W] 2026-06-16) — sem pílula preenchida, mesmo
+     tratamento on/off; só o número muda de tom. */
+  background: transparent;
   color: var(--fin-text-mute);
 }
 .fin-cowork .fin-curadoria .fin-filter-cb.on .fin-filter-ct {
-  background: oklch(0.55 0.18 var(--cb-hue, 240));
-  color: white;
+  background: transparent;
+  color: oklch(0.40 0.15 var(--cb-hue, 240));
 }
 .fin-cowork .fin-curadoria .fin-filter-clear {
   appearance: none;
