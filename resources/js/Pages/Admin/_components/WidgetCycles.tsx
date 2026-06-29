@@ -85,7 +85,7 @@ export default function WidgetCycles({ data }: Props) {
                     <td className="py-1 font-medium">{dev.owner}</td>
                     <td className="text-right">{dev.total}</td>
                     <td className="text-right text-blue-600">{dev.doing}</td>
-                    <td className="text-right text-green-600">{dev.done}</td>
+                    <td className="text-right text-success">{dev.done}</td>
                     <td className="text-right">{pct}%</td>
                   </tr>
                 );

@@ -159,7 +159,7 @@ function ModuleCard({ row }: { row: ModuleRow }) {
             <div>p99 {row.p99_ms.toFixed(0)}ms</div>
           )}
           {row.paired_count > 0 && (
-            <div className="text-red-700 font-semibold">⚠ {row.paired_count} paired</div>
+            <div className="text-destructive font-semibold">⚠ {row.paired_count} paired</div>
           )}
         </div>
       </div>
@@ -189,7 +189,7 @@ function BucketSection({
           </span>
           <span className="text-sm font-normal text-zinc-500">
             meta ≥{bucketMeta.meta} · média {avg} · {rows.length} módulos
-            {critCount > 0 && <span className="ml-2 text-red-700 font-semibold">· {critCount} crítico(s)</span>}
+            {critCount > 0 && <span className="ml-2 text-destructive font-semibold">· {critCount} crítico(s)</span>}
           </span>
         </CardTitle>
       </CardHeader>
@@ -241,7 +241,7 @@ function DriftAlertsBanner({ alerts, threshold }: { alerts: DriftAlert[]; thresh
                   {new Date(a.snapshot_date).toLocaleDateString('pt-BR')}
                 </span>
               </div>
-              <div className={`font-bold ${a.direction === 'down' ? 'text-red-700' : 'text-emerald-700'}`}>
+              <div className={`font-bold ${a.direction === 'down' ? 'text-destructive' : 'text-success'}`}>
                 {a.from} → {a.to} ({a.delta > 0 ? '+' : ''}
                 {a.delta}pts)
               </div>
@@ -274,7 +274,7 @@ function AiSuggestionsList({ suggestions }: { suggestions: AiSuggestion[] }) {
           <div className="flex items-center justify-between gap-2">
             <span className="font-medium">{s.module}</span>
             <span
-              className={`font-bold ${s.avg_delta < 0 ? 'text-red-700' : 'text-emerald-700'}`}
+              className={`font-bold ${s.avg_delta < 0 ? 'text-destructive' : 'text-success'}`}
             >
               {s.avg_delta > 0 ? '+' : ''}
               {s.avg_delta}
@@ -293,7 +293,7 @@ function AiSuggestionsList({ suggestions }: { suggestions: AiSuggestion[] }) {
 function PairedViolationsList({ violations }: { violations: PairedViolation[] }) {
   if (!violations || violations.length === 0) {
     return (
-      <div className="text-sm text-emerald-700">
+      <div className="text-sm text-success">
         ✓ Nenhuma paired violation ativa (anti-Goodhart verde).
       </div>
     );
@@ -302,7 +302,7 @@ function PairedViolationsList({ violations }: { violations: PairedViolation[] })
     <ul className="space-y-1 text-sm">
       {violations.map((v, i) => (
         <li key={`${v.module}-${i}`} className="flex items-start gap-2">
-          <span className="text-red-600 mt-0.5">⚠</span>
+          <span className="text-destructive mt-0.5">⚠</span>
           <div>
             <span className="font-medium">{v.module}</span> ·{' '}
             <code className="text-xs bg-zinc-100 px-1 rounded">{v.rule}</code>
