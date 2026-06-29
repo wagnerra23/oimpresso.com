@@ -5,6 +5,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
+import { Stack, Inline } from '@/Components/layout'; // F3b — layout via primitivos (ADR 0253)
 // Onda 12/13/18 v9,75 — sub-components Cowork refinos
 import TroubleshooterOverlay from './_components/TroubleshooterOverlay';
 import PresentationMode from './_components/PresentationMode';
@@ -688,11 +689,11 @@ export default function RecurringBillingIndex(props: PageProps) {
 
               {/* F3b (2026-06-29 · [W]) — preset "Personalizado": intervalo custom de
                   próxima cobrança (server-side via applyFilters, igual aos presets).
-                  Cor via token DS (border-input/text-foreground) — sem stone-NNN (R1 ui:lint). */}
+                  Layout via primitivos Stack/Inline (ADR 0253) + token DS — sem flex/stone crus. */}
               {whenFilter === 'custom' && (
-                <div className="mt-2 flex flex-col gap-1.5 rounded-lg border border-input bg-white p-2">
-                  <label className="flex items-center justify-between gap-2 text-[12px]">
-                    <span className="text-muted-foreground">De</span>
+                <Stack gap={2} className="mt-2 rounded-lg border border-input bg-white p-2">
+                  <Inline gap={2} justify="between">
+                    <span className="text-[12px] text-muted-foreground">De</span>
                     <input
                       type="date"
                       value={customFrom}
@@ -701,9 +702,9 @@ export default function RecurringBillingIndex(props: PageProps) {
                       className="rounded-md border border-input bg-white px-1.5 py-1 text-[12px] text-foreground focus:outline-none focus:border-ring"
                       aria-label="Próxima cobrança de"
                     />
-                  </label>
-                  <label className="flex items-center justify-between gap-2 text-[12px]">
-                    <span className="text-muted-foreground">Até</span>
+                  </Inline>
+                  <Inline gap={2} justify="between">
+                    <span className="text-[12px] text-muted-foreground">Até</span>
                     <input
                       type="date"
                       value={customTo}
@@ -712,8 +713,8 @@ export default function RecurringBillingIndex(props: PageProps) {
                       className="rounded-md border border-input bg-white px-1.5 py-1 text-[12px] text-foreground focus:outline-none focus:border-ring"
                       aria-label="Próxima cobrança até"
                     />
-                  </label>
-                </div>
+                  </Inline>
+                </Stack>
               )}
 
               <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
