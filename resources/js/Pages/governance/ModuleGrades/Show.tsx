@@ -439,7 +439,7 @@ function ModuleGradesShow({ grade, history, dossier }: Props): React.ReactElemen
               <CardContent className="pt-0">
                 {/* Razão consolidada da dimensão N/A (se houver) */}
                 {dimNa && dim.na_reason && (
-                  <p className="text-xs text-emerald-700 italic mb-2">{dim.na_reason}</p>
+                  <p className="text-xs text-success italic mb-2">{dim.na_reason}</p>
                 )}
                 <ul className="space-y-2 text-xs">
                   {dim.breakdown.map((item, i) => (
@@ -449,7 +449,7 @@ function ModuleGradesShow({ grade, history, dossier }: Props): React.ReactElemen
                     >
                       <div className="flex items-baseline gap-2">
                         {item.na_justified ? (
-                          <span className="font-mono text-emerald-600" aria-label="N/A justificado">
+                          <span className="font-mono text-success" aria-label="N/A justificado">
                             ✓ N/A
                           </span>
                         ) : (
@@ -462,7 +462,7 @@ function ModuleGradesShow({ grade, history, dossier }: Props): React.ReactElemen
                       <p className="text-zinc-600 mt-0.5">{item.desc}</p>
                       {/* Razão N/A em italic (substitui evidence padrão quando N/A) */}
                       {item.na_justified && item.na_reason ? (
-                        <p className="text-emerald-700 italic">{item.na_reason}</p>
+                        <p className="text-success italic">{item.na_reason}</p>
                       ) : (
                         <p className="text-zinc-400 italic">{item.evidence}</p>
                       )}
@@ -485,7 +485,7 @@ function ModuleGradesShow({ grade, history, dossier }: Props): React.ReactElemen
             <ul className="space-y-2">
               {grade.gaps.slice(0, 10).map((g, i) => (
                 <li key={i} className="flex items-start gap-3 text-sm">
-                  <span className="font-bold text-red-600 w-12 text-right">-{g.lost}</span>
+                  <span className="font-bold text-destructive w-12 text-right">-{g.lost}</span>
                   <Badge className={PRIORITY_STYLES[g.priority] ?? ''}>{g.priority}</Badge>
                   <code className="text-xs text-zinc-500">{g.key}</code>
                   <span className="text-zinc-700">{g.desc}</span>
