@@ -3,7 +3,7 @@ page: /financeiro/cobranca
 component: resources/js/Pages/Financeiro/Cobranca/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-05-19"
+last_validated: "2026-06-29"
 parent_module: Financeiro
 sister_module: PaymentGateway
 related_adrs: [93, 94, 104, 114, 144, 170]
@@ -11,7 +11,7 @@ related_us: [US-PG-F3-COBRANCA]
 related_prototype: prototipo Cowork "payment-gateway-ui" F1+F1.5 aprovado [W] 2026-05-19 (Chat Cowork live)
 related_decisions: COWORK_HANDOFF.paymentgateway-ui.md (F1 score 96/93/93)
 tier: A
-charter_version: 1
+charter_version: 2
 supersedes: /financeiro/boletos
 ---
 
@@ -32,7 +32,7 @@ Eliana acompanha **toda a cobrança gerada (boleto · pix · pix automático · 
 - **Funil de cobrança 5 etapas** (Em aberto → Lembrete → Cobrança ativa → Vencidos +5d → Protesto) + chip lateral "mandato(s) cancelado(s)" quando aplicável
 - **4 KPI cards**: Pago no mês (emerald) · Vencido (rose) · Em aberto (default) · 1 contextual (PIX Aut. mandatos / MRR SaaS / próx. janela remessa C6 — alterna)
 - **Tabs filtro status**: Todos / Em aberto / Pagas / Vencidas / Canceladas / Erro
-- **Filtros linha 2**: chips Tipo (Todos/Boleto/PIX/PIX Aut./Cartão) + dropdown Gateway + dropdown Conta destino + chips Origem (Venda/Recorrente/SaaS Oimpresso)
+- **Filtros linha 2**: chips Tipo (Todos/Boleto/PIX/PIX Aut./Cartão) + dropdown Gateway + dropdown Conta destino + chips Origem (Venda/Recorrente/SaaS Oimpresso) + **intervalo de vencimento** (2 inputs de data, client-side, session-only — F3b 2026-06-29)
 - **Busca**: cliente · doc · nosso nº · origem — atalho `/`
 - **Tabela densa** (text-[12.5px] tabular-nums): vencimento + relativo · Pagador + doc mascarado + origem · chip composto gateway+tipo · Conta destino · nosso nº · valor · status badge com ícone lucide · ações row hover
 - **Drawer detalhe condicional por tipo** (520px): boleto (linha digitável + cód barras) · PIX cob (BR Code + QR fake) · PIX recv (mandato BCB) · Cartão (last4 + 3DS)
@@ -153,3 +153,4 @@ it('não dispara mutação em GET /cobranca (read-only puro)')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-19 | Wagner [W] + Claude Code [CL] | F3 PaymentGateway UI Tela 1 entregue — substitui /financeiro/boletos. Escopo expandido pix+card+pix_recv+subscription_license. Cowork F1.5 score 96/100. Bundle CSS canon `cowork-payment-gateway-bundle.css` aplicado inteiro (regra Wagner 2026-05-18). |
+| 2026-06-29 | Wagner [W] + Claude Code [CL] | F3b — filtro de intervalo de vencimento (2 inputs de data na linha 2, client-side via useMemo, session-only como a busca). Paridade com o filtro de datas custom do Unificado, adaptado à arquitetura client-side da Cobrança. PROMPT_MESTRE 2026-06-29. |
