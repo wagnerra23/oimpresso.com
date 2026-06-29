@@ -1206,3 +1206,23 @@ _Você apontou "não está sendo fiel". Diff REAL vs protótipo (seu screenshot 
 - **gotcha**: o prop eager `unhealthyChannels` (US-WA-308) é autoritativo mas magro — sem `count`/`short`. Paridade visual com o protótipo = enriquecer client-side via `accounts`(count)+`catalog`(short). "Afetadas" EXATO (só convs abertas naquela conta) = campo backend `affected_open_count` (Onda 4); hoje usa `account.count` (proxy, como o protótipo Onda 1).
 
 **PR:** https://github.com/wagnerra23/oimpresso.com/pull/2968
+
+---
+
+## 2026-06-29 [CL] → [W] — Financeiro: refino premium + filtro data Cobrança (residual PROMPT_MESTRE) · #3391 #3394
+_Validei §10.4 vs origin/main antes de tocar: ~70% do PROMPT_MESTRE_SESSAO_2026-06-29 já estava em main. F1 (tokens domínio), F3c (densidade), F3e (botão conformância nunca existiu no git) e F3f (drawer 560px/hero/J-K) já prontos/n-a. Entreguei só o residual._
+
+**#3391 [MERGED] — refino premium `.fin-curadoria` (F3a + F3d):**
+- chips de filtro: borda `color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue)) 22%, transparent)` (off) → 50% (on) + sombra suave no `.on`.
+- contador `.fin-filter-ct`: transparente on/off (some a pílula preenchida; só o tom muda).
+- DirIcon (seta de direção na linha): fio translúcido 22% + sombra 28% sobre a cor-base (pos verde / neg rose).
+- `StatusPill`: **mantido** — já tem borda `/20` (≈22%); o **dot** do protótipo NÃO foi adicionado (tensão com charter v16 "selo→dado / tirar cor manter fios"; deferido pra você decidir).
+
+**#3394 [auto-merge] — filtro de vencimento na Cobrança recorrente (F3b):**
+- 2 `input[type=date]` na "Filtros linha 2", client-side via `useMemo` (a tela já filtra tudo client-side), session-only. Charter v2. O Unificado JÁ tinha datas custom (toolbar US-FIN-030 server-side) — não dupliquei lá; isto é a paridade na Cobrança.
+
+### new_design_memories
+- **gotcha (Tier 0 anti-regressão F2):** `.fin-frescor-*` do Financeiro **NÃO migra ingenuamente** pra `var(--sla-*)`. O drawer de detalhe é shadcn `<Sheet>` em **portal no `<body>`**, FORA do `.cockpit` que define os `--sla-*` → o `var()` não resolveria e a pílula de frescor perderia a cor no drawer. Re-injetar a família no `[role="dialog"].fin-cowork` **relocaria o drift + estouraria ratchet/conformance**. O literal atual é **consciente** (mesma razão de o DrawerLensChip espelhar cor semântica via Tailwind `@theme`, não `var(--pos)` do cockpit). Quem for fazer a Frente 2: precisa dos espelhos frescos + smoke por tela, não sweep cego.
+- **golden:** handoff Cowork pode estar parcialmente stale — validar §10.4 vs origin/main ANTES (aqui ~70% já estava landado). Espelhos com URL truncada na mensagem ≠ buscáveis (token por-arquivo 403/401); DesignSync precisa login interativo (indisponível headless) → resolver via spec inline + git, com OK do [W].
+
+**PRs:** https://github.com/wagnerra23/oimpresso.com/pull/3391 · https://github.com/wagnerra23/oimpresso.com/pull/3394
