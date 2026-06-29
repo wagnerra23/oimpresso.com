@@ -5,6 +5,8 @@ hour: "13:27 BRT"
 topic: Busca de ADR consertada — snippet útil (frente 1) + hybrid quebrado desligado (frente 2), tudo medido por workflows adversariais
 duration: ~4h
 authors: [CL]
+prs: [3383, 3385]
+related_adrs: [0312-decisions-search-fulltext-hybrid-docs-off]
 tldr: "Busca de ADR consertada em 2 frentes medidas - snippet util e hybrid quebrado desligado. Tudo merged e smoke prod ok. ADR 0312, PRs 3383 e 3385. Nada pendente."
 ---
 
