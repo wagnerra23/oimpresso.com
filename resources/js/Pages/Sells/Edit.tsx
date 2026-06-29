@@ -554,7 +554,7 @@ export default function SellsEdit(props: SellsEditPageProps) {
               <div className="text-3xl font-semibold tabular-nums mt-3">
                 {pagamentoStatus === 'zero' && <span className="text-muted-foreground">—</span>}
                 {pagamentoStatus === 'falta' && <span className="text-amber-700 dark:text-amber-300">{formatBRL(totalFalta)}</span>}
-                {pagamentoStatus === 'paid' && <span className="text-emerald-700 dark:text-emerald-300">Pago</span>}
+                {pagamentoStatus === 'paid' && <span className="text-success">Pago</span>}
               </div>
               {pagamentoStatus === 'falta' && (
                 <p className="text-[11px] text-amber-700 dark:text-amber-300 mt-1">falta receber</p>
