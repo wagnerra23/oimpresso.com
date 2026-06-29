@@ -8,7 +8,7 @@ authority: canonical
 lifecycle: ativo
 decided_by: [W]
 decided_at: "2026-06-29"
-module: Financeiro
+module: financeiro
 quarter: 2026-Q2
 tags: [ux, navigation, subnav, pageheader, financeiro, prototipo-cowork, fidelidade, persona-eliana, ADR-0180-tabs, ADR-0299-fonte-design]
 supersedes: []
