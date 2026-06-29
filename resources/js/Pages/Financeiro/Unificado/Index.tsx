@@ -1017,12 +1017,9 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
   // pra borda + sombra translúcidas via color-mix (mesma assinatura dos chips de filtro).
   const dirBase = isIn ? 'oklch(0.40 0.13 145)' : 'oklch(0.50 0.18 25)';
   const settled = row.status === 'recebido' || row.status === 'pago';
-  // FinPillFrescor consome `due`/`paid_at` — adapta de `vencimento`/`liquidacao`.
-  const frescorRow = {
-    due: row.vencimento,
-    paid_at: settled ? row.liquidacao : null,
-    vencimento: row.vencimento,
-  };
+  // FinPillFrescor (✕/✓ compact) REMOVIDO da linha 2026-06-29 ([W] "remova") —
+  // redundante com o StatusPill (Atrasado/Pago) + o label "em atraso/há Nd" da
+  // coluna Vencimento; o protótipo só tem o badge de status. Drawer mantém o frescor.
   // #5 Tribunal Onda 2 (cadeira Victor/Saarinen) — acento de AÇÃO na borda esquerda da
   // linha pra achar o que pede ação sem abrir: vencido = destructive, vencendo (não pago)
   // = warning, resto = nada. box-shadow inset na 1ª <td> (border-collapse ignora
@@ -1136,7 +1133,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       <td className="px-2 text-[11.5px] text-stone-600 whitespace-nowrap">
         {row.liquidacao ? row.liquidacao : <span className="text-stone-300">—</span>}
       </td>
-      <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
+      <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><ApprovalPill s={row.aprovacao_status} /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-success' : 'text-destructive'}`}>
         {/* FX-4 (print 06-11): zero nunca leva sinal — "−0,00" vira "0,00". */}
         <span className="text-stone-400 mr-0.5">{Math.abs(row.valor) < 0.005 ? '' : (isIn ? '+' : '−')}</span>{brl(row.valor).replace('R$', '').trim()}
