@@ -26,6 +26,8 @@ import SavedViewsChips from './_components/SavedViewsChips';
 import SendToContabilDrawer, { type SendToContabilData } from './_components/SendToContabilDrawer';
 import WriteOffAuditoriaCard, { type WriteOffSummary } from './_components/WriteOffAuditoriaCard';
 import { brl, truncKey } from './_lib/fiscal-helpers';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 
 import '../../../css/fiscal-cockpit.css';
 
@@ -440,20 +442,30 @@ export default function Cockpit({
             isCustom={view === 'custom'}
           />
 
-          <select className="fx-combo" value={tipo} onChange={(e) => handleManualFilter('tipo', e.target.value)}>
-            <option value="todos">Todos os tipos · {notasMock.length}</option>
-            <option value="NF-e">NF-e · {notasMock.filter((n) => n.tipo === 'NF-e').length}</option>
-            <option value="NFC-e">NFC-e · {notasMock.filter((n) => n.tipo === 'NFC-e').length}</option>
-            <option value="NFS-e">NFS-e · {notasMock.filter((n) => n.tipo === 'NFS-e').length}</option>
-          </select>
+          <Select value={tipo} onValueChange={(v) => handleManualFilter('tipo', v)}>
+            <SelectTrigger size="sm" className="w-auto" aria-label="Filtrar por tipo">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos os tipos · {notasMock.length}</SelectItem>
+              <SelectItem value="NF-e">NF-e · {notasMock.filter((n) => n.tipo === 'NF-e').length}</SelectItem>
+              <SelectItem value="NFC-e">NFC-e · {notasMock.filter((n) => n.tipo === 'NFC-e').length}</SelectItem>
+              <SelectItem value="NFS-e">NFS-e · {notasMock.filter((n) => n.tipo === 'NFS-e').length}</SelectItem>
+            </SelectContent>
+          </Select>
 
-          <select className="fx-combo" value={status} onChange={(e) => handleManualFilter('status', e.target.value)}>
-            <option value="todos">Todos status · {notasMock.length}</option>
-            <option value="autorizadas">Autorizadas · {notasMock.filter(isAuthorized).length}</option>
-            <option value="rejeitadas">Rejeitadas · {notasMock.filter(isRejected).length}</option>
-            <option value="cancelaveis">Janela 24h · {notasMock.filter((n) => n.kind === 'nfe' && n.prazoCancel != null).length}</option>
-            <option value="processando">Processando · {notasMock.filter(isProcessing).length}</option>
-          </select>
+          <Select value={status} onValueChange={(v) => handleManualFilter('status', v)}>
+            <SelectTrigger size="sm" className="w-auto" aria-label="Filtrar por status">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos status · {notasMock.length}</SelectItem>
+              <SelectItem value="autorizadas">Autorizadas · {notasMock.filter(isAuthorized).length}</SelectItem>
+              <SelectItem value="rejeitadas">Rejeitadas · {notasMock.filter(isRejected).length}</SelectItem>
+              <SelectItem value="cancelaveis">Janela 24h · {notasMock.filter((n) => n.kind === 'nfe' && n.prazoCancel != null).length}</SelectItem>
+              <SelectItem value="processando">Processando · {notasMock.filter(isProcessing).length}</SelectItem>
+            </SelectContent>
+          </Select>
 
           <div className="fx-density" role="radiogroup" aria-label="Densidade da tabela">
             <button type="button" className={density === 'compact' ? 'active' : ''} onClick={() => setDensity('compact')} title="Compacto" aria-pressed={density === 'compact'}>
@@ -501,10 +513,9 @@ export default function Cockpit({
                 <thead>
                   <tr>
                     <th style={{ width: 36 }}>
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={selected.size === rows.length && rows.length > 0}
-                        onChange={selectAll}
+                        onCheckedChange={selectAll}
                         aria-label="Selecionar todas"
                       />
                     </th>
@@ -529,10 +540,9 @@ export default function Cockpit({
                         title="Click pra abrir detalhes (drawer)"
                       >
                         <td onClick={(e) => e.stopPropagation()}>
-                          <input
-                            type="checkbox"
+                          <Checkbox
                             checked={selected.has(n.id)}
-                            onChange={() => toggleSel(n.id)}
+                            onCheckedChange={() => toggleSel(n.id)}
                             aria-label={`Selecionar nota ${n.num}`}
                           />
                         </td>

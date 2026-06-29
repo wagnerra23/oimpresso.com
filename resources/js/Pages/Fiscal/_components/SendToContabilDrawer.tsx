@@ -14,6 +14,8 @@ import { useState } from 'react';
 import { Archive, CheckCircle2, ExternalLink, FileText, Mail, ShieldAlert } from 'lucide-react';
 
 import DrawerBase from './_shared/DrawerBase';
+import { Checkbox } from '@/Components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 
 export interface ContabilValidacao {
   ok: boolean | 'warn';
@@ -147,16 +149,15 @@ export default function SendToContabilDrawer({ open, data, onClose }: SendToCont
       {/* 2. Método */}
       <section className="fx-drawer-sec">
         <h4>Método de entrega</h4>
-        <div className="fx-metodo-grid">
+        <RadioGroup
+          className="fx-metodo-grid"
+          value={metodo}
+          onValueChange={(v) => setMetodo(v as Metodo)}
+        >
           {(['email', 'sftp', 'download'] as Metodo[]).map((m) => (
-            <label key={m} className={`fx-metodo-card ${metodo === m ? 'active' : ''}`}>
-              <input
-                type="radio"
-                name="metodo"
-                value={m}
-                checked={metodo === m}
-                onChange={() => setMetodo(m)}
-              />
+            // htmlFor → clicar no card inteiro ativa o RadioGroupItem (botão labelable)
+            <label key={m} htmlFor={`metodo-${m}`} className={`fx-metodo-card ${metodo === m ? 'active' : ''}`}>
+              <RadioGroupItem id={`metodo-${m}`} value={m} />
               <div>
                 {m === 'email' && <><Mail size={14} /> <b>E-mail anexo</b><small>Envia ZIP pro {data.destinatarioPadrao}</small></>}
                 {m === 'sftp' && <><Archive size={14} /> <b>SFTP do contador</b><small>Configure a credencial em Fiscal → Configurações</small></>}
@@ -164,7 +165,7 @@ export default function SendToContabilDrawer({ open, data, onClose }: SendToCont
               </div>
             </label>
           ))}
-        </div>
+        </RadioGroup>
       </section>
 
       {/* 3. Pacote */}
@@ -172,51 +173,51 @@ export default function SendToContabilDrawer({ open, data, onClose }: SendToCont
         <h4>O que entra no pacote</h4>
         <ul className="fx-pacote-list">
           <li>
-            <label>
-              <input
-                type="checkbox"
+            <label htmlFor="pkg-xml-autorizadas">
+              <Checkbox
+                id="pkg-xml-autorizadas"
                 checked={pacote.xmlAutorizadas}
-                onChange={(e) => setPacote({ ...pacote, xmlAutorizadas: e.target.checked })}
+                onCheckedChange={(c) => setPacote({ ...pacote, xmlAutorizadas: c === true })}
               />
               <span><b>{data.totalsByPeriodo.autorizadas}</b> XMLs NF-e/NFC-e autorizadas</span>
             </label>
           </li>
           <li>
-            <label>
-              <input
-                type="checkbox"
+            <label htmlFor="pkg-danfe-autorizadas">
+              <Checkbox
+                id="pkg-danfe-autorizadas"
                 checked={pacote.danfeAutorizadas}
-                onChange={(e) => setPacote({ ...pacote, danfeAutorizadas: e.target.checked })}
+                onCheckedChange={(c) => setPacote({ ...pacote, danfeAutorizadas: c === true })}
               />
               <span>{data.totalsByPeriodo.autorizadas} DANFEs PDF <small className="fx-mut">(pesado · normalmente contador não precisa)</small></span>
             </label>
           </li>
           <li>
-            <label>
-              <input
-                type="checkbox"
+            <label htmlFor="pkg-xml-nfse">
+              <Checkbox
+                id="pkg-xml-nfse"
                 checked={pacote.xmlNfse}
-                onChange={(e) => setPacote({ ...pacote, xmlNfse: e.target.checked })}
+                onCheckedChange={(c) => setPacote({ ...pacote, xmlNfse: c === true })}
               />
               <span><b>{data.totalsByPeriodo.nfse}</b> XMLs NFS-e</span>
             </label>
           </li>
           <li>
-            <label>
-              <input
-                type="checkbox"
+            <label htmlFor="pkg-eventos">
+              <Checkbox
+                id="pkg-eventos"
                 checked={pacote.eventos}
-                onChange={(e) => setPacote({ ...pacote, eventos: e.target.checked })}
+                onCheckedChange={(c) => setPacote({ ...pacote, eventos: c === true })}
               />
               <span><b>{data.totalsByPeriodo.eventos}</b> Eventos (CC-e · cancelamentos · inutilizações)</span>
             </label>
           </li>
           <li>
-            <label>
-              <input
-                type="checkbox"
+            <label htmlFor="pkg-relatorio-summary">
+              <Checkbox
+                id="pkg-relatorio-summary"
                 checked={pacote.relatorioSummary}
-                onChange={(e) => setPacote({ ...pacote, relatorioSummary: e.target.checked })}
+                onCheckedChange={(c) => setPacote({ ...pacote, relatorioSummary: c === true })}
               />
               <span>Relatório summary PDF (totais + rejeições + alertas certificado)</span>
             </label>
