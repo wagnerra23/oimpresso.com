@@ -223,6 +223,14 @@ const METHOD_ICONS: Record<PaymentMethod, LucideIcon> = {
   card: CreditCard,
 };
 
+// Badge categórico por TIPO fiscal (nfe/nfse) — paleta de tipo, não status semântico.
+// Map (não className literal inline) pra manter a cor categórica sem violar ds/no-adhoc-status-text.
+const FISCAL_TYPE_BADGE: Record<string, string> = {
+  nfe: 'bg-blue-100 text-blue-700',
+  nfse: 'bg-emerald-100 text-emerald-700',
+};
+const FISCAL_TYPE_BADGE_NONE = 'bg-stone-100 text-stone-500';
+
 // ────────────────────────────────────────────────────────────────
 // SUB-COMPONENTES
 // ────────────────────────────────────────────────────────────────
@@ -941,7 +949,7 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
 
       {/* Card próxima cobrança */}
       {sub.status !== 'cancelada' && (
-        <div className={`rounded-xl p-3 ${
+        <div className={`rounded-lg p-3 ${
           sub.status === 'falhou'
             ? 'bg-rose-50 ring-1 ring-rose-200'
             : sub.status === 'retentando'
@@ -982,7 +990,7 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
         <dt className="text-stone-500">Cobranças pagas</dt>
         <dd className="font-mono tabular-nums text-stone-800">{sub.paid}</dd>
         <dt className="text-stone-500">Falhas</dt>
-        <dd className={`font-mono tabular-nums ${sub.missed > 0 ? 'text-rose-600 font-semibold' : 'text-stone-800'}`}>
+        <dd className={`font-mono tabular-nums ${sub.missed > 0 ? 'text-destructive font-semibold' : 'text-stone-800'}`}>
           {sub.missed}
         </dd>
         <dt className="text-stone-500">LTV</dt>
@@ -1018,11 +1026,7 @@ function DetailDrawer({ sub, onTrouble, onEdit }: { sub: SubRow; onTrouble?: (t:
         <div className="flex items-center justify-between">
           <div>
             <span className={`inline-flex rounded px-1.5 py-0.5 text-[10px] font-semibold ${
-              sub.fiscal?.type === 'nfe'
-                ? 'bg-blue-100 text-blue-700'
-                : sub.fiscal?.type === 'nfse'
-                  ? 'bg-emerald-100 text-emerald-700'
-                  : 'bg-stone-100 text-stone-500'
+              FISCAL_TYPE_BADGE[sub.fiscal?.type ?? ''] ?? FISCAL_TYPE_BADGE_NONE
             }`}>
               {fiscal.label}
             </span>

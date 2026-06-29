@@ -177,7 +177,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
         <header className="mb-6">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
                 <Settings size={20} />
               </span>
               <div>
@@ -232,7 +232,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
                 return (
                   <div
                     key={r.ordem}
-                    className={`flex items-start gap-3 rounded-xl p-3 ring-1 ${t.bg} ${t.ring}`}
+                    className={`flex items-start gap-3 rounded-lg p-3 ring-1 ${t.bg} ${t.ring}`}
                   >
                     <span className={`mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white ring-1 ${t.ring}`}>
                       <Icon size={14} className={t.iconColor} />
@@ -262,7 +262,7 @@ export default function ConfiguracoesIndex(props: PageProps) {
             title="NFe-de-boleto-pago automática"
             subtitle="Emissão fiscal disparada automaticamente ao receber pagamento."
           >
-            <div className="mb-4 flex items-center justify-between rounded-xl bg-stone-50 px-4 py-3 ring-1 ring-stone-200">
+            <div className="mb-4 flex items-center justify-between rounded-lg bg-stone-50 px-4 py-3 ring-1 ring-stone-200">
               <div className="flex items-center gap-3">
                 <span
                   className={`inline-flex h-6 w-11 items-center rounded-full p-0.5 transition-colors ${
@@ -474,7 +474,7 @@ function SectionCard({
 function GatewaysContent({ gateways }: { gateways: GatewayRow[] }) {
   if (gateways.length === 0) {
     return (
-      <div className="rounded-xl border-2 border-dashed border-stone-200 p-8 text-center">
+      <div className="rounded-lg border-2 border-dashed border-stone-200 p-8 text-center">
         <Banknote size={28} className="mx-auto text-stone-300" />
         <div className="mt-2 text-sm font-medium text-stone-700">
           Nenhum gateway cadastrado
@@ -499,7 +499,7 @@ function GatewaysContent({ gateways }: { gateways: GatewayRow[] }) {
         {gateways.map((g) => (
           <li
             key={g.id}
-            className="flex items-center gap-3 rounded-xl border border-stone-200 px-3 py-2.5"
+            className="flex items-center gap-3 rounded-lg border border-stone-200 px-3 py-2.5"
           >
             <span
               className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold ring-1 ${BANCO_BG[g.banco]}`}
@@ -568,7 +568,7 @@ function WebhookCard({ webhook }: { webhook: WebhookRow }) {
   }
 
   return (
-    <div className="rounded-xl border border-stone-200 p-3">
+    <div className="rounded-lg border border-stone-200 p-3">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <span className="rounded bg-stone-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-stone-600 ring-1 ring-stone-200">
@@ -623,7 +623,7 @@ function GatewaysSkeleton() {
   return (
     <ul className="space-y-2">
       {Array.from({ length: 3 }).map((_, i) => (
-        <li key={i} className="flex items-center gap-3 rounded-xl border border-stone-200 px-3 py-2.5">
+        <li key={i} className="flex items-center gap-3 rounded-lg border border-stone-200 px-3 py-2.5">
           <div className="h-8 w-8 animate-pulse rounded-lg bg-stone-200" />
           <div className="flex-1 space-y-1">
             <div className="h-3 w-32 animate-pulse rounded bg-stone-200" />
