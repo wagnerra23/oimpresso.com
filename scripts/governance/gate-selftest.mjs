@@ -407,6 +407,17 @@ const CATRACAS = [
     },
     expect: { good: /0 telas órfãs/, bad: /GATE FALHOU/ },
   },
+  {
+    // handoff-changed (portão barato Fase −1 · zero LLM · Wagner 2026-06-29): "o bundle mudou vs
+    // o snapshot já aceito?". Sem sandbox — recebe --staging/--baseline explícitos e resolve seu
+    // dir via import.meta.url (não usa process.cwd()). good = staging idêntico ao baseline → exit 0
+    // ("IDÊNTICO ao baseline"); bad = MESMO baseline mas staging com 1 arquivo ALTERADO → exit 1
+    // ("MUDOU"). Prova que o gate LIBERA o igual (não dispara consumo à toa) e MORDE a mudança.
+    id: 'handoff-changed',
+    run: (kind) => runNode(script('handoff-changed', 'prototipo-ui/handoff-changed.mjs'),
+      ['--staging', join(FIX, 'handoff-changed', kind), '--baseline', join(FIX, 'handoff-changed', 'baseline.json')], ROOT),
+    expect: { good: /IDÊNTICO ao baseline/, bad: /MUDOU/ },
+  },
 ];
 
 const results = [];
