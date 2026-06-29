@@ -319,7 +319,7 @@ function ConfigTab({ channel }: { channel: ChannelUi }) {
           label="LGPD aceito"
           value={
             channel.lgpd_acknowledged_at ? (
-              <span className="inline-flex items-center gap-1 text-emerald-600">
+              <span className="inline-flex items-center gap-1 text-success">
                 <CheckCircle2 size={12} aria-hidden /> Sim
               </span>
             ) : 'Não'
@@ -398,7 +398,7 @@ function ConfigTab({ channel }: { channel: ChannelUi }) {
                   </div>
                   <p className="text-xs text-muted-foreground text-center">
                     Válido ~20s (renova automaticamente). State: <strong>{qrState || 'qr_required'}</strong>
-                    {qrState === 'connected' && <span className="text-emerald-600 ml-1">✓ conectado!</span>}
+                    {qrState === 'connected' && <span className="text-success ml-1">✓ conectado!</span>}
                   </p>
                 </>
               )}
@@ -477,7 +477,7 @@ function HistoryTab({ audit }: { audit: AuditRow[] }) {
               <td className="px-3 py-2 text-xs">{row.revoked_by_name || '—'}</td>
               <td className="px-3 py-2">
                 {row.is_active ? (
-                  <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-200">ativo</Badge>
+                  <Badge variant="outline" className="text-[10px] text-success border-success/20">ativo</Badge>
                 ) : (
                   <Badge variant="outline" className="text-[10px] text-muted-foreground">revogado</Badge>
                 )}

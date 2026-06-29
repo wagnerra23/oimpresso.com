@@ -456,13 +456,13 @@ function KbIndex(props: Props) {
                   <Lock className="h-3 w-3 mr-1" /> {detail.scope_required}
                 </Badge>
               )}
-              {detail.admin_only && <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">admin only</Badge>}
+              {detail.admin_only && <Badge variant="outline" className="bg-destructive-soft text-destructive-fg border-destructive/20 text-xs">admin only</Badge>}
               {detail.pii_redactions_count > 0 && (
                 <Badge variant="outline" className="bg-orange-50 text-orange-800 border-orange-200 text-xs">
                   ⚠️ {detail.pii_redactions_count} PII redacted
                 </Badge>
               )}
-              {detail.deleted_at && <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">deletado</Badge>}
+              {detail.deleted_at && <Badge variant="outline" className="bg-destructive-soft text-destructive-fg border-destructive/20 text-xs">deletado</Badge>}
             </div>
 
             <div className="text-xs text-muted-foreground font-mono mt-2">
