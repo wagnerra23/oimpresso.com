@@ -80,7 +80,7 @@ function PrazoBadge({ dias }: { dias: number | null }) {
   if (dias === null) return <span className="text-xs text-muted-foreground">—</span>
   if (dias < 0) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono tabular-nums bg-red-50 text-red-700 border border-red-200">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono tabular-nums bg-destructive-soft text-destructive-fg border border-destructive/20">
         <Clock size={12} />
         Vencido {Math.abs(dias)}d
       </span>
@@ -88,7 +88,7 @@ function PrazoBadge({ dias }: { dias: number | null }) {
   }
   if (dias <= 7) {
     return (
-      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono tabular-nums bg-red-50 text-red-700 border border-red-200">
+      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono tabular-nums bg-destructive-soft text-destructive-fg border border-destructive/20">
         <Clock size={12} />
         {dias}d
       </span>
@@ -316,7 +316,7 @@ function Index({ itens, filters, kpis, nsuState, permissions }: Props) {
           </div>
           <div className="p-4 rounded-lg border border-border bg-card shadow-sm">
             <div className="text-xs uppercase tracking-widest text-muted-foreground">Confirmadas no mês</div>
-            <div className="text-4xl font-semibold tabular-nums mt-1 text-emerald-700 dark:text-emerald-400">
+            <div className="text-4xl font-semibold tabular-nums mt-1 text-success">
               {kpis.confirmadas_mes}
             </div>
           </div>
@@ -450,7 +450,7 @@ function Index({ itens, filters, kpis, nsuState, permissions }: Props) {
                                 disabled={submitting}
                                 title="Confirmar (atalho: C)"
                               >
-                                <CheckCircle2 size={14} className="text-emerald-600" />
+                                <CheckCircle2 size={14} className="text-success" />
                                 <span className="ml-1 text-xs">Confirmar</span>
                               </Button>
                               <Button
