@@ -43,7 +43,7 @@ function Login() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="w-full max-w-md">
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary mb-3">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-lg bg-primary mb-3">
               <svg
                 className="w-7 h-7 text-primary-foreground"
                 fill="none"
