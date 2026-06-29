@@ -159,6 +159,19 @@ it('D9.a — InvoiceRepository wrap em OtelHelper::spanBiz', function () {
     expect($source)->toContain("OtelHelper::spanBiz('rb.invoice.repo.listar'");
 });
 
+it('F3b — paginatedForIndex trata preset custom (intervalo from/to em next_due_date, open-ended)', function () {
+    // [W] 2026-06-29: preset "Personalizado" na barra "Próxima cobrança". Filtra
+    // next_due_date por intervalo; from/to vazios = sem limite naquele lado.
+    $src = file_get_contents(__DIR__ . '/../../Repositories/SubscriptionRepository.php');
+
+    expect($src)->toContain("'custom'");
+    expect($src)->toMatch("/whereDate\(['\"]next_due_date['\"],\s*'>=',\s*\\\$from\)/");
+    expect($src)->toMatch("/whereDate\(['\"]next_due_date['\"],\s*'<=',\s*\\\$to\)/");
+    // open-ended: cada lado só aplica se preenchido (não força intervalo fechado).
+    expect($src)->toContain("if (\$from !== '')");
+    expect($src)->toContain("if (\$to !== '')");
+});
+
 it('D1 — Repositories forçam where(business_id) explícito (defesa em profundidade)', function () {
     $subSource = file_get_contents(__DIR__ . '/../../Repositories/SubscriptionRepository.php');
     $invSource = file_get_contents(__DIR__ . '/../../Repositories/InvoiceRepository.php');
