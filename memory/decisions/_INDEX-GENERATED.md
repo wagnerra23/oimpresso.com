@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **317** arquivos · **301** números únicos · máx **0311**
-- **ADRs ATIVOS (lifecycle ativo): 277** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 255 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 277 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **318** arquivos · **302** números únicos · máx **0312**
+- **ADRs ATIVOS (lifecycle ativo): 278** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 256 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 278 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (317)
+## Todas as ADRs (318)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -353,3 +353,4 @@ _(íntegra)_
 | 0309 | aceito | ativo | decision | Modo Suporte: a empresa operadora (biz=1) É o time de suporte — capability por m |
 | 0310 | aceito | ativo | decision | Tokens semânticos de domínio (DS v6) — frescor · kind · kpi-feature · vip · sla  |
 | 0311 | aceito | ativo | decision | frescor consolidado em --sla-* (escala temporal única) — emenda ao D4 da ADR 031 |
+| 0312 | aceito | ativo | decision | decisions-search volta ao FULLTEXT — hybrid de docs desligado (embedder qwen3 ex |
