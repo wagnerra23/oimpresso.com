@@ -149,18 +149,31 @@ class SubscriptionRepository
             }
 
             if (! empty($filtros['when']) && $filtros['when'] !== 'any') {
-                $hoje = now()->toDateString();
-                $amanha = now()->copy()->addDay()->toDateString();
-                $semana = now()->copy()->addDays(7)->toDateString();
-                $mes = now()->copy()->addDays(30)->toDateString();
+                if ($filtros['when'] === 'custom') {
+                    // F3b (2026-06-29) — preset "Personalizado": intervalo custom de
+                    // próxima cobrança (open-ended: from/to vazios = sem limite naquele lado).
+                    $from = trim((string) ($filtros['from'] ?? ''));
+                    $to = trim((string) ($filtros['to'] ?? ''));
+                    if ($from !== '') {
+                        $q->whereDate('next_due_date', '>=', $from);
+                    }
+                    if ($to !== '') {
+                        $q->whereDate('next_due_date', '<=', $to);
+                    }
+                } else {
+                    $hoje = now()->toDateString();
+                    $amanha = now()->copy()->addDay()->toDateString();
+                    $semana = now()->copy()->addDays(7)->toDateString();
+                    $mes = now()->copy()->addDays(30)->toDateString();
 
-                $q = match ($filtros['when']) {
-                    'today'    => $q->whereDate('next_due_date', $hoje),
-                    'tomorrow' => $q->whereDate('next_due_date', $amanha),
-                    'week'     => $q->whereBetween('next_due_date', [$hoje, $semana]),
-                    'month'    => $q->whereBetween('next_due_date', [$hoje, $mes]),
-                    default    => $q,
-                };
+                    $q = match ($filtros['when']) {
+                        'today'    => $q->whereDate('next_due_date', $hoje),
+                        'tomorrow' => $q->whereDate('next_due_date', $amanha),
+                        'week'     => $q->whereBetween('next_due_date', [$hoje, $semana]),
+                        'month'    => $q->whereBetween('next_due_date', [$hoje, $mes]),
+                        default    => $q,
+                    };
+                }
             }
 
             if (! empty($filtros['busca'])) {
