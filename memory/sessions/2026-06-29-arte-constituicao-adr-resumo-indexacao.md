@@ -1,9 +1,10 @@
 ---
 title: Estado-da-arte — gerir/resumir/indexar Constituição + ADRs pra agentes de codificação IA
-date: 2026-06-29
+date: '2026-06-29'
+topic: context engineering de ruleset always-on + gestão/indexação de ADRs pra agentes IA
 agent: estado-da-arte
-tema: context engineering de ruleset always-on + gestão/indexação de ADRs
-status: dossiê decisório (não commitado, não cria task)
+authors: [C]
+status: dossiê decisório — atualizado pós-verificação adversarial + medição (fix PR #3383)
 ---
 
 # Estado-da-arte: Constituição + ADRs como contexto pra agentes IA
@@ -22,6 +23,10 @@ status: dossiê decisório (não commitado, não cria task)
 > 2. **"Como posso melhorar a minha?"** → Sua intuição ("resumo indexa melhor") **está certa, e há paper que prova** (EMNLP 2024). Mas o ganho não é "resumir as ADRs" — é **(a)** parar de citar ADR-por-número no contexto always-on (trocar número→nome-estável), **(b)** desinchar `proibicoes.md` (272 linhas) movendo detalhe pra `.claude/rules/` path-scoped, e **(c)** aposentar o índice manual `_INDEX-LIFECYCLE.md` (drift: declara 119 ADRs, real são 315) pelo gerado que você **já tem pronto**. Recomendação no fim: comece pelo (c) — consolidar, não evoluir.
 
 ---
+
+## TL;DR
+
+Pergunta do Wagner: "constituição + ADRs deviam ser um **resumo que indexa melhor**". Estado-da-arte (Anthropic context-engineering, AGENTS.md, Log4brains) + verificação adversarial + **medição empírica N=30 na busca real** convergiram: a busca **acha** a ADR (`recall@5 = 90%`), mas **53% dos snippets caem em chunk posicional cego**. A alavanca não é o índice manual (`_INDEX-LIFECYCLE`, que a busca nem lê) nem o always-on — é o `extrairSnippet` do `decisions-search`. Fix landado no [PR #3383](https://github.com/wagnerra23/oimpresso.com/pull/3383): resumo prioriza `summary` curado > seção `## Decisão`/`## Contexto` > snippet legado. Ver **ERRATA** acima para o que do corpo original caiu (a recomendação "comece pelo G1" foi derrubada).
 
 ## 1. PESQUISA — como os melhores fazem (2026)
 
