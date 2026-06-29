@@ -1432,31 +1432,6 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               </button>
             ))}
           </div>
-          {/* FX-1 (print 06-11): divisor entre a LENTE (filtro grosso) e a SubNav
-              (navegação). Sem ele, "...A pagar | Caixa | Conciliação" lê-se como uma
-              régua de tabs só, com dois "Caixa" colados/ambíguos. Respiro + linha
-              deixam claro: filtro ≠ navegação. */}
-          <div className="w-px self-center h-6 bg-border shrink-0" aria-hidden="true" />
-          {/* ADR 0180 Fase 5 tweak2 Wagner 2026-05-21 — header em UMA linha:
-                ghost tabs (esquerda) + ⋯ Mais (botões action features) + primary "+ Novo" (direita)
-              - Ghost tabs ARIA navegação entre 13 sub-views do Financeiro
-              - Primary "+ Novo título" SEPARADO no canto direito (Wagner pediu lado oposto)
-              - Botões action features-específicas (Buscar/Resumir/Fechamento/Apresentar/
-                Imprimir/Download/OCR) entram no overflow `⋯ Mais` (Wagner: "atuais entram no ⋯") */}
-          <FinanceiroSubNav
-            active="unificado"
-            hidePrimary
-            extraOverflowItems={[
-              { key: 'buscar',     label: 'Buscar (⌘K)',     icon: <Search size={13} />,      onClick: () => setPaletteOpen(true) },
-              { key: 'resumir',    label: 'Resumir mês',     icon: <Sparkles size={13} />,    onClick: () => setResumoOpen(true),                                  title: 'Resumo executivo do mês (narrativa compute-based · Onda 9 v1)' },
-              { key: 'fechamento', label: 'Fechamento',      icon: <CheckSquare size={13} />, onClick: () => setChecklistOpen(true),                               title: 'Trilha de 12 passos do fechamento mensal' },
-              { key: 'apresentar', label: 'Apresentar',      icon: <Play size={13} />,        onClick: () => setPresentOpen(true),                                 title: 'Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)' },
-              { key: 'imprimir',   label: favs.count > 0 ? `Imprimir (${favs.count}★)` : 'Imprimir', icon: <Printer size={13} />, onClick: () => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }, title: 'Folha jurídica imprimível' },
-              { key: 'exportar',   label: 'Exportar XLSX/PDF',icon: <Download size={13} />,   onClick: () => setPaletteOpen(true),                                 title: 'Exportar lançamentos do período' },
-              // OCR boleto movido pro dropdown "Novo título" (entry-point de criação,
-              // não ação features) — Wagner 2026-05-21 split-button popup menu.
-            ]}
-          />
           {/* Primary "+ Novo título" — canto direito, roxo do canon var(--accent)
               (ADR 0190 — .os-btn.primary universal roxo 295, supersede hue 145 financas ADR 0182).
               Wagner 2026-05-21: Unificado é caso especial — mostra ambos receivable+
@@ -1489,6 +1464,28 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           </DropdownMenu>
         </div>
       </PageHeader>
+
+      {/* Subnav unificada em LINHA PRÓPRIA full-width abaixo do header (fidelidade
+          protótipo Cowork [W] 2026-06-29, ADR 0313). Antes vivia DENTRO da faixa do
+          PageHeader junto com título+lente+primary (ADR 0180 Fase 5 "header em uma
+          linha") — com 8 abas estourava e espremia o título numa coluna vertical.
+          Própria linha = 8 abas cabem + título respira. Ações features (Buscar/
+          Resumir/Fechamento/Apresentar/Imprimir/Exportar) seguem no overflow `⋯`. */}
+      <div className="mt-1 border-b border-border/60">
+        <FinanceiroSubNav
+          active="unificado"
+          hidePrimary
+          maxVisible={8}
+          extraOverflowItems={[
+            { key: 'buscar',     label: 'Buscar (⌘K)',     icon: <Search size={13} />,      onClick: () => setPaletteOpen(true) },
+            { key: 'resumir',    label: 'Resumir mês',     icon: <Sparkles size={13} />,    onClick: () => setResumoOpen(true),                                  title: 'Resumo executivo do mês (narrativa compute-based · Onda 9 v1)' },
+            { key: 'fechamento', label: 'Fechamento',      icon: <CheckSquare size={13} />, onClick: () => setChecklistOpen(true),                               title: 'Trilha de 12 passos do fechamento mensal' },
+            { key: 'apresentar', label: 'Apresentar',      icon: <Play size={13} />,        onClick: () => setPresentOpen(true),                                 title: 'Modo apresentação fullscreen (Esc fecha · 1/2/3 muda vista)' },
+            { key: 'imprimir',   label: favs.count > 0 ? `Imprimir (${favs.count}★)` : 'Imprimir', icon: <Printer size={13} />, onClick: () => { setTranscriptOnlyFavs(false); setTranscriptOpen(true); }, title: 'Folha jurídica imprimível' },
+            { key: 'exportar',   label: 'Exportar XLSX/PDF',icon: <Download size={13} />,   onClick: () => setPaletteOpen(true),                                 title: 'Exportar lançamentos do período' },
+          ]}
+        />
+      </div>
 
       <KpiBar kpis={kpis} lancamentos={lancamentos} onKpiSelect={(l, lifecycle) => applyLente(l, lifecycle)} periodLabel={periodLabel} />
 
