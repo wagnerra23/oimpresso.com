@@ -673,9 +673,9 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                       {e.diff && (
                         <div className="mt-1.5 ml-7 text-[11px] text-stone-600 font-mono">
                           <span className="text-stone-400">{e.diff.field}:</span>{' '}
-                          <span className="bg-rose-50 text-rose-700 px-1 rounded">{e.diff.from === null || e.diff.from === '' ? '∅' : String(e.diff.from)}</span>
+                          <span className="bg-destructive-soft text-destructive-fg px-1 rounded">{e.diff.from === null || e.diff.from === '' ? '∅' : String(e.diff.from)}</span>
                           {' → '}
-                          <span className="bg-emerald-50 text-emerald-700 px-1 rounded">{e.diff.to === null || e.diff.to === '' ? '∅' : String(e.diff.to)}</span>
+                          <span className="bg-success-soft text-success-fg px-1 rounded">{e.diff.to === null || e.diff.to === '' ? '∅' : String(e.diff.to)}</span>
                         </div>
                       )}
                     </li>
@@ -689,7 +689,7 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
         <div className="border-t border-stone-200 p-3 bg-stone-50/60">
           {confirmDelete ? (
             <div className="flex items-center gap-2">
-              <div className="text-[11.5px] text-rose-700 flex-1">
+              <div className="text-[11.5px] text-destructive flex-1">
                 <strong>Excluir credencial #{gateway.id}?</strong> Apaga arquivos cert/key também. Cobranças vinculadas mantêm histórico (FK vira NULL).
               </div>
               <Btn variant="outline" onClick={() => setConfirmDelete(false)} disabled={deleting}>Não</Btn>
@@ -704,14 +704,14 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
           ) : (
             <div className="flex items-center gap-2">
               {saveError ? (
-                <div className="text-[11px] text-rose-700 flex-1 truncate">{saveError}</div>
+                <div className="text-[11px] text-destructive flex-1 truncate">{saveError}</div>
               ) : (
                 <div className="text-[11px] text-stone-500 flex-1">Apenas campos preenchidos são atualizados.</div>
               )}
               <button
                 onClick={() => setConfirmDelete(true)}
                 disabled={saving || deleting}
-                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded text-[11.5px] text-rose-600 hover:bg-rose-50 disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded text-[11.5px] text-destructive hover:bg-destructive-soft disabled:opacity-50"
                 title="Excluir credencial"
               >
                 <Trash2 className="h-3 w-3" />Excluir

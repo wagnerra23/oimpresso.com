@@ -119,12 +119,12 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
             <div key={i} className="flex items-center gap-1.5">
               <div className={cn(
                 'flex items-center gap-1.5',
-                step === i + 1 ? 'text-stone-900 font-semibold' : step > i + 1 ? 'text-emerald-700' : 'text-stone-400',
+                step === i + 1 ? 'text-stone-900 font-semibold' : step > i + 1 ? 'text-success' : 'text-stone-400',
               )}>
                 <span className={cn(
                   'w-5 h-5 rounded-full grid place-items-center text-[10px] font-bold',
                   step === i + 1 ? 'bg-stone-900 text-white' :
-                  step > i + 1 ? 'bg-emerald-100 text-emerald-700' :
+                  step > i + 1 ? 'bg-success-soft text-success-fg' :
                   'bg-stone-200 text-stone-500',
                 )}>
                   {step > i + 1 ? <Check className="h-2.5 w-2.5" /> : i + 1}
@@ -153,7 +153,7 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
                         <div className="text-[13px] font-semibold">{opt.nome}</div>
                         {opt.deprecated && <span className="text-[9px] uppercase tracking-widest font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-800">deprecated</span>}
                         {opt.key === 'bcb_pix' && <span className="text-[9px] uppercase tracking-widest font-bold text-violet-700">novo</span>}
-                        {opt.key === 'pagarme' && <span className="text-[9px] uppercase tracking-widest font-bold text-rose-700">Onda 4e</span>}
+                        {opt.key === 'pagarme' && <span className="text-[9px] uppercase tracking-widest font-bold text-violet-700">Onda 4e</span>}
                       </div>
 
                       <div className="flex flex-wrap gap-1 mt-1.5">
