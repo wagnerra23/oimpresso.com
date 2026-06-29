@@ -293,3 +293,20 @@
 .sells-cowork .vd-date-filter-hint-clear:hover {
   filter: brightness(0.97);
 }
+
+/* ============================================================================
+ * HOTFIX 2026-06-29 ([CL]) — Lightning CSS (Tailwind v4) estava DROPANDO o bloco
+ * custom-property-only `.fin-cowork .fin-curadoria { --fin-text/-mute/--fin-line/
+ * --fin-bg-soft }` de fin-curadoria.css (0 defs / 70 usos no bundle buildado).
+ * Resultado: TODA a UI do Financeiro (KPIs/tabela/header/total) resolvia esses
+ * vars como vazio → cor branca/quebrada (Wagner 2026-06-29 "kpis parece branco").
+ * Re-define no ENTRY com :root (custom-prop em :root sobrevive ao minificador; o
+ * drop era específico do seletor escopado). Valores idênticos à fonte. Só elementos
+ * sob .fin-curadoria consomem var(--fin-*), então :root não vaza efeito visual.
+ * ============================================================================ */
+:root {
+  --fin-text: oklch(0.30 0.005 240);
+  --fin-text-mute: oklch(0.55 0.005 240);
+  --fin-line: oklch(0.92 0.005 240);
+  --fin-bg-soft: oklch(0.97 0.005 240);
+}
