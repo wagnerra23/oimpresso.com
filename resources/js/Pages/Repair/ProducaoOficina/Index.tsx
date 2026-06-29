@@ -435,7 +435,7 @@ function JobCard({
             Aprov?
           </span>
         ) : isDone ? (
-          <span className="text-xs text-emerald-700">✓ aprovado</span>
+          <span className="text-xs text-success">✓ aprovado</span>
         ) : slotBadgeText ? (
           <span className={`text-xs px-1.5 rounded ${TONE_BOX_BADGE[tone]}`}>{slotBadgeText}</span>
         ) : card.wait ? (

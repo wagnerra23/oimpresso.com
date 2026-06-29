@@ -79,7 +79,7 @@ export default function DeviceModelEdit({ model, brands, devices }: Props) {
             required
             autoFocus
           />
-          {errors.name && <p className="mt-1 text-xs text-rose-600">{errors.name}</p>}
+          {errors.name && <p className="mt-1 text-xs text-destructive">{errors.name}</p>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -101,7 +101,7 @@ export default function DeviceModelEdit({ model, brands, devices }: Props) {
                 ))}
               </SelectContent>
             </Select>
-            {errors.brand_id && <p className="mt-1 text-xs text-rose-600">{errors.brand_id}</p>}
+            {errors.brand_id && <p className="mt-1 text-xs text-destructive">{errors.brand_id}</p>}
           </div>
 
           <div>
@@ -122,7 +122,7 @@ export default function DeviceModelEdit({ model, brands, devices }: Props) {
                 ))}
               </SelectContent>
             </Select>
-            {errors.device_id && <p className="mt-1 text-xs text-rose-600">{errors.device_id}</p>}
+            {errors.device_id && <p className="mt-1 text-xs text-destructive">{errors.device_id}</p>}
           </div>
         </div>
 
@@ -139,7 +139,7 @@ export default function DeviceModelEdit({ model, brands, devices }: Props) {
             onChange={(e) => setData('repair_checklist', e.target.value)}
           />
           {errors.repair_checklist && (
-            <p className="mt-1 text-xs text-rose-600">{errors.repair_checklist}</p>
+            <p className="mt-1 text-xs text-destructive">{errors.repair_checklist}</p>
           )}
         </div>
       </div>

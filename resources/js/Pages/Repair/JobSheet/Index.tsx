@@ -132,7 +132,7 @@ export default function JobSheetIndex({ filters, flags, datatable_url }: PagePro
         )}
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border">
+      <div className="overflow-hidden rounded-lg border border-border">
         {loading ? (
           <div className="space-y-2 p-4" aria-busy="true">
             {Array.from({ length: 6 }).map((_, i) => (
