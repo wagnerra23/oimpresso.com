@@ -55,7 +55,7 @@ export default function WidgetAdrTier0({ data }: Props) {
                 href={`https://github.com/wagnerra23/oimpresso.com/blob/main/memory/decisions/${alert.adr}-*`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-xs text-red-700 underline hover:text-red-900"
+                className="text-xs text-destructive underline hover:text-destructive-fg"
               >
                 ADR {alert.adr}
               </a>
