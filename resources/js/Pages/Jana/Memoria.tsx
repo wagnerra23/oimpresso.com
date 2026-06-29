@@ -102,13 +102,13 @@ function FatoCard({ memoria }: { memoria: MemoriaFato }) {
                   <Pencil className="size-4" />
                 </Button>
                 <Button size="sm" variant="ghost" onClick={onEsquecer} title="Esquecer">
-                  <Trash2 className="size-4 text-red-600" />
+                  <Trash2 className="size-4 text-destructive" />
                 </Button>
               </>
             ) : (
               <>
                 <Button size="sm" variant="ghost" onClick={onSalvar} disabled={processing} title="Salvar">
-                  <Save className="size-4 text-green-600" />
+                  <Save className="size-4 text-success" />
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => { reset(); setEditando(false) }} title="Cancelar">
                   <X className="size-4" />

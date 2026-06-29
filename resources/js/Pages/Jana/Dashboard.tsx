@@ -128,8 +128,8 @@ function Sparkline({ dados }: { dados: Apuracao[] }) {
           strokeLinejoin="round"
         />
       </svg>
-      {tendencia === 'up'   && <TrendingUp   className="h-4 w-4 text-emerald-500" />}
-      {tendencia === 'down' && <TrendingDown  className="h-4 w-4 text-rose-500" />}
+      {tendencia === 'up'   && <TrendingUp   className="h-4 w-4 text-success" />}
+      {tendencia === 'down' && <TrendingDown  className="h-4 w-4 text-destructive" />}
       {tendencia === 'flat' && <Minus         className="h-4 w-4 text-muted-foreground" />}
     </div>
   )
