@@ -1,10 +1,11 @@
 ---
 date: 2026-06-29
+slug: 2026-06-29-1327-decisions-search-snippet-hybrid-off
 hour: "13:27 BRT"
 topic: Busca de ADR consertada — snippet útil (frente 1) + hybrid quebrado desligado (frente 2), tudo medido por workflows adversariais
 duration: ~4h
 authors: [CL]
-tldr: "Busca de ADR consertada em 2 frentes medidas — snippet útil (#3383) + hybrid quebrado desligado (ADR 0312/#3385). Tudo merged + smoke prod ✓. Causa-raiz da frente 2: embedder qwen3 exige instrução de query que o Meilisearch não envia → similaridade invertida."
+tldr: "Busca de ADR consertada em 2 frentes medidas - snippet util e hybrid quebrado desligado. Tudo merged e smoke prod ok. ADR 0312, PRs 3383 e 3385. Nada pendente."
 ---
 
 # decisions-search consertada: snippet + hybrid-off (3 workflows adversariais, tudo medido)
