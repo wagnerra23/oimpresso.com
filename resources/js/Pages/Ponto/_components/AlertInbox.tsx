@@ -64,7 +64,7 @@ export default function AlertInbox({ alertas, title = 'O que precisa da sua aten
   return (
     <div
       data-slot="alert-inbox"
-      className={cn('rounded-xl border border-border bg-card p-4', className)}
+      className={cn('rounded-lg border border-border bg-card p-4', className)}
     >
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
