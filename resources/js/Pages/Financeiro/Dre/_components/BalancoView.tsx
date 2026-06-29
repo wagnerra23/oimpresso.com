@@ -158,7 +158,7 @@ export function BalancoView({ balanco }: { balanco: BalancoData | null | undefin
                   <td className="pl-6 pr-2 py-2.5 font-semibold">
                     Total do Ativo
                   </td>
-                  <td className="pr-6 py-2.5 text-right font-bold text-[14px] text-emerald-700">
+                  <td className="pr-6 py-2.5 text-right font-bold text-[14px] text-success">
                     {brl(balanco.ativo_total)}
                   </td>
                 </tr>
@@ -197,7 +197,7 @@ export function BalancoView({ balanco }: { balanco: BalancoData | null | undefin
                   </td>
                   <td
                     className={`pr-6 py-2 text-right font-semibold ${
-                      balanco.patrimonio_liquido >= 0 ? 'text-emerald-700' : 'text-rose-700'
+                      balanco.patrimonio_liquido >= 0 ? 'text-success' : 'text-destructive'
                     }`}
                   >
                     {brl(balanco.patrimonio_liquido)}
@@ -218,8 +218,8 @@ export function BalancoView({ balanco }: { balanco: BalancoData | null | undefin
                   <td
                     className={`pr-6 py-2.5 text-right font-bold text-[14px] ${
                       balanco.passivo_total + balanco.patrimonio_liquido >= 0
-                        ? 'text-emerald-700'
-                        : 'text-rose-700'
+                        ? 'text-success'
+                        : 'text-destructive'
                     }`}
                   >
                     {brl(balanco.passivo_total + balanco.patrimonio_liquido)}
@@ -234,7 +234,7 @@ export function BalancoView({ balanco }: { balanco: BalancoData | null | undefin
         <div className="px-6 py-3 border-t border-stone-200 bg-stone-50/40 flex items-center gap-3 text-[12px]">
           <span
             className={`inline-flex items-center gap-1.5 font-medium ${
-              balanco.equacao_ok ? 'text-emerald-700' : 'text-rose-700'
+              balanco.equacao_ok ? 'text-success' : 'text-destructive'
             }`}
           >
             <span className="w-2 h-2 rounded-full bg-current" />

@@ -44,11 +44,11 @@ interface Props {
 }
 
 const TIPO_COLOR: Record<PlanoConta['tipo'], string> = {
-  ativo:      'text-emerald-700 bg-emerald-50',
-  passivo:    'text-rose-700 bg-rose-50',
+  ativo:      'text-success-fg bg-success-soft',
+  passivo:    'text-destructive-fg bg-destructive-soft',
   patrimonio: 'text-blue-700 bg-blue-50',
-  receita:    'text-emerald-700 bg-emerald-50',
-  despesa:    'text-rose-700 bg-rose-50',
+  receita:    'text-success-fg bg-success-soft',
+  despesa:    'text-destructive-fg bg-destructive-soft',
   custo:      'text-amber-700 bg-amber-50',
 };
 
@@ -164,7 +164,7 @@ function FinanceiroPlanoContas({ planos, stats }: Props) {
                 <td className="px-3 py-1.5 text-stone-500 text-[12px]">{p.natureza}</td>
                 <td className="px-3 py-1.5 text-center">
                   {p.aceita_lancamento ? (
-                    <FileText size={14} className="text-emerald-600 inline" aria-label="Aceita lançamento" />
+                    <FileText size={14} className="text-success inline" aria-label="Aceita lançamento" />
                   ) : (
                     <span className="text-stone-300 text-[11px]">—</span>
                   )}

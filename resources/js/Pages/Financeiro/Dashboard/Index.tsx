@@ -262,7 +262,7 @@ function FinanceiroDashboard({
                   </div>
                   {c.ativo_para_boleto && (
                     <div className="absolute top-2 right-2">
-                      <span className="text-[9px] bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 px-1 py-0.5 rounded font-medium">
+                      <span className="text-[9px] bg-success-soft text-success-fg px-1 py-0.5 rounded font-medium">
                         Boleto ativo
                       </span>
                     </div>

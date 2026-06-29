@@ -467,9 +467,9 @@ function FinMultiSelectContas({
 function StatusPill({ s }: { s: LancamentoStatus }) {
   const tone = statusTone(s);
   const cls = {
-    success:     'bg-emerald-50 text-emerald-700 border-emerald-200',
+    success:     'bg-success-soft text-success-fg border-success/20',
     warning:     'bg-amber-50 text-amber-800 border-amber-200',
-    destructive: 'bg-rose-50 text-rose-700 border-rose-200',
+    destructive: 'bg-destructive-soft text-destructive-fg border-destructive/20',
     default:     'bg-stone-50 text-stone-700 border-stone-200',
   }[tone];
   return (
@@ -487,8 +487,8 @@ function ApprovalPill({ s }: { s: 'pendente' | 'aprovado' | 'rejeitado' | null }
   if (!s) return null;
   const map = {
     pendente:  { cls: 'bg-amber-50 text-amber-700 border-amber-200', icon: '⏳', label: 'Aprov?' },
-    aprovado:  { cls: 'bg-emerald-50 text-emerald-700 border-emerald-200', icon: '✓', label: 'Aprov.' },
-    rejeitado: { cls: 'bg-rose-50 text-rose-700 border-rose-200', icon: '✗', label: 'Rejeit.' },
+    aprovado:  { cls: 'bg-success-soft text-success-fg border-success/20', icon: '✓', label: 'Aprov.' },
+    rejeitado: { cls: 'bg-destructive-soft text-destructive-fg border-destructive/20', icon: '✗', label: 'Rejeit.' },
   }[s];
   return (
     <span
@@ -1068,7 +1068,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
           <div className="text-[10px] text-stone-500">pago {row.liquidacao}</div>
         )}
         {!row.liquidacao && (row.status === 'atrasado' || row.status === 'vencendo') && (
-          <div className={`text-[10px] ${row.status === 'atrasado' ? 'text-rose-600' : 'text-amber-600'}`}>
+          <div className={`text-[10px] ${row.status === 'atrasado' ? 'text-destructive' : 'text-amber-600'}`}>
             {row.status === 'atrasado' ? 'em atraso' : 'vencendo'}
           </div>
         )}
@@ -1086,7 +1086,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       {/* Onda 9 (2026-05-20): categoria pill com cor semantica (in=verde, out=âmbar)
           pra visual scan rapido por kind sem ler valor. */}
       <td className="px-2 truncate max-w-[140px]">
-        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10.5px] font-medium border ${isIn ? 'bg-emerald-50/60 text-emerald-700 border-emerald-100' : 'bg-amber-50/60 text-amber-700 border-amber-100'}`}>
+        <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10.5px] font-medium border ${isIn ? 'bg-success-soft text-success-fg border-success/20' : 'bg-amber-50/60 text-amber-700 border-amber-100'}`}>
           {row.categoria}
         </span>
       </td>
@@ -1119,7 +1119,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
         {row.liquidacao ? row.liquidacao : <span className="text-stone-300">—</span>}
       </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><FinPillFrescor row={frescorRow} compact /><ApprovalPill s={row.aprovacao_status} /></div></td>
-      <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-emerald-700' : 'text-destructive'}`}>
+      <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-success' : 'text-destructive'}`}>
         {/* FX-4 (print 06-11): zero nunca leva sinal — "−0,00" vira "0,00". */}
         <span className="text-stone-400 mr-0.5">{Math.abs(row.valor) < 0.005 ? '' : (isIn ? '+' : '−')}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>
@@ -1461,10 +1461,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="min-w-48">
               <DropdownMenuItem onClick={() => setCreateTipo('receber')}>
-                <TrendingUp size={13} className="mr-2 text-emerald-600" /> Novo recebimento
+                <TrendingUp size={13} className="mr-2 text-success" /> Novo recebimento
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setCreateTipo('pagar')}>
-                <TrendingDown size={13} className="mr-2 text-rose-600" /> Novo pagamento
+                <TrendingDown size={13} className="mr-2 text-destructive" /> Novo pagamento
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setOcrSheetOpen(true)} title="Importar boleto via foto/PDF (OCR via IA)">
@@ -1899,7 +1899,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     className={
                       'inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ' +
                       (selected.kind === 'receivable'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        ? 'bg-success-soft text-success-fg border border-success/20'
                         : 'bg-stone-100 text-stone-700 border border-stone-200')
                     }
                     aria-hidden
@@ -1913,7 +1913,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         <CopyVal text={String(selected.numero || selected.id)}>#{selected.numero || selected.id}</CopyVal>
                       </span>
                       {selected.conferido_at && (
-                        <span className="text-[10px] text-emerald-700 font-medium normal-case tracking-normal">✓ conferido</span>
+                        <span className="text-[10px] text-success font-medium normal-case tracking-normal">✓ conferido</span>
                       )}
                     </div>
                     <SheetTitle className="text-[14px] font-semibold mt-0.5 truncate">
@@ -2442,12 +2442,12 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         </div>
                       )}
                       {selected.aprovacao_status === 'aprovado' && (
-                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-emerald-50 text-emerald-700 border-emerald-200">
+                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-success-soft text-success-fg border-success/20">
                           ✓ Aprovado — liberado pra pagamento
                         </span>
                       )}
                       {selected.aprovacao_status === 'rejeitado' && (
-                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-rose-50 text-rose-700 border-rose-200">
+                        <span className="inline-block px-2 py-0.5 rounded border text-[11px] font-medium bg-destructive-soft text-destructive-fg border-destructive/20">
                           ✗ Rejeitado — bloqueado pra pagamento
                         </span>
                       )}
@@ -2598,7 +2598,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           <CommandGroup heading="Lançamentos">
             {lancamentos.slice(0, 15).map(l => (
               <CommandItem key={l.id} onSelect={() => { setPaletteOpen(false); setSelectedId(l.id); }}>
-                <span className={l.kind === 'receivable' ? 'text-emerald-600 mr-2' : 'text-stone-500 mr-2'}>{l.kind === 'receivable' ? '↑' : '↓'}</span>
+                <span className={l.kind === 'receivable' ? 'text-success mr-2' : 'text-stone-500 mr-2'}>{l.kind === 'receivable' ? '↑' : '↓'}</span>
                 {l.descricao} <span className="ml-auto text-stone-500 tabular-nums">{brl(l.valor)}</span>
               </CommandItem>
             ))}
@@ -2622,7 +2622,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 <span className="fin-footer-summary">
                   <b>{selectedRows.size}</b> selecionado{selectedRows.size === 1 ? '' : 's'}
                   <span className="fin-footer-sep">·</span>
-                  {totalIn > 0 && <><span className="text-emerald-700"><b>+{brl(totalIn)}</b></span>{totalOut > 0 && <span className="fin-footer-sep">·</span>}</>}
+                  {totalIn > 0 && <><span className="text-success"><b>+{brl(totalIn)}</b></span>{totalOut > 0 && <span className="fin-footer-sep">·</span>}</>}
                   {totalOut > 0 && <span className="text-stone-900"><b>−{brl(totalOut)}</b></span>}
                 </span>
               );

@@ -96,7 +96,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
           <>
             Visão read-only dos turnos de caixa (abertura e fechamento) feitos pela equipe via tela
             POS. Para abrir ou fechar um caixa, use os botões na header da{' '}
-            <a href={links.pos_create} className="underline text-emerald-700">
+            <a href={links.pos_create} className="underline text-success">
               tela de venda
             </a>
             .
@@ -133,7 +133,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
         </div>
         <div className="rounded-md border bg-white p-4">
           <div className="text-xs text-stone-500 uppercase tracking-wide">Caixas abertos agora</div>
-          <div className="text-2xl font-semibold mt-1 text-emerald-700">
+          <div className="text-2xl font-semibold mt-1 text-success">
             {stats.caixas_abertos}
           </div>
         </div>
@@ -187,7 +187,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
         {caixas.length === 0 ? (
           <div className="px-5 py-12 text-center text-sm text-stone-500">
             Nenhum caixa encontrado{filters.status ? ' com este filtro' : ''}.{' '}
-            <a href={links.pos_create} className="text-emerald-700 underline">
+            <a href={links.pos_create} className="text-success underline">
               Abra um caixa via POS
             </a>{' '}
             pra começar.
@@ -225,10 +225,10 @@ function Caixa({ caixas, stats, filters, links }: Props) {
                     <td className="px-4 py-3 text-stone-700">
                       {c.status === 'open' ? '—' : fmtDateTime(c.close_time)}
                     </td>
-                    <td className="px-4 py-3 text-right text-emerald-700">
+                    <td className="px-4 py-3 text-right text-success">
                       {fmtMoney(c.total_credit)}
                     </td>
-                    <td className="px-4 py-3 text-right text-red-700">
+                    <td className="px-4 py-3 text-right text-destructive">
                       {fmtMoney(c.total_debit)}
                     </td>
                     <td className="px-4 py-3 text-right font-medium">
@@ -239,7 +239,7 @@ function Caixa({ caixas, stats, filters, links }: Props) {
                       {c.integracao_status === 'lancado' && c.fin_titulo_id && (
                         <a
                           href={`/financeiro/unificado?titulo=${c.fin_titulo_id}`}
-                          className="inline-flex items-center gap-1 text-emerald-700 hover:underline text-xs"
+                          className="inline-flex items-center gap-1 text-success hover:underline text-xs"
                           title={`fin_titulo #${c.fin_titulo_id} · ${c.fin_titulo_status} · ${c.fin_titulo_valor ? fmtMoney(c.fin_titulo_valor) : '—'}`}
                         >
                           ✅ #{c.fin_titulo_id}

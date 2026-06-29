@@ -23,7 +23,7 @@ export function Btn({ variant = 'default', size = 'sm', className, children, ...
     outline: 'bg-white border border-stone-300 text-stone-800 hover:bg-stone-50',
     ghost:   'text-stone-600 hover:bg-stone-100',
     primary: 'bg-orange-500 text-white hover:bg-orange-600',
-    danger:  'text-rose-700 hover:bg-rose-50',
+    danger:  'text-destructive hover:bg-destructive-soft',
   };
   return (
     <button

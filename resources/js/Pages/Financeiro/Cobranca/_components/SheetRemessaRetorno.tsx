@@ -56,7 +56,7 @@ export default function SheetRemessaRetorno({ remessas = REMESSAS_MOCK, onClose 
             <div key={r.id} className="px-5 py-3 border-b border-stone-100 hover:bg-stone-50/60 flex items-center gap-3">
               <span className={cn(
                 'w-7 h-7 rounded inline-grid place-items-center',
-                r.tipo === 'remessa' ? 'bg-blue-50 text-blue-700' : 'bg-emerald-50 text-emerald-700',
+                r.tipo === 'remessa' ? 'bg-blue-50 text-blue-700' : 'bg-success-soft text-success-fg',
               )}>
                 {r.tipo === 'remessa' ? <Upload className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
               </span>

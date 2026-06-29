@@ -130,7 +130,7 @@ function Index({ categorias, planos_conta }: Props) {
                     </td>
                     <td className="px-4 py-3">
                       {c.ativo ? (
-                        <span className="text-xs text-emerald-700 dark:text-emerald-300">Ativa</span>
+                        <span className="text-xs text-success">Ativa</span>
                       ) : (
                         <span className="text-xs text-muted-foreground">Inativa</span>
                       )}

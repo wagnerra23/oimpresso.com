@@ -112,12 +112,12 @@ export default function SheetNovaCobranca({ accounts, onClose }: Props) {
             <div key={i} className="flex items-center gap-1.5">
               <div className={cn(
                 'flex items-center gap-1.5',
-                step === i + 1 ? 'text-stone-900 font-semibold' : step > i + 1 ? 'text-emerald-700' : 'text-stone-400',
+                step === i + 1 ? 'text-stone-900 font-semibold' : step > i + 1 ? 'text-success' : 'text-stone-400',
               )}>
                 <span className={cn(
                   'w-5 h-5 rounded-full grid place-items-center text-[10px] font-bold',
                   step === i + 1 ? 'bg-stone-900 text-white' :
-                  step > i + 1 ? 'bg-emerald-100 text-emerald-700' :
+                  step > i + 1 ? 'bg-success-soft text-success-fg' :
                   'bg-stone-200 text-stone-500',
                 )}>
                   {step > i + 1 ? <Check className="h-2.5 w-2.5" /> : i + 1}
