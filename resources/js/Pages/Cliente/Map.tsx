@@ -104,7 +104,7 @@ export default function ClienteMap(props: ClienteMapPageProps) {
                                 hasPosition
                                   ? isSelected
                                     ? 'text-primary mt-0.5 flex-shrink-0'
-                                    : 'text-emerald-600 mt-0.5 flex-shrink-0'
+                                    : 'text-success mt-0.5 flex-shrink-0'
                                   : 'text-muted-foreground/40 mt-0.5 flex-shrink-0'
                               }
                             />

@@ -283,7 +283,7 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const STATUS_STYLE: Record<string, string> = {
-  late: 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300',
+  late: 'bg-destructive-soft text-destructive-fg border-destructive/20',
   active: 'bg-sky-50 text-sky-700 border-sky-200 dark:bg-sky-950/40 dark:text-sky-300',
   idle: 'bg-stone-50 text-stone-700 border-stone-200 dark:bg-stone-950/40 dark:text-stone-300',
 };
@@ -858,7 +858,7 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
               {(kpis?.com_atraso ?? 0) > 0 && (
                 <>
                   {' · '}
-                  <strong className="text-rose-700 dark:text-rose-400 font-medium">
+                  <strong className="text-destructive font-medium">
                     {(kpis.com_atraso).toLocaleString('pt-BR')} com saldo
                   </strong>
                 </>
@@ -1668,7 +1668,7 @@ function KpiCard({
       <div
         className={
           'text-[11px] font-semibold uppercase tracking-widest ' +
-          (danger ? 'text-rose-700 dark:text-rose-400' : 'text-muted-foreground')
+          (danger ? 'text-destructive' : 'text-muted-foreground')
         }
       >
         {label}
@@ -1677,7 +1677,7 @@ function KpiCard({
         <div
           className={
             'text-3xl font-semibold tabular-nums ' +
-            (danger ? 'text-rose-700 dark:text-rose-300' : 'text-foreground')
+            (danger ? 'text-destructive' : 'text-foreground')
           }
         >
           {display}
@@ -1822,7 +1822,7 @@ function ActionsMenu({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={onDelete}
-              className="text-rose-600 focus:bg-rose-50 focus:text-rose-700 dark:text-rose-400 dark:focus:bg-rose-950/40"
+              className="text-destructive focus:bg-destructive-soft focus:text-destructive-fg"
             >
               <Trash2 size={14} className="mr-2" />
               Excluir
@@ -2293,10 +2293,10 @@ function DrawerTabPlaceholder({
 function SheetKpi({ label, value, danger }: { label: string; value: string; danger?: boolean }) {
   return (
     <div className={'rounded-lg border p-3 ' + (danger ? 'border-rose-200 bg-rose-50/40 dark:border-rose-900/40 dark:bg-rose-950/30' : 'border-border bg-background')}>
-      <div className={'text-[10px] font-semibold uppercase tracking-widest ' + (danger ? 'text-rose-700 dark:text-rose-400' : 'text-muted-foreground')}>
+      <div className={'text-[10px] font-semibold uppercase tracking-widest ' + (danger ? 'text-destructive' : 'text-muted-foreground')}>
         {label}
       </div>
-      <div className={'text-lg font-semibold tabular-nums mt-1 ' + (danger ? 'text-rose-700 dark:text-rose-300' : 'text-foreground')}>
+      <div className={'text-lg font-semibold tabular-nums mt-1 ' + (danger ? 'text-destructive' : 'text-foreground')}>
         {value}
       </div>
     </div>
