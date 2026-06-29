@@ -17,7 +17,7 @@
 
 import { usePage } from '@inertiajs/react';
 import PageHeaderTabs, { type PageHeaderOverflowItem } from '@/Components/shared/PageHeaderTabs';
-import { pickFinanceiroEntry, type FinMenuEntry } from './financeiroMenu';
+import { pickFinanceiroEntry, FINANCEIRO_SUBNAV_GHOSTS, type FinMenuEntry } from './financeiroMenu';
 
 export interface FinanceiroSubNavProps {
   active: string;
@@ -34,17 +34,21 @@ export default function FinanceiroSubNav({ active, extraOverflowItems, hidePrima
 
   if (!finItem?.ghosts?.length) return null;
 
-  // ADR 0180 Fase 5 tweak2 Wagner 2026-05-21 — primary `+ Novo título` pode
-  // renderizar SEPARADO no canto direito do header pelo caller (`hidePrimary=true`);
-  // os botões action features-específicas (Resumir/Fechamento/Apresentar/etc)
-  // entram NO overflow `⋯ Mais` (via `extraOverflowItems`).
+  // ADR 0313 (fidelidade protótipo Cowork [W] 2026-06-29, supersede_partial 0180):
+  // a barra de abas agora é UNIFICADA (FINANCEIRO_SUBNAV_GHOSTS) — toda tela do
+  // Financeiro mostra a MESMA barra do protótipo, não mais os ghosts da entry ativa.
+  // `pickFinanceiroEntry` segue resolvendo a entry ativa só pro PRIMARY contextual
+  // por página (Novo título / Nova cobrança / Abrir caixa) e como gate de permissão
+  // (sem entry FINANÇAS → finItem undefined → null acima).
+  // ADR 0180 Fase 5 tweak2: primary pode renderizar SEPARADO pelo caller
+  // (`hidePrimary=true`); ações features-específicas entram no overflow `⋯`.
   return (
     <PageHeaderTabs
       primary={hidePrimary ? undefined : finItem.primary}
-      ghosts={finItem.ghosts}
+      ghosts={FINANCEIRO_SUBNAV_GHOSTS}
       activeGhostKey={active}
       group="financas"
-      maxVisible={5}
+      maxVisible={8}
       extraOverflowItems={extraOverflowItems}
     />
   );
