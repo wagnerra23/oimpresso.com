@@ -4,11 +4,15 @@ hour: "13:27 BRT"
 topic: Busca de ADR consertada — snippet útil (frente 1) + hybrid quebrado desligado (frente 2), tudo medido por workflows adversariais
 duration: ~4h
 authors: [CL]
+tldr: "Busca de ADR consertada em 2 frentes medidas — snippet útil (#3383) + hybrid quebrado desligado (ADR 0312/#3385). Tudo merged + smoke prod ✓. Causa-raiz da frente 2: embedder qwen3 exige instrução de query que o Meilisearch não envia → similaridade invertida."
 ---
 
 # decisions-search consertada: snippet + hybrid-off (3 workflows adversariais, tudo medido)
 
 > **Cumprindo R12 PROTOCOLO via skill `encerrar-sessao` (ativação lazy).** Wagner: *"tudo esta merge salve tudo"*.
+
+## TL;DR
+A busca de ADR (`decisions-search`) foi consertada em 2 frentes, cada uma **medida** (Wagner exigiu "adversário, por números"): **(1)** snippet cego → `montarResumo` ([#3383](https://github.com/wagnerra23/oimpresso.com/pull/3383)); **(2)** o pipeline **hybrid** estava ligado com um embedder **qwen3 quebrado** (exige instrução de query; Meilisearch envia raw → similaridade invertida) → desligado, volta ao FULLTEXT ([ADR 0312](../decisions/0312-decisions-search-fulltext-hybrid-docs-off.md) / [#3385](https://github.com/wagnerra23/oimpresso.com/pull/3385)). Tudo merged + smoke prod ✓. Nada pendente.
 
 ## Estado MCP no momento do fechamento
 - **Cycle:** CYCLE-08 Receita Onda A · **0 dias** (encerrou 28/jun). Goals (todos 🔲): pricing público, 5 migrações-demo, MRR R$2k, ComVis V1, Agrosys de-riscado.
