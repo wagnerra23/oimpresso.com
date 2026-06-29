@@ -272,7 +272,7 @@ function QualidadeIndex(props: Props) {
                   {allMetrics.map(m => (
                     <th key={m.key} className="text-center py-2 px-2 font-medium" style={{ minWidth: 130 }}>
                       {m.label}
-                      {m.critical && <span className="ml-1 text-red-500">*</span>}
+                      {m.critical && <span className="ml-1 text-destructive">*</span>}
                     </th>
                   ))}
                 </tr>
@@ -310,7 +310,7 @@ function QualidadeIndex(props: Props) {
             </table>
           </ScrollArea>
           <div className="mt-3 text-[10px] text-muted-foreground">
-            <span className="text-red-500">*</span> = gate ADR 0049 (bloqueante de evolução de camada se reprovado)
+            <span className="text-destructive">*</span> = gate ADR 0049 (bloqueante de evolução de camada se reprovado)
           </div>
         </CardContent>
       </Card>

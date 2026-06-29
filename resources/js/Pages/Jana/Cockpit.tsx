@@ -146,7 +146,7 @@ function RichSpan({ runs }: { runs: RichRun[] }) {
       {runs.map((r, i) => {
         const [kind, txt] = r;
         if (kind === 'strong') return <strong key={i}>{txt}</strong>;
-        if (kind === 'danger') return <strong key={i} className="text-rose-600">{txt}</strong>;
+        if (kind === 'danger') return <strong key={i} className="text-destructive">{txt}</strong>;
         return <span key={i}>{txt}</span>;
       })}
     </>
@@ -272,11 +272,11 @@ function BriefDiario({ today, brief }: { today: string; brief: Brief }) {
 
 function KPICard({ kpi }: { kpi: Kpi }) {
   const valueClass =
-    kpi.deltaCls === 'red big' ? 'text-2xl font-bold text-rose-600' : 'text-2xl font-bold';
+    kpi.deltaCls === 'red big' ? 'text-2xl font-bold text-destructive' : 'text-2xl font-bold';
   const deltaClass = useMemo(() => {
     if (!kpi.deltaCls) return 'text-muted-foreground';
-    if (kpi.deltaCls === 'down' || kpi.deltaCls === 'red big') return 'text-rose-600';
-    if (kpi.deltaCls === 'up') return 'text-emerald-600';
+    if (kpi.deltaCls === 'down' || kpi.deltaCls === 'red big') return 'text-destructive';
+    if (kpi.deltaCls === 'up') return 'text-success';
     return 'text-muted-foreground';
   }, [kpi.deltaCls]);
   return (
@@ -364,12 +364,12 @@ function Donut({ segs, centerLabel }: { segs: DonutSeg[]; centerLabel: string })
 
 function AnaliseCard({ a }: { a: Analise }) {
   const pillToneCls: Record<PillTone, string> = {
-    crit: 'bg-rose-100 text-rose-700',
+    crit: 'bg-destructive-soft text-destructive-fg',
     warn: 'bg-amber-100 text-amber-700',
-    ok: 'bg-emerald-100 text-emerald-700',
+    ok: 'bg-success-soft text-success-fg',
     react: 'bg-violet-100 text-violet-700',
   };
-  const bigCls = a.big?.color === 'danger' ? 'text-rose-600' : a.big?.color === 'ok' ? 'text-emerald-700' : 'text-foreground';
+  const bigCls = a.big?.color === 'danger' ? 'text-destructive' : a.big?.color === 'ok' ? 'text-success' : 'text-foreground';
   return (
     <div className="rounded-lg border border-border bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between mb-3">
@@ -445,7 +445,7 @@ function AnaliseCard({ a }: { a: Analise }) {
               <div key={i} className="flex items-center gap-2 text-[11.5px]">
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: l.color }} />
                 <span className="flex-1">{l.label}</span>
-                <span className={'tabular-nums ' + (l.danger ? 'text-rose-600 font-semibold' : '')}>{l.val}</span>
+                <span className={'tabular-nums ' + (l.danger ? 'text-destructive font-semibold' : '')}>{l.val}</span>
               </div>
             ))}
           </div>
@@ -605,7 +605,7 @@ function MarkdownBubble({ m }: { m: MarkdownMsg }) {
 }
 
 function ToolUseChip({ m }: { m: ToolUseMsg }) {
-  const stCls = m.status === 'done' ? 'text-emerald-700' : m.status === 'error' ? 'text-rose-600' : 'text-amber-700';
+  const stCls = m.status === 'done' ? 'text-success' : m.status === 'error' ? 'text-destructive' : 'text-amber-700';
   const stLabel = m.status === 'done' ? 'pronto' : m.status === 'error' ? 'erro' : 'rodando…';
   return (
     <div className="self-start max-w-[90%] flex items-center gap-2 rounded-md border border-sky-200 bg-sky-50 px-3 py-2 text-[12px] text-sky-900">
@@ -693,10 +693,10 @@ function ActionCardBubble({ m }: { m: ActionCardMsg }) {
         </div>
       )}
       {m.result === 'done' && (
-        <small className="text-[11px] text-emerald-700 block mt-1.5">✓ Executado</small>
+        <small className="text-[11px] text-success block mt-1.5">✓ Executado</small>
       )}
       {m.result === 'error' && (
-        <small className="text-[11px] text-rose-600 block mt-1.5">✗ Erro</small>
+        <small className="text-[11px] text-destructive block mt-1.5">✗ Erro</small>
       )}
     </div>
   );
