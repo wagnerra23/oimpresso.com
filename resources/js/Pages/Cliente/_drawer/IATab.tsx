@@ -290,7 +290,7 @@ export default function IATab({ contact, stats }: IATabProps) {
           (Slice B KB-9.75) que calcula score local via useMemo com 8 sinais canon. */}
       <div className="rounded-lg border border-border bg-background p-4" data-testid="ia-card-score">
         <div className="flex items-center gap-2 mb-2">
-          <Sparkles size={14} className="text-emerald-600 dark:text-emerald-400" />
+          <Sparkles size={14} className="text-success" />
           <h4 className="text-sm font-semibold text-foreground">Score de relacionamento</h4>
         </div>
         <RiscoClienteCard contact={contact} stats={stats} />

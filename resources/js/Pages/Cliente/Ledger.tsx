@@ -219,10 +219,10 @@ export default function ClienteLedger(props: ClienteLedgerPageProps) {
                         </span>
                       </td>
                       <td className="px-4 py-2.5 text-foreground">{line.description}</td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-rose-700">
+                      <td className="px-4 py-2.5 text-right tabular-nums text-destructive">
                         {line.debit > 0 ? formatBRL(line.debit) : '—'}
                       </td>
-                      <td className="px-4 py-2.5 text-right tabular-nums text-emerald-700">
+                      <td className="px-4 py-2.5 text-right tabular-nums text-success">
                         {line.credit > 0 ? formatBRL(line.credit) : '—'}
                       </td>
                       <td className="px-4 py-2.5 text-right tabular-nums font-medium text-foreground">
@@ -268,12 +268,12 @@ function KpiCard({ label, value, danger }: { label: string; value: string; dange
       <div
         className={
           'text-[11px] font-semibold uppercase tracking-widest ' +
-          (danger ? 'text-rose-700 dark:text-rose-400' : 'text-muted-foreground')
+          (danger ? 'text-destructive' : 'text-muted-foreground')
         }
       >
         {label}
       </div>
-      <div className={'text-2xl font-semibold tabular-nums mt-2 ' + (danger ? 'text-rose-700 dark:text-rose-300' : 'text-foreground')}>
+      <div className={'text-2xl font-semibold tabular-nums mt-2 ' + (danger ? 'text-destructive' : 'text-foreground')}>
         {value}
       </div>
     </div>

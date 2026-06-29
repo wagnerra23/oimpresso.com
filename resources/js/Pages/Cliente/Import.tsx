@@ -52,7 +52,7 @@ export default function ClienteImport(props: ClienteImportPageProps) {
     return (
       <div className="flex-1 bg-muted/30">
         <div className="container mx-auto px-8 py-12 max-w-2xl">
-          <div className="rounded-lg border border-rose-200 bg-rose-50 p-6 text-rose-700">
+          <div className="rounded-lg border border-destructive/20 bg-destructive-soft p-6 text-destructive-fg">
             <h2 className="font-semibold flex items-center gap-2">
               <AlertTriangle size={18} />
               Extensão PHP Zip indisponível
@@ -93,8 +93,8 @@ export default function ClienteImport(props: ClienteImportPageProps) {
             className={
               'mb-6 rounded-lg border p-4 flex items-start gap-3 ' +
               (props.notification.success
-                ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
-                : 'border-rose-200 bg-rose-50 text-rose-700')
+                ? 'border-success/20 bg-success-soft text-success-fg'
+                : 'border-destructive/20 bg-destructive-soft text-destructive-fg')
             }
           >
             {props.notification.success ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
@@ -161,7 +161,7 @@ export default function ClienteImport(props: ClienteImportPageProps) {
           </div>
 
           {errors.contacts_csv && (
-            <p className="text-xs text-rose-600 mt-2">{errors.contacts_csv}</p>
+            <p className="text-xs text-destructive mt-2">{errors.contacts_csv}</p>
           )}
 
           {progress && (
