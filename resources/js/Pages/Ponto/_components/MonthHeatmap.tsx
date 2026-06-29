@@ -126,7 +126,7 @@ export default function MonthHeatmap({ mes, linhas, onDayClick, className }: Pro
     <TooltipProvider delayDuration={150}>
       <div
         data-slot="month-heatmap"
-        className={cn('rounded-xl border border-border bg-card p-4 space-y-3', className)}
+        className={cn('rounded-lg border border-border bg-card p-4 space-y-3', className)}
       >
         <div className="flex items-center justify-between gap-2">
           <div>
@@ -259,7 +259,7 @@ function Row({
           'font-mono tabular-nums font-medium',
           amber && 'text-amber-500',
           danger && 'text-destructive',
-          emerald && 'text-emerald-500',
+          emerald && 'text-success',
         )}
       >
         {value}
