@@ -359,7 +359,7 @@ function StatCard({
       <div
         className={
           'text-[11px] font-semibold uppercase tracking-widest ' +
-          (danger ? 'text-rose-700 dark:text-rose-400' : 'text-muted-foreground')
+          (danger ? 'text-destructive' : 'text-muted-foreground')
         }
       >
         {label}
@@ -368,7 +368,7 @@ function StatCard({
         <div
           className={
             'text-xl font-semibold tabular-nums ' +
-            (danger ? 'text-rose-700 dark:text-rose-300' : 'text-foreground')
+            (danger ? 'text-destructive' : 'text-foreground')
           }
         >
           {value}
