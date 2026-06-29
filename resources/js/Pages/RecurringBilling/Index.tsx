@@ -5,6 +5,7 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
+import { Stack, Inline } from '@/Components/layout'; // F3b — layout via primitivos (ADR 0253)
 // Onda 12/13/18 v9,75 — sub-components Cowork refinos
 import TroubleshooterOverlay from './_components/TroubleshooterOverlay';
 import PresentationMode from './_components/PresentationMode';
@@ -63,6 +64,9 @@ interface Filters {
   status_visual: string;
   when: string;
   busca: string;
+  // F3b (2026-06-29) — preset "Personalizado": intervalo custom de próxima cobrança.
+  from?: string;
+  to?: string;
 }
 
 interface Kpis {
@@ -409,17 +413,24 @@ export default function RecurringBillingIndex(props: PageProps) {
     }
   }, []);
   const [whenFilter, setWhenFilter] = useState<string>(filters.when || 'any');
+  // F3b (2026-06-29) — intervalo custom do preset "Personalizado" (próxima cobrança).
+  const [customFrom, setCustomFrom] = useState<string>(filters.from || '');
+  const [customTo, setCustomTo] = useState<string>(filters.to || '');
   const [search, setSearch] = useState<string>(filters.busca || '');
   const [onlyPinned, setOnlyPinned] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
   // Reload server-side on filter change (Inertia partial reload — só re-fetch subscriptions+kpis)
-  function applyFilters(next: Partial<{ status: string; when: string; q: string }>) {
+  function applyFilters(next: Partial<{ status: string; when: string; q: string; from: string; to: string }>) {
+    const nextWhen = next.when ?? whenFilter;
     router.reload({
       data: {
         status: next.status ?? statusFilter,
-        when: next.when ?? whenFilter,
+        when: nextWhen,
         q: next.q ?? search,
+        // F3b — intervalo só vai quando o preset é "Personalizado"; senão limpa.
+        from: nextWhen === 'custom' ? (next.from ?? customFrom) : '',
+        to: nextWhen === 'custom' ? (next.to ?? customTo) : '',
       },
       only: ['subscriptions', 'kpis'],
     });
@@ -508,6 +519,7 @@ export default function RecurringBillingIndex(props: PageProps) {
     { key: 'tomorrow', label: 'Amanhã' },
     { key: 'week', label: 'Esta semana' },
     { key: 'month', label: 'Próx. 30 dias' },
+    { key: 'custom', label: 'Personalizado' },
   ];
 
   // ── Filtros status
@@ -674,6 +686,36 @@ export default function RecurringBillingIndex(props: PageProps) {
                   </li>
                 ))}
               </ul>
+
+              {/* F3b (2026-06-29 · [W]) — preset "Personalizado": intervalo custom de
+                  próxima cobrança (server-side via applyFilters, igual aos presets).
+                  Layout via primitivos Stack/Inline (ADR 0253) + token DS — sem flex/stone crus. */}
+              {whenFilter === 'custom' && (
+                <Stack gap={2} className="mt-2 rounded-lg border border-input bg-white p-2">
+                  <Inline gap={2} justify="between">
+                    <span className="text-[12px] text-muted-foreground">De</span>
+                    <input
+                      type="date"
+                      value={customFrom}
+                      max={customTo || undefined}
+                      onChange={(e) => { setCustomFrom(e.target.value); applyFilters({ when: 'custom', from: e.target.value }); }}
+                      className="rounded-md border border-input bg-white px-1.5 py-1 text-[12px] text-foreground focus:outline-none focus:border-ring"
+                      aria-label="Próxima cobrança de"
+                    />
+                  </Inline>
+                  <Inline gap={2} justify="between">
+                    <span className="text-[12px] text-muted-foreground">Até</span>
+                    <input
+                      type="date"
+                      value={customTo}
+                      min={customFrom || undefined}
+                      onChange={(e) => { setCustomTo(e.target.value); applyFilters({ when: 'custom', to: e.target.value }); }}
+                      className="rounded-md border border-input bg-white px-1.5 py-1 text-[12px] text-foreground focus:outline-none focus:border-ring"
+                      aria-label="Próxima cobrança até"
+                    />
+                  </Inline>
+                </Stack>
+              )}
 
               <div className="mt-4 text-[11px] font-semibold uppercase tracking-wider text-stone-400">
                 Status

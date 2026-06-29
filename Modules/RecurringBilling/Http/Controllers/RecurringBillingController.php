@@ -48,6 +48,9 @@ class RecurringBillingController extends Controller
             'status_visual' => $request->string('status', 'all')->toString(),
             'when'          => $request->string('when', 'any')->toString(),
             'busca'         => $request->string('q', '')->toString(),
+            // F3b (2026-06-29) — preset "Personalizado": intervalo custom de próxima cobrança.
+            'from'          => $request->string('from', '')->toString(),
+            'to'            => $request->string('to', '')->toString(),
         ];
         $tab = $request->string('tab', 'assinaturas')->toString();
 
