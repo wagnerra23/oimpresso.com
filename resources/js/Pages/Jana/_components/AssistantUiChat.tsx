@@ -125,7 +125,7 @@ function QuickPrompts({ sugestoes }: { sugestoes: string[] }) {
 function UserMessage() {
   return (
     <MessagePrimitive.Root className="flex justify-end px-4 py-2">
-      <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground whitespace-pre-wrap break-words">
+      <div className="max-w-[80%] rounded-lg rounded-br-sm bg-primary px-4 py-2 text-sm text-primary-foreground whitespace-pre-wrap break-words">
         <MessagePrimitive.Parts />
       </div>
     </MessagePrimitive.Root>
@@ -241,7 +241,7 @@ function AssistantMessage() {
       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
         CP
       </div>
-      <div className="flex-1 max-w-[85%] rounded-2xl rounded-bl-sm bg-card border border-border px-4 py-2.5 text-sm">
+      <div className="flex-1 max-w-[85%] rounded-lg rounded-bl-sm bg-card border border-border px-4 py-2.5 text-sm">
         <AssistantMessageContent />
       </div>
     </MessagePrimitive.Root>
@@ -264,7 +264,7 @@ function ScrollToBottomBtn() {
 
 function Composer() {
   return (
-    <ComposerPrimitive.Root className="relative flex w-full items-end gap-2 rounded-2xl border border-border bg-card p-2 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1 focus-within:ring-offset-background">
+    <ComposerPrimitive.Root className="relative flex w-full items-end gap-2 rounded-lg border border-border bg-card p-2 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-1 focus-within:ring-offset-background">
       <ComposerPrimitive.Input
         autoFocus
         rows={1}
