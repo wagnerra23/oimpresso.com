@@ -11,6 +11,7 @@ import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
 import EmptyState from '@/Components/shared/EmptyState'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
 
 interface Entry {
   id: number
@@ -44,6 +45,9 @@ interface Props {
   available_endpoints: string[]
   available_actors: Actor[]
 }
+
+// Radix Select não aceita SelectItem com value="" — sentinela pro "Todos"
+const ALL = '__all__'
 
 function statusColor(status: string): string {
   if (status === 'ok') return 'bg-emerald-100 text-emerald-700 border-emerald-300'
@@ -85,57 +89,62 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             <div>
               <label className="block text-xs font-medium text-zinc-500 mb-1">Período</label>
-              <select
-                value={filters.period}
-                onChange={(e) => updateFilter('period', e.target.value)}
-                className="w-full text-sm px-3 py-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
-              >
-                <option value="1h">Última hora</option>
-                <option value="24h">Últimas 24h</option>
-                <option value="7d">Últimos 7d</option>
-                <option value="30d">Últimos 30d</option>
-              </select>
+              <Select value={filters.period} onValueChange={(v) => updateFilter('period', v)}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1h">Última hora</SelectItem>
+                  <SelectItem value="24h">Últimas 24h</SelectItem>
+                  <SelectItem value="7d">Últimos 7d</SelectItem>
+                  <SelectItem value="30d">Últimos 30d</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-zinc-500 mb-1">Actor</label>
-              <select
-                value={filters.actor || ''}
-                onChange={(e) => updateFilter('actor', e.target.value)}
-                className="w-full text-sm px-3 py-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+              <Select
+                value={filters.actor || ALL}
+                onValueChange={(v) => updateFilter('actor', v === ALL ? '' : v)}
               >
-                <option value="">Todos</option>
-                {available_actors.map((a) => (
-                  <option key={a.slug} value={a.slug}>{a.display_name}</option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>Todos</SelectItem>
+                  {available_actors.map((a) => (
+                    <SelectItem key={a.slug} value={a.slug}>{a.display_name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-zinc-500 mb-1">Endpoint</label>
-              <select
-                value={filters.endpoint || ''}
-                onChange={(e) => updateFilter('endpoint', e.target.value)}
-                className="w-full text-sm px-3 py-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+              <Select
+                value={filters.endpoint || ALL}
+                onValueChange={(v) => updateFilter('endpoint', v === ALL ? '' : v)}
               >
-                <option value="">Todos</option>
-                {available_endpoints.map((ep) => (
-                  <option key={ep} value={ep}>{ep}</option>
-                ))}
-              </select>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>Todos</SelectItem>
+                  {available_endpoints.map((ep) => (
+                    <SelectItem key={ep} value={ep}>{ep}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-zinc-500 mb-1">Status</label>
-              <select
-                value={filters.status || ''}
-                onChange={(e) => updateFilter('status', e.target.value)}
-                className="w-full text-sm px-3 py-2 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900"
+              <Select
+                value={filters.status || ALL}
+                onValueChange={(v) => updateFilter('status', v === ALL ? '' : v)}
               >
-                <option value="">Todos</option>
-                <option value="ok">OK</option>
-                <option value="error">Error</option>
-              </select>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL}>Todos</SelectItem>
+                  <SelectItem value="ok">OK</SelectItem>
+                  <SelectItem value="error">Error</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardContent>
