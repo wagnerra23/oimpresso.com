@@ -90,11 +90,11 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <ArrowDownCircle className="h-4 w-4 text-emerald-600" /> Créditos
+              <ArrowDownCircle className="h-4 w-4 text-success" /> Créditos
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-emerald-600">{fmtBrl(totais.creditos)}</div>
+            <div className="text-2xl font-bold text-success">{fmtBrl(totais.creditos)}</div>
           </CardContent>
         </Card>
 
@@ -168,7 +168,7 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
                     </td>
                     <td
                       className={`py-2 pr-4 text-right font-mono whitespace-nowrap ${
-                        l.tipo === 'C' ? 'text-emerald-600' : 'text-destructive'
+                        l.tipo === 'C' ? 'text-success' : 'text-destructive'
                       }`}
                     >
                       {l.tipo === 'C' ? '+' : '-'} {fmtBrl(l.valor)}

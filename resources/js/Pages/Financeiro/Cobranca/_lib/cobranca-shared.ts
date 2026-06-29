@@ -405,10 +405,10 @@ export const TIPOS: Record<CobrancaTipo, { label: string; bg: string; fg: string
 
 export const STATUS: Record<CobrancaStatus, { label: string; bg: string; fg: string; dot: string }> = {
   emitida:   { label: 'Emitida',   bg: 'bg-blue-50',    fg: 'text-blue-700',    dot: 'bg-blue-500' },
-  paga:      { label: 'Paga',      bg: 'bg-emerald-50', fg: 'text-emerald-700', dot: 'bg-emerald-500' },
-  vencida:   { label: 'Vencida',   bg: 'bg-rose-50',    fg: 'text-rose-700',    dot: 'bg-rose-500' },
+  paga:      { label: 'Paga',      bg: 'bg-success-soft', fg: 'text-success-fg', dot: 'bg-success' },
+  vencida:   { label: 'Vencida',   bg: 'bg-destructive-soft', fg: 'text-destructive-fg', dot: 'bg-destructive' },
   cancelada: { label: 'Cancelada', bg: 'bg-stone-100',  fg: 'text-stone-500',   dot: 'bg-stone-400' },
-  erro:      { label: 'Erro',      bg: 'bg-rose-100',   fg: 'text-rose-800',    dot: 'bg-rose-600' },
+  erro:      { label: 'Erro',      bg: 'bg-destructive-soft', fg: 'text-destructive-fg', dot: 'bg-destructive' },
   pending:   { label: 'Pendente',  bg: 'bg-stone-100',  fg: 'text-stone-600',   dot: 'bg-stone-400' },
 };
 

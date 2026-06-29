@@ -163,7 +163,7 @@ export function BalanceteView({ balancete }: { balancete: BalanceteData | null |
                     <td
                       className={`px-2 py-1.5 text-right ${
                         isRoot ? 'font-bold' : ''
-                      } ${l.saldo >= 0 ? 'text-stone-900' : 'text-rose-700'}`}
+                      } ${l.saldo >= 0 ? 'text-stone-900' : 'text-destructive'}`}
                     >
                       {brlNoSign(l.saldo)}
                     </td>

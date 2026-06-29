@@ -42,7 +42,7 @@ Wagner (dono) e Eliana (financeiro) respondem **"deu lucro este mês?"** em <60s
 - **Tempo até resposta "deu lucro?"** — visual subtotal `Resultado operacional` (preto, posição fixa última linha) preto se 0/positivo, com texto rose se negativo. Wagner identifica em <5s.
 - **Densidade** — 18-20 linhas visíveis em 1280×720 sem scroll. Cards bottom sempre visíveis (1 viewport leitura completa).
 - **Hierarquia tipográfica** — 3 níveis: header `font-medium`, item `text-stone-600`, subtotal `font-semibold text-[14px]`, subtotal highlight `bg-stone-900 text-white text-[14px] font-bold`.
-- **Cor semântica consistente** — emerald (`text-emerald-700`) sempre = positivo/receita; rose (`text-rose-700`) sempre = negativo/dedução-custo-despesa. Mesma família de Fluxo + Unificado.
+- **Cor semântica consistente** — token DS `text-success` sempre = positivo/receita; `text-destructive` sempre = negativo/dedução-custo-despesa (antes `text-emerald-700`/`text-rose-700` crus; migrado pro token semântico — mode-aware, SSOT `semantic.tokens.json`). Mesma família de Fluxo + Unificado.
 - **Latência p95** — <250ms server-side com 2k títulos no período (target Service + render).
 
 ## Anti-hooks (NÃO fazer)

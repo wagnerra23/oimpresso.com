@@ -73,9 +73,9 @@ export default function AiResumoMes({ kpis, cobs, onClose }: Props) {
           </section>
 
           {kpis.vencido.qtd > 0 && (
-            <section className="bg-rose-50 border border-rose-200 rounded-md p-3">
-              <div className="text-[10px] uppercase tracking-widest text-rose-700 font-medium mb-1.5">⚠ Atenção</div>
-              <p className="text-rose-900 leading-relaxed">
+            <section className="bg-destructive-soft border border-destructive/20 rounded-md p-3">
+              <div className="text-[10px] uppercase tracking-widest text-destructive-fg font-medium mb-1.5">⚠ Atenção</div>
+              <p className="text-destructive leading-relaxed">
                 {kpis.vencido.qtd} cobranças vencidas — <strong>{brl(kpis.vencido.valor)}</strong>. Taxa de inadimplência: {inadimplencia}%.
               </p>
             </section>

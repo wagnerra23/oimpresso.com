@@ -333,9 +333,9 @@ function FinanceiroDre({
                       <td
                         className={`px-2 py-2 text-right ${
                           l.delta_pct > 0
-                            ? 'text-emerald-700'
+                            ? 'text-success'
                             : l.delta_pct < 0
-                              ? 'text-rose-700'
+                              ? 'text-destructive'
                               : 'text-stone-400'
                         }`}
                       >
@@ -368,9 +368,9 @@ function FinanceiroDre({
                       <td
                         className={`px-2 py-1.5 text-right text-[11.5px] ${
                           l.delta_pct > 0
-                            ? 'text-emerald-600'
+                            ? 'text-success'
                             : l.delta_pct < 0
-                              ? 'text-rose-600'
+                              ? 'text-destructive'
                               : 'text-stone-400'
                         }`}
                       >
@@ -409,8 +409,8 @@ function FinanceiroDre({
                         l.highlight
                           ? 'text-white'
                           : positive
-                            ? 'text-emerald-700'
-                            : 'text-rose-700'
+                            ? 'text-success'
+                            : 'text-destructive'
                       }`}
                     >
                       {brlNoSign(l.v)}
@@ -464,7 +464,7 @@ function FinanceiroDre({
             em {meta.periodo_label_prev.toLowerCase()} ·{' '}
             <span
               className={`font-medium ${
-                margem_operacional.delta_pp >= 0 ? 'text-emerald-700' : 'text-rose-700'
+                margem_operacional.delta_pp >= 0 ? 'text-success' : 'text-destructive'
               }`}
             >
               {margem_operacional.delta_pp >= 0 ? '+' : ''}

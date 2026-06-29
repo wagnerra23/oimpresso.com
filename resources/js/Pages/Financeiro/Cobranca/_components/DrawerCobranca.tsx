@@ -205,8 +205,8 @@ function SectionPixRecv({ cob, today }: { cob: Cobranca; today: string }) {
       <div className="flex items-center gap-2">
         <div className="text-[10px] uppercase tracking-widest text-violet-700 font-medium">PIX Automático · mandato BCB</div>
         {cob.status === 'emitida' && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200">
-            <span className="w-1 h-1 rounded-full bg-emerald-500" />mandato ativo
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-success-soft text-success-fg border-success/20">
+            <span className="w-1 h-1 rounded-full bg-success" />mandato ativo
           </span>
         )}
       </div>
@@ -239,7 +239,7 @@ function SectionCard({ cob }: { cob: Cobranca }) {
           <div className="text-[10.5px] text-stone-400 mt-0.5">tokenizado no provedor · sem PAN local</div>
         </div>
         {cob.card_3ds && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200">
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-success-soft text-success-fg border-success/20">
             <ShieldCheck className="h-2.5 w-2.5" />3DS autenticado
           </span>
         )}
@@ -294,7 +294,7 @@ function Timeline({ cob }: { cob: Cobranca }) {
             {i < evs.length - 1 && <div className="absolute left-[3px] top-2 w-px h-7 bg-stone-200" />}
           </div>
           <div className="flex-1 min-w-0">
-            <div className={cn('font-medium', e.severity === 'rose' ? 'text-rose-700' : 'text-stone-900')}>{e.label}</div>
+            <div className={cn('font-medium', e.severity === 'rose' ? 'text-destructive' : 'text-stone-900')}>{e.label}</div>
             <div className="text-stone-500 text-[11px] mt-0.5">
               {e.actor}{e.meta && <span className="ml-1 text-stone-400">· {e.meta}</span>}
             </div>

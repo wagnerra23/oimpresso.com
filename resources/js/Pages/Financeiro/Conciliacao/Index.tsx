@@ -51,7 +51,7 @@ const brl = (v: number) =>
 const STATUS_CLR: Record<Linha['status'], string> = {
   pendente:   'bg-stone-50 text-stone-700 border-stone-200',
   sugerido:   'bg-amber-50 text-amber-700 border-amber-200',
-  conciliado: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  conciliado: 'bg-success-soft text-success-fg border-success/20',
   ignorado:   'bg-stone-100 text-stone-400 border-stone-200',
 };
 
