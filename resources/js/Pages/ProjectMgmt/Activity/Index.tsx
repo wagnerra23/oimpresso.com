@@ -221,7 +221,7 @@ function ActivityIndex({ project, events, kpis, authors, event_types, filters }:
                             <p className="text-[10px] text-muted-foreground mt-0.5 inline-flex items-center gap-1">
                               <span className="px-1 py-0.5 rounded bg-muted/60">{e.from_value ?? '?'}</span>
                               <ArrowRight size={9} />
-                              <span className="px-1 py-0.5 rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">{e.to_value ?? '?'}</span>
+                              <span className="px-1 py-0.5 rounded bg-success-soft text-success-fg border border-success/20">{e.to_value ?? '?'}</span>
                             </p>
                           )}
                           {e.note && (

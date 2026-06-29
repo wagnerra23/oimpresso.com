@@ -615,7 +615,7 @@ export default function DetailSheet({ taskId, onClose }: Props) {
                                     <span className="text-muted-foreground">de</span>{' '}
                                     <span className="font-mono text-muted-foreground">{e.from_value}</span>{' '}
                                     <span className="text-muted-foreground">para</span>{' '}
-                                    <span className="font-mono text-emerald-700 dark:text-emerald-400">{e.to_value}</span>
+                                    <span className="font-mono text-success">{e.to_value}</span>
                                   </>
                                 )}
                               </div>
