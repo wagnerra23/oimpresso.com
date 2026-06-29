@@ -109,7 +109,7 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL}>Todos</SelectItem>
-                  {available_actors.map((a) => (
+                  {available_actors.filter((a) => a.slug).map((a) => (
                     <SelectItem key={a.slug} value={a.slug}>{a.display_name}</SelectItem>
                   ))}
                 </SelectContent>
@@ -125,7 +125,7 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
                 <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL}>Todos</SelectItem>
-                  {available_endpoints.map((ep) => (
+                  {available_endpoints.filter(Boolean).map((ep) => (
                     <SelectItem key={ep} value={ep}>{ep}</SelectItem>
                   ))}
                 </SelectContent>
