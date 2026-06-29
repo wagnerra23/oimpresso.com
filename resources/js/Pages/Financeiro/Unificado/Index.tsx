@@ -211,14 +211,6 @@ interface PlanoConta {
   nivel: number;    // 1=raiz, 4=folha
 }
 
-interface AgingBreakdown {
-  lt30: number;
-  '30-60': number;
-  '60-90': number;
-  gt90: number;
-  gt180: number;
-}
-
 interface Props {
   kpis: Kpi;
   lancamentos: Lancamento[];
@@ -227,7 +219,6 @@ interface Props {
   contas: { id: number; nome: string }[];
   categorias: { id: number; nome: string }[];
   planosConta: PlanoConta[];
-  agingBreakdown?: AgingBreakdown; // PR E US-FIN-022
   periodLabel: string;
   businessName: string;
 }
@@ -259,16 +250,6 @@ const FIN_LENTES: { id: LenteId; label: string }[] = [
   { id: 'caixa',   label: 'Caixa' },
   { id: 'receber', label: 'A receber' },
   { id: 'pagar',   label: 'A pagar' },
-];
-
-// PR E (2026-05-25) US-FIN-022 — Aging buckets canon BR. Hue rose escala
-// crescente conforme dias vencidos (alerta visual mais agressivo).
-const FILTER_AGING: { id: AgingBucketId; label: string; hue: number }[] = [
-  { id: 'lt30',  label: '< 30d',   hue: 60  },  // amber suave
-  { id: '30-60', label: '30-60d',  hue: 40  },  // amber escuro
-  { id: '60-90', label: '60-90d',  hue: 25  },  // rose
-  { id: 'gt90',  label: '> 90d',   hue: 15  },  // rose escuro
-  { id: 'gt180', label: '> 180d',  hue: 0   },  // vermelho crítico
 ];
 
 /**
@@ -472,8 +453,17 @@ function StatusPill({ s }: { s: LancamentoStatus }) {
     destructive: 'bg-destructive-soft text-destructive-fg border-destructive/20',
     default:     'bg-stone-50 text-stone-700 border-stone-200',
   }[tone];
+  // Dot por status (protótipo aprovado [W] 2026-06-29 screenshot) — cor base por tom,
+  // mantendo os fios translúcidos + fundo soft já existentes (refino premium #3391).
+  const dotCls = {
+    success:     'bg-success',
+    warning:     'bg-amber-500',
+    destructive: 'bg-destructive',
+    default:     'bg-stone-400',
+  }[tone];
   return (
-    <span className={`inline-flex items-center px-1.5 py-0.5 rounded border text-[11px] font-medium ${cls}`}>
+    <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded border text-[11px] font-medium ${cls}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${dotCls}`} aria-hidden />
       {statusLabel(s)}
     </span>
   );
@@ -1162,7 +1152,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
 // ---------- Página principal ----------
 // (FinanceiroSubNav extraído pra `_shared/FinanceiroSubNav.tsx` 2026-05-21 — ADR 0180 Fase 5 propagação)
 
-function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, agingBreakdown, periodLabel, businessName }: Props) {
+function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, categorias, planosConta, periodLabel, businessName }: Props) {
   // US-FIN-028 (Onda 22) — gate Spatie pra aprovar/rejeitar.
   // HOTFIX 2026-05-20: shared `auth.can` vem do HandleInertiaRequests.share como
   // OBJETO `Record<string, boolean>` (não array de strings — vide app/Http/Middleware/
@@ -1576,41 +1566,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
 
         <span className="fin-filter-sep" />
 
-        {/* PR E (2026-05-25) US-FIN-022 — Aging buckets chips.
-            Apenas visível se houver algum vencido (evita poluição quando saudável).
-            AND com lifecycle: filtra vencidos por bucket BR canon. */}
-        {agingBreakdown && (agingBreakdown.lt30 + agingBreakdown['30-60'] + agingBreakdown['60-90'] + agingBreakdown.gt90 + agingBreakdown.gt180) > 0 && (
-          <>
-            <div className="fin-filter-group" role="group" aria-label="Filtros por aging (dias vencidos)">
-              {FILTER_AGING.map((ag) => {
-                const on = (filters.aging ?? []).includes(ag.id);
-                const count = agingBreakdown[ag.id];
-                if (count === 0 && !on) return null;
-                const toggle = () => {
-                  const cur = filters.aging ?? [];
-                  const next = on ? cur.filter((x) => x !== ag.id) : [...cur, ag.id];
-                  aplicar({ aging: next });
-                };
-                return (
-                  <button
-                    key={ag.id}
-                    type="button"
-                    aria-pressed={on}
-                    className={'fin-filter-cb' + (on ? ' on' : '')}
-                    style={{ ['--cb-hue' as string]: ag.hue } as React.CSSProperties}
-                    title={`Títulos vencidos ${ag.label} (atrasados não pagos)`}
-                    onClick={toggle}
-                  >
-                    <span className="fin-filter-cb-box" />
-                    <span>{ag.label}</span>
-                    <span className="fin-filter-ct">{count}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <span className="fin-filter-sep" />
-          </>
-        )}
+        {/* Aging buckets (US-FIN-022) REMOVIDO 2026-06-29 — [W] aprovou screenshot do
+            protótipo Cowork que NÃO tem faixas de aging na linha de filtros ("isso eu
+            não quero"). Retorna ao F1 enxuto original do charter (status `atrasado`
+            único). Backend agingBreakdown segue computado (inócuo, ignorado pela UI). */}
 
         {/* US-FIN-027 (Onda 22) — Chips workflow aprovação multi-select.
             AND com lifecycle (combina filtros). Hidden se nenhum titulo
