@@ -79,6 +79,11 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
   const [accountFilter, setAccountFilter] = useState(() => lsGet<string>('account', filtros.account_id ? String(filtros.account_id) : 'all'));
   const [origemFilter, setOrigemFilter] = useState(() => lsGet<string>('origem', filtros.origem || 'all'));
   const [busca, setBusca] = useState(filtros.busca || '');
+  // F3b (2026-06-29 · [W]) — filtro de intervalo de vencimento, client-side
+  // (consistente com busca/tipo/gateway que já filtram via useMemo). Session-only
+  // como a busca (não persiste localStorage — é query transitória, não preferência).
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   const setTabStatusLs = useCallback((v: string) => { setTabStatus(v); lsSet('tab', v); }, []);
   const setTipoFilterLs = useCallback((v: string) => { setTipoFilter(v); lsSet('tipo', v); }, []);
@@ -109,6 +114,9 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       if (gatewayFilter !== 'all' && c.gateway !== gatewayFilter) return false;
       if (accountFilter !== 'all' && c.account_id !== parseInt(accountFilter, 10)) return false;
       if (origemFilter !== 'all' && c.origem_type !== origemFilter) return false;
+      // F3b — intervalo de vencimento (strings ISO YYYY-MM-DD comparam lexicograficamente).
+      if (dateFrom && c.vencimento < dateFrom) return false;
+      if (dateTo && c.vencimento > dateTo) return false;
       if (busca) {
         const q = busca.toLowerCase();
         const hay = `${c.contato} ${c.contato_doc || ''} ${c.nosso_numero || ''} ${c.origem_label || ''}`.toLowerCase();
@@ -116,7 +124,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
       }
       return true;
     });
-  }, [cobrancas, tabStatus, tipoMatch, gatewayFilter, accountFilter, origemFilter, busca]);
+  }, [cobrancas, tabStatus, tipoMatch, gatewayFilter, accountFilter, origemFilter, busca, dateFrom, dateTo]);
 
   const statusCounts = useMemo(() => {
     const list = cobrancas ?? [];
@@ -307,6 +315,43 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
             {Object.values(DRIVERS).filter(d => !d.deprecated).map(d => <SelectItem key={d.key} value={d.key}>{d.nome}</SelectItem>)}
           </SelectContent>
         </Select>
+
+        <div className="w-px h-5 bg-stone-200 mx-1" />
+
+        {/* F3b (2026-06-29 · [W]) — intervalo de vencimento (client-side, igual aos demais filtros desta tela). */}
+        <div className="inline-flex items-center gap-1" role="group" aria-label="Filtrar por vencimento">
+          <span className="text-[10px] uppercase tracking-widest font-medium text-muted-foreground mr-0.5">Vence</span>
+          <input
+            type="date"
+            value={dateFrom}
+            max={dateTo || undefined}
+            onChange={e => setDateFrom(e.target.value)}
+            className="h-7 px-2 bg-white border border-input rounded-md text-[11.5px] text-foreground focus:outline-none focus:border-ring"
+            aria-label="Vencimento inicial"
+            title="Vencimento de (vazio = sem limite)"
+          />
+          <span className="text-muted-foreground text-[11px]" aria-hidden>–</span>
+          <input
+            type="date"
+            value={dateTo}
+            min={dateFrom || undefined}
+            onChange={e => setDateTo(e.target.value)}
+            className="h-7 px-2 bg-white border border-input rounded-md text-[11.5px] text-foreground focus:outline-none focus:border-ring"
+            aria-label="Vencimento final"
+            title="Vencimento até (vazio = sem limite)"
+          />
+          {(dateFrom || dateTo) && (
+            <button
+              type="button"
+              onClick={() => { setDateFrom(''); setDateTo(''); }}
+              className="h-7 w-6 grid place-items-center text-muted-foreground hover:text-foreground"
+              title="Limpar intervalo de vencimento"
+              aria-label="Limpar intervalo de vencimento"
+            >
+              ×
+            </button>
+          )}
+        </div>
 
         <Select value={accountFilter} onValueChange={v => setAccountFilterLs(v)}>
           <SelectTrigger variant="shadcn" size="sm" className="text-[11.5px]" aria-label="Filtrar por conta destino">
