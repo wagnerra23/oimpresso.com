@@ -74,7 +74,7 @@ function SiteBlogs({ posts = [] }: SiteBlogsProps) {
               return (
                 <article
                   key={post.id}
-                  className="group rounded-xl border border-border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-lg"
+                  className="group rounded-lg border border-border bg-card p-5 transition-all hover:border-primary/40 hover:shadow-lg"
                 >
                   {post.feature_image_url && (
                     <img

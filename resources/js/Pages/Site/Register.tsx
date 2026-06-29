@@ -55,7 +55,7 @@ function SiteRegister({ socialEnabled, allowRegistration }: SiteRegisterProps) {
         />
 
         <div className="mx-auto flex min-h-[calc(100vh-200px)] max-w-md flex-col justify-center px-4 py-16 sm:px-6">
-          <div className="rounded-2xl border border-border bg-card p-8 shadow-xl shadow-primary/5 sm:p-10">
+          <div className="rounded-lg border border-border bg-card p-8 shadow-xl shadow-primary/5 sm:p-10">
             <div className="text-center">
               <h1 className="text-2xl font-bold tracking-tight text-foreground">Criar sua conta</h1>
               <p className="mt-2 text-sm text-muted-foreground">

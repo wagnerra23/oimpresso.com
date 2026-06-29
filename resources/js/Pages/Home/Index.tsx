@@ -65,7 +65,7 @@ function KpiCard({ label, value, accent, icon, hint }: KpiSpec) {
   const c = ACCENT_CLASSES[accent];
   return (
     <div
-      className={`group relative rounded-xl border border-stone-200 bg-white p-5 shadow-sm ring-1 ${c.ring} transition-all hover:shadow-md hover:-translate-y-0.5 hover:border-stone-300`}
+      className={`group relative rounded-lg border border-stone-200 bg-white p-5 shadow-sm ring-1 ${c.ring} transition-all hover:shadow-md hover:-translate-y-0.5 hover:border-stone-300`}
       title={hint}
     >
       <div className="flex items-center gap-4">
@@ -143,11 +143,11 @@ function HomeIndex({
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-6">
       {/* Welcome banner — superfície clara, contraste WCAG AA. ADR 0180 PageHeader canon style. */}
-      <header className="flex flex-col gap-4 rounded-xl border border-stone-200 bg-white px-6 py-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <header className="flex flex-col gap-4 rounded-lg border border-stone-200 bg-white px-6 py-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4 min-w-0">
           <div
             aria-hidden="true"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary"
           >
             <Icon name="layout-dashboard" size={22} strokeWidth={1.8} />
           </div>
@@ -188,7 +188,7 @@ function HomeIndex({
           <KpiGroup label="Compras & Custos" kpis={purchaseKpis} />
         </div>
       ) : (
-        <section className="rounded-xl border border-stone-200 bg-white px-6 py-10 text-center">
+        <section className="rounded-lg border border-stone-200 bg-white px-6 py-10 text-center">
           <p className="text-sm text-stone-600">
             Você não tem permissão para visualizar os indicadores do dashboard. Fale com o
             administrador da empresa.

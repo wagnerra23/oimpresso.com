@@ -67,7 +67,7 @@ export default function ConsultaOsIndex() {
 
       <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-start py-12 px-4">
         <div className="flex items-center gap-2.5 mb-8">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center flex-shrink-0">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-violet-600 flex items-center justify-center flex-shrink-0">
             <FileSearch className="w-4 h-4 text-white" />
           </div>
           <span className="text-base font-semibold text-muted-foreground tracking-tight">
