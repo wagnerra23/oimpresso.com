@@ -3,7 +3,7 @@
 <!-- ds:worklist:start (auto · npm run ds:report -- --write) -->
 ## Status da fila — placar de execução (auto)
 
-> Gerado por `npm run ds:report -- --write` · 2026-06-29 13:01 UTC · **total `ds/*` = 207** · fila 1/10 ✅.
+> Gerado por `npm run ds:report -- --write` · 2026-06-29 13:28 UTC · **total `ds/*` = 189** · fila 2/10 ✅.
 > Derivado do `ds/*` real por módulo: **✅ = 0 (concluído)** · **☐ = pendente**. `[CC]` lê isto (Sync now) pra saber o que `[CL]` JÁ executou e o que falta — sem regerar o já-feito.
 
 | # | Módulo (fila) | `ds/*` | Status |
@@ -17,7 +17,7 @@
 | 7 | Whatsapp | 19 | ☐ pendente |
 | 8 | Settings | 8 | ☐ pendente |
 | 9 | Financeiro | 0 | ✅ concluído |
-| 10 | Cliente | 18 | ☐ pendente |
+| 10 | Cliente | 0 | ✅ concluído |
 
 **Fora da fila (pendentes · ordem por contagem):** Fiscal (14) · Jana (13) · Ponto (11) · ProjectMgmt (10) · governance (10) · Atendimento (7) · Produto (6) · StockTransfer (6) · NfeBrasil (5) · kb (5) · Home (4) · Site (4) · ads (4) · MemCofre (3) · StockAdjustment (3) · Compras (2) · ConsultaOs (1) · Nfse (1)
 
