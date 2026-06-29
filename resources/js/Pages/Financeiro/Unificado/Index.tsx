@@ -790,9 +790,12 @@ function FinVinculosChips({ descricao, nfeNumero }: { descricao: string; nfeNume
 // decisão [W] 2026-06-11). Espelha EXATAMENTE o payload do TituloEditSheet (proven) só
 // trocando categoria_id, pra não nular contraparte/forma/conta (o controller fill()
 // sobrescreve esses campos no update).
+// Radix Select não aceita SelectItem value="" (reservado p/ limpar) — sentinela p/ "(Sem categoria)".
+const CATEGORIA_NONE = '__none__';
+
 function FinKVCategoriaInline({ selected, categorias }: { selected: Lancamento; categorias: { id: number; nome: string }[] }) {
-  const onChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const categoriaId = e.target.value === '' ? null : Number(e.target.value);
+  const onValueChange = (value: string) => {
+    const categoriaId = value === CATEGORIA_NONE ? null : Number(value);
     if (categoriaId === (selected.categoria_id ?? null)) return;
     const data: Record<string, unknown> = {
       cliente_descricao: selected.contraparte === '—' ? null : selected.contraparte,
@@ -807,12 +810,26 @@ function FinKVCategoriaInline({ selected, categorias }: { selected: Lancamento; 
     router.put(`/financeiro/unificado/${selected.id}`, data as Record<string, never>, { preserveScroll: true });
   };
   return (
-    <span className="fin-kvedit">
-      <select value={selected.categoria_id ?? ''} onChange={onChange} title="Editar categoria — salva no lançamento" aria-label="Categoria">
-        <option value="">(Sem categoria)</option>
-        {categorias.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-      </select>
-    </span>
+    <Select
+      value={selected.categoria_id != null ? String(selected.categoria_id) : CATEGORIA_NONE}
+      onValueChange={onValueChange}
+    >
+      <SelectTrigger
+        variant="shadcn"
+        size="sm"
+        className="max-w-[200px] text-[12px]"
+        title="Editar categoria — salva no lançamento"
+        aria-label="Categoria"
+      >
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem value={CATEGORIA_NONE}>(Sem categoria)</SelectItem>
+        {categorias.map((c) => (
+          <SelectItem key={c.id} value={String(c.id)}>{c.nome}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
 
