@@ -65,6 +65,9 @@ import { TituloEditSheet } from './_components/TituloEditSheet';
 import { TituloCreateSheet } from './_components/TituloCreateSheet';
 // 2026-06-03 — diálogo de baixa (escolher valor/conta/forma/plano ao receber/pagar).
 import { FinBaixaSheet } from './_components/FinBaixaSheet';
+// Fidelidade protótipo ([W] 2026-06-29, ADR 0313) — PeriodBar (presets Dia/Semana/Mês/
+// Ano/Tudo + Personalizado) substitui os campos dd/mm crus. Frontend-only: seta data_inicio/fim.
+import FinPeriodBar from './_components/FinPeriodBar';
 // US-FIN-026 (Onda 22) — painel completo de anexos no drawer (GET + upload + download + delete).
 import { FinAnexosPanel } from './_components/FinAnexosPanel';
 // US-FIN-029 (Onda 23) — Sheet OCR boleto (OpenAI Vision API extrai linha digitavel + valor + vencimento).
@@ -1631,38 +1634,17 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             <option value="pagamento">Pagamento</option>
             <option value="competencia">Competência</option>
           </select>
-          {/* date inputs: classe própria fin-date-input (pill igual aos selects,
-              sem o chevron do fin-filter-select que não cabe num input de data). */}
-          <input
-            type="date"
-            className="fin-date-input"
-            value={filters.data_inicio}
-            max={filters.data_fim || undefined}
-            onChange={(e) => aplicar({ data_inicio: e.target.value })}
-            aria-label="Data inicial"
-            title="Data inicial (vazio = período do mês)"
+          {/* PeriodBar (fidelidade protótipo [W] 2026-06-29, ADR 0313): presets Dia/
+              Semana/Mês/Ano/Tudo + navegador de mês ‹ › + "Personalizado" que revela
+              os dd/mm. Frontend-only — apenas seta data_inicio/fim (mesmo filtro de
+              intervalo de antes; backend + KPIs já o seguem). "Mês" = mês atual
+              reproduz o total default (periodo=mes_atual) — âncora da dual-confirmação. */}
+          <FinPeriodBar
+            dataInicio={filters.data_inicio}
+            dataFim={filters.data_fim}
+            count={pagination?.total ?? lancamentos.length}
+            onChange={(ini, fim) => aplicar({ data_inicio: ini, data_fim: fim })}
           />
-          <span className="fin-date-sep" aria-hidden="true">–</span>
-          <input
-            type="date"
-            className="fin-date-input"
-            value={filters.data_fim}
-            min={filters.data_inicio || undefined}
-            onChange={(e) => aplicar({ data_fim: e.target.value })}
-            aria-label="Data final"
-            title="Data final (vazio = período do mês)"
-          />
-          {(filters.data_inicio !== '' || filters.data_fim !== '') && (
-            <button
-              type="button"
-              className="fin-date-clear"
-              onClick={() => aplicar({ data_inicio: '', data_fim: '' })}
-              title="Limpar intervalo de datas"
-              aria-label="Limpar intervalo de datas"
-            >
-              ×
-            </button>
-          )}
         </div>
 
         <span className="fin-filter-sep" />
