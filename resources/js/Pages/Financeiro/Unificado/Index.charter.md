@@ -214,7 +214,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ## Backlog futuro (US explícitas)
 
 - ~~**US-FIN-021** — Form unificado inline (modal/sheet) — substitui stub `/unificado/novo`~~ **DONE Onda 25 (2026-05-25)**
-- **US-FIN-022** — Aging buckets <30/30-60/60-90/90+ + filtro
+- ~~**US-FIN-022** — Aging buckets <30/30-60/60-90/90+ + filtro~~ **REVERTIDO 2026-06-29** — [W] aprovou screenshot do protótipo Cowork que NÃO tem faixas de aging na linha de filtros ("isso eu não quero"). Retorna ao F1 enxuto original (status `atrasado` único, ver linhas 147/204). Chips removidos da UI; backend `agingBreakdown` segue computado (inócuo).
 - **US-FIN-023** — Comparação `+X% vs mês anterior` por KPI (delta_pct)
 - **US-FIN-024** — Combobox cliente/contraparte com autocomplete
 - **US-FIN-025** — Mobile responsive (cards stack 2×2 + lista)
