@@ -88,6 +88,20 @@ Sequência depois (todas sem pré-req entre si exceto G4): G1 → G2 → G3 → 
 
 ---
 
+## Frente 2 (ranking) — RESOLVIDA de forma inesperada
+
+A pergunta "por que 10% das queries não acham a ADR" tinha a causa **invisível** ao workflow (que mediu a tool sem saber o que ela usava por baixo):
+
+- A tool `decisions-search` usava o **pipeline hybrid** (flag `JANA_MCP_SEARCH_PIPELINE_DOCS=true`), não o FULLTEXT.
+- O embedder `qwen3-embedding:0.6b` **exige prompt de instrução** na query; o Meilisearch envia raw → similaridade **invertida** (cosseno medido no índice real: lixo `0.7068` > alvo `0.5306`; com instrução inverte pra `0.4788 > 0.4286`).
+- Trocar para `nomic` **não** resolve (inconsistente — recupera um caso, quebra outro). O **FULLTEXT mede melhor** nesse corpus (≈6/7 vs ≈4/7).
+
+**Decisão:** desligar o hybrid de docs → FULLTEXT. Formalizada em [ADR 0312](../decisions/0312-decisions-search-fulltext-hybrid-docs-off.md). Smoke A/B prod: "daily brief" lixo→`0091` r1; "multi-tenant" `0093` ausente→r2; "Centrifugo" `0058` r1 mantido.
+
+**Lições de método (auto-correção da sessão):**
+- A **Alavanca C** que eu ia implementar (orderBy no FULLTEXT) era **inútil** — o caminho ativo era o hybrid, não o FULLTEXT. Só apareceu indo ao banco em vez de confiar no diagnóstico do workflow.
+- O **workflow errou o diagnóstico** ("canon-vs-canon, sem vitória fácil") porque mediu a *tool* (hybrid) sem saber que a causa era o *embedder*. Medir o sistema real ≠ medir a hipótese — e nesta sessão isso se repetiu nas 3 frentes (contagem de linhas, snippet, ranking).
+
 ## Sources
 - [Anthropic — Effective context engineering for AI agents](https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents)
 - [Anthropic — Agent Skills / progressive disclosure](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
