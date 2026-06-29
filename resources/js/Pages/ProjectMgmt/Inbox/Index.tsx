@@ -283,7 +283,7 @@ function InboxIndex({ inbox = [], inbox_stats = EMPTY_INBOX_STATS, filters }: Pr
       </KpiGrid>
 
       {inbox.length === 0 ? (
-        <div className="mt-8 text-center py-16 border-2 border-dashed rounded-xl text-muted-foreground">
+        <div className="mt-8 text-center py-16 border-2 border-dashed rounded-lg text-muted-foreground">
           <BellOff size={28} className="mx-auto mb-3 opacity-40" />
           <p className="text-base font-medium">
             {filters.show_read ? 'Nada na caixa.' : 'Caixa de entrada vazia'}

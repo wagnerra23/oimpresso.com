@@ -273,8 +273,8 @@ function TriageIndex({
       </KpiGrid>
 
       {visible.length === 0 ? (
-        <div className="mt-8 text-center py-16 border-2 border-dashed rounded-xl text-muted-foreground">
-          <CheckCircle2 size={28} className="mx-auto mb-3 text-emerald-500/70" />
+        <div className="mt-8 text-center py-16 border-2 border-dashed rounded-lg text-muted-foreground">
+          <CheckCircle2 size={28} className="mx-auto mb-3 text-success/70" />
           <p className="text-base font-medium">Nada pra triar</p>
           <p className="text-sm mt-1">Toda task tem dono, prioridade e saiu do backlog.</p>
         </div>
