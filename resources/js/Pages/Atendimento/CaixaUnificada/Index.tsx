@@ -378,7 +378,7 @@ export default function CaixaUnificadaIndex({
                   className="flex items-center gap-2 cursor-pointer"
                   data-testid="caixa-unif-topnav-templates-hsm"
                 >
-                  <MessageSquareText size={14} className="text-emerald-600" aria-hidden />
+                  <MessageSquareText size={14} className="text-success" aria-hidden />
                   <div className="flex flex-col">
                     <span className="text-[12px] font-medium">Templates HSM</span>
                     <span className="text-[10.5px] text-muted-foreground">Meta-aprovados (fora 24h)</span>

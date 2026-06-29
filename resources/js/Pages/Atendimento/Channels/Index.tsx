@@ -367,7 +367,7 @@ export default function ChannelsIndex({ channels, availableTypes }: Props) {
             {/* ADR 0206 Fase D — paired state mostra check sem QR, dialog fecha em 800ms */}
             {!qrLoading && (qrState === 'paired' || qrState === 'connected') && !qrError && (
               <>
-                <CheckCircle2 size={48} className="text-emerald-600" aria-hidden />
+                <CheckCircle2 size={48} className="text-success" aria-hidden />
                 <p className="text-sm font-medium text-success-fg">
                   Canal pareado com sucesso!
                 </p>
@@ -618,7 +618,7 @@ function ChannelCard({
 
       {channel.lgpd_acknowledged_at && (
         <div className="text-[10px] text-muted-foreground flex items-center gap-1">
-          <CheckCircle2 size={10} className="text-emerald-500" aria-hidden />
+          <CheckCircle2 size={10} className="text-success" aria-hidden />
           LGPD aceito
         </div>
       )}
