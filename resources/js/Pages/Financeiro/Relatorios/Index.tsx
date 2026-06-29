@@ -253,16 +253,16 @@ function FluxoPanel({ fluxo }: { fluxo: Fluxo }) {
                   {fluxo.semanas.map((s) => (
                     <tr key={s.semana_inicio} className="border-b hover:bg-muted/40">
                       <td className="py-2 px-2 font-mono text-xs">{s.semana_label}</td>
-                      <td className="text-right py-2 px-2 font-mono text-emerald-700/70 dark:text-emerald-300/70">
+                      <td className="text-right py-2 px-2 font-mono text-success/70">
                         {brl(s.projetado_receber)}
                       </td>
-                      <td className="text-right py-2 px-2 font-mono text-emerald-600 dark:text-emerald-400 font-semibold">
+                      <td className="text-right py-2 px-2 font-mono text-success font-semibold">
                         {brl(s.realizado_receber)}
                       </td>
-                      <td className="text-right py-2 px-2 font-mono text-rose-700/70 dark:text-rose-300/70">
+                      <td className="text-right py-2 px-2 font-mono text-destructive/70">
                         {brl(s.projetado_pagar)}
                       </td>
-                      <td className="text-right py-2 px-2 font-mono text-rose-600 dark:text-rose-400 font-semibold">
+                      <td className="text-right py-2 px-2 font-mono text-destructive font-semibold">
                         {brl(s.realizado_pagar)}
                       </td>
                       <td className="py-2 px-2">

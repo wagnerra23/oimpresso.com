@@ -366,7 +366,7 @@ function CobrancaPage({ cobrancas, kpis, funil, accounts = [], gateways = [], fi
                     )}>
                       <td className="pl-5 pr-2 py-2.5 text-stone-700">
                         <div className="font-medium">{fmtDate(c.vencimento)}</div>
-                        <div className={cn('text-[10.5px]', overdue ? 'text-rose-600' : 'text-stone-400')}>
+                        <div className={cn('text-[10.5px]', overdue ? 'text-destructive' : 'text-stone-400')}>
                           {overdue
                             ? `${Math.round((new Date(today).getTime() - new Date(c.vencimento).getTime()) / 86400000)}d atraso`
                             : fmtDateRel(c.vencimento, today)}

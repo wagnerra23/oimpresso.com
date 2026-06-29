@@ -286,7 +286,7 @@ function ProjetadoView({
                     <td className="px-2 py-2">
                       <span
                         className={`inline-grid place-items-center rounded ${
-                          ev.kind === 'receivable' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700'
+                          ev.kind === 'receivable' ? 'bg-success-soft text-success-fg' : 'bg-destructive-soft text-destructive-fg'
                         }`}
                         style={{ width: 22, height: 22 }}
                       >
@@ -297,7 +297,7 @@ function ProjetadoView({
                     <td className="px-2 py-2 text-stone-600">{ev.contraparte}</td>
                     <td className="px-2 py-2 text-stone-500">{ev.categoria}</td>
                     <td className="pr-6 py-2 text-right font-medium">
-                      <span className={ev.kind === 'receivable' ? 'text-emerald-700' : 'text-stone-900'}>
+                      <span className={ev.kind === 'receivable' ? 'text-success' : 'text-stone-900'}>
                         {ev.kind === 'receivable' ? '+' : '−'} {brlNoSign(ev.valor)}
                       </span>
                     </td>
@@ -464,15 +464,15 @@ function RealizadoView({ realizado }: { realizado: Realizado | null | undefined 
                       <span className="ml-2 text-[10px] uppercase tracking-wider text-stone-500">atual</span>
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right text-emerald-700 font-medium">
+                  <td className="px-3 py-2 text-right text-success font-medium">
                     {m.entradas > 0 ? '+ ' + brlNoSign(m.entradas) : '—'}
                   </td>
-                  <td className="px-3 py-2 text-right text-rose-700 font-medium">
+                  <td className="px-3 py-2 text-right text-destructive font-medium">
                     {m.saidas > 0 ? '− ' + brlNoSign(m.saidas) : '—'}
                   </td>
                   <td
                     className={`px-3 py-2 text-right font-semibold ${
-                      m.saldo > 0 ? 'text-emerald-700' : m.saldo < 0 ? 'text-rose-700' : 'text-stone-700'
+                      m.saldo > 0 ? 'text-success' : m.saldo < 0 ? 'text-destructive' : 'text-stone-700'
                     }`}
                   >
                     {brl(m.saldo)}

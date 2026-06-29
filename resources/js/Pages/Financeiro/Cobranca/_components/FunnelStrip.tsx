@@ -7,8 +7,8 @@ export default function FunnelStrip({ funil }: { funil: CobrancaFunil }) {
       <div className="px-3.5 py-1.5 text-[10px] uppercase tracking-widest font-medium text-stone-500 border-b border-stone-100 flex items-center justify-between">
         <span>Funil de cobrança · mês corrente</span>
         {funil.mandatos_cancelados > 0 && (
-          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-rose-50 text-rose-700 border-rose-200">
-            <span className="w-1 h-1 rounded-full bg-rose-500" />
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-0.5 rounded border bg-destructive-soft text-destructive-fg border-destructive/20">
+            <span className="w-1 h-1 rounded-full bg-destructive" />
             {funil.mandatos_cancelados} mandato(s) cancelado(s)
           </span>
         )}
@@ -24,16 +24,16 @@ export default function FunnelStrip({ funil }: { funil: CobrancaFunil }) {
           <div key={i} className={cn(
             'flex-1 px-4 py-3 border-r border-stone-100 last:border-r-0',
             s.active && 'bg-primary/5',
-            s.alert && 'bg-rose-50/40',
+            s.alert && 'bg-destructive/5',
           )}>
             <div className={cn(
               'text-[10.5px] font-medium',
-              s.alert ? 'text-rose-700' : s.active ? 'text-primary' : 'text-stone-500',
+              s.alert ? 'text-destructive' : s.active ? 'text-primary' : 'text-stone-500',
             )}>{s.l}</div>
             <div className="text-[18px] font-semibold tabular-nums tracking-tight mt-1">{s.v}</div>
             <div className={cn(
               'text-[10.5px] tabular-nums mt-0.5',
-              s.alert ? 'text-rose-600' : 'text-stone-400',
+              s.alert ? 'text-destructive' : 'text-stone-400',
             )}>{s.vv}</div>
           </div>
         ))}
