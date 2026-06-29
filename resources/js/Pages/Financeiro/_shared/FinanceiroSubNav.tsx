@@ -25,9 +25,17 @@ export interface FinanceiroSubNavProps {
   extraOverflowItems?: PageHeaderOverflowItem[];
   /** Quando true, omite primary (renderiza só ghosts + overflow). Caller renderiza primary separado à direita. */
   hidePrimary?: boolean;
+  /**
+   * Abas visíveis antes do overflow `⋯`. Default 5 = cabe INLINE na faixa do
+   * PageHeader (título + lente + primary) sem espremer o título. A Unificada
+   * renderiza a subnav em LINHA PRÓPRIA full-width (ADR 0313) e passa 8 pra
+   * mostrar todas as abas do protótipo. As demais telas (subnav inline) ficam
+   * no default 5 até migrarem pra linha-própria.
+   */
+  maxVisible?: number;
 }
 
-export default function FinanceiroSubNav({ active, extraOverflowItems, hidePrimary }: FinanceiroSubNavProps) {
+export default function FinanceiroSubNav({ active, extraOverflowItems, hidePrimary, maxVisible = 5 }: FinanceiroSubNavProps) {
   const sharedShell = (usePage().props as any)?.shell as { menu?: FinMenuEntry[] } | undefined;
 
   const finItem = pickFinanceiroEntry(sharedShell?.menu, active);
@@ -48,7 +56,7 @@ export default function FinanceiroSubNav({ active, extraOverflowItems, hidePrima
       ghosts={FINANCEIRO_SUBNAV_GHOSTS}
       activeGhostKey={active}
       group="financas"
-      maxVisible={8}
+      maxVisible={maxVisible}
       extraOverflowItems={extraOverflowItems}
     />
   );
