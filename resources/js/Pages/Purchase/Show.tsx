@@ -122,7 +122,7 @@ const STATUS_LABEL: Record<PurchaseStatus, string> = {
 };
 
 const STATUS_PILL: Record<PurchaseStatus, string> = {
-  received: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  received: 'bg-success-soft text-success-fg border-success/20',
   pending: 'bg-amber-50 text-amber-800 border-amber-200',
   ordered: 'bg-blue-50 text-blue-700 border-blue-200',
 };
@@ -135,10 +135,10 @@ const PAYMENT_LABEL: Record<PaymentStatus, string> = {
 };
 
 const PAYMENT_PILL: Record<PaymentStatus, string> = {
-  paid: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  paid: 'bg-success-soft text-success-fg border-success/20',
   due: 'bg-stone-50 text-stone-700 border-stone-200',
   partial: 'bg-amber-50 text-amber-800 border-amber-200',
-  overdue: 'bg-rose-50 text-rose-700 border-rose-200',
+  overdue: 'bg-destructive-soft text-destructive-fg border-destructive/20',
 };
 
 // ---------- Página principal ----------
@@ -179,7 +179,7 @@ function PurchaseShow({ purchase, permissions }: Props) {
               </Button>
             )}
             {permissions.delete && (
-              <Button variant="outline" size="sm" className="text-rose-600" onClick={onDelete}>
+              <Button variant="outline" size="sm" className="text-destructive" onClick={onDelete}>
                 <Trash2 className="h-4 w-4 mr-1" /> Excluir
               </Button>
             )}
@@ -327,7 +327,7 @@ function PurchaseShow({ purchase, permissions }: Props) {
           </CardHeader>
           <CardContent className="px-4 pb-4 text-[13px] space-y-1.5">
             <div className="flex justify-between"><span className="text-stone-500">Subtotal</span><span className="tabular-nums">{brl(purchase.net_total)}</span></div>
-            <div className="flex justify-between"><span className="text-stone-500">Desconto {purchase.discount_type === 'percentage' && `(${purchase.discount_amount}%)`}</span><span className="tabular-nums text-rose-700">- {brl(purchase.discount_value)}</span></div>
+            <div className="flex justify-between"><span className="text-stone-500">Desconto {purchase.discount_type === 'percentage' && `(${purchase.discount_amount}%)`}</span><span className="tabular-nums text-destructive">- {brl(purchase.discount_value)}</span></div>
             {purchase.tax_breakdown.map((t) => (
               <div key={t.name} className="flex justify-between"><span className="text-stone-500">{t.name}</span><span className="tabular-nums">+ {brl(t.amount)}</span></div>
             ))}
@@ -342,8 +342,8 @@ function PurchaseShow({ purchase, permissions }: Props) {
               <span>Pago</span><span className="tabular-nums">{brl(purchase.amount_paid)}</span>
             </div>
             <div className="flex justify-between">
-              <span className={purchase.payment_due > 0 ? 'font-medium text-rose-700' : 'text-stone-400'}>A pagar</span>
-              <span className={`tabular-nums ${purchase.payment_due > 0 ? 'font-medium text-rose-700' : 'text-stone-400'}`}>{brl(purchase.payment_due)}</span>
+              <span className={purchase.payment_due > 0 ? 'font-medium text-destructive' : 'text-stone-400'}>A pagar</span>
+              <span className={`tabular-nums ${purchase.payment_due > 0 ? 'font-medium text-destructive' : 'text-stone-400'}`}>{brl(purchase.payment_due)}</span>
             </div>
           </CardContent>
         </Card>
