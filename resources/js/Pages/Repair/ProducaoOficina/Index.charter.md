@@ -6,8 +6,12 @@ status: draft
 status_detail: rascunho
 last_validated: "2026-05-10"
 parent_module: Repair
+related_us: [US-REPAIR-PROD-2, US-REPAIR-PROD-3, US-REPAIR-PROD-4, US-REPAIR-PROD-5]
 related_adrs: [94, 101, 114, 121, 93, 192]
-related_prototype: prototipo-ui/cowork/oficina-page.jsx
+# 2026-06-30 (musing-elion): removido related_prototype: oficina-page.jsx — MIS-ANCHOR.
+# Esta tela serve Repair/JobSheet (vertical genérico), NÃO a OficinaAuto de veículo.
+# oficina-page.jsx é o kanban de VEÍCULO da OficinaAuto → ancora em ServiceOrders/Board (parent OficinaAuto).
+# C não é duplicata de A; o detector latcheava aqui por causa deste anchor errado.
 tier: A
 ---
 

@@ -1,5 +1,9 @@
 # Inventário de reconciliação — OS / Kanban da OficinaAuto
 
+> 🛑 **ERRATA 2026-06-30 (musing-elion) — A CONCLUSÃO "C É DUPLICATA → DEPRECAR" ESTAVA ERRADA.**
+> Ao começar a migração, o handler real `Sells/Index.tsx:1571` revelou: **`Repair/ProducaoOficina` (C) serve `Modules\Repair\Entities\JobSheet`** (vertical Repair genérico, `OS-{id}`), **NÃO** a OficinaAuto de veículo (`SO-{id}`). O Sells **já roteia certo por prefixo** (`OS-`→C/JobSheet · `SO-`→A/Board). **C NÃO é duplicata de A — são verticais diferentes. Deprecar C teria quebrado o Repair.**
+> O ÚNICO bug real era um **mis-anchor**: o charter de C tinha `related_prototype: oficina-page.jsx` (o mockup de VEÍCULO da OficinaAuto) — corrigido: removido de C, `visual_source: oficina-page.jsx` posto no `ServiceOrders/Board` (A, parent OficinaAuto). Detector agora: `oficina-page → ServiceOrders/Board` (0 órfãos). **Migração CANCELADA. Decisão Tier 0 #2 (deprecar C) VOID.** A migração do C foi pega antes de qualquer dano pela disciplina de conferir o handler real antes de editar.
+>
 > **Status:** read-only, aguarda decisão Tier 0 de [W]. NÃO aplica nada.
 > **Origem:** mapeamento do bundle Cowork ComVis (sessão musing-elion, 2026-06-30) — o mockup `oficina-os-page.jsx` (drawer de OS rico) que [W] aprovou **já está vivo**; mapear revelou duplicação de telas/charters pro mesmo conceito.
 > **Pergunta que isto responde:** "vai arrumar o page charter?" → sim, e arrumar aqui = a reconciliação Tier 0 que o próprio `Os/Create.charter.md` registra como pendente.
