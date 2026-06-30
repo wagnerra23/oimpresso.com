@@ -125,3 +125,9 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/recortar-regiao.mjs --selftest
+      # W3: roteia cada região ao crítico especializado (design-critique/ux-copy/a11y/screen-grade)
+      # ESCOPADO ao recorte do W2, não à tela. Selftest = roteamento determinístico (a crítica é o agente).
+      - name: analise-regiao selftest (W3 região-a-região)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/analise-regiao.mjs --selftest
