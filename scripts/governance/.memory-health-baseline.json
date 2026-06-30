@@ -93,7 +93,6 @@
     "quick-sync.yml",
     "repair-shared-vocab.yml",
     "reuse-gate.yml",
-    "run-financeiro-demo-seeder.yml",
     "scope-guard.yml",
     "screen-coverage-gate.yml",
     "sdd-scorecard-publish.yml",
