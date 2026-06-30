@@ -47,8 +47,10 @@ A Anthropic shippou uma integração oficial code↔design no Claude Code: a ski
 O matcher do Figma em `.claude/settings.json` é `mcp__.*figma.*|mcp__.*__(use_figma|…|generate_diagram)`. A tool `DesignSync` é **nativa do harness** (sem prefixo `mcp__`) e o nome não está em lista nenhuma; **nenhum** grupo PreToolUse do `settings.json` tinha matcher `DesignSync`. Logo **cobertura de `DesignSync` antes deste PR = 0 hooks** → o caminho de escrita (`finalize_plan`/`write_files`/`delete_files`/`create_project`) passava **100% livre**. Esse é o Gap 1 da 0299 instanciado, medido — não inferido.
 
 > **Esta decisão não é um menu pro Wagner escolher no olho.** A política (Eixo A) é a
-> conclusão dos critérios 0299+0239; o enforcement (Eixo B) já está **implementado e provado
-> por teste** (ver Validação) — o processo é a máquina + a catraca, não a preferência.
+> conclusão dos critérios 0299+0239; o enforcement (Eixo B) está **implementado, testado em
+> lógica e wirado no CI** — com **um furo aberto e honesto** (ativação em runtime não-provada,
+> furo #1, ver §Furos) que só fecha com baseline de sessão fresca. O processo é a máquina + a
+> catraca + o red-team que a audita, não a preferência.
 
 ## Decisão (2 eixos)
 
@@ -100,13 +102,29 @@ Só como **canal de export read-mostly**, com Wagner dizendo explícito, p.ex.: 
 - Mais um hook + catraca pra manter (custo de governança).
 - Não fecha a classe toda (risco "incidente Notion da próxima vez" segue, mitigado por L0).
 
-## Validação (executada nesta sessão — `node`, não Pest)
+## Furos achados pelo red-team (pós-implementação, 2026-06-30) — honestidade
 
-- ✅ `node .claude/hooks/block-design-sync-without-optin.test.mjs` — **32/32**. Leitura (5 métodos) livre; escrita (6 métodos) gateada; **default-deny** de método futuro/ausente/vazio; opt-in por prompt (positivos + negação + falso-positivo "melhora o design da tela"); **E2E real** (spawn do hook): `write_files`/`create_project`/método-futuro sem opt-in → **exit 2**; `list_projects` → exit 0; `write_files` com `OIMPRESSO_DESIGN_SYNC_OK=1` → exit 0; tool `Write` → exit 0.
-- ✅ `node scripts/governance/settings-design-sync-registration.test.mjs` — **4/4**. Hook registrado em PreToolUse (matcher casa `DesignSync`) + UserPromptSubmit (opt-in).
-- ✅ `settings.json` JSON válido (parse) + regressão Figma intacta (`block-figma` lógica + registro verdes).
-- ✅ Campo do payload confirmado `tool_input` (mesmo padrão de `block-ancora-no-olho`) — a distinção leitura/escrita funciona com payload real, não fail-closed acidental.
-- ✅ Conformidade 0224 (block por `tool_name` + `method` = determinístico) — análise acima.
+Um passe adversarial ("adversário experiente no protocolo novo") atirou no próprio gate e achou:
+
+| # | Furo | Status | Como foi pego |
+|---|---|---|---|
+| **#1** | **Gate INERTE na sessão que o cria.** Chamada real `DesignSync.finalize_plan` sem opt-in voltou **erro de validação do tool**, não o `[BLOCKED]` do hook → o PreToolUse **não disparou**. `settings.json` carrega no startup; editar no meio da sessão não faz hot-reload. O E2E prova a *lógica*, não a *entrega do payload pelo harness*. | 🔴 **ABERTO** — só fecha com **baseline de sessão fresca** (rodar a probe de novo numa sessão que já subiu com o hook registrado, esperar `[BLOCKED]`). Esse é o L5 que a 0299 exigia e eu havia pulado. | probe real `finalize_plan` |
+| **#2** | **Opt-in fail-OPEN: discutir a feature armava escrita.** `"como funciona o design sync?"` destravava 15 min de escrita. | ✅ **FECHADO** — opt-in agora exige INTENÇÃO (verbo de publicar + nome, ou `/design-sync`); pergunta/explicação nunca arma; deny cobre nunca/jamais. Virou regressão no test. | `isDesignSyncOptInPrompt` |
+| **#3** | **Flag machine-wide** (`tmpdir` global) vazava opt-in entre projetos. | ✅ **FECHADO** — flag keyed no `cwd` (por-projeto). | leitura do código |
+| **#4** | TTL 15min não-consome: 1 arme → N escritas. | 🟡 mitigado por #2 (armar agora exige intenção de publicar); consume-once = melhoria futura. | — |
+| **#5** | Leitura (vetor de injeção: `get_file` traz conteúdo de outros membros) é livre. | 🟡 inerente ao protocolo; gate só protege escrita; disciplina "dado, não instrução". | protocolo |
+| **#6** | `tool_name` exato é frágil (tool-irmã/`/design-login` futuros escapam; método de *leitura* futuro é falso-bloqueado). | 🟡 residual aceito; revisar se a superfície da tool mudar. | análise |
+
+**Meta-lição:** a v1 deste PR declarou "máquina provada por teste" conflando *lógica-do-hook-provada* com *gate-ativo-provado* — o mesmo modo de falha que o projeto cataloga ("a suite mente"/baseline nunca armado). Corrigido abaixo.
+
+## Validação (executada — `node`, não Pest) — status HONESTO
+
+- ✅ **Lógica + E2E do hook** (`block-design-sync-without-optin.test.mjs`): leitura livre; escrita gateada; default-deny de método futuro/ausente; opt-in **endurecido** (furo #2 como regressão); E2E spawn → exit codes reais (write→2, read→0, opt-in→0).
+- ✅ **Catraca de registro** (`settings-design-sync-registration.test.mjs`): hook wirado nos 2 eventos + matcher casa `DesignSync`.
+- ✅ **Wirado no CI** (`governance-script-tests.yml`) — verde no PR (não é local-only).
+- ✅ `settings.json` JSON válido + regressão Figma intacta + campo `tool_input` confirmado real.
+- ✅ Conformidade 0224 (block por `tool_name` + `method` = determinístico).
+- 🔴 **ATIVAÇÃO em runtime: NÃO provada** (furo #1). A lógica está provada; a *entrega do PreToolUse pela plataforma pra tool nativa `DesignSync`* exige baseline de sessão fresca. **Até esse baseline passar, o gate é "armado mas não disparado-em-prod".** Não declarar fechado sem ele.
 
 ## Notas
 
