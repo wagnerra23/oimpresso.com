@@ -108,7 +108,7 @@ Um passe adversarial ("adversário experiente no protocolo novo") atirou no pró
 
 | # | Furo | Status | Como foi pego |
 |---|---|---|---|
-| **#1** | **Gate INERTE na sessão que o cria.** Chamada real `DesignSync.finalize_plan` sem opt-in voltou **erro de validação do tool**, não o `[BLOCKED]` do hook → o PreToolUse **não disparou**. `settings.json` carrega no startup; editar no meio da sessão não faz hot-reload. O E2E prova a *lógica*, não a *entrega do payload pelo harness*. | 🔴 **ABERTO** — só fecha com **baseline de sessão fresca** (rodar a probe de novo numa sessão que já subiu com o hook registrado, esperar `[BLOCKED]`). Esse é o L5 que a 0299 exigia e eu havia pulado. | probe real `finalize_plan` |
+| **#1** | **Gate INERTE na sessão que o cria.** Chamada real `DesignSync.finalize_plan` sem opt-in voltou **erro de validação do tool**, não o `[BLOCKED]` do hook → o PreToolUse **não disparou**. `settings.json` carrega no startup; editar no meio da sessão não faz hot-reload. O E2E prova a *lógica*, não a *entrega do payload pelo harness*. | 🔴 **CONFIRMADO no-op** (baseline de sessão fresca, 2026-06-30) — a probe RODOU numa sessão que **bootou com o hook já registrado** (PR #3460 mergeado em `main`; `settings.json` do checkout tem o matcher `DesignSync`; **sem troca de branch**) e com **zero opt-in**. Ainda assim voltou erro NATIVO do tool, **não** o `[BLOCKED]`. → **o harness NÃO roteia PreToolUse pra tool nativa `DesignSync`**; o gate por hook é inerte. Evidência literal + proposta de fix logo abaixo da tabela. | baseline sessão fresca `finalize_plan` |
 | **#2** | **Opt-in fail-OPEN: discutir a feature armava escrita.** `"como funciona o design sync?"` destravava 15 min de escrita. | ✅ **FECHADO** — opt-in agora exige INTENÇÃO (verbo de publicar + nome, ou `/design-sync`); pergunta/explicação nunca arma; deny cobre nunca/jamais. Virou regressão no test. | `isDesignSyncOptInPrompt` |
 | **#3** | **Flag machine-wide** (`tmpdir` global) vazava opt-in entre projetos. | ✅ **FECHADO** — flag keyed no `cwd` (por-projeto). | leitura do código |
 | **#4** | TTL 15min não-consome: 1 arme → N escritas. | 🟡 mitigado por #2 (armar agora exige intenção de publicar); consume-once = melhoria futura. | — |
@@ -117,6 +117,34 @@ Um passe adversarial ("adversário experiente no protocolo novo") atirou no pró
 
 **Meta-lição:** a v1 deste PR declarou "máquina provada por teste" conflando *lógica-do-hook-provada* com *gate-ativo-provado* — o mesmo modo de falha que o projeto cataloga ("a suite mente"/baseline nunca armado). Corrigido abaixo.
 
+### Baseline de ativação runtime — furo #1 resolvido (2026-06-30, sessão `wizardly-elion-69fb06`)
+
+**Setup (validade da probe):** sessão FRESCA bootada com o hook já registrado — PR #3460 (`feat(governance): gateia DesignSync`) está mergeado em `main` (`334032f5fd`); o checkout da probe é uma worktree off-`main`, com `.claude/settings.json` carregando o matcher `DesignSync` no startup (confirmado) e o arquivo `block-design-sync-without-optin.mjs` presente. **Sem troca de branch antes da probe** (troca = sem hot-reload = inválido). **Zero opt-in:** `OIMPRESSO_DESIGN_SYNC_OK` vazio, sem `.design-sync-allow`, flag stale do tmpdir removida. `finalize_plan` é método de ESCRITA (não está em `READ_METHODS`) → se o hook disparasse, sairia `exit 2` com `[BLOCKED]`.
+
+**Probe:** `DesignSync(method:"finalize_plan", projectId:"00000000-0000-0000-0000-000000000000", writes:["baseline-probe/never-written.html"], deletes:[])`.
+
+Saída LITERAL (2 tentativas — corrigindo só o `localDir`, nunca o que importa):
+
+```
+# tentativa 1 (localDir estilo bash):
+localDir does not exist or is not accessible: /d/oimpresso.com/.claude/worktrees/wizardly-elion-69fb06 (ENOENT: no such file or directory, lstat 'D:\d\oimpresso.com\.claude\worktrees\wizardly-elion-69fb06')
+
+# tentativa 2 (localDir Windows correto):
+DesignSync needs design-system authorization, but /design-login requires an interactive terminal and is not available in this environment. If this is claude.ai/code, ask the user to use Claude Design's "Send to Claude Code Web" (which seeds the project into the workspace) or to provide the project files directly.
+```
+
+**Interpretação:** os DOIS erros vêm da validação/auth NATIVA do próprio tool `DesignSync` (path do `localDir`, depois auth do `/design-login`) — a segunda falha acontece **durante a execução** do tool, que só é alcançada DEPOIS do PreToolUse. Nenhuma das duas é o `[BLOCKED: claude.ai/design não é fonte...]`. Com o hook bootado + zero opt-in, se o PreToolUse fosse entregue à tool nativa, a 1ª coisa a aparecer seria o `[BLOCKED]` e o tool nunca executaria. Logo: **o harness NÃO roteia PreToolUse pra tool nativa `DesignSync`. O gate por hook é no-op.** (Reproduz exatamente o sintoma que o red-team já tinha visto.)
+
+**Por que o hook funciona no teste mas não em runtime:** o `.test.mjs` faz `spawn` do hook injetando o payload no stdin — prova a LÓGICA. Em runtime, a entrega do evento `PreToolUse` é decisão da plataforma; para a tool nativa `DesignSync` ela não ocorre (≠ MCP tools `mcp__*` e ≠ Figma, onde há precedente de entrega).
+
+**Proposta de fix (Eixo B precisa de outro ponto de intercepção — não declarar fechado por hook):**
+1. **Diagnóstico de causa-raiz primeiro (1 sessão fresca):** instrumentar o hook pra logar TODO `tool_name` de `PreToolUse` que ele recebe num arquivo, e rodar a probe de novo. Dois desfechos: (a) `DesignSync` nunca aparece no log → o harness não emite PreToolUse pra tools nativas dessa classe (matcher por `tool_name` é estéril aqui); (b) aparece com **outro nome** → corrigir o matcher pro nome real. Sem esse log, qualquer "fix" de matcher é chute.
+2. **Camada de permissão `deny` no `settings.json` (candidato mais forte):** uma regra de permissão (não-hook) negando o tool `DesignSync` é aplicada pelo harness a TODOS os tools, inclusive nativos — é o mecanismo que de fato morde onde o hook não chega. Trade-off: permissão não lê env/flag TTL → o opt-in deixa de ser por-prompt e vira aprovação interativa / edição de settings (UX pior, mas é gate REAL vs. teatro). Provável forma final: `deny` por padrão + opt-in documentado fora do hook.
+3. **`/design-login` como gargalo de auth:** a escrita exige o escopo concedido por `/design-login`/login claude.ai. Se `/design-login` for interceptável (a verificar — provavelmente sofre do MESMO no-op por ser tool nativa), gateá-lo fecha a escrita na origem. Hoje, neste ambiente desktop/headless, a escrita **já é impossível** (auth indisponível, vide tentativa 2) — o risco real é só em sessão claude.ai/code logada no claude.ai/design.
+4. **PostToolUse NÃO serve** — roda depois da publicação; não previne. Descartado.
+
+> **Conclusão honesta:** o gate por hook (Eixo B / L1) está **provado inerte** pra tool nativa `DesignSync`. A política (Eixo A — claude.ai/design não é fonte) continua válida; o enforcement mecânico precisa migrar de hook PreToolUse pra (provavelmente) camada de permissão `deny`, após o diagnóstico de causa-raiz do item 1. **Não declarar o Gap 1 fechado mecanicamente até um gate REAL morder em runtime.**
+
 ## Validação (executada — `node`, não Pest) — status HONESTO
 
 - ✅ **Lógica + E2E do hook** (`block-design-sync-without-optin.test.mjs`): leitura livre; escrita gateada; default-deny de método futuro/ausente; opt-in **endurecido** (furo #2 como regressão); E2E spawn → exit codes reais (write→2, read→0, opt-in→0).
@@ -124,7 +152,7 @@ Um passe adversarial ("adversário experiente no protocolo novo") atirou no pró
 - ✅ **Wirado no CI** (`governance-script-tests.yml`) — verde no PR (não é local-only).
 - ✅ `settings.json` JSON válido + regressão Figma intacta + campo `tool_input` confirmado real.
 - ✅ Conformidade 0224 (block por `tool_name` + `method` = determinístico).
-- 🔴 **ATIVAÇÃO em runtime: NÃO provada** (furo #1). A lógica está provada; a *entrega do PreToolUse pela plataforma pra tool nativa `DesignSync`* exige baseline de sessão fresca. **Até esse baseline passar, o gate é "armado mas não disparado-em-prod".** Não declarar fechado sem ele.
+- 🔴 **ATIVAÇÃO em runtime: PROVADA no-op** (furo #1, baseline de sessão fresca 2026-06-30). A lógica está provada; a *entrega do PreToolUse pela plataforma pra tool nativa `DesignSync`* **NÃO ocorre** — a probe rodou numa sessão bootada com o hook registrado, zero opt-in, e `finalize_plan` voltou erro NATIVO do tool (path do `localDir` → auth do `/design-login`), nunca o `[BLOCKED]` (evidência literal em §Furos). **O gate por hook está armado-mas-inerte; não morde em runtime.** O enforcement mecânico precisa migrar pra camada de permissão `deny` (proposta em §Furos), após diagnóstico de causa-raiz. NÃO declarar o Gap 1 fechado mecanicamente até um gate REAL morder.
 
 ## Notas
 
