@@ -10,13 +10,15 @@ uses(Tests\TestCase::class);
  * Smoke estrutural (não boota app, sobrevive DB greenfield) garantindo que:
  *   - config canon test_business_id (99) + protected_business_ids ([1,4]) existem
  *   - FinanceiroDemoSeeder usa test_business_id por default e RECUSA tenant protegido
- *   - workflow run-financeiro-demo-seeder default = 99
  *   - TestBusinessSeeder existe e cria via via canônica (createNewBusiness)
+ *
+ * Nota: o workflow one-shot run-financeiro-demo-seeder.yml foi DELETADO (ADR 0314 D-3,
+ * 2026-06-30 — dispatch-only, último run 2026-05-20). A proteção de tenant real segue
+ * inteira aqui, no guard do PRÓPRIO seeder (default=99 + recusa protected_business_ids).
  */
 
 const DEMO_SEEDER = __DIR__ . '/../../Database/Seeders/FinanceiroDemoSeeder.php';
 const APP_CONFIG = __DIR__ . '/../../../../config/app.php';
-const SEED_WORKFLOW = __DIR__ . '/../../../../.github/workflows/run-financeiro-demo-seeder.yml';
 const TEST_BIZ_SEEDER = __DIR__ . '/../../../../database/seeders/TestBusinessSeeder.php';
 
 describe('Config canon de tenant de teste', function () {
@@ -46,12 +48,7 @@ describe('FinanceiroDemoSeeder não polui tenant real', function () {
     });
 });
 
-describe('Workflow + seeder de tenant de teste', function () {
-    it('workflow default biz_id = 99', function () {
-        $src = file_get_contents(SEED_WORKFLOW);
-        expect($src)->toContain("default: '99'");
-    });
-
+describe('Seeder de tenant de teste', function () {
     it('TestBusinessSeeder cria via createNewBusiness (via canônica)', function () {
         $src = file_get_contents(TEST_BIZ_SEEDER);
         expect($src)->toContain('createNewBusiness(');
