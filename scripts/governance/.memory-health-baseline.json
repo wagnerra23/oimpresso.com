@@ -83,7 +83,6 @@
     "layout-primitives-guard.yml",
     "mcp-drift-sentinel.yml",
     "memory-health.yml",
-    "memory-schema-gate-extended.yml",
     "memory-schema-gate.yml",
     "module-grades-gate.yml",
     "modules-pest.yml",

@@ -1,8 +1,11 @@
 #!/usr/bin/env node
-// design-memory-gates.test.mjs — auto-teste do wire dos gates de design-memory no CI (Onda O3).
+// design-memory-gate.test.mjs — auto-teste do wire do gate de design-memory no CI (Onda O3).
+//
+// 2026-06-30 (ADR 0314 F2): apontado pro workflow FUNDIDO design-memory-gate.yml
+// (ex-design-memory-gates.yml + component-registry.yml + dtcg-equivalence.yml).
 //
 // Verifica, sem rede/DB, que:
-//   T1  o workflow .github/workflows/design-memory-gates.yml existe
+//   T1  o workflow .github/workflows/design-memory-gate.yml existe
 //   T2  e' advisory (continue-on-error nos steps de gate · nasce nao-required · ADR 0271/0275)
 //   T3  dispara em pull_request com paths design-memory + workflow_dispatch
 //   T4  invoca os DOIS scripts reais (ds-guard.mjs §8 + integrity-check.mjs §15)
@@ -21,7 +24,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));   // scripts/governance/
 const ROOT = resolve(HERE, '..', '..');                  // repo root
-const WF = join(ROOT, '.github', 'workflows', 'design-memory-gates.yml');
+const WF = join(ROOT, '.github', 'workflows', 'design-memory-gate.yml');
 const REGISTRY = join(ROOT, 'scripts', 'governance', 'gates-registry.json');
 
 let fail = 0;
@@ -29,7 +32,7 @@ const ok = (cond, label) => { console.log(`  [${cond ? 'PASS' : 'FAIL'}] ${label
 
 // ---- T1 — workflow existe -------------------------------------------------
 const wfExists = existsSync(WF);
-ok(wfExists, 'T1 workflow design-memory-gates.yml existe');
+ok(wfExists, 'T1 workflow design-memory-gate.yml existe');
 const yml = wfExists ? readFileSync(WF, 'utf8') : '';
 
 // ---- T2 — advisory (continue-on-error) ------------------------------------
@@ -54,7 +57,7 @@ ok(/--all/.test(yml), 'T5b roda tambem ds-guard --all (relatorio de divida)');
 // ---- T6 — registry com teto de governanca (ADR 0298) ----------------------
 let reg = {};
 try { reg = JSON.parse(readFileSync(REGISTRY, 'utf8')).workflows || {}; } catch { /* T6 falha abaixo */ }
-const entry = reg['design-memory-gates.yml'];
+const entry = reg['design-memory-gate.yml'];
 ok(!!entry, 'T6 registrado em gates-registry.json');
 if (entry) {
   ok(entry.classe === 'gate', `T6 classe="gate" (tem: ${entry.classe})`);
