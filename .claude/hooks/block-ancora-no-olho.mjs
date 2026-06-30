@@ -24,7 +24,18 @@
 import { stdin, env } from 'node:process';
 import { basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ehAncoraIlegitima } from '../../prototipo-ui/ancora.mjs';
+
+// AUTO-CONTIDO (adversário ATAQUE 1, 2026-06-30): a lista-negra é INLINE, sem import de
+// ancora.mjs. Um guarda NÃO pode falhar-aberto porque outro arquivo quebrou — se o hook
+// dependesse de `import ../../prototipo-ui/ancora.mjs` e esse arquivo tivesse erro de sintaxe,
+// o hook crashava com exit 1 (≠ 2) → tool LIBERADA → guarda mudo. Cópia sincronizada com
+// ancora.mjs::ehAncoraIlegitima — settings-ancora-registration.test.mjs guarda contra drift.
+const NAO_ANCORA = /audit|critique|cr[ií]tica|screenshot|scrap|-old|reavalia|tribunal/i;
+export function ehAncoraIlegitima(p) {
+  if (!p) return false;
+  const b = basename(p);
+  return /\.(png|jpg|jpeg|webp|gif)$/i.test(b) && NAO_ANCORA.test(b);
+}
 
 // fora-do-repo = onde bundles caem (Downloads/Desktop/staging) — não casa caminho do repo
 const FORA_DO_REPO = /(\/|\\)(Downloads|Desktop|Área de Trabalho|Ã.rea de Trabalho)(\/|\\)|_cowork-handoff-staging|_handoff-[^/\\]*staging|cowork-snapshot/i;
