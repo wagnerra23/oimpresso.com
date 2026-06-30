@@ -61,6 +61,9 @@ beforeEach(function () {
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return; // era-sqlite: não dropar tabela compartilhada no MySQL persistente (US-GOV-021)
+    }
     Schema::dropIfExists('mcp_work_leases');
 });
 

@@ -141,11 +141,17 @@ function forjaFakeGh(string $checkState = 'success', string $required = 'ci'): v
 }
 
 beforeEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: tabelas sintéticas só rodam no sqlite (US-GOV-021)');
+    }
     mkForjaHandoffTable();
     mkForjaHeartbeatTable();
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return; // era-sqlite: não dropar tabela compartilhada no MySQL persistente (US-GOV-021)
+    }
     foreach (['cowork_handoffs', 'mcp_ingest_heartbeat'] as $tbl) {
         if (Schema::hasTable($tbl)) {
             Schema::drop($tbl);
