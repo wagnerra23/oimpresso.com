@@ -37,6 +37,9 @@ jobs:
     name: Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)
     runs-on: ubuntu-latest
     # ADVISORY: job inteiro não bloqueia merge. Remover quando virar required.
+    # ⚠️ 2026-06-30: NÃO armar ainda — Pest está VERMELHO no main (2 guards falham:
+    # WithoutGlobalScopesCommentGuardTest + BusinessIdGuardTest). Mascarado por este
+    # continue-on-error. Armar = main red-lock. Zerar as violações ANTES de promover.
     continue-on-error: true
 
     steps:

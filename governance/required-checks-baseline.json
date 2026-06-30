@@ -39,7 +39,12 @@
       "PHPStan / Larastan · ratchet vs baseline",
       "PII scan (CPF/CNPJ literal)",
       "UI Lint · ratchet vs baseline",
-      "visual-regression"
+      "visual-regression",
+      "Detectar mudança de bucket sem label aprovação (ADR 0160 — Wave 20)",
+      "Jana recall-eval (mock — golden set determinístico)",
+      "module-grades-gate",
+      "PHP / Pest (NfeBrasil · MySQL · advisory)",
+      "Secret scan (gitleaks · só linhas novas do PR)"
     ]
   },
   "rulesets": {
