@@ -94,7 +94,7 @@ Critério LEI: **só fica required o que evita catástrofe Tier-0 ou quebra de c
 
 **[ ] F4 · Drift — ❌ REJEITADA pelo adversário (não é fusão sem perda):** `governance-drift` orquestra **classes PHP** que implementam `Modules\Governance\Contracts\DriftChecker` (11 registradas no `GovernanceServiceProvider`). Os 3 alvos são **scripts Node `.mjs`** (`protection-drift.mjs`, `anchor-lint.mjs`, `outcome-metrics.mjs`) — foldar = **reescrever cada um como classe PHP** (porte caro, risco de perder cobertura na tradução), não plug. Agravantes: `anchor-drift.yml` **hospeda o required `anchor entry/covers`** (LEI — fundir dissolveria o host de um required); `protection-drift.mjs` é a **sentinela que lê o `required-checks-baseline.json`** (vigia o próprio sistema de required — natureza distinta de um DriftChecker de conteúdo). **Mantém os 5 separados nesta onda.** Se valer a pena depois, vira tarefa "porte .mjs→DriftChecker" própria, fora da poda.
 
-**[ ] F5 · Trio-tela (6→4):** `casos-gate` + `dominio-gate` (LEI, ficam) + `screen-coverage-gate` ficam; `charter-refs-gate` + `charter-us-gate` + `contrato-de-tela` → avaliar fusão das 2 réguas de charter (`charter-refs` + `charter-us`) → **1**. 6→5 (conservador; contrato-de-tela é a perna visual nova, mantém separada).
+**[~~ ~~] F5 · Trio-tela — ❌ FUSÃO-CHARTER RETIRADA (avaliação de execução 2026-06-30 — réguas ortogonais):** o `casos-gate` + `dominio-gate` (LEI) + `screen-coverage-gate` + `contrato-de-tela` já ficavam separados; a ÚNICA fusão proposta era `charter-refs-gate` + `charter-us-gate` → 1. Lendo os 2 a fundo (YAML + scripts + baseline + branch protection): **não são a mesma régua.** `charter-refs` mede **integridade de PATHS** (os refs/links do charter resolvem on-disk?) — varre a árvore INTEIRA vs teto numérico (`charter-refs-baseline.json` ceiling=2, ratchet-down), espelha `CharterHealthChecker.php`, tem self-test HARD + `--fix`, e **É REQUIRED** (`charter_refs_broken <= teto` confirmado no branch protection). `charter-us` mede **rastreabilidade** (o charter declara `related_us`?) — diff-aware (só charters tocados mordem), **sem floor** (129 legados não avermelham), CI-only, **ADVISORY-de-nascença** (`promote_by 2026-09-30`, ADR 0275 §5). Compartilham SÓ o glob `*.charter.md` — como casos/domínio/screen-coverage/contrato, que a própria F5 mantém separados (mesmo arquivo-alvo ≠ mesma régua). Fundir = acoplar 1 required + 1 advisory: ou **arma o `related_us` lint como required antes do soak** (viola o calendário 0275 + footgun da ADR 0261), ou **rebaixa a catraca de integridade required pra advisory** (perde proteção real que espelha o health-check). Triggers incompatíveis (`charter-refs` sem path-filter por require-safe vs `charter-us` path-filtered+cron) e grandfather opostos (teto numérico vs git-diff) selam: **−1 arquivo por emaranhar 2 mecanismos distintos. Não vale.** F5 não funde nada — 6→6. **F5 sai da onda.** (É o caso F3 RAGAS repetido: mesmo glob/nome ≠ redundância.)
 
 ## D-3 — Deletes verificados (one-shots de incidente fechado)
 
@@ -111,14 +111,14 @@ Critério LEI: **só fica required o que evita catástrofe Tier-0 ou quebra de c
 
 ## Consequências
 
-- **91 → ~79 workflows** (F1 −6, F2 −5, F5 −1, D-3 −3; **F3 e F4 retiradas**) na 1ª execução; required **27 → ~18**.
+- **91 → ~80 workflows** (F1 −6, F2 −5, D-3 −3; **F3, F4 e a fusão-charter da F5 retiradas**) na 1ª execução; required **27 → ~18**.
 - Papel volta a bater com máquina: zero "4 baselines de cor"; e o invariante DURO: **nenhum gate multi-tenant/dinheiro/PII/fiscal sai do required** (lição do adversário).
 - Execução: **1 PR por bloco ratificado** (F1, F2, … isolados; cada um preserva sub-checks + atualiza branch protection **+ os 2 registros** no mesmo PR; smoke do gate fundido antes de mexer no required).
 - Risco residual: fundir errado = perder um sub-check silenciosamente. Mitigação: cada PR de fusão roda o gate fundido contra um diff que SABE-se que deveria falhar (counterfactual por sub-check) antes de remover os antigos.
 
 ## Métricas
 
-- Workflows: 91 → ~79 (onda 2) · required: 27 → ~18 · clusters redundantes fundidos: 3 (F1/F2/F5; F3+F4 fora) · deletes: 2 limpos + 1 acoplado.
+- Workflows: 91 → ~80 (onda 2) · required: 27 → ~18 · clusters redundantes fundidos: 2 (F1/F2; F3+F4+fusão-charter-F5 fora) · deletes: 2 limpos + 1 acoplado.
 
 ## Adversário (review 2026-06-30 — antes da ratificação)
 
@@ -140,16 +140,17 @@ Wagner deu "pode fazer" pra começar pela F3. Ao abrir os arquivos pra executar,
 
 - **F3 RETIRADA.** Os 2 RAGAS workflows não são redundantes (gate de threshold absoluto vs canary de drift relativo — intencionalmente separados); o redundante de verdade (`ragas-gate.yml` W22 MVP) já foi deletado. Fundir = emaranhar 2 mecanismos por −1 arquivo. Não vale. (Detalhe no bloco F3.)
 - **Nenhum delete/fusão é "puro": regra de sincronia de registro.** Todo workflow está em `gates-registry.json` + `.memory-health-baseline.json` (`checkM`), e o `memory-health` (LEI) falha se divergir. Cada PR de delete/fusão tem que sincronizar os 2 registros — senão eu mesmo deixo o gate LEI vermelho. (Regra no §Contexto.)
+- **F5 fusão-charter RETIRADA (avaliação de execução 2026-06-30).** Wagner pré-aprovou executar a F5; ao abrir os 2 arquivos pra fundir, `charter-refs` (integridade de PATHS, **required**, ratchet numérico, espelha `CharterHealthChecker.php`) e `charter-us` (rastreabilidade `related_us`, **advisory**-de-nascença, diff-aware sem floor) **não são a mesma régua** — só compartilham o glob `*.charter.md`. Fundir acoplaria 1 required + 1 advisory (armaria o advisory antes do soak OU rebaixaria o required) e emaranharia triggers/grandfather opostos. F5 não funde nada (6→6). Caso F3 RAGAS repetido. (Detalhe no bloco F5.)
 
 Lição perene: a poda parece "deletar arquivo", mas é cirurgia de registro — por isso 1 PR por bloco, com counterfactual, e nada executado no fim de sessão longa.
 
 ## Ratificação (Wagner marca o que aprova)
 
 - [ ] D-1 LEI (núcleo + os 4 resgatados: Tier-0 guards · anchor entry/covers · visual-regression · NfeBrasil) + 7 demoções reais (ou ajusta)
-- [ ] F1 DS/Cor _(em PR aberto [#3456](https://github.com/wagnerra23/oimpresso.com/pull/3456))_ · [x] **F2 Memória — EXECUTADO** ([#3459](https://github.com/wagnerra23/oimpresso.com/pull/3459)) · [ ] F5 Trio-tela · [ ] ~~F3 RAGAS~~ (retirada — sem alvo limpo) · [ ] ~~F4 Drift~~ (rejeitada)
+- [ ] F1 DS/Cor _(em PR aberto [#3456](https://github.com/wagnerra23/oimpresso.com/pull/3456))_ · [x] **F2 Memória — EXECUTADO** ([#3459](https://github.com/wagnerra23/oimpresso.com/pull/3459)) · [ ] ~~F5 Trio-tela~~ (fusão-charter retirada — réguas ortogonais) · [ ] ~~F3 RAGAS~~ (retirada — sem alvo limpo) · [ ] ~~F4 Drift~~ (rejeitada)
 - [x] **D-3 deletes — EXECUTADO (parcial)** ([#3455](https://github.com/wagnerra23/oimpresso.com/pull/3455)): resync + test-business deletados **com sync de registro**; force-clean = MANTER; **resta** demo-seeder (bundlado com o teste acoplado)
 
-Ao ratificar o resto: vira `status: aceito`, sai de `proposals/`, ganha número canon, 1 PR por bloco. Pendente: **D-1 LEI** (mexe em required — branch protection no mesmo PR), **F5 Trio-tela**, e fechar **F1** (#3456) + o **demo-seeder** do D-3.
+Ao ratificar o resto: vira `status: aceito`, sai de `proposals/`, ganha número canon, 1 PR por bloco. Pendente: **D-1 LEI** (mexe em required — branch protection no mesmo PR), e fechar **F1** (#3456) + o **demo-seeder** do D-3.
 
 ## Log de execução
 
@@ -159,4 +160,5 @@ Ao ratificar o resto: vira `status: aceito`, sai de `proposals/`, ganha número 
 | 2026-06-30 | **F2 Memória/schema** | [#3459](https://github.com/wagnerra23/oimpresso.com/pull/3459) | ✅ 8→3: `memory-schema-gate-extended` foldado em `memory-schema-gate`; `component-registry` + `dtcg-equivalence` foldados em `design-memory-gate`; sync de registro no mesmo PR. |
 | 2026-06-30 | reconciliação v2→v3 | _(este PR)_ | A cópia em `main` estava na v2 (merge do #3452 pegou v2; a v3 — F3 retirada, F4 rejeitada, regra de sincronia de registro, +4 LEI resgatados — ficou na branch não-remergeada). Este PR traz a v3 pra `main` + marca D-3 e F2 executados. |
 | _em PR_ | **F1 DS/Cor** | [#3456](https://github.com/wagnerra23/oimpresso.com/pull/3456) aberto | 7→1 `ds-gate.yml` (mexe em required — branch protection no mesmo PR). |
-| _pendente_ | D-1 LEI · F5 · demo-seeder | — | aguarda ratificação/execução por bloco ([W]). |
+| 2026-06-30 | **F5 Trio-tela** | _(este PR)_ | ❌ fusão-charter **RETIRADA**: `charter-refs` (required, integridade de paths, ratchet numérico) e `charter-us` (advisory, rastreabilidade `related_us`, diff-aware) não são a mesma régua — fundir acoplaria required+advisory. F5 não funde nada (6→6). Zero mudança em workflow/required/registro. |
+| _pendente_ | D-1 LEI · demo-seeder | — | aguarda ratificação/execução por bloco ([W]). |
