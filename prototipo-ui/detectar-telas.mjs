@@ -33,11 +33,11 @@
 //
 // --strict: ALVO-PENDENTE também falha (default: só ORFAO/AMBIGUO falham).
 
-import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { read, frontmatter, walk } from './_lib-charter.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '..');             // raiz do repo
@@ -89,20 +89,7 @@ export function liveDirNames(repoFiles, repoRoot) {
   return names;
 }
 
-const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { return null; } };
-
-async function walk(dir, out = []) {
-  let entries;
-  try { entries = await readdir(dir, { withFileTypes: true }); } catch { return out; }
-  const skip = new Set(['node_modules', '.git', '_arquivo', '_BACKUP-NAO-USAR', 'scraps', 'screenshots', 'uploads', 'assets']);
-  for (const e of entries) {
-    if (skip.has(e.name)) continue;
-    const full = join(dir, e.name);
-    if (e.isDirectory()) await walk(full, out);
-    else out.push(full);
-  }
-  return out;
-}
+// read/walk/frontmatter vêm de _lib-charter.mjs (fonte única com ancora.mjs)
 
 function resolveStaging(p) {
   if (!p) return null;
@@ -126,17 +113,7 @@ function extractMockupFiles(text) {
   const cleaned = text.replace(/resources\/js\/Pages\/[\w./-]+/g, ' ');
   return [...cleaned.matchAll(/[\w.-]+\.jsx/g)].map((m) => m[0]).filter((t) => !/^index\.jsx$/i.test(t));
 }
-function frontmatter(src) {
-  if (!src) return {};
-  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return {};
-  const fm = {};
-  for (const line of m[1].split(/\r?\n/)) {
-    const mm = line.match(/^([a-z_]+):\s*(.*)$/i);
-    if (mm) fm[mm[1].toLowerCase()] = mm[2].trim();
-  }
-  return fm;
-}
+// frontmatter() — ver _lib-charter.mjs (importado acima, fonte única)
 
 // módulo declarado pelo PRÓPRIO arquivo no header `// @memcofre ... module: X` (desambigua format-2)
 export function memcofreModule(src) {
