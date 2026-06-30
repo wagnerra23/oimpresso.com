@@ -112,3 +112,9 @@ jobs:
       - name: ancora-adversário (ATAQUE 1 não pode regredir pra fail-open)
         if: always()
         run: node scripts/evals/ancora-adversario.eval.mjs
+      # W1 do processo região-a-região: deriva o esqueleto do <tela>.contract.json do gap.md
+      # (não "no olho"). Selftest hermético (fixture gap.md 2 regiões + par bom/ruim do --check).
+      - name: gerar-contrato selftest (W1 região-a-região)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/gerar-contrato.mjs --selftest
