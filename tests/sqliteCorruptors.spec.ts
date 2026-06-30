@@ -104,7 +104,7 @@ it('algo', function () { $this->assertTrue(true); });`;
     const r = classifySource(src, 'X/Wave6Test.php');
     expect(r).not.toBeNull();
     expect(r.corruptsOnMysql).toBe(false);
-    expect(r.quarantined).toBe(true);           // efetivamente guardado
+    expect(r.effectivelyGuarded).toBe(true);    // driver-guard nos 2 lados = seguro (NÃO é "quarantined", que exige o literal era-sqlite)
   });
 
   it('dual-mode if(=== sqlite){DDL} else {row-delete} → seguro (DDL só no sqlite)', () => {
