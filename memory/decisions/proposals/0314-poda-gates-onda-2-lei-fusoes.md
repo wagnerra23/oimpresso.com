@@ -98,13 +98,13 @@ Critério LEI: **só fica required o que evita catástrofe Tier-0 ou quebra de c
 
 ## D-3 — Deletes verificados (one-shots de incidente fechado)
 
-**[x] DELETE — 2 de 3 EXECUTADOS ([PR #3455](https://github.com/wagnerra23/oimpresso.com/pull/3455), merged 2026-06-30; zero reuso confirmado, ambos 0 runs):**
+**[x] DELETE — 3 de 3 EXECUTADOS (#3455 + demo-seeder neste PR; zero reuso confirmado, todos 0 runs recentes):**
 
 | Workflow | Veredito (pós-adversário) |
 |---|---|
 | `run-financeiro-resync.yml` | ✅ **DELETADO (#3455)** — dispatch-only, 0 runs · sync de registro feito (`gates-registry.json` chave + `checkM`) |
 | `create-test-business.yml` | ✅ **DELETADO (#3455)** — dispatch-only, idempotente · sync de registro feito (`gates-registry.json` chave + `checkM`) |
-| `run-financeiro-demo-seeder.yml` | ⚠️ **delete COM coupling** — `Modules/Financeiro/Tests/Feature/DemoSeederProtectsRealBusinessTest.php` faz `file_get_contents` do .yml e asserta `default: '99'`. Deletar o .yml SÓ junto com a remoção do const + asserção **no mesmo PR** + sync registro, senão Financeiro + memory-health ficam vermelhos |
+| `run-financeiro-demo-seeder.yml` | ✅ **DELETADO (este PR)** — dispatch-only, último run 2026-05-20 (0 reuso recente). Coupling resolvido no MESMO PR: removida a const `SEED_WORKFLOW` + a asserção `it('workflow default biz_id = 99')` do `DemoSeederProtectsRealBusinessTest.php` (a proteção de tenant real segue inteira no guard do PRÓPRIO seeder: default=99 + recusa `protected_business_ids`). Sync de registro feito (`gates-registry.json` chave + `checkM`); `memory-health` local = verde |
 | `force-clean-rebuild-trigger.yml` | ❌ **MANTER** — NÃO é one-shot (tem trigger `push` em branch dedicada), é escape-hatch de recovery citado em ≥8 runbooks/ADRs. A poda v1 de 22/jun foi invalidada por mexer em escape-hatch |
 
 > ⚠️ **Nenhum delete é "puro"** (exploração 2026-06-30): os 3 deletáveis estão em `gates-registry.json` + `.memory-health-baseline.json` (`checkM`). Cada PR de delete **obrigatoriamente** remove as 2 entradas de registro (ver Regra de sincronia de registro no §Contexto), senão o `memory-health` (LEI) fica vermelho. Reversível 100% (git history).
@@ -148,18 +148,17 @@ Lição perene: a poda parece "deletar arquivo", mas é cirurgia de registro —
 
 - [x] **D-1 LEI — EXECUTADO** ([#3466](https://github.com/wagnerra23/oimpresso.com/pull/3466), merged 2026-06-30; Wagner OK no diff, R10): baseline `required-checks-baseline.json` 29→22 + flip do branch protection aplicado (`gh api` removeu os 7 contextos). `protection-drift` vivo = 🟢 (0 🔴 / 0 🟡, enforcement `everyone` intacto). LEI preservada: Tier-0 guards · anchor entry/covers · visual-regression · NfeBrasil + núcleo ficam required.
 - [ ] F1 DS/Cor _(em PR aberto [#3456](https://github.com/wagnerra23/oimpresso.com/pull/3456))_ · [x] **F2 Memória — EXECUTADO** ([#3459](https://github.com/wagnerra23/oimpresso.com/pull/3459)) · [ ] ~~F5 Trio-tela~~ (fusão-charter retirada — réguas ortogonais) · [ ] ~~F3 RAGAS~~ (retirada — sem alvo limpo) · [ ] ~~F4 Drift~~ (rejeitada)
-- [x] **D-3 deletes — EXECUTADO (parcial)** ([#3455](https://github.com/wagnerra23/oimpresso.com/pull/3455)): resync + test-business deletados **com sync de registro**; force-clean = MANTER; **resta** demo-seeder (bundlado com o teste acoplado)
+- [x] **D-3 deletes — EXECUTADO (completo)** ([#3455](https://github.com/wagnerra23/oimpresso.com/pull/3455) + demo-seeder neste PR): resync + test-business + demo-seeder deletados **com sync de registro** (gates-registry + checkM); demo-seeder com coupling do teste resolvido no mesmo PR; force-clean = MANTER (escape-hatch)
 
-Ao ratificar o resto: vira `status: aceito`, sai de `proposals/`, ganha número canon, 1 PR por bloco. Pendente: **D-1 LEI** (mexe em required — branch protection no mesmo PR), e fechar **F1** (#3456) + o **demo-seeder** do D-3.
+Blocos executáveis da onda 2 **concluídos**: D-1 LEI (#3466), F1 DS/Cor (#3456), F2 Memória (#3459), D-3 deletes (#3455 + demo-seeder neste PR). F3 retirada · F4 rejeitada · F5 fusão-charter retirada (réguas ortogonais). Próximo passo de governança: ratificar → `status: aceito`, sair de `proposals/`, ganhar número canon.
 
 ## Log de execução
 
 | Data | Bloco | PR(s) | Estado |
 |---|---|---|---|
-| 2026-06-30 | **D-3 (parcial)** | [#3455](https://github.com/wagnerra23/oimpresso.com/pull/3455) deletes · [#3458](https://github.com/wagnerra23/oimpresso.com/pull/3458) roadmap | ✅ `resync` + `test-business` deletados c/ sync de registro (`gates-registry.json` + `checkM`); `memory-health` verde. Resta `demo-seeder` (teste acoplado). |
+| 2026-06-30 | **D-3 (completo)** | [#3455](https://github.com/wagnerra23/oimpresso.com/pull/3455) deletes · [#3458](https://github.com/wagnerra23/oimpresso.com/pull/3458) roadmap · demo-seeder _(este PR)_ | ✅ `resync` + `test-business` + `demo-seeder` deletados c/ sync de registro (`gates-registry.json` + `checkM`); `memory-health` verde. demo-seeder: coupling do teste resolvido (removida const+asserção do `.yml`; guard real fica no seeder). force-clean = MANTER. |
 | 2026-06-30 | **F2 Memória/schema** | [#3459](https://github.com/wagnerra23/oimpresso.com/pull/3459) | ✅ 8→3: `memory-schema-gate-extended` foldado em `memory-schema-gate`; `component-registry` + `dtcg-equivalence` foldados em `design-memory-gate`; sync de registro no mesmo PR. |
 | 2026-06-30 | reconciliação v2→v3 | _(este PR)_ | A cópia em `main` estava na v2 (merge do #3452 pegou v2; a v3 — F3 retirada, F4 rejeitada, regra de sincronia de registro, +4 LEI resgatados — ficou na branch não-remergeada). Este PR traz a v3 pra `main` + marca D-3 e F2 executados. |
 | _em PR_ | **F1 DS/Cor** | [#3456](https://github.com/wagnerra23/oimpresso.com/pull/3456) aberto | 7→1 `ds-gate.yml` (mexe em required — branch protection no mesmo PR). |
 | 2026-06-30 | **F5 Trio-tela** | _(este PR)_ | ❌ fusão-charter **RETIRADA**: `charter-refs` (required, integridade de paths, ratchet numérico) e `charter-us` (advisory, rastreabilidade `related_us`, diff-aware) não são a mesma régua — fundir acoplaria required+advisory. F5 não funde nada (6→6). Zero mudança em workflow/required/registro. |
 | 2026-06-30 | **D-1 LEI (reshape do required)** | [#3466](https://github.com/wagnerra23/oimpresso.com/pull/3466) | ✅ required **29→22**: baseline `governance/required-checks-baseline.json` editado (7 demoções em `_meta.democoes`) + flip do branch protection aplicado via `gh api` após Wagner OK (R10). `protection-drift` vivo = 🟢 (0 🔴 / 0 🟡, `enforcement: everyone`). Demovidos→advisory (seguem rodando, não bloqueiam): module-grades-gate, E2E Playwright, A11y axe, Foundation ratchet, charter_refs_broken, bucket-sem-label (0160), Jana recall-eval. LEI intacta. |
-| _pendente_ | demo-seeder (resto do D-3) | — | bundlado com o teste acoplado `DemoSeederProtectsRealBusinessTest`. |
