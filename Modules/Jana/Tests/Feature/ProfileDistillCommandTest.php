@@ -54,7 +54,7 @@ beforeEach(function () {
 
     DB::table('business')->insert([
         ['id' => 1, 'name' => 'WR2 Sistemas'],
-        ['id' => 4, 'name' => 'ROTA LIVRE'],
+        ['id' => 2, 'name' => 'Segundo tenant'],
         ['id' => 99, 'name' => 'Outro tenant'],
     ]);
 });
@@ -112,7 +112,7 @@ it('ProfileDistill 001 — default itera TODOS os businesses (cada um 1×) + exi
     $exit = Artisan::call('jana:profile-distill');
 
     expect($exit)->toBe(0)
-        ->and($fake->called)->toEqualCanonicalizing([1, 4, 99])
+        ->and($fake->called)->toEqualCanonicalizing([1, 2, 99])
         ->and(DB::table('jana_business_profile')->count())->toBe(3);
 
     // Todas as rows ficaram frescas (gerado_em = agora).
@@ -120,24 +120,24 @@ it('ProfileDistill 001 — default itera TODOS os businesses (cada um 1×) + exi
     expect($stale)->toBe(0);
 });
 
-it('ProfileDistill 002 — --business=4 regenera só ROTA LIVRE (Tier 0 — não toca os outros)', function () {
+it('ProfileDistill 002 — --business=2 regenera só aquele business (Tier 0 — não toca os outros)', function () {
     $fake = fakeDistiller();
     app()->instance(ProfileDistiller::class, $fake);
 
-    $exit = Artisan::call('jana:profile-distill', ['--business' => '4']);
+    $exit = Artisan::call('jana:profile-distill', ['--business' => '2']);
 
     expect($exit)->toBe(0)
-        ->and($fake->called)->toBe([4])
-        ->and(DB::table('jana_business_profile')->where('business_id', 4)->exists())->toBeTrue()
+        ->and($fake->called)->toBe([2])
+        ->and(DB::table('jana_business_profile')->where('business_id', 2)->exists())->toBeTrue()
         ->and(DB::table('jana_business_profile')->where('business_id', 1)->exists())->toBeFalse()
         ->and(DB::table('jana_business_profile')->where('business_id', 99)->exists())->toBeFalse();
 });
 
 it('ProfileDistill 003 — --only-stale pula frescos (<7d), regenera ausentes + stale', function () {
-    // biz=1 fresco (não deve ser tocado) · biz=4 stale (10d) · biz=99 ausente
+    // biz=1 fresco (não deve ser tocado) · biz=2 stale (10d) · biz=99 ausente
     DB::table('jana_business_profile')->insert([
         ['business_id' => 1, 'profile_text' => 'fresco', 'gerado_em' => now()->subDay(), 'created_at' => now(), 'updated_at' => now()],
-        ['business_id' => 4, 'profile_text' => 'velho', 'gerado_em' => now()->subDays(10), 'created_at' => now()->subDays(10), 'updated_at' => now()->subDays(10)],
+        ['business_id' => 2, 'profile_text' => 'velho', 'gerado_em' => now()->subDays(10), 'created_at' => now()->subDays(10), 'updated_at' => now()->subDays(10)],
     ]);
 
     $fake = fakeDistiller();
@@ -146,7 +146,7 @@ it('ProfileDistill 003 — --only-stale pula frescos (<7d), regenera ausentes + 
     $exit = Artisan::call('jana:profile-distill', ['--only-stale' => true]);
 
     expect($exit)->toBe(0)
-        ->and($fake->called)->toEqualCanonicalizing([4, 99]) // biz=1 fresco NÃO foi chamado
+        ->and($fake->called)->toEqualCanonicalizing([2, 99]) // biz=1 fresco NÃO foi chamado
         ->and($fake->called)->not->toContain(1);
 
     // biz=1 manteve o texto original (não regenerado).
@@ -154,18 +154,18 @@ it('ProfileDistill 003 — --only-stale pula frescos (<7d), regenera ausentes + 
 });
 
 it('ProfileDistill 004 — falha de UM business não aborta o batch (exit FAILURE, demais processados)', function () {
-    $fake = fakeDistiller(throwFor: [4]); // biz=4 lança; 1 e 99 devem seguir
+    $fake = fakeDistiller(throwFor: [2]); // biz=2 lança; 1 e 99 devem seguir
     app()->instance(ProfileDistiller::class, $fake);
 
     $exit = Artisan::call('jana:profile-distill');
 
     expect($exit)->toBe(1) // FAILURE porque houve falha
-        ->and($fake->called)->toEqualCanonicalizing([1, 4, 99]); // todos tentados
+        ->and($fake->called)->toEqualCanonicalizing([1, 2, 99]); // todos tentados
 
-    // biz=1 e biz=99 foram persistidos apesar da exceção no biz=4.
+    // biz=1 e biz=99 foram persistidos apesar da exceção no biz=2.
     expect(DB::table('jana_business_profile')->where('business_id', 1)->exists())->toBeTrue()
         ->and(DB::table('jana_business_profile')->where('business_id', 99)->exists())->toBeTrue()
-        ->and(DB::table('jana_business_profile')->where('business_id', 4)->exists())->toBeFalse();
+        ->and(DB::table('jana_business_profile')->where('business_id', 2)->exists())->toBeFalse();
 });
 
 it('ProfileDistill 005 — regen NÃO sobrescreve created_at original (COPI-26 data-quality)', function () {
@@ -173,13 +173,13 @@ it('ProfileDistill 005 — regen NÃO sobrescreve created_at original (COPI-26 d
     app()->instance(ProfileDistiller::class, $fake);
 
     // 1ª geração: INSERT (created_at = data real de criação).
-    Artisan::call('jana:profile-distill', ['--business' => '4']);
-    $original = DB::table('jana_business_profile')->where('business_id', 4)->first();
+    Artisan::call('jana:profile-distill', ['--business' => '2']);
+    $original = DB::table('jana_business_profile')->where('business_id', 2)->first();
 
     // Relógio avança; o regen diário roda de novo (UPDATE da mesma row).
     $this->travel(2)->days();
-    Artisan::call('jana:profile-distill', ['--business' => '4']);
-    $regen = DB::table('jana_business_profile')->where('business_id', 4)->first();
+    Artisan::call('jana:profile-distill', ['--business' => '2']);
+    $regen = DB::table('jana_business_profile')->where('business_id', 2)->first();
 
     // created_at IMUTÁVEL (data de 1ª criação preservada); gerado_em/updated_at bumparam.
     expect($regen->created_at)->toBe($original->created_at)
