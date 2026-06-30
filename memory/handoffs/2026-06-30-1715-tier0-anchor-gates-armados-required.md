@@ -1,9 +1,13 @@
 ---
-date: 2026-06-30
-hour: "17:15 BRT"
+date: "2026-06-30"
+time: "17:15 BRT"
+slug: tier0-anchor-gates-armados-required
+tldr: "Fechou o near-miss das 16:03: zerou as 6 violações tier0 (#3438), removeu a máscara continue-on-error + baseline (#3441), require-safe no anchor-drift (#3444) e flipou os 2 gates pra required na branch protection (25→27, drift zero)."
+decided_by: [W]
+cycle: CYCLE-08
+prs: [3438, 3441, 3444]
+related_adrs: [0263-identidade-cor-gate-bloqueante, 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes, 0093-multi-tenant-isolation-tier-0, 0101-tests-business-id-1-nunca-cliente]
 topic: "Tier-0 guards + anchor entry/covers ARMADOS a required (resolve o near-miss das 16:03)"
-duration: "~2h"
-authors: [Claude, Wagner]
 ---
 
 # Tier-0 guards + anchor entry/covers → required (branch protection 25→27)
@@ -58,4 +62,4 @@ com o `anchor entry/covers` (drift pré-existente de 2026-06-24).
 ## Pointers detalhados (consultar on-demand)
 - Workflow: [`.github/workflows/tier0-guards-advisory.yml`](../../.github/workflows/tier0-guards-advisory.yml) · [`.github/workflows/anchor-drift.yml`](../../.github/workflows/anchor-drift.yml)
 - Baseline: [`governance/required-checks-baseline.json`](../../governance/required-checks-baseline.json) (`_meta.promocoes`)
-- ADRs: [0263](../decisions/0263-require-safe-sem-paths-filter.md) (require-safe), [0275 §5](../decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md) (calendário de flips), [0093](../decisions/0093-multi-tenant-isolation-tier-0.md) (SUPERADMIN), [0101](../decisions/0101-tests-business-id-1-nunca-cliente.md) (biz=1).
+- ADRs: [0263](../decisions/0263-identidade-cor-gate-bloqueante.md) (require-safe / gate sem paths-filter), [0275 §5](../decisions/0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md) (calendário de flips), [0093](../decisions/0093-multi-tenant-isolation-tier-0.md) (SUPERADMIN), [0101](../decisions/0101-tests-business-id-1-nunca-cliente.md) (biz=1).
