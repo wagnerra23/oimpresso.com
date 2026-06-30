@@ -6,7 +6,8 @@
     "capturado_em": "2026-06-20",
     "capturado_de_sha": "e765b4a7f3",
     "promocoes": [
-      "2026-06-24: +\"anchor entry/covers gate (advisory)\" — gate de entrada/covers armado (PR #3320, baseline grandfather + diff-aware). Flip do vivo: Wagner (ADR 0275 §5). Ver memory/decisions/proposals/2026-06-23-anchor-gates-arming-baseline-promocao.md"
+      "2026-06-24: +\"anchor entry/covers gate (advisory)\" — gate de entrada/covers armado (PR #3320, baseline grandfather + diff-aware). Flip do vivo: Wagner (ADR 0275 §5). Ver memory/decisions/proposals/2026-06-23-anchor-gates-arming-baseline-promocao.md",
+      "2026-06-30: +\"Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)\" — guards Tier-0 armados (PR #3438 zerou as 2 violações; continue-on-error removido no mesmo lote; CT 100 oimpresso-staging + CI = 2 passed). Flip do vivo na branch protection: Wagner (ADR 0275 §5 / R10)."
     ],
     "fonte": "gh api repos/<repo>/branches/main (.protection) + repos/<repo>/rules/branches/main — rota admin não usada (404 pra não-admin)",
     "limitacao": "o resumo público da protection clássica não expõe o flag strict (só rulesets expõem) — strict clássico é verificado no flip R1 pelo humano (ADR 0275 §5)",
@@ -44,7 +45,8 @@
       "Jana recall-eval (mock — golden set determinístico)",
       "module-grades-gate",
       "PHP / Pest (NfeBrasil · MySQL · advisory)",
-      "Secret scan (gitleaks · só linhas novas do PR)"
+      "Secret scan (gitleaks · só linhas novas do PR)",
+      "Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)"
     ]
   },
   "rulesets": {
