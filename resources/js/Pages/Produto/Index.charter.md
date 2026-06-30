@@ -1,6 +1,7 @@
 ---
 page: /products
 component: resources/js/Pages/Produto/Index.tsx
+bundle_source: produtos-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-05-15"
