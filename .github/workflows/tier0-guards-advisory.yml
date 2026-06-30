@@ -9,15 +9,14 @@ name: Tier-0 guards (advisory)
 #       varredura estática Tier-0: nenhum test/fixture usa `business_id = 4`
 #       (cliente RotaLivre) como default.
 #
-# ── ADVISORY-FIRST (ADR 0261: gate novo nasce advisory → enforcing) ──────────
-# Marcado `continue-on-error: true` em TODO o job: reporta status (🟡 quando há
-# violação) mas NÃO bloqueia merge. Motivo: ainda existem violações PRÉ-EXISTENTES
-# de WithoutGlobalScopes sendo corrigidas em PRs paralelas — bloquear agora deixaria
-# o main vermelho. Padrão "ratchet" do repo (vários gates já são advisory).
-#
-# PROMOVER A REQUIRED: quando as violações WithoutGlobalScopes zerarem no main
-# (BusinessId já costuma estar limpo), remover o `continue-on-error: true` e
-# adicionar o check ao branch protection. NÃO altera branch protection agora.
+# ── ENFORCING (ADR 0261: gate novo nasce advisory → enforcing) ───────────────
+# ARMADO 2026-06-30: PR #3438 zerou as 2 violações; CT 100 (oimpresso-staging) e o
+# CI provaram `2 passed (4 assertions)`. O `continue-on-error: true` foi REMOVIDO —
+# o job agora reporta FAILURE de verdade se qualquer guard violar (não mascara mais).
+# O check entrou no governance/required-checks-baseline.json no MESMO lote; o flip
+# pra required na branch protection é ação do Wagner (ADR 0275 §5 / R10).
+# ⚠️ O nome do job ("...advisory...") é mantido LITERAL — é o context string já
+# registrado no baseline; renomear quebraria o binding do required check.
 #
 # Guards são varredura estática + unit (Symfony Finder sobre o filesystem): NÃO
 # precisam de MySQL/migrate. Por isso o setup mais leve disponível (sqlite :memory:),
@@ -36,11 +35,6 @@ jobs:
   guards:
     name: Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)
     runs-on: ubuntu-latest
-    # ADVISORY: job inteiro não bloqueia merge. Remover quando virar required.
-    # ⚠️ 2026-06-30: NÃO armar ainda — Pest está VERMELHO no main (2 guards falham:
-    # WithoutGlobalScopesCommentGuardTest + BusinessIdGuardTest). Mascarado por este
-    # continue-on-error. Armar = main red-lock. Zerar as violações ANTES de promover.
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
@@ -81,10 +75,7 @@ jobs:
           EOF
           php artisan key:generate
 
-      - name: Pest — Tier-0 guards (ADVISORY)
-        # `continue-on-error` no job já garante não-bloqueio; mantido aqui também
-        # pros próximos steps rodarem mesmo com violação pré-existente.
-        continue-on-error: true
+      - name: Pest — Tier-0 guards
         run: |
           vendor/bin/pest \
             tests/Unit/Guards/WithoutGlobalScopesCommentGuardTest.php \
