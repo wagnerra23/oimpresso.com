@@ -17,7 +17,6 @@ related:
   - 0299-figma-nao-e-fonte-de-design
   - 0114-prototipo-ui-cowork-loop-formalizado
   - 0239-governanca-design-system-git-ssot-regressao-ia
-  - 0224-hooks-block-vs-advisory-claude-4.8-aware
   - 0094-constituicao-v2-7-camadas-8-principios
 pii: false
 ---
