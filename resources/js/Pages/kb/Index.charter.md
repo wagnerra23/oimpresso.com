@@ -1,6 +1,7 @@
 ---
 page: /kb
 component: resources/js/Pages/kb/Index.tsx
+bundle_source: kb-page.jsx
 controller: Modules\KB\Http\Controllers\KbController@index
 route: kb.index
 status: draft

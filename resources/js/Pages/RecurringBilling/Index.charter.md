@@ -1,6 +1,7 @@
 ---
 page: /recurring-billing
 component: resources/js/Pages/RecurringBilling/Index.tsx
+bundle_source: cobranca-recorrente-page.jsx
 owner: wagner
 status: live
 last_validated: "2026-06-07"

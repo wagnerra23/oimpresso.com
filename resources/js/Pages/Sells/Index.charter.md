@@ -2,6 +2,7 @@
 page: /sells
 page_id: sells-index
 component: resources/js/Pages/Sells/Index.tsx
+bundle_source: vendas-page.jsx
 owner: wagner
 status: live
 last_validated: "2026-05-26"
