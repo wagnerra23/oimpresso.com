@@ -202,6 +202,8 @@ class WhatsmeowHealthProbeCommand extends Command
     private function hasRecentInbound(Channel $channel, int $minutes): bool
     {
         return Conversation::query()
+            // SUPERADMIN: probe roda em cron sem session de tenant; escopado por channel_id
+            // (PK única por business → nunca cross-tenant). ADR 0093.
             ->withoutGlobalScopes()
             ->where('channel_id', $channel->id)
             ->where('last_inbound_at', '>=', now()->subMinutes($minutes))

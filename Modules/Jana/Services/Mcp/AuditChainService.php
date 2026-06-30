@@ -127,6 +127,8 @@ class AuditChainService
     public static function verificarIntegridade(): array
     {
         return self::verificarCadeia(
+            // SUPERADMIN: cadeia de auditoria GLOBAL cross-tenant (ADR 0093) — o hash-chain do
+            // mcp_audit_log atravessa todos os business; o global scope quebraria a cadeia. Read-only.
             McpAuditLog::withoutGlobalScopes()->orderBy('id')->lazy(500)
         );
     }

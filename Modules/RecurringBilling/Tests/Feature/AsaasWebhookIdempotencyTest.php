@@ -84,7 +84,7 @@ function asaasAuth(string $secret = 'asaas-tok-ok'): array
 
 it('aceita webhook novo, registra em pg_webhook_events e dispatcha job', function () {
     Queue::fake();
-    seedAsaasCredential(businessId: 4);
+    seedAsaasCredential(businessId: 1);
 
     $payload = [
         'id'    => 'evt_abc123',
@@ -96,7 +96,7 @@ it('aceita webhook novo, registra em pg_webhook_events e dispatcha job', functio
         ],
     ];
 
-    $response = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/4', $payload);
+    $response = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/1', $payload);
 
     $response->assertStatus(200);
     $response->assertJsonPath('ok', true);
@@ -109,7 +109,7 @@ it('aceita webhook novo, registra em pg_webhook_events e dispatcha job', functio
 
 it('rejeita 2ª chamada com mesmo event_id sem dispatchar job (idempotência)', function () {
     Queue::fake();
-    seedAsaasCredential(businessId: 4);
+    seedAsaasCredential(businessId: 1);
 
     $payload = [
         'id'    => 'evt_dup',
@@ -117,8 +117,8 @@ it('rejeita 2ª chamada com mesmo event_id sem dispatchar job (idempotência)', 
         'payment' => ['id' => 'pay_x', 'value' => 50, 'externalReference' => 'INV-2'],
     ];
 
-    $r1 = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/4', $payload);
-    $r2 = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/4', $payload);
+    $r1 = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/1', $payload);
+    $r2 = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/1', $payload);
 
     $r1->assertStatus(200)->assertJsonPath('ok', true);
     $r2->assertStatus(200)->assertJsonPath('skipped', 'duplicate');
@@ -131,15 +131,15 @@ it('rejeita 2ª chamada com mesmo event_id sem dispatchar job (idempotência)', 
 
 it('gera event_id determinístico via md5(event+payment.id) quando Asaas não envia id', function () {
     Queue::fake();
-    seedAsaasCredential(businessId: 4);
+    seedAsaasCredential(businessId: 1);
 
     $payload = [
         'event' => 'PAYMENT_CONFIRMED',
         'payment' => ['id' => 'pay_no_evt', 'value' => 100, 'externalReference' => 'INV-3'],
     ];
 
-    $r1 = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/4', $payload);
-    $r2 = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/4', $payload);
+    $r1 = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/1', $payload);
+    $r2 = $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/1', $payload);
 
     $r1->assertStatus(200);
     $r2->assertJsonPath('skipped', 'duplicate');
@@ -187,7 +187,7 @@ it('eventos de providers diferentes podem ter mesmo event_id (cross-provider OK)
 
 it('dispatcha job na fila correta (rb_webhooks)', function () {
     Queue::fake();
-    seedAsaasCredential(businessId: 4);
+    seedAsaasCredential(businessId: 1);
 
     $payload = [
         'id'    => 'evt_queue_check',
@@ -195,7 +195,7 @@ it('dispatcha job na fila correta (rb_webhooks)', function () {
         'payment' => ['id' => 'p', 'value' => 1, 'externalReference' => 'X'],
     ];
 
-    $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/4', $payload);
+    $this->withHeaders(asaasAuth())->postJson('/api/webhooks/asaas/1', $payload);
 
     Queue::assertPushedOn('rb_webhooks', ProcessAsaasWebhookJob::class);
 });
