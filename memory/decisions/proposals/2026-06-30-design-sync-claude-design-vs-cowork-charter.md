@@ -143,7 +143,38 @@ DesignSync needs design-system authorization, but /design-login requires an inte
 3. **`/design-login` como gargalo de auth:** a escrita exige o escopo concedido por `/design-login`/login claude.ai. Se `/design-login` for interceptável (a verificar — provavelmente sofre do MESMO no-op por ser tool nativa), gateá-lo fecha a escrita na origem. Hoje, neste ambiente desktop/headless, a escrita **já é impossível** (auth indisponível, vide tentativa 2) — o risco real é só em sessão claude.ai/code logada no claude.ai/design.
 4. **PostToolUse NÃO serve** — roda depois da publicação; não previne. Descartado.
 
-> **Conclusão honesta:** o gate por hook (Eixo B / L1) está **provado inerte** pra tool nativa `DesignSync`. A política (Eixo A — claude.ai/design não é fonte) continua válida; o enforcement mecânico precisa migrar de hook PreToolUse pra (provavelmente) camada de permissão `deny`, após o diagnóstico de causa-raiz do item 1. **Não declarar o Gap 1 fechado mecanicamente até um gate REAL morder em runtime.**
+> **Conclusão honesta:** o gate por hook (Eixo B / L1) está **provado inerte** pra tool nativa `DesignSync`. A política (Eixo A — claude.ai/design não é fonte) continua válida; o enforcement mecânico precisa migrar de hook PreToolUse `DesignSync` pra outro ponto de intercepção, **após** diagnóstico de causa-raiz. Ponto candidato definitivo = gatear a **SKILL `/design-sync`** (a tool `Skill` É built-in e morde) — ver §Decisão adversarial. **Não declarar o Gap 1 fechado mecanicamente até um gate REAL morder em runtime.**
+
+### Decisão adversarial (2026-06-30) — ponto de intercepção do Eixo B
+
+Rodado workflow campeão×adversário (12 agentes: 5 candidatos × champion+adversary + investigador de semântica PreToolUse + juiz), confiança **alta**. **Por que o hook é inerte (raiz, não palpite):** `DesignSync`/`design-login` **não** estão na lista canônica de built-in tools da [tools-reference](https://code.claude.com/docs/en/tools-reference) — são **integração surfaceada como skill** (a doc, linha 11: integrações como `/design-sync` "rodam pela tool `Skill`, não adicionam tool nova"). Precedente explícito: o advisor-tool "has no name you can reference in permission rules or hook matchers". Hooks mordem built-in clássicas (Bash/Edit/Write — load-bearing neste `settings.json`) e MCP (`^mcp__`); **não** essa tool-folha. O matcher `"DesignSync"` é sintaticamente válido mas **nunca dispara**.
+
+**Escolha: `diagnóstico-primeiro`** (única ação que produz PROVA de runtime agora, em vez de adivinhar roteamento). Ranking dos candidatos:
+
+| # | Candidato | Veredito |
+|---|---|---|
+| **1** | **diagnóstico-primeiro** ✅ ESCOLHIDO | Hook PreToolUse wildcard `*` que só loga `tool_name`+`event` e sai 0. Prova mecânica direta de (não-)entrega; barato; classifica empiricamente os outros. Substitui o baseline indireto do furo #1 por prova citável. |
+| **2** | gate-skill-design-sync | **Melhor fix mecânico candidato.** Ataca a entrada REAL no namespace de hooks: a tool `Skill` é built-in → matcher `Skill`/`Skill(design-sync)` morde. Promover só APÓS a probe provar que morde. Furo: sessão pode chamar `DesignSync` direto sem passar pela skill. |
+| **3** | permission-deny | **Testar, não assumir.** Outro plano (permission system). Mas permission rules usam os MESMOS nomes da lista canônica — `DesignSync` ausente dela → provavelmente inerte como o hook. Validar no diagnóstico (custo ~zero); se morder, é o gate ideal; se não, descartar COM evidência. |
+| **4** | gate-design-login | Valor estreito. Em headless a auth já falha nativa; `design-login` provavelmente é nativa fora do namespace. Mapear no trace. |
+| **5** | policy-cultural-only | **Fallback honesto, não 1ª linha.** Só aceitável SE o diagnóstico provar que NENHUM ponto morde — aí registrar Eixo B inviável por plataforma + residual, **sem fingir gate**. |
+
+**Plano de verificação (próxima sessão FRESCA — load-no-startup exige reboot):**
+1. **PROBE 1 (baseline de não-entrega):** registrar hook PreToolUse wildcard que faz `appendFileSync` de `tool_name`+`hook_event_name` em `.claude/run/pretooluse-trace.log`, exit 0. Rebootar. Disparar (a) `Read`/`Bash` = **controle positivo** (prova que o hook roda), (b) `DesignSync.list_projects`, (c) `DesignSync.finalize_plan`. Critério: se `DesignSync` JAMAIS aparece no trace enquanto `Read`/`Bash` aparecem → **não-entrega provada** (vira evidência direta no ADR).
+2. **PROBE 2 (mesma sessão, ~zero):** `permissions.deny:["DesignSync"]` + re-disparar `finalize_plan` → se voltar erro nativo (não bloqueio de permissão) → deny inerte, descartar com evidência.
+3. **PROBE 3:** disparar a SKILL `/design-sync` → confirmar no trace que aparece `Skill` E que matcher `Skill` morde ANTES da integração rodar (exit 2 real) → valida gate-skill como ponto real.
+4. **PROBE 4:** `/design-login` → ver se emite PreToolUse (mapeia Gap residual 3).
+
+**Regra de fechamento:** ADR 0315 só marca Gap 1 "fechado" se ALGUM ponto (Skill, deny, ou DesignSync direto) for **provado mordendo** com exit 2 real no trace. Senão → Eixo B inviável por plataforma + cair pra policy-cultural-only com residual explícito.
+
+**Riscos residuais (do adversário):**
+- A probe roda em desktop headless; o risco real (publicação) é em **claude.ai/code logado** no claude.ai/design — ambiente onde estes hooks locais podem nem rodar. Provar (não-)entrega aqui NÃO prova o harness cloud; a defesa mecânica pode ser **estruturalmente impossível** onde o risco existe.
+- gate-skill não pega chamada DIRETA à tool `DesignSync` (sem passar pela skill) — fecha só a entrada oficial.
+- Opt-in por palavra é rede, não prova de escopo (já no hook).
+- PROBE 1 **exige controle positivo** (Read/Bash no trace): ausência de `DesignSync` poderia ser hook quebrado, não não-entrega — o controle distingue.
+- Classe inteira não fecha (Notion/screenshot/link seguem advisory L0).
+
+**Artefato preparado nesta sessão:** [`.claude/hooks/diag-pretooluse-trace.mjs`](../../../.claude/hooks/diag-pretooluse-trace.mjs) (INERTE — não registrado; a próxima sessão fresca registra → roda PROBE 1-4 → des-registra).
 
 ## Validação (executada — `node`, não Pest) — status HONESTO
 
