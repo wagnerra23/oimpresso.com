@@ -418,13 +418,13 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 > parent_plan: us-gov-021-isolamento-era-sqlite
 > related_adrs: [275, 276, 279, 283]
 
-**Implementado em:** _parcial_ · `scripts/audit/sqlite-test-corruptors.mjs` · `.github/workflows/governance-gate-umbrella.yml` · `Modules/TeamMcp/Tests/Feature/HandoffToolsTest.php` · verificado@fed6848 (2026-06-21) — 7/18 corruptores isolados (cluster TeamMcp Handoff/Ingest) + gate advisory ligado; 11 restantes no body do PR
+**Implementado em:** `scripts/audit/sqlite-test-corruptors.mjs` · `.github/workflows/governance-gate-umbrella.yml` · `Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php` · `Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php` · verificado@2026-06-30 — **0 corruptores** (auditor `--strict --tier=A` exit 0; 11 dos lotes 2-3 + 1 novo PaymentGateway isolados via GUARDAR-TEARDOWN). DoD-2 (floor cai em 2 nightlies) blocked_by P04.
 
 **Root cause PROVADO** (referenciado em US-GOV-020 "Lever real do floor" `:408-409`): o nightly full-suite roda contra um MySQL **persistente compartilhado**. ~18 testes "era-sqlite" criam tabelas sintéticas via `Schema::create`/`Schema::drop` em `beforeEach`/`afterEach` SEM guarda de driver — projetados pra rodar no sqlite `:memory:`. No MySQL persistente o `Schema::drop` **dropa a tabela real** → o próximo teste na mesma conexão acha tabela ausente → cascata `Base table not found`. Esse isolamento é o **lever real** do floor — **não é tweak de harness** (a Frente C/A.2 de US-GOV-020 já provou que FK-off é net-harmful; falhar-seguro é melhor).
 
 **Fonte da verdade = comportamento, não literal-grep.** A lista canônica vem do auditor `scripts/audit/sqlite-test-corruptors.mjs --json` (classifica por `corruptsOnMysql`, não text-match — a v1 tinha ~48% FP, refutado em ADR 0276). **NÃO usar `git grep "Schema::drop"`** (super-conta: mistura guardados com corruptores).
 
-#### Os 18 corruptores (auditor `--json`, tier A · ANTES dos fixes)
+#### Os 19 corruptores (auditor `--json`, tier A · ANTES dos fixes — 18 originais + 1 novo PaymentGateway detectado 2026-06-30)
 
 | Arquivo | tier | ação | status |
 |---|---|---|---|
@@ -435,17 +435,18 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 | `Modules/TeamMcp/Tests/Feature/HandoffSubmitToolTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
 | `Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php` | A 60 | GUARDAR-TEARDOWN | ✅ isolado |
-| `Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php` | A 75 | GUARDAR-TEARDOWN | ⏳ lote 2 |
-| `Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
-| `Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
-| `Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
-| `Modules/TeamMcp/Tests/Feature/ForjaQuadroServiceTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 2 |
-| `Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 3 |
-| `Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 3 |
-| `Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php` | A 75 | GUARDAR/CONVERTER | ⏳ lote 3 |
-| `Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php` | A 60 | GUARDAR/CONVERTER | ⏳ lote 3 |
-| `Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php` | A 60 | GUARDAR/CONVERTER | ⏳ lote 3 |
-| `Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php` | A 60 | GUARDAR/CONVERTER | ⏳ lote 3 |
+| `Modules/TeamMcp/Tests/Feature/CoworkHandoffCrossTenantTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/ForjaBacklogServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/ForjaChangelogServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/ForjaMcpServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/TeamMcp/Tests/Feature/ForjaQuadroServiceTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Jana/Tests/Feature/TaskRegistry/FsmTransitionGuardTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php` | A 75 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php` | A 60 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Jana/Tests/Feature/Mcp/WorkLeaseServiceTest.php` | A 60 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php` | A 60 | GUARDAR-TEARDOWN | ✅ isolado |
+| `Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookCommandTest.php` | A 60 | WRAP-SQLITE-IF | ✅ isolado (novo · 2026-06-30) |
 
 Ação canônica **GUARDAR-TEARDOWN** (preferida nos era-sqlite sintéticos — preserva cobertura no sqlite, neutro no MySQL): `if (config('database.default') !== 'sqlite') { $this->markTestSkipped(...) }` no topo do `beforeEach` + `if (config('database.default') !== 'sqlite') { return; }` no topo do `afterEach`. O auditor reconhece como `corruptsOnMysql=false, quarantined=true` (contrato travado em `tests/sqliteCorruptors.spec.ts:89-108`).
 
@@ -453,8 +454,8 @@ Ação canônica **GUARDAR-TEARDOWN** (preferida nos era-sqlite sintéticos — 
 
 1. **US escrita** com DoD, owner, anchor `**Implementado em:**`, e a lista canônica dos corruptores (fonte = auditor, NÃO literal-grep). ✅ (esta seção)
 2. **Floor cai de VERDADE** — 2 nightlies CT100 consecutivos: `floor_count` do `governance/nightly-floor.json` (ADR 0279) **diminui** vs baseline pré-fix, por **reduzir `errors`** da cascata "Base table not found", **NÃO** por inflar `skipped`. Anti-trapaça: `delta(errors)` ≥ nº de testes downstream que paravam de cascatear; `delta(skipped)` ≤ nº de corruptores legitimamente quarentenados. ⏳ `blocked_by: P04` (sem o floor no tree, não-observável — não fingir que mediu).
-3. **Gate liga:** `node scripts/audit/sqlite-test-corruptors.mjs --strict --tier=A` roda em workflow de PR. Nasce **advisory** (`continue-on-error: true` — há 11 corruptores ainda → exit 1; não travar PR não-relacionado). Promover a **required** (remover `continue-on-error`) só com `corruptors=0` + 2 verdes (ADR 0275). ✅ advisory ligado.
-4. **Contador:** `corruptors: 18 → 0` via `--json`. ⏳ 18 → 11 (parcial); restantes nos lotes 2-3.
+3. **Gate liga:** `node scripts/audit/sqlite-test-corruptors.mjs --strict --tier=A` roda em workflow de PR. Hoje **`corruptors=0` → exit 0** (gate verde). `continue-on-error: true` MANTIDO até **2 verdes consecutivos**; remover daí pra promover a **required** (ADR 0275). ✅ advisory verde, pronto pra required.
+4. **Contador:** `corruptors: 19 → 0` via `--json` (18 originais + 1 novo PaymentGateway). ✅ **0** (verificado 2026-06-30: `--strict --tier=A`/`--tier=S`/sem-tier todos exit 0; 266 testes guardados/seguros).
 
 #### Counterfactual (prova de que o gate MORDE)
 

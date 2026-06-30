@@ -129,5 +129,7 @@ it('GUARD 4: --dry-run lista órfãos na janela 1h..24h e NÃO dispatcha Job', f
 
     Bus::assertNotDispatched(RetryOrphanWebhookJob::class);
 
-    Schema::dropIfExists('gateway_webhook_events');
+    if (config('database.default') === 'sqlite') {
+        Schema::dropIfExists('gateway_webhook_events'); // só sqlite — teste pula no MySQL (guard linha 92); wrap p/ auditor estático US-GOV-021
+    }
 });
