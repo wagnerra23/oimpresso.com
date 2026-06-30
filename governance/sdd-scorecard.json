@@ -15,40 +15,82 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 7.5,
+      "value": 11.3,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 7.5,
-        "specs_total": 56,
-        "us_total": 775,
-        "anchor_coverage_pct": 7.5,
+        "coverage_pct": 11.3,
+        "specs_total": 59,
+        "us_total": 865,
+        "anchor_coverage_pct": 11.3,
         "by_state": {
-          "sem_campo": 680,
-          "placeholder": 22,
-          "pendente": 23,
-          "parcial": 0,
-          "anchored_ok": 35,
-          "anchored_dead": 15
+          "sem_campo": 746,
+          "placeholder": 12,
+          "pendente": 33,
+          "parcial": 7,
+          "anchored_ok": 58,
+          "anchored_dead": 9,
+          "anchored_zombie": 0
         },
-        "fields_total": 100,
-        "fields_placeholder": 22,
-        "fields_grammar_ok": 44,
+        "fields_total": 124,
+        "fields_placeholder": 12,
+        "fields_grammar_ok": 80,
         "orphan_fields": 5,
-        "v1_files": 0,
+        "dead_tests_total": 49,
+        "testado_sem_covers_total": 0,
+        "req_sem_aceite_total": 34,
+        "req_sem_covering_test_total": 47,
+        "req_teste_vermelho_total": 0,
+        "req_sem_lane_total": 15,
+        "behavior_known": false,
+        "baseline_applied": null,
+        "grandfathered": {
+          "aceite": 0,
+          "covering_test": 0,
+          "covers": 0
+        },
+        "v1_files": 1,
         "v1_violations": "0"
       },
       "stream": "SA"
     },
     "full_suite_pass_rate": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 300,
+      "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
-      "source": "governance/nightly-floor.json ainda não publicado pelo write-side CT100 (ADR 0279 PR-2 — precisa de credencial de push no CT100). A nightly FV-F3 roda (15+ runs reais); falta o transporte.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
+      "detail": {
+        "floor_files_hash": "68430851f266303f",
+        "runs": [
+          {
+            "sha": "becbf786",
+            "ts": "20260626-020001",
+            "failed": 320,
+            "errors": 782,
+            "skipped": 2805
+          },
+          {
+            "sha": "5bff76dc",
+            "ts": "20260628-020001",
+            "failed": 339,
+            "errors": 782,
+            "skipped": 2766
+          },
+          {
+            "sha": null,
+            "ts": "20260630-020001",
+            "failed": 352,
+            "errors": 796,
+            "skipped": 2700
+          }
+        ],
+        "computed_at": "20260630-020001",
+        "intersection_of": 3
+      },
       "stream": "FV"
     },
     "n_quarantine": {
@@ -68,19 +110,19 @@
       "value": null,
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "pcov instrumentado em CI (P0-2) — hoje coverage: none",
+      "source": "governance/nightly-coverage.json ainda não publicado pelo write-side CT100 (SDD P07 — pcov instrumentado em ct100-fullsuite.sh; falta rebuild da imagem com pcov + 1ª nightly). Hoje ci.yml roda coverage: none / --no-coverage no lane sqlite (fonte honesta é a suíte inteira CT100 — ADR 0275:68).",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
     "ghost_count": {
       "status": "measured",
-      "value": 14,
+      "value": 8,
       "unit": "nomes distintos",
       "direction": "down",
       "target": 0,
       "source": "scripts/governance/knowledge-drift.mjs --json (Modules/<X> citado e inexistente no disco; nomes: rodar a fonte direto)",
       "detail": {
-        "citing_modules": 24
+        "citing_modules": 11
       },
       "stream": "KL"
     },
@@ -92,8 +134,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 70,
-        "modules": 70
+        "with_door": 73,
+        "modules": 73
       },
       "stream": "MEM"
     },
@@ -137,18 +179,24 @@
       "status": "not_yet_measured",
       "value": null,
       "direction": "down",
-      "target": "advisory perene",
-      "source": "protection-drift + watchdog de staleness (GT-G4)",
+      "target": "advisory perene (0 alarmes duros)",
+      "source": "gh api indisponível — drift_alarms requer GITHUB_TOKEN (protection-drift.mjs lê branch protection). Fallback honesto: vira measured assim que o gh autenticar.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "GT"
     },
     "backfill_error_rate": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 0,
+      "unit": "% (MAX error_rate das entries aprovadas — conservador: 1 lote ruim estoura <2%)",
       "direction": "down",
       "target": "<2%",
-      "source": "ledger do protocolo refutador G5 — só existe após 1º lote IA refutado",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
+      "detail": {
+        "entries_aprovadas": 4,
+        "max_error_rate_pct": 0,
+        "last_pr": 2970,
+        "last_lote": "SA-A5-batch1-pg-pmg-kb"
+      },
       "stream": "GT"
     }
   }
