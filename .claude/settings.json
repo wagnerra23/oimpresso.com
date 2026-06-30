@@ -160,6 +160,15 @@
         ]
       },
       {
+        "matcher": "DesignSync",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-design-sync-without-optin.mjs"
+          }
+        ]
+      },
+      {
         "matcher": "Bash|PowerShell",
         "hooks": [
           {
@@ -223,6 +232,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/block-figma-without-optin.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-design-sync-without-optin.mjs"
           }
         ]
       }
