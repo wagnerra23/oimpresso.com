@@ -38,6 +38,8 @@ Desde então o inventário **cresceu 58 → 91 workflows** (+33). Boa parte é l
 
 Regra-mestra desta onda (igual à 0271): **nenhuma proteção real sai** — só morto, teatro, redundância e bomba armada. Fundir = o gate fundido roda TODOS os sub-checks + o required-checks do branch protection é atualizado no mesmo PR (sem janela descoberta).
 
+> 🔧 **Regra de sincronia de REGISTRO (descoberta na exploração de execução 2026-06-30):** todo `.github/workflows/*.yml` está registrado em DOIS lugares que o CI valida — `scripts/governance/gates-registry.json` (chave `workflows.<arquivo>`) e `scripts/governance/.memory-health-baseline.json` (`checkM.<n> = <arquivo>`). O **`memory-health` (LEI/required)** falha se o conjunto de workflows divergir do baseline. Logo: **qualquer DELETE ou FUSÃO de workflow DEVE atualizar os 2 registros no MESMO PR** (remover a chave em `gates-registry`, remover/reindexar a entrada em `checkM`). Sem isso, o próprio gate LEI fica vermelho. É o equivalente registry-level do "fundir atualiza branch protection no mesmo PR".
+
 ## D-1 — LEI: o required que DEVE morder (proposta)
 
 Critério LEI: **só fica required o que evita catástrofe Tier-0 ou quebra de correção do núcleo.** O resto continua rodando e mostrando vermelho — mas advisory (fora do required), promovível por calendário (ADR 0275). Demover ≠ apagar: o gate segue lá, só não bloqueia.
@@ -88,7 +90,7 @@ Critério LEI: **só fica required o que evita catástrofe Tier-0 ou quebra de c
 
 **[ ] F2 · Memória/schema (8→3):** `memory-schema-gate` + `memory-schema-gate-extended` → **1** (mesma fonte schema). `component-registry` + `design-memory-gates` + `dtcg-equivalence` (todos advisory de design-memory) → **1 `design-memory-gate`**. `memory-health` + `knowledge-ghost-gate` + `anchor-drift` ficam separados (semânticas distintas). 8→3.
 
-**[ ] F3 · RAGAS/Jana (5→3):** `jana-ragas-gate` (já desarmado) + `jana-ragas-canary` → **1** (PR-mock + cron-real no mesmo arquivo). `jana-pest` e `jana-logica-pura-pest` (este já fundiu 3) ficam. `jana-recall-eval` fica (vira advisory por D-1). 5→3.
+**[~~ ~~] F3 · RAGAS/Jana — ❌ RETIRADA (exploração de execução 2026-06-30 não achou alvo limpo):** a v2 propunha fundir `jana-ragas-gate` + `jana-ragas-canary`. Lendo os 2 a fundo: **não são redundantes** — `jana-ragas-gate` é PR-gate de threshold ABSOLUTO (faith≥0.80, comenta no PR, bloqueia em real); `jana-ragas-canary` é cron diário de regressão RELATIVA vs baseline (>5% drift, abre issue, atualiza baseline). Compartilham o comando `jana:ragas-ci-eval` mas fazem coisas diferentes e foram **intencionalmente separados** (cada header cross-referencia o outro). O workflow genuinamente redundante era o `ragas-gate.yml` (W22 MVP) — **já deletado**. Fundir os 2 = combinar 2 mecanismos distintos por −1 arquivo, com risco de emaranhar o issue-open/baseline-update do canary no comment-logic do gate. **Não vale.** `jana-recall-eval` segue (vira advisory por D-1). **F3 sai da onda.**
 
 **[ ] F4 · Drift — ❌ REJEITADA pelo adversário (não é fusão sem perda):** `governance-drift` orquestra **classes PHP** que implementam `Modules\Governance\Contracts\DriftChecker` (11 registradas no `GovernanceServiceProvider`). Os 3 alvos são **scripts Node `.mjs`** (`protection-drift.mjs`, `anchor-lint.mjs`, `outcome-metrics.mjs`) — foldar = **reescrever cada um como classe PHP** (porte caro, risco de perder cobertura na tradução), não plug. Agravantes: `anchor-drift.yml` **hospeda o required `anchor entry/covers`** (LEI — fundir dissolveria o host de um required); `protection-drift.mjs` é a **sentinela que lê o `required-checks-baseline.json`** (vigia o próprio sistema de required — natureza distinta de um DriftChecker de conteúdo). **Mantém os 5 separados nesta onda.** Se valer a pena depois, vira tarefa "porte .mjs→DriftChecker" própria, fora da poda.
 
@@ -100,23 +102,23 @@ Critério LEI: **só fica required o que evita catástrofe Tier-0 ou quebra de c
 
 | Workflow | Veredito (pós-adversário) |
 |---|---|
-| `run-financeiro-resync.yml` | ✅ **SAFE delete** — dispatch-only, 0 runs recentes, comando `financeiro:resync-from-core` preservado |
-| `create-test-business.yml` | ✅ **SAFE delete** — dispatch-only, idempotente, seeder subjacente preservado |
-| `run-financeiro-demo-seeder.yml` | ⚠️ **delete COM coupling** — `Modules/Financeiro/Tests/Feature/DemoSeederProtectsRealBusinessTest.php` faz `file_get_contents` do .yml e asserta `default: '99'`. Deletar o .yml SÓ junto com a remoção do const + asserção **no mesmo PR**, senão a suite Financeiro fica vermelha |
+| `run-financeiro-resync.yml` | ✅ delete — dispatch-only, 0 runs · **+ sync registro:** `gates-registry.json` chave + `checkM.69` |
+| `create-test-business.yml` | ✅ delete — dispatch-only, idempotente · **+ sync registro:** `gates-registry.json` chave + `checkM.15` |
+| `run-financeiro-demo-seeder.yml` | ⚠️ **delete COM coupling** — `Modules/Financeiro/Tests/Feature/DemoSeederProtectsRealBusinessTest.php` faz `file_get_contents` do .yml e asserta `default: '99'`. Deletar o .yml SÓ junto com a remoção do const + asserção **no mesmo PR** + sync registro, senão Financeiro + memory-health ficam vermelhos |
 | `force-clean-rebuild-trigger.yml` | ❌ **MANTER** — NÃO é one-shot (tem trigger `push` em branch dedicada), é escape-hatch de recovery citado em ≥8 runbooks/ADRs. A poda v1 de 22/jun foi invalidada por mexer em escape-hatch |
 
-> Deletes só apagam dispatch-only utilities de incidente fechado — nenhum gate, nenhum trigger de PR/push normal. Reversível 100% (git history). O demo-seeder exige o PR bundlar a remoção do teste-acoplado.
+> ⚠️ **Nenhum delete é "puro"** (exploração 2026-06-30): os 3 deletáveis estão em `gates-registry.json` + `.memory-health-baseline.json` (`checkM`). Cada PR de delete **obrigatoriamente** remove as 2 entradas de registro (ver Regra de sincronia de registro no §Contexto), senão o `memory-health` (LEI) fica vermelho. Reversível 100% (git history).
 
 ## Consequências
 
-- **91 → ~76 workflows** (F1 −6, F2 −5, F3 −2, F5 −1, D-3 −3; **F4 removida**) na 1ª execução; required **27 → ~18**.
+- **91 → ~79 workflows** (F1 −6, F2 −5, F5 −1, D-3 −3; **F3 e F4 retiradas**) na 1ª execução; required **27 → ~18**.
 - Papel volta a bater com máquina: zero "4 baselines de cor"; e o invariante DURO: **nenhum gate multi-tenant/dinheiro/PII/fiscal sai do required** (lição do adversário).
-- Execução: **1 PR por bloco ratificado** (F1, F2, … isolados; cada um preserva sub-checks + atualiza branch protection no mesmo PR; smoke do gate fundido antes de mexer no required).
+- Execução: **1 PR por bloco ratificado** (F1, F2, … isolados; cada um preserva sub-checks + atualiza branch protection **+ os 2 registros** no mesmo PR; smoke do gate fundido antes de mexer no required).
 - Risco residual: fundir errado = perder um sub-check silenciosamente. Mitigação: cada PR de fusão roda o gate fundido contra um diff que SABE-se que deveria falhar (counterfactual por sub-check) antes de remover os antigos.
 
 ## Métricas
 
-- Workflows: 91 → ~76 (onda 2) · required: 27 → ~18 · clusters redundantes fundidos: 4 (F4 fica) · deletes seguros: 2 + 1 acoplado.
+- Workflows: 91 → ~79 (onda 2) · required: 27 → ~18 · clusters redundantes fundidos: 3 (F1/F2/F5; F3+F4 fora) · deletes: 2 limpos + 1 acoplado.
 
 ## Adversário (review 2026-06-30 — antes da ratificação)
 
@@ -132,10 +134,19 @@ Wagner pediu um adversário antes de ratificar. Rodou (general-purpose, 31 tool-
 
 Esta v2 incorpora os 7. Veredito do adversário sobre o esqueleto: **correto** (subtração sem perder proteção + counterfactual por sub-check). A falha foi factual (gates recém-armados nos últimos 6 dias pelo próprio SDD), não de método.
 
+## Exploração de execução (v3 · 2026-06-30 — auto-adversário antes de codar)
+
+Wagner deu "pode fazer" pra começar pela F3. Ao abrir os arquivos pra executar, 2 achados que retiram/refinam blocos (rigor do adversário aplicado a mim mesmo):
+
+- **F3 RETIRADA.** Os 2 RAGAS workflows não são redundantes (gate de threshold absoluto vs canary de drift relativo — intencionalmente separados); o redundante de verdade (`ragas-gate.yml` W22 MVP) já foi deletado. Fundir = emaranhar 2 mecanismos por −1 arquivo. Não vale. (Detalhe no bloco F3.)
+- **Nenhum delete/fusão é "puro": regra de sincronia de registro.** Todo workflow está em `gates-registry.json` + `.memory-health-baseline.json` (`checkM`), e o `memory-health` (LEI) falha se divergir. Cada PR de delete/fusão tem que sincronizar os 2 registros — senão eu mesmo deixo o gate LEI vermelho. (Regra no §Contexto.)
+
+Lição perene: a poda parece "deletar arquivo", mas é cirurgia de registro — por isso 1 PR por bloco, com counterfactual, e nada executado no fim de sessão longa.
+
 ## Ratificação (Wagner marca o que aprova)
 
 - [ ] D-1 LEI (núcleo + os 4 resgatados: Tier-0 guards · anchor entry/covers · visual-regression · NfeBrasil) + 7 demoções reais (ou ajusta)
-- [ ] F1 DS/Cor · [ ] F2 Memória · [ ] F3 RAGAS · [ ] F5 Trio-tela · [ ] ~~F4 Drift~~ (rejeitada — fica fora)
-- [ ] D-3 deletes (resync + test-business SAFE; demo-seeder bundlado; force-clean = MANTER)
+- [ ] F1 DS/Cor · [ ] F2 Memória · [ ] F5 Trio-tela · [ ] ~~F3 RAGAS~~ (retirada — sem alvo limpo) · [ ] ~~F4 Drift~~ (rejeitada)
+- [ ] D-3 deletes (resync + test-business limpos **com sync de registro**; demo-seeder bundlado; force-clean = MANTER)
 
-Ao ratificar: vira `status: aceito`, sai de `proposals/`, ganha número canon, e executo 1 PR por bloco (recomendo começar por F3 RAGAS — menor blast-radius — antes de F1 cor que é required).
+Ao ratificar: vira `status: aceito`, sai de `proposals/`, ganha número canon, e executo 1 PR por bloco. Recomendo começar pelos **D-3 deletes** (−2 workflows, risco zero com o sync de registro feito) ou **F2 memory-schema** (fusão genuína: `memory-schema-gate` + `-extended` são a mesma fonte) — F1 cor por último (mexe em required).
