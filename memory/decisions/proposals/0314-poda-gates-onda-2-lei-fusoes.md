@@ -95,16 +95,18 @@ Critério LEI: **só fica required o que evita catástrofe Tier-0 ou quebra de c
 
 ## D-3 — Deletes verificados (one-shots de incidente fechado)
 
-**[ ] DELETE (após confirmar zero reuso recente via `gh run list`):**
+**[x] DELETE (verificado zero reuso via `gh run list` — ambos 0 runs):**
 
-| Workflow | Por quê | Risco |
+| Workflow | Por quê | Estado |
 |---|---|---|
-| `run-financeiro-resync.yml` | one-shot do incidente num_uf (#2279/#2280) — **fechado** | utilitário reversível; se precisar de novo, ressuscita do git |
-| `run-financeiro-demo-seeder.yml` | one-shot seed mock biz=1 (2026-05-20) | idem |
-| `create-test-business.yml` | one-shot biz=99 (idempotente, já criado) | idem |
-| `force-clean-rebuild-trigger.yml` | nuclear rebuild; dispara só em push a branch dedicada | **MANTER?** é ferramenta de emergência — decisão [W] |
+| `run-financeiro-resync.yml` | one-shot do incidente num_uf (#2279/#2280) — **fechado** | ✅ **DELETADO** ([PR #3455](https://github.com/wagnerra23/oimpresso.com/pull/3455), 2026-06-30) — + sync de registro (`gates-registry.json` + `checkM`) |
+| `create-test-business.yml` | one-shot biz=99 (idempotente, já criado) | ✅ **DELETADO** ([PR #3455](https://github.com/wagnerra23/oimpresso.com/pull/3455), 2026-06-30) — + sync de registro |
+| `run-financeiro-demo-seeder.yml` | one-shot seed mock biz=1 (2026-05-20) | ⏸️ **NÃO deletado** — bloco à parte: tem teste acoplado (`DemoSeederProtectsRealBusinessTest` lê o `.yml`), exige remover const+asserção no mesmo PR |
+| `force-clean-rebuild-trigger.yml` | nuclear rebuild; dispara só em push a branch dedicada | ❌ **MANTER** (decidido [W]) — NÃO é one-shot, é escape-hatch de recovery citado em ≥8 runbooks/ADRs |
 
 > Deletes só apagam dispatch-only utilities de incidente fechado — nenhum gate, nenhum trigger de PR/push normal. Reversível 100% (git history).
+>
+> **Trava de sincronia de registro (cumprida no #3455):** todo workflow vive em `gates-registry.json` (chave `workflows.<arquivo>`) + `.memory-health-baseline.json` (`checkM` — array). O gate `memory-health` (LEI/required) falha se divergir. O #3455 removeu as 2 chaves + as 2 entradas do `checkM` no mesmo PR; `node scripts/governance/memory-health.mjs` → exit 0 provado antes do PR. CI verde (48 checks).
 
 ## Consequências
 
@@ -121,6 +123,9 @@ Critério LEI: **só fica required o que evita catástrofe Tier-0 ou quebra de c
 
 - [ ] D-1 LEI-15 + demoção dos 12 (ou ajusta a lista)
 - [ ] F1 DS/Cor · [ ] F2 Memória · [ ] F3 RAGAS · [ ] F4 Drift-plugin · [ ] F5 Trio-tela
-- [ ] D-3 deletes (e decide `force-clean-rebuild`: manter ou apagar)
+- [x] **D-3 deletes — EXECUTADO** ([PR #3455](https://github.com/wagnerra23/oimpresso.com/pull/3455), merged 2026-06-30): `run-financeiro-resync` + `create-test-business` deletados com sync de registro; `force-clean-rebuild` = MANTER (decidido [W]); `run-financeiro-demo-seeder` = bloco à parte (teste acoplado)
 
 Ao ratificar: vira `status: aceito`, sai de `proposals/`, ganha número canon, e executo 1 PR por bloco.
+
+> **Log de execução:**
+> - **2026-06-30 — D-3 (parcial):** 2 dos 3 deletáveis executados via [PR #3455](https://github.com/wagnerra23/oimpresso.com/pull/3455) (Wagner pré-aprovou em sessão nova). Restam desta onda: `demo-seeder` (bloco à parte com teste acoplado) + os blocos D-1/F1/F2/F5 (F3/F4 retiradas na v3 da exploração de execução). Esta cópia em `main` estava na v2 — os blocos de fusão/LEI seguem como na v2 até ratificação por bloco.
