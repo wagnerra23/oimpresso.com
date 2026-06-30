@@ -175,6 +175,34 @@ for (const [mockup, { alvo: charterTarget, charter }] of byMockupReal) {
     `ALIAS diz ${a.alvo}, mas ${charterRel} (component:) resolve ${charterTarget} — DRIFT: as duas fontes do mesmo par discordam`);
 }
 
+// C) FONTE ÚNICA (endurece B): o ALIAS é fallback SÓ pra mockup que NENHUM charter mapeia.
+//    B pega DISCORDÂNCIA; C pega COEXISTÊNCIA — se um charter NOMEIA o mockup nos campos
+//    que ESTABELECEM o link bundle→tela (`component:` ou `bundle_source:` — NÃO
+//    related_prototype/visual_source, que são design-ref e o meta-test b3 já ignora),
+//    a entry do ALIAS é REDUNDANTE: 2ª fonte do mesmo fato, mesmo concordando (e a
+//    redundância diverge no futuro). Coexistência = 0 hoje → baseline limpo, morde o futuro.
+function charterMappedMockups(roots) {
+  const set = new Map(); // mockup .jsx → charter que o mapeia (component|bundle_source)
+  for (const root of roots) {
+    if (!existsSync(root)) continue;
+    for (const cf of walk(root)) {
+      if (!cf.endsWith('.charter.md')) continue;
+      const fm = frontmatter(readFileSync(cf, 'utf8'));
+      for (const mk of [...extractMockupFiles(fm.component), ...extractMockupFiles(fm.bundle_source)]) {
+        if (!set.has(mk)) set.set(mk, cf);
+      }
+    }
+  }
+  return set;
+}
+const charterMapped = charterMappedMockups(charterRoots);
+for (const a of ALIAS) {
+  const coberto = [...charterMapped.keys()].find((mk) => a.re.test(mk));
+  check(`C · fonte única: ALIAS ${a.reSrc} não coexiste com charter`,
+    !coberto,
+    coberto ? `charter ${relative(REPO_ROOT, charterMapped.get(coberto)).replace(/\\/g, '/')} mapeia ${coberto} (component/bundle_source) — REDUNDANTE: mova o link pro charter e apague a entry do ALIAS (1 fato = 1 fonte)` : '');
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // PARTE 2 — META-TEST: prova que o cross-check MORDE e LIBERA (sentinela honesta).
 // Monta repos-fixture em tmp e roda buildByMockup + as duas checagens à mão.
@@ -234,6 +262,24 @@ const aliasSynt = { re: /^foo-page\.jsx$/i, alvo: 'resources/js/Pages/Foo/Index.
   const existeFantasma = existsSync(join(root, aliasSynt.alvo)); // Foo/Index.tsx nunca criado
   check('meta A (a1) MORDE: alvo inexistente do ALIAS é flagrado', existeReal && !existeFantasma,
     `real=${existeReal} fantasma=${existeFantasma}`);
+}
+// (c1) charter MAPEIA (via bundle_source) um mockup que o ALIAS também tem → MORDE (redundante)
+{
+  const root = mkRepo({
+    'resources/js/Pages/Foo/Index.charter.md':
+      '---\npage: /foo\ncomponent: resources/js/Pages/Foo/Index.tsx\nbundle_source: foo-page.jsx\n---\n# bundle_source cobre o mockup do ALIAS\n',
+  });
+  const coberto = [...charterMappedMockups([join(root, 'resources/js/Pages')]).keys()].some((mk) => aliasSynt.re.test(mk));
+  check('meta C (c1) MORDE: charter bundle_source cobre mockup do ALIAS (redundante)', coberto === true, `coberto=${coberto}`);
+}
+// (c2) charter NÃO cita o mockup do ALIAS → LIBERA (ALIAS é fallback legítimo, coexistência=0)
+{
+  const root = mkRepo({
+    'resources/js/Pages/Bar/Index.charter.md':
+      '---\npage: /bar\ncomponent: resources/js/Pages/Bar/Index.tsx\n---\n# não cita foo-page.jsx\n',
+  });
+  const coberto = [...charterMappedMockups([join(root, 'resources/js/Pages')]).keys()].some((mk) => aliasSynt.re.test(mk));
+  check('meta C (c2) LIBERA: charter não cobre mockup do ALIAS', coberto === false, `coberto=${coberto}`);
 }
 
 console.log('');
