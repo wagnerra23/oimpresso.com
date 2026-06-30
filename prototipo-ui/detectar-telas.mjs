@@ -172,10 +172,13 @@ async function buildManifest({ staging, repoRoot }) {
     const fm = frontmatter(await read(cf));
     const alvo = extractRepoPath(fm.repo_alvo) || extractRepoPath(fm.component) || extractRepoPath(fm.page);
     if (!alvo) continue;
-    // mockups citados em campos estruturados (component, bundle_source, related_prototype)
+    // mockups citados em campos estruturados. visual_source é convenção PRÉ-EXISTENTE (8 charters,
+    // ex: CaixaUnificada → inbox-page) que a máquina não lia — mesma raiz do bug financeiro (a verdade
+    // estava no charter, no campo errado). bundle_source = alias explícito (musing-elion). Lê os 4.
     const mockupsDeclarados = [
       ...extractMockupFiles(fm.component),
       ...extractMockupFiles(fm.bundle_source),
+      ...extractMockupFiles(fm.visual_source),
       ...extractMockupFiles(fm.related_prototype),
     ];
     // ALVO QUE EXISTE GANHA (musing-elion 2026-06-30): um charter STALE (ex: repo_alvo Purchases/Index,
