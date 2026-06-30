@@ -16,6 +16,7 @@
     "Cliente/Import": ["4"],
     "Sells/Index": ["4"],
     "RecurringBilling/Index": ["4"],
-    "Financeiro/Unificado/Index": ["4"]
+    "Financeiro/Unificado/Index": ["4"],
+    "OficinaAuto/ServiceOrders/Show": ["164"]
   }
 }
