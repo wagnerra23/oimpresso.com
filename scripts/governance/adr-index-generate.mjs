@@ -168,7 +168,28 @@ if (MODE === 'check') {
     supWarn.forEach((w) => console.error(`   - ${w}`));
     process.exit(1);
   }
-  console.log(`✓ ${OUT} em dia (${adrs.length} ADRs) · supersede íntegra.`);
+  // COLISÃO DE NÚMERO = catraca anti-bifurcação (antes só listava, nunca mordia).
+  // Mesmo molde do dominio-gate (ADR 0264 G-4) / GAP 1 acima: 2ª fonte autoritativa pro
+  // mesmo fato (aqui: 2 ADRs no mesmo número) = CI vermelho. Legado grandfathered num
+  // baseline auditável que SÓ ENCOLHE; número repetido NOVO (fora do baseline) bloqueia.
+  const COLLISION_BASELINE = 'governance/adr-collisions-baseline.json';
+  let grandfathered = new Set();
+  if (existsSync(join(ROOT, COLLISION_BASELINE))) {
+    try {
+      grandfathered = new Set(JSON.parse(readFileSync(join(ROOT, COLLISION_BASELINE), 'utf8')).collisions_grandfathered || []);
+    } catch (e) {
+      console.error(`✗ ${COLLISION_BASELINE} ilegível (${e.message}) — é a fonte da catraca de colisões.`);
+      process.exit(1);
+    }
+  }
+  const newCollisions = collisions.filter(([n]) => !grandfathered.has(n));
+  if (newCollisions.length) {
+    console.error(`✗ ${newCollisions.length} colisão(ões) de número de ADR NOVA(s) (fora de ${COLLISION_BASELINE}):`);
+    newCollisions.forEach(([n, v]) => console.error(`   - ${n} ×${v.length}: ${v.map((x) => x.slug).join(' · ')}`));
+    console.error(`   → ADR novo pega número livre via scripts/governance/next-id.mjs; 2 ADRs no mesmo número = bifurcação. Renumere o novato (não toque o legado) OU, se a repetição for intencional, registre no baseline citando a razão.`);
+    process.exit(1);
+  }
+  console.log(`✓ ${OUT} em dia (${adrs.length} ADRs) · supersede íntegra · 0 colisão nova (${grandfathered.size} grandfathered).`);
   process.exit(0);
 }
 if (MODE === 'write') {

@@ -127,6 +127,33 @@ describe('GAP 2 — memory-health ENFORCE + baseline ratchet (Check C, ADR 0258)
   });
 });
 
+describe('colisão-de-número — catraca anti-bifurcação (--check, baseline grandfather)', () => {
+  it('SENSIBILIDADE: colisão NOVA (fora do baseline) → --check FALHA', () => {
+    // tmp não tem governance/adr-collisions-baseline.json → toda colisão é nova (fail-closed)
+    adr(tmp, '0950-a.md', 'slug: 0950-a\nnumber: 950\ntitle: "A"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0950-b.md', 'slug: 0950-b\nnumber: 950\ntitle: "B"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    run(`node "${GEN}" --write`); // gera o índice (lista a colisão, sem drift)
+    let threw = false; let msg = '';
+    try { run(`node "${GEN}" --check`); }
+    catch (e: any) { threw = true; msg = (e.stdout || '') + (e.stderr || ''); }
+    expect(threw).toBe(true);                 // colisão nova → gate bloqueia
+    expect(msg).toMatch(/colis/i);
+    expect(msg).toMatch(/0950/);
+  });
+
+  it('ESPECIFICIDADE: colisão grandfathered no baseline → --check PASSA', () => {
+    mkdirSync(join(tmp, 'governance'), { recursive: true });
+    writeFileSync(join(tmp, 'governance/adr-collisions-baseline.json'),
+      JSON.stringify({ collisions_grandfathered: ['0950'] }));
+    adr(tmp, '0950-a.md', 'slug: 0950-a\nnumber: 950\ntitle: "A"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    adr(tmp, '0950-b.md', 'slug: 0950-b\nnumber: 950\ntitle: "B"\ntype: adr\nstatus: aceito\nauthority: canonical\nlifecycle: ativo\ndecided_by: [W]\ndecided_at: "2026-06-07"');
+    run(`node "${GEN}" --write`);
+    const out = run(`node "${GEN}" --check`); // exit 0 (grandfathered)
+    expect(out).toMatch(/grandfathered/i);
+    expect(out).toMatch(/em dia/i);
+  });
+});
+
 describe('double-supersede — >1 ADR herdando a mesma (adversário 2026-06-20, físico)', () => {
   it('SENSIBILIDADE: 2 ADRs supersedem o MESMO número → --check FALHA citando conflito de herança', () => {
     adr(tmp, '0930-target.md', 'slug: 0930-target\nnumber: 930\ntitle: "T"\ntype: adr\nstatus: superseded\nauthority: canonical\nlifecycle: substituido\ndecided_by: [W]\ndecided_at: "2026-06-07"\nsuperseded_by: [\'0931-a\']');
