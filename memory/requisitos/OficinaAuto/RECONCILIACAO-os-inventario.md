@@ -59,12 +59,14 @@ Sem tocar valor/FSM: busca multi-campo (P) · faixa de 6 KPIs clicáveis por eta
 - **Teste:** `Modules/Repair/Tests/Feature/ProducaoOficinaTest.php` (4 casos: render, 5 colunas na ordem do charter, totals, mock 17 OS).
 - **Página:** `Repair/ProducaoOficina/Index.tsx` (631ln) + charter (status drift: diz draft, está live).
 
-### GATE DE PARIDADE (passo 0 — bloqueia o resto)
-Antes de mexer, **provar** que `ServiceOrders/Board` (A) cobre o que C faz:
-- [ ] Board tem **drag-drop FSM** equivalente ao `move()` de C? (Board usa `ServiceOrderFsmActionPanel`/`ExecuteStageActionService` — confirmar que a transição por arraste existe e passa pelo gateway FSM ADR 0143).
-- [ ] Board abre uma **OS específica via deep-link** (`?os=`/`#osRef`)? Se não, **construir esse suporte no Board ANTES** (senão os links do Sells quebram).
-- [ ] Board cobre as **colunas/totals** que o teste de C asserta (ou o teste de Board já cobre equivalente).
-- Se algum item falhar → **migrar a capacidade pro Board primeiro**, depois deprecar C.
+### GATE DE PARIDADE — RODADO 2026-06-30 (read-only), resultado: **VERDE exceto 1 gap pequeno**
+Board (A) está **À FRENTE** de C, não atrás:
+- [x] **Drag-drop FSM** — ✅ Board tem `KanbanDndProvider` + drag via `ExecuteStageActionService` (gateway canônico ADR 0143), melhor que o `KanbanProductionService` do C. Teste `ServiceOrderBoardTest` caso #2 GUARD cobre "drag avança via ExecuteStageActionService + grava history".
+- [x] **Colunas/totals/KPIs** — ✅ `ServiceOrderBoardTest` tem **9 casos** (seeder 6 etapas, colunas, KPIs Onda 1.5, multi-tenant Tier 0, smoke recepcao→pronto) — cobre e **excede** os 4 casos do teste de C.
+- [x] **Abrir OS (drawer)** — ✅ Board já tem `openOsId` + `handleCardClick` (abre o `ServiceOrderRichSheet`).
+- [ ] **Deep-link `?os=OS-NNNN`** — ⚠️ **ÚNICO GAP**. Board lê `?view=` da URL (`URLSearchParams`) mas **não** `?os=` pra auto-abrir uma OS. O Sells linka com `?os=`. Fix = espelhar a lógica do `?view=` → `setOpenOsId` no mount. **Pequeno** (a maquinaria `openOsId` já existe).
+
+**Conclusão:** migração é MENOR que o temido. Não precisa reconstruir nada do C no Board — só **adicionar o deep-link `?os=`** ao Board (1 peça aditiva, MWART-governada pois é `.tsx` vivo) e repointar o Sells. O resto do C (controller `move()` + `KanbanProductionService`) é **redundante** com o caminho FSM canônico do Board → descartável após o redirect.
 
 ### Passos (só com gate verde + go de [W])
 1. **Board ganha `?os=` deep-link** (se faltar) — abre o drawer da OS direto. Pest cobre.
