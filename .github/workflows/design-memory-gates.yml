@@ -95,3 +95,14 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/detectar-telas.mjs --selftest
+      # ancora.mjs (#7 2026-06-30): a âncora de uma tela é computada do charter, nunca um png
+      # de auditoria no olho. importar-bundle: só troca o staging quando extraídos==entries
+      # (delete-before-verify fechado). Ambos selftest puro (rodam em Linux/CI).
+      - name: ancora selftest (âncora = charter, não print de auditoria)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/ancora.mjs --selftest
+      - name: importar-bundle selftest (import atômico · verifica antes de trocar)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/importar-bundle.mjs --selftest
