@@ -13,6 +13,9 @@
     "Cliente/Edit": ["4"],
     "Cliente/Ledger": ["4"],
     "Cliente/Map": ["4"],
-    "Cliente/Import": ["4"]
+    "Cliente/Import": ["4"],
+    "Sells/Index": ["4"],
+    "RecurringBilling/Index": ["4"],
+    "Financeiro/Unificado/Index": ["4"]
   }
 }
