@@ -95,6 +95,14 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/detectar-telas.mjs --selftest
+      # detectar-telas.test.mjs: a sentinela ALIAS↔charter (fonte única) JÁ existia e provava
+      # que morde (anti-drift A/B + meta-tests c1/c2), mas NUNCA rodava em CI (defesa construída
+      # e DESARMADA). Armada aqui. Check C endurece B: charter que COBRE um mockup do ALIAS
+      # (component/bundle_source) = redundante (2 fontes do mesmo fato). Node puro, segundos.
+      - name: detectar-telas anti-drift ALIAS↔charter (fonte única · A+B+C)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/detectar-telas.test.mjs
       # ancora.mjs (#7 2026-06-30): a âncora de uma tela é computada do charter, nunca um png
       # de auditoria no olho. importar-bundle: só troca o staging quando extraídos==entries
       # (delete-before-verify fechado). Ambos selftest puro (rodam em Linux/CI).
