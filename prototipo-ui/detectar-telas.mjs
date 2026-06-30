@@ -121,6 +121,13 @@ function frontmatter(src) {
   return fm;
 }
 
+// módulo declarado pelo PRÓPRIO arquivo no header `// @memcofre ... module: X` (desambigua format-2)
+export function memcofreModule(src) {
+  if (!src) return null;
+  const m = src.match(/\/\/\s*module:\s*(\S+)/i);
+  return m ? m[1].toLowerCase() : null;
+}
+
 function isScreenSource(relPath) {
   const b = basename(relPath);
   if (/-page\.jsx$/i.test(b)) return 'mockup';
@@ -179,7 +186,13 @@ async function buildManifest({ staging, repoRoot }) {
         const key = (basename(dirname(f)) + '/index.tsx').toLowerCase();
         const cand = suffixIdx.get(key) || [];
         if (cand.length === 1) { alvo = cand[0]; via = 'repo-suffix'; }
-        else if (cand.length > 1) { ambiguo = true; via = 'repo-suffix(ambíguo)'; }
+        else if (cand.length > 1) {
+          // desambigua pelo módulo que o PRÓPRIO arquivo declara (@memcofre), não chuta
+          const mod = memcofreModule(await read(f));
+          const picked = mod ? cand.filter((c) => c.toLowerCase().includes(`/${mod}/`)) : [];
+          if (picked.length === 1) { alvo = picked[0]; via = 'memcofre-disambig'; }
+          else { ambiguo = true; via = 'repo-suffix(ambíguo)'; }
+        }
       }
     }
 
@@ -291,7 +304,11 @@ async function selftest() {
   // Q5: registro a-criar é não-cego (forja registrado ≠ mistero desconhecido)
   if (isACriar('forja-page.jsx') !== true) { console.log('  [FAIL] forja-page.jsx deveria ser A-CRIAR registrado'); }
   if (isACriar('mistero-page.jsx') !== false) { console.log('  [FAIL] mistero-page.jsx NÃO pode ser A-CRIAR (segue órfão-cego)'); }
-  let fails = (isACriar('forja-page.jsx') ? 0 : 1) + (isACriar('mistero-page.jsx') ? 1 : 0);
+  // desambiguação por @memcofre (format-2 ambíguo resolve pelo módulo declarado no arquivo)
+  const mcOk = memcofreModule('// @memcofre\n//   tela: /financeiro\n//   module: Financeiro\n') === 'financeiro'
+            && memcofreModule('sem header') === null;
+  if (!mcOk) console.log('  [FAIL] memcofreModule deveria extrair o module: do header @memcofre');
+  let fails = (isACriar('forja-page.jsx') ? 0 : 1) + (isACriar('mistero-page.jsx') ? 1 : 0) + (mcOk ? 0 : 1);
   for (const [label, row, exp] of checks) {
     const got = row ? row.status : '(ausente)';
     const ok = got === exp; if (!ok) fails++;
