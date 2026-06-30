@@ -51,11 +51,16 @@ reg('LIBERA png de design legítimo (ph-financeiro2.png)', razaoBloqueio('Read',
 reg('lista-negra do hook == a do ancora (sem drift)', ehAncoraIlegitima('audit-x.png') === true && ehAncoraIlegitima('financeiro-page.jsx') === false,
     'manter as duas cópias idênticas; este eval é o guarda de drift.');
 
+// ATAQUE 2 — ERA GAP (rename-bypass), AGORA DEFENDIDO pela allowlist de proveniência (2026-06-30):
+reg('ATAQUE 2 — print renomeado sem "audit" (financeiro-final-v2.png) agora é BLOQUEADO',
+    razaoBloqueio('Read', { file_path: `${DOWN}/financeiro-final-v2.png` }) !== null,
+    'allowlist de proveniência: imagem externa só passa se for fonte-DS conhecida — nome arbitrário não escapa mais.');
+reg('allowlist deixa passar a fonte-DS legítima (não vira fail-closed cego)',
+    razaoBloqueio('Read', { file_path: `${DOWN}/_ds/tokens.png` }) === null
+    && razaoBloqueio('Read', { file_path: `${DOWN}/kpi-dark.png` }) === null,
+    '_ds/ e ph-/kpi- são allowlist; só o que NÃO é fonte conhecida bloqueia.');
+
 // GAPS conhecidos — documentados com fix, comportamento congelado (muda = revisitar):
-gap('ATAQUE 2 — print renomeado sem "audit" no nome ESCAPA',
-    razaoBloqueio('Read', { file_path: `${DOWN}/financeiro-final-v2.png` }) === null ? 'escapa' : 'pega',
-    'escapa',
-    'defesa positiva: workflow sempre computa a âncora via ancora.mjs; nome-regex é rede só pros nomes-ruins conhecidos.');
 gap('ATAQUE 3 — leitura por outra tool (Bash cat/Chrome) não passa pelo hook (matcher Read)',
     /Read/.test('Read') ? 'só-Read' : 'amplo',
     'só-Read',
