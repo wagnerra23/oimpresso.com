@@ -112,10 +112,6 @@
       "nome": "cowork-inbox",
       "classe": "automacao"
     },
-    "create-test-business.yml": {
-      "nome": "Create Test Business (biz 99 · one-shot)",
-      "classe": "automacao"
-    },
     "css-size-gate.yml": {
       "nome": "CSS size ratchet (congelar sprawl · MANUAL-CSS-JS#1)",
       "classe": "gate"
@@ -298,10 +294,6 @@
     },
     "run-financeiro-demo-seeder.yml": {
       "nome": "Run FinanceiroDemoSeeder (one-shot)",
-      "classe": "automacao"
-    },
-    "run-financeiro-resync.yml": {
-      "nome": "Run financeiro:resync-from-core (one-shot · incidente num_uf)",
       "classe": "automacao"
     },
     "scope-guard.yml": {
