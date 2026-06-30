@@ -8,7 +8,9 @@ name: Anchor & Doneness Drift (advisory)
 #     56 teste) → morde só mentira NOVA (no-new-lie). Contexto PRÓPRIO pra promoção independente.
 #   - doneness-lint      (ADR 0302): conflito `status:` à mão × âncora (fonte-única de done-ness).
 # Todos diff-aware no PR (--check só SPEC tocado = no-new-lie, grandfather legado), report full-tree
-# no cron. NENHUM required ainda: cada um é flip do Wagner por calendário, 1/semana (ADR 0275 §5).
+# no cron. `anchor entry/covers gate` PROMOVIDO a required em 2026-06-30 (require-safe: paths-filter
+# removido do trigger pra reportar em TODO PR — ver bloco `on:`); os outros 4 jobs seguem advisory
+# (flip do Wagner por calendário, 1/semana — ADR 0275 §5).
 #
 # Lint do anchor spec↔código — SA-A3 do plano SDD (memory/sessions/2026-06-12-
 # plano-reestruturacao-sdd-ondas-paralelas.md, frente SA) · gramática ADR 0273.
@@ -25,16 +27,14 @@ name: Anchor & Doneness Drift (advisory)
 # mudar — só o full-tree periódico pega esse drift; report pra não travar legado).
 
 on:
+  # SEM paths-filter de propósito (require-safe · ADR 0263): GitHub TRAVA um required check
+  # que não reporta — path-filter + required = PRs que não tocam SPEC/charter ficariam
+  # "Expected — waiting for status" pra sempre (incidente 2026-06-08). Os 5 jobs são diff-aware
+  # (--check só no que o PR toca) e o fallback "nada tocado" roda em report-mode exit 0
+  # (anchor-lint.mjs sem --check → process.exit(0), L623) → passam trivial quando nada relevante
+  # muda. Rodar em TODO PR é barato e habilita armar o "anchor entry/covers gate" como required.
   pull_request:
     branches: [main]
-    paths:
-      - 'memory/requisitos/**/SPEC.md'
-      - 'resources/js/Pages/**/*.charter.md'
-      - 'governance/prod-flags.json'
-      - 'scripts/governance/anchor-lint.mjs'
-      - 'scripts/governance/doneness-lint.mjs'
-      - 'scripts/governance/charter-live-signal.mjs'
-      - '.github/workflows/anchor-drift.yml'
   schedule:
     - cron: '0 6 * * 1' # segunda 06:00 UTC — full-tree semanal
   workflow_dispatch:
