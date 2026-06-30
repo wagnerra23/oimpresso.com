@@ -92,7 +92,7 @@ function makeHpChannel(int $bizId, string $label = 'Test', string $health = 'nev
  * Helper — cria Channel Whatsmeow active com token provisionado + UUID conhecido.
  * Retorna [channel, userName] — userName = ch-{uuid sem hífens} (whatsmeowUserName()).
  */
-function makeWmChannel(int $bizId, string $uuid, string $health = 'never_checked', int $failures = 0): array
+function makeHpWmChannel(int $bizId, string $uuid, string $health = 'never_checked', int $failures = 0): array
 {
     $channel = Channel::withoutGlobalScope(ScopeByBusiness::class)->create([
         'business_id' => $bizId,
@@ -296,7 +296,7 @@ it('HP-008 — sem canais ativos → exit 0 graceful', function () {
 
 it('WM-001 — whatsmeow connected=False → channel_health=disconnected + failures++ (a queda deixa de ser invisível)', function () {
     configureWhatsmeowDaemon();
-    [$channel, $userName] = makeWmChannel(1, 'wm000001-0000-0000-0000-000000000001', 'healthy', failures: 0);
+    [$channel, $userName] = makeHpWmChannel(1, 'wm000001-0000-0000-0000-000000000001', 'healthy', failures: 0);
 
     Http::fake([
         '*/admin/users' => Http::response(['data' => [['name' => $userName]]], 200),
@@ -318,7 +318,7 @@ it('WM-001 — whatsmeow connected=False → channel_health=disconnected + failu
 
 it('WM-002 — whatsmeow paired (Connected+LoggedIn) → healthy + reset failures', function () {
     configureWhatsmeowDaemon();
-    [$channel, $userName] = makeWmChannel(1, 'wm000002-0000-0000-0000-000000000002', 'disconnected', failures: 4);
+    [$channel, $userName] = makeHpWmChannel(1, 'wm000002-0000-0000-0000-000000000002', 'disconnected', failures: 4);
 
     Http::fake([
         '*/admin/users' => Http::response(['data' => [['name' => $userName]]], 200),
@@ -336,7 +336,7 @@ it('WM-002 — whatsmeow paired (Connected+LoggedIn) → healthy + reset failure
 
 it('WM-003 — whatsmeow daemon unreachable → saúde inalterada (sem falso-alarme)', function () {
     configureWhatsmeowDaemon();
-    [$channel] = makeWmChannel(1, 'wm000003-0000-0000-0000-000000000003', 'healthy', failures: 0);
+    [$channel] = makeHpWmChannel(1, 'wm000003-0000-0000-0000-000000000003', 'healthy', failures: 0);
 
     Http::fake(function () {
         throw new \Illuminate\Http\Client\ConnectionException('connection timeout');
@@ -355,8 +355,8 @@ it('WM-003 — whatsmeow daemon unreachable → saúde inalterada (sem falso-ala
 
 it('WM-004 — multi-tenant: --business=99 não toca whatsmeow de biz=1', function () {
     configureWhatsmeowDaemon();
-    [$ch1] = makeWmChannel(1, 'wm000004-0000-0000-0000-000000000041', 'disconnected', failures: 3);
-    [$ch99, $userName99] = makeWmChannel(99, 'wm000004-0000-0000-0000-000000000099', 'disconnected', failures: 3);
+    [$ch1] = makeHpWmChannel(1, 'wm000004-0000-0000-0000-000000000041', 'disconnected', failures: 3);
+    [$ch99, $userName99] = makeHpWmChannel(99, 'wm000004-0000-0000-0000-000000000099', 'disconnected', failures: 3);
 
     Http::fake([
         '*/admin/users' => Http::response(['data' => [['name' => $userName99]]], 200),
