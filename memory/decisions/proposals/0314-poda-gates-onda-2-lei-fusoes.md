@@ -146,7 +146,7 @@ Lição perene: a poda parece "deletar arquivo", mas é cirurgia de registro —
 
 ## Ratificação (Wagner marca o que aprova)
 
-- [ ] D-1 LEI (núcleo + os 4 resgatados: Tier-0 guards · anchor entry/covers · visual-regression · NfeBrasil) + 7 demoções reais (ou ajusta)
+- [ ] D-1 LEI (núcleo + os 4 resgatados: Tier-0 guards · anchor entry/covers · visual-regression · NfeBrasil) + 7 demoções reais (ou ajusta) _(em execução — este PR traz o baseline `required-checks-baseline.json` 29→22; o flip do branch protection aguarda **OK do Wagner no diff**, R10)_
 - [ ] F1 DS/Cor _(em PR aberto [#3456](https://github.com/wagnerra23/oimpresso.com/pull/3456))_ · [x] **F2 Memória — EXECUTADO** ([#3459](https://github.com/wagnerra23/oimpresso.com/pull/3459)) · [ ] ~~F5 Trio-tela~~ (fusão-charter retirada — réguas ortogonais) · [ ] ~~F3 RAGAS~~ (retirada — sem alvo limpo) · [ ] ~~F4 Drift~~ (rejeitada)
 - [x] **D-3 deletes — EXECUTADO (parcial)** ([#3455](https://github.com/wagnerra23/oimpresso.com/pull/3455)): resync + test-business deletados **com sync de registro**; force-clean = MANTER; **resta** demo-seeder (bundlado com o teste acoplado)
 
@@ -161,4 +161,5 @@ Ao ratificar o resto: vira `status: aceito`, sai de `proposals/`, ganha número 
 | 2026-06-30 | reconciliação v2→v3 | _(este PR)_ | A cópia em `main` estava na v2 (merge do #3452 pegou v2; a v3 — F3 retirada, F4 rejeitada, regra de sincronia de registro, +4 LEI resgatados — ficou na branch não-remergeada). Este PR traz a v3 pra `main` + marca D-3 e F2 executados. |
 | _em PR_ | **F1 DS/Cor** | [#3456](https://github.com/wagnerra23/oimpresso.com/pull/3456) aberto | 7→1 `ds-gate.yml` (mexe em required — branch protection no mesmo PR). |
 | 2026-06-30 | **F5 Trio-tela** | _(este PR)_ | ❌ fusão-charter **RETIRADA**: `charter-refs` (required, integridade de paths, ratchet numérico) e `charter-us` (advisory, rastreabilidade `related_us`, diff-aware) não são a mesma régua — fundir acoplaria required+advisory. F5 não funde nada (6→6). Zero mudança em workflow/required/registro. |
-| _pendente_ | D-1 LEI · demo-seeder | — | aguarda ratificação/execução por bloco ([W]). |
+| 2026-06-30 | **D-1 LEI (reshape do required)** | _(este PR)_ | 🟡 em execução: baseline `governance/required-checks-baseline.json` 29→22 (remove as 7 demoções, registra em `_meta.democoes`); `protection-drift` vs vivo = **0 🔴 / 7 🟡 transitórios** (mergear o baseline antes do flip não abre janela vermelha). Flip do branch protection (`gh api` removendo os 7 contextos) aguarda **Wagner OK no diff** (R10). LEI intacta: nenhum gate multi-tenant/dinheiro/PII/fiscal sai. |
+| _pendente_ | demo-seeder (resto do D-3) | — | bundlado com o teste acoplado `DemoSeederProtectsRealBusinessTest`. |
