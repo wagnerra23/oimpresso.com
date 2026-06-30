@@ -15,9 +15,14 @@ name: SDD Scorecard publish (commit-back do floor · ADR 0279)
 #
 # Este workflow fecha esse elo: materializa o floor da branch órfã, roda o agregador
 # e COMMITA governance/sdd-scorecard.json no main quando (e só quando) o valor mudou.
-# Padrão ADR 0279 Opção A (repo = SSOT) + padrão de commit-back já usado neste repo
-# (phpstan-baseline-regen.yml): mensagem [skip ci] (não dispara a suíte), SEM
-# force-push, push direto via `git push origin HEAD` (não toca proteção de branch).
+# Padrão ADR 0279 Opção A (repo = SSOT). O commit-back vai via AUTO-PR (peter-evans +
+# COWORK_BOT_PAT + auto-merge), padrão copiado de shipped-log-cron.yml — NÃO push direto.
+# Por quê: main exige PR + ~25 required checks (gates LIGADOS 2026-06-11, enforce_admins:true),
+# então `git push origin HEAD` é REJEITADO (GH013 — "Changes must be made through a pull
+# request"). Era esse o bug: o commit-back nascia vermelho toda noite desde ~24/jun e o floor
+# nunca aterrissava (scorecard mentia not_yet_measured apesar do floor vivo). O PAT (não
+# GITHUB_TOKEN) é obrigatório: PR aberto pelo GITHUB_TOKEN não dispara CI → ficaria preso no
+# branch protection. SEM force-push em main; a branch chore/ é efêmera (delete-branch).
 #
 # ESCOPO P01: só ATERRISSA o número (mede honesto). NÃO arma o ratchet — armar o
 # baseline (armed:true após 3 medições válidas) é P02. Sem P02, o floor MEDE mas
@@ -49,6 +54,7 @@ concurrency:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   publish:
@@ -77,17 +83,60 @@ jobs:
           node scripts/governance/sdd-scorecard.mjs | tee /tmp/scorecard.txt
           { echo '## SDD Scorecard publish (medição desta run)'; echo '```'; cat /tmp/scorecard.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit-back se o scorecard mudou ([skip ci] · sem force-push · ADR 0279)
+      - name: Detecta mudança no scorecard
+        id: diff
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # nightly-floor.json é gitignored (materialização runtime) → nunca entra no diff.
           if git diff --quiet -- governance/sdd-scorecard.json; then
-            echo "scorecard já em dia com o floor vivo — nada a commitar."
-            exit 0
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "scorecard já em dia com o floor vivo — nada a aterrissar."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            FLOOR=$(node -e "const j=require('./governance/sdd-scorecard.json');console.log(j.metrics.full_suite_pass_rate.value)")
+            echo "floor=$FLOOR" >> "$GITHUB_OUTPUT"
+            git diff --stat governance/sdd-scorecard.json
+            { echo "### Floor desta medição: ${FLOOR}"; } >> "$GITHUB_STEP_SUMMARY"
           fi
-          FLOOR=$(node -e "const j=require('./governance/sdd-scorecard.json');console.log(j.metrics.full_suite_pass_rate.value)")
-          git add governance/sdd-scorecard.json
-          git commit -m "chore(governance): aterrissa floor do scorecard SDD (floor=${FLOOR} · ADR 0279 · P01) [skip ci]"
-          git push origin HEAD
-          { echo "### Commit-back"; echo "scorecard SDD aterrissado no main: full_suite_pass_rate.value = ${FLOOR}"; } >> "$GITHUB_STEP_SUMMARY"
+
+      # Auto-PR (NÃO push direto): main exige PR + required checks. O PAT dispara o CI;
+      # GITHUB_TOKEN não dispararia → PR preso. add-paths garante que SÓ o scorecard entra
+      # (nightly-floor.json materializado é gitignored, mas add-paths é defesa explícita).
+      - name: Auto-PR de aterrissagem do floor
+        if: steps.diff.outputs.changed == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.COWORK_BOT_PAT }}
+          base: main
+          branch: chore/sdd-scorecard-floor
+          add-paths: governance/sdd-scorecard.json
+          commit-message: |
+            chore(governance): aterrissa floor do scorecard SDD (floor=${{ steps.diff.outputs.floor }} · ADR 0279 · P01)
+
+            Fecha o elo MEDIR->GOVERNAR: floor vivo da branch órfã governance/nightly-floor
+            aterrissado no scorecard canônico em main (repo = SSOT · ADR 0279 Opção A).
+
+            Refs: US-GOV-023
+            Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+          title: 'chore(governance): aterrissa floor do scorecard SDD (floor=${{ steps.diff.outputs.floor }} · ADR 0279)'
+          body: |
+            **Aterrissagem automática do floor SDD** (P01 / Gap-1a · ADR 0279).
+
+            O write-side CT100 publica o floor vivo na branch órfã `governance/nightly-floor`;
+            este PR traz o número medido pro scorecard canônico em `main` (repo = SSOT).
+            Floor desta medição: **${{ steps.diff.outputs.floor }}** arquivos-que-falham.
+
+            Substitui o `git push origin HEAD` direto (rejeitado por branch protection desde
+            ~24/jun — GH013) pelo padrão auto-PR de `shipped-log-cron.yml`. Auto-merge habilitado.
+
+            🤖 Generated by SDD Scorecard publish
+          labels: |
+            governance
+            automated
+          delete-branch: true
+
+      - name: Auto-merge no PR gerado
+        if: steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
+        run: gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --squash --auto --delete-branch
