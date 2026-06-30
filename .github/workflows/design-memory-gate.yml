@@ -1,34 +1,79 @@
-name: Design-memory gates (advisory)
+name: Design-memory gate (advisory)
 
-# Roda os gates de design-memory (prototipo-ui/) no CI -- fecha o buraco confessado
-# na auditoria: ds-guard.mjs (PROCESSO_MEMORIA_CC.md §8) e integrity-check.mjs (§15)
-# hoje rodam em NENHUM workflow, dependem do humano lembrar de rodar no fim da build.
+# 2026-06-30 (ADR 0314 F2 · poda onda 2): FUSÃO de 3 workflows advisory de
+# design-memory num único `design-memory-gate.yml`, 1 job por sub-check (mesmos
+# scripts, mesmos self-tests, mesmos exits). TODOS os sub-checks dos 3 antigos
+# rodam aqui — counterfactual por sub-check provado antes da fusão (component-
+# registry .test.mjs MORDE export ausente/import quebrado · dtcg .test.mjs MORDE
+# token divergente · design-memory selftests good/bad). Nenhum dos 3 era required
+# (branch protection confirmado) → fusão não toca branch protection. Originais
+# DELETADOS + registros sincronizados (gates-registry.json + .memory-health-
+# baseline.json checkM).
 #
-#   - ds-guard.mjs        anti-padrao L-02/L-21/L-23 (paleta inventada · tela na raiz)
-#                         nos arquivos design-memory TOCADOS no PR (modo arquivos = bloqueia
-#                         localmente, mas o job e' advisory) + relatorio de divida (--all).
-#   - integrity-check.mjs estrutura da propria memoria sa (IT1..IT7 da espinha).
+# Componentes fundidos:
+#   - registry-check (ex-component-registry.yml · Onda O2): sentinela de drift do
+#     registro bloco-de-protótipo → componente React (prototipo-ui/
+#     component-registry.json). self-test obrigatório (bloqueia se o gate mentir)
+#     + drift advisory.
+#   - gates (ex-design-memory-gates.yml): Cowork SSOT guard (hard) + ds-guard §8
+#     nos arquivos tocados + relatório de dívida + integrity-check §15 + selftests
+#     da espinha de import (detectar-telas/ancora/importar-bundle/gerar-contrato/
+#     recortar-regiao/analise-regiao) + ancora-adversário (hard).
+#   - prove (ex-dtcg-equivalence.yml): equivalência DTCG ↔ CSS canônico (tokens
+#     editados no JSON portável, CSS é SAÍDA) + self-test que morde.
 #
-# Node puro, sem deps/DB/rede -- segundos. ADVISORY de nascenca (gates novos nunca
-# nascem required -- ADR 0271/0275); nao entra em branch protection. continue-on-error
-# em cada step de gate garante que vermelho aqui NAO bloqueia o merge.
+# ADVISORY de nascença (ADR 0271/0275/0298): cada sub-check de drift roda em
+# continue-on-error (não bloqueia merge); os self-tests/guards rodam SEM
+# continue-on-error (a suite que valida o gate não pode mentir). NÃO entra em
+# branch protection. Node puro, sem DB/rede — segundos.
+#
+# Trigger: união dos paths dos 3 antigos (é exatamente onde cada drift nasce).
 
 on:
   pull_request:
     branches: [main]
     paths:
-      - 'prototipo-ui/**'
+      - 'resources/js/Components/ui/**'
+      - 'resources/js/Components/layout/**'
       - 'resources/js/Pages/**/*.tsx'
+      - 'prototipo-ui/**'
+      - 'resources/css/tokens/**'   # inclui *.tokens.json, _generated-*.css e o style-dictionary.config
+      - 'resources/css/inertia.css'
+      - 'resources/css/foundations.css'
+      - 'resources/css/cockpit.css'
+      - 'scripts/governance/component-registry-check.mjs'
+      - 'scripts/governance/component-registry-check.test.mjs'
+      - 'scripts/governance/dtcg-equivalence.mjs'
+      - 'scripts/governance/dtcg-equivalence.test.mjs'
+      - '.github/workflows/design-memory-gate.yml'
   workflow_dispatch:
 
 concurrency:
-  group: design-memory-gates-${{ github.ref }}
+  group: design-memory-gate-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
+  # ── ex-component-registry.yml (Onda O2) ──────────────────────────────────────
+  registry-check:
+    name: component-registry drift (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # self-test do próprio gate PRIMEIRO — prova que a sentinela morde/libera (sem máscara)
+      - name: self-test da sentinela (.test.mjs · bloqueia se o gate mentir)
+        run: node scripts/governance/component-registry-check.test.mjs
+      # drift do registry real — advisory (não bloqueia)
+      - name: component-registry-check (advisory · report-only)
+        continue-on-error: true
+        run: node scripts/governance/component-registry-check.mjs --check --strict
+
+  # ── ex-design-memory-gates.yml ──────────────────────────────────────────────
   gates:
     name: design-memory gates (advisory)
     runs-on: ubuntu-latest
@@ -139,3 +184,38 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/analise-regiao.mjs --selftest
+
+  # ── ex-dtcg-equivalence.yml (Onda DTCG ATIVADA) ──────────────────────────────
+  prove:
+    name: equivalencia DTCG <-> CSS canonico (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Self-test (fixture boa passa + fixture ruim falha)
+        run: node scripts/governance/dtcg-equivalence.test.mjs
+
+      - name: Provar equivalencia (advisory)
+        id: prove
+        continue-on-error: true  # advisory: divergencia nunca derruba o PR (ADR 0271/0275)
+        run: |
+          node scripts/governance/dtcg-equivalence.mjs --json > /tmp/dtcg.json
+          node scripts/governance/dtcg-equivalence.mjs --detail | tee /tmp/dtcg.txt
+
+      - name: Job summary (provados iguais / divergencias)
+        if: always()
+        run: |
+          {
+            echo '## DTCG <-> CSS canonico — equivalencia (Onda DTCG)'
+            echo ''
+            echo 'ADVISORY (nao bloqueia). Onda DTCG ATIVADA: prova que cada token DTCG tem'
+            echo 'o MESMO valor que o CSS emitido (_generated-*.css) que o build consome.'
+            echo 'Divergencia aqui = edicao manual no gerado OU regressao do gerador.'
+            echo ''
+            echo '```'
+            cat /tmp/dtcg.txt 2>/dev/null || echo '(sem saida — ver passo anterior)'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

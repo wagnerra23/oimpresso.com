@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // cowork-ssot-guard.mjs — MÁQUINA de fonte única do protótipo de design.
 // Garante que `prototipo-ui/cowork/` é a ÚNICA fonte de design (BUILD-ONLY) e que
-// não existe protótipo/dupla-fonte fora dela. Encaixado em design-memory-gates.yml
+// não existe protótipo/dupla-fonte fora dela. Encaixado em design-memory-gate.yml
 // (sem workflow novo — respeita o teto anti-proliferação, ADR 0298).
 // Origem: ADR-proposta 2026-06-23-prototipo-ssot-unico-com-historico.
 //

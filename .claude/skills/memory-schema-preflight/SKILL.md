@@ -315,9 +315,8 @@ E adicionar no corpo:
 - `scripts/memory-schemas/session.schema.json`
 - `scripts/memory-schemas/handoff.schema.json`
 - `scripts/memory-schemas/charter.schema.json`
-- `.github/workflows/memory-schema-gate.yml` — CI gate principal (AJV)
-- `.github/workflows/memory-schema-gate-extended.yml` — CI gate extended (sections + filename)
-- `.github/scripts/validate-memory-schema.sh` — script bash extra (SPEC/Session/Handoff sections)
+- `.github/workflows/memory-schema-gate.yml` — CI gate único (AJV/frontmatter + sub-checks do corpo · FUNDIDO ADR 0314 F2; absorveu o ex-`memory-schema-gate-extended.yml`)
+- `.github/scripts/validate-memory-schema.sh` — script bash extra (SPEC/Session/Handoff sections), invocado pelos jobs `validate-*-schema` do gate fundido
 - `scripts/governance/anchor-lint.mjs` — lint do corpo `**Implementado em:**` (advisory F1) + `.github/workflows/anchor-drift.yml`
 - Sessão 2026-05-25 — origem do skill (4 PRs blocked + batch fix)
 - [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (memory artifacts canônicos)

@@ -95,7 +95,7 @@ Cada tela tem um **charter** (`<Tela>.charter.md`) = o contrato: missão, goals/
 > Já existem — **use, não crie doc novo** (anti-scatter).
 
 ## A máquina que protege isso (nunca mais acontece)
-[`scripts/governance/cowork-ssot-guard.mjs`](../scripts/governance/cowork-ssot-guard.mjs) (roda no `design-memory-gates.yml`) **dá erro** se: `.md` no `cowork/` · bundle datado `cowork-*` · protótipo fora do `cowork/`. Allowlist transitório (`compras-grade-matrix`, `inventario-migracao`) = telas que VOCÊ deve exportar pro `cowork/` pra zerar.
+[`scripts/governance/cowork-ssot-guard.mjs`](../scripts/governance/cowork-ssot-guard.mjs) (roda no `design-memory-gate.yml`) **dá erro** se: `.md` no `cowork/` · bundle datado `cowork-*` · protótipo fora do `cowork/`. Allowlist transitório (`compras-grade-matrix`, `inventario-migracao`) = telas que VOCÊ deve exportar pro `cowork/` pra zerar.
 
 ---
 _Origem: handoff 2026-06-23 + red-team adversarial da integração de memória. Pareado com a [ADR-proposta SSOT](../memory/decisions/proposals/2026-06-23-prototipo-ssot-unico-com-historico.md) (método) e [`FRESCOR-PRODUCAO-vs-PROTOTIPO.md`](FRESCOR-PRODUCAO-vs-PROTOTIPO.md) (frescor por-tela)._
