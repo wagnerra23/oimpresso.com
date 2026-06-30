@@ -55,7 +55,7 @@ beforeEach(function () {
     ]);
 });
 
-function makeWmChannel(int $bizId, bool $provisioned = true): Channel
+function makeResubWmChannel(int $bizId, bool $provisioned = true): Channel
 {
     $cfg = $provisioned ? [
         'whatsmeow_user_token' => 'tok-'.$bizId,
@@ -74,7 +74,7 @@ function makeWmChannel(int $bizId, bool $provisioned = true): Channel
 }
 
 it('re-assina LoggedOut via POST /webhook (mecanismo D, sem reconnect)', function () {
-    makeWmChannel(1);
+    makeResubWmChannel(1);
     Http::fake(['*/webhook' => Http::response(['code' => 200, 'success' => true], 200)]);
 
     $exit = \Artisan::call('whatsapp:whatsmeow-resubscribe-events', ['--business' => '1']);
@@ -87,8 +87,8 @@ it('re-assina LoggedOut via POST /webhook (mecanismo D, sem reconnect)', functio
 });
 
 it('multi-tenant Tier 0: --business=99 não toca biz=1', function () {
-    makeWmChannel(1);
-    makeWmChannel(99);
+    makeResubWmChannel(1);
+    makeResubWmChannel(99);
     Http::fake(['*/webhook' => Http::response(['code' => 200], 200)]);
 
     \Artisan::call('whatsapp:whatsmeow-resubscribe-events', ['--business' => '99']);
@@ -98,7 +98,7 @@ it('multi-tenant Tier 0: --business=99 não toca biz=1', function () {
 });
 
 it('--dry-run não chama o daemon', function () {
-    makeWmChannel(1);
+    makeResubWmChannel(1);
     Http::fake();
 
     $exit = \Artisan::call('whatsapp:whatsmeow-resubscribe-events', ['--dry-run' => true]);
@@ -108,7 +108,7 @@ it('--dry-run não chama o daemon', function () {
 });
 
 it('canal sem token é pulado (skip), comando não falha', function () {
-    makeWmChannel(1, provisioned: false);
+    makeResubWmChannel(1, provisioned: false);
     Http::fake();
 
     $exit = \Artisan::call('whatsapp:whatsmeow-resubscribe-events', ['--business' => '1']);
