@@ -1,0 +1,175 @@
+#!/usr/bin/env node
+// ancora.mjs — a ÂNCORA de uma tela é COMPUTADA do charter, nunca escolhida no olho.
+//
+// Por que existe (incidente #7, 2026-06-30): o agente, pra comparar "a tela viva vs o
+// design", pegou `audit-financeiro.png` (um PRINT DE AUDITORIA — estado velho sendo
+// criticado) e apresentou como "o design". DUAS vezes. O mecanismo de detecção existia,
+// mas nada FORÇAVA usá-lo nem IMPEDIA pegar um png solto. Wagner: "já deveria ter uma
+// máquina pra isso." Esta é a máquina: dado uma tela, ela resolve, do charter canônico,
+// QUAL é a fonte-de-design legítima — e diz explicitamente o que NÃO é âncora.
+//
+// Regra dura: âncora ∈ { related_prototype do charter, -page.jsx do bundle via charter }.
+// audit-*.png / critique / screenshot solto NUNCA é âncora.
+//
+// Uso:
+//   node prototipo-ui/ancora.mjs <tela>            # tela = rota (/financeiro/unificado)
+//                                                  #   ou Mod/Tela (Financeiro/Unificado)
+//                                                  #   ou caminho .tsx
+//   node prototipo-ui/ancora.mjs <tela> --staging <dir>   # + resolve o -page.jsx do bundle
+//   node prototipo-ui/ancora.mjs --list            # todas as telas + suas âncoras
+//   node prototipo-ui/ancora.mjs --selftest        # fixture hermético
+//
+// Exit: 0 = âncora resolvida | 1 = sem charter (NÃO invente — registre/pergunte) | 2 = uso
+
+import { readFile, readdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
+import { join, resolve, dirname, basename, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
+const REPO_DEFAULT = resolve(HERE, '..');
+
+// ── helpers (mesmos do detectar-telas, sem dep externa) ──────────────────────
+const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { return null; } };
+
+export function frontmatter(src) {
+  if (!src) return {};
+  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!m) return {};
+  const fm = {};
+  for (const line of m[1].split(/\r?\n/)) {
+    const mm = line.match(/^([a-z_]+):\s*(.*)$/i);
+    if (mm) fm[mm[1].toLowerCase()] = mm[2].trim();
+  }
+  return fm;
+}
+
+// extrai 1º path de repo (.tsx) de um texto livre
+export function repoTsx(text) {
+  if (!text) return null;
+  const m = text.match(/resources\/js\/Pages\/[\w./-]+\.tsx/);
+  return m ? m[0] : null;
+}
+// extrai 1º mockup -page.jsx citado (NUNCA um audit/critique png)
+export function mockupJsx(text) {
+  if (!text) return null;
+  const m = text.match(/[\w.-]*-page\.jsx/);
+  return m ? m[0] : null;
+}
+
+// ── um png de auditoria/crítica NUNCA é âncora (lista negra explícita) ────────
+const NAO_ANCORA = /audit|critique|cr[ií]tica|screenshot|scrap|-old|reavalia|tribunal/i;
+export function ehAncoraIlegitima(p) {
+  if (!p) return false;
+  const b = basename(p);
+  return /\.(png|jpg|jpeg|webp|gif)$/i.test(b) && NAO_ANCORA.test(b);
+}
+
+async function walk(dir, out = []) {
+  let entries;
+  try { entries = await readdir(dir, { withFileTypes: true }); } catch { return out; }
+  const skip = new Set(['node_modules', '.git', '_arquivo', 'scraps', 'screenshots', 'uploads', 'assets']);
+  for (const e of entries) {
+    if (skip.has(e.name)) continue;
+    const full = join(dir, e.name);
+    if (e.isDirectory()) await walk(full, out);
+    else out.push(full);
+  }
+  return out;
+}
+
+// normaliza a query da tela → tokens comparáveis
+function norm(s) { return (s || '').toLowerCase().replace(/\\/g, '/').replace(/\.(tsx|charter\.md)$/i, '').replace(/\/index$/i, ''); }
+
+// ── núcleo: resolve a âncora de UMA tela a partir dos charters do repo ────────
+export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir = null } = {}) {
+  const pagesRoot = join(repoRoot, 'resources', 'js', 'Pages');
+  const charters = (await walk(pagesRoot)).filter((f) => f.endsWith('.charter.md'));
+  const q = norm(query);
+
+  let hit = null;
+  for (const cf of charters) {
+    const fm = frontmatter(await read(cf));
+    const page = norm(fm.page);                 // rota: /financeiro/unificado
+    const comp = norm(fm.component);            // resources/js/Pages/Financeiro/Unificado/Index.tsx
+    const relc = norm(relative(repoRoot, cf));  // .../Unificado/Index.charter.md
+    if ((page && page === q) || (comp && comp.endsWith(q)) || (comp && q.endsWith(comp)) ||
+        relc.includes(q) || (q && comp && comp.includes(q))) {
+      hit = { charter: relative(repoRoot, cf).replace(/\\/g, '/'), fm };
+      if (page === q || comp.endsWith(q)) break; // match forte ganha
+    }
+  }
+  if (!hit) return { ok: false, query, motivo: 'sem charter pra essa tela — NÃO invente âncora; registre ou pergunte' };
+
+  const fm = hit.fm;
+  const ancoras = [];
+  // 1) protótipo aprovado declarado no charter (related_prototype)
+  if (fm.related_prototype) ancoras.push({ tipo: 'related_prototype (charter)', valor: fm.related_prototype });
+  // 2) -page.jsx do bundle (se staging dado) — resolvido por nome do componente/rota
+  if (stagingDir) {
+    const stFiles = await walk(stagingDir);
+    const wanted = (basename(dirname(repoTsx(fm.component) || hit.charter)) || '').toLowerCase();
+    const cand = stFiles.find((f) => /-page\.jsx$/i.test(f) && basename(f).toLowerCase().startsWith(wanted));
+    if (cand) ancoras.push({ tipo: '-page.jsx (bundle)', valor: relative(stagingDir, cand).replace(/\\/g, '/') });
+  }
+  const liveTsx = repoTsx(fm.component);
+  return {
+    ok: true, query, charter: hit.charter,
+    telaViva: liveTsx, ancoras,
+    aviso: 'ÂNCORA = um dos itens acima. audit-*.png / critique / screenshot NUNCA é âncora.',
+  };
+}
+
+function printResolve(r) {
+  if (!r.ok) { console.error(`✗ ${r.query}: ${r.motivo}`); return 1; }
+  console.log(`ÂNCORA da tela: ${r.query}`);
+  console.log(`  charter:    ${r.charter}`);
+  console.log(`  tela viva:  ${r.telaViva || '—'}`);
+  if (!r.ancoras.length) console.log('  âncora:     ⚠️ charter sem related_prototype nem -page.jsx — registre o protótipo');
+  for (const a of r.ancoras) console.log(`  âncora ✓:   [${a.tipo}] ${a.valor}`);
+  console.log(`  ⛔ ${r.aviso}`);
+  return 0;
+}
+
+async function listAll(repoRoot) {
+  const charters = (await walk(join(repoRoot, 'resources', 'js', 'Pages'))).filter((f) => f.endsWith('.charter.md'));
+  for (const cf of charters.sort()) {
+    const fm = frontmatter(await read(cf));
+    const anc = fm.related_prototype || mockupJsx(fm.component) || '⚠️ sem protótipo declarado';
+    console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${anc}`);
+  }
+}
+
+async function selftest() {
+  let fails = 0;
+  const t = (label, cond) => { const ok = !!cond; if (!ok) fails++; console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label}`); };
+  // contrato puro: audit/critique png nunca é âncora; -page.jsx é
+  t('audit-financeiro.png é ÂNCORA ILEGÍTIMA', ehAncoraIlegitima('audit-financeiro.png') === true);
+  t('Tribunal-x.png é ilegítima', ehAncoraIlegitima('Tribunal-x.png') === true);
+  t('financeiro-page.jsx NÃO é ilegítima', ehAncoraIlegitima('financeiro-page.jsx') === false);
+  t('ph-financeiro2.png (visual aprovado) NÃO casa lista-negra', ehAncoraIlegitima('ph-financeiro2.png') === false);
+  t('mockupJsx pega -page.jsx', mockupJsx('component: financeiro-page.jsx (window.X)') === 'financeiro-page.jsx');
+  t('repoTsx pega o .tsx', repoTsx('resources/js/Pages/Financeiro/Unificado/Index.tsx ok') === 'resources/js/Pages/Financeiro/Unificado/Index.tsx');
+  // resolve real contra os charters do repo (tela conhecida)
+  const r = await resolveAncora('/financeiro/unificado');
+  t('resolve /financeiro/unificado acha charter', r.ok === true && /Unificado/.test(r.charter || ''));
+  console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — âncora = charter, png de auditoria barrado.');
+  process.exit(fails ? 1 : 0);
+}
+
+// ── main ─────────────────────────────────────────────────────────────────────
+const argv = process.argv.slice(2);
+const has = (f) => argv.includes(f);
+const val = (f) => { const i = argv.indexOf(f); return i >= 0 && argv[i + 1] ? argv[i + 1] : null; };
+const invokedDirectly = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (invokedDirectly) {
+  if (has('--selftest')) await selftest();
+  else if (has('--list')) { await listAll(REPO_DEFAULT); process.exit(0); }
+  else {
+    const tela = argv.find((a) => !a.startsWith('--') && argv[argv.indexOf(a) - 1] !== '--staging');
+    if (!tela) { console.error('uso: node prototipo-ui/ancora.mjs <tela> [--staging <dir>] | --list | --selftest'); process.exit(2); }
+    const r = await resolveAncora(tela, { stagingDir: val('--staging') });
+    process.exit(printResolve(r));
+  }
+}
