@@ -25,35 +25,42 @@ import { stdin, env } from 'node:process';
 import { basename, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-// AUTO-CONTIDO (adversário ATAQUE 1, 2026-06-30): a lista-negra é INLINE, sem import de
-// ancora.mjs. Um guarda NÃO pode falhar-aberto porque outro arquivo quebrou — se o hook
-// dependesse de `import ../../prototipo-ui/ancora.mjs` e esse arquivo tivesse erro de sintaxe,
-// o hook crashava com exit 1 (≠ 2) → tool LIBERADA → guarda mudo. Cópia sincronizada com
-// ancora.mjs::ehAncoraIlegitima — settings-ancora-registration.test.mjs guarda contra drift.
-const NAO_ANCORA = /audit|critique|cr[ií]tica|screenshot|scrap|-old|reavalia|tribunal/i;
-export function ehAncoraIlegitima(p) {
-  if (!p) return false;
-  const b = basename(p);
-  return /\.(png|jpg|jpeg|webp|gif)$/i.test(b) && NAO_ANCORA.test(b);
-}
-
+// AUTO-CONTIDO (adversário ATAQUE 1): tudo INLINE, sem import de ancora.mjs — um guarda não
+// pode falhar-aberto porque outro arquivo quebrou (import com syntax-error → exit 1 ≠ 2 → tool
+// liberada). Mantido.
+//
+// ALLOWLIST DE PROVENIÊNCIA (adversário ATAQUE 2, 2026-06-30): a defesa NÃO é mais lista-negra
+// de nome ("audit-*.png") — que o rename-bypass furava (`financeiro-final-v2.png` escapava).
+// Agora é ALLOWLIST: imagem externa (bundle/Downloads) só vale como âncora se for FONTE-DE-DESIGN
+// CONHECIDA (screenshots/ · _ds/ · ds-v6/ · ph-*/kpi-*) ou o related_prototype do charter. Qualquer
+// outra imagem externa — renomeada, print solto, arbitrária — BLOQUEIA. É o "espaço decidível" dos
+// papers de verificação formal (denylist sintática é incompleta por construção; allowlist fecha).
+const IMG = /\.(png|jpe?g|webp|gif)$/i;
+// fontes-de-design legítimas (allowlist) — as ÚNICAS imagens externas que passam como âncora
+const FONTE_DS_LEGITIMA = /(\/|\\)(screenshots|_ds|ds-v6)(\/|\\)|(^|\/|\\)(ph-|kpi-)[\w-]*\.(png|jpe?g|webp)$/i;
 // fora-do-repo = onde bundles caem (Downloads/Desktop/staging) — não casa caminho do repo
 const FORA_DO_REPO = /(\/|\\)(Downloads|Desktop|Área de Trabalho|Ã.rea de Trabalho)(\/|\\)|_cowork-handoff-staging|_handoff-[^/\\]*staging|cowork-snapshot/i;
+
+export function temProvenanca(fp) { return FONTE_DS_LEGITIMA.test(String(fp).replace(/\\/g, '/')); }
+// lista-negra de nome: NÃO é mais o gate — só enriquece a mensagem ("parece print de auditoria")
+const NAO_ANCORA = /audit|critique|cr[ií]tica|scrap|-old|reavalia|tribunal/i;
+export function ehAncoraIlegitima(p) { return !!p && IMG.test(p) && NAO_ANCORA.test(basename(p)); }
 
 export function razaoBloqueio(toolName, toolInput) {
   if (toolName !== 'Read') return null;
   const fp = (toolInput && toolInput.file_path) || '';
   if (!fp) return null;
   const norm = fp.replace(/\\/g, '/');
-  if (!ehAncoraIlegitima(fp)) return null;     // não é print de auditoria/crítica → segue
-  if (!FORA_DO_REPO.test(norm)) return null;    // png dentro do repo (raro) → não barra
+  if (!IMG.test(norm)) return null;            // não é imagem → segue
+  if (!FORA_DO_REPO.test(norm)) return null;    // imagem committed no repo → segue
+  if (temProvenanca(norm)) return null;         // fonte-DS conhecida (allowlist) → segue
+  const dica = ehAncoraIlegitima(fp) ? ' (parece print de auditoria/crítica)' : '';
   return (
-    `⛔ ÂNCORA NO OLHO: "${basename(fp)}" é print de AUDITORIA/CRÍTICA (estado velho), NÃO o design.\n` +
-    `   Foi exatamente o erro #7 (2026-06-30): print de auditoria apresentado como "o design".\n` +
-    `   A âncora é COMPUTADA do charter:\n` +
-    `     node prototipo-ui/ancora.mjs <Mod/Tela>   (ex: Financeiro/Unificado)\n` +
-    `   Ela te dá o related_prototype aprovado + a tela viva. Print solto nunca é âncora.\n` +
-    `   Escape real (investigar o próprio print, não usar como design): OIMPRESSO_ANCORA_OK=1`
+    `⛔ ÂNCORA SEM PROVENIÊNCIA: "${basename(fp)}" é imagem externa que NÃO é fonte-de-design conhecida${dica}.\n` +
+    `   Incidente #7: print apresentado como "o design". Allowlist (flip 2026-06-30): só vale como âncora\n` +
+    `   screenshots/ · _ds/ · ph-*/kpi-* · ou o related_prototype do charter. Renomear o print NÃO escapa mais.\n` +
+    `   A âncora é COMPUTADA: node prototipo-ui/ancora.mjs <Mod/Tela>\n` +
+    `   Escape (investigar, não usar como design): OIMPRESSO_ANCORA_OK=1`
   );
 }
 
