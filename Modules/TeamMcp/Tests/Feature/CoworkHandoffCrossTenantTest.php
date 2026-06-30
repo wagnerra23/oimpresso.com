@@ -77,10 +77,16 @@ function coworkHandoffRow(string $slug): CoworkHandoff
 }
 
 beforeEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        $this->markTestSkipped('era-sqlite: tabela sintética cowork_handoffs só roda no sqlite (US-GOV-021)');
+    }
     coworkHandoffSyntheticTable();
 });
 
 afterEach(function () {
+    if (config('database.default') !== 'sqlite') {
+        return; // era-sqlite: não dropar tabela compartilhada no MySQL persistente (US-GOV-021)
+    }
     if (Schema::hasTable('cowork_handoffs')) {
         Schema::drop('cowork_handoffs');
     }
