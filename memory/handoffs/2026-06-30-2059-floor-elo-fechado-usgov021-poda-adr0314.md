@@ -1,12 +1,15 @@
 ---
 date: "2026-06-30"
-hour_brt: "20:59"
+time: "20:59 BRT"
+slug: floor-elo-fechado-usgov021-poda-adr0314
 topic: "Elo MEDIR→GOVERNAR fechado (floor=300 measured) + US-GOV-021 corruptores 0 + ADR 0314 poda v3 (adversário) pronto pra ratificação"
 duration: "~longa (marathon multi-turno)"
-authors: [CC]
-related_adrs: [0279, 0275, 0271, 0093, 0276]
-related_us: [US-GOV-021, US-GOV-023]
+decided_by: [W]
 cycle: CYCLE-08
+prs: [3442, 3443, 3445, 3450, 3452]
+us: [US-GOV-021, US-GOV-023]
+related_adrs: ["0279-sdd-medir-governar-floor-nightly", "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes", "0271-revisao-gates-ci-estado-real-required-e-subtracao-segura", "0276-decisao-pelo-fluxo-classes-pares-adversariais", "0093-multi-tenant-isolation-tier-0"]
+tldr: "Fechou o nó nº1 do SDD (elo MEDIR→GOVERNAR: floor=300 measured via #3442/#3443), isolou o lever do floor (US-GOV-021 corruptores 12→0, #3445), e produziu o ADR 0314 (poda de gates, PR #3452 v3, adversário-revisado) pronto pra ratificação. Wagner aprovou executar a poda em sessão nova; 5 chips disparados."
 ---
 
 # Handoff — floor governa + US-GOV-021 + poda ADR 0314 (pré-ratificação)
