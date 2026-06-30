@@ -58,10 +58,9 @@ jobs:
     name: Jana recall-eval (mock — golden set determinístico)
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # ADVISORY: não bloqueia merge até estabilizar. Promover a required pela
-    # cadência do scorecard SDD (ADR 0275), nunca direto. O exit 1 do comando
-    # ainda marca o STEP como falho (visível no PR) — só não falha o JOB.
-    continue-on-error: true
+    # ARMANDO (ADR 0275): continue-on-error removido — o exit 1 do recall-eval (mock,
+    # golden set determinístico) agora DERRUBA o job. Verde-estável no main (39/40 runs),
+    # FP=0. O flip a required na branch protection é ato humano do Wagner.
 
     steps:
       - uses: actions/checkout@v4
