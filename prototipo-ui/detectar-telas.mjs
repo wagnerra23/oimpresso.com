@@ -47,15 +47,15 @@ const REPO_DEFAULT = resolve(HERE, '..');             // raiz do repo
 // (compras→Compras NÃO Purchases; clientes/crm→Cliente, CRM/Index não existe).
 // Extensível: mockup novo sem alvo → ORFAO (gate falha) → adicione a entrada aqui
 // CONSCIENTEMENTE (o ponto do mecanismo: nada some sem decisão).
+// 2026-06-30 (musing-elion): ALIAS encolheu de 7→2 entradas. O resto migrou pro CHARTER
+// (campo `bundle_source:` — financeiro/vendas/produtos/kb/recurring/clientes — + `related_prototype:`
+// do Compras). ALIAS agora é SÓ fallback pra mockup genuinamente SEM charter que o nomeie:
+//   - vendas-create: a tela Sells/Create não tem charter no bundle (P0 documentado).
+//   - crm: alvo DISPUTADO (é funil de deals → Modules/Crm, não Cliente) — fica fallback até decidir.
+// Mockup novo sem charter E sem alias → ORFAO (gate falha) → resolva no charter (preferido) ou aqui.
 const ALIAS = [
-  { re: /^vendas-create-page\.jsx$/i, alvo: 'resources/js/Pages/Sells/Create.tsx',            tela: 'Venda (Sells/Create)' },
-  { re: /^vendas-page\.jsx$/i,        alvo: 'resources/js/Pages/Sells/Index.tsx',             tela: 'Lista de Venda (Sells/Index)' },
-  { re: /^compras-page\.jsx$/i,       alvo: 'resources/js/Pages/Compras/Index.tsx',           tela: 'Compras' },
-  { re: /^(clientes|crm)-page\.jsx$/i,alvo: 'resources/js/Pages/Cliente/Index.tsx',           tela: 'Clientes/CRM' },
-  { re: /^cobranca-recorrente-page\.jsx$/i, alvo: 'resources/js/Pages/RecurringBilling/Index.tsx', tela: 'Cobrança Recorrente' },
-  // alvo vivo verificado (nome↔Page inequívoco) — 2026-06-30:
-  { re: /^produtos-page\.jsx$/i,      alvo: 'resources/js/Pages/Produto/Index.tsx',           tela: 'Produtos' },
-  { re: /^kb-page\.jsx$/i,            alvo: 'resources/js/Pages/kb/Index.tsx',                tela: 'Base de Conhecimento' },
+  { re: /^vendas-create-page\.jsx$/i, alvo: 'resources/js/Pages/Sells/Create.tsx', tela: 'Venda (Sells/Create) — charter-less' },
+  { re: /^crm-page\.jsx$/i,           alvo: 'resources/js/Pages/Cliente/Index.tsx', tela: 'CRM (alvo disputado → Modules/Crm)' },
 ];
 
 // ---- A_CRIAR (CÓDIGO) — mockups CONSCIENTEMENTE registrados como "tela ainda não existe" -----
@@ -65,12 +65,29 @@ const ALIAS = [
 // graduа sozinha pra SEMANTICO. Mockup NOVO fora desta lista E sem charter ainda → ORFAO (gate
 // falha) — a fail-closed continua: só some o que foi reconhecido à mão. Origem: Q5 2026-06-30.
 const A_CRIAR = [
-  /^boletos-page\.jsx$/i, /^equipe-page\.jsx$/i, /^financeiro-page\.jsx$/i, /^forja-page\.jsx$/i,
+  /^boletos-page\.jsx$/i, /^equipe-page\.jsx$/i, /^forja-page\.jsx$/i,
   /^inbox-page\.jsx$/i, /^orc-page\.jsx$/i, /^os-page\.jsx$/i, /^perfil-page\.jsx$/i,
   /^pg-cobranca-page\.jsx$/i, /^pg-payment-gateways-page\.jsx$/i, /^producao-page\.jsx$/i,
   /^cobranca-page\.jsx$/i, /^payment-gateways-page\.jsx$/i, /^usuarios-page\.jsx$/i,
 ];
 export function isACriar(b) { return A_CRIAR.some((re) => re.test(b)); }
+
+// Guard estrutural (2026-06-30): A_CRIAR é uma válvula de escape do gate fail-closed.
+// Quando uma entrada está ERRADA (mockup de módulo VIVO marcado como nascente), ela
+// reintroduz o silêncio que a máquina existe pra matar — foi o que aconteceu com
+// financeiro-page (alvo vivo Unificado). Defesa: extrai o "stem" do mockup (basename
+// menos `-page.jsx`) e cruza com os diretórios vivos de Pages. Bate → ADVISORY (não
+// auto-fail: nascente homônimo legítimo existe, ex. cobranca-page pode ser PaymentGateway).
+// Sobe pra revisão consciente em vez de sumir. Mesma lição do ORFAO (17/24 órfãos).
+export function acriarStem(b) { return basename(b).replace(/-page\.jsx$/i, '').toLowerCase(); }
+export function liveDirNames(repoFiles, repoRoot) {
+  const names = new Set();
+  for (const f of repoFiles) {
+    const rel = relative(join(repoRoot, 'resources', 'js', 'Pages'), f).replace(/\\/g, '/');
+    for (const seg of rel.split('/').slice(0, -1)) names.add(seg.toLowerCase());
+  }
+  return names;
+}
 
 const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { return null; } };
 
@@ -142,13 +159,34 @@ async function buildManifest({ staging, repoRoot }) {
   const repoFiles = await walk(pagesRoot);
 
   // índice de charters dos DOIS universos (mockup .jsx → repo_alvo)
+  // 2026-06-30 (musing-elion): o link mockup↔tela mora no CHARTER, mas vinha sendo lido só de
+  // `component:` (que carrega o .tsx, não o .jsx). O bundle nomeia o mockup pela RAIZ do módulo
+  // (financeiro-page) e a tela vive numa sub-pasta (Unificado) → nem `component`-mining nem a
+  // heurística startsWith(dir) do ancora.mjs casavam. Campo estruturado dedicado `bundle_source:`
+  // (lido também pelo ancora.mjs) carrega o -page.jsx do bundle SEM tocar o related_prototype
+  // (que é o design APROVADO). related_prototype apontando -page.jsx (convenção compras/oficina)
+  // também conta. Charter-first de verdade — ALIAS vira só fallback pra mockup SEM charter.
   const repoCharters = repoFiles.filter((f) => f.endsWith('.charter.md'));
   const byMockup = new Map();
   for (const cf of [...stagingFiles.filter((f) => f.endsWith('.charter.md')), ...repoCharters]) {
     const fm = frontmatter(await read(cf));
     const alvo = extractRepoPath(fm.repo_alvo) || extractRepoPath(fm.component) || extractRepoPath(fm.page);
     if (!alvo) continue;
-    for (const mk of extractMockupFiles(fm.component)) if (!byMockup.has(mk)) byMockup.set(mk, alvo);
+    // mockups citados em campos estruturados (component, bundle_source, related_prototype)
+    const mockupsDeclarados = [
+      ...extractMockupFiles(fm.component),
+      ...extractMockupFiles(fm.bundle_source),
+      ...extractMockupFiles(fm.related_prototype),
+    ];
+    // ALVO QUE EXISTE GANHA (musing-elion 2026-06-30): um charter STALE (ex: repo_alvo Purchases/Index,
+    // nome antigo de Compras) não pode vencer a corrida e mascarar o alvo vivo. Sem isso o compras-page
+    // caía em ALVO-PENDENTE pra uma tela que não existe. Entre dois que existem, first-wins.
+    const novoExiste = existsSync(join(repoRoot, alvo));
+    for (const mk of mockupsDeclarados) {
+      const atual = byMockup.get(mk);
+      const atualExiste = atual && existsSync(join(repoRoot, atual));
+      if (!atual || (novoExiste && !atualExiste)) byMockup.set(mk, alvo);
+    }
   }
 
   // índice de sufixo do repo: "<dir>/index.tsx" (lower) → [rel paths]
@@ -263,8 +301,14 @@ async function run({ stagingArg, repoRoot, json, strict }) {
   const orfaos = rows.filter((r) => r.status === 'ORFAO' || r.status === 'AMBIGUO');
   const pendentes = rows.filter((r) => r.status === 'ALVO-PENDENTE');
 
+  // ADVISORY estrutural: A-CRIAR com diretório vivo homônimo → suspeito de mapeamento perdido
+  const liveDirs = liveDirNames(await walk(join(repoRoot, 'resources', 'js', 'Pages')), repoRoot);
+  const suspeitos = rows
+    .filter((r) => r.status === 'A-CRIAR' && liveDirs.has(acriarStem(r.arquivo)))
+    .map((r) => ({ arquivo: r.arquivo, stem: acriarStem(r.arquivo) }));
+
   if (json) {
-    console.log(JSON.stringify({ rows, resumo: tally(rows), orfaos: orfaos.length, pendentes: pendentes.length }, null, 2));
+    console.log(JSON.stringify({ rows, resumo: tally(rows), orfaos: orfaos.length, pendentes: pendentes.length, acriar_suspeitos: suspeitos }, null, 2));
   } else {
     console.log(`# detectar-telas — manifesto · staging=${relative(repoRoot, staging).replace(/\\/g, '/') || staging}\n`);
     for (const r of rows) {
@@ -275,6 +319,10 @@ async function run({ stagingArg, repoRoot, json, strict }) {
     console.log('\n  resumo: ' + Object.entries(tally(rows)).map(([k, v]) => `${k}=${v}`).join(' · '));
   }
 
+  if (suspeitos.length) {
+    console.error(`\n⚠ ADVISORY: ${suspeitos.length} A-CRIAR com módulo VIVO homônimo — revise se não é mapeamento perdido (foi o bug financeiro-page):`);
+    for (const s of suspeitos) console.error(`  ⚠ ${s.arquivo} — existe Pages/.../${s.stem}/ vivo. Se mapeia tela viva → mova pro ALIAS; se é tela nova num módulo vivo → confirme A-CRIAR consciente.`);
+  }
   if (orfaos.length) {
     console.error(`\nGATE FALHOU: ${orfaos.length} screen-source(s) ÓRFÃO/AMBÍGUO — telas perdidas em silêncio se ignorar:`);
     for (const r of orfaos) console.error(`  ✗ [${r.status}] ${r.arquivo} — resolva no ALIAS de detectar-telas.mjs ou via charter repo_alvo.`);
@@ -297,6 +345,7 @@ async function selftest() {
   const checks = [
     ['vendas-create (charter-less → ALIAS, P0 LOCK)', by(/vendas-create-page\.jsx$/), 'SEMANTICO'],
     ['vendas-page (via charter.component)',            by(/(^|\/)vendas-page\.jsx$/),  'SEMANTICO'],
+    ['financeiro-page (via charter bundle_source, SEM alias)', by(/financeiro-page\.jsx$/), 'SEMANTICO'],
     ['mistero (sem charter nem alias → não some)',     by(/mistero-page\.jsx$/),       'ORFAO'],
     ['Conciliacao format-2 idêntico',                  by(/Conciliacao\/Index\.tsx$/), 'IDENTICO'],
     ['Caixa format-2 alterado',                        by(/Caixa\/Index\.tsx$/),       'ALTERADO'],
@@ -304,11 +353,23 @@ async function selftest() {
   // Q5: registro a-criar é não-cego (forja registrado ≠ mistero desconhecido)
   if (isACriar('forja-page.jsx') !== true) { console.log('  [FAIL] forja-page.jsx deveria ser A-CRIAR registrado'); }
   if (isACriar('mistero-page.jsx') !== false) { console.log('  [FAIL] mistero-page.jsx NÃO pode ser A-CRIAR (segue órfão-cego)'); }
+  // 2026-06-30 (musing-elion): financeiro-page NÃO pode voltar pra A_CRIAR (silenciou o ledger vivo).
+  // Resolve via CHARTER (bundle_source), NÃO via ALIAS — o caso 'financeiro-page' nos `checks` acima
+  // prova a resolução SEMANTICO charter-first. Aqui só travamos que não há regressão pra A_CRIAR/ALIAS.
+  const finOutOfACriar = isACriar('financeiro-page.jsx') === false;
+  const finSemAlias = !ALIAS.some((a) => a.re.test('financeiro-page.jsx')); // charter-first: sem band-aid
+  if (!finOutOfACriar) console.log('  [FAIL] financeiro-page.jsx NÃO pode ser A-CRIAR (mapeia o ledger vivo Unificado)');
+  if (!finSemAlias) console.log('  [FAIL] financeiro-page.jsx deve resolver via charter bundle_source, não ALIAS');
+  // guard estrutural: stem do mockup cruza com dir vivo homônimo
+  const guardOk = acriarStem('financeiro-page.jsx') === 'financeiro'
+               && liveDirNames(['/x/resources/js/Pages/Financeiro/Unificado/Index.tsx'], '/x').has('financeiro');
+  if (!guardOk) console.log('  [FAIL] guard A-CRIAR×dir-vivo (acriarStem/liveDirNames) quebrado');
   // desambiguação por @memcofre (format-2 ambíguo resolve pelo módulo declarado no arquivo)
   const mcOk = memcofreModule('// @memcofre\n//   tela: /financeiro\n//   module: Financeiro\n') === 'financeiro'
             && memcofreModule('sem header') === null;
   if (!mcOk) console.log('  [FAIL] memcofreModule deveria extrair o module: do header @memcofre');
-  let fails = (isACriar('forja-page.jsx') ? 0 : 1) + (isACriar('mistero-page.jsx') ? 1 : 0) + (mcOk ? 0 : 1);
+  let fails = (isACriar('forja-page.jsx') ? 0 : 1) + (isACriar('mistero-page.jsx') ? 1 : 0) + (mcOk ? 0 : 1)
+            + (finOutOfACriar ? 0 : 1) + (finSemAlias ? 0 : 1) + (guardOk ? 0 : 1);
   for (const [label, row, exp] of checks) {
     const got = row ? row.status : '(ausente)';
     const ok = got === exp; if (!ok) fails++;

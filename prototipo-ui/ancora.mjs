@@ -105,12 +105,21 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
   const ancoras = [];
   // 1) protótipo aprovado declarado no charter (related_prototype)
   if (fm.related_prototype) ancoras.push({ tipo: 'related_prototype (charter)', valor: fm.related_prototype });
-  // 2) -page.jsx do bundle (se staging dado) — resolvido por nome do componente/rota
+  // 2) -page.jsx do bundle (se staging dado).
+  // PREFERE o campo estruturado `bundle_source:` do charter (determinístico) — musing-elion 2026-06-30:
+  // a heurística startsWith(dir) falhava quando o bundle nomeia o mockup pela RAIZ do módulo
+  // (financeiro-page) e a tela vive em sub-pasta (Unificado). Só cai na heurística se não houver campo.
   if (stagingDir) {
     const stFiles = await walk(stagingDir);
-    const wanted = (basename(dirname(repoTsx(fm.component) || hit.charter)) || '').toLowerCase();
-    const cand = stFiles.find((f) => /-page\.jsx$/i.test(f) && basename(f).toLowerCase().startsWith(wanted));
-    if (cand) ancoras.push({ tipo: '-page.jsx (bundle)', valor: relative(stagingDir, cand).replace(/\\/g, '/') });
+    const declarado = mockupJsx(fm.bundle_source);
+    let cand = declarado ? stFiles.find((f) => basename(f).toLowerCase() === declarado.toLowerCase()) : null;
+    let via = cand ? 'bundle_source' : null;
+    if (!cand) {
+      const wanted = (basename(dirname(repoTsx(fm.component) || hit.charter)) || '').toLowerCase();
+      cand = stFiles.find((f) => /-page\.jsx$/i.test(f) && basename(f).toLowerCase().startsWith(wanted));
+      if (cand) via = 'heurística startsWith(dir)';
+    }
+    if (cand) ancoras.push({ tipo: `-page.jsx (bundle · ${via})`, valor: relative(stagingDir, cand).replace(/\\/g, '/') });
   }
   const liveTsx = repoTsx(fm.component);
   return {
