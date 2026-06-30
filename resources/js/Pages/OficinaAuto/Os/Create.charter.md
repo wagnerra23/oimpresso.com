@@ -6,6 +6,7 @@ owner: wagner
 status: deprecated
 last_validated: "2026-06-01"
 parent_module: OficinaAuto
+related_us: [US-OFICINA-006, US-OFICINA-035, US-OFICINA-038, US-OFICINA-014, US-OFICINA-018]
 tier: A
 charter_version: 1
 validated_against: "oficina-os-page.jsx @ cowork-2026-06-01"

@@ -6,6 +6,7 @@ owner: wagner
 status: live
 last_validated: "2026-05-26"
 parent_module: OficinaAuto
+related_us: [US-OFICINA-006, US-OFICINA-035, US-OFICINA-038, US-OFICINA-014, US-OFICINA-017, US-OFICINA-018]
 related_adrs:
   - 0137-modules-oficinaauto-qualificada
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
