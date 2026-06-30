@@ -1,6 +1,7 @@
 ---
 page: /forja
 component: resources/js/Pages/team-mcp/Forja/Cockpit.tsx
+visual_source: prototipo-ui/cowork/forja-page.jsx
 owner: wagner
 status: draft
 last_validated: "2026-06-16"

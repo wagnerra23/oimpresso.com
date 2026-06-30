@@ -111,7 +111,7 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
   // (financeiro-page) e a tela vive em sub-pasta (Unificado). Só cai na heurística se não houver campo.
   if (stagingDir) {
     const stFiles = await walk(stagingDir);
-    const declarado = mockupJsx(fm.bundle_source);
+    const declarado = mockupJsx(fm.bundle_source) || mockupJsx(fm.visual_source);
     let cand = declarado ? stFiles.find((f) => basename(f).toLowerCase() === declarado.toLowerCase()) : null;
     let via = cand ? 'bundle_source' : null;
     if (!cand) {
