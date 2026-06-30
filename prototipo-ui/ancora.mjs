@@ -21,29 +21,18 @@
 //
 // Exit: 0 = âncora resolvida | 1 = sem charter (NÃO invente — registre/pergunte) | 2 = uso
 
-import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ehPrintSemantico } from '../.claude/hooks/block-ancora-no-olho.mjs';
+import { read, frontmatter, walk } from './_lib-charter.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '..');
 
-// ── helpers (mesmos do detectar-telas, sem dep externa) ──────────────────────
-const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { return null; } };
-
-export function frontmatter(src) {
-  if (!src) return {};
-  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return {};
-  const fm = {};
-  for (const line of m[1].split(/\r?\n/)) {
-    const mm = line.match(/^([a-z_]+):\s*(.*)$/i);
-    if (mm) fm[mm[1].toLowerCase()] = mm[2].trim();
-  }
-  return fm;
-}
+// ── helpers de leitura: read/frontmatter/walk vêm da lib compartilhada ────────
+// (eram cópias locais idênticas às de detectar-telas — agora _lib-charter.mjs é a fonte única)
+export { frontmatter }; // re-exporta pra preservar a API pública de ancora.mjs
 
 // extrai 1º path de repo (.tsx) de um texto livre
 export function repoTsx(text) {
@@ -62,21 +51,8 @@ export function mockupJsx(text) {
 // Auditoria 2026-06-30 pegou DUAS denylists divergindo (esta tinha `screenshot`, o hook tinha
 // `antig|adversari`). Agora reusa ehPrintSemantico do hook — uma definição só, não evolui à parte.
 // É helper de MENSAGEM (o GATE real de âncora é a proveniência por charter, no hook::decidir).
-// Dívida da auditoria: extrair frontmatter/walk/denylist pra prototipo-ui/_lib-charter.mjs.
+// Auditoria: frontmatter/walk extraídos pra _lib-charter.mjs (fonte única); a denylist segue no hook.
 export const ehAncoraIlegitima = ehPrintSemantico;
-
-async function walk(dir, out = []) {
-  let entries;
-  try { entries = await readdir(dir, { withFileTypes: true }); } catch { return out; }
-  const skip = new Set(['node_modules', '.git', '_arquivo', 'scraps', 'screenshots', 'uploads', 'assets']);
-  for (const e of entries) {
-    if (skip.has(e.name)) continue;
-    const full = join(dir, e.name);
-    if (e.isDirectory()) await walk(full, out);
-    else out.push(full);
-  }
-  return out;
-}
 
 // normaliza a query da tela → tokens comparáveis
 function norm(s) { return (s || '').toLowerCase().replace(/\\/g, '/').replace(/\.(tsx|charter\.md)$/i, '').replace(/\/index$/i, ''); }
