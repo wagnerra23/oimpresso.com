@@ -118,3 +118,10 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/gerar-contrato.mjs --selftest
+      # W2: recorte do screenshot pela âncora da região (aprova a PARTE, não a tela). O PLANO
+      # de recorte é puro (testável no CI); o crop (PowerShell) e a coleta de bbox (browser) só
+      # rodam local. Selftest = região sem bbox → AUSENTE explícito, nunca tela-inteira em silêncio.
+      - name: recortar-regiao selftest (W2 região-a-região)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/recortar-regiao.mjs --selftest
