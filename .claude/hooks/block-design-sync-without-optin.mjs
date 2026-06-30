@@ -33,20 +33,34 @@
 //   "claude.ai/design" / "sincroniza ... design" → grava flag TTL 15min. Ou env
 //   OIMPRESSO_DESIGN_SYNC_OK=1, ou arquivo .design-sync-allow na raiz.
 //
-// HONESTIDADE (limitações): opt-in por palavra é REDE, não prova de escopo (garante "houve
-//   menção recente", não "Wagner aprovou ESTE push"). Conservador (fail-closed): sem menção,
-//   método de escrita é bloqueado. NÃO fecha a classe inteira (Notion/file-MCP/screenshot
-//   seguem advisory — Gap 1 da 0299 encolhe, não some).
+// HONESTIDADE (limitações — endurecidas pelo red-team 2026-06-30, ver ADR 0315 §Furos):
+//   - opt-in por prompt exige INTENÇÃO explícita (verbo de publicar + nome da feature, ou
+//     /design-sync), NÃO mera menção: discutir/perguntar sobre a feature NÃO arma escrita
+//     (furo #2 fechado — antes "como funciona design sync?" armava 15min de escrita).
+//   - flag é POR-PROJETO (keyed no cwd), não machine-wide (furo #3 fechado).
+//   - ATIVAÇÃO depende do harness rotear PreToolUse pra tool NATIVA DesignSync. Hook editado
+//     no meio da sessão NÃO faz hot-reload → o gate só vale a partir da PRÓXIMA sessão. O E2E
+//     prova a LÓGICA, não a entrega do payload pelo harness (furo #1 — exige baseline com
+//     sessão fresca: rodar DesignSync.finalize_plan sem opt-in e ver o [BLOCKED]).
+//   - leitura é livre — e é o vetor de injeção (get_file traz conteúdo de outros membros).
+//     Tratar como DADO, nunca instrução (furo #5, inerente ao protocolo).
+//   - NÃO fecha a classe inteira (Notion/file-MCP/screenshot seguem advisory).
 //
 // Exit: 0 = continua | 2 = bloqueia (stderr vira razão pro Claude)
 
 import { stdin } from 'node:process';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { createHash } from 'node:crypto';
 import { existsSync, writeFileSync, readFileSync } from 'node:fs';
 
-const FLAG = join(tmpdir(), 'oimpresso-design-sync-allow.flag');
 const TTL_MIN = 15;
+// Flag POR-PROJETO (keyed no cwd) — fecha o vazamento machine-wide (furo #3). UserPromptSubmit
+// (grava) e PreToolUse (lê) rodam no MESMO cwd da sessão → a chave bate.
+function flagPath(root = process.cwd()) {
+  const h = createHash('sha1').update(String(root)).digest('hex').slice(0, 12);
+  return join(tmpdir(), `oimpresso-design-sync-allow-${h}.flag`);
+}
 
 // ── Métodos de LEITURA (inspeção segura, sem publicar) ────────────────────────
 // Tudo que NÃO está aqui é tratado como escrita/mutação → gateado (default-deny).
@@ -76,22 +90,31 @@ export function classifyDesignSync(toolName, toolInput = {}) {
   return { isDesignSync: true, method, isWrite, reason };
 }
 
-// ── Opt-in (concede; fail-safe) ───────────────────────────────────────────────
-const optInMention = /\/design-sync\b|\bdesign[-\s]?sync\b|claude\.ai\/design/i;
-const optInSincroniza = /\bsincroniz\w*\s+(?:\S+\s+){0,4}design\b/i;
-// negação explícita CANCELA (precedência) — "não é design sync, é cowork".
-const optInDeny = /\bn[aã]o\s+(?:\S+\s+){0,4}design[-\s]?sync/i;
+// ── Opt-in (exige INTENÇÃO de publicar, não menção — furo #2 fechado) ─────────
+// Discutir/perguntar sobre a feature NÃO arma escrita. Arma só: (a) o comando /design-sync,
+// ou (b) nomear a feature (design-sync / claude.ai/design) JUNTO de um verbo de publicar.
+const slashInvoke = /(?:^|\s)\/design-sync\b/i;                     // comando explícito do skill
+const designTarget = /\bdesign[-\s]?sync\b|claude\.ai\/design\b/i;  // nome da feature
+const syncVerb = /\b(sincroniz\w*|sobe|subir|publica\w*|push|envia\w*|manda\w*|salva\w*\s+na\s+nuvem)\b/i;
+// pergunta/explicação NUNCA arma (mata "como funciona design sync?", "o que é design-sync?").
+const interrogative = /\b(como|o que|que[ée]?|qual|quais|por\s?que|porque|explica\w*|entender|funciona\w*|d[uú]vida)\b/i;
+// negação CANCELA — "não/nunca/jamais ... design-sync".
+const optInDeny = /\b(n[aã]o|nunca|jamais)\s+(?:\S+\s+){0,4}(?:design[-\s]?sync|claude\.ai\/design)/i;
 
 export function isDesignSyncOptInPrompt(text) {
   if (!text) return false;
   if (optInDeny.test(text)) return false;
-  return optInMention.test(text) || optInSincroniza.test(text);
+  if (interrogative.test(text)) return false; // perguntar/explicar não destrava publicar
+  if (slashInvoke.test(text)) return true; // rodar o skill = intenção
+  if (designTarget.test(text) && syncVerb.test(text)) return true; // nomear feature + verbo de publicar
+  return false;
 }
 
-// ── Opt-in válido? (flag TTL | env | arquivo) ─────────────────────────────────
+// ── Opt-in válido? (flag TTL por-projeto | env | arquivo) ─────────────────────
 export function hasValidOptIn(now = Date.now(), root = process.cwd()) {
   if (process.env.OIMPRESSO_DESIGN_SYNC_OK === '1') return true;
   if (existsSync(join(root, '.design-sync-allow'))) return true;
+  const FLAG = flagPath(root);
   if (existsSync(FLAG)) {
     try {
       const ts = new Date(readFileSync(FLAG, 'utf8').trim());
@@ -151,7 +174,7 @@ async function main() {
   if (event === 'UserPromptSubmit') {
     if (isDesignSyncOptInPrompt(p.prompt || '')) {
       try {
-        writeFileSync(FLAG, new Date().toISOString(), 'utf8');
+        writeFileSync(flagPath(), new Date().toISOString(), 'utf8');
       } catch {
         /* silent */
       }
