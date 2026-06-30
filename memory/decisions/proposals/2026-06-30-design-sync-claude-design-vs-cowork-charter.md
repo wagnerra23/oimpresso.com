@@ -176,6 +176,16 @@ Rodado workflow campeão×adversário (12 agentes: 5 candidatos × champion+adve
 
 **Artefato preparado nesta sessão:** [`.claude/hooks/diag-pretooluse-trace.mjs`](../../../.claude/hooks/diag-pretooluse-trace.mjs) (INERTE — não registrado; a próxima sessão fresca registra → roda PROBE 1-4 → des-registra).
 
+#### Tentativa de PROBE 1-4 — ABORTADA por boot inválido (2026-06-30, sessão `infallible-satoshi-89fcee`)
+
+Uma sessão foi disparada pra rodar o diagnóstico PROBE 1-4. **Não rodou nenhuma probe** — falhou no **Passo 0 (validade do boot)**, e parar foi a decisão correta (não há auto-engano que sobreviva à regra do controle positivo):
+
+- A sessão **bootou na branch `claude/infallible-satoshi-89fcee`**, NÃO em `claude/design-sync-gate-0315`. O `git checkout` pra branch gate **falhou** (`fatal: 'claude/design-sync-gate-0315' is already used by worktree at '…/affectionate-vaughan-ef0ce3'`).
+- O trace hook (`diag-pretooluse-trace.mjs`, commit `9b580183df`) só existe no `settings.json` da branch gate. **Prova mecânica de que NÃO foi carregado no boot desta sessão:** `grep diag-pretooluse-trace` no `.claude/settings.json` do worktree bootado retornou **vazio** (só casou o matcher `DesignSync` do gate, linha 163). `settings.json` carrega no startup, sem hot-reload.
+- Logo, qualquer PROBE rodada por esta sessão produziria um trace **falsamente vazio** → conclusão de "não-entrega provada" seria **auto-engano** (exatamente o risco que o Passo 0 e o "PROBE 1 exige controle positivo" antecipam). **Probes NÃO rodadas.**
+
+**Estado da remediação:** o worktree `affectionate-vaughan-ef0ce3` JÁ tem a branch gate com o trace hook commitado (`9b580183df`) e a sessão "Code and design integration" lá está **idle** (`isRunning:false`). → **Ação requerida do Wagner:** reabrir o chip a partir de uma sessão FRESCA cujo `cwd` seja o worktree da branch gate (`affectionate-vaughan-ef0ce3`) — essa boota com o trace hook já registrado e pode validamente rodar PROBE 1-4 + des-registrar (Passo 6) no fim. Enquanto isso não acontecer, o **furo #1 segue 🔴 CONFIRMADO no-op** e o Gap 1 segue **mecanicamente aberto** (regra de fechamento acima inalterada — nenhum ponto foi provado mordendo nesta tentativa).
+
 ## Validação (executada — `node`, não Pest) — status HONESTO
 
 - ✅ **Lógica + E2E do hook** (`block-design-sync-without-optin.test.mjs`): leitura livre; escrita gateada; default-deny de método futuro/ausente; opt-in **endurecido** (furo #2 como regressão); E2E spawn → exit codes reais (write→2, read→0, opt-in→0).
