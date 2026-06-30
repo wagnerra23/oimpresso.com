@@ -1,15 +1,10 @@
 ---
-date: "2026-06-30"
-time: "17:20 BRT"
-slug: import-bundle-comvis-deteccao-charter-mis-anchor
-tldr: "Import bundle Cowork ComVis -> maquina de deteccao charter-first (bundle_source/visual_source, #3431/#3432) + reconciliacao OS OficinaAuto; mis-anchor de C pego antes de quebrar Repair (#3433 merged + #3446 correcao)."
-decided_by: CC
-cycle: CYCLE-08
-prs: [3431, 3432, 3433, 3446]
+date: 2026-06-30
+hour: "17:20 BRT"
+topic: Import bundle Cowork ComVis → máquina de detecção charter-first + reconciliação OS OficinaAuto (mis-anchor pego)
+duration: ~sessão longa (multi-resume)
+authors: [CC]
 ---
-
-## TL;DR
-[W] "importa esse zip" virou conserto da máquina de detecção (charter-first via `bundle_source`/`visual_source`, #3431/#3432 merged) + reconciliação OS OficinaAuto (#3433 merged). Ao executar a migração "deprecar C" (PR #3446), o handler real do Sells mostrou que `Repair/ProducaoOficina` (C) é Repair/JobSheet, **não** duplicata — deprecar quebraria o Repair. Corrigido o mis-anchor sem deprecação. Lição-mãe: ler o handler real antes de editar pegou um erro de inventário antes de quebrar prod.
 
 ## Estado MCP no momento do fechamento
 - **Cycle:** CYCLE-08 "Receita — Onda A" · 2d restantes · off-cycle (esta sessão é housekeeping de detecção/governança, 0% commits no cycle — esperado).
