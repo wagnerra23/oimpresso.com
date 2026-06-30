@@ -53,7 +53,24 @@ const ALIAS = [
   { re: /^compras-page\.jsx$/i,       alvo: 'resources/js/Pages/Compras/Index.tsx',           tela: 'Compras' },
   { re: /^(clientes|crm)-page\.jsx$/i,alvo: 'resources/js/Pages/Cliente/Index.tsx',           tela: 'Clientes/CRM' },
   { re: /^cobranca-recorrente-page\.jsx$/i, alvo: 'resources/js/Pages/RecurringBilling/Index.tsx', tela: 'Cobrança Recorrente' },
+  // alvo vivo verificado (nome↔Page inequívoco) — 2026-06-30:
+  { re: /^produtos-page\.jsx$/i,      alvo: 'resources/js/Pages/Produto/Index.tsx',           tela: 'Produtos' },
+  { re: /^kb-page\.jsx$/i,            alvo: 'resources/js/Pages/kb/Index.tsx',                tela: 'Base de Conhecimento' },
 ];
+
+// ---- A_CRIAR (CÓDIGO) — mockups CONSCIENTEMENTE registrados como "tela ainda não existe" -----
+// NÃO é alvo inventado: é o oposto do órfão-cego. Reconhece "este mockup é de um módulo
+// nascente, target a-criar via MWART" → classifica A-CRIAR (NÃO trava o gate), em vez de ORFAO
+// (trava) ou de um repo_alvo chutado (LICOES_F3). Quando a tela for criada, ganha charter e
+// graduа sozinha pra SEMANTICO. Mockup NOVO fora desta lista E sem charter ainda → ORFAO (gate
+// falha) — a fail-closed continua: só some o que foi reconhecido à mão. Origem: Q5 2026-06-30.
+const A_CRIAR = [
+  /^boletos-page\.jsx$/i, /^equipe-page\.jsx$/i, /^financeiro-page\.jsx$/i, /^forja-page\.jsx$/i,
+  /^inbox-page\.jsx$/i, /^orc-page\.jsx$/i, /^os-page\.jsx$/i, /^perfil-page\.jsx$/i,
+  /^pg-cobranca-page\.jsx$/i, /^pg-payment-gateways-page\.jsx$/i, /^producao-page\.jsx$/i,
+  /^cobranca-page\.jsx$/i, /^payment-gateways-page\.jsx$/i, /^usuarios-page\.jsx$/i,
+];
+export function isACriar(b) { return A_CRIAR.some((re) => re.test(b)); }
 
 const read = async (p) => { try { return await readFile(p, 'utf8'); } catch { return null; } };
 
@@ -182,6 +199,9 @@ async function buildManifest({ staging, repoRoot }) {
     if (ambiguo) {
       status = 'AMBIGUO';
       tarefa = 'desambiguar: >1 alvo `/<dir>/Index.tsx` no repo — fixe via charter component/repo_alvo';
+    } else if (!alvo && isACriar(b)) {
+      status = 'A-CRIAR'; via = 'registro a-criar';
+      tarefa = 'tela nascente registrada (sem tela viva ainda) — vira SEMANTICO quando criada via MWART';
     } else if (!alvo) {
       status = 'ORFAO'; via = 'nenhum';
       tarefa = 'RESOLVER: adicionar ALIAS ou charter com repo_alvo (gate falha até resolver)';
@@ -268,7 +288,10 @@ async function selftest() {
     ['Conciliacao format-2 idêntico',                  by(/Conciliacao\/Index\.tsx$/), 'IDENTICO'],
     ['Caixa format-2 alterado',                        by(/Caixa\/Index\.tsx$/),       'ALTERADO'],
   ];
-  let fails = 0;
+  // Q5: registro a-criar é não-cego (forja registrado ≠ mistero desconhecido)
+  if (isACriar('forja-page.jsx') !== true) { console.log('  [FAIL] forja-page.jsx deveria ser A-CRIAR registrado'); }
+  if (isACriar('mistero-page.jsx') !== false) { console.log('  [FAIL] mistero-page.jsx NÃO pode ser A-CRIAR (segue órfão-cego)'); }
+  let fails = (isACriar('forja-page.jsx') ? 0 : 1) + (isACriar('mistero-page.jsx') ? 1 : 0);
   for (const [label, row, exp] of checks) {
     const got = row ? row.status : '(ausente)';
     const ok = got === exp; if (!ok) fails++;

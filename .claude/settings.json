@@ -52,6 +52,10 @@
           {
             "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/mcp-first-warning.ps1"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-ancora-no-olho.mjs"
           }
         ]
       },
