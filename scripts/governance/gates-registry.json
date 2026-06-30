@@ -61,10 +61,6 @@
       "nome": "ADR frontmatter lint",
       "classe": "gate"
     },
-    "bundle-lint.yml": {
-      "nome": "Bundle lint — esteira ≠ armazém (resíduo no bundle do design · advisory · régua 6 proveniência)",
-      "classe": "gate"
-    },
     "casos-gate.yml": {
       "nome": "Casos-coverage ratchet (trio-de-tela + caso↔teste)",
       "classe": "gate"
@@ -96,10 +92,6 @@
       "nome": "Composer lock sync",
       "classe": "automacao"
     },
-    "conformance-gate.yml": {
-      "nome": "Conformance Gate — cor-crua DS (Camada 1 · anti-regressão de contrato)",
-      "classe": "gate"
-    },
     "contrato-de-tela.yml": {
       "nome": "Contrato de Tela — fidelidade visual do trio-de-tela (advisory na adoção · RUNBOOK-contrato-de-tela.md)",
       "classe": "gate"
@@ -112,24 +104,12 @@
       "nome": "cowork-inbox",
       "classe": "automacao"
     },
-    "css-size-gate.yml": {
-      "nome": "CSS size ratchet (congelar sprawl · MANUAL-CSS-JS#1)",
-      "classe": "gate"
-    },
-    "ds-canon-color-guard.yml": {
-      "nome": "DS canon color guard (camada canônica sem paleta crua)",
-      "classe": "gate"
-    },
     "deploy.yml": {
       "nome": "Deploy to Hostinger",
       "classe": "deploy"
     },
     "design-identity-gate.yml": {
       "nome": "Design Identity Gate (soft)",
-      "classe": "gate"
-    },
-    "design-index-gate.yml": {
-      "nome": "Design index single-source gate",
       "classe": "gate"
     },
     "design-return-gate.yml": {
@@ -308,10 +288,6 @@
       "nome": "Handoff Sign & Submit (on-push · assina HMAC + POST handoff-submit → pending; advisory · PR-6b ADR 0283)",
       "classe": "automacao"
     },
-    "scorer-sync-gate.yml": {
-      "nome": "Scorer sync (regex score-mechanized.mjs ↔ UiDeterministicScorer.php)",
-      "classe": "gate"
-    },
     "screen-coverage-gate.yml": {
       "nome": "Screen Coverage Gate (catraca de cobertura)",
       "classe": "gate"
@@ -338,10 +314,6 @@
     },
     "ui-architecture-gate.yml": {
       "nome": "UI architecture gate",
-      "classe": "gate"
-    },
-    "ui-lint.yml": {
-      "nome": "UI Lint (Constituição UI v2)",
       "classe": "gate"
     },
     "visual-regression.yml": {
@@ -387,6 +359,10 @@
       "terminal": "advisory",
       "anchor": "Onda reconcile-triplet (o loop design→code comparava 2-way protótipo×código e o CHARTER não era coluna · quando o protótipo contradiz o charter o conflito SOME e o diff vira lixo · custo provado: Produto · charter MANDA card-grid, produção É card-grid, mas protótipo Cowork de hoje é lista densa + 3 ponteiros de protótipo apontam pro vácuo). PT-01-Lista.md (6 slots canônicos) + DesignIngestPlanner.php (conceito do diff por content-sha).",
       "promote_by": "2026-09-20"
+    },
+    "ds-gate.yml": {
+      "nome": "DS gate (fusão F1 — cor/UI/css/index/bundle/scorer · ADR 0314)",
+      "classe": "gate"
     }
   }
 }

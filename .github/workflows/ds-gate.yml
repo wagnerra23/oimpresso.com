@@ -1,0 +1,357 @@
+name: DS gate (fusão F1 — cor/UI/css/index/bundle/scorer)
+
+# FUSÃO F1 da poda de gates onda 2 (ADR 0314): 7 workflows DS/cor viram 1 workflow,
+# 1 job por sub-check (mesmos scripts, mesmos baselines, mesmo exit). Substitui:
+#   conformance-gate.yml · ui-lint.yml · css-size-gate.yml · ds-canon-color-guard.yml ·
+#   design-index-gate.yml · bundle-lint.yml · scorer-sync-gate.yml
+#
+# REQUIRED = 1 contexto novo `DS gate` (job agregador) que BLOQUEIA só nos 2 sub-checks LEI:
+#   - conformance (cor-crua ratchet · ADR 0209/0235/0190)
+#   - ui-lint     (Constituição UI v2 · ADR UI-0013)
+# Os outros 5 (css-size · ds-canon · design-index · bundle-lint · scorer-sync) rodam no MESMO
+# workflow, mostram vermelho de verdade quando regridem, mas NÃO são required (advisory).
+#
+# Roda em TODO PR sem path filter (required-readiness · ADR 0263/0261/0271): cada sub-check é
+# ratchet/scan do tree atual — passa trivial quando nada do domínio mudou. design-index tem
+# short-circuit interno por git diff (pula PHP/Pest se nada de design-index mudou).
+#
+# Refs: ADR 0314 F1 · ADR 0209 (ratchet gêmeo) · ADR UI-0013 · ADR 0239/0236 (índice) · ADR 0255 (scorer)
+
+on:
+  push:
+    branches: [main, 6.7-react]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ds-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── LEI 1: cor-crua (ex-conformance-gate.yml) ──────────────────────────────
+  conformance:
+    name: cor-crua ratchet vs baseline (LEI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Conformance gate (falha só em cor crua NOVA vs baseline)
+        run: node scripts/conformance-gate.mjs --all
+
+      - name: Foundation guard (Camada 3 · estrutura — token-def só na fundação + allowlist de .css)
+        run: node scripts/foundation-guard.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "🔴 Conformance gate detectou COR CRUA NOVA numa regra de tela."
+          echo ""
+          echo "O contrato visual derivou do gabarito DS aprovado (cor fora de token voltou)."
+          echo ""
+          echo "Próximos passos:"
+          echo "  1. Local: npm run conformance:check · vê qual arquivo/seletor regrediu"
+          echo "  2. Trocar a cor crua por token DS: var(--accent)/--pos/--neg/--warn/--origin-*/--stage-*"
+          echo "     (roxo canônico = oklch(0.55 0.15 295) · ADR 0235/0190 — NUNCA verde-155)"
+          echo "  3. Se a remoção foi intencional (baixou cor crua), re-cravar o teto:"
+          echo "       npm run conformance:baseline:write   (commit separado — diff do JSON é auditável)"
+          echo ""
+          echo "Exceções declaradas (papel/transcript/apresentação): .vd-trans · .vd-pres (cor fixa proposital)."
+          echo "Refs: ADR 0209 · ADR 0235/0190 · PROMPT_PARA_CODE_CONFORMANCE-GATE.md"
+
+  # ── LEI 2: UI Lint (ex-ui-lint.yml) ────────────────────────────────────────
+  ui-lint:
+    name: UI Lint ratchet vs baseline (LEI)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP 8.4
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, opentelemetry
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache composer
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-ui-lint-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-ui-lint-${{ runner.os }}-
+
+      - name: Install PHP deps
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Prepare storage dirs + .env mínimo
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-ui-lint
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          TELESCOPE_ENABLED=false
+          VIEW_COMPILED_PATH=storage/framework/views
+          BCRYPT_ROUNDS=4
+          EOF
+          php artisan key:generate
+
+      - name: ui:lint ratchet (falha só em regressão vs baseline)
+        run: |
+          php artisan ui:lint \
+            --path=resources/js \
+            --baseline=config/ui-lint-baseline.json \
+            --strict
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ ui:lint detectou REGRESSÃO vs config/ui-lint-baseline.json"
+          echo ""
+          echo "Próximos passos:"
+          echo "  1. Local: php artisan ui:lint --detail · vê quais arquivos regrediram"
+          echo "  2. Refatorar PR pra usar tokens semânticos (--accent, --foreground, etc)"
+          echo "     OU lucide-react ao invés de FontAwesome/emoji"
+          echo "  3. Se regressão intencional/aceita, atualizar baseline em commit separado:"
+          echo "       php artisan ui:lint --write-baseline=config/ui-lint-baseline.json"
+          echo "     (commit + justificativa no PR — vai aparecer no diff do JSON)"
+          echo ""
+          echo "Refs: ADR UI-0013 · PRE-MERGE-UI.md · UI-LINT-USAGE.md"
+
+  # ── advisory: CSS size ratchet (ex-css-size-gate.yml) ──────────────────────
+  css-size:
+    name: CSS size ratchet vs baseline (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: CSS size ratchet (falha em crescimento / arquivo novo)
+        run: node scripts/css-size-baseline.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Um .css CRESCEU (ou surgiu .css novo) vs config/css-size-baseline.json"
+          echo ""
+          echo "Isso vai contra o passo 1 do MANUAL-CSS-JS (congelar o sprawl de CSS bespoke)."
+          echo "Próximos passos:"
+          echo "  1. Local: npm run css:size:check · vê qual arquivo cresceu e quanto"
+          echo "  2. Preferível: dissolver CSS em Tailwind+componentes (o arquivo ENCOLHE)"
+          echo "  3. Se o crescimento for CONSCIENTE e justificado, rebaseline no mesmo PR:"
+          echo "       npm run css:size:write"
+          echo "     (commit + justificativa — aparece no diff do JSON)"
+          echo ""
+          echo "Refs: memory/requisitos/_DesignSystem/MANUAL-CSS-JS.md (passo 1) · ADR UI-0013"
+
+  # ── advisory: DS canon color guard (ex-ds-canon-color-guard.yml) ───────────
+  ds-canon-color:
+    name: DS canon · cor crua na camada canônica (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: DS canon color guard (falha se ui/ ou shared/ usar paleta crua)
+        run: node scripts/ds-canon-color-guard.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ A camada canônica do DS (Components/ui|shared) está usando paleta crua."
+          echo "   O canon é a FONTE dos tokens — não pode hardcodar emerald/amber/sky/slate-NNN."
+          echo ""
+          echo "Troque por token semântico:"
+          echo "  status soft  → bg-success-soft text-success-fg · bg-warning/10 · text-info"
+          echo "  status sólido→ bg-success text-success-foreground hover:bg-success/90"
+          echo "  neutro       → bg-muted · text-muted-foreground · border-border"
+          echo "  marca        → bg-primary · ring-ring · bg-accent"
+          echo ""
+          echo "Componente AUTORAL (identidade desenhada, 'extrair não repintar')?"
+          echo "  → ALLOWLIST em scripts/ds-canon-color-guard.mjs no MESMO PR, com justificativa."
+          echo ""
+          echo "Refs: memory/sessions/2026-06-13-auditoria-senior-maturidade-ds-oimpresso.md (Onda M1)"
+          echo "      ADR 0209 (ds/* ratchet) · ADR 0240 (derivado+enforcado)"
+
+  # ── advisory: Design index single-source (ex-design-index-gate.yml) ────────
+  design-index:
+    name: Design index (fonte única) (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # short-circuit precisa do diff vs base
+
+      - name: Detectar mudança design-index-relevante (short-circuit)
+        id: scope
+        run: |
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"   # push já roda full
+            exit 0
+          fi
+          base="${{ github.event.pull_request.base.sha }}"
+          if git diff --name-only "$base"...HEAD | grep -qE '^(memory/requisitos/_DesignSystem/|memory/decisions/|prototipo-ui/|tests/Feature/Design/DesignIndexSingleSourceTest\.php|\.github/workflows/ds-gate\.yml)'; then
+            echo "relevant=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "relevant=false" >> "$GITHUB_OUTPUT"
+            echo "Nada de design-index mudou → short-circuit: check passa sem PHP/composer/Pest."
+          fi
+
+      - name: Setup PHP 8.4
+        if: steps.scope.outputs.relevant == 'true'
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, xml, ctype, json, opentelemetry
+          coverage: none
+          tools: composer:v2
+
+      - name: Cache composer
+        if: steps.scope.outputs.relevant == 'true'
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-design-index-${{ runner.os }}-${{ hashFiles('composer.lock') }}
+          restore-keys: composer-design-index-${{ runner.os }}-
+
+      - name: Install PHP deps
+        if: steps.scope.outputs.relevant == 'true'
+        run: composer install --no-interaction --prefer-dist --no-progress --no-scripts
+
+      - name: Prepare storage dirs + .env mínimo
+        if: steps.scope.outputs.relevant == 'true'
+        run: |
+          mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs bootstrap/cache
+          cat > .env <<'EOF'
+          APP_NAME=oimpresso-design-index
+          APP_ENV=testing
+          APP_DEBUG=false
+          APP_URL=http://localhost
+          LOG_CHANNEL=stderr
+          DB_CONNECTION=sqlite
+          DB_DATABASE=:memory:
+          CACHE_DRIVER=array
+          QUEUE_CONNECTION=sync
+          SESSION_DRIVER=array
+          MAIL_MAILER=array
+          EOF
+          php artisan key:generate
+
+      - name: Pest — Design index single-source (a links · b docs-canon · c regras-design)
+        if: steps.scope.outputs.relevant == 'true'
+        run: vendor/bin/pest tests/Feature/Design/DesignIndexSingleSourceTest.php --no-coverage
+
+  # ── advisory: Bundle lint self-test (ex-bundle-lint.yml job selftest) ───────
+  bundle-lint-selftest:
+    name: Bundle lint · self-test (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/bundle-lint.test.mjs
+
+  # ── advisory: Bundle lint (ex-bundle-lint.yml job lint) ────────────────────
+  bundle-lint:
+    name: Bundle lint · resíduo no bundle do design (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - run: node scripts/bundle-lint.mjs
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Resíduo de processo no bundle do design (esteira ≠ armazém)."
+          echo "   - Conclusão durável → memory/ no padrão do projeto (vira conhecimento MCP/RAGAS)."
+          echo "   - O arquivo cru sai do git (git rm). Ver RUNBOOK-contrato-de-tela.md + PROTOCOL.md."
+
+  # ── advisory: Scorer sync (ex-scorer-sync-gate.yml) ────────────────────────
+  scorer-sync:
+    name: Scorer sync · regex .mjs ↔ .php (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Sync check (regex R1-R4 nos dois fontes)
+        run: node scripts/scorer-sync-check.mjs
+
+      - name: Diagnóstico em caso de falha
+        if: failure()
+        run: |
+          echo ""
+          echo "❌ Os regex de score-mechanized.mjs e UiDeterministicScorer.php divergiram."
+          echo ""
+          echo "O scorer PHP do PR Judge é CÓPIA FIEL dos regex do .mjs. Se você mudou um,"
+          echo "mude o outro também (ou ajuste a assinatura em scripts/scorer-sync-check.mjs"
+          echo "se a mudança foi intencional E sincronizada nos dois)."
+          echo ""
+          echo "Local: npm run scorer:sync"
+          echo "Refs: Onda 1 (ADR 0255) · score-mechanized.mjs é a fonte canônica dos regex"
+
+  # ── AGREGADOR REQUIRED: DS gate ────────────────────────────────────────────
+  # Único contexto required do workflow. Bloqueia SÓ nos 2 sub-checks LEI (cor-crua + UI Lint).
+  # Os 5 advisory rodam em paralelo e NÃO entram aqui (não são `needs`) — vermelho deles não
+  # bloqueia merge. `if: always()` garante que o agregador roda mesmo quando um needs falhou,
+  # pra reportar exit 1 real (sem isso, job skipado vira required pendente — deadlock).
+  ds-gate:
+    name: DS gate
+    needs: [conformance, ui-lint]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Agregar sub-checks LEI (cor-crua + UI Lint bloqueiam)
+        run: |
+          echo "conformance (cor-crua): ${{ needs.conformance.result }}"
+          echo "ui-lint:                ${{ needs.ui-lint.result }}"
+          fail=0
+          if [ "${{ needs.conformance.result }}" != "success" ]; then
+            echo "::error::LEI cor-crua falhou (ex-Conformance · cor-crua ratchet vs baseline)"; fail=1
+          fi
+          if [ "${{ needs.ui-lint.result }}" != "success" ]; then
+            echo "::error::LEI UI Lint falhou (ex-UI Lint · ratchet vs baseline)"; fail=1
+          fi
+          if [ "$fail" = "1" ]; then
+            echo ""
+            echo "🔴 DS gate BLOQUEADO — sub-check LEI vermelho. Veja o job que falhou acima."
+            exit 1
+          fi
+          echo ""
+          echo "🟢 DS gate OK — cor-crua + UI Lint verdes."
+          echo "   (5 sub-checks DS advisory rodam no mesmo workflow; vermelho deles não bloqueia.)"
