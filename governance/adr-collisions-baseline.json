@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "baseline": "Colisões de número de ADR — catraca anti-bifurcação (só encolhe). O detector já existia (adr-index-generate.mjs lista as colisões desde sempre); este baseline o faz MORDER: número repetido FORA desta lista = CI vermelho.",
+    "adr": "memory/decisions/0258-gates-de-governanca-com-controle-negativo.md (gate com controle-negativo) + 0180 (drift de número) — regra de fonte-única espelhada do dominio-gate ADR 0264 G-4",
+    "capturado_de": "medição REAL de scripts/governance/adr-index-generate.mjs sobre memory/decisions/ no worktree modest-visvesvaraya-c9a97d (2026-06-30) — nunca copiado de plano/ADR (regra anti-stale)",
+    "regra_catraca": "uma colisão (número com ≥2 arquivos) só é tolerada se constar em collisions_grandfathered. Colisão NOVA (número fora da lista) falha o --check. A lista SÓ encolhe: ao renumerar um ADR colidido, remova a entrada neste arquivo no MESMO PR (diff visível). Crescer a lista = bifurcação consciente, exige razão no PR citando por que o número repetido é intencional (raríssimo — o normal é renumerar via next-id.mjs).",
+    "divida_legada": "14 colisões herdadas, ~31 arquivos. Quase todas são bifurcações reais (2 decisões sem relação no mesmo número), NÃO pares de emenda. Caso-âncora: 0180 é literalmente 'drift-numero-adr-0178-conflito-paralelo' — um ADR criado pra consertar a colisão do 0178 que ele próprio colidiu no 0180 (o conserto virou a doença). Renumeração da dívida = cleanup Tier-0 separado (toca canon append-only, decisão [W]).",
+    "consumidores": [
+      "scripts/governance/adr-index-generate.mjs --check (gate duro, fundido no adr-index-gate.yml — NÃO é workflow novo)",
+      "tests/governanceAdrScripts.spec.ts (controle-negativo: colisão nova falha, grandfathered passa)"
+    ]
+  },
+  "collisions_grandfathered": [
+    "0101",
+    "0102",
+    "0119",
+    "0126",
+    "0141",
+    "0170",
+    "0178",
+    "0180",
+    "0195",
+    "0216",
+    "0235",
+    "0236",
+    "0246",
+    "0294"
+  ]
+}
