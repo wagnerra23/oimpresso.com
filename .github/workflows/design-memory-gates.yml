@@ -106,3 +106,9 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/importar-bundle.mjs --selftest
+      # adversário permanente: ATAQUE 1 (hook auto-contido, não falha-aberto) é GATE DURO —
+      # se o hook voltar a importar ancora.mjs (regride pra fail-open), este step FALHA. Gaps
+      # conhecidos (rename/tool-bypass) ficam documentados com fix; mudar de comportamento avisa.
+      - name: ancora-adversário (ATAQUE 1 não pode regredir pra fail-open)
+        if: always()
+        run: node scripts/evals/ancora-adversario.eval.mjs
