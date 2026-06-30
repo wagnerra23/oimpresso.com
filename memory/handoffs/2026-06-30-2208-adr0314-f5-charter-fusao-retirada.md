@@ -1,9 +1,13 @@
 ---
-date: 2026-06-30
-hour: "22:08 BRT"
-topic: "ADR 0314 F5 (trio-tela, parte charter) — fusão avaliada e RETIRADA"
-duration: "~1h"
-authors: [Claude Opus 4.8, Wagner]
+date: "2026-06-30"
+time: "22:08 BRT"
+slug: adr0314-f5-charter-fusao-retirada
+tldr: "ADR 0314 F5 (charter): avaliei a fusão charter-refs+charter-us e RETIREI — réguas ortogonais (integridade de PATHS required vs rastreabilidade related_us advisory). #3463 merged. Caso F3 RAGAS repetido."
+cycle: CYCLE-08
+prs: [3463, 3465]
+decided_by: [W]
+related_adrs: [0314-poda-gates-onda-2-lei-fusoes]
+next_steps: ["D-1 LEI (mexe em required — branch protection no mesmo PR)", "fechar F1 #3456 + demo-seeder do D-3"]
 ---
 
 # Handoff — ADR 0314 F5 charter-fusão RETIRADA
