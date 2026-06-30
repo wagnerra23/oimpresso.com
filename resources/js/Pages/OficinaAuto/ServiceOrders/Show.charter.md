@@ -1,6 +1,7 @@
 ---
 page: /oficina-auto/service-orders/{id}
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx
+visual_source: oficina-os-page.jsx
 owner: wagner
 status: live
 last_validated: "2026-05-26"

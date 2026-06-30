@@ -3,7 +3,7 @@ page: /oficina-auto/os/create
 component: resources/js/Pages/OficinaAuto/Os/Create.tsx
 page_id: oficina-os-create
 owner: wagner
-status: draft
+status: deprecated
 last_validated: "2026-06-01"
 parent_module: OficinaAuto
 tier: A
@@ -22,7 +22,9 @@ related_adrs:
 
 # Charter — Nova Ordem de Serviço (Oficina · documento vivo)
 
-> ⚠️ **CONFLITO ABERTO — decisão Tier 0 de [W] pendente.** Este charter (F1, persona **Larissa @ balcão 1280px**, visão "documento vivo": stepper FSM + DVI + gate de aprovação + split fiscal) **sobrepõe** o charter **live** [`OficinaAuto/ServiceOrders/Create.charter.md`](../ServiceOrders/Create.charter.md) — que é o formulário de abertura rápida de OS **já em produção** (Martinho biz=164, mecânica pesada, [ADR 0194](../../../../../memory/decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)). **Não substitui nem deleta o charter live.** São personas e escopos diferentes; reconciliar (tela nova distinta × evoluir a ServiceOrders/Create × unificar) é decisão de [W]. Até lá este charter fica `status: draft` e o `Create.tsx` desta pasta **não existe** (a criar só na F3, após [W] decidir). Origem: handoff Cowork `Oficina.charter.md` + `COWORK_NOTES.md` 2026-06-01.
+> 🪦 **DEPRECATED — conflito RESOLVIDO por [W] em 2026-06-30 (sessão musing-elion).** Decisão Tier 0: **o canon é [`OficinaAuto/ServiceOrders/`](../ServiceOrders/)** (Board/Create/Edit/Show — live, Martinho biz=164, 3 testes) + o drawer rico `ProducaoOficina/_components/ServiceOrderRichSheet.tsx`. O mapeamento do bundle Cowork (`os-drawer-build-map.md`) provou que a visão "documento vivo" deste charter (stepper FSM + DVI + gate + split fiscal) **já está realizada** no canon — 11 de 13 partes vivas. Esta pasta `Os/` era um ghost: `Create.tsx` **nunca existiu**, 0 testes. **Não construir.** O detector (`detectar-telas`) aponta o mockup `oficina-os-page.jsx` pro canon via `visual_source` em `ServiceOrders/Show.charter.md`. Inventário completo: [`memory/requisitos/OficinaAuto/RECONCILIACAO-os-inventario.md`](../../../../../memory/requisitos/OficinaAuto/RECONCILIACAO-os-inventario.md).
+>
+> _Histórico (antes da decisão): charter F1 persona Larissa @ balcão 1280px, landado draft 2026-06-01 do handoff Cowork; sobreposição com `ServiceOrders/Create` (live) registrada como conflito aberto até [W] decidir._
 
 > **1ª aplicação do par `CONTEXTO-DE-TELA` + `FRESCOR-DE-TELA`.** Escrito DEPOIS do build (a pedido de [W]) — backfill que trava o conceito pra não derivar de novo.
 > **Missão:** dar à oficina um **documento vivo de OS** — do check-in do veículo à entrega — que parece estado-da-arte e não cupom de balcão. Persona: Larissa (balcão, 1280px) + mecânico (tablet).
