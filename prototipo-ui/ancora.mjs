@@ -25,6 +25,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { ehPrintSemantico } from '../.claude/hooks/block-ancora-no-olho.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // prototipo-ui/
 const REPO_DEFAULT = resolve(HERE, '..');
@@ -57,13 +58,12 @@ export function mockupJsx(text) {
   return m ? m[0] : null;
 }
 
-// ── um png de auditoria/crítica NUNCA é âncora (lista negra explícita) ────────
-const NAO_ANCORA = /audit|critique|cr[ií]tica|screenshot|scrap|-old|reavalia|tribunal/i;
-export function ehAncoraIlegitima(p) {
-  if (!p) return false;
-  const b = basename(p);
-  return /\.(png|jpg|jpeg|webp|gif)$/i.test(b) && NAO_ANCORA.test(b);
-}
+// ── "print de auditoria não é âncora": FONTE ÚNICA = o hook ────────────────────
+// Auditoria 2026-06-30 pegou DUAS denylists divergindo (esta tinha `screenshot`, o hook tinha
+// `antig|adversari`). Agora reusa ehPrintSemantico do hook — uma definição só, não evolui à parte.
+// É helper de MENSAGEM (o GATE real de âncora é a proveniência por charter, no hook::decidir).
+// Dívida da auditoria: extrair frontmatter/walk/denylist pra prototipo-ui/_lib-charter.mjs.
+export const ehAncoraIlegitima = ehPrintSemantico;
 
 async function walk(dir, out = []) {
   let entries;
