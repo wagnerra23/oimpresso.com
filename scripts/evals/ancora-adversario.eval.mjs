@@ -10,7 +10,7 @@
 // design legítimo passa; charter é lido) contra os 4 modos de falha confirmados — e deixa o
 // residual honesto DOCUMENTADO (não finge defender o que não defende).
 //
-// Roda no CI (design-memory-gates.yml). exit 0 = defesas de pé + gaps como esperado.
+// Roda no CI (design-memory-gate.yml · fundido ADR 0314 F2). exit 0 = defesas de pé + gaps como esperado.
 
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';

@@ -26,13 +26,6 @@
       "anchor": "âncora improvada G1b verde-real (memory/sessions/2026-06-23-robustez-anchor-reavaliada-150-clientes.md) — risco fiscal ×150 clientes: 34/45 testes pulam no sqlite, verde@ mentiria",
       "promote_by": "2026-07-07"
     },
-    "component-registry.yml": {
-      "nome": "Component Registry Drift (Onda O2 · sentinela bloco-de-protótipo → componente React · prototipo-ui/component-registry.json · self-test obrigatório + drift advisory)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "Onda O2 (registro de componentes máquina-legível) · custo: re-tradução manual bloco→componente no handoff Cowork gera regressão (M-AP-6 / LICOES_F3)",
-      "promote_by": "2026-07-06"
-    },
     "gitleaks-history.yml": {
       "nome": "Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215)",
       "classe": "automacao"
@@ -232,12 +225,8 @@
       "nome": "Memory Health — ADR 0256",
       "classe": "gate"
     },
-    "memory-schema-gate-extended.yml": {
-      "nome": "Memory schema gate EXTENDED (D6 #4)",
-      "classe": "gate"
-    },
     "memory-schema-gate.yml": {
-      "nome": "Memory schema gate (ONDA 5 S1)",
+      "nome": "Memory schema gate (ONDA 5 S1 · FUNDIDO ADR 0314 F2: matrix AJV/frontmatter + sub-checks do corpo via validate-memory-schema.sh, ex-memory-schema-gate-extended D6 #4)",
       "classe": "gate"
     },
     "module-grades-gate.yml": {
@@ -367,18 +356,11 @@
       "anchor": "ADR 0294 (loop/porta de saída) + ADR 0105 (sinal qualificado) — Onda O1 medidor de aceitação",
       "promote_by": "2026-09-30"
     },
-    "design-memory-gates.yml": {
-      "nome": "Design-memory gates (advisory · ds-guard §8 nos arquivos tocados + relatório de dívida + integrity-check §15 da espinha · wire dos gates de design-memory no CI)",
+    "design-memory-gate.yml": {
+      "nome": "Design-memory gate (advisory · FUNDIDO ADR 0314 F2 de 3 workflows: registry-check ex-component-registry O2 + gates ex-design-memory-gates §8/§15 + prove ex-dtcg-equivalence Onda DTCG; 1 job por sub-check, todos os self-tests preservados)",
       "classe": "gate",
       "terminal": "advisory",
-      "anchor": "prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 + auditoria IA OS (buraco confessado: ds-guard.mjs e integrity-check.mjs rodavam em NENHUM workflow, dependiam do humano lembrar)",
-      "promote_by": "2026-07-06"
-    },
-    "dtcg-equivalence.yml": {
-      "nome": "DTCG equivalence (advisory · Onda DTCG ATIVADA: tokens editados no JSON portável, CSS é SAÍDA via _generated-*.css importados por inertia/foundations/cockpit.css; o check prova JSON == CSS-emitido-consumido-pelo-build, escopo-aware + self-test que morde)",
-      "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "ADR 0239 (DS git SSOT — git é a fonte única do Design System) + ADR 0249 (DS v6 naming) + auditoria de maturidade transporte design→code (gap D3 42%: tokens eram CSS bespoke single-platform, não DTCG W3C portável). Fonte real dos .css (inertia/foundations/cockpit) confirmada pela errata ao 0239 (proposta — não-citada-como-dependência-de-runtime).",
+      "anchor": "ADR 0314 F2 (poda onda 2 · fusão de 3 advisory de design-memory) sobre: Onda O2 (registro bloco→componente) + prototipo-ui/PROCESSO_MEMORIA_CC.md §8/§15 (ds-guard + integrity-check) + ADR 0239/0249 (DTCG ↔ CSS canônico). Custo: drift de tradução handoff Cowork + paleta inventada + token DTCG divergente.",
       "promote_by": "2026-09-30"
     },
     "reconcile-triplet.yml": {
