@@ -67,7 +67,10 @@ mcp__oimpresso__decisions-search since:<data>   # ADRs aceitas
 Path: `memory/handoffs/YYYY-MM-DD-HHMM-<slug-kebab>.md` (~30-80 linhas máximo)
 
 Estrutura obrigatória:
-- Frontmatter: `date / hour BRT / topic / duration / authors`
+- **Frontmatter (conforme `scripts/memory-schemas/handoff.schema.json` — o gate `Handoff (memory/handoffs/*.md)` valida):**
+  - **Required:** `date: "YYYY-MM-DD"` (STRING entre aspas — sem aspas o YAML parseia como Date e o gate falha `/date must be string`), `slug: <kebab-case>` (`^[a-z0-9-]+$`), `tldr: "<resumo 10-500 chars>"`.
+  - **Opcionais úteis:** `time: "HH:MM BRT"`, `cycle: CYCLE-NN`, `prs: [NNNN, ...]` (ints), `decided_by: [W|F|M|L|E]`, `related_adrs: [NNNN-slug]` (slug `^[0-9]{4}-[a-z0-9-]+$`), `next_steps: ["..."]`.
+  - ⚠️ NÃO usar `hour`/`topic`/`duration`/`authors` (template legado — `additionalProperties` aceita mas faltam os 3 required). Validar local antes do PR: skill `memory-schema-preflight`.
 - `## Estado MCP no momento` (snapshot passo 1)
 - `## O que aconteceu` (narrativa interpretativa)
 - `## Artefatos gerados` (arquivos + linhas + canon path)
