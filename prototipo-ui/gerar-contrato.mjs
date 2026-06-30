@@ -11,13 +11,16 @@
 // Por que (Wagner 2026-06-30): a decomposição em regiões da Fase 1 (gap.md) era PROSA; W1
 // a torna um artefato VERSIONADO e revisável (o contrato), derivado da tabela — não da cabeça.
 //
+// A VERIFICAÇÃO (seção tem âncora data-contract + copy no alvo?) NÃO é deste script — é do
+// `contrato-de-tela.mjs --contract` (ADR 0286, gate canônico), rodado DEPOIS que o humano
+// preenche copy[] e ancora. gerar-contrato só DERIVA o esqueleto (auditoria 2026-06-30: não
+// duplicar o anchor-check).
+//
 // Uso:
 //   node prototipo-ui/gerar-contrato.mjs <gap.md|Mod/Tela>   # emite o esqueleto JSON (stdout)
-//   node prototipo-ui/gerar-contrato.mjs <gap.md> --check     # lista regiões acionáveis SEM
-//                                                             # âncora no alvo (exit 1 se sobrar)
 //   node prototipo-ui/gerar-contrato.mjs --selftest           # fixture hermético
 //
-// Exit: 0 = ok/limpo | 1 = --check com região sem âncora, ou gap.md não-parseável | 2 = uso
+// Exit: 0 = ok | 1 = gap.md não-parseável | 2 = uso
 
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join, resolve, dirname, basename, relative } from 'node:path';
@@ -115,19 +118,10 @@ export function gerar(gapPath) {
   };
 }
 
-// --check: regiões acionáveis cujo id NÃO tem âncora data-contract no alvo (precisa ancorar)
-export function check(gapPath) {
-  const g = gerar(gapPath);
-  if (g.erro) return { ok: false, motivo: g.erro };
-  if (!g.alvo) return { ok: false, motivo: 'sem alvo (tela_viva) resolvível no frontmatter' };
-  const alvoAbs = join(REPO, g.alvo);
-  let blob = '';
-  const walk = (d) => { let es; try { es = readdirSync(d, { withFileTypes: true }); } catch { return; }
-    for (const e of es) { const f = join(d, e.name); if (e.isDirectory()) walk(f); else if (/\.(tsx|jsx)$/.test(e.name)) { try { blob += readFileSync(f, 'utf8'); } catch {} } } };
-  if (existsSync(alvoAbs)) walk(alvoAbs); else if (existsSync(join(REPO, dirname(g.alvo)))) walk(join(REPO, dirname(g.alvo)));
-  const semAncora = g.contrato.secoes.filter((s) => !new RegExp(`data-contract\\s*=\\s*["'\`]${s.id}["'\`]`).test(blob));
-  return { ok: semAncora.length === 0, semAncora: semAncora.map((s) => s.id), total: g.contrato.secoes.length };
-}
+// NOTA (auditoria 2026-06-30): o `--check` (verificar se a seção tem âncora data-contract no
+// alvo) foi REMOVIDO — competia com `contrato-de-tela.mjs --contract` (ADR 0286), que JÁ faz
+// essa checagem com o regex canônico. gerar-contrato PARA no esqueleto; a verificação de
+// presença-de-âncora+copy é do gate canônico, rodado DEPOIS que o humano preenche/ancora.
 
 function selftest() {
   let fails = 0; const t = (l, c) => { if (!c) fails++; console.log(`  [${c ? 'PASS' : 'FAIL'}] ${l}`); };
@@ -139,14 +133,10 @@ function selftest() {
     const g = gerar(join(fx, 'boa-gap.md'));
     t('gera 2 seções das 2 partes acionáveis (3ª é "Nada")', !g.erro && g.contrato.secoes.length === 2);
     t('ids = slug das partes', g.contrato?.secoes?.[0]?.id === 'parte-a' && g.contrato?.secoes?.[1]?.id === 'parte-b');
-    const ck = check(join(fx, 'boa-gap.md'));
-    t('--check par BOM: alvo tem as 2 âncoras → ok', ck.ok === true);
-    const ckBad = check(join(fx, 'ruim-gap.md'));
-    t('--check par RUIM: parte-b sem âncora → exit 1', ckBad.ok === false && ckBad.semAncora.includes('parte-b'));
     const semTab = gerar(join(fx, 'sem-tabela-gap.md'));
     t('gap sem tabela → erro (não crasha)', !!semTab.erro);
   } else { t('fixtures presentes', false); }
-  console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — deriva contrato do gap.md, --check pega região sem âncora.');
+  console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — deriva o esqueleto do contrato do gap.md (verificação = contrato-de-tela --contract).');
   process.exit(fails ? 1 : 0);
 }
 
@@ -156,16 +146,9 @@ if (invokedDirectly) {
   if (argv.includes('--selftest')) selftest();
   else {
     const gapArg = argv.find((a) => !a.startsWith('--'));
-    if (!gapArg) { console.error('uso: node prototipo-ui/gerar-contrato.mjs <gap.md|Mod/Tela> [--check] | --selftest'); process.exit(2); }
+    if (!gapArg) { console.error('uso: node prototipo-ui/gerar-contrato.mjs <gap.md|Mod/Tela> | --selftest'); process.exit(2); }
     const gapPath = resolveGap(gapArg);
     if (!gapPath) { console.error(`gap.md não encontrado pra: ${gapArg}`); process.exit(1); }
-    if (argv.includes('--check')) {
-      const r = check(gapPath);
-      if (r.motivo) { console.error(`✗ ${r.motivo}`); process.exit(1); }
-      if (r.ok) { console.log(`✅ ${gapPath}: todas as ${r.total} regiões acionáveis têm âncora data-contract.`); process.exit(0); }
-      console.error(`⚠️ ${gapPath}: ${r.semAncora.length}/${r.total} regiões SEM âncora data-contract (ancore antes de aplicar): ${r.semAncora.join(', ')}`);
-      process.exit(1);
-    }
     const g = gerar(gapPath);
     if (g.erro) { console.error(`✗ ${g.erro}`); process.exit(1); }
     console.error(`# ${g.acionaveis}/${g.totalPartes} partes acionáveis → ${g.contrato.secoes.length} seções (preencha copy[] + ancore)`);
