@@ -105,6 +105,40 @@
       "pii_hits": 0,
       "evidencia": "refutacao (comment no PR #3543) — APROVADO 1/74 = 1,35% < 2%. Unico erro: Chat.charter.md listava US-COPI-106 cujo DoD e a tela Painel (Cockpit Analista IA) — correcao prescrita pelo refutador APLICADA antes do merge (106 movida pro Painel.charter.md, no PR pareado de charters). Confirmados sob ataque: grupo orcamento 071-075 pendente real (grep amplo), fixes nao-aplicados verificados abrindo codigo (startMockStream Cockpit.tsx:707/780), zombie 0. Cobre PR #3543 (SPEC) + PR pareado de charters Jana.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3541,
+      "lote_id": "SA-A5-P10-oficinaauto",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 54,
+      "erros_confirmados": 2,
+      "error_rate_pct": 3.7,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 1 (comment no PR #3541) — 2 REFUTADOS: US-OFICINA-006 estado preenchido com DoD central ausente (ServiceOrder sem trait GuardsFsmTransitions — refutacao semantica invisivel ao lint; grep: so Transaction/JobSheet/OrdemProducao usam) + charter ServiceOrders/Edit com US-OFICINA-005 errada (005-bis PR #1631 = UI itens OS, nao cleanup legacy). Lote reprovado inteiro (par.2.6).",
+      "veredito": "reprovado"
+    },
+    {
+      "pr": 3541,
+      "lote_id": "SA-A5-P10-oficinaauto",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 54,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3541) — lote inteiro re-verificado: 006 agora _parcial_ com 3 faltas reais (trait ausente, seeder 9 vs 15x19, teste 3 vs 15), charter Edit = [US-OFICINA-001]; 52 restantes byte-identicos a r1. anchor-lint: sem_campo 0, dead 0, zombie 0, grammar 48/48. Dominio ADR 0265 ok. Cobre PR #3541 (SPEC) + PR pareado de charters OficinaAuto.",
+      "veredito": "aprovado"
     }
   ]
 }
