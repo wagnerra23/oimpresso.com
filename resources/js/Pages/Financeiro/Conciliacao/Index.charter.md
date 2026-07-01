@@ -1,6 +1,7 @@
 ---
 page: /financeiro/conciliacao
 component: resources/js/Pages/Financeiro/Conciliacao/Index.tsx
+related_us: [US-FIN-009]
 owner: wagner
 status: live
 last_validated: "2026-05-31"
