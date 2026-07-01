@@ -7,6 +7,7 @@ last_validated: "2026-05-31"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 101, 104, 236]
+related_us: [US-FIN-009]
 related_prototype: prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaConciliacao) — tela viva evoluiu além do protótipo (extrato via API, ADR 0236)
 tier: A
 charter_version: 1

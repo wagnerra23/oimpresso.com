@@ -7,6 +7,7 @@ last_validated: "2026-05-19"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [101, 144, 170]
+related_us: [US-FIN-008]
 related_prototype: n/a (sem protótipo Cowork — form dados bancários/beneficiário CNAB; credenciais gateway vivem em /settings/payment-gateways, ADR 0170)
 tier: A
 charter_version: 2

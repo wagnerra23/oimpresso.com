@@ -5,6 +5,7 @@ owner: eliana
 route: /advisor/login (POST /advisor/login)
 controller: Modules\Financeiro\Http\Controllers\Advisor\AdvisorAuthController@showLogin
 guard: web-advisor
+related_us: [US-FIN-037]
 shell: none (portal contador isolado — justificadamente fora do AppShellV2)
 created: 2026-05-31
 page: /advisor/login

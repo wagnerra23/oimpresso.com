@@ -10,6 +10,7 @@ refs:
   - ADR 0093 (multi-tenant Tier 0)
   - ADR UI-0013 (Constituição UI v2)
 component: resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx
+related_us: [US-FIN-063]
 last_validated: "2026-05-31"
 parent_module: Financeiro
 related_prototype: n/a (sem protótipo Cowork — form de atualização de cobrança, FIN-004; segue DS)
