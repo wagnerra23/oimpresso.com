@@ -107,12 +107,14 @@ it('flag OFF (default) NÃO reordena — saída idêntica ao applyTimeDecay (nã
     expect(array_column($resultado, 'id'))->toBe([1, 2]); // ordem do applyTimeDecay preservada
 });
 
-it('KL-C1 — config resolve NÃO-NULL: retrieval_enabled === false e lifecycle_mult populado (fim do duplo-OFF)', function () {
+it('KL-C1 — config resolve NÃO-NULL: retrieval_enabled === true (LIGADO 2026-07-01) e lifecycle_mult populado (fim do duplo-OFF)', function () {
     // Não sobrescreve config — lê o valor REAL merged (JanaServiceProvider::
     // registerConfig → mergeConfigFrom 'copiloto'). O "duplo-OFF" era: flag false
     // no arquivo + chave resolvendo null em runtime (kill-switch não-funcional).
-    // Agora a chave resolve false ESTRITO (não null) — a flag é a única porta.
-    expect(config('copiloto.peso_real.retrieval_enabled'))->toBeFalse()
+    // A chave resolve NÃO-NULL ESTRITO — a flag é a única porta. Default flipado
+    // false→true em 2026-07-01 (Wagner, P12-5b); o invariante que este teste
+    // guarda é a resolução NÃO-NULL + lifecycle_mult populado, não o valor OFF.
+    expect(config('copiloto.peso_real.retrieval_enabled'))->toBeTrue()
         ->and(config('copiloto.peso_real.lifecycle_mult'))->toBeArray()
         // Vocabulário canônico alinhado (status EN normalizado + frontmatter PT):
         ->and(config('copiloto.peso_real.lifecycle_mult.aceito'))->toBe(1.0)
