@@ -78,22 +78,25 @@ for (const file of readdirSync(join(ROOT, DIR)).sort()) {
   if (!m) continue;
   const [num, slug] = [m[1], `${m[1]}-${m[2]}`];
   const txt = readFileSync(join(ROOT, DIR, file), 'utf8');
-  let rec = { num, slug, title: '', status: '', lifecycle: '', kind: 'decision', supersedes: [], superseded_by: [], rejected_at: '', rejected_reason: '', hasFrontmatter: false };
+  let rec = { num, slug, title: '', status: '', lifecycle: '', kind: 'decision', supersedes: [], supersedes_partially: [], superseded_by: [], rejected_at: '', rejected_reason: '', body: '', hasFrontmatter: false };
   if (txt.startsWith('---')) {
     const end = txt.indexOf('\n---', 3);
     const fm = end === -1 ? txt : txt.slice(0, end);
+    rec.body = end === -1 ? '' : txt.slice(end + 4); // corpo (pós-frontmatter) p/ EVENTO-prosa
     rec.hasFrontmatter = true;
     rec.title = decodeBinaryScalar(field(fm, 'title'));
     rec.status = (field(fm, 'status') || '').toLowerCase();
     rec.lifecycle = (field(fm, 'lifecycle') || '').toLowerCase();
     rec.kind = (field(fm, 'kind') || 'decision').toLowerCase();
     rec.supersedes = numbersFrom(fm, 'supersedes');
+    rec.supersedes_partially = numbersFrom(fm, 'supersedes_partially'); // emenda parcial (ADR 0317)
     rec.superseded_by = numbersFrom(fm, 'superseded_by');
     rec.rejected_at = field(fm, 'rejected_at'); // o NÃO consultável (proposal recusado-com-motivo, 2026-06-11)
     rec.rejected_reason = field(fm, 'rejected_reason');
   } else {
     // ADR formato-tabela legado (sem YAML frontmatter)
     rec.title = (txt.match(/^#\s*(.+)$/m) || [])[1] || slug;
+    rec.body = txt;
     const st = txt.match(/\|\s*\*\*Status\*\*\s*\|\s*([A-Za-zçãíéó]+)/i);
     rec.status = (st ? st[1] : '').toLowerCase();
   }
@@ -141,6 +144,38 @@ for (const [t, srcs] of Object.entries(supersededBy)) {
   if (srcs.size > 1) supWarn.push(`ADR ${t} é supersedida por ${srcs.size} ADRs (${[...srcs].sort().join(', ')}) → conflito de herança (double-supersede); só 1 deve suceder — consolide.`);
 }
 
+// EVENTO-prosa (ADR 0317 §1) — supersede/substitui declarado no TÍTULO/CORPO mas o
+// número NÃO está no campo supersedes/supersedes_partially: o furo 0097 (texto declara,
+// campo cego, gate estrutural não vê). 🟡 WARN PURO — NUNCA entra no supWarn (gate duro):
+// regex em prosa PT-BR não pode bloquear ("esta ADR NÃO substitui 0091" casaria). Só
+// renderiza no índice + informa; a integridade dura segue só no campo estruturado.
+const proseWarn = [];
+const SUPERSEDE_PROSE = /supersed|substitu|supersess/i;
+for (const a of adrs) {
+  const declared = new Set([...a.supersedes, ...a.supersedes_partially, ...a.superseded_by]);
+  const claimed = new Set();
+  // Só TÍTULO + linha de status-note do corpo (`> **Status:**`): declarativo e sobre a
+  // PRÓPRIA ADR. Varrer o corpo inteiro dava 64 falsos (prosa cita supersede alheia — ex:
+  // 0120 housekeeping descreve supersessões de outros). O furo 0097 é no título. Warn-only:
+  // aceita perder claim escondida em prosa livre (false-neg) vs afogar no ruído (false-pos).
+  const statusNote = (a.body.match(/^>?\s*\*?\*?Status\*?\*?:.*/mi) || [''])[0];
+  // Por CLÁUSULA (split em ·/;/—/nova-linha): o número tem que estar na MESMA cláusula do
+  // verbo. Senão "Supersede 0032 · Confirma e fortalece 0035" atribuía 0035 ao supersede
+  // (0035 é confirmado, não superseded). Escopa o verbo ao seu objeto.
+  for (const clause of `${a.title}\n${statusNote}`.split(/[·;\n]|\s—\s/)) {
+    if (!SUPERSEDE_PROSE.test(clause)) continue;
+    if (/\bn[ãa]o\b/i.test(clause)) continue; // negação ("não substitui X") → pula (reduz falso-pos óbvio)
+    if (/(supersed\w*|substitu\w*|supersess\w*)\s+(por|pel[ao])\b/i.test(clause)) continue; // voz PASSIVA ("superseded por X") = superseded_by, não claim forward
+    // só referência ESTRUTURAL de ADR (ADR NNNN · NNNN-slug · decisions/NNNN-), não 4-dígitos solto (anos/datas)
+    for (const m of clause.matchAll(/ADR[ _-]?(\d{4})\b|\b(\d{4})-[a-z]{2,}|decisions\/(\d{4})-/gi)) {
+      const n = m[1] || m[2] || m[3];
+      if (!byNum[n] || n === a.num || declared.has(n)) continue;
+      claimed.add(n);
+    }
+  }
+  if (claimed.size) proseWarn.push(`${a.num} declara supersede/substitui em prosa de ${[...claimed].sort().join(', ')} — mas SEM o número no campo supersedes/supersedes_partially (furo 0097)`);
+}
+
 // ── render ──────────────────────────────────────────────────────────────────
 const fmtTally = (o) => Object.entries(o).sort((x, y) => y[1] - x[1]).map(([k, v]) => `${k} ${v}`).join(' · ');
 let md = `# ADR Index — GERADO (não editar à mão)
@@ -161,6 +196,9 @@ ${collisions.length ? collisions.map(([n, v]) => `- **${n}** ×${v.length}: ${v.
 
 ## Integridade de supersessão (${supWarn.length} alertas)
 ${supWarn.length ? supWarn.map((w) => `- ⚠️ ${w}`).join('\n') : '_(íntegra)_'}
+
+## Supersessão declarada em prosa sem o campo (${proseWarn.length}) — 🟡 EVENTO-prosa (ADR 0317, warn não-bloqueia)
+${proseWarn.length ? proseWarn.map((w) => `- 🟡 ${w}`).join('\n') : '_(nenhuma)_'}
 
 ## Recusadas (${recusadas.length}) — o NÃO consultável
 ${recusadas.length ? recusadas.map((a) => `- **${a.num}** ${(a.title || a.slug).replace(/\|/g, '/').slice(0, 80)}${a.rejected_at ? ` · recusada ${a.rejected_at}` : ''}${a.rejected_reason ? ` — ${a.rejected_reason.replace(/\|/g, '/').slice(0, 120)}` : ''}`).join('\n') : '_(nenhuma — nenhum pedido recusado catalogado ainda)_'}
@@ -205,12 +243,13 @@ if (MODE === 'check') {
     console.error(`   → ADR novo pega número livre via scripts/governance/next-id.mjs; 2 ADRs no mesmo número = bifurcação. Renumere o novato (não toque o legado) OU, se a repetição for intencional, registre no baseline citando a razão.`);
     process.exit(1);
   }
+  if (proseWarn.length) console.log(`🟡 ${proseWarn.length} EVENTO-prosa (supersede no texto sem o campo — ADR 0317, não bloqueia): ${proseWarn.map((w) => w.split(' ')[0]).join(', ')}`);
   console.log(`✓ ${OUT} em dia (${adrs.length} ADRs) · supersede íntegra · 0 colisão nova (${grandfathered.size} grandfathered).`);
   process.exit(0);
 }
 if (MODE === 'write') {
   writeFileSync(join(ROOT, OUT), md);
-  console.log(`✓ ${OUT} gerado — ${adrs.length} ADRs, ${ativos} ativos, ${collisions.length} colisões, ${supWarn.length} alertas de supersessão.`);
+  console.log(`✓ ${OUT} gerado — ${adrs.length} ADRs, ${ativos} ativos, ${collisions.length} colisões, ${supWarn.length} alertas de supersessão, ${proseWarn.length} EVENTO-prosa 🟡.`);
 } else {
   console.log(md.split('\n').slice(0, 30).join('\n'));
   console.log(`\n[dry-run] ${adrs.length} ADRs · ${ativos} ativos · ${collisions.length} colisões · ${supWarn.length} alertas. Rode --write pra gerar.`);
