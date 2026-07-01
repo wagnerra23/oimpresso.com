@@ -88,7 +88,7 @@
 
 /* Onda 12.3 (2026-05-19) — Bundle canon REAL CSS inteiro (9054 LOC originais,
    8630 pós escopo .fin-cowork via scripts/scope-fin-cowork-css.py).
-   Copiado de public/cowork-preview/styles.css conforme regra Tier 0
+   Copiado de prototipo-ui/cowork/styles.css conforme regra Tier 0
    feedback-cowork-bundle-aplicar-inteiro.md — Wagner autorizou após 3 falhas
    de cherry-pick de classes Cowork sharedas (vd-toolbar*, os-btn*).
    PRIMEIRO no import order pra ter base canon + overrides locais por cima. */

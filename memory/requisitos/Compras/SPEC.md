@@ -192,7 +192,7 @@ Como Larissa criando compra de modelo `type='variable'` no `/purchases/create`, 
 - [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) Visual gate F3
 - [ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) Cowork loop
 - Precedente Soft wrapper PR [#1288 Caixa](https://github.com/wagnerra23/oimpresso.com/pull/1288) + PR [#1297 Home](https://github.com/wagnerra23/oimpresso.com/pull/1297)
-- Protótipo canon: `public/cowork-preview/erp-shell-v2/compras-page.{jsx,css}` + `Compras.html`
+- Protótipo canon: `prototipo-ui/cowork/compras-page.{jsx,css}` + `Compras.html`
 
 ## 8. Onda Audit Sênior 2026-05-25
 

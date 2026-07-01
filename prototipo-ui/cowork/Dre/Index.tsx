@@ -6,7 +6,7 @@
 //   adrs: ui/0114, 0093, 0104, 0107, 0109
 //   tests: Modules/Financeiro/Tests/Feature/DreControllerTest, DreBalancoBalanceteTest
 //
-// Canon: public/cowork-preview/erp-shell/financeiro-telas-extras.jsx (TelaDRE linha 361-483)
+// Canon: prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaDRE linha 361-483)
 // Visual-comparison: memory/requisitos/Financeiro/dre-visual-comparison.md (status: approved 2026-05-20)
 // Charter: ./Index.charter.md (entregue via PR A #1266)
 //
