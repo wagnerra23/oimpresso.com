@@ -1127,7 +1127,7 @@ class UnificadoController extends Controller
 
         // Onda Polish 2026-05-18 — lifecycle aceita array OR string CSV ("ar,re").
         // Onda 12.5 (2026-05-19) — default canon REAL: TODOS lifecycle ATIVOS (canon
-        // /cowork-preview/Oimpresso ERP - Chat.html mostra 4 pills `fin-filter-cb on`
+        // prototipo-ui/cowork/oimpresso.com.html mostra 4 pills `fin-filter-cb on`
         // por default). Antes era array vazio (todos OFF) — não-paridade visual.
         // Se request explicit `?lifecycle=` (vazio) — respeitar intenção do user.
         $lifecycleRaw = $request->has('lifecycle')

@@ -17,7 +17,7 @@ use Modules\Financeiro\Models\Titulo;
  * pronta pro Inertia render. Sem mutação financeira.
  *
  * Espelha o canon Cowork `TelaDRE` em
- * `public/cowork-preview/erp-shell/financeiro-telas-extras.jsx:340-483`.
+ * `prototipo-ui/cowork/financeiro-telas-extras.jsx:340-483`.
  *
  * Decisões aplicadas (Wagner aprovou 2026-05-20 — memory/requisitos/Financeiro/
  * dre-visual-comparison.md):
