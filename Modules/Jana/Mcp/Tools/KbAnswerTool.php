@@ -101,7 +101,11 @@ class KbAnswerTool extends Tool
         // User pode ser null (CLI/test) — `acessiveisPara(null)` filtra só docs
         // públicas (mesmo pattern do DecisionsSearchTool). Em prod o middleware
         // McpAuth injeta user via Bearer token.
+        // Request::user() é Authenticatable|null; os scopes Eloquent + o service
+        // esperam App\User. Em prod McpAuth injeta App\User — narrow explícito
+        // (comportamento idêntico: não-App\User → null → acessiveisPara(null)).
         $user = $request->user();
+        $appUser = $user instanceof \App\User ? $user : null;
 
         // Pipeline retrieval → síntese vive em KbAnswerService (reusado pelo
         // RAGAS real-eval — mata a tautologia answer=ground_truth). SoC brutal §5.
@@ -112,7 +116,7 @@ class KbAnswerTool extends Tool
         // Pegamos top 10 docs no DB pra dar margem ao LLM filtrar relevância,
         // mas limitamos citações finais em max_citacoes.
         $docs = $svc->retrieve(
-            user: $user,
+            user: $appUser,
             pergunta: $pergunta,
             categoria: $categoria,
             module: $module,
