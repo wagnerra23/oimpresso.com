@@ -70,11 +70,14 @@ function runScorecard(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
-// memory-health varre process.cwd() (memory/decisions/ + _INDEX-LIFECYCLE.md) e lê o
-// baseline em scripts/governance/.memory-health-baseline.json → mesmo padrão sandbox:
-// fixture (só memory/decisions/ + baseline neutro) + o script REAL copiado por cima.
-// Fixture isola o Check A (colisão ADR) — sem memory/{requisitos,sessions,reference}
-// nem .github/workflows, as outras checagens nem disparam.
+// memory-health varre process.cwd() (memory/decisions/) e lê o registro de colisões em
+// governance/adr-collisions-baseline.json (ADR 0274 §3) + o baseline de segredos em
+// scripts/governance/.memory-health-baseline.json → mesmo padrão sandbox: fixture (só
+// memory/decisions/, SEM governance/adr-collisions-baseline.json) + o script REAL copiado
+// por cima. Sem o baseline de colisões no sandbox, toda colisão é NÃO-registrada ⇒ o
+// Check A morde no fixture bad (prova o gate sem grandfather mascarar). Fixture isola o
+// Check A — sem memory/{requisitos,sessions,reference} nem .github/workflows, as outras
+// checagens nem disparam.
 function runMemoryHealth(kind) {
   const sb = mkdtempSync(join(tmpdir(), `gate-selftest-memory-health-${kind}-`));
   try {
@@ -282,7 +285,7 @@ const CATRACAS = [
   {
     id: 'memory-health',
     run: runMemoryHealth,
-    expect: { good: /base de conhecimento saudável/, bad: /colidiu.*_INDEX-LIFECYCLE/ },
+    expect: { good: /base de conhecimento saudável/, bad: /colidiu.*adr-collisions-baseline/ },
   },
   {
     // Check N (colisão de US-ID · ADR 0304) — sibling do Check A pra histórias.
