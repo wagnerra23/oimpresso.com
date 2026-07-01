@@ -15,33 +15,33 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 16.1,
+      "value": 24.1,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 16.1,
+        "coverage_pct": 24.1,
         "specs_total": 58,
         "us_total": 855,
-        "anchor_coverage_pct": 16.1,
+        "anchor_coverage_pct": 24.1,
         "by_state": {
-          "sem_campo": 717,
+          "sem_campo": 649,
           "placeholder": 0,
-          "pendente": 51,
-          "parcial": 6,
-          "anchored_ok": 81,
+          "pendente": 74,
+          "parcial": 21,
+          "anchored_ok": 111,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 143,
+        "fields_total": 211,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 121,
+        "fields_grammar_ok": 189,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 27,
-        "req_sem_covering_test_total": 45,
+        "req_sem_aceite_total": 68,
+        "req_sem_covering_test_total": 90,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 39,
         "behavior_known": false,
@@ -205,16 +205,16 @@
     },
     "backfill_error_rate": {
       "status": "measured",
-      "value": 0,
+      "value": 1.35,
       "unit": "% (MAX error_rate das entries aprovadas — conservador: 1 lote ruim estoura <2%)",
       "direction": "down",
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 4,
-        "max_error_rate_pct": 0,
-        "last_pr": 2970,
-        "last_lote": "SA-A5-batch1-pg-pmg-kb"
+        "entries_aprovadas": 5,
+        "max_error_rate_pct": 1.35,
+        "last_pr": 3543,
+        "last_lote": "SA-A5-P10-jana"
       },
       "stream": "GT"
     }
