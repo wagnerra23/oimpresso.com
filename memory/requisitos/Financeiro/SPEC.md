@@ -411,7 +411,7 @@ Pré-req: titulo precisa ter `nosso_numero` populado (emissão prévia manual vi
 
 ### US-FIN-015 · Fix BUG-3 — Listener cria titulo_pagar pra purchase com payment_status=due
 
-> owner: wagner · priority: p0 · estimate: 3h · status: todo · type: story
+> owner: wagner · priority: p0 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/Financeiro/Services/TituloAutoService.php` · `Modules/Financeiro/Observers/TransactionObserver.php` · verificado@dd3ed7c (2026-07-01) — branch `purchase => 'pagar'` (due/partial) no `sincronizarDeTransacaoInternal`; `CriarTituloDeVendaJob` legado deprecado (frontmatter `na_justified_v3`).
@@ -832,7 +832,7 @@ Sheet lateral em `/financeiro/boletos` pra emitir N boletos de uma vez a partir 
 
 ### US-FIN-018 · Boletos — Sheet Remessa/Retorno CNAB upload + processing
 
-> owner: wagner · priority: p2 · estimate: 16h · status: todo · type: story
+> owner: wagner · priority: p2 · estimate: 16h · type: story
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx` · verificado@dd3ed7c (2026-07-01) — Sheet UI existe mas roda com dados MOCK (F3 UI-only); backend CnabDirectStrategy (gerarRemessa e processarRetorno) + upload e parse do .RET ainda pendentes.
@@ -1039,7 +1039,7 @@ Refs: ADR 0170 §Roadmap Onda 6
 
 ### US-FIN-026 · UI lista anexos GET no drawer Unificado + thumbnail PDF + delete
 
-> owner: — · sprint: Onda 22 · priority: p0 · estimate: 3h · status: todo · type: story
+> owner: — · sprint: Onda 22 · priority: p0 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `resources/js/Pages/Financeiro/Unificado/_components/FinAnexosPanel.tsx` · verificado@dd3ed7c (2026-07-01) — `listarAnexos`/`baixarAnexo`/`removerAnexo` (GET lista + download + soft delete) + painel no drawer.
@@ -1059,7 +1059,7 @@ Fecha workflow Anexos NF da Onda 20 (atualmente só POST upload — GET lista + 
 
 ### US-FIN-027 · Pill aprovacao_status na tabela Unificado + filtro workflow
 
-> owner: — · sprint: Onda 22 · priority: p0 · estimate: 2h · status: todo · type: story
+> owner: — · sprint: Onda 22 · priority: p0 · estimate: 2h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `resources/js/Pages/Financeiro/Unificado/Index.tsx` · `Modules/Financeiro/Database/Migrations/2026_05_19_220002_add_aprovacao_to_fin_titulos.php` · verificado@dd3ed7c (2026-07-01) — coluna `aprovacao_status` + pill/filtro na tabela Unificado.
@@ -1078,7 +1078,7 @@ Pendência I do AUDIT-FUNCOES — coluna aprovacao_status existe em fin_titulos 
 
 ### US-FIN-028 · Spatie permission financeiro.titulo.aprovar + gate UI
 
-> owner: — · sprint: Onda 22 · priority: p0 · estimate: 1.5h · status: todo · type: story
+> owner: — · sprint: Onda 22 · priority: p0 · estimate: 1.5h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/Financeiro/Http/Controllers/UnificadoController.php` · verificado@dd3ed7c (2026-07-01) — `aprovar`/`rejeitar` fazem `abort_unless(can('financeiro.titulo.aprovar') || can('superadmin'))`; `solicitarAprovacao` segue aberto a qualquer user.
@@ -1097,7 +1097,7 @@ Endpoint POST /unificado/{id}/aprovar existe (Onda 21) mas sem permission Spatie
 
 ### US-FIN-029 · OCR boleto upload — OpenAI Vision API extrai linha digitável + valor + vencimento
 
-> owner: — · sprint: Onda 23 · priority: p1 · estimate: 9h · status: todo · type: story
+> owner: — · sprint: Onda 23 · priority: p1 · estimate: 9h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `Modules/Financeiro/Services/BoletoOcrService.php` · `resources/js/Pages/Financeiro/Unificado/_components/FinOcrBoletoSheet.tsx` · verificado@dd3ed7c (2026-07-01) — endpoint `ocrBoleto` + Service Vision + validação linha digitável + Sheet de preview/confirmação.
@@ -1145,7 +1145,7 @@ Charter v5 Non-Goal F1 — mover pra Goal pós-Ondas 12-21 (Eliana precisa pra c
 
 ### US-FIN-031 · Bulk actions tabela Unificado — checkbox + select-all + ações em lote
 
-> owner: — · sprint: Onda 25 · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · sprint: Onda 25 · priority: p1 · estimate: 6h · type: story
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Financeiro/Unificado/Index.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · verificado@dd3ed7c (2026-07-01) — coluna checkbox + footer "N selecionados" + `bulkUpdateCategoria` (Onda 12 e 15); falta o endpoint bulk genérico (POST unificado bulk) com as 5 ações (baixar, plano, cancelar, exportar) + modal destrutivo.
@@ -1168,7 +1168,7 @@ Crítico fechamento mês com 200+ títulos. Hoje precisa 1-clique por linha = 20
 
 ### US-FIN-032 · Inter API webhook PIX recebido → titulo auto-pago (auto-conciliação)
 
-> owner: — · sprint: Onda 26 · priority: p1 · estimate: 3h · status: todo · type: story
+> owner: — · sprint: Onda 26 · priority: p1 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/PaymentGateway/Http/Controllers/Webhooks/InterPixWebhookController.php` · `Modules/PaymentGateway/Jobs/ProcessarWebhookPixInterJob.php` · `Modules/Financeiro/Listeners/OnCobrancaPagaCreateFinanceiroTitulo.php` · verificado@dd3ed7c (2026-07-01) — webhook PIX Inter → job idempotente marca Cobranca paga → listener cria/quita fin_titulo + baixa (cross-module PaymentGateway).
@@ -1235,7 +1235,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 ### US-FIN-035 · Repetir lançamento próximo mês + Combobox autocomplete contraparte
 
-> owner: — · sprint: Onda 29 · priority: p2 · estimate: 4h · status: todo · type: story
+> owner: — · sprint: Onda 29 · priority: p2 · estimate: 4h · type: story
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `Modules/Financeiro/Routes/web.php` · verificado@dd3ed7c (2026-07-01) — endpoint `buscarCliente` + rota `unificado.buscar-cliente` vivos; falta o Combobox montado na UI (`ClienteCombobox.tsx` é órfão, zero imports, nunca montado; contraparte async ausente em Novo.tsx) + o "Duplicar para próximo mês" (recorrência via `titulo_pai_id`) não construído.
@@ -1261,7 +1261,7 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 ### US-FIN-036 · PWA básico Financeiro — manifest + service worker + offline cache + install prompt
 
-> owner: — · sprint: Onda 30 · priority: p2 · estimate: 5h · status: todo · type: story
+> owner: — · sprint: Onda 30 · priority: p2 · estimate: 5h · type: story
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `public/sw-financeiro.js` · `resources/js/app.tsx` · `public/manifest.webmanifest` · `public/img/pwa-icon-192.svg` · verificado@dd3ed7c (2026-07-01) — service worker stale-while-revalidate (GET only, LGPD-safe) registrado em app.tsx:115-122 + arquivo manifest scoped `/financeiro/` + ícones; falta o manifest ser linkado em algum blade (`<link rel="manifest">` ausente → PWA não instalável) + install prompt UI inexistente.
@@ -1284,7 +1284,7 @@ Mata gap mobile (score 4/10 vs Conta Azul 9/10) sem custo de app nativo. Wagner/
 
 ### US-FIN-037 · Customer service network — Portal Advisor Contadores parceiros (referral + acesso compartilhado)
 
-> owner: — · sprint: Onda 31 · priority: p2 · estimate: 14h · status: todo · type: story
+> owner: — · sprint: Onda 31 · priority: p2 · estimate: 14h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/Financeiro/Http/Controllers/AdvisorAccessController.php` · `Modules/Financeiro/Http/Controllers/Advisor/AdvisorPortalController.php` · `Modules/Financeiro/Http/Middleware/AdvisorViewScope.php` · `resources/js/Pages/Financeiro/Advisor/Dashboard.tsx` · `Modules/Financeiro/Database/Migrations/2026_05_20_140000_create_advisors_table.php` · verificado@dd3ed7c (2026-07-01) — Fase 1 MVP: portal advisor isolado (guard `web-advisor`) + grant/revoke acesso + middleware readonly + tabelas `advisors`/`advisor_business_access`.
@@ -1364,7 +1364,7 @@ Refs ADR 0175, RUNBOOK bridge-sells-titulos-backfill.md.
 
 ### US-FIN-040 · Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge
 
-> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 3h · type: story
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php` · verificado@dd3ed7c (2026-07-01) — existe `financeiro:health` (10 checks, incl. `checkOrphanBaixas` ≈ Gap A) com `--json`/`--alert`; faltam os Gaps B (transações sem fin_titulo) e C (cliente_descricao NULL >5%), flag `--biz=*` e webhook Slack.
@@ -1528,7 +1528,7 @@ Quando Maiara entregar `review`, Daily Brief avisa Wagner automatic. NAO criar t
 
 ### US-FIN-044 · SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time)
 
-> owner: wagner · priority: p1 · estimate: 24h · status: in_progress · type: story
+> owner: wagner · priority: p1 · estimate: 24h · type: story
 > blocked_by: cliente (Kamila/Martinho biz=164 buscando credenciais sandbox Sicoob Developer Portal)
 
 **Implementado em:** _parcial_ · `Modules/PaymentGateway/Services/Drivers/SicoobApiDriver.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php` · `resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx` · verificado@dd3ed7c (2026-07-01) — driver OAuth2+mTLS+webhook + wizard Sicoob prontos (cross-module PaymentGateway); falta apenas o smoke E2E real com credenciais sandbox do cliente (pré-req humano).
@@ -1615,7 +1615,7 @@ Sem mudança backend — apenas UI reorganizada. Backend continua recebendo `gat
 
 ### US-FIN-046 · Sicoob mTLS reusa NfeCertificado (single source of truth)
 
-> owner: wagner · priority: p0 · estimate: 4h · status: review · type: story
+> owner: wagner · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: —
 
 **Implementado em:** `Modules/PaymentGateway/Services/Drivers/SicoobApiDriver.php` · `Modules/NfeBrasil/Services/CertificadoService.php` · verificado@dd3ed7c (2026-07-01) — `SicoobApiDriver::mtlsOptions()` reusa o cert A1 ICP-Brasil canon do NfeBrasil (single source); colunas `requires_mtls`/`mtls_pfx_path` revertidas.
