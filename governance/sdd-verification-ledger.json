@@ -258,6 +258,23 @@
       "erros_confirmados": 1,
       "error_rate_pct": 1.82,
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3571,
+      "lote_id": "SA-A5-P10w2-pcp",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 21,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao (comment no PR #3571) — APROVADO 21/21. Lote 100% _pendente_ (Modules/Pcp e IProduction inexistentes, feature-wish ADR 0152; IProduction removido PR #842). Refutador atacou todas as frentes (migrations pcp_*, rotas, Pages, seeders FSM sem apontar_*, print_label sem QR/HMAC, ProducaoOficinaController sem grouping) e nao achou construcao. anchor-lint coverage 100, dead 0, zombie 0, grammar 21/21.",
+      "veredito": "aprovado"
     }
   ]
 }
