@@ -3,7 +3,7 @@
 > Origem: avaliação adversarial 2026-06-21 (composto **60/100**) — [session log](../../../sessions/2026-06-21-sdd-avaliacao-adversarial.md).
 > Régua: o **teste contrafactual** (se um funcionário tentar quebrar uma decisão já tomada, o processo barra sozinho?). Hoje a detecção está em **L2 (medido, advisory)**; **L3 (required + counterfactual) tem 0 gates SDD**.
 > 13 projetos detalhados, cada um verificado no repo real. **Status: proposed — aguarda Wagner.**
-> Última atualização: 2026-06-21.
+> Última atualização: 2026-07-01 — P09 executado (dead=0 + placeholder=0 no main).
 
 ## Achado-chave (refinou o diagnóstico)
 
@@ -30,7 +30,7 @@ Esforço dominado por **7+ noites de relógio real** (CT100). Semanas, não dias
 - **`P07`**: `pcov` no CI → destrava `coverage_pct` (catraca C2).
 
 ### 📚 Conteúdo (paralelo, travado no volume)
-`P09` (sanear 22 placeholders + 15 dead) → `P10` (batches IA + fila Wagner) · `P11` (renames + distiller) · `P12` (decay real).
+`P09` ✅ **executado 2026-07-01** (dead=0 + placeholder=0 no main; #3473+#3475) → `P10` (batches IA + fila Wagner) · `P11` (renames + distiller) · `P12` (decay real).
 
 ## Os 13 projetos
 
@@ -44,7 +44,7 @@ Esforço dominado por **7+ noites de relógio real** (CT100). Semanas, não dias
 | [P06](P06-materializar-g7-g8-historia-brief.md) | Migrar prod → linha SDD no brief | 3 | (P01 soft) | — | **~1h** / 1-2d cron | `snapshot` FAILURE→exit 0 + 1 row |
 | [P07](P07-instrumentar-pcov-ci-coverage.md) | `pcov` no CI (coverage_pct) | 3 | — | P13 | 0.8d / 3+14d | `coverage_pct` vira `measured` |
 | [P08](P08-conectar-metricas-gt-e-fixture-anchor.md) | Conectar 2 métricas GT + fixture anchor | 1 | — | P13 | 0.5d / 0 | gate-selftest 12/12; métricas leem fonte |
-| [P09](P09-sa-a4-sanear-placeholders-anchored-dead.md) | SA-A4: sanear placeholders + dead | 4 | — | P10 | 0.8d / 0 | `anchor-lint` dead=0, placeholder=0 |
+| [P09](P09-sa-a4-sanear-placeholders-anchored-dead.md) ✅ | SA-A4: sanear placeholders + dead | 4 | — | P10 | **executado 2026-07-01** (#3473+#3475) | ✅ `anchor-lint` dead=0, placeholder=0 |
 | [P10](P10-sa-a5-a6-batches-ia-fila-wagner.md) | SA-A5/A6: batches IA + fila + enforce | 4 | P09 | P13 | 3-4d / 2-3 sem | PR sem ledger → umbrella vermelho |
 | [P11](P11-kl-e2-renames-reseed-distiller.md) | KL E2: renames + re-seed + distiller | 4 | P05 | — | 1d / dias | `ghost_count` ratchet morde; freshness `measured` |
 | [P12](P12-decay-real-ragas-recall.md) | Decay real: RAGAS + recall-eval | 5 | — | — | 1d / **secret Wagner** | RAGAS baseline>0 (sai da tautologia) |
