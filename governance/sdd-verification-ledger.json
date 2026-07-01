@@ -156,6 +156,40 @@
       "pii_hits": 0,
       "evidencia": "refutacao (comment no PR #3546) — APROVADO 0/73. Claims estruturais atacados e confirmados: ADR 0202 (daemon-node OUT do repo, zero .go) -> US-060/078/079 pendentes corretas; Cockpit V1 removido com teste de regressao -> reancoragem V4; Canal=Fila vivo. 1 incerto melhorado: segmento MediaPreviewCard.tsx orfao (US-WA-042) trocado por ConversationThreadV4.tsx vivo conforme sugestao do refutador. 177 paths re-verificados independentes, 0 ausentes. Cobre PR #3546 (SPEC) + PR pareado de charter Settings.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3539,
+      "lote_id": "SA-A5-P10-financeiro",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 40,
+      "erros_confirmados": 3,
+      "error_rate_pct": 7.5,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 1 (comment no PR #3539) — 3 REFUTADOS com evidencia path:linha: US-FIN-030 (FinAgeing.tsx sub-componente zombie, UI removida 2026-06-29), US-FIN-035 (ClienteCombobox.tsx orfao, zero imports), US-FIN-036 (PWA otimista, manifest sem link rel=manifest). Ponto cego do lint (sub-componentes) pego pelo refutador tier superior. Lote reprovado inteiro (protocolo par.2.6) e devolvido ao gerador.",
+      "veredito": "reprovado"
+    },
+    {
+      "pr": 3539,
+      "lote_id": "SA-A5-P10-financeiro",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 40,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3539) — re-verificacao do lote INTEIRO (par.2.6): 3 corrigidos verificados a fundo (030 pendente, 035/036 parcial com falta real), 37 restantes byte-identicos a rodada 1. anchor-lint: sem_campo 0, dead 0, zombie 0, grammar 52/52. Cobre PR #3539 (SPEC) + PR #3540 (charters related_us, pareado — precedente KL-E2 #2750+#2751).",
+      "veredito": "aprovado"
     }
   ]
 }
