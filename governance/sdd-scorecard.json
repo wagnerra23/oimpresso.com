@@ -15,33 +15,33 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 24.1,
+      "value": 29.7,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 24.1,
+        "coverage_pct": 29.7,
         "specs_total": 58,
         "us_total": 855,
-        "anchor_coverage_pct": 24.1,
+        "anchor_coverage_pct": 29.7,
         "by_state": {
-          "sem_campo": 649,
+          "sem_campo": 601,
           "placeholder": 0,
-          "pendente": 74,
-          "parcial": 21,
-          "anchored_ok": 111,
+          "pendente": 102,
+          "parcial": 25,
+          "anchored_ok": 127,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 211,
+        "fields_total": 259,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 189,
+        "fields_grammar_ok": 237,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 68,
-        "req_sem_covering_test_total": 90,
+        "req_sem_aceite_total": 78,
+        "req_sem_covering_test_total": 110,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 39,
         "behavior_known": false,
@@ -211,10 +211,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 5,
+        "entries_aprovadas": 6,
         "max_error_rate_pct": 1.35,
-        "last_pr": 3543,
-        "last_lote": "SA-A5-P10-jana"
+        "last_pr": 3541,
+        "last_lote": "SA-A5-P10-oficinaauto"
       },
       "stream": "GT"
     }
