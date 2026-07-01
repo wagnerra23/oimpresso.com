@@ -47,3 +47,24 @@ test('UC-S01 · venda balcão a prazo — produto no carrinho, salvar sem pagame
   await expect(page).not.toHaveURL(/\/sells\/create/, { timeout: 20_000 });
   await expect(page.getByText(/Falha|Erro ao|não pôde/i)).toHaveCount(0);
 });
+
+// UC-S11 · da lista, iniciar a devolução de uma venda (Index.casos.md).
+// Roda DEPOIS do UC-S01 (mesma suíte): a venda balcão criada acima garante ≥1
+// linha na lista. Defende a regressão do #1032 (menu de Ações sumiu no rewrite
+// Cowork) — remover o menu/Devolução volta a quebrar o CI. Locators por
+// role/nome (L-24, sem classe CSS).
+test('UC-S11 · menu de Ações da venda oferece Devolução → /sell-return/add', async ({ page }) => {
+  await page.goto('/sells');
+  await page.waitForLoadState('networkidle');
+  await expect(page.getByRole('heading', { name: 'Vendas' })).toBeVisible({ timeout: 15_000 });
+
+  // Abre o menu ⋮ da primeira linha (kebab restaurado — #3494).
+  const acoes = page.getByRole('button', { name: 'Ações da venda' }).first();
+  await expect(acoes).toBeVisible({ timeout: 15_000 });
+  await acoes.click();
+
+  // O item Devolução existe e aponta pro formulário de retorno da venda (→ estoque).
+  const devolucao = page.getByRole('menuitem', { name: 'Devolução' });
+  await expect(devolucao).toBeVisible();
+  await expect(devolucao).toHaveAttribute('href', /\/sell-return\/add\/\d+/);
+});
