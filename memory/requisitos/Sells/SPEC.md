@@ -29,6 +29,8 @@ last_updated: "2026-05-31"
 
 ### US-SELL-001 · Epic — Migrar /sells/create pra MWART
 
+**Implementado em:** _parcial_ · `app/Http/Controllers/SellPosController.php` · `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01) — epic; subtasks 005/006/007/053 done, mas 008 (canary) e 009 (cutover+remover Blade) todo
+
 > owner: wagner · priority: p1 · estimate: 28h · status: todo · type: epic · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: —
 
@@ -46,6 +48,8 @@ last_updated: "2026-05-31"
 **Refs:** [RUNBOOK-create.md](RUNBOOK-create.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 
 ### US-SELL-002 · Backend dual Inertia/Blade + feature flag + Pest
+
+**Implementado em:** `app/Http/Controllers/SellPosController.php` · verificado@cd84a38 (2026-07-01)
 
 > owner: wagner · priority: p1 · estimate: 1.5h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: —
@@ -68,6 +72,8 @@ last_updated: "2026-05-31"
 
 ### US-SELL-003 · Frontend skeleton + AppShellV2 + props contract
 
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01)
+
 > owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-002
 
@@ -86,6 +92,8 @@ last_updated: "2026-05-31"
 
 ### US-SELL-004 · Triagem visibilidade campos (18 → 8 visíveis + 10 colapsáveis)
 
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01)
+
 > owner: wagner · priority: p1 · estimate: 0.75h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-003
 
@@ -102,6 +110,8 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 70
 
 ### US-SELL-005 · Produtos — busca + tabela + cálculos
+
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · `resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx` · `resources/js/Pages/Sells/_components/ProductLineCard.tsx` · verificado@cd84a38 (2026-07-01)
 
 > owner: wagner · priority: p1 · estimate: 2.5h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-004
@@ -125,6 +135,8 @@ last_updated: "2026-05-31"
 
 ### US-SELL-006 · Pagamento + frete + descontos colapsáveis
 
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · `resources/js/Pages/Sells/_components/PaymentRow.tsx` · verificado@cd84a38 (2026-07-01)
+
 > owner: wagner · priority: p1 · estimate: 1.5h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-005
 
@@ -144,6 +156,8 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 70
 
 ### US-SELL-007 · Atalhos + auto-save draft + estados visuais
+
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01)
 
 > owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-006
@@ -166,6 +180,8 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 80 (estados completos)
 
 ### US-SELL-008 · QA: audit + smoke biz=1 + canary Wagner 7d + rollback plan
+
+**Implementado em:** _parcial_ · `tests/Feature/Sells/SellPosControllerStoreInvariantsTest.php` · `app/Console/Commands/Sells/SmokeDailyCommand.php` · verificado@cd84a38 (2026-07-01) — falta canary 7d Wagner + backup DB (relogio humano)
 
 > owner: wagner · priority: p0 · estimate: 8h (1h codável + 7d canary humano) · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-007
@@ -192,6 +208,8 @@ last_updated: "2026-05-31"
 
 ### US-SELL-040 · Pest integration HTTP full do `SellPosController@store` (caminho B)
 
+**Implementado em:** _pendente_ — integration HTTP full do store() so ao refatorar SellPosController@store; hoje so invariantes estruturais (US-008)
+
 > owner: wagner · priority: p2 · estimate: 6-10h · status: todo · type: story · origin: sessao-2026-05-15-canary-prep-paridade
 > blocked_by: — (independente; só disparar quando refatorar `store()` de fato)
 
@@ -216,6 +234,8 @@ last_updated: "2026-05-31"
 
 ### US-SELL-053 · FieldError por campo + auto-open details em erro
 
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01)
+
 > owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: design-arte-agent-2026-05-13 · closed: 2026-05-13
 > blocked_by: US-SELL-007
 
@@ -234,6 +254,8 @@ last_updated: "2026-05-31"
 - [ ] Pest test (TODO US-SELL-008 incluirá)
 
 ### US-SELL-009 · Cutover ROTA LIVRE + remover Blade após 30d
+
+**Implementado em:** _pendente_ — cutover ROTA LIVRE + remocao Blade legacy: relogio humano 30d monitor; Blade sale_pos/create ainda presente
 
 > owner: wagner · priority: p0 · estimate: 4h (0.5h codável + 30d monitor humano) · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-008
@@ -287,6 +309,8 @@ Histórico de comentários por US fica navegável via `/copiloto/admin/qualidade
 
 ### US-SELL-010 · Investigar State Machines existentes (Repair, Project, mcp_tasks) + propor ADR padrão FSM canônico
 
+**Implementado em:** `memory/decisions/0129-state-machine-canonica-fsm-rbac.md` · verificado@cd84a38 (2026-07-01)
+
 > owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
 > blocked_by: —
 
@@ -304,6 +328,8 @@ Histórico de comentários por US fica navegável via `/copiloto/admin/qualidade
 **Refs:** sessão 2026-05-10 (CYCLE-04 higiene + pivot conceitual venda sem nota). US-RB-044 fechada motivou esse trabalho.
 
 ### US-SELL-011 · Modelar 4 tabelas FSM canônicas (processes + stages + actions + RBAC)
+
+**Implementado em:** `app/Domain/Fsm/Services/ExecuteStageActionService.php` · `app/Domain/Fsm/Models/SaleProcess.php` · `database/migrations/2026_05_11_120001_create_sale_processes_table.php` · `database/migrations/2026_05_11_120005_create_sale_stage_history_table.php` · verificado@cd84a38 (2026-07-01)
 
 > owner: wagner · priority: p1 · estimate: 12h · status: done · type: story
 > blocked_by: US-SELL-010
@@ -337,6 +363,8 @@ sale_stage_action_roles     -- RBAC join: action × spatie_role/permission
 **Refs:** US-SELL-010 (ADR mãe). Modules/Repair + Modules/Project devem migrar pro padrão (US separadas a criar pós-ADR).
 
 ### US-SELL-012 · Gate de emissão NFe por venda (aplicar FSM canônica em Sale)
+
+**Implementado em:** `database/migrations/2026_05_11_160001_add_fsm_columns_to_transactions.php` · `app/Domain/Fsm/Services/InitialStageResolver.php` · `app/Http/Controllers/SaleFsmActionController.php` · verificado@cd84a38 (2026-07-01)
 
 > owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: US-SELL-011
@@ -373,6 +401,8 @@ sale_stage_action_roles     -- RBAC join: action × spatie_role/permission
 
 ### US-SELL-013 · Reservas de estoque (stock_reservations) — side-effects FSM aplicados
 
+**Implementado em:** `database/migrations/2026_05_11_130001_create_stock_reservations_table.php` · `app/Domain/Fsm/Models/StockReservation.php` · `app/Domain/Fsm/SideEffects/ReservarEstoque.php` · `app/Domain/Fsm/SideEffects/ConsumirEstoque.php` · `app/Domain/Fsm/SideEffects/LiberarReserva.php` · `app/Domain/Fsm/Jobs/ExpireStaleReservationsJob.php` · verificado@cd84a38 (2026-07-01)
+
 > owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: US-SELL-011
 > done: 2026-05-10 · PR: #510 · Pest: 8/8 ✅
@@ -405,6 +435,8 @@ stock_reservations
 **Refs:** US-SELL-011 (FSM tabelas + side_effect_class). Boa prática varejo BR mas ausente no UltimatePOS core.
 
 ### US-SELL-014 · Multi-documento por venda (transaction_documents poly) — N notas atreladas a 1 OS
+
+**Implementado em:** `database/migrations/2026_05_11_140001_create_transaction_documents_table.php` · `app/Domain/Fsm/Models/TransactionDocument.php` · verificado@cd84a38 (2026-07-01)
 
 > owner: wagner · priority: p1 · estimate: 6h · status: done · type: story
 > blocked_by: US-SELL-011
@@ -445,6 +477,8 @@ transaction_documents
 
 ### US-SELL-015 · Modo "Grade Avançada" — toggle + layout densa base · **P0**
 
+**Implementado em:** _pendente_ — toggle Lista/Grade Avancada REMOVIDO na Unificacao 2026-05-21 (SellsToggleViewMode/SellsGradeAvancada deletados); substituido por tabs de visao. Ver US-SELL-046
+
 > owner: — · priority: p0 · estimate: 6h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: —
 
@@ -471,6 +505,8 @@ transaction_documents
 
 ### US-SELL-016 · Multiseleção + ações em lote (imprimir/exportar/agrupar) · **P0**
 
+**Implementado em:** `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/_components/SellsTabelaUnificada.tsx` · verificado@cd84a38 (2026-07-01)
+
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: US-SELL-015
 
@@ -493,6 +529,8 @@ transaction_documents
 **Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (bulk endpoints validam business_id de cada ID).
 
 ### US-SELL-017 · Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
+
+**Implementado em:** _parcial_ · `app/Http/Controllers/SellController.php` · verificado@cd84a38 (2026-07-01) — backend calcula totals mas tfoot frontend removido; ver US-SELL-045 (payload morto)
 
 > owner: — · priority: p0 · estimate: 2h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: US-SELL-015
@@ -520,6 +558,8 @@ transaction_documents
 
 ### US-SELL-018 · Filtros multi-data com presets Dia/Semana/Mês/Ano + custom · **P1 confirmado**
 
+**Implementado em:** `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/_components/SellsDateFilter.tsx` · verificado@cd84a38 (2026-07-01)
+
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015
 > evidence: 3-4 campos data com uso real >30% em pelo menos 1 cliente (DT_FATURAMENTO 92% Extreme/Gold · DT_COMPETENCIA 100% Vargas · DT_PROMETIDO 85% Gold). Preset Ano essencial (10+ anos histórico em todos)
@@ -529,6 +569,8 @@ transaction_documents
 **Escopo (a especificar quando sinal confirmar):** botões `<Tabs>` Dia/Semana/Mês/Ano default `emissão`; dropdown "Tipo de data" pra trocar campo filtrado; date-range custom (popover `<DateRangePicker />`); URL deep-link `?date_from=...&date_to=...&date_field=transaction_date`.
 
 ### US-SELL-019 · Agrupamento drag-to-group por campo do grid · **P1 confirmado**
+
+**Implementado em:** _pendente_ — agrupamento drag-to-group REMOVIDO na Unificacao 2026-05-21 (groupBy deletado do Index; SellsGroupByTest orfao)
 
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015
@@ -540,6 +582,8 @@ transaction_documents
 
 ### US-SELL-020 · Especificação campo "Status" (financeiro vs produção vs fiscal — badges separados) · **P2 (rebaixado)**
 
+**Implementado em:** _pendente_ — 3 status separados (financeiro/producao/fiscal) nao implementados; P2 rebaixado, aguarda sinal
+
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015
 > evidence: SITUACAO estruturado só em Gold (7 distinct, 29k vendas EM PRODUÇÃO); WR2 5 distinct mas pobre; Vargas/Extreme 1 distinct vazio = não usa. Status separados em badges é **feature de cliente específico (PCP)**, não padrão
@@ -549,6 +593,8 @@ transaction_documents
 **Escopo (a especificar):** 3 colunas badge distintas — `Status Financeiro` (atual), `Status Produção` (depende US-SELL-023), `Status Fiscal` (já existe parcial via US-NFE-MANUAL).
 
 ### US-SELL-021 · Especificação campo "Data" (qual data: emissão / NF / faturamento / competência / prometido) · **P0 (subido!)**
+
+**Implementado em:** `app/Http/Controllers/SellController.php` · verificado@cd84a38 (2026-07-01)
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015
@@ -560,6 +606,8 @@ transaction_documents
 
 ### US-SELL-022 · Sub-linha de produtos por venda (expandir linha) · **P2 confirmado**
 
+**Implementado em:** _pendente_ — sub-linha de produtos por venda (expandir inline) nao implementada em SellsTabelaUnificada
+
 > owner: — · priority: p2 · estimate: 6h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015
 > evidence: Vargas média 3.08 itens/venda (47% das vendas 2-5 itens; 15% 6+); outros marginais (1.30-1.58). Vale pra cliente gráfica produtiva, não pra majoritária
@@ -570,6 +618,8 @@ transaction_documents
 
 ### US-SELL-023 · Status produção visível na lista (badge separado) · **P1 (subido!)**
 
+**Implementado em:** _pendente_ — status producao badge na lista depende de FSM producao + mapping; coluna nao ativa
+
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-020, FSM ([ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md))
 > evidence: Gold tem **29.559 vendas em "EM PRODUÇÃO" + 7.082 "FINALIZADA"** — uso massivo de PCP. Tabela `AGENDA_TITULO_WORKFLOW` aparece em todos 3 clientes (Vargas/Extreme/Gold) como possível fonte de workflow
@@ -577,6 +627,8 @@ transaction_documents
 **Contexto.** Delphi mostra ENTREGUE/REIMPRESSÃO/EM APROVAÇÃO/ORC APROVA. Requer FSM produção (US-SELL-011 base + processo "Venda com Produção" novo) e mapping → badge. Investigar `AGENDA_TITULO_WORKFLOW` no PR.
 
 ### US-SELL-024 · Campo "venda agrupada" explícito · **P1 (subido!)**
+
+**Implementado em:** `database/migrations/2026_05_12_140001_add_is_grouped_invoice_to_transactions.php` · `app/Http/Controllers/SellController.php` · verificado@cd84a38 (2026-07-01)
 
 > owner: — · priority: p1 · estimate: 2h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015, US-SELL-019
@@ -586,6 +638,8 @@ transaction_documents
 
 ### US-SELL-025 · Botões agrupamento rápido (1-click) · **P3 confirmado**
 
+**Implementado em:** _pendente_ — botoes agrupamento 1-click dependem de telemetria pos-US-019 (removida); P3
+
 > owner: — · priority: p3 · estimate: 2h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-019
 > evidence: depende de telemetria pós-US-SELL-019 — só depois saberemos quais 3 agrupamentos são os mais usados
@@ -594,6 +648,8 @@ transaction_documents
 
 ### US-SELL-026 · Impressão batch de vendas selecionadas (PDF consolidado) · **P2 (subido)**
 
+**Implementado em:** _pendente_ — impressao batch com layout consolidado (capa+N+totalizador) nao feita; US-016 entrega so concatenacao
+
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-016
 > evidence: power-user OfficeImpresso vai pedir — expectativa óbvia ao migrar (Delphi tinha "Relatório de Vendas Selecionadas"). Não é P0 só porque US-SELL-016 já entrega "imprimir seleção" combinando DANFEs; P2 é layout consolidado (capa + N notas + totalizador)
@@ -601,6 +657,8 @@ transaction_documents
 **Contexto.** US-SELL-016 entrega "Imprimir seleção" combinando DANFEs. P2 estende pra layout consolidado (1 capa + N notas + 1 totalizador) — útil pra entregar lote físico ao cliente OfficeImpresso que recebia "Relatório de Vendas Selecionadas" do Delphi.
 
 ### US-SELL-027 · Schema discovery dinâmico Grade Avançada · **P0 (subida v2!)**
+
+**Implementado em:** _pendente_ — schema discovery dinamico (job discover-schema + parser DFM) nao implementado; so scripts probe standalone
 
 > owner: — · priority: p0 · estimate: **10h** (aumentou v4 — parser DFM) · status: todo · type: story · origin: heatmap-v2-2026-05-11
 > blocked_by: US-SELL-015
@@ -669,6 +727,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 ### US-SELL-028 · Modules/OficinaAuto — schema com multi-placa (cavalo+reboque) · **P1 (emergente v3 — recalibrada)**
 
+**Implementado em:** _pendente_ — schema veiculo OficinaAuto existe mas NAO no formato multi-placa desta US; dominio mudou pos-ADR 0265 (erradicacao locacao)
+
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: heatmap-v3-2026-05-11-vargas-recapagem
 > blocked_by: ADR `Modules/OficinaAuto` qualificada (futuro amend de ADR 0121)
 > evidence: 2 de 4 candidatos OfficeImpresso saudáveis são oficina (Vargas grande recapagem caminhão + Martinho mecânica pesada caminhão basculante · sub-vertical 4 ADR 0194 — pré-correção dizia "caçambas avulsas"). Vargas exige multi-placa (PLACA2 20%, CHASSI2 8%) — cavalo+reboque. Martinho usa só PLACA simples (96% — caminhões de CLIENTES). Schema deve cobrir ambos casos: PLACA obrigatória + PLACA_SECUNDARIA opcional + CHASSI opcional + CHASSI_SECUNDARIO opcional. Ver [perfil Vargas](../../research/clientes-legacy-officeimpresso/02-vargas-recapagem/01-perfil.md) e [perfil Martinho](../../research/clientes-legacy-officeimpresso/05-martinho-cacambas/01-perfil.md)
@@ -710,6 +770,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 ### US-SELL-029 · NFe cancelada via SEFAZ não sofre forceDelete (preserva sequencial) · **P0 fiscal**
 
+**Implementado em:** `Modules/NfeBrasil/Services/NfeService.php` · verificado@cd84a38 (2026-07-01)
+
 > owner: — · priority: p0 · estimate: 3h codável + 5h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: — (precede US-030)
 > evidence: bug confirmado em [NfeService.php:380-398](../../../Modules/NfeBrasil/Services/NfeService.php#L380) — `cancelada` tratada igual `rejeitada/denegada` recebe `forceDelete()`, próxima emissão pula sequencial
@@ -729,6 +791,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 - [ ] Smoke biz=1: cancelar NFe → criar nova venda → conferir `proximoNumeroLocked` avança sem pular
 
 ### US-SELL-030 · NfeInutilizacaoService — chama SEFAZ + persiste em `nfe_inutilizacoes` · **P0 fiscal**
+
+**Implementado em:** `Modules/NfeBrasil/Services/NfeInutilizacaoService.php` · `Modules/NfeBrasil/Database/Migrations/2026_05_06_002003_create_nfe_inutilizacoes_table.php` · `app/Domain/Fsm/SideEffects/InutilizarFaixaNfe.php` · verificado@cd84a38 (2026-07-01)
 
 > owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-029 (refator NfeService precede)
@@ -751,6 +815,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 ### US-SELL-031 · Action FSM crítica (is_critical) exige role explícita (fail-secure) · **P1 governança**
 
+**Implementado em:** `database/migrations/2026_05_12_010001_add_is_critical_to_sale_stage_actions.php` · `app/Domain/Fsm/Services/ExecuteStageActionService.php` · verificado@cd84a38 (2026-07-01)
+
 > owner: — · priority: p1 · estimate: 2h codável + 1h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: —
 > evidence: [ExecuteStageActionService.php:62](../../../app/Domain/Fsm/Services/ExecuteStageActionService.php#L62) — `empty($roleNames)` libera pra qualquer user; seed incompleto vira bypass silencioso
@@ -769,6 +835,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 - [ ] Mensagem da exception instrui qual role configurar
 
 ### US-SELL-032 · Observer bloqueia UPDATE direto em current_stage_id (gateway obrigatório) · **P1 governança**
+
+**Implementado em:** `app/Domain/Fsm/Observers/TransactionFsmObserver.php` · `app/Domain/Fsm/Concerns/GuardsFsmTransitions.php` · `app/Domain/Fsm/Support/FsmAuthorizationFlag.php` · `app/Console/Commands/FsmScanDriftCommand.php` · verificado@cd84a38 (2026-07-01)
 
 > owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: —
@@ -790,6 +858,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 - [ ] `php artisan fsm:scan-drift` detecta registros que mudaram via raw SQL e loga WARNING
 
 ### US-SELL-033 · Processo seed "Venda Com Produção" canônico (9 stages + 12 actions + roles) · **P0 negócio**
+
+**Implementado em:** `database/seeders/FsmProcessoVendaComProducaoSeeder.php` · `app/Domain/Fsm/Services/InitialStageResolver.php` · verificado@cd84a38 (2026-07-01)
 
 > owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-031 (is_critical) + US-032 (Observer)
@@ -834,6 +904,8 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 
 ### US-SELL-034 · Side-effect `CancelarVendaCascade` orquestra NFe + boleto + reserva + notificação · **P1 negócio**
 
+**Implementado em:** `app/Domain/Fsm/SideEffects/CancelarVendaCascade.php` · verificado@cd84a38 (2026-07-01)
+
 > owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-029 (cancelamento NFe correto) + US-033 (action cancelar_venda)
 > evidence: hoje cancelar venda é processo manual com risco de inconsistência (cancela NFe mas esquece de estornar boleto, libera reserva mas não notifica cliente, etc)
@@ -857,6 +929,8 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 - [ ] Smoke biz=1: cancelar venda real, conferir 4 efeitos rastreáveis no log
 
 ### US-SELL-035 · UI timeline de transições FSM (drawer + page) · **P2 UX/auditoria**
+
+**Implementado em:** `app/Http/Controllers/SaleHistoryController.php` · `resources/js/Pages/Sells/_components/SaleTimeline.tsx` · `resources/js/Pages/Sells/_components/SaleSheet.tsx` · verificado@cd84a38 (2026-07-01)
 
 > owner: — · priority: p2 · estimate: 8h frontend (sem canary) · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-033 (processo canon) + visibilidade real após implementação
@@ -887,6 +961,8 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 
 ### US-SELL-036 · FSM rollout — migrar 14 vendas legadas biz=1 via bulk-start-pipeline + canary 7d
 
+**Implementado em:** `app/Console/Commands/FsmBulkStartPipelineCommand.php` · `app/Console/Commands/FsmScanDriftCommand.php` · `resources/js/Pages/Sells/_components/FsmActionPanel.tsx` · verificado@cd84a38 (2026-07-01)
+
 > owner: wagner · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
@@ -905,6 +981,8 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 
 ### US-SELL-041 · NFC-e "emitir agora" no fim do Create (paridade Bling)
 
+**Implementado em:** _pendente_ — botao Salvar-e-emitir-NFC-e no Create nao wired; VdNfeEmitModal existe mas so e usado no Index
+
 > owner: wagner · priority: p1 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
@@ -922,6 +1000,8 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 
 ### US-SELL-042 · Batch no handlePriceGroupChange — elimina N+1 em /products/list
 
+**Implementado em:** _pendente_ — handlePriceGroupChange ainda faz 1 request por linha (Promise loop), nao batched em /products/list
+
 > owner: wagner · priority: p1 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
@@ -937,6 +1017,8 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 **Impacto:** médio (perf percebida com carrinho grande). **Esforço IA-pair:** ~1-2h. **Pré-req:** endpoint aceitar batch.
 
 ### US-SELL-043 · Migrar CSS Cowork (.sells-cowork / vd-*) → tokens DS no Sells/Index
+
+**Implementado em:** _pendente_ — migracao CSS Cowork (sells-cowork/vd-*) para tokens DS no Sells/Index nao feita
 
 > owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
 > blocked_by: —
@@ -955,6 +1037,8 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 ---
 
 ### US-SELL-045 · Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê
+
+**Implementado em:** _parcial_ · `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/Index.tsx` · verificado@cd84a38 (2026-07-01) — bug ativo: backend envia totals mas frontend nunca le; decisao produto pendente
 
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
@@ -975,6 +1059,8 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase
 
 ### US-SELL-046 · Bug: viewMode `grade-avancada` órfão — middleware roteia 6 clientes legacy pra UI deletada
 
+**Implementado em:** _parcial_ · `app/Http/Middleware/HandleInertiaRequests.php` · `database/migrations/2026_05_12_180000_add_legacy_origin_to_business.php` · `resources/js/Pages/Sells/Index.tsx` · verificado@cd84a38 (2026-07-01) — bug ativo: middleware roteia grade-avancada mas UI deletada; decisao produto pendente
+
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > blocked_by: —
 
@@ -994,6 +1080,8 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase
 
 ### US-SELL-047 · Teste de isolamento multi-tenant REAL da tela Sells (ADR 0093) — gap mascarado por grep
 
+**Implementado em:** _pendente_ — teste de isolamento multi-tenant REAL (HTTP/DB, nao grep) da tela Sells nao existe; os testes atuais sao grep de source
+
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
@@ -1010,6 +1098,8 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase
 ---
 
 ### US-SELL-048 · Higiene dos snapshots-grep Sells: DELETE/REWRITE por it() (não quarentena) — gated no nº do nightly C1
+
+**Implementado em:** _pendente_ — higiene DELETE/REWRITE dos snapshots-grep Sells nao executada; bloqueada por nightly C1 (US-GOV-017)
 
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story
 > blocked_by: US-GOV-017
@@ -1028,6 +1118,8 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · revisão advers
 
 ### US-SELL-051 · Migrar dados históricos transaction_date (timezone/format) — afeta ROTA LIVRE
 
+**Implementado em:** _pendente_ — migration backfill timezone/format de transaction_date (ADR 0066) nao rodou
+
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 > parent_plan: timezone-format-date-migracao
@@ -1045,6 +1137,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
 
 ### US-SELL-052 · Fechar paridade Sells V2 vs Blade (configure-search · quick-add · preço-diferenciado)
+
+**Implementado em:** _pendente_ — paridade Sells V2 vs Blade (configure-search/quick-add/preco-diferenciado) nao fechada; overlap com epic US-001..006
 
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
