@@ -3,10 +3,10 @@ slug: 0001-estender-ultimatepos-opcao-c
 number: 1
 title: !!binary gJQgRXN0ZW5kZXIgVWx0aW1hdGVQT1MgZW0gdmV6IGRlIGJ1aWxkIHByw7NwcmlvIG91IGZvcms=
 type: adr
-status: superseded
+status: aceito
 authority: canonical
-lifecycle: substituido
-superseded_by: ['0011-alinhamento-padrao-jana']
+lifecycle: ativo
+superseded_by: []
 decided_by:
   - E
 decided_at: '2026-04-18'
