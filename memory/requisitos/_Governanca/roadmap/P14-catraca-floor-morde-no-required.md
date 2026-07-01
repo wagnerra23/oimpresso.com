@@ -2,7 +2,8 @@
 roadmap_item: P14
 slug: catraca-floor-morde-no-required
 onda: 0
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: []
 destrava: [P04, P13-R1, C2]
 related_adrs: [0275, 0279, 0303, 0314]
@@ -10,6 +11,8 @@ esforco_estimado: "0.5-1d codavel + 2 flips Wagner (rename); zero relogio de jan
 ---
 
 # P14 · Fazer a catraca do floor MORDER no check required (fecha o defeito nº 1 da avaliação 67/100)
+
+> **✅ EXECUTADO 2026-07-01** (mesma noite, 2 sessões coordenadas): (a)+(b)+(c)+(e) no #3536 (selftest 44/44; sem floor exit=1, com órfã real exit=0); (d) rename = #3535 shims + swap atômico da protection via gh api (22 contexts, 0 "advisory") + #3550 baseline isolado (tamper-safe) + #3552 jobs definitivos + gates-registry + **P14b** watchdog da órfã (protection-drift 🟢 5/5). Caronas: n_quarantine armado (#3537) e sqlite_corruptors armado (fusão GT-G3, selftest morde). #3551 (duplicata pareada baseline+código) fechado — o tamper-guard bloqueou o par, como devia.
 
 > Origem: avaliação adversarial 2026-07-01 ([session log](../../../sessions/2026-07-01-sdd-avaliacao-adversarial.md), composto 67/100) — defeito reproduzido por 2 skeptics independentes + re-verificado com file:line por agent dedicado (workflow `wf_26bdd155`, snapshot `dd3ed7c311`).
 
