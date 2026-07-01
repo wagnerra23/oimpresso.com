@@ -14,6 +14,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SETTINGS = join(__dirname, '..', '..', '.claude', 'settings.json');
 const HOOK_CMD = 'node .claude/hooks/block-design-sync-without-optin.mjs';
+const SKILL_HOOK_CMD = 'node .claude/hooks/block-skill-design-sync-without-optin.mjs';
 
 let fails = 0;
 function check(name, cond) {
@@ -33,11 +34,11 @@ const hooks = cfg.hooks || {};
 function groupsFor(event) {
   return hooks[event] || [];
 }
-function hasCmd(event, predicate) {
+function hasCmd(event, cmd, predicate) {
   for (const g of groupsFor(event)) {
     const matcher = String(g.matcher || '');
     for (const h of g.hooks || []) {
-      if (h.command === HOOK_CMD && predicate(matcher)) return true;
+      if (h.command === cmd && predicate(matcher)) return true;
     }
   }
   return false;
@@ -45,14 +46,18 @@ function hasCmd(event, predicate) {
 
 check('settings.json e JSON valido', !!cfg && typeof cfg === 'object');
 // 1. UserPromptSubmit — grava a flag de opt-in quando Wagner diz "design-sync"
-check('block-design-sync registrado em UserPromptSubmit (grava opt-in)', hasCmd('UserPromptSubmit', () => true));
+check('block-design-sync registrado em UserPromptSubmit (grava opt-in)', hasCmd('UserPromptSubmit', HOOK_CMD, () => true));
 // 2. PreToolUse — gateia a tool nativa DesignSync; matcher PRECISA casar "DesignSync"
-check('block-design-sync registrado em PreToolUse', hasCmd('PreToolUse', () => true));
-check('matcher do PreToolUse casa DesignSync (tool nativa)', hasCmd('PreToolUse', (m) => /\bDesignSync\b/.test(m)));
+check('block-design-sync registrado em PreToolUse', hasCmd('PreToolUse', HOOK_CMD, () => true));
+check('matcher do PreToolUse casa DesignSync (tool nativa)', hasCmd('PreToolUse', HOOK_CMD, (m) => /\bDesignSync\b/.test(m)));
+// 3. Gate-skill (ADR 0315 Eixo B via matcher Skill — o ponto que REALMENTE morde em runtime,
+//    diferente do matcher DesignSync que o harness não roteia). PreToolUse matcher "Skill".
+check('block-skill-design-sync registrado em PreToolUse', hasCmd('PreToolUse', SKILL_HOOK_CMD, () => true));
+check('matcher do gate-skill casa Skill (tool built-in)', hasCmd('PreToolUse', SKILL_HOOK_CMD, (m) => /\bSkill\b/.test(m)));
 
 console.log('');
 if (fails === 0) {
-  console.log('[PASS] block-design-sync ativado nos 2 eventos + matcher casa DesignSync (registro persistido).');
+  console.log('[PASS] block-design-sync (DesignSync + Skill) registrado (registro persistido).');
   process.exit(0);
 }
 console.log(`[FAIL] ${fails} caso(s) -- enforcement design-sync NAO esta registrado; a regra ficou orfa.`);
