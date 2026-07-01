@@ -6,6 +6,7 @@ status: live
 module: Financeiro
 persona: ["wagner", "eliana"]
 stories: [US-FIN-014a]
+related_us: [US-FIN-014a]
 visual_comparison: memory/requisitos/Financeiro/dre-visual-comparison.md
 canon_source: prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaDRE linha 361-483)
 related_adrs: [0114-prototipo-ui-cowork-loop-formalizado, 0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0107-emendation-0104-visual-comparison-gate-f3, 0109-claude-design-plugin-integrado-processo-mwart]
