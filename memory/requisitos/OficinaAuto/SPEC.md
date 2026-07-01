@@ -38,6 +38,8 @@ Ver §V0 logo abaixo — convenção `US-OFICINA-NNN` ([ADR 0134](../../decision
 > owner: — · priority: p0 · estimate: 6h · status: done · type: story · origin: ADR-0137
 > done: 2026-05-11 · PR: #556 (squash `b72981eb`) · Pest: pendente Wagner validar local
 
+**Implementado em:** `Modules/OficinaAuto/Entities/Vehicle.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `Modules/OficinaAuto/Http/Controllers/VehicleController.php` · `Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php` · verificado@dd3ed7c (2026-07-01)
+
 Scaffold completo conforme [ADR 0137 §"Escopo arquitetural V0"](../../decisions/0137-modules-oficinaauto-qualificada.md):
 - 8 peças nWidart canônicas (module.json + composer + Config + ServiceProvider + RouteServiceProvider + InstallController + DataController + Routes)
 - Migrations `vehicles` (multi-placa nullable) + `service_orders` (vehicle_id FK + transaction_id nullable) — multi-tenant Tier 0 ADR 0093
@@ -51,8 +53,10 @@ Scaffold completo conforme [ADR 0137 §"Escopo arquitetural V0"](../../decisions
 
 ### US-OFICINA-002 · Importer Firebird `EQUIPAMENTO_VEICULO` → `vehicles` Laravel — **P0**
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story · origin: ADR-0137
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story · origin: ADR-0137
 > blocked_by: US-OFICINA-001 (done)
+
+**Implementado em:** `Modules/OficinaAuto/Console/Commands/ImportFirebirdMartinhoCommand.php` · `Modules/OficinaAuto/Tests/Feature/ImportFirebirdMartinhoCommandTest.php` · verificado@dd3ed7c (2026-07-01) — comando real é `oficina:import-firebird-martinho` (JSON export → import, biz=164 Martinho), não o `officeimpresso:import-vehicles {dsn}` do texto; cleanup rules ficaram em US-OFICINA-005
 
 Artisan command `officeimpresso:import-vehicles {business_id} {firebird_dsn}` que:
 - Conecta Firebird cliente OfficeImpresso (ex: Martinho Caçambas — 91 veículos piloto V0)
@@ -64,8 +68,10 @@ Artisan command `officeimpresso:import-vehicles {business_id} {firebird_dsn}` qu
 
 ### US-OFICINA-003 · FSM canônica OS (3 estados Simples + 5 Complexa) — **P0**
 
-> owner: — · priority: p0 · estimate: 5h · status: todo · type: story · origin: ADR-0137
+> owner: — · priority: p0 · estimate: 5h · status: done · type: story · origin: ADR-0137
 > blocked_by: US-OFICINA-001 (done), ADR-0129 (FSM canônica)
+
+**Implementado em:** `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `Modules/OficinaAuto/Services/ServiceOrderPipelineStarter.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · verificado@dd3ed7c (2026-07-01) — FSM canônica `oficina_mecanica_os` (ADR 0143/0265), não os 2 processos Simples/Complexa literais do texto
 
 2 processos seed por business pra `service_orders` ([ADR 0129](../../decisions/0129-state-machine-canonica-fsm-rbac.md) FSM tabular):
 - **OS Simples** (Martinho · sub-vertical 4 mecânica pesada caminhão basculante · ADR 0194 — pré-correção dizia "caçamba avulsa"): `aberta` → `em_servico` → `concluida`
@@ -75,16 +81,20 @@ Importer legacy mapeia `VENDA_ESTAGIO` Firebird → estado FSM correspondente. P
 
 ### US-OFICINA-004 · UI Kanban OS (V1 — multi-item + multi-mecânico) — **P1**
 
-> owner: — · priority: p1 · estimate: 8h · status: todo · type: story · origin: ADR-0137
+> owner: — · priority: p1 · estimate: 8h · status: done · type: story · origin: ADR-0137
 > blocked_by: US-OFICINA-003
+
+**Implementado em:** `Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/ServiceOrderKanbanCard.tsx` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderBoardTest.php` · verificado@dd3ed7c (2026-07-01) — Kanban OS data-driven pelo FSM (drag→ExecuteStageActionService); WR_KANBAN importer legado é US-OFICINA-020
 
 Aproveitar **pré-arte Delphi** ([Controller.Producao.Kanban.pas](../../research/clientes-legacy-officeimpresso/_MAPPING/TELA-PRODUCAO-KANBAN.md)) — Wagner descobriu Kanban industrial built-in com 8 agrupadores + drag-drop. Replicar via @dnd-kit React + persistir estado UI em tabela equivalente a `WR_KANBAN(CHAVE, COLUNA, ORDEM, COLUNA_FECHADA)`. Caso piloto V1: **Vargas** (multi-item média 3 itens/OS).
 
 ### US-OFICINA-005 · Cleanup tools pra cliente legacy migrado — **P0 (emergente PR #555)**
 
-> owner: — · priority: p0 · estimate: 12h · status: todo · type: story · origin: Agent-F-investigacao-Martinho-2026-05-11
+> owner: — · priority: p0 · estimate: 12h · type: story · origin: Agent-F-investigacao-Martinho-2026-05-11
 > blocked_by: US-OFICINA-002 (importer)
 > evidence: Martinho 76,7% inadimplência = lixo histórico 2015-19 (não cliente que não paga). Veredito adversarial [04-inadimplencia-investigacao.md](../../research/clientes-legacy-officeimpresso/05-martinho-cacambas/04-inadimplencia-investigacao.md)
+
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Console/Commands/OficinaAutoCleanupMigratedClientCommand.php` · `Modules/OficinaAuto/Console/Commands/OficinaAutoMigrationReportCommand.php` · `Modules/OficinaAuto/Tests/Feature/OficinaAutoCleanupCommandTest.php` · verificado@dd3ed7c (2026-07-01) — cleanup/report via CLI artisan; falta a tela batch "Revisão de pendências legadas" (200/dia) + conciliação VENDA↔FINANCEIRO + dedup PESSOAS fuzzy
 
 3 sub-features ROI principal pra cliente OfficeImpresso migrado:
 - (a) **Tela "Revisão de pendências legadas"** — batch UI (200/dia × 23 dias) com ações: Baixar / Cancelar / Renegociar / Write-off
@@ -357,8 +367,10 @@ Estimate Fase 4: ~80h IA-pair fator 10x = ~2 semanas Felipe (PWA scaffold + 5 sc
 
 ### US-OFICINA-006 · FSM wire-up canônico `ServiceOrder` (espelha Sells/Repair ADR 0143) — **P0**
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story · origin: ADR-0143
+> owner: — · priority: p0 · estimate: 6h · type: story · origin: ADR-0143
 > blocked_by: US-OFICINA-001 (done)
+
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Database/Migrations/2026_05_13_010001_add_current_stage_id_to_service_orders.php` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `app/Http/Controllers/ServiceOrderFsmActionController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx` · `Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php` · verificado@dd3ed7c (2026-07-01) — falta trait GuardsFsmTransitions no ServiceOrder (UPDATE direto em current_stage_id desguardado); seeder com 9 stages vs 15×19 do DoD; FsmTransitionTest 3 casos vs 15
 
 - Adicionar `current_stage_id` em `service_orders` migration
 - Criar seeder `FsmProcessoOficinaAutoPadraoSeeder` (15 stages × 19 actions × roles)
@@ -372,6 +384,8 @@ Estimate Fase 4: ~80h IA-pair fator 10x = ~2 semanas Felipe (PWA scaffold + 5 sc
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story · origin: ADR-0137 + Vargas perfil
 > blocked_by: US-OFICINA-002 (Martinho importer paving)
 
+**Implementado em:** _pendente_ — só o importer Martinho existe (US-OFICINA-002); importer Vargas dedicado (multi-placa PLACA2/CHASSI2, cavalo+reboque, 1 transportadora→N caminhões) não construído (sem cliente Vargas ativo)
+
 Espelha US-OFICINA-002 (Martinho) mas adiciona:
 - Mapping PLACA2/CHASSI2 → `placa_secundaria` / `chassi_secundario`
 - Suporte `tipo_veiculo` = `cavalo`/`semi_reboque` distintos
@@ -383,12 +397,16 @@ Espelha US-OFICINA-002 (Martinho) mas adiciona:
 > owner: — · priority: p1 · estimate: 5h · status: todo · type: story · origin: §15
 > blocked_by: US-OFICINA-006 (FSM ServiceOrder pra side-effect ConsumirEstoque dispatcher criar registro)
 
+**Implementado em:** _pendente_ — as 3 tabelas granulares (`oa_pecas_utilizadas`/`oa_servicos_executados`/`oa_garantias`) não existem; há só `oficina_service_order_items` (ServiceOrderItem, tipo peca/mao_obra/servico_terceiro), sem rastreio de garantia per-item
+
 Cria as 3 tabelas + Models + global scope. UI lista garantias ativas + status (válida/vencendo/expirada/acionada).
 
 ### US-OFICINA-009 · Defeitos múltiplos por OS (JSON array) — **P1**
 
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story · origin: Vargas (3.08 itens/OS = média 3 defeitos/peças)
 > blocked_by: US-OFICINA-006
+
+**Implementado em:** _pendente_ — coluna `defeitos_json` não existe em `service_orders`; o que há é `entry_damages` (avarias na entrada, US-OFICINA-038) e a DVI item-a-item (US-OFICINA-035), não o repeater de defeitos multi-gravidade
 
 Campo `defeitos_json` em `service_orders` + UI form repeater + render pretty no drawer. Form schema `{descricao, gravidade enum[baixa/media/alta/critica], prioridade int}`.
 
@@ -397,6 +415,8 @@ Campo `defeitos_json` em `service_orders` + UI form repeater + render pretty no 
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: §14.1
 > blocked_by: US-OFICINA-006
 
+**Implementado em:** _pendente_ — os stages `teste_estrada`/`ajuste_final` + loop teste↔ajuste não estão no seeder FSM (stages atuais: recepcao/em_diagnostico/aguardando_aprovacao/aguardando_pecas/em_execucao/pronto_retirada/entregue/cancelado/garantia_acionada)
+
 Inclui no seeder + UI mostra contagem de iterações loop (KPI "média ajustes por OS"). Útil pra Vargas (recapagem requer N passadas teste).
 
 ### US-OFICINA-011 · Re-orçamento (action `escalar_supervisor` + flag `aprovado_apos_aumento`) — **P1**
@@ -404,12 +424,16 @@ Inclui no seeder + UI mostra contagem de iterações loop (KPI "média ajustes p
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: §15
 > blocked_by: US-OFICINA-006
 
+**Implementado em:** _pendente_ — action `escalar_supervisor` + flag `aprovado_apos_aumento` não existem no seeder/schema; re-orçamento pós-execução ainda não modelado
+
 Cenário Vargas: mecânico abre pneu, descobre roda interna danificada não prevista, orçamento sobe R$ [redacted Tier 0] Action `escalar_supervisor` muda stage temporário → supervisor aprova → volta com `aprovado_apos_aumento=true`. KPI "% OSs com re-orçamento".
 
 ### US-OFICINA-012 · Consulta CRLV/placa (cache 30d + adapter pluggable) — **P1**
 
-> owner: — · priority: p1 · estimate: 6h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-002
+> owner: — · priority: p1 · estimate: 6h · status: done · type: story · origin: SPEC antecipatório §US-AUTO-002
 > blocked_by: US-OFICINA-001
+
+**Implementado em:** `Modules/OficinaAuto/Services/VehicleLookupService.php` · `Modules/OficinaAuto/Services/PlacaLookup/PlacaProvider.php` · `Modules/OficinaAuto/Services/PlacaLookup/StubPlacaProvider.php` · `Modules/OficinaAuto/Services/PlacaLookup/HttpPlacaProvider.php` · verificado@dd3ed7c (2026-07-01) — adapter pluggable (driver stub default / http via .env) + rota POST veiculos/consulta-placa (VehicleController@consultaPlaca); escopo v2 só dados técnicos, sem PII de proprietário (charter Vehicles/Create)
 
 Adapter `ConsultaPlacaService` (SerPro homologação OU Infosimples R$ [redacted Tier 0]/consulta). Cache `vehicles.crlv_dados_json` 30 dias. Add-on cobrável (não tier-1 free).
 
@@ -418,12 +442,16 @@ Adapter `ConsultaPlacaService` (SerPro homologação OU Infosimples R$ [redacted
 > owner: — · priority: p1 · estimate: 5h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-004
 > blocked_by: US-OFICINA-008
 
+**Implementado em:** _pendente_ — tabela `oa_temparios` + seed de 100 serviços não existem
+
 Tabela `oa_temparios` + seed manual 100 serviços frequentes (troca óleo, alinhamento, recapagem banda padrão, troca pastilha freio etc) com tempo_horas calibrado. Categoria enum [mecanica, eletrica, lanternagem, pintura, diagnostico].
 
 ### US-OFICINA-014 · Aprovação OS via WhatsApp (link público + PIN) — **P0**
 
-> owner: — · priority: p0 · estimate: 7h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-009
+> owner: — · priority: p0 · estimate: 7h · status: done · type: story · origin: SPEC antecipatório §US-AUTO-009
 > blocked_by: US-OFICINA-006 (FSM action `cliente_aprovou` precisa estar no seeder)
+
+**Implementado em:** `Modules/OficinaAuto/Http/Controllers/Public/AprovacaoOsController.php` · `Modules/OficinaAuto/Services/AprovacaoOsService.php` · `Modules/OficinaAuto/Jobs/EnviarLinkAprovacaoWhatsappJob.php` · `resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx` · `Modules/OficinaAuto/Tests/Feature/AprovacaoOsTokenTest.php` · verificado@dd3ed7c (2026-07-01) — rota real é `/aprovar-os/{token}` (não `/oficina/aprovar/{token}`); token HMAC + PIN 4 dígitos + lockout
 
 Endpoint público `/oficina/aprovar/{token}` mostra orçamento mobile-first + PIN 4 dígitos via SMS/WhatsApp. Webhook dispara FSM action `cliente_aprovou` ou `cliente_rejeitou` com role `public.token`. Rate-limit + LGPD consentimento.
 
@@ -432,6 +460,8 @@ Endpoint público `/oficina/aprovar/{token}` mostra orçamento mobile-first + PI
 > owner: — · priority: p2 · estimate: 16h · status: todo · type: story · origin: §17
 > blocked_by: US-OFICINA-006, US-OFICINA-008
 
+**Implementado em:** _pendente_ — não há PWA/manifest nem tela "Minhas OS hoje" mobile-first, clock-in ou service worker
+
 Scope V0: lista minhas OS + foto antes/depois + clock-in/out botão grande. Sem voz/OBD-II ainda.
 
 ### US-OFICINA-016 · Garantia lembrete cron (pré-vencimento WhatsApp) — **P2**
@@ -439,12 +469,16 @@ Scope V0: lista minhas OS + foto antes/depois + clock-in/out botão grande. Sem 
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-013
 > blocked_by: US-OFICINA-008
 
+**Implementado em:** _pendente_ — depende de `oa_garantias` (US-OFICINA-008, não construída); sem job daily de lembrete
+
 Job daily compara `oa_garantias.expira_em - 7d` → dispara WhatsApp template "Sr. João, garantia do pneu OS-1234 vence em 7 dias — algum sintoma?". Opt-in LGPD obrigatório.
 
 ### US-OFICINA-017 · Histórico veículo (timeline OS + KPIs km/manutenção) — **P1**
 
-> owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-003
+> owner: — · priority: p1 · estimate: 4h · type: story · origin: SPEC antecipatório §US-AUTO-003
 > blocked_by: US-OFICINA-006
+
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Http/Controllers/VehicleController.php` · `resources/js/Pages/OficinaAuto/Vehicles/Show.tsx` · verificado@dd3ed7c (2026-07-01) — Show carrega `serviceOrders` e renderiza a seção "Histórico de OS" (status badge por linha); falta a soma de km entre revisões + foto antes/depois por OS + export PDF "passaporte" + integração Jana
 
 Page `Vehicles/Show.tsx` aba "Histórico" lista todas OS daquele veículo + foto antes/depois + soma km percorrido entre revisões. Útil Vargas (mesmo caminhão volta a cada 6m recapagem).
 
@@ -453,12 +487,16 @@ Page `Vehicles/Show.tsx` aba "Histórico" lista todas OS daquele veículo + foto
 > owner: — · priority: p1 · estimate: 10h · status: todo · type: story · origin: §16
 > blocked_by: Modules/NFSe driver real (10 US backlog SPEC-NFSE-CANCEL.md ADR 0143)
 
+**Implementado em:** _pendente_ — adapter `OficinaAutoNfsService.emitirSplit` (emissão real NFe55+NFSe56) não existe; há só o card presentacional `FiscalSplitCard` (US-OFICINA-042). Bloqueado por driver NFSe municipal
+
 Adapter `OficinaAutoNfsService.emitirSplit($serviceOrder)` que dispatches N jobs NFe55/NFC-e + M jobs NFSe56 paralelos. Falha graceful (1 documento OK, outro pending_retry). Pré-requisito: 1 driver municipal NFSe verde (Joinville/SC ou cidade piloto).
 
 ### US-OFICINA-019 · Comissão por OS (mecânico + atendente, % escalonado) — **P2**
 
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story · origin: SPEC antecipatório §US-AUTO-011
 > blocked_by: US-OFICINA-008 (oa_servicos_executados pra calcular base)
+
+**Implementado em:** _pendente_ — sem tabela `oficina_auto_comissao_regras`, sem `CalcularComissaoJob`, sem relatório de comissão
 
 Regras config per-user. Trigger: FSM action `entregar_veiculo` side-effect `CalcularComissaoJob`. Relatório mensal.
 
@@ -467,6 +505,8 @@ Regras config per-user. Trigger: FSM action `entregar_veiculo` side-effect `Calc
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story · origin: _LICOES-CRITICAS §8
 > blocked_by: US-OFICINA-007 (Vargas importer)
 
+**Implementado em:** _pendente_ — sem importer `WR_KANBAN` → `oa_kanban_state`; depende do importer Vargas (US-OFICINA-007, pendente)
+
 Aproveita Kanban industrial Delphi (descobeto sessão 2026-05-11). Importer lê `WR_KANBAN(CHAVE, COLUNA, ORDEM, COLUNA_FECHADA)` → popula tabela equivalente preservando estado UI do cliente legacy. Bonus migration UX.
 
 ### US-OFICINA-021 · Integração FIPE veículo (valor mercado + filtro garantia) — **P2**
@@ -474,9 +514,13 @@ Aproveita Kanban industrial Delphi (descobeto sessão 2026-05-11). Importer lê 
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story · origin: §15.1 `fipe_codigo`
 > blocked_by: US-OFICINA-001
 
+**Implementado em:** _pendente_ — sem adapter FIPE nem coluna `vehicles.fipe_codigo`
+
 Adapter consulta FIPE (API pública gratuita) auto-popula `vehicles.fipe_codigo` + valor de referência. Útil pra cap garantia em peças caras (% sobre valor FIPE) ou seguro frota.
 
 ### US-OFICINA-022 · Cleanup tools cliente legacy migrado (continua US-OFICINA-005) — **P0 já existe**
+
+**Implementado em:** _pendente_ — ID intencionalmente vago (dedup): a capacidade vive em US-OFICINA-005 (`_parcial_`); esta entrada não recebe âncora própria
 
 (US-005 já cobre — pular ID 022)
 
@@ -543,6 +587,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Controller:** `VeiculoController`
 > **Permissão Spatie:** `auto.veiculo.{view,create,update}`
 
+**Implementado em:** `Modules/OficinaAuto/Entities/Vehicle.php` · `Modules/OficinaAuto/Http/Controllers/VehicleController.php` · `Modules/OficinaAuto/Database/Migrations/2026_05_11_000010_create_vehicles_table.php` · `resources/js/Pages/OficinaAuto/Vehicles/Create.tsx` · verificado@dd3ed7c (2026-07-01) — realizado como US-OFICINA-001 (tabela `vehicles`, permissões `oficinaauto.vehicle.*`; nomes do anexo antecipatório `oficina_auto_veiculos`/`auto.veiculo.*` divergem)
+
 **Como** atendimento da oficina
 **Quero** cadastrar veículo do cliente uma única vez (placa unique por business, chassi 17 chars, ano, marca/modelo, cor, km_atual)
 **Para** não recadastrar a cada OS + ter histórico completo do veículo
@@ -564,6 +610,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Cadastro
 > **Rota:** `POST /oficina-auto/veiculos/consultar-placa`
 > **Reusa:** API SerPro oficial OU agregador (Infosimples / API Placas / ConsultarPlaca)
+
+**Implementado em:** `Modules/OficinaAuto/Services/VehicleLookupService.php` · `Modules/OficinaAuto/Services/PlacaLookup/PlacaProvider.php` · `Modules/OficinaAuto/Services/PlacaLookup/HttpPlacaProvider.php` · verificado@dd3ed7c (2026-07-01) — realizado como US-OFICINA-012 (adapter pluggable stub/http); escopo só dados técnicos, sem PII/débito de proprietário (decisão Wagner 2026-06-09)
 
 **Como** atendimento
 **Quero** digitar placa e o sistema preencher chassi, marca, modelo, ano, situação (regular/débito) automaticamente
@@ -587,6 +635,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Rota:** `GET /oficina-auto/veiculos/{id}/historico`
 > **blocked_by:** US-AUTO-001
 
+**Implementado em:** _parcial_ · `Modules/OficinaAuto/Http/Controllers/VehicleController.php` · `resources/js/Pages/OficinaAuto/Vehicles/Show.tsx` · verificado@dd3ed7c (2026-07-01) — realizado parcialmente como US-OFICINA-017: Show tem seção "Histórico de OS"; falta filtro por período, export PDF "passaporte" e integração Jana
+
 **Como** dono/mecânico
 **Quero** ver linha do tempo de todas OS daquele veículo (data, mecânico, defeito, peças trocadas, custo)
 **Para** decidir manutenção próxima sem adivinhar (ex: "última troca correia 50.000 km, agora está 95.000 — vence")
@@ -607,6 +657,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Pricing
 > **Rota:** `GET/POST /oficina-auto/temparios`
 > **Controller:** `TemparioController`
+
+**Implementado em:** _pendente_ — sem `TemparioController` nem tabela `oficina_auto_temparios`; cálculo de mão-de-obra por tempário não construído (mesma lacuna de US-OFICINA-013)
 
 **Como** dono/atendente
 **Quero** cadastrar/importar tabela tempária (ex: alinhamento dianteiro = 0.5h, troca embreagem Gol = 4h, revisão completa = 6h) com valor hora-homem por categoria mecânico
@@ -629,6 +681,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Rota:** `GET /oficina-auto/os` + Kanban
 > **Reusa:** [Modules/Repair](../../../Modules/Repair) `JobSheet` + Kanban PR #363 + `repair_statuses` configurável
 
+**Implementado em:** `Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx` · `Modules/OficinaAuto/Database/Seeders/OficinaAutoFsmSeeder.php` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderBoardTest.php` · verificado@dd3ed7c (2026-07-01) — realizado como US-OFICINA-004/006 sobre FSM próprio `oficina_mecanica_os` (ADR 0143), não sobre JobSheet/repair_statuses do Repair
+
 **Como** atendente/PCP
 **Quero** Kanban com 5+ colunas configuráveis mostrando OS em cada etapa, drag-drop pra mover
 **Para** dono saber em 5s qual OS está atrasada + quem é responsável
@@ -650,6 +704,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Producao
 > **blocked_by:** US-AUTO-005
 
+**Implementado em:** _pendente_ — OS tem 1 mecânico (`assigned_user_id`), mas a tabela `oficina_auto_os_atribuicoes` (N mecânicos com horas/peças distintas) + apontamento não existe
+
 **Como** dono
 **Quero** que 1 OS de revisão completa possa ter mecânico_A (parte mecânica, 4h) + mecânico_B (parte elétrica, 1h) registrados separadamente
 **Para** calcular comissão correta + saber produtividade individual + custo real por etapa
@@ -669,6 +725,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 
 > **Área:** IA
 > **Reusa:** [Modules/Jana](../../../Modules/Jana) tools + ContextSnapshotService
+
+**Implementado em:** _pendente_ — sem tool Jana `auto.diagnostico.sugerir` nem fluxo de hipóteses/PolicyEngine pra OficinaAuto
 
 **Como** mecânico iniciante / atendente
 **Quero** descrever sintoma ("Civic 2015 fazendo barulho na frente quando faz curva") e receber 3-5 hipóteses ranqueadas + tempário estimado + peças prováveis
@@ -691,6 +749,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Catalog
 > **Rota:** `GET/POST /oficina-auto/pecas`
 
+**Implementado em:** _pendente_ — sem catálogo OEM (`oficina_auto_peca_similares`, busca por OEM, extensão `products.oem_code`); rota `/oficina-auto/pecas` não existe
+
 **Como** mecânico
 **Quero** buscar peça pelo código OEM (ex: "VW 1H6 803 199 A" — cubo de roda Gol G6) e ver: original, similares (Bosch, Nakata, Fras-le), preço, fornecedor disponível
 **Para** decidir entre original (caro) vs similar (margem) sem abrir 3 catálogos paralelos
@@ -711,6 +771,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Comercial
 > **Rota:** pública `GET /a/{token}` (sem auth)
 > **Reusa:** WhatsApp Cloud API (token Meta já no projeto)
+
+**Implementado em:** `Modules/OficinaAuto/Http/Controllers/Public/AprovacaoOsController.php` · `Modules/OficinaAuto/Services/AprovacaoOsService.php` · `Modules/OficinaAuto/Jobs/EnviarLinkAprovacaoWhatsappJob.php` · `resources/js/Pages/OficinaAuto/AprovacaoPublica.tsx` · verificado@dd3ed7c (2026-07-01) — realizado como US-OFICINA-014 (rota real `/aprovar-os/{token}` + PIN 4 dígitos + lockout)
 
 **Como** atendimento
 **Quero** enviar link "Olá Sr João, sua OS-1234 está orçada em R$ [redacted Tier 0] — clique pra ver detalhes e aprovar com PIN" pelo WhatsApp do cliente
@@ -734,6 +796,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Reusa:** [Modules/NfeBrasil](../NfeBrasil/SPEC.md) US-NFE-002 (NFC-e ✅ pronta) + Modules/NFSe (a criar)
 > **Reusa:** [Modules/RecurringBilling](../RecurringBilling/SPEC.md) US-RB-044 (boleto pago→NFe ✅ entregue)
 
+**Implementado em:** _pendente_ — o adapter OficinaAuto (split OS → NFC-e peça + NFS-e serviço) não existe; há só o card presentacional `FiscalSplitCard` (US-OFICINA-042). Pipeline núcleo NFC-e (US-RB-044) é de outro módulo. Bloqueado por driver NFSe (mesma lacuna de US-OFICINA-018)
+
 **Como** financeiro
 **Quero** boleto/Pix recebido → NFC-e (item peças, modelo 65) + NFS-e (item serviço, código LC 116/03 14.05) automáticas
 **Para** eliminar 2 cliques humanos do fluxo + atacar reclamação pública Ultracar (cliente RA disse "1 ano e NFS-e prometida não foi implantada")
@@ -754,6 +818,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 
 > **Área:** Financeiro
 > **Reusa:** [Modules/Financeiro](../Financeiro/) HR + UltimatePOS `essentials_commission_agents`
+
+**Implementado em:** _pendente_ — sem `oficina_auto_comissao_regras` nem cálculo de comissão por OS (mesma lacuna de US-OFICINA-019)
 
 **Como** dono
 **Quero** que ao fechar OS, comissão de cada mecânico (% sobre mão-de-obra apontada) e do atendente vendedor (% sobre venda peça) seja calculada
@@ -776,6 +842,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** UX
 > **Reusa:** Inertia/React responsive + PWA manifest
 
+**Implementado em:** _pendente_ — sem PWA manifest/service worker nem tela `/oficina-auto/minhas-os` mobile-first (mesma lacuna de US-OFICINA-015)
+
 **Como** mecânico no chão da oficina
 **Quero** abrir minha lista de OS no celular, ver detalhes, marcar status, subir foto antes/depois sem ir até o computador
 **Para** não atrasar fluxo + atender dor #6 setor (mecânico-no-chão precisa mobile)
@@ -796,6 +864,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Pos-venda
 > **Reusa:** Job scheduled (Hostinger cron OK) + WhatsApp template
 
+**Implementado em:** _pendente_ — sem tabela `oficina_auto_garantias` nem job de lembrete de garantia (mesma lacuna de US-OFICINA-008/016)
+
 **Como** dono
 **Quero** que ao fechar OS, garantia (3m peça / 6m serviço configurável) seja registrada e cliente receba lembrete antes de vencer
 **Para** pos-venda diferenciada + reduzir disputa "tinha garantia ou não?"
@@ -814,6 +884,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 
 > **Área:** Pos-venda
 > **blocked_by:** US-AUTO-001 (km_atual)
+
+**Implementado em:** _pendente_ — sem `oficina_auto_revisoes_planejadas` nem job de lembrete de revisão por km/tempo
 
 **Como** dono
 **Quero** que cliente receba lembrete WhatsApp "seu Civic está há 5.000km da última revisão — agendar?" baseado em km estimado (média mensal × tempo decorrido)
@@ -834,6 +906,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Área:** Compras
 > **Reusa:** UltimatePOS `contacts.type=supplier`
 
+**Implementado em:** _pendente_ — sem `oficina_auto_cotacoes`/`oficina_auto_cotacao_respostas` nem fluxo RFQ
+
 **Como** comprador/dono
 **Quero** disparar cotação pra 3 fornecedores (peça X, qty Y) e comparar respostas + escolher
 **Para** garantir melhor preço peça + audit trail
@@ -852,6 +926,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 
 > **Área:** Producao
 > **blocked_by:** US-AUTO-006
+
+**Implementado em:** _pendente_ — sem `oficina_auto_apontamentos` nem clock-in/out por OS; há campos de check-in de entrada (`entered_at`, US-OFICINA-038/039) mas não apontamento de horas trabalhadas
 
 **Como** mecânico
 **Quero** marcar "começo agora" / "pausei" / "terminei" no celular pra cada OS
@@ -873,6 +949,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 > **Rota:** pública `GET /repair-status?token=X`
 > **Reusa:** [Modules/Repair](../../../Modules/Repair) `CustomerRepairStatusController` ✅ entregue
 
+**Implementado em:** _pendente_ — o painel público de OficinaAuto que existe é a aprovação (US-OFICINA-014, `/aprovar-os/{token}`), não um painel read-only de status contínuo; o override de labels sobre o `CustomerRepairStatusController` do Repair não foi construído em OficinaAuto
+
 **Como** cliente
 **Quero** entrar no link enviado pelo WhatsApp e ver "OS-1234 — etapa: Aguardando peça" sem ligar pra oficina
 **Para** reduzir telefonemas + transparência
@@ -890,6 +968,8 @@ Priorização: **P0** = bloqueia 1ª piloto (mínimo viável reconhecível pelo 
 
 > **Área:** Fiscal
 > **Reusa:** [Modules/NfeBrasil](../NfeBrasil/SPEC.md) (CT-e/MDF-e a adicionar)
+
+**Implementado em:** _pendente_ — CT-e/MDF-e não implementados em OficinaAuto (P3, só ativa se piloto for oficina com frota/reboco)
 
 **Como** dono frota / oficina especializada caminhão
 **Quero** emitir CT-e (transporte) e MDF-e (manifesto) quando reboco de veículo é necessário
@@ -1260,9 +1340,11 @@ Quando os pré-requisitos forem satisfeitos, **abrir ADR canon** "OficinaAuto-at
 
 ### US-OFICINA-035 · DVI (Vistoria Digital · Digital Vehicle Inspection) schema + API — **P1**
 
-> owner: — · priority: p1 · estimate: 4h (IA-pair fator 10x ADR 0106) · status: in-progress (backend done) · type: story · origin: Wave 3 OficinaAuto · 2026-05-26
+> owner: — · priority: p1 · estimate: 4h (IA-pair fator 10x ADR 0106) · status: done (backend done) · type: story · origin: Wave 3 OficinaAuto · 2026-05-26
 > blocked_by: —
 > blocks: Wave 3b (UI integration drawer ServiceOrderRichSheet — depende PR #1624) · WhatsApp "Enviar p/ cliente" (depende US-OFICINA-014 PR #1627)
+
+**Implementado em:** `Modules/OficinaAuto/Entities/OaInspectionItem.php` · `Modules/OficinaAuto/Services/DviInspectionService.php` · `Modules/OficinaAuto/Http/Controllers/DviInspectionController.php` · `Modules/OficinaAuto/Database/Migrations/2026_05_26_120002_create_oa_inspection_items_table.php` · `Modules/OficinaAuto/Tests/Feature/DviInspectionItemTest.php` · verificado@dd3ed7c (2026-07-01) — backend DVI completo (schema + Service + HTTP API); UI drawer integrada via ProducaoOficina/_components/DviInlineEditor
 
 Wedge competitivo vs RepairShopr/mHelpDesk catalogado em [CAPTERRA-FICHA Repair gap #3](../Repair/CAPTERRA-FICHA.md). Mecânico registra itens vistoriados na OS com semáforo verde/amarelo/vermelho (ok/atencao/critico) + recomendação + valor + foto opcional. Card UI proposto (screenshot Wagner 2026-05-26): "VISTORIA DIGITAL · DVI" com badges contadores ("8 ok · 2 atenção · 1 crítico"), lista de 5 items com semáforo + valor, e bloco "TOTAL RECOMENDADO · CLIENTE" agregando atencao+critico.
 
@@ -1286,6 +1368,8 @@ Wedge competitivo vs RepairShopr/mHelpDesk catalogado em [CAPTERRA-FICHA Repair 
 > owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — tarefa comercial (outreach/contrato Martinho), não codável; sem artefato de código
+
 Fechar 1º cliente pagante Modules/OficinaAuto (goal #1 CYCLE-06 — sinal qualificado ADR 0105).
 
 **DoD:**
@@ -1298,10 +1382,12 @@ Fechar 1º cliente pagante Modules/OficinaAuto (goal #1 CYCLE-06 — sinal quali
 
 ### US-OFICINA-038 · Check-in de entrada — avarias na entrada da OS
 
-> owner: — · priority: p1 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> owner: — · priority: p1 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: done · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
 > blocked_by: —
 
 Delta do protótipo Cowork "Nova OS" embarcado — ver [oficina-os-nova-prototipo-visual-comparison.md](oficina-os-nova-prototipo-visual-comparison.md) (delta #8). O protótipo abre a OS registrando o estado de entrada do veículo, que protege oficina e cliente. Hoje só temos `notes` (= relato). Esta US adiciona as **avarias na entrada** (chips).
+
+**Implementado em:** `Modules/OficinaAuto/Database/Migrations/2026_06_02_000010_add_checkin_fields_to_service_orders.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/EntryCheckinFields.tsx` · verificado@dd3ed7c (2026-07-01) — coluna `entry_damages` (json) + chips no Create/Edit + read-only no Show; fotos de entrada ficaram pra US futura
 
 **DoD:**
 - [x] Coluna `entry_damages` (json nullable) em `service_orders` — migration idempotente `2026_06_02_000010`
@@ -1314,10 +1400,12 @@ Delta do protótipo Cowork "Nova OS" embarcado — ver [oficina-os-nova-prototip
 
 ### US-OFICINA-039 · Check-in de entrada — nível de combustível
 
-> owner: — · priority: p1 · estimate: 1h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> owner: — · priority: p1 · estimate: 1h (IA-pair fator 10x ADR 0106) · status: done · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
 > blocked_by: —
 
 Delta #7 do protótipo Cowork "Nova OS" — barra de combustível no hero do veículo. Pareada com US-OFICINA-038 no mesmo PR (mesma migration de check-in).
+
+**Implementado em:** `Modules/OficinaAuto/Database/Migrations/2026_06_02_000010_add_checkin_fields_to_service_orders.php` · `Modules/OficinaAuto/Entities/ServiceOrder.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/EntryCheckinFields.tsx` · verificado@dd3ed7c (2026-07-01) — coluna `fuel_level_at_entry` (0–100) + barra no Create/Edit/Show
 
 **DoD:**
 - [x] Coluna `fuel_level_at_entry` (unsignedTinyInteger nullable 0–100) em `service_orders` — migration `2026_06_02_000010`
@@ -1328,10 +1416,12 @@ Delta #7 do protótipo Cowork "Nova OS" — barra de combustível no hero do ve�
 
 ### US-OFICINA-040 · Vistoria DVI → orçamento na OS
 
-> owner: — · priority: p2 · estimate: 3h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> owner: — · priority: p2 · estimate: 3h (IA-pair fator 10x ADR 0106) · status: done · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
 > blocked_by: —
 
 Delta #4 do protótipo Cowork "Nova OS" — botão **"+ orçamento"** na inspeção. Item DVI reprovado/atenção vira `ServiceOrderItem` (mão-de-obra) com 1 clique; o valor recomendado entra como valor unitário. Backend DVI (`oa_inspection_items` + `DviInspectionService`) já existia (US-OFICINA-035) — esta US faz o **wire-up de UI** (Wave 3b pendente) no fluxo Show.
+
+**Implementado em:** `Modules/OficinaAuto/Http/Controllers/DviInspectionController.php` · `Modules/OficinaAuto/Services/ServiceOrderItemService.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/DviBudgetSection.tsx` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderDviToOrcamentoTest.php` · verificado@dd3ed7c (2026-07-01) — rota POST dvi/{item}/to-orcamento (idempotência via metadata.budget_item_id → 409)
 
 **DoD:**
 - [x] `DviInspectionController::toOrcamento` cria `ServiceOrderItem` via `ServiceOrderItemService` + Policy `update` + cross-OS guard
@@ -1343,10 +1433,12 @@ Delta #4 do protótipo Cowork "Nova OS" — botão **"+ orçamento"** na inspeç
 
 ### US-OFICINA-041 · Gate de aprovação do cliente in-screen
 
-> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> owner: — · priority: p2 · estimate: 2h (IA-pair fator 10x ADR 0106) · status: done · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
 > blocked_by: —
 
 Delta #5 do protótipo Cowork "Nova OS" (card "Aprovação do cliente"). O mecânico envia o orçamento pro cliente aprovar com 1 clique; a execução não inicia até aprovar. **Reusa o pipeline automático existente** (US-OFICINA-014): transicionar status → `orcamento` faz o `ServiceOrderObserver` despachar o `EnviarLinkAprovacaoWhatsappJob` (link público + PIN). O gate visual no Show reflete aguardando→aprovado.
+
+**Implementado em:** `Modules/OficinaAuto/Http/Controllers/ServiceOrderController.php` · `resources/js/Pages/OficinaAuto/ServiceOrders/_components/ApprovalGateCard.tsx` · `Modules/OficinaAuto/Tests/Feature/ServiceOrderEnviarAprovacaoTest.php` · verificado@dd3ed7c (2026-07-01) — `enviarAprovacao` (status→orcamento dispara Observer WhatsApp) + rota `POST enviar-aprovacao` + gate 3 estados no Show
 
 **DoD:**
 - [x] `ServiceOrderController::enviarAprovacao` — status → orcamento (dispara Observer WhatsApp); Policy update; rejeita estados terminais
@@ -1357,10 +1449,12 @@ Delta #5 do protótipo Cowork "Nova OS" (card "Aprovação do cliente"). O mecâ
 
 ### US-OFICINA-042 · Painel fiscal NF-e/NFS-e na OS
 
-> owner: — · priority: p3 · estimate: 1h (IA-pair fator 10x ADR 0106) · status: review · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
+> owner: — · priority: p3 · estimate: 1h (IA-pair fator 10x ADR 0106) · status: done · type: story · origin: delta protótipo Cowork "Nova OS" (oficina-os-page.jsx) · 2026-06-02
 > blocked_by: —
 
 Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacional** que separa os itens da OS por natureza fiscal: peças = mercadoria → **NF-e 55**, mão de obra/serviço → **NFS-e**, com valores. Computado de `order.items` (já no payload) — a emissão real sai pela Transaction derivada (Observer ADR 0192). Converge com o componente único `FiscalStatusBadge` (NfeBrasil) quando a OS carregar status de doc emitido.
+
+**Implementado em:** `resources/js/Pages/OficinaAuto/ServiceOrders/_components/FiscalSplitCard.tsx` · `resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx` · verificado@dd3ed7c (2026-07-01) — card frontend-only (split peça NF-e 55 / mão-de-obra NFS-e computado de `order.items`); emissão real (badge reativo) fica pra US futura
 
 **DoD:**
 - [x] `FiscalSplitCard` (Show) — split peças (NF-e 55) / mão de obra (NFS-e) + nota de garantia 90 dias
@@ -1372,6 +1466,8 @@ Delta #6 do protótipo Cowork "Nova OS" (seção "Fiscal"). Painel **presentacio
 
 > owner: — · priority: p2 · estimate: 6h · status: todo · type: story · origin: follow-up erradicação ADR 0265 (PR #2475) · 2026-06-09
 > blocked_by: —
+
+**Implementado em:** _pendente_ — dívida F3 consciente ainda aberta: os accessors residuais estão inertes (hard-coded), o repontuar pra `expected_completion` + limpeza de UI stale não foi feito. Contrato de erradicação em [RUNBOOK-erradicacao-locacao.md](RUNBOOK-erradicacao-locacao.md) (P5); exige decisão de domínio Wagner + Pest local
 
 **Origem:** follow-up da erradicação de `order_type=locacao` (ADR 0265) — PR #2475. Aquele PR removeu as 11 ramificações de dead-code mas, pra respeitar o limite Tier 0 do RUNBOOK (FSM keys `disponivel/locada` = dívida F3 charter v4), deixou o kanban de Caçambas (`ProducaoOficina`) com comportamento de atraso INERTE.
 
