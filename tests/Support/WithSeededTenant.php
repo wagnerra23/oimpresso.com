@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Support;
 
 use App\Business;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Assert;
 
 /**
@@ -30,6 +31,12 @@ trait WithSeededTenant
 {
     /** id canônico do tenant de teste (ADR 0101) — biz=1 (WR2/Wagner), NUNCA cliente real. */
     public const SEEDED_TENANT_ID = 1;
+
+    /**
+     * id do CLIENTE fictício de teste (ADR 0101) — biz=99 (empresa NÃO-operadora), NUNCA biz=4
+     * (cliente real prod). Existe pra exercitar acesso cross-tenant do Modo Suporte.
+     */
+    public const SUPPORT_CLIENT_TENANT_ID = 99;
 
     /**
      * Resolve o tenant seedado: biz=1 quando existe (seed canônico); senão o primeiro
@@ -62,5 +69,48 @@ trait WithSeededTenant
         }
 
         return $tenant;
+    }
+
+    /**
+     * Cliente fictício de teste biz=99 (empresa NÃO-operadora) — VÁLIDO e idempotente.
+     *
+     * Os testes do Modo Suporte (ADR 0305/0308/0309) precisam de uma empresa-cliente
+     * acessível pra exercitar grant/revoke/impersonation cross-tenant. Criar o business
+     * cru com só `name`+`currency_id` QUEBRA: a tabela `business` tem 7 colunas NOT NULL
+     * sem default e `owner_id` é FK→users.id enquanto `users.business_id` é FK→business.id
+     * (chicken-and-egg). Este helper resolve na ordem correta — user sem business →
+     * business com owner → backfill do business_id no owner — espelhando fielmente
+     * database/seeders/FullSuiteMinimalTenantSeeder (que cria biz=1/biz=2).
+     *
+     * Idempotente: se biz=99 já existe, só devolve. Requer schema MySQL UltimatePOS — os
+     * call-sites chamam SEMPRE após o guard `markTestSkipped` de driver/tabela (ADR 0101).
+     *
+     * @see database/seeders/FullSuiteMinimalTenantSeeder.php
+     */
+    public function seededSupportClientTenant(): Business
+    {
+        $existing = Business::query()->whereKey(self::SUPPORT_CLIENT_TENANT_ID)->first();
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $curId = optional(DB::table('currencies')->first())->id ?? 1;
+
+        // reaproveita o owner se sobrou de um run anterior (username é único) — senão cria
+        $ownerId = optional(DB::table('users')->where('username', 'sup_owner_99')->first())->id
+            ?? DB::table('users')->insertGetId([
+                'first_name' => 'Sup Cliente 99', 'username' => 'sup_owner_99', 'password' => bcrypt('ci'),
+                'created_at' => now(), 'updated_at' => now(),
+            ]);
+
+        DB::table('business')->insert([
+            'id' => self::SUPPORT_CLIENT_TENANT_ID, 'name' => 'Cliente Sup 99', 'currency_id' => $curId,
+            'owner_id' => $ownerId, 'stop_selling_before' => 0, 'weighing_scale_setting' => '',
+            'certificado' => '', 'officeimpresso_numerodemaquinas' => 0,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('users')->where('id', $ownerId)->update(['business_id' => self::SUPPORT_CLIENT_TENANT_ID]);
+
+        return Business::query()->whereKey(self::SUPPORT_CLIENT_TENANT_ID)->firstOrFail();
     }
 }
