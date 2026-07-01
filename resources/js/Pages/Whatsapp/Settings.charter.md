@@ -8,6 +8,7 @@ parent_module: Whatsapp
 parent_adr: memory/decisions/0202-whatsapp-profissionalizacao-baileys-out.md
 related_adrs: [93, 94, 96, 117, 135, 202]
 related_adrs_ui: [UI-0013]
+related_us: [US-WA-001, US-WA-014]
 tier: A
 charter_version: 2
 ---
