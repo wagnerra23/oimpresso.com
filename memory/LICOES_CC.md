@@ -187,6 +187,12 @@
 - **Regra:** página de AppShellV2 **NUNCA** usa margem negativa no root pra "cancelar" padding do shell — o `.main-body` **não tem padding**. Kanban/grid largo **SEMPRE** rola por dentro (wrapper `overflow-x-auto` + `repeat(n, minmax(Xpx, 1fr))`), nunca estoura o shell. Antes de assumir padding/altura do shell, **ler cockpit.css** (canon `.prod-kanban` do protótipo: oficina-page.css).
 - **Ref:** [memory/sessions/2026-06-10-board-oficina-corte.md](sessions/2026-06-10-board-oficina-corte.md); PR #2508 (fix + sweep 11 telas); cockpit.css l.145-190; canon `.prod-kanban` (prototipo-ui styles.css l.3798); L-24 (escape pego por [W], não por mecanismo).
 
+## L-27 — Merge com o head do PR travado no commit velho (GitHub não sincronizou o push) = merge-stale silencioso
+- **Erro (2026-07-01):** PR #3501 mergeado enquanto o head do PR ainda apontava pro commit **anterior** (`23ccfb49`) — o push do fix (`feec2a54`) já estava no branch (confirmado por `gh api .../branches/<b>` e `git ls-remote`) mas o GitHub **não sincronizou o head do PR** nem disparou os workflows no commit novo. O merge levou a **versão velha/quebrada** pro main (UC-S11 rodando em lista vazia). Corrigido por hotfix cherry-pick #3506.
+- **Sintoma:** `gh pr checks` mostra check de um run **antigo**; `gh pr view N --json headRefOid` ≠ `git rev-parse origin/<branch>`; workflows do commit novo "não aparecem". Confunde com "CI ainda rodando".
+- **Regra:** **antes de mergear, conferir `PR head == commit do branch`** — `[ "$(gh pr view N --json headRefOid -q .headRefOid)" = "$(git rev-parse origin/<branch>)" ]`. Se divergir, GitHub está atrasado: **não mergear**; forçar re-sync (re-push/empty-commit ou close+reopen) e esperar o head bater + o check do commit certo. Corolário: `E2E Playwright` **não é required** no main (só `casos-gate`+`dominio-gate` dessa família) → check vermelho não-required não bloqueia, então o merge-stale passa calado.
+- **Ref:** [memory/sessions/2026-07-01-incidente-devolucao-rotalivre-namespace-menu.md](sessions/2026-07-01-incidente-devolucao-rotalivre-namespace-menu.md); PRs #3501 (stale) → #3506 (hotfix); L-24 (escape pego por [W], não por mecanismo).
+
 > 1ª aplicação do loop da camada 5. Cada lição classificada: **MEC** (vira check) ou **JULG** (vira regra-carregada) + destino + status. Achado: **a maioria já se graduou** sem o loop ser nomeado; o valor agora é fechar as **pendentes** e comprimir o resto.
 
 | L | Classe | Destino da graduação | Status |
