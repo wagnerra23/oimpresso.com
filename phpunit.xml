@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
+         bootstrap="tests/bootstrap.php"
          colors="true"
          cacheDirectory=".phpunit.cache"
          executionOrder="random"
@@ -67,6 +67,8 @@
         </exclude>
     </source>
     <php>
+        <!-- APP_ENV=testing é garantido em tests/bootstrap.php (ANTES do autoload) porque o
+             container CT100 exporta APP_ENV=staging no SO e o <env> aqui não vence isso. -->
         <env name="APP_ENV" value="testing"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
