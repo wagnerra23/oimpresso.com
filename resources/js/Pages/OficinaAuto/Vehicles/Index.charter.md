@@ -5,6 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-05-26"
 parent_module: OficinaAuto
+related_us: [US-OFICINA-001, US-OFICINA-002]
 related_adrs:
   - 0137-modules-oficinaauto-qualificada
   - 0093-multi-tenant-isolation-tier-0
