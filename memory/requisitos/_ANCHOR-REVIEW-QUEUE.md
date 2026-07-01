@@ -37,6 +37,28 @@ Detectadas nos lotes de `related_us`; cada uma precisa de decisão: criar US no 
 | `Pages/Jana/Admin/Governanca/Index.charter.md` | só referencia MEM-MCP-1.e — sem US-COPI confiável | |
 | `Pages/Jana/Memoria.charter.md` | drift pré-existente: `related_specs` cita MEM-* que vivem em comparativo/ENTERPRISE, não no SPEC.md | |
 
+## §3-bis — related_us DEFERIDOS pelo gate charter-live-signal (prontos pra aterrissar)
+
+> O gate required `charter status:live precisa de sinal de prod` (no-new-lie) barra tocar charter `status: live` sem sinal (component em `governance/prod-flags.json` live OU campo `smoke:` datado). Nenhuma das 13 telas abaixo tem sinal hoje — os joins foram **verificados pelo refutador Fable** e ficam aqui prontos; aterrissam num PR trivial assim que a tela ganhar smoke datado (skill `tela-smoke`) ou entry no prod-flags. NÃO copiar sem o sinal.
+
+| Charter (status: live) | related_us verificado | Sinal necessário |
+|---|---|---|
+| `Pages/Financeiro/Conciliacao/Index.charter.md` | `[US-FIN-009]` | smoke ou prod-flags `Financeiro/Conciliacao/Index` |
+| `Pages/Jana/Chat.charter.md` | `[US-COPI-001, US-COPI-002, US-COPI-003, US-COPI-004, US-COPI-005, US-COPI-105]` (106 REMOVIDA — refutador: pertence ao Painel) | smoke ou prod-flags `Jana/Chat` |
+| `Pages/Jana/Dashboard.charter.md` | `[US-COPI-050, US-COPI-010, US-COPI-011, US-COPI-012]` | smoke ou prod-flags `Jana/Dashboard` |
+| `Pages/Jana/Pro.charter.md` | `[US-COPI-118, US-COPI-119]` | smoke ou prod-flags `Jana/Pro` |
+| `Pages/Jana/Memoria.charter.md` | `[US-COPI-MEM-005, US-COPI-MEM-008, US-COPI-MEM-012]` (⚠️ MEM-* vivem fora do SPEC — ver §3) | smoke ou prod-flags `Jana/Memoria` |
+| `Pages/Jana/Admin/Roadmap.charter.md` | `[US-COPI-111]` | smoke ou prod-flags `Jana/Admin/Roadmap` |
+| `Pages/Jana/Painel.charter.md` | `[US-JANA-PAINEL-001, US-COPI-106]` (106 MOVIDA do Chat — correção do refutador) | smoke ou prod-flags `Jana/Painel` |
+| `Pages/Whatsapp/Settings.charter.md` | `[US-WA-001, US-WA-014]` (PR #3547 fechado por isso) | smoke ou prod-flags `Whatsapp/Settings` |
+| `Pages/OficinaAuto/ServiceOrders/Create.charter.md` | `[US-OFICINA-001, US-OFICINA-038, US-OFICINA-039]` | smoke ou prod-flags `OficinaAuto/ServiceOrders/Create` |
+| `Pages/OficinaAuto/ServiceOrders/Edit.charter.md` | `[US-OFICINA-001]` (005 REMOVIDA — refutador: '005-bis'≠005) | smoke ou prod-flags `OficinaAuto/ServiceOrders/Edit` |
+| `Pages/OficinaAuto/Vehicles/Create.charter.md` | `[US-OFICINA-001, US-OFICINA-012]` | smoke ou prod-flags `OficinaAuto/Vehicles/Create` |
+| `Pages/OficinaAuto/Vehicles/Edit.charter.md` | `[US-OFICINA-001]` | smoke ou prod-flags `OficinaAuto/Vehicles/Edit` |
+| `Pages/OficinaAuto/Vehicles/Index.charter.md` | `[US-OFICINA-001, US-OFICINA-002]` | smoke ou prod-flags `OficinaAuto/Vehicles/Index` |
+
+Aterrissaram direto (sem gate — status draft): Financeiro/Advisor/Login (#3540) · Jana/Cockpit (#3544) · OficinaAuto/Vehicles/Show (#3542).
+
 ## §4 — Pendências do batch 1 (Sells, #3483 — sessão anterior)
 
 | # | Pendência | Proposta | Decisão Wagner |
