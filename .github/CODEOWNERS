@@ -29,16 +29,18 @@ memory/requisitos/Boleto.md         @wagnerra23
 # ──────────────────────────────────────────────
 # 🔒 LGPD / DADOS PESSOAIS — Wagner (Felipe futuro)
 # ──────────────────────────────────────────────
-Modules/Copiloto/                   @wagnerra23   # TODO: + @<handle Felipe>
-memory/requisitos/Copiloto/         @wagnerra23
+Modules/Jana/                       @wagnerra23   # ex-Copiloto (rename ADR 0088) — TODO: + @<handle Felipe>
+memory/requisitos/Jana/             @wagnerra23   # docs LGPD-crítico (SPEC, PII-REDACTION, retention)
+memory/requisitos/Copiloto/         @wagnerra23   # ghost-dir legacy — 4 arquivos ainda por migrar p/ Jana
 memory/requisitos/EvolutionAgent/   @wagnerra23
-Modules/PontoWr2/                   @wagnerra23   # ponto eletrônico = dado pessoal de funcionário
-memory/requisitos/PontoWr2/         @wagnerra23
+Modules/Ponto/                      @wagnerra23   # ponto eletrônico = dado pessoal (ex-PontoWr2)
+memory/requisitos/Ponto/            @wagnerra23   # docs ponto (dir canônico atual)
+memory/requisitos/PontoWr2/         @wagnerra23   # docs ponto legacy (ainda com arquivos)
 
 # ──────────────────────────────────────────────
 # 🗝️ SEGREDOS / COFRE — Wagner
 # ──────────────────────────────────────────────
-Modules/MemCofre/                   @wagnerra23   # TODO: + @<handle Maiara> @<handle Felipe>
+Modules/SRS/                        @wagnerra23   # ex-MemCofre, em deprecação — TODO: + @<handle Maiara> @<handle Felipe>
 
 # ──────────────────────────────────────────────
 # 🏗️ INFRA / CI / DEPLOY / GOVERNANÇA — Wagner (ninguém mergeia sem ele)
