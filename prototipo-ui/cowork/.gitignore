@@ -13,3 +13,14 @@
 *.zip
 *.mp4
 *.mov
+
+# dirs de arquivo/scratch do bundle — NÃO são design-source (Wagner 2026-07-01 "pode apagar").
+# O importar-bundle.mjs já os exclui do sync (/XD); isto é defesa se algo pousar manual.
+_arquivo/
+_BACKUP-NAO-USAR/
+scraps/
+screenshots/
+uploads/
+assets/
+benchmark/
+_ds/

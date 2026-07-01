@@ -75,8 +75,8 @@
   display: inline-flex; align-items: center; gap: 4px;
   white-space: nowrap;
 }
-.prod-stock-badge.ok { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
-.prod-stock-badge.warn { background: oklch(0.95 0.06 70); color: oklch(0.42 0.12 60); }
+.prod-stock-badge.ok { background: var(--pos-soft); color: var(--pos); }
+.prod-stock-badge.warn { background: var(--warn-soft); color: var(--warn); }
 .prod-stock-badge.muted { background: var(--border-2); color: var(--text-mute); }
 .prod-stock-badge b { font-weight: 700; }
 
@@ -97,7 +97,7 @@
 .prod-var.empty { opacity: 0.5; }
 .prod-var-spec { color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .prod-var-stock { color: var(--ok); font-weight: 600; font-size: 10.5px; }
-.prod-var-stock.low { color: oklch(0.50 0.13 70); }
+.prod-var-stock.low { color: var(--warn); }
 .prod-var-stock.zero { color: var(--text-mute); }
 .prod-var-more { font-size: 10px; color: var(--text-mute); margin-top: 2px; font-style: italic; }
 
@@ -219,8 +219,8 @@
 .prod-grade-yes {
   display: inline-grid; place-items: center;
   width: 24px; height: 24px;
-  background: oklch(0.94 0.05 145);
-  color: oklch(0.36 0.10 145);
+  background: var(--pos-soft);
+  color: var(--pos);
   border-radius: 5px;
   font-size: 13px; font-weight: 700;
   font-family: var(--font-mono);
@@ -280,9 +280,9 @@
   font-size: 11px;
   font-weight: 700;
 }
-.prod-margin-pill.high { background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145); }
-.prod-margin-pill.mid  { background: oklch(0.95 0.06 70);  color: oklch(0.42 0.12 60);  }
-.prod-margin-pill.low  { background: oklch(0.95 0.05 25);  color: oklch(0.50 0.16 25);  }
+.prod-margin-pill.high { background: var(--pos-soft); color: var(--pos); }
+.prod-margin-pill.mid  { background: var(--warn-soft);  color: var(--warn);  }
+.prod-margin-pill.low  { background: var(--neg-soft);  color: var(--neg);  }
 
 .prod-lead-pill {
   display: inline-block;
@@ -373,26 +373,19 @@
 
 .prod-compat-chips { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 12px; }
 .prod-compat-chip {
-  background: oklch(0.94 0.05 145); color: oklch(0.36 0.10 145);
+  background: var(--pos-soft); color: var(--pos);
   padding: 4px 8px; border-radius: 5px; font-size: 10.5px;
   display: inline-flex; align-items: center; gap: 4px;
-  border: 1px solid oklch(0.88 0.06 145);
+  border: 1px solid color-mix(in oklch, var(--pos) 22%, transparent);
 }
 .prod-compat-chip b { font-weight: 700; }
-.prod-compat-chip small { color: oklch(0.45 0.10 145); font-size: 9.5px; }
+.prod-compat-chip small { color: var(--pos); font-size: 9.5px; }
 
 
 /* ════════ DARK auto-flip dos soft-chips (Tier-2 · [W] 2026-06-20) ════════
    Gerado: bg pastel→tom escuro mesma hue, texto→claro. Light intacto.
    Só selectores SEM override dark prévio. ════════ */
-[data-theme="dark"] .prod-stock-badge.ok{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); }
-[data-theme="dark"] .prod-stock-badge.warn{ background: oklch(0.275 0.060 70); color: oklch(0.84 0.120 60); }
 [data-theme="dark"] .prod-grade-info{ background: oklch(0.275 0.050 220); border: 1px solid oklch(0.40 0.050 220); }
 [data-theme="dark"] .prod-grade tbody tr:hover td{ background: oklch(0.275 0.050 220); }
 [data-theme="dark"] .prod-grade tbody tr:hover .prod-grade-prod{ background: oklch(0.275 0.050 220); }
-[data-theme="dark"] .prod-grade-yes{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); }
 [data-theme="dark"] .prod-grade-info-table tr:hover .prod-grade-prod{ background: oklch(0.275 0.050 220); }
-[data-theme="dark"] .prod-margin-pill.high{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); }
-[data-theme="dark"] .prod-margin-pill.mid{ background: oklch(0.275 0.060 70); color: oklch(0.84 0.120 60); }
-[data-theme="dark"] .prod-margin-pill.low{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.160 25); }
-[data-theme="dark"] .prod-compat-chip{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); border: 1px solid oklch(0.40 0.060 145); }

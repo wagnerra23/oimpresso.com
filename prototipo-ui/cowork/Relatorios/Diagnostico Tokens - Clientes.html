@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Diagnóstico de tokens — Clientes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../ds-v6/tokens.css?v=v6-4"/>
+<style>
+  *{ box-sizing:border-box; }
+  html,body{ margin:0; }
+  body{
+    font-family: var(--font-sans);
+    background: var(--bg);
+    background-image: var(--atmo);
+    background-attachment: fixed;
+    color: var(--text);
+    font-size: var(--fs-4);
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap{ max-width: 1080px; margin: 0 auto; padding: 40px 28px 96px; }
+
+  /* ── Header ── */
+  .rpt-head{ display:flex; align-items:flex-start; justify-content:space-between; gap:24px; margin-bottom:8px; }
+  .rpt-eyebrow{
+    font-family: var(--font-mono); font-size: var(--fs-1); font-weight:600;
+    letter-spacing:.12em; text-transform:uppercase; color: var(--accent);
+    margin:0 0 10px;
+  }
+  h1{ font-size: var(--fs-9); font-weight:700; letter-spacing:-.02em; line-height:1.05; margin:0 0 14px; max-width:18ch; text-wrap:balance; }
+  .lede{ font-size: var(--fs-6); color: var(--text-2); max-width:60ch; margin:0; line-height:1.5; }
+  .theme-toggle{
+    flex:0 0 auto; display:inline-flex; align-items:center; gap:6px;
+    font: 600 var(--fs-2)/1 var(--font-sans); color: var(--text-2);
+    background: var(--surface); border:1px solid var(--border);
+    border-radius: var(--r-pill); padding:8px 14px; cursor:pointer;
+    box-shadow: var(--sh-1); transition: border-color var(--t-2) var(--ease), color var(--t-2) var(--ease);
+  }
+  .theme-toggle:hover{ border-color: var(--accent-line); color: var(--text); }
+
+  /* ── Stat strip ── */
+  .stats{ display:grid; grid-template-columns: repeat(4,1fr); gap:12px; margin:36px 0 8px; }
+  .stat{
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--r-3);
+    padding:16px 18px; box-shadow: var(--sh-1);
+  }
+  .stat-v{ font-family: var(--font-mono); font-size: var(--fs-8); font-weight:600; letter-spacing:-.02em; line-height:1; font-variant-numeric: tabular-nums; }
+  .stat-l{ font-size: var(--fs-2); color: var(--text-2); margin-top:6px; line-height:1.3; }
+  .stat.good .stat-v{ color: var(--pos); }
+  .stat.fix  .stat-v{ color: var(--neg); }
+  .stat.new  .stat-v{ color: var(--accent); }
+
+  /* ── Section ── */
+  section{ margin-top:52px; }
+  .sec-head{ display:flex; align-items:center; gap:10px; margin-bottom:6px; }
+  .sec-dot{ width:11px; height:11px; border-radius: var(--r-pill); flex:0 0 auto; }
+  .sec-dot.fix{ background: var(--neg); }
+  .sec-dot.new{ background: var(--warn); }
+  .sec-dot.ok{ background: var(--pos); }
+  h2{ font-size: var(--fs-7); font-weight:700; letter-spacing:-.015em; margin:0; }
+  .sec-sub{ font-size: var(--fs-4); color: var(--text-2); margin:8px 0 22px; max-width:64ch; line-height:1.5; }
+  .sec-sub code{ font-family: var(--font-mono); font-size:.92em; background: var(--sunken); border:1px solid var(--border-2); border-radius: var(--r-1); padding:1px 5px; color: var(--text); }
+
+  /* ── Mapping row ── */
+  .map{ display:flex; flex-direction:column; gap:8px; }
+  .row{
+    display:grid; grid-template-columns: 220px 1fr 26px 1fr; align-items:center; gap:14px;
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--r-3);
+    padding:12px 16px; box-shadow: var(--sh-1);
+  }
+  .row-sel{ font-family: var(--font-mono); font-size: var(--fs-2); color: var(--text); font-weight:500; word-break:break-word; }
+  .row-sel small{ display:block; color: var(--text-3); font-weight:400; margin-top:3px; font-size: var(--fs-1); }
+  .chip{ display:flex; align-items:center; gap:10px; min-width:0; }
+  .sw{ width:30px; height:30px; border-radius: var(--r-2); flex:0 0 auto; border:1px solid var(--border); box-shadow: inset 0 0 0 1px rgba(255,255,255,.04); }
+  .sw.bordered{ border:1px solid currentColor; }
+  .chip-txt{ min-width:0; }
+  .chip-val{ font-family: var(--font-mono); font-size: var(--fs-2); color: var(--text-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .chip-tag{ font-size: var(--fs-1); color: var(--text-3); margin-top:2px; }
+  .arrow{ color: var(--text-4); display:flex; justify-content:center; }
+  .row-to .chip-val{ color: var(--accent); font-weight:600; }
+  .row-to.newtok .chip-val{ color: var(--warn); }
+
+  /* preview pill for frescor/kind (uses real token vars defined below) */
+  .pv{ display:inline-flex; align-items:center; gap:5px; padding:3px 10px; border-radius: var(--r-pill); font-size: var(--fs-2); font-weight:600; border:1px solid transparent; }
+  .pv::before{ content:""; width:6px; height:6px; border-radius: var(--r-pill); background: currentColor; opacity:.7; }
+
+  .note{ margin-top:20px; padding:16px 18px; background: var(--accent-soft); border:1px solid var(--accent-line); border-radius: var(--r-3); font-size: var(--fs-3); color: var(--text); line-height:1.55; }
+  .note strong{ color: var(--accent); }
+  .foot{ margin-top:60px; padding-top:22px; border-top:1px solid var(--border); font-size: var(--fs-2); color: var(--text-3); line-height:1.6; }
+  .foot code{ font-family: var(--font-mono); }
+
+  /* ── Token candidates rendered as real preview vars (for bucket 2) ── */
+  :root{
+    --frescor-recente:  oklch(0.42 0.13 145); --frescor-recente-soft:  oklch(0.95 0.04 145);
+    --frescor-distante: oklch(0.50 0.13 60);  --frescor-distante-soft: oklch(0.95 0.05 60);
+    --frescor-frio:     oklch(0.50 0.13 25);  --frescor-frio-soft:     oklch(0.95 0.04 25);
+    --kind-customer:    oklch(0.40 0.11 145);
+    --kind-supplier:    oklch(0.42 0.12 60);
+    --kind-employee:    oklch(0.40 0.08 250);
+    --kind-representative: oklch(0.40 0.12 290);
+    --kpi-feature-bg:   oklch(0.21 0.03 264); --kpi-feature-fg: oklch(0.98 0 0);
+  }
+  @media (max-width: 760px){
+    .row{ grid-template-columns: 1fr 1fr; }
+    .row-sel{ grid-column:1 / -1; }
+    .arrow{ display:none; }
+    .stats{ grid-template-columns: repeat(2,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="rpt-head">
+    <div>
+      <p class="rpt-eyebrow">Fonte única · ds-v6/tokens.css · roxo canon 295</p>
+      <h1>Diagnóstico de tokens — tela Clientes</h1>
+      <p class="lede">A casca respeita o DS. O trabalho é eliminar o <em>drift de cor</em>: cada literal <code style="font-family:var(--font-mono)">oklch()</code> cru mapeado pro token certo — e os 3 conceitos que ainda não têm token.</p>
+    </div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="ttog">◐ Dark</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><div class="stat-v">~100%</div><div class="stat-l">estrutura (bg, borda, texto, raio, fonte, foco) já em token</div></div>
+    <div class="stat fix"><div class="stat-v">193</div><div class="stat-l">literais oklch crus em 120 linhas — viola D-05 "cor crua = erro"</div></div>
+    <div class="stat fix"><div class="stat-v">~80%</div><div class="stat-l">corrigíveis pra token que JÁ existe</div></div>
+    <div class="stat new"><div class="stat-v">3</div><div class="stat-l">famílias de token novas a propor pro [W]</div></div>
+  </div>
+
+  <!-- ════════ BUCKET 1 ════════ -->
+  <section>
+    <div class="sec-head"><span class="sec-dot fix"></span><h2>Balde 1 — corrigir pra token existente</h2></div>
+    <p class="sec-sub">Cores hardcoded que já têm equivalente no DS. O drift é sutil (hue 25 vs 25, 60 vs 68, 250 vs 245…) mas acumula inconsistência entre telas. Trocar por <code>var()</code> faz dark + density propagarem sozinhos.</p>
+    <div class="map" id="b1"></div>
+  </section>
+
+  <!-- ════════ BUCKET 2 ════════ -->
+  <section>
+    <div class="sec-head"><span class="sec-dot new"></span><h2>Balde 2 — conceito novo → propor token</h2></div>
+    <p class="sec-sub">Três conceitos sem token no DS. São sistêmicos e reusáveis — viram família de token no <code>ds-v6/tokens.css</code>. <strong>Pela soberania do CLAUDE.md, eu proponho; o Wagner numera e versiona.</strong> Os swatches abaixo já renderizam com os tokens propostos.</p>
+    <div class="map" id="b2"></div>
+    <div class="note"><strong>Frescor temporal</strong> é o candidato mais forte — já está nomeado como amendment no CSS e mede recência de contato/compra, útil em qualquer módulo de pessoas (Clientes, Fornecedores, CRM). <strong>--kind-*</strong> classifica tipo de entidade (cliente/fornecedor/funcionário/representante), reusável em Clientes/Equipe. <strong>--kpi-feature</strong> é o card navy de destaque do "Faturamento".</div>
+  </section>
+
+  <!-- ════════ BUCKET 3 ════════ -->
+  <section>
+    <div class="sec-head"><span class="sec-dot ok"></span><h2>Balde 3 — micro: fold ou descartar</h2></div>
+    <p class="sec-sub">Badges pontuais. Decisão rápida: ou viram token só se reusarem, ou herdam um token próximo existente.</p>
+    <div class="map" id="b3"></div>
+  </section>
+
+  <div class="foot">
+    Gerado por [CC] · F1 diagnóstico · contra <code>ds-v6/tokens.css?v=v6-4</code> + <code>clientes-page.css?v=ph3</code>.<br/>
+    Próximo passo se aprovado: <code>memory/decisions/_PROPOSTA-tokens-frescor-kind-kpifeature.md</code> (3 famílias, formato pronto pro [W] numerar) + <code>clientes-page.css</code> patcheado pra <code>var()</code>. Eu não commito — ponte zero-toque pro Code.
+  </div>
+
+</div>
+
+<script>
+function sw(val, bordered){ return `<span class="sw${bordered?' bordered':''}" style="background:${val}"></span>`; }
+function row(sel, sub, fromVal, fromTag, toVal, toTag, opts){
+  opts = opts || {};
+  const toClass = opts.newtok ? 'row-to newtok' : 'row-to';
+  const fromSw = opts.fromText ? `<span class="pv" style="background:${opts.fromSoft};color:${opts.fromInk}">${opts.fromText}</span>` : sw(fromVal, opts.fromBordered);
+  const toSw   = opts.toText   ? `<span class="pv" style="background:${opts.toSoft};color:${opts.toInk}">${opts.toText}</span>`   : sw(toVal, opts.toBordered);
+  return `<div class="row">
+    <div class="row-sel">${sel}${sub?`<small>${sub}</small>`:''}</div>
+    <div class="chip">${fromSw}<div class="chip-txt"><div class="chip-val">${fromVal}</div><div class="chip-tag">${fromTag}</div></div></div>
+    <div class="arrow">→</div>
+    <div class="chip ${toClass}">${toSw}<div class="chip-txt"><div class="chip-val">${toVal}</div><div class="chip-tag">${toTag}</div></div></div>
+  </div>`;
+}
+
+const b1 = [
+  ['.cli-kpistrip-value.danger','KPI negativo','oklch(0.55 0.18 25)','hue 25','var(--neg)','semântico existe'],
+  ['.cli-kpistrip-value.warn','KPI alerta','oklch(0.55 0.16 60)','hue 60','var(--warn)','hue canon 68'],
+  ['.cli-kpistrip-value.success','KPI positivo','oklch(0.50 0.13 145)','hue 145','var(--pos)','hue canon 150'],
+  ['.cli-saldo-neg','saldo devedor','oklch(0.50 0.16 25)','hue 25','var(--neg)','semântico existe'],
+  ['.cli-kpihero-delta','delta positivo','oklch(0.55 0.14 145)','hue 145','var(--pos)','semântico existe'],
+  ['.cli-kpihero-tone-amber','tile OS','oklch(0.93 0.07 70)','origem OS','var(--origin-OS-bg)','já existe (70)'],
+  ['.cli-kpihero-tone-emerald','tile financeiro','oklch(0.92 0.06 155)','financeiro','var(--origin-FIN-bg)','já existe (150)'],
+  ['.cli-kpihero-tone-primary','tile CRM','oklch(0.92 0.05 250)','azul 250','var(--origin-CRM-bg)','já existe (245)'],
+  ['.cli-kpihero-tone-rose','tile crítico','oklch(0.93 0.06 20)','rose 20','var(--neg-soft)','semântico existe'],
+  ['.cli-kpihero-card','sombra card','oklch(0.2 0.03 280 / .05)','sombra crua','var(--sh-1)','elevação canon'],
+  ['.cli-filter-chip.warn','chip atraso','oklch(0.50 0.16 60)','hue 60','var(--warn)','semântico existe'],
+];
+document.getElementById('b1').innerHTML = b1.map(r=>row(...r)).join('');
+
+const b2 = [
+  ['.cli-frescor-recente','recência alta','oklch(0.42 0.13 145)','+ soft + border','var(--frescor-recente)','TOKEN NOVO', {newtok:true, fromText:'recente', fromSoft:'oklch(0.95 0.04 145)', fromInk:'oklch(0.42 0.13 145)', toText:'recente', toSoft:'var(--frescor-recente-soft)', toInk:'var(--frescor-recente)'}],
+  ['.cli-frescor-distante','recência média','oklch(0.50 0.13 60)','amber','var(--frescor-distante)','TOKEN NOVO', {newtok:true, fromText:'distante', fromSoft:'oklch(0.95 0.05 60)', fromInk:'oklch(0.50 0.13 60)', toText:'distante', toSoft:'var(--frescor-distante-soft)', toInk:'var(--frescor-distante)'}],
+  ['.cli-frescor-frio','sem contato','oklch(0.50 0.13 25)','rose','var(--frescor-frio)','TOKEN NOVO', {newtok:true, fromText:'frio', fromSoft:'oklch(0.95 0.04 25)', fromInk:'oklch(0.50 0.13 25)', toText:'frio', toSoft:'var(--frescor-frio-soft)', toInk:'var(--frescor-frio)'}],
+  ['.cli-kind-customer','tipo cliente','oklch(0.40 0.11 145)','categórico','var(--kind-customer)','TOKEN NOVO', {newtok:true, fromBordered:true, toBordered:true, toVal:'var(--kind-customer)'}],
+  ['.cli-kind-supplier','tipo fornecedor','oklch(0.42 0.12 60)','categórico','var(--kind-supplier)','TOKEN NOVO', {newtok:true, fromBordered:true, toBordered:true, toVal:'var(--kind-supplier)'}],
+  ['.cli-kind-employee','tipo funcionário','oklch(0.40 0.08 250)','categórico','var(--kind-employee)','TOKEN NOVO', {newtok:true, fromBordered:true, toBordered:true, toVal:'var(--kind-employee)'}],
+  ['.cli-kind-representative','tipo representante','oklch(0.40 0.12 290)','categórico','var(--kind-representative)','TOKEN NOVO', {newtok:true, fromBordered:true, toBordered:true, toVal:'var(--kind-representative)'}],
+  ['.cli-kpihero-dark','card Faturamento','oklch(0.21 0.03 264)','navy destaque','var(--kpi-feature-bg)','TOKEN NOVO', {newtok:true, toVal:'var(--kpi-feature-bg)'}],
+];
+document.getElementById('b2').innerHTML = b2.map(r=>row(...r)).join('');
+
+const b3 = [
+  ['.cli-vip','badge VIP','oklch(0.92 0.07 80)','dourado','var(--warn)  ou  --vip','fold ou novo'],
+  ['.cli-new','badge novo','oklch(0.93 0.05 200)','azul claro','var(--origin-CRM-bg)','herda existente'],
+];
+document.getElementById('b3').innerHTML = b3.map(r=>row(...r)).join('');
+
+function toggleTheme(){
+  const el = document.documentElement;
+  const dark = el.getAttribute('data-theme') === 'dark';
+  el.setAttribute('data-theme', dark ? 'light' : 'dark');
+  document.getElementById('ttog').textContent = dark ? '◐ Dark' : '◑ Light';
+}
+</script>
+
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="oklch(0.55 0.15 295)"/><g fill="#fff"><circle cx="34" cy="40" r="9"/><circle cx="66" cy="40" r="9" fill="oklch(0.93 0.06 70)"/><rect x="22" y="62" width="56" height="7" rx="3.5"/><rect x="30" y="74" width="40" height="6" rx="3"/></g></svg>
+</template>
+</body>
+</html>
