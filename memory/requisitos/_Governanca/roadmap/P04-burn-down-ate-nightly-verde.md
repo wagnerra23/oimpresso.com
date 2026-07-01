@@ -31,6 +31,29 @@ O nightly CT100 produz ~1100 arquivos nao-passando por noite (failed 355-397, er
 - skipped do ultimo run = 2564 (~24% da suite) — confirma o alerta da evidencia: quarentena em massa ja inflou o skip; burn-down honesto e consertar, nao quarentenar mais.
 - Harness (P03 = US-GOV-018/020) ainda `review`; o B3 (matrix sqlite→MySQL) e justamente a fonte de "skips que viram fails novos" (plano-mae:80 "1.413 skips viram execucoes que voltam como fails novos"), por isso P04 depende de P03 estar fechado.
 
+## Distribuição REAL medida — floor 298 (2026-07-01, pós-P02)
+
+Puxada dos `summary.json` + `junit.xml` da nightly `20260701-020001` no CT100 (interseção de 3 runs: 20260628/20260630/20260701). **Supersede a estimativa stale do plano-mãe** — "B1 172 / B2 79" eram fails-de-**testcase**, não arquivos; o floor conta **arquivos**. P03 já executado (era-sqlite corruptores tier-A = 0), mas a nightly ainda carrega a cascata residual abaixo.
+
+**298 arquivos-que-falham, por bucket:**
+
+| Bucket | Arq | Bucket | Arq |
+|---|---|---|---|
+| tests/Feature (raiz) | 89 | Modules/Governance | 9 |
+| Modules/OficinaAuto | 29 | Admin · Arquivos · Jana | 8 cada |
+| Modules/PaymentGateway | 20 | Modules/Fiscal | 6 |
+| Modules/KB | 17 | Modules/ComunicacaoVisual | 5 |
+| Modules/NfeBrasil | 16 | ADS · ConsultaOs · Whatsapp | 4 cada |
+| Modules/Financeiro | 14 | cauda ~18 módulos | ≤3 cada |
+| Modules/Superadmin | 12 | | |
+
+**Root-cause medido (1120 falhas de testcase, por classe de exceção):**
+- **593 (53%) `Illuminate\Database\QueryException`** + 32 `UniqueConstraintViolation` + 19 `ModelNotFound` = **~57% erros de banco** (SQLSTATE `42S22` unknown-column, integrity-constraint) → **cascata de corrupção de schema / isolamento na conexão MySQL compartilhada** (o "lever" do P03/P04). **NÃO são 298 bugs independentes.**
+- **322 (29%) `ExpectationFailedException`** — asserts reais (design-system ratchet R-DS-007, inertia asserts, cross-tenant scope) — trabalho per-teste genuíno, menor.
+- Cauda: 40 `Error` · 36 `ErrorException` · 12 `PermissionDoesNotExist` · 12 `TypeError` (PaymentGatewayService)...
+
+**Implicação pro burn-down:** maior alavanca = atacar o **isolamento** (a fatia DB de 57%), que pode derrubar centenas de `QueryException` de uma vez, ANTES de caçar asserts individuais. Piloto honesto: isolar/converter um cluster de corruptores de 1 conexão → 1 nightly → **MEDIR a queda do floor** (regra dura "MEDIR cada passo, nunca previsão-como-fato"). Lista dos 298 re-derivável da nightly viva no CT100 (`/opt/oimpresso-fullsuite/runs/<ts>/summary.json` → interseção).
+
 ## Objetivo / DoD (criterio de pronto OBJETIVO e checavel)
 1. **7 nightlies CT100 consecutivas com `floor_count: 0`** (ou floor so de arquivos quarentenados-com-razao + dono, NUNCA por quarentena nova de teste de produto), lidas da branch orfa `governance/nightly-floor` — `git cat-file -p origin/governance/nightly-floor:governance/nightly-floor.json` mostra `floor_count: 0` em 7 `computed_at` consecutivos.
 2. **p95 de duracao das 7 nightlies <= 25min** (criterio R1 do ADR 0275:86) — medido do log do CT100 / summary.json.

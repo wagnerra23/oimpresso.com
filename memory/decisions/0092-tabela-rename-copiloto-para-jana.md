@@ -10,7 +10,8 @@ decided_at: 2026-05-06
 decided_by: [W]
 module: copiloto
 quarter: 2026-Q2
-supersedes: ["0088#db"]
+supersedes: []
+supersedes_partially: ["0088-module-rename-php-only"]
 related: ["0084", "0087", "0088"]
 authors: [wagner, claude]
 ---
