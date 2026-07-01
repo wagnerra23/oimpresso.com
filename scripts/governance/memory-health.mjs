@@ -46,12 +46,13 @@ const STALE_MONTHS = 6; // doc canon parado > 6 meses = candidato a revisão
 // acima do teto por arquivo. Aceitos (ex: default Firebird "masterkey") ficam no baseline.
 const BASELINE_FILE = 'scripts/governance/.memory-health-baseline.json';
 const UPDATE_BASELINE = process.argv.includes('--update-baseline');
-const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [], checkM: [], checkN: [], checkO: [] };
+const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [], checkM: [], checkN: [], checkO: [], checkR: [] };
 let checkCByFile = {};
 let checkLSlugs = []; // Check L (ADR vivo-mas-proposto): slugs detectados nesta run
 let checkMKeys = []; // Check M (teto de governança): keys de workflow do registry nesta run
 let checkNIds = []; // Check N (colisão US-ID): IDs duplicados detectados nesta run
 let checkOSlugs = []; // Check O (morta-mas-canon): slugs de ADR morta ainda citada como canon
+let checkRSlugs = []; // Check R (revisão vencida): slugs de ADR viva com decided_at+TTL vencido
 
 const fails = []; // 🔴 bloqueia CI
 const warns = []; // 🟡 só sinaliza
@@ -583,6 +584,49 @@ function checkMortaMasCanon() {
   }
 }
 
+// ── Check R: revisão vencida por meia-vida (ADR 0317 §1 · classe TEMPO) ──────
+// Rede de segurança temporal: ADR VIVA cujo `decided_at + TTL(kind)` já passou —
+// ninguém garante que a decisão ainda vale. De `decided_at` (IMUTÁVEL), NUNCA
+// git-mtime (o Check K provou que touch-em-massa "rejuvenesce" a git-date). Isenta
+// kind:meta + lifecycle:historical (∞) + ADR já morta (superseded/substituido/recusada:
+// resolvida, não precisa revisão). 🟡 sentinela. Ratchet só-encolhe (.checkR): revisão
+// feita = grandfather via --update-baseline (decided_at é append-only → a ADR não
+// "des-vence" sozinha; o grandfather É o registro de "revisei, segue de pé").
+const TTL_DAYS = { proposto: 30, rascunho: 30, errata: 180, 'feature-wish': 180 };
+const REVIEW_EXEMPT_LC = new Set(['historical', 'substituido', 'arquivado']);
+const REVIEW_EXEMPT_ST = new Set(['superseded', 'deprecated', 'recusado']);
+function checkStaleReview() {
+  const dir = 'memory/decisions';
+  if (!exists(dir)) return;
+  const today = new Date(gitLastDate('.') || '2026-06-20'); // determinismo CI (sem Date.now)
+  for (const f of readdirSync(join(ROOT, dir))) {
+    if (!/^\d{4}-.+\.md$/.test(f)) continue;
+    let txt; try { txt = read(`${dir}/${f}`); } catch { continue; }
+    const fmEnd = txt.startsWith('---') ? txt.indexOf('\n---', 3) : -1;
+    const fm = fmEnd === -1 ? '' : txt.slice(0, fmEnd);
+    const st = (fm.match(/^status:\s*["']?([^\s"'#]+)/mi) || [])[1]?.toLowerCase();
+    const lc = (fm.match(/^lifecycle:\s*["']?([^\s"'#]+)/mi) || [])[1]?.toLowerCase();
+    const kind = (fm.match(/^kind:\s*["']?([^\s"'#]+)/mi) || [])[1]?.toLowerCase() || 'decision';
+    if (kind === 'meta') continue;
+    if (lc && REVIEW_EXEMPT_LC.has(lc)) continue;
+    if (st && REVIEW_EXEMPT_ST.has(st)) continue;
+    const decided = (fm.match(/^decided_at:\s*["']?(\d{4}-\d{2}-\d{2})/mi) || [])[1];
+    if (!decided) continue; // sem data imutável → não computa (não inventa git-mtime)
+    // proposto/rascunho 30 · errata/feature-wish 180 · decisão 270 (arquitetura interna).
+    // O tier 90d "decisão-toca-dependência-externa" (ADR 0317) precisa de um sinal
+    // explícito (campo/tag) que ainda não existe — deferido; default decisão = 270.
+    const ttl = TTL_DAYS[st] || TTL_DAYS[kind] || 270;
+    if ((today - new Date(decided)) / 86400000 > ttl) checkRSlugs.push(f.replace(/\.md$/, ''));
+  }
+  if (UPDATE_BASELINE) return; // no modo update só capturamos; nada de warn
+  const grandfathered = new Set(baseline.checkR || []);
+  const novos = checkRSlugs.filter((slug) => !grandfathered.has(slug));
+  if (novos.length) {
+    warns.push({ check: 'R', kind: 'revisao-vencida', count: novos.length, sample: novos.slice(0, 12),
+      msg: `ADR(s) VIVA(s) com revisão VENCIDA por meia-vida (decided_at + TTL(kind) já passou — proposto/rascunho 30d · errata/feature-wish 180d · decisão 270d): a decisão pode ter drifado do mundo e ninguém revalidou. Triagem: revisar → ratificar/emendar/aposentar, OU --update-baseline se ainda vale (ADR 0317 §1 classe TEMPO). 🟡 sentinela — não bloqueia.` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkUsCollisions(); // Check N (fail-class ratchet) — colisão de US-ID, sibling do Check A
@@ -599,10 +643,11 @@ checkAdrVivoMasProposto(); // Check L (fail-class) — proposto vs realizado
 try { checkPlanHealth(); } catch (e) { warns.push({ check: 'J', kind: 'plan-health-error', msg: 'plan-health falhou (não bloqueia): ' + e.message }); }
 try { checkSessionDecisionAnchor(); } catch (e) { warns.push({ check: 'K', kind: 'session-anchor-error', msg: 'session-anchor falhou (não bloqueia): ' + e.message }); }
 try { checkMortaMasCanon(); } catch (e) { warns.push({ check: 'O', kind: 'morta-mas-canon-error', msg: 'morta-mas-canon falhou (não bloqueia): ' + e.message }); } // Check O (sentinela) — ADR 0317
+try { checkStaleReview(); } catch (e) { warns.push({ check: 'R', kind: 'revisao-vencida-error', msg: 'revisao-vencida falhou (não bloqueia): ' + e.message }); } // Check R (sentinela) — ADR 0317
 
 if (UPDATE_BASELINE) {
-  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort(), checkM: checkMKeys.slice().sort(), checkN: checkNIds.slice().sort(), checkO: checkOSlugs.slice().sort() }, null, 2) + '\n');
-  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto · Check M: ${checkMKeys.length} workflows grandfathered · Check N: ${checkNIds.length} US-IDs dup grandfathered · Check O: ${checkOSlugs.length} morta-mas-canon grandfathered)`);
+  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort(), checkM: checkMKeys.slice().sort(), checkN: checkNIds.slice().sort(), checkO: checkOSlugs.slice().sort(), checkR: checkRSlugs.slice().sort() }, null, 2) + '\n');
+  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto · Check M: ${checkMKeys.length} workflows grandfathered · Check N: ${checkNIds.length} US-IDs dup grandfathered · Check O: ${checkOSlugs.length} morta-mas-canon grandfathered · Check R: ${checkRSlugs.length} revisão-vencida grandfathered)`);
   process.exit(0);
 }
 
