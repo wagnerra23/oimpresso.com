@@ -20,11 +20,10 @@
       "classe": "gate"
     },
     "nfebrasil-pest.yml": {
-      "nome": "NfeBrasil · Pest (MySQL · advisory) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b",
+      "nome": "NfeBrasil · Pest (MySQL) — testes fiscais rodam no MySQL real (skip no sqlite = verde mente); JUnit alimenta o verde@ do gate de entrada G1b",
       "classe": "gate",
-      "terminal": "advisory",
-      "anchor": "âncora improvada G1b verde-real (memory/sessions/2026-06-23-robustez-anchor-reavaliada-150-clientes.md) — risco fiscal ×150 clientes: 34/45 testes pulam no sqlite, verde@ mentiria",
-      "promote_by": "2026-07-07"
+      "terminal": "required",
+      "anchor": "âncora improvada G1b verde-real (memory/sessions/2026-06-23-robustez-anchor-reavaliada-150-clientes.md) — risco fiscal ×150 clientes: 34/45 testes pulam no sqlite, verde@ mentiria · required mantido LEI pela ADR 0314; nome sem “advisory” desde o rename P14 2026-07-01"
     },
     "gitleaks-history.yml": {
       "nome": "Gitleaks histórico completo (4º portão four-gate · full-history detect · advisory · ADR 0215)",
@@ -294,7 +293,7 @@
       "classe": "gate"
     },
     "tier0-guards-advisory.yml": {
-      "nome": "Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)",
+      "nome": "Tier-0 guards (WithoutGlobalScopes + BusinessId)",
       "classe": "gate"
     },
     "ui-architecture-gate.yml": {

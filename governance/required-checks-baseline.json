@@ -13,6 +13,9 @@
     "democoes": [
       "2026-06-30: ADR 0314 D-1 (poda onda 2 · LEI) — DEMOVE 7 de required → advisory. Os workflows CONTINUAM rodando e mostrando vermelho, só deixam de bloquear merge. Demovidos: \"module-grades-gate\" (check mais caro do repo, métrica composta, não-catástrofe), \"E2E Playwright · UCs críticos\" (quality-gate, lento), \"A11y axe · runtime nos componentes canon\" (quality), \"Foundation ratchet (quarentena/RefreshDatabase/Business::first)\" (quality), \"charter_refs_broken <= teto\" (advisory-na-adoção por design; F5 charter-fusão RETIRADA #3463 → segue como contexto próprio, logo entra na demoção), \"Detectar mudança de bucket sem label aprovação (ADR 0160 — Wave 20)\" (processo), \"Jana recall-eval (mock — golden set determinístico)\" (mock, não-Tier-0). Invariante DURO preservado: NENHUM gate multi-tenant/dinheiro/PII/fiscal sai do required — Tier-0 guards, anchor entry/covers, visual-regression (render-isolation ZZLEAK99) e NfeBrasil MySQL FICAM LEI (resgatados pelo adversário 2026-06-30). required 29 → 22. Flip do branch protection aplicado após Wagner OK no diff (R10); reversível via gh api re-add."
     ],
+    "renames": [
+      "2026-07-01: P14 fix (d) — os 6 required com \"(advisory)\" no nome RENOMEADOS (o nome mentia; avaliação adversarial 2026-07-01). Dança zero-window: PR-1 #3535 shims sob o nome novo → flip add 6 contexts → PR-2 renomeia jobs reais + swap neste arquivo → flip remove os 6 velhos. Mapeamento: 'anchor-lint ADR 0273 (advisory)'→'anchor-lint ADR 0273' · 'anchor entry/covers gate (advisory)'→'anchor entry/covers gate' · 'doneness-lint ADR 0302 (advisory)'→'doneness-lint ADR 0302' · 'charter status:live precisa de sinal de prod (advisory)'→'charter status:live precisa de sinal de prod' · 'Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)'→'Tier-0 guards (WithoutGlobalScopes + BusinessId)' · 'PHP / Pest (NfeBrasil · MySQL · advisory)'→'PHP / Pest (NfeBrasil · MySQL)'. NÃO é promoção nem demoção — mesmo enforcement, nome honesto."
+    ],
     "fonte": "gh api repos/<repo>/branches/main (.protection) + repos/<repo>/rules/branches/main — rota admin não usada (404 pra não-admin)",
     "limitacao": "o resumo público da protection clássica não expõe o flag strict (só rulesets expõem) — strict clássico é verificado no flip R1 pelo humano (ADR 0275 §5)",
     "consumidores": [
@@ -34,17 +37,17 @@
       "No hardcode business_id (Tier 0)",
       "No-mock-in-prod · ratchet",
       "PHP / Pest (Financeiro · MySQL)",
-      "PHP / Pest (NfeBrasil · MySQL · advisory)",
+      "PHP / Pest (NfeBrasil · MySQL)",
       "PHP / Pest (Unit)",
       "PHPStan / Larastan · ratchet vs baseline",
       "PII scan (CPF/CNPJ literal)",
       "SDD scorecard ratchet (métrica armada não regride · GT-G3)",
       "Secret scan (gitleaks · só linhas novas do PR)",
-      "Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)",
-      "anchor entry/covers gate (advisory)",
-      "anchor-lint ADR 0273 (advisory)",
-      "charter status:live precisa de sinal de prod (advisory)",
-      "doneness-lint ADR 0302 (advisory)",
+      "Tier-0 guards (WithoutGlobalScopes + BusinessId)",
+      "anchor entry/covers gate",
+      "anchor-lint ADR 0273",
+      "charter status:live precisa de sinal de prod",
+      "doneness-lint ADR 0302",
       "visual-regression"
     ]
   },
