@@ -1335,3 +1335,18 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - [ ] Tornar isso pré-requisito do gate de cutover P1 (INVARIANTE-TIER0-VERIFICADA do ADR 0296).
 
 Refs: ADR 0296 (S-1) · ADR 0093 · HealthCheckCommand.php:178.
+
+### US-COPI-129 · Consertar jana:recall-eval (mock) — golden set estrutura_ok:false, 10 violações
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+O gate CI `Jana recall-eval (mock — golden set determinístico)` está vermelho no main (não-required, pré-existente — descoberto 2026-07-01 durante hotfix não-relacionado #3506).
+
+**Evidência (run 28528973733):** `php artisan jana:recall-eval --mode=mock --json` retorna:
+- `n_queries: 27`, `n_collision_queries: 6`, `n_queries_with_violations: 10`
+- `checks.yaml_parse: true` mas `checks.estrutura_ok: false` → exit 1
+
+**Investigar:** (1) o que `estrutura_ok:false` significa (schema do golden `tests/eval/recall-golden.yaml` divergiu do que o comando espera?); (2) as 10 queries com violação são regressão real de recall ou o golden ficou stale; (3) se o gate deve ser required (hoje não é) ou é teatro a aposentar (cf. ADR 0271 subtração segura + jana-ragas-gate teatro).
+
+**Contexto:** não bloqueia merges (não-required). Fora do escopo do incidente da devolução (#3488/#3494/#3506). Não mexer em Jana sem OK Wagner.
