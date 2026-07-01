@@ -1,0 +1,28 @@
+{
+  "_meta": {
+    "title": "Baseline HONESTO do RAGAS real da Jana (não-tautológico)",
+    "descricao": "Scores da saída REAL da Jana (KbAnswerService: retrieval em mcp_memory_documents + síntese gpt-4o-mini via KbAnswerAgent), julgada por RagasJudgeService. NÃO é answer=ground_truth (tautologia banida ADR 0271). Diferente de governance/jana-ragas-baseline.json, que é do gate tautológico jana-ragas-ci-eval.",
+    "gerado_em": "2026-07-01",
+    "gerado_por": "jana:ragas-real-eval (equivalente) rodado no CT 100 staging",
+    "ambiente": "CT 100 oimpresso-staging (APP_ENV=staging · MySQL real · Meilisearch · 1153 docs mcp_memory_documents)",
+    "modo": "real",
+    "gold_set": "Modules/Jana/Tests/Feature/Ai/fixtures/jana-gold-set.json (51 perguntas, 6 buckets)",
+    "adr": "0318",
+    "prs": ["#3516 (mata tautologia)", "loop-close (agenda + baseline + honestifica gate PR)"]
+  },
+  "n_questions": 51,
+  "n_evaluated": 51,
+  "n_no_context": 0,
+  "n_synth_failed": 0,
+  "faithfulness_avg": 0.6916,
+  "relevancy_avg": 0.8039,
+  "context_recall_avg": 0.3839,
+  "thresholds_regressao": {
+    "_nota": "Floors = baseline menos margem pequena. Alertam em REGRESSÃO real, não no 0.80/0.75 aspiracional. Subir conforme o pipeline maturar (estado-da-arte: start lower, tighten iteratively).",
+    "faithfulness": 0.65,
+    "answer_relevancy": 0.75
+  },
+  "gaps_conhecidos": {
+    "context_recall_baixo": "0.3839 — o retriever FULLTEXT cobre ~38% do que o ground_truth precisa. Provável causa: hybrid docs_pipeline (config copiloto.mcp_search.docs_pipeline) off + FULLTEXT não rankeia a ADR certa no top-K. Follow-up: task de RAG quality (não bloqueia este loop)."
+  }
+}
