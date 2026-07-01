@@ -2,7 +2,8 @@
 roadmap_item: P13
 slug: promover-gt-g3-required
 onda: 6
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: [P05, P08]
 destrava: []
 related_adrs: [0275, 0271, 0261, 0279, 0282]
@@ -10,6 +11,8 @@ esforco_estimado: "0.7d codavel + 14d relogio (janela advisory) + ~5min Wagner-f
 ---
 
 # P13 · Promover GT-G3 a required (a 1ª decisão SDD em L3)
+
+> **✅ EXECUTADO 2026-07-01** (reconciliação de bookkeeping) — gate `SDD scorecard ratchet (GT-G3)` na lista required (branch protection).
 
 ## Problema (o que está quebrado, em 2-3 frases)
 
