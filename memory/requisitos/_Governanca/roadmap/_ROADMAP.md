@@ -70,7 +70,7 @@ Esforço dominado por **7+ noites de relógio real** (CT100). Semanas, não dias
 | [P08](P08-conectar-metricas-gt-e-fixture-anchor.md) ✅ | Conectar 2 métricas GT + fixture anchor | 1 | — | P13 | **executado** (#3140) | ✅ `drift_alarms`+`backfill_error_rate` `measured`; 6ª catraca `anchor-lint` morde |
 | [P09](P09-sa-a4-sanear-placeholders-anchored-dead.md) ✅ | SA-A4: sanear placeholders + dead | 4 | — | P10 | **executado 2026-07-01** (#3473+#3475) | ✅ `anchor-lint` dead=0, placeholder=0 |
 | [P10](P10-sa-a5-a6-batches-ia-fila-wagner.md) | SA-A5/A6: batches IA + fila + enforce | 4 | P09 | P13 | 3-4d / 2-3 sem | PR sem ledger → umbrella vermelho |
-| [P11](P11-kl-e2-renames-reseed-distiller.md) | KL E2: renames + re-seed + distiller | 4 | P05 | — | 1d / dias | `ghost_count` ratchet morde; freshness `measured` |
+| [P11](P11-kl-e2-renames-reseed-distiller.md) 🟡 | KL E2: renames + re-seed + distiller | 4 | P05 | — | 1d / dias | E2a ✅ #3155 (ghost 14→8 armado) · E2b ✅ **executado 2026-07-01** (manifest `governance/reseed-meilisearch-manifest.json`) · E3 🟡 dry-run ✅ (crash GLOB_BRACE corrigido #3532; lote 1 aguarda **skim Wagner**) — freshness `measured` só após run real |
 | [P12](P12-decay-real-ragas-recall.md) | Decay real: RAGAS + recall-eval | 5 | — | — | 1d / **secret Wagner** | RAGAS baseline>0 (sai da tautologia) |
 | [P13](P13-promover-gt-g3-required.md) ✅ | **Promover GT-G3 a `required`** | 6 | P05,P08 | — | **executado** | ✅ `SDD scorecard ratchet (GT-G3)` na lista required |
 | [P14](P14-catraca-floor-morde-no-required.md) 🆕 | **Catraca do floor MORDE no required** (defeito nº 1 da avaliação 67) | 0 | — | P04,R1,C2 | 0.5-1d / 2 flips Wagner | PR com floor regredido na fixture → GT-G3 exit 1; fonte ausente com armed → exit 1 (não skip) |
