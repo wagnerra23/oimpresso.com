@@ -30,8 +30,7 @@ memory/requisitos/Boleto.md         @wagnerra23
 # 🔒 LGPD / DADOS PESSOAIS — Wagner (Felipe futuro)
 # ──────────────────────────────────────────────
 Modules/Jana/                       @wagnerra23   # ex-Copiloto (rename ADR 0088) — TODO: + @<handle Felipe>
-memory/requisitos/Jana/             @wagnerra23   # docs LGPD-crítico (SPEC, PII-REDACTION, retention)
-memory/requisitos/Copiloto/         @wagnerra23   # ghost-dir legacy — 4 arquivos ainda por migrar p/ Jana
+memory/requisitos/Jana/             @wagnerra23   # docs LGPD-crítico (SPEC, PII-REDACTION, retention). Ghost-dir requisitos/Copiloto/ migrado p/ cá em 2026-07-01 (só lápides restam, sem conteúdo LGPD)
 memory/requisitos/EvolutionAgent/   @wagnerra23
 Modules/Ponto/                      @wagnerra23   # ponto eletrônico = dado pessoal (ex-PontoWr2)
 memory/requisitos/Ponto/            @wagnerra23   # docs ponto (dir canônico atual)
