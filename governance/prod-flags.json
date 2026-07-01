@@ -18,6 +18,9 @@
     "RecurringBilling/Index": ["4"],
     "Financeiro/Unificado/Index": ["4"],
     "Financeiro/Dre/Index": ["4"],
+    "Financeiro/Conciliacao/Index": ["1"],
+    "Financeiro/ContasBancarias/Index": ["1"],
+    "Financeiro/Impostos/Index": ["1"],
     "OficinaAuto/ServiceOrders/Show": ["164"],
     "OficinaAuto/ServiceOrders/Board": ["164"]
   }
