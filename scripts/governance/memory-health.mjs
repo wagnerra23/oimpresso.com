@@ -46,11 +46,12 @@ const STALE_MONTHS = 6; // doc canon parado > 6 meses = candidato a revisão
 // acima do teto por arquivo. Aceitos (ex: default Firebird "masterkey") ficam no baseline.
 const BASELINE_FILE = 'scripts/governance/.memory-health-baseline.json';
 const UPDATE_BASELINE = process.argv.includes('--update-baseline');
-const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [], checkM: [], checkN: [] };
+const baseline = existsSync(join(ROOT, BASELINE_FILE)) ? JSON.parse(readFileSync(join(ROOT, BASELINE_FILE), 'utf8')) : { checkC: {}, checkL: [], checkM: [], checkN: [], checkO: [] };
 let checkCByFile = {};
 let checkLSlugs = []; // Check L (ADR vivo-mas-proposto): slugs detectados nesta run
 let checkMKeys = []; // Check M (teto de governança): keys de workflow do registry nesta run
 let checkNIds = []; // Check N (colisão US-ID): IDs duplicados detectados nesta run
+let checkOSlugs = []; // Check O (morta-mas-canon): slugs de ADR morta ainda citada como canon
 
 const fails = []; // 🔴 bloqueia CI
 const warns = []; // 🟡 só sinaliza
@@ -524,6 +525,64 @@ function checkAdrVivoMasProposto() {
   }
 }
 
+// ── Check O: morta-mas-canon (ADR 0317 §1 · classe INCONSISTÊNCIA) ──────────
+// ADR marcada MORTA (superseded/deprecated OU lifecycle substituido/arquivado) E
+// ainda citada como ADR canônica numa FONTE-DE-VERDADE VIVA e curada (primer
+// CLAUDE.md + @imports, BRIEFING.md, SPEC.md) — o padrão "0035" (rótulo mente:
+// a base segue canon mas a metadata diz morta). NÃO ref-count bruto em memory/**
+// (o cético provou 11 falsos no dia 1 — fundacionais têm 45 refs e são superseded
+// de verdade); só o corpus curado, e só citação ESTRUTURAL (link/ADR NNNN), não
+// 4-dígitos solto. 🟡 sentinela (warn, NUNCA bloqueia): a máquina só enfileira; o
+// relabel (0257 supersedes_partially) é humano+adversarial (invariante Tier 0 do
+// 0317). Ratchet só-encolhe (.checkO, padrão Checks C/L/M/N): citação histórica
+// legítima grandfatherada via --update-baseline; ratificar/relabelar tira sozinho.
+const DEAD_STATUS_O = new Set(['superseded', 'deprecated']);
+const DEAD_LIFECYCLE_O = new Set(['substituido', 'arquivado']);
+function checkMortaMasCanon() {
+  const dir = 'memory/decisions';
+  if (!exists(dir)) return;
+  // Fontes-de-verdade VIVAS: citam só o que é canon corrente (curadas à mão).
+  const truthFiles = [
+    'CLAUDE.md',
+    'memory/what-oimpresso.md', 'memory/why-oimpresso.md',
+    'memory/how-trabalhar.md', 'memory/proibicoes.md', 'memory/regras-time.md',
+    ...(exists('memory/requisitos') ? listFiles('memory/requisitos', (p) => /\/(BRIEFING|SPEC)\.md$/.test(p)) : []),
+  ];
+  // Corpus VIVO = só o CORPO (frontmatter `related_adrs`/`supersedes` é relação, não
+  // "isto é canon") E só LINHAS que NÃO estão falando da MORTE da ADR (nega o
+  // auto-flag "0079 virou superseded" que cita 0079). Reduz o ruído histórico dos
+  // SPEC/BRIEFING sem perder o padrão "listada como stack canônica" (0035).
+  const stripFm = (t) => { if (t.startsWith('---')) { const e = t.indexOf('\n---', 3); if (e !== -1) return t.slice(e + 4); } return t; };
+  const CANON_NEG = /supersed|substitu|deprecat|\bantig|hist[oó]ri|\bmorta|revogad|obsolet|descontinuad|aposentad|removid/i;
+  let truth = '';
+  for (const f of truthFiles) {
+    let t; try { t = stripFm(read(f)); } catch { continue; }
+    for (const ln of t.split('\n')) if (!CANON_NEG.test(ln)) truth += '\n' + ln;
+  }
+  for (const f of readdirSync(join(ROOT, dir))) {
+    const m = f.match(/^(\d{4})-.+\.md$/);
+    if (!m) continue;
+    const num = m[1];
+    let txt; try { txt = read(`${dir}/${f}`); } catch { continue; }
+    const st = (txt.match(/^status:\s*["']?([^\s"'#]+)/mi) || [])[1]?.toLowerCase();
+    const lc = (txt.match(/^lifecycle:\s*["']?([^\s"'#]+)/mi) || [])[1]?.toLowerCase();
+    // `status: aceito` NUNCA é morta (decisão aceita segue de pé mesmo se lifecycle:arquivado)
+    // — senão flagga falso-positivo por construção (aceito+arquivado ≠ substituído).
+    if (st && /^(aceito|accepted|aceita)/.test(st)) continue;
+    if (!((st && DEAD_STATUS_O.has(st)) || (lc && DEAD_LIFECYCLE_O.has(lc)))) continue;
+    // Citação ESTRUTURAL como ADR (não 4-dígitos solto): "ADR 0035" · "decisions/0035-" · "[…0035-slug…]".
+    const cited = new RegExp(`(ADR[ _-]?${num}\\b|decisions/${num}-[a-z]|\\b${num}-[a-z]{2,})`, 'i').test(truth);
+    if (cited) checkOSlugs.push(f.replace(/\.md$/, ''));
+  }
+  if (UPDATE_BASELINE) return; // no modo update só capturamos; nada de warn
+  const grandfathered = new Set(baseline.checkO || []);
+  const novos = checkOSlugs.filter((slug) => !grandfathered.has(slug));
+  if (novos.length) {
+    warns.push({ check: 'O', kind: 'morta-mas-canon', count: novos.length, sample: novos.slice(0, 12),
+      msg: `ADR(s) marcada(s) MORTA(s) (superseded/deprecated/substituido/arquivado) mas ainda citada(s) como ADR canônica numa fonte-de-verdade VIVA (CLAUDE.md/what-oimpresso/BRIEFING/SPEC) — o padrão "morta-mas-canon" (ADR 0317 §1). Triagem: relabel via 0257 (\`supersedes_partially\` se é emenda, não morte) OU --update-baseline se a citação for histórica legítima. 🟡 sentinela — não bloqueia.` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkUsCollisions(); // Check N (fail-class ratchet) — colisão de US-ID, sibling do Check A
@@ -539,10 +598,11 @@ checkLicaoSemAssercao();
 checkAdrVivoMasProposto(); // Check L (fail-class) — proposto vs realizado
 try { checkPlanHealth(); } catch (e) { warns.push({ check: 'J', kind: 'plan-health-error', msg: 'plan-health falhou (não bloqueia): ' + e.message }); }
 try { checkSessionDecisionAnchor(); } catch (e) { warns.push({ check: 'K', kind: 'session-anchor-error', msg: 'session-anchor falhou (não bloqueia): ' + e.message }); }
+try { checkMortaMasCanon(); } catch (e) { warns.push({ check: 'O', kind: 'morta-mas-canon-error', msg: 'morta-mas-canon falhou (não bloqueia): ' + e.message }); } // Check O (sentinela) — ADR 0317
 
 if (UPDATE_BASELINE) {
-  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort(), checkM: checkMKeys.slice().sort(), checkN: checkNIds.slice().sort() }, null, 2) + '\n');
-  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto · Check M: ${checkMKeys.length} workflows grandfathered · Check N: ${checkNIds.length} US-IDs dup grandfathered)`);
+  writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort(), checkM: checkMKeys.slice().sort(), checkN: checkNIds.slice().sort(), checkO: checkOSlugs.slice().sort() }, null, 2) + '\n');
+  console.log(`✓ baseline atualizado: ${BASELINE_FILE} (Check C: ${Object.keys(checkCByFile).length} arquivos · Check L: ${checkLSlugs.length} ADRs vivo-mas-proposto · Check M: ${checkMKeys.length} workflows grandfathered · Check N: ${checkNIds.length} US-IDs dup grandfathered · Check O: ${checkOSlugs.length} morta-mas-canon grandfathered)`);
   process.exit(0);
 }
 
