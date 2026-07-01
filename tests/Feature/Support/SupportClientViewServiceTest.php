@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\Services\Support\SupportClientViewService;
 use App\SupportAgent;
 use App\User;
@@ -32,11 +31,11 @@ function viewSchemaReady(): bool
     return Schema::hasTable('users') && Schema::hasTable('business') && Schema::hasTable('support_agents');
 }
 
-function makeViewAgent(string $username, bool $grant = true): User
+function makeViewAgent(string $username, bool $grant = true, int $businessId = BIZ_OPERADOR_VIEW): User
 {
     $user = User::firstOrCreate(
         ['username' => $username],
-        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => BIZ_OPERADOR_VIEW, 'first_name' => 'Ag']
+        ['email' => $username.'@test.local', 'password' => bcrypt('x'), 'business_id' => $businessId, 'first_name' => 'Ag']
     );
 
     if ($grant) {
@@ -71,8 +70,10 @@ it('recusa quem não tem capability de suporte', function () {
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_VIEW], ['name' => 'Cliente View 99', 'currency_id' => 1]);
-    $naoAgente = makeViewAgent('view_nao_agente', grant: false);
+    $this->seededSupportClientTenant();
+    // Não-agente = usuário de CLIENTE (biz≠operadora) sem concessão. NÃO pode ser biz=1:
+    // pela ADR 0309 todo usuário da operadora já é agente (senão o teste mentiria).
+    $naoAgente = makeViewAgent('view_nao_agente', grant: false, businessId: BIZ_CLIENTE_VIEW);
 
     expect(fn () => (new SupportClientViewService(app(\App\Services\Support\SupportAccessService::class)))
         ->clientSummary($naoAgente, BIZ_CLIENTE_VIEW))
@@ -85,7 +86,7 @@ it('monta o resumo do cliente X (empresa correta + contagens numéricas, scopada
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_VIEW], ['name' => 'Cliente View 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $agent = makeViewAgent('view_agent_ok');
 
     $resumo = (new SupportClientViewService(app(\App\Services\Support\SupportAccessService::class)))
@@ -105,7 +106,7 @@ it('a contagem de usuários é scopada ao cliente X (não global)', function () 
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_VIEW], ['name' => 'Cliente View 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $agent = makeViewAgent('view_agent_scope');
 
     // Um usuário do cliente X (além do agente, que é da operadora biz=1).

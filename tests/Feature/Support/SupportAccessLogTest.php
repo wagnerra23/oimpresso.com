@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\Services\Support\SupportAccessService;
 use App\Services\Support\SupportAuditService;
 use App\SupportAccessLog;
@@ -55,6 +54,7 @@ it('recordAccess grava uma linha de auditoria (RF3)', function () {
         test()->markTestSkipped('Schema MySQL UltimatePOS + support_access_logs ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $user = makeLogUser('sup_log_user');
 
     $log = (new SupportAuditService())->recordAccess($user, BIZ_CLIENTE_LOG, '/suporte/entrar/99', '10.0.0.1', 'pest');
@@ -72,6 +72,7 @@ it('o log é APPEND-ONLY: update é barrado', function () {
         test()->markTestSkipped('Schema MySQL UltimatePOS + support_access_logs ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $log = (new SupportAuditService())->recordAccess(makeLogUser('sup_log_upd'), BIZ_CLIENTE_LOG);
 
     expect(fn () => $log->update(['action' => 'adulterado']))->toThrow(RuntimeException::class);
@@ -82,6 +83,7 @@ it('o log é APPEND-ONLY: delete é barrado', function () {
         test()->markTestSkipped('Schema MySQL UltimatePOS + support_access_logs ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $log = (new SupportAuditService())->recordAccess(makeLogUser('sup_log_del'), BIZ_CLIENTE_LOG);
 
     expect(fn () => $log->delete())->toThrow(RuntimeException::class);
@@ -92,6 +94,7 @@ it('recordDenied audita a tentativa negada contra a operadora', function () {
         test()->markTestSkipped('Schema MySQL UltimatePOS + support_access_logs ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $log = (new SupportAuditService())->recordDenied(makeLogUser('sup_log_deny'), BIZ_OPERADOR_LOG, '/suporte/entrar/1');
 
     expect($log->action)->toBe(SupportAuditService::ACTION_NEGADO);
@@ -104,7 +107,7 @@ it('anti-escalonamento: agente que TAMBÉM é Admin do próprio business NÃO al
     }
 
     $this->seededTenant(); // biz=1 operador
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_LOG], ['name' => 'Cliente Log 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
 
     $agent = makeLogUser('sup_admin_agent');
     SupportAgent::query()->updateOrCreate(['user_id' => $agent->id], ['granted_by' => BIZ_OPERADOR_LOG, 'revoked_at' => null]);
