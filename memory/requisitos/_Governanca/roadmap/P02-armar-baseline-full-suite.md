@@ -2,7 +2,8 @@
 roadmap_item: P02
 slug: P02-armar-baseline-full-suite
 onda: 0
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: [P01]
 destrava: [P13]
 related_adrs: [275, 279]
@@ -10,6 +11,8 @@ esforco_estimado: "0.3d codável + 2-3 nightlies de relógio real (≈3d calend�
 ---
 
 # P02 · Armar o baseline da full-suite (valid 0→3, armed false→true)
+
+> **✅ EXECUTADO 2026-07-01** ([PR #3500](https://github.com/wagnerra23/oimpresso.com/pull/3500), merge `8469ebce68`) — `full_suite_pass_rate` no baseline armado: `not_yet_measured/armed:false/valid:0` → `measured/value:298/armed:true/valid:3/direction:down`. Valor capturado da fonte real (branch órfã `nightly-floor@554047dd06`, `intersection_of:3`, runs 20260628/20260630/20260701). Counterfactual provado (floor 298 armado → exit 0; floor 320 armado → 🔴 exit 1; mesmo 320 pré-arme → impune exit 0; `sdd-floor-read.test.mjs` 8/8). Gate CI `SDD scorecard ratchet (GT-G3)` verde. A catraca da métrica-mãe agora MORDE — regressão do floor >298 = exit 1.
 
 ## Problema (o que está quebrado, em 2-3 frases)
 A métrica-mãe do programa SDD (`full_suite_pass_rate`, o "floor" do nightly CT100) já é
