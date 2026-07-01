@@ -1,23 +1,21 @@
 {
   "_meta": {
     "schema_version": "1.0",
-    "description": "Baseline RAGAS canary Jana — placeholder zerado. Wagner deve rodar `gh workflow run jana-ragas-canary.yml -f update_baseline=true -f mode=mock` (ou =real pra calibrar com LLM judge) PRIMEIRA VEZ pra popular scores reais. Enquanto values=0, runner trata como N/A (baseline desconhecido → nunca alerta regressão).",
-    "regression_alert_pct_default": 5.0,
-    "criado_por": "US-COPI-116 audit-implement-expert 2026-05-25",
-    "como_atualizar": "Workflow_dispatch jana-ragas-canary.yml com input update_baseline=true (gera commit auto via github-actions[bot]). NUNCA editar à mão pra evitar drift fora-de-CI."
+    "description": "Baseline RAGAS canary Jana — recriado via workflow_dispatch jana-ragas-canary.yml (US-COPI-116). Não editar à mão; usar update_baseline=true no dispatch.",
+    "regression_alert_pct_default": 5.0
   },
   "metrics": {
     "faithfulness": {
-      "value": 0.0,
-      "last_updated": null,
-      "evaluated_questions": 0,
-      "mode": "placeholder"
+      "value": 1.0,
+      "last_updated": "2026-07-01T14:08:15+00:00",
+      "evaluated_questions": 51,
+      "mode": "real"
     },
     "answer_relevancy": {
-      "value": 0.0,
-      "last_updated": null,
-      "evaluated_questions": 0,
-      "mode": "placeholder"
+      "value": 0.851,
+      "last_updated": "2026-07-01T14:08:15+00:00",
+      "evaluated_questions": 51,
+      "mode": "real"
     }
   }
 }
