@@ -165,6 +165,50 @@ jobs:
             node scripts/governance/charter-live-signal.mjs
           fi
 
+  # ═══ RENAME P14 fix (d) — SHIMS TEMPORÁRIOS (remover no PR-2 do rename) ═════
+  # Os 4 jobs acima são REQUIRED na branch protection desde 2026-06-30, mas o nome
+  # carrega "(advisory)" — o nome mente (avaliação adversarial 2026-07-01 · P14).
+  # Required check casa por NOME: rename direto deadlocka ("Expected — waiting").
+  # Dança zero-window: PR-1 (este) cria shims que espelham o resultado do job real
+  # sob o nome DEFINITIVO → flip adiciona os 6 contexts novos → PR-2 renomeia os
+  # jobs reais e remove os shims → flip remove os contexts velhos. O shim FALHA se
+  # o job espelhado não terminou em success (failure/cancelled/skipped ⇒ vermelho).
+  anchor-lint-rename-shim:
+    name: anchor-lint ADR 0273
+    needs: anchor-lint
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: espelha o resultado de "anchor-lint ADR 0273 (advisory)"
+        run: test "${{ needs.anchor-lint.result }}" = "success"
+
+  anchor-entry-covers-rename-shim:
+    name: anchor entry/covers gate
+    needs: anchor-entry-covers
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: espelha o resultado de "anchor entry/covers gate (advisory)"
+        run: test "${{ needs.anchor-entry-covers.result }}" = "success"
+
+  doneness-lint-rename-shim:
+    name: doneness-lint ADR 0302
+    needs: doneness-lint
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: espelha o resultado de "doneness-lint ADR 0302 (advisory)"
+        run: test "${{ needs.doneness-lint.result }}" = "success"
+
+  charter-live-signal-rename-shim:
+    name: charter status:live precisa de sinal de prod
+    needs: charter-live-signal
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: espelha o resultado de "charter status:live precisa de sinal de prod (advisory)"
+        run: test "${{ needs.charter-live-signal.result }}" = "success"
+
   # CATRACA "1 lugar fixo" (Wagner 2026-07-01 "não pode trocar de lugar nunca. deve ser isso que fica
   # errando"): a âncora de charter (related_prototype/canon_source) NÃO pode citar lugar velho/volátil
   # (public/cowork-preview, erp-shell, _cowork-handoff-staging, Downloads) e todo path prototipo-ui/cowork/
