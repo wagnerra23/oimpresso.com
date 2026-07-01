@@ -1773,6 +1773,13 @@ class SellController extends Controller
             'urls' => [
                 'edit' => '/sells/' . $sale->id . '/edit',
                 'print' => '/sells/' . $sale->id . '/print',
+                // Devolução (venda retorno → retorno da peça pro estoque). Presente só
+                // com permissão real do SellReturnController::add (access_sell_return|
+                // access_own_sell_return). O menu de linha legado (SellController@index
+                // action column) não foi migrado pro drawer React — restaurado aqui.
+                'sell_return_add' => (auth()->user()->can('access_sell_return') || auth()->user()->can('access_own_sell_return'))
+                    ? '/sell-return/add/' . $sale->id
+                    : null,
             ],
             // F3 PaymentGateway UI Tela 3 — cobrança vinculada à venda (ADR 0144 + 0170).
             // null = não emitida ainda; UI mostra chip "Emitir cobrança" no footer drawer.
