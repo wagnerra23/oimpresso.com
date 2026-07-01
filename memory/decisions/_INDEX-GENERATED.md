@@ -30,6 +30,10 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
+## Supersessão declarada em prosa sem o campo (2) — 🟡 EVENTO-prosa (ADR 0317, warn não-bloqueia)
+- 🟡 0097 declara supersede/substitui em prosa de 0091 — mas SEM o número no campo supersedes/supersedes_partially (furo 0097)
+- 🟡 0185 declara supersede/substitui em prosa de 0179 — mas SEM o número no campo supersedes/supersedes_partially (furo 0097)
+
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
