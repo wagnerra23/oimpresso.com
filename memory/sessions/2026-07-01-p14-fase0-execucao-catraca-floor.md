@@ -50,7 +50,7 @@ Wagner replicou o prompt; detectei a sessão irmã (nostalgic-matsumoto) já com
 
 ## Residual honesto
 
-- `full_suite`/`n_quarantine`/`sqlite_corruptors` medidas mas sem watchdog mapeado (🟡) — P14b no #3552 (em CI ao fechar esta sessão).
+- Watchdog não-mapeado (🟡): **fechado antes do fim da sessão** — P14b mergeado no #3552 (WATCHDOG_SOURCES cobre full_suite/n_quarantine/sqlite_corruptors).
 - Runs locais de `--ratchet` exigem materialização manual da órfã (a mensagem de erro traz o one-liner).
 - Write-side CT100 (deploy key) segue não-verificado pelo required — residual perene do transporte ADR 0279, fora de escopo.
 - **Risco red-until-fixed coletivo ATIVO e consciente** (decisão Wagner nº 3 do plano): floor noturno >298 agora trava TODOS os merges até descer ou subir baseline via PR visível. Trajetória 274→295→298 torna provável. É a catraca funcionando.

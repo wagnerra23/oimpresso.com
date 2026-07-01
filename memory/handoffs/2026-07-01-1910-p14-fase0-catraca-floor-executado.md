@@ -10,7 +10,7 @@ related_adrs:
   - 0279-sdd-medir-governar-floor-nightly
   - 0314-poda-gates-onda-2-lei-fusoes
 next_steps:
-  - "Confirmar merge do #3552 (P14b: jobs renomeados nos 3 workflows + shims removidos + watchdog WATCHDOG_SOURCES pra full_suite/n_quarantine/sqlite_corruptors) — estava verde-parcial em CI ao fechar; depois dele protection-drift zera também os 🟡."
+  - "#3552 (P14b) MERGEADO antes do fechamento — jobs renomeados + shims removidos + watchdog. Conferir na próxima sessão: protection-drift 100% verde (zero amarelo) em main."
   - "PRs abertos com head anterior ao #3535 não produzem os 6 checks novos → 'Expected — waiting'. Fix por PR: gh pr update-branch (comentei em #3532/#3533/#3534)."
   - "Fase 1 do plano pós-avaliação (burn-down P04): ler o piloto self-heal #3507 ANTES de fan-out (kill-criteria: sem queda medida, não escalar). O floor agora MORDE — burn-down vira o caminho de descer 298→0."
   - "Atenção operacional: floor noturno >298 = TODOS os merges travados até PR visível descer/subir baseline (decisão consciente Wagner). Se acontecer, o caminho é o burn-down ou edição do baseline citando ADR 0275 — nunca desarme silencioso."
@@ -20,7 +20,7 @@ next_steps:
 
 ## TL;DR
 
-Defeito nº 1 da avaliação 67 fechado na mesma noite: o required GT-G3 materializa a órfã do floor e avermelha métrica armada sem fonte (era skip silencioso). 6 required sem "(advisory)" no nome (zero-window). Baseline com 5 métricas armadas (+`n_quarantine=27`, +`sqlite_corruptors=0`). Resta #3552 (P14b watchdog) em CI; red-until-fixed coletivo do floor ativo e consciente.
+Defeito nº 1 da avaliação 67 fechado na mesma noite: o required GT-G3 materializa a órfã do floor e avermelha métrica armada sem fonte (era skip silencioso). 6 required sem "(advisory)" no nome (zero-window). Baseline com 5 métricas armadas (+`n_quarantine=27`, +`sqlite_corruptors=0`). P14b (#3552) mergeado antes do fechamento; red-until-fixed coletivo do floor ativo e consciente.
 
 Detalhe completo no [session log](../sessions/2026-07-01-p14-fase0-execucao-catraca-floor.md) e na seção "Execução" do [P14](../requisitos/_Governanca/roadmap/P14-catraca-floor-morde-no-required.md).
 
