@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-SELL-032
+
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;

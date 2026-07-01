@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-SELL-012
+
 use App\Business;
 use App\Console\Commands\SeedDefaultFsmProcesses;
 use App\Domain\Fsm\Models\SaleProcess;

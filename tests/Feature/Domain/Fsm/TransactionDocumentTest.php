@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-SELL-014
+
 use App\Domain\Fsm\Models\TransactionDocument;
 use App\User;
 use Illuminate\Database\Eloquent\Model;

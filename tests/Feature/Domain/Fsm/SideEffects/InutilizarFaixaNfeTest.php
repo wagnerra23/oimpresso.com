@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-SELL-030
+
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use App\Domain\Fsm\SideEffects\InutilizarFaixaNfe;
 use Illuminate\Database\Eloquent\Model;

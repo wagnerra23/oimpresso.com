@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-SELL-036
+
 use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageHistory;

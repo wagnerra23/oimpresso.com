@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+// @covers-us US-SELL-029
+// @covers-us US-SELL-030
+
 use App\Domain\Fsm\Exceptions\UnauthorizedActionException;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
