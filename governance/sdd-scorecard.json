@@ -15,33 +15,33 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 29.7,
+      "value": 38.1,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 29.7,
+        "coverage_pct": 38.1,
         "specs_total": 58,
         "us_total": 855,
-        "anchor_coverage_pct": 29.7,
+        "anchor_coverage_pct": 38.1,
         "by_state": {
-          "sem_campo": 601,
+          "sem_campo": 529,
           "placeholder": 0,
-          "pendente": 102,
-          "parcial": 25,
-          "anchored_ok": 127,
+          "pendente": 113,
+          "parcial": 39,
+          "anchored_ok": 174,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 259,
+        "fields_total": 331,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 237,
+        "fields_grammar_ok": 309,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 78,
-        "req_sem_covering_test_total": 110,
+        "req_sem_aceite_total": 114,
+        "req_sem_covering_test_total": 171,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 39,
         "behavior_known": false,
@@ -211,10 +211,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 6,
+        "entries_aprovadas": 7,
         "max_error_rate_pct": 1.35,
-        "last_pr": 3541,
-        "last_lote": "SA-A5-P10-oficinaauto"
+        "last_pr": 3546,
+        "last_lote": "SA-A5-P10-whatsapp"
       },
       "stream": "GT"
     }
