@@ -477,7 +477,13 @@ class Kernel extends ConsoleKernel
         // DE VERDADE toda semana no staging. O comando faz SKIP honesto (exit 0) se sem
         // chave/contexto — nunca inventa score. appendOutputTo deixa o trend JSON visível.
         // 07:00 pra não disputar DB com drift-sentinel (dom 06:00) nem recall-eval (dom 06:30).
-        $schedule->command('jana:ragas-real-eval --json')
+        //
+        // Thresholds = baseline honesto MENOS margem pequena (estado-da-arte: "start lower,
+        // establish baseline, tighten iteratively"). Baseline real 2026-07-01 (N=51, CT 100
+        // staging): faithfulness 0.6916 · relevancy 0.8039 (governance/jana-ragas-real-baseline.json).
+        // Floors 0.65/0.75 alertam em REGRESSÃO real, não no 0.80 aspiracional (que falharia
+        // toda semana = ruído). O gap de retrieval (context_recall 0.38) é follow-up separado.
+        $schedule->command('jana:ragas-real-eval --json --threshold-faithfulness=0.65 --threshold-relevancy=0.75')
             ->weeklyOn(0, '07:00')
             ->timezone('America/Sao_Paulo')
             ->withoutOverlapping()

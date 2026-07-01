@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **322** arquivos · **306** números únicos · máx **0317**
-- **ADRs ATIVOS (lifecycle ativo): 293** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 271 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 293 · substituido 12 · (vazio) 8 · arquivado 6 · historical 3
+- **323** arquivos · **307** números únicos · máx **0318**
+- **ADRs ATIVOS (lifecycle ativo): 294** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 272 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 294 · substituido 12 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (322)
+## Todas as ADRs (323)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -358,3 +358,4 @@ _(íntegra)_
 | 0315 | aceito | ativo | decision | /design-sync (claude.ai/design) vs. método Cowork+charter: avaliação de adoção + |
 | 0316 | aceito | ativo | decision | Esquecimento real de ADR morta — git rm + tombstone ledger + git history como au |
 | 0317 | aceito | ativo | meta | Máquina de revisão de ADR — quando rever, via 3 classes de gatilho (evento/incon |
+| 0318 | aceito | ativo | tecnica | RAGAS eval real da Jana — mata a tautologia answer=ground_truth, mede saída de v |
