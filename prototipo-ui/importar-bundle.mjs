@@ -116,6 +116,12 @@ $keep=@('.jsx','.tsx','.ts','.js','.mjs','.css','.html','.json','.php')
 $junk=@(Get-ChildItem $dst -Recurse -File | Where-Object { $_.Name -ne '.gitignore' -and ($keep -notcontains $_.Extension.ToLower()) })
 foreach($f in $junk){ Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue }
 Write-Output ("JUNK_SWEPT=" + $junk.Count)
+# resíduo de PROCESSO (espelha scripts/bundle-lint.mjs RESIDUO): audit/tribunal/adversário/GAPS/FORCE
+# — são .html/.md de esteira, NÃO design-source. bundle-lint (advisory) os flagra; o sync tira na origem.
+$resPat='_arquivo|benchmark|uploads|\.thumbnail$|GAPS_v\d|FORCE_|Advers.rio|Tribunal|Avaliac'
+$res=@(Get-ChildItem $dst -Recurse -File | Where-Object { $_.FullName -match $resPat })
+foreach($f in $res){ Remove-Item $f.FullName -Force -ErrorAction SilentlyContinue }
+Write-Output ("RESIDUE_SWEPT=" + $res.Count)
 if($rc -ge 8){ exit 1 } else { exit 0 }`;
   const ps1 = join(tmpdir(), `cowork-sync-${process.pid}.ps1`);
   writeFileSync(ps1, '﻿' + ps, 'utf8'); // BOM: PowerShell 5.1 lê acento do path
@@ -124,7 +130,8 @@ if($rc -ge 8){ exit 1 } else { exit 0 }`;
       encoding: 'utf8', env: { ...process.env, OI_SRC: proj, OI_DST: cowork },
     });
     const swept = Number((out.match(/JUNK_SWEPT=(\d+)/) || [])[1]) || 0;
-    console.log(`✓ SINCRONIZADO → ${cowork}  (build-only + purge; ${swept} não-build varrido(s) — R1: zero .md)`);
+    const resid = Number((out.match(/RESIDUE_SWEPT=(\d+)/) || [])[1]) || 0;
+    console.log(`✓ SINCRONIZADO → ${cowork}  (build-only + purge; ${swept} não-build + ${resid} resíduo-processo varrido(s) — R1 + bundle-lint limpos)`);
   } catch (e) {
     console.error(`✗ sync cowork falhou (robocopy ≥8): ${e.message}`);
     return 1;
