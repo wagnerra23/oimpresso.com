@@ -2,6 +2,10 @@
 
 namespace Modules\Ponto\Tests\Feature;
 
+/**
+ * @covers-us US-PONT-002
+ * @covers-us US-PONT-003
+ */
 class BancoHorasTest extends PontoTestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]

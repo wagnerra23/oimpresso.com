@@ -8,6 +8,18 @@ namespace Modules\Ponto\Tests\Feature;
  *
  * Não testa conteúdo — só verifica que rotas, controllers e montagem Inertia
  * estão saudáveis. Detecta imediatamente bugs de import, migration, etc.
+ *
+ * Cobre as telas de listagem/criação cujo render Inertia é aferido aqui
+ * (status 200 + component exato):
+ * @covers-us US-PONT-001
+ * @covers-us US-PONT-002
+ * @covers-us US-PONT-004
+ * @covers-us US-PONT-005
+ * @covers-us US-PONT-006
+ * @covers-us US-PONT-007
+ * @covers-us US-PONT-009
+ * @covers-us US-PONT-010
+ * @covers-us US-PONT-012
  */
 class TelasNavegacaoTest extends PontoTestCase
 {
