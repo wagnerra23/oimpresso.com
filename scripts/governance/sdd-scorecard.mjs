@@ -388,7 +388,18 @@ function ratchet(current) {
   const red = [], warn = [];
   for (const [name, m] of Object.entries(current.metrics)) {
     const b = base.metrics?.[name];
-    if (!b || typeof b.value !== 'number' || m.status !== 'measured') continue;
+    if (!b || typeof b.value !== 'number') continue;
+    if (m.status !== 'measured') {
+      // P14 fail-closed (defeito nº 1 da avaliação 2026-07-01): métrica ARMADA cuja
+      // fonte sumiu do checkout NÃO passa em silêncio — era o buraco que deixava
+      // floor=298 armed:true virar teatro (fonte gitignored ausente no PR-CI ⇒ skip).
+      // Desarmada segue skip silencioso (comportamento anterior preservado).
+      if (b.armed === true || ARMED) red.push(
+        `${name}: ARMADA no baseline (value ${b.value}) mas medição atual = ${m.status} — fonte ausente/ilegível no checkout. ` +
+        `Materialize a órfã (git fetch origin governance/nightly-floor --depth 1 && git show FETCH_HEAD:governance/nightly-floor.json > governance/nightly-floor.json) ` +
+        `ou desarme via PR editando governance/sdd-scorecard-baseline.json (ADR 0275 §3 — desarme automático NÃO existe).`);
+      continue;
+    }
     const worse = m.direction === 'down' ? m.value > b.value : m.value < b.value;
     if (!worse) continue;
     const msg = `${name}: baseline ${b.value} → ${m.value} (${m.direction === 'down' ? 'só pode DESCER' : 'só pode SUBIR'})`;
