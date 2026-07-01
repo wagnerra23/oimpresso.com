@@ -9,8 +9,9 @@
  * Determinístico, sem LLM, sem dependência — roda em CI (PR toca memory/**) e local.
  *
  * Checagens:
- *   A · COLISÃO ADR não-registrada — número de ADR duplicado que NÃO aparece em
- *       _INDEX-LIFECYCLE.md. (🔴 fail — espelha AdrNumberCollisionTest sem vendor.)
+ *   A · COLISÃO ADR não-registrada — número de ADR duplicado que NÃO consta em
+ *       governance/adr-collisions-baseline.json (ADR 0274 §3, antes _INDEX-LIFECYCLE.md).
+ *       (🔴 fail — espelha AdrNumberCollisionTest sem vendor.)
  *   B · SCORECARD FANTASMA — scorecard cuja tela (.tsx) foi commitada DEPOIS do
  *       graded_at → nota provavelmente stale. (🟡 warn — é sinal, não bloqueio.)
  *   C · SEGREDO EM memory/ — secret pattern em memory/** sem entry no _INDEX-SECRETS.
@@ -87,13 +88,24 @@ function checkAdrCollisions() {
     if (m) (byNum[m[1]] ??= []).push(f);
   }
   const dups = Object.entries(byNum).filter(([, fs]) => fs.length > 1);
-  // Registro de colisões conhecidas: _INDEX-LIFECYCLE.md (loose — número aparece no doc).
-  const idxPath = 'memory/decisions/_INDEX-LIFECYCLE.md';
-  const registry = exists(idxPath) ? read(idxPath) : '';
+  // Registro de colisões conhecidas (ratchet append-only, "só encolhe"):
+  // governance/adr-collisions-baseline.json (collisions_grandfathered). Fonte
+  // machine-readable única — mandato ADR 0274 §3 (aponta o Check A pro alias-map/
+  // baseline em vez do _INDEX-LIFECYCLE.md, que estava defasado — total:119 vs disco).
+  // baseline ≡ governance/adr-alias-map.json (mesmas 14 colisões). Baseline ilegível
+  // ou ausente ⇒ set vazio ⇒ toda colisão morde (fail-safe).
+  const baselinePath = 'governance/adr-collisions-baseline.json';
+  const grandfathered = new Set();
+  if (exists(baselinePath)) {
+    try {
+      const gj = JSON.parse(read(baselinePath));
+      for (const n of gj.collisions_grandfathered ?? []) grandfathered.add(String(n).padStart(4, '0'));
+    } catch { /* JSON inválido → set vazio (fail-safe) */ }
+  }
   for (const [num, files] of dups) {
-    if (!registry.includes(num)) {
+    if (!grandfathered.has(num)) {
       fails.push({ check: 'A', kind: 'colisao-adr-nao-registrada', num, files,
-        msg: `ADR ${num} colidiu (${files.length} arquivos) e NÃO está registrado em _INDEX-LIFECYCLE.md — registre a colisão (ADR 0180) ou referencie por slug.` });
+        msg: `ADR ${num} colidiu (${files.length} arquivos) e NÃO consta em governance/adr-collisions-baseline.json (collisions_grandfathered) — registre a colisão (ADR 0180/0274) ou referencie por slug.` });
     }
   }
 }

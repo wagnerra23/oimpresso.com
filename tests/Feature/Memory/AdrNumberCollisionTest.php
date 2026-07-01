@@ -15,25 +15,25 @@
  *
  * Como uma colisão é tolerada: append-only Tier 0 IRREVOGÁVEL (Constituição Art. 3
  * + ADR 0095) PROÍBE renumerar uma ADR já aceita. Então uma colisão pré-existente
- * só é aceita se estiver REGISTRADA no frontmatter `numbering_collisions: [...]`
- * de memory/decisions/_INDEX-LIFECYCLE.md (single source of truth de lifecycle).
+ * só é aceita se estiver REGISTRADA em `collisions_grandfathered: [...]` de
+ * governance/adr-collisions-baseline.json (fonte machine-readable única — ADR 0274 §3,
+ * antes era o frontmatter `numbering_collisions` do _INDEX-LIFECYCLE.md, defasado).
  * Registrar = decisão consciente de carregar o débito; não-registrar = bug.
  *
  * O que este teste GARANTE:
- *   1. Toda colisão presente no disco está registrada em `numbering_collisions`
+ *   1. Toda colisão presente no disco está em `collisions_grandfathered`
  *      — colisão NÃO registrada FALHA o teste (lista número + arquivos).
- *   2. Todo número listado em `numbering_collisions` realmente colide no disco
- *      — entrada órfã/stale (número que não tem mais 2+ arquivos) FALHA o teste.
+ *   2. Todo número listado em `collisions_grandfathered` realmente colide no disco
+ *      — entrada órfã/stale (número que não tem mais 2+ arquivos) FALHA o teste
+ *        (ratchet "só encolhe": ao resolver a colisão, remova a entrada do baseline).
  *
  * Teste PURO de arquivo: lê do disco + assert. Sem banco, sem rede, determinístico.
  * Mecânica espelha AdrFrontmatterLinterTest/AdrFrontmatterTest: base_path() +
  * glob() + Symfony\Component\Yaml\Yaml.
  */
 
-use Symfony\Component\Yaml\Yaml;
-
-const COLLISION_ADR_DIR        = 'memory/decisions';
-const COLLISION_LIFECYCLE_FILE = 'memory/decisions/_INDEX-LIFECYCLE.md';
+const COLLISION_ADR_DIR       = 'memory/decisions';
+const COLLISION_BASELINE_FILE = 'governance/adr-collisions-baseline.json';
 
 /**
  * Mapeia número de 4 dígitos -> lista de filenames (sem extensão) que o usam.
@@ -66,42 +66,35 @@ function adrNumerosParaArquivos(): array
 }
 
 /**
- * Lê `numbering_collisions: [...]` do frontmatter de _INDEX-LIFECYCLE.md e
- * devolve o conjunto de números colisão REGISTRADOS, normalizados pra string
- * de 4 dígitos com zero-padding.
+ * Lê `collisions_grandfathered: [...]` de governance/adr-collisions-baseline.json
+ * (fonte machine-readable única — mandato ADR 0274 §3; substitui o frontmatter
+ * `numbering_collisions` do _INDEX-LIFECYCLE.md, que estava defasado — total:119 vs
+ * disco) e devolve o conjunto de números-colisão REGISTRADOS, 4 dígitos zero-padded.
  *
- * Cuidado: YAML coage `[0101, 0102, ...]` pra INTEIROS (101, 102, ...) — o
- * zero-padding se perde no parse. Por isso re-formatamos com sprintf('%04d').
- * Aceita também valores já-string ('0101') por robustez.
+ * O baseline é o ratchet anti-bifurcação ("só encolhe"): ao resolver uma colisão,
+ * remove-se a entrada daqui no MESMO PR — é o que o 2º teste (sem-órfã) enforça.
+ * Aceita int (101) ou string ('0101') por robustez; re-padroniza com sprintf('%04d').
  *
  * @return list<string>  ex: ['0101', '0102', '0119', '0195', '0235']
  */
 function colisoesRegistradas(): array
 {
-    $path = base_path(COLLISION_LIFECYCLE_FILE);
+    $path = base_path(COLLISION_BASELINE_FILE);
     $conteudo = file_get_contents($path);
     if ($conteudo === false) {
         return [];
     }
 
-    if (! preg_match('/^---\s*\n(.*?)\n---\s*\n/s', $conteudo, $m)) {
-        return [];
-    }
+    $json = json_decode($conteudo, true);
 
-    try {
-        $fm = Yaml::parse($m[1]);
-    } catch (\Throwable $e) {
-        return [];
-    }
-
-    $lista = (is_array($fm) && isset($fm['numbering_collisions']) && is_array($fm['numbering_collisions']))
-        ? $fm['numbering_collisions']
+    $lista = (is_array($json) && isset($json['collisions_grandfathered']) && is_array($json['collisions_grandfathered']))
+        ? $json['collisions_grandfathered']
         : [];
 
     $normalizados = [];
     foreach ($lista as $valor) {
         // Extrai só os dígitos (cobre int 101, string '0101', etc.) e re-padroniza.
-        // is_scalar guard: $valor é mixed (vem do YAML) — evita cast inseguro de array→string.
+        // is_scalar guard: $valor é mixed (vem do JSON) — evita cast inseguro de array→string.
         $bruto = is_scalar($valor) ? (string) $valor : '';
         $digitos = preg_replace('/\D/', '', $bruto) ?? '';
         if ($digitos === '') {
@@ -113,7 +106,7 @@ function colisoesRegistradas(): array
     return array_values(array_unique($normalizados));
 }
 
-it('toda colisão de número de ADR no disco está registrada em _INDEX-LIFECYCLE.numbering_collisions', function () {
+it('toda colisão de número de ADR no disco está em adr-collisions-baseline.collisions_grandfathered', function () {
     $porNumero = adrNumerosParaArquivos();
     $registradas = colisoesRegistradas();
 
@@ -135,15 +128,15 @@ it('toda colisão de número de ADR no disco está registrada em _INDEX-LIFECYCL
     sort($naoRegistradas);
 
     expect($naoRegistradas)->toBeEmpty(
-        "Colisão de número de ADR NÃO registrada (ADR 0028 violada).\n" .
+        "Colisão de número de ADR NÃO registrada (ADR 0028/0274 violada).\n" .
         "Append-only Tier 0 proíbe renumerar ADR aceita — então: registre o número em\n" .
-        "memory/decisions/_INDEX-LIFECYCLE.md no frontmatter `numbering_collisions: [...]`\n" .
+        "governance/adr-collisions-baseline.json no array `collisions_grandfathered`\n" .
         "OU renumere o arquivo ainda-não-mergeado ANTES do merge.\n  - " .
         implode("\n  - ", $naoRegistradas)
     );
 });
 
-it('todo número listado em numbering_collisions realmente colide no disco (sem entrada órfã)', function () {
+it('todo número em collisions_grandfathered realmente colide no disco (sem entrada órfã)', function () {
     $porNumero = adrNumerosParaArquivos();
     $registradas = colisoesRegistradas();
 
@@ -161,9 +154,9 @@ it('todo número listado em numbering_collisions realmente colide no disco (sem 
     sort($orfas);
 
     expect($orfas)->toBeEmpty(
-        "Entrada órfã/stale em `numbering_collisions` de _INDEX-LIFECYCLE.md.\n" .
+        "Entrada órfã/stale em `collisions_grandfathered` de adr-collisions-baseline.json.\n" .
         "Um número só deve constar ali enquanto a colisão existir no disco.\n" .
-        "Remova a entrada do índice (a colisão foi resolvida) OU confirme que os 2+\n" .
+        "Remova a entrada do baseline (a colisão foi resolvida) OU confirme que os 2+\n" .
         "arquivos ainda existem.\n  - " .
         implode("\n  - ", $orfas)
     );
