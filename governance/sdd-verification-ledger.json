@@ -377,6 +377,40 @@
       "pii_hits": 0,
       "evidencia": "refutacao (comment no PR #3573) — APROVADO 22/22 (19 campos + status changes). Cockpit /fiscal completo verificado rota-a-rota (render vivo, zombie-check passa); suspeitas adversariais fecharam a favor (NotaDrawerV2 nao zumbifica ancora; migration nfe_fiscal_rules existe). 3 stubs supersedidos honestos. anchor-lint coverage 100, dead 0, zombie 0.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3574,
+      "lote_id": "SA-A5-P10w2-compras",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 12,
+      "erros_confirmados": 1,
+      "error_rate_pct": 8.33,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 1 (comment no PR #3574) — REPROVADO 1/12 = 8,3%: flip todo→done da US-COM-008 com DoD 429 comportamental inexistente (zero assertStatus(429 no repo; GapsHardeningTest e source-grep que auto-admite diferimento). Classico ancora-de-teste-que-nao-morde. Lote devolvido ao gerador (par.2.6).",
+      "veredito": "reprovado"
+    },
+    {
+      "pr": 3574,
+      "lote_id": "SA-A5-P10w2-compras",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 12,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3574) — lote inteiro re-verificado: 008 agora _parcial_ honesto (falta = Pest 429 comportamental, mesma lacuna provada na r1) + token status removido; 010 contagem 36 correta; 10 restantes byte-identicos. anchor-lint coverage 100, dead 0, zombie 0. Cobre PR #3574.",
+      "veredito": "aprovado"
     }
   ]
 }
