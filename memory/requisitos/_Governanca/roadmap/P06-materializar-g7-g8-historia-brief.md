@@ -2,13 +2,16 @@
 roadmap_item: P06
 slug: materializar-g7-g8-historia-brief
 onda: 3
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: [P01]
 destrava: []
 related_adrs: [275, 226, 279]
 esforco_estimado: "0.2d codável (zero código novo) + 1 deploy real + 2 ciclos de cron (relógio: ~1-2 dias pra brief mostrar a linha)"
 ---
 # P06 · Materializar G7+G8 (migrate prod + linha SDD no brief)
+
+> **🟡 PARCIAL 2026-07-01** (verificado em prod) — tabela `mcp_sdd_scorecard_history` **existe**, 1 row (refrescada à mão hoje: composta 50, k=2), linha SDD **aparece no brief**. **Falta o cron diário:** `schedule:run` não está no crontab do Hostinger. **Decisão Wagner 2026-07-01:** agendar no **CT100**, não Hostinger (ADR 0062 — IA/governança ≠ shared hosting). Enquanto isso a composta no brief fica stale entre snapshots manuais.
 
 ## Problema (o que está quebrado, em 2-3 frases)
 O código de G7 (snapshot diário do scorecard SDD) e G8 (linha SDD no Daily Brief) está

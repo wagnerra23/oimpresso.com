@@ -2,13 +2,16 @@
 roadmap_item: P12
 slug: decay-real-ragas-recall
 onda: 5
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: []
 destrava: []
 related_adrs: [0270, 0274, 0275, 0232]
 esforco_estimado: "1.0d codavel + IA-pair (margem 2x) + relogio real bloqueado por Wagner (secret) + 1 nightly CT100 pra 1a medicao real"
 ---
 # P12 · Decay real: RAGAS (secret) + recall-eval (schedule)
+
+> **🟡 EM CURSO 2026-07-01** — **Trilha C FEITA:** recall-eval mock no CI (`jana-recall-eval.yml`) + schedule real no `Kernel.php:438` (dom 06:30 BRT). **Trilha D EM CURSO:** `OPENAI_API_KEY` confirmado como secret do repo → dispatch `jana-ragas-canary update_baseline=true mode=real` disparado; o bot popula o baseline real (>0) e mata a tautologia. **peso_real flag (passo 5): SEGURA** — Tier 0 (toca recall do chat), exige smoke CT100, nunca cego.
 
 ## Problema (o que esta quebrado, em 2-3 frases)
 O decaimento por lifecycle (ADR 0270 D-4) e a deteccao de regressao de qualidade (RAGAS) existem em codigo mas NAO MEDEM NADA REAL. O gate RAGAS canary compara contra um baseline zerado (`value: 0.0`), o que torna a deteccao de regressao uma tautologia (baseline 0 → nunca alerta). O eval de recall (`jana:recall-eval`) existe, tem golden set e testes, mas nao roda em LUGAR NENHUM — nem CI, nem schedule. E o time-decay no recall (`peso_real.retrieval_enabled`) esta com flag OFF, efeito zero em prod. Resultado: tres mecanismos de "esquecer e medir o que esquece" que parecem implementados mas estao todos dormentes ou estruturalmente incapazes de falhar.
