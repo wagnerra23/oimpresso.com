@@ -12,9 +12,9 @@ decided_at: '2026-04-18'
 module: pontowr2
 quarter: 2026-Q2
 tags: {  }
-supersedes:
-  - '0002'
-  - '0001'
+supersedes: []
+supersedes_partially:
+  - '0002-nwidart-laravel-modules'
 related:
   - '0001'
   - '0002'
