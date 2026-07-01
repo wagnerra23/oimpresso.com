@@ -25,7 +25,9 @@ Os docs nasceram `proposed` mas o trabalho landou sem atualizar o bookkeeping. E
 
 **Divergência do plano (honesta):** a DECISÃO de 2026-06-21 elegeu `foundation-ratchet` como 1º dente e GT-G3 como 2º. Na prática **o GT-G3 (P13) landou required e o foundation-ratchet não** — a ordem inverteu. Pfr segue pendente.
 
-**Ainda falta (pós-verificação 2026-07-01):** **P10** (batches IA — campanha multi-dia + fila A6) · **Trilho B** (`P02`→`P04`, burn-down full-suite required, semanas CT100) · **peso_real flag** (P12-5, Tier 0 — exige smoke CT100, nunca cego) · **Pfr** foundation-ratchet · relógio (nightlies P07, RAGAS terminando) · follow-ups (`dead_tests` pré-P10, `req_sem_lane` reconhecer CT100-nightly, **cron SDD-snapshot agendar no CT100**). As métricas `not_yet_measured` estão **desbloqueadas** (secret + pcov existem) — resta o relógio, não a mão.
+**Ainda falta (pós-verificação 2026-07-01):** **P10** (batches IA — campanha multi-dia + fila A6) · **Trilho B** (`P02`→`P04`, burn-down full-suite required, semanas CT100) · **peso_real flag** (P12-5, Tier 0 — exige smoke CT100, nunca cego) · **Pfr** foundation-ratchet · relógio (nightlies P07, RAGAS terminando) · follow-ups (`req_sem_lane` reconhecer CT100-nightly, **cron SDD-snapshot agendar no CT100**). As métricas `not_yet_measured` estão **desbloqueadas** (secret + pcov existem) — resta o relógio, não a mão.
+
+> **`dead_tests` pré-P10 — ✅ fechado (2026-07-01):** os 49 `**Testado em:**` mortos (Accounting/Crm/Essentials/LaravelAI/Manufacturing/RecurringBilling/Repair/_DesignSystem — todos testes planejados nunca escritos) reconciliados pra gramática `_lacuna_` (convenção Financeiro/NfeBrasil 2026-06-23). `anchor-lint --check` saiu de exit 1 → **exit 0** (dead_tests 49→0; anchor_coverage 12.6% inalterado). F2 total destravado pra P10.
 
 ## Achado-chave (refinou o diagnóstico)
 
