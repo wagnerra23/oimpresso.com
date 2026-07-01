@@ -13,7 +13,7 @@
 // adicionando `export`). Evita duplicação de ~70 LOC.
 
 import type { ReactNode } from 'react';
-import { Archive, DollarSign, FileText, Printer } from 'lucide-react';
+import { Archive, CreditCard, DollarSign, Edit, Eye, FileText, MoreVertical, Printer, Trash2, Undo2 } from 'lucide-react';
 import {
   PipelineDots,
   FiscalBadgesCell,
@@ -25,6 +25,12 @@ import QuickPaymentPopover from './QuickPaymentPopover';
 import VdSource, { type VdSourceKind } from './VdSource';
 import MercosulPlate from '@/Components/shared/MercosulPlate';
 import { Checkbox } from '@/Components/ui/checkbox';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
 
 // ──────────────────────────────────────────────────────────────
 // TIPOS — sub-conjunto do SaleRow do Index.tsx (mantido independente
@@ -282,7 +288,7 @@ export default function SellsTabelaUnificada({
                   data-source={v.source ?? 'balcao'}
                   onClick={() => onRowClick(v.id, ri)}
                 >
-                  {visibleColumns.map((id) => renderCell(id, v, { sel, isFav, ps, due, onToggleSel, onPaySuccess, onPickOs: handlePickOs }))}
+                  {visibleColumns.map((id) => renderCell(id, v, { sel, isFav, ps, due, onToggleSel, onPaySuccess, onPickOs: handlePickOs, onView: () => onRowClick(v.id, ri) }))}
                 </tr>
               );
             })}
@@ -303,6 +309,8 @@ interface CellCtx {
   onToggleSel: (id: number) => void;
   onPaySuccess: () => void;
   onPickOs: (osRef: string) => void;
+  /** Abre o drawer de detalhes da venda (mesmo destino do clique na linha). */
+  onView: () => void;
 }
 
 // Renderiza célula por ColumnId. Helpers maiores (PipelineDots etc) vêm via
@@ -422,6 +430,7 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
               <button className="vd-row-act" title="Baixar XML" type="button"><FileText size={11} /></button>
             )}
             <button className="vd-row-act" title="Imprimir recibo (R)" type="button"><Printer size={11} /></button>
+            <ActionsMenu row={v} onView={ctx.onView} onChange={ctx.onPaySuccess} />
           </div>
         </td>
       );
@@ -442,4 +451,101 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
         </td>
       );
   }
+}
+
+// ──────────────────────────────────────────────────────────────
+// ActionsMenu — dropdown "Ações" por linha (paridade Blade).
+// Restaurado do commit d6f4dddcdc (perdido no rewrite Cowork KB-9.75 #1032).
+// Ver/Editar/Adicionar pagamento/Imprimir/Devolução/Excluir. As ações são
+// enforcadas no backend (403/permissão); Devolução → /sell-return/add/{id}
+// (rota Blade, navegação full). onView abre o drawer; onChange faz refetch.
+// ──────────────────────────────────────────────────────────────
+function ActionsMenu({
+  row,
+  onView,
+  onChange,
+}: {
+  row: SaleRow;
+  onView: () => void;
+  onChange: () => void;
+}) {
+  const isPaid = row.payment_status === 'paid';
+
+  const handleDelete = async () => {
+    if (!confirm(`Excluir a venda ${row.invoice_no}? Essa ação não pode ser desfeita.`)) return;
+    try {
+      const meta = document.querySelector('meta[name="csrf-token"]');
+      const csrf = meta?.getAttribute('content') ?? '';
+      const res = await fetch(`/sells/${row.id}`, {
+        method: 'DELETE',
+        headers: {
+          Accept: 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRF-TOKEN': csrf,
+        },
+        credentials: 'same-origin',
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        alert(json?.msg ?? 'Falha ao excluir venda.');
+        return;
+      }
+      onChange();
+    } catch (e) {
+      alert('Erro ao excluir: ' + String((e as Error)?.message || e));
+    }
+  };
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className="vd-row-act"
+          aria-label="Ações da venda"
+          title="Ações"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreVertical size={11} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-52" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenuItem onClick={onView}>
+          <Eye size={14} className="mr-2" />
+          Ver detalhes
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href={`/sells/${row.id}/edit`}>
+            <Edit size={14} className="mr-2" />
+            Editar
+          </a>
+        </DropdownMenuItem>
+        {!isPaid && (
+          <DropdownMenuItem onClick={onView}>
+            <CreditCard size={14} className="mr-2" />
+            Adicionar pagamento
+          </DropdownMenuItem>
+        )}
+        <DropdownMenuItem asChild>
+          <a href={`/sells/${row.id}/print`} target="_blank" rel="noopener noreferrer">
+            <Printer size={14} className="mr-2" />
+            Imprimir nota
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <a href={`/sell-return/add/${row.id}`}>
+            <Undo2 size={14} className="mr-2" />
+            Devolução
+          </a>
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleDelete}
+          className="text-rose-600 focus:bg-rose-50 focus:text-rose-700 dark:text-rose-400 dark:focus:bg-rose-950/40"
+        >
+          <Trash2 size={14} className="mr-2" />
+          Excluir
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 }
