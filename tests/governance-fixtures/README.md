@@ -21,6 +21,8 @@ morder — e o selftest avermelha. Salda a dívida de evidência do PR #2588
 | `doneness-lint --check` | `doneness/{good,bad}/` (sandbox via cwd) — good = status×âncora consistentes + zona-cinza tolerada (exit 0); bad = `status=done` sem âncora viva + `status=todo` com âncora viva (conflito status:×âncora · ADR 0302) |
 | `detectar-telas --staging --repo` | `detectar-telas/{good,bad}/{staging,repo}/` (script REAL no lugar — não usa cwd) — good = vendas-page.jsx resolve via ALIAS → Sells/Index.tsx (SEMANTICO) ⇒ 0 órfãos (exit 0); bad = mistero-page.jsx órfão (sem charter nem alias) ⇒ exit 1 "GATE FALHOU" (gate de import Fase 0/0.5) |
 
+| `sdd-scorecard --ratchet` (corruptors) | `sdd-scorecard-corruptors/{good,bad}/` (sandbox via cwd + `scripts/audit/sqlite-test-corruptors.mjs` copiado) — baseline arma `sqlite_corruptors=0` (armed:true, SEM SDD_RATCHET_ARM · P14 carona 2, fusão GT-G3 · ADR 0314); good = sem corruptor (0=0, exit 0); bad = `CorruptorDemoTest.php.txt` (renomeado pra `.php` SÓ no sandbox — regra dura abaixo) com `Schema::drop('business')` não-guardado ⇒ mede 1 > 0 ⇒ exit 1 |
+
 REGRA DURA: NENHUM `.php` aqui — o foundation-ratchet real varre `tests/`
 recursivamente e contaria fixture como teste do repo (poluiria os contadores).
 Conteúdo 100% fictício (DemoMod/RealDemo/Ghost*) — zero PII, repo é público.

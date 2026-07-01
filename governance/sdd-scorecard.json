@@ -114,6 +114,25 @@
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
+    "sqlite_corruptors": {
+      "status": "measured",
+      "value": 0,
+      "unit": "arquivos que corrompem o MySQL persistente (corruptsOnMysql · v2)",
+      "direction": "down",
+      "target": 0,
+      "source": "scripts/audit/sqlite-test-corruptors.mjs --json .corruptors (US-GOV-021 · fusão GT-G3 · P14 carona 2 · lei de fusões ADR 0314)",
+      "detail": {
+        "counts": {
+          "S": 0,
+          "A": 0,
+          "B": 0,
+          "C": 0
+        },
+        "with_manual_ddl": 266,
+        "effectively_guarded": 266
+      },
+      "stream": "FV"
+    },
     "ghost_count": {
       "status": "measured",
       "value": 8,
