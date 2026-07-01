@@ -45,13 +45,20 @@ check('Write (tool nativa) NÃO é DesignSync', classifyDesignSync('Write', { me
 check('tool MCP qualquer NÃO é DesignSync', classifyDesignSync('mcp__Oimpresso_MCP___Wagner__brief-fetch', {}).isDesignSync === false);
 check('READ_METHODS cobre exatamente os 5 de leitura', READ_METHODS.size === 5);
 
-// ── 5. Opt-in por prompt ──────────────────────────────────────────────────────
-check('"/design-sync" dá opt-in', isDesignSyncOptInPrompt('roda o /design-sync e sobe o botão'));
-check('"design sync" (espaço) dá opt-in', isDesignSyncOptInPrompt('quero usar o design sync agora'));
-check('"claude.ai/design" dá opt-in', isDesignSyncOptInPrompt('manda pro claude.ai/design'));
-check('"sincronizar o design" dá opt-in', isDesignSyncOptInPrompt('pode sincronizar o design system pra nuvem'));
+// ── 5. Opt-in por prompt — exige INTENÇÃO de publicar, não menção ─────────────
+// Positivos: comando /design-sync OU nome-da-feature + verbo de publicar.
+check('"/design-sync e sobe" dá opt-in (comando)', isDesignSyncOptInPrompt('roda o /design-sync e sobe o botão'));
+check('"manda pro claude.ai/design" dá opt-in (alvo+verbo)', isDesignSyncOptInPrompt('manda o componente pro claude.ai/design'));
+check('"sobe os componentes pro design-sync" dá opt-in', isDesignSyncOptInPrompt('sobe os componentes pro design-sync'));
+check('"publica no design sync" dá opt-in', isDesignSyncOptInPrompt('publica isso no design sync'));
+// ── REGRESSÃO do red-team 2026-06-30 (furo #2 fail-open): DISCUTIR não arma ───
+check('FURO#2: "como funciona o design sync?" NÃO arma escrita', !isDesignSyncOptInPrompt('como funciona o design sync?'));
+check('FURO#2: "o que é design-sync?" NÃO arma escrita', !isDesignSyncOptInPrompt('o que é design-sync?'));
+check('FURO#2: "explica o claude.ai/design" NÃO arma', !isDesignSyncOptInPrompt('explica o claude.ai/design pra mim'));
+check('FURO#2: "nunca usa design sync" NÃO arma (deny nunca/jamais)', !isDesignSyncOptInPrompt('nunca usa design sync aqui'));
 check('"não é design-sync, é cowork" NÃO dá opt-in (negação)', !isDesignSyncOptInPrompt('não é design-sync, é cowork'));
-check('"melhora o design da tela" NÃO dá opt-in', !isDesignSyncOptInPrompt('melhora o design da tela de venda'));
+check('"melhora o design da tela" NÃO dá opt-in (design ≠ design-sync)', !isDesignSyncOptInPrompt('melhora o design da tela de venda'));
+check('"design system em git" NÃO dá opt-in (sem verbo de publicar)', !isDesignSyncOptInPrompt('o design system em git é a fonte'));
 check('prompt vazio NÃO dá opt-in', !isDesignSyncOptInPrompt(''));
 
 // ── 6. Opt-in válido via env (escape valve) ───────────────────────────────────
