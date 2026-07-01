@@ -2,13 +2,21 @@
 roadmap_item: P08
 slug: conectar-metricas-gt-e-fixture-anchor
 onda: 1
-status: proposed
+status: executed
+executed_at: "2026-06-21"
+executed_prs: [3140]
 depende_de: []
 destrava: [P13]
 related_adrs: [275, 273, 279]
 esforco_estimado: "0.5d codavel + IA-pair (sem janela de relogio real — fontes ja existem)"
 ---
 # P08 · Conectar metricas GT-proprias (drift_alarms + backfill_error_rate) + fixture anchor-lint no gate-selftest
+
+> ✅ **EXECUTADO 2026-06-21 ([#3140](https://github.com/wagnerra23/oimpresso.com/pull/3140)).** Verificado no repo 2026-07-01 (reconciliacao de bookkeeping): as 5 provas do DoD passam vivas —
+> `drift_alarms`/`backfill_error_rate` = `measured` no scorecard; `gate-selftest --only anchor-lint` sai good=0/bad=1 (morde);
+> fixtures `tests/governance-fixtures/anchor-lint/{good,bad}/` versionadas; linha da catraca no README (L18).
+> **Implementado em:** `scripts/governance/sdd-scorecard.mjs` (measureDriftAlarms + measureBackfillErrorRate) · `scripts/governance/gate-selftest.mjs` (catraca `anchor-lint`) · verificado@a572567 (2026-06-21).
+> Baseline NAO armado (correto — armar e P13, que ja landou depois disso).
 
 ## Problema (o que esta quebrado, em 2-3 frases)
 Duas metricas do stream GT do scorecard SDD declaram `not_yet_measured` mesmo tendo
