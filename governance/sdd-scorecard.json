@@ -15,33 +15,33 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 42.6,
+      "value": 47.1,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 42.6,
+        "coverage_pct": 47.1,
         "specs_total": 58,
         "us_total": 855,
-        "anchor_coverage_pct": 42.6,
+        "anchor_coverage_pct": 47.1,
         "by_state": {
-          "sem_campo": 491,
+          "sem_campo": 452,
           "placeholder": 0,
-          "pendente": 136,
-          "parcial": 45,
-          "anchored_ok": 183,
+          "pendente": 172,
+          "parcial": 46,
+          "anchored_ok": 185,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 369,
+        "fields_total": 408,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 347,
+        "fields_grammar_ok": 386,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 121,
-        "req_sem_covering_test_total": 186,
+        "req_sem_covering_test_total": 189,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 39,
         "behavior_known": false,
@@ -177,12 +177,19 @@
       "stream": "MEM"
     },
     "distiller_freshness": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 0,
+      "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
-      "target": "< 7d atrás do doc mais novo em 100% das portas",
-      "source": "ADR 0291 D-D — nenhuma porta tem distilled_at ainda (distiller-módulo-verdade não rodou em prod; gate Wagner/CT100). Vira measured no 1º carimbo, como o floor do 0279.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "target": 0,
+      "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
+      "detail": {
+        "portas": 75,
+        "carimbadas": 5,
+        "sem_carimbo": 70,
+        "stale": 0,
+        "oldest_distilled_at": "2026-07-01"
+      },
       "stream": "MEM"
     },
     "read_path_hops": {
@@ -205,16 +212,16 @@
     },
     "backfill_error_rate": {
       "status": "measured",
-      "value": 1.35,
+      "value": 1.82,
       "unit": "% (MAX error_rate das entries aprovadas — conservador: 1 lote ruim estoura <2%)",
       "direction": "down",
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 8,
-        "max_error_rate_pct": 1.35,
-        "last_pr": 3539,
-        "last_lote": "SA-A5-P10-financeiro"
+        "entries_aprovadas": 11,
+        "max_error_rate_pct": 1.82,
+        "last_pr": 3577,
+        "last_lote": "SA-A5-P10w2-nfebrasil"
       },
       "stream": "GT"
     }
