@@ -23,12 +23,14 @@
       "nota_armamento": "DEFINIÇÃO UNIFICADA no PR do ledger §A: a série antiga (grep estrito próprio do sdd-scorecard, 2.8% / 2 medições) foi APOSENTADA — número não comparável. 1ª medição da nova fonte = 5.4% (anchor-lint live em origin/main 3b281d864, 2026-06-15). Re-mede 3× consecutivas da nova fonte pra armar (ADR 0275 §3)."
     },
     "full_suite_pass_rate": {
-      "status": "not_yet_measured",
-      "value": null,
-      "direction": "up",
-      "armed": false,
-      "valid_measurements": 0,
-      "fonte": "nightly MySQL diagnóstica (FV-F3) — baseline na 1ª medição real"
+      "status": "measured",
+      "value": 298,
+      "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
+      "direction": "down",
+      "armed": true,
+      "valid_measurements": 3,
+      "fonte": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
+      "nota_armamento": "ARMADO (P02 · ADR 0279 PR-3 + ADR 0275 §3). Capturado da fonte REAL, nunca do plano: governance/nightly-floor.json da branch órfã origin/governance/nightly-floor@554047dd06 = floor_count 298, floor_files_hash 637fb9978f839423, intersection_of 3, computed_at 20260701-020001. As 3 medições válidas consecutivas: run 20260628 (failed 339/errors 782), 20260630 (352/796), 20260701 (336/784) — todas reais, não-mock, não-nulas; floor = interseção dos arquivos-que-falham nos 3 runs (def US-GOV-018). Congelo o valor MAIS RECENTE e também o PIOR (trajetória 274→295→298; +3 no último salto = estável, não oscilante) pra não nascer regredido (kill-criteria P02). Provenance origin/main@d50d145d24 (2026-07-01). Catraca DESCE pra 0 (direction down); regressão do floor (>298) com armed:true = exit 1 (sdd-scorecard.mjs:395). Piorar/desarmar/absorver = só via PR editando este arquivo com diff visível citando ADR 0275. Fonte parada >48h desarma até nova sequência de 3 (watchdog ADR 0275 métrica 9)."
     },
     "n_quarantine": {
       "status": "not_yet_measured",
