@@ -1,0 +1,11 @@
+{
+  "_meta": {
+    "purpose": "Esquecimento real de ADR morta (ADR 0316). ADR verificada morta (lifecycle: substituido/arquivado) e REMOVIDA de memory/decisions/ via git rm — some do ls/grep/indice/MCP/recall. Auditoria = git history (conteudo integral) + esta lapide (1 entrada/ADR). Append-only: entra, nunca sai. Numero NUNCA reusado.",
+    "adr": "memory/decisions/0316-esquecimento-real-adr-morta-tombstone-git-auditoria.md",
+    "regra": "So entra ADR que estava lifecycle:substituido/arquivado (verificada morta). git rm + entrada aqui no MESMO PR (diff verificavel). superseded_by aponta a sucessora viva. O gerador adr-index-generate.mjs le 'tombstones[].number' pra nao acusar supersede-dangling das ADRs vivas que apontavam pras esquecidas.",
+    "consumidores": [
+      "scripts/governance/adr-index-generate.mjs (tombstone-aware: supersedes -> tombada = ok, nao dangling)"
+    ]
+  },
+  "tombstones": []
+}

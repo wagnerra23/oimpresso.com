@@ -16,12 +16,13 @@ use Illuminate\Support\Facades\Route;
  */
 class RouteServiceProvider extends ServiceProvider
 {
-    protected $namespace = 'Modules\\OficinaAuto\\Http\\Controllers';
-
-    public function boot(): void
-    {
-        parent::boot();
-    }
+    // NÃO declarar `protected $namespace`: o boot() do RouteServiceProvider do
+    // Laravel chama setRootControllerNamespace($this->namespace), que polui o
+    // root controller namespace GLOBAL do UrlGenerator. O último módulo a bootar
+    // "vencia" e quebrava toda `action('App\Http\Controllers\...@metodo')` legada
+    // (string sem `\` inicial) → HTTP 500 (ex: DataTable de /sell-return).
+    // Rotas deste módulo usam FQCN [Controller::class, 'metodo'], então não
+    // precisam de namespace de grupo. Ver memory/sessions — fix sell-return 500.
 
     public function map(): void
     {
@@ -31,7 +32,6 @@ class RouteServiceProvider extends ServiceProvider
     protected function mapWebRoutes(): void
     {
         Route::middleware('web')
-            ->namespace($this->namespace)
             ->group(__DIR__ . '/../Routes/web.php');
     }
 }
