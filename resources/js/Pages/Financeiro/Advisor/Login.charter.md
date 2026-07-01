@@ -10,7 +10,6 @@ shell: none (portal contador isolado — justificadamente fora do AppShellV2)
 created: 2026-05-31
 page: /advisor/login
 component: resources/js/Pages/Financeiro/Advisor/Login.tsx
-related_us: [US-FIN-037]
 last_validated: "2026-05-31"
 parent_module: Financeiro
 related_prototype: n/a (sem protótipo Cowork — tela de auth isolada fora do AppShellV2; segue DS)
