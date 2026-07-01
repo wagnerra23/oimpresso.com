@@ -228,21 +228,27 @@ class Kernel extends ConsoleKernel
 
         // Distiller-módulo-verdade ([ADR 0291] · keystone SDD×memória, peça 2).
         // Reescreve as portas BRIEFING.md a partir dos eventos recentes (diário).
-        // DESCOMENTADO em P11 (KL-E3): tira distiller_freshness de not_yet_measured —
-        // a 1ª destilação carimba `distilled_at:` num BRIEFING e measureDistillerFreshness()
-        // vira `measured` (ADR 0291 D-5 / 0279). A destilação chama LLM e MUTA memória canônica
-        // PÚBLICA, então o gate de supervisão Wagner/CT100 (smoke skim 10min/lote) é OBRIGATÓRIO
-        // ANTES de ligar em live: o comando roda manual primeiro (`php artisan
-        // jana:distill-module-truth --all --dry-run` → skim → `--all` real). Kill-switch = recomentar.
-        $schedule->command('jana:distill-module-truth --all')
-            ->dailyAt('05:30')
-            ->withoutOverlapping()
-            ->environments(['live'])
-            ->onFailure(function () {
-                \Illuminate\Support\Facades\Log::channel('single')->error(
-                    'Schedule jana:distill-module-truth FALHOU — portas BRIEFING podem envelhecer (ADR 0291 D-5)'
-                );
-            });
+        // RE-COMENTADO 2026-07-01 (kill-switch, incidente Passo 0 do P11): o bloco foi
+        // descomentado no #3155 ANTES do gate manual (dry-run → skim Wagner → real) rodar,
+        // e o scheduler do Hostinger (hPanel) disparou DIARIAMENTE 05:30 desde 2026-06-22 —
+        // ~50 "porta reescrita"/dia nos logs copiloto-ai (22-27/jun, 29/jun, 01/jul), TODAS
+        // perdidas: o write é file_put_contents na árvore DEPLOYADA, sem git, e o deploy
+        // seguinte reseta (por isso 0/76 portas têm distilled_at no git). Efeito líquido:
+        // custo LLM diário + mutação não-skimada + write-loss. NÃO re-descomentar até
+        // existir venue git-backed (clone + auto-PR draft via bot, precedente #3442/#3485)
+        // e o fluxo de skim estar rodando — 1ª destilação real é gateada por lote
+        // (`--module=X`, NUNCA `--all`: portas-fantasma Copiloto/MemCofre/FinanceiroAvancado
+        // seriam re-escritas). Evidência completa: memory/sessions/2026-07-01-p11-e2b-
+        // reseed-meilisearch-e3-distiller.md §Adendo Passo 0.
+        // $schedule->command('jana:distill-module-truth --all')
+        //     ->dailyAt('05:30')
+        //     ->withoutOverlapping()
+        //     ->environments(['live'])
+        //     ->onFailure(function () {
+        //         \Illuminate\Support\Facades\Log::channel('single')->error(
+        //             'Schedule jana:distill-module-truth FALHOU — portas BRIEFING podem envelhecer (ADR 0291 D-5)'
+        //         );
+        //     });
 
         // Sentinela de FLUXO de inbound WhatsApp — cadência HORÁRIA em horário
         // comercial BRT (incidente 2026-06-16 #2726: recebimento morto 3 dias sem

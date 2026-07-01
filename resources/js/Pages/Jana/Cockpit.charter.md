@@ -10,6 +10,7 @@ parent_adr: memory/decisions/0035-stack-ai-canonica-wagner-2026-04-26.md
 visual_source: prototipo-ui/cowork/chat-jana.jsx
 visual_critique: prototipo-ui/_cowork-export-2026-05-15/CRITIQUE-chat-jana-vs-amendment.md
 related_adrs: [35, 39, 94, 104, 107, 110, 114]
+related_us: [US-COPI-123]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
   - resources/js/Pages/Atendimento/CaixaUnificada/Index.charter.md

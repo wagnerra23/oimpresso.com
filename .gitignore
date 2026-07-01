@@ -95,6 +95,9 @@ violations.json
 # governance/nightly-floor (escrito pelo write-side CT100); o scorecard o
 # MATERIALIZA no CWD em CI antes de medir. Nunca versionado no main.
 governance/nightly-floor.json
+# Coverage do nightly (SDD P07/C2): mesmo transporte da órfã — P14 fechou a
+# inconsistência floor-ignorado/coverage-não.
+governance/nightly-coverage.json
 
 # Scratch/runtime de sessao — nunca versionar (cleanup ds-rollout 2026-06-20)
 .claude/run/

@@ -7,8 +7,8 @@
       "lote_id": "string — ex: SA-A5-financeiro-01, KL-E3-briefings-02",
       "data": "string YYYY-MM-DD da refutacao",
       "tipo": "anchors | prosa",
-      "gerador": "string contendo haiku|sonnet|opus — modelo que gerou o lote",
-      "refutador": "string contendo haiku|sonnet|opus — modelo refutador, rank >= gerador",
+      "gerador": "string contendo haiku|sonnet|opus|fable|mythos — modelo que gerou o lote",
+      "refutador": "string contendo haiku|sonnet|opus|fable|mythos — modelo refutador, tier SUPERIOR ao gerador (igualdade so no tier maximo; endurecido 2026-07-01, avaliacao adversarial SDD)",
       "sessao_fresca": "boolean — refutador SEM contexto do gerador (obrigatorio true)",
       "amostra_pct": "number — anchors exige 100; prosa exige >= 30",
       "itens_verificados": "integer — universo verificado pelo refutador",
@@ -87,6 +87,23 @@
       "pii_scan": true,
       "pii_hits": 0,
       "evidencia": "A5 motor (workflow wf_52d3c190-19c): gerador propos anchors (path real do codigo por US, existsSync-guarded); refutador G5 adversarial reverificou cada path (test -f + leu o arquivo, default=mentira se incerto) — 23 confirmados real / 0 mentira / 0 incerto. Aplicados 16 (headings US-XXX-NNN reconhecidos pelo anchor-lint: US-PG x3, US-TR x7, US-KB x6); 7 PMG-00x confirmados mas heading nao-canonico (PMG- nao US-) fora do lote. Verificado live: anchor-lint coverage 5.4->7.5%, anchored_ok 19->35, dead 15->15 (zero novo), orphan 5->5 (zero novo).",
+      "veredito": "aprovado"
+    },
+    {
+      "pr": 3543,
+      "lote_id": "SA-A5-P10-jana",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 74,
+      "erros_confirmados": 1,
+      "error_rate_pct": 1.35,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao (comment no PR #3543) — APROVADO 1/74 = 1,35% < 2%. Unico erro: Chat.charter.md listava US-COPI-106 cujo DoD e a tela Painel (Cockpit Analista IA) — correcao prescrita pelo refutador APLICADA antes do merge (106 movida pro Painel.charter.md, no PR pareado de charters). Confirmados sob ataque: grupo orcamento 071-075 pendente real (grep amplo), fixes nao-aplicados verificados abrindo codigo (startMockStream Cockpit.tsx:707/780), zombie 0. Cobre PR #3543 (SPEC) + PR pareado de charters Jana.",
       "veredito": "aprovado"
     }
   ]

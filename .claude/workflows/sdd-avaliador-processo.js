@@ -53,6 +53,7 @@ ${CONTEXTO}
 SEU STREAM — passos: ${s.passos}
 
 MÉTODO (verificar, não opinar — análise sozinha já errou 3× onde reprodução acertou):
+0. GUARD DE CHECKOUT (anti falso-positivo 2026-07-01, errata da avaliação 67): antes de QUALQUER claim "rodei live / auditor dá N", rode \`git fetch origin main --quiet && git rev-parse HEAD origin/main\` no cwd onde vai medir. Se HEAD != origin/main, o cwd está STALE: crie worktree limpa (\`git worktree add <scratchpad>/aval-snap origin/main\`) e meça LÁ, ou leia via git show origin/main:<path>. Claim de medição sem essa prova = achado inválido (precedente: "12 tier-A vivos" medido num checkout 114 commits atrás fabricou risco sistêmico falso).
 1. Confirme cada etapa pelo ARTEFATO em origin/main (gh/git/git show); não marque FEITO sem ver. Rode o script local pra medir LIVE onde existir.
 2. CETICISMO "a suite mente": procure gate que não morde (advisory perene? fixture vazia?), catraca cujo baseline nunca foi armado de verdade (nº-de-ADR ≠ medição), métrica de FORMA não de CORREÇÃO, "feito" que depende de algo que nunca rodou (CT 100/secret/máquina externa), número não-determinístico vendido como estável.
 3. score 0-100/etapa: 90-100 FEITO-VERIFICADO (morde/funciona, provado); 60-85 PARCIAL/advisory-ok; 30-55 ILUSÓRIO ou BLOQUEADO; 0-25 NÃO-INICIADO/REVERTIDO. Na dúvida, pontue baixo + diga por quê.

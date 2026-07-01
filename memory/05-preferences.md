@@ -46,7 +46,7 @@ Capturado ao longo das conversas com a Eliana (WR2 Sistemas). Estas preferência
 - **Não reinventar a roda.** UltimatePOS já existe — estender, não substituir
 - **Não invadir core.** Mudanças ficam no módulo WR2
 - **Compliance como requisito, não diferencial.** Portaria 671, CLT, LGPD, eSocial são mínimos, não features premium
-- **Jana é a referência canônica para estrutura de módulo** (ver ADR 0011). Antes de criar qualquer arquivo novo em `Modules/PontoWr2/`, olhar o equivalente em `Modules/Jana/` e imitar. Não inventar estrutura "moderna" — o UltimatePOS congelou convenções de uma versão antiga do nWidart/laravel-modules e qualquer divergência quebra em produção
+- **Jana é a referência canônica para estrutura de módulo** (ver ADR 0011). Antes de criar qualquer arquivo novo em `Modules/Ponto/`, olhar o equivalente em `Modules/Jana/` e imitar. Não inventar estrutura "moderna" — o UltimatePOS congelou convenções de uma versão antiga do nWidart/laravel-modules e qualquer divergência quebra em produção
 
 ## UI / UX
 

@@ -136,7 +136,12 @@ class DistillModuleTruthCommand extends Command
             return [];
         }
         $events = [];
-        foreach (glob($dir . '/{AUDIT,AUDITORIA,CAPTERRA}*.md', GLOB_BRACE) ?: [] as $path) {
+        // GLOB_BRACE é extensão glibc — indefinida em musl/Alpine (CT100), onde referenciá-la
+        // lança Error e derruba o comando inteiro (1º dry-run P11 E3, 2026-07-01; mesmo bug
+        // do Module Grade v4 — ver ScopedScorecardEvaluator::globBrace). Sem chaves:
+        // AUDIT*.md já cobre AUDITORIA* (e sem o double-match que o brace fazia).
+        $paths = [...(glob($dir . '/AUDIT*.md') ?: []), ...(glob($dir . '/CAPTERRA*.md') ?: [])];
+        foreach ($paths as $path) {
             $name = basename($path);
             $events[] = ['type' => 'audit', 'ref' => "requisitos/{$module}/{$name}", 'date' => null, 'modules' => [$module], 'title' => $name];
         }

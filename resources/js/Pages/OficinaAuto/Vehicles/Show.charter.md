@@ -5,6 +5,7 @@ owner: wagner
 status: draft
 last_validated: "2026-05-31"
 parent_module: OficinaAuto
+related_us: [US-OFICINA-001, US-OFICINA-017]
 related_adrs:
   - 0137-modules-oficinaauto-qualificada
   - 0093-multi-tenant-isolation-tier-0

@@ -31,7 +31,7 @@
 // Node puro (fs + spawnSync). Sem deps, sem DB, sem rede. Segundos.
 
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { appendFileSync, cpSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
@@ -67,6 +67,48 @@ function runScorecard(kind) {
     // sdd-scorecard agora delega anchor_coverage a anchor-lint.mjs (ledger §A · ADR 0273 §2) — copia essa dep tb.
     cpSync(join(ROOT, 'scripts', 'governance', 'anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'), ['--ratchet'], sb, { SDD_RATCHET_ARM: '1' });
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
+// P14 (avaliação 2026-07-01, defeito nº 1): prova o caminho REAL do armed — b.armed===true
+// no BASELINE da fixture, SEM SDD_RATCHET_ARM — pra métrica de fonte externa (floor).
+// Dois counterfactuals: regressão medida morde (floor 299 > 298) E fonte-ausente-com-armada
+// morde (fail-red em vez do skip silencioso que deixava floor=298 ser lei só no papel).
+function runScorecardFloor(fixture) {
+  return (kind) => {
+    const sb = mkdtempSync(join(tmpdir(), `gate-selftest-${fixture}-${kind}-`));
+    try {
+      cpSync(join(FIX, fixture, kind), sb, { recursive: true });
+      mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+      cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
+      cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
+      cpSync(join(ROOT, 'scripts', 'governance', 'anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+      return runNode(join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'), ['--ratchet'], sb);
+    } finally { rmSync(sb, { recursive: true, force: true }); }
+  };
+}
+
+// P14 carona 2 — sqlite_corruptors ARMADA pelo caminho real (SEM SDD_RATCHET_ARM), fusão
+// no GT-G3 (lei de fusões ADR 0314: sinal vira métrica no ratchet já-required, não gate novo).
+// Mesmo sandbox dos irmãos scorecard + a dep extra scripts/audit/sqlite-test-corruptors.mjs
+// (a fonte da métrica). good = sem corruptor (0 = baseline 0); bad = teste com Schema::drop
+// de tabela CORE não-guardado (corruptsOnMysql tier S) → mede 1 > 0 → catraca morde.
+function runScorecardCorruptors(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-sdd-scorecard-corruptors-${kind}-`));
+  try {
+    cpSync(join(FIX, 'sdd-scorecard-corruptors', kind), sb, { recursive: true });
+    // REGRA DURA do README: nenhum .php sob as fixtures — em git o corruptor vive como
+    // .php.txt (o auditor REAL varre tests/ do repo e contaria a fixture como corruptor
+    // vivo, avermelhando a métrica armada contra si mesma). Materializa .php SÓ no sandbox.
+    const corruptorTxt = join(sb, 'tests', 'Feature', 'CorruptorDemoTest.php.txt');
+    if (existsSync(corruptorTxt)) renameSync(corruptorTxt, join(sb, 'tests', 'Feature', 'CorruptorDemoTest.php'));
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'audit'), { recursive: true });
+    cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
+    cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
+    cpSync(join(ROOT, 'scripts', 'governance', 'anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    cpSync(script('sqlite-test-corruptors', 'scripts/audit/sqlite-test-corruptors.mjs'), join(sb, 'scripts', 'audit', 'sqlite-test-corruptors.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'), ['--ratchet'], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
@@ -281,6 +323,26 @@ const CATRACAS = [
     id: 'sdd-scorecard',
     run: runScorecard,
     expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): ghost_count/ },
+  },
+  {
+    // P14 — counterfactual da métrica de fonte externa: floor regredido (299>298) morde
+    // pelo caminho real do baseline (armed:true, sem SDD_RATCHET_ARM).
+    id: 'sdd-scorecard-floor',
+    run: runScorecardFloor('sdd-scorecard-floor'),
+    expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): full_suite_pass_rate/ },
+  },
+  {
+    // P14 — fail-red: fonte ausente com métrica ARMADA sai exit 1 (não skip silencioso).
+    id: 'sdd-scorecard-floor-ausente',
+    run: runScorecardFloor('sdd-scorecard-floor-ausente'),
+    expect: { good: /nenhuma regressão/, bad: /ARMADA no baseline.*not_yet_measured/ },
+  },
+  {
+    // P14 carona 2 — corruptor NOVO do MySQL persistente morde no GT-G3 required (fusão
+    // ADR 0314, não gate novo): bad = Schema::drop('business') não-guardado → 1 > baseline 0.
+    id: 'sdd-scorecard-corruptors',
+    run: runScorecardCorruptors,
+    expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): sqlite_corruptors/ },
   },
   {
     id: 'memory-health',

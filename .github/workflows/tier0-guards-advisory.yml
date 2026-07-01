@@ -1,4 +1,4 @@
-name: Tier-0 guards (advisory)
+name: Tier-0 guards
 
 # US-GOV-019 — pluga 2 guards Tier-0 de segurança que existiam mas NÃO rodavam
 # em nenhum workflow ("armados mas não plugados"):
@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   guards:
-    name: Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)
+    name: Tier-0 guards (WithoutGlobalScopes + BusinessId)
     runs-on: ubuntu-latest
 
     steps:

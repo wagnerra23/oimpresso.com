@@ -40,5 +40,22 @@ jobs:
         with:
           node-version: '20'
 
+      # P14 (avaliação 2026-07-01, defeito nº 1): sem esta materialização o ratchet
+      # lia not_yet_measured (governance/nightly-floor.json é gitignored, ausente no
+      # checkout de PR) e PULAVA a métrica armada em silêncio — floor=298 era lei só
+      # no papel. Ramo do floor é HARD (full_suite está armed:true no baseline; fetch
+      # falho = vermelho, re-run resolve transiente). Coverage fica soft enquanto
+      # coverage_pct estiver armed:false — endurecer no PR que armar C2.
+      - name: Materializa floor + coverage da órfã governance/nightly-floor (P14 · ADR 0279/0275)
+        run: |
+          git fetch origin governance/nightly-floor --depth 1
+          git show FETCH_HEAD:governance/nightly-floor.json > governance/nightly-floor.json
+          echo "floor materializado:"; cat governance/nightly-floor.json
+          if git show FETCH_HEAD:governance/nightly-coverage.json > governance/nightly-coverage.json 2>/dev/null; then
+            echo "coverage materializado:"; cat governance/nightly-coverage.json
+          else
+            echo "coverage ausente na órfã — coverage_pct segue not_yet_measured (armed:false hoje; endurecer este ramo ao armar C2)"
+          fi
+
       - name: Ratchet — nenhuma métrica ARMADA regrediu vs baseline (ADR 0275 §3)
         run: node scripts/governance/sdd-scorecard.mjs --ratchet

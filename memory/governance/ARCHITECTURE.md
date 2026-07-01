@@ -136,7 +136,7 @@ C4Container
 | **Spreadsheet** | active=1, 3 controllers | UltimatePOS | L4 CONTENT | Mantém — uso interno |
 | **Woocommerce** | active=1, 4 controllers | Integration | L3 VERTICAL | Mantém |
 | **ConsultaOs** | active=0, 3 controllers, portal público | Public | L4 CONTENT | Ativar quando pronto |
-| **Jana (NEW)** | a criar via rename de Jana | IA | L2 PRODUCT | Fase 3 |
+| **Jana (NEW)** | a criar via rename de Copiloto | IA | L2 PRODUCT | Fase 3 |
 | **Notas (NEW)** | a criar | Personal | L2 PRODUCT | Fase 3 — extração gradual de Essentials |
 | **Governance (NEW)** | a criar | Governance | L1 GOVERNANCE | Fase 5 — ActionGate + UI |
 
@@ -148,11 +148,13 @@ C4Container
 
 | De | Pra | Tipo | Por quê | Cuidados |
 |---|---|---|---|---|
-| `Modules/Jana` | `Modules/Jana` | rename | Nome canônico da IA do business | namespace, URLs `/copiloto/*`→`/jana/*` (com 301 redirects), permissões `copiloto.*`→`jana.*`, tabelas `copiloto_*` mantém prefixo legacy ou rename via migration cuidadosa |
+| `Modules/Copiloto` | `Modules/Jana` | rename | Nome canônico da IA do business | namespace, URLs `/copiloto/*`→`/jana/*` (com 301 redirects), permissões `copiloto.*`→`jana.*`, tabelas `copiloto_*` mantém prefixo legacy ou rename via migration cuidadosa |
 | `Modules/Essentials` (parte) | `Modules/Notas` (novo) | extração | Notas pessoais + arquivo cliente + KB pessoal **fora** do HRM herdado | Essentials L3 mantém código UltimatePOS HRM; Notas L2 absorve gradualmente: Notes, Personal Tasks, Cliente Archive |
 | `Modules/PontoWr2` | `Modules/Ponto` | rename | Tirar `WR2` (cliente externo) do nome do módulo | rename + URLs + namespace + tabelas `ponto_*` mantém prefixo |
 | `Modules/ProjectMgmt` | `Modules/Project` | rename | Único `Project` (após delete legado) | DEPENDE: extrair Project legado primeiro |
 | `Modules/MemCofre` | `Modules/SRS` | repurpose | Era cofre de evidências; vira System Rules Spec — regras imutáveis pra IA programar | rename + redefinir entities (`Doc*` → SRS entries) + adicionar trigger MySQL append-only |
+
+> **Status (2026-05-06):** renames executados **PHP-only** (pasta+namespace; URLs/permissions/tabelas mantidas legacy) — [ADR 0088](../decisions/0088-module-rename-php-only.md) + erratum §4 v1.2 do [MODULE-DRIFT-MIGRATION-PLAN](MODULE-DRIFT-MIGRATION-PLAN.md). Os nomes antigos na coluna "De" são registro histórico do plano, não referência viva.
 
 **Anti-padrões a evitar:**
 - ❌ Rename **sem 301 redirect** quebra bookmarks/integrações
@@ -242,7 +244,7 @@ C4Container
 3. **Trust level antes de feature.** Decidir trust_required antes de codar evita reescrever permissões depois.
 4. **Renomear preservando 301 redirects.** Bookmarks de cliente + integrações não podem quebrar.
 5. **DELETE de módulo legado é cerimônia.** Audit dados, extrair, marcar tabelas `_archived_`, deletar código.
-6. **Rename de tabela DB é última opção.** Prefixos legacy (`copiloto_*` mantém após Jana→Jana) custam memória, mas zero risk.
+6. **Rename de tabela DB é última opção.** Prefixos legacy (`copiloto_*` mantém após Copiloto→Jana) custam memória, mas zero risk.
 7. **Active flag em module.json não é trust level.** Active=0 = não monta routes; trust = quem pode editar código. São ortogonais.
 
 ---
@@ -257,7 +259,7 @@ C4Container
 | **3.4** | SCOPE.md no resto (24 módulos) | 8h | delegável a outros agentes/devs |
 | **3.5** | mcp_modules table + tool MCP `modules-fetch` | 2h | depende 3.3 |
 | **3.6** | Pre-commit hook drift detection (warn-only) | 1h | depende 3.5 |
-| **3.7** | Renames: Jana→Jana, PontoWr2→Ponto, MemCofre→SRS | 6h | depende 3.3 (SCOPE.md já escrito) |
+| **3.7** | Renames: Copiloto→Jana, PontoWr2→Ponto, MemCofre→SRS | 6h | depende 3.3 (SCOPE.md já escrito) |
 | **3.8** | Project legado: audit dados + extrair + DELETE | 4h | bloqueia 3.9 |
 | **3.9** | Rename: ProjectMgmt → Project | 1h | depende 3.8 |
 | **3.10** | Notas (NEW): scaffold módulo + extração gradual de Essentials | 6h | depende 3.7 (Jana feita pra reuso de pattern) |

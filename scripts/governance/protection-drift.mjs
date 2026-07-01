@@ -44,10 +44,15 @@ const FIXTURE = fxIdx > -1 ? process.argv[fxIdx + 1] : null;
 
 // métrica measured do scorecard → workflow que mantém a fonte viva (watchdog ADR 0275 §3).
 // Métrica nova `measured` sem entry aqui = 🟡 aviso (adicionar o mapeamento).
+// P14b: fonte `orfa:<branch>` = frescor do TIP da branch órfã (nightly CT100 publica lá).
+// Staleness da nightly fica AQUI (advisory) por decisão deliberada do P14 — o required
+// GT-G3 nunca depende de wall-clock (gate-que-grita-lobo); a órfã retém o último floor.
 const WATCHDOG_SOURCES = {
   anchor_coverage: 'sdd-scorecard.yml',
   ghost_count: 'sdd-scorecard.yml',
   front_door_coverage: 'sdd-scorecard.yml',
+  n_quarantine: 'sdd-scorecard.yml',
+  full_suite_pass_rate: 'orfa:governance/nightly-floor',
 };
 
 function gh(path) {
@@ -66,8 +71,14 @@ function fetchLive() {
     workflow_runs: {},
   };
   for (const wf of [...new Set(Object.values(WATCHDOG_SOURCES))].sort()) {
-    const runs = gh(`repos/${REPO}/actions/workflows/${wf}/runs?status=success&per_page=1`);
-    live.workflow_runs[wf] = runs.workflow_runs?.[0]?.run_started_at ?? null;
+    if (wf.startsWith('orfa:')) {
+      // P14b: última publicação do write-side = data do commit no tip da órfã.
+      const br = gh(`repos/${REPO}/branches/${encodeURIComponent(wf.slice(5))}`);
+      live.workflow_runs[wf] = br.commit?.commit?.committer?.date ?? null;
+    } else {
+      const runs = gh(`repos/${REPO}/actions/workflows/${wf}/runs?status=success&per_page=1`);
+      live.workflow_runs[wf] = runs.workflow_runs?.[0]?.run_started_at ?? null;
+    }
   }
   return live;
 }

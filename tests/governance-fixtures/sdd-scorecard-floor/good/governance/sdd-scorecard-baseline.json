@@ -1,0 +1,10 @@
+{
+  "_meta": "fixture P14 — full_suite_pass_rate ARMADA (armed:true, value 298, direction down). O floor da fixture decide o veredito: 298 = verde, 299 = regressao (catraca morde), AUSENTE = fail-red (fonte sumiu com metrica armada — defeito n.1 da avaliacao 2026-07-01).",
+  "metrics": {
+    "full_suite_pass_rate": {
+      "status": "measured",
+      "value": 298,
+      "armed": true
+    }
+  }
+}

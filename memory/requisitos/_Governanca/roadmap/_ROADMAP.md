@@ -3,7 +3,7 @@
 > Origem: avaliação adversarial 2026-06-21 (composto **60/100**) — [session log](../../../sessions/2026-06-21-sdd-avaliacao-adversarial.md).
 > Régua: o **teste contrafactual** (se um funcionário tentar quebrar uma decisão já tomada, o processo barra sozinho?). Hoje a detecção está em **L2 (medido, advisory)**; **L3 (required + counterfactual) tem 0 gates SDD**.
 > 13 projetos detalhados, cada um verificado no repo real. **Status: EM EXECUÇÃO — vários itens já landaram (ver reconciliação abaixo).**
-> Última atualização: 2026-07-01 — P09 executado + reconciliação de bookkeeping (P01/P03/P05/P08/P13). P08 landou 2026-06-21 (#3140) mas ficou fora do 1º passe de reconciliação — corrigido. **2ª reconciliação 2026-07-01:** Pfr (`foundation-ratchet`) estava marcado "⏳ não feito" — na verdade foi promovido (#3143) e **demovido pela ADR 0314 D-1** (#3466); corrigido pra "⚰️ feito→revertido". Fix do resíduo de nome do workflow + registro anti-regressão em proibições §5 no mesmo passe.
+> Última atualização: 2026-07-01 (noite) — **avaliação adversarial deu composto 67/100** ([session log](../../../sessions/2026-07-01-sdd-avaliacao-adversarial.md)) + plano de execução pós-avaliação (§ no fim) verificado por 4 agents em origin/main: **P14 novo** (catraca do floor inerte no required — defeito nº 1), errata do falso-positivo "12 tier-A", chips paralelos P10/P11 disparados. Anterior (mesmo dia): P09 executado + reconciliações P01/P03/P05/P08/P13/Pfr.
 
 ## ✅ Reconciliação de estado (2026-07-01 — verificado no repo/branch-protection real)
 
@@ -70,9 +70,10 @@ Esforço dominado por **7+ noites de relógio real** (CT100). Semanas, não dias
 | [P08](P08-conectar-metricas-gt-e-fixture-anchor.md) ✅ | Conectar 2 métricas GT + fixture anchor | 1 | — | P13 | **executado** (#3140) | ✅ `drift_alarms`+`backfill_error_rate` `measured`; 6ª catraca `anchor-lint` morde |
 | [P09](P09-sa-a4-sanear-placeholders-anchored-dead.md) ✅ | SA-A4: sanear placeholders + dead | 4 | — | P10 | **executado 2026-07-01** (#3473+#3475) | ✅ `anchor-lint` dead=0, placeholder=0 |
 | [P10](P10-sa-a5-a6-batches-ia-fila-wagner.md) | SA-A5/A6: batches IA + fila + enforce | 4 | P09 | P13 | 3-4d / 2-3 sem | PR sem ledger → umbrella vermelho |
-| [P11](P11-kl-e2-renames-reseed-distiller.md) | KL E2: renames + re-seed + distiller | 4 | P05 | — | 1d / dias | `ghost_count` ratchet morde; freshness `measured` |
+| [P11](P11-kl-e2-renames-reseed-distiller.md) 🟡 | KL E2: renames + re-seed + distiller | 4 | P05 | — | 1d / dias | E2a ✅ #3155 (ghost 14→8 armado) · E2b ✅ **executado 2026-07-01** (manifest `governance/reseed-meilisearch-manifest.json`) · E3 🟡 dry-run ✅ (crash GLOB_BRACE corrigido #3532; lote 1 aguarda **skim Wagner**) — freshness `measured` só após run real |
 | [P12](P12-decay-real-ragas-recall.md) | Decay real: RAGAS + recall-eval | 5 | — | — | 1d / **secret Wagner** | RAGAS baseline>0 (sai da tautologia) |
 | [P13](P13-promover-gt-g3-required.md) ✅ | **Promover GT-G3 a `required`** | 6 | P05,P08 | — | **executado** | ✅ `SDD scorecard ratchet (GT-G3)` na lista required |
+| [P14](P14-catraca-floor-morde-no-required.md) 🆕 | **Catraca do floor MORDE no required** (defeito nº 1 da avaliação 67) | 0 | — | P04,R1,C2 | 0.5-1d / 2 flips Wagner | PR com floor regredido na fixture → GT-G3 exit 1; fonte ausente com armed → exit 1 (não skip) |
 
 ## Divergências que os agentes acharam (criticar aqui)
 
@@ -89,3 +90,39 @@ Esforço dominado por **7+ noites de relógio real** (CT100). Semanas, não dias
 Em paralelo: `P06` (quick win visível, ~1h) · `P05` + `P08` (~2-3d) → **`P13`** GT-G3 (2º dente).
 Trilho B começa em paralelo (`P01`→`P02`, `P03`→`P04`) rumo a R1.
 **Não promover nada antes do baseline armado e do grandfather fechado (P05)** — senão vira `main` required-vermelho.
+
+---
+
+## Plano de execução 2026-07-01 — pós-avaliação 67/100 (verificado por 4 agents em origin/main)
+
+> Origem: [avaliação adversarial 2026-07-01](../../../sessions/2026-07-01-sdd-avaliacao-adversarial.md) (composto **67**, subiu de 60) + workflow de verificação `wf_26bdd155` (4 agents, file:line em snapshot `dd3ed7c311`). **Alocação de modelo:** julgamento/adversarial/refutação → Fable 5; volume mecânico (geradores de lote, fan-out de burn-down) → Opus 4.8; **refutador sempre de tier ≥ gerador, nunca igual quando evitável** (achado: as 4 entries do ledger são opus↔opus).
+
+### ⚠️ Errata da avaliação (verificada por reprodução, 2026-07-01)
+
+O achado **"12 corruptores era-sqlite tier-A vivos / P03 bookkeeping mente" é FALSO-POSITIVO de checkout stale**: o skeptic rodou o auditor no repo principal `D:\oimpresso.com` @ `0b59ec3dc9` (#3412, 114 commits atrás de main, ANTERIOR ao #3445 que guardou os 12). Em `origin/main` o auditor dá **0 corruptores** (default e `--strict`, exit 0 — reproduzido). **P03 segue `executed` CORRETO.** Defesas: (a) skeptics do `sdd-avaliador-processo` passam a exigir prova `git rev-parse HEAD == origin/main` pós-fetch antes de qualquer claim "live" (editar workflow + skill); (b) `git pull` no repo principal. Os DEMAIS achados da avaliação (catraca inerte, E3 nunca rodou, etc.) foram RE-CONFIRMADOS pelos 4 agents.
+
+### Fase 0 — P14 (dias, barato, destrava a confiança em tudo) → [P14](P14-catraca-floor-morde-no-required.md)
+
+Materializar a órfã no workflow required + fail-red `armed ∧ ¬measured` + counterfactual de full_suite no selftest (40→42) + rename dos **6** required com "(advisory)" no nome (ordem zero-window, 2 flips Wagner). **Decisão Wagner antes do flip:** o fix converte regressão de nightly em red-until-fixed COLETIVO (floor >298 trava merges do repo até descer/subir baseline via PR) — trajetória 274→295→298 torna provável. Quick-wins de carona (mesma janela): **armar `n_quarantine`** (5 medições =27 já commitadas, falta só PR no baseline — anti-mascaramento por quarentena) e **métrica `sqlite_corruptors`** no scorecard (fusão no GT-G3 já required, ~30 LOC + baseline 0 armed + 2 fixtures — em vez de promover gate novo, respeitando a lei de fusões da 0314).
+
+### Fase 1 — Burn-down P04 (relógio real 2-3 sem; decisão Fable 5, fan-out Opus 4.8)
+
+Root-cause REFINADO pós-#3505: a cascata (57% do floor) não é mais era-sqlite (zerado) — é o `migrate:fresh` do RefreshDatabase apagando o seed biz=1 no MySQL persistente (454 FK "Cannot add child row" = 73% das QueryException). **Fase 1.0 — LER o piloto self-heal #3507 antes de qualquer fan-out** (nightly manual 20260701-132941 ainda não aterrissou na órfã; kill-criteria: sem queda medida, não escalar). **1.1** clusters de causa (business/owner 121 · nfe_certificados 22). **1.2** fan-out per-módulo do residual ExpectationFailed (322): tests/Feature raiz 89 primeiro (infra compartilhada) → OficinaAuto 29 → PaymentGateway 20 → KB 17 → NfeBrasil 16 → Financeiro 14 → cauda. 1 módulo/agent, áreas disjuntas, 1 PR ≤300 linhas, floor re-derivado da órfã após cada lote. **1.3** US-GOV-018/020 review→done (falta: owner, anchor `Implementado em:`, evidência medida 1514→298 na §Validação — números da órfã `554047dd06`).
+
+### Trilhas paralelas (chips disparados 2026-07-01, sessões próprias)
+
+- **P10 anchoring** (chip `task_6a900cfd`, sessão Fable 5 + geradores Opus 4.8): 12 lotes, universo **662 US** (717 − 55 gated trilha E: TaskRegistry/Inventory/EvolutionAgent/LaravelAI/MemoriaAutonoma — identidade antes de anchor), ordem valor×buraco (L1 Sells+Financeiro recalibra ambiguidade), fila A6 `_ANCHOR-REVIEW-QUEUE.md` (a criar), kill-criteria §103, charters `related_us` como PR pareado por módulo. Armar `anchor_coverage` JÁ no valor corrente (~16%, 3 medições do cron + PR). Estimativa: ~2-3 semanas civis; ~8-14M tokens.
+- **P11 E2b/E3** (chip `task_f2a0ccdb`, Fable 5): **Passo 0 bloqueador** — resolver com evidência a contradição do scheduler Hostinger, porque o cron do distiller **JÁ está descomentado** (`Kernel.php:237-245`, 05:30 `['live']`) sem o gate dry-run→skim ter rodado nunca (0/75 BRIEFINGs com `distilled_at`); se o scheduler estiver vivo → hotfix gateando o bloco. E2b = 3 comandos no container `oimpresso-mcp` + artefato de prova (hits por nome morto antes/depois). E3 = venue clone git + auto-PR draft (nunca a árvore deployada — o comando escreve filesystem sem git), ledger G5, PII manual (motor não pega nomes CRM), guard de shrink (trunca porta em 4000 chars).
+- **G7/G8 (P06 residual):** host-cron CT100 + `docker exec oimpresso-mcp ... --input=` (container conecta direto no MySQL prod; a imagem não tem node — gerar o JSON no host). Rejeitadas: scheduler Laravel completo no CT100 (dispararia crons `['live']` em duplicidade — perigo Tier 0) e GH Actions→DB prod (whitelist). Alarme em 3 camadas: wrapper→`mcp_alertas`, check `sdd_snapshot_freshness` no `jana:health-check` (roda no Hostinger, vigia cross-host), stale-guard no `SddBriefLineService` (hoje snapshot morto = silêncio = "estável" disfarçado).
+- **P12 recall real:** trocar `environments(['live'])`→`(['staging'])` no recall-eval (espelho do ragas) + read-side novo `measureRecallEval()` (hoje HARDCODED not_yet_measured em `sdd-scorecard.mjs:363-366` — sem transporte staging→git a métrica nunca vive). Ordem obrigatória: **E2b provado ANTES do 1º real-eval** (senão o baseline nasce medindo índice stale).
+
+### Decisões Wagner pendentes (nunca no calado)
+
+1. **R1 × ADR 0314:** promover full-suite a required rema contra "required = só Tier-0". Alternativas: (a) reabrir a 0314 pra R1 quando floor=0×7 noites; (b) **não promover** — floor vive como métrica armada no GT-G3 (que já é required) + alarme alto de staleness. A recomendação técnica é (b)-até-floor-zero, depois decidir.
+2. **T1/T2 (mapa teste↔arquivo + lane TDAD): CORTE.** Blueprint puro, zero artefato, dependência em cadeia, ROI duvidoso pra 1 dev + IA. Proposta: demover pra feature-wish (ADR 0105) — subtração é melhoria (lição 0271/0314).
+3. **P14 red-until-fixed coletivo** (Fase 0 acima) — flipar ciente.
+4. **Hotfix do cron distiller** se o Passo 0 do P11 provar scheduler vivo.
+
+### Cadência de honestidade
+
+Re-rodar `/sdd-avaliar` ao fechar Fase 0+1 e a cada quinzena (skill `sdd-avaliar`); alvo: composto subir de 67 sem regressão de stream. Nenhum gate promovido com stream <70.

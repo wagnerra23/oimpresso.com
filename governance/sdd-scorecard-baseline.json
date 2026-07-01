@@ -33,12 +33,14 @@
       "nota_armamento": "ARMADO (P02 · ADR 0279 PR-3 + ADR 0275 §3). Capturado da fonte REAL, nunca do plano: governance/nightly-floor.json da branch órfã origin/governance/nightly-floor@554047dd06 = floor_count 298, floor_files_hash 637fb9978f839423, intersection_of 3, computed_at 20260701-020001. As 3 medições válidas consecutivas: run 20260628 (failed 339/errors 782), 20260630 (352/796), 20260701 (336/784) — todas reais, não-mock, não-nulas; floor = interseção dos arquivos-que-falham nos 3 runs (def US-GOV-018). Congelo o valor MAIS RECENTE e também o PIOR (trajetória 274→295→298; +3 no último salto = estável, não oscilante) pra não nascer regredido (kill-criteria P02). Provenance origin/main@d50d145d24 (2026-07-01). Catraca DESCE pra 0 (direction down); regressão do floor (>298) com armed:true = exit 1 (sdd-scorecard.mjs:395). Piorar/desarmar/absorver = só via PR editando este arquivo com diff visível citando ADR 0275. Fonte parada >48h desarma até nova sequência de 3 (watchdog ADR 0275 métrica 9)."
     },
     "n_quarantine": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 27,
+      "unit": "arquivos de teste",
       "direction": "down",
-      "armed": false,
-      "valid_measurements": 0,
-      "fonte": "grep @group legacy-quarantine — grupo só passa a existir na quarentena FV-Q3"
+      "armed": true,
+      "valid_measurements": 8,
+      "fonte": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (sdd-scorecard.mjs measureQuarantine)",
+      "nota_armamento": "ARMADO (Fase 0 P14 carona · ADR 0275 §3). Capturado da fonte REAL, nunca do plano: 8 medições consecutivas =27 commitadas em governance/sdd-scorecard.json (d20b3a4a7d e b5bd1fb217 em 2026-06-30; 138246f306, 33c648bb16, 98ebccd4e8, 7e069f3c86, 59502695ac, fc3a03a263 em 2026-07-01 — todas measured, não-mock, não-nulas; mínimo exigido é 3) + medição live =27 nesta sessão em origin/main 9b7333e325. Anti-mascaramento da quarentena FV-Q3: sem catraca, quarentenar arquivo novo era jeito silencioso de 'melhorar' o floor sem pagar a dívida — agora >27 = exit 1 no GT-G3 required. Burn-down só DESCE (target 0); quarentenar novo arquivo conscientemente = PR editando este arquivo com diff visível citando ADR 0275. A fonte é o próprio repo (varredura determinística), então nunca cai em not_yet_measured — imune ao buraco fonte-ausente do P14."
     },
     "coverage_pct": {
       "status": "not_yet_measured",
@@ -47,6 +49,16 @@
       "armed": false,
       "valid_measurements": 0,
       "fonte": "pcov instrumentado em CI (P0-2) — hoje coverage: none"
+    },
+    "sqlite_corruptors": {
+      "status": "measured",
+      "value": 0,
+      "unit": "arquivos que corrompem o MySQL persistente (corruptsOnMysql · v2)",
+      "direction": "down",
+      "armed": true,
+      "valid_measurements": 3,
+      "fonte": "scripts/audit/sqlite-test-corruptors.mjs --json .corruptors (US-GOV-021 · fusão GT-G3 · P14 carona 2)",
+      "nota_armamento": "ARMADO (Fase 0 P14 carona 2 · ADR 0275 §3). FUSÃO no GT-G3 required em vez de promover o job advisory do umbrella (lei de fusões ADR 0314 — required = só Tier-0; corromper o MySQL persistente do nightly É o lever do floor). 3+ medições válidas da fonte real: (1) P03 reconciliado 2026-07-01 — `--strict` exit 0, REAIS=0 em origin/main (_ROADMAP §Reconciliação); (2) errata da avaliação 2026-07-01 — 0 corruptores reproduzido em origin/main (default e --strict), o achado '12 vivos' era checkout stale; (3) umbrella `--strict --tier=A` verde em todo PR desde #3445; (4) medição live desta sessão em origin/claude/p14-catraca-floor-required (base 9b7333e325): corruptors=0, counts S/A/B/C=0, 266 com DDL manual todos guardados. Catraca DESCE (target 0): teste novo que dropa tabela compartilhada sem guarda ⇒ >0 ⇒ exit 1 no GT-G3. Regressão consciente = PR editando este arquivo com diff visível citando ADR 0275. Fonte é o próprio repo — se o auditor sumir do checkout, o fail-red armed∧¬measured (P14) avermelha em vez de pular."
     },
     "ghost_count": {
       "status": "measured",

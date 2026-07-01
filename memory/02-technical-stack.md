@@ -85,7 +85,7 @@ Com PHP 8.3 + Laravel 9, **todo o seguinte está liberado:**
 ## Arquitetura modular
 
 - **nWidart/laravel-modules** — padrão adotado pelo UltimatePOS Essentials. Cada módulo vive em `Modules/NomeModulo/`.
-- Nosso módulo: `Modules/PontoWr2/`
+- Nosso módulo: `Modules/Ponto/` (ex-`PontoWr2` — rename ADR 0088)
 
 ## Bibliotecas PHP (composer)
 
