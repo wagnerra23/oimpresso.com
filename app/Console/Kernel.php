@@ -465,6 +465,32 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // 2026-07-01 (loop IA-OS #2 · ADR 0318) — jana:ragas-real-eval SEMANAL (dom 07:00 BRT).
+        // Sibling REAL (não-tautológico) do gate PR jana-ragas-gate.yml: mede a saída de
+        // VERDADE da Jana (KbAnswerService → retrieval em mcp_memory_documents + síntese
+        // gpt-4o-mini), NÃO `answer=ground_truth` (tautologia banida ADR 0271 — PR #3516).
+        //
+        // environments(['staging']) — NÃO ['live'] — de propósito: o corpus + OPENAI_API_KEY
+        // vivem no CT 100 staging (APP_ENV=staging, 1153 docs mcp_memory_documents). Em 'live'
+        // (Hostinger shared hosting) não há Meilisearch/OPENAI → seria ghost como o recall-eval
+        // real acima (dormant por construção, gated ['live'] que nunca tem a infra). Aqui roda
+        // DE VERDADE toda semana no staging. O comando faz SKIP honesto (exit 0) se sem
+        // chave/contexto — nunca inventa score. appendOutputTo deixa o trend JSON visível.
+        // 07:00 pra não disputar DB com drift-sentinel (dom 06:00) nem recall-eval (dom 06:30).
+        $schedule->command('jana:ragas-real-eval --json')
+            ->weeklyOn(0, '07:00')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['staging'])
+            ->appendOutputTo(storage_path('logs/ragas-real-eval.log'))
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
+                    'Schedule jana:ragas-real-eval FALHOU — faithfulness/relevancy real abaixo ' .
+                    'do baseline OU corpus/OPENAI inacessível. Ver storage/logs/ragas-real-eval.log. ' .
+                    'Baseline honesto em governance/jana-ragas-real-baseline.json.'
+                );
+            });
+
         // Bug #4 BUGS-MCP-SYNC-2026-05-13 — mcp:tasks:health-check daily 06:20 BRT.
         // Flagga tasks dormentes em mcp_tasks (stale_todo >21d, stale_blocked >30d,
         // stale_doing >7d sem commit, stale_review >5d). Roda SEM --auto-comment

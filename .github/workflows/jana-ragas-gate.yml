@@ -1,8 +1,18 @@
-name: Jana RAGAS Eval Gate
+name: Jana RAGAS smoke (tautológico — plumbing, não qualidade)
 
 # W28-2 — RAGAS CI gate Jana (paths trigger PR + weekly cron).
 # ⚠️ 2026-06-11 (ADR 0271): bloqueio só em RAGAS_MODE=real. Em mock (default) os scores
 # são fixos — gate era teatro (sempre verde). Mock agora é advisory.
+#
+# ⚠️⚠️ 2026-07-01 (ADR 0318): `jana:ragas-ci-eval` mede `answer = context = ground_truth`
+# — TAUTOLOGIA. Mesmo em modo real, faithfulness crava ~1.000 (o ground_truth é fiel a si
+# mesmo) → NÃO mede qualidade da Jana, só que o plumbing roda. A avaliação REAL (saída de
+# verdade da Jana via KbAnswerService) vive em `jana:ragas-real-eval`, agendada no CT 100
+# staging (app/Console/Kernel.php · onde mcp_memory_documents + OPENAI existem). Este
+# workflow é SMOKE de plumbing, não quality gate.
+#
+# Rodar modo REAL em PR aqui era desperdício (~$1.20/mês pra um 1.000 falso) → FORÇADO MOCK
+# em pull_request abaixo (o secret RAGAS_MODE=real só vale pra dispatch/cron manual).
 #
 # Diferença vs ragas-gate.yml (W22 MVP):
 #   - Aquele é workflow_dispatch + cron manual ALERTA (não bloqueia)
@@ -71,7 +81,10 @@ jobs:
       - name: Resolve modo efetivo (mock|real)
         id: mode
         env:
-          REQUESTED_MODE: ${{ github.event.inputs.mode || secrets.RAGAS_MODE || 'mock' }}
+          # ADR 0318: pull_request FORÇA mock — real-em-CI aqui é tautológico ($ desperdiçado
+          # num 1.000 falso). Real só via dispatch/cron manual (secret RAGAS_MODE). Qualidade
+          # de verdade = jana:ragas-real-eval no CT 100 staging.
+          REQUESTED_MODE: ${{ github.event_name == 'pull_request' && 'mock' || github.event.inputs.mode || secrets.RAGAS_MODE || 'mock' }}
           HAS_OPENAI_KEY: ${{ secrets.OPENAI_API_KEY != '' }}
         run: |
           effective="${REQUESTED_MODE}"
