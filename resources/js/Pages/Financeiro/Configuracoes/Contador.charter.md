@@ -11,6 +11,7 @@ page: /financeiro/configuracoes/contador
 component: resources/js/Pages/Financeiro/Configuracoes/Contador.tsx
 last_validated: "2026-05-31"
 parent_module: Financeiro
+related_prototype: n/a (sem protótipo Cowork — config de acesso do contador parceiro, US-FIN-037; segue DS)
 tier: B
 charter_version: 1
 ---

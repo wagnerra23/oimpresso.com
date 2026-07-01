@@ -59,6 +59,18 @@ function norm(s) { return (s || '').toLowerCase().replace(/\\/g, '/').replace(/\
 
 // ── núcleo: resolve a âncora de UMA tela a partir dos charters do repo ────────
 export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir = null } = {}) {
+  // Git Bash (MSYS) mangleia arg iniciado em "/" pra "<raiz-msys>/<rota>" (ex.:
+  // "/financeiro/unificado" vira "C:/Program Files/Git/financeiro/unificado") e a máquina
+  // responderia "sem charter" FALSO. Detecção: path absoluto Windows que NÃO existe no disco
+  // → tenta os sufixos como rota original (pegadinha catalogada 2026-07-01).
+  if (/^[a-z]:[\\/]/i.test(query) && !existsSync(query)) {
+    const partes = query.replace(/\\/g, '/').split('/').filter(Boolean);
+    for (let i = 1; i < partes.length; i++) {
+      const cand = '/' + partes.slice(i).join('/');
+      const r = await resolveAncora(cand, { repoRoot, stagingDir });
+      if (r.ok) return { ...r, query, avisoMangle: `query recebida mangleada pelo MSYS ("${query}") — recuperada como "${cand}". Use MSYS_NO_PATHCONV=1 no Git Bash.` };
+    }
+  }
   const pagesRoot = join(repoRoot, 'resources', 'js', 'Pages');
   const charters = (await walk(pagesRoot)).filter((f) => f.endsWith('.charter.md'));
   const q = norm(query);
@@ -107,6 +119,7 @@ export async function resolveAncora(query, { repoRoot = REPO_DEFAULT, stagingDir
 
 function printResolve(r) {
   if (!r.ok) { console.error(`✗ ${r.query}: ${r.motivo}`); return 1; }
+  if (r.avisoMangle) console.log(`⚠️ ${r.avisoMangle}`);
   console.log(`ÂNCORA da tela: ${r.query}`);
   console.log(`  charter:    ${r.charter}`);
   console.log(`  tela viva:  ${r.telaViva || '—'}`);
@@ -138,6 +151,9 @@ async function selftest() {
   // resolve real contra os charters do repo (tela conhecida)
   const r = await resolveAncora('/financeiro/unificado');
   t('resolve /financeiro/unificado acha charter', r.ok === true && /Unificado/.test(r.charter || ''));
+  // query mangleada pelo MSYS (Git Bash converte "/" inicial) DEVE recuperar a rota
+  const rm = await resolveAncora('C:/Program Files/Git/financeiro/unificado');
+  t('resolve query mangleada MSYS recupera /financeiro/unificado', rm.ok === true && /Unificado/.test(rm.charter || '') && !!rm.avisoMangle);
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — âncora = charter, png de auditoria barrado.');
   process.exit(fails ? 1 : 0);
 }
