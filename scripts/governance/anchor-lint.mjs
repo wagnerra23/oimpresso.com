@@ -138,7 +138,7 @@ const FIELD_RE = /^(?:>\s*)?\*\*Implementado em:\*\*\s*(.*)$/;
 const TESTADO_RE = /^(?:>\s*)?\*\*Testado em:\*\*\s*(.*)$/;
 // G1b-entry (gate de entrada · regra de aceite): marcadores de DoD/aceite reais nos SPECs
 // (medido em main: **DoD:** 168× · **Definition of Done:** 63× · **Aceite:** 16×).
-const DOD_RE = /^(?:>\s*)?\*\*(?:Definition of Done|DoD|Aceite|Crit[ée]rios? de [Aa]ceite)\s*:\*\*/;
+const DOD_RE = /^(?:>\s*)?\*\*(?:Definition of Done|DoD|Aceite|Crit[ée]rios? de [Aa]ceite|Acceptance [Cc]riteria(?: do epic)?)\s*:\*\*/;
 const US_HEAD_RE = /^(#{2,4})\s+.*\bUS-[A-Z][A-Za-z0-9]*-\d/;
 const US_ID_RE = /US-[A-Z][A-Za-z0-9]*-\d+(?:\.\.\d+)?/;
 const HEAD_RE = /^(#{1,6})\s/;
