@@ -139,6 +139,23 @@
       "pii_hits": 0,
       "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3541) — lote inteiro re-verificado: 006 agora _parcial_ com 3 faltas reais (trait ausente, seeder 9 vs 15x19, teste 3 vs 15), charter Edit = [US-OFICINA-001]; 52 restantes byte-identicos a r1. anchor-lint: sem_campo 0, dead 0, zombie 0, grammar 48/48. Dominio ADR 0265 ok. Cobre PR #3541 (SPEC) + PR pareado de charters OficinaAuto.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3546,
+      "lote_id": "SA-A5-P10-whatsapp",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 73,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao (comment no PR #3546) — APROVADO 0/73. Claims estruturais atacados e confirmados: ADR 0202 (daemon-node OUT do repo, zero .go) -> US-060/078/079 pendentes corretas; Cockpit V1 removido com teste de regressao -> reancoragem V4; Canal=Fila vivo. 1 incerto melhorado: segmento MediaPreviewCard.tsx orfao (US-WA-042) trocado por ConversationThreadV4.tsx vivo conforme sugestao do refutador. 177 paths re-verificados independentes, 0 ausentes. Cobre PR #3546 (SPEC) + PR pareado de charter Settings.",
+      "veredito": "aprovado"
     }
   ]
 }
