@@ -2,13 +2,16 @@
 roadmap_item: P03
 slug: us-gov-021-isolamento-era-sqlite
 onda: 2
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: []
 destrava: [P04]
 related_adrs: [275, 276, 279]
 esforco_estimado: "1.5d codavel (IA-pair, margem 2x) + 7-14d relogio (2 nightlies p/ medir queda + janela catraca)"
 ---
 # P03 · US-GOV-021: isolamento era-sqlite (o lever real do floor)
+
+> **✅ EXECUTADO 2026-07-01** (reconciliação de bookkeeping) — sqlite-test-corruptors --strict exit 0 (corruptores REAIS=0).
 
 ## Problema (o que esta quebrado, em 2-3 frases)
 O floor do nightly full-suite nao cai porque ~18-30 testes "era-sqlite" fazem `Schema::create/drop` de tabela compartilhada numa base MySQL persistente — corrompendo o schema pra todos os testes seguintes na mesma conexao (cascata "Base table not found"). Esse isolamento e o **lever real** do floor (declarado no SPEC `Governance/SPEC.md:408-409`), nao tweak de harness. US-GOV-021 foi nomeada como a US que trata isso, mas nasceu **orfa**: e referenciada 2x e tem **0 secoes definidas** — nao ha DoD, nao ha gate, ninguem pode fechar nem medir.

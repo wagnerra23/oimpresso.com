@@ -2,8 +2,25 @@
 
 > Origem: avaliação adversarial 2026-06-21 (composto **60/100**) — [session log](../../../sessions/2026-06-21-sdd-avaliacao-adversarial.md).
 > Régua: o **teste contrafactual** (se um funcionário tentar quebrar uma decisão já tomada, o processo barra sozinho?). Hoje a detecção está em **L2 (medido, advisory)**; **L3 (required + counterfactual) tem 0 gates SDD**.
-> 13 projetos detalhados, cada um verificado no repo real. **Status: proposed — aguarda Wagner.**
-> Última atualização: 2026-06-21.
+> 13 projetos detalhados, cada um verificado no repo real. **Status: EM EXECUÇÃO — vários itens já landaram (ver reconciliação abaixo).**
+> Última atualização: 2026-07-01 — P09 executado + reconciliação de bookkeeping (P01/P03/P05/P13).
+
+## ✅ Reconciliação de estado (2026-07-01 — verificado no repo/branch-protection real)
+
+Os docs nasceram `proposed` mas o trabalho landou sem atualizar o bookkeeping. Estado REAL (cada um verificado, não presumido):
+
+| Item | Estado | Prova |
+|---|---|---|
+| **P01** | ✅ executado | floor commit-back ativo (auto-PR); `full_suite=298 measured` no main |
+| **P03** | ✅ executado | `sqlite-test-corruptors --strict` exit 0 (corruptores REAIS=0) |
+| **P05** | ✅ executado | `anchor entry/covers gate` na lista `required` (branch protection) |
+| **P09** | ✅ executado | `anchored_dead=0` E `placeholder=0` no main (#3473+#3475) |
+| **P13** | ✅ executado | `SDD scorecard ratchet (GT-G3)` na lista `required` — **2º dente em L3** |
+| **Pfr** | ⏳ NÃO feito | `foundation-ratchet` **não** está na lista `required` (o "1º dente" do plano não flipou; o GT-G3/P13 virou o dente que landou) |
+
+**Divergência do plano (honesta):** a DECISÃO de 2026-06-21 elegeu `foundation-ratchet` como 1º dente e GT-G3 como 2º. Na prática **o GT-G3 (P13) landou required e o foundation-ratchet não** — a ordem inverteu. Pfr segue pendente.
+
+**Ainda falta:** Trilho B (`P02`→`P04`, burn-down full-suite required, semanas CT100) · 6 métricas `not_yet_measured` do scorecard (`P06` migrate prod · `P07` pcov · `P08` wiring · `P11` distiller · `P12` RAGAS/recall — secret+prod=mão Wagner) · conteúdo `P10` · `Pfr` foundation-ratchet · follow-ups (`dead_tests` pré-P10, `req_sem_lane` reconhecer CT100-nightly).
 
 ## Achado-chave (refinou o diagnóstico)
 
@@ -30,25 +47,25 @@ Esforço dominado por **7+ noites de relógio real** (CT100). Semanas, não dias
 - **`P07`**: `pcov` no CI → destrava `coverage_pct` (catraca C2).
 
 ### 📚 Conteúdo (paralelo, travado no volume)
-`P09` (sanear 22 placeholders + 15 dead) → `P10` (batches IA + fila Wagner) · `P11` (renames + distiller) · `P12` (decay real).
+`P09` ✅ **executado 2026-07-01** (dead=0 + placeholder=0 no main; #3473+#3475) → `P10` (batches IA + fila Wagner) · `P11` (renames + distiller) · `P12` (decay real).
 
 ## Os 13 projetos
 
 | # | Projeto | Onda | Depende | Destrava | Esforço (código / relógio) | DoD (counterfactual) |
 |---|---|:---:|---|---|---|---|
-| [P01](P01-reconectar-read-side-floor.md) | Commit-back do floor pra main | 0 | — | P02,P06,P07,P13 | 0.5d / +1 noite | main floor == branch floor (274→295) |
+| [P01](P01-reconectar-read-side-floor.md) ✅ | Commit-back do floor pra main | 0 | — | P02,P06,P07,P13 | **executado** | ✅ floor auto-PR ativo; full_suite=298 measured |
 | [P02](P02-armar-baseline-full-suite.md) | Armar baseline full-suite | 0 | P01 | P13 | 0.3d / +3 noites | `armed:true`,`valid:3`; regressão → exit 1 |
-| [P03](P03-us-gov-021-isolamento-era-sqlite.md) | US-GOV-021: isolar 18 corruptores | 2 | — | P04 | 1.5d / 7-14d | `sqlite-test-corruptors --strict` exit 0 |
+| [P03](P03-us-gov-021-isolamento-era-sqlite.md) ✅ | US-GOV-021: isolar 18 corruptores | 2 | — | P04 | **executado** | ✅ `sqlite-test-corruptors --strict` exit 0 (REAIS=0) |
 | [P04](P04-burn-down-ate-nightly-verde.md) | Burn-down até nightly verde | 2 | P03,P01,P02 | (R1) | 3-4d / **2-3 sem** | 7 noites floor=0, skipped não infla |
-| [P05](P05-fechar-grandfather-baseline-tamper-guard.md) | Fechar grandfather (vetor #2848) | 1 | — | P11,P13 | 1d / 0 | afrouxar baseline+código → exit 1 |
+| [P05](P05-fechar-grandfather-baseline-tamper-guard.md) ✅ | Fechar grandfather (vetor #2848) | 1 | — | P11,P13 | **executado** | ✅ entry/covers armado a required |
 | [P06](P06-materializar-g7-g8-historia-brief.md) | Migrar prod → linha SDD no brief | 3 | (P01 soft) | — | **~1h** / 1-2d cron | `snapshot` FAILURE→exit 0 + 1 row |
 | [P07](P07-instrumentar-pcov-ci-coverage.md) | `pcov` no CI (coverage_pct) | 3 | — | P13 | 0.8d / 3+14d | `coverage_pct` vira `measured` |
 | [P08](P08-conectar-metricas-gt-e-fixture-anchor.md) | Conectar 2 métricas GT + fixture anchor | 1 | — | P13 | 0.5d / 0 | gate-selftest 12/12; métricas leem fonte |
-| [P09](P09-sa-a4-sanear-placeholders-anchored-dead.md) | SA-A4: sanear placeholders + dead | 4 | — | P10 | 0.8d / 0 | `anchor-lint` dead=0, placeholder=0 |
+| [P09](P09-sa-a4-sanear-placeholders-anchored-dead.md) ✅ | SA-A4: sanear placeholders + dead | 4 | — | P10 | **executado 2026-07-01** (#3473+#3475) | ✅ `anchor-lint` dead=0, placeholder=0 |
 | [P10](P10-sa-a5-a6-batches-ia-fila-wagner.md) | SA-A5/A6: batches IA + fila + enforce | 4 | P09 | P13 | 3-4d / 2-3 sem | PR sem ledger → umbrella vermelho |
 | [P11](P11-kl-e2-renames-reseed-distiller.md) | KL E2: renames + re-seed + distiller | 4 | P05 | — | 1d / dias | `ghost_count` ratchet morde; freshness `measured` |
 | [P12](P12-decay-real-ragas-recall.md) | Decay real: RAGAS + recall-eval | 5 | — | — | 1d / **secret Wagner** | RAGAS baseline>0 (sai da tautologia) |
-| [P13](P13-promover-gt-g3-required.md) | **Promover GT-G3 a `required`** | 6 | P05,P08 | — | 0.7d / **14d** | PR que afrouxa baseline → **bloqueia merge** |
+| [P13](P13-promover-gt-g3-required.md) ✅ | **Promover GT-G3 a `required`** | 6 | P05,P08 | — | **executado** | ✅ `SDD scorecard ratchet (GT-G3)` na lista required |
 
 ## Divergências que os agentes acharam (criticar aqui)
 

@@ -2,7 +2,8 @@
 roadmap_item: P05
 slug: fechar-grandfather-baseline-tamper-guard
 onda: 1
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: []
 destrava: [P11, P13]
 related_adrs: [275, 271, 256, 258]
@@ -10,6 +11,8 @@ esforco_estimado: "0.5d codável + IA-pair (margem 2x = 1d) · zero relógio hum
 ---
 
 # P05 · Fechar o buraco grandfather do baseline-tamper-guard (vetor #2848)
+
+> **✅ EXECUTADO 2026-07-01** (reconciliação de bookkeeping) — gate `anchor entry/covers` armado a required (branch protection).
 
 ## Problema (o que está quebrado, em 2-3 frases)
 O `baseline-tamper-guard` é o ÚNICO meta-gate que pega o vetor #2848 ("afroxar baseline + shippar o código que ele deveria pegar, no MESMO PR → entra verde"). Mas hoje ele guarda **apenas 1 dos 4 baselines-ratchet do repo** (`scripts/governance/.memory-health-baseline.json`), e seu workflow só dispara quando o PR toca **exatamente** esse arquivo. Os outros três baselines armados — SDD scorecard, knowledge-ghosts (24 módulos), required-checks — ficam fora do guarda-meta: um PR pode afrouxar qualquer um deles + meter código no mesmo commit e o tamper-guard nem roda. O caso real #2848 (ghost 14→16, baseline subido no mesmo PR) é exatamente essa classe e segue ABERTO pros 3 baselines não-cobertos.

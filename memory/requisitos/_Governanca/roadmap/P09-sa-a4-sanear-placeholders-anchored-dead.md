@@ -2,7 +2,9 @@
 roadmap_item: P09
 slug: sa-a4-sanear-placeholders-anchored-dead
 onda: 4
-status: proposed
+status: executed
+executed_at: "2026-07-01"
+executed_prs: [3473, 3475]
 depende_de: []
 destrava: [P10]
 related_adrs: [273, 271, 270, 256]
@@ -10,6 +12,15 @@ esforco_estimado: "0.8d codável + IA-pair (margem 2x) · 0d relógio real (sem 
 ---
 
 # P09 · SA-A4: sanear 22 placeholders + 15 anchored_dead
+
+> **✅ EXECUTADO 2026-07-01** (PRs [#3473](https://github.com/wagnerra23/oimpresso.com/pull/3473) + [#3475](https://github.com/wagnerra23/oimpresso.com/pull/3475), mergeados). **DoD atingido no main: `anchored_dead=0` E `placeholder=0`.**
+> Estado vivo divergiu do plano (que media dead=15/placeholder=22): sessões prévias já tinham saneado Jana (4) + NfeBrasil (1). Restou:
+> - **12 placeholder = 100% PontoWr2** → backfill de âncora (#3473) + **trio completo** (`@covers-us` nos 4 testes substanciais + 2 testes novos de show `Espelho`/`Importacao` + `Testado em`). O `entry/covers gate` (required) me pegou carimbando "implementada" sem prova de teste — resolvido com cobertura REAL, não fachada.
+> - **9 dead = 100% MemCofre** → opção **(d) deletar** o `SPEC.md` arquivado (duplicata do `Modules/SRS` em deprecation), decisão Wagner. Delete cirúrgico (preservou os 8 ADRs de módulo).
+>
+> **Ressalvas honestas (fora do escopo P09, não fechadas aqui):**
+> - `anchor-lint --check` (gate F2 total) **ainda sai 1** por `dead_tests` pré-existentes (Accounting/Crm/Essentials) — outra classe, pré-req do **P10**.
+> - Os testes do Ponto rodam na **nightly CT100** (DB real), NÃO nas lanes sqlite do PR-CI. Wagner bancou (2026-07-01) que essa cobertura conta pro trio. **Follow-up durável:** `req_sem_lane` precisa reconhecer a lane CT100-nightly antes de armar, senão PontoWr2 vira falso-vermelho.
 
 ## Problema (o que está quebrado, em 2-3 frases)
 O `anchor-lint.mjs` detecta hoje, em estado LIVE, **22 placeholders** (campo `**Implementado em:**` legado sem path verificável) e **15 anchored_dead** (anchor preenchido apontando pra path que NÃO existe no disco — "mentira detectável", ADR 0273 §2). Enquanto esses 15 dead persistirem, a catraca F2 (`--check` → exit 1 se `dead>0`) não pode ser ligada — P10 (promoção do gate a required) está bloqueada. O backfill consolidado (PR #2611) foi fechado por conflito e o saneamento dos dead ficou sem owner desde a deferral do Wagner em 2026-06-20.

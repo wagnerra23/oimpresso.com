@@ -2,13 +2,16 @@
 roadmap_item: P01
 slug: reconectar-read-side-floor
 onda: 0
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: []
 destrava: [P02, P06, P07, P13]
 related_adrs: [279, 275]
 esforco_estimado: "0.5d codavel + 1 nightly (relogio real, 24h) pra prova end-to-end"
 ---
 # P01 · Reconectar o read-side do floor (no-raiz)
+
+> **✅ EXECUTADO 2026-07-01** (reconciliação de bookkeeping) — commit-back do floor ativo (auto-PR); full_suite floor=298 measured no main.
 
 ## Problema (o que esta quebrado, em 2-3 frases)
 O elo MEDIR→GOVERNAR do floor da nightly CT100 esta **parcialmente** reconectado: o numero
