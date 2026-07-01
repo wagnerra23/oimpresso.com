@@ -612,16 +612,6 @@
     });
   }
 
-  // API sempre disponível (ritual pré-done [CC] + verificador); UI só gated
+  // API sempre disponível (ritual pré-done [CC] + verificador); UI removida ([W] 2026-06-29 "não faz mais sentido").
   window.QAConformance = { run: run, negative: negative, version: 2.4 };
-  if (gated()) {
-    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
-    else mount();
-  }
-  document.addEventListener("keydown", function (e) {
-    if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === "Q" || e.key === "q")) {
-      try { localStorage.setItem("oimpresso.qa", "1"); } catch (err) {}
-      if (!document.getElementById("qa-launch")) mount();
-    }
-  });
 })();

@@ -514,7 +514,7 @@ function App() {
   // ─── Tweaks expressivos ───
   const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
     "vibe": "workspace",
-    "theme": "light",
+    "theme": "dark",
     "density": 50,
     "accentHue": 295,
     "showLaravel": false
@@ -576,6 +576,8 @@ function App() {
   let content;
   if (route === "chat") content = <window.JanaCockpit company={company} tab={chatTab} />;else
   if (route === "tarefas") content = <TasksPage />;else
+  if (route === "perfil") content = <window.PerfilPage />;else
+  if (route === "usuarios") content = <window.UsuariosPage />;else
   if (route === "os") content = <OsListPage />;else
   if (route === "clientes") content = <CliListPage />;else
   if (route === "orcamentos") content = <OrcListPage />;else

@@ -792,12 +792,12 @@
   letter-spacing: 0.01em; white-space: nowrap;
 }
 .fin-frescor-ic{ font-size: var(--fs-1); line-height: 1; }
-.fin-frescor-fresh{ background: var(--pos-soft); color: var(--pos); }
-.fin-frescor-soon{ background: var(--pos-soft); color: var(--pos); }
-.fin-frescor-warning{ background: var(--warn-soft); color: var(--warn); }
-.fin-frescor-today{ background: var(--warn-soft); color: var(--warn); }
-.fin-frescor-overdue{ background: var(--neg-soft); color: var(--neg); }
-.fin-frescor-paid{ background: var(--sunken); color: var(--text-mute); }
+.fin-frescor-fresh{ background: var(--sla-fresh-soft); color: var(--sla-fresh); border: 1px solid var(--sla-fresh-line); }
+.fin-frescor-soon{ background: var(--sla-fresh-soft); color: var(--sla-fresh); border: 1px solid var(--sla-fresh-line); }
+.fin-frescor-warning{ background: var(--sla-aging-soft); color: var(--sla-aging); border: 1px solid var(--sla-aging-line); }
+.fin-frescor-today{ background: var(--sla-late-soft); color: var(--sla-late); border: 1px solid var(--sla-late-line); }
+.fin-frescor-overdue{ background: var(--sla-expired-soft); color: var(--sla-expired); border: 1px solid var(--sla-expired-line); }
+.fin-frescor-paid{ background: var(--sla-paid-soft); color: var(--sla-paid); border: 1px solid var(--border); }
 
 /* Audit trail */
 .fin-audit{ font-size: var(--fs-3); }
@@ -1539,6 +1539,100 @@
 .fin-pb-count{ font-size: var(--fs-2); color: var(--text-3); font-variant-numeric: tabular-nums; }
 
 .fin-pb-presets{ display: inline-flex; gap: 4px; }
+/* Select de Plano de contas na toolbar (paridade git Onda 12.7) */
+.fin-toolbar .fin-filter-select{
+  -webkit-appearance: none; appearance: none;
+  height: 24px; padding: 0 26px 0 10px; box-sizing: border-box;
+  border: 1px solid var(--border); border-radius: 99px;
+  background-color: var(--surface); color: var(--text-2);
+  font-family: inherit; font-size: var(--fs-2); font-weight: 500; line-height: 1;
+  cursor: pointer; transition: border-color var(--t-1) var(--ease), color var(--t-1) var(--ease);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%23999' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat; background-position: right 9px center;
+}
+.fin-toolbar .fin-filter-select:hover{ border-color: var(--text-3); color: var(--text); }
+.fin-toolbar .fin-filter-select:focus-visible{
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 25%, transparent);
+}
+.fin-toolbar .fin-filter-select.on{
+  border-color: color-mix(in oklch, var(--accent) 50%, transparent);
+  color: var(--accent); font-weight: 600;
+  background-color: color-mix(in oklch, var(--accent) 8%, var(--surface));
+}
+/* Contas — filtro MÚLTIPLO (dropdown de checkboxes) */
+.fin-toolbar .fin-contas-filter{ position: relative; display: inline-flex; }
+.fin-toolbar .fin-contas-btn{ display: inline-flex; align-items: center; gap: 4px; }
+.fin-contas-pop{
+  position: absolute; top: calc(100% + 5px); left: 0; z-index: 60;
+  min-width: 180px; padding: 5px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  box-shadow: var(--sh-2); display: flex; flex-direction: column; gap: 1px;
+}
+.fin-contas-opt{
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 9px; border-radius: 6px; cursor: pointer;
+  font-size: var(--fs-3); color: var(--text-2); user-select: none;
+  transition: background var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.fin-contas-opt:hover{ background: var(--sunken); color: var(--text); }
+.fin-contas-opt.on{ color: var(--text); font-weight: 500; }
+.fin-contas-opt input{ position: absolute; opacity: 0; width: 0; height: 0; }
+.fin-contas-box{
+  width: 14px; height: 14px; flex-shrink: 0;
+  border: 1.5px solid var(--text-mute); border-radius: 4px;
+  display: inline-grid; place-items: center;
+  transition: all var(--t-1) var(--ease);
+}
+.fin-contas-opt.on .fin-contas-box{ background: var(--accent); border-color: var(--accent); }
+.fin-contas-opt.on .fin-contas-box::after{
+  content: "\2713"; color: var(--accent-fg, #fff); font-size: 10px; font-weight: 700; line-height: 1;
+}
+.fin-contas-clear{
+  margin-top: 3px; padding: 6px 9px; border: 0; border-top: 1px solid var(--border);
+  background: none; cursor: pointer; text-align: left;
+  font-family: inherit; font-size: var(--fs-2); color: var(--text-mute); border-radius: 0 0 6px 6px;
+}
+.fin-contas-clear:hover{ color: var(--accent); }
+/* Barra de datas na toolbar (paridade produção: campo + dd/mm/aaaa — dd/mm/aaaa) */
+.fin-toolbar .fin-datebar{ display: inline-flex; align-items: center; gap: 6px; }
+.fin-toolbar .fin-date-input{
+  -webkit-appearance: none; appearance: none;
+  height: 24px; padding: 0 8px; box-sizing: border-box;
+  border: 1px solid var(--border); border-radius: 99px;
+  background: var(--surface); color: var(--text-2);
+  font-family: var(--font-mono); font-size: var(--fs-1); font-weight: 500; line-height: 1;
+  cursor: pointer; transition: border-color var(--t-1) var(--ease), color var(--t-1) var(--ease);
+}
+.fin-toolbar .fin-date-input:hover{ border-color: var(--text-3); color: var(--text); }
+.fin-toolbar .fin-date-input:focus-visible{ outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 25%, transparent); }
+.fin-toolbar .fin-date-input::-webkit-calendar-picker-indicator{ opacity: .5; cursor: pointer; }
+.fin-toolbar .fin-date-input:hover::-webkit-calendar-picker-indicator{ opacity: .85; }
+.fin-toolbar .fin-date-sep{ color: var(--text-mute); font-size: var(--fs-2); user-select: none; }
+.fin-toolbar .fin-date-clear{
+  width: 22px; height: 22px; display: grid; place-items: center;
+  border: 0; background: none; border-radius: 50%; cursor: pointer;
+  color: var(--text-mute); font-size: var(--fs-2);
+}
+.fin-toolbar .fin-date-clear:hover{ background: var(--sunken); color: var(--text); }
+/* Datas personalizadas (period === custom) — inputs início/fim no lugar do nav */
+.fin-pb-custom{ display: inline-flex; align-items: center; gap: 7px; }
+.fin-pb-date-sep{ font-size: var(--fs-2); color: var(--text-mute); user-select: none; }
+.fin-root .fin-pb-date, .cr-root .fin-pb-date{
+  -webkit-appearance: none; appearance: none;
+  height: 28px; padding: 4px 9px; box-sizing: border-box;
+  border: 1px solid var(--border); border-radius: 6px;
+  background: var(--surface); color: var(--text);
+  font-family: var(--font-mono); font-size: var(--fs-2); font-weight: 500; line-height: 1.4;
+  cursor: pointer; transition: border-color var(--t-1) var(--ease);
+}
+.fin-root .fin-pb-date:hover, .cr-root .fin-pb-date:hover{ border-color: var(--text-3); }
+.fin-root .fin-pb-date:focus-visible, .cr-root .fin-pb-date:focus-visible{
+  outline: none; border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--accent) 25%, transparent);
+}
+.fin-pb-date::-webkit-calendar-picker-indicator{ opacity: 0.5; cursor: pointer; }
+.fin-pb-date:hover::-webkit-calendar-picker-indicator{ opacity: 0.85; }
 .fin-root .fin-pb-preset, .cr-root .fin-pb-preset{
   appearance: none; cursor: pointer; font-family: inherit;
   font-size: var(--fs-3); font-weight: 500; color: var(--text-2);
@@ -1812,43 +1906,43 @@
 
 /* ── Filter checkbox (4 lifecycle states — multi-select) ── */
 .fin-toolbar .fin-filter-cb{
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 5px 10px; border-radius: 5px;
-  border: 1px solid var(--border); background: var(--surface);
-  font-size: var(--fs-3); font-weight: 500; color: var(--text-dim);
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px; height: 24px; border-radius: 99px;
+  border: 1px solid color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 22%, transparent); background: var(--surface);
+  font-size: var(--fs-2); font-weight: 500; color: var(--text-mute);
   cursor: pointer; user-select: none; transition: all var(--t-1) var(--ease);
   position: relative;
+  --cb-hue: 240;
 }
 .fin-toolbar .fin-filter-cb:hover{
-  border-color: var(--text-mute); color: var(--text);
+  background: color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 7%, var(--surface));
+  border-color: color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 40%, transparent);
 }
 .fin-toolbar .fin-filter-cb input{
   position: absolute; opacity: 0; pointer-events: none; width: 0; height: 0;
 }
 .fin-toolbar .fin-filter-cb-box{
-  width: 14px; height: 14px;
-  border: 1.5px solid var(--text-mute);
+  width: 12px; height: 12px;
+  border: 1.5px solid color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 45%, transparent);
   border-radius: 3px;
   display: inline-grid; place-items: center;
   transition: all var(--t-1) var(--ease);
   flex-shrink: 0;
 }
 .fin-toolbar .fin-filter-cb.on{
-  background: oklch(0.96 0.04 var(--cb-hue, 145));
-  border-color: oklch(0.55 0.13 var(--cb-hue, 145));
-  color: oklch(0.32 0.13 var(--cb-hue, 145));
+  background: color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 12%, var(--surface));
+  border-color: color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 50%, transparent);
+  color: oklch(0.36 0.18 var(--cb-hue, 240));
   font-weight: 600;
+  box-shadow: 0 1px 4px -1px color-mix(in oklch, oklch(0.55 0.13 var(--cb-hue, 240)) 28%, transparent);
 }
 .fin-toolbar .fin-filter-cb.on .fin-filter-cb-box{
-  background: oklch(0.55 0.13 var(--cb-hue, 145));
-  border-color: oklch(0.55 0.13 var(--cb-hue, 145));
+  background: oklch(0.55 0.18 var(--cb-hue, 240));
+  border-color: transparent;
 }
 .fin-toolbar .fin-filter-cb.on .fin-filter-cb-box::after{
-  content: "";
-  width: 8px; height: 4px;
-  border-left: 1.5px solid white;
-  border-bottom: 1.5px solid white;
-  transform: rotate(-45deg) translate(0, -1px);
+  content: "\2713";
+  color: white; font-size: var(--fs-1); font-weight: 700; line-height: 1;
 }
 .fin-toolbar .fin-filter-cb.on .fin-filter-ct{
 /* [W] 2026-06-16: número do filtro SEMPRE na cor do estado, mesmo tratamento on/off

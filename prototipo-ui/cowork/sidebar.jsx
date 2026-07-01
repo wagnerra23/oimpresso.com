@@ -239,7 +239,7 @@ function UserMenu({ onClose }) {
           <small>wagner@oimpresso.com.br</small>
         </div>
       </div>
-      <div className="um-item"><I.user className="ic" /> <span className="label">Meu perfil</span></div>
+      <div className="um-item" onClick={() => {window.__selectRoute?.("perfil");onClose?.();}}><I.user className="ic" /> <span className="label">Meu perfil</span></div>
       {/* Itens de sistema/usuário — canon repo: vivem no rodapé, não no corpo */}
       {(MOCK.USER_MENU || []).map((it) => {
         const Icon = I[it.icon] || I.cog;

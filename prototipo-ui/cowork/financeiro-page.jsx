@@ -46,10 +46,18 @@
   { id: "semana", label: "Semana" },
   { id: "mes", label: "Mês" },
   { id: "ano", label: "Ano" },
-  { id: "tudo", label: "Tudo" }];
+  { id: "tudo", label: "Tudo" },
+  { id: "custom", label: "Personalizado" }];
 
-  function periodWindow(mode, anchor) {
+  function periodWindow(mode, anchor, custom) {
     if (mode === "tudo") return null;
+    if (mode === "custom") {
+      if (!custom || !custom.from || !custom.to) return null;
+      const s = new Date(custom.from + "T00:00:00");
+      const e = new Date(custom.to + "T00:00:00");
+      if (isNaN(s) || isNaN(e)) return null;
+      return [s, new Date(e.getFullYear(), e.getMonth(), e.getDate() + 1)];
+    }
     const y = anchor.getFullYear(),m = anchor.getMonth(),d = anchor.getDate();
     if (mode === "dia") return [new Date(y, m, d), new Date(y, m, d + 1)];
     if (mode === "semana") {const wd = (anchor.getDay() + 6) % 7;return [new Date(y, m, d - wd), new Date(y, m, d - wd + 7)];}
@@ -65,9 +73,14 @@
     if (mode === "ano") return new Date(y + dir, m, Math.min(d, 28));
     return anchor;
   }
-  function periodLabel(mode, anchor) {
+  function periodLabel(mode, anchor, custom) {
     const y = anchor.getFullYear();
     if (mode === "tudo") return "Todo o período";
+    if (mode === "custom") {
+      const fmt = (s) => {const dt = new Date(s + "T00:00:00");return isNaN(dt) ? "—" : dt.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });};
+      if (custom && custom.from && custom.to) return `${fmt(custom.from)} – ${fmt(custom.to)}`;
+      return "Selecione as datas";
+    }
     if (mode === "ano") return String(y);
     if (mode === "mes") {const mn = MESES[anchor.getMonth()];return mn.charAt(0).toUpperCase() + mn.slice(1) + " " + y;}
     if (mode === "semana") {const w = periodWindow("semana", anchor);const s = w[0];const e = new Date(w[1] - 1);return `Semana ${s.getDate()}–${e.getDate()} ${MESES[e.getMonth()]} ${y}`;}
@@ -76,6 +89,7 @@
   }
   const periodLabelShort = (mode, anchor) => {
     if (mode === "tudo") return "todo período";
+    if (mode === "custom") return "personalizado";
     if (mode === "ano") return String(anchor.getFullYear());
     if (mode === "mes") return MESES[anchor.getMonth()] + " " + anchor.getFullYear();
     return periodLabel(mode, anchor).toLowerCase();
@@ -94,17 +108,18 @@
    * Status badge
    * ─────────────────────────────────────────────────────────────────────── */
   const STATUS_STYLES = {
-    recebido: { bg: "bg-[var(--pos-soft)]", fg: "text-[var(--pos)]", dot: "bg-[var(--pos)]", label: "Recebido" },
-    pago: { bg: "bg-[var(--pos-soft)]", fg: "text-[var(--pos)]", dot: "bg-[var(--pos)]", label: "Pago" },
-    pendente: { bg: "bg-[var(--sunken)]", fg: "text-[var(--text-2)]", dot: "bg-[var(--text-3)]", label: "Pendente" },
-    vencendo: { bg: "bg-[var(--warn-soft)]", fg: "text-[var(--warn)]", dot: "bg-[var(--warn)]", label: "Vencendo" },
-    atrasado: { bg: "bg-[var(--neg-soft)]", fg: "text-[var(--neg)]", dot: "bg-[var(--neg)]", label: "Atrasado" }
+    recebido: { bg: "bg-[var(--pos-soft)]", fg: "text-[var(--pos)]", dot: "bg-[var(--pos)]", c: "var(--pos)", label: "Recebido" },
+    pago: { bg: "bg-[var(--pos-soft)]", fg: "text-[var(--pos)]", dot: "bg-[var(--pos)]", c: "var(--pos)", label: "Pago" },
+    pendente: { bg: "bg-[var(--sunken)]", fg: "text-[var(--text-2)]", dot: "bg-[var(--text-3)]", c: "var(--text-3)", label: "Pendente" },
+    vencendo: { bg: "bg-[var(--warn-soft)]", fg: "text-[var(--warn)]", dot: "bg-[var(--warn)]", c: "var(--warn)", label: "Vencendo" },
+    atrasado: { bg: "bg-[var(--neg-soft)]", fg: "text-[var(--neg)]", dot: "bg-[var(--neg)]", c: "var(--neg)", label: "Atrasado" }
   };
   const StatusBadge = ({ status, compact }) => {
     // Blindagem ([W] fluxo 2026-06-10): status desconhecido NUNCA derruba a tela — cai em tom muted.
-    const s = STATUS_STYLES[status] || { bg: "bg-[var(--sunken)]", fg: "text-[var(--text-3)]", dot: "bg-[var(--text-4)]", label: status || "—" };
+    const s = STATUS_STYLES[status] || { bg: "bg-[var(--sunken)]", fg: "text-[var(--text-3)]", dot: "bg-[var(--text-4)]", c: "var(--text-4)", label: status || "—" };
     return (
-      <span className={`inline-flex items-center gap-1.5 ${compact ? "px-1.5 py-px" : "px-2 py-0.5"} rounded-full ${s.bg} ${s.fg} text-[length:var(--fs-2)] font-semibold`}>
+      <span className={`inline-flex items-center gap-1.5 ${compact ? "px-1.5 py-px" : "px-2 py-0.5"} rounded-full ${s.bg} ${s.fg} text-[length:var(--fs-2)] font-semibold`}
+      style={{ border: `1px solid color-mix(in oklch, ${s.c} 22%, transparent)` }}>
       <span className={`w-1.5 h-1.5 rounded-full ${s.dot}`} />
       {s.label}
     </span>);
@@ -193,7 +208,7 @@
   // Sub-páginas (Conciliação, Plano de contas, Fluxo, DRE) saíram daqui pro
   // SIDEBAR. R5 golden: `.os-page-h` reflua sem esmagar o título.
   // ──────────────────────────────────────────────────────────────────────────
-  const FinHero = ({ tela, periodText, lente, onLente, onCmdK, onNew, onDigest, onFechamento, onPresent, onExport }) =>
+  const FinHero = ({ tela, periodText, lente, onLente, onCmdK, onNew, onDigest, onFechamento, onPresent, onExport, onOcr }) =>
   <div className="os-page-h fin-hero">
     <div className="os-page-h-l">
       <h1>Financeiro <span className="fin-hero-title-sub">· {FIN_SUB_TITLES[tela] || "Visão unificada"}</span></h1>
@@ -209,9 +224,10 @@
         )}
         </div>
       }
-      <button className="os-btn primary" onClick={onNew}><I.Plus size={12} /> Novo lançamento</button>
+      <button className="os-btn primary" onClick={onNew}><I.Plus size={12} /> Novo título</button>
       <FinOverflowMenu items={[
       { icon: I.Search, label: "Buscar", kbd: "⌘K", onClick: onCmdK },
+      { icon: I.Receipt, label: "Ler boleto (OCR)", onClick: onOcr },
       { sep: true },
       { icon: I.Sparkles, label: "Resumir mês", onClick: onDigest },
       { icon: I.Check, label: "Fechamento mensal", onClick: onFechamento },
@@ -390,8 +406,8 @@
           <b className="mono">{fmtBRL(k.saldoAtual)}</b> realizado · {fmtBRLshort(k.aReceber - k.aPagar)} pendente
         </span>
         {/* Sparkline 30d — saldo projetado. Caso 07 (O Adversário): a COR diz a verdade
-                  do sinal (verde sobe / vermelho déficit), igual ao @main e ao Caso 03 — não
-                  mais verde fixo num saldo negativo. */}
+                           do sinal (verde sobe / vermelho déficit), igual ao @main e ao Caso 03 — não
+                           mais verde fixo num saldo negativo. */}
         {(() => {
             const sTone = k.saldoPrevisto < 0 ? "var(--neg)" : "var(--pos)";
             return (
@@ -503,6 +519,28 @@
 
   const PERIOD_OPTS = ["Maio 2026", "Abril 2026", "Últimos 30 dias", "Trimestre", "Personalizado"];
   const CATEGORIES = ["Banner", "Adesivo", "Fachada", "Placa", "Gráfica rápida", "Insumo", "Aluguel", "Utilidade", "Imposto", "Folha", "Serviço"];
+  // Plano de contas (Onda 12.7 git: substitui o filtro de Categoria livre) — ÁRVORE hierárquica BR (grupo › subconta › conta).
+  const PLANO_CONTAS = [
+  { code: "3", label: "Receitas", subs: [
+    { code: "3.1", label: "Serviços gráficos", leaves: ["Banner", "Adesivo", "Fachada", "Placa", "Gráfica rápida"] },
+    { code: "3.2", label: "Outros serviços", leaves: ["Serviço"] }] },
+  { code: "4", label: "Despesas", subs: [
+    { code: "4.1", label: "Custos diretos", leaves: ["Insumo"] },
+    { code: "4.2", label: "Operacionais", leaves: ["Aluguel", "Utilidade", "Folha"] },
+    { code: "4.3", label: "Tributos", leaves: ["Imposto"] }] }];
+  // Contas bancárias (filtro "Contas" do git). Atribuição determinística por id no mock.
+  const CONTAS = [
+  { id: "itau", label: "Itaú PJ", detail: "Itaú PJ · ag 0438 · cc 4521-7" },
+  { id: "bradesco", label: "Bradesco PJ", detail: "Bradesco PJ · ag 1234 · cc 5678-9" },
+  { id: "caixa", label: "Caixa", detail: "Caixa Econ. · ag 0042 · cc 1102-3" },
+  { id: "dinheiro", label: "Dinheiro", detail: "Caixa interno · dinheiro" }];
+  const contaOf = (r) => CONTAS[[...(r && r.id || "x")].reduce((a, c) => a + c.charCodeAt(0), 0) % CONTAS.length];
+  // Forma de pagamento (coluna FORMA, paridade produção). Usa cobrança quando há; senão determinístico.
+  const formaOf = (r) => {
+    if (r && r.cobranca && r.cobranca.tipo) return r.cobranca.tipo === "pix" ? "PIX" : "Boleto";
+    const h = [...(r && r.id || "x")].reduce((a, c) => a + c.charCodeAt(0), 0);
+    return r && r.kind === "receivable" ? h % 2 ? "Boleto" : "PIX" : h % 2 ? "Dinheiro" : "Transferência";
+  };
 
   // FilterBar refeito no padrão `.os-toolbar` do shell + pills de filtro.
   const FilterPill = ({ icon: Icon, label, value }) =>
@@ -514,7 +552,42 @@
   </button>;
 
 
-  const FilterBar = ({ lente = "caixa", states, setStates, late, setLate, query, setQuery, period, setPeriod, density, setDensity, counts }) => {
+  const ContasFilter = ({ value, onChange }) => {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+    useEffect(() => {
+      if (!open) return;
+      const onDoc = (e) => {if (ref.current && !ref.current.contains(e.target)) setOpen(false);};
+      const onKey = (e) => {if (e.key === "Escape") setOpen(false);};
+      document.addEventListener("mousedown", onDoc);
+      document.addEventListener("keydown", onKey);
+      return () => {document.removeEventListener("mousedown", onDoc);document.removeEventListener("keydown", onKey);};
+    }, [open]);
+    const count = value.size;
+    const label = count === 0 ? "Todas as contas" : count === 1 ? (CONTAS.find((c) => value.has(c.id)) || {}).label : count + " contas";
+    const toggle = (id) => {const n = new Set(value);n.has(id) ? n.delete(id) : n.add(id);onChange(n);};
+    return (
+      <div className="fin-contas-filter" ref={ref}>
+        <button type="button" className={"fin-filter-select fin-contas-btn" + (count ? " on" : "")} onClick={() => setOpen((o) => !o)} aria-expanded={open} title="Filtrar por conta bancária (múltipla)">
+          <span>{label}</span>
+        </button>
+        {open &&
+        <div className="fin-contas-pop">
+          {CONTAS.map((c) =>
+          <label key={c.id} className={"fin-contas-opt" + (value.has(c.id) ? " on" : "")}>
+            <input type="checkbox" checked={value.has(c.id)} onChange={() => toggle(c.id)} />
+            <span className="fin-contas-box" />
+            <span className="fin-contas-lbl">{c.label}</span>
+          </label>
+          )}
+          {count > 0 && <button type="button" className="fin-contas-clear" onClick={() => onChange(new Set())}>Limpar seleção</button>}
+        </div>
+        }
+      </div>);
+
+  };
+
+  const FilterBar = ({ lente = "caixa", states, setStates, late, setLate, query, setQuery, period, setPeriod, density, setDensity, counts, planoConta = "all", setPlanoConta = () => {}, contas = new Set(), setContas = () => {} }) => {
     // US-FIN-029: chips refinam DENTRO da lente — fora da lente Caixa só os 2 chips do lado ativo.
     const FILTER_LIFECYCLE = [
     { id: "rec", label: "A receber", hue: 145 },
@@ -536,7 +609,7 @@
     const clear = () => setStates(new Set());
 
     return (
-      <div className="os-toolbar fin-toolbar">
+      <div className="os-toolbar fin-toolbar" data-comment-anchor="d563f8837b-div-554-7">
     <div className="fin-filter-group" role="group" aria-label="Estado do lançamento">
       {FILTER_LIFECYCLE.map((s) => {
             const on = states.has(s.id);
@@ -562,6 +635,23 @@
       {counts.late != null && counts.late > 0 && <span className="fin-filter-ct">{counts.late}</span>}
     </label>
 
+    <span className="fin-filter-sep" />
+
+    <ContasFilter value={contas} onChange={setContas} />
+
+    <select className={"fin-filter-select" + (planoConta !== "all" ? " on" : "")} value={planoConta}
+    onChange={(e) => setPlanoConta(e.target.value)} aria-label="Plano de contas" title="Filtrar por plano de contas (árvore)">
+      <option value="all">Todo o plano de contas</option>
+      {PLANO_CONTAS.map((g) =>
+      <optgroup key={g.code} label={g.code + " · " + g.label}>
+        {g.subs.map((sub) => [
+        <option key={sub.code} disabled>{sub.code + " " + sub.label}</option>,
+        ...sub.leaves.map((l) => <option key={l} value={l}>{"\u2002\u2002" + l}</option>)]
+        )}
+      </optgroup>
+      )}
+    </select>
+
     <div className="os-toolbar-r">
       <div className="fin-density" role="group" aria-label="Densidade">
         <button className={density === "compact" ? "on" : ""} onClick={() => setDensity("compact")} title="Compacta — mais linhas visíveis" aria-label="Compacta">
@@ -569,9 +659,6 @@
         </button>
         <button className={density === "comfortable" ? "on" : ""} onClick={() => setDensity("comfortable")} title="Confortável" aria-label="Confortável">
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><line x1="3" y1="4.5" x2="13" y2="4.5" /><line x1="3" y1="8" x2="13" y2="8" /><line x1="3" y1="11.5" x2="13" y2="11.5" /></svg>
-        </button>
-        <button className={density === "spacious" ? "on" : ""} onClick={() => setDensity("spacious")} title="Espaçosa" aria-label="Espaçosa">
-          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><line x1="3" y1="5" x2="13" y2="5" /><line x1="3" y1="11" x2="13" y2="11" /></svg>
         </button>
       </div>
       <div className="os-search">
@@ -586,8 +673,8 @@
   /* ─────────────────────────────────────────────────────────────────────────
    * PeriodBar — campo de data + presets + navegação de período (âncora de ano)
    * ─────────────────────────────────────────────────────────────────────── */
-  const PeriodBar = ({ dateField, setDateField, period, setPeriod, anchor, setAnchor, count, fields = DATE_FIELDS, countLabel = "lanç." }) =>
-  <div className="fin-periodbar">
+  const PeriodBar = ({ dateField, setDateField, period, setPeriod, anchor, setAnchor, count, fields = DATE_FIELDS, countLabel = "lanç.", customRange = { from: "", to: "" }, setCustomRange = () => {} }) =>
+  <div className="fin-periodbar" data-comment-anchor="9f1216ceb6-div-590-3">
     <div className="fin-pb-field">
       <span className="fin-pb-cap">Filtrar por</span>
       <div className="fin-pb-seg" role="group" aria-label="Campo de data">
@@ -599,11 +686,22 @@
     </div>
 
     <div className="fin-pb-nav">
-      <button className="fin-pb-arrow" disabled={period === "tudo"}
-      onClick={() => setAnchor((a) => shiftAnchor(a, period, -1))} aria-label="Período anterior"><I.ChevronLeft size={15} /></button>
-      <span className="fin-pb-label">{periodLabel(period, anchor)}</span>
-      <button className="fin-pb-arrow" disabled={period === "tudo"}
-      onClick={() => setAnchor((a) => shiftAnchor(a, period, 1))} aria-label="Próximo período"><I.ChevronRight size={15} /></button>
+      {period === "custom" ?
+      <div className="fin-pb-custom">
+        <input type="date" className="fin-pb-date" value={customRange.from} max={customRange.to || undefined}
+        onChange={(e) => setCustomRange((r) => ({ ...r, from: e.target.value }))} aria-label="Data inicial" />
+        <span className="fin-pb-date-sep">até</span>
+        <input type="date" className="fin-pb-date" value={customRange.to} min={customRange.from || undefined}
+        onChange={(e) => setCustomRange((r) => ({ ...r, to: e.target.value }))} aria-label="Data final" />
+      </div> :
+      <>
+        <button className="fin-pb-arrow" disabled={period === "tudo"}
+        onClick={() => setAnchor((a) => shiftAnchor(a, period, -1))} aria-label="Período anterior"><I.ChevronLeft size={15} /></button>
+        <span className="fin-pb-label">{periodLabel(period, anchor, customRange)}</span>
+        <button className="fin-pb-arrow" disabled={period === "tudo"}
+        onClick={() => setAnchor((a) => shiftAnchor(a, period, 1))} aria-label="Próximo período"><I.ChevronRight size={15} /></button>
+      </>
+      }
       {count != null && <span className="fin-pb-count">{count} {countLabel}</span>}
     </div>
 
@@ -628,12 +726,11 @@
     const isIn = kind === "receivable";
     const Icon = isIn ? I.ArrowDownLeft : I.ArrowUpRight;
     // Inverted geometry: receivable = arrow IN to wallet (down-left), payable = arrow OUT (up-right)
-    const tone = isIn ?
-    status === "recebido" ? "bg-[var(--pos-soft)] text-[var(--pos)]" : "bg-[var(--pos-soft)] text-[var(--pos)]" :
-    status === "pago" ? "bg-[var(--neg-soft)] text-[var(--neg)]" : "bg-[var(--neg-soft)] text-[var(--neg)]";
+    const c = isIn ? "var(--pos)" : "var(--neg)";
+    const bg = isIn ? "var(--pos-soft)" : "var(--neg-soft)";
     return (
-      <span className={`inline-grid place-items-center rounded-full ${tone}`} style={{ width: size + 7, height: size + 7 }}>
-      <Icon size={size - 1} strokeWidth={1.75} />
+      <span className="inline-grid place-items-center rounded-full" style={{ width: size + 8, height: size + 8, background: bg, color: c, border: `1px solid color-mix(in oklch, ${c} 22%, transparent)`, boxShadow: `0 1px 3px -1px color-mix(in oklch, ${c} 28%, transparent)` }}>
+      <Icon size={size - 1} strokeWidth={2} />
     </span>);
 
   };
@@ -700,6 +797,18 @@
           <span className="w-1.5 h-1.5 rounded-full bg-[var(--border)]" />
           {row.category}
         </span>
+      </td>
+      <td className={`px-2 ${dens.py} ${dens.text} text-[var(--text-2)] whitespace-nowrap`}>
+        <span className="inline-flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--text-4)]" />
+          {formaOf(row)}
+        </span>
+      </td>
+      <td className={`px-2 ${dens.py} ${dens.text} text-[var(--text-2)] truncate max-w-[150px]`}>
+        <span title={contaOf(row).detail}>{contaOf(row).label}</span>
+      </td>
+      <td className={`px-2 ${dens.py} ${dens.text} num text-[var(--text-3)] whitespace-nowrap`}>
+        {settled ? fmtDate(row.paid_at) : "—"}
       </td>
       <td className={`px-2 ${dens.py} ${dens.text}`}>
         <StatusBadge status={row.status} compact={density === "compact"} />
@@ -768,6 +877,9 @@
             <th className="px-2 py-2 text-left font-medium">Lançamento</th>
             <th className="px-2 py-2 text-left font-medium">Contraparte</th>
             <th className="px-2 py-2 text-left font-medium">Categoria</th>
+            <th className="px-2 py-2 text-left font-medium">Forma</th>
+            <th className="px-2 py-2 text-left font-medium">Conta</th>
+            <th className="px-2 py-2 text-left font-medium">Baixa</th>
             <th className="px-2 py-2 text-left font-medium">Status</th>
             <th className="px-2 py-2 text-right font-medium">Valor</th>
             <th className="pl-2 pr-4 py-2 w-[110px] text-right font-medium"></th>
@@ -969,7 +1081,7 @@
       <div className="min-w-0 py-[3px] fin-kvedit">
       <div className="text-[length:var(--fs-1)] uppercase tracking-[0.08em] text-[var(--text-3)] leading-[1.5]">{label}{changed && <span className="fin-kvedit-dot" title={`era ${was}`}> ✎</span>}</div>
       {/* Espelho invisível: dimensiona o wrapper pelo VALOR ATUAL — select width:100% por cima.
-                (width:auto em <select> mede pela opção mais larga da lista → chevron voava. Verifier 06-11.) */}
+                         (width:auto em <select> mede pela opção mais larga da lista → chevron voava. Verifier 06-11.) */}
       <span className="fin-kvedit-wrap">
         <span aria-hidden="true" className="fin-kvedit-mirror">{value}</span>
         <select value={value} onChange={(e) => onChange(e.target.value)} title={`Editar ${label.toLowerCase()} — salva no lançamento`}>
@@ -1159,7 +1271,7 @@
         role="dialog" aria-label="Novo lançamento"
         onKeyDown={(e) => {if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submit();}}>
         <div className="px-4 h-12 flex items-center gap-2 border-b border-[var(--border)]">
-          <b className="text-[length:var(--fs-4)] font-semibold">Novo lançamento</b>
+          <b className="text-[length:var(--fs-4)] font-semibold">Novo título</b>
           <div className="fin-lens-seg ml-auto" role="group" aria-label="Tipo">
             <button className={"fin-lens-btn" + (kind === "receivable" ? " on" : "")} onClick={() => setKind("receivable")}>A receber</button>
             <button className={"fin-lens-btn" + (kind === "payable" ? " on" : "")} onClick={() => setKind("payable")}>A pagar</button>
@@ -1173,8 +1285,10 @@
           </label>
           <label className="grid gap-1">
             <span className="text-[length:var(--fs-1)] uppercase tracking-[0.08em] text-[var(--text-3)]">{kind === "receivable" ? "Cliente" : "Fornecedor"}</span>
-            <input value={party} onChange={(e) => setParty(e.target.value)}
-              className="h-9 px-3 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[length:var(--fs-4)] outline-none focus:border-[var(--accent)]" />
+            {window.FinClienteCombobox ?
+              <window.FinClienteCombobox kind={kind} value={party} onChange={setParty} /> :
+              <input value={party} onChange={(e) => setParty(e.target.value)}
+                className="h-9 px-3 rounded-md border border-[var(--border)] bg-[var(--surface)] text-[length:var(--fs-4)] outline-none focus:border-[var(--accent)]" />}
           </label>
           <label className="grid gap-1">
             <span className="text-[length:var(--fs-1)] uppercase tracking-[0.08em] text-[var(--text-3)]">Valor (R$)</span>
@@ -1237,6 +1351,8 @@
     const comments = window.useFinComments ? window.useFinComments() : null;
     const conferido = window.useFinConferido ? window.useFinConferido() : null;
     const edits = window.useFinEdits ? window.useFinEdits() : null;
+    const anexos = window.useFinAnexos ? window.useFinAnexos() : null;
+    const aprovacao = window.useFinAprovacao ? window.useFinAprovacao() : null;
     const [tab, setTab] = useState("detalhes");
     // reset tab when changing row
     useEffect(() => {setTab("detalhes");}, [row?.id]);
@@ -1307,7 +1423,7 @@
         </div>
 
         {/* Camada 1 — O FATO (gabarito Prova Viva 9.75): quanto · quando · onde no ciclo.
-                  Fixa fora do scroll; centavos/prefixo pequenos, inteiro 38px mono. */}
+                           Fixa fora do scroll; centavos/prefixo pequenos, inteiro 38px mono. */}
         {(() => {
             const [intPart, decPart] = eff.amount.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).split(",");
             return (
@@ -1323,7 +1439,7 @@
                     <span className="text-[length:var(--fs-4)] text-[var(--text-2)] num">,{decPart}</span>
                   </div>
                   {/* ONDA 2 P1 · cadeira Tufte — tira o número do isolamento: compara com a média
-                           REAL da categoria (só aparece com ≥2 pares; tom neutro, sem falsa valência). */}
+                                    REAL da categoria (só aparece com ≥2 pares; tom neutro, sem falsa valência). */}
                   {(() => {
                       const peers = (allRows || []).filter((r) => r.id !== eff.id && r.kind === row.kind && r.category === eff.category && r.amount > 0);
                       if (peers.length < 2) return null;
@@ -1400,7 +1516,7 @@
         <div className="flex-1 overflow-y-auto nice-scroll px-5 pb-5 pt-0.5 space-y-0 text-[length:var(--fs-4)]">
           {tab === "detalhes" && <>
           {/* ONDA 2 · cadeira Victor — a tela LIDERA com a conclusão inferida do estado,
-                       em vez de obrigar a Eliana a varrer 7 seções e concluir sozinha. */}
+                                      em vez de obrigar a Eliana a varrer 7 seções e concluir sozinha. */}
           {(() => {
                 const hasNF = !!eff.invoice;
                 let v;
@@ -1439,7 +1555,7 @@
                   <KVEdit label="Canal" value={eff.channel} was={row.channel} options={window.FIN_EDIT_OPTIONS.channels} onChange={(v) => edits.set(row.id, { channel: v })} /> :
                   <KV label="Canal">{eff.channel}</KV>}
               <KV label="Competência">{eff.competencia ? eff.competencia.toLocaleDateString("pt-BR", { month: "short", year: "numeric" }) : "—"}</KV>
-              <KV label="Conta" copy="Itaú PJ · ag 0438 · cc 4521-7">Itaú PJ · ag 0438 · cc 4521-7</KV>
+              <KV label="Conta" copy={contaOf(row).detail}>{contaOf(row).detail}</KV>
             </div>
           </div>
 
@@ -1479,6 +1595,9 @@
               </LensSection>);
 
               })()}
+
+          {window.FinAprovacaoPanel && <window.FinAprovacaoPanel row={eff} aprovacao={aprovacao} />}
+          {window.FinAnexosPanel && <window.FinAnexosPanel row={eff} anexos={anexos} />}
 
           <div className="fin-lens py-4">
             {window.FinAuditTrail ?
@@ -1648,6 +1767,9 @@
     const [dateField, setDateField] = useState("venc");
     const [periodMode, setPeriodMode] = useState("mes");
     const [anchor, setAnchor] = useState(() => new Date(window.FIN_TODAY));
+    const [customRange, setCustomRange] = useState({ from: "", to: "" });
+    const [planoConta, setPlanoConta] = useState("all");
+    const [contas, setContas] = useState(new Set());
     const [selected, setSelected] = useState(new Set());
     const [drawerRow, setDrawerRow] = useState(null);
     const [cmdkOpen, setCmdkOpen] = useState(false);
@@ -1668,6 +1790,12 @@
       try {window.FIN_ROWS.unshift(row);} catch (e) {}
       window.vdToast?.((kind === "receivable" ? "A receber" : "A pagar") + " " + row.id + " · " + fmtBRL(amount) + " adicionado ao caixa", "ok", 3600);
     }, []);
+    // Onda 4 — leitura de boleto (OCR) abre a sheet; cria título a pagar via handleCreate.
+    const [ocrOpen, setOcrOpen] = useState(false);
+    // Onda 1 — diálogo de baixa (substitui a baixa instantânea).
+    const [baixaRow, setBaixaRow] = useState(null);
+    const baixas = window.useFinBaixas ? window.useFinBaixas() : null;
+    const openBaixa = (id) => setBaixaRow(rows.find((r) => r.id === id) || null);
     // useState local em vez de useTweaks: o shell unificado já tem painel Tweaks próprio.
     const [density, setDensity] = useState("compact");
     const [groupByDate, setGroupByDate] = useState(true);
@@ -1688,11 +1816,11 @@
     // Linhas dentro do período + campo de data selecionados (paridade @main data_campo).
     // KPIs e contadores seguem o período; os filtros de ciclo/atraso/busca refinam por cima.
     const periodRows = useMemo(() => {
-      const win = periodWindow(periodMode, anchor);
+      const win = periodWindow(periodMode, anchor, customRange);
       if (!win) return rows;
       const [start, end] = win;
       return rows.filter((x) => {const dv = dateFieldGet(x, dateField);return dv && dv >= start && dv < end;});
-    }, [rows, periodMode, anchor, dateField]);
+    }, [rows, periodMode, anchor, dateField, customRange]);
 
     // counts per tab
     const counts = useMemo(() => ({
@@ -1704,6 +1832,10 @@
       paid: periodRows.filter((r) => r.kind === "payable" && r.paid_at).length,
       late: periodRows.filter((r) => !r.paid_at && r.status === "atrasado").length
     }), [periodRows]);
+
+    const agingCounts = useMemo(() => {
+      return {};
+    }, []);
 
     const filtered = useMemo(() => {
       let r = periodRows;
@@ -1722,6 +1854,8 @@
         r = []; // nada marcado = nada exibido
       }
       if (late) r = r.filter((x) => !x.paid_at && x.status === "atrasado");
+      if (planoConta !== "all") r = r.filter((x) => x.category === planoConta);
+      if (contas.size > 0) r = r.filter((x) => contas.has(contaOf(x).id));
       if (tab === "open") r = r.filter((x) => !x.paid_at);
       if (tab === "rec") r = r.filter((x) => x.kind === "receivable" && !x.paid_at);
       if (tab === "pay") r = r.filter((x) => x.kind === "payable" && !x.paid_at);
@@ -1738,7 +1872,7 @@
         );
       }
       return r;
-    }, [periodRows, tab, query, states, late, lente]);
+    }, [periodRows, tab, query, states, late, lente, planoConta, contas]);
 
     // Exportar CSV REAL — linhas filtradas viram arquivo (era stub; definido APÓS `filtered` — gotcha Babel var-hoisting)
     const handleExport = useCallback(() => {
@@ -1762,6 +1896,23 @@
         cobranca: r.cobranca ? { ...r.cobranca, status: "paga", paga_at: window.FIN_TODAY } : r.cobranca
       } : r));
     }, []);
+
+    // Onda 1 — confirma a baixa do diálogo: registra (parcial soma) e, se quitar, liquida o título.
+    const handleBaixa = useCallback((id, info) => {
+      if (baixas) baixas.push(id, { valor: info.valor, conta: info.conta, forma: info.forma, plano: info.plano, data: info.data });
+      if (info.parcial) {
+        window.vdToast?.("Baixa parcial de " + fmtBRL(info.valor) + " registrada · " + id, "ok", 3200);
+        return;
+      }
+      setRows((rs) => rs.map((r) => r.id === id ? {
+        ...r,
+        paid_at: window.FIN_TODAY,
+        status: r.kind === "receivable" ? "recebido" : "pago",
+        channel: info.forma || r.channel,
+        cobranca: r.cobranca ? { ...r.cobranca, status: "paga", paga_at: window.FIN_TODAY } : r.cobranca
+      } : r));
+      window.vdToast?.((id[0] === "R" ? "Recebimento" : "Pagamento") + " de " + fmtBRL(info.valor) + " via " + info.forma + " · " + id, "ok", 3200);
+    }, [baixas]);
 
     // Costura Unificada → Cobrança: emite boleto/PIX a partir do título. O estado
     // volta pra linha e pro drawer; ao pagar, handleMark encerra o ciclo.
@@ -1810,15 +1961,16 @@
         onExport={handleExport}
         onDigest={() => setDigestOpen(true)}
         onFechamento={() => setFechamentoOpen(true)}
-        onPresent={() => setPresentOpen(true)} />
+        onPresent={() => setPresentOpen(true)}
+        onOcr={() => setOcrOpen(true)} />
       {window.PageHeaderNav && <window.PageHeaderNav route={window.__route} />}
 
       <div className="fin-body">
         {tela === "unified" && <>
           <KPIStrip rows={periodRows} periodText={periodLabelShort(periodMode, anchor)} lente={lente} onLente={applyLente} />
-          <PeriodBar dateField={dateField} setDateField={setDateField} period={periodMode} setPeriod={setPeriodMode} anchor={anchor} setAnchor={setAnchor} count={filtered.length} />
-          <FilterBar lente={lente} states={states} setStates={setStates} late={late} setLate={setLate} counts={counts} query={query} setQuery={setQuery} density={density} setDensity={setDensity} />
-          <Table rows={filtered} density={tableRowsDensity} selected={selected} setSelected={setSelected} onOpen={setDrawerRow} onMark={handleMark} dateField={dateField} emptyPeriod={periodLabel(periodMode, anchor)} onShowAll={periodMode === "tudo" ? null : () => setPeriodMode("tudo")} />
+          <PeriodBar dateField={dateField} setDateField={setDateField} period={periodMode} setPeriod={setPeriodMode} anchor={anchor} setAnchor={setAnchor} count={filtered.length} customRange={customRange} setCustomRange={setCustomRange} />
+          <FilterBar lente={lente} states={states} setStates={setStates} late={late} setLate={setLate} counts={counts} query={query} setQuery={setQuery} density={density} setDensity={setDensity} planoConta={planoConta} setPlanoConta={setPlanoConta} contas={contas} setContas={setContas} />
+          <Table rows={filtered} density={tableRowsDensity} selected={selected} setSelected={setSelected} onOpen={setDrawerRow} onMark={openBaixa} dateField={dateField} emptyPeriod={periodLabel(periodMode, anchor)} onShowAll={periodMode === "tudo" ? null : () => setPeriodMode("tudo")} />
           <FooterBar rows={filtered} selected={selected} onClearSelected={() => setSelected(new Set())} onMarkAll={handleMarkAll} />
         </>}
         {tela === "fluxo" && <window.TelaFluxo onBack={() => setTela("unified")} />}
@@ -1828,7 +1980,7 @@
         {tela === "impostos" && window.TelaImpostos && <window.TelaImpostos onBack={() => setTela("unified")} />}
       </div>
 
-      <Drawer row={drawerRow ? rows.find((r) => r.id === drawerRow.id) || drawerRow : null} allRows={rows} onClose={() => setDrawerRow(null)} onMark={handleMark} onCobranca={handleCobranca}
+      <Drawer row={drawerRow ? rows.find((r) => r.id === drawerRow.id) || drawerRow : null} allRows={rows} onClose={() => setDrawerRow(null)} onMark={openBaixa} onCobranca={handleCobranca}
         pos={drawerRow ? { idx: filtered.findIndex((r) => r.id === drawerRow.id) + 1, total: filtered.length } : null}
         onNav={(d) => {
           const i = filtered.findIndex((r) => r.id === drawerRow?.id);
@@ -1837,6 +1989,8 @@
           if (n) setDrawerRow(n);
         }} />
       <FinNovoLancamento open={novoOpen} onClose={() => setNovoOpen(false)} onCreate={handleCreate} />
+      {window.FinBaixaSheet && <window.FinBaixaSheet row={baixaRow} open={!!baixaRow} aberto={baixaRow ? window.finValorAberto(baixaRow, baixas) : 0} onClose={() => setBaixaRow(null)} onConfirm={handleBaixa} />}
+      {window.FinOcrBoletoSheet && <window.FinOcrBoletoSheet open={ocrOpen} onClose={() => setOcrOpen(false)} onCreate={handleCreate} />}
       <CmdK open={cmdkOpen} onClose={() => setCmdkOpen(false)} rows={rows} onPick={setDrawerRow} />
       {window.FinAiMonthDigest && <window.FinAiMonthDigest open={digestOpen} onClose={() => setDigestOpen(false)} />}
       {window.FinFechamentoTrilha && <window.FinFechamentoTrilha open={fechamentoOpen} onClose={() => setFechamentoOpen(false)} onNavigate={setTela} />}

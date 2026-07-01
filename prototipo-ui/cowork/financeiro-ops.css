@@ -1,0 +1,142 @@
+/* ════════════════════════════════════════════════════════════════════════
+ * financeiro-ops.css — Operações (Baixa · Anexos · Aprovação · OCR · Combobox)
+ * Só tokens var(--*) + color-mix (conformance-gate safe). Dark herda pelos tokens.
+ * ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Backdrop comum dos modais de operação (acima do drawer) ── */
+.fin-ops-backdrop{
+  position:fixed; inset:0; z-index:70; background:color-mix(in oklab, var(--text) 32%, transparent);
+  display:grid; place-items:start center; padding-top:14vh;
+  animation:finOpsFade .14s var(--ease, ease);
+}
+@keyframes finOpsFade{ from{ opacity:0 } to{ opacity:1 } }
+
+.fin-baixa-card,.fin-ocr-card{
+  width:min(480px, calc(100vw - 32px)); background:var(--surface);
+  border:1px solid var(--border); border-radius:12px; overflow:hidden;
+  box-shadow:var(--sh-2, 0 12px 40px rgba(0,0,0,.18));
+}
+.fin-ocr-card{ width:min(540px, calc(100vw - 32px)); }
+
+/* ── Cabeçalho de operação ── */
+.fin-baixa-head{ display:flex; align-items:center; gap:11px; padding:14px 16px; border-bottom:1px solid var(--border); }
+.fin-baixa-head b{ display:block; font-size:var(--fs-4); font-weight:600; color:var(--text); line-height:1.2; }
+.fin-baixa-head small{ display:block; font-size:var(--fs-1); color:var(--text-3); margin-top:1px; }
+.fin-baixa-ic{ flex:none; width:32px; height:32px; border-radius:9px; display:grid; place-items:center; }
+.fin-baixa-ic.in{ background:color-mix(in oklab, var(--pos) 14%, transparent); color:var(--pos); }
+.fin-baixa-ic.out{ background:var(--accent-soft); color:var(--accent); }
+.fin-ops-x{ margin-left:auto; flex:none; width:28px; height:28px; border-radius:7px; display:grid; place-items:center;
+  color:var(--text-3); background:transparent; border:0; cursor:pointer; transition:background .15s var(--ease, ease); }
+.fin-ops-x:hover{ background:var(--sunken); color:var(--text); }
+
+/* ── Campos genéricos ── */
+.fin-baixa-body,.fin-ocr-body{ padding:16px; display:grid; grid-template-columns:1fr 1fr; gap:12px 14px; }
+.fin-ops-field{ display:grid; gap:5px; min-width:0; }
+.fin-ops-col2{ grid-column:1 / -1; }
+.fin-ops-field > span{ font-size:var(--fs-1); text-transform:uppercase; letter-spacing:.08em; color:var(--text-3); }
+.fin-ops-field input,.fin-ops-date{
+  height:36px; padding:0 11px; border:1px solid var(--border); border-radius:8px; background:var(--surface);
+  font-size:var(--fs-4); color:var(--text); outline:none; transition:border-color .15s var(--ease, ease);
+}
+.fin-ops-field input:focus,.fin-ops-date:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+
+.fin-ops-select{ position:relative; }
+.fin-ops-select select{
+  width:100%; height:36px; padding:0 32px 0 11px; border:1px solid var(--border); border-radius:8px;
+  background:var(--surface); font-size:var(--fs-4); color:var(--text); outline:none; cursor:pointer;
+  appearance:none; -webkit-appearance:none; transition:border-color .15s var(--ease, ease);
+}
+.fin-ops-select select:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.fin-ops-select > svg{ position:absolute; right:10px; top:50%; transform:translateY(-50%); color:var(--text-3); pointer-events:none; }
+
+/* ── Valor da baixa (hero do diálogo) ── */
+.fin-baixa-valor{ display:flex; align-items:baseline; gap:6px; height:44px; padding:0 12px;
+  border:1px solid var(--border); border-radius:9px; background:var(--bg-2, var(--sunken)); }
+.fin-baixa-valor:focus-within{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.fin-baixa-valor i{ font-style:normal; font-size:var(--fs-3); color:var(--text-3); }
+.fin-baixa-valor input{ flex:1; border:0; background:transparent; outline:none; font-size:var(--fs-7);
+  font-weight:600; color:var(--text); text-align:right; padding:0; height:auto; }
+.fin-baixa-valor input:focus{ box-shadow:none; }
+.fin-baixa-hint{ font-style:normal; font-size:var(--fs-1); color:var(--text-3); display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.fin-baixa-link{ background:none; border:0; color:var(--accent); font-size:var(--fs-1); cursor:pointer; padding:0; text-decoration:underline; text-underline-offset:2px; }
+.fin-baixa-parcial{ color:var(--warn); font-weight:500; }
+
+/* ── Rodapé de operação ── */
+.fin-baixa-foot{ display:flex; align-items:center; gap:8px; padding:0 16px; height:58px; border-top:1px solid var(--border); }
+.fin-baixa-foot-sum{ font-size:var(--fs-2); color:var(--text-3); margin-right:auto; }
+.fin-baixa-foot-sum b{ color:var(--text); }
+
+/* ════════════ Onda 2 — Anexos ════════════ */
+.fin-anexo-ct{ font-size:var(--fs-1); color:var(--text-3); background:var(--sunken); border-radius:999px; padding:1px 7px; font-weight:500; }
+.fin-anexo-add{ display:inline-flex; align-items:center; gap:4px; font-size:var(--fs-2); color:var(--accent);
+  background:var(--accent-soft); border:0; border-radius:7px; padding:4px 9px; cursor:pointer; transition:filter .15s var(--ease, ease); }
+.fin-anexo-add:hover{ filter:brightness(.96); }
+.fin-anexo-drop{ border:1px dashed var(--border); border-radius:10px; padding:6px; transition:border-color .15s var(--ease, ease), background .15s var(--ease, ease); }
+.fin-anexo-drop.over{ border-color:var(--accent); background:var(--accent-soft); }
+.fin-anexo-empty{ padding:14px 12px; text-align:center; font-size:var(--fs-2); color:var(--text-2); line-height:1.5; }
+.fin-anexo-empty span{ color:var(--text-3); font-size:var(--fs-1); }
+.fin-anexo-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+.fin-anexo-item{ display:flex; align-items:center; gap:10px; padding:7px 9px; border-radius:8px; background:var(--surface); border:1px solid var(--border); }
+.fin-anexo-badge{ flex:none; width:36px; height:26px; border-radius:5px; display:grid; place-items:center;
+  font-size:var(--fs-1); font-weight:600; letter-spacing:.04em; }
+.fin-anexo-badge.t-pdf{ background:color-mix(in oklab, var(--neg) 12%, transparent); color:var(--neg); }
+.fin-anexo-badge.t-xml{ background:color-mix(in oklab, var(--accent) 14%, transparent); color:var(--accent); }
+.fin-anexo-badge.t-img{ background:color-mix(in oklab, var(--pos) 14%, transparent); color:var(--pos); }
+.fin-anexo-meta{ flex:1; }
+.fin-anexo-meta b{ display:block; font-size:var(--fs-3); font-weight:500; color:var(--text); }
+.fin-anexo-meta small{ font-size:var(--fs-1); color:var(--text-3); }
+.fin-anexo-lock{ flex:none; color:var(--pos); opacity:.7; }
+.fin-anexo-del{ flex:none; width:24px; height:24px; border-radius:6px; display:grid; place-items:center;
+  color:var(--text-3); background:transparent; border:0; cursor:pointer; transition:background .15s var(--ease, ease); }
+.fin-anexo-del:hover{ background:color-mix(in oklab, var(--neg) 12%, transparent); color:var(--neg); }
+
+/* ════════════ Onda 3 — Aprovação ════════════ */
+.fin-aprov-pill{ font-size:var(--fs-1); font-weight:600; text-transform:uppercase; letter-spacing:.05em; border-radius:999px; padding:2px 9px; }
+.fin-aprov-pill.t-warn{ background:color-mix(in oklab, var(--warn) 14%, transparent); color:var(--warn); }
+.fin-aprov-pill.t-pos{ background:color-mix(in oklab, var(--pos) 14%, transparent); color:var(--pos); }
+.fin-aprov-pill.t-neg{ background:color-mix(in oklab, var(--neg) 14%, transparent); color:var(--neg); }
+.fin-aprov-box{ border:1px solid var(--border); border-radius:10px; padding:12px; background:var(--bg-2, var(--sunken)); }
+.fin-aprov-box.t-pos{ border-color:color-mix(in oklab, var(--pos) 30%, var(--border)); background:color-mix(in oklab, var(--pos) 6%, var(--surface)); }
+.fin-aprov-box.t-neg{ border-color:color-mix(in oklab, var(--neg) 30%, var(--border)); background:color-mix(in oklab, var(--neg) 6%, var(--surface)); }
+.fin-aprov-box p{ margin:0 0 9px; font-size:var(--fs-3); color:var(--text-2); line-height:1.5; }
+.fin-aprov-box p b{ color:var(--text); font-weight:600; }
+.fin-aprov-undo{ background:none; border:0; color:var(--text-3); font-size:var(--fs-1); text-decoration:underline; text-underline-offset:2px; cursor:pointer; padding:0; }
+.fin-aprov-motivo{ display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+.fin-aprov-motivo input{ flex:1; min-width:160px; height:32px; padding:0 10px; border:1px solid var(--border);
+  border-radius:7px; background:var(--surface); font-size:var(--fs-3); color:var(--text); outline:none; }
+.fin-aprov-motivo input:focus{ border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+.fin-cob-btn--danger{ background:color-mix(in oklab, var(--neg) 12%, transparent); color:var(--neg); }
+.fin-cob-btn--danger:hover{ background:color-mix(in oklab, var(--neg) 18%, transparent); }
+.fin-cob-btn--danger:disabled{ opacity:.5; cursor:not-allowed; }
+
+/* ════════════ Onda 4 — OCR boleto ════════════ */
+.fin-ocr-scan{ grid-column:1 / -1; border:1px dashed var(--border); border-radius:10px; padding:18px 12px;
+  text-align:center; cursor:pointer; color:var(--text-2); font-size:var(--fs-3); transition:border-color .15s var(--ease, ease), background .15s var(--ease, ease); }
+.fin-ocr-scan:hover{ border-color:var(--accent); background:var(--accent-soft); }
+.fin-ocr-scan span{ display:inline-flex; align-items:center; gap:8px; }
+.fin-ocr-scan em{ display:block; font-style:normal; font-size:var(--fs-1); color:var(--text-3); margin-top:4px; }
+.fin-ocr-scan.on{ border-color:var(--accent); background:var(--accent-soft); }
+.fin-ocr-scanning{ color:var(--accent); font-weight:500; }
+.fin-ocr-input{ font-size:var(--fs-3) !important; letter-spacing:.02em; }
+.fin-ocr-result{ grid-column:1 / -1; border-top:1px solid var(--border); padding-top:12px; display:grid; gap:12px; }
+.fin-ocr-grid{ display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+.fin-ocr-grid > div{ background:var(--bg-2, var(--sunken)); border:1px solid var(--border); border-radius:8px; padding:8px 10px; }
+.fin-ocr-grid small{ display:block; font-size:var(--fs-1); text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); }
+.fin-ocr-grid b{ display:block; font-size:var(--fs-4); font-weight:600; color:var(--text); margin-top:2px; }
+.fin-ocr-edit{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+/* ════════════ Onda 5 — Combobox ════════════ */
+.fin-combo{ position:relative; }
+.fin-combo-pop{ position:absolute; z-index:5; top:calc(100% + 4px); left:0; right:0; list-style:none; margin:0; padding:4px;
+  background:var(--surface); border:1px solid var(--border); border-radius:9px; box-shadow:var(--sh-2, 0 8px 24px rgba(0,0,0,.14)); max-height:212px; overflow-y:auto; }
+.fin-combo-opt{ display:flex; align-items:center; gap:9px; padding:7px 8px; border-radius:7px; cursor:pointer; }
+.fin-combo-opt.hi{ background:var(--accent-soft); }
+.fin-combo-av{ flex:none; width:22px; height:22px; border-radius:999px; display:grid; place-items:center; background:var(--sunken); color:var(--text-3); }
+.fin-combo-opt.hi .fin-combo-av{ background:var(--accent); color:var(--accent-fg); }
+.fin-combo-name{ flex:1; font-size:var(--fs-3); color:var(--text); }
+.fin-combo-n{ flex:none; font-size:var(--fs-1); color:var(--text-3); font-variant-numeric:tabular-nums; }
+
+@media (max-width:520px){
+  .fin-baixa-body,.fin-ocr-body{ grid-template-columns:1fr; }
+  .fin-ocr-grid,.fin-ocr-edit{ grid-template-columns:1fr; }
+}
