@@ -72,6 +72,7 @@ const MENU = [
   ]},
   { group: "SISTEMA", items: [
     { id: "auditoria",   icon: "audit", label: "Auditoria" },
+    { id: "usuarios",    icon: "user",  label: "Usuários" },
     { id: "relatorios",  icon: "chart", label: "Relatórios" },
     { id: "kb",          icon: "book",  label: "Base de Conhecimento" },
   ]},

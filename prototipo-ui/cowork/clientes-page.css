@@ -431,20 +431,20 @@
 
 /* Faturamento — card destaque escuro (Cockpit V2 navy), agora no sistema de cards c/ profundidade */
 .cli-kpihero-dark{
-  background: oklch(0.21 0.03 264);
-  border-color: oklch(0.31 0.04 264);
-  color: oklch(0.97 0 0);
+  background: var(--kpi-feature-bg);
+  border-color: var(--kpi-feature-line);
+  color: var(--kpi-feature-fg);
   box-shadow: 0 2px 10px -3px oklch(0.18 0.05 264 / 0.5);
 }
 .cli-kpihero-dark:hover{
-  background: oklch(0.23 0.03 264);
+  background: var(--kpi-feature-bg-hi);
   border-color: oklch(0.40 0.05 264);
   box-shadow: 0 7px 20px -6px oklch(0.18 0.05 264 / 0.6);
 }
 .cli-kpihero-dark .cli-kpihero-icon{ background: oklch(1 0 0 / 0.12); color: oklch(0.90 0.05 250); }
-.cli-kpihero-dark .cli-kpihero-l{ color: oklch(0.72 0.02 250); }
-.cli-kpihero-dark .cli-kpihero-v{ color: oklch(0.98 0 0); }
-.cli-kpihero-dark .cli-kpihero-s{ color: oklch(0.70 0.02 250); }
+.cli-kpihero-dark .cli-kpihero-l{ color: var(--kpi-feature-fg-2); }
+.cli-kpihero-dark .cli-kpihero-v{ color: var(--kpi-feature-fg); }
+.cli-kpihero-dark .cli-kpihero-s{ color: var(--kpi-feature-fg-2); }
 .cli-kpihero-dark .cli-kpihero-delta{ color: oklch(0.80 0.16 145); }
 
 /* ─── Toolbar V2: busca grande + dropdowns + count ─── */
@@ -696,8 +696,8 @@
   letter-spacing: 0.06em;
   padding: 1px 5px;
   border-radius: 3px;
-  background: oklch(0.92 0.07 80);
-  color: oklch(0.40 0.12 75);
+  background: var(--vip-soft);
+  color: var(--vip);
   text-transform: uppercase;
 }
 .cli-new{
@@ -775,35 +775,35 @@
 
 /* recente — verde forte */
 .cli-frescor-recente{
-  background: oklch(0.95 0.04 145);
-  color: oklch(0.42 0.13 145);
-  border-color: oklch(0.88 0.06 145);
+  background: var(--sla-fresh-soft);
+  color: var(--sla-fresh);
+  border-color: var(--sla-fresh-line);
 }
-.cli-frescor-recente .cli-frescor-label{ color: oklch(0.50 0.06 145); }
+.cli-frescor-recente .cli-frescor-label{ color: var(--sla-fresh); }
 
 /* fresc — verde claro */
 .cli-frescor-fresc{
-  background: oklch(0.96 0.03 145);
-  color: oklch(0.48 0.10 145);
-  border-color: oklch(0.92 0.05 145);
+  background: var(--sla-aging-soft);
+  color: var(--sla-aging);
+  border-color: var(--sla-aging-line);
 }
-.cli-frescor-fresc .cli-frescor-label{ color: oklch(0.55 0.04 145); }
+.cli-frescor-fresc .cli-frescor-label{ color: var(--sla-aging); }
 
 /* distante — amber */
 .cli-frescor-distante{
-  background: oklch(0.95 0.05 60);
-  color: oklch(0.50 0.13 60);
-  border-color: oklch(0.88 0.08 60);
+  background: var(--sla-late-soft);
+  color: var(--sla-late);
+  border-color: var(--sla-late-line);
 }
-.cli-frescor-distante .cli-frescor-label{ color: oklch(0.55 0.06 60); }
+.cli-frescor-distante .cli-frescor-label{ color: var(--sla-late); }
 
 /* frio — rose suave */
 .cli-frescor-frio{
-  background: oklch(0.95 0.04 25);
-  color: oklch(0.50 0.13 25);
-  border-color: oklch(0.88 0.07 25);
+  background: var(--sla-expired-soft);
+  color: var(--sla-expired);
+  border-color: var(--sla-expired-line);
 }
-.cli-frescor-frio .cli-frescor-label{ color: oklch(0.55 0.05 25); }
+.cli-frescor-frio .cli-frescor-label{ color: var(--sla-expired); }
 
 /* ─── SaldoCell vermelho ─── */
 .cli-saldo-neg{
@@ -826,7 +826,7 @@
   margin-right: 4px;
   letter-spacing: 0.02em;
 }
-.cli-tag-vip{ background: oklch(0.94 0.07 80); color: oklch(0.42 0.13 75); font-weight: 600; }
+.cli-tag-vip{ background: var(--vip-soft); color: var(--vip); font-weight: 600; }
 .cli-tag-indicador{ background: oklch(0.94 0.04 200); color: oklch(0.45 0.10 230); }
 .cli-tag-atraso-recorrente{ background: oklch(0.94 0.05 25); color: oklch(0.45 0.12 25); }
 .cli-tag-premium{ background: oklch(0.93 0.06 290); color: oklch(0.42 0.12 290); }
@@ -1088,10 +1088,10 @@
   border-radius: 4px;
   letter-spacing: 0.02em;
 }
-.cli-kind-customer      { background: oklch(0.94 0.04 145); color: oklch(0.40 0.11 145); }
-.cli-kind-supplier      { background: oklch(0.94 0.05 60);  color: oklch(0.42 0.12 60); }
-.cli-kind-employee      { background: oklch(0.94 0.03 250); color: oklch(0.40 0.08 250); }
-.cli-kind-representative{ background: oklch(0.93 0.06 290); color: oklch(0.40 0.12 290); }
+.cli-kind-customer      { background: var(--kind-customer-soft); color: var(--kind-customer); }
+.cli-kind-supplier      { background: var(--kind-supplier-soft); color: var(--kind-supplier); }
+.cli-kind-employee      { background: var(--kind-employee-soft); color: var(--kind-employee); }
+.cli-kind-representative{ background: var(--kind-representative-soft); color: var(--kind-representative); }
 
 /* Números fortes (lead time, %, vendas) */
 .cli-num-strong{
@@ -1221,15 +1221,9 @@
 [data-theme="dark"] .cli-kpihero-tone-rose    .cli-kpihero-icon{ background: oklch(0.275 0.060 20); color: oklch(0.84 0.200 20); }
 [data-theme="dark"] .cli-kpihero-tone-violet  .cli-kpihero-icon{ background: oklch(0.275 0.060 295); color: oklch(0.84 0.180 295); }
 [data-theme="dark"] .cli-kpihero-dark .cli-kpihero-icon{ background: oklch(0.275 0.050 0/ 0.12); }
-[data-theme="dark"] .cli-vip{ background: oklch(0.275 0.070 80); color: oklch(0.84 0.120 75); }
 [data-theme="dark"] .cli-new{ background: oklch(0.275 0.050 200); color: oklch(0.84 0.120 230); }
 [data-theme="dark"] .cli-tipo-pj{ background: oklch(0.275 0.050 250); color: oklch(0.84 0.060 250); }
 [data-theme="dark"] .cli-tipo-pf{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); }
-[data-theme="dark"] .cli-frescor-recente{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.130 145); border-color: oklch(0.40 0.060 145); }
-[data-theme="dark"] .cli-frescor-fresc{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.100 145); border-color: oklch(0.40 0.050 145); }
-[data-theme="dark"] .cli-frescor-distante{ background: oklch(0.275 0.050 60); color: oklch(0.84 0.130 60); border-color: oklch(0.40 0.080 60); }
-[data-theme="dark"] .cli-frescor-frio{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.130 25); border-color: oklch(0.40 0.070 25); }
-[data-theme="dark"] .cli-tag-vip{ background: oklch(0.275 0.070 80); color: oklch(0.84 0.130 75); }
 [data-theme="dark"] .cli-tag-indicador{ background: oklch(0.275 0.050 200); color: oklch(0.84 0.100 230); }
 [data-theme="dark"] .cli-tag-atraso-recorrente{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.120 25); }
 [data-theme="dark"] .cli-tag-premium{ background: oklch(0.275 0.060 290); color: oklch(0.84 0.120 290); }
@@ -1247,7 +1241,3 @@
 [data-theme="dark"] .cli-status-ferias{ background: oklch(0.275 0.050 60); color: oklch(0.84 0.130 60); border-color: oklch(0.40 0.080 60); }
 [data-theme="dark"] .cli-status-afastado{ background: oklch(0.275 0.050 25); color: oklch(0.84 0.130 25); border-color: oklch(0.40 0.070 25); }
 [data-theme="dark"] .cli-status-ociosa{ background: oklch(0.275 0.050 250); color: oklch(0.84 0.060 250); }
-[data-theme="dark"] .cli-kind-customer{ background: oklch(0.275 0.050 145); color: oklch(0.84 0.110 145); }
-[data-theme="dark"] .cli-kind-supplier{ background: oklch(0.275 0.050 60); color: oklch(0.84 0.120 60); }
-[data-theme="dark"] .cli-kind-employee{ background: oklch(0.275 0.050 250); color: oklch(0.84 0.080 250); }
-[data-theme="dark"] .cli-kind-representative{ background: oklch(0.275 0.060 290); color: oklch(0.84 0.120 290); }

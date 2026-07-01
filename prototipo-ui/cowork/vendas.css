@@ -13,10 +13,10 @@
   letter-spacing: 0.01em; white-space: nowrap;
 }
 .vendas-aplus .vd-sla .vd-sla-ic{ font-size: 9px; line-height: 1; }
-.vendas-aplus .vd-sla-fresh   { background: var(--pos-soft);   color: var(--pos); }
-.vendas-aplus .vd-sla-warning { background: var(--warn-soft); color: var(--warn); }
-.vendas-aplus .vd-sla-overdue { background: var(--neg-soft);  color: var(--neg); }
-.vendas-aplus .vd-sla-paid    { background: var(--bg-2); color: var(--text-mute); }
+.vendas-aplus .vd-sla-fresh   { background: var(--sla-fresh-soft);   color: var(--sla-fresh); }
+.vendas-aplus .vd-sla-warning { background: var(--sla-aging-soft); color: var(--sla-aging); }
+.vendas-aplus .vd-sla-overdue { background: var(--sla-expired-soft);  color: var(--sla-expired); }
+.vendas-aplus .vd-sla-paid    { background: var(--sla-paid-soft); color: var(--sla-paid); }
 
 /* SLA mini-pills no KPI A receber */
 .vendas-aplus .vd-sla-counts{
@@ -29,9 +29,9 @@
   padding: 0; line-height: 1.5;
 }
 .vendas-aplus .vd-sla-mini .ic{ font-size: 8px; line-height: 1; margin-right: 4px; }
-.vendas-aplus .vd-sla-mini.fresh   { color: var(--pos); }
-.vendas-aplus .vd-sla-mini.warning { color: var(--warn); }
-.vendas-aplus .vd-sla-mini.overdue { color: var(--neg); }
+.vendas-aplus .vd-sla-mini.fresh   { color: var(--sla-fresh); }
+.vendas-aplus .vd-sla-mini.warning { color: var(--sla-aging); }
+.vendas-aplus .vd-sla-mini.overdue { color: var(--sla-expired); }
 .vendas-aplus .vd-sla-mini + .vd-sla-mini::before{
   content: "·"; margin-right: 2px; color: var(--text-mute); font-weight: 400;
 }
@@ -1817,6 +1817,8 @@ body:has(.vendas-aplus[data-vd-drawer="largo"]) .os-drawer.wide{ width: 560px; m
   color: var(--pos);
   font-variant-numeric: tabular-nums;
 }
+.vendas-aplus .vd-kpi-hero .os-kpi-label{ color: var(--text-dim); }
+.vendas-aplus .vd-kpi-hero .os-kpi-sub{ color: var(--text-mute); }
 .vendas-aplus .vd-kpi-hero .vd-spark{
   position: absolute;
   inset: auto 10px 8px 10px;
