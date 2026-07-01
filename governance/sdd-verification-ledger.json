@@ -343,6 +343,23 @@
       "pii_hits": 0,
       "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3580) — 11 correcoes aplicadas fielmente a evidencia da r1 (8 full→parcial, ancora UI trocada pra Faturas/Index.tsx viva, C6 stub declarado, permissoes 1:1 com DataController:45-57, 6 dones revertidos + 10 legitimos preservados); 25 campos + 19 status inalterados provados byte-identicos (zero regressao). Ressalvas cosmeticas: RB-012 candidata a parcial futuro; off-by-2 corrigido pre-commit. Cobre PR #3580.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3572,
+      "lote_id": "SA-A5-P10w2-paymentgateway",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 9,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao (comment no PR #3572) — APROVADO 9/9 (6 campos + 2 remocoes de status + 1 edit de texto). Verificados: PG-008 codigo mergeado #3371 com flag OFF real (Config/config.php:18), PG-006 HMAC (nao mTLS) fail-secure, PG-007 Caddyfile sem rota, PG-003 sem replay-protection. 1 recomendacao de prosa aplicada antes do merge (PG-003 timestamp). anchor-lint coverage 100, dead 0, zombie 0, grammar 9/9.",
+      "veredito": "aprovado"
     }
   ]
 }
