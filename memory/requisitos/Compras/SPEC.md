@@ -91,6 +91,7 @@ Como user com permission `compras.view`, quero acessar `/compras` e ver cockpit 
 
 **Status:** ~~pending Wave 3+~~ → **cancelled-c1** (2026-05-25 · ADR `compras-purchase-convergencia-c1`)
 **Persona:** user com permission `purchase.create` (C1 — não `compras.create`)
+**Implementado em:** _parcial_ · `app/Http/Controllers/PurchaseController.php` · `resources/js/Pages/Purchase/Create.tsx` · `Modules/Compras/Http/Controllers/ComprasController.php` · verificado@176f9bc (2026-07-01) — cancelled-c1: cockpit delega "+Nova compra" pro trilho Purchase (piloto MWART · ADR 0141); permissions purchase.create no ComprasController; NÃO nasce Pages/Compras/Create.tsx nativo
 
 > **C1:** Cockpit `/compras` delega botão "+ Nova compra" pra `/purchases/create` Inertia (Trilho A piloto MWART Wave 2 B5). `Pages/Purchase/Create.tsx` (520 LOC + charter Tier A ★) cobre 100% do form. Não nasce `Pages/Compras/Create.tsx` agora.
 
@@ -108,6 +109,7 @@ Como user com permission `purchase.create`, quero clicar "+ Nova compra" no cock
 
 **Status:** pending (Wave 6 — maior risco)
 **Persona:** user com permission `compras.import_xml`
+**Implementado em:** _pendente_ — bridge `ImportarDfeComoCompraService` + migration `add_transaction_id_to_nfe_dfe_recebidos` + rota `importar-dfe` ainda não criados (GAP NOVO Wave 6; routes/web.php só cita no comentário)
 
 Como user com permission `compras.import_xml`, quero abrir modal "Importar XML" e ver lista de DF-e pendentes do meu business (puxadas pela rotina SEFAZ NSU), selecionar uma e auto-criar compra com lines pré-populadas + fornecedor auto-matchado por CNPJ, pra não digitar nada.
 
@@ -124,6 +126,7 @@ Como user com permission `compras.import_xml`, quero abrir modal "Importar XML" 
 
 **Status:** ~~pending Wave 8~~ → **inverted-c1** (2026-05-25 · ADR `compras-purchase-convergencia-c1`)
 **Persona:** infra — não user-facing direto
+**Implementado em:** `app/Http/Controllers/PurchaseController.php` · `Modules/Compras/Http/Controllers/ComprasController.php` · `Modules/Compras/Http/Controllers/DataController.php` · verificado@176f9bc (2026-07-01) — inverted-c1: /purchases (Inertia) e /compras (cockpit) coexistem; sem redirect 301; flag compras_module (DataController) controla só visibilidade do entry no sidebar
 
 > **C1 inverte premissa:** `/purchases/*` não é Blade legacy — desde Wave 2 B5 do piloto `migracao-blade-react` (ADR 0141) é Inertia React via dual-path `X-Inertia` header ou `?v=2`. `/compras` é cockpit complementar, não substituto.
 
@@ -201,8 +204,10 @@ Como Larissa criando compra de modelo `type='variable'` no `/purchases/create`, 
 
 ### US-COM-006 · Pest cross-tenant biz=1 vs biz=99 (4 testes)
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/Compras/Tests/Feature/MultiTenantTest.php` · `Modules/Compras/Tests/Feature/MultiTenantSqlGuardTest.php` · verificado@176f9bc (2026-07-01) — 4 cenários cross-tenant biz=1 vs biz=99 (list isolation, show 404, KPIs scope, filtro ?q= JOIN contacts)
 
 **Acceptance:**
 - [ ] 4 testes Pest em `Modules/Compras/Tests/Feature/MultiTenantTest.php`
@@ -215,8 +220,10 @@ Como Larissa criando compra de modelo `type='variable'` no `/purchases/create`, 
 
 ### US-COM-007 · Fix business_id source: auth() em vez de session() + abort_if
 
-> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 2h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/Compras/Http/Controllers/ComprasController.php` · verificado@176f9bc (2026-07-01) — business_id via auth()->user()->business_id (não session), abort_if($businessId <= 0), cross-check session vs auth, show retorna 404 (não 403) cross-tenant
 
 **Acceptance:**
 - [ ] Trocar `session('user.business_id')` → `auth()->user()->business_id` em todos Controllers Compras
@@ -228,8 +235,10 @@ Como Larissa criando compra de modelo `type='variable'` no `/purchases/create`, 
 
 ### US-COM-008 · Throttle 60/1 em /compras + FormRequest ListarComprasRequest
 
-> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 2h · type: story
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `Modules/Compras/Routes/web.php` · `Modules/Compras/Http/Requests/ListarComprasRequest.php` · `Modules/Compras/Tests/Feature/GapsHardeningTest.php` · verificado@176f9bc (2026-07-01) — falta Pest comportamental do 429 (61º request; GapsHardeningTest é source-grep de throttle:60,1, admite diferimento pra CI MySQL que nunca nasceu)
 
 **Acceptance:**
 - [ ] `Route::middleware(['web', 'throttle:60,1'])` em route group `/compras`
@@ -240,8 +249,10 @@ Como Larissa criando compra de modelo `type='variable'` no `/purchases/create`, 
 
 ### US-COM-009 · Validar JOIN scope contacts.business_id em TransactionUtil::getListPurchases (R1 leak)
 
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 3h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `app/Utils/TransactionUtil.php` · `Modules/Compras/Tests/Feature/MultiTenantSqlGuardTest.php` · verificado@176f9bc (2026-07-01) — hotfix scope contacts.business_id no leftJoin de getListPurchases (L4916); guard SQL toSql() cobre Purchases/Sells/Expenses (R1 risk register fechado)
 
 **Sintoma potencial:** `TransactionUtil::getListPurchases` faz JOIN com `contacts` table sem scope `contacts.business_id = X` — vazamento cross-tenant em listagem de fornecedores.
 
@@ -257,6 +268,8 @@ Como Larissa criando compra de modelo `type='variable'` no `/purchases/create`, 
 
 > owner: — · priority: p1 · estimate: 1h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — entry `Compras:` ainda ausente em `config/governance/module_clients.yaml` (36 módulos listados, nenhum Compras)
 
 **Acceptance:**
 - [ ] Adicionar entry Compras em `config/governance/module_clients.yaml`
