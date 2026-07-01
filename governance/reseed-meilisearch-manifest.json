@@ -1,0 +1,72 @@
+{
+  "_meta": {
+    "doc": "Artefato de prova de re-seed do índice Meilisearch canônico (busca do MCP). Regra 'mexeu, registra' (memory/proibicoes.md): re-seed operacional no CT100 SEM entry aqui = não aconteceu. Append-only: cada re-seed adiciona 1 entry, nunca edita a antiga. Origem: P11 KL-E2b (memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md §3) + avaliação adversarial 2026-07-01 que classificou E2b como ILUSÓRIO por zero artefato de execução.",
+    "schema_entry": {
+      "id": "string — <frente>-<indice>-<data>",
+      "date_utc": "string YYYY-MM-DD",
+      "runtime": "string — host/container/SHA deployado no momento do re-seed",
+      "index": "string — uid do índice Meilisearch",
+      "snapshot_rollback": "object — prova do snapshot pré-mutação (arquivo, bytes, taskUid, status)",
+      "settings_cure": "object — jana:meilisearch-setup aplicado (embedders/filterable)",
+      "reseed": "object — comando scout:import + janela UTC de execução",
+      "docs": "object — contagens DB vs índice vs embedded",
+      "dead_names_served": "object — contagem antes/depois de nomes-fantasma (ghost-rename-map Classe A) servidos pela busca + classificação honesta dos hits remanescentes",
+      "positive_control": "object — query pelo nome NOVO retorna docs",
+      "evidencia": "string — path do session log com o passo-a-passo"
+    }
+  },
+  "entries": [
+    {
+      "id": "P11-E2b-mcp_memory_documents-2026-07-01",
+      "date_utc": "2026-07-01",
+      "runtime": "CT100 (ct100-mcp) · container oimpresso-mcp @ dd3ed7c31 (origin/main 2026-07-01) · meilisearch getmeili/meilisearch v1.43.0",
+      "index": "mcp_memory_documents",
+      "snapshot_rollback": {
+        "file": "/meili_data/snapshots/data.ms.snapshot",
+        "bytes": 290843369,
+        "taskUid": 1138911,
+        "status": "succeeded",
+        "at_utc": "2026-07-01T20:23Z"
+      },
+      "settings_cure": {
+        "cmd": "php artisan jana:meilisearch-setup --index=mcp_memory_documents",
+        "taskUid": 1138931,
+        "embedders": ["qwen3_local (ollama qwen3-embedding:0.6b, 1024 dims)"],
+        "filterableAttributes": ["status", "type", "module", "slug"]
+      },
+      "reseed": {
+        "cmd": "php artisan scout:import \"Modules\\\\Jana\\\\Entities\\\\Mcp\\\\McpMemoryDocument\"",
+        "started_utc": "2026-07-01T20:23:57Z",
+        "finished_utc": "2026-07-01T20:24:18Z",
+        "imported_up_to_id": 4155
+      },
+      "docs": {
+        "db_total": 1446,
+        "indexed": 1415,
+        "delta_nao_buscavel": 31,
+        "nota_delta": "shouldBeSearchable() exclui status superseded/deprecated/rascunho — delta esperado, não drift",
+        "embedded": 1415,
+        "is_indexing_after": false
+      },
+      "dead_names_served": {
+        "queries": "phrase search \"Modules/<Nome>\" no índice, limit 50, via config scout do próprio container (comparado com LIKE no DB espelho-do-git)",
+        "before": { "Modules/MemCofre": 16, "Modules/Copiloto": 44, "Modules/DocVault": 0, "Modules/PontoWr2": 28 },
+        "after": { "Modules/MemCofre": 16, "Modules/Copiloto": 44, "Modules/DocVault": 0, "Modules/PontoWr2": 28 },
+        "leitura_honesta": "before == after PORQUE índice já estava em sincronia com DB/git pós-renames E2a (#3155) — o que faltava era a PROVA, não a cura. 100% dos hits remanescentes são (a) tombstones append-only (adr/session/handoff/comparativo — citar nome antigo lá é FATO histórico, ADR 0094 Art.3) ou (b) docs vivos FORA do escopo E2a/detector (memory/ raiz, memory/reference/, memory/governance/ — knowledge-drift.mjs só varre memory/requisitos/**). ZERO hit em doc vivo de memory/requisitos/** não-adr.",
+        "fila_humana_fora_de_escopo": [
+          "memory-what-oimpresso (cita Modules/MemCofre + Modules/Copiloto — é @import do CLAUDE.md, carrega em TODA sessão)",
+          "governance-architecture",
+          "governance-module-drift-migration-plan",
+          "memory-00-user-profile · memory-02-technical-stack · memory-04-conventions · memory-05-preferences",
+          "reference-ideia-chat-ia-contextual · reference-trigger-guarde-no-cofre · reference-mcp-endpoints · reference-post-mortem-v4-go-live · memory-changelog"
+        ]
+      },
+      "positive_control": {
+        "query": "\"Modules/SRS\"",
+        "hits": 14,
+        "top_hit": "spec-srs"
+      },
+      "evidencia": "memory/sessions/2026-07-01-p11-e2b-reseed-meilisearch-e3-distiller.md"
+    }
+  ]
+}
