@@ -220,101 +220,143 @@ Página `/pcp/dashboard` Inertia v3 + React 19 + Tailwind 4 (stack canônica):
 
 ## §7 — User Stories (US-PCP-001..020 — 20 propostas)
 
+**Implementado em:** _pendente_ — epic dormente (feature-wish ADR 0152); `Modules/Pcp/` e `Modules/IProduction/` não existem no disco; nenhuma das 20 US construída (estado agregado)
+
 > Formato headers (parser MCP — ADR 0134).
 > Status inicial **todo** até sinal qualificado (ADR 0105) — proposta = `proposed`.
 > Estimates pós-recalibração 10x IA-pair (ADR 0106).
 
 ### US-PCP-001 · Schema base + migrations (4 tabelas + triggers append-only) — **P0**
 
+**Implementado em:** _pendente_ — nenhuma migration `pcp_*` no disco; `Modules/Pcp/` inexistente (SPEC dormente ADR 0152)
+
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > Schema §3. Triggers MySQL append-only em `pcp_appointments`. `business_id` indexed + FK em tudo. Pest cross-tenant (biz=1 vs biz=99 — ADR 0101).
 
 ### US-PCP-002 · DECISÃO D1 — Pcp vs IProduction (renomeação ou módulo novo) — **P0 BLOCKER**
+
+**Implementado em:** _pendente_ — decisão dormente por ADR 0152 (resolve no ADR de promoção quando trigger ativar); sem ADR/código
 
 > owner: [W] · priority: p0 · estimate: 1h · status: todo · type: decision
 > Ver ADR proposal §D1. Wagner decide ANTES de US-PCP-001 ir mainline.
 
 ### US-PCP-003 · Models + global scopes `HasBusinessScope` — **P0**
 
+**Implementado em:** _pendente_ — sem models `Modules/Pcp/Entities/*` (módulo não scaffoldado, ADR 0152)
+
 > owner: — · priority: p0 · estimate: 2h · status: todo · type: story
 
 ### US-PCP-004 · CRUD `pcp_workstations` Inertia (Index/Create/Edit) — **P0**
+
+**Implementado em:** _pendente_ — sem Pages `Pages/Pcp/**` nem controller CRUD workstations (módulo não construído, ADR 0152)
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > MWART process ADR 0104 (visual-comparison.md + Pest baseline + Charter).
 
 ### US-PCP-005 · CRUD `pcp_operations` Inertia — **P0**
 
+**Implementado em:** _pendente_ — catálogo `pcp_operations` + telas não construídos (módulo dormente, ADR 0152)
+
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 
 ### US-PCP-006 · FSM actions intermediárias (5 actions seed) — **P0**
+
+**Implementado em:** _pendente_ — os seeders FSM existem (`database/seeders/FsmProcessoVendaComProducaoSeeder.php`, `FsmProcessoOsReparoPadraoSeeder.php`) mas NÃO seedam nenhuma action `apontar_*` de produção; deliverable não construído (ADR 0152)
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > Seed em `FsmProcessoVendaComProducaoSeeder` e `FsmProcessoOsReparoPadraoSeeder` (já existem ADR 0143). Pest transition + side-effect.
 
 ### US-PCP-007 · Service `RegisterAppointment` (idempotent) — **P0**
 
+**Implementado em:** _pendente_ — sem service de apontamento em `Modules/Pcp/Services/*` (módulo não construído, ADR 0152)
+
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > Idempotency-Key + race condition guard (mesmo usuário 2 starts).
 
 ### US-PCP-008 · Endpoint API JWT `POST /api/pcp/scan` — **P0**
+
+**Implementado em:** _pendente_ — rota `/api/pcp/scan` inexistente (nenhum `Modules/Pcp/Routes/api.php`; módulo dormente ADR 0152)
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > Sanctum token user-level + rate limit + LGPD log audit.
 
 ### US-PCP-009 · PWA mobile shell + scanner QR (camera API) — **P0**
 
+**Implementado em:** _pendente_ — sem PWA shell/scanner QR de apontamento (módulo não construído, ADR 0152)
+
 > owner: — · priority: p0 · estimate: 6h · status: todo · type: story
 > @zxing-js/library ou jsqr. Offline-first com IndexedDB queue.
 
 ### US-PCP-010 · QR token na label OS + endpoint print extended — **P0**
 
+**Implementado em:** _pendente_ — a label OS base existe (`Modules/Repair/Resources/views/job_sheet/print_label.blade.php`) mas SEM QR token/HMAC; extensão não construída (ADR 0152)
+
 > owner: — · priority: p0 · estimate: 2h · status: todo · type: story
 
 ### US-PCP-011 · Kanban shared infra adicionar agrupador configurável (8 agrupadores Delphi) — **P0**
+
+**Implementado em:** _pendente_ — `ProducaoOficinaController` (Repair) existe como plug-point mas NÃO tem `?grouping`/8 agrupadores nem tabela `kanban_columns`; extensão não construída (ADR 0152; não ancorar em domínio Repair)
 
 > owner: — · priority: p0 · estimate: 5h · status: todo · type: story
 > Extends `ProducaoOficinaController` — query param `?grouping`. Espelha `WR_KANBAN` table → `kanban_columns(business_id, agrupador, value, order, is_collapsed)`.
 
 ### US-PCP-012 · Detect bottleneck (cron 15min) + alerta UI + Jana RAG context — **P1**
 
+**Implementado em:** _pendente_ — sem comando cron de detecção de gargalo nem feed Jana PCP (módulo não construído, ADR 0152)
+
 > owner: — · priority: p1 · estimate: 5h · status: todo · type: story
 
 ### US-PCP-013 · Capacidade dia/semana view agregada + dashboard card — **P1**
 
+**Implementado em:** _pendente_ — sem view de capacidade nem card dashboard PCP (módulo não construído, ADR 0152)
+
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story
 
 ### US-PCP-014 · Performance operador (view + dashboard table com permission guard) — **P1**
+
+**Implementado em:** _pendente_ — sem view performance operador nem permission `pcp.performance.view` (módulo não construído, ADR 0152)
 
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story
 > LGPD — `pcp.performance.view` permission. PII redactor logs.
 
 ### US-PCP-015 · `pcp_schedules` agendamento drag-drop calendário — **P2**
 
+**Implementado em:** _pendente_ — sem tabela `pcp_schedules` nem calendário drag-drop (módulo não construído, ADR 0152)
+
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story
 > React FullCalendar + endpoint PATCH. Validation overlap.
 
 ### US-PCP-016 · Integração BoM `MfgRecipe` (consumo automático ao concluir operação) — **P2**
+
+**Implementado em:** _pendente_ — `MfgRecipe` (Manufacturing) existe pra reuso, mas o hook `apontar_fim_operacao → ConsumirEstoque` do PCP não existe (módulo não construído, ADR 0152)
 
 > owner: — · priority: p2 · estimate: 5h · status: todo · type: story
 > Hook em `apontar_fim_operacao` → `ConsumirEstoque` via Manufacturing.
 
 ### US-PCP-017 · Dashboard PCP Inertia (4 cards KPI + Kanban embed + heatmap) — **P1**
 
+**Implementado em:** _pendente_ — sem página `Pages/Pcp/Dashboard` nem rota `/pcp/dashboard` (módulo não construído, ADR 0152)
+
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > Charter `.charter.md` obrigatório.
 
 ### US-PCP-018 · Broadcast Centrifugo (Kanban realtime + fila workstation) — **P2**
+
+**Implementado em:** _pendente_ — sem broadcast/canal `pcp.{biz}.workstation.{id}` (módulo não construído, ADR 0152)
 
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story
 > CT 100 only (ADR 0058 + 0062). Channel `pcp.{biz}.workstation.{id}`.
 
 ### US-PCP-019 · Smoke biz=4 ROTA LIVRE (canary 7d + cutover) — **P2**
 
+**Implementado em:** _pendente_ — sem módulo PCP pra smoke/canary; cutover não iniciado (módulo não construído, ADR 0152)
+
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > Processo MWART F4+F5 — aviso prévio Larissa + canary 7d (ADR 0104 §F5).
 
 ### US-PCP-020 · Documentação RUNBOOK + Charter páginas — **P0**
+
+**Implementado em:** _pendente_ — sem `RUNBOOK-*.md` em `memory/requisitos/Pcp/` nem charters (nenhuma tela PCP construída, ADR 0152)
 
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story
 > 1 RUNBOOK por tela MWART + `.charter.md` ao lado de cada `.tsx`.
