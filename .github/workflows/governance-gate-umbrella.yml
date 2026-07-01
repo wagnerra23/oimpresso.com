@@ -89,3 +89,27 @@ jobs:
       - uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ── G6 · watchdog dos crons de governança (ADR 0317 §2 — generaliza o auto-canário) ──
+  # O GitHub DESABILITA workflow agendado após 60d sem atividade — EM SILÊNCIO. As
+  # sentinelas (memory-health/drift/ragas/sdd…) param e o brief fica verde = regressão
+  # disfarçada de saúde. Este job (always-run em PR) checa a idade da última run AGENDADA
+  # de CADA workflow com schedule, DESCOBERTOS dinamicamente (cobre cron novo/removido).
+  # 🔴 cron morto · 🟡 bootstrap. Generaliza o job cron-liveness de memory-health.yml
+  # (1 → 13 crons). Advisory ao nascer (ADR 0271); promover a required depois.
+  crons-watchdog:
+    name: crons de governança vivos? (watchdog G6 · ADR 0317)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Watchdog — todo cron agendado com heartbeat < limite
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: node scripts/governance/cron-watchdog.mjs
