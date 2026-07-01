@@ -331,6 +331,8 @@ Histórico de comentários por US fica navegável via `/copiloto/admin/qualidade
 
 **Implementado em:** `app/Domain/Fsm/Services/ExecuteStageActionService.php` · `app/Domain/Fsm/Models/SaleProcess.php` · `database/migrations/2026_05_11_120001_create_sale_processes_table.php` · `database/migrations/2026_05_11_120005_create_sale_stage_history_table.php` · verificado@cd84a38 (2026-07-01)
 
+**Testado em:** `tests/Feature/Domain/Fsm/ExecuteStageActionServiceTest.php` (covers US-SELL-011)
+
 > owner: wagner · priority: p1 · estimate: 12h · status: done · type: story
 > blocked_by: US-SELL-010
 > done: 2026-05-10 · PR: #501 · Pest: 13/13 ✅
@@ -365,6 +367,8 @@ sale_stage_action_roles     -- RBAC join: action × spatie_role/permission
 ### US-SELL-012 · Gate de emissão NFe por venda (aplicar FSM canônica em Sale)
 
 **Implementado em:** `database/migrations/2026_05_11_160001_add_fsm_columns_to_transactions.php` · `app/Domain/Fsm/Services/InitialStageResolver.php` · `app/Http/Controllers/SaleFsmActionController.php` · verificado@cd84a38 (2026-07-01)
+
+**Testado em:** `tests/Feature/Domain/Fsm/GateEmissaoPorVendaTest.php` (covers US-SELL-012)
 
 > owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: US-SELL-011
@@ -403,6 +407,8 @@ sale_stage_action_roles     -- RBAC join: action × spatie_role/permission
 
 **Implementado em:** `database/migrations/2026_05_11_130001_create_stock_reservations_table.php` · `app/Domain/Fsm/Models/StockReservation.php` · `app/Domain/Fsm/SideEffects/ReservarEstoque.php` · `app/Domain/Fsm/SideEffects/ConsumirEstoque.php` · `app/Domain/Fsm/SideEffects/LiberarReserva.php` · `app/Domain/Fsm/Jobs/ExpireStaleReservationsJob.php` · verificado@cd84a38 (2026-07-01)
 
+**Testado em:** `tests/Feature/Domain/Fsm/StockReservationsTest.php` (covers US-SELL-013)
+
 > owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: US-SELL-011
 > done: 2026-05-10 · PR: #510 · Pest: 8/8 ✅
@@ -437,6 +443,8 @@ stock_reservations
 ### US-SELL-014 · Multi-documento por venda (transaction_documents poly) — N notas atreladas a 1 OS
 
 **Implementado em:** `database/migrations/2026_05_11_140001_create_transaction_documents_table.php` · `app/Domain/Fsm/Models/TransactionDocument.php` · verificado@cd84a38 (2026-07-01)
+
+**Testado em:** `tests/Feature/Domain/Fsm/TransactionDocumentTest.php` (covers US-SELL-014)
 
 > owner: wagner · priority: p1 · estimate: 6h · status: done · type: story
 > blocked_by: US-SELL-011
@@ -772,6 +780,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 **Implementado em:** `Modules/NfeBrasil/Services/NfeService.php` · verificado@cd84a38 (2026-07-01)
 
+**Testado em:** `tests/Feature/Domain/Fsm/SequencialNfeAposCancelamentoTest.php` (covers US-SELL-029)
+
 > owner: — · priority: p0 · estimate: 3h codável + 5h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: — (precede US-030)
 > evidence: bug confirmado em [NfeService.php:380-398](../../../Modules/NfeBrasil/Services/NfeService.php#L380) — `cancelada` tratada igual `rejeitada/denegada` recebe `forceDelete()`, próxima emissão pula sequencial
@@ -793,6 +803,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 ### US-SELL-030 · NfeInutilizacaoService — chama SEFAZ + persiste em `nfe_inutilizacoes` · **P0 fiscal**
 
 **Implementado em:** `Modules/NfeBrasil/Services/NfeInutilizacaoService.php` · `Modules/NfeBrasil/Database/Migrations/2026_05_06_002003_create_nfe_inutilizacoes_table.php` · `app/Domain/Fsm/SideEffects/InutilizarFaixaNfe.php` · verificado@cd84a38 (2026-07-01)
+
+**Testado em:** `tests/Feature/Domain/Fsm/SequencialNfeAposCancelamentoTest.php` (covers US-SELL-030) · `tests/Feature/Domain/Fsm/SideEffects/InutilizarFaixaNfeTest.php` (covers US-SELL-030)
 
 > owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-029 (refator NfeService precede)
@@ -817,6 +829,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 **Implementado em:** `database/migrations/2026_05_12_010001_add_is_critical_to_sale_stage_actions.php` · `app/Domain/Fsm/Services/ExecuteStageActionService.php` · verificado@cd84a38 (2026-07-01)
 
+**Testado em:** `tests/Feature/Domain/Fsm/TransicaoCriticaExigeAutorizacaoTest.php` (covers US-SELL-031)
+
 > owner: — · priority: p1 · estimate: 2h codável + 1h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: —
 > evidence: [ExecuteStageActionService.php:62](../../../app/Domain/Fsm/Services/ExecuteStageActionService.php#L62) — `empty($roleNames)` libera pra qualquer user; seed incompleto vira bypass silencioso
@@ -837,6 +851,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 ### US-SELL-032 · Observer bloqueia UPDATE direto em current_stage_id (gateway obrigatório) · **P1 governança**
 
 **Implementado em:** `app/Domain/Fsm/Observers/TransactionFsmObserver.php` · `app/Domain/Fsm/Concerns/GuardsFsmTransitions.php` · `app/Domain/Fsm/Support/FsmAuthorizationFlag.php` · `app/Console/Commands/FsmScanDriftCommand.php` · verificado@cd84a38 (2026-07-01)
+
+**Testado em:** `tests/Feature/Domain/Fsm/CurrentStageIdBypassObserverTest.php` (covers US-SELL-032)
 
 > owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: —
@@ -860,6 +876,8 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 ### US-SELL-033 · Processo seed "Venda Com Produção" canônico (9 stages + 12 actions + roles) · **P0 negócio**
 
 **Implementado em:** `database/seeders/FsmProcessoVendaComProducaoSeeder.php` · `app/Domain/Fsm/Services/InitialStageResolver.php` · verificado@cd84a38 (2026-07-01)
+
+**Testado em:** `tests/Feature/Domain/Fsm/ProcessoVendaComProducaoTest.php` (covers US-SELL-033)
 
 > owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-031 (is_critical) + US-032 (Observer)
@@ -906,6 +924,8 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 
 **Implementado em:** `app/Domain/Fsm/SideEffects/CancelarVendaCascade.php` · verificado@cd84a38 (2026-07-01)
 
+**Testado em:** `tests/Feature/Domain/Fsm/CancelarVendaCascadeSideEffectTest.php` (covers US-SELL-034)
+
 > owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-029 (cancelamento NFe correto) + US-033 (action cancelar_venda)
 > evidence: hoje cancelar venda é processo manual com risco de inconsistência (cancela NFe mas esquece de estornar boleto, libera reserva mas não notifica cliente, etc)
@@ -931,6 +951,8 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 ### US-SELL-035 · UI timeline de transições FSM (drawer + page) · **P2 UX/auditoria**
 
 **Implementado em:** `app/Http/Controllers/SaleHistoryController.php` · `resources/js/Pages/Sells/_components/SaleTimeline.tsx` · `resources/js/Pages/Sells/_components/SaleSheet.tsx` · verificado@cd84a38 (2026-07-01)
+
+**Testado em:** `tests/Feature/Domain/Fsm/SaleHistoryControllerTest.php` (covers US-SELL-035)
 
 > owner: — · priority: p2 · estimate: 8h frontend (sem canary) · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-033 (processo canon) + visibilidade real após implementação
@@ -962,6 +984,8 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 ### US-SELL-036 · FSM rollout — migrar 14 vendas legadas biz=1 via bulk-start-pipeline + canary 7d
 
 **Implementado em:** `app/Console/Commands/FsmBulkStartPipelineCommand.php` · `app/Console/Commands/FsmScanDriftCommand.php` · `resources/js/Pages/Sells/_components/FsmActionPanel.tsx` · verificado@cd84a38 (2026-07-01)
+
+**Testado em:** `tests/Feature/Console/FsmBulkStartPipelineCommandTest.php` (covers US-SELL-036)
 
 > owner: wagner · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
