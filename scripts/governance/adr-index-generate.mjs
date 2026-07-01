@@ -30,6 +30,19 @@ const MODE = process.argv.includes('--write') ? 'write' : process.argv.includes(
 const NORM_STATUS = { accepted: 'aceito', aceita: 'aceito', proposed: 'proposto' };
 const NORM_LIFECYCLE = { active: 'ativo', canon: 'ativo', feature_wish: 'historical' };
 
+// ADR 0316 — esquecimento real: números TOMBADOS (ADR morta removida via git rm;
+// auditoria = git history + governance/adr-tombstones.json). Uma ADR viva que
+// supersede uma tombada NÃO é dangling — é supersessão de ADR legitimamente esquecida.
+// Ledger vazio/ausente → set vazio → comportamento idêntico ao pré-0316.
+const TOMBSTONE_FILE = 'governance/adr-tombstones.json';
+const tombstoned = new Set();
+try {
+  if (existsSync(join(ROOT, TOMBSTONE_FILE))) {
+    const tj = JSON.parse(readFileSync(join(ROOT, TOMBSTONE_FILE), 'utf8'));
+    for (const t of tj.tombstones ?? []) tombstoned.add(String(t.number).padStart(4, '0'));
+  }
+} catch { /* ledger ilegível → set vazio (fail-safe: volta a acusar dangling) */ }
+
 function field(fm, key) {
   const m = fm.match(new RegExp(`^${key}:\\s*(.+)$`, 'mi'));
   return m ? m[1].trim().replace(/^["']|["']$/g, '') : '';
@@ -109,7 +122,10 @@ const exists = (n) => !!byNum[n];
 const supWarn = [];
 for (const a of adrs) {
   for (const t of a.supersedes) {
-    if (!exists(t)) { supWarn.push(`${a.num} supersedes ${t} → ADR ${t} NÃO existe`); continue; }
+    if (!exists(t)) {
+      if (tombstoned.has(t)) continue; // ADR 0316 — supersede de ADR esquecida (tombada) ≠ dangling
+      supWarn.push(`${a.num} supersedes ${t} → ADR ${t} NÃO existe`); continue;
+    }
     const target = byNum[t].some((x) => x.lifecycleN === 'substituido' || x.statusN === 'superseded');
     if (!target) supWarn.push(`${a.num} supersedes ${t} → ${t} NÃO está marcada substituido/superseded ⚠️`);
   }
