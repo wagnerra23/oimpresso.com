@@ -358,4 +358,4 @@ _(íntegra)_
 | 0315 | aceito | ativo | decision | /design-sync (claude.ai/design) vs. método Cowork+charter: avaliação de adoção + |
 | 0316 | aceito | ativo | decision | Esquecimento real de ADR morta — git rm + tombstone ledger + git history como au |
 | 0317 | aceito | ativo | meta | Máquina de revisão de ADR — quando rever, via 3 classes de gatilho (evento/incon |
-| 0318 | aceito | ativo | tecnica | RAGAS eval real da Jana — mata a tautologia answer=ground_truth, mede saída de v |
+| 0318 | aceito | ativo | decision | RAGAS eval real da Jana — mata a tautologia answer=ground_truth, mede saída de v |
