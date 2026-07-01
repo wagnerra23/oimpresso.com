@@ -6,9 +6,9 @@
 
 ## Resumo
 - **322** arquivos · **306** números únicos · máx **0317**
-- **ADRs ATIVOS (lifecycle ativo): 283** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 261 · proposto 35 · superseded 22 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 283 · substituido 22 · (vazio) 8 · arquivado 6 · historical 3
+- **ADRs ATIVOS (lifecycle ativo): 288** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 266 · proposto 35 · superseded 17 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 288 · substituido 17 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -36,11 +36,11 @@ _(íntegra)_
 ## Todas as ADRs (322)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
-| 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
-| 0002 | superseded | substituido | decision | Usar nWidart/laravel-modules como sistema de módulos |
+| 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
+| 0002 | aceito | ativo | decision | Usar nWidart/laravel-modules como sistema de módulos |
 | 0003 | aceito | ativo | decision | Marcações append-only com triggers MySQL + proteção na aplicação |
 | 0004 | aceito | ativo | decision | Tabela bridge `ponto_colaborador_config` |
-| 0005 | superseded | substituido | decision | UUID para entidades auditáveis, BigInt para lookups |
+| 0005 | aceito | ativo | decision | UUID para entidades auditáveis, BigInt para lookups |
 | 0006 | aceito | ativo | decision | Multi-tenancy lógica via `business_id` |
 | 0007 | aceito | ativo | decision | Banco de horas como ledger append-only |
 | 0008 | superseded | substituido | decision | Sidebar com 1 item + menu horizontal em abas dentro do módulo |
@@ -78,7 +78,7 @@ _(íntegra)_
 | 0041 | aceito | ativo | decision | Stack de QA de IA: Vizra ADK eval + Langfuse self-host + DeepEval CLI (Caminho B |
 | 0042 | superseded | substituido | decision | Reverb (self-hosted) substitui Pusher Cloud como broadcaster |
 | 0043 | aceito | ativo | decision | Docker + Traefik + Portainer num LXC, em vez de N LXCs nativos |
-| 0044 | superseded | substituido | decision | Vaultwarden self-hosted como cofre de credenciais |
+| 0044 | aceito | ativo | decision | Vaultwarden self-hosted como cofre de credenciais |
 | 0045 | aceito | ativo | decision | Endpoint canônico da Hostinger DNS API V1 |
 | 0046 | aceito | ativo | decision | `ChatCopilotoAgent` precisa de contexto rico + tools (gap descoberto) |
 | 0047 | aceito | ativo | decision | Wagner solo: sprint memória do agente (token economy + assertividade) |
@@ -120,7 +120,7 @@ _(íntegra)_
 | 0085 | aceito | ativo | decision | Fase 3.4 SCOPE.md completo + ActorResolver + PII Redactor + roadmap pendências |
 | 0086 | aceito | ativo | decision | Fase 5 MVP — Modules/Governance scaffold + ActionGate (warn-only) + Sidebar GOVE |
 | 0087 | aceito | ativo | decision | Drift resolution sem mover URL — pattern de migration safe |
-| 0088 | superseded | substituido | decision | Module rename PHP-only — fachada legacy mantida durante transição |
+| 0088 | aceito | ativo | decision | Module rename PHP-only — fachada legacy mantida durante transição |
 | 0089 | aceito | ativo | decision | Capterra-driven Module Evolution (skill + 3 artefatos) |
 | 0090 | aceito | ativo | decision | NFe replace gradual: app/Services → Modules/NfeBrasil |
 | 0091 | aceito | ativo | decision | Daily Brief: contrato de contexto consolidado L7 |

@@ -3,11 +3,11 @@ slug: 0088-module-rename-php-only
 number: 0088
 title: "Module rename PHP-only — fachada legacy mantida durante transição"
 type: adr
-status: superseded
+status: aceito
 superseded_by_section:
   db: "0092-tabela-rename-copiloto-para-jana"
 authority: canonical
-lifecycle: substituido
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-06
 module: null
@@ -15,7 +15,7 @@ quarter: 2026-Q2
 tags: [governance, refactor, rename, module-charter, migration-pattern, php-only]
 supersedes: []
 supersedes_partially: []
-superseded_by: ['0092-tabela-rename-copiloto-para-jana']
+superseded_by: []
 related:
   - 0079-constituicao-oimpresso-7-camadas-governanca
   - 0080-trust-tiers-operacional-audit-findings
