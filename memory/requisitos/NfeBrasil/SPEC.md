@@ -456,9 +456,11 @@ Então `nfe_consultas.cache_key` UNIQUE bloqueia a 2ª de processar de novo
 
 ### US-NFE-040 · [Epic] Foundation domínio NFe — migrations + models + composer
 
-> owner: — · priority: p0 · estimate: 16h · status: todo · type: epic · origin: capterra-inventario-2026-05-06 · capacidade: #7-multi-tenant
+> owner: — · priority: p0 · estimate: 16h · status: done · type: epic · origin: capterra-inventario-2026-05-06 · capacidade: #7-multi-tenant
 > blocked_by: —
 > bloqueia: US-NFE-041, US-NFE-001..011 (todas as US existentes do módulo dependem desta foundation)
+
+**Implementado em:** `Modules/NfeBrasil/Database/Migrations/2026_05_06_002000_create_nfe_certificados_table.php` · `Modules/NfeBrasil/Database/Migrations/2026_05_06_002001_create_nfe_emissoes_table.php` · `Modules/NfeBrasil/Models/NfeEmissao.php` · verificado@85cf3e5 (2026-07-01) — foundation NFe: 4 migrations (certificados/emissoes/eventos/inutilizacoes) + models Eloquent com BusinessScope + composer sped-nfe ^5.2/sped-da ^1.1
 
 **Contexto.** CAPTERRA-INVENTARIO classificou ❌ AUSENTE — módulo é scaffold puro sem domínio. Epic bloqueador absoluto: nada emite, cancela, inutiliza ou consulta sem essas tabelas + libs.
 
@@ -483,8 +485,10 @@ Então `nfe_consultas.cache_key` UNIQUE bloqueia a 2ª de processar de novo
 
 ### US-NFE-041 · CertificadoService + storage encrypted + UI admin
 
-> owner: — · priority: p0 · estimate: 12h · status: todo · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #1
+> owner: — · priority: p0 · estimate: 12h · status: done · type: story · origin: capterra-inventario-2026-05-06 · capacidade: #1
 > blocked_by: US-NFE-040
+
+**Implementado em:** `Modules/NfeBrasil/Services/CertificadoService.php` · `Modules/NfeBrasil/Http/Controllers/CertificadoController.php` · `Modules/NfeBrasil/Http/Requests/UploadCertificadoRequest.php` · `resources/js/Pages/Fiscal/Config.tsx` · verificado@85cf3e5 (2026-07-01) — UI unificada em Fiscal/Config.tsx (tela própria removida na unificação 2026-05-27; GET legacy → 302 /fiscal/config)
 
 **Contexto.** CAPTERRA-INVENTARIO #1 ❌ AUSENTE — sem certificado válido, **nada** funciona (NFe/NFC-e/CCe/cancelamento todos exigem assinatura A1). Cert A1 (.pfx) é arquivo binário com senha; vazamento = catástrofe legal (terceiro pode emitir notas em nome do tenant). Storage **deve** ser encrypted-at-rest e a senha **nunca** em texto. Substitui parte da SPEC US-NFE-001 — implementação real desta capacidade.
 
@@ -522,6 +526,8 @@ Então `nfe_consultas.cache_key` UNIQUE bloqueia a 2ª de processar de novo
 > owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — discovery on-prem Gold não executado; documento `memory/clientes/gold/discovery-*.md` (gitignored PII) não existe. Humano-limitado (audit da instalação do cliente).
+
 Audit técnico da instalação on-prem do cliente Gold pra identificar delta com `main` antes do upgrade. Cliente está migrando pra Mubsys; janela curta. **Determina se Gold é só destinatária (manifestação) ou também emite NF-e 55** — define ativação ou não das US-NFE-043..048 dormentes.
 
 **Acceptance criteria:**
@@ -542,6 +548,8 @@ Audit técnico da instalação on-prem do cliente Gold pra identificar delta com
 > owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 3h · status: blocked · type: story
 > blocked_by: US-NFE-042
 
+**Implementado em:** _pendente_ — 🔒 DORMENTE (blocked_by US-NFE-042, ADR 0116). Proposta comercial Gold não construída; reativa só se discovery confirmar emissão NF-e 55.
+
 ⚠️ **Status `blocked` por orientação Wagner 2026-05-09 ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Escopo focado em emissão NF-e 55. Reativa apenas se discovery (US-NFE-042) confirmar que Gold também emite. A proposta da fase manifestação é tratada nas US-049..053 + apêndice no template `PROPOSTA-COMERCIAL-vs-mubsys.md`.
 
 Construir proposta comercial pra Gold ancorada nos diferenciais oimpresso vs Mubsys ([comparativo Capterra 2026-04-25](../../comparativos/oimpresso_vs_concorrentes_capterra_2026_04_25.md)).
@@ -554,6 +562,8 @@ Construir proposta comercial pra Gold ancorada nos diferenciais oimpresso vs Mub
 
 > owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 6h · status: blocked · type: story
 > blocked_by: US-NFE-043
+
+**Implementado em:** _pendente_ — 🔒 DORMENTE (blocked_by US-NFE-043, ADR 0116). Upgrade on-prem da instalação Gold pra `main` não executado (produção do cliente, humano-limitado, risco ALTO).
 
 ⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Parte do upgrade é reaproveitada pela manifestação (US-NFE-049..053 dependem de upgrade base também). Mantida dormente — pode ser parcialmente reativada quando manifestação exigir.
 
@@ -568,6 +578,8 @@ Trazer instalação Gold da versão atual dela pra `main` do oimpresso, incluind
 > owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 3h · status: blocked · type: story
 > blocked_by: US-NFE-044
 
+**Implementado em:** _pendente_ — 🔒 DORMENTE (blocked_by US-NFE-044, ADR 0116). Configuração fiscal (cert+IE+regime) do business Gold não realizada; os templates `industria-grafica-*-sp.php` existem mas a US é o ato de configurar o cliente pós-upgrade (humano-limitado).
+
 ⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Cert A1 + IE também são pré-requisitos de manifestação (assinatura de evento). Parte reaproveitada por US-NFE-049..053.
 
 Configurar emissão fiscal NfeBrasil pra business Gold após upgrade. Detalhe em comentário MCP.
@@ -578,6 +590,8 @@ Configurar emissão fiscal NfeBrasil pra business Gold após upgrade. Detalhe em
 
 > owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 2h · status: blocked · type: story
 > blocked_by: US-NFE-045
+
+**Implementado em:** _pendente_ — 🔒 DORMENTE (blocked_by US-NFE-045, ADR 0116). Smoke 1ª NF-e 55 homologação SEFAZ-SP biz=Gold não executado (round-trip SEFAZ real, humano-limitado).
 
 ⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Smoke específico de emissão NF-e 55. Smoke equivalente da manifestação fica em US-NFE-053 (eventos 210/220).
 
@@ -590,6 +604,8 @@ Emitir 1ª NF-e modelo 55 em homologação SEFAZ-SP usando cert + IE da Gold. De
 > owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 3h · status: blocked · type: story
 > blocked_by: US-NFE-046
 
+**Implementado em:** _pendente_ — 🔒 DORMENTE (blocked_by US-NFE-046, ADR 0116). Treinamento operadora Gold + cutover prod + canary 7d não realizado (relógio do mundo real, humano-limitado).
+
 ⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Treinamento e cutover da fase manifestação ficam em US-NFE-052/053.
 
 Treinar operadora Gold + cutover NF-e prod + canary 7d. Detalhe em comentário MCP.
@@ -600,6 +616,8 @@ Treinar operadora Gold + cutover NF-e prod + canary 7d. Detalhe em comentário M
 
 > owner: wagner · sprint: Gold-Reativacao · priority: p2 · estimate: 2h · status: blocked · type: story
 > blocked_by: US-NFE-047
+
+**Implementado em:** _pendente_ — 🔒 DORMENTE (blocked_by US-NFE-047, ADR 0116). Refino do runbook on-prem pós-Gold não feito; depende de concluir o caso real primeiro.
 
 ⚠️ **Status `blocked` ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).** Mantida dormente até concluir caminho real (manifestação 049..053). Refinamento pós-Gold inclui aprendizados das duas faces (emissão se reativada + manifestação).
 
@@ -716,6 +734,8 @@ Página Inertia `resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx` listando N
 > owner: wagner · sprint: Gold-Reativacao · priority: p1 · estimate: 2h · status: todo · type: story
 > blocked_by: US-NFE-052
 
+**Implementado em:** _pendente_ — smoke real eventos 210/220 homologação SEFAZ-SP biz=Gold não executado (round-trip SEFAZ + cert Gold, humano-limitado; evidência seria session log inexistente).
+
 Smoke real em ambiente homologação SEFAZ-SP usando cert + CNPJ Gold. Análogo a US-NFE-046 mas pra eventos de manifestação.
 
 **Acceptance criteria:**
@@ -735,6 +755,8 @@ Smoke real em ambiente homologação SEFAZ-SP usando cert + CNPJ Gold. Análogo 
 
 > owner: wagner · priority: p1 · estimate: 0.5h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — smoke real SEFAZ-SC biz=1 (1ª NFC-e cstat 100) não executado; passos são "Wagner faz" (POS → finalizar → cstat 100). Humano-limitado, evidência seria row em `nfe_emissoes` + Goal CYCLE-03 track, ausente.
 
 Bate o **Goal #1 do CYCLE-03** ("smoke fiscal SEFAZ-SC homologação biz=1, 1ª NFC-e real cstat 100"). Pipeline US-NFE-002 server-side já fechado em main; biz=1 (WR2 Sistemas, Tubarão/SC) já está armada — confirmado via SSH 2026-05-09:
 
@@ -778,6 +800,8 @@ Bate o **Goal #1 do CYCLE-03** ("smoke fiscal SEFAZ-SC homologação biz=1, 1ª 
 
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — estabilização da suite (>=95% verde MySQL local) não concluída; DoD exige rodar Pest no CT 100 (não verificável só por inspeção). US-irmãs do mesmo batch (056/057) comprovadamente não aplicadas.
 
 Aplicar o pattern dual-mode SQLite/MySQL validado em PR #486 (`fix(test): ImportRegrasCsvServiceTest`) nos demais tests Modules/NfeBrasil que falham em Pest local MySQL `oimpresso`.
 
@@ -856,6 +880,8 @@ beforeEach(function () {
 > owner: — · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — fix não aplicado: `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` ainda tem 8 calls `configBusiness(4)` (só 1 usa biz=1); a migração para biz=1 pedida na US não ocorreu.
+
 PR #453 migrou business_id=4 → 1 em fixtures de tests, mas deixou pra trás `configBusiness(4)` em `Modules/NfeBrasil/Tests/Feature/MotorTributarioServiceTest.php` linhas 150/174/189/203/228/259/273/286/307. Os calls correspondentes `(new MotorTributarioService)->calcular(...businessId: 1, ...)` já usam biz=1, criando mismatch — config inserido em biz=4 mas calcular busca em biz=1 → throws `TributacaoNaoConfiguradaException`.
 
 **Sintoma:** test "Nível 4: defaults business aplicam quando NCM não tem regra" falha tanto em SQLite quanto MySQL com `TributacaoNaoConfiguradaException`. Confirmado em sessão 2026-05-10 (PR #489).
@@ -871,6 +897,8 @@ PR #453 migrou business_id=4 → 1 em fixtures de tests, mas deixou pra trás `c
 
 > owner: — · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — fix não aplicado: `Modules/NfeBrasil/Tests/Feature/DanfeServicePrefersArquivosTest.php` ainda referencia a coluna `filename` (2 ocorrências) que a US pede pra corrigir pós-remoção do schema.
 
 Test `Modules/NfeBrasil/Tests/Feature/DanfeServicePrefersArquivosTest.php` insere row em `arquivos` com coluna `filename` que não existe mais no schema atual:
 
@@ -892,6 +920,8 @@ Coluna foi removida em alguma migração de Modules/Arquivos (provável Sprint 1
 
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — batch dual-mode dos 4 test files não concluído/verificável; DoD exige Pest verde MySQL+SQLite no CT 100 (não provável só por inspeção de arquivo).
 
 Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/MySQL canônico (PR #486) ainda não aplicado em 4 test files do catálogo NfeBrasil:
 
@@ -915,6 +945,8 @@ Continuação dos PRs #487-490 (sessão 2026-05-10). Pattern dual-mode SQLite/My
 
 > owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: US-SELL-012
+
+**Implementado em:** _pendente_ — smoke prod end-to-end não executado (checklist `CHECKLIST-US-NFE-059-smoke-prod.md` é preparo, boxes `[ ]`); humano-limitado (cliente real opt-in + SEFAZ-prod). Registra evidência só quando 1º cliente adotar.
 
 **Contexto:** prod-evidence que estava no DoD original do US-RB-044 mas foi removida por ser premissa errada (cliente sem nota é caminho feliz). Após US-SELL-012 entregar gate por venda, ativar fluxo end-to-end com 1 cliente real que opt-in pra "Venda Com Nota Automática".
 
@@ -1046,8 +1078,10 @@ Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 3 Charter
 
 ### US-NFE-062 · AuditLog em mutações fiscais NFe (Tributacao, Certificado, Manifestacao)
 
-> owner: — · sprint: cycle-04 · priority: p1 · estimate: 3h · status: todo · type: story
+> owner: — · sprint: cycle-04 · priority: p1 · estimate: 3h · type: story
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `Modules/NfeBrasil/Http/Controllers/TributacaoController.php` · `Modules/NfeBrasil/Http/Controllers/CertificadoController.php` · verificado@85cf3e5 (2026-07-01) — falta AuditLog em `ManifestacaoController` (cienciar/confirmar/desconhecer/naoRealizada sem `activity()`; nem controller nem `ManifestacaoService` logam)
 
 Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 6 AuditLog — 🟡 PARCIAL).
 
@@ -1075,6 +1109,8 @@ activity('nfe.tributacao')
 
 > owner: — · sprint: cycle-04 · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — smoke Browser MCP não salvo; o artefato de DoD `memory/requisitos/NfeBrasil/smoke-2026-05-10.md` (3 screenshots + console clean) não existe.
 
 Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 8 Browser MCP smoke — 🟡 PARCIAL).
 
