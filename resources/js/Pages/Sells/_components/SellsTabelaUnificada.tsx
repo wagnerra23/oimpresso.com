@@ -538,10 +538,7 @@ function ActionsMenu({
             Devolução
           </a>
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleDelete}
-          className="text-rose-600 focus:bg-rose-50 focus:text-rose-700 dark:text-rose-400 dark:focus:bg-rose-950/40"
-        >
+        <DropdownMenuItem variant="destructive" onClick={handleDelete}>
           <Trash2 size={14} className="mr-2" />
           Excluir
         </DropdownMenuItem>
