@@ -104,6 +104,12 @@ Conclusão: após `ghost-fix --write`, os ghosts dos 4 nomes Classe A NÃO vão 
   - §4 cron distiller condiciona ao **processo de skim Wagner estar de pé** (o próprio Kernel.php:205-208 exige) + 1ª destilação chama LLM e exige **skim Wagner 10min/lote**. A janela até descomentar com segurança é de **dias**, governada pela disponibilidade do Wagner, não por código.
 - Resumo honesto: o código fecha numa sessão; o ITEM só fecha quando o re-seed CT100 rodou e a 1ª destilação foi skimada por Wagner — relógio do mundo real de poucos dias.
 
+## Estado 2026-07-01 (execução — sessão [2026-07-01-p11-e2b-reseed-meilisearch-e3-distiller](../../sessions/2026-07-01-p11-e2b-reseed-meilisearch-e3-distiller.md))
+
+- **§0-§2 (E2a)** ✅ executados no PR #3155 (2026-06-21): reconciliação detector×corretor (opção A — detector pula `adr/`), codemod aplicado, ghost_count re-armado 14→8.
+- **§3 (E2b)** ✅ **executado 2026-07-01 no CT100** com prova: snapshot rollback (290MB) → `jana:meilisearch-setup` → `scout:import McpMemoryDocument` (1415 docs indexados+embedded). Nomes mortos servidos = só tombstones append-only + docs fora do escopo do detector (`memory/` raiz — fila humana). Controle positivo `"Modules/SRS"` = 14 hits. Artefato: [`governance/reseed-meilisearch-manifest.json`](../../../governance/reseed-meilisearch-manifest.json).
+- **§4 (E3)** 🟡 **metade executada**: cron descomentado (#3155) + 1º `--all --dry-run` REAL rodado no CT100 (76 portas, 49 com eventos, 0 refused_pii) — que desenterrou e corrigiu crash `GLOB_BRACE` musl (#3532). **Pendente:** skim Wagner do lote 1 (Financeiro/Whatsapp/Governance/OficinaAuto/Sells) → run real por `--module=` (NUNCA `--all`: portas-fantasma Copiloto/MemCofre/FinanceiroAvancado/PontoWr2 seriam re-escritas) → ledger G5 + refutador tier superior → freshness `measured`.
+
 ## Kill-criteria / risco (quando parar ou reabrir)
 - **Kill se §0 travar:** se Wagner não decidir A/B/C, NÃO aplicar o codemod prometendo "→0" — seria a mesma mentira que o avaliador adversarial caça ("métrica de forma, não de correção"). Entregar só E2a com DoD honesto "0 ghosts fora de adr/" (opção B) e parar.
 - **Risco subpath-rot (`mapped_target_subpath_missing: 6`):** o codemod corrige o NOME (`MemCofre→SRS`) mas o subpath interno citado (ex. `Modules/SRS/Http/Controllers/DashboardController.php`, `Modules/SRS/Tests/.../InboxTest`) pode não existir em SRS. Isso é fila humana de path-rot, NÃO bloqueia o rename do nome — mas registrar os 6 casos pra não fingir que ficaram corretos.
