@@ -1,0 +1,10 @@
+{
+  "_meta": "fixture P14 carona 2 — sqlite_corruptors ARMADA (armed:true, value 0, direction down). O conteudo de tests/ da fixture decide o veredito: sem corruptor = verde (0=0); com Schema::drop de tabela CORE nao-guardado = 1 > 0 (catraca morde no caminho real do armed, SEM SDD_RATCHET_ARM).",
+  "metrics": {
+    "sqlite_corruptors": {
+      "status": "measured",
+      "value": 0,
+      "armed": true
+    }
+  }
+}

@@ -1,0 +1,15 @@
+<?php
+
+// Fixture RUIM da catraca sdd-scorecard-corruptors (P14 carona 2): o arquétipo do
+// corruptor do MySQL persistente (US-GOV-021) — DROP manual de tabela CORE
+// compartilhada, sem guarda de driver e sem trait de isolamento. O auditor v2
+// classifica corruptsOnMysql=true tier S ⇒ sqlite_corruptors mede 1 > baseline 0
+// ⇒ o ratchet GT-G3 (required) sai exit 1 pelo caminho REAL do armed.
+
+use Illuminate\Support\Facades\Schema;
+
+it('derruba e recria a tabela business sem guarda', function () {
+    Schema::drop('business');
+    Schema::create('business', function ($table) { $table->id(); });
+    expect(true)->toBeTrue();
+});
