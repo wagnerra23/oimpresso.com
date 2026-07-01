@@ -52,6 +52,9 @@ const WATCHDOG_SOURCES = {
   ghost_count: 'sdd-scorecard.yml',
   front_door_coverage: 'sdd-scorecard.yml',
   n_quarantine: 'sdd-scorecard.yml',
+  // P14 carona 2 (#3548): a auditoria do repo pelo sqlite-test-corruptors roda dentro do
+  // agregador sdd-scorecard — mesmo frescor do resto do scorecard.
+  sqlite_corruptors: 'sdd-scorecard.yml',
   full_suite_pass_rate: 'orfa:governance/nightly-floor',
 };
 
