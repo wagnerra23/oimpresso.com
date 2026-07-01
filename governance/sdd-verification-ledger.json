@@ -309,6 +309,40 @@
       "pii_hits": 0,
       "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3577) — 041 preenchido+done verificado a fundo (4 paths, 6/6 cenarios Pest do DoD, redirect 302 testado, badge sidebar superseded com comentario datado modifyAdminMenu zero-entries); 20 restantes byte-identicos. anchor-lint coverage 100, dead 0, zombie 0. Cobre PR #3577.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3580,
+      "lote_id": "SA-A5-P10w2-recurringbilling",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 55,
+      "erros_confirmados": 17,
+      "error_rate_pct": 30.9,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 1 (comment no PR #3580) — REPROVADO 17/55 = 30,9% (pior lote das 2 waves): overclaim sistematico de done-ness (8 full deviam ser _parcial_: RB-001/002/003/005/040 + RECBILL-002/003/005) + 2 claims FALSOS (C6Driver::cancelar() stub BadMethodCallException; UI de cancelamento na Cobranca com botao removido de proposito B6) + permissoes inexistentes na RB-049. Claim-mae confirmado (modulo vivo). Lote devolvido (par.2.6).",
+      "veredito": "reprovado"
+    },
+    {
+      "pr": 3580,
+      "lote_id": "SA-A5-P10w2-recurringbilling",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 55,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3580) — 11 correcoes aplicadas fielmente a evidencia da r1 (8 full→parcial, ancora UI trocada pra Faturas/Index.tsx viva, C6 stub declarado, permissoes 1:1 com DataController:45-57, 6 dones revertidos + 10 legitimos preservados); 25 campos + 19 status inalterados provados byte-identicos (zero regressao). Ressalvas cosmeticas: RB-012 candidata a parcial futuro; off-by-2 corrigido pre-commit. Cobre PR #3580.",
+      "veredito": "aprovado"
     }
   ]
 }
