@@ -40,7 +40,7 @@
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 34,
+        "req_sem_aceite_total": 27,
         "req_sem_covering_test_total": 45,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 27,
