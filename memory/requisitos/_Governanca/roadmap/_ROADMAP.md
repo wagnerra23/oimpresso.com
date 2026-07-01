@@ -14,14 +14,18 @@ Os docs nasceram `proposed` mas o trabalho landou sem atualizar o bookkeeping. E
 | **P01** | ✅ executado | floor commit-back ativo (auto-PR); `full_suite=298 measured` no main |
 | **P03** | ✅ executado | `sqlite-test-corruptors --strict` exit 0 (corruptores REAIS=0) |
 | **P05** | ✅ executado | `anchor entry/covers gate` na lista `required` (branch protection) |
+| **P06** | 🟡 parcial | migration `mcp_sdd_scorecard_history` **aplicada em prod** + linha SDD **aparece no brief** (composta 50, k=2). Snapshot refrescado à mão 2026-07-01. **Falta:** o cron diário — `schedule:run` NÃO está no Hostinger; **decisão Wagner 2026-07-01: agendar no CT100, não Hostinger** (ADR 0062 — IA/governança ≠ shared hosting). |
+| **P07** | 🟡 código-completo | 6 peças no main (`coverage-compute.mjs`, `measureCoverage()`, hardcode substituído, `ct100-fullsuite.sh` publica clover→`nightly-coverage.json`, `sdd-scorecard.yml` materializa, meta-teste). **pcov verificado no container CT100.** Falta só a 1ª nightly rodar (relógio: 3 noites p/ armar). |
 | **P08** | ✅ executado | `drift_alarms`+`backfill_error_rate` = `measured` no scorecard + 6ª catraca `anchor-lint` morde no gate-selftest (#3140); needed 0 secret/prod |
 | **P09** | ✅ executado | `anchored_dead=0` E `placeholder=0` no main (#3473+#3475) |
+| **P12-C** | ✅ executado | recall-eval mock no CI (`jana-recall-eval.yml`) + schedule real no `Kernel.php:438` (dom 06:30 BRT) |
+| **P12-D** | 🔄 em curso | `OPENAI_API_KEY` É secret do repo → dispatch `jana-ragas-canary update_baseline=true mode=real` disparado 2026-07-01; bot popula baseline real (>0), mata a tautologia |
 | **P13** | ✅ executado | `SDD scorecard ratchet (GT-G3)` na lista `required` — **2º dente em L3** |
 | **Pfr** | ⏳ NÃO feito | `foundation-ratchet` **não** está na lista `required` (o "1º dente" do plano não flipou; o GT-G3/P13 virou o dente que landou) |
 
 **Divergência do plano (honesta):** a DECISÃO de 2026-06-21 elegeu `foundation-ratchet` como 1º dente e GT-G3 como 2º. Na prática **o GT-G3 (P13) landou required e o foundation-ratchet não** — a ordem inverteu. Pfr segue pendente.
 
-**Ainda falta:** Trilho B (`P02`→`P04`, burn-down full-suite required, semanas CT100) · 6 métricas `not_yet_measured` do scorecard (`P06` migrate prod · `P07` pcov · `P11` distiller · `P12` RAGAS/recall — secret+prod=mão Wagner) · conteúdo `P10` · `Pfr` foundation-ratchet · follow-ups (`dead_tests` pré-P10, `req_sem_lane` reconhecer CT100-nightly).
+**Ainda falta (pós-verificação 2026-07-01):** **P10** (batches IA — campanha multi-dia + fila A6) · **Trilho B** (`P02`→`P04`, burn-down full-suite required, semanas CT100) · **peso_real flag** (P12-5, Tier 0 — exige smoke CT100, nunca cego) · **Pfr** foundation-ratchet · relógio (nightlies P07, RAGAS terminando) · follow-ups (`dead_tests` pré-P10, `req_sem_lane` reconhecer CT100-nightly, **cron SDD-snapshot agendar no CT100**). As métricas `not_yet_measured` estão **desbloqueadas** (secret + pcov existem) — resta o relógio, não a mão.
 
 ## Achado-chave (refinou o diagnóstico)
 
