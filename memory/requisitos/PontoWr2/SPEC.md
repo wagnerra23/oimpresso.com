@@ -22,7 +22,9 @@ owner: wagner
 **Quero** ver o conjunto de Aprovacao  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Aprovacoes/Index.tsx` · `Modules/Ponto/Http/Controllers/AprovacaoController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php` (covers US-PONT-001) · `Modules/Ponto/Tests/Feature/AprovacaoTest.php` (covers US-PONT-001)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -44,7 +46,9 @@ owner: wagner
 **Quero** ver o conjunto de Banco Horas  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/BancoHoras/Index.tsx` · `Modules/Ponto/Http/Controllers/BancoHorasController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php` (covers US-PONT-002) · `Modules/Ponto/Tests/Feature/BancoHorasTest.php` (covers US-PONT-002)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -66,7 +70,9 @@ owner: wagner
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/BancoHoras/Show.tsx` · `Modules/Ponto/Http/Controllers/BancoHorasController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/BancoHorasTest.php` (covers US-PONT-003)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -88,7 +94,9 @@ owner: wagner
 **Quero** ver o conjunto de Colaborador  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Colaboradores/Index.tsx` · `Modules/Ponto/Http/Controllers/ColaboradorController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php` (covers US-PONT-004)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -110,7 +118,9 @@ owner: wagner
 **Quero** ver o conjunto de Configuracao  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Configuracoes/Index.tsx` · `Modules/Ponto/Http/Controllers/ConfiguracaoController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php` (covers US-PONT-005)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -132,7 +142,9 @@ owner: wagner
 **Quero** ver o conjunto de Core  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Dashboard/Index.tsx` · `Modules/Ponto/Http/Controllers/DashboardController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php` (covers US-PONT-006) · `Modules/Ponto/Tests/Feature/DashboardTest.php` (covers US-PONT-006)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -154,7 +166,9 @@ owner: wagner
 **Quero** ver o conjunto de Espelho  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Espelho/Index.tsx` · `Modules/Ponto/Http/Controllers/EspelhoController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php` (covers US-PONT-007)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -176,7 +190,9 @@ owner: wagner
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Espelho/Show.tsx` · `Modules/Ponto/Http/Controllers/EspelhoController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/EspelhoTest.php` (covers US-PONT-008)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -198,7 +214,9 @@ owner: wagner
 **Quero** ver o conjunto de Importacao  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Importacoes/Index.tsx` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php` (covers US-PONT-009)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -220,7 +238,9 @@ owner: wagner
 **Quero** criar um novo item em Importacao  
 **Para** alimentar o sistema com os dados operacionais
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Importacoes/Create.tsx` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php` (covers US-PONT-010)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -242,7 +262,9 @@ owner: wagner
 **Quero** consultar informação completa de um item específico  
 **Para** tomar decisão com base em contexto completo
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Importacoes/Show.tsx` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/ImportacaoTest.php` (covers US-PONT-011)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
@@ -264,7 +286,9 @@ owner: wagner
 **Quero** ver o conjunto de Relatorio  
 **Para** ter visão geral e filtrar o que importa
 
-**Implementado em:** _[TODO — apontar path do arquivo .tsx que atende]_
+**Implementado em:** `resources/js/Pages/Ponto/Relatorios/Index.tsx` · `Modules/Ponto/Http/Controllers/RelatorioController.php` · verificado@138246f (2026-07-01)
+
+**Testado em:** `Modules/Ponto/Tests/Feature/TelasNavegacaoTest.php` (covers US-PONT-012)
 
 **Definition of Done:**
 - [ ] Rota acessível apenas por papéis autorizados (`403` caso contrário)
