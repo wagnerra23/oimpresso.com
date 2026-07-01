@@ -26,12 +26,14 @@
       "detect": {
         "tipo": "file_any",
         "paths": [
-          ".github/workflows/ragas-canary.yml",
-          "Modules/Jana/Tests/Feature/Ai/RagasCanaryGateTest.php"
+          "Modules/Jana/Console/Commands/JanaRagasRealEvalCommand.php",
+          "governance/jana-ragas-real-baseline.json"
         ]
       },
-      "done": false,
-      "ref": "AUDIT-SENIOR-2026-05-25 G2 + IA-MATURITY-FICHA gap#1"
+      "done": true,
+      "done_em": "2026-07-01",
+      "done_nota": "Fechado HONESTO (ADR 0318): o gate existente jana-ragas-gate.yml era tautologico (answer=context=ground_truth, faithfulness ~1.000 falso). O eval REAL da saida da Jana (jana:ragas-real-eval via KbAnswerService) roda semanal no CT 100 staging (Kernel environments['staging']) + baseline honesto governance/jana-ragas-real-baseline.json. Gate PR do GitHub rebatizado como smoke de plumbing. PRs #3516 (mata tautologia) + este.",
+      "ref": "AUDIT-SENIOR-2026-05-25 G2 + IA-MATURITY-FICHA gap#1 + ADR 0318"
     },
     {
       "id": "loop-3-drift-sentinel",
