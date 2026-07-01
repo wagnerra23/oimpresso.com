@@ -83,6 +83,8 @@ protected $casts = [
 
 ### US-PG-003 · [SEC P0] Throttle 120/min webhooks + timestamp window 5min + nonce-cache
 
+**Implementado em:** _pendente_ — nenhum dos 3 itens landou: rotas webhook `Modules/PaymentGateway/Routes/web.php:101-131` seguem só `['web']` (sem `throttle:120,1`), `WebhookProcessor.php` não tem timestamp window nem nonce-cache (grep sem hit de throttle/nonce; sem timestamp-window de replay-protection — ocorrências de timestamp no módulo são timestamps() de migration/vencimento/Retry-After, inócuas @176f9bc)
+
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
@@ -112,7 +114,9 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 ### US-PG-004 · Doc mínimo: BRIEFING + CAPTERRA-FICHA + RUNBOOK-integrar-provider
 
-> owner: — · priority: p1 · estimate: 12h · status: todo · type: story
+**Implementado em:** _parcial_ · `memory/requisitos/PaymentGateway/BRIEFING.md` · `resources/js/Pages/Settings/PaymentGateways/Index.charter.md` · `resources/js/Pages/Settings/PaymentGateways/CnabRetorno.charter.md` · verificado@176f9bc (2026-07-01) — falta `CAPTERRA-FICHA.md` e `RUNBOOK-integrar-provider.md` (só existem RUNBOOK-settings-gateways.md + RUNBOOK-sicoob-api.md)
+
+> owner: — · priority: p1 · estimate: 12h · type: story
 > blocked_by: —
 
 **Sintoma:** D3 Doc 0/15 — sem documentação canon. SPEC.md atual (este arquivo) é primeiro passo.
@@ -142,6 +146,8 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 ### US-PG-006 · Corrigir autenticação do webhook Inter (mTLS em vez de HMAC x-inter-signature)
 
+**Implementado em:** _pendente_ — correção não aplicada: `InterPixWebhookController::validateSignature()` e `WebhookProcessor::validateInterHmac()` seguem exigindo header HMAC `x-inter-signature` (fail-secure); nenhuma validação mTLS pro Inter (só o BCB usa `validateBcbPixMtls`) @176f9bc
+
 > owner: eliana · priority: p2 · status: todo · type: story
 > blocked_by: —
 
@@ -157,6 +163,8 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 ### US-PG-007 · Expor URL pública HTTPS do webhook Inter (deploy/proxy CT100)
 
+**Implementado em:** _pendente_ — infra não landou (deploy/proxy CT100, humano-limitado ADR 0062): `docker/oimpresso-workers/Caddyfile` não roteia `/webhooks/inter/{credentialId}`, nenhum RUNBOOK documenta a URL pública nem reachability externa
+
 > owner: eliana · priority: p2 · status: todo · type: story
 > blocked_by: —
 
@@ -170,10 +178,12 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 
 ### US-PG-008 · Linkage cobranca_id no webhook genérico + re-resolve do órfão
 
-> owner: wagner · priority: p1 · status: review · type: story
+**Implementado em:** _parcial_ · `Modules/PaymentGateway/Services/Webhook/CobrancaWebhookResolver.php` · `Modules/PaymentGateway/Services/PaymentGatewayService.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php` · `Modules/PaymentGateway/Jobs/RetryOrphanWebhookJob.php` · `Modules/PaymentGateway/Console/Commands/RetryOrphanWebhookCommand.php` · `Modules/PaymentGateway/Tests/Feature/WebhookProcessorLinkageTest.php` · `Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookJobTest.php` · verificado@176f9bc (2026-07-01) — código do linkage mergeado (PR #3371, 007a418f40); falta o Gate REGRA MESTRE (cutover webhooks Onda 3 + `--dry-run` antes→depois + aprovação Wagner) antes de `PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED=true` — humano-limitado, flag OFF (valor/estoque)
+
+> owner: wagner · priority: p1 · type: story
 > blocked_by: —
 
-**Arquivos (linkage · PR pendente — sem âncora `Implementado em:` até merge, ADR 0302/0273):** `Modules/PaymentGateway/Services/Webhook/CobrancaWebhookResolver.php` · `Modules/PaymentGateway/Services/PaymentGatewayService.php` (driverForKey) · `Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php` (+ 6 controllers) · `Modules/PaymentGateway/Jobs/RetryOrphanWebhookJob.php` (re-resolve) · `Modules/PaymentGateway/Console/Commands/RetryOrphanWebhookCommand.php` (--dry-run) · Pest `WebhookProcessorLinkageTest` + `RetryOrphanWebhookJobTest`
+**Arquivos (linkage · mergeado PR #3371 · ver âncora `Implementado em:` acima, ADR 0302/0273):** `Modules/PaymentGateway/Services/Webhook/CobrancaWebhookResolver.php` · `Modules/PaymentGateway/Services/PaymentGatewayService.php` (driverForKey) · `Modules/PaymentGateway/Http/Controllers/Webhooks/WebhookProcessor.php` (+ 6 controllers) · `Modules/PaymentGateway/Jobs/RetryOrphanWebhookJob.php` (re-resolve) · `Modules/PaymentGateway/Console/Commands/RetryOrphanWebhookCommand.php` (--dry-run) · Pest `WebhookProcessorLinkageTest` + `RetryOrphanWebhookJobTest`
 
 **Contexto (drift SCOPE.md + censo artisan 2026-06-24):** `gateway_webhook_events.cobranca_id` nascia SEMPRE NULL — o `WebhookProcessor` não resolvia a Cobrança e nenhum outro caminho setava o campo. Logo a branch de quitação do `RetryOrphanWebhookJob` (dispatch `CobrancaPaga` = quita título = VALOR) era INALCANÇÁVEL: todo órfão caía em `still_orphan`. O cron `paymentgateway:retry-orphan-webhooks` está registrado mas DORMENTE (flag `PAYMENTGATEWAY_RETRY_ORPHAN_WEBHOOKS_ENABLED` default OFF — REGRA MESTRE valor/estoque). A quitação PIX biz=1 LIVE roda por outro caminho (`inter_webhook_log` + `ProcessarWebhookPixInterJob`).
 
@@ -198,6 +208,8 @@ if ($timestamp && abs(now()->timestamp - Carbon::parse($timestamp)->timestamp) >
 - [RUNBOOK-settings-gateways.md](RUNBOOK-settings-gateways.md)
 
 ### US-PG-009 · Executar smokes humano-limitados PaymentGateway Onda 5 (biz=1 + canary Larissa)
+
+**Implementado em:** _pendente_ — tarefa humano-limitada (relógio real, ADR 0106): smoke biz=1 + canary Larissa não executados; sem roteiro nem evidência (screenshots/logs) anexada @176f9bc
 
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story
 > blocked_by: —
