@@ -73,7 +73,7 @@ Esforço dominado por **7+ noites de relógio real** (CT100). Semanas, não dias
 | [P11](P11-kl-e2-renames-reseed-distiller.md) 🟡 | KL E2: renames + re-seed + distiller | 4 | P05 | — | 1d / dias | E2a ✅ #3155 (ghost 14→8 armado) · E2b ✅ **executado 2026-07-01** (manifest `governance/reseed-meilisearch-manifest.json`) · E3 🟡 dry-run ✅ (crash GLOB_BRACE corrigido #3532; lote 1 aguarda **skim Wagner**) — freshness `measured` só após run real |
 | [P12](P12-decay-real-ragas-recall.md) | Decay real: RAGAS + recall-eval | 5 | — | — | 1d / **secret Wagner** | RAGAS baseline>0 (sai da tautologia) |
 | [P13](P13-promover-gt-g3-required.md) ✅ | **Promover GT-G3 a `required`** | 6 | P05,P08 | — | **executado** | ✅ `SDD scorecard ratchet (GT-G3)` na lista required |
-| [P14](P14-catraca-floor-morde-no-required.md) 🆕 | **Catraca do floor MORDE no required** (defeito nº 1 da avaliação 67) | 0 | — | P04,R1,C2 | 0.5-1d / 2 flips Wagner | PR com floor regredido na fixture → GT-G3 exit 1; fonte ausente com armed → exit 1 (não skip) |
+| [P14](P14-catraca-floor-morde-no-required.md) ✅ | **Catraca do floor MORDE no required** (defeito nº 1 da avaliação 67) | 0 | — | P04,R1,C2 | **executado 2026-07-01** (#3536+#3550+#3552; caronas n_quarantine+sqlite_corruptors armados) | ✅ selftest 44/44 + corruptors 2/2; fonte ausente com armed → exit 1; 0 required com "(advisory)" no nome |
 
 ## Divergências que os agentes acharam (criticar aqui)
 
