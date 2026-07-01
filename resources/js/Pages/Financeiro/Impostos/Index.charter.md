@@ -8,6 +8,7 @@ parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94]
 related_us: [US-FIN-062]
+smoke: "2026-07-01 — render prod OK (Chrome MCP, sessão matriz wagner@wr2 business_id=0; KPIs A-recolher/DAS 20-08 + guias + calendário renderizam). Tenant real (biz≥1) ainda não smokado."
 related_prototype: prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaImpostos), aprovado [W] 2026-06-10 (PACOTE-FINANCEIRO-F2 PR-2)
 tier: B
 charter_version: 1

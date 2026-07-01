@@ -8,6 +8,7 @@ parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [101, 144, 170]
 related_us: [US-FIN-008]
+smoke: "2026-07-01 — render prod OK (Chrome MCP, sessão matriz wagner@wr2 business_id=0; empty-state correto + 22 bancos suportados). Tenant real (biz≥1) ainda não smokado."
 related_prototype: n/a (sem protótipo Cowork — form dados bancários/beneficiário CNAB; credenciais gateway vivem em /settings/payment-gateways, ADR 0170)
 tier: A
 charter_version: 2
