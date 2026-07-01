@@ -10,7 +10,7 @@ states: [default, loading]  # gate L2 — dark/empty podados: baselines flaky (n
 parent_spec: memory/requisitos/Compras/SPEC.md
 related_adrs: [93, 94, 101, 104, 107, 114, 141, 149]
 related_us: [US-COM-001]
-related_prototype: public/cowork-preview/erp-shell-v2/compras-page.jsx
+related_prototype: prototipo-ui/cowork/compras-page.jsx
 tier: A
 charter_version: 2
 related_proposals:
@@ -131,6 +131,6 @@ Wave 7 adicionará:
 - [ADR 0141 skill migracao-blade-react](../../../../memory/decisions/0141-skill-migracao-blade-react.md) — piloto Wave 2 B5 do trilho A Purchase
 - [Pages/Purchase/Create.charter.md](../Purchase/Create.charter.md) — Tier A ★ intocado por C1
 - Pattern Soft wrapper precedente: PR [#1288 Caixa](https://github.com/wagnerra23/oimpresso.com/pull/1288) + PR [#1297 Home](https://github.com/wagnerra23/oimpresso.com/pull/1297)
-- Protótipo canon: `public/cowork-preview/erp-shell-v2/compras-page.{jsx,css}`
+- Protótipo canon: `prototipo-ui/cowork/compras-page.{jsx,css}`
 - `Modules/Compras/Http/Controllers/ComprasController.php` — Controller Wave 3
 - `Modules/Compras/Services/ComprasService.php` — Service Wave 3
