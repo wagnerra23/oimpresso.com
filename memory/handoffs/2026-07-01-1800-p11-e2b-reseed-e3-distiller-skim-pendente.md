@@ -10,7 +10,11 @@ next_steps:
   - "Verificar distiller_freshness vira measured no sdd-scorecard.mjs pós-merge do lote"
   - "Fila KL nova: portas-fantasma em memory/requisitos (Copiloto/MemCofre/FinanceiroAvancado/PontoWr2 com BRIEFING legado) — tombstonar antes de qualquer --all real"
   - "Fila KL nova: nomes mortos em docs vivos FORA do escopo do detector (memory/what-oimpresso.md é @import do CLAUDE.md e cita Modules/MemCofre+Copiloto)"
-related_adrs: [0291, 0270, 0062, 0093]
+related_adrs:
+  - 0291-distiller-modulo-verdade-contrato-emenda-0270-f3
+  - 0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento
+  - 0062-separacao-runtime-hostinger-ct100
+  - 0093-multi-tenant-isolation-tier-0
 ---
 
 # Handoff — P11 E2b executado + E3 na metade (gate humano)
