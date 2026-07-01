@@ -264,7 +264,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** `Modules/Accounting/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Accounting/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-ACCO-002 · Autorização Spatie `accounting.chart_of_accounts.index`
 
@@ -275,7 +275,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('accounting.chart_of_accounts.index')`  
-**Testado em:** `Modules/Accounting/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Accounting/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-ACCO-003 · Autorização Spatie `accounting.chart_of_accounts.create`
 
@@ -286,7 +286,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('accounting.chart_of_accounts.create')`  
-**Testado em:** `Modules/Accounting/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Accounting/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-ACCO-004 · Autorização Spatie `accounting.chart_of_accounts.edit`
 
@@ -297,7 +297,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('accounting.chart_of_accounts.edit')`  
-**Testado em:** `Modules/Accounting/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Accounting/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-ACCO-005 · Autorização Spatie `accounting.chart_of_accounts.destroy`
 
@@ -308,7 +308,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('accounting.chart_of_accounts.destroy')`  
-**Testado em:** `Modules/Accounting/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Accounting/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-ACCO-006 · Autorização Spatie `accounting.journal_entries.index`
 
@@ -319,7 +319,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('accounting.journal_entries.index')`  
-**Testado em:** `Modules/Accounting/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Accounting/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-ACCO-007 · Autorização Spatie `accounting.journal_entries.create`
 
@@ -330,7 +330,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('accounting.journal_entries.create')`  
-**Testado em:** `Modules/Accounting/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Accounting/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ---
 

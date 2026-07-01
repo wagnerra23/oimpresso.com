@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **320** arquivos · **304** números únicos · máx **0315**
-- **ADRs ATIVOS (lifecycle ativo): 280** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 258 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 280 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **322** arquivos · **306** números únicos · máx **0317**
+- **ADRs ATIVOS (lifecycle ativo): 283** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 261 · proposto 35 · superseded 22 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 283 · substituido 22 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (320)
+## Todas as ADRs (322)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -69,7 +69,7 @@ _(íntegra)_
 | 0032 | superseded | substituido | decision | Vizra ADK + Prism PHP como camada de orquestração e wrapper LLM do Copiloto |
 | 0033 | superseded | substituido | decision | Vector store / search backend do oimpresso: pgvector vs Meilisearch+Scout vs Mem |
 | 0034 | aceito | ativo | decision | Laravel AI ecosystem 2026: SDK oficial + Boost + MCP + Vizra ADK + alternativas |
-| 0035 | superseded | substituido | decision | Stack-alvo de IA do Copiloto: declaração canônica |
+| 0035 | aceito | ativo | decision | Stack-alvo de IA do Copiloto: declaração canônica |
 | 0036 | superseded | substituido | decision | Replanejamento canônico: Meilisearch primeiro, Mem0 por último |
 | 0037 | aceito | ativo | decision | Roadmap de evolução pós-Sprint 5: Tier 5-6 → Tier 7-9 LongMemEval |
 | 0038 | aceito | ativo | decision | Promoção de `6.7-bootstrap` para `main` como branch principal |
@@ -356,3 +356,5 @@ _(íntegra)_
 | 0312 | aceito | ativo | decision | decisions-search volta ao FULLTEXT — hybrid de docs desligado (embedder qwen3 ex |
 | 0313 | aceito | ativo | decision | Financeiro — barra de abas (subnav) UNIFICADA fiel ao protótipo Cowork (supersed |
 | 0315 | aceito | ativo | decision | /design-sync (claude.ai/design) vs. método Cowork+charter: avaliação de adoção + |
+| 0316 | aceito | ativo | decision | Esquecimento real de ADR morta — git rm + tombstone ledger + git history como au |
+| 0317 | aceito | ativo | meta | Máquina de revisão de ADR — quando rever, via 3 classes de gatilho (evento/incon |

@@ -35,3 +35,36 @@ jobs:
           node-version: '20'
       - name: Run memory-health sentinel (enforce)
         run: node scripts/governance/memory-health.mjs
+
+  # ── Auto-canário do próprio cron (ADR 0317 — quem vigia o vigia) ─────────────
+  # A sentinela roda em schedule (cron 30 9), MAS o GitHub DESABILITA workflow
+  # agendado após 60d sem atividade no repo — EM SILÊNCIO. Sem isto, o schedule
+  # morre, a fila de revisão de ADR para de crescer e o brief fica verde =
+  # regressão disfarçada de saúde (crítica adversarial 2026-07-01). Este job roda
+  # SÓ em PR e falha se a última run AGENDADA envelheceu — o heartbeat que vigia o
+  # próprio heartbeat. Advisory ao nascer (ADR 0271); promover a required depois.
+  cron-liveness:
+    name: memory-health cron vivo? (auto-canário ADR 0317)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+    steps:
+      - name: Última run agendada não pode estar velha (> 8 dias)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          last=$(gh run list --workflow memory-health.yml --event schedule --status completed --limit 1 --json createdAt --jq '.[0].createdAt // empty')
+          if [ -z "$last" ]; then
+            echo "::warning::sem run agendada ainda (bootstrap) — canário arma na 1a execução do cron"
+            exit 0
+          fi
+          now=$(date -u +%s); then=$(date -u -d "$last" +%s)
+          age=$(( (now - then) / 86400 ))
+          echo "última run agendada de memory-health.yml: $last ($age dias atrás)"
+          if [ "$age" -gt 8 ]; then
+            echo "::error::cron memory-health MORTO há $age dias (>8) — GitHub desabilitou o schedule? Sem heartbeat, a classe TEMPO da ADR 0317 é ilusão. Um push no repo re-ativa o schedule; confirme run agendada nova."
+            exit 1
+          fi
+          echo "✓ heartbeat do cron vivo ($age dias < 8)"

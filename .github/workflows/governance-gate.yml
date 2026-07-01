@@ -68,12 +68,16 @@ jobs:
           # Novo audit-* no mesmo PR (pra checar cascade)
           grep -E '^A\s+memory/governance/audit-.+\.md$' /tmp/diff.txt > /tmp/audit_new.txt || true
 
+          # ADRs DELETADOS via git rm — exige lápide no tombstone (ADR 0316 esquecimento real, G5)
+          grep -E '^D[0-9]*\s+memory/decisions/[0-9]{4}-.*\.md$' /tmp/diff.txt > /tmp/adr_deleted.txt || true
+
           {
             echo "adr_mod_count=$(wc -l < /tmp/adr_mod.txt)"
             echo "adr_renamed_count=$(wc -l < /tmp/adr_renamed.txt)"
             echo "handoff_mod_count=$(wc -l < /tmp/handoff_mod.txt)"
             echo "const_mod_count=$(wc -l < /tmp/const_mod.txt)"
             echo "audit_new_count=$(wc -l < /tmp/audit_new.txt)"
+            echo "adr_deleted_count=$(wc -l < /tmp/adr_deleted.txt)"
           } >> "$GITHUB_OUTPUT"
 
           echo "--- ADRs modificados (proibido) ---"
@@ -103,9 +107,9 @@ jobs:
           while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^M[[:space:]]+//')
             [ -z "$file" ] && continue
-            bad=$(git diff "$base_sha"...HEAD -- "$file" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -vE '^[+-](status|lifecycle|kind|authority|superseded_by|supersedes):' | grep -vE "^[+-][[:space:]]*-[[:space:]]*['\"]?[0-9]{3,4}" || true)
+            bad=$(git diff "$base_sha"...HEAD -- "$file" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -vE '^[+-](status|lifecycle|kind|authority|superseded_by|supersedes|supersedes_partially):' | grep -vE "^[+-][[:space:]]*-[[:space:]]*['\"]?[0-9]{3,4}" || true)
             if [ -n "$bad" ]; then
-              echo "::warning::$file muda fora de status/lifecycle/kind/authority/superseded_by/supersedes — exceção NÃO aplica a esta PR."
+              echo "::warning::$file muda fora de status/lifecycle/kind/authority/superseded_by/supersedes/supersedes_partially — exceção NÃO aplica a esta PR."
               ok=0
             fi
           done < /tmp/adr_mod.txt
@@ -170,6 +174,37 @@ jobs:
           echo "Justificativa: rastreabilidade histórica das decisões. Editar ADR"
           echo "ratificada apaga o trail e quebra Constituição Art. 3 (governança)."
           exit 1
+
+      - name: ADR delete exige lápide (ADR 0316 — esquecimento real)
+        if: steps.detect.outputs.adr_deleted_count != '0'
+        run: |
+          set -euo pipefail
+          # Esquecimento real (ADR 0316): git rm de ADR SÓ é permitido se o número
+          # entrar em governance/adr-tombstones.json no MESMO PR. Auditoria = git
+          # history + lápide; deletar sem lápide apaga a trilha da decisão.
+          # O gate append-only só pegava ^M/^R — ^D (delete) passava verde (furo G5).
+          ledger="governance/adr-tombstones.json"
+          missing=""
+          while IFS= read -r line; do
+            file=$(echo "$line" | sed -E 's/^D[0-9]*[[:space:]]+//')
+            [ -z "$file" ] && continue
+            num=$(basename "$file" | grep -oE '^[0-9]{4}' || true)
+            [ -z "$num" ] && continue
+            if ! grep -qE "\"number\"[[:space:]]*:[[:space:]]*\"$num\"" "$ledger" 2>/dev/null; then
+              missing="$missing $num"
+            fi
+          done < /tmp/adr_deleted.txt
+          if [ -n "$missing" ]; then
+            echo "::error::ADR deletada SEM lápide (ADR 0316):$missing"
+            echo ""
+            echo "git rm de ADR exige entrada em $ledger no MESMO PR:"
+            echo '  { "number": "NNNN", "slug": "...", "died_reason": "...", "superseded_by": "...", "last_sha": "...", "forgotten_in_pr": "#NNNN" }'
+            echo ""
+            echo "Esquecimento real (ADR 0316) preserva auditoria em git history + lápide."
+            echo "Deletar sem lápide quebra a trilha (Constituição Art. 3)."
+            exit 1
+          fi
+          echo "✓ Toda ADR deletada tem lápide em $ledger (ADR 0316)."
 
       - name: Block handoff edits (append-only ADR 0130)
         if: steps.detect.outputs.handoff_mod_count != '0'

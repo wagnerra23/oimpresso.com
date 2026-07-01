@@ -747,13 +747,17 @@ return [
         // NOTA de namespace (CORRIGIDA — KL-C1 2026-06-12, fim do "duplo-OFF"):
         // este arquivo é merged como `copiloto.*` via JanaServiceProvider::
         // registerConfig → mergeConfigFrom(config.php, 'copiloto'). A chave
-        // config('copiloto.peso_real.retrieval_enabled') resolve NÃO-NULL (= false)
+        // config('copiloto.peso_real.retrieval_enabled') resolve NÃO-NULL
         // tanto em boot normal quanto sob `config:cache` (verificado via tinker
-        // 2026-06-12). O kill-switch é ESTA chave, funcional nos dois sentidos:
-        // pra ligar em homolog Wagner muda este valor (ou via config() runtime) —
-        // nenhum merge extra é necessário. O guard do driver lê com default
-        // explícito false (resiliente a config/copiloto.php publicado stale).
-        'retrieval_enabled' => false,
+        // 2026-06-12). O kill-switch é ESTA chave, funcional nos dois sentidos.
+        //
+        // LIGADO 2026-07-01 (Wagner, P12-5b): default flipado false→true após
+        // validação do mecanismo. Como é uma config.php única (env() barrado pelo
+        // Larastan neste bloco — ver nota "Valor DIRETO" acima), o flip é GLOBAL:
+        // vale em todo ambiente após deploy. Pra DESLIGAR (kill-switch), voltar
+        // esta linha pra false. O guard do driver mantém default explícito false
+        // (resiliente a config/copiloto.php publicado stale).
+        'retrieval_enabled' => true,
 
         // (a) DECISÃO/ADR — multiplicador por lifecycle (não decai por tempo).
         //

@@ -21,6 +21,7 @@ import {
   Printer,
   Receipt,
   Sparkles,
+  Undo2,
   User,
   X,
 } from 'lucide-react';
@@ -112,6 +113,8 @@ interface SaleDetail {
   urls: {
     edit: string;
     print: string;
+    /** Devolução (venda retorno). null/ausente quando sem permissão access_sell_return. */
+    sell_return_add?: string | null;
   };
   /** F3 PaymentGateway — cobrança vinculada (ADR 0144 + 0170). null = não emitida. */
   cobranca?: CobrancaState | null;
@@ -853,6 +856,14 @@ export default function SaleSheet({
                   Ver tela →
                 </Link>
               </Button>
+              {data.urls.sell_return_add && (
+                <Button size="sm" variant="outline" asChild title="Devolução — retorno da peça pro estoque">
+                  <a href={data.urls.sell_return_add}>
+                    <Undo2 size={14} className="mr-1.5" />
+                    Devolução
+                  </a>
+                </Button>
+              )}
               <Button size="sm" asChild>
                 <Link href={data.urls.edit}>
                   <Edit size={14} className="mr-1.5" />

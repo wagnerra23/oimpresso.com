@@ -5,9 +5,10 @@ component: resources/js/Pages/Sells/Index.tsx
 bundle_source: vendas-page.jsx
 owner: wagner
 status: live
-last_validated: "2026-05-26"
-charter_version: 6
+last_validated: "2026-07-01"
+charter_version: 7
 parent_module: Sells
+related_us: [US-SELL-COWORK-R5-POLISH]
 states: [default, empty, loading, dark]  # gate L2 — error removido: toast sonner não dá estado visível determinístico no VRT (md5 #3290) · sync com tests/Browser/visreg-states.json
 tier: A
 related_adrs:
@@ -47,6 +48,7 @@ Tela cockpit central de operação comercial — lista vendas (pedidos · fatura
 - **4 KPI cards via `Inertia::defer`** (skill `inertia-defer-default`): Faturado hoje (mini-spark) · Ticket médio (delta semana) · A receber (faixas 0-30d/31-60d/+60d + ageing bar) · 4º slot vista-dependente (Pagos hoje / Notas fiscais / Top vendedor)
 - **Toolbar linha 2:** tabs Visão (Todas/Paga/Pendente/Faturada/Cancelada) + segmented control Operacional/Financeira/Produção + busca + Filtros avançados + Imprimir caixa + Visões ▾ dropdown
 - **Tabela 10 colunas exibe 50 vendas:** checkbox + Venda(#) + Data + Cliente + Atendido por + Origem (Balcão/Oficina/Online — ADR 0192) + Pipeline dots (FSM ADR 0143) + Fiscal badges (NF-e SEFAZ) + Pagamento (método + parcelas + SLA pill) + Total + Status
+- **Menu "Ações" por linha (kebab ⋮ · `ActionsMenu` em `SellsTabelaUnificada`):** Ver detalhes (abre drawer) · Editar · Adicionar pagamento (só se `payment_status !== 'paid'`) · Imprimir nota · **Devolução** (`/sell-return/add/{id}` — venda retorno → retorno da peça pro estoque, rota Blade) · Excluir (`variant=destructive`, DELETE `/sells/{id}` com CSRF + confirm). Paridade com o menu Blade legado; ações enforçadas no backend (403/permissão). **Restaurado do commit `d6f4dddcdc`, perdido no rewrite Cowork #1032** (PR #3494)
 - **Drawer SaleSheet 480px lateral** ao clicar linha — KV grid + Cliente + Produtos(N) + Pagamentos(M) + MENSAGEM WHATSAPP 3-tab (Confirmação/Retirada/Cobrança PR #1638) + FISCAL section + PIPELINE FSM (VdNextActionPanel emojis canon Cowork PR #1641) + ORDEM DE SERVIÇO cross-module + HISTÓRICO append-only + Footer ações + botão "+IA" Copiloto
 - **Emit modais single (PR #1644):** VdNfeEmitModal + VdNfseEmitModal abrem do drawer FISCAL section
 - **VdBulkEmitModal fullscreen (PR #1644 + #1648 z-index 100):** BulkActionBar floating ao selecionar múltiplas linhas → "Emitir NF-e em lote" abre modal com progress tricolor pending → running → ok|bad
@@ -166,9 +168,10 @@ Tela cockpit central de operação comercial — lista vendas (pedidos · fatura
 
 ---
 
-## v5 → v6 changelog (append-only)
+## v6 → v7 changelog (append-only)
 
-- v6 (2026-05-26 · este) — backfill MWART Tier A completo · pareado com RUNBOOK-index.md (PR #1649) · consolida onda KB-9.75 P0/P1: Emit modais (#1644) + BulkActionBar fix (#1648) + VdNextActionPanel emoji override (#1641) + validações fiscais BR (#1641) + saved view "Aguardando faturamento" (#1644) · frontmatter canon strict (datas aspas, slugs literais, tier letras) · review_trigger 2026-06-15
+- v7 (2026-07-01 · este) — restaura o **menu "Ações" por linha** (kebab ⋮ `ActionsMenu` em `SellsTabelaUnificada`): Ver detalhes · Editar · Adicionar pagamento · Imprimir nota · **Devolução** (`/sell-return/add/{id}`) · Excluir. O dropdown existia (commit `d6f4dddcdc`) e foi **removido silenciosamente no rewrite Cowork KB-9.75 #1032** — drift código↔charter que deixou a lista React sem o ponto de entrada da devolução. Companion do **#3488** (fecha 500 da lista `/sell-return` — RouteServiceProvider de módulo poluía o root controller namespace global). PRs: #3488 + #3494. Smoke prod biz=1 e biz=4 OK (menu renderiza · Devolução → 200)
+- v6 (2026-05-26) — backfill MWART Tier A completo · pareado com RUNBOOK-index.md (PR #1649) · consolida onda KB-9.75 P0/P1: Emit modais (#1644) + BulkActionBar fix (#1648) + VdNextActionPanel emoji override (#1641) + validações fiscais BR (#1641) + saved view "Aguardando faturamento" (#1644) · frontmatter canon strict (datas aspas, slugs literais, tier letras) · review_trigger 2026-06-15
 - v5 (2026-05-25) — Integração Vendas × Oficina (ADR 0192 Ondas 3-4) · coluna Origem + saved tree "Por origem ▾" + KPI hero breakdown + listener cross-módulo (PR #1506)
 - v4 (2026-05-21) — Unificação tabs Visão (ADR 0178 supersede ADR 0136) · `viewMode` → `visao` operacional/financeira/produção
 - v3 (~2026-05-18) — Grade Avançada toggle (ADR 0136 superseded)
