@@ -2,7 +2,7 @@
 
 ERP brasileiro com **arquitetura modular especializada por vertical** ([ADR 0121](decisions/0121-oimpresso-modular-especializado-por-vertical.md)). Núcleo comum (multi-tenant + Jana IA + Financeiro + NFe) atende qualquer pequena empresa BR. Módulos `Modules/<Vertical>` adicionam profundidade setorial onde precisa.
 
-Construído sobre UltimatePOS v6 com módulos próprios em `Modules/` (Jana IA, Financeiro, MemCofre, NfeBrasil, RecurringBilling, Repair).
+Construído sobre UltimatePOS v6 com módulos próprios em `Modules/` (Jana IA, Financeiro, SRS ex-MemCofre, NfeBrasil, RecurringBilling, Repair).
 
 ## Origem
 Originalmente nasceu como módulo Ponto WR2 (controle eletrônico Portaria MTP 671/2021) e evoluiu pra plataforma multi-vertical com 26 anos de experiência majoritariamente no setor gráfico (WR Sistemas / OfficeImpresso legacy Delphi).

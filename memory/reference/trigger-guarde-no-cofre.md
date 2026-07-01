@@ -1,6 +1,6 @@
 ---
 name: Trigger "guarde no cofre" — comando reservado de Wagner
-description: Quando Wagner disser "guarde no cofre", "salve no cofre" ou variações, salvar evidência/decisão no MemCofre (módulo de Cofre de Memórias). Padrão de comando para virar parte do fluxo natural.
+description: Quando Wagner disser "guarde no cofre", "salve no cofre" ou variações, salvar evidência/decisão no módulo SRS (ex-MemCofre, Cofre de Memórias). Padrão de comando para virar parte do fluxo natural.
 type: workflow
 ---
 ## O comando
@@ -13,14 +13,14 @@ Quando Wagner pedir **"guarde no cofre"**, **"salve no cofre"**, **"deposita no 
    - `rule` → regra Gherkin em `SPEC.md`
    - `quote` / `flow` / `bug` / `screenshot` → evidência em `docs_sources` + `docs_evidences`
    - `requirement` → user story em `SPEC.md`
-3. **Criar registro** apropriado no MemCofre:
+3. **Criar registro** apropriado no SRS (ex-MemCofre):
    - Se é decisão estável: criar ADR em arquivo `.md` numerado
    - Se é evidência rascunho: criar via endpoint `/memcofre/ingest` (ou direto na tabela `docs_evidences` com status=pending)
 4. **Confirmar** ao Wagner com link curto pro arquivo/registro criado
 
 ## Por que existe esse trigger
 
-Wagner está construindo MemCofre como o Cofre de Memórias do projeto (estilo Obsidian Vault). Ele quer que conversas com IA acabem em **artefato persistente versionado** — não em chat efêmero. O comando "guarde no cofre" é a interface natural pra esse handoff.
+Wagner construiu o MemCofre — hoje `Modules/SRS` (rename ADR 0088) — como o Cofre de Memórias do projeto (estilo Obsidian Vault). Ele quer que conversas com IA acabem em **artefato persistente versionado** — não em chat efêmero. O comando "guarde no cofre" é a interface natural pra esse handoff.
 
 ## Onde salvar (decisão por contexto)
 
@@ -42,7 +42,7 @@ Wagner está construindo MemCofre como o Cofre de Memórias do projeto (estilo O
 "guarde no cofre que vendas precisam ter Carbon::parse no format_date 
 quando os dados históricos forem migrados"
 
-→ Cria entrada em memory/requisitos/PontoWr2/adr/tech/NNNN-format-date-historico.md
+→ Cria entrada em memory/requisitos/Ponto/adr/tech/NNNN-format-date-historico.md
   com status=proposed, refs ao feedback histórico
 ```
 
@@ -79,7 +79,7 @@ Se ele não especificar, classifique pela intuição do conteúdo e confirme.
 
 ## Conexão com o resto
 
-- Módulo: `Modules/MemCofre` (Cofre de Memórias)
+- Módulo: `Modules/SRS` (ex-MemCofre — Cofre de Memórias; rename ADR 0088)
 - Comandos: `memcofre:audit-module`, `memcofre:sync-pages`, etc
 - URL: `/memcofre/*`
 - Tabelas: `docs_*` (mantidas com prefixo legado)

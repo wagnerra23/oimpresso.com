@@ -19,7 +19,7 @@ A Eliana (ou a WR2) atua como **fornecedor de software** que precisa estender o 
 Capturado da conversa ao longo da concepção do projeto:
 
 - **Economia de crédito/custo de IA.** Pede explicação antes de trabalho grande, prefere iteração incremental, checa uma tela antes de pedir as 9. → Efeito prático: **confirmar escopo com perguntas curtas antes de produção massiva**, entregar em incrementos testáveis, evitar boilerplate desnecessário.
-- **Integração não-invasiva com o UltimatePOS.** Não quer romper o que já funciona. → Escolhemos a **Opção C**: produto WR2 que estende o UltimatePOS como módulo `Modules/PontoWr2/`, sem alterar core.
+- **Integração não-invasiva com o UltimatePOS.** Não quer romper o que já funciona. → Escolhemos a **Opção C**: produto WR2 que estende o UltimatePOS como módulo `Modules/Ponto/` (nasceu `PontoWr2` — rename ADR 0088), sem alterar core.
 - **UI coerente com o que já existe.** UltimatePOS tem sidebar própria com vários módulos. O Ponto WR2 deve ocupar **apenas 1 item** nessa sidebar e ter navegação interna em **abas horizontais** dentro do módulo.
 - **Conformidade legal como requisito, não diferencial.** Portaria 671/2021, CLT, LGPD, eSocial — são obrigatórios, não opcionais.
 - **Pragmatismo.** Aceita protótipos em HTML+Tailwind CDN para validar visual antes de investir em React/shadcn oficial. Evita gold-plating.

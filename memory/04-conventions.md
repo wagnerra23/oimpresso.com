@@ -62,7 +62,7 @@
 ## Testes
 
 - **PHPUnit** para unit e feature
-- Localização: `Modules/PontoWr2/Tests/{Unit,Feature}/`
+- Localização: `Modules/Ponto/Tests/{Unit,Feature}/`
 - Nome: `ApurarDiaTest.php`, métodos `test_apura_dia_sem_marcacoes_retorna_falta_integral`
 - Cobertura mínima obrigatória: regras CLT em `ApuracaoService`
 - **Toda função/endpoint/migration nova sai com teste Pest cobrindo o contrato** (URL, response shape, chave única, nome de coluna). Foco nos **pontos de contrato**, não 100% cobertura. Exemplo: `tests/Feature/Connector/DelphiOImpressoContractTest.php` blinda contrato Delphi via reflection sobre source — sem setup pesado de fixtures.
