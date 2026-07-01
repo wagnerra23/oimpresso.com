@@ -8,6 +8,7 @@ status: live
 last_validated: "2026-07-01"
 charter_version: 7
 parent_module: Sells
+related_us: [US-SELL-COWORK-R5-POLISH]
 states: [default, empty, loading, dark]  # gate L2 — error removido: toast sonner não dá estado visível determinístico no VRT (md5 #3290) · sync com tests/Browser/visreg-states.json
 tier: A
 related_adrs:
