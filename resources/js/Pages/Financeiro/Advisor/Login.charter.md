@@ -11,6 +11,7 @@ page: /advisor/login
 component: resources/js/Pages/Financeiro/Advisor/Login.tsx
 last_validated: "2026-05-31"
 parent_module: Financeiro
+related_prototype: n/a (sem protótipo Cowork — tela de auth isolada fora do AppShellV2; segue DS)
 tier: B
 charter_version: 1
 ---

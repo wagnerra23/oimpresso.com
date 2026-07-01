@@ -11,6 +11,7 @@ component: resources/js/Pages/Financeiro/Advisor/Dashboard.tsx
 owner: eliana
 last_validated: "2026-05-31"
 parent_module: Financeiro
+related_prototype: n/a (sem protótipo Cowork — portal contador nasceu na migração DS v4, US-FIN-037; segue DS)
 tier: B
 charter_version: 1
 ---

@@ -12,6 +12,7 @@ refs:
 component: resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx
 last_validated: "2026-05-31"
 parent_module: Financeiro
+related_prototype: n/a (sem protótipo Cowork — form de atualização de cobrança, FIN-004; segue DS)
 tier: B
 charter_version: 1
 ---
