@@ -14,8 +14,6 @@ tags: {  }
 supersedes:
   - '0032'
   - 0032-vizra-adk-prism-php-orquestracao
-  - '0035'
-  - 0035-stack-ai-canonica-wagner-2026-04-26
 related:
   - '0032'
   - 0032-vizra-adk-prism-php-orquestracao
