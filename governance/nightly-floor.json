@@ -1,0 +1,31 @@
+{
+  "schema": "nightly-floor/v1 (ADR 0279)",
+  "floor_count": 298,
+  "floor_files_hash": "637fb9978f839423",
+  "runs": [
+    {
+      "sha": "5bff76dc",
+      "ts": "20260628-020001",
+      "failed": 339,
+      "errors": 782,
+      "skipped": 2766
+    },
+    {
+      "sha": "20103e02",
+      "ts": "20260630-020001",
+      "failed": 352,
+      "errors": 796,
+      "skipped": 2700
+    },
+    {
+      "sha": null,
+      "ts": "20260701-020001",
+      "failed": 336,
+      "errors": 784,
+      "skipped": 2789
+    }
+  ],
+  "computed_at": "20260701-020001",
+  "intersection_of": 3,
+  "note": "floor = intersecao de 3 runs validos (arquivos com failed>0||errors>0 em TODOS)"
+}
