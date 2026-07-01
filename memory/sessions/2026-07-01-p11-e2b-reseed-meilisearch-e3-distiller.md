@@ -85,3 +85,17 @@ Se Wagner reprovar a qualidade → opções: (a) aceitar v1 + refutador como red
 ## Drift zerado
 
 Checkout do `oimpresso-staging` restaurado (`git checkout --` nos 2 arquivos patcheados após o teste; o fix canônico vem por PR+merge+pull). Untracked pré-existente no staging (`.env.bak.openai.*`) anotado, não meu, não tocado.
+
+## Adendo Passo 0 (incidente — descoberto após o corpo acima, mesmo dia ~21h UTC)
+
+> Gatilho: briefing verificado da sessão paralela (workflow 4 agents) apontou contradição documental sobre o scheduler do Hostinger e mandou resolver com evidência. Resolvido — e o achado inverte uma conclusão minha anterior.
+
+**RETRAÇÃO:** mais cedo concluí "o cron do distiller nunca disparou" com base em `crontab -l | grep` vazio + `git status` limpo. **Errado nos dois pontos:** (1) `crontab` **nem existe** no shell do Hostinger (`command not found`) — os crons são via hPanel, invisíveis ao shell; (2) `git status` limpo não prova não-execução, prova **write-loss** (deploy reseta a árvore).
+
+**Evidência dura (SSH Hostinger, literal):** `grep -c "DistillerModuloVerdade" storage/logs/copiloto-ai-*.log` → **50/51/52/52/51/49/48/48 entries por dia em 22-27/jun, 29/jun e 01/jul** (todas `live.INFO: porta reescrita`, timestamps 05:30:xx). `APP_ENV="live"` casa com `environments(['live'])`. Ou seja: o cron descomentado no #3155 disparou **diariamente** desde o dia seguinte ao merge — ~500 reescritas LLM de BRIEFING.md na árvore deployada, não-skimadas, todas perdidas no deploy seguinte (por isso 0/76 `distilled_at:` no git). Custo LLM diário sem efeito durável + máquina violando o gate que o próprio comentário do Kernel exige.
+
+**Hotfix:** [PR #3545](https://github.com/wagnerra23/oimpresso.com/pull/3545) re-comenta o bloco (kill-switch por design) com condição objetiva de religação: venue git-backed (clone + auto-PR bot, precedente #3442/#3485) + fluxo de skim rodando.
+
+**Complemento E2b (passo que faltou na sequência do corpo acima):** o briefing apontou que o re-seed canônico é 3 comandos — faltou o `mcp:sync-memory` (FS→DB) antes do `scout:import`. Rodado `php artisan mcp:sync-memory --reason=manual` no `oimpresso-mcp` (exit 0) e — descoberta — **já existe `mcp:sync-memory --reason=cron` rodando agendado no próprio container** (visto vivo em `ps` às 21:11 UTC, com WARNINGs de frontmatter YAML inválido em docs legados no log). Ou seja: o FS→DB é automatizado no CT100, o que explica o DB já estar fresco na medição do corpo acima (DB LIKE == hits da busca). A conclusão do manifest não muda.
+
+**Nota de processo:** o [#3532](https://github.com/wagnerra23/oimpresso.com/pull/3532) (fix GLOB_BRACE) foi fechado sem merge às 20:57Z junto do merge do #3534 — aparentemente acidental (o "merge" aprovado cobria ambos; o bug seguia em `origin/main:139`). Reaberto com justificativa; os required renomeados pelo P14 (#3535, sessão paralela) exigiram commit vazio pra re-disparar CI com os nomes novos.
