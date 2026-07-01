@@ -91,9 +91,11 @@ queries:
   - id: memoria-vector-store
     query: "Onde vive o índice semântico dos docs canônicos (vector store da memória)?"
     expected: ["0053-mcp-server-governanca-como-produto"]
-    violations:
-      - "0033-vector-store-meilisearch-pgvector-mem0"
-      - "0031-memoriacontrato-mem0-default"
+    # 0033/0031 saíram de violations: G3 #3504 (2026-07-01) relabelou ambas VIVAS
+    # (supersede PARCIAL, não morte) — 0036 só emendou (Meilisearch fallback→default;
+    # Mem0 vira último), a interface MemoriaContrato + o vector store seguem canon.
+    # ADR alive não pode ser violation (mock isSuperseded é binário). Ver ADR 0270 D-4.
+    violations: []
 
   - id: task-management
     query: "Como gerencio tasks do projeto (backlog, cycles, stories)?"
@@ -108,7 +110,9 @@ queries:
   - id: rename-modulo
     query: "Como renomear um módulo do projeto (ex.: Copiloto para Jana)?"
     expected: ["0092-tabela-rename-copiloto-para-jana"]
-    violations: ["0088-module-rename-php-only"]
+    # 0088 saiu de violations: G3 #3502 (2026-07-01) relabelou VIVA — 0092 supersede só
+    # a dimensão #db (6/7 dimensões da fachada seguem vivas). Padrão rename PHP-only canon.
+    violations: []
 
   - id: conhecimento-canonico
     query: "Onde vive o conhecimento canônico do projeto? Auto-memória privada é permitida?"
@@ -118,7 +122,9 @@ queries:
   - id: team-plan-selfhost
     query: "Temos equivalente self-host do Team plan da Anthropic?"
     expected: ["0055-self-host-team-plan-equivalente-anthropic"]
-    violations: ["0054-pacote-enterprise-busca-memoria-evolucao"]
+    # 0054 saiu de violations: G3 #3504 (2026-07-01) relabelou VIVA — 0055 descarta só §5
+    # (híbrido Team plan); Camadas A/B/C do pacote de busca de memória seguem canon.
+    violations: []
 
   # ─── Recall de ADR ativa (fundações Tier 0 + Semana 0 SDD) ───
   - id: multi-tenant-tier0
