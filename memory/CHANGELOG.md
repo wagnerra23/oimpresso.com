@@ -8,6 +8,10 @@ enxuta e pesquisável.
 Formato inspirado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/).
 Datas no formato `YYYY-MM-DD`. Categorias:
 
+> ⚠️ **Nomes de módulo refletem a ÉPOCA do evento** (log cronológico — entries não são
+> reescritas). Renames desde então: `Copiloto→Jana`, `PontoWr2→Ponto`, `MemCofre→SRS`,
+> `DocVault→SRS` — evidência em [`governance/ghost-rename-map.json`](../governance/ghost-rename-map.json) + ADR 0088.
+
 - **Added** — nova funcionalidade / módulo / tela
 - **Changed** — mudança no comportamento existente
 - **Deprecated** — marcado para remoção futura

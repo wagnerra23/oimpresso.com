@@ -14,7 +14,7 @@ type: feedback
 
 **Módulos CRÍTICOS — sempre exigem OK explícito do Wagner, mesmo verdes:**
 - 💰 `Modules/Financeiro/`, `Modules/NfeBrasil/`, `Modules/RecurringBilling/` (dinheiro / fiscal / cobrança)
-- 🔒 `Modules/Copiloto/` (LGPD-crítico)
+- 🔒 `Modules/Jana/` (ex-Copiloto — LGPD-crítico)
 - 🧾 qualquer coisa fiscal/SPED/NF-e
 - (espelha os owners obrigatórios do `.github/CODEOWNERS`)
 

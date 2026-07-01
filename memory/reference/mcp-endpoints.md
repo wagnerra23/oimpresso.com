@@ -44,7 +44,7 @@ type: reference
 
 Sem token: 401 + `WWW-Authenticate: Bearer realm="mcp", error="invalid_token"`
 
-## Tools disponíveis no server (`Modules/Copiloto/Mcp/Tools/`)
+## Tools disponíveis no server (`Modules/Jana/Mcp/Tools/`)
 
 - `CcSearchTool`
 - `MemoriaSearchTool`

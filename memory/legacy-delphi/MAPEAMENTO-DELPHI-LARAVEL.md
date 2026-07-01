@@ -37,7 +37,7 @@ Cada Controller Delphi (`app/Controller/Controller.<X>.pas`) tem o SQL exato + v
 | `Controller.<NFe>.pas` | NF-e entrada/saída | `Modules/NfeBrasil/...` | ✅ Modules/NfeBrasil existe | 54 tabelas `nfe` Firebird → mapping pendente |
 | `Controller.<Producao>.pas` (kanban gráfico) | Kanban de produção + OS gráfica | `Modules/Project/...` + `Modules/Repair/...` (compartilhado) | 🟡 em construção (vertical ComunicacaoVisual) | Wagner já tem Kanban Delphi (`Classes.Kanban.pas`) |
 | `Controller.<Agenda>.pas` | Agenda + kanban + helpdesk + email | Sem equivalente Laravel direto — fragmentado em Jana/Repair/CRM | ⏳ não-portável 1:1 | 35 tabelas; análise caso-a-caso |
-| `Controller.<BI>.pas` (dashboards) | KPIs, metas, dashboards | `Modules/Copiloto` (Jana IA gera insights) + dashboards Inertia | 🟡 em construção (estratégia diferente: IA conversacional > dashboards estáticos) | |
+| `Controller.<BI>.pas` (dashboards) | KPIs, metas, dashboards | `Modules/Jana` (Jana IA gera insights) + dashboards Inertia | 🟡 em construção (estratégia diferente: IA conversacional > dashboards estáticos) | |
 
 ## Procedures/Functions Delphi → Services Laravel
 
@@ -70,7 +70,7 @@ Para mapping fino veja [SCHEMA-FIREBIRD.md](SCHEMA-FIREBIRD.md) + docs por módu
 | `BALANCO_TITULO` | 152 | (a investigar) | `Modules/Financeiro` |
 | `OIMPRESSO*` (bridge tables) | — | `oauth_clients`, `licenca_computador`, `licenca_log` | `Modules/Officeimpresso` |
 | `AGENDA*` (35 tabelas) | — | fragmentado (Jana memória + Repair OS + CRM) | múltiplos |
-| `BI*` / `KPI*` / `DASHBOARDS` | — | sem equivalente direto — Jana IA gera insights conversacionais | `Modules/Copiloto` |
+| `BI*` / `KPI*` / `DASHBOARDS` | — | sem equivalente direto — Jana IA gera insights conversacionais | `Modules/Jana` |
 
 ## Variável Delphi → variável Laravel (vocabulário)
 

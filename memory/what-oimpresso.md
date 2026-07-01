@@ -50,12 +50,12 @@ Aplicação em vendas legadas: 162 vendas biz=1 prontas pra migrar via `php arti
 
 ```
 oimpresso (núcleo comum)
-├── Modules/Copiloto      (Jana IA + memória persistente)
+├── Modules/Jana          (Jana IA + memória persistente)
 ├── Modules/Financeiro    (visão unificada AR/AP)
 ├── Modules/NfeBrasil     (NFe/NFC-e/NFSe)
 ├── Modules/RecurringBilling (assinaturas + boletos)
 ├── Modules/PaymentGateway   (🟡 Onda 0 docs only — ADR 0170 proposto — drivers Inter/C6/Asaas/PixAuto/CNAB, extração de RecurringBilling, status: later phase=2)
-├── Modules/MemCofre      (cofre senhas)
+├── Modules/SRS           (Software Requirements System, ex-MemCofre — uso interno raro)
 ├── Modules/Repair        (Kanban OS — shared infrastructure entre verticais)
 └── Modules/<Vertical>    ← ESPECIALIZAÇÕES PROFUNDAS
     ├── Vestuario              ✅ em prod (ROTA LIVRE) — CNAE 4781-4/00
