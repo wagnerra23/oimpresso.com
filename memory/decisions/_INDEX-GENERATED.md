@@ -6,9 +6,9 @@
 
 ## Resumo
 - **322** arquivos · **306** números únicos · máx **0317**
-- **ADRs ATIVOS (lifecycle ativo): 292** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 270 · proposto 35 · superseded 13 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 292 · substituido 13 · (vazio) 8 · arquivado 6 · historical 3
+- **ADRs ATIVOS (lifecycle ativo): 293** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 271 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 293 · substituido 12 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -112,7 +112,7 @@ _(íntegra)_
 | 0075 | superseded | substituido | decision | Team MCP P0 v2 — UI gestão de skills estilo prompt-management (5 tabelas, 5 tela |
 | 0076 | proposto | ativo | decision | Skills V2 — DB é primary, git é destino auditável; drift por-skill (auto/manual/ |
 | 0077 | superseded | substituido | decision | MCP resolver via users.mcp_handle (SUPERSEDED por ADR 0081 — Identity Mesh) |
-| 0078 | superseded | substituido | decision | Meta-skill ROI ERP autônomo — skill+missão como unidade operacional (parcialment |
+| 0078 | aceito | ativo | decision | Meta-skill ROI ERP autônomo — skill+missão como unidade operacional (parcialment |
 | 0079 | superseded | substituido | decision | Constituição do Oimpresso ERP — 10 artigos supremos sobre 7 camadas de governanç |
 | 0080 | aceito | ativo | decision | Trust Tiers operacional + Architecture & Scope + audit findings v1.1.0 |
 | 0081 | aceito | ativo | decision | Identity Mesh — schema mcp_actors + manifest pattern + seed inicial 6 actors |

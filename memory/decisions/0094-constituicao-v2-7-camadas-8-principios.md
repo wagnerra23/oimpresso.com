@@ -14,7 +14,10 @@ tier: CANON
 trust_level: tier-0-irrevogavel
 related_adrs: [0035, 0040, 0053, 0061, 0062, 0070, 0079, 0091, 0093, 0095]
 parent_charter: mission.constituicao-v2
-supersedes: [0078, 0079]
+supersedes:
+  - '0079-constituicao-oimpresso-7-camadas-governanca'
+supersedes_partially:
+  - '0078-constituicao-uma-frase-skill-unidade-evolucao'
 referenced_by: []
 authors: [wagner, sonnet]
 accepted_at: 2026-05-06
