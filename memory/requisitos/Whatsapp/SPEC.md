@@ -82,7 +82,7 @@ related_adrs:
 
 **Implementado em:** `Modules/Whatsapp/Services/Drivers/DriverInterface.php` · `Modules/Whatsapp/Services/Drivers/MetaCloudDriver.php` · `Modules/Whatsapp/Services/Drivers/NullDriver.php` · `Modules/Whatsapp/Services/Drivers/DriverFactory.php` · `Modules/Whatsapp/Services/Drivers/ChannelDriverFactory.php` · verificado@dd3ed7c (2026-07-01)
 
-> owner: wagner · sprint: 1 · priority: p2 · status: review
+> owner: wagner · sprint: 1 · priority: p2 · status: done
 
 > **Área:** Core
 > **Service:** `Modules\Whatsapp\Services\Drivers\DriverInterface`
@@ -261,7 +261,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 **Implementado em:** `Modules/Whatsapp/Http/Controllers/Api/MetaWebhookController.php` · `Modules/Whatsapp/Http/Middleware/VerifyMetaSignature.php` · `Modules/Whatsapp/Tests/Feature/WebhookSignatureTest.php` · verificado@dd3ed7c (2026-07-01)
 
-> owner: wagner · sprint: 2 · priority: p2 · status: review
+> owner: wagner · sprint: 2 · priority: p2 · status: done
 
 > **Área:** Webhook
 > **Rota:** `POST /api/whatsapp/webhook/meta/{business_uuid}` (público, autenticado por HMAC)
@@ -419,7 +419,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 
 **Implementado em:** `Modules/Whatsapp/Services/Metrics/MetricsAggregator.php` · `Modules/Whatsapp/Console/Commands/MetricsAggregateCommand.php` · `Modules/Whatsapp/Database/Migrations/2026_05_12_220000_create_whatsapp_conversation_metricas_table.php` · `Modules/Whatsapp/Http/Controllers/Admin/MetricsController.php` · verificado@dd3ed7c (2026-07-01) — entregue via US-WA-041 (campo status do cabeçalho desatualizado)
 
-> owner: wagner · sprint: 3 · priority: p2 · status: todo
+> owner: wagner · sprint: 3 · priority: p2 · status: done
 
 > **Área:** Métricas
 > **Tabela:** `whatsapp_conversation_metricas`
@@ -444,7 +444,7 @@ Reabrir só se Evolution mudar substancialmente esses 3 pontos (improvável; nã
 > **DEPRECATED por [ADR 0202](../../decisions/0202-whatsapp-profissionalizacao-baileys-out.md).** Wizard Baileys removido — onboarding agora via Meta Cloud Embedded Signup v4 (US-WA-310, Fase 2).
 > Conteúdo abaixo preservado como lição histórica.
 >
-> owner: wagner · sprint: 3 · priority: p2 · status: done (descontinuado)
+> owner: wagner · sprint: 3 · priority: p2 (descontinuado)
 
 > **Área:** Settings UX
 > **Charter:** [`resources/js/Pages/Whatsapp/Settings.charter.md`](../../../resources/js/Pages/Whatsapp/Settings.charter.md)
@@ -566,7 +566,7 @@ E   commit/PR review nunca mostra telefones reais (skill commit-discipline Tier 
 
 **Implementado em:** _parcial_ · `Modules/Whatsapp/Entities/WhatsappBusinessPhone.php` · `Modules/Whatsapp/Entities/WhatsappPhoneUserAccess.php` · `Modules/Whatsapp/Database/Migrations/2026_05_09_120000_create_whatsapp_business_phones_table.php` · `Modules/Whatsapp/Database/Migrations/2026_05_09_120100_create_whatsapp_phone_user_access_table.php` · `Modules/Whatsapp/Tests/Feature/PhonesMigrationDataTest.php` · verificado@dd3ed7c (2026-07-01) — schema/models/roteamento de eventos entregues; UI multi-número convergiu pro modelo Canais=Fila (ADR 0135), ver US-WA-068/069
 
-> owner: wagner · sprint: 4 · priority: p2 · status: doing
+> owner: wagner · sprint: 4 · priority: p2
 
 > **Área:** Settings + Core + Inbox
 > **Decisão arquitetural mãe:** [ADR 0117](../../decisions/0117-multiplos-numeros-whatsapp-por-business.md)
@@ -658,7 +658,7 @@ E   commit/PR review nunca mostra telefones reais (skill commit-discipline Tier 
 
 **Implementado em:** `Modules/Whatsapp/Services/Metrics/MetricsAggregator.php` · `Modules/Whatsapp/Services/Metrics/MetricsSnapshotBuilder.php` · `Modules/Whatsapp/Http/Controllers/Admin/MetricsController.php` · `resources/js/Pages/Atendimento/Metricas/Index.tsx` · `Modules/Whatsapp/Tests/Feature/MetricsAggregateCommandTest.php` · verificado@dd3ed7c (2026-07-01)
 
-> owner: wagner · priority: p1 · status: todo · type: story
+> owner: wagner · priority: p1 · status: done · type: story
 
 Acelerar US-WA-021 (atualmente [todo]). Gap detectado pelo /comparativo em 2026-05-10 — schema `whatsapp_conversation_metricas` declarado em SPEC §6 mas migration não criada; service `WhatsappMetricasService` não existe. ROI visibility pra Wagner justificar custo Whatsapp por business.
 
@@ -675,7 +675,7 @@ Acelerar US-WA-021 (atualmente [todo]). Gap detectado pelo /comparativo em 2026-
 
 **Implementado em:** `Modules/Whatsapp/Jobs/SendMediaJob.php` · `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php` · `resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx` · `resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx` · `Modules/Whatsapp/Tests/Feature/MediaMessageTest.php` · verificado@dd3ed7c (2026-07-01)
 
-> owner: wagner · priority: p1 · status: todo · type: story
+> owner: wagner · priority: p1 · status: done · type: story
 
 Gap detectado pelo /comparativo em 2026-05-10 — `DriverInterface::sendMedia()` existe (`Modules/Whatsapp/Services/Drivers/DriverInterface.php`) mas UI sem upload em `Conversations/Show.tsx`. Bloqueador pra US-RB-044 v2 (boleto auto-anexo).
 
@@ -692,7 +692,7 @@ Gap detectado pelo /comparativo em 2026-05-10 — `DriverInterface::sendMedia()`
 
 **Implementado em:** `Modules/Whatsapp/Jobs/DownloadMediaJob.php` · `Modules/Whatsapp/Database/Migrations/2026_05_12_150000_add_media_to_messages.php` · `Modules/Whatsapp/Tests/Feature/MediaInboundProcessedTest.php` · `Modules/Whatsapp/Tests/Feature/WebhookMediaExtractTest.php` · verificado@dd3ed7c (2026-07-01)
 
-> owner: wagner · priority: p1 · status: todo · type: story
+> owner: wagner · priority: p1 · status: done · type: story
 
 Gap detectado pelo /comparativo em 2026-05-10 — webhook recebe payload `image/document/audio/sticker` mas `ProcessIncomingWebhookJob.php` descarta hoje (só processa `text`). Backlog US-WA-033.
 
@@ -710,7 +710,7 @@ Gap detectado pelo /comparativo em 2026-05-10 — webhook recebe payload `image/
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Atendimento/Channels/_components/ChannelUsersTab.tsx` · `Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php` · `Modules/Whatsapp/Entities/ChannelUserAccess.php` · `Modules/Whatsapp/Tests/Feature/ChannelUserAccessTest.php` · verificado@dd3ed7c (2026-07-01) — ACL atendente↔canal entregue via tab Usuários do modelo Canais=Fila (US-WA-068), não como Settings/Edit per-phone original
 
-> owner: wagner · priority: p1 · status: todo · type: story
+> owner: wagner · priority: p1 · type: story
 
 Gap detectado por Wagner em prod 2026-05-10 ao olhar `/whatsapp/settings` em https://oimpresso.com — schema `whatsapp_phone_user_access` migrated PR1 (US-WA-040) mas SEM UI dedicada. Wagner não consegue dar acesso só ao "número Comercial" pra Felipe e só "número Financeiro" pra Eliana sem mexer no DB direto.
 
@@ -727,7 +727,7 @@ Gap detectado por Wagner em prod 2026-05-10 ao olhar `/whatsapp/settings` em htt
 
 **Implementado em:** `Modules/Whatsapp/Jobs/SendInteractiveJob.php` · `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php` · `resources/js/Pages/Whatsapp/_components/InteractiveMessageDialog.tsx` · `Modules/Whatsapp/Tests/Feature/SendInteractiveJobTest.php` · `Modules/Whatsapp/Tests/Feature/InboxSendInteractiveTest.php` · verificado@dd3ed7c (2026-07-01)
 
-> owner: wagner · priority: p2 · status: todo · type: story
+> owner: wagner · priority: p2 · status: done · type: story
 
 Backlog SPEC §8 (era US-WA-030, agora ativada via /comparativo 2026-05-10).
 
@@ -744,7 +744,7 @@ Backlog SPEC §8 (era US-WA-030, agora ativada via /comparativo 2026-05-10).
 
 **Implementado em:** _parcial_ · `Modules/Whatsapp/Jobs/SendInteractiveJob.php` · `Modules/Whatsapp/Services/Drivers/MetaCloudDriver.php` · verificado@dd3ed7c (2026-07-01) — payload `type=list` suportado no job/driver interativo (US-WA-045); falta cardápio disparado pelo listener Repair + mapeamento `list_reply.id` a evento
 
-> owner: wagner · priority: p2 · status: todo · type: story
+> owner: wagner · priority: p2 · type: story
 
 Backlog SPEC §8 (era US-WA-031, agora ativada via /comparativo 2026-05-10). Fit perfeito Modules/ComunicacaoVisual + Modules/Vestuario.
 
@@ -760,7 +760,7 @@ Backlog SPEC §8 (era US-WA-031, agora ativada via /comparativo 2026-05-10). Fit
 
 **Implementado em:** `Modules/Whatsapp/Entities/Tag.php` · `Modules/Whatsapp/Database/Migrations/2026_05_11_120000_create_conversation_tags_tables.php` · `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php` · `Modules/Whatsapp/Tests/Feature/ConversationTagsTest.php` · verificado@dd3ed7c (2026-07-01) — entregue via US-WA-063 (schema `whatsapp_tags` + pivot + UI multi-select + filtro)
 
-> owner: wagner · priority: p2 · status: todo · type: story
+> owner: wagner · priority: p2 · status: done · type: story
 
 Gap detectado pelo /comparativo em 2026-05-10 — sem schema, sem UI, sem código.
 
@@ -777,7 +777,7 @@ Gap detectado pelo /comparativo em 2026-05-10 — sem schema, sem UI, sem códig
 
 **Implementado em:** `Modules/Whatsapp/Entities/Macro.php` · `Modules/Whatsapp/Http/Controllers/Admin/MacrosController.php` · `Modules/Whatsapp/Services/Macros/MacroExecutor.php` · `resources/js/Pages/Atendimento/Macros/Index.tsx` · `Modules/Whatsapp/Tests/Feature/MacrosCrudTest.php` · verificado@dd3ed7c (2026-07-01) — pattern Macros (Chatwoot) com autocomplete `/` inline no ComposerV4
 
-> owner: wagner · priority: p2 · status: todo · type: story
+> owner: wagner · priority: p2 · status: done · type: story
 
 Gap detectado pelo /comparativo em 2026-05-10 — atendente digita repetidamente "Olá! Em que posso ajudar?", "Ok, recebido!", etc. Pattern Take Blip/Wati: atalhos `/saudacao`, `/aguardar`.
 
@@ -794,7 +794,7 @@ Gap detectado pelo /comparativo em 2026-05-10 — atendente digita repetidamente
 
 **Implementado em:** `Modules/Whatsapp/Entities/MacroVariant.php` · `Modules/Whatsapp/Http/Controllers/Admin/MacroVariantsController.php` · `Modules/Whatsapp/Services/Macros/MacroVariantPicker.php` · `Modules/Whatsapp/Services/Macros/MacroVariantResponseTracker.php` · `resources/js/Pages/Atendimento/Macros/Variants.tsx` · verificado@dd3ed7c (2026-07-01) — A/B via variantes de Macro (sorteio ponderado + response tracking), não templates HSM
 
-> owner: wagner · priority: p3 · status: todo · type: story
+> owner: wagner · priority: p3 · status: done · type: story
 > blocked_by: US-WA-041
 
 Backlog SPEC §8 (US-WA-NEW-AB-TEMPLATE, ativada via /comparativo 2026-05-10).
@@ -811,7 +811,7 @@ Backlog SPEC §8 (US-WA-NEW-AB-TEMPLATE, ativada via /comparativo 2026-05-10).
 
 **Implementado em:** _parcial_ · `Modules/Whatsapp/Jobs/TranscribeAudioJob.php` · `Modules/Whatsapp/Services/Audio/WhisperTranscriber.php` · `Modules/Whatsapp/Services/Audio/Contracts/AudioTranscriber.php` · verificado@dd3ed7c (2026-07-01) — transcrição inbound entregue via provider OpenAI (US-WA-072); container whisper.cpp local CT 100 (custo zero) ainda não construído
 
-> owner: wagner · priority: p3 · status: todo · type: story
+> owner: wagner · priority: p3 · type: story
 > blocked_by: US-WA-043
 
 Backlog SPEC §8 (US-WA-NEW-WHISPER, ativada via /comparativo 2026-05-10).
@@ -830,7 +830,7 @@ Backlog SPEC §8 (US-WA-NEW-WHISPER, ativada via /comparativo 2026-05-10).
 
 **Implementado em:** `memory/requisitos/Whatsapp/CAPTERRA-FICHA.md` · verificado@dd3ed7c (2026-07-01) — seções `ux_heuristics` + `automation_targets` curadas e preenchidas (não mais `[]`)
 
-> owner: wagner · priority: p0 · status: todo · type: story
+> owner: wagner · priority: p0 · status: done · type: story
 
 Gap governança G-2 detectado pelo /comparativo em 2026-05-10. CAPTERRA-FICHA.md L196-221 tem `ux_heuristics: []` + `automation_targets: []` (TODO desde 2026-05-07 quando v2 da skill foi extendida — ADR 0101). Próximos `/comparativo Whatsapp` vão pular esses 2 eixos com nota "TODO" até curar.
 
@@ -845,7 +845,7 @@ Gap governança G-2 detectado pelo /comparativo em 2026-05-10. CAPTERRA-FICHA.md
 
 **Implementado em:** `memory/requisitos/Whatsapp/AUDIT-LOG.md` · verificado@dd3ed7c (2026-07-01) — shell criado + entrada `2026-05-10 16:00 — Whatsapp — full module audit`
 
-> owner: wagner · priority: p0 · status: todo · type: story
+> owner: wagner · priority: p0 · status: done · type: story
 
 Pré-requisito da skill `module-completeness-audit` Tier B (criada 2026-05-10). Gap governança G-4 detectado pelo /comparativo em 2026-05-10.
 
@@ -862,7 +862,7 @@ Pré-requisito da skill `module-completeness-audit` Tier B (criada 2026-05-10). 
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx` · `resources/js/Pages/Atendimento/CaixaUnificada/_components/ContextSidebarV4.tsx` · verificado@dd3ed7c (2026-07-01) — tela alvo `/whatsapp/conversations` (Cockpit V1) REMOVIDA na US-WA-091; composer no rodapé + sidebar/responsivo reimplementados na Caixa Unificada V4 (US-WA-095)
 
-> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 1h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 1h · type: story
 > blocked_by: —
 
 **Problemas reportados Wagner 2026-05-11:**
@@ -891,7 +891,7 @@ Frontend-only, sem mudança backend/migration. ROTA LIVRE não pega regressão.
 
 **Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php` · `Modules/Whatsapp/Http/Requests/SendMessageRequest.php` · `Modules/Whatsapp/Services/Drivers/ChannelDriverFactory.php` · `Modules/Whatsapp/Tests/Feature/SendMessageRequestTest.php` · verificado@dd3ed7c (2026-07-01) — rota POST `/atendimento/inbox/{id}/send` (`InboxController@send`) via ChannelDriverFactory; lógica de envio no controller (não em Job separado)
 
-> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 3h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 **Contexto:** Inbox novo `/atendimento/inbox` (ADR 0135 Fase 0) é GET-only. Composer no UI precisa rota POST que envie via `Channel` polimórfico sem quebrar Z-API/Meta legacy em prod.
@@ -920,7 +920,7 @@ Frontend-only, sem mudança backend/migration. ROTA LIVRE não pega regressão.
 
 **Implementado em:** `Modules/Whatsapp/Listeners/PublishOmnichannelToCentrifugo.php` · `Modules/Whatsapp/Observers/MessageObserver.php` · `Modules/Whatsapp/Services/Centrifugo/CentrifugoPublisher.php` · `Modules/Whatsapp/Tests/Feature/CentrifugoPublishTest.php` · verificado@dd3ed7c (2026-07-01)
 
-> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 1h · status: todo · type: story
+> owner: wagner · sprint: CYCLE-05 · priority: p1 · estimate: 1h · status: done · type: story
 > blocked_by: —
 
 **Contexto:** Inbox novo `/atendimento/inbox` não tem real-time. Schema antigo já tem `PublishMessageReceivedToCentrifugo` listener em `whatsapp:business:{id}`. Replicar pro novo schema sem afetar o antigo.
@@ -1655,7 +1655,7 @@ Admin pode reclassificar conversa antiga (legacy single-phone) pra novo canal/n�
 
 **Implementado em:** _pendente_ — entregue no Cockpit V1 (`Whatsapp/Conversations`, PR #581), REMOVIDO na US-WA-091; busca local Ctrl+F dentro da thread não reencontrada no ConversationThreadV4 da Caixa Unificada (não reimplementada na V4)
 
-> owner: wagner · sprint: CYCLE-06 · priority: p2 · estimate: 2h · **status: done** (PR #581) · type: story
+> owner: wagner · sprint: CYCLE-06 · priority: p2 · estimate: 2h · **** (PR #581) · type: story
 
 Atalho `Ctrl+F` dentro da thread abre busca local — input filtra mensagens da conversa por substring. Atendente acha mensagem específica em thread longa (50+ msgs) sem `Ctrl+End` scroll.
 
@@ -1774,7 +1774,7 @@ Bug "1 LID @lid ≠ 1 pessoa" no Baileys 6.7.x (issues #1554, #1605, #1832, #203
 
 **Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/CaixaUnificadaController.php` · `resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx` · `resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx` · `memory/requisitos/Whatsapp/RUNBOOK-inbox-caixa-unificada-v4.md` · `Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php` · verificado@dd3ed7c (2026-07-01) — tela V4 viva em `/atendimento/caixa-unificada` (12 sub-componentes)
 
-> owner: wagner · sprint: CYCLE-08 · priority: p2 · estimate: 7-9h IA-pair · **status: doing** (F1 RUNBOOK done, F2 BACKEND done, F3 FRONTEND aguarda) · type: redesign
+> owner: wagner · sprint: CYCLE-08 · priority: p2 · estimate: 7-9h IA-pair · **status: done** (F1 RUNBOOK done, F2 BACKEND done, F3 FRONTEND aguarda) · type: redesign
 
 Reskin visual do Inbox `/atendimento/inbox` pra bater identidade da Caixa Unificada v4 do handoff Claude Design 2026-05-15. **Zero migration, zero backend novo** — 2 props derivadas read-only no Controller (`queues` config static + heurística tag→fila). 12 sub-componentes redesenhados em 3 waves paralelizáveis F3 (filtros topo / lista+items / thread+composer+sidebar). Canary biz=164 Martinho Caçambas (NÃO biz=4 ROTA LIVRE).
 
@@ -1794,7 +1794,7 @@ Reskin visual do Inbox `/atendimento/inbox` pra bater identidade da Caixa Unific
 
 **Implementado em:** `Modules/Whatsapp/Entities/WhatsappQueue.php` · `Modules/Whatsapp/Http/Controllers/Admin/QueuesController.php` · `Modules/Whatsapp/Database/Migrations/2026_06_10_000001_create_whatsapp_queues_table.php` · `resources/js/Pages/Atendimento/CaixaUnificada/_components/QueuesSheet.tsx` · `Modules/Whatsapp/Tests/Feature/InboxQueueDerivationTest.php` · verificado@dd3ed7c (2026-07-01)
 
-> owner: wagner · sprint: TBD · priority: p1 · estimate: 4-6h IA-pair · status: backlog · type: backend+ui
+> owner: wagner · sprint: TBD · priority: p1 · estimate: 4-6h IA-pair · status: done · type: backend+ui
 
 Hoje filas vêm de `config('whatsapp.queues')` estático (Comercial · Financeiro). Migração pra tabela `whatsapp_queues` + painel admin pra criar/editar fila com: label, hue OKLCH, sla (minutes), distribuição (round-robin/sticky/manual), members[] (operadores autorizados), trigger_tags[] (tags que derivam a conv pra essa fila).
 
@@ -1810,7 +1810,7 @@ Hoje filas vêm de `config('whatsapp.queues')` estático (Comercial · Financeir
 
 **Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php` · `resources/js/Pages/Atendimento/CaixaUnificada/_components/ContextSidebarV4.tsx` · verificado@dd3ed7c (2026-07-01) — `InboxController@assign` + rota PATCH `/inbox/{id}/assign` (Tier 0 valida mesmo business)
 
-> owner: wagner · sprint: TBD · priority: p1 · estimate: 2-3h IA-pair · status: backlog · type: ui
+> owner: wagner · sprint: TBD · priority: p1 · estimate: 2-3h IA-pair · status: done · type: ui
 
 Dropdown no card "Atribuído" da sidebar pra atribuir conv a operador específico. Reusa `assigned_user_id` nullable já existente em `conversations`. Lista operadores `whatsapp.access` permission + active.
 
@@ -1826,7 +1826,7 @@ Dropdown no card "Atribuído" da sidebar pra atribuir conv a operador específic
 
 **Implementado em:** `resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx` · `resources/js/Pages/Whatsapp/_components/TemplatePicker.tsx` · `Modules/Whatsapp/Http/Controllers/Admin/MacrosController.php` · verificado@dd3ed7c (2026-07-01) — slash `/macros` autocomplete inline + apply via `atendimento.inbox.apply_macro`
 
-> owner: wagner · sprint: TBD · priority: p1 · estimate: 3-4h IA-pair · status: backlog · type: ui
+> owner: wagner · sprint: TBD · priority: p1 · estimate: 3-4h IA-pair · status: done · type: ui
 
 Composer V4 ganha:
 - **Slash `/macros`** — autocomplete inline ao digitar `/` (já prototipado em `om-slash-pop` no .jsx). Reusa `MacrosController::list` legacy.
@@ -1844,7 +1844,7 @@ Composer V4 ganha:
 
 **Implementado em:** `resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelsDrawer.tsx` · verificado@dd3ed7c (2026-07-01) — drawer lateral reusa payload `availableChannels`/`availableAccounts` do CaixaUnificadaController
 
-> owner: wagner · sprint: TBD · priority: p2 · estimate: 2-3h IA-pair · status: backlog · type: ui
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 2-3h IA-pair · status: done · type: ui
 
 Topnav direita "Canais" hoje linka pra `/atendimento/canais` (página completa). UX prevê drawer in-place mostrando canais agrupados por type (WhatsApp 3 / Instagram 1 / etc) + status health + count conversas + botão "Adicionar novo canal".
 
@@ -1859,7 +1859,7 @@ Topnav direita "Canais" hoje linka pra `/atendimento/canais` (página completa).
 
 **Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php` · `Modules/Whatsapp/Database/Migrations/2026_06_10_000002_add_queue_override_to_conversations.php` · `resources/js/Pages/Atendimento/CaixaUnificada/_components/ContextSidebarV4.tsx` · verificado@dd3ed7c (2026-07-01) — `InboxController@moveQueue` + rota PATCH `/inbox/{id}/queue` (ADR 0267)
 
-> owner: wagner · sprint: TBD · priority: p2 · estimate: 2h IA-pair · status: backlog · type: backend+ui
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 2h IA-pair · status: done · type: backend+ui
 
 Hoje fila vem da heurística tag → fila (read-only). Mover manual = adicionar coluna `assigned_queue_slug` nullable na `conversations` que overrida a heurística.
 
@@ -1873,7 +1873,7 @@ Hoje fila vem da heurística tag → fila (read-only). Mover manual = adicionar 
 
 **Implementado em:** _parcial_ · `Modules/Whatsapp/Http/Controllers/Admin/BroadcastController.php` · `Modules/Whatsapp/Entities/WhatsappBroadcast.php` · `Modules/Whatsapp/Database/Migrations/2026_06_10_000003_create_whatsapp_broadcasts_table.php` · `resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx` · verificado@dd3ed7c (2026-07-01) — Fase 1 pre-flight (opt-in LGPD + janela 24h) + draft auditável (ADR 0268); disparo em massa é fase 2 (gate [W])
 
-> owner: wagner · sprint: TBD · priority: p2 · estimate: 6-8h IA-pair · status: backlog · type: backend+ui
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 6-8h IA-pair · type: backend+ui
 
 Disparar mensagem template (Meta HSM ou Baileys freeform) pra N contatos com 1 click. Pre-flight: contagem destinatários + filtro 24h Meta + opt-in LGPD + dry-run preview.
 
@@ -1890,7 +1890,7 @@ Disparar mensagem template (Meta HSM ou Baileys freeform) pra N contatos com 1 c
 
 **Implementado em:** `Modules/Whatsapp/Http/Controllers/Admin/InboxController.php` · `resources/js/Pages/Atendimento/CaixaUnificada/_components/NewConversationDialog.tsx` · `resources/js/Pages/Whatsapp/_components/ContactPickerModal.tsx` · verificado@dd3ed7c (2026-07-01) — `InboxController@startConversation` (find-or-create + msg inicial) + rota POST `/inbox/conversations`
 
-> owner: wagner · sprint: TBD · priority: p2 · estimate: 3-4h IA-pair · status: backlog · type: ui
+> owner: wagner · sprint: TBD · priority: p2 · estimate: 3-4h IA-pair · status: done · type: ui
 
 Botão "+ Nova conversa" no topnav direita hoje é placeholder. Implementação:
 1. Modal `ContactPickerModal` (já existe — `Pages/Whatsapp/_components/ContactPickerModal.tsx`)
@@ -1931,7 +1931,7 @@ parent_plan=plano-atendimento-automatico (etapa E2, maior ROI — [ADR 0294](../
 
 **Implementado em:** _parcial_ · `Modules/Whatsapp/Database/Migrations/2026_05_14_020001_create_webhook_nonces_table.php` · `Modules/Whatsapp/Console/Commands/CleanupWebhookNoncesCommand.php` · `Modules/Whatsapp/Tests/Feature/WebhookReplayProtectionTest.php` · verificado@dd3ed7c (2026-07-01) — #6 nonce/dedup (webhook replay protection) presente; #9 failover de canal + #10 circuit-breaker no daemon ainda abertos
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
 > parent_plan: whatsapp-channel-reliability-roadmap
 
@@ -1953,7 +1953,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Implementado em:** _parcial_ · `Modules/Whatsapp/Entities/CustomerMemory.php` · `Modules/Whatsapp/Services/CustomerMemory/CustomerMemoryRebuilder.php` · `resources/js/Pages/Whatsapp/_components/CustomerMemoryBlock.tsx` · `Modules/Whatsapp/Http/Controllers/Api/CustomerProfileController.php` · verificado@dd3ed7c (2026-07-01) — onda 1 (customer_memory + sidebar Customer 360) shipada; inferência IA (ondas 2-5) aberta
 
-> owner: — · priority: p1 · estimate: 12h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 12h · type: story
 > blocked_by: —
 > parent_plan: voz-cliente-5-ondas
 
@@ -1974,7 +1974,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Implementado em:** _parcial_ · `Modules/Whatsapp/Entities/ClientFeedback.php` · `Modules/Whatsapp/Services/FeedbackIndexGenerator.php` · `Modules/Whatsapp/Http/Controllers/Admin/ClientFeedbackController.php` · verificado@dd3ed7c (2026-07-01) — captura VoC + índice de feedback entregues; Gap#3 (ContactProfile acumulativo) + Gap#4 (auto-tag IA + dashboard VoC) ainda abertos
 
-> owner: — · priority: p1 · estimate: 10h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 10h · type: story
 > blocked_by: —
 > parent_plan: voc-omnichannel-gaps
 
@@ -1995,7 +1995,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Implementado em:** _parcial_ · `Modules/Whatsapp/Jobs/RetryFailedMediaDownloadsJob.php` · `Modules/Whatsapp/Console/Commands/BackfillMediaDownloadCommand.php` · `Modules/Whatsapp/Console/Commands/ScanMediaDriftCommand.php` · verificado@dd3ed7c (2026-07-01) — worker de drenagem/retry de mídia pending presente; correção do DNS `whatsapp-whatsmeow.oimpresso.com` é infra CT 100 (fora deste repo)
 
-> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 4h · type: story
 > blocked_by: —
 
 **Origem:** handoff `2026-06-19-0730-decisoes-pendentes-dns-midia-us-309.md` (Decisão 1) — deixado como decisão Wagner; agora autorizado ("faça sim", 2026-06-21).
