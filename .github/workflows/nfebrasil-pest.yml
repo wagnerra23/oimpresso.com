@@ -1,4 +1,4 @@
-name: NfeBrasil · Pest (MySQL · advisory)
+name: NfeBrasil · Pest (MySQL)
 
 # Lane MySQL pro Modules/NfeBrasil. Os testes fiscais MySQL-only (UNIQUE / lockForUpdate /
 # isolamento multi-tenant) SKIPam no lane sqlite (modules-pest.yml :memory:), então "verde"
@@ -31,7 +31,7 @@ concurrency:
 
 jobs:
   pest:
-    name: PHP / Pest (NfeBrasil · MySQL · advisory)
+    name: PHP / Pest (NfeBrasil · MySQL)
     runs-on: ubuntu-latest
 
     services:
@@ -140,18 +140,3 @@ jobs:
           name: pest-nfebrasil-junit
           path: test-results/pest-nfebrasil-junit.xml
           retention-days: 14
-
-  # ═══ RENAME P14 fix (d) — SHIM TEMPORÁRIO (remover no PR-2 do rename) ═══════
-  # O job `pest` é REQUIRED (Tier-0-grade fiscal, mantido pela ADR 0314), mas o
-  # nome carrega "· advisory" — o nome mente (avaliação 2026-07-01 · P14). Rename
-  # direto deadlocka o required (casa por nome). Dança zero-window: PR-1 (este)
-  # cria o shim sob o nome DEFINITIVO → flip adiciona o context novo → PR-2
-  # renomeia o job real e remove o shim → flip remove o context velho.
-  pest-rename-shim:
-    name: PHP / Pest (NfeBrasil · MySQL)
-    needs: pest
-    if: always()
-    runs-on: ubuntu-latest
-    steps:
-      - name: espelha o resultado de "PHP / Pest (NfeBrasil · MySQL · advisory)"
-        run: test "${{ needs.pest.result }}" = "success"
