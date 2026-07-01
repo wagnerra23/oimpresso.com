@@ -13,7 +13,7 @@
       "0273-anchor-spec-codigo-formato-canonico-fluxo-novo"
     ],
     "escopo": "full-tree",
-    "total": 343
+    "total": 346
   },
   "grandfathered": [
     "entry-aceite:US-COM-001",
@@ -260,12 +260,15 @@
     "entry-teste:US-KB-004",
     "entry-teste:US-KB-005",
     "entry-teste:US-KB-006",
+    "entry-teste:US-NFE-040",
+    "entry-teste:US-NFE-041",
     "entry-teste:US-NFE-049",
     "entry-teste:US-NFE-050",
     "entry-teste:US-NFE-051",
     "entry-teste:US-NFE-052",
     "entry-teste:US-NFE-060",
     "entry-teste:US-NFE-061",
+    "entry-teste:US-NFE-062",
     "entry-teste:US-OFICINA-001",
     "entry-teste:US-OFICINA-002",
     "entry-teste:US-OFICINA-003",
