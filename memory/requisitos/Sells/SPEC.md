@@ -737,7 +737,7 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 **Testado em:** `tests/Feature/Domain/Fsm/SequencialNfeAposCancelamentoTest.php` (covers US-SELL-029)
 
-> owner: — · priority: p0 · estimate: 3h codável + 5h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> owner: — · priority: p0 · estimate: 3h codável + 5h tests · status: done · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: — (precede US-030)
 > evidence: bug confirmado em [NfeService.php:380-398](../../../Modules/NfeBrasil/Services/NfeService.php#L380) — `cancelada` tratada igual `rejeitada/denegada` recebe `forceDelete()`, próxima emissão pula sequencial
 
@@ -761,7 +761,7 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 **Testado em:** `tests/Feature/Domain/Fsm/SequencialNfeAposCancelamentoTest.php` (covers US-SELL-030) · `tests/Feature/Domain/Fsm/SideEffects/InutilizarFaixaNfeTest.php` (covers US-SELL-030)
 
-> owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: done · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-029 (refator NfeService precede)
 > evidence: tabela `nfe_inutilizacoes` existe ([migration 002003](../../../Modules/NfeBrasil/Database/Migrations/2026_05_06_002003_create_nfe_inutilizacoes_table.php)) **sem service que a use**
 
@@ -786,7 +786,7 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 **Testado em:** `tests/Feature/Domain/Fsm/TransicaoCriticaExigeAutorizacaoTest.php` (covers US-SELL-031)
 
-> owner: — · priority: p1 · estimate: 2h codável + 1h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> owner: — · priority: p1 · estimate: 2h codável + 1h tests · status: done · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: —
 > evidence: [ExecuteStageActionService.php:62](../../../app/Domain/Fsm/Services/ExecuteStageActionService.php#L62) — `empty($roleNames)` libera pra qualquer user; seed incompleto vira bypass silencioso
 
@@ -809,7 +809,7 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 **Testado em:** `tests/Feature/Domain/Fsm/CurrentStageIdBypassObserverTest.php` (covers US-SELL-032)
 
-> owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: done · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: —
 > evidence: ExecuteStageActionService é gateway recomendado mas não obrigatório — bypass via Eloquent direto, query builder mass-update, tinker, ou DB::table
 
@@ -834,7 +834,7 @@ Discovery atravessa **5 dimensões** (não 4 como v3 dizia):
 
 **Testado em:** `tests/Feature/Domain/Fsm/ProcessoVendaComProducaoTest.php` (covers US-SELL-033)
 
-> owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> owner: — · priority: p0 · estimate: 6h codável + 4h tests · status: done · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-031 (is_critical) + US-032 (Observer)
 > evidence: 3 processos seed atuais (Sem Nota / Com Nota Manual / Com Nota Auto) **não têm stages de produção** — gambiarra/informal pra clientes OficinaAuto/ComunicacaoVisual/Vestuario
 
@@ -881,7 +881,7 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 
 **Testado em:** `tests/Feature/Domain/Fsm/CancelarVendaCascadeSideEffectTest.php` (covers US-SELL-034)
 
-> owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> owner: — · priority: p1 · estimate: 4h codável + 3h tests · status: done · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-029 (cancelamento NFe correto) + US-033 (action cancelar_venda)
 > evidence: hoje cancelar venda é processo manual com risco de inconsistência (cancela NFe mas esquece de estornar boleto, libera reserva mas não notifica cliente, etc)
 
@@ -909,7 +909,7 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 
 **Testado em:** `tests/Feature/Domain/Fsm/SaleHistoryControllerTest.php` (covers US-SELL-035)
 
-> owner: — · priority: p2 · estimate: 8h frontend (sem canary) · status: todo · type: story · origin: sessao-2026-05-12-discovery-pipeline
+> owner: — · priority: p2 · estimate: 8h frontend (sem canary) · status: done · type: story · origin: sessao-2026-05-12-discovery-pipeline
 > blocked_by: US-033 (processo canon) + visibilidade real após implementação
 > evidence: `sale_stage_history` registra tudo desde US-011 mas **não há UI** mostrando — Wagner não consegue responder "quem aprovou? quando? com qual motivo?"
 
@@ -942,7 +942,7 @@ Transições laterais: cancelar_venda → cancelled (terminal),  pausar → on_h
 
 **Testado em:** `tests/Feature/Console/FsmBulkStartPipelineCommandTest.php` (covers US-SELL-036)
 
-> owner: wagner · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: wagner · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: —
 
 Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06 — alvo: 14 de 162 vendas migradas).
