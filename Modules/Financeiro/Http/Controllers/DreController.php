@@ -19,7 +19,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * Tela /financeiro/dre — DRE gerencial hierárquica (Cockpit V2).
  *
  * Origem: protótipo Cowork `TelaDRE` (linha 361-483 de
- * `public/cowork-preview/erp-shell/financeiro-telas-extras.jsx`) aprovado por
+ * `prototipo-ui/cowork/financeiro-telas-extras.jsx`) aprovado por
  * [W] 2026-05-20 + decisões Q1-Q8b aprovadas em
  * `memory/requisitos/Financeiro/dre-visual-comparison.md`.
  *

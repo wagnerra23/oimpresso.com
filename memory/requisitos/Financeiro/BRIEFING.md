@@ -116,7 +116,7 @@ Lançamentos CRUD + 1-clique baixa + filtros lifecycle multi-select + densidade 
 - Regression `/pos/sells` 302 → inalterado
 - Visual logado biz=4/biz=1: pendente Wagner (Chrome MCP ou validação manual)
 
-**Artefatos Cowork preservados** (dormentes, reativáveis): `public/cowork-preview/*.html`, bridges JS (`_oimpresso-bridge-*.js`), trait `RendersMockCowork`, componentes `Pages/Financeiro/_components/Fin*.tsx`. NÃO deletados — Plano B é pausa, não desistência.
+**Artefatos Cowork preservados** (dormentes, reativáveis): `prototipo-ui/cowork/*.html`, bridges JS (`_oimpresso-bridge-*.js`), trait `RendersMockCowork`, componentes `Pages/Financeiro/_components/Fin*.tsx`. NÃO deletados — Plano B é pausa, não desistência.
 
 ## Estado consolidado (Wave 18 RETRY — saturação 68→97)
 

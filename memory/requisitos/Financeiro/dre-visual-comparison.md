@@ -7,7 +7,7 @@ status: approved
 approved_by: wagner
 approved_at: 2026-05-20
 date: 2026-05-20
-canon_reference: public/cowork-preview/erp-shell/financeiro-telas-extras.jsx (TelaDRE linha 361-483)
+canon_reference: prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaDRE linha 361-483)
 blade_source: n/a (existe `Pages/Financeiro/Relatorios/Index.tsx` errado — DRE como tab shadcn, sem hierarquia)
 inertia_target: resources/js/Pages/Financeiro/Dre/Index.tsx (novo)
 service_new: Modules/Financeiro/Services/DreService::montar(businessId, periodoTipo, anchorMes)
@@ -23,7 +23,7 @@ screenshot_aprovado: 2026-05-20 — Wagner aprovou screenshot canon TelaDRE (men
 > **Persona alvo:** Wagner [W] — dono, decisão estratégica mensal · Eliana [E] — financeiro, fecha mês. Desktop ≥1024px. Leitura de DRE em <60s pra responder "deu lucro este mês?"
 > **Refs:**
 > - Tela atual ERRADA: [`resources/js/Pages/Financeiro/Relatorios/Index.tsx`](../../../resources/js/Pages/Financeiro/Relatorios/Index.tsx) (linha 180-311 `DrePanel`) — usa shadcn `Card`+`tfoot` plano, 5 colunas, sem hierarquia, sem % RL, sem Δ%, sem cards bottom. Tab dentro de `/financeiro/relatorios`.
-> - Canon Cockpit: [`public/cowork-preview/erp-shell/financeiro-telas-extras.jsx`](../../../public/cowork-preview/erp-shell/financeiro-telas-extras.jsx) — `TelaDRE` linha 361-483 (aprovado [W] Cowork 2026-05-20 — fonte canônica per `_BACKUP-NAO-USAR/README-AVISO.md`)
+> - Canon Cockpit: [`prototipo-ui/cowork/financeiro-telas-extras.jsx`](../../../prototipo-ui/cowork/financeiro-telas-extras.jsx) — `TelaDRE` linha 361-483 (aprovado [W] Cowork 2026-05-20 — fonte canônica per `_BACKUP-NAO-USAR/README-AVISO.md`)
 > - Charter: a criar em `resources/js/Pages/Financeiro/Dre/Index.charter.md` (F3)
 > - ADRs: [ui/0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md), [0093 multi-tenant Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md), [0104 MWART processo canônico](../../decisions/0104-processo-mwart-canonico-unico-caminho.md), [0107 F1.5 visual-comparison gate](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md), [0109 Claude Design plugin](../../decisions/0109-claude-design-plugin-integrado-processo-mwart.md)
 
