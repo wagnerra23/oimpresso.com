@@ -281,7 +281,7 @@ status: ativo
 > **Área:** Campaigns
 > **Listener:** `Modules\Dunning\Listeners\StartCampaignOnInvoiceFailed`
 
-**Implementado em:** _pendente_ — não há `Modules/Dunning`, tabelas `dun_campaigns`/`dun_campaign_steps`/`dun_step_executions`, nem listener de `InvoiceFailed`; motor de campanha de recuperação não construído
+**Implementado em:** _pendente_ — não há modulo de dunning (planejado — não existe), tabelas `dun_campaigns`/`dun_campaign_steps`/`dun_step_executions`, nem listener de `InvoiceFailed`; motor de campanha de recuperação não construído
 
 **Como** Sistema (escutando `InvoiceFailed`)
 **Quero** iniciar campanha automática seguindo régua configurada
