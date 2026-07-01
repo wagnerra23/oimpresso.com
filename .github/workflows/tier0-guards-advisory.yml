@@ -82,3 +82,18 @@ jobs:
             tests/Unit/BusinessIdGuardTest.php \
             --no-coverage \
             --colors=always
+
+  # ═══ RENAME P14 fix (d) — SHIM TEMPORÁRIO (remover no PR-2 do rename) ═══════
+  # O job `guards` é REQUIRED desde 2026-06-30, mas o nome carrega "(advisory)" —
+  # o nome mente (avaliação 2026-07-01 · P14). O aviso "renomear quebraria o
+  # binding" acima é exatamente o porquê da dança zero-window: PR-1 (este) cria o
+  # shim sob o nome DEFINITIVO → flip adiciona o context novo → PR-2 renomeia o
+  # job real e remove o shim → flip remove o context velho.
+  guards-rename-shim:
+    name: Tier-0 guards (WithoutGlobalScopes + BusinessId)
+    needs: guards
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: espelha o resultado de "Tier-0 guards (advisory · WithoutGlobalScopes + BusinessId)"
+        run: test "${{ needs.guards.result }}" = "success"
