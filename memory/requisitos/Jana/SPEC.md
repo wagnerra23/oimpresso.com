@@ -44,74 +44,88 @@ related_adrs:
 ### Área Chat
 
 #### US-COPI-001 · Iniciar conversa com a Jana
+**Implementado em:** `Modules/Jana/Http/Controllers/ChatController.php` · `resources/js/Pages/Jana/Chat.tsx` · `Modules/Jana/Services/ContextSnapshotService.php` · verificado@dd3ed7c (2026-07-01) — index() cria conversa + gera briefing auto e renderiza a page Jana/Chat; rota viva GET /ia/ (jana.chat.index)
 - **Rota:** `GET /copiloto`
 - **Controller:** `ChatController@index`
 - **Como** gestor **quero** abrir a Jana **para** ver snapshot atual e iniciar conversa.
 - **DoD extra:** página carrega com briefing auto-gerado (faturamento 90d, tendência, nº clientes ativos) sem clique adicional.
 
 #### US-COPI-002 · Enviar mensagem à Jana
+**Implementado em:** `Modules/Jana/Http/Controllers/ChatController.php` · `Modules/Jana/Ai/Agents/ChatCopilotoAgent.php` · verificado@dd3ed7c (2026-07-01) — send() na rota viva POST /ia/conversas/{id}/mensagens + sendStream() SSE token-a-token na rota .../stream
 - **Rota:** `POST /copiloto/conversas/{id}/mensagens`
 - **Controller:** `ChatController@send`
 - **Como** gestor **quero** descrever cenário ou pedir sugestão **para** obter propostas.
 - **DoD extra:** resposta assíncrona (`202` + polling OU streaming SSE); tokens contados por request.
 
 #### US-COPI-003 · Receber propostas estruturadas
+**Implementado em:** _parcial_ · `Modules/Jana/Ai/Agents/SugestoesMetasAgent.php` · `Modules/Jana/Entities/Sugestao.php` · `Modules/Jana/Http/Controllers/ChatController.php` · verificado@dd3ed7c (2026-07-01) — agente de sugestões + persistência `Sugestao` + payload `sugestoesPendentes` no render existem; validação zod do shape 3–5 propostas lado a lado no frontend não confirmada
 - **Controller:** `ChatController@send` (mesmo endpoint, response inclui sugestões)
 - **Como** gestor **quero** ver 3–5 propostas lado a lado **para** comparar cenários.
 - **DoD extra:** schema zod valida shape `{propostas: [{nome, metrica, valor, periodo, racional, dificuldade, dependencias}]}`.
 
 #### US-COPI-004 · Escolher proposta
+**Implementado em:** `Modules/Jana/Http/Controllers/ChatController.php` · `Modules/Jana/Entities/Meta.php` · `Modules/Jana/Entities/MetaPeriodo.php` · `Modules/Jana/Entities/MetaFonte.php` · verificado@dd3ed7c (2026-07-01) — escolher() cria Meta+MetaPeriodo+MetaFonte, dispara ApurarMetaJob e redireciona pra meta (rota viva POST /ia/sugestoes/{id}/escolher)
 - **Rota:** `POST /copiloto/sugestoes/{id}/escolher`
 - **Controller:** `ChatController@escolher`
 - **Como** gestor **quero** aceitar uma proposta **para** criar a meta automaticamente + agendar apuração.
 - **DoD extra:** cria `Meta` + `MetaPeriodo` + `MetaFonte`; agenda `ApurarMetaJob` no Horizon; redireciona pro dashboard.
 
 #### US-COPI-005 · Arquivar conversa
+**Implementado em:** `Modules/Jana/Http/Controllers/ChatController.php` · `Modules/Jana/Entities/Conversa.php` · verificado@dd3ed7c (2026-07-01) — updateConversa() faz update apenas de titulo+status (rota viva PATCH /ia/conversas/{id})
 - **Rota:** `PATCH /copiloto/conversas/{id}` body `{status: 'arquivada'}`
 - **Como** gestor **quero** arquivar conversas antigas **para** limpar a listagem.
 
 ### Área Metas
 
 #### US-COPI-010 · Listar metas ativas
+**Implementado em:** `Modules/Jana/Http/Controllers/MetasController.php` · `Modules/Jana/Resources/views/metas/index.blade.php` · verificado@dd3ed7c (2026-07-01) — index() lista metas scopadas por business (rota viva GET /ia/metas); UI ainda Blade (não migrada pra Inertia)
 - **Rota:** `GET /copiloto/metas`
 - **Controller:** `MetasController@index`
 - **Como** gestor **quero** ver todas minhas metas **para** visão consolidada.
 
 #### US-COPI-011 · Ver detalhe de meta + série temporal
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/MetasController.php` · `Modules/Jana/Resources/views/metas/show.blade.php` · verificado@dd3ed7c (2026-07-01) — show() entrega meta + apurações (rota viva GET /ia/metas/{id}); série 12 janelas + projeção linear + farol dependem do render Blade (farol/projeção não confirmados)
 - **Rota:** `GET /copiloto/metas/{id}`
 - **Controller:** `MetasController@show`
 - **DoD extra:** série temporal últimas 12 janelas; projeção linear; farol verde/amarelo/vermelho por threshold.
 
 #### US-COPI-012 · Criar meta manualmente (sem chat)
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/MetasController.php` · `Modules/Jana/Resources/views/metas/create.blade.php` · verificado@dd3ed7c (2026-07-01) — create()/store() (via StoreMetaRequest) existem (rotas vivas GET /ia/metas/create + POST /ia/metas); wizard 3 passos da UX não confirmado no Blade
 - **Rota:** `GET /copiloto/metas/create` + `POST /copiloto/metas`
 - **Como** gestor **quero** criar meta direto **para** casos em que já sei o que quero.
 - **DoD extra:** wizard 3 passos: escolher métrica, definir período + alvo, configurar fonte.
 
 #### US-COPI-013 · Editar meta
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/MetasController.php` · `Modules/Jana/Resources/views/metas/edit.blade.php` · verificado@dd3ed7c (2026-07-01) — edit()/update() (via UpdateMetaRequest) existem (rota viva PATCH /ia/metas/{id}); motivo obrigatório + registro em activitylog não confirmados
 - **Rota:** `PATCH /copiloto/metas/{id}`
 - **DoD extra:** edição registra `activitylog` com motivo obrigatório (campo textarea).
 
 #### US-COPI-014 · Arquivar meta (soft delete)
+**Implementado em:** `Modules/Jana/Http/Controllers/MetasController.php` · `Modules/Jana/Entities/Meta.php` · verificado@dd3ed7c (2026-07-01) — destroy() faz soft delete (ativo=false) preservando histórico (rota viva DELETE /ia/metas/{id})
 - **Rota:** `DELETE /copiloto/metas/{id}`
 - **DoD extra:** `ativo=false`, não apaga histórico. AlertDialog `"você tem certeza"`.
 
 ### Área Períodos
 
 #### US-COPI-020 · Adicionar período a uma meta
+**Implementado em:** `Modules/Jana/Http/Controllers/PeriodosController.php` · `Modules/Jana/Entities/MetaPeriodo.php` · verificado@dd3ed7c (2026-07-01) — `store()` (via `StorePeriodoRequest`) cria `MetaPeriodo` scopado (rota resource viva `/ia/metas.periodos` only store/update/destroy)
 - **Rota:** `POST /copiloto/metas/{id}/periodos`
 - **Como** gestor **quero** segmentar meta anual em trimestres/meses **para** cobrar trajetória.
 
 #### US-COPI-021 · Editar alvo de período
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/PeriodosController.php` · `Modules/Jana/Entities/MetaPeriodo.php` · verificado@dd3ed7c (2026-07-01) — `update()` (via `UpdatePeriodoRequest`) escopado por `meta_id` existe; log em activitylog + motivo não confirmados
 - **Rota:** `PATCH /copiloto/periodos/{id}`
 - **DoD extra:** log em activitylog + motivo.
 
 ### Área Apuração
 
 #### US-COPI-030 · Apuração automática por job
+**Implementado em:** `Modules/Jana/Jobs/ApurarMetaJob.php` · `Modules/Jana/Services/ApuracaoService.php` · `Modules/Jana/Entities/MetaApuracao.php` · verificado@dd3ed7c (2026-07-01) — `ApuracaoService::apurar()` resolve driver por `MetaFonte` e persiste com `updateOrCreate` idempotente por (`meta_id`,`data_ref`,`fonte_query_hash`); Job `ShouldQueue` recebe `$businessId`
 - **Fluxo:** `ApurarMetaJob` (agendado) lê `MetaFonte` → executa driver → grava `MetaApuracao`.
 - **DoD extra:** idempotente (mesma `data_ref` + `fonte_query_hash` não duplica); erro loga e alerta superadmin.
 
 #### US-COPI-031 · Forçar reapuração manual
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/MetasController.php` · verificado@dd3ed7c (2026-07-01) — rota viva POST /ia/metas/{id}/reapurar + método reapurar() existem, mas o dispatch do ApurarMetaJob está comentado (// TODO) — só redireciona com flash; apagar MetaApuracao do range + reexecutar driver ainda não plugado
 - **Rota:** `POST /copiloto/metas/{id}/reapurar`
 - **Controller:** `MetasController@reapurar`
 - **Como** gestor **quero** reapurar meta **para** casos de correção retroativa de venda.
@@ -120,6 +134,7 @@ related_adrs:
 ### Área Fontes
 
 #### US-COPI-040 · Ver/editar fonte da meta
+**Implementado em:** _parcial_ · `Modules/KB/Http/Controllers/FontesController.php` · `Modules/Jana/Entities/MetaFonte.php` · verificado@dd3ed7c (2026-07-01) — FontesController show/update (migrado pra Modules/KB, rotas vivas GET+PATCH em /ia/metas/{id}/fonte) existe; preview + injeção segura de business_id no SQL não confirmados nesta verificação
 - **Rota:** `GET /copiloto/metas/{id}/fonte` + `PATCH`
 - **Como** usuário técnico/superadmin **quero** editar o SQL ou PHP **para** ajustar o cálculo.
 - **DoD extra:** permissão `copiloto.fontes.edit`; preview do resultado antes de salvar; SQL roda em contexto `business_id` injetado (não o usuário mete `SELECT * FROM users`).
@@ -127,6 +142,7 @@ related_adrs:
 ### Área Dashboard
 
 #### US-COPI-050 · Dashboard consolidado
+**Implementado em:** `Modules/Jana/Http/Controllers/DashboardController.php` · `resources/js/Pages/Jana/Dashboard.tsx` · verificado@dd3ed7c (2026-07-01) — index() renderiza a page Jana Dashboard com metas ativas (cards + sparkline via buildMetasPayload, scope multi-tenant); rota viva GET /ia/dashboard (jana.dashboard.index)
 - **Rota:** `GET /copiloto/dashboard`
 - **Controller:** `DashboardController@index`
 - **DoD extra:** cards por meta ativa; sparkline inline; farol; link direto pro detalhe.
@@ -134,45 +150,53 @@ related_adrs:
 ### Área Alertas
 
 #### US-COPI-060 · Listar alertas pendentes
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/AlertasController.php` · `Modules/Jana/Services/AlertaService.php` · `Modules/Jana/Resources/views/alertas/index.blade.php` · verificado@dd3ed7c (2026-07-01) — `index()` + `AlertaService::avaliar()` (dispara desvio > threshold) existem; filtros por severidade/status na UI Blade não confirmados
 - **Rota:** `GET /copiloto/alertas`
 - **DoD extra:** filtro por severidade, status (novo/visto/resolvido).
 
 #### US-COPI-061 · Configurar thresholds
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/AlertasController.php` · `Modules/Jana/Resources/views/alertas/config.blade.php` · verificado@dd3ed7c (2026-07-01) — config()/updateConfig() (via UpdateAlertasConfigRequest) + rotas vivas GET+PATCH em /ia/alertas/config; campos canal (email/in-app/WhatsApp) + frequência não confirmados como persistidos
 - **Rota:** `GET /copiloto/alertas/config` + `PATCH`
 - **Campos:** desvio % aceitável, canal (email, in-app, WhatsApp futuro), frequência.
 
 ### Área Administração — Onda 1 (ROI direto, ver ADR [`arq/0003`](adr/arq/0003-administracao-roi-governance.md))
 
 #### US-COPI-070 · Dashboard de custo IA
+**Implementado em:** `Modules/Jana/Http/Controllers/Admin/CustosController.php` · `resources/js/Pages/Jana/Admin/Custos/Index.tsx` · `Modules/Jana/Services/CustosService.php` · verificado@dd3ed7c (2026-07-01) — index() renderiza a page Custos com card/tabela por usuário + custo (rota viva GET /ia/admin/custos, jana.admin.custos.index)
 - **Rota:** `GET /copiloto/admin/custos`
 - **Controller:** `Admin\CustosController@index`
 - **Como** admin do business **quero** ver quanto a IA custou esse mês **para** controlar orçamento e justificar ROI.
 - **DoD extra:** card "Esse mês" (R$, #mensagens, #tokens, #usuários ativos); tabela por usuário (nome, #conversas, #mensagens, tokens consumidos, R$ aprox); gráfico diário 90d; preço lido de `config('copiloto.ai.pricing.{modelo}.{input,output}')` em USD/1k tokens × câmbio configurável; permissão `copiloto.admin.custos.view`.
 
 #### US-COPI-071 · Definir orçamento mensal de IA
+**Implementado em:** _pendente_ — tabela `copiloto_orcamentos`/`jana_orcamentos`, controller `Admin\OrcamentoController` e rotas `/ia/admin/orcamento` não existem (grep amplo em Modules/ + Database/Migrations sem match); QuotaEnforcer atual cobre cota por token MCP (`mcp_quotas`), não orçamento R$ por business
 - **Rota:** `GET /copiloto/admin/orcamento` + `POST`
 - **Controller:** `Admin\OrcamentoController@show` + `@update`
 - **Como** admin do business **quero** definir limite de R$ por mês de IA **para** nunca tomar susto na fatura.
 - **DoD extra:** tabela `copiloto_orcamentos` (id, business_id, tipo enum [`mensal_business`, `diario_user`], limite_tokens, limite_brl, acao_estouro enum [`bloquear`, `alertar`, `degradar_modelo`]); plano comercial (Essencial/Profissional/Enterprise) define teto que admin não pode ultrapassar; wizard no primeiro acesso pergunta "quanto você quer gastar com IA por mês? R$ ___" + sugestão baseada no plano; permissão `copiloto.admin.orcamento.manage`.
 
 #### US-COPI-072 · Bloquear chamada IA quando orçamento estourar
+**Implementado em:** _pendente_ — middleware `EnforceOrcamento` não existe (grep sem match em Modules/); depende de US-COPI-071 (schema de orçamento R$ por business). QuotaEnforcer bloqueia por cota de token MCP (429), conceito distinto do teto R$/mês por business
 - **Componente:** middleware `EnforceOrcamento` (cross-cutting, sem rota própria)
 - **Como** admin do business **quero** que usuários não consigam usar IA depois de estourar o limite **para** conter custo.
 - **DoD extra:** middleware aplicado em `ChatController@send` e qualquer rota futura que chame IA; resposta HTTP `402 Payment Required` (ou `429`) com mensagem clara "Cota IA esgotada esse mês — fale com o admin"; admin recebe notificação in-app + email quando atinge 80% e 100% do limite; soft-degrade opcional (troca pra modelo mais barato em vez de bloquear).
 
 #### US-COPI-073 · Listar conversas do business (admin)
+**Implementado em:** _pendente_ — controller `Admin\ConversasController`, rota `/ia/admin/conversas` e permissão `copiloto.admin.conversas.view` não existem (grep sem match nas rotas + Controllers do módulo)
 - **Rota:** `GET /copiloto/admin/conversas`
 - **Controller:** `Admin\ConversasController@index`
 - **Como** admin do business **quero** ver todas as conversas dos meus funcionários **para** auditar uso e extrair valor (FAQ recorrente, dúvidas comuns).
 - **DoD extra:** filtros (usuário, período, busca full-text no `content`); paginação; permissão `copiloto.admin.conversas.view` (SEPARADA de `copiloto.superadmin` que é cross-business); link drill-down pra US-COPI-074.
 
 #### US-COPI-074 · Visualizar conversa em modo read-only (admin)
+**Implementado em:** _pendente_ — depende de US-COPI-073; `Admin\ConversasController@show` (modo read-only + mensagem system de auditoria "Visualizada por…") não existe no módulo
 - **Rota:** `GET /copiloto/admin/conversas/{id}`
 - **Controller:** `Admin\ConversasController@show`
 - **Como** admin do business **quero** abrir uma conversa de funcionário em modo só-leitura **para** auditar contexto sem poder responder.
 - **DoD extra:** UI sem campo de input; ao abrir, insere mensagem `role='system'` na própria conversa com texto "Visualizada por {admin_nome} em {timestamp}" (transparência — usuário vê na próxima vez que abrir); activitylog grava a ação; permissão `copiloto.admin.conversas.view`.
 
 #### US-COPI-075 · Card "Status do orçamento" no chat
+**Implementado em:** _pendente_ — componente `OrcamentoStatusCard` não existe (grep sem match em resources/); depende de US-COPI-071/072 (schema + cota R$ por business)
 - **Componente:** `OrcamentoStatusCard` (visível em todas as telas `/copiloto/*`)
 - **Como** qualquer usuário **quero** ver quanto da minha cota / cota do business já foi consumida **para** me autorregular sem precisar perguntar pro admin.
 - **DoD extra:** badge no canto superior; verde (<60%), amarelo (60-90%), vermelho (>90%); admin enxerga cota do business, usuário comum enxerga cota individual; tooltip mostra detalhe (ex.: "23.4k de 50k tokens — sobram 7 dias do mês"); polling a cada 5min ou após cada mensagem enviada.
@@ -282,9 +306,12 @@ Cenário: Desvio acima do threshold dispara alerta
 
 ## US-COPI-076..081 · Cronograma Cycle 01 (semanas W19+W20)
 
+**Implementado em:** _parcial_ · `memory/decisions/0064-modularizacao-split-teammcp-kb-superadmin360.md` · `memory/decisions/0065-permission-registry-contract.md` · `Modules/ADS/Services/ContextForTaskService.php` · `app/Console/Commands/EvalRagasBaselineCommand.php` · verificado@dd3ed7c (2026-07-01) — epic agregado: 076/077/078/081/082/083 entregues (ADRs + contexto MCP + KB tipado + RAGAS baseline); US-079 (demo Maiara) e US-080 (buffer fix) seguem `todo`
 Tasks criadas após sessão 2026-05-04 que entregou 4 PRs de modularização (split TeamMcp, split KB, Usuário 360°, delete /ads/admin/kb duplicado). Sequência prioriza fechar dívida documental, evoluir contexto Claude, validar com user real, e medir com RAGAS no fim do cycle.
 
 ### US-COPI-076 · ADRs formais split modular + Permission Registry + atualizar 5 ADRs com URLs antigas
+
+**Implementado em:** `memory/decisions/0064-modularizacao-split-teammcp-kb-superadmin360.md` · `memory/decisions/0065-permission-registry-contract.md` · verificado@dd3ed7c (2026-07-01) — 2 ADRs formais criadas (split modular + Permission Registry contract)
 
 > owner: wagner · sprint: 2026-W19 · priority: p2 · estimate: 2h · status: done · done_at: 2026-05-04
 
@@ -298,6 +325,8 @@ Fechar dívida documental da sessão 2026-05-04:
 
 ### US-COPI-077 · ContextForTaskService consumir tasks-current MCP em vez de ler CURRENT.md
 
+**Implementado em:** `Modules/ADS/Services/ContextForTaskService.php` · verificado@dd3ed7c (2026-07-01) — lê `mcp_dual_brain_decisions` (outcome success, LIMIT 5, business_id scoped) em vez de filesystem CURRENT.md
+
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: done · done_at: 2026-05-04 · commit: 6bca4c1b
 
 Wagner reclamou 2026-05-03: "CURRENT.md ativo deve ser substituido pelas tarefas que ja foi feito". Hoje `Modules/ADS/Services/ContextForTaskService.php::buildCycleFocus()` lê filesystem CURRENT.md.
@@ -307,6 +336,8 @@ Trocar por chamada interna à tool MCP `tasks-current` (mesma fonte que `/team-m
 **Acceptance**: `buildCycleFocus()` removido/reescrito pra `buildRecentlyCompleted()` · lê de `mcp_dual_brain_decisions WHERE outcome='success' ORDER BY id DESC LIMIT 5` + tasks ativas · `POST /api/ads/context-for-task` retorna seção atualizada · 1 teste Pest.
 
 ### US-COPI-078 · Schema tipado KB — migration + validação webhook
+
+**Implementado em:** `Modules/Jana/Database/Migrations/2026_05_01_100001_add_typed_cols_to_mcp_memory_documents.php` · `Modules/Jana/Database/Migrations/2026_04_30_120001_expand_mcp_memory_documents_type_enum.php` · verificado@dd3ed7c (2026-07-01) — migrations de colunas tipadas (status/expires_at/superseded_by/frontmatter_json) + enum type aplicadas
 
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 6h · status: done · progress: 90% · done_at: 2026-05-04 · session: memory/sessions/2026-05-04-ragas-baseline-infra.md
 
@@ -320,6 +351,8 @@ Etapa 2.5 do plano modular (adiada do PR feat/split-kb). KB hoje é schema gené
 **Acceptance**: migration aplicada · 3 types validados (ADR/Session/Runbook) · webhook rejeita doc inválido · 5 testes Pest.
 
 ### US-COPI-079 · Demo Maiara real — Claude Code + /team-mcp + tela 360°
+
+**Implementado em:** _pendente_ — sessão presencial Wagner+Maiara de validação end-to-end (6 passos + gravação + session log) ainda não realizada (status todo)
 
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 2h · status: todo
 
@@ -337,6 +370,8 @@ Validação de produto end-to-end com user real (Maiara, dev junior). Sessão pr
 
 ### US-COPI-080 · Buffer fix — corrigir o que demo Maiara encontrar
 
+**Implementado em:** _pendente_ — slot reservado (blocked_by US-COPI-079); sem demo executada, não há bug/UX-issue a corrigir (status todo)
+
 > owner: wagner · sprint: 2026-W19 · priority: p2 · estimate: 4h · status: todo · blocked_by: US-COPI-079
 
 Slot reservado pra fix dos bugs/UX issues que aparecerem na demo. Margem de segurança Cycle 01 antes do gate RAGAS.
@@ -344,6 +379,8 @@ Slot reservado pra fix dos bugs/UX issues que aparecerem na demo. Margem de segu
 **Acceptance**: backlog vazio do que veio da demo OR documentado como tech-debt pra Cycle 02 com priority justificada.
 
 ### US-COPI-081 · Sprint 7 RAGAS — gate de medição Cycle 01
+
+**Implementado em:** `app/Console/Commands/EvalRagasBaselineCommand.php` · `memory/sessions/2026-05-04-ragas-baseline-infra.md` · verificado@dd3ed7c (2026-07-01) — comando de eval RAGAS reproduzível + baseline registrado (0.72, 8 ADRs)
 
 > owner: wagner · sprint: 2026-W20 · priority: p0 · estimate: 12h · status: done · done_at: 2026-05-04 · baseline_ragas: 0.72 (8 ADRs, OpenAI gpt-4o-mini) · session: memory/sessions/2026-05-04-ragas-baseline-infra.md
 
@@ -358,6 +395,8 @@ Sprint 7 do roadmap Tier 7-9 (ADR 0037). Gate quantitativo do Cycle 01: provar q
 **Acceptance**: golden set 50q · script RAGAS reproduzível · baseline numérico em ADR ou session log · 3 perguntas+scores como evidência.
 
 ### US-COPI-082 · Sprint 9 retrieval — diagnóstico nomic + fixes (recovery 0.158 → 0.700)
+
+**Implementado em:** `Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php` · `app/Console/Commands/EvalRagasBaselineCommand.php` · `memory/requisitos/Jana/RETRIEVAL-GOTCHAS.md` · verificado@dd3ed7c (2026-07-01) — `withoutSyncingToSearch()` no branch sem mudança + `--semantic-ratio` bypass MySQL FT; score recuperado 0.158→0.700
 
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 6h · status: done · done_at: 2026-05-04 · score_ragas: 0.700 · session: memory/sessions/2026-05-04-sprint9-retrieval-diagnostico.md
 > blocked_by: —
@@ -385,6 +424,8 @@ Sprint 9 fase 2 — investigar regressão score RAGAS 0.66 → 0.158 após troca
 **Acceptance**: score RAGAS recuperado pra ≥0.66 (atingido 0.700) · 3 fixes commitados em prod · 3 docs canônicos de governança em `memory/requisitos/Jana/` · ADR 0068 + 0069 aceitas · session log gravado.
 
 ### US-COPI-083 · Sprint 9b — qwen3-embedding:0.6b + stopwords PT-BR (em par com baseline)
+
+**Implementado em:** `app/Console/Commands/EvalRagasBaselineCommand.php` · `memory/requisitos/Jana/RETRIEVAL-ESTADO-ARTE-2026-05.md` · verificado@dd3ed7c (2026-07-01) — eval matrix qwen3:0.6b + stopwords PT-BR + localizedAttributes; ratio=0.6 vencedor (0.692), model 4b descartado por CPU-only
 
 > owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 4h · status: done · done_at: 2026-05-04 · score_ragas: 0.692 (ratio=0.6 vencedor) · model: qwen3-embedding:0.6b (CT 100 CPU-only)
 > blocked_by: —
@@ -414,6 +455,8 @@ Substituir nomic-embed-text (EN-only, gera cosine ~0.97 uniforme em PT-BR) por q
 
 ### US-COPI-084 · Slash command /ultrareview — code review adversarial automático
 
+**Implementado em:** `.claude/commands/ultrareview.md` · verificado@dd3ed7c (2026-07-01) — slash command com prompt template roleplay "tech lead cético" (bugs/race/LGPD/anti-padrão)
+
 > owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 2h · status: done · done_at: 2026-05-04
 > blocked_by: —
 
@@ -424,6 +467,8 @@ Implementar `.claude/commands/ultrareview.md` que pede ao Claude (ou sub-agent v
 **Acceptance:** Slash command `/ultrareview` em `.claude/commands/` com prompt template estruturado · roleplay "tech lead cético" · output em formato lista priorizada (severity/file:line/fix sugerido) · documentado no HOW_TO_ASK_CLAUDE §3.5 · testado em 1 PR real e reportado.
 
 ### US-COPI-085 · Hook block-destructive — guardrails Bash em produção
+
+**Implementado em:** `.claude/hooks/block-destructive.ps1` · verificado@dd3ed7c (2026-07-01) — hook PreToolUse bloqueia Bash destrutivo (rm -rf, push --force, DROP/DELETE, migrate:fresh)
 
 > owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 3h · status: done · done_at: 2026-05-04 · tests_passing: 14/14
 > blocked_by: —
@@ -436,6 +481,8 @@ Hook PreToolUse em `.claude/settings.json` que bloqueia (exit 2) comandos Bash d
 
 ### US-COPI-086 · Hook pii-redactor — bloquear commit com PII (LGPD)
 
+**Implementado em:** `.claude/hooks/pii-redactor.ps1` · verificado@dd3ed7c (2026-07-01) — hook escaneia `git diff --staged` por CPF/CNPJ/email/cartão e bloqueia com whitelist de fixtures
+
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 3h · status: done · done_at: 2026-05-04 · tests_passing: 10/10
 > blocked_by: —
 
@@ -447,7 +494,9 @@ Hook PreToolUse em Bash (`git commit`) que escaneia `git diff --staged` por rege
 
 ### US-COPI-087 · Sprint 9c — Cross-encoder reranker (qwen3-reranker ou bge-reranker-v2-m3)
 
-> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 6h · status: todo
+**Implementado em:** _parcial_ · `Modules/Jana/Services/Retrieval/BgeReranker.php` · `Modules/Jana/Services/Retrieval/Reranker.php` · `Modules/Jana/Services/Memoria/MeilisearchDriver.php` · verificado@dd3ed7c (2026-07-01) — contrato `Reranker` + `BgeReranker` cross-encoder plugado no driver via `config('copiloto.reranker.driver')` (feature-flag, fetch 2× candidatos); meta ≥0.85 RAGAS + container CT 100 não confirmados (status todo, sobrepõe US-COPI-107)
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 6h
 > blocked_by: US-COPI-083
 
 Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top-3 pra LLM. Meta: superar 0.85 RAGAS.
@@ -466,6 +515,8 @@ Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top
 
 ### US-COPI-088 · BRIEF-A1 — Fix aggregator (in_flight + ADR DATE bug + activity_24h)
 
+**Implementado em:** `database/migrations/2026_05_06_172445_fix_brief_procedure_real_schema.php` · `Modules/Brief/Services/BriefGeneratorService.php` · verificado@dd3ed7c (2026-07-01) — migration corrige o procedure aggregator (DATE bug + mcp_activity_24h + in_flight via mcp_tasks doing/review); validado brief #5 em prod 2026-05-07
+
 > owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 3h · status: done · done_at: 2026-05-07
 > blocked_by: —
 
@@ -481,6 +532,8 @@ Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top
 
 ### US-COPI-089 · BRIEF-A2 — Validar brief-fetch exposto + remover do Hostinger
 
+**Implementado em:** _parcial_ · `Modules/Jana/Mcp/Tools/CyclesActiveTool.php` · `Modules/Jana/Mcp/OimpressoMcpServer.php` · verificado@dd3ed7c (2026-07-01) — validação via chamada tools-list feita (brief-fetch é 1ª tool listada); a remoção do Hostinger virou follow-up US-COPI-094 (gap residual). brief-fetch tool vive no servidor MCP (Brief module gera o payload)
+
 > owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 2h · status: done · done_at: 2026-05-07
 > blocked_by: —
 
@@ -492,12 +545,16 @@ Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top
 
 ### US-COPI-090 · BRIEF-A3 — ADR 0096 superseding parcial 0091 (model real gpt-4o-mini)
 
+**Implementado em:** _pendente_ — ADR canônica documentando o model real (`gpt-4o-mini`, supersede parcial 0091) não foi criada; o número 0096 foi usado por outra ADR (WhatsApp Meta Cloud API). Decisão só no docblock do BriefGeneratorService (status todo)
+
 > owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: todo
 > blocked_by: —
 
 ADR 0091 diz `claude-sonnet-4-6` (custo projetado $0.30/dia). Realidade: usa `gpt-4o-mini` (custo real $0.0004/brief = $0.024/dia, 30× mais barato). Decisão documentada no docblock do BriefGeneratorService mas não em ADR canônica. Atualizar checklist de adoção (5/7 itens já feitos).
 
 ### US-COPI-091 · BRIEF-A4 — Investigar baixa adoção brief-first (2 triggers em 7d)
+
+**Implementado em:** _pendente_ — investigação de adoção (soak 48h pós US-COPI-094) não realizada; blocked_by US-COPI-094 (status todo)
 
 > owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 2h · status: todo
 > blocked_by: US-COPI-094
@@ -506,7 +563,9 @@ Skill `brief-first` Tier A registrou apenas 2 triggers em 7d (alvo ≥90% sessõ
 
 ### US-COPI-092 · GUARD-01 — Schema snapshot Pest test + procedure_drift health-check
 
-> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 3h · status: todo
+**Implementado em:** `Modules/Jana/Tests/Feature/Smoke/ProcedureDriftSnapshotTest.php` · `Modules/Jana/Console/Commands/HealthCheckCommand.php` · verificado@dd3ed7c (2026-07-01) — Pest snapshot de `SHOW CREATE PROCEDURE` + check `procedure_drift` no `jana:health-check` (`checkProcedureDrift()`)
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 3h · status: done
 > blocked_by: US-COPI-088
 
 Auditoria 2026-05-07 BRIEF-A1 revelou que `02-schema-aggregator.sql` no repo divergiu do procedure deployado em prod. Migration `2026_05_06_172445` capturou estado mas spec doc ficou stale. Solução: Pest snapshot test que faz `SHOW CREATE PROCEDURE` + compara hash congelado. CI quebra se diverge → força migration. Adicionar `procedure_drift` ao `jana:health-check`. Política dura `memory/proibicoes.md`: ⛔ DDL só via migration.
@@ -514,6 +573,8 @@ Auditoria 2026-05-07 BRIEF-A1 revelou que `02-schema-aggregator.sql` no repo div
 **Refs:** ADR 0094 §princípio #5 SoC brutal.
 
 ### US-COPI-093 · GUARD-02 — Pest audit ModuleScaffolding
+
+**Implementado em:** `tests/Feature/Audit/ModuleScaffoldingTest.php` · verificado@dd3ed7c (2026-07-01) — Pest itera Modules/* e falha CI se módulo nasce sem InstallController/DataController/ServiceProvider/module.json (allowlist API_ONLY)
 
 > owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 5h · status: done · done_at: 2026-05-07 · tests_passing: 5/5
 > blocked_by: —
@@ -524,7 +585,9 @@ Pest test em `tests/Feature/Audit/ModuleScaffoldingTest.php` que itera Modules/*
 
 ### US-COPI-094 · BRIEF-A2 follow-up — Remover brief-fetch do Hostinger MCP server
 
-> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 2h · status: todo
+**Implementado em:** `Modules/Jana/Http/routes.php` · verificado@dd3ed7c (2026-07-01) — registro do servidor MCP (`Mcp::web`) condicionado a `config('mcp.tools_exposed')` (default false Hostinger, true CT 100); tools MCP só expostas no CT 100 (ADR 0062)
+
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 2h · status: done
 > blocked_by: —
 
 Wagner regra 2026-05-07: MCP roda APENAS no CT 100 (Hostinger lento + crasheia). Atualmente `brief-fetch` está exposto em ambos endpoints. Investigar onde `Mcp::web('/api/mcp', OimpressoMcpServer::class)` registra rota no Hostinger (`Modules/Jana/Http/routes.php:211`). Mover registro pra provider que SÓ boota no CT 100, ou condicionar via `env('MCP_TOOLS_EXPOSED', false)` true em CT 100 false em Hostinger. Schema `mcp_briefs` + service `BriefGeneratorService` continuam em Hostinger (cron + DB local). Tool MCP exposed só em CT 100 (acessa MySQL via SSH tunnel autossh per ADR 0053).
@@ -538,7 +601,8 @@ Wagner regra 2026-05-07: MCP roda APENAS no CT 100 (Hostinger lento + crasheia).
 
 #### US-COPI-095 · EPIC — Cockpit Saúde do Ecossistema
 
-> owner: wagner · sprint: 2026-W21 · priority: p2 · estimate: 12h · status: todo
+**Implementado em:** _parcial_ · `Modules/Jana/Services/HealthSnapshotService.php` · `Modules/Jana/Services/HealthNarratorService.php` · `Modules/Governance/Http/Controllers/DashboardController.php` · `resources/js/Pages/governance/Dashboard.tsx` · verificado@dd3ed7c (2026-07-01) — epic entregue via PIVOT (US-COPI-098): estendeu `/governance` Dashboard em vez de criar `/copiloto/admin/health`; sub-stories 097/098/099 done, 100 (Job hourly) em `doing`
+> owner: wagner · sprint: 2026-W21 · priority: p2 · estimate: 12h
 > blocked_by: US-COPI-096
 
 **Como** superadmin oimpresso (Wagner) **quero** uma tela única `/copiloto/admin/health` que mostre saúde do ecossistema todo **para** detectar incidentes antes do cliente reportar.
@@ -570,7 +634,8 @@ Agrega num lugar só:
 
 #### US-COPI-096 · Setup Horizon — provider + auth gate superadmin + flag CT-only
 
-> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: doing
+**Implementado em:** `app/Providers/HorizonServiceProvider.php` · `config/horizon.php` · verificado@dd3ed7c (2026-07-01) — provider + config publicados com gate `Horizon::auth` superadmin; rota condicionada a flag CT-only (padrão MCP_TOOLS_EXPOSED, ADR 0062)
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: done
 > blocked_by: —
 
 Hoje `laravel/horizon ^5.46` está no `composer.json` mas nunca foi publicado: sem `config/horizon.php`, sem `HorizonServiceProvider`, sem rota `/horizon`. Pacote dormente.
@@ -591,6 +656,7 @@ Hoje `laravel/horizon ^5.46` está no `composer.json` mas nunca foi publicado: s
 
 #### US-COPI-097 · HealthSnapshotService — agregador 4 fontes em 1 JSON estável
 
+**Implementado em:** `Modules/Jana/Services/HealthSnapshotService.php` · `Modules/Jana/Entities/Mcp/McpAuditLog.php` · verificado@dd3ed7c (2026-07-01) — `snapshot(): array` agrega health/queues/mcp/brain_b com degradação graciosa (`available:false`), shape estável
 > owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: done · done_at: 2026-05-09 · tests_passing: 5/5
 > blocked_by: —
 
@@ -619,6 +685,7 @@ Backend service que alimenta a Page Inertia do cockpit (US-COPI-098) e o Brain A
 
 #### US-COPI-098 · /governance Dashboard ganha "Saúde do Ecossistema" (pivot)
 
+**Implementado em:** `Modules/Governance/Http/Controllers/DashboardController.php` · `resources/js/Pages/governance/Dashboard.tsx` · verificado@dd3ed7c (2026-07-01) — 3 fontes (failed_jobs, jana_mensagens 24h, jana_health_narratives top5) via `Schema::hasTable` graceful; KpiGrid Saúde do Ecossistema (Page do módulo Governance)
 > owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 2h · status: done · done_at: 2026-05-09 · tests_passing: 8/8
 > blocked_by: —
 
@@ -635,6 +702,7 @@ Page agora tem 2 fileiras KpiGrid separadas por h2 de seção (Constituição co
 
 #### US-COPI-099 · HealthNarratorService — Brain A horário do Cockpit Saúde
 
+**Implementado em:** `Modules/Jana/Services/HealthNarratorService.php` · `Modules/Jana/Ai/Agents/HealthNarratorAgent.php` · `Modules/Jana/Entities/HealthNarrative.php` · verificado@dd3ed7c (2026-07-01) — `narrate(array $snapshot): HealthNarrative` (gpt-4o-mini canon) com severity info/warning/critical + fallback graceful + hash idempotente
 > owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: done · done_at: 2026-05-09 · tests_passing: 5/5
 > blocked_by: —
 
@@ -653,7 +721,8 @@ Brain A (gpt-4o-mini canônico ADR 0035) recebe snapshot agregado por HealthSnap
 
 #### US-COPI-100 · NarrarSaudeEcosistemaJob — Job hourly + schedule + escalation HITL
 
-> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 30min · status: doing
+**Implementado em:** `Modules/Jana/Jobs/NarrarSaudeEcosistemaJob.php` · `app/Console/Kernel.php` · verificado@dd3ed7c (2026-07-01) — Job `ShouldQueue` orquestra snapshot→narrate→persist; agendado `->job(...)->hourlyAt(30)` no Kernel com escalation critical via Log::single ALERT
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 30min · status: done
 > blocked_by: —
 
 Job que orquestra `HealthSnapshotService::snapshot()` → `HealthNarratorService::narrate()` → persist em `jana_health_narratives`. Schedule hourly em `app/Console/Kernel.php` (live only) no minuto 30 pra evitar conflito com brief/cron pesados.
@@ -721,6 +790,8 @@ Total de gaps Jana convertidos em US-fix: **4 de 4 detectados.**
 
 ### US-COPI-101 · Pages/Jana/Admin/Permissions — UI dedicada CRUD roles+scopes
 
+**Implementado em:** _pendente_ — `PermissionsAdminController` + `resources/js/Pages/Jana/Admin/Permissions/Index.tsx` + rota `/ia/admin/permissions` não existem; gestão segue via painel Spatie genérico (status todo)
+
 > owner: — · sprint: cycle-04 · priority: p1 · estimate: 3h · status: todo · type: story
 > blocked_by: —
 
@@ -746,6 +817,8 @@ Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 2 Permiss
 
 ### US-COPI-102 · Business switcher na sidebar do Chat (UI mid-conversa)
 
+**Implementado em:** _pendente_ — componente `Pages/Jana/_components/BusinessSwitcher.tsx` não existe; `shellPropsFor()` já entrega a lista de businesses, mas o seletor não é renderizado (status todo)
+
 > owner: — · sprint: cycle-04 · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
@@ -769,6 +842,8 @@ Gap detectado por skill `module-completeness-audit` em 2026-05-10 (Dim 1 Multi-i
 **Tags:** completeness-gap, from-skill, audit-2026-05-10
 
 ### US-COPI-103 · Pest cross-tenant biz=99 hardcoded em HitTrackerServiceTest
+
+**Implementado em:** _pendente_ — `Modules/Jana/Tests/Feature/HitTrackerServiceTest.php` existe, mas o teste explícito `testCrossTenantGuardBiz99` (pattern canon biz=1/biz=99) ainda não foi adicionado (status todo)
 
 > owner: — · sprint: cycle-04 · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: —
@@ -800,6 +875,8 @@ test('cross-tenant guard biz=99', function () {
 
 ### US-COPI-104 · Smoke Browser MCP fresh (screenshot+console) para Chat Jana
 
+**Implementado em:** _pendente_ — smoke Browser MCP fresh (screenshot + console clean biz=1) não capturado; `memory/requisitos/Jana/smoke-2026-05-10.md` não existe (status todo)
+
 > owner: — · sprint: cycle-04 · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: —
 
@@ -826,6 +903,8 @@ Salvar em `memory/requisitos/Jana/smoke-2026-05-10.md`.
 **Tags:** completeness-gap, from-skill, audit-2026-05-10, smoke-mcp
 
 ### US-COPI-105 · Jana Chat V2 — block renderer (4 kinds) + streaming + citations + atalhos
+
+**Implementado em:** _pendente_ — refator V2 do `resources/js/Pages/Jana/Chat.tsx` não aplicado: sem block renderer (4 kinds), streaming token-a-token, citations inline ou atalhos (grep zero em Chat.tsx). Backend `sendStream` SSE existe, mas o frontend V2 aguarda gate F1.5 ≥80 do Cowork (status todo)
 
 > owner: wagner · priority: p1 · estimate: 24h · status: todo · type: story
 > blocked_by: —
@@ -871,7 +950,9 @@ Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jan
 
 ### US-COPI-106 · Jana V2 demo — tela navegável apresentável a 1 cliente piloto
 
-> owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/PainelController.php` · `resources/js/Pages/Jana/Painel.tsx` · verificado@dd3ed7c (2026-07-01) — tela Cockpit Analista IA (`/ia/painel`, charter live) existe, mas ainda com `buildMockPayload` (mock data); fluxo navegável real biz=4 + smoke + demo script a cliente piloto não confirmados (status todo)
+
+> owner: wagner · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
 
 Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto apresentado).
@@ -907,7 +988,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-107 · Onda 4 R1 — Reranker BGE-v2-m3 self-host CT 100
 
-> owner: wagner · priority: p0 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: CYCLE-06
+> owner: wagner · priority: p0 · estimate: 12h IA-pair (1.5d) · status: done · type: story · sprint: CYCLE-06
 > blocked_by: — · spawned_from: JANA-10X-016 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §2)
 
 **Como** time IA Jana
@@ -936,7 +1017,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-108 · Onda 4 L1 — Langfuse v3 self-host CT 100 (MULTIPLICADOR)
 
-> owner: wagner · priority: p0 · estimate: 16h IA-pair (2d) · status: todo · type: story · sprint: CYCLE-06
+> owner: wagner · priority: p0 · estimate: 16h IA-pair (2d) · type: story · sprint: CYCLE-06
 > blocked_by: — · spawned_from: JANA-10X-017 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §3)
 
 **Como** time IA Jana + Wagner (governança custo)
@@ -1028,7 +1109,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-111 · Onda 5 V1 — Roadmap timeline UI (SVAR Gantt MIT + sub-issues)
 
-> owner: wagner · priority: p1 · estimate: 32h IA-pair (4d) · status: todo · type: story · sprint: pós-Onda 4
+> owner: wagner · priority: p1 · estimate: 32h IA-pair (4d) · type: story · sprint: pós-Onda 4
 > blocked_by: — (independente, mas C1 charter US-COPI-109 ajuda template) · spawned_from: JANA-10X-022 (ONDA-5-DOSSIER §3)
 
 **Como** Wagner (planejamento) + time MCP (Felipe/Maira/Eliana/Luiz)
@@ -1063,7 +1144,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-112 · Onda 5 H1 — Auto-skeleton handoff-draft (tool MCP)
 
-> owner: wagner · priority: p1 · estimate: 8h IA-pair (1d) · status: todo · type: story · sprint: pós-Onda 4
+> owner: wagner · priority: p1 · estimate: 8h IA-pair (1d) · status: done · type: story · sprint: pós-Onda 4
 > blocked_by: — (H3 `handoff-diff` Onda 3 já em prod desde 2026-05-13) · spawned_from: JANA-10X-020 (ONDA-5-DOSSIER §4)
 
 **Como** Wagner + time MCP (Felipe/Maira/Eliana/Luiz) escrevendo handoffs
@@ -1097,7 +1178,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-113 · Onda 5 S1 — Schema rígido CI validation (SPEC/RUNBOOK/Session/Handoff/Charter)
 
-> owner: wagner · priority: p1 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: pós-Onda 4
+> owner: wagner · priority: p1 · estimate: 12h IA-pair (1.5d) · status: done · type: story · sprint: pós-Onda 4
 > blocked_by: — (estende `adr-lint.yml` + `validate-memory-schema.sh` existentes) · spawned_from: JANA-10X-021 (ONDA-5-DOSSIER §5)
 
 **Como** Wagner + governança canon
@@ -1138,7 +1219,9 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-115 · LGPD jana:retention-purge artisan + DSR Art. 18 §VI + tool MCP lgpd-esquecer-titular
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+**Implementado em:** `Modules/Jana/Console/Commands/RetentionPurgeCommand.php` · `Modules/Jana/Services/Lgpd/DsrService.php` · `Modules/Jana/Mcp/Tools/LgpdEsquecerTitularTool.php` · verificado@dd3ed7c (2026-07-01) — artisan `jana:retention-purge` (com --dry-run/--business/--entity) + serviço DSR esquecimento + tool MCP `lgpd-esquecer-titular`
+
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: —
 
 **Origem:** Audit Sênior Jana 2026-05-25 — G1 P0 (Onda 6).
@@ -1156,7 +1239,9 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-116 · RAGAS canary CI daily 06:00 UTC + 30 golden questions gate
 
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+**Implementado em:** `.github/workflows/jana-ragas-canary.yml` · `.github/workflows/jana-ragas-gate.yml` · `Modules/Jana/Console/Commands/JanaRagasCiCommand.php` · verificado@dd3ed7c (2026-07-01) — workflows CI RAGAS (canary + gate) + comando `jana:ragas-ci-eval`; cron/golden-set/baseline conforme DoD
+
+> owner: — · priority: p0 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 **Origem:** Audit Sênior Jana 2026-05-25 — G2 P0 (Onda 6).
@@ -1174,7 +1259,9 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-117 · Deploy Langfuse self-host CT 100 (ADR 0132)
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+**Implementado em:** _parcial_ · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `docker/langfuse/docker-compose.yml` · `Modules/Jana/Jobs/Telemetry/LangfuseTraceJob.php` · verificado@dd3ed7c (2026-07-01) — client de traces/spans/scores + compose + job de trace existem; deploy vivo CT 100 + OTel GenAI apontando + dashboards + smoke 7d não confirmados (sobrepõe US-COPI-108)
+
+> owner: — · priority: p0 · estimate: 6h · type: story
 > blocked_by: —
 
 **Origem:** Audit Sênior Jana 2026-05-25 — G3 P0 (Onda 6).
@@ -1196,6 +1283,8 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-118 · Tokenizar cores cruas do card-de-prova Pro.tsx (fix ui:lint R1 pré-existente)
 
+**Implementado em:** _pendente_ — fix não aplicado: `resources/js/Pages/Jana/Pro.tsx` ainda tem cores cruas `oklch(...)` + `linear-gradient(135deg…)` (gate ui:lint R1 vermelho pré-existente do #2069); substituição por tokens DS de superfície-dark ainda não feita (status todo)
+
 > owner: — · priority: p1 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
@@ -1212,6 +1301,8 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 ---
 
 ### US-COPI-119 · design:review Fase 2 — juiz LLM (R5/R8/R10 + nota holística + best_of_class)
+
+**Implementado em:** _pendente_ — Fase 2 (juiz LLM que preenche R5/R8/R10 + nota holística + best_of_class no `<Tela>.review.md`) não implementada; custo/infra Tier 0 aguarda decisão [W] (status todo)
 
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story
 > blocked_by: —
@@ -1232,6 +1323,8 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-123 · Remover startMockStream da rota live /ia/dashboard (Cockpit responde mock)
 
+**Implementado em:** _pendente_ — fix não aplicado: `resources/js/Pages/Jana/Cockpit.tsx` ainda define e chama `startMockStream` (linhas ~707/780) na rota live `/ia/cockpit`; falta plugar streaming real (Jana chat/SSE) com fallback (status todo)
+
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 > parent_plan: adr0270-cockpit-mock-kill
@@ -1249,6 +1342,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
 
 ### US-COPI-124 · Escopar delete do ContentReconciler por business_id (healable=false, Tier-0)
+
+**Implementado em:** _pendente_ — fix não aplicado: `Modules/Jana/Services/Reconcile/Reconcilers/ContentReconciler.php` segue `healable=false` (delete global sem `business_id`, Tier-0-inseguro documentado no código); falta escopar o delete + reativar `healable=true` com guard de tenant (status todo)
 
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
@@ -1268,6 +1363,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-COPI-125 · Adicionar kb_node_visibility + filtro ACL pre-retrieval no KbRagService (LGPD)
 
+**Implementado em:** _pendente_ — coluna/tabela `kb_node_visibility` não existe (grep zero em Modules/) e `Modules/KB/Services/KbRagService.php` não aplica ACL row-level pré-retrieve; feature ACL-aware RAG ainda não construída (status todo)
+
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 > parent_plan: kb-acl-aware-rag
@@ -1285,6 +1382,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
 
 ### US-COPI-126 · Propagar renames Copiloto→Jana / MemCofre→SRS nos ~112 PHP em Modules/
+
+**Implementado em:** _pendente_ — rename em massa não propagado: ~115 arquivos PHP em `Modules/` ainda citam `Copiloto` (config keys `copiloto.*`, permissões, comentários); decisão de canonical + propagação segura (namespaces/rotas/views) + testes pós-rename ainda não feitos (status todo)
 
 > owner: — · priority: p0 · estimate: 6h · status: todo · type: story
 > blocked_by: —
@@ -1306,6 +1405,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-COPI-127 · Criar view cliente /copiloto/decisoes/{id}/revisao (LGPD Art.20)
 
+**Implementado em:** _pendente_ — rota + página de revisão de decisão automatizada pro cliente-final (`/copiloto/decisoes/{id}/revisao`) não existe (grep zero nas rotas); só há UI admin do HITL (status todo)
+
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 > parent_plan: hitl-audit-card-ui-copiloto
@@ -1324,6 +1425,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-COPI-128 · Health-check multi_tenant_isolation cego a C3 — ler information_schema + probe cross-tenant READ
 
+**Implementado em:** _pendente_ — fix não aplicado: `HealthCheckCommand::checkMultiTenant()` ainda valida array hard-coded de tabelas + só procura órfãos `business_id IS NULL`; falta ler tabelas do `information_schema` (cobrir C1/C3) + probe de cross-tenant READ real (status todo)
+
 > owner: — · priority: p1 · estimate: 5h · status: todo · type: story
 > blocked_by: —
 
@@ -1337,6 +1440,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 Refs: ADR 0296 (S-1) · ADR 0093 · HealthCheckCommand.php:178.
 
 ### US-COPI-129 · Consertar jana:recall-eval (mock) — golden set estrutura_ok:false, 10 violações
+
+**Implementado em:** _pendente_ — investigação/fix não realizado: `Modules/Jana/Console/Commands/JanaRecallEvalCommand.php` existe e roda, mas o gate `jana:recall-eval --mode=mock` segue vermelho no main (`estrutura_ok:false`, 10 violações); ainda não decidido se golden `tests/eval/recall-golden.yaml` está stale ou se é regressão real (status todo)
 
 > owner: — · priority: p2 · status: todo · type: story
 > blocked_by: —
