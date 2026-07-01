@@ -14,7 +14,7 @@ O módulo "Whatsapp" permite a interação multicanal via WhatsApp, utilizando a
 - Operação no inbox omnichannel com suporte a IG/FB/Email/ML.
 - IA conversacional integrada (Jana) no inbox.
 - Persistência de mensagens e lembretes agendados (LembreteHandler).
-- Implementação de testes abrangentes para garantir performance e segurança.
+- Testes abrangentes de saturação (Wave 26 — `Wave26WhatsappSaturationTest`), idempotência e Tier 0.
 
 ## Gaps  
 - Refinamento e monitoramento contínuo da confiabilidade da integração com o WhatsApp.
