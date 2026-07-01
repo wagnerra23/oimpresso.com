@@ -42,7 +42,7 @@ pii: false
 - `Modules/Connector` + `Modules/Superadmin` — L0 only (só Wagner)
 - `Modules/Governance` + `Modules/ADS` + `Modules/TeamMcp` — L1 governance (só Wagner)
 - **`Modules/NfeBrasil` + `Modules/NFSe` + `Modules/Accounting` + `Modules/RecurringBilling`** — L3 fiscal/financeiro, só Eliana[E] (advogada+financeiro) ou Wagner. Você lê pra suportar; **NÃO mexe sem aprovação**.
-- `Modules/Copiloto/` (Jana IA) — só Wagner ou Luiz[L+C] com par; envolve memória persistente + LGPD
+- `Modules/Jana/` (Jana IA, ex-Copiloto) — só Wagner ou Luiz[L+C] com par; envolve memória persistente + LGPD
 - `memory/decisions/NNNN-*.md` existentes — append-only IRREVOGÁVEL. Pode CRIAR nova com `supersedes:` mas Wagner aprova antes.
 - `memory/governance/CONSTITUTION.md`, `memory/proibicoes.md`, `memory/regras-time.md`, `memory/why-oimpresso.md`, `memory/what-oimpresso.md`, `memory/how-trabalhar.md` — canon Tier 0, só Wagner
 - `.claude/skills/`, `.claude/hooks/`, `.claude/agents/`, `.github/workflows/` — infra governança
