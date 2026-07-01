@@ -35,9 +35,13 @@ const THRESHOLD = parseInt(opt('--threshold', '10'), 10);
 const ENFORCE = flag('--enforce');
 const JSON_OUT = flag('--json');
 
-const MODEL_RANK = { haiku: 1, sonnet: 2, opus: 3 };
+// Tier superior obrigatório (avaliação adversarial SDD 2026-07-01): refutação por
+// modelo IDÊNTICO ao gerador tem correlação de erros — os dois alucinam igual.
+// Igualdade só é aceita no tier MÁXIMO (não existe superior disponível).
+const MODEL_RANK = { haiku: 1, sonnet: 2, opus: 3, fable: 4, mythos: 4 };
+const MAX_RANK = Math.max(...Object.values(MODEL_RANK));
 const rank = (s) => {
-  const m = String(s || '').toLowerCase().match(/haiku|sonnet|opus/);
+  const m = String(s || '').toLowerCase().match(/haiku|sonnet|opus|fable|mythos/);
   return m ? MODEL_RANK[m[0]] : 0;
 };
 
@@ -61,9 +65,11 @@ function validateEntry(e) {
   if (e.pii_scan !== true) v.push('pii_scan != true (repo publico — scan CPF/CNPJ/nomes obrigatorio)');
   if (e.pii_hits !== 0) v.push(`pii_hits=${e.pii_hits} (obrigatorio 0)`);
   if (rank(e.refutador) === 0 || rank(e.gerador) === 0) {
-    v.push(`gerador="${e.gerador}" / refutador="${e.refutador}" sem modelo reconhecivel (haiku|sonnet|opus)`);
+    v.push(`gerador="${e.gerador}" / refutador="${e.refutador}" sem modelo reconhecivel (haiku|sonnet|opus|fable|mythos)`);
   } else if (rank(e.refutador) < rank(e.gerador)) {
-    v.push(`refutador (${e.refutador}) < gerador (${e.gerador}) — exigido modelo >=`);
+    v.push(`refutador (${e.refutador}) < gerador (${e.gerador}) — exigido tier SUPERIOR`);
+  } else if (rank(e.refutador) === rank(e.gerador) && rank(e.gerador) < MAX_RANK) {
+    v.push(`refutador (${e.refutador}) do MESMO tier do gerador (${e.gerador}) — refutação por modelo idêntico correlaciona erros (avaliação 2026-07-01); exigido tier superior (igualdade só no tier máximo)`);
   }
   if (e.tipo === 'anchors') {
     if (e.amostra_pct !== 100) v.push(`tipo=anchors exige amostra_pct=100 (veio ${e.amostra_pct})`);

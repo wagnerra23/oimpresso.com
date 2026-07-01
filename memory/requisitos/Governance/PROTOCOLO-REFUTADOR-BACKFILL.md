@@ -2,7 +2,7 @@
 status: active
 owner: "[W] Wagner"
 module: Governance
-updated_at: "2026-06-12"
+updated_at: "2026-07-01"
 ---
 
 # PROTOCOLO-REFUTADOR-BACKFILL — verificação adversarial de lotes IA (GT-G5)
@@ -18,7 +18,7 @@ PR que **adiciona/modifica >10 arquivos em `memory/requisitos/**`** e cujo conte
 
 1. **Gerador** (Haiku/Sonnet) produz o lote e abre PR **draft**.
 2. **Refutador** sobe em **sessão FRESCA** — zero contexto do gerador (outra sessão/worktree; NUNCA a mesma conversa, nem "continuar de onde parou"). Contexto compartilhado = refutador contaminado = refutação inválida.
-3. **Modelo do refutador ≥ modelo do gerador** (ordem: haiku < sonnet < opus). Gerador Sonnet → refutador Sonnet ou Opus.
+3. **Modelo do refutador de TIER SUPERIOR ao do gerador** (ordem: haiku < sonnet < opus < fable/mythos). Ex.: gerador Opus 4.8 → refutador Fable 5. Igualdade de tier só é aceita quando o gerador já é o tier máximo disponível (não existe superior). _Endurecido 2026-07-01 (antes: ≥) — achado da [avaliação adversarial SDD 2026-07-01](../../sessions/2026-07-01-sdd-avaliacao-adversarial.md): refutação por modelo idêntico tem correlação de erros — gerador e refutador alucinam igual._
 4. **Prompt adversarial canônico:** "Prove que este anchor/claim/BRIEFING está **ERRADO**. Busque evidência no código real em origin/main (paths, git log, testes) — não no texto do PR. Para cada item: CONFIRMADO ou REFUTADO + evidência (path/linha/commit)."
 5. **Amostragem:** anchors (paths, `Implementado em`, US-ids) = **100%** dos itens; prosa destilada (BRIEFINGs, resumos) = **≥30%** dos arquivos do lote, seleção aleatória com seed declarada na evidência.
 6. **Critério de aceite:** `backfill_error_rate = erros_confirmados / itens_verificados < 2%`. Se ≥2% → lote **REPROVADO inteiro**: volta pro gerador, corrige, e o refutador re-verifica o lote todo de novo (não só os itens errados — erro sistemático de prompt costuma estar espalhado).
@@ -27,7 +27,7 @@ PR que **adiciona/modifica >10 arquivos em `memory/requisitos/**`** e cujo conte
 ## 3. Checklist do refutador (copiar pro artefato de evidência)
 
 - [ ] Sessão fresca (sem nenhum contexto do gerador)
-- [ ] Modelo ≥ gerador (haiku < sonnet < opus)
+- [ ] Modelo de tier SUPERIOR ao gerador (haiku < sonnet < opus < fable/mythos; igualdade só no tier máximo)
 - [ ] Amostra: 100% anchors / ≥30% prosa (seed da seleção aleatória declarada)
 - [ ] Cada item verificado contra o código real em origin/main, não contra o diff
 - [ ] Cada REFUTADO anotado com evidência (path + linha/commit + porquê)
@@ -43,7 +43,7 @@ PR que **adiciona/modifica >10 arquivos em `memory/requisitos/**`** e cujo conte
 | `lote_id` | string | ex.: `SA-A5-financeiro-01`, `KL-E3-briefings-02` |
 | `data` | string | `"YYYY-MM-DD"` da refutação |
 | `tipo` | enum | `anchors` \| `prosa` |
-| `gerador` / `refutador` | string | contém `haiku`/`sonnet`/`opus`; refutador ≥ gerador |
+| `gerador` / `refutador` | string | contém `haiku`/`sonnet`/`opus`/`fable`/`mythos`; refutador de tier SUPERIOR ao gerador (igualdade só no tier máximo) |
 | `sessao_fresca` | boolean | tem que ser `true` |
 | `amostra_pct` | number | `anchors` → 100; `prosa` → ≥30 |
 | `itens_verificados` / `erros_confirmados` | integer | base do error_rate |
