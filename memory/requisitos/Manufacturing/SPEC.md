@@ -41,7 +41,7 @@ Então só vê registros com `business_id = A`
 ```
 
 **Implementação:** Controllers fazem `where('business_id', session('business.id'))`  
-**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-MANU-002 · Autorização Spatie `manufacturing.access_recipe`
 
@@ -52,7 +52,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.access_recipe')`  
-**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-MANU-003 · Autorização Spatie `manufacturing.add_recipe`
 
@@ -63,7 +63,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.add_recipe')`  
-**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-MANU-004 · Autorização Spatie `manufacturing.edit_recipe`
 
@@ -74,7 +74,7 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.edit_recipe')`  
-**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
 
 ### R-MANU-005 · Autorização Spatie `manufacturing.access_production`
 
@@ -85,4 +85,4 @@ Então recebe `403 Unauthorized`
 ```
 
 **Implementação:** Controllers checam `$user->can('manufacturing.access_production')`  
-**Testado em:** `Modules/Manufacturing/Tests/Feature/PermissionsTest` (stub pendente)
+**Testado em:** _lacuna — Modules/Manufacturing/Tests/Feature/PermissionsTest não existe (stub pendente; reconciliação 2026-07-01, cobertura a criar)_
