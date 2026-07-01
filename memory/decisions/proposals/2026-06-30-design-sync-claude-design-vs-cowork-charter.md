@@ -186,6 +186,17 @@ Uma sessão foi disparada pra rodar o diagnóstico PROBE 1-4. **Não rodou nenhu
 
 **Estado da remediação:** o worktree `affectionate-vaughan-ef0ce3` JÁ tem a branch gate com o trace hook commitado (`9b580183df`) e a sessão "Code and design integration" lá está **idle** (`isRunning:false`). → **Ação requerida do Wagner:** reabrir o chip a partir de uma sessão FRESCA cujo `cwd` seja o worktree da branch gate (`affectionate-vaughan-ef0ce3`) — essa boota com o trace hook já registrado e pode validamente rodar PROBE 1-4 + des-registrar (Passo 6) no fim. Enquanto isso não acontecer, o **furo #1 segue 🔴 CONFIRMADO no-op** e o Gap 1 segue **mecanicamente aberto** (regra de fechamento acima inalterada — nenhum ponto foi provado mordendo nesta tentativa).
 
+#### CORREÇÃO da remediação — "abrir na pasta gate" é estruturalmente IMPOSSÍVEL (2026-07-01, sessão `amazing-tereshkova-ef9237`)
+
+Uma 2ª tentativa reprovou o mesmo Passo 0 (branch `claude/amazing-tereshkova-ef9237`, sem o trace no `settings.json`; controle positivo já falhou — um `Bash` marcador não apareceu no `pretooluse-trace.log`). Ao investigar o **porquê** de a instrução "abrir na pasta gate" não funcionar, achei a raiz mecânica (git, citável):
+
+- **Todo worktree fresco é cortado de `origin/main`** — `git merge-base origin/main claude/amazing-tereshkova-ef9237` = `1eeb155e3d` = **tip do main**. O harness (chip / "nova sessão") **sempre cria um worktree NOVO off main**; ele **nunca** boota dentro do `affectionate-vaughan-ef0ce3` pré-existente. Logo a remediação acima ("reabrir com cwd = pasta gate") **não é acionável pelo fluxo normal** — não é o Wagner errando.
+- **O ARQUIVO do trace já está no `main`** (`git ls-tree origin/main .claude/hooks/diag-pretooluse-trace.mjs` → blob `63a03e69…`), **mas o REGISTRO dele no `.claude/settings.json` NÃO está no main** (só vive na branch gate). Por isso todo worktree fresco tem o arquivo mas o hook fica **inerte** — sem entrada no `settings.json` de boot, ele não roda pra tool nenhum.
+
+**Consequência pro Eixo B:** pra QUALQUER sessão fresca rodar PROBE 1-4, o **registro** do trace precisaria estar no `settings.json` do `main` (base de todo worktree fresco) — o que significa ligar um hook wildcard em **todas** as sessões (2 PRs: liga na main → roda → desliga), exatamente o que o Passo 6 proíbe manter. Custo desproporcional pra um teste **confirmatório**.
+
+**Recomendação (técnica, não-menu — RECOMENDO e sigo, Wagner valida):** **não** perseguir o trace literal do `DesignSync`. O veredito do furo #1 (**hook por `DesignSync` = no-op; a plataforma não roteia PreToolUse pra essa tool, que é *surfaced-as-skill*, fora da lista de built-in**) já está **CONFIRMADO** por 2 caminhos independentes (baseline do gate-hook com erro nativo + decisão adversarial 12-agentes). Pivotar pro candidato a fix REAL — **gate no matcher `Skill`** (a tool `Skill` É built-in, hooks mordem, e roda em **qualquer** sessão fresca sem precisar do boot especial). Esse fix é implementável + provável pelo fluxo normal branch→PR. Gap 1 permanece **mecanicamente aberto** até um gate REAL (candidato: `Skill`) ser provado mordendo com exit 2.
+
 ## Validação (executada — `node`, não Pest) — status HONESTO
 
 - ✅ **Lógica + E2E do hook** (`block-design-sync-without-optin.test.mjs`): leitura livre; escrita gateada; default-deny de método futuro/ausente; opt-in **endurecido** (furo #2 como regressão); E2E spawn → exit codes reais (write→2, read→0, opt-in→0).
