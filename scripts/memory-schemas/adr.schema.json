@@ -93,6 +93,13 @@
       "uniqueItems": true,
       "default": []
     },
+    "supersedes_partially": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },
+      "uniqueItems": true,
+      "default": [],
+      "description": "ADRs que esta ADR emenda/corrige PARCIALMENTE sem matar (a base permanece lifecycle:ativo). Distingue emenda/errata de substituicao total (ADR 0317). Ex: 0048 supersedes_partially:[0035] rejeita so o Vizra; a stack de IA da 0035 segue canonica. NAO rebaixa o alvo."
+    },
     "related": {
       "type": "array",
       "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },

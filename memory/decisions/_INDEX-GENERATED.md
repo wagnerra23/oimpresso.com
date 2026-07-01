@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **320** arquivos · **304** números únicos · máx **0315**
-- **ADRs ATIVOS (lifecycle ativo): 280** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 258 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 280 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
+- **321** arquivos · **305** números únicos · máx **0317**
+- **ADRs ATIVOS (lifecycle ativo): 281** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 259 · proposto 35 · superseded 23 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 281 · substituido 23 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -33,7 +33,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (320)
+## Todas as ADRs (321)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | superseded | substituido | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -356,3 +356,4 @@ _(íntegra)_
 | 0312 | aceito | ativo | decision | decisions-search volta ao FULLTEXT — hybrid de docs desligado (embedder qwen3 ex |
 | 0313 | aceito | ativo | decision | Financeiro — barra de abas (subnav) UNIFICADA fiel ao protótipo Cowork (supersed |
 | 0315 | aceito | ativo | decision | /design-sync (claude.ai/design) vs. método Cowork+charter: avaliação de adoção + |
+| 0317 | aceito | ativo | meta | Máquina de revisão de ADR — quando rever, via 3 classes de gatilho (evento/incon |
