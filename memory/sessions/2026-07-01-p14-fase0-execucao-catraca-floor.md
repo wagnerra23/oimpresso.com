@@ -1,6 +1,6 @@
 ---
 date: "2026-07-01"
-topic: "P14 Fase 0 EXECUTADO na mesma noite da avaliação 67 — catraca do floor=298 MORDE no required (materialização + fail-red + counterfactuals) + rename dos 6 required sem '(advisory)' (dança zero-window) + 2 métricas armadas de carona (n_quarantine=27, sqlite_corruptors=0)"
+topic: "P14 Fase 0 EXECUTADO — catraca do floor=298 MORDE no required (materialização + fail-red + counterfactuals) + rename dos 6 required sem '(advisory)' + 2 métricas armadas de carona (n_quarantine, sqlite_corruptors)"
 authors: [C]
 type: execucao-sdd
 gatilho: "Wagner — 'Fase 0 — P14, o fix de dias que destrava a confiança em tudo (Fable 5)'"
