@@ -70,6 +70,24 @@ function runScorecard(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// P14 (avaliação 2026-07-01, defeito nº 1): prova o caminho REAL do armed — b.armed===true
+// no BASELINE da fixture, SEM SDD_RATCHET_ARM — pra métrica de fonte externa (floor).
+// Dois counterfactuals: regressão medida morde (floor 299 > 298) E fonte-ausente-com-armada
+// morde (fail-red em vez do skip silencioso que deixava floor=298 ser lei só no papel).
+function runScorecardFloor(fixture) {
+  return (kind) => {
+    const sb = mkdtempSync(join(tmpdir(), `gate-selftest-${fixture}-${kind}-`));
+    try {
+      cpSync(join(FIX, fixture, kind), sb, { recursive: true });
+      mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+      cpSync(script('sdd-scorecard', 'scripts/governance/sdd-scorecard.mjs'), join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'));
+      cpSync(join(ROOT, 'scripts', 'governance', 'knowledge-drift.mjs'), join(sb, 'scripts', 'governance', 'knowledge-drift.mjs'));
+      cpSync(join(ROOT, 'scripts', 'governance', 'anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+      return runNode(join(sb, 'scripts', 'governance', 'sdd-scorecard.mjs'), ['--ratchet'], sb);
+    } finally { rmSync(sb, { recursive: true, force: true }); }
+  };
+}
+
 // memory-health varre process.cwd() (memory/decisions/) e lê o registro de colisões em
 // governance/adr-collisions-baseline.json (ADR 0274 §3) + o baseline de segredos em
 // scripts/governance/.memory-health-baseline.json → mesmo padrão sandbox: fixture (só
@@ -281,6 +299,19 @@ const CATRACAS = [
     id: 'sdd-scorecard',
     run: runScorecard,
     expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): ghost_count/ },
+  },
+  {
+    // P14 — counterfactual da métrica de fonte externa: floor regredido (299>298) morde
+    // pelo caminho real do baseline (armed:true, sem SDD_RATCHET_ARM).
+    id: 'sdd-scorecard-floor',
+    run: runScorecardFloor('sdd-scorecard-floor'),
+    expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): full_suite_pass_rate/ },
+  },
+  {
+    // P14 — fail-red: fonte ausente com métrica ARMADA sai exit 1 (não skip silencioso).
+    id: 'sdd-scorecard-floor-ausente',
+    run: runScorecardFloor('sdd-scorecard-floor-ausente'),
+    expect: { good: /nenhuma regressão/, bad: /ARMADA no baseline.*not_yet_measured/ },
   },
   {
     id: 'memory-health',
