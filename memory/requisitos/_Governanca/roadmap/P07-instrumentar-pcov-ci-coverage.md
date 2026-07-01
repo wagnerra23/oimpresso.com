@@ -2,13 +2,16 @@
 roadmap_item: P07
 slug: instrumentar-pcov-ci-coverage
 onda: 3
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: []
 destrava: [P13]
 related_adrs: [0275, 0279, 0062, 0273]
 esforco_estimado: "0.8d codável (IA-pair) + 3 nightlies (3d relógio) p/ a 1ª medição válida + 14d relógio p/ a catraca C2 contar"
 ---
 # P07 · Instrumentar pcov no CI (destrava coverage_pct / catraca C2)
+
+> **🟡 CÓDIGO-COMPLETO 2026-07-01** — as 6 peças estão no main (`coverage-compute.mjs`, `measureCoverage()`, hardcode substituído, `ct100-fullsuite.sh` emite clover + publica `nightly-coverage.json`, `sdd-scorecard.yml` materializa, meta-teste `sdd-coverage-read.test.mjs`). **pcov verificado presente no container CT100.** Não falta código — falta só a 1ª nightly rodar com pcov (relógio: 3 noites p/ `coverage_pct` virar `measured` e armar a catraca C2).
 
 ## Problema (o que está quebrado, em 2-3 frases)
 A métrica `coverage_pct` do scorecard SDD está `not_yet_measured` porque **nenhuma fonte coleta cobertura de teste**. Sem número, a catraca C2 (cobertura, 14d advisory, FP<5%) não pode nem começar a contar a janela — está bloqueada a montante. O resultado é uma das 7 métricas SDD permanentemente em estado de forma ("vai medir um dia") em vez de medida.
