@@ -6,7 +6,6 @@ status: live
 last_validated: "2026-06-01"
 parent_module: Jana
 related_adrs: [140, 110, 190, 93]
-related_us: [US-COPI-118, US-COPI-119]
 tier: B
 charter_version: 1
 ---

@@ -7,7 +7,6 @@ last_validated: "2026-05-18"
 parent_module: Jana
 parent_adr: memory/decisions/0052-memoria-jana-3-angulos-faturamento.md
 related_adrs: [26, 31, 35, 36, 52, 93, 94, 107, 114]
-related_us: [US-COPI-050, US-COPI-010, US-COPI-011, US-COPI-012]
 related_charters:
   - resources/js/Pages/Jana/Chat.charter.md
   - resources/js/Pages/Jana/Cockpit.charter.md
