@@ -77,6 +77,19 @@ Guarda de não-regressão: só dispara com valor numérico + `armed:true` — de
 3. gate-selftest 42/42 verde em CI.
 4. Zero required com "(advisory)" no nome; `protection-drift` verde com baseline atualizado.
 
+## Execução (2026-07-01 — mesma noite, 2 sessões paralelas coordenadas)
+
+| Fix | PR | Sessão |
+|---|---|---|
+| (a)+(b)+(c)+(e) core — materialização + fail-red + 2 catracas floor + .gitignore | [#3536](https://github.com/wagnerra23/oimpresso.com/pull/3536) | paralela (nostalgic-matsumoto) |
+| (d) PR-1 — shims com nome definitivo | [#3535](https://github.com/wagnerra23/oimpresso.com/pull/3535) | esta (happy-robinson) |
+| (d) flips — contexts novos in, velhos out (swap direto, shims seguraram) | gh api | fora das sessões (Wagner/paralela) |
+| (d) PR-2 — jobs renomeados + shims removidos + watchdog P14b | [#3552](https://github.com/wagnerra23/oimpresso.com/pull/3552) (+#3550 baseline isolado) | paralela (meu #3551 consolidado no par, tamper-safe) |
+| Carona 1 — n_quarantine ARMADO (27, 8 medições) | [#3537](https://github.com/wagnerra23/oimpresso.com/pull/3537) | esta |
+| Carona 2 — sqlite_corruptors ARMADO (0, fusão GT-G3) | [#3548](https://github.com/wagnerra23/oimpresso.com/pull/3548) | esta |
+
+DoD verificado: (1) selftest 46/46 com counterfactuals floor 299>298 + fonte-ausente + corruptor tier-S mordendo pelo caminho real do `armed`; (2) checkout sem órfã → `--ratchet` exit 1 acusando `full_suite_pass_rate` (provado live); (3) zero required com "(advisory)" no nome; (4) `protection-drift` sem 🔴 pós-#3550 (🟡 watchdog fecha no #3552/P14b).
+
 ## Riscos residuais (honestos)
 
 Fetch transiente = vermelho falso (re-run resolve); runs locais de `--ratchet` exigem materialização manual (mensagem traz o one-liner); a confiança termina na órfã — o write-side do CT100 (deploy key) não é verificado pelo required (residual perene do transporte ADR 0279, fora de escopo).
