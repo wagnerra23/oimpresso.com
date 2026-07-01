@@ -1,4 +1,4 @@
-name: Foundation Ratchet
+name: Foundation Ratchet (advisory)
 
 # Catracas "só diminui" da fundação de testes — SDD Semana 0 · frente FV-Q1
 # (memory/sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md §4).
@@ -7,12 +7,13 @@ name: Foundation Ratchet
 # Convenção: marcador `@group legacy-quarantine` exige `quarantine-reason:` a ≤3 linhas.
 #
 # Nasceu ADVISORY (gates novos nunca nascem required — método faseado ADR 0271).
-# PROMOÇÃO A REQUIRED (1º dente SDD em L3 — roadmap Pfr, BLUEPRINT-SDD-ONDA1 Gap 3,
-# decisão Wagner 2026-06-21): este PR remove "advisory" do nome e adiciona o context
-# a governance/required-checks-baseline.json no MESMO PR (ADR 0275 §5). O context fica
-# required em main SÓ após o Wagner-flip (gh api branch protection) ao fim da janela de
-# 14d (7 execuções diárias verdes + 0 falso-positivo; início 2026-06-21, elegível
-# ~2026-07-05). Always-run sem paths em TODO PR. Determinístico, Node puro, sem MySQL.
+# HISTÓRICO: promovido a required em 2026-06-21 (1º dente SDD em L3 — #3143, roadmap Pfr;
+# Wagner pulou a janela de 14d sob autorização explícita "pode fazer") → DEMOVIDO de volta
+# a advisory em 2026-06-30 (ADR 0314 D-1 "poda onda 2 · LEI", #3466 — classificado
+# quality/não-Tier-0, junto de module-grades/E2E/a11y; baseline required 29→22). Continua
+# rodando e mostrando vermelho no PR, só NÃO bloqueia merge. Always-run sem paths em TODO
+# PR. Determinístico, Node puro, sem MySQL. Re-promoção exige reabrir a 0314 pra este item
+# (via janela + flip, NÃO merge no calado — ADR 0275 §5).
 
 on:
   pull_request:
@@ -28,7 +29,7 @@ permissions:
 
 jobs:
   ratchet:
-    name: Foundation ratchet (quarentena/RefreshDatabase/Business::first)
+    name: Foundation ratchet (advisory · quarentena/RefreshDatabase/Business::first)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
