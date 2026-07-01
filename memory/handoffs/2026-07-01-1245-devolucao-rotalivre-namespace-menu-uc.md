@@ -1,3 +1,13 @@
+---
+date: "2026-07-01"
+time: "12:45 BRT"
+slug: devolucao-rotalivre-namespace-menu-uc
+tldr: "Devolução do ROTA LIVRE 'parou': não era sidebar/permissão — 2 bugs. #3488 fecha 500 da lista /sell-return (RouteServiceProvider de módulo poluía o root controller namespace global). #3494 restaura o menu de Ações por linha perdido no rewrite #1032. #3499 charter v7. #3501→#3506 UC-S11+Playwright travam a regressão (ADR 0264). merge-stale (L-27). Aberto: US-COPI-129 (jana:recall-eval)."
+prs: [3488, 3494, 3499, 3501, 3506, 3508]
+related_adrs: [0264-governanca-executavel-trio-dominio-e2e, 0271-revisao-gates-ci-estado-real-required-e-subtracao-segura, 0305-modo-suporte-acesso-cliente]
+next_steps: ["Investigar US-COPI-129 (jana:recall-eval estrutura_ok:false) — sem mexer em Jana sem OK Wagner"]
+---
+
 # Handoff 2026-07-01 12:45 — Devolução ROTA LIVRE: namespace 500 + menu Ações restaurado + UC-S11
 
 ## Estado no fechamento (verificável, incident-driven — não é snapshot de cycle)
