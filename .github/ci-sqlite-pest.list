@@ -153,3 +153,10 @@ tests/Feature/Governance/ProdFlagsCommandTest.php
 # re-resolve rodar de fato no CI (antes skipava em todo lane).
 Modules/PaymentGateway/Tests/Feature/WebhookProcessorLinkageTest.php
 Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookJobTest.php
+
+# Colisão de número de ADR (AdrNumberCollisionTest) — teste PURO de arquivo (lê
+# governance/adr-collisions-baseline.json + glob memory/decisions/, sem DB) → sqlite-safe.
+# Até 2026-07-01 NÃO rodava em lane nenhuma ("suite mente"): não estava aqui, o
+# adr-lint.yml só roda o AdrFrontmatterLinter irmão, e modules-pest não pega
+# tests/Feature/. Repontado pro baseline JSON em #3479 → esta lane passa a exercê-lo per-PR.
+tests/Feature/Memory/AdrNumberCollisionTest.php
