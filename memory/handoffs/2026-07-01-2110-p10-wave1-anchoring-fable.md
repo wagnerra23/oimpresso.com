@@ -1,8 +1,10 @@
 ---
 date: "2026-07-01"
 time: "21:10"
-author: "[CC] Claude (Fable 5)"
-topic: "P10 wave 1 — anchoring em lotes com refutador tier superior: 226 US ancoradas em 4 módulos, 10 PRs, fila A6 materializada"
+slug: p10-wave1-anchoring-fable
+tldr: "P10 wave 1 — anchoring em lotes com refutador Fable tier superior: 226 US ancoradas em 4 módulos (Financeiro/Whatsapp/Jana/OficinaAuto), 10 PRs aguardando merge Wagner, fila A6 materializada; 2 lotes reprovados na rodada 1 (6 erros reais) e re-aprovados pós-correção"
+decided_by: "[CC] Claude (Fable 5)"
+prs: [3530, 3539, 3540, 3541, 3542, 3543, 3544, 3546, 3549]
 related_adrs:
   - 0273-anchor-spec-codigo-formato-canonico-fluxo-novo
   - 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes
