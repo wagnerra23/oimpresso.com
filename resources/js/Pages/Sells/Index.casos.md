@@ -27,7 +27,7 @@ last_run: "2026-06-22"
 ## UC-S11 · Da lista, iniciar a devolução de uma venda
 - **Persona:** Larissa / caixa — cliente traz a peça de volta; iniciar o retorno pro estoque a partir da própria linha da venda, sem procurar outra tela.
 - **Aceite:** Dado a lista carregada com ≥1 venda · Quando abro o menu **Ações da venda** (⋮) da linha e clico **Devolução** · Então o item aponta pra `/sell-return/add/{id}` (formulário de devolução daquela venda → retorno pro estoque).
-- **Teste:** `e2e/sells-index.spec.ts` (Playwright, harness G-3 e2e-gate) — assere o menu ⋮ e o destino da Devolução por role/nome (L-24, sem classe CSS).
+- **Teste:** `e2e/sells-venda-balcao.spec.ts` (Playwright, harness G-3 e2e-gate) — roda após UC-S01 (que cria uma venda real, garantindo ≥1 linha na lista) e assere o menu ⋮ + o destino da Devolução por role/nome (L-24, sem classe CSS).
 - **Regressão que defende:** o menu de Ações por linha existia (commit `d6f4dddcdc`) e sumiu no rewrite Cowork #1032 — drift que deixou a lista React sem o ponto de entrada da devolução (incidente 2026-07-01). Este UC + teste tornam a remoção uma **falha de CI**, não um sumiço silencioso. Refs: #3488 · #3494 · #3499 · [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md).
 - **Status: 🧪** — spec escrito e defendido pelo e2e-gate; volta a ✅ quando `npm run e2e:check` + `npm run casos:results` regravarem o manifesto (G-7, sem fingir prova).
 
