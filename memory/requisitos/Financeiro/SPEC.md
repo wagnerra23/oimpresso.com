@@ -1731,6 +1731,8 @@ Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250
 
 **Implementado em:** `resources/js/Pages/Financeiro/Impostos/Index.tsx` + `Modules/Financeiro/Http/Controllers/ImpostosController.php` · verificado@8a5e9b49c8 (2026-07-01)
 
+**Testado em:** `Modules/Financeiro/Tests/Feature/ImpostosGuardTest.php` (5 GUARDs I1-I5)
+
 **Retro-US (reconciliação código-sem-US, 2026-07-01):** tela F1 entregue no PACOTE-FINANCEIRO-F2 PR-2 e **aprovada [W] 2026-06-10**, mas nunca registrada no SPEC — o `charter-us-lint` (no-new-lie) expôs a tela como órfã quando o charter foi tocado pra declarar `related_prototype`. Esta US registra o entregue; não é escopo novo.
 
 **Entregue (F1):** responder "quanto de imposto vou recolher e quando vence?" numa tela só — estimativa a recolher + calendário de obrigações. Persona: Eliana [E] (financeiro); secundária Larissa (dona). Origem: protótipo Cowork `TelaImpostos` (`prototipo-ui/cowork/financeiro-telas-extras.jsx`); Censo Fiscal 2026-06-09 validou que "impostos a recolher + calendário" não existia em nenhum módulo.
@@ -1738,7 +1740,7 @@ Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250
 **Aceite:** (retro — o que a tela entregue faz)
 - [x] Tela `/financeiro/impostos` renderiza estimativa de impostos a recolher + calendário de obrigações (aprovado [W] 2026-06-10).
 - [x] Multi-tenant Tier 0: dados scoped por `business_id` (ADR 0093).
-- [ ] Pest cobrindo a tela (`@covers-us US-FIN-062`) — dívida herdada da entrega F1, não regressão.
+- [x] Pest cobrindo a tela: `Modules/Financeiro/Tests/Feature/ImpostosGuardTest.php` (5 GUARDs I1-I5, existia desde a entrega) — anotação `@covers-us US-FIN-062` adicionada 2026-07-01.
 
 **Refs:** charter `resources/js/Pages/Financeiro/Impostos/Index.charter.md` · ADR 0093 (Tier 0) · ADR 0094.
 
@@ -1749,13 +1751,16 @@ Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250
 
 **Implementado em:** `resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx` + `Modules/Financeiro/Http/Controllers/AssinaturaController.php` · verificado@8a5e9b49c8 (2026-07-01)
 
+**Testado em:** `Modules/Financeiro/Tests/Feature/AssinaturaAtualizarGuardTest.php` (A1 render + A2 auth guard)
+
 **Retro-US (reconciliação código-sem-US, 2026-07-01):** tela entregue (charter `draft` de 2026-05-31 aguardando [W] revisar Non-Goals/Anti-hooks) referenciando só a task MCP FIN-004 ("Atualizar cobrança ROTA LIVRE" — HITL pendente), que não é US de SPEC. O `charter-us-lint` expôs a órfã. Esta US registra o entregue; não é escopo novo.
 
 **Entregue:** admin/operador altera com segurança **valor**, **ciclo** ou dados de cobrança de uma assinatura ativa. Pareia com o fluxo RecurringBilling (US-RB-043 models); o uso operacional em ROTA LIVRE segue gateado pela task FIN-004 (HITL Wagner).
 
 **Aceite:** (retro — o que a tela entregue faz)
-- [x] Tela `/financeiro/assinatura/atualizar` permite alterar valor/ciclo/dados de cobrança de assinatura ativa.
+- [x] Tela `/financeiro/assinaturas/atualizar` (rota real; charter grafa singular — drift menor) permite alterar valor/ciclo/dados de cobrança de assinatura ativa.
 - [x] Multi-tenant Tier 0: assinatura resolvida com scope `business_id` (ADR 0093).
-- [ ] Charter promovido de `draft` a `live` ([W] revisa Non-Goals/Anti-hooks) + Pest `@covers-us US-FIN-063` — dívida herdada, não regressão.
+- [x] Pest: `Modules/Financeiro/Tests/Feature/AssinaturaAtualizarGuardTest.php` (A1 render Inertia + A2 auth guard) `@covers-us US-FIN-063` — criado 2026-07-01.
+- [ ] Charter promovido de `draft` a `live` ([W] revisa Non-Goals/Anti-hooks) — dívida herdada, não regressão.
 
 **Refs:** charter `resources/js/Pages/Financeiro/AssinaturaAtualizar.charter.md` · ADR 0093 (Tier 0) · ADR UI-0013.
