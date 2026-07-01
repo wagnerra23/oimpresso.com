@@ -1,13 +1,13 @@
 ---
 slug: 0078-constituicao-uma-frase-skill-unidade-evolucao
-number: 0078
+number: 78
 title: "Meta-skill ROI ERP autônomo — skill+missão como unidade operacional (parcialmente superseded por ADR 0079)"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: '2026-05-05'
 module: ads
 quarter: 2026-Q2
 tags: [governance, skills, meta-skill, p0]
