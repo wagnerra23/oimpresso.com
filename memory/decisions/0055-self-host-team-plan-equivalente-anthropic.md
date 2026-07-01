@@ -11,8 +11,9 @@ decided_by:
 decided_at: '2026-04-29'
 quarter: 2026-Q2
 tags: {  }
-supersedes:
-  - '0054'
+supersedes: []
+supersedes_partially:
+  - 0054-pacote-enterprise-busca-memoria-evolucao
 related:
   - '0053'
   - 0053-mcp-server-governanca-como-produto

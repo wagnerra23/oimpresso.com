@@ -11,8 +11,8 @@ decided_by:
 decided_at: '2026-04-29'
 quarter: 2026-Q2
 tags: {  }
-supersedes:
-  - '0036'
+supersedes: []
+supersedes_partially:
   - 0036-replanejamento-meilisearch-first
 related:
   - '0026'

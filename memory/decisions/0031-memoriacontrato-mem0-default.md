@@ -3,18 +3,16 @@ slug: 0031-memoriacontrato-mem0-default
 number: 31
 title: !!binary gJQgYE1lbW9yaWFDb250cmF0b2AgaW50ZXJmYWNlIFBIUCArIGRyaXZlciBkZWZhdWx0IGBNZW0wUmVzdERyaXZlcmA=
 type: adr
-status: superseded
+status: aceito
 authority: canonical
-lifecycle: substituido
+lifecycle: ativo
 decided_by:
   - W
 decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
 supersedes: []
-superseded_by:
-  - '0036'
-  - 0036-replanejamento-meilisearch-first
+superseded_by: []
 triage_2026_05_06_note: MemoriaContrato + Mem0 default substituído por Meilisearch first (driver canônico atual).
 related:
   - '0026'

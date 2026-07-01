@@ -3,10 +3,14 @@ slug: 0036-replanejamento-meilisearch-first
 number: 36
 title: !!binary gJQgUmVwbGFuZWphbWVudG8gY2Fuw7RuaWNvOiBNZWlsaXNlYXJjaCBwcmltZWlybywgTWVtMCBwb3Igw7psdGltbw==
 type: adr
-status: superseded
+status: aceito
 authority: canonical
-lifecycle: substituido
-superseded_by: ['0053-mcp-server-governanca-como-produto']
+lifecycle: ativo
+superseded_by: []
+supersedes_partially:
+  - 0031-memoriacontrato-mem0-default
+  - 0033-vector-store-meilisearch-pgvector-mem0
+  - 0035-stack-ai-canonica-wagner-2026-04-26
 decided_by:
   - W
 decided_at: '2026-04-26'
