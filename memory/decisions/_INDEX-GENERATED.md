@@ -6,9 +6,9 @@
 
 ## Resumo
 - **322** arquivos · **306** números únicos · máx **0317**
-- **ADRs ATIVOS (lifecycle ativo): 283** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 261 · proposto 35 · superseded 22 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 283 · substituido 22 · (vazio) 8 · arquivado 6 · historical 3
+- **ADRs ATIVOS (lifecycle ativo): 287** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 265 · proposto 35 · superseded 18 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 287 · substituido 18 · (vazio) 8 · arquivado 6 · historical 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -65,12 +65,12 @@ _(íntegra)_
 | 0028 | superseded | substituido | decision | ADRs com numeração monotônica e formato Nygard |
 | 0029 | aceito | ativo | decision | Padrão Inertia + React + UltimatePOS pra módulos novos |
 | 0030 | aceito | ativo | decision | Credenciais sensíveis: nunca em git |
-| 0031 | superseded | substituido | decision | `MemoriaContrato` interface PHP + driver default `Mem0RestDriver` |
+| 0031 | aceito | ativo | decision | `MemoriaContrato` interface PHP + driver default `Mem0RestDriver` |
 | 0032 | superseded | substituido | decision | Vizra ADK + Prism PHP como camada de orquestração e wrapper LLM do Copiloto |
-| 0033 | superseded | substituido | decision | Vector store / search backend do oimpresso: pgvector vs Meilisearch+Scout vs Mem |
+| 0033 | aceito | ativo | decision | Vector store / search backend do oimpresso: pgvector vs Meilisearch+Scout vs Mem |
 | 0034 | aceito | ativo | decision | Laravel AI ecosystem 2026: SDK oficial + Boost + MCP + Vizra ADK + alternativas |
 | 0035 | aceito | ativo | decision | Stack-alvo de IA do Copiloto: declaração canônica |
-| 0036 | superseded | substituido | decision | Replanejamento canônico: Meilisearch primeiro, Mem0 por último |
+| 0036 | aceito | ativo | decision | Replanejamento canônico: Meilisearch primeiro, Mem0 por último |
 | 0037 | aceito | ativo | decision | Roadmap de evolução pós-Sprint 5: Tier 5-6 → Tier 7-9 LongMemEval |
 | 0038 | aceito | ativo | decision | Promoção de `6.7-bootstrap` para `main` como branch principal |
 | 0039 | aceito | ativo | decision | Padrão de UI "Chat Cockpit" (3 colunas) para o ERP |
@@ -88,7 +88,7 @@ _(íntegra)_
 | 0051 | aceito | ativo | decision | Schema próprio + adapter pattern + emissão OpenTelemetry GenAI |
 | 0052 | aceito | ativo | decision | `ContextoNegocio` deve expor múltiplos ângulos por métrica (não 1 número) |
 | 0053 | aceito | ativo | decision | MCP server da empresa: governança como produto, não overhead |
-| 0054 | superseded | substituido | decision | Pacote enterprise de busca de memória: por quê + como evolui |
+| 0054 | aceito | ativo | decision | Pacote enterprise de busca de memória: por quê + como evolui |
 | 0055 | aceito | ativo | decision | Self-host Team plan equivalente ao Anthropic Team/Enterprise |
 | 0056 | aceito | ativo | decision | MCP server como fonte única de memória pro Copiloto chat + Claude Code |
 | 0057 | aceito | ativo | decision | Tela `/team-mcp/team`: regras de governança de tokens MCP e distribuição via `.d |

@@ -3,10 +3,10 @@ slug: 0054-pacote-enterprise-busca-memoria-evolucao
 number: 54
 title: !!binary gJQgUGFjb3RlIGVudGVycHJpc2UgZGUgYnVzY2EgZGUgbWVtw7NyaWE6IHBvciBxdcOqICsgY29tbyBldm9sdWk=
 type: adr
-status: superseded
+status: aceito
 authority: canonical
-lifecycle: substituido
-superseded_by: ['0055-self-host-team-plan-equivalente-anthropic']
+lifecycle: ativo
+superseded_by: []
 decided_by:
   - W
   - E
