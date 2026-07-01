@@ -9,8 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Laravel\Mcp\Request;
 use Laravel\Mcp\Response;
 use Laravel\Mcp\Server\Tool;
-use Modules\Jana\Ai\Agents\KbAnswerAgent;
-use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\Jana\Services\Kb\KbAnswerService;
 use Modules\Jana\Services\Summarizer\AutoSummarizerHelper;
 use Throwable;
 
@@ -102,14 +101,22 @@ class KbAnswerTool extends Tool
         // User pode ser null (CLI/test) — `acessiveisPara(null)` filtra só docs
         // públicas (mesmo pattern do DecisionsSearchTool). Em prod o middleware
         // McpAuth injeta user via Bearer token.
+        // Request::user() é Authenticatable|null; os scopes Eloquent + o service
+        // esperam App\User. Em prod McpAuth injeta App\User — narrow explícito
+        // (comportamento idêntico: não-App\User → null → acessiveisPara(null)).
         $user = $request->user();
+        $appUser = $user instanceof \App\User ? $user : null;
+
+        // Pipeline retrieval → síntese vive em KbAnswerService (reusado pelo
+        // RAGAS real-eval — mata a tautologia answer=ground_truth). SoC brutal §5.
+        $svc = app(KbAnswerService::class);
 
         // FASE 1 — Retrieval híbrido determinístico (Princípio 2 Constituição
         // v2: tiered cost — SQL primeiro, IA só na síntese final).
         // Pegamos top 10 docs no DB pra dar margem ao LLM filtrar relevância,
         // mas limitamos citações finais em max_citacoes.
-        $docs = $this->buscarFontes(
-            user: $user,
+        $docs = $svc->retrieve(
+            user: $appUser,
             pergunta: $pergunta,
             categoria: $categoria,
             module: $module,
@@ -125,17 +132,10 @@ class KbAnswerTool extends Tool
         }
 
         // FASE 2 — Síntese IA (laravel/ai SDK, gpt-4o-mini).
-        $blocoFontes = $this->renderFontesParaPrompt($docs);
+        $blocoFontes = $svc->renderFontes($docs);
 
         try {
-            $agent = new KbAnswerAgent(
-                pergunta: $pergunta,
-                fontes: $blocoFontes,
-                maxCitacoes: $maxCitacoes,
-            );
-
-            $response = $agent->prompt($agent->montarPrompt());
-            $texto = trim((string) $response);
+            $texto = $svc->synthesize($pergunta, $blocoFontes, $maxCitacoes);
 
             Log::channel('copiloto-ai')->info('kb-answer', [
                 'pergunta_chars' => strlen($pergunta),
@@ -150,7 +150,7 @@ class KbAnswerTool extends Tool
             if (! str_starts_with($texto, 'Resposta:')) {
                 return Response::text(
                     AutoSummarizerHelper::summarizeAndRender(
-                        $this->fallbackSemIa($pergunta, $docs, $maxCitacoes)
+                        $svc->fallbackSemIa($pergunta, $docs, $maxCitacoes)
                     )
                 );
             }
@@ -168,137 +168,10 @@ class KbAnswerTool extends Tool
 
             return Response::text(
                 AutoSummarizerHelper::summarizeAndRender(
-                    $this->fallbackSemIa($pergunta, $docs, $maxCitacoes)
+                    $svc->fallbackSemIa($pergunta, $docs, $maxCitacoes)
                 )
             );
         }
     }
 
-    /**
-     * Recupera top-K fontes da KB com isolamento multi-tenant + permissões.
-     *
-     * Reusa exatamente os mesmos scopes usados por DecisionsSearchTool e
-     * MemoriaSearchTool — invariante "MCP server (Proxmox) só lê desta
-     * tabela" (MEM-MCP-1.a / ADR 0053).
-     */
-    protected function buscarFontes(
-        ?\App\User $user,
-        string $pergunta,
-        string $categoria,
-        string $module,
-        int $topK,
-    ): \Illuminate\Support\Collection {
-        $businessId = (int) data_get($user, 'business_id', 0);
-
-        // Gap #2 (US-RET-001) — recall HYBRID atrás de flag, fallback FULLTEXT.
-        // Corpus MCP é GLOBAL (sem filtro business_id — verificado no índice CT 100).
-        if (config('copiloto.mcp_search.docs_pipeline', false)) {
-            try {
-                $hybrid = McpMemoryDocument::buscarHybrid(
-                    $pergunta,
-                    $topK,
-                    $user,
-                    $categoria !== 'all' ? $categoria : null,
-                    $module !== '' ? $module : null,
-                    $businessId, // Tier 0 — simétrico ao FULLTEXT (revisão 2026-05-29)
-                );
-                if ($hybrid->isNotEmpty()) {
-                    return $hybrid;
-                }
-            } catch (\Throwable $e) {
-                Log::channel('copiloto-ai')->warning('kb-answer: hybrid falhou, fallback FULLTEXT: '.$e->getMessage());
-            }
-        }
-
-        $query = McpMemoryDocument::query()
-            ->acessiveisPara($user)
-            ->porStatusAtivo(false)   // só docs ativos
-            ->buscarTexto($pergunta);
-
-        if ($businessId > 0) {
-            $query->doBusiness($businessId);
-        }
-
-        if ($categoria !== 'all') {
-            $query->doTipo($categoria);
-        }
-
-        if ($module !== '') {
-            $query->doModulo($module);
-        }
-
-        return $query->limit($topK)->get([
-            'id', 'slug', 'title', 'type', 'module', 'content_md', 'git_path',
-        ]);
-    }
-
-    /**
-     * Renderiza bloco "FONTES" pro prompt do LLM. Cada doc fica como bloco
-     * markdown numerado com slug + title + path + excerpt 400 chars.
-     */
-    protected function renderFontesParaPrompt(\Illuminate\Support\Collection $docs): string
-    {
-        $blocos = [];
-        $i = 1;
-
-        foreach ($docs as $doc) {
-            $path = $doc->git_path ?: "memory/{$doc->type}s/{$doc->slug}.md";
-            $excerpt = $this->extrairExcerpt($doc->content_md ?? '', 400);
-
-            $blocos[] = sprintf(
-                "### Fonte #%d — `%s`\n**%s** _(tipo: %s · módulo: %s)_\nPath: `%s`\n\n%s",
-                $i++,
-                $doc->slug,
-                $doc->title ?? $doc->slug,
-                $doc->type,
-                $doc->module ?? 'core',
-                $path,
-                $excerpt,
-            );
-        }
-
-        return implode("\n\n---\n\n", $blocos);
-    }
-
-    /**
-     * Extrai excerpt pulando frontmatter YAML (mesmo critério do
-     * `McpMemoryDocument::toSearchableArray`).
-     */
-    protected function extrairExcerpt(string $body, int $maxLen): string
-    {
-        $semFrontmatter = preg_replace('/^\s*---\n.*?\n---\n?/s', '', $body);
-        $clean = trim($semFrontmatter ?? '');
-
-        if (mb_strlen($clean) <= $maxLen) {
-            return $clean;
-        }
-
-        return mb_substr($clean, 0, $maxLen) . '...';
-    }
-
-    /**
-     * Fallback determinístico quando IA falha — devolve markdown estruturado
-     * só com snippets recuperados (sem síntese). Garante que a tool nunca
-     * crasha por causa de provider IA indisponível.
-     */
-    protected function fallbackSemIa(
-        string $pergunta,
-        \Illuminate\Support\Collection $docs,
-        int $maxCitacoes,
-    ): string {
-        $topDocs = $docs->take($maxCitacoes);
-
-        $out = "Resposta: Síntese IA indisponível no momento — devolvo os {$topDocs->count()} docs mais relevantes pra \"{$pergunta}\". Confira manualmente.\n\n";
-        $out .= "Citações:\n";
-
-        foreach ($topDocs as $doc) {
-            $path = $doc->git_path ?: "memory/{$doc->type}s/{$doc->slug}.md";
-            $quote = mb_substr(trim(preg_replace('/\s+/', ' ', $doc->content_md ?? '')), 0, 120);
-            $out .= "- [{$doc->slug}]({$path}) — {$quote}\n";
-        }
-
-        $out .= "\nConfiança: baixa";
-
-        return $out;
-    }
 }
