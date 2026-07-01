@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
+         bootstrap="tests/bootstrap.php"
          colors="true"
          cacheDirectory=".phpunit.cache"
          executionOrder="random"
@@ -67,13 +67,9 @@
         </exclude>
     </source>
     <php>
-        <!-- force=true: o container CT100 oimpresso-staging EXPORTA APP_ENV=staging como env
-             var real do SO. Sem force, o <env> do PHPUnit (default force=false) NÃO sobrepõe a
-             var pré-existente, e app()->environment() vira 'staging' no runtime dos testes →
-             runningUnitTests()=false → VerifyCsrfToken PASSA A EXIGIR CSRF → todo POST de teste
-             feature devolve 419 (falso-negativo). Forçar 'testing' restaura o bypass canônico de
-             CSRF do Laravel em teste. CI/local não têm APP_ENV no SO → force é no-op lá. -->
-        <env name="APP_ENV" value="testing" force="true"/>
+        <!-- APP_ENV=testing é garantido em tests/bootstrap.php (ANTES do autoload) porque o
+             container CT100 exporta APP_ENV=staging no SO e o <env> aqui não vence isso. -->
+        <env name="APP_ENV" value="testing"/>
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="CACHE_DRIVER" value="array"/>
         <env name="DB_CONNECTION" value="sqlite"/>
