@@ -275,6 +275,40 @@
       "pii_hits": 0,
       "evidencia": "refutacao (comment no PR #3571) — APROVADO 21/21. Lote 100% _pendente_ (Modules/Pcp e IProduction inexistentes, feature-wish ADR 0152; IProduction removido PR #842). Refutador atacou todas as frentes (migrations pcp_*, rotas, Pages, seeders FSM sem apontar_*, print_label sem QR/HMAC, ProducaoOficinaController sem grouping) e nao achou construcao. anchor-lint coverage 100, dead 0, zombie 0, grammar 21/21.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3577,
+      "lote_id": "SA-A5-P10w2-nfebrasil",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 21,
+      "erros_confirmados": 1,
+      "error_rate_pct": 4.76,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 1 (comment no PR #3577) — REPROVADO 1/21 = 4,8%: US-NFE-041 pendencia FANTASMA (tela Configuracao/Certificado.tsx declarada faltante foi REMOVIDA de proposito na unificacao Wagner 2026-05-27; UI vive em Fiscal/Config.tsx) — anchor induziria recriar tela contra decisao explicita. Lote devolvido (par.2.6).",
+      "veredito": "reprovado"
+    },
+    {
+      "pr": 3577,
+      "lote_id": "SA-A5-P10w2-nfebrasil",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 21,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3577) — 041 preenchido+done verificado a fundo (4 paths, 6/6 cenarios Pest do DoD, redirect 302 testado, badge sidebar superseded com comentario datado modifyAdminMenu zero-entries); 20 restantes byte-identicos. anchor-lint coverage 100, dead 0, zombie 0. Cobre PR #3577.",
+      "veredito": "aprovado"
     }
   ]
 }
