@@ -4,6 +4,8 @@ namespace Modules\Ponto\Tests\Feature;
 
 /**
  * Feature test do Dashboard do PontoWR2.
+ *
+ * @covers-us US-PONT-006
  */
 class DashboardTest extends PontoTestCase
 {

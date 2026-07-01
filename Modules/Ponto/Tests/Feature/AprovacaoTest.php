@@ -2,6 +2,9 @@
 
 namespace Modules\Ponto\Tests\Feature;
 
+/**
+ * @covers-us US-PONT-001
+ */
 class AprovacaoTest extends PontoTestCase
 {
     #[\PHPUnit\Framework\Attributes\Test]
