@@ -28,9 +28,6 @@ last_updated: "2026-05-31"
 ## 2. User stories
 
 ### US-SELL-001 · Epic — Migrar /sells/create pra MWART
-
-**Implementado em:** _parcial_ · `app/Http/Controllers/SellPosController.php` · `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01) — epic; subtasks 005/006/007/053 done, mas 008 (canary) e 009 (cutover+remover Blade) todo
-
 > owner: wagner · priority: p1 · estimate: 28h · status: todo · type: epic · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: —
 
@@ -48,9 +45,6 @@ last_updated: "2026-05-31"
 **Refs:** [RUNBOOK-create.md](RUNBOOK-create.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 
 ### US-SELL-002 · Backend dual Inertia/Blade + feature flag + Pest
-
-**Implementado em:** `app/Http/Controllers/SellPosController.php` · verificado@cd84a38 (2026-07-01)
-
 > owner: wagner · priority: p1 · estimate: 1.5h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: —
 
@@ -71,9 +65,6 @@ last_updated: "2026-05-31"
 - [ ] Rollback: `php artisan sells:enable-v2 {biz} --off` desativa em <30s
 
 ### US-SELL-003 · Frontend skeleton + AppShellV2 + props contract
-
-**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01)
-
 > owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-002
 
@@ -91,9 +82,6 @@ last_updated: "2026-05-31"
 - [ ] PR #N abre flag em biz=1, com flag em biz=4 OFF (Larissa segue Blade)
 
 ### US-SELL-004 · Triagem visibilidade campos (18 → 8 visíveis + 10 colapsáveis)
-
-**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01)
-
 > owner: wagner · priority: p1 · estimate: 0.75h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-003
 
@@ -110,9 +98,6 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 70
 
 ### US-SELL-005 · Produtos — busca + tabela + cálculos
-
-**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · `resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx` · `resources/js/Pages/Sells/_components/ProductLineCard.tsx` · verificado@cd84a38 (2026-07-01)
-
 > owner: wagner · priority: p1 · estimate: 2.5h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-004
 
@@ -134,9 +119,6 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 70
 
 ### US-SELL-006 · Pagamento + frete + descontos colapsáveis
-
-**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · `resources/js/Pages/Sells/_components/PaymentRow.tsx` · verificado@cd84a38 (2026-07-01)
-
 > owner: wagner · priority: p1 · estimate: 1.5h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-005
 
@@ -156,9 +138,6 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 70
 
 ### US-SELL-007 · Atalhos + auto-save draft + estados visuais
-
-**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01)
-
 > owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-006
 
@@ -180,9 +159,6 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 80 (estados completos)
 
 ### US-SELL-008 · QA: audit + smoke biz=1 + canary Wagner 7d + rollback plan
-
-**Implementado em:** _parcial_ · `tests/Feature/Sells/SellPosControllerStoreInvariantsTest.php` · `app/Console/Commands/Sells/SmokeDailyCommand.php` · verificado@cd84a38 (2026-07-01) — falta canary 7d Wagner + backup DB (relogio humano)
-
 > owner: wagner · priority: p0 · estimate: 8h (1h codável + 7d canary humano) · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-007
 
@@ -233,9 +209,6 @@ last_updated: "2026-05-31"
 - [ ] CI rodando em <60s (sem network, sem services externos)
 
 ### US-SELL-053 · FieldError por campo + auto-open details em erro
-
-**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@cd84a38 (2026-07-01)
-
 > owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: design-arte-agent-2026-05-13 · closed: 2026-05-13
 > blocked_by: US-SELL-007
 
@@ -308,9 +281,6 @@ Histórico de comentários por US fica navegável via `/copiloto/admin/qualidade
 > Cadeia criada após pivot conceitual com Wagner: **venda sem nota é caminho feliz, não falha**. US-RB-044 fechada com DoD prod-evidence removida. Padrão FSM (Finite State Machine + RBAC por transição) será reutilizado por Sells, Repair, Project e qualquer feature multi-etapa futura.
 
 ### US-SELL-010 · Investigar State Machines existentes (Repair, Project, mcp_tasks) + propor ADR padrão FSM canônico
-
-**Implementado em:** `memory/decisions/0129-state-machine-canonica-fsm-rbac.md` · verificado@cd84a38 (2026-07-01)
-
 > owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
 > blocked_by: —
 
@@ -512,9 +482,6 @@ transaction_documents
 **Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md), [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md).
 
 ### US-SELL-016 · Multiseleção + ações em lote (imprimir/exportar/agrupar) · **P0**
-
-**Implementado em:** `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/_components/SellsTabelaUnificada.tsx` · verificado@cd84a38 (2026-07-01)
-
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: US-SELL-015
 
@@ -537,9 +504,6 @@ transaction_documents
 **Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (bulk endpoints validam business_id de cada ID).
 
 ### US-SELL-017 · Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
-
-**Implementado em:** _parcial_ · `app/Http/Controllers/SellController.php` · verificado@cd84a38 (2026-07-01) — backend calcula totals mas tfoot frontend removido; ver US-SELL-045 (payload morto)
-
 > owner: — · priority: p0 · estimate: 2h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: US-SELL-015
 
@@ -565,9 +529,6 @@ transaction_documents
 > **Sinal qualificado obtido** via [HEATMAP-CONSOLIDADO.md](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md) — 4 bancos Firebird amostrados (WR Sistemas + Vargas + Extreme + Gold). As prioridades abaixo refletem evidência, não chute. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
 
 ### US-SELL-018 · Filtros multi-data com presets Dia/Semana/Mês/Ano + custom · **P1 confirmado**
-
-**Implementado em:** `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/_components/SellsDateFilter.tsx` · verificado@cd84a38 (2026-07-01)
-
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015
 > evidence: 3-4 campos data com uso real >30% em pelo menos 1 cliente (DT_FATURAMENTO 92% Extreme/Gold · DT_COMPETENCIA 100% Vargas · DT_PROMETIDO 85% Gold). Preset Ano essencial (10+ anos histórico em todos)
@@ -601,9 +562,6 @@ transaction_documents
 **Escopo (a especificar):** 3 colunas badge distintas — `Status Financeiro` (atual), `Status Produção` (depende US-SELL-023), `Status Fiscal` (já existe parcial via US-NFE-MANUAL).
 
 ### US-SELL-021 · Especificação campo "Data" (qual data: emissão / NF / faturamento / competência / prometido) · **P0 (subido!)**
-
-**Implementado em:** `app/Http/Controllers/SellController.php` · verificado@cd84a38 (2026-07-01)
-
 > owner: — · priority: p0 · estimate: 3h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015
 > evidence: DT_PROMETIDO existe e é 85% preenchido em Gold mas **ausente como coluna** em WR2/Vargas/Extreme. Schema OfficeImpresso varia entre instalações — Grade Avançada **não pode hardcodar colunas**, header da coluna Data precisa dropdown dinâmico ler o que existe
@@ -635,9 +593,6 @@ transaction_documents
 **Contexto.** Delphi mostra ENTREGUE/REIMPRESSÃO/EM APROVAÇÃO/ORC APROVA. Requer FSM produção (US-SELL-011 base + processo "Venda com Produção" novo) e mapping → badge. Investigar `AGENDA_TITULO_WORKFLOW` no PR.
 
 ### US-SELL-024 · Campo "venda agrupada" explícito · **P1 (subido!)**
-
-**Implementado em:** `database/migrations/2026_05_12_140001_add_is_grouped_invoice_to_transactions.php` · `app/Http/Controllers/SellController.php` · verificado@cd84a38 (2026-07-01)
-
 > owner: — · priority: p1 · estimate: 2h · status: todo · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015, US-SELL-019
 > evidence: Mesmo sinal de US-SELL-019 (43-65% das linhas com CODFINANCEIRO_GRUPO em todos clientes). Sem coluna explícita `is_grouped_invoice`, o agrupamento fica ambíguo como no Delphi ("ATIVO CRIADO" string)
@@ -1061,9 +1016,6 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 ---
 
 ### US-SELL-045 · Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê
-
-**Implementado em:** _parcial_ · `app/Http/Controllers/SellController.php` · `resources/js/Pages/Sells/Index.tsx` · verificado@cd84a38 (2026-07-01) — bug ativo: backend envia totals mas frontend nunca le; decisao produto pendente
-
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
@@ -1082,9 +1034,6 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase
 ---
 
 ### US-SELL-046 · Bug: viewMode `grade-avancada` órfão — middleware roteia 6 clientes legacy pra UI deletada
-
-**Implementado em:** _parcial_ · `app/Http/Middleware/HandleInertiaRequests.php` · `database/migrations/2026_05_12_180000_add_legacy_origin_to_business.php` · `resources/js/Pages/Sells/Index.tsx` · verificado@cd84a38 (2026-07-01) — bug ativo: middleware roteia grade-avancada mas UI deletada; decisao produto pendente
-
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > blocked_by: —
 
