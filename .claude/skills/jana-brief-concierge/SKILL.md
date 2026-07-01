@@ -28,7 +28,7 @@ related_adrs: [0140, 0141]
 related_files:
   - Modules/Jana/Services/BriefDiarioService.php
   - Modules/Jana/Ai/Agents/BriefDiarioAgent.php
-  - memory/requisitos/Copiloto/RUNBOOK-jana-pro-concierge.md
+  - memory/requisitos/Jana/RUNBOOK-jana-pro-concierge.md
 ---
 
 # jana-brief-concierge — Skill modo Concierge MVP
@@ -233,4 +233,4 @@ Eu peço Wagner buscar via `curl https://oimpresso.com/copiloto/admin/jana-pro/p
 - **[ADR 0141](memory/decisions/0141-agents-tool-use-pattern-claude-code.md)** — Pattern "estilo Claude Code" Camada B v2
 - **`Modules/Jana/Services/BriefDiarioService.php`** — gera o snapshot JSON
 - **`Modules/Jana/Ai/Agents/BriefDiarioAgent.php`** — versão automatizada (dormente até ligar provider)
-- **`memory/requisitos/Copiloto/RUNBOOK-jana-pro-concierge.md`** — playbook operacional (esta sessão)
+- **`memory/requisitos/Jana/RUNBOOK-jana-pro-concierge.md`** — playbook operacional (esta sessão)

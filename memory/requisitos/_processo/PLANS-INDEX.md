@@ -24,7 +24,7 @@ related_adrs: ["0256-knowledge-survival-meia-vida-catraca-sentinela", "0070-jira
 |---|---|---|---|---|---|---|---|
 | [Reestruturação SDD (ondas paralelas)](../../sessions/2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md) | Governance | em-execução | W | 2026-06-12 | 2026-06-20 | US-GOV-016/017/018 | **programa mais ativo do projeto.** Revisão adversarial 30-threads (2026-06-20): composto **65/100**, ~2/3 construído mas **0 gates SDD required**. Caminho crítico: transporte floor CT100→main + pcov. Ver session log `../../sessions/2026-06-20-sdd-avaliacao-30threads.md` (PR #3066) |
 | [PLANO-ATENDIMENTO-AUTOMATICO](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | proposto | W | 2026-06-20 | — | — | aprovar ordem ROI (E1+E2) e criar tasks `parent_plan` |
-| [JANA-PRO-PRODUCT-PLAN](../Copiloto/JANA-PRO-PRODUCT-PLAN.md) | Copiloto | ativo (aprovado) | W | 2026-05-11 | nunca | — | é o E1 do plano acima; iniciar JANA-A ou marcar pausado |
+| [JANA-PRO-PRODUCT-PLAN](../Jana/JANA-PRO-PRODUCT-PLAN.md) | Jana | ativo (aprovado) | W | 2026-05-11 | nunca | — | é o E1 do plano acima; iniciar JANA-A ou marcar pausado |
 | [PLANO_DETALHADO](../Financeiro/PLANO_DETALHADO.md) | Financeiro | em-execução | W | — | nunca | — | "Onda 1 quase fechada" — fechar categorias/plano-contas ou marcar concluído |
 | [PLANO-ONDA5-SIMPLIFICADA](../PaymentGateway/PLANO-ONDA5-SIMPLIFICADA.md) | PaymentGateway | em-execução | W | — | nunca | — | status diz "executado-aguardando-smoke" → rodar smoke e fechar |
 | [ONDA-1-VENDAS-PDV-CAIXA-PLANO](../Mwart/ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) | Mwart | em-execução (F1) | W | — | nunca | — | confirmar fase MWART atual vs doc |
