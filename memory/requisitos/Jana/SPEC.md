@@ -496,7 +496,7 @@ Hook PreToolUse em Bash (`git commit`) que escaneia `git diff --staged` por rege
 
 **Implementado em:** _parcial_ · `Modules/Jana/Services/Retrieval/BgeReranker.php` · `Modules/Jana/Services/Retrieval/Reranker.php` · `Modules/Jana/Services/Memoria/MeilisearchDriver.php` · verificado@dd3ed7c (2026-07-01) — contrato `Reranker` + `BgeReranker` cross-encoder plugado no driver via `config('copiloto.reranker.driver')` (feature-flag, fetch 2× candidatos); meta ≥0.85 RAGAS + container CT 100 não confirmados (status todo, sobrepõe US-COPI-107)
 
-> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 6h · status: todo
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 6h
 > blocked_by: US-COPI-083
 
 Adicionar reranker cross-encoder pós-fetch top-50 do Meilisearch hybrid → top-3 pra LLM. Meta: superar 0.85 RAGAS.
@@ -565,7 +565,7 @@ Skill `brief-first` Tier A registrou apenas 2 triggers em 7d (alvo ≥90% sessõ
 
 **Implementado em:** `Modules/Jana/Tests/Feature/Smoke/ProcedureDriftSnapshotTest.php` · `Modules/Jana/Console/Commands/HealthCheckCommand.php` · verificado@dd3ed7c (2026-07-01) — Pest snapshot de `SHOW CREATE PROCEDURE` + check `procedure_drift` no `jana:health-check` (`checkProcedureDrift()`)
 
-> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 3h · status: todo
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 3h · status: done
 > blocked_by: US-COPI-088
 
 Auditoria 2026-05-07 BRIEF-A1 revelou que `02-schema-aggregator.sql` no repo divergiu do procedure deployado em prod. Migration `2026_05_06_172445` capturou estado mas spec doc ficou stale. Solução: Pest snapshot test que faz `SHOW CREATE PROCEDURE` + compara hash congelado. CI quebra se diverge → força migration. Adicionar `procedure_drift` ao `jana:health-check`. Política dura `memory/proibicoes.md`: ⛔ DDL só via migration.
@@ -587,7 +587,7 @@ Pest test em `tests/Feature/Audit/ModuleScaffoldingTest.php` que itera Modules/*
 
 **Implementado em:** `Modules/Jana/Http/routes.php` · verificado@dd3ed7c (2026-07-01) — registro do servidor MCP (`Mcp::web`) condicionado a `config('mcp.tools_exposed')` (default false Hostinger, true CT 100); tools MCP só expostas no CT 100 (ADR 0062)
 
-> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 2h · status: todo
+> owner: wagner · sprint: 2026-W20 · priority: p1 · estimate: 2h · status: done
 > blocked_by: —
 
 Wagner regra 2026-05-07: MCP roda APENAS no CT 100 (Hostinger lento + crasheia). Atualmente `brief-fetch` está exposto em ambos endpoints. Investigar onde `Mcp::web('/api/mcp', OimpressoMcpServer::class)` registra rota no Hostinger (`Modules/Jana/Http/routes.php:211`). Mover registro pra provider que SÓ boota no CT 100, ou condicionar via `env('MCP_TOOLS_EXPOSED', false)` true em CT 100 false em Hostinger. Schema `mcp_briefs` + service `BriefGeneratorService` continuam em Hostinger (cron + DB local). Tool MCP exposed só em CT 100 (acessa MySQL via SSH tunnel autossh per ADR 0053).
@@ -602,7 +602,7 @@ Wagner regra 2026-05-07: MCP roda APENAS no CT 100 (Hostinger lento + crasheia).
 #### US-COPI-095 · EPIC — Cockpit Saúde do Ecossistema
 
 **Implementado em:** _parcial_ · `Modules/Jana/Services/HealthSnapshotService.php` · `Modules/Jana/Services/HealthNarratorService.php` · `Modules/Governance/Http/Controllers/DashboardController.php` · `resources/js/Pages/governance/Dashboard.tsx` · verificado@dd3ed7c (2026-07-01) — epic entregue via PIVOT (US-COPI-098): estendeu `/governance` Dashboard em vez de criar `/copiloto/admin/health`; sub-stories 097/098/099 done, 100 (Job hourly) em `doing`
-> owner: wagner · sprint: 2026-W21 · priority: p2 · estimate: 12h · status: todo
+> owner: wagner · sprint: 2026-W21 · priority: p2 · estimate: 12h
 > blocked_by: US-COPI-096
 
 **Como** superadmin oimpresso (Wagner) **quero** uma tela única `/copiloto/admin/health` que mostre saúde do ecossistema todo **para** detectar incidentes antes do cliente reportar.
@@ -635,7 +635,7 @@ Agrega num lugar só:
 #### US-COPI-096 · Setup Horizon — provider + auth gate superadmin + flag CT-only
 
 **Implementado em:** `app/Providers/HorizonServiceProvider.php` · `config/horizon.php` · verificado@dd3ed7c (2026-07-01) — provider + config publicados com gate `Horizon::auth` superadmin; rota condicionada a flag CT-only (padrão MCP_TOOLS_EXPOSED, ADR 0062)
-> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: doing
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 1h · status: done
 > blocked_by: —
 
 Hoje `laravel/horizon ^5.46` está no `composer.json` mas nunca foi publicado: sem `config/horizon.php`, sem `HorizonServiceProvider`, sem rota `/horizon`. Pacote dormente.
@@ -722,7 +722,7 @@ Brain A (gpt-4o-mini canônico ADR 0035) recebe snapshot agregado por HealthSnap
 #### US-COPI-100 · NarrarSaudeEcosistemaJob — Job hourly + schedule + escalation HITL
 
 **Implementado em:** `Modules/Jana/Jobs/NarrarSaudeEcosistemaJob.php` · `app/Console/Kernel.php` · verificado@dd3ed7c (2026-07-01) — Job `ShouldQueue` orquestra snapshot→narrate→persist; agendado `->job(...)->hourlyAt(30)` no Kernel com escalation critical via Log::single ALERT
-> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 30min · status: doing
+> owner: wagner · sprint: 2026-W20 · priority: p2 · estimate: 30min · status: done
 > blocked_by: —
 
 Job que orquestra `HealthSnapshotService::snapshot()` → `HealthNarratorService::narrate()` → persist em `jana_health_narratives`. Schedule hourly em `app/Console/Kernel.php` (live only) no minuto 30 pra evitar conflito com brief/cron pesados.
@@ -952,7 +952,7 @@ Refator completo da tela `/jana` aplicando amendment `COWORK_NOTES.amendment-jan
 
 **Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/PainelController.php` · `resources/js/Pages/Jana/Painel.tsx` · verificado@dd3ed7c (2026-07-01) — tela Cockpit Analista IA (`/ia/painel`, charter live) existe, mas ainda com `buildMockPayload` (mock data); fluxo navegável real biz=4 + smoke + demo script a cliente piloto não confirmados (status todo)
 
-> owner: wagner · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: wagner · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
 
 Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto apresentado).
@@ -988,7 +988,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-107 · Onda 4 R1 — Reranker BGE-v2-m3 self-host CT 100
 
-> owner: wagner · priority: p0 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: CYCLE-06
+> owner: wagner · priority: p0 · estimate: 12h IA-pair (1.5d) · status: done · type: story · sprint: CYCLE-06
 > blocked_by: — · spawned_from: JANA-10X-016 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §2)
 
 **Como** time IA Jana
@@ -1017,7 +1017,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-108 · Onda 4 L1 — Langfuse v3 self-host CT 100 (MULTIPLICADOR)
 
-> owner: wagner · priority: p0 · estimate: 16h IA-pair (2d) · status: todo · type: story · sprint: CYCLE-06
+> owner: wagner · priority: p0 · estimate: 16h IA-pair (2d) · type: story · sprint: CYCLE-06
 > blocked_by: — · spawned_from: JANA-10X-017 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §3)
 
 **Como** time IA Jana + Wagner (governança custo)
@@ -1109,7 +1109,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-111 · Onda 5 V1 — Roadmap timeline UI (SVAR Gantt MIT + sub-issues)
 
-> owner: wagner · priority: p1 · estimate: 32h IA-pair (4d) · status: todo · type: story · sprint: pós-Onda 4
+> owner: wagner · priority: p1 · estimate: 32h IA-pair (4d) · type: story · sprint: pós-Onda 4
 > blocked_by: — (independente, mas C1 charter US-COPI-109 ajuda template) · spawned_from: JANA-10X-022 (ONDA-5-DOSSIER §3)
 
 **Como** Wagner (planejamento) + time MCP (Felipe/Maira/Eliana/Luiz)
@@ -1144,7 +1144,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-112 · Onda 5 H1 — Auto-skeleton handoff-draft (tool MCP)
 
-> owner: wagner · priority: p1 · estimate: 8h IA-pair (1d) · status: todo · type: story · sprint: pós-Onda 4
+> owner: wagner · priority: p1 · estimate: 8h IA-pair (1d) · status: done · type: story · sprint: pós-Onda 4
 > blocked_by: — (H3 `handoff-diff` Onda 3 já em prod desde 2026-05-13) · spawned_from: JANA-10X-020 (ONDA-5-DOSSIER §4)
 
 **Como** Wagner + time MCP (Felipe/Maira/Eliana/Luiz) escrevendo handoffs
@@ -1178,7 +1178,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-113 · Onda 5 S1 — Schema rígido CI validation (SPEC/RUNBOOK/Session/Handoff/Charter)
 
-> owner: wagner · priority: p1 · estimate: 12h IA-pair (1.5d) · status: todo · type: story · sprint: pós-Onda 4
+> owner: wagner · priority: p1 · estimate: 12h IA-pair (1.5d) · status: done · type: story · sprint: pós-Onda 4
 > blocked_by: — (estende `adr-lint.yml` + `validate-memory-schema.sh` existentes) · spawned_from: JANA-10X-021 (ONDA-5-DOSSIER §5)
 
 **Como** Wagner + governança canon
@@ -1221,7 +1221,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 **Implementado em:** `Modules/Jana/Console/Commands/RetentionPurgeCommand.php` · `Modules/Jana/Services/Lgpd/DsrService.php` · `Modules/Jana/Mcp/Tools/LgpdEsquecerTitularTool.php` · verificado@dd3ed7c (2026-07-01) — artisan `jana:retention-purge` (com --dry-run/--business/--entity) + serviço DSR esquecimento + tool MCP `lgpd-esquecer-titular`
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: —
 
 **Origem:** Audit Sênior Jana 2026-05-25 — G1 P0 (Onda 6).
@@ -1241,7 +1241,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 **Implementado em:** `.github/workflows/jana-ragas-canary.yml` · `.github/workflows/jana-ragas-gate.yml` · `Modules/Jana/Console/Commands/JanaRagasCiCommand.php` · verificado@dd3ed7c (2026-07-01) — workflows CI RAGAS (canary + gate) + comando `jana:ragas-ci-eval`; cron/golden-set/baseline conforme DoD
 
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 **Origem:** Audit Sênior Jana 2026-05-25 — G2 P0 (Onda 6).
@@ -1261,7 +1261,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 **Implementado em:** _parcial_ · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `docker/langfuse/docker-compose.yml` · `Modules/Jana/Jobs/Telemetry/LangfuseTraceJob.php` · verificado@dd3ed7c (2026-07-01) — client de traces/spans/scores + compose + job de trace existem; deploy vivo CT 100 + OTel GenAI apontando + dashboards + smoke 7d não confirmados (sobrepõe US-COPI-108)
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 6h · type: story
 > blocked_by: —
 
 **Origem:** Audit Sênior Jana 2026-05-25 — G3 P0 (Onda 6).
