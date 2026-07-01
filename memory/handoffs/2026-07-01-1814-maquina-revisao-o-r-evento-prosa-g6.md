@@ -2,7 +2,7 @@
 date: "2026-07-01"
 time: "18:14 BRT"
 slug: maquina-revisao-o-r-evento-prosa-g6
-tldr: "Construída a CAMADA DE DETECÇÃO da máquina de revisão de ADR (ADR 0317) — Check O (morta-mas-canon), EVENTO-prosa (furo 0097), Check R (revisão vencida por TTL) e G6 (watchdog dos 13 crons) — 3 gatilhos evento/inconsistência/tempo + auto-canário generalizado, todos 🟡 sentinela determinística sem bloquear merge. Mais o relabel 0078 morta-por-erro→viva-parcial. 5 PRs mergeados (#3514/#3517/#3518/#3519/#3522). Falta a camada de SURFACING (M3 AdrReviewBriefLineService + quarterlyOn, Onda 3 pt.2) e a Onda 4 (triagem humana das filas que os detectores criaram)."
+tldr: "Camada de DETECÇÃO da máquina de revisão de ADR (ADR 0317) — Check O (morta-mas-canon), EVENTO-prosa (furo 0097), Check R (revisão vencida por TTL) e G6 (watchdog dos 13 crons): os 3 gatilhos + auto-canário generalizado, todos sentinela determinística sem bloquear merge. Mais o relabel 0078 morta-por-erro→viva-parcial. 5 PRs mergeados (#3514/#3517/#3518/#3519/#3522). Falta M3 AdrReviewBriefLineService (surfacing no brief) + Onda 4 (triagem das filas)."
 decided_by: [W]
 prs: [3514, 3517, 3518, 3519, 3522]
 related_adrs:

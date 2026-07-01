@@ -1,8 +1,8 @@
 ---
 date: "2026-07-01"
-hour: "≈16:00–18:14 BRT"
+hour: "18:14 BRT"
 topic: "Máquina de revisão de ADR — camada de detecção (Check O, EVENTO-prosa, Check R, G6) + relabel 0078"
-authors: [wagner, opus]
+authors: [W, C]
 prs: [3514, 3517, 3518, 3519, 3522]
 related_adrs:
   - 0317-maquina-revisao-adr-quando-rever-gatilhos
