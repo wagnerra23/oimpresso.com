@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Comentários inline por título financeiro (Onda 6+ — Comments + Audit DB).
  *
- * Espelha o FinCommentsThread do mock Cowork canon (public/cowork-preview/
+ * Espelha o FinCommentsThread do mock Cowork canon (prototipo-ui/cowork/
  * financeiro-curation.jsx) — antes persistia em localStorage por device,
  * agora persiste em DB sincronizado pra Eliana ↔ Wagner ↔ Bruna.
  *

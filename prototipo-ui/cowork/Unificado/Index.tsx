@@ -14,7 +14,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router, usePage } from '@inertiajs/react';
 import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from 'react';
-// Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
+// Onda 12 (2026-05-19) — paridade 100% canon REAL (prototipo-ui/cowork/oimpresso.com.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
 import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Link as LinkIcon, Eye, FileText } from 'lucide-react';
@@ -1171,7 +1171,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
       <KpiBar kpis={kpis} lancamentos={lancamentos} onLifecycleSelect={(lifecycle) => aplicar({ lifecycle })} />
 
       {/* Onda 12 (2026-05-19) — FinMonthDigest REMOVIDO (não-canon).
-          Wagner pediu paridade 100% com canon REAL (/cowork-preview/Oimpresso ERP - Chat.html),
+          Wagner pediu paridade 100% com canon REAL (prototipo-ui/cowork/oimpresso.com.html),
           que NÃO tem o sub-header "+ Resumo do mês" colapsável (era addition Onda 6 R2 IA).
           Componente FinMonthDigest preservado em _components/ pra possível US futura. */}
 
@@ -2067,7 +2067,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
       </CommandDialog>
 
       {/* Onda 12 (2026-05-19) — footer canon REAL: summary numérica esquerda + atalhos direita.
-          Match com /cowork-preview/Oimpresso ERP - Chat.html:
+          Match com prototipo-ui/cowork/oimpresso.com.html:
           "29 lançamentos · Total entrada: R$ [redacted Tier 0] · Total saída: R$ [redacted Tier 0]" + atalhos */}
       <div className="fin-footer-tips">
         {/* Onda 12 (2026-05-20): footer condicional — quando há bulk select, mostra

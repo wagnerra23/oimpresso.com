@@ -2,7 +2,7 @@
 
 > **Cruzamento gerado:** 2026-05-21
 > **Skill aplicada:** `design-arte` (input pra CAPTERRA-DESIGN-INVENTARIO.md futuro)
-> **Alvo:** protótipo canon Cowork `public/cowork-preview/erp-shell-v2/compras-page.{jsx,css}` + standalone `Compras.html` — F1 pré-MWART (módulo `Modules/Compras` AINDA NÃO EXISTE)
+> **Alvo:** protótipo canon Cowork `prototipo-ui/cowork/compras-page.{jsx,css}` + standalone `Compras.html` — F1 pré-MWART (módulo `Modules/Compras` AINDA NÃO EXISTE)
 > **Persona:** Larissa @ ROTA LIVRE biz=4 (vestuário Termas do Gravatal/SC, 1280px, balcão + telefone, **não-técnica**, 99% volume oimpresso, decora horários e fluxos)
 > **Charter:** ❌ ausente — protótipo Cowork é o único artefato design canon até aqui
 > **Visual-comparison prévio:** ❌ ausente (módulo não migrado; legacy é UltimatePOS `app/Http/Controllers/PurchaseController.php` + 14 Blade views em `resources/views/purchase/*`)
@@ -12,7 +12,7 @@
 
 > ⚠️ **Nota mãe:** este é o **1º artefato canônico de UX do módulo Compras**. Diferente da ficha Cliente (que comparava Inertia W1-B3 já existente vs Blade legacy), aqui comparamos o **protótipo Cowork F1 pré-implementação** vs Blade legacy `purchase/index.blade.php` (10 colunas DataTable Bootstrap, filtros separados em form, modais jQuery, sem KPIs, sem drawer, sem FSM visual) vs **mercado SOTA 2026** (Shopify / Lightspeed / Cin7 / Zoho / Bling / Tiny / Omie / Conta Azul + Linear/Notion pra atalhos). Decisão: aprovar protótipo F1 → screenshot Wagner (F1.5) → entrar MWART F2.
 
-> 🚨 **Premissa Tier 0 imutável:** protótipo Cowork canon vive em `public/cowork-preview/erp-shell-v2/` (NÃO em `_BACKUP-NAO-USAR/` — Wagner ordem 2026-05-20 movendo legados pra quarentena). 3 arquivos canon: `compras-page.jsx` (434 linhas), `compras-page.css` (182 linhas), `Compras.html` (679 linhas, preview standalone idêntico). Loop ADR 0114 funcional pra este módulo desde F1.
+> 🚨 **Premissa Tier 0 imutável:** protótipo Cowork canon vive em `prototipo-ui/cowork/` (NÃO em `_BACKUP-NAO-USAR/` — Wagner ordem 2026-05-20 movendo legados pra quarentena). 3 arquivos canon: `compras-page.jsx` (434 linhas), `compras-page.css` (182 linhas), `Compras.html` (679 linhas, preview standalone idêntico). Loop ADR 0114 funcional pra este módulo desde F1.
 
 ---
 
@@ -239,7 +239,7 @@ Esforço em **H IA-pair fator 10x ADR 0106** (1H IA-pair ≈ 10H humano pré-IA)
 
 Comando concreto:
 ```
-1. Editar D:\oimpresso.com\public\cowork-preview\erp-shell-v2\compras-page.jsx:
+1. Editar D:\oimpresso.com\prototipo-ui\cowork\compras-page.jsx:
    - Adicionar useEffect com keydown handler global: Esc fecha drawer, "/" foca search, "N" simula nova compra, "I" simula importar XML, ↑↓ navega rows
    - <button className="x" aria-label="Fechar detalhes da compra" onClick={close}>
    - <aside className="drawer" role="dialog" aria-modal="true" aria-labelledby="drw-title">
@@ -258,7 +258,7 @@ Comando concreto:
 - **Multi-tenant ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)):** quando virar Inertia, `Modules\Compras\Models\Purchase::where('business_id', ...)` global scope obrigatório; autosave draft (G-CMP-05) precisa chave `{biz}.{user}` — vazar draft de compra entre tenants seria vazamento de fornecedor + preço de custo (PII comercial)
 - **MWART canon ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)):** módulo ainda em F1 (protótipo Cowork). Próximas fases: F1.5 (screenshot Wagner), F2 (Inertia React + Pest), F3 (visual gate), F4 (canary biz=1), F5 (rollout biz=4 + RedirectLegacy)
 - **Visual gate F3 ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)):** F1.5 PENDENTE Wagner — bloqueia início formal MWART
-- **Loop Cowork ↔ Claude Code ([ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) + [`prototipo-ui/PROTOCOL.md`](../../../prototipo-ui/PROTOCOL.md)):** loop funcional — protótipo canon vive em `public/cowork-preview/erp-shell-v2/` (Wagner ordem 2026-05-20 movendo legados pra `_BACKUP-NAO-USAR/`)
+- **Loop Cowork ↔ Claude Code ([ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) + [`prototipo-ui/PROTOCOL.md`](../../../prototipo-ui/PROTOCOL.md)):** loop funcional — protótipo canon vive em `prototipo-ui/cowork/` (Wagner ordem 2026-05-20 movendo legados pra `_BACKUP-NAO-USAR/`)
 - **Charter > Spec (Constituição v2):** charter Compras AINDA NÃO EXISTE — criar com Non-Goals explícitos ANTES de implementar React (evita scope creep tipo "ah, vamos colocar command-K também")
 - **Cliente como sinal ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)):** G-CMP-05 (autosave) tem sinal forte. G-CMP-04 (partial-receive) tem sinal médio-alto (PME varejo). Bulk actions + command-K + onboarding tour **sem sinal Larissa direto** → ADR feature-wish, não US ativa
 - **biz=1 em smoke ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)):** todos Pest novos de Modules/Compras rodam biz=1 ou biz=99. NUNCA biz=4 (Larissa real)
