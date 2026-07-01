@@ -29,7 +29,7 @@
  *
  * Teste PURO de arquivo: lê do disco + assert. Sem banco, sem rede, determinístico.
  * Mecânica espelha AdrFrontmatterLinterTest/AdrFrontmatterTest: base_path() +
- * glob() + Symfony\Component\Yaml\Yaml.
+ * glob() + json_decode (governance/adr-collisions-baseline.json).
  */
 
 const COLLISION_ADR_DIR       = 'memory/decisions';
@@ -145,7 +145,7 @@ it('todo número em collisions_grandfathered realmente colide no disco (sem entr
         $qtd = isset($porNumero[$numero]) ? count($porNumero[$numero]) : 0;
         if ($qtd < 2) {
             $orfas[] = sprintf(
-                'ADR %s está em numbering_collisions mas tem %d arquivo(s) no disco (esperado >= 2)',
+                'ADR %s está em collisions_grandfathered mas tem %d arquivo(s) no disco (esperado >= 2)',
                 $numero,
                 $qtd
             );
