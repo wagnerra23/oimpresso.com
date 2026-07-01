@@ -6,7 +6,6 @@ owner: wagner
 status: live
 last_validated: "2026-05-26"
 parent_module: OficinaAuto
-related_us: [US-OFICINA-001]
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0104-processo-mwart-canonico-unico-caminho
