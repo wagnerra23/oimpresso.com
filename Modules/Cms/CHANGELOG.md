@@ -5,7 +5,6 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
 
 ## [Não publicado]
 
-<<<<<<< HEAD
 ### Wave 28 governance FINAL — Cms polish 71-85 → ≥92 (+7pp) (2026-05-17)
 
 - **ADD D9 span** `SiteContentService::getRenderChromePayload()` — novo método público + span `cms.service.render_chrome` (5º span canon SiteContentService, cumulativo W18 4 + W28 1). Agrega `CmsSiteDetail::getValue` de chaves canon (`site_name` / `logo` / `contact_email` / `social`) num único payload reaproveitável pelo Inertia shell (header/footer site público). Sem `business_id` (site oimpresso.com é GLOBAL — preserva D1 guard Wave 26 IRREVOGÁVEL US-CMS-002).
@@ -16,8 +15,6 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
 - **D3 W28 doc**: CHANGELOG (este entry); BRIEFING.md atualizado próxima sessão (out-of-scope deste agent).
 - **Preservado**: D1 `cms_pages.business_id` AUSENTE canônico (US-CMS-002 schema pendente IRREVOGÁVEL) + D2 W26 Services contract (criar nullable, remover bool, DI Repository, baseQuery canon) + D7 LogsActivity baseline.
 
-=======
-<<<<<<< HEAD
 ### Wave 27 governance — Cms polish 71-85 → ≥88 (2026-05-17)
 
 - **ADD D4/D9.a** `CmsRenderService` (`Modules/Cms/Services/CmsRenderService.php`) —
@@ -43,8 +40,7 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
   detectando drift positivo se alguém adicionar coluna sem ADR.
 - **Total Services Cms agora:** 4 (CmsPageService, CmsLeadService, SiteContentService,
   CmsRenderService) com ≥12 spans OtelHelper canon (zero-cost quando otel.enabled=false).
-=======
->>>>>>> origin/main
+
 ### Wave 26 governance — Cms polish 71→≥85 (+14pp) (2026-05-17)
 
 - **ADD D2** `Tests/Feature/Wave26CmsSaturationTest.php` (~24 cenários):
@@ -54,7 +50,6 @@ Versionamento alinhado a Wave governance ([ModuleGradeService](../Governance/Ser
   - **D6 defer**: CmsPageController::showPage helper `buildPagePayload` private + pre-check 404 ANTES de defer (rollback Wave L/W7 PR #963 preservado) + `OtelHelper::spanBiz('cms.page.render')` + `Inertia::render('Site/Page')` + `showPageLegacy` /old preservado.
   - **D3 docs**: CHANGELOG (este entry) + BRIEFING.md atualizado.
   - **D7 baseline preservado**: Config/retention.php + `LogsActivity` config canon `logOnlyDirty + dontSubmitEmptyLogs`.
->>>>>>> origin/main
 
 ### Wave 25 governance — Cms saturation 71→≥85 (2026-05-16)
 

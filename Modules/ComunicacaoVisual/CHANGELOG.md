@@ -5,15 +5,12 @@
 
 ## [Unreleased]
 
-<<<<<<< HEAD
 ### Added (Wave 28 — 2026-05-17 — SATURATION FINAL functional+AI → ≥92)
 
 - `Tests/Feature/Wave28SaturationTest.php` — D2 cross-tenant defesa Model-level (3 casos source-level): 100% Entities (10/10) declaram `addGlobalScope('business_id', ...)` Tier 0 + Orcamento/OrcamentoItem `boot()` override + Wave 26 LogsActivity preservada em 10/10 (não-regressão audit trail D7). D9 `OrcamentoCalculator::calcular` confirmado `spanBiz('comvis.orcamento.calcular')` + catalog 4 spans canon (1 calculator + 3 ApontamentoTracker).
 - Notes: Tier 0 ADR 0093 reforço Model-level — todas 10 entities ComVis (Material/Substrato/Acabamento/Instalacao/InstalacaoCatalogo/Orcamento/OrcamentoItem/Os/OrdemProducao/Apontamento) com global scope confirmado source-level (grep `addGlobalScope`). ROTA LIVRE biz=4 preservada (Larissa cliente piloto vestuário — ComVis aproximação CNAE 1813-0/01). Tests usam biz=1 (Wagner) + biz=99 (fictício) — ADR 0101.
 - Pattern alinhado Wave 26 (file_get_contents + `class_uses_recursive` + reflexão sem booting Laravel, zero hit MySQL).
 
-=======
-<<<<<<< HEAD
 ### Added (Wave 27 — 2026-05-17 — POLISH FINAL 63-85 → ≥92)
 
 - `Modules/ComunicacaoVisual/Tests/Feature/Wave27ComVisPolishTest.php` — 14 asserts cobrindo D7 fix forensic triplo + D9 spans + D5 README + V5 CHANGELOG + Tier 0 biz=99
@@ -30,8 +27,7 @@
 - biz=99 em fixtures (NUNCA biz=4 PROD).
 - Append-only Apontamento mantido.
 - ADR 0143 FSM canon consumido via cv_ordens_producao (sem mudança W27).
-=======
->>>>>>> origin/main
+
 ### Added (Wave 26 — 2026-05-17 — SATURATION FINAL forensic D7 1/10 → 10/10)
 
 #### Forensic D7=1/10 persistente W25 (raiz catalogada)
@@ -74,7 +70,6 @@ Investigação Wave 26 mapeou três causas independentes que somavam D7=1/10 mes
 | Bucket extras (F1+F2) | parcial | bucket_dimensions atualizado | — |
 
 Score normalizado estimado ≥ **85** (target bucket vertical_client_facing.yaml).
->>>>>>> origin/main
 
 ### Added (Wave 25 — 2026-05-16 — SATURATION restore D7 + D3 + D5)
 - `Modules/ComunicacaoVisual/Tests/Feature/AuditTrailIntegrityTest.php` — 8 testes validando whitelist Spatie ActivityLog NÃO inclui PII (contato_id/observacoes/operador_id) + logName namespaced `comvis.*` + logOnlyDirty/dontSubmitEmptyLogs (D7 forensic restore — regressão Wave 22 detectada)
