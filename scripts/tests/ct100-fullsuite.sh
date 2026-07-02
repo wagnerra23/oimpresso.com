@@ -233,7 +233,14 @@ for attempt in $(seq 1 12); do
       # o arquivo com o teste assassinado na ultima linha. O junit continua o artefato
       # canonico (FV-F1); os eventos sao instrumento de post-mortem, apagados em run
       # valido no passo 7 (disco CT100 ~95%).
-      exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --log-events-text /artifacts/pest-events.txt --colors=never
+      # FV-F1 causa-raiz (diagnostico 2026-07-02): a morte mid-suite dominante e OOM externo
+      # (SIGKILL do LXC), NAO bug de flush — o junit so grava no fim, entao um kill a ~53% deixa
+      # 0 bytes. Prova experimental: a 2a invocacao (coverage) morria a ~53% com 2G e o probe a 6G
+      # ultrapassou folgado (swap estavel). Run 1 (SEM pcov) precisa menos que o Run 2 (6G, com
+      # pcov): 4G da 2x de folga sobre o 2G que matava, preservando RAM do host (disco ~95% +
+      # swap ja apertado). Se uma nightly AINDA morrer a 4G: subir pra 6G (teto provado do Run 2).
+      # Cura duravel = sharding por modulo (pico de memoria por processo), roadmap T1/P07 §riscos.
+      exec php -d memory_limit=4G vendor/bin/pest --log-junit /artifacts/junit.xml --log-events-text /artifacts/pest-events.txt --colors=never
     ' \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
   # Detector 1 — Pest loader: uses(TestCase) file-level dentro de pasta ja vinculada
