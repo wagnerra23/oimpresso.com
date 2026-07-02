@@ -8,6 +8,9 @@
 // Este script congela a lista real em governance/required-checks-baseline.json:
 //   - required que SUMIU do vivo → 🔴 exit 1 (demoção só via PR editando o baseline + ADR)
 //   - required NOVO no vivo      → 🟡 aviso (entrar é permitido; sugerir PR de baseline)
+//   - context MOJIBAKE no vivo   → 🔴 par missing↔extra que é double-encoding UTF-8 um
+//     do outro (incidente 2026-07-02: protection re-postada inline via shell Windows →
+//     "Â·"/"ConstituiÃ§Ã£o" → 10 contexts nunca satisfeitos → todo merge BLOCKED)
 //   - enforcement enfraquecido   → 🔴 (everyone → non_admins = admin bypass liberado)
 // + WATCHDOG: métrica `measured` do governance/sdd-scorecard-baseline.json cuja fonte
 //   (workflow) está sem run verde >48h → 🔴 (canário parado é regressão silenciosa).
@@ -108,19 +111,32 @@ function capture(live) {
   console.log(`  --capture: baseline escrito em governance/required-checks-baseline.json (${live.classic_contexts.length} classic + ${live.ruleset_contexts.length} ruleset @ ${sha}) — commite via PR.`);
 }
 
+// Mojibake = UTF-8 do nome correto decodado como latin1 (double-encoding). Acontece quando
+// a protection é re-postada com payload inline via shell Windows (incidente 2026-07-02:
+// "Â·"/"ConstituiÃ§Ã£o" nos 23 contexts → 10 nunca satisfeitos → todo merge BLOCKED).
+// Detectável: latin1-bytes(torto) decodados como UTF-8 devolvem o nome do baseline.
+function mojibakeDe(torto) {
+  return Buffer.from(torto, 'latin1').toString('utf8');
+}
+
 function compareProtection(live, base) {
   const red = [], warn = [];
   const baseAll = new Set([...(base.classic_protection?.contexts ?? []), ...(base.rulesets?.contexts ?? [])]);
   const liveAll = new Set([...(live.classic_contexts ?? []), ...(live.ruleset_contexts ?? [])]);
   const missing = [...baseAll].filter((c) => !liveAll.has(c)).sort();
   const extra = [...liveAll].filter((c) => !baseAll.has(c)).sort();
-  for (const c of missing) red.push(`required SUMIU do vivo: "${c}" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)`);
-  for (const c of extra) warn.push(`required NOVO no vivo (fora do baseline): "${c}" — entrar é permitido; abrir PR incorporando ao baseline`);
+  const mojibake = extra.filter((e) => missing.includes(mojibakeDe(e))).map((e) => ({ vivo: e, esperado: mojibakeDe(e) }));
+  const mojiMissing = new Set(mojibake.map((p) => p.esperado));
+  const mojiExtra = new Set(mojibake.map((p) => p.vivo));
+  for (const p of mojibake)
+    red.push(`MOJIBAKE double-encoding UTF-8 no vivo: "${p.vivo}" (esperado: "${p.esperado}") — context nunca será satisfeito por check-run nenhum = merge deadlock. Causa típica: protection re-postada com payload inline via shell Windows. Reparo: PUT required_status_checks/contexts com \`gh api --input <arquivo UTF-8 sem BOM>\` gerado de governance/required-checks-baseline.json (proibicoes.md §Ambiente, incidente 2026-07-02)`);
+  for (const c of missing.filter((c) => !mojiMissing.has(c))) red.push(`required SUMIU do vivo: "${c}" — demoção exige PR editando governance/required-checks-baseline.json + ADR (ADR 0275 §5)`);
+  for (const c of extra.filter((c) => !mojiExtra.has(c))) warn.push(`required NOVO no vivo (fora do baseline): "${c}" — entrar é permitido; abrir PR incorporando ao baseline`);
   if (base.enforcement_level === 'everyone' && live.enforcement_level !== 'everyone')
     red.push(`enforcement_level enfraqueceu: baseline "everyone" → vivo "${live.enforcement_level}" (admin bypass liberado)`);
   if (Boolean(base.rulesets?.strict_required_status_checks_policy) !== Boolean(live.ruleset_strict))
     warn.push(`strict_required_status_checks_policy (rulesets) mudou: baseline ${Boolean(base.rulesets?.strict_required_status_checks_policy)} → vivo ${Boolean(live.ruleset_strict)} — refletir via PR de baseline`);
-  return { missing, extra, red, warn };
+  return { missing, extra, mojibake, red, warn };
 }
 
 function watchdog(live) {
@@ -156,7 +172,7 @@ const warns = [...drift.warn, ...wd.warn];
 const verdict = reds.length ? 'red' : warns.length ? 'yellow' : 'green';
 
 if (MODE_JSON) {
-  process.stdout.write(JSON.stringify({ live, drift: { missing: drift.missing, extra: drift.extra }, watchdog: { rows: wd.rows, skipped: wd.skipped ?? null }, reds, warns, verdict }, null, 2) + '\n');
+  process.stdout.write(JSON.stringify({ live, drift: { missing: drift.missing, extra: drift.extra, mojibake: drift.mojibake }, watchdog: { rows: wd.rows, skipped: wd.skipped ?? null }, reds, warns, verdict }, null, 2) + '\n');
   process.exit(reds.length ? 1 : 0);
 }
 

@@ -1,0 +1,33 @@
+{
+  "_meta": "FIXTURE selftest mojibake (incidente 2026-07-02) — estado vivo com os contexts nao-ASCII double-encodados, como o GitHub devolve apos PUT inline via shell Windows. Uso: node scripts/governance/protection-drift.mjs --fixture tests/governance-fixtures/protection-drift-mojibake/live-mojibake.json (esperado: exit 1 + reds MOJIBAKE pra cada par). Sem workflow_runs de proposito: watchdog pula (fixture testa so o compare).",
+  "enforcement_level": "everyone",
+  "classic_contexts": [
+    "ADR 0216 PR scan (governance:audit --diff-only)",
+    "ADR frontmatter",
+    "Append-only canon (ADRs, handoffs, ConstituiÃ§Ã£o)",
+    "Casos-coverage Â· ratchet (trio + rastreabilidade)",
+    "DS gate",
+    "Dominio-dict Â· ratchet (enum â dicionÃ¡rio)",
+    "Frontend / Vite build",
+    "No hardcode business_id (Tier 0)",
+    "No-mock-in-prod Â· ratchet",
+    "PHP / Pest (Financeiro Â· MySQL)",
+    "PHP / Pest (NfeBrasil Â· MySQL)",
+    "PHP / Pest (Unit)",
+    "PHPStan / Larastan Â· ratchet vs baseline",
+    "PII scan (CPF/CNPJ literal)",
+    "SDD scorecard ratchet (mÃ©trica armada nÃ£o regride Â· GT-G3)",
+    "Secret scan (gitleaks Â· sÃ³ linhas novas do PR)",
+    "Tier-0 guards (WithoutGlobalScopes + BusinessId)",
+    "anchor entry/covers gate",
+    "anchor-lint ADR 0273",
+    "charter status:live precisa de sinal de prod",
+    "doneness-lint ADR 0302",
+    "gate selftest (as catracas mordem Â· GT-G6)",
+    "visual-regression"
+  ],
+  "ruleset_contexts": [
+    "Governance Gate (Ã­ndice + memory-health + meta-teste)"
+  ],
+  "ruleset_strict": false
+}
