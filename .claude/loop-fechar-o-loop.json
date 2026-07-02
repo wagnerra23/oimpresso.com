@@ -85,9 +85,11 @@
         "tipo": "manual",
         "como_marcar": "Apos merge do listener + LANGFUSE_ENABLED=true no .env prod + config:cache + 1 trace real de prod visivel na API Langfuse, mudar 'done' para true aqui."
       },
-      "done": false,
+      "done": true,
       "progresso_2026-07-02": "Stack CT 100 UP (6 containers healthy) + emissao IMPLEMENTADA (LangfuseAgentTelemetryListener global nos events laravel/ai — PR branch claude/competent-wu-ec8c52) + smoke E2E staging VERDE (trace brief-diario-agent biz=1, custo $0.0003135, latencia 7s, visto via API). Diagnostico: telemetria morreu 2026-05-11 porque emissao vivia so no responderChat blocking e o trafego migrou pra Agents ADR 0141 + chat streaming. FALTA: merge Wagner + flip LANGFUSE_ENABLED=true + LANGFUSE_DISPATCH=sync no .env prod (fila default NAO tem worker — 32k jobs represados, task spawnada) + config:cache + smoke prod.",
-      "ref": "ADR 0132 + AUDIT-SENIOR-2026-05-25 G3 + IA-MATURITY-FICHA gap#3"
+      "ref": "ADR 0132 + AUDIT-SENIOR-2026-05-25 G3 + IA-MATURITY-FICHA gap#3",
+      "done_em": "2026-07-02",
+      "done_nota": "Fechado com prova em PROD: PR #3607 (LangfuseAgentTelemetryListener global nos events laravel/ai) mergeado + deploy verde + LANGFUSE_ENABLED=true/LANGFUSE_DISPATCH=sync no .env Hostinger + config:cache + smoke real BriefDiarioAgent biz=1 -> trace environment=live na API Langfuse (id 32fb6e2c, custo USD 0.00079545, latencia 18s, business_id=1 em metadata). Telemetria estava morta desde 2026-05-11 (emissao so no responderChat blocking; trafego migrou pra Agents ADR 0141 + streaming). Fila default prod ganhou worker no #3609 (sessao paralela) mas dispatch segue sync (mais simples, fail-open 5s)."
     }
   ]
 }
