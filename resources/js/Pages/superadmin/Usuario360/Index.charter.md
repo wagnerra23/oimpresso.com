@@ -9,6 +9,7 @@ page: /superadmin/usuarios
 component: resources/js/Pages/superadmin/Usuario360/Index.tsx
 last_validated: "2026-05-31"
 parent_module: Superadmin
+related_us: [US-SUPER-010]
 tier: B
 charter_version: 1
 ---

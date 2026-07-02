@@ -5,6 +5,7 @@ owner: wagner
 status: draft
 last_validated: "2026-05-10"
 parent_module: Admin
+related_us: [US-ADM-004, US-ADM-005, US-ADM-006, US-ADM-007, US-ADM-008, US-ADM-015, US-ADM-016, US-ADM-017, US-ADM-018]
 related_adrs: [122, 93, 94, 91, 70, 42, 62]
 tier: A
 charter_version: 1
