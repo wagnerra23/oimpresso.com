@@ -46,11 +46,20 @@ describe('US-GOV-018 Frente A — harness do nightly (DoD A do SPEC)', () => {
     expect(harness).not.toMatch(/-e\s+FULLSUITE_FK_OFF=1/);
   });
 
-  it('FV-F1: --log-junit SEMPRE presente (com e sem pcov — coverage é aditivo, nunca substitui)', () => {
-    const junitCalls = harness.match(/vendor\/bin\/pest [^\n]*--log-junit/g) ?? [];
-    const pestCalls = harness.match(/exec php [^\n]*vendor\/bin\/pest/g) ?? [];
-    expect(pestCalls.length).toBeGreaterThan(0);
-    expect(junitCalls.length).toBe(pestCalls.length);
+  it('FV-F1: diagnóstico tem --log-junit; coverage roda SEPARADO e nunca toca o junit (arquitetura 2 invocações — incidente 20260702-073601)', () => {
+    // Contrato (ADR 0275 §2 + P07 kill-criteria, revisto 2026-07-02): a 1ª nightly com
+    // pcov no MESMO processo morreu aos 53% e levou o junit junto (0 bytes) = noite de
+    // floor perdida. Regra estrutural: (a) o run diagnóstico canônico escreve o junit;
+    // (b) o run de coverage é uma 2ª invocação que NUNCA passa --log-junit (clobberaria
+    // o artefato do run 1); (c) o pcov NUNCA volta pro processo do diagnóstico.
+    const pestCalls = harness.match(/exec php [^\n]*vendor\/bin\/pest[^\n]*/g) ?? [];
+    const diagCalls = pestCalls.filter((c) => c.includes('--log-junit /artifacts/junit.xml'));
+    const covCalls = pestCalls.filter((c) => c.includes('--coverage-clover'));
+    expect(diagCalls.length).toBe(1); // diagnóstico canônico único
+    expect(covCalls.length).toBe(1); // coverage separado único
+    diagCalls.forEach((c) => expect(c).not.toMatch(/pcov\.enabled/)); // (c) pcov fora do diagnóstico
+    covCalls.forEach((c) => expect(c).not.toMatch(/--log-junit/)); // (b) nunca clobbera o junit
+    expect(pestCalls.length).toBe(2); // nenhuma 3ª invocação fantasma
   });
 });
 
