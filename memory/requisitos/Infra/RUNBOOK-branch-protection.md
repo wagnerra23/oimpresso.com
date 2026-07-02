@@ -1,8 +1,24 @@
+---
+title: "Branch protection main — required checks + janela de force-push segura"
+owner: "W"
+status: "ativo"
+last_validated: "2026-07-02"
+preconditions:
+  - "gh autenticado com admin no repo (Wagner)"
+  - "governance/required-checks-baseline.json atualizado (fonte única dos 23+ contexts)"
+steps:
+  - "Aplicar/alterar protection: §Como aplicar (payload SEMPRE via --input arquivo UTF-8 sem BOM)"
+  - "Janela de force-push (history rewrite): §Janela de force-push + restauração segura"
+  - "Validar pós-PUT: node scripts/governance/protection-drift.mjs (byte-compare vs baseline)"
+---
+
 # RUNBOOK — Branch protection com required checks (US-INFRA-011)
 
 > **Status:** receita Wagner-only (aprovação UI/API)
 > **Branch alvo:** `main` (e `6.7-react` legacy)
 > **Decisão:** [ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) governance · [ADR 0095](../../decisions/0095-skills-tiers-convencao-interna.md) lifecycle
+>
+> ⚠️ **ATUALIZAÇÃO 2026-07-02:** os exemplos históricos abaixo (era US-INFRA-011) mostram `contexts: ["ADR frontmatter"]` — **NÃO copie esse payload hoje.** A lista canônica vive em [`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json) (23 classic + rulesets, ADR 0275 §5). Re-postar a protection com lista menor = demoção em massa (o sentinela `protection-drift` acusa 🔴). E **NUNCA** monte o payload inline no shell Windows — ver §Janela de force-push (incidente mojibake 2026-07-02).
 
 ## O quê
 
@@ -74,6 +90,42 @@ EOF
 gh api repos/wagnerra23/oimpresso.com/branches/main/protection --jq .required_status_checks
 # Esperado: {"strict":true,"contexts":["ADR frontmatter"]}
 ```
+
+## Janela de force-push + restauração segura (history rewrite)
+
+> Fluxo usado nos rewrites de `main` (BRL 2026-06-08 · CNPJ 2026-07-02). **Origem desta seção:** incidente 2026-07-02 ~11:22–11:59 UTC — na restauração, os 23 contexts foram re-postados com payload inline pelo shell Windows → double-encoding UTF-8 (`PHPStan / Larastan Â· ratchet vs baseline`, `ConstituiÃ§Ã£o`) → os 10 contexts não-ASCII nunca eram satisfeitos → **todo merge em main deadlockado** (`mergeStateStatus BLOCKED` com 54/54 checks verdes). Regra Tier 0 em [`memory/proibicoes.md` §Ambiente](../../proibicoes.md).
+
+Pré-requisitos: aprovação explícita Wagner (R10) + PRs abertos catalogados (vão precisar de rebase pós-rewrite).
+
+1. **Snapshot do estado vivo ANTES de abrir a janela** (prova + material de restauração):
+   ```bash
+   gh api repos/wagnerra23/oimpresso.com/branches/main/protection > protection-snapshot.json
+   node scripts/governance/protection-drift.mjs   # deve estar 🟢 antes de mexer
+   ```
+2. **Abrir a janela** — remover a protection (DELETE) OU só habilitar force-push, conforme o caso:
+   ```bash
+   gh api -X DELETE repos/wagnerra23/oimpresso.com/branches/main/protection
+   ```
+3. **Force-push** sempre `--force-with-lease` amarrado no SHA esperado (se main avançar durante a operação — sessão paralela — a lease rejeita; refazer do clone fresco, NUNCA `--force` cru).
+4. **Restaurar a protection — payload SEMPRE via arquivo, NUNCA inline:**
+   ```bash
+   # Gerar o body a partir do baseline canônico (UTF-8 SEM BOM — io.open já grava assim):
+   python -c "
+   import json, io
+   b = json.load(io.open('governance/required-checks-baseline.json', encoding='utf-8'))
+   body = {'strict': True, 'contexts': b['classic_protection']['contexts']}
+   io.open('/tmp/contexts.json','w',encoding='utf-8').write(json.dumps(body, ensure_ascii=False))
+   "
+   gh api -X PUT repos/wagnerra23/oimpresso.com/branches/main/protection/required_status_checks --input /tmp/contexts.json
+   # (ou o PUT completo de .../protection com o protection-snapshot.json do passo 1 como base — também via --input)
+   ```
+   ⛔ **PROIBIDO:** `-f contexts[]=...`, heredoc no PowerShell/cmd, ou qualquer JSON montado inline pelo shell Windows — PS 5.1/cmd re-encodam não-ASCII e o GitHub grava mojibake. Vale pra QUALQUER endpoint que receba nome de check (`·` U+00B7 está em 8 dos 23 contexts).
+5. **Validar por BYTES, não por contagem** — GET mostrando "23 contexts" NÃO prova nada (mojibake preserva a contagem):
+   ```bash
+   node scripts/governance/protection-drift.mjs   # 🟢 obrigatório; 🔴 MOJIBAKE aponta o par torto→esperado + reparo
+   ```
+   Conferir também `enforce_admins`, `required_linear_history` e `allow_force_pushes: false` de volta (diff do GET vs snapshot do passo 1).
+6. **Registrar** (Regra Primária "mexeu, registra"): session log com janela aberta/fechada + SHAs velho→novo + PRs que precisam rebase.
 
 ## Risco / rollback
 
