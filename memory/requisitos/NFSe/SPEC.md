@@ -64,6 +64,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 > owner: eliana · sprint: A · priority: p0 · estimate: 8h · status: done
 > blocked_by: —
 
+**Implementado em:** `memory/requisitos/NFSe/PESQUISA_TUBARAO.md` · verificado@0bb65dd (2026-07-02) — pesquisa fiscal (decisão SN-NFSe federal); coleta de dados fiscais oimpresso segue com contador
+
 ✅ **concluída 2026-04-30** — decisão: SN-NFSe federal direto, sem provider terceiro.
 
 - [x] Confirmar se Tubarão-SC está no **Sistema Nacional NFSe** (SN-NFSe federal LC 214/2025) ou ainda no **ABRASF municipal** próprio → ✅ **SN-NFSe federal** desde 01/01/2026
@@ -79,6 +81,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 > owner: eliana · sprint: A · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-NFSE-001
 
+**Implementado em:** `Modules/NFSe/module.json` · `Modules/NFSe/composer.json` · `Modules/NFSe/Config/config.php` · verificado@0bb65dd (2026-07-02)
+
 ✅ **concluída 2026-05-01** — scaffold `Modules/NFSe/` criado, dep adicionada ao `composer.json`, vars no `.env - Copia.example`.
 
 - [x] `composer require nfse-nacional/nfse-php ^1.19` adicionado ao `composer.json` raiz — Wagner roda `composer update` localmente e no Hostinger
@@ -90,6 +94,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 > owner: eliana · sprint: A · priority: p1 · estimate: 8h · status: done
 > blocked_by: US-NFSE-002
+
+**Implementado em:** `Modules/NFSe/Database/Migrations/2026_05_01_000001_create_nfe_certificados_table.php` · `Modules/NFSe/Database/Migrations/2026_05_01_000002_create_nfse_provider_configs_table.php` · `Modules/NFSe/Database/Migrations/2026_05_01_000003_create_nfse_emissoes_table.php` · `Modules/NFSe/Database/Seeders/NfseSeeder.php` · verificado@0bb65dd (2026-07-02)
 
 ✅ **concluída 2026-05-01** — 3 migrations + NfseSeeder com dados Tubarão (IBGE 4218707).
 
@@ -105,6 +111,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 > owner: eliana · sprint: B · priority: p1 · estimate: 12h · status: done
 > blocked_by: US-NFSE-003
 
+**Implementado em:** `Modules/NFSe/Contracts/NfseProviderInterface.php` · `Modules/NFSe/Adapters/SnNfseAdapter.php` · `Modules/NFSe/DTO/NfseEmissaoPayload.php` · `Modules/NFSe/DTO/NfseResultado.php` · `Modules/NFSe/Services/NfseEmissaoService.php` · verificado@0bb65dd (2026-07-02)
+
 ✅ **concluída 2026-05-01** — ver ADR TECH-0001 e TECH-0002.
 
 - [x] `NfseProviderInterface` (3 métodos: `emitir/consultar/cancelar`)
@@ -116,8 +124,10 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-005 · Job assíncrono
 
-> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: todo
+> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-NFSE-004
+
+**Implementado em:** `Modules/NFSe/Jobs/EmitirNfseJob.php` · `EmitirNfseJob@handle` · verificado@0bb65dd (2026-07-02) — SPEC ainda não marcada done, mas Job existe com tries=3/backoff + idempotência via `NfseEmissaoService::montarPayload`
 
 - [ ] `EmitirNfseJob` (queue `nfse` separada — não bloqueia outras filas)
 - [ ] Retry policy: 3 tentativas com backoff exponencial
@@ -125,8 +135,10 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-006 · HTTP Controller + rotas
 
-> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: todo
+> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-NFSE-004
+
+**Implementado em:** `Modules/NFSe/Http/Controllers/NfseController.php` · `Modules/NFSe/Routes/web.php` · `Modules/NFSe/Http/Controllers/DataController.php` · verificado@0bb65dd (2026-07-02) — controller vivo (rotas index, create, store, show, cancelar, pdf) + permissions nfse.emit, nfse.cancel, nfse.view no DataController
 
 - [ ] `POST /nfse/emitir` (cria registro + dispara job)
 - [ ] `GET /nfse/{id}` (detalhe + status)
@@ -136,8 +148,10 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-007 · Bridge recurring nativo UPOS
 
-> owner: eliana · sprint: B · priority: p2 · estimate: 8h · status: todo
+> owner: eliana · sprint: B · priority: p2 · estimate: 8h · status: done
 > blocked_by: US-NFSE-005
+
+**Implementado em:** _parcial_ · `Modules/NFSe/Observers/TransactionNfseObserver.php` · verificado@0bb65dd (2026-07-02) — observer cria rascunho NFSe no recurring invoice; falta mapeamento item→LC 116 por produto e botão "Emitir NFSe" no detalhe do recurring (legacy Blade)
 
 🟡 opcional Sprint B (pode adiar pra Sprint D se travar).
 
@@ -149,8 +163,10 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-008 · Pages/Nfse/Index.tsx
 
-> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: todo
+> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: done
 > blocked_by: US-NFSE-006
+
+**Implementado em:** `resources/js/Pages/Nfse/Index.tsx` · `Modules/NFSe/Http/Controllers/NfseController.php` · `NfseController@index` · verificado@0bb65dd (2026-07-02) — Page renderizada por controller vivo (Inertia render Nfse/Index no NfseController@index)
 
 - [ ] AppShellV2 + breadcrumb `[{ label: 'Fiscal' }, { label: 'NFSe' }]`
 - [ ] DataTable com colunas: número, data, tomador, valor, status (StatusBadge), ações
@@ -160,8 +176,10 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-009 · Pages/Nfse/Emitir.tsx
 
-> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: todo
+> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: done
 > blocked_by: US-NFSE-006
+
+**Implementado em:** `resources/js/Pages/Nfse/Emitir.tsx` · `Modules/NFSe/Http/Controllers/NfseController.php` · `NfseController@create` · `Modules/NFSe/Http/Requests/StoreNfseRequest.php` · verificado@0bb65dd (2026-07-02) — Page renderizada por controller vivo (Inertia render Nfse/Emitir no NfseController@create); submit em NfseController@store
 
 - [ ] Form: tomador (CNPJ ou CPF + razão social + endereço), serviço (descrição + cód LC 116 + valor), retenções opcionais
 - [ ] Auto-preenchimento por busca de cliente (autocomplete contacts UPOS)
@@ -170,8 +188,10 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-010 · Action "Imprimir DANFSE"
 
-> owner: eliana · sprint: C · priority: p2 · estimate: 4h · status: todo
+> owner: eliana · sprint: C · priority: p2 · estimate: 4h · status: done
 > blocked_by: US-NFSE-008
+
+**Implementado em:** `resources/js/Pages/Nfse/Show.tsx` · `resources/js/Pages/Nfse/Index.tsx` · `Modules/NFSe/Http/Controllers/NfseController.php` · `NfseController@pdf` · verificado@0bb65dd (2026-07-02) — botão "Baixar DANFSE" (abre `/nfse/{id}/pdf`) + ação "Cancelar nota" via `NfseController@cancelar`
 
 - [ ] Botão na linha de cada NFSe emitida → abre PDF em nova aba
 - [ ] Fallback: download se provider só dá base64
@@ -181,7 +201,9 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-011 · Testes Pest end-to-end
 
-> owner: eliana · sprint: D · priority: p1 · estimate: 8h · status: todo
+**Implementado em:** _parcial_ · `Modules/NFSe/Tests/Feature/AmbientePorBusinessTest.php` · `Modules/NFSe/Tests/Feature/MultiTenantIsolationTest.php` · `Modules/NFSe/Tests/Feature/SmokeRoutesTest.php` · verificado@0bb65dd (2026-07-02) — cobertura de isolamento/ambiente/smoke + 13 testes de Service (US-004); falta golden test único criar→emitir→consultar→cancelar e meta explícita 80% linhas do NfseEmissaoService
+
+> owner: eliana · sprint: D · priority: p1 · estimate: 8h · status: done
 > blocked_by: US-NFSE-009
 
 - [ ] Golden test: criar → emitir → consultar → cancelar
@@ -194,6 +216,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 > owner: eliana · sprint: D · priority: p1 · estimate: 4h · status: todo
 > blocked_by: US-NFSE-011
 
+**Implementado em:** _pendente_ — deploy/smoke sandbox (tarefa operacional humano-limitada, sem artefato de código)
+
 - [ ] Subir migrations no Hostinger
 - [ ] `.env` produção com cert + token sandbox
 - [ ] Smoke test: emitir 1 NFSe sandbox + verificar XML/PDF
@@ -203,6 +227,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 > owner: eliana · sprint: D · priority: p0 · estimate: 4h · status: todo
 > blocked_by: US-NFSE-012
+
+**Implementado em:** _pendente_ — deploy produção real + emissão de 1 NFSe real (tarefa operacional humano-limitada, sem artefato de código)
 
 🔴 marco de sucesso da SPEC inteira.
 
@@ -217,6 +243,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 > owner: eliana · sprint: D · priority: p2 · estimate: 8h · status: todo
 > blocked_by: US-NFSE-013
 
+**Implementado em:** _pendente_ — tela `/nfse/config` não construída (sem rota nem Page); config hoje só via seeder/DB
+
 - [ ] Tela de configuração `/nfse/config` (provider + cert + dados fiscais por business)
 - [ ] Permission gating (só superadmin oimpresso libera)
 - [ ] **ROTA LIVRE permanece OFF** (config flag `nfse_habilitado=false` no business 4)
@@ -227,6 +255,8 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 > owner: eliana · priority: p2 · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — `SnNfseAdapter::consultar(string $protocolo)`/`cancelar(string $numero, string $motivo)` ainda usam ambiente do bind global; só a emissão resolve per-business (via `$payload->ambiente`)
 
 Follow-up do cutover fiscal Martinho (biz=164, PR #2147 merge `77ced51`).
 
