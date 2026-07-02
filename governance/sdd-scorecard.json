@@ -15,33 +15,33 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 63.6,
+      "value": 68.7,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 63.6,
+        "coverage_pct": 68.7,
         "specs_total": 58,
-        "us_total": 858,
-        "anchor_coverage_pct": 63.6,
+        "us_total": 857,
+        "anchor_coverage_pct": 68.7,
         "by_state": {
-          "sem_campo": 312,
+          "sem_campo": 268,
           "placeholder": 0,
-          "pendente": 232,
-          "parcial": 75,
+          "pendente": 271,
+          "parcial": 79,
           "anchored_ok": 239,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 551,
+        "fields_total": 594,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 509,
+        "fields_grammar_ok": 552,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 156,
-        "req_sem_covering_test_total": 267,
+        "req_sem_covering_test_total": 271,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 42,
         "behavior_known": false,
@@ -218,10 +218,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 19,
+        "entries_aprovadas": 21,
         "max_error_rate_pct": 1.82,
-        "last_pr": 3628,
-        "last_lote": "SA-A5-P10w3-autopecas"
+        "last_pr": 3631,
+        "last_lote": "SA-A5-P10-loteA-marketplaces"
       },
       "stream": "GT"
     }
