@@ -55,7 +55,7 @@ Total: **3 Services, 13 spans OTel canônicos** (D9.a saturated — Wave 18 base
 - **Multi-tenant Tier 0** — arquivo de `business_id=1` jamais aparece em query/listagem/download de `business_id=4` (global scope `business_id` em `Arquivo`)
 - **Encryption-at-rest** — bucket `sensitive` (RG, contrato, dados médicos) usa `VaultEncryptionService` (Crypt AES-256-CBC, APP_KEY-backed)
 - **Audit trail dupla** — `arquivos_audit_log` (upload/download/signed_url/soft_delete/restore/hard_delete) + Spatie `activity_log` (mudanças de bucket/visibility/retention sem PII)
-- **PII redaction** — filename pode trazer "rg-123.456.789-00.pdf"; `PiiRedactor` redaciona ANTES de persistir em audit ou log
+- **PII redaction** — filename pode trazer "rg-XXX.XXX.XXX-XX.pdf" (CPF no nome do arquivo); `PiiRedactor` redaciona ANTES de persistir em audit ou log
 - **Retenção declarativa** — `Config/retention.php` é fonte da verdade auditorial; `arquivos:retention-cleanup` consome
 - **Dedupe ZERO leak cross-tenant** — lookup MD5 sempre filtra `business_id` (Agent E security review §dedupe leak)
 
