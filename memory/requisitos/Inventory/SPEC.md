@@ -431,38 +431,58 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 - [ ] Seeder bootstrap zero data se flag off
 - [ ] Smoke local: enable flag em biz=1 + criar 1 BOM via tinker + listar
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-002 · UI Inertia cadastro BOM (drag-drop componentes) — **P0**
 > **Estimate:** 12h · **blocked_by:** US-INV-001
 > Page `Inventory/Bom/Edit.tsx` permite definir composição produto pai com qty/unit/optional/substitute. Pattern Repair Kanban dnd-kit reuso.
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 #### US-INV-003 · Resolver BOM em `ReservarEstoque` (recursivo multi-level) — **P0**
 > **Estimate:** 8h · **blocked_by:** US-INV-001
 > Side-effect v2 + Pest 8+ casos (simples, multi-level, opcional, substituição, batch_id presente, decimal qty, FK validation, recursion guard ≤5).
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-004 · Resolver BOM em `ConsumirEstoque` + `LiberarReserva` (v2) — **P0**
 > **Estimate:** 6h · **blocked_by:** US-INV-003
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 #### US-INV-005 · NFe55 composição (1 linha pai vs N filhas — D4 dependente) — **P0**
 > **Estimate:** 8h pós-D4 · **blocked_by:** US-INV-004 + D4 aprovada
 > Integração Modules/NfeBrasil — flag `kit_nfe_strategy` per produto.
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 ### Fase 2 — Batch tracking
 
 #### US-INV-006 · Schema `product_batches` + flags + relação `purchase_lines` — **P0**
 > **Estimate:** 6h
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-007 · `RegistrarEntradaBatch` side-effect (FSM purchase) — **P0**
 > **Estimate:** 6h · **blocked_by:** US-INV-006
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-008 · UI Inventory/Batches listagem + busca + filtro status/expiração — **P0**
 > **Estimate:** 10h
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 #### US-INV-009 · Batch picker em PDV/OS (vincular lote consumido) — **P0**
 > **Estimate:** 12h · **blocked_by:** US-INV-007
 > ComVis: pode misturar lotes? Picker UI; manual ou FEFO automatic.
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-010 · Lookup garantia fornecedor (batch → clientes que receberam) — **P1**
 > **Estimate:** 4h · **blocked_by:** US-INV-016 (stock_movements)
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 ### Fase 3 — Dimensional
 
@@ -470,19 +490,29 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 > **Estimate:** 4h
 > Cartucho VENDE em UN, CONSOME em ml.
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-012 · UI custo per ml/kg/m² + cálculo custo real OS — **P1**
 > **Estimate:** 10h · **blocked_by:** US-INV-011
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 #### US-INV-013 · Alerta cartucho/rolo baixo (% restante) — **P1**
 > **Estimate:** 4h
 > Cruzar `product_batches.qty_current / qty_initial < threshold`. Notification + dashboard.
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-014 · Apontamento máquina decrementa batch ml automatic (hook US-COMVIS-004) — **P1**
 > **Estimate:** 6h · **blocked_by:** US-INV-013
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 #### US-INV-015 · Conversão unit automática em side-effects (kg → g, L → ml) — **P2**
 > **Estimate:** 4h
 > Reuso `units.base_unit_multiplier` já existente.
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 ### Fase 4 — Stock Movements unified
 
@@ -490,37 +520,57 @@ Cruza com agente Marketplaces (sync ML/Shopee/Magalu).
 > **Estimate:** 6h
 > Trigger MySQL BEFORE UPDATE/DELETE raise (pattern `ponto_marcacoes`).
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-017 · Backfill incremental stock_movements a partir UPos legacy — **P0**
 > **Estimate:** 12h · **blocked_by:** US-INV-016
 > Script script `scripts/inventory/backfill-stock-movements.py` (pattern legacy importer per [feedback_legacy_migration_python_importer](../../../memory/feedback_legacy_migration_python_importer.md)). Idempotent.
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-018 · Hook automático em todos side-effects existentes (Reservar/Consumir/Liberar) — **P0**
 > **Estimate:** 4h · **blocked_by:** US-INV-016
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 #### US-INV-019 · UI relatório movements per produto/batch/period — **P1**
 > **Estimate:** 8h
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-020 · Comando `inventory:reconcile` daily 04:00 BRT (drift vs `variation_location_details`) — **P0**
 > **Estimate:** 4h
 > Alerta `jana:health-check` se delta detectado.
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 ### Fase 5 — Negative + FEFO + analytics
 
 #### US-INV-021 · Negative inventory opt-in + UI sinalização — **P2**
 > **Estimate:** 6h
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-022 · FEFO consumo policy (business.consumption_policy='fefo') — **P2**
 > **Estimate:** 4h · **blocked_by:** US-INV-006
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 #### US-INV-023 · Job daily `inventory:expire-batches` (batch.expires_at < today → status=expired) — **P2**
 > **Estimate:** 2h
 
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
+
 #### US-INV-024 · Dashboard analytics estoque (giro, lead-time, ruptura, custo real per categoria) — **P3**
 > **Estimate:** 14h
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 #### US-INV-025 · Multi-location transfer com batch preservation — **P3**
 > **Estimate:** 8h
 > Stock_transfer atual perde batch_id; corrigir.
+
+**Implementado em:** _pendente_ — bloqueado por P7 (cluster Estoque ADIADO); não ancorar até a repartição (docs→Produto/Compras/Estoque) aterrissar; ver `_ANCHOR-REVIEW-QUEUE.md`
 
 ---
 
