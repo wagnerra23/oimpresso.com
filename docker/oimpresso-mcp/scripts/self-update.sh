@@ -39,6 +39,24 @@ flock -n 9 || { log "outra execução em andamento — saindo"; exit 0; }
 cd "$REPO_DIR" || { log "FATAL: $REPO_DIR não existe"; exit 1; }
 mkdir -p "$BK"
 
+# Sync da cópia do nightly full-suite (SDD FV-F3/P07): o cron do fullsuite roda
+# /opt/oimpresso-fullsuite/ct100-fullsuite.sh, uma CÓPIA do versionado. O passo
+# manual "atualizar a cópia após merge" (RUNBOOK-ct100-fullsuite.md) falhou 13 dias
+# (18/jun→01/jul): P07 coverage nunca chegou no cron — 0 clover.xml em 4 nightlies
+# com pcov JÁ na imagem. Sync mecânico aqui (roda a cada 15min): cmp evita touch
+# sem mudança; mv atômico troca o inode — run em andamento segue lendo o fd antigo,
+# nunca corrompe. Roda ANTES do early-exit de heartbeat de propósito: cópia driftada
+# com checkout já em dia (o caso de hoje) também se cura.
+FULLSUITE_SRC="$REPO_DIR/scripts/tests/ct100-fullsuite.sh"
+FULLSUITE_DST="${FULLSUITE_SCRIPT:-/opt/oimpresso-fullsuite/ct100-fullsuite.sh}"
+if [ -f "$FULLSUITE_SRC" ] && [ -d "$(dirname "$FULLSUITE_DST")" ]; then
+  if ! cmp -s "$FULLSUITE_SRC" "$FULLSUITE_DST"; then
+    install -m 0755 "$FULLSUITE_SRC" "$FULLSUITE_DST.tmp" && mv -f "$FULLSUITE_DST.tmp" "$FULLSUITE_DST" \
+      && log "fullsuite: cópia do nightly sincronizada com o canônico" \
+      || log "WARN: sync da cópia do fullsuite falhou (não-fatal)"
+  fi
+fi
+
 git fetch --quiet origin main || { log "FATAL: git fetch falhou"; exit 1; }
 LOCAL="$(git rev-parse HEAD)"
 REMOTE="$(git rev-parse origin/main)"
