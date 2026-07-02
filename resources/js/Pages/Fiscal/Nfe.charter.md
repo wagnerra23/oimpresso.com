@@ -7,6 +7,7 @@ module: Fiscal
 status: draft
 created: 2026-05-20
 owner: wagner
+related_us: [US-FISCAL-001]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0114-prototipo-ui-cowork-loop-formalizado, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
 prototypes:
   - prototipo-ui/Oimpresso ERP - Chat.html (fiscal-page.jsx §9 FiscalNFePage)
