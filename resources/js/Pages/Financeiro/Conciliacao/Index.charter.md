@@ -7,6 +7,9 @@ last_validated: "2026-05-31"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 101, 104, 236]
+related_us: [US-FIN-009]
+smoke: "2026-07-02 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; KPIs + upload OFX). Antes: 2026-07-01 render sob sessão matriz biz=0."
+related_prototype: prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaConciliacao) — tela viva evoluiu além do protótipo (extrato via API, ADR 0236)
 tier: A
 charter_version: 1
 ---

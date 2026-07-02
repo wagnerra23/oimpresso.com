@@ -7,6 +7,9 @@ last_validated: "2026-05-07"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [101]
+related_us: [US-RB-046]
+smoke: "2026-07-02 — render prod OK biz=1 (Chrome MCP, /financeiro/extrato/1 · Extrato Banco 000 CAIXA Conta 1, saldo — sem sync, totais zerados, empty-state). Pré-condição: hotfix #3605 (tela branca por defer sem guard, achada pelo smoke 2026-07-01)."
+related_prototype: n/a (sem protótipo Cowork — tela nasceu na sprint Inter PJ Open Finance US-RB-046; segue DS)
 tier: A
 charter_version: 1
 ---

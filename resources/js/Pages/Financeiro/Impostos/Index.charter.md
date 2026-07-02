@@ -7,6 +7,9 @@ last_validated: "2026-06-10"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94]
+related_us: [US-FIN-062]
+smoke: "2026-07-02 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; Inertia page servida com sessão real). Antes: 2026-07-01 render completo (KPIs/guias/calendário) sob sessão matriz biz=0."
+related_prototype: prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaImpostos), aprovado [W] 2026-06-10 (PACOTE-FINANCEIRO-F2 PR-2)
 tier: B
 charter_version: 1
 ---

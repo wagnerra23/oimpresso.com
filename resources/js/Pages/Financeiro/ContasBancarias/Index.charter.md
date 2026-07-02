@@ -7,6 +7,9 @@ last_validated: "2026-05-19"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [101, 144, 170]
+related_us: [US-FIN-008]
+smoke: "2026-07-02 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; lista as 20 contas reais + status boleto/carteira). Antes: 2026-07-01 empty-state sob sessão matriz biz=0."
+related_prototype: n/a (sem protótipo Cowork — form dados bancários/beneficiário CNAB; credenciais gateway vivem em /settings/payment-gateways, ADR 0170)
 tier: A
 charter_version: 2
 ---
