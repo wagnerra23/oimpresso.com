@@ -37,7 +37,7 @@ related_adrs:
 
 ### US-MWART-001 · Camada 2+3 enforcement — Hook + CI workflow
 
-> owner: wagner · priority: p0 · estimate: 1.5h · status: todo · type: story · origin: adr-0104
+> owner: wagner · priority: p0 · estimate: 1.5h · type: story · origin: adr-0104
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `.claude/hooks/block-mwart-violation.ps1` · `.claude/settings.json` · verificado@8af585a (2026-07-02) — camada 2 (hook PreToolUse) viva e registrada; camada 3 (CI mwart-gate.yml) foi DELETADA pela ADR 0271 onda 2 (era soft continue-on-error — teatro); régua viva de cobertura de tela hoje = casos-gate required (ADR 0264); MwartGateWorkflowTest nunca criado
@@ -127,7 +127,7 @@ related_adrs:
 
 ### US-MWART-004 · Onda 1 — migrar Vendas, PDV & Caixa e desligar Blade
 
-> owner: — · priority: p1 · estimate: 16h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p1 · estimate: 16h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Sells/Index.tsx` · `resources/js/Pages/Sells/Create.tsx` · `resources/js/Pages/Sells/Caixa/Index.tsx` · verificado@8af585a (2026-07-02) — telas React vivas (Index/Create/Edit/Show/Drafts/Quotations/Subscriptions + Caixa); falta PDV-balcão puro, tela Devolução e Fechar-caixa; critério de desligamento NÃO atingido: resource pos (L532), cash-register (L643) e sell-return (L673) seguem vivos em routes/web.php
@@ -145,7 +145,7 @@ Domínios E (Vendas/PDV) + H (Caixa), ≈66 fn. Plano F1: [ONDA-1-VENDAS-PDV-CAI
 
 ### US-MWART-005 · Onda 2 — migrar Clientes & contatos e desligar /contacts
 
-> owner: — · priority: p2 · estimate: 10h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p2 · estimate: 10h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Cliente/Index.tsx` · `resources/js/Pages/Cliente/Import.tsx` · `resources/js/Pages/Cliente/Ledger.tsx` · verificado@8af585a (2026-07-02) — /cliente vivo com drawer + import + ledger em React; critério de desligamento NÃO atingido: resource contacts segue vivo em routes/web.php (L303), sem redirect e sem lápide dos blades de contact
@@ -160,7 +160,7 @@ Domínio C, ≈26 fn. **Adversário [CD]:** Attio (ficha viva, contexto sem cliq
 
 ### US-MWART-006 · Onda 3 — migrar Produtos & catálogo e desligar Blade
 
-> owner: — · priority: p2 · estimate: 24h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p2 · estimate: 24h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Produto/Index.tsx` · `resources/js/Pages/Produto/Unificado/Index.tsx` · verificado@8af585a (2026-07-02) — catálogo React vivo (Index/Create/Edit/Show/BulkEdit/SellingPrices/StockHistory + Unificado); critério de desligamento NÃO atingido: resource products segue vivo em routes/web.php (L423) + satélites (taxonomies/brands/units/barcodes/discount)
@@ -174,7 +174,7 @@ Domínio D (o maior), ≈55 fn. **Adversário [CD]:** Linear (densidade) + Shopi
 
 ### US-MWART-007 · Onda 4 — migrar Estoque & inventário e desligar Blade
 
-> owner: — · priority: p2 · estimate: 8h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p2 · estimate: 8h · type: story · origin: roadmap-ondas-blade
 > blocked_by: US-MWART-006
 
 **Implementado em:** _parcial_ · `resources/js/Pages/StockAdjustment/Index.tsx` · `resources/js/Pages/StockTransfer/Index.tsx` · verificado@8af585a (2026-07-02) — DRIFT vs roadmap 2026-06-13 ("Já vivo: nada"): telas React de ajuste e transferência (Index+Create) já existem e estão roteadas; critério de desligamento NÃO atingido: resources stock-adjustments (L638) e stock-transfers (L655) seguem vivos em routes/web.php
@@ -188,7 +188,7 @@ Domínio G, ≈14 fn. **Adversário [CD]:** Linear + Cron (registro auditável e
 
 ### US-MWART-008 · Onda 5 — migrar Compras & suprimentos e desligar Blade
 
-> owner: — · priority: p2 · estimate: 14h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p2 · estimate: 14h · type: story · origin: roadmap-ondas-blade
 > blocked_by: US-MWART-006, US-MWART-007
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Compras/Index.tsx` · `resources/js/Pages/Purchase/Create.tsx` · verificado@8af585a (2026-07-02) — DRIFT vs roadmap 2026-06-13 ("repo 100% Blade"): cockpit /compras (Modules/Compras) + trilho Purchase React (Create/Edit/Index/Show) já vivos; critério de desligamento NÃO atingido: resource purchases segue vivo em routes/web.php (L510) + purchase-order/purchase-return/requisition
@@ -216,7 +216,7 @@ Domínio I, ≈30 fn. **Distinta do módulo Financeiro React já migrado** — �
 
 ### US-MWART-010 · Onda 7 — migrar Configurações, admin & documentos e desligar Blade
 
-> owner: — · priority: p3 · estimate: 20h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p3 · estimate: 20h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `app/Http/Controllers/ModuleManagementController.php` · verificado@8af585a (2026-07-02) — Gerenciador de Módulos React vivo (ModuleManagementController@index renderiza a tela via Inertia); critério de desligamento NÃO atingido: resources de settings (business/invoice-layouts/schemes/tax-rates/printers/roles/users) e settings_custom_labels seguem Blade
@@ -244,7 +244,7 @@ Domínio J, ≈45 fn que leem TODOS os domínios. **Adversário [CD]:** Metabase
 
 ### US-MWART-012 · Onda 9 — migrar Acesso & onboarding e remover /login/old
 
-> owner: — · priority: p3 · estimate: 8h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p3 · estimate: 8h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
 
 **Implementado em:** _parcial_ · `resources/js/Pages/Site/Login.tsx` · verificado@8af585a (2026-07-02) — login React vivo como default (LoginController); critério de desligamento NÃO atingido: /login/old segue registrado em routes/web.php (L178) e register/password-reset/business-register/social-auth/install continuam Blade
