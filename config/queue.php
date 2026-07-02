@@ -106,4 +106,20 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Worker das filas backlog (audit 2026-07-02 — 48k jobs represados)
+    |--------------------------------------------------------------------------
+    |
+    | Gate do queue:work agendado no Kernel pras filas que NÃO tinham worker
+    | (nfe, default, customer-memory, employee-performance, jana-index,
+    | copiloto-memoria). Default FALSE de propósito: ligar o worker ANTES de
+    | purgar o backlog dispararia jobs stale (NFC-e retroativa, links WhatsApp
+    | antigos, syncs bancários ×1000). Sequência: deploy → jobs:purge-represados
+    | --execute (Wagner aprova) → QUEUE_BACKLOG_WORKER_ENABLED=true no .env.
+    |
+    */
+
+    'backlog_worker_enabled' => (bool) env('QUEUE_BACKLOG_WORKER_ENABLED', false),
+
 ];
