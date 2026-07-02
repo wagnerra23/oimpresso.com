@@ -15,26 +15,26 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 60,
+      "value": 60.1,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 60,
+        "coverage_pct": 60.1,
         "specs_total": 58,
-        "us_total": 855,
-        "anchor_coverage_pct": 60,
+        "us_total": 857,
+        "anchor_coverage_pct": 60.1,
         "by_state": {
           "sem_campo": 342,
           "placeholder": 0,
           "pendente": 213,
           "parcial": 73,
-          "anchored_ok": 227,
+          "anchored_ok": 229,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 518,
+        "fields_total": 520,
         "fields_placeholder": 0,
         "fields_grammar_ok": 479,
         "orphan_fields": 5,
@@ -128,8 +128,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 266,
-        "effectively_guarded": 266
+        "with_manual_ddl": 267,
+        "effectively_guarded": 267
       },
       "stream": "FV"
     },
@@ -172,7 +172,7 @@
       "value": null,
       "direction": "up",
       "target": "≥95%",
-      "source": "jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318 — mata a tautologia; baseline honesto em governance/jana-ragas-real-baseline.json, 1ª medição real 2026-07-01). Uptime not_yet_measured até existir transporte cron→scorecard (trend em storage/logs/ragas-real-eval.log sem espelho versionado — pattern nightly-floor ADR 0279); 1ª execução agendada 2026-07-05.",
+      "source": "governance/ragas-real-trend.json ainda não publicado pelo write-side CT100 — jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318; baseline honesto em governance/jana-ragas-real-baseline.json). Transporte: órfã governance/ragas-real-trend (write-side ct100-ragas-publish.sh · pattern nightly-floor ADR 0279); 1ª execução do cron 2026-07-05.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "MEM"
     },
