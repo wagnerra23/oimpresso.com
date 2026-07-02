@@ -139,6 +139,7 @@ Fecha o loop adversarial na camada **produto/módulo**: as afirmações escritas
 - **Métricas SEM gate novo (lei 0314):** `pt_claim_accuracy` + `pt_freshness` fundem no GT-G3 required, armadas após 3 medições (ADR 0275).
 - **Anti-decadência:** watchdog staleness 30d + counterfactual no gate-selftest (claim falsa injetada TEM que ser pega) + armamento antes de morder.
 - **Pré-req:** ajuste no distiller (`jana:distill-module-truth`) pra preservar/consumir `verified_at` + ledger — senão o re-destile apaga o veredicto.
-- **Peça B pareada:** agent `analise-refutador` ataca a interpretação do `wagner-understand` ANTES de executar pedido não-trivial (5 perguntas fixas; ambiguidade sobrevivente → 1 pergunta ao Wagner; senão executa direto R11).
-- **Rollout:** piloto Financeiro → calibrar skeptic <2% erro (padrão G5) → 10 módulos com CAPTERRA-FICHA → cadência quinzenal junto do `/sdd-avaliar`.
-- **Status:** `proposed` — nada roda sem OK. Decisões pendentes no ADR (aceite do stream · Peça B vira R12? · cadência).
+- **Peça B pareada:** agent `analise-refutador` ataca a interpretação do `wagner-understand` ANTES de executar pedido não-trivial (gatilho restrito: Tier 0 / ambíguo / ≥3 arquivos novos; escopo pré-aprovado pula; ambiguidade sobrevivente → 1 pergunta; senão executa R11). Emenda = **R15** (R12 ocupado).
+- **Rollout:** Peça A **espera S1+S7 da Onda 1** → piloto Financeiro → mede erro na população de claims de capacidade → **teto ≤10 módulos/quinzena**.
+- **Refutação dogfood 2026-07-02:** a própria 0319 passou por 3 skeptics (a Peça B aplicada a si mesma) — pegaram 1 erro factual (R12 ocupado) + duplicações (G5 já refuta lote IA; `distiller_freshness`/`sdd-verification-ledger` já existem) + tensão com a 0314 (armar doc-quality no required). **11 emendas vinculantes E1-E11 no ADR.** Núcleo sobreviveu; forma original morreu.
+- **Status:** `proposed` — nada roda sem OK. Armamento das métricas = checkbox Wagner separado do aceite.
