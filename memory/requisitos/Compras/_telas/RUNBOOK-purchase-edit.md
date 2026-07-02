@@ -1,12 +1,16 @@
 ---
-tela: purchase/edit
-modulo: Purchase
-tipo: FORM (EDIT)
-generated_at: 2026-05-15
-generated_by: Agent W2-D
-status: F3 implementado
-adr_refs: [0104, 0093, 0114, 0149]
-spec_ref: memory/requisitos/Inventory/SPEC.md
+title: "RUNBOOK — /purchases/{id}/edit (Compras · edição Inertia)"
+module: Purchase
+tela: Purchase/Edit
+owner: F
+status: ativo
+last_validated: "2026-05-15"
+related_adrs:
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0093-multi-tenant-isolation-tier-0
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0149-pattern-reuse-mwart-create-edit
+spec_ref: memory/requisitos/Compras/SPEC.md
 blueprint_cowork: prototipo-ui/prototipos/compras/visual-source.html
 ---
 

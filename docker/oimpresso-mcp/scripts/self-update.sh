@@ -39,6 +39,25 @@ flock -n 9 || { log "outra execução em andamento — saindo"; exit 0; }
 cd "$REPO_DIR" || { log "FATAL: $REPO_DIR não existe"; exit 1; }
 mkdir -p "$BK"
 
+# Retenção dos backups (roda a cada execução, ANTES de gravar qualquer coisa nova pra
+# self-curar disco cheio). O deploy grava rollback-*.txt (toda tentativa de deploy) +
+# dirty-*.{list,tar.gz} (quando o checkout está atrás e sujo) sem teto. Sem poda isso
+# cresce sem limite — incidente 2026-07-02: 841 arquivos = 34G encheram o root do CT 100
+# a 100% (0 bytes livres), ameaçando MCP server + nightlies fullsuite + langfuse + staging
+# (mesmo FS). Mantém só as últimas N=$MCP_BACKUP_KEEP de cada família, poda o resto por mtime
+# (mais antigos primeiro). find -printf %T@ evita parsear `ls`; rm não consome disco.
+prune_backups() {
+  local pattern="$1" keep="$2"
+  find "$BK" -maxdepth 1 -type f -name "$pattern" -printf '%T@ %p\n' 2>/dev/null \
+    | sort -rn | tail -n +"$((keep + 1))" | cut -d' ' -f2- | while IFS= read -r f; do
+      rm -f -- "$f"
+    done
+}
+MCP_BACKUP_KEEP="${MCP_BACKUP_KEEP:-48}"   # 48 ≈ 12h de histórico a */15min — suficiente pra rollback
+prune_backups 'dirty-*.tar.gz'  "$MCP_BACKUP_KEEP"
+prune_backups 'dirty-*.list'    "$MCP_BACKUP_KEEP"
+prune_backups 'rollback-*.txt'  "$MCP_BACKUP_KEEP"
+
 # Sync da cópia do nightly full-suite (SDD FV-F3/P07): o cron do fullsuite roda
 # /opt/oimpresso-fullsuite/ct100-fullsuite.sh, uma CÓPIA do versionado. O passo
 # manual "atualizar a cópia após merge" (RUNBOOK-ct100-fullsuite.md) falhou 13 dias

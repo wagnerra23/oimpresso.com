@@ -5,7 +5,7 @@ tipo: FORM CREATE
 generated_at: 2026-05-15
 generated_by: Agent W2-D
 status: aguardando-screenshot-wagner
-runbook: memory/requisitos/Inventory/RUNBOOK-stock-transfer-create.md
+runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-create.md
 draft_tsx: resources/js/Pages/StockTransfer/Create.tsx
 controller_delta: app/Http/Controllers/StockTransferController.php@createInertia
 cowork_source: prototipo-ui/prototipos/inventario-migracao/visual-source.html
