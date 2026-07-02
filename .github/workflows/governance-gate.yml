@@ -440,6 +440,7 @@ jobs:
               | grep -vE '^(vendor|node_modules|public|storage|bootstrap/cache)/' \
               | grep -vE '\.(lock|min\.js|min\.css|map|svg|png|jpg|jpeg|gif|webp|pdf|zip)$' \
               | grep -vE '\.github/scripts/pii-scan\.sh$' \
+              | grep -vE '\.github/pii-scan-allowlist\.txt$' \
               | grep -vE '\.github/workflows/governance-gate\.yml$' \
               | grep -vE '^prototipo-ui/cowork/' \
               || true

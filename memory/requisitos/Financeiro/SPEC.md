@@ -353,6 +353,8 @@ owner: wagner
 > owner: wagner · priority: p1 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — botão "Imprimir 2ª via" (rota `boletos.pdf` + `BoletoController@imprimir`) nunca construído; a tela `/boletos` foi aposentada (301 → `/financeiro/cobranca`).
+
 ## Contexto
 
 Pedido Wagner 2026-05-13 (sessão fin-4 esclarecida) — fatia A do epic "Financeiro OfficeImpresso base + Inter boleto + integrar venda". OfficeImpresso (legacy Delphi) imprime 2ª via boleto via PDF — paridade.
@@ -409,8 +411,10 @@ Pré-req: titulo precisa ter `nosso_numero` populado (emissão prévia manual vi
 
 ### US-FIN-015 · Fix BUG-3 — Listener cria titulo_pagar pra purchase com payment_status=due
 
-> owner: wagner · priority: p0 · estimate: 3h · status: todo · type: story
+> owner: wagner · priority: p0 · estimate: 3h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Services/TituloAutoService.php` · `Modules/Financeiro/Observers/TransactionObserver.php` · verificado@dd3ed7c (2026-07-01) — branch `purchase => 'pagar'` (due/partial) no `sincronizarDeTransacaoInternal`; `CriarTituloDeVendaJob` legado deprecado (frontmatter `na_justified_v3`).
 
 ## Contexto
 
@@ -480,6 +484,8 @@ Spec gherkin já existe em §R-FIN-004 abaixo — implementação do contrato do
 
 > owner: wagner · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: US-RB-045
+
+**Implementado em:** _pendente_ — `TituloObserver` + `EmitirBoletoJob` + migration de colunas boleto nunca construídos (bloqueado por US-RB-045); emissão hoje é síncrona sob demanda, não auto-emissão no create.
 
 ## Contexto
 
@@ -805,6 +811,8 @@ E o valor refletido é o "agora" no fuso do business, sem shift histórico
 > owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — `BoletoBatchService::emitirBatch` + Sheet multi-título nunca construídos; a tela `/boletos` foi aposentada (301 → `/financeiro/cobranca`).
+
 Sheet lateral em `/financeiro/boletos` pra emitir N boletos de uma vez a partir de títulos a receber em aberto.
 
 **Origem:** Q2 do amendment Q1-Q5 (sessão 2026-05-14) — cortado do F3 inicial #845 pra manter 1 PR = 1 intent. Pré-requisito de escala quando >10 boletos/dia.
@@ -824,8 +832,10 @@ Sheet lateral em `/financeiro/boletos` pra emitir N boletos de uma vez a partir 
 
 ### US-FIN-018 · Boletos — Sheet Remessa/Retorno CNAB upload + processing
 
-> owner: wagner · priority: p2 · estimate: 16h · status: todo · type: story
+> owner: wagner · priority: p2 · estimate: 16h · type: story
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx` · verificado@dd3ed7c (2026-07-01) — Sheet UI existe mas roda com dados MOCK (F3 UI-only); backend CnabDirectStrategy (gerarRemessa e processarRetorno) + upload e parse do .RET ainda pendentes.
 
 Sheet lateral pra upload de arquivo de Remessa CNAB (.REM) + processamento de arquivo de Retorno CNAB (.RET).
 
@@ -849,6 +859,8 @@ Sheet lateral pra upload de arquivo de Remessa CNAB (.REM) + processamento de ar
 > owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — endpoint `GET /financeiro/boletos/{id}/timeline` + seção "Linha do tempo" no drawer nunca construídos.
+
 Adicionar timeline cronológica no drawer detalhe do `/financeiro/boletos` mostrando todos os eventos do BoletoRemessa (criação → envio → pagamento → cancelamento).
 
 **Origem:** Q5 do amendment Q1-Q5 (sessão 2026-05-14) — drawer F3 #845 é simplificado; timeline rica fica F2.
@@ -867,6 +879,8 @@ Adicionar timeline cronológica no drawer detalhe do `/financeiro/boletos` mostr
 
 > owner: wagner · priority: p2 · estimate: 12h · status: todo · type: story
 > blocked_by: US-FIN-017 + Modules/Whatsapp omnichannel canal preferido
+
+**Implementado em:** _pendente_ — jobs `SendLembreteCobrancaJob`/`EscalateCobrancaAtivaJob`/`ProtestoJob` + tabela `cobranca_eventos` nunca construídos; funil de cobrança segue UI-only derivado de status.
 
 Substituir funil de cobrança UI-only por estado backend persistente. 3 jobs automatizam lembrete + escalação + protesto.
 
@@ -887,6 +901,8 @@ Substituir funil de cobrança UI-only por estado backend persistente. 3 jobs aut
 > owner: wagner · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — `FluxoCaixaService::projetar` ainda usa hardcode `self::MARGEM_MINIMA_PADRAO`; coluna `business_settings.margem_minima_caixa` + UI config nunca construídos.
+
 Substituir hardcode R$ [redacted Tier 0] da margem mínima do `/financeiro/fluxo` por config por tenant.
 
 **Origem:** Q3 do amendment Q1-Q4 Fluxo (sessão 2026-05-14) — F3 PR #838 tem hardcode aceito no F1.
@@ -903,6 +919,8 @@ Substituir hardcode R$ [redacted Tier 0] da margem mínima do `/financeiro/fluxo
 
 > owner: wagner · priority: p2 · estimate: 6h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — script `asaasTokenization.js` + tokenização client-side nunca construídos no wizard; só o backend `CobrancaController@storeCartao` (recebe CardToken) existe.
 
 Integrar widget Asaas JS pra tokenização cartão PCI-DSS SAQ-A. Backend POST /financeiro/cobranca/cartao já pronto (Onda 4d.6 — PR #1140 merged 2026-05-19).
 
@@ -924,6 +942,8 @@ Refs: ADR 0144 + ADR 0170 + PR #1140
 
 > owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: US-FIN-022
+
+**Implementado em:** _pendente_ — step 3 do `SheetNovaCobranca.tsx` não tem campos de cartão (holder/número/mask/Luhn/brand); `card` só muda o rótulo do passo Revisar e o submit não usa o endpoint de cartão.
 
 SheetNovaCobranca (`Pages/Financeiro/Cobranca/_components/SheetNovaCobranca.tsx`) hoje aceita tipo=card no step 1 mas step 3 (Valores) NÃO tem campos cartão. Estender UI.
 
@@ -947,6 +967,8 @@ Refs: ADR 0170 + PR #1140
 
 > owner: wagner · priority: p2 · estimate: 24h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — Onda 5 não executada: Plan "SaaS Oimpresso Premium" não seedado em biz=1, backfill Contact/tenants + projection de Subscription não feitos, PesaPal segue ativo (não deprecado).
 
 ADR 0170 §Roadmap Onda 5 — Wagner cobra tenants do oimpresso usando o próprio ERP. Dogfooding stack canônica.
 
@@ -977,6 +999,8 @@ Refs: ADR 0170 §Roadmap Onda 5 + ADR 0093 + ADR 0144
 
 > owner: wagner · priority: p3 · estimate: 8h · status: todo · type: story
 > blocked_by: US-FIN-024
+
+**Implementado em:** _pendente_ — cleanup Onda 6 não executado: `PesaPalController` ainda existe, redirects 301 e colunas legacy `accounts.gateway_*` não removidos (bloqueado por US-FIN-024).
 
 ADR 0170 §Roadmap Onda 6 — Cleanup final pós ondas 2-5 estáveis 90d em prod.
 
@@ -1015,8 +1039,10 @@ Refs: ADR 0170 §Roadmap Onda 6
 
 ### US-FIN-026 · UI lista anexos GET no drawer Unificado + thumbnail PDF + delete
 
-> owner: — · sprint: Onda 22 · priority: p0 · estimate: 3h · status: todo · type: story
+> owner: — · sprint: Onda 22 · priority: p0 · estimate: 3h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `resources/js/Pages/Financeiro/Unificado/_components/FinAnexosPanel.tsx` · verificado@dd3ed7c (2026-07-01) — `listarAnexos`/`baixarAnexo`/`removerAnexo` (GET lista + download + soft delete) + painel no drawer.
 
 Fecha workflow Anexos NF da Onda 20 (atualmente só POST upload — GET lista + thumbnail + delete faltam).
 
@@ -1033,8 +1059,10 @@ Fecha workflow Anexos NF da Onda 20 (atualmente só POST upload — GET lista + 
 
 ### US-FIN-027 · Pill aprovacao_status na tabela Unificado + filtro workflow
 
-> owner: — · sprint: Onda 22 · priority: p0 · estimate: 2h · status: todo · type: story
+> owner: — · sprint: Onda 22 · priority: p0 · estimate: 2h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `resources/js/Pages/Financeiro/Unificado/Index.tsx` · `Modules/Financeiro/Database/Migrations/2026_05_19_220002_add_aprovacao_to_fin_titulos.php` · verificado@dd3ed7c (2026-07-01) — coluna `aprovacao_status` + pill/filtro na tabela Unificado.
 
 Pendência I do AUDIT-FUNCOES — coluna aprovacao_status existe em fin_titulos (Onda 21 ALTER) e drawer mostra, mas tabela Unificado linha não tem indicador visível.
 
@@ -1050,8 +1078,10 @@ Pendência I do AUDIT-FUNCOES — coluna aprovacao_status existe em fin_titulos 
 
 ### US-FIN-028 · Spatie permission financeiro.titulo.aprovar + gate UI
 
-> owner: — · sprint: Onda 22 · priority: p0 · estimate: 1.5h · status: todo · type: story
+> owner: — · sprint: Onda 22 · priority: p0 · estimate: 1.5h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Http/Controllers/UnificadoController.php` · verificado@dd3ed7c (2026-07-01) — `aprovar`/`rejeitar` fazem `abort_unless(can('financeiro.titulo.aprovar') || can('superadmin'))`; `solicitarAprovacao` segue aberto a qualquer user.
 
 Endpoint POST /unificado/{id}/aprovar existe (Onda 21) mas sem permission Spatie registrada — qualquer user do biz aprova hoje. Pendência J do AUDIT.
 
@@ -1067,8 +1097,10 @@ Endpoint POST /unificado/{id}/aprovar existe (Onda 21) mas sem permission Spatie
 
 ### US-FIN-029 · OCR boleto upload — OpenAI Vision API extrai linha digitável + valor + vencimento
 
-> owner: — · sprint: Onda 23 · priority: p1 · estimate: 9h · status: todo · type: story
+> owner: — · sprint: Onda 23 · priority: p1 · estimate: 9h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `Modules/Financeiro/Services/BoletoOcrService.php` · `resources/js/Pages/Financeiro/Unificado/_components/FinOcrBoletoSheet.tsx` · verificado@dd3ed7c (2026-07-01) — endpoint `ocrBoleto` + Service Vision + validação linha digitável + Sheet de preview/confirmação.
 
 **KILLER feature** Conta Azul — Eliana cola foto/PDF do boleto recebido → sistema extrai linha digitável (44 dígitos) + valor + vencimento + beneficiário CNPJ automaticamente, pré-preenche form Novo Título.
 
@@ -1093,6 +1125,8 @@ Mata #1 feedback Capterra Conta Azul ("OCR salva muito tempo"). Fecha gap mercad
 > owner: — · sprint: Onda 24 · priority: p1 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — DoD é a UI de aging (KPI cards no header + click filtra + drill-down); a UI foi REMOVIDA 2026-06-29 (decisão Wagner, chips de aging tirados em Unificado/Index.tsx:1568-1571) e o `FinAgeing.tsx` é sub-componente zombie (zero imports, removido em Index.tsx:60). Backend `agingBreakdown` segue computado em `UnificadoController.php` mas é inócuo, ignorado pela UI — sem entrega ao usuário.
+
 Hoje só `FinPillFrescor` per-linha (6 estados visuais por título). Falta agregação header KPI somando R$ por bucket + filtro pra clicar e drill-down.
 
 Charter v5 Non-Goal F1 — mover pra Goal pós-Ondas 12-21 (Eliana precisa pra cobrança priorizada).
@@ -1111,8 +1145,10 @@ Charter v5 Non-Goal F1 — mover pra Goal pós-Ondas 12-21 (Eliana precisa pra c
 
 ### US-FIN-031 · Bulk actions tabela Unificado — checkbox + select-all + ações em lote
 
-> owner: — · sprint: Onda 25 · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · sprint: Onda 25 · priority: p1 · estimate: 6h · type: story
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Financeiro/Unificado/Index.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · verificado@dd3ed7c (2026-07-01) — coluna checkbox + footer "N selecionados" + `bulkUpdateCategoria` (Onda 12 e 15); falta o endpoint bulk genérico (POST unificado bulk) com as 5 ações (baixar, plano, cancelar, exportar) + modal destrutivo.
 
 Crítico fechamento mês com 200+ títulos. Hoje precisa 1-clique por linha = 200 cliques. Conta Azul/Tiny/Bling têm bulk.
 
@@ -1132,8 +1168,10 @@ Crítico fechamento mês com 200+ títulos. Hoje precisa 1-clique por linha = 20
 
 ### US-FIN-032 · Inter API webhook PIX recebido → titulo auto-pago (auto-conciliação)
 
-> owner: — · sprint: Onda 26 · priority: p1 · estimate: 3h · status: todo · type: story
+> owner: — · sprint: Onda 26 · priority: p1 · estimate: 3h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/PaymentGateway/Http/Controllers/Webhooks/InterPixWebhookController.php` · `Modules/PaymentGateway/Jobs/ProcessarWebhookPixInterJob.php` · `Modules/Financeiro/Listeners/OnCobrancaPagaCreateFinanceiroTitulo.php` · verificado@dd3ed7c (2026-07-01) — webhook PIX Inter → job idempotente marca Cobranca paga → listener cria/quita fin_titulo + baixa (cross-module PaymentGateway).
 
 Fecha ciclo PaymentGateway Onda 5 dogfooding. InterDriver mTLS cert upload funciona, falta receber webhook quando cliente paga PIX → matar título automático.
 
@@ -1154,6 +1192,8 @@ Fecha ciclo PaymentGateway Onda 5 dogfooding. InterDriver mTLS cert upload funci
 
 > owner: — · sprint: Onda 27 · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — comando `financeiro:notificar-vencimentos` + config `dias_aviso_antecipado` + tabela `fin_notificacoes_enviadas` nunca construídos.
 
 Schedule diário avisa cliente X dias antes vencimento (cobrar antes de atrasar) + lembra Eliana de pagar boletos PJ próprios.
 
@@ -1176,6 +1216,8 @@ Schedule diário avisa cliente X dias antes vencimento (cobrar antes de atrasar)
 > owner: — · sprint: Onda 28 · priority: p2 · estimate: 5h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — Sheet "Importar CSV" + wizard 3 steps (upload/mapping/dry-run/commit) nunca construídos.
+
 Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje só digitação manual = friction adoption mortal pra clientes médios.
 
 **Acceptance criteria:**
@@ -1193,8 +1235,10 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 ### US-FIN-035 · Repetir lançamento próximo mês + Combobox autocomplete contraparte
 
-> owner: — · sprint: Onda 29 · priority: p2 · estimate: 4h · status: todo · type: story
+> owner: — · sprint: Onda 29 · priority: p2 · estimate: 4h · type: story
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `Modules/Financeiro/Routes/web.php` · verificado@dd3ed7c (2026-07-01) — endpoint `buscarCliente` + rota `unificado.buscar-cliente` vivos; falta o Combobox montado na UI (`ClienteCombobox.tsx` é órfão, zero imports, nunca montado; contraparte async ausente em Novo.tsx) + o "Duplicar para próximo mês" (recorrência via `titulo_pai_id`) não construído.
 
 2 UX boosters pareados — recorrentes manuais e autocomplete contraparte.
 
@@ -1217,8 +1261,10 @@ Onboarding novo cliente: migra 500+ títulos da planilha legacy num upload. Hoje
 
 ### US-FIN-036 · PWA básico Financeiro — manifest + service worker + offline cache + install prompt
 
-> owner: — · sprint: Onda 30 · priority: p2 · estimate: 5h · status: todo · type: story
+> owner: — · sprint: Onda 30 · priority: p2 · estimate: 5h · type: story
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `public/sw-financeiro.js` · `resources/js/app.tsx` · `public/manifest.webmanifest` · `public/img/pwa-icon-192.svg` · verificado@dd3ed7c (2026-07-01) — service worker stale-while-revalidate (GET only, LGPD-safe) registrado em app.tsx:115-122 + arquivo manifest scoped `/financeiro/` + ícones; falta o manifest ser linkado em algum blade (`<link rel="manifest">` ausente → PWA não instalável) + install prompt UI inexistente.
 
 Mata gap mobile (score 4/10 vs Conta Azul 9/10) sem custo de app nativo. Wagner/Eliana fora do escritório acessa do celular via PWA install.
 
@@ -1238,8 +1284,10 @@ Mata gap mobile (score 4/10 vs Conta Azul 9/10) sem custo de app nativo. Wagner/
 
 ### US-FIN-037 · Customer service network — Portal Advisor Contadores parceiros (referral + acesso compartilhado)
 
-> owner: — · sprint: Onda 31 · priority: p2 · estimate: 14h · status: todo · type: story
+> owner: — · sprint: Onda 31 · priority: p2 · estimate: 14h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/Financeiro/Http/Controllers/AdvisorAccessController.php` · `Modules/Financeiro/Http/Controllers/Advisor/AdvisorPortalController.php` · `Modules/Financeiro/Http/Middleware/AdvisorViewScope.php` · `resources/js/Pages/Financeiro/Advisor/Dashboard.tsx` · `Modules/Financeiro/Database/Migrations/2026_05_20_140000_create_advisors_table.php` · verificado@dd3ed7c (2026-07-01) — Fase 1 MVP: portal advisor isolado (guard `web-advisor`) + grant/revoke acesso + middleware readonly + tabelas `advisors`/`advisor_business_access`.
 
 Diferencial Conta Azul KILLER que ataca direto seu moat de mercado: network de contadores parceiros que recomendam o oimpresso ao cliente PJ. Wagner aprovou DC2 em 2026-05-19 — "pode fazer".
 
@@ -1277,6 +1325,8 @@ Diferencial Conta Azul KILLER que ataca direto seu moat de mercado: network de c
 > owner: — · priority: p1 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — pill "Conta indefinida" + CTA "vincular conta" nas linhas com `conta_bancaria_id NULL` nunca construídos nas telas do Financeiro.
+
 Pos-ADR 0175 (Observer permite baixa sem fin_contas_bancarias), drawer/list Financeiro/ContasReceber + Financeiro/Unificado + Financeiro/Cobranca devem mostrar pill cinza 'Conta indefinida' nas linhas onde `fin_titulo_baixas.conta_bancaria_id IS NULL`, com CTA pra modal de cadastro fin_contas_bancarias.
 
 Acceptance:
@@ -1293,6 +1343,8 @@ Refs ADR 0175, sessao 2026-05-20-financeiro-bridge-larissa-backfill-recovery.md.
 
 > owner: — · priority: p2 · estimate: 1.5h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — comando `financeiro:vincular-baixas-sem-conta` não existe entre os commands do módulo (só install/health/bridge/backfill/resync).
 
 Comando Laravel que recebe `{biz_id}` + `{conta_bancaria_id}` e faz UPDATE em massa de `fin_titulo_baixas` + `fin_caixa_movimentos` onde `conta_bancaria_id IS NULL AND business_id = ?` setando o `conta_bancaria_id` fornecido.
 
@@ -1312,8 +1364,10 @@ Refs ADR 0175, RUNBOOK bridge-sells-titulos-backfill.md.
 
 ### US-FIN-040 · Artisan command financeiro:health-check cron daily 06:00 BRT - detecta gaps bridge
 
-> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 3h · type: story
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `Modules/Financeiro/Console/Commands/FinanceiroHealthCommand.php` · verificado@dd3ed7c (2026-07-01) — existe `financeiro:health` (10 checks, incl. `checkOrphanBaixas` ≈ Gap A) com `--json`/`--alert`; faltam os Gaps B (transações sem fin_titulo) e C (cliente_descricao NULL >5%), flag `--biz=*` e webhook Slack.
 
 Health-check que roda 5 queries canonicas detectando os 3 gaps documentados em RUNBOOK-bridge-sells-titulos-backfill.md cross-business. Alerta Slack/log quando gap > threshold.
 
@@ -1339,6 +1393,8 @@ Refs ADR 0175, agent financeiro-bridge-auditor.md.
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — DROP das 8 tabelas accounting + DELETE das permissions + mysqldump de arquivo (Onda 6 da deprecação Accounting) não executados.
+
 Onda 6 final da deprecacao Accounting (ADR 0172) - executar apos canary 30d (destrava 2026-06-19).
 
 Pre-cond:
@@ -1362,6 +1418,8 @@ Refs ADR 0172/0174, DEPRECATION-PLAN.md Onda 6.
 > owner: — · priority: p3 · estimate: 0.25h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — backfill on-demand de `cliente_descricao` em biz=1 (UPDATE idempotente/artisan) não materializado; executar quando Wagner pedir ou via Gap C do health-check.
+
 Aplica o mesmo backfill `cliente_descricao` do biz=4 (sessao 2026-05-20) em biz=1 Wagner WR2. Auditoria daquela sessao apontou 0% NULL em biz=1, mas tem casos isolados se aparecer drift futuro.
 
 UPDATE idempotente (mesma logica do Observer TituloAutoService linha 19 Onda Edit 2026-05-18) — JOIN contacts c ON c.id = ft.cliente_id, SET cliente_descricao = CONCAT(nome, ' . #', V/PC, '-', origem_id), WHERE business_id=1 AND cliente_descricao IS NULL.
@@ -1380,6 +1438,8 @@ Refs RUNBOOK-bridge-sells-titulos-backfill.md fase 2d.
 
 > owner: maiara · priority: p1 · estimate: 5h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — tarefa humana de coleta/discovery (Maiara preenche checklist + CSVs de mapping); sem entregável de código no repo.
 
 ## Contexto
 
@@ -1468,8 +1528,10 @@ Quando Maiara entregar `review`, Daily Brief avisa Wagner automatic. NAO criar t
 
 ### US-FIN-044 · SicoobApiDriver nativo (OAuth2 + mTLS + webhook real-time)
 
-> owner: wagner · priority: p1 · estimate: 24h · status: in_progress · type: story
+> owner: wagner · priority: p1 · estimate: 24h · type: story
 > blocked_by: cliente (Kamila/Martinho biz=164 buscando credenciais sandbox Sicoob Developer Portal)
+
+**Implementado em:** _parcial_ · `Modules/PaymentGateway/Services/Drivers/SicoobApiDriver.php` · `Modules/PaymentGateway/Http/Controllers/Webhooks/SicoobApiWebhookController.php` · `resources/js/Pages/Settings/PaymentGateways/_components/SheetNovoGateway.tsx` · verificado@dd3ed7c (2026-07-01) — driver OAuth2+mTLS+webhook + wizard Sicoob prontos (cross-module PaymentGateway); falta apenas o smoke E2E real com credenciais sandbox do cliente (pré-req humano).
 
 ## Contexto
 
@@ -1520,6 +1582,8 @@ Checklist completo em [memory/sessions/2026-05-27-sicoob-api-credenciais-pedido.
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — refactor bank-first (estrutura `BANKS`/`MODES` + steps banco→modo) não construído; `SheetNovoGateway.tsx` ainda lista drivers misturados.
+
 ## Contexto
 
 Wagner identificou 2026-05-27 (durante sessão US-FIN-044): wizard `SheetNovoGateway` step 1 lista 16+ drivers misturando bancos com modos de conexão (`sicoob_api` ao lado de `sicoob_cnab`, `inter` ao lado de `bradesco_cnab`...). Usuário pensa "quero Sicoob", não "quero `sicoob_api`".
@@ -1551,8 +1615,10 @@ Sem mudança backend — apenas UI reorganizada. Backend continua recebendo `gat
 
 ### US-FIN-046 · Sicoob mTLS reusa NfeCertificado (single source of truth)
 
-> owner: wagner · priority: p0 · estimate: 4h · status: review · type: story
+> owner: wagner · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `Modules/PaymentGateway/Services/Drivers/SicoobApiDriver.php` · `Modules/NfeBrasil/Services/CertificadoService.php` · verificado@dd3ed7c (2026-07-01) — `SicoobApiDriver::mtlsOptions()` reusa o cert A1 ICP-Brasil canon do NfeBrasil (single source); colunas `requires_mtls`/`mtls_pfx_path` revertidas.
 
 ## Contexto
 
@@ -1585,6 +1651,8 @@ Acoplamento cross-module `Modules/PaymentGateway → Modules/NfeBrasil` é débi
 
 > owner: eliana · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `app/Console/Commands/Wr2BackfillRecurring2026Command.php` · verificado@dd3ed7c (2026-07-01) — comando artisan idempotente 5-etapas (dry-run default, biz=1 hardcoded) que fecha a migração WR Comercial→oimpresso (subscriptions + rb_invoices + fin_titulos + cobrancas).
 
 Sessão Eliana 2026-06-08 ~6h. Fecha o loop da migração WR Comercial→oimpresso biz=1 que estava no handoff de 07/jun (aquele trouxe 38k títulos históricos, deixou assinatura+cobrança vazias).
 
@@ -1636,6 +1704,8 @@ Sessão Eliana 2026-06-08 ~6h. Fecha o loop da migração WR Comercial→oimpres
 > owner: — · priority: p1 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — fix não aplicado: `TituloAutoService.php:100` ainda deriva `valor_aberto` de `$tx->total_remaining_amount ?? final_total` (coluna-fantasma); a purga do resto do blast radius nos testes segue a fazer.
+
 **Origem:** triagem SDD floor burn-down (nightly 20260614-020001). PR #2744 (commit e2bc74e8a) já corrigiu o `BridgeExpenseToTitulosCommand` + seu teste. Esta US cobre o RESTO do blast radius da mesma coluna-fantasma.
 
 **Causa-raiz:** `transactions.total_remaining_amount` NUNCA existiu no UltimatePOS (ausente de `database/schema/mysql-schema.sql` + todas as migrations). O core deriva o restante como `final_total - total_paid` ([SellController.php:523], total_paid = Σ `transaction_payments.amount` não-estorno). DB de dev antigo tinha coluna avulsa que mascarava; nightly com MySQL limpo (SDD F2b) expõe o `Unknown column` (SQLSTATE 42S22).
@@ -1656,6 +1726,8 @@ Sessão Eliana 2026-06-08 ~6h. Fecha o loop da migração WR Comercial→oimpres
 > blocked_by: —
 > parent_plan: migracao-firebird-boletos-contratos
 
+**Implementado em:** _pendente_ — script idempotente de reparo dos 59 boletos órfãos + 3.372 `fin_titulos` com `origem_id` incorreto (resíduo da migração Firebird) nunca construído.
+
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
 
@@ -1674,6 +1746,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
 
+**Implementado em:** _pendente_ — fix não aplicado: `TransactionObserver` chama `sincronizarDeTransacao($tx)` síncrono SEM try/catch/`report()` (nem Job afterCommit); exceção no espelho Financeiro ainda propaga pro commit do core.
+
 **Origem:** auditoria de saúde/integridade 2026-06-21 (risco #5). Complementa `US-FIN-040` (health-check detecta gaps da bridge).
 
 **Achado:** `TransactionObserver` e `TransactionPaymentObserver` chamam o `TituloAutoService` **síncrono, SEM try/catch** (grep confirmou zero). Uma exceção no espelho Financeiro (deadlock de numeração, constraint, contact malformado) propaga pro `App\Transaction::save()` e **estoura o commit do core UltimatePOS** — exatamente o BUG-2 que bloqueou pagamentos da Larissa. Só o caminho CashRegister tem o try/catch protetor. Financeiro é módulo OPCIONAL derrubando o fluxo de venda do core.
@@ -1687,6 +1761,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 > owner: — · priority: p1 · estimate: 2h · status: todo · type: story
 > blocked_by: —
+
+**Implementado em:** _pendente_ — ação no dashboard/projeto OpenAI (não-código); o `BoletoOcrService` já existe, mas reabilitar o acesso ao gpt-4o Vision e validar com boleto real segue a fazer.
 
 **Origem:** sweep de roadmap do mês 2026-06-21 (`memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md:19`, batch #2 — passou o filtro ADR-0105 mas não foi materializado no #3090).
 

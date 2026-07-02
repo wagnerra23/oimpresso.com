@@ -3,7 +3,7 @@ slug: 0179-cliente-drawer-760px-substitui-show-fullpage
 number: 179
 title: "Cliente — drawer lateral 760px substitui Show.tsx full-page (paradigma cadastral 8 tabs)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
@@ -15,7 +15,7 @@ module: crm
 tags: [paradigma, cliente, drawer, mwart, cowork-blueprint, tier-A, multi-tenant]
 supersedes: []
 superseded_by: []
-related: [0093, 0094, 0104, 0107, 0110, 0114, 0149, 0167, 0177]
+related: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho, 0107-emendation-0104-visual-comparison-gate-f3, 0110-cockpit-pattern-v2-canon-list-detail, 0114-prototipo-ui-cowork-loop-formalizado, 0149-mwart-screen-pattern-reuse-cowork, 0167-errata-0130-indice-handoff-historico-longo, 0177-mwart-excecao-cliente-show-wave-paralela]
 charter_impact:
   - "Pages/Cliente/Show.charter.md v2 → status: superseded"
   - "Pages/Cliente/Index.charter.md draft → published v3 com drawer_pattern: 760px-lateral + 8 tabs"

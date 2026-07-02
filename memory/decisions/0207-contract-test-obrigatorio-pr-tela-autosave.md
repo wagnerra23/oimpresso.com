@@ -3,17 +3,24 @@ slug: 0207-contract-test-obrigatorio-pr-tela-autosave
 number: 207
 title: "Contract test obrigatório em PR que toque tela autosave — CI gate hard"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: active
+lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-27
+decided_at: "2026-05-27"
 module: Infra
 quarter: 2026-Q2
 tags: [testes, ci, autosave, contract-test, ci-gate, anti-regressao, amends-0205]
 supersedes: []
 amends: [0205]
-related: [0205, 0179, 0093, 0143, 0094, 0104, 0155]
+related:
+  - 0205-contract-tests-autosave-padrao-canonico
+  - 0179-cliente-drawer-760px-substitui-show-fullpage
+  - 0093-multi-tenant-isolation-tier-0
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0155-module-grade-v3-sub-dimensoes-gate-ci
 pii: false
 review_triggers:
   - "Falsos-positivos do detector (PR bloqueado por engano, label exempt usado por convite) — refinar heurística"

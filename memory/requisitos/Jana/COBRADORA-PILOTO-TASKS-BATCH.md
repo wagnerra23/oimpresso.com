@@ -307,7 +307,7 @@ Script Pest `tests/Feature/Smoke/CobradoraE2eTest.php` simula fatura vencida (sn
 - [ ] Pest E2E: fatura vencida → CobradoraAgent decide → FsmActionBridge → ExecuteStageActionService → EnviarCobrancaJob (mocked em CI, real em smoke local)
 - [ ] Verifica: `cobranca_tentativas` append, `mcp_dual_brain_decisions` audit com `client_visible=true`, Audit Card URL acessível, OTel métricas emitidas
 - [ ] Smoke biz=99 NEGATIVO obrigatório: agent de biz=4 não enxerga faturas biz=99
-- [ ] RUNBOOK smoke real local em `memory/requisitos/Copiloto/RUNBOOK-cobradora-rotalivre.md` (US-DOC-090) documenta comandos + esperado
+- [ ] RUNBOOK smoke real local em `memory/requisitos/Jana/RUNBOOK-cobradora-rotalivre.md` (US-DOC-090) documenta comandos + esperado
 - [ ] CI verde antes de qualquer canary
 
 ---
@@ -348,7 +348,7 @@ Rollout escalonado biz=4 com gates per-fase. **Default flag inicial:** `COBRADOR
 
 **Description:**
 
-`memory/requisitos/Copiloto/RUNBOOK-cobradora-rotalivre.md` no padrão Cockpit (skill `cockpit-runbook`) — 11 seções obrigatórias.
+`memory/requisitos/Jana/RUNBOOK-cobradora-rotalivre.md` no padrão Cockpit (skill `cockpit-runbook`) — 11 seções obrigatórias.
 
 **Acceptance criteria:**
 

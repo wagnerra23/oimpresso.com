@@ -1,22 +1,22 @@
 ---
 slug: 0154-module-grade-v2-na-justificado
-number: 0154
+number: 154
 title: "Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por design"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
+decided_at: "2026-05-16"
 accepted_at: 2026-05-16
 review_at: 2026-05-23
 module: Governance
 quarter: 2026-Q2
 tags: [governance, qualidade, audit, dashboard, rubrica, na-justificado, dim-5-pesos-100]
 supersedes: []
-supersedes_partially: [0153]
+supersedes_partially: [0153-module-grade-rubrica-v1]
 superseded_by: []
-related: [0093, 0094, 0101, 0105, 0143, 0153]
+related: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0101-tests-business-id-1-nunca-cliente, 0105-cliente-como-sinal-guiar-sem-mandar, 0143-fsm-pipeline-live-prod-marco-2026-05-12, 0153-module-grade-rubrica-v1]
 pii: false
 review_triggers:
   - Quando média projeto bater 75+ (rubrica v2 saturou — precisa v3)

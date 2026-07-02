@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\Services\Support\SupportAccessService;
 use App\SupportAgent;
 use App\User;
@@ -83,7 +82,7 @@ it('accessibleBusinessIds inclui o cliente e EXCLUI a operadora', function () {
     }
 
     $this->seededTenant(); // garante biz=1 (operador)
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_SUP], ['name' => 'Cliente Sup 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
 
     $ids = (new SupportAccessService())->accessibleBusinessIds();
 
@@ -97,7 +96,7 @@ it('agente de suporte ALCANÇA o cliente mas NÃO a operadora', function () {
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_SUP], ['name' => 'Cliente Sup 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $agent = makeSupportAgentUser('sup_agent_ok');
 
     $svc = new SupportAccessService();
@@ -110,7 +109,7 @@ it('usuário SEM capability de suporte não alcança o cliente', function () {
         test()->markTestSkipped('Schema MySQL UltimatePOS + support_agents ausente (ADR 0101).');
     }
 
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_SUP], ['name' => 'Cliente Sup 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $naoAgente = User::firstOrCreate(
         ['username' => 'sup_nao_agente'],
         ['email' => 'sup_nao_agente@test.local', 'password' => bcrypt('x'), 'business_id' => BIZ_CLIENTE_SUP, 'first_name' => 'No']
@@ -125,6 +124,7 @@ it('revogar a concessão tira o acesso (isSupportAgent vira false)', function ()
         test()->markTestSkipped('Schema MySQL UltimatePOS + support_agents ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $agent = makeSupportAgentUser('sup_agent_revoke');
     $svc = new SupportAccessService();
 
@@ -140,7 +140,7 @@ it('usuário da operadora (biz=1) é agente SEM concessão explícita (ADR 0309)
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_SUP], ['name' => 'Cliente Sup 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
 
     // biz=1 (operadora) + NENHUMA linha em support_agents — agente só por membership.
     $operadorStaff = User::firstOrCreate(
@@ -160,6 +160,7 @@ it('agente de suporte NÃO escala pra superadmin (fora de ADMINISTRATOR_USERNAME
         test()->markTestSkipped('Schema MySQL UltimatePOS + support_agents ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $agent = makeSupportAgentUser('sup_agent_noesc');
 
     // Gate::before só dá superadmin a quem está em administrator_usernames — o agente não está.
@@ -174,7 +175,7 @@ it('exclusão do operador é dirigida por config (muda o config, muda a exclusã
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_SUP], ['name' => 'Cliente Sup 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
 
     config(['constants.operator_business_id' => BIZ_CLIENTE_SUP]); // finge que 99 é o operador
     $ids = (new SupportAccessService())->accessibleBusinessIds();

@@ -3,7 +3,7 @@ title: "Full-suite Pest MySQL nightly no CT 100 (FV-F3 — diagnostica, nunca re
 module: "Infra"
 owner: "W"
 status: "ativo"
-last_validated: "2026-06-13"
+last_validated: "2026-07-02"
 preconditions:
   - "Acesso SSH root@100.99.207.66 (Tailscale, BatchMode)"
   - "Container mysql-workers up na rede docker-host_default"
@@ -13,7 +13,7 @@ steps:
   - "Re-rodar manual: nohup /opt/oimpresso-fullsuite/ct100-fullsuite.sh &"
   - "Acompanhar: tail -f /opt/oimpresso-fullsuite/runs/latest/run.log"
   - "Coletar summary: cat /opt/oimpresso-fullsuite/runs/latest/summary.json"
-  - "Atualizar script: scp scripts/tests/ct100-fullsuite.sh root@100.99.207.66:/opt/oimpresso-fullsuite/"
+  - "Atualizar script: AUTOMÁTICO via self-update.sh do MCP (sync mecânico a cada 15min desde 2026-07-02 — o passo manual driftou 13 dias e segurou o P07); manual só em emergência: scp scripts/tests/ct100-fullsuite.sh root@100.99.207.66:/opt/oimpresso-fullsuite/"
 related_adrs:
   - "0062-separacao-runtime-hostinger-ct100"
   - "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes"
@@ -25,7 +25,7 @@ related_adrs:
 
 ## O que roda
 
-`/opt/oimpresso-fullsuite/ct100-fullsuite.sh` (cópia de [`scripts/tests/ct100-fullsuite.sh`](../../../scripts/tests/ct100-fullsuite.sh) — o versionado é a fonte; atualizar a cópia após merge, passo no frontmatter):
+`/opt/oimpresso-fullsuite/ct100-fullsuite.sh` (cópia de [`scripts/tests/ct100-fullsuite.sh`](../../../scripts/tests/ct100-fullsuite.sh) — o versionado é a fonte; desde 2026-07-02 o [`self-update.sh`](../../../docker/oimpresso-mcp/scripts/self-update.sh) do MCP sincroniza a cópia mecanicamente a cada 15min com `mv` atômico. **Pegadinha catalogada:** o passo manual "atualizar após merge" driftou 13 dias (18/jun→01/jul) — as nightlies rodaram sem o P07 coverage mesmo com pcov já na imagem, 0 clover.xml em 4 runs; foi o gap "feito que depende de algo que nunca rodou" da avaliação adversarial 2026-07-01):
 
 1. `git fetch/reset` do clone público em `/opt/oimpresso-fullsuite/code` (origin/main);
 2. `composer install` na imagem `composer:2` (a `oimpresso/mcp` não tem composer/git e `myfatoorah/*` é source-only; `--no-scripts` + `--ignore-platform-reqs` — só baixa deps, o runtime é o mcp, cujo entrypoint octane é sempre sobrescrito com `--entrypoint php`);

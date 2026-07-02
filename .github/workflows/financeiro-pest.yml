@@ -26,6 +26,10 @@ on:
     paths:
       - 'Modules/Financeiro/**'
       - 'tests/Feature/TravaSegunda/**'
+      # Sessão meia-populada sem business_id = Financeiro inteiro vazio em silêncio
+      # (incidente prod 2026-07-02, Tier 0 ADR 0093) — por isso o guard mora nesta lane.
+      - 'tests/Feature/Middleware/SetSessionDataRebuildTest.php'
+      - 'app/Http/Middleware/SetSessionData.php'
       - 'app/Http/Controllers/AccountController.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/financeiro-pest.yml'
@@ -65,6 +69,8 @@ jobs:
             fin:
               - 'Modules/Financeiro/**'
               - 'tests/Feature/TravaSegunda/**'
+              - 'tests/Feature/Middleware/SetSessionDataRebuildTest.php'
+              - 'app/Http/Middleware/SetSessionData.php'
               - 'app/Http/Controllers/AccountController.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/financeiro-pest.yml'
@@ -118,6 +124,7 @@ jobs:
           vendor/bin/pest --no-coverage --colors=always \
             --log-junit test-results/pest-financeiro-junit.xml \
             tests/Feature/TravaSegunda/RetencaoLoopE2ETest.php \
+            tests/Feature/Middleware/SetSessionDataRebuildTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoCanceladoArquivadosKpiTest.php \
             Modules/Financeiro/Tests/Feature/Advisor/Onda31AdvisorPortalTest.php \
             Modules/Financeiro/Tests/Feature/AccountsLegacyMapMultiTenantTest.php \

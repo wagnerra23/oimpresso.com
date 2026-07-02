@@ -397,7 +397,7 @@ function buildScorecard() {
       recall_eval_violations: notYet('down', 0,
         'golden set recall (KL-C2) — depende do alias map das 13 colisões ADR'),
       ragas_real_uptime: notYet('up', '≥95%',
-        'RAGAS canário modo REAL diário (KL-D1/D4) — hoje compara mock com mock'),
+        'jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318 — mata a tautologia; baseline honesto em governance/jana-ragas-real-baseline.json, 1ª medição real 2026-07-01). Uptime not_yet_measured até existir transporte cron→scorecard (trend em storage/logs/ragas-real-eval.log sem espelho versionado — pattern nightly-floor ADR 0279); 1ª execução agendada 2026-07-05.'),
       distiller_freshness: measureDistillerFreshness(),
       read_path_hops: notYet('down', 1,
         'ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1; instrumentação pendente)'),

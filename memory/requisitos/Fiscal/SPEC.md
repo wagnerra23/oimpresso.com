@@ -71,6 +71,8 @@ Vocabulário completo NFe/NFSe em [NfeBrasil/GLOSSARY.md](../NfeBrasil/GLOSSARY.
 > **Permissão:** `fiscal.access`
 > **Page:** `resources/js/Pages/Fiscal/Cockpit.tsx`
 
+**Implementado em:** [`resources/js/Pages/Fiscal/Cockpit.tsx`](../../../resources/js/Pages/Fiscal/Cockpit.tsx) · [`Modules/Fiscal/Http/Controllers/CockpitController.php`](../../../Modules/Fiscal/Http/Controllers/CockpitController.php) · verificado@176f9bc (2026-07-01)
+
 **Como** contador (Eliana) ou operador (Wagner)
 **Quero** visão consolidada do estado fiscal do mês em <3s (KPIs + sparklines + alertas + quick links)
 **Para** identificar pendências sem precisar abrir 6 telas
@@ -87,9 +89,13 @@ Vocabulário completo NFe/NFSe em [NfeBrasil/GLOSSARY.md](../NfeBrasil/GLOSSARY.
 
 ### US-FISCAL-003 · ⌘K palette cross-fiscal — **backlog PR #3**
 
+**Implementado em:** _pendente_ — stub de backlog substituído por US-FISCAL-015 (⌘K palette entregue: `PaletteSearchController` + `CmdKPalette.tsx`). Consolidar/arquivar este stub.
+
 Busca global em notas + DF-e + ações rápidas. Detalhe quando entregar.
 
 ### US-FISCAL-004 · Ações de mutação — **backlog PR #4**
+
+**Implementado em:** _pendente_ — stub de backlog dividido/entregue em US-FISCAL-012 (Cancelar + Manifestar DF-e), US-FISCAL-013 (CC-e + Inutilizar) e US-FISCAL-014 (Retransmitir). Consolidar/arquivar este stub.
 
 Cancelar / Retransmitir / CC-e / Inutilizar. Chama Services `Modules/NfeBrasil` existentes via Job. NOT habilitado neste PR #1 (botões disabled no drawer).
 
@@ -99,6 +105,8 @@ Cancelar / Retransmitir / CC-e / Inutilizar. Chama Services `Modules/NfeBrasil` 
 > **Controller:** `NfseCockpitController@index`
 > **Permissão:** `fiscal.nfse.view`
 > **Page:** `resources/js/Pages/Fiscal/Nfse.tsx`
+
+**Implementado em:** [`resources/js/Pages/Fiscal/Nfse.tsx`](../../../resources/js/Pages/Fiscal/Nfse.tsx) · [`Modules/Fiscal/Http/Controllers/NfseCockpitController.php`](../../../Modules/Fiscal/Http/Controllers/NfseCockpitController.php) · verificado@176f9bc (2026-07-01)
 
 **Como** contador
 **Quero** lista de NFS-e (modelo 56 nacional NT 2024-001) com filtros status + competência + busca
@@ -114,6 +122,8 @@ Cancelar / Retransmitir / CC-e / Inutilizar. Chama Services `Modules/NfeBrasil` 
 
 ### US-FISCAL-006 · Manifesto DF-e (sub-página 4) — **backlog PR #6**
 
+**Implementado em:** _pendente_ — stub de backlog substituído por US-FISCAL-008 (sub-página DF-e entregue: `Dfe.tsx` + `DfeController`). Consolidar/arquivar este stub.
+
 Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 
 ### US-FISCAL-007 · Eventos (sub-página 5) — ✅ PR #2 Wave
@@ -122,6 +132,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 > **Controller:** `EventosController@index`
 > **Permissão:** `fiscal.access`
 > **Page:** `resources/js/Pages/Fiscal/Eventos.tsx`
+
+**Implementado em:** [`resources/js/Pages/Fiscal/Eventos.tsx`](../../../resources/js/Pages/Fiscal/Eventos.tsx) · [`Modules/Fiscal/Http/Controllers/EventosController.php`](../../../Modules/Fiscal/Http/Controllers/EventosController.php) · verificado@176f9bc (2026-07-01)
 
 **Como** contador
 **Quero** timeline de eventos SEFAZ aplicados (CC-e + Cancelamento + EPEC + Manifestação)
@@ -140,6 +152,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 
 > **Rota:** `GET /fiscal/dfe` · **Permissão:** `fiscal.dfe.manage`
 
+**Implementado em:** [`resources/js/Pages/Fiscal/Dfe.tsx`](../../../resources/js/Pages/Fiscal/Dfe.tsx) · [`Modules/Fiscal/Http/Controllers/DfeController.php`](../../../Modules/Fiscal/Http/Controllers/DfeController.php) · verificado@176f9bc (2026-07-01)
+
 **Como** contador
 **Quero** lista de NF-e emitidas CONTRA o CNPJ com filtros + pílula de prazo 90d
 **Para** manifestar dentro do prazo legal (CONFAZ)
@@ -153,6 +167,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 ### US-FISCAL-009 · Cert/Cfg fiscal (sub-página 6) — ✅ PR #3 Wave
 
 > **Rota:** `GET /fiscal/config` · **Permissão:** `fiscal.config.edit`
+
+**Implementado em:** [`resources/js/Pages/Fiscal/Config.tsx`](../../../resources/js/Pages/Fiscal/Config.tsx) · [`Modules/Fiscal/Http/Controllers/ConfigController.php`](../../../Modules/Fiscal/Http/Controllers/ConfigController.php) · verificado@176f9bc (2026-07-01)
 
 **Como** admin
 **Quero** visão consolidada do cert A1 + regime + tributação default
@@ -168,6 +184,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 ### US-FISCAL-010 · SPED & Livros (sub-página 7) — ✅ PR #3 Wave (placeholder)
 
 > **Rota:** `GET /fiscal/sped` · **Permissão:** `fiscal.sped.export`
+
+**Implementado em:** [`resources/js/Pages/Fiscal/Sped.tsx`](../../../resources/js/Pages/Fiscal/Sped.tsx) · [`Modules/Fiscal/Http/Controllers/SpedController.php`](../../../Modules/Fiscal/Http/Controllers/SpedController.php) · verificado@176f9bc (2026-07-01) — sub-página panorama (export real entregue depois em US-FISCAL-016/017)
 
 **Como** contador
 **Quero** panorama dos últimos 5 meses com status apuração + contagem agregada
@@ -188,6 +206,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 > - `POST /fiscal/acoes/nfe/inutilizar` (perm `fiscal.nfe.acoes`)
 > **Controller:** `AcoesController@cartaCorrecao`, `AcoesController@inutilizar`
 > **Services:** `NfeCartaCorrecaoService` (novo), `NfeInutilizacaoService` (já existia US-SELL-030)
+
+**Implementado em:** [`Modules/Fiscal/Http/Controllers/AcoesController.php`](../../../Modules/Fiscal/Http/Controllers/AcoesController.php) · [`resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx`](../../../resources/js/Pages/Fiscal/_components/InutilizacaoModal.tsx) · [`resources/js/Pages/Fiscal/_components/NotaDrawer.tsx`](../../../resources/js/Pages/Fiscal/_components/NotaDrawer.tsx) · verificado@176f9bc (2026-07-01) — Services de emissão `NfeCartaCorrecaoService`/`NfeInutilizacaoService` vivem em `Modules/NfeBrasil`
 
 **Como** contador/operador
 **Quero** aplicar Carta de Correção em NF-e autorizada (sem alterar valores) e inutilizar faixa numérica de notas rejeitadas direto do cockpit Fiscal
@@ -219,6 +239,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 > **Rota:** `POST /fiscal/acoes/nfe/{emissao}/retransmitir` (perm `fiscal.nfe.acoes`)
 > **Controller:** `AcoesController@retransmitir` · **Service:** `NfeService::retransmitir` (novo método público)
 
+**Implementado em:** [`Modules/Fiscal/Http/Controllers/AcoesController.php`](../../../Modules/Fiscal/Http/Controllers/AcoesController.php) · [`resources/js/Pages/Fiscal/_components/NotaDrawer.tsx`](../../../resources/js/Pages/Fiscal/_components/NotaDrawer.tsx) · verificado@176f9bc (2026-07-01) — a emissão `NfeService::retransmitir` vive em `Modules/NfeBrasil`
+
 **Como** contador/operador
 **Quero** retransmitir NFe rejeitada/denegada/erro_envio direto do cockpit
 **Para** corrigir erros transientes (rede/timeout/duplicidade) ou pós-correção de cadastro sem refazer venda
@@ -243,6 +265,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 > **Rota:** `GET /fiscal/palette/search?q={query}` (perm `fiscal.access`)
 > **Controller:** `PaletteSearchController@search` · **Component:** `CmdKPalette.tsx`
 
+**Implementado em:** [`Modules/Fiscal/Http/Controllers/PaletteSearchController.php`](../../../Modules/Fiscal/Http/Controllers/PaletteSearchController.php) · [`resources/js/Pages/Fiscal/_components/CmdKPalette.tsx`](../../../resources/js/Pages/Fiscal/_components/CmdKPalette.tsx) · verificado@176f9bc (2026-07-01)
+
 **Como** contador/operador
 **Quero** buscar instantaneamente qualquer NF-e/NFC-e ou DF-e via Cmd+K (Mac) ou Ctrl+K (Win/Linux)
 **Para** chegar em <2s na nota errada sem navegar entre sub-páginas
@@ -263,6 +287,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 > **Rota:** `GET /fiscal/sped/icms-ipi/{ano}/{mes}` (perm `fiscal.sped.export`)
 > **Controller:** `SpedController@gerar` · **Service:** `Modules\Fiscal\Services\SpedIcmsIpiGeneratorService` (novo)
 
+**Implementado em:** [`Modules/Fiscal/Http/Controllers/SpedController.php`](../../../Modules/Fiscal/Http/Controllers/SpedController.php) · [`Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php`](../../../Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php) · verificado@176f9bc (2026-07-01)
+
 **Como** contador/Eliana
 **Quero** baixar arquivo TXT EFD-ICMS/IPI direto do cockpit pra importar no PVA-EFD CONFAZ
 **Para** entregar SPED Fiscal dentro do prazo dia 15
@@ -281,6 +307,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 > **Service:** `SpedIcmsIpiGeneratorService` (expansão US-FISCAL-016)
 > **Rota:** mesma `GET /fiscal/sped/icms-ipi/{ano}/{mes}` — arquivo agora inclui Bloco E + H
 
+**Implementado em:** [`Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php`](../../../Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php) · verificado@176f9bc (2026-07-01) — expansão US-FISCAL-016 (registros `registroE110`/`registroH001`)
+
 **Como** contador
 **Quero** TXT SPED estruturalmente completo (Bloco E apuração + Bloco H esqueleto)
 **Para** importar no PVA-EFD CONFAZ sem erro de "Bloco E ausente"
@@ -295,6 +323,8 @@ Lê `Modules/NfeBrasil/Models/NfeDfeRecebido`.
 
 ### US-FISCAL-011 · SPED Fiscal complete + PIS/COFINS — **backlog PR #10**
 
+**Implementado em:** _pendente_ — backlog PR #10 (EFD-Contribuições PIS/COFINS + saldo credor real E110 + Bloco H com inventário real); Fase 2 GAP-7 de US-FISCAL-020. Nenhum código entregue ainda.
+
 EFD-Contribuições (PIS/COFINS arquivo separado) + saldo credor real E110 + Bloco H com dados reais inventário 31/12.
 
 ### US-FISCAL-012 · Ações mutação NFe + DF-e — ✅ PR #4 Wave
@@ -303,6 +333,8 @@ EFD-Contribuições (PIS/COFINS arquivo separado) + saldo credor real E110 + Blo
 > - `POST /fiscal/acoes/nfe/{emissao}/cancelar` (perm `fiscal.nfe.acoes`)
 > - `POST /fiscal/acoes/dfe/{recebido}/{acao}` (perm `fiscal.dfe.manage`, acao=cienciar|confirmar|desconhecer|nao_realizada)
 > **Controller:** `AcoesController`
+
+**Implementado em:** [`Modules/Fiscal/Http/Controllers/AcoesController.php`](../../../Modules/Fiscal/Http/Controllers/AcoesController.php) · [`resources/js/Pages/Fiscal/Dfe.tsx`](../../../resources/js/Pages/Fiscal/Dfe.tsx) · [`resources/js/Pages/Fiscal/_components/NotaDrawer.tsx`](../../../resources/js/Pages/Fiscal/_components/NotaDrawer.tsx) · verificado@176f9bc (2026-07-01) — Services `NfeService::cancelar`/`ManifestacaoService` vivem em `Modules/NfeBrasil`
 
 **Como** contador/operador
 **Quero** cancelar NFe autorizada (FSM cascade ADR 0143) e manifestar DF-e (4 ações SEFAZ) direto do cockpit Fiscal
@@ -416,7 +448,9 @@ Then deve receber 403 Forbidden
 
 ### US-FISCAL-018 · Habilitar cockpit Fiscal Larissa biz=4 + canary 7d smoke
 
-> owner: wagner · priority: p0 · estimate: 8h · status: in_progress (provisionamento técnico ✅ · Larissa briefing pending Wagner) · type: story
+**Implementado em:** _parcial_ · [`Modules/Fiscal/Console/Commands/HabilitarBusinessCommand.php`](../../../Modules/Fiscal/Console/Commands/HabilitarBusinessCommand.php) · [`config/fiscal.php`](../../../config/fiscal.php) · [`Modules/Fiscal/Http/Controllers/SpedController.php`](../../../Modules/Fiscal/Http/Controllers/SpedController.php) · verificado@176f9bc (2026-07-01) — falta rodar comando em prod + briefing Larissa + canary 7d + smoke (humano-limitado, backlog)
+
+> owner: wagner · priority: p0 · estimate: 8h · type: story
 > blocked_by: —
 
 **Sintoma:** Larissa já emite NFe via NfeBrasil; falta apenas permissão Fiscal pra ela validar regras tributárias por NCM (vestuário NCM 61-63 Simples Nacional).
@@ -438,6 +472,8 @@ Then deve receber 403 Forbidden
 
 ### US-FISCAL-019 · Cache Redis 60s KPIs + anti-DOS palette LIKE — ✅ Onda ESTABILIZAR
 
+**Implementado em:** [`Modules/Fiscal/Http/Controllers/CockpitController.php`](../../../Modules/Fiscal/Http/Controllers/CockpitController.php) · [`Modules/Fiscal/Listeners/InvalidaCockpitCacheListener.php`](../../../Modules/Fiscal/Listeners/InvalidaCockpitCacheListener.php) · [`Modules/Fiscal/Http/Controllers/PaletteSearchController.php`](../../../Modules/Fiscal/Http/Controllers/PaletteSearchController.php) · verificado@176f9bc (2026-07-01)
+
 > owner: wagner · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: —
 
@@ -454,6 +490,8 @@ Then deve receber 403 Forbidden
 **Refs:** AUDIT-SENIOR-2026-05-25.md §GAP-FISCAL-002
 
 ### US-FISCAL-020 · Integrar MotorTributarioService NfeBrasil — elimina 6 hardcodes Tier-0 SPED — ✅ Onda CONSOLIDAR
+
+**Implementado em:** [`Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php`](../../../Modules/Fiscal/Services/SpedIcmsIpiGeneratorService.php) · verificado@176f9bc (2026-07-01) — Fase 1 (fallback safe + CFOP interno/interestadual) entregue; Fase 2 Strategy Pattern por regime é escopo separado (GAP-7)
 
 > owner: wagner · priority: p0 · estimate: 24h · status: done (Fase 1 — fallback safe entregue · Fase 2 Strategy Pattern por regime fica GAP-7) · type: story
 > blocked_by: —

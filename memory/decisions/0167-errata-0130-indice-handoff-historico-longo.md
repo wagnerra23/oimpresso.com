@@ -1,13 +1,13 @@
 ---
 slug: 0167-errata-0130-indice-handoff-historico-longo
-number: 0167
+number: 167
 title: "Errata ADR 0130 — Índice de handoff mantém histórico longo (não trunca 5)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-17
+decided_at: "2026-05-17"
 accepted_at: 2026-05-17
 review_at: 2026-11-17
 module: Governance
@@ -17,7 +17,7 @@ supersedes: []
 supersedes_partially: []
 superseded_by: []
 amends: [0130]
-related: [0061, 0070, 0094, 0119, 0130, 0131]
+related: [0061-conhecimento-canonico-git-mcp-zero-automem, 0070-jira-style-task-management-current-md-removed, 0094-constituicao-v2-7-camadas-8-principios, 0119-paralelismo-sessoes-whats-active-tier-1, 0130-handoff-append-only-mcp-first, 0131-tiering-memoria-canonico-local-segredo]
 pii: false
 review_triggers:
   - "Diretório `memory/handoffs/` ultrapassar 200 arquivos (vs gate antigo 100 em ADR 0130) — avaliar arquivamento `memory/handoffs/_archive/YYYY/`"

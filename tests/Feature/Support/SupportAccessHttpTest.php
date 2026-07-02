@@ -68,6 +68,7 @@ it('agente acessa o cliente (200) e o acesso é AUDITADO (entrou)', function () 
         test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $agent = makeHttpAgent('http_agent_ok');
 
     $this->actingAs($agent)->get('/__suporte_probe/'.BIZ_CLIENTE_HTTP)->assertStatus(200);
@@ -106,6 +107,7 @@ it('usuário SEM capability é bloqueado (403) na visão e na listagem', functio
 
     // Sem capability = usuário de CLIENTE (biz≠operadora) sem concessão. NÃO pode ser
     // biz=1: pela ADR 0309 todo usuário da operadora já é agente (senão o teste mentiria).
+    $this->seededSupportClientTenant();
     $naoAgente = makeHttpAgent('http_nao_agente', grant: false, businessId: BIZ_CLIENTE_HTTP);
 
     $this->actingAs($naoAgente)->get('/__suporte_probe/'.BIZ_CLIENTE_HTTP)->assertStatus(403);
@@ -128,6 +130,7 @@ it('usuário da operadora (biz=1) é agente SEM concessão explícita (ADR 0309)
     }
 
     // biz=1 (operadora) e SEM linha em support_agents — passa só pela regra de membership.
+    $this->seededSupportClientTenant();
     $operadorStaff = makeHttpAgent('http_operador_staff', grant: false, businessId: BIZ_OPERADOR_HTTP);
 
     $this->actingAs($operadorStaff)->get('/__suporte_probe/'.BIZ_CLIENTE_HTTP)->assertStatus(200);

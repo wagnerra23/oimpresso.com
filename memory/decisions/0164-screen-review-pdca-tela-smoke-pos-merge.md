@@ -1,13 +1,13 @@
 ---
 slug: 0164-screen-review-pdca-tela-smoke-pos-merge
-number: 0164
+number: 164
 title: "Screen Review PDCA — fase C (Check) automática pós-merge via skill tela-smoke-pos-merge"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-17
+decided_at: "2026-05-17"
 accepted_at: 2026-05-17
 review_at: 2026-08-17
 module: Governance
@@ -16,7 +16,7 @@ tags: [governance, pdca, mwart, screen-review, browser-mcp, visual-validation, s
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0104, 0107, 0114, 0109, 0094, 0163]
+related: [0104-processo-mwart-canonico-unico-caminho, 0107-emendation-0104-visual-comparison-gate-f3, 0114-prototipo-ui-cowork-loop-formalizado, 0109-claude-design-plugin-integrado-processo-mwart, 0094-constituicao-v2-7-camadas-8-principios, 0163-governance-v4-metas-alcancadas-ondas-19-28]
 pii: false
 review_triggers:
   - Quando 3+ telas falham smoke 2x consecutivo → revisar charter UX targets (sinal que metas estão calibradas erradas)

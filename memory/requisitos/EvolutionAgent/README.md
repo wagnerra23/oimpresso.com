@@ -16,5 +16,5 @@ Ferramenta meta — ajuda Claude Code a propor o **próximo PR de maior ROI** de
 
 ## Não confunda com
 
-- **Copiloto** ([../Copiloto/](../Copiloto/)) — módulo SaaS pra cliente final, não meta-tool.
+- **Jana** ([../Jana/](../Jana/)) — ex-Copiloto (rename ADR 0088); módulo SaaS pra cliente final, não meta-tool.
 - **LaravelAI** ([../LaravelAI/](../LaravelAI/)) — adapter genérico de IA; aqui usamos Prism PHP via Vizra.

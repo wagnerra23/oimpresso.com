@@ -3,16 +3,22 @@ slug: 0205-contract-tests-autosave-padrao-canonico
 number: 205
 title: "Contract tests autosave como padrão canônico pra toda tela com endpoint PATCH"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: active
+lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-27
+decided_at: "2026-05-27"
 module: Infra
 quarter: 2026-Q2
 tags: [testes, ci, autosave, drawer, contract-test, anti-regressao, ADR-0179]
 supersedes: []
-related: [0179, 0093, 0143, 0094, 0104, 0155]
+related:
+  - 0179-cliente-drawer-760px-substitui-show-fullpage
+  - 0093-multi-tenant-isolation-tier-0
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0155-module-grade-v3-sub-dimensoes-gate-ci
 pii: false
 review_triggers:
   - "Algum bug de aliases PT-BR/canon EN passar pra prod apesar do contract test (ajustar runner)"
