@@ -36,6 +36,8 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-001 · GrowthBook self-hosted (feature flag system)
 
+**Implementado em:** `app/Services/FeatureFlagService.php` · `memory/requisitos/Infra/growthbook-docker-compose.example.yml` · `memory/requisitos/Infra/RUNBOOK-growthbook-deploy.md` · `tests/Feature/Services/FeatureFlagServiceTest.php` · verificado@8af585a (2026-07-02)
+
 > owner: wagner · priority: p0 · estimate: 1.5h · status: todo · type: story · origin: gap-analysis-2026-05-08
 > blocked_by: —
 
@@ -63,6 +65,8 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-002 · Client Signal — entidade + canal estruturado
 
+**Implementado em:** _pendente_ — não construído: sem tabela `mcp_client_signals`, sem `Pages/Feedback/Form.tsx`, sem endpoint `POST /api/feedback` nem tools MCP `client-signals-*` (grep zero por client_signal em Modules/app/database). O feature de feedback do Whatsapp (`clients_feedbacks`) é outra coisa
+
 > owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: adr-0105
 > blocked_by: US-INFRA-001
 
@@ -86,6 +90,8 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 **Refs:** [ADR 0105 §princípio 1](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [skill ads-decision-flow](../../../.claude/skills/ads-decision-flow/SKILL.md)
 
 ### US-INFRA-003 · APM full-stack — captura "lento aqui" automaticamente
+
+**Implementado em:** _parcial_ · `config/sentry.php` · `composer.json` · verificado@8af585a (2026-07-02) — só o SDK Laravel (sentry-laravel + config) landou; falta SDK JS Sentry-react em app.tsx (0 hits), source-maps no build, GlitchTip compose no CT 100 e o wire erro→client_signal (depende de US-INFRA-002, não construída)
 
 > owner: wagner · priority: p1 · estimate: 2h · status: todo · type: story · origin: adr-0105
 > blocked_by: US-INFRA-001
@@ -112,6 +118,8 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-004 · Detecção automática de desvio (cron diário)
 
+**Implementado em:** _pendente_ — o feature specado (delta `cycle_goal.target`×`atual` > 20% → cria `client_signal` reporter=SYSTEM) não existe: `client_signals` não foi construída (US-INFRA-002). O comando homônimo `governance:detect-drift` (`Modules/Governance/Console/Commands/DetectDriftCommand.php`, agendado em `app/Console/Kernel.php`) detecta drift de Module Charter (SCOPE.md × filesystem) → `mcp_alertas_eventos`, mecanismo diferente
+
 > owner: wagner · priority: p2 · estimate: 0.5h · status: todo · type: story · origin: adr-0105
 > blocked_by: US-INFRA-002
 
@@ -133,6 +141,8 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 **Refs:** [ADR 0091 brief diário](../../decisions/0091-daily-brief.md), [ADR 0094 loop fechado](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md)
 
 ### US-INFRA-005 · S5 ADS adiantado (Risk + Confidence + Policy core)
+
+**Implementado em:** _parcial_ · `Modules/ADS/Services/RiskEngine.php` · `Modules/ADS/Services/ConfidenceEngine.php` · `Modules/ADS/Services/PolicyEngine.php` · `Modules/ADS/Services/DecisionRouter.php` · `resources/js/Pages/ads/Admin/Decisoes.tsx` · verificado@8af585a (2026-07-02) — núcleo do ADS (4 outcomes ALLOW_BRAIN_A/REQUIRE_BRAIN_B/REQUIRE_HUMAN_REVIEW/BLOCK_ALWAYS + tela admin + Pest PolicyEngine/Risk/Confidence/DecisionRouter) landou; falta só o wire em `client_signal_triage` (depende de US-INFRA-002, não construída)
 
 > owner: wagner · priority: p1 · estimate: 12h · status: todo · type: epic · origin: adr-0106-recalibracao
 > blocked_by: US-INFRA-002
@@ -157,6 +167,8 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 **Refs:** [skill ads-decision-flow](../../../.claude/skills/ads-decision-flow/SKILL.md), [ADR 0106 antecipação](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)
 
 ### US-INFRA-006 · Tool MCP `whats-active` — agregar sessões doing + paths tocados (Tier 1 ADR 0119)
+
+**Implementado em:** `Modules/Jana/Mcp/Tools/WhatsActiveTool.php` · `Modules/Jana/Mcp/OimpressoMcpServer.php` · `Modules/Jana/Services/WorkLease/WorkLeaseService.php` · verificado@8af585a (2026-07-02)
 
 > owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story · origin: adr-0119-paralelismo-sessoes
 
@@ -186,6 +198,8 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-007 · Skill Tier A `session-start-check` — alertar paths overlapping (ADR 0119)
 
+**Implementado em:** `.claude/skills/session-start-check/SKILL.md` · verificado@8af585a (2026-07-02)
+
 > owner: wagner · priority: p2 · estimate: 2h · status: todo · type: story · origin: adr-0119-paralelismo-sessoes
 > blocked_by: US-INFRA-006
 
@@ -211,6 +225,8 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 **Refs:** [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md), depende de US-INFRA-006
 
 ### US-INFRA-008 · Feature Flag Control (3 canais: Artisan/MCP/Painel)
+
+**Implementado em:** `app/Services/GrowthBookAdminService.php` · `app/Console/Commands/FeatureFlag/FlagSetCommand.php` · `Modules/Jana/Mcp/Tools/FlagSetTool.php` · `Modules/Admin/Http/Controllers/FeatureFlagsController.php` · `Modules/Admin/Tests/Feature/FeatureFlagsControllerTest.php` · verificado@8af585a (2026-07-02) — 3 canais (Artisan flag:* + tools MCP flag-* + painel `/admin/feature-flags`) + `FeatureFlagAudit` append-only + RUNBOOK-feature-flag-control.md
 
 > owner: wagner · priority: p1 · estimate: 4h · status: in-progress · type: story · origin: emergencia-rollback-sells-v2-2026-05-13
 > blocked_by: US-INFRA-001
@@ -244,6 +260,8 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 **Refs:** US-INFRA-001 (GrowthBook self-hosted), [ADR 0094 §princípio 7 transparência](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md), [ADR 0122 Admin Center CT 100](../../decisions/0122-admin-center-ct100.md), [ADR 0131 tiering memória](../../decisions/0131-tiering-memoria-canonico-local-segredo.md)
 
 ### US-INFRA-009 · Artisan command `feature:activate` via GrowthBook API ⚠️ **SUPERSEDED por US-INFRA-008**
+
+**Implementado em:** `app/Console/Commands/FeatureFlag/FlagSetCommand.php` · `app/Services/GrowthBookAdminService.php` · verificado@8af585a (2026-07-02) — superseded por US-INFRA-008: `flag:set` (com --biz --enabled) é o superset que substitui o feature:activate/deactivate planejado aqui (sem código próprio)
 
 > owner: wagner · priority: p2 · estimate: 3h · status: superseded · type: story
 > superseded_by: US-INFRA-008
@@ -296,6 +314,8 @@ Quando os 5 primeiros fecharem, oimpresso opera com **loop de governança fechad
 
 ### US-INFRA-011 · Rotacionar senha MySQL Hostinger u906587222_oimpresso - exposicao sessao 2026-05-20
 
+**Implementado em:** _pendente_ — tarefa operacional 100% humano-limitada (Wagner rotaciona no hPanel + Vaultwarden + 2 .env + smoke), sem artefato de código no repo por design (segredo não vive em git)
+
 > owner: wagner · priority: p1 · estimate: 0.25h · status: todo · type: story
 > blocked_by: —
 
@@ -324,6 +344,8 @@ Refs feedback-nunca-publicar-credenciais.md + reference/hostinger-remote-mysql.m
 ---
 
 ### US-INFRA-012 · Resolver migration order legacy pra visual-regression.yml sair de INFRA-ONLY (ADR 0108)
+
+**Implementado em:** _parcial_ · `.github/workflows/visual-regression.yml` · verificado@8af585a (2026-07-02) — o workflow existe mas SEGUE em INFRA-ONLY: 20 ocorrências de `continue-on-error` ainda presentes (o DoD é justamente removê-las + estabilizar baseline + confirmar que o gate bloqueia). Migration order legacy não resolvida
 
 > owner: wagner · priority: p2 · estimate: 8h · status: todo · type: story
 > blocked_by: —
@@ -368,6 +390,8 @@ Codável IA-pair: 8h (investigação migration + fix + estabilizar baseline). Hu
 **Última atualização (US-INFRA-012):** 2026-05-25 — adicionada resolução migration order legacy visual-regression.yml (batch validação design system pós-conversa Wagner com Claude do chat)
 
 ### US-INFRA-013 · Implementar contract-test-gate GH Action (ADR 0207)
+
+**Implementado em:** _pendente_ — não construído: sem `.github/workflows/contract-test-gate.yml`, sem `scripts/contract-test-detect.sh`, sem `RUNBOOK-contract-test-gate.md` (só existem os ADRs 0205/0207 + session logs, não a entrega do gate)
 
 > owner: — · sprint: 2026-W22 · priority: p1 · estimate: 4h · status: todo · type: story
 > blocked_by: —
@@ -420,11 +444,13 @@ Implementa o gate hard descrito em [ADR-0207](../../decisions/0207-contract-test
 
 ---
 
-## Onda prevenção bugs MWART (US-INFRA-014..030) — 2026-05-28
+## Onda prevenção bugs MWART — US-INFRA 014 a 030 — 2026-05-28
 
 > 17 tasks geradas a partir do dossier `memory/sessions/2026-05-28-arte-prevencao-bugs-mwart-larissa.md` e ADRs 0208/0209/0210/0211/0212/0213 (PR #1837 propostos). Atacam classe inteira de bugs Larissa R7-R10 via enforcement passivo (PHPStan/Larastan, ESLint, Wayfinder, TanStack Query, defensive logging, audit-to-backlog).
 
 ### US-INFRA-014 · Install Larastan + phpstan.neon.dist nível 5 baseline
+
+**Implementado em:** `app/PhpStan/Rules/NoSilentFallbackRule.php` · verificado@8af585a (2026-07-02) — `phpstan.neon.dist` (nível 5) + `phpstan-baseline.neon` (ratchet) na raiz + larastan 3.10 em `composer.json`; a config raiz registra em `services:` os custom rules sob `app/PhpStan/Rules/` (path âncora existe; os `.neon` da raiz não têm `/` pro lint)
 
 > owner: — · priority: p0 · estimate: 8h · status: todo · type: story
 > blocked_by: —
@@ -438,6 +464,8 @@ Pré-req: nenhum (habilita Onda 2 inteira)
 
 ### US-INFRA-015 · Workflow phpstan-gate.yml — CI ratchet contra baseline
 
+**Implementado em:** `.github/workflows/phpstan-gate.yml` · verificado@8af585a (2026-07-02)
+
 > owner: — · priority: p0 · estimate: 2h · status: todo · type: story
 > blocked_by: US-INFRA-014
 
@@ -448,6 +476,8 @@ Pré-req: nenhum (habilita Onda 2 inteira)
 Refs: ADR 0208
 
 ### US-INFRA-016 · LogContextMiddleware global — business_id/user_id/request_id em todo log
+
+**Implementado em:** `app/Http/Middleware/LogContextMiddleware.php` · verificado@8af585a (2026-07-02)
 
 > owner: — · priority: p0 · estimate: 2h · status: todo · type: story
 > blocked_by: —
@@ -460,6 +490,8 @@ Refs: ADR 0212 Camada 1
 
 ### US-INFRA-017 · PHPStan custom rule NoMissingTenantScope (T-AP-2 Tier 0)
 
+**Implementado em:** `app/PhpStan/Rules/NoMissingTenantScopeRule.php` · `tests/Feature/PhpStan/NoMissingTenantScopeRuleTest.php` · verificado@8af585a (2026-07-02)
+
 > owner: — · priority: p0 · estimate: 5h · status: todo · type: story
 > blocked_by: US-INFRA-014
 
@@ -470,6 +502,8 @@ Refs: ADR 0212 Camada 1
 Refs: ADR 0208 + ADR 0093 (Tier 0 multi-tenant)
 
 ### US-INFRA-018 · PHPStan custom rule NoInventedModel (T-AP-1)
+
+**Implementado em:** _pendente_ — regra não criada: `app/PhpStan/Rules/` só tem NoMissingTenantScope/NoNopMutationController/NoSilentFallback; sem `NoInventedModelRule.php`
 
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story
 > blocked_by: US-INFRA-014
@@ -482,6 +516,8 @@ Refs: ADR 0208
 
 ### US-INFRA-019 · PHPStan custom rule NoNopMutationController (T-AP-13)
 
+**Implementado em:** `app/PhpStan/Rules/NoNopMutationControllerRule.php` · `tests/Feature/PhpStan/NoNopMutationControllerRuleTest.php` · verificado@8af585a (2026-07-02)
+
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story
 > blocked_by: US-INFRA-014
 
@@ -492,6 +528,8 @@ Refs: ADR 0208
 Refs: ADR 0208
 
 ### US-INFRA-020 · PHPStan custom rule NoSilentFallbackRule (R9 raiz)
+
+**Implementado em:** `app/PhpStan/Rules/NoSilentFallbackRule.php` · `tests/Feature/PhpStan/NoSilentFallbackRuleTest.php` · verificado@8af585a (2026-07-02)
 
 > owner: — · priority: p0 · estimate: 6h · status: todo · type: story
 > blocked_by: US-INFRA-014
@@ -509,6 +547,8 @@ Refs: ADR 0212 Camada 3
 
 ### US-INFRA-021 · Catalogar AP-18 "Fallback default sem Log::warning" no LICOES_F3
 
+**Implementado em:** `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` · verificado@8af585a (2026-07-02) — AP-18 catalogado (seção "AP-18 — Fallback default sem `Log::warning` (R9 raiz, 2026-05-28)")
+
 > owner: — · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: —
 
@@ -519,6 +559,8 @@ Refs: ADR 0212 Camada 3
 Refs: ADR 0212 Camada 2
 
 ### US-INFRA-022 · Install Laravel Wayfinder + Vite plugin + watch types
+
+**Implementado em:** _pendente_ — só as deps foram declaradas (laravel/wayfinder ^0.1.20 em composer.json + vite-plugin-wayfinder ^0.1.7 em package.json); o feature não está wired: `vite.config.js` não tem o plugin (0 hits), sem geração de tipos em resources/js/types/wayfinder (dir ausente), nada em resources/js aponta pra wayfinder. DoD ("npm run dev regenera tipos") totalmente aberto
 
 > owner: — · priority: p0 · estimate: 2h · status: todo · type: story
 > blocked_by: —
@@ -531,6 +573,8 @@ Refs: ADR 0210 Fase 1
 Pré-req: avaliar maturidade beta — fallback spatie/laravel-data documentado no ADR 0210
 
 ### US-INFRA-023 · Zod schemas em endpoints JSON não-Inertia
+
+**Implementado em:** _parcial_ · `resources/js/Types/api-schemas/products.ts` · `resources/js/Types/api-schemas/customers.ts` · verificado@8af585a (2026-07-02) — schemas Zod (`parseProducts`/`parseCustomers`) landaram, mas ZERO consumidores importam/chamam parse (grep `api-schemas` nos autocompletes = só `useQuery` cru) — fail-loud da acceptance nunca dispara; wire nos consumers pendente
 
 > owner: — · priority: p1 · estimate: 6h · status: todo · type: story
 > blocked_by: —
@@ -547,6 +591,8 @@ Refs: ADR 0210 Fase 3
 
 ### US-INFRA-024 · PHPStan custom rule NoUntypedInertiaProps (R8 gate final)
 
+**Implementado em:** _pendente_ — regra não criada (sem `NoUntypedInertiaPropsRule.php` em `app/PhpStan/Rules/`); depende de US-INFRA-022 (Wayfinder só parcial)
+
 > owner: — · priority: p2 · estimate: 10h · status: todo · type: story
 > blocked_by: US-INFRA-014 + US-INFRA-022
 
@@ -558,6 +604,8 @@ Refs: ADR 0210 Fase 4
 
 ### US-INFRA-025 · Catalogar AP-17 "Inertia props não tipadas" no LICOES_F3
 
+**Implementado em:** _pendente_ — AP-17 não catalogado em `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` (grep zero por "AP-17"; só AP-18 landou)
+
 > owner: — · priority: p2 · estimate: 1h · status: todo · type: story
 > blocked_by: —
 
@@ -568,6 +616,8 @@ Refs: ADR 0210 Fase 4
 Refs: ADR 0210 Fase 5
 
 ### US-INFRA-026 · Convenção markdown TASK[owner](Px) em audits
+
+**Implementado em:** _parcial_ · `memory/sessions/_TEMPLATE-audit.md` · verificado@8af585a (2026-07-02) — template com o pattern `TASK[owner](Px)` landou; falta a referência em .claude/rules/sessions.md (arquivo ausente)
 
 > owner: — · priority: p0 · estimate: 1h · status: todo · type: story
 > blocked_by: —
@@ -581,6 +631,8 @@ Pré-req: fundação dos próximos 4
 
 ### US-INFRA-027 · Hook audit-creates-tasks.ps1 (PostToolUse Write)
 
+**Implementado em:** `.claude/hooks/audit-creates-tasks.mjs` · verificado@8af585a (2026-07-02) — hook landou como `.mjs` (não `.ps1` do título); PostToolUse Write matching `*-audit-*.md`
+
 > owner: — · priority: p0 · estimate: 4h · status: todo · type: story
 > blocked_by: US-INFRA-026
 
@@ -591,6 +643,8 @@ Pré-req: fundação dos próximos 4
 Refs: ADR 0213 Mecanismo 2
 
 ### US-INFRA-028 · Skill audit-to-backlog Tier B
+
+**Implementado em:** `.claude/skills/audit-to-backlog/SKILL.md` · verificado@8af585a (2026-07-02)
 
 > owner: — · priority: p1 · estimate: 5h · status: todo · type: story
 > blocked_by: US-INFRA-026
@@ -605,6 +659,8 @@ Refs: ADR 0213 Mecanismo 3
 
 ### US-INFRA-029 · Workflow CI audit-orphan-check.yml — warning PR órfãos
 
+**Implementado em:** _pendente_ — workflow não criado (sem `.github/workflows/audit-orphan-check.yml`; nenhum yml de audit/orphan em `.github/workflows/`)
+
 > owner: — · priority: p1 · estimate: 5h · status: todo · type: story
 > blocked_by: US-INFRA-026
 
@@ -615,6 +671,8 @@ Refs: ADR 0213 Mecanismo 3
 Refs: ADR 0213 Mecanismo 4
 
 ### US-INFRA-030 · health-check audits_with_orphan_findings — auditoria periódica
+
+**Implementado em:** _pendente_ — check não adicionado: `Modules/Jana/Console/Commands/HealthCheckCommand.php` não tem `audits_with_orphan_findings` (grep zero por orphan_findings em app/Console + Modules/Jana)
 
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: US-INFRA-029
@@ -628,6 +686,8 @@ Refs: ADR 0213 Mecanismo 5
 ---
 
 ### US-INFRA-031 · Resolver colisões de const/function globais em tests/Feature (bloqueia suíte Pest completa)
+
+**Implementado em:** _parcial_ · `tests/Feature/Sells/Wave1EditBaselineTest.php` · `tests/Feature/Purchase/Wave2EditBaselineTest.php` · verificado@8af585a (2026-07-02) — a colisão FATAL nomeada foi resolvida (grep zero por `readEditController` nos 2 arquivos; PRs #1943/#2251 referenciados no corpo); a padronização completa dos helpers compartilhados/consts em toda a suíte segue em andamento (ver US-INFRA-040)
 
 > owner: — · priority: p1 · estimate: 3h · status: todo · type: story
 > blocked_by: —
@@ -647,6 +707,8 @@ Refs: ADR 0213 Mecanismo 5
 ---
 
 ### US-INFRA-032 · Triar 11 hardcodes $businessId === N flagados pelo NoHardcodeBusinessIdInModulesTest (guard Tier 0 agora ativo)
+
+**Implementado em:** `tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest.php` · `Modules/Financeiro/Http/Controllers/CobrancaController.php` · verificado@8af585a (2026-07-02) — triagem executada: guard refinado (`PATTERNS_BANIDOS` casa só `[1-9]\d*`, exemção documentada de `=== 0` como sentinela sem-tenant) e `CobrancaController` migrou `=== 1` → `=== (int) config('app.saas_owner_business_id')` (fonte única); guard verde no escopo canônico
 
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
@@ -671,6 +733,8 @@ Refs: ADR 0213 Mecanismo 5
 
 ### US-INFRA-033 · Suíte Pest no staging falha em massa por testes fazerem Schema::create/dropIfExists cru em tabelas compartilhadas (vs clone MySQL)
 
+**Implementado em:** _parcial_ · `.github/workflows/financeiro-pest.yml` · `Modules/Financeiro/Tests/Feature/CaixaMovimentoFreshnessTest.php` · verificado@8af585a (2026-07-02) — o padrão canônico (lane dedicada + `DatabaseTransactions`/skip-guard vs `RefreshDatabase`) foi provado numa lane (financeiro, US-FIN-053/PR #2253); a estratégia de DB de teste no CT 100 e a auditoria dos ~493 asserts SQLite-dependentes seguem abertas (ver US-INFRA-040)
+
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
@@ -691,6 +755,8 @@ Refs: ADR 0213 Mecanismo 5
 **Refs:** US-INFRA-031 (colisões globais, pré-requisito já resolvido p/ Whatsapp) · ADR 0235 (staging clone anonimizado) · `memory/requisitos/Infra/RUNBOOK-acesso-ct100-testes-time.md` · descoberto durante PR #2251 · **US-FIN-053 / PR #2253** (precedente trabalhado: a lane `financeiro-pest.yml` resolveu esta mesma classe — `CaixaMovimentoFreshnessTest` migrado de `RefreshDatabase` → `DatabaseTransactions` + skip-guard contra MySQL real; o mesmo PR corrigiu 2 bugs de schema-drift `deleted_at`/`valor_baixa` no `FinanceiroHealthCommand`, instância do padrão #2 "schema drift").
 
 ### US-INFRA-035 · Item 7 ADR 0271 — fusão 4 gates de cor → 1 (executar ≥2026-06-18)
+
+**Implementado em:** _pendente_ — fusão não executada: sem `.github/workflows/color-canon-gate.yml`; dos 4 gates a consolidar só resta `.github/workflows/stylelint-gate.yml` (conformance-gate/ui-lint já não existem, mas o gate unificado planejado nunca foi criado)
 
 > owner: claude · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: —
@@ -719,6 +785,8 @@ Cada passo é individualmente seguro — sem janela de deadlock "Expected — wa
 
 ### US-INFRA-036 · CSS hex drift fase 2 — tokenizar 61 valores hex crus restantes
 
+**Implementado em:** _pendente_ — item de backlog "plano-perdido" (triagem 2026-06-20) sem execução própria: os 61 hex crus não foram tokenizados
+
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 > parent_plan: css-hex-drift-fase2
@@ -737,6 +805,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-INFRA-037 · Roadmap redução de CSS manual (~28k → ~20k linhas)
 
+**Implementado em:** _pendente_ — item de backlog "plano-perdido" (triagem 2026-06-20) sem entrega própria: roadmap de redução por área não materializado nem execução incremental trackada
+
 > owner: — · priority: p2 · estimate: 6h · status: todo · type: story
 > blocked_by: —
 > parent_plan: manual-css-js-roadmap
@@ -753,6 +823,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
 
 ### US-INFRA-038 · SDD: promover os 3 steps de continue-on-error a required (gate-required)
+
+**Implementado em:** _pendente_ — não promovido: `.github/workflows/sdd-scorecard.yml` ainda tem 5 `continue-on-error` (os steps do gate SDD seguem não-mordendo)
 
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > blocked_by: —
@@ -771,6 +843,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-INFRA-039 · SDD KL E2/E3 — aplicar os 27 renames classe A
 
+**Implementado em:** _pendente_ — os 27 renames classe A não foram aplicados; existe só o roadmap do plano em `memory/requisitos/_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md`, não a execução
+
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story
 > blocked_by: —
 > parent_plan: sdd-kl-e2-e3
@@ -787,6 +861,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
 
 ### US-INFRA-040 · SDD — burn-down dos 237 corruptores SQLite
+
+**Implementado em:** _parcial_ · `scripts/audit/sqlite-test-corruptors.mjs` · verificado@8af585a (2026-07-02) — o auditor read-only que ACHA os corruptores (v2 classifica por comportamento-no-MySQL) landou; o burn-down até 0 dos testes corruptores segue em andamento
 
 > owner: — · priority: p2 · estimate: 8h · status: todo · type: story
 > blocked_by: —
@@ -806,6 +882,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-INFRA-041 · Backup/DR de banco no deploy — mysqldump + cópia off-host + restore testado
 
+**Implementado em:** _pendente_ — não construído: `.github/workflows/deploy.yml` não tem `mysqldump` (grep zero); backup ainda é só `tar` no mesmo host, sem cópia off-host, sem restore testado, sem RPO/RTO por escrito
+
 > owner: — · priority: p1 · estimate: 6h · status: todo · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
 
@@ -821,6 +899,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Hostinger ≠ CT 100 respeitado (ADR 0062).
 
 ### US-INFRA-042 · Rotacionar segredos do repo público (MEILI_MASTER_KEY + token DNS Hostinger + 12 do incidente)
+
+**Implementado em:** _pendente_ — tarefa operacional humano-limitada (rotação de segredo no host, não commitável em git por design); status por item deveria refletir em `memory/_INDEX-SECRETS.md`, mas a rotação em si + tornar repo privado + ativar `core.hooksPath` não foram feitos
 
 > owner: — · priority: p1 · estimate: 1h · status: todo · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
@@ -838,6 +918,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-INFRA-043 · Sentinela tasks:unassigned — flag US todo sem cycle/owner (fecha furo do roadmap)
 
+**Implementado em:** `Modules/Jana/Console/Commands/McpTasksUnassignedCommand.php` · `Modules/Jana/Tests/Feature/TaskRegistry/McpTasksUnassignedCommandTest.php` · verificado@8af585a (2026-07-02) — comando `mcp:tasks:unassigned` (espelha orphans) com Pest
+
 > owner: — · priority: p2 · estimate: 5h · status: todo · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
 
@@ -852,6 +934,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 ### US-INFRA-044 · Wire mcp:tasks:sync no CI (push de SPEC) — fecha drift SPEC↔DB
 
+**Implementado em:** _pendente_ — o deliverable (workflow `on: push: paths: SPEC.md` disparando `mcp:tasks:sync`) não existe: nenhum yml em `.github/workflows/` invoca `tasks:sync`. O comando `Modules/Jana/Console/Commands/McpTasksSyncCommand.php` já existia (manual/server-side), mas não é a entrega desta US (o wire no CI)
+
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
 
@@ -865,6 +949,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 
 ### US-INFRA-045 · Pipeline task→roadmap furada: cycle/epic não resolvem sem project: no SPEC + sem tool de atribuição
+
+**Implementado em:** _pendente_ — os 3 buracos seguem: `Modules/Jana/Services/TaskRegistry/TaskParserService.php` ainda resolve project/cycle/epic como NULL quando falta `project:` no frontmatter (sem fallback default COPI); não há tool MCP pra atribuir cycle/epic a US existente; nem RUNBOOK do caminho "US → roadmap"
 
 > owner: — · priority: p2 · estimate: 4h · status: todo · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
@@ -883,6 +969,8 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Pareia com US-INFRA-043 (sentinela unassigned) + US-INFRA-044 (sync no CI).
 
 ### US-INFRA-046 · ADR 0296 — emendar os 12 bloqueadores adversariais + 10 decisões antes de promover proposed→aceito
+
+**Implementado em:** _pendente_ — emendação não feita: `memory/decisions/0296-plano-capacidade-multi-tenant-taxonomia-dados-placement.md` segue `status: proposto` (os 12 bloqueadores + 10 decisões não foram incorporados; ADR não promovido)
 
 > owner: — · priority: p1 · estimate: 16h · status: todo · type: story
 > blocked_by: —
