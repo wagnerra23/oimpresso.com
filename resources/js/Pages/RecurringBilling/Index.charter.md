@@ -6,6 +6,7 @@ owner: wagner
 status: live
 last_validated: "2026-06-07"
 parent_module: RecurringBilling
+related_us: [US-RB-002]
 related_adrs: [110, 107, 109, 104, 93, 114, 101, 94, 143]
 tier: A
 charter_version: 1

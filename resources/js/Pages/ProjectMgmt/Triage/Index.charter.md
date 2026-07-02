@@ -4,6 +4,7 @@ component: resources/js/Pages/ProjectMgmt/Triage/Index.tsx
 owner: wagner
 status: draft
 parent_module: ProjectMgmt
+related_us: [US-TR-301, US-TR-307, US-TR-310, US-TR-311]
 related_adrs: [70, 93, 39]
 related_spec: memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md
 stories: [US-TR-301, US-TR-302, US-TR-303]

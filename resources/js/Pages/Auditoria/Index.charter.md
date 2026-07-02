@@ -2,6 +2,7 @@
 page: /auditoria
 component: resources/js/Pages/Auditoria/Index.tsx
 status: draft
+related_us: [US-AUDIT-009]
 ---
 
 # Charter — Pages/Auditoria/Index.tsx

@@ -5,6 +5,7 @@ tela: purchase/create
 tipo: FORM (CREATE)
 modulo: Purchase
 status: draft
+related_us: [US-COM-002, US-COM-005]
 status_note: "F3 implementado + modo grade tam×cor (US-COM-005, aguarda smoke/canary Wagner)"
 charter_version: 2
 last_validated: "2026-06-22"
