@@ -379,13 +379,16 @@ Ref: retest reproduzido na timeline US-GOV-017 (correção #2) · #2632 (C1) · 
 Saída da re-triage 32-thread do eixo FAILURE determinístico (155 arquivos, 385 ExpectationFailed) com refutador adversarial ADR 0276. Doc: `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md`. **4 quick-wins já em PR** (ads:health #2649, superadmin:health #2647, macro_variant_id #2646, biz=4→1 fixtures #2652) — fora desta task.
 
 ## 7 bugs confirmados que precisam de design (sobreviveram ao refutador)
-- [ ] **ChannelUserAccess** (Tier 0): `UNIQUE` em coluna nullable → invariante "1 grant ativo por (channel,user)" não enforced (`2026_05_12_160000_create_channel_user_access_table.php:55-58`; fix = generated column). Teste: `ChannelUserAccessTest` R-WA-068-005.
-- [ ] **CSAT**: `InboxController::updateStatus:1042-1071` não dispara `DispatchCsatJob` em open→resolved. Teste: `CsatFlowTest`.
-- [ ] **Vestuario DataController** (ADR 0024): criar `Modules/Vestuario/Http/Controllers/DataController.php` (etiquetas sem entrada no sidebar). Teste: `ModuleScaffoldingTest`.
-- [ ] **WithoutGlobalScopes** (Tier 0): bypass de business_id sem `// SUPERADMIN:` em `KbCorpusBuilder.php:164,190`, `TituloAutoService.php:690,709,727`, `NfeService.php:745,760,942`. Teste: `WithoutGlobalScopesCommentGuardTest`.
-- [ ] **NFSe cancelar()**: falta `OtelHelper::spanBiz` em `NfseEmissaoService.php:198` (confirmar se Wave 28 exige). Teste: `Wave28NfsePolishTest`.
-- [ ] **DESIGN.md**: link local quebrado (alvo movido). Teste: `DesignEntryPointAndTombstonesTest`.
-- [ ] **PhpunitTestAnnotationGuard**: migrar `/** @test */` → `#[Test]` nos flagrados. Teste: `PhpunitTestAnnotationGuardTest`.
+
+> ✅ **TODOS os 7 resolvidos** — verificação item a item em origin/main 2026-07-02 (sessão mystifying-fermat, pedido Wagner "6-8 tbm"). Evidência em cada checkbox. O que RESTA desta US: 91 quarentena + 11 unclear (seções seguintes).
+
+- [x] **ChannelUserAccess** (Tier 0): ~~UNIQUE em coluna nullable~~ → RESOLVIDO pela migration `2026_06_13_120000_enforce_single_active_channel_user_access.php` (coluna gerada + UNIQUE; a original :57 documenta o histórico e é dropada). Teste: `ChannelUserAccessTest` R-WA-068-005.
+- [x] **CSAT**: ~~não dispara DispatchCsatJob~~ → RESOLVIDO — `Admin/InboxController.php:1084` despacha `DispatchCsatJob` em open→resolved (CsatDispatcher idempotente, :1078). Teste: `CsatFlowTest`.
+- [x] **Vestuario DataController** (ADR 0024): → RESOLVIDO — `Modules/Vestuario/Http/Controllers/DataController.php` existe.
+- [x] **WithoutGlobalScopes** (Tier 0): → RESOLVIDO — chamadas em `TituloAutoService.php` (:108/:138/:200) e `NfeService.php` (:746/:762) todas com `// SUPERADMIN:` + razão; KbCorpusBuilder sem ocorrência. Guard virou REQUIRED 2026-06-30 (`Tier-0 guards`, #3438 zerou as violações).
+- [x] **NFSe cancelar()**: → MOOT — `NfseEmissaoService.php` não existe mais (cancel refatorado pra `NfseCancelService.php`) e `Wave28NfsePolishTest` também não; o "confirmar se Wave 28 exige" resolveu-se por remoção do alvo.
+- [x] **DESIGN.md**: → RESOLVIDO — scan 2026-07-02: 0 links locais quebrados. O teste `DesignEntryPointAndTombstonesTest` segue no cluster quarentena (Q-B, assert de canon-source contra fonte móvel) — sair da quarentena é burn-down, não bug.
+- [x] **PhpunitTestAnnotationGuard**: → RESOLVIDO — grep 2026-07-02: nenhum `/** @test */` fora do próprio guard.
 
 ## 91 quarentena (teste stale, produto OK)
 `@group legacy-quarantine` com razão. tests/Feature 46 · Financeiro 14 · Whatsapp 11 · Governance 3 · Jana 3 · PaymentGateway 3 · Officeimpresso 2 · tests/Unit 2 · Vestuario 2 · Cms/Connector/ConsultaOs/OficinaAuto/Ponto 1. **Nuance:** alguns são test-FIX rápido (não quarentena cega) — ver doc.
