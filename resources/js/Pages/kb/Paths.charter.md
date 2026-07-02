@@ -9,6 +9,7 @@ persona_principal: Larissa / operacional gráfica (1280px balcão)
 persona_secundaria: Wagner / governança (1440px desktop)
 charter_version: 1
 charter_at: 2026-05-16
+related_us: [US-KB-004]
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
   - 0093-multi-tenant-isolation-tier-0

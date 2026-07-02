@@ -8,6 +8,7 @@ last_validated: '2026-06-13'
 charter_version: 10
 parent_module: Cliente / Crm
 states: [default, empty, loading, dark]  # gate L2 — error removido: toast sonner não dá estado visível determinístico no VRT (md5 #3290) · sync com tests/Browser/visreg-states.json
+related_us: [US-CRM-071]
 related_adrs:
   - '0093-multi-tenant-isolation-tier-0'
   - '0094-constituicao-v2-7-camadas-8-principios'
