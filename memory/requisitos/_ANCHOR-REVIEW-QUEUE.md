@@ -13,8 +13,9 @@
 | SA-A5-P10-whatsapp (#3546) | Whatsapp | 72 | 0 | 0% |
 | SA-A5-P10-jana (#3543) | Jana | 68 | 0 | 0% |
 | SA-A5-P10-oficinaauto (#3541) | OficinaAuto | 48 | 0 | 0% |
+| **wave 2** (#3571-3577, #3580) | Pcp · PG · Fiscal · Compras · Sells-completion · Crm · NfeBrasil · RecurringBilling | 147 | 0 | 0% |
 
-**Universo ≥5 módulos reais · taxa agregada <1% ≪ gatilho de 20-25% → batches podem continuar** (kill-criteria §103 NÃO disparou). A fila de US ambíguas está **vazia** — o DoD 3 do P10 é satisfeito por esta prova, não por itens.
+**Universo 13 módulos reais · taxa agregada <1% ≪ gatilho de 20-25%** (kill-criteria §103 NÃO disparou em nenhuma wave). A fila de US ambíguas está **vazia** — o DoD 3 do P10 é satisfeito por esta prova, não por itens. _Nota de qualidade (≠ ambiguidade): a refutação Fable reprovou 5 de 12 lotes na rodada 1 (Financeiro 7,5% · OficinaAuto 3,7% · Compras 8,3% · Crm 4,5% · NfeBrasil 4,8% · RecurringBilling 30,9%) — todos corrigidos e re-aprovados a 0%; reprovados registrados no ledger (§6 do protocolo)._
 
 ## §2 — US ambíguas aguardando decisão
 
@@ -64,7 +65,18 @@ Aterrissaram direto (sem gate — status draft): Financeiro/Advisor/Login (#3540
 | # | Pendência | Proposta | Decisão Wagner |
 |---|---|---|---|
 | 1 | #3483 mergeou **sem entry no ledger** ("entry gate pendente trio" no título) e com refutador na MESMA sessão do consolidador — forma fraca vs protocolo §2.2/§6 | re-refutar Sells com tier superior (Fable) em sessão fresca + entry retroativa honesta (nova entry, append-only) | |
-| 2 | Sells segue com **17 US `sem_campo`** (lint vivo) apesar do claim "47→0" do commit — parte do trabalho ficou em stashes da branch `claude/p10-batch1-sells` (2 stashes WIP: status-truth 8 US + trio 12 US) | completar Sells no próximo lote (L-seq), aproveitando/descartando os stashes conscientemente | |
+| 2 | ~~Sells segue com 17 US `sem_campo`~~ **✅ FECHADO 2026-07-01** pelo lote wave 2 [#3575](https://github.com/wagnerra23/oimpresso.com/pull/3575) (refutador Fable 28/28 aprovado; stashes da `claude/p10-batch1-sells` IGNORADOS — trabalho refeito da evidência; stashes podem ser dropados) | — | ✅ |
+
+## §4-bis — Pendências de produto/higiene surgidas na wave 2 (advisories dos refutadores — não-bloqueantes)
+
+| # | Item | Origem | Decisão Wagner |
+|---|---|---|---|
+| 1 | Sells US-018/021: deep-link `?date_field=` vale só pro endpoint JSON, não pra URL do browser (zero pushState); tooltip '6 datas' do sketch não existe — itens de "Escopo (a especificar)", done defensável | refutação #3575 | |
+| 2 | Sells US-008: nota "11 invariantes" stale (arquivo tem 15 `it()`) — higiene | refutação #3575 | |
+| 3 | RecurringBilling US-RB-012: candidata a `_parcial_` em manutenção futura (DoD pede HMAC literal, implementação é shared-secret equivalente; eventos refunded/subscription.canceled não mapeados no ProcessAsaasWebhookJob) | refutação #3580 | |
+| 4 | Crm §0 do SPEC: discovery stale desde 2026-05-07 ("conversa fica órfã, sem contact_id" — o linker US-WA-078 já popula) — emendar §0 | refutação #3576 | |
+| 5 | PaymentGateway PG-001/002/005: 3 conflitos doneness LEGADOS grandfathered (status aberto × âncora viva) — triagem junto com §5 | consolidação #3572 | |
+| 6 | Fiscal US-015: DoD '[x] 2-50 chars' stale vs min:3 do código; US-020: checkbox órfão de migration que existe | refutação #3573 | |
 
 ## §5 — Dívida entry-gate: US implementada sem aceite/teste (triagem em 3 baldes — PROPOSTA)
 
@@ -96,4 +108,5 @@ Aterrissaram direto (sem gate — status draft): Financeiro/Advisor/Login (#3540
 ---
 
 **Evolução**
+- 2026-07-01 (noite) — wave 2 fechada (Pcp/PG/Fiscal/Compras/Sells-completion/Crm/NfeBrasil/RecurringBilling — 147 US, 0 ambíguas, 5 lotes reprovados r1 e re-aprovados; coverage global 42,6%→59,8%; PRs #3571-#3580). §1 atualizado, §4.2 fechado, §4-bis criado (6 advisories de produto). [CC]
 - 2026-07-01 — criado (P10 wave 1: Financeiro/Whatsapp/Jana/OficinaAuto — 226 US ancoradas, 0 ambíguas, refutador Fable tier superior, PRs #3539-#3547). [CC]
