@@ -4,7 +4,8 @@ title: "Modules/Auditoria — SPEC"
 type: spec
 module: Auditoria
 version: "1.0"
-last_updated: "2026-06-13"
+last_updated: "2026-07-02"
+anchor_format: "v1"
 owner: wagner
 status: ativo
 authority: canonical
@@ -48,32 +49,73 @@ Backlog de user stories (US-AUDIT-*) organizado em 3 sub-sprints sequenciais.
 
 ## US Sprint 1 — Padronização Vestuario + Financeiro
 
-| ID | Descrição | Prio | Esforço (IA-pair) | Dep |
-|---|---|---|---|---|
-| US-AUDIT-001 | Trait `LogsActivity` em `App\Transaction` com `logOnly(['status','total_before_tax','final_total','contact_id','location_id','transaction_date','payment_status'])` + `useLogName('sales.transaction')`. Pest test: criar venda → entry em `activity_log` com `event=created` + `properties.attributes` preenchidas | p0 | 1.5h | — |
-| US-AUDIT-002 | Trait em `App\TransactionSellLine` + `App\TransactionPayment` (`logOnly` campos críticos: `quantity`, `unit_price_inc_tax`, `amount`, `method`). Pest: alterar pagamento → log com diff | p0 | 1h | US-AUDIT-001 |
-| US-AUDIT-003 | Trait em `App\Product` + `App\VariationLocationDetails` (estoque) — `logOnly(['sku','name','sell_price_inc_tax','enable_stock'])` no Product e `logOnly(['qty_available'])` no VLD. Pest: ajuste de estoque → log linha por VLD afetada | p1 | 1.5h | — |
-| US-AUDIT-004 | Trait em `App\Contact` com `logOnly(['name','email','mobile','contact_type','customer_group_id'])` — **`tax_number_1` NÃO entra** (PII LGPD). Pest assert: dump de log não contém CPF/CNPJ. Substitui `activity()->log('add_contact')` manual em [ContactController.php](../../../app/Http/Controllers/ContactController.php) | p0 | 2h | — |
+### US-AUDIT-001 · Trait LogsActivity em App\Transaction `done`
+
+Trait `LogsActivity` em `App\Transaction` com `logOnly(['status','total_before_tax','final_total','contact_id','location_id','transaction_date','payment_status'])` + `useLogName('sales.transaction')`. Pest test: criar venda → entry em `activity_log` com `event=created` + `properties.attributes` preenchidas. Prio p0 · ~1.5h IA-pair · Dep: —
+
+**Implementado em:** `app/Transaction.php` · `App\Transaction` · verificado@dad0b11 (2026-07-02)
+
+### US-AUDIT-002 · Trait em TransactionSellLine + TransactionPayment `done`
+
+Trait em `App\TransactionSellLine` + `App\TransactionPayment` (`logOnly` campos críticos: `quantity`, `unit_price_inc_tax`, `amount`, `method`). Pest: alterar pagamento → log com diff. Prio p0 · ~1h IA-pair · Dep: US-AUDIT-001
+
+**Implementado em:** `app/TransactionSellLine.php` · `app/TransactionPayment.php` · verificado@dad0b11 (2026-07-02)
+
+### US-AUDIT-003 · Trait em Product + VariationLocationDetails `done`
+
+Trait em `App\Product` + `App\VariationLocationDetails` (estoque) — `logOnly(['sku','name','sell_price_inc_tax','enable_stock'])` no Product e `logOnly(['qty_available'])` no VLD. Pest: ajuste de estoque → log linha por VLD afetada. Prio p1 · ~1.5h IA-pair · Dep: —
+
+**Implementado em:** `app/Product.php` · `app/VariationLocationDetails.php` · verificado@dad0b11 (2026-07-02)
+
+### US-AUDIT-004 · Trait em App\Contact (sem PII) `done`
+
+Trait em `App\Contact` com `logOnly(['name','email','mobile','contact_type','customer_group_id'])` — **`tax_number_1` NÃO entra** (PII LGPD). Pest assert: dump de log não contém CPF/CNPJ. Substitui `activity()->log('add_contact')` manual em [ContactController.php](../../../app/Http/Controllers/ContactController.php). Prio p0 · ~2h IA-pair · Dep: —
+
+**Implementado em:** `app/Contact.php` · `App\Contact` · verificado@dad0b11 (2026-07-02)
 
 **Subtotal Sprint 1 — ~6h IA-pair**
 
 ## US Sprint 2 — Causer dual + agent_run_id
 
-| ID | Descrição | Prio | Esforço (IA-pair) | Dep |
-|---|---|---|---|---|
-| US-AUDIT-005 | Migration `2026_05_NN_add_causer_kind_and_revert_to_activity_log.php` — adiciona `causer_kind` ENUM, `agent_run_id` BIGINT NULL, `reverted_at` TIMESTAMP NULL, `reverted_by_user_id` BIGINT NULL, `revert_reason` VARCHAR(500) NULL + 2 índices compostos. Reversível. Smoke local: `php artisan migrate` + `migrate:rollback` | p0 | 1h | — |
-| US-AUDIT-006 | `Modules/Auditoria/Services/CauserResolver.php` — resolve contexto: User logado padrão; se request veio de tool MCP `Modules/Jana/Ai/Agents/*` (detect via container binding ou middleware), seta `causer_kind=agent` + `agent_run_id=<id da Jana run>`. Hook em Activity::saving event. Pest: ação Jana grava `agent`; ação Controller grava `user` | p0 | 2h | US-AUDIT-005 |
+### US-AUDIT-005 · Migration causer_kind + revert em activity_log `done`
+
+Migration `2026_05_NN_add_causer_kind_and_revert_to_activity_log.php` — adiciona `causer_kind` ENUM, `agent_run_id` BIGINT NULL, `reverted_at` TIMESTAMP NULL, `reverted_by_user_id` BIGINT NULL, `revert_reason` VARCHAR(500) NULL + 2 índices compostos. Reversível. Smoke local: `php artisan migrate` + `migrate:rollback`. Prio p0 · ~1h IA-pair · Dep: —
+
+**Implementado em:** `database/migrations/2026_05_10_160000_add_causer_kind_and_revert_to_activity_log.php` · verificado@dad0b11 (2026-07-02)
+
+### US-AUDIT-006 · Resolver de causer (user/agent/system/api) `done`
+
+Resolve contexto: User logado padrão; se request veio de tool MCP `Modules/Jana/Ai/Agents/*` (detect via container binding ou middleware), seta `causer_kind=agent` + `agent_run_id=<id da Jana run>`. Hook em Activity::saving event. Pest: ação Jana grava `agent`; ação Controller grava `user`. Prio p0 · ~2h IA-pair · Dep: US-AUDIT-005. _Nota: entregue como Observer `ActivityCauserKindObserver` (registrado em AppServiceProvider) em vez do `CauserResolver` Service originalmente cogitado — mesmo contrato (saving hook, 4 causer_kind), path abaixo._
+
+**Implementado em:** `app/Observers/ActivityCauserKindObserver.php` · `App\Providers\AppServiceProvider` · verificado@dad0b11 (2026-07-02)
 
 **Subtotal Sprint 2 — ~3h IA-pair**
 
 ## US Sprint 3 — Modules/Auditoria UI + Undo
 
-| ID | Descrição | Prio | Esforço (IA-pair) | Dep |
-|---|---|---|---|---|
-| US-AUDIT-007 | Scaffold `Modules/Auditoria/` via skill `criar-modulo` (8 peças obrigatórias + 3 rotas Install + DataController hooks pra sidebar). Sem UI ainda. Smoke: `php artisan module:enable Auditoria` | p0 | 1h | — |
-| US-AUDIT-008 | `Modules/Auditoria/Services/RevertService.php` com registry `UNREVERTIBLE` (5 categorias do ADR 0127 §princípio 4). Métodos `canRevert(Activity, User): RevertCheck` + `revert(Activity, User, string $reason): Activity`. Pest test cobrindo: (a) Marcacao bloqueada, (b) Transaction NFe autorizada bloqueada, (c) TituloBaixa Asaas-paid bloqueada, (d) OS com NFSe bloqueada, (e) Transaction com payment posterior bloqueada, (f) revert válido restaura state via `properties.old → fill() + save()` em DB::transaction | p0 | 4h | US-AUDIT-005, US-AUDIT-006 |
-| US-AUDIT-009 | Pages Inertia: `Modules/Auditoria/Pages/Index.tsx` (filtros: data range, causer_kind, subject_type, event, só-irrevertíveis; tabela paginada DataTable) + `Modules/Auditoria/Pages/Detail.tsx` (diff old↔new side-by-side, botão Reverter com modal `revert_reason` mín 10 chars). Cada Page com `*.charter.md` ao lado ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §3). Gate F1.5 + F3 ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)) — Wagner aprova screenshot ANTES do PR final | p0 | 5h | US-AUDIT-007, US-AUDIT-008 |
-| US-AUDIT-010 | `Modules/Auditoria/Http/Controllers/AuditoriaController.php` (index + show + revert) + permissões Spatie (`auditoria.view`, `auditoria.revert.own`, `auditoria.revert.any`, `auditoria.revert.unlimited`) + redirect 301 `/reports/activity-log` → `/auditoria` mantendo querystring. Pest: multi-tenant isolation, 3 níveis permissão, revert ação >24h sem `revert.any` retorna 403 | p0 | 2h | US-AUDIT-009 |
+### US-AUDIT-007 · Scaffold Modules/Auditoria `done`
+
+Scaffold `Modules/Auditoria/` via skill `criar-modulo` (8 peças obrigatórias + 3 rotas Install + DataController hooks pra sidebar). Sem UI ainda. Smoke: `php artisan module:enable Auditoria`. Prio p0 · ~1h IA-pair · Dep: —
+
+**Implementado em:** `Modules/Auditoria/Providers/AuditoriaServiceProvider.php` · `Modules/Auditoria/Http/Controllers/InstallController.php` · verificado@dad0b11 (2026-07-02)
+
+### US-AUDIT-008 · RevertService com registry UNREVERTIBLE `done`
+
+`Modules/Auditoria/Services/RevertService.php` com registry `UNREVERTIBLE` (5 categorias do ADR 0127 §princípio 4). Métodos `canRevert(Activity, User): RevertCheck` + `revert(Activity, User, string $reason): Activity`. Pest test cobrindo: (a) Marcacao bloqueada, (b) Transaction NFe autorizada bloqueada, (c) TituloBaixa Asaas-paid bloqueada, (d) OS com NFSe bloqueada, (e) Transaction com payment posterior bloqueada, (f) revert válido restaura state via `properties.old → fill() + save()` em DB::transaction. Prio p0 · ~4h IA-pair · Dep: US-AUDIT-005, US-AUDIT-006
+
+**Implementado em:** `Modules/Auditoria/Services/RevertService.php` · `Modules/Auditoria/Tests/Feature/AuditEntryReversibilityTest.php` · verificado@dad0b11 (2026-07-02)
+
+### US-AUDIT-009 · Pages Inertia Index + Detail `parcial`
+
+Pages Inertia: `Auditoria/Index.tsx` (filtros: data range, causer_kind, subject_type, event, só-irrevertíveis; tabela paginada DataTable) + `Auditoria/Detail.tsx` (diff old↔new side-by-side, botão Reverter com modal `revert_reason` mín 10 chars). Cada Page com `*.charter.md` ao lado ([ADR 0094](../../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §3). Gate F1.5 + F3 ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)) — Wagner aprova screenshot ANTES do PR final. Prio p0 · ~5h IA-pair · Dep: US-AUDIT-007, US-AUDIT-008
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Auditoria/Index.tsx` · `resources/js/Pages/Auditoria/Detail.tsx` · verificado@dad0b11 (2026-07-02) — falta `Detail.charter.md` (só `Index.charter.md` existe)
+
+### US-AUDIT-010 · AuditoriaController + permissões + redirect 301 `done`
+
+`Modules/Auditoria/Http/Controllers/AuditoriaController.php` (index + show + revert) + permissões Spatie (`auditoria.view`, `auditoria.revert.own`, `auditoria.revert.any`, `auditoria.revert.unlimited`) + redirect 301 `/reports/activity-log` → `/auditoria` mantendo querystring. Pest: multi-tenant isolation, 3 níveis permissão, revert ação >24h sem `revert.any` retorna 403. Prio p0 · ~2h IA-pair · Dep: US-AUDIT-009
+
+**Implementado em:** `Modules/Auditoria/Http/Controllers/AuditoriaController.php` · `Modules/Auditoria/Routes/web.php` · verificado@dad0b11 (2026-07-02)
 
 **Subtotal Sprint 3 — ~12h IA-pair**
 
