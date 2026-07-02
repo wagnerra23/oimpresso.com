@@ -3,7 +3,6 @@ date: "2026-07-01"
 time: "21:40"
 slug: p10-wave2-anchoring-fechada
 tldr: "P10 wave 2 fechada e 100% mergeada: 8 lotes (147 US), 5 reprovados na rodada 1 pelo refutador Fable e re-aprovados a 0%; coverage do dia 16,1%→59,8% (sem_campo 717→344); fila A6 atualizada com 6 advisories de produto novos"
-decided_by: ["C"]
 prs: [3571, 3572, 3573, 3574, 3575, 3576, 3577, 3580]
 related_adrs:
   - 0273-anchor-spec-codigo-formato-canonico-fluxo-novo
