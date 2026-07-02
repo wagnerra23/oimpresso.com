@@ -360,6 +360,23 @@
       "pii_hits": 0,
       "evidencia": "refutacao (comment no PR #3572) — APROVADO 9/9 (6 campos + 2 remocoes de status + 1 edit de texto). Verificados: PG-008 codigo mergeado #3371 com flag OFF real (Config/config.php:18), PG-006 HMAC (nao mTLS) fail-secure, PG-007 Caddyfile sem rota, PG-003 sem replay-protection. 1 recomendacao de prosa aplicada antes do merge (PG-003 timestamp). anchor-lint coverage 100, dead 0, zombie 0, grammar 9/9.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3573,
+      "lote_id": "SA-A5-P10w2-fiscal",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 22,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao (comment no PR #3573) — APROVADO 22/22 (19 campos + status changes). Cockpit /fiscal completo verificado rota-a-rota (render vivo, zombie-check passa); suspeitas adversariais fecharam a favor (NotaDrawerV2 nao zumbifica ancora; migration nfe_fiscal_rules existe). 3 stubs supersedidos honestos. anchor-lint coverage 100, dead 0, zombie 0.",
+      "veredito": "aprovado"
     }
   ]
 }
