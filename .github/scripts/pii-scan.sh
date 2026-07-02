@@ -16,6 +16,11 @@
 # Falso-positivos esperados (PII de teste/exemplo):
 #   Adicionar `# pii-allowlist` no MESMO comentário/linha pra ignorar.
 #   Ex: `'000.000.000-00', // pii-allowlist (placeholder Pest factory)`
+#
+# Allowlist EXTERNA (.github/pii-scan-allowlist.txt) — pra arquivo append-only
+#   (ADR canon: corpo imutável, marker inline violaria governance-gate Job 1).
+#   Formato: `caminho/do/arquivo.md|literal-fake` (1 por linha, # = comentário).
+#   Só aceita PII SINTÉTICA/fake — CPF/CNPJ real JAMAIS entra na allowlist.
 
 set -euo pipefail
 
@@ -73,6 +78,31 @@ CNPJ_REGEX='[0-9]{2}\.[0-9]{3}\.[0-9]{3}/[0-9]{4}-[0-9]{2}'
 SKIP_DIR_REGEX='^(vendor|node_modules|public|storage|bootstrap/cache|\.git|prototipo-ui/prototipos|prototipo-ui/_incoming)/'
 SKIP_EXT_REGEX='\.(lock|min\.js|min\.css|map|svg|png|jpg|jpeg|gif|webp|pdf|zip|woff2?|ttf|eot)$'
 
+# Allowlist externa: entradas `path|literal` pra fakes em arquivos append-only.
+ALLOWLIST_FILE="$(dirname "$0")/../pii-scan-allowlist.txt"
+ALLOWLIST_ENTRIES=()
+if [ -f "$ALLOWLIST_FILE" ]; then
+  while IFS= read -r entry; do
+    # Ignora comentários e linhas vazias
+    [[ "$entry" =~ ^[[:space:]]*(#|$) ]] && continue
+    ALLOWLIST_ENTRIES+=("$entry")
+  done < "$ALLOWLIST_FILE"
+fi
+
+# Retorna 0 se (arquivo, linha) bate com alguma entrada `path|literal` da allowlist
+is_allowlisted() {
+  local file="$1" content="$2" entry epath eliteral
+  [ ${#ALLOWLIST_ENTRIES[@]} -eq 0 ] && return 1
+  for entry in "${ALLOWLIST_ENTRIES[@]}"; do
+    epath="${entry%%|*}"
+    eliteral="${entry#*|}"
+    if [ "$file" = "$epath" ] && [[ "$content" == *"$eliteral"* ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 violations=0
 violation_report=""
 
@@ -87,14 +117,27 @@ for file in "${ARGS[@]}"; do
     continue
   fi
 
+  # Pula a própria allowlist (contém os literais fake por design)
+  if [[ "$file" =~ pii-scan-allowlist\.txt$ ]]; then
+    [ "$VERBOSE" -eq 1 ] && echo "[skip] $file (allowlist)"
+    continue
+  fi
+
   # grep -nE pega CPF OU CNPJ; -H prefixa nome do arquivo
   matches=$(grep -nHE "($CPF_REGEX|$CNPJ_REGEX)" "$file" 2>/dev/null || true)
   [ -z "$matches" ] && continue
 
   while IFS= read -r line; do
-    # Filtra allowlist (caso linha tenha 'pii-allowlist')
+    # Filtra allowlist inline (caso linha tenha 'pii-allowlist')
     if echo "$line" | grep -q 'pii-allowlist'; then
       [ "$VERBOSE" -eq 1 ] && echo "[allowlist] $line"
+      continue
+    fi
+
+    # Filtra allowlist externa (path|literal — fakes em arquivos append-only)
+    line_content="${line#*:}"; line_content="${line_content#*:}"
+    if is_allowlisted "$file" "$line_content"; then
+      [ "$VERBOSE" -eq 1 ] && echo "[allowlist-externa] $file: literal fake catalogado"
       continue
     fi
 
