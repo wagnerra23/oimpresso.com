@@ -1,4 +1,13 @@
+---
+date: "2026-07-02"
+hour: "17:00 BRT"
+topic: "Fix code-review adversarial em Modules/Arquivos: enum arquivos_audit_log.action ampliado com signed_url_consumed + 2 bugs acoplados no detector anti-scraping"
+authors: [C, W]
+---
+
 # Sessão 2026-07-02 — Fix audit signed_url_consumed (Modules/Arquivos)
+
+**TL;DR:** O enum `arquivos_audit_log.action` não aceitava `signed_url_consumed` (que o `DownloadController` grava ao consumir signed URL) → em MySQL strict o INSERT falhava e era engolido pelo try/catch → **consumo nunca auditado** (ADR 0123 §8). Approach (b) enum ampliado + achei **2 bugs acoplados** no detector `--suspicious` (filtro na action errada + `DB::table(DB::raw(),$b)` crash no Laravel 11+). PR #3658 MERGED, provado em MySQL real no CT 100 (10/1, a 1 falha pré-existente/não-relacionada).
 
 > Session log (o trabalho). Estado pro próximo: [handoff 1700](../handoffs/2026-07-02-1700-arquivos-audit-signed-url-consumed.md).
 
