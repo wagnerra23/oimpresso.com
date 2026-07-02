@@ -16,8 +16,9 @@
 | **wave 2** (#3571-3577, #3580) | Pcp · PG · Fiscal · Compras · Sells-completion · Crm · NfeBrasil · RecurringBilling | 147 | 0 | 0% |
 | **wave 3 lote B** (#3627, #3628, #3638) | NFSe · Autopecas · ComunicacaoVisual | 48 | 0 | 0% |
 | **wave 3 — charters** (#3633-3636) | Fiscal · Cliente · KB · ProjectMgmt · Compras · RecurringBilling · Auditoria · Admin · Infra · TeamMcp · Superadmin | 66 joins (25 charters editados + 15 deferidos §3-bis) | 1 | 1,5% |
+| **lote A** (#3630-3632) | Ponto · Marketplaces · Infra | 79 | 0 | 0% |
 
-**Universo 16 módulos reais · taxa agregada <1% ≪ gatilho de 20-25%** (kill-criteria §103 NÃO disparou em nenhuma wave). A fila de US ambíguas está **vazia** — o DoD 3 do P10 é satisfeito por esta prova, não por itens. _Nota de qualidade (≠ ambiguidade): a refutação Fable reprovou 6 de 15 lotes na rodada 1 (Financeiro 7,5% · OficinaAuto 3,7% · Compras 8,3% · Crm 4,5% · NfeBrasil 4,8% · RecurringBilling 30,9% · ComunicacaoVisual 11,1%) — todos corrigidos e re-aprovados a 0%; reprovados registrados no ledger (§6 do protocolo)._
+**Universo 19 módulos reais · taxa agregada <1% ≪ gatilho de 20-25%** (kill-criteria §103 NÃO disparou em nenhuma wave). A fila de US ambíguas está **vazia** — o DoD 3 do P10 é satisfeito por esta prova, não por itens. _Nota de qualidade (≠ ambiguidade): a refutação Fable reprovou 7 lotes na rodada 1 (Financeiro 7,5% · OficinaAuto 3,7% · Compras 8,3% · Crm 4,5% · NfeBrasil 4,8% · RecurringBilling 30,9% · ComunicacaoVisual 11,1% · **Infra 4,5%** — 023 dead-code falso-ok + 032 justificativa-pendente falsa) — todos corrigidos e re-aprovados a 0%; reprovados registrados no ledger (§6 do protocolo). Ponto e Marketplaces aprovados na 1ª rodada._
 
 > **Inventory NÃO ancorado (lote B):** o SPEC de Inventory (25 US, 0% coverage) é **FUNDIR** na [`_TRIAGEM-IDENTIDADE-2026-06.md`](_TRIAGEM-IDENTIDADE-2026-06.md) (repartir os 29 docs → Produto/Compras/Estoque, cluster P6/P7 ADIADO). Backfillar âncora num SPEC que vai ser repartido = retrabalho — o motor `sdd-fase-2.js` proíbe tocar pastas FUNDIR/MATAR (aguardam trilha E gated no Wagner). Fica de fora do P10 até a decisão de identidade aterrissar.
 
