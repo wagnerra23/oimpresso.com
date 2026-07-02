@@ -80,7 +80,7 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Controller:** `ProdutoCatalogoController`
 > **Permissão Spatie:** `autopecas.produto.{view,create,update}`
 
-**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado (Vargas), `Modules/Autopecas/` não existe; catálogo veicular a construir
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado (Vargas), sem código do módulo no repo; catálogo veicular a construir
 
 **Como** balconista
 **Quero** buscar peça por marca+modelo+ano (ex: "Civic 2015 freio dianteiro") e ver SKUs compatíveis com aplicação detalhada (chassis_range, ano_min, ano_max, motor, observação)
