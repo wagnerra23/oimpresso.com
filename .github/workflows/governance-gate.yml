@@ -453,3 +453,35 @@ jobs:
 
           echo "Scanning ${#arquivos[@]} arquivos…"
           .github/scripts/pii-scan.sh -v "${arquivos[@]}"
+
+  merge-marker-scan:
+    name: Merge-marker scan (conflito commitado)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run merge-marker-scan.sh nos arquivos do PR
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+          chmod +x .github/scripts/merge-marker-scan.sh
+          # Lista arquivos AM (Added|Modified) do PR — exclui deletados + binários.
+          mapfile -t arquivos < <(
+            git diff --name-only --diff-filter=AM "$BASE_SHA"...HEAD \
+              | grep -vE '^(vendor|node_modules|public|storage|bootstrap/cache)/' \
+              | grep -vE '\.(lock|min\.js|min\.css|map|svg|png|jpg|jpeg|gif|webp|pdf|zip|woff2?|ttf|eot)$' \
+              || true
+          )
+
+          if [ ${#arquivos[@]} -eq 0 ]; then
+            echo "Nenhum arquivo elegível pra merge-marker scan no PR."
+            exit 0
+          fi
+
+          echo "Scanning ${#arquivos[@]} arquivos…"
+          .github/scripts/merge-marker-scan.sh -v "${arquivos[@]}"
