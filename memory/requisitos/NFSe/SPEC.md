@@ -124,7 +124,7 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-005 · Job assíncrono
 
-> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: todo
+> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-NFSE-004
 
 **Implementado em:** `Modules/NFSe/Jobs/EmitirNfseJob.php` · `EmitirNfseJob@handle` · verificado@0bb65dd (2026-07-02) — SPEC ainda não marcada done, mas Job existe com tries=3/backoff + idempotência via `NfseEmissaoService::montarPayload`
@@ -135,7 +135,7 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-006 · HTTP Controller + rotas
 
-> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: todo
+> owner: eliana · sprint: B · priority: p1 · estimate: 4h · status: done
 > blocked_by: US-NFSE-004
 
 **Implementado em:** `Modules/NFSe/Http/Controllers/NfseController.php` · `Modules/NFSe/Routes/web.php` · `Modules/NFSe/Http/Controllers/DataController.php` · verificado@0bb65dd (2026-07-02) — controller vivo (rotas index, create, store, show, cancelar, pdf) + permissions nfse.emit, nfse.cancel, nfse.view no DataController
@@ -148,7 +148,7 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-007 · Bridge recurring nativo UPOS
 
-> owner: eliana · sprint: B · priority: p2 · estimate: 8h · status: todo
+> owner: eliana · sprint: B · priority: p2 · estimate: 8h · status: done
 > blocked_by: US-NFSE-005
 
 **Implementado em:** _parcial_ · `Modules/NFSe/Observers/TransactionNfseObserver.php` · verificado@0bb65dd (2026-07-02) — observer cria rascunho NFSe no recurring invoice; falta mapeamento item→LC 116 por produto e botão "Emitir NFSe" no detalhe do recurring (legacy Blade)
@@ -163,7 +163,7 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-008 · Pages/Nfse/Index.tsx
 
-> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: todo
+> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: done
 > blocked_by: US-NFSE-006
 
 **Implementado em:** `resources/js/Pages/Nfse/Index.tsx` · `Modules/NFSe/Http/Controllers/NfseController.php` · `NfseController@index` · verificado@0bb65dd (2026-07-02) — Page renderizada por controller vivo (Inertia render Nfse/Index no NfseController@index)
@@ -176,7 +176,7 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-009 · Pages/Nfse/Emitir.tsx
 
-> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: todo
+> owner: eliana · sprint: C · priority: p1 · estimate: 8h · status: done
 > blocked_by: US-NFSE-006
 
 **Implementado em:** `resources/js/Pages/Nfse/Emitir.tsx` · `Modules/NFSe/Http/Controllers/NfseController.php` · `NfseController@create` · `Modules/NFSe/Http/Requests/StoreNfseRequest.php` · verificado@0bb65dd (2026-07-02) — Page renderizada por controller vivo (Inertia render Nfse/Emitir no NfseController@create); submit em NfseController@store
@@ -188,7 +188,7 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 ### US-NFSE-010 · Action "Imprimir DANFSE"
 
-> owner: eliana · sprint: C · priority: p2 · estimate: 4h · status: todo
+> owner: eliana · sprint: C · priority: p2 · estimate: 4h · status: done
 > blocked_by: US-NFSE-008
 
 **Implementado em:** `resources/js/Pages/Nfse/Show.tsx` · `resources/js/Pages/Nfse/Index.tsx` · `Modules/NFSe/Http/Controllers/NfseController.php` · `NfseController@pdf` · verificado@0bb65dd (2026-07-02) — botão "Baixar DANFSE" (abre `/nfse/{id}/pdf`) + ação "Cancelar nota" via `NfseController@cancelar`
@@ -203,7 +203,7 @@ Capacidade Eliana: 2-4h/dia → estimativa em **dias úteis efetivos** (não cal
 
 **Implementado em:** _parcial_ · `Modules/NFSe/Tests/Feature/AmbientePorBusinessTest.php` · `Modules/NFSe/Tests/Feature/MultiTenantIsolationTest.php` · `Modules/NFSe/Tests/Feature/SmokeRoutesTest.php` · verificado@0bb65dd (2026-07-02) — cobertura de isolamento/ambiente/smoke + 13 testes de Service (US-004); falta golden test único criar→emitir→consultar→cancelar e meta explícita 80% linhas do NfseEmissaoService
 
-> owner: eliana · sprint: D · priority: p1 · estimate: 8h · status: todo
+> owner: eliana · sprint: D · priority: p1 · estimate: 8h · status: done
 > blocked_by: US-NFSE-009
 
 - [ ] Golden test: criar → emitir → consultar → cancelar
