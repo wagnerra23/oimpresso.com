@@ -153,8 +153,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 73,
-        "modules": 73
+        "with_door": 72,
+        "modules": 72
       },
       "stream": "MEM"
     },
