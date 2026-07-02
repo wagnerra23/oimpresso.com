@@ -48,12 +48,12 @@ last_run: "2026-07-02"
 
 ---
 
-## UC-EST-04 · Devolução Vestuario → DEVE reintegrar estoque (RED-SPEC — bug Tier 0)
-- **Fluxo:** devolução pelo módulo Vestuario (`DevolucaoService::registrarDevolucao` — estorno_dinheiro / crédito ficha / troca por outro produto). O item físico volta pra loja, então o saldo do sistema DEVE voltar (DOC-RAIZ §3 `sell_return` → ENTRA), como o núcleo faz em `addSellReturn`.
-- **BUG CONFIRMADO (2026-07-02):** o service registra a devolução + credita saldo do cliente mas **NÃO reintegra `qty_available`** (zero chamada a `updateProductQuantity`; nenhum observer compensa; `Wave28DevolucaoServiceTest` nunca assere estoque). Vendeu 5 → devolveu 2 → saldo continua como se tivesse vendido 5.
-- **Aceite (esperado):** Dado saldo pós-venda `qty_available=8` · Quando `registrarDevolucao(estorno_dinheiro, quantidade_devolvida=2)` · Então `qty_available=10`.
-- **Teste:** `tests/Feature/Estoque/EstoqueDevolucaoVestuarioRedSpecTest.php` (RED-SPEC — `markTestSkipped` apontando o bug; contrato pronto pra virar green quando o fix for aprovado).
-- **Status: ❌** _(quebrado por construção — bug real. Fix é Tier 0 VALOR/ESTOQUE: dupla-confirmação + antes→depois + aprovação Wagner (proibicoes.md). NÃO corrigir a lógica sem isso.)_
+## UC-EST-04 · Devolução Vestuario → REINTEGRA estoque (bug Tier 0 CORRIGIDO)
+- **Fluxo:** devolução pelo módulo Vestuario (`DevolucaoService::registrarDevolucao` — estorno_dinheiro / crédito ficha / troca). O item físico volta pra loja, então o saldo do sistema volta (DOC-RAIZ §3 `sell_return` → ENTRA), como o núcleo faz em `addSellReturn`.
+- **Era bug (RED-SPEC), CORRIGIDO 2026-07-02 (Wagner-aprovado, regra mestre VALOR/ESTOQUE):** o service reintegra a quantidade devolvida no local da venda via `ProductUtil::updateProductQuantity` (auditável — INV-1/INV-5), no `DB::transaction` (INV-3), com guard Tier 0 cross-tenant (ADR 0093). Reason-agnostic (todos os tipos).
+- **Aceite:** Dado saldo pós-venda `qty_available=8` · Quando `registrarDevolucao(estorno_dinheiro, quantidade_devolvida=2)` · Então `qty_available=10`. E: credito_ficha reintegra igual. E: devolver sell_line de outro business é rejeitado (não reintegra).
+- **Teste:** `tests/Feature/Estoque/EstoqueDevolucaoVestuarioTest.php`.
+- **Status: 🧪** _(fix aplicado + 3 asserts verdes na lane MySQL; `casos:results` bumpa pra ✅)._
 
 ---
 
@@ -132,7 +132,7 @@ last_run: "2026-07-02"
 - **[BACKLOG] OS OficinaAuto → baixa peça ao concluir** — já coberto por `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemStockBaixaTest.php` (skip-gracioso; roda no CT 100).
 - **[BACKLOG] INV-1/INV-4** — já cobertas: INV-1 (saldo só por caminho auditável) por `ProductStockLogsActivityTest`/`ConsumirEstoqueAuditTest`; INV-4 (reserva ≠ baixa) por `StockReservationsTest` (caso 9).
 
-> **Bug confirmado promovido a UC:** a suspeita "Devolução Vestuario não reintegra estoque" foi CONFIRMADA e virou **UC-EST-04** (red-spec ❌ acima) — aguarda decisão Wagner sobre o fix (Tier 0 VALOR/ESTOQUE).
+> **Bug UC-EST-04 CORRIGIDO** (Wagner-aprovado 2026-07-02): a suspeita "Devolução Vestuario não reintegra estoque" foi confirmada, virou red-spec e agora está fechada — o `DevolucaoService` reintegra via ProductUtil auditável. O caminho era um scaffold (US-VEST-021, não wired) → zero impacto retroativo em dados.
 
 ## Como rodar a suíte
 1. **Lane CI:** `estoque-pest.yml` (MySQL real + seed biz=1/biz=2 via `pest-mysql-setup`) — allowlist verde (catraca).
@@ -144,3 +144,4 @@ last_run: "2026-07-02"
 - 2026-07-02 · [CC] UC-EST-04 (red-spec ❌) — bug Tier 0 confirmado: `Vestuario\DevolucaoService` não reintegra estoque. Contrato pronto (`markTestSkipped`); fix aguarda decisão Wagner (regra mestre VALOR/ESTOQUE).
 - 2026-07-02 · [CC] PR2 — UC-EST-05 ajuste · UC-EST-06 transferência (par 2-lados + conservação) · UC-EST-07 opening (fluxo real) · UC-EST-08 fabricação/kit (decomposição combo).
 - 2026-07-02 · [CC] PR3 — invariantes UC-INV-02 (rascunho não move) · UC-INV-03 (DB::transaction atômica, behavioral) · UC-INV-05 (enable_stock=0 guard) · UC-INV-06 (isolamento tenant transitivo biz=1 vs biz=2). INV-1/INV-4 já cobertas alhures.
+- 2026-07-02 · [CC] UC-EST-04 fix — `Vestuario\DevolucaoService::registrarDevolucao` passa a reintegrar estoque (ProductUtil auditável + guard Tier 0). Red-spec ❌ → contrato vivo 🧪. Scaffold não-wired = zero impacto retroativo.

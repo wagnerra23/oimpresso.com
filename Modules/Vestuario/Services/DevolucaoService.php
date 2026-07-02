@@ -7,6 +7,7 @@ namespace Modules\Vestuario\Services;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use InvalidArgumentException;
 
 /**
@@ -98,6 +99,12 @@ final class DevolucaoService
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
+
+            // Reintegra o item devolvido ao estoque (DOC-RAIZ-ESTOQUE §3 `sell_return` → ENTRA),
+            // espelhando o núcleo UltimatePOS (TransactionUtil::addSellReturn linha 6189). Vale pra
+            // TODOS os tipos: o item físico volta pro estoque — a reposição de uma troca é uma venda
+            // separada (não modelada aqui). Dentro do MESMO DB::transaction (INV-3).
+            $this->reintegrarEstoque($businessId, $payload);
 
             $saldoAtualizado = null;
 
@@ -277,6 +284,64 @@ final class DevolucaoService
             ]);
 
         return $novoSaldo;
+    }
+
+    /**
+     * Reintegra ao estoque a quantidade devolvida, no LOCAL da venda original.
+     *
+     * DOC-RAIZ-ESTOQUE §3 (`sell_return` → ENTRA): a devolução de venda volta pro estoque.
+     * Usa ProductUtil::updateProductQuantity (caminho AUDITÁVEL — dispara LogsActivity +
+     * respeita `enable_stock`: INV-1 e INV-5), NUNCA `DB::table`/`->qty_available =` direto.
+     * Roda dentro do DB::transaction de registrarDevolucao (INV-3).
+     *
+     * Tier 0 ([ADR 0093]): valida que a sell_line/venda pertence ao MESMO business — devolver
+     * uma linha de outro tenant aborta a transação (fail-secure).
+     */
+    private function reintegrarEstoque(int $businessId, array $payload): void
+    {
+        $quantidade = (float) $payload['quantidade_devolvida'];
+        if ($quantidade <= 0) {
+            return;
+        }
+
+        // Ambiente sem schema UltimatePOS (teste sintético sqlite): sem estoque a reintegrar.
+        // Em prod/CI-MySQL a tabela sempre existe → reintegra. Mesmo padrão do fix R1 do
+        // ConsumirEstoque (checa Schema antes de tocar caminho legado).
+        if (! Schema::hasTable('transaction_sell_lines')) {
+            return;
+        }
+
+        $sellLine = DB::table('transaction_sell_lines')
+            ->where('id', (int) $payload['transaction_sell_line_id'])
+            ->first();
+        if ($sellLine === null) {
+            return;
+        }
+
+        $transaction = DB::table('transactions')
+            ->where('id', $sellLine->transaction_id)
+            ->first();
+        if ($transaction === null || $transaction->location_id === null) {
+            return;
+        }
+
+        // Tier 0 (ADR 0093): a venda devolvida tem que ser do MESMO business.
+        if ((int) $transaction->business_id !== $businessId) {
+            throw new InvalidArgumentException(
+                'Devolução cross-tenant: transaction_sell_line pertence a outro business.'
+            );
+        }
+
+        // +quantidade no saldo (delta positivo) no local da venda. uf_data=false: número já cru.
+        (new \App\Utils\ProductUtil)->updateProductQuantity(
+            (int) $transaction->location_id,
+            (int) $sellLine->product_id,
+            (int) $sellLine->variation_id,
+            $quantidade,
+            0,
+            null,
+            false,
+        );
     }
 
     /**
