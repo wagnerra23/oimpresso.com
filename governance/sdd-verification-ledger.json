@@ -549,7 +549,7 @@
       "veredito": "aprovado"
     },
     {
-      "pr": 3636,
+      "pr": 3639,
       "lote_id": "SA-A5-P10w3-charters",
       "data": "2026-07-02",
       "tipo": "anchors",
@@ -562,7 +562,7 @@
       "error_rate_pct": 1.5,
       "pii_scan": true,
       "pii_hits": 0,
-      "evidencia": "Refutacao 100% dos joins US (66 itens = US individuais em 25 charters editados + 15 deferidos §3-bis). 1 REFUTADO: Purchase/Edit->US-COM-004 (US e infra de deprecacao de rota, anchor so cita Controllers PHP, nao descreve a tela Edit) — removido antes do merge (charter revertido). Ressalvas nao-bloqueantes: RECURRINGBILLING-007 duplicata de RB-042 (listar so 042 na fila A6); US-TR-301 colisao de ID com TaskRegistry (join da tela Triage correto). charter-us-lint --check ok. Cobre PRs #3633/#3634/#3635/#3636 (mesma campanha; entry unica no PR final #3636 da fila A6).",
+      "evidencia": "Refutacao 100% dos joins US (66 itens = US individuais em 25 charters editados + 15 deferidos §3-bis). 1 REFUTADO: Purchase/Edit->US-COM-004 (US e infra de deprecacao de rota, anchor so cita Controllers PHP, nao descreve a tela Edit) — removido antes do merge (charter revertido). Ressalvas nao-bloqueantes: RECURRINGBILLING-007 duplicata de RB-042 (listar so 042 na fila A6); US-TR-301 colisao de ID com TaskRegistry (join da tela Triage correto). charter-us-lint --check ok. Cobre PRs #3633/#3634/#3635/#3636 (mesma campanha; entry no PR de docs/fila-A6 #3639 desta campanha).",
       "veredito": "aprovado"
     }
   ]
