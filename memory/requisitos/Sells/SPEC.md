@@ -28,7 +28,10 @@ last_updated: "2026-05-31"
 ## 2. User stories
 
 ### US-SELL-001 · Epic — Migrar /sells/create pra MWART
-> owner: wagner · priority: p1 · estimate: 28h · status: todo · type: epic · origin: sessao-2026-05-08-runbook-mwart-sells
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Sells/Create.tsx` · `app/Http/Controllers/SellPosController.php` · verificado@176f9bc (2026-07-01) — subtasks US-002..007+053 landadas + V2 live atrás da flag `useV2SellsCreate` (guard biz=4 removido 2026-05-27); relógio humano aberto (canary 7d / monitor 30d / remover Blade = US-009 _pendente_)
+
+> owner: wagner · priority: p1 · estimate: 28h · type: epic · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: —
 
 **Contexto.** Tela `/sells/create` hoje é Blade legacy (`sale_pos.create` 996 LOC + 60+ partials + jQuery 3.178 LOC). Larissa (ROTA LIVRE) tem fricção real: scroll vertical 3 telas, 18 campos visíveis (10 raramente usados), lag de Select2/DataTables. Goal: migrar pra Inertia/React (MWART) com **defaults inteligentes pra ROTA LIVRE**, **8 campos visíveis + 10 colapsáveis**, **draft auto-save**, **atalhos `/` e `⌘+Enter`**, e **smoke fiscal seguro em biz=1 antes de cutover**.
@@ -45,7 +48,10 @@ last_updated: "2026-05-31"
 **Refs:** [RUNBOOK-create.md](RUNBOOK-create.md), [ADR 0039](../../decisions/0039-ui-chat-cockpit-padrao.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 
 ### US-SELL-002 · Backend dual Inertia/Blade + feature flag + Pest
-> owner: wagner · priority: p1 · estimate: 1.5h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+
+**Implementado em:** `app/Http/Controllers/SellPosController.php` · `app/Services/FeatureFlagService.php` · `tests/Feature/Sells/SellPosControllerCreateTest.php` · verificado@176f9bc (2026-07-01) — dual response `create()` (Inertia se `isOn('useV2SellsCreate')`, senão view Blade `sale_pos.create`); flag migrou pra GrowthBook self-hosted, comando `sells:enable-v2` substituído por `Flag{Set,Get}Command`
+
+> owner: wagner · priority: p1 · estimate: 1.5h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: —
 
 **Contexto.** O `SellPosController@create` hoje retorna `view('sale_pos.create')` com 27 props. Adicionar resposta dual: se header `X-Inertia` E feature flag `useV2SellsCreate=true` no `pos_settings` da empresa, retorna `Inertia::render('Sells/Create', ...)`. Senão, comportamento atual (zero risco).
@@ -65,7 +71,10 @@ last_updated: "2026-05-31"
 - [ ] Rollback: `php artisan sells:enable-v2 {biz} --off` desativa em <30s
 
 ### US-SELL-003 · Frontend skeleton + AppShellV2 + props contract
-> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · `tests/Feature/Sells/SellsCreatePageTest.php` · verificado@176f9bc (2026-07-01) — Page com Persistent Layout AppShellV2 (`SellsCreate.layout`) + interface TS dos props + `useForm` com defaults
+
+> owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-002
 
 **Contexto.** Criar `resources/js/Pages/Sells/Create.tsx` com estrutura mínima rodando — só PageHeader, container vazio, Persistent Layout (AppShellV2). Foco em fechar o pipeline build → bundle → render antes de adicionar lógica.
@@ -82,7 +91,10 @@ last_updated: "2026-05-31"
 - [ ] PR #N abre flag em biz=1, com flag em biz=4 OFF (Larissa segue Blade)
 
 ### US-SELL-004 · Triagem visibilidade campos (18 → 8 visíveis + 10 colapsáveis)
-> owner: wagner · priority: p1 · estimate: 0.75h · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@176f9bc (2026-07-01) — 8 campos sempre visíveis + `<details>` "Mais opções" com 10 colapsáveis; estado `advancedOpen` persistido em `localStorage['oimpresso.sells.create.advanced.open']`
+
+> owner: wagner · priority: p1 · estimate: 0.75h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-003
 
 **Contexto.** Mapa do RUNBOOK §3.3 — 18 campos legacy, ROTA LIVRE só usa 8 com frequência. Esconder 10 em `<details>` colapsáveis. Manter dados serializados no form (não reduzir contract — é só visibilidade).
@@ -98,6 +110,9 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 70
 
 ### US-SELL-005 · Produtos — busca + tabela + cálculos
+
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · `resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx` · verificado@176f9bc (2026-07-01) — autocomplete + tabela editável com subtotal/desconto/total reativo, `EmptyState`, atalho `/` foca busca, `editPrice`/`editDiscount` respeitam permissões
+
 > owner: wagner · priority: p1 · estimate: 2.5h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-004
 
@@ -119,6 +134,9 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 70
 
 ### US-SELL-006 · Pagamento + frete + descontos colapsáveis
+
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · `resources/js/Pages/Sells/_components/PaymentRow.tsx` · verificado@176f9bc (2026-07-01) — `<PaymentRow>` + split de pagamento, bloco frete (`shipping_*`) e desconto/imposto colapsados em "Mais opções", total reativo
+
 > owner: wagner · priority: p1 · estimate: 1.5h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-005
 
@@ -138,6 +156,9 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 70
 
 ### US-SELL-007 · Atalhos + auto-save draft + estados visuais
+
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@176f9bc (2026-07-01) — atalho barra (foca busca), Esc, Ctrl+Enter e Cmd+Enter (submit); auto-save draft debounced em `localStorage` com key por biz+user (Tier 0), limpeza pós-save, listeners com `removeEventListener` no cleanup
+
 > owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: sessao-2026-05-08-runbook-mwart-sells · closed: 2026-05-13
 > blocked_by: US-SELL-006
 
@@ -159,7 +180,10 @@ last_updated: "2026-05-31"
 - [ ] Audit modo B ≥ 80 (estados completos)
 
 ### US-SELL-008 · QA: audit + smoke biz=1 + canary Wagner 7d + rollback plan
-> owner: wagner · priority: p0 · estimate: 8h (1h codável + 7d canary humano) · status: todo · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
+
+**Implementado em:** _parcial_ · `tests/Feature/Sells/SellPosControllerStoreInvariantsTest.php` · verificado@176f9bc (2026-07-01) — Pest baseline `store()` (11 invariantes estruturais, item `[x]`) presente + V2 live atrás da flag; itens de relógio humano (smoke biz=1 real, canary Wagner 7d, backup DB, rollback testado) fora do escopo codável
+
+> owner: wagner · priority: p0 · estimate: 8h (1h codável + 7d canary humano) · type: story · origin: sessao-2026-05-08-runbook-mwart-sells
 > blocked_by: US-SELL-007
 
 **Contexto.** Travas finais antes de tocar ROTA LIVRE. Crítico — Wagner 99% do volume é Larissa.
@@ -209,6 +233,9 @@ last_updated: "2026-05-31"
 - [ ] CI rodando em <60s (sem network, sem services externos)
 
 ### US-SELL-053 · FieldError por campo + auto-open details em erro
+
+**Implementado em:** `resources/js/Pages/Sells/Create.tsx` · verificado@176f9bc (2026-07-01) — componente local `FieldError` (`role="alert"`, `text-xs text-destructive mt-1`) em `contact_id`/`transaction_date`/`location_id`/`invoice_no` + `useEffect` que abre `<details>` "Mais opções" quando erro cai em `COLLAPSED_FIELD_KEYS`
+
 > owner: wagner · priority: p1 · estimate: 1h · status: done · type: story · origin: design-arte-agent-2026-05-13 · closed: 2026-05-13
 > blocked_by: US-SELL-007
 
@@ -281,7 +308,10 @@ Histórico de comentários por US fica navegável via `/copiloto/admin/qualidade
 > Cadeia criada após pivot conceitual com Wagner: **venda sem nota é caminho feliz, não falha**. US-RB-044 fechada com DoD prod-evidence removida. Padrão FSM (Finite State Machine + RBAC por transição) será reutilizado por Sells, Repair, Project e qualquer feature multi-etapa futura.
 
 ### US-SELL-010 · Investigar State Machines existentes (Repair, Project, mcp_tasks) + propor ADR padrão FSM canônico
-> owner: wagner · priority: p1 · estimate: 6h · status: todo · type: story
+
+**Implementado em:** `memory/decisions/0129-state-machine-canonica-fsm-rbac.md` · `memory/decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md` · verificado@176f9bc (2026-07-01) — DoD "ADR padrão FSM canônico proposto + aprovado" cumprido: ADR 0129 `accepted` (4 tabelas custom escolhidas vs Spatie/Symfony), ADR 0143 marca pipeline LIVE prod biz=1
+
+> owner: wagner · priority: p1 · estimate: 6h · status: done · type: story
 > blocked_by: —
 
 **Contexto:** Wagner identificou que oimpresso precisa de padrão canônico de Workflow/State Machine pra modelar processos multi-etapa com RBAC por transição. Hoje há state machines simples espalhadas (Repair Kanban, mcp_tasks todo→done, talvez Project) sem padrão unificado. Sem isso, qualquer feature multi-etapa (gate emissão NFe por venda, fluxo aprovação OS, kanban PMG) reinventa roda diferente.
@@ -482,7 +512,10 @@ transaction_documents
 **Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md), [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md), [ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md).
 
 ### US-SELL-016 · Multiseleção + ações em lote (imprimir/exportar/agrupar) · **P0**
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Sells/Index.tsx` · `app/Http/Controllers/SellController.php` · verificado@176f9bc (2026-07-01) — multiseleção (`selectedIds`) + barra de ações + emissão NF-e em lote vivas; métodos backend `bulkPrint` e `bulkExport` existem (rotas sells.bulk-print e sells.bulk-export, gate perm + scope Tier 0 + CSV BOM), MAS na UI unificada "Marcar pagas" e "Exportar XML/PDF" são toast "Em breve V2" e faltam os botões "Imprimir seleção" e "Exportar CSV" wired + shift+click range
+
+> owner: — · priority: p0 · estimate: 4h · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: US-SELL-015
 
 **Contexto.** Grid Delphi tem checkbox por linha + barra de ações no topo quando ≥1 selecionada (Imprimir / Exportar Excel / Agrupar). Higiene UX 2026 pra qualquer grid empresarial (Mubisys, Zênite, Calcgraf, Conta Azul têm). Não depende de snapshot Firebird — sinal trivial.
@@ -504,7 +537,10 @@ transaction_documents
 **Refs:** [ADR 0136](../../decisions/0136-sells-grade-avancada-modo-toggle.md), [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (bulk endpoints validam business_id de cada ID).
 
 ### US-SELL-017 · Totalizador rodapé (Qtd vendas + Σ R$ filtrado) · **P0**
-> owner: — · priority: p0 · estimate: 2h · status: todo · type: story · origin: sessao-2026-05-11-migration-officeimpresso
+
+**Implementado em:** _parcial_ · `app/Http/Controllers/SellController.php` · verificado@176f9bc (2026-07-01) — `inertiaList` calcula e envia payload `totals` (`count`/`sum_final_total`/`sum_total_paid`/`sum_due`, `clone($q)` pós-filtro); `Index.tsx` faz `setTotals(json.totals)` mas o getter `totals` NUNCA é lido/renderizado (sem `tfoot`) — payload morto, é exatamente o bug US-SELL-045; falta a barra de rodapé (DoD central) na UI
+
+> owner: — · priority: p0 · estimate: 2h · type: story · origin: sessao-2026-05-11-migration-officeimpresso
 > blocked_by: US-SELL-015
 
 **Contexto.** Delphi mostra "Total: R$ [redacted Tier 0]" ao pé do grid (soma dos filtros aplicados). Power-user gráfica chama esse número em **toda** demo. Falta no Inertia atual — KPI "Total" no topo é count (113), não soma R$. Cliente migrado vai sentir falta na hora.
@@ -529,7 +565,10 @@ transaction_documents
 > **Sinal qualificado obtido** via [HEATMAP-CONSOLIDADO.md](../../research/2026-05-sells-grade-heatmap/HEATMAP-CONSOLIDADO.md) — 4 bancos Firebird amostrados (WR Sistemas + Vargas + Extreme + Gold). As prioridades abaixo refletem evidência, não chute. Cumpre [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
 
 ### US-SELL-018 · Filtros multi-data com presets Dia/Semana/Mês/Ano + custom · **P1 confirmado**
-> owner: — · priority: p1 · estimate: 4h · status: todo · type: story · origin: heatmap-2026-05-11
+
+**Implementado em:** `resources/js/Pages/Sells/_components/SellsDateFilter.tsx` · `resources/js/Pages/Sells/Index.tsx` · verificado@176f9bc (2026-07-01) — segmented control Dia/Semana/Mês/Ano/Personalizado + popover custom range (`date_from`/`date_to`) + dropdown "Tipo de data" (7 campos); estado `dateField` persistido em localStorage
+
+> owner: — · priority: p1 · estimate: 4h · status: done · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015
 > evidence: 3-4 campos data com uso real >30% em pelo menos 1 cliente (DT_FATURAMENTO 92% Extreme/Gold · DT_COMPETENCIA 100% Vargas · DT_PROMETIDO 85% Gold). Preset Ano essencial (10+ anos histórico em todos)
 
@@ -562,7 +601,10 @@ transaction_documents
 **Escopo (a especificar):** 3 colunas badge distintas — `Status Financeiro` (atual), `Status Produção` (depende US-SELL-023), `Status Fiscal` (já existe parcial via US-NFE-MANUAL).
 
 ### US-SELL-021 · Especificação campo "Data" (qual data: emissão / NF / faturamento / competência / prometido) · **P0 (subido!)**
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story · origin: heatmap-2026-05-11
+
+**Implementado em:** `resources/js/Pages/Sells/_components/SellsDateFilter.tsx` · `app/Http/Controllers/SellController.php` · `tests/Feature/Sells/SellsIndexDateFieldTest.php` · verificado@176f9bc (2026-07-01) — dropdown "Tipo de data" troca qual data exibir/filtrar; `inertiaList` usa whitelist `dateFieldMap` (7 chaves canon, anti-SQL-injection) + JOIN `nfe_emissoes` condicional + `display_date` deep-link `?date_field=`
+
+> owner: — · priority: p0 · estimate: 3h · status: done · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015
 > evidence: DT_PROMETIDO existe e é 85% preenchido em Gold mas **ausente como coluna** em WR2/Vargas/Extreme. Schema OfficeImpresso varia entre instalações — Grade Avançada **não pode hardcodar colunas**, header da coluna Data precisa dropdown dinâmico ler o que existe
 
@@ -593,7 +635,10 @@ transaction_documents
 **Contexto.** Delphi mostra ENTREGUE/REIMPRESSÃO/EM APROVAÇÃO/ORC APROVA. Requer FSM produção (US-SELL-011 base + processo "Venda com Produção" novo) e mapping → badge. Investigar `AGENDA_TITULO_WORKFLOW` no PR.
 
 ### US-SELL-024 · Campo "venda agrupada" explícito · **P1 (subido!)**
-> owner: — · priority: p1 · estimate: 2h · status: todo · type: story · origin: heatmap-2026-05-11
+
+**Implementado em:** _parcial_ · `database/migrations/2026_05_12_140001_add_is_grouped_invoice_to_transactions.php` · `app/Http/Controllers/SellController.php` · verificado@176f9bc (2026-07-01) — coluna boolean `is_grouped_invoice` (migration idempotente + índice composto Tier 0) + payload `inertiaList` (`COALESCE`, cast bool) vivos; MAS badge "Agrupada" na lista não renderiza (o `GroupedInvoiceBadge` vivia no `SellsGradeAvancada` deletado na Unificação 2026-05-21)
+
+> owner: — · priority: p1 · estimate: 2h · type: story · origin: heatmap-2026-05-11
 > blocked_by: US-SELL-015, US-SELL-019
 > evidence: Mesmo sinal de US-SELL-019 (43-65% das linhas com CODFINANCEIRO_GRUPO em todos clientes). Sem coluna explícita `is_grouped_invoice`, o agrupamento fica ambíguo como no Delphi ("ATIVO CRIADO" string)
 
@@ -1016,6 +1061,9 @@ Migrar 14 vendas biz=1 do estado legacy pro FSM canon ADR 0143 (goal #3 CYCLE-06
 ---
 
 ### US-SELL-045 · Bug: payload `totals` morto na rede — backend calcula/envia, frontend nunca lê
+
+**Implementado em:** _pendente_ — bug de contrato órfão confirmado em `origin/main`; aguarda DECISÃO DE PRODUTO Wagner (remover cálculo+state morto OU reexibir totalizador do filtro inteiro); sem código até decisão
+
 > owner: — · priority: p2 · estimate: 2h · status: todo · type: story
 > blocked_by: —
 
@@ -1034,6 +1082,9 @@ Ref: triage `memory/sessions/2026-06-13-sdd-f2b-triage-q2.md` · US-GOV-017 fase
 ---
 
 ### US-SELL-046 · Bug: viewMode `grade-avancada` órfão — middleware roteia 6 clientes legacy pra UI deletada
+
+**Implementado em:** _pendente_ — bug confirmado: `HandleInertiaRequests::sellsViewModeDefault` ainda retorna `'grade-avancada'` p/ `legacy_origin='officeimpresso'` mas `SellsToggleViewMode`/`SellsGradeAvancada` foram deletados (Index só trata como localStorage legacy→`financeira`); afeta clientes reais — aguarda DECISÃO DE PRODUTO Wagner (remover roteamento OU reimplementar grade)
+
 > owner: — · priority: p2 · estimate: 3h · status: todo · type: story
 > blocked_by: —
 
