@@ -5,6 +5,7 @@ owner: wagner
 status: live
 last_validated: "2026-06-24"
 parent_module: Cliente
+related_us: [US-CRM-073]
 related_adrs: [110, 107, 93, 94, 104, 149, 235]
 tier: A
 charter_version: 2
