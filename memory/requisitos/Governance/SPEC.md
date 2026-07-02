@@ -6,7 +6,7 @@ project: COPI
 status: ativo
 authority: canonical
 version: "1.0"
-last_updated: "2026-06-21"
+last_updated: "2026-07-02"
 created_at: 2026-05-16
 updated_at: 2026-06-21
 related_adrs:
@@ -338,8 +338,10 @@ GO Wagner 2026-06-12 ("pode disparar fase 1 e a dois na sequência"). Continuaç
 
 ### US-GOV-018 · P0 Fase 2b: consertar harness de DB de teste do nightly (3 frentes) — não é "completar schema"
 
-> owner: — · priority: p0 · estimate: 12h · status: review · type: story
+> owner: — · priority: p0 · estimate: 12h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `scripts/tests/ct100-fullsuite.sh` · `Modules/PaymentGateway/Database/Migrations/2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php` · verificado@2026-07-01 — Frente A.1 (mariadb-client + TLS-verify-off, #2640) e Frente B (config_json json→longtext, #2636) verificadas live pelo skeptic Fase 2b da avaliação adversarial; A.2 FK-off REVERTIDO por prova empírica (net-harmful). MCP done desde 2026-06-13 — este campo corrige o status stale do SPEC (`review`) que enganou 2 avaliações seguidas ("US presas em review"); status durável vive no MCP (ADR 0144).
 
 **Origem:** retest adversarial POR REPRODUÇÃO (2026-06-13, CT 100, DB scratch byte-a-byte) sobre o nightly full-suite MySQL (run `20260613-003042`, sha d14f5436). 3 skeptics reproduziram e refutaram 2 diagnoses anteriores. Substitui a estratégia "quarentena em massa" (revertida) E o P0 "completar schema" (refutado). C1 (#2632, mergeado) flipou a suite pra MySQL e expôs a causa real.
 
@@ -392,8 +394,10 @@ Ref: re-triage workflow wnw19l15c · 52 agents · refutador matou 9 falsos-posit
 
 ### US-GOV-020 · Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio)
 
-> owner: — · priority: p0 · estimate: 6h · status: review · type: story
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `scripts/tests/ct100-fullsuite.sh` · verificado@2026-07-01 — grants Frente C (log_bin_trust_function_creators + SET_USER_ID) re-landados no #2728 (squash 47e96ed05, 2026-06-14, 38/38 checks) + deploy gap fechado na mesma data; 188→377 tabelas / 0→4 triggers provado no CT100. MCP done desde 2026-06-14 — campo corrige status stale do SPEC (`review`); status durável no MCP (ADR 0144).
 
 **Root cause PROVADO** (repro byte-level CT100, run `20260613-100035`). O `migrate:fresh` do RefreshDatabase carrega `database/schema/mysql-schema.sql`, cujos triggers têm **DEFINER de PROD** (`u906587222_oimpresso@localhost`, ex `trg_mcp_audit_log_no_update`). Setup carrega via root (OK); migrate:fresh carrega via `fullsuite` (não-SUPER) → `ERROR 1419` (binlog) / `ERROR 1227` (SET_USER_ID/DEFINER) → aborta → schema incompleto → **530 Base-table-not-found**. MySQL 8.0.46 binlog on.
 
@@ -413,8 +417,8 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 
 ### US-GOV-021 · Isolar os corruptores era-sqlite (o lever REAL do floor)
 
-> owner: [W] · priority: p0 · status: doing · type: story
-> blocked_by: P04 (DoD item 2 — queda do floor só é observável com `governance/nightly-floor.json` no tree; sem P04 o read-side retorna `not_yet_measured`)
+> owner: [W] · priority: p0 · status: done · type: story
+> blocked_by: — (DoD-2 "floor cai em 2 nightlies" deixou de ser bloqueio estrutural com o P14 — `governance/nightly-floor.json` é materializado da órfã no ratchet required; a medição do efeito fica com as nightlies pós-P04. MCP done desde 2026-06-21; lotes 2-3 em 2026-06-30 #3445; corruptors=0 ARMADO no GT-G3)
 > parent_plan: us-gov-021-isolamento-era-sqlite
 > related_adrs: [275, 276, 279, 283]
 
