@@ -1,0 +1,133 @@
+name: Arquivos · Pest (MySQL)
+
+# Lane dedicada pra rodar a suíte Pest MySQL-only do Modules/Arquivos contra
+# MySQL REAL. Existe porque ci.yml e modules-pest.yml rodam SQLite :memory: — e
+# os testes de audit/download do Arquivos dependem de comportamento MySQL-only
+# (ENUM strict mode em arquivos_audit_log.action + introspection SHOW COLUMNS),
+# então lá eles dão markTestSkipped (falsa cobertura). Aqui executam de verdade
+# contra o schema baseline migrado.
+#
+# GAP fechado (follow-up do PR #3658): o bug `signed_url_consumed` só reproduz em
+# MySQL — o enum original (2026_05_10_000002) não tinha o valor, o INSERT falhava
+# em strict mode e era engolido pelo try/catch do DownloadController (nenhuma
+# consumação de signed URL era auditada, viola ADR 0123 §8). Os guardas de
+# regressão (AuditLogActionEnumTest / DownloadAuditTest, e o teste #8 rapid-fire
+# do AuditLogCommandTest) são MySQL-only BY DESIGN e, sem esta lane, ficavam
+# DECORATIVOS: a genérica "modules-pest" (SQLite) os pulava. Esta lane vira o HOME
+# do ratchet pra TODO teste MySQL-only do Arquivos.
+# Refs: ADR 0123 (Modules/Arquivos backbone, §8 audit integral) · PR #3658.
+#
+# Reusa .github/actions/pest-mysql-setup (mesma do financeiro-pest / jana-pest,
+# FV-F2): PHP 8.4 + deps + .env MySQL + migrate (schema baseline 2026-06-04 +
+# migrations novas, INCLUI 2026_07_02_000001_widen_arquivos_audit_log_action_enum
+# que amplia o enum com signed_url_consumed) + seed mínimo biz=1 (Business::first())
+# + biz=2 (Tier 0 cross-tenant — ADR 0093/0101).
+
+on:
+  workflow_dispatch: {}
+  # ADR 0271 onda 2 (required-readiness): pull_request SEM paths (always-run) pra
+  # ser promovível a required sem deadlock "Expected — waiting". O custo (MySQL +
+  # migrate + Pest) é evitado por skip-as-pass interno: dorny/paths-filter detecta
+  # se algo do Arquivos mudou; se não, pula o pesado e conclui verde. push segue
+  # path-filtered (contém custo no main).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Arquivos/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/arquivos-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: arquivos-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Arquivos · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Arquivos (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            arq:
+              - 'Modules/Arquivos/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/arquivos-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Arquivos mudou)
+        if: steps.changes.outputs.arq == 'false'
+        run: echo "✅ Sem mudanças no Modules/Arquivos — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      # Setup canônico reusável (composite action). O service container MySQL fica
+      # DECLARADO ACIMA no job (composite action não pode declarar services).
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.arq == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.arq == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Arquivos · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.arq == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: — se não sobrescrever, os
+        # testes MySQL-only (enum strict / SHOW COLUMNS) SKIPam (a falsa cobertura).
+        # Exportar aqui faz rodar no MySQL real semeado.
+        #
+        # CATRACA: a lane roda só os arquivos comprovadamente verdes (MySQL-only do
+        # Arquivos). Cada novo teste MySQL-only do Arquivos é adicionado AQUI
+        # (ratchet up). NÃO incluir arquivos com RefreshDatabase/migrate:fresh —
+        # eles dropam o schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
+        # Os 3 aqui usam DB::table()/factory + cleanup no afterEach (sem refresh).
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-arquivos-junit.xml \
+            Modules/Arquivos/Tests/Feature/AuditLogActionEnumTest.php \
+            Modules/Arquivos/Tests/Feature/AuditLogCommandTest.php \
+            Modules/Arquivos/Tests/Feature/DownloadAuditTest.php
+
+      - name: Upload JUnit (Arquivos · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.arq == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-arquivos-junit
+          path: test-results/pest-arquivos-junit.xml
+          retention-days: 14
