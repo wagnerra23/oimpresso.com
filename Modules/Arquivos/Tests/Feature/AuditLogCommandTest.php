@@ -18,6 +18,7 @@ uses(Tests\TestCase::class);
  * 4. --action=signed_url_issued filtra por action
  * 5. --top-files agrega COUNT correto por arquivo_id
  * 6. --suspicious flagra signed_url_issued sem user_id
+ * 7. --suspicious flagra rapid-fire signed_url_consumed (scraping) — regressão 2026-07-02
  *
  * Setup: inserts diretos via DB::table() com payload JSON marcado com
  * test_marker='pr19-audit' pra cleanup isolado no afterEach.
@@ -294,4 +295,43 @@ it('retorna exit 0 e mensagem amigável quando sem registros no período', funct
 
     expect($exitCode)->toBe(0);
     expect(Artisan::output())->toContain('Nenhum registro encontrado');
+});
+
+// ---------------------------------------------------------------------------
+// 8. --suspicious detecta rapid-fire signed_url_consumed (scraping)
+//    Regressão 2026-07-02: o detector filtrava `signed_url_issued` (sem IP no
+//    payload) → nunca disparava. Deve filtrar `signed_url_consumed` (com IP).
+// ---------------------------------------------------------------------------
+
+it('--suspicious detecta 3+ signed_url_consumed mesmo arquivo+IP em <60s', function () {
+    // A action signed_url_consumed só entra no enum via migration MySQL — no lane
+    // SQLite o CHECK do enum-base rejeita o insert. Bug é MySQL-only (CT 100).
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        $this->markTestSkipped('signed_url_consumed exige enum MySQL ampliado (CT 100).');
+    }
+
+    // 3 consumos do mesmo arquivo+IP dentro de 40s = rapid-fire (scraping).
+    // O helper já injeta payload {ip: 10.0.0.1} — exatamente o que o detector precisa.
+    foreach ([0, 20, 40] as $segundosAtras) {
+        insertArquivosAuditLog([
+            'arquivo_id'  => 9930,
+            'business_id' => 1,
+            'action'      => 'signed_url_consumed',
+            'user_id'     => 100,
+            'created_at'  => now()->subSeconds($segundosAtras),
+        ]);
+    }
+
+    $exitCode = Artisan::call('arquivos:audit-log', [
+        '--business'   => 1,
+        '--suspicious' => true,
+        '--hours'      => 1,
+    ]);
+
+    expect($exitCode)->toBe(0);
+
+    $output = Artisan::output();
+    expect($output)->toContain('[SUSPEITO]');
+    expect($output)->toContain('Rapid-fire');
+    expect($output)->toContain('9930');
 });
