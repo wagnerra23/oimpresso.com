@@ -462,13 +462,16 @@ class Kernel extends ConsoleKernel
         // SEMANAL (dom 06:30 BRT). Mede recall@K + a métrica recall_eval_violations
         // (ADR 0275, meta → 0) consultando o índice Meilisearch read-only.
         //
-        // PRONTO-PRA-LIGAR, mas o --mode=real só roda onde o índice
-        // `mcp_memory_documents` é alcançável (CT 100, fase 2 — JanaRecallEvalCommand
-        // linha 23/272). environments(['live']) já restringe ao runtime prod; o
-        // comando, se o Meilisearch estiver inacessível, registra o erro e sai com
-        // gate fail (exit 1), capturado pelo onFailure abaixo. ENQUANTO o índice não
-        // for alcançável do cron prod, este schedule fica dormente por construção
-        // (Meilisearch ausente → onFailure loga, NÃO derruba o scheduler). O gate
+        // environments(['staging']) — NÃO ['live'] — desde 2026-07-02 (loop IA-OS #3,
+        // mesmo racional do ragas-real-eval/ADR 0318 abaixo): o índice
+        // `mcp_memory_documents` + Meilisearch só são alcançáveis do CT 100 staging.
+        // Em 'live' (Hostinger) o schedule era DORMENTE POR CONSTRUÇÃO (Meilisearch
+        // inacessível → exit 1 → onFailure toda semana = ruído sem medição). Provado
+        // live no staging 2026-07-02: 27 queries, recall_eval_violations=0 (nenhum
+        // superseded vazando no top-N), n_queries_recall_fail=25 (recall<80% REAL —
+        // gap de retrieval já catalogado: context_recall 0.38, hybrid docs_pipeline
+        // off). O onFailure abaixo é o alerta recall<80% do loop IA-OS #3 — dispara
+        // legítimo até o retrieval melhorar (follow-up de RAG quality). O gate
         // BARATO de PR é o irmão --mode=mock em .github/workflows/jana-recall-eval.yml
         // (zero LLM, zero Meilisearch). 06:30 BRT pra não disputar DB com os
         // health-checks diários (06:00-06:20) nem com o drift-sentinel (dom 06:00).
@@ -479,12 +482,13 @@ class Kernel extends ConsoleKernel
             ->weeklyOn(0, '06:30')
             ->timezone('America/Sao_Paulo')
             ->withoutOverlapping()
-            ->environments(['live'])
+            ->environments(['staging'])
+            ->appendOutputTo(storage_path('logs/recall-eval-real.log'))
             ->onFailure(function () {
                 \Illuminate\Support\Facades\Log::channel('copiloto-ai')->error(
-                    'Schedule jana:recall-eval (real) FALHOU — recall_eval_violations > 0 ' .
-                    'OU Meilisearch inacessível (modo real roda no CT 100, fase 2). ' .
-                    'Ver storage/logs. Gate barato de PR é o --mode=mock em CI.'
+                    'Schedule jana:recall-eval (real) FALHOU — recall<80% no golden set ' .
+                    'OU recall_eval_violations > 0 (superseded no top-N). Alerta loop IA-OS #3. ' .
+                    'Ver storage/logs/recall-eval-real.log. Gate barato de PR é o --mode=mock em CI.'
                 );
             });
 
