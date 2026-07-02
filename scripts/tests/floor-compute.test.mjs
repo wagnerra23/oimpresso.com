@@ -4,6 +4,9 @@
 //   - runs mortos (sem summary), malformados e incoerentes são EXCLUÍDOS
 //   - floor = INTERSEÇÃO dos arquivos-que-falham entre os válidos
 //   - <2 válidos → floor_count null (read-side → not_yet_measured)
+//   - FV-F4 (US-GOV-045): run com marcador {invalid:true} é EXCLUÍDO
+//
+// @covers-us US-GOV-045
 import { computeFloor, validRuns } from './floor-compute.mjs';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';

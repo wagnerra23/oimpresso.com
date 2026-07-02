@@ -9,6 +9,8 @@
 //   mid-suite, junit 0 bytes — run sumia sem rastro legivel por maquina).
 //
 // Roda o script REAL como subprocess (comportamento, nao presenca).
+//
+// @covers-us US-GOV-045
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
