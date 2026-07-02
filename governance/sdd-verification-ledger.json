@@ -530,6 +530,23 @@
       "pii_hits": 0,
       "evidencia": "refutacao rodada 2 pos-correcao (task worktree, SPEC lido de origin/claude/anchors-p10w3-comunicacaovisual @9dd95695) — US-001 agora _parcial_ com o-que-falta verificado linha a linha (Acabamento entity schema-morto, material.minimo_m2 vs estoque_minimo_m2, zero PDF/WhatsApp); US-008 _pendente_ reflete estado real (NFSe pronto no nucleo, trigger comvis inexistente). 4 _parcial_ (001/002/004/006) + 14 _pendente_ CONFIRMADOS; 544d054186 confirmado NAO-ancestral (merge-base --is-ancestor exit 1). anchor-lint coverage 100, dead 0, zombie 0, grammar 18/18. Ressalva wording nao-bloqueante US-008 proveniencia (Service no commit 1595cc35d6 push direto, nao PR #85) corrigida no SPEC. Cobre PR #3638.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3631,
+      "lote_id": "SA-A5-P10-loteA-marketplaces",
+      "data": "2026-07-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 lote A, sessao isolada)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 25,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao adversarial 100% (fable-5 fresca vs 8af585a) — 25/25 _pendente_ CONFIRMADO: Modules/Marketplaces/ nao existe, zero migration mkt_*, zero rota webhooks/marketplace, zero driver ML/Shopee/Amazon, zero Pages/Marketplaces, zero comando marketplaces:*. Near-miss: Whatsapp TYPE_MERCADOLIVRE lanca NotImplementedDriverException (fora do escopo); crm_marketplaces (legado CRM) falso-positivo previsto. anchor-lint coverage 100, dead 0, grammar 25/25. Ghost-metric: token Modules/Marketplaces reformulado na justificativa _pendente_ (ratchet ghost fica 8). Cobre PR #3631.",
+      "veredito": "aprovado"
     }
   ]
 }
