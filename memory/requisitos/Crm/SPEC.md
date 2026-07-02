@@ -379,55 +379,91 @@ Cron diário 08:00 BRT — pra cada user com perm `crm.access_own_leads`:
 
 #### US-CRM-002 · `crm_motivos_perda` catálogo + seeder padrão · **P0** · 2H
 
+**Implementado em:** _pendente_ — tabela/model/seeder `crm_motivos_perda` não construídos (US proposta, aguarda ADR-mãe)
+
 #### US-CRM-003 · `crm_lead_interactions` timeline append-only + observers · **P0** · 4H
+
+**Implementado em:** _pendente_ — model `CrmLeadInteraction` + migration `crm_lead_interactions` + observers inexistentes (US proposta)
 
 Observers em: `WhatsappMessage`, `CrmCallLog`, `Schedule`, `Proposal` → cria interaction row. Trigger MySQL imutabilidade (ADR 0093 Tier 0).
 
 #### US-CRM-004 · `crm_lead_tags` + pivot · **P1** · 2H
 
+**Implementado em:** _pendente_ — tabela `crm_lead_tags` + pivot inexistentes (US proposta)
+
 ### Bloco B — Whatsapp ↔ CRM (gap principal)
 
 #### US-CRM-010 · Listener `WhatsappMessageReceived` cria/resolve lead · **P0** · 4H
 
+**Implementado em:** _pendente_ — listener `WhatsappMessageReceived` inexistente no Modules/Crm (US proposta)
+
 #### US-CRM-011 · `JanaIntencaoAgent` classifica intenção mensagem entrante · **P0** · 6H
+
+**Implementado em:** _pendente_ — agent `IntencaoAgent` não construído em `Modules/Jana/Ai/Agents/` (US proposta)
 
 Provider Groq Llama 3 default (custo <$0.001 per call) + fallback Sonnet quando confidence <0.6 — gating ADS-route (skill `ads-decision-flow`).
 
 #### US-CRM-012 · `CrmLeadFromWhatsappService.createOrUpdate` + round-robin · **P0** · 4H
 
+**Implementado em:** _pendente_ — service `CrmLeadFromWhatsappService` inexistente (US proposta)
+
 #### US-CRM-013 · Auto-resposta template WhatsApp ao criar lead · **P1** · 2H
 
+**Implementado em:** _pendente_ — template `crm_first_response` + auto-reply inexistentes (US proposta)
+
 #### US-CRM-014 · Vincular `whatsapp_conversations.contact_id` ao Lead criado · **P0** · 2H
+
+**Implementado em:** _parcial_ · `Modules/Whatsapp/Services/Contacts/ConversationContactLinker.php` · `Modules/Whatsapp/Console/Commands/AutoLinkConversationContactsCommand.php` · verificado@176f9bc (2026-07-01) — infra genérica (US-WA-078) já popula whatsapp_conversations.contact_id por match de phone sem filtro de type (linka leads); falta o wiring imediato ao fluxo de criação de lead do Bloco B (dep. US-CRM-012, não construído)
 
 ### Bloco C — Handoff Lead → Sells FSM (gap crítico ADR 0143)
 
 #### US-CRM-020 · `ConvertLeadToSaleService` cria Transaction + inicia FSM `quote_draft` · **P0** · 6H
 
+**Implementado em:** _pendente_ — service `ConvertLeadToSaleService` + handoff FSM inexistentes; hoje só existe `LeadController::convertToCustomer` (flip de coluna, é o comportamento que a US substitui). US proposta
+
 Substitui `LeadController::convertToCustomer` que só flipa coluna. DoD: cria Transaction, dispara `StartFsmPipelineService` (ADR 0143), grava `won_transaction_id` em contacts, log bidirecional, Pest cobre cross-tenant.
 
 #### US-CRM-021 · UI kanban "Ganho" dispara ConvertLeadToSale + redireciona SaleSheet · **P0** · 4H
 
+**Implementado em:** _pendente_ — depende de US-CRM-020 (ConvertLeadToSale); kanban atual (`lead_view=kanban`) só faz drag life_stage, não dispara conversão (US proposta)
+
 #### US-CRM-022 · UI kanban "Perdido" modal obrigatório motivo + data reabordagem · **P0** · 4H
 
+**Implementado em:** _pendente_ — modal motivo-perda + data reabordagem inexistentes; depende de US-CRM-002 (US proposta)
+
 #### US-CRM-023 · Cron `lead:reactivate-cold` reabre leads "perdido_timing" com data atingida · **P1** · 2H
+
+**Implementado em:** _pendente_ — comando `lead:reactivate-cold` inexistente (US proposta)
 
 ### Bloco D — Inteligência (scoring + SLA)
 
 #### US-CRM-030 · `crm_lead_scoring_log` + cron `lead:rescore` regras simples · **P1** · 6H
 
+**Implementado em:** _pendente_ — tabela `crm_lead_scoring_log` + comando `lead:rescore` inexistentes (US proposta)
+
 #### US-CRM-031 · SLA novo lead → alerta vendedor superior se sla_responder_em vencido · **P1** · 4H
 
+**Implementado em:** _pendente_ — coluna `sla_responder_em` (US-CRM-001) + alerta SLA inexistentes (US proposta)
+
 #### US-CRM-032 · Dashboard pipeline com forecast (sum valor_estimado per stage) · **P2** · 6H
+
+**Implementado em:** _parcial_ · `Modules/Crm/Services/DealPipelineService.php` · `Modules/Crm/Entities/Deal.php` · verificado@176f9bc (2026-07-01) — backend do forecast pronto (`pipelineSummary` = SUM(valor_estimado) por stage + `forecastFechamento` weighted, coberto por `Wave27DealPipelineTest`); falta a tela dashboard e o wiring por rota/controller (service não é chamado por nenhum controller)
 
 ### Bloco E — Captura externa
 
 #### US-CRM-040 · API REST pública `/api/v1/crm/leads` (token `business_uuid` + reCAPTCHA + rate-limit) · **P1** · 6H
 
+**Implementado em:** _pendente_ — rota/controller `/api/v1/crm/leads` inexistentes (US proposta)
+
 #### US-CRM-041 · Form embed JS oimpresso.com captura → POST API · **P2** · 4H
+
+**Implementado em:** _pendente_ — form embed JS inexistente; depende de US-CRM-040 (US proposta)
 
 ### Bloco F — LGPD + compliance
 
 #### US-CRM-050 · `lgpd_consent_at` + opt-in/opt-out + endpoint direito esquecimento · **P0** · 6H
+
+**Implementado em:** _pendente_ — coluna `lgpd_consent_at` (US-CRM-001) + opt-in/out + endpoint esquecimento inexistentes (US proposta)
 
 Bloqueador pra escala fora de WR2/ROTA LIVRE — sem isso, lead capturado sem consent vira passivo LGPD.
 
@@ -435,15 +471,23 @@ Bloqueador pra escala fora de WR2/ROTA LIVRE — sem isso, lead capturado sem co
 
 #### US-CRM-060 · MWART tela Lead Kanban (atual `crm::lead.index lead_view=kanban`) · **P1** · 12H
 
+**Implementado em:** _pendente_ — tela Blade legacy; sem `resources/js/Pages/Crm/*.tsx` nem charter (migração MWART em backlog)
+
 5 fases ADR 0104 — esta tela é alta-fricção (drag-drop + ajax patch life_stage). Charter + visual comparison obrigatórios.
 
 #### US-CRM-061 · MWART tela Lead Show (drawer cockpit pattern V2 ADR 0110) · **P2** · 12H
 
+**Implementado em:** _pendente_ — tela Blade legacy; sem Page Inertia nem charter (migração MWART em backlog)
+
 #### US-CRM-062 · MWART CrmDashboard com Recharts · **P2** · 10H
+
+**Implementado em:** _pendente_ — dashboard Blade legacy; sem Page Inertia/Recharts nem charter (migração MWART em backlog)
 
 ### Bloco F — Canon migração legacy (gap descoberto 2026-05-27)
 
 #### US-CRM-077 · Pattern canon `officeimpresso_codigo` nos 3 importers de contacts (gap ADR 0200) · **P1** · 6H
+
+**Implementado em:** _pendente_ — os 3 importers (`import-empresas` / `import-contacts-from-venda` / `import-contacts-from-nfe`) ainda não populam `officeimpresso_codigo`; decisão arquitetural (fornecedor NFe sem PESSOAS) deferida a Felipe
 
 > owner: felipe · status: todo · type: story
 > blocked_by: — · bloqueia rodar Wave 2 contra Vargas/Gold/Extreme

@@ -428,6 +428,40 @@
       "pii_hits": 0,
       "evidencia": "refutacao (comment no PR #3575) — APROVADO 28/28 (17 campos + 11 status changes). Ataques que fecharam a favor: evolucao sells:enable-v2→Flag{Set,Get}Command real; US-010 FSM done genuino (ADR 0129/0143 accepted + app/Domain/Fsm vivo); lacunas dos 5 parciais verificadas linha a linha (payload totals morto, toasts Em breve V2, badge orfa do delete e837dc7a9a, guard biz=4 removido). 2 advisories de produto registrados (deep-link browser-URL 018/021; contagem 11→15 invariantes stale 008). Fecha fila A6 par.4 item 2.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3576,
+      "lote_id": "SA-A5-P10w2-crm",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 22,
+      "erros_confirmados": 1,
+      "error_rate_pct": 4.5,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 1 (comment no PR #3576) — REPROVADO 1/22 = 4,5%: justificativa da US-CRM-014 negava o ConversationContactLinker (US-WA-078) que JA popula contact_id incl. leads (discovery stale 2026-05-12 copiado sem re-verificar; risco de 2o writer). Lote devolvido (par.2.6). Bonus: par.0 do SPEC stale desde 2026-05-07 → fila.",
+      "veredito": "reprovado"
+    },
+    {
+      "pr": 3576,
+      "lote_id": "SA-A5-P10w2-crm",
+      "data": "2026-07-01",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 2 isolado)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 22,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3576) — 014 agora _parcial_ ancorado no linker (2 paths existem em 176f9bc, falta real = wiring Bloco B dep. US-CRM-012); 21 restantes byte-identicos. Colisao US-CRM-077 Crm×Cliente verificada inexistente. anchor-lint coverage 100, dead 0, zombie 0, grammar 23/23. Cobre PR #3576.",
+      "veredito": "aprovado"
     }
   ]
 }
