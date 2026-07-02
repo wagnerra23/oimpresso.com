@@ -4,6 +4,7 @@ component: resources/js/Pages/ProjectMgmt/Inbox/Index.tsx
 owner: wagner
 status: draft
 parent_module: ProjectMgmt
+related_us: [US-TR-304, US-TR-305, US-TR-306, US-TR-307]
 related_adrs: [70, 93, 58, 39]
 related_spec: memory/requisitos/TaskRegistry/SPEC-UI-FASE7.md
 stories: [US-TR-304, US-TR-305, US-TR-306]
