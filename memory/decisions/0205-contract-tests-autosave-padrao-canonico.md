@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-27
+decided_at: "2026-05-27"
 module: Infra
 quarter: 2026-Q2
 tags: [testes, ci, autosave, drawer, contract-test, anti-regressao, ADR-0179]
