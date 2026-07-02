@@ -15,28 +15,28 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 85.4,
+      "value": 88.3,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 85.4,
+        "coverage_pct": 88.3,
         "specs_total": 58,
         "us_total": 856,
-        "anchor_coverage_pct": 85.4,
+        "anchor_coverage_pct": 88.3,
         "by_state": {
-          "sem_campo": 125,
+          "sem_campo": 100,
           "placeholder": 0,
-          "pendente": 324,
+          "pendente": 349,
           "parcial": 114,
           "anchored_ok": 293,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 736,
+        "fields_total": 761,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 694,
+        "fields_grammar_ok": 719,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -218,10 +218,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 28,
+        "entries_aprovadas": 29,
         "max_error_rate_pct": 1.82,
-        "last_pr": 3642,
-        "last_lote": "SA-A5-P10-C4-mcp-teammcp-spreadsheet"
+        "last_pr": 3654,
+        "last_lote": "SA-A5-P10-inventory-pendente-parking"
       },
       "stream": "GT"
     }
