@@ -17,6 +17,7 @@
 //
 // @covers-us US-GOV-018
 // @covers-us US-GOV-020
+// @covers-us US-GOV-045
 
 import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
@@ -24,6 +25,9 @@ import { resolve } from 'node:path';
 
 const ROOT = resolve(__dirname, '..');
 const harness = readFileSync(resolve(ROOT, 'scripts/tests/ct100-fullsuite.sh'), 'utf8');
+const junitSummary = readFileSync(resolve(ROOT, 'scripts/tests/junit-summary.mjs'), 'utf8');
+const floorCompute = readFileSync(resolve(ROOT, 'scripts/tests/floor-compute.mjs'), 'utf8');
+const nightlyDiff = readFileSync(resolve(ROOT, 'scripts/tests/nightly-diff.mjs'), 'utf8');
 const migration = readFileSync(
   resolve(
     ROOT,
@@ -82,5 +86,49 @@ describe('US-GOV-020 Frente C — grants do migrate:fresh (Fix do SPEC, re-land 
 
   it('GRANT SET_USER_ID pro usuário fullsuite (ERROR 1227 — trigger DEFINER de prod)', () => {
     expect(harness).toMatch(/GRANT SET_USER_ID ON \*\.\*/);
+  });
+});
+
+describe('US-GOV-045 — run inválido nunca mais é silencioso (DoD do SPEC)', () => {
+  // DoD D.1 — post-mortem que sobrevive à morte silenciosa (2/5 runs 29jun–02jul).
+  it('D.1: o run diagnóstico emite --log-events-text ALÉM do --log-junit (nomeia o teste em voo no kill)', () => {
+    const diag = (harness.match(/exec php [^\n]*vendor\/bin\/pest[^\n]*/g) ?? []).find((c) =>
+      c.includes('--log-junit /artifacts/junit.xml')
+    );
+    expect(diag).toBeTruthy();
+    expect(diag).toMatch(/--log-events-text \/artifacts\/pest-events\.txt/);
+  });
+
+  it('D.1: run VÁLIDO apaga o events-log (disco CT100 ~95% — eventos só servem pra post-mortem)', () => {
+    expect(harness).toMatch(/rm -f "\$RUN_DIR\/pest-events\.txt"/);
+  });
+
+  // DoD D.2 — marcador explícito de invalidez no summary.json, exit-code do tripwire preservado.
+  it('D.2: junit-summary grava marcador {invalid, reason} quando --out foi pedido', () => {
+    expect(junitSummary).toMatch(/invalid:\s*true/);
+    // as 4 razões do DoD (ausente / 0 bytes / 0 testcases / incoerente)
+    expect(junitSummary).toMatch(/'xml_ausente'/);
+    expect(junitSummary).toMatch(/'xml_0_bytes'/);
+    expect(junitSummary).toMatch(/'coleta_incoerente'/);
+  });
+
+  it('D.2: tripwire FV-F1 preservado — exit 1 (artefato) e exit 2 (incoerente) intactos', () => {
+    // 0 bytes / ausente → exit 1; incoerência de contagem → exit 2 (contrato duro FV-F1).
+    expect(junitSummary).toMatch(/fail\(1,[^)]*0 bytes[\s\S]*?'xml_0_bytes'\)/);
+    expect(junitSummary).toMatch(/fail\(2,[^)]*incoerencia[\s\S]*?'coleta_incoerente'\)/);
+  });
+
+  // DoD D.3 — leitores ignoram o marcador (dupla guarda além do !coherent).
+  it('D.3: floor-compute e nightly-diff pulam runs com invalid:true', () => {
+    expect(floorCompute).toMatch(/if \(s\.invalid\) continue;/);
+    expect(nightlyDiff).toMatch(/if \(s\.invalid\) return null;/);
+  });
+
+  // DoD D.4 — alerta estruturado grep-ável, nomeando o teste em voo.
+  it('D.4: harness emite [ALERT] fullsuite_run_invalid key=value com last_test_in_flight', () => {
+    expect(harness).toMatch(/\[ALERT\] fullsuite_run_invalid/);
+    expect(harness).toMatch(/last_test_in_flight=/);
+    // o alerta é disparado no ramo de FALHA do junit-summary (else do if)
+    expect(harness).toMatch(/if node "\$CODE\/scripts\/tests\/junit-summary\.mjs"/);
   });
 });

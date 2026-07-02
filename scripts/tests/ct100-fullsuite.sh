@@ -226,7 +226,14 @@ for attempt in $(seq 1 12); do
       # PERDIDA ("coverage e aditivo" era promessa, nao arquitetura). Coverage agora
       # roda numa 2a invocacao SEPARADA depois do junit salvo (bloco [P07 coverage]
       # apos o loop) — o diagnostico nunca mais e refem da instrumentacao.
-      exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never
+      # FV-F4 (US-GOV-045): --log-events-text streama 1 linha POR EVENTO (flush
+      # imediato) — sobrevive a morte silenciosa do processo (padrao 20260629-020001:
+      # exit 2 mid-suite, sem fatal impresso, junit 0 bytes) e o ultimo "Test Prepared"
+      # NOMEIA o teste em voo. Provado no CT100 2026-07-02: SIGKILL mid-run preservou
+      # o arquivo com o teste assassinado na ultima linha. O junit continua o artefato
+      # canonico (FV-F1); os eventos sao instrumento de post-mortem, apagados em run
+      # valido no passo 7 (disco CT100 ~95%).
+      exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --log-events-text /artifacts/pest-events.txt --colors=never
     ' \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
   # Detector 1 — Pest loader: uses(TestCase) file-level dentro de pasta ja vinculada
@@ -264,7 +271,7 @@ for attempt in $(seq 1 12); do
   mv "$CODE/$BLOCKER" "$CODE/.loader-quarantine/$BLOCKER"
 done
 docker rm -f oimpresso-fullsuite-run >/dev/null 2>&1 || true
-echo "pest exit code: $PEST_EXIT (loader-blockers: $(wc -l < "$RUN_DIR/loader-blockers.txt" 2>/dev/null || echo 0))"
+echo "pest exit code: $PEST_EXIT (loader-blockers: $([ -f "$RUN_DIR/loader-blockers.txt" ] && wc -l < "$RUN_DIR/loader-blockers.txt" || echo 0))"
 
 # --- [P07 coverage] (ADR 0275 C2 · 2a invocacao SEPARADA — floor nunca refem) -----
 # Historia: a 1a nightly com pcov no MESMO processo (20260702-073601) morreu silenciosa
@@ -301,8 +308,21 @@ else
 fi
 
 echo "--- [7/7] summary (junit-summary.mjs FV-F1 — tripwire artefato 0 bytes) + retencao"
-node "$CODE/scripts/tests/junit-summary.mjs" "$RUN_DIR/junit.xml" --out "$RUN_DIR/summary.json" \
-  || echo "junit-summary exit $? — XML ausente/incoerente (run morreu antes do flush?)"
+# FV-F4 (US-GOV-045): run invalido nunca mais e SILENCIOSO. junit-summary com --out
+# grava o marcador {invalid:true, reason} no summary.json quando o XML esta ausente/
+# 0 bytes/incoerente (floor-compute e nightly-diff ignoram — dupla guarda alem da
+# ausencia de coherent/n_testcases). O [ALERT] estruturado abaixo e 1 linha key=value
+# grep-avel por triage/cron, e nomeia o teste EM VOO via pest-events.txt (2 de 5 runs
+# 29/jun-02/jul morreram sem fatal impresso — o floor exclui certo, mas se a taxa de
+# morte subir o floor congela stale; o alerta da o sinal ANTES disso).
+if node "$CODE/scripts/tests/junit-summary.mjs" "$RUN_DIR/junit.xml" --out "$RUN_DIR/summary.json"; then
+  rm -f "$RUN_DIR/pest-events.txt"   # run valido: junit ja conta tudo; eventos so servem pra post-mortem
+else
+  SUMMARY_EXIT=$?
+  IN_FLIGHT="$(grep 'Test Prepared (' "$RUN_DIR/pest-events.txt" 2>/dev/null | tail -1 | sed 's/^Test Prepared (//; s/)[[:space:]]*$//' || true)"
+  PREPARED_N="$(grep -c 'Test Prepared (' "$RUN_DIR/pest-events.txt" 2>/dev/null || true)"
+  echo "[ALERT] fullsuite_run_invalid ts=$TS sha=$SHA pest_exit=$PEST_EXIT junit_summary_exit=$SUMMARY_EXIT tests_prepared=${PREPARED_N:-0} last_test_in_flight=\"${IN_FLIGHT:-desconhecido}\""
+fi
 ln -sfn "$RUN_DIR" "$RUNS/latest"
 find "$RUNS" -maxdepth 1 -mindepth 1 -type d | sort | head -n "-$KEEP_RUNS" | xargs -r rm -rf
 

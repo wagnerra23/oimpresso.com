@@ -30,6 +30,7 @@ export function validRuns(runsDir = RUNS) {
     const sp = join(runsDir, name, 'summary.json');
     if (!existsSync(sp)) continue; // run morto (junit 0b → sem summary) não conta
     let s; try { s = JSON.parse(readFileSync(sp, 'utf8')); } catch { continue; }
+    if (s.invalid) continue; // marcador explicito FV-F4 (US-GOV-045) — run morto declarado
     if (!s.coherent || !s.n_testcases || !Array.isArray(s.files)) continue;
     const failingFiles = s.files.filter((f) => (f.failed || 0) > 0 || (f.errors || 0) > 0).map((f) => f.file);
     let sha = null;

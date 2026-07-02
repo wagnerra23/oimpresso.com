@@ -15,7 +15,24 @@
 import { readFileSync, writeFileSync, existsSync, statSync, appendFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-function fail(code, msg) {
+// FV-F4 (US-GOV-045): quando --out foi pedido e o XML e invalido, grava um MARCADOR
+// EXPLICITO {invalid:true, reason} no lugar do summary — run morto deixa rastro
+// legivel por maquina em vez de sumir silencioso (a ausencia de summary.json era o
+// unico sinal). Leitores (floor-compute/nightly-diff) ja excluem por !coherent/
+// !n_testcases; o campo invalid e a dupla guarda declarada. Exit code (tripwire
+// FV-F1) permanece o contrato duro: 1 = artefato ausente/0 bytes, 2 = incoerente.
+function fail(code, msg, reason = null) {
+  if (outPath && reason) {
+    try {
+      writeFileSync(outPath, JSON.stringify({
+        schema: 'fullsuite-summary-invalid/v1',
+        invalid: true,
+        reason,
+        source: xmlPath ? String(xmlPath).replace(/\\/g, '/') : null,
+        detail: msg,
+      }, null, 2) + '\n');
+    } catch { /* marcador e best-effort; o exit code e o contrato */ }
+  }
   console.error(`junit-summary: ${msg}`);
   process.exit(code);
 }
@@ -26,8 +43,8 @@ const outIdx = args.indexOf('--out');
 const outPath = outIdx !== -1 ? args[outIdx + 1] : null;
 
 if (!xmlPath) fail(1, 'uso: node scripts/tests/junit-summary.mjs <junit.xml> [--out <summary.json>]');
-if (!existsSync(xmlPath)) fail(1, `XML nao existe: ${xmlPath} (pest rodou com --log-junit apontando pra ca?)`);
-if (statSync(xmlPath).size === 0) fail(1, `XML tem 0 bytes: ${xmlPath} (processo morto antes do flush — o bug FV-F1 original)`);
+if (!existsSync(xmlPath)) fail(1, `XML nao existe: ${xmlPath} (pest rodou com --log-junit apontando pra ca?)`, 'xml_ausente');
+if (statSync(xmlPath).size === 0) fail(1, `XML tem 0 bytes: ${xmlPath} (processo morto antes do flush — o bug FV-F1 original)`, 'xml_0_bytes');
 
 const raw = readFileSync(xmlPath, 'utf8');
 // PHPUnit escapa texto de failure/error (sem CDATA), mas removemos CDATA/comentarios
@@ -143,5 +160,7 @@ if (process.env.GITHUB_STEP_SUMMARY) {
   appendFileSync(process.env.GITHUB_STEP_SUMMARY, lines.join('\n') + '\n');
 }
 
-if (counted === 0) fail(2, 'XML existe mas tem 0 <testcase> — coleta quebrada (sintoma do artefato 0 bytes)');
-if (counted !== declared) fail(2, `incoerencia: contados ${counted} != declarados ${declared} no(s) <testsuite> raiz`);
+// Nota: o summary "coerente-aparente" ja foi escrito acima; os fail(2) abaixo
+// SOBRESCREVEM com o marcador invalid — o dado bruto segue no junit.xml do run.
+if (counted === 0) fail(2, 'XML existe mas tem 0 <testcase> — coleta quebrada (sintoma do artefato 0 bytes)', 'coleta_0_testcases');
+if (counted !== declared) fail(2, `incoerencia: contados ${counted} != declarados ${declared} no(s) <testsuite> raiz`, 'coleta_incoerente');

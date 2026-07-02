@@ -690,3 +690,24 @@ Reconciliar a dívida de fidelidade spec↔código que o lint SA-A2-bis (ADR 030
 > _ID: o MCP `tasks-create` sugeriu US-GOV-043, mas 043 já é o `charter_refs_broken` da onda-0 (unmerged) — usado **044** pra não forçar renumeração quando o charter-refs landar._
 
 **Acceptance:** `anchor-lint --json` (descontando specs `arquivado`) reporta 0 zombie + 0 dead_tests. Refs: ADR 0303 · ADR 0273 · US-GOV-042 · US-GOV-041
+
+### US-GOV-045 · FV-F4: run inválido do nightly nunca mais é silencioso (post-mortem + alerta)
+
+> owner: — · priority: p1 · estimate: 4h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `scripts/tests/ct100-fullsuite.sh` · `scripts/tests/junit-summary.mjs` · `scripts/tests/floor-compute.mjs` · `scripts/tests/nightly-diff.mjs` · verificado@2026-07-02 — caminho de erro simulado no CT100 (junit 0 bytes → marcador `invalid` + `[ALERT]`).
+
+**Origem (medida, não hipótese):** 2 dos últimos 5 runs em `/opt/oimpresso-fullsuite/runs/` (`20260629-020001`, `20260701-132941`, `20260702-073601`) morreram com `junit.xml` de **0 bytes** — o Pest roda (`pest-out.txt`/`run.log` completos, `Duration:` presente OU cortado no meio), mas a emissão `--log-junit` só faz flush no fim e o processo morre antes. Padrão de morte: **exit 2 mid-suite sem fatal impresso**, shim containerd deletado (ex `09:03:23` no run de 02/jul), `swap` do CT100 em 2.4G — **pressão de memória / kill externo do container**, NÃO OOM-killer do kernel (`oom_kill 0` no cgroup) nem disco (95% mas com folga). O `floor-compute` exclui run morto corretamente (fail-red se <2 válidos), MAS a única evidência de que morreu era a **ausência** de `summary.json` — se a taxa de morte subir, o floor **congela stale** sem ninguém perceber.
+
+**DoD:**
+- **D.1 — post-mortem que sobrevive à morte:** o run do Pest emite `--log-events-text /artifacts/pest-events.txt` além do `--log-junit`. O events-log streama **1 linha por evento com flush imediato**, então sobrevive ao kill e o último `Test Prepared (...)` **nomeia o teste em voo** no instante da morte (provado no CT100 2026-07-02 via `SIGKILL` mid-run: última linha = teste assassinado). O `junit.xml` continua o artefato canônico (FV-F1); os eventos são instrumento de triage, apagados em run válido (disco CT100 ~95%).
+- **D.2 — marcador explícito de invalidez:** `junit-summary.mjs --out` grava `{invalid:true, reason}` no `summary.json` quando o XML está ausente/0 bytes/incoerente (`reason ∈ {xml_ausente, xml_0_bytes, coleta_0_testcases, coleta_incoerente}`). O **exit code do tripwire FV-F1 é preservado** (1 = artefato ausente/0 bytes; 2 = coleta incoerente). Run morto deixa **rastro legível por máquina** em vez de sumir.
+- **D.3 — leitores ignoram o marcador (dupla guarda):** `floor-compute.mjs` e `nightly-diff.mjs` pulam qualquer run com `invalid:true`, além da guarda pré-existente `!coherent || !n_testcases`.
+- **D.4 — alerta estruturado:** o harness emite uma linha `[ALERT] fullsuite_run_invalid ts=... sha=... pest_exit=... junit_summary_exit=... tests_prepared=N last_test_in_flight="..."` (key=value grep-ável) quando o summary sai inválido — o sinal chega ANTES de o floor congelar.
+
+**Aceite:** um run com `junit.xml` de 0 bytes produz (a) `summary.json` com `invalid:true` + `reason`, (b) linha `[ALERT] fullsuite_run_invalid` no `run.log` nomeando o teste em voo, (c) `floor-compute` continua excluindo o run. Um run válido é idêntico ao de hoje (events-log apagado, `summary.json` coerente sem campo `invalid`).
+
+**Testado em:** `scripts/tests/junit-summary.test.mjs` (marcador + exit codes, roda o script real como subprocess) · `scripts/tests/floor-compute.test.mjs` (caso `invalid-marker` excluído) · `tests/fullsuiteHarness.spec.ts` (contrato do harness: events-log presente + tripwire usado + alerta). Anti-tautológico (proibicoes §5): asserts ancorados neste DoD, não no código.
+
+**Fora de escopo:** consertar a causa-raiz da pressão de memória (a suite inteira em 1 processo + coverage separado já é a mitigação estrutural do #3622); esta US garante **observabilidade honesta** da morte, não a elimina. Refs: FV-F1 (junit-summary tripwire) · ADR 0279 (floor) · US-GOV-018 (harness) · #3622 (coverage 2ª invocação)
