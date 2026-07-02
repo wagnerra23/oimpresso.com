@@ -2,7 +2,6 @@
 
 Formato append-only por wave/PR relevante.
 
-<<<<<<< HEAD
 ## [Wave 28] — 2026-05-17 — SATURATION FINAL functional → ≥92
 
 ### Added
@@ -14,7 +13,7 @@ Formato append-only por wave/PR relevante.
 - Sub-dimensoes alvo Wave 28: D2 (+3 = portal público defesa em camadas — throttle + FormRequest + Repository contract) + D9 (+1 = catalog cobertura confirmação 2 spans + audit log Controller).
 - Tier 0 ADR 0093 §"Exceção repo-wide" preservado — portal público sem `business_id` (cliente externo sem sessão). US-CONSULTA-001 quando ativar busca real DEVE resolver `business_id` via lookup protocolo + rate-limit IP (Repository injection contract estável já garante isso — só muda implementação `binding` no Provider).
 - Pattern alinhado com Wave 26 (SQLite-friendly source-level + reflexão + zero hit prod).
-=======
+
 ## [Wave 27] — 2026-05-17 — POLISH final → ≥88
 
 ### Added
@@ -38,7 +37,6 @@ Formato append-only por wave/PR relevante.
 - Tier 0 IRREVOGAVEL: rota publica mantida sem business_id scope (cliente externo sem sessao); FormRequests scaffolds documentam onde Repository real resolveria biz via numero_os/telefone lookup.
 - Defesa em profundidade observabilidade: 4 layers spans canonicos (Repository → Service → Controller audit log → Health probes).
 - bucket governance v4 mantido `functional_horizontal` em module.json.
->>>>>>> origin/main
 
 ## [Wave 25] — 2026-05-16 — SATURATION functional → ≥85
 

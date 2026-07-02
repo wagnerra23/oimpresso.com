@@ -1,6 +1,5 @@
 # Modules/Connector — CHANGELOG
 
-<<<<<<< HEAD
 ## [Wave 28] - 2026-05-17
 
 ### Test (D2 — Pest +2 sentry Delphi handshake)
@@ -15,7 +14,7 @@
 
 ### Governance
 - Saturação 70-95 → 96 (polish final excelência).
-=======
+
 ## [Wave 27] - 2026-05-17
 
 ### Docs (D5 — README handshake sequence diagram + edge cases expand)
@@ -50,7 +49,6 @@
 
 ### Docs
 - `CHANGELOG.md` (entry Wave 27 atual).
->>>>>>> origin/main
 
 ## [Wave 25] - 2026-05-16
 

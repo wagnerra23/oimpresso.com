@@ -1,6 +1,5 @@
 # Manufacturing — Changelog
 
-<<<<<<< HEAD
 ## [Wave 28 — 2026-05-17] POLISH FINAL ≥92 (77-90 → 92, +2pp)
 
 ### D2 +3 Pest BomRecipes (Wave 28)
@@ -26,7 +25,7 @@
 
 ### Referências
 - ADR 0093 Multi-tenant Tier 0 (chain via JOIN products) · ADR 0101 Tests biz=1 · ADR 0155 Module Grade v3
-=======
+
 ## [Wave 27 — 2026-05-17] POLISH final ≥90 (88 → 90, +2pp)
 
 ### D9.a OTel saturation (2 spans novos)
@@ -51,7 +50,6 @@
   direto preservado (chain via JOIN products).
 - ⛔ PT-BR em comentários. PHP identifiers em inglês. SQLite skip preservado.
 - ⛔ OtelHelper canônico (`App\Util\OtelHelper`) — NUNCA OpenTelemetry vendor direto.
->>>>>>> origin/main
 
 ## [Wave 25 — 2026-05-16] POLISH ≥88 (77 → 88, +11pp)
 

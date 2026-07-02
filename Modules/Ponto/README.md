@@ -114,7 +114,41 @@ Cada marcação é registrada com NSR sequencial + hash SHA256 + IP/geo capturad
 
 `/ponto/aprovacoes` → **"Fechar período"** → calcula HE, banco de horas, faltas, atrasos → gera planilha pra folha de pagamento (eSocial S-1010/S-2230/S-2240).
 
-<<<<<<< HEAD
+### 7. Banco de Horas (HE compensáveis — Reforma Trabalhista 13.467/2017)
+
+`/ponto/banco-horas` lista saldo por colaborador (credor/devedor) + 4 totais empresa
+(crédito total / débito total / colaboradores em crédito / em débito).
+
+Caso típico Larissa (vestuário): operadora trabalhou 2h extras quarta-feira →
+`BancoHorasMovimento::TIPO_CREDITO` lança +120min com `multiplicador=1.0` (acordo
+individual: hora extra vira hora compensável, não dinheiro). Saldo agregado em
+`ponto_banco_horas_saldos` reflete em tempo real. Sexta a colaboradora sai 2h
+mais cedo → `TIPO_DEBITO` lança −120min. Saldo zera. Ledger preserva 5 anos
+(retention.php — CLT Art. 11 prescrição).
+
+### 8. Ajuste manual de saldo BH (RH gestor)
+
+`/ponto/banco-horas/{colaboradorId}` → "**Ajustar manual**" → minutos (positivo/negativo)
++ observação obrigatória. Cria `BancoHorasMovimento::TIPO_AJUSTE` com `usuario_id`
+do gestor (Wave 26 D7 — `LogsActivity` registra evento auditável). Usado quando
+houve erro de cálculo (apuração reapurada) ou acordo de compensação fora do fluxo.
+
+### 9. Importar AFD do REP físico (REP-A / REP-C externo)
+
+`/ponto/importacoes` → "**Importar AFD**" → upload arquivo `.txt` Portaria 671 Anexo I.
+`AfdParserService::processar()` (com `OtelHelper::span` — D9 hot-path resilient)
+parseia headers/trailer + valida NSR sequencial + lança marcações em transação.
+Re-import idempotente (NSR único + hash chain detecta duplicata). Arquivo bruto
+retido 2 anos (retention.php — `importacoes_afd` hard_delete=true permitido após).
+
+### 10. Cross-tenant proof (multi-tenant Tier 0 IRREVOGÁVEL)
+
+Larissa (`biz=4` ROTA LIVRE) NUNCA enxerga marcações da `biz=1` (WR2 Sistemas).
+`HasBusinessScope` trait (ADR 0093) aplica global scope automático em TODA query
+Eloquent — `Marcacao::all()` em sessão biz=4 retorna SÓ marcações biz=4. Test
+`Wave18BusinessScopeTest::php` + `CrossTenantMarcacaoTest::php` provam append-only
++ isolamento simultaneamente. Auditor fiscal jamais vê dados de outra empresa.
+
 ## Jornada completa biz=1 (Wave 27 — fluxo end-to-end Wagner/RH)
 
 Cenário canônico testado em prod biz=1 (clientes legacy WR2 Eliana via ROTA LIVRE pattern, NUNCA biz=4 prod cliente em testes — [ADR 0101](../../memory/decisions/0101-tests-business-id-1-nunca-cliente.md)).
@@ -169,42 +203,6 @@ php artisan ponto:importar-afd {biz} {arquivo.afd}             # import REP-A
 php artisan ponto:exportar-afdt {biz} {periodo}                # export fiscal AFDT
 php artisan ponto:health-check                                  # checks 5 dimensões
 ```
-=======
-### 7. Banco de Horas (HE compensáveis — Reforma Trabalhista 13.467/2017)
-
-`/ponto/banco-horas` lista saldo por colaborador (credor/devedor) + 4 totais empresa
-(crédito total / débito total / colaboradores em crédito / em débito).
-
-Caso típico Larissa (vestuário): operadora trabalhou 2h extras quarta-feira →
-`BancoHorasMovimento::TIPO_CREDITO` lança +120min com `multiplicador=1.0` (acordo
-individual: hora extra vira hora compensável, não dinheiro). Saldo agregado em
-`ponto_banco_horas_saldos` reflete em tempo real. Sexta a colaboradora sai 2h
-mais cedo → `TIPO_DEBITO` lança −120min. Saldo zera. Ledger preserva 5 anos
-(retention.php — CLT Art. 11 prescrição).
-
-### 8. Ajuste manual de saldo BH (RH gestor)
-
-`/ponto/banco-horas/{colaboradorId}` → "**Ajustar manual**" → minutos (positivo/negativo)
-+ observação obrigatória. Cria `BancoHorasMovimento::TIPO_AJUSTE` com `usuario_id`
-do gestor (Wave 26 D7 — `LogsActivity` registra evento auditável). Usado quando
-houve erro de cálculo (apuração reapurada) ou acordo de compensação fora do fluxo.
-
-### 9. Importar AFD do REP físico (REP-A / REP-C externo)
-
-`/ponto/importacoes` → "**Importar AFD**" → upload arquivo `.txt` Portaria 671 Anexo I.
-`AfdParserService::processar()` (com `OtelHelper::span` — D9 hot-path resilient)
-parseia headers/trailer + valida NSR sequencial + lança marcações em transação.
-Re-import idempotente (NSR único + hash chain detecta duplicata). Arquivo bruto
-retido 2 anos (retention.php — `importacoes_afd` hard_delete=true permitido após).
-
-### 10. Cross-tenant proof (multi-tenant Tier 0 IRREVOGÁVEL)
-
-Larissa (`biz=4` ROTA LIVRE) NUNCA enxerga marcações da `biz=1` (WR2 Sistemas).
-`HasBusinessScope` trait (ADR 0093) aplica global scope automático em TODA query
-Eloquent — `Marcacao::all()` em sessão biz=4 retorna SÓ marcações biz=4. Test
-`Wave18BusinessScopeTest::php` + `CrossTenantMarcacaoTest::php` provam append-only
-+ isolamento simultaneamente. Auditor fiscal jamais vê dados de outra empresa.
->>>>>>> origin/main
 
 ## Smoke test E2E
 

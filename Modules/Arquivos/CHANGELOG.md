@@ -2,7 +2,6 @@
 
 > Append-only. Mais novo no topo. Datas YYYY-MM-DD.
 
-<<<<<<< HEAD
 ## [Wave 28 — Polish saturation 74-88 → ≥92 (+4pp)] — 2026-05-17
 
 ### Adicionado — D9 +1 span `arquivos.retention.summary` (5º span Retention canon)
@@ -26,7 +25,7 @@
 
 ### Referências
 - ADR 0093 Multi-tenant Tier 0 IRREVOGÁVEL · ADR 0123 Modules/Arquivos backbone · ADR 0155 Module Grade v3 D9 saturated +1 · LGPD Art. 15-16
-=======
+
 ## [Wave 27 — Polish D5 README persona + D8 +2 FormRequests + D9 +2 spans] — 2026-05-17
 
 ### Adicionado — D5 README expandido com persona Auditor LGPD
@@ -82,7 +81,6 @@
 - ADR 0155 Module Grade v3 (D5/D8/D9 polish Wave 27)
 - ADR 0159 Wave 27 polish
 - LGPD Art. 16 (eliminação tempestiva) + Art. 18 §VI (direito eliminação)
->>>>>>> origin/main
 
 ## [Wave 25 — Polish D7.c retention canônico] — 2026-05-16
 

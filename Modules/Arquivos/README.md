@@ -1,8 +1,9 @@
-<<<<<<< HEAD
 # Modules/Arquivos — DMS backbone do oimpresso
 
+> DMS backbone (Document Management System) oimpresso — armazena, classifica, deduplica e protege qualquer arquivo (XML NFe, foto OS, contrato, anexo ticket) com encryption-at-rest opcional, audit trail LGPD e retenção declarativa.
 > **ADR mãe:** [0123](../../memory/decisions/0123-modules-arquivos-backbone.md)
 > **SPEC:** [memory/requisitos/Arquivos/SPEC.md](../../memory/requisitos/Arquivos/SPEC.md)
+> **Tier 0:** Multi-tenant `business_id` global scope ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
 > **Princípio:** *todo arquivo anexado do oimpresso deve cair aqui*.
 
 ## Por que existe
@@ -34,6 +35,39 @@ Modules\Arquivos\Services\
 ```
 
 Total: **3 Services, 13 spans OTel canônicos** (D9.a saturated — Wave 18 baseline 11 + Wave 27 polish 2).
+
+## Como cliente (Wagner/Larissa/Martinho) usa
+
+| Quero... | Como acontece | Onde aparece UI |
+|---|---|---|
+| Anexar XML NFe a transação | Backend `nfe:emitir` → `Transaction->attachArquivo($xml, ['context'=>'nfe-xml'])` automático | Aba "Documentos" da venda |
+| Anexar foto entrada OS oficina | UI upload → `ServiceOrder->attachArquivo($foto, ['context'=>'repair-foto'])` | Sheet OS, seção "Fotos" |
+| Anexar contrato a cliente | Drag-and-drop em `/contatos/{id}` → `Contact->attachArquivo($pdf, ['context'=>'contratos'])` | Aba "Contratos" do contato |
+| Baixar arquivo sensível (RG cliente) | Clique no link → `arquivos.download` rota signed (60min validade) | Modal preview + botão baixar |
+| Auditar quem baixou arquivo X | `arquivos_audit_log` tem entrada per `signed_url_issued` + `download` | Tela admin Memória (futura) |
+| Excluir arquivo (LGPD direito eliminação) | Soft-delete em 1 clique. Hard-delete batch via `arquivos:retention-cleanup --purge` | Botão "Excluir" lista |
+| Esquecer arquivo de cliente removido | `Contact` deletado → arquivos cascade soft-delete por polimorphic chain | Automático |
+| Compliance prazo legal (NFe 5 anos) | `config/retention.php` declara `nfe-xml=1825d`; cron mensal expira | Health check `arquivos:health` |
+| Economizar storage com dedupe MD5 | Mesmo arquivo (MD5 igual) no mesmo business reusa storage; counter sobe | Automático no `attach()` |
+
+## Garantias
+
+- **Multi-tenant Tier 0** — arquivo de `business_id=1` jamais aparece em query/listagem/download de `business_id=4` (global scope `business_id` em `Arquivo`)
+- **Encryption-at-rest** — bucket `sensitive` (RG, contrato, dados médicos) usa `VaultEncryptionService` (Crypt AES-256-CBC, APP_KEY-backed)
+- **Audit trail dupla** — `arquivos_audit_log` (upload/download/signed_url/soft_delete/restore/hard_delete) + Spatie `activity_log` (mudanças de bucket/visibility/retention sem PII)
+- **PII redaction** — filename pode trazer "rg-123.456.789-00.pdf"; `PiiRedactor` redaciona ANTES de persistir em audit ou log
+- **Retenção declarativa** — `Config/retention.php` é fonte da verdade auditorial; `arquivos:retention-cleanup` consome
+- **Dedupe ZERO leak cross-tenant** — lookup MD5 sempre filtra `business_id` (Agent E security review §dedupe leak)
+
+## Observabilidade D9.a ([ADR 0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md))
+
+Spans canon (zero-cost se `otel.enabled=false`):
+
+- `arquivos.attach` · `arquivos.classify` · `arquivos.signed_url` · `arquivos.soft_delete` · `arquivos.restore`
+- `arquivos.vault.put_encrypted` · `arquivos.vault.get_decrypted`
+- `arquivos.retention.scan` · `arquivos.retention.expire_one` · `arquivos.retention.purge_one` · `arquivos.retention.run`
+
+Atributos sempre `business_id` Tier 0 + `module=Arquivos`. NUNCA filename, MD5, ou storage_path em attributes (PII potencial).
 
 ## Persona — Auditor LGPD
 
@@ -70,72 +104,6 @@ Pessoa externa (DPO, advogado LGPD, auditor regulador ANPD), ou interna senior (
 - **Multi-tenant** ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)): toda query de `Arquivo` usa `business_id` global scope; jobs recebem `$businessId` no constructor; cross-tenant dedupe NUNCA vaza.
 - **LGPD Art. 16:** retenção declarada em `Config/retention.php`. Mudança REAL altera AMBOS arquivos (`retention.php` + shim D7.c) — acoplamento explícito.
 - **Audit append-only:** `arquivos_audit_log` NÃO permite UPDATE/DELETE. Adição de coluna via migration; mudança de row = nova linha.
-
-## Quick-start integração (consumer module)
-
-```php
-use App\Concerns\HasArquivos;
-
-class MeuModel extends Model
-{
-    use HasArquivos; // morphMany pra arquivos
-}
-
-// upload
-$arquivo = app(ArquivosService::class)->attach($meuModel, $request->file('anexo'), [
-    'context' => 'nfe-xml', // CuradorEngine usa pra decidir bucket
-]);
-
-// download signed
-$url = app(ArquivosService::class)->signedUrl($arquivo, expiresMinutes: 60);
-```
-
-## Estado das US (Sprint 1+2 concluído)
-
-Ver [SCOPE.md](SCOPE.md) pra matriz US-ARQ-001..US-ARQ-010 + US-PRE pendentes Wagner.
-
-## CHANGELOG
-
-Ver [CHANGELOG.md](CHANGELOG.md) — Wave 25 + Wave 27 polish governance v3.
-=======
-# Modules/Arquivos
-
-> DMS backbone (Document Management System) oimpresso — armazena, classifica, deduplica e protege qualquer arquivo (XML NFe, foto OS, contrato, anexo ticket) com encryption-at-rest opcional, audit trail LGPD e retenção declarativa.
-> **Tier 0:** Multi-tenant `business_id` global scope ([ADR 0093](../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)).
-> **ADR mãe:** [0123](../../memory/decisions/0123-modules-arquivos-backbone.md).
-
-## Como cliente (Wagner/Larissa/Martinho) usa
-
-| Quero... | Como acontece | Onde aparece UI |
-|---|---|---|
-| Anexar XML NFe a transação | Backend `nfe:emitir` → `Transaction->attachArquivo($xml, ['context'=>'nfe-xml'])` automático | Aba "Documentos" da venda |
-| Anexar foto entrada OS oficina | UI upload → `ServiceOrder->attachArquivo($foto, ['context'=>'repair-foto'])` | Sheet OS, seção "Fotos" |
-| Anexar contrato a cliente | Drag-and-drop em `/contatos/{id}` → `Contact->attachArquivo($pdf, ['context'=>'contratos'])` | Aba "Contratos" do contato |
-| Baixar arquivo sensível (RG cliente) | Clique no link → `arquivos.download` rota signed (60min validade) | Modal preview + botão baixar |
-| Auditar quem baixou arquivo X | `arquivos_audit_log` tem entrada per `signed_url_issued` + `download` | Tela admin Memória (futura) |
-| Excluir arquivo (LGPD direito eliminação) | Soft-delete em 1 clique. Hard-delete batch via `arquivos:retention-cleanup --purge` | Botão "Excluir" lista |
-| Esquecer arquivo de cliente removido | `Contact` deletado → arquivos cascade soft-delete por polimorphic chain | Automático |
-| Compliance prazo legal (NFe 5 anos) | `config/retention.php` declara `nfe-xml=1825d`; cron mensal expira | Health check `arquivos:health` |
-| Economizar storage com dedupe MD5 | Mesmo arquivo (MD5 igual) no mesmo business reusa storage; counter sobe | Automático no `attach()` |
-
-## Garantias
-
-- **Multi-tenant Tier 0** — arquivo de `business_id=1` jamais aparece em query/listagem/download de `business_id=4` (global scope `business_id` em `Arquivo`)
-- **Encryption-at-rest** — bucket `sensitive` (RG, contrato, dados médicos) usa `VaultEncryptionService` (Crypt AES-256-CBC, APP_KEY-backed)
-- **Audit trail dupla** — `arquivos_audit_log` (upload/download/signed_url/soft_delete/restore/hard_delete) + Spatie `activity_log` (mudanças de bucket/visibility/retention sem PII)
-- **PII redaction** — filename pode trazer "rg-123.456.789-00.pdf"; `PiiRedactor` redaciona ANTES de persistir em audit ou log
-- **Retenção declarativa** — `Config/retention.php` é fonte da verdade auditorial; `arquivos:retention-cleanup` consome
-- **Dedupe ZERO leak cross-tenant** — lookup MD5 sempre filtra `business_id` (Agent E security review §dedupe leak)
-
-## Observabilidade D9.a ([ADR 0155](../../memory/decisions/0155-module-grade-v3-tier-a-d9-otel.md))
-
-Spans canon (zero-cost se `otel.enabled=false`):
-
-- `arquivos.attach` · `arquivos.classify` · `arquivos.signed_url` · `arquivos.soft_delete` · `arquivos.restore`
-- `arquivos.vault.put_encrypted` · `arquivos.vault.get_decrypted`
-- `arquivos.retention.scan` · `arquivos.retention.expire_one` · `arquivos.retention.purge_one` · `arquivos.retention.run`
-
-Atributos sempre `business_id` Tier 0 + `module=Arquivos`. NUNCA filename, MD5, ou storage_path em attributes (PII potencial).
 
 ## Journey real biz=1 (Wagner dev)
 
@@ -197,6 +165,29 @@ $meu->arquivos()->bucket('active')->get();
 $meu->arquivosClassificados('sensitive');
 ```
 
+## Quick-start integração (consumer module)
+
+```php
+use App\Concerns\HasArquivos;
+
+class MeuModel extends Model
+{
+    use HasArquivos; // morphMany pra arquivos
+}
+
+// upload
+$arquivo = app(ArquivosService::class)->attach($meuModel, $request->file('anexo'), [
+    'context' => 'nfe-xml', // CuradorEngine usa pra decidir bucket
+]);
+
+// download signed
+$url = app(ArquivosService::class)->signedUrl($arquivo, expiresMinutes: 60);
+```
+
+## Estado das US (Sprint 1+2 concluído)
+
+Ver [SCOPE.md](SCOPE.md) pra matriz US-ARQ-001..US-ARQ-010 + US-PRE pendentes Wagner.
+
 ## Referências
 
 - ADR mãe: [0123](../../memory/decisions/0123-modules-arquivos-backbone.md) (Sprint 1+2 ratificadas)
@@ -206,4 +197,4 @@ $meu->arquivosClassificados('sensitive');
 - LGPD Art. 15-16 (eliminação tempestiva) + Art. 18 §VI (direito eliminação)
 - SPEC: `memory/requisitos/Arquivos/SPEC.md`
 - CHANGELOG (append-only): [`CHANGELOG.md`](CHANGELOG.md)
->>>>>>> origin/main
+
