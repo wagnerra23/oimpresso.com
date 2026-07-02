@@ -1,10 +1,16 @@
 ---
-date: 2026-07-02
+date: "2026-07-02"
 topic: "Mapa interno Estoque — nativo UltimatePOS × necessidade dos 3 verticais × fragmentação (insumo p/ consolidação do domínio)"
 type: session
 status: done
 scope_modulos: [Estoque, Inventory, Produto, Purchase, Compras, StockAdjustment, StockTransfer, Vestuario, ComunicacaoVisual, OficinaAuto]
-related_adrs: [0093, 0129, 0143, 0121, 0192, 0265]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0129-state-machine-canonica-fsm-rbac
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0192-auto-faturar-os-venda-jobsheet-observer
+  - 0265-oficina-reparo-erradica-locacao
 owner: [W]
 metodo: introspecção read-only contra origin/main (checkout local stale ~4600 commits) — código real + memory canon + 3 subagents por vertical
 base: memory/requisitos/Estoque/DOC-RAIZ-ESTOQUE.md (2026-06-04) — não repetido, refinado

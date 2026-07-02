@@ -4,14 +4,18 @@ topic: "Plano de consolidação e evolução do domínio Estoque — unifica 2 S
 authors: [C]
 type: plano-consolidacao
 metodo: "2 pesquisas profundas paralelas (estado-da-arte externo 2026 + mapa interno nativo×verticais×fragmentação), verificadas contra origin/main; síntese"
-related_adrs: [0093, 0105, 0106, 0121, 0129, 0143, 0192, 0265]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0106-recalibracao-velocidade-fator-10x-ia-pair
+  - 0121-oimpresso-modular-especializado-por-vertical
+  - 0129-state-machine-canonica-fsm-rbac
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0192-auto-faturar-os-venda-jobsheet-observer
+  - 0265-oficina-reparo-erradica-locacao
 insumos:
   - 2026-07-02-arte-estoque-inventory-smb-2026.md
   - 2026-07-02-mapa-interno-estoque-verticais.md
-related_adrs_slugs:
-  - 0093-multi-tenant-isolation-tier-0
-  - 0105-cliente-como-sinal-guiar-sem-mandar
-  - 0129-state-machine-canonica-fsm-rbac
 ---
 
 # Plano do Estoque — consolidação + evolução (2026-07-02)
