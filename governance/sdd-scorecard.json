@@ -15,33 +15,33 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 54.3,
+      "value": 55.2,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 54.3,
+        "coverage_pct": 55.2,
         "specs_total": 58,
         "us_total": 855,
-        "anchor_coverage_pct": 54.3,
+        "anchor_coverage_pct": 55.2,
         "by_state": {
-          "sem_campo": 391,
+          "sem_campo": 383,
           "placeholder": 0,
-          "pendente": 189,
-          "parcial": 64,
-          "anchored_ok": 211,
+          "pendente": 191,
+          "parcial": 66,
+          "anchored_ok": 215,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 469,
+        "fields_total": 477,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 432,
+        "fields_grammar_ok": 440,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 134,
-        "req_sem_covering_test_total": 233,
+        "req_sem_aceite_total": 140,
+        "req_sem_covering_test_total": 239,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 39,
         "behavior_known": false,
@@ -202,12 +202,17 @@
       "stream": "MEM"
     },
     "drift_alarms": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 0,
+      "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
-      "source": "gh api indisponível — drift_alarms requer GITHUB_TOKEN (protection-drift.mjs lê branch protection). Fallback honesto: vira measured assim que o gh autenticar.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
+      "detail": {
+        "reds": [],
+        "warns": 0,
+        "verdict": "green"
+      },
       "stream": "GT"
     },
     "backfill_error_rate": {
@@ -218,10 +223,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 14,
+        "entries_aprovadas": 15,
         "max_error_rate_pct": 1.82,
-        "last_pr": 3573,
-        "last_lote": "SA-A5-P10w2-fiscal"
+        "last_pr": 3574,
+        "last_lote": "SA-A5-P10w2-compras"
       },
       "stream": "GT"
     }
