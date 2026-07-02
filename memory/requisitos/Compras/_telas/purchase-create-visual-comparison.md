@@ -60,3 +60,35 @@ npm run build
 - [ ] Permite criar compra mínima (filial + fornecedor_id + 1 item + total)
 - [ ] POST `/purchases` aceita FormData e cria `transactions.type='purchase'`
 - [ ] Tier 0 preservado (locations só da business)
+
+---
+
+## Modo grade tam×cor (US-COM-005) — comparação adicional
+
+> Consolidado P5 (2026-07-02): incorpora o gate visual do **modo grade** (antes em `Purchase/create-visual-comparison.md`, `last_validated 2026-06-22`). Gate visual ADR 0114/0107 — Wagner aprova o **SCREENSHOT 1280px**, não a tabela. Blueprint Cowork: `prototipo-ui/prototipos/compras-grade-matrix/Compras - Grade Matrix.html`. Status: `pendente-aprovacao-wagner`.
+
+Adiciona um bloco **"Adicionar por grade"** dentro do card "Itens da compra" da `Purchase/Create.tsx`: combobox de produto `variable` → `<GradeMatrixInput>` (matriz tam×cor, Σ linha/coluna/total, teclado Cin7/Lightspeed) → botão "Adicionar à compra" que acumula as células no repeater `linhas` existente. O fluxo manual (buscar texto → "Adicionar item") permanece intacto.
+
+| # | Dimensão | Protótipo (`compras-grade-matrix`) | Implementação Inertia | OK |
+|---|---|---|---|---|
+| 1 | Layout matriz | linhas=tam, cols=cor, Σ canto | idem (`GradeMatrixInput`) | ☐ |
+| 2 | Σ on-the-fly | useMemo por linha/coluna/grand | idem | ☐ |
+| 3 | Teclado | Tab/Enter/Esc/setas | idem (handleKeyDown) | ☐ |
+| 4 | Célula com valor | destaque visual | input destacado | ☐ |
+| 5 | Empty state single | 1 input qty | mode='single' | ☐ |
+| 6 | Custo unitário | 1 por modelo | input unitCost | ☐ |
+| 7 | Densidade 1280px | cabe sem scroll-x | conferir no smoke | ☐ |
+| 8 | Tokens/cor | neutros stone + accent | Tailwind stone + primary | ☐ |
+| 9 | Tipografia | tabular-nums | tabular-nums | ☐ |
+| 10 | Barra de atalhos | rodapé kbd | rodapé kbd | ☐ |
+| 11 | Combobox produto | select mock | `GradeProductCombobox` (real `/purchases/get_products`) | ☐ |
+| 12 | Feedback "adicionado" | badge linhas | linhas no repeater + total | ☐ |
+| 13 | Acessibilidade | aria-label célula | aria-label célula | ☐ |
+| 14 | Integração ao form | payload `{model,lines}` | expande pra `purchases` (POST único) | ☐ |
+| 15 | Coerência com a tela | bloco isolado | dentro do card "Itens da compra" | ☐ |
+
+**Divergências conhecidas (aceitas):** visual Tailwind/shadcn (não bundle Cowork denso) — coerência com a própria tela MWART, não com o cockpit `/compras`; `2× clique col-head` (preencher coluna) fica V1.1; quick-fill OCR/paste Excel fora de escopo (V2).
+
+**Aprovação grade:**
+- [ ] **F1.5/F2 screenshot 1280px** anexado + `[W2]: approved` (Wagner) — **PENDENTE**
+- [ ] **F5 canary biz=4** — Larissa faz 1 entrada por grade cronometrada (meta ≤2min/modelo)

@@ -8,6 +8,7 @@ last_validated: "2026-06-17"
 related_adrs:
   - 0104-processo-mwart-canonico-unico-caminho
   - 0093-multi-tenant-isolation-tier-0
+spec_ref: memory/requisitos/Compras/SPEC.md
 ---
 
 # RUNBOOK — `/purchases` (listagem de Compras, Inertia/React)
@@ -15,7 +16,7 @@ related_adrs:
 > Tela `resources/js/Pages/Purchase/Index.tsx` servida em `/purchases`.
 > Migração MWART parcial: o controller mantém **dual-path** Blade legacy + Inertia.
 > NÃO confundir com o módulo greenfield `/compras` (`Pages/Compras/Index.tsx`,
-> `memory/requisitos/Compras/`) — é outro alvo, ainda não no ar.
+> [`RUNBOOK-compras-index.md`](../RUNBOOK-compras-index.md)) — é outro alvo (cockpit scaffold), ainda não no ar.
 
 ## 1. Dual-path (a pegadinha central)
 
@@ -83,4 +84,5 @@ conferir o botão **Etiquetas** e que ele abre `/labels/show?purchase_id=…`.
 - Controller: `app/Http/Controllers/PurchaseController.php` (`index` + `indexInertia`)
 - Tela: `resources/js/Pages/Purchase/Index.tsx`
 - Etiquetas: `app/Http/Controllers/LabelsController.php@show` · rota `routes/web.php` → `/labels/show`
-- [ADR 0104 MWART](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0093 Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md)
+- SPEC: [`memory/requisitos/Compras/SPEC.md`](../SPEC.md)
+- [ADR 0104 MWART](../../../decisions/0104-processo-mwart-canonico-unico-caminho.md) · [ADR 0093 Tier 0](../../../decisions/0093-multi-tenant-isolation-tier-0.md)
