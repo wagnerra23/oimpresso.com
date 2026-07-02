@@ -63,6 +63,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Controller/ação:** `OrcamentoController@calcular`
 > **Permissão Spatie:** `comvis.orcamento.create`
 
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Http/Controllers/OrcamentoController.php` · `OrcamentoController@calcular` · `Modules/ComunicacaoVisual/Services/OrcamentoCalculator.php` · verificado@0bb65dd (2026-07-02) — cálculo base + rota `comvis.api.calcular` vivos; falta acabamentos[] no cálculo (Entity `Acabamento` existe mas o calculator não a usa; `extras` é input flat), mínimo cobrado configurável (`material.minimo_m2` — hoje só há `estoque_minimo_m2`), preview PDF + envio WhatsApp 1-clique
+
 **Como** vendedor de gráfica
 **Quero** informar largura × altura + material + acabamento + instalação e ver preço calculado
 **Para** entregar orçamento ao cliente em <2min sem abrir Excel paralelo
@@ -85,6 +87,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Rota:** `GET/POST /comvis/materiais`
 > **Controller/ação:** `MaterialController`
 
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Entities/Material.php` · `Modules/ComunicacaoVisual/Database/Seeders/MaterialSeeder.php` · verificado@0bb65dd (2026-07-02) — model + seed existem; falta CRUD controller/UI, bulk-update Jana (US-013), import XML NFe, histórico de preço
+
 **Como** dono/financeiro
 **Quero** cadastrar material (lona front-light 440g, blackout 510g, vinil adesivo, calandrado, perfurado, ACM 3mm, telas) com preço/m² e markup
 **Para** alimentar US-COMVIS-001 sem hard-code
@@ -104,6 +108,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Rota:** `GET /comvis/os/{id}` + Kanban
 > **Controller/ação:** `OsController`
 > **Reusa:** [Modules/Repair](../../../Modules/Repair) Kanban drag-drop (PR #363) — Modules/Repair é shared infrastructure ([ADR 0121 §P8](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md))
+
+**Implementado em:** _pendente_ — migration `cv_ordens_producao` + Entity `OrdemProducao` existem, mas Kanban PCP (OsController + Page Inertia + drag-drop) não construído
 
 **Como** PCP/produção
 **Quero** ver Kanban com colunas Design → Prepress → Impressão → Acabamento → Instalação → Entregue
@@ -128,6 +134,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Rota:** `POST /comvis/apontamento`
 > **Controller/ação:** `ApontamentoController`
 
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Http/Controllers/ApontamentoController.php` · `Modules/ComunicacaoVisual/Services/ApontamentoTracker.php` · verificado@0bb65dd (2026-07-02) — API JSON (iniciar/finalizar/cancelar/em-andamento) viva; falta form mobile-first + dashboard máquina (ocupação/m² dia)
+
 **Como** operador de plotter
 **Quero** registrar início/fim do trabalho + m² impresso + consumo tinta (CMYK ml)
 **Para** alimentar pós-cálculo (custo real vs orçado) e relatório produtividade máquina
@@ -150,6 +158,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Rota:** `GET /comvis/os/{id}/pos-calculo`
 > **Controller/ação:** `PosCalculoController`
 
+**Implementado em:** _pendente_ — PosCalculoController/PosCalculoService não construídos (depende de apontamento US-004 completo)
+
 **Como** dono/gestor
 **Quero** ver, ao fechar OS, comparativo: custo orçado vs custo real (mídia consumida + tinta + mão-de-obra etapa + instalação)
 **Para** descobrir qual produto/cliente dá margem real e ajustar tabela
@@ -170,6 +180,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Área:** Fiscal
 > **Rota:** seed migration + UI configuração
 > **Reusa:** [Modules/NfeBrasil](../NfeBrasil/SPEC.md)
+
+**Implementado em:** _parcial_ · `Modules/ComunicacaoVisual/Database/Migrations/2026_05_12_000010_create_cv_substratos_table.php` · verificado@0bb65dd (2026-07-02) — colunas ncm/cfop_padrao/csosn_padrao existem no schema; falta seed tributária CNAE 1813 populada + wizard onboarding Jana
 
 **Como** dono novo onboarding
 **Quero** que materiais cadastrados em US-COMVIS-002 já venham com CFOP/CSOSN/NCM corretos pra impresso publicitário
@@ -192,6 +204,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Rota:** `GET/POST /comvis/instalacao`
 > **Controller/ação:** `InstalacaoController`
 
+**Implementado em:** _pendente_ — migration `cv_instalacoes` + Entity `Instalacao` existem, mas InstalacaoController + agenda/checklist/UI não construídos
+
 **Como** coordenador de instalação
 **Quero** agendar equipe (instalador, ajudante, motorista) + ferramentas (escada, andaime, parafusadeira) + EPI + endereço cliente
 **Para** não chegar no cliente sem furadeira ou sem 2ª pessoa pra fachada de 6m
@@ -210,7 +224,9 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 ### US-COMVIS-008 · NFSe automática pra serviço de instalação — **P1**
 
 > **Área:** Fiscal
-> **Reusa:** [Modules/NFSe](../NFSe/) (a criar — pendente)
+> **Reusa:** [Modules/NFSe](../NFSe/) (já existe — falta o trigger comvis)
+
+**Implementado em:** _pendente_ — `Modules/NFSe` existe (`NfseEmissaoService`, desde 2026-05-01 — scaffold PR #85 + Service no commit `1595cc35d6` US-NFSE-004), mas o trigger instalacao-concluida→NFSe não foi construído no ComVis (depende de US-COMVIS-007 pendente)
 
 **Como** financeiro
 **Quero** que ao concluir US-COMVIS-007 (instalação aceita pelo cliente) o sistema emita NFSe automática (CNAE 7319-0/03)
@@ -232,6 +248,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Área:** Fiscal
 > **Reusa:** [Modules/RecurringBilling US-RB-044](../RecurringBilling/SPEC.md) — **JÁ ENTREGUE** ✅
 
+**Implementado em:** _pendente_ — núcleo NFe-de-boleto vive em Modules/RecurringBilling (US-RB-044, fora deste SPEC); adapter ComVis `NfeBoletoPagoComVisAdapter` (roteia NFC-e vs NFSe por OS) não existe no HEAD
+
 **Como** financeiro
 **Quero** que boleto/pix recebido (Asaas/Inter/Sicoob) dispare NFC-e automática
 **Para** eliminar 2 cliques humanos do fluxo
@@ -251,6 +269,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Área:** Comercial
 > **Rota:** pública `GET /b/{slug}/orcamento` (sem auth)
 > **Controller/ação:** `OrcamentoPublicoController`
+
+**Implementado em:** _pendente_ — form público / OrcamentoPublicoController não construídos
 
 **Como** cliente final navegando
 **Quero** preencher formulário no site da gráfica (largura, altura, material, foto inspiração) e receber preço estimado
@@ -273,6 +293,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Área:** Financeiro
 > **Reusa:** [Modules/Financeiro](../Financeiro/) HR/folha
 
+**Implementado em:** _pendente_ — cálculo/lançamento de comissão por OS não construído (schema commission_distribution_json previsto em §14, sem Job vivo)
+
 **Como** dono
 **Quero** que ao fechar OS, comissão do vendedor (% sobre venda líquida) e do instalador (% sobre instalação) sejam calculadas
 **Para** pagar correto na folha sem planilha paralela
@@ -291,6 +313,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 > **Área:** Producao
 > **Rota:** upload S3-compatible (Minio CT 100 ou Wasabi)
+
+**Implementado em:** _pendente_ — DAM/upload chunked print-ready não construído
 
 **Como** cliente
 **Quero** subir PDF/AI/PSD print-ready direto no portal sem mandar por WhatsApp 80MB
@@ -312,6 +336,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Área:** IA
 > **Reusa:** [Modules/Jana](../../../Modules/Jana) tools
 
+**Implementado em:** _pendente_ — Jana tool `comvis.materiais.bulk_update` não construída
+
 **Como** dono
 **Quero** dizer pra Jana "aumenta 5% em todo lona 440g a partir de amanhã"
 **Para** repassar reajuste de fornecedor sem editar 40 produtos
@@ -330,6 +356,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 > **Área:** IA
 > **Reusa:** [Modules/Jana](../../../Modules/Jana) ContextSnapshot + 3 ângulos faturamento
+
+**Implementado em:** _pendente_ — contexto vertical comvis pra Jana (faturamento por categoria/margem/OS atrasadas) não construído
 
 **Como** dona-operadora (perfil ROTA LIVRE/Larissa)
 **Quero** perguntar "quanto faturei essa semana de banner vs lona", "qual cliente mais lucrou em abril", "quais OS atrasaram entrega" no celular fora-de-hora
@@ -350,6 +378,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Área:** Inventory
 > **Rota:** `GET/POST /comvis/maquinas`
 
+**Implementado em:** _pendente_ — CRUD máquina/plotter + tracking CMYK não construído (tabela cv_maquinas prevista opcional §12.1, não migrada)
+
 **Como** PCP
 **Quero** cadastrar plotter (modelo Roland VS-540, Mimaki JV-150, HP Latex 365) com cartuchos atuais (ml restante CMYK)
 **Para** alertar reposição antes de plotter parar no meio do trabalho
@@ -368,6 +398,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 > **Área:** Fiscal
 > **Reusa:** [Modules/NfeBrasil](../NfeBrasil/SPEC.md) (não tem hoje)
+
+**Implementado em:** _pendente_ — CT-e/MDF-e não construído (P3 backlog)
 
 **Como** financeiro de gráfica que entrega
 **Quero** emitir CT-e (transporte) e MDF-e (manifesto) automaticamente quando OS sai pra entrega
@@ -388,6 +420,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Área:** Onboarding
 > **Reusa:** [Migration Factory ADR 0119](../../decisions/0119-migration-factory-capacidade-institucional.md)
 
+**Implementado em:** _pendente_ — conector Firebird + mapeamento legacy→comvis não construído no módulo (skill de snapshot é ferramenta externa, não código do módulo)
+
 **Como** dono migrando do OfficeImpresso Delphi
 **Quero** trazer clientes (CPF/CNPJ + endereço + histórico OS) + produtos + saldos abertos AR/AP em 1 clique
 **Para** não digitar 5.000 cadastros do zero
@@ -407,6 +441,8 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 
 > **Área:** Comercial
 > **Rota:** `GET /b/{slug}` página pública
+
+**Implementado em:** _pendente_ — mini-site whitelabel público não construído (P3 backlog)
 
 **Como** dono
 **Quero** ter mini-site público com catálogo de produtos (banner, lona, fachada) com preço-base e foto

@@ -496,6 +496,40 @@
       "pii_hits": 0,
       "evidencia": "refutacao 100% (task worktree anchors-lote-b @0bb65dd) — modulo wish Modules/Autopecas inexistente (git grep autopecas fora de memory = 0 codigo app). 15 _pendente_ CONFIRMADOS: refutador cacou OficinaAuto/Vehicle (cadastro cliente, nao fitment), Sells/POS (infra generica), StockTransfer, ProductCatalogue (catalogo view-only), NfeBrasil, RecurringBilling, Jana Agents, modulo Garantia (tb wish) — nenhum implementa US-AP. Zero dominio morto ADR 0265. anchor-lint coverage 100, grammar 15/15, dead 0. Cobre PR #3628.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3638,
+      "lote_id": "SA-A5-P10w3-comunicacaovisual",
+      "data": "2026-07-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 3 lote B, sessao isolada)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 18,
+      "erros_confirmados": 2,
+      "error_rate_pct": 11.1,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 1 (task worktree @0bb65dd) — REPROVADO 2/18=11,1%: US-001 overclaim (anchored_ok deveria ser _parcial_ — OrcamentoCalculator nao usa Acabamento, extras e input flat, sem minimo_m2 cobrado nem PDF/WhatsApp); US-008 justificativa FALSA (dizia Modules/NFSe nao existe, mas existe 57 arquivos desde PR #85 2026-05-01). Achado solido: commit 544d054186 Fase 2 (Substrato/Acabamento/NfeBoletoPago controllers) NAO e ancestral do main. Lote devolvido (par.2.6).",
+      "veredito": "reprovado"
+    },
+    {
+      "pr": 3638,
+      "lote_id": "SA-A5-P10w3-comunicacaovisual",
+      "data": "2026-07-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 3 lote B, sessao isolada)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 18,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao rodada 2 pos-correcao (task worktree, SPEC lido de origin/claude/anchors-p10w3-comunicacaovisual @9dd95695) — US-001 agora _parcial_ com o-que-falta verificado linha a linha (Acabamento entity schema-morto, material.minimo_m2 vs estoque_minimo_m2, zero PDF/WhatsApp); US-008 _pendente_ reflete estado real (NFSe pronto no nucleo, trigger comvis inexistente). 4 _parcial_ (001/002/004/006) + 14 _pendente_ CONFIRMADOS; 544d054186 confirmado NAO-ancestral (merge-base --is-ancestor exit 1). anchor-lint coverage 100, dead 0, zombie 0, grammar 18/18. Ressalva wording nao-bloqueante US-008 proveniencia (Service no commit 1595cc35d6 push direto, nao PR #85) corrigida no SPEC. Cobre PR #3638.",
+      "veredito": "aprovado"
     }
   ]
 }
