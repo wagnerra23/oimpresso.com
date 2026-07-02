@@ -25,7 +25,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * Ações enum em arquivos_audit_log:
  *   upload | download | classify | reclassify | soft_delete |
- *   restore | hard_delete | signed_url_issued
+ *   restore | hard_delete | signed_url_issued | signed_url_consumed
  *
  * Uso:
  *   php artisan arquivos:audit-log
@@ -316,6 +316,11 @@ class AuditLogCommand extends Command
         // Busca combinações arquivo_id+IP com ≥3 acessos em qualquer janela de 60s.
         // A detecção é feita via GROUP BY + HAVING em subquery; o JSON payload deve
         // conter {"ip":"..."} — se não tiver IP no payload, o campo é NULL (skip ok).
+        //
+        // Bugfix 2026-07-02: filtrava `signed_url_issued`, mas quem carrega IP no
+        // payload é o evento de CONSUMO (`signed_url_consumed`, gravado pelo
+        // DownloadController); `signed_url_issued` grava só {expires_minutes} (sem IP),
+        // então o filtro IS NOT NULL zerava todo resultado e o detector nunca disparava.
         $rapidQuery = DB::table(DB::raw("(
             SELECT
                 aal.arquivo_id,
@@ -327,7 +332,7 @@ class AuditLogCommand extends Command
                 COALESCE(a.original_name, '(arquivo removido)') as filename
             FROM arquivos_audit_log aal
             LEFT JOIN arquivos a ON a.id = aal.arquivo_id
-            WHERE aal.action = 'signed_url_issued'
+            WHERE aal.action = 'signed_url_consumed'
               AND aal.created_at >= ?
               AND JSON_UNQUOTE(JSON_EXTRACT(aal.payload, '$.ip')) IS NOT NULL
               " . ($businessId !== null ? "AND aal.business_id = {$businessId}" : '') . "
