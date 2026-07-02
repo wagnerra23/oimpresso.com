@@ -39,6 +39,11 @@ class JanaServiceProvider extends ServiceProvider
         // Eventos do módulo
         Event::listen(CopilotoDesvioDetectado::class, NotificarDesvioListener::class);
 
+        // ADR 0132 — observabilidade LLM global: TODA chamada via laravel/ai
+        // (Agents ADR 0141 + chat blocking/streaming) emite trace+generation
+        // no Langfuse. Ponto único — substitui instrumentação per-call-site.
+        Event::subscribe(\Modules\Jana\Listeners\Telemetry\LangfuseAgentTelemetryListener::class);
+
         // MEM-MCP-1.b (ADR 0053) — middleware de auth do MCP server
         $router->aliasMiddleware('mcp.auth', \Modules\Jana\Http\Middleware\McpAuthMiddleware::class);
 
