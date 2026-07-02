@@ -1,4 +1,4 @@
-name: NfeBrasil · Pest (MySQL · advisory)
+name: NfeBrasil · Pest (MySQL)
 
 # Lane MySQL pro Modules/NfeBrasil. Os testes fiscais MySQL-only (UNIQUE / lockForUpdate /
 # isolamento multi-tenant) SKIPam no lane sqlite (modules-pest.yml :memory:), então "verde"
@@ -31,7 +31,7 @@ concurrency:
 
 jobs:
   pest:
-    name: PHP / Pest (NfeBrasil · MySQL · advisory)
+    name: PHP / Pest (NfeBrasil · MySQL)
     runs-on: ubuntu-latest
 
     services:

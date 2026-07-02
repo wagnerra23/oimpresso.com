@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-/**
- * @group legacy-quarantine
- * quarantine-reason: polish Wave 27 Officeimpresso — asserts estáticos (reflection/source-grep) de canon móvel (Services/FormRequests/spans) — cluster C5/Q-B da triage. NÃO é bug de produto; re-triar pós harness L0. Ver memory/sessions/2026-06-13-sdd-f2b-triage-q2.md §4 Q-B.
- */
+// Ex-quarentena (cluster C5/Q-B triage 2026-06-13): re-triado no unclear #9
+// (US-GOV-019, 2026-07-02) — as 5 falhas eram misuse da API Pest (toContain/
+// toHaveKey com "mensagem" no 2º arg), NÃO canon móvel. Produto intacto,
+// asserts consertados, quarentena removida.
 
 use App\Util\OtelHelper;
 use Modules\Officeimpresso\Http\Requests\BulkRevokeLicencaRequest;
@@ -64,8 +64,12 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
             'listarEmpresasComDesktop',
         ];
 
+        // toContain NÃO tem parâmetro de mensagem — 2º argumento vira OUTRO needle
+        // (o assert exigia que a lista de métodos contivesse a própria frase de erro
+        // e falhava com o Service CORRETO — unclear #9 da re-triage 2026-06-13,
+        // reproduzido no CT100 2026-07-02). Needles = contrato CHANGELOG Wave 27 D2.
         foreach ($canonicos as $m) {
-            expect($methods)->toContain($m, "LicencaService deve expor método público {$m}");
+            expect($methods)->toContain($m);
         }
     });
 
@@ -131,9 +135,11 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
         expect($const)->not->toBeFalse();
 
         $campos = $const->getValue();
+        // toContain sem 2º arg "mensagem" (viraria needle extra — unclear #9).
+        // 8 keys canon = contrato CHANGELOG Wave 27 D2 LicencaAuditService.
         foreach (['event', 'licenca_id', 'error_code', 'error_message',
                   'endpoint', 'http_method', 'http_status', 'duration_ms'] as $f) {
-            expect($campos)->toContain($f, "CAMPOS_CONHECIDOS deve incluir {$f}");
+            expect($campos)->toContain($f);
         }
     });
 
@@ -209,10 +215,12 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
     it('D8 FormRequest: UpdateEmpresaConfigRequest todos campos sometimes (PATCH-friendly)', function () {
         $rules = (new UpdateEmpresaConfigRequest())->rules();
 
-        // PATCH-friendly: Wagner pode atualizar 1 campo só (ex: liberar versao_disponivel)
+        // PATCH-friendly: Wagner pode atualizar 1 campo só (ex: liberar versao_disponivel).
+        // toContain sem 2º arg "mensagem" (viraria needle extra e falhava com rule
+        // CORRETA "sometimes|string|..." — unclear #9 da re-triage 2026-06-13).
         foreach (['caminho_banco_servidor', 'versao_obrigatoria', 'versao_disponivel', 'officeimpresso_numerodemaquinas'] as $field) {
             $rule = implode('|', $rules[$field]);
-            expect($rule)->toContain('sometimes', "Campo {$field} deve ser 'sometimes' (PATCH-friendly)");
+            expect($rule)->toContain('sometimes');
         }
     });
 
@@ -232,9 +240,12 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
     it('D8 FormRequest: StoreLicencaRequest bridge Delphi preserva schema legacy', function () {
         $rules = (new StoreLicencaRequest())->rules();
 
-        // Campos contrato Delphi (NÃO renomear — sincronização HTTP)
+        // Campos contrato Delphi (NÃO renomear — sincronização HTTP).
+        // toHaveKey($key, $value): o 2º argumento é o VALOR ESPERADO da key, não
+        // mensagem — a frase de erro era comparada ao array de rules e falhava com
+        // FormRequest CORRETO (unclear #9 da re-triage 2026-06-13).
         foreach (['licenca_id', 'hd', 'processador', 'memoria', 'versao_exe'] as $field) {
-            expect($rules)->toHaveKey($field, "StoreLicencaRequest deve preservar campo Delphi {$field}");
+            expect($rules)->toHaveKey($field);
         }
     });
 
@@ -270,7 +281,10 @@ describe('Wave 27 Officeimpresso POLISH FINAL', function () {
             'officeimpresso.empresa.atualizar',
             'officeimpresso.empresa.alternar_bloqueio',
         ] as $span) {
-            expect($src)->toContain("'{$span}'", "Span canon {$span} ausente");
+            // toContain sem 2º arg "mensagem" (viraria needle extra — o source nunca
+            // contém a frase "Span canon X ausente" e o assert falhava com os 8 spans
+            // PRESENTES no LicencaService — unclear #9 da re-triage 2026-06-13).
+            expect($src)->toContain("'{$span}'");
         }
     });
 

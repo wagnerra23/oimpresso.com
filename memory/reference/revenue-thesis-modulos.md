@@ -24,7 +24,7 @@ Os módulos spec-ready têm **revenue model definido** em ADRs ARQ-0004 de cada 
 - Cenário D (recomendado) precisa 50 enterprise + 120 médios + 200 pequenos = R$ [redacted Tier 0]k/mês
 - Sozinho com Wagner + IA, realista 36-48 meses (não 24)
 - Roadmap detalhado em `memory/requisitos/_Roadmap_Faturamento.md`
-- **Copiloto** é o próprio **orquestrador** dessa meta — ver `memory/requisitos/Copiloto/`. É simultaneamente produto e ferramenta interna (eat-your-own-dog-food: oimpresso usa o Copiloto pra monitorar R$ [redacted Tier 0]mi/ano via meta de plataforma, `business_id = null`).
+- **Jana** (ex-Copiloto, rename ADR 0088) é o próprio **orquestrador** dessa meta — ver `memory/requisitos/Jana/`. É simultaneamente produto e ferramenta interna (eat-your-own-dog-food: oimpresso usa o Jana pra monitorar R$ [redacted Tier 0]mi/ano via meta de plataforma, `business_id = null`).
 
 **Posicionamento comercial do Copiloto** (diferencial vs. LaravelAI):
 - **LaravelAI** = engine (knowledge graph + RAG + agent). Compra quem quer "conversar com o ERP".

@@ -1,9 +1,9 @@
 ---
-adr: 0122
+number: 122
 title: Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega)
-status: proposed
-date: 2026-05-09
-deciders: [Wagner]
+status: proposto
+decided_at: "2026-05-09"
+decided_by: [W]
 supersedes: []
 references:
   - 0042-proxmox-docker-host-canonico.md
@@ -14,7 +14,10 @@ references:
   - 0093-multi-tenant-isolation-tier-0.md
   - 0094-constituicao-v2-7-camadas-8-principios.md
   - 0124-curador-conhecimento-pipeline.md
-lifecycle: active
+lifecycle: ativo
+slug: 0122-admin-center-ct100
+type: adr
+authority: canonical
 ---
 
 ## Contexto

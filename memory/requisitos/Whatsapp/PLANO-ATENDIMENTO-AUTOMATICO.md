@@ -148,7 +148,7 @@ Framework: **[ADR 0256 — Knowledge Survival](../../decisions/0256-knowledge-su
 
 ## 9. Cruzamento com JANA Pro (anti-duplicação)
 
-Este plano é a **visão WhatsApp/inbox**; a triagem/brief **operador-facing** é o produto **JANA Pro** ([ADR 0140](../../decisions/0140-jana-pro-produto-comercial-saas.md) + [JANA-PRO-PRODUCT-PLAN](../Copiloto/JANA-PRO-PRODUCT-PLAN.md)). Mapa pra **não duplicar**:
+Este plano é a **visão WhatsApp/inbox**; a triagem/brief **operador-facing** é o produto **JANA Pro** ([ADR 0140](../../decisions/0140-jana-pro-produto-comercial-saas.md) + [JANA-PRO-PRODUCT-PLAN](../Jana/JANA-PRO-PRODUCT-PLAN.md)). Mapa pra **não duplicar**:
 
 | Este plano | = / alimenta | JANA Pro |
 |---|---|---|
@@ -158,12 +158,12 @@ Este plano é a **visão WhatsApp/inbox**; a triagem/brief **operador-facing** �
 | E3 cobrança | **é** | Sprint JANA-B (US-COPI-211..215) |
 | E4 bot↔cliente | **novo, WhatsApp-side** | — (não existe no JANA Pro) |
 
-Regra: o cérebro de IA mora em `Modules/Jana`; o inbox (listener, badge, fila) mora em `Modules/Whatsapp`. (A pasta `requisitos/Copiloto/` é só docs.)
+Regra: o cérebro de IA mora em `Modules/Jana`; o inbox (listener, badge, fila) mora em `Modules/Whatsapp`. (Os docs vivem em `requisitos/Jana/`; `requisitos/Copiloto/` virou só lápide-redirect em 2026-07-01.)
 
 ## 10. Referências
 
 - ROI/estado-da-arte: [2026-06-20-arte-atendimento-automatico-vs-melhor.md](../../sessions/2026-06-20-arte-atendimento-automatico-vs-melhor.md)
-- JANA Pro: [ADR 0140](../../decisions/0140-jana-pro-produto-comercial-saas.md) · [JANA-PRO-PRODUCT-PLAN](../Copiloto/JANA-PRO-PRODUCT-PLAN.md)
+- JANA Pro: [ADR 0140](../../decisions/0140-jana-pro-produto-comercial-saas.md) · [JANA-PRO-PRODUCT-PLAN](../Jana/JANA-PRO-PRODUCT-PLAN.md)
 - Skill: [`ticket-triage`](../../../.claude/skills/ticket-triage/SKILL.md)
 - Arquitetura/SPEC: [ARCHITECTURE.md §3.2](ARCHITECTURE.md) · [SPEC.md](SPEC.md) (US-WA-020/040/063/077)
 - Mercado: [COMPARATIVO-MERCADO-2026-05-12-v2.md](COMPARATIVO-MERCADO-2026-05-12-v2.md) · [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md)

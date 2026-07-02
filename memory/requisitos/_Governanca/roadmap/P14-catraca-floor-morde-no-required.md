@@ -2,7 +2,8 @@
 roadmap_item: P14
 slug: catraca-floor-morde-no-required
 onda: 0
-status: proposed
+status: executed
+executed_at: "2026-07-01"
 depende_de: []
 destrava: [P04, P13-R1, C2]
 related_adrs: [0275, 0279, 0303, 0314]
@@ -10,6 +11,8 @@ esforco_estimado: "0.5-1d codavel + 2 flips Wagner (rename); zero relogio de jan
 ---
 
 # P14 · Fazer a catraca do floor MORDER no check required (fecha o defeito nº 1 da avaliação 67/100)
+
+> **✅ EXECUTADO 2026-07-01** (mesma noite, 2 sessões coordenadas): (a)+(b)+(c)+(e) no #3536 (selftest 44/44; sem floor exit=1, com órfã real exit=0); (d) rename = #3535 shims + swap atômico da protection via gh api (22 contexts, 0 "advisory") + #3550 baseline isolado (tamper-safe) + #3552 jobs definitivos + gates-registry + **P14b** watchdog da órfã (protection-drift 🟢 5/5). Caronas: n_quarantine armado (#3537) e sqlite_corruptors armado (fusão GT-G3, selftest morde). #3551 (duplicata pareada baseline+código) fechado — o tamper-guard bloqueou o par, como devia.
 
 > Origem: avaliação adversarial 2026-07-01 ([session log](../../../sessions/2026-07-01-sdd-avaliacao-adversarial.md), composto 67/100) — defeito reproduzido por 2 skeptics independentes + re-verificado com file:line por agent dedicado (workflow `wf_26bdd155`, snapshot `dd3ed7c311`).
 
@@ -73,6 +76,19 @@ Guarda de não-regressão: só dispara com valor numérico + `armed:true` — de
 2. Checkout sem a órfã materializada → **exit 1** (não skip).
 3. gate-selftest 42/42 verde em CI.
 4. Zero required com "(advisory)" no nome; `protection-drift` verde com baseline atualizado.
+
+## Execução (2026-07-01 — mesma noite, 2 sessões paralelas coordenadas)
+
+| Fix | PR | Sessão |
+|---|---|---|
+| (a)+(b)+(c)+(e) core — materialização + fail-red + 2 catracas floor + .gitignore | [#3536](https://github.com/wagnerra23/oimpresso.com/pull/3536) | paralela (nostalgic-matsumoto) |
+| (d) PR-1 — shims com nome definitivo | [#3535](https://github.com/wagnerra23/oimpresso.com/pull/3535) | esta (happy-robinson) |
+| (d) flips — contexts novos in, velhos out (swap direto, shims seguraram) | gh api | fora das sessões (Wagner/paralela) |
+| (d) PR-2 — jobs renomeados + shims removidos + watchdog P14b | [#3552](https://github.com/wagnerra23/oimpresso.com/pull/3552) (+#3550 baseline isolado) | paralela (meu #3551 consolidado no par, tamper-safe) |
+| Carona 1 — n_quarantine ARMADO (27, 8 medições) | [#3537](https://github.com/wagnerra23/oimpresso.com/pull/3537) | esta |
+| Carona 2 — sqlite_corruptors ARMADO (0, fusão GT-G3) | [#3548](https://github.com/wagnerra23/oimpresso.com/pull/3548) | esta |
+
+DoD verificado: (1) selftest 46/46 com counterfactuals floor 299>298 + fonte-ausente + corruptor tier-S mordendo pelo caminho real do `armed`; (2) checkout sem órfã → `--ratchet` exit 1 acusando `full_suite_pass_rate` (provado live); (3) zero required com "(advisory)" no nome; (4) `protection-drift` sem 🔴 pós-#3550 (🟡 watchdog fecha no #3552/P14b).
 
 ## Riscos residuais (honestos)
 

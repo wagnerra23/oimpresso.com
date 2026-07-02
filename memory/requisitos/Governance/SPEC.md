@@ -6,7 +6,7 @@ project: COPI
 status: ativo
 authority: canonical
 version: "1.0"
-last_updated: "2026-06-21"
+last_updated: "2026-07-02"
 created_at: 2026-05-16
 updated_at: 2026-06-21
 related_adrs:
@@ -338,8 +338,14 @@ GO Wagner 2026-06-12 ("pode disparar fase 1 e a dois na sequência"). Continuaç
 
 ### US-GOV-018 · P0 Fase 2b: consertar harness de DB de teste do nightly (3 frentes) — não é "completar schema"
 
-> owner: — · priority: p0 · estimate: 12h · status: review · type: story
+> owner: — · priority: p0 · estimate: 12h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `scripts/tests/ct100-fullsuite.sh` · `Modules/PaymentGateway/Database/Migrations/2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php` · verificado@2026-07-01 — Frente A.1 (mariadb-client + TLS-verify-off, #2640) e Frente B (config_json json→longtext, #2636) verificadas live pelo skeptic Fase 2b da avaliação adversarial; A.2 FK-off REVERTIDO por prova empírica (net-harmful). MCP done desde 2026-06-13 — este campo corrige o status stale do SPEC (`review`) que enganou 2 avaliações seguidas ("US presas em review"); status durável vive no MCP (ADR 0144).
+
+**Aceite:** run limpo do nightly recarrega o dump sem `mysql: not found` nem `ERROR 2026` (greps=0 no junit real de 20260701, provado); zero SQLSTATE 3140 em payment_gateway_credentials; docker run do pest NUNCA seta `FULLSUITE_FK_OFF` (A.2 revertido). Contrato travado no CI barato pelo spec abaixo.
+
+**Testado em:** `tests/fullsuiteHarness.spec.ts` (contract test — 8 asserts derivados deste DoD, `@covers-us`; lane advisory no governance-gate-umbrella)
 
 **Origem:** retest adversarial POR REPRODUÇÃO (2026-06-13, CT 100, DB scratch byte-a-byte) sobre o nightly full-suite MySQL (run `20260613-003042`, sha d14f5436). 3 skeptics reproduziram e refutaram 2 diagnoses anteriores. Substitui a estratégia "quarentena em massa" (revertida) E o P0 "completar schema" (refutado). C1 (#2632, mergeado) flipou a suite pra MySQL e expôs a causa real.
 
@@ -373,13 +379,16 @@ Ref: retest reproduzido na timeline US-GOV-017 (correção #2) · #2632 (C1) · 
 Saída da re-triage 32-thread do eixo FAILURE determinístico (155 arquivos, 385 ExpectationFailed) com refutador adversarial ADR 0276. Doc: `memory/sessions/2026-06-13-sdd-retriage-eixo-failure-32threads.md`. **4 quick-wins já em PR** (ads:health #2649, superadmin:health #2647, macro_variant_id #2646, biz=4→1 fixtures #2652) — fora desta task.
 
 ## 7 bugs confirmados que precisam de design (sobreviveram ao refutador)
-- [ ] **ChannelUserAccess** (Tier 0): `UNIQUE` em coluna nullable → invariante "1 grant ativo por (channel,user)" não enforced (`2026_05_12_160000_create_channel_user_access_table.php:55-58`; fix = generated column). Teste: `ChannelUserAccessTest` R-WA-068-005.
-- [ ] **CSAT**: `InboxController::updateStatus:1042-1071` não dispara `DispatchCsatJob` em open→resolved. Teste: `CsatFlowTest`.
-- [ ] **Vestuario DataController** (ADR 0024): criar `Modules/Vestuario/Http/Controllers/DataController.php` (etiquetas sem entrada no sidebar). Teste: `ModuleScaffoldingTest`.
-- [ ] **WithoutGlobalScopes** (Tier 0): bypass de business_id sem `// SUPERADMIN:` em `KbCorpusBuilder.php:164,190`, `TituloAutoService.php:690,709,727`, `NfeService.php:745,760,942`. Teste: `WithoutGlobalScopesCommentGuardTest`.
-- [ ] **NFSe cancelar()**: falta `OtelHelper::spanBiz` em `NfseEmissaoService.php:198` (confirmar se Wave 28 exige). Teste: `Wave28NfsePolishTest`.
-- [ ] **DESIGN.md**: link local quebrado (alvo movido). Teste: `DesignEntryPointAndTombstonesTest`.
-- [ ] **PhpunitTestAnnotationGuard**: migrar `/** @test */` → `#[Test]` nos flagrados. Teste: `PhpunitTestAnnotationGuardTest`.
+
+> ✅ **TODOS os 7 resolvidos** — verificação item a item em origin/main 2026-07-02 (sessão mystifying-fermat, pedido Wagner "6-8 tbm"). Evidência em cada checkbox. O que RESTA desta US: 91 quarentena + 11 unclear (seções seguintes).
+
+- [x] **ChannelUserAccess** (Tier 0): ~~UNIQUE em coluna nullable~~ → RESOLVIDO pela migration `2026_06_13_120000_enforce_single_active_channel_user_access.php` (coluna gerada + UNIQUE; a original :57 documenta o histórico e é dropada). Teste: `ChannelUserAccessTest` R-WA-068-005.
+- [x] **CSAT**: ~~não dispara DispatchCsatJob~~ → RESOLVIDO — `Admin/InboxController.php:1084` despacha `DispatchCsatJob` em open→resolved (CsatDispatcher idempotente, :1078). Teste: `CsatFlowTest`.
+- [x] **Vestuario DataController** (ADR 0024): → RESOLVIDO — `Modules/Vestuario/Http/Controllers/DataController.php` existe.
+- [x] **WithoutGlobalScopes** (Tier 0): → RESOLVIDO — chamadas em `TituloAutoService.php` (:108/:138/:200) e `NfeService.php` (:746/:762) todas com `// SUPERADMIN:` + razão; KbCorpusBuilder sem ocorrência. Guard virou REQUIRED 2026-06-30 (`Tier-0 guards`, #3438 zerou as violações).
+- [x] **NFSe cancelar()**: → MOOT — `NfseEmissaoService.php` não existe mais (cancel refatorado pra `NfseCancelService.php`) e `Wave28NfsePolishTest` também não; o "confirmar se Wave 28 exige" resolveu-se por remoção do alvo.
+- [x] **DESIGN.md**: → RESOLVIDO — scan 2026-07-02: 0 links locais quebrados. O teste `DesignEntryPointAndTombstonesTest` segue no cluster quarentena (Q-B, assert de canon-source contra fonte móvel) — sair da quarentena é burn-down, não bug.
+- [x] **PhpunitTestAnnotationGuard**: → RESOLVIDO — grep 2026-07-02: nenhum `/** @test */` fora do próprio guard.
 
 ## 91 quarentena (teste stale, produto OK)
 `@group legacy-quarantine` com razão. tests/Feature 46 · Financeiro 14 · Whatsapp 11 · Governance 3 · Jana 3 · PaymentGateway 3 · Officeimpresso 2 · tests/Unit 2 · Vestuario 2 · Cms/Connector/ConsultaOs/OficinaAuto/Ponto 1. **Nuance:** alguns são test-FIX rápido (não quarentena cega) — ver doc.
@@ -392,8 +401,14 @@ Ref: re-triage workflow wnw19l15c · 52 agents · refutador matou 9 falsos-posit
 
 ### US-GOV-020 · Frente C: migrate:fresh do nightly carrega dump incompleto (trigger DEFINER prod / privilégio)
 
-> owner: — · priority: p0 · estimate: 6h · status: review · type: story
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: —
+
+**Implementado em:** `scripts/tests/ct100-fullsuite.sh` · verificado@2026-07-01 — grants Frente C (log_bin_trust_function_creators + SET_USER_ID) re-landados no #2728 (squash 47e96ed05, 2026-06-14, 38/38 checks) + deploy gap fechado na mesma data; 188→377 tabelas / 0→4 triggers provado no CT100. MCP done desde 2026-06-14 — campo corrige status stale do SPEC (`review`); status durável no MCP (ADR 0144).
+
+**Aceite:** `migrate:fresh` de clone limpo carrega o dump completo (377 tabelas, 4 triggers — provado isolado no CT100 2026-06-14); sem `ERROR 1419`/`ERROR 1227` no load. Grants presentes no passo 3 (root) do harness, travados pelo spec abaixo.
+
+**Testado em:** `tests/fullsuiteHarness.spec.ts` (contract test — grants Frente C, `@covers-us`; lane advisory no governance-gate-umbrella)
 
 **Root cause PROVADO** (repro byte-level CT100, run `20260613-100035`). O `migrate:fresh` do RefreshDatabase carrega `database/schema/mysql-schema.sql`, cujos triggers têm **DEFINER de PROD** (`u906587222_oimpresso@localhost`, ex `trg_mcp_audit_log_no_update`). Setup carrega via root (OK); migrate:fresh carrega via `fullsuite` (não-SUPER) → `ERROR 1419` (binlog) / `ERROR 1227` (SET_USER_ID/DEFINER) → aborta → schema incompleto → **530 Base-table-not-found**. MySQL 8.0.46 binlog on.
 
@@ -413,8 +428,8 @@ Ref: floor `20260613-100035` (1870) / `20260613-115507` (1928) · doc `memory/se
 
 ### US-GOV-021 · Isolar os corruptores era-sqlite (o lever REAL do floor)
 
-> owner: [W] · priority: p0 · status: doing · type: story
-> blocked_by: P04 (DoD item 2 — queda do floor só é observável com `governance/nightly-floor.json` no tree; sem P04 o read-side retorna `not_yet_measured`)
+> owner: [W] · priority: p0 · status: done · type: story
+> blocked_by: — (DoD-2 "floor cai em 2 nightlies" deixou de ser bloqueio estrutural com o P14 — `governance/nightly-floor.json` é materializado da órfã no ratchet required; a medição do efeito fica com as nightlies pós-P04. MCP done desde 2026-06-21; lotes 2-3 em 2026-06-30 #3445; corruptors=0 ARMADO no GT-G3)
 > parent_plan: us-gov-021-isolamento-era-sqlite
 > related_adrs: [275, 276, 279, 283]
 

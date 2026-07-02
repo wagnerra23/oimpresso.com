@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\Services\Support\SupportAccessService;
 use App\SupportAccessLog;
 use App\SupportAgent;
@@ -10,7 +9,7 @@ use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse e mata o loader da suite inteira (discovery morre antes do --filter).
 
 /**
  * Modo Suporte fase A (ADR 0308) — "Acessar como" (login-as guardado). Invariantes Tier 0.
@@ -86,7 +85,7 @@ it('canImpersonate LIBERA usuário comum, ativo, de empresa-cliente acessível',
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_ACO], ['name' => 'Cliente ACO 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $agent = makeAcoAgent('aco_agent_ok');
     $alvo = makeAcoUser('aco_alvo_comum', BIZ_CLIENTE_ACO);
 
@@ -111,7 +110,7 @@ it('canImpersonate NEGA alvo superadmin (username em administrator_usernames) �
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_ACO], ['name' => 'Cliente ACO 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $agent = makeAcoAgent('aco_agent_noesc');
     // alvo cujo username está na lista de superadmin, ainda que dentro do cliente
     $alvoSuper = makeAcoUser('o_dono_superadmin', BIZ_CLIENTE_ACO);
@@ -125,7 +124,7 @@ it('canImpersonate NEGA alvo inativo / sem allow_login', function () {
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_ACO], ['name' => 'Cliente ACO 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $agent = makeAcoAgent('aco_agent_inativo');
     $inativo = makeAcoUser('aco_alvo_inativo', BIZ_CLIENTE_ACO, ['status' => 'inactive']);
     $semLogin = makeAcoUser('aco_alvo_semlogin', BIZ_CLIENTE_ACO, ['allow_login' => 0]);
@@ -141,7 +140,7 @@ it('canImpersonate NEGA quando o iniciador não é agente de suporte', function 
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_ACO], ['name' => 'Cliente ACO 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     // Não-agente = usuário de CLIENTE (biz≠operadora) sem concessão. NÃO pode ser biz=1:
     // pela ADR 0309 todo usuário da operadora já é agente (senão o teste mentiria).
     $naoAgente = makeAcoAgent('aco_nao_agente', grant: false, businessId: BIZ_CLIENTE_ACO);
@@ -158,7 +157,7 @@ it('UC-SUP-04 · agente acessa-como usuário do cliente → loga como ele + audi
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_ACO], ['name' => 'Cliente ACO 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $agent = makeAcoAgent('aco_http_ok');
     $alvo = makeAcoUser('aco_http_alvo', BIZ_CLIENTE_ACO);
 
@@ -201,7 +200,7 @@ it('UC-SUP-06 · acessar-como um superadmin do cliente é 403 + negação audita
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_ACO], ['name' => 'Cliente ACO 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $agent = makeAcoAgent('aco_http_noesc');
     $alvoSuper = makeAcoUser('o_dono_superadmin', BIZ_CLIENTE_ACO);
 
@@ -224,7 +223,7 @@ it('UC-SUP-07 · tela Visao renderiza resumo + usuários da empresa-cliente', fu
     }
 
     $this->seededTenant();
-    Business::firstOrCreate(['id' => BIZ_CLIENTE_ACO], ['name' => 'Cliente ACO 99', 'currency_id' => 1]);
+    $this->seededSupportClientTenant();
     $agent = makeAcoAgent('aco_show_ok');
     makeAcoUser('aco_show_user', BIZ_CLIENTE_ACO);
 

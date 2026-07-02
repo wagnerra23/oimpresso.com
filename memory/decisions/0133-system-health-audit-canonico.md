@@ -3,18 +3,18 @@ slug: 0133-system-health-audit-canonico
 number: 133
 title: "System health audit canônico — 5 dimensões automáticas (Tool MCP + cron daily)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-10
+decided_at: "2026-05-10"
 module: Governance
 tags: [governanca, observabilidade, auditoria, mcp, automacao, tiered-cost, constituicao-v2]
 supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0091, 0094, 0119, 0130, 0131, 0132]
+related: [0091-daily-brief, 0094-constituicao-v2-7-camadas-8-principios, 0119-paralelismo-sessoes-whats-active-tier-1, 0130-handoff-append-only-mcp-first, 0131-tiering-memoria-canonico-local-segredo, 0132-langfuse-self-host-ct100]
 pii: false
 review_triggers:
   - "Wagner pedir audit reavaliação 2x sem mudança no output → expandir checks (signal weak)"

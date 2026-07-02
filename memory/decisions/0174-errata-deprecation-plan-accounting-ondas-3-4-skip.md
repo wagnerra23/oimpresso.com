@@ -3,11 +3,11 @@ slug: 0174-errata-deprecation-plan-accounting-ondas-3-4-skip
 number: 174
 title: "Errata DEPRECATION-PLAN Accounting — Ondas 3+4 SKIP (audit prod 0 rows)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-20
+decided_at: "2026-05-20"
 module: financeiro
 quarter: 2026-Q2
 tags: [deprecation, accounting, financeiro, errata, audit-prod]
@@ -15,14 +15,14 @@ supersedes: []
 supersedes_partially: []
 superseded_by: []
 related:
-  - memory/decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md
-  - memory/decisions/0173-errata-arq-0005-tabelas-accounting-sem-prefixo.md
+  - 0172-deprecar-modulo-accounting-fundir-financeiro
+  - 0173-errata-arq-0005-tabelas-accounting-sem-prefixo
 pii: false
 review_triggers:
   - "Canary 30d termina em 2026-06-19 — re-validar achados"
   - "Onda 5 git rm Modules/Accounting/ pós canary"
 amends:
-  - memory/decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md
+  - 0172-deprecar-modulo-accounting-fundir-financeiro
 ref_audit: memory/sessions/2026-05-20-audit-accounting-prod-zero-rows.md
 ref_plano: memory/requisitos/Accounting/DEPRECATION-PLAN.md
 ref_inspecao: memory/requisitos/Accounting/INSPECAO-FORENSE-2026-05-20.md

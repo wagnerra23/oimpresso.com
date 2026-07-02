@@ -3,7 +3,7 @@ slug: 0193-nfeservice-retransmitir-sem-forcedelete
 number: 193
 title: "NfeService.retransmitir sem forceDelete (Wave 27 D6 · CONFAZ SINIEF 07/2005 Art. 14 IRREVOGÁVEL)"
 type: adr
-status: proposed
+status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

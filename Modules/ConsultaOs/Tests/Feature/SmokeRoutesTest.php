@@ -38,7 +38,8 @@ it('rota publica GET /consulta-os/buscar com numero conhecido retorna found=true
 
     $response->assertStatus(200);
     $response->assertJson(['found' => true]);
-    expect($response->json('os.client'))->toBe('Acme Comércio Ltda');
+    // Grafia canônica do mock SEM acento (MockConsultaOsRepository::class '4821').
+    expect($response->json('os.client'))->toBe('Acme Comercio Ltda');
 });
 
 it('rota publica GET /consulta-os/buscar com numero inexistente retorna 404', function () {

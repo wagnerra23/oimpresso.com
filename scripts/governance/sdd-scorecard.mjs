@@ -99,7 +99,7 @@ const notYet = (direction, target, source) => ({
 // um SÓ scorecard governa SDD e memória — não dois sistemas paralelos.
 const STREAM = {
   anchor_coverage: 'SA',
-  full_suite_pass_rate: 'FV', n_quarantine: 'FV', coverage_pct: 'FV',
+  full_suite_pass_rate: 'FV', n_quarantine: 'FV', coverage_pct: 'FV', sqlite_corruptors: 'FV',
   ghost_count: 'KL',
   front_door_coverage: 'MEM', recall_eval_violations: 'MEM', ragas_real_uptime: 'MEM',
   distiller_freshness: 'MEM', read_path_hops: 'MEM',
@@ -315,6 +315,39 @@ export function measureDriftAlarms() {
   };
 }
 
+// ── fonte FV: corruptores REAIS do MySQL persistente (US-GOV-021 · P03) ──────
+// Exec do auditor read-only scripts/audit/sqlite-test-corruptors.mjs --json →
+// .corruptors (arquivos que corrompem o MySQL do nightly: DROP não-guardado de
+// tabela compartilhada — v2 comportamento-no-MySQL). FUSÃO no GT-G3 (P14 carona
+// 2): em vez de promover o job advisory do umbrella a required (gate NOVO —
+// contra a lei de fusões da ADR 0314), o sinal vira métrica ARMADA no scorecard
+// que o check `SDD scorecard ratchet (GT-G3)` — JÁ required — enforça. Fonte é o
+// próprio repo (varredura determinística); fallback honesto só se o auditor
+// sumir/quebrar — e aí o fail-red armed∧¬measured (P14) avermelha o ratchet em
+// vez de pular em silêncio (fail-closed).
+export function measureSqliteCorruptors() {
+  let raw;
+  try {
+    raw = execSync(`"${process.execPath}" scripts/audit/sqlite-test-corruptors.mjs --json`, {
+      cwd: ROOT, maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'],
+    }).toString();
+  } catch {
+    return notYet('down', 0,
+      'scripts/audit/sqlite-test-corruptors.mjs ausente/quebrado no checkout — fallback honesto (com a métrica armada, o fail-red P14 avermelha o ratchet em vez de pular).');
+  }
+  let j;
+  try { j = JSON.parse(raw); } catch { j = null; }
+  if (!j || typeof j.corruptors !== 'number') {
+    return notYet('down', 0, 'saída do sqlite-test-corruptors.mjs --json sem .corruptors numérico — fallback honesto.');
+  }
+  return {
+    status: 'measured', value: j.corruptors, unit: 'arquivos que corrompem o MySQL persistente (corruptsOnMysql · v2)',
+    direction: 'down', target: 0,
+    source: 'scripts/audit/sqlite-test-corruptors.mjs --json .corruptors (US-GOV-021 · fusão GT-G3 · P14 carona 2 · lei de fusões ADR 0314)',
+    detail: { counts: j.counts ?? null, with_manual_ddl: j.withManualDdl ?? null, effectively_guarded: j.effectivelyGuarded ?? null },
+  };
+}
+
 function buildScorecard() {
   const kd = measureKnowledgeDrift();
   const an = measureAnchors();
@@ -348,6 +381,7 @@ function buildScorecard() {
         detail: { quarantined_files: q.files },
       },
       coverage_pct: measureCoverage(),
+      sqlite_corruptors: measureSqliteCorruptors(),
       ghost_count: {
         status: 'measured', value: kd.ghost_count, unit: 'nomes distintos',
         direction: 'down', target: 0,
@@ -363,7 +397,7 @@ function buildScorecard() {
       recall_eval_violations: notYet('down', 0,
         'golden set recall (KL-C2) — depende do alias map das 13 colisões ADR'),
       ragas_real_uptime: notYet('up', '≥95%',
-        'RAGAS canário modo REAL diário (KL-D1/D4) — hoje compara mock com mock'),
+        'jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318 — mata a tautologia; baseline honesto em governance/jana-ragas-real-baseline.json, 1ª medição real 2026-07-01). Uptime not_yet_measured até existir transporte cron→scorecard (trend em storage/logs/ragas-real-eval.log sem espelho versionado — pattern nightly-floor ADR 0279); 1ª execução agendada 2026-07-05.'),
       distiller_freshness: measureDistillerFreshness(),
       read_path_hops: notYet('down', 1,
         'ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1; instrumentação pendente)'),
@@ -388,7 +422,18 @@ function ratchet(current) {
   const red = [], warn = [];
   for (const [name, m] of Object.entries(current.metrics)) {
     const b = base.metrics?.[name];
-    if (!b || typeof b.value !== 'number' || m.status !== 'measured') continue;
+    if (!b || typeof b.value !== 'number') continue;
+    if (m.status !== 'measured') {
+      // P14 fail-closed (defeito nº 1 da avaliação 2026-07-01): métrica ARMADA cuja
+      // fonte sumiu do checkout NÃO passa em silêncio — era o buraco que deixava
+      // floor=298 armed:true virar teatro (fonte gitignored ausente no PR-CI ⇒ skip).
+      // Desarmada segue skip silencioso (comportamento anterior preservado).
+      if (b.armed === true || ARMED) red.push(
+        `${name}: ARMADA no baseline (value ${b.value}) mas medição atual = ${m.status} — fonte ausente/ilegível no checkout. ` +
+        `Materialize a órfã (git fetch origin governance/nightly-floor --depth 1 && git show FETCH_HEAD:governance/nightly-floor.json > governance/nightly-floor.json) ` +
+        `ou desarme via PR editando governance/sdd-scorecard-baseline.json (ADR 0275 §3 — desarme automático NÃO existe).`);
+      continue;
+    }
     const worse = m.direction === 'down' ? m.value > b.value : m.value < b.value;
     if (!worse) continue;
     const msg = `${name}: baseline ${b.value} → ${m.value} (${m.direction === 'down' ? 'só pode DESCER' : 'só pode SUBIR'})`;

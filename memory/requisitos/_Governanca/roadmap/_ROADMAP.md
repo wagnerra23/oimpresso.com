@@ -3,7 +3,7 @@
 > Origem: avaliação adversarial 2026-06-21 (composto **60/100**) — [session log](../../../sessions/2026-06-21-sdd-avaliacao-adversarial.md).
 > Régua: o **teste contrafactual** (se um funcionário tentar quebrar uma decisão já tomada, o processo barra sozinho?). Hoje a detecção está em **L2 (medido, advisory)**; **L3 (required + counterfactual) tem 0 gates SDD**.
 > 13 projetos detalhados, cada um verificado no repo real. **Status: EM EXECUÇÃO — vários itens já landaram (ver reconciliação abaixo).**
-> Última atualização: 2026-07-01 (noite) — **avaliação adversarial deu composto 67/100** ([session log](../../../sessions/2026-07-01-sdd-avaliacao-adversarial.md)) + plano de execução pós-avaliação (§ no fim) verificado por 4 agents em origin/main: **P14 novo** (catraca do floor inerte no required — defeito nº 1), errata do falso-positivo "12 tier-A", chips paralelos P10/P11 disparados. Anterior (mesmo dia): P09 executado + reconciliações P01/P03/P05/P08/P13/Pfr.
+> Última atualização: 2026-07-01 (noite, 2º passe) — **P14 EXECUTADO na mesma noite** (2 sessões paralelas coordenadas): core #3536 (materialização + fail-red armed∧¬measured + counterfactuals floor no selftest), rename dos 6 required sem "(advisory)" (#3535 shims → flips → #3550 baseline + #3552 jobs/watchdog), caronas #3537 (n_quarantine=27 ARMADO) e #3548 (sqlite_corruptors=0 ARMADO, fusão GT-G3 — lei 0314, sem gate novo). O defeito nº 1 da avaliação 67 está fechado: floor=298 agora MORDE no required (counterfactual live: checkout sem órfã → exit 1). Passe anterior (mesmo dia): **avaliação adversarial deu composto 67/100** ([session log](../../../sessions/2026-07-01-sdd-avaliacao-adversarial.md)) + plano de execução pós-avaliação (§ no fim) verificado por 4 agents em origin/main: **P14 novo** (catraca do floor inerte no required — defeito nº 1), errata do falso-positivo "12 tier-A", chips paralelos P10/P11 disparados. Anterior (mesmo dia): P09 executado + reconciliações P01/P03/P05/P08/P13/Pfr.
 
 ## ✅ Reconciliação de estado (2026-07-01 — verificado no repo/branch-protection real)
 
@@ -73,7 +73,7 @@ Esforço dominado por **7+ noites de relógio real** (CT100). Semanas, não dias
 | [P11](P11-kl-e2-renames-reseed-distiller.md) 🟡 | KL E2: renames + re-seed + distiller | 4 | P05 | — | 1d / dias | E2a ✅ #3155 (ghost 14→8 armado) · E2b ✅ **executado 2026-07-01** (manifest `governance/reseed-meilisearch-manifest.json`) · E3 🟡 dry-run ✅ (crash GLOB_BRACE corrigido #3532; lote 1 aguarda **skim Wagner**) — freshness `measured` só após run real |
 | [P12](P12-decay-real-ragas-recall.md) | Decay real: RAGAS + recall-eval | 5 | — | — | 1d / **secret Wagner** | RAGAS baseline>0 (sai da tautologia) |
 | [P13](P13-promover-gt-g3-required.md) ✅ | **Promover GT-G3 a `required`** | 6 | P05,P08 | — | **executado** | ✅ `SDD scorecard ratchet (GT-G3)` na lista required |
-| [P14](P14-catraca-floor-morde-no-required.md) 🆕 | **Catraca do floor MORDE no required** (defeito nº 1 da avaliação 67) | 0 | — | P04,R1,C2 | 0.5-1d / 2 flips Wagner | PR com floor regredido na fixture → GT-G3 exit 1; fonte ausente com armed → exit 1 (não skip) |
+| [P14](P14-catraca-floor-morde-no-required.md) ✅ | **Catraca do floor MORDE no required** (defeito nº 1 da avaliação 67) | 0 | — | P04,R1,C2 | **executado 2026-07-01** (#3535/#3536/#3537/#3548/#3550/#3552) | ✅ selftest 46/46 (floor 299>298 + fonte-ausente + corruptor tier-S mordem no armed real); checkout sem órfã → exit 1 live; 0 required com "(advisory)"; +2 métricas armadas (n_quarantine=27 · sqlite_corruptors=0) |
 
 ## Divergências que os agentes acharam (criticar aqui)
 
@@ -119,7 +119,7 @@ Root-cause REFINADO pós-#3505: a cascata (57% do floor) não é mais era-sqlite
 ### Decisões Wagner pendentes (nunca no calado)
 
 1. **R1 × ADR 0314:** promover full-suite a required rema contra "required = só Tier-0". Alternativas: (a) reabrir a 0314 pra R1 quando floor=0×7 noites; (b) **não promover** — floor vive como métrica armada no GT-G3 (que já é required) + alarme alto de staleness. A recomendação técnica é (b)-até-floor-zero, depois decidir.
-2. **T1/T2 (mapa teste↔arquivo + lane TDAD): CORTE.** Blueprint puro, zero artefato, dependência em cadeia, ROI duvidoso pra 1 dev + IA. Proposta: demover pra feature-wish (ADR 0105) — subtração é melhoria (lição 0271/0314).
+2. **T1/T2 (mapa teste↔arquivo + lane TDAD): CORTE vs EXECUTAR — agora com escopo real.** A proposta de corte (2026-07-01) apontava "dependência em cadeia, zero artefato"; a cadeia caiu em 2026-07-02 (pcov vivo, 1º clover real na nightly CT100). Escopo honesto pra decidir: [T1](T1-mapa-teste-arquivo-per-test.md) (mapa per-test, 1-1.5d + 7 nightlies, nunca vira required) e [T2](T2-tdad-lite-lane-impactados-pr.md) (lane sombra 14d, FN<1%; flip required SÓ reabrindo a 0314). Ambos `proposed` — nada roda sem OK. Se Wagner mantiver o corte, demover pra feature-wish (ADR 0105) citando os docs.
 3. **P14 red-until-fixed coletivo** (Fase 0 acima) — flipar ciente.
 4. **Hotfix do cron distiller** se o Passo 0 do P11 provar scheduler vivo.
 

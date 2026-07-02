@@ -89,7 +89,7 @@
 - [Autopecas/](requisitos/Autopecas/)
 
 **Core comum:**
-- [Jana/](requisitos/Jana/) — IA + memória (`ARCHITECTURE.md`, `RUNBOOK-*.md`, auditorias 2026-05-13) · [Copiloto/](requisitos/Copiloto/)
+- [Jana/](requisitos/Jana/) — IA + memória (`ARCHITECTURE.md`, `RUNBOOK-*.md`, auditorias 2026-05-13) — ex-`Copiloto/` (rename ADR 0088; ghost-dir migrado 2026-07-01)
 - [Financeiro/](requisitos/Financeiro/) · [FinanceiroAvancado/](requisitos/FinanceiroAvancado/) · [NfeBrasil/](requisitos/NfeBrasil/) · [NFSe/](requisitos/NFSe/)
 - [Repair/](requisitos/Repair/) (Kanban OS shared) · [Sells/](requisitos/Sells/) · [Purchase/](requisitos/Purchase/) · [Inventory/](requisitos/Inventory/) · [Produto/](requisitos/Produto/)
 - [RecurringBilling/](requisitos/RecurringBilling/) · [MemCofre/](requisitos/MemCofre/) · [Crm/](requisitos/Crm/) · [Chat/](requisitos/Chat/) · [Whatsapp/](requisitos/Whatsapp/) · [EvolutionAgent/](requisitos/EvolutionAgent/)

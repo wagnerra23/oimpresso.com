@@ -15,35 +15,35 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 16.1,
+      "value": 60,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 16.1,
+        "coverage_pct": 60,
         "specs_total": 58,
         "us_total": 855,
-        "anchor_coverage_pct": 16.1,
+        "anchor_coverage_pct": 60,
         "by_state": {
-          "sem_campo": 717,
+          "sem_campo": 342,
           "placeholder": 0,
-          "pendente": 51,
-          "parcial": 6,
-          "anchored_ok": 81,
+          "pendente": 213,
+          "parcial": 73,
+          "anchored_ok": 227,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 143,
+        "fields_total": 518,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 121,
+        "fields_grammar_ok": 479,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 27,
-        "req_sem_covering_test_total": 45,
+        "req_sem_aceite_total": 145,
+        "req_sem_covering_test_total": 256,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 39,
+        "req_sem_lane_total": 41,
         "behavior_known": false,
         "baseline_applied": null,
         "grandfathered": {
@@ -95,13 +95,13 @@
     },
     "n_quarantine": {
       "status": "measured",
-      "value": 27,
+      "value": 26,
       "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
       "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
       "detail": {
-        "quarantined_files": 27
+        "quarantined_files": 26
       },
       "stream": "FV"
     },
@@ -110,8 +110,27 @@
       "value": null,
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "governance/nightly-coverage.json ainda não publicado pelo write-side CT100 (SDD P07 — pcov instrumentado em ct100-fullsuite.sh; falta rebuild da imagem com pcov + 1ª nightly). Hoje ci.yml roda coverage: none / --no-coverage no lane sqlite (fonte honesta é a suíte inteira CT100 — ADR 0275:68).",
+      "source": "governance/nightly-coverage.json presente mas JSON inválido — write-side corrige; fallback honesto.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "stream": "FV"
+    },
+    "sqlite_corruptors": {
+      "status": "measured",
+      "value": 0,
+      "unit": "arquivos que corrompem o MySQL persistente (corruptsOnMysql · v2)",
+      "direction": "down",
+      "target": 0,
+      "source": "scripts/audit/sqlite-test-corruptors.mjs --json .corruptors (US-GOV-021 · fusão GT-G3 · P14 carona 2 · lei de fusões ADR 0314)",
+      "detail": {
+        "counts": {
+          "S": 0,
+          "A": 0,
+          "B": 0,
+          "C": 0
+        },
+        "with_manual_ddl": 266,
+        "effectively_guarded": 266
+      },
       "stream": "FV"
     },
     "ghost_count": {
@@ -153,17 +172,24 @@
       "value": null,
       "direction": "up",
       "target": "≥95%",
-      "source": "RAGAS canário modo REAL diário (KL-D1/D4) — hoje compara mock com mock",
+      "source": "jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318 — mata a tautologia; baseline honesto em governance/jana-ragas-real-baseline.json, 1ª medição real 2026-07-01). Uptime not_yet_measured até existir transporte cron→scorecard (trend em storage/logs/ragas-real-eval.log sem espelho versionado — pattern nightly-floor ADR 0279); 1ª execução agendada 2026-07-05.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "MEM"
     },
     "distiller_freshness": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 0,
+      "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
-      "target": "< 7d atrás do doc mais novo em 100% das portas",
-      "source": "ADR 0291 D-D — nenhuma porta tem distilled_at ainda (distiller-módulo-verdade não rodou em prod; gate Wagner/CT100). Vira measured no 1º carimbo, como o floor do 0279.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "target": 0,
+      "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
+      "detail": {
+        "portas": 75,
+        "carimbadas": 11,
+        "sem_carimbo": 64,
+        "stale": 0,
+        "oldest_distilled_at": "2026-07-01"
+      },
       "stream": "MEM"
     },
     "read_path_hops": {
@@ -186,16 +212,16 @@
     },
     "backfill_error_rate": {
       "status": "measured",
-      "value": 0,
+      "value": 1.82,
       "unit": "% (MAX error_rate das entries aprovadas — conservador: 1 lote ruim estoura <2%)",
       "direction": "down",
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 4,
-        "max_error_rate_pct": 0,
-        "last_pr": 2970,
-        "last_lote": "SA-A5-batch1-pg-pmg-kb"
+        "entries_aprovadas": 17,
+        "max_error_rate_pct": 1.82,
+        "last_pr": 3576,
+        "last_lote": "SA-A5-P10w2-crm"
       },
       "stream": "GT"
     }

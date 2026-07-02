@@ -88,6 +88,26 @@ test('sem --module nem --all → falha com instrução', function () {
     $this->artisan('jana:distill-module-truth')->assertExitCode(1);
 });
 
+test('coleta AUDIT/AUDITORIA/CAPTERRA do módulo sem GLOB_BRACE (musl-safe) e sem duplicar', function () {
+    // Regressão 2026-07-01 (P11 E3): scanAudits usava glob(..., GLOB_BRACE) — constante
+    // glibc indefinida em musl/Alpine (CT100) → Error derrubava o --all inteiro. O CI
+    // (ubuntu/glibc) nunca pegou. Fix: globs separados; AUDIT* cobre AUDITORIA* sem
+    // o double-match do brace (que gerava evento duplicado pra AUDITORIA*).
+    File::put(test()->base . '/requisitos/Financeiro/AUDITORIA-bridge.md', '# Auditoria');
+    File::put(test()->base . '/requisitos/Financeiro/CAPTERRA-FICHA.md', '# Capterra');
+    seedSession('2026-06-15-bridge.md', 'update em Modules/Financeiro');
+    Ai::fakeAgent(AnonymousAgent::class, ["## Estado atual\nok"]);
+
+    $this->artisan('jana:distill-module-truth', ['--module' => 'Financeiro'])->assertExitCode(0);
+
+    $porta = File::get(briefingPath());
+    expect($porta)
+        ->toContain('AUDITORIA-bridge.md')
+        ->toContain('CAPTERRA-FICHA.md');
+    // 1 linha de proveniência = 1 evento (com brace, AUDIT* + AUDITORIA* dublavam o evento)
+    expect(substr_count($porta, 'audit `requisitos/Financeiro/AUDITORIA-bridge.md`'))->toBe(1);
+});
+
 test('--all resolve módulos que já têm porta e a refresca (sobrescreve)', function () {
     File::put(briefingPath(), "---\ndistilled_at: \"2026-05-01\"\n---\nCONTEUDO VELHO");
     seedSession('2026-06-15-bridge.md', 'update em Modules/Financeiro');

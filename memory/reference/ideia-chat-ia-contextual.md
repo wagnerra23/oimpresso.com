@@ -9,12 +9,12 @@ type: ideia
 
 > "só imagino um chat com IA sabendo exatamente sobre o que está falando"
 
-Contexto: revisando o showcase do design system, aprovou os componentes shared. Diferente do `/memcofre/chat` do MemCofre (que responde sobre a documentação), essa ideia é sobre **embedded UX** — um chat flutuante dentro das telas operacionais.
+Contexto: revisando o showcase do design system, aprovou os componentes shared. Diferente do `/memcofre/chat` do módulo SRS (ex-MemCofre — URL mantém prefixo legado, ADR 0088; responde sobre a documentação), essa ideia é sobre **embedded UX** — um chat flutuante dentro das telas operacionais.
 
 ## Interpretação
 
 O chat deve saber, ao abrir:
-- **Tela atual** — URL, módulo (Ponto/MemCofre/Sells/etc), ação (list/show/edit)
+- **Tela atual** — URL, módulo (Ponto/SRS/Sells/etc), ação (list/show/edit)
 - **Dados visíveis** — que registros estão na tabela, quais filtros aplicados, que KPIs
 - **Usuário** — role, permissões, business_id, nome
 - **Histórico recente** — últimas ações (criou X, editou Y)
@@ -30,7 +30,7 @@ Sem o usuário precisar repetir o contexto — o chat já sabe.
 
 ## Diferença de `/memcofre/chat`
 
-| Aspecto | `/memcofre/chat` (MemCofre) | Chat IA contextual (ideia) |
+| Aspecto | `/memcofre/chat` (SRS, ex-MemCofre) | Chat IA contextual (ideia) |
 |---|---|---|
 | Escopo | Documentação (README/SPEC/ARCHITECTURE/ADRs) | Dados operacionais + documentação + tela atual |
 | Invocação | Tela própria | Botão/atalho flutuante em TODA tela |
@@ -47,7 +47,7 @@ Sem o usuário precisar repetir o contexto — o chat já sabe.
   ```json
   {
     "url": "/ponto/aprovacoes",
-    "module": "PontoWr2",
+    "module": "Ponto",
     "page": "Aprovacoes/Index",
     "props": { "aprovacoes": [...] },
     "selection": [1234, 1235],
@@ -70,13 +70,13 @@ Sem o usuário precisar repetir o contexto — o chat já sabe.
 ### Privacidade
 - NUNCA enviar dados de outros businesses
 - NUNCA enviar senhas/tokens/API keys
-- User pode ver histórico dele (`docs_chat_messages` já existe no MemCofre)
+- User pode ver histórico dele (`docs_chat_messages` já existe no SRS)
 - Flag `DOCVAULT_AI_ENABLED` + `OPENAI_API_KEY` no `.env`
 
 ## Como isso conecta com o que já existe
 
-- `Modules/MemCofre/Services/ChatAssistant.php` — já tem o esqueleto offline/AI
-- `Modules/MemCofre/Entities/DocChatMessage.php` — já persiste chat
+- `Modules/SRS/Services/ChatAssistant.php` — já tem o esqueleto offline/AI
+- `Modules/SRS/Entities/DocChatMessage.php` — já persiste chat
 - `docs_pages` — já mapeia `{tela → stories/rules/adrs}` via `@memcofre`
 - `memory/requisitos/_DesignSystem/adr/ui/0005-*` — camada de componentes shared
 - Faltaria: `ContextualChatButton` component + `/ai/chat/contextual` endpoint + tool-use layer
@@ -93,4 +93,4 @@ Não imediato. É uma feature "incrível" mas requer:
 
 ## Quem lembra disso
 
-- Quem está retomando: leia também schema DB, cliente-rotalivre.md (caso de uso real), e docs do MemCofre `/memory/requisitos/MemCofre/` (arquitetura de chat existente).
+- Quem está retomando: leia também schema DB, cliente-rotalivre.md (caso de uso real), e docs do SRS `memory/requisitos/SRS/` (arquitetura de chat existente; ex-MemCofre).

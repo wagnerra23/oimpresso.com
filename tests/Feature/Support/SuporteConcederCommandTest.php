@@ -8,7 +8,7 @@ use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-uses(Tests\TestCase::class);
+// Tests\TestCase já é aplicado globalmente em tests/Pest.php (uses(TestCase::class)->in('Feature')). NÃO redeclarar aqui — Pest 4 lança TestCaseAlreadyInUse e mata o loader da suite inteira (discovery morre antes do --filter).
 
 /**
  * Modo Suporte — comando `suporte:conceder` (concede/revoga a capability, RF4 interino).
@@ -46,6 +46,7 @@ it('concede a capability por id e o usuário vira agente de suporte', function (
         test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $user = makeConcUser('conc_por_id');
     SupportAgent::query()->where('user_id', $user->id)->delete();
 
@@ -59,6 +60,7 @@ it('concede por username', function () {
         test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $user = makeConcUser('conc_por_username');
     SupportAgent::query()->where('user_id', $user->id)->delete();
 
@@ -72,6 +74,7 @@ it('revoga com --revogar (deixa de ser agente)', function () {
         test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $user = makeConcUser('conc_revoga');
     $this->artisan('suporte:conceder', ['user' => (string) $user->id])->assertExitCode(0);
     expect((new SupportAccessService())->isSupportAgent($user))->toBeTrue();
@@ -85,6 +88,7 @@ it('re-concede após revogar reativa a concessão', function () {
         test()->markTestSkipped('Schema MySQL UltimatePOS ausente (ADR 0101).');
     }
 
+    $this->seededSupportClientTenant();
     $user = makeConcUser('conc_reativa');
     $this->artisan('suporte:conceder', ['user' => (string) $user->id])->assertExitCode(0);
     $this->artisan('suporte:conceder', ['user' => (string) $user->id, '--revogar' => true])->assertExitCode(0);

@@ -76,7 +76,47 @@ class LangfuseClient
             return $traceId;
         }
 
-        $event = [
+        $this->dispatch([$this->traceEvent($traceId, $attrs)]);
+
+        return $traceId;
+    }
+
+    /**
+     * Emite trace + generation num ÚNICO batch HTTP (metade do overhead de
+     * startTrace + recordGeneration separados — importa em dispatch=sync).
+     *
+     * Usado pelo LangfuseAgentTelemetryListener (1 chamada LLM = 1 trace
+     * com 1 generation filha). Retorna trace_id pra correlação posterior
+     * (ex: recordScore RAGAS).
+     *
+     * @param array<string,mixed> $trace mesmo shape de startTrace()
+     * @param array<string,mixed> $generation mesmo shape de recordGeneration()
+     */
+    public function traceComGeneration(array $trace, array $generation): string
+    {
+        $traceId = (string) Str::uuid();
+
+        if (! $this->shouldEmit()) {
+            return $traceId;
+        }
+
+        $this->dispatch([
+            $this->traceEvent($traceId, $trace),
+            $this->generationEvent($traceId, $generation),
+        ]);
+
+        return $traceId;
+    }
+
+    /**
+     * Monta event `trace-create` (formato ingestion v3).
+     *
+     * @param array<string,mixed> $attrs
+     * @return array<string,mixed>
+     */
+    protected function traceEvent(string $traceId, array $attrs): array
+    {
+        return [
             'id' => (string) Str::uuid(),
             'type' => 'trace-create',
             'timestamp' => $this->now(),
@@ -104,10 +144,6 @@ class LangfuseClient
                 'environment' => (string) config('langfuse.environment', 'production'),
             ],
         ];
-
-        $this->dispatch([$event]);
-
-        return $traceId;
     }
 
     /**
@@ -157,12 +193,23 @@ class LangfuseClient
             return;
         }
 
+        $this->dispatch([$this->generationEvent($traceId, $attrs)]);
+    }
+
+    /**
+     * Monta event `generation-create` (formato ingestion v3).
+     *
+     * @param array<string,mixed> $attrs
+     * @return array<string,mixed>
+     */
+    protected function generationEvent(string $traceId, array $attrs): array
+    {
         $startTime = $this->now();
         $endTime = isset($attrs['duration_ms'])
             ? gmdate('Y-m-d\TH:i:s.v\Z', (int) (time() + ((int) $attrs['duration_ms'] / 1000)))
             : null;
 
-        $event = [
+        return [
             'id' => (string) Str::uuid(),
             'type' => 'generation-create',
             'timestamp' => $startTime,
@@ -181,8 +228,6 @@ class LangfuseClient
                 'statusMessage' => $attrs['status_message'] ?? null,
             ], fn ($v) => $v !== null && $v !== []),
         ];
-
-        $this->dispatch([$event]);
     }
 
     /**
