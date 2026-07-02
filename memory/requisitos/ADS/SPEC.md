@@ -75,6 +75,8 @@ O ADS é agnóstico de domínio. Estes módulos submetem eventos a ele:
 > owner: — · priority: p1 · estimate: 8h · status: todo · type: story
 > blocked_by: —
 
+**Implementado em:** _pendente_ — US status todo; inventário, fixes por call-site e lint dos DB::table mcp_* crus não iniciados (o fix pontual pré-US no ContextForTaskService já landou via PR #3162, fora do escopo desta US)
+
 **Origem:** rodada adversarial do ADR 0296 (achado S-2). O vazamento cross-tenant pontual em `ContextForTaskService::buildRecentDecisions` já foi corrigido (PR #3162), mas o adversário apontou ~85 `DB::table('mcp_*')` crus fora do global scope.
 
 **Acceptance:**

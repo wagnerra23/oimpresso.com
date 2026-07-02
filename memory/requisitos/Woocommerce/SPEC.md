@@ -32,6 +32,7 @@ related_adrs:
 
 ### US-WOO-001 — Configurar credenciais API (consumer key/secret + URL)
 **Como** lojista, **quero** cadastrar URL da loja WooCommerce + consumer_key + consumer_secret, **pra** o oimpresso conseguir falar com a API.
+**Implementado em:** _parcial_ · `Modules/Woocommerce/Http/Controllers/WoocommerceController.php` · `Modules/Woocommerce/Resources/views/woocommerce/api_settings.blade.php` · verificado@8af585a (2026-07-02) — tela e save existem (`apiSettings`/`updateSettings`); falta validação da credencial no save e criptografia do secret (settings gravadas em JSON plaintext na coluna `woocommerce_api_settings` de business, sem `Crypt::encrypt`)
 - Tela: `woocommerce/api_settings.blade.php` + partial `partials/api_settings.blade.php`
 - Controller: `WoocommerceController::apiSettings|saveApiSettings`
 - Tabela: colunas `woocommerce_*` em `business`
@@ -39,6 +40,7 @@ related_adrs:
 
 ### US-WOO-002 — Sync de produtos (oimpresso → WooCommerce)
 **Como** lojista, **quero** rodar sync manual ou agendado dos produtos do oimpresso pra Woo, **pra** manter catálogo público alinhado com estoque interno.
+**Implementado em:** `Modules/Woocommerce/Console/WoocommerceSyncProducts.php` · `Modules/Woocommerce/Http/Controllers/WoocommerceController.php` · `Modules/Woocommerce/Utils/WoocommerceUtil.php` · verificado@8af585a (2026-07-02)
 - Command: `WoocommerceSyncProducts` (artisan + scheduled)
 - Controller: `WoocommerceController::syncProducts`
 - Util: `WoocommerceUtil::createProduct|updateProduct`
@@ -46,24 +48,28 @@ related_adrs:
 
 ### US-WOO-003 — Sync de categorias e tax rates
 **Como** lojista, **quero** que categorias/taxas configuradas no oimpresso sejam refletidas na Woo, **pra** evitar manutenção dupla.
+**Implementado em:** _parcial_ · `Modules/Woocommerce/Utils/WoocommerceUtil.php` · `Modules/Woocommerce/Http/Controllers/WoocommerceController.php` · verificado@8af585a (2026-07-02) — `syncCategories` completo; tax rates têm só mapeamento manual (`mapTaxRates`, sentido Woo→oimpresso), sem `syncTaxRates` oimpresso→Woo nem observer auto-create
 - Util: `WoocommerceUtil::syncCategories|syncTaxRates`
 - Tabela: colunas `woocommerce_category_id` em `categories`, `woocommerce_tax_rate_id` em `tax_rates`
 - Aceite: idempotente; criar categoria nova no oimpresso dispara create na Woo via observer ou manual sync
 
 ### US-WOO-004 — Visualizar sync log + diagnóstico
 **Como** lojista/admin, **quero** ver histórico de syncs (timestamp, status, erros, itens afetados), **pra** depurar falha de sync.
+**Implementado em:** `Modules/Woocommerce/Http/Controllers/WoocommerceController.php` · `Modules/Woocommerce/Entities/WoocommerceSyncLog.php` · `Modules/Woocommerce/Resources/views/woocommerce/sync_log.blade.php` · verificado@8af585a (2026-07-02)
 - Tela: `woocommerce/sync_log.blade.php` + partial `partials/log_details.blade.php`
 - Entity: `WoocommerceSyncLog` (`status`, `details` JSON, `business_id`)
 - Aceite: DataTable filtrável por status/tipo; modal mostra payload completo do erro
 
 ### US-WOO-005 — Webhook: pedido criado na Woo → venda no oimpresso
 **Como** lojista, **quero** que pedido novo na Woo crie automaticamente Transaction tipo `sell` no oimpresso, **pra** o estoque baixar sem retrabalho.
+**Implementado em:** `Modules/Woocommerce/Http/Controllers/WoocommerceWebhookController.php` · `Modules/Woocommerce/Routes/web.php` · `Modules/Woocommerce/Utils/WoocommerceUtil.php` · verificado@8af585a (2026-07-02)
 - Controller: `WoocommerceWebhookController::orderCreated`
 - Endpoint: POST `/woocommerce/webhook/{business_id}/order-created`
 - Aceite: valida HMAC com `woocommerce_wh_oc_secret` (coluna em `business`); cria customer + Transaction + items; respeita `skipped_orders_fields` config
 
 ### US-WOO-006 — Webhook: pedido atualizado na Woo → atualizar no oimpresso
 **Como** lojista, **quero** que mudança de status do pedido (paid/refunded/cancelled) reflita na Transaction do oimpresso, **pra** financeiro/estoque ficar coerente.
+**Implementado em:** `Modules/Woocommerce/Http/Controllers/WoocommerceWebhookController.php` · `Modules/Woocommerce/Routes/web.php` · verificado@8af585a (2026-07-02)
 - Controller: `WoocommerceWebhookController::orderUpdated`
 - Endpoint: POST `/woocommerce/webhook/{business_id}/order-updated`
 - Aceite: refunded reverte Transaction (cria refund); cancelled marca cancelada + libera estoque; idempotente por `wh_id` Woo

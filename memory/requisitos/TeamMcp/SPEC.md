@@ -34,6 +34,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 ## User Stories (US-TEAM-NNN)
 
 ### US-TEAM-001 — Actor onboarding (cadastro humano novo no time)
+**Implementado em:** `Modules/TeamMcp/Database/Seeders/McpActorsSeeder.php` · `Modules/TeamMcp/Entities/McpActor.php` · `Modules/TeamMcp/Tests/Feature/McpActorsSeederTest.php` · verificado@8af585a (2026-07-02)
 **Como** Wagner (L0/superadmin)
 **Quero** cadastrar Felipe/Maiara/Luiz/Eliana em `mcp_actors` com manifest declarado (trust_level + modules_write/read/blocked + skills_required + actions_blocked + audit_required + parent_actor=wagner)
 **Pra** rastrear cada ação no MCP server à pessoa física certa, com cadeia de delegação clara (Constituição Art. 6 Identity Mesh).
@@ -47,6 +48,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `McpActorsSeederTest.php` (7 invariantes), `ActorPermissionMatrixTest.php`
 
 ### US-TEAM-002 — Token MCP issue (gerar token pra dev/IA)
+**Implementado em:** `Modules/TeamMcp/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/TeamMcp/Http/routes.php` · verificado@8af585a (2026-07-02) — rota POST /team-mcp/team/{user}/token → TeamController::gerarToken chama McpToken::gerar inline (McpTokenIssuer::issue é extração Wave 18 NÃO religada à rota; caller de prod só RotateTokenCommand)
 **Como** Wagner
 **Quero** gerar token MCP via `POST /team-mcp/team/{user}/token` que bind a um `user_id` + `actor_id`
 **Pra** dev/IA consumir tools MCP (cycles-active, my-work etc) com identidade rastreável.
@@ -58,6 +60,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `SmokeRoutesTest.php` (smoke auth gate)
 
 ### US-TEAM-003 — Token MCP revoke (revogar token comprometido)
+**Implementado em:** `Modules/TeamMcp/Http/Controllers/TeamController.php` · `Modules/Jana/Entities/Mcp/McpToken.php` · `Modules/Jana/Http/Middleware/McpAuthMiddleware.php` · verificado@8af585a (2026-07-02) — DELETE /team-mcp/team/token/{token} → revogarToken seta revoked_at inline + soft-delete (McpTokenIssuer::revoke NÃO religado à rota; caller de prod só RotateTokenCommand); token revogado rejeitado por McpToken::encontrarPorRaw (whereNull revoked_at) via McpAuthMiddleware
 **Como** Wagner
 **Quero** revogar token via `DELETE /team-mcp/team/token/{token}`
 **Pra** invalidar imediatamente acesso (dev desligado, IA descontinuada, credencial vazada).
@@ -68,6 +71,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `MultiTenantTokenIsolationTest.php` (testa revoked_at NÃO resolve)
 
 ### US-TEAM-004 — Isolamento token A vs token B
+**Implementado em:** `Modules/TeamMcp/Services/ActorResolver.php` · `Modules/TeamMcp/Entities/McpActor.php` · `Modules/TeamMcp/Tests/Feature/MultiTenantTokenIsolationTest.php` · verificado@8af585a (2026-07-02)
 **Como** sistema MCP
 **Quero** garantir que token gerado pra dev A nunca resolve actor B
 **Pra** vazamento de token NÃO virar elevação de privilégio (Felipe token NÃO pode ler dados Eliana NfeBrasil).
@@ -78,6 +82,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `MultiTenantTokenIsolationTest.php` (8 cenários)
 
 ### US-TEAM-005 — Permission per tool/módulo (gates execução)
+**Implementado em:** _parcial_ · `Modules/TeamMcp/Entities/McpActor.php` · `Modules/Governance/Http/Middleware/ActionGate.php` · `Modules/TeamMcp/Tests/Feature/ActorPermissionMatrixTest.php` · verificado@8af585a (2026-07-02) — canWriteModule/isActionBlocked existem no entity (cobertos por test); FALTA wiring de runtime: ActionGate (Modules/Governance, ADR 0086) tem alias `actiongate` registrado mas aplicado a ZERO rotas, e nenhum código de produção chama canWriteModule/isActionBlocked (só os Tests) — enforce ainda não liga
 **Como** Wagner
 **Quero** que cada tool MCP cheque `canWriteModule()` + `isActionBlocked()` antes de executar
 **Pra** Felipe NÃO conseguir invocar tool que escreve em NfeBrasil mesmo com token válido.
@@ -88,6 +93,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `ActorPermissionMatrixTest.php` (matriz 5 humanos × módulos críticos)
 
 ### US-TEAM-006 — IA pareada → audit trail no humano parent
+**Implementado em:** `Modules/TeamMcp/Entities/McpActor.php` · `Modules/TeamMcp/Services/ActorResolver.php` · verificado@8af585a (2026-07-02) — effectiveHumanSlug/effectiveHumanUserId no entity; effectiveDisplayName vive no ActorResolver (não no McpActor como o aceite sugere)
 **Como** Wagner
 **Quero** que IA actor (ex: `claude-code-wagner-laptop`) tenha `parent_actor_id` = humano L0/L1
 **Pra** auditoria atribuir ações IA ao humano responsável (Felipe pareou Claude → Felipe responde).
@@ -99,6 +105,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra LGPD + custo + custom 
 - Cobertura: `ActorPermissionMatrixTest.php` (cenários 7-8)
 
 ### US-TEAM-007 — Audit log MCP append-only (Tier 0)
+**Implementado em:** `Modules/Jana/Database/Migrations/2026_04_29_100005_create_mcp_audit_log_table.php` · `Modules/Jana/Database/Migrations/2026_05_05_230001_add_immutability_triggers_to_mcp_audit_log.php` · `Modules/Jana/Entities/Mcp/McpAuditLog.php` · verificado@8af585a (2026-07-02) — schema + trigger de imutabilidade vivem em Modules/Jana (não neste módulo)
 **Como** sistema MCP
 **Quero** que toda ação em tool MCP registre em `mcp_audit_log` (actor_id, tool_name, payload_hash, timestamp, business_id_efetivo)
 **Pra** rastreabilidade total LGPD + forensics em caso de incidente.

@@ -288,9 +288,13 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 
 ## §5 User Stories — US-COMM-001 a US-COMM-014
 
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
+
 ### US-COMM-001 · Schema base + migration + multi-tenant scope — **P0**
 > **Área:** Backend
 > **Reusa:** [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) `HasBusinessScope`
+
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
 
 **Como** arquiteto **quero** as 6 tabelas (`commission_policies` + `_role_distributions` + `_tiers` + `_goals` + `_assignments` + `_payments`) **para** habilitar o módulo
 
@@ -308,6 +312,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 > **blocked_by:** US-COMM-001
 > **Reusa:** FSM ADR 0143 `ExecuteStageActionService`
 
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
+
 **Como** dono **quero** que ao marcar venda como paga, o sistema calcule comissão automaticamente baseado na policy ativa **para** parar planilha paralela manual
 
 **DoD:**
@@ -323,6 +329,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 
 ### US-COMM-003 · Side-effect `EstornarComissao` no `cancelar_venda` (clawback) — **P0**
 > **Reusa:** FSM `CancelarVendaCascade` orquestrador
+
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
 
 **Como** dono **quero** que ao cancelar venda já paga, comissões pagas sejam estornadas (clawback) **para** não pagar comissão sobre venda que não existiu
 
@@ -341,6 +349,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 > **Path:** `resources/js/Pages/Comissao/Policies/{Index,Create,Edit}.tsx`
 > **Reusa:** skill `mwart-process` 5 fases
 
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
+
 **Como** dono **quero** criar/editar policies via UI **para** não depender de tinker
 
 **DoD:**
@@ -356,6 +366,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 ### US-COMM-005 · Tiers escalonados (3 faixas R$/% per user OU policy) — **P1**
 > **blocked_by:** US-COMM-002
 
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
+
 **Como** dono **quero** definir "até R$ [redacted Tier 0]k 3% / R$ [redacted Tier 0]-20k 5% / >R$ [redacted Tier 0]k 7%" **para** motivar excedente sem mudar lei
 
 **DoD:**
@@ -369,6 +381,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 
 ### US-COMM-006 · Metas mensais + accelerator — **P1**
 > **blocked_by:** US-COMM-002
+
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
 
 **Como** dono **quero** definir meta R$ [redacted Tier 0]k/mês e accelerator +1% sobre excedente **para** turbinar quem bate
 
@@ -384,6 +398,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 ### US-COMM-007 · Comando `commission:close --month=YYYY-MM` (fechamento) — **P0**
 > **Área:** Backend artisan
 > **Reusa:** padrão `fsm:bulk-start-pipeline`
+
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
 
 **Como** Eliana[E] **quero** rodar artisan no dia 1° pra fechar mês anterior **para** gerar `commission_payments` per vendedor
 
@@ -402,6 +418,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 > **Área:** Frontend MWART
 > **Path:** `resources/js/Pages/Comissao/Relatorio/Index.tsx`
 
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151); hoje existe só o relatório single-tier legacy UPos (ReportController, inventariado no §0)
+
 **Como** dono **quero** ver per vendedor: período × bruto × líquido × accelerator × clawback × total **para** validar antes de pagar
 
 **DoD:**
@@ -416,6 +434,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 ### US-COMM-009 · Multi-papel split ComVis (vendedor+designer+instalador) — **P1**
 > **blocked_by:** US-COMM-002, US-COMM-004
 > **Reusa:** US-COMVIS-011 (este SPEC substitui aquela US)
+
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
 
 **Como** dono ComVis **quero** que banner R$ [redacted Tier 0] distribua 5% vendedor + R$ [redacted Tier 0] fixo designer + 30% sobre linha instalação **para** automatizar regra ComVis SPEC §14
 
@@ -433,6 +453,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 > **blocked_by:** US-COMM-002
 > **Reusa:** US-AUTO-006 atribuições + US-AUTO-011 (este substitui)
 
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
+
 **Como** dono **quero** OS com 2 mecânicos (Junior 60% / Pleno 40% das horas) dividir comissão proporcional **para** pagar correto multi-mecânico
 
 **DoD:**
@@ -445,6 +467,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 
 ### US-COMM-011 · Comissão sobre líquido (após taxa marketplace) — **P2**
 > **blocked_by:** módulo Marketplaces (planejado — não existe)
+
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151); blocked_by módulo Marketplaces que também não existe
 
 **Como** dono **quero** que vendas ML/iFood/Shopee usem base líquida (já descontada taxa marketplace) **para** comissão refletir margem real
 
@@ -460,6 +484,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 ### US-COMM-012 · Aprovação workflow + audit trail (manager review) — **P1**
 > **Reusa:** Spatie permissions + `AuditLog`
 
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
+
 **Como** gerente **quero** revisar/ajustar assignments antes do fechamento **para** corrigir erros legítimos
 
 **DoD:**
@@ -474,6 +500,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 ### US-COMM-013 · Mobile self-service vendedor — **P2**
 > **Reusa:** PWA (mesma infra US-AUTO-012)
 
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151), Modules/Comissao nunca construído
+
 **Como** vendedor **quero** abrir `/minhas-comissoes` no celular e ver acumulado mês + meta + projeção **para** acompanhar sem pedir ao chefe
 
 **DoD:**
@@ -486,6 +514,8 @@ Slot pra cada side-effect: `app/Domain/Fsm/SideEffects/{Calcular,Estornar}Comiss
 
 ### US-COMM-014 · Migração legacy `users.cmmsn_percent` + `transactions.commission_agent` — **P3**
 > **Reusa:** padrão `*_legacy_map` skill `feedback_legacy_migration_python_importer`
+
+**Implementado em:** _pendente_ — feature-wish dormente (ADR 0151); os artefatos legacy UPos (users.cmmsn_percent, transactions.commission_agent) existem, a migração/backfill não
 
 **Como** Wagner **quero** preservar dados históricos de comissão UPos **para** retroatividade não quebrar
 

@@ -37,12 +37,21 @@ related_adrs:
 > **Convenção:** US-MCP-001 a 016 estão em outros arquivos (histórico). A partir de US-MCP-017 vivem aqui.
 
 ### Bugs/sync (US-MCP-001..004) — concluídas
+
+**Implementado em:** `Modules/Jana/Services/TaskRegistry/GitTaskLinkerService.php` · `Modules/Jana/Mcp/Tools/MyInboxTool.php` · `app/Console/Kernel.php` · `Modules/TeamMcp/Http/Controllers/Mcp/SyncMemoryWebhookController.php` · `Modules/Jana/Console/Commands/McpTasksHealthCheckCommand.php` · verificado@8af585a (2026-07-02) — 001 regex linker parentético · 002 my-inbox mark_read default + TTL 7d no Kernel · 003 sync webhook · 004 health-check stale
+
 - US-MCP-001..004 — ver [Jana/BUGS-MCP-SYNC-2026-05-13.md](../Jana/BUGS-MCP-SYNC-2026-05-13.md)
 
 ### Tier 6+7 estado-da-arte (US-MCP-005..010) — em backlog
+
+**Implementado em:** _parcial_ · `.github/workflows/jana-ragas-gate.yml` · `Modules/Jana/Console/Commands/JanaRecallEvalCommand.php` · `app/Console/Kernel.php` · verificado@8af585a (2026-07-02) — US-MCP-005 (RAGAS gate) vive como advisory pós-ADR 0271 (demovido a `RAGAS_MODE=mock` advisory, NÃO deletado); US-MCP-007 (recall@K semanal) construída e agendada (`jana:recall-eval --mode=real`, dom 06:30 BRT, Kernel L481); demais do range (006/008/009/010) em backlog
+
 - US-MCP-005..010 — ver [Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md](../Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md) §Backlog
 
 ### Linear-parity (US-MCP-011..016) — em backlog longo
+
+**Implementado em:** _parcial_ · `Modules/Jana/Database/Migrations/2026_05_04_180015_extend_mcp_tasks_for_jira_style.php` · `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` · `Modules/Jana/Mcp/Tools/WhatsLockedTool.php` · verificado@8af585a (2026-07-02) — US-MCP-011 (sub-issues: `parent_task_id`/`epic_id` + drawer subtasks), US-MCP-012 (roadmap view: rota `/ia/admin/roadmap`) e US-MCP-015 (whats-active Tier 2: WhatsLockedTool + WorkLeaseService, ADR 0278) construídas; 013 (dependency graph)/014 (custom fields)/016 (handoff Brain B→CC) em backlog. Nota: handoff tools do TeamMcp (HandoffSubmitTool etc, 2026-06-17) são Cowork↔CC, escopo distinto da US-MCP-016
+
 - US-MCP-011..016 — ver [Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md](../Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md) §Linear-parity
 
 ### Active
@@ -52,6 +61,8 @@ related_adrs:
 > owner: wagner · priority: p1 · estimate: 14h IA-pair · status: todo · type: story · origin: dossier-2026-05-15
 > blocked_by: aprovação Wagner áreas cinzentas (SPEC §10)
 > gate: ver dossier §10 Q3 — esperar 2 semanas pós-time MCP entrar; ativar se 3+ pedidos "qual estado de X" sem brief responder ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) cliente como sinal qualificado)
+
+**Implementado em:** _pendente_ — status todo, bloqueada por gate (aprovação Wagner + sinal qualificado ADR 0105); nenhuma tool module-state em Modules/Jana/Mcp/Tools
 
 **Spec completa:** [SPEC-US-MCP-017-module-state-projection.md](SPEC-US-MCP-017-module-state-projection.md)
 **Runbook implementação:** [runbooks/RUNBOOK-module-state-tool.md](runbooks/RUNBOOK-module-state-tool.md)
