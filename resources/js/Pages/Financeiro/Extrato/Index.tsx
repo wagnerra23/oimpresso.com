@@ -30,9 +30,10 @@ interface Props {
     saldo_cached: number | null;
     saldo_atualizado_em: string | null;
   };
-  lancamentos: Lancamento[];
+  // lancamentos/totais chegam via Inertia::defer — undefined no 1º render (guard obrigatório, lição #2515)
+  lancamentos?: Lancamento[];
   filtros: { from: string; to: string };
-  totais: { creditos: number; debitos: number; count: number };
+  totais?: { creditos: number; debitos: number; count: number };
 }
 
 const fmtBrl = (v: number | null) =>
@@ -43,7 +44,7 @@ const fmtDate = (iso: string) => {
   return `${d}/${m}/${y}`;
 };
 
-function Index({ conta, lancamentos, filtros, totais }: Props) {
+function Index({ conta, lancamentos = [], filtros, totais }: Props) {
   const [from, setFrom] = useState(filtros.from);
   const [to, setTo] = useState(filtros.to);
 
@@ -94,7 +95,7 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-success">{fmtBrl(totais.creditos)}</div>
+            <div className="text-2xl font-bold text-success">{fmtBrl(totais?.creditos ?? null)}</div>
           </CardContent>
         </Card>
 
@@ -105,7 +106,7 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{fmtBrl(totais.debitos)}</div>
+            <div className="text-2xl font-bold text-destructive">{fmtBrl(totais?.debitos ?? null)}</div>
           </CardContent>
         </Card>
 
@@ -114,7 +115,7 @@ function Index({ conta, lancamentos, filtros, totais }: Props) {
             <CardTitle className="text-sm font-medium">Lançamentos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{totais.count}</div>
+            <div className="text-2xl font-bold">{totais?.count ?? '—'}</div>
             <p className="text-xs text-muted-foreground">no período</p>
           </CardContent>
         </Card>
