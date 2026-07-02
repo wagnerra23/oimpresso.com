@@ -219,7 +219,7 @@ Domínio I, ≈30 fn. **Distinta do módulo Financeiro React já migrado** — �
 > owner: — · priority: p3 · estimate: 20h · status: todo · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
 
-**Implementado em:** _parcial_ · `resources/js/Pages/Modules/Index.tsx` · verificado@8af585a (2026-07-02) — Gerenciador de Módulos React vivo (ModuleManagementController); critério de desligamento NÃO atingido: resources de settings (business/invoice-layouts/schemes/tax-rates/printers/roles/users) e settings_custom_labels seguem Blade
+**Implementado em:** _parcial_ · `app/Http/Controllers/ModuleManagementController.php` · verificado@8af585a (2026-07-02) — Gerenciador de Módulos React vivo (ModuleManagementController@index renderiza a tela via Inertia); critério de desligamento NÃO atingido: resources de settings (business/invoice-layouts/schemes/tax-rates/printers/roles/users) e settings_custom_labels seguem Blade
 
 Domínios K + L, ≈55 fn. **Adversário [CD]:** Stripe Settings + Vercel (busca + agrupamento, nunca muro de toggles AdminLTE). **Já vivo:** Gerenciador de Módulos React + preferências tema/sidebar.
 

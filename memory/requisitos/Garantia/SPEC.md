@@ -401,7 +401,7 @@ Refs base legal: [Portal Tributário — substituição em garantia](https://www
 
 **Convenção:** ID `US-WARR-NNN`; estimates recalibrados ADR 0106 (10x IA-pair + 2x margem). Status: `todo`. Origem: discovery 2026-05-12.
 
-**Implementado em:** _pendente_ — SPEC proposta em discovery (2026-05-12, ADR draft não aceita); Modules/Garantia e schema warranty_* nunca construídos (só a warranties legacy core UPos 2019 existe, escopo diferente)
+**Implementado em:** _pendente_ — SPEC proposta em discovery (2026-05-12, ADR draft não aceita); módulo Garantia e schema warranty_* nunca construídos (só a warranties legacy core UPos 2019 existe, escopo diferente)
 
 ### Fase 1 — Schema fundação (P0)
 
