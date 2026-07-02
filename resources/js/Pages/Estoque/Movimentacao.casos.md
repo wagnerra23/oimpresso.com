@@ -57,6 +57,38 @@ last_run: "2026-07-02"
 
 ---
 
+## UC-EST-05 · Ajuste de estoque → SAI (normal) / reverte ao deletar
+- **Fluxo:** ajuste manual de estoque. Um ajuste de saída baixa `qty_available` pela quantidade ajustada (DOC-RAIZ §3 `stock_adjustment` → `decreaseProductQuantity`); deletar o ajuste reverte (devolve) o saldo.
+- **Aceite:** Dado `qty_available=10` · Quando ajuste de saída de 4 · Então `qty_available=6`. E: deletar o ajuste devolve → 10.
+- **Teste:** `tests/Feature/Estoque/EstoqueAjusteTest.php`.
+- **Status: 🧪** _(nível do mutador; verde a capturar na lane MySQL)._
+
+---
+
+## UC-EST-06 · Transferência entre locais → SAI origem + ENTRA destino
+- **Fluxo:** transferência de estoque entre duas locations. Decrementa o saldo da ORIGEM e incrementa o do DESTINO pela mesma quantidade, conservando o total (DOC-RAIZ §3 `sell_transfer`+`purchase_transfer` → `decreaseProductQuantity`+`updateProductQuantity`).
+- **Aceite:** Dado origem=10 e destino=2 · Quando transfere 3 · Então origem=7, destino=5, total conservado=12. E: um TERCEIRO local do mesmo produto não é tocado.
+- **Teste:** `tests/Feature/Estoque/EstoqueTransferenciaTest.php`.
+- **Status: 🧪** _(prova o par de 2 lados + especificidade por local — não-tautológico)._
+
+---
+
+## UC-EST-07 · Estoque inicial (opening) → ENTRA
+- **Fluxo:** informar estoque inicial de um produto num local cria o saldo pela quantidade informada (DOC-RAIZ §3 `opening_stock` → `addSingleProductOpeningStock` → `updateProductQuantity` + Transaction `opening_stock`). Fluxo REAL.
+- **Aceite:** Dado produto sem VLD · Quando opening de 10 no local · Então `qty_available=10`.
+- **Teste:** `tests/Feature/Estoque/EstoqueOpeningStockTest.php`.
+- **Status: 🧪** _(fluxo real `addSingleProductOpeningStock`)._
+
+---
+
+## UC-EST-08 · Fabricação / kit → consome componentes + produz acabado
+- **Fluxo:** montar um kit / produzir um acabado consome o saldo de cada componente pela quantidade da receita (`decreaseProductQuantityCombo`) e entra o saldo do acabado (`updateProductQuantity`).
+- **Aceite:** Dado compA=20 e compB=20 · Quando fabrica com receita [A×2, B×1] · Então A=18, B=19 (quantidades distintas). E: produzir 5 do acabado → acabado=5.
+- **Teste:** `tests/Feature/Estoque/EstoqueFabricacaoTest.php`.
+- **Status: 🧪** _(decomposição de combo/kit; fluxo completo Modules/Manufacturing = UC-EST-08b follow-up)._
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado (heading `## UC-…`) sem teste citando o id = órfão → falha o gate.
@@ -64,10 +96,7 @@ last_run: "2026-07-02"
 > não esquecidos, sem virar dívida no baseline.
 
 - **[BACKLOG] UC-EST-02b — Compra RASCUNHO não entra / RECEIVED entra (decisão de status via `createOrUpdatePurchaseLines`)** — reforço não-tautológico do UC-EST-02: provar que só o status terminal `received` movimenta. Exige fixture de purchase Transaction + purchase_lines.
-- **[BACKLOG] Ajuste de estoque → SAI (normal) / reverte ao deletar** — PR2 (`stock_adjustment` DOC-RAIZ §3).
-- **[BACKLOG] Transferência → SAI origem + ENTRA destino** — PR2.
-- **[BACKLOG] Estoque inicial (opening) → ENTRA** — PR2.
-- **[BACKLOG] Fabricação → consome componentes + produz acabado** — PR2.
+- **[BACKLOG] UC-EST-08b — Fabricação fluxo completo (`Modules/Manufacturing/ProductionController`)** — receita/BOM real consome ingredientes + produz acabado end-to-end (UC-EST-08 cobre a decomposição via `decreaseProductQuantityCombo`).
 - **[BACKLOG] OS OficinaAuto → baixa peça ao concluir** — já coberto por `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemStockBaixaTest.php` (skip-gracioso; roda no CT 100).
 - **[BACKLOG] INV-2/3/5/6** — invariantes, PR3 (rascunho não move · dentro de DB::transaction · `enable_stock=0` não move · tenant isolado biz=1 vs biz=2).
 
@@ -81,3 +110,4 @@ last_run: "2026-07-02"
 ## Trilha do tempo
 - 2026-07-02 · [CC] criado — PR1 do mandato "cobertura real de estoque": `EstoqueFixture` + UC-EST-01/02/03 (venda/compra/devolução) + lane `estoque-pest.yml`. 9 asserts VERDES na lane MySQL (não skip). UCs em 🧪 até `casos:results` capturar o verde no manifesto G-7.
 - 2026-07-02 · [CC] UC-EST-04 (red-spec ❌) — bug Tier 0 confirmado: `Vestuario\DevolucaoService` não reintegra estoque. Contrato pronto (`markTestSkipped`); fix aguarda decisão Wagner (regra mestre VALOR/ESTOQUE).
+- 2026-07-02 · [CC] PR2 — UC-EST-05 ajuste · UC-EST-06 transferência (par 2-lados + conservação) · UC-EST-07 opening (fluxo real) · UC-EST-08 fabricação/kit (decomposição combo).
