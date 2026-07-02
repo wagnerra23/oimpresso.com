@@ -1,6 +1,6 @@
 ---
 date: "2026-07-02"
-topic: "Auditoria das telas do domínio Estoque — inventário (movem/seguram/definem saldo) + cobertura de charter checada por máquina (15/17 Inertia) + veredito: o mapa tela→efeito-no-saldo NÃO é verificado por máquina; propõe gate stock_effect"
+topic: "Auditoria das telas do domínio Estoque — inventário (movem/seguram/definem saldo) + cobertura de charter por máquina (15/17 Inertia) + veredito: efeito-no-saldo não é verificado hoje; mecanismo certo = teste que quebra, não gate de declaração"
 authors: [C]
 type: auditoria
 metodo: "verificação read-only contra origin/main (git ls-tree/cat-file) — inventário de telas + git cat-file por charter"
@@ -65,13 +65,25 @@ ele citou, movem saldo também: transferência entre locais e estoque inicial.
 | **Corretamente?** | O charter descreve design/UX — **não afirma o efeito no saldo** (entra/sai). O fato "PDV baixa estoque" não está no charter; está no DOC-RAIZ. Charter garante existência+design, não a semântica de estoque. |
 | **Verificado por máquina?** | **Existência do charter, sim** (gate `charter_refs` required). **Este mapa, não** — não há gate que afirme "tela X mexe no saldo na direção Y". DOC-RAIZ §4 é referência, não catraca. Hoje é asserção humana, não máquina. |
 
-## 4. Proposta — tornar o mapa máquina-verdadeiro (opcional, futuro)
+## 4. Como tornar isso máquina-verdadeiro — TESTE, não gate de declaração
 
-Análogo ao `dominio:check` (ADR 0264 G-4, que verifica enum↔dicionário): criar um gate **`stock-effect:check`**
-onde cada tela que move saldo declara no charter `stock_effect: entra|sai|hold|ambos` e um script confere
-contra o código (o controller realmente chama `decreaseProductQuantity`/`updateProductQuantity` na direção
-declarada). Assim este diagrama deixa de ser doc-que-envelhece e vira catraca. **Não construir agora** —
-registrado como candidato; entra no radar da governança executável, não no roadmap do Estoque.
+> **Correção (Wagner, 2026-07-02):** a 1ª versão desta seção propôs um gate `stock-effect:check` que
+> conferia uma string `stock_effect` declarada no charter. **Descartado** — é "presença ≠ correção", o
+> anti-padrão já rejeitado nas proibições (§ideias descartadas). O mecanismo certo é **teste que quebra
+> quando o comportamento some** (ADR 0264 casos-gate + ADR 0256), não um gate que confere declaração.
+
+O efeito no saldo não se prova declarando no charter; prova-se com **Pest que assere o delta de
+`qty_available`** por caso de uso, rodando em MySQL (não skip). A régua já existe no `DOC-RAIZ` — a
+**matriz de movimentação (§3)** + as **invariantes (§7)** são os ~13-15 UCs. Cada UC vira um teste que
+quebra se a venda deixar de baixar, a compra de entrar, a devolução de reintegrar. Enforçado pelo
+`casos-gate` que já existe (UC↔teste), sem gate bespoke.
+
+**Estado da cobertura hoje (checado):** só a camada reserva-FSM está testada (StockReservationsTest,
+ConsumirEstoqueAuditTest, ReservarEstoqueBomTest); INV-1 (audit) tem teste; a baixa da OS tem teste mas
+**skipa no sqlite**. Os movimentos-core (venda/compra/devolução/ajuste/transferência/opening/fabricação)
+têm **zero** teste de saldo. Chip aberto pra construir a suíte (fixtures + UCs + Pest MySQL) — se um teste
+revelar bug real (ex.: devolução de venda não reintegra, gap Vestuario), vira red-spec + decisão Tier 0 do
+Wagner (regra mestre VALOR/ESTOQUE), não fix silencioso.
 
 ## 5. Follow-ups (não-bloqueantes)
 - Fundir a coluna charter deste inventário no `DOC-RAIZ §4` (higiene — parte da Onda 0, Chip A).
