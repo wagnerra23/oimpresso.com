@@ -7,7 +7,7 @@
 
 **Ordem de leitura obrigatória:**
 1. **[`COWORK_NOTES.md`](COWORK_NOTES.md) → "📥 Pendentes"** — sua **LISTA DE TAREFAS**. Processe de cima pra baixo; cada item diz o quê · o destino no repo · a natureza (§10.4 / Tier 0).
-2. **[`PROTOCOL.md`](PROTOCOL.md)** — o protocolo (6 papéis × 7 fases · §10.4 · **Passo 0**: `git fetch` + ancorar em `origin/main` fresco antes de validar).
+2. **[`PROTOCOL.md`](PROTOCOL.md)** — o protocolo (**v2 · [ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md): 2 papéis × 3 fases — comece pelo §0 Mapa de vigência**; corpo v1 "6 papéis × 7 fases" preservado como histórico · §10.4 · **Passo 0**: `git fetch` + ancorar em `origin/main` fresco antes de validar).
 3. **[`CLAUDE_CODE_BRIEFING.md`](CLAUDE_CODE_BRIEFING.md)** — briefing do papel [CL].
 4. **Charters de papel** — `CHARTER_GOVERNANCA_W.md` ([W] soberano) + `CHARTER_CHAMPION_AGENTES.md` ([CC]/[CL]/[CD]/[CA]), formalizados na ADR 0242: o que cada papel faz / não faz.
 
