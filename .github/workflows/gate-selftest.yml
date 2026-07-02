@@ -1,16 +1,21 @@
-name: Gate Selftest (advisory)
+name: Gate Selftest
 
 # QUEM VIGIA OS VIGIAS — frente GT-G6 do plano SDD (memory/sessions/
 # 2026-06-12-plano-reestruturacao-sdd-ondas-paralelas.md §2, "TESTADA nível 2").
 #
 # Roda cada catraca de governança contra fixtures VERSIONADAS boa+ruim
 # (tests/governance-fixtures/) e falha se alguma parou de morder (caso ruim
-# passou) ou se a fixture boa avermelhou. Catracas: knowledge-drift --check ·
-# foundation-ratchet · ledger-check --enforce · sdd-scorecard --ratchet ARMADO.
+# passou) ou se a fixture boa avermelhou (46 catracas em 2026-07-01 — cresce
+# com o repo: knowledge-drift, foundation-ratchet, ledger-check, anchor-lint,
+# sdd-scorecard --ratchet ARMADO + counterfactuals P14 do floor, e cia).
 #
-# ADVISORY de nascença (gates novos nunca nascem required — ADR 0271/0275):
-# não está no branch protection. Always-run sem paths = required-ready.
+# Job `selftest` REQUIRED desde 2026-07-02 (Wagner-explícito, pós-avaliação
+# adversarial 75/100 — fechou o risco nº 5: "a prova de que as catracas mordem
+# não bloqueia merge"; um selftest quebrado deixava os gates pararem de morder
+# em silêncio). Nasceu advisory (ADR 0271/0275), rodou verde semanas, 46/46
+# live na avaliação. Always-run sem paths = require-safe (nunca "Expected").
 # Node puro, sem deps/DB/rede — segundos (<60s garantido).
+# O job `hooks-selftest` (windows) SEGUE advisory — runner Windows, mais flaky.
 
 on:
   pull_request:
@@ -26,14 +31,14 @@ permissions:
 
 jobs:
   selftest:
-    name: gate selftest (advisory · fixtures boa/ruim por catraca)
+    name: gate selftest (as catracas mordem · GT-G6)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Selftest — 4 catracas × 2 fixtures (+ tabela no job summary)
+      - name: Selftest — todas as catracas × fixtures boa/ruim (+ tabela no job summary)
         run: node scripts/governance/gate-selftest.mjs
 
   # GT-G6 (cont.) — os ~50 hooks Claude Code (camada que bloqueia o agente em
