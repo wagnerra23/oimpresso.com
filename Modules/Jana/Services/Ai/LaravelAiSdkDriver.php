@@ -360,19 +360,11 @@ class LaravelAiSdkDriver implements AiAdapter
             // semantic conventions. Plugável em Datadog/Langfuse/Arize sem rename.
             $this->emitirOtelGenAi($conv, $mensagem, $response, $durationMs, ok: true);
 
-            // ADR 0132 + ADR 0037 §GAP-1 — Langfuse trace + generation (observability LLM).
-            // Fail-open: telemetria não pode quebrar chat.
-            $this->emitirLangfuseTrace(
-                tool: 'jana-chat',
-                conv: $conv,
-                input: $mensagemPraLlm,
-                output: $texto,
-                tokensIn: $response->usage->promptTokens ?? null,
-                tokensOut: $response->usage->completionTokens ?? null,
-                durationMs: $durationMs,
-                ok: true,
-                memoriaRecallChars: strlen($memoriaContexto),
-            );
+            // ADR 0132 — trace Langfuse de SUCESSO agora emitido globalmente pelo
+            // LangfuseAgentTelemetryListener (event AgentPrompted do laravel/ai).
+            // Emissão local removida 2026-07-02 pra não duplicar trace.
+            // Caminho de ERRO (catch abaixo) mantém emitirLangfuseTrace — exception
+            // aborta o SDK antes do event, então o listener nunca vê a falha.
 
             // MEM-CACHE-1 — grava resposta no cache pra futuras queries similares.
             if (config('copiloto.cache.enabled', true) && $texto !== '') {

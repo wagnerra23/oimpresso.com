@@ -49,6 +49,8 @@ Modules/Jana/Tests/Feature/Mcp/McpAuthUserResolverTest.php
 Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php
 # Linha de saúde dos planos no brief (ADR 0294 Onda 1) — Process::fake, sem DB.
 Modules/Governance/Tests/Feature/PlanHealthBriefLineServiceTest.php
+# Linha de revisão de ADR no brief (ADR 0317 Onda 3 · M3) — Process::fake, sem DB.
+Modules/Governance/Tests/Feature/AdrReviewBriefLineServiceTest.php
 tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php

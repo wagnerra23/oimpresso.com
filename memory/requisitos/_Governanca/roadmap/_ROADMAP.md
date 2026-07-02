@@ -119,7 +119,7 @@ Root-cause REFINADO pós-#3505: a cascata (57% do floor) não é mais era-sqlite
 ### Decisões Wagner pendentes (nunca no calado)
 
 1. **R1 × ADR 0314:** promover full-suite a required rema contra "required = só Tier-0". Alternativas: (a) reabrir a 0314 pra R1 quando floor=0×7 noites; (b) **não promover** — floor vive como métrica armada no GT-G3 (que já é required) + alarme alto de staleness. A recomendação técnica é (b)-até-floor-zero, depois decidir.
-2. **T1/T2 (mapa teste↔arquivo + lane TDAD): CORTE.** Blueprint puro, zero artefato, dependência em cadeia, ROI duvidoso pra 1 dev + IA. Proposta: demover pra feature-wish (ADR 0105) — subtração é melhoria (lição 0271/0314).
+2. **T1/T2 (mapa teste↔arquivo + lane TDAD): CORTE vs EXECUTAR — agora com escopo real.** A proposta de corte (2026-07-01) apontava "dependência em cadeia, zero artefato"; a cadeia caiu em 2026-07-02 (pcov vivo, 1º clover real na nightly CT100). Escopo honesto pra decidir: [T1](T1-mapa-teste-arquivo-per-test.md) (mapa per-test, 1-1.5d + 7 nightlies, nunca vira required) e [T2](T2-tdad-lite-lane-impactados-pr.md) (lane sombra 14d, FN<1%; flip required SÓ reabrindo a 0314). Ambos `proposed` — nada roda sem OK. Se Wagner mantiver o corte, demover pra feature-wish (ADR 0105) citando os docs.
 3. **P14 red-until-fixed coletivo** (Fase 0 acima) — flipar ciente.
 4. **Hotfix do cron distiller** se o Passo 0 do P11 provar scheduler vivo.
 

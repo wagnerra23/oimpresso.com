@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use Modules\Brief\Services\BriefGeneratorService;
 use Modules\Brief\Services\BriefValidator;
 use Modules\Brief\Services\LeaseBriefSectionService;
+use Modules\Governance\Services\AdrReviewBriefLineService;
 use Modules\Governance\Services\PlanHealthBriefLineService;
 use Modules\Governance\Services\ShippedLogBriefLineService;
 use Modules\Governance\Services\SddBriefLineService;
@@ -65,6 +66,13 @@ final class GenerateBriefCommand extends Command
         // shipped-log-generate.mjs --json. Best-effort: node ausente / registro
         // não-deployado → brief intacto. Catraca-irmã do gate shipped-log-gate.yml.
         $content = app(ShippedLogBriefLineService::class)->inject($content);
+
+        // ADR 0317 Onda 3 (M3) — linha de REVISÃO DE ADR (pós-LLM, determinística)
+        // na seção FLAGS: shell-out de memory-health.mjs --json, filas Check O
+        // (morta-mas-canon) + R (revisão vencida), teto de vazão top-3. Cauda
+        // completa sai no flush trimestral `governance:adr-review-flush` (Kernel
+        // quarterlyOn). Best-effort: node ausente / filas vazias → brief intacto.
+        $content = app(AdrReviewBriefLineService::class)->inject($content);
 
         // C2+C3 (SDD Leva 2, ADR 0278) — bloco de leases ATIVOS + nudge "claim
         // antes de pegar", injetado sob `## EM VOO AGORA`. Best-effort (pós-LLM):

@@ -226,6 +226,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // ADR 0317 Onda 3 (M3) — flush trimestral da fila de revisão de ADR (Checks O/R
+        // do memory-health). A linha diária do brief tem teto de vazão (top-3); este
+        // flush despeja a fila COMPLETA no console + log estruturado pra triagem Onda 4.
+        // NÃO escreve arquivo (vetor P11: write em árvore deployada sem git se perde).
+        // quarterlyOn(1, '06:50') = mesmo eixo 06:00-06:50 BRT, após skills:tier-review.
+        // Cross-tenant intencional (memory/ é governança, sem business_id — ADR 0093).
+        $schedule->command('governance:adr-review-flush')
+            ->quarterlyOn(1, '06:50')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule governance:adr-review-flush FALHOU — investigar storage/logs/laravel.log'
+                );
+            });
+
         // Distiller-módulo-verdade ([ADR 0291] · keystone SDD×memória, peça 2).
         // Reescreve as portas BRIEFING.md a partir dos eventos recentes (diário).
         // RE-COMENTADO 2026-07-01 (kill-switch, incidente Passo 0 do P11): o bloco foi

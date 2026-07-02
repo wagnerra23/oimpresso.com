@@ -69,13 +69,22 @@ jobs:
       - name: Read-side do floor — meta-teste (hard · ADR 0279 PR-1 · US-GOV-023)
         run: node scripts/governance/sdd-floor-read.test.mjs
 
-      - name: Materializa o floor da branch governance/nightly-floor (ADR 0279 transporte)
+      - name: Materializa floor + coverage da branch governance/nightly-floor (ADR 0279/0275 transporte)
         run: |
           if git fetch origin governance/nightly-floor --depth 1 2>/dev/null \
              && git show FETCH_HEAD:governance/nightly-floor.json > governance/nightly-floor.json 2>/dev/null; then
             echo "floor materializado da branch governance/nightly-floor:"; cat governance/nightly-floor.json
           else
             echo "::warning::branch/arquivo de floor ausente — nada a aterrissar (read-side cai em not_yet_measured)"
+          fi
+          # SDD P07 (ADR 0275 §2): sem esta materialização o scorecard PUBLICADO nunca
+          # veria coverage_pct measured (o ratchet materializava, o publish não — o
+          # aterrissado em main ficava not_yet_measured pra sempre). Soft: coverage
+          # ausente na órfã = read-side cai em not_yet_measured honesto, nunca mente 0.
+          if git show FETCH_HEAD:governance/nightly-coverage.json > governance/nightly-coverage.json 2>/dev/null; then
+            echo "coverage materializado:"; cat governance/nightly-coverage.json
+          else
+            echo "coverage ausente na órfã — coverage_pct segue not_yet_measured"
           fi
 
       - name: Medir — agregador reescreve governance/sdd-scorecard.json

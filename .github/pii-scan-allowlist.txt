@@ -1,0 +1,13 @@
+# pii-scan-allowlist.txt — allowlist EXTERNA do PII scan (governance-gate Job 3)
+#
+# Uso EXCLUSIVO pra CPF/CNPJ SINTÉTICO/fake em arquivo append-only (ADR canon,
+# handoff) onde o marker inline `pii-allowlist` violaria o append-only Job 1.
+# Em qualquer outro arquivo, use o marker inline na própria linha.
+#
+# Formato: caminho/relativo/do/arquivo.md|literal-fake-exato
+# Regra dura: PII REAL JAMAIS entra aqui — real se redige ([REDACTED]) na fonte.
+#
+# Catalogado 2026-07-02: CNPJ fake de exemplo dos contract tests (ADR 0205/0207)
+# — número sintético clássico usado nos fixtures, não corresponde a empresa real.
+memory/decisions/0205-contract-tests-autosave-padrao-canonico.md|11.222.333/0001-44
+memory/decisions/0207-contract-test-obrigatorio-pr-tela-autosave.md|11.222.333/0001-44
