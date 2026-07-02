@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-10
+decided_at: "2026-05-10"
 module: Sells
 tags: [arquitetura, fsm, state-machine, rbac, side-effects, multi-tenant, sells, repair, projectmgmt, nfe-brasil, fiscal-br]
 supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0093, 0094, 0011, 0070, 0095, 0121]
+related: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0011-alinhamento-padrao-jana, 0070-jira-style-task-management-current-md-removed, 0095-skills-tiers-convencao-interna, 0121-oimpresso-modular-especializado-por-vertical]
 pii: false
 review_triggers:
   - "Spatie/laravel-model-states ou symfony/workflow ganharem multi-tenant nativo + parametrização runtime via UI → reavaliar adoção"

@@ -6,7 +6,7 @@ type: adr
 status: proposto
 authority: canonical
 lifecycle: ativo
-kind: infra
+kind: decision
 decided_by: [W]
 decided_at: "2026-06-21"
 module: infra

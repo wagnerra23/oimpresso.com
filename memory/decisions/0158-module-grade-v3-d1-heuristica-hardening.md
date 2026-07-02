@@ -7,16 +7,16 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
+decided_at: "2026-05-16"
 accepted_at: 2026-05-16
 review_at: 2026-05-23
 module: Governance
 quarter: 2026-Q2
 tags: [governance, rubrica, d1-multitenancy, hardening, falso-positivo, falso-negativo]
 supersedes: []
-supersedes_partially: [0155]
+supersedes_partially: [0155-module-grade-v3-sub-dimensoes-gate-ci]
 superseded_by: []
-related: [0155, 0156, 0157, 0154, 0153, 0094, 0093]
+related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0157-module-grade-v3-d2-detection-hardening, 0154-module-grade-v2-na-justificado, 0153-module-grade-rubrica-v1, 0094-constituicao-v2-7-camadas-8-principios, 0093-multi-tenant-isolation-tier-0]
 pii: false
 review_triggers:
   - Quando >3 módulos beneficiados/penalizados pelo recursive caírem na ressalva

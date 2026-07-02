@@ -4,9 +4,9 @@ title: "PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via 6º gateway a
 status: aceito
 decided_by: [W]
 decided_at: "2026-05-19"
-related: [0017, 0093, 0094, 0105, 0170]
+related: [0017-officeimpresso-restaurado-superadmin-exclusivo, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0170-paymentgateway-extracao-camada-cobranca]
 supersedes: []
-amends: [0170]
+amends: [0170-paymentgateway-extracao-camada-cobranca]
 tipo: amendment
 trust_required: tier-0
 slug: 0170-onda5-simplificada

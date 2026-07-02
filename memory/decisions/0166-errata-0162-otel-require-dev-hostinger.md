@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-17
+decided_at: "2026-05-17"
 accepted_at: 2026-05-17
 review_at: 2026-11-17
 module: Governance
@@ -16,7 +16,7 @@ tags: [errata, opentelemetry, composer, hostinger, deploy, runtime-separation, c
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0062, 0094, 0143, 0156, 0162]
+related: [0062-separacao-runtime-hostinger-ct100, 0094-constituicao-v2-7-camadas-8-principios, 0143-fsm-pipeline-live-prod-marco-2026-05-12, 0156-module-grade-v3-errata-otel-helper-na-justified, 0162-otel-collector-prod-observability]
 pii: false
 review_triggers:
   - Se Hostinger migrar de shared hosting pra VPS dedicada com PECL próprio (ext-opentelemetry passa a estar disponível) — reavaliar move dev→require (cenário ADR 0062 review_triggers)

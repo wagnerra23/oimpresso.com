@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-17
+decided_at: "2026-05-17"
 accepted_at: 2026-05-17
 review_at: 2026-08-17
 module: Infra
@@ -16,7 +16,7 @@ tags: [observability, opentelemetry, otel-collector, tempo, grafana, governance,
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0058, 0062, 0094, 0155, 0156, 0160, 0161]
+related: [0058-reverb-substituido-por-centrifugo-frankenphp, 0062-separacao-runtime-hostinger-ct100, 0094-constituicao-v2-7-camadas-8-principios, 0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0160-governance-v4-scoped-scorecards-buckets, 0161-governance-v4-aposentar-hacks-0159-redundantes]
 pii: false
 review_triggers:
   - Se >1% overhead p99 detectado em prod (3 dias consecutivos) — reduzir sampling pra 1%

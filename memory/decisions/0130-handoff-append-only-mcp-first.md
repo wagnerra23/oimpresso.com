@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-10
+decided_at: "2026-05-10"
 module: Governance
 tags: [governanca, handoff, memoria, mcp, append-only, sessoes-paralelas]
 supersedes: []
 supersedes_partially: []
 amends: [0070]
 superseded_by: []
-related: [0027, 0040, 0061, 0070, 0091, 0094, 0114, 0119]
+related: [0027-gestao-memoria-roles-claros, 0040-policy-publicacao-claude-supervisiona, 0061-conhecimento-canonico-git-mcp-zero-automem, 0070-jira-style-task-management-current-md-removed, 0091-daily-brief, 0094-constituicao-v2-7-camadas-8-principios, 0114-prototipo-ui-cowork-loop-formalizado, 0119-paralelismo-sessoes-whats-active-tier-1]
 pii: false
 review_triggers:
   - "Mais de 1 incidente de perda de narrativa entre sessões em 30d após implementação → endurecer regra com hook bloqueador (item P2 deste ADR)"

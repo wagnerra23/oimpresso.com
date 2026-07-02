@@ -7,16 +7,16 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
+decided_at: "2026-05-16"
 accepted_at: 2026-05-16
 review_at: 2026-08-16
 module: Governance
 quarter: 2026-Q2
 tags: [governance, v4, scoped-scorecards, lenses, buckets, meta-por-bucket, anti-gaming, score-as-code]
 supersedes: []
-supersedes_partially: [0155, 0159]
+supersedes_partially: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0159-module-grade-v3-errata-meta-97-realismo]
 superseded_by: []
-related: [0155, 0156, 0157, 0158, 0159, 0093, 0094, 0105]
+related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0157-module-grade-v3-d2-detection-hardening, 0158-module-grade-v3-d1-heuristica-hardening, 0159-module-grade-v3-errata-meta-97-realismo, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar]
 pii: false
 review_triggers:
   - Quando 3+ módulos abusarem mudança de bucket sem label aprovação (gaming)

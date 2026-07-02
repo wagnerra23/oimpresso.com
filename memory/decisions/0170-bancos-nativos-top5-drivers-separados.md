@@ -5,9 +5,9 @@ status: aceito
 decided_by: [W]
 proposed_by: [Claude]
 decided_at: "2026-05-25"
-related: [0093, 0094, 0105, 0106, 0170, 0170-onda5-simplificada]
+related: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0170-paymentgateway-extracao-camada-cobranca, 0170-onda5-simplificada]
 supersedes: []
-amends: [0170]
+amends: [0170-paymentgateway-extracao-camada-cobranca]
 tipo: amendment
 trust_required: tier-0
 slug: 0170-bancos-nativos-top5-drivers-separados

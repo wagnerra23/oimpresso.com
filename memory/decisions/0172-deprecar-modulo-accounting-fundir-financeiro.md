@@ -6,7 +6,8 @@ decided_at: "2026-05-20"
 accepted_at: 2026-05-20
 decided_by: [W]
 authors: [wagner]
-supersedes:
+supersedes: []
+supersedes_docs: # ARQ docs de módulo (fora do padrão NNNN-slug do schema; info preservada)
   - memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md
   - memory/requisitos/Accounting/adr/arq/0001-contabilidade-isolada-do-financeiro-transacional.md
 derived_adrs:

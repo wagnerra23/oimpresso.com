@@ -7,16 +7,16 @@ status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
+decided_at: "2026-05-16"
 proposed_at: 2026-05-16
 review_at: 2026-05-23
 module: Governance
 quarter: 2026-Q2
 tags: [governance, errata, rubrica, meta-97, realismo, cross-cutting]
 supersedes: []
-supersedes_partially: [0155, 0156]
+supersedes_partially: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified]
 superseded_by: []
-related: [0155, 0156, 0157, 0158, 0153, 0154, 0094, 0105]
+related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0157-module-grade-v3-d2-detection-hardening, 0158-module-grade-v3-d1-heuristica-hardening, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar]
 pii: false
 review_triggers:
   - Quando média global da rubrica ultrapassar 97.75 (meta Wagner) e tendência continuar subindo → considerar reapertar D5

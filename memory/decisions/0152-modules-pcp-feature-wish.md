@@ -5,9 +5,10 @@ title: "Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto"
 type: adr
 status: proposto
 authority: canonical
-lifecycle: ativo # era feature_wish (fora do enum do schema; wish segue em status proposto + ADR 0105)
+lifecycle: ativo
+kind: feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (ADR 0257/0105)
 decided_by: [W]
-decided_at: 2026-05-15
+decided_at: "2026-05-15"
 module: Pcp
 quarter: 2026-Q4
 tags: [arquitetura, modular, cross-vertical, pcp, apontamento, feature-wish, sinal-qualificado, adr-0105]
@@ -15,7 +16,7 @@ supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0105, 0121, 0093, 0094, 0125, 0143, 0104, 0106, 0137]
+related: [0105-cliente-como-sinal-guiar-sem-mandar, 0121-oimpresso-modular-especializado-por-vertical, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0125-modules-autopecas-feature-wish, 0143-fsm-pipeline-live-prod-marco-2026-05-12, 0104-processo-mwart-canonico-unico-caminho, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0137-modules-oficinaauto-qualificada]
 pii: false
 review_triggers:
   - "Vargas (ADR 0125) assinar + demandar apontamento multi-mecânico (recapagem 2-3 mecânicos por OS — gateway US-PCP-007 + US-PCP-014)"

@@ -7,16 +7,16 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
+decided_at: "2026-05-16"
 proposed_at: 2026-05-16
 review_at: 2026-08-16
 module: Governance
 quarter: 2026-Q2
 tags: [governance, deprecation, rubrica, v4, scoped-scorecards, hacks]
 supersedes: []
-supersedes_partially: [0159]
+supersedes_partially: [0159-module-grade-v3-errata-meta-97-realismo]
 superseded_by: []
-related: [0159, 0160, 0155, 0156, 0157, 0158, 0153, 0154, 0094]
+related: [0159-module-grade-v3-errata-meta-97-realismo, 0160-governance-v4-scoped-scorecards-buckets, 0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0157-module-grade-v3-d2-detection-hardening, 0158-module-grade-v3-d1-heuristica-hardening, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0094-constituicao-v2-7-camadas-8-principios]
 pii: false
 review_triggers:
   - Quando `governance.v4_enabled=true` virar default em prod (Hostinger biz=1 + biz=4) → remover branches v3 hack do Service (dead code cleanup)

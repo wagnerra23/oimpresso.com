@@ -7,13 +7,13 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
-decided_at: 2026-05-13
+decided_at: "2026-05-13"
 accepted_at: 2026-05-13
 decided_by: [W]
 module: governance
-supersedes_partially: [0070]
+supersedes_partially: [0070-jira-style-task-management-current-md-removed]
 superseded_by: []
-related: [0053, 0070, 0093]
+related: [0053-mcp-server-governanca-como-produto, 0070-jira-style-task-management-current-md-removed, 0093-multi-tenant-isolation-tier-0]
 tags: [governance, tasks, mcp, taskregistry, sync, webhook]
 ---
 

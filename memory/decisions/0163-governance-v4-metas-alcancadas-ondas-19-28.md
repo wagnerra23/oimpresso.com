@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-17
+decided_at: "2026-05-17"
 accepted_at: 2026-05-17
 review_at: 2026-08-17
 module: Governance
@@ -16,7 +16,7 @@ tags: [governance, v4, scoped-scorecards, metas, ondas-19-28, milestone, dual-mo
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0155, 0156, 0157, 0158, 0159, 0160, 0161, 0162, 0094, 0105]
+related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0156-module-grade-v3-errata-otel-helper-na-justified, 0157-module-grade-v3-d2-detection-hardening, 0158-module-grade-v3-d1-heuristica-hardening, 0159-module-grade-v3-errata-meta-97-realismo, 0160-governance-v4-scoped-scorecards-buckets, 0161-governance-v4-aposentar-hacks-0159-redundantes, 0162-otel-collector-prod-observability, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar]
 pii: false
 review_triggers:
   - Quando dual-mode v3/v4 completar 30 dias estável em prod (aposentar v3 código + UI)

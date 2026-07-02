@@ -7,16 +7,16 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
+decided_at: "2026-05-16"
 accepted_at: 2026-05-16
 review_at: 2026-05-23
 module: Governance
 quarter: 2026-Q2
 tags: [governance, errata, observability, na-justified, backward-compat]
 supersedes: []
-supersedes_partially: [0155]
+supersedes_partially: [0155-module-grade-v3-sub-dimensoes-gate-ci]
 superseded_by: []
-related: [0155, 0154, 0153, 0094]
+related: [0155-module-grade-v3-sub-dimensoes-gate-ci, 0154-module-grade-v2-na-justificado, 0153-module-grade-rubrica-v1, 0094-constituicao-v2-7-camadas-8-principios]
 pii: false
 review_triggers:
   - Quando OTel SDK consolidar e D6.b virar hard check (também trigger 0155)
