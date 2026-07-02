@@ -118,7 +118,11 @@ jobs:
             tests/Feature/Estoque/EstoqueAjusteTest.php \
             tests/Feature/Estoque/EstoqueTransferenciaTest.php \
             tests/Feature/Estoque/EstoqueOpeningStockTest.php \
-            tests/Feature/Estoque/EstoqueFabricacaoTest.php
+            tests/Feature/Estoque/EstoqueFabricacaoTest.php \
+            tests/Feature/Estoque/EstoqueInvarianteRascunhoTest.php \
+            tests/Feature/Estoque/EstoqueInvarianteTransacaoTest.php \
+            tests/Feature/Estoque/EstoqueInvarianteEnableStockTest.php \
+            tests/Feature/Estoque/EstoqueInvarianteTenantTest.php
 
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}
