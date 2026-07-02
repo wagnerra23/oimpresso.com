@@ -15,33 +15,33 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 88.4,
+      "value": 88.9,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 88.4,
+        "coverage_pct": 88.9,
         "specs_total": 58,
-        "us_total": 859,
-        "anchor_coverage_pct": 88.4,
+        "us_total": 903,
+        "anchor_coverage_pct": 88.9,
         "by_state": {
           "sem_campo": 100,
           "placeholder": 0,
-          "pendente": 352,
-          "parcial": 114,
-          "anchored_ok": 293,
+          "pendente": 362,
+          "parcial": 119,
+          "anchored_ok": 322,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 764,
+        "fields_total": 808,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 722,
+        "fields_grammar_ok": 766,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 230,
-        "req_sem_covering_test_total": 360,
+        "req_sem_aceite_total": 264,
+        "req_sem_covering_test_total": 394,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 42,
         "behavior_known": false,
@@ -51,7 +51,7 @@
           "covering_test": 0,
           "covers": 0
         },
-        "v1_files": 2,
+        "v1_files": 5,
         "v1_violations": "0"
       },
       "stream": "SA"
@@ -218,10 +218,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 29,
+        "entries_aprovadas": 33,
         "max_error_rate_pct": 1.82,
-        "last_pr": 3654,
-        "last_lote": "SA-A5-P10-inventory-pendente-parking"
+        "last_pr": 3664,
+        "last_lote": "SA-A5-baldeD-arquivos"
       },
       "stream": "GT"
     }
