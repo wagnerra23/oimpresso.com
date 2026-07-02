@@ -3,11 +3,11 @@ slug: 0121-oimpresso-modular-especializado-por-vertical
 number: 121
 title: "oimpresso é ERP modular especializado por vertical — núcleo comum + Modules/<Vertical> profundo"
 type: adr
-status: aceito
+status: aceita
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: "2026-05-10"
+decided_at: 2026-05-10
 module: null
 quarter: 2026-Q2
 tags: [arquitetura, posicionamento, modular, multi-vertical, produto, business-strategy]
@@ -15,7 +15,7 @@ supersedes: []
 supersedes_partially: []
 amends: [0011]
 superseded_by: []
-related: [0011-alinhamento-padrao-jana, 0024-instalacao-1-clique-modulos, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0105-cliente-como-sinal-guiar-sem-mandar, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0119-migration-factory-capacidade-institucional]
+related: [0011, 0024, 0093, 0094, 0105, 0106, 0119]
 pii: false
 review_triggers:
   - "terceiro módulo vertical em produção com 3+ clientes pagando (atual: 0; previsto: ComunicacaoVisual, Vestuario, OficinaAuto)"
