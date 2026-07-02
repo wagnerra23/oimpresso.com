@@ -5,6 +5,26 @@
 > **Última revisão:** 2026-05-31 (reconciliação [CL] — conteúdo base 1.0 = 2026-05-09)
 > **🔁 v2 (colapso) — ratificado em [ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md) (2026-06-17):** 6→2 papéis · 7→3 fases · memória=git SSOT · intake=Issues/`cowork-inbox` · gates=CI (a11y-axe required) · code write-path com review-gate. **O overlay autônomo do §2 é o modelo principal da v2.** v1 preservado (append-only — o histórico fica).
 
+## 0. Mapa de vigência (v2 — leia isto primeiro)
+
+> Inserido 2026-07-02, pós-ratificação da v2 ([ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)). **Nada abaixo foi movido ou renumerado** — os identificadores §1–§11 e §10.1–10.5 são API referenciada por código em prod (`jana:health-check`/`CharterHealthChecker` → §6), CI (`design-return-gate.yml` → §10.2), hook (`git-base-freshness-guard.mjs` → §10.4 Passo 0) e ADRs append-only (0114 · 0241 · 0247 · 0255). Este mapa só diz **o que de cada seção ainda vale na v2**.
+
+| Seção | Status v2 | Nota |
+|---|---|---|
+| §1 Os 6 papéis | 🪦 superado | v2 = **2 papéis**: `[CC]` designer-agente (F1 + abre PR) · `[W]` aprovador Tier 0. `[CD]`/`[CA]`/`[W2]` → CI; `[CL]` → Cowork commitando / agente de tradução ([ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)) |
+| §2 As fases | 🟡 corpo superado · **overlay VIGENTE** | o overlay autônomo (+ atualização v2 no fim dele) **é o modelo principal**: F0 brief → F1 design + auto-checks → gates CI → merge |
+| §3 Critérios de transição | 🪦 superado | gates humanos (F1.5/F2/F3.5/F4) viraram checks de CI — ver overlay §2 |
+| §4 Onde cada fase escreve | 🟡 parcial | `COWORK_NOTES.md` **congelada** — intake via Issue `cowork-intake` ou `cowork-inbox/`; `SYNC_LOG.md`/`HANDOFF.md` seguem vivos (§10.2) |
+| §5 Override autorizado | 🪦 superado na forma | os gates que ele pulava viraram CI; o espírito (exceção documentada) segue via ADR per-tela `lifecycle: historical` |
+| §6 Métricas de saúde | ✅ **VIGENTE** | implementado e rodando: checks `design_*` no `jana:health-check` + `CharterHealthChecker` + `DesignReviewFreshnessTest` |
+| §7 Batch | ✅ VIGENTE | adaptar o F0 ao intake v2 (1 Issue com N telas); resto vale |
+| §8 Anti-padrões | 🟡 parcial | `SYNC_LOG` append-only, backpressure, não-editar-protótipo seguem; itens de aprovação síncrona `[W]`/screenshot → superados (CI) |
+| §9 Ciclo de vida `prototipos/` | 🟡 parcial | fluxo de arquivos segue; aprovações humanas citadas → gates CI |
+| §10 (10.1–10.5) + Esteira≠armazém | ✅ **VIGENTE** | gatilhos ida/retorno, gate §10.4 (Passo 0), bundle §10.5, régua 6 |
+| §11 Links | ✅ referência | — |
+
+**Estado vivo (cache datado 2026-07-02 — fonte da verdade = branch protection do `main` via `gh api`, não este doc):** 23 checks required · `enforce_admins:true` · `reviews:0`. `visual-regression` **é** required; **a11y-axe e PR UI Judge são advisory hoje** — a frase "a11y-axe required" do banner refletia a Onda C da 0282 e foi alterada depois pela poda [ADR 0314](../memory/decisions/proposals/0314-poda-gates-onda-2-lei-fusoes.md) (required = só Tier-0). Estado vivo de merge/enforcement: **[AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md) §2–§3** (casa declarada — ex.: `gh pr merge --admin` MORTO pós-ADR 0271).
+
 ## 1. Os 6 papéis
 
 | Sigla | Quem | Onde vive | O que faz |
@@ -47,6 +67,11 @@ Sem fase pulada. Mesmo princípio do MWART process ([ADR 0104](../memory/decisio
 > - **FICA humano (Tier 0):** ADR novo · mudança multi-tenant · segredos/Vaultwarden · lógica de lint/tooling · decisão de produto.
 >
 > **Cadeia efetiva (0-humano):** `F0 [W] brief` → `F1 [CC] design + auto-crítica + auto-a11y` → `gates CI (UI Judge + visual-regression + lint + Pest)` → `F3 [CL] aplica no repo + PR` → `merge autônomo se CI verde`. O 7→4-hop proposto no `COWORK_NOTES` (Cowork, com [W] ainda no merge) está **superado** por este modelo.
+>
+> **🔁 Atualização v2 ([ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md) 2026-06-17 · estado conferido 2026-07-02):**
+> - **Intake:** `COWORK_NOTES.md` **congelada** pra itens novos — F0 entra por GitHub Issue (template `cowork-intake`, Onda B PR #2880) ou `cowork-inbox/`.
+> - **Write-paths (Onda D PR #2876 + [ADR 0283](../memory/decisions/0283-handoff-loop-zero-paste.md)):** docs via `cowork-inbox` auto-mergeiam; **código (`resources/js/**`) = PR + review humano, NUNCA auto-merge**.
+> - **Merge hoje:** o "`gh --admin`" acima está **MORTO** (`enforce_admins:true` pós-ADR 0271) — merge é `gh pr merge --squash` normal com os checks required verdes; bot `grokwr2` segue bloqueado ([ADR 0283](../memory/decisions/0283-handoff-loop-zero-paste.md)). Estado vivo: [AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md) §2–§3 + Mapa de vigência (§0).
 
 ## 3. Critérios de transição entre fases
 
