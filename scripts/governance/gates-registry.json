@@ -11,6 +11,13 @@
     }
   },
   "workflows": {
+    "arquivos-pest.yml": {
+      "nome": "Arquivos · Pest (MySQL) — audit-log/download/enum rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "sinal de custo: #3658 introduziu crash em `arquivos:audit-log --suspicious` (DB::table(raw,[bind]) → Expression-to-string em QUALQUER MySQL) + os testes signed_url_consumed são MySQL-only e ficavam skip na modules-pest (SQLite) = falsa cobertura; lane #3666 expôs e fechou o bug. Skip-as-pass já é required-ready (ADR 0271 onda 2).",
+      "promote_by": "2026-07-16"
+    },
     "baseline-tamper-guard.yml": {
       "nome": "Baseline tamper-guard (anti-grandfather · afrouxar baseline + código no mesmo PR · ADR 0256/0258 · Gap-2 blueprint SDD)",
       "classe": "gate"

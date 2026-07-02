@@ -157,12 +157,15 @@ it('--business=1 filtra logs e não vaza biz=2', function () {
     $output = Artisan::output();
     // Deve ter algum resultado (biz=1 classify existe).
     expect($output)->not->toContain('Nenhum registro encontrado');
-    // Verificar que biz=2 não vaza: arquivo_id=9904 não deve aparecer como parte de
-    // um row com biz=2 no output — olhamos pela ausência do ID 9904 na coluna biz.
-    // O output da tabela Artisan mostra "| 2 |" na coluna biz — verificamos ausência.
-    // Nota: pode haver "2" em outros contextos (linha número), então a verificação
-    // é que o business_id=1 está presente no output.
-    expect($output)->toContain('| 1 |');
+
+    // Isolamento multi-tenant via arquivo_id da fixture (robusto — NÃO depende do
+    // padding da coluna `biz` na tabela Symfony, que estica pra "| 1   |" no MySQL
+    // real e quebrava o antigo `toContain('| 1 |')`, um artefato de formatação, não
+    // vazamento). O arquivo_id é um valor da coluna, sempre presente literalmente:
+    //   - 9903 (biz=1) DEVE aparecer — filtro --business=1 o inclui.
+    //   - 9904 (biz=2) NÃO pode aparecer — o filtro --business=1 o exclui (Tier 0).
+    expect($output)->toContain('9903');
+    expect($output)->not->toContain('9904');
 });
 
 // ---------------------------------------------------------------------------
