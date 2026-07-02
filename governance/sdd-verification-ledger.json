@@ -462,6 +462,23 @@
       "pii_hits": 0,
       "evidencia": "refutacao rodada 2 pos-correcao (comment no PR #3576) — 014 agora _parcial_ ancorado no linker (2 paths existem em 176f9bc, falta real = wiring Bloco B dep. US-CRM-012); 21 restantes byte-identicos. Colisao US-CRM-077 Crm×Cliente verificada inexistente. anchor-lint coverage 100, dead 0, zombie 0, grammar 23/23. Cobre PR #3576.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3627,
+      "lote_id": "SA-A5-P10w3-nfse",
+      "data": "2026-07-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 3 lote B, sessao isolada)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 15,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao 100% (task ad-hoc worktree anchors-lote-b @0bb65dd) — 9 anchored_ok + 2 _parcial_ (007 observer LC116 hardcode, 011 falta golden E2E) + 4 _pendente_ (012/013 operacional, 014 tela config inexistente, 015 consultar/cancelar nao per-business) todos CONFIRMADOS contra codigo real; casing Modules/NFSe vs Pages/Nfse verificado; NFSe nao ancorado em NfeBrasil/NFe. anchor-lint coverage 100, dead 0, zombie 0, grammar 15/15. Ressalva menor nao-contabilizada: US-005 idempotencia vive em NfseEmissaoPayload::idempotencyKey nao montarPayload. Cobre PR #3627.",
+      "veredito": "aprovado"
     }
   ]
 }
