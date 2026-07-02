@@ -7,21 +7,12 @@
 
 ---
 
-> **Nota Onda 0 (2026-07-02) — repartição de compra NÃO está 100% concluída (P5 segue ADIADO).**
-> Verificação contra `origin/main` **inverteu a premissa** do mapa interno: os RUNBOOKs que ainda vivem
-> nesta pasta — [`RUNBOOK-create.md`](RUNBOOK-create.md) (`last_validated 2026-06-22`),
-> [`RUNBOOK-index.md`](RUNBOOK-index.md) (`2026-06-17`) e [`create-visual-comparison.md`](create-visual-comparison.md)
-> (`2026-06-22`) — **NÃO são "versões antigas" a descartar**: são os **mais novos/canônicos** (o `/purchases`
-> real, live). As cópias em `Compras/_telas/` (`RUNBOOK-purchase-create.md`/`-edit.md`, geradas 2026-05-15) são
-> **mais velhas MAS com conteúdo complementar** (tabela de Props, Persona) — logo **não dá pra sobrescrever
-> nem tombar cegamente** (perderia conteúdo dos dois lados). `RUNBOOK-index.md` (`/purchases`) também **não**
-> tem par em Compras: `Compras/RUNBOOK-compras-index.md` é do cockpit greenfield `/compras` (scaffold, tela
-> ainda não existe) — telas diferentes.
+> **P5 CONCLUÍDA (2026-07-02) — repartição de compra 100% em `Compras/_telas/`.** Wagner desadiou a fatia.
+> Os RUNBOOKs de compra viviam **duplicados/divergentes** entre esta pasta e `Compras/_telas/`. Resolvido por
+> **merge** (não sobrescrita cega — os dois lados tinham conteúdo complementar):
+> - [`Compras/_telas/RUNBOOK-purchase-create.md`](../Compras/_telas/RUNBOOK-purchase-create.md) — funde o operacional novo (dual-path + modo grade + etiquetas + smoke, era `Purchase/RUNBOOK-create.md` 2026-06-22) **com** o contrato de referência antigo (Props/Layout/Validação/fases MWART). Frontmatter compliant + `spec_ref` → `Compras/SPEC.md`.
+> - [`Compras/_telas/RUNBOOK-purchase-index.md`](../Compras/_telas/RUNBOOK-purchase-index.md) — **novo**, do `/purchases` real (era `Purchase/RUNBOOK-index.md`; ≠ do cockpit greenfield `/compras`).
+> - [`Compras/_telas/RUNBOOK-purchase-edit.md`](../Compras/_telas/RUNBOOK-purchase-edit.md) — frontmatter trazido pro schema + `spec_ref` corrigido.
+> - [`Compras/_telas/purchase-create-visual-comparison.md`](../Compras/_telas/purchase-create-visual-comparison.md) — o gate visual do **modo grade** (US-COM-005) foi incorporado.
 >
-> **Pendente (fica com Wagner — é a fatia ADIADA "alto custo/risco"):** um **merge** revisado dos RUNBOOKs
-> de compra pra `Compras/_telas/` (mantendo o conteúdo novo + o complementar antigo, com correção de
-> profundidade dos links) + trazer os `Compras/_telas/RUNBOOK-purchase-*.md` legados pro schema
-> (`title`/`owner`/`last_validated`, `status` no enum) e corrigir seu `spec_ref` (hoje aponta pra
-> `Inventory/SPEC.md`; o correto é `Compras/SPEC.md` US-COM-005). **Onda 0 fez só a higiene segura:**
-> corrigiu os ponteiros `runbook:` mortos das visual-comparisons (apontavam pra `Inventory/RUNBOOK-*`
-> inexistentes). Ver plano `memory/sessions/2026-07-02-plano-consolidacao-estoque.md` §4 Onda 0.
+> Os 3 residuais desta pasta (`RUNBOOK-create.md`, `RUNBOOK-index.md`, `create-visual-comparison.md`) foram **removidos** (conteúdo preservado no merge). Pasta Purchase agora só carrega esta lápide. Verdade viva → [`Compras/BRIEFING.md`](../Compras/BRIEFING.md). Ver session log `memory/sessions/2026-07-02-p5-purchase-compras-merge.md`.

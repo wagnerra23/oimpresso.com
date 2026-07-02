@@ -69,9 +69,9 @@
 | P2 | PontoWr2 ↔ Ponto | rename incompleto; órfã tem 13 docs, porta nova tem 4 | FUNDIR PontoWr2→Ponto | ok |
 | P3 | LaravelAI ↔ Jana | mesmo conceito, fase anterior; 15 docs | FUNDIR→Jana (HISTORICAL) | ok |
 | P4 | MemCofre ↔ SRS | **JÁ RESOLVIDO**: lápide em MemCofre/BRIEFING + DEPRECATION-PLAN aprovado (Caminho 1) | nenhuma ação nova; manter lápide | ok |
-| P5 | Purchase ↔ Compras | 2 pastas pro mesmo domínio (telas core EN + módulo PT scaffold) | FUNDIR Purchase→Compras | ADIADO (cluster Estoque) |
-| P6 | Produto ↔ ProductCatalogue ↔ Inventory | docs de produto em 3 pastas; ProductCatalogue é módulo DISTINTO (catálogo público QR) | Produto = porta das telas core; ProductCatalogue intocado; Inventory reparte | ADIADO (cluster Estoque) |
-| P7 | Estoque ↔ Inventory ↔ StockAdjustment ↔ StockTransfer | 4 pastas pro domínio estoque; Estoque tem o DOC-RAIZ canônico (2026-06-04) | consolidar em Estoque | ADIADO — só porta Estoque agora; consolidação adiada |
+| P5 | Purchase ↔ Compras | 2 pastas pro mesmo domínio (telas core EN + módulo PT scaffold) | FUNDIR Purchase→Compras | ✅ **FEITO 2026-07-02** (Wagner desadiou) — merge dos RUNBOOKs Purchase→`Compras/_telas/` concluído (create fundido novo+antigo, index novo, edit compliant, visual-comparison grade incorporada); `Purchase/` agora é lápide |
+| P6 | Produto ↔ ProductCatalogue ↔ Inventory | docs de produto em 3 pastas; ProductCatalogue é módulo DISTINTO (catálogo público QR) | Produto = porta das telas core; ProductCatalogue intocado; Inventory reparte | ✅ **FEITO 2026-07-02** — Produto já é porta (BRIEFING+`_telas/` 8 RUNBOOKs); `Inventory/` **não tinha** doc de produto residual (só BRIEFING+SPEC) → nada a mover; ProductCatalogue intocado |
+| P7 | Estoque ↔ Inventory ↔ StockAdjustment ↔ StockTransfer | 4 pastas pro domínio estoque; Estoque tem o DOC-RAIZ canônico (2026-06-04) | consolidar em Estoque | ✅ **FEITO 2026-07-02 (parcial-por-design)** — StockAdjustment/StockTransfer já são lápide; RUNBOOKs stock já em `Estoque/_telas/`; `Inventory/SPEC.md` **PERMANECE em `Inventory/`** (o `anchor-lint` só varre `<Mod>/SPEC.md` — mover perderia as 25 âncoras) mas foi **reframado** como roadmap de evolução do Estoque (#3677); Estoque é o dono conceitual via DOC-RAIZ + reframe |
 | P8 | Atendimento ↔ Whatsapp ↔ Chat | telas Atendimento são do Whatsapp; chat real é Jana | FUNDIR Atendimento→Whatsapp e Chat→Jana (alt.: RENOMEAR Whatsapp→Atendimento, nome de produto) | ok (FUNDIR Atendimento→Whatsapp + Chat→Jana; NÃO renomear módulo) |
 | P9 | Tarefas ↔ TaskRegistry ↔ ProjectMgmt | stub UI ≠ sistema MCP ≠ módulo cliente | MATAR stub Tarefas; porta TaskRegistry; ProjectMgmt intocado | EMENDA 2026-06-15 (Wagner): MATAR Tarefas; TaskRegistry→FUNDIR em TeamMcp; ProjectMgmt intocado |
 | P10 | FinanceiroAvancado ↔ Financeiro | wish avançado duplica pasta do módulo real | FUNDIR→Financeiro | ok |
@@ -137,7 +137,7 @@
 - **Receptores mudos:** 10/10 receptores não anotam no próprio BRIEFING que absorveram a fonte (fusão invisível do lado que recebe). É navegação/estrutura, não mentira — fica como higiene menor separada.
 
 ### Fora do escopo
-- **ADIADO — cluster Estoque** (Inventory/Produto/Purchase/StockAdjustment/StockTransfer): não tocado (decisão E1 + trava `sdd-fase-2.js`).
+- ~~**ADIADO — cluster Estoque** (Inventory/Produto/Purchase/StockAdjustment/StockTransfer): não tocado (decisão E1 + trava `sdd-fase-2.js`).~~ **DESADIADO 2026-07-02 (Wagner)** — Onda 0 consolidação (PRs #3677/#3678/#3679: dedup SPEC, 3 drifts, link-rot) + P5 Purchase→Compras merge concluído. P5/P6/P7 marcados ✅ na Tabela B (resolvidos; `Inventory/SPEC.md` permanece em `Inventory/` por restrição do anchor-lint — ver P7). Onda 1 (código `stock_movements` + custo médio) segue pendente de decisão do método de valoração (Tier 0 regra-mestre valor/estoque).
 - **E2b re-seed Meili / E3 distiller:** outra frente (#3534/#3532/#3553) — ver [P11](_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md).
 
 *Conferência adversarial E2/E3 (worktree `claude/e2e3-triagem-closure`) a partir de `origin/main dad0b113b6` em 2026-07-02. `knowledge-drift --check` = 0 ghosts novos.*
