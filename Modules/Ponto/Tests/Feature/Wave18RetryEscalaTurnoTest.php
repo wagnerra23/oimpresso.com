@@ -25,10 +25,11 @@ uses(Tests\TestCase::class);
 it('EscalaTurno usa trait BelongsToBusinessViaParent (Tier 0 child via Escala)', function () {
     $traits = class_uses_recursive(EscalaTurno::class);
 
-    expect($traits)->toContain(
-        BelongsToBusinessViaParent::class,
-        'EscalaTurno DEVE usar BelongsToBusinessViaParent (ADR 0093 — child de Escala que tem business_id).'
-    );
+    // toContain NÃO tem parâmetro de mensagem — 2º argumento vira OUTRO needle
+    // (o assert exigia que o array de traits contivesse a própria frase de erro
+    // e falhava com o Model CORRETO — unclear #10 da re-triage 2026-06-13,
+    // reproduzido no CT100 2026-07-02: trait presente, assert quebrado).
+    expect($traits)->toContain(BelongsToBusinessViaParent::class);
 });
 
 it('EscalaTurno declara businessParentRelation=escala (parent contrato)', function () {

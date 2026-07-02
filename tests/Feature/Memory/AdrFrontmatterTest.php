@@ -137,8 +137,15 @@ it('Test 4: superseded_by referencia ADR existente', function () {
         if (! $supBy) continue;
         $refs = is_array($supBy) ? $supBy : [$supBy];
         foreach ($refs as $ref) {
-            // Aceita "0048" ou "[0048]" ou int 48
-            $num = is_int($ref) ? $ref : (int) preg_replace('/\D/', '', (string) $ref);
+            // Aceita int 48, "0048", "[0048]" OU slug canônico "0178-sells-unified-tabs-…".
+            // BUG anterior (unclear #2 da re-triage 2026-06-13): preg_replace('/\D/')
+            // CONCATENAVA todos os runs de dígito do slug ("0178-…-0136" → 1780136)
+            // e acusava referência inexistente em dado CORRETO. Número = prefixo líder.
+            if (is_int($ref)) {
+                $num = $ref;
+            } else {
+                $num = preg_match('/^\[?0*(\d{1,4})/', trim((string) $ref), $m) ? (int) $m[1] : 0;
+            }
             if ($num <= 0) continue;
             if (! isset($existentes[$num])) {
                 $erros[] = "{$adr['slug']}: superseded_by referencia ADR " . sprintf('%04d', $num) . " inexistente";
