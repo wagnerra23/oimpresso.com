@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Log;
  *
  * Rodar o backlog antigo é PIOR que descartar: syncs bancários ×1057 (rate
  * limit), links de aprovação WhatsApp de semanas atrás (outreach stale pra
- * cliente real), NFC-e retroativa. Jobs recorrentes (Rebuild*/Sync*/Reindex*)
+ * cliente real), NFC-e retroativa. Jobs recorrentes (Rebuild/Sync/Reindex)
  * são idempotentes "latest-wins" — o próximo cron re-dispatcha fresco.
  *
  * REGRA MESTRE (memory/proibicoes.md): dry-run é o DEFAULT. DELETE só com
