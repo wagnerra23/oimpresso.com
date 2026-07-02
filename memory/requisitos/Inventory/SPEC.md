@@ -1,7 +1,7 @@
 ---
 module: Inventory
-version: "0.1.0"
-last_updated: "2026-05-12"
+version: "1.0"
+last_updated: "2026-07-02"
 status: rascunho
 owner: [W]
 prioridade: P0-P2 (faseado)
@@ -23,6 +23,8 @@ created_at: 2026-05-12
 > **Status:** **PROPOSED** — discovery + proposta arquitetural. Não-iniciado em código. Aguardando aprovação Wagner pra promover seções pra `accepted` e gerar US no MCP.
 >
 > **Trigger ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)):** SPEC nasce porque 3 sinais convergem AGORA — (a) Vargas pipeline OficinaAuto (kit bomba VW Gol), (b) 6 candidatos ComVis pré-vendas (bobina lote + tinta kg/ml), (c) Modules/Vestuario já live ROTA LIVRE consumindo estoque per-variação sem audit unificado.
+
+> **Papel no domínio Estoque (consolidação Onda 0 — 2026-07-02):** este SPEC é o **roadmap de evolução do domínio Estoque** (camada avançada), **não** um domínio paralelo. A fonte da verdade de como o saldo se move **hoje** é o [DOC-RAIZ-ESTOQUE.md](../Estoque/DOC-RAIZ-ESTOQUE.md) (integridade LIVE); este documento descreve o que ainda vamos construir **por cima** (Kits/BOM, Batch, Dimensional, Movements unified). A pasta `Inventory/` permanece a casa física deste roadmap **até a repartição do cluster Estoque aterrissar** (P6/P7 da [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md), **ADIADA** por custo/risco — decisão Wagner E1, gated por sinal [ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)). A cópia duplicada `Estoque/_telas/SPEC-inventory-cross-vertical.md` foi **tombada** nesta data — ver lápide lá; este arquivo é o sobrevivente canônico (carrega as 25 âncoras `**Implementado em:**` do backfill anchor-lint — [PR #3654](https://github.com/wagnerra23/oimpresso.com/pull/3654)).
 
 ---
 
