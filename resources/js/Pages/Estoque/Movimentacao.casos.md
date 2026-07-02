@@ -89,6 +89,38 @@ last_run: "2026-07-02"
 
 ---
 
+## UC-INV-02 · INV-2: rascunho/cotação NÃO movimenta
+- **Contrato (§7 INV-2):** só status terminal (`final`/`received`) mexe saldo. Venda em RASCUNHO ou COTAÇÃO não toca `qty_available`.
+- **Aceite:** Dado `qty_available=10` · Quando `adjustProductStockForInvoice` draft→draft (ou quotation) · Então `qty_available=10` (intocado).
+- **Teste:** `tests/Feature/Estoque/EstoqueInvarianteRascunhoTest.php`.
+- **Status: 🧪**
+
+---
+
+## UC-INV-03 · INV-3: movimentação dentro de DB::transaction (atomicidade)
+- **Contrato (§7 INV-3):** movimento roda dentro de `DB::transaction` → falha no meio = nada persiste (movimento parcial não vaza). Prova behavioral, não grep estrutural.
+- **Aceite:** Dado `qty_available=10` · Quando uma baixa dentro de `DB::transaction` estoura · Então `qty_available=10` (revertido). Contraprova: sem exceção, commita → 6.
+- **Teste:** `tests/Feature/Estoque/EstoqueInvarianteTransacaoTest.php`.
+- **Status: 🧪**
+
+---
+
+## UC-INV-05 · INV-5: enable_stock=0 não movimenta
+- **Contrato (§7 INV-5):** produto sem controle de estoque (`enable_stock=0`) não tem o saldo mexido — os mutadores checam `enable_stock == 1` antes de tocar `qty_available`.
+- **Aceite:** Dado produto `enable_stock=0` com VLD=10 · Quando baixa/entrada · Então `qty_available=10` (guard). Contraprova: `enable_stock=1` baixa → 7.
+- **Teste:** `tests/Feature/Estoque/EstoqueInvarianteEnableStockTest.php`.
+- **Status: 🧪**
+
+---
+
+## UC-INV-06 · INV-6: isolamento multi-tenant do saldo
+- **Contrato (§6/§7 INV-6, ADR 0093):** VLD não tem `business_id`; isolamento é TRANSITIVO (variation_id/location_id/product_id são PKs globais únicas — sem colisão entre businesses). Movimento do biz=1 não alcança o saldo do biz=2.
+- **Aceite:** Dado biz=1 (V1/L1=10) e biz=2 (V2/L2=10), IDs distintos · Quando baixa 3 no biz=1 · Então biz=1=7 e **biz=2=10 intocado**.
+- **Teste:** `tests/Feature/Estoque/EstoqueInvarianteTenantTest.php` (requer 2º tenant — lane seed biz=1/biz=2).
+- **Status: 🧪**
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado (heading `## UC-…`) sem teste citando o id = órfão → falha o gate.
@@ -98,7 +130,7 @@ last_run: "2026-07-02"
 - **[BACKLOG] UC-EST-02b — Compra RASCUNHO não entra / RECEIVED entra (decisão de status via `createOrUpdatePurchaseLines`)** — reforço não-tautológico do UC-EST-02: provar que só o status terminal `received` movimenta. Exige fixture de purchase Transaction + purchase_lines.
 - **[BACKLOG] UC-EST-08b — Fabricação fluxo completo (`Modules/Manufacturing/ProductionController`)** — receita/BOM real consome ingredientes + produz acabado end-to-end (UC-EST-08 cobre a decomposição via `decreaseProductQuantityCombo`).
 - **[BACKLOG] OS OficinaAuto → baixa peça ao concluir** — já coberto por `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemStockBaixaTest.php` (skip-gracioso; roda no CT 100).
-- **[BACKLOG] INV-2/3/5/6** — invariantes, PR3 (rascunho não move · dentro de DB::transaction · `enable_stock=0` não move · tenant isolado biz=1 vs biz=2).
+- **[BACKLOG] INV-1/INV-4** — já cobertas: INV-1 (saldo só por caminho auditável) por `ProductStockLogsActivityTest`/`ConsumirEstoqueAuditTest`; INV-4 (reserva ≠ baixa) por `StockReservationsTest` (caso 9).
 
 > **Bug confirmado promovido a UC:** a suspeita "Devolução Vestuario não reintegra estoque" foi CONFIRMADA e virou **UC-EST-04** (red-spec ❌ acima) — aguarda decisão Wagner sobre o fix (Tier 0 VALOR/ESTOQUE).
 
@@ -111,3 +143,4 @@ last_run: "2026-07-02"
 - 2026-07-02 · [CC] criado — PR1 do mandato "cobertura real de estoque": `EstoqueFixture` + UC-EST-01/02/03 (venda/compra/devolução) + lane `estoque-pest.yml`. 9 asserts VERDES na lane MySQL (não skip). UCs em 🧪 até `casos:results` capturar o verde no manifesto G-7.
 - 2026-07-02 · [CC] UC-EST-04 (red-spec ❌) — bug Tier 0 confirmado: `Vestuario\DevolucaoService` não reintegra estoque. Contrato pronto (`markTestSkipped`); fix aguarda decisão Wagner (regra mestre VALOR/ESTOQUE).
 - 2026-07-02 · [CC] PR2 — UC-EST-05 ajuste · UC-EST-06 transferência (par 2-lados + conservação) · UC-EST-07 opening (fluxo real) · UC-EST-08 fabricação/kit (decomposição combo).
+- 2026-07-02 · [CC] PR3 — invariantes UC-INV-02 (rascunho não move) · UC-INV-03 (DB::transaction atômica, behavioral) · UC-INV-05 (enable_stock=0 guard) · UC-INV-06 (isolamento tenant transitivo biz=1 vs biz=2). INV-1/INV-4 já cobertas alhures.
