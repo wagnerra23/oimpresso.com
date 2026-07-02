@@ -34,10 +34,13 @@ on:
       - 'governance/nightly-coverage.json'     # coverage publicado pelo write-side CT100 (SDD P07 · ADR 0275)
       - 'scripts/governance/sdd-floor-read.test.mjs'
       - 'scripts/governance/sdd-coverage-read.test.mjs'
+      - 'scripts/governance/sdd-ragas-read.test.mjs'
       - 'scripts/tests/floor-compute.mjs'
       - 'scripts/tests/floor-compute.test.mjs'
       - 'scripts/tests/coverage-compute.mjs'
       - 'scripts/tests/coverage-compute.test.mjs'
+      - 'scripts/tests/ragas-trend-compute.mjs'
+      - 'scripts/tests/ragas-trend-compute.test.mjs'
       - '.github/workflows/sdd-scorecard.yml'
   schedule:
     - cron: '50 9 * * *' # 06:50 BRT diário (pós-nightly)
@@ -75,6 +78,15 @@ jobs:
       - name: Write-side do coverage — meta-teste do compute (hard · SDD P07 · ADR 0275)
         run: node scripts/tests/coverage-compute.test.mjs
 
+      - name: Read-side do ragas_real_uptime — meta-teste (hard · ADR 0318 · transporte 0279)
+        # Counterfactual: prova que measureRagasRealUptime() NÃO mente com trend
+        # ausente (notYet, nunca 0/100) e que só-skips vira measured 0% (transporte
+        # up, eval down). Se ficar verde com o read-side mentindo, o teste não morde.
+        run: node scripts/governance/sdd-ragas-read.test.mjs
+
+      - name: Write-side do trend ragas — meta-teste do compute (hard · ADR 0318)
+        run: node scripts/tests/ragas-trend-compute.test.mjs
+
       - name: Materializa floor + coverage da branch governance/nightly-floor (ADR 0279 · SDD P07)
         run: |
           if git fetch origin governance/nightly-floor --depth 1 2>/dev/null; then
@@ -90,6 +102,15 @@ jobs:
             fi
           else
             echo "branch governance/nightly-floor ausente — floor+coverage caem em not_yet_measured (esperado até o 1º write-side do CT100)"
+          fi
+
+      - name: Materializa trend do RAGAS real da órfã governance/ragas-real-trend (ADR 0318)
+        run: |
+          if git fetch origin governance/ragas-real-trend --depth 1 2>/dev/null \
+             && git show FETCH_HEAD:governance/ragas-real-trend.json > governance/ragas-real-trend.json 2>/dev/null; then
+            echo "trend ragas materializado:"; cat governance/ragas-real-trend.json
+          else
+            echo "órfã governance/ragas-real-trend ausente — ragas_real_uptime cai em not_yet_measured (esperado até a 1ª publicação dominical do CT100; 1º cron 2026-07-05)"
           fi
 
       - name: Medir — agregador escreve governance/sdd-scorecard.json

@@ -171,6 +171,58 @@ export function measureCoverage(coveragePath = join(ROOT, 'governance', 'nightly
   };
 }
 
+// ── fonte: uptime do RAGAS real semanal (ADR 0318 · transporte pattern 0279) ──
+// Read-side do trend. ESPELHO de measureFullSuiteFloor: o write-side (CT100 host,
+// ct100-ragas-publish.sh, dom 08:30 BRT) publica governance/ragas-real-trend.json
+// na branch órfã governance/ragas-real-trend; o CI materializa e este read mede
+// uptime = % de semanas com run VÁLIDO (gate pass/fail com n_evaluated>0 — mediu
+// de verdade; SKIP honesto sem OPENAI/contexto = INVÁLIDA). Semana AUSENTE no
+// trend = transporte/cron down = inválida (conta pelo gap na sequência).
+// DETERMINÍSTICO: denominador = domingos de first_scheduled até a ÚLTIMA entrada
+// do trend (fatos do arquivo), NUNCA "hoje" (senão o JSON commitado mudaria todo
+// dia — mesma regra do distiller_freshness). Fallback honesto (ausente/inválido/
+// vazio → not_yet_measured, nunca mente 0%); vira measured sozinha na 1ª
+// publicação do write-side (1ª execução do cron: 2026-07-05).
+export function measureRagasRealUptime(trendPath = join(ROOT, 'governance', 'ragas-real-trend.json')) {
+  const src = 'jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318; baseline honesto em governance/jana-ragas-real-baseline.json). Transporte: órfã governance/ragas-real-trend (write-side ct100-ragas-publish.sh · pattern nightly-floor ADR 0279); 1ª execução do cron 2026-07-05.';
+  if (!existsSync(trendPath)) {
+    return notYet('up', '≥95%', `governance/ragas-real-trend.json ainda não publicado pelo write-side CT100 — ${src}`);
+  }
+  let t;
+  try { t = JSON.parse(readFileSync(trendPath, 'utf8')); }
+  catch { return notYet('up', '≥95%', 'governance/ragas-real-trend.json presente mas JSON inválido — write-side corrige; fallback honesto.'); }
+  if (!Array.isArray(t.weeks) || t.weeks.length === 0) {
+    return notYet('up', '≥95%', 'governance/ragas-real-trend.json sem weeks[] (schema ragas-real-trend/v1) — fallback honesto.');
+  }
+  // mesma definição de "run válido" do write-side (ragas-trend-compute.mjs) —
+  // recomputada aqui (não confia em flag pré-computada; uma definição, dois lados)
+  const isValid = (w) => (w.gate_status === 'pass' || w.gate_status === 'fail') && (w.n_evaluated ?? 0) > 0;
+  const weeks = [...t.weeks].sort((a, b) => String(a.week).localeCompare(String(b.week)));
+  const first = String(t.first_scheduled ?? '2026-07-05');
+  const last = String(weeks[weeks.length - 1].week);
+  const parse = (s) => { const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? Date.UTC(+m[1], +m[2] - 1, +m[3]) : NaN; };
+  const days = Math.round((parse(last) - parse(first)) / 86400000);
+  // domingos agendados de first até last inclusive; entrada anterior ao agendado
+  // (run manual pré-cron) não infla >100% — clamp no numerador
+  const expected = Number.isFinite(days) && days >= 0 ? Math.floor(days / 7) + 1 : weeks.length;
+  const valid = weeks.filter(isValid).length;
+  const latest = weeks[weeks.length - 1];
+  return {
+    status: 'measured', value: pct(Math.min(valid, expected), Math.max(expected, 1)), unit: '%',
+    direction: 'up', target: 95,
+    source: 'governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)',
+    detail: {
+      weeks_expected: expected, weeks_valid: valid,
+      first_scheduled: first, last_week: last,
+      latest: {
+        gate_status: latest.gate_status ?? null, n_evaluated: latest.n_evaluated ?? null,
+        faithfulness_avg: latest.faithfulness_avg ?? null, relevancy_avg: latest.relevancy_avg ?? null,
+        context_recall_avg: latest.context_recall_avg ?? null,
+      },
+    },
+  };
+}
+
 // ── fonte: distilled_at das portas BRIEFING (ADR 0291 D-D — peça 3 do keystone) ─
 // Lê o carimbo `distilled_at:` do frontmatter de cada memory/requisitos/<Mod>/BRIEFING.md
 // (o distiller-módulo-verdade — PR-C — escreve esse carimbo ao reescrever a porta).
@@ -396,8 +448,7 @@ function buildScorecard() {
       },
       recall_eval_violations: notYet('down', 0,
         'golden set recall (KL-C2) — depende do alias map das 13 colisões ADR'),
-      ragas_real_uptime: notYet('up', '≥95%',
-        'jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318 — mata a tautologia; baseline honesto em governance/jana-ragas-real-baseline.json, 1ª medição real 2026-07-01). Uptime not_yet_measured até existir transporte cron→scorecard (trend em storage/logs/ragas-real-eval.log sem espelho versionado — pattern nightly-floor ADR 0279); 1ª execução agendada 2026-07-05.'),
+      ragas_real_uptime: measureRagasRealUptime(),
       distiller_freshness: measureDistillerFreshness(),
       read_path_hops: notYet('down', 1,
         'ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1; instrumentação pendente)'),

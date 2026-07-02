@@ -98,6 +98,10 @@ governance/nightly-floor.json
 # Coverage do nightly (SDD P07/C2): mesmo transporte da órfã — P14 fechou a
 # inconsistência floor-ignorado/coverage-não.
 governance/nightly-coverage.json
+# Trend do RAGAS real semanal (ADR 0318): vive na branch órfã
+# governance/ragas-real-trend (write-side ct100-ragas-publish.sh no CT100);
+# o scorecard o MATERIALIZA no CWD em CI antes de medir ragas_real_uptime.
+governance/ragas-real-trend.json
 
 # Scratch/runtime de sessao — nunca versionar (cleanup ds-rollout 2026-06-20)
 .claude/run/
