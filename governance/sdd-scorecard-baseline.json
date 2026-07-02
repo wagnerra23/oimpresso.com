@@ -94,7 +94,17 @@
       "direction": "up",
       "armed": false,
       "valid_measurements": 0,
-      "fonte": "RAGAS canário modo REAL diário (KL-D1/D4) — hoje compara mock com mock"
+      "fonte": "jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · Kernel.php · ADR 0318) — eval REAL existe desde 2026-07-01 (baseline honesto governance/jana-ragas-real-baseline.json: faithfulness 0.6916 · relevancy 0.8039 · context_recall 0.3839, N=51); 1ª execução agendada 2026-07-05. Uptime segue not_yet_measured até existir transporte cron→scorecard (trend em storage/logs/ragas-real-eval.log ainda sem espelho versionado — pattern nightly-floor ADR 0279). Série de armamento (ADR 0275 §3) inicia na 1ª medição transportada."
+    },
+    "distiller_freshness": {
+      "status": "measured",
+      "value": 0,
+      "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
+      "direction": "down",
+      "armed": true,
+      "valid_measurements": 9,
+      "fonte": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D; sdd-scorecard.mjs measureDistillerFreshness)",
+      "nota_armamento": "ARMADO 2026-07-02 (2º 'medido, não armado' da reavaliação adversarial 75/100 — saiu de not_yet_measured na 1ª destilação real 2026-07-01, 5 portas com distilled_at, commit #3560, mas sem floor no baseline o ganho era reversível). Capturado da fonte REAL, nunca do plano: 8 medições consecutivas measured value=0 commitadas em governance/sdd-scorecard.json (7977f67719, 0f584f2b38, c1621abea1, 270e82c058, bc70343bb9, 3012b45ef9, 886e56bffc, f76f046e92 — 2026-07-01/02) + medição live =0 nesta sessão (portas 75, carimbadas 5, stale 0, oldest_distilled_at 2026-07-01); mínimo exigido é 3 (ADR 0275 §3). Floor 0 (direction down): qualquer porta carimbada ficar >7d atrás do doc mais novo do módulo = exit 1 no GT-G3 required. Anti-reversão: se TODOS os carimbos distilled_at sumirem, a fonte volta a not_yet_measured e o fail-red P14 (armed ∧ ¬measured) avermelha em vez de pular — o ganho da 1ª destilação não pode evaporar em silêncio. Cobertura (70 portas sem carimbo) é trabalho da série D-D, não desta catraca — carimbar porta nova só pode manter stale=0. Piorar/desarmar/absorver = só via PR editando este arquivo com diff visível citando ADR 0275."
     },
     "drift_alarms": {
       "status": "not_yet_measured",

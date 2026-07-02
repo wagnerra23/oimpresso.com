@@ -172,7 +172,7 @@
       "value": null,
       "direction": "up",
       "target": "≥95%",
-      "source": "RAGAS canário modo REAL diário (KL-D1/D4) — hoje compara mock com mock",
+      "source": "jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318 — mata a tautologia; baseline honesto em governance/jana-ragas-real-baseline.json, 1ª medição real 2026-07-01). Uptime not_yet_measured até existir transporte cron→scorecard (trend em storage/logs/ragas-real-eval.log sem espelho versionado — pattern nightly-floor ADR 0279); 1ª execução agendada 2026-07-05.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "MEM"
     },
@@ -202,12 +202,17 @@
       "stream": "MEM"
     },
     "drift_alarms": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 0,
+      "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
-      "source": "gh api indisponível — drift_alarms requer GITHUB_TOKEN (protection-drift.mjs lê branch protection). Fallback honesto: vira measured assim que o gh autenticar.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
+      "detail": {
+        "reds": [],
+        "warns": 1,
+        "verdict": "yellow"
+      },
       "stream": "GT"
     },
     "backfill_error_rate": {
