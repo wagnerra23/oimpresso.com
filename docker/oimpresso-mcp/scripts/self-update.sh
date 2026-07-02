@@ -57,6 +57,21 @@ if [ -f "$FULLSUITE_SRC" ] && [ -d "$(dirname "$FULLSUITE_DST")" ]; then
   fi
 fi
 
+# Mesmo sync anti-drift pra cópia do publish semanal do trend RAGAS real (ADR 0318 ·
+# transporte pattern nightly-floor ADR 0279): o cron dom 08:30 BRT roda
+# /opt/oimpresso-ragas/ct100-ragas-publish.sh. mkdir -p deliberado (dir novo — a cópia
+# nasce no 1º sync sem passo manual; só a linha de crontab é manual 1×, ver header do .sh).
+RAGASPUB_SRC="$REPO_DIR/scripts/tests/ct100-ragas-publish.sh"
+RAGASPUB_DST="${RAGASPUB_SCRIPT:-/opt/oimpresso-ragas/ct100-ragas-publish.sh}"
+if [ -f "$RAGASPUB_SRC" ]; then
+  mkdir -p "$(dirname "$RAGASPUB_DST")"
+  if ! cmp -s "$RAGASPUB_SRC" "$RAGASPUB_DST"; then
+    install -m 0755 "$RAGASPUB_SRC" "$RAGASPUB_DST.tmp" && mv -f "$RAGASPUB_DST.tmp" "$RAGASPUB_DST" \
+      && log "ragas-publish: cópia do semanal sincronizada com o canônico" \
+      || log "WARN: sync da cópia do ragas-publish falhou (não-fatal)"
+  fi
+fi
+
 git fetch --quiet origin main || { log "FATAL: git fetch falhou"; exit 1; }
 LOCAL="$(git rev-parse HEAD)"
 REMOTE="$(git rev-parse origin/main)"

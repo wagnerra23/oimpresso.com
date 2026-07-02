@@ -57,5 +57,18 @@ jobs:
             echo "coverage ausente na órfã — coverage_pct segue not_yet_measured (armed:false hoje; endurecer este ramo ao armar C2)"
           fi
 
+      # Trend do RAGAS real (ADR 0318 · órfã própria — a de floor é force-pushed toda
+      # noite, o trend acumula). Ramo SOFT enquanto ragas_real_uptime estiver
+      # armed:false no baseline — endurecer (como o floor acima) no PR que armar
+      # após 3 medições válidas consecutivas (ADR 0275 §3).
+      - name: Materializa trend do RAGAS real da órfã governance/ragas-real-trend (ADR 0318)
+        run: |
+          if git fetch origin governance/ragas-real-trend --depth 1 2>/dev/null \
+             && git show FETCH_HEAD:governance/ragas-real-trend.json > governance/ragas-real-trend.json 2>/dev/null; then
+            echo "trend ragas materializado:"; cat governance/ragas-real-trend.json
+          else
+            echo "órfã governance/ragas-real-trend ausente — ragas_real_uptime segue not_yet_measured (armed:false hoje; 1º cron 2026-07-05)"
+          fi
+
       - name: Ratchet — nenhuma métrica ARMADA regrediu vs baseline (ADR 0275 §3)
         run: node scripts/governance/sdd-scorecard.mjs --ratchet

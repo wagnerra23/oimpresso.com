@@ -220,6 +220,8 @@ class JanaRagasRealEvalCommand extends Command
             ],
         ];
 
+        $this->persistReport($report);
+
         if ($this->option('json')) {
             $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         } else {
@@ -227,6 +229,25 @@ class JanaRagasRealEvalCommand extends Command
         }
 
         return $gatePass ? Command::SUCCESS : Command::FAILURE;
+    }
+
+    /**
+     * Persiste o report da run em storage/app/governance/ragas-real-eval-latest.json —
+     * contrato do transporte semanal (ct100-ragas-publish.sh lê este arquivo, faz merge
+     * no trend e publica na órfã governance/ragas-real-trend; pattern nightly-floor
+     * ADR 0279). Persistimos TAMBÉM os SKIPs: semana skipped é run INVÁLIDO no uptime
+     * (honestidade — não publicar esconderia o downtime). Falha de escrita não derruba
+     * o eval (o report já saiu no stdout/log agendado — fallback do transporte).
+     */
+    protected function persistReport(array $report): void
+    {
+        try {
+            $dir = storage_path('app/governance');
+            File::ensureDirectoryExists($dir);
+            File::put($dir.'/ragas-real-eval-latest.json', json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        } catch (\Throwable $e) {
+            $this->warn('persistReport falhou (transporte cai no fallback via log): '.$e->getMessage());
+        }
     }
 
     /** Render tabela amigável (modo dev local, sem --json). */
@@ -272,6 +293,8 @@ class JanaRagasRealEvalCommand extends Command
             'thresholds' => ['faithfulness' => $tFaith, 'answer_relevancy' => $tRel],
         ], $extra);
 
+        $this->persistReport($report);
+
         if ($this->option('json')) {
             $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         } else {
@@ -284,13 +307,17 @@ class JanaRagasRealEvalCommand extends Command
     /** Falha estrutural (gold-set ausente/malformado) — emite fail e sai 1. */
     protected function failHard(string $reason): int
     {
+        $report = [
+            'eval_kind' => 'real_pipeline',
+            'gate_status' => 'fail',
+            'error' => $reason,
+            'ran_at' => now()->toIso8601String(),
+        ];
+
+        $this->persistReport($report);
+
         if ($this->option('json')) {
-            $this->line(json_encode([
-                'eval_kind' => 'real_pipeline',
-                'gate_status' => 'fail',
-                'error' => $reason,
-                'ran_at' => now()->toIso8601String(),
-            ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            $this->line(json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
         } else {
             $this->error("[FAIL] {$reason}");
         }

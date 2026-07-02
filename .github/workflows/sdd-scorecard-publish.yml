@@ -69,6 +69,9 @@ jobs:
       - name: Read-side do floor — meta-teste (hard · ADR 0279 PR-1 · US-GOV-023)
         run: node scripts/governance/sdd-floor-read.test.mjs
 
+      - name: Read-side do ragas_real_uptime — meta-teste (hard · ADR 0318 · transporte 0279)
+        run: node scripts/governance/sdd-ragas-read.test.mjs
+
       - name: Materializa floor + coverage da branch governance/nightly-floor (ADR 0279/0275 transporte)
         run: |
           if git fetch origin governance/nightly-floor --depth 1 2>/dev/null \
@@ -85,6 +88,15 @@ jobs:
             echo "coverage materializado:"; cat governance/nightly-coverage.json
           else
             echo "coverage ausente na órfã — coverage_pct segue not_yet_measured"
+          fi
+          # Trend do RAGAS real (ADR 0318): órfã PRÓPRIA (a de floor é force-pushed
+          # toda noite; o trend acumula). Soft: ausente = ragas_real_uptime segue
+          # not_yet_measured honesto (esperado até a 1ª publicação dominical do CT100).
+          if git fetch origin governance/ragas-real-trend --depth 1 2>/dev/null \
+             && git show FETCH_HEAD:governance/ragas-real-trend.json > governance/ragas-real-trend.json 2>/dev/null; then
+            echo "trend ragas materializado:"; cat governance/ragas-real-trend.json
+          else
+            echo "órfã governance/ragas-real-trend ausente — ragas_real_uptime segue not_yet_measured (1º cron 2026-07-05)"
           fi
 
       - name: Medir — agregador reescreve governance/sdd-scorecard.json

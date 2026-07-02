@@ -501,6 +501,11 @@ class Kernel extends ConsoleKernel
         // chave/contexto — nunca inventa score. appendOutputTo deixa o trend JSON visível.
         // 07:00 pra não disputar DB com drift-sentinel (dom 06:00) nem recall-eval (dom 06:30).
         //
+        // TRANSPORTE (ADR 0318 + pattern nightly-floor ADR 0279): o comando persiste o report
+        // em storage/app/governance/ragas-real-eval-latest.json; o host CT 100 (cron dom 08:30
+        // BRT, scripts/tests/ct100-ragas-publish.sh) faz merge no trend e publica na órfã
+        // governance/ragas-real-trend — o scorecard SDD mede ragas_real_uptime de lá.
+        //
         // Thresholds = baseline honesto MENOS margem pequena (estado-da-arte: "start lower,
         // establish baseline, tighten iteratively"). Baseline real 2026-07-01 (N=51, CT 100
         // staging): faithfulness 0.6916 · relevancy 0.8039 (governance/jana-ragas-real-baseline.json).
