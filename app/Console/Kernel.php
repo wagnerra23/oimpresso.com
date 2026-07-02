@@ -1046,6 +1046,35 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Worker das demais filas database (audit 2026-07-02): nfe (fiscal,
+        // prioridade), default (syncs operacionais), customer-memory /
+        // employee-performance / jana-index / copiloto-memoria (rebuilds
+        // idempotentes). Sem este worker, ~48k jobs acumularam desde 14/mai
+        // (NFC-e auto-emission nunca rodou, memória Jana nunca extraiu fatos,
+        // rebuilds diários empilhando).
+        //
+        // GATE: config('queue.backlog_worker_enabled') default FALSE — ligar
+        // ANTES de purgar o backlog stale dispararia efeitos indesejados
+        // (NFC-e retroativa, links WhatsApp de semanas atrás pra cliente real,
+        // syncs bancários ×1000 = rate limit). Sequência canônica: deploy →
+        // `jobs:purge-represados --execute` (Wagner aprova dry-run antes) →
+        // QUEUE_BACKLOG_WORKER_ENABLED=true no .env.
+        //
+        // Mesmo pattern dos workers whatsapp: --max-time=55 + everyMinute +
+        // withoutOverlapping(1) = 1 processo vivo (respeita LSPHP shared hosting).
+        if (config('queue.backlog_worker_enabled')) {
+            $schedule->command('queue:work database --queue=nfe,default,customer-memory,employee-performance,jana-index,copiloto-memoria --max-time=55 --tries=3')
+                ->everyMinute()
+                ->withoutOverlapping(1)
+                ->environments(['live'])
+                ->runInBackground()
+                ->onFailure(function () {
+                    \Illuminate\Support\Facades\Log::channel('single')->error(
+                        'Schedule queue:work backlog (nfe/default/memórias) FALHOU — jobs vão voltar a represar na jobs table'
+                    );
+                });
+        }
+
         // US-WA-082 — Cleanup nonces antigos (>24h) da tabela webhook_nonces.
         // Replay window é 5min, mas mantemos 24h por margem segurança vs time
         // skew + audit forense. Após 24h é seguro deletar (replay já seria
