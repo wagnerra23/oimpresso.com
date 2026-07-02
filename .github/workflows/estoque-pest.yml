@@ -1,0 +1,124 @@
+name: Estoque · Pest (MySQL)
+
+# Lane dedicado pra rodar a suíte Pest de MOVIMENTAÇÃO DE ESTOQUE contra MySQL REAL
+# + seed mínimo (biz=1 + biz=2 — via .github/actions/pest-mysql-setup).
+#
+# POR QUE existe: as demais lanes (ci.yml / modules-pest.yml) rodam SQLite :memory: SEM
+# migrate — e os testes de estoque precisam do schema UltimatePOS completo (products,
+# variations, variation_location_details, business_locations) + business semeado. Lá eles
+# dariam SKIP (falsa cobertura). Aqui a `EstoqueFixture` MONTA o grafo e os testes ASSERTAM
+# o delta de `qty_available` de verdade (pedido Wagner 2026-07-02: "todo teste de estoque
+# skipa e mente").
+#
+# Usa o SCHEMA BASELINE (database/schema/mysql-schema.sql). `migrate` carrega o schema final
+# num passo + roda só as migrations novas → sem fresh-install (FK ordering) das migrations legacy.
+#
+# CATRACA (allowlist verde): a lane roda só os arquivos comprovadamente verdes. Cada PR de
+# cobertura adiciona arquivos AQUI (ratchet up). Modelado em .github/workflows/financeiro-pest.yml.
+
+on:
+  workflow_dispatch: {}
+  # always-run (SEM paths) pra ser promovível a required sem deadlock "Expected — waiting"
+  # (ADR 0271 onda 2). O custo (MySQL + migrate + Pest) é contido por skip-as-pass interno.
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'tests/Feature/Estoque/**'
+      - 'tests/Support/EstoqueFixture.php'
+      - 'tests/Support/EstoqueProduto.php'
+      - 'app/Utils/ProductUtil.php'
+      - 'app/Utils/TransactionUtil.php'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/estoque-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: estoque-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Estoque · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças de Estoque (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            est:
+              - 'tests/Feature/Estoque/**'
+              - 'tests/Support/EstoqueFixture.php'
+              - 'tests/Support/EstoqueProduto.php'
+              - 'app/Utils/ProductUtil.php'
+              - 'app/Utils/TransactionUtil.php'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/estoque-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada de Estoque mudou)
+        if: steps.changes.outputs.est == 'false'
+        run: echo "✅ Sem mudanças de Estoque — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.est == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.est == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Estoque · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.est == 'true'
+        # phpunit.xml força sqlite :memory: — exportar DB_CONNECTION=mysql aqui faz rodar
+        # no MySQL real semeado (senão os testes SKIPam via EstoqueFixture::schemaReady()).
+        # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema e limpam
+        # o biz=1 seedado, envenenando os demais.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-estoque-junit.xml \
+            tests/Feature/Estoque/EstoqueMovimentacaoVendaTest.php \
+            tests/Feature/Estoque/EstoqueMovimentacaoCompraTest.php \
+            tests/Feature/Estoque/EstoqueDevolucaoVendaTest.php
+
+      - name: Upload JUnit (veredito por-UC — casos:results)
+        if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-estoque-junit
+          path: test-results/pest-estoque-junit.xml
+          retention-days: 14
