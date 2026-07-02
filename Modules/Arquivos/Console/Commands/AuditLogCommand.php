@@ -321,25 +321,31 @@ class AuditLogCommand extends Command
         // payload é o evento de CONSUMO (`signed_url_consumed`, gravado pelo
         // DownloadController); `signed_url_issued` grava só {expires_minutes} (sem IP),
         // então o filtro IS NOT NULL zerava todo resultado e o detector nunca disparava.
-        $rapidQuery = DB::table(DB::raw("(
-            SELECT
-                aal.arquivo_id,
-                JSON_UNQUOTE(JSON_EXTRACT(aal.payload, '$.ip')) as ip,
-                aal.business_id,
-                MIN(aal.created_at) as primeira,
-                MAX(aal.created_at) as ultima,
-                COUNT(*) as cnt,
-                COALESCE(a.original_name, '(arquivo removido)') as filename
-            FROM arquivos_audit_log aal
-            LEFT JOIN arquivos a ON a.id = aal.arquivo_id
-            WHERE aal.action = 'signed_url_consumed'
-              AND aal.created_at >= ?
-              AND JSON_UNQUOTE(JSON_EXTRACT(aal.payload, '$.ip')) IS NOT NULL
-              " . ($businessId !== null ? "AND aal.business_id = {$businessId}" : '') . "
-            GROUP BY aal.arquivo_id, ip, aal.business_id, a.original_name
-            HAVING cnt >= 3
-               AND TIMESTAMPDIFF(SECOND, MIN(aal.created_at), MAX(aal.created_at)) <= 60
-        ) as rapid"), [$since])
+        // fromRaw (não DB::table(DB::raw(...))): o 2º arg de DB::table() é o ALIAS,
+        // não bindings — passar [$since] ali fazia o `?` ficar sem bind E jogava o
+        // array na posição do alias, disparando "Object of class Expression could
+        // not be converted to string" em QUALQUER MySQL (o --suspicious crashava
+        // inteiro). fromRaw($expr, $bindings) é a API correta pra subquery + bind.
+        $rapidQuery = DB::query()
+            ->fromRaw("(
+                SELECT
+                    aal.arquivo_id,
+                    JSON_UNQUOTE(JSON_EXTRACT(aal.payload, '$.ip')) as ip,
+                    aal.business_id,
+                    MIN(aal.created_at) as primeira,
+                    MAX(aal.created_at) as ultima,
+                    COUNT(*) as cnt,
+                    COALESCE(a.original_name, '(arquivo removido)') as filename
+                FROM arquivos_audit_log aal
+                LEFT JOIN arquivos a ON a.id = aal.arquivo_id
+                WHERE aal.action = 'signed_url_consumed'
+                  AND aal.created_at >= ?
+                  AND JSON_UNQUOTE(JSON_EXTRACT(aal.payload, '$.ip')) IS NOT NULL
+                  " . ($businessId !== null ? "AND aal.business_id = {$businessId}" : '') . "
+                GROUP BY aal.arquivo_id, ip, aal.business_id, a.original_name
+                HAVING cnt >= 3
+                   AND TIMESTAMPDIFF(SECOND, MIN(aal.created_at), MAX(aal.created_at)) <= 60
+            ) as rapid", [$since])
             ->select('*')
             ->orderByDesc('cnt')
             ->limit(50);
