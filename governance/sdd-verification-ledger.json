@@ -547,6 +547,23 @@
       "pii_hits": 0,
       "evidencia": "refutacao adversarial 100% (fable-5 fresca vs 8af585a) — 25/25 _pendente_ CONFIRMADO: Modules/Marketplaces/ nao existe, zero migration mkt_*, zero rota webhooks/marketplace, zero driver ML/Shopee/Amazon, zero Pages/Marketplaces, zero comando marketplaces:*. Near-miss: Whatsapp TYPE_MERCADOLIVRE lanca NotImplementedDriverException (fora do escopo); crm_marketplaces (legado CRM) falso-positivo previsto. anchor-lint coverage 100, dead 0, grammar 25/25. Ghost-metric: token Modules/Marketplaces reformulado na justificativa _pendente_ (ratchet ghost fica 8). Cobre PR #3631.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3639,
+      "lote_id": "SA-A5-P10w3-charters",
+      "data": "2026-07-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (sessao geradora P10 wave 3 charters)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 66,
+      "erros_confirmados": 1,
+      "error_rate_pct": 1.5,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "Refutacao 100% dos joins US (66 itens = US individuais em 25 charters editados + 15 deferidos §3-bis). 1 REFUTADO: Purchase/Edit->US-COM-004 (US e infra de deprecacao de rota, anchor so cita Controllers PHP, nao descreve a tela Edit) — removido antes do merge (charter revertido). Ressalvas nao-bloqueantes: RECURRINGBILLING-007 duplicata de RB-042 (listar so 042 na fila A6); US-TR-301 colisao de ID com TaskRegistry (join da tela Triage correto). charter-us-lint --check ok. Cobre PRs #3633/#3634/#3635/#3636 (mesma campanha; entry no PR de docs/fila-A6 #3639 desta campanha).",
+      "veredito": "aprovado"
     }
   ]
 }

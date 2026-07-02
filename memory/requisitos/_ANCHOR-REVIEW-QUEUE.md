@@ -15,6 +15,7 @@
 | SA-A5-P10-oficinaauto (#3541) | OficinaAuto | 48 | 0 | 0% |
 | **wave 2** (#3571-3577, #3580) | Pcp · PG · Fiscal · Compras · Sells-completion · Crm · NfeBrasil · RecurringBilling | 147 | 0 | 0% |
 | **wave 3 lote B** (#3627, #3628, #3638) | NFSe · Autopecas · ComunicacaoVisual | 48 | 0 | 0% |
+| **wave 3 — charters** (#3633-3636) | Fiscal · Cliente · KB · ProjectMgmt · Compras · RecurringBilling · Auditoria · Admin · Infra · TeamMcp · Superadmin | 66 joins (25 charters editados + 15 deferidos §3-bis) | 1 | 1,5% |
 
 **Universo 16 módulos reais · taxa agregada <1% ≪ gatilho de 20-25%** (kill-criteria §103 NÃO disparou em nenhuma wave). A fila de US ambíguas está **vazia** — o DoD 3 do P10 é satisfeito por esta prova, não por itens. _Nota de qualidade (≠ ambiguidade): a refutação Fable reprovou 6 de 15 lotes na rodada 1 (Financeiro 7,5% · OficinaAuto 3,7% · Compras 8,3% · Crm 4,5% · NfeBrasil 4,8% · RecurringBilling 30,9% · ComunicacaoVisual 11,1%) — todos corrigidos e re-aprovados a 0%; reprovados registrados no ledger (§6 do protocolo)._
 
@@ -43,7 +44,7 @@ Detectadas nos lotes de `related_us`; cada uma precisa de decisão: criar US no 
 
 ## §3-bis — related_us DEFERIDOS pelo gate charter-live-signal (prontos pra aterrissar)
 
-> O gate required `charter status:live precisa de sinal de prod` (no-new-lie) barra tocar charter `status: live` sem sinal (component em `governance/prod-flags.json` live OU campo `smoke:` datado). Nenhuma das 13 telas abaixo tem sinal hoje — os joins foram **verificados pelo refutador Fable** e ficam aqui prontos; aterrissam num PR trivial assim que a tela ganhar smoke datado (skill `tela-smoke`) ou entry no prod-flags. NÃO copiar sem o sinal.
+> O gate required `charter status:live precisa de sinal de prod` (no-new-lie) barra tocar charter `status: live` sem sinal (component em `governance/prod-flags.json` live OU campo `smoke:` datado). Nenhuma das 28 telas abaixo tem sinal hoje — os joins foram **verificados pelo refutador Fable** e ficam aqui prontos; aterrissam num PR trivial assim que a tela ganhar smoke datado (skill `tela-smoke`) ou entry no prod-flags. NÃO copiar sem o sinal.
 
 | Charter (status: live) | related_us verificado | Sinal necessário |
 |---|---|---|
@@ -60,8 +61,23 @@ Detectadas nos lotes de `related_us`; cada uma precisa de decisão: criar US no 
 | `Pages/OficinaAuto/Vehicles/Create.charter.md` | `[US-OFICINA-001, US-OFICINA-012]` | smoke ou prod-flags `OficinaAuto/Vehicles/Create` |
 | `Pages/OficinaAuto/Vehicles/Edit.charter.md` | `[US-OFICINA-001]` | smoke ou prod-flags `OficinaAuto/Vehicles/Edit` |
 | `Pages/OficinaAuto/Vehicles/Index.charter.md` | `[US-OFICINA-001, US-OFICINA-002]` | smoke ou prod-flags `OficinaAuto/Vehicles/Index` |
+| `Pages/Atendimento/CaixaUnificada/Index.charter.md` | `[US-WA-012, US-WA-055, US-WA-066, US-WA-095]` | smoke ou prod-flags `Atendimento/CaixaUnificada/Index` |
+| `Pages/Atendimento/JanaTemplates.charter.md` | `[US-WA-070]` | smoke ou prod-flags `Atendimento/JanaTemplates` |
+| `Pages/Atendimento/Macros/Index.charter.md` | `[US-WA-048]` | smoke ou prod-flags `Atendimento/Macros/Index` |
+| `Pages/Atendimento/Metricas/Index.charter.md` | `[US-WA-041]` | smoke ou prod-flags `Atendimento/Metricas/Index` |
+| `Pages/ProjectMgmt/Board/Index.charter.md` | `[US-TR-307]` (TR-308 é topicamente da tela mas está `todo`/gap — só listar quando entregue) | smoke ou prod-flags `ProjectMgmt/Board/Index` |
+| `Pages/RecurringBilling/Faturas/Index.charter.md` | `[US-RB-042]` (RECURRINGBILLING-007 é duplicata declarada da 042 — refutador: não listar as duas) | smoke ou prod-flags `RecurringBilling/Faturas/Index` |
+| `Pages/RecurringBilling/Planos/Index.charter.md` | `[US-RB-001]` | smoke ou prod-flags `RecurringBilling/Planos/Index` |
+| `Pages/RecurringBilling/Configuracoes/Index.charter.md` | `[US-RB-010]` (anchor cita ConfiguracoesController → `Inertia::render('RecurringBilling/Configuracoes/Index')`) | smoke ou prod-flags `RecurringBilling/Configuracoes/Index` |
+| `Pages/Sells/Create.charter.md` | `[US-SELL-001, US-SELL-003, US-SELL-004, US-SELL-005, US-SELL-006, US-SELL-007, US-SELL-053]` | smoke ou prod-flags `Sells/Create` |
+| `Pages/governance/Dashboard.charter.md` | `[US-GOV-001, US-COPI-095, US-COPI-098]` (GOV-001 via render; COPI-095/098 via anchor Jana) | smoke ou prod-flags `governance/Dashboard` |
+| `Pages/governance/Policies.charter.md` | `[US-GOV-002]` (via `Inertia::render('governance/Policies')`) | smoke ou prod-flags `governance/Policies` |
+| `Pages/governance/Audit.charter.md` | `[US-GOV-003]` (via `Inertia::render('governance/Audit')`) | smoke ou prod-flags `governance/Audit` |
+| `Pages/governance/DriftAlerts.charter.md` | `[US-GOV-004]` (via `Inertia::render('governance/DriftAlerts')`) | smoke ou prod-flags `governance/DriftAlerts` |
+| `Pages/governance/ModuleGrades/Index.charter.md` | `[US-GOV-006]` | smoke ou prod-flags `governance/ModuleGrades/Index` |
+| `Pages/governance/ModuleGrades/Show.charter.md` | `[US-GOV-007]` | smoke ou prod-flags `governance/ModuleGrades/Show` |
 
-Aterrissaram direto (sem gate — status draft): Financeiro/Advisor/Login (#3540) · Jana/Cockpit (#3544) · OficinaAuto/Vehicles/Show (#3542).
+Aterrissaram direto (sem gate — status draft/deprecated/live-ok): Financeiro/Advisor/Login (#3540) · Jana/Cockpit (#3544) · OficinaAuto/Vehicles/Show (#3542) · **wave 3 (#3633-3636):** Fiscal ×7 · Cliente ×3 · KB ×4 · ProjectMgmt Inbox+Triage · Purchase/Create · RecurringBilling/Index · Auditoria/Index · Admin Index+FeatureFlags×2 · team-mcp/Team/Index · superadmin/Usuario360 ×2 (25 charters).
 
 ## §4 — Pendências do batch 1 (Sells, #3483 — sessão anterior)
 
@@ -111,5 +127,6 @@ Aterrissaram direto (sem gate — status draft): Financeiro/Advisor/Login (#3540
 ---
 
 **Evolução**
+- 2026-07-02 — **wave 3 (charters `related_us`)** fechada: backfill do join US→tela nos charters que ainda não tinham o campo (cobertura de charter 30/158 → 55/158). 25 charters editados (PRs #3633 Fiscal · #3634 Cliente+KB · #3635 Gestão · #3636 Admin+MCP) + 15 joins deferidos pra §3-bis (charters `status:live` sem sinal). Refutador Fable 5 (G5, sessão fresca): 66 joins verificados, **1 refutado** (`Purchase/Edit → US-COM-004` — US de infra de deprecação, não descreve a tela; removido antes do merge), error_rate 1,5% < 2% → aprovado. Órfãs (charter sem US identificável, ficam sem campo): ~62 charters — Produto ×8 (sem SPEC), Repair ×8 (SPEC placeholder TODO), Sells ×6 (Show/Edit/Drafts/Quotations/Subscriptions/Caixa não citadas), team-mcp ×4, Cliente Map/Import/Ledger (só listadas na tabela de Pages, sem US própria), TransactionPayment ×3 (sem SPEC), Stock* ×4, Suporte ×2, ComVis/Manufacturing/Orcamento/Settings/User/governance-DsRollout ×1 cada, Admin GovernanceV4/RagQuality/ScreenReview. [CC]
 - 2026-07-01 (noite) — wave 2 fechada (Pcp/PG/Fiscal/Compras/Sells-completion/Crm/NfeBrasil/RecurringBilling — 147 US, 0 ambíguas, 5 lotes reprovados r1 e re-aprovados; coverage global 42,6%→59,8%; PRs #3571-#3580). §1 atualizado, §4.2 fechado, §4-bis criado (6 advisories de produto). [CC]
 - 2026-07-01 — criado (P10 wave 1: Financeiro/Whatsapp/Jana/OficinaAuto — 226 US ancoradas, 0 ambíguas, refutador Fable tier superior, PRs #3539-#3547). [CC]
