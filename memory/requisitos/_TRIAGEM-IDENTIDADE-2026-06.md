@@ -90,3 +90,51 @@
 
 ---
 *Gerado por frente KL-E1 (branch `sdd/kl-identidade`) a partir de origin/main `afecf98f6` em 2026-06-12. Fontes: `node scripts/governance/knowledge-drift.mjs`, `git log` por pasta, grep de `Inertia::render` nos controllers, leitura dos SPEC/BRIEFING citados. Coluna "Decisão Wagner" preenchida 2026-06-14 (defaults autorizados + 4 pendentes de julgamento).*
+
+---
+
+## Estado de execução E2/E3 — conferido em `origin/main dad0b113b6` (append 2026-07-02)
+
+> **Conferência, não re-execução.** Todas as linhas `ok` (FUNDIR/MATAR) já estavam aplicadas no `origin/main` quando esta seção foi escrita — cada uma resolvida por PR KL-E2 mergeado entre 2026-06-15 e 2026-07-01. Nada foi refeito (seria regressão/duplicação). Esta seção só **registra o PR que fechou cada linha** (prova, não promessa) e o padrão adotado. Verificado: `front_door_coverage` das 33 pastas da Tabela A = 100% (só `_Governanca`, pasta de roadmap-índice, fica sem BRIEFING, por design); `knowledge-drift --check` = 0 ghosts novos; `ghost-fix.test.mjs` verde.
+
+### FUNDIR — lápide-redirect no BRIEFING apontando pro receptor (✅ executado)
+
+| Fonte | Receptor | PR que fechou | Padrão |
+|---|---|---|---|
+| Copiloto | Jana | #3559 + #3565 | redirect **+ 3 docs Jana-Pro movidos** pra `Jana/` (loop fechado) |
+| Chat | Jana | #2750 | redirect (proveniência congelada in-place) |
+| MemoriaAutonoma | Jana | #2750 | redirect in-place |
+| LaravelAI (HISTORICAL) | Jana | #2750 | redirect in-place |
+| PontoWr2 (13 docs incl. adr/+audits/) | Ponto | #2750 | redirect in-place |
+| Atendimento (módulo NÃO renomeado) | Whatsapp | #2750 | redirect in-place |
+| FinanceiroAvancado | Financeiro | #2750 | redirect in-place — ⚠️ ver divergência (b) |
+| Orcamento | Sells | #2757 | redirect stub |
+| Site | Cms | #2750 | redirect in-place |
+| Modules | Admin | #2757 | redirect stub |
+| _Showcase | _DesignSystem | #2750 | redirect in-place |
+| _processo | Mwart | #2750 | redirect in-place |
+| TaskRegistry (EMENDA 2026-06-15) | TeamMcp | #2750 (emenda #2748) | redirect in-place |
+
+### MATAR — lápide "(planejado — não existe)" (✅ executado, PR #2751)
+
+| Fonte | Lápide aponta pra | Divergência |
+|---|---|---|
+| BI | sem sucessor ("não investir") | comparativo NÃO movido pra `_Ideias/` — ver (c) |
+| Grow | sem sucessor | idem (c) |
+| EvolutionAgent | `Modules/ADS` (decisor Dual-Brain) | idem (c) |
+| Tarefas | MCP/TaskRegistry (time) · ProjectMgmt (cliente) | stub sem comparativo |
+
+### P4 MemCofre↔SRS
+Lápide já existia (DEPRECATION-PLAN Caminho 1) — nenhuma ação nova, conforme decisão. É o **precedente** do padrão in-place adotado nas fusões acima.
+
+### Divergências texto-da-decisão × padrão executado (in-place, coerente com MemCofre)
+- **(b) FinanceiroAvancado:** a decisão dizia "vira ROADMAP-avancado de lá"; o executor tombstoneou in-place e **não criou** `Financeiro/ROADMAP-avancado.md`. Sem impacto de correção — o SPEC é um wish ("planejado — não existe"), sem capacidade viva a migrar; in-place é o mesmo padrão de Chat/LaravelAI.
+- **(c) MATAR (BI/Grow/EvolutionAgent):** a decisão dizia "comparativo arquiva em `_Ideias/`"; o executor congelou o `COMPARATIVO_CONCORRENCIA.md` in-place sob a lápide. `_Ideias/` não os contém. In-place preserva os links históricos append-only da própria lápide — mover agora seria cosmético e arriscaria quebra de links.
+- Ambas são divergências **de forma**, não de correção. Ficam registradas aqui; mover fisicamente exige decisão explícita do Wagner (não é regressão a corrigir).
+
+### Fora do escopo desta conferência
+- **ADIADO — cluster Estoque** (Inventory, Produto, Purchase, StockAdjustment, StockTransfer): NÃO tocado aqui, conforme decisão E1 + trava do motor `sdd-fase-2.js`. Trabalho relacionado de ghost-repartition foi tratado em outra frente (P11/KL-E2 Estoque) — não é a fusão de pastas destes itens, que segue `ADIADO`.
+- **GENUÍNO** (criar porta): fora da trilha FUNDIR/MATAR desta seção; portas criadas nos lotes #2750/#2751.
+- **E2b re-seed Meilisearch / E3 distiller:** executados/parciais em outra frente (#3534/#3532/#3553) — ver [P11](_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md).
+
+*Append por conferência E2/E3 (worktree `claude/e2e3-triagem-closure`) a partir de `origin/main dad0b113b6` em 2026-07-02. Sem re-execução; só registro de estado + PRs.*
