@@ -15,26 +15,26 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 59.8,
+      "value": 60,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 59.8,
+        "coverage_pct": 60,
         "specs_total": 58,
         "us_total": 855,
-        "anchor_coverage_pct": 59.8,
+        "anchor_coverage_pct": 60,
         "by_state": {
-          "sem_campo": 344,
+          "sem_campo": 342,
           "placeholder": 0,
           "pendente": 213,
           "parcial": 73,
-          "anchored_ok": 225,
+          "anchored_ok": 227,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 516,
+        "fields_total": 518,
         "fields_placeholder": 0,
         "fields_grammar_ok": 479,
         "orphan_fields": 5,
@@ -43,7 +43,7 @@
         "req_sem_aceite_total": 145,
         "req_sem_covering_test_total": 256,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 39,
+        "req_sem_lane_total": 41,
         "behavior_known": false,
         "baseline_applied": null,
         "grandfathered": {
@@ -202,17 +202,12 @@
       "stream": "MEM"
     },
     "drift_alarms": {
-      "status": "measured",
-      "value": 0,
-      "unit": "alarmes duros (reds do protection-drift · GT-G4)",
+      "status": "not_yet_measured",
+      "value": null,
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
-      "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
-      "detail": {
-        "reds": [],
-        "warns": 0,
-        "verdict": "green"
-      },
+      "source": "gh api indisponível — drift_alarms requer GITHUB_TOKEN (protection-drift.mjs lê branch protection). Fallback honesto: vira measured assim que o gh autenticar.",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "GT"
     },
     "backfill_error_rate": {
