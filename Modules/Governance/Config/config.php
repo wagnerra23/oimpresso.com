@@ -190,4 +190,15 @@ return [
     | @see Modules\Governance\Services\ShippedLogBriefLineService
     */
     'shipped_log_brief_line' => true, // literal (não env): evita larastan noEnvCallsOutsideOfConfig; toggle via config()
+
+    /*
+    |--------------------------------------------------------------------------
+    | Linha de REVISÃO DE ADR no Daily Brief (ADR 0317 Onda 3 · M3)
+    |--------------------------------------------------------------------------
+    | Kill-switch do AdrReviewBriefLineService (filas Check O/R do memory-health,
+    | teto de vazão top-3). Default ON.
+    |
+    | @see Modules\Governance\Services\AdrReviewBriefLineService
+    */
+    'adr_review_brief_line' => true, // literal (não env): evita larastan noEnvCallsOutsideOfConfig; toggle via config()
 ];

@@ -69,6 +69,7 @@ class GovernanceServiceProvider extends ServiceProvider
                 \Modules\Governance\Console\Commands\GovernanceAuditCommand::class,        // ADR 0216 — DriftChecker orchestrator
                 \Modules\Governance\Console\Commands\GovernancaScorecardCommand::class,    // W28 — placar [CC]×Jana mecanizado (graduação de lições)
                 \Modules\Governance\Console\Commands\CicloDiarioGovernancaCommand::class,  // ciclo diário — orquestra estado+frescor+inbox+digest (advisory)
+                \Modules\Governance\Console\Commands\AdrReviewFlushCommand::class,         // ADR 0317 M3 — flush trimestral fila revisão de ADR (Checks O/R)
             ]);
         }
     }
