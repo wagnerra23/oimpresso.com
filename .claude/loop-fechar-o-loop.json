@@ -46,12 +46,14 @@
       "detect": {
         "tipo": "file_any",
         "paths": [
-          "scripts/ragas-eval.py",
-          ".github/workflows/jana-canary-semanal.yml"
+          "Modules/Jana/Console/Commands/JanaDriftSentinelCommand.php",
+          "Modules/Jana/Console/Commands/JanaRecallEvalCommand.php"
         ]
       },
-      "done": false,
-      "ref": "IA-MATURITY-FICHA gap#2 + RUNBOOK-ragas-canary.md"
+      "done": true,
+      "done_em": "2026-07-02",
+      "done_nota": "Fechado HONESTO em 3 pernas semanais dominicais, todas com alerta onFailure (canal copiloto-ai): (a) halluc/drift = jana:drift-sentinel dom 06:00 live Hostinger — probe --status provou ARMED (OPENAI_API_KEY presente), compara faithfulness vs baseline canon, ALERT se >10% divergem; (b) recall<80% = jana:recall-eval --mode=real dom 06:30 movido de live (dormente por construção — Meilisearch inalcançável do Hostinger) pra staging CT100, mesmo racional do ADR 0318; provado live 2026-07-02: 27 queries, recall_eval_violations=0, 25 recall fails (alerta legítimo até retrieval melhorar — gap context_recall 0.38 catalogado); (c) faithfulness/relevancy/context_recall REAIS = jana:ragas-real-eval dom 07:00 staging (ADR 0318) com floors de regressão 0.65/0.75 + trend transportado pra órfã governance/ragas-real-trend (PR #3612) alimentando ragas_real_uptime no scorecard SDD. Detect paths originais (scripts/ragas-eval.py + jana-canary-semanal.yml) eram o DESENHO de maio; a implementação real superou (comandos artisan + Kernel schedules em vez de python+workflow). Thresholds do titulo (80%/95%) viraram floors de regressão anti-ruído (estado-da-arte: start lower, tighten iteratively).",
+      "ref": "IA-MATURITY-FICHA gap#2 + ADR 0318 + Kernel.php dom 06:00/06:30/07:00 + PR #3612"
     },
     {
       "id": "loop-6-lgpd-purge",
