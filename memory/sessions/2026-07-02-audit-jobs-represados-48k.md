@@ -53,3 +53,13 @@
 ## Risco se ligar worker SEM purge (por que o gate existe)
 
 NFC-e retroativa (3 vendas biz=1) + 5 WhatsApps stale pra clientes Martinho + 1.057 syncs bancários em rajada (rate limit) + 646 transcrições LLM inúteis + ~18h de churn de CPU no shared hosting.
+
+## EXECUTADO 2026-07-02 (Wagner aprovou — "ok pode fazer")
+
+- PR [#3609](https://github.com/wagnerra23/oimpresso.com/pull/3609) mergeado (64 checks verdes) + deploy automático OK.
+- Dry-run na prod: 48.198 jobs (audit da manhã + 4 novos dos crons) — tabela bateu com o inventário aprovado.
+- `jobs:purge-represados --execute`: **48.198 deletados, tabela `jobs` zerada** (log estruturado `[jobs.purge-represados]` no laravel.log).
+- `QUEUE_BACKLOG_WORKER_ENABLED=true` no `.env` + `config:cache`; `schedule:list` confirma o 3º worker (`nfe,default,customer-memory,employee-performance,jana-index,copiloto-memoria`) everyMinute.
+- Smoke pós-ativação: filas drenando (ver relatório da sessão).
+
+**Pendência aberta (decisão Wagner, fiscal Tier 0):** biz=4 (ROTA LIVRE) deveria emitir NFC-e automática? 221 vendas desde 03/mai ficaram sem emissão (gate per-business fez no-op). Se sim → criar linha `nfe_business_configs` biz=4 + decidir retroativas com contador. As 3 NFC-e biz=1 pendentes foram purgadas junto (emitir manual se necessário).
