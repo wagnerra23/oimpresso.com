@@ -1,6 +1,6 @@
 ---
 date: "2026-07-02"
-topic: "Avaliação adversarial do programa SDD (7 skeptics) — 76/100 composto (75 médio), +1 vs 75 de 01/jul-noite; P14 confirmado mordendo live (298→350 = exit 1), anchor_coverage armado (floor 55.2); ponta do funil (promoções) segue 34 — gargalo é burn-down + relógio, não infraestrutura"
+topic: "Avaliação adversarial SDD (7 skeptics) — 76/100 composto; P14 mordendo live (298→350=exit 1), anchor_coverage armado (55.2); 16 frentes em aberto divididas em 3 ondas; novo defeito nº1 = watchdog staleness prometido no baseline mas ausente no código"
 authors: [C]
 type: avaliacao-adversarial-processo
 metodo: "workflow sdd-avaliador-processo (8 agents, 1 skeptic por stream, verificação LIVE em git+gh+CT100 via SSH, não no plano)"
