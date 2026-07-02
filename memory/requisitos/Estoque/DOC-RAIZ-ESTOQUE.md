@@ -19,6 +19,12 @@ sem_alteracao: este_doc_e_so_registro_auditoria_nenhuma_mudanca_de_codigo
 >
 > **Regra de ouro:** mudança em estoque é Tier 0 (afeta dinheiro e multi-tenant). Toda alteração aqui
 > passa por: ler este doc → ADR se mudar invariante → teste Pest antes do código.
+>
+> **Correção 2026-07-02 (Onda 0 · doc `type: reference`, editável com data):** o achado **R2** estava
+> **stale**. A baixa de peça da OS **não** foi "revertida" — está **LIVE** em `origin/main`
+> (`ServiceOrderItemService::baixarEstoqueConclusao()` via `ServiceOrderObserver` bloco P0-2). Corrigidos
+> §4 (linha da OS OficinaAuto) e §8 (R2); o que resta é **refino** (location default + `BomResolver` p/ kits),
+> não implementação do zero. Nenhuma mudança de código — só correção do registro.
 
 ---
 
@@ -89,7 +95,7 @@ Arquivo: [`app/Utils/ProductUtil.php`](../../../app/Utils/ProductUtil.php). **3 
 | **Transferência** | `StockTransferController@store/destroy` | `decrease`+`updateProductQuantity` | ✅ | Inertia `StockTransfer/*` (`?v=2`) · Blade fallback |
 | **Ajuste** | `StockAdjustmentController@store/destroy` | `decreaseProductQuantity` (339) | ✅ | Inertia `StockAdjustment/*` (`?v=2`) · Blade fallback |
 | **Estoque inicial** | `OpeningStockController@save` | `updateProductQuantity` | ⚠️ ver R3 | **Blade** `opening_stock/*` |
-| **OS OficinaAuto** | `ServiceOrderObserver` (status→`concluida`) → baixa de peças ⏳ **PROPOSTO** (backend foi implementado e **revertido na fase de auditoria**; red spec em `ServiceOrderItemStockBaixaTest`; ver R2 + US-OFICINA-043/044) | `decreaseProductQuantity` (plano) | — | Inertia `OficinaAuto/ServiceOrders/*` |
+| **OS OficinaAuto** | `ServiceOrderObserver` (status→`concluida`, bloco **P0-2**) → `ServiceOrderItemService::baixarEstoqueConclusao()` — **LIVE** (correção 2026-07-02: antes dizia "revertido/PROPOSTO", stale; ver R2) | `$vld->save()` Eloquent auditável (INV-1) + clamp 0; refino aberto: location default + `BomResolver` p/ kits | — | Inertia `OficinaAuto/ServiceOrders/*` |
 | **Repair JobSheet** | `JobSheetObserver` | **NÃO toca estoque** (só fatura venda derivada) | — | Inertia `Repair/*` |
 | **Reserva FSM** | `ReservarEstoque`/`ConsumirEstoque`/`LiberarReserva` | reserva separada + `DB::table` direto no consumo | — | n/a (side-effects FSM) |
 
@@ -142,7 +148,7 @@ recomendada (ver R4).
 | # | Achado | Severidade | Evidência |
 |---|---|---|---|
 | **R1** | ✅ **CORRIGIDO 2026-06-04.** Era: `ConsumirEstoque` usava `DB::table` direto → sem `LogsActivity` + sem check `enable_stock`. Fix aditivo e guardado: quando `activity_log` existe (prod), baixa via modelo Eloquent (dispara `inventory.stock`) + checa `enable_stock`; em env sem audit (teste sqlite) mantém fallback `DB::table` com clamp preservado. Teste: `tests/Feature/Domain/Fsm/ConsumirEstoqueAuditTest.php`. **Falta:** rodar no CT 100. | 🔴→✅ | [`ConsumirEstoque.php`](../../../app/Domain/Fsm/SideEffects/ConsumirEstoque.php) |
-| **R2** | **(design da feature pendente)** O backend de baixa de estoque da OS foi implementado e **revertido na fase de auditoria** (não está no código hoje). Ao **re-aplicar**, baixar na **location default do business** (não "maior saldo") e passar por ProductUtil (auditável). Red spec: `ServiceOrderItemStockBaixaTest`. | 🟡 design | US-OFICINA-043/044 |
+| **R2** | **CORRIGIDO 2026-07-02 — claim stale.** A baixa de estoque da OS **está LIVE** em `origin/main`: `ServiceOrderItemService::baixarEstoqueConclusao()` (linha 135) é chamada pelo `ServiceOrderObserver` (bloco P0-2) no `status→concluida`; baixa via `$vld->save()` (Eloquent auditável, INV-1) + clamp em 0. **NÃO foi revertida.** Refino **aberto**: (a) resolve o VLD por `orderByDesc('qty_available')` ("maior saldo", ~linha 172) → trocar por **location default do business** via ProductUtil (auditável); (b) **não** chama `BomResolver` → se o item for kit, baixa o produto-kit direto em vez dos componentes (plugar `BomResolver`). | 🟡 refino | US-OFICINA-043/044 |
 | **R3** | ❌ **FALSO ALARME.** A auditoria automática olhou só `ProductUtil::addSingleProductOpeningStock` (sem transação interna), mas o **único caller** `ProductController@store` envolve tudo em `DB::transaction` (`DB::commit()` em [linha 1807](../../../app/Http/Controllers/ProductController.php)); a edição via `OpeningStockController@save` também (`DB::beginTransaction()` linha 169). **Sem ação.** | ✅ Resolvido | `ProductController.php:1807` · `OpeningStockController.php:169` |
 | **R4** | **VLD sem `business_id`** → isolamento transitivo. Não é leak hoje, mas qualquer query crua futura sem join é risco. | 🟢 Estrutural | migration 2017_12_25 |
 | **R5** | **Oversell concorrente**: sem lock pessimista no draft→final, 2 vendas simultâneas podem furar saldo. Mitigação intencional = sistema de reserva FSM. | 🟢 Pré-existente UPOS | `getDetailsFromVariation` leitura sem `FOR UPDATE` |
@@ -163,7 +169,7 @@ Priorizado do mais essencial pra integridade do estoque:
 |---|---|---|---|
 | ~~P0~~ | ~~R1 — unificar escrita de saldo auditável~~ | 4h | ✅ **feito 2026-06-04** (falta smoke CT 100) |
 | ~~P0~~ | ~~R3 — opening_stock em transação~~ | — | ❌ **falso alarme** (caller já envolve) |
-| **P1** | **R2 — resolver location na baixa da OS:** usar location default do business (ou location da OS quando schema ganhar `location_id`) em vez de "maior saldo" | 3h | aberto |
+| **P1** | **R2 — refino da baixa da OS (baixa já LIVE):** resolver location por default do business (ou location da OS quando schema ganhar `location_id`) em vez de "maior saldo" + plugar `BomResolver` p/ item-kit baixar componentes | 3h | aberto |
 | **P1** | **Comando de conciliação:** roda `getVariationStockMisMatch` por business e alerta drift (saldo calculado × real) | 4h | aberto |
 | **P1** | **Product picker na UI da OS** (passo 3 do P0-2): setar `product_id` do catálogo no item da OS (hoje texto livre) | 4h | aberto |
 | **P2** | **R4 — adicionar `business_id` a VLD** (migration + `HasBusinessScope`) defesa-em-profundidade | 6h | aberto |
