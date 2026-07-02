@@ -80,6 +80,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Controller:** `ProdutoCatalogoController`
 > **Permissão Spatie:** `autopecas.produto.{view,create,update}`
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado (Vargas), sem código do módulo no repo; catálogo veicular a construir
+
 **Como** balconista
 **Quero** buscar peça por marca+modelo+ano (ex: "Civic 2015 freio dianteiro") e ver SKUs compatíveis com aplicação detalhada (chassis_range, ano_min, ano_max, motor, observação)
 **Para** atender cliente em <30s sem abrir 3 catálogos paralelos
@@ -104,6 +106,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Controller:** `BalcaoController`
 > **Reusa:** UltimatePOS `transactions` + Modules/Vestuario padrão venda
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado; venda balcão Autopecas a construir (reuso Vestuario é padrão a imitar, não implementação da US)
+
 **Como** balconista em pico
 **Quero** vender 5 peças + cliente + pagamento + NFC-e em <60 segundos sem trocar de tela
 **Para** atender 30-50 clientes/h em pico (Vargas opera 8-18h, sazonalidade fim de semana)
@@ -126,6 +130,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Rota:** `GET/POST /autopecas/tabelas-preco`
 > **Controller:** `TabelaPrecoController`
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado, nada construído
+
 **Como** dono/comprador
 **Quero** definir markup % por (categoria_peca × montadora × qualidade) — ex: freio Volkswagen original = 40%, similar = 25%; suspensão Fiat = 35%
 **Para** preço sair calculado automaticamente sem digitar a cada compra
@@ -147,6 +153,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Rota:** `GET /autopecas/estoque/alertas`
 > **Reusa:** UltimatePOS `variation_location_details` + Job daily
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado, nada construído
+
 **Como** comprador/dono
 **Quero** ver dashboard "peças em estoque mínimo" com sugestão de cotação automática (3 fornecedores cadastrados)
 **Para** não rodar fora-de-estoque e perder venda balcão (dor #1 setor: stockout fideliza concorrente)
@@ -167,6 +175,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Área:** Pos-venda
 > **Rota:** `GET/POST /autopecas/devolucoes`
 > **Controller:** `DevolucaoController`
+
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado, nada construído
 
 **Como** balconista
 **Quero** registrar devolução D+0 a D+7 com motivo enum (cliente_errou_peca / nao_serviu / defeito / arrependimento / troca_marca) + retornar peça ao estoque automaticamente
@@ -190,6 +200,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Rota:** `GET/POST /autopecas/garantias`
 > **Controller:** `GarantiaController`
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado, nada construído
+
 **Como** balconista/dono
 **Quero** ao vender peça registrar garantia (loja 30d default + fabricante 90-365d conforme tipo) e quando cliente reclamar D+15 saber: "está em garantia loja → trocar agora" ou "garantia fabricante → abrir RMA Bosch"
 **Para** atender cliente sem disputa "tinha garantia ou não?" + processo RMA padronizado
@@ -210,6 +222,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 
 > **Área:** Fiscal
 > **Reusa:** [Modules/NfeBrasil](../NfeBrasil/SPEC.md) US-NFE-002 (NFC-e ✅ pronta) + [Modules/RecurringBilling](../RecurringBilling/SPEC.md) US-RB-044 (boleto pago→NFe ✅ entregue)
+
+**Implementado em:** _pendente_ — o adapter Autopecas (split NFC-e peça, CFOP 5102/5949, envio cliente) não existe; as deps NfeBrasil US-NFE-002 e RecurringBilling US-RB-044 são prontas mas são outras US, não esta
 
 **Como** balconista
 **Quero** que NFC-e dispare em <500ms ao finalizar venda (sem cliente esperar) E quando boleto crediário cair pago, NFe automática emitida sem clique humano
@@ -233,6 +247,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Área:** Compras
 > **Reusa:** UltimatePOS `contacts.type=supplier`
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado, nada construído
+
 **Como** comprador
 **Quero** enviar pedido de cotação simultânea pra 3-5 fornecedores (peça X qty Y) e comparar respostas + escolher melhor preço/prazo
 **Para** garantir margem peça + documentar cotação (ISO 9001 friendly se Vargas certificado)
@@ -253,6 +269,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Área:** Estoque
 > **Reusa:** UltimatePOS `business_locations` + `variation_location_details`
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado; UI dedicada Autopecas de transferência a construir (base UltimatePOS existe, mas a US é a camada Autopecas)
+
 **Como** dono multi-loja
 **Quero** ver estoque agregado de todas localizações + transferir peça entre depósitos com nota fiscal interna (NFe transferência CFOP 5409/6409)
 **Para** atender cliente que está na matriz mas peça está na filial sem perder venda
@@ -272,6 +290,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 
 > **Área:** Financeiro
 > **Reusa:** [Modules/Financeiro](../Financeiro/) AR + Modules/RecurringBilling boleto
+
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado, nada construído
 
 **Como** financeiro
 **Quero** vender peça em crediário interno (3-12x sem cartão) com limite por cliente + score interno + boleto/PIX nas datas
@@ -294,6 +314,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Área:** Comercial
 > **Reusa:** [Modules/Whatsapp](../Whatsapp/) + [Modules/Jana](../../../Modules/Jana)
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado; Jana tool `autopecas.consultar_peca` a construir
+
 **Como** cliente oficina parceira
 **Quero** mandar foto da peça quebrada + "Vargas Civic 2015" pelo WhatsApp e receber em 30s lista compatível com preço e disponibilidade
 **Para** atender cliente fora horário balcão (Vargas fecha 18h) + fidelizar oficinas (atendimento exclusivo)
@@ -313,6 +335,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 
 > **Área:** UX
 > **Reusa:** Inertia/React responsive + PWA manifest
+
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado, nada construído
 
 **Como** balconista atendendo cliente no estoque (não no balcão)
 **Quero** abrir lista de peças no celular, fotografar SKU, ver estoque, reservar pra venda
@@ -335,6 +359,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Área:** IA
 > **Reusa:** [Modules/Jana](../../../Modules/Jana) tools + ContextSnapshotService
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado; Jana tool `autopecas.sugerir_peca` a construir
+
 **Como** balconista iniciante
 **Quero** descrever (marca, modelo, ano, sintoma) e receber SKUs ranqueados + alternativas + tempário sugerido SE peça exigir aplicação (link Modules/OficinaAuto futuro)
 **Para** acelerar atendimento + reduzir dependência de balconista sênior
@@ -356,6 +382,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 > **Área:** Fiscal
 > **Reusa:** [Modules/NfeBrasil](../NfeBrasil/SPEC.md) (SAT a adicionar)
 
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado; SAT SP nem no NfeBrasil existe ainda (P2, condicional a Vargas ser SP)
+
 **Como** dono autopeças SP
 **Quero** emitir cupom fiscal via SAT (alternativa NFC-e em SP até transição completa)
 **Para** atender exigência SEFAZ-SP + clientes que preferem cupom
@@ -368,6 +396,8 @@ Priorização: **P0** = bloqueia 1ª piloto Vargas (paridade competitiva mínima
 
 > **Área:** Comercial
 > **Reusa:** [Modules/Cms](../Cms/) landing + Modules/RecurringBilling
+
+**Implementado em:** _pendente_ — módulo wish aguarda-sinal-qualificado, nada construído (P2, fase 3)
 
 **Como** dono autopeças
 **Quero** subdomínio `loja.vargas-acessorios.com.br` com catálogo público + pedido online (não auto-checkout — solicita orçamento)
