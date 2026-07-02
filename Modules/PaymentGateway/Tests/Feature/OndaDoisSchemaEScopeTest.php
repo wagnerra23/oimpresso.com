@@ -63,11 +63,16 @@ it('gateway_webhook_events tem colunas canônicas', function () {
 });
 
 it('global scope HasBusinessScope isola PaymentGatewayCredential entre tenants', function () {
-    // Cria credencial em biz=1
-    auth()->logout();
-    session(['business.id' => 1]);
+    // Contrato ADR 0093: usuário AUTENTICADO vê só rows do próprio business.
+    // ScopeByBusiness é fail-open sem auth (CLI/jobs — design documentado em
+    // App\Concerns\HasBusinessScope + Jana/MultiTenantIsolationTest), então o
+    // setup canônico é actingAs + session('user.business_id') (padrão Wave 7).
+    $user = \App\User::where('business_id', 1)->first();
+    if (! $user) {
+        $this->markTestSkipped('Sem user em business_id=1 — semear DB (ADR 0101).');
+    }
 
-    PaymentGatewayCredential::create([
+    $credBiz1 = PaymentGatewayCredential::withoutGlobalScopes()->create([
         'business_id'  => 1,
         'gateway_key'  => 'inter',
         'ambiente'     => 'sandbox',
@@ -75,34 +80,65 @@ it('global scope HasBusinessScope isola PaymentGatewayCredential entre tenants',
         'nome_display' => 'Inter biz=1',
         'config_json'  => ['token' => 'fake'],
     ]);
+    $credBiz99 = PaymentGatewayCredential::withoutGlobalScopes()->create([
+        'business_id'  => 99,
+        'gateway_key'  => 'asaas',
+        'ambiente'     => 'sandbox',
+        'ativo'        => true,
+        'nome_display' => 'Asaas biz=99',
+        'config_json'  => ['token' => 'fake'],
+    ]);
 
-    // Em biz=1 vê 1
-    expect(PaymentGatewayCredential::count())->toBe(1);
+    $this->actingAs($user);
+    session(['user.business_id' => 1]);
 
-    // Trocar sessão pra biz=99
-    session(['business.id' => 99]);
+    // Autenticado em biz=1: vê a própria, NUNCA a de biz=99
+    $ids = PaymentGatewayCredential::query()->pluck('id')->all();
+    expect($ids)->toContain($credBiz1->id)
+        ->and($ids)->not->toContain($credBiz99->id);
 
-    // Em biz=99 não vê
-    expect(PaymentGatewayCredential::count())->toBe(0);
+    // Sessão trocada pra biz=99: a credencial de biz=1 some da query
+    session(['user.business_id' => 99]);
+    expect(PaymentGatewayCredential::query()->pluck('id')->all())
+        ->not->toContain($credBiz1->id);
 });
 
 it('global scope HasBusinessScope isola Cobranca entre tenants', function () {
-    session(['business.id' => 1]);
+    $user = \App\User::where('business_id', 1)->first();
+    if (! $user) {
+        $this->markTestSkipped('Sem user em business_id=1 — semear DB (ADR 0101).');
+    }
 
-    Cobranca::create([
+    $chave = 'retriage:'.uniqid();
+    $cobBiz1 = Cobranca::withoutGlobalScopes()->create([
         'business_id'     => 1,
         'tipo'            => 'boleto',
         'status'          => 'emitida',
         'valor_centavos'  => 10000,
         'vencimento'      => now()->addDays(5),
         'descricao'       => 'Teste biz=1',
-        'idempotency_key' => 'biz1:test:1',
+        'idempotency_key' => $chave.':b1',
+    ]);
+    $cobBiz99 = Cobranca::withoutGlobalScopes()->create([
+        'business_id'     => 99,
+        'tipo'            => 'boleto',
+        'status'          => 'emitida',
+        'valor_centavos'  => 20000,
+        'vencimento'      => now()->addDays(5),
+        'descricao'       => 'Teste biz=99',
+        'idempotency_key' => $chave.':b99',
     ]);
 
-    expect(Cobranca::count())->toBe(1);
+    $this->actingAs($user);
+    session(['user.business_id' => 1]);
 
-    session(['business.id' => 99]);
-    expect(Cobranca::count())->toBe(0);
+    $ids = Cobranca::query()->pluck('id')->all();
+    expect($ids)->toContain($cobBiz1->id)
+        ->and($ids)->not->toContain($cobBiz99->id);
+
+    session(['user.business_id' => 99]);
+    expect(Cobranca::query()->pluck('id')->all())
+        ->not->toContain($cobBiz1->id);
 });
 
 it('UNIQUE(business_id, idempotency_key) impede emissão dupla mesmo business', function () {
