@@ -13,7 +13,7 @@
   "_decisao_wagner": "NAO ligar o 2o cerebro (Brain B / autonomia ADS - gap #1). Custo que ele nao quer fazer agora. Esta rotina NUNCA toca Brain B, ADS routing, nem ads-route.",
   "_como_funciona": "Hook SessionStart .claude/hooks/loop-fechar-check.ps1 le este arquivo a cada brief. Para itens code-based: 'feito' = artefato existe no repo (detect file_any). Para item de infra (#4): 'feito' = flag done manual (vira true apos deploy+smoke). Mostra o PROXIMO pendente e Claude pergunta ao Wagner se faz na hora.",
   "_ordem_racional": "Custo-zero primeiro (#2,#3,#6). Item com mensalidade recorrente (#4 Langfuse) por ultimo, gated na aprovacao do Wagner igual a decisao do Brain B.",
-  "atualizado_em": "2026-05-29",
+  "atualizado_em": "2026-07-02",
   "itens": [
     {
       "id": "loop-2-ragas-ci",
@@ -83,9 +83,10 @@
       "nota_aprovacao": "Mensalidade recorrente - mesma regua do Brain B. So avancar com OK explicito de orcamento do Wagner. ADR 0132 ja decidiu a arquitetura; falta ligar.",
       "detect": {
         "tipo": "manual",
-        "como_marcar": "Apos deploy Langfuse no CT 100 + OtelExportSmokeTest verde, mudar 'done' para true aqui."
+        "como_marcar": "Apos merge do listener + LANGFUSE_ENABLED=true no .env prod + config:cache + 1 trace real de prod visivel na API Langfuse, mudar 'done' para true aqui."
       },
       "done": false,
+      "progresso_2026-07-02": "Stack CT 100 UP (6 containers healthy) + emissao IMPLEMENTADA (LangfuseAgentTelemetryListener global nos events laravel/ai — PR branch claude/competent-wu-ec8c52) + smoke E2E staging VERDE (trace brief-diario-agent biz=1, custo $0.0003135, latencia 7s, visto via API). Diagnostico: telemetria morreu 2026-05-11 porque emissao vivia so no responderChat blocking e o trafego migrou pra Agents ADR 0141 + chat streaming. FALTA: merge Wagner + flip LANGFUSE_ENABLED=true + LANGFUSE_DISPATCH=sync no .env prod (fila default NAO tem worker — 32k jobs represados, task spawnada) + config:cache + smoke prod.",
       "ref": "ADR 0132 + AUDIT-SENIOR-2026-05-25 G3 + IA-MATURITY-FICHA gap#3"
     }
   ]
