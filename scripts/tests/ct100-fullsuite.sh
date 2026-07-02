@@ -220,22 +220,13 @@ for attempt in $(seq 1 12); do
       # efemero do nightly (encriptacao mantida; o config NAO entra na imagem de prod).
       mkdir -p /etc/my.cnf.d 2>/dev/null || true
       printf "[client]\nssl-verify-server-cert=0\n" > /etc/my.cnf.d/zz-fullsuite-no-ssl-verify.cnf 2>/dev/null || true
-      # SDD P07 (ADR 0275 coverage_pct): mede cobertura SO se o driver pcov estiver
-      # na imagem (oimpresso/mcp ganhou pcov no Dockerfile, DESLIGADO por default).
-      # Coverage e ADITIVO — fail de coverage NAO derruba o diagnostico (mesma
-      # filosofia "fail e DADO" do floor). Antes do rebuild da imagem, pcov ausente
-      # => sem --coverage-clover => run identico ao de hoje (zero-risco). --log-junit
-      # SEMPRE presente (FV-F1 nao pode quebrar). pcov.directory=. instrumenta o repo
-      # inteiro (NUNCA o lane sqlite curado — fonte honesta e a suite inteira, ADR 0275:68).
-      COV_FLAGS=""
-      if php -m 2>/dev/null | grep -qi "^pcov$"; then
-        COV_FLAGS="-d pcov.enabled=1 -d pcov.directory=. -d pcov.exclude=~(vendor|node_modules|storage)~"
-        echo "[harness P07] pcov presente — medindo coverage (clover em /artifacts/clover.xml)"
-        exec php -d memory_limit=2G $COV_FLAGS vendor/bin/pest --log-junit /artifacts/junit.xml --coverage-clover /artifacts/clover.xml --colors=never
-      else
-        echo "[harness P07] pcov AUSENTE na imagem — sem coverage (rebuild da imagem CT100 pendente); run de diagnostico normal"
-        exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never
-      fi
+      # SDD P07 (ADR 0275 coverage_pct): o pcov NAO roda mais AQUI. A 1a nightly
+      # instrumentada (20260702-073601) morreu SILENCIOSA aos 5933/11144 testes (53%)
+      # com pcov no MESMO processo do diagnostico — junit.xml 0 bytes = noite de floor
+      # PERDIDA ("coverage e aditivo" era promessa, nao arquitetura). Coverage agora
+      # roda numa 2a invocacao SEPARADA depois do junit salvo (bloco [P07 coverage]
+      # apos o loop) — o diagnostico nunca mais e refem da instrumentacao.
+      exec php -d memory_limit=2G vendor/bin/pest --log-junit /artifacts/junit.xml --colors=never
     ' \
     2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
   # Detector 1 — Pest loader: uses(TestCase) file-level dentro de pasta ja vinculada
@@ -274,6 +265,40 @@ for attempt in $(seq 1 12); do
 done
 docker rm -f oimpresso-fullsuite-run >/dev/null 2>&1 || true
 echo "pest exit code: $PEST_EXIT (loader-blockers: $(wc -l < "$RUN_DIR/loader-blockers.txt" 2>/dev/null || echo 0))"
+
+# --- [P07 coverage] (ADR 0275 C2 · 2a invocacao SEPARADA — floor nunca refem) -----
+# Historia: a 1a nightly com pcov no MESMO processo (20260702-073601) morreu silenciosa
+# aos 5933/11144 testes (53%, sem fatal impresso, shim containerd morto 09:03:23 —
+# padrao de kill externo por pressao de memoria; swap do CT100 foi a 2.4G) e levou o
+# junit junto (0 bytes) = noite de floor perdida. Correcao ESTRUTURAL: coverage roda
+# DEPOIS do junit salvo, em container proprio. Falha aqui => so coverage_pct fica
+# not_yet_measured (coverage-compute valida o clover: truncado/ausente nao conta);
+# o diagnostico da noite ja esta em disco. memory_limit maior (6G): o dado de
+# cobertura agregado (CodeCoverage per-test) cresce com a suite inteira — 2G matava
+# aos ~53%. Sem --log-junit aqui: o junit canonico e o do run 1 (FV-F1). pcov na
+# suite INTEIRA (nunca o lane sqlite curado — ADR 0275:68). Fail e DADO: exit != 0
+# de teste falhando e esperado; o que importa e o clover flushado no fim.
+if docker run --rm --entrypoint php "$IMAGE" -m 2>/dev/null | grep -qi '^pcov$'; then
+  echo "--- [P07 coverage] run separado com pcov (clover em $RUN_DIR/clover.xml; log em cov-out.txt)"
+  COV_EXIT=0
+  timeout -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-cov \
+    --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
+    -e DB_CONNECTION=mysql -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" \
+    -e "DB_DATABASE=$DB_DATABASE" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" \
+    -w /workspace --entrypoint sh "$IMAGE" -c '
+      if ! command -v mysql >/dev/null 2>&1; then
+        apk add --no-cache mariadb-client >/dev/null 2>&1 \
+          || apk add --no-cache mysql-client >/dev/null 2>&1 || true
+      fi
+      mkdir -p /etc/my.cnf.d 2>/dev/null || true
+      printf "[client]\nssl-verify-server-cert=0\n" > /etc/my.cnf.d/zz-fullsuite-no-ssl-verify.cnf 2>/dev/null || true
+      exec php -d memory_limit=6G -d pcov.enabled=1 -d pcov.directory=. -d "pcov.exclude=~(vendor|node_modules|storage)~" vendor/bin/pest --coverage-clover /artifacts/clover.xml --colors=never
+    ' > "$RUN_DIR/cov-out.txt" 2>&1 || COV_EXIT=$?
+  docker rm -f oimpresso-fullsuite-cov >/dev/null 2>&1 || true
+  echo "[P07 coverage] exit=$COV_EXIT clover=$(stat -c%s "$RUN_DIR/clover.xml" 2>/dev/null || echo 0) bytes"
+else
+  echo "--- [P07 coverage] pcov ausente na imagem — coverage pulado (read-side segue not_yet_measured)"
+fi
 
 echo "--- [7/7] summary (junit-summary.mjs FV-F1 — tripwire artefato 0 bytes) + retencao"
 node "$CODE/scripts/tests/junit-summary.mjs" "$RUN_DIR/junit.xml" --out "$RUN_DIR/summary.json" \
