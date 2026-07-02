@@ -3,9 +3,9 @@ slug: 0151-modules-comissao-feature-wish
 number: 151
 title: "Modules/Comissao como feature-wish — aguarda cliente que reporta dor real"
 type: adr
-status: proposed
+status: proposto
 authority: canonical
-lifecycle: feature_wish
+lifecycle: ativo # era feature_wish (fora do enum do schema; wish segue em status proposto + ADR 0105)
 decided_by: [W]
 decided_at: 2026-05-15
 module: Comissao

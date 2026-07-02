@@ -3,9 +3,9 @@ slug: 0125-modules-autopecas-feature-wish
 number: 125
 title: "Modules/Autopecas como feature-wish — Vargas é sinal qualificado"
 type: adr
-status: proposed
+status: proposto
 authority: canonical
-lifecycle: feature_wish
+lifecycle: ativo # era feature_wish (fora do enum do schema; wish segue em status proposto + ADR 0105)
 decided_by: [W]
 decided_at: 2026-05-10
 module: Autopecas

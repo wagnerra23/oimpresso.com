@@ -1,9 +1,9 @@
 ---
 slug: 0154-module-grade-v2-na-justificado
-number: 0154
+number: 154
 title: "Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por design"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

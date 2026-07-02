@@ -3,9 +3,9 @@ slug: 0130-handoff-append-only-mcp-first
 number: 130
 title: "Handoff append-only + MCP-first antes de escrever — fim do overwrite cego de 08-handoff.md"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-10
 module: Governance

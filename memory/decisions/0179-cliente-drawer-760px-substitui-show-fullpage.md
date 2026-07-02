@@ -3,7 +3,7 @@ slug: 0179-cliente-drawer-760px-substitui-show-fullpage
 number: 179
 title: "Cliente — drawer lateral 760px substitui Show.tsx full-page (paradigma cadastral 8 tabs)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

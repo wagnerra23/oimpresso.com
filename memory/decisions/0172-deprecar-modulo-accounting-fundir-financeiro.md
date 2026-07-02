@@ -1,10 +1,10 @@
 ---
-adr: 0172
+number: 172
 title: "Deprecar Modules/Accounting e consolidar contabilidade operacional no Modules/Financeiro"
-status: accepted
-date: 2026-05-20
+status: aceito
+decided_at: "2026-05-20"
 accepted_at: 2026-05-20
-accepted_by: wagner
+decided_by: [W]
 authors: [wagner]
 supersedes:
   - memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md
@@ -16,6 +16,10 @@ ref_inspecao: memory/requisitos/Accounting/INSPECAO-FORENSE-2026-05-20.md
 ondas: 7 (Onda 0 + E1-E6)
 estimate_corrido: ~26 semanas (dominado por 60d+90d waits)
 estimate_trabalho_ativo: ~18d úteis distribuídos
+slug: 0172-deprecar-modulo-accounting-fundir-financeiro
+type: adr
+authority: canonical
+lifecycle: ativo
 ---
 
 # ADR 0172 — Deprecar Modules/Accounting e consolidar contabilidade operacional no Modules/Financeiro

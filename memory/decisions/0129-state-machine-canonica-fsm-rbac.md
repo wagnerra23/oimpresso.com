@@ -3,9 +3,9 @@ slug: 0129-state-machine-canonica-fsm-rbac
 number: 129
 title: "State Machine canônica — FSM tabular custom + Spatie Permission por transição"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-10
 module: Sells

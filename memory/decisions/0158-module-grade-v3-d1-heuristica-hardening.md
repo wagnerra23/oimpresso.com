@@ -1,9 +1,9 @@
 ---
 slug: 0158-module-grade-v3-d1-heuristica-hardening
-number: 0158
+number: 158
 title: "module-grade-v3 — endurecimento heurística D1 (recursive + scope singular + Job $entityId pattern)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

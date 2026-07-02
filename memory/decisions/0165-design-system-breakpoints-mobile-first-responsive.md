@@ -1,9 +1,9 @@
 ---
 slug: 0165-design-system-breakpoints-mobile-first-responsive
-number: 0165
+number: 165
 title: "Design System — breakpoints canon + regra mobile-first em todas as Pages Inertia"
 type: adr
-status: proposed
+status: proposto
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

@@ -3,9 +3,9 @@ slug: 0131-tiering-memoria-canonico-local-segredo
 number: 131
 title: "Tiering de memória — canônico (git/MCP) / máquina-local / segredo (Vaultwarden)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-10
 module: Governance

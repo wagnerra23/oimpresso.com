@@ -1,9 +1,9 @@
 ---
 slug: 0166-errata-0162-otel-require-dev-hostinger
-number: 0166
+number: 166
 title: "Errata ADR 0162 — OTel SDK em require-dev (Hostinger shared sem ext-opentelemetry)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

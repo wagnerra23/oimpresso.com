@@ -3,7 +3,7 @@ slug: 0121-oimpresso-modular-especializado-por-vertical
 number: 121
 title: "oimpresso é ERP modular especializado por vertical — núcleo comum + Modules/<Vertical> profundo"
 type: adr
-status: aceita
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

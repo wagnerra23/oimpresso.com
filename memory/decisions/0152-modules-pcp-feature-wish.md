@@ -3,9 +3,9 @@ slug: 0152-modules-pcp-feature-wish
 number: 152
 title: "Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto"
 type: adr
-status: proposed
+status: proposto
 authority: canonical
-lifecycle: feature_wish
+lifecycle: ativo # era feature_wish (fora do enum do schema; wish segue em status proposto + ADR 0105)
 decided_by: [W]
 decided_at: 2026-05-15
 module: Pcp

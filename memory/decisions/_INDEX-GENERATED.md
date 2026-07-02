@@ -6,9 +6,9 @@
 
 ## Resumo
 - **323** arquivos · **307** números únicos · máx **0318**
-- **ADRs ATIVOS (lifecycle ativo): 294** ← resposta única a "quantos ADRs ativos"
+- **ADRs ATIVOS (lifecycle ativo): 298** ← resposta única a "quantos ADRs ativos"
 - Por status: aceito 272 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 294 · substituido 12 · (vazio) 8 · arquivado 6 · historical 3
+- Por lifecycle: ativo 298 · substituido 12 · arquivado 6 · (vazio) 4 · ativo # era feature_wish (fora do enum do schema; wish segue em status proposto + adr 0105) 3
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -164,7 +164,7 @@ _(íntegra)_
 | 0122 | proposto | ativo | decision | Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega |
 | 0123 | aceito | ativo | decision | Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui) |
 | 0124 | aceito | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
-| 0125 | proposto | historical | decision | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
+| 0125 | proposto | ativo # era feature_wish (fora do enum do schema; wish segue em status proposto + adr 0105) | decision | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
 | 0126 | proposto | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
 | 0126 | proposto | (vazio) | decision | ADR 0126 — Vault chunked encryption Sprint 2 (proposed) |
 | 0127 | aceito | ativo | decision | Modules/Auditoria — UI rica + undo sobre activity_log existente |
@@ -190,8 +190,8 @@ _(íntegra)_
 | 0148 | aceito | ativo | decision | Cascade Review §10.4 — Onda 6 fechamento roadmap memoria-senior pra nota 98 |
 | 0149 | aceito | ativo | decision | Screen-Pattern Reuse no MWART — Index Cowork blueprint pra Show/Edit/Detail da m |
 | 0150 | aceito | ativo | decision | KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso |
-| 0151 | proposto | historical | decision | Modules/Comissao como feature-wish — aguarda cliente que reporta dor real |
-| 0152 | proposto | historical | decision | Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto |
+| 0151 | proposto | ativo # era feature_wish (fora do enum do schema; wish segue em status proposto + adr 0105) | decision | Modules/Comissao como feature-wish — aguarda cliente que reporta dor real |
+| 0152 | proposto | ativo # era feature_wish (fora do enum do schema; wish segue em status proposto + adr 0105) | decision | Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto |
 | 0153 | proposto | ativo | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
 | 0154 | aceito | ativo | decision | Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por |
 | 0155 | aceito | ativo | decision | module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability |
@@ -209,12 +209,12 @@ _(íntegra)_
 | 0167 | aceito | ativo | decision | Errata ADR 0130 — Índice de handoff mantém histórico longo (não trunca 5) |
 | 0168 | proposto | ativo | decision | PROTOCOLO WAGNER SEMPRE — 10 regras canon Tier A always-on (Constituição v2 emen |
 | 0169 | proposto | ativo | decision | Errata ADR 0168 — RUNBOOK-onda-cowork.md como artefato 4º da triade governance |
-| 0170 | aceito | (vazio) | decision | PaymentGateway Top-5 bancos brasileiros — drivers REST e CNAB SEPARADOS (Ondas 4 |
-| 0170 | aceito | (vazio) | decision | PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via 6º gateway adicional |
+| 0170 | aceito | ativo | decision | PaymentGateway Top-5 bancos brasileiros — drivers REST e CNAB SEPARADOS (Ondas 4 |
+| 0170 | aceito | ativo | decision | PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via 6º gateway adicional |
 | 0170 | proposto | ativo | decision | Modules/PaymentGateway — extração da camada técnica de cobrança |
 | 0171 | aceito | ativo | decision | Ativação Modules/OficinaAuto — Piloto Martinho Caçambas (faseada, add-on faturáv |
-| 0172 | aceito | (vazio) | decision | Deprecar Modules/Accounting e consolidar contabilidade operacional no Modules/Fi |
-| 0173 | aceito | (vazio) | decision | Errata ARQ-0005 — tabelas Accounting usam nomes nus (não prefixo `accounting_*`) |
+| 0172 | aceito | ativo | decision | Deprecar Modules/Accounting e consolidar contabilidade operacional no Modules/Fi |
+| 0173 | aceito | ativo | decision | Errata ARQ-0005 — tabelas Accounting usam nomes nus (não prefixo `accounting_*`) |
 | 0174 | aceito | ativo | decision | Errata DEPRECATION-PLAN Accounting — Ondas 3+4 SKIP (audit prod 0 rows) |
 | 0175 | aceito | ativo | decision | Fix arquitetural — Observer Financeiro permite baixa sem fin_contas_bancarias (r |
 | 0177 | aceito | ativo | decision | MWART exceção — Cliente/Show Wave paralela paridade tabs (visual regression over |

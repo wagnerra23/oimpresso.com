@@ -1,9 +1,9 @@
 ---
 slug: 0162-otel-collector-prod-observability
-number: 0162
+number: 162
 title: "OpenTelemetry Collector ativo em prod (CT 100) — destrava D6.b + D9.b governance v4"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

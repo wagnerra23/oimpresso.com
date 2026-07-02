@@ -1,9 +1,9 @@
 ---
 slug: 0160-governance-v4-scoped-scorecards-buckets
-number: 0160
+number: 160
 title: "module-grade-v4 — Scoped Scorecards (Lens per Module Kind) com 4 buckets + meta por bucket"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

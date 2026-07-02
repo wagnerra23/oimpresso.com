@@ -1,9 +1,9 @@
 ---
 slug: 0161-governance-v4-aposentar-hacks-0159-redundantes
-number: 0161
+number: 161
 title: "Governance v4 — aposentar 3 dos 4 hacks ADR 0159 redundantes com Scoped Scorecards"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

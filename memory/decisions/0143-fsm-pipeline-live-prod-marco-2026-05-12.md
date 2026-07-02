@@ -3,9 +3,9 @@ slug: 0143-fsm-pipeline-live-prod-marco-2026-05-12
 number: 143
 title: "FSM Pipeline Canônico LIVE em prod biz=1 — marco 2026-05-12 (40+ PRs em ~10h)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-12
 module: Sells

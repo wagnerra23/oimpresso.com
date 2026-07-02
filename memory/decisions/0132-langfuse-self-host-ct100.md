@@ -3,9 +3,9 @@ slug: 0132-langfuse-self-host-ct100
 number: 132
 title: "Langfuse self-host CT 100 — observabilidade GenAI canônica oimpresso"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-10
 module: Infra

@@ -1,9 +1,9 @@
 ---
 slug: 0163-governance-v4-metas-alcancadas-ondas-19-28
-number: 0163
+number: 163
 title: "Governance v4 — metas por bucket alcançadas (Ondas 19-28) · 4/4 buckets acima da meta"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

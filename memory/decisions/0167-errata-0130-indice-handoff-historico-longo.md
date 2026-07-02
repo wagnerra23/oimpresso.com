@@ -1,9 +1,9 @@
 ---
 slug: 0167-errata-0130-indice-handoff-historico-longo
-number: 0167
+number: 167
 title: "Errata ADR 0130 — Índice de handoff mantém histórico longo (não trunca 5)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

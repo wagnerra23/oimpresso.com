@@ -3,9 +3,9 @@ slug: 0145-ia-administradora-pivot-ads-fsm-piloto-cobradora
 number: 145
 title: "IA Administradora do oimpresso — pivot ADS↔FSM + piloto Cobradora ROTA LIVRE"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-15
 module: ADS

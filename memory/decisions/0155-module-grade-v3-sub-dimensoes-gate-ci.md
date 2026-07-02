@@ -1,9 +1,9 @@
 ---
 slug: 0155-module-grade-v3-sub-dimensoes-gate-ci
-number: 0155
+number: 155
 title: "module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability) + reweight + gate CI anti-regressão"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

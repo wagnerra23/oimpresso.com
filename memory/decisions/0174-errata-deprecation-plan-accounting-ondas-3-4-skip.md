@@ -3,7 +3,7 @@ slug: 0174-errata-deprecation-plan-accounting-ondas-3-4-skip
 number: 174
 title: "Errata DEPRECATION-PLAN Accounting — Ondas 3+4 SKIP (audit prod 0 rows)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

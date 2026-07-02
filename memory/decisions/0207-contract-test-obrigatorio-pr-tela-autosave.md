@@ -3,9 +3,9 @@ slug: 0207-contract-test-obrigatorio-pr-tela-autosave
 number: 207
 title: "Contract test obrigatório em PR que toque tela autosave — CI gate hard"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: active
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-27
 module: Infra

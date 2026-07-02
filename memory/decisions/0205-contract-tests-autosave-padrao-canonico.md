@@ -3,9 +3,9 @@ slug: 0205-contract-tests-autosave-padrao-canonico
 number: 205
 title: "Contract tests autosave como padrão canônico pra toda tela com endpoint PATCH"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: active
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-27
 module: Infra

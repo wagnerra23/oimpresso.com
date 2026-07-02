@@ -3,12 +3,12 @@ slug: 0296-plano-capacidade-multi-tenant-taxonomia-dados-placement
 number: 296
 title: "Plano de capacidade à prova de falhas — taxonomia canônica de dados + placement multi-DB (Hostinger 6GB → ops no CT 100 → tenant DB off-shared)"
 type: adr
-status: proposed
+status: proposto
 authority: canonical
 lifecycle: ativo
 kind: infra
 decided_by: [W]
-decided_at: ""
+decided_at: "2026-06-21"
 module: infra
 tags: [capacidade, multi-tenant, business_id, hostinger, ct100, mysql, bloat, retencao, lgpd, audit, hash-chain, monitoramento, tier-0]
 supersedes: []

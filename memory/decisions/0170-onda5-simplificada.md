@@ -1,14 +1,18 @@
 ---
-adr: 0170-onda5-simplificada
+number: 170
 title: "PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via 6º gateway adicional"
 status: aceito
 decided_by: [W]
-date: 2026-05-19
+decided_at: "2026-05-19"
 related: [0017, 0093, 0094, 0105, 0170]
 supersedes: []
 amends: [0170]
 tipo: amendment
 trust_required: tier-0
+slug: 0170-onda5-simplificada
+type: adr
+authority: canonical
+lifecycle: ativo
 ---
 
 # Contexto

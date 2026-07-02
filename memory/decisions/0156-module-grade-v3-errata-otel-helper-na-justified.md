@@ -1,9 +1,9 @@
 ---
 slug: 0156-module-grade-v3-errata-otel-helper-na-justified
-number: 0156
+number: 156
 title: "module-grade-v3 errata — D9.a regex inclui OtelHelper canônico + ratifica na_justified D6-D9 backward-compat"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

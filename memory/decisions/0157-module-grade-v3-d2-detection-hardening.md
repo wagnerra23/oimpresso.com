@@ -1,9 +1,9 @@
 ---
 slug: 0157-module-grade-v3-d2-detection-hardening
-number: 0157
+number: 157
 title: "module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas Pest)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

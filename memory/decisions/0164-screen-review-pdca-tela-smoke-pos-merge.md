@@ -1,9 +1,9 @@
 ---
 slug: 0164-screen-review-pdca-tela-smoke-pos-merge
-number: 0164
+number: 164
 title: "Screen Review PDCA — fase C (Check) automática pós-merge via skill tela-smoke-pos-merge"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

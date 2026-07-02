@@ -3,9 +3,9 @@ slug: 0133-system-health-audit-canonico
 number: 133
 title: "System health audit canônico — 5 dimensões automáticas (Tool MCP + cron daily)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
 decided_at: 2026-05-10
 module: Governance
