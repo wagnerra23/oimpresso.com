@@ -30,26 +30,46 @@ declare(strict_types=1);
 use App\Business;
 use App\Http\Middleware\SetSessionData;
 use App\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
-uses(RefreshDatabase::class);
+// DatabaseTransactions (não RefreshDatabase): roda contra MySQL real migrado
+// (lane financeiro-pest com schema baseline + nightly CT 100 fullsuite).
+// RefreshDatabase dropa o schema (FK) e envenena o biz=1 seedado da lane.
+uses(DatabaseTransactions::class);
 
 function criarBizUser(): array
 {
+    // Não assume seed: garante currency e owner próprios (rollback por transação).
+    $curId = DB::table('currencies')->value('id');
+    if (! $curId) {
+        $curId = DB::table('currencies')->insertGetId([
+            'country' => 'Brasil', 'currency' => 'Real', 'code' => 'BRL', 'symbol' => 'R$',
+            'thousand_separator' => '.', 'decimal_separator' => ',',
+        ]);
+    }
+
+    $user = User::factory()->create();
+
     $business = Business::create([
         'name' => 'Test Biz SetSessionData',
-        'currency_id' => 1,
+        'currency_id' => $curId,
         'start_date' => '2026-01-01',
         'default_profit_percent' => 25.0,
-        'owner_id' => 1,
+        'owner_id' => $user->id,
         'fy_start_month' => 1,
         'accounting_method' => 'fifo',
         'time_zone' => 'America/Sao_Paulo',
+        'stop_selling_before' => 0,
+        'weighing_scale_setting' => '',
+        'certificado' => '',
+        'officeimpresso_numerodemaquinas' => 0,
     ]);
 
-    $user = User::factory()->create(['business_id' => $business->id]);
+    $user->business_id = $business->id;
+    $user->save();
 
     return [$business, $user];
 }
