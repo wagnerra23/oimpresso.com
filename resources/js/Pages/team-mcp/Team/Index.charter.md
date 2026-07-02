@@ -5,6 +5,7 @@ owner: wagner
 status: draft
 last_validated: "2026-05-25"
 parent_module: TeamMcp
+related_us: [US-TEAM-002, US-TEAM-003]
 related_adrs:
   - "0053-mcp-server-governanca-como-produto"
   - "0055-self-host-team-plan-equivalente-anthropic"

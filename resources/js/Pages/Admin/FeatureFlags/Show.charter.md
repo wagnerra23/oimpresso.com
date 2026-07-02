@@ -6,6 +6,7 @@ updated: 2026-05-31
 component: resources/js/Pages/Admin/FeatureFlags/Show.tsx
 last_validated: "2026-05-31"
 parent_module: Admin
+related_us: [US-INFRA-008]
 tier: B
 charter_version: 1
 ---

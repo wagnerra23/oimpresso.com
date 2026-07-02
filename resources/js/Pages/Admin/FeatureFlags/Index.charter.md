@@ -5,6 +5,7 @@ owner: wagner
 status: draft
 last_validated: "2026-05-31"
 parent_module: Admin
+related_us: [US-INFRA-008]
 related_adrs: [122, 94, 93, 91, 70]
 tier: A
 charter_version: 1

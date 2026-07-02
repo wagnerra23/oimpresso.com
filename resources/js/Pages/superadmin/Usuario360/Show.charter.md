@@ -6,6 +6,7 @@ last_updated: 2026-05-31
 component: resources/js/Pages/superadmin/Usuario360/Show.tsx
 last_validated: "2026-05-31"
 parent_module: Superadmin
+related_us: [US-SUPER-010]
 tier: B
 charter_version: 1
 ---
