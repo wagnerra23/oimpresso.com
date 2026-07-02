@@ -126,3 +126,19 @@ Root-cause REFINADO pós-#3505: a cascata (57% do floor) não é mais era-sqlite
 ### Cadência de honestidade
 
 Re-rodar `/sdd-avaliar` ao fechar Fase 0+1 e a cada quinzena (skill `sdd-avaliar`); alvo: composto subir de 67 sem regressão de stream. Nenhum gate promovido com stream <70.
+
+---
+
+## Stream PT — Product Truth (PROPOSTO 2026-07-02 · aguarda Wagner · [ADR 0319](../../../decisions/proposals/0319-product-truth-stream-adversario-modulo-analise.md))
+
+> Origem: Wagner 2026-07-02 ("tenho gaps por módulo? tenho adversário refutador por módulo?" → resposta: gaps profundos só em ~10/78 módulos; refutador por módulo NÃO existe — o skeptic hoje é por stream de governança, não por módulo de produto).
+
+Fecha o loop adversarial na camada **produto/módulo**: as afirmações escritas (BRIEFING/INVENTARIO/SPEC/charters) hoje se propagam pra Jana e pras sessões via MCP **sem ninguém pago pra refutá-las** (caso real: ficha da Jana ficou ~2 meses com "nota 0" e a Jana live em prod — corrigido #3625).
+
+- **Mecânica:** `/pt-avaliar <Modulo>` — F0 extrai claims (determinístico) → F1 skeptic refuta contra código real (`CONFIRMADO`/`STALE`/`ILUSÓRIO`/`FALTA`, prova de checkout obrigatória) → F2 ledger append-only (`governance/pt-ledger/`) + `verified_at`/`claim_accuracy` no frontmatter do BRIEFING → F3 fila Wagner via tasks MCP (nada corrigido no calado).
+- **Métricas SEM gate novo (lei 0314):** `pt_claim_accuracy` + `pt_freshness` fundem no GT-G3 required, armadas após 3 medições (ADR 0275).
+- **Anti-decadência:** watchdog staleness 30d + counterfactual no gate-selftest (claim falsa injetada TEM que ser pega) + armamento antes de morder.
+- **Pré-req:** ajuste no distiller (`jana:distill-module-truth`) pra preservar/consumir `verified_at` + ledger — senão o re-destile apaga o veredicto.
+- **Peça B pareada:** agent `analise-refutador` ataca a interpretação do `wagner-understand` ANTES de executar pedido não-trivial (5 perguntas fixas; ambiguidade sobrevivente → 1 pergunta ao Wagner; senão executa direto R11).
+- **Rollout:** piloto Financeiro → calibrar skeptic <2% erro (padrão G5) → 10 módulos com CAPTERRA-FICHA → cadência quinzenal junto do `/sdd-avaliar`.
+- **Status:** `proposed` — nada roda sem OK. Decisões pendentes no ADR (aceite do stream · Peça B vira R12? · cadência).
