@@ -15,35 +15,35 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 60.1,
+      "value": 61.9,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 60.1,
+        "coverage_pct": 61.9,
         "specs_total": 58,
-        "us_total": 857,
-        "anchor_coverage_pct": 60.1,
+        "us_total": 858,
+        "anchor_coverage_pct": 61.9,
         "by_state": {
-          "sem_campo": 342,
+          "sem_campo": 327,
           "placeholder": 0,
-          "pendente": 213,
-          "parcial": 73,
-          "anchored_ok": 229,
+          "pendente": 217,
+          "parcial": 75,
+          "anchored_ok": 239,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
-        "fields_total": 520,
+        "fields_total": 536,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 479,
+        "fields_grammar_ok": 494,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
-        "req_sem_aceite_total": 145,
-        "req_sem_covering_test_total": 256,
+        "req_sem_aceite_total": 156,
+        "req_sem_covering_test_total": 267,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 41,
+        "req_sem_lane_total": 42,
         "behavior_known": false,
         "baseline_applied": null,
         "grandfathered": {
@@ -81,7 +81,7 @@
             "skipped": 2700
           },
           {
-            "sha": null,
+            "sha": "e5a62ae0",
             "ts": "20260701-020001",
             "failed": 336,
             "errors": 784,
@@ -110,7 +110,7 @@
       "value": null,
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "governance/nightly-coverage.json presente mas JSON inválido — write-side corrige; fallback honesto.",
+      "source": "governance/nightly-coverage.json sem coverage_pct numérico (schema nightly-coverage/v1) — fallback honesto.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
@@ -218,10 +218,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 17,
+        "entries_aprovadas": 18,
         "max_error_rate_pct": 1.82,
-        "last_pr": 3576,
-        "last_lote": "SA-A5-P10w2-crm"
+        "last_pr": 3627,
+        "last_lote": "SA-A5-P10w3-nfse"
       },
       "stream": "GT"
     }
