@@ -6,6 +6,7 @@ use App\Business;
 use App\Utils\BusinessUtil;
 use Closure;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class SetSessionData
 {
@@ -18,7 +19,21 @@ class SetSessionData
      */
     public function handle($request, Closure $next)
     {
-        if (! $request->session()->has('user')) {
+        // Sessão meia-populada (bloco `user` presente mas sem business_id) faz o app
+        // inteiro operar como "business 0" em silêncio — Tier 0 multi-tenant (ADR 0093).
+        // Vetores conhecidos: sessão stale pós-deploy, login social (Auth::login sem
+        // popular sessão UPOS), superadmin "Sign in as user". Reconstruir sempre.
+        $sessionUserStale = $request->session()->has('user')
+            && empty($request->session()->get('user.business_id'));
+
+        if (! $request->session()->has('user') || $sessionUserStale) {
+            if ($sessionUserStale) {
+                Log::warning('SetSessionData: sessão com bloco user sem business_id — reconstruindo a partir de auth()', [
+                    'user_id' => Auth::id(),
+                    'path' => $request->path(),
+                ]);
+            }
+
             $business_util = new BusinessUtil;
 
             $user = Auth::user();
