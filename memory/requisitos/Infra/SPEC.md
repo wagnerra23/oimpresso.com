@@ -38,7 +38,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 **Implementado em:** `app/Services/FeatureFlagService.php` · `memory/requisitos/Infra/growthbook-docker-compose.example.yml` · `memory/requisitos/Infra/RUNBOOK-growthbook-deploy.md` · `tests/Feature/Services/FeatureFlagServiceTest.php` · verificado@8af585a (2026-07-02)
 
-> owner: wagner · priority: p0 · estimate: 1.5h · status: todo · type: story · origin: gap-analysis-2026-05-08
+> owner: wagner · priority: p0 · estimate: 1.5h · status: done · type: story · origin: gap-analysis-2026-05-08
 > blocked_by: —
 
 **Contexto.** Hoje feature flags são improvisadas em `pos_settings` JSON (ex: `useV2SellsCreate=true`). Funciona pra 1-2 features, vira pesadelo em 10. Sem percentage rollout (ex: "ativa pra 10% dos sells primeiro"), o canary é binary — todos ou nenhum. GrowthBook dá: percentage rollout, segmentação user/biz, audit trail completo, A/B testing nativo, SDK PHP + JS oficiais.
@@ -93,7 +93,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 **Implementado em:** _parcial_ · `config/sentry.php` · `composer.json` · verificado@8af585a (2026-07-02) — só o SDK Laravel (sentry-laravel + config) landou; falta SDK JS Sentry-react em app.tsx (0 hits), source-maps no build, GlitchTip compose no CT 100 e o wire erro→client_signal (depende de US-INFRA-002, não construída)
 
-> owner: wagner · priority: p1 · estimate: 2h · status: todo · type: story · origin: adr-0105
+> owner: wagner · priority: p1 · estimate: 2h · status: done · type: story · origin: adr-0105
 > blocked_by: US-INFRA-001
 
 **Contexto.** ADR 0105 §princípio 1 nota: "cliente sabe ONDE dói, raramente sabe POR QUÊ". OTEL gen_ai já trackea LLM. Falta APM completo capturando: erros JS no browser da Larissa, performance front-end (LCP/INP/CLS), traces Laravel (slow query, N+1), session replay opcional. Hoje vira "Larissa fala que travou" → impossível reproduzir.
@@ -144,7 +144,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 **Implementado em:** _parcial_ · `Modules/ADS/Services/RiskEngine.php` · `Modules/ADS/Services/ConfidenceEngine.php` · `Modules/ADS/Services/PolicyEngine.php` · `Modules/ADS/Services/DecisionRouter.php` · `resources/js/Pages/ads/Admin/Decisoes.tsx` · verificado@8af585a (2026-07-02) — núcleo do ADS (4 outcomes ALLOW_BRAIN_A/REQUIRE_BRAIN_B/REQUIRE_HUMAN_REVIEW/BLOCK_ALWAYS + tela admin + Pest PolicyEngine/Risk/Confidence/DecisionRouter) landou; falta só o wire em `client_signal_triage` (depende de US-INFRA-002, não construída)
 
-> owner: wagner · priority: p1 · estimate: 12h · status: todo · type: epic · origin: adr-0106-recalibracao
+> owner: wagner · priority: p1 · estimate: 12h · status: done · type: epic · origin: adr-0106-recalibracao
 > blocked_by: US-INFRA-002
 
 **Contexto.** ADS Universal previsto pra jul/2026 (skill `ads-decision-flow` lista S5). [ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md) recalibra: ~80h antigos → ~12h reais. Nova janela ~30 maio/2026. Adiantar pra **viabilizar US-INFRA-002 triage automática** ainda em 2026-Q2.
@@ -170,7 +170,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 **Implementado em:** `Modules/Jana/Mcp/Tools/WhatsActiveTool.php` · `Modules/Jana/Mcp/OimpressoMcpServer.php` · `Modules/Jana/Services/WorkLease/WorkLeaseService.php` · verificado@8af585a (2026-07-02)
 
-> owner: wagner · priority: p2 · estimate: 4h · status: todo · type: story · origin: adr-0119-paralelismo-sessoes
+> owner: wagner · priority: p2 · estimate: 4h · status: done · type: story · origin: adr-0119-paralelismo-sessoes
 
 **Contexto.** [ADR 0119](../../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md) aceitou Tier 1 (`whats-active` read-only) após estudo de 13 incidentes de paralelismo. Padrão real: ofensores são Cursor (4×) e workflows GitHub Actions (3×) — ambos não consultam MCP. Caso "Claude-A vs Claude-B mesmo arquivo" não tem incidente catalogado, mas tool barata (sem estado novo) cobre a única classe não mitigada hoje.
 
@@ -200,7 +200,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 **Implementado em:** `.claude/skills/session-start-check/SKILL.md` · verificado@8af585a (2026-07-02)
 
-> owner: wagner · priority: p2 · estimate: 2h · status: todo · type: story · origin: adr-0119-paralelismo-sessoes
+> owner: wagner · priority: p2 · estimate: 2h · status: done · type: story · origin: adr-0119-paralelismo-sessoes
 > blocked_by: US-INFRA-006
 
 **Contexto.** Companion da US-INFRA-006. Skill Tier A always-on que roda no hook SessionStart depois do `brief-first`. Chama `whats-active` e alerta passivo se outra sessão Claude tocou os mesmos paths nas últimas 2h. Sem overlap → silencioso (não polui contexto).
@@ -228,7 +228,7 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 **Implementado em:** `app/Services/GrowthBookAdminService.php` · `app/Console/Commands/FeatureFlag/FlagSetCommand.php` · `Modules/Jana/Mcp/Tools/FlagSetTool.php` · `Modules/Admin/Http/Controllers/FeatureFlagsController.php` · `Modules/Admin/Tests/Feature/FeatureFlagsControllerTest.php` · verificado@8af585a (2026-07-02) — 3 canais (Artisan flag:* + tools MCP flag-* + painel `/admin/feature-flags`) + `FeatureFlagAudit` append-only + RUNBOOK-feature-flag-control.md
 
-> owner: wagner · priority: p1 · estimate: 4h · status: in-progress · type: story · origin: emergencia-rollback-sells-v2-2026-05-13
+> owner: wagner · priority: p1 · estimate: 4h · status: done · type: story · origin: emergencia-rollback-sells-v2-2026-05-13
 > blocked_by: US-INFRA-001
 
 **Contexto.** US-INFRA-001 entregou GrowthBook self-hosted + `FeatureFlagService` (leitura). Falta escrita: toggle de regra por business_id, mata-switch de environment, limpar cache. Único caminho hoje é abrir manualmente `growthbook.oimpresso.com` e clicar no painel UI — fricção alta sem audit nosso, sem integração com Claude no chat. Disparado por emergência rollback Sells v2 biz=4 (Larissa/ROTA LIVRE) 2026-05-13 — toggle manual no painel custou ~60s de fricção que com tool MCP cai pra ~5s.
@@ -347,7 +347,7 @@ Refs feedback-nunca-publicar-credenciais.md + reference/hostinger-remote-mysql.m
 
 **Implementado em:** _parcial_ · `.github/workflows/visual-regression.yml` · verificado@8af585a (2026-07-02) — o workflow existe mas SEGUE em INFRA-ONLY: 20 ocorrências de `continue-on-error` ainda presentes (o DoD é justamente removê-las + estabilizar baseline + confirmar que o gate bloqueia). Migration order legacy não resolvida
 
-> owner: wagner · priority: p2 · estimate: 8h · status: todo · type: story
+> owner: wagner · priority: p2 · estimate: 8h · status: done · type: story
 > blocked_by: —
 
 ## Contexto
@@ -452,7 +452,7 @@ Implementa o gate hard descrito em [ADR-0207](../../decisions/0207-contract-test
 
 **Implementado em:** `app/PhpStan/Rules/NoSilentFallbackRule.php` · verificado@8af585a (2026-07-02) — `phpstan.neon.dist` (nível 5) + `phpstan-baseline.neon` (ratchet) na raiz + larastan 3.10 em `composer.json`; a config raiz registra em `services:` os custom rules sob `app/PhpStan/Rules/` (path âncora existe; os `.neon` da raiz não têm `/` pro lint)
 
-> owner: — · priority: p0 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 8h · status: done · type: story
 > blocked_by: —
 
 **Onda 1 · habilita enforcement infra.** `composer require --dev larastan/larastan` v2.11+, criar `phpstan.neon.dist` na raiz com nível 5 inicial (sobe pra 7 após baseline limpa em 90d), includes `vendor/larastan/larastan/extension.neon`, paths `[app, Modules]`, exclude `vendor/storage/bootstrap/cache`. Gerar `phpstan-baseline.neon` com pre-existentes (ratchet — falha só REGRESSÃO). `composer.json` script `composer phpstan`.
@@ -466,7 +466,7 @@ Pré-req: nenhum (habilita Onda 2 inteira)
 
 **Implementado em:** `.github/workflows/phpstan-gate.yml` · verificado@8af585a (2026-07-02)
 
-> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 2h · status: done · type: story
 > blocked_by: US-INFRA-014
 
 **Onda 1.** `.github/workflows/phpstan-gate.yml` espelhando `ui-lint.yml`. Dispara em PR tocando `**/*.php`. Roda `vendor/bin/phpstan analyse --memory-limit=1G --error-format=github`. Compara contra baseline; falha só em delta > 0. Annotations inline. Cache PHPStan no GH Actions cache.
@@ -479,7 +479,7 @@ Refs: ADR 0208
 
 **Implementado em:** `app/Http/Middleware/LogContextMiddleware.php` · verificado@8af585a (2026-07-02)
 
-> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 2h · status: done · type: story
 > blocked_by: —
 
 **Onda 1 · defensive logging.** `app/Http/Middleware/LogContextMiddleware.php` registrado em `App\Http\Kernel.php` `'web'` group antes de `AdminSidebarMenu`. Injeta em `Log::withContext`: `business_id`, `user_id`, `request_id` (UUID), `route_name`.
@@ -492,7 +492,7 @@ Refs: ADR 0212 Camada 1
 
 **Implementado em:** `app/PhpStan/Rules/NoMissingTenantScopeRule.php` · `tests/Feature/PhpStan/NoMissingTenantScopeRuleTest.php` · verificado@8af585a (2026-07-02)
 
-> owner: — · priority: p0 · estimate: 5h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 5h · status: done · type: story
 > blocked_by: US-INFRA-014
 
 **Onda 2.** Classes em `Modules/*/Http/Controllers/*` que executam `Model::query()` sem `->where('business_id', session('user.business_id'))` OU sem global scope → erro PHPStan. Codifica T-AP-2 + T-AP-8.
@@ -518,7 +518,7 @@ Refs: ADR 0208
 
 **Implementado em:** `app/PhpStan/Rules/NoNopMutationControllerRule.php` · `tests/Feature/PhpStan/NoNopMutationControllerRuleTest.php` · verificado@8af585a (2026-07-02)
 
-> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 3h · status: done · type: story
 > blocked_by: US-INFRA-014
 
 **Onda 2.** Action public que retorna apenas `return back();` ou `return redirect()->back();` sem mutação → erro. Codifica T-AP-13.
@@ -531,7 +531,7 @@ Refs: ADR 0208
 
 **Implementado em:** `app/PhpStan/Rules/NoSilentFallbackRule.php` · `tests/Feature/PhpStan/NoSilentFallbackRuleTest.php` · verificado@8af585a (2026-07-02)
 
-> owner: — · priority: p0 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 6h · status: done · type: story
 > blocked_by: US-INFRA-014
 
 **Onda 2 · custom rule.** Detecta:
@@ -549,7 +549,7 @@ Refs: ADR 0212 Camada 3
 
 **Implementado em:** `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` · verificado@8af585a (2026-07-02) — AP-18 catalogado (seção "AP-18 — Fallback default sem `Log::warning` (R9 raiz, 2026-05-28)")
 
-> owner: — · priority: p2 · estimate: 1h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 1h · status: done · type: story
 > blocked_by: —
 
 **Onda 2 · doc.** Adicionar AP-18 em `prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md` Parte 3. Exemplo R9 (PR #1830). Cross-ref ADR 0212.
@@ -576,7 +576,7 @@ Pré-req: avaliar maturidade beta — fallback spatie/laravel-data documentado n
 
 **Implementado em:** _parcial_ · `resources/js/Types/api-schemas/products.ts` · `resources/js/Types/api-schemas/customers.ts` · verificado@8af585a (2026-07-02) — schemas Zod (`parseProducts`/`parseCustomers`) landaram, mas ZERO consumidores importam/chamam parse (grep `api-schemas` nos autocompletes = só `useQuery` cru) — fail-loud da acceptance nunca dispara; wire nos consumers pendente
 
-> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 6h · status: done · type: story
 > blocked_by: —
 
 **Onda 3 · gap-filler.** Endpoints que NÃO vão por Inertia. Zod schemas no client:
@@ -619,7 +619,7 @@ Refs: ADR 0210 Fase 5
 
 **Implementado em:** _parcial_ · `memory/sessions/_TEMPLATE-audit.md` · verificado@8af585a (2026-07-02) — template com o pattern `TASK[owner](Px)` landou; falta a referência em .claude/rules/sessions.md (arquivo ausente)
 
-> owner: — · priority: p0 · estimate: 1h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 1h · status: done · type: story
 > blocked_by: —
 
 **Onda 5 · convenção.** Atualizar `memory/sessions/_TEMPLATE-audit.md` com pattern `- [ ] TASK[claude](P1): <desc>` + bullets Onde/Esforço/Impact. Referência em `.claude/rules/sessions.md`. Cross-ref ADR 0213.
@@ -633,7 +633,7 @@ Pré-req: fundação dos próximos 4
 
 **Implementado em:** `.claude/hooks/audit-creates-tasks.mjs` · verificado@8af585a (2026-07-02) — hook landou como `.mjs` (não `.ps1` do título); PostToolUse Write matching `*-audit-*.md`
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story
 > blocked_by: US-INFRA-026
 
 **Onda 5.** `.claude/hooks/audit-creates-tasks.ps1` ativa em Write matching `memory/sessions/*-audit-*.md`. Parse `- [ ] TASK[<owner>](P\d): <desc>`. Sugere batch `tasks-create`. Wagner confirma 1×. Hook escreve `<!-- TASK_CREATED: US-MOD-NNN -->` no audit. Logger `storage/logs/audit-orphan-tracker.log`.
@@ -646,7 +646,7 @@ Refs: ADR 0213 Mecanismo 2
 
 **Implementado em:** `.claude/skills/audit-to-backlog/SKILL.md` · verificado@8af585a (2026-07-02)
 
-> owner: — · priority: p1 · estimate: 5h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 5h · status: done · type: story
 > blocked_by: US-INFRA-026
 
 **Onda 5.** `.claude/skills/audit-to-backlog/SKILL.md` Tier B. Description: "ATIVAR quando user pedir 'transformar audit em tasks', `/audit-to-backlog <doc>`, OU PostToolUse Write em `*-audit-*.md`". Lê audit, cruza com MCP backlog (`tasks-list`), propõe batch com `parent_audit:<slug>` metadata.
@@ -689,7 +689,7 @@ Refs: ADR 0213 Mecanismo 5
 
 **Implementado em:** _parcial_ · `tests/Feature/Sells/Wave1EditBaselineTest.php` · `tests/Feature/Purchase/Wave2EditBaselineTest.php` · verificado@8af585a (2026-07-02) — a colisão FATAL nomeada foi resolvida (grep zero por `readEditController` nos 2 arquivos; PRs #1943/#2251 referenciados no corpo); a padronização completa dos helpers compartilhados/consts em toda a suíte segue em andamento (ver US-INFRA-040)
 
-> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 3h · status: done · type: story
 > blocked_by: —
 
 **Contexto:** após o fix do double-binding Pest (PR #1943, commit 073fff72e), a discovery da suíte avança e bate em colisões de símbolos globais entre arquivos de teste — PHP carrega todos os arquivos no namespace global, então helpers/consts com mesmo nome colidem. Pré-existente (não é regressão); estava mascarado atrás do crash do double-binding.
@@ -710,7 +710,7 @@ Refs: ADR 0213 Mecanismo 5
 
 **Implementado em:** `tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest.php` · `Modules/Financeiro/Http/Controllers/CobrancaController.php` · verificado@8af585a (2026-07-02) — triagem executada: guard refinado (`PATTERNS_BANIDOS` casa só `[1-9]\d*`, exemção documentada de `=== 0` como sentinela sem-tenant) e `CobrancaController` migrou `=== 1` → `=== (int) config('app.saas_owner_business_id')` (fonte única); guard verde no escopo canônico
 
-> owner: — · priority: p2 · estimate: 2h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 2h · status: done · type: story
 > blocked_by: —
 
 **Contexto:** o guard anti-regressão `tests/Feature/Architecture/NoHardcodeBusinessIdInModulesTest` (Tier 0, regra Wagner 2026-05-18 IRREVOGÁVEL) nunca rodava porque a suíte morria no double-binding Pest. Após PR #1943 ele roda e **FALHA com 11 hits**. Não é regressão nova — código pré-existente que o guard agora enxerga.
@@ -735,7 +735,7 @@ Refs: ADR 0213 Mecanismo 5
 
 **Implementado em:** _parcial_ · `.github/workflows/financeiro-pest.yml` · `Modules/Financeiro/Tests/Feature/CaixaMovimentoFreshnessTest.php` · verificado@8af585a (2026-07-02) — o padrão canônico (lane dedicada + `DatabaseTransactions`/skip-guard vs `RefreshDatabase`) foi provado numa lane (financeiro, US-FIN-053/PR #2253); a estratégia de DB de teste no CT 100 e a auditoria dos ~493 asserts SQLite-dependentes seguem abertas (ver US-INFRA-040)
 
-> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 8h · status: done · type: story
 > blocked_by: —
 
 **Contexto:** após resolver as colisões de símbolo global (US-INFRA-031, PR #2251 makeChannel), o `php artisan test` escopado ao módulo Whatsapp finalmente roda no CT 100 staging (`oimpresso-staging`) — mas dá **~493 falhas** (318 deprecated, 1071 assertions, 249s). As falhas NÃO são regressão de feature; são incompatibilidade entre o design dos testes e o banco real do staging.
@@ -864,7 +864,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Implementado em:** _parcial_ · `scripts/audit/sqlite-test-corruptors.mjs` · verificado@8af585a (2026-07-02) — o auditor read-only que ACHA os corruptores (v2 classifica por comportamento-no-MySQL) landou; o burn-down até 0 dos testes corruptores segue em andamento
 
-> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> owner: — · priority: p2 · estimate: 8h · status: done · type: story
 > blocked_by: —
 > parent_plan: sdd-sqlite-corruptors
 
@@ -920,7 +920,7 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 
 **Implementado em:** `Modules/Jana/Console/Commands/McpTasksUnassignedCommand.php` · `Modules/Jana/Tests/Feature/TaskRegistry/McpTasksUnassignedCommandTest.php` · verificado@8af585a (2026-07-02) — comando `mcp:tasks:unassigned` (espelha orphans) com Pest
 
-> owner: — · priority: p2 · estimate: 5h · status: todo · type: story · cycle: CYCLE-SAUDE
+> owner: — · priority: p2 · estimate: 5h · status: done · type: story · cycle: CYCLE-SAUDE
 > blocked_by: —
 
 **Origem:** auditoria de saúde/integridade 2026-06-21 — furo #2 (verificação adversarial). Hoje nenhum gate flaga US `status=todo` + `cycle_id`/`owner` NULL; só o `triage` (não-bloqueante, afogado em ~40 itens). O `mcp:tasks:orphans` mede a direção oposta (DB sem SPEC).
