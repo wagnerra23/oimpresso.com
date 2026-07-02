@@ -202,12 +202,17 @@
       "stream": "MEM"
     },
     "drift_alarms": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 0,
+      "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
-      "source": "gh api indisponível — drift_alarms requer GITHUB_TOKEN (protection-drift.mjs lê branch protection). Fallback honesto: vira measured assim que o gh autenticar.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
+      "detail": {
+        "reds": [],
+        "warns": 0,
+        "verdict": "green"
+      },
       "stream": "GT"
     },
     "backfill_error_rate": {
