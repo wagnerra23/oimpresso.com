@@ -581,6 +581,40 @@
       "pii_hits": 0,
       "evidencia": "refutacao 100% (fable-5 fresca vs 8af585a) — 4 anchored_ok (003/004/007/008) + 3 _parcial_ (001 endpoint stub abort(501)+sem tela/QR, 002 legacy AFD parcial, 005 falta HE 100% dom/feriado) + 3 _pendente_ (006 AFD gerador RuntimeException, 009 AEJ/CAdES inexistente, 010 comprovante PDF/QR) todos CONFIRMADOS; 26 paths existem, 3 simbolos batem, stubs sao stubs reais. PII 0 (Eliana=time interno). Distinto de PontoWr2 (US-PONT-*). anchor-lint coverage 100, dead 0, grammar 10/10. Cobre PR #3630.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3632,
+      "lote_id": "SA-A5-P10-loteA-infra",
+      "data": "2026-07-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 lote A, sessao isolada; interrompido no fim, completado pelo orquestrador +1 US)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 44,
+      "erros_confirmados": 2,
+      "error_rate_pct": 4.55,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "RODADA 1 REPROVADA (fable-5 fresca vs 8af585a): US-INFRA-023 falso anchored_ok (schemas Zod existem mas ZERO consumers chamam parse=dead-code); US-INFRA-032 falso _pendente_ (justificativa mente: guard regex JA refinado [1-9]+exemcao ===0, CobrancaController JA migrou ===1 -> config). Bonus casing US-INFRA-005 Pages/Ads->Pages/ads (dead no Linux). error_rate 2/44=4.55%>=2%.",
+      "veredito": "reprovado"
+    },
+    {
+      "pr": 3632,
+      "lote_id": "SA-A5-P10-loteA-infra",
+      "data": "2026-07-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (correcoes r1 aplicadas pelo orquestrador: 023->_parcial_, 032->ok, 005 casing)",
+      "refutador": "fable-5 (sessao fresca 2a rodada, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 44,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "RODADA 2 APROVADA (fable-5 fresca @5eb37b3 vs 8af585a por SHA): 44/44 paths existem (git cat-file case-sensitive); 16 ok + 8 _parcial_ + 20 _pendente_ todos CONFIRMADOS; as 3 correcoes r1 reverificadas procedem; cacas por reincidencia nas outras 41 = nenhuma. anchor-lint coverage 100, dead 0, grammar 44/44. Cobre PR #3632.",
+      "veredito": "aprovado"
     }
   ]
 }
