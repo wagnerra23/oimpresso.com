@@ -479,6 +479,23 @@
       "pii_hits": 0,
       "evidencia": "refutacao 100% (task ad-hoc worktree anchors-lote-b @0bb65dd) — 9 anchored_ok + 2 _parcial_ (007 observer LC116 hardcode, 011 falta golden E2E) + 4 _pendente_ (012/013 operacional, 014 tela config inexistente, 015 consultar/cancelar nao per-business) todos CONFIRMADOS contra codigo real; casing Modules/NFSe vs Pages/Nfse verificado; NFSe nao ancorado em NfeBrasil/NFe. anchor-lint coverage 100, dead 0, zombie 0, grammar 15/15. Ressalva menor nao-contabilizada: US-005 idempotencia vive em NfseEmissaoPayload::idempotencyKey nao montarPayload. Cobre PR #3627.",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3628,
+      "lote_id": "SA-A5-P10w3-autopecas",
+      "data": "2026-07-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 wave 3 lote B, sessao isolada)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 15,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao 100% (task worktree anchors-lote-b @0bb65dd) — modulo wish Modules/Autopecas inexistente (git grep autopecas fora de memory = 0 codigo app). 15 _pendente_ CONFIRMADOS: refutador cacou OficinaAuto/Vehicle (cadastro cliente, nao fitment), Sells/POS (infra generica), StockTransfer, ProductCatalogue (catalogo view-only), NfeBrasil, RecurringBilling, Jana Agents, modulo Garantia (tb wish) — nenhum implementa US-AP. Zero dominio morto ADR 0265. anchor-lint coverage 100, grammar 15/15, dead 0. Cobre PR #3628.",
+      "veredito": "aprovado"
     }
   ]
 }
