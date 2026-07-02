@@ -22,7 +22,11 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  * 2. Multi-tenant Tier 0 ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)):
  *    Arquivo::find aplica global scope `business_id` automaticamente — usuário
  *    autenticado biz=1 NUNCA acessa arquivo biz=4 mesmo com URL signed válida
- * 3. Audit log (`signed_url_consumed`) — toda download registra
+ * 3. Audit log (action `download`) — toda consumação de signed URL registra.
+ *    `download` é membro do enum `arquivos_audit_log.action` (o par de
+ *    `signed_url_issued`, emitido no momento da geração da URL). O valor
+ *    `signed_url_consumed` NÃO existe no enum e era truncado/rejeitado em
+ *    MySQL strict → gap de auditoria silencioso (fix 2026-07-02).
  * 4. Disk routing: lê do disk `arquivos` ou `vault` baseado em `$arquivo->disk`
  *
  * @see memory/decisions/0123-modules-arquivos-backbone.md §6+§8
@@ -43,7 +47,10 @@ class DownloadController extends Controller
                 abort(404);
             }
 
-            $this->audit($row, 'signed_url_consumed', $request);
+            // Ação `download` (membro do enum) — registra a consumação da signed URL.
+            // NUNCA usar `signed_url_consumed` aqui: não está no enum e o INSERT
+            // é rejeitado em MySQL strict, engolido pelo try/catch de audit().
+            $this->audit($row, 'download', $request);
 
             $diskName = $row->disk ?: 'arquivos';
             $disk = Storage::disk($diskName);

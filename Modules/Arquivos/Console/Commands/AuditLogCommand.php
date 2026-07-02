@@ -312,7 +312,11 @@ class AuditLogCommand extends Command
             $this->newLine();
         }
 
-        // ── 3. 3+ signed_url_consumed mesmo arquivo+IP em <60s (rapid-fire = scraping) ──
+        // ── 3. 3+ downloads (consumação de signed URL) mesmo arquivo+IP em <60s (rapid-fire = scraping) ──
+        // Sinal de scraping = CONSUMAÇÃO repetida (action `download`, emitida pelo
+        // DownloadController a cada acesso à signed URL), não a emissão única
+        // (`signed_url_issued`). Um atacante gera a URL 1× e a consome N× — logo
+        // rapid-fire de `download` é o indicador correto de varredura via URL vazada.
         // Busca combinações arquivo_id+IP com ≥3 acessos em qualquer janela de 60s.
         // A detecção é feita via GROUP BY + HAVING em subquery; o JSON payload deve
         // conter {"ip":"..."} — se não tiver IP no payload, o campo é NULL (skip ok).
@@ -327,7 +331,7 @@ class AuditLogCommand extends Command
                 COALESCE(a.original_name, '(arquivo removido)') as filename
             FROM arquivos_audit_log aal
             LEFT JOIN arquivos a ON a.id = aal.arquivo_id
-            WHERE aal.action = 'signed_url_issued'
+            WHERE aal.action = 'download'
               AND aal.created_at >= ?
               AND JSON_UNQUOTE(JSON_EXTRACT(aal.payload, '$.ip')) IS NOT NULL
               " . ($businessId !== null ? "AND aal.business_id = {$businessId}" : '') . "
