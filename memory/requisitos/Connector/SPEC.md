@@ -42,6 +42,7 @@ REST API externa do oimpresso. Exposta sob prefixo `/connector/api/*` com middle
 **Quero** receber `401 Unauthenticated` sem Bearer token
 **Para** garantir fail-secure em todos os endpoints `/connector/api/*`
 **Status:** ✅ implementado (`AuthApiTest`)
+**Implementado em:** `Modules/Connector/Routes/api.php` · `Modules/Connector/Tests/Feature/AuthApiTest.php` · verificado@8af585a (2026-07-02) — middleware auth:api nos 3 grupos de rotas connector/api
 
 ### US-CONN-002 — Sync Delphi via `/processa-dados-cliente`
 **Como** cliente Delphi WR Comercial
@@ -49,6 +50,7 @@ REST API externa do oimpresso. Exposta sob prefixo `/connector/api/*` com middle
 **Para** sincronizar cadastro + heartbeat do equipamento
 **Contrato:** request JSON array; response STRING `S;msg` ou `N;motivo`
 **Status:** ✅ ativo (G1 legacy ADR 0021)
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php` · `Modules/Connector/Http/Controllers/Api/BusinessController.php` · verificado@8af585a (2026-07-02) — rota connector.delphi.processa-dados-cliente em Routes/api.php; doProcessaDadosCliente delega saveBusiness ao BusinessController e chama saveEquipamento local ($this->)
 
 ### US-CONN-003 — Registrar WR Comercial via `/oimpresso/registrar`
 **Como** cliente WR Comercial novo
@@ -56,55 +58,65 @@ REST API externa do oimpresso. Exposta sob prefixo `/connector/api/*` com middle
 **Para** receber autorização licença + dias_restantes + data_expiracao
 **Contrato:** request JSON flat; response JSON `{autorizado: 'S'|'N', licenca_id, dias_restantes, data_expiracao}`
 **Status:** ✅ ativo (G2 ADR 0021)
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/OImpressoRegistroController.php` · verificado@8af585a (2026-07-02) — rota connector.delphi.oimpresso.registrar em Routes/api.php
 
 ### US-CONN-004 — Check-update via `/check-update`
 **Como** cliente Delphi
 **Quero** enviar `CNPJ;VersaoAtual` em text/plain
 **Para** receber `VersaoNova;VersaoMinObrigatoria` ou `N;VersaoMinObrigatoria`
 **Status:** ✅ ativo (campos `business.versao_disponivel` + `versao_obrigatoria`)
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/CheckUpdateController.php` · verificado@8af585a (2026-07-02) — rota connector.delphi.check-update em Routes/api.php
 
 ### US-CONN-005 — REST CRUD `/contactapi`
 **Como** app externo
 **Quero** index/show/store/update de Contacts (clientes/fornecedores)
 **Contrato:** JSON padrão Laravel API Resource; paginação default UltimatePOS
 **Status:** ✅ ativo
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/ContactController.php` · verificado@8af585a (2026-07-02) — resource contactapi (index/show/store/update) + contactapi-payment em Routes/api.php
 
 ### US-CONN-006 — REST CRUD `/product`
 **Como** app externo
 **Quero** index/show de produtos + variations + selling-price-group
 **Status:** ✅ ativo
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/ProductController.php` · verificado@8af585a (2026-07-02) — resource product + selling-price-group + variation/{id?} em Routes/api.php
 
 ### US-CONN-007 — REST CRUD `/sell` (vendas)
 **Como** app externo
 **Quero** index/store/show/update/destroy de vendas + sell-return + shipping-status
 **Status:** ✅ ativo
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/SellController.php` · verificado@8af585a (2026-07-02) — resource sell + sell-return + list-sell-return + update-shipping-status em Routes/api.php
 
 ### US-CONN-008 — REST `/business-location` (filiais)
 **Como** app externo
 **Quero** index/show de business_locations da minha empresa
 **Multi-tenant:** scope automático por `business_id` do token Passport
 **Status:** ✅ ativo
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/BusinessLocationController.php` · verificado@8af585a (2026-07-02) — resource business-location (index/show) em Routes/api.php
 
 ### US-CONN-009 — REST `/taxonomy` + `/brand`
 **Como** app externo
 **Quero** index/show de categorias + marcas pra montar cardápio mobile
 **Status:** ✅ ativo
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/CategoryController.php` · `Modules/Connector/Http/Controllers/Api/BrandController.php` · verificado@8af585a (2026-07-02) — resources taxonomy + brand em Routes/api.php
 
 ### US-CONN-010 — REST `/user`
 **Como** app externo (gestor)
 **Quero** index/show/loggedin + user-registration de usuários da empresa
 **Status:** ✅ ativo
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/UserController.php` · verificado@8af585a (2026-07-02) — resource user + user/loggedin + user-registration + update-password + forget-password em Routes/api.php
 
 ### US-CONN-011 — Sync `salvar-cliente` + `salvar-equipamento/{business_id}`
 **Como** cliente Delphi
 **Quero** persistir Business + Licenca_Computador via 2 endpoints separados
 **Contrato:** request JSON; response STRING legacy `S;msg`/`N;motivo`
 **Status:** ✅ ativo
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/BusinessController.php` · `Modules/Connector/Http/Controllers/Api/LicencaComputadorController.php` · verificado@8af585a (2026-07-02) — rotas connector.delphi.salvar-cliente (saveBusiness) + connector.delphi.salvar-equipamento (saveEquipamento) em Routes/api.php
 
 ### US-CONN-012 — CRM API (`crm/follow-ups`, `crm/leads`)
 **Como** app externo de vendas
 **Quero** sincronizar follow-ups + call-logs do CRM via REST
 **Status:** ✅ ativo (sub-grupo `connector/api/crm/*` com mesmo stack `auth:api`)
+**Implementado em:** `Modules/Connector/Http/Controllers/Api/Crm/FollowUpController.php` · `Modules/Connector/Http/Controllers/Api/Crm/CallLogsController.php` · verificado@8af585a (2026-07-02) — grupo connector/api/crm (follow-ups, follow-up-resources, leads, call-logs) em Routes/api.php
 
 ## Pegadinhas catalogadas
 

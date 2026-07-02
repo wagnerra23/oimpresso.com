@@ -37,8 +37,10 @@ related_adrs:
 
 ### US-MWART-001 · Camada 2+3 enforcement — Hook + CI workflow
 
-> owner: wagner · priority: p0 · estimate: 1.5h · status: todo · type: story · origin: adr-0104
+> owner: wagner · priority: p0 · estimate: 1.5h · type: story · origin: adr-0104
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `.claude/hooks/block-mwart-violation.ps1` · `.claude/settings.json` · verificado@8af585a (2026-07-02) — camada 2 (hook PreToolUse) viva e registrada; camada 3 (CI mwart-gate.yml) foi DELETADA pela ADR 0271 onda 2 (era soft continue-on-error — teatro); régua viva de cobertura de tela hoje = casos-gate required (ADR 0264); MwartGateWorkflowTest nunca criado
 
 **Contexto.** ADR 0104 define 3 camadas de enforcement. A camada 1 (skill Tier A `mwart-process`) já está ativa. Faltam 2 e 3 — sem elas, o processo depende exclusivamente do agent lembrar (pode falhar em sessão longa, dev humano sem Claude Code, ou agent novo). Esta US implementa as travas em runtime e merge.
 
@@ -71,6 +73,8 @@ related_adrs:
 > owner: wagner · priority: p1 · estimate: 3h · status: todo · type: story · origin: adr-0104
 > blocked_by: US-MWART-001
 
+**Implementado em:** _pendente_ — tabela mcp_pages_audits, comando artisan mwart:backfill-audit e plug no dashboard de qualidade não existem no repo (grep vazio em app/, Modules/ e database/)
+
 **Contexto.** O ADR 0104 estabelece processo canônico, mas as ~78 telas Inertia existentes foram migradas antes do processo formalizar. Backfill garante: cada tela tem RUNBOOK retroativo + score audit registrado + SPEC com US `done` (status histórico).
 
 **Escopo:**
@@ -94,6 +98,8 @@ related_adrs:
 
 > owner: wagner · priority: p2 · estimate: 1h · status: todo · type: story · origin: adr-0104
 > blocked_by: US-MWART-002
+
+**Implementado em:** _pendente_ — health-check mwart_process_compliance_24h não existe (grep vazio); depende de US-MWART-002 (tabela mcp_pages_audits) que também está pendente
 
 **Contexto.** "Não pode falhar" exige observabilidade. Métricas chave que respondem se o processo está sendo seguido:
 
@@ -121,8 +127,10 @@ related_adrs:
 
 ### US-MWART-004 · Onda 1 — migrar Vendas, PDV & Caixa e desligar Blade
 
-> owner: — · priority: p1 · estimate: 16h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p1 · estimate: 16h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Sells/Index.tsx` · `resources/js/Pages/Sells/Create.tsx` · `resources/js/Pages/Sells/Caixa/Index.tsx` · verificado@8af585a (2026-07-02) — telas React vivas (Index/Create/Edit/Show/Drafts/Quotations/Subscriptions + Caixa); falta PDV-balcão puro, tela Devolução e Fechar-caixa; critério de desligamento NÃO atingido: resource pos (L532), cash-register (L643) e sell-return (L673) seguem vivos em routes/web.php
 
 Domínios E (Vendas/PDV) + H (Caixa), ≈66 fn. Plano F1: [ONDA-1-VENDAS-PDV-CAIXA-PLANO.md](ONDA-1-VENDAS-PDV-CAIXA-PLANO.md) · **mapa verificado:** [ONDA-1-CUTOVER-LEDGER.md](ONDA-1-CUTOVER-LEDGER.md). **Adversário [CD]:** Square POS + Stripe Checkout. **Já vivo em React:** Sells/Index, Create, Edit, Show, Drafts, Quotations, Subscriptions, Caixa/Index. **Lacunas verificadas (red-team [CX]):** construir **3 telas React** — PDV-balcão puro (`pos/index` ≠ Sells/Create), **Devolução** (`sell-return` é 100% Blade, **zero twin**) e **Fechar-caixa** (`/vendas/caixa` não tem) — *depois* desligar.
 
@@ -137,8 +145,10 @@ Domínios E (Vendas/PDV) + H (Caixa), ≈66 fn. Plano F1: [ONDA-1-VENDAS-PDV-CAI
 
 ### US-MWART-005 · Onda 2 — migrar Clientes & contatos e desligar /contacts
 
-> owner: — · priority: p2 · estimate: 10h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p2 · estimate: 10h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Cliente/Index.tsx` · `resources/js/Pages/Cliente/Import.tsx` · `resources/js/Pages/Cliente/Ledger.tsx` · verificado@8af585a (2026-07-02) — /cliente vivo com drawer + import + ledger em React; critério de desligamento NÃO atingido: resource contacts segue vivo em routes/web.php (L303), sem redirect e sem lápide dos blades de contact
 
 Domínio C, ≈26 fn. **Adversário [CD]:** Attio (ficha viva, contexto sem cliques). **Já vivo:** `/cliente` drawer 760px ([ADR 0179](../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)/[0188](../../decisions/0188-contacts-multi-type-flag-aditiva.md)) + abas anexos/vendas/pagamentos/assinaturas.
 
@@ -150,8 +160,10 @@ Domínio C, ≈26 fn. **Adversário [CD]:** Attio (ficha viva, contexto sem cliq
 
 ### US-MWART-006 · Onda 3 — migrar Produtos & catálogo e desligar Blade
 
-> owner: — · priority: p2 · estimate: 24h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p2 · estimate: 24h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Produto/Index.tsx` · `resources/js/Pages/Produto/Unificado/Index.tsx` · verificado@8af585a (2026-07-02) — catálogo React vivo (Index/Create/Edit/Show/BulkEdit/SellingPrices/StockHistory + Unificado); critério de desligamento NÃO atingido: resource products segue vivo em routes/web.php (L423) + satélites (taxonomies/brands/units/barcodes/discount)
 
 Domínio D (o maior), ≈55 fn. **Adversário [CD]:** Linear (densidade) + Shopify Admin (editor de produto/variações). **Já vivo:** `/products/unificado` (5 sub-telas) + `produtos-page` Cowork.
 
@@ -162,8 +174,10 @@ Domínio D (o maior), ≈55 fn. **Adversário [CD]:** Linear (densidade) + Shopi
 
 ### US-MWART-007 · Onda 4 — migrar Estoque & inventário e desligar Blade
 
-> owner: — · priority: p2 · estimate: 8h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p2 · estimate: 8h · type: story · origin: roadmap-ondas-blade
 > blocked_by: US-MWART-006
+
+**Implementado em:** _parcial_ · `resources/js/Pages/StockAdjustment/Index.tsx` · `resources/js/Pages/StockTransfer/Index.tsx` · verificado@8af585a (2026-07-02) — DRIFT vs roadmap 2026-06-13 ("Já vivo: nada"): telas React de ajuste e transferência (Index+Create) já existem e estão roteadas; critério de desligamento NÃO atingido: resources stock-adjustments (L638) e stock-transfers (L655) seguem vivos em routes/web.php
 
 Domínio G, ≈14 fn. **Adversário [CD]:** Linear + Cron (registro auditável em 2 cliques). **Já vivo:** nada (100% Blade) — reusa DataGrid shared candidato da Onda 3.
 
@@ -174,8 +188,10 @@ Domínio G, ≈14 fn. **Adversário [CD]:** Linear + Cron (registro auditável e
 
 ### US-MWART-008 · Onda 5 — migrar Compras & suprimentos e desligar Blade
 
-> owner: — · priority: p2 · estimate: 14h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p2 · estimate: 14h · type: story · origin: roadmap-ondas-blade
 > blocked_by: US-MWART-006, US-MWART-007
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Compras/Index.tsx` · `resources/js/Pages/Purchase/Create.tsx` · verificado@8af585a (2026-07-02) — DRIFT vs roadmap 2026-06-13 ("repo 100% Blade"): cockpit /compras (Modules/Compras) + trilho Purchase React (Create/Edit/Index/Show) já vivos; critério de desligamento NÃO atingido: resource purchases segue vivo em routes/web.php (L510) + purchase-order/purchase-return/requisition
 
 Domínio F, ≈22 fn. **Adversário [CD]:** Ramp / procurement moderno (fluxo aprovação + recebimento costurado). **Já vivo:** protótipo `compras-page.jsx` no Cowork; repo 100% Blade.
 
@@ -189,6 +205,8 @@ Domínio F, ≈22 fn. **Adversário [CD]:** Ramp / procurement moderno (fluxo ap
 > owner: — · priority: p2 · estimate: 16h · status: todo · type: story · origin: roadmap-ondas-blade
 > blocked_by: US-MWART-004, US-MWART-008
 
+**Implementado em:** _pendente_ — nenhuma tela React da camada Account do UltimatePOS (account/fund-transfer/cash-flow/balance-sheet/trial-balance/expenses) existe em resources/js/Pages; resource account segue 100% Blade (Pages/Financeiro é o módulo Financeiro, domínio distinto por definição da US)
+
 Domínio I, ≈30 fn. **Distinta do módulo Financeiro React já migrado** — é a camada `Account` do UltimatePOS. **Adversário [CD]:** Mercury + QuickBooks (saldo/fluxo calmo + balancete/conciliação).
 
 **Critério de desligamento (acceptance):**
@@ -198,8 +216,10 @@ Domínio I, ≈30 fn. **Distinta do módulo Financeiro React já migrado** — �
 
 ### US-MWART-010 · Onda 7 — migrar Configurações, admin & documentos e desligar Blade
 
-> owner: — · priority: p3 · estimate: 20h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p3 · estimate: 20h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `app/Http/Controllers/ModuleManagementController.php` · verificado@8af585a (2026-07-02) — Gerenciador de Módulos React vivo (ModuleManagementController@index renderiza a tela via Inertia); critério de desligamento NÃO atingido: resources de settings (business/invoice-layouts/schemes/tax-rates/printers/roles/users) e settings_custom_labels seguem Blade
 
 Domínios K + L, ≈55 fn. **Adversário [CD]:** Stripe Settings + Vercel (busca + agrupamento, nunca muro de toggles AdminLTE). **Já vivo:** Gerenciador de Módulos React + preferências tema/sidebar.
 
@@ -213,6 +233,8 @@ Domínios K + L, ≈55 fn. **Adversário [CD]:** Stripe Settings + Vercel (busca
 > owner: — · priority: p2 · estimate: 24h · status: todo · type: story · origin: roadmap-ondas-blade
 > blocked_by: US-MWART-004, US-MWART-005, US-MWART-006, US-MWART-007, US-MWART-008, US-MWART-009, US-MWART-010
 
+**Implementado em:** _pendente_ — nenhum relatório do domínio J (/reports/* do UltimatePOS: lucro/perda, estoque, fiscal, vendedor, lote) migrado pra React (Pages/Financeiro/Relatorios e Pages/Ponto/Relatorios pertencem a módulos próprios, não ao domínio J); bloqueada por construção pelas Ondas 1-7
+
 Domínio J, ≈45 fn que leem TODOS os domínios. **Adversário [CD]:** Metabase + Stripe Sigma (filtro vivo + drill-down + export que o contador aceita). **Não pode vir antes:** relatório que lê dado de domínio não-migrado mente.
 
 **Critério de desligamento (acceptance):**
@@ -222,8 +244,10 @@ Domínio J, ≈45 fn que leem TODOS os domínios. **Adversário [CD]:** Metabase
 
 ### US-MWART-012 · Onda 9 — migrar Acesso & onboarding e remover /login/old
 
-> owner: — · priority: p3 · estimate: 8h · status: todo · type: story · origin: roadmap-ondas-blade
+> owner: — · priority: p3 · estimate: 8h · type: story · origin: roadmap-ondas-blade
 > blocked_by: —
+
+**Implementado em:** _parcial_ · `resources/js/Pages/Site/Login.tsx` · verificado@8af585a (2026-07-02) — login React vivo como default (LoginController); critério de desligamento NÃO atingido: /login/old segue registrado em routes/web.php (L178) e register/password-reset/business-register/social-auth/install continuam Blade
 
 Domínio A, ≈10 fn. **Adversário [CD]:** WorkOS + Linear (login limpo, social, sem AdminLTE). Baixa frequência → tarde, mas é a primeira impressão.
 
@@ -236,6 +260,8 @@ Domínio A, ≈10 fn. **Adversário [CD]:** WorkOS + Linear (login limpo, social
 
 > owner: — · priority: p2 · estimate: 6h · status: todo · type: story · origin: roadmap-ondas-blade
 > blocked_by: US-MWART-004, US-MWART-005, US-MWART-006, US-MWART-007, US-MWART-008, US-MWART-009, US-MWART-010, US-MWART-011, US-MWART-012
+
+**Implementado em:** _pendente_ — gate de CI zero-Blade e contador de routes Blade vivos não existem (nenhum workflow em .github/workflows cobre; contagem manual em routes/web.php ainda encontra resources Blade vivos de contacts/products/purchases/pos/stock/sell-return); bloqueada por construção pelas Ondas 1-9
 
 A onda que torna a rota verdadeira. **Adversário [CX] — o permanente:** red-team do processo, "qual route Blade ainda responde escondido atrás do React?".
 

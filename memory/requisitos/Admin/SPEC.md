@@ -43,6 +43,8 @@ Painel único Wagner-only que agrega visão de toda a infra/governance/time da e
 
 ### US-ADM-001..010
 
+**Implementado em:** _parcial_ · `Modules/Admin/Http/Controllers/IndexController.php` · `Modules/Admin/Http/Middleware/IsWagner.php` · `Modules/Admin/Http/Middleware/TailscaleOnly.php` · `resources/js/Pages/Admin/Index.tsx` · `Modules/Admin/Services/BriefAdapter.php` · `Modules/Admin/Services/HealthSnapshotReader.php` · `Modules/Admin/Tests/Feature/AuthGateTest.php` · verificado@8af585a (2026-07-02) — falta evidência in-repo de US-ADM-002 (Traefik/DNS admin.oimpresso.com vive no CT 100, fora do git) e US-ADM-010 (smoke walkthrough humano Wagner)
+
 | ID | Título | Prioridade | Tipo |
 |---|---|---|---|
 | US-ADM-001 | Scaffold `Modules/Admin/` (módulo nWidart) | p1 | infra |

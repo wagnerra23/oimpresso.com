@@ -37,6 +37,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** visitante anônimo
 **Quero** acessar `/` e ver landing institucional oimpresso.com
 **Pra** conhecer o produto antes de cadastrar
+**Implementado em:** `Modules/Cms/Http/Controllers/CmsController.php` · `resources/js/Pages/Site/Home.tsx` · `Modules/Superadmin/Http/Controllers/PricingController.php` · `resources/js/Pages/Site/Pricing.tsx` · verificado@8af585a (2026-07-02)
 
 **Acceptance:**
 - `GET /` retorna 200 sem auth
@@ -50,6 +51,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** arquiteto multi-tenant
 **Quero** que cada CmsPage pertença a um business específico
 **Pra** que slug biz=1 NÃO aparece servindo biz=99 (vazamento de conteúdo)
+**Implementado em:** _pendente_ — coluna `business_id` não existe em `cms_pages` (nenhuma migration criada); `MultiTenantSlugIsolationTest` segue em `markTestSkipped`
 
 **Acceptance:**
 - Migration idempotente adiciona `business_id BIGINT UNSIGNED NOT NULL` + index + FK pra `business.id`
@@ -64,6 +66,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** arquiteto multi-tenant
 **Quero** que cada tenant tenha config própria de site (logo, headline, footer, depoimentos)
 **Pra** servir landing personalizada por business sem vazar branding/PII
+**Implementado em:** _pendente_ — coluna `business_id` não existe em `cms_site_details`; `SiteHomeMultiTenantTest` segue em `markTestSkipped`
 
 **Acceptance:**
 - Migration adiciona `business_id` em `cms_site_details` + unique constraint `[business_id, site_key]`
@@ -79,6 +82,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** admin (Wagner/Maiara)
 **Quero** criar/editar páginas via UI moderna React
 **Pra** parar de depender do Blade `cms::page.create`
+**Implementado em:** _pendente_ — migração MWART não iniciada; CRUD admin segue Blade (`cms::page.*` via CmsPageController) e não existe Page Inertia de admin do Cms
 
 **Acceptance:**
 - Page Inertia em `resources/js/Pages/Cms/Pages/Index.tsx` + `Create.tsx` + `Edit.tsx`
@@ -93,6 +97,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** visitante
 **Quero** acessar páginas dinâmicas por slug
 **Pra** ler termos, política, sobre, blog posts
+**Implementado em:** _parcial_ · `Modules/Cms/Http/Controllers/CmsPageController.php` · `resources/js/Pages/Site/Page.tsx` · verificado@8af585a (2026-07-02) — rota pública renderiza Inertia; falta isolamento multi-tenant do slug (depende US-CMS-002)
 
 **Acceptance:**
 - Rota `/c/page/{slug}` renderiza Inertia `Site/Page` (já existe em `SitePageTest.php`)
@@ -106,6 +111,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** business owner
 **Quero** que `/` (ou `{tenant}.oimpresso.com`) carregue config própria de site
 **Pra** ter landing personalizada (logo, headline, depoimentos, CTAs)
+**Implementado em:** _parcial_ · `Modules/Cms/Services/SiteContentService.php` · `Modules/Cms/Entities/CmsSiteDetail.php` · verificado@8af585a (2026-07-02) — home lê config dinâmica do banco com fallback; falta detecção de tenant (domain/subdomain) e isolamento (depende US-CMS-003)
 
 **Acceptance:**
 - `SiteHomeDinamicoTest.php` valida (já existe — gap: isolamento multi-tenant)
@@ -120,6 +126,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** business owner
 **Quero** mostrar planos próprios na landing
 **Pra** vender com pricing personalizado (não só do oimpresso)
+**Implementado em:** _parcial_ · `Modules/Superadmin/Http/Controllers/PricingController.php` · `resources/js/Pages/Site/Pricing.tsx` · `Modules/Superadmin/Http/Controllers/PackagesController.php` · verificado@8af585a (2026-07-02) — pricing público lê packages reais do DB + CRUD admin superadmin; falta pricing per-tenant (packages são globais)
 
 **Acceptance:**
 - `SitePricingDinamicoTest.php` valida pricing per-tenant
@@ -132,6 +139,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** visitante
 **Quero** logar com Google/Facebook
 **Pra** acelerar cadastro
+**Implementado em:** _parcial_ · `app/Http/Controllers/Auth/SocialAuthController.php` · `resources/js/Pages/Site/Login.tsx` · verificado@8af585a (2026-07-02) — Socialite Google+Microsoft com criação automática de usuário; falta provider Facebook previsto no aceite (regex de rota barra outros providers)
 
 **Acceptance:**
 - `AuthSocialTest.php` valida fluxo Socialite
@@ -144,6 +152,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** business com site WP legado
 **Quero** importar páginas/posts pra `cms_pages`
 **Pra** migrar conteúdo sem retrabalho manual
+**Implementado em:** _parcial_ · `Modules/Cms/Console/ImportWpOfficeImpressoCommand.php` · verificado@8af585a (2026-07-02) — importer idempotente via conexão DB direta do WP (posts+pages publicados); falta suporte a XML export genérico previsto no aceite
 
 **Acceptance:**
 - `ImporterWpTest.php` valida importer (já existe)
@@ -159,6 +168,7 @@ Modules/Cms hoje serve o **landing oimpresso.com** (home, pricing, blog, página
 **Como** admin
 **Quero** montar landing com componentes drag-drop
 **Pra** não precisar de dev pra cada mudança de copy
+**Implementado em:** _pendente_ — page builder drag-drop não iniciado (backlog P3)
 
 **Effort:** ~40h — comparar contra Elementor / Gutenberg / Webflow
 

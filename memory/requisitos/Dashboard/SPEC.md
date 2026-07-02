@@ -28,6 +28,8 @@ Servir como **landing page pós-login** do oimpresso — saudação, filtros glo
 
 ### US-DASH-001 — Soft wrapper Inertia `/home` (F6 entrega 2026-05-21)
 
+**Implementado em:** `app/Http/Controllers/HomeController.php` · `resources/js/Pages/Home/Index.tsx` · `tests/Feature/Home/HomeIndexInertiaTest.php` · verificado@8af585a (2026-07-02) — drift: a rota /home hoje redireciona 302 pra /ia/dashboard (Wagner 2026-05-22, sidebar v3 ADR 0180); a tela Home/Index segue viva em /dashboard-legacy
+
 **Como** usuário logado no oimpresso
 **quero** abrir `/home` em uma página Inertia React rápida
 **pra** ver as KPIs principais do meu business sem esperar 1.4k linhas de Blade renderizarem.
@@ -46,9 +48,13 @@ Servir como **landing page pós-login** do oimpresso — saudação, filtros glo
 
 > Não no escopo F6 Soft. Hoje, charts continuam exclusivos do legacy (`?legacy=1`). Backlog Rewrite Cockpit V2.
 
+**Implementado em:** _pendente_ — backlog Rewrite Cockpit V2; charts ECharts seguem exclusivos do Blade legacy via ?legacy=1
+
 ### US-DASH-003 — Widget registry pluggable em React (backlog ADR nova)
 
 > `$module_widgets = $this->moduleUtil->getModuleData('dashboard_widget')` é Blade-only. Soft preserva mecanismo via `?legacy=1`. Rewrite exigirá ADR nova pro registry React.
+
+**Implementado em:** _pendente_ — backlog; registry de widgets é Blade-only (preservado via ?legacy=1), rewrite React exige ADR nova
 
 ## Non-Goals (anti-alucinação)
 
