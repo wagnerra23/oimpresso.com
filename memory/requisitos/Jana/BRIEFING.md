@@ -69,3 +69,7 @@ Recentemente, foram realizadas auditorias focadas na governança, qualidade e ar
 - handoff `handoffs/2026-06-06-2251-determinizacao-anti-dup-design.md` (2026-06-06) — 2026-06-06-2251-determinizacao-anti-dup-design.md
 - handoff `handoffs/2026-06-05-1430-parecer-pr2270-julgamento-ia-design.md` (2026-06-05) — 2026-06-05-1430-parecer-pr2270-julgamento-ia-design.md
 - handoff `handoffs/2026-06-05-2052-migracao-openai-provider.md` (2026-06-05) — 2026-06-05-2052-migracao-openai-provider.md
+
+## Fusões absorvidas (KL-E2)
+
+Este módulo **absorveu** (fusão FUNDIR de identidade, KL-E2) as pastas tombstoneadas **Copiloto**, **Chat**, **MemoriaAutonoma** e **LaravelAI** — todas redirecionam pra cá. As US órfãs de MemoriaAutonoma (5 US-MA) e LaravelAI (5 US-AI) ficaram `status: historical` in-place com ponteiro pra Jana; Copiloto teve o loop fechado por `git mv` real (#3565). Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).

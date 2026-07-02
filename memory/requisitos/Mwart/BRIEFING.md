@@ -73,3 +73,7 @@ nota_esperada_v3: "~75-80/100 pós-PR3 na_justified declarado"
 - [0109](../../decisions/0109-claude-design-plugin-integrado-processo-mwart.md) Claude Design plugin integrado
 - [0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md) Cowork loop formalizado
 - [0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md) Rubrica v3 anti-injustiça
+
+## Fusões absorvidas (KL-E2)
+
+Este meta-processo **absorveu** (KL-E2) apenas o **`MWART-CHECKLIST.md`** que vivia em `_processo/` (cross-ref, sem mover o arquivo). ⚠️ A pasta **`_processo` NÃO foi fundida** — é hub de processo VIVO (ex: `BATCH-BACKLOG-*.md` citado como Fonte de US aprovadas em 8 SPECs); sua lápide foi revertida (un-tombstone) no fechamento #3653. Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).

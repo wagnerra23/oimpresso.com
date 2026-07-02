@@ -61,3 +61,7 @@ Painel **Wagner-only** que agrega visão de toda infra/governance/time do oimpre
 1. Smoke walkthrough Wagner via Tailscale (US-ADM-010)
 2. Criar `Index.charter.md` ao lado de `Pages/Admin/Index.tsx` (Charter > Spec, ADR 0094 §3)
 3. Sprint 4 — Curador integrado real (US-ADM-011..014)
+
+## Fusões absorvidas (KL-E2)
+
+Este módulo **absorveu** (fusão FUNDIR, KL-E2) a pasta tombstoneada **Modules** (meta) — redireciona pra cá (#2757; sem US órfãs). Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).
