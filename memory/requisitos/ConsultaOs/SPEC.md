@@ -1,7 +1,8 @@
 ---
 module: ConsultaOs
 version: "1.0"
-last_updated: "2026-06-13"
+last_updated: "2026-07-02"
+anchor_format: "v1"
 status: rascunho
 owner: wagner
 related_adrs: [0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci]
@@ -27,9 +28,23 @@ Módulo público (sem auth) para cliente final consultar o status de uma Ordem d
 
 ## Roadmap (TODO migrar pra real)
 
-- **US-CONSULTA-001** (backlog): substituir mock por query real em `Modules/Repair` via Service read-only, com rate limit por IP + captcha
-- **US-CONSULTA-002** (backlog): canary 7d em ROTA LIVRE antes de outros tenants
-- **US-CONSULTA-003** (backlog): criar `BRIEFING.md` após migração real (`na_justified D3.b` cai)
+### US-CONSULTA-001 · Substituir mock por query real em Modules/Repair `pendente`
+
+Substituir mock por query real em `Modules/Repair` via Service read-only, com rate limit por IP + captcha.
+
+**Implementado em:** _pendente_ — portal opera mock-only (`ConsultaOsMockService` + `MockConsultaOsRepository` bind no Provider); a query real em `Modules/Repair` + captcha é backlog. Rate-limit já existe parcialmente (`throttle:30,1` nas rotas), mas a substituição da fonte de dados (mock→real) — o cerne desta US — não foi construída.
+
+### US-CONSULTA-002 · Canary 7d em ROTA LIVRE `pendente`
+
+Canary 7d em ROTA LIVRE antes de outros tenants.
+
+**Implementado em:** _pendente_ — rollout operacional que só faz sentido após US-CONSULTA-001 entregar a busca real; nenhum código correspondente hoje.
+
+### US-CONSULTA-003 · Criar BRIEFING.md após migração real `pendente`
+
+Criar `BRIEFING.md` após migração real (`na_justified D3.b` cai).
+
+**Implementado em:** _pendente_ — a precondição (migração real US-CONSULTA-001) não ocorreu; o `na_justified.D3.b` segue vigente até a busca real entregar valor de produto. (Existe um `BRIEFING.md` de estado mock no módulo, mas esta US pede o briefing pós-migração-real, ainda não cabível.)
 
 ## N/A justificado
 
