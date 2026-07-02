@@ -564,6 +564,23 @@
       "pii_hits": 0,
       "evidencia": "Refutacao 100% dos joins US (66 itens = US individuais em 25 charters editados + 15 deferidos §3-bis). 1 REFUTADO: Purchase/Edit->US-COM-004 (US e infra de deprecacao de rota, anchor so cita Controllers PHP, nao descreve a tela Edit) — removido antes do merge (charter revertido). Ressalvas nao-bloqueantes: RECURRINGBILLING-007 duplicata de RB-042 (listar so 042 na fila A6); US-TR-301 colisao de ID com TaskRegistry (join da tela Triage correto). charter-us-lint --check ok. Cobre PRs #3633/#3634/#3635/#3636 (mesma campanha; entry no PR de docs/fila-A6 #3639 desta campanha).",
       "veredito": "aprovado"
+    },
+    {
+      "pr": 3630,
+      "lote_id": "SA-A5-P10-loteA-ponto",
+      "data": "2026-07-02",
+      "tipo": "anchors",
+      "gerador": "opus-4.8 (agente gerador P10 lote A, sessao isolada)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "itens_verificados": 39,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "refutacao 100% (fable-5 fresca vs 8af585a) — 4 anchored_ok (003/004/007/008) + 3 _parcial_ (001 endpoint stub abort(501)+sem tela/QR, 002 legacy AFD parcial, 005 falta HE 100% dom/feriado) + 3 _pendente_ (006 AFD gerador RuntimeException, 009 AEJ/CAdES inexistente, 010 comprovante PDF/QR) todos CONFIRMADOS; 26 paths existem, 3 simbolos batem, stubs sao stubs reais. PII 0 (Eliana=time interno). Distinto de PontoWr2 (US-PONT-*). anchor-lint coverage 100, dead 0, grammar 10/10. Cobre PR #3630.",
+      "veredito": "aprovado"
     }
   ]
 }
