@@ -211,7 +211,7 @@ Module Jira-style já em prod desde 2026-05-04 (PRs #91/#92). Redesign UI em **4
 
 > Superfícies humanas das tools MCP `triage` e `my-inbox`. Telas: `resources/js/Pages/ProjectMgmt/{Triage,Inbox}/Index.tsx`.
 > **PR #1940 — code-complete, segue DRAFT** aguardando gate visual do Wagner (ADR 0107/0114; Chrome MCP off).
-> Fonte funcional: [`TaskRegistry/SPEC-UI-FASE7.md`](../TaskRegistry/SPEC-UI-FASE7.md). RUNBOOK: [`RUNBOOK-index.md`](RUNBOOK-index.md). Visual: [`projectmgmt-index-visual-comparison.md`](projectmgmt-index-visual-comparison.md) (status draft).
+> Fonte funcional: [`TaskRegistry/SPEC-UI-FASE7.md`](../TaskRegistry/SPEC-UI-FASE7.md) (pasta `TaskRegistry/` é HISTORICAL→TeamMcp, mas **este arquivo segue a fonte viva** destas telas). RUNBOOK: [`RUNBOOK-index.md`](RUNBOOK-index.md). Visual: [`projectmgmt-index-visual-comparison.md`](projectmgmt-index-visual-comparison.md) (status draft).
 
 ### US-TR-309 · Triage — lista de tasks órfãs
 

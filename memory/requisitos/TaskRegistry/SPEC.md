@@ -3,10 +3,12 @@ module: TaskRegistry
 version: "1.0"
 last_updated: "2026-06-13"
 owner: wagner
-status: ativo
+status: historical
 project: TR
 default_component: BE
 ---
+
+> ⚰️ **HISTORICAL como pasta `requisitos/` — o SISTEMA de tasks vive no MCP server, porta [`requisitos/TeamMcp/`](../TeamMcp/BRIEFING.md)** (ADR 0070; FUNDIDO em TeamMcp, emenda E1 2026-06-15). As `US-TR-*` aqui **não são contrato desta pasta**. ⚠️ **Exceção viva:** [`SPEC-UI-FASE7.md`](SPEC-UI-FASE7.md) segue **Fonte funcional** das telas Triage/Inbox de `ProjectMgmt` (US-TR-309) — não é morto, só mora aqui.
 
 # TaskRegistry — SPEC
 

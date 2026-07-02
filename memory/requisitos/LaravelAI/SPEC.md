@@ -1,10 +1,12 @@
 ---
 module: LaravelAI
-status: rascunho
+status: historical
 version: "1.0"
 last_updated: "2026-06-13"
 owner: wagner
 ---
+
+> ⚰️ **HISTORICAL — pré-história do que virou `Modules/Jana` (KL-E2 · decisão E1 2026-06-15).** As US-AI aqui **não são contrato vivo**; documentam a fase anterior. Verdade viva → [`requisitos/Jana/`](../Jana/BRIEFING.md).
 
 # Especificação funcional — LaravelAI
 
