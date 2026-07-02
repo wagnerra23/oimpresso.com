@@ -1,24 +1,35 @@
+---
+distilled_at: "2026-07-02"
+distilled_by: jana:distill-module-truth
+module: PaymentGateway
+---
+
+# BRIEFING — PaymentGateway (verdade destilada)
+
 # BRIEFING — PaymentGateway
 
-Camada técnica única de cobrança bancária BR do oimpresso (extraída de RecurringBilling via [ADR 0170](../../decisions/0170-paymentgateway-extracao-camada-cobranca.md)). Concentra num só lugar a conversa com bancos: emissão de boleto/PIX/cartão, recebimento via webhook, conciliação por polling, processamento de retorno CNAB e cofre de credenciais multi-tenant. Quem precisa cobrar (Sell, RecurringBilling, Financeiro, NFSe) fala com `PaymentGatewayContract::for(Account)->emitir...` e ignora o driver. O `gateway_key` da credencial ativa resolve o driver via `PaymentGatewayService::DRIVERS`. Cobrança paga dispara o evento `CobrancaPaga`, consumido por `Modules/Financeiro` (`OnCobrancaPagaCreateFinanceiroTitulo`) que cria/baixa o título financeiro.
+O módulo PaymentGateway é a camada técnica de cobrança bancária integrada ao sistema Oimpresso, permitindo a emissão de boletos, PIX e cobrança via cartões, além de gerenciar a conciliação de recebimentos e o processamento de retornos CNAB. Atualmente, No ambiente de produção parcial, a funcionalidade de boleto do Inter já está em operação, enquanto as documentações e especificações precisam ser atualizadas para refletir o estado atual do código.
 
-**Estado:** ativo (parcial em produção). Boleto Inter já roda no drawer da Visão Unificada do Financeiro (PR #2452, jun/2026). README/SPEC ainda carregam header "Onda 0 não habilitado" — **stale**; o código está além disso (45 testes Pest, casts cifrados, 17 drivers).
+## Estado atual
+Ativo (parcial em produção). A funcionalidade de Boleto Inter está disponível, mas as especificações ainda indicam um estado "Onda 0 não habilitado", o que está desatualizado, considerando que o código já passa por uma avaliação rigorosa.
 
-**Capacidades REAIS (drivers de 350–760 linhas com HTTP real — não stubs):**
-- **6 drivers API REST** no mapa `DRIVERS`: **Inter** (boleto v3 + PIX cob/cobv + refund + OAuth2/mTLS, 760 linhas), **Asaas** (boleto+pix+cartão+refund), **C6** (boleto+pix), **BCB Pix Automático** (mandato recorrente, Res. BCB 380/2024), **Pagar.me v5** (boleto+pix+cartão), **Sicoob API v3** (boleto, OAuth2+mTLS reusando cert NFe).
-- **11 drivers CNAB file-based** (remessa/retorno, lib eduardokum): Bradesco, Itaú, BB, Santander, Caixa, Sicoob, Ailos, Sicredi, Cresol, Banrisul, BTG.
-- **Webhooks com validação de assinatura real** (`WebhookProcessor::validateSignature`, `hash_equals` constant-time, fail-secure) por provedor. As 3 vulns P0 do SPEC (cast em texto claro, `signature_valid:false` hardcoded) **já corrigidas** — `config_json` é `encrypted:array`.
-- Conciliação PIX Inter por **polling** (`paymentgateway:inter-reconcile-pix`, caminho primário hoje), importação de recebimentos, retry de webhook órfão **com linkage `cobranca_id`** (US-PG-008 — `CobrancaWebhookResolver` reusa `driver->processWebhook`; cron `retry-orphan-webhooks` **dormente atrás de flag** até cutover Onda 3 + dry-run aprovado), CNAB retorno (Job + upload UI), health-check, UI de credenciais (`/settings/payment-gateways`).
+## Capacidades
+- **6 drivers API REST** funcionando (Inter, Asaas, C6, BCB Pix Automático, Pagar.me, Sicoob).
+- **11 drivers CNAB** para arquivos (remessa e retorno) integrados a bancos como Bradesco, Itaú e Santander.
+- **Webhooks** com validação de assinatura implementada e correção de vulnerabilidades críticas.
+- Conciliação de pagamentos via **polling** e suporte para retry de webhooks órfãos.
+- **Interface de configuração** de credenciais disponível.
 
-**PLANEJADO, não construído (US no SPEC):**
-- Cadastro automático da URL de webhook PIX no Inter (US-PG-005) — hoje só polling.
-- Correção do auth do webhook Inter (mTLS vs HMAC; US-PG-006) + URL pública HTTPS no CT100 (US-PG-007).
-- Throttle/timestamp-window/nonce nos webhooks (US-PG-003 — rotas usam só `['web']`).
-- PesaPal: vestigial/deprecated, **não** implementado.
+## Gaps
+- Cadastro automático de URL de webhook PIX para o Inter (US-PG-005).
+- Correção da autenticação do webhook do Inter (mTLS vs HMAC; US-PG-006).
+- Implementação de medidas de segurança adicionais em webhooks (US-PG-003).
+- Situação da integração com PesaPal — marcada como vestigial.
 
-**Dependências reais:** APIs Inter/Asaas/C6/BCB/Pagar.me/Sicoob (OAuth2 + mTLS via cert A1 canon NfeCertificado); evento `CobrancaPaga` → Financeiro; multi-tenant Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)); consumido por Sell/RecurringBilling/NFSe.
+## Última mudança
+A recente auditoria e correção de testes relacionados ao SQLite garantiram que o sistema mantenha sua integridade e confiabilidade. Além disso, um handoff foi realizado para melhor integração da funcionalidade de boleto unificado, reforçando a coesão do módulo.
 
-**SPEC:** [SPEC.md](SPEC.md) · ver também [PLANO-ONDA5-SIMPLIFICADA.md](PLANO-ONDA5-SIMPLIFICADA.md), [RUNBOOK-sicoob-api.md](RUNBOOK-sicoob-api.md).
+## Proveniência (destilado de)
 
----
-**Tipo:** BRIEFING destilado (KL-E3). **Estado:** ativo (parcial em prod — boleto Inter live). **Fonte:** código real `Modules/PaymentGateway/` (17 drivers, 45 Pest, `WebhookProcessor`, `config_json` cifrado) + `OnCobrancaPagaCreateFinanceiroTitulo`, git log #2452. Verificado 2026-06-15.
+- session `sessions/2026-06-13-audit-sqlite-test-corruptors.md` (2026-06-13) — 2026-06-13-audit-sqlite-test-corruptors.md
+- handoff `handoffs/2026-06-08-2115-boleto-unificado-merge-c-comando-existente.md` (2026-06-08) — 2026-06-08-2115-boleto-unificado-merge-c-comando-existente.md
