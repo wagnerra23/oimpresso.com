@@ -95,13 +95,13 @@
     },
     "n_quarantine": {
       "status": "measured",
-      "value": 27,
+      "value": 26,
       "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
       "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
       "detail": {
-        "quarantined_files": 27
+        "quarantined_files": 26
       },
       "stream": "FV"
     },
@@ -110,7 +110,7 @@
       "value": null,
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "governance/nightly-coverage.json ainda não publicado pelo write-side CT100 (SDD P07 — pcov instrumentado em ct100-fullsuite.sh; falta rebuild da imagem com pcov + 1ª nightly). Hoje ci.yml roda coverage: none / --no-coverage no lane sqlite (fonte honesta é a suíte inteira CT100 — ADR 0275:68).",
+      "source": "governance/nightly-coverage.json presente mas JSON inválido — write-side corrige; fallback honesto.",
       "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
@@ -185,8 +185,8 @@
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
         "portas": 75,
-        "carimbadas": 5,
-        "sem_carimbo": 70,
+        "carimbadas": 11,
+        "sem_carimbo": 64,
         "stale": 0,
         "oldest_distilled_at": "2026-07-01"
       },
@@ -202,17 +202,12 @@
       "stream": "MEM"
     },
     "drift_alarms": {
-      "status": "measured",
-      "value": 0,
-      "unit": "alarmes duros (reds do protection-drift · GT-G4)",
+      "status": "not_yet_measured",
+      "value": null,
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
-      "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
-      "detail": {
-        "reds": [],
-        "warns": 1,
-        "verdict": "yellow"
-      },
+      "source": "gh api indisponível — drift_alarms requer GITHUB_TOKEN (protection-drift.mjs lê branch protection). Fallback honesto: vira measured assim que o gh autenticar.",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "GT"
     },
     "backfill_error_rate": {
