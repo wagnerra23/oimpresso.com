@@ -131,6 +131,13 @@
       "nome": "ESLint 9 (ADR 0209)",
       "classe": "gate"
     },
+    "estoque-pest.yml": {
+      "nome": "Estoque · Pest (MySQL) — movimentação de saldo (venda/compra/devolução) roda no MySQL real; skip no sqlite = verde mente",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-16",
+      "anchor": "PR #3686 — cobertura real de estoque (Wagner 2026-07-02 'todo teste de estoque skipa e mente'); seed CI mínimo faz a suíte de estoque pular no sqlite → verde mentiria. DOC-RAIZ-ESTOQUE §3 matriz + §7 invariantes. Nasce advisory; promover a required quando PR2/PR3 (ajuste/transfer/opening/fab + INV-2/3/5/6) estabilizarem o allowlist verde."
+    },
     "fin-hero-gate.yml": {
       "nome": "Fin Hero Gate — KPI hero claro (anti-regressão Onda 28)",
       "classe": "gate"
