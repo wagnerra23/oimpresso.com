@@ -59,6 +59,13 @@ jobs:
       - name: Meta-teste do auditor de corruptores SQLite (advisory · 2 lados)
         run: npm run test:sqlite-corruptors
         continue-on-error: true
+      # ADVISORY (nasce sem morder — ONDAS-QUALIDADE regra 2): contract test do harness
+      # do nightly (US-GOV-018 DoD A/B + US-GOV-020 grants — fixes PROVADOS no CT100 que
+      # vivem em shell script sem cobertura Pest; sumir um deles num refactor só apareceria
+      # na nightly horas depois). Promover a required = remover continue-on-error após 2 verdes.
+      - name: Contract test do harness fullsuite (advisory · US-GOV-018/020)
+        run: npm run test:fullsuite-harness
+        continue-on-error: true
       # ADVISORY→pronto-pra-required (US-GOV-021 · ADR 0275): roda o AUDITOR EM SI
       # (`--strict`), não só o meta-teste do classifier. Desde 2026-06-30 há
       # **0 corruptores** (todos os 18+ isolados via GUARDAR-TEARDOWN, lotes 1-3) → exit 0.

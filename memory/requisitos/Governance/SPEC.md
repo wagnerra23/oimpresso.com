@@ -343,6 +343,10 @@ GO Wagner 2026-06-12 ("pode disparar fase 1 e a dois na sequência"). Continuaç
 
 **Implementado em:** `scripts/tests/ct100-fullsuite.sh` · `Modules/PaymentGateway/Database/Migrations/2026_06_13_080000_alter_payment_gateway_credentials_config_json_to_longtext.php` · verificado@2026-07-01 — Frente A.1 (mariadb-client + TLS-verify-off, #2640) e Frente B (config_json json→longtext, #2636) verificadas live pelo skeptic Fase 2b da avaliação adversarial; A.2 FK-off REVERTIDO por prova empírica (net-harmful). MCP done desde 2026-06-13 — este campo corrige o status stale do SPEC (`review`) que enganou 2 avaliações seguidas ("US presas em review"); status durável vive no MCP (ADR 0144).
 
+**Aceite:** run limpo do nightly recarrega o dump sem `mysql: not found` nem `ERROR 2026` (greps=0 no junit real de 20260701, provado); zero SQLSTATE 3140 em payment_gateway_credentials; docker run do pest NUNCA seta `FULLSUITE_FK_OFF` (A.2 revertido). Contrato travado no CI barato pelo spec abaixo.
+
+**Testado em:** `tests/fullsuiteHarness.spec.ts` (contract test — 8 asserts derivados deste DoD, `@covers-us`; lane advisory no governance-gate-umbrella)
+
 **Origem:** retest adversarial POR REPRODUÇÃO (2026-06-13, CT 100, DB scratch byte-a-byte) sobre o nightly full-suite MySQL (run `20260613-003042`, sha d14f5436). 3 skeptics reproduziram e refutaram 2 diagnoses anteriores. Substitui a estratégia "quarentena em massa" (revertida) E o P0 "completar schema" (refutado). C1 (#2632, mergeado) flipou a suite pra MySQL e expôs a causa real.
 
 ## Número honesto (medido, não estimado)
@@ -398,6 +402,10 @@ Ref: re-triage workflow wnw19l15c · 52 agents · refutador matou 9 falsos-posit
 > blocked_by: —
 
 **Implementado em:** `scripts/tests/ct100-fullsuite.sh` · verificado@2026-07-01 — grants Frente C (log_bin_trust_function_creators + SET_USER_ID) re-landados no #2728 (squash 47e96ed05, 2026-06-14, 38/38 checks) + deploy gap fechado na mesma data; 188→377 tabelas / 0→4 triggers provado no CT100. MCP done desde 2026-06-14 — campo corrige status stale do SPEC (`review`); status durável no MCP (ADR 0144).
+
+**Aceite:** `migrate:fresh` de clone limpo carrega o dump completo (377 tabelas, 4 triggers — provado isolado no CT100 2026-06-14); sem `ERROR 1419`/`ERROR 1227` no load. Grants presentes no passo 3 (root) do harness, travados pelo spec abaixo.
+
+**Testado em:** `tests/fullsuiteHarness.spec.ts` (contract test — grants Frente C, `@covers-us`; lane advisory no governance-gate-umbrella)
 
 **Root cause PROVADO** (repro byte-level CT100, run `20260613-100035`). O `migrate:fresh` do RefreshDatabase carrega `database/schema/mysql-schema.sql`, cujos triggers têm **DEFINER de PROD** (`u906587222_oimpresso@localhost`, ex `trg_mcp_audit_log_no_update`). Setup carrega via root (OK); migrate:fresh carrega via `fullsuite` (não-SUPER) → `ERROR 1419` (binlog) / `ERROR 1227` (SET_USER_ID/DEFINER) → aborta → schema incompleto → **530 Base-table-not-found**. MySQL 8.0.46 binlog on.
 
