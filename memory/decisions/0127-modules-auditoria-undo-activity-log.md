@@ -1,9 +1,9 @@
 ---
-adr: 0127
+number: 127
 title: Modules/Auditoria — UI rica + undo sobre activity_log existente
-status: accepted
-date: 2026-05-10
-deciders: [Wagner]
+status: aceito
+decided_at: "2026-05-10"
+decided_by: [W]
 supersedes: []
 references:
   - 0061-conhecimento-canonico-git-mcp-zero-automem.md
@@ -12,7 +12,10 @@ references:
   - 0101-tests-business-id-1-nunca-cliente.md
   - 0104-processo-mwart-canonico-unico-caminho.md
   - 0123-modules-arquivos-backbone.md
-lifecycle: active
+lifecycle: ativo
+slug: 0127-modules-auditoria-undo-activity-log
+type: adr
+authority: canonical
 ---
 
 ## Contexto

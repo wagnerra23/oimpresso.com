@@ -1,10 +1,10 @@
 ---
-adr: 0173
+number: 173
 title: "Errata ARQ-0005 — tabelas Accounting usam nomes nus (não prefixo `accounting_*`)"
-status: accepted
-date: 2026-05-20
+status: aceito
+decided_at: "2026-05-20"
 accepted_at: 2026-05-20
-accepted_by: wagner
+decided_by: [W]
 authors: [wagner]
 errata_de:
   - memory/requisitos/Financeiro/adr/arq/0005-financeiro-vs-accounting-paralelo.md
@@ -12,6 +12,10 @@ errata_de:
 relacionada_a:
   - memory/decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md
 escopo: historical-fix + forward-looking rule
+slug: 0173-errata-arq-0005-tabelas-accounting-sem-prefixo
+type: adr
+authority: canonical
+lifecycle: ativo
 ---
 
 # ADR 0173 — Errata ARQ-0005 + ARQ-0001: tabelas Accounting usam nomes nus, não prefixo `accounting_*`
