@@ -1,20 +1,22 @@
 ---
 name: mwart-comparative
-description: Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier A always-on V4 que ORQUESTRA o Claude Design plugin Anthropic (design:design-critique + design:design-handoff + design:design-system + design:ux-copy + design:accessibility-review + design:research-synthesis) **e** o loop Cowork ↔ Claude Code formalizado em `prototipo-ui/` (ADR 0114). Gera artefato OBRIGATÓRIO `memory/requisitos/<Mod>/<tela>-visual-comparison.md` com 15 dimensões + framework Anthropic completo + sincroniza com `prototipo-ui/SYNC_LOG.md`. Skill PARA após gerar draft e aguarda Wagner aprovar SCREENSHOT (não tabela) ~10min síncrono ANTES de qualquer Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx`. Restaura o loop "design supervisionado" da era Repair S2.5 com qualidade estado-da-arte. Ativa quando user pede "migrar tela X pra MWART", "comparativo visual", "/mwart-comparative <tela>", OU em qualquer Edit/Write em Page Inertia que não tenha visual-comparison.md ao lado.
+description: Use SEMPRE antes de codar Page Inertia em migração MWART (Blade→React) no oimpresso. Skill Tier B auto-trigger V4 que ORQUESTRA o Claude Design plugin Anthropic (design:design-critique + design:design-handoff + design:design-system + design:ux-copy + design:accessibility-review + design:research-synthesis) **e** o loop Cowork ↔ Claude Code formalizado em `prototipo-ui/` (ADR 0114). Gera artefato OBRIGATÓRIO `memory/requisitos/<Mod>/<tela>-visual-comparison.md` com 15 dimensões + framework Anthropic completo + sincroniza com `prototipo-ui/SYNC_LOG.md`. Gate visual do draft = CI (PR UI Judge + visual-regression — ADR 0241 emenda 0107; ratificado ADR 0282), NÃO aprovação síncrona de screenshot; travas objetivas mantidas (critique ≥80 + WCAG AA; <70 escala revisão dedicada); merge de `.tsx` segue humano-no-loop (ADR 0283) e F5 CUTOVER segue humano (ADR 0104). Ativa quando user pede "migrar tela X pra MWART", "comparativo visual", "/mwart-comparative <tela>", OU em qualquer Edit/Write em Page Inertia que não tenha visual-comparison.md ao lado.
 tier: B
 status: active
-version: 4.0
+version: 4.1
 authority: canonical
 parent_adr: 0114
-related_adrs: [0107, 0109, 0114]
+related_adrs: [0107, 0109, 0114, 0241, 0282, 0283]
 ---
 
-# Skill: mwart-comparative V4 — Loop design supervisionado + Cowork integrado (Tier A always-on)
+# Skill: mwart-comparative V4 — Loop design supervisionado + Cowork integrado (Tier B auto-trigger)
+
+> **🔁 Reconciliação v2 (V4.1 · 2026-07-02):** o gate "Wagner aprova SCREENSHOT síncrono" desta skill foi **emendado pela [ADR 0241](../../memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md)** (`amends: [0107]` — F2 screenshot síncrono → CI: PR UI Judge + visual-regression) e **ratificado pela [ADR 0282](../../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)** (Protocolo v2). **O que NÃO mudou:** artefato `<tela>-visual-comparison.md` continua OBRIGATÓRIO (15 dimensões); travas objetivas critique **≥80** + **WCAG AA** mantidas (<70 → escala revisão dedicada); **merge de `.tsx` = PR + review humano, nunca auto-merge** ([ADR 0283](../../memory/decisions/0283-handoff-loop-zero-paste.md)); **F5 CUTOVER** do MWART (canary 7d + aviso cliente) segue humano ([ADR 0104](../../memory/decisions/0104-processo-mwart-canonico-unico-caminho.md), intocada). Wagner pode SEMPRE pedir revisão síncrona — ela deixou de ser bloqueio default, não deixou de existir.
 
 > **Documentos mãe:**
 > - [ADR 0114](../../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) (loop Cowork ↔ Claude Code formalizado) — **mãe direta**
 > - [ADR 0109](../../memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md) (orquestração Claude Design plugin Anthropic) — emendada por 0114
-> - [ADR 0107](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) (gate F1.5)
+> - [ADR 0107](../../memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) (gate F1.5) — **emendada por 0241** (gate síncrono → CI)
 > **Skills irmãs (oimpresso):** [`mwart-process`](../mwart-process/SKILL.md) (Tier A canon), [`cockpit-runbook`](../cockpit-runbook/SKILL.md) (F1+audit), [`mwart-quality`](../mwart-quality/SKILL.md) (F2+F3 técnico).
 > **Sub-skills Anthropic orquestradas (Claude Design plugin):**
 >   - `design:design-critique` ⭐ — crítica estruturada 5 categorias + comparação benchmarks
@@ -34,7 +36,7 @@ Migração `/sells/create` (PRs #240-#248, 2026-05-08) entregou tela **tecnicame
 
 Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. Wagner volta ao loop em F1.5 (5min síncrono) **antes** de codar — evita PRs corretivos depois.
 
-## Quando ativa (Tier A)
+## Quando ativa (Tier B auto-trigger)
 
 | Gatilho | Output |
 |---|---|
@@ -100,18 +102,22 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
 11. Salvar em memory/requisitos/<Mod>/<tela-kebab>-visual-comparison.md
     com frontmatter status: draft + sub-skills outputs anexados
 
-12. PARAR. Apresentar visual-comparison COMPLETO ao Wagner em chat
-    (incluindo screenshots).
+12. Apresentar visual-comparison COMPLETO no chat/PR (incluindo screenshots)
+    — informativo, NÃO bloqueio síncrono (ADR 0241/0282: gate visual = CI).
+    Se Wagner PEDIR revisão síncrona, aguardar — o direito dele é permanente.
 
 12.5. Se há protótipo Cowork em prototipos/<tela>/, gravar critique score
       em prototipos/<tela>/critique-score.json com formato:
       { "score": NN, "first_impression": "...", "strengths": [...],
         "weaknesses_priority": [...], "benchmark_comparable": "..." }
 
-13. Aguardar Wagner aprovar SCREENSHOT (~10-15min síncrono).
-    Wagner pode pedir 2ª iteração — repetir passos 6-12.
+13. Trava objetiva ANTES de codar (substitui a espera síncrona — ADR 0241):
+    critique score ≥80 prossegue · 70-79 = 1 round refator + re-critique ·
+    <70 = escala revisão dedicada (não prossegue sozinho).
 
-14. Atualizar frontmatter status: approved + assinar approved_by/approved_at.
+14. Atualizar frontmatter status: approved + assinar approved_by (gate CI
+    "PR UI Judge + visual-regression" OU "[W]" se revisão síncrona ocorreu)
+    + approved_at.
 
 ═══ F2-F3 IMPL ══════════════════════════════════════════════════════════
 15. Desbloquear `mwart-quality` Tier B + começar implementação.
@@ -132,7 +138,8 @@ Esta skill **codifica o que estava na cabeça do Wagner** como artefato + gate. 
 
 18. Anexar critique no visual-comparison.md (seção B).
 
-19. Se score critique ≥80 → mergear PR.
+19. Se score critique ≥80 → PR pronto pra merge (checks required verdes;
+    merge de `.tsx` = review humano, nunca auto-merge — ADR 0283).
     Se score 70-79 → 1 round refator + re-critique.
     Se score <70 → discussão Wagner (rebuild ou aceita exceção).
 
@@ -218,7 +225,7 @@ slug: <mod-lower>-<tela-kebab>-visual-comparison
 title: "<Mod> — Comparativo visual da tela <Nome legível>"
 type: visual-comparison
 module: <Mod>
-status: draft   # mudará pra "approved" após Wagner revisar
+status: draft   # mudará pra "approved" via gate CI (UI Judge + visual-regression) ou revisão [W] quando solicitada
 date: <YYYY-MM-DD>
 canon_reference: <os-page.jsx | tasks.jsx | chat.jsx | viewers.jsx>
 blade_source: resources/views/<modulo>/<tela>.blade.php
@@ -229,7 +236,7 @@ inertia_target: resources/js/Pages/<Mod>/<Tela>.tsx
 ## Anti-padrões (NUNCA fazer)
 
 - ❌ **Pular F1.5** (codar Page sem visual-comparison) — hook bloqueia em runtime; CI bloqueia no merge
-- ❌ **Marcar status=approved sem Wagner ver** — quebra confiança do loop. Sempre PARAR e esperar
+- ❌ **Marcar status=approved sem o gate visual ter passado** (CI UI Judge + visual-regression, ou revisão [W] quando ele pediu) — quebra confiança do loop. Aprovação inventada é pior que draft honesto
 - ❌ **Inventar comparação sem ler Blade real** — leitura paralela é obrigatória (workflow §2)
 - ❌ **Inventar canon** — só usar `.jsx` que existe em `ui_kits/cowork-2026-04-27/`
 - ❌ **<6 dimensões preenchidas** — CI bloqueia. Marcar `N/A — justificativa` em vez de pular
