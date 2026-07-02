@@ -5,7 +5,7 @@ tipo: FORM CREATE
 generated_at: 2026-05-15
 generated_by: Agent W2-D (Wave2 B5 Stock/Purchase MWART)
 status: aguardando-screenshot-wagner
-runbook: memory/requisitos/Inventory/RUNBOOK-purchase-create.md
+runbook: memory/requisitos/Compras/_telas/RUNBOOK-purchase-create.md
 draft_tsx: resources/js/Pages/Purchase/Create.tsx
 controller_delta: app/Http/Controllers/PurchaseController.php@createInertia
 cowork_source: prototipo-ui/prototipos/compras/visual-source.html

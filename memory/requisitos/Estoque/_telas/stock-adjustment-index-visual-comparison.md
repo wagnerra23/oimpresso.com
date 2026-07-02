@@ -5,7 +5,7 @@ tipo: LIST
 generated_at: 2026-05-15
 generated_by: Agent W2-D
 status: aguardando-screenshot-wagner
-runbook: memory/requisitos/Inventory/RUNBOOK-stock-adjustment-index.md
+runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-adjustment-index.md
 draft_tsx: resources/js/Pages/StockAdjustment/Index.tsx
 controller_delta: app/Http/Controllers/StockAdjustmentController.php@indexInertia
 cowork_source: prototipo-ui/prototipos/inventario-migracao/visual-source.html
