@@ -145,9 +145,14 @@ class LangfuseAgentTelemetryListener
     protected function extrairContexto(object $agent): array
     {
         if ($agent instanceof ChatCopilotoAgent) {
+            // getAttribute (não property) — tenancy híbrida: business_id é
+            // nullable em runtime mesmo que o PHPDoc do model declare int.
+            $bizId = $agent->conversa->getAttribute('business_id');
+            $userId = $agent->conversa->getAttribute('user_id');
+
             return [
-                'business_id' => $agent->conversa->business_id !== null ? (int) $agent->conversa->business_id : null,
-                'user_id' => $agent->conversa->user_id !== null ? (int) $agent->conversa->user_id : null,
+                'business_id' => is_numeric($bizId) ? (int) $bizId : null,
+                'user_id' => is_numeric($userId) ? (int) $userId : null,
                 'conversation_id' => (int) $agent->conversa->id,
             ];
         }
