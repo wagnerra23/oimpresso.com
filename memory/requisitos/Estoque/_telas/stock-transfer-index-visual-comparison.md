@@ -5,7 +5,7 @@ tipo: LIST
 generated_at: 2026-05-15
 generated_by: Agent W2-D
 status: aguardando-screenshot-wagner
-runbook: memory/requisitos/Inventory/RUNBOOK-stock-transfer-index.md
+runbook: memory/requisitos/Estoque/_telas/RUNBOOK-stock-transfer-index.md
 draft_tsx: resources/js/Pages/StockTransfer/Index.tsx
 controller_delta: app/Http/Controllers/StockTransferController.php@indexInertia
 cowork_source: prototipo-ui/prototipos/inventario-migracao/visual-source.html
