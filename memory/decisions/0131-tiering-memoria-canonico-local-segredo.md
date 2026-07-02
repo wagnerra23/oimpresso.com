@@ -3,18 +3,18 @@ slug: 0131-tiering-memoria-canonico-local-segredo
 number: 131
 title: "Tiering de memória — canônico (git/MCP) / máquina-local / segredo (Vaultwarden)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
-lifecycle: canon
+lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-10
+decided_at: "2026-05-10"
 module: Governance
 tags: [governanca, memoria, vaultwarden, auto-mem, seguranca, multi-dev, lgpd]
 supersedes: []
 supersedes_partially: []
 amends: [0061]
 superseded_by: []
-related: [0040, 0061, 0094, 0119, 0130]
+related: [0040-policy-publicacao-claude-supervisiona, 0061-conhecimento-canonico-git-mcp-zero-automem, 0094-constituicao-v2-7-camadas-8-principios, 0119-paralelismo-sessoes-whats-active-tier-1, 0130-handoff-append-only-mcp-first]
 pii: false
 review_triggers:
   - "≥1 incidente de segredo vazado em git em 90d → endurecer hook + adicionar gitleaks pre-push obrigatório"

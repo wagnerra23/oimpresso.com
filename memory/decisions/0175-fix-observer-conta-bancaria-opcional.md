@@ -3,11 +3,11 @@ slug: 0175-fix-observer-conta-bancaria-opcional
 number: 175
 title: "Fix arquitetural — Observer Financeiro permite baixa sem fin_contas_bancarias (remove guard no-op)"
 type: adr
-status: accepted
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-20
+decided_at: "2026-05-20"
 module: financeiro
 quarter: 2026-Q2
 tags: [financeiro, observer, fix-arquitetural, debito-tecnico, multi-tenant]
@@ -15,8 +15,8 @@ supersedes: []
 supersedes_partially: []
 superseded_by: []
 related:
-  - memory/decisions/0172-deprecar-modulo-accounting-fundir-financeiro.md
-  - memory/decisions/0174-errata-deprecation-plan-accounting-ondas-3-4-skip.md
+  - 0172-deprecar-modulo-accounting-fundir-financeiro
+  - 0174-errata-deprecation-plan-accounting-ondas-3-4-skip
 pii: false
 review_triggers:
   - "Próximo cliente piloto onboarding sem fin_contas_bancarias"
