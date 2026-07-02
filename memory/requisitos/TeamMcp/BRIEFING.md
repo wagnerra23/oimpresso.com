@@ -69,3 +69,7 @@ Self-host equivalente ao Anthropic Team plan adaptado pra **LGPD + custo + custo
 
 ---
 **v1.0.0** (2026-05-16) — BRIEFING inicial pós-batch cobertura Pest (Wave Massive 12-agents paralelos).
+
+## Fusões absorvidas (KL-E2)
+
+Este módulo **absorveu** (fusão FUNDIR, KL-E2) o **sistema** da pasta tombstoneada **TaskRegistry** — 15 US-TR + 8 US-UI ficaram `status: historical` in-place com ponteiro nuançado. ⚠️ Nuance: a **UI** (`SPEC-UI-FASE7`) segue a Fonte VIVA de **ProjectMgmt** (US-TR-309), não migra pra cá — só o sistema/backend consolida em TeamMcp. Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).

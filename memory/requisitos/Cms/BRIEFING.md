@@ -102,3 +102,7 @@ Ratio Services/Controllers: 4/5 = 0.80 (era 1/5 = 0.20). D4.a satura 6/6.
 ## Referências
 
 [SPEC.md](SPEC.md) · [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) · [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) · Pattern `Modules/ComunicacaoVisual`
+
+## Fusões absorvidas (KL-E2)
+
+Este módulo **absorveu** (fusão FUNDIR, KL-E2) a pasta tombstoneada **Site** — redireciona pra cá (sem US órfãs). Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).

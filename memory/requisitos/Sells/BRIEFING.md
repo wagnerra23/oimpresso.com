@@ -36,3 +36,7 @@ A integração venda↔Oficina (vínculo de veículo à transação, ADR 0251) e
 - handoff `handoffs/2026-06-08-1435-identidade-sells-compras-roxo.md` (2026-06-08) — 2026-06-08-1435-identidade-sells-compras-roxo.md
 - handoff `handoffs/2026-06-03-1815-ds-v6-port-sells-list-view.md` (2026-06-03) — 2026-06-03-1815-ds-v6-port-sells-list-view.md
 - session `sessions/2026-06-02-incidente-revert-pr2-sells-endereco.md` (2026-06-02) — 2026-06-02-incidente-revert-pr2-sells-endereco.md
+
+## Fusões absorvidas (KL-E2)
+
+Este módulo **absorveu** (fusão FUNDIR, KL-E2) a pasta tombstoneada **Orcamento** — redireciona pra cá (#2757; sem US órfãs). Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).

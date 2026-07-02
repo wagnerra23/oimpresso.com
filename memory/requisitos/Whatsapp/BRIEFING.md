@@ -42,3 +42,7 @@ Em 27 de maio de 2026, o BaileysDriver foi descontinuado (classe e tabelas/colun
 - session `sessions/2026-06-13-audit-sqlite-test-corruptors.md` (2026-06-13) — 2026-06-13-audit-sqlite-test-corruptors.md
 - handoff `handoffs/2026-06-13-1810-auditor-channel-access-flipflop-sqlite-corruptors.md` (2026-06-13) — 2026-06-13-1810-auditor-channel-access-flipflop-sqlite-corruptors.md
 - session `sessions/2026-06-08-mapa-telas-projeto.md` (2026-06-08) — 2026-06-08-mapa-telas-projeto.md
+
+## Fusões absorvidas (KL-E2)
+
+Este módulo **absorveu** (fusão FUNDIR, KL-E2) a pasta tombstoneada **Atendimento** — redireciona pra cá (sem US órfãs; refs já apontavam pras US-WA do Whatsapp). Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).

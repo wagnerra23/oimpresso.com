@@ -43,3 +43,7 @@ Em 2026-06-08 a emissão de boletos foi corrigida de mock para operação real, 
 - session `sessions/2026-06-04-financeiro-suite-landscape.md` (2026-06-04) — 2026-06-04-financeiro-suite-landscape.md
 - handoff `handoffs/2026-06-02-1805-dedupe-financeiro-bundle-duplo.md` (2026-06-02) — 2026-06-02-1805-dedupe-financeiro-bundle-duplo.md
 - handoff `handoffs/2026-06-01-1510-financeiro-reimpl-fase12-prod-gatilho-ct100.md` (2026-06-01) — 2026-06-01-1510-financeiro-reimpl-fase12-prod-gatilho-ct100.md
+
+## Fusões absorvidas (KL-E2)
+
+Este módulo **absorveu** (fusão FUNDIR, KL-E2) a pasta tombstoneada **FinanceiroAvancado** (feature-wish). As 33 US-FINA ficaram `status: historical` in-place com ponteiro pra Financeiro. Não existe `ROADMAP-avancado` separado — o wish é HISTORICAL nesta pasta. Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).

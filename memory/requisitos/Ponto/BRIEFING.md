@@ -96,3 +96,7 @@ Ponto eletronico CLT-compliance (Portaria MTP 671/2021) com **marcacao append-on
 ## Atualizado
 
 - **2026-05-16** — Wave Massive: criado SPEC.md + BRIEFING.md + Pest multi-tenant append-only/cross-tenant (US-PONTO-007 + US-PONTO-008 status `done`)
+
+## Fusões absorvidas (KL-E2)
+
+Este módulo **absorveu** (fusão FUNDIR, KL-E2) a pasta tombstoneada **PontoWr2** — redireciona pra cá. As 12 US-PONT órfãs ficaram `status: historical` in-place com ponteiro pra Ponto. Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).
