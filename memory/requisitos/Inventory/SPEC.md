@@ -20,7 +20,9 @@ created_at: 2026-05-12
 
 # SPEC Inventory — Estoque avançado cross-vertical (Kits/BOM + Batch + Dimensional + Movements unified)
 
-> **Status:** **PROPOSED** — discovery + proposta arquitetural. Não-iniciado em código. Aguardando aprovação Wagner pra promover seções pra `accepted` e gerar US no MCP.
+> **Status:** **FASE 1 (Kits/BOM) INICIADA NO CORE · FASES 2–5 PROPOSED.** Correção de drift (Onda 0 · 2026-07-02): o cabeçalho antigo dizia "não-iniciado em código" — **stale**. A fundação BOM **shipou** em `app/Domain/Inventory/` — tabela `product_bom` (migration `2026_05_12_080001`) + `BomResolver` recursivo multi-level (anti-ciclo, MAX_DEPTH=5) + `ProductBomController` (API index/store/destroy, `routes/web.php`) + resolução nos side-effects FSM `ReservarEstoque`/`ConsumirEstoque`/`LiberarReserva`. Falta a UI drag-drop (US-INV-002) e plugar na baixa da OS OficinaAuto. As **Fases 2–5** (Batch central, Dimensional por-unidade, Movements unified, Negative/FEFO/analytics) seguem **PROPOSED** — discovery + proposta arquitetural.
+>
+> **Sobre as 25 âncoras `**Implementado em:** _pendente_`:** são **parking honesto** (ADR 0273 §1 — estado coberto legítimo), NÃO "nada construído". Mesmo as US de Fase 1 já codadas ficam `_pendente_` **de propósito** — o motor `sdd-fase-2.js` proíbe ancorar código em SPEC que vai ser repartido (P6/P7 **ADIADO**); ancorar agora = retrabalho na repartição. O anchoring aterrissa junto com a repartição do cluster Estoque. Promoção pra `accepted` + US no MCP aguarda sinal Wagner ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)).
 >
 > **Trigger ([ADR 0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)):** SPEC nasce porque 3 sinais convergem AGORA — (a) Vargas pipeline OficinaAuto (kit bomba VW Gol), (b) 6 candidatos ComVis pré-vendas (bobina lote + tinta kg/ml), (c) Modules/Vestuario já live ROTA LIVRE consumindo estoque per-variação sem audit unificado.
 
