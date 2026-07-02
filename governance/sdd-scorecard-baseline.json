@@ -14,13 +14,13 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 5.4,
+      "value": 55.2,
       "unit": "%",
       "direction": "up",
-      "armed": false,
-      "valid_measurements": 1,
+      "armed": true,
+      "valid_measurements": 13,
       "fonte": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2; sdd-scorecard.mjs só transporta)",
-      "nota_armamento": "DEFINIÇÃO UNIFICADA no PR do ledger §A: a série antiga (grep estrito próprio do sdd-scorecard, 2.8% / 2 medições) foi APOSENTADA — número não comparável. 1ª medição da nova fonte = 5.4% (anchor-lint live em origin/main 3b281d864, 2026-06-15). Re-mede 3× consecutivas da nova fonte pra armar (ADR 0275 §3)."
+      "nota_armamento": "ARMADO 2026-07-02 (pós-avaliação adversarial 75/100 — era o risco sistêmico nº 1: 'medido, não armado', baseline stale 5.4 vs live 42.6+). Capturado da fonte REAL, nunca do plano: 12 medições consecutivas measured/não-nulas commitadas em governance/sdd-scorecard.json durante os batches P10 de 2026-07-01/02 (7e069f3c86=12.6, 59502695ac=12.6, fc3a03a263=16.1, 56ee0917fb=16.1, 4fda628171=24.1, d288fa40be=29.7, 173708d9ba=38.1, 5c732db421=42.6, 7977f67719=47.1, 0f584f2b38=51.3, c1621abea1=52, 270e82c058=54.3) + medição live =55.2 nesta sessão em origin/main b15898f789 (mínimo exigido é 3 · ADR 0275 §3). Floor no valor live 55.2 (direction up: cair abaixo = exit 1 no GT-G3 required). Série só sobe com os batches A5/P10; re-aterrissar floor pra cima = PR editando este arquivo (diff visível). Fecha o gap: gates required são diff-aware/no-new-lie — a regressão AGREGADA de cobertura passava livre; agora avermelha o CI."
     },
     "full_suite_pass_rate": {
       "status": "measured",
