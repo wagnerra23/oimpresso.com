@@ -114,7 +114,7 @@ jobs:
             tests/Feature/Estoque/EstoqueMovimentacaoVendaTest.php \
             tests/Feature/Estoque/EstoqueMovimentacaoCompraTest.php \
             tests/Feature/Estoque/EstoqueDevolucaoVendaTest.php \
-            tests/Feature/Estoque/EstoqueDevolucaoVestuarioRedSpecTest.php \
+            tests/Feature/Estoque/EstoqueDevolucaoVestuarioTest.php \
             tests/Feature/Estoque/EstoqueAjusteTest.php \
             tests/Feature/Estoque/EstoqueTransferenciaTest.php \
             tests/Feature/Estoque/EstoqueOpeningStockTest.php \
