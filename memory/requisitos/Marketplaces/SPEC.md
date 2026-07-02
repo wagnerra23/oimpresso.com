@@ -365,20 +365,26 @@ Webhook ML `claims` topic dispara:
    - `aceitar_disputa` → POST `/claims/{id}/refund` + side-effect `CancelarVendaCascade` ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)) + libera estoque
 7. ML decide D+5 a D+15 → webhook resolução → atualiza `mkt_disputes.status` + FSM stage final
 
-## 8. User Stories (US-MKT-001..025)
+## 8. User Stories — 25 US (US-MKT)
 
 > Convenção: **P0** = bloqueia 1ª piloto · **P1** = competitivo vs Tiny/Bling · **P2** = diferencial · **P3** = backlog/feature-wish.
 > Estimates IA-pair fator 10x ([ADR 0106](../../decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) com margem 2x.
 
 ### US-MKT-001 · Schema fundação 9 tabelas + Models global scope — **P0** · 4h
 
+**Implementado em:** _pendente_ — módulo não construído: o diretório do módulo em `Modules/` não existe, nenhuma migration `mkt_*` no disco (US planejada, aguarda sinal §11)
+
 Migrations + Models todas com `business_id` + `HasBusinessScope` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) + Pest isolation biz=1 vs biz=99 ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)).
 
 ### US-MKT-002 · Catálogo `mkt_marketplaces` seed 3 drivers — **P0** · 2h
 
+**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem seeder `mkt_marketplaces` nem UI admin superadmin no disco
+
 Seeder com Mercado Livre + Shopee + Amazon BR. UI admin superadmin pra ativar/desativar.
 
 ### US-MKT-003 · OAuth2 Mercado Livre — authorization code flow + refresh token — **P0** · 6h
+
+**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem `Marketplaces/Connect.tsx`, callback OAuth ou `RefreshTokensJob` no disco
 
 - Page `Marketplaces/Connect.tsx` — botão "Conectar Mercado Livre"
 - Redirect → `https://auth.mercadolibre.com.br/authorization?response_type=code&client_id={app_id}&redirect_uri={callback}`
@@ -389,15 +395,21 @@ Seeder com Mercado Livre + Shopee + Amazon BR. UI admin superadmin pra ativar/de
 
 ### US-MKT-004 · OAuth2 Shopee + Amazon BR — **P1** · 6h
 
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `MarketplaceDriver`/`ShopeeDriver`/`AmazonBrDriver` no disco
+
 Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `ShopeeDriver`, `AmazonBrDriver`.
 
 ### US-MKT-005 · Importar 1 anúncio manual ML (proof of concept) — **P0** · 5h
+
+**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem `Marketplaces/Listings/Import.tsx` nem `MercadoLivreItemImporter` no disco
 
 - UI `Marketplaces/Listings/Import.tsx`: cola `MLB1234567890` ou `permalink`
 - Service `MercadoLivreItemImporter` busca via API + mapeia pra produto UltimatePOS
 - Pest: importar item simula sucesso + mismatch produto
 
 ### US-MKT-006 · Webhook receiver ML orders_v2 + idempotency-key — **P0** · 5h
+
+**Implementado em:** _pendente_ — módulo não construído (US planejada): rota `POST /webhooks/marketplace/{key}`, middleware HMAC e `ProcessMarketplaceWebhookJob` não existem no disco
 
 - Rota pública `POST /webhooks/marketplace/{marketplace_key}` (sem auth Laravel — HMAC valida)
 - Middleware `ValidateMarketplaceWebhookSignature` valida HMAC SHA256 com `webhook_secret` por account
@@ -407,6 +419,8 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-007 · Pedido ML → cria `mkt_orders` + transaction UltimatePOS + FSM stage initial — **P0** · 8h
 
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `ProcessMercadoLivreOrderJob`, sem tabela `mkt_orders`, sem processo FSM `venda_marketplace` no disco
+
 - Job `ProcessMercadoLivreOrderJob` lê pedido ML completo + buyer + items + shipping
 - Cria `Transaction` UltimatePOS + `TransactionSellLines` + `Contact` (buyer com email/phone hash — PII redacted em log)
 - Linka `mkt_orders.transaction_id`
@@ -415,11 +429,15 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-008 · UI Page `Marketplaces/Orders/Index.tsx` (Cockpit V2) — **P0** · 6h
 
+**Implementado em:** _pendente_ — tela não construída (US planejada): `resources/js/Pages/Marketplaces/` não existe no disco
+
 - Lista pedidos com filtros (marketplace, status, data, valor)
 - Drawer `OrderSheet` com timeline FSM + items + buyer + shipping + dispute (se houver)
 - Bulk actions: "Emitir NFe" / "Imprimir etiquetas" / "Marcar enviado"
 
 ### US-MKT-009 · NFe automática ao emitir → CFOP marketplace resolver + dispatch SEFAZ — **P0** · 7h
+
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `OrderMarketplaceFaturadoListener` nem `MarketplaceCFOPResolver` no disco
 
 - Listener `OrderMarketplaceFaturadoListener` no event FSM action `emitir_nfe`
 - Service `MarketplaceCFOPResolver` aplica mapping §5 (per-categoria + override business)
@@ -429,9 +447,13 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-010 · Sync rastreamento Correios + auto-fechamento — **P0** · 6h
 
+**Implementado em:** _pendente_ — módulo não construído (US planejada): comando `marketplaces:sync-shipments` e tabela `mkt_shipments` não existem no disco
+
 §6 implementação. Cron `marketplaces:sync-shipments` Centrifugo realtime push frontend ao mudar status.
 
 ### US-MKT-011 · Sync estoque oimpresso → ML (one-way push) — **P1** · 8h
+
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem listener `StockAdjusted`→`SyncListingStockJob` no disco
 
 - Event listener `StockAdjusted` (UltimatePOS) → dispatch `SyncListingStockJob`
 - PUT `/items/{id}` ML com novo stock + price
@@ -440,9 +462,13 @@ Driver pattern: classe `MarketplaceDriver` abstrata + `MercadoLivreDriver`, `Sho
 
 ### US-MKT-012 · Sync estoque ML → oimpresso (one-way pull via webhook) — **P1** · 4h
 
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `SyncListingFromMarketplaceJob` no disco
+
 Webhook `items` topic dispara `SyncListingFromMarketplaceJob` — usa em estoque Full ML (consignação) onde ML é fonte verdade.
 
 ### US-MKT-013 · Anúncio em lote (bulk create) — **P1** · 10h
+
+**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem `Marketplaces/Listings/Bulk.tsx` nem `BulkListingCreator` no disco
 
 - Page `Marketplaces/Listings/Bulk.tsx` — seleciona N produtos UltimatePOS + categoria ML + atributos comuns + listing_type
 - Service `BulkListingCreator` com chunks 50 itens (rate limit safe)
@@ -451,9 +477,13 @@ Webhook `items` topic dispara `SyncListingFromMarketplaceJob` — usa em estoque
 
 ### US-MKT-014 · Disputa workflow completo — **P1** · 12h
 
+**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem tabela `mkt_disputes`, sem `Marketplaces/Disputas/Show.tsx` no disco
+
 §7 implementação. UI + permissions + upload evidência + RefundCobrancaJob integração.
 
 ### US-MKT-015 · Reconciliação financeira Mercado Pago split D+X — **P1** · 8h
+
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem comando `marketplaces:reconcile-payouts` nem dashboard recebíveis no disco
 
 - Pedido ML → cria `transaction_payment` UltimatePOS com `expected_date = money_release_date` + status `pending`
 - Cron `marketplaces:reconcile-payouts` daily — confirma payout Mercado Pago via API → marca payment `paid`
@@ -462,43 +492,63 @@ Webhook `items` topic dispara `SyncListingFromMarketplaceJob` — usa em estoque
 
 ### US-MKT-016 · Reputação ML monitoring + alerta SLA — **P1** · 5h
 
+**Implementado em:** _pendente_ — módulo/tela não construído (US planejada): sem comando `marketplaces:capture-reputation`, tabela `mkt_reputation_snapshots` nem `Marketplaces/Dashboard.tsx` no disco
+
 - Cron `marketplaces:capture-reputation` daily → snapshot em `mkt_reputation_snapshots`
 - Alerta WhatsApp/email se `level_normalized` cai 1+ nível ou `cancellations_pct > 3%`
 - UI Page `Marketplaces/Dashboard.tsx` mostra trend 90 dias
 
 ### US-MKT-017 · Pricing rules per marketplace (markup diferenciado) — **P1** · 6h
 
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem tabela `mkt_pricing_rules` nem `MarketplacePricingService` no disco
+
 §3.8 implementação. Calculadora `MarketplacePricingService` aplica markup_pct sobre custo produto + frete embutido.
 
 ### US-MKT-018 · Jana tool `marketplaces.consulta` (relatórios IA) — **P2** · 4h
+
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem tool Jana `marketplaces.consulta` no disco
 
 Tool: "quantos pedidos ML hoje?", "qual SKU mais vendido ML mês?", "reputação ML atual?". Reusa [Modules/Jana](../../../Modules/Jana) tool pattern.
 
 ### US-MKT-019 · Etiquetas envio ML Coletas + integração Correios — **P2** · 6h
 
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem integração de impressão de etiquetas ML no disco
+
 GET `/shipments/{id}/label` ML retorna PDF etiqueta — print direto + Bulk print 20 etiquetas/página.
 
 ### US-MKT-020 · Pipeline produção sob demanda marketplace (ComVis) — **P2** · 8h
+
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem injeção de stage `pedido_ml_recebido` no processo FSM `venda_com_producao` no disco
 
 Pedido ComVis vendido em ML → FSM `venda_com_producao` (ADR 0143) com stage `pedido_ml_recebido` injetado no início. Casos: cliente compra banner personalizado via ML, oimpresso recebe arte, produz, envia.
 
 ### US-MKT-021 · Shopee orders webhook + NFe (mesmo pattern ML) — **P2** · 10h
 
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `ShopeeDriver`, webhook ou NFe Shopee no disco
+
 Implementação completa Shopee — driver, OAuth, webhook, NFe.
 
 ### US-MKT-022 · Amazon BR orders webhook + NFe (SP-API) — **P2** · 12h
+
+**Implementado em:** _pendente_ — módulo não construído (US planejada): sem `AmazonBrDriver` (SP-API/LWA) no disco
 
 Idem Amazon — IAM role + LWA + signed requests AWS Sig V4.
 
 ### US-MKT-023 · Pricing dinâmico copilot competitor watch — **P3** · 14h
 
+**Implementado em:** _pendente_ — módulo não construído (US planejada · backlog P3): sem cron de competitor watch no disco
+
 Cron monitora preço concorrentes via ML search API + sugere ajuste preço (Jana). PolicyEngine `REQUIRE_HUMAN_REVIEW` antes aplicar.
 
 ### US-MKT-024 · Analytics avançado margem real (CMV + frete + taxa + tributos) — **P3** · 10h
 
+**Implementado em:** _pendente_ — módulo/tela não construído (US planejada · backlog P3): sem dashboard de margem/DRE marketplace no disco
+
 Dashboard margem por SKU/categoria/marketplace + DRE marketplace agregado.
 
 ### US-MKT-025 · Magalu Hub + Americanas drivers (4º + 5º marketplaces) — **P3** · 16h
+
+**Implementado em:** _pendente_ — módulo não construído (US planejada · backlog P3): sem drivers Magalu/Americanas no disco
 
 Sob demanda sinal cliente — driver pattern facilita adição.
 
