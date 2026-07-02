@@ -113,7 +113,8 @@ jobs:
             --log-junit test-results/pest-estoque-junit.xml \
             tests/Feature/Estoque/EstoqueMovimentacaoVendaTest.php \
             tests/Feature/Estoque/EstoqueMovimentacaoCompraTest.php \
-            tests/Feature/Estoque/EstoqueDevolucaoVendaTest.php
+            tests/Feature/Estoque/EstoqueDevolucaoVendaTest.php \
+            tests/Feature/Estoque/EstoqueDevolucaoVestuarioRedSpecTest.php
 
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}

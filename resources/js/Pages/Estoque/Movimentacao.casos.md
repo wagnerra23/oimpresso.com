@@ -44,7 +44,16 @@ last_run: "2026-07-02"
 - **Fluxo:** cliente devolve item de uma venda. A devolução reintegra `qty_available` no local da venda, pela quantidade devolvida (DOC-RAIZ §3 `sell_return` → `addSellReturn` → `updateProductQuantity`, TransactionUtil.php:6189). Caminho NÚCLEO UltimatePOS.
 - **Aceite:** Dado venda de 5 com saldo pós-venda `qty_available=8` · Quando devolve 2 · Então `qty_available=10`. E: devolução parcial reintegra só o devolvido (devolve 1 de 5 → +1).
 - **Teste:** `tests/Feature/Estoque/EstoqueDevolucaoVendaTest.php`.
-- **Status: 🧪** _(fluxo núcleo `addSellReturn`; o caminho Vestuario `DevolucaoService` é investigado à parte — ver Backlog)._
+- **Status: 🧪** _(fluxo núcleo `addSellReturn`; o caminho Vestuario `DevolucaoService` é o UC-EST-04 abaixo)._
+
+---
+
+## UC-EST-04 · Devolução Vestuario → DEVE reintegrar estoque (RED-SPEC — bug Tier 0)
+- **Fluxo:** devolução pelo módulo Vestuario (`DevolucaoService::registrarDevolucao` — estorno_dinheiro / crédito ficha / troca por outro produto). O item físico volta pra loja, então o saldo do sistema DEVE voltar (DOC-RAIZ §3 `sell_return` → ENTRA), como o núcleo faz em `addSellReturn`.
+- **BUG CONFIRMADO (2026-07-02):** o service registra a devolução + credita saldo do cliente mas **NÃO reintegra `qty_available`** (zero chamada a `updateProductQuantity`; nenhum observer compensa; `Wave28DevolucaoServiceTest` nunca assere estoque). Vendeu 5 → devolveu 2 → saldo continua como se tivesse vendido 5.
+- **Aceite (esperado):** Dado saldo pós-venda `qty_available=8` · Quando `registrarDevolucao(estorno_dinheiro, quantidade_devolvida=2)` · Então `qty_available=10`.
+- **Teste:** `tests/Feature/Estoque/EstoqueDevolucaoVestuarioRedSpecTest.php` (RED-SPEC — `markTestSkipped` apontando o bug; contrato pronto pra virar green quando o fix for aprovado).
+- **Status: ❌** _(quebrado por construção — bug real. Fix é Tier 0 VALOR/ESTOQUE: dupla-confirmação + antes→depois + aprovação Wagner (proibicoes.md). NÃO corrigir a lógica sem isso.)_
 
 ---
 
@@ -61,7 +70,8 @@ last_run: "2026-07-02"
 - **[BACKLOG] Fabricação → consome componentes + produz acabado** — PR2.
 - **[BACKLOG] OS OficinaAuto → baixa peça ao concluir** — já coberto por `Modules/OficinaAuto/Tests/Feature/ServiceOrderItemStockBaixaTest.php` (skip-gracioso; roda no CT 100).
 - **[BACKLOG] INV-2/3/5/6** — invariantes, PR3 (rascunho não move · dentro de DB::transaction · `enable_stock=0` não move · tenant isolado biz=1 vs biz=2).
-- **[SUSPEITA/red-spec] Devolução Vestuario (`Modules/Vestuario/Services/DevolucaoService`) NÃO reintegraria estoque** — investigar; se confirmado, red-spec (`markTestSkipped` apontando o bug) + FLAG Wagner (regra mestre VALOR/ESTOQUE — proibicoes.md). NÃO corrigir a lógica de estoque sem dupla-confirmação Wagner.
+
+> **Bug confirmado promovido a UC:** a suspeita "Devolução Vestuario não reintegra estoque" foi CONFIRMADA e virou **UC-EST-04** (red-spec ❌ acima) — aguarda decisão Wagner sobre o fix (Tier 0 VALOR/ESTOQUE).
 
 ## Como rodar a suíte
 1. **Lane CI:** `estoque-pest.yml` (MySQL real + seed biz=1/biz=2 via `pest-mysql-setup`) — allowlist verde (catraca).
@@ -69,4 +79,5 @@ last_run: "2026-07-02"
 3. **NUNCA local/Hostinger** (proibicoes — Pest só no CT 100). Captura de veredito: `npm run casos:results` sobre o JUnit da lane → bumpa Status 🧪→✅.
 
 ## Trilha do tempo
-- 2026-07-02 · [CC] criado — PR1 do mandato "cobertura real de estoque": `EstoqueFixture` + UC-EST-01/02/03 (venda/compra/devolução) + lane `estoque-pest.yml`. UCs em 🧪 até a lane MySQL capturar o verde no manifesto.
+- 2026-07-02 · [CC] criado — PR1 do mandato "cobertura real de estoque": `EstoqueFixture` + UC-EST-01/02/03 (venda/compra/devolução) + lane `estoque-pest.yml`. 9 asserts VERDES na lane MySQL (não skip). UCs em 🧪 até `casos:results` capturar o verde no manifesto G-7.
+- 2026-07-02 · [CC] UC-EST-04 (red-spec ❌) — bug Tier 0 confirmado: `Vestuario\DevolucaoService` não reintegra estoque. Contrato pronto (`markTestSkipped`); fix aguarda decisão Wagner (regra mestre VALOR/ESTOQUE).
