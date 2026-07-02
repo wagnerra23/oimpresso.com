@@ -226,7 +226,7 @@ Priorização: **P0** = bloqueia 1ª piloto migrado · **P1** = competitivo vs M
 > **Área:** Fiscal
 > **Reusa:** [Modules/NFSe](../NFSe/) (já existe — falta o trigger comvis)
 
-**Implementado em:** _pendente_ — `Modules/NFSe` existe (`NfseEmissaoService`, desde PR #85 em 2026-05-01), mas o trigger instalacao-concluida→NFSe não foi construído no ComVis (depende de US-COMVIS-007 pendente)
+**Implementado em:** _pendente_ — `Modules/NFSe` existe (`NfseEmissaoService`, desde 2026-05-01 — scaffold PR #85 + Service no commit `1595cc35d6` US-NFSE-004), mas o trigger instalacao-concluida→NFSe não foi construído no ComVis (depende de US-COMVIS-007 pendente)
 
 **Como** financeiro
 **Quero** que ao concluir US-COMVIS-007 (instalação aceita pelo cliente) o sistema emita NFSe automática (CNAE 7319-0/03)
