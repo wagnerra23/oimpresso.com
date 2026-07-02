@@ -47,6 +47,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 > Numerac.: US-PONTO-NNN. Status: `done` (em prod) · `wip` (em sprint) · `backlog` (gap aberto).
 
 ### US-PONTO-001 · Relogio web pra registrar entrada/saida (REP-P)
+
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/MarcacaoService.php` · `Modules/Ponto/Services/NsrService.php` · `Modules/Ponto/Entities/Marcacao.php` · `Modules/Ponto/Tests/Feature/MarcacaoServiceTest.php` · verificado@8af585a (2026-07-02) — backend (hash encadeado SHA-256 + NSR) pronto, mas o endpoint REP-P web/API `/ponto/api/marcar` ainda é stub `abort(501)` e nao ha tela-relogio nem comprovante PDF/QR
+
 **Como** colaborador,
 **quero** marcar entrada/saida no celular ou desktop com 1 clique,
 **para que** meu registro de jornada seja capturado em tempo real, com geolocalizacao e foto opcional.
@@ -58,6 +61,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **Status:** done (entity Marcacao + MarcacaoService + REP-P web frontend existente em prod biz=1)
 
 ### US-PONTO-002 · Marcacao via REP-A (importacao AFD)
+
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/AfdParserService.php` · `Modules/Ponto/Entities/Importacao.php` · `Modules/Ponto/Http/Controllers/ImportacaoController.php` · `Modules/Ponto/Console/Commands/ImportAfdCommand.php` · `Modules/Ponto/Tests/Feature/ImportacaoTest.php` · verificado@8af585a (2026-07-02) — parser AFDT (Portaria 671/2021) pronto, AFD legacy (1510/2009) parcial
+
 **Como** RH,
 **quero** importar arquivo AFD/AFDT de REP-A homologado,
 **para que** marcacoes do equipamento sejam consolidadas no oimpresso sem digitacao manual.
@@ -69,6 +75,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **Status:** wip (parser AFDT pronto, AFD legacy parcial — ver `Importacao::ESTADO_*`)
 
 ### US-PONTO-003 · Workflow de intercorrencia (atestado/abono/falta)
+
+**Implementado em:** `Modules/Ponto/Http/Controllers/IntercorrenciaController.php` · `Modules/Ponto/Services/IntercorrenciaService.php` · `Modules/Ponto/Services/IntercorrenciaAIClassifier.php` · `Modules/Ponto/Entities/Intercorrencia.php` · `Modules/Ponto/Tests/Feature/IntercorrenciaAIClassifierTest.php` · verificado@8af585a (2026-07-02)
+
 **Como** colaborador,
 **quero** registrar atestado medico / abono / pedido de folga,
 **para que** ausencia seja justificada e nao desconte salario indevidamente.
@@ -81,6 +90,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **Status:** done (IntercorrenciaController + workflow + IntercorrenciaAIClassifier para sugerir tipo)
 
 ### US-PONTO-004 · Banco de horas com saldo + creditos/debitos
+
+**Implementado em:** `Modules/Ponto/Http/Controllers/BancoHorasController.php` · `Modules/Ponto/Services/BancoHorasService.php` · `Modules/Ponto/Entities/BancoHorasMovimento.php` · `Modules/Ponto/Entities/BancoHorasSaldo.php` · `Modules/Ponto/Tests/Feature/BancoHorasTest.php` · verificado@8af585a (2026-07-02)
+
 **Como** empregador,
 **quero** acumular HE extras como banco de horas e debitar faltas,
 **para que** o colaborador possa compensar sem custo de HE imediato.
@@ -93,6 +105,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **Status:** done (BancoHorasMovimento + BancoHorasSaldo + BancoHorasController)
 
 ### US-PONTO-005 · Apuracao automatica de jornada (Art. 66 + 71 CLT)
+
+**Implementado em:** _parcial_ · `Modules/Ponto/Services/ApuracaoService.php` · `Modules/Ponto/Entities/ApuracaoDia.php` · `Modules/Ponto/Tests/Unit/ApuracaoServiceTest.php` · verificado@8af585a (2026-07-02) — falta calculo de HE 100% em domingo/feriado
+
 **Como** RH,
 **quero** apuracao automatica de horas trabalhadas, HE, intervalo intra/interjornada,
 **para que** folha de pagamento receba dados validos sem retrabalho.
@@ -106,6 +121,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **Status:** wip (ApuracaoDia + apuracao service parcial — calculos HE 100% feriado wip)
 
 ### US-PONTO-006 · Geracao AFD legacy pra fiscalizacao MTE (REP-A INMETRO)
+
+**Implementado em:** _pendente_ — backlog: `RelatorioController::gerar()` so tem esqueleto (`abort(501)`), gerador AFD legacy nao implementado; baixa prioridade (AEJ canon prioritario)
+
 **Como** RH com REP-A legacy,
 **quero** gerar arquivo AFD a qualquer momento,
 **para que** auditor MTE possa exportar e verificar conformidade transitiva.
@@ -119,6 +137,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **⚠️ Audit sênior 2026-05-25:** AFDT REMOVIDO desta US — Portaria 671/2021 substituiu AFDT + ACJEF por **AEJ** (Anexo VI). Ver US-PONTO-009 nova.
 
 ### US-PONTO-009 · Geracao AEJ canon Portaria 671/2021 Anexo VI (CRITICO REGULATORIO)
+
+**Implementado em:** _pendente_ — GAP-PONTO-001: gerador AEJ + assinatura CAdES `.p7s` nao implementado (`RelatorioController::gerar('aej')` ainda `abort(501)`); exige revisao Eliana + ADR formal antes de codar
+
 **Como** RH,
 **quero** gerar arquivo AEJ (Arquivo Eletronico de Jornada) com assinatura CAdES `.p7s`,
 **para que** fiscalizacao MTE aceite auditoria (REP-P canon pos-2021).
@@ -136,6 +157,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **Pre-req:** ADR formal "Ponto = compliance CLT append-only" + revisao Eliana SPEC AEJ vs ACJEF antigo
 
 ### US-PONTO-010 · Comprovante PDF QR Code (Anexo I §5.5 Portaria 671)
+
+**Implementado em:** _pendente_ — GAP-PONTO-002: nao existe comprovante PDF por marcacao com QR Code nem endpoint publico de verificacao (`ReportService` so gera espelho mensal); depende de US-PONTO-009 (cert A1 + assinatura)
+
 **Como** colaborador,
 **quero** baixar comprovante PDF da minha marcacao com QR Code verificavel,
 **para que** posso provar registro perante terceiros (sindicato, processo trabalhista).
@@ -148,6 +172,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **Pre-req:** US-PONTO-009 (cert A1 chain + assinatura CAdES estabelecida primeiro)
 
 ### US-PONTO-007 · Multi-tenant isolation (Tier 0 IRREVOGAVEL)
+
+**Implementado em:** `Modules/Ponto/Entities/Marcacao.php` · `Modules/Ponto/Tests/Feature/MultiTenantIsolationTest.php` · `Modules/Ponto/Tests/Feature/CrossTenantMarcacaoTest.php` · `Modules/Ponto/Tests/Feature/MultiTenantAppendOnlyTest.php` · verificado@8af585a (2026-07-02)
+
 **Como** plataforma SaaS,
 **preciso** que dados de um business NUNCA vazem pra outro,
 **para que** LGPD Art. 7o + sigilo trabalhista sejam preservados.
@@ -158,6 +185,9 @@ Atender empregador BR (CLT) com **registro eletronico de ponto auditavel + imuta
 - **Status:** done (cobertura adicionada Wave Massive 2026-05-16 — `MultiTenantAppendOnlyTest` + `CrossTenantMarcacaoTest`)
 
 ### US-PONTO-008 · Imutabilidade append-only (Portaria 671/2021)
+
+**Implementado em:** `Modules/Ponto/Database/Migrations/2026_04_18_000004_create_ponto_marcacoes_table.php` · `Modules/Ponto/Entities/Marcacao.php` · `Modules/Ponto/Entities/BancoHorasMovimento.php` · `Modules/Ponto/Tests/Feature/MultiTenantAppendOnlyTest.php` · verificado@8af585a (2026-07-02) — trigger MySQL BEFORE UPDATE/DELETE + override Eloquent (defesa em profundidade)
+
 **Como** auditor MTE,
 **preciso** que marcacoes nao possam ser alteradas ou deletadas apos gravadas,
 **para que** confiabilidade legal do registro seja preservada.
