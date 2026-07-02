@@ -152,7 +152,7 @@ function watchdog(live) {
     const last = live.workflow_runs?.[wf] ?? null;
     const stale = !last || now - Date.parse(last) > STALE_HOURS * 3600 * 1000;
     rows.push({ metric: name, workflow: wf, last_success: last, stale });
-    if (stale) red.push(`${name}: fonte ${wf} sem run verde há >${STALE_HOURS}h (último sucesso: ${last ?? 'NUNCA'}) — canário parado é regressão silenciosa (ADR 0275 §3: métrica desarma até nova sequência de 3)`);
+    if (stale) red.push(`${name}: fonte ${wf} sem run verde há >${STALE_HOURS}h (último sucesso: ${last ?? 'NUNCA'}) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)`);
   }
   return { rows, red, warn, skipped: null };
 }
