@@ -6,12 +6,14 @@ type: spec
 version: "1.0"
 last_updated: "2026-06-13"
 owner: wagner
-status: ativo
+status: historical
 ---
 
 <!-- schema-allowlist: US sob "### User stories" (h3 dentro de "## Fase 1 — Auto-síntese semanal") + IDs US-MA-001..003 e US-MEMORIAAUTONOMA-001/002 sob "## Tasks operacionais"; corpo legado não tem heading h2 "## User stories" que case o gate — não renomeado pra preservar estrutura de fases. -->
 
 # MemoriaAutonoma — SPEC
+
+> ⚰️ **HISTORICAL — F1 (auto-síntese) implementada dentro do que virou `Modules/Jana` (KL-E2 · decisão E1 2026-06-15).** As `US-MA-*` aqui **não são contrato vivo**. Verdade viva → [`requisitos/Jana/`](../Jana/BRIEFING.md).
 
 > **Status**: Fase 1 em implementação (2026-04-30)
 > **Owner**: Wagner [W] · pode ser entregue à Eliana[E] após Fase 1

@@ -1,6 +1,6 @@
 ---
 title: SPEC — FinanceiroAvancado (planejado — não existe)
-status: rascunho
+status: historical
 date: 2026-05-12
 last_updated: "2026-06-13"
 version: "1.0"
@@ -11,6 +11,8 @@ convention_id: US-FINA-NNN
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
 proposal_adr: financeiro-avancado-dre-fluxo-conciliacao
 ---
+
+> ⚰️ **HISTORICAL — wish FUNDIDO em `Financeiro` (KL-E2 · decisão E1 2026-06-15).** As US-FINA aqui **não são contrato vivo** — é um wish congelado ("planejado — não existe"). Verdade viva → [`requisitos/Financeiro/`](../Financeiro/BRIEFING.md). Nenhum `ROADMAP-avancado` foi materializado no receptor; se/quando o avançado (DRE/conciliação/fluxo projetado) for retomado, nasce lá como US nova.
 
 # SPEC — FinanceiroAvancado (planejado — não existe)
 

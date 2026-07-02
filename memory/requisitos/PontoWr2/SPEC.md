@@ -3,7 +3,10 @@ module: PontoWr2
 version: "1.0"
 last_updated: "2026-06-13"
 owner: wagner
+status: historical
 ---
+
+> ⚰️ **HISTORICAL — pasta renomeada pra `Modules/Ponto` (KL-E2 · decisão E1 2026-06-15).** As `US-PONT-NNN` aqui **não são contrato vivo** — o SPEC ativo usa a convenção `US-PONTO-NNN`. Verdade viva → [`requisitos/Ponto/`](../Ponto/BRIEFING.md).
 
 # Especificação funcional
 

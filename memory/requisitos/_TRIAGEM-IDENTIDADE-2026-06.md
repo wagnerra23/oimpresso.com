@@ -93,48 +93,51 @@
 
 ---
 
-## Estado de execução E2/E3 — conferido em `origin/main dad0b113b6` (append 2026-07-02)
+## Estado de execução E2/E3 — conferência ADVERSARIAL (append 2026-07-02, base `origin/main dad0b113b6`)
 
-> **Conferência, não re-execução.** Todas as linhas `ok` (FUNDIR/MATAR) já estavam aplicadas no `origin/main` quando esta seção foi escrita — cada uma resolvida por PR KL-E2 mergeado entre 2026-06-15 e 2026-07-01. Nada foi refeito (seria regressão/duplicação). Esta seção só **registra o PR que fechou cada linha** (prova, não promessa) e o padrão adotado. Verificado: `front_door_coverage` das 33 pastas da Tabela A = 100% (só `_Governanca`, pasta de roadmap-índice, fica sem BRIEFING, por design); `knowledge-drift --check` = 0 ghosts novos; `ghost-fix.test.mjs` verde.
+> **A trilha FUNDIR NÃO estava completa.** Uma conferência inicial concluiu "tudo feito, só bookkeeping" — um painel adversarial de 3 céticos (US-órfãs · integridade-de-lápide · auditoria-do-registro) refutou isso com evidência dura. Padrão de causa-raiz: em 12 das 13 fusões o executor tombstoneou só o **BRIEFING** (redirect ⚰️), mas deixou os **SPECs portadores de US congelados in-place** — a maioria ainda `status: ativo`/`rascunho`, **sem** banner HISTORICAL e **sem** ponteiro pro receptor. Só Copiloto fechou o loop de verdade (`git mv` real, #3565). E 3 lápides **prometiam operações que nunca rodaram** ("arquiva em `_Ideias/`", "vira ROADMAP-avancado", "FUNDIDO em Mwart"). **Este PR corrige** — caminho sancionado (§"Depois da decisão" + regra E2 por-US): *marca o SPEC-fonte HISTORICAL com ponteiro* (alternativa barata à migração de 65 US) e *reconcilia as lápides que mentem com o disco*.
 
-### FUNDIR — lápide-redirect no BRIEFING apontando pro receptor (✅ executado)
+### FUNDIR — PR que criou a lápide-redirect (corrigido: #3559 era só CODEOWNERS)
 
-| Fonte | Receptor | PR que fechou | Padrão |
-|---|---|---|---|
-| Copiloto | Jana | #3559 + #3565 | redirect **+ 3 docs Jana-Pro movidos** pra `Jana/` (loop fechado) |
-| Chat | Jana | #2750 | redirect (proveniência congelada in-place) |
-| MemoriaAutonoma | Jana | #2750 | redirect in-place |
-| LaravelAI (HISTORICAL) | Jana | #2750 | redirect in-place |
-| PontoWr2 (13 docs incl. adr/+audits/) | Ponto | #2750 | redirect in-place |
-| Atendimento (módulo NÃO renomeado) | Whatsapp | #2750 | redirect in-place |
-| FinanceiroAvancado | Financeiro | #2750 | redirect in-place — ⚠️ ver divergência (b) |
-| Orcamento | Sells | #2757 | redirect stub |
-| Site | Cms | #2750 | redirect in-place |
-| Modules | Admin | #2757 | redirect stub |
-| _Showcase | _DesignSystem | #2750 | redirect in-place |
-| _processo | Mwart | #2750 | redirect in-place |
-| TaskRegistry (EMENDA 2026-06-15) | TeamMcp | #2750 (emenda #2748) | redirect in-place |
+| Fonte | Receptor | PR redirect | US-fonte órfãs? | Correção neste PR |
+|---|---|---|---|---|
+| Copiloto | Jana | #2750 + #3565 | não (0 US; 3 docs movidos) | — (loop já fechado) |
+| Chat | Jana | #2750 | não (só comparativo) | — |
+| MemoriaAutonoma | Jana | #2750 | **5 US-MA** | SPEC→`historical` + ponteiro Jana |
+| LaravelAI | Jana | #2750 | **5 US-AI** | SPEC→`historical` + ponteiro Jana |
+| PontoWr2 | Ponto | #2750 | **12 US-PONT** | SPEC→`historical` + ponteiro Ponto |
+| Atendimento | Whatsapp | #2750 | não (refs a US-WA do Whatsapp) | — |
+| FinanceiroAvancado | Financeiro | #2750 | **33 US-FINA** | SPEC→`historical` + ponteiro; lápide corrigida |
+| Orcamento | Sells | #2757 | não | — |
+| Site | Cms | #2750 | não | — |
+| Modules | Admin | #2757 | não | — |
+| _Showcase | _DesignSystem | #2750 | não | — |
+| **_processo** | ~~Mwart~~ | #2750 | — | **UN-TOMBSTONE — não é morto: hub VIVO citado como Fonte em 8 SPECs** |
+| TaskRegistry | TeamMcp | #2750 (emenda #2748) | **15 US-TR + 8 US-UI** | SPEC→`historical`, ponteiro nuançado (sistema→TeamMcp; UI SPEC-UI-FASE7 segue Fonte viva de ProjectMgmt US-TR-309) |
 
-### MATAR — lápide "(planejado — não existe)" (✅ executado, PR #2751)
+### MATAR — lápide (#2751) + correção das promessas falsas
 
-| Fonte | Lápide aponta pra | Divergência |
+| Fonte | Estado | Correção neste PR |
 |---|---|---|
-| BI | sem sucessor ("não investir") | comparativo NÃO movido pra `_Ideias/` — ver (c) |
-| Grow | sem sucessor | idem (c) |
-| EvolutionAgent | `Modules/ADS` (decisor Dual-Brain) | idem (c) |
-| Tarefas | MCP/TaskRegistry (time) · ProjectMgmt (cliente) | stub sem comparativo |
+| BI | lápide dizia "comparativo arquiva em `_Ideias/`" — **nunca aconteceu** | texto → "comparativo congelado in-place (proveniência)" |
+| Grow | idem BI | idem |
+| EvolutionAgent | lápide OK (aponta ADS) | — |
+| Tarefas | lápide OK | — |
 
-### P4 MemCofre↔SRS
-Lápide já existia (DEPRECATION-PLAN Caminho 1) — nenhuma ação nova, conforme decisão. É o **precedente** do padrão in-place adotado nas fusões acima.
+### Lápides que mentiam (reconciliadas com o disco)
+- **`_processo` "FUNDIDO em Mwart / estado vigente → Mwart" era FALSO e perigoso.** A pasta é um hub de processo VIVO: `BATCH-BACKLOG-34-2026-06-20.md` é citado como **Fonte de US aprovadas ("Aprovação [W]")** em 8 SPECs (Financeiro, Governance, Infra, Jana, PaymentGateway, RecurringBilling, Sells, Whatsapp). Foi tombstoneada quando tinha 1 doc e virou hub depois. **Correção: BRIEFING honesto (cross-cutting vivo), NÃO mover arquivos** (8 SPECs citam o caminho — mover quebraria). `MWART-CHECKLIST.md` fica com cross-ref a Mwart, sem mover. Reverter esta lápide serve a intenção original (consolidar órfãos MORTOS) — `_processo` não é morto.
+- **BI/Grow "arquiva em `_Ideias/`"** — o `_Ideias/` nunca os recebeu; o `_COMPARATIVOS_INDEX.md` ainda linka o comparativo na própria pasta. Corrigido o texto (in-place, não `_Ideias/`).
+- **FinanceiroAvancado "vira roadmap-avançado de lá"** — nenhum `ROADMAP-avancado` existe em `Financeiro/`. Corrigido: o wish fica HISTORICAL nesta pasta com ponteiro; sem prometer artefato inexistente.
 
-### Divergências texto-da-decisão × padrão executado (in-place, coerente com MemCofre)
-- **(b) FinanceiroAvancado:** a decisão dizia "vira ROADMAP-avancado de lá"; o executor tombstoneou in-place e **não criou** `Financeiro/ROADMAP-avancado.md`. Sem impacto de correção — o SPEC é um wish ("planejado — não existe"), sem capacidade viva a migrar; in-place é o mesmo padrão de Chat/LaravelAI.
-- **(c) MATAR (BI/Grow/EvolutionAgent):** a decisão dizia "comparativo arquiva em `_Ideias/`"; o executor congelou o `COMPARATIVO_CONCORRENCIA.md` in-place sob a lápide. `_Ideias/` não os contém. In-place preserva os links históricos append-only da própria lápide — mover agora seria cosmético e arriscaria quebra de links.
-- Ambas são divergências **de forma**, não de correção. Ficam registradas aqui; mover fisicamente exige decisão explícita do Wagner (não é regressão a corrigir).
+### Também corrigido
+- **`memory/INDEX.md`** — o índice-mestre listava ~10 pastas tombstoneadas como módulos vivos sem marcador. Marcadas ⚰️.
+- **`ProjectMgmt/SPEC.md`** — referência a TaskRegistry qualificada (spec histórico; SPEC-UI-FASE7 segue Fonte funcional viva).
 
-### Fora do escopo desta conferência
-- **ADIADO — cluster Estoque** (Inventory, Produto, Purchase, StockAdjustment, StockTransfer): NÃO tocado aqui, conforme decisão E1 + trava do motor `sdd-fase-2.js`. Trabalho relacionado de ghost-repartition foi tratado em outra frente (P11/KL-E2 Estoque) — não é a fusão de pastas destes itens, que segue `ADIADO`.
-- **GENUÍNO** (criar porta): fora da trilha FUNDIR/MATAR desta seção; portas criadas nos lotes #2750/#2751.
-- **E2b re-seed Meilisearch / E3 distiller:** executados/parciais em outra frente (#3534/#3532/#3553) — ver [P11](_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md).
+### Follow-up registrado (não neste PR)
+- **Receptores mudos:** 10/10 receptores não anotam no próprio BRIEFING que absorveram a fonte (fusão invisível do lado que recebe). É navegação/estrutura, não mentira — fica como higiene menor separada.
 
-*Append por conferência E2/E3 (worktree `claude/e2e3-triagem-closure`) a partir de `origin/main dad0b113b6` em 2026-07-02. Sem re-execução; só registro de estado + PRs.*
+### Fora do escopo
+- **ADIADO — cluster Estoque** (Inventory/Produto/Purchase/StockAdjustment/StockTransfer): não tocado (decisão E1 + trava `sdd-fase-2.js`).
+- **E2b re-seed Meili / E3 distiller:** outra frente (#3534/#3532/#3553) — ver [P11](_Governanca/roadmap/P11-kl-e2-renames-reseed-distiller.md).
+
+*Conferência adversarial E2/E3 (worktree `claude/e2e3-triagem-closure`) a partir de `origin/main dad0b113b6` em 2026-07-02. `knowledge-drift --check` = 0 ghosts novos.*

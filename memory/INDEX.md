@@ -88,14 +88,14 @@
 - [OficinaAuto/](requisitos/OficinaAuto/) — ⏸️ aguardando sinal (Martinho candidato)
 - [Autopecas/](requisitos/Autopecas/)
 
-**Core comum:**
+**Core comum:** _(⚰️ = pasta tombstoneada/HISTORICAL — estado vivo está no receptor indicado no BRIEFING da pasta)_
 - [Jana/](requisitos/Jana/) — IA + memória (`ARCHITECTURE.md`, `RUNBOOK-*.md`, auditorias 2026-05-13) — ex-`Copiloto/` (rename ADR 0088; ghost-dir migrado 2026-07-01)
-- [Financeiro/](requisitos/Financeiro/) · [FinanceiroAvancado/](requisitos/FinanceiroAvancado/) · [NfeBrasil/](requisitos/NfeBrasil/) · [NFSe/](requisitos/NFSe/)
+- [Financeiro/](requisitos/Financeiro/) · [FinanceiroAvancado/](requisitos/FinanceiroAvancado/) ⚰️→Financeiro · [NfeBrasil/](requisitos/NfeBrasil/) · [NFSe/](requisitos/NFSe/)
 - [Repair/](requisitos/Repair/) (Kanban OS shared) · [Sells/](requisitos/Sells/) · [Purchase/](requisitos/Purchase/) · [Inventory/](requisitos/Inventory/) · [Produto/](requisitos/Produto/)
-- [RecurringBilling/](requisitos/RecurringBilling/) · [MemCofre/](requisitos/MemCofre/) · [Crm/](requisitos/Crm/) · [Chat/](requisitos/Chat/) · [Whatsapp/](requisitos/Whatsapp/) · [EvolutionAgent/](requisitos/EvolutionAgent/)
+- [RecurringBilling/](requisitos/RecurringBilling/) · [MemCofre/](requisitos/MemCofre/) ⚰️→SRS · [Crm/](requisitos/Crm/) · [Chat/](requisitos/Chat/) ⚰️→Jana · [Whatsapp/](requisitos/Whatsapp/) · [EvolutionAgent/](requisitos/EvolutionAgent/) ⚰️MATAR
 
 **Plataforma/auxiliares:**
-- [ADS/](requisitos/ADS/) (decisão automatizada) · [Admin/](requisitos/Admin/) · [Auditoria/](requisitos/Auditoria/) · [BI/](requisitos/BI/) · [Cms/](requisitos/Cms/) · [Comissao/](requisitos/Comissao/) · [Essentials/](requisitos/Essentials/) · [Garantia/](requisitos/Garantia/) · [Grow/](requisitos/Grow/) · [Manufacturing/](requisitos/Manufacturing/) · [Marketplaces/](requisitos/Marketplaces/) · [Pcp/](requisitos/Pcp/) · [PontoWr2/](requisitos/PontoWr2/) · [ProjectMgmt/](requisitos/ProjectMgmt/) · [TaskRegistry/](requisitos/TaskRegistry/) · [Officeimpresso/](requisitos/Officeimpresso/) · [Accounting/](requisitos/Accounting/) · [Arquivos/](requisitos/Arquivos/) · [LaravelAI/](requisitos/LaravelAI/) · [MemoriaAutonoma/](requisitos/MemoriaAutonoma/) · [Mwart/](requisitos/Mwart/) · [SRS/](requisitos/SRS/)
+- [ADS/](requisitos/ADS/) (decisão automatizada) · [Admin/](requisitos/Admin/) · [Auditoria/](requisitos/Auditoria/) · [BI/](requisitos/BI/) ⚰️MATAR · [Cms/](requisitos/Cms/) · [Comissao/](requisitos/Comissao/) · [Essentials/](requisitos/Essentials/) · [Garantia/](requisitos/Garantia/) · [Grow/](requisitos/Grow/) ⚰️MATAR · [Manufacturing/](requisitos/Manufacturing/) · [Marketplaces/](requisitos/Marketplaces/) · [Pcp/](requisitos/Pcp/) · [PontoWr2/](requisitos/PontoWr2/) ⚰️→Ponto · [ProjectMgmt/](requisitos/ProjectMgmt/) · [TaskRegistry/](requisitos/TaskRegistry/) ⚰️→TeamMcp · [Officeimpresso/](requisitos/Officeimpresso/) · [Accounting/](requisitos/Accounting/) · [Arquivos/](requisitos/Arquivos/) · [LaravelAI/](requisitos/LaravelAI/) ⚰️→Jana · [MemoriaAutonoma/](requisitos/MemoriaAutonoma/) ⚰️→Jana · [Mwart/](requisitos/Mwart/) · [SRS/](requisitos/SRS/)
 
 **Infra (não-módulo):** [Infra/](requisitos/Infra/) — RUNBOOKs CT 100, Hostinger SSH, criar-modulo, branch protection, MWART-gate
 **Cross-cutting:** [_DesignSystem/](requisitos/_DesignSystem/) · [_Ideias/](requisitos/_Ideias/) · [_processo/](requisitos/_processo/) · [_COMPARATIVOS_INDEX.md](requisitos/_COMPARATIVOS_INDEX.md) · [_TEMPLATE_capterra_ficha.md](requisitos/_TEMPLATE_capterra_ficha.md) · [_Roadmap_Faturamento.md](requisitos/_Roadmap_Faturamento.md) · [requisitos/INDEX.md](requisitos/INDEX.md)
