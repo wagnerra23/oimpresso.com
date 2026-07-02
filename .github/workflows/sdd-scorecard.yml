@@ -41,6 +41,10 @@ on:
       - 'scripts/tests/coverage-compute.test.mjs'
       - 'scripts/tests/ragas-trend-compute.mjs'
       - 'scripts/tests/ragas-trend-compute.test.mjs'
+      - 'scripts/tests/junit-summary.mjs'          # tripwire + marcador invalid (FV-F4 · US-GOV-045)
+      - 'scripts/tests/junit-summary.test.mjs'
+      - 'scripts/tests/nightly-diff.mjs'           # guarda invalid (FV-F4 · US-GOV-045)
+      - 'scripts/tests/nightly-diff.test.mjs'
       - '.github/workflows/sdd-scorecard.yml'
   schedule:
     - cron: '50 9 * * *' # 06:50 BRT diário (pós-nightly)
@@ -68,6 +72,15 @@ jobs:
 
       - name: Write-side do floor — meta-teste do compute (hard · ADR 0279 PR-2)
         run: node scripts/tests/floor-compute.test.mjs
+
+      - name: Marcador de run inválido — junit-summary (hard · FV-F4 · US-GOV-045)
+        # Prova que XML 0 bytes/ausente/incoerente grava {invalid,reason} no summary
+        # E preserva o exit-code do tripwire FV-F1 (1=artefato, 2=incoerente). Se
+        # alguém remover o marcador, o floor volta a congelar stale silenciosamente.
+        run: node scripts/tests/junit-summary.test.mjs
+
+      - name: Guarda invalid — nightly-diff (hard · FV-F4 · US-GOV-045)
+        run: node scripts/tests/nightly-diff.test.mjs
 
       - name: Read-side do coverage — meta-teste (hard · SDD P07 · ADR 0275 §2)
         # Counterfactual P07: prova que measureCoverage() NÃO mente 0 com arquivo

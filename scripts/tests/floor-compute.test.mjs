@@ -30,9 +30,12 @@ try {
   mkRun('20260103-020000', [], { dead: true });           // morto → excluído
   mkRun('20260104-020000', ['X'], { malformed: true });   // malformado → excluído
   mkRun('20260105-020000', ['Y'], { incoherent: true });  // incoerente → excluído
+  // FV-F4 (US-GOV-045 DoD D.3): marcador EXPLICITO de run invalido tambem e excluído
+  const dInv = join(root, '20260106-020000'); mkdirSync(dInv, { recursive: true });
+  writeFileSync(join(dInv, 'summary.json'), JSON.stringify({ schema: 'fullsuite-summary-invalid/v1', invalid: true, reason: 'xml_0_bytes' }));
 
   const runs = validRuns(root);
-  ok(runs.length === 2, `só 2 runs válidos (morto/malformado/incoerente excluídos) — got ${runs.length}`);
+  ok(runs.length === 2, `só 2 runs válidos (morto/malformado/incoerente/invalid-marker excluídos) — got ${runs.length}`);
 
   const f = computeFloor(runs, 3);
   ok(f.floor_count === 2, `floor = interseção {F2,F3} = 2 — got ${f.floor_count}`);

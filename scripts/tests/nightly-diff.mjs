@@ -42,6 +42,7 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i >= 0 ? proce
 function loadRun({ summaryPath, junitPath = null, ts = null }) {
   if (!existsSync(summaryPath)) return null;
   let s; try { s = JSON.parse(readFileSync(summaryPath, 'utf8')); } catch { return null; }
+  if (s.invalid) return null; // marcador explicito FV-F4 (US-GOV-045) — run morto declarado
   if (!s.coherent || !s.n_testcases || !Array.isArray(s.files)) return null;
   const failingFiles = s.files
     .filter((f) => (f.failed || 0) > 0 || (f.errors || 0) > 0)
