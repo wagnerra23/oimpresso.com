@@ -169,7 +169,7 @@ capacidades:
     onde: "Modules/Fiscal/Http/Controllers/CockpitController.php"
     quem_tem_no_mercado: ["Omie (parcial)"]
     diferencial: "raison d'être do módulo — mercado middleware não tem cockpit"
-    gap: "GAP-FISCAL-002 — KPIs sem cache Redis (D6 perf 5→9)"
+    gap: "✅ resolvido — cache Redis 60s em US-FISCAL-019 (GAP-FISCAL-002 fechado, verificado@176f9bc 2026-07-01)"
 
   - nome: "ICMS-ST / DIFAL / FCP cálculo automático"
     score: P1
@@ -217,7 +217,7 @@ capacidades:
     onde: "Modules/Fiscal/Http/Controllers/PaletteSearchController.php + resources/js/Pages/Fiscal/_components/CmdKPalette.tsx"
     quem_tem_no_mercado: ["nenhum concorrente fiscal tem ⌘K"]
     diferencial: "UX estado-da-arte (Linear/Notion-like) inédito no vertical fiscal BR"
-    gap: "GAP-FISCAL-002 — busca sem índice (leading wildcard scan)"
+    gap: "✅ resolvido — anti-DOS/índice palette em US-FISCAL-019 (GAP-FISCAL-002 fechado)"
 
   - nome: "Entrada via DF-e manifestada → escrituração (Bloco C inputs)"
     score: P1
@@ -294,11 +294,11 @@ capacidades:
 | 2 | ICMS-ST / DIFAL / FCP no cascade (interestadual contribuinte) | 9 | 🟡 P1 | ~2 dev-days | quando Larissa fizer venda revenda interestadual |
 | 3 | SPED Bloco H inventário real + smoke PVA-EFD homologação | 11 | 🟡 P1 | ~2 dev-days | entrega contábil Eliana dia 15 |
 | 4 | Health-check cert A1 (cron alerta vencimento) | 13 | 🟡 P1 | ~0.5 dev-day | contínuo |
-| 5 | Cache Redis KPIs cockpit + índice busca palette | 8/14 | 🟡 P1 (perf) | ~1 dev-day | GAP-FISCAL-002 |
+| ~~5~~ | ~~Cache Redis KPIs cockpit + índice busca palette~~ ✅ **feito (US-FISCAL-019)** | 8/14 | — | — | GAP-FISCAL-002 fechado |
 | 6 | EFD-Contribuições PIS/COFINS (arquivo separado) | 16 | 🟢 P2 | ~1 semana | backlog PR #10 |
 | 7 | Entrada DF-e manifestada → Bloco C inputs | 15 | 🟢 P2 | ~2 dev-days (dep. Crm) | backlog |
 
-> Cruza com [AUDIT-SENIOR-2026-05-25.md](AUDIT-SENIOR-2026-05-25.md) (GAP-FISCAL-001..005). **GAP-FISCAL-003 (hardcodes SPED) já fechado** na Onda CONSOLIDAR. O gap #1 desta ficha = **GAP-FISCAL-004** e é o único P0 vivo.
+> Cruza com [AUDIT-SENIOR-2026-05-25.md](AUDIT-SENIOR-2026-05-25.md) (GAP-FISCAL-001..005). **GAP-FISCAL-002 (cache/perf) e GAP-FISCAL-003 (hardcodes SPED) já fechados** (US-FISCAL-019 e US-FISCAL-020, Ondas ESTABILIZAR/CONSOLIDAR). O gap #1 desta ficha = **GAP-FISCAL-004** e é o único P0 vivo. _(Correção 2026-07-03 Passo 2: gap #5 cache marcado como fechado — o audit de 25/mai listava GAP-FISCAL-002 aberto, mas foi resolvido depois.)_
 
 ---
 
@@ -451,6 +451,7 @@ automation_targets:
 ### Histórico de revisão da ficha
 
 - `2026-07-03` — Claude Code (`capterra-senior`) — **criação**. Programa de Ondas Passo 1. Nota 75/100. Pesquisa: TecnoSpeed/PlugNotas/Nuvem Fiscal + Focus NFe/Bling + Tiny/Omie (3 agentes paralelos, 24 WebSearch, ~45 fontes citadas). Wagner OK [W] 2026-07-03 (camada fiscal). Base: `origin/main` @ `7442c27c43`.
+- `2026-07-03` — Claude Code (`/comparativo Fiscal`, Passo 2) — **correção de staleness**: gap #5 (cache KPIs/palette) marcado como fechado (US-FISCAL-019, GAP-FISCAL-002) — o audit de 25/mai que alimentou a ficha listava aberto, mas foi resolvido depois. Nota 75/100 inalterada (cache era sub-nota de perf, não capacidade pontuada). Ver [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md).
 
 ---
 

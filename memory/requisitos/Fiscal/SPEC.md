@@ -527,3 +527,48 @@ Then deve receber 403 Forbidden
 - [ ] Migration `nfe_fiscal_rules` 5 colunas (NCM/CFOP/UF/regime/aliq) provisionada
 
 **Refs:** AUDIT-SENIOR-2026-05-25.md §GAP-FISCAL-003, ADR 0186
+
+## Onda 6 — Reforma + refinamento (CAPTERRA-INVENTARIO 2026-07-03 · Passo 2)
+
+### US-FISCAL-021 · IBS/CBS cálculo no MotorTributarioService (Onda 6 — sair do scaffold)
+
+> owner: wagner · priority: p0 · estimate: 28h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** CAPTERRA-INVENTARIO Fiscal 2026-07-03 (cap #7, GAP-FISCAL-004) — único P0 zerado da ficha (nota 75/100). Programa de Ondas Passo 2.
+
+**Contexto:** schema já pronto (migration `2026_05_26_000001_add_ibs_cbs_to_nfe_fiscal_rules` tem colunas `c_class_trib`/`cst_ibs`/`cst_cbs`/`aliquota_ibs`/`aliquota_cbs`), mas `MotorTributarioService` tem **0 lógica de cálculo** IBS/CBS. Concorrentes ERP (Bling auto-fill, Tiny, Omie datado) e middleware (PlugNotas calculadora) já cobrem.
+
+**Acceptance:**
+- [ ] `MotorTributarioService::calcular()` retorna `cClassTrib` + CST IBS/CBS + alíquotas IBS/CBS a partir das colunas de `nfe_fiscal_rules` (cascade existente)
+- [ ] `TributoCalculado` expõe campos IBS/CBS
+- [ ] Preenche grupo UB (IBSUF/IBSMun/CBS) no XML da NF-e/NFC-e
+- [ ] Valida NT 2025.002 (regras LA01-30/N12-110; rejeições 1106/960)
+- [ ] Fallback safe Simples Nacional (biz=1/biz=4 não destacam até 2027-01)
+- [ ] Pest ≥5 cenários (Simples, Regime Normal CRT=3, monofásica, crédito presumido, imune)
+- [ ] Tests biz=1 (ADR 0101), NUNCA biz=4
+
+**Dependência técnica:** `nfephp-org/sped-nfe` com IBS/CBS (hoje só `dev-master` + `TraitTagDetIBSCBS`; tag estável v5.1.34 SEM reforma — issue #1274 sem data). Avaliar pin `dev-master` vs aguardar release.
+
+**Prazo regulatório:** homologação obrig. passou 01/07/2026; **produção obrigatória 03/08/2026** (CRT 3 Normal). Risco imediato contido (pilotos Simples) mas crítico se migrar regime.
+
+**Refs:** CAPTERRA-FICHA Fiscal §7 · AUDIT-SENIOR-2026-05-25 GAP-FISCAL-004 · ADR ARQ-0004 (schema flexível CBS/IBS) · esta US é o **CÁLCULO** (o scaffold de schema já foi mergeado na migration `add_ibs_cbs_to_nfe_fiscal_rules`).
+
+### US-FISCAL-022 · Health-check certificado A1 (cron alerta vencimento)
+
+> owner: — · priority: p1 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** CAPTERRA-INVENTARIO Fiscal 2026-07-03 (cap #13, 🟡 PARCIAL) — mercado (todos middlewares + Bling/Omie) alerta vencimento de cert; oimpresso só exibe validade estática.
+
+**Acceptance:**
+- [ ] Comando artisan `fiscal:cert-health-check` (registrado em `app/Console/Kernel.php`, schedule diário)
+- [ ] Por business com cert A1: calcula dias-a-vencer
+- [ ] dias-a-vencer ≤ 30 → cria/atualiza entry em `mcp_alertas` (dedup por business+cert)
+- [ ] Multi-tenant scope (ADR 0093) — itera businesses com cert configurado
+- [ ] Pest biz=1 (ADR 0101): cert vencendo em 15d gera alerta; cert válido 200d não gera
+- [ ] Log estruturado
+
+**Refs:** CAPTERRA-FICHA Fiscal §9 automation_targets `health-check-cert-a1` · ConfigController (fonte da validade).
+
+> **Nota Passo 2:** cap #8/#14 (cache KPIs + índice palette) **NÃO** virou US — já entregue em **US-FISCAL-019** (✅ done, GAP-FISCAL-002 fechado). US-FISCAL-023 gerada por engano foi descartada antes de persistir (dedup falhou pq `tasks-list` default só lista ativas).
