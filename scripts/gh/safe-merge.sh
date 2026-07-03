@@ -34,7 +34,7 @@ echo "  branch local : $BRANCH"
 echo "  HEAD local   : $LOCAL"
 
 # 1) local == remoto (nada pendente de push que o merge fosse engolir)
-git fetch -q origin "$BRANCH" || true
+git fetch -q origin "$BRANCH" 2>/dev/null || true
 UPSTREAM="$(git rev-parse "@{u}" 2>/dev/null || echo '')"
 if [ -n "$UPSTREAM" ] && [ "$LOCAL" != "$UPSTREAM" ]; then
   echo "✗ branch local ($LOCAL) ≠ remoto ($UPSTREAM). Faça 'git push' antes de mergear."
@@ -60,14 +60,18 @@ if ! gh api -X PUT "repos/$REPO/pulls/$PR/merge" \
 fi
 echo "  ✓ merge aceito (sha pinado)."
 
-# 4) REDE pós-merge — confere que os arquivos add/mod do PR estão em origin/main
+# 4) REDE pós-merge — confere que os arquivos add/mod do PR estão em origin/main.
+#    IMPORTANTE (Windows/Git-Bash): NÃO usar `git cat-file -e origin/main:$path` — o MSYS
+#    mangleia o revspec `<ref>:<path>` (`:`→`;`, `/`→`\`), dá falso "AUSENTE" (cry-wolf).
+#    `git ls-tree <ref> -- <path>` separa ref de path com `--` e é imune ao mangling.
+#    (bug pego pelo próprio dogfood do #3768 — a rede acusou drop que não existiu.)
 echo "  → verificando arquivos do PR em origin/main…"
 git fetch -q origin
 MISSING=0
 while IFS=$'\t' read -r status path; do
   case "$status" in
     added|modified)
-      if ! git cat-file -e "origin/main:$path" 2>/dev/null; then
+      if [ -z "$(git ls-tree origin/main -- "$path" 2>/dev/null)" ]; then
         echo "  ⚠ AUSENTE em origin/main: $path (status PR=$status)"; MISSING=$((MISSING+1))
       fi ;;
   esac

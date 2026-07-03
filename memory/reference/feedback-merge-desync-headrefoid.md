@@ -28,6 +28,10 @@ A API **retorna 409 ("Head branch was modified")** se o head tiver mexido entre 
 
 Como ~todo merge aqui é agent-driven, o guard vive na disciplina de merge do Claude (skill [`commit-discipline`](../../.claude/skills/commit-discipline/SKILL.md) §"Merge seguro"): **todo `gh pr merge` vira `scripts/gh/safe-merge.sh <PR>`**. Assim toda sessão — Wagner, Felipe, Maiara, Luiz, Eliana — herda o guard sem lembrar.
 
+## Dogfood pegou um bug na própria rede (#3768 → fix)
+
+O `safe-merge.sh` foi mergeado com ele mesmo. A **camada 1 (sha-pin) passou perfeita** — os 3 arquivos landaram em `main`. Mas a **camada 2 (rede pós-merge) deu falso "AUSENTE"** pra `.claude/skills/commit-discipline/SKILL.md`: usava `git cat-file -e origin/main:$path`, que no **Git-Bash/Windows sofre o MSYS revspec colon-mangling** (`:`→`;`, `/`→`\`; ver auto-mem `licao-msys-revspec-colon-mangling`). Cry-wolf. **Fix:** `git ls-tree origin/main -- "$path"` (o `--` separa ref de path, imune ao mangling). Lição: a rede tem que ser tão confiável quanto o guard — um falso-positivo que grita "commit engolido!" corrói a confiança tanto quanto um falso-negativo.
+
 ## Sinal de que aconteceu (pra pós-mortem)
 
 - `gh pr merge` diz **"was already merged"** com um `mergeCommit` cujo head **≠** o teu último push.
