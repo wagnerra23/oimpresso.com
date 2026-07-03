@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 use Modules\NfeBrasil\Models\NfeBusinessConfig;
 use Modules\NfeBrasil\Services\CertificadoService;
 use Modules\NfeBrasil\Services\NfeService;
@@ -40,15 +40,19 @@ function criarConfigReforma(string $modo): void
 }
 
 beforeEach(function () {
-    if (! Schema::hasColumn('nfe_business_configs', 'reforma_tributaria_modo')) {
-        test()->markTestSkipped('coluna reforma_tributaria_modo ausente — rode migrations');
+    // NfeBrasil requer schema MySQL UltimatePOS (ADR 0101) — nfe_business_configs não
+    // existe no SQLite :memory: da lane de sanidade. Roda só na lane MySQL (gate real).
+    if (DB::connection()->getDriverName() === 'sqlite') {
+        test()->markTestSkipped('SQLite-incompatível: nfe_business_configs requer schema MySQL (ADR 0101)');
     }
     session(['business.id' => REFORMA_BIZ]);
-    NfeBusinessConfig::withoutGlobalScopes()->where('business_id', REFORMA_BIZ)->forceDelete();
+    NfeBusinessConfig::withoutGlobalScopes()->where('business_id', REFORMA_BIZ)->delete();
 });
 
 afterEach(function () {
-    NfeBusinessConfig::withoutGlobalScopes()->where('business_id', REFORMA_BIZ)->forceDelete();
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        NfeBusinessConfig::withoutGlobalScopes()->where('business_id', REFORMA_BIZ)->delete();
+    }
     \Mockery::close();
 });
 
