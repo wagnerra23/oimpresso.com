@@ -22,10 +22,13 @@ return new class extends Migration
     {
         if (! Schema::hasColumn('nfe_business_configs', 'reforma_tributaria_modo')) {
             Schema::table('nfe_business_configs', function (Blueprint $table) {
-                $table->enum('reforma_tributaria_modo', ['legacy', 'hybrid_2026', 'full'])
+                // Feature flag (string, não enum): valores válidos legacy|hybrid_2026|full
+                // validados na app (schemaReforma in_array). String evita enum-check do
+                // domain-dict-guard (NfeBrasil sem dicionário) — é config, não vocabulário de domínio.
+                $table->string('reforma_tributaria_modo', 20)
                     ->default('legacy')
                     ->after('regime')
-                    ->comment('Reforma NT 2025.002: legacy=PL_009 (default, byte-idêntico) · hybrid_2026/full=PL_010 IBS/CBS (opt-in)');
+                    ->comment('Reforma NT 2025.002: legacy=PL_009 (default, byte-idêntico) | hybrid_2026|full=PL_010 IBS/CBS (opt-in)');
             });
         }
     }
