@@ -109,6 +109,22 @@ gh pr create ...
 - Múltiplas tasks no mesmo commit (mover só as confirmadas done)
 - Task tem dependência que ainda não fechou (manter `doing` ou `review`)
 
+## Merge seguro (sha-pinned — anti-desync headRefOid)
+
+> **Todo `gh pr merge` vira `scripts/gh/safe-merge.sh <PR>`** (default squash). Motivo: o merge
+> pode ENGOLIR commits silenciosamente quando o GitHub está com `headRefOid` stale — o merge
+> diz "success" mas um commit pushado não landa em `main`. Aconteceu 2026-07-03 (#3763 comeu o
+> handoff da régua; mesmo padrão #3732). Detecção pós-merge é cega pra isso; a única garantia é
+> **pinar o SHA no merge** (a API 409s se o head mexeu). Detalhe: [feedback-merge-desync-headrefoid.md](../../../memory/reference/feedback-merge-desync-headrefoid.md).
+
+```bash
+scripts/gh/safe-merge.sh 3767          # pré-check headRefOid==HEAD + merge pinado + verify pós-merge
+```
+
+- **Nunca** `gh pr merge` cru quando houve push recente no branch. Se precisar do cru (ex: gh sem API), no mínimo cheque `gh pr view <PR> --json headRefOid -q .headRefOid` == `git rev-parse HEAD` **antes** de mergear.
+- **Merge pela UI do GitHub:** dar **F5 na página antes** de clicar (a aba pode ter head velho) — camada humana pro time que cresce.
+- **Sinal de que engoliu:** `gh pr merge` diz "was already merged" com `mergeCommit` ≠ teu último push, ou um arquivo pushado não está em `origin/main`. Recuperação: re-landar num PR novo + `git ls-tree origin/main` pra confirmar.
+
 ## Exceções autorizadas (não viram commit-discipline alert)
 
 - **Rebuild de assets** (`public/build-inertia/`) — auto-gerado, ignorar diff size
