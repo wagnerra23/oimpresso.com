@@ -28,6 +28,16 @@ last_run: "2026-06-29"
 
 ---
 
+## UC-S02 · Venda com desconto percentual não infla o total (dente de cálculo)
+- **Persona:** Larissa @ ROTA LIVRE (balcão, 1280px) — aplica um desconto em % sobre o total da venda.
+- **Como usa:** monta o carrinho, informa desconto percentual (ex 10,05%) e finaliza. O `final_total` gravado tem que ser o total real com desconto — **nunca** um valor inflado ~×100.000 por erro de parsing de separador decimal.
+- **Aceite:** Dado uma venda de `227,90` com desconto de `10,05%` · Quando o totalizador `ProductUtil::calculateInvoiceTotal` roda (que passa por `Util::num_uf`) · Então `total_before_tax = 227.90`, `discount = 22.90395` e `final_total = 204.99605` (jamais `~20.499.605`); e o invariante `final_total ≤ total_before_tax` vale sempre. Round-trip `num_uf(num_f(x)) == x` na precisão de moeda.
+- **Divergência de pagamento (caracterizada, não unificada):** `getTotalPaid` é **líquido** (`SUM(IF(is_return=0, amount, amount*-1))` — desconta devolução) e é a **fonte de verdade** do `payment_status` (via `calculatePaymentStatus`); `getTotalAmountPaid` é **bruto** (`SUM(amount)` — ignora `is_return`). O teste trava as duas definições ATUAIS. Unificar = mudança de valor em prod → **US separada sob REGRA MESTRE** (dupla confirmação + antes→depois + OK [W]), nunca pega carona neste PR.
+- **Teste:** `tests/Feature/Calculo/CalculoValorSellsTest.php` (Pest, property + golden no totalizador real + discriminação RED + caracterização da divergência). Guards de `num_uf` em isolamento: `tests/Unit/Utils/IncidentValorInfladoNumUfTest.php` + `NumUfHeuristicPtBRTest.php`.
+- **Status: 🧪** _(Onda 1.4 — teste green no CT100, mas o veredito ainda não entra no manifesto G-7 `scripts/casos-test-results.json` (Pest fora do harness JUnit e2e). Vira ✅ quando o manifesto carregar o veredito `pass` deste UC. Origem do vetor: incidente 2026-06-05, fix #2279.)_
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens abaixo SEM token de UC de
@@ -44,3 +54,4 @@ last_run: "2026-06-29"
 ## Trilha do tempo
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S01 venda a prazo + spec Playwright `sells-venda-balcao.spec.ts`; produto E2E-0001 entrou no VisregTenantSeeder (enable_stock=0).
 - 2026-06-18 · [CC] refactor só-de-layout (Wagner): total de itens no rodapé do card Produtos + card de desconto (Resumo) movido pra antes do Pagamento. Sem mudança de comportamento — UC-S01 baixado pra 🧪 até re-rodar o e2e (G-7 frescor).
+- 2026-07-02 · [CC] Onda 1.4 (dente de cálculo): UC-S02 declarado com teste no MESMO PR (coordenação 1.3 ↔ 1.4, regra "declarar UC + teste = 1 PR"). Property `num_uf(num_f(x))==x` + golden no totalizador real `calculateInvoiceTotal` (227,90 − 10,05% = 204.99605, não infla) + discriminação RED vs strip-do-ponto + caracterização da divergência `getTotalPaid`(líquido) ≠ `getTotalAmountPaid`(bruto). TEST-ONLY — nenhum método de cálculo alterado.
