@@ -3,14 +3,14 @@ slug: 0320-programa-ondas-regua-correcao
 number: 320
 title: "Programa de Ondas — ciclo-padrão adversário→régua por módulo + régua estendida (casos_coverage + D1 cálculo, PLUGAR não fundir) + piso Tier-0 (cálculo+caso+paridade)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
 decided_by: [W]
 decided_at: "2026-07-02"
-accepted_at: ""
-accepted_via: "PROPOSTA — origem: sessão 2026-07-02 (PLANO-MESTRE programa-ondas + onda-0a). Diagnóstico: módulos de nota alta escondem cálculo de valor indefeso (a camada do incidente num_uf, valor inflado ~×100k). Redação [CC]. Aguarda decisão Wagner — é o PORTÃO, nada de código antes."
+accepted_at: "2026-07-02"
+accepted_via: "Wagner 2026-07-02 no chat: 'aprovado merge' (mesmo rito de aceite da ADR 0304). Origem: sessão 2026-07-02 (PLANO-MESTRE programa-ondas + onda-0a). Diagnóstico: módulos de nota alta escondem cálculo de valor indefeso (a camada do incidente num_uf, valor inflado ~×100k). Redação [CC]; placement canônico/renumeração final sob soberania [CL] (ADR 0238) — proposta aceita mantida em proposals/ como os demais aceitos."
 module: governance
 quarter: 2026-Q3
 tags: [governance, ondas, adversario, regua, casos, calculo, tier-0, catraca, ratchet, anti-paralelo, paridade, migracao]
@@ -34,7 +34,7 @@ pii: false
 
 # ADR 0320 — Programa de Ondas: régua de correção por módulo (emenda a 0256 + 0264)
 
-> **STATUS: PROPOSTO — este é o PORTÃO (Onda 0a).** Aguarda decisão do Wagner (R10). Nada de código antes do aceite: a decisão trava o mecanismo; sem ela cada onda vira improviso e o furo da `/perfil` se repete (governança append-only, [ADR 0256](../0256-knowledge-survival-meia-vida-catraca-sentinela.md)). Ratificar = marcar os itens do §Decisões Wagner pendentes + virar `status: aceito` / preencher `accepted_at`/`accepted_via`.
+> **STATUS: ACEITO — Wagner 2026-07-02 ("aprovado merge").** Este foi o PORTÃO (Onda 0a): o mecanismo do programa está travado. As etapas seguintes (0b extensão da régua · 0c sentinela de cadência · 0d paridade de migração · Onda 1 Sells) ficam **liberadas mediante OK [W] por etapa** — cada onda de módulo ainda exige aprovação pra abrir (item 3 da Decisão / [ADR 0105]). Placement canônico/renumeração final sob soberania [CL] ([ADR 0238]); proposta aceita mantida em `proposals/` como os demais aceitos.
 >
 > Contexto vivo do programa: [PLANO-MESTRE.md](../../requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md) §Status vivo (1 plano = 1 registro, [ADR 0294]) — execução via tasks MCP `parent_plan=programa-ondas` ([ADR 0070](../0070-jira-style-task-management-current-md-removed.md)), nunca status em markdown de etapa.
 
@@ -125,21 +125,22 @@ Aplicando o próprio espírito adversário do programa a esta ADR:
 2. *"O piso Tier-0 infla `required` contra a 0271?"* — Não: só aponta rigor onde já é Tier-0 (dinheiro/estoque/fiscal); higiene continua advisory. O flip pra bloqueante segue o rito faseado + palavra do Wagner ([ADR 0271] D-4).
 3. *"Cadê a prova de que não é presença?"* — D1 exige bug injetado; `casos_coverage` conta UC **defendido por teste** (não UC escrito). O anti-padrão está travado em texto e citado da `proibicoes §descartados`.
 
-## Decisões Wagner pendentes (nunca no calado — R10)
+## Decisões Wagner (aceite 2026-07-02 — "aprovado merge")
 
-1. **Aceitar o mecanismo** (ciclo de 4 passos como único caminho de onda de módulo)? — [ ]
-2. **Aceitar a extensão PLUGAR-não-fundir** (`casos_coverage` + D1 como eixos distintos no scorecard)? — [ ]
-3. **Aceitar a fila** Sells → Compras → Produto → Cliente, cada uma com OK [W] pra abrir, Faturamento encaixando em `_Roadmap_Faturamento.md`? — [ ]
-4. **Aceitar o piso Tier-0** (3 provas: cálculo + caso + paridade)? — [ ]
-5. **Confirmar a numeração 0320** (0319 já usado por proposta irmã do mesmo dia — allocator `next-id.mjs` só conta `decisions/*.md` aceitos, não `proposals/`; 0320 é o próximo livre no disco). — [ ]
+1. **Mecanismo** (ciclo de 4 passos como único caminho de onda de módulo) — [x] aceito
+2. **Extensão PLUGAR-não-fundir** (`casos_coverage` + D1 como eixos distintos no scorecard) — [x] aceito
+3. **Fila** Sells → Compras → Produto → Cliente, cada uma com OK [W] pra abrir, Faturamento encaixando em `_Roadmap_Faturamento.md` — [x] aceito (o OK [W] por onda permanece exigido pra abrir cada uma)
+4. **Piso Tier-0** (3 provas: cálculo + caso + paridade) — [x] aceito
+5. **Numeração 0320** (0319 já usado por proposta irmã do mesmo dia — allocator `next-id.mjs` só conta `decisions/*.md` aceitos, não `proposals/`; 0320 é o próximo livre no disco) — [x] confirmada
 
-Só após o aceite: criar as tasks MCP das etapas 0b/0c/0d e abrir a Onda 1 (Sells).
+Após o aceite: criar as tasks MCP das etapas 0b/0c/0d e abrir a Onda 1 (Sells) — **cada abertura mediante OK [W]** (não no calado).
 
 ## Histórico
 
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-07-02 | [CC] propõe | Onda 0a do programa-ondas. Trava o ciclo de 4 passos, a régua estendida (casos_coverage + D1, plugar não fundir), a fila encaixada (T6) e o piso Tier-0 (cálculo+caso+paridade). Emenda (supersedes_partially, base ativa) a [ADR 0256] + [ADR 0264]. Proíbe gate de presença (proibicoes §descartados 2026-07-01). Docs-only; aguarda Wagner. |
+| 2026-07-02 | [W] aceita | "aprovado merge" no chat (mesmo rito da ADR 0304). PORTÃO liberado; 5 itens aceitos incl. numeração 0320. Etapas 0b/0c/0d + Onda 1 Sells liberadas mediante OK [W] por etapa. Placement/renumeração final sob [CL] (ADR 0238). |
 
 ## Refs
 
