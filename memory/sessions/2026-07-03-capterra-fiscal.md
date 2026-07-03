@@ -1,8 +1,26 @@
+---
+date: '2026-07-03'
+topic: 'CAPTERRA-FICHA Fiscal (adversário de mercado — programa de ondas Passo 1)'
+authors: [C]
+outcomes:
+  - 'CAPTERRA-FICHA.md Fiscal criada (10 seções, nota 75/100)'
+  - 'Único P0 zerado identificado = IBS/CBS cálculo (GAP-FISCAL-004)'
+prs: [3738]
+related_adrs:
+  - 0089-capterra-driven-module-evolution
+  - 0101-tests-business-id-1-nunca-cliente
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+---
+
 # Session log — 2026-07-03 · CAPTERRA-FICHA Fiscal (adversário de mercado — programa de ondas Passo 1)
 
 > **Owner:** Wagner OK [W] 2026-07-03 (camada fiscal) · **Agente:** `capterra-senior` (executado inline + 3 sub-agentes de pesquisa paralelos)
 > **Base:** worktree fresco de `origin/main` @ `7442c27c43` (base do checkout estava −4688 commits stale — guard SessionStart disparou; deliverable produzido em worktree fresco `claude/fiscal-capterra-onda`)
 > **Sinal cliente (ADR 0105):** Larissa @ ROTA LIVRE biz=4 pre-canary (`config/governance/module_clients.yaml`)
+
+## TL;DR
+
+Passo 1 do programa de ondas para o módulo **Fiscal**: gerada `CAPTERRA-FICHA.md` (10 seções, **nota 75/100**) comparando a camada de **configuração/orquestração fiscal** (motor tributário, regras ICMS-ISS, DF-e, manifestação, eventos, config, SPED) com TecnoSpeed/PlugNotas/Nuvem Fiscal/Focus NFe (middleware) + Bling/Tiny/Omie (ERP peers). Pesquisa via 3 agentes paralelos (24 WebSearch, ~45 fontes). **Único P0 zerado = IBS/CBS cálculo** (schema scaffold pronto, motor sem lógica; prazo produção obrig. 03/08/2026). Diferenciais únicos: FSM cancel cascade, aviso `cSit` (ADR 0186), ⌘K palette, "Jana sugere", multi-tenant Tier 0. Read-only — só 2 arquivos markdown. PR [#3738](https://github.com/wagnerra23/oimpresso.com/pull/3738).
 
 ## Objetivo
 
