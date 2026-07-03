@@ -254,6 +254,36 @@ ficam no `backlog` do scorecard (status implícito ⬜) e só ganham id de UC **
 
 ---
 
+## Onda 1.4 — Dente de cálculo (OS) · governança executável · TEST-ONLY
+
+> Camada aditiva do [Programa de Ondas](../_Governanca/programa-ondas/onda-1-sells/1.4-dente-calculo.md) aplicada ao coração da **ordem de serviço** de reparo. **NÃO** é fase nova nem doc paralelo — é o dente da dimensão D1 (cálculo de valor) plugado no cálculo PRÓPRIO da OS, registrado aqui pra não fragmentar (gate T6: 1 tema = 1 doc). **Seguro pro canary Martinho (biz=164 LIVE, [ADR 0171](../../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md)):** só adiciona testes, não toca cálculo.
+
+**Contexto:** a [REGRA MESTRE](../../proibicoes.md) (dupla confirmação MANUAL de qualquer mudança de valor/estoque) é controle humano que não sobrevive ao tempo. Este dente converte esse controle em **automático** no cálculo da OS — o mesmo motivo que existe pro Sells em [1.4-dente-calculo.md](../_Governanca/programa-ondas/onda-1-sells/1.4-dente-calculo.md), agora pro reparo. Ancora o risco vivo já catalogado nesta ROADMAP (`final_total=0` / recalc `peça×qty + hora×horas`, US-OFICINA-027).
+
+**Alvos (o cálculo próprio da OS — não duplica venda #3695 / financeiro #3710 / fiscal):**
+
+| Método | Arquivo | Contrato defendido |
+|---|---|---|
+| `ServiceOrderItemService::recalcularTotal` | [Services/ServiceOrderItemService.php](../../../Modules/OficinaAuto/Services/ServiceOrderItemService.php) | total OS == `round(Σ valor_total, 2)`, sem centavo perdido |
+| `ServiceOrderItemService::breakdownPorTipo` | idem | partição peça+mão+terceiro == total (dinheiro não migra de categoria) |
+| `ServiceOrderItemService::addItem` | idem | `valor_total = round(qty × unit, 2)`; override de desconto flui sem inflar |
+| `DviInspectionService::totalRecomendado` | [Services/DviInspectionService.php](../../../Modules/OficinaAuto/Services/DviInspectionService.php) | orçamento recomendado = Σ `valor_recomendado` só de {atenção,crítico} |
+
+**Nota de domínio:** a OS **não tem campo de desconto** ([ADR 0194](../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md)/[0265](../../decisions/0265-oficina-reparo-erradica-locacao.md)); desconto entra como override de `valor_total` por item, depois somado. O cálculo casta `(float)` direto (**não** passa por `num_uf`) — por isso o golden de "não inflar" é **sentinela de regressão** (pega o dia em que alguém rotear esse valor por um parser pt-BR ou trocar `round` por strip), não a reprodução de um bug atual.
+
+**Teste:** [`tests/Feature/Calculo/CalculoValorOficinaAutoTest.php`](../../../tests/Feature/Calculo/CalculoValorOficinaAutoTest.php) — property (conservação + partição + filtro-severidade fuzzed, seed fixa) + golden (0,10×3==0,30; qty×unit; override não-infla) + discriminação RED (mutantes floor/cast-int que perdem centavo divergem do real) + guard Tier 0 cross-tenant. Contrato ancorado FORA do código (conservação de dinheiro / filtro DVI), não no que a classe faz hoje — anti-tautologia ([proibicoes.md §"Teste que deriva do CÓDIGO"](../../proibicoes.md)).
+
+**Critério de pronto:** green no código atual · red por construção contra floor/cast-int/strip (golden = fronteira) · divergência de somadores documentada · **rodado no CT100** (nunca local/Hostinger).
+
+```bash
+tailscale ssh root@ct100-mcp \
+  "docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test --filter=CalculoValorOficinaAuto"
+```
+
+> ⛔ Unificar/alterar qualquer somador acima = valor em prod → **US separada sob REGRA MESTRE** (dupla confirmação + antes→depois + OK [W]). Nunca pega carona no PR do teste.
+
+---
+
 ## Métricas convergentes (M0-M12 pós-ativação ADR 0171)
 
 > **M0 = 2026-05-20** (ADR 0171 ativação Martinho). **M1 = 2026-06-20**, etc.
