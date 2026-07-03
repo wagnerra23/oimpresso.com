@@ -9,26 +9,26 @@
 | Bucket | Quantidade | % |
 |---|---|---|
 | ✅ APROVADO | 3 | 16% |
-| 🟡 PARCIAL | 7 | 37% |
-| ❌ AUSENTE | 9 | 47% |
+| 🟡 PARCIAL | 8 | 42% |
+| ❌ AUSENTE | 8 | 42% |
 | **Total** | 19 | 100% |
 
 **Por score (score = peso da capacidade na FICHA):**
 
 | Score | ✅ | 🟡 | ❌ | Total |
 |---|---|---|---|---|
-| **P0** (bloqueador/define o domínio) | 1 | 1 | 4 | 6 |
+| **P0** (bloqueador/define o domínio) | 1 | 2 | 3 | 6 |
 | **P1** (mercado tem, cliente vai pedir) | 0 | 3 | 3 | 6 |
 | **P2** | 2 | 1 | 2 | 5 |
 | **P3** | 0 | 2 | 0 | 2 |
 
-**Diagnóstico:** o módulo tem **higiene boa** (multi-tenant Tier 0 real, cockpit+drawer, KPIs, defer) mas o **motor do domínio está vazio** — os 4 P0 ausentes (import XML DF-e, matching XML→PO, recebimento parcial, 3-way match) são exatamente o que **É** uma compra BR. Como "tela de leitura sobre compras existentes" funciona; como "sistema que recebe a NF-e do fornecedor, casa com o pedido e concilia", ainda não. Nenhuma capacidade está **em uso por cliente real** (D5=0 — módulo não está em prod nem canary). Ver §8 da FICHA ("O que a nota esconde").
+**Diagnóstico:** o módulo tem **higiene boa** (multi-tenant Tier 0 real, cockpit+drawer, KPIs, defer) e o **substrato fiscal pronto** (import DF-e + manifestação testados no `Modules/NfeBrasil`), mas o **motor de compra não fecha o ciclo** — os 3 P0 ausentes (matching XML→PO, recebimento parcial, 3-way match) + a ponte DF-e→compra (C01, a última milha) são o que **É** uma compra BR. Como "tela de leitura + import fiscal ao lado" funciona; como "recebe a NF-e do fornecedor → vira compra → casa com o pedido → concilia", ainda não. Nenhuma capacidade está **em uso por cliente real** (D5=0 — módulo não está em prod nem canary). Ver §8 da FICHA ("O que a nota esconde").
 
 ## Inventário detalhado
 
 | # | Capacidade (FICHA) | Score | Status | Evidência | Falta |
 |---|---|:-:|:-:|---|---|
-| C01 | Importar XML NF-e como compra + manifestação destinatário SEFAZ | P0 | ❌ | `grep ImportarDfeComoCompra\|nfe_dfe_recebidos` em `Modules/Compras/Services/` = zero; só comentário em `ServiceProvider`/`InstallController`; `Modules/NfeBrasil` puxa DF-e mas nada vira compra | Bridge `NfeDfeRecebido → Transaction(type=purchase)` (US-COM-003, Wave 6) — diferencial nº1 BR |
+| C01 | Importar XML NF-e como compra + manifestação destinatário SEFAZ | P0 | 🟡 | **pull + manifestação PRONTOS no `Modules/NfeBrasil`**: `DistribuicaoDfeService` (SEFAZ NSU) + `BuscarDfesRecebidosJob`/cron + `ManifestacaoService`/`Controller` (testados) + `nfe_dfe_recebidos`/`itens`/`eventos` | Só a **última milha — a ponte→compra**: `nfe_dfe_recebidos.transaction_id` + `ImportarDfeComoCompraService` (DFe→`type=purchase`) (US-COM-003) |
 | C02 | Matching automático XML→PO (fornecedor + produto) | P0 | ❌ | Sem código de match por CNPJ nem por EAN/xProd | Auto-match supplier por CNPJ + produto por EAN+`xProd` (depende C01) |
 | C03 | Recebimento parcial (qty recebida ≠ pedida) | P0 | ❌ | `Drawer.tsx` só mostra estado inteiro; sem qty-recebida por linha | Modelo de recebimento parcial + trânsito residual + autosave check-in |
 | C04 | Cálculo custo/total da compra correto — comprovado por teste | P0 | 🟡 | `ComprasService::buscarDetalhe` calcula `line_total = qty × price_inc_tax` (PHP); `GapsHardeningTest`/`GapsP1HardeningTest` são `file_get_contents`+`str_contains` (tautológicos) | Teste E2E que submete compra (grade+frete+desc+imposto) e assere `final_total`/`purchase_lines`/estoque persistidos (Tier 0 valor/estoque) |
@@ -56,7 +56,7 @@
 
 ### P0 — bloqueador / define o domínio
 
-1. **[P0] Bridge Importar XML DF-e → Transaction(type=purchase)** (US-COM-003, Wave 6) — ✅ execute — _lista DF-e pendentes via SEFAZ NSU, auto-match fornecedor por CNPJ, cria compra com linhas pré-populadas. Diferencial nº1 BR + unlock Larissa (elimina digitar 600-1000 SKUs). Evidência: C01 ❌, bridge nunca construída._
+1. **[P0] Ponte DF-e recebida → Compra** (US-COM-003) — ✅ execute — _**reusa o que já existe no `Modules/NfeBrasil`** (`DistribuicaoDfeService` pull NSU + `nfe_dfe_recebidos` + `ManifestacaoService`, testados); constrói só a última milha: migration `nfe_dfe_recebidos.transaction_id` + `ImportarDfeComoCompraService` (DFe→`type=purchase`) + modal "Importar XML" listando DF-e pendentes + auto-match fornecedor por CNPJ. Diferencial nº1 BR + unlock Larissa. Esforço **M** (o import fiscal caro já está pronto). Evidência: C01 🟡._
 2. **[P0] Teste E2E de cálculo custo/total/estoque da compra** — ✅ execute (dever Tier 0) — _submete compra (grade+frete+desc+imposto) → assert `final_total`/`purchase_lines`/movimentação de estoque persistidos. Blinda Tier 0 valor/estoque (1 célula grade = 1 SKU × custo × qty = write de estoque). Evidência: C04 🟡, hardening tests tautológicos._
 3. **[P0] Matching automático XML→produto (EAN + xProd; fallback manual)** — ✅ execute (depende #1) — _o que faz o import valer a pena em vez de mapear item a item. Evidência: C02 ❌._
 4. **[P0] Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in)** — ✅ execute — _vestuário recebe parcial real (lote incompleto). Evidência: C03 ❌. Líder: Lightspeed/Shopify/Zoho._
