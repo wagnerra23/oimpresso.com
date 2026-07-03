@@ -227,3 +227,84 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Evidência (screenshots/logs) anexada.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+## User stories — Passo 2 CAPTERRA-INVENTARIO 2026-07-03 (aprovadas [W] "todos")
+
+> Origem: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (nota 67) → [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) batch T1-T4. Criadas via `tasks-create` MCP, aprovação Wagner 2026-07-03.
+
+### US-PG-010 · Refund uniforme nos 6 drivers (full+partial + Pix devolução generalizada)
+
+> owner: — · priority: p0 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** CAPTERRA-INVENTARIO 2026-07-03 (T1) — bucket 🟡 PARCIAL, gap P0.
+
+**Estado atual:** refund/estorno via API só em AsaasDriver, InterDriver (PIX) e PagarmeDriver. C6Driver/SicoobApiDriver/BcbPixDriver lançam DriverNotSupportedException. Boleto Inter exige TED reverso manual (não via API).
+
+**Concorrentes:** Asaas/Iugu/Pagar.me/Stripe/MercadoPago/Cielo têm refund full+partial via API.
+
+**Aceite:**
+- refund() real em C6 e Sicoob (ou doc canônica TED-reverso pra boleto onde a API não suporta)
+- Pix devolução generalizada além do Inter
+- Pest por driver (full + parcial + valor > original rejeitado)
+- REGRA MESTRE valor/estoque: dry-run antes→depois + 2 caminhos de prova antes de habilitar em prod
+
+**Refs:** CAPTERRA-FICHA §4 (refund-api, pix-devolucao), ADR 0170, ADR 0093 (multi-tenant nos jobs de refund).
+
+### US-PG-011 · Boleto híbrido (boleto + QR Pix no mesmo documento)
+
+> owner: — · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** CAPTERRA-INVENTARIO 2026-07-03 (T2) — bucket 🟡 PARCIAL, gap P1.
+
+**Estado atual:** boletos emitidos sem QR Pix embutido. Inter e Asaas suportam boleto híbrido (código de barras + QR Pix no mesmo documento — liquidação em segundos vs até 3 dias úteis).
+
+**Concorrentes:** Asaas e Iugu oferecem boleto híbrido nativo.
+
+**Aceite:**
+- Expor boleto híbrido no CnabBoletoAdapter / drivers Inter+Asaas
+- Documento renderiza código de barras + QR Pix
+- UI de emissão permite optar por híbrido
+- Pest cobre geração do payload híbrido
+
+**Refs:** CAPTERRA-FICHA §3 (linha Boleto), §6 G7, ADR 0170.
+
+### US-PG-012 · Extrato/saldo bancário unificado + conciliação contábil
+
+> owner: — · priority: p2 · estimate: 20h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** CAPTERRA-INVENTARIO 2026-07-03 (T3) — bucket 🟡 PARCIAL, gap P2.
+
+**Estado atual:** só InterImportarRecebimentosCommand puxa recebimentos. Sem saldo_cached unificado nem relatório de conciliação contábil.
+
+**Concorrentes:** Cielo (Conciliador/EDI) e Stripe (Sigma/Reporting) têm conciliação contábil madura; Asaas expõe saldo/extrato.
+
+**Aceite:**
+- Integra fin_contas_bancarias.saldo_cached (atualizado por webhook/import)
+- Extrato por conta com casamento título↔recebimento
+- Relatório de conciliação (fechamento contábil) exportável
+- REGRA MESTRE valor: prova por 2 caminhos ao alterar saldo
+
+**Refs:** CAPTERRA-FICHA §4 (extrato-saldo-api), §6 G9, ADR 0170, integração Modules/Financeiro.
+
+### US-PG-013 · Split de pagamento (múltiplos recebedores) — feature-wish até sinal de cliente
+
+> owner: — · priority: p2 · estimate: 24h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** CAPTERRA-INVENTARIO 2026-07-03 (T4) — bucket ❌ AUSENTE, gap P2.
+
+⚠️ **Feature-wish (ADR 0105):** os 6 concorrentes (Asaas/Iugu/Pagar.me/Stripe/MercadoPago/Cielo) têm split, mas **não há sinal de cliente** no oimpresso pedindo. Manter como US registrada mas NÃO iniciar sem cliente pagante/reportando OU drift de métrica. Se sinal aparecer, promover a ativa.
+
+**Estado atual:** zero implementação (grep split → só menção em CONTRACTS.md/README).
+
+**Aceite (quando ativar):**
+- Modelo SplitConfig + endpoint de configuração por cobrança
+- Divisão por % ou valor fixo entre N recebedores
+- Funciona em Pix/boleto/cartão nos drivers que suportam (Asaas/Pagar.me nativos)
+- Estorno reverte split proporcionalmente
+- Pest de divisão correta + multi-tenant Tier 0
+
+**Refs:** CAPTERRA-FICHA §4 (split-pagamento), §6 G6, ADR 0105 (cliente como sinal), ADR 0170.

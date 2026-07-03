@@ -53,12 +53,14 @@ owner: wagner
 
 > Regra: os gaps **já rastreados** (US-PG-003/006/007/008/009) **não viram task nova** — já estão no SPEC. Proponho só o que **não existe**.
 
-| # | US proposta | Score | Esforço | Descrição | REGRA MESTRE? |
+| # | US criada | Score | Esforço | Descrição | REGRA MESTRE? |
 |---|---|---|---|---|---|
-| T1 | **US-PG-010** Refund uniforme nos 6 drivers | P0 | Médio | Estender `refund()` real em C6/Sicoob (ou doc TED-reverso p/ boleto) + Pix devolução generalizada + Pest por driver | ✅ toca valor — dry-run+2 caminhos |
-| T2 | **US-PG-012** Boleto híbrido (boleto + QR Pix no mesmo doc) | P1 | Médio | Inter/Asaas suportam; expor no adapter + UI | — |
-| T3 | **US-PG-013** Extrato/saldo unificado + conciliação contábil | P2 | Alto | Integra `fin_contas_bancarias.saldo_cached`; estilo Cielo EDI/Stripe Sigma | ✅ toca valor |
-| T4 | **US-PG-011** Split de pagamento | P2 | Alto | **Só criar se houver sinal de cliente** (ADR 0105) — senão fica como ADR feature-wish, não US ativa | — |
+| T1 | **US-PG-010** Refund uniforme nos 6 drivers | P0 | Médio (12h) | Estender `refund()` real em C6/Sicoob (ou doc TED-reverso p/ boleto) + Pix devolução generalizada + Pest por driver | ✅ toca valor — dry-run+2 caminhos |
+| T2 | **US-PG-011** Boleto híbrido (boleto + QR Pix no mesmo doc) | P1 | Médio (8h) | Inter/Asaas suportam; expor no adapter + UI | — |
+| T3 | **US-PG-012** Extrato/saldo unificado + conciliação contábil | P2 | Alto (20h) | Integra `fin_contas_bancarias.saldo_cached`; estilo Cielo EDI/Stripe Sigma | ✅ toca valor |
+| T4 | **US-PG-013** Split de pagamento (feature-wish) | P2 | Alto (24h) | **Registrada mas dormente** — só ativar com sinal de cliente (ADR 0105) | — |
+
+> **Todas aprovadas [W] "todos" 2026-07-03** — criadas via `tasks-create` MCP (US-PG-010..013) + apendidas ao [SPEC.md](SPEC.md). US-PG-013 (split) fica **registrada dormente** (ADR 0105).
 
 **Já no SPEC (não recriar) — recomendação de priorização pro PLANO-ONDA5:**
 - **US-PG-003** (webhook hardening, P0) → executar agora (baixo esforço, alto risco Tier 0)
@@ -66,6 +68,6 @@ owner: wagner
 - **US-PG-006/007** (Inter mTLS + URL pública, P1/infra) → CT100
 - **US-PG-009** (smokes Onda 5 biz=1 + canary, P1) → humano-limitado (ADR 0106)
 
-## Decisão pendente [W]
+## Decisão [W] — RESOLVIDA 2026-07-03
 
-Quais aprovar? Sugestão: **T1 (US-PG-010 refund)** agora + **T2/T3** backlog + **T4 (split)** só como ADR feature-wish até sinal. Ao aprovar, eu: `tasks-create` no MCP + apendo as US ao SPEC.md.
+Wagner aprovou **"todos"**. As 4 US foram criadas (US-PG-010..013) e apendidas ao [SPEC.md](SPEC.md). US-PG-013 (split) registrada **dormente** (ADR 0105 — ativar só com sinal de cliente).
