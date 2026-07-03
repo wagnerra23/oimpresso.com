@@ -30,3 +30,27 @@ gaps:
     fix: "Muito inline-style verboso (style={{display:grid...}}) repetido; extrair pra classes"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Fiscal, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+# NÃO entra na nota 80 (UX). É a OUTRA leitura da foto: quanto do comportamento tem UC-id que o defenda.
+casos_coverage:
+  fonte: resources/js/Pages/Fiscal/Config.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Senha do certificado A1 nunca vaza no payload (Tier 0 · encrypted_password hidden)"
+    - "Certificados de outros tenants nunca aparecem (Tier 0 · HasBusinessScope ADR 0093)"
+    - "SimplesOnly bloqueia export SPED de user comum com 503 (feature-gate Tier 0)"
+    - "Superadmin bypassa o gate SimplesOnly (feature-gate)"
+    - "Flag false libera o export pra user comum (feature-gate)"
+    - "Gate fiscal.sped.export é anterior ao gate de flag (403 antes de 503, Tier 0)"
+    - "Flag SimplesOnly default = true e vive em config/fiscal.php (não hardcoded)"
+    - "Gate fiscal.config.edit no acesso à tela (feature-gate · sem teste)"
+    - "Pílula de vencimento do cert vencido/proximo-30d/ok (sem teste)"
+    - "Tributação default CFOP/CSOSN/CST exibida read-only (sem teste · seriesMock ainda mock)"
+  cobertura_uc: "0%"   # foto: UX 80 Advanced vs comportamento 0% tracado
+d1_calculo:
+  aplica: false
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }
+  # nota: read-only por design (charter Non-Goals) — exibe cert A1 + regime + tributacao default; nao calcula nem persiste. Edicao vive em NfeBrasil canon.

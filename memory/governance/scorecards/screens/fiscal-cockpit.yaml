@@ -30,3 +30,25 @@ gaps:
     fix: "Filtro client-side local (TODO sync URL) diverge do server-side filter das sub-paginas"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Fiscal, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+# NÃO entra na nota 82 (UX). É a OUTRA leitura da foto: quanto do comportamento tem UC-id que o defenda.
+casos_coverage:
+  fonte: resources/js/Pages/Fiscal/Cockpit.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Gate de permissão bloqueia acesso sem fiscal.access nem superadmin"
+    - "Renderiza Inertia Fiscal/Cockpit com props kpis/sparklines/alerts"
+    - "KPIs entregam as 7 chaves obrigatórias do ribbon"
+    - "Alertas determinísticos sem campos de LLM (thought/reasoning)"
+    - "KPIs isolam por business_id cross-tenant (Tier 0 · ADR 0093)"
+    - "Cache de KPIs isolado por business (Tier 0 · ADR 0093)"
+    - "Cache de KPIs TTL 60s não re-executa dentro da janela"
+    - "Chave de cache bate com InvalidaCockpitCacheListener (contrato)"
+  cobertura_uc: "0%"   # foto: UX 82 Advanced vs comportamento 0% traçado (11 casos Pest, 0 UC-id)
+d1_calculo:
+  aplica: false
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }
+  # nota: read-only — agrega count/sum de emissões e exibe KPIs/faturamento, não persiste nem muta valor/estoque; tabela de notas é mock client-side.

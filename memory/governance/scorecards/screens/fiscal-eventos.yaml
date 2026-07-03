@@ -30,3 +30,29 @@ gaps:
     fix: "fx-tl-h horizontal (badge+link+cstat+when) sem wrap testado em mobile"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Fiscal, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+# NÃO entra na nota 75 (UX). É a OUTRA leitura da foto: quanto do comportamento tem UC-id que o defenda.
+casos_coverage:
+  fonte: resources/js/Pages/Fiscal/Eventos.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Timeline nunca mostra eventos de outro tenant (Tier 0 · HasBusinessScope ADR 0093)"
+    - "Timeline é append-only — evento não é editável (NfeEvento::UPDATED_AT null)"
+    - "7 tipos SEFAZ canônicos reconhecidos e rotulados (kind cce/cancel/epec/manifest)"
+    - "CC-e 110110 exige texto 15-1000 chars + n_seq 1-20 (CONFAZ Art. 14) — gera evento"
+    - "Cancelamento exige motivo >=15 chars (CONFAZ SINIEF 07/2005) — gera evento 110111"
+    - "Inutilização valida modelo 55/65 + faixa coerente + justificativa 15-255"
+    - "Retransmitir só vale pra rejeitada/denegada/erro_envio — gera evento"
+    - "Manifestação DF-e restrita às 4 ações SEFAZ; desconhecer/nao_realizada exigem justificativa"
+    - "Contrato AcoesController: 5 métodos públicos (cancelar/manifestar/cartaCorrecao/inutilizar/retransmitir)"
+    - "Gate fiscal.access no acesso à timeline (feature-gate · sem teste)"
+    - "Filtro por kind + janela temporal 7/30/90d default 30d (sem teste)"
+    - "Justificativa truncada em 200 chars (anti-PII xMotivo · sem teste)"
+  cobertura_uc: "0%"   # foto: UX 75 Advanced vs comportamento 0% tracado
+d1_calculo:
+  aplica: false
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }
+  # nota: timeline append-only (NfeEvento) — nao muta valor/estoque; acoes de mutacao so validam input e delegam ao NfeService/ManifestacaoService.

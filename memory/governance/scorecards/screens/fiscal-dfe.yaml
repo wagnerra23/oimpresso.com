@@ -30,3 +30,27 @@ gaps:
     fix: "Acoes manifestacao so icon (Check/Eye/X) — label so no title; ambiguo entre confirmar/nao-realizada"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Fiscal, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+# NÃO entra na nota 79 (UX). É a OUTRA leitura da foto: quanto do comportamento tem UC-id que o defenda.
+casos_coverage:
+  fonte: resources/js/Pages/Fiscal/Dfe.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Isolamento multi-tenant na listagem de DF-e (Tier 0 · ADR 0093)"
+    - "Contrato dos 5 status de manifestação (pendente/ciencia/confirmada/desconhecida/nao_realizada)"
+    - "Definição de pendente de manifestação = PENDENTE + CIENCIA"
+    - "4 ações manifestação SEFAZ whitelist (Ciência/Confirmação/Desconhecimento/Não Realizada)"
+    - "Justificativa exigida só em Desconhecimento e Não Realizada"
+    - "Superfície do AcoesController (manifestarDfe + cancelarNfe/cartaCorrecao/inutilizar/retransmitir)"
+    - "Pílula prazo legal 90d NT 2014.002 com 3 níveis de urgência (sem teste)"
+    - "Filtro por status via chips (sem teste)"
+    - "Busca por chave 44 / CNPJ / nome emitente (sem teste)"
+    - "Aba Histórico de manifestações (hoje mock — débito conhecido, sem teste)"
+  cobertura_uc: "0%"   # foto: UX 79 Advanced vs comportamento 0% tracado
+d1_calculo:
+  aplica: false
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }
+  # nota: lista read-only — le NfeDfeRecebido, soma valorPendente e calcula prazoDias so pra exibicao; dispatch das 4 acoes e PR futuro.
