@@ -1,9 +1,14 @@
 ---
+date: 2026-07-03
+topic: "Capterra sênior Modules/NFSe (emissão ISS / serviço) — nota 45/100 + /comparativo + 7 US"
 title: "Capterra sênior — Modules/NFSe (emissão ISS / NFSe serviço)"
 type: session
-date: 2026-07-03
 module: NFSe
 agent: capterra-senior
+authors: [C]
+prs: [3740]
+us: [US-NFSE-016, US-NFSE-017, US-NFSE-018, US-NFSE-019, US-NFSE-020, US-NFSE-021, US-NFSE-022]
+related_adrs: [0089-capterra-driven-module-evolution, 0105-cliente-como-sinal-guiar-sem-mandar]
 related_docs:
   - memory/requisitos/NFSe/CAPTERRA-FICHA.md
   - memory/requisitos/NFSe/BRIEFING.md
