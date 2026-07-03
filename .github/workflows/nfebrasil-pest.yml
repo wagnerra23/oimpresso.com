@@ -141,6 +141,8 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php \
             Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php \
             Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
+            Modules/NfeBrasil/Tests/Feature/ReformaSchemaModoTest.php \
+            Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php
 
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
