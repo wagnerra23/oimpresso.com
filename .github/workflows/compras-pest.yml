@@ -1,0 +1,142 @@
+name: Compras · Pest (MySQL)
+
+# Lane dedicado pra rodar a suíte Pest do Modules/Compras contra MySQL REAL
+# + seed mínimo (biz=1 + biz=2 — via .github/actions/pest-mysql-setup, FV-F2).
+#
+# Existe porque os testes Feature do Compras estavam REGISTRADOS em phpunit.xml
+# (<directory>./Modules/Compras/Tests/Feature</directory>) mas NENHUM lane de CI
+# os executava — falsa cobertura (proibição Tier 0 "Modules/X/Tests sem CI").
+#   - ci.yml roda só o subconjunto sqlite curado (.github/ci-sqlite-pest.list).
+#   - modules-pest.yml cobre Arquivos/ComunicacaoVisual/Fiscal/NfeBrasil/Repair/
+#     Vestuario — NÃO Compras.
+#   - Os shards dedicados (arquivos/estoque/financeiro/jana/nfebrasil) são
+#     per-módulo, não Compras.
+#
+# Os testes MultiTenantTest / ComprasIndexTest / ComprasListagemNPlusUmTest usam
+# DatabaseTransactions + schema UltimatePOS (business/users/transactions/Spatie
+# permissions) → dão markTestSkipped em sqlite :memory:. Precisam de MySQL real
+# semeado. Aqui rodam de verdade: o isolamento cross-tenant (ADR 0093) e a
+# redação de PII (G-06/C17, DrawerPiiRedactionTest) passam a ter cobertura
+# EXECUTADA no CI, não só no full-suite nightly do CT 100 (ADR 0062).
+# (MultiTenantSqlGuardTest / GapsHardeningTest / GapsP1HardeningTest são
+# grep+toSql — rodam em qualquer driver — mas ficam junto pela unidade da suíte.)
+#
+# Usa o SCHEMA BASELINE (database/schema/mysql-schema.sql, gerado via schema:dump
+# da prod com as migrations registradas). `migrate` carrega o schema final num
+# passo só + roda só as migrations novas → sem o problema de fresh-install
+# (FK ordering / type-mismatch) que as migrations legacy têm.
+
+on:
+  workflow_dispatch: {}
+  # ADR 0271 onda 2 (item 4 — required-readiness): pull_request SEM paths
+  # (always-run) pra ser promovível a required sem deadlock "Expected — waiting".
+  # O custo (MySQL + migrate + Pest) é evitado por skip-as-pass interno: o step
+  # dorny/paths-filter detecta se algo do Compras mudou; se não, pula o pesado
+  # e conclui verde. push segue path-filtered (contém custo no main).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Compras/**'
+      # Invariantes R1 (getListPurchases JOIN scoped) vivem no util compartilhado:
+      # MultiTenantSqlGuardTest + GapsP1HardeningTest gateiam contra regressão aqui.
+      - 'app/Utils/TransactionUtil.php'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/compras-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: compras-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Compras · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Compras (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            compras:
+              - 'Modules/Compras/**'
+              - 'app/Utils/TransactionUtil.php'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/compras-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Compras mudou)
+        if: steps.changes.outputs.compras == 'false'
+        run: echo "✅ Sem mudanças no Modules/Compras — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      # FV-F2 (plano SDD 2026-06-12): setup extraído pra composite action reusável
+      # pelas lanes de burn-down por módulo. PHP + Composer + .env + migrate
+      # (schema baseline) + seed mínimo (biz=1 fixture completa + biz=2 Tier 0
+      # cross-tenant). O service container MySQL permanece DECLARADO ACIMA no job
+      # (composite action não pode declarar services — limitação GitHub Actions).
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.compras == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.compras == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Compras · MySQL)
+        if: steps.changes.outputs.compras == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: (sem force=) — se não
+        # sobrescrever, o Pest roda em sqlite VAZIO e os testes que dependem de
+        # schema UltimatePOS (Business::find/transactions/Spatie) dão markTestSkipped
+        # (a falsa cobertura). Exportar aqui faz rodar no MySQL real semeado.
+        #
+        # Roda a SUÍTE INTEIRA (Modules/Compras/Tests) — não allowlist. Os testes
+        # foram desenhados pra este lane: self-provisionam biz=1/biz=99 via
+        # forceCreate sob DatabaseTransactions (rollback) e são skip-graceful se o
+        # schema faltar. Rodar o diretório inteiro auto-inclui testes novos
+        # (ex DrawerPiiRedactionTest) sem editar este workflow.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-compras-junit.xml \
+            Modules/Compras/Tests
+
+      - name: Upload JUnit (veredito por-teste — casos:results)
+        if: ${{ !cancelled() && steps.changes.outputs.compras == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-compras-junit
+          path: test-results/pest-compras-junit.xml
+          retention-days: 14
