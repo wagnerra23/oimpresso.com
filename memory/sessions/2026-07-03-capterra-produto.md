@@ -1,6 +1,8 @@
 ---
-data: 2026-07-03
-tipo: session-log
+date: 2026-07-03
+topic: Capterra Produto (capacidade) — adversário de mercado, onda standalone do programa de ondas
+authors: [C]
+prs: [3729]
 agente: capterra-senior
 modulo: Produto
 onda: standalone (programa de ondas, fila Produto→Cliente)
