@@ -9,6 +9,8 @@ related: ../PLANO-MESTRE.md
 
 # Onda 0a — ADR-proposta
 
+> Status vivo do programa: [PLANO-MESTRE.md](../PLANO-MESTRE.md) §Status vivo (1 plano = 1 registro) — execução via tasks MCP `parent_plan=programa-ondas`.
+
 ## Objetivo
 
 Travar o mecanismo do programa **antes de qualquer código** (governança append-only, R10).

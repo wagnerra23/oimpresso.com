@@ -9,6 +9,8 @@ related: ../PLANO-MESTRE.md
 
 # Onda 0b — Extensão da régua por tela
 
+> Status vivo do programa: [PLANO-MESTRE.md](../PLANO-MESTRE.md) §Status vivo (1 plano = 1 registro) — execução via tasks MCP `parent_plan=programa-ondas`.
+
 ## Objetivo
 
 Plugar a dimensão de **comportamento/valor** na régua de tela que já existe, em vez de criar

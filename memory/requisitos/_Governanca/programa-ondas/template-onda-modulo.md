@@ -8,6 +8,8 @@ related: PLANO-MESTRE.md
 
 # Template — Onda por Módulo `<Mod>`
 
+> Status vivo do programa: [PLANO-MESTRE.md](PLANO-MESTRE.md) §Status vivo (1 plano = 1 registro).
+
 > Gabarito reusável do ciclo-padrão de 4 passos (ver [PLANO-MESTRE.md](PLANO-MESTRE.md)).
 > Copie este arquivo para `onda-N-<mod>/` e troque `<Mod>` pelo módulo. **Não abrir onda sem OK [W].**
 

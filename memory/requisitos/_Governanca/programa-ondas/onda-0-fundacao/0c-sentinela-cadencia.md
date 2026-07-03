@@ -9,6 +9,8 @@ related: ../PLANO-MESTRE.md
 
 # Onda 0c — Sentinela de cadência
 
+> Status vivo do programa: [PLANO-MESTRE.md](../PLANO-MESTRE.md) §Status vivo (1 plano = 1 registro) — execução via tasks MCP `parent_plan=programa-ondas`.
+
 ## Objetivo
 
 Responder a pergunta original do Wagner — "como isso **sobrevive ao tempo**?". O diagnóstico
@@ -27,9 +29,19 @@ Mover o protótipo desta sessão (`scratchpad/censo-exposicao.mjs`) para
 
 Gravar baseline em `memory/governance/exposicao-tier0-baseline.json`.
 
+### 1b. Limpar o universo ANTES de congelar baseline
+
+O protótipo herda ruído da heurística: conta subcomponentes (`_drawer/*`, `_Showcase`) como
+telas (universo 279 vs os 242 honestos do inventário) e credita "PII" por palavras genéricas
+(`email`). **Antes do primeiro baseline:** alinhar o universo ao do `screen-coverage-map.mjs`
+(excluir `_components/`, `Partials/`, pastas `_*`) e revisar os regexes de categoria. Baseline
+congelado com ruído = catraca protegendo número errado.
+
 ### 2. Cron semanal (cadência)
 
-Agendar em `app/Console/Kernel.php` (ou workflow CI agendado) um run semanal que:
+Agendar como **workflow CI agendado** (`.github/workflows/`, `schedule:`) — **não** em
+`app/Console/Kernel.php`: o Kernel roda no Hostinger (runtime de produção, sem o repo de
+dev nem node garantido); este script analisa o REPO, e repo-análise mora no CI. O run semanal:
 - recomputa o débito das 3 camadas;
 - compara com o baseline;
 - emite a **tendência** (o conjunto quente está encolhendo ou o débito cresce?);

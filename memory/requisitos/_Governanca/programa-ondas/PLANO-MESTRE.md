@@ -16,6 +16,31 @@ related_adrs:
 > Origem: sessão 2026-07-02 — diagnóstico de que módulos de nota alta escondem cálculo de
 > valor indefeso (a camada do incidente `num_uf`, R$ inflado ×100k).
 
+## Status vivo
+
+<!-- catraca: não regride sem mudar status conscientemente · ADR 0294 -->
+- **status:** proposto  <!-- proposto→ativo quando [W] aprovar a ADR da Onda 0a -->
+- **owner:** W
+- **criado:** 2026-07-02 · **reviewed_at:** 2026-07-02 · **próxima-revisão:** 2026-08-02
+- **cycle:** off-cycle (programa transversal) · **execução:** `parent_plan=programa-ondas` — tasks MCP a criar quando 0a for aprovada
+- **gate-de-saída (DoD):** Onda 1 (Sells) concluída — dente de cálculo red/green no CT100 + scorecard `sells-create.yaml` exibindo UX **e** `casos_coverage` + template calibrado pra Compras
+- **kill-condition:** ADR 0a rejeitada por [W], OU 2 cycles sem nenhuma etapa executada → status `abandonado` (não zumbi)
+- **verdade-viva:** este doc (etapas na tabela abaixo; os arquivos-etapa detalham, o status vive AQUI — 1 plano = 1 registro no índice)
+
+| Etapa | Arquivo | Task MCP | Status | Esforço (ADR 0106) |
+|---|---|---|---|---|
+| 0a ADR-proposta | onda-0-fundacao/0a | a criar | ⬜ | ~2h |
+| 0b Extensão da régua | onda-0-fundacao/0b | a criar | ⬜ | ~4h |
+| 0c Sentinela de cadência | onda-0-fundacao/0c | a criar | ⬜ | ~4h |
+| 0d Paridade de migração | onda-0-fundacao/0d | a criar | ⬜ | ~6h |
+| 1.1 Adversário Sells | onda-1-sells/1.1 | a criar | ⬜ | ~3h (agent) |
+| 1.2 Gaps+backlog Sells | onda-1-sells/1.2 | a criar | ⬜ | ~2h + OK [W] |
+| 1.3 Régua nas telas Sells | onda-1-sells/1.3 | a criar | ⬜ | ~4h |
+| 1.4 Dente de cálculo | onda-1-sells/1.4 | a criar | ⬜ | ~6h (CT100) |
+| 1.5 Catraca+sentinela Sells | onda-1-sells/1.5 | a criar | ⬜ | ~2h |
+
+> Estimativas em horas-agente IA-pair (fator 10x ADR 0106); tarefas humano-limitadas (OK [W], canary) seguem relógio real.
+
 ## Por que existe
 
 Telas migradas (`/perfil`) e módulos de nota alta (`Financeiro` 82) escondem **cálculo de
@@ -67,6 +92,12 @@ Cada onda de módulo roda estes 4 passos, reusando ferramentas que já existem:
 - **Faturamento é o canon macro:** ondas de Financeiro / NfeBrasil / RecurringBilling **encaixam** em `_Roadmap_Faturamento.md`.
 - **Novas ondas (operacionais sem programa), por exposição×débito:** **Sells (piloto) → Compras (nota 59) → Produto → Cliente**. Cada uma exige OK [W] antes de abrir.
 
+## Encaixe na governança de planos existente (anti-paralelo)
+
+- Este programa vive ao lado de [`_Governanca/roadmap/`](../roadmap/) (P01-P10, etapas SDD) **sem sobrepor**: aquele roadmap cuida da suíte/gates de Governance; este cuida do ciclo adversário+régua **por módulo de negócio**. Se qualquer etapa daqui colidir com um P-item de lá, o P-item vence e esta etapa vira referência a ele.
+- Registro no índice de planos vivos: **só este arquivo** carrega o bloco `## Status vivo` (ADR 0294 — 1 plano = 1 registro no [`PLANS-INDEX-GENERATED.md`](../../_processo/PLANS-INDEX-GENERATED.md)); os arquivos-etapa apontam pra cá.
+- Execução rastreada no MCP (`tasks-create` com `parent_plan=programa-ondas`, ADR 0070) — nunca status em markdown de etapa.
+
 ## Índice das etapas (arquivos)
 
 | Etapa | Arquivo | O que entrega |
@@ -74,6 +105,7 @@ Cada onda de módulo roda estes 4 passos, reusando ferramentas que já existem:
 | Onda 0a | [onda-0-fundacao/0a-adr-proposta.md](onda-0-fundacao/0a-adr-proposta.md) | ADR que trava o mecanismo |
 | Onda 0b | [onda-0-fundacao/0b-extensao-regua.md](onda-0-fundacao/0b-extensao-regua.md) | `casos_coverage` + dente de cálculo na régua |
 | Onda 0c | [onda-0-fundacao/0c-sentinela-cadencia.md](onda-0-fundacao/0c-sentinela-cadencia.md) | sentinela `exposicao-tier0.mjs` + cron |
+| Onda 0d | [onda-0-fundacao/0d-paridade-migracao.md](onda-0-fundacao/0d-paridade-migracao.md) | artefato+gate de paridade Blade↔React (a pior dimensão: 8/100) |
 | Onda 1.1 | [onda-1-sells/1.1-adversario-capterra.md](onda-1-sells/1.1-adversario-capterra.md) | ficha de mercado de Sells |
 | Onda 1.2 | [onda-1-sells/1.2-gaps-backlog-changelog.md](onda-1-sells/1.2-gaps-backlog-changelog.md) | inventário + backlog + changelog |
 | Onda 1.3 | [onda-1-sells/1.3-regua-por-tela.md](onda-1-sells/1.3-regua-por-tela.md) | telas Sells gradeadas c/ comportamento |
