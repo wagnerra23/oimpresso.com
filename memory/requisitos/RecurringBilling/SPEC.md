@@ -4,7 +4,7 @@ slug: recurring-billing-spec
 title: Especificação funcional — RecurringBilling
 type: spec
 version: "1.0"
-last_updated: "2026-06-13"
+last_updated: "2026-07-03"
 owner: wagner
 status: ativo
 ---
@@ -1096,3 +1096,32 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Validar reflexo na cobrança e na página de pricing.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-RB-056 · Unificar as 3 implementações de "próximo vencimento" (NoOverflow/EN vs Overflow/PT) — REGRA MESTRE
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** dente de cálculo do RecurringBilling (Onda 1.4, PR #3737, TEST-ONLY). O teste `tests/Feature/Calculo/CalculoRecurringBillingTest.php` **caracteriza** (não corrige) uma divergência entre TRÊS cópias da conta de "próximo vencimento" — análogo do `getTotalPaid ≠ getTotalAmountPaid` da Onda 1.4.
+
+**As 3 implementações divergentes:**
+- **A** `InvoiceGeneratorService::avancarCiclo` — enum **EN** (`monthly/quarterly/semiannual/yearly/custom`), **NoOverflow**, default = +1 mês.
+- **B** `AssinaturaService::calcularProximoVencimento` — enum **PT** (`mensal/trimestral/semestral/anual`), **Overflow**, default = **NO-OP** (retorna a base).
+- **C** `AssinaturaCobrancaService::recalcularProximaCobranca` — igual ao B (PT, Overflow, default NO-OP). O docblock do B diz "helper compartilhado com C", mas são **duplicados**.
+
+**Vocabulário SPLIT no storage:** `rb_plans.ciclo` é enum **EN**; `rb_subscriptions.metadata['ciclo']` (path de edição FIN-004) é **PT**.
+
+**Divergências travadas pelo teste (comportamento ATUAL):**
+1. Anchor dia-31: A(`2026-01-31`,monthly) = `2026-02-28` (fica em fev) vs B(`2026-01-31`,mensal) transborda pra **março** → data de cobrança no mês errado pelo path de edição.
+2. Default cruzado: A tolera termo PT (avança); B/C recebem termo EN → default **NO-OP** → `next_due_date` **congela** = re-cobrança presa (bug latente; pode disparar via FIN-004 se o vocabulário cruzar).
+
+**Fonte de verdade decidida no teste:** **A** (`InvoiceGeneratorService`, NoOverflow) — é o job que fatura de verdade. A unificação deve alinhar B/C a A (uma função só, NoOverflow, vocabulário único).
+
+**⛔ REGRA MESTRE (memory/proibicoes.md §"CÁLCULO DE VALOR ou ESTOQUE"):** é mudança de **data de cobrança em prod**. Antes de mergear:
+1. Dupla confirmação por 2 caminhos independentes com números concretos.
+2. Tabela **antes→depois** das assinaturas/datas afetadas (dry-run sobre biz reais com anchor dia-31 / ciclo editado) apresentada ao [W].
+3. Aprovação explícita [W].
+
+**Nota de execução:** o teste #3737 já trava a divergência atual; ao unificar, o golden `divergencia_anchor_31_*` / `divergencia_vocabulario_cruzado_*` vai virar RED **conscientemente** — atualizar as asserções junto, documentando a decisão (é o sinal esperado, não regressão).
+
+**Refs:** PR #3737 · Onda 1.4 (`memory/requisitos/_Governanca/programa-ondas/onda-1-sells/1.4-dente-calculo.md`) · ADR 0093 · ADR 0101.
