@@ -208,14 +208,14 @@ last_updated: "2026-05-31"
 
 ### US-SELL-040 · Pest integration HTTP full do `SellPosController@store` (caminho B)
 
-**Implementado em:** _pendente_ — integration HTTP full do store() so ao refatorar SellPosController@store; hoje so invariantes estruturais (US-008)
+**Implementado em:** _pendente_ — integration HTTP full do store() **desgated** 2026-07-03 (Onda 1.1 CAPTERRA G-01): escrever JÁ contra o `store()` legado como está, NÃO esperar refactor; hoje só invariantes estruturais tautológicas (US-008)
 
-> owner: wagner · priority: p2 · estimate: 6-10h · status: todo · type: story · origin: sessao-2026-05-15-canary-prep-paridade
-> blocked_by: — (independente; só disparar quando refatorar `store()` de fato)
+> owner: wagner · priority: p0 · estimate: 6-10h · status: todo · type: story · origin: sessao-2026-05-15-canary-prep-paridade · repriorizado: 2026-07-03 (p2→p0, Onda 1.1 CAPTERRA-FICHA G-01)
+> blocked_by: — (independente — **NÃO** esperar refactor do `store()`; é a rede de segurança que deveria existir ANTES dele)
 
 **Contexto.** Caminho B do plano híbrido decidido em 2026-05-15 — alternativa "honesta integration" do baseline `store()`. Hoje `tests/Feature/Sells/SellPosControllerStoreInvariantsTest.php` (US-SELL-008 parte 1) cobre estrutura via regex contra source, mas não persiste venda. Esta US executa fixtures HTTP reais POST `/pos` em biz=1 com RefreshDatabase + seed mínimo (Business + User com perms + Location + Tax + CashRegister aberto + Contact walk-in + Product), valida `transactions` + `transaction_payments` + `transaction_sell_lines` + estoque decrescido.
 
-**Quando disparar.** Só fazer quando alguém **de fato refatorar** `SellPosController@store` (atualmente legacy UltimatePOS, ~30 deps). Enquanto store() permanece intocado, invariantes estruturais + canary humano biz=1 7d cobrem.
+**Quando disparar (repriorizado 2026-07-03 — gate REMOVIDO).** Fazer **agora**, contra o `SellPosController@store` legado como está (~30 deps UltimatePOS) — **sem esperar refactor**. Racional (Onda 1.1 CAPTERRA-FICHA §8.2 + G-01): as "invariantes estruturais" (`SellPosControllerStoreInvariantsTest`, strpos no source) são **tautológicas** — passam mesmo com a conta errada (anti-padrão proibicoes §5). O canary humano biz=1 **não pega inflação** (o incidente R$×100k de 2026-06-05 em biz=4 foi pego em produção, não por teste nem por canary). Uma venda POST `/pos` real que verifica `final_total`/subtotais **persistidos** é a rede de segurança mais barata contra um 2º incidente de valor — e ela precisa existir **independente** do refactor, não atrás dele. Se/quando o `store()` for refatorado, o mesmo teste vira o guard de não-regressão do refactor (bônus).
 
 **Escopo (5+ fixtures):**
 - [ ] Seed builder helper em `tests/Helpers/` ou `tests/Support/SellsTestSeed.php` (Business id=1 + User com `sell.create` + Location + Tax + CashRegister aberto + Contact walk-in + Product enable_stock)
