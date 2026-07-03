@@ -33,6 +33,8 @@ class NfeBusinessConfig extends Model
 
     protected $fillable = [
         'business_id', 'regime', 'auto_emission_enabled', 'tributacao_default',
+        // US-FISCAL-021 (PR-C): flag Reforma Tributária. legacy (default) | hybrid_2026 | full.
+        'reforma_tributaria_modo',
     ];
 
     protected $casts = [
