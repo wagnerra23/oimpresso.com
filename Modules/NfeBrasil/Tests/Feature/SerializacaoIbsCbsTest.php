@@ -155,10 +155,20 @@ function normalizarVolatil(string $xml): string
     ) ?? $xml;
 }
 
-/** Extrai o texto de uma tag simples (default namespace, sem prefixo). */
+/** Extrai o texto de uma tag simples (default namespace, sem prefixo). Primeira ocorrência. */
 function tag(string $xml, string $name): ?string
 {
     return preg_match("#<{$name}>([^<]*)</{$name}>#", $xml, $mm) ? $mm[1] : null;
+}
+
+/**
+ * Isola o fragmento do grupo UB do item `<IBSCBS>...</IBSCBS>`. Necessário porque
+ * <CST> e <vBC> também aparecem em ICMS/PIS/COFINS — buscar no XML inteiro pegaria
+ * o CST do ICMS. `</IBSCBS>` não colide com `</IBSCBSTot>` (strings distintas).
+ */
+function fragIbsCbs(string $xml): string
+{
+    return preg_match('#<IBSCBS>(.*?)</IBSCBS>#s', $xml, $mm) ? $mm[1] : '';
 }
 
 /** IBS/CBS de exemplo: base 1.000, IBS 0,1% (fração 0.001) e CBS 8,8% (fração 0.088). */
@@ -215,20 +225,23 @@ it('modo full + regra IBS/CBS → serializa grupo UB com valores corretos', func
         ->toContain('<gCBS>')
         ->toContain('<IBSCBSTot>');
 
+    // Escopo no fragmento do item (CST/vBC também existem em ICMS/PIS/COFINS).
+    $frag = fragIbsCbs($xml);
+
     // CST único do grupo (usa cst_ibs) + classe de tributação.
-    expect(tag($xml, 'CST'))->toBe('000');
-    expect(tag($xml, 'cClassTrib'))->toBe('000001');
+    expect(tag($frag, 'CST'))->toBe('000');
+    expect(tag($frag, 'cClassTrib'))->toBe('000001');
 
     // gIBSUF recebe o IBS combinado; gIBSMun zerado (modelagem v1 sem split).
-    expect(tag($xml, 'pIBSUF'))->toBe('0.1000');   // 0.001 × 100
-    expect(tag($xml, 'vIBSUF'))->toBe('1.00');     // 1000 × 0.001
-    expect(tag($xml, 'pIBSMun'))->toBe('0.0000');
-    expect(tag($xml, 'vIBSMun'))->toBe('0.00');
-    expect(tag($xml, 'vIBS'))->toBe('1.00');       // vIBSUF + vIBSMun
+    expect(tag($frag, 'pIBSUF'))->toBe('0.1000');   // 0.001 × 100
+    expect(tag($frag, 'vIBSUF'))->toBe('1.00');     // 1000 × 0.001
+    expect(tag($frag, 'pIBSMun'))->toBe('0.0000');
+    expect(tag($frag, 'vIBSMun'))->toBe('0.00');
+    expect(tag($frag, 'vIBS'))->toBe('1.00');       // vIBSUF + vIBSMun
 
     // CBS.
-    expect(tag($xml, 'pCBS'))->toBe('8.8000');     // 0.088 × 100
-    expect(tag($xml, 'vCBS'))->toBe('88.00');      // 1000 × 0.088
+    expect(tag($frag, 'pCBS'))->toBe('8.8000');     // 0.088 × 100
+    expect(tag($frag, 'vCBS'))->toBe('88.00');      // 1000 × 0.088
 })->group('nfe');
 
 it('modo full → XML gerado é válido contra o XSD PL_010_V1', function () {
@@ -295,15 +308,15 @@ it('cross-check numérico: valor do MotorTributarioService é o que sai no XML',
         'valor_cbs'    => $tributo->valor_cbs,
     ];
 
-    $xml = montarXmlIbsCbs($ibscbs);
+    $frag = fragIbsCbs(montarXmlIbsCbs($ibscbs));
 
     // Caminho 1 (motor): valor calculado == valor no XML.
-    expect((float) tag($xml, 'vIBSUF'))->toBe($tributo->valor_ibs);
-    expect((float) tag($xml, 'vCBS'))->toBe($tributo->valor_cbs);
+    expect((float) tag($frag, 'vIBSUF'))->toBe($tributo->valor_ibs);
+    expect((float) tag($frag, 'vCBS'))->toBe($tributo->valor_cbs);
 
     // Caminho 2 (à mão): base × alíquota == valor no XML.
-    expect((float) tag($xml, 'vIBSUF'))->toBe(round(1000.00 * 0.001, 2)); // 1.00
-    expect((float) tag($xml, 'vCBS'))->toBe(round(1000.00 * 0.088, 2));   // 88.00
+    expect((float) tag($frag, 'vIBSUF'))->toBe(round(1000.00 * 0.001, 2)); // 1.00
+    expect((float) tag($frag, 'vCBS'))->toBe(round(1000.00 * 0.088, 2));   // 88.00
 })->group('nfe');
 
 it('modo legacy → sem grupo UB (byte-idêntico ao XML de hoje)', function () {
