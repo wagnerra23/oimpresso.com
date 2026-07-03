@@ -1,5 +1,5 @@
 ---
-date: 2026-07-03
+date: "2026-07-03"
 topic: "Capterra sênior Modules/NFSe (emissão ISS / serviço) — nota 45/100 + /comparativo + 7 US"
 title: "Capterra sênior — Modules/NFSe (emissão ISS / NFSe serviço)"
 type: session
