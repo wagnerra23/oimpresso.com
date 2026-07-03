@@ -1,12 +1,12 @@
 ---
 module: Cliente
-version: "2.3"
+version: "2.4"
 status: ativo
 owners: [W]
-last_updated: "2026-06-24"
+last_updated: "2026-07-03"
 anchor_format: "v1"
-us_count: 15
-us_list: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067, US-CRM-068, US-CRM-069, US-CRM-070, US-CRM-071, US-CRM-072, US-CRM-073, US-CRM-074, US-CRM-075, US-CRM-076, US-CRM-078]
+us_count: 22
+us_list: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067, US-CRM-068, US-CRM-069, US-CRM-070, US-CRM-071, US-CRM-072, US-CRM-073, US-CRM-074, US-CRM-075, US-CRM-076, US-CRM-078, US-CRM-079, US-CRM-080, US-CRM-081, US-CRM-082, US-CRM-083, US-CRM-084, US-CRM-085]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho, 0107-emendation-0104-visual-comparison-gate-f3, 0110-cockpit-pattern-v2-canon-list-detail, 0114-prototipo-ui-cowork-loop-formalizado, 0149-mwart-screen-pattern-reuse-cowork, 0179-cliente-drawer-760px-substitui-show-fullpage, 0273-anchor-spec-codigo-formato-canonico-fluxo-novo, 0301-separar-cliente-deprecar-crm-pipeline, 0303-anchor-lint-wired-testado-sa-a2-bis]
 ---
 
@@ -233,6 +233,53 @@ contato (CNPJ único), não hierarquia societária com tax entities separadas.
 **DoD multi-tenant Tier 0:** `contact_addresses` SEMPRE com `business_id` + FK + scope;
 Pest cross-tenant antes/depois. **PR ≤300 linhas** (faseado PR1/PR2/PR3).
 
+## §3-bis — Backlog vindo do Capterra-Inventário (onda Cliente 2026-07-03)
+
+> Gaps priorizados da [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (nota 65) via [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (Passo 2 do programa de ondas). US **backlog** (`status: todo`, ainda sem código — âncora `_pendente_`). Rastreadas no MCP (`parent_plan=programa-ondas`, tags `capterra-gap`/`onda-cliente`). Segurados (⏸️ sinal pendente ADR 0105, NÃO criados): RFM real, campos custom dinâmicos, Map lib, merge de duplicados, header DS.
+
+### US-CRM-079 — Anonimização fiscal-aware do titular (DsrService → contacts) — LGPD Art. 18
+
+**Implementado em:** _pendente_ — backlog Capterra (G-01), a criar
+**Status:** todo · **Prioridade:** P0 · **Estimate:** 14h
+**DoD:** estender `DsrService::searchableEntityMap()` (+ `LgpdEsquecerTitularTool` anonymize/hard) pra `contacts`: anonimiza PII (nome/CPF/CNPJ/contato) **preservando o registro fiscal** (transactions/NF — retenção legal) + trilha append-only + `business_id` Tier 0. Pest: anonimiza titular biz=1, NF permanece, PII sumiu, cross-tenant isolado.
+Obrigação LGPD Art. 18 §VI + lane de mercado vazia (erasure fiscal-aware — ninguém faz). **Absorve o escopo `contacts` da US-CRM-050** (pipeline depreciado) — não duplicar.
+
+### US-CRM-080 — Teste cross-tenant no App\Contact pai + avaliar global scope (Tier 0)
+
+**Implementado em:** _pendente_ — backlog Capterra (G-02), a criar
+**Status:** todo · **Prioridade:** P0 · **Estimate:** 4h
+**DoD:** Pest prova user@biz=1 não acessa contato@biz=99 (findOrFail → 404) nas rotas de `App\Contact`. Avaliar promover `where('business_id')` manual → global scope (ou documentar). Alinhar o claim SPEC/BRIEFING ("global scope") ao código real. `App\Contact` hoje NÃO tem `addGlobalScope`; só o filho `ContactAddress` tem teste cross-tenant.
+
+### US-CRM-081 — Limite de crédito com bloqueio/aviso na venda (wirar enforcement)
+
+**Implementado em:** _pendente_ — backlog Capterra (G-03), a criar
+**Status:** todo · **Prioridade:** P1 · **Estimate:** 10h
+**DoD:** wirar `TransactionUtil::isCustomerCreditLimitExeeded()` no `store()` da venda com toggle per-business bloqueia/avisa (config, não hardcode). Hoje calcula mas é advisory (não bloqueia). ⚠️ **toca valor → Regra Mestre** (dupla confirmação + antes→depois + aprovação). Pest biz=1: estoura → bloqueia/avisa; dentro → passa.
+
+### US-CRM-082 — Import de clientes com preview + dedupe/merge (CPF/CNPJ)
+
+**Implementado em:** _pendente_ — backlog Capterra (G-04), a criar
+**Status:** todo · **Prioridade:** P1 · **Estimate:** 12h
+**DoD:** `postImportContacts()` ganha (1) preview antes do commit, (2) detecção de duplicado por CPF/CNPJ + merge/pular, (3) relatório por-linha. `business_id` Tier 0 em todo insert. Hoje parseia direto no DB sem preview/dedupe.
+
+### US-CRM-083 — UI de consentimento (opt-in/opt-out) + base legal por finalidade
+
+**Implementado em:** _pendente_ — backlog Capterra (G-05), a criar
+**Status:** todo · **Prioridade:** P1 · **Estimate:** 8h
+**DoD:** aba/toggle no drawer pra opt-in/opt-out WhatsApp+email (grava `whatsapp_consent`/`email_consent`/`consent_updated_at`) + base legal Art. 7º. Colunas + guardas `canReceive*` já existem (à frente dos ERPs BR); falta a UI.
+
+### US-CRM-084 — Extrato (Ledger) render inline 100% — parar de abrir Blade legacy ao filtrar
+
+**Implementado em:** _pendente_ — backlog Capterra (fecha gap US-CRM-064), a criar
+**Status:** todo · **Prioridade:** P1 · **Estimate:** 8h
+**DoD:** filtro range/formato/local re-renderiza inline via partial reload (`only:['ledger']`), sem abrir Blade legacy. Preserva export PDF/email. Fecha o gap parcial declarado em US-CRM-064.
+
+### US-CRM-085 — Export de portabilidade do titular (registro completo CSV/JSON) — LGPD Art. 18 V
+
+**Implementado em:** _pendente_ — backlog Capterra (G-06), a criar
+**Status:** todo · **Prioridade:** P2 · **Estimate:** 4h
+**DoD:** export do registro completo (cadastro + endereços + transações + documentos + consentimento) CSV/JSON, scoped `business_id`, com permissão + log de auditoria. Par natural do G-01 (US-CRM-079). Hoje portabilidade = só PDF do extrato.
+
 ## §4 — Não-objetivos
 
 - Não substitui `Modules/Crm/` (CRM avançado: leads, deals, marketplace, pipeline FSM)
@@ -276,6 +323,8 @@ Pest cross-tenant antes/depois. **PR ≤300 linhas** (faseado PR1/PR2/PR3).
 
 ## §7 — Referências
 
+- [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — ficha de capacidade (nota 65, onda Cliente 2026-07-03) + [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (buckets ✅🟡❌ + backlog §3-bis)
+- Session log: [2026-07-03-capterra-cliente.md](../../sessions/2026-07-03-capterra-cliente.md)
 - [ADR 0093 — Multi-tenant Tier 0 IRREVOGÁVEL](../../decisions/0093-multi-tenant-isolation-tier-0.md)
 - [ADR 0104 — Processo MWART canônico (5 fases)](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)
 - [ADR 0107 — Visual gate F1.5 visual-comparison.md](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)
