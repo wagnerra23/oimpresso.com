@@ -142,6 +142,37 @@ oimpresso hoje cobra ~R$ [redacted Tier 0]/mês pelo POS UltimatePOS customizado
 - [ ] **Funding**: bootstrap até M24 ou levantar seed em M12 pra acelerar?
 - [ ] **Time**: contratar 2º dev em M12 ou aguentar com 1 + IA?
 
+## Camada de correção contínua (dente de cálculo — programa de ondas)
+
+> **Encaixe T6 (anti-paralelo):** esta camada NÃO é um roadmap novo nem uma pasta
+> `onda-3-financeiro/`. É o **passo 3/D1 (dente de cálculo) do ciclo-padrão** do
+> [PLANO-MESTRE do Programa de Ondas](_Governanca/programa-ondas/PLANO-MESTRE.md#o-ciclo-padrão-de-uma-onda-4-passos),
+> aplicado ao Financeiro e registrado **aqui** porque "Faturamento é o canon macro" das
+> ondas de Financeiro/NfeBrasil/RecurringBilling (PLANO-MESTRE §"Fila de ondas"). O
+> gate-de-saída, status e tasks MCP vivem no PLANO-MESTRE (`parent_plan=programa-ondas`,
+> 1 plano = 1 registro, ADR 0294) — esta seção só ancora o dente do Financeiro.
+
+O PLANO-MESTRE (linha 49) verificou em `origin/main` (2026-07-02) que os métodos de
+cálculo de valor core estavam **indefesos** (0 teste), a mesma classe do incidente
+`num_uf` (R$ inflado ×100k, 2026-06-05). A Onda 1.4 (Sells, [#3695]) fechou
+`calculateInvoiceTotal` + o round-trip `num_uf`/`num_f`. Este dente fecha os que sobraram
+no caminho do Financeiro:
+
+| # | Método | Arquivo | Risco se erra | Estado |
+|---|---|---|---|---|
+| **FIN-D1.a** | `calculatePaymentStatus` | `app/Utils/TransactionUtil.php:3009` | **título fantasma pago** em ContasReceber/ContasPagar/`fin_titulos` | ✅ dente red/green |
+| **FIN-D1.b** | `updateGroupTaxAmount` | `app/Utils/TaxUtil.php:15` | imposto errado na NFe (truncamento de centavo) | ✅ dente red/green |
+
+- **Teste:** [`tests/Feature/Calculo/CalculoValorFinanceiroTest.php`](../../../tests/Feature/Calculo/CalculoValorFinanceiroTest.php)
+  — property + golden fixtures + discriminador RED (líquido→bruto = título fantasma;
+  `(int)` = imposto truncado). Espelha o padrão da Onda 1.4.
+- **⛔ TEST-ONLY (REGRA MESTRE):** este dente **só adiciona teste**, não altera cálculo.
+  Unificar `getTotalPaid`/`getTotalAmountPaid`, dar tolerância ao `<=` do status, ou mudar
+  a soma do grupo é alteração de valor em prod → **US separada** sob REGRA MESTRE
+  (dupla confirmação + tabela antes→depois + OK [W]).
+- **Rodar (CT100 obrigatório):**
+  `tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test --filter=CalculoValorFinanceiro"`
+
 ## Princípios pra atravessar 24 meses
 
 1. **Entregar mensal** — qualquer onda > 6 sem é vermelho
