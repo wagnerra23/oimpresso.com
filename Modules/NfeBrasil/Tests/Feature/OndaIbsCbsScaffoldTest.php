@@ -122,3 +122,19 @@ it('Onda 6 SCHEMA APLICADO (somente MySQL com migrate rodado): colunas existem n
         ->and(Schema::hasColumn('nfe_fiscal_rules', 'aliquota_ibs'))->toBeTrue()
         ->and(Schema::hasColumn('nfe_fiscal_rules', 'aliquota_cbs'))->toBeTrue();
 });
+
+it('Onda 6 (PR-B): TributoCalculado expõe os 7 campos IBS/CBS (cálculo saiu do scaffold)', function () {
+    $props = array_map(
+        fn ($p) => $p->getName(),
+        (new ReflectionClass(Modules\NfeBrasil\Services\Tributacao\TributoCalculado::class))
+            ->getConstructor()->getParameters(),
+    );
+
+    expect($props)->toContain('c_class_trib')
+        ->and($props)->toContain('cst_ibs')
+        ->and($props)->toContain('cst_cbs')
+        ->and($props)->toContain('aliquota_ibs')
+        ->and($props)->toContain('aliquota_cbs')
+        ->and($props)->toContain('valor_ibs')
+        ->and($props)->toContain('valor_cbs');
+});

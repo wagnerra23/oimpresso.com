@@ -37,5 +37,17 @@ final readonly class TributoCalculado
         public ?int    $regra_id = null,
         public ?float  $mva = null,
         public ?float  $fcp = null,
+        // Reforma Tributária IBS/CBS (NT 2025.002) — US-FISCAL-021 / ADR 0321.
+        // Nullable + zero-default: Simples Nacional (fallback) e legado não destacam
+        // até 2027; a serialização XML do grupo UB só ocorre quando o business está
+        // em modo `full`/`hybrid_2026` (feature flag ADR ARQ-0004). Campos zerados =
+        // inertes (nenhum consumidor lê hoje) → zero efeito na emissão atual.
+        public ?string $c_class_trib = null,
+        public ?string $cst_ibs = null,
+        public ?string $cst_cbs = null,
+        public float   $aliquota_ibs = 0.0,
+        public float   $aliquota_cbs = 0.0,
+        public float   $valor_ibs = 0.0,
+        public float   $valor_cbs = 0.0,
     ) {}
 }

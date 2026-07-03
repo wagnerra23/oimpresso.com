@@ -52,6 +52,12 @@ beforeEach(function () {
             $t->decimal('aliquota_ipi', 7, 4)->default(0);
             $t->decimal('mva', 7, 4)->nullable();
             $t->decimal('fcp', 7, 4)->nullable();
+            // IBS/CBS (US-FISCAL-021) — espelha migration 2026_05_26_000001 (SQLite CI sanity).
+            $t->char('c_class_trib', 6)->nullable();
+            $t->char('cst_ibs', 3)->nullable();
+            $t->char('cst_cbs', 3)->nullable();
+            $t->decimal('aliquota_ibs', 7, 4)->default(0);
+            $t->decimal('aliquota_cbs', 7, 4)->default(0);
             $t->json('metadata')->nullable();
             $t->timestamps();
             $t->softDeletes();
@@ -317,4 +323,123 @@ it('CST aplicado quando regra é Regime Normal (sem CSOSN)', function () {
 
     expect($tributo->cst)->toBe('000')
         ->and($tributo->csosn)->toBeNull();
+});
+
+// ── IBS/CBS (Reforma Tributária NT 2025.002 · US-FISCAL-021 / ADR 0321) ────────
+// Motor calcula os campos IBS/CBS do TributoCalculado a partir das colunas de
+// nfe_fiscal_rules / tributacao_default. Fallback Simples/legado = null/0 (inerte).
+// A serialização XML (grupo UB) é gated por flag (PR-D) — aqui só o cálculo.
+
+it('IBS/CBS fallback Simples: regra sem IBS/CBS → valor 0 e cClassTrib null', function () {
+    // Caso biz=1/biz=4 hoje: regra tradicional, sem colunas IBS/CBS preenchidas.
+    regra(['uf_destino' => null, 'cfop' => '5102', 'csosn' => '102', 'aliquota_icms' => 0.0]);
+    configBusiness(4);
+
+    $tributo = (new MotorTributarioService)->calcular(
+        ctx('22021000', 1000.0),
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
+    );
+
+    expect($tributo->c_class_trib)->toBeNull()
+        ->and($tributo->cst_ibs)->toBeNull()
+        ->and($tributo->cst_cbs)->toBeNull()
+        ->and($tributo->aliquota_ibs)->toBe(0.0)
+        ->and($tributo->aliquota_cbs)->toBe(0.0)
+        ->and($tributo->valor_ibs)->toBe(0.0)
+        ->and($tributo->valor_cbs)->toBe(0.0);
+});
+
+it('IBS/CBS Nível 2 (regra exata) Regime Normal: calcula valores com cross-check numérico', function () {
+    // Fase-teste 2026: IBS 0,1% (0.001) + CBS 0,9% (0.009). Base 1.000.
+    // Dupla confirmação (regra-mestre valor): 1000*0.001=1.00 IBS ; 1000*0.009=9.00 CBS.
+    regra([
+        'uf_destino'   => 'RJ',
+        'cfop'         => '6101',
+        'csosn'        => null,
+        'cst'          => '000',
+        'c_class_trib' => '000001',
+        'cst_ibs'      => '000',
+        'cst_cbs'      => '000',
+        'aliquota_ibs' => 0.001,
+        'aliquota_cbs' => 0.009,
+    ]);
+
+    $tributo = (new MotorTributarioService)->calcular(
+        ctx('22021000', 1000.0),
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'RJ',
+    );
+
+    expect($tributo->nivel_usado)->toBe(2)
+        ->and($tributo->c_class_trib)->toBe('000001')
+        ->and($tributo->cst_ibs)->toBe('000')
+        ->and($tributo->cst_cbs)->toBe('000')
+        ->and($tributo->aliquota_ibs)->toBe(0.001)
+        ->and($tributo->aliquota_cbs)->toBe(0.009)
+        ->and($tributo->valor_ibs)->toBe(1.0)   // 1000 * 0.001
+        ->and($tributo->valor_cbs)->toBe(9.0);  // 1000 * 0.009
+});
+
+it('IBS/CBS Nível 3 (regra NCM padrão) carrega os campos', function () {
+    regra([
+        'uf_destino'   => null,
+        'cfop'         => '5102',
+        'cst'          => '000',
+        'c_class_trib' => '000002',
+        'aliquota_ibs' => 0.001,
+        'aliquota_cbs' => 0.009,
+    ]);
+
+    $tributo = (new MotorTributarioService)->calcular(
+        ctx('22021000', 500.0),
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'MG',
+    );
+
+    expect($tributo->nivel_usado)->toBe(3)
+        ->and($tributo->c_class_trib)->toBe('000002')
+        ->and($tributo->valor_ibs)->toBe(0.5)   // 500 * 0.001
+        ->and($tributo->valor_cbs)->toBe(4.5);  // 500 * 0.009
+});
+
+it('IBS/CBS Nível 4 (business default) extrai do tributacao_default JSON', function () {
+    // Sem regra → cai no default do business. IBS/CBS vêm do JSON tributacao_default.
+    configBusiness(1, [
+        'c_class_trib' => '000003',
+        'cst_ibs'      => '000',
+        'cst_cbs'      => '000',
+        'aliquota_ibs' => 0.001,
+        'aliquota_cbs' => 0.009,
+    ]);
+
+    $tributo = (new MotorTributarioService)->calcular(
+        ctx('88888888', 2000.0), // NCM sem regra → Nível 4
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
+    );
+
+    expect($tributo->nivel_usado)->toBe(4)
+        ->and($tributo->c_class_trib)->toBe('000003')
+        ->and($tributo->aliquota_ibs)->toBe(0.001)
+        ->and($tributo->valor_ibs)->toBe(2.0)    // 2000 * 0.001
+        ->and($tributo->valor_cbs)->toBe(18.0);  // 2000 * 0.009
+});
+
+it('IBS/CBS Nível 1 (override) carrega os campos da regra override', function () {
+    regra(['uf_destino' => null, 'cfop' => '5102', 'aliquota_ibs' => 0.0]); // Nível 3 sem IBS
+    $override = regra([
+        'ncm'          => '99999999',
+        'uf_origem'    => 'AC',
+        'cfop'         => '7777',
+        'c_class_trib' => '000009',
+        'aliquota_ibs' => 0.001,
+        'aliquota_cbs' => 0.009,
+    ]);
+
+    $tributo = (new MotorTributarioService)->calcular(
+        ctx('22021000', 100.0, overrideId: $override->id),
+        businessId: 1, ufOrigem: 'SP', ufDestino: 'SP',
+    );
+
+    expect($tributo->nivel_usado)->toBe(1)
+        ->and($tributo->c_class_trib)->toBe('000009')
+        ->and($tributo->valor_ibs)->toBe(0.1)   // 100 * 0.001
+        ->and($tributo->valor_cbs)->toBe(0.9);  // 100 * 0.009
 });

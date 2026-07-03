@@ -164,6 +164,15 @@ class MotorTributarioService
             regra_id:        $regra->id,
             mva:             $regra->mva !== null ? (float) $regra->mva : null,
             fcp:             $regra->fcp !== null ? (float) $regra->fcp : null,
+            // IBS/CBS (US-FISCAL-021): colunas nullable/default-0 em nfe_fiscal_rules.
+            // Regra sem IBS/CBS configurado → alíquota 0 → valor 0 (Simples/legado).
+            c_class_trib:    $regra->c_class_trib,
+            cst_ibs:         $regra->cst_ibs,
+            cst_cbs:         $regra->cst_cbs,
+            aliquota_ibs:    (float) $regra->aliquota_ibs,
+            aliquota_cbs:    (float) $regra->aliquota_cbs,
+            valor_ibs:       $this->fmt($produto->valor * (float) $regra->aliquota_ibs),
+            valor_cbs:       $this->fmt($produto->valor * (float) $regra->aliquota_cbs),
         );
     }
 
@@ -179,6 +188,12 @@ class MotorTributarioService
         $aliqPis       = (float) ($defaults['aliquota_pis'] ?? 0);
         $aliqCofins    = (float) ($defaults['aliquota_cofins'] ?? 0);
         $aliqIpi       = (float) ($defaults['aliquota_ipi'] ?? 0);
+        // IBS/CBS defaults do business (US-FISCAL-021) — ausentes hoje (Simples) → null/0.
+        $cClassTrib    = isset($defaults['c_class_trib']) ? (string) $defaults['c_class_trib'] : null;
+        $cstIbs        = isset($defaults['cst_ibs']) ? (string) $defaults['cst_ibs'] : null;
+        $cstCbs        = isset($defaults['cst_cbs']) ? (string) $defaults['cst_cbs'] : null;
+        $aliqIbs       = (float) ($defaults['aliquota_ibs'] ?? 0);
+        $aliqCbs       = (float) ($defaults['aliquota_cbs'] ?? 0);
 
         return new TributoCalculado(
             cfop:            $cfop,
@@ -194,6 +209,13 @@ class MotorTributarioService
             valor_ipi:       $this->fmt($produto->valor * $aliqIpi),
             nivel_usado:     4,
             regra_id:        null,
+            c_class_trib:    $cClassTrib,
+            cst_ibs:         $cstIbs,
+            cst_cbs:         $cstCbs,
+            aliquota_ibs:    $aliqIbs,
+            aliquota_cbs:    $aliqCbs,
+            valor_ibs:       $this->fmt($produto->valor * $aliqIbs),
+            valor_cbs:       $this->fmt($produto->valor * $aliqCbs),
         );
     }
 
