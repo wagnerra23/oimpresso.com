@@ -1840,3 +1840,20 @@ Refs: ROADMAP-SDD (sweep do mês) · handoff 2026-06-21-1250
 - [ ] Charter promovido de `draft` a `live` ([W] revisa Non-Goals/Anti-hooks) — dívida herdada, não regressão.
 
 **Refs:** charter `resources/js/Pages/Financeiro/AssinaturaAtualizar.charter.md` · ADR 0093 (Tier 0) · ADR UI-0013.
+
+### US-FIN-064 · Redirect ContasReceber/ContasPagar → Unificado (deprecação)
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+Follow-up das PRs #3712 (régua) + #3718 (deprecação charters). Decisão [W] 2026-07-03: as telas standalone /financeiro/contas-receber e /financeiro/contas-pagar são superadas pelo Unificado (lentes A receber/A pagar + FinBaixaSheet + emitirBoletoTitulo Banco Inter). Charters já em status: deprecated.
+
+**Escopo (mudança de UX/rota — PR próprio com smoke, ADR 0271 subtração segura):**
+- Redirect `GET /financeiro/contas-receber` → `/financeiro/unificado?lente=receber` (301/302).
+- Redirect `GET /financeiro/contas-pagar` → `/financeiro/unificado?lente=pagar`.
+- Ajustar `FinanceiroSubNav` (Modules/Financeiro/.../DataController + _shared/FinanceiroSubNav): remover/re-apontar as abas "Contas a Receber" / "Contas a Pagar" pro Unificado com a lente.
+- Preservar os endpoints de ação legados enquanto houver link externo: `POST /contas-receber/{id}/boleto` e `POST /contas-pagar/{id}/pagar` já têm equivalentes no Unificado (emitirBoletoTitulo / baixar) — migrar ou manter alias curto.
+- Quando o redirect landar: remover o trio (`.tsx`+`.charter`+`.casos`) das duas telas juntos (mantém G-1 consistente) + baixar o baseline casos-coverage.
+- Atualizar os testes `test_contas_{receber,pagar}_legacy_*` (MultiTenantIsolationTest) pra asseverar o redirect 30x → /unificado.
+
+**Cuidados Tier 0:** business_id scope intacto; smoke prod pós-deploy (R1); ROTA LIVRE biz=4 usa Unificado — validar que a lente deep-link funciona. NÃO tocar cálculo.
