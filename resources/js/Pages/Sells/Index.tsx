@@ -109,6 +109,9 @@ interface SaleRow {
   os_ref?: string | null;
   /** ADR 0251 — placa do veículo (venda direta de oficina). null = sem veículo. */
   vehicle_plate?: string | null;
+  /** Venda com devolução (existe sell_return apontando pra ela). Badge de retorno
+   *  na coluna #invoice — restaura a setinha perdida no rewrite #1032 (2026-07-03). */
+  has_return?: boolean;
 }
 
 interface SellKpis {
