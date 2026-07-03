@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-06-22"
+last_run: "2026-07-03"
 ---
 
 # Casos de Uso & Aceite — Lista de vendas
@@ -33,6 +33,15 @@ last_run: "2026-06-22"
 
 ---
 
+## UC-S12 · Da lista, ver que a venda já teve devolução (setinha de retorno)
+- **Persona:** Larissa / Guilherme — depois de devolver uma peça, reconhecer num relance, na própria lista, que aquela venda teve retorno — sem abrir a venda pra descobrir.
+- **Aceite:** Dado que existe uma transação `sell_return` apontando pra uma venda (`return_parent_id = venda.id AND type = 'sell_return'`) · Quando a lista carrega · Então o payload `/sells-list-json` traz `has_return: true` pra essa venda e o frontend desenha o badge de retorno (`vd-return-flag`, ícone `Undo2`, tooltip "Venda com devolução") ao lado do `#invoice`; vendas sem retorno vêm `has_return: false` e sem badge.
+- **Teste:** `tests/Feature/Sells/SellsIndexCoworkPayloadTest.php` (Pest, harness G-2/casos-gate) — assere `has_return` no payload de `inertiaList` ancorado no critério canônico `return_parent_id + type='sell_return'` (o mesmo do JOIN `SR` em `TransactionUtil::getSellsCurrentFy`, L-24 sem classe CSS) + o render do badge em `SellsTabelaUnificada.tsx`.
+- **Regressão que defende:** a "setinha de retorno" existia no Blade legado (`SellController@index` → `return_exists`, `fa-undo`) e sumiu no rewrite Cowork #1032 — o payload React nunca selecionava `return_exists`, então a lista mostrava a venda devolvida como normal (incidente 2026-07-03, reportado por Guilherme @ biz=4 ROTA LIVRE). Este UC + teste tornam a remoção da subquery/badge uma **falha de CI**. Ref: [ADR 0264](../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md).
+- **Status: 🧪** — teste de contrato escrito; volta a ✅ quando `npm run casos:results` regravar o manifesto (G-7, sem fingir prova).
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão. Itens SEM token de UC até existir teste real.
@@ -46,6 +55,7 @@ last_run: "2026-06-22"
 2. **Cadência:** rodar ao fim de toda mexida em Sells/Index. UC ❌ = regressão → lição + conserto.
 
 ## Trilha do tempo
+- 2026-07-03 · [CC] UC-S12 "ver que a venda já teve devolução (setinha de retorno)" + contrato em `SellsIndexCoworkPayloadTest.php` — restaura o indicador `has_return`/badge perdido no rewrite Cowork #1032 (payload React nunca selecionava `return_exists`). Incidente reportado por Guilherme @ biz=4 ROTA LIVRE. Ancorado no critério canônico `return_parent_id + type='sell_return'` (ADR 0264 G-2).
 - 2026-07-01 · [CC] UC-S11 "Da lista, iniciar devolução" + spec no `sells-index.spec.ts` — fecha o gap por onde o menu de Ações sumiu no #1032 (adversário ancorado em ADR 0264/0256 + L-24: o que pega a regressão é UC+teste de comportamento, não gate de presença de charter). Refs #3488/#3494/#3499.
 - 2026-06-11 · [CL] criado na Onda Q2 (mandato ONDAS-QUALIDADE) com UC-S10 + spec `sells-index.spec.ts`.
 - 2026-06-22 · [CL] link "Caixa do dia" (`/vendas/caixa`) adicionado ao dropdown Visões de `Index.tsx` (tela viva órfã de navegação — `SellController@inertiaCaixa` → `Sells/Caixa/Index`, ADR 0192 Onda 6). `last_run` bumpado e UC-S10 rebaixado ✅→🧪 (G-7: prova e2e stale, não re-rodável fora do harness CI). Refs ADR 0264, ADR 0192.

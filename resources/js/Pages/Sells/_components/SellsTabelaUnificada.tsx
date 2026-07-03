@@ -83,6 +83,9 @@ export interface SaleRow {
   os_ref?: string | null;
   /** ADR 0251 — placa do veículo (venda direta de oficina). null = sem veículo. */
   vehicle_plate?: string | null;
+  /** Venda com devolução (existe sell_return apontando pra ela). Restaura a
+   *  setinha de retorno perdida no rewrite Cowork #1032 (incidente 2026-07-03). */
+  has_return?: boolean;
 }
 
 // Identificadores canônicos das colunas. Ordem desta enumeração = ordem default
@@ -332,6 +335,15 @@ function renderCell(id: ColumnId, v: SaleRow, ctx: CellCtx): ReactNode {
         <td key={id} className="vd-id">
           {ctx.isFav && <span className="vd-fav" title="Favorita (B)">★</span>}
           #{v.invoice_no}
+          {v.has_return && (
+            <span
+              className="vd-return-flag"
+              title="Venda com devolução"
+              aria-label="Venda com devolução"
+            >
+              <Undo2 size={12} aria-hidden />
+            </span>
+          )}
         </td>
       );
     case 'date':

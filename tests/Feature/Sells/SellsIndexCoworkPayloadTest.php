@@ -134,3 +134,35 @@ it('payload expõe os_ref pra cross-link Sells → Repair (link ↗ #OS-NNNN)', 
     expect($source)
         ->toContain("'os_ref' => \$r->os_ref");
 });
+
+// ──────────────────────────────────────────────────────────────
+// UC-S12 (Index.casos.md) — indicador "venda com devolução" (setinha de retorno).
+// Restaura o indicador perdido no rewrite Cowork #1032 (o payload React nunca
+// selecionava return_exists → venda devolvida aparecia como normal). Reportado
+// por Guilherme @ biz=4 ROTA LIVRE, 2026-07-03. Critério canônico do UltimatePOS:
+// existe uma sell_return apontando pra venda via return_parent_id (mesmo do JOIN
+// SR em TransactionUtil::getSellsCurrentFy).
+// ──────────────────────────────────────────────────────────────
+
+it('UC-S12 · payload expõe has_return derivado da subquery return_exists', function () {
+    $source = coworkReadSellController();
+    expect($source)
+        ->toContain("'has_return' => (int) (\$r->return_exists ?? 0) > 0");
+});
+
+it('UC-S12 · return_exists usa o critério canônico return_parent_id + type=sell_return', function () {
+    $source = coworkReadSellController();
+    // Regressão que defende: remover a subquery volta a esconder a setinha → falha de CI.
+    expect($source)
+        ->toContain('sr.return_parent_id = transactions.id')
+        ->toContain("sr.type = 'sell_return'")
+        ->toContain('as return_exists');
+});
+
+it('UC-S12 · SellsTabelaUnificada renderiza o badge de devolução quando has_return', function () {
+    $tsx = file_get_contents(base_path('resources/js/Pages/Sells/_components/SellsTabelaUnificada.tsx'));
+    expect($tsx)
+        ->toContain('v.has_return')
+        ->toContain('vd-return-flag')
+        ->toContain('Venda com devolução');
+});

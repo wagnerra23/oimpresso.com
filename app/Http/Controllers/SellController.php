@@ -1279,6 +1279,12 @@ class SellController extends Controller
                 // US-SELL-COWORK — pagamento: método dominante (último registrado) + número de parcelas (count > 0 amount).
                 \DB::raw('(SELECT method FROM transaction_payments tp_m WHERE tp_m.transaction_id = transactions.id AND tp_m.is_return = 0 ORDER BY tp_m.id DESC LIMIT 1) as last_payment_method'),
                 \DB::raw('(SELECT COUNT(*) FROM transaction_payments tp_i WHERE tp_i.transaction_id = transactions.id AND tp_i.is_return = 0 AND tp_i.amount > 0) as installments_count'),
+                // Indicador "venda com devolução" — restaura a setinha de retorno que existia
+                // no Blade legado (SellController@index → return_exists, fa-undo) e sumiu no
+                // rewrite Cowork #1032 (incidente 2026-07-03, biz=4 ROTA LIVRE). Critério
+                // canônico do UltimatePOS: existe uma transação sell_return apontando pra esta
+                // venda via return_parent_id (ver TransactionUtil::getSellsCurrentFy join SR).
+                \DB::raw("(SELECT COUNT(*) FROM transactions sr WHERE sr.return_parent_id = transactions.id AND sr.type = 'sell_return') as return_exists"),
                 // ADR 0192 — Integração Vendas × Oficina (A1 KB-9.75): coluna Origem.
                 // COALESCE pra default 'balcao' retroativo (vendas legacy sem source).
                 \DB::raw("COALESCE(transactions.source, 'balcao') as source"),
@@ -1458,6 +1464,10 @@ class SellController extends Controller
                     // ADR 0251 — placa do veículo (venda direta de oficina). null quando
                     // a venda não tem veículo; frontend renderiza a plaquinha Mercosul.
                     'vehicle_plate' => $vehiclePlateByTx->get($r->id),
+                    // Flag read-only "esta venda teve devolução" — frontend renderiza o badge
+                    // de retorno ao lado do #invoice. Derivado de return_exists (subquery acima),
+                    // NÃO mexe em valor/estoque.
+                    'has_return' => (int) ($r->return_exists ?? 0) > 0,
                 ];
             });
 
