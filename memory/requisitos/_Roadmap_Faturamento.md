@@ -234,25 +234,31 @@ Antes de começar Financeiro, fazer:
 
 | Tela | UX (screen-grade) | Cobertura comportamento (casos_coverage) | D1 cálculo | Charter |
 |---|---|---|---|---|
-| `ContasReceber/Index` | **70 · Advanced** | **0 UC** defendido (5 no backlog s/ id) | n/a (lista + boleto) | ✅ criado |
-| `ContasPagar/Index` | **70 · Advanced** | **0 UC** defendido (6 no backlog s/ id) | **🔴 indefeso** (baixa parcial) | ✅ criado |
+| `ContasReceber/Index` | **70 · Advanced** | **0 UC** defendido (5 no backlog s/ id) | n/a (lista + boleto) | ⚰️ **deprecated** → Unificado |
+| `ContasPagar/Index` | **70 · Advanced** | **0 UC** defendido (6 no backlog s/ id) | 🔴 (baixa) → coberto Unificado | ⚰️ **deprecated** → Unificado |
 | `Unificado/Novo` | — | — | 🔴 (insert de título) | ⬜ pendente |
 | `Dashboard/Index` | — | — | n/a (leitura) | ⬜ pendente |
 
-> A leitura da foto: `ContasPagar` é **"Advanced" no visual e ao mesmo tempo recalcula
-> `valor_aberto` na baixa sem uma única prova de cálculo** (classe do incidente `num_uf`, valor
-> inflado ~×100k — [proibicoes §CÁLCULO DE VALOR](../proibicoes.md)). O **dente D1** (property +
-> golden + cross-check) é onda de **cálculo** separada — não se mistura com este PR de contrato
-> (a régua **PLUGA, não funde**: bonita ≠ testada).
+> **Achado do smoke (2026-07-03) → decisão [W]: deprecar CR/CP em favor do Unificado.** O smoke em
+> prod (biz=1 "Oimpresso Matriz") confirmou que as duas telas renderizam vivas — **e** que o
+> [Unificado](../../resources/js/Pages/Financeiro/Unificado/Index.charter.md) cobre **100%** do que
+> elas fazem: lentes **A receber**/**A pagar**, **baixa** (`FinBaixaSheet`: parcial + conta + forma +
+> plano de contas) e **emitir boleto** (`emitirBoletoTitulo`, Banco Inter LIVE — mais novo que o
+> `CnabDirectStrategy` da ContasReceber, que era o único diferencial dela). Os próprios testes já as
+> chamavam de `legacy` (`test_contas_{receber,pagar}_legacy_*`). Por isso os charters foram para
+> `status: deprecated` (v2), **não** promovidos a `live`. O **dente D1** da baixa da ContasPagar fica
+> **moot** — o cálculo do dinheiro vive no fluxo do Unificado, não vale construir teste pra tela que
+> vai sair. A régua fez seu trabalho: **expôs que a tela não deveria existir**, não só que estava indefesa.
 
 **Sequência da camada (por exposição × débito, cada onda exige OK [W] antes de abrir — [ADR 0105](../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)):**
-1. ✅ **Lote 1 (este PR):** charter + casos + régua estendida de `ContasReceber/Index` e
-   `ContasPagar/Index` (o par A receber / A pagar — maior exposição). Débito trio −4 (2 telas ×
-   charter+casos); `casos-gate`/shrink verdes.
-2. ⬜ **Lote 2:** `Unificado/Novo` (insert de título — toca valor) + `Dashboard/Index` (leitura).
-3. ⬜ **Dente D1 (onda de cálculo, outro chip):** property `num_uf` + golden da baixa parcial +
-   cross-check 2 caminhos → sobe `ContasPagar` de D1 🔴 → 🟢. É o que fecha o piso Tier-0
-   ([ADR 0320] §4: cálculo + caso + paridade).
+1. ✅ **Lote 1 ([PR #3712](https://github.com/wagnerra23/oimpresso.com/pull/3712), merged):** charter + casos + régua estendida de `ContasReceber/Index` e
+   `ContasPagar/Index`. Débito trio −4. **Desdobramento:** smoke + decisão [W] → ambas `deprecated`.
+2. ⬜ **Redirect (task separada, [ADR 0271] subtração):** `/financeiro/contas-receber` →
+   `/financeiro/unificado?lente=receber` e `/financeiro/contas-pagar` → `?lente=pagar` + ajustar o
+   `FinanceiroSubNav` (tirar as abas duplicadas) + remover o trio (`.tsx`+`.charter`+`.casos`) quando
+   o redirect landar. É mudança de UX/rota — PR próprio, com smoke.
+3. ⬜ **Lote 2 (régua nas telas que ficam):** `Unificado/Novo` (insert de título — toca valor) +
+   `Dashboard/Index` (leitura). O dente D1 do dinheiro passa a mirar o **Unificado**, não a ContasPagar.
 
 **Armadilha registrada (casos-gate):** UC declarado só ganha id no **mesmo PR** que traz o
 teste (G-2 · [ADR 0264](../decisions/0264-governanca-executavel-trio-dominio-e2e.md)). Por isso os casos das telas acima nascem **no backlog sem id** —

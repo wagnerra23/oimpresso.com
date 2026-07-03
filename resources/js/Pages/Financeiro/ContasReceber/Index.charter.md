@@ -2,25 +2,30 @@
 page: /financeiro/contas-receber
 component: resources/js/Pages/Financeiro/ContasReceber/Index.tsx
 owner: wagner
-status: draft
+status: deprecated
 last_validated: "2026-07-03"
+supersedes_note: "Superseção funcional pelo Unificado (/financeiro/unificado) — decisão [W] 2026-07-03."
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94, 320]
 related_us: [US-FIN-013, US-FIN-020]
 runbook: memory/requisitos/Financeiro/RUNBOOK-cobranca.md
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /financeiro/contas-receber
 
-> **Status:** `draft` — charter retroativo (Onda de correção Financeiro — régua por tela, [ADR 0320]).
-> A tela **aparenta viva** (o `ContaReceberController` renderiza Inertia 200 e ela está no sidebar
-> via `DataController`), mas o charter **não foi validado contra prod** nesta sessão — logo nasce
-> `draft`, não `live` (R1: `live` = evidência datada, não palavra). Promover a `live` exige um
-> `smoke:` datado (Chrome MCP em prod) **ou** entrada em `governance/prod-flags.json` — follow-up.
-> Era uma das 7 telas de dinheiro sem contrato catalogadas em [_Roadmap_Faturamento §Camada de correção].
+> **Status:** `deprecated` — **superada pelo [Financeiro/Unificado](../Unificado/Index.charter.md)** (decisão [W] 2026-07-03).
+> Smoke em prod 2026-07-03 (biz=1 "Oimpresso Matriz", Wagner·Admin) confirmou que a tela **renderiza
+> viva** — mas o Unificado cobre **100%** do que ela faz, incl. **emitir boleto** (lá via Banco Inter
+> LIVE, mais novo que o `CnabDirectStrategy` daqui) + baixa + lente "A receber". Era o único
+> diferencial e não é mais. Os testes já a chamavam de `legacy` (`test_contas_receber_legacy_*`).
+> **Plano:** redirecionar `/financeiro/contas-receber` → `/financeiro/unificado?lente=receber` +
+> ajustar o SubNav; quando o redirect landar, o trio (`.tsx`+`.charter`+`.casos`) é removido junto.
+> Charter retroativo nasceu na Onda de correção Financeiro (régua por tela, [ADR 0320]) — ver
+> [_Roadmap_Faturamento §Camada de correção].
+> _v1 (2026-07-03) nasceu `draft`; v2 (mesmo dia) → `deprecated` após smoke + decisão [W]._
 > Persona: **Eliana [E]** — financeiro do escritório, densidade alta. Secundária Larissa [L]
 > (dona, quer saber "quem está me devendo?").
 >

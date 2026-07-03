@@ -2,24 +2,31 @@
 page: /financeiro/contas-pagar
 component: resources/js/Pages/Financeiro/ContasPagar/Index.tsx
 owner: wagner
-status: draft
+status: deprecated
 last_validated: "2026-07-03"
+supersedes_note: "Superseção funcional pelo Unificado (/financeiro/unificado) — decisão [W] 2026-07-03."
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94, 320]
 related_us: [US-FIN-013, US-FIN-020]
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 1
+charter_version: 2
 ---
 
 # Page Charter — /financeiro/contas-pagar
 
-> **Status:** `draft` — charter retroativo (Onda de correção Financeiro — régua por tela, [ADR 0320]).
-> A tela **aparenta viva** (o `ContaPagarController` renderiza Inertia 200, está no sidebar via
-> `DataController`), mas o charter **não foi validado contra prod** nesta sessão — nasce `draft`,
-> não `live` (R1: `live` = evidência datada). Promover exige `smoke:` datado **ou** `prod-flags.json`.
-> Era uma das 7 telas de dinheiro sem contrato catalogadas em [_Roadmap_Faturamento §Camada de correção].
+> **Status:** `deprecated` — **superada pelo [Financeiro/Unificado](../Unificado/Index.charter.md)** (decisão [W] 2026-07-03).
+> Smoke em prod 2026-07-03 (biz=1 "Oimpresso Matriz", Wagner·Admin) confirmou render vivo — mas o
+> Unificado cobre **100%** do que ela faz: a **baixa** aqui é uma sheet simples; lá o `FinBaixaSheet`
+> faz baixa **parcial** + conta + forma + **plano de contas**, dentro da lente "A pagar". Os testes já
+> a chamavam de `legacy` (`test_contas_pagar_legacy_*`).
+> **Plano:** redirecionar `/financeiro/contas-pagar` → `/financeiro/unificado?lente=pagar` + ajustar
+> o SubNav; quando o redirect landar, o trio (`.tsx`+`.charter`+`.casos`) é removido junto. O **dente
+> D1** da baixa (abaixo) fica **coberto pelo Unificado** — não vale mais construir teste de cálculo
+> pra esta tela em vias de sair (o D1 do dinheiro vive no fluxo do Unificado).
+> Charter retroativo nasceu na Onda de correção Financeiro ([ADR 0320]) — ver [_Roadmap_Faturamento §Camada de correção].
+> _v1 (2026-07-03) nasceu `draft`; v2 (mesmo dia) → `deprecated` após smoke + decisão [W]._
 > Persona: **Eliana [E]** — financeiro do escritório. Gêmea de [Contas a Receber](../ContasReceber/Index.charter.md),
 > com a diferença crítica: aqui existe **baixa (pagamento) inline que mexe em valor** — logo cai
 > na [regra-mestre de VALOR/ESTOQUE](../../../../../memory/proibicoes.md) e no dente D1 (ver abaixo).
