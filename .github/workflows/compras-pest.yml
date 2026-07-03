@@ -1,0 +1,158 @@
+name: Compras · Pest (MySQL)
+
+# Lane dedicado pra rodar a suíte Pest do Modules/Compras contra MySQL REAL
+# + seed mínimo (biz=1 + biz=2 — via .github/actions/pest-mysql-setup, FV-F2).
+#
+# Existe porque os testes Feature do Compras estavam REGISTRADOS em phpunit.xml
+# (<directory>./Modules/Compras/Tests/Feature</directory>) mas NENHUM lane de CI
+# os executava — falsa cobertura (proibição Tier 0 "Modules/X/Tests sem CI").
+#   - ci.yml roda só o subconjunto sqlite curado (.github/ci-sqlite-pest.list).
+#   - modules-pest.yml cobre Arquivos/ComunicacaoVisual/Fiscal/NfeBrasil/Repair/
+#     Vestuario — NÃO Compras.
+#   - Os shards dedicados (arquivos/estoque/financeiro/jana/nfebrasil) são
+#     per-módulo, não Compras.
+#
+# Os testes usam DatabaseTransactions + schema UltimatePOS (business/users/
+# transactions/Spatie permissions) → dão markTestSkipped em sqlite :memory:.
+# Precisam de MySQL real semeado; aqui rodam de verdade.
+#
+# CATRACA (padrão da lane Financeiro): o run roda só a ALLOWLIST verde (ver o
+# step "Run Pest" abaixo) — hoje SqlGuard (invariante R1 cross-tenant do JOIN
+# contacts, ADR 0093), GapsHardening, GapsP1 e ComprasListagemNPlusUm (anti-N+1).
+# O run inicial (junit 2026-07-03) mediu 33 pass / 5 skip / 4 fail: ComprasIndexTest
+# (harness HTTP: 403 permission biz-scoped + 409 Inertia version) e MultiTenantTest
+# (fixture biz=99 incompleta → skip) ficam FORA da allowlist até serem estabilizados
+# com Pest no CT 100 (não-blind). Ratchet up: cada lote de fix adiciona arquivos lá.
+# Assim a lane nasce VERDE e honesta (sem advisory-eterno-vermelho) e ainda executa
+# cobertura Tier 0 real, não só o full-suite nightly do CT 100 (ADR 0062).
+#
+# Usa o SCHEMA BASELINE (database/schema/mysql-schema.sql, gerado via schema:dump
+# da prod com as migrations registradas). `migrate` carrega o schema final num
+# passo só + roda só as migrations novas → sem o problema de fresh-install
+# (FK ordering / type-mismatch) que as migrations legacy têm.
+
+on:
+  workflow_dispatch: {}
+  # ADR 0271 onda 2 (item 4 — required-readiness): pull_request SEM paths
+  # (always-run) pra ser promovível a required sem deadlock "Expected — waiting".
+  # O custo (MySQL + migrate + Pest) é evitado por skip-as-pass interno: o step
+  # dorny/paths-filter detecta se algo do Compras mudou; se não, pula o pesado
+  # e conclui verde. push segue path-filtered (contém custo no main).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Compras/**'
+      # Invariantes R1 (getListPurchases JOIN scoped) vivem no util compartilhado:
+      # MultiTenantSqlGuardTest + GapsP1HardeningTest gateiam contra regressão aqui.
+      - 'app/Utils/TransactionUtil.php'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/compras-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: compras-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Compras · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Compras (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            compras:
+              - 'Modules/Compras/**'
+              - 'app/Utils/TransactionUtil.php'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/compras-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Compras mudou)
+        if: steps.changes.outputs.compras == 'false'
+        run: echo "✅ Sem mudanças no Modules/Compras — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      # FV-F2 (plano SDD 2026-06-12): setup extraído pra composite action reusável
+      # pelas lanes de burn-down por módulo. PHP + Composer + .env + migrate
+      # (schema baseline) + seed mínimo (biz=1 fixture completa + biz=2 Tier 0
+      # cross-tenant). O service container MySQL permanece DECLARADO ACIMA no job
+      # (composite action não pode declarar services — limitação GitHub Actions).
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.compras == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.compras == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Compras · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.compras == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: (sem force=) — se não
+        # sobrescrever, o Pest roda em sqlite VAZIO e os testes que dependem de
+        # schema UltimatePOS (Business::find/transactions/Spatie) dão markTestSkipped
+        # (a falsa cobertura). Exportar aqui faz rodar no MySQL real semeado.
+        #
+        # CATRACA (mesmo padrão da lane Financeiro · US-FIN-053): roda só os
+        # arquivos comprovadamente VERDES contra o baseline. Cada lote de fix
+        # adiciona arquivos AQUI (ratchet up). O run inicial (junit 2026-07-03)
+        # provou verdes: SqlGuard (R1 toSql), GapsHardening, GapsP1, ListagemNPlusUm.
+        #
+        # PENDENTES (fora da allowlist — precisam de Pest no CT100, não-blind):
+        #   - ComprasIndexTest: 403 (permission Spatie biz-scoped não resolve no
+        #     request — team context em assignRole) + 409 (Inertia asset-version
+        #     mismatch do header X-Inertia-Version:1). Harness HTTP, não o lane.
+        #   - MultiTenantTest: skip-graceful (fixture biz=99 forceCreate sem as
+        #     colunas NOT NULL do schema real). Executar exige montar a fixture
+        #     completa (business + location + transactions) e validar no CT100.
+        # Follow-up: RUNBOOK-erradicacao / task Compras estabilizar suíte HTTP.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-compras-junit.xml \
+            Modules/Compras/Tests/Feature/MultiTenantSqlGuardTest.php \
+            Modules/Compras/Tests/Feature/GapsHardeningTest.php \
+            Modules/Compras/Tests/Feature/GapsP1HardeningTest.php \
+            Modules/Compras/Tests/Feature/ComprasListagemNPlusUmTest.php
+
+      - name: Upload JUnit (veredito por-teste — casos:results)
+        if: ${{ !cancelled() && steps.changes.outputs.compras == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-compras-junit
+          path: test-results/pest-compras-junit.xml
+          retention-days: 14

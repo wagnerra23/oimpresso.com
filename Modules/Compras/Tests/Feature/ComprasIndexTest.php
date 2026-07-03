@@ -45,7 +45,10 @@ class ComprasIndexTest extends TestCase
         $permPurchaseCreate = Permission::firstOrCreate(['name' => 'purchase.create', 'guard_name' => 'web']);
         $permPurchaseUpdate = Permission::firstOrCreate(['name' => 'purchase.update', 'guard_name' => 'web']);
         $permPurchaseDelete = Permission::firstOrCreate(['name' => 'purchase.delete', 'guard_name' => 'web']);
-        $role = Role::firstOrCreate(['name' => 'admin#1', 'guard_name' => 'web']);
+        // Tier 0 UltimatePOS: `roles.business_id` é NOT NULL com FK pra business —
+        // criar role sem business_id viola a FK (proibicoes.md §FSM). Suffix #1 é só
+        // naming; a coluna business_id=1 é o que satisfaz a constraint.
+        $role = Role::firstOrCreate(['name' => 'admin#1', 'guard_name' => 'web', 'business_id' => 1]);
         $role->givePermissionTo([$permView, $permPurchaseCreate, $permPurchaseUpdate, $permPurchaseDelete]);
 
         $this->admin = User::factory()->create(['business_id' => 1]);
@@ -120,7 +123,7 @@ class ComprasIndexTest extends TestCase
     public function test_c1_user_sem_purchase_create_recebe_permissions_create_false(): void
     {
         $permView = Permission::firstOrCreate(['name' => 'compras.view', 'guard_name' => 'web']);
-        $roleViewer = Role::firstOrCreate(['name' => 'viewer-only#1', 'guard_name' => 'web']);
+        $roleViewer = Role::firstOrCreate(['name' => 'viewer-only#1', 'guard_name' => 'web', 'business_id' => 1]);
         $roleViewer->givePermissionTo($permView);
 
         $viewer = User::factory()->create(['business_id' => 1]);

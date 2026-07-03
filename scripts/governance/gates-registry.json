@@ -152,6 +152,13 @@
       "nome": "Fin SubNav Gate — abas seguem a entry do active (anti-regressão ADR 0180 split)",
       "classe": "gate"
     },
+    "compras-pest.yml": {
+      "nome": "Compras · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-17",
+      "anchor": "Proibição Tier 0 'Modules/X/Tests sem CI = falsa cobertura' — Modules/Compras/Tests registrado em phpunit.xml sem lane que o execute (MultiTenant/PII skip no sqlite = verde mente). Lane MySQL real reusa .github/actions/pest-mysql-setup; required-ready (ADR 0271 onda 2), promoção a required é passo Wagner. Refs ADR 0093 (multi-tenant Tier 0), ADR 0062 (testes CT100), PR #3723"
+    },
     "financeiro-pest.yml": {
       "nome": "Financeiro · Pest (MySQL)",
       "classe": "gate"
