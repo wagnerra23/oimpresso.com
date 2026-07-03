@@ -1,7 +1,7 @@
 ---
 date: "2026-07-03"
 time: "10:15 BRT"
-slug: "onda-2.1-compras-capterra"
+slug: "onda-21-compras-capterra"
 tldr: "Onda 2.1 (Compras, módulo mais fraco): FICHA de capacidade 34/100 + INVENTARIO + BRIEFING refresh. Wagner pegou 3 imprecisões (import DF-e existe no NfeBrasil, estoque/grade preservados do Blade). 5 chips spawnados; batch de tasks e sentinela viraram chips adversariais."
 prs: [3708, 3709, 3711, 3713, 3714]
 related_adrs:
