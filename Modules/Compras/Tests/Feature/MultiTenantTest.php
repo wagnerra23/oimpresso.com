@@ -50,7 +50,13 @@ use Spatie\Permission\Models\Role;
  *   - SPEC.md §US-COM-006
  */
 
-uses(DatabaseTransactions::class);
+// `Tests\TestCase::class` é OBRIGATÓRIO: Modules/Compras/Tests NÃO está
+// registrado no `uses(TestCase::class)->in(...)` do tests/Pest.php (só KB/RB/WA
+// têm binding próprio lá). Sem ele o Laravel não é bootado → `Business::find()`
+// dá "Call to a member function connection() on null" → beforeEach cai no
+// markTestSkipped (a falsa cobertura). Espelha os siblings verdes
+// (ComprasListagemNPlusUmTest, GapsHardeningTest).
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Setup compartilhado pra todos os cenários — cria 2 businesses (1 e 99),
@@ -74,6 +80,12 @@ beforeEach(function () {
                 'start_date' => Carbon::now()->toDateString(),
                 'default_profit_percent' => 0,
                 'owner_id' => 1,
+                // NOT NULL sem default no schema real (business): evita erro em
+                // MySQL strict. Espelha o seed .github/actions/pest-mysql-setup.
+                'stop_selling_before' => 0,
+                'weighing_scale_setting' => '',
+                'certificado' => '',
+                'officeimpresso_numerodemaquinas' => 0,
             ]);
         }
 
@@ -88,6 +100,11 @@ beforeEach(function () {
                 'start_date' => Carbon::now()->toDateString(),
                 'default_profit_percent' => 0,
                 'owner_id' => 1,
+                // NOT NULL sem default no schema real (business) — idem biz=1.
+                'stop_selling_before' => 0,
+                'weighing_scale_setting' => '',
+                'certificado' => '',
+                'officeimpresso_numerodemaquinas' => 0,
             ]);
         }
     } catch (\Throwable $e) {
@@ -107,42 +124,91 @@ beforeEach(function () {
     $permDelete = Permission::firstOrCreate(['name' => 'purchase.delete', 'guard_name' => 'web']);
 
     // Role suffix #biz-id é convenção UltimatePOS spatie/laravel-permission.
-    $roleAdmin1 = Role::firstOrCreate(['name' => 'admin-compras-test#1', 'guard_name' => 'web']);
+    // `roles.business_id` é NOT NULL + FK pra business (proibicoes.md §FSM) — criar
+    // role sem business_id viola a constraint. Cada role recebe o business_id do
+    // tenant a que pertence.
+    $roleAdmin1 = Role::firstOrCreate(
+        ['name' => 'admin-compras-test#1', 'guard_name' => 'web'],
+        ['business_id' => $this->bizPrimary->id]
+    );
     $roleAdmin1->givePermissionTo([$permView, $permCreate, $permUpdate, $permDelete]);
 
-    $roleAdmin99 = Role::firstOrCreate(['name' => 'admin-compras-test#99', 'guard_name' => 'web']);
+    $roleAdmin99 = Role::firstOrCreate(
+        ['name' => 'admin-compras-test#99', 'guard_name' => 'web'],
+        ['business_id' => $this->bizOther->id]
+    );
     $roleAdmin99->givePermissionTo([$permView, $permCreate, $permUpdate, $permDelete]);
 
     // Users — um em cada business. Username único pra evitar collision em runs
     // repetidos (uniqid sufixo).
+    // user_type='user' + allow_login=1: sem eles o middleware CheckUserLogin
+    // aborta 403 (o default do schema não vale na base clone-de-prod do CT100).
     $this->userPrimary = User::factory()->create([
         'business_id' => $this->bizPrimary->id,
         'username' => 'compras_test_biz1_' . uniqid(),
+        'user_type' => 'user',
+        'allow_login' => 1,
     ]);
     $this->userPrimary->assignRole($roleAdmin1);
 
     $this->userOther = User::factory()->create([
         'business_id' => $this->bizOther->id,
         'username' => 'compras_test_biz99_' . uniqid(),
+        'user_type' => 'user',
+        'allow_login' => 1,
     ]);
     $this->userOther->assignRole($roleAdmin99);
 
+    // business_locations tem FK NOT NULL invoice_scheme_id + invoice_layout_id
+    // (→ invoice_schemes/invoice_layouts, ON DELETE CASCADE). Reusa os existentes
+    // (staging clone-prod tem 80+); cria mínimo se a tabela estiver vazia (CI
+    // fresh-seed não semeia esses). Sem isso o INSERT do stub biz=99 viola a FK.
+    $schemeId = DB::table('invoice_schemes')->value('id');
+    if (! $schemeId) {
+        $schemeId = DB::table('invoice_schemes')->insertGetId([
+            'business_id' => $this->bizPrimary->id,
+            'name' => 'CI Scheme Test',
+            'scheme_type' => 'blank',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+    $layoutId = DB::table('invoice_layouts')->value('id');
+    if (! $layoutId) {
+        $layoutId = DB::table('invoice_layouts')->insertGetId([
+            'business_id' => $this->bizPrimary->id,
+            'name' => 'CI Layout Test',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    // Colunas NOT NULL sem default do schema real (country/state/city/zip_code +
+    // as 2 FKs acima). Reusadas nos 2 inserts de location.
+    $locationCols = [
+        'country' => 'BR',
+        'state' => 'SC',
+        'city' => 'Test City',
+        'zip_code' => '0000000',
+        'invoice_scheme_id' => $schemeId,
+        'invoice_layout_id' => $layoutId,
+        'is_active' => 1,
+    ];
+
     // business_location precisa existir pro INSERT em transactions
-    // (não-null fk location_id). Pega 1 do biz primário; cria 1 stub em biz=99
-    // se não houver.
+    // (fk location_id). Pega 1 do biz primário; cria 1 stub em biz=99 se não houver.
     $this->locationPrimary = DB::table('business_locations')
         ->where('business_id', $this->bizPrimary->id)
         ->first();
 
     if (! $this->locationPrimary) {
-        $locationPrimaryId = DB::table('business_locations')->insertGetId([
+        $locationPrimaryId = DB::table('business_locations')->insertGetId(array_merge($locationCols, [
             'business_id' => $this->bizPrimary->id,
             'name' => 'Loc Test Biz1',
             'location_id' => 'LOC1',
-            'is_active' => 1,
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ]));
         $this->locationPrimary = DB::table('business_locations')->find($locationPrimaryId);
     }
 
@@ -151,14 +217,13 @@ beforeEach(function () {
         ->first();
 
     if (! $this->locationOther) {
-        $locationOtherId = DB::table('business_locations')->insertGetId([
+        $locationOtherId = DB::table('business_locations')->insertGetId(array_merge($locationCols, [
             'business_id' => $this->bizOther->id,
             'name' => 'Loc Test Biz99',
             'location_id' => 'LOC99',
-            'is_active' => 1,
             'created_at' => now(),
             'updated_at' => now(),
-        ]);
+        ]));
         $this->locationOther = DB::table('business_locations')->find($locationOtherId);
     }
 });
@@ -172,6 +237,18 @@ beforeEach(function () {
  * @param  int  $userId  users.id criador (created_by)
  * @param  string  $refNo  ref_no usado pra assertSee/assertJsonMissing
  */
+/**
+ * Versão Inertia = md5 do manifest (HandleInertiaRequests::version()). Header
+ * fixo ('1') causa 409 (asset-version mismatch) quando o servidor tem manifest
+ * real. Espelha Modules/Financeiro/Tests/Feature/FinanceiroTestCase::inertiaGet.
+ */
+function comprasInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
 function comprasCriarPurchase(int $businessId, int $locationId, int $userId, string $refNo, array $overrides = []): Transaction
 {
     $defaults = [
@@ -187,6 +264,8 @@ function comprasCriarPurchase(int $businessId, int $locationId, int $userId, str
         'tax_amount' => 0,
         'discount_amount' => 0,
         'created_by' => $userId,
+        // NOT NULL sem default no schema real (transactions).
+        'essentials_duration' => 0,
     ];
 
     return Transaction::forceCreate(array_merge($defaults, $overrides));
@@ -221,7 +300,7 @@ it('cenario 1: GET /compras user biz=1 NAO vê compras criadas em biz=99', funct
         ])
         ->withHeaders([
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => comprasInertiaVersion(),
             // partial reload `only=rows` força resolver o defer e retornar
             // payload direto sem render HTML completo.
             'X-Inertia-Partial-Data' => 'rows',
@@ -336,7 +415,7 @@ it('cenario 3: props.kpis defer do user biz=1 NAO conta compras de biz=99', func
         ])
         ->withHeaders([
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => comprasInertiaVersion(),
             'X-Inertia-Partial-Data' => 'kpis',
             'X-Inertia-Partial-Component' => 'Compras/Index',
         ])
@@ -388,6 +467,9 @@ it('cenario 4: filtro ?q= por supplier_business_name NAO vaza contact de biz=99 
         'name' => 'Fornecedor Adversario',
         'supplier_business_name' => $supplierNameLeak,
         'contact_id' => 'CT-LEAK-' . uniqid(),
+        // NOT NULL sem default no schema real (contacts).
+        'mobile' => '',
+        'created_by' => $this->userOther->id,
         'created_at' => now(),
         'updated_at' => now(),
     ]);
@@ -408,7 +490,7 @@ it('cenario 4: filtro ?q= por supplier_business_name NAO vaza contact de biz=99 
         ])
         ->withHeaders([
             'X-Inertia' => 'true',
-            'X-Inertia-Version' => '1',
+            'X-Inertia-Version' => comprasInertiaVersion(),
             'X-Inertia-Partial-Data' => 'rows',
             'X-Inertia-Partial-Component' => 'Compras/Index',
         ])

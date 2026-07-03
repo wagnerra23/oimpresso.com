@@ -5,6 +5,7 @@ namespace Modules\Compras\Tests\Feature;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Tests\TestCase;
@@ -51,8 +52,29 @@ class ComprasIndexTest extends TestCase
         $role = Role::firstOrCreate(['name' => 'admin#1', 'guard_name' => 'web', 'business_id' => 1]);
         $role->givePermissionTo([$permView, $permPurchaseCreate, $permPurchaseUpdate, $permPurchaseDelete]);
 
-        $this->admin = User::factory()->create(['business_id' => 1]);
+        // user_type='user' + allow_login=1 são OBRIGATÓRIOS: o middleware
+        // CheckUserLogin (grupo admin UPos) aborta 403 sem eles. O DEFAULT 'user'
+        // do schema baseline NÃO vale na base clone-de-prod do CT100 (coluna herdou
+        // NULL do legado) → factory user cai no 403. Espelha o setup do sibling
+        // PurchaseCalculoValorEstoqueE2ETest (que roda verde por isso).
+        $this->admin = User::factory()->create([
+            'business_id' => 1,
+            'user_type' => 'user',
+            'allow_login' => 1,
+        ]);
         $this->admin->assignRole($role);
+    }
+
+    /**
+     * Versão Inertia = md5 do manifest (HandleInertiaRequests::version()). Enviar
+     * um valor fixo ('1') causa 409 (asset-version mismatch) quando o servidor tem
+     * manifest real. Espelha Modules/Financeiro/Tests/Feature/FinanceiroTestCase.
+     */
+    private function inertiaVersion(): string
+    {
+        $manifest = public_path('build-inertia/manifest.json');
+
+        return file_exists($manifest) ? md5_file($manifest) : '1';
     }
 
     public function test_rota_compras_responde_200_com_permission(): void
@@ -70,9 +92,11 @@ class ComprasIndexTest extends TestCase
             ->withSession(['user' => ['business_id' => 1, 'id' => $this->admin->id]])
             ->get('/compras');
 
-        // Inertia retorna HTML com data-page; component fica no payload JSON.
+        // Inertia serializa o component no data-page com a barra escapada
+        // (`Compras\/Index`), então assertSee('Compras/Index') não bate. A asserção
+        // idiomática lê o data-page e compara o component desescapado.
         $response->assertStatus(200);
-        $response->assertSee('Compras/Index', false);
+        $response->assertInertia(fn (AssertableInertia $page) => $page->component('Compras/Index'));
     }
 
     public function test_sem_permission_compras_view_retorna_403(): void
@@ -98,7 +122,7 @@ class ComprasIndexTest extends TestCase
     {
         $response = $this->actingAs($this->admin)
             ->withSession(['user' => ['business_id' => 1, 'id' => $this->admin->id]])
-            ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->inertiaVersion()])
             ->get('/compras');
 
         $response->assertStatus(200);
@@ -126,12 +150,16 @@ class ComprasIndexTest extends TestCase
         $roleViewer = Role::firstOrCreate(['name' => 'viewer-only#1', 'guard_name' => 'web', 'business_id' => 1]);
         $roleViewer->givePermissionTo($permView);
 
-        $viewer = User::factory()->create(['business_id' => 1]);
+        $viewer = User::factory()->create([
+            'business_id' => 1,
+            'user_type' => 'user',
+            'allow_login' => 1,
+        ]);
         $viewer->assignRole($roleViewer);
 
         $response = $this->actingAs($viewer)
             ->withSession(['user' => ['business_id' => 1, 'id' => $viewer->id]])
-            ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+            ->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => $this->inertiaVersion()])
             ->get('/compras');
 
         $response->assertStatus(200);
