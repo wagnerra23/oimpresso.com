@@ -214,6 +214,12 @@
       "nome": "MCP Drift Sentinel — servido vs main (ADR 0256 + 0062)",
       "classe": "automacao"
     },
+    "exposicao-tier0-sentinel.yml": {
+      "nome": "Exposição Tier-0 — sentinela de cadência (Onda 0c · débito Tier-0 por tela dinheiro/estoque/PII/fiscal × cobertura de comportamento · cron semanal + tendência + issue durável)",
+      "classe": "automacao",
+      "terminal": "cron",
+      "anchor": "sinal de custo: incidente num_uf R$ inflado ×100k (2026-06-05, REGRA MESTRE valor/estoque) + diagnóstico programa-ondas (211 telas Tier-0 sem teste de comportamento, E2E 4/242) — pilar CADÊNCIA da ADR 0256; avisa quando o débito Tier-0 cresce apesar da catraca 0b (casos-coverage-guard)."
+    },
     "memory-health.yml": {
       "nome": "Memory Health — ADR 0256",
       "classe": "gate"

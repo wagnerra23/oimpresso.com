@@ -1,0 +1,1221 @@
+{
+  "_meta": {
+    "gate": "exposicao-tier0 (Onda 0c · sentinela de cadência · ADR 0256/0264/0271)",
+    "nota": "baseline da catraca de exposição Tier-0 — NÃO editar à mão. Regravar consciente: node scripts/qa/exposicao-tier0.mjs --json",
+    "universo": "242 telas honestas (exclui _components/, Partials/, pastas _*)",
+    "piso": "hot_covered + covered_hot_screens = piso Tier-0 (só sobe); sentinela reporta hot_debt (tendência)",
+    "refs": [
+      "ADR 0256",
+      "ADR 0264",
+      "ADR 0271"
+    ]
+  },
+  "aggregates": {
+    "universe": 242,
+    "tier0_hot": 123,
+    "hot_covered": 4,
+    "hot_debt": 119,
+    "by_category": {
+      "dinheiro": {
+        "exposed": 88,
+        "covered": 3,
+        "debt": 85
+      },
+      "estoque": {
+        "exposed": 37,
+        "covered": 2,
+        "debt": 35
+      },
+      "fiscal": {
+        "exposed": 32,
+        "covered": 3,
+        "debt": 29
+      },
+      "pii": {
+        "exposed": 39,
+        "covered": 1,
+        "debt": 38
+      }
+    }
+  },
+  "covered_hot_screens": [
+    "Fiscal/Cockpit.tsx",
+    "NfeBrasil/Transactions/NfceStatus.tsx",
+    "Sells/Create.tsx",
+    "Sells/Index.tsx"
+  ],
+  "debt_ranked": [
+    {
+      "screen": "Compras/components/Drawer.tsx",
+      "module": "Compras",
+      "categories": [
+        "dinheiro",
+        "pii",
+        "fiscal",
+        "estoque"
+      ],
+      "exposure_score": 11
+    },
+    {
+      "screen": "Sells/Show.tsx",
+      "module": "Sells",
+      "categories": [
+        "dinheiro",
+        "estoque",
+        "fiscal"
+      ],
+      "exposure_score": 11
+    },
+    {
+      "screen": "Fiscal/Nfe.tsx",
+      "module": "Fiscal",
+      "categories": [
+        "estoque",
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 9
+    },
+    {
+      "screen": "Fiscal/Sped.tsx",
+      "module": "Fiscal",
+      "categories": [
+        "estoque",
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 9
+    },
+    {
+      "screen": "NfeBrasil/Manifestacao/Index.tsx",
+      "module": "NfeBrasil",
+      "categories": [
+        "dinheiro",
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 9
+    },
+    {
+      "screen": "NfeBrasil/Tributacao/ConfigDefault.tsx",
+      "module": "NfeBrasil",
+      "categories": [
+        "dinheiro",
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 9
+    },
+    {
+      "screen": "NfeBrasil/Tributacao/Index.tsx",
+      "module": "NfeBrasil",
+      "categories": [
+        "dinheiro",
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 9
+    },
+    {
+      "screen": "Nfse/Emitir.tsx",
+      "module": "Nfse",
+      "categories": [
+        "dinheiro",
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 9
+    },
+    {
+      "screen": "Nfse/Show.tsx",
+      "module": "Nfse",
+      "categories": [
+        "dinheiro",
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 9
+    },
+    {
+      "screen": "RecurringBilling/Index.tsx",
+      "module": "RecurringBilling",
+      "categories": [
+        "dinheiro",
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 9
+    },
+    {
+      "screen": "Purchase/Show.tsx",
+      "module": "Purchase",
+      "categories": [
+        "dinheiro",
+        "pii",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "Sells/Edit.tsx",
+      "module": "Sells",
+      "categories": [
+        "dinheiro",
+        "pii",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "Compras/components/AcoesDropdown.tsx",
+      "module": "Compras",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "ComunicacaoVisual/Index.tsx",
+      "module": "ComunicacaoVisual",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "governance/DsRollout.tsx",
+      "module": "governance",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "Home/Index.tsx",
+      "module": "Home",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "OficinaAuto/ServiceOrders/Board.tsx",
+      "module": "OficinaAuto",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "Produto/SellingPrices.tsx",
+      "module": "Produto",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "Purchase/Create.tsx",
+      "module": "Purchase",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "Repair/JobSheet/AddParts.tsx",
+      "module": "Repair",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "Sells/Caixa/Index.tsx",
+      "module": "Sells",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "StockAdjustment/Create.tsx",
+      "module": "StockAdjustment",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "StockAdjustment/Index.tsx",
+      "module": "StockAdjustment",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "StockTransfer/Create.tsx",
+      "module": "StockTransfer",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "StockTransfer/Index.tsx",
+      "module": "StockTransfer",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 8
+    },
+    {
+      "screen": "Financeiro/ProvaViva.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro",
+        "fiscal"
+      ],
+      "exposure_score": 7
+    },
+    {
+      "screen": "Financeiro/Unificado/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro",
+        "fiscal"
+      ],
+      "exposure_score": 7
+    },
+    {
+      "screen": "Fiscal/Nfse.tsx",
+      "module": "Fiscal",
+      "categories": [
+        "dinheiro",
+        "fiscal"
+      ],
+      "exposure_score": 7
+    },
+    {
+      "screen": "OficinaAuto/ServiceOrders/Show.tsx",
+      "module": "OficinaAuto",
+      "categories": [
+        "dinheiro",
+        "fiscal"
+      ],
+      "exposure_score": 7
+    },
+    {
+      "screen": "RecurringBilling/Configuracoes/Index.tsx",
+      "module": "RecurringBilling",
+      "categories": [
+        "dinheiro",
+        "fiscal"
+      ],
+      "exposure_score": 7
+    },
+    {
+      "screen": "RecurringBilling/Planos/Create.tsx",
+      "module": "RecurringBilling",
+      "categories": [
+        "dinheiro",
+        "fiscal"
+      ],
+      "exposure_score": 7
+    },
+    {
+      "screen": "RecurringBilling/Planos/Edit.tsx",
+      "module": "RecurringBilling",
+      "categories": [
+        "dinheiro",
+        "fiscal"
+      ],
+      "exposure_score": 7
+    },
+    {
+      "screen": "RecurringBilling/Planos/Index.tsx",
+      "module": "RecurringBilling",
+      "categories": [
+        "dinheiro",
+        "fiscal"
+      ],
+      "exposure_score": 7
+    },
+    {
+      "screen": "Settings/PaymentGateways/Index.tsx",
+      "module": "Settings",
+      "categories": [
+        "dinheiro",
+        "fiscal"
+      ],
+      "exposure_score": 7
+    },
+    {
+      "screen": "Cliente/Index.tsx",
+      "module": "Cliente",
+      "categories": [
+        "dinheiro",
+        "pii"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "Compras/Index.tsx",
+      "module": "Compras",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "Financeiro/ContasBancarias/components/ConfigurarBoletoSheet.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro",
+        "pii"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "Financeiro/ContasBancarias/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro",
+        "pii"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "Jana/Cockpit.tsx",
+      "module": "Jana",
+      "categories": [
+        "dinheiro",
+        "pii"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "Manufacturing/Index.tsx",
+      "module": "Manufacturing",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "Purchase/Edit.tsx",
+      "module": "Purchase",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "Purchase/Index.tsx",
+      "module": "Purchase",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "RecurringBilling/Faturas/Index.tsx",
+      "module": "RecurringBilling",
+      "categories": [
+        "dinheiro",
+        "pii"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "Sells/Subscriptions.tsx",
+      "module": "Sells",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "TransactionPayment/Show.tsx",
+      "module": "TransactionPayment",
+      "categories": [
+        "dinheiro",
+        "pii"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "User/Perfil.tsx",
+      "module": "User",
+      "categories": [
+        "dinheiro",
+        "pii"
+      ],
+      "exposure_score": 6
+    },
+    {
+      "screen": "Cliente/Show.tsx",
+      "module": "Cliente",
+      "categories": [
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 5
+    },
+    {
+      "screen": "Fiscal/Config.tsx",
+      "module": "Fiscal",
+      "categories": [
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 5
+    },
+    {
+      "screen": "Fiscal/Dfe.tsx",
+      "module": "Fiscal",
+      "categories": [
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 5
+    },
+    {
+      "screen": "NfeBrasil/Tributacao/ImportCsv.tsx",
+      "module": "NfeBrasil",
+      "categories": [
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 5
+    },
+    {
+      "screen": "NfeBrasil/Tributacao/RegraForm.tsx",
+      "module": "NfeBrasil",
+      "categories": [
+        "pii",
+        "fiscal"
+      ],
+      "exposure_score": 5
+    },
+    {
+      "screen": "Compras/components/VisibilidadeColunas.tsx",
+      "module": "Compras",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/Configuracoes/Contador.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "pii",
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Sells/Drafts.tsx",
+      "module": "Sells",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Sells/Quotations.tsx",
+      "module": "Sells",
+      "categories": [
+        "dinheiro",
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "ads/Admin/Skills/Edit.tsx",
+      "module": "ads",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Atendimento/JanaTemplates.tsx",
+      "module": "Atendimento",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Essentials/Settings/Index.tsx",
+      "module": "Essentials",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/AssinaturaAtualizar.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/Cobranca/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/ContasPagar/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/ContasReceber/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/Dashboard/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/Dre/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/Extrato/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/Fluxo/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Financeiro/Impostos/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "governance/Dashboard.tsx",
+      "module": "governance",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Jana/Admin/Custos/Index.tsx",
+      "module": "Jana",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Jana/Admin/Governanca/Index.tsx",
+      "module": "Jana",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Jana/components/JanaCockpitV2.tsx",
+      "module": "Jana",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Jana/Dashboard.tsx",
+      "module": "Jana",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Jana/Pro.tsx",
+      "module": "Jana",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "OficinaAuto/AprovacaoPublica.tsx",
+      "module": "OficinaAuto",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "OficinaAuto/ServiceOrders/Edit.tsx",
+      "module": "OficinaAuto",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Produto/BulkEdit.tsx",
+      "module": "Produto",
+      "categories": [
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Produto/Create.tsx",
+      "module": "Produto",
+      "categories": [
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Produto/Edit.tsx",
+      "module": "Produto",
+      "categories": [
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Produto/Index.tsx",
+      "module": "Produto",
+      "categories": [
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Produto/Show.tsx",
+      "module": "Produto",
+      "categories": [
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Produto/StockHistory.tsx",
+      "module": "Produto",
+      "categories": [
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Produto/Unificado/Index.tsx",
+      "module": "Produto",
+      "categories": [
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Repair/Index.tsx",
+      "module": "Repair",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Repair/JobSheet/Show.tsx",
+      "module": "Repair",
+      "categories": [
+        "estoque"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Repair/ProducaoOficina/Index.tsx",
+      "module": "Repair",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Repair/Show.tsx",
+      "module": "Repair",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Settings/PaymentGateways/CnabRetorno.tsx",
+      "module": "Settings",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "team-mcp/Team/Index.tsx",
+      "module": "team-mcp",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "TransactionPayment/Edit.tsx",
+      "module": "TransactionPayment",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "TransactionPayment/Index.tsx",
+      "module": "TransactionPayment",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "Whatsapp/Settings.tsx",
+      "module": "Whatsapp",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 4
+    },
+    {
+      "screen": "ads/Admin/Conflicts.tsx",
+      "module": "ads",
+      "categories": [
+        "fiscal"
+      ],
+      "exposure_score": 3
+    },
+    {
+      "screen": "ads/Admin/DecisaoShow.tsx",
+      "module": "ads",
+      "categories": [
+        "fiscal"
+      ],
+      "exposure_score": 3
+    },
+    {
+      "screen": "Fiscal/Eventos.tsx",
+      "module": "Fiscal",
+      "categories": [
+        "fiscal"
+      ],
+      "exposure_score": 3
+    },
+    {
+      "screen": "Nfse/Index.tsx",
+      "module": "Nfse",
+      "categories": [
+        "fiscal"
+      ],
+      "exposure_score": 3
+    },
+    {
+      "screen": "superadmin/Usuario360/Show.tsx",
+      "module": "superadmin",
+      "categories": [
+        "fiscal"
+      ],
+      "exposure_score": 3
+    },
+    {
+      "screen": "ads/Admin/Skills/Test.tsx",
+      "module": "ads",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Atendimento/Macros/Index.tsx",
+      "module": "Atendimento",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Cliente/Create.tsx",
+      "module": "Cliente",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Cliente/Edit.tsx",
+      "module": "Cliente",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Financeiro/Advisor/Dashboard.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Financeiro/Advisor/Login.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Financeiro/Caixa/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Financeiro/Categorias/components/CategoriaSheet.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Financeiro/Categorias/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Financeiro/Conciliacao/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Financeiro/PlanoContas/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Financeiro/Relatorios/Index.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Financeiro/Unificado/Novo.tsx",
+      "module": "Financeiro",
+      "categories": [
+        "dinheiro"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "kb/Index.tsx",
+      "module": "kb",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Ponto/Colaboradores/Edit.tsx",
+      "module": "Ponto",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Ponto/Colaboradores/Index.tsx",
+      "module": "Ponto",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Ponto/Configuracoes/Reps.tsx",
+      "module": "Ponto",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Ponto/Espelho/Index.tsx",
+      "module": "Ponto",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Ponto/Espelho/Show.tsx",
+      "module": "Ponto",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Repair/JobSheet/Create.tsx",
+      "module": "Repair",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 2
+    },
+    {
+      "screen": "Cliente/Import.tsx",
+      "module": "Cliente",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 1
+    },
+    {
+      "screen": "Cliente/Ledger.tsx",
+      "module": "Cliente",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 1
+    },
+    {
+      "screen": "Cliente/Map.tsx",
+      "module": "Cliente",
+      "categories": [
+        "pii"
+      ],
+      "exposure_score": 1
+    }
+  ],
+  "by_module": {
+    "ads": {
+      "hot": 4,
+      "covered": 0,
+      "debt": 4
+    },
+    "Atendimento": {
+      "hot": 2,
+      "covered": 0,
+      "debt": 2
+    },
+    "Cliente": {
+      "hot": 7,
+      "covered": 0,
+      "debt": 7
+    },
+    "Compras": {
+      "hot": 4,
+      "covered": 0,
+      "debt": 4
+    },
+    "ComunicacaoVisual": {
+      "hot": 1,
+      "covered": 0,
+      "debt": 1
+    },
+    "Essentials": {
+      "hot": 1,
+      "covered": 0,
+      "debt": 1
+    },
+    "Financeiro": {
+      "hot": 23,
+      "covered": 0,
+      "debt": 23
+    },
+    "Fiscal": {
+      "hot": 7,
+      "covered": 1,
+      "debt": 6
+    },
+    "governance": {
+      "hot": 2,
+      "covered": 0,
+      "debt": 2
+    },
+    "Home": {
+      "hot": 1,
+      "covered": 0,
+      "debt": 1
+    },
+    "Jana": {
+      "hot": 6,
+      "covered": 0,
+      "debt": 6
+    },
+    "kb": {
+      "hot": 1,
+      "covered": 0,
+      "debt": 1
+    },
+    "Manufacturing": {
+      "hot": 1,
+      "covered": 0,
+      "debt": 1
+    },
+    "NfeBrasil": {
+      "hot": 6,
+      "covered": 1,
+      "debt": 5
+    },
+    "Nfse": {
+      "hot": 3,
+      "covered": 0,
+      "debt": 3
+    },
+    "OficinaAuto": {
+      "hot": 4,
+      "covered": 0,
+      "debt": 4
+    },
+    "Ponto": {
+      "hot": 5,
+      "covered": 0,
+      "debt": 5
+    },
+    "Produto": {
+      "hot": 8,
+      "covered": 0,
+      "debt": 8
+    },
+    "Purchase": {
+      "hot": 4,
+      "covered": 0,
+      "debt": 4
+    },
+    "RecurringBilling": {
+      "hot": 6,
+      "covered": 0,
+      "debt": 6
+    },
+    "Repair": {
+      "hot": 6,
+      "covered": 0,
+      "debt": 6
+    },
+    "Sells": {
+      "hot": 8,
+      "covered": 2,
+      "debt": 6
+    },
+    "Settings": {
+      "hot": 2,
+      "covered": 0,
+      "debt": 2
+    },
+    "StockAdjustment": {
+      "hot": 2,
+      "covered": 0,
+      "debt": 2
+    },
+    "StockTransfer": {
+      "hot": 2,
+      "covered": 0,
+      "debt": 2
+    },
+    "superadmin": {
+      "hot": 1,
+      "covered": 0,
+      "debt": 1
+    },
+    "team-mcp": {
+      "hot": 1,
+      "covered": 0,
+      "debt": 1
+    },
+    "TransactionPayment": {
+      "hot": 3,
+      "covered": 0,
+      "debt": 3
+    },
+    "User": {
+      "hot": 1,
+      "covered": 0,
+      "debt": 1
+    },
+    "Whatsapp": {
+      "hot": 1,
+      "covered": 0,
+      "debt": 1
+    }
+  }
+}
