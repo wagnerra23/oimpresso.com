@@ -312,3 +312,112 @@ Refs: PR #2147, `Modules/NFSe/Adapters/SnNfseAdapter.php`, `prototipo-ui/CODE_NO
 - LC 214/2025 (NFSe Nacional federal)
 - https://www.gov.br/nfse (Sistema Nacional NFSe)
 - Tubarão-SC ISSQN https://www.tubarao.sc.gov.br
+
+---
+
+## Backlog vindo do Capterra-Inventário (2026-07-03)
+
+> Gerado via `/comparativo NFSe` cruzando [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (nota 45/100) + código real. Aprovado por Wagner 2026-07-03 ("autorizo"). Tasks criadas no MCP. Contexto: Wagner confirmou **intenção de emitir NFSe real antes de 15/07/2026** → US-NFSE-016 (DANFSe NT 008/2026) é P0 urgente.
+>
+> Também re-priorizadas (DB, ADR 0144): **US-NFSE-014** p2→p1 (config UI self-service) · **US-NFSE-015** p2→p1 (bug latente ambiente per-business no cancelar/consultar). **US-NFSE-013** (marco emitir real) mantém p0; ordem crítica **016 → 017 → 013**.
+
+### US-NFSE-016 · Geração própria do DANFSe conforme NT 008/2026
+
+> owner: eliana · priority: p0 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+🔴 **Prazo regulatório LIVE: 15/07/2026** (NT 008/2026, SE/CGNFS-e — prorrogado de 01/07). A API do ADN que gera o DANFSe é descontinuada; a responsabilidade de gerar o DANFSe (PDF) passa ao **sistema emissor**. Hoje o oimpresso NÃO gera — depende de `data['urlDanfse']` do provider (`SnNfseAdapter.php:71`, `NfseController:261` só proxia). Gap C05 da CAPTERRA-FICHA (nota 1/10).
+
+**Aceite:**
+- [ ] Gerar DANFSe (PDF) conforme layout único da NT 008/2026 (estrutura, campos, QR Code, informações tributárias, identificação da operação).
+- [ ] Substituir o proxy de `urlDanfse` por geração local (ou fallback local quando provider não retornar URL).
+- [ ] Pest cobrindo render do PDF a partir de uma emissão mockada.
+- [ ] Smoke: DANFSe de 1 NFSe (homologação) abre e bate o leiaute.
+
+**Origem:** gap detectado pelo /comparativo em 2026-07-03 (parent_audit: CAPTERRA-FICHA NFSe). Refs: [FICHA §8 achado 4](CAPTERRA-FICHA.md), NT 008/2026 gov.br/nfse. labels: capterra-gap, from-skill, regulatorio-urgente
+
+### US-NFSE-017 · Validar DPS contra leiaute RTC v2.00 / integrar nfse-nacional/nfse-php
+
+> owner: eliana · priority: p0 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+Pré-requisito da 1ª emissão real (US-NFSE-013). O `SnNfseAdapter::buildDps()` monta um `infDps` **simplificado à mão** (comentário diz "TODO US-NFSE-004: integrar lib nfse-nacional/nfse-php"). Os 13 Pest passam com `Http::fake` — NÃO validam o payload contra o XSD/leiaute oficial. Um DPS incompleto é rejeitado pela SEFIN na 1ª emissão real. Gap C01 (nota 5/10, PARCIAL).
+
+**Aceite:**
+- [ ] Validar o DPS gerado contra o leiaute RTC v2.00 (NT 004/SE-CGNFSe) — campos obrigatórios, tipos, tribMun.
+- [ ] Se o hand-rolled não casar: integrar `nfse-nacional/nfse-php` (respeitando split composer.json ADR 0062).
+- [ ] Emissão em produção-restrita retorna sucesso (não rejeição de schema).
+
+**Origem:** /comparativo 2026-07-03 (CAPTERRA-FICHA §8 achado 3). Refs: `Modules/NFSe/Adapters/SnNfseAdapter.php:22,106`. labels: capterra-gap, from-skill
+
+### US-NFSE-018 · Substituição de NFSe (evento, mantém vínculo original↔nova)
+
+> owner: eliana · priority: p1 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+
+Gap C09 (nota 0/10, AUSENTE). O padrão nacional tem o evento de "cancelamento por substituição" — corrige uma nota emitida mantendo o vínculo original↔nova (janela: emissão original ≤730 dias / ≤6 meses do fato gerador). Concorrentes (Focus/PlugNotas/SP) têm. Hoje só cancela — grep 0 matches.
+
+**Aceite:**
+- [ ] Emitir NFSe substituta vinculada à original (evento no padrão nacional).
+- [ ] Validar janela legal antes de permitir.
+- [ ] UI na `Nfse/Show` (ação "Substituir") + persistência do vínculo.
+- [ ] Pest cobrindo substituição dentro/fora do prazo.
+
+**Origem:** /comparativo 2026-07-03. Refs: CAPTERRA-FICHA §4 C09. labels: capterra-gap, from-skill
+
+### US-NFSE-019 · Webhook/callback assíncrono de eventos SEFIN
+
+> owner: eliana · priority: p1 · estimate: 10h · status: todo · type: story
+> blocked_by: —
+
+Gap C10 (nota 1/10, AUSENTE). Hoje o status só atualiza via polling (`consultar()`); não há callback assíncrono quando a nota é autorizada/rejeitada/cancelada. `retention.php` já prevê log `webhook_municipal` (365d) mas não existe dispatcher/receiver. Concorrentes (Focus/eNotas/Notaas) entregam webhook até no plano free.
+
+**Aceite:**
+- [ ] Receiver de callback de eventos SEFIN/ADN → atualiza `nfse_emissoes.status` sem polling.
+- [ ] (Opcional) WebhookDispatcher pra notificar sistemas do tenant (assinatura HMAC + retry backoff).
+- [ ] business_id sempre explícito (job/fila — ADR 0093).
+- [ ] Pest com payload de evento mockado.
+
+**Origem:** /comparativo 2026-07-03. Refs: CAPTERRA-FICHA §4 C10, `Config/retention.php:63`. labels: capterra-gap, from-skill
+
+### US-NFSE-020 · Alerta proativo de certificado A1 vencendo (cron D-30/D-7/D-1)
+
+> owner: eliana · priority: p2 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+Gap C18 (nota 4/10, PARCIAL). O `NfseHealthCommand::checkCertVencimento():144` já detecta cert vencendo em 30d (WARN), mas é health-check CLI — não notifica o usuário. Cert A1 vence anual; sem alerta, a emissão para sem aviso (risk 🔴 do BRIEFING).
+
+**Aceite:**
+- [ ] Cron (Console/Kernel) reaproveita `checkCertVencimento` e dispara alerta D-30/D-7/D-1.
+- [ ] Notificação via canal existente (mcp_alertas / email / Whatsapp conforme padrão).
+- [ ] Multi-tenant: alerta por business com cert próximo do vencimento.
+
+**Origem:** /comparativo 2026-07-03. Refs: `Modules/NFSe/Console/Commands/NfseHealthCommand.php:144`. labels: capterra-gap, from-skill
+
+### US-NFSE-021 · Dashboard de métricas NFSe (volume/erro/ISS pago)
+
+> owner: eliana · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Gap C16 (nota 2/10, AUSENTE). Concorrentes têm painel/relatórios de emissão. Hoje há só `NfseHealthCommand` (health CLI), sem dashboard. BRIEFING gap #3.
+
+**Aceite:**
+- [ ] Página/seção com KPIs: volume emitido, taxa de erro, ISS apurado por competência.
+- [ ] `Inertia::defer` nas props agregadas (skill inertia-defer-default).
+- [ ] Multi-tenant scope (business_id).
+
+**Origem:** /comparativo 2026-07-03. Refs: CAPTERRA-FICHA §4 C16. labels: capterra-gap, from-skill
+
+### US-NFSE-022 · Carta de correção (campo discriminação dos serviços)
+
+> owner: eliana · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Gap C14 (nota 0/10, AUSENTE). No padrão nacional/municipal a carta de correção regulariza erro/omissão apenas no campo DISCRIMINAÇÃO DOS SERVIÇOS (não altera valor/tomador). Concorrentes (Focus/SP) têm. Hoje ausente (grep 0 matches).
+
+**Aceite:**
+- [ ] Emitir carta de correção (evento) para o campo discriminação de uma NFSe emitida.
+- [ ] Validar que só o campo permitido é alterado.
+- [ ] UI + persistência do evento + Pest.
+
+**Origem:** /comparativo 2026-07-03. Refs: CAPTERRA-FICHA §4 C14. labels: capterra-gap, from-skill
