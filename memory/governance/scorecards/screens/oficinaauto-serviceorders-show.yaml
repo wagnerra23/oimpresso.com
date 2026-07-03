@@ -32,23 +32,24 @@ gaps:
     origin: screen-grades-baseline-2026-05-30
 
 # ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
-# NÃO entra na nota 76 (UX). É a OUTRA leitura da foto: a tela é Advanced no visual (76) e é a
-# fonte-da-verdade de UMA OS (mostra o TOTAL — Tier-0) e AO MESMO TEMPO não tem NENHUM contrato
-# de comportamento por-tela que a régua possa citar. Há Pest de sobra exercitando o código
-# (FsmTransitionTest, ServiceOrderCrudTest, ServiceOrderIndexItemsTotalTest, ServiceOrderItemHttpIntegrationTest,
-# ServiceOrderStageGateTest, ServiceOrderHistoryControllerTest), mas ZERO `.casos.md` — logo
-# cobertura_uc=0% é de CONTRATO, não de código nu. Isso agora fica visível.
+# NÃO entra na nota 76 (UX). É a OUTRA leitura da foto. CONTRATO estabelecido 2026-07-03: a tela
+# ganhou Show.casos.md com 4 UCs 🧪 (cada um cita um Pest real — G-2 rastreabilidade). Status 🧪
+# (não ✅) porque os Pest não estão no manifesto de vereditos (casos-test-results.json, alimentado
+# por e2e/JUnit) — subir pra ✅ exige um run coletado no CT100 (o "dente" da régua). cobertura_uc
+# fica 0% honesto (🧪 não conta como ✅) — mesmo estado do golden Sells/Create.
 casos_coverage:
-  fonte: null          # sem resources/js/Pages/OficinaAuto/ServiceOrders/Show.casos.md (só Board.casos.md existe no módulo)
+  fonte: resources/js/Pages/OficinaAuto/ServiceOrders/Show.casos.md
   guard: scripts/casos-coverage-guard.mjs
-  ucs: []              # nenhum UC contratado por-tela ainda
-  backlog:             # candidatos sem UC-id (G-2: id só no MESMO PR do teste); o Pest que os defenderia JÁ existe
-    - "OS de outro business retorna 404 (multi-tenant Tier 0) — ServiceOrderCrudTest/VehicleMultiTenantTest"
-    - "Total/valor exibido bate com itens (peça×qty + hora×horas) — ServiceOrderIndexItemsTotalTest (⚠️ hoje R$ 0 em OS mecânica, US-OFICINA-027)"
-    - "Adicionar/excluir item via Sheet atualiza o total (optimistic) — ServiceOrderItemHttpIntegrationTest"
-    - "Timeline mostra histórico append-only de transições FSM — FsmTransitionTest/ServiceOrderHistoryControllerTest"
+  ucs:
+    - { uc: UC-OSH-01, desc: "Ver a OS como fonte-da-verdade (resumo + itens)", status: "🧪", teste: Modules/OficinaAuto/Tests/Feature/ServiceOrderCrudTest.php }
+    - { uc: UC-OSH-02, desc: "Timeline append-only de transições FSM", status: "🧪", teste: Modules/OficinaAuto/Tests/Feature/FsmTransitionTest.php }
+    - { uc: UC-OSH-03, desc: "OS de outro business não vaza (Tier 0)", status: "🧪", teste: Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php }
+    - { uc: UC-OSH-04, desc: "Total/itens exibidos (peça×qty + hora) ⚠️ R$ 0 mecânica US-OFICINA-027", status: "🧪", teste: Modules/OficinaAuto/Tests/Feature/ServiceOrderItemTest.php }
+  backlog:             # candidatos sem UC-id (G-2: id só no mesmo PR do teste que o cita)
     - "Botão FSM respeita RBAC (role não autoriza = disabled) — ServiceOrderStageGateTest"
-  cobertura_uc: "0%"   # derivado: 0 UC contratado (não porque falte Pest, mas porque falta o contrato .casos.md que a régua cita)
+    - "Adicionar/excluir item via Sheet (optimistic) — ServiceOrderItemHttpIntegrationTest"
+    - "Imprimir A4 — ServiceOrderPrintTest"
+  cobertura_uc: "0%"   # derivado: 0 de 4 UC com ✅ (todos 🧪 — teste cita o UC mas sem veredito no manifesto). Contrato existe; ✅ precisa do run CT100.
 d1_calculo:            # dente de cálculo (§3-bis SCREEN-GRADE-METODO) — Show EXIBE total/valor a receber (Tier-0). NÃO tocar aqui (é o dente/outro chip)
   aplica: true
   nivel: "🔴"          # indefeso: o total exibido em OS mecânica retorna R$ 0 hoje (US-OFICINA-027) e não há property/golden/cross-check citável. Dente real = onda de cálculo.

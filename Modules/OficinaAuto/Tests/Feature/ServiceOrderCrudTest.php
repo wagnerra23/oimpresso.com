@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+// casos (G-2 rastreabilidade · ADR 0264): defende
+//   UC-OSH-01 (OficinaAuto/ServiceOrders/Show)  — ver a OS como fonte-da-verdade (resumo + itens)
+//   UC-OED-01 (OficinaAuto/ServiceOrders/Edit)  — editar e salvar retorna pro Show
+//   UC-OCR-01 (OficinaAuto/ServiceOrders/Create) — abrir OS com veículo existente redireciona pro Show
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\OficinaAuto\Entities\ServiceOrder;

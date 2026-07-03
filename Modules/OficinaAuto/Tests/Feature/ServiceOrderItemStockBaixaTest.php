@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+// casos (G-2 rastreabilidade · ADR 0264): defende
+//   UC-OED-03 (OficinaAuto/ServiceOrders/Edit) — adicionar peça baixa estoque (peça×qty)
+
 use App\Contact;
 use App\Product;
 use App\VariationLocationDetails;

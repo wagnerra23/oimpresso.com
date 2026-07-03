@@ -32,22 +32,21 @@ gaps:
     origin: screen-grades-baseline-2026-05-30
 
 # ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
-# NÃO entra na nota 73 (UX). A tela é Advanced no visual e é onde se MONTA a OS (section inline
-# "Itens da OS" com Total OS BRL — toca valor via itens) e, ao mesmo tempo, não tem contrato de
-# comportamento por-tela. Pest existe (ServiceOrderItemTest, ServiceOrderItemStockBaixaTest,
-# ServiceOrderIndexItemsTotalTest, ServiceOrderItemHttpIntegrationTest, ServiceOrderCrudTest),
-# mas sem `.casos.md` a régua não tem UC pra citar → cobertura_uc=0% de CONTRATO.
+# NÃO entra na nota 73 (UX). CONTRATO estabelecido 2026-07-03: Edit.casos.md com 4 UCs 🧪 (cada um
+# cita um Pest real — G-2). Status 🧪 (não ✅) porque os Pest não estão no manifesto de vereditos —
+# subir pra ✅ exige run CT100 (o dente). cobertura_uc 0% honesto — paridade com o golden Sells/Create.
 casos_coverage:
-  fonte: null          # sem resources/js/Pages/OficinaAuto/ServiceOrders/Edit.casos.md
+  fonte: resources/js/Pages/OficinaAuto/ServiceOrders/Edit.casos.md
   guard: scripts/casos-coverage-guard.mjs
-  ucs: []
-  backlog:             # candidatos sem UC-id (G-2: id só no MESMO PR do teste); o Pest que os defenderia JÁ existe
-    - "Editar/adicionar item inline recalcula o Total OS server-side (Observer, ADR 0192) — ServiceOrderItemTest/ServiceOrderIndexItemsTotalTest"
-    - "Excluir item com confirm + rollback optimistic em erro HTTP — ServiceOrderItemHttpIntegrationTest"
-    - "Adicionar peça baixa estoque (peça×qty) — ServiceOrderItemStockBaixaTest"
-    - "Salvar edição da OS retorna pro Show — ServiceOrderCrudTest"
-    - "vehicle_id de outro business rejeitado server-side (Tier 0) — VehicleMultiTenantTest"
-  cobertura_uc: "0%"   # derivado: 0 UC contratado (falta o contrato .casos.md, não o Pest)
+  ucs:
+    - { uc: UC-OED-01, desc: "Editar e salvar retorna pro Show", status: "🧪", teste: Modules/OficinaAuto/Tests/Feature/ServiceOrderCrudTest.php }
+    - { uc: UC-OED-02, desc: "Adicionar/editar item recalcula o Total OS (Observer, ADR 0192)", status: "🧪", teste: Modules/OficinaAuto/Tests/Feature/ServiceOrderItemTest.php }
+    - { uc: UC-OED-03, desc: "Adicionar peça baixa estoque (peça×qty)", status: "🧪", teste: Modules/OficinaAuto/Tests/Feature/ServiceOrderItemStockBaixaTest.php }
+    - { uc: UC-OED-05, desc: "vehicle_id de outro business rejeitado (Tier 0)", status: "🧪", teste: Modules/OficinaAuto/Tests/Feature/VehicleMultiTenantTest.php }
+  backlog:             # candidatos sem UC-id (G-2: id só no mesmo PR do teste que o cita)
+    - "Excluir item com rollback optimistic em erro HTTP — ServiceOrderItemHttpIntegrationTest"
+    - "window.confirm → AlertDialog do DS (gap de UI, não comportamento)"
+  cobertura_uc: "0%"   # derivado: 0 de 4 UC com ✅ (todos 🧪). Contrato existe; ✅ precisa do run CT100.
 d1_calculo:            # Edit monta a OS (itens → Total OS BRL). Recalc é server-side (Observer). NÃO tocar aqui (é o outro chip)
   aplica: true
   nivel: "🔴"          # sem property (parse∘format==id) nem golden de borda (arredondamento/devolução) citáveis; `final_total` mecânica ainda é o buraco da US-OFICINA-027. Dente real = onda de cálculo.

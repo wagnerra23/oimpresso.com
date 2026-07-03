@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+// casos (G-2 rastreabilidade · ADR 0264): defende
+//   UC-OSH-04 (OficinaAuto/ServiceOrders/Show) — total/itens exibidos (peça×qty + hora×horas)
+//   UC-OED-02 (OficinaAuto/ServiceOrders/Edit) — adicionar/editar item recalcula o Total OS (Observer)
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\OficinaAuto\Entities\ServiceOrder;
