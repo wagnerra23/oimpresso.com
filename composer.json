@@ -40,7 +40,7 @@
         "mpdf/mpdf": "^8.1",
         "myfatoorah/laravel-package": "^2.2",
         "nfephp-org/sped-da": "^1.1",
-        "nfephp-org/sped-nfe": "^5.2",
+        "nfephp-org/sped-nfe": "dev-master#e075ec47f261e13db695f514174c01d8fb7934fc",
         "nwidart/laravel-modules": "^10.0",
         "razorpay/razorpay": "2.*",
         "sentry/sentry-laravel": "^4.25",
