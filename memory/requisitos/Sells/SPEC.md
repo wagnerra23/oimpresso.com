@@ -1181,3 +1181,63 @@ labels: `plano-perdido`, `backlog-2026-06-20`
 - Testes Pest.
 
 **Fonte:** memory/requisitos/_processo/BATCH-BACKLOG-34-2026-06-20.md (§Aprovação [W] 2026-06-20)
+
+### US-SELL-054 · Offline-first no PDV — fila IndexedDB + reemissão ao reconectar
+
+> owner: — · priority: p1 · estimate: 40h · status: todo · type: story
+> blocked_by: —
+> parent_plan: programa-ondas-onda-1-sells
+
+**Gap G-02 da CAPTERRA-FICHA Sells (Onda 1.1 · programa-ondas) — fecha C05 (nota 2/10).**
+
+Persistir a venda em fila local (IndexedDB) quando a rede cai e sincronizar/emitir ao reconectar. Modo de falha real da persona Larissa @ ROTA LIVRE (biz=4): loja em Termas do Gravatal/SC com internet instável — hoje o PDV é 100% online (igual Bling), ela trava no meio da venda. O autosave localStorage protege contra crash de aba, NÃO contra queda de rede na finalização.
+
+- Referência SOTA: Omie/Hiper/Nex/Square (offline default, sync depois; Square ligou offline-card por padrão abr/26).
+- **ADR 0105 (cliente como sinal):** MEDIR a frequência de queda em biz=4 ANTES de executar as 40h — hipótese sem sinal vira feature-wish.
+- Tier 0: fila com `business_id` scopado; ao reemitir, respeitar regra-mestre de valor (arredondar 2 casas, num_uf 3-dígitos-milhar) + smoke biz=1 (ADR 0101).
+- Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-02 + §8.3
+
+### US-SELL-055 · Pix QR no PDV + webhook auto-reconcile ligado à venda/caixa
+
+> owner: — · priority: p1 · estimate: 20h · status: todo · type: story
+> blocked_by: —
+> parent_plan: programa-ondas-onda-1-sells
+
+**Gap G-04 da CAPTERRA-FICHA Sells (Onda 1.1 · programa-ondas) — fecha C04 (nota 5/10).**
+
+Gerar QR Pix no fechamento da venda e reconciliar automaticamente via webhook (~15s) ligando o pagamento à venda + Caixa do dia. Elimina o "chegou o Pix?" manual da balconista.
+
+- Referência SOTA: Omie.Cash / Gálago (QR + webhook auto-reconcile ~10-15s).
+- Split payment já existe (US-SELL-006); falta o trilho Pix-webhook auto-reconcile e TEF auto-fill NFC-e.
+- Tier 0: webhook com filtro multi-tenant `business_id`; idempotência de reconciliação; PII redacted em log; valor via regra-mestre. Provável reuso de PaymentGateway/RecurringBilling (drivers Inter/Asaas/PixAuto) — checar antes de criar (não duplicar).
+- Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-04
+
+### US-SELL-056 · Keyboard-first coeso no Create — hotkeys configuráveis + Enter-avança + F-key pagar
+
+> owner: — · priority: p2 · estimate: 8h · status: todo · type: story
+> blocked_by: —
+> parent_plan: programa-ondas-onda-1-sells
+
+**Gap G-05 da CAPTERRA-FICHA Sells (Onda 1.1 · programa-ondas) — fecha C07 (nota 5/10).**
+
+Fluxo mouse-free coeso pra 50 vendas/dia (muscle memory): hotkeys configuráveis, Enter-avança-campo/estágio, F-key dedicada pra pagar. Hoje há só `/` (foca busca), Esc e Ctrl/Cmd+Enter (submit).
+
+- Referência SOTA: Bling (Alt+key config), Conta Azul (checkout mouse-free), Linx (F2/L function-keys).
+- **ADR 0105:** Larissa NÃO é power-user — MEDIR uso/pedido antes de investir muito. Esforço S (~8h).
+- Cuidar de não colidir com atalhos globais do AppShell; manter guard de input (não disparar dentro de campo de texto).
+- Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-05
+
+### US-SELL-057 · Skeleton de carregamento no Create + INP < 200ms
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+> parent_plan: programa-ondas-onda-1-sells
+
+**Gap G-06 da CAPTERRA-FICHA Sells (Onda 1.1 · programa-ondas) — fecha C13 (nota 5/10).**
+
+Perceived performance no `Sells/Create`: skeleton inicial enquanto carrega + alvo INP < 200ms a cada venda. `Inertia::defer` já existe na Index; o Create não tem skeleton inicial.
+
+- Referência SOTA: Shopify (Spring'26 −1min em carts grandes, silencioso).
+- **ADR 0105:** MEDIR Web Vitals reais em biz=4 antes (é percepção, não bug). Esforço S (~3h).
+- NÃO confundir com US-SELL-003 (skeleton do AppShellV2/props contract) — este é perceived-perf de carregamento de dados.
+- Ref: memory/requisitos/Sells/CAPTERRA-FICHA.md §6 G-06
