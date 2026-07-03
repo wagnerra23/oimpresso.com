@@ -1,5 +1,7 @@
 ---
-date: 2026-07-03
+date: '2026-07-03'
+topic: "Capterra de capacidade do módulo Compras (Onda 2.1) — benchmark vs 13 concorrentes de compras/procurement, nota 30/100, leitura adversarial do que a nota 59 (module-grade) esconde"
+authors: [C]
 tipo: session-log
 agente: capterra-senior
 onda: 2.1
@@ -10,9 +12,19 @@ design_ficha_ref: 67
 websearches: 6
 concorrentes_cobertos: 13
 artefato: memory/requisitos/Compras/CAPTERRA-FICHA.md
+related_adrs:
+  - 0089-capterra-driven-module-evolution
+  - 0101-tests-business-id-1-nunca-cliente
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0093-multi-tenant-isolation-tier-0
+prs: [3708]
 ---
 
 # Session log — CAPTERRA capacidade Compras (Onda 2.1)
+
+## TL;DR
+
+Gerada a **ficha de capacidade** do módulo Compras (`CAPTERRA-FICHA.md`, nota **30/100**) vs 13 concorrentes de compras/procurement 2026 — complementa a `CAPTERRA-DESIGN-FICHA.md` (UX, 67) e o module-grade 59. Achado central (pedido da onda "o que a nota esconde"): o module-grade 59 mede **higiene/governança** (Tier 0, Pest, doc, sec), cega ao valor de compras; a capacidade real é 30 — gap **-42** vs topo BR (Omie/Hiper ~72). Os 3 P0 que *definem* compra BR — import XML DF-e (C01=1), matching XML→PO (C02=0), recebimento parcial (C03=1) — mais 3-way match (C05=0) estão ~vazios. **FSM é teatro** (`const STAGES` em `Drawer.tsx:12`, não persistida); **bridge XML DF-e não existe** (diferencial nº1 BR); **módulo não está em prod pra ninguém** (D5=0, feature theater); **hardening tests são source-grep tautológicos** (Tier 0 valor/estoque descoberto — entrada de compra mexe em estoque). Honestidade: a onda ESTABILIZAR landou de verdade (Tier 0 bem-feito, `MultiTenantTest` real). Read-only, docs-only (PR #3708). Próximo passo = `/comparativo Compras` (aguarda OK [W]).
 
 ## O que foi feito
 
