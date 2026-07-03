@@ -22,7 +22,7 @@ related_adrs:
 - **status:** ativo  <!-- proposto→ativo 2026-07-03: [W] aprovou ADR 0320 (Onda 0a) via "aprovado merge" (#3694) -->
 - **owner:** W
 - **criado:** 2026-07-02 · **reviewed_at:** 2026-07-03 · **próxima-revisão:** 2026-08-02
-- **cycle:** off-cycle (programa transversal) · **execução:** `parent_plan=programa-ondas` — **Ondas 0+1+2+3 LANDADAS em paralelo 2026-07-03** (0a-0d, Sells 1.x, Compras 2.x, Financeiro ✅; ~24 PRs #3694-#3726) + **dente Produto** (#3730) e **dente Cliente** (#3731). DoD da Onda 1 batido. Resíduo: tasks MCP dos gaps a criar mediante OK [W]
+- **cycle:** off-cycle (programa transversal) · **execução:** `parent_plan=programa-ondas` — **Ondas 0+1+2+3 LANDADAS em paralelo 2026-07-03** (0a-0d, Sells 1.x, Compras 2.x, Financeiro ✅; ~24 PRs #3694-#3726) + **dente Produto** (#3730) e **dente Cliente** (#3731) + **Onda 5 Cliente completa** (4 passos: FICHA 65 + INVENTARIO + 7 US MCP + régua + catraca — #3732/#3742/#3745). DoD da Onda 1 batido. Resíduo: tasks MCP dos gaps a criar mediante OK [W]
 - **gate-de-saída (DoD):** ✅ **BATIDO 2026-07-03** — dente de cálculo red/green no CT100 (15 passed, #3695) + `sells-create.yaml` exibindo UX 88 **e** `casos_coverage 0%/🔴` + template calibrado. Ondas seguintes: Produto → Cliente (com OK [W])
 - **kill-condition:** ADR 0a rejeitada por [W], OU 2 cycles sem nenhuma etapa executada → status `abandonado` (não zumbi)
 - **verdade-viva:** este doc (etapas na tabela abaixo; os arquivos-etapa detalham, o status vive AQUI — 1 plano = 1 registro no índice)
@@ -48,6 +48,11 @@ related_adrs:
 | 3.régua Financeiro | ancorado no roadmap (ADR 0320) | — | ✅ charter+casos+régua CR/CP (#3712) → **decisão [W]: deprecar CR/CP → Unificado** (#3718) | ~4h |
 | **Onda 4 — Produto** (OK [W] 2026-07-03) | — | ⚠️ tasks a criar | 🟡 só o dente por ora | — |
 | 4.dente Produto | (template 1.4) | — | ✅ `CalculoValorProdutoTest` — motor preço/margem indefeso: markup/`calc_percentage`+`get_percent`+`getVariationGroupPrice`+combo, 21 passed CT100 (#3730) | ~4h (CT100) |
+| **Onda 5 — Cliente** (OK [W] 2026-07-03) | — | ✅ 7 US no MCP | ✅ ciclo completo (4 passos) | — |
+| 5.1 Adversário Cliente | (template) | — | ✅ CAPTERRA-FICHA capacidade **nota 65** (10 concorrentes, foco LGPD) (#3732) | ~3h (agent) |
+| 5.2 Gaps+backlog Cliente | (template) | ✅ US-CRM-079..085 (7) | ✅ INVENTARIO (✅7·🟡11·❌1) + §3-bis SPEC (#3742) | ~2h |
+| 5.3 Régua telas Cliente | (template) | — | ✅ 7 scorecards (Show UX 86 · casos 0% · Ledger d1 🟡) (#3745) | ~3h |
+| 5.4 Catraca+sentinela Cliente | (template) | — | ✅ emergente — verificado 2026-07-03: ratchet bloqueia `cliente-show` 86→70 (exit 1); sentinela `exposicao-tier0` cobre 7 telas PII-Tier0 (sem gate novo) | ~1h |
 
 > Onda 3 (Financeiro) **encaixa no `_Roadmap_Faturamento.md`** por [ADR 0320](../../decisions/proposals/0320-programa-ondas-regua-correcao.md) (T6 — Faturamento é canon macro; correção transversal ancora lá, status vivo aqui). Não é doc paralelo. Mesmo padrão valerá pra NfeBrasil/RecurringBilling.
 

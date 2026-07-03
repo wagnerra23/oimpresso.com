@@ -58,14 +58,15 @@ Pré-check T6: Cliente é **operacional core** (não pertence ao `_Roadmap_Fatur
 2. **G-02** — teste cross-tenant no `Contact` pai + avaliar global scope (alinhar código ao claim da doc).
 3. **G-03** — limite de crédito com bloqueio/aviso na venda (⚠️ toca valor → Regra Mestre).
 
-## Entregáveis
+## Entregáveis — onda completa (Passos 1→4, mesma sessão, OK [W] progressivo)
 
-- `memory/requisitos/Cliente/CAPTERRA-FICHA.md` (novo — 10 seções, nota 65, 19 capacidades, 10 concorrentes).
-- Este session log.
+- **Passo 1 (Adversário):** `CAPTERRA-FICHA.md` — nota **65/100**, 19 capacidades, 10 concorrentes (#3732).
+- **Passo 2 (Gaps+backlog):** `CAPTERRA-INVENTARIO.md` (✅7·🟡11·❌1) + §3-bis no SPEC (v2.4) + **7 US no MCP** `US-CRM-079..085` (`parent_plan=programa-ondas`) (#3742). Segurados ⏸️ ADR 0105: RFM, campos custom, Map lib, merge dup, header DS.
+- **Passo 3 (Régua por tela):** 7 scorecards `cliente-*.yaml` com `casos_coverage` (0% — sem e2e/casos ainda) + `d1_calculo` (só Ledger toca valor, 🟡 exibe saldo/aging não persiste) (#3745).
+- **Passo 4 (Catraca+sentinela):** emergente (sem gate novo). **Prova de regressão:** baixar `cliente-show` 86→70 → `screen-grades-ratchet` **exit 1** ("✗ CATRACA: nota de tela caiu. PR bloqueado"); revert → exit 0. Sentinela `exposicao-tier0` mapeia `Cliente: ['pii']` e conta as 7 telas no bucket PII-Tier0 (0% coberto = débito honesto). PLANO-MESTRE atualizado (Onda 5).
 
-## Próximo (Passo 2 da onda, aguarda OK [W])
-
-`/comparativo Cliente` → `CAPTERRA-INVENTARIO.md` (buckets ✅🟡❌) + batch `tasks-create` (`parent_plan=programa-ondas`) apendendo US-CRM-079+ ao SPEC. **Não criar tasks sem OK [W]** (publication-policy).
+### Incidente de processo (catalogado)
+O #3732 foi **squash-mergeado no estado incompleto `0ee8cff5b`** (GitHub desync: branch avançou, PR travou o head → CI não re-rodou os commits seguintes). Landou FICHA + session log com `topic` >250 inválido; ficou sem INVENTARIO/SPEC. Corrigido via #3742 (PR novo de base fresca). **Lição:** ao empilhar commits num PR, conferir `gh pr view --json headRefOid` == branch ref antes de assumir que o CI rodou; se travar, PR novo em vez de insistir.
 
 ## Notas de método
 
