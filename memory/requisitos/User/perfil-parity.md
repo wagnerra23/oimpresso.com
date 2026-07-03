@@ -9,6 +9,7 @@ related:
   - ../_DesignSystem/PARITY-TEMPLATE.md
   - ../_Governanca/programa-ondas/onda-0-fundacao/0d-paridade-migracao.md
 related_adrs:
+  - '0320-programa-ondas-regua-correcao'
   - '0104-processo-mwart-canonico-unico-caminho'
   - '0093-multi-tenant-isolation-tier-0'
   - '0066-format-date-shift-3h-preservado-legacy-clientes'
