@@ -1,5 +1,5 @@
 ---
-date: 2026-07-03
+date: "2026-07-03"
 topic: Capterra Produto (capacidade) — adversário de mercado, onda standalone do programa de ondas
 authors: [C]
 prs: [3729]
