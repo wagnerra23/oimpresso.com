@@ -100,13 +100,15 @@ class CalculoValorClienteTest extends TestCase
             $this->markTestSkipped('Sem business_location no seed.');
         }
 
-        // Sessão do operador — getLedgerDetails/__transactionQuery leem business_id da
-        // sessão (não recebem por parâmetro). Session canon BRL + date_format defensivo.
-        session([
-            'user' => ['business_id' => $tenant->id],
-            'business' => ['date_format' => 'd/m/Y', 'time_format' => 24],
-            'currency' => ['symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ','],
-        ]);
+        // Sessão do operador — getLedgerDetails/__transactionQuery leem business_id via
+        // `request()->session()` (não por parâmetro). Fora do ciclo HTTP o request singleton
+        // não tem session store: bindamos o driver ao request pra `request()->session()`
+        // e o helper `session()` apontarem pro MESMO store. Session canon BRL + date_format.
+        $store = $this->app['session']->driver();
+        $store->put('user', ['business_id' => $tenant->id]);
+        $store->put('business', ['date_format' => 'd/m/Y', 'time_format' => 24]);
+        $store->put('currency', ['symbol' => 'R$', 'thousand_separator' => '.', 'decimal_separator' => ',']);
+        request()->setLaravelSession($store);
 
         return [(int) $tenant->id, (int) $location->id, (int) $user->id];
     }
@@ -169,6 +171,51 @@ class CalculoValorClienteTest extends TestCase
             $due,
             0.0001,
             "Saldo = opening_balance 500 + venda 227.90 = 727.90. Veio {$due}."
+        );
+    }
+
+    // =========================================================================
+    // 1b) DISCRIMINAÇÃO RED — prova que o golden pega a versão que ignora is_return
+    // =========================================================================
+
+    /**
+     * TEST-ONLY não pode mutar o código de prod pra provar o RED (e não deve tocar a
+     * fonte compartilhada do CT100). Em vez disso, reproduzimos INLINE a lógica BUGADA
+     * (net_paid = SUM(amount), ignorando is_return — o que `getTotalAmountPaid` faz) e
+     * travamos o CONTRATO: a versão bugada infla o pagamento e ENCOLHE o saldo devedor;
+     * a versão atual (is_return-aware) não. O golden acima já é a armadilha — ele fixa
+     * 157.90, que SÓ o código correto produz; a versão bugada daria 97.90 e o assert
+     * quebraria (RED). Aqui deixamos o discriminador explícito.
+     */
+    #[Test]
+    public function discriminacao_versao_que_ignora_is_return_seria_red(): void
+    {
+        [$biz, $loc, $usr] = $this->seedBaseOrSkip();
+
+        $contact = $this->makeContact($biz, $usr);
+        $sell = $this->makeSell($biz, $loc, $contact, $usr, 227.90);
+        $this->insertPayment($sell->id, $biz, $usr, 100.00, isReturn: false);
+        $this->insertPayment($sell->id, $biz, $usr, 30.00, isReturn: true);
+
+        // Versão ATUAL (correta): net_paid = 100 − 30 = 70 → saldo 157.90.
+        $dueReal = (float) $this->util->getContactDue($contact, $biz);
+
+        // Versão BUGADA reproduzida inline: net_paid = SUM(amount) = 130 (ignora is_return)
+        // → saldo encolhe pra 97.90 (o cliente "pareceria" dever menos do que deve).
+        $brutoPaid = (float) DB::table('transaction_payments')->where('payment_for', $contact)->sum('amount');
+        $dueBugado = 227.90 - $brutoPaid;
+
+        $this->assertEqualsWithDelta(157.90, $dueReal, 0.0001, 'A versão atual tem que dar o saldo líquido 157.90.');
+        $this->assertEqualsWithDelta(97.90, $dueBugado, 0.0001, 'Sanidade do vetor: ignorar is_return daria 97.90.');
+
+        // O discriminador: enquanto os dois caminhos divergirem (por 2× a devolução = 60),
+        // o golden tem poder de pegar a regressão. Se convergirem (getContactDue voltar a
+        // ignorar is_return), o assert de 157.90 quebra = RED consciente.
+        $this->assertEqualsWithDelta(
+            60.00,
+            abs($dueReal - $dueBugado),
+            0.0001,
+            'getContactDue convergiu com a versão que ignora is_return — regressão do saldo do cliente.'
         );
     }
 
@@ -300,49 +347,42 @@ class CalculoValorClienteTest extends TestCase
     // =========================================================================
 
     /**
-     * Cliente é PII-heavy: o saldo devedor de um cliente de OUTRO business jamais pode
-     * aparecer no número do tenant corrente. O `business_id` é a catraca — este teste
-     * prova que ela é load-bearing: pedir o due de um contato do biz=99 com o
-     * business_id do biz=1 retorna 0 (scoped-out), e com o business_id certo retorna o
-     * valor real.
+     * Cliente é PII-heavy: o saldo devedor de um contato jamais pode aparecer quando a
+     * consulta é feita com o `business_id` de OUTRO tenant. O `business_id` é a catraca
+     * — este teste prova que ela é load-bearing sem precisar de um segundo tenant
+     * completo: cria o contato+venda no biz corrente (deve 999) e consulta o MESMO
+     * contato passando um business_id estrangeiro → o `where('contacts.business_id')`
+     * scopa o contato pra fora e o saldo tem que dar 0 (nenhum vazamento).
      */
     #[Test]
-    public function regua_multi_tenant_saldo_de_outro_business_nao_vaza(): void
+    public function regua_multi_tenant_business_id_estrangeiro_zera_o_saldo(): void
     {
-        [$bizA, $locA, $usrA] = $this->seedBaseOrSkip();
+        [$biz, $loc, $usr] = $this->seedBaseOrSkip();
 
-        // Tenant B (biz=99 — empresa NÃO-operadora, ADR 0101), com sua própria venda devida.
-        $tenantB = $this->seededSupportClientTenant();
-        $bizB = (int) $tenantB->id;
-        $usrB = (int) DB::table('users')->where('business_id', $bizB)->value('id');
-        $locB = (int) (DB::table('business_locations')->where('business_id', $bizB)->value('id')
-            ?? DB::table('business_locations')->insertGetId([
-                'business_id' => $bizB, 'name' => 'Loc Sup 99', 'created_at' => now(), 'updated_at' => now(),
-            ]));
+        $contact = $this->makeContact($biz, $usr);
+        $this->makeSell($biz, $loc, $contact, $usr, 999.00); // deve 999, sem pagar
 
-        $contactB = $this->makeContact($bizB, $usrB);
-        $this->makeSell($bizB, $locB, $contactB, $usrB, 999.00); // biz B deve 999, sem pagar
+        // business_id que garantidamente NÃO é o do contato (nem precisa existir na tabela
+        // business — getContactDue só filtra `contacts.business_id`, sem join a business).
+        $bizEstrangeiro = $biz + 987654;
 
-        // Pedindo o due do contato de B, mas com o business_id de A → NÃO pode vazar.
-        $dueLeak = (float) $this->util->getContactDue($contactB, $bizA);
+        $dueScopedOut = (float) $this->util->getContactDue($contact, $bizEstrangeiro);
         $this->assertEqualsWithDelta(
             0.0,
-            $dueLeak,
+            $dueScopedOut,
             0.0001,
-            "VAZAMENTO TIER 0: saldo de contato do biz={$bizB} apareceu ao consultar com business_id={$bizA} "
-            . "(veio {$dueLeak}, esperado 0)."
+            "VAZAMENTO TIER 0: saldo do contato (biz={$biz}) apareceu ao consultar com business_id={$bizEstrangeiro} "
+            . "(veio {$dueScopedOut}, esperado 0)."
         );
 
         // Com o business_id correto, o valor real aparece (a catraca não é falso-negativo geral).
-        $dueReal = (float) $this->util->getContactDue($contactB, $bizB);
+        $dueReal = (float) $this->util->getContactDue($contact, $biz);
         $this->assertEqualsWithDelta(
             999.00,
             $dueReal,
             0.0001,
-            "Com business_id={$bizB} o saldo real (999) tem que aparecer. Veio {$dueReal}."
+            "Com business_id={$biz} o saldo real (999) tem que aparecer. Veio {$dueReal}."
         );
-
-        unset($locA, $usrA);
     }
 
     // ---------------------------------------------------------------------
@@ -366,6 +406,12 @@ class CalculoValorClienteTest extends TestCase
         ]);
     }
 
+    /**
+     * `withoutEvents`: a criação da venda dispara o TransactionObserver do Financeiro
+     * (TituloAutoService gera `fin_titulos` com `SELECT ... FOR UPDATE`), que causa
+     * DeadlockException sob DatabaseTransactions e é side-effect que este dente NÃO
+     * caracteriza. Suprimimos os eventos: só queremos as LINHAS pra as queries SUM.
+     */
     private function makeSell(
         int $businessId,
         int $locationId,
@@ -375,7 +421,7 @@ class CalculoValorClienteTest extends TestCase
         string $type = 'sell',
         string $status = 'final'
     ): Transaction {
-        return Transaction::create([
+        return Transaction::withoutEvents(fn () => Transaction::create([
             'business_id' => $businessId,
             'location_id' => $locationId,
             'type' => $type,
@@ -387,7 +433,7 @@ class CalculoValorClienteTest extends TestCase
             'total_remaining_amount' => $total,
             'created_by' => $userId,
             'invoice_no' => 'CVC-' . uniqid(),
-        ]);
+        ]));
     }
 
     /**
@@ -397,8 +443,14 @@ class CalculoValorClienteTest extends TestCase
      */
     private function insertPayment(int $transactionId, int $businessId, int $userId, float $amount, bool $isReturn): void
     {
+        // `payment_for` = contato do pagamento: é a coluna que o extrato (getLedgerDetails
+        // → __paymentQuery) usa pra achar os pagamentos. getContactDue usa `transaction_id`.
+        // Setar os dois (como o UltimatePOS real faz) mantém os DOIS caminhos consistentes.
+        $contactId = DB::table('transactions')->where('id', $transactionId)->value('contact_id');
+
         DB::table('transaction_payments')->insert([
             'transaction_id' => $transactionId,
+            'payment_for' => $contactId,
             'business_id' => $businessId,
             'amount' => $amount,
             'method' => 'cash',
