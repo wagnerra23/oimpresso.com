@@ -22,7 +22,7 @@ related_adrs:
 - **status:** ativo  <!-- proposto→ativo 2026-07-03: [W] aprovou ADR 0320 (Onda 0a) via "aprovado merge" (#3694) -->
 - **owner:** W
 - **criado:** 2026-07-02 · **reviewed_at:** 2026-07-03 · **próxima-revisão:** 2026-08-02
-- **cycle:** off-cycle (programa transversal) · **execução:** `parent_plan=programa-ondas` — **Ondas 0+1+2+3 LANDADAS em paralelo 2026-07-03** (0a-0d, Sells 1.x, Compras 2.x, Financeiro ✅; ~24 PRs #3694-#3726) + **dente Produto** (#3730) e **dente Cliente** (#3731) + **Onda 5 Cliente completa** (4 passos: FICHA 65 + INVENTARIO + 7 US MCP + régua + catraca — #3732/#3742/#3745). DoD da Onda 1 batido. Resíduo: tasks MCP dos gaps a criar mediante OK [W]
+- **cycle:** off-cycle (programa transversal) · **execução:** `parent_plan=programa-ondas` — **Ondas 0+1+2+3 LANDADAS em paralelo 2026-07-03** (0a-0d, Sells 1.x, Compras 2.x, Financeiro ✅; ~24 PRs #3694-#3726) + **dente Produto** (#3730) e **dente Cliente** (#3731) + **Onda 5 Cliente completa** (4 passos: FICHA 65 + INVENTARIO + 7 US MCP + régua + catraca — #3732/#3742/#3745) + **Onda 6 Fiscal completa** (4 passos: FICHA 75 config/orquestração + INVENTARIO ✅12🟡4❌5 + US-FISCAL-021/022 MCP + régua 7 telas + catraca — #3738/#3753/#3761). DoD da Onda 1 batido. Resíduo: tasks MCP dos gaps a criar mediante OK [W]
 - **gate-de-saída (DoD):** ✅ **BATIDO 2026-07-03** — dente de cálculo red/green no CT100 (15 passed, #3695) + `sells-create.yaml` exibindo UX 88 **e** `casos_coverage 0%/🔴` + template calibrado. Ondas seguintes: Produto → Cliente (com OK [W])
 - **kill-condition:** ADR 0a rejeitada por [W], OU 2 cycles sem nenhuma etapa executada → status `abandonado` (não zumbi)
 - **verdade-viva:** este doc (etapas na tabela abaixo; os arquivos-etapa detalham, o status vive AQUI — 1 plano = 1 registro no índice)
@@ -53,6 +53,11 @@ related_adrs:
 | 5.2 Gaps+backlog Cliente | (template) | ✅ US-CRM-079..085 (7) | ✅ INVENTARIO (✅7·🟡11·❌1) + §3-bis SPEC (#3742) | ~2h |
 | 5.3 Régua telas Cliente | (template) | — | ✅ 7 scorecards (Show UX 86 · casos 0% · Ledger d1 🟡) (#3745) | ~3h |
 | 5.4 Catraca+sentinela Cliente | (template) | — | ✅ emergente — verificado 2026-07-03: ratchet bloqueia `cliente-show` 86→70 (exit 1); sentinela `exposicao-tier0` cobre 7 telas PII-Tier0 (sem gate novo) | ~1h |
+| **Onda 6 — Fiscal** (OK [W] 2026-07-03 · camada fiscal · sinal Larissa biz=4 pre-canary) | — | ✅ 2 US no MCP | ✅ ciclo completo (4 passos) | — |
+| 6.1 Adversário Fiscal | (template) | — | ✅ CAPTERRA-FICHA capacidade **nota 75** (config/orquestração: motor tributário/regras ICMS-ISS/DF-e/eventos/SPED; 8 concorrentes — TecnoSpeed/PlugNotas/Nuvem/Focus + Bling/Tiny/Omie) (#3738) | ~3h (3 agents) |
+| 6.2 Gaps+backlog Fiscal | (template) | ✅ US-FISCAL-021 (P0 IBS/CBS) + 022 (P1 health-check cert) | ✅ INVENTARIO (✅12·🟡4·❌5) + SPEC; dedup pegou US-FISCAL-019 (cache já done) (#3753) | ~2h |
+| 6.3 Régua telas Fiscal | (template) | — | ✅ 7 scorecards (Nfe UX 84 · Sped UX 68 **d1 aplica ✔** cross_check/golden✘ · casos 0% G-2; 4 agents) (#3761) | ~3h (4 agents) |
+| 6.4 Catraca+sentinela Fiscal | (template) | — | ✅ emergente — verificado 2026-07-03: ratchet bloqueia `fiscal-sped` 68→50 (exit 1 · "PR bloqueado"); sentinela `exposicao-tier0` cobre telas fiscal-Tier0 (peso 3); casos-gate vê 7 casos.md (débito −13) (sem gate novo) | ~1h |
 
 > Onda 3 (Financeiro) **encaixa no `_Roadmap_Faturamento.md`** por [ADR 0320](../../decisions/proposals/0320-programa-ondas-regua-correcao.md) (T6 — Faturamento é canon macro; correção transversal ancora lá, status vivo aqui). Não é doc paralelo. Mesmo padrão valerá pra NfeBrasil/RecurringBilling.
 

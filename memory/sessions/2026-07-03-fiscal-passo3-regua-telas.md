@@ -53,8 +53,18 @@ Passo 3 do programa de ondas do **Fiscal**: régua por tela nas **7 sub-páginas
 - **Passo 4** — catraca + sentinela: `casos-gate` passa a defender os UCs quando forem wired (cada backlog vira `UC-FISCAL-NN` no mesmo PR que adicionar o id ao teste que já existe — edição de 1 linha).
 - **Trabalho de código real** (sessão dedicada, não read-only): US-FISCAL-021 (P0 IBS/CBS, prazo 03/08/2026) + wire dos UC-ids nos testes existentes.
 
+## Passo 4 — Catraca + sentinela (2026-07-03, emergente, sem gate novo)
+
+**Onda 6 Fiscal FECHADA.** Verificado que os catracas existentes já defendem o Fiscal (nenhum gate novo — pilar da ADR 0256/0320):
+- **screen-grade ratchet** — simulei `fiscal-sped` 68→50 → catraca disparou "🔻 fiscal-sped.yaml: 68 → 50 (-18) · ✗ CATRACA: nota de tela caiu. PR bloqueado." (exit 1 em CI).
+- **casos-coverage-guard** — vê os 7 casos.md (débito −13 vs baseline); remover um regride o débito (trio defendido).
+- **sentinela `exposicao-tier0`** — cobre `fiscal` por conteúdo+módulo (peso 3, REGRA MESTRE valor no topo).
+- Registro em [PLANO-MESTRE.md](../requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md) §Status vivo (Onda 6 · linhas 6.1-6.4) — verdade-viva, 1 plano = 1 registro (não abre paralelo).
+
+PRs da onda: Passo 1 #3738 · Passo 2 #3753 · Passo 3 #3761 · Passo 4 (este).
+
 ## Notas de processo
 
 - Read-only: zero mudança em código de `Modules/` ou `.tsx`. Só docs/scorecards/casos.
-- Base `origin/main` fresca (worktree novo `claude/fiscal-regua-onda`).
+- Base `origin/main` fresca (worktree novo `claude/fiscal-regua-onda`; Passo 4 em `claude/fiscal-passo4-onda`).
 - casos.md usam backlog bullets (sem `## UC-*` sem teste) → não quebra G-2 do casos-coverage-guard.
