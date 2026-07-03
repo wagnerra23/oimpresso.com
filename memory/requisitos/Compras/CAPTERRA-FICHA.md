@@ -3,7 +3,7 @@
 > Ficha canônica de benchmark de **capacidade** do módulo Compras (compra/nota de entrada — `Modules/Compras` wrapper Inertia sobre `transactions` polimórfica).
 > **Gerada:** 2026-07-03 · agente `capterra-senior` · Onda 2.1 do programa de ondas.
 > **Persona primária:** Larissa @ ROTA LIVRE (`business_id=4`), vestuário Termas do Gravatal/SC, não-técnica, monitor 1280px, internet de loja instável. Entrada de compra por grade tam×cor (50+ modelos/entrega × 4 tam × 3-5 cores = 600-1000 SKUs/lote). 99% do volume do oimpresso novo.
-> **Alvo de código:** `Modules/Compras/Http/Controllers/ComprasController.php` (~152 LOC) · `Modules/Compras/Services/ComprasService.php` (~327 LOC, wrapper fino sobre `TransactionUtil::getListPurchases`) · `resources/js/Pages/Compras/Index.tsx` (~849 LOC, cockpit Cowork F1) · `Drawer.tsx` (~608 LOC, 5 tabs + FSM stepper visual). CRUD real vive em `resources/js/Pages/Purchase/Create.tsx` (convergência C1). Bridge XML DF-e (US-COM-003) **não existe**.
+> **Alvo de código:** `Modules/Compras/Http/Controllers/ComprasController.php` (~152 LOC) · `Modules/Compras/Services/ComprasService.php` (~327 LOC, wrapper fino sobre `TransactionUtil::getListPurchases`) · `resources/js/Pages/Compras/Index.tsx` (~849 LOC, cockpit Cowork F1) · `Drawer.tsx` (~608 LOC, 5 tabs + FSM stepper visual). CRUD real vive em `resources/js/Pages/Purchase/Create.tsx` (convergência C1). Import de XML DF-e + manifestação SEFAZ **já existem no `Modules/NfeBrasil`** (`DistribuicaoDfeService`/`ManifestacaoService`, testados); falta só a **ponte DF-e→compra** (US-COM-003 — `nfe_dfe_recebidos.transaction_id` + `ImportarDfeComoCompraService`).
 > ADR governança: [0089](../../decisions/0089-capterra-driven-module-evolution.md) (Capterra-driven) + [0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) (tests biz=1) + [0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) (cliente como sinal) + [0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) (multi-tenant Tier 0).
 
 > ⚠️ **Complementar, não substituto.** Já existe [`CAPTERRA-DESIGN-FICHA.md`](CAPTERRA-DESIGN-FICHA.md) (nota **67**, foco UX/design do protótipo Cowork F1) e o module-grade **59** (bucket Médio, subiu de 38 após a onda ESTABILIZAR). Esta ficha mede **CAPACIDADE** (features/automação/fiscal/recebimento/resiliência) vs os líderes de compras/procurement — eixo que nem a nota de design nem o module-grade medem. Ver §8 "O que a nota esconde".
@@ -93,11 +93,18 @@ capacidades_reais_no_codigo:
     em_uso_prod: NAO
     alerta: "não é máquina de estado; status real = string mistura UltimatePOS legacy (received/ordered/pending)"
 
-  - us: US-COM-003
-    nome: "Importar XML DF-e como compra (bridge NfeDfeRecebido → Transaction)"
+  - us: US-NFE-DFE
+    nome: "Pull DF-e SEFAZ NSU + manifestação destinatário (substrato do import de compra)"
     score: P0
-    onde: "NÃO EXISTE — só comentário em ServiceProvider/InstallController; nenhum Service/Job/migration"
-    alerta: "diferencial nº1 do domínio BR — ausente"
+    onde: "Modules/NfeBrasil: DistribuicaoDfeService + BuscarDfesRecebidosJob + cron PuxarDfesRecebidos + ManifestacaoService/Controller + tabelas nfe_dfe_recebidos/itens/eventos/nsu_state"
+    evidencia: "DistribuicaoDfeServiceTest + ManifestacaoServiceTest + ManifestacaoControllerTest — REAL, testado"
+    alerta: "existe e roda — MAS vive no NfeBrasil, não no Compras; é o substrato, não a compra"
+
+  - us: US-COM-003
+    nome: "Bridge DF-e recebida → Compra (NfeDfeRecebido → Transaction type=purchase) — a última milha"
+    score: P0
+    onde: "NÃO EXISTE — nfe_dfe_recebidos sem transaction_id; nenhum ImportarDfeComoCompraService; comentários em Compras (ServiceProvider:13/InstallController:16/Routes:13) remetem a Wave 6"
+    alerta: "o import fiscal está pronto (acima); falta converter em compra + matching de produto"
 
   - us: US-COM-005
     nome: "GradeMatrixInput tam×cor vestuário (unlock Larissa)"
@@ -112,7 +119,7 @@ Legenda: ✅ pareia/supera líder · 🟡 parcial · ❌ ausente. Nota /10 por *
 
 | ID | Capacidade | Peso | Líder do eixo (mecanismo SOTA) | oimpresso Compras hoje | Nota /10 |
 |---|---|:-:|---|---|:-:|
-| **C01 (P0)** | **Importar XML NF-e como compra + manifestação destinatário SEFAZ** | 4 | Bling/Omie/Tiny (import XML → grava estoque+conta; manifestação "confirmo operação"; polling SEFAZ por CNPJ) | ❌ **ausente** — bridge DF-e (US-COM-003) nunca construída; `Modules/NfeBrasil` puxa DF-e mas nada vira compra | **1** |
+| **C01 (P0)** | **Importar XML NF-e como compra + manifestação destinatário SEFAZ** | 4 | Bling/Omie/Tiny (import XML → grava estoque+conta; manifestação "confirmo operação"; polling SEFAZ por CNPJ) | 🟡 **pull + manifestação PRONTOS no `Modules/NfeBrasil`** (`DistribuicaoDfeService` puxa via SEFAZ NSU + `BuscarDfesRecebidosJob`/cron + `ManifestacaoService` testado + `nfe_dfe_recebidos`/`itens`/`eventos`); **falta só a última milha — a ponte→compra** (`nfe_dfe_recebidos` sem `transaction_id`, nenhum `ImportarDfeComoCompraService`; comentários no Compras remetem a "Wave 6") | **5** |
 | **C02 (P0)** | **Matching automático XML→PO (fornecedor + produto)** | 4 | Tiny (campo `xPed` auto-vincula + por fornecedor/descrição→EAN); Bling (vincula item↔PO no import) | ❌ **ausente** — sem matching por CNPJ nem por EAN/xProd | **0** |
 | **C03 (P0)** | **Recebimento parcial (qty recebida ≠ pedida)** | 4 | Lightspeed (Received vs Ordered Total, delivery linkada expansível, autosave check-in); Shopify (received vs not received linha-a-linha) | ❌ **ausente** — drawer só mostra estado inteiro; sem qty-recebida por linha | **1** |
 | **C04 (P0)** | **Cálculo custo/total da compra correto — comprovado por teste** | 4 | ninguém *anuncia*; dever Tier 0 (regra-mestre valor/estoque) | 🟡 `buscarDetalhe` calcula `line_total = qty × price_inc_tax` no PHP; **ZERO teste que a compra persiste total/custo/estoque certo** — hardening tests são source-grep (§8) | **3** |
@@ -137,37 +144,37 @@ Legenda: ✅ pareia/supera líder · 🟡 parcial · ❌ ausente. Nota /10 por *
 Pesos canônicos: **P0=4 · P1=2 · P2=1 · P3=0.5**.
 
 ```
-P0 (peso 4): (C01 1 + C02 0 + C03 1 + C04 3 + C05 0 + C06 9) = 14 × 4 = 56
+P0 (peso 4): (C01 5 + C02 0 + C03 1 + C04 3 + C05 0 + C06 9) = 18 × 4 = 72
 P1 (peso 2): (C07 4 + C08 6 + C09 2 + C10 6 + C11 0 + C12 1) = 19 × 2 = 38
 P2 (peso 1): (C13 8 + C14 8 + C15 6 + C16 2 + C17 2)         = 26 × 1 = 26
 P3 (peso 0.5):(C18 5 + C19 4)                                =  9 × 0.5=  4.5
 
-Σ ponderado = 56 + 38 + 26 + 4.5 = 124.5
+Σ ponderado = 72 + 38 + 26 + 4.5 = 140.5
 
 Máximo possível:
   P0: 6×10×4 = 240 · P1: 6×10×2 = 120 · P2: 5×10×1 = 50 · P3: 2×10×0.5 = 10  → 420
 
-nota_capacidade = 124.5 / 420 × 100 = 29.6 → 30/100
+nota_capacidade = 140.5 / 420 × 100 = 33.5 → 33/100
 ```
 
 ```
-NOTA CAPACIDADE oimpresso Compras: 30/100
+NOTA CAPACIDADE oimpresso Compras: 33/100
 Referência-topo BR (Omie/Hiper):        ~72/100  — import XML + manifestação + NF-e Agent + AP automático + estoque
 Referência BR direta (Bling/Tiny):      ~68/100  — import XML + matching XML→PO (xPed) + vínculo-a-PO + AP
 Teto mid-market inventory (Cin7/Zoho):  ~66/100  — PO workflow 6-stages + partial receive + costed (sem fiscal BR)
 Teto procurement (Coupa/Ariba/Precoro): ~85/100  — 3-way match + AI OCR + e-invoicing — DESQUALIFICADO por over-engineering PME loja
 
-Gap pro topo BR (Omie): -42 pts. Causa: os 3 P0 que DEFINEM compra BR — import XML DF-e (C01), matching XML→PO (C02), recebimento parcial (C03) — todos ~0. + 3-way match (C05)=0.
-Onde Compras já ganha: multi-tenant Tier 0 real (C06=9), cockpit+drawer denso (C13/C14=8) — eixos de UI/higiene, não de capacidade de compra.
+Gap pro topo BR (Omie): -39 pts. Causa: dos 4 P0 que DEFINEM compra BR, três continuam ~0 — matching XML→PO (C02), recebimento parcial (C03), 3-way match (C05); e o import XML DF-e (C01) tem o pull+manifestação prontos no NfeBrasil mas NÃO fecha a compra (falta a ponte).
+Onde Compras já ganha: multi-tenant Tier 0 real (C06=9), cockpit+drawer denso (C13/C14=8) — eixos de UI/higiene. O substrato fiscal (DF-e pull+manifestação) já existe no NfeBrasil — vantagem real, mas ainda não convertida em capacidade de compra.
 ```
 
-**Leitura honesta:** a capacidade (30) fica **MUITO abaixo** do module-grade (59) e do design (67) — e isso é o ponto da onda. O module-grade mede governança/higiene (Tier 0, Pest, doc, sec); o design mede UX do protótipo; **nenhum dos dois mede se o módulo entrega valor de compras**. Quando você pergunta "o oimpresso importa uma NF-e de fornecedor, casa com o pedido, recebe parcial e concilia?", a resposta é "não em nenhum dos quatro" — e é exatamente por isso que a capacidade despenca. O oimpresso ganha os eixos que **não** são compra (isolamento, cockpit bonito) e perde todos os que **são** compra.
+**Leitura honesta:** a capacidade (33) fica **abaixo** do module-grade (59) e do design (67) — e isso é o ponto da onda. O module-grade mede governança/higiene (Tier 0, Pest, doc, sec); o design mede UX do protótipo; **nenhum dos dois mede se o módulo entrega valor de compras**. Quando você pergunta "o oimpresso importa uma NF-e de fornecedor, casa com o pedido, recebe parcial e concilia?", a resposta é "importa e manifesta (via NfeBrasil), mas não vira compra, não casa PO, não recebe parcial, não concilia". O substrato fiscal BR — a parte cara — **já está construída**; o que falta é a ponte + a mecânica de recebimento/conciliação. Por isso a capacidade sobe pouco (o import existe) mas continua baixa (o import não fecha o ciclo de compra).
 
 ## 6. Top gaps P0/P1 (pra subir a nota)
 
 | # | Gap | Cap | Esforço | ROI (persona Larissa) | Sinal ADR 0105 | Concorrente que tem |
 |---|---|---|---|---|---|---|
-| **G-01** | **Bridge Importar XML DF-e → Transaction(type=purchase)** (US-COM-003): lista DF-e pendentes via SEFAZ NSU, auto-match fornecedor por CNPJ, cria compra com linhas pré-populadas | C01 | L (~8-10h, Wave 6 — maior risco) | **P0** — elimina digitar 600-1000 SKUs; diferencial nº1 BR | ✅ execute (dor real DISCOVERY) | Bling, Tiny, Omie, Hiper |
+| **G-01** | **Ponte DF-e recebida → Compra** (US-COM-003): **reusa o que já existe no `Modules/NfeBrasil`** (`DistribuicaoDfeService` pull NSU + `nfe_dfe_recebidos` + `ManifestacaoService`) — só falta migration `nfe_dfe_recebidos.transaction_id` + `ImportarDfeComoCompraService` (DFe→Transaction type=purchase) + modal "Importar XML" listando DF-e pendentes | C01 | **M (~5-7h — não L; o import fiscal já está pronto)** | **P0** — elimina digitar 600-1000 SKUs; a parte cara já existe | ✅ execute (dor real DISCOVERY) | Bling, Tiny, Omie, Hiper |
 | **G-02** | **Matching automático XML→produto** (por EAN + xProd; fallback manual) — o que faz o import valer a pena | C02 | M (~6h, depende G-01) | **P0** — sem isso o import ainda exige mapear item a item | ✅ execute | Tiny (`xPed`+descrição), Bling |
 | **G-03** | **Teste E2E de cálculo custo/total/estoque da compra** — cria compra (grade + frete + desconto + imposto) → assert `final_total`/`purchase_line`/estoque persistidos. Fecha C04 e blinda Tier 0 valor/estoque | C04 | M (~6h) | **P0 crítico** — 1 célula de grade = 1 SKU × custo × qty MEXE EM ESTOQUE; sem teste = repete o incidente do Sells (§8) | ✅ execute (dever Tier 0) | ninguém *anuncia*, é dever |
 | **G-04** | **Recebimento parcial** (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in) | C03 | M-L (~1h frontend + backend) | **P1** — vestuário recebe parcial real (lote incompleto) | 🟡 sinal médio (uso PME varejo) | Lightspeed, Shopify, Zoho |
@@ -178,7 +185,7 @@ Onde Compras já ganha: multi-tenant Tier 0 real (C06=9), cockpit+drawer denso (
 
 1. **Multi-tenant Tier 0 real** (`business_id` do auth + abort_if + cross-check drift + Pest cross-tenant REAL biz=1/99 + guard SQL `toSql()`) — concorrentes são multi-empresa mas sem isolamento auditável desse nível. **É o único eixo onde Compras já supera o mercado.**
 2. **Cockpit + drawer denso Cowork** (4 KPIs defer + drawer 480px 5 tabs + timeline) — supera a UI Bootstrap legado de Bling/Omie/Tiny em list-detail e densidade (herança do design F1 nota 67).
-3. **DF-e SEFAZ pull NSU como substituto nativo de OCR/AI capture** — o mundo anglo gasta US$2.36-3.00/invoice em AI-OCR pra extrair dados de PDF (95-99% accuracy); o Brasil tem o XML estruturado da NF-e via `DistribuicaoDfeService` (100% accuracy, zero inferência). **Vantagem ESTRUTURAL** — mas só vira diferencial quando a bridge G-01 existir. Hoje é potencial não-realizado.
+3. **DF-e SEFAZ pull NSU como substituto nativo de OCR/AI capture — já construído.** O mundo anglo gasta US$2.36-3.00/invoice em AI-OCR pra extrair dados de PDF (95-99% accuracy); o Brasil tem o XML estruturado da NF-e, e o oimpresso **já o puxa e manifesta** via `Modules/NfeBrasil` (`DistribuicaoDfeService` + `ManifestacaoService`, testados — 100% accuracy, zero inferência). **Vantagem ESTRUTURAL e real** — mas ainda não converte em compra: vira diferencial de verdade quando a ponte G-01 (curta) plugar esse dado no `type=purchase`.
 4. **Grade tam×cor vestuário** (`GradeMatrixInput` auto-detect 2D) — nicho que ERP BR horizontal não cobre; mas vive em `/purchases`, não `/compras`, e não foi validado com Larissa.
 5. **Stack moderna** Laravel 13.6 + React 19 + Inertia v3 — vs Bootstrap/jQuery legado dos ERPs BR.
 
@@ -190,7 +197,7 @@ Como Compras é o módulo mais fraco do projeto, o ângulo desta onda é **o que
 
 2. **A FSM é teatro puro — a tela mente.** Os "6 estágios" (`rascunho→pedido→transito→recebido→conferido→pago`) existem **só como `const STAGES` no `Drawer.tsx:12`**, renderizados sobre `transactions.status`. Não há state machine, não há transição gateada, não há histórico. O `status` real é a string legacy UltimatePOS (`received`/`ordered`/`pending`) — **o drawer pode mostrar "Recebido" com o banco em `pending`**. É um stepper visual, não uma máquina de estado. (Contraste: o Sells tem FSM canônico REAL, `sale_stage_history` append-only, ADR 0143 — Compras não.)
 
-3. **O diferencial nº1 do domínio BR não existe.** `grep ImportarDfeComoCompra|nfe_dfe_recebidos` em `Modules/Compras/Services/` retorna **zero** — só comentários em `ServiceProvider`/`InstallController`. Todo concorrente BR (Bling/Tiny/Omie/Hiper) tem import XML NF-e + manifestação + vínculo-a-PO como **feature central do dia-a-dia**. O oimpresso tem o pull DF-e em `Modules/NfeBrasil` mas **nada transforma DF-e em compra**. A ficha de design conta 32 capacidades e dá 67, mas C-16 (partial) e a automação fiscal são "gap de integração, fora do escopo dela" — esta ficha é justamente esse escopo, e ele está vazio.
+3. **O diferencial nº1 do domínio BR está 80% construído — e ocioso.** Correção honesta (Wagner apontou 2026-07-03): o import de XML DF-e **existe e é testado**, só que mora no `Modules/NfeBrasil`, não no Compras — `DistribuicaoDfeService` puxa via SEFAZ NSU, `BuscarDfesRecebidosJob`/cron popula `nfe_dfe_recebidos`, e `ManifestacaoService` faz a manifestação destinatário (prazo 180d NT 2014.002), tudo com Pest verde. **O que falta é a última milha:** `nfe_dfe_recebidos` **não tem `transaction_id`**, não há `ImportarDfeComoCompraService`, e todo comentário no Compras (`ServiceProvider:13`/`InstallController:16`/`Routes:13`) remete a "Wave 6". Ou seja: a parte cara (falar com a SEFAZ, guardar o XML, manifestar) está pronta; a compra nunca recebe esse dado. É pior teatro que "não existe" — é infra pronta que **não está plugada**. G-01 deixa de ser "construir o import" e vira "construir a ponte de um import que já funciona" (esforço bem menor). A ficha de design conta 32 capacidades e dá 67, mas trata a automação fiscal como "gap de integração, fora do escopo dela" — esta ficha é justamente esse escopo, e o gap ali é **de ligação, não de construção**.
 
 4. **Módulo não está em prod nem canary pra ninguém — toda nota é teórica (feature theater).** `config/governance/module_clients.yaml` não tem `Compras` (D5=0/15; US-COM-010 ainda `todo`). Larissa *sinalizou* dor (DISCOVERY) mas **nunca abriu `/compras` em produção**. Wagner usa `/purchases` legacy. O risco R10 do audit ("toda nota fina é teórica") continua ALTO e não-mitigado. Um cockpit lindo que ninguém usa não é capacidade — é demo.
 
@@ -198,7 +205,7 @@ Como Compras é o módulo mais fraco do projeto, o ângulo desta onda é **o que
 
 6. **A razão de existir do módulo pra Larissa (GradeMatrixInput) nem vive no `/compras`.** Por convergência C1, o `GradeMatrixInput` foi pra `resources/js/Pages/Purchase/Create.tsx`. O DISCOVERY inteiro justificou o módulo pela dor da grade tam×cor da Larissa — e essa peça mora em outro lugar, aguardando smoke/canary. O `/compras` que leva a nota é o cockpit de leitura; o unlock real da persona está fora dele e não-validado.
 
-**Síntese adversarial:** o module-grade 59 diz "seguro e documentado"; a capacidade diz "não importa NF-e, não casa PO, não recebe parcial, não concilia, mente o estágio na tela, e ninguém usa". A onda ESTABILIZAR resolveu o Tier 0 (necessário e bem-feito) mas o módulo ainda **não faz compra** — faz uma tela sobre compras alheias. O caminho pra virar produto real passa por G-01→G-02→G-03 (import XML + matching + teste de cálculo), não por polir o cockpit.
+**Síntese adversarial:** o module-grade 59 diz "seguro e documentado"; a capacidade diz "importa e manifesta a NF-e (via NfeBrasil) mas não a converte em compra, não casa PO, não recebe parcial, não concilia, mente o estágio na tela, e ninguém usa". A onda ESTABILIZAR resolveu o Tier 0 (necessário e bem-feito) e o substrato fiscal já estava construído — mas o módulo ainda **não faz compra**: faz uma tela sobre compras alheias, com o import da NF-e pronto ao lado e não-plugado. O caminho pra virar produto real passa por G-01→G-02→G-03 (ponte DF-e→compra + matching + teste de cálculo), não por polir o cockpit.
 
 ## 9. Anti-padrões / pegadinhas Tier 0 (Compras)
 
@@ -214,13 +221,13 @@ Como Compras é o módulo mais fraco do projeto, o ângulo desta onda é **o que
 ## 10. Decisão / Nota / Recomendação
 
 ### Nota de capacidade
-**30/100** — bem abaixo do topo BR (Omie/Hiper ~72, Bling/Tiny ~68) e do teto mid-market (Cin7/Zoho ~66). Honesto: Compras é **melhor que o mercado em isolamento Tier 0 e UI de cockpit** (C06=9, C13/C14=8) e **essencialmente vazio em tudo que É compra** — import XML (C01=1), matching XML→PO (C02=0), recebimento parcial (C03=1), 3-way match (C05=0). O module-grade 59 e o design 67 escondem que o motor do domínio não existe.
+**33/100** — bem abaixo do topo BR (Omie/Hiper ~72, Bling/Tiny ~68) e do teto mid-market (Cin7/Zoho ~66). Honesto: Compras é **melhor que o mercado em isolamento Tier 0 e UI de cockpit** (C06=9, C13/C14=8), tem o **substrato fiscal pronto no NfeBrasil** (import DF-e + manifestação testados → C01=5) e é **vazio no resto do que É compra** — matching XML→PO (C02=0), recebimento parcial (C03=1), 3-way match (C05=0). O module-grade 59 e o design 67 escondem que o motor do domínio não fecha o ciclo.
 
 ### Causa principal do gap (1 frase)
-**A onda ESTABILIZAR deixou o módulo seguro, testado e bonito, mas os três P0 que definem uma compra BR — importar a NF-e do fornecedor, casá-la com o pedido, e receber parcial — nunca foram construídos, e a FSM que a tela exibe é uma const visual, não uma máquina de estado.**
+**A onda ESTABILIZAR deixou o módulo seguro, testado e bonito, e o import fiscal (DF-e pull + manifestação) já existe no NfeBrasil — mas nada converte a NF-e recebida em compra, o pedido não é casado, o recebimento parcial não existe, e a FSM que a tela exibe é uma const visual, não uma máquina de estado.**
 
 ### Top 3 P0 pra fechar (executável)
-1. **G-01 — Bridge Importar XML DF-e → Transaction** (US-COM-003, Wave 6): o diferencial nº1 do domínio + o unlock real da Larissa (elimina digitar 600-1000 SKUs). Esforço L. **Comece por aqui.**
+1. **G-01 — Ponte DF-e recebida → Compra** (US-COM-003): **não é construir o import** (o `Modules/NfeBrasil` já puxa e manifesta) — é a última milha: `nfe_dfe_recebidos.transaction_id` + `ImportarDfeComoCompraService` + modal "Importar XML". Diferencial nº1 do domínio + unlock da Larissa (elimina digitar 600-1000 SKUs). Esforço **M** (o caro já está feito). **Comece por aqui.**
 2. **G-03 — Teste E2E de cálculo custo/total/estoque**: rede de segurança Tier 0 antes de qualquer entrada de compra tocar estoque real — o incidente do Sells (R$ inflado ×100k) mostra o custo de não ter. Esforço M.
 3. **G-02 — Matching automático XML→produto** (por EAN+xProd): o que faz o import (G-01) valer a pena em vez de exigir mapeamento manual item a item. Esforço M, depende de G-01.
 
