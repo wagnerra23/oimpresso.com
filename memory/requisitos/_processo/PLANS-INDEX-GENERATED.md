@@ -4,14 +4,15 @@
 > Fonte única: o plano é a verdade, este índice é derivado ([ADR 0256](../../decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md)). Execução mora no MCP via `parent_plan` ([ADR 0070](../../decisions/0070-jira-style-task-management-current-md-removed.md)). Frescor/órfão = sentinela `plan-health` (memory-health Check J).
 
 ## Saúde (derivada)
-- **1** planos registrados (com `## Status vivo`) · **17** pendentes de backfill (arquivo *plan* sem bloco)
-- reviewed_at preenchido: **1/1** · vinculados a MCP (`parent_plan`): **1/1**
-- Por status: ativo 1
+- **2** planos registrados (com `## Status vivo`) · **17** pendentes de backfill (arquivo *plan* sem bloco)
+- reviewed_at preenchido: **2/2** · vinculados a MCP (`parent_plan`): **2/2**
+- Por status: proposto 1 · ativo 1
 - Inconsistências de schema: 0
 
-## Registrados (1)
+## Registrados (2)
 | Plano | Módulo | Status | Owner | reviewed_at | parent_plan | gate-de-saída |
 |---|---|---|---|---|---|---|
+| [PLANO MESTRE — Programa de Ondas com Adversário por Módulo](../_Governanca/programa-ondas/PLANO-MESTRE.md) | _Governanca | proposto | W | 2026-07-02 | `programa-ondas` | Onda 1 (Sells) concluída — dente de cálculo red/green no CT1 |
 | [Plano — Atendimento Automático (WhatsApp / Caixa Unificada)](../Whatsapp/PLANO-ATENDIMENTO-AUTOMATICO.md) | Whatsapp | ativo | W | 2026-06-20 | `plano-atendimento-automatico` | E1+E3 com ≥5 clientes pagando JANA Pro (espelha gates da ADR |
 
 ## Pendentes de `## Status vivo` (17) — backfill dirigido pela sentinela
