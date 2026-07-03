@@ -2,7 +2,7 @@
 page: /financeiro/contas-pagar
 component: resources/js/Pages/Financeiro/ContasPagar/Index.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-07-03"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
@@ -15,9 +15,11 @@ charter_version: 1
 
 # Page Charter — /financeiro/contas-pagar
 
-> **Status:** charter retroativo (Onda de correção Financeiro — régua por tela, [ADR 0320]).
-> Tela **live** (controller renderiza Inertia 200, está no sidebar via `DataController`); era
-> uma das 7 telas de dinheiro sem contrato catalogadas em [_Roadmap_Faturamento §Camada de correção].
+> **Status:** `draft` — charter retroativo (Onda de correção Financeiro — régua por tela, [ADR 0320]).
+> A tela **aparenta viva** (o `ContaPagarController` renderiza Inertia 200, está no sidebar via
+> `DataController`), mas o charter **não foi validado contra prod** nesta sessão — nasce `draft`,
+> não `live` (R1: `live` = evidência datada). Promover exige `smoke:` datado **ou** `prod-flags.json`.
+> Era uma das 7 telas de dinheiro sem contrato catalogadas em [_Roadmap_Faturamento §Camada de correção].
 > Persona: **Eliana [E]** — financeiro do escritório. Gêmea de [Contas a Receber](../ContasReceber/Index.charter.md),
 > com a diferença crítica: aqui existe **baixa (pagamento) inline que mexe em valor** — logo cai
 > na [regra-mestre de VALOR/ESTOQUE](../../../../../memory/proibicoes.md) e no dente D1 (ver abaixo).

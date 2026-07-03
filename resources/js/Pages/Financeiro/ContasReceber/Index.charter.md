@@ -2,7 +2,7 @@
 page: /financeiro/contas-receber
 component: resources/js/Pages/Financeiro/ContasReceber/Index.tsx
 owner: wagner
-status: live
+status: draft
 last_validated: "2026-07-03"
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
@@ -15,10 +15,12 @@ charter_version: 1
 
 # Page Charter — /financeiro/contas-receber
 
-> **Status:** charter retroativo (Onda de correção Financeiro — régua por tela, [ADR 0320]).
-> Tela **live** desde antes desta ADR (controller renderiza Inertia 200 e ela está no sidebar
-> via `DataController`); não tinha contrato até agora — era parte das 7 telas de dinheiro sem
-> charter catalogadas em [_Roadmap_Faturamento §Camada de correção].
+> **Status:** `draft` — charter retroativo (Onda de correção Financeiro — régua por tela, [ADR 0320]).
+> A tela **aparenta viva** (o `ContaReceberController` renderiza Inertia 200 e ela está no sidebar
+> via `DataController`), mas o charter **não foi validado contra prod** nesta sessão — logo nasce
+> `draft`, não `live` (R1: `live` = evidência datada, não palavra). Promover a `live` exige um
+> `smoke:` datado (Chrome MCP em prod) **ou** entrada em `governance/prod-flags.json` — follow-up.
+> Era uma das 7 telas de dinheiro sem contrato catalogadas em [_Roadmap_Faturamento §Camada de correção].
 > Persona: **Eliana [E]** — financeiro do escritório, densidade alta. Secundária Larissa [L]
 > (dona, quer saber "quem está me devendo?").
 >
