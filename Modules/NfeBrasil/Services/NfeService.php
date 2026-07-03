@@ -197,6 +197,19 @@ class NfeService
                     'pcofins'  => $tributo->aliquota_cofins,
                     'vcofins'  => $tributo->valor_cofins,
                 ],
+                // IBS/CBS (Reforma · US-FISCAL-021 PR-D). Serializado só quando o business
+                // está em modo full/hybrid (schema PL_010); Simples/legado → alíquota 0 +
+                // cst nulo → grupo omitido. vbc = base do item (mesmo valor que o motor usou).
+                'ibscbs'  => [
+                    'cst'          => $tributo->cst_ibs,
+                    'cst_cbs'      => $tributo->cst_cbs,
+                    'c_class_trib' => $tributo->c_class_trib,
+                    'vbc'          => (float) $invoice->valor,
+                    'aliquota_ibs' => $tributo->aliquota_ibs,
+                    'aliquota_cbs' => $tributo->aliquota_cbs,
+                    'valor_ibs'    => $tributo->valor_ibs,
+                    'valor_cbs'    => $tributo->valor_cbs,
+                ],
             ]],
             'total' => [
                 'v_prod'    => (float) $invoice->valor,
@@ -339,6 +352,19 @@ class NfeService
                     'vbc'      => 0,
                     'pcofins'  => $tributo->aliquota_cofins,
                     'vcofins'  => $tributo->valor_cofins,
+                ],
+                // IBS/CBS (Reforma · US-FISCAL-021 PR-D). Serializado só quando o business
+                // está em modo full/hybrid (schema PL_010); Simples/legado → alíquota 0 +
+                // cst nulo → grupo omitido. vbc = base do item (mesmo valor que o motor usou).
+                'ibscbs'  => [
+                    'cst'          => $tributo->cst_ibs,
+                    'cst_cbs'      => $tributo->cst_cbs,
+                    'c_class_trib' => $tributo->c_class_trib,
+                    'vbc'          => $valorTotal,
+                    'aliquota_ibs' => $tributo->aliquota_ibs,
+                    'aliquota_cbs' => $tributo->aliquota_cbs,
+                    'valor_ibs'    => $tributo->valor_ibs,
+                    'valor_cbs'    => $tributo->valor_cbs,
                 ],
             ]],
             'total' => [
@@ -1135,7 +1161,9 @@ class NfeService
     private function buildXml(object $business, NfeEmissao $emissao, array $dadosNfe, array $emitOverride): string
     {
         // Legacy → new Make(null) ≡ new Make() (byte-idêntico); full → new Make('PL_010_V1').
-        $nfe = new Make($this->schemaReforma($business->id));
+        // O mesmo modo governa a serialização do grupo UB (IBS/CBS) nos itens (PR-D).
+        $schemaReforma = $this->schemaReforma($business->id);
+        $nfe = new Make($schemaReforma);
 
         $std         = new \stdClass();
         $std->versao = '4.00';
@@ -1275,9 +1303,16 @@ class NfeService
         }
 
         // ── dets (itens) ─────────────────────────────────────────────────────
+        // Reforma Tributária (IBS/CBS · grupo UB): só serializa quando o business
+        // está opt-in (schema PL_010). Legacy → false → nenhum item chama tagIBSCBS
+        // → XML byte-idêntico ao de hoje (US-FISCAL-021 PR-D / REGRA MESTRE).
+        $reformaAtiva = $schemaReforma !== null;
+        $temIbsCbs    = false;
         foreach ($dadosNfe['dets'] as $idx => $det) {
             $item = $idx + 1;
-            $this->adicionarItem($nfe, $item, $det, $crt);
+            if ($this->adicionarItem($nfe, $item, $det, $crt, $reformaAtiva)) {
+                $temIbsCbs = true;
+            }
         }
 
         // ── total ────────────────────────────────────────────────────────────
@@ -1307,6 +1342,14 @@ class NfeService
         $stdICMSTot->vOutro      = 0.00;
         $stdICMSTot->vNF         = $this->fmt($total['v_nf'] ?? 0);
         $nfe->tagICMSTot($stdICMSTot);
+
+        // ── IBSCBSTot (Reforma · grupo W/IBSCBSTot) ────────────────────────────
+        // Só quando ≥1 item emitiu grupo UB. Passamos stdClass vazio de propósito:
+        // a lib auto-deriva vBCIBSCBS/vIBS/vCBS do acumulado por-item (uma fonte de
+        // verdade → total == soma dos itens, sem soma manual). Legacy → nunca entra.
+        if ($temIbsCbs) {
+            $nfe->tagIBSCBSTot(new \stdClass());
+        }
 
         // ── transp ───────────────────────────────────────────────────────────
         $stdTransp       = new \stdClass();
@@ -1357,9 +1400,12 @@ class NfeService
     }
 
     /**
-     * Adiciona item (det + imposto + ICMS + PIS + COFINS) ao Make.
+     * Adiciona item (det + imposto + ICMS + PIS + COFINS + IBS/CBS) ao Make.
+     *
+     * Retorna true se emitiu o grupo UB (IBS/CBS) pro item — usado pra decidir
+     * a emissão do IBSCBSTot no total. Legacy/Simples → false (nada emitido).
      */
-    private function adicionarItem(Make $nfe, int $item, array $det, int $crt): void
+    private function adicionarItem(Make $nfe, int $item, array $det, int $crt, bool $reformaAtiva = false): bool
     {
         $stdProd         = new \stdClass();
         $stdProd->item   = $item;
@@ -1440,6 +1486,46 @@ class NfeService
         $stdCOFINS->pCOFINS = $this->fmt((float) ($cofins['pcofins'] ?? 0));
         $stdCOFINS->vCOFINS = $this->fmt((float) ($cofins['vcofins'] ?? 0));
         $nfe->tagCOFINS($stdCOFINS);
+
+        // ── IBS/CBS (Reforma Tributária · grupo UB · NT 2025.002 · PL_010_V1) ──
+        // Serializa SÓ quando (a) o business está opt-in (schema PL_010 ativo) E
+        // (b) há CST IBS/CBS configurado pro item. Simples/legado (sem regra IBS/CBS)
+        // → cst nulo → grupo omitido → XML idêntico ao de hoje. Ref ADR 0321 + REGRA
+        // MESTRE (memory/proibicoes.md — cálculo de valor exige dupla confirmação).
+        $ibscbs = $det['ibscbs'] ?? [];
+        if (! $reformaAtiva || empty($ibscbs['cst'])) {
+            return false;
+        }
+
+        // MODELAGEM v1 (documentada — decisão pra Wagner na REGRA MESTRE):
+        //  1. Split UF/Município: a régua fiscal (nfe_fiscal_rules) guarda UMA alíquota
+        //     IBS combinada, mas o grupo UB exige separar entre gIBSUF (UF) e gIBSMun
+        //     (Município). Sem coluna de split, lançamos o IBS combinado 100% em gIBSUF
+        //     e zeramos gIBSMun — o vIBS do item (=vIBSUF+vIBSMun) segue == valor_ibs do
+        //     motor. Refinar quando um business `full` precisar de split real (schema).
+        //  2. CST único: o grupo usa um só CST; adotamos cst_ibs (o cst_cbs guardado à
+        //     parte deve coincidir). Pilotos são Simples (alíquota 0) → caminho inerte.
+        // Alíquotas são frações (0.001 = 0,1%); o XML espera percentual → × 100 (4 casas).
+        $aliqIbs = (float) ($ibscbs['aliquota_ibs'] ?? 0);
+        $aliqCbs = (float) ($ibscbs['aliquota_cbs'] ?? 0);
+
+        $stdIBSCBS                  = new \stdClass();
+        $stdIBSCBS->item            = $item;
+        $stdIBSCBS->CST             = (string) $ibscbs['cst'];
+        $stdIBSCBS->cClassTrib      = (string) ($ibscbs['c_class_trib'] ?? '');
+        $stdIBSCBS->vBC             = $this->fmt((float) ($ibscbs['vbc'] ?? 0));
+        // gIBSUF — recebe o IBS combinado (pIBSUF = fração × 100, 4 casas)
+        $stdIBSCBS->gIBSUF_pIBSUF   = $this->fmt($aliqIbs * 100, 4);
+        $stdIBSCBS->gIBSUF_vIBSUF   = $this->fmt((float) ($ibscbs['valor_ibs'] ?? 0));
+        // gIBSMun — zerado (sem split; ver MODELAGEM v1 acima)
+        $stdIBSCBS->gIBSMun_pIBSMun = $this->fmt(0, 4);
+        $stdIBSCBS->gIBSMun_vIBSMun = $this->fmt(0);
+        // gCBS
+        $stdIBSCBS->gCBS_pCBS       = $this->fmt($aliqCbs * 100, 4);
+        $stdIBSCBS->gCBS_vCBS       = $this->fmt((float) ($ibscbs['valor_cbs'] ?? 0));
+        $nfe->tagIBSCBS($stdIBSCBS);
+
+        return true;
     }
 
     /**
