@@ -30,3 +30,25 @@ gaps:
     fix: "4 campos datetime-local lado a lado (entrada/previsao/concluida/entregue) sem agrupamento visual — agrupar em fieldset 'Datas'"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
+# NÃO entra na nota 73 (UX). A tela é Advanced no visual e é onde se MONTA a OS (section inline
+# "Itens da OS" com Total OS BRL — toca valor via itens) e, ao mesmo tempo, não tem contrato de
+# comportamento por-tela. Pest existe (ServiceOrderItemTest, ServiceOrderItemStockBaixaTest,
+# ServiceOrderIndexItemsTotalTest, ServiceOrderItemHttpIntegrationTest, ServiceOrderCrudTest),
+# mas sem `.casos.md` a régua não tem UC pra citar → cobertura_uc=0% de CONTRATO.
+casos_coverage:
+  fonte: null          # sem resources/js/Pages/OficinaAuto/ServiceOrders/Edit.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:             # candidatos sem UC-id (G-2: id só no MESMO PR do teste); o Pest que os defenderia JÁ existe
+    - "Editar/adicionar item inline recalcula o Total OS server-side (Observer, ADR 0192) — ServiceOrderItemTest/ServiceOrderIndexItemsTotalTest"
+    - "Excluir item com confirm + rollback optimistic em erro HTTP — ServiceOrderItemHttpIntegrationTest"
+    - "Adicionar peça baixa estoque (peça×qty) — ServiceOrderItemStockBaixaTest"
+    - "Salvar edição da OS retorna pro Show — ServiceOrderCrudTest"
+    - "vehicle_id de outro business rejeitado server-side (Tier 0) — VehicleMultiTenantTest"
+  cobertura_uc: "0%"   # derivado: 0 UC contratado (falta o contrato .casos.md, não o Pest)
+d1_calculo:            # Edit monta a OS (itens → Total OS BRL). Recalc é server-side (Observer). NÃO tocar aqui (é o outro chip)
+  aplica: true
+  nivel: "🔴"          # sem property (parse∘format==id) nem golden de borda (arredondamento/devolução) citáveis; `final_total` mecânica ainda é o buraco da US-OFICINA-027. Dente real = onda de cálculo.
+  provas: { property: false, golden: false, cross_check: false }

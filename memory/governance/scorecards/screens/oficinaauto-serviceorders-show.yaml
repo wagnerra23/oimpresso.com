@@ -30,3 +30,26 @@ gaps:
     fix: "delete item via window.confirm nativo; alinhar com AlertDialog DS"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
+# NÃO entra na nota 76 (UX). É a OUTRA leitura da foto: a tela é Advanced no visual (76) e é a
+# fonte-da-verdade de UMA OS (mostra o TOTAL — Tier-0) e AO MESMO TEMPO não tem NENHUM contrato
+# de comportamento por-tela que a régua possa citar. Há Pest de sobra exercitando o código
+# (FsmTransitionTest, ServiceOrderCrudTest, ServiceOrderIndexItemsTotalTest, ServiceOrderItemHttpIntegrationTest,
+# ServiceOrderStageGateTest, ServiceOrderHistoryControllerTest), mas ZERO `.casos.md` — logo
+# cobertura_uc=0% é de CONTRATO, não de código nu. Isso agora fica visível.
+casos_coverage:
+  fonte: null          # sem resources/js/Pages/OficinaAuto/ServiceOrders/Show.casos.md (só Board.casos.md existe no módulo)
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []              # nenhum UC contratado por-tela ainda
+  backlog:             # candidatos sem UC-id (G-2: id só no MESMO PR do teste); o Pest que os defenderia JÁ existe
+    - "OS de outro business retorna 404 (multi-tenant Tier 0) — ServiceOrderCrudTest/VehicleMultiTenantTest"
+    - "Total/valor exibido bate com itens (peça×qty + hora×horas) — ServiceOrderIndexItemsTotalTest (⚠️ hoje R$ 0 em OS mecânica, US-OFICINA-027)"
+    - "Adicionar/excluir item via Sheet atualiza o total (optimistic) — ServiceOrderItemHttpIntegrationTest"
+    - "Timeline mostra histórico append-only de transições FSM — FsmTransitionTest/ServiceOrderHistoryControllerTest"
+    - "Botão FSM respeita RBAC (role não autoriza = disabled) — ServiceOrderStageGateTest"
+  cobertura_uc: "0%"   # derivado: 0 UC contratado (não porque falte Pest, mas porque falta o contrato .casos.md que a régua cita)
+d1_calculo:            # dente de cálculo (§3-bis SCREEN-GRADE-METODO) — Show EXIBE total/valor a receber (Tier-0). NÃO tocar aqui (é o dente/outro chip)
+  aplica: true
+  nivel: "🔴"          # indefeso: o total exibido em OS mecânica retorna R$ 0 hoje (US-OFICINA-027) e não há property/golden/cross-check citável. Dente real = onda de cálculo.
+  provas: { property: false, golden: false, cross_check: false }
