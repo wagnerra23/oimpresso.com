@@ -16,8 +16,8 @@ use App\Util\OtelHelper;
  * - Exibir em UI compartilhada (cross-tenant)
  *
  * Coberto:
- * - CPF (000.000.000-00 ou 00000000000)
- * - CNPJ (00.000.000/0000-00 ou 00000000000000)
+ * - CPF (NNN.NNN.NNN-NN ou 11 dígitos)
+ * - CNPJ (NN.NNN.NNN/NNNN-NN ou 14 dígitos)
  * - Email
  * - Telefone BR (com ou sem DDD, com ou sem +55)
  * - CEP (00000-000 ou 00000000)
@@ -121,7 +121,7 @@ class PiiRedactor
      * espelha `ClienteOssDataController::maskTail` (padrão CRM) — dígitos apenas,
      * `*` no prefixo.
      *
-     * Ex.: `12.345.678/0001-90` → `**********0190` · `(48) 99999-1234` → `*******1234`
+     * Ex.: CNPJ 14 díg. → `**********0190` (só os 4 finais) · telefone → `*******1234`
      *
      * @param  string|null  $value  CNPJ/CPF/telefone bruto (com ou sem máscara)
      * @param  int  $tail  Quantos dígitos finais permanecem visíveis (default 4)
