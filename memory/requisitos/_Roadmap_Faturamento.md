@@ -186,5 +186,48 @@ Antes de começar Financeiro, fazer:
 
 ---
 
+## Camada de correção — régua por tela (Financeiro) · [ADR 0320]
+
+> **Encaixe T6 (não paralelo):** o "programa de ondas · régua de correção por módulo"
+> ([ADR 0320](../decisions/proposals/0320-programa-ondas-regua-correcao.md)) manda que as ondas
+> de **Financeiro / NfeBrasil / RecurringBilling** encaixem **aqui** no roadmap macro de
+> Faturamento — nunca em doc paralelo. Esta seção é a **casa** dessa camada pro Financeiro.
+> O adversário/gaps do módulo **já existe** e não se refaz: [CAPTERRA-INVENTARIO.md](Financeiro/CAPTERRA-INVENTARIO.md)
+> (nota 74). Esta camada é o **Passo 3** do ciclo-padrão (régua estendida 0b: `screen-grade` UX
+> **+** `casos_coverage` comportamento **+** dente D1 cálculo), aplicado por exposição Tier-0.
+> Execução via tasks MCP `parent_plan=programa-ondas` — status vivo lá, não neste markdown.
+
+**Débito descoberto (2026-07-03):** 7 telas de dinheiro do Financeiro estavam **sem charter**
+(contrato). A régua por tela expõe a contradição que o programa existe pra tornar visível —
+**UX alta escondendo comportamento indefeso**:
+
+| Tela | UX (screen-grade) | Cobertura comportamento (casos_coverage) | D1 cálculo | Charter |
+|---|---|---|---|---|
+| `ContasReceber/Index` | **70 · Advanced** | **0 UC** defendido (5 no backlog s/ id) | n/a (lista + boleto) | ✅ criado |
+| `ContasPagar/Index` | **70 · Advanced** | **0 UC** defendido (6 no backlog s/ id) | **🔴 indefeso** (baixa parcial) | ✅ criado |
+| `Unificado/Novo` | — | — | 🔴 (insert de título) | ⬜ pendente |
+| `Dashboard/Index` | — | — | n/a (leitura) | ⬜ pendente |
+
+> A leitura da foto: `ContasPagar` é **"Advanced" no visual e ao mesmo tempo recalcula
+> `valor_aberto` na baixa sem uma única prova de cálculo** (classe do incidente `num_uf`, valor
+> inflado ~×100k — [proibicoes §CÁLCULO DE VALOR](../proibicoes.md)). O **dente D1** (property +
+> golden + cross-check) é onda de **cálculo** separada — não se mistura com este PR de contrato
+> (a régua **PLUGA, não funde**: bonita ≠ testada).
+
+**Sequência da camada (por exposição × débito, cada onda exige OK [W] antes de abrir — [ADR 0105](../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)):**
+1. ✅ **Lote 1 (este PR):** charter + casos + régua estendida de `ContasReceber/Index` e
+   `ContasPagar/Index` (o par A receber / A pagar — maior exposição). Débito trio −4 (2 telas ×
+   charter+casos); `casos-gate`/shrink verdes.
+2. ⬜ **Lote 2:** `Unificado/Novo` (insert de título — toca valor) + `Dashboard/Index` (leitura).
+3. ⬜ **Dente D1 (onda de cálculo, outro chip):** property `num_uf` + golden da baixa parcial +
+   cross-check 2 caminhos → sobe `ContasPagar` de D1 🔴 → 🟢. É o que fecha o piso Tier-0
+   ([ADR 0320] §4: cálculo + caso + paridade).
+
+**Armadilha registrada (casos-gate):** UC declarado só ganha id no **mesmo PR** que traz o
+teste (G-2 · [ADR 0264](../decisions/0264-governanca-executavel-trio-dominio-e2e.md)). Por isso os casos das telas acima nascem **no backlog sem id** —
+declarar `UC-*` sem teste quebraria o `casos-gate` (required).
+
+---
+
 **Status:** `roadmap (planejamento)` — não é compromisso vinculante; revisão trimestral.
 **Próxima revisão:** 2026-07-24 (M3) — ajustar projeções vs realidade.
