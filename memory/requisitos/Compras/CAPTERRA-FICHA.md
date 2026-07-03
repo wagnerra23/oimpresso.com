@@ -133,7 +133,7 @@ Legenda: ✅ pareia/supera líder · 🟡 parcial · ❌ ausente. Nota /10 por *
 | **C12 (P1)** | Aprovação / workflow multi-nível de compra | 2 | Procurify/Precoro (budget control + aprovação por alçada) | ❌ **ausente** — sem alçada, sem approval chain | **1** |
 | **C13 (P2)** | KPIs cockpit (a pagar / trânsito / mês / fornecedores) | 1 | HubSpot/Shopify Insights (highlights) | ✅ 4 KPIs agregados server-side + `Inertia::defer` + cores semânticas | **8** |
 | **C14 (P2)** | Drawer detalhe denso (list-detail sem sair da lista) | 1 | Linear/Attio/Shopify (drawer canon 2026) | ✅ drawer 480px, 5 tabs, timeline activitylog, breakdown financeiro | **8** |
-| **C15 (P2)** | Anti-N+1 / perf (defer + eager-load) | 1 | — (higiene) | 🟡 `Inertia::defer` nas 4 props + eager-load em `buscarDetalhe`; **`listarCompras().paginate()` sem `->with()` explícito** (N+1 risco nas rows) | **6** |
+| **C15 (P2)** | Anti-N+1 / perf (defer + eager-load) | 1 | — (higiene) | ✅ `Inertia::defer` nas 4 props + eager-load em `buscarDetalhe`; **"N+1 nas rows" VERIFICADO falso-positivo (2026-07-03)** — `listarCompras` → `getListPurchases` traz `supplier_business_name`+`location_name` via JOIN (colunas flat), sem lazy-load por linha; `->with()` seria incorreto (SELECT sem FKs + `groupBy`). Travado por `ComprasListagemNPlusUmTest` (contagem de queries CONSTANTE, MySQL CT 100) | **8** |
 | **C16 (P2)** | Autosave rascunho de compra (Larissa atende telefone) | 1 | Lightspeed (modal check-in autosave) | ❌ **ausente** — sem draft persistido; forms não modelados no `/compras` | **2** |
 | **C17 (P2)** | LGPD / PII fornecedor redigida | 1 | — (dever regulatório BR 2026) | ❌ Drawer renderiza `tax_number`(CNPJ/CPF) + `mobile` + `email` **raw, sem PiiRedactor** (Drawer.tsx:266/275/281) | **2** |
 | **C18 (P3)** | A11y (WCAG 2.1 AA) | 0.5 | Shopify Polaris | 🟡 cores contrastam; drawer sem `role=dialog`/focus-trap/`aria-label` no botão fechar (herdado do protótipo F1) | **5** |
@@ -146,15 +146,15 @@ Pesos canônicos: **P0=4 · P1=2 · P2=1 · P3=0.5**.
 ```
 P0 (peso 4): (C01 5 + C02 0 + C03 1 + C04 3 + C05 0 + C06 9) = 18 × 4 = 72
 P1 (peso 2): (C07 5 + C08 6 + C09 2 + C10 7 + C11 0 + C12 1) = 21 × 2 = 42
-P2 (peso 1): (C13 8 + C14 8 + C15 6 + C16 2 + C17 2)         = 26 × 1 = 26
+P2 (peso 1): (C13 8 + C14 8 + C15 8 + C16 2 + C17 2)         = 28 × 1 = 28
 P3 (peso 0.5):(C18 5 + C19 4)                                =  9 × 0.5=  4.5
 
-Σ ponderado = 72 + 42 + 26 + 4.5 = 144.5
+Σ ponderado = 72 + 42 + 28 + 4.5 = 146.5
 
 Máximo possível:
   P0: 6×10×4 = 240 · P1: 6×10×2 = 120 · P2: 5×10×1 = 50 · P3: 2×10×0.5 = 10  → 420
 
-nota_capacidade = 144.5 / 420 × 100 = 34.4 → 34/100
+nota_capacidade = 146.5 / 420 × 100 = 34.9 → 34/100
 ```
 
 ```
