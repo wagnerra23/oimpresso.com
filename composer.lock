@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3e4d765c522051e460e2c357296634e1",
+    "content-hash": "d778cf6676bed77f2e131e4ba091dadf",
     "packages": [
         {
             "name": "aloha/twilio",
@@ -6592,16 +6592,16 @@
         },
         {
             "name": "nfephp-org/sped-common",
-            "version": "v5.1.16",
+            "version": "v5.1.17",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nfephp-org/sped-common.git",
-                "reference": "1c6b03dd06b396ee3680d07c9c071b82f869fd42"
+                "reference": "83c944a508635bc52575fe15198897b60a5679ac"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nfephp-org/sped-common/zipball/1c6b03dd06b396ee3680d07c9c071b82f869fd42",
-                "reference": "1c6b03dd06b396ee3680d07c9c071b82f869fd42",
+                "url": "https://api.github.com/repos/nfephp-org/sped-common/zipball/83c944a508635bc52575fe15198897b60a5679ac",
+                "reference": "83c944a508635bc52575fe15198897b60a5679ac",
                 "shasum": ""
             },
             "require": {
@@ -6664,9 +6664,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nfephp-org/sped-common/issues",
-                "source": "https://github.com/nfephp-org/sped-common/tree/v5.1.16"
+                "source": "https://github.com/nfephp-org/sped-common/tree/v5.1.17"
             },
-            "time": "2025-07-02T12:34:43+00:00"
+            "time": "2026-05-25T17:11:24+00:00"
         },
         {
             "name": "nfephp-org/sped-da",
@@ -6829,16 +6829,16 @@
         },
         {
             "name": "nfephp-org/sped-nfe",
-            "version": "v5.2.5",
+            "version": "dev-master",
             "source": {
                 "type": "git",
                 "url": "https://github.com/nfephp-org/sped-nfe.git",
-                "reference": "f49d543e735d30afacd92c3fe286c677a7d0ee35"
+                "reference": "e075ec47f261e13db695f514174c01d8fb7934fc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/nfephp-org/sped-nfe/zipball/f49d543e735d30afacd92c3fe286c677a7d0ee35",
-                "reference": "f49d543e735d30afacd92c3fe286c677a7d0ee35",
+                "url": "https://api.github.com/repos/nfephp-org/sped-nfe/zipball/e075ec47f261e13db695f514174c01d8fb7934fc",
+                "reference": "e075ec47f261e13db695f514174c01d8fb7934fc",
                 "shasum": ""
             },
             "require": {
@@ -6860,6 +6860,7 @@
                 "phpunit/phpunit": "^9.3",
                 "squizlabs/php_codesniffer": "^3.6"
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "branch-alias": {
@@ -6905,9 +6906,9 @@
             ],
             "support": {
                 "issues": "https://github.com/nfephp-org/sped-nfe/issues",
-                "source": "https://github.com/nfephp-org/sped-nfe/tree/v5.2.5"
+                "source": "https://github.com/nfephp-org/sped-nfe/tree/master"
             },
-            "time": "2026-02-04T13:27:20+00:00"
+            "time": "2026-07-03T14:35:36+00:00"
         },
         {
             "name": "nikic/php-parser",
@@ -20520,7 +20521,9 @@
     ],
     "aliases": [],
     "minimum-stability": "dev",
-    "stability-flags": {},
+    "stability-flags": {
+        "nfephp-org/sped-nfe": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

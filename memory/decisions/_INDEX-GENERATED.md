@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **323** arquivos · **307** números únicos · máx **0318**
-- **ADRs ATIVOS (lifecycle ativo): 301** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 272 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 301 · substituido 12 · arquivado 6 · (vazio) 4
+- **324** arquivos · **308** números únicos · máx **0321**
+- **ADRs ATIVOS (lifecycle ativo): 302** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 273 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 302 · substituido 12 · arquivado 6 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (323)
+## Todas as ADRs (324)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -363,3 +363,4 @@ _(íntegra)_
 | 0316 | aceito | ativo | decision | Esquecimento real de ADR morta — git rm + tombstone ledger + git history como au |
 | 0317 | aceito | ativo | meta | Máquina de revisão de ADR — quando rever, via 3 classes de gatilho (evento/incon |
 | 0318 | aceito | ativo | decision | RAGAS eval real da Jana — mata a tautologia answer=ground_truth, mede saída de v |
+| 0321 | aceito | ativo | decision | Pin sped-nfe em dev-master (SHA fixo) pra IBS/CBS — grupo UB gated por feature f |
