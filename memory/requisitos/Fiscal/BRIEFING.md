@@ -1,6 +1,6 @@
 # BRIEFING — Modules/Fiscal
 
-> **Última atualização:** 2026-05-20 (Wave 9 mergeada — Bloco E + H SPED)
+> **Última atualização:** 2026-07-03 (US-FISCAL-022 mergeada — health-check proativo cert A1 · PR #3775)
 > **Owner:** Wagner | **Status produção:** 🟢 piloto biz=1 (Wagner empresa) — depende de Modules/NfeBrasil já LIVE
 > **Score Capterra Fiscal cockpit:** **102/100** (acima cap — top-3 gaps Bling/Tiny fechados)
 
@@ -44,15 +44,17 @@ Tudo + **5 ações fiscais SEFAZ** (Cancelar, Manifestar, CC-e, Inutilizar, Retr
 | Retransmitir rejeitada/denegada/erro_envio | `AcoesController::retransmitir` → `NfeService::retransmitir` | ✅ ativo |
 | ⌘K palette cross-fiscal | `PaletteSearchController` + `CmdKPalette.tsx` | ✅ ativo |
 | Bloco E SPED apuração ICMS | `SpedIcmsIpiGeneratorService` (E001+E100+E110+E116+E990) | ✅ ativo |
+| Health-check proativo cert A1 (cron alerta vencimento ≤30d) | `CertHealthCheckCommand` (`fiscal:cert-health-check`) | ✅ ativo (US-FISCAL-022 — cron 06:30 BRT → `mcp_alertas_eventos`) |
 
 ## Stack técnica
 
 - **11 Controllers** em `Modules/Fiscal/Http/Controllers/`: AcoesController, CockpitController, ConfigController, DataController, DfeController, EventosController, InstallController, NfeCockpitController, NfseCockpitController, PaletteSearchController, SpedController
 - **1 Service novo do módulo** em `Modules/Fiscal/Services/`: `SpedIcmsIpiGeneratorService` (gerador TXT 23 registros canon)
+- **2 Console Commands** em `Modules/Fiscal/Console/Commands/`: `HabilitarBusinessCommand` (`fiscal:habilitar-business`), `CertHealthCheckCommand` (`fiscal:cert-health-check` — cron diário 06:30 BRT, US-FISCAL-022)
 - **Pages Inertia (React)** em `resources/js/Pages/Fiscal/`: Cockpit, Nfe, Nfse, Dfe, Eventos, Config, Sped + 3 components (`FxShell`, `NotaDrawer`, `InutilizacaoModal`, `CmdKPalette`)
 - **7 RUNBOOK.md** em `memory/requisitos/Fiscal/`: cockpit, nfe, nfse, dfe, eventos, config, sped
 - **7 visual-comparison.md** (1 por sub-página)
-- **Tests Pest:** 9+ feature tests em `Modules/Fiscal/Tests/Feature/` + 2 em `Modules/NfeBrasil/Tests/Feature/` (NfeCartaCorrecao + NfeServiceRetransmitir)
+- **Tests Pest:** 10+ feature tests em `Modules/Fiscal/Tests/Feature/` (incl. `CertHealthCheckCommandTest` biz=1 — ADR 0101) + 2 em `Modules/NfeBrasil/Tests/Feature/` (NfeCartaCorrecao + NfeServiceRetransmitir)
 - **Routes:** `Modules/Fiscal/Routes/web.php` — 7 GET sub-páginas + 6 POST ações + 1 GET palette search + 1 GET sped download
 
 ## Multi-tenant (ADR 0093)
@@ -95,6 +97,7 @@ Fiscal **lê** Models e **chama** Services de NfeBrasil — não duplica backend
 - **PR #10** (1+ semana) — EFD-Contribuições PIS/COFINS arquivo separado + saldo credor real em E110 + Bloco H com dados reais Stock (declaração 31/12)
 - **Smoke biz=1 prod** — validar TXT EFD-ICMS/IPI no PVA-EFD homologação CONFAZ (Pest browser MCP)
 - **Entradas via DF-e manifestada** (Bloco C0 inputs) — exige reconciliação cadastro fornecedor (Modules/Crm)
+- **Consolidar detecção de vencimento de cert (1 detector, N sinks)** — a lógica dias-a-vencer ≤30d hoje vive em 4 lugares: `fiscal:cert-health-check` (cron → `mcp_alertas_eventos`, único sink de alerta ao usuário), `nfe:health` (log ops, não-agendado — docblock "06:05 BRT" é claim stale), `nfse:health` (check status) e `ConfigController` (UI estática). US-FISCAL-022 fechou o gap do **alerta proativo** (cap #13); um refactor futuro pode centralizar a detecção num único helper e deixar os health-commands consumirem dele. Não-urgente — decisão Wagner 2026-07-03 foi manter como está.
 
 ## Referências
 
