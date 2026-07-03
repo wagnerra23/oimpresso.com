@@ -36,8 +36,8 @@ related_adrs:
 | 1.1 Adversário Sells | onda-1-sells/1.1 | a criar | ⬜ | ~3h (agent) |
 | 1.2 Gaps+backlog Sells | onda-1-sells/1.2 | a criar | ⬜ | ~2h + OK [W] |
 | 1.3 Régua nas telas Sells | onda-1-sells/1.3 | a criar | ⬜ | ~4h |
-| 1.4 Dente de cálculo | onda-1-sells/1.4 | a criar | ⬜ | ~6h (CT100) |
-| 1.5 Catraca+sentinela Sells | onda-1-sells/1.5 | a criar | ⬜ | ~2h |
+| 1.4 Dente de cálculo | onda-1-sells/1.4 | a criar | ✅ | ~6h (CT100) — PR #3695 merged 2026-07-03 · red/green CT100 (15 passed) |
+| 1.5 Catraca+sentinela Sells | onda-1-sells/1.5 | a criar | ✅ | ~2h — emergente de 0c+1.3+1.4 · verificado 2026-07-03 (sem gate novo) |
 
 > Estimativas em horas-agente IA-pair (fator 10x ADR 0106); tarefas humano-limitadas (OK [W], canary) seguem relógio real.
 
