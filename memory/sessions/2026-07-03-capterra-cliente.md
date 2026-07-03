@@ -1,6 +1,6 @@
 ---
 date: '2026-07-03'
-topic: "Capterra de capacidade do módulo Cliente (onda standalone, Passo 1) — benchmark cadastro+CRM vs 10 concorrentes BR (Bling/Tiny/Omie/Conta Azul + RD Station/Pipedrive/Agendor), foco LGPD, nota 65/100, leitura adversarial do que a nota 77 (screen-grade) esconde"
+topic: "Capterra de capacidade do módulo Cliente (onda standalone, Passo 1) — benchmark cadastro+CRM vs 10 concorrentes BR, foco LGPD, nota 65/100, leitura adversarial do que a nota 77 (screen-grade) esconde"
 authors: [C]
 tipo: session-log
 agente: capterra-senior
