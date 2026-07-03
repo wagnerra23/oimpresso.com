@@ -6,6 +6,7 @@ use App\Transaction;
 use App\Util\OtelHelper;
 use App\Utils\TransactionUtil;
 use Carbon\Carbon;
+use Modules\Jana\Services\Privacy\PiiRedactor;
 use Spatie\Activitylog\Models\Activity;
 
 /**
@@ -22,7 +23,10 @@ use Spatie\Activitylog\Models\Activity;
  */
 class ComprasService
 {
-    public function __construct(protected TransactionUtil $transactionUtil) {}
+    public function __construct(
+        protected TransactionUtil $transactionUtil,
+        protected PiiRedactor $piiRedactor,
+    ) {}
 
     /**
      * Mapping coluna virtual frontend → coluna SQL real (segurança anti SQL injection).
@@ -193,13 +197,20 @@ class ComprasService
      *
      * Tier 0 ADR 0093 — `where('business_id', $businessId)` ANTES de find pra evitar leak.
      *
+     * LGPD (Art. 7º · minimização) — PII do fornecedor (`tax_number` CNPJ/CPF +
+     * `mobile` + `email`) é mascarada quando `$canViewFullPii === false`, pra não
+     * vazar em screenshot/log/HAR do papel operacional (AUDIT-SENIOR-2026-05-25
+     * D7.a/R4 · CAPTERRA-FICHA C17). A redação acontece NO BACKEND — dado bruto
+     * nunca sai do servidor pra papel limitado. Admin/financeiro (`$canViewFullPii
+     * === true`) recebem completo. Caller (ComprasController) computa o flag.
+     *
      * Retorna null se não achar (caller responde 404).
      */
-    public function buscarDetalhe(int $id, int $businessId): ?array
+    public function buscarDetalhe(int $id, int $businessId, bool $canViewFullPii = false): ?array
     {
         // Audit sênior 2026-05-25 Gap #11 — OTel span detalhe (D9.a +1)
-        return OtelHelper::spanBiz('compras.buscarDetalhe', function () use ($id, $businessId): ?array {
-            return $this->buscarDetalheInterno($id, $businessId);
+        return OtelHelper::spanBiz('compras.buscarDetalhe', function () use ($id, $businessId, $canViewFullPii): ?array {
+            return $this->buscarDetalheInterno($id, $businessId, $canViewFullPii);
         }, [
             'module' => 'Compras',
             'compra_id' => $id,
@@ -209,7 +220,7 @@ class ComprasService
     /**
      * @internal Wrapped pelo span OTel em buscarDetalhe.
      */
-    private function buscarDetalheInterno(int $id, int $businessId): ?array
+    private function buscarDetalheInterno(int $id, int $businessId, bool $canViewFullPii = false): ?array
     {
         $compra = Transaction::where('business_id', $businessId)
             ->where('id', $id)
@@ -307,10 +318,19 @@ class ComprasService
                 'id' => $contact->id,
                 'name' => $contact->name,
                 'supplier_business_name' => $contact->supplier_business_name,
-                'tax_number' => $contact->tax_number,
+                // LGPD Art. 7º — CNPJ/CPF, telefone e e-mail mascarados pra papel
+                // limitado (últimos 4 dígitos / 1ª letra do e-mail). Admin/financeiro
+                // recebem completo. PiiRedactor canônico (Modules/Jana).
+                'tax_number' => $canViewFullPii
+                    ? $contact->tax_number
+                    : $this->piiRedactor->maskTail($contact->tax_number),
                 'city' => $contact->city,
-                'mobile' => $contact->mobile,
-                'email' => $contact->email,
+                'mobile' => $canViewFullPii
+                    ? $contact->mobile
+                    : $this->piiRedactor->maskTail($contact->mobile),
+                'email' => $canViewFullPii
+                    ? $contact->email
+                    : $this->piiRedactor->maskEmail($contact->email),
             ] : null,
             'location' => $compra->location ? [
                 'id' => $compra->location->id,

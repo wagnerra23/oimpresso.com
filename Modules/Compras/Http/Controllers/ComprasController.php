@@ -91,9 +91,32 @@ class ComprasController extends Controller
             ),
 
             'compra_detalhe' => Inertia::defer(
-                fn () => $compraId ? $this->comprasService->buscarDetalhe($compraId, $businessId) : null
+                fn () => $compraId
+                    ? $this->comprasService->buscarDetalhe($compraId, $businessId, $this->podeVerPiiCompleto($user))
+                    : null
             ),
         ]);
+    }
+
+    /**
+     * Papel pode ver PII do fornecedor (CNPJ/CPF + telefone + e-mail) completa?
+     *
+     * LGPD Art. 7º — só admin/financeiro. Operacional vê mascarado
+     * (AUDIT-SENIOR-2026-05-25 D7.a/R4 · CAPTERRA-FICHA C17).
+     *
+     * - Admin do business (`Admin#{biz}`) passa `compras.view_supplier_pii` de
+     *   graça via `Gate::before` (App\Providers\AuthServiceProvider).
+     * - Financeiro é identificado por `financeiro.access` (permissão canônica
+     *   Modules/Financeiro).
+     * - Qualquer papel pode receber `compras.view_supplier_pii` explícito via
+     *   /roles/{id}/edit (Camada 3 Spatie).
+     *
+     * Fail-closed: sem sinal → mascarado.
+     */
+    private function podeVerPiiCompleto(\App\User $user): bool
+    {
+        return $user->can('compras.view_supplier_pii')
+            || $user->can('financeiro.access');
     }
 
     /**
@@ -114,7 +137,7 @@ class ComprasController extends Controller
         $businessId = (int) (auth()->user()->business_id ?? 0);
         abort_if($businessId <= 0, 403, 'Business inválido');
 
-        $detalhe = $this->comprasService->buscarDetalhe($id, $businessId);
+        $detalhe = $this->comprasService->buscarDetalhe($id, $businessId, $this->podeVerPiiCompleto(auth()->user()));
 
         // Defense-in-depth: 404 (não 403) — não revelar existência de compra
         // de outro business (pattern Tier 0 audit sênior §3.1.4)

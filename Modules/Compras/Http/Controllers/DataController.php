@@ -69,6 +69,15 @@ class DataController extends Controller
                 'label' => 'Compras: importar XML DF-e como compra',
                 'default' => false,
             ],
+            [
+                // LGPD Art. 7º — sem esta permissão o drawer mostra PII do
+                // fornecedor mascarada (últimos 4 dígitos CNPJ + e-mail mascarado).
+                // Admin do business já recebe via Gate::before; financeiro via
+                // financeiro.access. AUDIT-SENIOR-2026-05-25 D7.a/R4.
+                'value' => 'compras.view_supplier_pii',
+                'label' => 'Compras: ver dados completos do fornecedor (CNPJ/telefone/e-mail sem máscara)',
+                'default' => false,
+            ],
         ];
     }
 

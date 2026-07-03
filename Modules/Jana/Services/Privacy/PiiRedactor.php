@@ -111,6 +111,63 @@ class PiiRedactor
         return $out;
     }
 
+    /**
+     * Mascara parcial mostrando só os últimos `$tail` dígitos — pra exibição em
+     * UI a papéis com visibilidade limitada (LGPD Art. 7º · minimização de dado).
+     *
+     * Diferente de `redact()` (que apaga a PII inteira com placeholder), este
+     * preserva os últimos dígitos pra identificação humana ("é o fornecedor
+     * terminado em 0190?") sem revelar o documento/telefone completo. Convenção
+     * espelha `ClienteOssDataController::maskTail` (padrão CRM) — dígitos apenas,
+     * `*` no prefixo.
+     *
+     * Ex.: `12.345.678/0001-90` → `**********0190` · `(48) 99999-1234` → `*******1234`
+     *
+     * @param  string|null  $value  CNPJ/CPF/telefone bruto (com ou sem máscara)
+     * @param  int  $tail  Quantos dígitos finais permanecem visíveis (default 4)
+     * @return string|null  Valor mascarado, ou null se entrada vazia
+     */
+    public function maskTail(?string $value, int $tail = 4): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+        $digits = preg_replace('/\D/', '', $value);
+        if ($digits === '') {
+            return null;
+        }
+        if (strlen($digits) <= $tail) {
+            return str_repeat('*', strlen($digits));
+        }
+
+        return str_repeat('*', strlen($digits) - $tail).substr($digits, -$tail);
+    }
+
+    /**
+     * Mascara e-mail preservando a 1ª letra do local-part + domínio inteiro —
+     * o suficiente pra reconhecer sem expor o endereço a papéis limitados.
+     *
+     * Ex.: `fornecedor@acme.com.br` → `f*********@acme.com.br`
+     *
+     * @param  string|null  $email  E-mail bruto
+     * @return string|null  E-mail mascarado, ou null se entrada vazia
+     */
+    public function maskEmail(?string $email): ?string
+    {
+        if ($email === null || $email === '') {
+            return null;
+        }
+        $at = strpos($email, '@');
+        // Sem "@" reconhecível — mascara tudo (fail-closed, não vaza).
+        if ($at === false || $at === 0) {
+            return str_repeat('*', strlen($email));
+        }
+        $local = substr($email, 0, $at);
+        $domain = substr($email, $at); // inclui o "@"
+
+        return substr($local, 0, 1).str_repeat('*', max(1, strlen($local) - 1)).$domain;
+    }
+
     private function makeReplacement(string $type, string $mode, ?string $original = null): string
     {
         if ($mode === 'remove') {
