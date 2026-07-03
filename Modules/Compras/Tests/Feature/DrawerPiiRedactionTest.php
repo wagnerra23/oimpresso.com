@@ -8,7 +8,6 @@ use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Modules\Jana\Services\Privacy\PiiRedactor;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -33,7 +32,9 @@ use Spatie\Permission\Models\Role;
  *   1. Operacional (só `compras.view`) → CNPJ/telefone/e-mail MASCARADOS.
  *   2. Financeiro (`financeiro.access`) → completo.
  *   3. Admin (`Admin#1` via Gate::before) → completo.
- *   + bloco unitário puro do PiiRedactor::maskTail/maskEmail (roda sem DB).
+ *
+ * O contrato puro do PiiRedactor::maskTail/maskEmail (sem DB) vive em
+ * Modules/Jana/Tests/Feature/Privacy/PiiRedactorMaskTest.php (lane sqlite do CI).
  *
  * Refs:
  *   - ADR 0093 Multi-tenant Tier 0 · ADR 0101 tests biz=1
@@ -50,34 +51,10 @@ const PII_MOBILE_MASKED = '*******1234';
 const PII_EMAIL_RAW = 'fornecedor@acme.com.br';
 const PII_EMAIL_MASKED = 'f*********@acme.com.br';
 
-// ─── Bloco unitário puro (sem DB) — contrato do PiiRedactor ───────────────────
-
-describe('PiiRedactor mascaramento parcial (unit)', function () {
-    it('maskTail expõe só os últimos 4 dígitos do CNPJ/CPF', function () {
-        $r = new PiiRedactor();
-        expect($r->maskTail(PII_TAX_RAW))->toBe(PII_TAX_MASKED)
-            ->and($r->maskTail('529.982.247-25'))->toBe('*******4725') // CPF sintético · pii-allowlist (fixture Pest)
-            ->and($r->maskTail(PII_MOBILE_RAW))->toBe(PII_MOBILE_MASKED);
-    });
-
-    it('maskTail é fail-safe pra vazio/curto/sem-dígito', function () {
-        $r = new PiiRedactor();
-        expect($r->maskTail(null))->toBeNull()
-            ->and($r->maskTail(''))->toBeNull()
-            ->and($r->maskTail('   '))->toBeNull()      // sem dígito → null
-            ->and($r->maskTail('12'))->toBe('**');       // <= tail → tudo mascarado
-    });
-
-    it('maskEmail preserva 1ª letra do local-part + domínio', function () {
-        $r = new PiiRedactor();
-        expect($r->maskEmail(PII_EMAIL_RAW))->toBe(PII_EMAIL_MASKED)
-            ->and($r->maskEmail('a@b.com'))->toBe('a*@b.com')  // local 1 char → 1 estrela
-            ->and($r->maskEmail(null))->toBeNull()
-            ->and($r->maskEmail('sem-arroba'))->toBe(str_repeat('*', strlen('sem-arroba')));
-    });
-});
-
-// ─── Bloco E2E — redação por papel no endpoint /compras/{id}/detalhe ──────────
+// O contrato PURO do PiiRedactor (maskTail/maskEmail, sem DB) vive em
+// Modules/Jana/Tests/Feature/Privacy/PiiRedactorMaskTest.php (roda no lane sqlite
+// do CI). Aqui cobrimos só a integração por papel no endpoint — precisa de MySQL
+// real (skip-graceful em sqlite, idem MultiTenantTest).
 
 uses(DatabaseTransactions::class);
 
