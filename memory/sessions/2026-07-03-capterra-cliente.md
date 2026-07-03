@@ -1,3 +1,17 @@
+---
+date: '2026-07-03'
+topic: "Capterra de capacidade do módulo Cliente (onda standalone, Passo 1) — benchmark cadastro+CRM vs 10 concorrentes BR (Bling/Tiny/Omie/Conta Azul + RD Station/Pipedrive/Agendor), foco LGPD, nota 65/100, leitura adversarial do que a nota 77 (screen-grade) esconde"
+authors: [C]
+tipo: session-log
+agente: capterra-senior
+onda: cliente-standalone
+modulo: Cliente
+nota_capacidade: 65
+screen_grade_ref: 77
+websearches: 36
+related_adrs: [0089-capterra-driven-module-evolution, 0093-multi-tenant-isolation-tier-0, 0179-cliente-drawer-760px-substitui-show-fullpage, 0301-separar-cliente-deprecar-crm-pipeline]
+---
+
 # Session — Adversário de mercado do módulo Cliente (capterra-senior)
 
 > **Data:** 2026-07-03 · **Autor:** [CC] (worktree `nostalgic-moser`, branch fresca de `origin/main@aef311d0`)
