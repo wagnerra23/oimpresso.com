@@ -21,6 +21,8 @@ on:
     branches: [main]
     paths:
       - 'Modules/NfeBrasil/**'
+      - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
+      - 'tests/Feature/Calculo/CalculoTributarioTest.php'
       - 'database/schema/mysql-schema.sql'
       - '.github/workflows/nfebrasil-pest.yml'
       - '.github/actions/pest-mysql-setup/**'
@@ -58,6 +60,8 @@ jobs:
           filters: |
             nfe:
               - 'Modules/NfeBrasil/**'
+              - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
+              - 'tests/Feature/Calculo/CalculoTributarioTest.php'
               - 'database/schema/mysql-schema.sql'
               - '.github/workflows/nfebrasil-pest.yml'
               - '.github/actions/pest-mysql-setup/**'
@@ -112,6 +116,11 @@ jobs:
         #    real. Ratchet concluído (12 falhas eram 100% defeito de teste/harness, 0 bug fiscal).
         #    Próximo passo: arming a required por calendário (ADR 0275).
         #
+        # RATCHET UP (2026-07-03): + tests/Feature/Calculo/CalculoTributarioTest.php — dente de
+        #   cálculo do motor tributário (arredondamento ICMS/ISS ao centavo, indefeso até #3735).
+        #   DatabaseTransactions (não RefreshDatabase — não envenena o seed); nfe_fiscal_rules.business_id
+        #   é int indexado SEM FK → não depende de seed. Verde no CT100 (17/17) + provado nesta lane.
+        #
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema baseline e
         # limpam o seed biz=1/biz=2, envenenando os demais.
         env:
@@ -131,7 +140,8 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/Wave25NfeSaturationTest.php \
             Modules/NfeBrasil/Tests/Feature/NfeServiceIdempotenciaRetryTest.php \
             Modules/NfeBrasil/Tests/Feature/CertificadoServiceTest.php \
-            Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php
+            Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
+            tests/Feature/Calculo/CalculoTributarioTest.php
 
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
