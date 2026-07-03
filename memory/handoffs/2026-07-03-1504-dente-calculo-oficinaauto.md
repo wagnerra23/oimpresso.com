@@ -5,7 +5,14 @@ slug: dente-calculo-oficinaauto
 tldr: "Dente de cálculo da ordem de serviço OficinaAuto (TEST-ONLY, PR #3762 MERGED). Cobre o cálculo PRÓPRIO da OS — recalcularTotal/breakdownPorTipo/addItem/DviInspectionService::totalRecomendado — que estava defendido só por exemplos redondos, sem property/golden de precisão de centavo. 20 tests/76 asserts GREEN no CT100. Canary Martinho biz=164 LIVE intacto."
 prs: [3762]
 decided_by: [W]
-related_adrs: [0093, 0101, 0106, 0171, 0194, 0265, 0320]
+related_adrs:
+  - 0093-multi-tenant-isolation-tier-0
+  - 0101-tests-business-id-1-nunca-cliente
+  - 0106-recalibracao-velocidade-fator-10x-ia-pair
+  - 0171-oficinaauto-ativacao-piloto-martinho-faseada
+  - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
+  - 0265-oficina-reparo-erradica-locacao
+  - 0320-programa-ondas-regua-correcao
 next_steps:
   - "Se algum somador da OS precisar mudar (ex US-OFICINA-027 recalc peça×qty + hora×horas), abrir US separada sob REGRA MESTRE — nunca no PR do teste."
 ---
