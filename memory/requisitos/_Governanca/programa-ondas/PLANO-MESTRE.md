@@ -19,25 +19,25 @@ related_adrs:
 ## Status vivo
 
 <!-- catraca: não regride sem mudar status conscientemente · ADR 0294 -->
-- **status:** proposto  <!-- proposto→ativo quando [W] aprovar a ADR da Onda 0a -->
+- **status:** ativo  <!-- proposto→ativo 2026-07-03: [W] aprovou ADR 0320 (Onda 0a) via "aprovado merge" (#3694) -->
 - **owner:** W
-- **criado:** 2026-07-02 · **reviewed_at:** 2026-07-02 · **próxima-revisão:** 2026-08-02
-- **cycle:** off-cycle (programa transversal) · **execução:** `parent_plan=programa-ondas` — tasks MCP a criar quando 0a for aprovada
+- **criado:** 2026-07-02 · **reviewed_at:** 2026-07-03 · **próxima-revisão:** 2026-08-02
+- **cycle:** off-cycle (programa transversal) · **execução:** `parent_plan=programa-ondas` — Onda 0 (fundação) landada em paralelo 2026-07-03 (0a/0c/0d ✅, 0b em review); tasks MCP das etapas restantes a criar mediante OK [W] por onda
 - **gate-de-saída (DoD):** Onda 1 (Sells) concluída — dente de cálculo red/green no CT100 + scorecard `sells-create.yaml` exibindo UX **e** `casos_coverage` + template calibrado pra Compras
 - **kill-condition:** ADR 0a rejeitada por [W], OU 2 cycles sem nenhuma etapa executada → status `abandonado` (não zumbi)
 - **verdade-viva:** este doc (etapas na tabela abaixo; os arquivos-etapa detalham, o status vive AQUI — 1 plano = 1 registro no índice)
 
 | Etapa | Arquivo | Task MCP | Status | Esforço (ADR 0106) |
 |---|---|---|---|---|
-| 0a ADR-proposta | onda-0-fundacao/0a | a criar | ⬜ | ~2h |
-| 0b Extensão da régua | onda-0-fundacao/0b | a criar | ⬜ | ~4h |
-| 0c Sentinela de cadência | onda-0-fundacao/0c | a criar | ⬜ | ~4h |
-| 0d Paridade de migração | onda-0-fundacao/0d | a criar | ⬜ | ~6h |
+| 0a ADR-proposta | onda-0-fundacao/0a | — | ✅ ADR 0320 (#3694) | ~2h |
+| 0b Extensão da régua | onda-0-fundacao/0b | — | 🟡 em review (#3698) | ~4h |
+| 0c Sentinela de cadência | onda-0-fundacao/0c | — | ✅ (#3697) | ~4h |
+| 0d Paridade de migração | onda-0-fundacao/0d | — | ✅ (#3696) | ~6h |
 | 1.1 Adversário Sells | onda-1-sells/1.1 | a criar | ⬜ | ~3h (agent) |
 | 1.2 Gaps+backlog Sells | onda-1-sells/1.2 | a criar | ⬜ | ~2h + OK [W] |
 | 1.3 Régua nas telas Sells | onda-1-sells/1.3 | a criar | ⬜ | ~4h |
-| 1.4 Dente de cálculo | onda-1-sells/1.4 | a criar | ✅ | ~6h (CT100) — PR #3695 merged 2026-07-03 · red/green CT100 (15 passed) |
-| 1.5 Catraca+sentinela Sells | onda-1-sells/1.5 | a criar | ✅ | ~2h — emergente de 0c+1.3+1.4 · verificado 2026-07-03 (sem gate novo) |
+| 1.4 Dente de cálculo | onda-1-sells/1.4 | — | ✅ (#3695) | ~6h (CT100) — red/green CT100 (15 passed) |
+| 1.5 Catraca+sentinela Sells | onda-1-sells/1.5 | — | ✅ (#3700) | ~2h — emergente de 0c+1.3+1.4 · verificado 2026-07-03 (sem gate novo) |
 
 > Estimativas em horas-agente IA-pair (fator 10x ADR 0106); tarefas humano-limitadas (OK [W], canary) seguem relógio real.
 
