@@ -1,0 +1,69 @@
+# Gerado por screen-grade (skill SCREEN-GRADE, método 16-dim LLM-as-judge · ADR 0230)
+# Tela PÓS-baseline 2026-05-30 (Board.tsx nasceu no workspace unificado #2551, trabalhado
+# 2026-06-10/11) — nunca esteve no baseline-seed. Esta é a 1ª gradeação; vira o seed do ratchet.
+# A nota NÃO cai abaixo de baseline_anterior sem aprovação.
+screen: OficinaAuto/ServiceOrders/Board
+path: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
+archetype: kanban
+persona: tecnico
+nota: 86
+nivel: "Leader"
+baseline_anterior: 86   # ratchet seed — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: screen-grade-2026-07-03
+graded_at: "2026-07-03"
+resumo: "Kanban maduro (port do protótipo Cowork homologado): 4 views (Quadro/Lista/Grade/Fila), KPIs-filtro client-side, abas de box, drag-dnd + 2ª-porta por botão (mesmo ExecuteStageActionService), atalhos de teclado, densidade @container, no-mock disciplina. ZERO cor crua (100% tokens DS + primary roxo). Perde topo por bg-white cru em superfícies (vs bg-card), densidade cognitiva de 6 KPIs+abas+toolbar e sensor de teclado do dnd-kit não-confirmado."
+# Dimensões avaliadas (16-dim SCREEN-GRADE; as não-listadas ficam no agregado):
+dimensoes:
+  Internal-consistency: 90      # 100% tokens DS (bg-muted/border-border/text-foreground/text-destructive) + primary roxo canon; zero slate/amber/emerald cru
+  Pre-Flight-conformance: 90    # charter live (Board.charter.md) + só @/Components/ui + shared/ProducaoOficina canon; tokens v4; sem anti-F3
+  Performance-perceived: 88     # useMemo/useCallback em todos handlers (lição PR #717); filtros client-side; preserveState/preserveScroll nos reloads Inertia
+  Error-recovery: 88            # toast em toda transição/HTTP (success/warning/error/info) + fallback json?.error ?? HTTP; localStorage try/catch degrada gracioso
+  Accessibility: 82             # aria-pressed/aria-label/aria-live=polite/aria-keyshortcuts/role=group; atalhos teclado (/, setas, Enter, Esc); 2ª-porta por botão = caminho de teclado pro FSM. Gap: sensor de teclado do dnd-kit (drag) não-confirmado
+  Information-hierarchy: 85     # header + KPIs + abas box + toolbar + miolo; chrome fixo, miolo rola por dentro (não "corta")
+  Empty-states: 84             # "Nenhuma OS no filtro atual" nas 3 views (quadro/lista/grade)
+  Microcopy: 85                # PT-BR claro ("Todos os boxes", "N atrasada(s)", "limpar filtro")
+  Cognitive-load: 78           # denso: 6 KPIs + abas de box + 4-view toggle + Visão — muito controle simultâneo pra persona balcão 1280px
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "DS v4 (surfaces tokenizadas)"
+    fix: "header/KPIs/abas usam bg-white cru — trocar por bg-card/bg-background pra fechar a tokenização de superfície (cor de paleta já está 100% token)"
+    esforco: baixo
+    origin: screen-grade-2026-07-03
+  - dim: "Accessibility"
+    best_of_class: "Linear/Notion (DnD com teclado)"
+    fix: "confirmar/adicionar KeyboardSensor no dnd-kit (KanbanDndProvider) — hoje o caminho de teclado pro FSM existe via botão de ação por etapa, mas o DRAG em si pode não ter sensor de teclado"
+    esforco: medio
+    origin: screen-grade-2026-07-03
+  - dim: "Cognitive-load"
+    best_of_class: "Linear (progressive disclosure)"
+    fix: "6 KPIs + abas + 2 toggles competem por atenção no 1280px da Larissa — considerar colapsar Visão/densidade num overflow ou reduzir KPIs default"
+    esforco: medio
+    origin: screen-grade-2026-07-03
+
+# ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
+# Este é o CONTRAEXEMPLO COERENTE do módulo: Leader no visual (86) E defendido no comportamento.
+# Diferente de Show/Edit/Create (Advanced/Developing + 0% contrato), o Board TEM .casos.md maduro
+# com UCs atados a e2e reais (manifesto G-7). A régua mostra as duas leituras concordando.
+# Fonte da verdade (derivada AO VIVO): resources/js/Pages/OficinaAuto/ServiceOrders/Board.casos.md
+casos_coverage:
+  fonte: resources/js/Pages/OficinaAuto/ServiceOrders/Board.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs:
+    - { uc: UC-01, desc: "Ver o pátio num relance (5 colunas por etapa + contagem)", status: "✅", teste: e2e/oficina-uc06-gate-etapa.spec.ts }
+    - { uc: UC-02, desc: "Os números do dia (6 KPIs com valor)", status: "✅", teste: e2e/oficina-uc06-gate-etapa.spec.ts }
+    - { uc: UC-03, desc: "Achar uma OS na hora (busca server-side placa/nome/#OS)", status: "✅", teste: e2e/oficina-uc06-gate-etapa.spec.ts }
+    - { uc: UC-04, desc: "Reorganizar por box ou mecânico (foco das colunas)", status: "🧪", teste: e2e/oficina-uc06-gate-etapa.spec.ts }
+    - { uc: UC-05, desc: "Abrir a OS como documento vivo (drawer rico)", status: "✅", teste: e2e/oficina-uc06-gate-etapa.spec.ts }
+    - { uc: UC-06, desc: "Avançar de etapa sem furar a regra (gate no drop)", status: "✅", teste: e2e/oficina-uc06-gate-etapa.spec.ts }
+    - { uc: UC-07, desc: "Cadastrar um carro que chegou (CTA Nova OS)", status: "✅", teste: e2e/oficina-uc06-gate-etapa.spec.ts }
+    - { uc: UC-09, desc: "Ritmo de balcão 1280px sem scroll horizontal", status: "✅", teste: e2e/oficina-uc06-gate-etapa.spec.ts }
+    - { uc: UC-11, desc: "OS funcional fim-a-fim (caminho da Larissa)", status: "✅", teste: e2e/oficina-os-funcional-fluxo.spec.ts }
+  backlog:             # candidatos sem UC-id (G-2: id só no mesmo PR do teste) — visíveis, não esquecidos
+    - "Ver o que vira nota quando o carro fica pronto (card Vendas×Oficina) — depende de venda derivada no harness (ex-caso 08)"
+    - "Trabalhar do jeito que prefere (Pressão calmo/pico) — FORA do Board por decisão [W]; reentra se o modo voltar ao escopo"
+  cobertura_uc: "89%"  # derivado: 8 de 9 UC com ✅ (UC-04 está 🧪) — a leitura viva sai do Board.casos.md via casos-coverage-guard
+d1_calculo:            # Board EXIBE o KPI "Valor em curso" (soma das OS não-terminais) — agregado Tier-0, mas NÃO computa. NÃO tocar aqui (dente é outro chip)
+  aplica: true
+  nivel: "🟡"          # display agregado derivado; herda o buraco do final_total=0 em OS mecânica (US-OFICINA-027) — subestima o valor em curso — mas não é onde o cálculo vive
+  provas: { property: false, golden: false, cross_check: false }
