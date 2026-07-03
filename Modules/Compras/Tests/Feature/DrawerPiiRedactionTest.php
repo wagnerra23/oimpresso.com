@@ -43,7 +43,7 @@ use Spatie\Permission\Models\Role;
  */
 
 // PII bruta determinística usada em todos os cenários E2E.
-const PII_TAX_RAW = '12.345.678/0001-90';   // CNPJ → últimos 4 dígitos: 0190
+const PII_TAX_RAW = '12.345.678/0001-90';   // CNPJ sintético · últimos 4: 0190 · pii-allowlist (fixture Pest)
 const PII_TAX_MASKED = '**********0190';
 const PII_MOBILE_RAW = '(48) 99999-1234';   // → últimos 4: 1234
 const PII_MOBILE_MASKED = '*******1234';
@@ -56,7 +56,7 @@ describe('PiiRedactor mascaramento parcial (unit)', function () {
     it('maskTail expõe só os últimos 4 dígitos do CNPJ/CPF', function () {
         $r = new PiiRedactor();
         expect($r->maskTail(PII_TAX_RAW))->toBe(PII_TAX_MASKED)
-            ->and($r->maskTail('529.982.247-25'))->toBe('*******4725') // CPF 11 dígitos
+            ->and($r->maskTail('529.982.247-25'))->toBe('*******4725') // CPF sintético · pii-allowlist (fixture Pest)
             ->and($r->maskTail(PII_MOBILE_RAW))->toBe(PII_MOBILE_MASKED);
     });
 
