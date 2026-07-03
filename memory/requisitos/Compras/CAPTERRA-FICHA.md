@@ -125,10 +125,10 @@ Legenda: ✅ pareia/supera líder · 🟡 parcial · ❌ ausente. Nota /10 por *
 | **C04 (P0)** | **Cálculo custo/total da compra correto — comprovado por teste** | 4 | ninguém *anuncia*; dever Tier 0 (regra-mestre valor/estoque) | 🟡 `buscarDetalhe` calcula `line_total = qty × price_inc_tax` no PHP; **ZERO teste que a compra persiste total/custo/estoque certo** — hardening tests são source-grep (§8) | **3** |
 | **C05 (P0)** | **3-way match (PO ↔ Recebimento ↔ NF-e)** | 4 | Precoro/Coupa/Ariba (auto-match + tolerância + exceções); "essential 2026" P2P | ❌ **ausente** — nem PO-vs-receipt, nem receipt-vs-NFe | **0** |
 | **C06 (P0)** | Isolamento multi-tenant (Tier 0) | 4 | — (concorrentes multi-empresa, sem Tier 0 rígido) | ✅ `business_id` do auth + abort_if + cross-check + Pest cross-tenant REAL biz=1/99 + guard SQL `toSql()` | **9** |
-| **C07 (P1)** | Cálculo de estoque na entrada (baixa/movimentação) | 2 | Bling/Omie ("gravar estoque" no import); Zoho purchase-receives | 🟡 `/purchases/store` legacy UltimatePOS movimenta estoque; `/compras` só lê, não escreve — sem teste de invariante de estoque no módulo | **4** |
+| **C07 (P1)** | Cálculo de estoque na entrada (baixa/movimentação) | 2 | Bling/Omie ("gravar estoque" no import); Zoho purchase-receives | 🟡 **preservado do Blade + endurecido** — `Purchase/Create.tsx` POSTa no mesmo `PurchaseController::store` → `ProductUtil::createOrUpdatePurchaseLines`+`updateProductQuantity` grava `variation_location_details.qty_available` por variação/local; guard Tier 0 `assertPurchaseVariationsOwnership` valida ownership ANTES de escrever (o Blade não tinha). Gap: **zero teste de invariante de estoque** + só entrada manual (o import DF-e ainda não alimenta — G-01) | **5** |
 | **C08 (P1)** | Contas a pagar automático (Observer Financeiro) | 2 | Omie (AP atrelado ao recebimento); Precoro (AP pós-match) | 🟡 `TransactionObserver` Financeiro cria `fin_titulos` type=pagar quando `/purchases/store` roda — herdado, não do `/compras`; funciona mas não é capacidade própria | **6** |
 | **C09 (P1)** | FSM de estágios persistida + auditável | 2 | Cin7 (6 stages drag + lock + audit por campo); Zoho (workflow linear com status) | ❌ **UI-only** — const `STAGES` no Drawer, mapeada sobre `transactions.status`; sem state machine, sem `sale_stage_history`, sem transição gateada | **2** |
-| **C10 (P1)** | Grade tam×cor (entrada matricial vestuário) | 2 | Cin7/Lightspeed (matrix por atributo) | 🟡 `GradeMatrixInput` existe em `Purchase/Create.tsx` (auto-detect 2D), mas **fora do `/compras`** + aguarda smoke/canary — não validado com Larissa | **6** |
+| **C10 (P1)** | Grade tam×cor (entrada matricial vestuário) | 2 | Cin7/Lightspeed (matrix por atributo) | 🟡 **construído e ligado ponta-a-ponta** — rota `GET /purchases/grade-matrix` → `PurchaseController::gradeMatrix` monta layout 2D; `GradeMatrixInput`+`GradeProductCombobox` (US-COM-005) em `Purchase/Create.tsx` expandem cada célula em `variation_id`+qty+custo → mesmo POST `/purchases` → purchase_line + estoque por variação. Upgrade sobre o Blade (linha-a-linha → matricial). Gap: **fora do `/compras`** + zero teste + canary Larissa pendente | **7** |
 | **C11 (P1)** | Supplier scorecard (OTIF / lead-time / defect / fill-rate) | 2 | LeanLinking/EvaluationsHub (OTIF≥95%, PPM, rolling 13-sem) | ❌ **ausente** — nenhuma métrica de fornecedor | **0** |
 | **C12 (P1)** | Aprovação / workflow multi-nível de compra | 2 | Procurify/Precoro (budget control + aprovação por alçada) | ❌ **ausente** — sem alçada, sem approval chain | **1** |
 | **C13 (P2)** | KPIs cockpit (a pagar / trânsito / mês / fornecedores) | 1 | HubSpot/Shopify Insights (highlights) | ✅ 4 KPIs agregados server-side + `Inertia::defer` + cores semânticas | **8** |
@@ -145,30 +145,30 @@ Pesos canônicos: **P0=4 · P1=2 · P2=1 · P3=0.5**.
 
 ```
 P0 (peso 4): (C01 5 + C02 0 + C03 1 + C04 3 + C05 0 + C06 9) = 18 × 4 = 72
-P1 (peso 2): (C07 4 + C08 6 + C09 2 + C10 6 + C11 0 + C12 1) = 19 × 2 = 38
+P1 (peso 2): (C07 5 + C08 6 + C09 2 + C10 7 + C11 0 + C12 1) = 21 × 2 = 42
 P2 (peso 1): (C13 8 + C14 8 + C15 6 + C16 2 + C17 2)         = 26 × 1 = 26
 P3 (peso 0.5):(C18 5 + C19 4)                                =  9 × 0.5=  4.5
 
-Σ ponderado = 72 + 38 + 26 + 4.5 = 140.5
+Σ ponderado = 72 + 42 + 26 + 4.5 = 144.5
 
 Máximo possível:
   P0: 6×10×4 = 240 · P1: 6×10×2 = 120 · P2: 5×10×1 = 50 · P3: 2×10×0.5 = 10  → 420
 
-nota_capacidade = 140.5 / 420 × 100 = 33.5 → 33/100
+nota_capacidade = 144.5 / 420 × 100 = 34.4 → 34/100
 ```
 
 ```
-NOTA CAPACIDADE oimpresso Compras: 33/100
+NOTA CAPACIDADE oimpresso Compras: 34/100
 Referência-topo BR (Omie/Hiper):        ~72/100  — import XML + manifestação + NF-e Agent + AP automático + estoque
 Referência BR direta (Bling/Tiny):      ~68/100  — import XML + matching XML→PO (xPed) + vínculo-a-PO + AP
 Teto mid-market inventory (Cin7/Zoho):  ~66/100  — PO workflow 6-stages + partial receive + costed (sem fiscal BR)
 Teto procurement (Coupa/Ariba/Precoro): ~85/100  — 3-way match + AI OCR + e-invoicing — DESQUALIFICADO por over-engineering PME loja
 
-Gap pro topo BR (Omie): -39 pts. Causa: dos 4 P0 que DEFINEM compra BR, três continuam ~0 — matching XML→PO (C02), recebimento parcial (C03), 3-way match (C05); e o import XML DF-e (C01) tem o pull+manifestação prontos no NfeBrasil mas NÃO fecha a compra (falta a ponte).
-Onde Compras já ganha: multi-tenant Tier 0 real (C06=9), cockpit+drawer denso (C13/C14=8) — eixos de UI/higiene. O substrato fiscal (DF-e pull+manifestação) já existe no NfeBrasil — vantagem real, mas ainda não convertida em capacidade de compra.
+Gap pro topo BR (Omie): -38 pts. Causa: dos 4 P0 que DEFINEM compra BR, três continuam ~0 — matching XML→PO (C02), recebimento parcial (C03), 3-way match (C05); e o import XML DF-e (C01) tem o pull+manifestação prontos no NfeBrasil mas NÃO fecha a compra (falta a ponte).
+Onde Compras já ganha: multi-tenant Tier 0 real (C06=9), cockpit+drawer denso (C13/C14=8) — eixos de UI/higiene. Preserva do Blade a movimentação de estoque na entrada (C07=5, com guard Tier 0 novo) e faz a grade tam×cor matricial (C10=7, upgrade sobre o Blade linha-a-linha). O substrato fiscal (DF-e pull+manifestação) já existe no NfeBrasil — vantagem real, mas ainda não convertida em capacidade de compra.
 ```
 
-**Leitura honesta:** a capacidade (33) fica **abaixo** do module-grade (59) e do design (67) — e isso é o ponto da onda. O module-grade mede governança/higiene (Tier 0, Pest, doc, sec); o design mede UX do protótipo; **nenhum dos dois mede se o módulo entrega valor de compras**. Quando você pergunta "o oimpresso importa uma NF-e de fornecedor, casa com o pedido, recebe parcial e concilia?", a resposta é "importa e manifesta (via NfeBrasil), mas não vira compra, não casa PO, não recebe parcial, não concilia". O substrato fiscal BR — a parte cara — **já está construída**; o que falta é a ponte + a mecânica de recebimento/conciliação. Por isso a capacidade sobe pouco (o import existe) mas continua baixa (o import não fecha o ciclo de compra).
+**Leitura honesta:** a capacidade (34) fica **abaixo** do module-grade (59) e do design (67) — e isso é o ponto da onda. O module-grade mede governança/higiene (Tier 0, Pest, doc, sec); o design mede UX do protótipo; **nenhum dos dois mede se o módulo entrega valor de compras**. Quando você pergunta "o oimpresso importa uma NF-e de fornecedor, casa com o pedido, recebe parcial e concilia?", a resposta é "importa e manifesta (via NfeBrasil), mas não vira compra, não casa PO, não recebe parcial, não concilia". O substrato fiscal BR — a parte cara — **já está construída**; o que falta é a ponte + a mecânica de recebimento/conciliação. Por isso a capacidade sobe pouco (o import existe) mas continua baixa (o import não fecha o ciclo de compra).
 
 ## 6. Top gaps P0/P1 (pra subir a nota)
 
@@ -221,7 +221,7 @@ Como Compras é o módulo mais fraco do projeto, o ângulo desta onda é **o que
 ## 10. Decisão / Nota / Recomendação
 
 ### Nota de capacidade
-**33/100** — bem abaixo do topo BR (Omie/Hiper ~72, Bling/Tiny ~68) e do teto mid-market (Cin7/Zoho ~66). Honesto: Compras é **melhor que o mercado em isolamento Tier 0 e UI de cockpit** (C06=9, C13/C14=8), tem o **substrato fiscal pronto no NfeBrasil** (import DF-e + manifestação testados → C01=5) e é **vazio no resto do que É compra** — matching XML→PO (C02=0), recebimento parcial (C03=1), 3-way match (C05=0). O module-grade 59 e o design 67 escondem que o motor do domínio não fecha o ciclo.
+**34/100** — bem abaixo do topo BR (Omie/Hiper ~72, Bling/Tiny ~68) e do teto mid-market (Cin7/Zoho ~66). Honesto: Compras é **melhor que o mercado em isolamento Tier 0 e UI de cockpit** (C06=9, C13/C14=8), **preserva do Blade** a movimentação de estoque na entrada (C07=5) + grade tam×cor matricial (C10=7, upgrade), tem o **substrato fiscal pronto no NfeBrasil** (import DF-e + manifestação testados → C01=5), e é **vazio no resto do que É compra** — matching XML→PO (C02=0), recebimento parcial (C03=1), 3-way match (C05=0). O module-grade 59 e o design 67 escondem que o motor do domínio não fecha o ciclo.
 
 ### Causa principal do gap (1 frase)
 **A onda ESTABILIZAR deixou o módulo seguro, testado e bonito, e o import fiscal (DF-e pull + manifestação) já existe no NfeBrasil — mas nada converte a NF-e recebida em compra, o pedido não é casado, o recebimento parcial não existe, e a FSM que a tela exibe é uma const visual, não uma máquina de estado.**
