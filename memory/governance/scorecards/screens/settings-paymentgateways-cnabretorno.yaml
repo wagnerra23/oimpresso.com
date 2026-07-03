@@ -6,27 +6,32 @@ screen: Settings/PaymentGateways/CnabRetorno
 path: resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx
 archetype: config
 persona: wagner
-nota: 58
-nivel: "Developing"
-baseline_anterior: 58   # ratchet — nota não cai abaixo disto sem aprovação
+nota: 76
+nivel: "Advanced"
+baseline_anterior: 76   # ratchet — re-grade Passo 3 (era 58 em 30/mai; DS-v4 migration resolveu os 3 gaps)
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Fundacao tecnica de upload CNAB retorno (sem charter, declarado): form file + tabela deferred funcional mas plano, paleta stone fora do DS v4."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: passo3-capterra-paymentgateway-2026-07-03
+graded_at: "2026-07-03"
+resumo: "RE-GRADE Passo 3 (58→76): a migração DS v4 pedida em 30/mai foi FEITA — charter criado (draft), primitivas Card/Button/Badge + PageHeader/EmptyState shared canon, tokens semânticos (foreground/muted/destructive/primary) sem cor crua, dropzone drag&drop com preview nome/tamanho, erros expansíveis por linha, deferred+skeleton. Baseline de valor forte (CnabRetornoProcessorTest 8 casos: dispatch Paga/Cancelada/Vencida + idempotência + Tier-0 scope). Débito restante: sem preview antes→depois num fluxo que MOVE VALOR (D1), charter ainda draft (Non-Goals abertos), table hand-rolled, sem KB-nav, 0 UC-id (G-2)."
+dimensoes: {}   # 16 dims subjetivas — ratchet só lê `nota:`
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "tokens v4 + charter"
-    fix: "Sem charter (assumido), paleta stone/emerald/rose/amber crua, PageHeader importado de Financeiro/atoms (nao canon shared)"
+  - dim: "Error-recovery (REGRA MESTRE valor · D1)"
+    best_of_class: "Conciliadores (Cielo EDI) mostram o impacto antes de aplicar"
+    fix: "Preview antes→depois: N títulos + valores que serão baixados ANTES de processar (hoje vai direto pro background). Exposição Tier-0 nº1 desta tela"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Affordance"
-    best_of_class: "Stripe/Shopify: dropzone drag&drop"
-    fix: "Input file nativo cru; adicionar dropzone + preview nome/tamanho antes de enviar"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Aesthetic-usability"
-    best_of_class: "Linear: empty/erro ricos"
-    fix: "Empty e erros de upload minimalistas (icone+texto inline); usar EmptyState canon + lista de erros expandivel"
+    origin: passo3-capterra-paymentgateway-2026-07-03
+  - dim: "Pre-Flight-conformance (charter)"
+    best_of_class: "Charter accepted, Non-Goals fechados"
+    fix: "Charter ainda status=draft com NG1/NG2/NG3 'revisar Wagner' — resolver reprocessamento/download/lote + AuditLog antes de fechar a catraca"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: passo3-capterra-paymentgateway-2026-07-03
+  - dim: "Internal-consistency"
+    best_of_class: "DS DataTable reusado por tela"
+    fix: "Tabela de uploads é <table> hand-rolled; migrar pro componente de tabela DS. Ícones inline SVG (UploadGlyph/FileGlyph) vs lucide da tela irmã"
+    esforco: medio
+    origin: passo3-capterra-paymentgateway-2026-07-03
+  - dim: "Error-recovery (cobertura de comportamento)"
+    best_of_class: "Comportamento traçado por UC-id no manifesto (ADR 0264)"
+    fix: "Promover os 8 casos de CnabRetornoProcessorTest a UC-PG-NN (citar id no teste); adicionar E2E da validação front de extensão/tamanho"
+    esforco: medio
+    origin: passo3-capterra-paymentgateway-2026-07-03
