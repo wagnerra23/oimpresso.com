@@ -4,7 +4,7 @@
 > Fontes: [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (nota capacidade **61/100**) + código real (`app/Http/Controllers/ProductController.php`, `ProdutoUnificadoController.php`, `Inventory/ProductBomController.php`, `routes/web.php`, `resources/js/Pages/Produto/`) + [BRIEFING.md](BRIEFING.md) + [produtos-gap.md](produtos-gap.md) + board [SCREEN-GRADE-BOARD-2026-05-30.md](../../governance/scorecards/SCREEN-GRADE-BOARD-2026-05-30.md).
 > ADR: [0089](../../decisions/0089-capterra-driven-module-evolution.md) (Capterra-driven) + [0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md) (tests biz=1).
 >
-> ⚠️ **Produto é core UltimatePOS, NÃO módulo nWidart** (`Modules/Produto/` não existe) — a auditoria cruza a FICHA com o código core em `app/` + Pages Inertia, não `Modules/{X}/`.
+> ⚠️ **Produto é core UltimatePOS, NÃO módulo nWidart** (não há pasta própria em `Modules/` com esse nome) — a auditoria cruza a FICHA com o código core em `app/` + Pages Inertia, não com um módulo nWidart.
 > ⚠️ **Não existe `SPEC.md` de Produto ainda** (é o gap G-04). Enquanto não existir, a US aprovada NÃO pode ser apendada a SPEC — a 1ª task do batch **cria** o SPEC.
 
 ## Resumo
