@@ -1,6 +1,8 @@
 ---
 date: '2026-07-03'
+slug: onda11-capterra-sells-backlog
 topic: "Handoff Onda 1.1 Sells — CAPTERRA de capacidade (nota 60) materializada em backlog MCP + US-SELL-040 repriorizada P0/desgated"
+tldr: "Onda 1.1 Sells - ficha de capacidade (nota 60/100, #3699 merged); 4 gaps novos viraram US-SELL-054..057 (#3702 merged) + US-SELL-040 subiu pra P0 sem gate de refactor (#3704, aguarda merge). A nota 90 e design, cega a calculo/fiscal/offline."
 authors: [C]
 prs: [3699, 3702, 3704]
 ---
