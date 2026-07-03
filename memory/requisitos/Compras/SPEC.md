@@ -20,9 +20,9 @@ related_proposals:
   - "compras-modulo-greenfield-hibrido"
   - "compras-purchase-convergencia-c1"
 pii: false
-updated_at: "2026-05-25"
-last_updated: "2026-05-25"
-version: "0.2"
+updated_at: "2026-07-03"
+last_updated: "2026-07-03"
+version: "0.3"
 owner: wagner
 ---
 
@@ -43,6 +43,10 @@ ADR proposta [`compras-purchase-convergencia-c1`](../../decisions/proposals/comp
 - **US-COM-001** + **US-COM-003 (importar XML DF-e)** — **mantidas** intactas. GAP NOVO bridge `ImportarDfeComoCompraService` segue na Wave 6.
 
 Motivação: comparativo Compras × Sells 2026-05-25 (sessão `frosty-greider-83ab2f`) descobriu que `/purchases/{create,edit,show}` JÁ eram Inertia React (1.729 LOC + 4 charters Tier A) desde a Wave 2 B5 do piloto `migracao-blade-react`. Manter Wave 8 cria 3 telas pra mesma operação + 1.729 LOC duplicados. Detalhes em [`memory/sessions/2026-05-25-como-integrar-c1-compras-converge-purchase.md`](../../sessions/2026-05-25-como-integrar-c1-compras-converge-purchase.md).
+
+### v0.3 — 2026-07-03 — Backlog Capterra-Inventário (Onda 2.1)
+
+Materializa no backlog as capacidades ausentes/parciais detectadas pelo [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md) (Passo 2 do programa de ondas). **Passe adversarial de deduplicação** cruzou as 16 tasks propostas contra este SPEC (US-COM-001..010) + estado real do código (`Modules/Compras`, `Modules/NfeBrasil`); resultado: **9 US novas ativas** (US-COM-011..016, 018..020 · §9) + **1 retirada** (US-COM-017 — redigir PII de fornecedor na UI não cabe em ERP; ver §9), **3 já eram US existentes** (nº1→US-COM-003, nº9→US-COM-005, parte do nº12→US-COM-010) e **4 seguradas** como feature-wish ADR 0105 (sinal de cliente pendente). Nada foi recriado. Ver §9.
 
 
 
@@ -200,7 +204,7 @@ Como Larissa criando compra de modelo `type='variable'` no `/purchases/create`, 
 ## 8. Onda Audit Sênior 2026-05-25
 
 > Origem: [`AUDIT-SENIOR-2026-05-25.md`](AUDIT-SENIOR-2026-05-25.md). Compras 38/100 Crítico — sai pra ~63/100 pós PR-0 Estabilizar (Tier 0 + Sec + Cliente).
-> Bypass MCP `tasks-create` (mcp_jira_projects ainda não tem entry "Compras") — webhook sincroniza no próximo push.
+> ~~Bypass MCP `tasks-create` (mcp_jira_projects ainda não tem entry "Compras")~~ — **nota corrigida 2026-07-03:** o projeto **Compras já existe no MCP** (`tasks-list module:Compras` retorna as US); `tasks-create module:Compras` funciona normal (grava a US no SPEC → webhook sincroniza no push). Não há passo de "criar projeto".
 
 ### US-COM-006 · Pest cross-tenant biz=1 vs biz=99 (4 testes)
 
@@ -278,3 +282,180 @@ Como Larissa criando compra de modelo `type='variable'` no `/purchases/create`, 
 - [ ] Pós Onda CONSOLIDAR: promover pra `biz_4_rota_livre_prod` (+15 pts) via canary 7d
 
 **Refs:** ADR 0105 (Cliente como sinal qualificado), AUDIT-SENIOR-2026-05-25.md §6
+
+## 9. Backlog vindo do Capterra-Inventário (Onda 2.1)
+
+> Origem: [`CAPTERRA-INVENTARIO.md`](CAPTERRA-INVENTARIO.md) (19 capacidades, nota FICHA 30/100) — Passo 2 do programa de ondas. Governança: [ADR 0089](../../decisions/0089-capterra-driven-module-evolution.md) + [0105](../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md).
+> **Materialização:** US escritas direto no SPEC (`US-COM-011..020`) — que é **exatamente o que o `tasks-create` do MCP faz** (grava US no SPEC do módulo → webhook GitHub→MCP sincroniza no push). O projeto Compras já está no MCP (a nota §8 de "bypass" era stale, corrigida). O `task_id` canônico é o próprio `US-COM-NNN`. Metadata de task fica na linha `>` de cada US (`parent_plan` / `tags` / `cycle`). Daqui pra frente, novas US podem nascer via `tasks-create module:Compras` (gera `US-COM-021+`).
+> **Cycle:** — (sem cycle ativo no fechamento — brief 2026-07-03).
+
+### 9.0 Ledger da deduplicação adversarial
+
+Cada uma das 16 tasks propostas no CAPTERRA-INVENTARIO cruzada contra este SPEC (US-COM-001..010) + backlog + código real (`Modules/Compras`, `Modules/NfeBrasil`). Veredito:
+
+| # proposta (CAPTERRA) | Cap. | Veredito | Destino |
+|---|:-:|---|---|
+| 1 · Ponte DF-e → Compra | C01 | **DUPLICA US-COM-003** (pending Wave 6; `DistribuicaoDfeService`/`ManifestacaoService`/`NfeDfeRecebido` já existem no NfeBrasil, `ImportarDfeComoCompraService` ausente) | não recriada — segue em US-COM-003 |
+| 2 · Teste E2E custo/total/estoque | C04 | **NOVA** | US-COM-011 |
+| 3 · Matching XML→produto (EAN+xProd) | C02 | **NOVA** (US-COM-003 R-COM-202 cobre só match de fornecedor por CNPJ; match de produto por EAN não está em nenhuma US) | US-COM-012 |
+| 4 · Recebimento parcial | C03 | **NOVA** | US-COM-013 |
+| 5 · 3-way match | C05 | **SEGURADA** (⏸️ sinal pendente ADR 0105) | não entra no backlog ativo |
+| 6 · FSM estágios persistida | C09 | **NOVA** (§5 lista FSM canônico como out-of-scope V1 / fase 3, não como US — vira item de backlog fase 3) | US-COM-014 |
+| 7 · Teste invariante de estoque | C07 | **NOVA** | US-COM-015 |
+| 8 · Cobrir `/compras`→contas a pagar (teste) | C08 | **NOVA** | US-COM-016 |
+| 9 · GradeMatrixInput smoke+canary | C10 | **DUPLICA US-COM-005** (in_progress; `GradeMatrixInput.tsx` + `PurchaseGradeMatrixTest.php` já existem, falta smoke/canary Larissa) | não recriada — segue em US-COM-005 |
+| 10 · Supplier scorecard | C11 | **SEGURADA** (⏸️ sinal pendente ADR 0105) | não entra no backlog ativo |
+| 11 · Aprovação / alçada | C12 | **SEGURADA** (⏸️ sinal pendente ADR 0105) | não entra no backlog ativo |
+| 12 · PiiRedactor Drawer + `module_clients.yaml` | C17 | **PARCIAL** — `module_clients.yaml` **DUPLICA US-COM-010** (todo); "PiiRedactor no Drawer" **RETIRADA** (Wagner 2026-07-03: o operador do ERP precisa ver CNPJ/telefone/email do fornecedor — a regra de PII é de git/log/IA, não de UI) | entry yaml segue em US-COM-010; US-COM-017 retirada |
+| 13 · Autosave rascunho | C16 | **NOVA** | US-COM-018 |
+| 14 · Eager-load `->with` em `listarCompras` | C15 | **NOVA** | US-COM-019 |
+| 15 · A11y drawer | C18 | **NOVA** | US-COM-020 |
+| 16 · Atalhos teclado com handlers | C19 | **SEGURADA** (🟡 sinal baixo — Larissa não é power-user) | não entra no backlog ativo |
+
+**Saldo:** 9 US novas ativas (US-COM-011..016, 018..020) · 1 retirada (US-COM-017 — redação de PII na UI não se aplica a ERP) · 3 já eram US (003/005/010) · 4 seguradas (feature-wish ADR 0105). Zero duplicação.
+
+### US-COM-011 · Teste E2E de cálculo custo/total/estoque da compra (Tier 0 valor/estoque)
+
+> owner: — · priority: p0 · estimate: 4h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> blocked_by: —
+
+Como time, quero um teste E2E que submete uma compra (com grade + frete + desconto + imposto) e assere `final_total`, `purchase_lines` e a movimentação de estoque (`variation_location_details.qty_available`) **persistidos**, pra blindar o Tier 0 valor/estoque (1 célula de grade = 1 SKU × custo × qty = write de estoque).
+
+**Acceptance:**
+- [ ] Pest E2E que faz `POST /purchases` com payload realista (grade expandida) biz=1
+- [ ] Assere `final_total` correto por 2 caminhos (recompute à mão + soma das lines) — regra-mestre cálculo de valor
+- [ ] Assere `purchase_lines` (qty × unit_cost) + `variation_location_details.qty_available` por variação/local
+- [ ] Substitui os hardening tautológicos (`GapsHardeningTest`/`GapsP1HardeningTest` são `file_get_contents`+`str_contains`)
+
+**Refs:** CAPTERRA C04 🟡, proibicoes.md "CÁLCULO DE VALOR ou ESTOQUE" (Tier 0), ADR 0101 (biz=1 nunca cliente).
+
+### US-COM-012 · Matching automático XML→produto (EAN + xProd; fallback manual)
+
+> owner: — · priority: p0 · estimate: M · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> blocked_by: US-COM-003
+
+Como user importando DF-e, quero que cada item do XML seja auto-matchado ao produto do catálogo por EAN (`cEAN`) e, no fallback, por similaridade de `xProd`, com resolução manual pro que não casar, pra não mapear item a item.
+
+**Acceptance:**
+- [ ] Match produto por `cEAN`/`cEANTrib` → `variations.sub_sku`/barcode
+- [ ] Fallback por `xProd` (similaridade) + UI de resolução manual do não-matchado
+- [ ] Complementa o match de **fornecedor** por CNPJ que já vive em US-COM-003 (R-COM-202)
+
+**Refs:** CAPTERRA C02 ❌. Depende do import (US-COM-003).
+
+### US-COM-013 · Recebimento parcial (qty recebida por linha ≠ pedida + trânsito residual + autosave check-in)
+
+> owner: — · priority: p0 · estimate: M · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> blocked_by: —
+
+Como user, quero registrar recebimento parcial (qty recebida por linha diferente da pedida), com o residual permanecendo em trânsito e autosave do check-in, porque vestuário recebe lote incompleto de verdade.
+
+**Acceptance:**
+- [ ] Modelo de recebimento parcial por linha (qty_recebida vs qty_pedida)
+- [ ] Residual permanece em trânsito (não fecha a compra)
+- [ ] Autosave do check-in em progresso
+
+**Refs:** CAPTERRA C03 ❌. Líderes: Lightspeed/Shopify/Zoho.
+
+### US-COM-014 · FSM de estágios PERSISTIDA + auditável
+
+> owner: — · priority: p1 · estimate: M · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> blocked_by: —
+
+Como time, quero que os estágios da compra parem de ser `const STAGES` só-UI (`Compras/components/Drawer.tsx`) mapeados sobre `transactions.status` legacy, e virem estado persistido + histórico + transição gateada, pra a tela não "mentir" Recebido enquanto o banco diz `pending`.
+
+**Acceptance:**
+- [ ] Estado persistido (coluna `stage` ou `spatie/laravel-model-states`) + history append-only
+- [ ] Transição gateada (não UPDATE direto)
+- [ ] Alinhado ao FSM canônico [ADR 0143]
+
+**Nota de escopo:** §5 lista integração FSM canônico como out-of-scope V1 (fase 3). Esta US é o item de backlog dessa fase 3 — **não sobe sem sinal/decisão de priorização**.
+**Refs:** CAPTERRA C09 ❌, ADR 0143.
+
+### US-COM-015 · Teste de invariante de estoque no fluxo de entrada
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> blocked_by: —
+
+Como time, quero teste cobrindo a movimentação de estoque na entrada de compra (`ProductUtil::createOrUpdatePurchaseLines`+`updateProductQuantity`), pareando com US-COM-011.
+
+**Acceptance:**
+- [ ] Pest que assere `qty_available` por variação/local antes→depois da entrada
+- [ ] Cobre o guard Tier 0 `assertPurchaseVariationsOwnership`
+
+**Refs:** CAPTERRA C07 🟡. Pareia com US-COM-011.
+
+### US-COM-016 · Cobrir fluxo `/compras`→contas a pagar (Observer Financeiro) com teste
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> blocked_by: —
+
+Como time, quero teste do fluxo compra→`fin_titulos` type=pagar (via `TransactionObserver`), porque hoje é herdado de `/purchases/store` e não é capacidade própria testada.
+
+**Acceptance:**
+- [ ] Pest que assere criação de `fin_titulos` type=pagar ao salvar compra biz=1
+- [ ] Cobre o caminho `/compras` (não só `/purchases`)
+
+**Refs:** CAPTERRA C08 🟡.
+
+### US-COM-017 · ~~PiiRedactor no Drawer de compra~~ → RETIRADA (2026-07-03)
+
+> status: retirada · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1]
+> blocked_by: —
+
+**Retirada por Wagner (dono do negócio) 2026-07-03.** Redigir `tax_number` (CNPJ/CPF), `mobile` e `email` do **fornecedor** no Drawer **contradiz a função do ERP**: o operador de compras precisa ver esses dados pra trabalhar (Wagner textual: *"isso vai ser problema no erp, aqui eu preciso ter a informação"*). A CAPTERRA C17 importou indevidamente a regra de PII — que é de **git / commit / log / PR / resposta de IA** (`[REDACTED]`/`PiiRedactor`, [ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md) + regras-time.md) — pra **camada de UI**, onde não se aplica. Base legal do tratamento: execução de contrato/compra (LGPD Art. 7º).
+
+O que **de fato** protege dados no ERP já existe e **não** é redação de tela: (1) RBAC Spatie por permission (quem abre o módulo — Camada 3 do multi-tenant), (2) minimização em **logs/exports/saída de IA** (é aí que o `PiiRedactor` mora), (3) retention/purge + DSR (Modules/Jana). Nada disso apaga o campo pro operador autorizado.
+
+**Reabre só com sinal** (ADR 0105): um business com role de baixo privilégio (ex.: conferente) que **não deva** ver o contato do fornecedor → aí sim mascaramento por role. Larissa (piloto, operador único) não tem esse split.
+
+**Nota:** o entry de Compras em `config/governance/module_clients.yaml` (a parte legítima do item nº12) segue em **US-COM-010** — não é afetado por esta retirada.
+
+### US-COM-018 · Autosave rascunho de compra (`localStorage` `{biz}.{user}` debounced)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> blocked_by: —
+
+Como Larissa (atende telefone no meio da compra), quero rascunho auto-salvo por `{biz}.{user}` pra não perder o que digitei.
+
+**Acceptance:**
+- [ ] Draft debounced em `localStorage` chaveado por `{business_id}.{user_id}`
+- [ ] Avaliar placement (forms de compra vivem em `/purchases` — C1)
+
+**Refs:** CAPTERRA C16 ❌ (sinal médio). Placement a decidir com US-COM-005/Purchase.
+
+### US-COM-019 · Eager-load `->with(['contact','location'])` em `listarCompras().paginate()`
+
+> owner: — · priority: p2 · estimate: XS · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> blocked_by: —
+
+Como time, quero eliminar N+1 nas rows do cockpit garantindo eager-load das relações renderizadas (`ComprasService::listarComprasInterno` monta a query via `getListPurchases` sem `->with`).
+
+**Acceptance:**
+- [ ] Eager-load das relações usadas nas rows (validar se vêm do JOIN existente ou lazy)
+- [ ] Sem regressão no filtro `?q=` (que já usa `contacts.*`)
+
+**Refs:** CAPTERRA C15 🟡. Esforço XS.
+
+### US-COM-020 · A11y do drawer (`role=dialog` + focus-trap + `aria-label` + `Esc`)
+
+> owner: — · priority: p3 · estimate: 3h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> blocked_by: —
+
+Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA) — `role=dialog`, focus-trap, `aria-label` no botão fechar, handler `Esc`.
+
+**Acceptance:**
+- [ ] `role="dialog"` + `aria-modal` + focus-trap
+- [ ] `aria-label` no botão fechar + `Esc` fecha
+- [ ] Herdado do protótipo F1
+
+**Refs:** CAPTERRA C18 🟡, WCAG 2.1 AA.
+
+### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
+
+Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:
+
+- **3-way match (PO↔Recebimento↔NF-e)** (C05, P0-teto) — só com overpayment reportado; depende US-COM-003+013.
+- **Supplier scorecard (OTIF/lead-time/defect/fill-rate)** (C11, P1) — sem dor reportada.
+- **Aprovação / workflow multi-nível (alçada)** (C12, P1) — PME loja (Larissa) pode não precisar.
+- **Atalhos de teclado com handlers** (C19, P3) — declarados no footer sem funcionar; Larissa não é power-user (risco de expectativa frustrada baixa prioridade).
