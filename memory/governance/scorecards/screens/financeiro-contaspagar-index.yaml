@@ -30,3 +30,24 @@ gaps:
     fix: "Zero atalhos teclado; Eliana navega so com mouse - sem busca, sem foco /"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
+# NÃO entra na nota 70 (UX). É a OUTRA leitura da foto: a tela é "Advanced" no visual
+# e AO MESMO TEMPO tem 0 UC de comportamento defendido + a BAIXA (mexe em valor) indefesa (D1 🔴).
+# Fonte da verdade: resources/js/Pages/Financeiro/ContasPagar/Index.casos.md (cruzado por casos-coverage-guard.mjs).
+casos_coverage:
+  fonte: resources/js/Pages/Financeiro/ContasPagar/Index.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []             # 0 UC declarado com teste (0b: id só no PR que traz o teste — G-2)
+  backlog:            # candidatos visíveis, sem id até ter teste que os defenda (G-2)
+    - "Baixa total quita o título (valor_aberto = 0, status quitado)"
+    - "Baixa PARCIAL calcula o aberto ao centavo — é o dente D1 (classe num_uf)"
+    - "Baixa acima do aberto é recusada"
+    - "Título quitado/cancelado não aceita baixa"
+    - "Conta bancária de outro business é rejeitada (Tier 0 — validação exists hoje não scopa business)"
+  cobertura_uc: "n/a"  # derivado: 0 UC declarado no casos.md (só backlog) → n/a (bate com o vivo, sem drift)
+d1_calculo:            # dente de cálculo (§3-bis SCREEN-GRADE-METODO) — a baixa toca valor
+  aplica: true
+  nivel: "🔴"          # indefeso: recalcula valor_aberto = max(0, valor_aberto − valor_baixa) sem property/golden/cross-check.
+  provas: { property: false, golden: false, cross_check: false }
+  nota: "o dente real (property num_uf + golden baixa parcial + cross-check 2 caminhos) é a onda de CÁLCULO (outro chip), não este PR de contrato"

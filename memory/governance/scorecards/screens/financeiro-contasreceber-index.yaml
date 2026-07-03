@@ -30,3 +30,21 @@ gaps:
     fix: "emitirForm.processing desabilita TODOS os botoes Emitir simultaneamente (form global), nao so a linha clicada"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
+# NÃO entra na nota 70 (UX). É a OUTRA leitura da foto: a tela é "Advanced" no visual
+# e AO MESMO TEMPO tem 0 UC de comportamento defendido por teste. Isso agora fica visível.
+# Fonte da verdade: resources/js/Pages/Financeiro/ContasReceber/Index.casos.md (cruzado por casos-coverage-guard.mjs).
+casos_coverage:
+  fonte: resources/js/Pages/Financeiro/ContasReceber/Index.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []             # 0 UC declarado com teste (0b: id só no PR que traz o teste — G-2)
+  backlog:            # candidatos visíveis, sem id até ter teste que os defenda (G-2)
+    - "Emitir boleto de título aberto gera remessa (nosso_numero) e o botão some"
+    - "Título já-com-boleto não re-emite (no-op + toast)"
+    - "Boleto sem conta bancária configurada falha com aviso (não 500)"
+    - "Filtro atrasado/semana/hoje não vaza título de outro business (Tier 0)"
+  cobertura_uc: "n/a"  # derivado: 0 UC declarado no casos.md (só backlog) → n/a (bate com o vivo, sem drift)
+d1_calculo:            # dente de cálculo (§3-bis SCREEN-GRADE-METODO)
+  aplica: false        # tela de leitura + gatilho de boleto; não calcula total/desconto próprio.
+  nota: "o valor do boleto = valor do título, montado server-side (TituloService); a baixa/recebimento é do Unificado"
