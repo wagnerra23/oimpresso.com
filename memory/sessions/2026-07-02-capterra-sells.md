@@ -1,4 +1,19 @@
+---
+date: '2026-07-02'
+topic: "Capterra de capacidade do módulo Sells (Onda 1.1) — benchmark vs 13 concorrentes de PDV, nota 60/100, leitura adversarial do que a nota 90 esconde"
+authors: [C]
+related_adrs:
+  - 0089-capterra-driven-module-evolution
+  - 0101-tests-business-id-1-nunca-cliente
+  - 0284-pipeline-incidente-graduado-confianca
+prs: [3699]
+---
+
 # Session — Capterra de capacidade do módulo Sells (Onda 1.1)
+
+## TL;DR
+
+Gerada a **ficha de capacidade** do módulo Sells (`CAPTERRA-FICHA.md`, nota **60/100**) vs 13 concorrentes de PDV/venda — complementa a `CAPTERRA-DESIGN-FICHA.md` (UX, 68). Achado central (pedido da onda "o que a nota 90 esconde"): a nota 88-90 é **screen-grade de design**, cega a cálculo/fiscal/offline/pagamento; capacidade real 60. Gap #1 = **sem teste E2E de correção de cálculo** (o `store` test é tautológico/strpos); o incidente R$ inflado ×100k em 16 vendas (2026-06-05) foi pego em produção, não por teste. Gap C05=2 = sem offline (modo de falha real da Larissa, internet instável SC). Read-only, docs-only (PR #3699).
 
 - **Data:** 2026-07-02
 - **Agente/skill:** `capterra-senior` (via programa de ondas — Onda 1.1 "adversário concorrente")
@@ -25,7 +40,7 @@ Ancorar Sells no concorrente pelo eixo **capacidade** (features/fiscal/pagamento
 
 1. **A nota 90/88 é screen-grade de DESIGN** — não mede cálculo, fiscal, offline nem pagamento. Capacidade real é 60.
 2. **Cálculo sem prova E2E.** Defesa hoje = `Math.round` frontend + `num_uf` unit tests (reativos ao incidente) + sensor runtime `sells_value_sanity` (detecção post-hoc, ADR 0284). **Falta** teste que submeta venda (desc%/split/frete) e verifique `final_total` persistido. `SellPosControllerStoreInvariantsTest` = 11 asserts **estruturais** (strpos no source) = tautológico (anti-padrão proibicoes §5). **Incidente R$ inflado ×100k em 16 vendas (2026-06-05) foi pego em produção, não por teste.** → Gap #1 (G-01).
-3. **Sem offline** (C05=2, igual Bling) — modo de falha real da Larissa (internet instável em SC) descoberto; Omie/Hiper/Nex/Square já resolveram.
+3. **Sem offline** (C05=2, igual Bling) — modo de falha real da Larissa (internet instável em SC); Omie/Hiper/Nex/Square já resolveram.
 
 ## Diferenciais confirmados (lane vazia de mercado)
 
@@ -40,7 +55,7 @@ Ancorar Sells no concorrente pelo eixo **capacidade** (features/fiscal/pagamento
 
 ## Estado / próximos passos
 
-- Ficha + log criados no worktree (`vigorous-cannon-62050e`). **Não pushado** — checkout base stale (−4655); landar exige branch fresco de `origin/main` (guard §10.4) + aprovação Wagner (R10). Como são 2 arquivos novos (sem conflito com main), o PR é limpo quando autorizado.
+- Ficha + log landados via branch fresco de `origin/main` (PR #3699) — checkout base local estava stale (−4655); os 2 arquivos são novos (sem conflito com main), PR docs-only limpo.
 - Próxima onda do programa pode transformar G-01..G-06 em tasks MCP (`parent_plan=programa-ondas`) — fora do escopo read-only desta.
 
 ## Pegadinhas da sessão
