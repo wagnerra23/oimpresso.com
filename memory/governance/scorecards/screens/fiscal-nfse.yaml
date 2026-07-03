@@ -30,3 +30,26 @@ gaps:
     fix: "Rejeitadas so mostram errorMsg via title hover; sem acao reenviar/corrigir na linha"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Fiscal, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+# NÃO entra na nota 76 (UX). É a OUTRA leitura da foto: quanto do comportamento tem UC-id que o defenda.
+casos_coverage:
+  fonte: resources/js/Pages/Fiscal/Nfse.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Isolamento multi-tenant na listagem de NFS-e (Tier 0 · ADR 0093)"
+    - "Bloqueio de acesso sem permissão fiscal.nfse.view (Tier 0)"
+    - "Renderiza Inertia Fiscal/Nfse com contrato filters+counts"
+    - "Painel de 6 counts (total/autorizadas/rejeitadas/processando/canceladas/faturamento)"
+    - "Competência inválida não derruba a tela (200, não 500)"
+    - "Contrato de status authorized/rejected/pending/sent/cancelled"
+    - "Filtro por status via chip-row (sem teste)"
+    - "Busca por número/código verificação/nome/CPF-CNPJ do tomador (sem teste)"
+    - "Filtro por competência (mês) caminho feliz (sem teste)"
+  cobertura_uc: "0%"   # foto: UX 76 Advanced vs comportamento 0% tracado (render skipa por schema race nfse_emissoes)
+d1_calculo:
+  aplica: false
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }
+  # nota: lista read-only — le NfseEmissao e soma faturamento so pra exibicao; nao muta valor/estoque.

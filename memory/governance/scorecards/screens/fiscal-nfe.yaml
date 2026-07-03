@@ -30,3 +30,25 @@ gaps:
     fix: "Bom (cstat+hint SEFAZ+prazo 24h pill) — entrada XML hardcoded count 0"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Fiscal, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+# NÃO entra na nota 84 (UX). É a OUTRA leitura da foto: quanto do comportamento tem UC-id que o defenda.
+casos_coverage:
+  fonte: resources/js/Pages/Fiscal/Nfe.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Contagem do cockpit esconde emissões cross-tenant (Tier 0 · ADR 0093)"
+    - "Janela legal de cancelamento 24h NFC-e vs 168h NF-e (CONFAZ Art. 14)"
+    - "Mapa de códigos SEFAZ entrega tom/label por status"
+    - "Cancelar NF-e exige motivo >=15 chars (CONFAZ) — ação reservada PR#1"
+    - "Carta de Correção valida texto 15-1000 e n_seq 1-20"
+    - "Inutilização valida modelo 55/65, faixa ate>=de e justificativa >=15"
+    - "Retransmitir só aceita rejeitada/denegada/erro_envio (rota + signature)"
+    - "Manifestação DF-e whitelist 4 ações com regra de justificativa"
+  cobertura_uc: "0%"   # foto: UX 84 Advanced vs comportamento 0% traçado (leitura 3 casos + 14 contratos de ação, 0 UC-id)
+d1_calculo:
+  aplica: false
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }
+  # nota: read-only — lista NfeEmissao (número/status/valor exibidos, nunca gravados por esta tela); ações de mutação desabilitadas no PR#1 e delegam a Services NfeBrasil.

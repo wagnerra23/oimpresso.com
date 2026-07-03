@@ -30,3 +30,29 @@ gaps:
     fix: "Sem filtro/busca; export so .txt por linha — sem preview do conteudo SPED"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Fiscal, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+# NÃO entra na nota 68 (UX). É a OUTRA leitura da foto: quanto do comportamento tem UC-id que o defenda.
+casos_coverage:
+  fonte: resources/js/Pages/Fiscal/Sped.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Gera TXT EFD-ICMS/IPI v3.1.1 perfil A com 23 registros (Blocos 0+C+E+H+9)"
+    - "(Tier 0) Geração nunca vaza NFe de outro business (cross-tenant RuntimeException)"
+    - "Download exige permissão fiscal.sped.export ou superadmin (403)"
+    - "Feature-flag sped_simples_only_lock bloqueia download (503) até MotorTributario integrado"
+    - "Integração MotorTributarioService calcula ICMS real quando configurado (vl_icms 180 em base 1.000 @ 18%)"
+    - "Fallback Simples Nacional (CSOSN 102, ICMS 0) quando motor sem regra/config"
+    - "(Tier 0 risco fiscal) CFOP interno 5102 vs interestadual 6102 conforme UF origem-destino"
+    - "Bloco E consolida débitos ICMS (E110) e só emite E116 quando ICMS a recolher positivo"
+    - "Rejeita competência inválida (ano < 2020, ano futuro, mês fora 1-12)"
+    - "Panorama 5 meses: contagem/valor NFes autorizadas + status estimado"
+    - "Bloco H inventário real (hoje esqueleto vazio — pendente integração Stock)"
+    - "Smoke PVA-EFD homologação CONFAZ (golden do TXT ausente)"
+  cobertura_uc: "0%"   # foto: UX 68 Developing vs comportamento 0% tracado (22 casos Pest, 0 UC-id)
+d1_calculo:
+  aplica: true
+  nivel: "medio"
+  provas: { property: false, golden: false, cross_check: true }
+  # nota: tela TOCA VALOR FISCAL — gera totais ICMS no TXT (C170/C190 debito, E110 apuracao) via MotorTributario. cross_check REAL (SpedMotorTributarioIntegrationTest cruza motor vs fallback: vl_icms 180 em base 1.000@18% + CFOP 5102/6102). SEM golden do TXT (SpedIcmsIpiGeneratorServiceTest e reflection/source-grep, nao valida bytes) e SEM property. Risco fiscal se regime!=Simples — mitigado por lock 503 + fallback CFOP. Bloco H esqueleto; saldo credor anterior placeholder 0.
