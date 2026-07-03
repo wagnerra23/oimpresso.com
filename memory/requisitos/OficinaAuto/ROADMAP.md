@@ -163,22 +163,28 @@ Entregue:
 
 Telas do canary fotografadas (scorecard `memory/governance/scorecards/screens/oficinaauto-serviceorders-<tela>.yaml`):
 
-| Tela | UX (screen-grade) | `casos_coverage` (contrato) | `d1_calculo` | Contradição exposta |
+| Tela | UX (screen-grade) | `casos_coverage` (contrato) | `d1_calculo` | Leitura |
 |---|---|---|---|---|
-| **Show** (Tier-0 — exibe o TOTAL da OS) | 76 · Advanced | **0%** (0 UC contratado) | 🔴 aplica | Advanced no visual + fonte-da-verdade do valor, **sem contrato de comportamento** que a régua cite |
-| **Edit** (monta a OS: itens → Total OS) | 73 · Advanced | **0%** | 🔴 aplica | idem — Pest existe, mas falta `.casos.md` pra virar UC |
-| **Create** (abertura da OS) | 66 · Developing | **0%** | n/a (não computa total) | funil sem contrato; UX mais baixa das 3 |
+| **Board** (kanban — maior exposição diária) | 86 · Leader | **89%** (UC 9 · ✅8 🧪1) | 🟡 agregado | **COERENTE** — Leader no visual **e** defendido no comportamento (o contraexemplo) |
+| **Show** (Tier-0 — exibe o TOTAL da OS) | 76 · Advanced | **0%** (0 UC contratado) | 🔴 aplica | **contradição** — Advanced + fonte-da-verdade do valor, **sem contrato de comportamento** |
+| **Edit** (monta a OS: itens → Total OS) | 73 · Advanced | **0%** | 🔴 aplica | **contradição** — Pest existe, mas falta `.casos.md` pra virar UC |
+| **Create** (abertura da OS) | 66 · Developing | **0%** | n/a (não computa total) | **contradição** — funil sem contrato; UX mais baixa das 3 |
 
 **A contradição honesta:** as 3 telas têm **Pest de sobra** (CRUD, itens-total, estoque, FSM, HTTP integration,
 stage-gate, history), mas **nenhum `.casos.md`** por-tela — logo `cobertura_uc=0%` é de **contrato**, não de
 código nu. A régua não tem UC pra citar. O `d1_calculo` marca 🔴 em Show/Edit porque o `final_total` de OS
 mecânica ainda retorna R$ 0 (buraco conhecido [US-OFICINA-027](SPEC.md)) e não há property/golden/cross-check citável.
 
-**Contraexemplo coerente (não fotografado aqui — falta nota):** o **Board** (`ServiceOrders/Board.tsx`, kanban de
-produção, a tela de maior exposição diária no canary) é o **inverso** — tem `.casos.md` maduro (9 UCs, ~89%
-verificados por e2e via manifesto G-7), mas **ainda não tem `screen-grade`** (pós-baseline 2026-05-30, nunca
-gradeado pelo agente screen-qa). Não fabriquei nota à mão (ratchet LLM-as-judge, "NÃO editar à mão").
-**Próximo passo seguro:** rodar `screen-grade` no Board pra fechar a foto (UX + os 9 UCs que já o defendem).
+**Contraexemplo coerente — o Board (fotografado 2026-07-03):** o **Board** (`ServiceOrders/Board.tsx`, kanban de
+produção, a tela de maior exposição diária no canary) é o **inverso** das 3 acima — **Leader 86 no visual E 89%
+de comportamento** (`.casos.md` maduro: 9 UCs, ✅8 🧪1, verificados por e2e via manifesto G-7). Foi gradeado pelo
+método `screen-grade` (16-dim LLM-as-judge sobre o código real, não nota à mão): zero cor crua (100% tokens DS +
+primary roxo — fecha o gap que segurava o antigo `ProducaoOficina/Index` em 80), a11y (aria/atalhos de teclado/2ª-porta
+por botão pro FSM), 4 views, no-mock. Gaps residuais no scorecard: `bg-white` cru em superfícies (vs `bg-card`),
+densidade cognitiva de 6 KPIs+abas+toggles no 1280px, e sensor de teclado do dnd-kit a confirmar. `d1 🟡` porque o
+KPI "Valor em curso" **exibe** um agregado (soma das OS não-terminais) que herda o buraco `final_total=0`
+(US-OFICINA-027) — subestima, mas não é onde o cálculo vive. **A foto prova que a régua funciona nos dois sentidos:**
+Show/Edit são premium-mas-indefesos (contradição), o Board é premium-e-defendido (coerência).
 
 **Armadilha do casos-gate respeitada (G-2):** nenhum UC foi declarado em `.casos.md` nesta foto — os candidatos
 ficam no `backlog` do scorecard (status implícito ⬜) e só ganham id de UC **no mesmo PR** que trouxer o `.casos.md`
