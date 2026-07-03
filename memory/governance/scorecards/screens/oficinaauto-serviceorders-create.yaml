@@ -30,3 +30,22 @@ gaps:
     fix: "selecao de veiculo por <option> texto plano — combobox com busca de placa (lista grande trava)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
+# NÃO entra na nota 66 (UX). Create é o funil de abertura da OS (roda 1×/veículo-que-chega no
+# canary Martinho biz=164). É a de UX mais baixa das 3 (Developing), mas a contradição do
+# programa persiste: há Pest cobrindo o store, mas ZERO contrato `.casos.md` que a régua cite.
+casos_coverage:
+  fonte: null          # sem resources/js/Pages/OficinaAuto/ServiceOrders/Create.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:             # candidatos sem UC-id (G-2: id só no MESMO PR do teste); o Pest que os defenderia JÁ existe
+    - "Abrir OS com veículo existente redireciona pro Show — ServiceOrderCrudTest/ServiceOrderStoreLinksVehicleTest"
+    - "order_type rejeita 'locacao' (erradicação ADR 0265) — OficinaFioUsavelAdr0265Test"
+    - "vehicle_id/contact_id de outro business rejeitado server-side (Tier 0) — VehicleMultiTenantTest"
+    - "OS nasce em status 'aberta' (FSM canon — status não é campo do form) — FsmTransitionTest"
+  cobertura_uc: "0%"   # derivado: 0 UC contratado (falta o contrato .casos.md, não o Pest)
+d1_calculo:            # Create NÃO computa total — itens (peças/serviços) são pós-criação (charter Non-Goals). Sem cálculo próprio.
+  aplica: false        # n/a: a OS nasce sem valor; o dente de cálculo vive em Edit/Show + na onda de cálculo (outro chip)
+  nivel: "n/a"
+  provas: { property: false, golden: false, cross_check: false }

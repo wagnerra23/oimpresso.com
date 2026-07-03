@@ -151,6 +151,39 @@ Entregue:
 - [ ] Cleanup tools bulk: relatório piloto "X pendências canceladas / Y write-off / Z renegociadas" com aprovação dono (Martinho aprova batch — Sem 23 US-029/030/031)
 - [ ] Receita reportada R$ [redacted Tier 0]/m grandfathered + add-on WhatsApp R$ [redacted Tier 0]/inst beta 30d → fatura cobrada via Modules/RecurringBilling (US-RB-050/051 P0 wagner-owner CYCLE-06)
 
+### Régua por tela (Onda 0b / ADR 0320) — foto UX + comportamento das telas do canary
+
+> **Aditiva e segura pro canary.** Esta camada é uma **FOTO** (`screen-grade` UX **+** `casos_coverage`
+> comportamento), gerada a partir de charter + `.casos.md` + testes existentes. **Não muda nenhuma
+> tela** (canary Martinho biz=164 LIVE intocado) e **não toca cálculo** (o dente de cálculo é onda
+> própria). Segue o método [Onda 0b](../_Governanca/programa-ondas/onda-0-fundacao/0b-extensao-regua.md)
+> +[Onda 1.3](../_Governanca/programa-ondas/onda-1-sells/1.3-regua-por-tela.md) do [Programa de Ondas](../_Governanca/programa-ondas/PLANO-MESTRE.md)
+> ([ADR 0320](../../decisions/proposals/0320-programa-ondas-regua-correcao.md)) — a mesma foto que
+> em Sells gritou "tela premium, cálculo indefeso". Aqui a régua expõe outra contradição.
+
+Telas do canary fotografadas (scorecard `memory/governance/scorecards/screens/oficinaauto-serviceorders-<tela>.yaml`):
+
+| Tela | UX (screen-grade) | `casos_coverage` (contrato) | `d1_calculo` | Contradição exposta |
+|---|---|---|---|---|
+| **Show** (Tier-0 — exibe o TOTAL da OS) | 76 · Advanced | **0%** (0 UC contratado) | 🔴 aplica | Advanced no visual + fonte-da-verdade do valor, **sem contrato de comportamento** que a régua cite |
+| **Edit** (monta a OS: itens → Total OS) | 73 · Advanced | **0%** | 🔴 aplica | idem — Pest existe, mas falta `.casos.md` pra virar UC |
+| **Create** (abertura da OS) | 66 · Developing | **0%** | n/a (não computa total) | funil sem contrato; UX mais baixa das 3 |
+
+**A contradição honesta:** as 3 telas têm **Pest de sobra** (CRUD, itens-total, estoque, FSM, HTTP integration,
+stage-gate, history), mas **nenhum `.casos.md`** por-tela — logo `cobertura_uc=0%` é de **contrato**, não de
+código nu. A régua não tem UC pra citar. O `d1_calculo` marca 🔴 em Show/Edit porque o `final_total` de OS
+mecânica ainda retorna R$ 0 (buraco conhecido [US-OFICINA-027](SPEC.md)) e não há property/golden/cross-check citável.
+
+**Contraexemplo coerente (não fotografado aqui — falta nota):** o **Board** (`ServiceOrders/Board.tsx`, kanban de
+produção, a tela de maior exposição diária no canary) é o **inverso** — tem `.casos.md` maduro (9 UCs, ~89%
+verificados por e2e via manifesto G-7), mas **ainda não tem `screen-grade`** (pós-baseline 2026-05-30, nunca
+gradeado pelo agente screen-qa). Não fabriquei nota à mão (ratchet LLM-as-judge, "NÃO editar à mão").
+**Próximo passo seguro:** rodar `screen-grade` no Board pra fechar a foto (UX + os 9 UCs que já o defendem).
+
+**Armadilha do casos-gate respeitada (G-2):** nenhum UC foi declarado em `.casos.md` nesta foto — os candidatos
+ficam no `backlog` do scorecard (status implícito ⬜) e só ganham id de UC **no mesmo PR** que trouxer o `.casos.md`
++ citação do teste (o Pest que os defende já existe, então o PR de contrato é de baixo risco e não toca a tela).
+
 ---
 
 ## Fase 4 — App PWA campo + comissão + lembretes
