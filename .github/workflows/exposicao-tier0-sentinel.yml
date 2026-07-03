@@ -1,0 +1,98 @@
+name: Exposição Tier-0 — Sentinela de cadência (Onda 0c · ADR 0256)
+
+# Sentinela SEMANAL do débito Tier-0 por tela (dinheiro/estoque/PII/fiscal × cobertura de
+# comportamento). Roda no GitHub (CI = análise de REPO), NÃO em app/Console/Kernel.php: o
+# Kernel roda no Hostinger (runtime de produção, sem node garantido nem o repo de dev). O run:
+#   - recomputa o débito das 3 camadas e emite a TENDÊNCIA (--trend) no Step Summary;
+#   - alarma (workflow vermelho + issue durável) se o PISO Tier-0 regredir (--check);
+#   - avisa (issue durável, sem falhar) se o débito CRESCER (telas quentes novas sem teste).
+#
+# Advisory no início (ADR 0271: required = só a fatia Tier-0, promovível depois). O baseline
+# (memory/governance/exposicao-tier0-baseline.json) é congelado; só se regrava conscientemente
+# via PR (`node scripts/qa/exposicao-tier0.mjs --json`). Sem secret além do GITHUB_TOKEN default.
+
+on:
+  schedule:
+    - cron: '17 6 * * 1'   # toda segunda 06:17 UTC (~03:17 BRT) — cadência semanal
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: exposicao-tier0-sentinel
+  cancel-in-progress: true
+
+jobs:
+  sentinel:
+    name: exposicao-tier0 (tendência + piso Tier-0)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Tendência (--trend → Step Summary)
+        id: trend
+        run: |
+          set -euo pipefail
+          node scripts/qa/exposicao-tier0.mjs --trend | tee trend.out
+          {
+            echo '### Exposição Tier-0 — tendência semanal'
+            echo '```'
+            cat trend.out
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          DEBT_DELTA=$(grep -oE 'DEBT_DELTA=-?[0-9]+' trend.out | cut -d= -f2 || echo 0)
+          echo "debt_delta=${DEBT_DELTA:-0}" >> "$GITHUB_OUTPUT"
+
+      - name: Catraca do piso Tier-0 (--check · advisory)
+        id: check
+        continue-on-error: true
+        run: node scripts/qa/exposicao-tier0.mjs --check
+
+      - name: Aviso durável no inbox ops (piso violado OU débito crescendo)
+        if: steps.check.outcome == 'failure' || steps.trend.outputs.debt_delta > 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FLOOR_VIOLATED: ${{ steps.check.outcome == 'failure' }}
+          DEBT_DELTA: ${{ steps.trend.outputs.debt_delta }}
+        run: |
+          set -euo pipefail
+          if [ "$FLOOR_VIOLATED" = "true" ]; then
+            SEV="🔴 PISO Tier-0 REGREDIU — uma tela quente antes coberta perdeu o teste de comportamento."
+          else
+            SEV="🟡 débito Tier-0 CRESCEU (+${DEBT_DELTA}) — telas quentes novas nascendo sem teste."
+          fi
+          # Repo público → corpo enxuto (nada de valores/PII/paths sensíveis; detalhe fica no run).
+          TITLE="[exposicao-tier0] débito Tier-0 de tela — sentinela semanal"
+          BODY=$(cat <<EOF
+          ${SEV}
+
+          A sentinela de cadência (Onda 0c · ADR 0256) cruzou exposição Tier-0
+          (dinheiro/estoque/PII/fiscal) × cobertura de comportamento (E2E / casos_coverage).
+
+          **Run (tendência + ranking do débito):** ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
+          O que fazer: cobrir a(s) tela(s) quente(s) do topo do ranking com UC (.casos.md) +
+          teste que o defenda (G-2). Refs: ADR 0256 · ADR 0264 · REGRA MESTRE valor/estoque.
+          EOF
+          )
+          gh label create exposicao-tier0 --color D93F0B --description "Débito Tier-0 de tela — sentinela Onda 0c (ADR 0256)" 2>/dev/null || true
+          EXISTING=$(gh issue list --label exposicao-tier0 --state open --json number --jq '.[0].number' 2>/dev/null || true)
+          if [ -n "${EXISTING:-}" ]; then
+            gh issue comment "$EXISTING" --body "$BODY"
+            echo "comentei na issue #$EXISTING"
+          else
+            gh issue create --title "$TITLE" --label exposicao-tier0 --body "$BODY"
+          fi
+
+      - name: Falhar (vermelho) só se o PISO Tier-0 regrediu
+        if: steps.check.outcome == 'failure'
+        run: |
+          echo "PISO Tier-0 violado — ver run + issue label exposicao-tier0."
+          exit 1
