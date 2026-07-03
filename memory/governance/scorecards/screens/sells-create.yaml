@@ -30,3 +30,25 @@ gaps:
     fix: "handlePriceGroupChange faz 1 fetch/linha; batchar endpoint /products/list pra 1 request"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
+# NÃO entra na nota 88 (UX). É a OUTRA leitura da foto: a tela é Leader no visual
+# e AO MESMO TEMPO tem o comportamento mal defendido + cálculo indefeso. Isso agora fica visível.
+# Fonte da verdade: resources/js/Pages/Sells/Create.casos.md (cruzado por casos-coverage-guard.mjs).
+casos_coverage:
+  fonte: resources/js/Pages/Sells/Create.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs:
+    - uc: UC-S01
+      desc: "Venda balcão a prazo (fiado) gera saldo devedor sem bloquear"
+      status: "🧪"     # parcial: refactor só-de-layout 2026-06-18 deixou o e2e anterior ao código (G-6 frescor)
+      teste: e2e/sells-venda-balcao.spec.ts
+  backlog:             # candidatos sem UC-id (sem teste que os defenda — G-2); visíveis, não esquecidos
+    - "Venda paga no ato (dinheiro/PIX) fecha sem saldo devedor"
+    - "Bloqueio por limite de crédito"
+    - "Emissão NF-e da venda (homolog/stub SEFAZ)"
+  cobertura_uc: "0%"   # derivado: 0 de 1 UC declarado com Status ✅ (UC-S01 está 🧪) + 3 no backlog
+d1_calculo:            # dente de cálculo (§3-bis SCREEN-GRADE-METODO) — Sells/Create toca total/desconto/pagamento
+  aplica: true
+  nivel: "🔴"          # indefeso: é a camada do incidente num_uf (valor inflado ~×100k). O dente real = Onda 1.4.
+  provas: { property: false, golden: false, cross_check: false }

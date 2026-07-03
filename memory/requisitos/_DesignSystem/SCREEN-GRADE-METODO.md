@@ -47,6 +47,43 @@ NOTA_TELA (0-100) = Σ(dim_i × peso_persona_i) / Σ(peso_persona_max) × 100 ×
 
 ---
 
+## 3-bis. Dimensão D1 — cálculo de valor (o "dente", plugar não fundir · Onda 0b / [ADR 0320](../../decisions/proposals/0320-programa-ondas-regua-correcao.md))
+
+> **PLUGAR, NÃO FUNDIR.** As 16 dimensões medem **UX** (a tela é bonita/usável). D1 mede
+> **valor** (a conta está certa). São réguas ortogonais: uma tela pode ser **90 de UX e ter
+> cálculo indefeso** — o caso `Financeiro 82` / o incidente `num_uf` (valor inflado ~×100k,
+> [proibicoes §CÁLCULO DE VALOR](../../proibicoes.md)). D1 **não entra** na fórmula da §1 (não
+> dilui a nota de UX); é um **gate lado a lado**, exibido junto (§8). Fundir confundiria
+> "bonita" com "funciona".
+
+**Quando D1 se aplica:** toda tela/serviço que toca **dinheiro ou estoque** — preço, total,
+subtotal, desconto, imposto, frete, `final_total`, pagamento, comissão, parsing/format de
+número (`num_uf`/`parseDecimalPtBR`), quantidade/movimentação/reserva/baixa. Telas de leitura
+pura (dashboards sem cálculo próprio, listagens) → D1 **n/a** (não penaliza).
+
+**O que D1 exige (âncora: property-based + golden money datasets — fintech QA 2026):**
+
+| Prova | O que é | Aceite |
+|---|---|---|
+| **P1 · Property test** | Invariante do round-trip de número: `parse ∘ format == id` (e `format ∘ parse == id` na precisão de 2 casas) sobre valores gerados | passa em N casos aleatórios incl. bordas de locale pt-BR (ponto/vírgula, milhar de 3 dígitos) |
+| **P2 · Golden fixtures de borda** | Conjunto fixo entrada→saída esperada pros casos que já mordiram: **desconto fracionário** (`204.99605`), **arredondamento** (metade-par), **devolução/estorno**, subtotal com imposto | cada golden bate o número exato (não "≈") |
+| **P3 · Cross-check 2 caminhos** | O total é provado por **dois caminhos independentes** (frontend×backend, ou recompute à mão) — pareia com a [regra-mestre de valor](../../proibicoes.md) | os dois caminhos concordam no centavo |
+
+**Nível D1 por tela (separado do nível UX):**
+
+| D1 | Significa |
+|---|---|
+| 🔴 **indefeso** | toca valor/estoque, **zero** prova de cálculo (P1/P2/P3 ausentes) — o estado do incidente `num_uf` |
+| 🟡 **parcial** | tem golden OU property, falta o cross-check dos 2 caminhos (ou vice-versa) |
+| 🟢 **defendido** | P1 + P2 + P3 verdes no CT100 (Pest/MySQL real, [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)) |
+
+> **Implementação de referência (o dente real):** Onda 1.4 — `property num_uf` + golden
+> `calculateInvoiceTotal` + divergência de pagamento (Sells). D1 aqui é o **critério**; o teste
+> que o satisfaz é código de módulo (não deste método). D1 🟢 exige rodar no CT100 — nunca local
+> ([proibicoes §Testes no CT100](../../proibicoes.md)).
+
+---
+
 ## 4. As 4 etapas por tela (ADR 0230)
 
 1. **Dividir** — cada tela é uma unidade pontuável (o agente especialista pega um módulo).
@@ -81,6 +118,21 @@ gaps:
     esforco: baixo|medio|alto
     origin: ""                 # memória de origem (RTM)
 baseline_anterior: null        # ratchet — nota só sobe
+
+# ───────── NOVO (Onda 0b / ADR 0320): comportamento/valor AO LADO da UX ─────────
+# PLUGAR não fundir — estes blocos NÃO entram na `nota` de UX; são a outra leitura da foto.
+casos_coverage:                # cobertura de COMPORTAMENTO — espelha o trio <Tela>.casos.md
+  fonte: resources/js/Pages/Sells/Create.casos.md   # source of truth
+  guard: scripts/casos-coverage-guard.mjs           # quem cruza casos↔teste (ADR 0264)
+  ucs:                         # 1 entrada por UC declarado no casos.md
+    - uc: UC-S01
+      desc: "Venda balcão a prazo (fiado) gera saldo devedor sem bloquear"
+      status: "🧪"             # ✅ provado (manifesto verde) · 🧪 parcial · ⬜ sem teste · ❌ quebrou
+  cobertura_uc: "0%"           # derivado: % de UCs declarados com Status ✅ (0 de 1 provado)
+d1_calculo:                    # dente de cálculo (§3-bis) — só p/ tela que toca valor/estoque
+  aplica: true                 # false → n/a (tela sem cálculo próprio)
+  nivel: "🔴"                  # 🔴 indefeso · 🟡 parcial · 🟢 defendido (P1+P2+P3 no CT100)
+  provas: { property: false, golden: false, cross_check: false }
 ```
 
 Agregado → ranking das 272 + dimensão "Design Maturity" no **GovernanceV4** + `screen-grades-baseline.json` (ratchet).
@@ -124,3 +176,27 @@ Pra cada tela, 3 simulações **em paralelo** (1 agente especialista por tela, A
 ### Ledger (grava a evolução)
 
 `memory/governance/screen-grades-pilot.md` — tabela `tela × {arquétipo, persona, S0, S1, S2, ΔS0→S1, ΔS1→S2, nível S0→S2}` + nota de confiabilidade (T1) + veredito discriminante (T2) + monotonicidade (T3). Cada linha vira depois um `scorecards/screens/<tela>.yaml` com baseline ratchet (Invariante A — nota só sobe).
+
+---
+
+## 8. Foto lado a lado — UX × comportamento (Onda 0b / [ADR 0320](../../decisions/proposals/0320-programa-ondas-regua-correcao.md))
+
+O buraco que a Onda 0b fecha: **UX** (§1-3) e **comportamento** (`.casos.md`) eram
+ortogonais e nunca apareciam na mesma foto — por isso `/perfil` era "ok" no visual e o
+cálculo ficava indefeso. Agora as duas leituras vivem no mesmo scorecard (§5) e são exibidas
+**juntas** por `scripts/qa/screen-grade-report.mjs` (`npm run screen-grade:report`):
+
+```
+Tela                     UX  Nível      Comportamento (casos)   D1 cálculo
+Sells/Create             88  Leader     0% · UC 1 (🧪1)          🔴 indefeso
+```
+
+- **UX** vem do scorecard (`nota`/`nivel`) — LLM-as-judge, cacheado + ratcheteado (§7).
+- **Comportamento** é **derivado ao vivo** do `<Tela>.casos.md` ao lado do `.tsx` (fonte da
+  verdade, mesmo `uc-regex` do `casos-coverage-guard`) — a foto não pode mentir por YAML
+  velho: se o `cobertura_uc` gravado no scorecard divergir do vivo, o report marca `⚠ drift`.
+- **D1** vem do bloco `d1_calculo` (§3-bis).
+
+Regra de leitura: **UX alto não compra comportamento** — uma tela pode ser Leader (88) e ter
+`cobertura_uc: 0%` + D1 🔴. A foto expõe isso em vez de esconder; a evolução (fechar UC,
+armar o dente) sobe a coluna de comportamento sem tocar a de UX. **Plugar, não fundir.**
