@@ -30,3 +30,18 @@ gaps:
     fix: "Sem dirty-guard; sair perde edicoes silenciosamente — add confirm on unsaved"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Cliente, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+casos_coverage:
+  fonte: resources/js/Pages/Cliente/Edit.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Editar cliente com mod-11 (UpdateContactRequest — SEM teste dedicado do caminho Update hoje, lacuna US-CRM-076)"
+    - "Isolamento cross-tenant no update: contato de outro business → 404 (US-CRM-080)"
+    - "Espelhar endereço default nos campos inline (compat UPOS/NFe enderDest)"
+  cobertura_uc: "0%"    # foto: UX 75 Advanced vs comportamento 0% coberto
+d1_calculo:
+  aplica: false         # edição de cadastro não calcula valor (credit_limit é input)
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }

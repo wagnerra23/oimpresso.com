@@ -30,3 +30,19 @@ gaps:
     fix: "Sem Inertia::defer; extrato grande bloqueia render — add Deferred + skeleton de linhas"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Cliente, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+casos_coverage:
+  fonte: resources/js/Pages/Cliente/Ledger.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Extrato do cliente: faturas + pagamentos + saldo corrido por range de datas"
+    - "Aging/vencidos calculado por pay_term_number/type"
+    - "Export PDF (mPDF); envio por email TODO"
+    - "Render inline ao filtrar (hoje abre Blade legacy — gap US-CRM-084)"
+  cobertura_uc: "0%"    # foto: UX 72 Advanced vs comportamento 0% coberto
+d1_calculo:
+  aplica: true          # COMPUTA saldo corrido + aging pra EXIBIR (não persiste); erro engana Eliana no fechamento, não corrompe dado
+  nivel: "🟡"           # valor de EXIBIÇÃO indefeso: sem property/golden/cross-check do saldo/aging
+  provas: { property: false, golden: false, cross_check: false }

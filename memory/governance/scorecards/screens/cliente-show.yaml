@@ -30,3 +30,18 @@ gaps:
     fix: "No mobile mover aside de contato/fiscal pra accordion acima das tabs"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Cliente, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+casos_coverage:
+  fonte: resources/js/Pages/Cliente/Show.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Ver 360° do cliente (9 abas server-side: extrato/vendas/pagamentos/documentos/atividades/pessoas/assinaturas/pontos/veículos)"
+    - "PII mascarada nos props; acesso 'visualizou' NÃO logado (privacidade — anti-hook charter)"
+    - "Isolamento cross-tenant: contato de outro business retorna 404 (US-CRM-080)"
+  cobertura_uc: "0%"    # foto: UX 86 Leader vs comportamento 0% coberto
+d1_calculo:
+  aplica: false         # exibe saldo/stats agregados (read-only), não persiste valor
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }
