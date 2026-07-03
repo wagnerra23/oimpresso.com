@@ -11,6 +11,12 @@
     }
   },
   "workflows": {
+    "briefing-code-staleness.yml": {
+      "nome": "BRIEFING × Código (reporter advisory · porta atrás da superfície Modules+Pages · eixo code-vs-doc que faltava · sentinela briefing-code-staleness.mjs + self-test)",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required."
+    },
     "arquivos-pest.yml": {
       "nome": "Arquivos · Pest (MySQL) — audit-log/download/enum rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde",
       "classe": "gate",

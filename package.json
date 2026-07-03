@@ -31,6 +31,8 @@
     "handoff:report": "node scripts/handoff-integrity-guard.mjs --report",
     "handoff:baseline:write": "node scripts/handoff-integrity-guard.mjs --write-baseline",
     "handoff:selftest": "node scripts/handoff-integrity-guard.test.mjs",
+    "briefing-staleness:report": "node scripts/governance/briefing-code-staleness.mjs",
+    "briefing-staleness:selftest": "node scripts/governance/briefing-code-staleness.test.mjs",
     "ds:report": "node scripts/ds-report.mjs",
     "ds:report:write": "node scripts/ds-report.mjs --write",
     "ds:ledger": "node scripts/ds-ledger.mjs",

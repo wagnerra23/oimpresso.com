@@ -1,0 +1,62 @@
+name: BRIEFING × Código (reporter advisory)
+
+# Sentinela de STALENESS de BRIEFING contra o CÓDIGO (não presence-gate).
+#
+# POR QUE (incidente-âncora 2026-07-03 / #3714): o BRIEFING do Compras ficou
+# "scaffold 05-21" por 41 dias / 18 commits enquanto o módulo virou grade 59 +
+# cockpit live. A regra "✅ BRIEFING atualizado por PR" + skill brief-update (Tier B
+# soft) não dispararam. Os sentinelas de staleness existentes (knowledge-drift.mjs
+# `stale` + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos;
+# nenhum media porta-vs-CÓDIGO — o eixo que apodrece calado. Este reporter mede a
+# derivada certa: data declarada do BRIEFING vs data-git de Modules/<X> ∪ Pages/<X>.
+#
+# CLASSE: automacao/reporter — NUNCA bloqueia (o step do reporter sai 0 sempre;
+# emite ::warning:: visível no PR). ADR 0314: required = só Tier 0 (dinheiro/PII/
+# multi-tenant/fiscal); frescor de BRIEFING é higiene. A LÓGICA vive no script
+# canônico scripts/governance/briefing-code-staleness.mjs (sem duplicação).
+#
+# NÃO é presence-gate ("BRIEFING no diff") — padrão REJEITADO (proibicoes §5
+# 2026-07-01 charter-sync-gate + L-24 "presença ≠ correção"). Mede tempo, não presença.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      # dispara no PR que MOVE o código (o momento exato do drift) …
+      - 'Modules/**'
+      - 'resources/js/Pages/**'
+      # … e quando a porta ou o próprio sentinela mudam.
+      - 'memory/requisitos/**/BRIEFING.md'
+      - 'scripts/governance/briefing-code-staleness.mjs'
+      - 'scripts/governance/briefing-code-staleness.test.mjs'
+      - '.github/workflows/briefing-code-staleness.yml'
+  schedule:
+    # Segunda 06h40 BRT (09h40 UTC) — heartbeat semanal (após memory-health 06h30).
+    - cron: '40 9 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: briefing-code-staleness-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  report:
+    name: BRIEFING atrás do código? (reporter — não bloqueia)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # git log -1 na superfície de código precisa do histórico
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Meta-teste: protege o próprio detector (bite/release determinístico). Pode
+      # ficar vermelho se alguém quebrar o núcleo — legítimo, e não bloqueia (não é required).
+      - name: self-test do núcleo puro (determinístico)
+        run: node scripts/governance/briefing-code-staleness.test.mjs
+      # Reporter: exit 0 SEMPRE. Emite ::warning:: por porta stale (visível no PR).
+      - name: reporter BRIEFING × código (advisory)
+        run: node scripts/governance/briefing-code-staleness.mjs

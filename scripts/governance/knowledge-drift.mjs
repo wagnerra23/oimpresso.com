@@ -16,6 +16,11 @@
 //                      Antes o detector contava tombstones de ADR que o corretor NUNCA poderia
 //                      zerar → métrica de FORMA, não de correção. Agora mede só drift corrigível.
 //   - staleness      : a porta é mais velha (git) que o doc mais novo do módulo?
+//                      (EIXO DOC-vs-DOC.) O eixo IRMÃO porta-vs-CÓDIGO (a porta ficou
+//                      atrás de Modules/<X> ∪ Pages/<X>?) vive em
+//                      scripts/governance/briefing-code-staleness.mjs — pega o que este
+//                      NÃO pega: código andando com porta E docs irmãos congelados
+//                      (incidente #3714 Compras). Não duplicar aqui.
 //
 // NÃO recomenda ADICIONAR — toda nota ruim aponta pra DESTILAR/FUNDIR/APAGAR.
 // Uso:  node scripts/governance/knowledge-drift.mjs [--json]
