@@ -15,18 +15,18 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 88.9,
+      "value": 88.5,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 88.9,
+        "coverage_pct": 88.5,
         "specs_total": 58,
-        "us_total": 903,
-        "anchor_coverage_pct": 88.9,
+        "us_total": 907,
+        "anchor_coverage_pct": 88.5,
         "by_state": {
-          "sem_campo": 100,
+          "sem_campo": 104,
           "placeholder": 0,
           "pendente": 362,
           "parcial": 119,
@@ -153,8 +153,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 72,
-        "modules": 72
+        "with_door": 73,
+        "modules": 73
       },
       "stream": "MEM"
     },
@@ -184,9 +184,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
-        "portas": 75,
+        "portas": 76,
         "carimbadas": 11,
-        "sem_carimbo": 64,
+        "sem_carimbo": 65,
         "stale": 0,
         "oldest_distilled_at": "2026-07-01"
       },
