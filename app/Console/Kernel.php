@@ -208,6 +208,21 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // US-FISCAL-022 — Health-check do certificado A1 por business (cap #13
+        // CAPTERRA Fiscal). Alerta vencimento ≤30d em mcp_alertas_eventos (dedup
+        // por business+cert). 06:30 BRT, após jana:health-check. Multi-tenant Tier 0
+        // (cada alerta escopado ao business do cert — ADR 0093). Hostinger só schedule.
+        $schedule->command('fiscal:cert-health-check')
+            ->dailyAt('06:30')
+            ->timezone('America/Sao_Paulo')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule fiscal:cert-health-check FALHOU — investigar storage/logs/laravel.log'
+                );
+            });
+
         // Parte B do T7 (auditoria IA OS) — loop telemetria→tier de skills (ADR 0095).
         // Trimestral: emite relatório APPEND-ONLY em memory/governance/skill-tier-review-AAAA-QN.md
         // com sugestões de promoção/rebaixamento. NÃO auto-aplica (sem --apply-suggestions):

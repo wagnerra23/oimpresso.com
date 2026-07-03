@@ -4,6 +4,7 @@ namespace Modules\Fiscal\Providers;
 
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use Modules\Fiscal\Console\Commands\CertHealthCheckCommand;
 use Modules\Fiscal\Console\Commands\HabilitarBusinessCommand;
 use Modules\Fiscal\Listeners\InvalidaCockpitCacheListener;
 use Modules\NfeBrasil\Events\NFCeAutorizada;
@@ -29,6 +30,7 @@ class FiscalServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 HabilitarBusinessCommand::class,
+                CertHealthCheckCommand::class,
             ]);
         }
     }
