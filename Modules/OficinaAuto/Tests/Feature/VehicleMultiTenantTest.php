@@ -2,6 +2,11 @@
 
 declare(strict_types=1);
 
+// casos (G-2 rastreabilidade · ADR 0264): defende
+//   UC-OSH-03 (OficinaAuto/ServiceOrders/Show)   — dados de outro business não vazam (multi-tenant Tier 0)
+//   UC-OED-05 (OficinaAuto/ServiceOrders/Edit)   — vehicle_id de outro business rejeitado server-side
+//   UC-OCR-04 (OficinaAuto/ServiceOrders/Create) — vehicle_id/contact_id de outro business rejeitado
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\OficinaAuto\Entities\Vehicle;

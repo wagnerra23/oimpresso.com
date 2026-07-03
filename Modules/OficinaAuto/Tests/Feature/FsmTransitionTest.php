@@ -2,6 +2,10 @@
 
 declare(strict_types=1);
 
+// casos (G-2 rastreabilidade · ADR 0264): defende
+//   UC-OSH-02 (OficinaAuto/ServiceOrders/Show)   — timeline append-only de transições FSM
+//   UC-OCR-03 (OficinaAuto/ServiceOrders/Create) — OS nasce em status 'aberta' (FSM canon, ADR 0143)
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\OficinaAuto\Entities\ServiceOrder;

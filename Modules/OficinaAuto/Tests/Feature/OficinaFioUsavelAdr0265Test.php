@@ -2,6 +2,9 @@
 
 declare(strict_types=1);
 
+// casos (G-2 rastreabilidade · ADR 0264): defende
+//   UC-OCR-02 (OficinaAuto/ServiceOrders/Create) — order_type rejeita 'locacao' (erradicação ADR 0265)
+
 use App\Domain\Fsm\Models\SaleProcess;
 use App\Domain\Fsm\Models\SaleProcessStage;
 use App\Domain\Fsm\Models\SaleStageHistory;
