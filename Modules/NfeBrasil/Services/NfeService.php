@@ -1115,11 +1115,27 @@ class NfeService
     }
 
     /**
+     * Seleciona o schema do Make por business (US-FISCAL-021 / ADR 0321 · PR-C).
+     *
+     * `legacy` (default de TODOS os business hoje) → null → `new Make(null)` ≡ `new Make()`
+     * atual → schema PL_009_V4, XML byte-idêntico. Só `full`/`hybrid_2026` (opt-in
+     * explícito pós homologação) → `PL_010_V1`, habilitando o grupo UB (IBS/CBS, PR-D).
+     */
+    private function schemaReforma(int $businessId): ?string
+    {
+        $modo = NfeBusinessConfig::where('business_id', $businessId)
+            ->value('reforma_tributaria_modo') ?: 'legacy';
+
+        return in_array($modo, ['full', 'hybrid_2026'], true) ? 'PL_010_V1' : null;
+    }
+
+    /**
      * Monta o XML da NF-e via NFePHP\NFe\Make.
      */
     private function buildXml(object $business, NfeEmissao $emissao, array $dadosNfe, array $emitOverride): string
     {
-        $nfe = new Make();
+        // Legacy → new Make(null) ≡ new Make() (byte-idêntico); full → new Make('PL_010_V1').
+        $nfe = new Make($this->schemaReforma($business->id));
 
         $std         = new \stdClass();
         $std->versao = '4.00';
