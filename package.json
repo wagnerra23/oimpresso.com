@@ -55,6 +55,8 @@
     "casos:baseline:write": "node scripts/casos-coverage-guard.mjs --write-baseline",
     "casos:baseline:shrink-check": "node scripts/casos-coverage-guard.mjs --check-baseline-shrink",
     "casos:results": "node scripts/casos-results-collect.mjs",
+    "screen-grade:report": "node scripts/qa/screen-grade-report.mjs",
+    "screen-grade:report:selftest": "node scripts/qa/screen-grade-report.test.mjs",
     "exposicao:report": "node scripts/qa/exposicao-tier0.mjs",
     "exposicao:trend": "node scripts/qa/exposicao-tier0.mjs --trend",
     "exposicao:check": "node scripts/qa/exposicao-tier0.mjs --check",
