@@ -30,3 +30,20 @@ gaps:
     fix: "~10 useState de filtro + KPI + KB num so componente 2486 linhas; extrair hooks/subcomponentes"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Cliente, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+# NÃO entra na nota 84 (UX). É a OUTRA leitura da foto: tela Advanced no visual E comportamento 0% defendido.
+casos_coverage:
+  fonte: resources/js/Pages/Cliente/Index.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []               # 0 UC com teste que o defenda (nenhum e2e/casos.md p/ Cliente ainda)
+  backlog:              # comportamentos reais sem UC-id (sem teste — G-2) — visíveis, não esquecidos
+    - "Listar/paginar clientes do business (server-side) com CPF/CNPJ mascarado"
+    - "Buscar por nome/CPF/CNPJ/telefone (debounce) escopado ao business"
+    - "Isolamento cross-tenant: cliente de outro business retorna 404 (Contact pai SEM teste hoje — US-CRM-080)"
+    - "Abrir drawer 760 de detalhe a partir da linha; ⌘K palette + J/K"
+  cobertura_uc: "0%"    # foto: UX 84 Advanced vs comportamento 0% coberto
+d1_calculo:
+  aplica: false         # cadastro/lista não calcula valor; exibe SaldoCell (devedor) agregado read-only, não persiste
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }

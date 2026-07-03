@@ -30,3 +30,18 @@ gaps:
     fix: "Adicionar aria-pressed/aria-current no botao de cliente selecionado"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Cliente, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+casos_coverage:
+  fonte: resources/js/Pages/Cliente/Map.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Mapa geográfico dos clientes do business (split-screen lista+mapa)"
+    - "iframe Google hardcoded, sem defer (gap DS — screen-grade 71)"
+    - "Isolamento: só clientes do próprio business (US-CRM-080)"
+  cobertura_uc: "0%"    # foto: UX 71 Advanced vs comportamento 0% coberto
+d1_calculo:
+  aplica: false
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }

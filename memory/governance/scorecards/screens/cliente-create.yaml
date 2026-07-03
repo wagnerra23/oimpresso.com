@@ -30,3 +30,19 @@ gaps:
     fix: "submitLabel padrao no ClienteForm; garantir CTA roxo cowork-primary consistente c/ Import"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Cliente, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+casos_coverage:
+  fonte: resources/js/Pages/Cliente/Create.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Cadastrar PF/PJ com validação mod-11 de CPF/CNPJ server-side (StoreContactRequest)"
+    - "Lookup CNPJ (BrasilAPI) + CEP (ViaCEP) preenche o formulário"
+    - "Registrar consentimento WhatsApp/email (opt-in) — UI pendente (US-CRM-083)"
+    - "business_id setado server-side (não confiar no client) — Tier 0"
+  cobertura_uc: "0%"    # foto: UX 75 Advanced vs comportamento 0% coberto
+d1_calculo:
+  aplica: false         # credit_limit é campo de ENTRADA (não cálculo); nenhum total/desconto computado no cadastro
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }

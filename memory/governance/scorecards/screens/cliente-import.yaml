@@ -30,3 +30,19 @@ gaps:
     fix: "Dropzone tem texto 'arraste' mas so onClick dispara; implementar onDrop real"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+
+# ───────── Régua estendida (Onda Cliente, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
+casos_coverage:
+  fonte: resources/js/Pages/Cliente/Import.casos.md
+  guard: scripts/casos-coverage-guard.mjs
+  ucs: []
+  backlog:
+    - "Importar CSV/XLSX 27 colunas com validação estrita de contagem"
+    - "Preview antes do commit (AUSENTE — gap US-CRM-082)"
+    - "Detecção de duplicado CPF/CNPJ + merge (AUSENTE — gap US-CRM-082)"
+    - "business_id Tier 0 em todo insert; relatório por-linha"
+  cobertura_uc: "0%"    # foto: UX 78 Advanced vs comportamento 0% coberto
+d1_calculo:
+  aplica: false         # import de cadastro não calcula valor; risco é de QUALIDADE de dado (duplicata), não de cálculo
+  nivel: "—"
+  provas: { property: false, golden: false, cross_check: false }
