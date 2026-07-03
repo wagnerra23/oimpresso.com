@@ -12,7 +12,7 @@
 
 ## 1. Identidade do módulo
 
-- **Nome interno:** `Sells` (feature core UltimatePOS — sem `Modules/Sells` físico; rotas/views fora de `Modules/`, FSM em `app/Domain/Fsm/`)
+- **Nome interno:** `Sells` (feature core UltimatePOS — sem diretório próprio em `Modules/`; rotas/views fora de `Modules/`, FSM em `app/Domain/Fsm/`)
 - **Domínio:** Venda / frente de caixa / orçamento-cotação + pipeline FSM canônico
 - **Função:** criação e gestão de vendas (à vista, a prazo, split, com frete, com desconto), integrando o legado UltimatePOS com UI moderna Inertia/React (MWART)
 - **Estado lifecycle:** V2 (`Create.tsx`) **live atrás de flag** `useV2SellsCreate` (guard biz=4 removido 2026-05-27); canary 7d biz=1; Blade legado coexiste (US-SELL-009 remoção pendente)
