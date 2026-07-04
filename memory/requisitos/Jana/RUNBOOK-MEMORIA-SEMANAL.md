@@ -117,6 +117,7 @@ Playbook + histórico da rotina semanal de melhoria do pipeline de memória do a
 | Data | Melhoria | Recall@3 antes | Recall@3 depois | hit_rate antes | hit_rate depois | Decisão | Notas |
 |------|----------|----------------|-----------------|----------------|-----------------|---------|-------|
 | 2026-05-04 | _(setup da rotina — nenhuma melhoria aplicada)_ | — | — | — | — | ⚙️ infra | 1ª execução: SKILL apontava pra `Modules/Jana/` (renomeado pra `Modules/Jana/`) + `CURRENT.md` removido (ADR 0070) + ADR 0062 ≠ 8 fases. Setup do RUNBOOK + SKILL atualizada + permissões pré-aprovadas. Bug detectado: `MemoriaFato.$casts` em Jana não tem `hits_count`/`core_memory`/`ultimo_hit_em` (migration aplicou colunas mas entity não cast). |
+| 2026-07-04 | _(reconciliação com o canon — nenhum código aplicado)_ | n/d¹ | n/d¹ | 1.0² | 1.0² | 📋 reconcile | 2ª execução. RUNBOOK estava 4741 commits stale (última edição 2026-05-04). **Descoberto:** Tier 2 (HyDE/reranker/semantic_ratio/RRF/decay) **já construído** no `MeilisearchDriver` + suite de eval nova (`jana:recall-eval`, `jana:ragas-eval`, `jana:drift-sentinel`, `apurar-metricas`). **P1-A e P1-C/P1-A.0 seguem NÃO aplicados** (verificado em `origin/main`: `buscar()` só filtra `business_id`+`user_id`; `toSearchableArray()` não expõe `metadata_relevancia`; `config/scout.php` index-settings vazio). Baseline de recall **não medível autonomamente** (¹staging = 5 fatos anonimizados biz=1; prod não-mutável; `jana:recall-eval` mira `mcp_memory_documents`, índice diferente) → regra #5 bloqueia P1-A. ²hit_rate/bloat medidos em staging biz=1 (5 fatos, todos com `metadata.relevancia`; core_memory=0). Fila de código pronta registrada em §7. |
 
 ---
 
@@ -178,11 +179,39 @@ php artisan scout:import "Modules\\Jana\\Entities\\MemoriaFato"
 
 | # | Item | Prioridade | Ação |
 |---|------|-----------|------|
-| 1 | `MemoriaFato.$casts` (Modules/Jana) sem `hits_count`/`core_memory`/`ultimo_hit_em` | 🔴 P1 | Adicionar 3 entradas no `$casts` (ver entity Modules/Jana antiga como referência — supersede pela Jana) |
+| 1 | `MemoriaFato.$casts` (Modules/Jana) sem `hits_count`/`core_memory`/`ultimo_hit_em` — **reconfirmado 2026-07-04 em `origin/main`** (colunas existem no DB; casts ausentes) | 🔴 P1 | Adicionar 3 entradas no `$casts` → **ver §7 (diff pronto)**. Consumidores são todos DB-layer (`HitTrackerService`/`CleanupMemoriaCommand` usam `where()`), então o cast é aditivo e seguro. |
 | 2 | Comentário em `MemoriaFato.php` ainda referencia `Modules/Jana/Database/seeders/MeilisearchIndexSetup.php` (path antigo) | 🟡 P3 | Atualizar pra `Modules/Jana/...` ou remover seeder se obsoleto |
 | 3 | `config/scout.php` `index-settings.jana_memoria_facts` está vazio — filterableAttributes setados manualmente no servidor (drift de governança) | 🟠 P2 | Declarar no `config/scout.php` os filterableAttributes (`business_id`, `user_id`, `valid_until`, `metadata_relevancia` futuro) — Scout aplica no startup |
 | 4 | ADR canônica do roadmap 8 fases é a **0049**, não 0062 (que é separação runtime) — SKILL apontava pro número errado | ✅ corrigido 2026-05-04 | — |
 
 ---
 
-> **Última atualização:** 2026-05-04 — 1ª execução da rotina (setup-only, melhoria não aplicada).
+## 7. Fila de melhorias de código — prontas pra aplicar (registrada 2026-07-04)
+
+Duas mudanças **verificadas como necessárias em `origin/main`**, com diff pronto. Não aplicadas nesta rodada porque exigem worktree fresco + validação Pest no CT 100 (regra #1) e a rotina roda desassistida — a próxima rodada (ou sessão assistida) aplica **uma** por vez (regra #2). Ordem recomendada: **A antes de B** (A não depende de baseline de recall; B é a fundação do filtro P1-A).
+
+### 7.A · Cast fix (pendência #1) — **recomendada como próxima aplicação**
+
+**Por que é segura sem baseline de recall:** é casting app-layer, ortogonal ao retrieval (não muda `buscar()`). Consumidores são todos DB-layer (verificado). Destrava a Fase 7 (hits/core_memory) corretamente em PHP.
+
+`Modules/Jana/Entities/MemoriaFato.php` — adicionar ao `$casts`:
+```php
+'hits_count' => 'integer',
+'core_memory' => 'boolean',
+'ultimo_hit_em' => 'datetime',
+```
+**Validação:** teste Pest que instancia o Eloquent e afirma `is_bool($f->core_memory)` + `$f->ultimo_hit_em instanceof \Illuminate\Support\Carbon` (o `HitTrackerServiceTest` atual lê via `DB::table()->value()`, **não** exercita o cast — é sqlite-only, 9 skipped no MySQL). Rodar no CT 100 / CI.
+
+### 7.B · P1-A.0 (prep do P1-C) — flatten `metadata_relevancia`
+
+`Modules/Jana/Entities/MemoriaFato.php::toSearchableArray()` — adicionar `'metadata_relevancia' => $this->metadata['relevancia'] ?? null`.
+`config/scout.php` → `meilisearch.index-settings.jana_memoria_facts.filterableAttributes`.
+
+> ⚠️ **BLOQUEADOR OPERACIONAL antes do reindex:** o índice Meilisearch de prod hoje tem os `filterableAttributes` setados **manualmente no servidor** (pendência #3, drift). O `buscar()` **depende** de `business_id` + `user_id` filtráveis. Declarar um set no config + `scout:sync-index-settings`/reindex pode **derrubar `user_id`** e quebrar recall multi-tenant em prod. **Auditar os `filterableAttributes` atuais do índice prod ANTES** e incluir `business_id`, `user_id`, `valid_until` no set declarado. Reindex de prod = passo operacional gated pelo Wagner (não autônomo).
+
+Só **depois** de 7.B aplicado + reindexado + baseline de recall medível é que **P1-A** (filtro `metadata_relevancia >= 3` em `buscar()`) pode ser aplicado sob a regra #5.
+
+---
+
+> **Última atualização:** 2026-07-04 — 2ª execução: reconciliação com o canon (RUNBOOK estava 4741 commits stale). Tier 2 marcado como já-construído; fila de código pronta (§7 — cast fix + P1-A.0) registrada com diffs + bloqueadores. Nenhum código aplicado (baseline de recall não medível autonomamente + validação Pest exige worktree/CT 100).
+> **2026-05-04** — 1ª execução da rotina (setup-only, melhoria não aplicada).
