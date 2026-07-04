@@ -387,6 +387,28 @@ function checkBrokenLinks() {
   }
 }
 
+// ── Check W: índice de BACKLOG gerado stale vs SPEC.md ──────────────────────
+// _BACKLOG-GENERATED.md é GERADO de memory/requisitos/**/SPEC.md (tasks-index-
+// generate, ADR 0070 — o índice nunca à mão). Se um SPEC mudou DEPOIS do índice,
+// ele drifta. Sinal barato e determinístico: git-date do índice < git-date do SPEC
+// mais novo. Advisory (regen: node scripts/governance/tasks-index-generate.mjs --write).
+// Fecha o gap "backlog gerado não-enforçado" (auditoria 2026-07-04). Par do adr-index-gate.
+function checkBacklogIndexStale() {
+  const idx = 'memory/requisitos/_BACKLOG-GENERATED.md';
+  const idxDate = gitLastDate(idx);
+  if (!idxDate) return; // não existe = ignora (não inventa)
+  let newest = '', newestFile = '';
+  for (const s of listFiles('memory/requisitos', (p) => /\/SPEC\.md$/.test(p))) {
+    const d = gitLastDate(s);
+    if (d && d > newest) { newest = d; newestFile = s; }
+  }
+  if (newest && newest > idxDate) {
+    warns.push({ check: 'W', kind: 'backlog-index-stale', count: 1,
+      sample: [{ indice: idxDate, spec_mais_novo: newest, file: newestFile }],
+      msg: `_BACKLOG-GENERATED.md (${idxDate}) mais antigo que o SPEC mais novo (${newest} · ${newestFile}) — regenerar: \`node scripts/governance/tasks-index-generate.mjs --write\`. 🟡 sentinela.` });
+  }
+}
+
 // ── Check E: drift de enum status/lifecycle em ADR ──────────────────────────
 // Enums canônicos do scripts/memory-schemas/adr.schema.json. Append-only bloqueia
 // editar ADR ratificada in-place — então normalizar é no leitor OU override
@@ -794,6 +816,7 @@ try { checkStaleEntryLayer(); } catch (e) { warns.push({ check: 'S', kind: 'entr
 try { checkFactAnchor(); } catch (e) { warns.push({ check: 'T', kind: 'fato-ancora-error', msg: 'fact-anchor falhou (não bloqueia): ' + e.message }); } // Check T (fact-anchor determinístico)
 try { checkLimbo(); } catch (e) { warns.push({ check: 'U', kind: 'limbo-error', msg: 'limbo falhou (não bloqueia): ' + e.message }); } // Check U (limbo: drafts parados + homônimos)
 try { checkBrokenLinks(); } catch (e) { warns.push({ check: 'V', kind: 'link-quebrado-error', msg: 'link-quebrado falhou (não bloqueia): ' + e.message }); } // Check V (links internos quebrados)
+try { checkBacklogIndexStale(); } catch (e) { warns.push({ check: 'W', kind: 'backlog-index-error', msg: 'backlog-index falhou (não bloqueia): ' + e.message }); } // Check W (backlog gerado stale vs SPEC)
 checkAdrEnumDrift();
 checkAntiResurrection();
 checkGatesRegistry();
