@@ -46,13 +46,15 @@ jobs:
       - name: Índice de Planos em dia (advisory · ADR 0294 · nasce advisory ADR 0271)
         continue-on-error: true
         run: node scripts/governance/plans-index.mjs --check
-      # ADVISORY (GT-G5 · ledger §D): refutação adversarial de lote-IA de BRIEFINGs/SPECs
-      # (PROTOCOLO-REFUTADOR-BACKFILL). Sem --enforce → exit 0 sempre nesta fase; promover a
-      # required = adicionar --enforce após o protocolo assentar. Só em PR (precisa nº + base_ref).
-      - name: ledger-check — refutação de lote IA (advisory · GT-G5)
+      # ENFORCE (GT-G5 · ledger §D — promovido 2026-07-04, avaliação adversarial SDD
+      # 2026-07-03 risco sistêmico nº2): refutação adversarial de lote-IA de BRIEFINGs/SPECs
+      # (PROTOCOLO-REFUTADOR-BACKFILL). Só dispara em PR com >10 arquivos em memory/requisitos/
+      # — sem entry válida no ledger governance/sdd-verification-ledger.json → exit 1 falha o
+      # job umbrella (já required — ADR 0314: fusão em gate existente, sem context novo).
+      # PR pequeno / push direto / fora de PR = no-op exit 0. Só em PR (precisa nº + base_ref).
+      - name: ledger-check — refutação de lote IA (enforce · GT-G5)
         if: github.event_name == 'pull_request'
-        run: node scripts/governance/ledger-check.mjs --pr ${{ github.event.pull_request.number }} --base origin/${{ github.base_ref }} --head HEAD
-        continue-on-error: true
+        run: node scripts/governance/ledger-check.mjs --pr ${{ github.event.pull_request.number }} --base origin/${{ github.base_ref }} --head HEAD --enforce
       # ADVISORY (nasce sem morder — ONDAS-QUALIDADE regra 2): controle-negativo do
       # auditor de corruptores SQLite (sensibilidade + especificidade). Promover a
       # required = remover continue-on-error após 2 verdes. Ref: sessão 2026-06-15.
