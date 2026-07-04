@@ -183,3 +183,63 @@ describe('memory-health — Check M: teto de governança (ADR 0298, físico)', (
     expect(out).not.toMatch(/gate-novo-sem-teto/);
   });
 });
+
+describe('memory-health — Check T: fact-anchor determinístico (fato vs fonte-de-verdade, físico)', () => {
+  it('SENSIBILIDADE: doc current-state afirma versão != package.json → 🟡 fato-ancora-drift', () => {
+    write('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }));
+    write('README.md', '# proj\n\nUsa Inertia v3 + React 18 aqui.\n');
+    const out = run();
+    expect(out).toMatch(/fato-ancora-drift/);
+    expect(out).toMatch(/React 18/);
+  });
+
+  it('ESPECIFICIDADE: versão correta → sem warn T', () => {
+    write('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }));
+    write('README.md', '# proj\n\nReact 19 aqui.\n');
+    const out = run();
+    expect(out).not.toMatch(/fato-ancora-drift/);
+  });
+
+  it('ESPECIFICIDADE: migração "React 18 → 19" NÃO é FP (X é história)', () => {
+    write('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }));
+    write('README.md', '# proj\n\nMigração React 18 → 19 concluída.\n');
+    const out = run();
+    expect(out).not.toMatch(/fato-ancora-drift/);
+  });
+
+  it('SENSIBILIDADE: Modules/<X> com dir inexistente em doc current-state → 🟡', () => {
+    write('README.md', '# proj\n\nImite Modules/Fantasma/ antes de criar.\n');
+    const out = run();
+    expect(out).toMatch(/fato-ancora-drift/);
+    expect(out).toMatch(/Modules\/Fantasma/);
+  });
+
+  it('ESPECIFICIDADE: Modules/<X> existente → sem warn', () => {
+    mkdirSync(join(tmp, 'Modules/Repair'), { recursive: true });
+    write('README.md', '# proj\n\nImite Modules/Repair/ antes de criar.\n');
+    const out = run();
+    expect(out).not.toMatch(/fato-ancora-drift/);
+  });
+});
+
+describe('memory-health — Check U: limbo (pile de proposals + dir homônimo, físico)', () => {
+  it('SENSIBILIDADE: > limite de drafts em proposals/ → 🟡 proposta-em-limbo', () => {
+    for (let i = 0; i < 26; i++) write(`memory/decisions/proposals/2026-01-${String((i % 28) + 1).padStart(2, '0')}-p${i}.md`, '# draft\n');
+    const out = run();
+    expect(out).toMatch(/proposta-em-limbo/);
+  });
+
+  it('ESPECIFICIDADE: poucos drafts → sem warn de pile', () => {
+    write('memory/decisions/proposals/2026-01-01-unico.md', '# draft\n');
+    const out = run();
+    expect(out).not.toMatch(/proposta-em-limbo/);
+  });
+
+  it('SENSIBILIDADE: dirs homônimos (X e X+s) sob memory/ → 🟡 dir-homonimo', () => {
+    mkdirSync(join(tmp, 'memory/dominio'), { recursive: true });
+    mkdirSync(join(tmp, 'memory/dominios'), { recursive: true });
+    const out = run();
+    expect(out).toMatch(/dir-homonimo/);
+    expect(out).toMatch(/dominio/);
+  });
+});
