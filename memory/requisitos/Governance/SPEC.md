@@ -711,3 +711,36 @@ Reconciliar a dívida de fidelidade spec↔código que o lint SA-A2-bis (ADR 030
 **Testado em:** `scripts/tests/junit-summary.test.mjs` (marcador + exit codes, roda o script real como subprocess) · `scripts/tests/floor-compute.test.mjs` (caso `invalid-marker` excluído) · `tests/fullsuiteHarness.spec.ts` (contrato do harness: events-log presente + tripwire usado + alerta). Anti-tautológico (proibicoes §5): asserts ancorados neste DoD, não no código.
 
 **Fora de escopo:** consertar a causa-raiz da pressão de memória (a suite inteira em 1 processo + coverage separado já é a mitigação estrutural do #3622); esta US garante **observabilidade honesta** da morte, não a elimina. Refs: FV-F1 (junit-summary tripwire) · ADR 0279 (floor) · US-GOV-018 (harness) · #3622 (coverage 2ª invocação)
+
+### US-GOV-046 · Triar drafts acumulados em decisions/proposals/
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+Pile de limbo exposto pela sentinela `memory-health` (Check U `proposta-em-limbo`): ~90 drafts de ADR em `memory/decisions/proposals/` sem decaimento (saudável ~25). Triar cada um: **promover** (supersede atômico, ADR 0258), **arquivar** ou **esquecer** (ADR 0316/0270).
+
+**Definition of Done (verificável):** `node scripts/governance/memory-health.mjs` → Check U `proposta-em-limbo` **= 0** (ou abaixo do limiar saudável). Não "achei que terminei".
+
+Origem: sessão 2026-07-04 consolidação de conhecimento. Proposta pela máquina `governance-backlog-sync`. `<!-- gov-sync: proposta-em-limbo -->`
+
+### US-GOV-047 · Consertar links internos quebrados na canon
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+Links internos mortos na canon front-facing, expostos pela sentinela `memory-health` (Check V `link-quebrado`): ~15 restantes (após 32 já consertados por nº-de-ADR e basename em #3804/#3806). Os residuais são não-determinísticos: alvo deletado/movido pra fora do repo (sessions renomeadas, `.claude`/`scripts`/`Modules` cross-tree, path Windows absoluto) ou basename ambíguo (`SKILL.md` 72 candidatos). Resolver caso-a-caso: **recriar** o alvo, **repontar** ou **remover** o link.
+
+**Definition of Done (verificável):** `node scripts/governance/memory-health.mjs` → Check V `link-quebrado` **= 0**.
+
+Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sync: link-quebrado -->`
+
+### US-GOV-048 · Desambiguar dirs homônimos sob memory/ (dominio/ vs dominios/)
+
+> owner: — · priority: p3 · status: todo · type: story
+> blocked_by: —
+
+Homônimo exposto pela sentinela `memory-health` (Check U `dir-homonimo`): `memory/dominio/` (singular, 6 arquivos — dicionário de domínio canon, fonte do gate `dominio:check` ADR 0264) coexiste com `memory/dominios/` (plural, 425 arquivos — Migration Factory legacy, ADR 0118/0119). Ambos vivos mas nome colado racha navegação/recall. **Decisão Wagner:** qual nome ganha o rename (raio alto: 425 arquivos + 12 refs). Renomear um dos dois + reapontar refs.
+
+**Definition of Done (verificável):** `node scripts/governance/memory-health.mjs` → Check U `dir-homonimo` **= 0**.
+
+Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sync: dir-homonimo -->`
