@@ -410,7 +410,7 @@ php artisan whatsapp:register-permissions
 
 ## 19. Referências essenciais
 
-- **ADRs:** [0093](../decisions/0093-multi-tenant-isolation-tier-0.md) (Tier 0) · [0096](../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) (drivers) · [0117](../decisions/0117-multi-numeros-whatsapp.md) (multi-números) · [0135](../decisions/0135-channels-omnichannel-uuid.md) (channel UUID path) · [0142](../decisions/0142-slash-commands-notas-internas.md) (slash commands) · [0058](../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md) (Centrifugo)
+- **ADRs:** [0093](../decisions/0093-multi-tenant-isolation-tier-0.md) (Tier 0) · [0096](../decisions/0096-modulo-whatsapp-meta-cloud-api-direto.md) (drivers) · [0117](../decisions/0117-multiplos-numeros-whatsapp-por-business.md) (multi-números) · [0135](../decisions/0135-omnichannel-inbox-arquitetura.md) (channel UUID path) · [0142](../decisions/0142-notas-internas-sinal-treino-jana.md) (slash commands) · [0058](../decisions/0058-reverb-substituido-por-centrifugo-frankenphp.md) (Centrifugo)
 - **SPECs:** `memory/requisitos/Whatsapp/SPEC.md` · `memory/requisitos/Whatsapp/ARCHITECTURE.md`
 - **Sessions:** `memory/sessions/2026-05-13-whatsapp-incident-zombie-banned-loop.md` (ban loop incident) · `memory/sessions/2026-05-14-arte-wa-structure.md` (gap analysis NOTA 71/100) · `memory/sessions/2026-05-14-whatsapp-saga-madrugada.md` (queue inbox decision)
 - **Runbooks:** `memory/runbooks/daemon-ct100-rebuild.md` · `.claude/agents/whatsapp-doctor.md`
