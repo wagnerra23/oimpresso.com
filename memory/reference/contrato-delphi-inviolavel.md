@@ -12,7 +12,7 @@ last_updated: 2026-05-19
 >
 > **Implicação Tier 0 IRREVOGÁVEL:** todo endpoint listado abaixo tem cliente Delphi vivo em produção (~6 builds catalogados: WR2 biz=1, EXTREMA LED biz=196, biz=169, biz=177, Vargas biz=164, Martinho biz=164). Build novo seria recompilação + redistribuição pra todos clientes — Wagner declarou inviável. Qualquer mudança no wire quebra clientes silenciosamente.
 >
-> Cross-ref: [ADR 0017](../decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md), [ADR 0018](../decisions/0018-log-acesso-desktop-fase-1-passivo.md), [ADR 0019](../decisions/0019-passport-v10-v13-auth-delphi.md), [ADR 0020](../decisions/0020-grupo-economico-matriz-filial.md), [ADR 0021](../decisions/0021-contrato-real-api-delphi-3-geracoes.md).
+> Cross-ref: [ADR 0017](../decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md), [ADR 0018](../decisions/0018-officeimpresso-log-acesso-passivo.md), [ADR 0019](../decisions/0019-officeimpresso-delphi-nao-autentica.md), [ADR 0020](../decisions/0020-officeimpresso-grupo-economico.md), [ADR 0021](../decisions/0021-officeimpresso-contrato-api-delphi.md).
 
 ## 1. Regra de ouro
 
@@ -221,10 +221,10 @@ Antes de tocar QUALQUER controller/middleware/listener listado acima:
 - [matriz-conhecimento-clientes-legacy.md](matriz-conhecimento-clientes-legacy.md) — clientes × build × status × VERSAO_BANCO
 - [migracao-officeimpresso-pattern.md](migracao-officeimpresso-pattern.md) — pattern Firebird→MySQL idempotente
 - [ADR 0017](../decisions/0017-officeimpresso-restaurado-superadmin-exclusivo.md) — Officeimpresso restaurado
-- [ADR 0018](../decisions/0018-log-acesso-desktop-fase-1-passivo.md) — Log acesso desktop event listener+middleware
-- [ADR 0019](../decisions/0019-passport-v10-v13-auth-delphi.md) — Passport v13 auth Delphi
-- [ADR 0020](../decisions/0020-grupo-economico-matriz-filial.md) — Grupo econômico matriz/filial
-- [ADR 0021](../decisions/0021-contrato-real-api-delphi-3-geracoes.md) — Contrato API Delphi 3 gerações
+- [ADR 0018](../decisions/0018-officeimpresso-log-acesso-passivo.md) — Log acesso desktop event listener+middleware
+- [ADR 0019](../decisions/0019-officeimpresso-delphi-nao-autentica.md) — Passport v13 auth Delphi
+- [ADR 0020](../decisions/0020-officeimpresso-grupo-economico.md) — Grupo econômico matriz/filial
+- [ADR 0021](../decisions/0021-officeimpresso-contrato-api-delphi.md) — Contrato API Delphi 3 gerações
 - [ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
 - [ADR 0170](../decisions/0170-paymentgateway-extracao-camada-cobranca.md) — PaymentGateway extração
 

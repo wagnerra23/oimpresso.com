@@ -21,7 +21,7 @@ Toda **entidade cadastral** do oimpresso (Cliente, Produto, ServiceOrder, Vehicl
 
 **3 surpresas raras BR** (nenhum ERP BR Bling/Tiny/Omie entrega):
 - Multi-tenant Tier 0 IRREVOGÁVEL ([ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md))
-- LGPD Art 18 plug-and-play via Spatie ActivityLog ([ADR 0127](../decisions/0127-spatie-activitylog-lgpd-art-18.md))
+- LGPD Art 18 plug-and-play via Spatie ActivityLog ([ADR 0127](../decisions/0127-modules-auditoria-undo-activity-log.md))
 - IA Brain B democratizada em 7 entidades cadastrais
 
 Dossier completo: [memory/sessions/2026-05-22-arte-drawer-760-vs-mundo.md](../sessions/2026-05-22-arte-drawer-760-vs-mundo.md).
@@ -144,7 +144,7 @@ Sub-agent que pegar wave de uma entidade DEVE:
 - [ADR 0179](../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md) — Cliente Drawer 760 canon source (Wave A-G prod biz=1)
 - [ADR 0185](../decisions/0185-drawer-760-canon-entidades-cadastrais.md) — Escala pra 7 entidades cadastrais (+ Wave H + Wave I)
 - [ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md) — Multi-tenant Tier 0 IRREVOGÁVEL
-- [ADR 0127](../decisions/0127-spatie-activitylog-lgpd-art-18.md) — Spatie ActivityLog LGPD Art 18
+- [ADR 0127](../decisions/0127-modules-auditoria-undo-activity-log.md) — Spatie ActivityLog LGPD Art 18
 - [ADR 0182](../decisions/0182-pageheadertabs-canon-pattern-telas.md) — PageHeader 3 zonas canon
 - [Skill pageheader-canon](../../.claude/skills/pageheader-canon/SKILL.md) Fase 4-bis — matriz 3 patterns
 - [Auditoria estado-da-arte 2026-05-22](../sessions/2026-05-22-arte-drawer-760-vs-mundo.md) — nota 76,4/100 + 10 gaps priorizados
