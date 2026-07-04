@@ -168,10 +168,11 @@ class McpMemoryDocument extends Model
         // (acessiveisPara + doBusiness), então o isolamento multi-tenant é idêntico ao FULLTEXT.
         $host  = rtrim((string) config('scout.meilisearch.host', ''), '/');
         $key   = (string) config('scout.meilisearch.key', '');
-        $index = (new static)->searchableAs();
+        $index = 'mcp_memory_documents'; // searchableAs() — constante deste índice
 
+        // Collection vazia (tipo static, sem carregar linhas) — dispara o fallback FULLTEXT no caller.
         if ($host === '') {
-            return static::newCollection();
+            return static::query()->whereRaw('1 = 0')->get();
         }
 
         try {
@@ -183,16 +184,15 @@ class McpMemoryDocument extends Model
                 'hybrid'               => ['embedder' => $embedder, 'semanticRatio' => $ratio],
             ]);
         } catch (\Throwable $e) {
-            // Degrada limpo — o caller (kb-answer/decisions-search) faz fallback FULLTEXT.
             Log::channel('copiloto-ai')->warning('buscarHybrid: Meilisearch inacessível, fallback FULLTEXT: '.$e->getMessage());
 
-            return static::newCollection();
+            return static::query()->whereRaw('1 = 0')->get();
         }
 
         if ($resp->failed()) {
             Log::channel('copiloto-ai')->warning('buscarHybrid: Meilisearch HTTP '.$resp->status().' — fallback FULLTEXT');
 
-            return static::newCollection();
+            return static::query()->whereRaw('1 = 0')->get();
         }
 
         $ids = array_values(array_filter(array_map(
@@ -200,26 +200,20 @@ class McpMemoryDocument extends Model
             (array) $resp->json('hits', [])
         )));
         if ($ids === []) {
-            return static::newCollection();
+            return static::query()->whereRaw('1 = 0')->get();
         }
 
-        // Hidrata preservando os scopes Tier 0 (idênticos ao FULLTEXT) e a ordem de
-        // relevância do Meilisearch (whereIn não garante ordem → reordena pelos ids).
-        $docs = static::query()
+        // Hidrata reaplicando os scopes Tier 0 (idênticos ao FULLTEXT) e reordena pela
+        // relevância do Meilisearch (whereIn não preserva a ordem dos ids).
+        $pos = array_flip($ids);
+
+        return static::query()
             ->whereIn('id', $ids)
             ->acessiveisPara($user)
             ->when($businessId > 0, static fn ($q) => $q->doBusiness($businessId)) // Tier 0 — ADR 0093
             ->get()
-            ->keyBy('id');
-
-        $ordenados = [];
-        foreach ($ids as $id) {
-            if ($doc = $docs->get($id)) {
-                $ordenados[] = $doc;
-            }
-        }
-
-        return static::newCollection($ordenados);
+            ->sortBy(static fn ($doc) => $pos[(int) $doc->getKey()] ?? PHP_INT_MAX)
+            ->values();
     }
 
     /**
