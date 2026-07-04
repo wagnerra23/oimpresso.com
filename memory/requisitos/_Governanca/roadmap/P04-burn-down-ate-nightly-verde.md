@@ -108,3 +108,92 @@ P04 **nao instala um gate novo** — produz o estado (7 noites verdes) que torna
 - **Risco de divergencia silenciosa (274 vs 295):** se P01 nao landar o commit-back, o time pode declarar "verde" lendo o JSON stale em main enquanto a orfa mostra floor>0. Mitigacao: DoD sempre le da orfa (`git cat-file ... origin/governance/nightly-floor`), nunca so do scorecard em main.
 - **Risco Tier 0:** rodar suite local (viola ADR 0101/0062) produz numero falso; testes so no CT100. Nao instalar pcov/sqlite-coverage na fonte errada (Hostinger).
 - **Kill total:** se apos 3 semanas o floor nao desce de forma sustentavel (re-quarentena perpetua), escalar pra Wagner — pode indicar que parte do "490 residual" sao bugs de produto reais que merecem virar US propria, nao burn-down de teste.
+
+## Preparação 2026-07-04 (estado verificado + pacote de execução)
+
+> Verificado em `origin/main` @ `53b25009` + órfã `governance/nightly-floor` @ `95bdfc5c` (2026-07-04). Cada linha com prova. Supersede (sem apagar) os trechos stale acima: §Causa-raiz "US-GOV-018/020 em review" e §Dependências "P03 DURA" — **ambas já done**; e a baseline de abertura do Passo 1 (295/2564) — números vivos abaixo.
+
+### (a) Pré-requisitos — estado REAL
+
+| Pré-req | Estado | Prova |
+|---|---|---|
+| Piloto self-heal biz=1 (`healCanonicalTenantIfWiped`) | ✅ **PRESENTE em main** — chamado em todo `setUp()`; guardas: mysql-only, `transactionLevel()>0` skip (não toca RefreshDatabase), idempotente (`business.id=1` exists), try/catch best-effort | `tests/TestCase.php:22` (chamada) + `:45-62` (impl); seeder `database/seeders/FullSuiteMinimalTenantSeeder.php` existe; landou #3507 (`1685acb0`, 2026-07-01) |
+| FV-F1 `memory_limit 4G` no Run 1 diagnóstico (#3676) | ✅ **APLICADO no script versionado** | `scripts/tests/ct100-fullsuite.sh:243` (`php -d memory_limit=4G vendor/bin/pest --log-junit ... --log-events-text ...`); merge `2fc65899` 2026-07-02 |
+| P07 coverage em 2ª invocação separada (junit nunca refém do pcov) | ✅ aplicado (6G, container próprio, sem `--log-junit`) | `scripts/tests/ct100-fullsuite.sh:283-315`; contrato travado em `tests/fullsuiteHarness.spec.ts:53-67` (2 invocações, pcov fora do diagnóstico) |
+| FV-F4 post-mortem de run morto (`pest-events.txt` + `[ALERT] fullsuite_run_invalid` + marcador `invalid`) | ✅ aplicado | `ct100-fullsuite.sh:243` (`--log-events-text`), `:325-332` (ALERT); `floor-compute.mjs:33` ignora `invalid` |
+| P03 / US-GOV-021 (corruptores era-sqlite) | ✅ **done** — 19→0, `--strict --tier=A` exit 0 | `memory/requisitos/Governance/SPEC.md` §US-GOV-021 (`status: done`, verificado@2026-06-30) |
+| US-GOV-018 + US-GOV-020 (harness) | ✅ **done** (o "review" citado na §Causa-raiz acima era o SPEC stale; corrigido em 2026-07-01) | SPEC.md §US-GOV-018 e §US-GOV-020 (`status: done`, "verificado@2026-07-01 ... MCP done desde 2026-06-13/14, ADR 0144") |
+| P01 commit-back do floor pro main | ✅ vivo e SINCRONIZADO (a divergência 274-vs-295 da §Causa-raiz morreu) | `governance/sdd-scorecard.json:59-65` `full_suite_pass_rate: measured, value: 298` == órfã 298 |
+| P14 catraca do floor no required | ✅ executado — floor **MORDE**: regressão >298 trava merge do repo (red-until-fixed coletivo) | `_ROADMAP.md` §P14 (#3535/#3536/#3537/#3548/#3550/#3552, selftest 46/46) |
+| **Nightly VIVA?** | 🔶 **cron vivo, medição MORTA há 3 noites** — o cron publicou hoje (commit `95bdfc5c "nightly floor+coverage 20260704-020001"`) mas o JSON está parado em `computed_at: 20260701-020001` (janela válida = 20260628/20260630/20260701). Como `computed_at` = ts do último run **válido** (`floor-compute.mjs:63`), as noites **02, 03 e 04/jul não produziram run válido** — incluindo ≥1 noite JÁ com o fix 4G mergeado (07-02). O "falta 1 nightly PROVAR o 4G" do _ROADMAP segue em aberto **e agora com suspeita nova** (ver hipótese H1 abaixo) | órfã `git show FETCH_HEAD:governance/nightly-floor.json` (floor 298, hash `637fb9978f839423`, runs 0628: f339/e782/s2766 · 0630: f352/e796/s2700 · 0701: f336/e784/s2789) |
+| Coverage P07 (métrica) | ⬜ `not_yet_measured` — nenhum clover válido ainda | órfã `governance/nightly-coverage.json`: tudo `null`, "aguardando >=1 nightly com clover valido (pcov na imagem CT100)" |
+
+**Baseline de abertura do P04 (Passo 1 — REGISTRADA aqui, atualiza a estimativa 295/2564):** floor de abertura = **298** (hash `637fb9978f839423`, computed_at 20260701-020001) · skipped de abertura = **2789** (último run válido 20260701; janela 2766/2700/2789). DoD-3 anti-mascaramento compara contra ESTES números.
+
+**H1 — hipótese principal das 3 noites mortas (verificar ANTES de tudo):** o script instalado é uma **CÓPIA** (`ct100-fullsuite.sh:6-7`: "Instalado em /opt/oimpresso-fullsuite/ct100-fullsuite.sh — atualizar lá após merge"). Se ninguém copiou pós-merges de 07-02 (#3622/#3629/#3676), o CT100 ainda roda o script velho (2G e/ou pcov no mesmo processo) → morre toda noite igual 20260702-073601. É a 1ª verificação da sessão CT100.
+
+### (b) Sequência executável — sessão CT100 (`tailscale ssh root@ct100-mcp`)
+
+**Fase 0 — reviver a nightly (bloqueador absoluto; sem run válido nada é medível):**
+```bash
+# 0.1 — H1: a cópia instalada é o canônico?
+diff /opt/oimpresso-fullsuite/ct100-fullsuite.sh /opt/oimpresso-fullsuite/code/scripts/tests/ct100-fullsuite.sh
+# se divergir: copiar o versionado por cima (após git fetch/reset do clone code/) — é deploy previsto no header do script, não drift
+
+# 0.2 — post-mortem das 3 noites mortas (runs ficam 14 noites — KEEP_RUNS=14)
+ls /opt/oimpresso-fullsuite/runs/
+for d in /opt/oimpresso-fullsuite/runs/2026070{2,3,4}-*; do
+  echo "== $d"; tail -20 "$d/run.log" | grep -E 'ALERT|pest exit|done'
+  grep 'Test Prepared (' "$d/pest-events.txt" 2>/dev/null | tail -1   # teste em voo no kill
+  cat "$d/summary.json" 2>/dev/null | head -5
+done
+df -h /   # 2º killer suspeito: disco ~95% (_ROADMAP FV-F1)
+
+# 0.3 — se o post-mortem mostrar OOM ainda a 4G: subir pra 6G no Run 1 (teto provado pelo Run 2)
+#       → é mudança no CANÔNICO (PR em scripts/tests/ct100-fullsuite.sh:243) + re-copiar pro /opt. Nunca editar só o /opt (drift).
+
+# 0.4 — re-run manual (ou esperar cron 02:00 BRT; Wagner é o gate do re-run — R10)
+/opt/oimpresso-fullsuite/ct100-fullsuite.sh
+```
+
+**Fase 1 — MEDIR o piloto self-heal (kill-criteria do #3507):** o 1º run válido pós-#3507 tem que mostrar queda das `QueryException` FK biz=1 (~57% do floor, 454 falhas "Cannot add or update a child row"). Ler a órfã: `git fetch origin governance/nightly-floor && git show FETCH_HEAD:governance/nightly-floor.json`. **Sem queda medida → NÃO escalar fan-out; reabrir root-cause** (regra dura: MEDIR cada passo, nunca previsão-como-fato).
+
+**Fase 2 — derivar a lista per-file dos 298 (a lista NÃO está no git — só o hash):**
+```bash
+# no CT100, com >=2 runs válidos em /opt/oimpresso-fullsuite/runs/:
+cd /opt/oimpresso-fullsuite/code
+node -e '
+import("./scripts/tests/floor-compute.mjs").then(m => {
+  const runs = m.validRuns("/opt/oimpresso-fullsuite/runs").slice(-3);
+  let inter = new Set(runs[0].failingFiles);
+  for (const r of runs.slice(1)) { const s = new Set(r.failingFiles); inter = new Set([...inter].filter(x => s.has(x))); }
+  [...inter].sort().forEach(f => console.log(f));
+})'
+# sanity: wc -l == floor_count da órfã; agrupar por módulo com: | sed "s|/Tests/.*||;s|tests/Feature/.*|tests/Feature|" | sort | uniq -c | sort -rn
+# junit bruto por classe de exceção (root-cause por cluster): /opt/oimpresso-fullsuite/runs/<ts>/junit.xml + summary.json (files[])
+```
+
+**Fase 3 — ordem de ataque por cluster (maior alavanca primeiro):**
+1. **Seed-wipe residual** (o que o self-heal NÃO curou — medir primeiro): clusters `business/owner` 121 · `nfe_certificados` 22 (_ROADMAP Fase 1.1). PRs cirúrgicos no seed/trait, não por módulo.
+2. **Fan-out ExpectationFailed (322, asserts reais)** — RIGOROSAMENTE 1 módulo/agent, áreas disjuntas: `tests/Feature` raiz **89** (infra compartilhada, PRIMEIRO e sozinho) → OficinaAuto 29 → PaymentGateway 20 → KB 17 → NfeBrasil 16 → Financeiro 14 → Superadmin 12 → cauda (≤9). 1 PR = 1 intent ≤300 linhas, `Refs: SDD P04 burn-down`, lane CI verde (`gh pr checks`).
+3. **Após CADA lote:** Wagner re-roda nightly (ou cron) → re-derivar floor da órfã ANTES de declarar progresso. O scorecard main acompanha via commit-back (P01, já vivo).
+4. **Floor=0 não-quarentenado → abrir a janela das 7 noites** (DoD 1-2: 7 `computed_at` consecutivos com `floor_count: 0` + p95 ≤25min).
+
+### (c) Kill-criteria e o que NÃO fazer
+
+- ⛔ **Quarentena em massa** — skipped já está em ~2700-2789 (~25% da suite). DoD-3: skipped da última nightly ≤ **2789** (baseline acima). Subiu = trapaça, reabre P04.
+- ⛔ **Suite local/Hostinger** — CT100 only (ADR 0062/0101; hook `block-test-fora-ct100`).
+- ⛔ **Editar só o `/opt` do CT100** — todo fix de harness é PR no canônico (`scripts/tests/`) + re-cópia; e harness é P01/P03/P07, **não P04** (P04 só consome).
+- ⛔ **Escalar fan-out sem a Fase 1 medida** — kill-criteria do piloto #3507.
+- ⚠️ **P14 mudou o custo do erro:** floor agora morde no required — um lote que SOBE o floor (>298) trava merge do repo inteiro (red-until-fixed coletivo). Re-derivar a órfã antes de cada push de lote.
+- ⛔ **Não flipar R1** — segue P13/decisão Wagner pendente nº1 do _ROADMAP (R1 × ADR 0314; recomendação técnica: floor como métrica no GT-G3, decidir só com floor=0×7).
+
+### (d) O que continua bloqueado (1 linha cada)
+
+- **Medição do piloto self-heal:** bloqueada por 1 nightly VÁLIDA — 3 noites mortas (02-04/jul), post-mortem CT100-bound (Fase 0/H1).
+- **Lista per-file dos 298:** só o hash vive no git; a lista é derivável apenas dos `summary.json` no CT100 (Fase 2).
+- **Coverage P07:** `nightly-coverage.json` todo `null` — aguarda 1º clover válido (pcov na imagem), não bloqueia P04 mas compartilha as noites.
+- **Janela das 7 noites:** relógio de calendário — só abre com floor=0; nenhuma IA acelera.
+- **Re-run nightly:** gate humano (Wagner dispara ou cron 02:00 BRT — R10).
+- **US-GOV-019 resíduo (91 quarentena + 11 unclear):** os 11 unclear são decisão Wagner; os 91 entram no burn-down como FIX-ou-quarentena-com-dono, nunca skip novo.
+- **Validador de schema do doc:** N/A verificado — nenhum linter em `scripts/governance/*.mjs` cobre `roadmap/` (anchor-lint/charter-lint são de SPEC/charter); sem gate a rodar neste append.
