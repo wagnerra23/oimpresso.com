@@ -352,6 +352,41 @@ function checkLimbo() {
   }
 }
 
+// ── Check V: LINKS internos quebrados na canon front-facing ──────────────────
+// Determinístico, ZERO falso-positivo (o alvo existe ou não). SOTA docs-as-code
+// (lychee/lint). Escopo: docs que um humano LÊ (raiz + governance + reference);
+// exclui sessions/handoffs/decisions/proposals (append-only/histórico — link morto
+// lá é registro de época, não bug vivo). Resolve caminho relativo em posix. Warn-only.
+const LINK_CANON = (rel) => /^(README|CLAUDE|DESIGN)\.md$/.test(rel)
+  || /^memory\/[^/]+\.md$/.test(rel)
+  || /^memory\/(governance|reference)\/[^/]+\.md$/.test(rel);
+function resolveRel(fromRel, link) {
+  const base = fromRel.includes('/') ? fromRel.slice(0, fromRel.lastIndexOf('/')) : '';
+  const stack = base ? base.split('/') : [];
+  for (const seg of link.split('/')) {
+    if (seg === '..') stack.pop();
+    else if (seg !== '.' && seg !== '') stack.push(seg);
+  }
+  return stack.join('/');
+}
+function checkBrokenLinks() {
+  const files = [...listFiles('memory', (p) => p.endsWith('.md')), 'README.md', 'CLAUDE.md', 'DESIGN.md'].filter(LINK_CANON);
+  const broken = [];
+  for (const rel of files) {
+    let txt = ''; try { txt = read(rel); } catch { continue; }
+    for (const m of txt.matchAll(/\]\((?!https?:|mailto:|#)([^)]+)\)/g)) {
+      const p = m[1].split('#')[0].trim();
+      if (!p || p.startsWith('/')) continue; // vazio/âncora/absoluto — fora
+      const target = resolveRel(rel, p);
+      if (target && !existsSync(join(ROOT, target))) broken.push({ file: rel, link: p });
+    }
+  }
+  if (broken.length) {
+    warns.push({ check: 'V', kind: 'link-quebrado', count: broken.length, sample: broken.slice(0, 15),
+      msg: `${broken.length} link(s) interno(s) quebrado(s) na canon front-facing (alvo inexistente) — determinístico, sem FP. Corrigir slug/caminho (ADR renomeada? use o slug real; arquivo movido/esquecido? re-apontar). 🟡 sentinela.` });
+  }
+}
+
 // ── Check E: drift de enum status/lifecycle em ADR ──────────────────────────
 // Enums canônicos do scripts/memory-schemas/adr.schema.json. Append-only bloqueia
 // editar ADR ratificada in-place — então normalizar é no leitor OU override
@@ -758,6 +793,7 @@ checkStaleCanon();
 try { checkStaleEntryLayer(); } catch (e) { warns.push({ check: 'S', kind: 'entrada-stale-error', msg: 'entrada-stale falhou (não bloqueia): ' + e.message }); } // Check S (sentinela frescor camada de entrada)
 try { checkFactAnchor(); } catch (e) { warns.push({ check: 'T', kind: 'fato-ancora-error', msg: 'fact-anchor falhou (não bloqueia): ' + e.message }); } // Check T (fact-anchor determinístico)
 try { checkLimbo(); } catch (e) { warns.push({ check: 'U', kind: 'limbo-error', msg: 'limbo falhou (não bloqueia): ' + e.message }); } // Check U (limbo: drafts parados + homônimos)
+try { checkBrokenLinks(); } catch (e) { warns.push({ check: 'V', kind: 'link-quebrado-error', msg: 'link-quebrado falhou (não bloqueia): ' + e.message }); } // Check V (links internos quebrados)
 checkAdrEnumDrift();
 checkAntiResurrection();
 checkGatesRegistry();

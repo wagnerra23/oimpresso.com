@@ -243,3 +243,31 @@ describe('memory-health — Check U: limbo (pile de proposals + dir homônimo, f
     expect(out).toMatch(/dominio/);
   });
 });
+
+describe('memory-health — Check V: links internos quebrados (canon front-facing, físico)', () => {
+  it('SENSIBILIDADE: link relativo pra alvo inexistente → 🟡 link-quebrado', () => {
+    write('memory/reference/doc.md', '# doc\n\nVeja [outro](nao-existe.md) aqui.\n');
+    const out = run();
+    expect(out).toMatch(/link-quebrado/);
+    expect(out).toMatch(/nao-existe\.md/);
+  });
+
+  it('ESPECIFICIDADE: link pra alvo existente → sem warn V', () => {
+    write('memory/reference/doc.md', '# doc\n\nVeja [alvo](alvo.md) aqui.\n');
+    write('memory/reference/alvo.md', '# alvo\n');
+    const out = run();
+    expect(out).not.toMatch(/link-quebrado/);
+  });
+
+  it('ESPECIFICIDADE: link http/âncora não é escaneado', () => {
+    write('memory/reference/doc.md', '# doc\n\n[web](https://x.com) e [ancora](#secao).\n');
+    const out = run();
+    expect(out).not.toMatch(/link-quebrado/);
+  });
+
+  it('ESPECIFICIDADE: link em session/ (fora do escopo canon) não é escaneado', () => {
+    write('memory/sessions/2026-01-01-s.md', '# s\n\n[morto](nao-existe.md)\n');
+    const out = run();
+    expect(out).not.toMatch(/link-quebrado/);
+  });
+});
