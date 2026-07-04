@@ -25,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const HEALTH = join(HERE, 'memory-health.mjs');
-const MODULE = 'Auditoria'; // módulo-alvo (tem SPEC.md — tasks-create exige)
+const MODULE = 'Governance'; // módulo-alvo: higiene de conhecimento = meta-governança (tem SPEC.md — tasks-create exige)
 
 // Curadoria: kind do memory-health → {título estável, prioridade}. Só acionáveis-1-task.
 const ACTIONABLE = {
