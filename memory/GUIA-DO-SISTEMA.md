@@ -140,6 +140,31 @@ Fonte completa: [proibicoes.md](proibicoes.md). As que mais te afetam:
 
 ---
 
+## Backbone operacional — como tudo se conecta
+
+> Como tarefas, backlog, changelog, ciclos e histórico ficam **em máquina e integrados** (auditoria 2026-07-04).
+
+**A fonte é o git; o MCP é cache governado** (nunca o inverso — [ADR 0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)):
+
+```
+git memory/ (FONTE DE VERDADE)
+   │ push → webhook → MCP server ingere → mcp_* tables (cache vivo, ADR 0053, reconcile por ID ADR 0144)
+   ├─ tools MCP leem o cache vivo:  tasks-* · cycles-* · decisions-* · sessions-recent
+   ├─ ÍNDICES gerados da fonte:  decisions/_INDEX-GENERATED (gated) · requisitos/_BACKLOG-GENERATED (Check W)
+   ├─ HISTÓRIA append-only:  handoffs (ADR 0130) + session logs + git log
+   └─ AUDITORIA do drift:  memory-health (Checks S–W) → gov-sync propõe → Story (DoD = sentinela zera)
+```
+
+| Sistema | Onde vive / máquina |
+|---|---|
+| **Tarefas / backlog** | US-* nos `SPEC.md` (git canon) → `mcp_tasks` (cache). Índice `_BACKLOG-GENERATED` (gerado). Tools `tasks-*`. |
+| **ADRs** | `decisions/*.md` (Nygard) → índice `_INDEX-GENERATED` (gerado + gated). Tool `decisions-search`. |
+| **Changelog** | git history + índices gerados + shipped-logs. O `CHANGELOG.md` manual está **congelado** (legado abr/2026). |
+| **Ciclos** | `mcp_cycles` (Linear-style, `cycles-*`). **Modo atual: off-cycle** (fluxo contínuo desde CYCLE-08) — reativar é `cycles-create` quando quiser planejar em janelas de 2 semanas. |
+| **Histórico** | git (canon) + handoffs append-only + session logs → sincroniza pro MCP (time vê via `sessions-recent`). |
+
+> **Modo off-cycle é intencional** (não um bug): o projeto roda em fluxo contínuo; velocity/burndown por cycle ficam dormentes até um `cycles-create`. O cron mantém o shipped-log do último cycle.
+
 ## Navegação — pra ir fundo
 
 | Quero... | Vá pra |
