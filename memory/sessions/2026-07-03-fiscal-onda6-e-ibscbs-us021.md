@@ -4,7 +4,7 @@ topic: 'Onda 6 Fiscal completa + US-FISCAL-021 IBS/CBS destravada (PR-A/B/C merg
 authors: [C]
 outcomes:
   - 'Onda 6 Fiscal: 4 PRs mergeados (ficha 75, inventário+2 US, régua 7 telas, catraca)'
-  - 'US-FISCAL-021 IBS/CBS: PR-A/B/C mergeados (pin dev-master + cálculo + flag); PR-D serialização em chip'
+  - 'US-FISCAL-021 IBS/CBS: PR-A/B/C/D mergeados (pin dev-master + cálculo + flag + serialização grupo UB) — done end-to-end (PR-D #3778 fechado 2026-07-04, ver Continuação)'
   - 'US-FISCAL-022 health-check cert mergeado (#3775, via chip)'
   - 'Back-compat dev-master provado verde no CI (Pest NfeBrasil MySQL na main atual)'
 prs: [3738, 3753, 3761, 3764, 3771, 3772, 3774, 3775]
@@ -54,3 +54,23 @@ Sessão épica, duas frentes. **(1) Programa de Ondas — Onda 6 Fiscal COMPLETA
 
 ## Pointers
 - ADR 0321 (memory/decisions/) · CAPTERRA-FICHA/INVENTARIO Fiscal · PLANO-MESTRE Onda 6 · US-FISCAL-021 timeline (tasks-detail).
+
+---
+
+## Continuação 2026-07-04 — PR-D FECHADO (serialização grupo UB) — US-FISCAL-021 done end-to-end
+
+Sessão seguinte pegou o chip PR-D e fechou a última etapa.
+
+- **PR-D** ([#3778](https://github.com/wagnerra23/oimpresso.com/pull/3778), merged `10c41d6a`): `NfeService::adicionarItem(+bool $reformaAtiva)` monta `tagIBSCBS` (gated) a partir do sub-array `ibscbs` do det + `tagIBSCBSTot` (auto-derivado do acumulado por-item). Mapeia `ibscbs` do TributoCalculado nos 2 sites de dets (emitirParaInvoice + emitirDeTransaction).
+- **Prova (REGRA MESTRE) — verde na lane `NfeBrasil · MySQL` (lib e075ec4), 100 passed:** valor por 2 caminhos (motor `valor_ibs/valor_cbs` == XML `vIBSUF/vCBS` == base×alíquota) · XSD-válido PL_010_V1 (exceto assinatura, adicionada no signNFe) · legacy byte-idêntico · full-sem-CST omite · turning-on-sem-regra == legacy. Apresentei tabela antes→depois a [W] antes do merge; [W] aprovou ("merge").
+- **Modelagem v1 documentada (decisões):** (1) régua guarda UMA alíquota IBS combinada → lançamos 100% em `gIBSUF`, `gIBSMun` zerado (`vIBS`=vIBSUF+vIBSMun == valor_ibs do motor); (2) CST único no grupo = `cst_ibs`. Alíquotas em fração (0.18=18%) → percentual no XML (×100).
+- **Follow-up aberto:** [US-FISCAL-024](https://github.com/wagnerra23/oimpresso.com/pull/3784) (merged na SPEC) — split UF/Município (coluna de schema) pra business `full` com alíquotas UF≠Mun. p2, não bloqueia ativação inicial. **Numerada 024 não 023** (023 é número queimado — lápide na SPEC Fiscal; `tasks-create` reincidiu no dedup-bug).
+
+### Lições novas
+- **CI trigger em PR empilhada/force-pushed fica errático:** commits vazios não disparam lanes path-filtered; flip de base (`edited`) não re-roda; a lane fiscal roda `allowlist` explícito → **teste novo NÃO roda até ser adicionado ao allowlist do `nfebrasil-pest.yml`**. Usei `gh workflow run` (workflow_dispatch) pra forçar run autoritativo na branch. Régua limpa só veio após `rebase --onto origin/main <pr-c-tip>` (des-empilhar).
+- **Staging CT100 drift again:** vendor em `f49d543e` (≠ lock `e075ec4`); `TraitTagDetIBSCBS` mudou entre os dois → **assinatura tem que vir do SHA pinado**, não do staging. E o checkout na staging abortou por WIP de sessão concorrente (`tests/Feature/Calculo/`) — não mexi.
+- **Achado de governança:** `require_code_owner_reviews: true` + `required_approving_review_count: 0` → review code-owner **não é gate real** (PR-D fiscal mergeou sem aprovação humana explícita, só CI verde). Pra tornar gate → count ≥1.
+
+### Próximo passo crítico (prazo 03/08/2026 CRT 3)
+- **Smoke real homologação SEFAZ** com 1 business em `full` + regra IBS/CBS real → emitir NF-e 55 → confirmar cStat 100. É humano-limitado (cert+SEFAZ). Relaciona-se com a trilha dormente Gold **US-NFE-046** (smoke homologação SEFAZ-SP).
+- Decidir se o business-alvo precisa do split UF/Mun (US-FISCAL-024) ANTES de ativar.
