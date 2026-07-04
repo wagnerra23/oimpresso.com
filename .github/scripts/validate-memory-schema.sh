@@ -261,6 +261,18 @@ validate_session() {
     fi
     if [[ -z "$topic" ]]; then
       add_violation "$file" "error" "Session frontmatter campo 'topic' obrigatório ausente"
+    else
+      # Alinha com session.schema.json (topic minLength 5 / maxLength 250) — o CI
+      # (memory-schema-gate.yml, Ajv + ajv-formats sobre o frontmatter inteiro)
+      # aplica o JSON Schema completo; este check evita o falso "erros: 0" local.
+      # Incidente 2026-07-04: topic >250 chars passou aqui e reprovou no ajv do CI.
+      local topic_len
+      topic_len="$(printf '%s' "$topic" | "$PYTHON_BIN" -c 'import sys; print(len(sys.stdin.buffer.read().decode("utf-8", "replace")))')"
+      if (( topic_len > 250 )); then
+        add_violation "$file" "error" "Session topic com ${topic_len} chars — session.schema.json exige maxLength 250 (ajv do CI reprova)"
+      elif (( topic_len < 5 )); then
+        add_violation "$file" "error" "Session topic com ${topic_len} chars — session.schema.json exige minLength 5 (ajv do CI reprova)"
+      fi
     fi
   else
     add_violation "$file" "warn" "Session sem frontmatter YAML (legacy aceito; recomendado adicionar)"
@@ -365,6 +377,7 @@ done
 
 TOTAL=$#
 echo "Arquivos validados: $((TOTAL - SKIPPED)) (skipados: ${SKIPPED}) — erros: ${FAILED}" >&2
+echo "NOTA: este script cobre filename + seções do corpo + campos mínimos. O JSON Schema COMPLETO (maxLength, enums, patterns de prs/us/related_adrs) é aplicado pelo Ajv no CI (memory-schema-gate.yml, job 'Validate frontmatter against schema') — 'erros: 0' aqui NÃO garante ajv verde." >&2
 
 if [[ "$FAILED" -gt 0 ]]; then
   exit 1
