@@ -1,6 +1,7 @@
 ---
 page: /contacts/import
 component: resources/js/Pages/Cliente/Import.tsx
+related_us: [US-CRM-082, US-MWART-005]
 owner: wagner
 status: live
 last_validated: "2026-06-24"

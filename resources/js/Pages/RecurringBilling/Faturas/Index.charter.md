@@ -1,6 +1,7 @@
 ---
 page: /recurring-billing/faturas
 component: resources/js/Pages/RecurringBilling/Faturas/Index.tsx
+related_us: [US-RB-042, US-RB-047]
 owner: wagner
 status: live
 last_validated: "2026-05-17"

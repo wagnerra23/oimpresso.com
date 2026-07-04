@@ -1,6 +1,7 @@
 ---
 page: /atendimento/macros
 component: resources/js/Pages/Atendimento/Macros/Index.tsx
+related_us: [US-WA-048]
 owner: wagner
 status: live
 last_validated: "2026-05-16"

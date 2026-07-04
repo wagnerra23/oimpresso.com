@@ -1,6 +1,7 @@
 ---
 page: /atendimento/metricas
 component: resources/js/Pages/Atendimento/Metricas/Index.tsx
+related_us: [US-WA-041]
 owner: wagner
 status: live
 last_validated: "2026-05-16"

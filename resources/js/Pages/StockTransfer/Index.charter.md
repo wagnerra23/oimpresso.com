@@ -1,6 +1,7 @@
 ---
 page: /stock-transfers
 component: resources/js/Pages/StockTransfer/Index.tsx
+related_us: [US-MWART-007]
 tela: stock_transfers/index
 tipo: LIST
 modulo: Inventory / StockTransfer

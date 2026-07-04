@@ -1,6 +1,7 @@
 ---
 page: /produto/unificado
 component: resources/js/Pages/Produto/Unificado/Index.tsx
+related_us: [US-PROD-023, US-MWART-006]
 owner: wagner
 status: draft
 last_validated: "2026-05-09"

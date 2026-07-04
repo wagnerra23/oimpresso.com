@@ -1,6 +1,7 @@
 ---
 page: /project-mgmt/board
 component: resources/js/Pages/ProjectMgmt/Board/Index.tsx
+related_us: [US-TR-307]
 owner: wagner
 status: live
 last_validated: "2026-05-08"

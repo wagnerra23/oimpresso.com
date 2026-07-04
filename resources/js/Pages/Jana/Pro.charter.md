@@ -1,6 +1,7 @@
 ---
 page: /ia/pro
 component: resources/js/Pages/Jana/Pro.tsx
+related_us: [US-COPI-118]
 owner: wagner
 status: live
 last_validated: "2026-06-01"

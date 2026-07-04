@@ -1,6 +1,7 @@
 ---
 page: /stock-transfers/create
 component: resources/js/Pages/StockTransfer/Create.tsx
+related_us: [US-MWART-007]
 tela: stock_transfers/create
 tipo: FORM CREATE
 modulo: Inventory / StockTransfer

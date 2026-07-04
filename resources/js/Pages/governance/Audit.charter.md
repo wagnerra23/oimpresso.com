@@ -1,6 +1,7 @@
 ---
 page: /governance/audit
 component: resources/js/Pages/governance/Audit.tsx
+related_us: [US-GOV-003]
 owner: wagner
 status: live
 last_validated: "2026-05-16"

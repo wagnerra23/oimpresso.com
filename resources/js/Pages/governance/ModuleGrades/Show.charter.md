@@ -1,6 +1,7 @@
 ---
 page: /governance/module-grades/{name}
 component: resources/js/Pages/governance/ModuleGrades/Show.tsx
+related_us: [US-GOV-007]
 route: /governance/module-grades/{name}
 status: live
 owner: wagner

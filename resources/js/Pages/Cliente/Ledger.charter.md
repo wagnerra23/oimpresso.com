@@ -1,6 +1,7 @@
 ---
 page: /contacts/ledger
 component: resources/js/Pages/Cliente/Ledger.tsx
+related_us: [US-CRM-084, US-MWART-005]
 owner: wagner
 status: live
 last_validated: "2026-06-24"

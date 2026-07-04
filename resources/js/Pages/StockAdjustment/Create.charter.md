@@ -1,6 +1,7 @@
 ---
 page: /stock-adjustments/create
 component: resources/js/Pages/StockAdjustment/Create.tsx
+related_us: [US-MWART-007]
 tela: stock_adjustment/create
 tipo: FORM CREATE
 modulo: Inventory / StockAdjustment

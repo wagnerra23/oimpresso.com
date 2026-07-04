@@ -1,6 +1,7 @@
 ---
 page: /essentials/reminder
 component: resources/js/Pages/Essentials/Reminders/Index.tsx
+related_us: [US-ESS-008]
 owner: wagner
 status: live
 last_validated: "2026-05-17"

@@ -1,6 +1,7 @@
 ---
 page: /products/add-selling-prices/{id}
 component: resources/js/Pages/Produto/SellingPrices.tsx
+related_us: [US-PROD-022, US-PROD-023]
 owner: wagner
 status: draft
 last_validated: "2026-05-15"

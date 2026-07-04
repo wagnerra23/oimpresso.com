@@ -1,6 +1,7 @@
 ---
 page: /products
 component: resources/js/Pages/Produto/Index.tsx
+related_us: [US-PROD-023, US-MWART-006]
 bundle_source: produtos-page.jsx
 owner: wagner
 status: draft

@@ -1,6 +1,7 @@
 ---
 page: /cliente/{id} (canon) · /contacts/{id} (legacy dual-render)
 component: resources/js/Pages/Cliente/Show.tsx
+related_us: [US-CRM-063, US-CRM-064, US-CRM-065, US-CRM-066, US-CRM-067, US-CRM-068, US-CRM-069, US-CRM-070]
 owner: wagner
 status: deprecated
 status_detail: superseded

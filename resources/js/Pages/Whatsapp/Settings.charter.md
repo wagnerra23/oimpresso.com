@@ -1,6 +1,7 @@
 ---
 page: /whatsapp/settings
 component: resources/js/Pages/Whatsapp/Settings.tsx
+related_us: [US-WA-001, US-WA-067]
 owner: wagner
 status: live
 last_validated: "2026-05-27"

@@ -1,6 +1,7 @@
 ---
 page: /atendimento/canais/jana-templates
 component: resources/js/Pages/Atendimento/JanaTemplates.tsx
+related_us: [US-WA-070]
 owner: wagner
 status: live
 last_validated: "2026-05-12"

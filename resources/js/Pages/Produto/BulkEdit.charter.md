@@ -1,6 +1,7 @@
 ---
 page: /products/mass-edit
 component: resources/js/Pages/Produto/BulkEdit.tsx
+related_us: [US-PROD-023]
 owner: wagner
 status: draft
 last_validated: "2026-05-15"

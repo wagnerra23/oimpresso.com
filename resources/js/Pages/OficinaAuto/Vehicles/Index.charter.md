@@ -1,6 +1,7 @@
 ---
 page: /oficina-auto/vehicles
 component: resources/js/Pages/OficinaAuto/Vehicles/Index.tsx
+related_us: [US-OFICINA-001]
 owner: wagner
 status: live
 last_validated: "2026-05-26"

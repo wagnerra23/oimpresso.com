@@ -1,6 +1,7 @@
 ---
 page: /jana/chat
 component: resources/js/Pages/Jana/Chat.tsx
+related_us: [US-COPI-001, US-COPI-105]
 owner: wagner
 status: live
 last_validated: "2026-05-18"

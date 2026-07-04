@@ -1,6 +1,7 @@
 ---
 page: /vendas/caixa
 component: resources/js/Pages/Sells/Caixa/Index.tsx
+related_us: [US-MWART-004]
 owner: wagner
 status: draft
 status_detail: rascunho

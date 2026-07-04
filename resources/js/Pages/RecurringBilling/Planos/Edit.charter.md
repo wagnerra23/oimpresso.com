@@ -1,6 +1,7 @@
 ---
 page: /recurring-billing/planos/{id}/editar
 component: resources/js/Pages/RecurringBilling/Planos/Edit.tsx
+related_us: [US-RB-001]
 owner: wagner
 status: live
 last_validated: "2026-05-17"

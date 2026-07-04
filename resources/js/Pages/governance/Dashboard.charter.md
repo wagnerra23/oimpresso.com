@@ -1,6 +1,7 @@
 ---
 page: /governance
 component: resources/js/Pages/governance/Dashboard.tsx
+related_us: [US-GOV-001, US-COPI-098]
 owner: wagner
 status: live
 last_validated: "2026-05-09"

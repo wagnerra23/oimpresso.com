@@ -1,6 +1,7 @@
 ---
 page: /atendimento/caixa-unificada
 component: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx
+related_us: [US-WA-012, US-WA-055, US-WA-066, US-WA-091, US-WA-095]
 owner: wagner
 status: live
 last_validated: "2026-06-18"

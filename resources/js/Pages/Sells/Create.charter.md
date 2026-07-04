@@ -1,6 +1,7 @@
 ---
 page: /sells/create
 component: resources/js/Pages/Sells/Create.tsx
+related_us: [US-SELL-001, US-SELL-003, US-SELL-004, US-SELL-005, US-SELL-006, US-SELL-007, US-SELL-053]
 owner: wagner
 status: live
 last_validated: "2026-06-02"

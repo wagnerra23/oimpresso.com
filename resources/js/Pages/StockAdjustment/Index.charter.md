@@ -1,6 +1,7 @@
 ---
 page: /stock-adjustments
 component: resources/js/Pages/StockAdjustment/Index.tsx
+related_us: [US-MWART-007]
 tela: stock_adjustment/index
 tipo: LIST
 modulo: Inventory / StockAdjustment
