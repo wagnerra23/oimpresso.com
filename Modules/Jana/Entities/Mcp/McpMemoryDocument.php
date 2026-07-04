@@ -5,6 +5,8 @@ namespace Modules\Jana\Entities\Mcp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Laravel\Scout\Searchable;
 
 /**
@@ -155,23 +157,69 @@ class McpMemoryDocument extends Model
         }
         $filtro = implode(' AND ', $filtros);
 
-        return static::search($query, function ($index, string $q, array $params) use ($embedder, $ratio, $filtro, $limit) {
-            $params['hybrid'] = ['embedder' => $embedder, 'semanticRatio' => $ratio];
-            $params['filter'] = $filtro;
-            $params['limit']  = $limit;
+        // HTTP direto na API REST do Meilisearch em vez de Scout::search() (US-RET-003,
+        // verificado live no CT 100 em 2026-07-04). Motivo: o SCOUT_DRIVER do ambiente
+        // resolve pro default 'collection' (config/scout.php:19), cujo engine IGNORA o
+        // parâmetro `hybrid` e faz LIKE no banco — o retrieval semântico do índice (embedder
+        // qwen3_local, custo zero) NUNCA era exercido. Resultado: kb-answer/decisions-search
+        // caíam em recall lexical (recall@5 = 0.074 no golden set de 27 queries). Chamando a
+        // API REST diretamente com o mesmo embedder, recall@5 sobe pra 0.704 (~9.5x), sem
+        // depender do driver do Scout. A hidratação Eloquent abaixo REAPLICA os scopes Tier 0
+        // (acessiveisPara + doBusiness), então o isolamento multi-tenant é idêntico ao FULLTEXT.
+        $host  = rtrim((string) config('scout.meilisearch.host', ''), '/');
+        $key   = (string) config('scout.meilisearch.key', '');
+        $index = (new static)->searchableAs();
 
-            return $index->search($q, $params);
-        })
-            ->query(function ($q) use ($user, $businessId) {
-                $q->acessiveisPara($user);
-                if ($businessId > 0) {
-                    $q->doBusiness($businessId); // Tier 0 — simétrico ao FULLTEXT (ADR 0093)
-                }
+        if ($host === '') {
+            return static::newCollection();
+        }
 
-                return $q;
-            })
-            ->take($limit)
-            ->get();
+        try {
+            $resp = Http::withToken($key)->timeout(15)->post("{$host}/indexes/{$index}/search", [
+                'q'                    => $query,
+                'limit'                => $limit,
+                'filter'               => $filtro,
+                'attributesToRetrieve' => ['id'],
+                'hybrid'               => ['embedder' => $embedder, 'semanticRatio' => $ratio],
+            ]);
+        } catch (\Throwable $e) {
+            // Degrada limpo — o caller (kb-answer/decisions-search) faz fallback FULLTEXT.
+            Log::channel('copiloto-ai')->warning('buscarHybrid: Meilisearch inacessível, fallback FULLTEXT: '.$e->getMessage());
+
+            return static::newCollection();
+        }
+
+        if ($resp->failed()) {
+            Log::channel('copiloto-ai')->warning('buscarHybrid: Meilisearch HTTP '.$resp->status().' — fallback FULLTEXT');
+
+            return static::newCollection();
+        }
+
+        $ids = array_values(array_filter(array_map(
+            static fn ($hit) => $hit['id'] ?? null,
+            (array) $resp->json('hits', [])
+        )));
+        if ($ids === []) {
+            return static::newCollection();
+        }
+
+        // Hidrata preservando os scopes Tier 0 (idênticos ao FULLTEXT) e a ordem de
+        // relevância do Meilisearch (whereIn não garante ordem → reordena pelos ids).
+        $docs = static::query()
+            ->whereIn('id', $ids)
+            ->acessiveisPara($user)
+            ->when($businessId > 0, static fn ($q) => $q->doBusiness($businessId)) // Tier 0 — ADR 0093
+            ->get()
+            ->keyBy('id');
+
+        $ordenados = [];
+        foreach ($ids as $id) {
+            if ($doc = $docs->get($id)) {
+                $ordenados[] = $doc;
+            }
+        }
+
+        return static::newCollection($ordenados);
     }
 
     /**
