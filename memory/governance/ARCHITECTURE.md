@@ -18,6 +18,7 @@ pii: false
 
 > **Versão 1.0.0 — 2026-05-05**
 > **Hierarquia:** subordinada à [Constituição](CONSTITUTION.md) v1.1.0 (Artigo 7 — Module Charter)
+> 👋 **Visão humana rápida:** [GUIA-DO-SISTEMA.md](../GUIA-DO-SISTEMA.md) (produto + como usar numa página). Este doc é o detalhe técnico arc42. **Contagens/renames abaixo são snapshot 2026-05-05** — estado vivo em [modulos/INDEX.md](../modulos/INDEX.md).
 
 Documento operacional que mapeia (a) os 30 módulos atuais, (b) o estado-alvo após renomeações + depreciações aprovadas, (c) trust level por módulo, (d) plano de execução por fase.
 

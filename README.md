@@ -2,10 +2,12 @@
 
 ERP multi-tenant pra indústria gráfica brasileira, com módulos integrados de financeiro, NFe/NFSe, ponto, CRM e copiloto IA (Jana).
 
+> 🗺️ **Novo por aqui?** Comece pelo **[Guia do Sistema](memory/GUIA-DO-SISTEMA.md)** — mapa do produto + como operar com Claude Code, numa página.
+
 ## Stack canônica
 
 - **Laravel 13.6** + PHP 8.4 (Herd local · CT 100 Proxmox · Hostinger prod)
-- **Inertia v3** + React 18 + Tailwind 4 (frontend SPA-style sobre Blade)
+- **Inertia v3** + React 19 + Tailwind 4 (frontend SPA-style sobre Blade)
 - **MySQL 8** multi-tenant via `business_id` ([ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md))
 - **nWidart Modules** — `Modules/<Nome>/` arquitetura modular
 - **Pest v4** + PHPUnit v12 — suite de testes
@@ -22,7 +24,7 @@ ERP multi-tenant pra indústria gráfica brasileira, com módulos integrados de 
 | `Modules/Financeiro/` | Contas a pagar/receber + integração Asaas |
 | `Modules/RecurringBilling/` | Cobrança recorrente + boleto |
 | `Modules/Ponto/` | Marcação de ponto (rename ex-PontoWr2) |
-| `Modules/Crm/` · `Modules/Cms/` · `Modules/ADS/` · `Modules/MemCofre/` | Apoio |
+| `Modules/Crm/` · `Modules/Cms/` · `Modules/ADS/` · `Modules/SRS/` | Apoio |
 | `Modules/Brief/` | Daily Brief MCP — estado consolidado do projeto ([ADR 0091](memory/decisions/0091-brief-mcp-tool-l7.md)) |
 
 ## Origem
@@ -52,24 +54,20 @@ php artisan migrate --seed
 
 ## Rodando testes
 
-```bash
-# Suite completa (SQLite :memory: — conforme phpunit.xml)
-vendor/bin/pest
+> ⛔ **Testes NÃO rodam local nem no Hostinger — só no CT 100** (MySQL real, biz=1 dogfooding). Regra Tier 0 ([ADR 0062](memory/decisions/0062-separacao-runtime-hostinger-ct100.md)); o hook `block-test-fora-ct100.ps1` bloqueia `vendor/bin/pest`/`php artisan test` fora do CT 100.
 
-# Módulo específico (5 módulos com CI automatizado)
-vendor/bin/pest Modules/Arquivos/Tests
-vendor/bin/pest Modules/ComunicacaoVisual/Tests
-vendor/bin/pest Modules/NfeBrasil/Tests
-vendor/bin/pest Modules/Repair/Tests
-vendor/bin/pest Modules/Vestuario/Tests
+```bash
+# Canônico — via Tailscale no container de staging do CT 100:
+tailscale ssh root@ct100-mcp \
+  "docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test --filter=NomeDoTeste"
 ```
 
-CI roda automaticamente esses 5 módulos em paralelo (matrix) em PRs que tocam `Modules/<X>/` — ver `.github/workflows/modules-pest.yml`.
+O **gate de merge é o CI GitHub Actions** (roda a suite + os módulos em paralelo). Não confie em verde local.
 
 ## Documentação canônica
 
 - [`CLAUDE.md`](CLAUDE.md) — primer técnico (≤100 linhas + imports)
-- [`memory/decisions/`](memory/decisions/) — 95+ ADRs Nygard
+- [`memory/decisions/`](memory/decisions/) — ADRs Nygard (índice vivo: [`_INDEX-GENERATED.md`](memory/decisions/_INDEX-GENERATED.md))
 - [`memory/requisitos/`](memory/requisitos/) — SPEC/RUNBOOK/CAPTERRA por módulo
 - `.claude/skills/` — 30+ skills (Tier A always-on + Tier B/C contextuais)
 

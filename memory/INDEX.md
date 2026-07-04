@@ -18,6 +18,8 @@
 
 ## 🗺️ COMO O SISTEMA FUNCIONA (arquitetura · escopo · responsabilidades)
 
+> 👋 **Entrada humana (comece por aqui):** **[GUIA-DO-SISTEMA.md](GUIA-DO-SISTEMA.md)** — mapa do produto + como operar com Claude Code numa página. O `ARCHITECTURE.md` abaixo é o detalhe técnico arc42.
+
 > "Como funciona, qual escopo, para que serve, como reconstruir responsabilidades." Estilo **arc42** (vista geral → building blocks → deployment → crosscutting → decisões). As peças vivem em git e **delegam o detalhe à fonte viva** (não duplicar = não apodrece).
 
 | Camada (arc42) | Doc canônico |
