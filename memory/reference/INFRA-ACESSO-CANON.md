@@ -62,7 +62,7 @@ tailscale ssh root@ct100-mcp '
 `developers.hostinger.com/api/dns/v1/zones/oimpresso.com` (PUT `overwrite:false`). Token no Vaultwarden (`hostinger-api-token`). A-records de serviço → **`177.74.67.30`** (IP público CT 100). Detalhe: [ADR 0045](../decisions/0045-hostinger-dns-api-endpoint-canonico.md) + [hostinger.md](hostinger.md).
 
 ## Secrets
-**Vaultwarden** `vault.oimpresso.com` (container CT 100). Índice canon: [_INDEX-SECRETS.md](_INDEX-SECRETS.md). NUNCA commitar valor; sempre ponteiro.
+**Vaultwarden** `vault.oimpresso.com` (container CT 100). Índice canon: [_INDEX-SECRETS.md](../_INDEX-SECRETS.md). NUNCA commitar valor; sempre ponteiro.
 
 ## Estado conhecido (2026-05-29)
 - ⚠️ **`oimpresso-mcp` estava 1302 commits atrás** de `origin/main` (HEAD #799). DB em dia (0 migrations pendentes). Deploy do código novo estava **bloqueado**: `Dockerfile.octane` não tinha `gd/soap/sockets/opentelemetry` → `composer install` falhava. **Corrigido no Dockerfile 2026-05-29** (rebuild necessário pra aplicar).

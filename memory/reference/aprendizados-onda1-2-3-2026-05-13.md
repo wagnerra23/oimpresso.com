@@ -146,11 +146,11 @@ Mantidas após análise completa:
 
 ## Refs
 
-- [Handoff curto piloto](handoffs/2026-05-13-0900-mcp-bugs-5prs-3auditorias-onda2-spawned.md) — 80 linhas (vs mediana 142)
-- [COMPARATIVO-MCP-ESTADO-DA-ARTE](requisitos/Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md) — 62% MCP/PM
-- [AUDITORIA-KNOWLEDGE-ARCHITECTURE](requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) — 73% PKM/RAG
-- [AUDITORIA-SESSION-HANDOFF](requisitos/Jana/AUDITORIA-SESSION-HANDOFF-2026-05-13.md) — 74% Handoff
-- [MIGRACAO-AUTO-MEM](requisitos/Jana/MIGRACAO-AUTO-MEM-2026-05-13.md) — 51 docs canon
+- [Handoff curto piloto](../handoffs/2026-05-13-0900-mcp-bugs-5prs-3auditorias-onda2-spawned.md) — 80 linhas (vs mediana 142)
+- [COMPARATIVO-MCP-ESTADO-DA-ARTE](../requisitos/Jana/COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md) — 62% MCP/PM
+- [AUDITORIA-KNOWLEDGE-ARCHITECTURE](../requisitos/Jana/AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md) — 73% PKM/RAG
+- [AUDITORIA-SESSION-HANDOFF](../requisitos/Jana/AUDITORIA-SESSION-HANDOFF-2026-05-13.md) — 74% Handoff
+- [MIGRACAO-AUTO-MEM](../requisitos/Jana/MIGRACAO-AUTO-MEM-2026-05-13.md) — 51 docs canon
 - ADRs: 0061 zero auto-mem · 0093 Multi-tenant Tier 0 · 0094 Constituição v2 · 0095 Skills Tiers · 0130 Handoff append-only · 0131 Tiering memória · 0144 DB canon
 
 ---
