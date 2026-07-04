@@ -5,6 +5,8 @@ namespace Modules\Jana\Entities\Mcp;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Laravel\Scout\Searchable;
 
 /**
@@ -155,23 +157,63 @@ class McpMemoryDocument extends Model
         }
         $filtro = implode(' AND ', $filtros);
 
-        return static::search($query, function ($index, string $q, array $params) use ($embedder, $ratio, $filtro, $limit) {
-            $params['hybrid'] = ['embedder' => $embedder, 'semanticRatio' => $ratio];
-            $params['filter'] = $filtro;
-            $params['limit']  = $limit;
+        // HTTP direto na API REST do Meilisearch em vez de Scout::search() (US-RET-003,
+        // verificado live no CT 100 em 2026-07-04). Motivo: o SCOUT_DRIVER do ambiente
+        // resolve pro default 'collection' (config/scout.php:19), cujo engine IGNORA o
+        // parâmetro `hybrid` e faz LIKE no banco — o retrieval semântico do índice (embedder
+        // qwen3_local, custo zero) NUNCA era exercido. Resultado: kb-answer/decisions-search
+        // caíam em recall lexical (recall@5 = 0.074 no golden set de 27 queries). Chamando a
+        // API REST diretamente com o mesmo embedder, recall@5 sobe pra 0.704 (~9.5x), sem
+        // depender do driver do Scout. A hidratação Eloquent abaixo REAPLICA os scopes Tier 0
+        // (acessiveisPara + doBusiness), então o isolamento multi-tenant é idêntico ao FULLTEXT.
+        $host  = rtrim((string) config('scout.meilisearch.host', ''), '/');
+        $key   = (string) config('scout.meilisearch.key', '');
+        $index = 'mcp_memory_documents'; // searchableAs() — constante deste índice
 
-            return $index->search($q, $params);
-        })
-            ->query(function ($q) use ($user, $businessId) {
-                $q->acessiveisPara($user);
-                if ($businessId > 0) {
-                    $q->doBusiness($businessId); // Tier 0 — simétrico ao FULLTEXT (ADR 0093)
-                }
+        // Collection vazia (tipo static, sem carregar linhas) — dispara o fallback FULLTEXT no caller.
+        if ($host === '') {
+            return static::query()->whereRaw('1 = 0')->get();
+        }
 
-                return $q;
-            })
-            ->take($limit)
-            ->get();
+        try {
+            $resp = Http::withToken($key)->timeout(15)->post("{$host}/indexes/{$index}/search", [
+                'q'                    => $query,
+                'limit'                => $limit,
+                'filter'               => $filtro,
+                'attributesToRetrieve' => ['id'],
+                'hybrid'               => ['embedder' => $embedder, 'semanticRatio' => $ratio],
+            ]);
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning('buscarHybrid: Meilisearch inacessível, fallback FULLTEXT: '.$e->getMessage());
+
+            return static::query()->whereRaw('1 = 0')->get();
+        }
+
+        if ($resp->failed()) {
+            Log::channel('copiloto-ai')->warning('buscarHybrid: Meilisearch HTTP '.$resp->status().' — fallback FULLTEXT');
+
+            return static::query()->whereRaw('1 = 0')->get();
+        }
+
+        $ids = array_values(array_filter(array_map(
+            static fn ($hit) => $hit['id'] ?? null,
+            (array) $resp->json('hits', [])
+        )));
+        if ($ids === []) {
+            return static::query()->whereRaw('1 = 0')->get();
+        }
+
+        // Hidrata reaplicando os scopes Tier 0 (idênticos ao FULLTEXT) e reordena pela
+        // relevância do Meilisearch (whereIn não preserva a ordem dos ids).
+        $pos = array_flip($ids);
+
+        return static::query()
+            ->whereIn('id', $ids)
+            ->acessiveisPara($user)
+            ->when($businessId > 0, static fn ($q) => $q->doBusiness($businessId)) // Tier 0 — ADR 0093
+            ->get()
+            ->sortBy(static fn ($doc) => $pos[(int) $doc->getKey()] ?? PHP_INT_MAX)
+            ->values();
     }
 
     /**
