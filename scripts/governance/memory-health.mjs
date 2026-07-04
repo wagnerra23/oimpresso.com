@@ -230,6 +230,42 @@ function checkStaleCanon() {
   }
 }
 
+// ── Check S: camada de ENTRADA stale por idade ──────────────────────────────
+// Sentinela advisory (ADR 0256 knowledge-survival + 0317 classe TEMPO). A porta de
+// entrada humana (README, Guia, ARCHITECTURE, índices) drifa em SILÊNCIO — ninguém
+// a lê pra editar, só pra entrar. O Check D só cobre reference/; esta lista explícita
+// cobre os docs que um humano/dev novo bate primeiro. Frescor = marcador in-doc se
+// houver, senão data do último commit (gitLastDate — determinístico no CI). Warn-only.
+const ENTRY_DOCS = [
+  'README.md',
+  'CLAUDE.md',
+  'memory/GUIA-DO-SISTEMA.md',
+  'memory/INDEX.md',
+  'memory/INDEX_TEMATICO.md',
+  'memory/governance/ARCHITECTURE.md',
+  'memory/why-oimpresso.md',
+  'memory/what-oimpresso.md',
+  'memory/how-trabalhar.md',
+];
+const ENTRY_STALE_MONTHS = 6;
+function checkStaleEntryLayer() {
+  const today = new Date(gitLastDate('.') || '2026-06-07'); // evita Date.now (determinismo CI)
+  const cutoff = new Date(today); cutoff.setMonth(cutoff.getMonth() - ENTRY_STALE_MONTHS);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  const sample = [];
+  for (const rel of ENTRY_DOCS) {
+    let txt = ''; try { txt = read(rel); } catch { continue; }
+    if (!txt) continue; // ausente = ignora (não inventa)
+    const m = txt.match(/(?:last_updated|reviewed_at|última atualização|ultima atualizacao)["':\s]*([\d]{4}-[\d]{2}-[\d]{2})/i);
+    const date = m ? m[1] : gitLastDate(rel);
+    if (date && date < cutoffStr) sample.push({ file: rel, date });
+  }
+  if (sample.length) {
+    warns.push({ check: 'S', kind: 'entrada-stale', count: sample.length, sample: sample.slice(0, 9),
+      msg: `${sample.length} doc(s) da CAMADA DE ENTRADA sem revisão há > ${ENTRY_STALE_MONTHS} meses — a porta de entrada humana drifa em silêncio. Revisar o fato (ou bump last_updated se ainda vale). 🟡 sentinela — não bloqueia.` });
+  }
+}
+
 // ── Check E: drift de enum status/lifecycle em ADR ──────────────────────────
 // Enums canônicos do scripts/memory-schemas/adr.schema.json. Append-only bloqueia
 // editar ADR ratificada in-place — então normalizar é no leitor OU override
@@ -633,6 +669,7 @@ checkUsCollisions(); // Check N (fail-class ratchet) — colisão de US-ID, sibl
 checkScorecardFantasma();
 checkSecretsInMemory();
 checkStaleCanon();
+try { checkStaleEntryLayer(); } catch (e) { warns.push({ check: 'S', kind: 'entrada-stale-error', msg: 'entrada-stale falhou (não bloqueia): ' + e.message }); } // Check S (sentinela frescor camada de entrada)
 checkAdrEnumDrift();
 checkAntiResurrection();
 checkGatesRegistry();
