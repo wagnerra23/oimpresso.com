@@ -2,7 +2,7 @@
 date: "2026-07-04"
 time: "17:45 BRT"
 slug: retrieval-hybrid-3791-reconciliado-adr0312
-tldr: "Sessão longa de retrieval da Jana (docs_pipeline / mcp_memory_documents). Corrigi a camada 1 (buscarHybrid via API REST direta — PR #3791 mergeado, flag OFF), refinei o runbook on-prem Gold (#3792 mergeado) e registrei US-COPI-130 (#3793 mergeado). ACHADO CRÍTICO no fechamento: a ADR 0312 (2026-06-29) desligou o hybrid de docs DELIBERADAMENTE (qwen3 recebe query raw → similaridade inverte; FULLTEXT MySQL mede melhor). Meu A/B '9.5x' comparou baseline errado (Meilisearch keyword, NÃO FULLTEXT); o ragas real dá quase empate (0.395 vs 0.422). Ligar o hybrid teria sido REGRESSÃO — Wagner escolheu esperar (correto). Camadas 2+3 bloqueadas em infra/secret."
+tldr: "Retrieval da Jana (docs_pipeline): buscarHybrid via API REST direta (#3791, flag OFF/neutro em prod), runbook on-prem Gold refinado (#3792), US-COPI-130 registrada (#3793). ACHADO no fechamento: a ADR 0312 desligou o hybrid de propósito (qwen3 query raw inverte a similaridade). O A/B '9.5x' usou baseline errado; ragas real dá empate (0.395 vs 0.422). Ligar teria regredido — Wagner esperou (correto). Camadas 2+3 bloqueadas em infra/secret."
 prs: [3791, 3792, 3793]
 related_adrs:
   - 0312-decisions-search-fulltext-hybrid-docs-off
