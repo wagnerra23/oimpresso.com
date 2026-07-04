@@ -1,5 +1,14 @@
 # Changelog do Projeto oimpresso.com
 
+> ⚠️ **CONGELADO (registro histórico).** Este changelog **manual** parou em **2026-04-22**. O changelog **vivo** agora é MÁQUINA — não se mantém este arquivo à mão (auditoria 2026-07-04):
+> - **Git history** = o changelog canônico real (`git log`).
+> - **[decisions/_INDEX-GENERATED.md](decisions/_INDEX-GENERATED.md)** — ADRs (gerado, gated).
+> - **[requisitos/_BACKLOG-GENERATED.md](requisitos/_BACKLOG-GENERATED.md)** — US/backlog (gerado por `tasks-index-generate`, sentinela Check W).
+> - **shipped-logs de cycle** (`governance/shipped/CYCLE-*.md`, cron) — o que entregou.
+> - **session logs** (`sessions/`) + **handoffs** (append-only, ADR 0130) — a narrativa.
+>
+> Mantido só como registro de época (abr/2026 pra trás). **Não editar como se fosse vivo.**
+
 Registro cronológico de mudanças estruturais, decisões arquiteturais e operações
 de manutenção. Diferente dos session logs (`sessions/YYYY-MM-DD-*.md`) que contam
 "o que foi feito em cada sessão", este arquivo lista **eventos notáveis** de forma
