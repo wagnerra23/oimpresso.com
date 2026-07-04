@@ -1455,3 +1455,21 @@ O gate CI `Jana recall-eval (mock — golden set determinístico)` está vermelh
 **Investigar:** (1) o que `estrutura_ok:false` significa (schema do golden `tests/eval/recall-golden.yaml` divergiu do que o comando espera?); (2) as 10 queries com violação são regressão real de recall ou o golden ficou stale; (3) se o gate deve ser required (hoje não é) ou é teatro a aposentar (cf. ADR 0271 subtração segura + jana-ragas-gate teatro).
 
 **Contexto:** não bloqueia merges (não-required). Fora do escopo do incidente da devolução (#3488/#3494/#3506). Não mexer em Jana sem OK Wagner.
+
+### US-COPI-130 · Reranker BGE + Contextual Retrieval no docs_pipeline (context_recall 0.42 → âncora ~0.85)
+
+**Implementado em:** _pendente_ — camada 1 (hybrid) LIVE via PR #3791 (`McpMemoryDocument::buscarHybrid` HTTP direto no Meilisearch, bypassa o Scout `collection` engine que ignorava o `hybrid`); camadas 2 (contextual) e 3 (reranker) ainda desconectadas do índice `mcp_memory_documents`
+
+> owner: — · priority: p2 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+**Contexto (medido no CT 100 staging, 2026-07-04):** o fix hybrid (PR #3791) ligou a **camada 1** (retrieval semântico) do `docs_pipeline`. Ganho comprovado em query semântica: recall@5 determinístico no golden set 0.074 → 0.704 (~9.5x), acha o doc-fonte no top-1. Porém o context_recall LLM-judged (régua [ADR 0318](../../decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md)) mal moveu — A/B limpo mesmo corpus (N=51): faithfulness 0.715→0.719, relevancy 0.875→0.880, **context_recall 0.395→0.422**. O gargalo remanescente é downstream do ranking (excerpt/chunk + reordenação), não a camada 1.
+
+**Âncora dos melhores (RAG 2026):** context_recall ~0.85-0.90. As 2 camadas que faltam já existem na casa:
+
+- **Camada 2 — Contextual Retrieval (Anthropic, ~−35% failed retrievals):** popular `contextual_context` + indexar. Os campos JÁ existem em `McpMemoryDocument` (`contextual_context`, `contextual_indexed`, `contextualized_at`) — falta o job de geração + incluir no template do embedder do índice.
+- **Camada 3 — Reranker cross-encoder (~−67% combinado):** **REUSAR** o `BgeReranker` (`Modules/Jana/Services/Retrieval/BgeReranker.php`) já implementado em **US-COPI-087** + a infra self-host de **US-COPI-107** (Onda 4 R1) — aquelas atacam o índice `jana_memoria_facts` (chat de negócio); **esta** aplica ao índice `mcp_memory_documents` (docs/ADRs, usado por `kb-answer`/`decisions-search`). Pipeline distinto, mesmo componente — NÃO recriar.
+
+**Meta:** context_recall canônico 0.42 → ~0.80-0.85 (medido por `jana:ragas-real-eval` no CT 100 staging, mesma régua do ADR 0318). Cada camada verificada por A/B (golden set + ragas) antes de promover.
+
+**Refs:** PR #3791 · ADR 0318 · US-RET-003 · US-COPI-087 (reranker existente) · US-COPI-107 (Onda 4 R1) · [RUNBOOK-bge-reranker-ct100](../Infra/RUNBOOK-bge-reranker-ct100.md)
