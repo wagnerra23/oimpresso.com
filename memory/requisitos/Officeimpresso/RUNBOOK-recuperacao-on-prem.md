@@ -1,23 +1,40 @@
 ---
 type: runbook
 module: Officeimpresso
-status: stub-em-construcao
+status: ativo
 related:
   - memory/decisions/0115-recuperacao-cliente-gold-via-bundle-oimpresso.md
+  - memory/decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md
+  - memory/decisions/0216-deploy-webhook-rodar-composer-dump-autoload.md
+  - memory/decisions/0062-separacao-runtime-hostinger-ct100.md
   - memory/requisitos/NfeBrasil/README.md
   - memory/requisitos/NfeBrasil/SPEC.md
 created_at: 2026-05-09
-last_updated: 2026-05-09
+last_updated: 2026-07-04
 trigger:
   - "Cliente on-prem em versão antiga querendo NF-e 55 (caso Gold)"
+  - "Cliente on-prem destinatário de NF-e que precisa manifestar no prazo SEFAZ (caso Gold real — ADR 0116)"
   - "Reativação de business dormente com instalação local"
   - "Trilha 1 do roadmap (49 dormentes)"
 ---
 
 # Runbook — Recuperação cliente on-prem (oimpresso Laravel)
 
-> **Caso primário:** Gold Comunicação Visual (sessão 2026-05-09, [ADR 0115](../../decisions/0115-recuperacao-cliente-gold-via-bundle-oimpresso.md)).
-> **Aplica-se a:** qualquer cliente que rode o oimpresso instalado on-prem em versão antiga e precise emitir NF-e 55 / NFC-e via `Modules/NfeBrasil`.
+> **Caso primário:** Gold Comunicação Visual (sessão 2026-05-09, [ADR 0115](../../decisions/0115-recuperacao-cliente-gold-via-bundle-oimpresso.md) + pivot [ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)).
+> **Aplica-se a:** qualquer cliente que rode o oimpresso instalado on-prem em versão antiga e precise de NF-e via `Modules/NfeBrasil` — seja **emitindo** (Trilha A) ou **manifestando** sobre notas recebidas (Trilha B).
+> **Reutilizável:** este runbook é o molde dos ~49 businesses dormentes (Trilha 1 do roadmap). O tronco (Fases 1–3) é idêntico pra todos; só as fases fiscais mudam por cliente.
+
+## Qual trilha? (a Fase 1 decide — nunca pule)
+
+Tronco comum (Fases 1–3: discovery + proposta + upgrade) + a trilha fiscal que o **discovery** escolhe:
+
+| Se o cliente… | Trilha | Fases fiscais |
+|---|---|---|
+| **emite** NF-e 55 / NFC-e (vende B2B / varejo) | **A — Emissão** | Fase 4 + 5 + 6 |
+| **recebe** NF-e e precisa manifestar no prazo (destinatário) | **B — Manifestação** ([ADR 0116](../../decisions/0116-pivot-gold-manifestacao-destinatario-emenda-0115.md)) | Fase 4-Manifestação |
+| ambos | A + B | todas |
+
+> ⚠️ **Lição do caso Gold (por que a Fase 1 é inegociável):** a demanda entrou como "emitir NF-e 55" (Trilha A), mas o discovery revelou que o dealbreaker real era **manifestar** notas recebidas (Trilha B). Ter assumido a trilha errada custaria o upgrade inteiro no escopo errado. Qualificar ANTES de propor.
 
 ## Pré-condições antes de iniciar
 
@@ -80,9 +97,13 @@ Pontos-chave:
 3. **Estratégia:**
    - Se delta < 6 meses: `git pull` + `composer install` (sem `--no-dev`) + `php artisan migrate` + `npm ci && npm run build`
    - Se delta > 6 meses: clonar `main` em paralelo, importar dump, validar, cutover DNS/Apache
-4. **Hot points:**
-   - PHP 7.x → 8.4 pode quebrar packages antigos (auto-mem `reference_diff_3_7_vs_6_7_officeimpresso.md`)
-   - `composer install --no-dev` quebra Faker em prod (auto-mem confirmado) → **NUNCA usar `--no-dev`**
+4. **Hot points (pegadinhas reais catalogadas — cada uma já derrubou prod uma vez):**
+   - PHP 7.x → 8.4 pode quebrar packages antigos (ver diff de versão 3.7→6.7 do Officeimpresso)
+   - `composer install --no-dev` quebra Faker em prod → **NUNCA usar `--no-dev`**
+   - **Pós `git pull`/`reset`, SEMPRE `composer dump-autoload`.** Sem isso, classmap fica stale → **500 em toda rota** com `laravel.log` mudo (incidente 2026-06-18). É a falha nº 1 de deploy interrompido. Ver [ADR 0216](../../decisions/0216-deploy-webhook-rodar-composer-dump-autoload.md).
+   - **`composer install` pode abortar por `ext-sodium` ausente no CLI** do servidor (puxado transitivamente por Passport/`lcobucci/jwt`), mesmo com o toggle web ligado. Fix: `--ignore-platform-req=ext-sodium` (o runtime usa RSA; sodium nunca é chamado). Incidente 2026-06-18.
+   - **`git checkout`/`pull` aborta se houver untracked colidindo** com arquivos versionados (vivido no staging 2026-07-04: 3 testes untracked). Backup primeiro, então `git clean -fd <path-escopado>` — nunca `clean` na raiz cego.
+   - **Se editar arquivo no servidor via Windows/PowerShell:** `Set-Content -Encoding utf8` grava **UTF-8 com BOM** → o BOM antes de `<?php` faz o PHP cuspir HTML e a app crashar. Use `utf8NoBOM` / `[IO.File]::WriteAllText` sem BOM. (Preferir sempre deploy via git, não edição direta — [ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md).)
    - `Modules/NfeBrasil` exige `Modules/Officeimpresso` ativo (licença)
    - Triggers MySQL imutabilidade (Portaria 671/2021) — preservar na migration
 
@@ -133,7 +154,21 @@ Análogo ao [runbook biz=1 SEFAZ-SC](../../auto/runbook_smoke_sefaz_biz1.md), ma
 
 ---
 
-**Status do runbook:** stub criado 2026-05-09. Cada fase será detalhada em US-NFE-NNN dedicada (ver ADR 0115 §Plano de execução).
+## Reutilização pros 49 dormentes (Trilha 1)
+
+O runbook é o **molde**; cada cliente gera só os artefatos por-cliente. O que é genérico vs por-cliente:
+
+| Genérico (este runbook — não re-escrever) | Por-cliente (gerar a cada recuperação) |
+|---|---|
+| As 6 fases + trilhas A/B + pegadinhas de upgrade | `discovery-<data>.md` (Fase 1) — versão, banco, cert, trilha |
+| Cláusulas Tier 0 (cert, `--no-dev`, PII) | Proposta comercial (pricing definido por Wagner por cliente) |
+| Template proposta vs Mubsys | Janela de manutenção + cutover acordados com o cliente |
+
+**Ao recuperar o próximo dormente:** (1) copie o checklist da Fase 1, (2) rode discovery → escolha a trilha, (3) siga o tronco, (4) **aprenda em "Aprendizado pós-Gold"** — o que mordeu num cliente evita retrabalho no seguinte. O runbook melhora a cada recuperação; não nasce dois.
+
+---
+
+**Status do runbook:** `ativo-v1` — refinado 2026-07-04 (trilhas A/B explícitas + pegadinhas reais de upgrade + molde de reutilização). Detalhamento fino de cada fase segue em US-NFE-NNN conforme o 1º caso real roda (ADR 0115 §Plano de execução). As lições do Gold real voltam pra cá (seção "Aprendizado pós-Gold").
 
 ---
 
