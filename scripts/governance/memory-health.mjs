@@ -266,6 +266,127 @@ function checkStaleEntryLayer() {
   }
 }
 
+// ── Check T: FACT-ANCHOR determinístico (dominio-gate generalizado p/ FATOS) ─
+// Check S/D nagam por IDADE; este ancora o FATO afirmado numa FONTE-DE-VERDADE
+// versionada (package.json/composer.json/árvore Modules/) e flagra CONTRADIÇÃO.
+// Pega o "React 18" (era 19) e "Modules/MemCofre" (renomeado→SRS) — os erros reais
+// de 2026-07-04. SOTA 2026: correção-do-fato GERAL não tem solução barata (Dosu:
+// "detecta drift, não correção"), mas o SUBCONJUNTO ancorável é 100% determinístico
+// e não precisa de LLM. Advisory primeiro (ADR 0275 — promover a fail quando maduro).
+// Generaliza o dominio-gate (ADR 0264: enum⇔dicionário) para claims de doc.
+// SÓ docs 100% current-state: aqui módulo/versão citados são SEMPRE claim atual.
+// ARCHITECTURE (tabela de renames De→Pra), INDEX/INDEX_TEMATICO (seções legadas/
+// temáticas) FICAM DE FORA — lá a menção a nome antigo é legítima (senão vira FP,
+// calibrado na 1ª rodada 2026-07-04: 18 hits → ~2 reais). Anti-teatro (ADR 0314).
+const CURRENT_STATE_DOCS = [
+  'README.md',
+  'CLAUDE.md',
+  'memory/GUIA-DO-SISTEMA.md',
+  'memory/what-oimpresso.md',
+  'memory/why-oimpresso.md',
+  'memory/how-trabalhar.md',
+];
+function majorFrom(range) { const m = String(range).match(/(\d+)/); return m ? m[1] : null; }
+function checkFactAnchor() {
+  let pkg = {}; try { pkg = JSON.parse(read('package.json')); } catch {}
+  let comp = {}; try { comp = JSON.parse(read('composer.json')); } catch {}
+  const VERSIONS = [
+    { nome: 'React', re: /React\s+(\d+)/g, truth: majorFrom(pkg?.dependencies?.react || pkg?.devDependencies?.react || '') },
+    { nome: 'Laravel', re: /Laravel\s+(\d+)/g, truth: majorFrom(comp?.require?.['laravel/framework'] || '') },
+  ];
+  const hits = [];
+  for (const rel of CURRENT_STATE_DOCS) {
+    let txt = ''; try { txt = read(rel); } catch { continue; }
+    if (!txt) continue;
+    for (const v of VERSIONS) {
+      if (!v.truth) continue;
+      for (const m of txt.matchAll(v.re)) {
+        const after = txt.slice(m.index + m[0].length, m.index + m[0].length + 8);
+        if (/^\s*(?:→|->|to|para|a)\s*\d/.test(after)) continue; // migração "X → Y": X é história, ignora
+        if (m[1] !== v.truth) hits.push({ file: rel, afirma: `${v.nome} ${m[1]}`, verdade: `${v.nome} ${v.truth}` });
+      }
+    }
+    for (const m of txt.matchAll(/Modules\/([A-Z][A-Za-z0-9]+)/g)) { // [A-Z] exige letra → placeholder Modules/<X> não casa; 0-9 evita truncar PontoWr2
+      if (!existsSync(join(ROOT, 'Modules', m[1]))) hits.push({ file: rel, afirma: `Modules/${m[1]}`, verdade: 'dir inexistente (renomeado/removido?)' });
+    }
+  }
+  if (hits.length) {
+    warns.push({ check: 'T', kind: 'fato-ancora-drift', count: hits.length, sample: hits.slice(0, 12),
+      msg: `${hits.length} FATO(s) na camada de entrada CONTRADIZ(em) a fonte-de-verdade (package.json/composer.json/Modules/). Corrigir o doc — não é idade, é erro. 🟡 advisory (ADR 0275 — promover a fail quando maduro).` });
+  }
+}
+
+// ── Check U: LIMBO — drafts de ADR parados + dirs homônimos ──────────────────
+// Único dos 3 buracos 100% determinístico (SOTA). Draft que nunca promoveu apodrece
+// silencioso; dir homônimo (dominio/ vs dominios/) racha navegação/recall. Warn-only.
+const PROPOSAL_LIMBO_DAYS = 120;
+function docDate(rel, txt) {
+  const fm = (txt || '').match(/(?:decided_at|date)["':\s]*([\d]{4}-[\d]{2}-[\d]{2})/i);
+  if (fm) return fm[1];
+  const fn = rel.match(/(\d{4}-\d{2}-\d{2})/); // data no nome do arquivo
+  if (fn) return fn[1];
+  return gitLastDate(rel);
+}
+function checkLimbo() {
+  const today = new Date(gitLastDate('.') || '2026-06-07'); // determinismo CI
+  const cutoff = new Date(today); cutoff.setDate(cutoff.getDate() - PROPOSAL_LIMBO_DAYS);
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  // Idade por git-date é MASCARADA pelo squash-restore #2413 (tudo virou commit de
+  // 2026-06-08) → sinal honesto = CONTAGEM do pile, não idade. cutoffStr fica pro
+  // ranking (mais antigo por frontmatter/nome primeiro), não pro corte.
+  void cutoffStr;
+  const props = listFiles('memory/decisions/proposals', (p) => p.endsWith('.md'))
+    .map((rel) => { let t = ''; try { t = read(rel); } catch {} return { file: rel.replace('memory/decisions/proposals/', ''), date: docDate(rel, t) }; })
+    .sort((a, b) => String(a.date).localeCompare(String(b.date)));
+  const PILE = 25;
+  if (props.length > PILE) {
+    warns.push({ check: 'U', kind: 'proposta-em-limbo', count: props.length, sample: props.slice(0, 10),
+      msg: `${props.length} draft(s) acumulado(s) em decisions/proposals/ (saudável ~${PILE}) — pile de limbo sem decaimento; triar: promover (supersede atômico) / arquivar / esquecer (ADR 0316/0270). 🟡 sentinela.` });
+  }
+  let subs = []; try { subs = readdirSync(join(ROOT, 'memory'), { withFileTypes: true }).filter((e) => e.isDirectory()).map((e) => e.name); } catch {}
+  const set = new Set(subs);
+  const homon = subs.filter((n) => set.has(n + 's')).map((n) => `${n}/ ⇄ ${n}s/`);
+  if (homon.length) {
+    warns.push({ check: 'U', kind: 'dir-homonimo', count: homon.length, sample: homon,
+      msg: `dir(s) homônimo(s) sob memory/ (confunde navegação/recall): ${homon.join(' · ')} — desambiguar (renomear um). 🟡 sentinela.` });
+  }
+}
+
+// ── Check V: LINKS internos quebrados na canon front-facing ──────────────────
+// Determinístico, ZERO falso-positivo (o alvo existe ou não). SOTA docs-as-code
+// (lychee/lint). Escopo: docs que um humano LÊ (raiz + governance + reference);
+// exclui sessions/handoffs/decisions/proposals (append-only/histórico — link morto
+// lá é registro de época, não bug vivo). Resolve caminho relativo em posix. Warn-only.
+const LINK_CANON = (rel) => /^(README|CLAUDE|DESIGN)\.md$/.test(rel)
+  || /^memory\/[^/]+\.md$/.test(rel)
+  || /^memory\/(governance|reference)\/[^/]+\.md$/.test(rel);
+function resolveRel(fromRel, link) {
+  const base = fromRel.includes('/') ? fromRel.slice(0, fromRel.lastIndexOf('/')) : '';
+  const stack = base ? base.split('/') : [];
+  for (const seg of link.split('/')) {
+    if (seg === '..') stack.pop();
+    else if (seg !== '.' && seg !== '') stack.push(seg);
+  }
+  return stack.join('/');
+}
+function checkBrokenLinks() {
+  const files = [...listFiles('memory', (p) => p.endsWith('.md')), 'README.md', 'CLAUDE.md', 'DESIGN.md'].filter(LINK_CANON);
+  const broken = [];
+  for (const rel of files) {
+    let txt = ''; try { txt = read(rel); } catch { continue; }
+    for (const m of txt.matchAll(/\]\((?!https?:|mailto:|#)([^)]+)\)/g)) {
+      const p = m[1].split('#')[0].trim();
+      if (!p || p.startsWith('/')) continue; // vazio/âncora/absoluto — fora
+      const target = resolveRel(rel, p);
+      if (target && !existsSync(join(ROOT, target))) broken.push({ file: rel, link: p });
+    }
+  }
+  if (broken.length) {
+    warns.push({ check: 'V', kind: 'link-quebrado', count: broken.length, sample: broken.slice(0, 15),
+      msg: `${broken.length} link(s) interno(s) quebrado(s) na canon front-facing (alvo inexistente) — determinístico, sem FP. Corrigir slug/caminho (ADR renomeada? use o slug real; arquivo movido/esquecido? re-apontar). 🟡 sentinela.` });
+  }
+}
+
 // ── Check E: drift de enum status/lifecycle em ADR ──────────────────────────
 // Enums canônicos do scripts/memory-schemas/adr.schema.json. Append-only bloqueia
 // editar ADR ratificada in-place — então normalizar é no leitor OU override
@@ -670,6 +791,9 @@ checkScorecardFantasma();
 checkSecretsInMemory();
 checkStaleCanon();
 try { checkStaleEntryLayer(); } catch (e) { warns.push({ check: 'S', kind: 'entrada-stale-error', msg: 'entrada-stale falhou (não bloqueia): ' + e.message }); } // Check S (sentinela frescor camada de entrada)
+try { checkFactAnchor(); } catch (e) { warns.push({ check: 'T', kind: 'fato-ancora-error', msg: 'fact-anchor falhou (não bloqueia): ' + e.message }); } // Check T (fact-anchor determinístico)
+try { checkLimbo(); } catch (e) { warns.push({ check: 'U', kind: 'limbo-error', msg: 'limbo falhou (não bloqueia): ' + e.message }); } // Check U (limbo: drafts parados + homônimos)
+try { checkBrokenLinks(); } catch (e) { warns.push({ check: 'V', kind: 'link-quebrado-error', msg: 'link-quebrado falhou (não bloqueia): ' + e.message }); } // Check V (links internos quebrados)
 checkAdrEnumDrift();
 checkAntiResurrection();
 checkGatesRegistry();

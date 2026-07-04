@@ -45,7 +45,7 @@ Regra de ouro: **doc git (BRIEFING/SPEC) é cache que atrasa; MCP (brief + task-
 
 - Skills [`brief-first`](../../.claude/skills/brief-first/SKILL.md) + [`mcp-first`](../../.claude/skills/mcp-first/SKILL.md) (Tier A always-on — honrar, não ignorar)
 - [`feedback-brave-mcp-primeiro-sempre.md`](feedback-brave-mcp-primeiro-sempre.md) (princípio MCP-first irmão)
-- [ADR 0091](../decisions/0091-daily-brief-mcp.md) (brief-fetch) · [ADR 0070](../decisions/0070-task-management-jira-style.md) (task ledger) · [ADR 0053](../decisions/0053-mcp-server.md) (MCP server)
+- [ADR 0091](../decisions/0091-daily-brief.md) (brief-fetch) · [ADR 0070](../decisions/0070-jira-style-task-management-current-md-removed.md) (task ledger) · [ADR 0053](../decisions/0053-mcp-server-governanca-como-produto.md) (MCP server)
 - [LICOES_F3_FINANCEIRO_REJEITADO.md](../../prototipo-ui/LICOES_F3_FINANCEIRO_REJEITADO.md) M-AP-1 (gates externos)
 
 ---

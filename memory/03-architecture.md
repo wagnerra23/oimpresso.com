@@ -88,7 +88,7 @@ Defesa em profundidade:
 - **Camada de banco**: triggers `BEFORE UPDATE` / `BEFORE DELETE` com `SIGNAL SQLSTATE '45000'`
 - **Camada de auditoria**: `spatie/laravel-activitylog` loga tudo
 
-Ver [`decisions/0003-marcacoes-append-only-triggers.md`](decisions/0003-marcacoes-append-only-triggers.md).
+Ver [`decisions/0003-marcacoes-append-only-triggers.md`](decisions/0003-marcacoes-append-only.md).
 
 ## Filas assíncronas
 

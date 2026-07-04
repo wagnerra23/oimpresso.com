@@ -25,7 +25,7 @@ ERP multi-tenant pra indústria gráfica brasileira, com módulos integrados de 
 | `Modules/RecurringBilling/` | Cobrança recorrente + boleto |
 | `Modules/Ponto/` | Marcação de ponto (rename ex-PontoWr2) |
 | `Modules/Crm/` · `Modules/Cms/` · `Modules/ADS/` · `Modules/SRS/` | Apoio |
-| `Modules/Brief/` | Daily Brief MCP — estado consolidado do projeto ([ADR 0091](memory/decisions/0091-brief-mcp-tool-l7.md)) |
+| `Modules/Brief/` | Daily Brief MCP — estado consolidado do projeto ([ADR 0091](memory/decisions/0091-daily-brief.md)) |
 
 ## Origem
 
