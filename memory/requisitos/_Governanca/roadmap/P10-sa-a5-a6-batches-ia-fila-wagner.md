@@ -10,6 +10,8 @@ esforco_estimado: "~3-4d codável + IA-pair (motor + 56 batches) · relógio rea
 ---
 # P10 · SA-A5/A6: batches IA restantes + fila Wagner + ledger-check a --enforce
 
+> ⚠️ **2026-07-04:** o trabalho está majoritariamente ENTREGUE (waves 1-3 + lotes A/B/C + BALDE D), mas o DoD **não fechou** (itens 1 e 5) — ver seção **«Estado 2026-07-04 (reconciliação)»** no fim do doc. Os números abaixo (7% · `sem_campo` 728 · 823 US) são o retrato de 2026-06-12 — histórico preservado append-only, NÃO o estado vivo.
+
 ## Problema (o que está quebrado, em 2-3 frases)
 A frente SA-A5 (backfill IA de anchors SPEC↔código) rodou **só o batch piloto** (1 de ~57 módulos): `anchor_coverage` está em **7%** vs 100% exigido. A fila humana de ambíguos (SA-A6, `_ANCHOR-REVIEW-QUEUE.md`) **nunca foi materializada** — não existe no repo. E o gate que deveria impedir lote IA não-verificado de entrar (`ledger-check.mjs`) roda **advisory + continue-on-error** no umbrella, então um lote sem refutação adversarial passa verde.
 
@@ -103,3 +105,39 @@ Derivado de `anchor-lint.mjs --json` (estado pós-#3176): coverage **8.9%** · `
 **Regras:** `anchored_ok` exige path existente + carimbo `verificado@<sha>`; tela não-construída = `_pendente_` (já conta como coberto); **nunca inventar path** (vira `anchored_dead` = mentira). Re-rodar `anchor-lint --json` antes/depois de cada batch; `anchored_dead` não pode subir.
 
 _(Fonte: auditoria de saúde/integridade 2026-06-21 — priorização derivada do ranking por uso. Sells tem SPEC própria em `memory/requisitos/Sells/`.)_
+
+---
+
+## Estado 2026-07-04 (reconciliação)
+
+> **Por que o frontmatter segue `status: proposed`:** o vocabulário dos irmãos deste roadmap é binário (`proposed`/`executed` — ver P01/P03/P09) e o DoD deste item **não fechou** (itens 1 e 5 abaixo). O [_ROADMAP.md](_ROADMAP.md) marca P10 como 🟡 **em curso** — este é o estado honesto. `executed` só quando o residual e a promoção do `ledger-check` aterrissarem. Seção append-only: nada acima foi reescrito.
+
+### O que já LANDOU (verificado em origin/main + ledger + fila A6, 2026-07-04)
+
+- **Waves 1-3 + lotes A/B/C + BALDE D (2026-07-02) mergeados:** batch1 Sells (#3483) · Financeiro (#3539) · Jana (#3543) · OficinaAuto (#3541) · Whatsapp (#3546) · wave 2 (#3571-3577, #3580) · lote A Ponto/Marketplaces/Infra (#3630-3632) · wave 3 lote B NFSe/Autopecas/ComunicacaoVisual (#3627/#3628/#3638) · charters (#3633-3636) · LOTE C 13 módulos (#3642) · **BALDE D** AssetManagement/Auditoria/ConsultaOs/Arquivos (#3661/#3662/#3663/#3664).
+- **Ledger (DoD 2 ✅):** `governance/sdd-verification-ledger.json` tem **48 entries, 41 do tipo `anchors`** (era 1 quando este doc nasceu) — 1 entry por lote, refutador G5 tier-superior (Fable), lotes reprovados na 1ª rodada registrados e re-aprovados a 0%.
+- **Fila A6 materializada (DoD 3 ✅ + DoD 4 ✅):** [`memory/requisitos/_ANCHOR-REVIEW-QUEUE.md`](../../_ANCHOR-REVIEW-QUEUE.md) existe com taxa de ambiguidade publicada por lote (§1): **agregada <1% ≪ gatilho 20-25% do §103** sobre 29 módulos reais — a fila §2 de ambíguas está vazia por prova, não por omissão. Inventory parkeado honesto via `_pendente_` (FUNDIR na triagem de identidade).
+- **Motor generalizado (passos 1-4 ✅):** o loop de batches rodou por waves — o prompt não é mais só o piloto de 5 módulos.
+
+### Estado LIVE (`node scripts/governance/anchor-lint.mjs --json`, 2026-07-04, árvore = origin/main)
+
+| Métrica | Plano (06-12) | Sugestão (06-21) | Roadmap (07-02) | **LIVE 07-04** |
+|---|---:|---:|---:|---:|
+| `anchor_coverage_pct` global | 7% | 8.9% | 88.9% | **85.6%** |
+| `sem_campo` | 728 | 751 | ~100 | **136** |
+| universo (US / SPECs) | 823 / 57 | 847 | — | **946 / 59** |
+| `anchored_dead` | 15 | — | 0 | **0** |
+| `placeholder` | 22 | — | 0 | **0** |
+| `anchored_ok` / `parcial` / `pendente` | 35 / — / 23 | — | — | **322 / 119 / 369** |
+| módulos a 100% | — | — | — | **33 de 59** |
+
+**A "queda" 88.9% → 85.6% NÃO é regressão de anchor** (`anchored_dead=0` estável, `anchored_ok=322`): é o denominador crescendo — 946 US hoje vs 823 do plano; US nova nasce `sem_campo` até o lote seguinte. Cobertura é razão viva sobre universo vivo, não catraca deste doc (a catraca é `anchored_dead` não subir — mantida).
+
+### Residual REAL (por que NÃO é `executed`)
+
+1. **DoD 1 aberto — 136 US `sem_campo` em 19 módulos.** Maiores: Governance 33 · TaskRegistry 16 · Vestuario 12 · Compras 10 · Essentials 10 · EvolutionAgent 7 · NFSe 7 · Produto 7 · Accounting 6 · SRS 6 · LaravelAI 5 · cauda ≤4 (PaymentGateway/Sells/Fiscal/MemoriaAutonoma/ProjectMgmt/Financeiro/KB/RecurringBilling). **~36 dessas US estão GATED na trilha E (identidade)** — TaskRegistry/EvolutionAgent/LaravelAI/MemoriaAutonoma (+SRS zumbi) aguardam decisão Wagner FUNDIR/MATAR; ancorar antes é retrabalho (regra §"Risco de identidade" acima). Restam **~100 US ancoráveis** nos módulos não-gated.
+2. **DoD 5 aberto — `ledger-check` segue ADVISORY no umbrella.** `.github/workflows/governance-gate-umbrella.yml:52-55` ainda roda SEM `--enforce` e COM `continue-on-error: true` (verificado 2026-07-04); o context não está no `required-checks-baseline.json`. A promoção segue o passo 8 (ADR 0275 §5 — 1/semana, flip Wagner, nunca no calado).
+
+### Próximo passo deste item
+
+(a) lotes finais dos ~100 US não-gated (Governance/Vestuario/Compras/Essentials/NFSe/Produto/Accounting/cauda); (b) trilha E decide os ~36 gated; (c) promoção do `ledger-check` a `--enforce`+required (passo 8). Só então `status: executed`.

@@ -1,6 +1,6 @@
 ---
 name: memory-schema-preflight
-description: ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `resources/js/Pages/**/*.charter.md`, OU antes de `git commit` que tocar esses paths. Carrega regras de schema canônico extraídas de `scripts/memory-schemas/*.schema.json` (status enum estrito, version como string quoted, dates como string quoted, related_adrs como list de slugs `^[0-9]{4}-[a-z0-9-]+$`, owner RUNBOOK enum letras únicas `W/F/M/L/E`, seções obrigatórias por tipo) e roda validator local antes de commit pra zerar o loop CI fail (~10min/iteração). Cobre também o campo anchor `**Implementado em:**` + key opcional `anchor_format` do fluxo novo de SPEC (ADR 0273, lint advisory `anchor-lint.mjs`). Origem 2026-05-25 — 4 PRs (#1568/#1569/#1570/#1579) bloqueados em memory-schema-gate por erros previsíveis.
+description: ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `resources/js/Pages/**/*.charter.md`, OU antes de `git commit` que tocar esses paths. Carrega regras de schema canônico extraídas de `scripts/memory-schemas/*.schema.json` (status enum estrito, version como string quoted, dates como string quoted, related_adrs como list de slugs `^[0-9]{4}-[a-z0-9-]+$`, owner RUNBOOK enum letras únicas `W/F/M/L/E`, seções obrigatórias por tipo) e roda validator local antes de commit pra zerar o loop CI fail (~10min/iteração). Cobre também o campo anchor `**Implementado em:**` + key opcional `anchor_format` do fluxo novo de SPEC (ADR 0273, lint `anchor-lint.mjs` — REQUIRED no CI desde 2026-07-01, context `anchor-lint ADR 0273`). Origem 2026-05-25 — 4 PRs (#1568/#1569/#1570/#1579) bloqueados em memory-schema-gate por erros previsíveis.
 tier: B
 trigger: description-matching
 parent_adr: 0094
@@ -72,7 +72,7 @@ anchor_format: "v1"                 # opcional (ADR 0273) — enum SÓ "v1"; SPE
   ```
 
   `sha7` = commit de `origin/main` onde o path foi verificado (proveniência). NUNCA `_[TODO]_` / `_[path]_` / `(a criar)` — placeholder legado conta como **não-coberto**.
-- Divisão de responsabilidade: `spec.schema.json` valida só a **key** do frontmatter; o **corpo** (`**Implementado em:**`) é validado pelo `anchor-lint.mjs` (advisory na fase F1 — não bloqueia merge).
+- Divisão de responsabilidade: `spec.schema.json` valida só a **key** do frontmatter; o **corpo** (`**Implementado em:**`) é validado pelo `anchor-lint.mjs` — **REQUIRED no CI desde 2026-07-01** (contexts `anchor-lint ADR 0273` + `anchor entry/covers gate` na branch protection; o rename tirou "(advisory)" do nome — ver `governance/required-checks-baseline.json`). **Bloqueia merge.**
 
 ### RUNBOOK.md — `memory/requisitos/<Mod>/RUNBOOK*.md`
 
@@ -173,7 +173,7 @@ Seções obrigatórias: `## Mission`, `## Goals`, `## Non-Goals`, `## UX targets
 | SPEC sem `## User stories \| ## Backlog ativo \| ## US ativas` | renomear seção existente OU criar nova com `## User stories — <contexto>` |
 | SPEC sem `## Histórico` ou `## Referências` | warning, não bloqueia merge (mas adicionar é boa prática) |
 | `/anchor_format must be equal to one of the allowed values` | `anchor_format: v2` → `anchor_format: "v1"` (único valor; AST v2 é evolução futura do ADR 0273) |
-| anchor-lint `placeholder` / `anchored_dead` numa US | trocar `_[TODO]_` / path-morto por `_pendente_` (não construída) OU path real + `verificado@<sha7> (<data>)` — NUNCA inventar path (advisory, não bloqueia) |
+| anchor-lint `placeholder` / `anchored_dead` numa US | trocar `_[TODO]_` / path-morto por `_pendente_` (não construída) OU path real + `verificado@<sha7> (<data>)` — NUNCA inventar path (required desde 2026-07-01 — BLOQUEIA merge) |
 
 ## Validador local — rodar ANTES de commit
 
@@ -188,7 +188,7 @@ npx ajv validate -s scripts/memory-schemas/spec.schema.json -d memory/requisitos
 npx ajv validate -s scripts/memory-schemas/runbook.schema.json -d memory/requisitos/<Mod>/RUNBOOK*.md
 npx ajv validate -s scripts/memory-schemas/adr.schema.json -d memory/decisions/NNNN-kebab.md
 
-# Anchor spec↔código (ADR 0273) — corpo `**Implementado em:**`, advisory, node puro <0.1s, sem deps
+# Anchor spec↔código (ADR 0273) — corpo `**Implementado em:**`, required no CI, node puro <0.1s, sem deps
 node scripts/governance/anchor-lint.mjs memory/requisitos/<Mod>/SPEC.md   # diff-aware (só o SPEC passado)
 ```
 
@@ -317,7 +317,7 @@ E adicionar no corpo:
 - `scripts/memory-schemas/charter.schema.json`
 - `.github/workflows/memory-schema-gate.yml` — CI gate único (AJV/frontmatter + sub-checks do corpo · FUNDIDO ADR 0314 F2; absorveu o ex-`memory-schema-gate-extended.yml`)
 - `.github/scripts/validate-memory-schema.sh` — script bash extra (SPEC/Session/Handoff sections), invocado pelos jobs `validate-*-schema` do gate fundido
-- `scripts/governance/anchor-lint.mjs` — lint do corpo `**Implementado em:**` (advisory F1) + `.github/workflows/anchor-drift.yml`
+- `scripts/governance/anchor-lint.mjs` — lint do corpo `**Implementado em:**` (**required desde 2026-07-01** — contexts `anchor-lint ADR 0273` + `anchor entry/covers gate`) + `.github/workflows/anchor-drift.yml`
 - Sessão 2026-05-25 — origem do skill (4 PRs blocked + batch fix)
 - [ADR 0094](../../../memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md) — Constituição v2 (memory artifacts canônicos)
 - [ADR 0095](../../../memory/decisions/0095-skills-tiers-convencao-interna.md) — Skills tiers convenção interna
