@@ -571,4 +571,27 @@ Then deve receber 403 Forbidden
 
 **Refs:** CAPTERRA-FICHA Fiscal §9 automation_targets `health-check-cert-a1` · ConfigController (fonte da validade).
 
+### US-FISCAL-024 · IBS/CBS — split UF/Município na régua fiscal (coluna de schema)
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** follow-up documentado da US-FISCAL-021 PR-D ([#3778](https://github.com/wagnerra23/oimpresso.com/pull/3778)). A serialização do grupo UB hoje lança o IBS combinado **100% em `gIBSUF`** e zera `gIBSMun`, porque `nfe_fiscal_rules` guarda **uma** alíquota IBS combinada (`aliquota_ibs`). O `vIBS` do item fica correto (=vIBSUF+vIBSMun), XSD-válido PL_010_V1, e é **inerte hoje** (pilotos Simples → 0). Mas um business em modo `full` com alíquotas **UF ≠ Município** legisladas precisa do split real.
+
+**Contexto técnico:**
+- Modelagem v1 documentada em `NfeService::adicionarItem` (bloco IBS/CBS — comentário "MODELAGEM v1").
+- Régua: `nfe_fiscal_rules` (migration `2026_05_26_000001`) só tem `aliquota_ibs`/`aliquota_cbs` combinadas.
+- Motor: `MotorTributarioService::aplicarRegra`/`aplicarDefaults` populam `TributoCalculado.{aliquota_ibs,valor_ibs}`.
+
+**Acceptance:**
+- [ ] Migration adiciona colunas nullable de split em `nfe_fiscal_rules` (ex: `aliquota_ibs_uf` + `aliquota_ibs_mun`), `decimal(7,4)` default null — sem breaking (back-compat: null → cai no combinado atual = 100% UF).
+- [ ] `TributoCalculado` expõe `valor_ibs_uf`/`valor_ibs_mun` (ou alíquotas UF/Mun); motor popula a partir das colunas de split quando presentes.
+- [ ] `NfeService::adicionarItem` usa `gIBSUF`+`gIBSMun` do split quando configurado; **fallback** pro comportamento v1 (100% UF, Mun 0) quando o split é null. `vIBS` do item segue == soma UF+Mun == `valor_ibs` do motor.
+- [ ] Pest (CT100/MySQL, allowlist `nfebrasil-pest`): (a) sem split → idêntico ao v1 (byte-idêntico); (b) com split → `gIBSUF` e `gIBSMun` com valores distintos, XSD-válido PL_010_V1, cross-check numérico UF+Mun.
+- [ ] REGRA MESTRE: antes→depois provando que quem não configura split não muda; só business com split configurado destaca UF/Mun separado.
+
+**Não bloqueia a ativação inicial** (a ativação `full` funciona com o combinado v1); é refinamento de fidelidade fiscal pra quem precisar de alíquotas municipais diferenciadas.
+
+**Refs:** US-FISCAL-021 · [ADR 0321](../../decisions/0321-pin-sped-nfe-dev-master-ibs-cbs.md) · ADR ARQ-0004 · NT 2025.002 (grupo UB IBSUF/IBSMun).
+
 > **Nota Passo 2:** cap #8/#14 (cache KPIs + índice palette) **NÃO** virou US — já entregue em **US-FISCAL-019** (✅ done, GAP-FISCAL-002 fechado). US-FISCAL-023 gerada por engano foi descartada antes de persistir (dedup falhou pq `tasks-list` default só lista ativas).
