@@ -1,6 +1,6 @@
 ---
 date: "2026-07-03"
-topic: "Avaliacao adversarial SDD (7 skeptics) - composto ponderado 70/100; skeptics mais duros acharam 2 achados NOVOS latentes (truncamento anchor-lint node22 na espinha GT required + inflacao _pendente_ 45.6% do coverage); burn-down P04 segue proposed = fronteira medir->consertar"
+topic: "Avaliacao adversarial SDD (7 skeptics) - composto 70/100; 2 achados novos latentes (truncamento anchor-lint node22 na espinha GT required + inflacao _pendente_ 45.6% do coverage); burn-down P04 segue proposed"
 authors: [C]
 type: avaliacao-adversarial-processo
 metodo: "workflow sdd-avaliador-processo (8 agents, 1 skeptic por stream, verificação LIVE em worktree limpa origin/main b5278c2, não no plano)"
