@@ -5,7 +5,6 @@ slug: sdd-onda-avaliacao-e-fixes
 tldr: "Avaliacao adversarial SDD deu composto 70/100 e achou 2 riscos-mae latentes — ambos fechados (#3782 flush anchor-lint node22, #3783 ledger-check --enforce). 6 PRs merged. Onda de anchoring gerada mas NAO mergeada: os 4 refutadores G5 morreram no session limit e a regra do trio proibe merge de lote IA sem refutacao. Retomar painel G5 + P04 burn-down."
 authors: [C, F]
 type: handoff
-cycle: off-cycle
 prs_merged: [3781, 3782, 3783, 3785, 3788, 3789]
 branches_pendentes: [claude/sdd-charters-related-us]
 related_adrs:
