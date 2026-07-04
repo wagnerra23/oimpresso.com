@@ -490,6 +490,15 @@ if (args.length) {
 
 const modules = specs.map((f) => ({ module: dirname(f).split(/[\\/]/).pop(), ...lintSpec(f) }));
 
+// flush-safe: `process.exit()` imediato após `stdout.write` descarta o buffer não-flushado quando
+// stdout é PIPE (node >=22 truncava o JSON ~157KB consumido via execSync pelo sdd-scorecard.mjs —
+// espinha do gate required GT-G3; reproduzido 2/6 runs, avaliação adversarial 2026-07-03). O callback
+// do write só dispara após o flush real; o Promise nunca-resolvido segura o top-level até o exit.
+const writeStdoutAndExit = (payload) => {
+  process.stdout.write(payload, () => process.exit(0));
+  return new Promise(() => {});
+};
+
 // ── baseline grandfather (ARMING SA-A2-ter · ADR 0275/0303) ──────────────────
 // emit: imprime o baseline da dívida ATUAL (todos os entry/covers em chave canônica,
 // sorted+unique) — fonte regenerável; arming consome o que ele emite. Mesma engine que
@@ -499,7 +508,7 @@ const _allTesteKeys = modules.flatMap((m) => m.req_sem_covering_test.map((r) => 
 const _allCoversKeys = modules.flatMap((m) => m.testado_sem_covers.flatMap((e) => e.tests.map((t) => keyCovers(e.us, t))));
 if (EMIT_BASELINE) {
   const grandfathered = [...new Set([..._allAceiteKeys, ..._allTesteKeys, ..._allCoversKeys])].sort();
-  process.stdout.write(JSON.stringify({
+  await writeStdoutAndExit(JSON.stringify({
     _meta: {
       baseline: 'anchor entry/covers GRANDFATHER — US legadas isentas (ratchet só-desce · ADR 0275 advisory→required por calendário)',
       regra: 'gate --check-entry/--check-covers com --baseline morde só chave AUSENTE daqui (no-new-lie). CRESCER esta lista = grandfatherar mentira nova → exige trailer `BASELINE-GROW` (baseline-tamper-guard). DIMINUIR (dívida paga) é livre.',
@@ -512,7 +521,6 @@ if (EMIT_BASELINE) {
     },
     grandfathered,
   }, null, 2) + '\n');
-  process.exit(0);
 }
 // load + filtro: violação grandfatherada NÃO conta no veredito de saída (report mantém visibilidade).
 function loadBaseline(p) {
@@ -584,7 +592,7 @@ const report = {
   modules,
 };
 
-if (JSON_OUT) { process.stdout.write(JSON.stringify(report, null, 2) + '\n'); process.exit(0); }
+if (JSON_OUT) { await writeStdoutAndExit(JSON.stringify(report, null, 2) + '\n'); }
 
 console.log(`\n  ANCHOR LINT — spec↔código (ADR 0273 + wired/testado SA-A2-bis) · ${modules.length} SPECs · escopo: ${report._meta.scope}\n`);
 console.log(`  ${'MÓDULO'.padEnd(20)} ${'US'.padStart(4)} ${'s/campo'.padStart(7)} ${'phold'.padStart(5)} ${'pend'.padStart(4)} ${'parc'.padStart(4)} ${'ok'.padStart(4)} ${'dead'.padStart(4)} ${'zomb'.padStart(4)} ${'dtst'.padStart(4)} ${'cov%'.padStart(6)}`);
