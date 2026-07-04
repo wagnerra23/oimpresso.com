@@ -55,6 +55,20 @@ Numa **sessão assistida**, aplicar **§7.A (cast fix)** primeiro — worktree f
 - Baseline: `tailscale ssh root@ct100-mcp "… | base64 -d | docker exec -i oimpresso-staging php artisan tinker"` (script `jana_baseline.php`).
 - Suite: `tailscale ssh root@ct100-mcp 'docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test Modules/Jana/Tests/Feature/HitTrackerServiceTest.php'` → 9 skipped (sqlite-only).
 
+## Decisão do Wagner (mesmo dia, presente): APOSENTAR a rotina
+
+Perguntado se a tarefa `copiloto-memoria-semanal` ainda é válida perante o SDD, o Wagner respondeu **"1" = aposentar**. Verificado em `origin/main` que o SDD absorveu o loop:
+- `jana:drift-sentinel` (canary semanal, `app/Console/Kernel.php`), `jana:recall-eval --mode=real` (Recall@3 semanal + gate CI `jana-recall-eval.yml`), `jana:ragas-real-eval` (RAGAS semanal, ADR 0318).
+- Scorecard unificado `governance/sdd-scorecard.json` stream **MEM** (read-path ADR 0270) — `recall_eval_violations`, `ragas_real_uptime`, drift.
+- Rodar a rotina manual reproduzia o anti-padrão "roadmap paralelo a canon" ([proibicoes §Ideias descartadas](../proibicoes.md)).
+
+**Executado:**
+1. Scheduled-task `copiloto-memoria-semanal` → `enabled=false` (via MCP scheduled-tasks); descrição marcada como APOSENTADA.
+2. RUNBOOK-MEMORIA-SEMANAL → banner 🪦 superseded no topo apontando pros crons/gates/scorecard do SDD; corpo preservado como histórico.
+3. Resíduo registrado (não perdido): higiene dos `jana_memoria_facts` por-business (hit_rate/bloat/core_memory, Fase 7/8) + cast fix §7 — candidato a virar **métrica MEM no scorecard**, não cron paralelo.
+
+**NÃO tocado:** crons/gates/scorecard do SDD (já funcionam).
+
 ## PR
 
-`chore/jana-memoria-semanal-2026-07-04` — docs-only (RUNBOOK + este session log). Sem código, sem Pest necessário. Não-merge autônomo (R10).
+`chore/jana-memoria-semanal-2026-07-04` — docs-only (RUNBOOK banner superseded + este session log) + desativação da scheduled-task (fora do repo). Sem código, sem Pest necessário. Não-merge autônomo (R10).
