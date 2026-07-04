@@ -137,7 +137,7 @@
 
 Mantidos por compatibilidade (PontoWr2 origem do projeto). Para core moderno, ver [why/what/how acima](#comece-aqui-onboarding-7-docs).
 
-- [00-user-profile.md](00-user-profile.md) · [01-project-overview.md](01-project-overview.md) · [02-technical-stack.md](02-technical-stack.md) · [03-architecture.md](03-architecture.md) · [04-conventions.md](04-conventions.md) · [05-preferences.md](05-preferences.md) · [06-domain-glossary.md](06-domain-glossary.md) · [07-roadmap.md](07-roadmap.md) · [08-handoff.md](08-handoff.md) · [09-modulos-ultimatepos.md](09-modulos-ultimatepos.md) · [11-metas-negocio.md](11-metas-negocio.md)
+- [00-user-profile.md](00-user-profile.md) · [01-project-overview.md](01-project-overview.md) · [02-technical-stack.md](02-technical-stack.md) · [03-architecture.md](03-architecture.md) · [04-conventions.md](04-conventions.md) · [06-domain-glossary.md](06-domain-glossary.md) · [07-roadmap.md](07-roadmap.md) · [08-handoff.md](08-handoff.md) · [09-modulos-ultimatepos.md](09-modulos-ultimatepos.md) · [11-metas-negocio.md](11-metas-negocio.md)
 - [COMO_PEDIR_NOVA_TELA_OU_MODULO.md](COMO_PEDIR_NOVA_TELA_OU_MODULO.md) · [COMPARATIVO_TELAS_BLADE_VS_REACT.md](COMPARATIVO_TELAS_BLADE_VS_REACT.md) · [REQUISITOS_FUNCIONAIS_PONTO.md](REQUISITOS_FUNCIONAIS_PONTO.md) · [OPUS-MISSION-BRIEF.md](OPUS-MISSION-BRIEF.md) · [officeimpresso-spec.md](officeimpresso-spec.md) · [migrations.md](migrations.md)
 
 ## 🚨 Onde NÃO ir (Tier 0 IRREVOGÁVEL)
