@@ -144,7 +144,6 @@ Mantidos por compatibilidade (PontoWr2 origem do projeto). Para core moderno, ve
 - **ADRs CANON são append-only** — NUNCA editar `accepted`. Criar nova com `supersedes: [N]`
 - **Auto-mem privada `~/.claude/projects/*/memory/`** bloqueada por hook ([ADR 0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)). Escape valves: [ADR 0131](decisions/0131-tiering-memoria-canonico-local-segredo.md)
 - **PII real (CPF/CNPJ cliente)** NUNCA em commit/PR/log — use `[REDACTED]` ou `PiiRedactor`
-- **`memory_backup/`** = arquivo histórico, não tocar
 - **Tasks NÃO em markdown** ([ADR 0070](decisions/0070-jira-style-task-management-current-md-removed.md)) — use tools MCP `tasks-*`
 
 ---
