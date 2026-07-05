@@ -7,13 +7,13 @@ path: resources/js/Pages/Essentials/Documents/Index.tsx
 archetype: list
 persona: misto
 nota: 83
-nivel: "Developing"
+nivel: "Advanced"
 baseline_anterior: 83   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "CRUD de docs/memos forte: tabs, upload com progresso, share dialog, AlertDialog e toasts, tudo tokenizado."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "CRUD de docs/memos forte (tabs, upload com progresso, share dialog, AlertDialog, toasts, zero cor crua); código idêntico ao baseline de 30/mai — sem charter/casos e tabela só com overflow no mobile."
+dimensoes: { density: 84, discoverability: 85, speed_to_task: 84, error_recovery: 86, cognitive_load: 84, aesthetic_usability: 85, affordance: 85, brand_confidence: 84, mobile_fit: 74, a11y_wcag: 80, i18n_ptbr: 88, performance_perceived: 82, information_hierarchy: 78, microcopy: 84, internal_consistency: 85, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Charter vivo ao lado do tsx"

@@ -6,27 +6,22 @@ screen: Auditoria/Detail
 path: resources/js/Pages/Auditoria/Detail.tsx
 archetype: detail
 persona: wagner
-nota: 58
-nivel: "Developing"
+nota: 72
+nivel: "Advanced"
 baseline_anterior: 58   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe de auditoria funcional mas thin: azul sky cru, JSON dump bruto, sem header roxo canon nem links navegaveis."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Uplift board 2026-05-31 aplicado: PageHeader canon + tokens DS (zero sky/zinc cru), diff Campo/Antes/Depois formatado, entidade clicavel, EmptyState com fallback de tenant — resta causer nao-navegavel e falta charter/casos."
+dimensoes: { density: 70, discoverability: 72, speed_to_task: 74, error_recovery: 74, cognitive_load: 80, aesthetic_usability: 74, affordance: 72, brand_confidence: 74, mobile_fit: 70, a11y_wcag: 76, i18n_ptbr: 84, performance_perceived: 72, information_hierarchy: 76, microcopy: 74, internal_consistency: 76, preflight_conformance: 62 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 (text-sky-700 -> token primary roxo)"
-    fix: "Links text-sky-700 (azul) + zinc-* cru + sem PageHeader primary roxo; trocar por tokens DS"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Aesthetic-usability"
-    best_of_class: "Linear (diff visual key/value, nao JSON dump)"
-    fix: "properties renderizado como <pre>JSON.stringify</pre> bruto; render diff antes/depois formatado"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Information-hierarchy"
-    best_of_class: "Stripe audit (timeline + entidade clicavel)"
-    fix: "Entidade/causer texto morto; tornar subject e causer links navegaveis"
+    best_of_class: "Stripe audit (todo ator clicavel)"
+    fix: "Causer (User #N) ainda e texto morto; tornar link navegavel como o subject ja e"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Charter live ao lado do tsx (metodo canon)"
+    fix: "Detail.tsx sem Detail.charter.md nem Detail.casos.md ao lado (Index tem charter); criar contrato da tela"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05

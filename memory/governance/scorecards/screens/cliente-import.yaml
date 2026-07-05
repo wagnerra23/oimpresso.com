@@ -6,20 +6,20 @@ screen: Cliente/Import
 path: resources/js/Pages/Cliente/Import.tsx
 archetype: form
 persona: larissa
-nota: 78
+nota: 79
 nivel: "Advanced"
 baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Wizard import bom: 2 passos, progress bar, estado zip-indisponivel, variants cowork — mas cores rose/emerald cruas e sem preview de linhas."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Wizard import bom: 2 passos, progress bar, notification/erro-zip agora em tokens success/destructive (PR #3387) — mas segue sem preview de linhas e drag fake."
+dimensoes: { density: 78, discoverability: 80, speed_to_task: 78, error_recovery: 70, cognitive_load: 84, aesthetic_usability: 80, affordance: 72, brand_confidence: 80, mobile_fit: 78, a11y_wcag: 74, i18n_ptbr: 88, performance_perceived: 80, information_hierarchy: 82, microcopy: 84, internal_consistency: 80, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 (tokens success/danger, nao rose/emerald cru)"
-    fix: "Notification e erro-zip usam rose-/emerald-100/700 crus; trocar por tokens semanticos"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    best_of_class: "DS v4 (zero classe crua)"
+    fix: "Residuo bg-rose-100 no chip <code> do estado zip-indisponivel; trocar por token soft"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
   - dim: "Error-recovery"
     best_of_class: "Flatfile (preview + relatorio de linhas com erro)"
     fix: "Sem preview de linhas nem mapeamento de colunas; so sucesso/falha agregado — add preview pre-commit"

@@ -6,27 +6,27 @@ screen: NfeBrasil/Transactions/NfceStatus
 path: resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx
 archetype: detail
 persona: eliana
-nota: 38
-nivel: "Beginner"
+nota: 74
+nivel: "Advanced"
 baseline_anterior: 38   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Page demo de 1 badge de status com polling; tem charter mas e stub com inline style={{}} e oklch(...240) azul hardcoded — viola Pre-Flight, sem componentes DS nem estados ricos."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Reescrita completa (gap-fix do board 2026-05-30): PageHeader + Card/Badge/Button DS, zero inline-style/oklch cru, 5 estados de status com icone, acoes contextuais reais (Verificar agora, Baixar DANFE, Reemitir rejeitada) e polling com hasGivenUp — os 3 gaps do baseline foram fechados."
+dimensoes: { density: 62, discoverability: 72, speed_to_task: 75, error_recovery: 72, cognitive_load: 82, aesthetic_usability: 76, affordance: 76, brand_confidence: 78, mobile_fit: 76, a11y_wcag: 74, i18n_ptbr: 88, performance_perceived: 74, information_hierarchy: 78, microcopy: 80, internal_consistency: 78, preflight_conformance: 68 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Linear (zero inline-style, zero cor crua)"
-    fix: "Eliminar todos style={{}} inline e oklch(0.55 0.05 240) azul; reescrever com Tailwind+tokens v4 roxo."
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Affordance"
-    best_of_class: "Stripe (status page com timeline + acao reemitir)"
-    fix: "Adicionar acoes contextuais (reemitir/baixar DANFE) e link de volta como Button DS, nao <a> inline."
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Brand-confidence"
-    best_of_class: "Bling (status fiscal com identidade visual consistente)"
-    fix: "Usar Card/Badge do DS em vez de div com background light-dark() ad-hoc."
+  - dim: "Error-recovery"
+    best_of_class: "Stripe (confirmacao destrutiva via Dialog)"
+    fix: "Reemitir usa window.confirm() nativo — trocar por AlertDialog DS (TODO ja anotado no proprio arquivo)."
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Linear (charter + casos por tela)"
+    fix: "Criar NfceStatus.casos.md — tela com acao de reemissao SEFAZ sem contrato de casos ao lado."
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
+  - dim: "Affordance"
+    best_of_class: "Stripe (link de acao sempre valido)"
+    fix: "Rota /nfe-brasil/transactions/{tx}/danfe assumida no botao Baixar DANFE — confirmar nome real no controller (TODO no arquivo)."
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05

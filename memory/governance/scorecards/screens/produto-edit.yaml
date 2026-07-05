@@ -6,18 +6,18 @@ screen: Produto/Edit
 path: resources/js/Pages/Produto/Edit.tsx
 archetype: form
 persona: larissa
-nota: 79
+nota: 80
 nivel: "Advanced"
 baseline_anterior: 79   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Edicao espelha Create (consistencia boa), tipo travado bem comunicado; perde em tokens crus, feedback de erro parcial e sem dirty-guard."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Edicao espelha Create (consistencia boa), tipo travado bem comunicado; #3408 tokenizou cor de status (rose sumiu), restam header stone proprio, erro so no nome e ausencia de dirty-guard."
+dimensoes: { density: 80, discoverability: 80, speed_to_task: 78, error_recovery: 72, cognitive_load: 82, aesthetic_usability: 80, affordance: 82, brand_confidence: 80, mobile_fit: 78, a11y_wcag: 80, i18n_ptbr: 90, performance_perceived: 82, information_hierarchy: 82, microcopy: 82, internal_consistency: 84, preflight_conformance: 74 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 tokens + PageHeader canon"
-    fix: "Paleta stone/rose crua + header proprio (nao AppShellV2/os-page-h); fora do padrao drawer-760 p/ cadastro"
+    fix: "Header stone/white proprio (nao PageHeader canon); cor de status ja tokenizada (#3408), restam stone-* crus; fora do padrao drawer-760 p/ cadastro"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"

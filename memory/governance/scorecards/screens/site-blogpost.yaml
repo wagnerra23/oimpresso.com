@@ -6,27 +6,27 @@ screen: Site/BlogPost
 path: resources/js/Pages/Site/BlogPost.tsx
 archetype: detail
 persona: misto
-nota: 55
-nivel: "Developing"
+nota: 72
+nivel: "Advanced"
 baseline_anterior: 55   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Pagina de post marketing tokenizada (prose, tags, meta-desc); fina e com dangerouslySetInnerHTML sem sanitizacao e img hero sem lazy/dimensoes."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Post do blog maduro pos-fix XSS (2026-05-31): HTML sanitizado server-side (HTMLPurifier), img lazy com width/height, meta data pt-BR + tempo de leitura, tipos definidos e link de volta; ainda sem charter/casos e tags nao clicaveis."
+dimensoes: { density: 74, discoverability: 70, speed_to_task: 74, error_recovery: 72, cognitive_load: 78, aesthetic_usability: 74, affordance: 70, brand_confidence: 72, mobile_fit: 76, a11y_wcag: 68, i18n_ptbr: 80, performance_perceived: 72, information_hierarchy: 74, microcopy: 74, internal_consistency: 74, preflight_conformance: 55 }
 gaps:
-  - dim: "Error-recovery"
-    best_of_class: "Next/Stripe blog: HTML sanitizado"
-    fix: "content via dangerouslySetInnerHTML sem sanitizacao (risco XSS se CMS aceitar HTML nao-confiavel); sanitizar server/client"
+  - dim: "Discoverability"
+    best_of_class: "Ghost/Medium: tags clicaveis levam a filtro"
+    fix: "Tags renderizadas como chips estaticos (nao clicaveis, sem filtro por tag no indice)"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Performance-perceived"
-    best_of_class: "feature_image com width/height + lazy"
-    fix: "img hero sem loading/lazy nem dimensoes (CLS); adicionar"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
   - dim: "Information-hierarchy"
-    best_of_class: "Medium: meta autor/data/tempo leitura"
-    fix: "Falta data publicacao, autor e tempo de leitura no topo do post"
+    best_of_class: "Medium: byline com autor"
+    fix: "Meta tem data + tempo de leitura mas falta autor no topo do post"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4"
+    fix: "Sem BlogPost.charter.md nem BlogPost.casos.md ao lado do tsx"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05

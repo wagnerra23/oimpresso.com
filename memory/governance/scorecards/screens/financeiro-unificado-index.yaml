@@ -6,23 +6,18 @@ screen: Financeiro/Unificado/Index
 path: resources/js/Pages/Financeiro/Unificado/Index.tsx
 archetype: list
 persona: eliana
-nota: 90
+nota: 92
 nivel: "Leader"
 baseline_anterior: 90   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cockpit financeiro denso estado-da-arte (KPI hero+sparkline, multi-filtro, bulk, drawer 3-abas, atalhos J/K/space/B, OCR boleto) — top do batch, so peca mistura emoji+oklch cru vs DS."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cockpit financeiro estado-da-arte que evoluiu forte em junho: drawer 3 camadas com lentes + J/K/R/CopyVal/recibo, PageHeader canon v3.8, PeriodBar com presets, Radix Select, fidelidade ao protótipo aprovado e emojis quase zerados (resta ✉ aria-hidden); segue oklch inline em pontos e arquivo monolítico 2784 linhas."
+dimensoes: { density: 96, discoverability: 94, speed_to_task: 96, error_recovery: 92, cognitive_load: 90, aesthetic_usability: 94, affordance: 94, brand_confidence: 94, mobile_fit: 82, a11y_wcag: 88, i18n_ptbr: 96, performance_perceived: 84, information_hierarchy: 95, microcopy: 94, internal_consistency: 92, preflight_conformance: 90 }
 gaps:
-  - dim: "Internal-consistency"
-    best_of_class: "Stripe/Linear: 1 sistema de cor/icone"
-    fix: "Trocar emoji cru (🔍🏦📷👁✉☆) por lucide-react ja importado; unificar fin-* CSS vs @/Components/ui"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
     best_of_class: "Shopify Polaris tokens"
-    fix: "Migrar inline oklch hardcoded e classes fin-num-* pra tokens DS v4 primary roxo (zero hue 145/25/240 cru)"
+    fix: "Migrar inline oklch hardcoded (11 ocorrencias) e classes fin-num-* pra tokens DS v4 primary roxo (zero hue 145/25/240 cru)"
     esforco: alto
     origin: screen-grades-baseline-2026-05-30
   - dim: "A11y-WCAG"
@@ -30,3 +25,8 @@ gaps:
     fix: "Sparkline tooltip via <title> nao e a11y; status so por cor em pills — adicionar texto/aria-live nos baixar"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Dashboard (Deferred + code-split)"
+    fix: "Arquivo monolítico 2784 linhas sem Inertia::defer/<Deferred> nem particionamento em _components; first paint carrega tudo eager"
+    esforco: alto
+    origin: regrade-onda1-2026-07-05

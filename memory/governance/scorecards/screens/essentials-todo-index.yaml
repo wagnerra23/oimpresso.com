@@ -10,10 +10,10 @@ nota: 77
 nivel: "Advanced"
 baseline_anterior: 77   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista com filtros, troca rápida de status e paginação funcionais; perde em cores cruas (sem tokens v4), tabela hand-roll e ausência de defer/skeleton."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista com filtros, troca rápida de status e paginação funcionais; código idêntico ao baseline de 30/mai — statusTone/priorityTone seguem com 8 cores cruas (amber/sky/emerald/rose, o sweep de tokens #2666 não cobriu esta tela), tabela hand-roll e sem defer/skeleton."
+dimensoes: { density: 80, discoverability: 79, speed_to_task: 80, error_recovery: 78, cognitive_load: 79, aesthetic_usability: 79, affordance: 79, brand_confidence: 78, mobile_fit: 76, a11y_wcag: 75, i18n_ptbr: 85, performance_perceived: 70, information_hierarchy: 80, microcopy: 78, internal_consistency: 69, preflight_conformance: 64 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4: status via tokens, não cores cruas"

@@ -6,14 +6,14 @@ screen: ProjectMgmt/Inbox/Index
 path: resources/js/Pages/ProjectMgmt/Inbox/Index.tsx
 archetype: list
 persona: wagner
-nota: 86
+nota: 87
 nivel: "Leader"
 baseline_anterior: 86   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Caixa de entrada agrupada por tipo com marca-lido otimista, deep-link pro Board, J/K/Enter/R, banner erro role=alert, empty-state e charter; tokens limpos. Marcada DRAFT aguardando screenshot Wagner."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Caixa de entrada agrupada por tipo com marca-lido otimista, deep-link pro Board, J/K/Enter/R, banner erro role=alert, empty-state e charter; conformance DS reforçada (#2666 + #3404, zero cores cruas). Comentário DRAFT ainda no topo do arquivo (gate F3 não fechado)."
+dimensoes: { density: 86, discoverability: 86, speed_to_task: 88, error_recovery: 90, cognitive_load: 86, aesthetic_usability: 86, affordance: 86, brand_confidence: 82, mobile_fit: 82, a11y_wcag: 86, i18n_ptbr: 90, performance_perceived: 86, information_hierarchy: 84, microcopy: 88, internal_consistency: 88, preflight_conformance: 86 }
 gaps:
   - dim: "Brand-confidence"
     best_of_class: "Linear inbox: superfície aprovada e estável"

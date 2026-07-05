@@ -6,18 +6,18 @@ screen: ads/Admin/Skills/Test
 path: resources/js/Pages/ads/Admin/Skills/Test.tsx
 archetype: form
 persona: wagner
-nota: 77
+nota: 78
 nivel: "Advanced"
 baseline_anterior: 77   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Tela de teste completa (manual vs conversas reais, PII, dry-run badge, runs com metricas), mas mistura inputs nativos hand-rolled e a11y de label fraca."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Tela de teste completa (manual vs conversas reais, PII, dry-run badge); sweep #2666 zerou cores cruas de status, mas source toggle hand-rolled, inputs nativos e labels sem htmlFor permanecem."
+dimensoes: { density: 80, discoverability: 78, speed_to_task: 82, error_recovery: 74, cognitive_load: 78, aesthetic_usability: 78, affordance: 80, brand_confidence: 78, mobile_fit: 74, a11y_wcag: 68, i18n_ptbr: 84, performance_perceived: 74, information_hierarchy: 80, microcopy: 84, internal_consistency: 82, preflight_conformance: 70 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear segmented"
-    fix: "source toggle usa <button> hand-rolled (bg-foreground/background) + inputs number/text nativos com border cru -> usar Tabs/ToggleGroup + Input @/Components/ui"
+    fix: "source toggle usa <button> hand-rolled (bg-foreground/background) + inputs number/text nativos -> usar Tabs/ToggleGroup + Input @/Components/ui (cores cruas ja zeradas no #2666)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "A11y-WCAG"

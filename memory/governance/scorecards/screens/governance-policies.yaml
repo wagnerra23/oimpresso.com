@@ -6,27 +6,17 @@ screen: governance/Policies
 path: resources/js/Pages/governance/Policies.tsx
 archetype: config
 persona: wagner
-nota: 66
-nivel: "Developing"
+nota: 77
+nivel: "Advanced"
 baseline_anterior: 66   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Toggle de rules limpo com KpiGrid/EmptyState e dark-mode, mas toggle hand-rolled (emerald cru), sem loading/optimistic e sem token roxo v4."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Toggle de rules com Switch DS, estado pending/disabled durante o POST e onError tratado; zero cor crua, KpiGrid/EmptyState — os 3 gaps do baseline foram corrigidos; falta casos.md."
+dimensoes: { density: 78, discoverability: 76, speed_to_task: 78, error_recovery: 76, cognitive_load: 80, aesthetic_usability: 78, affordance: 80, brand_confidence: 78, mobile_fit: 76, a11y_wcag: 74, i18n_ptbr: 82, performance_perceived: 74, information_hierarchy: 76, microcopy: 76, internal_consistency: 80, preflight_conformance: 78 }
 gaps:
-  - dim: "Affordance"
-    best_of_class: "Stripe (Switch component)"
-    fix: "Trocar botão toggle artesanal por @/Components/ui/switch com estado pending/disabled durante router.post"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Error-recovery"
-    best_of_class: "Linear (optimistic + rollback)"
-    fix: "toggle não trata erro/loading; adicionar onError toast + estado otimista"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4"
-    fix: "bg-emerald-500 do switch e ausência de wrapper max-w consistente; usar tokens primary/success v4"
+    best_of_class: "Telas canon têm <Tela>.casos.md como contrato de não-regressão"
+    fix: "Criar Policies.casos.md cobrindo toggle de rule (on/off, pending, erro)"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05

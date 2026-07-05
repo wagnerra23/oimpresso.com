@@ -6,18 +6,18 @@ screen: Fiscal/Eventos
 path: resources/js/Pages/Fiscal/Eventos.tsx
 archetype: list
 persona: eliana
-nota: 75
+nota: 77
 nivel: "Advanced"
 baseline_anterior: 75   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Timeline append-only de eventos fiscais (CC-e/cancel/EPEC/manifesto) com callout janelas legais + Deferred + link cross pra NFe — correta e enxuta, layer fx-* fora do DS."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Timeline append-only de eventos fiscais (CC-e/cancel/EPEC/manifesto) com callout janelas legais + Deferred + link cross pra NFe — <select> cru virou Select DS com aria-label (#3407); resta layer fx-tl-* fora do DS."
+dimensoes: { density: 76, discoverability: 72, speed_to_task: 78, error_recovery: 74, cognitive_load: 80, aesthetic_usability: 76, affordance: 76, brand_confidence: 76, mobile_fit: 70, a11y_wcag: 74, i18n_ptbr: 90, performance_perceived: 80, information_hierarchy: 80, microcopy: 84, internal_consistency: 76, preflight_conformance: 70 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS tokens + Select"
-    fix: "Timeline fx-tl-* + <select> cru fora do DS; sem @/Components/ui"
+    fix: "<select> migrado pra Select DS (#3407); timeline fx-tl-* segue fora do DS"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Discoverability"

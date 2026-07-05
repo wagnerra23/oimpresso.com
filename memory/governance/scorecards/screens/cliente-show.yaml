@@ -10,10 +10,10 @@ nota: 86
 nivel: "Leader"
 baseline_anterior: 86   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe de cliente maduro: 9 tabs, Deferred em tudo, cowork-primary, CPF mascarado LGPD, frota condicional."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe de cliente maduro: 9 tabs, Deferred em tudo, cowork-primary, CPF mascarado LGPD; #3387 tokenizou parte dos status mas sky/amber/rose/stone crus ainda abundantes e tabs sem role=tablist."
+dimensoes: { density: 88, discoverability: 86, speed_to_task: 86, error_recovery: 82, cognitive_load: 84, aesthetic_usability: 88, affordance: 86, brand_confidence: 88, mobile_fit: 76, a11y_wcag: 76, i18n_ptbr: 90, performance_perceived: 90, information_hierarchy: 88, microcopy: 86, internal_consistency: 80, preflight_conformance: 78 }
 gaps:
   - dim: "Internal-consistency"
     best_of_class: "Bling padroniza paleta de status"

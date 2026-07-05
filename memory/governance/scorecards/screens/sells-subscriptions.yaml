@@ -10,10 +10,10 @@ nota: 72
 nivel: "Advanced"
 baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de assinaturas com start/stop inline, badges freq/proxima-fatura/status; fragil em feedback de erro (catch mudo) e a11y."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista de assinaturas com start/stop inline, badges freq/proxima-fatura/status; sem mudanca material desde o baseline (so churn do restore #2413) — catch mudo no toggle e a11y de tabela seguem como estavam."
+dimensoes: { density: 74, discoverability: 72, speed_to_task: 76, error_recovery: 62, cognitive_load: 78, aesthetic_usability: 74, affordance: 72, brand_confidence: 70, mobile_fit: 72, a11y_wcag: 64, i18n_ptbr: 88, performance_perceived: 66, information_hierarchy: 74, microcopy: 76, internal_consistency: 76, preflight_conformance: 72 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Stripe: feedback de mutacao"

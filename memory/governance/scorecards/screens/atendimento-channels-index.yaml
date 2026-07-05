@@ -6,14 +6,14 @@ screen: Atendimento/Channels/Index
 path: resources/js/Pages/Atendimento/Channels/Index.tsx
 archetype: list
 persona: larissa
-nota: 79
+nota: 80
 nivel: "Advanced"
 baseline_anterior: 79   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "CRUD de canais rico: cards com health, dialogs DS, fluxo QR/pairing com poll, EmptyState e charter+review; perde por alert()/confirm() nativos, emoji 📥 e cores emerald/amber cruas."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "CRUD de canais rico: cards com health, dialogs DS, QR/pairing com auto-close pos-pareamento (fix #2979/#2983), emoji migrado pra Lucide e charter live; ainda perde por alert()/confirm() nativos no import-history e emerald/amber crus no healthColor."
+dimensoes: { density: 80, discoverability: 74, speed_to_task: 82, error_recovery: 73, cognitive_load: 80, aesthetic_usability: 83, affordance: 84, brand_confidence: 81, mobile_fit: 78, a11y_wcag: 78, i18n_ptbr: 93, performance_perceived: 84, information_hierarchy: 82, microcopy: 84, internal_consistency: 80, preflight_conformance: 76 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Stripe usa toast/Dialog DS, nunca window.alert pra resultado de acao"
@@ -21,8 +21,8 @@ gaps:
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
-    best_of_class: "Bling usa icone do set, sem emoji literal e cor tokenizada"
-    fix: "Trocar 📥 por Lucide + tokenizar healthColor emerald/amber/red"
+    best_of_class: "DS v4 cor semantica tokenizada"
+    fix: "Tokenizar healthColor emerald/amber cru remanescente (linhas 522-523 e avisos amber-700)"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Discoverability"

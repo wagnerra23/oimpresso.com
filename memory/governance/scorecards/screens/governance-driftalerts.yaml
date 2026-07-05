@@ -6,27 +6,17 @@ screen: governance/DriftAlerts
 path: resources/js/Pages/governance/DriftAlerts.tsx
 archetype: list
 persona: wagner
-nota: 69
-nivel: "Developing"
+nota: 78
+nivel: "Advanced"
 baseline_anterior: 69   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de drift funcional com KPIs e historico, mas quase toda em amber cru e divs hand-rolled (sem CardTitle), read-only sem acao e fora do DS roxo."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista de drift re-tokenizada: Card/CardTitle DS, KpiCard com tone semântico, Badge destructive por severidade, EmptyState e links por item (SCOPE.md/Controllers no GitHub); zero cor crua."
+dimensoes: { density: 78, discoverability: 78, speed_to_task: 76, error_recovery: 72, cognitive_load: 78, aesthetic_usability: 78, affordance: 74, brand_confidence: 78, mobile_fit: 74, a11y_wcag: 74, i18n_ptbr: 82, performance_perceived: 74, information_hierarchy: 78, microcopy: 78, internal_consistency: 80, preflight_conformance: 80 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Linear"
-    fix: "tudo em amber-50/100/200/950 + zinc cru hand-rolled, h3 hand-rolled em vez de CardTitle, zero primary roxo + charter existe mas UI nao herda DS -> tokens v4 + Card components"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Information-hierarchy"
-    best_of_class: "Datadog monitors"
-    fix: "3 secoes (runtime/sem-scope/historico) achatadas sem severidade visual nem agrupamento; '→ ctrl' como bullet -> severidade por cor token + counts no header"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Affordance"
     best_of_class: "Linear"
-    fix: "drift listado mas sem acao inline (add ao SCOPE, ir pro modulo) -> CTA por item ligando ao fix descrito no texto"
+    fix: "há links GitHub por item (SCOPE.md/Controllers) mas ainda sem ação inline de correção (add ao SCOPE direto da tela)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30

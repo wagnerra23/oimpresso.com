@@ -6,25 +6,15 @@ screen: Admin/RagQualityDashboard
 path: resources/js/Pages/Admin/RagQualityDashboard.tsx
 archetype: dashboard
 persona: wagner
-nota: 69
-nivel: "Developing"
+nota: 77
+nivel: "Advanced"
 baseline_anterior: 69   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Observability RAG com 3 sparklines p99, nDCG/recall e Deferred bem aplicado; perde por cores cruas zinc/emerald/indigo, sem charter e thresholds hardcoded sem token."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Observability RAG tokenizada (#2375, zero cor crua) com charter e tooltip nativo por ponto no sparkline; Deferred bem aplicado — o Sparkline segue duplicado da GovernanceV4Dashboard."
+dimensoes: { density: 78, discoverability: 76, speed_to_task: 76, error_recovery: 72, cognitive_load: 76, aesthetic_usability: 78, affordance: 74, brand_confidence: 78, mobile_fit: 72, a11y_wcag: 72, i18n_ptbr: 82, performance_perceived: 82, information_hierarchy: 78, microcopy: 76, internal_consistency: 72, preflight_conformance: 80 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 com escala de cor semantica + charter ao lado"
-    fix: "Tokenizar text-emerald/amber/red de p99Color/pctColor; criar RagQualityDashboard.charter.md"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Aesthetic-usability"
-    best_of_class: "Grafana sparkline com eixo/tooltip de valor no hover"
-    fix: "Adicionar tooltip/ultimo-ponto destacado no Sparkline SVG"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Internal-consistency"
     best_of_class: "Reusar 1 Sparkline compartilhado (GovernanceV4Dashboard tem copia)"
     fix: "Extrair Sparkline pra @/Components/shared e dedupe"

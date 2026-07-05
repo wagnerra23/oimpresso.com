@@ -1,12 +1,12 @@
 ---
 slug: plano-aprofundamento-avaliacoes
-title: "Plano de aprofundamento das avaliações — 5 ondas"
+title: "Plano de aprofundamento das avaliações"
 date: "2026-07-05"
 status: proposto
 authors: [F, C]
 related_adrs: ["0093", "0101", "0105", "0106", "0155", "0230", "0264", "0275", "0294", "0314"]
-esforco_estimado: "5 ondas · ~4-6 sessões IA-pair (ADR 0106)"
-topic: "programa de aprofundamento das lentes de avaliação do projeto — telas stale, módulos piores, ops/DR, LGPD/performance + revisão defensiva apartada"
+esforco_estimado: "5 ondas (0-4) · ~4-6 sessões IA-pair (ADR 0106)"
+topic: "programa de aprofundamento das lentes de avaliação do projeto — telas stale, módulos piores, ops/DR, LGPD/performance"
 ---
 
 # Plano de aprofundamento das avaliações
@@ -29,7 +29,7 @@ As lentes vivas não cobrem o projeto inteiro: SDD 70/100 · Jana RAG ~46% · mo
 5. Antes de criar doc em `memory/`: `Glob`/`Grep` o tema e **estender** o canon — nunca abrir paralelo (T6).
 6. Toda onda entrega **catraca**, não só relatório (sentinela conta, catraca morde — ADR 0264/0275).
 7. Executa no tier da própria sessão — não force troca de modelo. Se spawnar `capterra-senior`/`audit-senior-expert` (Opus-pinned), passe `model: fable` no override pra manter o tier.
-8. **Ordem:** 0 → 1 → 2 → 4 → 5. A **Onda 3 (revisão defensiva) roda numa sessão dedicada** e separada — não abrir junto das outras.
+8. **Ordem:** 0 → 1 → 2 → 3 → 4.
 
 ## Máquina de cobertura (Check X)
 
@@ -80,13 +80,7 @@ Os dois piores do baseline tocam dinheiro/estoque (REGRA MESTRE). Sair de nota-f
 
 ---
 
-## Onda 3 — Revisão de segurança defensiva (sessão dedicada)
-
-Escopo, checklist, baseline e DoD ficam apartados → [`AUDITORIA-SEGURANCA-ESCOPO.md`](AUDITORIA-SEGURANCA-ESCOPO.md). Abrir só numa sessão dedicada, com OK do Wagner. **Não misturar com as outras ondas.**
-
----
-
-## Onda 4 — Infra / Ops / DR (CT100 + Hostinger)
+## Onda 3 — Infra / Ops / DR (CT100 + Hostinger)
 
 Zero grade, e já houve incidente silencioso (cópia `/opt` do CT100 desatualizada; SSH Hostinger flaky). Ninguém mediu backup/restore.
 
@@ -100,7 +94,7 @@ Zero grade, e já houve incidente silencioso (cópia `/opt` do CT100 desatualiza
 
 ---
 
-## Onda 5 — LGPD + Performance prod
+## Onda 4 — LGPD + Performance prod
 
 Duas lentes finais, hoje só dimensão do module-grade.
 
@@ -118,8 +112,7 @@ Duas lentes finais, hoje só dimensão do module-grade.
 | 0 | Baseline consolidado | pré-req | ½ sessão | — |
 | 1 | Re-grade telas stale (217) | alta (barato) | 1-2 sessões | ratchet |
 | 2 | Compras + PaymentGateway | alta (Tier-0 fraco) | 1-2 sessões | Wagner |
-| 4 | Ops/DR CT100+Hostinger | média (incidente real) | 1-2 sessões | CT100 |
-| 5 | LGPD + Performance | baixa | 1 sessão | Eliana |
-| 3 | Revisão defensiva | sessão dedicada | 2-3 sessões | Wagner |
+| 3 | Ops/DR CT100+Hostinger | média (incidente real) | 1-2 sessões | CT100 |
+| 4 | LGPD + Performance | baixa | 1 sessão | Eliana |
 
 **Quick-win:** Onda 1 + Onda 2. O Check X vigia a Onda 2 a cada PR.

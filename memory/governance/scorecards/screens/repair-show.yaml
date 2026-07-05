@@ -10,10 +10,10 @@ nota: 72
 nivel: "Advanced"
 baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe de venda-reparo limpo (dl grid, aside pagamentos, defer timeline) mas FSM e placeholder e cores cruas."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe de venda-reparo limpo (dl grid, aside pagamentos, defer timeline); sem mudança material desde o baseline — FSM segue placeholder, STAGE_COLOR_MAP cru e timeline em EmptyState fixo."
+dimensoes: { density: 74, discoverability: 72, speed_to_task: 66, error_recovery: 72, cognitive_load: 74, aesthetic_usability: 74, affordance: 72, brand_confidence: 72, mobile_fit: 72, a11y_wcag: 72, i18n_ptbr: 85, performance_perceived: 72, information_hierarchy: 68, microcopy: 74, internal_consistency: 72, preflight_conformance: 70 }
 gaps:
   - dim: "Speed-to-task"
     best_of_class: "Linear"

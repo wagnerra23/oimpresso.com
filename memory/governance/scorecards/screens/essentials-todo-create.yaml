@@ -10,10 +10,10 @@ nota: 76
 nivel: "Advanced"
 baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form de criação sólido (@ui, Sonner, validação inline em task/date); falta PageHeader canon, charter e multiselect com busca."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form de criação sólido (@ui, Sonner, validação inline em task/date); código idêntico ao baseline de 30/mai — segue sem PageHeader canon, sem charter, picker de usuários sem busca e estimated_hours como texto livre."
+dimensoes: { density: 78, discoverability: 78, speed_to_task: 78, error_recovery: 70, cognitive_load: 78, aesthetic_usability: 79, affordance: 69, brand_confidence: 77, mobile_fit: 77, a11y_wcag: 75, i18n_ptbr: 85, performance_perceived: 79, information_hierarchy: 78, microcopy: 77, internal_consistency: 79, preflight_conformance: 65 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear: modo FOCO PageHeader sem distração"

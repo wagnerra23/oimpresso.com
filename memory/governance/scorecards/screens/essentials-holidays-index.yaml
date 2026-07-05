@@ -7,13 +7,13 @@ path: resources/js/Pages/Essentials/Holidays/Index.tsx
 archetype: list
 persona: misto
 nota: 84
-nivel: "Developing"
+nivel: "Advanced"
 baseline_anterior: 84   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de feriados solida: filtros por localidade/data, dialog create/edit, badge de dias, empty state, full DS."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista de feriados sólida (filtros localidade/data, dialog create/edit, badge de dias, empty state, charter live, full DS); código idêntico ao baseline de 30/mai — mobile ainda só overflow e sem visão calendário."
+dimensoes: { density: 78, discoverability: 86, speed_to_task: 85, error_recovery: 86, cognitive_load: 85, aesthetic_usability: 86, affordance: 85, brand_confidence: 85, mobile_fit: 75, a11y_wcag: 82, i18n_ptbr: 88, performance_perceived: 84, information_hierarchy: 85, microcopy: 78, internal_consistency: 86, preflight_conformance: 82 }
 gaps:
   - dim: "Mobile-fit"
     best_of_class: "Linear converte tabela em cards no mobile"

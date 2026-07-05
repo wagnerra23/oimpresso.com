@@ -10,10 +10,10 @@ nota: 80
 nivel: "Advanced"
 baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form de defaults fiscais Nivel 4 muito bom: wizard 'Aplicar pelo regime', toggle CSOSN/CST, mascaras numericas, hints por regime; charter presente. Perde em a11y de erro e cascade discoverability."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form de defaults fiscais Nivel 4 muito bom: wizard 'Aplicar pelo regime', toggle CSOSN/CST, mascaras numericas, hints por regime; charter presente. Sem mudanca material desde o baseline — segue perdendo em a11y de erro e cascade discoverability."
+dimensoes: { density: 80, discoverability: 74, speed_to_task: 82, error_recovery: 78, cognitive_load: 80, aesthetic_usability: 82, affordance: 82, brand_confidence: 80, mobile_fit: 76, a11y_wcag: 72, i18n_ptbr: 88, performance_perceived: 82, information_hierarchy: 82, microcopy: 74, internal_consistency: 84, preflight_conformance: 82 }
 gaps:
   - dim: "Discoverability"
     best_of_class: "Bling (mostra onde esse default cai no cascade)"

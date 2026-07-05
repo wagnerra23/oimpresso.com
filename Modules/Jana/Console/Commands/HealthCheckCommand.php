@@ -40,6 +40,10 @@ use Modules\Jana\Services\CharterHealthChecker;
  *  10. Memoria recall backend (resiliência Meilisearch) — MCP/Meilisearch
  *      reachable; alerta ANTES da degradação silenciosa (chat responde sem
  *      recall, NÃO estoura 500). McpMemoriaDriver já degrada gracioso.
+ *  10d. MCP index sync gap (handoff 2026-07-05 next_step #3) — doc canônico
+ *      no git AUSENTE de mcp_memory_documents OU vivo sem heartbeat de sync
+ *      (indexed_at >7d). Classe do incidente BRIEFINGs: -11pp recall@5
+ *      invisível por semanas (#3815). Fonte única: slugsEsperados() do sync.
  *  11. Lesson ledger graduation (ADVISORY · Reflexion runtime) — toda lição de
  *      operação em LICOES-OPERACAO.md nasceu graduada (MEC→check / JULG→regra);
  *      acende amarelo se há entrada malformada ou `status:pendente`.
@@ -113,6 +117,7 @@ class HealthCheckCommand extends Command
             $this->checkMemoriaRecallBackend(),
             $this->checkDbWriteCanary(),
             $this->checkDbStorageQuota(),
+            $this->checkMcpIndexSyncGap(),
             $this->checkLessonLedgerGraduation(),
             $this->checkGovernancaGraduationRatio(),
             $this->checkProtocolFreshness(),
@@ -1291,6 +1296,142 @@ class HealthCheckCommand extends Command
         }
 
         return ($usedMb / $quotaMb * 100) >= $warnPct;
+    }
+
+    /**
+     * Check 10d — MCP index sync gap (sentinela anti-apodrecimento · handoff
+     * 2026-07-05 next_step #3 · a máquina que substitui o conserto na mão).
+     *
+     * O sync gap dos BRIEFINGs (docs canônicos existindo no git mas AUSENTES
+     * do índice mcp_memory_documents) ficou invisível por semanas e custou
+     * -11pp de recall@5 — todo monitor media qualidade DENTRO do índice, nunca
+     * a AUSÊNCIA de um doc esperado. Este check compara os slugs que o próprio
+     * sync coletaria AGORA (IndexarMemoryGitParaDb::slugsEsperados() — MESMA
+     * coleta, fonte única, sem lista paralela pra driftar) contra os slugs
+     * vivos na tabela. Doc esperado fora do índice = gap.
+     *
+     * DURO (não-advisory): gap de indexação = decisions-search/kb-answer
+     * mentindo por omissão pro time inteiro — derruba exit + ALERT do cron.
+     * O cron mcp:sync-memory roda a cada 5min, então qualquer gap presente às
+     * 06:00 é real (o sync teve centenas de chances), não corrida de janela.
+     *
+     * Além da AUSÊNCIA, acusa STALE (indexed_at velho): todo run de sync toca
+     * indexed_at de todo doc coletado MESMO SEM mudança de conteúdo (heartbeat
+     * — ver IndexarMemoryGitParaDb::indexarArquivo, branch "sem mudança").
+     * Doc vivo sem heartbeat >7d = sync não completa há dias (a classe do
+     * residual "sync completo falha com deadlock/OOM" do handoff 2026-07-05).
+     *
+     * Skip gracioso: memory/ ausente (ambiente sem repo canon) ou tabela
+     * ausente (pré-migração).
+     *
+     * @see Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php (slugsEsperados)
+     */
+    protected function checkMcpIndexSyncGap(): array
+    {
+        $name = 'mcp_index_sync_gap';
+
+        try {
+            if (! is_dir(base_path('memory'))
+                || ! \Illuminate\Support\Facades\Schema::hasTable('mcp_memory_documents')) {
+                return [
+                    'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => 0,
+                    'message' => 'Skipped (memory/ ou tabela mcp_memory_documents ausente — dev/CI)',
+                ];
+            }
+
+            $esperados = (new \Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb(base_path(), 'health-check'))
+                ->slugsEsperados();
+
+            // Só docs VIVOS contam — soft-deletado com arquivo presente no git
+            // é gap igual (o usuário não acha via search do mesmo jeito).
+            // Pluck slug→indexed_at pro heartbeat de stale.
+            $vivos = DB::table('mcp_memory_documents')
+                ->whereIn('slug', $esperados)
+                ->whereNull('deleted_at')
+                ->pluck('indexed_at', 'slug')
+                ->all();
+
+            $r = self::indexSyncGapStats(
+                $esperados,
+                array_keys($vivos),
+                $vivos,
+                now()->subDays(self::MCP_INDEX_STALE_DIAS),
+            );
+
+            $nAusentes = count($r['ausentes']);
+            $nStale = count($r['stale']);
+
+            return [
+                'name' => $name,
+                'ok' => $nAusentes === 0 && $nStale === 0,
+                'value' => $nAusentes + $nStale,
+                'threshold' => 0,
+                'message' => $nAusentes === 0 && $nStale === 0
+                    ? "Todos os {$r['esperados']} docs canônicos do git estão no índice com heartbeat ≤" . self::MCP_INDEX_STALE_DIAS . 'd'
+                    : "ALERTA sync gap: {$nAusentes} doc(s) canônico(s) fora do índice + {$nStale} stale (indexed_at >"
+                        . self::MCP_INDEX_STALE_DIAS . "d sem heartbeat de sync) de {$r['esperados']} esperados — ex: "
+                        . implode(' · ', array_slice(array_merge($r['ausentes'], $r['stale']), 0, 5))
+                        . '. Rodar mcp:sync-memory e investigar deadlock/OOM (classe do gap dos BRIEFINGs 2026-07-04).',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name, 'ok' => false, 'value' => null, 'threshold' => 0,
+                'message' => 'ERRO: ' . mb_substr($e->getMessage(), 0, 80),
+            ];
+        }
+    }
+
+    /**
+     * Janela de heartbeat do check 10d: doc vivo com indexed_at mais velho que
+     * N dias = sync não completa há dias (deadlock/OOM), mesmo sem ausência.
+     */
+    public const MCP_INDEX_STALE_DIAS = 7;
+
+    /**
+     * Estatística pura do sync gap — testável sem DB nem filesystem (mesmo
+     * padrão de evaluateInboundFlow / distillerFreshnessStats).
+     *
+     * AUSENTE = esperado pelo git, fora do índice vivo. STALE = vivo no índice
+     * mas sem heartbeat de sync desde $limiteStale (indexed_at NULL conta como
+     * stale: linha nunca tocada por sync moderno). Os 2 params extras são
+     * opcionais — sem eles o contrato original (ausência-only) permanece.
+     *
+     * @param  list<string>  $esperados  slugs que a coleta do sync derivou do git
+     * @param  list<string>  $vivos      slugs presentes (não soft-deletados) na tabela
+     * @param  array<string, mixed>  $heartbeats  slug => indexed_at (string|DateTime|null) dos vivos
+     * @return array{esperados:int, ausentes:list<string>, stale:list<string>}
+     */
+    public static function indexSyncGapStats(
+        array $esperados,
+        array $vivos,
+        array $heartbeats = [],
+        ?\DateTimeInterface $limiteStale = null,
+    ): array {
+        $vivosSet = array_flip($vivos);
+        $ausentes = array_values(array_filter(
+            $esperados,
+            static fn (string $slug) => ! isset($vivosSet[$slug]),
+        ));
+
+        $stale = [];
+        if ($limiteStale !== null) {
+            foreach ($esperados as $slug) {
+                if (! isset($vivosSet[$slug])) {
+                    continue; // ausente já reportado — não conta duas vezes
+                }
+
+                $heartbeat = $heartbeats[$slug] ?? null;
+                if ($heartbeat !== null && ! $heartbeat instanceof \DateTimeInterface) {
+                    $heartbeat = new \DateTimeImmutable((string) $heartbeat);
+                }
+
+                if ($heartbeat === null || $heartbeat < $limiteStale) {
+                    $stale[] = $slug;
+                }
+            }
+        }
+
+        return ['esperados' => count($esperados), 'ausentes' => $ausentes, 'stale' => $stale];
     }
 
     /**

@@ -6,23 +6,18 @@ screen: Atendimento/Macros/Index
 path: resources/js/Pages/Atendimento/Macros/Index.tsx
 archetype: list
 persona: misto
-nota: 79
+nota: 81
 nivel: "Advanced"
 baseline_anterior: 79   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de macros completa (Deferred+skeleton+empty+a11y labels), mas table hand-rolled, confirm() nativo e vermelho cru."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista de macros completa (Deferred+skeleton+empty+a11y labels, charter live); vermelho cru do excluir migrado pra token destructive no sweep DS (#2666); ainda pesa confirm() nativo no destroy e table hand-rolled."
+dimensoes: { density: 82, discoverability: 80, speed_to_task: 84, error_recovery: 70, cognitive_load: 82, aesthetic_usability: 82, affordance: 80, brand_confidence: 80, mobile_fit: 78, a11y_wcag: 80, i18n_ptbr: 92, performance_perceived: 84, information_hierarchy: 82, microcopy: 82, internal_consistency: 76, preflight_conformance: 82 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Linear (modal de confirmacao com undo, nao window.confirm)"
     fix: "destroy() usa confirm() nativo; trocar por AlertDialog de @/Components/ui"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 (tokens semanticos destrutivos)"
-    fix: "text-red-600/red-700 cru no botao excluir; usar token destructive"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Internal-consistency"

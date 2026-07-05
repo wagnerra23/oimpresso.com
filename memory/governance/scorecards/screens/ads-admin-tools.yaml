@@ -10,14 +10,14 @@ nota: 73
 nivel: "Advanced"
 baseline_anterior: 73   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Catalogo de tools com try-it inline e audit de execucoes; util mas paleta crua (emerald/amber/zinc), confirm() nativo e input JSON manual elevam carga."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Sweep #2666 tokenizou 4 linhas mas restam emerald-600/amber-600 + zinc-50/100/200 crus, confirm() nativo no try-it de write tools e input JSON manual; estado funcional igual ao baseline."
+dimensoes: { density: 78, discoverability: 76, speed_to_task: 76, error_recovery: 64, cognitive_load: 62, aesthetic_usability: 74, affordance: 72, brand_confidence: 74, mobile_fit: 72, a11y_wcag: 70, i18n_ptbr: 82, performance_perceived: 74, information_hierarchy: 78, microcopy: 80, internal_consistency: 76, preflight_conformance: 62 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear badges"
-    fix: "badges bg-emerald-600/bg-amber-600 text-white + code bg-zinc-100 + Card border-zinc-200 cru, zero primary roxo -> tokens v4"
+    fix: "restam badge bg-emerald-600/bg-amber-600 text-white + code bg-zinc-100/zinc-50 + border-zinc-200 cru (sweep #2666 cobriu parcial); tokens v4"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"

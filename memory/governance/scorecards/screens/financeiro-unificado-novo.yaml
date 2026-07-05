@@ -6,14 +6,14 @@ screen: Financeiro/Unificado/Novo
 path: resources/js/Pages/Financeiro/Unificado/Novo.tsx
 archetype: form
 persona: eliana
-nota: 52
+nota: 65
 nivel: "Developing"
 baseline_anterior: 52   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Stub-ponte provisorio (2 cards picker receber/pagar) auto-declarado status=stub — funcional mas sem form real nem charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Picker reescrito em DS canon (Wave 4): PageHeader + FinanceiroSubNav, Card do @/ui com tokens primary e lucide, hover honesto — mas segue ponte de 2 cards que só redireciona; sem form unificado real nem charter."
+dimensoes: { density: 58, discoverability: 66, speed_to_task: 50, error_recovery: 56, cognitive_load: 72, aesthetic_usability: 72, affordance: 66, brand_confidence: 68, mobile_fit: 66, a11y_wcag: 64, i18n_ptbr: 78, performance_perceived: 68, information_hierarchy: 64, microcopy: 70, internal_consistency: 68, preflight_conformance: 62 }
 gaps:
   - dim: "Speed-to-task"
     best_of_class: "Bling: form unico inline"
@@ -21,12 +21,7 @@ gaps:
     esforco: alto
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
-    best_of_class: "DS shadcn Button"
-    fix: "Sem charter; usa os-btn cru e nao @/Components/ui; sem estados loading/error"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Affordance"
-    best_of_class: "Notion empty-action"
-    fix: "Cards div role=button com hover-cor crua; usar Card + Button DS"
+    best_of_class: "Cobranca: charter + casos.md"
+    fix: "Sem charter nem casos.md; visual ja e DS canon mas o contrato da tela (pra onde leva, quando some) segue indocumentado"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05

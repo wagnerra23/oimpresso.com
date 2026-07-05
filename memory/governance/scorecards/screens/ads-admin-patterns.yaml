@@ -10,10 +10,10 @@ nota: 71
 nivel: "Advanced"
 baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Padroes com Wilson-Score bem explicado, secoes candidatos/drifts em cards + tabela; cor crua como sinal e a11y de tabela limitam."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Sweep #2666 tocou 3 linhas mas lbColor segue emerald-600/blue-600/amber-600 + zinc-700/300 cru como unico sinal do Wilson LB; a11y de tabela e mobile inalterados desde o baseline."
+dimensoes: { density: 74, discoverability: 70, speed_to_task: 72, error_recovery: 68, cognitive_load: 76, aesthetic_usability: 72, affordance: 70, brand_confidence: 72, mobile_fit: 64, a11y_wcag: 62, i18n_ptbr: 82, performance_perceived: 72, information_hierarchy: 76, microcopy: 80, internal_consistency: 70, preflight_conformance: 58 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 roxo"

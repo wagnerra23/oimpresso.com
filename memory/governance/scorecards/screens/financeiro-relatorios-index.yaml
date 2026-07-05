@@ -10,10 +10,10 @@ nota: 72
 nivel: "Advanced"
 baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Relatorios com tabs Fluxo/Resumo, KPI fin-stats, export CSV e card-alerta de vencidos; solido mas banner DRE oklch cru, sem defer e graficos div artesanais."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Relatorios com tabs Fluxo/Resumo, KPI fin-stats, export CSV e card-alerta de vencidos; sweeps #2666/#3381 tocaram a tela mas os 3 gaps seguem: banner DRE oklch 70 cru (linhas 149-155), sem defer e FluxoBars div artesanais. Nota mantida."
+dimensoes: { density: 76, discoverability: 74, speed_to_task: 72, error_recovery: 70, cognitive_load: 72, aesthetic_usability: 70, affordance: 74, brand_confidence: 72, mobile_fit: 66, a11y_wcag: 68, i18n_ptbr: 82, performance_perceived: 66, information_hierarchy: 68, microcopy: 74, internal_consistency: 74, preflight_conformance: 74 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Cobranca (Alert DS)"

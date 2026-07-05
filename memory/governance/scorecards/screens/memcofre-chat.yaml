@@ -10,10 +10,10 @@ nota: 72
 nivel: "Advanced"
 baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Chat do Cofre sólido com reuso DS (Card/Textarea/Button/Badge), envio otimista, estado de erro e sessões recentes, mas select nativo, sem charter e a11y de inputs fraca."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Chat do Cofre sólido com reuso DS (Card/Textarea/Button/Badge), envio otimista, estado de erro e sessões recentes; sem mudança material desde o baseline — select nativo persiste, zero aria/label nos inputs e sem charter."
+dimensoes: { density: 74, discoverability: 72, speed_to_task: 76, error_recovery: 66, cognitive_load: 76, aesthetic_usability: 76, affordance: 72, brand_confidence: 72, mobile_fit: 70, a11y_wcag: 58, i18n_ptbr: 86, performance_perceived: 76, information_hierarchy: 74, microcopy: 76, internal_consistency: 74, preflight_conformance: 60 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear"

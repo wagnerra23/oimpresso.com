@@ -6,18 +6,18 @@ screen: Sells/Caixa/Index
 path: resources/js/Pages/Sells/Caixa/Index.tsx
 archetype: dashboard
 persona: larissa
-nota: 75
+nota: 76
 nivel: "Advanced"
 baseline_anterior: 75   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Caixa do dia KB-9.75 com KPI hero e barras por-origem, mas metade e placeholder legacy e usa CSS cru com emoji."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Caixa do dia com KPI hero e barras por-origem; icones agora lucide-react (sem emoji), mas 2 de 4 secoes seguem placeholder apontando pro /cash-register legacy e o CSS cockpit cru persiste."
+dimensoes: { density: 82, discoverability: 75, speed_to_task: 68, error_recovery: 72, cognitive_load: 78, aesthetic_usability: 76, affordance: 75, brand_confidence: 65, mobile_fit: 74, a11y_wcag: 72, i18n_ptbr: 90, performance_perceived: 78, information_hierarchy: 84, microcopy: 82, internal_consistency: 70, preflight_conformance: 64 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Constituicao UI v2"
-    fix: "Usa classes CSS cockpit cruas (os-*, vc-*) e oklch inline, nao @/Components/ui; emoji como icone de pagamento"
+    fix: "Usa classes CSS cockpit cruas (os-*, vc-*) e oklch inline, nao @/Components/ui (emoji ja migrado pra lucide-react no #2041)"
     esforco: alto
     origin: screen-grades-baseline-2026-05-30
   - dim: "Brand-confidence"

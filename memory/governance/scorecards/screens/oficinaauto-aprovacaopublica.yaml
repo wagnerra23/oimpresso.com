@@ -10,10 +10,10 @@ nota: 78
 nivel: "Advanced"
 baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Aprovacao publica mobile-first com PIN OTP e lockout; cores cruas green/blue violam Pre-Flight e flash sem aria-live."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Aprovacao publica mobile-first com PIN + lockout e resumo BRL limpo; sem mudanca material desde o baseline — cores cruas green/blue no flash e ausencia de aria-live permanecem."
+dimensoes: { density: 80, discoverability: 80, speed_to_task: 82, error_recovery: 78, cognitive_load: 82, aesthetic_usability: 78, affordance: 74, brand_confidence: 78, mobile_fit: 88, a11y_wcag: 68, i18n_ptbr: 85, performance_perceived: 82, information_hierarchy: 80, microcopy: 82, internal_consistency: 76, preflight_conformance: 68 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 tokens"

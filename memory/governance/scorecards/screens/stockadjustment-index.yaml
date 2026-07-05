@@ -6,18 +6,18 @@ screen: StockAdjustment/Index
 path: resources/js/Pages/StockAdjustment/Index.tsx
 archetype: list
 persona: eliana
-nota: 82
+nota: 83
 nivel: "Advanced"
 baseline_anterior: 82   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista densa exemplar: filtro sticky filial/data, pills tipo, perm-gate preco, empty dual (busca vs zero), tabular-nums; perde em tokens stone crus e confirm() nativo."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista densa exemplar com PageHeader canon: filtro sticky filial/data, pills tipo, perm-gate preco, empty dual, tabular-nums; #2666 tokenizou rose/emerald mas restam stone-* crus, 1 <select> nativo, confirm() nativo e rows eager."
+dimensoes: { density: 86, discoverability: 84, speed_to_task: 84, error_recovery: 74, cognitive_load: 84, aesthetic_usability: 82, affordance: 82, brand_confidence: 82, mobile_fit: 78, a11y_wcag: 78, i18n_ptbr: 90, performance_perceived: 76, information_hierarchy: 86, microcopy: 86, internal_consistency: 84, preflight_conformance: 74 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 tokens"
-    fix: "Tabela hand-roll com stone-*/rose-*/emerald-* cru; <select> nativo no filtro; confirm() em vez de alert-dialog DS"
+    fix: "Tabela hand-roll com stone-* cru (rose/emerald ja tokenizados no #2666); <select> nativo no filtro; confirm() em vez de alert-dialog DS"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"

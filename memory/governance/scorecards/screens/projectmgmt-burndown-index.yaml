@@ -10,10 +10,10 @@ nota: 80
 nivel: "Advanced"
 baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Burndown SVG ideal-vs-real hand-rolled com KPIs de pace/forecast e empty-state sem-cycle; usa stroke-blue-500 cru e não tem charter nem tooltip/hover no gráfico."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Burndown SVG ideal-vs-real hand-rolled com KPIs de pace/forecast e empty-state sem-cycle; sem mudança material desde o baseline — stroke/fill-blue-500 cru segue (4 ocorrências), sem charter e sem tooltip no gráfico."
+dimensoes: { density: 78, discoverability: 74, speed_to_task: 80, error_recovery: 78, cognitive_load: 82, aesthetic_usability: 82, affordance: 76, brand_confidence: 80, mobile_fit: 78, a11y_wcag: 74, i18n_ptbr: 88, performance_perceived: 86, information_hierarchy: 82, microcopy: 84, internal_consistency: 82, preflight_conformance: 68 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Stripe charts usam tokens do tema"
