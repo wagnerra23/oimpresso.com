@@ -140,6 +140,22 @@ class IndexarMemoryGitParaDb
             ];
         }
 
+        // BRIEFINGs por módulo (memory/requisitos/{Modulo}/BRIEFING.md) — "estado
+        // consolidado" do módulo, porta única (ADR 0270 D-2). Slug canônico
+        // `briefing:<Modulo>` capitalizado, como o golden set recall-golden.yaml espera.
+        // Sync gap descoberto 2026-07-04: estavam fora do índice → decisions-search/
+        // kb-answer nunca achavam o estado consolidado do módulo (caso de uso #1 Larissa).
+        foreach (glob("$base/memory/requisitos/*/BRIEFING.md") as $file) {
+            $module = basename(dirname($file));
+            $arquivos[] = [
+                'slug'   => "briefing:$module",
+                'type'   => 'briefing',
+                'module' => strtolower($module),
+                'path'   => "memory/requisitos/$module/BRIEFING.md",
+                'full'   => $file,
+            ];
+        }
+
         // Arquivos raiz canônicos
         $raiz = [
             ['slug' => 'handoff',  'type' => 'handoff', 'module' => null, 'path' => 'memory/08-handoff.md',  'full' => "$base/memory/08-handoff.md"],
