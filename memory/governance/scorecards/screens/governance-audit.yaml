@@ -6,18 +6,18 @@ screen: governance/Audit
 path: resources/js/Pages/governance/Audit.tsx
 archetype: list
 persona: wagner
-nota: 70
+nota: 73
 nivel: "Advanced"
 baseline_anterior: 70   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Audit forense com 4 filtros server-side e charter ao lado, mas selects/tabela hand-rolled com zinc/emerald crus e sem paginacao real."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Audit forense com filtros migrados pra Select Radix DS (#3405, sentinela pro vazio pós-regressão #3411); tabela hand-rolled com emerald/red/zinc crus e limit 200 sem paginação seguem."
+dimensoes: { density: 74, discoverability: 72, speed_to_task: 68, error_recovery: 70, cognitive_load: 74, aesthetic_usability: 72, affordance: 74, brand_confidence: 72, mobile_fit: 68, a11y_wcag: 70, i18n_ptbr: 80, performance_perceived: 70, information_hierarchy: 74, microcopy: 74, internal_consistency: 72, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear filters"
-    fix: "selects nativos com border-zinc-300/bg-white crus + statusColor bg-emerald/red-100 + text-zinc-500 cru por toda parte -> Select @/Components/ui + tokens"
+    fix: "statusColor bg-emerald/red-100 + text-zinc-500 crus na tabela -> Badge variant + tokens (selects já migrados pra Radix DS no #3405)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "A11y-WCAG"

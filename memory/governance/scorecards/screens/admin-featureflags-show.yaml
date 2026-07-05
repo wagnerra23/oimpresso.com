@@ -6,27 +6,22 @@ screen: Admin/FeatureFlags/Show
 path: resources/js/Pages/Admin/FeatureFlags/Show.tsx
 archetype: config
 persona: wagner
-nota: 66
-nivel: "Developing"
+nota: 77
+nivel: "Advanced"
 baseline_anterior: 66   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe de flag com mata-switch e CRUD de rule biz via useForm; bom error-recovery por confirm, mas <select> nativo, cores cruas e zero charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe de flag com Select Radix DS, mata-switch via AlertDialog e zero cor crua; charter ao lado — os 3 gaps do baseline foram corrigidos; falta defer nas listas e casos.md."
+dimensoes: { density: 78, discoverability: 76, speed_to_task: 78, error_recovery: 82, cognitive_load: 76, aesthetic_usability: 78, affordance: 78, brand_confidence: 78, mobile_fit: 70, a11y_wcag: 74, i18n_ptbr: 84, performance_perceived: 70, information_hierarchy: 76, microcopy: 78, internal_consistency: 78, preflight_conformance: 80 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Stripe usa Select do DS + Alert tokenizado"
-    fix: "Trocar <select> nativo por @/Components/ui/select e bg-red-100 por Alert variant; criar charter"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Error-recovery"
-    best_of_class: "Vercel usa modal de confirmacao com input de typed-confirm pra acao destrutiva"
-    fix: "Substituir window.confirm do mata-switch por Dialog com double-confirm visual"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Aesthetic-usability"
-    best_of_class: "Linear evita emoji 🟢🔴 inline, usa Badge com dot"
-    fix: "Trocar emojis de status por Badge/Circle tokenizado"
+  - dim: "Performance-perceived"
+    best_of_class: "Notion mostra skeleton enquanto carrega listas secundárias"
+    fix: "Aplicar Inertia::defer + skeleton nas listas de rules/audit do Show"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Telas canon têm <Tela>.casos.md como contrato de não-regressão"
+    fix: "Criar Show.casos.md cobrindo mata-switch e CRUD de rule por business"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05

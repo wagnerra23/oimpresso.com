@@ -6,27 +6,22 @@ screen: superadmin/Usuario360/Show
 path: resources/js/Pages/superadmin/Usuario360/Show.tsx
 archetype: detail
 persona: wagner
-nota: 64
-nivel: "Developing"
+nota: 76
+nivel: "Advanced"
 baseline_anterior: 64   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Painel 360 abrangente (roles/perms/tokens/sessions/audit/lockouts) com graceful-degradation de tabelas ausentes, mas sem charter, emoji-heavy, RISK_STYLES em cores cruas e window.confirm nativo."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Painel 360 com risco em Badge+lucide tokenizado (zero cor crua/emoji), destrancar via AlertDialog DS, âncoras dos 9 blocos via Segmented e charter ao lado — os 3 gaps do baseline foram corrigidos."
+dimensoes: { density: 76, discoverability: 76, speed_to_task: 74, error_recovery: 80, cognitive_load: 74, aesthetic_usability: 76, affordance: 76, brand_confidence: 76, mobile_fit: 70, a11y_wcag: 74, i18n_ptbr: 82, performance_perceived: 68, information_hierarchy: 76, microcopy: 76, internal_consistency: 78, preflight_conformance: 78 }
 gaps:
-  - dim: "Error-recovery"
-    best_of_class: "Stripe (dialog tipado)"
-    fix: "submitUnlock usa window.confirm nativo; trocar por Dialog do DS com motivo/nota igual ao lock"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "Performance-perceived"
+    best_of_class: "Vercel defer seções pesadas com skeleton independente"
+    fix: "Tela de 700+ linhas sem Inertia::defer; deferir seções caras (audit/sessions/tokens) com skeleton"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05
   - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 tokens"
-    fix: "RISK_STYLES (gray/yellow/orange/red literais) e emojis 🔒✅⏸; mapear risk pra tokens semânticos + ícones lucide; criar charter"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Information-hierarchy"
-    best_of_class: "Notion"
-    fix: "9 blocos empilhados sem âncoras/tabs; adicionar nav lateral ou tabs pra navegar seções longas"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    best_of_class: "Telas canon têm <Tela>.casos.md como contrato de não-regressão"
+    fix: "Criar Show.casos.md cobrindo trancar/destrancar e graceful-degradation das tabelas ausentes"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05

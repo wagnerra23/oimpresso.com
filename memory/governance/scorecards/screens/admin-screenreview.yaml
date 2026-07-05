@@ -10,10 +10,10 @@ nota: 83
 nivel: "Advanced"
 baseline_anterior: 83   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Tri-pane PDCA bem montado: Deferred por pane, localStorage, PageHeaderActions, toast e charter+review; falta dialog real pra notes/initiative e re-smoke ainda e placeholder toast."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Tri-pane PDCA com Deferred por pane, localStorage e toasts; sem mudança material desde o baseline — re-smoke segue toast placeholder e notes/initiative sem input real."
+dimensoes: { density: 84, discoverability: 84, speed_to_task: 84, error_recovery: 76, cognitive_load: 82, aesthetic_usability: 84, affordance: 76, brand_confidence: 84, mobile_fit: 76, a11y_wcag: 80, i18n_ptbr: 86, performance_perceived: 88, information_hierarchy: 84, microcopy: 84, internal_consistency: 86, preflight_conformance: 84 }
 gaps:
   - dim: "Affordance"
     best_of_class: "GitHub review usa textarea inline com submit pra notes, nao toast placeholder"
