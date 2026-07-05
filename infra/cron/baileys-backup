@@ -1,23 +1,31 @@
-# baileys-auth daily backup — CT 100 Proxmox
+# whatsmeow auth-state daily backup — CT 100 Proxmox
 #
-# Wagner: copiar pra /etc/cron.d/baileys-backup no CT 100 + chmod 644
+# NOTA: o nome do arquivo é "baileys-backup" por legado (era o daemon anterior).
+#   O daemon migrou Baileys → wuzapi/whatsmeow; este cron agora chama o script novo
+#   backup-whatsmeow-auth.sh. Mantido o mesmo nome de arquivo (/etc/cron.d/baileys-backup)
+#   de propósito: substituir o conteúdo no lugar evita deixar um cron órfão apontando pro
+#   backup Baileys quebrado. Ver infra/scripts/backup-whatsmeow-auth.sh (cabeçalho) e
+#   memory/requisitos/Whatsapp/runbooks/restore-auth-state.md.
+#
+# Wagner-gated: substituir /etc/cron.d/baileys-backup no CT 100 + chmod 644
 #
 # Deploy:
-#   scp infra/cron/baileys-backup root@ct100-mcp:/etc/cron.d/baileys-backup
-#   tailscale ssh root@ct100-mcp 'chmod 644 /etc/cron.d/baileys-backup'
-#   tailscale ssh root@ct100-mcp 'systemctl reload cron'
+#   base64 infra/scripts/backup-whatsmeow-auth.sh | tailscale ssh root@ct100-mcp 'base64 -d > /opt/scripts/backup-whatsmeow-auth.sh'
+#   tailscale ssh root@ct100-mcp 'chmod 755 /opt/scripts/backup-whatsmeow-auth.sh'
+#   base64 infra/cron/baileys-backup | tailscale ssh root@ct100-mcp 'base64 -d > /etc/cron.d/baileys-backup'
+#   tailscale ssh root@ct100-mcp 'chmod 644 /etc/cron.d/baileys-backup && systemctl reload cron'
+#   # (opcional) remover o script Baileys morto: rm -f /opt/scripts/backup-baileys-auth.sh
 #
-# Pré-requisitos no CT 100 (rodar 1x antes de ativar cron):
-#   mkdir -p /opt/scripts /backups/baileys-auth
-#   cp backup-baileys-auth.sh /opt/scripts/
-#   chmod 755 /opt/scripts/backup-baileys-auth.sh
-#   touch /var/log/baileys-backup.log && chmod 640 /var/log/baileys-backup.log
+# Pré-requisitos no CT 100 (rodar 1x antes de ativar):
+#   mkdir -p /opt/scripts /srv/backup/whatsmeow
+#   touch /var/log/whatsmeow-backup.log && chmod 640 /var/log/whatsmeow-backup.log
 #
-# Validar: tail -f /var/log/baileys-backup.log (próxima execução 03:00 BRT)
-# Manual run: /opt/scripts/backup-baileys-auth.sh
+# Validar: tail -f /var/log/whatsmeow-backup.log (próxima execução 03:00 BRT)
+#   grep OK: /var/log/whatsmeow-backup.log ; ls -la /srv/backup/whatsmeow/
+# Manual run: /opt/scripts/backup-whatsmeow-auth.sh
 
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 # m h dom mon dow user command
-0 3 * * * root /opt/scripts/backup-baileys-auth.sh >> /var/log/baileys-backup.log 2>&1
+0 3 * * * root /opt/scripts/backup-whatsmeow-auth.sh >> /var/log/whatsmeow-backup.log 2>&1

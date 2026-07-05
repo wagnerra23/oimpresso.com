@@ -146,9 +146,18 @@ De fora do whitelist (qualquer outro IP): deve dar **403 Forbidden** pelo Traefi
 9. Wagner abre celular → WhatsApp → Configurações → Dispositivos vinculados → escaneia QR
 10. Daemon dispara webhook `Connected` → Laravel atualiza `channel.status=active` + UI Centrifugo realtime detecta
 
-## Passo 8 — Backup diário (cron 5 min)
+## Passo 8 — Backup diário
+
+> ⚠️ **CORREÇÃO 2026-07-05:** o `tar` inline abaixo copia `main.db`/`users.db` **abertos em WAL** →
+> pode gravar um backup inconsistente/corrompido (`.db` sem os frames do `-wal`). Use o script
+> versionado **[`infra/scripts/backup-whatsmeow-auth.sh`](../../../../infra/scripts/backup-whatsmeow-auth.sh)**
+> (online backup API do SQLite + `integrity_check` + sanity `whatsmeow_device>0`) via cron
+> **[`infra/cron/baileys-backup`](../../../../infra/cron/baileys-backup)**. Restore:
+> [`restore-auth-state.md`](restore-auth-state.md). O bloco `tar` abaixo fica só como referência
+> histórica — **não instalar**.
 
 ```bash
+# (HISTÓRICO — NÃO USAR. Ver correção acima: tar de SQLite-WAL aberto não é consistente.)
 # /etc/cron.daily/backup-whatsmeow
 cat > /etc/cron.daily/backup-whatsmeow << 'EOF'
 #!/bin/bash
