@@ -6,27 +6,27 @@ screen: Produto/StockHistory
 path: resources/js/Pages/Produto/StockHistory.tsx
 archetype: detail
 persona: larissa
-nota: 47
-nivel: "Beginner"
+nota: 80
+nivel: "Advanced"
 baseline_anterior: 47   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Placeholder: filtros variação/local com persist localStorage, mas timeline só linka pro Blade legacy (admite migração Wave 3) — feature incompleta."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Redesign 2026-05-31 zerou os 3 gaps do baseline: timeline real inline via Inertia defer + skeleton, PageHeader canon + tokens DS puros, resumo entradas/saidas/ajustes/saldo, partial reload por filtro e EmptyState. Fallback legado virou so link de rodape (saldo corrente pende Wave 3)."
+dimensoes: { density: 80, discoverability: 80, speed_to_task: 80, error_recovery: 76, cognitive_load: 82, aesthetic_usability: 82, affordance: 80, brand_confidence: 80, mobile_fit: 76, a11y_wcag: 80, i18n_ptbr: 92, performance_perceived: 86, information_hierarchy: 84, microcopy: 84, internal_consistency: 84, preflight_conformance: 78 }
 gaps:
-  - dim: "Speed-to-task"
-    best_of_class: "Bling: timeline de movimentação renderizada inline com entrada/saída/ajuste"
-    fix: "Migrar endpoint pra JSON e renderizar timeline real em vez de link 'ver legacy'"
+  - dim: "speed_to_task"
+    best_of_class: "Bling filtra timeline por periodo (data inicial/final)"
+    fix: "Filtros so por variacao/local — adicionar filtro de periodo pra investigar divergencia de estoque em janela especifica"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05
+  - dim: "density"
+    best_of_class: "Linear pagina/virtualiza listas longas"
+    fix: "Timeline sem paginacao ou carregar-mais — produto com muita movimentacao rende tabela gigante num payload so"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05
+  - dim: "internal_consistency"
+    best_of_class: "Shopify: relatorio completo na propria tela, sem fallback externo"
+    fix: "Saldo corrente e tipos nao migrados ainda dependem do link pro relatorio Blade legado (Wave 3 pendente); falta StockHistory.casos.md"
     esforco: alto
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Stripe usa header/tokens consistentes em toda tela"
-    fix: "Adotar PageHeader + tokens roxo; remover paleta stone crua"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Performance-perceived"
-    best_of_class: "Linear mostra skeleton enquanto carrega dados"
-    fix: "Carregar série via Inertia::defer com skeleton em vez de iframe/link externo"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
