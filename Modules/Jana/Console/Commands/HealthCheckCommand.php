@@ -113,6 +113,7 @@ class HealthCheckCommand extends Command
             $this->checkMemoriaRecallBackend(),
             $this->checkDbWriteCanary(),
             $this->checkDbStorageQuota(),
+            $this->checkMcpIndexSyncGap(),
             $this->checkLessonLedgerGraduation(),
             $this->checkGovernancaGraduationRatio(),
             $this->checkProtocolFreshness(),
@@ -1291,6 +1292,92 @@ class HealthCheckCommand extends Command
         }
 
         return ($usedMb / $quotaMb * 100) >= $warnPct;
+    }
+
+    /**
+     * Check 10d — MCP index sync gap (sentinela anti-apodrecimento · handoff
+     * 2026-07-05 next_step #3 · a máquina que substitui o conserto na mão).
+     *
+     * O sync gap dos BRIEFINGs (docs canônicos existindo no git mas AUSENTES
+     * do índice mcp_memory_documents) ficou invisível por semanas e custou
+     * -11pp de recall@5 — todo monitor media qualidade DENTRO do índice, nunca
+     * a AUSÊNCIA de um doc esperado. Este check compara os slugs que o próprio
+     * sync coletaria AGORA (IndexarMemoryGitParaDb::slugsEsperados() — MESMA
+     * coleta, fonte única, sem lista paralela pra driftar) contra os slugs
+     * vivos na tabela. Doc esperado fora do índice = gap.
+     *
+     * DURO (não-advisory): gap de indexação = decisions-search/kb-answer
+     * mentindo por omissão pro time inteiro — derruba exit + ALERT do cron.
+     * O cron mcp:sync-memory roda a cada 5min, então qualquer gap presente às
+     * 06:00 é real (o sync teve centenas de chances), não corrida de janela.
+     *
+     * Skip gracioso: memory/ ausente (ambiente sem repo canon) ou tabela
+     * ausente (pré-migração).
+     *
+     * @see Modules/Jana/Services/Mcp/IndexarMemoryGitParaDb.php (slugsEsperados)
+     */
+    protected function checkMcpIndexSyncGap(): array
+    {
+        $name = 'mcp_index_sync_gap';
+
+        try {
+            if (! is_dir(base_path('memory'))
+                || ! \Illuminate\Support\Facades\Schema::hasTable('mcp_memory_documents')) {
+                return [
+                    'name' => $name, 'ok' => true, 'value' => 'n/a', 'threshold' => 0,
+                    'message' => 'Skipped (memory/ ou tabela mcp_memory_documents ausente — dev/CI)',
+                ];
+            }
+
+            $esperados = (new \Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb(base_path(), 'health-check'))
+                ->slugsEsperados();
+
+            // Só docs VIVOS contam — soft-deletado com arquivo presente no git
+            // é gap igual (o usuário não acha via search do mesmo jeito).
+            $vivos = DB::table('mcp_memory_documents')
+                ->whereIn('slug', $esperados)
+                ->whereNull('deleted_at')
+                ->pluck('slug')
+                ->all();
+
+            $r = self::indexSyncGapStats($esperados, $vivos);
+
+            return [
+                'name' => $name,
+                'ok' => $r['ausentes'] === [],
+                'value' => count($r['ausentes']),
+                'threshold' => 0,
+                'message' => $r['ausentes'] === []
+                    ? "Todos os {$r['esperados']} docs canônicos do git estão no índice"
+                    : 'ALERTA sync gap: ' . count($r['ausentes']) . " doc(s) canônico(s) fora do índice (de {$r['esperados']} esperados) — ex: "
+                        . implode(' · ', array_slice($r['ausentes'], 0, 5))
+                        . '. Rodar mcp:sync-memory e investigar deadlock/OOM (classe do gap dos BRIEFINGs 2026-07-04).',
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'name' => $name, 'ok' => false, 'value' => null, 'threshold' => 0,
+                'message' => 'ERRO: ' . mb_substr($e->getMessage(), 0, 80),
+            ];
+        }
+    }
+
+    /**
+     * Estatística pura do sync gap — testável sem DB nem filesystem (mesmo
+     * padrão de evaluateInboundFlow / distillerFreshnessStats).
+     *
+     * @param  list<string>  $esperados  slugs que a coleta do sync derivou do git
+     * @param  list<string>  $vivos      slugs presentes (não soft-deletados) na tabela
+     * @return array{esperados:int, ausentes:list<string>}
+     */
+    public static function indexSyncGapStats(array $esperados, array $vivos): array
+    {
+        $vivosSet = array_flip($vivos);
+        $ausentes = array_values(array_filter(
+            $esperados,
+            static fn (string $slug) => ! isset($vivosSet[$slug]),
+        ));
+
+        return ['esperados' => count($esperados), 'ausentes' => $ausentes];
     }
 
     /**
