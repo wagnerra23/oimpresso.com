@@ -6,27 +6,27 @@ screen: Site/Pricing
 path: resources/js/Pages/Site/Pricing.tsx
 archetype: other
 persona: misto
-nota: 84
-nivel: "Advanced"
+nota: 85
+nivel: "Leader"
 baseline_anterior: 84   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Landing de preços convincente: billing toggle, tiers/FAQ extraidos, confidence row, CTA final roxo; falha em token success cru e a11y do toggle."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Landing de precos convincente: billing toggle, tiers/FAQ extraidos, confidence row, CTA final roxo; desconto -20% agora em token success (sweep DS #2666) e Lock ja e lucide — restam emojis 🇧🇷/↩️, aria do toggle e packages:any."
+dimensoes: { density: 84, discoverability: 86, speed_to_task: 88, error_recovery: 80, cognitive_load: 88, aesthetic_usability: 88, affordance: 82, brand_confidence: 90, mobile_fit: 86, a11y_wcag: 78, i18n_ptbr: 90, performance_perceived: 84, information_hierarchy: 88, microcopy: 90, internal_consistency: 84, preflight_conformance: 72 }
 gaps:
-  - dim: "Internal-consistency"
+  - dim: "A11y-WCAG"
     best_of_class: "Stripe pricing"
-    fix: "Toggle mensal/anual sem role=tablist/aria-pressed; desconto −20% em bg-green-500/20 cru em vez de token success"
+    fix: "Toggle mensal/anual segue sem role=tablist/aria-pressed (token success ja corrigido)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
-  - dim: "i18n-PT-BR"
-    best_of_class: "DS tokens"
-    fix: "Emojis 🇧🇷🔒↩️ como icones (sem fallback semantico/aria-hidden ok mas fragil) — preferir lucide"
-    esforco: medio
+  - dim: "Internal-consistency"
+    best_of_class: "lucide-react"
+    fix: "Emojis 🇧🇷 e ↩️ restantes na confidence row (Lock ja migrou pra lucide); trocar por icones lucide"
+    esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4"
-    fix: "packages:any[] (sem tipo); green-500 hardcoded fora do token set; sem charter"
+    fix: "packages:any[] (sem tipo); sem Pricing.charter.md nem Pricing.casos.md"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30

@@ -6,23 +6,18 @@ screen: Cliente/Index
 path: resources/js/Pages/Cliente/Index.tsx
 archetype: list
 persona: larissa
-nota: 84
-nivel: "Advanced"
+nota: 87
+nivel: "Leader"
 baseline_anterior: 84   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Flagship denso (KB ⌘K/J/K, KPI strip clicavel, 6 filtros, drawer 5 tabs, avatar HSL) — execucao Leader mas paleta inline oklch/sky-rose fora dos tokens e header nao-canon."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Flagship consolidado em jun: PageHeaderPrimary canon roxo 295, paginacao+sort+KPIs server-side reais (#2622-2625), atalhos no rodape, drawer polido, status tokenizado (#3387) — resta oklch warm inline e componente de 2682 linhas."
+dimensoes: { density: 90, discoverability: 88, speed_to_task: 88, error_recovery: 84, cognitive_load: 78, aesthetic_usability: 88, affordance: 88, brand_confidence: 88, mobile_fit: 78, a11y_wcag: 80, i18n_ptbr: 90, performance_perceived: 86, information_hierarchy: 88, microcopy: 88, internal_consistency: 84, preflight_conformance: 80 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 (token --primary, nao oklch inline nem sky/rose/stone cru)"
-    fix: "PRIMARY_HUE 295 via oklch() inline + paleta sky/rose/stone/amber crua; promover pra tokens DS e componente PageHeader canon"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Internal-consistency"
-    best_of_class: "PT-01 Lista (header/toolbar componentizados)"
-    fix: "Header+toolbar reconstruidos inline com comentarios de iteracao Wagner; extrair pra PageHeader/Toolbar canon reutilizavel"
+    fix: "PRIMARY_HUE 295 e borders warm ainda via oklch() inline + residuos sky/rose/stone/amber; promover pra tokens DS"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Cognitive-load"
