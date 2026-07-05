@@ -1133,3 +1133,155 @@ it('cenário 17 — d2 default (flag false) retorna mode=legacy preservando ADR 
     expect($d2['score'])->toBeInt()->toBeGreaterThanOrEqual(0)->toBeLessThanOrEqual(20);
     expect(array_column($d2['breakdown'], 'key'))->toBe(['D2.a', 'D2.b', 'D2.c']);
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 18 — D8.a detecta throttle declarado em ARRAY de middleware
+//
+// Forma canônica UltimatePOS: Route::middleware(['web', ..., 'throttle:60,1'])
+// (multi-line). Antes do fix 2026-07-05, só ->middleware('throttle:...') como
+// primeiro arg string pontuava — Compras tinha throttle REAL (audit sênior
+// 2026-05-25 Gap #3) e D8.a devolvia 0 (falso-negativo).
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 18 — D8.a detecta throttle em array de middleware (forma UltimatePOS)', function () {
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    $routesDir = $fake['moduleDir'] . '/Routes';
+    if (! is_dir($routesDir)) {
+        @mkdir($routesDir, 0755, true);
+    }
+    $routesFile = $routesDir . '/web.php';
+
+    // Espelha Modules/Compras/Routes/web.php — throttle no MEIO do array, multi-line
+    $routesContent = <<<'PHP'
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+Route::middleware(['web', 'auth', 'SetSessionData', 'language', 'timezone',
+    'AdminSidebarMenu', 'CheckUserLogin', 'throttle:60,1'])
+    ->prefix('fake')
+    ->group(function () {
+        Route::get('/', fn () => 'ok');
+    });
+PHP;
+    file_put_contents($routesFile, $routesContent);
+    registerFileRestoreSafetyNet($routesFile, null);
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        $d8a = collect($grade['dimensions']['security']['breakdown'])->firstWhere('key', 'D8.a');
+        expect($d8a)->not->toBeNull();
+        expect($d8a['score'])->toBe(3, 'D8.a → 3 quando throttle declarado em array de middleware (forma canônica UltimatePOS)');
+        expect($d8a['evidence'])->toContain('throttle');
+    } finally {
+        @unlink($routesFile);
+        @rmdir($routesDir);
+        markFileRestored($routesFile);
+        cleanupFakeModule($fake);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 19 — D8.a continua 0 em rota SEM throttle (anti-falso-positivo)
+//
+// Garante que o regex novo de array não pontua qualquer middleware([...]) —
+// só quando a string 'throttle:'/'throttle.' aparece DENTRO do array.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 19 — D8.a NÃO pontua array de middleware sem throttle', function () {
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    $routesDir = $fake['moduleDir'] . '/Routes';
+    if (! is_dir($routesDir)) {
+        @mkdir($routesDir, 0755, true);
+    }
+    $routesFile = $routesDir . '/web.php';
+
+    $routesContent = <<<'PHP'
+<?php
+
+use Illuminate\Support\Facades\Route;
+
+// Comentário mencionando Throttle 60/min NÃO deve pontuar — só código real conta.
+Route::middleware(['web', 'auth', 'SetSessionData'])
+    ->prefix('fake')
+    ->group(function () {
+        Route::get('/', fn () => 'ok');
+    });
+PHP;
+    file_put_contents($routesFile, $routesContent);
+    registerFileRestoreSafetyNet($routesFile, null);
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        $d8a = collect($grade['dimensions']['security']['breakdown'])->firstWhere('key', 'D8.a');
+        expect($d8a)->not->toBeNull();
+        expect($d8a['score'])->toBe(0, 'D8.a → 0 quando rotas existem mas nenhuma tem throttle');
+    } finally {
+        @unlink($routesFile);
+        @rmdir($routesDir);
+        markFileRestored($routesFile);
+        cleanupFakeModule($fake);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 20 — D4.d detecta OtelHelper::spanBiz e Spatie\Activitylog (paridade D9.a)
+//
+// D9.a já detectava a facade canônica (ADR 0156 §Errata 1); D4.d usava regex
+// própria SEM OtelHelper nem Spatie\Activitylog → módulo com telemetry real em
+// TODO método (caso Compras: OtelHelper::spanBiz + Activity::query timeline)
+// pontuava 0 no D4.d e 4/4 no D9.a — inconsistência interna da rubrica.
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 20 — D4.d detecta OtelHelper::spanBiz invocado em Service (paridade com D9.a)', function () {
+    $fake = createFakeModule();
+    $fakeName = '__GovernanceTestFake__';
+
+    $servicesDir = $fake['moduleDir'] . '/Services';
+    if (! is_dir($servicesDir)) {
+        @mkdir($servicesDir, 0755, true);
+    }
+    $fakeService = $servicesDir . '/FakeAuditTelemetryService.php';
+
+    // Espelha Modules/Compras/Services/ComprasService.php — OtelHelper::spanBiz
+    // invocado + Activity model do Spatie\Activitylog (timeline drawer).
+    $fakeServiceContent = <<<'PHP'
+<?php
+
+namespace Modules\__GovernanceTestFake__\Services;
+
+use Spatie\Activitylog\Models\Activity;
+
+class FakeAuditTelemetryService
+{
+    public function run(): bool
+    {
+        return \App\Util\OtelHelper::spanBiz('test.fake.action', fn () => true);
+    }
+}
+PHP;
+    file_put_contents($fakeService, $fakeServiceContent);
+    registerFileRestoreSafetyNet($fakeService, null);
+
+    try {
+        $service = app(ModuleGradeService::class);
+        $grade = $service->gradeModule($fakeName);
+
+        $d4d = collect($grade['dimensions']['architecture']['breakdown'])->firstWhere('key', 'D4.d');
+        expect($d4d)->not->toBeNull();
+        expect($d4d['score'])->toBe(4, 'D4.d → 4 quando Service invoca OtelHelper::spanBiz / usa Spatie\Activitylog');
+    } finally {
+        @unlink($fakeService);
+        @rmdir($servicesDir);
+        markFileRestored($fakeService);
+        cleanupFakeModule($fake);
+    }
+});
