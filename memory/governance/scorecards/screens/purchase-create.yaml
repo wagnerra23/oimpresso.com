@@ -6,24 +6,19 @@ screen: Purchase/Create
 path: resources/js/Pages/Purchase/Create.tsx
 archetype: form
 persona: misto
-nota: 76
+nota: 80
 nivel: "Advanced"
 baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form linear denso e consistente (Card/PageHeader/AppShellV2 + totais reativos), mas fornecedor/produto como texto livre e <select> cru limitam affordance."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form linear denso e consistente (Card/PageHeader/AppShellV2 + totais reativos); desde o baseline ganhou grade tamxcor com GradeProductCombobox (#3245), zerou os <select> crus e as cores de status cruas (#2666/#3390) — fornecedor ainda e ID textual e falta validacao client-side."
+dimensoes: { density: 80, discoverability: 80, speed_to_task: 82, error_recovery: 74, cognitive_load: 80, aesthetic_usability: 82, affordance: 77, brand_confidence: 80, mobile_fit: 78, a11y_wcag: 78, i18n_ptbr: 90, performance_perceived: 76, information_hierarchy: 82, microcopy: 82, internal_consistency: 84, preflight_conformance: 84 }
 gaps:
   - dim: "Affordance"
     best_of_class: "Stripe/Bling — combobox de fornecedor com busca + criar inline"
-    fix: "Trocar Input 'ID do fornecedor' por Combobox @/Components/ui com busca async; idem produto na linha (hoje texto livre)"
+    fix: "Trocar Input 'ID do fornecedor' por Combobox @/Components/ui com busca async (produto na linha ja resolvido pelo GradeProductCombobox #3245)"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 — Select primitive @/Components/ui, zero <select> cru"
-    fix: "Migrar os 3 <select> hand-roll pra Select do DS (tokens/foco/a11y consistentes)"
-    esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"
     best_of_class: "Linear — validação inline + bloqueio de submit vazio"

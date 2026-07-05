@@ -6,27 +6,22 @@ screen: Financeiro/Advisor/Login
 path: resources/js/Pages/Financeiro/Advisor/Login.tsx
 archetype: form
 persona: eliana
-nota: 50
+nota: 68
 nivel: "Developing"
 baseline_anterior: 50   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Login isolado do portal contador (justificadamente fora do AppShell) com flash success/error; inputs/botões crus, cores hand-roll, zero DS v4 e sem recuperação de senha."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Login do portal contador migrado pra DS v4 (Input/Button/Card/Alert/Checkbox do @/ui + bloco de marca bg-primary roxo, zero cor crua); charter draft live — segue sem 'esqueci a senha'."
+dimensoes: { density: 70, discoverability: 64, speed_to_task: 70, error_recovery: 54, cognitive_load: 74, aesthetic_usability: 72, affordance: 70, brand_confidence: 70, mobile_fit: 72, a11y_wcag: 66, i18n_ptbr: 78, performance_perceived: 72, information_hierarchy: 70, microcopy: 68, internal_consistency: 72, preflight_conformance: 64 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4: @/ui Input/Button"
-    fix: "<input> e os-btn crus (só Checkbox/Label do @/ui); cores slate/emerald/red hand-roll, zero token v4/roxo, sem charter"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Brand-confidence"
-    best_of_class: "Stripe login: marca + trust"
-    fix: "Gradiente slate genérico sem logo oimpresso roxo; baixa confiança"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"
     best_of_class: "Auth0: lockout/forgot"
     fix: "Sem 'esqueci a senha', sem rate-limit hint; só reset de password no erro"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Cobranca: charter approved + casos.md"
+    fix: "Charter ainda em status draft e sem casos.md; auth de portal externo merece UC de contrato (login ok, senha errada, grant revogado)"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05

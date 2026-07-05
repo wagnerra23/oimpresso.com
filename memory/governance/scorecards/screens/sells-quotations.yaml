@@ -10,10 +10,10 @@ nota: 73
 nivel: "Advanced"
 baseline_anterior: 73   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de cotacoes irma de Drafts (badge orcamento, enviar/editar); mesma divida: sem skeleton/paginacao/a11y e CTA 'Enviar' enganoso."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista de cotacoes irma de Drafts (badge orcamento, enviar/editar); sem mudanca material desde o baseline (so churn do restore #2413) — mesma divida: sem skeleton/paginacao/a11y e CTA 'Enviar' enganoso segue no codigo."
+dimensoes: { density: 75, discoverability: 72, speed_to_task: 74, error_recovery: 70, cognitive_load: 78, aesthetic_usability: 74, affordance: 72, brand_confidence: 72, mobile_fit: 72, a11y_wcag: 64, i18n_ptbr: 88, performance_perceived: 65, information_hierarchy: 75, microcopy: 66, internal_consistency: 76, preflight_conformance: 72 }
 gaps:
   - dim: "Performance-perceived"
     best_of_class: "skeleton + paginacao server"

@@ -6,18 +6,18 @@ screen: Sells/Create
 path: resources/js/Pages/Sells/Create.tsx
 archetype: form
 persona: larissa
-nota: 88
+nota: 90
 nivel: "Leader"
 baseline_anterior: 88   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form POS denso e maduro (1647 linhas, charter): autosave multi-tenant, atalhos /, Cmd+Enter, error-scroll, NumericInputPtBR; perde por cores cruas nos cards e header fora do canon."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form POS maduro (2004 linhas, charter+casos): desde o baseline ganhou paridade total com Edit (IMEI, desconto per-linha, documento, endereco cobranca, staff note, recorrente), navegacao por teclado no dropdown, veiculo na venda, carrinho preservado em erro/cancelar e tokens de status (#3406); ainda perde por cores cruas residuais nos KPI cards e header fora do PageHeader canon."
+dimensoes: { density: 92, discoverability: 90, speed_to_task: 94, error_recovery: 93, cognitive_load: 86, aesthetic_usability: 88, affordance: 93, brand_confidence: 90, mobile_fit: 82, a11y_wcag: 86, i18n_ptbr: 95, performance_perceived: 84, information_hierarchy: 90, microcopy: 92, internal_consistency: 86, preflight_conformance: 83 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Stripe/Linear: 100% design tokens semanticos"
-    fix: "Trocar amber/blue/emerald-50/700 hardcoded dos KPI/status cards por tokens (--warning/--info/--success) ou data-attrs"
+    fix: "Trocar amber/blue/emerald hardcoded residuais dos KPI/info cards por tokens (--warning/--info/--success) — #3406 tokenizou status, restam ~13 ocorrencias em cards"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Internal-consistency"
