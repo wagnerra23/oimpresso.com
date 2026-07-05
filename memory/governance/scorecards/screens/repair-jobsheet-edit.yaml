@@ -10,10 +10,10 @@ nota: 71
 nivel: "Advanced"
 baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Edit com tabs e indicador de erro por aba (bom), mas checklist readOnly inativo e cliente por ID."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Edit com tabs e indicador de erro por aba (bom); selects já em Select DS, mas checklist readOnly inativo, cliente ainda por ID e tabs seguem hand-roll — sem mudança material desde o baseline."
+dimensoes: { density: 74, discoverability: 73, speed_to_task: 70, error_recovery: 76, cognitive_load: 74, aesthetic_usability: 74, affordance: 62, brand_confidence: 74, mobile_fit: 68, a11y_wcag: 68, i18n_ptbr: 85, performance_perceived: 68, information_hierarchy: 74, microcopy: 73, internal_consistency: 68, preflight_conformance: 70 }
 gaps:
   - dim: "Affordance"
     best_of_class: "Shopify"
@@ -22,11 +22,11 @@ gaps:
     origin: screen-grades-baseline-2026-05-30
   - dim: "Affordance"
     best_of_class: "Bling"
-    fix: "contact_id input number; trocar por busca de cliente"
+    fix: "contact_id input number; trocar por busca de cliente (reusar CustomerSearchAutocomplete já aplicado no Create)"
     esforco: alto
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear tabs"
-    fix: "Tabs hand-roll + selects nativos; usar Tabs/Select do DS (tokens v4)"
+    fix: "Tabs hand-roll (map de buttons); usar Tabs do DS (selects já migraram pra Select DS)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30

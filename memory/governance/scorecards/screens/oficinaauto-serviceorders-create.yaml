@@ -6,30 +6,25 @@ screen: OficinaAuto/ServiceOrders/Create
 path: resources/js/Pages/OficinaAuto/ServiceOrders/Create.tsx
 archetype: form
 persona: tecnico
-nota: 66
-nivel: "Developing"
+nota: 76
+nivel: "Advanced"
 baseline_anterior: 66   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form de OS em Sheet 720 funcional com referer-close, mas selects/textarea nativos e erros parciais o deixam scaffold."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form de OS em Sheet 720 maduro: combobox de veiculo/cliente com busca, DS Select/Textarea, erros em todos os campos + auto-scroll, check-in de entrada e status entregue ao FSM (sweep ADR 0265)."
+dimensoes: { density: 76, discoverability: 78, speed_to_task: 78, error_recovery: 80, cognitive_load: 76, aesthetic_usability: 75, affordance: 78, brand_confidence: 75, mobile_fit: 74, a11y_wcag: 72, i18n_ptbr: 82, performance_perceived: 76, information_hierarchy: 76, microcopy: 78, internal_consistency: 78, preflight_conformance: 80 }
 gaps:
-  - dim: "Internal-consistency"
-    best_of_class: "@/Components/ui"
-    fix: "<select> e <textarea> nativos hand-rolled — usar Select/Textarea do DS (Edit usa mesmo padrao raw; padronizar)"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"
+    best_of_class: "Linear (unsaved guard)"
+    fix: "fechar o Sheet (referer-close com setTimeout) descarta o form silenciosamente — adicionar guarda de alteracoes nao salvas antes de navegar"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05
+  - dim: "A11y-WCAG"
     best_of_class: "Stripe forms"
-    fix: "so vehicle_id mostra erro; status/datas sem render de errors[]; sem foco no 1o campo invalido"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Cognitive-load"
-    best_of_class: "Linear quick-create"
-    fix: "selecao de veiculo por <option> texto plano — combobox com busca de placa (lista grande trava)"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    fix: "mensagens de erro de validacao renderizam sem role=alert/aria-live — leitor de tela nao anuncia o retorno do backend"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
 
 # ───────── Onda 0b (ADR 0320): comportamento/valor AO LADO da UX — PLUGAR não fundir ─────────
 # NÃO entra na nota 66 (UX). CONTRATO estabelecido 2026-07-03: Create.casos.md com 4 UCs 🧪 (cada

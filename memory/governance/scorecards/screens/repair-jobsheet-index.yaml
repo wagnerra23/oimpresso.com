@@ -6,27 +6,22 @@ screen: Repair/JobSheet/Index
 path: resources/js/Pages/Repair/JobSheet/Index.tsx
 archetype: list
 persona: tecnico
-nota: 52
-nivel: "Developing"
+nota: 74
+nivel: "Advanced"
 baseline_anterior: 52   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Shell React limpo mas e stub — lista real e placeholder de DataTables legacy e cards so contam filtros."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Score-up 05-31 fechou os 3 gaps do baseline: tabela real via endpoint DataTables AJAX, filtros funcionais em Select DS (local/status/cliente + Limpar) e EmptyStates de erro/vazio/busca. Sem paginação (200 fixo) nem busca textual."
+dimensoes: { density: 72, discoverability: 76, speed_to_task: 75, error_recovery: 76, cognitive_load: 76, aesthetic_usability: 75, affordance: 74, brand_confidence: 74, mobile_fit: 70, a11y_wcag: 72, i18n_ptbr: 85, performance_perceived: 72, information_hierarchy: 74, microcopy: 76, internal_consistency: 76, preflight_conformance: 76 }
 gaps:
   - dim: "Speed-to-task"
     best_of_class: "Linear"
-    fix: "Tabela e placeholder (div explicando DataTables legacy); migrar pra TanStack/tabela real com dados"
-    esforco: alto
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Information-hierarchy"
-    best_of_class: "Bling"
-    fix: "Cards mostram CONTAGEM de filtros, nao a lista de OS; substituir por tabela acionavel"
-    esforco: alto
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Discoverability"
-    best_of_class: "Shopify filters"
-    fix: "Filtros existem so como numeros; expor selects funcionais que filtram a lista"
+    fix: "Fetch fixo em length=200 sem paginação nem busca textual por OS/cliente; adicionar paginação e input de busca"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
+  - dim: "Information-hierarchy"
+    best_of_class: "Bling OS — status com cor semântica"
+    fix: "Endpoint devolve status_color mas o dot da tabela usa bg-primary genérico; mapear cor do status pra leitura rápida"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
