@@ -1473,3 +1473,17 @@ O gate CI `Jana recall-eval (mock — golden set determinístico)` está vermelh
 **Meta:** context_recall canônico 0.42 → ~0.80-0.85 (medido por `jana:ragas-real-eval` no CT 100 staging, mesma régua do ADR 0318). Cada camada verificada por A/B (golden set + ragas) antes de promover.
 
 **Refs:** PR #3791 · ADR 0318 · US-RET-003 · US-COPI-087 (reranker existente) · US-COPI-107 (Onda 4 R1) · [RUNBOOK-bge-reranker-ct100](../Infra/RUNBOOK-bge-reranker-ct100.md)
+
+### US-COPI-131 · Elevar tela Regras/Index a ≥70 (listar policies read-only + token roxo)
+
+> owner: — · priority: p3 · status: todo · type: story
+> blocked_by: —
+
+Achado Onda 1 (re-grade telas stale). `Jana/Regras/Index` = **68 (Developing)**. Tela interna (admin Jana/PolicyEngine).
+
+Gaps (`jana-regras-index.yaml`):
+- **Speed-to-task (alto):** hoje só redireciona; listar policies do PolicyEngine (4 outcomes) read-only.
+- **Pre-Flight (baixo):** `oklch(0.62 0.13 220)` + `violet-500` inline fora do primary roxo v4.
+- **Information-hierarchy (médio):** sem preview de regras; agregar contagem/estado das políticas ativas.
+
+DoD: nota ≥70 + ratchet verde. Charter + gate visual antes de Editar a Page.

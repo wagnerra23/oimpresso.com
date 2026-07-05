@@ -86,3 +86,17 @@ O ADS é agnóstico de domínio. Estes módulos submetem eventos a ele:
 - [ ] Lint/gate que reprova `DB::table('mcp_*')` sem filtro `business_id` em código novo.
 
 Refs: ADR 0093 (Tier 0 IRREVOGÁVEL) · ADR 0296 (S-2) · PR #3162 (fix pontual).
+
+### US-ADS-002 · Elevar tela Admin/Graph a ≥70 (extrair HEX inline p/ tokens + a11y)
+
+> owner: — · priority: p3 · status: todo · type: story
+> blocked_by: —
+
+Achado Onda 1 (re-grade telas stale). `ads/Admin/Graph` = **68 (Developing)**. Tela interna (admin ADS).
+
+Gaps (`ads-admin-graph.yaml`):
+- **Pre-Flight (médio):** `nodeStyle/MiniMap/Legend` cravam HEX cru (`#3b82f6,#fef3c7,#ef4444`...) em inline style — violação dura AP hex; extrair pra tokens CSS vars.
+- **Mobile-fit (médio):** canvas fixo `height:700` + layout absoluto `cx600/cy350` não responsivo; sem fallback lista `<md`.
+- **A11y-WCAG (médio):** grafo só-visual sem alternativa textual/tabela equivalente; nodes não focáveis por teclado.
+
+DoD: nota ≥70 + ratchet verde. Charter + gate visual antes de Editar a Page.

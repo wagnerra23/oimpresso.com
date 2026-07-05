@@ -1857,3 +1857,45 @@ Follow-up das PRs #3712 (régua) + #3718 (deprecação charters). Decisão [W] 2
 - Atualizar os testes `test_contas_{receber,pagar}_legacy_*` (MultiTenantIsolationTest) pra asseverar o redirect 30x → /unificado.
 
 **Cuidados Tier 0:** business_id scope intacto; smoke prod pós-deploy (R1); ROTA LIVRE biz=4 usa Unificado — validar que a lente deep-link funciona. NÃO tocar cálculo.
+
+### US-FIN-065 · Elevar tela Unificado/Novo a ≥70 (form unificado real de cobrança)
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+Achado Onda 1 (re-grade telas stale). `Financeiro/Unificado/Novo` = **65 (Developing)**, é a única das 5 telas fracas no caminho de valor.
+
+Gaps do scorecard (`memory/governance/scorecards/screens/financeiro-unificado-novo.yaml`):
+- **Speed-to-task (alto):** hoje é stub picker (2 cards) que só redireciona pra contas-receber/pagar — entregar form unificado real (ref Bling: form único inline).
+- **Pre-Flight (médio):** sem charter; usa `os-btn` cru, não `@/Components/ui`; sem estados loading/error.
+- **Affordance (baixo):** cards `div role=button` com hover-cor crua → usar Card + Button DS.
+
+DoD: nota ≥70 no re-grade + `screen-grades-ratchet` verde. ⚠️ Toca criação de cobrança (valor) → REGRA MESTRE se mexer em cálculo. Charter + gate visual antes de Editar a Page (R7).
+
+### US-FIN-066 · Elevar tela AssinaturaAtualizar a ≥70 (PageHeader canon + preview de valor)
+
+> owner: — · priority: p3 · status: todo · type: story
+> blocked_by: —
+
+Achado Onda 1 (re-grade telas stale). `Financeiro/AssinaturaAtualizar` = **64 (Developing)**.
+
+Gaps (`financeiro-assinaturaatualizar.yaml`):
+- **Pre-Flight (médio):** header usa `os-page-h/fin-page-h/fin-cowork/vendas-aplus` legacy em vez de `<PageHeader>`; sem charter (arquivo se declara "UI minimal HITL pending").
+- **Discoverability (médio):** só um Select pra escolher assinatura; sem tabela das assinaturas ativas com estado visível.
+- **Error-recovery (médio):** patch parcial sem confirmação/preview (biz=4 prod ROTA LIVRE); sem diff valor antigo→novo.
+
+DoD: nota ≥70 + ratchet verde. ⚠️ Mexe em valor de assinatura → REGRA MESTRE (dupla confirmação + antes→depois) se tocar cálculo.
+
+### US-FIN-067 · Elevar tela Advisor/Login a ≥70 (DS v4 roxo + @/ui + charter)
+
+> owner: — · priority: p3 · status: todo · type: story
+> blocked_by: —
+
+Achado Onda 1 (re-grade telas stale). `Financeiro/Advisor/Login` = **68 (Developing)**. Tela de login do portal contador (apoio, baixa urgência).
+
+Gaps (`financeiro-advisor-login.yaml`):
+- **Pre-Flight (médio):** `<input>` e `os-btn` crus (só Checkbox/Label do `@/ui`); cores slate/emerald/red hand-roll, zero token v4/roxo, sem charter.
+- **Brand-confidence (médio):** gradiente slate genérico sem logo oimpresso roxo.
+- **Error-recovery (médio):** sem "esqueci a senha", sem rate-limit hint.
+
+DoD: nota ≥70 + ratchet verde. Backend-only na aparência (tela de auth) — charter + gate visual antes de Editar a Page.
