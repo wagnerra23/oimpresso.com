@@ -621,6 +621,26 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Onda 3 Ops/DR (AUDITORIA-OPS-DR-2026-07) — catraca de frescor do backup.
+        // `backup:run` (01:30) só CRIA o backup; nada VERIFICAVA se ele existe/está
+        // fresco. spatie tem `monitor_backups` (config/backup.php: MaximumAgeInDays=1,
+        // MaximumStorageInMegabytes=5000) + UnhealthyBackupWasFoundNotification via
+        // mail — mas `backup:monitor` NUNCA era agendado, então a morte silenciosa
+        // do backup (o mesmo modo de falha do baileys-auth backup, quebrado 6+ dias
+        // sem alarme) passava batido. Daily 09:00 BRT: DEPOIS do backup:run (01:30) e
+        // do cleanup (01:00), fora do pico dos health-checks (06:00-06:30).
+        $schedule->command('backup:monitor')
+            ->dailyAt('09:00')
+            ->timezone('America/Sao_Paulo')
+            ->name('backup-monitor-daily')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule backup:monitor FALHOU (backup ausente/stale/oversized) — investigar storage/logs/laravel.log + config/backup.php monitor_backups'
+                );
+            });
+
         // ENFORCEMENT.md §2 #5 (Constituição Art. 7) — Drift detection cron.
         // Compara Modules/<X>/SCOPE.md.contains[] × filesystem real de
         // Modules/<X>/Http/Controllers/*. Persiste alertas idempotentes em
