@@ -10,10 +10,10 @@ nota: 70
 nivel: "Advanced"
 baseline_anterior: 70   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe com tabs + Deferred/skeleton e bons empty-states, porém tabs e header hand-rolled com bg-stone-900 em vez do PageHeader e token roxo."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe com tabs + Deferred/skeleton e bons empty-states; sem mudanca material desde o baseline (so higiene #2039) — tabs/header hand-rolled em stone cru, sem KPIs acima da dobra e tab fora da URL persistem."
+dimensoes: { density: 72, discoverability: 72, speed_to_task: 72, error_recovery: 68, cognitive_load: 74, aesthetic_usability: 70, affordance: 66, brand_confidence: 70, mobile_fit: 68, a11y_wcag: 68, i18n_ptbr: 88, performance_perceived: 82, information_hierarchy: 64, microcopy: 76, internal_consistency: 72, preflight_conformance: 58 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Shopify: header de produto padronizado e reutilizado"
