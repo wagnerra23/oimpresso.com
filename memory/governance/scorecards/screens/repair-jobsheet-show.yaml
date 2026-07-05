@@ -10,10 +10,10 @@ nota: 84
 nivel: "Advanced"
 baseline_anterior: 84   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Melhor da leva: painel FSM completo (fetch, confirm, motivo, toast, side-effect, permissao) mas cores cruas e modal hand-roll."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Melhor da leva: painel FSM completo (fetch, confirm, motivo, toast, side-effect, permissão). Sweep DS 06-13 migrou 3 tokens (warning-fg/success-fg) mas STAGE_COLOR_MAP cru e modal hand-roll permanecem."
+dimensoes: { density: 84, discoverability: 84, speed_to_task: 86, error_recovery: 86, cognitive_load: 84, aesthetic_usability: 83, affordance: 85, brand_confidence: 84, mobile_fit: 78, a11y_wcag: 80, i18n_ptbr: 85, performance_perceived: 80, information_hierarchy: 85, microcopy: 85, internal_consistency: 80, preflight_conformance: 78 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Stripe"

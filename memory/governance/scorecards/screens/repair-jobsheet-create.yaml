@@ -6,27 +6,22 @@ screen: Repair/JobSheet/Create
 path: resources/js/Pages/Repair/JobSheet/Create.tsx
 archetype: form
 persona: tecnico
-nota: 68
-nivel: "Developing"
+nota: 78
+nivel: "Advanced"
 baseline_anterior: 68   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Create com Deferred options + skeleton e secoes claras, mas cliente por ID numerico e validacao incompleta."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Score-up 05-31 fechou os 3 gaps do baseline: CustomerSearchAutocomplete reusado do Sells (nome/CPF-CNPJ/telefone + quick-add), Selects DS shadcn, validação inline nos obrigatórios com '*' e foco/scroll no 1º erro."
+dimensoes: { density: 78, discoverability: 78, speed_to_task: 79, error_recovery: 81, cognitive_load: 78, aesthetic_usability: 78, affordance: 80, brand_confidence: 78, mobile_fit: 74, a11y_wcag: 78, i18n_ptbr: 85, performance_perceived: 80, information_hierarchy: 78, microcopy: 78, internal_consistency: 79, preflight_conformance: 80 }
 gaps:
-  - dim: "Affordance"
-    best_of_class: "Bling"
-    fix: "contact_id e input number; substituir por busca de cliente (nome/telefone) com autocomplete"
-    esforco: alto
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Error-recovery"
-    best_of_class: "Stripe forms"
-    fix: "errors so renderizados em contact_id; propagar inline a todos os campos obrigatorios"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
-    best_of_class: "Notion"
-    fix: "Selects nativos; sem marcadores de campo obrigatorio; migrar pra Select DS"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    best_of_class: "Método casos.md — contrato de não-regressão ao lado do tsx"
+    fix: "Existe Create.charter.md mas não Create.casos.md; derivar casos de uso do charter"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
+  - dim: "Mobile-fit"
+    best_of_class: "Shopify — form de balcão touch-friendly"
+    fix: "Densidade desktop nos inputs; revisar alvos de toque pro técnico em campo"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
