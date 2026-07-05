@@ -187,7 +187,7 @@ class McpMemoryDocument extends Model
             'attributesToRetrieve' => ['id'],
             'hybrid'               => ['embedder' => $embedder, 'semanticRatio' => $ratio],
         ];
-        $vector = static::embedQueryComInstrucao($query, $embedder);
+        $vector = self::embedQueryComInstrucao($query, $embedder);
         if ($vector !== null) {
             $body['vector'] = $vector;
         }

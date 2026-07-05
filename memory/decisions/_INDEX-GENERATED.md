@@ -7,7 +7,7 @@
 ## Resumo
 - **325** arquivos · **309** números únicos · máx **0322**
 - **ADRs ATIVOS (lifecycle ativo): 303** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 273 · proposto 36 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 274 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 303 · substituido 12 · arquivado 6 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -364,4 +364,4 @@ _(íntegra)_
 | 0317 | aceito | ativo | meta | Máquina de revisão de ADR — quando rever, via 3 classes de gatilho (evento/incon |
 | 0318 | aceito | ativo | decision | RAGAS eval real da Jana — mata a tautologia answer=ground_truth, mede saída de v |
 | 0321 | aceito | ativo | decision | Pin sped-nfe em dev-master (SHA fixo) pra IBS/CBS — grupo UB gated por feature f |
-| 0322 | proposto | ativo | decision | Reabre o hybrid de docs com instruction-prefix qwen3 — executa a condição de rea |
+| 0322 | aceito | ativo | decision | Reabre o hybrid de docs com instruction-prefix qwen3 — executa a condição de rea |

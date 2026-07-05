@@ -3,12 +3,13 @@ slug: 0322-reabre-hybrid-docs-instruction-prefix-qwen3
 number: 322
 title: "Reabre o hybrid de docs com instruction-prefix qwen3 — executa a condição de reativação da ADR 0312 (hybrid 0.852 vs FULLTEXT 0.556 no golden set)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
 decided_by: [W]
 decided_at: "2026-07-05"
+accepted_via: "Wagner 2026-07-05: apresentada a evidência A/B (FULLTEXT 0.556 vs hybrid+prefix 0.852, N=27, 2 runs) no PR #3829 → 'vai' (executar) → 'merge' (aceite da ADR + rollout do escopo pré-aprovado)."
 module: jana
 tags: [mcp, busca, retrieval, embedder, meilisearch, hybrid, qwen3, instruction-prefix, fulltext, decisions-search, kb-answer, briefing]
 supersedes: []
