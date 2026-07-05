@@ -10,10 +10,10 @@ nota: 80
 nivel: "Advanced"
 baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe completo (fornecedor/empresa/itens/pagamentos/totais) bem hierarquizado e fiscal-aware; falta CTA de pagamento e ajuste do azul cru."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe completo (fornecedor/empresa/itens/pagamentos/totais) bem hierarquizado e fiscal-aware; sweep #2666/#3390 passou por aqui mas o STATUS_PILL.ordered segue blue-* cru, sem CTA 'Registrar pagamento' e sem overflow-x na tabela — nota mantida."
+dimensoes: { density: 82, discoverability: 80, speed_to_task: 74, error_recovery: 80, cognitive_load: 82, aesthetic_usability: 82, affordance: 80, brand_confidence: 82, mobile_fit: 74, a11y_wcag: 80, i18n_ptbr: 90, performance_perceived: 80, information_hierarchy: 84, microcopy: 82, internal_consistency: 82, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 — paleta sem azul cru"

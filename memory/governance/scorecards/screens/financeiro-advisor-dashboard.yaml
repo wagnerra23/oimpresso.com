@@ -6,27 +6,22 @@ screen: Financeiro/Advisor/Dashboard
 path: resources/js/Pages/Financeiro/Advisor/Dashboard.tsx
 archetype: dashboard
 persona: eliana
-nota: 52
-nivel: "Developing"
+nota: 72
+nivel: "Advanced"
 baseline_anterior: 52   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Portal contador read-only funcional com grid de clientes e aviso LGPD; estética crua (os-btn legacy, cores hand-roll, zero DS v4/roxo) e sem charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Portal contador reescrito em DS v4 (Card/Button/Badge/KpiCard/EmptyState + tokens primary roxo, lucide Icon, Alert LGPD); charter live, portal isolado justificado — falta casos.md e cobertura de contrato."
+dimensoes: { density: 70, discoverability: 74, speed_to_task: 72, error_recovery: 66, cognitive_load: 76, aesthetic_usability: 74, affordance: 72, brand_confidence: 74, mobile_fit: 66, a11y_wcag: 68, i18n_ptbr: 82, performance_perceived: 70, information_hierarchy: 74, microcopy: 74, internal_consistency: 76, preflight_conformance: 70 }
 gaps:
   - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4: @/ui + tokens roxo"
-    fix: "Tudo hand-roll: bg-slate/white/amber/emerald cruas, os-btn legacy em vez de @/ui Button, zero token v4, zero roxo, sem charter"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Brand-confidence"
-    best_of_class: "Stripe portal: identidade forte"
-    fix: "Portal genérico cinza; sem logo/brand roxo, parece scaffold"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "A11y-WCAG"
-    best_of_class: "Linear: foco/landmark"
-    fix: "Cards <div> sem role/heading semântico consistente; botão Sair sem aria; links read-only sem indicação de estado"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    best_of_class: "Cobranca: charter + casos.md ao lado"
+    fix: "Sem casos.md — 0 UC de comportamento defendido (grants read-only, consent LGPD) apesar do redesign DS v4 completo"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
+  - dim: "Mobile-fit"
+    best_of_class: "Stripe portal: grid responsivo verificado"
+    fix: "Grid de cards de clientes sem verificação <768px; contador pode acessar do celular"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05

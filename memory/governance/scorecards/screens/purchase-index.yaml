@@ -10,10 +10,10 @@ nota: 78
 nivel: "Advanced"
 baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista densa com filtros sticky, pills de status/pagamento e empty state bom; pena o azul cru no pill 'ordered' e ausência de defer/paginação."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista densa com filtros sticky, pills de status/pagamento e empty state bom; atalho 'Etiquetas' restaurado (#2898) e sweep #2666/#3390 passou por aqui, mas o STATUS_PILL.ordered segue bg-blue-50/text-blue-700 cru e continua sem defer/paginacao — nota mantida."
+dimensoes: { density: 80, discoverability: 80, speed_to_task: 76, error_recovery: 76, cognitive_load: 80, aesthetic_usability: 80, affordance: 80, brand_confidence: 78, mobile_fit: 76, a11y_wcag: 76, i18n_ptbr: 88, performance_perceived: 70, information_hierarchy: 80, microcopy: 80, internal_consistency: 80, preflight_conformance: 70 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 — zero azul cru, status via token roxo/neutro"

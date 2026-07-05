@@ -6,14 +6,14 @@ screen: StockTransfer/Create
 path: resources/js/Pages/StockTransfer/Create.tsx
 archetype: form
 persona: eliana
-nota: 81
+nota: 82
 nivel: "Advanced"
 baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Transfer com guard origem≠destino (bloqueia submit + filtra destino), total+frete ao vivo, charter presente; mesmas pendencias: product-picker fake e cores stone."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Transfer com PageHeader canon e guard origem≠destino (bloqueia submit + filtra destino), total+frete ao vivo; #2666 tokenizou parte da paleta mas restam stone/emerald crus, 3 <select> nativos e product-picker fake."
+dimensoes: { density: 82, discoverability: 82, speed_to_task: 74, error_recovery: 80, cognitive_load: 82, aesthetic_usability: 80, affordance: 82, brand_confidence: 80, mobile_fit: 76, a11y_wcag: 78, i18n_ptbr: 90, performance_perceived: 82, information_hierarchy: 84, microcopy: 84, internal_consistency: 82, preflight_conformance: 70 }
 gaps:
   - dim: "Speed-to-task"
     best_of_class: "Bling combobox"
@@ -22,7 +22,7 @@ gaps:
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 tokens"
-    fix: "<select> nativo + paleta stone/emerald/rose hardcoded fora do token roxo v4"
+    fix: "3 <select> nativos + paleta stone/emerald hardcoded fora do token v4 (rose ja tokenizado no #2666)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Aesthetic-usability"

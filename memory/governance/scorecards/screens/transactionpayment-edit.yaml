@@ -6,14 +6,14 @@ screen: TransactionPayment/Edit
 path: resources/js/Pages/TransactionPayment/Edit.tsx
 archetype: form
 persona: eliana
-nota: 85
+nota: 86
 nivel: "Leader"
 baseline_anterior: 85   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Edit token-puro forte: Select DS, campos condicionais por metodo, toast validation+onError, contexto da transacao; falha em mask de cartao e red-600 cru."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Edit token-puro forte: Select DS, campos condicionais por metodo, toast validation+onError; a tokenizacao em massa (#2666) trocou red-600 cru por text-destructive-fg — restam mask/inputmode de cartao e header h1 hand-roll."
+dimensoes: { density: 86, discoverability: 86, speed_to_task: 88, error_recovery: 85, cognitive_load: 86, aesthetic_usability: 88, affordance: 84, brand_confidence: 86, mobile_fit: 84, a11y_wcag: 81, i18n_ptbr: 92, performance_perceived: 88, information_hierarchy: 86, microcopy: 88, internal_consistency: 87, preflight_conformance: 80 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Stripe"
@@ -22,7 +22,7 @@ gaps:
     origin: screen-grades-baseline-2026-05-30
   - dim: "A11y-WCAG"
     best_of_class: "PCI/WCAG"
-    fix: "card_number/cheque em Input texto puro sem mask/inputmode; erros usam text-red-600 cru em vez de destructive"
+    fix: "card_number/cheque em Input texto puro sem mask/inputmode (erros ja migrados pra text-destructive-fg no #2666)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
