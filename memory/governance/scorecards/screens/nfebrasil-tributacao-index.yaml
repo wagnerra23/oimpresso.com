@@ -6,23 +6,18 @@ screen: NfeBrasil/Tributacao/Index
 path: resources/js/Pages/NfeBrasil/Tributacao/Index.tsx
 archetype: list
 persona: eliana
-nota: 81
+nota: 82
 nivel: "Advanced"
 baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Hub tributacao bem orquestrado: templates por setor, config pendente em destaque, gate emissao-automatica com Switch, tabela regras NCM, diagrama de prioridade cascade; charter ok."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Hub tributacao bem orquestrado: templates por setor, config pendente em destaque, gate emissao-automatica com Switch, tabela regras NCM, diagrama de prioridade cascade; banner success tokenizado (#2666) — charter ok, confirm() nativo persiste."
+dimensoes: { density: 84, discoverability: 84, speed_to_task: 84, error_recovery: 74, cognitive_load: 82, aesthetic_usability: 82, affordance: 84, brand_confidence: 82, mobile_fit: 74, a11y_wcag: 78, i18n_ptbr: 88, performance_perceived: 80, information_hierarchy: 86, microcopy: 82, internal_consistency: 84, preflight_conformance: 80 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Stripe (acao destrutiva/substituir via Dialog)"
     fix: "aplicarTemplate e remover usam confirm() nativo — migrar pra AlertDialog DS."
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Linear (so token, zero cor crua)"
-    fix: "Banner success/error usa bg-emerald-50/destructive raw; padronizar via tokens v4."
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Mobile-fit"

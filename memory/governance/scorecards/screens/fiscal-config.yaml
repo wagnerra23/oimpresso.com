@@ -6,18 +6,18 @@ screen: Fiscal/Config
 path: resources/js/Pages/Fiscal/Config.tsx
 archetype: config
 persona: eliana
-nota: 80
+nota: 82
 nivel: "Advanced"
 baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Config fiscal unificada solida (cert A1 upload+ambiente+testar SEFAZ live+series+SPED, 4 tabs, useForm+toast) — UX completa, mas forms 100% inline-style fora do DS."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Config fiscal unificada solida (cert A1 upload+ambiente+testar SEFAZ live+series+SPED, 4 tabs, useForm+toast) — radios agora RadioGroup DS com htmlFor (#3407) e emoji -> lucide (#2041); inputs ainda inline-style fora do DS."
+dimensoes: { density: 82, discoverability: 80, speed_to_task: 82, error_recovery: 84, cognitive_load: 82, aesthetic_usability: 76, affordance: 82, brand_confidence: 80, mobile_fit: 75, a11y_wcag: 82, i18n_ptbr: 90, performance_perceived: 82, information_hierarchy: 84, microcopy: 86, internal_consistency: 78, preflight_conformance: 74 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "shadcn Form + Input"
-    fix: "Inputs/radio 100% hand-rolled com inline style; usar @/Components/ui/input + form DS"
+    fix: "Radios migrados pra RadioGroup DS (#3407); inputs ainda hand-rolled com inline style — usar @/Components/ui/input + form DS"
     esforco: alto
     origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"

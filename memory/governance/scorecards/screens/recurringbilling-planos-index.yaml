@@ -6,20 +6,20 @@ screen: RecurringBilling/Planos/Index
 path: resources/js/Pages/RecurringBilling/Planos/Index.tsx
 archetype: list
 persona: eliana
-nota: 85
+nota: 86
 nivel: "Leader"
 baseline_anterior: 85   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de planos forte (KPIs hero+distribuição de ciclos, defer+skeleton, flash, ⌘K, atalhos N/J/K) limitada por cores cruas, a11y de linha e métricas aproximadas."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista de planos forte (KPIs hero+distribuição de ciclos, defer+skeleton, ⌘K, atalhos N/J/K) agora no AppShellV2 com status tokenizados (#2212/#2666/#3402); persistem blue/cyan cru na distribuição, a11y de linha e métricas aproximadas."
+dimensoes: { density: 88, discoverability: 88, speed_to_task: 88, error_recovery: 84, cognitive_load: 86, aesthetic_usability: 88, affordance: 86, brand_confidence: 84, mobile_fit: 82, a11y_wcag: 78, i18n_ptbr: 92, performance_perceived: 90, information_hierarchy: 89, microcopy: 88, internal_consistency: 86, preflight_conformance: 84 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 — @/Components/ui + shell + sem azul/cyan cru"
-    fix: "Tudo hand-roll; CicloDistribuicao usa blue-500/cyan-500 e FiscalBadge blue-*. Trocar por tokens DS e primitives"
-    esforco: alto
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "preflight_conformance"
+    best_of_class: "DS v4 — zero azul/cyan cru + casos.md ao lado"
+    fix: "CicloDistribuicao ainda usa blue-500/cyan-500 e FiscalBadge blue-100/700 cru; tabela hand-roll sem primitives DS. Tokenizar e criar Index.casos.md (charter já existe)"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05
   - dim: "A11y-WCAG"
     best_of_class: "Linear — linha selecionável é button/option com teclado"
     fix: "<tr onClick> sem role/tabindex; j/k move activeId mas linha não é focável p/ leitor de tela"

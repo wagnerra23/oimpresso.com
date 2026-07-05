@@ -6,30 +6,25 @@ screen: Fiscal/Sped
 path: resources/js/Pages/Fiscal/Sped.tsx
 archetype: list
 persona: eliana
-nota: 68
-nivel: "Developing"
+nota: 76
+nivel: "Advanced"
 baseline_anterior: 68   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "SPED MVP parcial (tabela competencias + export EFD-ICMS/IPI .txt funcional, resto placeholder 'em dev') — funcional no core mas imaturo e com hex cru de fallback."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "SPED evoluiu do MVP: callout com tokens canon (hex cru removido), filtro por status via chips + busca de competencia, empty state e preview drawer da competencia (resumo+export) — livros fiscais seguem placeholder 'em dev'."
+dimensoes: { density: 70, discoverability: 78, speed_to_task: 78, error_recovery: 70, cognitive_load: 78, aesthetic_usability: 76, affordance: 76, brand_confidence: 76, mobile_fit: 70, a11y_wcag: 76, i18n_ptbr: 90, performance_perceived: 76, information_hierarchy: 78, microcopy: 80, internal_consistency: 78, preflight_conformance: 74 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS tokens (zero hex)"
-    fix: "Hex cru em fallback gradient (#d4f4dd, #2da764) + inline-style pesado; usar var DS sem fallback hardcoded"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Density"
     best_of_class: "Notion progressive disclosure"
-    fix: "Tela maioria placeholder/callout 'em desenvolvimento'; so 1 export EFD real funciona"
+    fix: "Bloco Livros fiscais (apuracao ICMS/ISS/conciliacao) segue placeholder 'em desenvolvimento'; so export EFD real funciona"
     esforco: alto
     origin: screen-grades-baseline-2026-05-30
   - dim: "Discoverability"
     best_of_class: "Linear status-driven actions"
-    fix: "Sem filtro/busca; export so .txt por linha — sem preview do conteudo SPED"
+    fix: "Preview drawer mostra resumo da competencia (notas/valor/prazo) mas nao o conteudo do TXT SPED gerado — falta amostra dos registros"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
 
 # ───────── Régua estendida (Onda Fiscal, Passo 3 · ADR 0320): comportamento AO LADO da UX ─────────
 # NÃO entra na nota 68 (UX). É a OUTRA leitura da foto: quanto do comportamento tem UC-id que o defenda.
