@@ -481,15 +481,24 @@ class Kernel extends ConsoleKernel
         // mesmo racional do ragas-real-eval/ADR 0318 abaixo): o índice
         // `mcp_memory_documents` + Meilisearch só são alcançáveis do CT 100 staging.
         // Em 'live' (Hostinger) o schedule era DORMENTE POR CONSTRUÇÃO (Meilisearch
-        // inacessível → exit 1 → onFailure toda semana = ruído sem medição). Provado
-        // live no staging 2026-07-02: 27 queries, recall_eval_violations=0 (nenhum
-        // superseded vazando no top-N), n_queries_recall_fail=25 (recall<80% REAL —
-        // gap de retrieval já catalogado: context_recall 0.38, hybrid docs_pipeline
-        // off). O onFailure abaixo é o alerta recall<80% do loop IA-OS #3 — dispara
-        // legítimo até o retrieval melhorar (follow-up de RAG quality). O gate
-        // BARATO de PR é o irmão --mode=mock em .github/workflows/jana-recall-eval.yml
-        // (zero LLM, zero Meilisearch). 06:30 BRT pra não disputar DB com os
-        // health-checks diários (06:00-06:20) nem com o drift-sentinel (dom 06:00).
+        // inacessível → exit 1 → onFailure toda semana = ruído sem medição).
+        //
+        // GATE (desde 2026-07-05, fecha o loop IA-OS #3): recall@K AGREGADO ≥ 0.80
+        // (--min-recall default do comando) + recall_eval_violations = 0. Antes o
+        // gate era binário 100%-por-query (n_queries_recall_fail=0), sem trend;
+        // agora o report expõe recall_at_k e o alerta é literalmente "recall<80%".
+        //
+        // HONESTIDADE DA MEDIÇÃO (smoke real staging 2026-07-05): NESTA lane
+        // (search Meilisearch direto no índice) recall@5 = 0.074 (25/27 queries
+        // perdem docs) → o onFailure dispara toda semana e é sinal LEGÍTIMO: o
+        // retrieval keyword segue abaixo do alvo (gap catalogado: context_recall
+        // 0.38, hybrid docs_pipeline off — ADR 0312). O recall@5 = 0.815 do
+        // handoff 2026-07-05 é da lane SEMANTIC/hybrid (next_step #2: reabrir
+        // hybrid) — quando essa lane virar a via de leitura medida, o canary fica
+        // verde e passa a detectar REGRESSÃO (<0.80). O gate BARATO de PR é o
+        // irmão --mode=mock em .github/workflows/jana-recall-eval.yml (zero LLM,
+        // zero Meilisearch). 06:30 BRT pra não disputar DB com os health-checks
+        // diários (06:00-06:20) nem com o drift-sentinel (dom 06:00).
         //
         // Refs: ADR 0270 D-4/D-5 · ADR 0274 · ADR 0275 · plano P12
         // memory/requisitos/_Governanca/roadmap/P12-decay-real-ragas-recall.md.

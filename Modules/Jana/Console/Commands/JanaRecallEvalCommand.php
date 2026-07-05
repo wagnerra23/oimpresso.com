@@ -23,6 +23,11 @@ use Throwable;
  *   --mode=real (CT 100, fase 2) — consulta o índice Meilisearch
  *       `mcp_memory_documents` (read-only) e mede recall@K + a métrica
  *       `recall_eval_violations` do scorecard SDD (ADR 0275, meta → 0).
+ *       Gate real (canary loop IA-OS #3, handoff 2026-07-05): recall@K
+ *       AGREGADO ≥ --min-recall (default 0.80) E zero violations. Medição
+ *       honesta desta lane (Meilisearch keyword direto, staging 2026-07-05):
+ *       recall@5 = 0.074 — alerta dispara legítimo até o retrieval melhorar.
+ *       O 0.815 do handoff é da lane semantic/hybrid (next_step #2).
  *
  * Exit: 0 = gate pass · 1 = gate fail.
  *
@@ -39,6 +44,7 @@ class JanaRecallEvalCommand extends Command
     protected $signature = 'jana:recall-eval
                             {--mode=mock : mock (estrutura local, sem Meilisearch) | real (CT 100, fase 2)}
                             {--golden= : Path alternativo do golden set YAML}
+                            {--min-recall=0.80 : Piso de recall@K agregado no modo real (loop IA-OS #3: alerta se recall < 80%)}
                             {--json : Output só JSON (CI artifact)}';
 
     protected $description = 'Eval determinístico de recall — golden set expected/violations + pares colididos (sem judge LLM)';
@@ -83,8 +89,18 @@ class JanaRecallEvalCommand extends Command
         }
 
         $report['errors'] = $this->errors;
-        $report['gate_status'] = $this->errors === [] && ($report['real']['recall_eval_violations'] ?? 0) === 0
-            && ($report['real']['n_queries_recall_fail'] ?? 0) === 0 ? 'pass' : 'fail';
+
+        // Gate real = canary "recall<80%" do loop IA-OS #3 (handoff 2026-07-05):
+        // recall@K AGREGADO ≥ piso (--min-recall) + zero superseded no top-N
+        // (recall_eval_violations, ADR 0275). Substitui o gate binário
+        // 100%-por-query (n_queries_recall_fail === 0): sem métrica agregada não
+        // havia trend nem piso — o alerta agora é literalmente "recall<80%" e o
+        // report carrega recall_at_k pro operador acompanhar a evolução.
+        // n_queries_recall_fail segue no report como info.
+        $minRecall = (float) $this->option('min-recall');
+        $report['gate_status'] = $this->errors === []
+            && (! isset($report['real']) || self::gateRealPassa($report['real'], $minRecall))
+            ? 'pass' : 'fail';
 
         $json = json_encode($report, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
@@ -259,7 +275,9 @@ class JanaRecallEvalCommand extends Command
         $index = (string) ($meta['meilisearch_index'] ?? 'mcp_memory_documents');
         $topK = (int) ($meta['top_k'] ?? 5);
         $window = (int) ($meta['violation_window'] ?? 3);
-        $out = ['index' => $index, 'recall_eval_violations' => 0, 'n_queries_recall_fail' => 0, 'per_query' => []];
+        $out = ['index' => $index, 'recall_at_k' => 0.0, 'recall_eval_violations' => 0, 'n_queries_recall_fail' => 0, 'per_query' => []];
+        $somaRecall = 0.0;
+        $nAvaliadas = 0;
 
         foreach ($queries as $q) {
             try {
@@ -283,12 +301,56 @@ class JanaRecallEvalCommand extends Command
             $slugs = array_values(array_filter(array_column($resp->json('hits', []), 'slug')));
             $missing = array_values(array_diff($q['expected'], $slugs));
             $hit = array_values(array_intersect($q['violations'] ?? [], array_slice($slugs, 0, $window)));
+            $recallQuery = self::recallDaQuery($q['expected'], $slugs);
 
+            $somaRecall += $recallQuery;
+            $nAvaliadas++;
             $out['recall_eval_violations'] += count($hit);
             $out['n_queries_recall_fail'] += $missing === [] ? 0 : 1;
-            $out['per_query'][] = ['id' => $q['id'], 'top_k' => $slugs, 'missing_expected' => $missing, 'violations_hit' => $hit];
+            $out['per_query'][] = ['id' => $q['id'], 'recall' => round($recallQuery, 4), 'top_k' => $slugs, 'missing_expected' => $missing, 'violations_hit' => $hit];
         }
 
+        // recall@K agregado (macro-média por query) — a métrica do canary
+        // semanal (dom 06:30 BRT staging, Kernel.php). Medição honesta desta
+        // lane keyword: 0.074 em 2026-07-05 (o 0.815 do handoff é semantic).
+        $out['recall_at_k'] = $nAvaliadas > 0 ? round($somaRecall / $nAvaliadas, 4) : 0.0;
+
         return $out;
+    }
+
+    /**
+     * Recall de UMA query: fração dos `expected` presentes no top-K retornado.
+     * Contrato puro (testável sem Meilisearch): recall@K padrão de IR —
+     * |expected ∩ topK| / |expected|. Golden set garante expected não-vazio
+     * (validateEstrutura), mas guarda divisão-por-zero por robustez.
+     *
+     * @param  list<string>  $expected
+     * @param  list<string>  $topK
+     */
+    public static function recallDaQuery(array $expected, array $topK): float
+    {
+        if ($expected === []) {
+            return 0.0;
+        }
+
+        return count(array_intersect($expected, $topK)) / count($expected);
+    }
+
+    /**
+     * Contrato PURO do gate real (testável sem DB/Meilisearch — molde
+     * HealthCheckCommand::valueExceedsCeiling).
+     *
+     * Âncora de contrato (não tautologia): loop IA-OS #3 — "canary semanal +
+     * alerta se recall<80%" (rotina audit 2026-05-29 + handoff 2026-07-05) e
+     * ADR 0275 — métrica recall_eval_violations com meta → 0 (superseded
+     * NUNCA no top-N). Passa somente se AMBOS: recall@K agregado ≥ piso E
+     * zero violations.
+     *
+     * @param  array{recall_at_k?:float|int, recall_eval_violations?:int}  $real
+     */
+    public static function gateRealPassa(array $real, float $minRecall): bool
+    {
+        return ($real['recall_eval_violations'] ?? 0) === 0
+            && (float) ($real['recall_at_k'] ?? 0.0) >= $minRecall;
     }
 }
