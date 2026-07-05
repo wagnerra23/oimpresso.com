@@ -24,6 +24,9 @@
  *   N · COLISÃO US-ID — US-<MOD>-NNN duplicado entre/dentro dos SPEC.md (sibling do
  *       Check A pra histórias). Ratchet-grandfathered (como C/L): 🔴 fail só em dup NOVO
  *       acima do baseline. Use next-id.mjs pra alocar sem colidir. (ADR 0304.)
+ *   X · COBERTURA DE AUDITORIA — módulo Tier-0 OU nota module-grade < FLOOR sem NENHUM
+ *       AUDIT*.md no dir de requisitos. Responde "isso está auditado?" mecanicamente.
+ *       (🟡 warn · determinístico · PLANO-APROFUNDAMENTO-AVALIACOES.md F1/F2.)
  *
  * Uso:
  *   node scripts/governance/memory-health.mjs            (CI: exit 1 se algum 🔴)
@@ -806,6 +809,45 @@ function checkStaleReview() {
   }
 }
 
+// ── Check X: cobertura de auditoria (módulo Tier-0 / nota-baixa sem doc de audit) ──
+// Responde mecanicamente "isso está auditado?" a cada PR. Determinístico, zero-FP por
+// construção (o doc de auditoria existe no dir do módulo ou não). Um módulo QUALIFICA
+// pra auditoria profunda se é Tier-0 (toca dinheiro/estoque/fiscal/tenant) OU tem nota
+// module-grade < FLOOR. Se qualifica e NÃO tem nenhum `AUDIT*.md`/`AUDITORIA*.md` no
+// seu dir de requisitos → 🟡 gap de cobertura. Advisory (nasce advisory — ADR 0271/0275).
+// Fonte-de-verdade: governance/module-grades-baseline.json (a mesma do module-grades-gate).
+// Ref: memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md (Onda 2/3) · ADR 0155 · ADR 0258.
+const AUDIT_TIER0 = new Set(['Compras', 'PaymentGateway', 'Financeiro', 'Fiscal', 'NfeBrasil', 'RecurringBilling']);
+const AUDIT_GRADE_FLOOR = 70;
+function checkAuditCoverage() {
+  const gradesFile = 'governance/module-grades-baseline.json';
+  if (!exists(gradesFile)) return; // sem fonte-de-verdade → não inventa (temp-dir safe)
+  let grades;
+  try { grades = JSON.parse(read(gradesFile)).modules || {}; } catch { return; }
+  // Aceita audit no topo (`AUDIT*.md`/`AUDITORIA*.md`) OU numa subpasta `audits/` com
+  // qualquer `.md` (o padrão real do repo: NfeBrasil/RecurringBilling têm audits/YYYY-MM-DD.md).
+  const hasAuditDoc = (mod) => {
+    const dir = `memory/requisitos/${mod}`;
+    if (!exists(dir)) return false;
+    const hits = listFiles(dir, (rel) =>
+      rel.endsWith('.md') && (/\/audits\//i.test(rel) || /\/audit[^/]*\.md$/i.test(rel)));
+    return hits.length > 0;
+  };
+  const gaps = [];
+  for (const [mod, grade] of Object.entries(grades)) {
+    if (typeof grade !== 'number') continue;
+    const tier0 = AUDIT_TIER0.has(mod);
+    const low = grade < AUDIT_GRADE_FLOOR;
+    if (!tier0 && !low) continue; // não qualifica pra auditoria profunda
+    if (hasAuditDoc(mod)) continue; // já tem lente
+    gaps.push(`${mod} (nota ${grade}${tier0 ? ' · Tier-0' : ''}) — sem AUDIT*.md em memory/requisitos/${mod}/`);
+  }
+  if (gaps.length) {
+    warns.push({ check: 'X', kind: 'audit-coverage-gap', count: gaps.length, sample: gaps.slice(0, 12),
+      msg: `${gaps.length} módulo(s) que QUALIFICAM pra auditoria profunda (Tier-0 OU nota < ${AUDIT_GRADE_FLOOR}) sem NENHUM doc de auditoria no dir. Cobrir via PLANO-APROFUNDAMENTO-AVALIACOES.md (Onda 2/3). 🟡 sentinela — não bloqueia.` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkUsCollisions(); // Check N (fail-class ratchet) — colisão de US-ID, sibling do Check A
@@ -828,6 +870,7 @@ try { checkPlanHealth(); } catch (e) { warns.push({ check: 'J', kind: 'plan-heal
 try { checkSessionDecisionAnchor(); } catch (e) { warns.push({ check: 'K', kind: 'session-anchor-error', msg: 'session-anchor falhou (não bloqueia): ' + e.message }); }
 try { checkMortaMasCanon(); } catch (e) { warns.push({ check: 'O', kind: 'morta-mas-canon-error', msg: 'morta-mas-canon falhou (não bloqueia): ' + e.message }); } // Check O (sentinela) — ADR 0317
 try { checkStaleReview(); } catch (e) { warns.push({ check: 'R', kind: 'revisao-vencida-error', msg: 'revisao-vencida falhou (não bloqueia): ' + e.message }); } // Check R (sentinela) — ADR 0317
+try { checkAuditCoverage(); } catch (e) { warns.push({ check: 'X', kind: 'audit-coverage-error', msg: 'audit-coverage falhou (não bloqueia): ' + e.message }); } // Check X (cobertura de auditoria — módulo Tier-0/nota-baixa sem AUDIT*.md)
 
 if (UPDATE_BASELINE) {
   writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort(), checkM: checkMKeys.slice().sort(), checkN: checkNIds.slice().sort(), checkO: checkOSlugs.slice().sort(), checkR: checkRSlugs.slice().sort() }, null, 2) + '\n');
