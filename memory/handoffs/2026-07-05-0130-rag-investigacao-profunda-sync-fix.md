@@ -2,7 +2,7 @@
 date: "2026-07-05"
 time: "01:30 BRT"
 slug: rag-investigacao-profunda-sync-fix
-tldr: "Investigação profunda do retrieval da Jana (Wagner: 'compare em grade / se esforce, resolva'). Auditoria estado-da-arte (#3814, maturidade ~46%) apontou reranker/contextual como P0; MEDINDO no CT 100, todas as camadas 'sofisticadas' deram +3.7pp (reranker 68s/20docs CPU, inviável). A alavanca real era SYNC GAP: BRIEFINGs (estado do módulo, caso de uso #1) nem indexados. Fix #3815 (1 glob) → recall@5 0.704→0.815 (+11pp). Auditoria invertida por medição 3×. Residuais: briefings só via semantic (prod=FULLTEXT/0312) + sync completo falha (deadlock+OOM)."
+tldr: "Investigação profunda do retrieval da Jana. Auditoria estado-da-arte (#3814) pôs reranker/contextual como P0; MEDINDO no CT 100, as camadas sofisticadas deram +3.7pp cada (reranker 68s/20docs, inviável). A alavanca real era SYNC GAP: BRIEFINGs (estado do módulo, caso de uso #1) nem indexados. Fix #3815 (1 glob) → recall@5 0.704→0.815 (+11pp). Auditoria invertida por medição. Residuais: sync completo falha (deadlock+OOM) + briefings só via semantic (prod=FULLTEXT/0312)."
 prs: [3814, 3815, 3801, 3791, 3792, 3793]
 related_adrs:
   - 0312-decisions-search-fulltext-hybrid-docs-off
