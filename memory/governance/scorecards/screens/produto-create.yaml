@@ -6,18 +6,18 @@ screen: Produto/Create
 path: resources/js/Pages/Produto/Create.tsx
 archetype: form
 persona: larissa
-nota: 80
+nota: 81
 nivel: "Advanced"
 baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cadastro Cowork com avancado colapsavel persistido + dedup; usa Deferred? nao, e perde em tokens crus + feedback de erro so no nome."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cadastro com avancado colapsavel persistido + dedup e componentes @/Components/ui; PR #3408 trocou cor de status crua por token (rose sumiu), mas header stone proprio, erro so no nome e post sem toast persistem."
+dimensoes: { density: 80, discoverability: 82, speed_to_task: 78, error_recovery: 74, cognitive_load: 82, aesthetic_usability: 82, affordance: 82, brand_confidence: 80, mobile_fit: 78, a11y_wcag: 80, i18n_ptbr: 90, performance_perceived: 82, information_hierarchy: 84, microcopy: 84, internal_consistency: 84, preflight_conformance: 74 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 tokens + AppShellV2 PageHeader"
-    fix: "Header sticky proprio em stone + rose-700 cru em erros; nao usa os-page-h/PageHeader canon nem tokens DS roxo"
+    fix: "Header sticky proprio em stone/white (nao usa PageHeader canon nem tokens DS); cor de status ja tokenizada (#3408), restam stone-* crus"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"

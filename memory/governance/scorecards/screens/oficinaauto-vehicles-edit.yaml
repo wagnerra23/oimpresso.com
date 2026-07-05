@@ -6,27 +6,22 @@ screen: OficinaAuto/Vehicles/Edit
 path: resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx
 archetype: form
 persona: tecnico
-nota: 62
-nivel: "Developing"
+nota: 72
+nivel: "Advanced"
 baseline_anterior: 62   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Edit minimo (so 6 campos) diverge do Create completo, selects nativos e erros parciais — scaffold incompleto."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Edit de veiculo alinhado ao Create: paridade completa dos 13 campos, Select/Textarea DS, erros em todos os campos com foco/scroll no 1o invalido e charter ao lado — deixou de ser scaffold."
+dimensoes: { density: 72, discoverability: 72, speed_to_task: 72, error_recovery: 76, cognitive_load: 72, aesthetic_usability: 72, affordance: 72, brand_confidence: 72, mobile_fit: 70, a11y_wcag: 70, i18n_ptbr: 80, performance_perceived: 76, information_hierarchy: 72, microcopy: 72, internal_consistency: 78, preflight_conformance: 74 }
 gaps:
-  - dim: "Internal-consistency"
-    best_of_class: "Notion"
-    fix: "Edit omite chassi/renavam/ano/motor/combustivel/KM que existem no Create — restaurar paridade de campos"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Internal-consistency"
-    best_of_class: "@/Components/ui"
-    fix: "select/textarea nativos vs DS Select/Textarea"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Error-recovery"
-    best_of_class: "Stripe"
-    fix: "errors so na placa; sem feedback nos demais campos"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Sells/Create (casos.md)"
+    fix: "sem Edit.casos.md — contrato de nao-regressao da tela nao existe (irmaos ServiceOrders ja tem)"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
+  - dim: "Speed-to-task"
+    best_of_class: "Vehicles/Create (consulta de placa)"
+    fix: "Edit nao oferece a consulta de placa que o Create ganhou — re-consultar dados tecnicos ao corrigir placa exige digitacao manual"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05

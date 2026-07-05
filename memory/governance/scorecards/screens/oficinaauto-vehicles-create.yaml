@@ -6,27 +6,22 @@ screen: OficinaAuto/Vehicles/Create
 path: resources/js/Pages/OficinaAuto/Vehicles/Create.tsx
 archetype: form
 persona: tecnico
-nota: 64
-nivel: "Developing"
+nota: 75
+nivel: "Advanced"
 baseline_anterior: 64   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cadastro de veiculo completo porem scaffold: selects nativos, erros so na placa, sem charter e divergente do Edit."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cadastro de veiculo saiu do scaffold: charter criado, Select/Textarea DS, erros em todos os 13 campos com foco/scroll no 1o invalido, paridade com Edit e consulta de placa que auto-preenche dados tecnicos (LGPD-aware)."
+dimensoes: { density: 74, discoverability: 76, speed_to_task: 80, error_recovery: 78, cognitive_load: 74, aesthetic_usability: 74, affordance: 76, brand_confidence: 74, mobile_fit: 72, a11y_wcag: 72, i18n_ptbr: 82, performance_perceived: 76, information_hierarchy: 74, microcopy: 78, internal_consistency: 78, preflight_conformance: 76 }
 gaps:
   - dim: "Pre-Flight-conformance"
-    best_of_class: "Charter + DS"
-    fix: "sem Create.charter.md (irmaos tem) + select/textarea nativos — criar charter e usar Select/Textarea DS"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Internal-consistency"
-    best_of_class: "Notion form"
-    fix: "Create tem 13 campos mas Edit so expoe ~7 — alinhar conjunto de campos entre Create/Edit"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Error-recovery"
+    best_of_class: "Sells/Create (casos.md)"
+    fix: "sem Create.casos.md — contrato de nao-regressao da tela nao existe (irmaos ServiceOrders ja tem)"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
+  - dim: "A11y-WCAG"
     best_of_class: "Stripe"
-    fix: "so plate renderiza erro; demais campos sem errors[]; sem scroll/foco no 1o invalido"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    fix: "feedback da consulta de placa (success/info/error) renderiza sem aria-live — leitor de tela nao anuncia o resultado do lookup"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
