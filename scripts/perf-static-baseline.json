@@ -1,0 +1,16 @@
+{
+  "_meta": {
+    "generated_at": "2026-07-05T17:12:51.751Z",
+    "gate": "perf-static-guard (Onda 4 lente 5b — AUDITORIA-PERFORMANCE-2026-07, ratchet advisory)",
+    "nota": "Contadores heurísticos de TENDÊNCIA (falsos positivos catalogados no header do guard). Falha só se algum contador SUBIR.",
+    "refs": [
+      "memory/governance/AUDITORIA-PERFORMANCE-2026-07.md",
+      "memory/requisitos/_DesignSystem/RUNBOOK-inertia-defer-pattern.md"
+    ]
+  },
+  "counts": {
+    "paginate_sem_eager": 28,
+    "render_paginate_sem_defer": 8,
+    "render_count_sem_defer": 20
+  }
+}
