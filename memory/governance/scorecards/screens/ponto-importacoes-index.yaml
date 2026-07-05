@@ -10,10 +10,10 @@ nota: 78
 nivel: "Advanced"
 baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista AFD limpa com StatusBadge/EmptyState/paginacao, falta filtro+busca e header canon nao renderiza estilizado."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista AFD limpa com StatusBadge/EmptyState/paginacao, sem mudanca material desde o baseline; falta filtro+busca e header canon nao renderiza estilizado."
+dimensoes: { density: 74, discoverability: 70, speed_to_task: 78, error_recovery: 80, cognitive_load: 82, aesthetic_usability: 80, affordance: 80, brand_confidence: 80, mobile_fit: 78, a11y_wcag: 80, i18n_ptbr: 90, performance_perceived: 82, information_hierarchy: 80, microcopy: 82, internal_consistency: 82, preflight_conformance: 68 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "PT-01 Lista canon estilizada"

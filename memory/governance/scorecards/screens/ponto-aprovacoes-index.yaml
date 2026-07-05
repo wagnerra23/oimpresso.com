@@ -6,19 +6,19 @@ screen: Ponto/Aprovacoes/Index
 path: resources/js/Pages/Ponto/Aprovacoes/Index.tsx
 archetype: list
 persona: tecnico
-nota: 86
+nota: 87
 nivel: "Leader"
 baseline_anterior: 86   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista densa estado-da-arte (KPI-filtro, bulk, dialogs, empty/search, toasts); peca por cores cruas, confirm() nativo e zero charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista densa estado-da-arte (KPI-filtro, bulk, dialogs, empty/search, toasts); cores cruas migradas pra tokens DS (#2666) — restam confirm() nativo no bulk, charter ausente e os-page-h orfao."
+dimensoes: { density: 88, discoverability: 88, speed_to_task: 90, error_recovery: 80, cognitive_load: 86, aesthetic_usability: 88, affordance: 87, brand_confidence: 88, mobile_fit: 78, a11y_wcag: 78, i18n_ptbr: 92, performance_perceived: 86, information_hierarchy: 89, microcopy: 88, internal_consistency: 90, preflight_conformance: 80 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Stripe (tokens semanticos only)"
-    fix: "Trocar bg-emerald-600/text-amber-600/text-destructive cru por tokens v4 (success/warning); sem charter.md ao lado"
-    esforco: medio
+    fix: "Tokens v4 aplicados no #2666 (success/warning); resta criar charter.md/casos.md e escopar os-page-h do Ponto"
+    esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"
     best_of_class: "Linear (undo dialog)"
