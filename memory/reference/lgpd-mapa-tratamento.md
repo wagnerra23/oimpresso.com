@@ -87,7 +87,7 @@ Isolamento Tier 0 IRREVOGÁVEL via `business_id` global scope ([ADR 0093](../dec
 - **Finalidade:** emissão de boletos, PIX, cartão recorrente para clientes finais do tenant.
 - **Base legal:** execução de contrato (Art. 7, V).
 - **Titulares:** clientes finais do tenant que pagam ao tenant (CPF/CNPJ, dados bancários PIX, parcelas).
-- **Subprocessador:** Asaas (CNPJ 19.540.550/0001-21) — fintech brasileira, **sem transferência internacional**; credenciais por business em `rb_boleto_credentials` com `EncryptedCredentialCast`.
+- **Subprocessador:** Asaas (Sólides Tecnologia S.A.) — fintech brasileira, **sem transferência internacional**; credenciais por business em `rb_boleto_credentials` com `EncryptedCredentialCast`.
 - **Retenção:** 5 anos (audit fiscal — Art. 173 CTN + Art. 195 CF).
 - **Medidas de segurança:** credenciais Asaas criptografadas at-rest; flags de segurança (`config/services.php` bloco `asaas`); refund jobs assíncronos auditáveis.
 
