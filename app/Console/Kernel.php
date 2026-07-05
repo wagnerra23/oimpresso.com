@@ -481,13 +481,16 @@ class Kernel extends ConsoleKernel
         // mesmo racional do ragas-real-eval/ADR 0318 abaixo): o índice
         // `mcp_memory_documents` + Meilisearch só são alcançáveis do CT 100 staging.
         // Em 'live' (Hostinger) o schedule era DORMENTE POR CONSTRUÇÃO (Meilisearch
-        // inacessível → exit 1 → onFailure toda semana = ruído sem medição). Provado
-        // live no staging 2026-07-02: 27 queries, recall_eval_violations=0 (nenhum
-        // superseded vazando no top-N), n_queries_recall_fail=25 (recall<80% REAL —
-        // gap de retrieval já catalogado: context_recall 0.38, hybrid docs_pipeline
-        // off). O onFailure abaixo é o alerta recall<80% do loop IA-OS #3 — dispara
-        // legítimo até o retrieval melhorar (follow-up de RAG quality). O gate
-        // BARATO de PR é o irmão --mode=mock em .github/workflows/jana-recall-eval.yml
+        // inacessível → exit 1 → onFailure toda semana = ruído sem medição).
+        //
+        // GATE (desde 2026-07-05, fecha o loop IA-OS #3): recall@K AGREGADO ≥ 0.80
+        // (--min-recall default do comando) + recall_eval_violations = 0. O gate
+        // anterior exigia 100% por query (n_queries_recall_fail=0) e reprovava
+        // 25/27 toda semana (provado staging 2026-07-02) = alarme permanente sem
+        // sinal — anti-padrão ADR 0271. Baseline medido 2026-07-04 pós-sync-fix
+        // #3815: recall@5 = 0.815 → passa; onFailure abaixo dispara EXATAMENTE
+        // quando recall regride <80% ou superseded vaza no top-N. O gate BARATO
+        // de PR é o irmão --mode=mock em .github/workflows/jana-recall-eval.yml
         // (zero LLM, zero Meilisearch). 06:30 BRT pra não disputar DB com os
         // health-checks diários (06:00-06:20) nem com o drift-sentinel (dom 06:00).
         //
