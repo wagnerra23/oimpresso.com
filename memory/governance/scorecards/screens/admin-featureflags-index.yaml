@@ -6,27 +6,22 @@ screen: Admin/FeatureFlags/Index
 path: resources/js/Pages/Admin/FeatureFlags/Index.tsx
 archetype: config
 persona: wagner
-nota: 64
-nivel: "Developing"
+nota: 73
+nivel: "Advanced"
 baseline_anterior: 64   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Painel GrowthBook funcional com audit log, mas tabelas hand-rolled e cores cruas amber/red sem token, sem charter nem estados defer."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Painel GrowthBook tokenizado (zero cor crua), com charter e Deferred+TableSkeleton nas listas de features/audits; restam as 2 <table> hand-rolled fora do componente DS e falta casos.md."
+dimensoes: { density: 74, discoverability: 72, speed_to_task: 74, error_recovery: 70, cognitive_load: 74, aesthetic_usability: 72, affordance: 72, brand_confidence: 73, mobile_fit: 66, a11y_wcag: 68, i18n_ptbr: 82, performance_perceived: 80, information_hierarchy: 74, microcopy: 74, internal_consistency: 66, preflight_conformance: 76 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Stripe Dashboard usa design tokens semanticos (warning/danger) sem hex cru"
-    fix: "Trocar bg-amber-100/bg-red-100/bg-green por <Alert variant> + tokens DS v4; criar charter"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Internal-consistency"
     best_of_class: "Linear reusa DataTable em vez de <table> manual por tela"
     fix: "Migrar as 2 <table> pro componente de tabela DS / PT-01"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
-  - dim: "Performance-perceived"
-    best_of_class: "Notion mostra skeleton enquanto carrega listas"
-    fix: "Adicionar Inertia::defer + fallback skeleton nas features/audits"
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Telas canon têm <Tela>.casos.md como contrato de não-regressão"
+    fix: "Criar Index.casos.md cobrindo filtros, toggle de flag e audit log"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05

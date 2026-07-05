@@ -6,14 +6,14 @@ screen: MemCofre/Dashboard
 path: resources/js/Pages/MemCofre/Dashboard.tsx
 archetype: dashboard
 persona: wagner
-nota: 74
+nota: 75
 nivel: "Advanced"
 baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Dashboard de cobertura documental rico (KPIs, dots, barras trace/audit/DoD, empty guards) com bom reuso DS, mas tabela densa sem mobile e tons semânticos hardcoded; sem charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Dashboard de cobertura documental rico (KPIs, dots, barras trace/audit/DoD, empty guards); tokenização parcial no sweep #2666, mas ainda restam tons semânticos amber/sky/emerald crus, tabela de 11 colunas sem versão mobile e sem charter."
+dimensoes: { density: 80, discoverability: 76, speed_to_task: 76, error_recovery: 70, cognitive_load: 72, aesthetic_usability: 78, affordance: 74, brand_confidence: 76, mobile_fit: 62, a11y_wcag: 70, i18n_ptbr: 86, performance_perceived: 78, information_hierarchy: 72, microcopy: 78, internal_consistency: 78, preflight_conformance: 68 }
 gaps:
   - dim: "Mobile-fit"
     best_of_class: "Shopify"
