@@ -292,10 +292,9 @@ return [
         // inverte a similaridade (causa-raiz medida da ADR 0312). buscarHybrid pré-computa
         // o embedding de `instrução + query` no Ollama e envia como `vector` — o `q` segue
         // raw pro lado lexical. String vazia desliga o prefixo (hybrid volta ao q raw).
-        'docs_query_instruction' => env(
-            'JANA_MCP_DOCS_QUERY_INSTRUCTION',
-            "Instruct: Given a search query in Portuguese, retrieve the most relevant architecture decision record or governance document.\nQuery: "
-        ),
+        // Config-as-code SEM env() de propósito (adendo "vira máquina" 2026-07-04):
+        // mudar a instrução = PR medido contra o golden set, nunca ajuste manual de .env.
+        'docs_query_instruction' => "Instruct: Given a search query in Portuguese, retrieve the most relevant architecture decision record or governance document.\nQuery: ",
     ],
 
     /*
