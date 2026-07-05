@@ -15,18 +15,18 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 85.3,
+      "value": 84.8,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 85.3,
+        "coverage_pct": 84.8,
         "specs_total": 59,
-        "us_total": 951,
-        "anchor_coverage_pct": 85.3,
+        "us_total": 956,
+        "anchor_coverage_pct": 84.8,
         "by_state": {
-          "sem_campo": 140,
+          "sem_campo": 145,
           "placeholder": 0,
           "pendente": 370,
           "parcial": 119,
