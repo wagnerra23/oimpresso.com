@@ -6,20 +6,20 @@ screen: RecurringBilling/Index
 path: resources/js/Pages/RecurringBilling/Index.tsx
 archetype: dashboard
 persona: eliana
-nota: 88
+nota: 91
 nivel: "Leader"
 baseline_anterior: 88   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cockpit 3-col de altíssimo craft (defer, ⌘K palette, Jana IA, troubleshooters, timeline, atalhos) — teto puxado por mock client-side, a11y de itens clicáveis e fuga do shell/DS canon."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cockpit 3-col agora funcional de ponta a ponta: Nova assinatura (drawer #2369) + Editar via PUT (#2377) + preset intervalo Personalizado (#3414), no AppShellV2 com Sheet/Input/Button/Select/FieldError do DS e tokens (#2212/#3402); restam mocks client-side e a11y de itens clicáveis."
+dimensoes: { density: 92, discoverability: 93, speed_to_task: 93, error_recovery: 90, cognitive_load: 89, aesthetic_usability: 92, affordance: 91, brand_confidence: 86, mobile_fit: 84, a11y_wcag: 78, i18n_ptbr: 94, performance_perceived: 92, information_hierarchy: 93, microcopy: 93, internal_consistency: 91, preflight_conformance: 88 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 — shell canon (PageHeader/AppShellV2) + @/Components/ui + sem azul cru"
-    fix: "Header/colunas/badges hand-roll com bg-zinc-900 hero e blue-* no fiscal; alinhar ao DS roxo e ao shell sem duplicar min-h-screen"
-    esforco: alto
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "preflight_conformance"
+    best_of_class: "DS v4 — zero blue cru em badges semânticas + casos.md ao lado"
+    fix: "Badge fiscal/timeline ainda com blue-100/400/500 cru (nfe/event-plan/event-nf); tokenizar e criar Index.casos.md (charter já existe)"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
   - dim: "A11y-WCAG"
     best_of_class: "Linear — itens de lista são button/[role=option] navegáveis por teclado"
     fix: "Linhas e filtros são <div>/<li> onClick sem role/tabindex/foco visível; promover a button/listbox (j/k existe mas mouse-only no DOM)"

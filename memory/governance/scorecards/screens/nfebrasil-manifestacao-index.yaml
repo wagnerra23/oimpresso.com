@@ -6,14 +6,14 @@ screen: NfeBrasil/Manifestacao/Index
 path: resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx
 archetype: list
 persona: eliana
-nota: 82
+nota: 83
 nivel: "Advanced"
 baseline_anterior: 82   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cockpit fiscal forte: master/detail, atalhos J/K/C/D/R, bulk toolbar sticky, KPIs, PrazoBadge, localStorage; charter+visual-comparison aprovados. Perde por confirm()/prompt() e cores raw."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cockpit fiscal forte: master/detail, atalhos J/K/C/D/R, bulk toolbar sticky, KPIs, PrazoBadge, localStorage; #3406 trocou red-50/parte do emerald por tokens destructive/success. Ainda perde por confirm()/prompt() e amber/emerald raw restantes."
+dimensoes: { density: 88, discoverability: 84, speed_to_task: 88, error_recovery: 72, cognitive_load: 82, aesthetic_usability: 82, affordance: 84, brand_confidence: 84, mobile_fit: 72, a11y_wcag: 78, i18n_ptbr: 90, performance_perceived: 84, information_hierarchy: 86, microcopy: 84, internal_consistency: 84, preflight_conformance: 76 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Stripe (dialog com textarea de justificativa validada inline)"
@@ -22,7 +22,7 @@ gaps:
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear (zero hex/cor crua, so token)"
-    fix: "Substituir bg-emerald-600/amber-50/red-50 e bg-accent-soft por tokens v4 primary roxo."
+    fix: "red-50 e parte do emerald ja tokenizados (#3406); restam bg-amber-50 (pendente/vencendo 7d), bg-emerald-600 (bulk confirmar) e emerald-50 (linha selecionada) — trocar por tokens v4."
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Mobile-fit"

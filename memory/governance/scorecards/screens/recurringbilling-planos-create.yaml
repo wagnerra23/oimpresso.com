@@ -6,20 +6,20 @@ screen: RecurringBilling/Planos/Create
 path: resources/js/Pages/RecurringBilling/Planos/Create.tsx
 archetype: form
 persona: eliana
-nota: 82
-nivel: "Advanced"
+nota: 86
+nivel: "Leader"
 baseline_anterior: 82   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form de plano limpo com campos condicionais (custom/CFOP/NFS-e), kbd ⌘↵/Esc e validação por campo; pena estar fora do shell/DS e sem máscara de valor."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form de plano com campos condicionais (custom/CFOP/NFS-e), kbd ⌘↵/Esc e validação por campo — agora no AppShellV2 com Select/Checkbox/Label do DS e zero cores cruas (#1988/#2212/#2666); falta máscara R$ no valor e preview do plano."
+dimensoes: { density: 85, discoverability: 82, speed_to_task: 88, error_recovery: 88, cognitive_load: 88, aesthetic_usability: 88, affordance: 80, brand_confidence: 86, mobile_fit: 85, a11y_wcag: 86, i18n_ptbr: 92, performance_perceived: 90, information_hierarchy: 88, microcopy: 88, internal_consistency: 90, preflight_conformance: 90 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 — Input/Select/Button @/Components/ui + shell"
-    fix: "Form 100% hand-roll (inputs/selects/checkbox crus) fora do shell; migrar pro DS mantendo o Field wrapper"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "preflight_conformance"
+    best_of_class: "SCREEN-GRADE D16 — <Tela>.casos.md ao lado do tsx"
+    fix: "Charter existe mas falta Create.casos.md com contrato de casos do form"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
   - dim: "Affordance"
     best_of_class: "Stripe — slug auto-preview e máscara de moeda em valor"
     fix: "Slug não mostra preview auto a partir do nome; valor é number cru sem máscara R$ (usar input monetário)"
