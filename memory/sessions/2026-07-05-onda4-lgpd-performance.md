@@ -1,5 +1,5 @@
 ---
-date: 2026-07-05
+date: "2026-07-05"
 hour: "17:20 BRT"
 duration: "2h"
 topic: "Onda 4 do PLANO-APROFUNDAMENTO-AVALIACOES — lente 5a LGPD (mapa PII pra Eliana) + lente 5b Performance (auditoria + catraca)"

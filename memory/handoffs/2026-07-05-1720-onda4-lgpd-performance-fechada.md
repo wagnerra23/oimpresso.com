@@ -1,5 +1,5 @@
 ---
-date: 2026-07-05
+date: "2026-07-05"
 time: "1720 BRT"
 slug: "onda4-lgpd-performance-fechada"
 tldr: "Onda 4 do PLANO-APROFUNDAMENTO-AVALIACOES entregue em 2 PRs aguardando merge Wagner: #3826 (auditoria performance + catraca) e #3828 (mapa LGPD pra Eliana). Gap OTel do app prod provado — p95/rota real só depois que Wagner ligar o export."
