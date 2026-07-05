@@ -6,14 +6,14 @@ screen: Financeiro/Cobranca/Index
 path: resources/js/Pages/Financeiro/Cobranca/Index.tsx
 archetype: list
 persona: eliana
-nota: 94
-nivel: "Leader"
+nota: 95
+nivel: "Champion"
 baseline_anterior: 94   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Port Cowork F1.5 96/100: charter live, defer+Deferred, KB-9.75, localStorage, PII mask, primary roxo 295 - referencia de excelencia do modulo."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Referência do módulo evoluiu: 'Exportar' no-op REMOVIDO (B6 botões honestos), filtro de intervalo de vencimento novo (#3394), zero cor crua pós-sweep; charter live, defer+Deferred, KB-9.75, PII mask, primary roxo 295."
+dimensoes: { density: 96, discoverability: 95, speed_to_task: 96, error_recovery: 93, cognitive_load: 94, aesthetic_usability: 95, affordance: 95, brand_confidence: 96, mobile_fit: 88, a11y_wcag: 94, i18n_ptbr: 97, performance_perceived: 95, information_hierarchy: 96, microcopy: 95, internal_consistency: 91, preflight_conformance: 97 }
 gaps:
   - dim: "Internal-consistency"
     best_of_class: "Stripe (1 atoms lib pro modulo todo)"
@@ -24,9 +24,4 @@ gaps:
     best_of_class: "Linear (cards stack <768px)"
     fix: "Charter assume desktop-only; filtros em 2 linhas + tabela 8col estouram mobile - sem fallback responsivo"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Affordance"
-    best_of_class: "Notion (sort clicavel)"
-    fix: "Sort de coluna e export sao no-op (backlog Onda 5); botoes sugerem acao que nao existe"
-    esforco: baixo
     origin: screen-grades-baseline-2026-05-30

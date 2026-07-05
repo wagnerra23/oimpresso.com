@@ -6,20 +6,20 @@ screen: RecurringBilling/Configuracoes/Index
 path: resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx
 archetype: config
 persona: eliana
-nota: 83
-nivel: "Advanced"
+nota: 86
+nivel: "Leader"
 baseline_anterior: 83   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Config rica (gateways/dunning/NFe/webhooks com copiar+docs+tour) mas majoritariamente read-only/'em breve' e fora do shell canon."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Config de gateways/dunning/NFe/webhooks agora no AppShellV2 com re-skin stone+roxo (PR #2212) e tokens DS (#2666/#3402); segue majoritariamente read-only ('em breve' no toggle NFe e no add de gateway)."
+dimensoes: { density: 86, discoverability: 86, speed_to_task: 80, error_recovery: 82, cognitive_load: 86, aesthetic_usability: 88, affordance: 78, brand_confidence: 86, mobile_fit: 84, a11y_wcag: 82, i18n_ptbr: 92, performance_perceived: 88, information_hierarchy: 88, microcopy: 90, internal_consistency: 84, preflight_conformance: 88 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 — shell PageHeader/AppShellV2 + @/Components/ui"
-    fix: "Header e cards hand-roll com bg-sky/orange (badges banco); padronizar com SectionCard do DS e remover sky/orange crus"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "preflight_conformance"
+    best_of_class: "DS v4 — zero cores cruas em badges semânticas + casos.md ao lado"
+    fix: "Badges de gateway ainda usam orange/emerald-100/800 cru (Inter/Asaas); tokenizar brand badges e criar Index.casos.md (charter já existe)"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
   - dim: "Affordance"
     best_of_class: "Stripe — toggle NFe e régua editáveis in-place"
     fix: "NFe-auto é toggle decorativo 'em breve' e régua é read-only; tornar régua/NFe editáveis (PUT) ou marcar claramente disabled"

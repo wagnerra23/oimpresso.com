@@ -6,14 +6,14 @@ screen: Financeiro/PlanoContas/Index
 path: resources/js/Pages/Financeiro/PlanoContas/Index.tsx
 archetype: list
 persona: eliana
-nota: 73
+nota: 75
 nivel: "Advanced"
 baseline_anterior: 73   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Plano de contas hierarquico denso com tokens fin-*, filtro radiogroup a11y e indentacao por nivel; mas microcopy de empty vaza comando tinker SSH e hue 240 (blue) no CSS var."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Plano de contas hierarquico denso; KPI strip extraida pro <FinStatStrip> (#2301), oklch cru zerado e --cb-hue de ativo/passivo migrado pra 145/25 semanticos — resta hue 240 só no fallback 'outro' e o empty state ainda vaza comando tinker."
+dimensoes: { density: 80, discoverability: 76, speed_to_task: 74, error_recovery: 72, cognitive_load: 76, aesthetic_usability: 76, affordance: 74, brand_confidence: 74, mobile_fit: 68, a11y_wcag: 78, i18n_ptbr: 82, performance_perceived: 68, information_hierarchy: 80, microcopy: 64, internal_consistency: 78, preflight_conformance: 78 }
 gaps:
   - dim: "Microcopy"
     best_of_class: "Bling (empty amigavel)"
@@ -22,9 +22,9 @@ gaps:
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
     best_of_class: "DRE (delta tokens)"
-    fix: "--cb-hue 240 (azul) pra ativo/passivo viola zero-blue; usar hues semanticos do DS (stone/violet)"
+    fix: "Residual: fallback --cb-hue 240 (azul) pro tipo 'outro' (ativo/passivo ja migraram pra 145/25); trocar por stone/violet"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
   - dim: "Performance-perceived"
     best_of_class: "Dashboard (Deferred)"
     fix: "planos eager sem defer/skeleton; plano BR cheio (centenas de linhas) carrega sincrono"

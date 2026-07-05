@@ -10,10 +10,10 @@ nota: 70
 nivel: "Advanced"
 baseline_anterior: 70   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Gemea de ContasPagar com coluna boleto + emitir-boleto via toast; mesmos pontos fortes e fracos: bg-blue-100 cru, sem defer, sem atalhos."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Gemea de ContasPagar com coluna boleto + emitir-boleto via toast; sweep #2666 só adicionou dark: — bg-blue-100 cru segue, sem defer, sem atalhos, processing global nos botões Emitir. Nota mantida."
+dimensoes: { density: 72, discoverability: 70, speed_to_task: 64, error_recovery: 64, cognitive_load: 74, aesthetic_usability: 72, affordance: 72, brand_confidence: 70, mobile_fit: 66, a11y_wcag: 68, i18n_ptbr: 80, performance_perceived: 64, information_hierarchy: 72, microcopy: 72, internal_consistency: 74, preflight_conformance: 68 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "PlanoContas (tipo tokens fin)"
