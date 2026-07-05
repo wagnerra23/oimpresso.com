@@ -6,14 +6,14 @@ screen: Sells/Show
 path: resources/js/Pages/Sells/Show.tsx
 archetype: detail
 persona: larissa
-nota: 85
+nota: 86
 nivel: "Leader"
 baseline_anterior: 85   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe 8/4 deferred com proxima-acao FSM, emit NF-e/NFS-e, timeline unificada, multi-modo print e cheat-sheet; perde por tones crus e alert() nativo."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe 8/4 deferred com proxima-acao FSM, emit NF-e/NFS-e, timeline unificada e multi-modo print; desde o baseline ganhou CTA 'Enviar pra faturamento' (#2146), excluir venda (#2180) e breadcrumb de oficina (#2299/#2309); ainda perde por tones emerald/amber/blue crus e window.alert() nativo."
+dimensoes: { density: 88, discoverability: 88, speed_to_task: 90, error_recovery: 78, cognitive_load: 84, aesthetic_usability: 86, affordance: 88, brand_confidence: 88, mobile_fit: 80, a11y_wcag: 82, i18n_ptbr: 92, performance_perceived: 88, information_hierarchy: 90, microcopy: 88, internal_consistency: 84, preflight_conformance: 78 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "tokens semanticos"

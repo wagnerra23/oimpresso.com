@@ -6,20 +6,15 @@ screen: Sells/Edit
 path: resources/js/Pages/Sells/Edit.tsx
 archetype: form
 persona: larissa
-nota: 79
+nota: 82
 nivel: "Advanced"
 baseline_anterior: 79   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Edit deferred com skeleton, autosave per-venda, FSM-safe e paridade Create; cai por selects nativos, confirm()/alert() nativos e cores cruas."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Edit deferred com skeleton, autosave per-venda e FSM-safe; desde o baseline zerou os <select> nativos (Select DS), corrigiu o pre-fill 'venda em branco' (#2501, incidente ROTA LIVRE) e tokenizou status (#3406); ainda cai por confirm()/alert() nativos e amber/emerald crus nos KPI."
+dimensoes: { density: 84, discoverability: 82, speed_to_task: 84, error_recovery: 78, cognitive_load: 80, aesthetic_usability: 83, affordance: 84, brand_confidence: 82, mobile_fit: 78, a11y_wcag: 78, i18n_ptbr: 90, performance_perceived: 85, information_hierarchy: 84, microcopy: 84, internal_consistency: 81, preflight_conformance: 77 }
 gaps:
-  - dim: "Aesthetic-usability"
-    best_of_class: "Stripe: Select estilizado consistente"
-    fix: "Status/desconto/responsavel usam <select> nativo hand-roll em vez do componente Select @/Components/ui"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"
     best_of_class: "Linear: dialog in-app"
     fix: "Substituir confirm() e alert() nativos (recover draft, >5MB) por AlertDialog shadcn (Create ja fez)"

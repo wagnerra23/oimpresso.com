@@ -6,14 +6,14 @@ screen: Sells/Index
 path: resources/js/Pages/Sells/Index.tsx
 archetype: list
 persona: larissa
-nota: 90
+nota: 91
 nivel: "Leader"
 baseline_anterior: 90   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cockpit de vendas estado-da-arte (1806 linhas, charter, score 9.75): SLA pills, pipeline FSM, ⌘K, saved views, bulk emit, sparkline deferred; desvia do DS por CSS Cowork scoped."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cockpit de vendas estado-da-arte (1811 linhas, charter+casos): SLA pills, pipeline FSM, ⌘K, saved views, bulk emit, sparkline deferred; desde o baseline ganhou placa/veiculo na consulta (#2276), link 'Caixa do dia' nas Visoes (#3234) e indicador de devolucao restaurado (#3734); segue desviando do DS por CSS Cowork scoped."
+dimensoes: { density: 94, discoverability: 92, speed_to_task: 94, error_recovery: 90, cognitive_load: 88, aesthetic_usability: 92, affordance: 92, brand_confidence: 94, mobile_fit: 84, a11y_wcag: 84, i18n_ptbr: 95, performance_perceived: 92, information_hierarchy: 93, microcopy: 92, internal_consistency: 82, preflight_conformance: 84 }
 gaps:
   - dim: "Internal-consistency"
     best_of_class: "DS unico (@/Components/ui)"

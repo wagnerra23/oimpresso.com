@@ -6,18 +6,18 @@ screen: TransactionPayment/Show
 path: resources/js/Pages/TransactionPayment/Show.tsx
 archetype: detail
 persona: eliana
-nota: 85
+nota: 87
 nivel: "Leader"
 baseline_anterior: 85   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe/recibo token-puro elegante: amount destacado, campos condicionais por metodo, print (no-print), download anexo, badges status; falta sanitize e PageHeader."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe/recibo token-puro elegante: amount destacado, campos condicionais por metodo, print, download anexo; o fix XSS (#2893) removeu o dangerouslySetInnerHTML do endereco — falta PageHeader canon e enfase de status na hierarquia."
+dimensoes: { density: 86, discoverability: 86, speed_to_task: 88, error_recovery: 86, cognitive_load: 88, aesthetic_usability: 88, affordance: 86, brand_confidence: 88, mobile_fit: 86, a11y_wcag: 86, i18n_ptbr: 92, performance_perceived: 88, information_hierarchy: 84, microcopy: 88, internal_consistency: 88, preflight_conformance: 80 }
 gaps:
   - dim: "A11y-WCAG"
     best_of_class: "WCAG"
-    fix: "contact_address via dangerouslySetInnerHTML sem sanitize; print usa window.print sem media-query visivel alem de no-print"
+    fix: "print usa window.print sem media-query visivel alem de no-print (dangerouslySetInnerHTML do endereco ja removido no #2893)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
