@@ -13,5 +13,7 @@
         "bucket_assigned_at": "2026-05-21",
         "bucket_assigned_by": "[W]",
         "bucket_justificativa": "Compras é workflow operacional cross-vertical (qualquer empresa compra de fornecedor + recebe XML DF-e + concilia financeiro). Não tem dono cliente único — Larissa biz=4 vestuário é o primeiro stakeholder mas o módulo serve qualquer business."
-    }
+    },
+    "retention_days": 1825,
+    "retention_justificativa": "Compras = transactions type purchase* (documentos fiscais de entrada). Retenção mínima legal 5 anos (obrigações acessórias fiscais — mesmo prazo do PaymentGateway). Dados vivem na tabela core transactions; purge segue política do core, nunca antes de 1825d."
 }
