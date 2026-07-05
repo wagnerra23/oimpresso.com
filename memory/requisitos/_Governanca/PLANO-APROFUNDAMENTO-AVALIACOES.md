@@ -1,6 +1,6 @@
 ---
 slug: plano-aprofundamento-avaliacoes
-title: "Plano de aprofundamento das avaliações — 5 ondas (execução Opus 4.8)"
+title: "Plano de aprofundamento das avaliações — 5 ondas (execução IA-pair, tier da sessão)"
 date: "2026-07-05"
 status: proposto
 authors: [F, C]
@@ -9,7 +9,7 @@ esforco_estimado: "5 ondas · ~4-6 sessões IA-pair (ADR 0106) · Onda 4 exige C
 topic: "programa de aprofundamento das lentes de avaliação do projeto — telas stale, módulos piores, segurança, ops/DR, LGPD/performance"
 ---
 
-# Plano de aprofundamento das avaliações — execução por sessão Opus 4.8
+# Plano de aprofundamento das avaliações — execução por sessão IA-pair (tier da sessão)
 
 > **Origem (2026-07-05, Felipe [F] + Claude):** validação das máquinas de governança de conhecimento (grade ~74/100) expôs que as lentes existentes NÃO cobrem o projeto inteiro. Lentes vivas: SDD 70/100 · Jana RAG ~46% · module-grade média 76.7 (36 módulos) · 17 CAPTERRA-FICHA · RAGAS canary. Buracos sem lente: **segurança ofensiva, ops/DR, performance prod, LGPD dedicada** — e 217 screen-scorecards STALE (Check B).
 > **Este doc é o contrato de execução**: cada onda tem pré-reqs, passos, DoD verificável por sentinela e gate humano. Sessão executora marca progresso AQUI (bump `reviewed_at`) — fonte única, sem roadmap paralelo (regra T6).
@@ -18,7 +18,9 @@ topic: "programa de aprofundamento das lentes de avaliação do projeto — tela
 
 - status: proposto
 - reviewed_at: 2026-07-05
-- proximo_passo: Wagner aprova a ordem das ondas; executor (Opus 4.8) começa por Onda 0 (baseline) depois Onda 1.
+- proximo_passo: Wagner aprova a ordem das ondas; o executor (qualquer tier de sessão) começa por Onda 0 (baseline) depois Onda 1.
+- adversário: red-team deste plano em [`memory/sessions/2026-07-05-adversario-plano-aprofundamento.md`](../../sessions/2026-07-05-adversario-plano-aprofundamento.md) — LER antes de criar qualquer doc de avaliação (evita re-duplicar este plano · regra T6).
+- 2026-07-05 (C): de-pinado de "Opus 4.8" → tier da sessão (Fable 5 é o tier GA mais alto; ver Regra global #9 + adversário).
 
 ## Máquina de cobertura (construída nesta sessão)
 
@@ -34,6 +36,7 @@ Enquanto este plano é executado, o **Check X** do `memory-health` (`scripts/gov
 6. **Anti-duplicação (T6):** antes de criar doc novo em `memory/`, `Glob`/`Grep` o tema e **estender** o canon existente — nunca abrir paralelo.
 7. **Toda onda entrega catraca**, não só relatório: senão o gap volta invisível (lição ADR 0264/0275 — sentinela conta, catraca morde).
 8. Ordem recomendada: **Onda 0 → 1 → 2 → 3** (1-3 independentes, 1 é a mais barata). Onda 4 só em sessão com Tailscale/CT100. Onda 5 só com OK Wagner/Eliana.
+9. **Modelo/tier — NÃO force Opus.** Fable 5 é o tier GA mais alto (acima de Opus); qualquer sessão executa este plano no seu próprio tier — não troque de modelo pra "subir". ⚠️ Os agentes `capterra-senior` / `audit-senior-expert` / `estado-da-arte` têm `model: opus` **hard-pinned** no frontmatter (`.claude/agents/*.md`) → cada `Agent(...)` deles **troca a sessão pra Opus** em runtime. Pra manter no tier da sessão, passe o override `model: fable` no `Agent(subagent_type: "capterra-senior", model: "fable", ...)` — o override tem precedência sobre o frontmatter e preserva o system-prompt/skill do agente. Só deixe cair pra Opus se um passo específico justificar (não é o caso de nenhuma onda aqui).
 
 ---
 
@@ -77,7 +80,7 @@ Enquanto este plano é executado, o **Check X** do `memory-health` (`scripts/gov
 
 **Passos:**
 1. **Compras:** `tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan module:grade Compras --detail --evolve"` → dimensões D1-D9 + top gaps.
-2. Spawn agent `capterra-senior` pra Compras → `memory/requisitos/Compras/CAPTERRA-FICHA.md` (10 seções, nota 0-100 vs 10-15 concorrentes).
+2. Spawn agent `capterra-senior` pra Compras (com override `model: fable` — Regra global #9, não trocar pra Opus) → `memory/requisitos/Compras/CAPTERRA-FICHA.md` (10 seções, nota 0-100 vs 10-15 concorrentes).
 3. `/comparativo Compras` → CAPTERRA-INVENTARIO (✅/🟡/❌) + batch tasks proposto → **Wagner aprova antes de criar**.
 4. Repetir 1-3 pra PaymentGateway **respeitando o status ADR 0170** (se seguir "later phase=2", entregar só o diagnóstico — não implementar). Isto também zera o Check X (cobertura de auditoria) pra PaymentGateway.
 5. **Qualquer fix que toque cálculo/estoque em Compras:** REGRA MESTRE — dupla confirmação por 2 caminhos independentes + tabela antes→depois + aprovação Wagner explícita. Sem exceção.
@@ -91,7 +94,7 @@ Enquanto este plano é executado, o **Check X** do `memory-health` (`scripts/gov
 
 **Objetivo:** primeira auditoria ofensiva do app inteiro. Guards pontuais existem (multi-tenant gates, gitleaks, XSS ratchet, PII scan); nunca houve revisão de superfície completa.
 
-**Pré-reqs:** autorização Wagner explícita pro escopo (é o dono; pentest de app próprio = defensivo). Sem testes contra prod que gerem carga/escrita — análise de código + staging CT100. Base: skill `/security-review` + agente `audit-senior-expert` por dimensão.
+**Pré-reqs:** autorização Wagner explícita pro escopo (é o dono; pentest de app próprio = defensivo). Sem testes contra prod que gerem carga/escrita — análise de código + staging CT100. Base: skill `/security-review` + agente `audit-senior-expert` por dimensão (com override `model: fable` — Regra global #9). **Baseline existente (não é lente zero):** `memory/audits/2026-05-pre-sales/03-security-review-quick.md` (2026-05-09) já achou **A-1 Critical** (`POST /install/install-alternate` público → wipe da DB de prod) — 1º item da onda é confirmar se A-1 foi corrigido; ver adversário.
 
 **Escopo (checklist do auditor):**
 - Auth/session (login, remember, reset, 2FA se houver) e fixação de sessão.
