@@ -6,18 +6,18 @@ screen: Settings/PaymentGateways/Index
 path: resources/js/Pages/Settings/PaymentGateways/Index.tsx
 archetype: config
 persona: wagner
-nota: 80
+nota: 81
 nivel: "Advanced"
 baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Console de gateways (charter, Cowork F1.5 93/100, persona Wagner): KPIs+tabela deferred, J/K, cheat-sheet, drawer; desvia do DS v4 (paleta stone + atoms locais)."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Console de gateways (charter+casos, KPIs+tabela deferred, J/K, cheat-sheet, drawer, ConfirmToggleModal); sweep #2666 tirou emerald/rose crus mas paleta stone/amber e atoms do Financeiro persistem."
+dimensoes: { density: 84, discoverability: 82, speed_to_task: 82, error_recovery: 78, cognitive_load: 80, aesthetic_usability: 82, affordance: 72, brand_confidence: 80, mobile_fit: 74, a11y_wcag: 76, i18n_ptbr: 86, performance_perceived: 84, information_hierarchy: 84, microcopy: 82, internal_consistency: 74, preflight_conformance: 78 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 primary roxo + tokens"
-    fix: "bg-stone-50/text-stone-* e emerald/amber/rose hardcoded em toda tela; primary roxo so num ring. Migrar pra tokens v4"
+    fix: "bg-stone-50/text-stone-* e amber-* seguem hardcoded (emerald/rose ja tokenizados no #2666); migrar residuo pra tokens v4"
     esforco: alto
     origin: screen-grades-baseline-2026-05-30
   - dim: "Internal-consistency"
