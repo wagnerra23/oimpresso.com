@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\Jana\Tests\Feature\Mcp;
 
+use DateTimeImmutable;
 use Modules\Jana\Console\Commands\HealthCheckCommand;
 use Modules\Jana\Services\Mcp\IndexarMemoryGitParaDb;
 
@@ -26,6 +27,10 @@ uses(\Tests\TestCase::class);
  *   (b) zero ausentes quando índice cobre tudo (verde não é constante — bite)
  *   (c) doc EXTRA no índice não é gap (só ausência alarma)
  *   (d) slugsEsperados deriva da mesma coleta do sync (fixture com BRIEFING)
+ *   (e)-(h) STALE por heartbeat parado (indexed_at velho) — segundo critério
+ *       do next_step #3 ("fora do índice OU stale"): todo run de sync toca
+ *       indexed_at mesmo sem mudança de conteúdo, então vivo sem heartbeat
+ *       desde o limite = sync não completa há dias (residual deadlock/OOM).
  */
 
 it('(a) detecta doc canônico esperado fora do índice', function () {
@@ -82,4 +87,52 @@ it('(d) slugsEsperados deriva da MESMA coleta do sync (fonte única, sem lista p
         @rmdir($tmpBase . '/memory');
         @rmdir($tmpBase);
     }
+});
+
+it('(e) acusa STALE quando o heartbeat indexed_at parou antes do limite', function () {
+    $limite = new DateTimeImmutable('-7 days');
+
+    $r = HealthCheckCommand::indexSyncGapStats(
+        ['spec-jana', 'briefing:Financeiro'],
+        ['spec-jana', 'briefing:Financeiro'],
+        ['spec-jana' => new DateTimeImmutable('-30 days'), 'briefing:Financeiro' => new DateTimeImmutable('-2 hours')],
+        $limite,
+    );
+
+    // Sync não toca spec-jana há 30d = sync quebrado (deadlock/OOM), mesmo sem ausência.
+    expect($r['stale'])->toBe(['spec-jana']);
+    expect($r['ausentes'])->toBe([]);
+});
+
+it('(f) heartbeat NULL (linha nunca tocada por sync moderno) conta como STALE, não como saudável', function () {
+    $r = HealthCheckCommand::indexSyncGapStats(
+        ['memory-proibicoes'],
+        ['memory-proibicoes'],
+        ['memory-proibicoes' => null],
+        new DateTimeImmutable('-7 days'),
+    );
+
+    expect($r['stale'])->toBe(['memory-proibicoes']);
+});
+
+it('(g) aceita indexed_at como string de DB (pluck sem cast) e não duplica ausente como stale', function () {
+    $r = HealthCheckCommand::indexSyncGapStats(
+        ['a-fresco', 'b-velho', 'c-ausente'],
+        ['a-fresco', 'b-velho'],
+        ['a-fresco' => (new DateTimeImmutable('-1 hour'))->format('Y-m-d H:i:s'), 'b-velho' => (new DateTimeImmutable('-30 days'))->format('Y-m-d H:i:s')],
+        new DateTimeImmutable('-7 days'),
+    );
+
+    expect($r['ausentes'])->toBe(['c-ausente']);
+    expect($r['stale'])->toBe(['b-velho']); // c-ausente NÃO reaparece em stale
+});
+
+it('(h) sem limite de stale o contrato original (ausência-only) permanece — back-compat', function () {
+    $r = HealthCheckCommand::indexSyncGapStats(
+        ['spec-jana'],
+        ['spec-jana'],
+    );
+
+    expect($r['stale'])->toBe([]);
+    expect($r['ausentes'])->toBe([]);
 });
