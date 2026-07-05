@@ -6,14 +6,14 @@ screen: ads/Admin/DecisaoShow
 path: resources/js/Pages/ads/Admin/DecisaoShow.tsx
 archetype: detail
 persona: wagner
-nota: 73
+nota: 74
 nivel: "Advanced"
 baseline_anterior: 73   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe rico: drill-down chain, review G-Eval, KV tecnico, StatusBadge canon; window.prompt e cores cruas seguram a nota."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe rico (drill-down chain, review G-Eval, KV tecnico); emojis viraram lucide (US-015) e 2 linhas tokenizadas (#2666), mas window.prompt e cores cruas emerald/blue/amber/zinc seguem segurando a nota."
+dimensoes: { density: 78, discoverability: 70, speed_to_task: 76, error_recovery: 62, cognitive_load: 74, aesthetic_usability: 76, affordance: 76, brand_confidence: 74, mobile_fit: 70, a11y_wcag: 70, i18n_ptbr: 84, performance_perceived: 74, information_hierarchy: 80, microcopy: 80, internal_consistency: 72, preflight_conformance: 60 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Linear"

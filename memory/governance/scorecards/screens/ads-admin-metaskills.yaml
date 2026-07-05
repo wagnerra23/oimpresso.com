@@ -10,10 +10,10 @@ nota: 72
 nivel: "Advanced"
 baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Editor de regras SOFT robusto (condition-builder, validate-against-data, versao, switch); select nativo, JSON cru e cores cruas limitam."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Editor de regras SOFT robusto (condition-builder, validate-against-data, versao, switch); sweep #2666 tocou 1 linha — <select> nativo x4, JSON cru em Textarea e zinc-50/100/200 + blue-600/300 crus seguem limitando."
+dimensoes: { density: 78, discoverability: 72, speed_to_task: 76, error_recovery: 62, cognitive_load: 66, aesthetic_usability: 74, affordance: 68, brand_confidence: 72, mobile_fit: 68, a11y_wcag: 68, i18n_ptbr: 82, performance_perceived: 74, information_hierarchy: 78, microcopy: 80, internal_consistency: 70, preflight_conformance: 56 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 roxo"

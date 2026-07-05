@@ -6,19 +6,19 @@ screen: ads/Admin/Decisoes
 path: resources/js/Pages/ads/Admin/Decisoes.tsx
 archetype: list
 persona: wagner
-nota: 76
+nota: 77
 nivel: "Advanced"
 baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Inbox operacional forte: KPIs-como-filtro, live-polling cortes, rows densas, empty por aba; cor crua e window.prompt limitam."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Inbox operacional forte (KPIs-como-filtro, live-polling, empty por aba); sweep #2666 tokenizou toggle Live e KPI selected (success/muted), resta so o badge Brain-B blue-500/5 cru e o window.prompt no reject."
+dimensoes: { density: 80, discoverability: 78, speed_to_task: 80, error_recovery: 64, cognitive_load: 76, aesthetic_usability: 78, affordance: 78, brand_confidence: 76, mobile_fit: 72, a11y_wcag: 72, i18n_ptbr: 84, performance_perceived: 80, information_hierarchy: 80, microcopy: 82, internal_consistency: 80, preflight_conformance: 66 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 roxo"
-    fix: "toggle Live e KPI selected usam emerald/zinc cru; badge Brain-B blue/5 cru; mapear tokens + primary roxo"
-    esforco: medio
+    fix: "resta badge Brain-B bg-blue-500/5 border-blue-500/20 cru (toggle Live e KPI selected ja tokenizados no #2666); mapear pra token"
+    esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"
     best_of_class: "Linear"
