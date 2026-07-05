@@ -168,12 +168,25 @@
       "stream": "MEM"
     },
     "ragas_real_uptime": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 100,
+      "unit": "%",
       "direction": "up",
-      "target": "≥95%",
-      "source": "governance/ragas-real-trend.json ainda não publicado pelo write-side CT100 — jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318; baseline honesto em governance/jana-ragas-real-baseline.json). Transporte: órfã governance/ragas-real-trend (write-side ct100-ragas-publish.sh · pattern nightly-floor ADR 0279); 1ª execução do cron 2026-07-05.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "target": 95,
+      "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
+      "detail": {
+        "weeks_expected": 1,
+        "weeks_valid": 1,
+        "first_scheduled": "2026-07-05",
+        "last_week": "2026-06-28",
+        "latest": {
+          "gate_status": "pass",
+          "n_evaluated": 51,
+          "faithfulness_avg": 0.7145,
+          "relevancy_avg": 0.8745,
+          "context_recall_avg": 0.3951
+        }
+      },
       "stream": "MEM"
     },
     "distiller_freshness": {
