@@ -21,7 +21,7 @@ Ao ir testar no CT 100, o bench (`oimpresso-staging`) estava com HEAD na branch 
 - **[#3824](https://github.com/wagnerra23/oimpresso.com/pull/3824)** (empilhada na #3823, retarget automático pra main): critério **STALE por heartbeat** — `indexSyncGapStats(+heartbeats, +limiteStale)` params opcionais (back-compat: os 4 testes da #3823 passam inalterados); check 10d acusa doc vivo com `indexed_at` >7d. Fundamento: todo run de sync toca `indexed_at` mesmo sem mudança de conteúdo (branch "sem mudança" do `indexarArquivo`) ⇒ heartbeat parado = sync quebrado — o residual "deadlock/OOM" do handoff, que ausência sozinha não pega (docs já indexados param no tempo sem nunca sumir). **CT 100: 8/8 passed (14 assertions).**
 - **[#3825](https://github.com/wagnerra23/oimpresso.com/pull/3825)** (base main): canary recall@k — `runReal` computa `recall_at_k` (macro-média IR padrão) + `recall` por query; gate real vira `recall_at_k ≥ --min-recall (0.80)` + `recall_eval_violations = 0`, substituindo o binário 100%-por-query (sem piso, sem trend). O schedule semanal (dom 06:30 BRT staging, Kernel) já existia — **nenhum workflow novo** (T6). Modo mock (gate de PR) inalterado. **CT 100: 5/5 passed (10 assertions); CI da PR 100% verde.**
 
-Ambas as PRs **aguardam merge do Wagner** (R10 — merge sem aprovação humana bloqueado pelo harness).
+Desfecho: Wagner aprovou o merge no fim da sessão — **#3825 MERGED** (`d6bf4b82ea`); a #3824 foi **rebaseada sobre o main** após o squash-merge da #3823 (branch empilhada fica DIRTY quando a base entra por squash — cherry-pick do commit único sobre `origin/main` + force-with-lease resolve) e mergeia na sequência com CI verde.
 
 ## Descoberta do smoke real (honestidade de medição)
 
