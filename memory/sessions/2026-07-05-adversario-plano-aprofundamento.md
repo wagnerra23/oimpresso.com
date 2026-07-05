@@ -3,9 +3,10 @@ title: "Adversário — red-team do PLANO-APROFUNDAMENTO-AVALIACOES + de-pin Opu
 slug: adversario-plano-aprofundamento
 kind: session
 date: "2026-07-05"
+topic: "adversário do plano de aprofundamento das avaliações — T6 duplicação + de-pin Opus→tier-da-sessão"
 authors: [C]
 alvo: "memory/requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md"
-related_adrs: ["0106", "0264", "0275", "0294", "0314", "0316"]
+related_adrs: ["0106-recalibracao-velocidade-fator-10x-ia-pair", "0264-governanca-executavel-trio-dominio-e2e", "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes", "0316-esquecimento-real-adr-morta-tombstone-git-auditoria"]
 tags: [adversario, red-team, T6, model-tier, duplicacao]
 ---
 
