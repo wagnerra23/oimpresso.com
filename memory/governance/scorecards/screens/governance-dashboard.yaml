@@ -6,23 +6,18 @@ screen: governance/Dashboard
 path: resources/js/Pages/governance/Dashboard.tsx
 archetype: dashboard
 persona: wagner
-nota: 75
+nota: 77
 nivel: "Advanced"
 baseline_anterior: 75   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cockpit de governanca rico (KPIs constituicao+saude, 3 paineis, atalhos, links canon) com charter, mas emojis e paleta crua afastam do DS roxo estado-da-arte."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cockpit de governança com card snapshot SDD (Pest, #2628) e ícones lucide no lugar dos emojis (#2041); tokenização parcial (#3399: 10->4) — severityBadgeClass/modeBadge seguem com blue/rose/amber/emerald crus."
+dimensoes: { density: 78, discoverability: 78, speed_to_task: 78, error_recovery: 72, cognitive_load: 76, aesthetic_usability: 76, affordance: 76, brand_confidence: 76, mobile_fit: 70, a11y_wcag: 74, i18n_ptbr: 84, performance_perceived: 76, information_hierarchy: 78, microcopy: 78, internal_consistency: 76, preflight_conformance: 70 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear dashboard"
-    fix: "blue/rose/amber/emerald-50 em severityBadgeClass+modeBadge + emoji 📋📊🤖⚙️ como icones de secao + atalhos bg-zinc-50 cru -> tokens v4 + lucide"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Aesthetic-usability"
-    best_of_class: "Stripe home"
-    fix: "secoes-titulo uppercase + emojis dao ar improvisado vs cockpit roxo; KpiGrid cols=6 aperta -> hierarquia com PageHeader/icones consistentes"
+    fix: "blue/rose/amber/emerald-50 remanescentes em severityBadgeClass+modeBadge -> tokens v4 (emojis já viraram lucide no #2041)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Mobile-fit"
