@@ -10,10 +10,10 @@ nota: 73
 nivel: "Advanced"
 baseline_anterior: 73   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form de config bem cardificado com Switch/Textarea/@ui; falha em inputs numéricos crus, breadcrumb HRM≠Essentials e ausência de charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form de config bem cardificado com Switch/Textarea/@ui; código idêntico ao baseline de 30/mai — seguem inputs numéricos crus sem validação inline, breadcrumb 'HRM' ≠ Essentials e ausência de charter."
+dimensoes: { density: 76, discoverability: 75, speed_to_task: 76, error_recovery: 64, cognitive_load: 75, aesthetic_usability: 77, affordance: 74, brand_confidence: 72, mobile_fit: 75, a11y_wcag: 73, i18n_ptbr: 84, performance_perceived: 76, information_hierarchy: 67, microcopy: 73, internal_consistency: 70, preflight_conformance: 62 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Stripe: validação numérica inline"

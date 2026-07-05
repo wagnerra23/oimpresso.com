@@ -6,20 +6,20 @@ screen: Essentials/Messages/Index
 path: resources/js/Pages/Essentials/Messages/Index.tsx
 archetype: chat
 persona: misto
-nota: 76
+nota: 79
 nivel: "Advanced"
 baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Mural chat com polling, auto-scroll, Enter-envia e bolhas mine/theirs tokenizadas, mas innerHTML stored-XSS e sem charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Mural chat com polling, auto-scroll, Enter-envia e bolhas mine/theirs tokenizadas; stored-XSS corrigido no PR #2891 (mensagem renderiza como texto escapado, <br> legado vira quebra de linha) — restam polling sem websocket e falha de conexão silenciosa."
+dimensoes: { density: 80, discoverability: 79, speed_to_task: 81, error_recovery: 71, cognitive_load: 81, aesthetic_usability: 81, affordance: 80, brand_confidence: 79, mobile_fit: 78, a11y_wcag: 76, i18n_ptbr: 86, performance_perceived: 72, information_hierarchy: 80, microcopy: 80, internal_consistency: 81, preflight_conformance: 72 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Slack escapa msg do usuario"
-    fix: "m.message via dangerouslySetInnerHTML e XSS armazenado; escapar/sanitizar texto do usuario"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "preflight_conformance"
+    best_of_class: "Charter vivo ao lado do tsx"
+    fix: "Criar Index.charter.md e Index.casos.md ao lado do tsx (XSS já corrigido no #2891)"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
   - dim: "Performance-perceived"
     best_of_class: "Slack usa websocket nao polling"
     fix: "Trocar polling por Centrifugo (CT100) ou ao menos pausar polling em aba inativa"
