@@ -10,10 +10,10 @@ nota: 86
 nivel: "Leader"
 baseline_anterior: 86   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Wizard OAuth Meta exemplar: charter live v2, tokens semanticos, Esc/autofocus/aria, empty-state honesto, error-recovery solido — melhor da leva."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Wizard OAuth Meta exemplar e estavel (sem mudanca material desde o baseline): charter live v2, tokens semanticos, Esc/autofocus/aria, empty-state honesto, error-recovery solido."
+dimensoes: { density: 86, discoverability: 82, speed_to_task: 88, error_recovery: 90, cognitive_load: 86, aesthetic_usability: 88, affordance: 86, brand_confidence: 88, mobile_fit: 80, a11y_wcag: 80, i18n_ptbr: 94, performance_perceived: 88, information_hierarchy: 88, microcopy: 90, internal_consistency: 88, preflight_conformance: 86 }
 gaps:
   - dim: "Mobile-fit"
     best_of_class: "Stripe Connect onboarding"

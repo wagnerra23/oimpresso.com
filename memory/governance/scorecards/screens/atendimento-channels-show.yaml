@@ -6,14 +6,14 @@ screen: Atendimento/Channels/Show
 path: resources/js/Pages/Atendimento/Channels/Show.tsx
 archetype: detail
 persona: larissa
-nota: 74
+nota: 75
 nivel: "Advanced"
 baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe com tabs role-tab acessiveis, Deferred por aba, re-parear com poll e PageHeader; mas sem componente Tabs do DS, confirm() nativo e sem charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe com tabs role-tab acessiveis, Deferred por aba, re-parear com poll e PageHeader; cores cruas tokenizadas nos sweeps DS (#2666/#3410), mas segue sem Tabs do DS, com confirm() nativo e sem charter."
+dimensoes: { density: 78, discoverability: 72, speed_to_task: 76, error_recovery: 68, cognitive_load: 76, aesthetic_usability: 76, affordance: 74, brand_confidence: 74, mobile_fit: 72, a11y_wcag: 74, i18n_ptbr: 90, performance_perceived: 78, information_hierarchy: 74, microcopy: 78, internal_consistency: 72, preflight_conformance: 68 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "shadcn Tabs canonico + charter ao lado"

@@ -10,10 +10,10 @@ nota: 78
 nivel: "Advanced"
 baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "CSAT limpo: KpiGrid 4 cards tonalizados, distribuicao em barras, tabela com Deferred, EmptyState e StarRow a11y; perde por cores cruas emerald/amber, prop 'actions' fora do padrao e sem charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "CSAT limpo e sem mudanca material desde o baseline: KpiGrid 4 cards tonalizados, distribuicao em barras, tabela com Deferred, EmptyState e StarRow a11y; segue com emerald/amber crus nas barras, prop 'actions' fora do padrao e sem charter."
+dimensoes: { density: 80, discoverability: 72, speed_to_task: 80, error_recovery: 74, cognitive_load: 80, aesthetic_usability: 82, affordance: 78, brand_confidence: 78, mobile_fit: 76, a11y_wcag: 78, i18n_ptbr: 92, performance_perceived: 82, information_hierarchy: 80, microcopy: 80, internal_consistency: 74, preflight_conformance: 70 }
 gaps:
   - dim: "Internal-consistency"
     best_of_class: "PageHeader canon usa prop 'action' (singular) como nas outras telas"

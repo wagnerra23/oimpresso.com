@@ -10,10 +10,10 @@ nota: 71
 nivel: "Advanced"
 baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Explorador arvore+preview de 3 roots com filtro recursivo e markdown render; bom UX mas usa <input> hand-rolled, fetch manual sem error state e cores raw amber/sky/emerald."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Explorador árvore+preview de 3 roots com filtro recursivo e markdown render; sem mudança material desde o baseline — <input> hand-rolled persiste, openFile() ainda ignora res !ok e ícones amber/sky/emerald-500 crus seguem."
+dimensoes: { density: 74, discoverability: 72, speed_to_task: 74, error_recovery: 58, cognitive_load: 74, aesthetic_usability: 74, affordance: 72, brand_confidence: 70, mobile_fit: 66, a11y_wcag: 60, i18n_ptbr: 84, performance_perceived: 74, information_hierarchy: 74, microcopy: 74, internal_consistency: 70, preflight_conformance: 60 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear (so @/Components/ui + tokens)"

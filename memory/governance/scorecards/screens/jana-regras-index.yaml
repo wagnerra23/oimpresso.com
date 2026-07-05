@@ -6,27 +6,27 @@ screen: Jana/Regras/Index
 path: resources/js/Pages/Jana/Regras/Index.tsx
 archetype: other
 persona: wagner
-nota: 52
+nota: 68
 nivel: "Developing"
 baseline_anterior: 52   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Stub 'UI em construção' apontando pra Governança; correto e a11y básica ok, mas sem conteúdo e cor oklch azul/violet cruas."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Tela reescrita: stub virou referência read-only DS-clean dos 4 outcomes do PolicyEngine (PageHeader, Card, Badge por variant, primary/10, zero cor crua) com CTA pra Governança e count opcional de políticas — falta ainda listar as políticas reais por outcome."
+dimensoes: { density: 56, discoverability: 72, speed_to_task: 58, error_recovery: 60, cognitive_load: 80, aesthetic_usability: 74, affordance: 64, brand_confidence: 76, mobile_fit: 76, a11y_wcag: 72, i18n_ptbr: 84, performance_perceived: 80, information_hierarchy: 66, microcopy: 74, internal_consistency: 74, preflight_conformance: 62 }
 gaps:
   - dim: "Speed-to-task"
     best_of_class: "Notion"
-    fix: "Listar policies do PolicyEngine (4 outcomes) read-only em vez de só redirecionar"
+    fix: "Listar as políticas REAIS do PolicyEngine por outcome (backend ainda não passa a lista; cards são referência estática dos 4 outcomes)"
     esforco: alto
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Stripe"
-    fix: "oklch(0.62 0.13 220) + violet-500 inline fora do primary roxo v4"
-    esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Information-hierarchy"
     best_of_class: "Linear"
-    fix: "Sem preview de regras; agregar contagem/estado das políticas ativas"
+    fix: "count de políticas é opcional e sem drill-down; agregar estado por outcome quando o controller passar dados"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "charter-first"
+    fix: "Falta Index.charter.md e Index.casos.md ao lado do tsx"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
