@@ -6,27 +6,22 @@ screen: Site/Page
 path: resources/js/Pages/Site/Page.tsx
 archetype: other
 persona: misto
-nota: 58
-nivel: "Developing"
+nota: 70
+nivel: "Advanced"
 baseline_anterior: 58   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Renderizador CMS enxuto (prose + dangerouslySetInnerHTML); correto e tokenizado mas sem estados de erro/vazio nem sanitize — baixa maturidade por escopo."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Renderizador CMS endurecido pos-fix 2026-05-31: fallback 404 com CTA de volta, estado vazio de content, HTML sanitizado server-side (HTMLPurifier), alt real na imagem e lazy+dimensoes; segue sem charter/casos nem navegacao contextual."
+dimensoes: { density: 70, discoverability: 66, speed_to_task: 72, error_recovery: 76, cognitive_load: 76, aesthetic_usability: 72, affordance: 66, brand_confidence: 70, mobile_fit: 74, a11y_wcag: 70, i18n_ptbr: 78, performance_perceived: 70, information_hierarchy: 70, microcopy: 72, internal_consistency: 72, preflight_conformance: 52 }
 gaps:
-  - dim: "Error-recovery"
-    best_of_class: "Notion public page"
-    fix: "Sem fallback p/ page null/404 nem estado vazio de content; dangerouslySetInnerHTML sem sanitize visivel"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "A11y-WCAG"
-    best_of_class: "WCAG img"
-    fix: "feature_image alt='' fixo (decorativo assumido) mesmo quando e conteudo; prose sem landmark heading skip"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "Discoverability"
+    best_of_class: "Notion public page: breadcrumb/voltar"
+    fix: "Pagina CMS sem breadcrumb nem link de volta pro site (so o 404 tem CTA); leitor fica sem saida contextual"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4"
-    fix: "Renderer CMS minimo 49 linhas, sem charter, sem PageHeader — stub legitimo mas raso"
+    fix: "Sem Page.charter.md nem Page.casos.md; renderer minimo sem PageHeader (aceitavel pra pagina publica, mas sem contrato)"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05

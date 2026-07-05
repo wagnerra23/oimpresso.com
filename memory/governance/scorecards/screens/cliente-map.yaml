@@ -6,18 +6,18 @@ screen: Cliente/Map
 path: resources/js/Pages/Cliente/Map.tsx
 archetype: detail
 persona: larissa
-nota: 71
+nota: 72
 nivel: "Advanced"
 baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Split-screen mapa de clientes limpo com tokens, mas mapa via iframe Google hardcoded e lista hand-rolled sem defer."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Split-screen mapa de clientes limpo; emerald cru virou text-success (#3387) e lupa da busca corrigida (#2685) — mas mapa segue iframe Google hardcoded, lista sem defer e sem aria-pressed."
+dimensoes: { density: 72, discoverability: 74, speed_to_task: 74, error_recovery: 68, cognitive_load: 78, aesthetic_usability: 74, affordance: 70, brand_confidence: 70, mobile_fit: 70, a11y_wcag: 64, i18n_ptbr: 86, performance_perceived: 62, information_hierarchy: 74, microcopy: 78, internal_consistency: 74, preflight_conformance: 66 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Shopify Maps usa lib nativa + tokens"
-    fix: "Trocar iframe maps.google.com hardcoded e text-emerald-600 raw por componente de mapa tokenizado"
+    fix: "Trocar iframe maps.google.com hardcoded (e gradiente stone cru do fundo) por componente de mapa tokenizado"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Performance-perceived"

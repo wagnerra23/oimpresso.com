@@ -10,14 +10,14 @@ nota: 88
 nivel: "Leader"
 baseline_anterior: 88   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Login estado-da-arte: token-puro, floating-label, social IdP, show/hide, flash error, copy PT-BR caloroso; falta wiring a11y de erro de campo."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Login estado-da-arte: token-puro, floating-label, social IdP, show/hide, erro inline por campo, copy PT-BR caloroso; unica mudanca desde baseline foi rounded-lg (#3403) — segue faltando aria-invalid/describedby e charter."
+dimensoes: { density: 86, discoverability: 88, speed_to_task: 92, error_recovery: 86, cognitive_load: 90, aesthetic_usability: 90, affordance: 84, brand_confidence: 90, mobile_fit: 90, a11y_wcag: 78, i18n_ptbr: 92, performance_perceived: 88, information_hierarchy: 90, microcopy: 92, internal_consistency: 88, preflight_conformance: 72 }
 gaps:
   - dim: "A11y-WCAG"
     best_of_class: "Stripe/Linear auth"
-    fix: "Mover errors.username/password de status flash p/ aria-describedby+aria-invalid no input; remember tem id mas label so no inline"
+    fix: "Erro de campo ja renderiza inline, mas input segue sem aria-invalid/aria-describedby ligando ao <p> de erro; remember tem checkbox sem id proprio (label inline apenas)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Affordance"
