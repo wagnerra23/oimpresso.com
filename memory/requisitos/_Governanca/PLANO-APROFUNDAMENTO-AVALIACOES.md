@@ -14,6 +14,13 @@ topic: "programa de aprofundamento das lentes de avaliação do projeto — tela
 > **Origem (2026-07-05, Felipe [F] + Claude):** validação das máquinas de governança de conhecimento (grade ~74/100) expôs que as lentes existentes NÃO cobrem o projeto inteiro. Lentes vivas: SDD 70/100 · Jana RAG ~46% · module-grade média 76.7 (36 módulos) · 17 CAPTERRA-FICHA · RAGAS canary. Buracos sem lente: **segurança ofensiva, ops/DR, performance prod, LGPD dedicada** — e 217 screen-scorecards STALE (Check B).
 > **Este doc é o contrato de execução**: cada onda tem pré-reqs, passos, DoD verificável por sentinela e gate humano. Sessão executora marca progresso AQUI (bump `reviewed_at`) — fonte única, sem roadmap paralelo (regra T6).
 
+## Execução Fable-safe (LEIA)
+
+As Ondas **0, 1, 2, 4, 5** não têm conteúdo sensível e rodam em qualquer sessão. A **Onda 3** vive
+num doc apartado ([`AUDITORIA-SEGURANCA-ESCOPO.md`](AUDITORIA-SEGURANCA-ESCOPO.md)) e **não deve ser
+aberta na mesma sessão** que executa as outras — abra-a só numa sessão dedicada, com OK do Wagner.
+Pra executar este plano: sessão nova → ler este doc → rodar 0 → 1 → 2 → 4 → 5, sem tocar o doc apartado.
+
 ## Status vivo
 
 - status: proposto
@@ -135,8 +142,8 @@ Enquanto este plano é executado, o **Check X** do `memory-health` (`scripts/gov
 | 0 | Baseline consolidado | pré-req | ½ sessão | — |
 | 1 | Re-grade telas stale (Check B 217) | 3 (barato/alto valor) | 1-2 sessões | ratchet |
 | 2 | Compras(58)+PaymentGateway(60) | 2 (Tier-0 fraco) | 1-2 sessões | Wagner (batch) |
-| 3 | Segurança multi-tenant | **1 (Tier-0, zero lente)** | 2-3 sessões | Wagner (escopo) |
+| 3 | Revisão defensiva (doc apartado) | separada | 2-3 sessões | Wagner (escopo) |
 | 4 | Ops/DR CT100+Hostinger | 4 (incidente real) | 1-2 sessões | CT100 |
 | 5 | LGPD + Performance | 5 | 1 sessão + Eliana | Eliana |
 
-**Quick-win se o tempo for curto:** Onda 1 (½-1 sessão, refresca 217 telas) + começar Onda 3 (o único Tier-0 sem lente). O Check X já vigia a Onda 2/3 a cada PR.
+**Quick-win se o tempo for curto:** Onda 1 (½-1 sessão, refresca 217 telas) + Onda 2 (Tier-0 fraco). O Check X vigia a Onda 2 a cada PR.
