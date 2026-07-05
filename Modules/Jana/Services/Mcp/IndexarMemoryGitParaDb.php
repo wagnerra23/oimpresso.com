@@ -113,6 +113,19 @@ class IndexarMemoryGitParaDb
     }
 
     /**
+     * Sentinela anti-apodrecimento (handoff 2026-07-05 next_step #3) — slugs
+     * que o sync ESPERA existir no índice, derivados da MESMA coleta que o
+     * próprio sync usa. Fonte única: glob novo aqui = sentinela cobre junto,
+     * sem lista paralela pra driftar (a classe do sync gap dos BRIEFINGs).
+     *
+     * @return list<string>
+     */
+    public function slugsEsperados(): array
+    {
+        return array_column($this->filtrarPorTipo($this->coletarArquivos()), 'slug');
+    }
+
+    /**
      * Sync robusto — filtra a coleta pelo type solicitado (`--only=briefing`).
      * Null = sem filtro (sync completo, comportamento legado).
      *
