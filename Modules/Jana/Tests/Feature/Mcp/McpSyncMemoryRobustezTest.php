@@ -234,11 +234,15 @@ it('(d2) deadlock persistente além das tentativas propaga', function () {
     $service = new IndexarMemoryGitParaDb('/tmp/nao-usado', 'test-retry');
     $ref = new \ReflectionMethod($service, 'comRetryDeadlock');
 
+    // Closure explícito (não arrow fn): arrow fn captura $chamadas POR VALOR,
+    // e o use(&) interno referenciaria a cópia — contador ficaria em 0.
     $chamadas = 0;
-    expect(fn () => $ref->invoke($service, function () use (&$chamadas) {
-        $chamadas++;
-        throw excecaoDeadlock();
-    }))->toThrow(QueryException::class);
+    expect(function () use ($ref, $service, &$chamadas) {
+        $ref->invoke($service, function () use (&$chamadas) {
+            $chamadas++;
+            throw excecaoDeadlock();
+        });
+    })->toThrow(QueryException::class);
     expect($chamadas)->toBe(3, 'esgotou as 3 tentativas antes de propagar');
 });
 
@@ -251,10 +255,12 @@ it('(e) exceção não-deadlock propaga imediatamente, sem retry', function () {
     $naoDeadlock = new QueryException('mysql', 'insert ...', [], $pdo);
 
     $chamadas = 0;
-    expect(fn () => $ref->invoke($service, function () use (&$chamadas, $naoDeadlock) {
-        $chamadas++;
-        throw $naoDeadlock;
-    }))->toThrow(QueryException::class);
+    expect(function () use ($ref, $service, &$chamadas, $naoDeadlock) {
+        $ref->invoke($service, function () use (&$chamadas, $naoDeadlock) {
+            $chamadas++;
+            throw $naoDeadlock;
+        });
+    })->toThrow(QueryException::class);
     expect($chamadas)->toBe(1, 'não-deadlock NÃO ganha retry (mascarar 1062 foi a lição do hotfix 2026-05-21)');
 });
 
