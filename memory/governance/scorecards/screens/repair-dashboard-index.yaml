@@ -6,27 +6,22 @@ screen: Repair/Dashboard/Index
 path: resources/js/Pages/Repair/Dashboard/Index.tsx
 archetype: dashboard
 persona: tecnico
-nota: 62
-nivel: "Developing"
+nota: 76
+nivel: "Advanced"
 baseline_anterior: 62   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Port honesto do dashboard Repair com tokens semânticos corretos, mas raso: 2 KPIs, 'gráficos' são listas de texto e um chart foi dropado (FIXME)."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Dashboard com 2 KPIs + 5 gráficos de barra SVG acessíveis (role=img, sr-only, defer+skeleton); FIXME do trending_devices resolvido (W31-uplift 05-31). Falta profundidade de KPIs e drill-down."
+dimensoes: { density: 64, discoverability: 76, speed_to_task: 74, error_recovery: 70, cognitive_load: 80, aesthetic_usability: 78, affordance: 75, brand_confidence: 78, mobile_fit: 74, a11y_wcag: 84, i18n_ptbr: 85, performance_perceived: 84, information_hierarchy: 78, microcopy: 78, internal_consistency: 82, preflight_conformance: 78 }
 gaps:
-  - dim: "Information-hierarchy"
-    best_of_class: "Notion/Linear — gráficos reais (barras/donut), não listas chave-valor"
-    fix: "job_sheets_by_status e trending viram <SimpleListCard> de texto; usar gráfico (recharts/sparkbar) e expor trending_devices (hoje voided com FIXME)"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Density"
     best_of_class: "Shopify — dashboard com 4-6 KPIs + drill-down"
     fix: "Só 2 KPIs (status únicos, staff); adicionar OS abertas/atrasadas/ticket médio/receita e links de drill"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
-  - dim: "Performance-perceived"
-    best_of_class: "Linear — defer + skeleton dos painéis"
-    fix: "Sem Inertia::defer nem loading; envolver painéis em <Deferred> com skeleton"
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Método casos.md — contrato de não-regressão ao lado do tsx"
+    fix: "Existe Index.charter.md mas não Index.casos.md; derivar casos de uso do charter"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05

@@ -6,27 +6,22 @@ screen: Repair/DeviceModels/Create
 path: resources/js/Pages/Repair/DeviceModels/Create.tsx
 archetype: form
 persona: tecnico
-nota: 74
+nota: 78
 nivel: "Advanced"
 baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form pequeno e correto (DS primitives, PageHeader, autoFocus, foco max-w-3xl, errors), limitado pelo checklist via '|' e selects crus pouco touch."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form DS completo: Select DS em brand/device, erros text-destructive por campo (PR #3396), charter ao lado. Limita o checklist como Textarea separada por '|'."
+dimensoes: { density: 78, discoverability: 78, speed_to_task: 77, error_recovery: 78, cognitive_load: 78, aesthetic_usability: 78, affordance: 70, brand_confidence: 80, mobile_fit: 73, a11y_wcag: 79, i18n_ptbr: 85, performance_perceived: 80, information_hierarchy: 78, microcopy: 78, internal_consistency: 81, preflight_conformance: 82 }
 gaps:
   - dim: "Affordance"
     best_of_class: "Linear — checklist como tag/chips, não texto com '|'"
     fix: "repair_checklist é Textarea separada por '|'; trocar por input de chips/lista editável (touch-friendly p/ técnico)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 — Select primitive @/Components/ui"
-    fix: "brand_id/device_id são <select> cru; usar Select do DS p/ tokens/foco consistentes"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Mobile-fit"
     best_of_class: "Shopify — alvos de toque ≥44px no balcão/oficina"
-    fix: "Inputs/selects em densidade desktop; aumentar área de toque e usar combobox de marca pesquisável"
+    fix: "Densidade desktop; usar combobox de marca pesquisável pra listas longas"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30

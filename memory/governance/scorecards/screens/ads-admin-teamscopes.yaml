@@ -10,10 +10,10 @@ nota: 74
 nivel: "Advanced"
 baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Matriz user×modulo com Switch granular e explicacao do enforcement server-side; densa e poderosa mas desktop-only e cores de estado cruas."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Sem mudanca material desde o baseline (delete+restore #2413 e net-zero). Matriz user×modulo com Switch granular; segue emerald-50/amber-50/amber-300 cru, confirm() nativo no revoke e desktop-only."
+dimensoes: { density: 78, discoverability: 74, speed_to_task: 76, error_recovery: 66, cognitive_load: 74, aesthetic_usability: 74, affordance: 76, brand_confidence: 74, mobile_fit: 58, a11y_wcag: 64, i18n_ptbr: 84, performance_perceived: 76, information_hierarchy: 78, microcopy: 82, internal_consistency: 74, preflight_conformance: 66 }
 gaps:
   - dim: "Mobile-fit"
     best_of_class: "Stripe permissions"

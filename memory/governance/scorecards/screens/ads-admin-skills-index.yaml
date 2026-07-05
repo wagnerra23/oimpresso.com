@@ -10,10 +10,10 @@ nota: 79
 nivel: "Advanced"
 baseline_anterior: 79   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista read-only exemplar: busca useMemo, empty contextual, tabela densa com source badge; pequenos gaps a11y e marca roxa ausente."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Sem mudanca material desde o baseline (delete+restore #2413 e net-zero). Lista read-only exemplar (busca useMemo, empty contextual); gaps a11y de tabela e ausencia de roxo de marca permanecem."
+dimensoes: { density: 80, discoverability: 82, speed_to_task: 82, error_recovery: 78, cognitive_load: 80, aesthetic_usability: 78, affordance: 78, brand_confidence: 74, mobile_fit: 76, a11y_wcag: 72, i18n_ptbr: 84, performance_perceived: 76, information_hierarchy: 80, microcopy: 82, internal_consistency: 82, preflight_conformance: 74 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear DS"

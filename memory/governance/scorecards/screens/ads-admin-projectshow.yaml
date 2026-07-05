@@ -6,14 +6,14 @@ screen: ads/Admin/ProjectShow
 path: resources/js/Pages/ads/Admin/ProjectShow.tsx
 archetype: detail
 persona: wagner
-nota: 72
+nota: 73
 nivel: "Advanced"
 baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe de project bem estruturado (KpiGrid+parts ordenadas+deps), mas cores cruas com blue e confirm() nativo derrubam Pre-Flight."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Emojis inline viraram lucide icons (US-015, 2026-05-31); segue com viabilityColor/statusBadge em blue/emerald/amber/red/zinc-100 cru e window.confirm nativo no decompose()."
+dimensoes: { density: 76, discoverability: 72, speed_to_task: 76, error_recovery: 62, cognitive_load: 72, aesthetic_usability: 76, affordance: 74, brand_confidence: 72, mobile_fit: 70, a11y_wcag: 68, i18n_ptbr: 82, performance_perceived: 72, information_hierarchy: 80, microcopy: 80, internal_consistency: 72, preflight_conformance: 58 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear status tokens"
@@ -25,8 +25,8 @@ gaps:
     fix: "decompose() usa window.confirm nativo -> trocar por AlertDialog @/Components/ui com custo/tokens explicitos"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
-  - dim: "Affordance"
-    best_of_class: "Notion"
-    fix: "emoji inline (clock/dollar/depende) sem aria -> usar lucide icons com aria-label + sem charter ao lado"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "preflight_conformance"
+    best_of_class: "Constituicao UI v2"
+    fix: "sem ProjectShow.charter.md nem ProjectShow.casos.md ao lado do tsx — contrato da tela nao formalizado"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05
