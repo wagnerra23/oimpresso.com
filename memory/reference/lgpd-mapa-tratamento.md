@@ -164,6 +164,8 @@ Isolamento Tier 0 IRREVOGÁVEL via `business_id` global scope ([ADR 0093](../dec
 ## Inventário de PII por tabela (Onda 4 · 2026-07-05)
 
 > **Para Eliana:** este bloco é o mapa técnico pedido na Onda 4 do [PLANO-APROFUNDAMENTO-AVALIACOES](../requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md) — inventário + gaps, **não** decisão jurídica. Fonte: análise estática das migrations em `origin/main` @ f90a675507. As decisões (priorizar qual gap, base legal de retenção) ficam com você + Wagner.
+>
+> **Enquadramento (pra não ler errado):** o oimpresso é um ERP — **PII no banco e exibida em tela é a função do produto** (Art. 7º, V — execução de contrato; o tenant é o controlador dos dados dos SEUS clientes). Nenhum gap abaixo propõe esconder/redigir dado de cliente da tela ou do banco operacional. O que este mapa vigia é o **perímetro**: PII não pode sair do banco pra onde não pertence — **git/commits/docs canon (proibição Tier 0), logs, telemetria, prompts a LLM externo** — e o ciclo de vida (retenção quando o tratamento termina, DSR quando o titular pede). Este próprio inventário só contém **nomes de tabela/coluna**, nunca dados reais.
 
 ### PII estrutural (coluna nomeada) — 36 tabelas, principais:
 
@@ -231,7 +233,7 @@ Padrões redigidos ([PiiRedactor.php](../../Modules/Jana/Services/Privacy/PiiRed
 | Fluxo | Cobertura | Evidência |
 |---|---|---|
 | Chat Jana → LLM externo (EUA) | ✅ COBERTO | redaction pré-provider em ambos drivers (`LaravelAiSdkDriver:156,307,728` · `OpenAiDirectDriver:311,329`) — dado nunca sai raw |
-| Chat Jana → persistência DB | ❌ por design | content raw (dado legítimo do tenant); vigiado por health-check |
+| Chat Jana → persistência DB | ✅ raw **por design** (correto) | content raw no banco = dado operacional legítimo do tenant (Art. 7º, V), igual a `contacts` — redaction aqui quebraria o produto; o perímetro vigiado é a SAÍDA (LLM/log/git), + health-check anti-vazamento em resposta |
 | Logs Laravel | 🟡 PARCIAL | sem processor Monolog global; cobertura opt-in por call-site (concerns Repair/Superadmin + sites Jana/Whatsapp) — `Log::` novo vaza |
 | Sync memory→MCP | 🟡 PARCIAL | só mensagens de erro redactadas ([SyncMemoryWebhookController:111](../../Modules/TeamMcp/Http/Controllers/Mcp/SyncMemoryWebhookController.php)); conteúdo de doc entra raw (git canon já é visível ao time) |
 | Commits/PR | ✅ (escopo commit-only) | hook `.claude/hooks/pii-redactor.ps1` (opção B 2026-06-13) |
