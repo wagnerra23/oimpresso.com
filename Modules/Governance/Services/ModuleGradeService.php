@@ -864,10 +864,15 @@ class ModuleGradeService
         $d4c = $d4cItem['score'];
 
         // D4.d — AuditLog + OTel telemetry (4 pts)
+        // Pareia com D9.a (ADR 0156 §Errata 1): a facade canônica `OtelHelper::span*(...)`
+        // (invocação real — `\s*\(` evita match em comentário) e o uso do pacote
+        // `Spatie\Activitylog` (Activity:: model query) também são telemetry/audit.
+        // Antes: módulo com OtelHelper::spanBiz em TODO método pontuava 0
+        // (falso-negativo 2026-07-05 — caso Compras).
         $d4d = 0;
         foreach ([...$controllers, ...$services] as $f) {
             $content = @file_get_contents($f) ?: '';
-            if (preg_match('/(LogsActivity|activity\(\)|OpenTelemetry|otel_span|Telemetry)/i', $content)) {
+            if (preg_match('/(LogsActivity|activity\(\)|OpenTelemetry|otel_span|Telemetry|OtelHelper::span\w*\s*\(|Spatie\\\\Activitylog)/i', $content)) {
                 $d4d = 4;
                 break;
             }
@@ -1171,7 +1176,16 @@ class ModuleGradeService
         $hasThrottle = false;
         foreach ($routesFiles as $rf) {
             $content = @file_get_contents($rf) ?: '';
-            if (preg_match("/->middleware\s*\(\s*['\"]throttle[:.]/", $content) || str_contains($content, "'throttle.api'") || str_contains($content, '"throttle.api"')) {
+            // Formas detectadas:
+            //   (a) ->middleware('throttle:60,1')                  — string única
+            //   (b) Route::middleware([..., 'throttle:60,1', ...]) — array multi-line,
+            //       forma canônica UltimatePOS (Compras/Fiscal declaram assim; antes
+            //       pontuava 0 com throttle REAL na rota — falso-negativo 2026-07-05)
+            //   (c) alias 'throttle.api'
+            if (preg_match("/->middleware\s*\(\s*['\"]throttle[:.]/", $content)
+                || preg_match("/middleware\s*\(\s*\[[^\]]*['\"]throttle[:.]/s", $content)
+                || str_contains($content, "'throttle.api'")
+                || str_contains($content, '"throttle.api"')) {
                 $hasThrottle = true;
                 break;
             }
