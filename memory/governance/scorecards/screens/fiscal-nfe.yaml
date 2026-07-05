@@ -10,10 +10,10 @@ nota: 84
 nivel: "Advanced"
 baseline_anterior: 84   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cockpit NF-e/NFC-e exemplar de perf (Inertia Deferred + only:[] partial reload, J/K/Enter nav, chips status server-side, drawer SEFAZ) — melhor padrao tecnico do batch; acoes write ainda stub."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cockpit NF-e/NFC-e exemplar de perf (Inertia Deferred + only:[] partial reload, J/K/Enter nav, chips status server-side, drawer SEFAZ) — sem mudanca material desde o baseline; acoes write seguem stub e layer fx-* fora do DS."
+dimensoes: { density: 88, discoverability: 84, speed_to_task: 76, error_recovery: 80, cognitive_load: 84, aesthetic_usability: 84, affordance: 84, brand_confidence: 84, mobile_fit: 76, a11y_wcag: 80, i18n_ptbr: 92, performance_perceived: 92, information_hierarchy: 88, microcopy: 86, internal_consistency: 84, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 primary + @/Components/ui"

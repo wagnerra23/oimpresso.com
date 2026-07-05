@@ -6,18 +6,18 @@ screen: Fiscal/Cockpit
 path: resources/js/Pages/Fiscal/Cockpit.tsx
 archetype: dashboard
 persona: eliana
-nota: 82
+nota: 84
 nivel: "Advanced"
 baseline_anterior: 82   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cockpit fiscal unificado rico (ribbon KPI, saved-views chips, bulk, drawers NFe/NFSe/Eventos, density) — charter ok, mas layer fx-* fora do DS e dados mock eager."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cockpit fiscal unificado rico (ribbon KPI, saved-views chips, bulk, drawers, density) — PR #3407 migrou selects/checkboxes crus pra Select/Checkbox DS com aria-label; resta layer fx-* (fx-btn/ribbon) fora do DS e dados mock eager."
+dimensoes: { density: 88, discoverability: 85, speed_to_task: 86, error_recovery: 80, cognitive_load: 82, aesthetic_usability: 84, affordance: 85, brand_confidence: 84, mobile_fit: 75, a11y_wcag: 82, i18n_ptbr: 92, performance_perceived: 78, information_hierarchy: 86, microcopy: 85, internal_consistency: 80, preflight_conformance: 76 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 @/Components/ui + primary roxo"
-    fix: "FxShell usa --fx-* / fx-btn / <input> cru + 6-KPI ribbon fora do DS shadcn; alinhar com tokens DS"
+    fix: "Selects/checkboxes migrados pro DS (#3407); resta FxShell com --fx-* / fx-btn + 6-KPI ribbon fora do DS shadcn"
     esforco: alto
     origin: screen-grades-baseline-2026-05-30
   - dim: "Performance-perceived"

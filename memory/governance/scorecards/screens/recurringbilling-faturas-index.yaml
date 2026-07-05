@@ -6,20 +6,20 @@ screen: RecurringBilling/Faturas/Index
 path: resources/js/Pages/RecurringBilling/Faturas/Index.tsx
 archetype: list
 persona: eliana
-nota: 85
+nota: 87
 nivel: "Leader"
 baseline_anterior: 85   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de faturas estado-da-arte (KPIs hero+sparkline, filtros pill, defer+skeleton, cancel dialog LGPD-aware), limitada por divergência do shell/DS e criação ainda bloqueada."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista de faturas estado-da-arte agora no AppShellV2 com Select do DS e re-skin stone+roxo (#1988/#2212/#2666); criação avulsa segue 'em breve' e o CancelDialog ainda sem semântica de dialog."
+dimensoes: { density: 88, discoverability: 88, speed_to_task: 82, error_recovery: 86, cognitive_load: 87, aesthetic_usability: 90, affordance: 86, brand_confidence: 88, mobile_fit: 84, a11y_wcag: 78, i18n_ptbr: 92, performance_perceived: 90, information_hierarchy: 90, microcopy: 90, internal_consistency: 88, preflight_conformance: 85 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 — @/Components/ui + shell + zero azul/sky/orange cru"
-    fix: "Tudo hand-roll; gateway badges usam orange/sky/zinc-900. Migrar p/ primitives DS e tokens roxo/neutro"
-    esforco: alto
-    origin: screen-grades-baseline-2026-05-30
+  - dim: "preflight_conformance"
+    best_of_class: "DS v4 — zero sky/orange cru em badges + casos.md ao lado"
+    fix: "Badges de gateway ainda com orange-50/sky-50 cru (Inter/Asaas) e status com rose/emerald/amber cru; tokenizar e criar Index.casos.md (charter já existe)"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
   - dim: "A11y-WCAG"
     best_of_class: "Linear — dialog com foco-trap e botões nativos"
     fix: "CancelDialog não tem role=dialog/aria-modal nem focus-trap (só Esc no Index não fecha o dialog); adicionar"
