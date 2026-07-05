@@ -10,10 +10,10 @@ nota: 89
 nivel: "Leader"
 baseline_anterior: 89   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Kanban estado-da-arte: drag-drop otimista com optimistic-lock 409/403, atalhos J/K/E/A, polling+on-focus, DetailSheet via URL, charter presente; só leves blue-leaks (border-l-blue-500)."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Kanban estado-da-arte: drag-drop otimista com optimistic-lock 409/403, atalhos J/K/E/A, polling+on-focus, DetailSheet via URL, charter presente; sweep DS #2666 passou mas o border-l-blue-500 do goal-card segue cru (gap intacto)."
+dimensoes: { density: 90, discoverability: 88, speed_to_task: 92, error_recovery: 92, cognitive_load: 88, aesthetic_usability: 90, affordance: 90, brand_confidence: 90, mobile_fit: 78, a11y_wcag: 84, i18n_ptbr: 90, performance_perceived: 86, information_hierarchy: 90, microcopy: 88, internal_consistency: 90, preflight_conformance: 84 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear: zero cor hardcoded fora do token"

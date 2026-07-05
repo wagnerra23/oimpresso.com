@@ -6,27 +6,27 @@ screen: Site/Blogs
 path: resources/js/Pages/Site/Blogs.tsx
 archetype: list
 persona: misto
-nota: 68
-nivel: "Developing"
+nota: 74
+nivel: "Advanced"
 baseline_anterior: 68   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Indice de blog marketing tokenizado com cards hover/line-clamp/lazy-img e empty state; faltam paginacao, busca/tags e data nos cards."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Indice de blog com busca client-side (aria-label), data pt-BR nos cards, empty states duplos (sem posts / busca vazia) e cards hover tokenizados; ainda sem paginacao, filtro por tag e charter/casos."
+dimensoes: { density: 74, discoverability: 72, speed_to_task: 76, error_recovery: 70, cognitive_load: 78, aesthetic_usability: 76, affordance: 74, brand_confidence: 74, mobile_fit: 78, a11y_wcag: 72, i18n_ptbr: 80, performance_perceived: 70, information_hierarchy: 76, microcopy: 76, internal_consistency: 76, preflight_conformance: 55 }
 gaps:
   - dim: "Discoverability"
     best_of_class: "Ghost/Stripe: paginacao + tags/busca"
-    fix: "Grid sem paginacao, busca ou filtro por tag/categoria"
+    fix: "Busca client ja existe, mas grid segue sem paginacao nem filtro por tag/categoria"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "i18n-PT-BR"
-    best_of_class: "Medium: data + tempo leitura por card"
-    fix: "created_at existe no tipo mas nao e exibido; adicionar data formatada pt-BR no card"
-    esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Performance-perceived"
     best_of_class: "Next: skeleton de cards"
     fix: "Sem estado loading/skeleton (posts via prop direta); ok se SSR, mas sem fallback de erro"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "DS v4"
+    fix: "Sem Blogs.charter.md nem Blogs.casos.md; input de busca hand-rolled em vez de @/Components/ui"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05

@@ -10,10 +10,10 @@ nota: 86
 nivel: "Leader"
 baseline_anterior: 86   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Cadastro espelha Login com mesma qualidade: social, gate allowRegistration, copy '30s sem cartao'; falta strength meter e validacao client de match."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Cadastro espelha Login com mesma qualidade: social, gate allowRegistration, copy '30s sem cartao'; so rounded-lg (#3403) desde o baseline — segue sem strength meter, validacao client de match e a11y de erro."
+dimensoes: { density: 84, discoverability: 86, speed_to_task: 90, error_recovery: 78, cognitive_load: 88, aesthetic_usability: 90, affordance: 84, brand_confidence: 88, mobile_fit: 90, a11y_wcag: 76, i18n_ptbr: 92, performance_perceived: 88, information_hierarchy: 88, microcopy: 92, internal_consistency: 84, preflight_conformance: 70 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Stripe signup"

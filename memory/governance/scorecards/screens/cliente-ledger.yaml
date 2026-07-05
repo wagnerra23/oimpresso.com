@@ -6,14 +6,14 @@ screen: Cliente/Ledger
 path: resources/js/Pages/Cliente/Ledger.tsx
 archetype: detail
 persona: eliana
-nota: 72
+nota: 73
 nivel: "Advanced"
 baseline_anterior: 72   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Extrato financeiro denso e legivel (KpiCard, debito/credito/saldo, PDF/Excel) mas usa window.location full-reload, cores cruas e sem Deferred."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Extrato financeiro denso; debito/credito agora text-destructive/text-success (PR #3387) — mas applyFilters segue window.location full-reload, sem Deferred e KpiCard danger em rose cru."
+dimensoes: { density: 78, discoverability: 74, speed_to_task: 64, error_recovery: 70, cognitive_load: 78, aesthetic_usability: 76, affordance: 74, brand_confidence: 72, mobile_fit: 70, a11y_wcag: 70, i18n_ptbr: 88, performance_perceived: 64, information_hierarchy: 78, microcopy: 76, internal_consistency: 74, preflight_conformance: 68 }
 gaps:
   - dim: "Speed-to-task"
     best_of_class: "Inertia SPA (router.get em vez de window.location)"
@@ -21,10 +21,10 @@ gaps:
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 (tokens debit/credit, nao rose/emerald-700 cru)"
-    fix: "Debito rose-700 / credito emerald-700 / KpiCard rose crus; usar tokens financeiros semanticos"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    best_of_class: "DS v4 (tokens destructive-soft, nao rose cru)"
+    fix: "KpiCard danger ainda usa border-rose-200/bg-rose-50 crus; trocar por tokens destructive-soft"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
   - dim: "Performance-perceived"
     best_of_class: "Stripe (Deferred + skeleton em extrato pesado)"
     fix: "Sem Inertia::defer; extrato grande bloqueia render — add Deferred + skeleton de linhas"
