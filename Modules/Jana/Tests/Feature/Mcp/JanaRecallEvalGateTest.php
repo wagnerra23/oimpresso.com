@@ -13,13 +13,14 @@ uses(Tests\TestCase::class);
  * código"): rotina "FECHAR O LOOP DO IA-OS" item #3 (audit 2026-05-29) —
  * "canary semanal + alerta se recall<80%" — + ADR 0275 (métrica
  * recall_eval_violations, meta → 0: superseded NUNCA no top-N) + handoff
- * 2026-07-05 (baseline medido recall@5 = 0.815 pós-sync-fix #3815).
+ * 2026-07-05 (recall@5 = 0.815 medido na lane semantic pós-sync-fix #3815;
+ * a lane keyword direta do --mode=real mediu 0.074 em 2026-07-05 — o alerta
+ * dispara legítimo nela até o retrieval melhorar, next_step #2 do handoff).
  *
  * O contrato exigido do gate:
  *   (a) recall agregado < 0.80 → FAIL (é o alerta do canary);
- *   (b) recall agregado ≥ 0.80 E zero violations → PASS (0.815 real passa —
- *       o gate antigo de 100%-por-query reprovava 25/27 = alarme sem sinal,
- *       anti-padrão ADR 0271);
+ *   (b) recall agregado ≥ 0.80 E zero violations → PASS (a lane que atingir
+ *       o alvo fica verde e o canary vira detector de regressão);
  *   (c) superseded no top-N (violations > 0) → FAIL mesmo com recall perfeito;
  *   (d) recall@K de uma query = |expected ∩ topK| / |expected| (IR padrão).
  */
@@ -63,7 +64,7 @@ it('reprova quando recall agregado fica abaixo do piso de 80% (o alerta do canar
 
 // ── (b) baseline real passa — canary vira sinal, não ruído ──────────────
 
-it('aprova o baseline real 0.815 (recall ≥ 80% + zero violations)', function () {
+it('aprova recall no alvo (0.815 da lane semantic): ≥ 80% + zero violations', function () {
     expect(JanaRecallEvalCommand::gateRealPassa(
         ['recall_at_k' => 0.815, 'recall_eval_violations' => 0],
         0.80,

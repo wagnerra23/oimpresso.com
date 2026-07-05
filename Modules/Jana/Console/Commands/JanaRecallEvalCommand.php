@@ -24,8 +24,10 @@ use Throwable;
  *       `mcp_memory_documents` (read-only) e mede recall@K + a métrica
  *       `recall_eval_violations` do scorecard SDD (ADR 0275, meta → 0).
  *       Gate real (canary loop IA-OS #3, handoff 2026-07-05): recall@K
- *       AGREGADO ≥ --min-recall (default 0.80) E zero violations. Baseline
- *       medido 2026-07-04 pós-sync-fix #3815: recall@5 = 0.815.
+ *       AGREGADO ≥ --min-recall (default 0.80) E zero violations. Medição
+ *       honesta desta lane (Meilisearch keyword direto, staging 2026-07-05):
+ *       recall@5 = 0.074 — alerta dispara legítimo até o retrieval melhorar.
+ *       O 0.815 do handoff é da lane semantic/hybrid (next_step #2).
  *
  * Exit: 0 = gate pass · 1 = gate fail.
  *
@@ -90,10 +92,11 @@ class JanaRecallEvalCommand extends Command
 
         // Gate real = canary "recall<80%" do loop IA-OS #3 (handoff 2026-07-05):
         // recall@K AGREGADO ≥ piso (--min-recall) + zero superseded no top-N
-        // (recall_eval_violations, ADR 0275). O gate anterior exigia 100% por
-        // query (n_queries_recall_fail === 0) — com recall real medido em 0.815
-        // reprovava 25/27 toda semana: alarme permanente sem sinal (anti-padrão
-        // que a ADR 0271 caça). n_queries_recall_fail segue no report como info.
+        // (recall_eval_violations, ADR 0275). Substitui o gate binário
+        // 100%-por-query (n_queries_recall_fail === 0): sem métrica agregada não
+        // havia trend nem piso — o alerta agora é literalmente "recall<80%" e o
+        // report carrega recall_at_k pro operador acompanhar a evolução.
+        // n_queries_recall_fail segue no report como info.
         $minRecall = (float) $this->option('min-recall');
         $report['gate_status'] = $this->errors === []
             && (! isset($report['real']) || self::gateRealPassa($report['real'], $minRecall))
@@ -308,8 +311,8 @@ class JanaRecallEvalCommand extends Command
         }
 
         // recall@K agregado (macro-média por query) — a métrica do canary
-        // semanal (dom 06:30 BRT staging, Kernel.php): baseline 2026-07-04
-        // pós-sync-fix = 0.815 (handoff rag-investigacao-profunda-sync-fix).
+        // semanal (dom 06:30 BRT staging, Kernel.php). Medição honesta desta
+        // lane keyword: 0.074 em 2026-07-05 (o 0.815 do handoff é semantic).
         $out['recall_at_k'] = $nAvaliadas > 0 ? round($somaRecall / $nAvaliadas, 4) : 0.0;
 
         return $out;

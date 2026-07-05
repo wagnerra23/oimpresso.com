@@ -484,15 +484,21 @@ class Kernel extends ConsoleKernel
         // inacessível → exit 1 → onFailure toda semana = ruído sem medição).
         //
         // GATE (desde 2026-07-05, fecha o loop IA-OS #3): recall@K AGREGADO ≥ 0.80
-        // (--min-recall default do comando) + recall_eval_violations = 0. O gate
-        // anterior exigia 100% por query (n_queries_recall_fail=0) e reprovava
-        // 25/27 toda semana (provado staging 2026-07-02) = alarme permanente sem
-        // sinal — anti-padrão ADR 0271. Baseline medido 2026-07-04 pós-sync-fix
-        // #3815: recall@5 = 0.815 → passa; onFailure abaixo dispara EXATAMENTE
-        // quando recall regride <80% ou superseded vaza no top-N. O gate BARATO
-        // de PR é o irmão --mode=mock em .github/workflows/jana-recall-eval.yml
-        // (zero LLM, zero Meilisearch). 06:30 BRT pra não disputar DB com os
-        // health-checks diários (06:00-06:20) nem com o drift-sentinel (dom 06:00).
+        // (--min-recall default do comando) + recall_eval_violations = 0. Antes o
+        // gate era binário 100%-por-query (n_queries_recall_fail=0), sem trend;
+        // agora o report expõe recall_at_k e o alerta é literalmente "recall<80%".
+        //
+        // HONESTIDADE DA MEDIÇÃO (smoke real staging 2026-07-05): NESTA lane
+        // (search Meilisearch direto no índice) recall@5 = 0.074 (25/27 queries
+        // perdem docs) → o onFailure dispara toda semana e é sinal LEGÍTIMO: o
+        // retrieval keyword segue abaixo do alvo (gap catalogado: context_recall
+        // 0.38, hybrid docs_pipeline off — ADR 0312). O recall@5 = 0.815 do
+        // handoff 2026-07-05 é da lane SEMANTIC/hybrid (next_step #2: reabrir
+        // hybrid) — quando essa lane virar a via de leitura medida, o canary fica
+        // verde e passa a detectar REGRESSÃO (<0.80). O gate BARATO de PR é o
+        // irmão --mode=mock em .github/workflows/jana-recall-eval.yml (zero LLM,
+        // zero Meilisearch). 06:30 BRT pra não disputar DB com os health-checks
+        // diários (06:00-06:20) nem com o drift-sentinel (dom 06:00).
         //
         // Refs: ADR 0270 D-4/D-5 · ADR 0274 · ADR 0275 · plano P12
         // memory/requisitos/_Governanca/roadmap/P12-decay-real-ragas-recall.md.
