@@ -313,3 +313,49 @@ describe('memory-health — Check X: cobertura de auditoria (Tier-0/nota-baixa s
     expect(out).not.toMatch(/audit-coverage-gap/);
   });
 });
+
+describe('memory-health — Check W: índice de backlog stale vs SPEC (físico, git-dated · ADR 0323)', () => {
+  // Check W compara git-dates (gitLastDate) — o fixture precisa de um repo git REAL
+  // com datas de commit controladas (GIT_AUTHOR_DATE/GIT_COMMITTER_DATE).
+  const gitTmp = (args: string, env: Record<string, string> = {}) =>
+    execSync(`git ${args}`, {
+      cwd: tmp, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
+      env: { ...process.env, ...env },
+    });
+  const initRepo = () => {
+    gitTmp('init -q');
+    gitTmp('config user.email fixture@test');
+    gitTmp('config user.name fixture');
+  };
+  const commitAt = (msg: string, iso: string) =>
+    gitTmp(`commit -q --no-verify -m "${msg}"`, { GIT_AUTHOR_DATE: iso, GIT_COMMITTER_DATE: iso });
+
+  it('SENSIBILIDADE: SPEC commitado DEPOIS do índice → 🟡 backlog-index-stale', () => {
+    initRepo();
+    write('memory/requisitos/_BACKLOG-GENERATED.md', '# índice\n');
+    gitTmp('add -A'); commitAt('indice', '2026-01-01T12:00:00');
+    write('memory/requisitos/Foo/SPEC.md', '# spec\n');
+    gitTmp('add -A'); commitAt('spec novo', '2026-02-01T12:00:00');
+    const out = run();
+    expect(out).toMatch(/backlog-index-stale/);
+    expect(out).toMatch(/tasks-index-generate/); // a msg aponta o comando de regen
+  });
+
+  it('ESPECIFICIDADE: índice regenerado DEPOIS do SPEC mais novo → sem warn W', () => {
+    initRepo();
+    write('memory/requisitos/Foo/SPEC.md', '# spec\n');
+    gitTmp('add -A'); commitAt('spec', '2026-01-01T12:00:00');
+    write('memory/requisitos/_BACKLOG-GENERATED.md', '# índice regen\n');
+    gitTmp('add -A'); commitAt('indice regen', '2026-02-01T12:00:00');
+    const out = run();
+    expect(out).not.toMatch(/backlog-index-stale/);
+  });
+
+  it('ESPECIFICIDADE: índice ausente (repo sem _BACKLOG-GENERATED) → check silencioso', () => {
+    initRepo();
+    write('memory/requisitos/Foo/SPEC.md', '# spec\n');
+    gitTmp('add -A'); commitAt('spec', '2026-01-01T12:00:00');
+    const out = run();
+    expect(out).not.toMatch(/backlog-index-stale/);
+  });
+});
