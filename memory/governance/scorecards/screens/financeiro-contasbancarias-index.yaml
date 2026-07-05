@@ -10,10 +10,10 @@ nota: 74
 nivel: "Advanced"
 baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista shadcn limpa com StatusBadge semantico e Sheet de config boleto; charter live, mas primary oklch inline (TODO Wave5) e sem defer/skeleton."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista shadcn limpa com StatusBadge semantico e Sheet de config boleto; sweep #2666 tocou a tela mas o primary 'Nova conta' segue oklch 295 inline (TODO Wave5) e sem defer/skeleton — nota mantida."
+dimensoes: { density: 74, discoverability: 74, speed_to_task: 74, error_recovery: 72, cognitive_load: 78, aesthetic_usability: 76, affordance: 74, brand_confidence: 74, mobile_fit: 70, a11y_wcag: 72, i18n_ptbr: 82, performance_perceived: 68, information_hierarchy: 76, microcopy: 70, internal_consistency: 78, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Cobranca (FinanceiroPrimaryButton)"

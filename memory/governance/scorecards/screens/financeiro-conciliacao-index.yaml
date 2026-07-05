@@ -6,20 +6,20 @@ screen: Financeiro/Conciliacao/Index
 path: resources/js/Pages/Financeiro/Conciliacao/Index.tsx
 archetype: list
 persona: eliana
-nota: 71
+nota: 75
 nivel: "Advanced"
 baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Fluxo OFX upload->match->aprovar funcional e claro, mas oklch cru inline nos botoes, sem defer, sem charter e file input nao estilizado."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Fluxo OFX evoluiu: botões tokenizados (sweeps #2666/#3381 tiraram o oklch cru dos CTAs), conciliação lê extrato API + dedupe OFX (ADR 0236 F1) e ganhou reabrir + toggle ver-resolvidos; restam defer e dropzone."
+dimensoes: { density: 74, discoverability: 76, speed_to_task: 76, error_recovery: 76, cognitive_load: 76, aesthetic_usability: 70, affordance: 76, brand_confidence: 72, mobile_fit: 68, a11y_wcag: 70, i18n_ptbr: 82, performance_perceived: 68, information_hierarchy: 76, microcopy: 78, internal_consistency: 76, preflight_conformance: 78 }
 gaps:
   - dim: "Pre-Flight-conformance"
-    best_of_class: "Cobranca (token primary roxo)"
-    fix: "Botao Importar/Confirmar/Ignorar usam style inline oklch(0.55 0.15 145/25) cru; trocar por token DS / variant"
+    best_of_class: "Cobranca (zero style inline)"
+    fix: "Residual: 1 color oklch(0.55 0.10 25) inline em texto de dica; migrar pro token rose/muted do DS"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
   - dim: "Performance-perceived"
     best_of_class: "Dashboard (Deferred+skeleton)"
     fix: "linhas/stats eager sem Inertia::defer nem skeleton; OFX grande trava first paint"

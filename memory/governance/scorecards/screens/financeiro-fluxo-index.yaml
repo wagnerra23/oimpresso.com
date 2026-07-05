@@ -10,10 +10,10 @@ nota: 79
 nivel: "Advanced"
 baseline_anterior: 79   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Fluxo de caixa projetado+realizado com graficos de barra inline, tabs deep-link, charter+visual-comparison approved e tokens fin consistentes; banner oklch cru e sem defer."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Fluxo de caixa projetado+realizado com graficos de barra inline, tabs deep-link, charter+visual-comparison approved; sweep #3381 tocou status mas banner oklch 70 cru segue (linhas 160-166), sem defer e charts div artesanais. Nota mantida."
+dimensoes: { density: 82, discoverability: 80, speed_to_task: 78, error_recovery: 74, cognitive_load: 78, aesthetic_usability: 76, affordance: 80, brand_confidence: 80, mobile_fit: 70, a11y_wcag: 72, i18n_ptbr: 86, performance_perceived: 72, information_hierarchy: 84, microcopy: 80, internal_consistency: 82, preflight_conformance: 82 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Cobranca (componente Alert)"

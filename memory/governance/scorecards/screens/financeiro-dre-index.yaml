@@ -6,20 +6,15 @@ screen: Financeiro/Dre/Index
 path: resources/js/Pages/Financeiro/Dre/Index.tsx
 archetype: detail
 persona: eliana
-nota: 78
+nota: 80
 nivel: "Advanced"
 baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "DRE hierarquico denso classe-Cowork com tabs Balanco/Balancete, charter+visual-comparison approved; mas 5 botoes feature sao no-op F1, banner oklch cru e sem defer."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "DRE hierarquico denso classe-Cowork com tabs Balanco/Balancete, charter+visual-comparison approved; B6 'botões honestos' REMOVEU os stubs F1 e ligou Exportar CSV em rota real — restam banner oklch cru e sem defer."
+dimensoes: { density: 84, discoverability: 80, speed_to_task: 80, error_recovery: 76, cognitive_load: 78, aesthetic_usability: 82, affordance: 82, brand_confidence: 82, mobile_fit: 70, a11y_wcag: 74, i18n_ptbr: 86, performance_perceived: 72, information_hierarchy: 86, microcopy: 80, internal_consistency: 82, preflight_conformance: 84 }
 gaps:
-  - dim: "Affordance"
-    best_of_class: "Notion (sem botao morto)"
-    fix: "Buscar/Resumir/Fechamento/Apresentar/Exportar no overflow sao stubs vazios (onClick comentado); esconder ate F2 ou marcar 'em breve'"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
     best_of_class: "Cobranca (sem style inline)"
     fix: "Banner aviso_sem_mapping com style inline oklch 70 cru; extrair pra componente Alert DS com token amber"

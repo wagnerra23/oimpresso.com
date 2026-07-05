@@ -6,20 +6,15 @@ screen: Financeiro/AssinaturaAtualizar
 path: resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx
 archetype: form
 persona: eliana
-nota: 58
+nota: 64
 nivel: "Developing"
 baseline_anterior: 58   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form propositalmente minimal (HITL pending Wagner) p/ alterar cobrança recorrente; @/ui + useMemo ok, mas header legacy, sem tabela de assinaturas, sem charter nem preview de impacto."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form de alteração de cobrança recorrente com PageHeader canon (Wave 4 substituiu header legacy) + @/ui e zero cor crua; segue minimal: sem tabela de assinaturas nem preview de impacto (toca valor — pareia Regra Mestre)."
+dimensoes: { density: 62, discoverability: 56, speed_to_task: 62, error_recovery: 54, cognitive_load: 68, aesthetic_usability: 68, affordance: 64, brand_confidence: 66, mobile_fit: 64, a11y_wcag: 62, i18n_ptbr: 76, performance_perceived: 66, information_hierarchy: 64, microcopy: 66, internal_consistency: 68, preflight_conformance: 66 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "PageHeader canon v3.8"
-    fix: "header usa os-page-h/fin-page-h/fin-cowork/vendas-aplus legacy em vez de <PageHeader>; sem charter (arquivo se diz 'UI minimal HITL pending')"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Discoverability"
     best_of_class: "Stripe billing: lista + edição contextual"
     fix: "Só um Select p/ escolher assinatura; sem tabela das assinaturas ativas com estado visível"

@@ -6,27 +6,22 @@ screen: Financeiro/Extrato/Index
 path: resources/js/Pages/Financeiro/Extrato/Index.tsx
 archetype: detail
 persona: eliana
-nota: 67
-nivel: "Developing"
+nota: 76
+nivel: "Advanced"
 baseline_anterior: 67   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Extrato bancario shadcn com 4 cards-resumo e filtro periodo; charter live, mas header os-page-h inline sem PageHeader/SubNav, text-red cru e doc da contraparte exposto sem mascara (PII)."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Os 3 gaps do baseline foram corrigidos: piiMask na contraparte (LGPD), PageHeader canon + FinanceiroSubNav (Wave 4), text-red cru removido (sweep #3381); props agora via Inertia::defer com guard anti-tela-branca (#3605)."
+dimensoes: { density: 76, discoverability: 76, speed_to_task: 76, error_recovery: 72, cognitive_load: 78, aesthetic_usability: 76, affordance: 74, brand_confidence: 76, mobile_fit: 70, a11y_wcag: 78, i18n_ptbr: 82, performance_perceived: 78, information_hierarchy: 76, microcopy: 74, internal_consistency: 80, preflight_conformance: 78 }
 gaps:
-  - dim: "A11y-WCAG"
-    best_of_class: "Stripe (PII mascarada)"
-    fix: "contraparte_documento renderizado em plain text; aplicar piiMask como em Cobranca (LGPD)"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Internal-consistency"
-    best_of_class: "Cobranca (PageHeader+SubNav)"
-    fix: "Header os-page-h inline sem PageHeader canon nem FinanceiroSubNav; rompe navegacao do modulo"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Pre-Flight-conformance"
-    best_of_class: "Fluxo (rose token)"
-    fix: "Debitos usam text-red-600 cru; padronizar pra rose semantico do modulo"
+    best_of_class: "ContasPagar (casos.md ao lado)"
+    fix: "Sem casos.md — extrato passou por incidente de tela branca (#3605); UC de contrato (render com defer undefined, filtro de período) evitaria regressão"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
+  - dim: "Speed-to-task"
+    best_of_class: "Cobranca (presets de período)"
+    fix: "Filtro de período sem presets rápidos (hoje/7d/mês); Eliana digita datas manualmente"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
