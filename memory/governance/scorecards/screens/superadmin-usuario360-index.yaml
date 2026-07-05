@@ -6,27 +6,17 @@ screen: superadmin/Usuario360/Index
 path: resources/js/Pages/superadmin/Usuario360/Index.tsx
 archetype: list
 persona: wagner
-nota: 58
-nivel: "Developing"
+nota: 70
+nivel: "Advanced"
 baseline_anterior: 58   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de busca enxuta com tabela responsiva e empty state, mas sem charter, botão submit hand-rolled, sem paginação/loading e busca só por submit (sem debounce)."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Busca com debounce 300ms + partial reload only:['users'], Input/Button DS com aria-labels, Skeleton de loading e charter ao lado; segue sem paginação server-side."
+dimensoes: { density: 72, discoverability: 70, speed_to_task: 76, error_recovery: 64, cognitive_load: 72, aesthetic_usability: 70, affordance: 72, brand_confidence: 70, mobile_fit: 68, a11y_wcag: 72, i18n_ptbr: 78, performance_perceived: 66, information_hierarchy: 70, microcopy: 70, internal_consistency: 72, preflight_conformance: 70 }
 gaps:
-  - dim: "Speed-to-task"
-    best_of_class: "Linear (busca instantânea)"
-    fix: "Busca exige submit; adicionar debounce + only:['users'] partial reload"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4"
-    fix: "Sem .charter.md ao lado e <button> primário cru; usar @/Components/ui/button e criar charter"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Performance-perceived"
     best_of_class: "Shopify"
-    fix: "users[] sem paginação nem skeleton; paginar server-side + estado loading"
+    fix: "users[] segue sem paginação server-side (skeleton de loading já existe); paginar + load-more"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
