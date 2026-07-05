@@ -6,27 +6,22 @@ screen: OficinaAuto/Vehicles/Show
 path: resources/js/Pages/OficinaAuto/Vehicles/Show.tsx
 archetype: detail
 persona: tecnico
-nota: 68
-nivel: "Developing"
+nota: 76
+nivel: "Advanced"
 baseline_anterior: 68   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe de veiculo limpo (dados + historico OS) porem estatico: sem charter, status plano e sem acao/estado FSM no topo."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe de veiculo fechou os 3 gaps do baseline: charter criado, VehicleStatusBadge no topo + CTA Nova OS no PageHeader, e historico de OS com ServiceOrderStatusBadge canon — tela limpa 100% em tokens DS."
+dimensoes: { density: 74, discoverability: 78, speed_to_task: 78, error_recovery: 70, cognitive_load: 80, aesthetic_usability: 76, affordance: 78, brand_confidence: 76, mobile_fit: 76, a11y_wcag: 74, i18n_ptbr: 82, performance_perceived: 80, information_hierarchy: 78, microcopy: 76, internal_consistency: 80, preflight_conformance: 78 }
 gaps:
   - dim: "Pre-Flight-conformance"
-    best_of_class: "Charter"
-    fix: "sem Show.charter.md (irmaos OficinaAuto tem) — criar charter da tela"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Information-hierarchy"
-    best_of_class: "Stripe"
-    fix: "status da OS no historico so bg-muted plano (nao VehicleStatusBadge/ServiceOrderStatusBadge) — reusar badge canon"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Affordance"
+    best_of_class: "Sells/Create (casos.md)"
+    fix: "sem Show.casos.md — contrato de nao-regressao da tela nao existe (irmaos ServiceOrders ja tem)"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
+  - dim: "Density"
     best_of_class: "Linear"
-    fix: "Show estatico sem KPI/acao FSM nem status atual do veiculo no topo; adicionar badge de current_status + CTA nova OS"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    fix: "historico de OS renderiza a lista inteira sem paginacao/limite — veiculo com dezenas de OS estoura a coluna; paginar ou limitar com 'ver todas'"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05

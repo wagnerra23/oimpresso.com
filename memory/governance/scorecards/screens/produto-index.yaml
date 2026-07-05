@@ -10,10 +10,10 @@ nota: 83
 nivel: "Advanced"
 baseline_anterior: 83   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Catalogo Cowork forte: Inertia Deferred+skeletons, KPIs, tabs categoria, localStorage de prefs; perde em tokens crus e densidade card vs tabela p/ balcao."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Catalogo Cowork forte: Inertia Deferred+skeletons em kpis/categorias/rows, localStorage de prefs; desde o baseline so 1 linha tokenizada (#3408) — stone/rose/emerald crus e densidade card vs tabela persistem."
+dimensoes: { density: 78, discoverability: 84, speed_to_task: 80, error_recovery: 80, cognitive_load: 84, aesthetic_usability: 86, affordance: 84, brand_confidence: 82, mobile_fit: 80, a11y_wcag: 80, i18n_ptbr: 90, performance_perceived: 90, information_hierarchy: 86, microcopy: 84, internal_consistency: 84, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 roxo + tokens"

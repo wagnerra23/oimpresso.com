@@ -6,20 +6,15 @@ screen: OficinaAuto/ServiceOrders/Show
 path: resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx
 archetype: detail
 persona: tecnico
-nota: 76
+nota: 79
 nivel: "Advanced"
 baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe de OS com Itens optimistic + imprimir A4 e CTA roxo; status plano (sem badge canon) e cores slate cruas na lista."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe de OS virou hub: Itens optimistic com rollback+toast, vistoria DVI -> orcamento, gate de aprovacao WhatsApp, painel fiscal NF-e/NFS-e e imprimir A4; cores slate cruas tokenizadas. Restam status plano (sem badge canon) e window.confirm."
+dimensoes: { density: 78, discoverability: 80, speed_to_task: 80, error_recovery: 76, cognitive_load: 78, aesthetic_usability: 78, affordance: 80, brand_confidence: 78, mobile_fit: 74, a11y_wcag: 70, i18n_ptbr: 84, performance_perceived: 80, information_hierarchy: 76, microcopy: 80, internal_consistency: 78, preflight_conformance: 80 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 tokens"
-    fix: "lista de itens em slate-100/slate-200/white + total emerald cru — usar tokens border/divide e primary roxo"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Information-hierarchy"
     best_of_class: "Stripe"
     fix: "status renderizado como bg-muted plano (nao ServiceOrderStatusBadge usado no Index) — reusar o badge canon"

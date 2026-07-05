@@ -6,14 +6,14 @@ screen: OficinaAuto/Vehicles/Index
 path: resources/js/Pages/OficinaAuto/Vehicles/Index.tsx
 archetype: list
 persona: tecnico
-nota: 81
+nota: 82
 nivel: "Advanced"
 baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de caçambas rica (KPIs, pills c/ contagem, tfoot totais, paginacao, dark-mode); cores cruas e toggle Grade sem efeito real."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista de veiculos rica (KPIs, busca, paginacao, drawer RichSheet, dark-mode) com vocabulario de locacao erradicado do user-facing (ADR 0265) e fix do -m-6 sob a sidebar; cores cruas nos KPIs e toggle Grade sem efeito real permanecem."
+dimensoes: { density: 86, discoverability: 82, speed_to_task: 80, error_recovery: 80, cognitive_load: 82, aesthetic_usability: 82, affordance: 76, brand_confidence: 82, mobile_fit: 76, a11y_wcag: 76, i18n_ptbr: 86, performance_perceived: 82, information_hierarchy: 84, microcopy: 86, internal_consistency: 80, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 (roxo primary)"

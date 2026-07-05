@@ -6,27 +6,27 @@ screen: Manufacturing/Index
 path: resources/js/Pages/Manufacturing/Index.tsx
 archetype: list
 persona: misto
-nota: 50
-nivel: "Developing"
+nota: 72
+nivel: "Advanced"
 baseline_anterior: 50   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Esqueleto MWART de produções com tabela hand-rolled, paleta gray/green/yellow-100 fora do DS, sem AppShellV2 nem dark mode e CTA desabilitado."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Uplift MWART completo (board 2026-05-30 + tokenizacao #2666): AppShellV2 + PageHeader + KpiCard clicavel que filtra, filtros de local/data com partial reload, EmptyState canon, StatusPill em tokens semanticos e CTA 'Nova producao' habilitado."
+dimensoes: { density: 72, discoverability: 74, speed_to_task: 74, error_recovery: 68, cognitive_load: 76, aesthetic_usability: 74, affordance: 74, brand_confidence: 72, mobile_fit: 72, a11y_wcag: 72, i18n_ptbr: 80, performance_perceived: 76, information_hierarchy: 74, microcopy: 76, internal_consistency: 70, preflight_conformance: 72 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Stripe"
-    fix: "Cores gray-50/500/900 + green/yellow-100 cruas; sem AppShellV2 nem @/Components/ui (só table raw)"
-    esforco: alto
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Speed-to-task"
-    best_of_class: "Bling"
-    fix: "CTA 'Nova produção' disabled e sem filtros (location/data); habilitar fluxo"
-    esforco: alto
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Internal-consistency"
     best_of_class: "Shopify"
     fix: "Não segue PT-01 Lista (DataTable/TanStack + drawer); alinhar ao padrão de tela"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
+  - dim: "Density"
+    best_of_class: "Linear"
+    fix: "lista sem paginacao — periodo longo carrega todas as producoes numa pagina so; paginar server-side"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Sells/Create (casos.md)"
+    fix: "sem Index.casos.md — contrato de nao-regressao da tela nao existe"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05
