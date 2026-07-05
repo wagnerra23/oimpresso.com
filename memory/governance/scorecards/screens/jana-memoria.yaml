@@ -6,14 +6,14 @@ screen: Jana/Memoria
 path: resources/js/Pages/Jana/Memoria.tsx
 archetype: list
 persona: misto
-nota: 71
+nota: 72
 nivel: "Advanced"
 baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista de fatos LGPD com edição inline e copy clara, reuso DS bom, mas confirm() nativo, categorias com bg cru e label de edição sem a11y."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista de fatos LGPD com edição inline e copy clara, reuso DS bom; botões salvar/esquecer agora usam tokens success/destructive (#3392) — mas confirm() nativo, CATEGORIA_LABELS com bg cru (blue/purple/red-100) e label de edição sem a11y permanecem."
+dimensoes: { density: 74, discoverability: 72, speed_to_task: 76, error_recovery: 62, cognitive_load: 76, aesthetic_usability: 74, affordance: 74, brand_confidence: 74, mobile_fit: 72, a11y_wcag: 64, i18n_ptbr: 88, performance_perceived: 76, information_hierarchy: 74, microcopy: 80, internal_consistency: 72, preflight_conformance: 66 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Notion"

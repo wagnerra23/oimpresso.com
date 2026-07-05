@@ -6,27 +6,27 @@ screen: ComunicacaoVisual/Index
 path: resources/js/Pages/ComunicacaoVisual/Index.tsx
 archetype: other
 persona: larissa
-nota: 54
-nivel: "Developing"
+nota: 72
+nivel: "Advanced"
 baseline_anterior: 54   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Hub stub honesto de 4 cards 'em breve', mas cores zinc cruas, sem AppShellV2 e sem funcionalidade real."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Hub deixou de ser stub: calculadora de orcamento por m2 real (preview instantaneo + conferencia server-side authoritative), seletor de material do catalogo do business, tokens DS v4 sem cor crua, AppShellV2+PageHeader e copy PT-BR calorosa pra Larissa nos cards 'em breve'."
+dimensoes: { density: 68, discoverability: 74, speed_to_task: 76, error_recovery: 72, cognitive_load: 74, aesthetic_usability: 72, affordance: 72, brand_confidence: 72, mobile_fit: 70, a11y_wcag: 66, i18n_ptbr: 84, performance_perceived: 76, information_hierarchy: 72, microcopy: 80, internal_consistency: 70, preflight_conformance: 74 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 roxo + AppShellV2 padrao"
-    fix: "Trocar paleta zinc/amber crua por tokens v4 e montar via AppShellV2 como as demais telas"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Speed-to-task"
-    best_of_class: "Shopify entrega valor minimo na v1"
-    fix: "Substituir cards 'em breve' por ao menos a calculadora de m2 (API ja existe na Sprint 1)"
-    esforco: alto
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Discoverability"
-    best_of_class: "Notion linka a acao real"
-    fix: "Cards com api_hint tecnico nao ajudam Larissa; trocar por CTA util ou status claro"
+  - dim: "Internal-consistency"
+    best_of_class: "@/Components/ui"
+    fix: "seletor de material usa <select> nativo — migrar pro Select do DS (com .filter(Boolean) nas opcoes data-driven, licao PR #3411)"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
+  - dim: "Speed-to-task"
+    best_of_class: "Bling orcamento"
+    fix: "orcamento calculado nao persiste — falta salvar (POST /api/orcamentos) + enviar PDF no WhatsApp (TODO Sprint 2); hoje Larissa perde o calculo ao sair"
+    esforco: alto
+    origin: regrade-onda1-2026-07-05
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Sells/Create (casos.md)"
+    fix: "sem Index.casos.md — a formula m2 (espelhada client/server) merece contrato de nao-regressao citando Pest do OrcamentoCalculator"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05

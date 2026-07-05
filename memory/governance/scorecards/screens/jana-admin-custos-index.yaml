@@ -10,10 +10,10 @@ nota: 81
 nivel: "Advanced"
 baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Dashboard custos IA bem-feito (4 KPI + SVG area chart inline + tabela por-usuario com tfoot total, primary roxo, @/Components/ui) — DS-clean, so falta charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Dashboard custos IA bem-feito (4 KPI + SVG area chart inline + tabela por-usuario com tfoot total, primary roxo, @/Components/ui) — DS-clean zero cor crua; segue sem charter/casos. Sem mudança material desde 2026-05-30."
+dimensoes: { density: 82, discoverability: 80, speed_to_task: 82, error_recovery: 76, cognitive_load: 80, aesthetic_usability: 84, affordance: 80, brand_confidence: 85, mobile_fit: 70, a11y_wcag: 76, i18n_ptbr: 88, performance_perceived: 80, information_hierarchy: 84, microcopy: 82, internal_consistency: 76, preflight_conformance: 78 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "charter-fetch obrigatorio"

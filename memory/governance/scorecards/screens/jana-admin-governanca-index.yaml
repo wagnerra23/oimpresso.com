@@ -10,10 +10,10 @@ nota: 86
 nivel: "Leader"
 baseline_anterior: 86   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Governanca MCP estado-da-arte interno (3 secoes SubNav+persist LS, KPI taxa-sucesso/p95, chart calls/custo toggle, RBAC denied, EmptyState/StatusBadge shared) — melhor conformance DS do batch."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Governanca MCP estado-da-arte interno (3 secoes SubNav+persist LS, KPI taxa-sucesso/p95, chart calls/custo toggle, RBAC denied, EmptyState/StatusBadge shared, charter live) — melhor conformance DS do batch. Sem mudança material desde 2026-05-30."
+dimensoes: { density: 84, discoverability: 86, speed_to_task: 86, error_recovery: 84, cognitive_load: 78, aesthetic_usability: 88, affordance: 86, brand_confidence: 88, mobile_fit: 76, a11y_wcag: 82, i18n_ptbr: 90, performance_perceived: 78, information_hierarchy: 88, microcopy: 86, internal_consistency: 90, preflight_conformance: 90 }
 gaps:
   - dim: "Performance-perceived"
     best_of_class: "Inertia::defer charts"

@@ -10,10 +10,10 @@ nota: 74
 nivel: "Advanced"
 baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Tri-pane grafo Reactflow com filtros, KPIs, atalhos / e Esc, empty state e a11y — mas roda em modo MOCK (sem backend) e usa amber/muted em vez de roxo v4."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Tri-pane grafo Reactflow com filtros, KPIs, atalhos / e Esc, empty state, charter live — mas segue em modo MOCK (badge amber-100) sem backend ligado. Sem mudança material desde 2026-05-30."
+dimensoes: { density: 76, discoverability: 78, speed_to_task: 76, error_recovery: 72, cognitive_load: 74, aesthetic_usability: 76, affordance: 76, brand_confidence: 72, mobile_fit: 66, a11y_wcag: 64, i18n_ptbr: 84, performance_perceived: 62, information_hierarchy: 78, microcopy: 76, internal_consistency: 76, preflight_conformance: 74 }
 gaps:
   - dim: "Performance-perceived"
     best_of_class: "Bling (dados reais)"

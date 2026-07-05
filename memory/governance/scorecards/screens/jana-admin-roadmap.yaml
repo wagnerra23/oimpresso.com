@@ -10,10 +10,10 @@ nota: 76
 nivel: "Advanced"
 baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Gantt de tasks MCP bem estruturado (Sheet detalhe, useMemo/useCallback, filtros, empty states, charter), porém tons de prioridade hardcoded e a11y fraca no canvas Gantt."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Gantt de tasks MCP bem estruturado (Sheet detalhe, useMemo/useCallback, filtros, empty states, charter), porém tons de prioridade hardcoded (sky/rose/amber) e a11y fraca no canvas Gantt. Sem mudança material desde 2026-05-30."
+dimensoes: { density: 78, discoverability: 76, speed_to_task: 78, error_recovery: 74, cognitive_load: 74, aesthetic_usability: 80, affordance: 78, brand_confidence: 78, mobile_fit: 62, a11y_wcag: 62, i18n_ptbr: 86, performance_perceived: 78, information_hierarchy: 80, microcopy: 78, internal_consistency: 80, preflight_conformance: 76 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear"
