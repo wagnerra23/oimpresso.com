@@ -6,27 +6,27 @@ screen: Ponto/Relatorios/Index
 path: resources/js/Pages/Ponto/Relatorios/Index.tsx
 archetype: dashboard
 persona: tecnico
-nota: 68
-nivel: "Developing"
+nota: 79
+nivel: "Advanced"
 baseline_anterior: 68   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Galeria de relatorios em cards com estado disponivel/em-breve, mas cores cruas (blue/violet/amber proibidos no DS roxo) e zero parametrizacao."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Redesign 2026-05-31 (US-TR-309..314) resolveu os 3 gaps do baseline: corClasses agora mapeia pra tokens DS (blue->primary), filtros periodo+colaborador inline antes de gerar, e cards agrupados por categoria com Badge de contagem."
+dimensoes: { density: 80, discoverability: 82, speed_to_task: 80, error_recovery: 74, cognitive_load: 82, aesthetic_usability: 80, affordance: 80, brand_confidence: 80, mobile_fit: 80, a11y_wcag: 78, i18n_ptbr: 90, performance_perceived: 82, information_hierarchy: 82, microcopy: 84, internal_consistency: 80, preflight_conformance: 68 }
 gaps:
   - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 roxo zero blue cru"
-    fix: "corClasses usa bg-blue-100/text-blue-700 + violet/amber/red crus (anti-padrao DS roxo, blue proibido) — trocar por tokens"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Speed-to-task"
-    best_of_class: "Bling relatorio abre com filtro periodo/colaborador inline"
-    fix: "Cards so linkam p/ /gerar sem parametros (periodo/escopo); zero config antes de emitir"
+    best_of_class: "PT-01 header canon estilizado + charter live"
+    fix: "os-page-h orfao sem scope ponto + text-stone-400 cru no subtitulo do h1; sem charter.md/casos.md"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Information-hierarchy"
-    best_of_class: "Notion agrupa por categoria com secoes"
-    fix: "Grid plano de cards sem agrupamento; metade 'Em breve' polui"
+    origin: regrade-onda1-2026-07-05
+  - dim: "Error-recovery"
+    best_of_class: "Bling mostra loading/erro ao emitir relatorio"
+    fix: "Botao Gerar abre href direto sem estado de loading nem feedback de erro (relatorio pesado/timeout fica mudo)"
+    esforco: medio
+    origin: regrade-onda1-2026-07-05
+  - dim: "Aesthetic-usability"
+    best_of_class: "Linear mapeia cor logica pra tokens semanticos de status"
+    fix: "corClasses despeja emerald/amber em secondary/muted — conforme DS mas perde a semantica de status original dos cards"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05

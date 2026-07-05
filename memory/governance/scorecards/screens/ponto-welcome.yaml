@@ -6,27 +6,22 @@ screen: Ponto/Welcome
 path: resources/js/Pages/Ponto/Welcome.tsx
 archetype: other
 persona: tecnico
-nota: 58
-nivel: "Developing"
+nota: 78
+nivel: "Advanced"
 baseline_anterior: 58   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Stub de boas-vindas (business+usuario), copy dev-facing e sem valor operacional — placeholder, nao dashboard."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Rewrite 2026-05-31 (US-TR-309..314): hub de navegacao limpo com PageHeader canon, saudacao personalizada e 4 cards acionaveis (hover primary + seta) — resolveu copy dev-facing, navegacao e CTA do baseline; segue sem KPIs."
+dimensoes: { density: 68, discoverability: 80, speed_to_task: 70, error_recovery: 70, cognitive_load: 84, aesthetic_usability: 78, affordance: 80, brand_confidence: 80, mobile_fit: 80, a11y_wcag: 78, i18n_ptbr: 92, performance_perceived: 86, information_hierarchy: 72, microcopy: 80, internal_consistency: 82, preflight_conformance: 74 }
 gaps:
   - dim: "Speed-to-task"
-    best_of_class: "Linear home com atalhos p/ acoes-chave"
-    fix: "Pagina piloto so mostra business/usuario; sem navegacao util nem KPIs do modulo"
+    best_of_class: "Linear home com contadores de pendencias por area"
+    fix: "Cards de navegacao sem KPIs (ex: n de aprovacoes pendentes, saldo BH) — hub estatico, usuario nao sabe onde tem pendencia"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
   - dim: "Pre-Flight-conformance"
-    best_of_class: "Header canon estilizado"
-    fix: "os-page-h orfao sem scope ponto; copy 'renderizada via Inertia+React' e dev-facing, nao usuario"
+    best_of_class: "charter live ao lado do tsx"
+    fix: "Sem Welcome.charter.md nem casos.md (resto conforme: PageHeader canon component + tokens DS, zero cor crua)"
     esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Information-hierarchy"
-    best_of_class: "Shopify dashboard com cards acionaveis"
-    fix: "2 cards estaticos sem CTA; deveria ser dashboard de ponto (pendencias/aprovacoes)"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05

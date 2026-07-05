@@ -10,10 +10,10 @@ nota: 71
 nivel: "Advanced"
 baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Seletor de colaborador p/ espelho com filtro de mes ok, mas tem input de busca falso 'em breve', empty cru e sem charter."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Seletor de colaborador p/ espelho com filtro de mes ok, sem mudanca desde o baseline — input de busca falso 'em breve' (disabled) segue no ar, empty cru e sem charter."
+dimensoes: { density: 74, discoverability: 66, speed_to_task: 72, error_recovery: 74, cognitive_load: 76, aesthetic_usability: 74, affordance: 56, brand_confidence: 74, mobile_fit: 74, a11y_wcag: 74, i18n_ptbr: 88, performance_perceived: 80, information_hierarchy: 76, microcopy: 76, internal_consistency: 66, preflight_conformance: 60 }
 gaps:
   - dim: "Affordance"
     best_of_class: "Stripe"

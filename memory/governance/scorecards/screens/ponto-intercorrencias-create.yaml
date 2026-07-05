@@ -6,24 +6,19 @@ screen: Ponto/Intercorrencias/Create
 path: resources/js/Pages/Ponto/Intercorrencias/Create.tsx
 archetype: form
 persona: tecnico
-nota: 83
+nota: 84
 nivel: "Advanced"
 baseline_anterior: 83   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form rico com classificacao IA (texto livre->preenche campos), bom estado loading/erro; perde em checkbox nativo + header canon orfao."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form rico com classificacao IA (texto livre->preenche campos), bom estado loading/erro; bloco de sucesso IA tokenizado no #2666 (success) — perde em checkbox nativo + header canon orfao."
+dimensoes: { density: 84, discoverability: 84, speed_to_task: 88, error_recovery: 84, cognitive_load: 82, aesthetic_usability: 86, affordance: 78, brand_confidence: 86, mobile_fit: 82, a11y_wcag: 76, i18n_ptbr: 92, performance_perceived: 84, information_hierarchy: 84, microcopy: 88, internal_consistency: 82, preflight_conformance: 74 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Header canon estilizado"
     fix: "os-page-h orfao sem scope ponto; checkboxes hand-rolled (input nativo) em vez de @/Components/ui/checkbox"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Aesthetic-usability"
-    best_of_class: "Linear usa cor de marca (roxo) p/ acento de IA"
-    fix: "Bloco de sucesso IA usa emerald cru (border-emerald-500/bg-emerald-500); preferir token"
-    esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "A11y-WCAG"
     best_of_class: "Stripe associa contador de chars via aria-describedby"

@@ -6,18 +6,18 @@ screen: Ponto/BancoHoras/Show
 path: resources/js/Pages/Ponto/BancoHoras/Show.tsx
 archetype: detail
 persona: tecnico
-nota: 81
+nota: 82
 nivel: "Advanced"
 baseline_anterior: 81   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detalhe append-only solido (saldo hero, ajuste, historico, useForm) — limitado por cores cruas e validacao so-toast."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Detalhe append-only solido (saldo hero, ajuste, historico, useForm); saldo/movimentos tokenizados no #2666 — limitado por validacao so-toast e charter ausente."
+dimensoes: { density: 82, discoverability: 82, speed_to_task: 84, error_recovery: 74, cognitive_load: 82, aesthetic_usability: 84, affordance: 82, brand_confidence: 84, mobile_fit: 78, a11y_wcag: 80, i18n_ptbr: 90, performance_perceived: 84, information_hierarchy: 76, microcopy: 84, internal_consistency: 86, preflight_conformance: 78 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Stripe tokens"
-    fix: "text-emerald-600/text-red-600 cru em saldo+movimentos -> tokens; sem charter"
+    fix: "Saldo+movimentos tokenizados no #2666 (success/destructive); resta criar charter.md/casos.md e escopar os-page-h"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Error-recovery"
