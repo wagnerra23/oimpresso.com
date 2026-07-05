@@ -6,20 +6,15 @@ screen: Repair/DeviceModels/Edit
 path: resources/js/Pages/Repair/DeviceModels/Edit.tsx
 archetype: form
 persona: misto
-nota: 76
+nota: 79
 nivel: "Advanced"
 baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Form de modelo limpo com useForm/charter/AppShellV2, mas cores cruas rose e selects nativos fora do DS."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Form de modelo limpo com useForm/charter/AppShellV2; gap de conformidade fechado — rose-600 virou text-destructive (PR #3396) e selects usam Select DS."
+dimensoes: { density: 79, discoverability: 79, speed_to_task: 78, error_recovery: 74, cognitive_load: 80, aesthetic_usability: 79, affordance: 78, brand_confidence: 80, mobile_fit: 76, a11y_wcag: 79, i18n_ptbr: 85, performance_perceived: 80, information_hierarchy: 79, microcopy: 79, internal_consistency: 76, preflight_conformance: 84 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Stripe (semantic tokens)"
-    fix: "Trocar text-rose-600 por text-destructive; usar Select de @/Components/ui no lugar de <select> hand-roll"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Internal-consistency"
     best_of_class: "Notion drawer cadastral"
     fix: "PT cadastral pede drawer-760, nao container max-w-3xl full-page"

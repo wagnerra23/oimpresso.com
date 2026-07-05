@@ -6,18 +6,18 @@ screen: ads/Admin/Conflicts
 path: resources/js/Pages/ads/Admin/Conflicts.tsx
 archetype: dashboard
 persona: wagner
-nota: 70
+nota: 71
 nivel: "Advanced"
 baseline_anterior: 70   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Detector 3-tipos bem estruturado com KPIs, empty-state e links de drill-down; cor crua e falta de nav inter-secoes limitam."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Sweep DS #2666 tokenizou o card de file-lock (warning) e o texto de issues (destructive), mas secao judgment segue blue-600/500/300 cru, badges emerald-600/red-600 e code bg-zinc-100; nav inter-secoes ainda ausente."
+dimensoes: { density: 75, discoverability: 68, speed_to_task: 72, error_recovery: 70, cognitive_load: 72, aesthetic_usability: 72, affordance: 72, brand_confidence: 70, mobile_fit: 68, a11y_wcag: 66, i18n_ptbr: 82, performance_perceived: 70, information_hierarchy: 68, microcopy: 78, internal_consistency: 68, preflight_conformance: 58 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 roxo"
-    fix: "cards amber/destructive/blue cru + bg-zinc-100 em code; tokenizar e usar primary roxo onde for acao"
+    fix: "restam blue-600/500/300 na secao judgment, badges bg-emerald-600/bg-red-600, amber-600/300 e bg-zinc-100 em code; tokenizar o restante (sweep #2666 cobriu so o card file-lock)"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "Information-hierarchy"

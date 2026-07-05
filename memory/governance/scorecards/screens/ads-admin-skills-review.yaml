@@ -6,23 +6,18 @@ screen: ads/Admin/Skills/Review
 path: resources/js/Pages/ads/Admin/Skills/Review.tsx
 archetype: list
 persona: wagner
-nota: 76
+nota: 77
 nivel: "Advanced"
 baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Approval queue clara com gating de comentario e cards de draft, mas valida via alert() nativo e cores de status cruas."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Approval queue clara com gating de comentario; sweep #2666 tokenizou flash emerald e warning amber (zero cor crua agora). Resta alert() nativo na validacao de reject e ausencia de diff da version."
+dimensoes: { density: 78, discoverability: 78, speed_to_task: 78, error_recovery: 66, cognitive_load: 78, aesthetic_usability: 78, affordance: 78, brand_confidence: 76, mobile_fit: 76, a11y_wcag: 72, i18n_ptbr: 84, performance_perceived: 76, information_hierarchy: 72, microcopy: 82, internal_consistency: 80, preflight_conformance: 76 }
 gaps:
   - dim: "Error-recovery"
     best_of_class: "Stripe inline error"
     fix: "reject usa alert() nativo pra validar comment<5 -> erro inline sob Textarea + foco"
-    esforco: baixo
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "Linear"
-    fix: "flash usa border-emerald-200/bg-emerald-50 cru + warning '⚠️ sem test runs' text-amber-600 -> tokens semanticos"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Information-hierarchy"

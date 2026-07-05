@@ -10,10 +10,10 @@ nota: 71
 nivel: "Advanced"
 baseline_anterior: 71   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista+create inline limpa com progress roxo, mas sem filtro/busca e paleta de status crua (blue presente)."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Sem mudanca material desde o baseline (delete+restore #2413 e net-zero). Lista+create inline com progress roxo; statusColor segue blue/amber/emerald/red-100 cru e lista sem busca/filtro."
+dimensoes: { density: 72, discoverability: 62, speed_to_task: 74, error_recovery: 68, cognitive_load: 72, aesthetic_usability: 72, affordance: 72, brand_confidence: 72, mobile_fit: 70, a11y_wcag: 68, i18n_ptbr: 82, performance_perceived: 68, information_hierarchy: 72, microcopy: 76, internal_consistency: 70, preflight_conformance: 60 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear"
