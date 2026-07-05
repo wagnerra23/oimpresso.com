@@ -287,6 +287,14 @@ return [
         // existem no índice). Separado da config do chat (que resolve 'openai', inexistente
         // neste índice). Verificado live CT 100 2026-05-29.
         'docs_embedder' => env('JANA_MCP_DOCS_EMBEDDER', 'qwen3_local'),
+        // Instrução de query pro embedder instruction-aware (qwen3) — ADR 0322. O qwen3
+        // embedda query ASSIMÉTRICA (com prefixo) vs documento (sem); mandar a query raw
+        // inverte a similaridade (causa-raiz medida da ADR 0312). buscarHybrid pré-computa
+        // o embedding de `instrução + query` no Ollama e envia como `vector` — o `q` segue
+        // raw pro lado lexical. String vazia desliga o prefixo (hybrid volta ao q raw).
+        // Config-as-code SEM env() de propósito (adendo "vira máquina" 2026-07-04):
+        // mudar a instrução = PR medido contra o golden set, nunca ajuste manual de .env.
+        'docs_query_instruction' => "Instruct: Given a search query in Portuguese, retrieve the most relevant architecture decision record or governance document.\nQuery: ",
     ],
 
     /*
