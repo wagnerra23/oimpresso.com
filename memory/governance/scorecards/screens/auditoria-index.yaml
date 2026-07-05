@@ -6,27 +6,27 @@ screen: Auditoria/Index
 path: resources/js/Pages/Auditoria/Index.tsx
 archetype: list
 persona: wagner
-nota: 57
-nivel: "Developing"
+nota: 73
+nivel: "Advanced"
 baseline_anterior: 57   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Log de atividades legivel mas Developing: cores sky/zinc cruas, filtros sem UI, sem Deferred/skeleton nem header canon."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Uplift board 2026-05-31 aplicado: PageHeader + tokens DS, barra de filtros real (origem/evento/entidade com debounce + limpar), Deferred + skeleton, paginacao server-side com partial reload — resta filtro por periodo e casos.md."
+dimensoes: { density: 74, discoverability: 76, speed_to_task: 76, error_recovery: 72, cognitive_load: 78, aesthetic_usability: 74, affordance: 74, brand_confidence: 74, mobile_fit: 70, a11y_wcag: 72, i18n_ptbr: 84, performance_perceived: 78, information_hierarchy: 76, microcopy: 74, internal_consistency: 76, preflight_conformance: 70 }
 gaps:
-  - dim: "Pre-Flight-conformance"
-    best_of_class: "DS v4 (zero sky/zinc cru)"
-    fix: "hover:bg-sky-50, text-sky-700, badges bg-emerald/sky/amber-100 crus; migrar pra tokens semanticos"
-    esforco: medio
-    origin: screen-grades-baseline-2026-05-30
   - dim: "Discoverability"
-    best_of_class: "Datadog logs (filtros por log/causer/periodo na UI)"
-    fix: "Filters existe no payload mas sem UI de filtro — so badge readonly; add barra de filtros"
+    best_of_class: "Datadog logs (filtro por periodo/date-range)"
+    fix: "Filtros de origem/evento/entidade existem, mas falta range de datas — investigacao de incidente exige periodo"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
-  - dim: "Performance-perceived"
-    best_of_class: "Linear (Deferred + skeleton)"
-    fix: "Sem Inertia::defer nem skeleton; lista grande bloqueia paint — adicionar Deferred"
+    origin: regrade-onda1-2026-07-05
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Casos.md como contrato de nao-regressao"
+    fix: "Index.charter.md existe mas falta Index.casos.md (UC de filtro/paginacao/isolamento tenant)"
     esforco: medio
-    origin: screen-grades-baseline-2026-05-30
+    origin: regrade-onda1-2026-07-05
+  - dim: "A11y-WCAG"
+    best_of_class: "Paginacao com rotulo textual seguro"
+    fix: "Botoes de paginacao usam dangerouslySetInnerHTML no label do paginator; sanitizar/usar texto"
+    esforco: baixo
+    origin: regrade-onda1-2026-07-05

@@ -10,10 +10,10 @@ nota: 78
 nivel: "Advanced"
 baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Arvore livro/secao/artigo em cards com expand/collapse e delete confirmado, mas innerHTML cru e botoes-icone minusculos."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Árvore livro/seção/artigo em cards com expand/collapse, delete confirmado e charter live; código idêntico ao baseline de 30/mai — dangerouslySetInnerHTML em book.content segue sem sanitizar (o sweep XSS de jun cobriu Messages/Todo, não o kb) e botões-ícone minúsculos."
+dimensoes: { density: 80, discoverability: 70, speed_to_task: 79, error_recovery: 80, cognitive_load: 80, aesthetic_usability: 81, affordance: 77, brand_confidence: 79, mobile_fit: 78, a11y_wcag: 68, i18n_ptbr: 86, performance_perceived: 80, information_hierarchy: 81, microcopy: 79, internal_consistency: 80, preflight_conformance: 66 }
 gaps:
   - dim: "A11y-WCAG"
     best_of_class: "Notion alvos de toque >=24px"

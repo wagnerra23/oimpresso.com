@@ -10,10 +10,10 @@ nota: 78
 nivel: "Advanced"
 baseline_anterior: 78   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Lista pessoal limpa com Dialog+AlertDialog, @/ui, charter live; falta PageHeader canon, tokens v4 (usa default) e loading state."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Lista pessoal limpa com Dialog+AlertDialog, @/ui e charter live; código idêntico ao baseline de 30/mai — segue header hand-roll (sem PageHeader canon), sem defer/skeleton e sem atalhos/busca."
+dimensoes: { density: 80, discoverability: 79, speed_to_task: 70, error_recovery: 81, cognitive_load: 80, aesthetic_usability: 81, affordance: 80, brand_confidence: 79, mobile_fit: 78, a11y_wcag: 77, i18n_ptbr: 86, performance_perceived: 71, information_hierarchy: 80, microcopy: 80, internal_consistency: 80, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Linear: PageHeader canon v3 + tokens"
