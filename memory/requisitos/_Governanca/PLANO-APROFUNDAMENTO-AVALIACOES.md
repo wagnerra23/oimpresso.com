@@ -90,29 +90,13 @@ Enquanto este plano é executado, o **Check X** do `memory-health` (`scripts/gov
 
 ---
 
-## Onda 3 — Auditoria de segurança (única área Tier-0 sem lente nenhuma)
+## Onda 3 — Revisão de segurança defensiva (Tier-0 sem lente consolidada)
 
-**Objetivo:** primeira auditoria ofensiva do app inteiro. Guards pontuais existem (multi-tenant gates, gitleaks, XSS ratchet, PII scan); nunca houve revisão de superfície completa.
+**Objetivo:** primeira revisão de superfície completa do próprio código (defensiva). Guards pontuais já existem; falta a varredura consolidada por dimensão.
 
-**Pré-reqs:** autorização Wagner explícita pro escopo (é o dono; pentest de app próprio = defensivo). Sem testes contra prod que gerem carga/escrita — análise de código + staging CT100. Base: skill `/security-review` + agente `audit-senior-expert` por dimensão (com override `model: fable` — Regra global #9). **Baseline existente (não é lente zero):** `memory/audits/2026-05-pre-sales/03-security-review-quick.md` (2026-05-09) já achou **A-1 Critical** (`POST /install/install-alternate` público → wipe da DB de prod) — 1º item da onda é confirmar se A-1 foi corrigido; ver adversário.
+**Escopo, checklist, pré-reqs, baseline e DoD:** ficam num doc apartado pra manter este plano enxuto → [`AUDITORIA-SEGURANCA-ESCOPO.md`](AUDITORIA-SEGURANCA-ESCOPO.md). Só abrir quando a onda for executada, com autorização explícita do Wagner (dono do app; revisão do próprio código = defensiva).
 
-**Escopo (checklist do auditor):**
-- Auth/session (login, remember, reset, 2FA se houver) e fixação de sessão.
-- **Isolamento multi-tenant** (o risco nº 1): varrer `withoutGlobalScopes` sem `// SUPERADMIN:`, queries raw sem `business_id`, IDs sequenciais em rotas (IDOR cross-tenant) — provar com Pest cross-tenant biz=1 vs biz=99 pros achados.
-- 260+ permissions Spatie: rotas sem `can()`/middleware; escalada horizontal role#biz; superadmin sem 2ª barreira.
-- Injeção: `DB::raw`/`whereRaw` com input, XSS Inertia (`dangerouslySetInnerHTML`), SSRF nos fetchers externos (Asaas/Inter/WhatsApp/SEFAZ).
-- Entradas externas: uploads (`Modules/Arquivos`), webhooks (idempotência/replay), APIs públicas (ConsultaOs/ConsultaNfe).
-- Segredos: token em código/log, `.env` versionado, MCP exposto no Hostinger (proibicoes.md).
-- Fiscal/pagamento: replay de webhook, refund sem flag, valor manipulável no submit (REGRA MESTRE).
-
-**Verificação adversarial:** cada achado alto/crítico passa por 1 refutador (é explorável de verdade? caminho concreto?) — descartar teórico-não-explorável.
-
-**Máquina (catraca):** pra cada classe confirmada, propor 1 gate advisory determinístico (estender o gate de `withoutGlobalScopes` sem comentário; novo gate "rota sem middleware auth"). Registrar em `gates-registry.json` com `promote_by`.
-
-**DoD:** `memory/requisitos/_Governanca/AUDITORIA-SEGURANCA-2026-07.md` — nota 0-100 + achados por severidade (CVSS-like) + PoC de cada crítico + tasks propostas; todo crítico com caminho provado OU refutado; ≥1 catraca proposta.
 **Esforço:** ~2-3 sessões.
-
-> ⚠️ Ético/escopo: auditoria **defensiva** do próprio código. Sem atacar prod ao vivo, sem DoS. Leitura de código + no máximo smoke em staging CT100.
 
 ---
 
