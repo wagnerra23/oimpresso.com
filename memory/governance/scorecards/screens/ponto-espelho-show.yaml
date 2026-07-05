@@ -6,18 +6,18 @@ screen: Ponto/Espelho/Show
 path: resources/js/Pages/Ponto/Espelho/Show.tsx
 archetype: detail
 persona: tecnico
-nota: 82
+nota: 83
 nivel: "Advanced"
 baseline_anterior: 82   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Espelho mensal forte (heatmap clicavel->scroll, totalizadores, imprimir PDF, nav mes) — limitado por paleta crua com azul e cor-unica."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Espelho mensal forte (heatmap clicavel->scroll, totalizadores, imprimir PDF, nav mes); divergencia/atraso/falta tokenizados no #2666 — resta paleta crua de 6 tons c/ azul no totalizador e violet no HE."
+dimensoes: { density: 86, discoverability: 84, speed_to_task: 86, error_recovery: 82, cognitive_load: 82, aesthetic_usability: 84, affordance: 84, brand_confidence: 84, mobile_fit: 74, a11y_wcag: 74, i18n_ptbr: 90, performance_perceived: 84, information_hierarchy: 86, microcopy: 84, internal_consistency: 84, preflight_conformance: 72 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS tokens"
-    fix: "Totalizador hardcoda paleta 6 tons incl text-blue-700 (azul) + amber/red/violet crus -> tokens v4; sem charter"
+    fix: "Celulas de divergencia/atraso/falta tokenizadas no #2666; totalizador AINDA hardcoda paleta 6 tons incl text-blue-700 (azul proibido) + text-violet-600 no HE -> tokens v4; sem charter"
     esforco: medio
     origin: screen-grades-baseline-2026-05-30
   - dim: "A11y-WCAG"

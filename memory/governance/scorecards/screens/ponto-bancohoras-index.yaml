@@ -6,18 +6,18 @@ screen: Ponto/BancoHoras/Index
 path: resources/js/Pages/Ponto/BancoHoras/Index.tsx
 archetype: list
 persona: tecnico
-nota: 80
+nota: 81
 nivel: "Advanced"
 baseline_anterior: 80   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Ledger limpo com KPIs e saldo colorido; falta busca/sort, reflow mobile e tokens no lugar de emerald/destructive crus."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Ledger limpo com KPIs e saldo agora em tokens DS (success/destructive, #2666); ainda falta busca/sort, reflow mobile e charter."
+dimensoes: { density: 82, discoverability: 74, speed_to_task: 74, error_recovery: 80, cognitive_load: 84, aesthetic_usability: 84, affordance: 82, brand_confidence: 82, mobile_fit: 72, a11y_wcag: 78, i18n_ptbr: 90, performance_perceived: 84, information_hierarchy: 84, microcopy: 84, internal_consistency: 86, preflight_conformance: 78 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "Stripe tokens"
-    fix: "text-emerald-600/text-destructive cru no saldo -> token success/danger; criar charter.md"
+    fix: "Saldo tokenizado no #2666 (text-success-fg); resta criar charter.md/casos.md e escopar os-page-h"
     esforco: baixo
     origin: screen-grades-baseline-2026-05-30
   - dim: "Speed-to-task"
