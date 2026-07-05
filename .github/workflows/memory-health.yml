@@ -35,6 +35,13 @@ jobs:
           node-version: '20'
       - name: Run memory-health sentinel (enforce)
         run: node scripts/governance/memory-health.mjs
+      # gov-sync (ADR 0323 D2): PROPONENTE do loop sentinela⇄Story-DoD — imprime quais
+      # standing-Stories de higiene deviam existir/fechar (count vem do memory-health).
+      # NÃO cria task (tasks-create é humano-gated). Advisory: nunca falha o job.
+      - name: governance-backlog-sync — proposta de Stories (advisory · ADR 0323)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/governance-backlog-sync.mjs
 
   # ── Auto-canário do próprio cron (ADR 0317 — quem vigia o vigia) ─────────────
   # A sentinela roda em schedule (cron 30 9), MAS o GitHub DESABILITA workflow
