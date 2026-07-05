@@ -175,14 +175,25 @@ class McpMemoryDocument extends Model
             return static::query()->whereRaw('1 = 0')->get();
         }
 
+        // ADR 0322 — o qwen3-embedding é instruction-aware (assimétrico): a query precisa
+        // do prefixo `Instruct: …\nQuery: …` senão a similaridade INVERTE (causa-raiz
+        // medida da ADR 0312). O embedding da query prefixada é pré-computado no Ollama e
+        // enviado como `vector`; o `q` continua raw pro lado lexical (BM25) não ser poluído
+        // pelo prefixo. Ollama indisponível → degrada pro hybrid raw (nunca quebra a busca).
+        $body = [
+            'q'                    => $query,
+            'limit'                => $limit,
+            'filter'               => $filtro,
+            'attributesToRetrieve' => ['id'],
+            'hybrid'               => ['embedder' => $embedder, 'semanticRatio' => $ratio],
+        ];
+        $vector = static::embedQueryComInstrucao($query, $embedder);
+        if ($vector !== null) {
+            $body['vector'] = $vector;
+        }
+
         try {
-            $resp = Http::withToken($key)->timeout(15)->post("{$host}/indexes/{$index}/search", [
-                'q'                    => $query,
-                'limit'                => $limit,
-                'filter'               => $filtro,
-                'attributesToRetrieve' => ['id'],
-                'hybrid'               => ['embedder' => $embedder, 'semanticRatio' => $ratio],
-            ]);
+            $resp = Http::withToken($key)->timeout(15)->post("{$host}/indexes/{$index}/search", $body);
         } catch (\Throwable $e) {
             Log::channel('copiloto-ai')->warning('buscarHybrid: Meilisearch inacessível, fallback FULLTEXT: '.$e->getMessage());
 
@@ -214,6 +225,48 @@ class McpMemoryDocument extends Model
             ->get()
             ->sortBy(static fn ($doc) => $pos[(int) $doc->getKey()] ?? PHP_INT_MAX)
             ->values();
+    }
+
+    /**
+     * Embedding da query COM instrução (ADR 0322) — direto no Ollama, mesmo modelo do
+     * índice (config-as-code `copiloto.meilisearch_indexes.mcp_memory_documents`).
+     *
+     * null = sem prefixo (instrução vazia, config ausente, ou Ollama fora) → o caller
+     * manda o `q` raw pro Meilisearch embeddar (comportamento pré-0322). Fail-open de
+     * qualidade, nunca de disponibilidade.
+     *
+     * @return array<int, float>|null
+     */
+    private static function embedQueryComInstrucao(string $query, string $embedder): ?array
+    {
+        $instrucao = (string) config('copiloto.mcp_search.docs_query_instruction', '');
+        if (trim($instrucao) === '') {
+            return null;
+        }
+
+        $cfg   = (array) config("copiloto.meilisearch_indexes.mcp_memory_documents.embedders.{$embedder}", []);
+        $url   = (string) ($cfg['url'] ?? '');
+        $model = (string) ($cfg['model'] ?? '');
+        if ($url === '' || $model === '') {
+            return null;
+        }
+
+        try {
+            $resp = Http::timeout(10)->post($url, ['model' => $model, 'prompt' => $instrucao.$query]);
+            $vec  = $resp->successful() ? $resp->json('embedding') : null;
+
+            if (! is_array($vec) || $vec === []) {
+                Log::channel('copiloto-ai')->warning('buscarHybrid: embed com instrução sem vetor (HTTP '.$resp->status().') — segue q raw');
+
+                return null;
+            }
+
+            return $vec;
+        } catch (\Throwable $e) {
+            Log::channel('copiloto-ai')->warning('buscarHybrid: Ollama indisponível pro embed com instrução — segue q raw: '.$e->getMessage());
+
+            return null;
+        }
     }
 
     /**

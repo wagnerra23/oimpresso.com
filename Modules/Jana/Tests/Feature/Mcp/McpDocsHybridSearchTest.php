@@ -34,3 +34,64 @@ it('buscarHybrid retorna Collection vazia quando não há hits, com tipo/module 
     expect(McpMemoryDocument::buscarHybrid('x', 3, null))->toBeEmpty()
         ->and(McpMemoryDocument::buscarHybrid('x', 3, null, 'spec', 'Financeiro'))->toBeEmpty();
 });
+
+/**
+ * ADR 0322 — instruction-prefix qwen3: a query prefixada é embeddada no Ollama e vai
+ * como `vector`; o `q` segue RAW (lado lexical não pode ver o prefixo). Ollama fora →
+ * degrada pro hybrid raw (sem `vector`), nunca quebra a busca.
+ */
+function fakeConfigPrefix(): void
+{
+    config()->set('scout.meilisearch.host', 'http://meili.test');
+    config()->set('copiloto.mcp_search.docs_query_instruction', "Instruct: acha o doc.\nQuery: ");
+    config()->set('copiloto.meilisearch_indexes.mcp_memory_documents.embedders.qwen3_local', [
+        'url'   => 'http://ollama.test/api/embeddings',
+        'model' => 'qwen3-embedding:0.6b',
+    ]);
+}
+
+it('buscarHybrid manda vector do embedding prefixado e mantém q raw (ADR 0322)', function () {
+    fakeConfigPrefix();
+    Http::fake([
+        'http://ollama.test/*' => Http::response(['embedding' => [0.1, 0.2, 0.3]], 200),
+        'http://meili.test/*'  => Http::response(['hits' => []], 200),
+    ]);
+
+    McpMemoryDocument::buscarHybrid('daily brief', 5, null);
+
+    Http::assertSent(function ($req) {
+        return str_starts_with($req->url(), 'http://ollama.test')
+            && $req['prompt'] === "Instruct: acha o doc.\nQuery: daily brief";
+    });
+    Http::assertSent(function ($req) {
+        return str_starts_with($req->url(), 'http://meili.test')
+            && $req['q'] === 'daily brief' // raw — sem prefixo no lado lexical
+            && $req['vector'] === [0.1, 0.2, 0.3];
+    });
+});
+
+it('buscarHybrid degrada pro hybrid raw (sem vector) quando o Ollama falha', function () {
+    fakeConfigPrefix();
+    Http::fake([
+        'http://ollama.test/*' => Http::response('', 500),
+        'http://meili.test/*'  => Http::response(['hits' => []], 200),
+    ]);
+
+    expect(McpMemoryDocument::buscarHybrid('daily brief', 5, null))->toBeEmpty();
+
+    Http::assertSent(function ($req) {
+        return str_starts_with($req->url(), 'http://meili.test')
+            && $req['q'] === 'daily brief'
+            && ! array_key_exists('vector', $req->data());
+    });
+});
+
+it('buscarHybrid não chama o Ollama quando a instrução está vazia (prefix desligado)', function () {
+    fakeConfigPrefix();
+    config()->set('copiloto.mcp_search.docs_query_instruction', '');
+    Http::fake(['http://meili.test/*' => Http::response(['hits' => []], 200)]);
+
+    expect(McpMemoryDocument::buscarHybrid('daily brief', 5, null))->toBeEmpty();
+
+    Http::assertNotSent(fn ($req) => str_starts_with($req->url(), 'http://ollama.test'));
+});
