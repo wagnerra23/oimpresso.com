@@ -3,7 +3,7 @@
 > **Base legal:** Art. 37 LGPD (Registro das operações de tratamento) + [Guia Orientativo ANPD Cookies 2024-2025](https://www.gov.br/anpd/pt-br/centrais-de-conteudo/materiais-educativos-e-publicacoes/guia-orientativo-cookies-e-protecao-de-dados-pessoais.pdf).
 > **Controlador:** oimpresso (CNPJ a registrar — Wagner Almeida). Para cada cliente PME assinante, o oimpresso atua como **operador** do controlador-cliente (relação dupla camada — ver §Operações).
 > **Encarregado / DPO:** Wagner Almeida — `wagnerra@gmail.com`. Função acumulada (pequena empresa) até MRR comportar DPO dedicado.
-> **Última revisão:** 2026-05-25 (criação inicial — gap G1 [ADR 0191](../decisions/0191-microsoft-clarity-session-replay-lgpd.md)).
+> **Última revisão:** 2026-07-05 (Onda 4 lente 5a — inventário PII por tabela + matriz retenção×enforcement + alcance real do DSR + gaps pra Eliana).
 > **Revisão obrigatória:** trimestral OU quando entrar novo subprocessador OU quando finalidade muda OU quando incidente Art. 48.
 
 ## Resumo executivo
@@ -87,7 +87,7 @@ Isolamento Tier 0 IRREVOGÁVEL via `business_id` global scope ([ADR 0093](../dec
 - **Finalidade:** emissão de boletos, PIX, cartão recorrente para clientes finais do tenant.
 - **Base legal:** execução de contrato (Art. 7, V).
 - **Titulares:** clientes finais do tenant que pagam ao tenant (CPF/CNPJ, dados bancários PIX, parcelas).
-- **Subprocessador:** Asaas (CNPJ 19.540.550/0001-21) — fintech brasileira, **sem transferência internacional**; credenciais por business em `rb_boleto_credentials` com `EncryptedCredentialCast`.
+- **Subprocessador:** Asaas (Sólides Tecnologia S.A.) — fintech brasileira, **sem transferência internacional**; credenciais por business em `rb_boleto_credentials` com `EncryptedCredentialCast`.
 - **Retenção:** 5 anos (audit fiscal — Art. 173 CTN + Art. 195 CF).
 - **Medidas de segurança:** credenciais Asaas criptografadas at-rest; flags de segurança (`config/services.php` bloco `asaas`); refund jobs assíncronos auditáveis.
 
@@ -161,10 +161,107 @@ Isolamento Tier 0 IRREVOGÁVEL via `business_id` global scope ([ADR 0093](../dec
 
 **Registro:** abrir entry em `memory/sessions/YYYY-MM-DD-incidente-NNN.md` + audit trail `lgpd.incidente` + ADR de remediação se causa estrutural.
 
+## Inventário de PII por tabela (Onda 4 · 2026-07-05)
+
+> **Para Eliana:** este bloco é o mapa técnico pedido na Onda 4 do [PLANO-APROFUNDAMENTO-AVALIACOES](../requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md) — inventário + gaps, **não** decisão jurídica. Fonte: análise estática das migrations em `origin/main` @ f90a675507. As decisões (priorizar qual gap, base legal de retenção) ficam com você + Wagner.
+>
+> **Enquadramento (pra não ler errado):** o oimpresso é um ERP — **PII no banco e exibida em tela é a função do produto** (Art. 7º, V — execução de contrato; o tenant é o controlador dos dados dos SEUS clientes). Nenhum gap abaixo propõe esconder/redigir dado de cliente da tela ou do banco operacional. O que este mapa vigia é o **perímetro**: PII não pode sair do banco pra onde não pertence — **git/commits/docs canon (proibição Tier 0), logs, telemetria, prompts a LLM externo** — e o ciclo de vida (retenção quando o tratamento termina, DSR quando o titular pede). Este próprio inventário só contém **nomes de tabela/coluna**, nunca dados reais.
+
+### PII estrutural (coluna nomeada) — 36 tabelas, principais:
+
+| Tabela | Colunas PII | `business_id`? | Módulo | Observação |
+|---|---|---|---|---|
+| `contacts` | cpf_cnpj, rg, dob, email(×3), mobile, tax_number, endereços, zip | ✅ | core/Crm | **maior concentração de PII de titulares finais** |
+| `contact_addresses` | endereço completo, zip | ✅ | core | |
+| `users` | email, contact_number, dob, 3 endereços | ✅ | core/Essentials | operadores do tenant (inclui ex-funcionários) |
+| `business_locations` | cnpj, email, mobile, zip | ✅ | core | |
+| `transactions` | shipping_address, order_addresses | ✅ | core | guarda fiscal 5a (Art. 173 CTN) |
+| `transportadoras` | cnpj_cpf | ✅ | core | |
+| `password_resets` | email | ❌ (framework) | core | tokens+email sem TTL |
+| `advisors` | cnpj_contador, email, telefone | ❌ **intencional** (contador atende N businesses) | Financeiro | PII de terceiro sem retenção |
+| `cobrancas` | payer_cpf_cnpj, payer_email | ✅ | PaymentGateway | |
+| `inter_webhook_log` | payer_cpf_cnpj_**redacted** | ✅ | PaymentGateway | ✅ já nasce redactado (bom exemplo) |
+| `rb_subscriptions` | contact_phone_cached | ✅ | RecurringBilling | PII duplicada de contacts |
+| `nfe_*`/`nfse_*` (certificados, dfe, emissões) | cnpj/cpf tomador+emitente, tomador_email | ✅ | NfeBrasil/NFSe | guarda fiscal 10a — [PII-LGPD-FISCAL.md](../requisitos/NfeBrasil/PII-LGPD-FISCAL.md) |
+| `ponto_colaborador_config` / `ponto_marcacoes` | cpf / **latitude, longitude, ip, dispositivo_id** | ✅ | Ponto | append-only por lei (Portaria MTP 671/2021) — DSR delete não aplica; geoloc é PII |
+| `whatsapp_conversations` / `whatsapp_lid_pn_map` | customer_phone, phone_e164 | ✅ | Whatsapp | |
+| `customer_memory` | phone_normalized + conteúdo livre | ✅ | Whatsapp | memória IA sobre cliente final |
+| `crm_call_logs` / `crm_campaigns` | mobile_number, mobile_name / email_body | ✅ | Crm | |
+| `cv_instalacoes` / `cv_ordens_producao` | endereço em JSON | ✅ | ComunicacaoVisual | |
+| `service_orders` | delivery_address | ✅ | OficinaAuto | |
+| `failed_jobs` | exception (payload serializado pode conter PII) | ❌ (framework) | — | higiene pendente |
+
+### PII por conteúdo livre (não aparece no nome da coluna):
+
+| Tabela | Conteúdo | Observação |
+|---|---|---|
+| `jana_mensagens` | chat IA — CPF digitado pelo user fica **RAW em DB** (declarado em [retention.php:72-76](../../Modules/Jana/Config/retention.php)); redaction acontece só pré-LLM | mitigação: health-check `pii_leak_in_assistant_responses` |
+| `whatsapp_messages` | body + payload de conversa com cliente final | PII alta |
+| `jana_memoria_facts` / `jana_cache_semantico` / `jana_brief_diarios` | fatos, queries, narrativas | brief é sanitizado via PiiRedactor (declarado) |
+| `mcp_cc_sessions` / `mcp_cc_messages` | prompts do time Claude Code | TeamMcp retention.php auto-classifica "PII alta" 90d — **sem purge** |
+| `mcp_audit_log` | ip, user_agent, error_message | schema metadata-only + trigger de imutabilidade |
+| `activity_log` (Spatie) | properties JSON | contrato "NUNCA purgada" (auditoria) |
+| `mcp_memory_documents(_history)` | docs canon git | ❌ business_id (plataforma) |
+
+Multi-tenant: 35/36 tabelas PII têm `business_id` ou justificativa documentada ([ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md)) — exceções: `advisors` (intencional, documentado na migration), tabelas framework (`password_resets`, `failed_jobs`) e plataforma (`mcp_memory_documents`).
+
+## Retenção × enforcement (declarado vs máquina)
+
+**Só o módulo Jana tem purge automatizado** (`jana:retention-purge`, daily 03:00 BRT) — e ele está **OFF por default** (`JANA_RETENTION_ENABLED=false`, gate em [Kernel.php:747](../../app/Console/Kernel.php)). Cobre 7 entidades ([RetentionPurgeService::entityMap](../../Modules/Jana/Services/Privacy/RetentionPurgeService.php)): conversa, mensagem, sugestao, cache_semantico, memoria_fato, memoria_metrica, health_narrative. **Fora do entityMap** apesar de declarados no retention.php: `brief_diario`, `mcp_audit_log`, `embedder_index`.
+
+| Config de retenção | Enforcement |
+|---|---|
+| `Modules/Jana/Config/retention.php` | ✅ parcial (7 de 10 entidades; job OFF por default) |
+| `Modules/Arquivos` (via `arquivos:retention-cleanup`) | 🟡 comando existe mas **fora do schedule** (manual) |
+| Repair, OficinaAuto, NfeBrasil, TeamMcp, Superadmin, SRS, Woocommerce, Officeimpresso, Spreadsheet (retention.php cada) | ❌ declaração sem nenhum comando |
+| `config/retention.whatsapp.php` (messages 90d, media 30d) | ❌ **zero referências no código** — config morta |
+
+Conflito interno a resolver: `mcp_audit_log` tem TTL 365d (Jana) **e** 730d (TeamMcp) — nenhum enforçado, e a tabela tem trigger de imutabilidade. Precisa decisão: exceção-auditoria documentada OU purge implementado.
+
+Sem retenção declarada nem obrigação de guarda clara (descobertas): `contacts`, `contact_addresses`, `users` (ex-funcionário), `crm_call_logs`, `crm_campaigns`, `customer_memory`, `whatsapp_messages`/`conversations`, `rb_subscriptions.contact_phone_cached`, `cobrancas`, `advisors`, `password_resets`, `cv_*`, `transportadoras`, `mcp_memory_documents`. (Cobertas por lei, fora do gap: `ponto_*` Portaria 671/2021; fiscais 5-10a.)
+
+## Alcance REAL do DSR (Art. 18 §VI) hoje
+
+[`LgpdEsquecerTitularTool`](../../Modules/Jana/Mcp/Tools/LgpdEsquecerTitularTool.php) + [`DsrService`](../../Modules/Jana/Services/Lgpd/DsrService.php) atingem **apenas 4 tabelas Jana**: `jana_mensagens.content`, `jana_memoria_facts.fato`, `jana_cache_semantico`, `jana_conversas.titulo` — por LIKE do CPF/CNPJ literal (não acha titular citado por nome/email/telefone).
+
+**Fora do alcance num pedido de eliminação:** `contacts` (o cadastro-mestre do titular), `whatsapp_messages`/`conversations`, `customer_memory`, `cobrancas`, `rb_subscriptions`, `crm_call_logs`, `mcp_cc_messages`, índice Meilisearch (anonymize via `DB::update` não dispara reindex Scout — embedding antigo pode persistir no CT 100 até `jana:freshness-check` 90d). Fiscais/ponto ficam fora com justificativa legal (Art. 16, I — cumprimento de obrigação legal).
+
+## Cobertura do PiiRedactor por fluxo
+
+Padrões redigidos ([PiiRedactor.php](../../Modules/Jana/Services/Privacy/PiiRedactor.php)): EMAIL, CNPJ, CPF, CEP, telefone BR. **Não cobre** (declarado no próprio arquivo): nome de pessoa, RG, cartão.
+
+| Fluxo | Cobertura | Evidência |
+|---|---|---|
+| Chat Jana → LLM externo (EUA) | ✅ COBERTO | redaction pré-provider em ambos drivers (`LaravelAiSdkDriver:156,307,728` · `OpenAiDirectDriver:311,329`) — dado nunca sai raw |
+| Chat Jana → persistência DB | ✅ raw **por design** (correto) | content raw no banco = dado operacional legítimo do tenant (Art. 7º, V), igual a `contacts` — redaction aqui quebraria o produto; o perímetro vigiado é a SAÍDA (LLM/log/git), + health-check anti-vazamento em resposta |
+| Logs Laravel | 🟡 PARCIAL | sem processor Monolog global; cobertura opt-in por call-site (concerns Repair/Superadmin + sites Jana/Whatsapp) — `Log::` novo vaza |
+| Sync memory→MCP | 🟡 PARCIAL | só mensagens de erro redactadas ([SyncMemoryWebhookController:111](../../Modules/TeamMcp/Http/Controllers/Mcp/SyncMemoryWebhookController.php)); conteúdo de doc entra raw (git canon já é visível ao time) |
+| Commits/PR | ✅ (escopo commit-only) | hook `.claude/hooks/pii-redactor.ps1` (opção B 2026-06-13) |
+| Audit log | 🟡 PARCIAL | schema metadata-only, mas `ip`/`user_agent`/`error_message` sem redact no write-path |
+| Telemetria Langfuse | ✅ | `LangfuseClient:468,486` |
+| Health-check | 🟡 existe, subnotifica | `pii_leak_in_assistant_responses` só pega CPF/CNPJ **formatados** ([HealthCheckCommand:381](../../Modules/Jana/Console/Commands/HealthCheckCommand.php)) |
+
+## Gaps LGPD 2026-07 (rankeados — pra Eliana priorizar com Wagner)
+
+1. **[ALTA] DSR Art. 18 §VI não alcança cadastro-mestre nem canais** — `contacts`, WhatsApp, `customer_memory`, `cobrancas`, `crm_call_logs` ficam intactos num pedido de eliminação (Art. 18 §VI + Art. 16).
+2. **[ALTA] Retenção declarada ≠ enforçada** — único purge job está OFF por default; 9+ módulos declaram TTL sem máquina; config WhatsApp morta (Art. 16: eliminação após término do tratamento hoje é papel, não máquina).
+3. **[ALTA] `mcp_cc_messages` (prompts do time, "PII alta") cresce indefinidamente** — TTL 90d declarado, zero purge (Art. 16).
+4. **[MÉDIA] `jana:retention-purge` não cobre 3 entidades do próprio retention.php** + TTLs conflitantes do `mcp_audit_log` (365 vs 730).
+5. **[MÉDIA] Logs Laravel sem redaction global** — falta processor Monolog; cobertura atual é opt-in por arquivo (Art. 46 — medidas de segurança).
+6. **[MÉDIA] DSR não reindexa Meilisearch** — PII anonimizada na row pode sobreviver no índice/embedding até 90d.
+7. **[MÉDIA] PiiRedactor não cobre nome/RG/cartão** — e `contacts` tem coluna `rg`.
+8. **[BAIXA] `advisors` sem TTL nem DSR** (PII de contador cross-tenant, exceção business_id documentada mas retenção não).
+9. **[BAIXA] `password_resets`/`failed_jobs` sem limpeza** (higiene framework).
+10. **[BAIXA] Health-check PII subnotifica** (só documento formatado — não pega dígitos puros/email/telefone).
+11. **[BAIXA] `arquivos:retention-cleanup` fora do schedule** (enforcement manual).
+
+**O que JÁ está de pé (lado bom):** redaction pré-LLM nos 2 drivers (PII nunca sai raw pra provider EUA); este mapa Art. 37 com DPO nomeado; audit trail append-only do DSR com hash (nunca o documento); `inter_webhook_log` persiste redactado; multi-tenant Tier 0 consistente nas tabelas PII; hook de commit bloqueia PII no git; bases legais Art. 7º, V (contrato) e Art. 7º, I (consentimento Clarity) mapeadas por operação (§Operações acima).
+
 ## Histórico de revisões
 
 | Data | Alteração | Autor |
 |---|---|---|
+| 2026-07-05 | Onda 4 lente 5a ([PLANO-APROFUNDAMENTO-AVALIACOES](../requisitos/_Governanca/PLANO-APROFUNDAMENTO-AVALIACOES.md)): + inventário PII por tabela (36 tabelas) + matriz retenção×enforcement + alcance real do DSR + cobertura PiiRedactor por fluxo + 11 gaps rankeados pra Eliana. Análise estática `origin/main` @ f90a675507. | [CC], gate Eliana/Wagner |
 | 2026-05-25 | Criação inicial. Catalogadas Op-01 a Op-07 + 12 subprocessadores. Op-02 Clarity registrada como subprocessador EUA com SCC (gap G1 [ADR 0191](../decisions/0191-microsoft-clarity-session-replay-lgpd.md)). Gaps remanescentes G2-G6 identificados em [`memory/sessions/2026-05-25-arte-clarity-lgpd-decision.md`](../sessions/2026-05-25-arte-clarity-lgpd-decision.md). | Wagner |
 
 ---
