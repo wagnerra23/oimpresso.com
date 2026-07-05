@@ -19,10 +19,12 @@ related_adrs:
 related_proposals:
   - "compras-modulo-greenfield-hibrido"
   - "compras-purchase-convergencia-c1"
+na_justified_v3:
+  D6.c: "O paginate() vive no ComprasController::buildRowsPayload mas opera o query builder montado pelo ComprasService::listarCompras, que usa leftJoin (transaction_payments/contacts) + ->with([...]) — sem relação Eloquent lazy no caminho da listagem. A heurística D6.c só inspeciona o arquivo do controller (paginate sem with no MESMO arquivo) e devolve falso-negativo. N+1 real está TRAVADO por teste físico: Modules/Compras/Tests/Feature/ComprasListagemNPlusUmTest.php (trava contagem de queries — PR #3715, C15 da CAPTERRA-FICHA verificado falso-positivo)."
 pii: false
-updated_at: "2026-07-03"
-last_updated: "2026-07-03"
-version: "0.3"
+updated_at: "2026-07-05"
+last_updated: "2026-07-05"
+version: "0.4"
 owner: wagner
 ---
 
