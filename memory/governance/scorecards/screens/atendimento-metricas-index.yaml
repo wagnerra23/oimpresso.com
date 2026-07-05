@@ -10,10 +10,10 @@ nota: 76
 nivel: "Advanced"
 baseline_anterior: 76   # ratchet — nota não cai abaixo disto sem aprovação
 peso_real: 1.0
-source: screen-grades-baseline-2026-05-30
-graded_at: "2026-05-30"
-resumo: "Dashboard metricas solido (KpiCard reuse, Deferred, snapshot pre-agregado) mas chart com hex/blue cru e SVG hand-rolled."
-dimensoes: {}   # 16 dims individuais: a regradeação pelo agente preenche (baseline só tem agregado)
+source: regrade-onda1-2026-07-05
+graded_at: "2026-07-05"
+resumo: "Dashboard metricas solido (KpiCard reuse, Deferred, snapshot pre-agregado) e sem mudanca material desde o baseline — chart segue com hex (#3b82f6/#10b981) e bg-blue-500 crus + SVG hand-rolled (nao entrou no sweep DS #2666)."
+dimensoes: { density: 78, discoverability: 74, speed_to_task: 74, error_recovery: 74, cognitive_load: 78, aesthetic_usability: 78, affordance: 76, brand_confidence: 76, mobile_fit: 74, a11y_wcag: 76, i18n_ptbr: 92, performance_perceived: 82, information_hierarchy: 80, microcopy: 78, internal_consistency: 70, preflight_conformance: 64 }
 gaps:
   - dim: "Pre-Flight-conformance"
     best_of_class: "DS v4 (zero hex/blue cru, tokens roxo)"
