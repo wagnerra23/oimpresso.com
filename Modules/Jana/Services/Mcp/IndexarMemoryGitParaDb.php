@@ -41,6 +41,9 @@ class IndexarMemoryGitParaDb
         protected string $reason = 'manual',
         protected ?int $userId = null,
         protected int $businessId = 1,
+        // Sync robusto (handoff 2026-07-05): filtra por type (ex: 'briefing')
+        // pra sync parcial barato — indexa só o subconjunto sem varrer 1500 docs.
+        protected ?string $onlyType = null,
     ) {
     }
 
@@ -63,14 +66,20 @@ class IndexarMemoryGitParaDb
     {
         $stats = ['indexados' => 0, 'atualizados' => 0, 'novos' => 0, 'removidos' => 0, 'redactions' => 0];
 
-        $arquivos = $this->coletarArquivos();
+        // Sync robusto: query log cresce sem teto em runs de 1500+ docs (OOM
+        // catalogado handoff 2026-07-05) — desliga explicitamente, custa nada.
+        DB::connection()->disableQueryLog();
+
+        $arquivos = $this->filtrarPorTipo($this->coletarArquivos());
         $slugsVistos = [];
 
-        foreach ($arquivos as $info) {
+        foreach ($arquivos as $i => $info) {
             $slug = $info['slug'];
             $slugsVistos[] = $slug;
 
-            $resultado = $this->indexarArquivo($info);
+            // Deadlock MySQL (webhook + cron concorrentes no Hostinger) é
+            // transitório — retry com backoff em vez de abortar o run inteiro.
+            $resultado = $this->comRetryDeadlock(fn () => $this->indexarArquivo($info));
             $stats['indexados']++;
             $stats['redactions'] += $resultado['redactions'];
             if ($resultado['novo']) {
@@ -78,17 +87,84 @@ class IndexarMemoryGitParaDb
             } elseif ($resultado['atualizado']) {
                 $stats['atualizados']++;
             }
+
+            // OOM em 1500 docs: força coleta de ciclos (models Eloquent +
+            // closures Scout retêm referências circulares) a cada 200 docs.
+            if (($i + 1) % 200 === 0) {
+                gc_collect_cycles();
+            }
         }
 
-        // Soft-delete documentos que sumiram do filesystem
-        $stats['removidos'] = McpMemoryDocument::whereNotIn('slug', $slugsVistos)->delete();
+        // Soft-delete documentos que sumiram do filesystem.
+        // ⚠️ SÓ em sync COMPLETO — num sync parcial (--only=briefing) a lista
+        // de slugs vistos é um subconjunto, e o whereNotIn apagaria todo o
+        // resto do índice (1400+ docs) por engano.
+        if ($this->onlyType === null) {
+            $stats['removidos'] = McpMemoryDocument::whereNotIn('slug', $slugsVistos)->delete();
+        }
 
         Log::channel('copiloto-ai')->info('IndexarMemoryGitParaDb concluído', [
-            'reason' => $this->reason,
-            'stats'  => $stats,
+            'reason'    => $this->reason,
+            'only_type' => $this->onlyType,
+            'stats'     => $stats,
         ]);
 
         return $stats;
+    }
+
+    /**
+     * Sync robusto — filtra a coleta pelo type solicitado (`--only=briefing`).
+     * Null = sem filtro (sync completo, comportamento legado).
+     *
+     * @param  array<array{slug:string, type:string, module:?string, path:string, full:string}>  $arquivos
+     * @return array<array{slug:string, type:string, module:?string, path:string, full:string}>
+     */
+    protected function filtrarPorTipo(array $arquivos): array
+    {
+        if ($this->onlyType === null) {
+            return $arquivos;
+        }
+
+        return array_values(array_filter(
+            $arquivos,
+            fn (array $info) => $info['type'] === $this->onlyType,
+        ));
+    }
+
+    /**
+     * Sync robusto — retry com backoff exponencial pra deadlock/lock-wait
+     * MySQL (errno 1213/1205, SQLSTATE 40001). Qualquer outra exceção
+     * propaga imediatamente. Última tentativa propaga o deadlock também.
+     */
+    protected function comRetryDeadlock(callable $fn, int $tentativas = 3): mixed
+    {
+        for ($tentativa = 1; ; $tentativa++) {
+            try {
+                return $fn();
+            } catch (\Illuminate\Database\QueryException $e) {
+                if ($tentativa >= $tentativas || ! $this->ehDeadlock($e)) {
+                    throw $e;
+                }
+                Log::channel('copiloto-ai')->warning('Deadlock no sync — retry', [
+                    'tentativa' => $tentativa,
+                    'erro'      => substr($e->getMessage(), 0, 200),
+                ]);
+                // 200ms, 400ms — backoff curto; deadlock MySQL resolve em ms.
+                usleep(200_000 * $tentativa);
+            }
+        }
+    }
+
+    protected function ehDeadlock(\Illuminate\Database\QueryException $e): bool
+    {
+        $errno = $e->errorInfo[1] ?? null;
+        if (in_array($errno, [1213, 1205], true)) {
+            return true;
+        }
+
+        $msg = $e->getMessage();
+        return str_contains($msg, 'Deadlock found')
+            || str_contains($msg, 'Lock wait timeout');
     }
 
     /**
