@@ -70,7 +70,8 @@ class InboxController extends Controller
                 'module' => $module,
                 'q'      => $search,
             ],
-            'counts'    => DocEvidence::where('business_id', $businessId)
+            // closure D-14: por business, não muda com filtro — pula no partial reload
+            'counts'    => fn () => DocEvidence::where('business_id', $businessId)
                 ->selectRaw('status, count(*) as total')
                 ->groupBy('status')
                 ->pluck('total', 'status')

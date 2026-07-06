@@ -116,7 +116,8 @@ export default function MemCofreInbox({ evidences, filtros, counts }: Props) {
     const handle = setTimeout(() => {
       router.get('/memcofre/inbox',
         { ...filtros, q: searchTerm || undefined },
-        { preserveScroll: true, preserveState: true, replace: true }
+        // D-14: partial reload — só re-busca o que muda com filtro (counts é por business).
+        { preserveScroll: true, preserveState: true, replace: true, only: ['evidences', 'filtros'] }
       );
     }, 300);
     return () => clearTimeout(handle);
@@ -133,7 +134,8 @@ export default function MemCofreInbox({ evidences, filtros, counts }: Props) {
   });
 
   const setStatus = (s: string) => {
-    router.get('/memcofre/inbox', { ...filtros, status: s }, { preserveScroll: true, preserveState: true });
+    // D-14: partial reload — só re-busca o que muda com filtro (counts é por business).
+    router.get('/memcofre/inbox', { ...filtros, status: s }, { preserveScroll: true, preserveState: true, only: ['evidences', 'filtros'] });
   };
 
   const openEdit = (e: Evidence) => {
@@ -356,7 +358,8 @@ export default function MemCofreInbox({ evidences, filtros, counts }: Props) {
                       size="sm"
                       className="h-7 min-w-8 px-2 text-xs"
                       disabled={!link.url}
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                      // D-14: partial reload — só re-busca o que muda com filtro/página.
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, preserveState: true, only: ['evidences', 'filtros'] })}
                     >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>
