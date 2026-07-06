@@ -1139,9 +1139,9 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
         <span className="text-stone-400 mr-0.5">{Math.abs(row.valor) < 0.005 ? '' : (isIn ? '+' : '−')}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>
       <td className="pl-2 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
+        {/* Rótulo "Recebi/Paguei" (1ª pessoa + ✓) — fidelidade protótipo [W] 2026-07-06,
+            eq. "marcar recebido/pago". Ação inalterada (onBaixar abre a FinBaixaSheet). */}
         {!settled ? (
-          {/* Rótulo "Recebi/Paguei" (1ª pessoa + ✓) — fidelidade protótipo [W] 2026-07-06,
-              eq. "marcar recebido/pago". Ação inalterada (onBaixar abre a FinBaixaSheet). */}
           <Button size="sm" variant="outline" className="h-7 px-2 text-[11.5px]" onClick={onBaixar}>
             <span aria-hidden>✓</span>{' '}{isIn ? 'Recebi' : 'Paguei'}
           </Button>
