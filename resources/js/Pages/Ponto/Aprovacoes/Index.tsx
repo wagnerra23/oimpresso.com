@@ -134,11 +134,18 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
     if (filtros.tipo && key !== 'tipo') params.tipo = filtros.tipo;
     if (filtros.prioridade && key !== 'prioridade') params.prioridade = filtros.prioridade;
     if (value) params[key] = value;
-    router.get('/ponto/aprovacoes', params, { preserveState: true, preserveScroll: true });
+    // D-14: partial reload — só re-busca o que muda com filtro. `contagens` (agregado
+    // por business) e `tipos` (enum static) ficam fora → defer/props nem rodam no server.
+    router.get('/ponto/aprovacoes', params, {
+      preserveState: true,
+      preserveScroll: true,
+      only: ['aprovacoes', 'filtros'],
+    });
   };
 
   const resetFilters = () => {
-    router.get('/ponto/aprovacoes', {}, { preserveScroll: true });
+    // D-14: partial reload — só re-busca o que muda com filtro.
+    router.get('/ponto/aprovacoes', {}, { preserveScroll: true, only: ['aprovacoes', 'filtros'] });
   };
 
   const activeChips = [
@@ -469,7 +476,8 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
                       size="sm"
                       className="h-7 min-w-8 px-2 text-xs"
                       disabled={!link.url}
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                      // D-14: partial reload — paginação só re-busca a página filtrada
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['aprovacoes', 'filtros'] })}
                     >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>
