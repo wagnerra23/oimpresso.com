@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **326** arquivos · **310** números únicos · máx **0323**
-- **ADRs ATIVOS (lifecycle ativo): 304** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 275 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 304 · substituido 12 · arquivado 6 · (vazio) 4
+- **327** arquivos · **311** números únicos · máx **0324**
+- **ADRs ATIVOS (lifecycle ativo): 305** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 276 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 305 · substituido 12 · arquivado 6 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (326)
+## Todas as ADRs (327)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -366,3 +366,4 @@ _(íntegra)_
 | 0321 | aceito | ativo | decision | Pin sped-nfe em dev-master (SHA fixo) pra IBS/CBS — grupo UB gated por feature f |
 | 0322 | aceito | ativo | decision | Reabre o hybrid de docs com instruction-prefix qwen3 — executa a condição de rea |
 | 0323 | aceito | ativo | decision | Governança de conhecimento em máquina — Checks S–W do memory-health + gov-sync ( |
+| 0324 | aceito | ativo | decision | Modelo operacional de frescor do espelho Cowork — dispatch logado com SLA + ledg |

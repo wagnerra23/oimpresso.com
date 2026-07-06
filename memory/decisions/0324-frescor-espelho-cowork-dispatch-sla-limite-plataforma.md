@@ -3,7 +3,7 @@ slug: 0324-frescor-espelho-cowork-dispatch-sla-limite-plataforma
 number: 324
 title: "Modelo operacional de frescor do espelho Cowork — dispatch logado com SLA + ledger, limite de plataforma DesignSync, PR-bot regenerador como V2"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
@@ -19,8 +19,10 @@ related:
 pii: false
 ---
 
-> **Proposta por [CL] em 2026-07-06** (Wagner: "continue" sobre a fila do estado-da-arte). Ratificação = merge por [W].
+> **Proposta por [CL] em 2026-07-06** (Wagner: "continue" sobre a fila do estado-da-arte). **RATIFICADA por [W] em 2026-07-06** (aceite explícito, apresentado o ledger da 1ª rodada COMPLETA como evidência — 3 SYNC · 0 STALE · 0 UNCHECKED, PR #3893).
 > Executa as ações **#3+#4+#5** do [estado-da-arte 2026-07-06](../../sessions/2026-07-06-arte-design-code-sync-frescor.md) num doc só (1 tema = 1 doc; a pilha de proposals já está em 91). As ações #1+#2 (identidade canônica: path completo + hash normalizado; correção do §0.2) já mergearam (PR #3882).
+>
+> **O que esta aceitação ratifica:** o **modelo operacional** D1-D4 (dispatch logado com ledger datado · CI mede só cadência via `--sla` · limite de plataforma registrado · PR-bot como direção V2). A evidência do aceite é o modelo ter rodado **ponta-a-ponta 100% verde** (1ª rodada COMPLETA: 3 SYNC, os 2 UNCHECKED da rodada parcial fechados por conteúdo persistido em arquivo e hasheado com o `contentHash` do módulo). Não fecha nada mecanicamente por CI (por construção D2/D3 — a auth do DesignSync é interativa); o que garante honestidade é o ledger append-only + o advisory de cadência.
 
 # ADR 0324 — Frescor do espelho Cowork: dispatch logado com SLA (agora) · limite de plataforma · PR-bot (V2)
 
@@ -66,14 +68,15 @@ O alvo de longo prazo é o padrão vencedor de 2026: **design vivo é a fonte; o
 - ❌ Não vira gate **required** — advisory de cadência num workflow existente (0298: required = só Tier-0).
 - ❌ Não muda a fonte de design (§0.2 intacto: Cowork é a fonte, espelho em sincronia).
 - ❌ Não implementa o PR-bot agora (D4 é direção com gatilhos explícitos).
-- ❌ Código **não cita** este ADR (proposto) — memory-health Check L: código que roda só referencia §0.2/session; este ADR aponta pro código, nunca o inverso, até ratificação.
+- ❌ Código **não cita** este ADR — memory-health Check L: o código que roda referencia §0.2/session; este ADR aponta pro código, nunca o inverso (mantido mesmo após ratificação — evita acoplamento código↔número-de-ADR).
 
-## Validação (executada — dispatch REAL desta sessão)
+## Validação (executada — dispatch REAL, 2 rodadas)
 
-- ✅ Primeira rodada real registrada no ledger (2026-07-06): **1 SYNC** (`financeiro-page.jsx` — hash vivo `e2aa76e7…` == repo, sob identidade normalizada) · **2 UNCHECKED** (conteúdo vivo veio inline no transcript, não-persistido → sem hash fiel; honestidade > fingir SYNC) · **0 STALE**.
-- ✅ `--sla` pós-rodada: **FRESH** (há 0d). Com ledger vazio: **NEVER-RAN** exit 1 (provado).
+- ✅ **Rodada parcial** (2026-07-06T17:58, PR #3883): **1 SYNC** (`financeiro-page.jsx`) · **2 UNCHECKED** (conteúdo vivo veio inline no transcript, não-persistido → sem hash fiel; honestidade > fingir SYNC) · **0 STALE**.
+- ✅ **Rodada COMPLETA** (2026-07-06T21:17, PR #3893 — evidência do aceite): **3 SYNC** (`compras-page.jsx` · `financeiro-page.jsx` · `financeiro-telas-extras.jsx`, hashes vivos == repo sob identidade normalizada) · **0 UNCHECKED** · **0 STALE**. Os 2 UNCHECKED fecharam com conteúdo **persistido em arquivo** e hasheado pelo `contentHash` do módulo; fidelidade provada por `git diff --no-index` vazio contra o espelho nos 3 arquivos.
+- ✅ `--sla` pós-rodada completa: **FRESH** (há 0d). Com ledger vazio: **NEVER-RAN** exit 1 (provado).
 - ✅ Selftest **46 asserts** verdes (identidade + vereditos + ledger/SLA + read-only 0315).
-- ✅ memory-health local: 0 🔴 (código não cita ADR proposto).
+- ✅ memory-health local: 0 🔴.
 
 ## Consequências
 
