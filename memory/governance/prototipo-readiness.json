@@ -1,0 +1,58 @@
+{
+  "prontas": [
+    "Financeiro/Impostos/Index",
+    "Financeiro/ProvaViva",
+    "Financeiro/Unificado/Index"
+  ],
+  "ciclo": [
+    {
+      "tela": "Compras/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/compras-page.jsx",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Financeiro/Cobranca/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo Cowork \"payment-gateway-ui\" F1+F1.5 aprovado [W] 2026-05-19 (Chat Cowork live)",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Financeiro/Conciliacao/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaConciliacao) — tela viva evoluiu além do protótipo (extrato via API, ADR 0236)",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Financeiro/Dre/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaDRE) — espelha canon_source (campo que a máquina ancora.mjs lê)",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Financeiro/Fluxo/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo Cowork \"Fluxo de Caixa\" (Financeiro.html), aprovado [W] 2026-05-09",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    },
+    {
+      "tela": "Settings/PaymentGateways/Index",
+      "status": "1-ciclo",
+      "prototipo": "prototipo Cowork \"payment-gateway-ui\" F1+F1.5 aprovado [W] 2026-05-19",
+      "falta": [
+        "casos.md-com-UC"
+      ]
+    }
+  ],
+  "total": 9
+}
