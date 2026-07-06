@@ -9,12 +9,13 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
-import { Link, router } from '@inertiajs/react';
+import { Deferred, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { ClipboardList, Search, ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
+import { Skeleton } from '@/Components/ui/skeleton';
 
 interface Colaborador {
   id: number;
@@ -33,11 +34,15 @@ interface Paginated {
 }
 
 interface Props {
-  colaboradores: Paginated;
+  // colaboradores vem via Inertia::defer — undefined no first render
+  colaboradores?: Paginated;
   mes: string;
 }
 
 export default function EspelhoIndex({ colaboradores, mes }: Props) {
+  // Guarda defensiva (defesa dupla com o <Deferred>): colaboradores é undefined
+  // no first render.
+  const rows = colaboradores?.data ?? [];
   const onMesChange = (novoMes: string) => {
     router.get('/ponto/espelho', { mes: novoMes }, { preserveState: true, preserveScroll: true });
   };
@@ -83,9 +88,10 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
           </CardContent>
         </Card>
 
+        <Deferred data="colaboradores" fallback={<Skeleton className="h-64 w-full" />}>
         <Card>
           <CardContent className="p-0">
-            {colaboradores.data.length === 0 ? (
+            {rows.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground text-sm">
                 Nenhum colaborador com controle de ponto ativo.
               </div>
@@ -102,7 +108,7 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {colaboradores.data.map((c) => (
+                    {rows.map((c) => (
                       <tr key={c.id} className="hover:bg-accent/30 transition-colors">
                         <td className="p-3 font-mono text-xs">{c.matricula ?? '—'}</td>
                         <td className="p-3 font-medium">{c.nome}</td>
@@ -122,13 +128,13 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
               </div>
             )}
 
-            {colaboradores.last_page > 1 && (
+            {(colaboradores?.last_page ?? 1) > 1 && (
               <div className="flex items-center justify-between border-t border-border p-3 text-xs">
                 <span className="text-muted-foreground">
-                  Página {colaboradores.current_page} de {colaboradores.last_page} · {colaboradores.total} colaborador(es)
+                  Página {colaboradores?.current_page ?? 1} de {colaboradores?.last_page ?? 1} · {colaboradores?.total ?? 0} colaborador(es)
                 </span>
                 <div className="flex gap-1">
-                  {colaboradores.links.map((link, i) => (
+                  {(colaboradores?.links ?? []).map((link, i) => (
                     <Button
                       key={i}
                       variant={link.active ? 'default' : 'outline'}
@@ -145,6 +151,7 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
             )}
           </CardContent>
         </Card>
+        </Deferred>
       </div>
     </>
   );

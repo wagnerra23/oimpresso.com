@@ -9,8 +9,10 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
-import { Head, Link, router } from '@inertiajs/react';
+import { Deferred, Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
+import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid } from '@/Components/layout';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -71,9 +73,16 @@ interface Linha {
 interface Props {
   colaborador: Colaborador;
   mes: string;
-  totais: Totais;
-  linhas: Linha[];
+  // totais e linhas vêm via Inertia::defer (EspelhoController) — undefined no
+  // first render até o auto-fetch async resolver (RUNBOOK-inertia-defer-pattern.md).
+  totais?: Totais;
+  linhas?: Linha[];
 }
+
+const TOTAIS_FALLBACK: Totais = {
+  trabalhado: 0, atraso: 0, falta: 0, he_diurna: 0, he_noturna: 0,
+  adicional_not: 0, bh_credito: 0, bh_debito: 0, divergencias: 0,
+};
 
 const tipoBadgeVariant: Record<string, 'default' | 'secondary' | 'outline' | 'destructive'> = {
   ENTRADA:       'default',
@@ -83,6 +92,11 @@ const tipoBadgeVariant: Record<string, 'default' | 'secondary' | 'outline' | 'de
 };
 
 export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props) {
+  // Guardas defensivas (defesa dupla com o <Deferred>): props deferidas são
+  // undefined no first render.
+  const t = totais ?? TOTAIS_FALLBACK;
+  const rows = linhas ?? [];
+
   const onMesChange = (novo: string) => {
     router.get(`/ponto/espelho/${colaborador.id}`, { mes: novo }, { preserveState: true });
   };
@@ -138,22 +152,36 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           </CardContent>
         </Card>
 
+        <Deferred
+          data={['totais', 'linhas']}
+          fallback={(
+            <div className="space-y-4">
+              <Grid cols={6} gap={3}>
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-20 w-full" />
+                ))}
+              </Grid>
+              <Skeleton className="h-40 w-full" />
+              <Skeleton className="h-64 w-full" />
+            </div>
+          )}
+        >
         {/* Totalizadores */}
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          <Totalizador label="Trabalhado" value={formatMinutes(totais.trabalhado)} tone="blue" />
-          <Totalizador label="Atraso" value={formatMinutes(totais.atraso)} tone={totais.atraso > 0 ? 'amber' : 'muted'} />
-          <Totalizador label="Falta" value={formatMinutes(totais.falta)} tone={totais.falta > 0 ? 'red' : 'muted'} />
-          <Totalizador label="HE diurna" value={formatMinutes(totais.he_diurna)} tone="violet" />
-          <Totalizador label="HE noturna" value={formatMinutes(totais.he_noturna)} tone="violet" />
-          <Totalizador label="BH +/-" value={`${formatMinutes(totais.bh_credito)} / ${formatMinutes(totais.bh_debito)}`} tone="emerald" small />
+          <Totalizador label="Trabalhado" value={formatMinutes(t.trabalhado)} tone="blue" />
+          <Totalizador label="Atraso" value={formatMinutes(t.atraso)} tone={t.atraso > 0 ? 'amber' : 'muted'} />
+          <Totalizador label="Falta" value={formatMinutes(t.falta)} tone={t.falta > 0 ? 'red' : 'muted'} />
+          <Totalizador label="HE diurna" value={formatMinutes(t.he_diurna)} tone="violet" />
+          <Totalizador label="HE noturna" value={formatMinutes(t.he_noturna)} tone="violet" />
+          <Totalizador label="BH +/-" value={`${formatMinutes(t.bh_credito)} / ${formatMinutes(t.bh_debito)}`} tone="emerald" small />
         </div>
 
         {/* Alerta divergências */}
-        {totais.divergencias > 0 && (
+        {t.divergencias > 0 && (
           <div className="flex items-center gap-2 rounded-lg border border-warning/40 bg-warning/5 p-3 text-sm">
             <AlertTriangle size={16} className="text-warning-fg" />
             <span>
-              <strong>{totais.divergencias}</strong> dia(s) com divergência detectada na apuração.
+              <strong>{t.divergencias}</strong> dia(s) com divergência detectada na apuração.
               Dias destacados em âmbar abaixo (heatmap e tabela).
             </span>
           </div>
@@ -162,7 +190,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
         {/* Heatmap mensal */}
         <MonthHeatmap
           mes={mes}
-          linhas={linhas}
+          linhas={rows}
           onDayClick={(linha) => {
             const el = document.getElementById(`dia-${linha.data}`);
             if (el) {
@@ -192,7 +220,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {linhas.map((l) => (
+                  {rows.map((l) => (
                     <tr
                       key={l.data}
                       id={`dia-${l.data}`}
@@ -241,6 +269,7 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
             </div>
           </CardContent>
         </Card>
+        </Deferred>
       </div>
     </>
   );

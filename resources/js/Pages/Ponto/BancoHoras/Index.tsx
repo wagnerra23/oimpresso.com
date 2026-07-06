@@ -8,11 +8,13 @@
 //   tests: Modules/PontoWr2/Tests/Feature/BancoHorasIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Link, router } from '@inertiajs/react';
+import { Deferred, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
+import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid } from '@/Components/layout';
 import { cn, formatMinutes } from '@/Lib/utils';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
@@ -44,11 +46,20 @@ interface Totais {
 }
 
 interface Props {
-  saldos: Paginated;
-  totais: Totais;
+  // saldos e totais vêm via Inertia::defer — undefined no first render
+  saldos?: Paginated;
+  totais?: Totais;
 }
 
+const TOTAIS_FALLBACK: Totais = {
+  credito_total: 0, debito_total: 0, colaboradores_credito: 0, colaboradores_debito: 0,
+};
+
 export default function BancoHorasIndex({ saldos, totais }: Props) {
+  // Guardas defensivas (defesa dupla com o <Deferred>): props deferidas são
+  // undefined no first render.
+  const t = totais ?? TOTAIS_FALLBACK;
+  const rows = saldos?.data ?? [];
   return (
     <>
       <div className="mx-auto max-w-7xl p-6 space-y-4">
@@ -63,29 +74,42 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
           </div>
         </header>
 
+        <Deferred
+          data={['saldos', 'totais']}
+          fallback={(
+            <div className="space-y-4">
+              <Grid cols={4} gap={3}>
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <Skeleton key={i} className="h-24 w-full" />
+                ))}
+              </Grid>
+              <Skeleton className="h-64 w-full" />
+            </div>
+          )}
+        >
         <KpiGrid cols={4}>
           <KpiCard
             label="Crédito total"
-            value={formatMinutes(totais.credito_total)}
+            value={formatMinutes(t.credito_total)}
             icon="trending-up"
             tone="success"
           />
           <KpiCard
             label="Débito total"
-            value={formatMinutes(totais.debito_total)}
+            value={formatMinutes(t.debito_total)}
             icon="trending-down"
             tone="danger"
           />
           <KpiCard
             label="Com crédito"
-            value={totais.colaboradores_credito}
+            value={t.colaboradores_credito}
             icon="users"
             tone="success"
             description="Colaboradores com saldo positivo"
           />
           <KpiCard
             label="Com débito"
-            value={totais.colaboradores_debito}
+            value={t.colaboradores_debito}
             icon="users"
             tone="danger"
             description="Colaboradores com saldo negativo"
@@ -94,7 +118,7 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
 
         <Card>
           <CardContent className="p-0">
-            {saldos.data.length === 0 ? (
+            {rows.length === 0 ? (
               <EmptyState
                 icon="piggy-bank"
                 title="Nenhum saldo registrado"
@@ -113,7 +137,7 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {saldos.data.map((s) => (
+                    {rows.map((s) => (
                       <tr key={s.colaborador_id} className="hover:bg-accent/30 transition-colors">
                         <td className="p-3 font-mono text-xs">{s.matricula ?? '—'}</td>
                         <td className="p-3 font-medium">{s.nome}</td>
@@ -138,13 +162,13 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
                 </table>
               </div>
             )}
-            {saldos.last_page > 1 && (
+            {(saldos?.last_page ?? 1) > 1 && (
               <div className="flex items-center justify-between border-t border-border p-3 text-xs">
                 <span className="text-muted-foreground">
-                  Página {saldos.current_page} de {saldos.last_page} · {saldos.total} saldo(s)
+                  Página {saldos?.current_page ?? 1} de {saldos?.last_page ?? 1} · {saldos?.total ?? 0} saldo(s)
                 </span>
                 <div className="flex gap-1">
-                  {saldos.links.map((link, i) => (
+                  {(saldos?.links ?? []).map((link, i) => (
                     <Button
                       key={i}
                       variant={link.active ? 'default' : 'outline'}
@@ -161,6 +185,7 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
             )}
           </CardContent>
         </Card>
+        </Deferred>
       </div>
     </>
   );

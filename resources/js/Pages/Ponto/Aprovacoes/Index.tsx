@@ -8,7 +8,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/AprovacoesIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Link, router } from '@inertiajs/react';
+import { Deferred, Link, router } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Check, CheckCheck, X } from 'lucide-react';
@@ -24,6 +24,7 @@ import {
 } from '@/Components/ui/alert-dialog';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
+import { Skeleton } from '@/Components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -79,9 +80,10 @@ interface PaginatedAprovacoes {
 }
 
 interface Props {
-  aprovacoes: PaginatedAprovacoes;
+  // aprovacoes e contagens vêm via Inertia::defer — undefined no first render
+  aprovacoes?: PaginatedAprovacoes;
   filtros: { estado: string | null; tipo: string | null; prioridade: string | null };
-  contagens: Record<string, number>;
+  contagens?: Record<string, number>;
   tipos: Array<{ value: string; label: string }>;
 }
 
@@ -120,6 +122,11 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
   const [rejectMotivo, setRejectMotivo] = useState('');
   const [processing, setProcessing] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Array<number | string>>([]);
+
+  // Guardas defensivas (defesa dupla com o <Deferred>): props deferidas são
+  // undefined no first render.
+  const rows = aprovacoes?.data ?? [];
+  const cont = contagens ?? {};
 
   const filterChange = (key: string, value: string) => {
     const params: Record<string, string> = {};
@@ -216,7 +223,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
     );
   };
 
-  const pendentes = aprovacoes.data.filter((a) => a.estado === 'PENDENTE');
+  const pendentes = rows.filter((a) => a.estado === 'PENDENTE');
   const allPendentesSelected =
     pendentes.length > 0 && pendentes.every((a) => selectedIds.includes(a.id));
   const toggleAllPendentes = () => {
@@ -252,7 +259,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
               <KpiCard
                 key={estado}
                 label={estadoLabelMap[estado]}
-                value={contagens[estado] ?? 0}
+                value={cont[estado] ?? 0}
                 icon={estadoIconMap[estado]}
                 tone={estadoToneMap[estado]}
                 size="compact"
@@ -303,9 +310,10 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
         </PageFilters>
 
         {/* Tabela */}
+        <Deferred data="aprovacoes" fallback={<Skeleton className="h-64 w-full" />}>
         <Card>
           <CardContent className="p-0">
-            {aprovacoes.data.length === 0 ? (
+            {rows.length === 0 ? (
               <EmptyState
                 icon={activeChips.length > 0 || filtros.estado ? 'search-x' : 'inbox'}
                 title={activeChips.length > 0 || filtros.estado ? 'Nenhum resultado' : 'Caixa vazia'}
@@ -349,7 +357,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {aprovacoes.data.map((a) => {
+                    {rows.map((a) => {
                       const canActOn = a.estado === 'PENDENTE';
                       const isSelected = selectedIds.includes(a.id);
                       return (
@@ -447,14 +455,14 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
             )}
 
             {/* Paginação */}
-            {aprovacoes.last_page > 1 && (
+            {(aprovacoes?.last_page ?? 1) > 1 && (
               <div className="flex items-center justify-between border-t border-border p-3 text-xs">
                 <span className="text-muted-foreground">
-                  Página {aprovacoes.current_page} de {aprovacoes.last_page} · {aprovacoes.total}{' '}
+                  Página {aprovacoes?.current_page ?? 1} de {aprovacoes?.last_page ?? 1} · {aprovacoes?.total ?? 0}{' '}
                   item(s)
                 </span>
                 <div className="flex gap-1">
-                  {aprovacoes.links.map((link, i) => (
+                  {(aprovacoes?.links ?? []).map((link, i) => (
                     <Button
                       key={i}
                       variant={link.active ? 'default' : 'outline'}
@@ -471,6 +479,7 @@ export default function AprovacoesIndex({ aprovacoes, filtros, contagens, tipos 
             )}
           </CardContent>
         </Card>
+        </Deferred>
       </div>
 
       {/* ==================== BulkActionBar ==================== */}
