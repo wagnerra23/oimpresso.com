@@ -67,40 +67,11 @@ const DEFER_GUARD_ONLY_ALLOWLIST = [
     'Auditoria/Detail'              => 'early-return `if (!activity) { return ... }` antes de qualquer deref (sweep 2026-07-06)',
 ];
 
-/**
- * PENDENTE — telas achadas pela varredura 2026-07-06 cujo fix está em PR aberto
- * (#3866–#3871). Enquanto o fix não está em `main`, a Page ainda não importa
- * <Deferred>; esta lista mantém o gate VERDE sem esconder o novo-offender (o
- * teste principal segue mordendo telas fora de AMBAS as allowlists). Higiene
- * (não bloqueia): remover cada entrada quando o PR dela mergear — a tela passa
- * a importar <Deferred> e o teste principal a valida sozinho. Meta: chegar a [].
- */
-const DEFER_GUARD_PENDING_ALLOWLIST = [
-    // PR #3866 — fix(ponto)
-    'Ponto/Aprovacoes/Index'   => 'PENDING fix PR #3866',
-    'Ponto/BancoHoras/Index'   => 'PENDING fix PR #3866',
-    'Ponto/BancoHoras/Show'    => 'PENDING fix PR #3866',
-    'Ponto/Espelho/Index'      => 'PENDING fix PR #3866',
-    'Ponto/Espelho/Show'       => 'PENDING fix PR #3866',
-    // PR #3867 — fix(essentials) (Messages já é permanente acima)
-    'Essentials/Documents/Index' => 'PENDING fix PR #3867',
-    'Essentials/Holidays/Index'  => 'PENDING fix PR #3867',
-    'Essentials/Knowledge/Index' => 'PENDING fix PR #3867',
-    'Essentials/Todo/Index'      => 'PENDING fix PR #3867',
-    // PR #3868 — fix(ads)
-    'ads/Admin/Conflicts'      => 'PENDING fix PR #3868',
-    'ads/Admin/Decisoes'       => 'PENDING fix PR #3868',
-    'ads/Admin/Learning'       => 'PENDING fix PR #3868',
-    'ads/Admin/Metricas'       => 'PENDING fix PR #3868',
-    'ads/Admin/Patterns'       => 'PENDING fix PR #3868',
-    // PR #3869 — fix(team-mcp)
-    'ads/Admin/TeamScopes'     => 'PENDING fix PR #3869',
-    'ads/Admin/Tools'          => 'PENDING fix PR #3869',
-    // PR #3870 — fix(nfe-brasil)
-    'NfeBrasil/Tributacao/Index' => 'PENDING fix PR #3870',
-    // PR #3871 — fix(admin)
-    'Admin/FeatureFlags/Show'  => 'PENDING fix PR #3871',
-];
+// PENDING allowlist ZERADA (2026-07-06): a varredura achou 19 offenders; os 18
+// que viraram <Deferred> foram corrigidos e mergeados (#3866–#3871) — cada Page
+// agora importa <Deferred> e é validada direto pelo teste principal. O 19º
+// (Essentials/Messages/Index) é guard-only e vive na allowlist PERMANENTE acima.
+// Burn-down completo: allowlist transitória chegou a [] (meta cumprida).
 
 function deferGuardRepoRoot(): string
 {
@@ -218,9 +189,6 @@ it('toda Page alvo de render com Inertia::defer importa <Deferred> ou está na a
     $violations = [];
     foreach (array_keys($withDefer) as $page) {
         if (array_key_exists($page, DEFER_GUARD_ONLY_ALLOWLIST)) {
-            continue;
-        }
-        if (array_key_exists($page, DEFER_GUARD_PENDING_ALLOWLIST)) {
             continue;
         }
 
