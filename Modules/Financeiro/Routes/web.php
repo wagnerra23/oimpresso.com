@@ -80,6 +80,10 @@ Route::middleware(['web', 'auth', 'language', 'timezone', 'AdminSidebarMenu'])
         // Onda 15 (2026-05-20): bulk update categoria em lote
         Route::post('/unificado/bulk-update-categoria', [UnificadoController::class, 'bulkUpdateCategoria'])
             ->name('unificado.bulk-update-categoria');
+        // US-FIN-031 — ações em lote genéricas (baixar/categoria/plano_conta/
+        // cancelar/exportar_csv). Ownership Tier 0 de TODOS os ids + limite 500.
+        Route::post('/unificado/bulk', [UnificadoController::class, 'bulk'])
+            ->name('unificado.bulk');
         // Onda Edit 2026-05-18 — edit Sheet inline + conferido per-user DB.
         Route::put('/unificado/{id}', [UnificadoController::class, 'update'])
             ->whereNumber('id')

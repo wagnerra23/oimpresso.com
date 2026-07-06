@@ -1145,10 +1145,10 @@ Charter v5 Non-Goal F1 — mover pra Goal pós-Ondas 12-21 (Eliana precisa pra c
 
 ### US-FIN-031 · Bulk actions tabela Unificado — checkbox + select-all + ações em lote
 
-> owner: — · sprint: Onda 25 · priority: p1 · estimate: 6h · type: story
+> owner: — · sprint: Onda 25 · priority: p1 · estimate: 6h · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** _parcial_ · `resources/js/Pages/Financeiro/Unificado/Index.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · verificado@dd3ed7c (2026-07-01) — coluna checkbox + footer "N selecionados" + `bulkUpdateCategoria` (Onda 12 e 15); falta o endpoint bulk genérico (POST unificado bulk) com as 5 ações (baixar, plano, cancelar, exportar) + modal destrutivo.
+**Implementado em:** `resources/js/Pages/Financeiro/Unificado/Index.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` (action `bulk`) · `Modules/Financeiro/Routes/web.php` (rota `financeiro.unificado.bulk`) · `Modules/Financeiro/Tests/Feature/UnificadoBulkGuardTest.php` · verificado@ec17185 (2026-07-06) — checkbox + select-all + footer (Onda 12/15) + endpoint bulk genérico com as 5 ações (baixar/categoria/plano_conta/cancelar/exportar_csv), Sheet destrutivo com total no cancelar, ownership Tier 0 fail-closed de cada id do lote, limite 500, audit trail `bulk_*`, 6 GUARDs UC-F04 na lane financeiro-pest. Nota: select-all cobre a página carregada (limit 200 do controller); seleção global via filtro fica pra quando a paginação explícita existir (Non-Goal atual do charter).
 
 Crítico fechamento mês com 200+ títulos. Hoje precisa 1-clique por linha = 200 cliques. Conta Azul/Tiny/Bling têm bulk.
 

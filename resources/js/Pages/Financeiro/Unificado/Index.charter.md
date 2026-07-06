@@ -8,19 +8,20 @@ parent_module: Financeiro
 states: [default, dark]  # gate L2 — empty/loading podados (render == default, md5 #3288) + error removido (toast não determinístico, md5 #3290) · sync com tests/Browser/visreg-states.json
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94]
-related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-050-anexos, US-FIN-055-aprovacao]
+related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-031, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: prototipo-ui/cowork/financeiro-page.jsx (design real da Visão Unificada; corrigido 2026-07-06 — antes apontava pro shell oimpresso.com.html, âncora podre pega pelo Wagner)
 bundle_source: financeiro-page.jsx
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 16
+charter_version: 17
 ---
 
 # Page Charter — /financeiro/unificado
 
 > **Status:** F3 entregue (PR #349). Charter retroativo (sessão 2026-05-09 audit) — sem `Index.charter.md` original, divergências do ADR ui/0002 documentadas abaixo.
 > Persona: **Eliana [E]** — financeiro escritório, densidade alta, atalhos teclado.
+> **v17 (2026-07-06):** US-FIN-031 ENTREGUE — bulk actions completas (ver Goals). Endpoint genérico `POST /unificado/bulk` + footer bulk com 5 ações. Non-Goal de cancelamento **emendado** (cancelar em lote existe via rota dedicada, append-only — não é estorno).
 > **v16 (2026-06-16):** Tribunal Onda 2 ([W] aprovou Onda 2 pra produção) — drawer/lista **lideram com a conclusão** (ver Goals: veredito no topo · "vs média" cross-sectional · selo→dado · FSM-resumo · acento de ação na linha · ficha sem caixa). Non-Goal de comparação **emendado** (cross-sectional ≠ delta_pct temporal). Vetos Larissa preservados (ícones coloridos das lentes + tipografia do valor).
 > **v15 (2026-06-10):** drawer 3 camadas F2 (ver Goals — hero fixo + lentes + Lente Fiscal).
 > **v14 (2026-06-10):** US-FIN-029 ENTREGUE — header "3 lentes" (ver Goals). Pacote F2 aprovado [W] 2026-06-10 ("aprovado", sessão Cowork).
@@ -35,6 +36,8 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 ---
 
 ## Goals — Features (faz)
+
+- **Bulk actions completas (US-FIN-031)** (2026-07-06, charter v17): endpoint genérico **`POST /unificado/bulk`** `{action, ids[], payload{}}` com 5 ações — **baixar** (quitação total instantânea, mesmos efeitos da baixa rápida legacy; substitui o loop de N POSTs por 1 request), **categoria** (Sheet Onda 15 migrado pro endpoint; rota `bulk-update-categoria` preservada back-compat), **plano_conta** (Sheet novo, mesmo padrão), **cancelar** (Sheet de confirmação DESTRUTIVA com "Você está cancelando N títulos totalizando R$ X" ANTES de aplicar — REGRA MESTRE valor; `status='cancelado'` append-only, quitado é pulado) e **exportar_csv** (download da seleção; BOM UTF-8 + `;` pt-BR). Tier 0: ownership de **TODOS** os ids validada antes de qualquer escrita (1 id alheio = 422 fail-closed), limite **500**/chamada, audit trail `Activity bulk_*` com `{action, ids, count, total}`. Cobertura `UnificadoBulkGuardTest` (UC-F04, 6 GUARDs — cross-tenant · soma por 2 caminhos · append-only · plano cross-tenant · limite · export não-muta).
 
 - **Tribunal Onda 2 — drawer/lista lideram com a conclusão** (2026-06-16, charter v16, método "O Tribunal" · [W] aprovou Onda 2 pra produção): 6 mudanças de **mérito** (não-bug), cor só por token semântico, vetos Larissa intactos.
   - **#1 Veredito no topo do drawer** (cadeira Victor): 1ª coisa do corpo (acima de Vínculos), 1 linha + sub, derivada 100% do estado do título (`status`/`nfe_numero`/`vencimento`) — sem mock. Tons `pos/warn/neg/muted` (success/warning/destructive/muted) com ícone redondo preenchido. `vencimento` é ISO → contagem de dias confiável.
@@ -142,7 +145,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 > Anti-alucinação. Cada item vira Pest GUARD test (Non-Goal violado = CI quebra).
 
 - ❌ ~~Form unificado de novo lançamento inline~~ — **RESOLVIDO Onda 25** (TituloCreateSheet via DropdownMenu "+ Novo título")
-- ❌ Cancelamento/estorno — vai por rotas dedicadas (`status='cancelado'` via append-only, não delete)
+- ❌ Cancelamento/estorno — vai por rotas dedicadas (`status='cancelado'` via append-only, não delete). ⚠️ **Emendado v17 (US-FIN-031):** o **cancelar em lote** EXISTE via rota dedicada `POST /unificado/bulk action=cancelar` (append-only, quitado pulado, confirmação destrutiva com total) — o que segue Non-Goal é **estorno** de título quitado (desfazer baixa), que continua fora desta tela
 - ❌ Edição de `tipo`, `origem`, `origem_id`, `status`, `emissao` — imutáveis (anti-corrupção contábil; alterar requer cancelar+criar novo). Onda Edit edita só campos seguros + valor pré-baixa.
 - ❌ Pagination explícita (default `limit(200)` no controller) — paginar quando 1000+ títulos virar dor
 - ❌ Aging buckets <30 / 30-60 / 60-90 / 90+ — ADR ui/0002 previa, F1 simplifica pra status `atrasado` único
@@ -192,6 +195,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 - Stub `/unificado/novo` redireciona pra `/contas-receber` ou `/contas-pagar` (não implementa form unificado ainda)
 - **Edit Sheet** (Onda Edit 2026-05-18): PUT `/unificado/{id}` → `UnificadoController::update(UpdateTituloRequest)` → guard `assertValorMutavel` se status quitado/cancelado
 - **Conferir per-user**: POST/DELETE `/unificado/{id}/conferir` → `conferido_by` (FK users.id) + `conferido_at` timestamp
+- **Bulk actions (US-FIN-031)**: POST `/unificado/bulk` → `UnificadoController::bulk` — `{action: baixar|categoria|plano_conta|cancelar|exportar_csv, ids[≤500], payload{}}`; ownership Tier 0 de todos os ids (422 fail-closed) + audit `Activity bulk_*`
 
 ---
 

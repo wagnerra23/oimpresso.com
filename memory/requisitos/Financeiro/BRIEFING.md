@@ -13,6 +13,7 @@ O módulo "Financeiro" oferece uma visão unificada de Contas a Receber (AR), Co
 - Conciliação de pagamentos automatizada através de eventos de cobrança.
 - Workflow para aprovação de transações com visualização integrada de AR/AP.
 - Interface de usuário com paridade visual de 9.5/10 vs canon (medição 2026-05-20).
+- Ações em lote na Visão Unificada (US-FIN-031, 2026-07-06): baixar/categorizar/plano de contas/cancelar/exportar CSV até 500 títulos por chamada, com isolamento multi-tenant fail-closed, confirmação destrutiva com total e audit trail por lote.
 
 ## Gaps
 - Drivers de pagamento adicionais (Asaas, C6, BCB Pix, etc.) aguardando credenciais ativas para ativação.
@@ -20,7 +21,7 @@ O módulo "Financeiro" oferece uma visão unificada de Contas a Receber (AR), Co
 - Implementação de relatórios financeiros avançados e métricas de performance.
 
 ## Última mudança
-Em 2026-06-08 a emissão de boletos foi corrigida de mock para operação real, com a transição para o `PaymentGateway` (o `CnabDirectStrategy` legado está sendo aposentado, não depurado). A cobertura funcional subiu de 75% para 87% e 7 funções novas entraram nas Ondas 12-21 (medição 2026-05-20).
+Em 2026-07-06 a US-FIN-031 fechou as bulk actions da Visão Unificada: endpoint genérico `POST /unificado/bulk` (5 ações), footer bulk com Plano lote + Cancelar lote + Exportar CSV, baixa em lote em 1 request e `UnificadoBulkGuardTest` (UC-F04) na lane required do CI. Antes disso, em 2026-06-08, a emissão de boletos foi corrigida de mock para operação real via `PaymentGateway` (o `CnabDirectStrategy` legado está sendo aposentado, não depurado); a cobertura funcional subiu de 75% para 87% e 7 funções novas entraram nas Ondas 12-21 (medição 2026-05-20).
 
 ## Proveniência (destilado de)
 
