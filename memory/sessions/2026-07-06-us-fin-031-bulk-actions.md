@@ -1,11 +1,9 @@
 ---
-sessao: US-FIN-031 · Bulk actions Financeiro Unificado
-data: "2026-07-06"
-owner: wagner
-autor: "[CC]"
-pr: "#3905"
-modulo: Financeiro
-tela: /financeiro/unificado
+date: "2026-07-06"
+topic: US-FIN-031 · Bulk actions Financeiro Unificado
+authors: ["C"]
+prs: [3905]
+us: ["US-FIN-031"]
 ---
 
 # Sessão 2026-07-06 — US-FIN-031 bulk actions (Financeiro Unificado)
