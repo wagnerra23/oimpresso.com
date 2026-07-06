@@ -1,5 +1,13 @@
 # TELAS_REVIEW_QUEUE.md — fila de telas pra review
 
+> ⚙️ **PRONTIDÃO DE APLICAÇÃO agora é derivada da máquina (2026-07-06).** Esta fila rastreia
+> SCORE VISUAL + charter (loop Claude Design) e é reconciliada à mão (por isso envelhece). A
+> pergunta "posso aplicar o protótipo desta tela SEM quebrar comportamento?" é respondida por
+> `node scripts/qa/prototipo-readiness.mjs` — que cruza cada tela com protótipo real contra a
+> BLINDAGEM (trio + casos.md com UC + scorecard). ✅ PRONTA = o contrato executável trava o
+> comportamento; 🟡 1-CICLO = o metabolismo MV blinda antes. Score visual alto NÃO compra
+> "pronta pra aplicar" — são eixos diferentes (ver `memory/proibicoes.md` §Precedência).
+>
 > Lista priorizada de telas pra passar pelo loop Claude Design.
 > Wagner pode reordenar. Status atualizado a cada movimento de fase.
 >

@@ -101,6 +101,22 @@
 
 ---
 
+## REGRA DE PRECEDÊNCIA — quando os artefatos de uma tela discordam (Tier 0 · Wagner 2026-07-06)
+
+> ⛔ **Autoritativa e única.** Quando `.tsx` (código) · `.charter.md` (lei) · `.casos.md` (contrato UC) · `SPEC.md` (US) **discordam** sobre o comportamento de uma tela, a ordem de precedência é:
+>
+> **teste verde citando o UC  >  `.casos.md`  >  `.charter.md`  >  `SPEC.md`**
+>
+> E a regra de ação: **conflito detectado = corrigir o PERDEDOR no MESMO PR** (não deixar os dois divergentes — divergência silenciosa é o vetor).
+>
+> **Por quê nessa ordem:** o teste verde é o único que *prova* comportamento (não afirma — demonstra); o casos.md é o contrato executável defendido por gate (ADR 0264 G-2/G-7); o charter é a intenção-lei mas pode estar desatualizado ou errado (ver origem abaixo); o SPEC é o registro de escopo, o mais distante do comportamento vivo.
+>
+> **Corolário — o charter pode estar ERRADO e ainda é "lei":** "lei" significa *autoridade de intenção*, não *garantia de correção*. Um anti-hook de charter que contradiz o código correto é instrução ativa pra regressão — corrija o charter, não o código. (CLAUDE.md princípio 3 "Charter > Spec" continua válido — o SPEC é o mais fraco; esta regra só *insere* teste e casos ACIMA do charter, porque provam o que o charter só afirma.)
+>
+> **Origem (2026-07-06):** adversário de arquitetura (V1) achou `Fiscal/Cockpit.charter.md` com anti-hook *"não cachear KPI por business — cache só agregado"* enquanto o código correto (`CockpitController` + `CockpitCacheTest`) cacheia POR business (`fiscal:cockpit:kpis:biz:{id}`). Obedecer a "lei" criaria **vazamento cross-tenant Tier 0**. As 3 formulações soltas de precedência que existiam (CLAUDE.md "Charter > Spec" · casos.md frontmatter "charter (lei)" · esta seção) ficam reconciliadas por esta regra como fonte única. Ver [session 2026-07-06 adversário](sessions/2026-07-06-adversario-arquitetura-arquivos.md) + [mapa de responsabilidade](sessions/2026-07-06-responsabilidade-arquivos-governanca.md).
+
+---
+
 ## Ambiente
 
 - ⛔ **Nunca instalar `laravel/mcp` ou `laravel/octane` no Hostinger** (nem em worktree, nem em `/tmp`). Esses pacotes só vivem em CT 100 Proxmox e local. Hostinger é shared hosting; daemons lá violam contrato ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md))
