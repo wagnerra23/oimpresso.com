@@ -196,6 +196,10 @@ class ServiceOrderController extends Controller
             'count' => count($cardsByStage[$s->key] ?? []),
         ])->all();
 
+        // D-14 (2026-07-06, ref PR #3889): o frontend filtra com only:[columns,kpis,filters]
+        // — process_seeded/filterOptions são por business (não mudam com filtro) e ficam
+        // fora do payload parcial. NÃO viram closure: o KPI boxes_total depende de
+        // count($boxOptions), então buildBoardFilterOptions roda de qualquer forma.
         return Inertia::render('OficinaAuto/ServiceOrders/Board', [
             'columns'      => $columns,
             'kpis'         => $this->buildBoardKpis($columns, count($boxOptions)),

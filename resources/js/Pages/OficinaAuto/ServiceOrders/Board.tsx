@@ -367,8 +367,11 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
       if (q) next.q = q;
       if (mecanico) next.mecanico = mecanico;
       if (box) next.box = box;
+      // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
+      // process_seeded/filterOptions são por business, não mudam com q/mecânico/box.
       router.get('/oficina-auto/ordens-servico/board', next, {
         preserveState: true, preserveScroll: true, replace: true,
+        only: ['columns', 'kpis', 'filters'],
       });
     },
     [filters.q, filters.mecanico, filters.box],

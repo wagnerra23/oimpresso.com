@@ -4,7 +4,7 @@ irmaos: Board.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-06-11"
+last_run: "2026-07-06"
 ---
 
 # Casos de Uso & Aceite — Quadro de OS da Oficina
@@ -96,3 +96,4 @@ last_run: "2026-06-11"
 - 2026-06-04 · [CC] importado pro repo via handoff. Pointers `Index.*`; nota de mapeamento design→produção adicionada.
 - 2026-06-10 · [CL] UC-11 adicionado (PACOTE QUALIDADE-9 PR-1 — caminho fim-a-fim da Larissa) + spec Playwright `oficina-os-funcional-fluxo.spec.ts`.
 - 2026-06-11 · [CL] **Re-ancorado no Board canônico** (Onda Q2): movido de `ProducaoOficina/Index.casos.md` (tela substituída pelo workspace #2551, rota virou redirect). UC-04/05/07/09 ganharam teste e2e real; UC-06 re-contratado pro veredito no drop; ex-casos 08/10 → Backlog sem token (zero órfão novo); `Status: ✅` só com veredito `pass` no manifesto G-7.
+- 2026-07-06 · [CC] sweep D-14 (partial reload `only:` no filtro do board — PR #3889 pattern). Só mudou COMO as colunas/kpis carregam; comportamento intocado. `last_run` bumpado (G-6), MAS o `.tsx` mudou depois do e2e → G-7 `stale-results` fica ativo até re-rodar `npm run e2e:check` + `casos:results` no CT100 (Tier-0 live-prod Martinho biz=164). Por isso esta mudança vai numa **branch/draft separada**, fora das PRs verdes do sweep.
