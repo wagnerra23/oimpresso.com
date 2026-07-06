@@ -11,6 +11,7 @@
 // total default — é a âncora da dual-confirmação Tier 0.
 
 import { useMemo } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 type Preset = 'dia' | 'semana' | 'mes' | 'ano' | 'tudo' | 'personalizado';
 
@@ -119,7 +120,8 @@ export default function FinPeriodBar({ dataInicio, dataFim, count, onChange }: P
           aria-label="Mês anterior"
           title="Mês anterior"
         >
-          ‹
+          {/* SVG lucide (fidelidade protótipo [W] 2026-07-06 — proto usa I.ChevronLeft, não glyph ‹) */}
+          <ChevronLeft size={15} />
         </button>
         <span className="text-[12px] font-medium text-foreground capitalize min-w-[96px] text-center tabular-nums">{navLabel}</span>
         <button
@@ -129,7 +131,7 @@ export default function FinPeriodBar({ dataInicio, dataFim, count, onChange }: P
           aria-label="Próximo mês"
           title="Próximo mês"
         >
-          ›
+          <ChevronRight size={15} />
         </button>
       </div>
 

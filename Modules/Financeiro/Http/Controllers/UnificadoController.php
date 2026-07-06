@@ -261,8 +261,14 @@ class UnificadoController extends Controller
         // com a lista filtrada.
         $kpis = $this->kpis($businessId, $start, $end, $filters['data_campo']);
 
-        // ───────────────── Listas pra filtros ─────────────────
-        $contas = ContaBancaria::where('business_id', $businessId)
+        // ───────────────── Listas pra filtros (LAZY — D-14) ─────────────────
+        // 2026-07-06 [W] "reload da página inteira é o antipadrão, não pode em tela
+        // nenhuma": estas listas são POR BUSINESS (não mudam com filtro). Como CLOSURE,
+        // o Inertia só as executa quando pedidas — no partial reload do `aplicar()`
+        // (only: kpis/lancamentos/...) elas NEM RODAM a query, nem trafegam. No load
+        // cheio (F5/primeira visita) rodam normal. Pattern: proibicoes "Inertia::defer
+        // DEFAULT em props caras" (closure = subset seguro; não muda o 1º render).
+        $contas = fn () => ContaBancaria::where('business_id', $businessId)
             ->with('account:id,name')
             ->orderBy('id')
             ->get()
@@ -271,7 +277,7 @@ class UnificadoController extends Controller
                 'nome' => $c->nome,
             ]);
 
-        $categorias = Categoria::where('business_id', $businessId)
+        $categorias = fn () => Categoria::where('business_id', $businessId)
             ->where('ativo', true)
             ->whereNull('deleted_at')
             ->orderBy('nome')
@@ -280,7 +286,7 @@ class UnificadoController extends Controller
         // Onda 12.7 (2026-05-19) — Plano de Contas hierárquico (Wagner pediu trocar
         // 'categorias livres' por estrutura contábil). Filtra só contas que aceitam
         // lançamento (folhas) + ativas. Ordenado por código pra hierarquia visual.
-        $planosConta = PlanoConta::where('business_id', $businessId)
+        $planosConta = fn () => PlanoConta::where('business_id', $businessId)
             ->where('ativo', true)
             ->where('aceita_lancamento', true)
             ->orderBy('codigo')
@@ -301,7 +307,8 @@ class UnificadoController extends Controller
             'categorias' => $categorias,
             'planosConta' => $planosConta,
             // PR E (2026-05-25) US-FIN-022 — aging breakdown pra chips de filtro
-            'agingBreakdown' => $this->agingBreakdown($businessId),
+            // (closure D-14: agregado por business, não muda com filtro — pula no partial)
+            'agingBreakdown' => fn () => $this->agingBreakdown($businessId),
             'periodLabel' => $periodLabel,
             'businessName' => $businessName,
         ]);

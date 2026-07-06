@@ -1238,8 +1238,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
   const openBaixa = useCallback((id: number) => setBaixaId(id), []);
 
   const aplicar = useCallback((patch: Partial<Filters>) => {
+    // D-14 fix (2026-07-06 [W] "reload da página inteira é o antipadrão, não pode em
+    // tela nenhuma"): `only:` = PARTIAL RELOAD Inertia — só re-busca o que MUDA com
+    // filtro. contas/categorias/planosConta/agingBreakdown são closures no controller
+    // → nem rodam a query, nem trafegam, e o React não re-renderiza a página inteira.
     router.get('/financeiro/unificado', { ...filters, ...patch }, {
       preserveState: true, preserveScroll: true, replace: true,
+      only: ['kpis', 'lancamentos', 'pagination', 'filters', 'periodLabel'],
     });
   }, [filters]);
 
@@ -1513,7 +1518,65 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             verde 145 = A receber/Recebidas (entrada cash)
             rose  25  = A pagar/Atraso (saída cash + alerta)
             azul  240 = Pagas (saída liquidada) */}
+      {/* LINHA 1 do filtro (fidelidade protótipo [W] 2026-07-06 — "o filtro deveria estar
+          em duas linhas"): Filtrar-por + PeriodBar em cima; chips/contas/plano/busca na
+          linha 2 (mesma ordem do proto financeiro-page.jsx). */}
       <div className="fin-toolbar mt-4">
+        {/* Paridade filtros WR (2026-06-03) — filtro por CAMPO de data + intervalo.
+            Espelha os filtros de data do WR Comercial (Emissão/Vencimento/Pagamento/
+            Competência). O campo escolhido + intervalo aplicam na TABELA **e** nos
+            CARDS de KPI (kpisCore segue o mesmo data_campo) — totais consistentes
+            com o grid filtrado. Intervalo vazio = usa o período preset do header.
+            NF/Vendas do WR exigem link título→transaction (origem_id), ainda
+            pendente. */}
+        <div className="fin-filter-group" role="group" aria-label="Filtro por data">
+          {/* Segmented "Filtrar por" (fidelidade protótipo [W] 2026-07-06: era um <select>
+              nativo, vira segmentado — igual ao proto financeiro-page.jsx e ao mesmo visual
+              dos presets do FinPeriodBar logo à frente: `bg-muted` + ativo `bg-background
+              shadow-sm`). Contrato backend INTACTO — dispara `aplicar({ data_campo })`, mesmo
+              param `data_campo` (vencimento/emissao/pagamento/competencia). Bônus: some 1
+              <select> nativo (ds/no-native-select). */}
+          <span className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium whitespace-nowrap">Filtrar por</span>
+          <div className="inline-flex items-center bg-muted rounded-md p-0.5 border border-border" role="group" aria-label="Campo de data">
+            {([
+              { id: 'vencimento', label: 'Vencimento' },
+              { id: 'emissao', label: 'Emissão' },
+              { id: 'pagamento', label: 'Pagamento' },
+              { id: 'competencia', label: 'Competência' },
+            ] as const).map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => aplicar({ data_campo: f.id })}
+                aria-pressed={filters.data_campo === f.id}
+                title={`Filtrar pela data de ${f.label.toLowerCase()} (igual ao WR Comercial)`}
+                className={
+                  'h-6 px-2 rounded text-[11.5px] transition ' +
+                  (filters.data_campo === f.id
+                    ? 'bg-background shadow-sm font-medium text-foreground'
+                    : 'text-muted-foreground hover:text-foreground')
+                }
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+          {/* PeriodBar (fidelidade protótipo [W] 2026-06-29, ADR 0313): presets Dia/
+              Semana/Mês/Ano/Tudo + navegador de mês ‹ › + "Personalizado" que revela
+              os dd/mm. Frontend-only — apenas seta data_inicio/fim (mesmo filtro de
+              intervalo de antes; backend + KPIs já o seguem). "Mês" = mês atual
+              reproduz o total default (periodo=mes_atual) — âncora da dual-confirmação. */}
+          <FinPeriodBar
+            dataInicio={filters.data_inicio}
+            dataFim={filters.data_fim}
+            count={pagination?.total ?? lancamentos.length}
+            onChange={(ini, fim) => aplicar({ data_inicio: ini, data_fim: fim })}
+          />
+        </div>
+      </div>
+
+      {/* LINHA 2 do filtro — chips lifecycle + toggles + contas + plano + busca/densidade. */}
+      <div className="fin-toolbar mt-2">
         {/* US-FIN-029 — chips refinam DENTRO da lente: chip incompatível com a lente
             ativa NÃO renderiza (some, não desabilitado — menos ruído, MWART dim 4). */}
         <div className="fin-filter-group" role="group" aria-label="Filtros por ciclo de vida">
@@ -1619,59 +1682,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           </>
         )}
 
-        {/* Paridade filtros WR (2026-06-03) — filtro por CAMPO de data + intervalo.
-            Espelha os filtros de data do WR Comercial (Emissão/Vencimento/Pagamento/
-            Competência). O campo escolhido + intervalo aplicam na TABELA **e** nos
-            CARDS de KPI (kpisCore segue o mesmo data_campo) — totais consistentes
-            com o grid filtrado. Intervalo vazio = usa o período preset do header.
-            NF/Vendas do WR exigem link título→transaction (origem_id), ainda
-            pendente. */}
-        <div className="fin-filter-group" role="group" aria-label="Filtro por data">
-          {/* Segmented "Filtrar por" (fidelidade protótipo [W] 2026-07-06: era um <select>
-              nativo, vira segmentado — igual ao proto financeiro-page.jsx e ao mesmo visual
-              dos presets do FinPeriodBar logo à frente: `bg-muted` + ativo `bg-background
-              shadow-sm`). Contrato backend INTACTO — dispara `aplicar({ data_campo })`, mesmo
-              param `data_campo` (vencimento/emissao/pagamento/competencia). Bônus: some 1
-              <select> nativo (ds/no-native-select). */}
-          <span className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium whitespace-nowrap">Filtrar por</span>
-          <div className="inline-flex items-center bg-muted rounded-md p-0.5 border border-border" role="group" aria-label="Campo de data">
-            {([
-              { id: 'vencimento', label: 'Vencimento' },
-              { id: 'emissao', label: 'Emissão' },
-              { id: 'pagamento', label: 'Pagamento' },
-              { id: 'competencia', label: 'Competência' },
-            ] as const).map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                onClick={() => aplicar({ data_campo: f.id })}
-                aria-pressed={filters.data_campo === f.id}
-                title={`Filtrar pela data de ${f.label.toLowerCase()} (igual ao WR Comercial)`}
-                className={
-                  'h-6 px-2 rounded text-[11.5px] transition ' +
-                  (filters.data_campo === f.id
-                    ? 'bg-background shadow-sm font-medium text-foreground'
-                    : 'text-muted-foreground hover:text-foreground')
-                }
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-          {/* PeriodBar (fidelidade protótipo [W] 2026-06-29, ADR 0313): presets Dia/
-              Semana/Mês/Ano/Tudo + navegador de mês ‹ › + "Personalizado" que revela
-              os dd/mm. Frontend-only — apenas seta data_inicio/fim (mesmo filtro de
-              intervalo de antes; backend + KPIs já o seguem). "Mês" = mês atual
-              reproduz o total default (periodo=mes_atual) — âncora da dual-confirmação. */}
-          <FinPeriodBar
-            dataInicio={filters.data_inicio}
-            dataFim={filters.data_fim}
-            count={pagination?.total ?? lancamentos.length}
-            onChange={(ini, fim) => aplicar({ data_inicio: ini, data_fim: fim })}
-          />
-        </div>
-
-        <span className="fin-filter-sep" />
+        {/* (bloco "Filtro por data" MOVIDO pra LINHA 1 acima — proto em 2 linhas, [W] 2026-07-06) */}
 
         {/* Onda 7 (2026-05-20): multi-select de contas via Popover + Checkbox.
             Backend aceita CSV "1,3,5" via filters.conta. Frontend mostra label
