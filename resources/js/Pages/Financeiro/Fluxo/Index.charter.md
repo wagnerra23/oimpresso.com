@@ -4,6 +4,7 @@ component: resources/js/Pages/Financeiro/Fluxo/Index.tsx
 owner: wagner
 status: live
 last_validated: "2026-05-21"
+smoke: "2026-07-06 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; https://oimpresso.com/financeiro/fluxo: header 'Fluxo de caixa · Projeção 35 dias' + tabs Projetado/Realizado + 4 KPIs (Saldo hoje · Projeção 30d · Pior dia previsto · Margem mínima R$ 5.000,00) + gráfico saldo projetado + 'Próximos eventos'; 0 erro console). Valores R$ 0,00 no período (sem lançamentos), tela renderiza. Smoke pedido por Wagner ao consertar a âncora."
 parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [0005-financeiro-vs-accounting-paralelo, 0114-prototipo-ui-cowork-loop-formalizado, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho]
