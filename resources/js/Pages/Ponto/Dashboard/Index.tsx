@@ -17,6 +17,7 @@ import { cn, formatMinutes } from '@/Lib/utils';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import PontoPrimaryButton from '@/Pages/Ponto/_shared/PontoPrimaryButton';
+import { Grid } from '@/Components/layout';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
@@ -276,11 +277,11 @@ DashboardIndex.layout = (page: ReactNode) => (
 
 function KpiSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+    <Grid min="sm" gap={3}>
       {[0, 1, 2, 3, 4, 5].map((i) => (
         <div key={i} className="rounded-lg border border-border bg-background h-20 animate-pulse" />
       ))}
-    </div>
+    </Grid>
   );
 }
 
