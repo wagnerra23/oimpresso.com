@@ -910,7 +910,8 @@ class ProductionController extends Controller
                 })->values(),
             'summary' => $productionService->summary($business_id),
             // Opções do filtro de local + estado dos filtros pra re-render (board uplift 50->70).
-            'business_locations' => BusinessLocation::forDropdown($business_id),
+            // closure D-14: dropdown por business, não muda com filtro — pula no partial reload
+            'business_locations' => fn () => BusinessLocation::forDropdown($business_id),
             'filters' => [
                 'location_id' => $filters['location_id'] !== null ? (int) $filters['location_id'] : null,
                 'start_date' => $filters['start_date'],

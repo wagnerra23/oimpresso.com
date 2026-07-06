@@ -62,10 +62,13 @@ const Audit: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
   available_actors,
 }) => {
   const updateFilter = (key: string, value: string) => {
+    // D-14: partial reload — só re-busca o que muda com filtro.
+    // available_endpoints/available_actors são por business (closures no controller).
     router.get('/governance/audit', { ...filters, [key]: value || undefined }, {
       preserveState: true,
       preserveScroll: true,
       replace: true,
+      only: ['entries', 'kpis', 'filters'],
     })
   }
 

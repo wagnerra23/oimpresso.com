@@ -176,7 +176,8 @@ function ScreenReview(props: ScreenReviewPageProps) {
               items={[
                 { label: 'Dashboard', icon: 'layout-dashboard', href: '/admin/screen-review/dashboard' },
                 { label: 'Triagem', icon: 'list-checks', href: '/admin/screen-review', count: meta.pending_count, active: true },
-                { label: 'Reload', icon: 'refresh-cw', onClick: () => router.reload(), variant: 'ghost' },
+                // D-14: partial reload — só re-busca as props de dados da tela
+                { label: 'Reload', icon: 'refresh-cw', onClick: () => router.reload({ only: ['meta', 'modules', 'screens'] }), variant: 'ghost' },
               ]}
             />
           }
