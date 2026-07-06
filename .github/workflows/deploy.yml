@@ -421,6 +421,28 @@ jobs:
           RESP=$(curl -fsS --max-time 30 "https://oimpresso.com/_ops_opcache_reset.php?token=$TOKEN" || echo "FAIL")
           echo "OPcache pré-gate: $RESP"
 
+      - name: Reset OPcache PRÉ-GATE (degradante) — bytecode fresco ANTES do boot gate
+        # 2026-07-06 [W] "os workflows quebraram, confira": 2 deploys (16:26/16:50) falharam
+        # no Boot gate WEB com 5xx e AUTO-CURARAM no deploy seguinte, sem mudança de código.
+        # CAUSA-RAIZ (ordem de steps): o Boot gate roda ANTES do "Reset OPcache via HTTP" —
+        # os workers web ainda servem bytecode ANTIGO por cima dos arquivos NOVOS do git
+        # reset (classmap misto → 500 fantasma no SAPI real), e o gate mata o deploy que o
+        # passo seguinte teria curado. Este reset PRÉ-gate garante que o gate smoka o código
+        # REAL do deploy. DEGRADANTE (só warning se falhar): o reset OBRIGATÓRIO/enforced
+        # continua sendo o pós-up (ADR 0269) — este não cria ponto novo de falha.
+        if: steps.maint_on.outcome == 'success'
+        run: |
+          TOKEN=$(/tmp/ssh_exec.sh "cat $RDIR/storage/app/opcache_reset_token 2>/dev/null" | tr -d '\r\n' || true)
+          if [ -n "$TOKEN" ]; then echo "::add-mask::$TOKEN"; fi
+          if [ -z "$TOKEN" ]; then
+            echo "::warning::token OPcache ausente — pré-gate reset pulado (o obrigatório pós-up valida)"
+            exit 0
+          fi
+          RESP=$(curl -fsS --max-time 30 "https://oimpresso.com/_ops_opcache_reset.php?token=$TOKEN" || echo "FAIL_CURL")
+          echo "OPcache pré-gate reset: $RESP"
+          echo "$RESP" | grep -qE "OPCACHE_RESET_OK|OPCACHE_UNAVAILABLE" \
+            || echo "::warning::pré-gate reset não confirmado — o Boot gate pode ver bytecode velho (o reset pós-up ADR 0269 segue validando)"
+
       - name: Boot gate WEB — smoke /login atrás do maintenance bypass (ANTES de tirar o site do ar)
         id: webgate
         # Pega resolução de middleware/Handler WEB quebrada que o boot-smoke console
