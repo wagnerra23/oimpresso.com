@@ -131,18 +131,26 @@ export default function TodoIndex({
   });
 
   const setFilter = (key: keyof Filters, value: string | number | null) => {
+    // D-14: partial reload — só re-busca o que muda com filtro. `assignableUsers`
+    // é defer por business no controller: fora do only:, nem roda a query.
     router.get(
       '/essentials/todo',
       {
         ...filtros,
         [key]: value === 'ALL' || value === '' || value === null ? undefined : value,
       },
-      { preserveState: true, preserveScroll: true, replace: true }
+      {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+        only: ['todos', 'filtros'],
+      }
     );
   };
 
   const clearFilters = () => {
-    router.get('/essentials/todo', {}, { preserveScroll: true });
+    // D-14: partial reload — só re-busca o que muda com filtro.
+    router.get('/essentials/todo', {}, { preserveScroll: true, only: ['todos', 'filtros'] });
   };
 
   const openStatus = (row: TodoRow) => {
@@ -398,7 +406,8 @@ export default function TodoIndex({
                       size="sm"
                       className="h-7 min-w-8 px-2 text-xs"
                       disabled={!link.url}
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                      // D-14: partial reload — paginação só re-busca a lista (todos inclui a paginação)
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['todos', 'filtros'] })}
                     >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>
