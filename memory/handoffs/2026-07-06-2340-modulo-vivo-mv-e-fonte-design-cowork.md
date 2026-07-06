@@ -4,7 +4,7 @@ time: "23:40"
 slug: modulo-vivo-mv-e-fonte-design-cowork
 tldr: "Mega-sessão ~11 PRs: stream Módulo Vivo (MV1 vital-signs + MV2 metabolismo nightly + batch #1 5 telas + MV3 readiness) · adversário ligou a catraca-de-nota órfã e achou charter Tier-0 errado · re-grade cego provou inflação Onda 1 · fonte de design Cowork resolvida (2 projetos lidos ao vivo por DesignSync, INDEX §0.2). Fio ativo em 3 chips; pendência Wagner: protótipo antigo=redesenhar?"
 prs: [3856, 3857, 3858, 3860, 3861, 3862, 3863, 3864, 3872, 3875]
-related_adrs: [0299, 0264, 0314, 0256]
+decided_by: [W]
 ---
 
 # Handoff 2026-07-06 23:40 — Módulo Vivo (MV1-3) + fonte de design Cowork resolvida
