@@ -40,11 +40,17 @@ import { join } from 'node:path';
 
 const ROOT = process.cwd();
 const SNAPSHOT = join(ROOT, 'memory', 'governance', 'vital-signs.json');
+const READINESS = join(ROOT, 'memory', 'governance', 'prototipo-readiness.json');
 const BATCHES_DIR = join(ROOT, 'memory', 'governance', 'mv-batches');
 
 export const BUDGET_DEFAULT = 5;
 // Batimento (arte §3.4): dias mínimos entre aparições do MESMO módulo em batches.
 export const BATIMENTO_DIAS = { dinheiro_fiscal: 1, vertical_prod: 3, resto: 7 };
+// Boost de protótipo (Wagner 2026-07-06): tela com protótipo Cowork real mas SEM contrato
+// (1-ciclo em prototipo-readiness) sobe na fila — blindá-la DESBLOQUEIA a aplicação do visual
+// (valor de negócio explícito). Boost multiplicativo (não override): não atropela dinheiro
+// Tier-0 quebrado, só levanta o protótipo acima do ruído de mesma criticidade.
+export const PROTOTIPO_BOOST = 1.6;
 
 /** Regra "verde+fresca pula o ciclo" (arte §3.6 regra 2 — v1). */
 export function verdeFresca(t) {
@@ -119,15 +125,30 @@ export function selecionaBatch(fila, ultimoCiclo, hojeStr, budget) {
   return out;
 }
 
+/**
+ * Boost de protótipo (pura, testável): telas em `cicloScreens` (protótipo real sem contrato)
+ * têm a prioridade multiplicada por `fator` e a fila é RE-ORDENADA. Marca `t._prototipo=true`
+ * pra ação proposta explicar o porquê. Não muta a fila original (retorna cópia ordenada).
+ */
+export function boostPrototipo(fila, cicloScreens, fator = PROTOTIPO_BOOST) {
+  const set = cicloScreens instanceof Set ? cicloScreens : new Set(cicloScreens);
+  return fila
+    .map((t) => (set.has(t.screen)
+      ? { ...t, prioridade: Math.round(t.prioridade * fator), _prototipo: true }
+      : { ...t }))
+    .sort((a, b) => b.prioridade - a.prioridade);
+}
+
 /** Ação proposta por tela — deriva dos gaps visíveis nos sinais vitais (contrato-first). */
 export function acaoProposta(t) {
-  if (t.nota === null) return 'ciclo screen-qa COMPLETO (tela sem prontuário: scorecard 16-dim + charter/casos se faltarem)';
+  const prefixo = t._prototipo ? '🎨 desbloqueia aplicação do protótipo Cowork — ' : '';
+  if (t.nota === null) return prefixo + 'ciclo screen-qa COMPLETO (tela sem prontuário: scorecard 16-dim + charter/casos se faltarem)';
   const partes = [];
   if (!t.casos) partes.push('escrever casos.md (contrato UC) + Pest ancorado no contrato');
   if (!t.charter) partes.push('escrever charter');
   if (t.stale) partes.push('re-grade do scorecard (frescor expirou)');
   if (t.nota < 80) partes.push(`atacar gaps do scorecard (nota ${t.nota})`);
-  return partes.join(' · ') || 're-check do ciclo';
+  return prefixo + (partes.join(' · ') || 're-check do ciclo');
 }
 
 function main() {
@@ -178,7 +199,16 @@ function main() {
     process.exit(0);
   }
 
-  const fila = snap.fila_prioridade || [];
+  // Boost de protótipo: telas 1-ciclo em prototipo-readiness.json sobem na fila (blindá-las
+  // desbloqueia a aplicação do visual — Wagner 2026-07-06). Soft-dep: se o readiness não
+  // existe (não rodou), segue sem boost — nunca quebra o batimento.
+  let fila = snap.fila_prioridade || [];
+  if (existsSync(READINESS)) {
+    try {
+      const ciclo = (JSON.parse(readFileSync(READINESS, 'utf8')).ciclo || []).map((c) => c.tela);
+      if (ciclo.length) fila = boostPrototipo(fila, ciclo);
+    } catch { /* readiness ilegível → sem boost, não bloqueia */ }
+  }
   const batch = selecionaBatch(fila, ultimoCiclo, hojeStr, budget);
 
   if (!batch.length) {

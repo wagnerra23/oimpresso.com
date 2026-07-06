@@ -6,7 +6,7 @@
 //   §3.4: batimento — dinheiro_fiscal re-entra em 1d, vertical 3d, resto 7d
 //   budget: corta a fila, nunca ultrapassa
 // Roda: node scripts/qa/mv-metabolismo.test.mjs
-import { verdeFresca, estadoBatches, modDevido, selecionaBatch, acaoProposta, fmScalar, BATIMENTO_DIAS, batchesInconsistentes, jaHouveBatchHoje } from './mv-metabolismo.mjs';
+import { verdeFresca, estadoBatches, modDevido, selecionaBatch, acaoProposta, fmScalar, BATIMENTO_DIAS, batchesInconsistentes, jaHouveBatchHoje, boostPrototipo, PROTOTIPO_BOOST } from './mv-metabolismo.mjs';
 
 let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
@@ -95,6 +95,39 @@ const tela = (over) => ({ screen: 'X/A', mod: 'X', classe: 'resto', nota: 50, st
   check('batch executado hoje → NÃO gera segundo batch hoje', jaHouveBatchHoje(arqs, '2026-07-06') === true);
   check('sem batch hoje → gera normalmente', jaHouveBatchHoje(arqs, '2026-07-07') === false);
 }
+
+// 11. Boost de protótipo (Wagner 2026-07-06): tela 1-ciclo com protótipo real sobe na fila
+//     (blindá-la desbloqueia a aplicação do visual). Multiplicativo, não override.
+{
+  const fila = [
+    { screen: 'A/comum', prioridade: 200, _prototipo: false },
+    { screen: 'B/proto', prioridade: 150 },
+    { screen: 'C/comum', prioridade: 100 },
+  ];
+  const out = boostPrototipo(fila, ['B/proto'], 1.6);
+  const b = out.find((t) => t.screen === 'B/proto');
+  check('protótipo boostado 150→240 (×1.6)', b.prioridade === 240 && b._prototipo === true, JSON.stringify(b));
+  check('boost RE-ORDENA: B/proto passa A/comum', out[0].screen === 'B/proto', out.map((t) => t.screen).join(','));
+  check('tela não-protótipo intacta', out.find((t) => t.screen === 'A/comum').prioridade === 200);
+  check('não muta a fila original', fila[1].prioridade === 150);
+}
+
+// 12. Boost NÃO atropela dinheiro Tier-0 quebrado (multiplicativo respeita a base): tela comum
+//     de prioridade 600 (dinheiro sem prontuário) ainda vence protótipo 150×1.6=240.
+{
+  const fila = [
+    { screen: 'Fin/critico', prioridade: 600 },
+    { screen: 'Proto/tela', prioridade: 150 },
+  ];
+  const out = boostPrototipo(fila, ['Proto/tela'], 1.6);
+  check('dinheiro-600 ainda > protótipo-boostado-240', out[0].screen === 'Fin/critico');
+}
+
+// 13. Constante do boost declarada (mudança = decisão consciente).
+check('PROTOTIPO_BOOST = 1.6', PROTOTIPO_BOOST === 1.6);
+
+// 14. acaoProposta marca o motivo do protótipo.
+check('ação de tela _prototipo cita desbloqueio', acaoProposta({ screen: 'X', nota: 70, casos: false, charter: true, _prototipo: true }).includes('protótipo'));
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato do metabolismo preservado');
 process.exit(fails ? 1 : 0);

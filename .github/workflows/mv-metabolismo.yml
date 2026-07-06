@@ -66,6 +66,12 @@ jobs:
           node scripts/qa/vital-signs.mjs --json --history | tee /tmp/vital.txt
           { echo '## Sinais vitais desta noite'; echo '```'; tail -30 /tmp/vital.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Prontidão do protótipo — readiness (alimenta o boost do metabolismo)
+        if: steps.pendente.outputs.aberto == '0'
+        run: |
+          node scripts/qa/prototipo-readiness.mjs --json | tee /tmp/proto.txt
+          { echo '## Prontidão do protótipo'; echo '```'; tail -20 /tmp/proto.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Metabolismo — proposta de batch (determinístico, zero LLM)
         if: steps.pendente.outputs.aberto == '0'
         id: batch
@@ -93,6 +99,7 @@ jobs:
           add-paths: |
             memory/governance/vital-signs.json
             memory/governance/vital-signs-history.jsonl
+            memory/governance/prototipo-readiness.json
             memory/governance/mv-batches/*.md
           commit-message: |
             chore(governance): batch MV do metabolismo nightly + snapshot dos sinais vitais [CC]
