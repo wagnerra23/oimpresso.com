@@ -2,6 +2,17 @@
 
 Formato append-only por wave/PR relevante. Modulo Ponto Eletronico Portaria MTP 671/2021 — ex-PontoWr2 (rename PHP-only Fase 3.7 PR-2, 2026-05-06; URLs/permissions/config keys legacy `pontowr2.*` preservados).
 
+## [Fix Deferred] — 2026-07-06 — first render do Dashboard crashava (props deferidas sem `<Deferred>`)
+
+### Fixed
+
+- `resources/js/Pages/Ponto/Dashboard/Index.tsx` — DashboardController entrega TODAS as 6 props caras via `Inertia::defer` (Wave 25 D6.a), mas a Page desreferenciava direto (`kpis.colaboradores_ativos`) no first render, quando prop deferida ainda é `undefined` → TypeError → tela quebrada. Detectado pelo re-grade cego 2026-07-06 (cego deu 64 vs registro 85). Fix: cada seção embrulhada em `<Deferred data="..." fallback={skeleton}>` (contrato RUNBOOK-inertia-defer-pattern.md §3, exemplo canon Cliente/Index.tsx) + guardas `?.`/`?? []` como defesa dupla + props deferidas opcionais na interface.
+
+### Added
+
+- `Tests/Feature/DashboardDeferredContractTest.php` — contrato defer backend↔frontend: controller defere as 6 props E a Page importa `Deferred` + embrulha cada prop com fallback. Cobre a metade FRONTEND que o `InertiaDeferAuditTest` (Governance, só backend) não cobria.
+- `tests/Browser/CoreScreens/AuthBridgeSmokeTest.php` ganhou tela `Ponto/Dashboard` (`/ponto`) — render real do first render (antes do auto-fetch das deferred) no gate visual pega essa classe de bug via `assertNoConsoleLogs`.
+
 ## [Wave 28] — 2026-05-17 — SATURATION FINAL functional → ≥92
 
 ### Added
