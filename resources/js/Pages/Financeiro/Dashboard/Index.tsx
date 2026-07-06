@@ -134,10 +134,14 @@ function FinanceiroDashboard({
   };
 
   const aplicarFiltro = (patch: Partial<Filters>) => {
+    // D-14: partial reload — só re-busca o que muda com filtro. kpis/contas/
+    // saldo_total são Inertia::defer por business (não dependem do filtro) e
+    // ficam de fora do only: → nem rodam a query no partial reload.
     router.get('/financeiro', { ...filters, ...patch }, {
       preserveState: true,
       preserveScroll: true,
       replace: true,
+      only: ['titulos', 'filters'],
     });
   };
 

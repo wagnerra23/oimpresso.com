@@ -65,7 +65,13 @@ class DreController extends Controller
             // Fase 4 deprecação legacy (2026-05-21): /account/balance-sheet
             // e /account/trial-balance legacy → 301 → /financeiro/dre desde
             // PR #1283. Esta tela absorve as duas via tabs.
-            $shape = $this->service->montar($businessId, $periodoTipo, $anchorMes);
+            // closure D-14: demonstrativo é por business+período, não muda com a troca
+            // de aba — como closures memoizadas, o partial reload (only: aba/balanco/
+            // balancete) pula a agregação inteira do montar(). Load cheio roda 1× só.
+            $shapeCache = null;
+            $shape = function () use (&$shapeCache, $businessId, $periodoTipo, $anchorMes): array {
+                return $shapeCache ??= $this->service->montar($businessId, $periodoTipo, $anchorMes);
+            };
 
             $balanco = $aba === 'balanco'
                 ? $this->service->montarBalanco($businessId, $anchorData)
@@ -75,11 +81,15 @@ class DreController extends Controller
                 ? $this->service->montarBalancete($businessId, $periodoTipo, $anchorMes)
                 : null;
 
-            return Inertia::render('Financeiro/Dre/Index', array_merge($shape, [
+            return Inertia::render('Financeiro/Dre/Index', [
+                'meta'                   => fn () => $shape()['meta'],
+                'linhas'                 => fn () => $shape()['linhas'],
+                'margem_operacional'     => fn () => $shape()['margem_operacional'],
+                'top_categorias_receita' => fn () => $shape()['top_categorias_receita'],
                 'aba'       => $aba,
                 'balanco'   => $balanco,
                 'balancete' => $balancete,
-            ]));
+            ]);
         }, ['op' => 'index', 'periodo_tipo' => $periodoTipo, 'aba' => $aba]);
     }
 

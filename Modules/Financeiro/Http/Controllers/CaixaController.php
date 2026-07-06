@@ -157,22 +157,27 @@ class CaixaController extends Controller
                 });
 
             // Total agregado pra cards do topo
-            $stats = DB::table('cash_registers')
-                ->where('business_id', $businessId)
-                ->selectRaw('
-                    COUNT(*) as total_caixas,
-                    SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as caixas_abertos,
-                    SUM(CASE WHEN status="close" THEN closing_amount ELSE 0 END) as soma_fechamentos
-                ')
-                ->first();
+            // closure D-14: por business, não muda com filtro — pula no partial reload
+            $stats = function () use ($businessId) {
+                $row = DB::table('cash_registers')
+                    ->where('business_id', $businessId)
+                    ->selectRaw('
+                        COUNT(*) as total_caixas,
+                        SUM(CASE WHEN status="open" THEN 1 ELSE 0 END) as caixas_abertos,
+                        SUM(CASE WHEN status="close" THEN closing_amount ELSE 0 END) as soma_fechamentos
+                    ')
+                    ->first();
+
+                return [
+                    'total_caixas' => (int) ($row->total_caixas ?? 0),
+                    'caixas_abertos' => (int) ($row->caixas_abertos ?? 0),
+                    'soma_fechamentos' => (float) ($row->soma_fechamentos ?? 0.0),
+                ];
+            };
 
             return Inertia::render('Financeiro/Caixa/Index', [
                 'caixas' => $caixas->values(),
-                'stats' => [
-                    'total_caixas' => (int) ($stats->total_caixas ?? 0),
-                    'caixas_abertos' => (int) ($stats->caixas_abertos ?? 0),
-                    'soma_fechamentos' => (float) ($stats->soma_fechamentos ?? 0.0),
-                ],
+                'stats' => $stats,
                 'filters' => [
                     'status' => $statusFilter,
                     'limit' => $limit,
