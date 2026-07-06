@@ -86,7 +86,7 @@ A leitura viva exige `/design-login` (auth claude.ai) que **não roda em CI head
 
 ## Gaps residuais conhecidos (honestidade)
 
-1. **Mapa de projeto vivo pendente.** O projeto que espelha `prototipo-ui/cowork/` ("Oimpresso ERP Conunicação Visual", `019dcfd3…`) **não aparece** em `list_projects` (que filtra a **projetos graváveis**). O `get_file` funciona dado o UUID **completo** + escopo `/design-login` — hoje o UUID pleno não está no repo (não é segredo, mas é account-scoped). A rotina precisa dele em runtime (Wagner fornece ou sessão logada lista). **Enquanto isso, a metade viva não roda**; a metade local (manifesto + md5 do repo) já roda e está provada.
+1. ~~**Mapa de projeto vivo pendente.**~~ **RESOLVIDO 2026-07-06 (mesma sessão).** UUID pleno achado no repo: `019dcfd3-6ef2-7ee6-8512-b1b0e5544e58` (em `COWORK_HANDOFF.paymentgateway-ui.md` + `mwart-quality/SKILL.md`). `get_project` confirmou "Oimpresso ERP Conunicação Visual." (`type: PROJECT_TYPE_PROJECT` — por isso ficava fora do `list_projects`, que filtra graváveis). Leitura viva PROVADA end-to-end **sem prompt de `/design-login`** (esta sessão logada já tem o escopo; o furo headless da 0315 era CI puro): `list_files` (342 paths) + `get_file`. 1º veredito real: `financeiro-page.jsx` vivo = `ae3a2cfe…` (116165 bytes) = idêntico ao repo → **SYNC**. **Limite que persiste:** a leitura roda em **sessão logada** (Claude Code), **não em CI headless** → a checagem viva segue **dispatch**, não gate de PR. E o projeto vivo é superset com **lixo próprio** (`_arquivo/`, `memory/`, `benchmark/`) — regeneração precisa FILTRAR (alimenta a [0325](0325-fonte-prototipo-migra-para-api-cowork-git-vira-cache-gerado.md)).
 2. **Sem oráculo perfeito de "vivo == esta tela".** Se dois arquivos vivos compartilham basename, o agente precisa desambiguar ao montar o snapshot (documentado no header do script). O md5 governa o veredito, não o nome.
 3. **Caveat de bytes/quebra-de-linha.** md5 é byte-exato. Se o `get_file` normalizar EOL diferente do git (`\n` vs `\r\n`), um arquivo idêntico daria STALE falso — mitigar hasheando o `content` utf8 cru; caso apareça ruído, normalizar EOL antes do md5 (registrar se acontecer).
 4. **A confiança termina no que o agente buscou.** `UNCHECKED` existe justamente pra não fingir `SYNC` quando o snapshot está incompleto (a suite não mente por silêncio).
@@ -108,7 +108,7 @@ A leitura viva exige `/design-login` (auth claude.ai) que **não roda em CI head
 - ✅ `--manifest` real: 3 arquivos-âncora (`compras-page.jsx` `cc3a8075…` · `financeiro-page.jsx` `ae3a2cfe…` · `financeiro-telas-extras.jsx` `46159c9c…`).
 - ✅ Caminho de LEITURA do DesignSync provado end-to-end (`get_file` devolveu `components/Button/Button.jsx` real).
 - ✅ Selftests existentes intactos: `anchor-content-check.test.mjs` verde · `design-memory-gate.test.mjs` verde (o wire do step novo não quebrou o gate-selftest).
-- ⏳ **Checagem VIVA (`--compare` contra o projeto ComVis)** — pendente do UUID pleno do projeto vivo (Gap 1). O mecanismo está provado; falta o mapa do projeto.
+- ✅ **Checagem VIVA (`--compare` contra o projeto ComVis) PROVADA 2026-07-06**: UUID `019dcfd3-6ef2-7ee6-8512-b1b0e5544e58`, `get_file` real → `financeiro-page.jsx` = **SYNC** (md5 `ae3a2cfe…` idêntico repo↔vivo). `--compare` real rodado: 1 sync, 2 unchecked. Roda em sessão logada (dispatch), não em CI headless.
 
 ## Notas
 

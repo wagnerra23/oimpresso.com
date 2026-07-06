@@ -84,7 +84,7 @@ A Anthropic shippou a integração **DesignSync** (a "API nova"): dá pra LER o 
 
 ## Gaps residuais honestos
 
-1. **UUID do projeto vivo pendente** (Gap 1 da 0324) — sem ele, a regeneração não roda. Wagner fornece ou sessão logada lista.
+1. ~~**UUID do projeto vivo pendente**~~ **RESOLVIDO 2026-07-06**: UUID `019dcfd3-6ef2-7ee6-8512-b1b0e5544e58` achado no repo; `get_project`/`list_files`/`get_file` provados (sessão logada, sem prompt de login). **Mas** o projeto vivo é superset com **lixo próprio** (`_arquivo/`, `memory/`, `benchmark/`, `cowork-inbox/` — 342 paths) → a regeneração **NÃO pode espelhar cru**; precisa de allowlist (só design de tela: `*-page.jsx`/`*.tsx`/`*.css`/`ds-v6`, fora `_arquivo`/`memory`/`benchmark`). "Migrar pra API" não limpa sozinho — o vivo também acumulou tentativas.
 2. **Regeneração depende de `/design-login`** — é dispatch periódico logado, não CI. Entre regenerações o cache pode ficar atrás do vivo; `mirror-freshness` sinaliza (não é instantâneo).
 3. **Perde-se autoria humana no cache** — se alguém "ajustava" o espelho à mão hoje, esse fluxo acaba (tem que mudar no Cowork e regenerar). É o objetivo, mas é uma mudança de hábito.
 4. **A referência viva no charter precisa de um formato estável** (projeto+tela) que sobreviva a rename no Cowork — a definir na fase 5.
@@ -98,7 +98,7 @@ A Anthropic shippou a integração **DesignSync** (a "API nova"): dá pra LER o 
 ## Validação (o que já está provado vs pendente)
 
 - ✅ Leitura da API funciona (`DesignSync.get_file` → conteúdo real). ✅ `mirror-freshness` (0324) já compara md5 repo↔vivo. ✅ 42 relatórios meta já saíram do espelho (commit `99e57a75`).
-- ⏳ Regeneração end-to-end pendente do UUID do projeto vivo (fase 1-2). ⏳ Reaponte de charters + adaptação do ssot-guard pendentes de ratificação.
+- ✅ **UUID + leitura viva provados 2026-07-06** (`019dcfd3-6ef2-7ee6-8512-b1b0e5544e58`; `financeiro-page.jsx` vivo=repo=`ae3a2cfe…` → o espelho está SYNC hoje). ⏳ Regeneração em massa (342→filtrado) + reaponte de charters + adaptação do ssot-guard pendentes de ratificação [W] + decisão da allowlist de filtro.
 
 ## Notas
 
