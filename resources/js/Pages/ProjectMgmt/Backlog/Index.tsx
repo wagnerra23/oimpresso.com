@@ -107,12 +107,21 @@ function BacklogIndex({
     Object.entries(toApply).forEach(([k, v]) => {
       if (v && v !== ALL && v !== '') params[k] = String(v);
     });
-    router.get('/project-mgmt/backlog', params, { preserveScroll: true, preserveState: true, replace: true });
+    // D-14: partial reload — só re-busca o que muda com filtro (epics/owners/sprints
+    // são Inertia::defer no controller → nem rodam a query no partial).
+    router.get('/project-mgmt/backlog', params, {
+      preserveScroll: true, preserveState: true, replace: true,
+      only: ['project', 'tasks', 'kpis', 'filters'],
+    });
   }
 
   function limpar() {
     setStatus(ALL); setPriority(ALL); setOwner(ALL); setSprint(ALL); setEpic(ALL); setSort('priority'); setQ('');
-    router.get('/project-mgmt/backlog', {}, { preserveScroll: true, preserveState: true, replace: true });
+    // D-14: partial reload também no "Limpar" — mesmo only do aplicar()
+    router.get('/project-mgmt/backlog', {}, {
+      preserveScroll: true, preserveState: true, replace: true,
+      only: ['project', 'tasks', 'kpis', 'filters'],
+    });
   }
 
   const qDebounceRef = useRef<number | null>(null);
