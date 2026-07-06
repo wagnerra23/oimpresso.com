@@ -1,0 +1,48 @@
+# Scorecard 16-dim — screen-qa (LLM-as-judge, agente screen-qa). NÃO editar dims à mão.
+# Ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior sem aprovação.
+# Contexto: tela VIVA mas em gate-visual — /kb/v2 (kb.v2) + /sops (sops.index) são closures
+# inline que fazem Inertia::render('kb/Index.v2') SEM props → roda 100% mock (usingMock=true);
+# KbController@indexV2 do charter nunca implementado (backend ONDA 1 pendente). status: draft.
+screen: kb/Index.v2
+path: resources/js/Pages/kb/Index.v2.tsx
+archetype: list        # tri-pane master-detail (sidebar + lista + leitor), SOPs
+persona: wagner        # governança 1440px (secundária Larissa 1280px balcão)
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — primeira grade MV batch; nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: mv-batch-2026-07-06
+graded_at: "2026-07-06"
+resumo: "Port Cowork tri-pane tokenizado (OKLCH hue 240, zero cor crua, ícones lucide, ⌘K, localStorage prefixado via hooks, aria-labels na busca) — visualmente superior à V3 (kb/Index nota 78, que usa bg-blue-100 + emojis). MAS roda mock-only: rota closure sem Controller (indexV2 pendente), status draft, gate visual ADR 0114 aberto desde 2026-05-16, e várias ações de header são toast 'em breve' (ONDA 3/4/5). Contrato de rota viva agora blindado por KbIndexV2ContractTest (auth · read-only · sem Jobs · Tier 0) + Index.v2.casos.md."
+dimensoes: { density: 78, discoverability: 74, speed_to_task: 72, error_recovery: 66, cognitive_load: 76, aesthetic_usability: 82, affordance: 70, brand_confidence: 78, mobile_fit: 66, a11y_wcag: 70, i18n_ptbr: 84, performance_perceived: 74, information_hierarchy: 78, microcopy: 76, internal_consistency: 80, preflight_conformance: 64 }
+gaps:
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Telas canon têm Controller real + <Tela>.casos.md como contrato de não-regressão"
+    fix: "Implementar KbController@indexV2 (charter Automation Hooks) + Inertia::defer nas props pesadas (nodes/paths/trees); fechar o gate visual ADR 0114 ou arquivar V2. Enquanto mock-only, discoverability e speed são de dado fake."
+    esforco: alto
+    origin: mv-batch-2026-07-06
+  - dim: "Affordance"
+    best_of_class: "Stripe (ação nunca promete o que não faz)"
+    fix: "6+ ações da header/leitor são toast.info('em breve' ONDA 3/4/5) — Grafo, Apresentação, Imprimir SOP, Histórico, Composer, IA. Desabilitar com Tooltip 'em breve' do DS em vez de botão ativo que só mostra toast."
+    esforco: baixo
+    origin: mv-batch-2026-07-06
+  - dim: "Error-recovery"
+    best_of_class: "Linear (estado de erro/vazio explícito por pane)"
+    fix: "Sem empty-state real: com backend ausente cai em MOCK silencioso (só um sufixo 'MOCK' no description). Definir empty-state quando indexV2 vier e nodes=[]; e error-boundary por pane do tri-pane."
+    esforco: medio
+    origin: mv-batch-2026-07-06
+  - dim: "Mobile-fit"
+    best_of_class: "Notion (tri-pane colapsa pra stack em <768px)"
+    fix: "data-mobile-view existe mas foco declarado é 1280px+ (Larissa balcão ONDA 6). Validar colapso tri→single-pane em viewport estreita; hoje não é meta da onda."
+    esforco: medio
+    origin: mv-batch-2026-07-06
+  - dim: "A11y-WCAG"
+    best_of_class: "Radix (roles/foco geridos) + axe zero violação crítica"
+    fix: "Busca tem aria-label ok; falta auditar axe no tri-pane (foco ao abrir NodeReader, roving tabindex na lista, kbd ⌘K anunciado). Injetar @axe-core no E2E Browser 1280/1440."
+    esforco: medio
+    origin: mv-batch-2026-07-06
+notas_metabolismo:
+  status_tela: "viva-gate-visual"
+  evidencia_viva: "rotas kb.v2 + sops.index registradas com stack middleware auth (Modules/KB/Http/routes.php:42,173) — acessível em prod, não é 301-redirect nem código morto"
+  evidencia_incompleta: "closures inline sem props; KbController@indexV2 do charter inexistente (só index()); usingMock sempre true; status: draft; gate visual ADR 0114 aberto desde 2026-05-16"
+  decisao_pendente_wagner: "promover (impl indexV2 + cutover /kb) | manter feature-flag gate visual | arquivar (se V3 kb/Index nota 78 for a direção). Reportado ao parent MV batch 2026-07-06."

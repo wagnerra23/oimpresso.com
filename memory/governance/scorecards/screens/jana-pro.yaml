@@ -1,0 +1,36 @@
+# Gerado por screen-qa-specialist (agente LLM-as-judge, método SCREEN-GRADE-16).
+# A nota 16-dim é LLM-as-judge — NÃO editar à mão.
+# Este YAML é o ponto de partida do ratchet: a nota não pode cair abaixo de baseline_anterior.
+screen: Jana/Pro
+path: resources/js/Pages/Jana/Pro.tsx
+archetype: marketing
+persona: larissa
+nota: 79
+nivel: "Advanced"
+baseline_anterior: 79   # ratchet — nota não cai abaixo disto sem aprovação (1ª nota MV)
+peso_real: 1.0
+source: mv-batch-2026-07-06
+graded_at: "2026-07-06"
+resumo: "Paywall de conversão F3 do design Cowork aprovado (gate F1.5 PASS 90) — modo FOCO, hero 2 colunas com card de prova ERP-nativo, comparação Grátis×Pro, preço honesto vs concorrentes e CTA única roxa (ADR 0190). Contrato de props enxuto e Tier 0 correto (businessId da sessão). Gaps: sem casos.md até este batch (agora criado + ProContractTest), proof ainda mock (Onda B liga BriefDiarioService real), a11y/mobile-fit não verificados por smoke, CTA é mock client-side (billing Sprint JANA-B)."
+dimensoes: { density: 80, discoverability: 78, speed_to_task: 84, error_recovery: 68, cognitive_load: 82, aesthetic_usability: 84, affordance: 82, brand_confidence: 83, mobile_fit: 66, a11y_wcag: 70, i18n_ptbr: 88, performance_perceived: 86, information_hierarchy: 82, microcopy: 82, internal_consistency: 80, preflight_conformance: 74 }
+gaps:
+  - dim: "Mobile-fit"
+    best_of_class: "Stripe checkout colapsa hero 2-col → 1-col e mantém CTA sticky legível no viewport estreito"
+    fix: "Verificar em smoke real 768px/390px se hero + comparação empilham sem overflow horizontal; charter só garante 1280px (Larissa)"
+    esforco: medio
+    origin: mv-batch-2026-07-06
+  - dim: "Error-recovery"
+    best_of_class: "Stripe mostra estado de falha da ativação (retry/erro) além do happy-path idle→ativando→ativo"
+    fix: "CTA hoje só cobre idle→Ativando→Pro ativo (mock). Ao ligar billing Sprint JANA-B, adicionar estado de erro + retry visível (dim. Estados)"
+    esforco: medio
+    origin: mv-batch-2026-07-06
+  - dim: "A11y-WCAG"
+    best_of_class: "Linear garante :focus-visible tabável e contraste AA em toda CTA/card por token, verificado por axe no CI"
+    fix: "Injetar axe no E2E da tela (viewport 1280+1440) e assertar zero violação crítica; card de prova dark precisa checar contraste dos números mono"
+    esforco: baixo
+    origin: mv-batch-2026-07-06
+  - dim: "Pre-Flight-conformance"
+    best_of_class: "Telas canon têm <Tela>.casos.md como contrato de não-regressão mordido por Pest"
+    fix: "Criado neste batch: Pro.casos.md (UC-PRO-01..06) + ProContractTest (P1..P6). proof segue mock até Onda B ligar BriefDiarioService::snapshot()"
+    esforco: baixo
+    origin: mv-batch-2026-07-06

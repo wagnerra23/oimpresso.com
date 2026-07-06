@@ -63,3 +63,59 @@ Status: ⬜ (manual — rota sob `auth` + `governance.dashboard.view`)
 `/governance/ds-rollout` exige login e a permissão `governance.dashboard.view` (mesma família das demais
 telas de governança). Item de nav só aparece com a permissão.
 **Pronto quando:** usuário sem `governance.dashboard.view` não vê o link nem acessa a rota.
+
+---
+
+## Adendo MV batch 2026-07-06 — UCs de contrato do backend (Ledger/prop `census`)
+
+> Auditoria QA-de-tela (agente `screen-qa-specialist`, batch MV aprovado por Wagner).
+> **Achado:** os 8 UCs acima estavam ⬜/🧪 — **zero teste Pest** mordia o `DsRolloutController`.
+> Os UCs abaixo são os testáveis por backend (prop `census`, fallback, roteamento) e
+> agora têm teste que MORDE em `Modules/Governance/Tests/Feature/DsRolloutControllerTest.php`.
+> UC-DSR-02/03/06/07 permanecem client-side/gate-side (não backend) — cobertos por
+> `ds-ledger.mjs`/eslint/inspeção visual, fora do escopo deste teste Pest.
+>
+> **Gap real detectado (não corrigido aqui — QA não edita):** o UC-DSR-08 afirma que a rota
+> exige `governance.dashboard.view`, mas o grupo em `Http/routes.php` só aplica `auth` (o
+> Controller faz só `$this->middleware('auth')`). A permissão está apenas no nav (`topnav.php`),
+> não no gate da rota. O teste UC-DSR-08 abaixo cobre o que É verdade hoje (auth bloqueia anônimo);
+> alinhar rota↔nav (adicionar `can:governance.dashboard.view` na rota) é decisão de Wagner.
+
+## UC-DSR-09 — Rota nomeada + throttle leve (render estático)
+Status: 🧪 (Pest escrito — `DsRolloutControllerTest`: rota existe + `throttle:60,1`)
+`/governance/ds-rollout` é `governance.ds-rollout.index`, render estático (lê 1 JSON local, zero query),
+por isso throttle leve `60,1` (vs 20-30/min das telas com query pesada). Ancorado no `routes.php` e no
+charter (§UX Targets: p95 < 500ms, zero I/O no controller).
+**Pronto quando:** `Route::has('governance.ds-rollout.index')` = true e o middleware inclui `throttle:60,1`.
+
+## UC-DSR-08b — Acesso: `auth` bloqueia anônimo (o que É verdade hoje)
+Status: 🧪 (Pest escrito — GET anônimo ⇒ 302/401/403)
+Refina UC-DSR-08 pro contrato real da rota: sem autenticar, `GET /governance/ds-rollout` retorna
+302/401/403 (nunca 200). A verificação da permissão `governance.dashboard.view` no gate da rota é o
+gap acima (hoje só no nav) — este UC cobre a barreira `auth` efetivamente presente.
+**Pronto quando:** GET anônimo devolve status ∈ {302,401,403} e nunca 200.
+
+## UC-DSR-01b — A TRAVA de governança sobrevive no fallback (número só de gate)
+Status: 🧪 (Pest escrito — cenário `sem ds-ledger.json ⇒ measured=false + TODO ledger`)
+Refina o UC-DSR-01 no nível do contrato do backend: **sem** `governance/ds-ledger.json`, o
+`DsRolloutController::staticFallback()` DEVE devolver `measured=false`, `progressPct=0`,
+`measuredAgainstSha=null`, `generatedAt=null` e `progressLabel` contendo `"TODO ledger"` — a tela nunca
+pode exibir `%` real não-medido. **Com** o artefato presente, o inverso: `measured=true` + SHA + timestamp.
+Teste NÃO-tautológico: a asserção vem do charter/ADR 0239 (git=SSOT · número só de gate), não do código.
+**Pronto quando:** apagar o artefato faz `census.measured=false` + `progressLabel` com "TODO ledger";
+o artefato presente carimba `census.measured=true` + `measuredAgainstSha`.
+
+## UC-DSR-04b — Contrato canônico da prop `census` (Ledger não é hardcoded)
+Status: 🧪 (Pest escrito — `assertInertia` sobre `census`)
+O render Inertia de `governance/DsRollout` expõe `census` com as chaves canônicas que o `.tsx` consome:
+`ledger[]` (linhas), `progressPct`, `progressLabel`, `measured`, `counts.{screens,done,references}`
+(e `treeGuard`/`measuredAgainstSha`/`generatedAt` opcionais, fechando UC-DSR-05). Garante que a tabela
+do Ledger vem da prop, não de array cravado no componente.
+**Pronto quando:** `assertInertia` acha `census.ledger` + `census.counts.references` + `census.measured`.
+
+## UC-DSR-10 — Render estático: sem `Inertia::defer` (eager por design)
+Status: 🧪 (Pest escrito — guard sobre o source do Controller)
+Ao contrário do `ModuleGradeController` (props caras → `defer`), o `DsRolloutController` lê 1 JSON local
+(zero query) e renderiza eager — coerente com o charter (p95 < 500ms, zero I/O caro). Guard anti-regressão:
+introduzir `Inertia::defer` aqui sem necessidade viola o espírito documentado.
+**Pronto quando:** o source do Controller NÃO contém `Inertia::defer` e contém `Inertia::render('governance/DsRollout'`.

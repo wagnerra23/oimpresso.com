@@ -3,10 +3,10 @@
   "contrato": "memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.2/§3.4/§3.5",
   "fleet": {
     "telas": 234,
-    "com_scorecard": 219,
+    "com_scorecard": 224,
     "charter": 141,
-    "casos": 25,
-    "stale": 15
+    "casos": 28,
+    "stale": 10
   },
   "modulos": [
     {
@@ -139,15 +139,15 @@
       "mod": "Financeiro",
       "classe": "dinheiro_fiscal",
       "telas": 21,
-      "com_scorecard": 19,
-      "sem_scorecard": 2,
+      "com_scorecard": 21,
+      "sem_scorecard": 0,
       "nota_min": 64,
       "pior_tela": "Financeiro/AssinaturaAtualizar",
       "nota_media": 75,
       "idade_max_dias": 1,
       "charter_pct": 76,
-      "casos_pct": 19,
-      "stale": true
+      "casos_pct": 24,
+      "stale": false
     },
     {
       "mod": "Fiscal",
@@ -167,15 +167,15 @@
       "mod": "governance",
       "classe": "resto",
       "telas": 7,
-      "com_scorecard": 6,
-      "sem_scorecard": 1,
+      "com_scorecard": 7,
+      "sem_scorecard": 0,
       "nota_min": 73,
       "pior_tela": "governance/Audit",
-      "nota_media": 78,
+      "nota_media": 77,
       "idade_max_dias": 1,
       "charter_pct": 100,
       "casos_pct": 14,
-      "stale": true
+      "stale": false
     },
     {
       "mod": "Home",
@@ -195,29 +195,29 @@
       "mod": "Jana",
       "classe": "resto",
       "telas": 11,
-      "com_scorecard": 10,
-      "sem_scorecard": 1,
+      "com_scorecard": 11,
+      "sem_scorecard": 0,
       "nota_min": 68,
       "pior_tela": "Jana/Regras/Index",
       "nota_media": 76,
       "idade_max_dias": 1,
       "charter_pct": 73,
-      "casos_pct": 0,
-      "stale": true
+      "casos_pct": 9,
+      "stale": false
     },
     {
       "mod": "kb",
       "classe": "resto",
       "telas": 3,
-      "com_scorecard": 2,
-      "sem_scorecard": 1,
+      "com_scorecard": 3,
+      "sem_scorecard": 0,
       "nota_min": 74,
       "pior_tela": "kb/Graph",
-      "nota_media": 77,
+      "nota_media": 76,
       "idade_max_dias": 1,
       "charter_pct": 100,
-      "casos_pct": 0,
-      "stale": true
+      "casos_pct": 33,
+      "stale": false
     },
     {
       "mod": "Manufacturing",
@@ -572,61 +572,6 @@
   ],
   "fila_prioridade": [
     {
-      "screen": "Financeiro/Impostos/Index",
-      "mod": "Financeiro",
-      "classe": "dinheiro_fiscal",
-      "nota": null,
-      "stale": true,
-      "casos": true,
-      "charter": true,
-      "idade": null,
-      "prioridade": 600
-    },
-    {
-      "screen": "Financeiro/ProvaViva",
-      "mod": "Financeiro",
-      "classe": "dinheiro_fiscal",
-      "nota": null,
-      "stale": true,
-      "casos": false,
-      "charter": true,
-      "idade": null,
-      "prioridade": 600
-    },
-    {
-      "screen": "governance/DsRollout",
-      "mod": "governance",
-      "classe": "resto",
-      "nota": null,
-      "stale": true,
-      "casos": true,
-      "charter": true,
-      "idade": null,
-      "prioridade": 150
-    },
-    {
-      "screen": "Jana/Pro",
-      "mod": "Jana",
-      "classe": "resto",
-      "nota": null,
-      "stale": true,
-      "casos": false,
-      "charter": true,
-      "idade": null,
-      "prioridade": 150
-    },
-    {
-      "screen": "kb/Index.v2",
-      "mod": "kb",
-      "classe": "resto",
-      "nota": null,
-      "stale": true,
-      "casos": false,
-      "charter": true,
-      "idade": null,
-      "prioridade": 150
-    },
-    {
       "screen": "ProjectMgmt/Board/DetailSheet",
       "mod": "ProjectMgmt",
       "classe": "resto",
@@ -858,6 +803,17 @@
       "prioridade": 104
     },
     {
+      "screen": "Financeiro/ProvaViva",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 74,
+      "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 0,
+      "prioridade": 104
+    },
+    {
       "screen": "NfeBrasil/Transactions/NfceStatus",
       "mod": "NfeBrasil",
       "classe": "dinheiro_fiscal",
@@ -990,6 +946,17 @@
       "prioridade": 92
     },
     {
+      "screen": "Financeiro/Impostos/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 78,
+      "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 0,
+      "prioridade": 88
+    },
+    {
       "screen": "NfeBrasil/Tributacao/ImportCsv",
       "mod": "NfeBrasil",
       "classe": "dinheiro_fiscal",
@@ -1120,6 +1087,39 @@
       "charter": true,
       "idade": 1,
       "prioridade": 68
+    },
+    {
+      "screen": "Fiscal/Cockpit",
+      "mod": "Fiscal",
+      "classe": "dinheiro_fiscal",
+      "nota": 84,
+      "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 64
+    },
+    {
+      "screen": "Fiscal/Nfe",
+      "mod": "Fiscal",
+      "classe": "dinheiro_fiscal",
+      "nota": 84,
+      "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 64
+    },
+    {
+      "screen": "Nfse/Index",
+      "mod": "Nfse",
+      "classe": "dinheiro_fiscal",
+      "nota": 84,
+      "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
+      "prioridade": 64
     }
   ]
 }
