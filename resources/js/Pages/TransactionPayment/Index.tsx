@@ -134,10 +134,16 @@ function Index({ pagamentos, filtros, kpis }: Props) {
     if (key === 'tipo') setTipoLocal(value as Props['filtros']['tipo']);
     if (key === 'status') setStatusLocal(value as Props['filtros']['status']);
 
+    // D-14: partial reload — só re-busca o que muda com filtro.
+    // kpis são Inertia::defer no controller (janela 30d fixa) — não re-buscam.
     router.get(
       '/payments/v2',
       { ...filtros, [key]: value },
-      { preserveScroll: true, preserveState: true }
+      {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['pagamentos', 'filtros'],
+      }
     );
   };
 
@@ -289,7 +295,8 @@ function Index({ pagamentos, filtros, kpis }: Props) {
                 size="sm"
                 variant={l.active ? 'default' : 'outline'}
                 disabled={!l.url}
-                onClick={() => l.url && router.visit(l.url, { preserveScroll: true })}
+                // D-14: partial reload — paginação só re-busca a página da lista.
+                onClick={() => l.url && router.visit(l.url, { preserveScroll: true, only: ['pagamentos', 'filtros'] })}
                 dangerouslySetInnerHTML={{ __html: l.label }}
               />
             ))}

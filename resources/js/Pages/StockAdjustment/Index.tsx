@@ -82,8 +82,11 @@ function StockAdjustmentIndex({ rows, filters, business_locations, permissions }
   const [busca, setBusca] = useState('');
 
   const aplicar = (patch: Partial<Filters>) => {
+    // D-14: partial reload — só re-busca o que muda com filtro.
+    // business_locations é closure no controller (por business) — pula no partial.
     router.get('/stock-adjustments', { ...filters, ...patch }, {
       preserveState: true, preserveScroll: true, replace: true,
+      only: ['rows', 'filters'],
     });
   };
 
