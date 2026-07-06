@@ -1184,23 +1184,67 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
     });
   }, []);
   const clearSelection = useCallback(() => setSelectedRows(new Set()), []);
+  // US-FIN-031 — endpoint bulk genérico (ownership Tier 0 de TODOS os ids +
+  // limite 500 + audit trail no backend). Todas as ações em lote passam por ele.
+  const submitBulk = useCallback((action: 'baixar' | 'categoria' | 'plano_conta' | 'cancelar', payload: Record<string, number> = {}, onDone?: () => void) => {
+    if (selectedRows.size === 0) return;
+    router.post('/financeiro/unificado/bulk', {
+      action,
+      ids: Array.from(selectedRows),
+      payload,
+    }, {
+      preserveScroll: true,
+      onSuccess: () => {
+        onDone?.();
+        clearSelection();
+      },
+    });
+  }, [selectedRows, clearSelection]);
   // Onda 15 (2026-05-20): bulk edit categoria modal state
   const [bulkCategoriaOpen, setBulkCategoriaOpen] = useState(false);
   const [bulkCategoriaId, setBulkCategoriaId] = useState<number | null>(null);
   const submitBulkCategoria = useCallback(() => {
-    if (!bulkCategoriaId || selectedRows.size === 0) return;
-    router.post('/financeiro/unificado/bulk-update-categoria', {
-      ids: Array.from(selectedRows),
-      categoria_id: bulkCategoriaId,
-    }, {
-      preserveScroll: true,
-      onSuccess: () => {
-        setBulkCategoriaOpen(false);
-        setBulkCategoriaId(null);
-        clearSelection();
-      },
+    if (!bulkCategoriaId) return;
+    submitBulk('categoria', { categoria_id: bulkCategoriaId }, () => {
+      setBulkCategoriaOpen(false);
+      setBulkCategoriaId(null);
     });
-  }, [bulkCategoriaId, selectedRows, clearSelection]);
+  }, [bulkCategoriaId, submitBulk]);
+  // US-FIN-031 — plano de contas em lote (Sheet, mesmo padrão da categoria).
+  const [bulkPlanoOpen, setBulkPlanoOpen] = useState(false);
+  const [bulkPlanoId, setBulkPlanoId] = useState<number | null>(null);
+  const submitBulkPlano = useCallback(() => {
+    if (!bulkPlanoId) return;
+    submitBulk('plano_conta', { plano_conta_id: bulkPlanoId }, () => {
+      setBulkPlanoOpen(false);
+      setBulkPlanoId(null);
+    });
+  }, [bulkPlanoId, submitBulk]);
+  // US-FIN-031 — cancelar em lote: Sheet de confirmação destrutiva com o total
+  // (REGRA MESTRE valor: apresentar o impacto ANTES de aplicar).
+  const [bulkCancelOpen, setBulkCancelOpen] = useState(false);
+  // US-FIN-031 — exportar CSV da seleção: POST fetch (Inertia não faz download)
+  // com XSRF do cookie; backend audita e devolve text/csv attachment.
+  const exportBulkCsv = useCallback(async () => {
+    if (selectedRows.size === 0) return;
+    const xsrf = decodeURIComponent(document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)?.[1] ?? '');
+    const resp = await fetch('/financeiro/unificado/bulk', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-XSRF-TOKEN': xsrf, Accept: 'text/csv' },
+      body: JSON.stringify({ action: 'exportar_csv', ids: Array.from(selectedRows) }),
+    });
+    if (!resp.ok) return;
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `lancamentos-selecionados-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, [selectedRows]);
   const [paletteOpen, setPaletteOpen] = useState(false);
   // Onda 12.6 — default compact (Wagner pediu: financeiro denso).
   const dens = DENSITY[filters.densidade ?? 'compact'];
@@ -2626,14 +2670,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               );
             })()}
             <span className="spacer" />
+            {/* US-FIN-031: baixa em lote via endpoint bulk (1 request, ownership
+                Tier 0 de todos os ids + audit) — substitui o loop de N POSTs. */}
             <Button
               size="sm"
               variant="default"
               className="h-7 px-3 text-[12px]"
-              onClick={() => {
-                selectedRows.forEach((id) => onBaixar(id));
-                clearSelection();
-              }}
+              onClick={() => submitBulk('baixar')}
             >
               Marcar pago/recebido ({selectedRows.size})
             </Button>
@@ -2645,6 +2688,31 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               onClick={() => setBulkCategoriaOpen(true)}
             >
               Categorizar lote
+            </Button>
+            {/* US-FIN-031: plano de contas + cancelar + exportar CSV da seleção */}
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-[12px]"
+              onClick={() => setBulkPlanoOpen(true)}
+            >
+              Plano lote
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-[12px] text-destructive border-destructive/40 hover:bg-destructive/5"
+              onClick={() => setBulkCancelOpen(true)}
+            >
+              Cancelar lote
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 px-3 text-[12px]"
+              onClick={() => { void exportBulkCsv(); }}
+            >
+              Exportar CSV
             </Button>
             <Button
               size="sm"
@@ -2719,6 +2787,91 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               </Button>
             </div>
           </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* US-FIN-031: Sheet pra plano de contas em lote (mesmo padrão da categoria). */}
+      <Sheet open={bulkPlanoOpen} onOpenChange={(o) => !o && setBulkPlanoOpen(false)}>
+        <SheetContent side="right" className="fin-cowork w-[440px] sm:max-w-[440px]">
+          <SheetHeader>
+            <SheetTitle>Plano de contas em lote</SheetTitle>
+          </SheetHeader>
+          <div className="px-1 py-4 space-y-4">
+            <div className="text-sm text-stone-600">
+              Selecione o plano de contas a aplicar aos <b>{selectedRows.size}</b> lançamento{selectedRows.size === 1 ? '' : 's'} selecionado{selectedRows.size === 1 ? '' : 's'}:
+            </div>
+            <Select
+              value={bulkPlanoId === null ? '__none__' : String(bulkPlanoId)}
+              onValueChange={(v) => setBulkPlanoId(v === '__none__' ? null : parseInt(v, 10))}
+            >
+              <SelectTrigger className="w-full" aria-label="Plano de contas">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">— escolher plano de contas —</SelectItem>
+                {(planosConta ?? []).filter((p) => p.id).map((p) => (
+                  <SelectItem key={p.id} value={String(p.id)}>{p.codigo} · {p.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+              <Button
+                size="sm"
+                disabled={!bulkPlanoId || selectedRows.size === 0}
+                onClick={submitBulkPlano}
+              >
+                Aplicar ({selectedRows.size})
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setBulkPlanoOpen(false)}>
+                Cancelar
+              </Button>
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* US-FIN-031: confirmação DESTRUTIVA do cancelar em lote — apresenta N +
+          total R$ ANTES de aplicar (REGRA MESTRE valor). Append-only no backend
+          (status='cancelado', nunca delete); quitados são pulados. */}
+      <Sheet open={bulkCancelOpen} onOpenChange={(o) => !o && setBulkCancelOpen(false)}>
+        <SheetContent side="right" className="fin-cowork w-[440px] sm:max-w-[440px]">
+          <SheetHeader>
+            <SheetTitle>Cancelar títulos em lote</SheetTitle>
+          </SheetHeader>
+          {(() => {
+            const selecionados = lancamentos.filter((l) => selectedRows.has(l.id));
+            const elegiveis = selecionados.filter((l) => l.status !== 'recebido' && l.status !== 'pago');
+            const totalCancel = elegiveis.reduce((s, l) => s + (l.valor_aberto ?? l.valor ?? 0), 0);
+            const pulados = selecionados.length - elegiveis.length;
+            return (
+              <div className="px-1 py-4 space-y-4">
+                <div className="text-sm text-stone-700">
+                  Você está cancelando <b>{elegiveis.length}</b> título{elegiveis.length === 1 ? '' : 's'} totalizando <b>{brl(totalCancel)}</b>.
+                </div>
+                {pulados > 0 && (
+                  <div className="text-[12px] text-stone-500">
+                    {pulados} selecionado{pulados === 1 ? '' : 's'} já liquidado{pulados === 1 ? '' : 's'} — será{pulados === 1 ? '' : 'ão'} pulado{pulados === 1 ? '' : 's'} (estorno é outro fluxo).
+                  </div>
+                )}
+                <div className="text-[12px] text-stone-500">
+                  O cancelamento é registrado como status (append-only) — o título sai da lista e dos KPIs, e fica visível no filtro Arquivados.
+                </div>
+                <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={elegiveis.length === 0}
+                    onClick={() => submitBulk('cancelar', {}, () => setBulkCancelOpen(false))}
+                  >
+                    Cancelar {elegiveis.length} título{elegiveis.length === 1 ? '' : 's'}
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => setBulkCancelOpen(false)}>
+                    Voltar
+                  </Button>
+                </div>
+              </div>
+            );
+          })()}
         </SheetContent>
       </Sheet>
       <FinPresentationMode
