@@ -66,6 +66,13 @@ $screens = [
     // processo FSM oficina_mecanica_os seedado (VisregTenantSeeder não traz o processo —
     // o corpo cai no empty-state, mas o header monta sempre).
     'Oficina/OS'           => ['/oficina-auto/ordens-servico', 'oficinaauto.orders.view',     'Oficina Auto'],
+    // Regressão 2026-07-06 (re-grade cego): TODAS as props do DashboardController
+    // são Inertia::defer — sem <Deferred> na Page o first render crashava
+    // (kpis undefined → TypeError). Este smoke renderiza de verdade o first render
+    // (antes do auto-fetch das deferred) — pega a classe inteira do bug via
+    // assertNoConsoleLogs. Âncora = sufixo eager do H1 (renderiza sem depender
+    // de prop deferida). Middleware ponto.access: admin passa via Gate::before.
+    'Ponto/Dashboard'      => ['/ponto',                       'ponto.access',                'Ponto eletrônico'],
 ];
 
 foreach ($screens as $nome => [$rota, $permissao, $ancora]) {

@@ -8,10 +8,9 @@
 //   tests: Modules/PontoWr2/Tests/Feature/DashboardIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Link, router } from '@inertiajs/react';
+import { Deferred, Link, router } from '@inertiajs/react';
 import { useEffect, type ReactNode } from 'react';
 import { ArrowRight, AlertTriangle, CheckCheck } from 'lucide-react';
-import { Badge } from '@/Components/ui/badge';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { cn, formatMinutes } from '@/Lib/utils';
@@ -86,12 +85,18 @@ interface Alerta {
 }
 
 interface Props {
-  kpis: Kpis;
-  aprovacoes: Aprovacao[];
-  atividade_recente: Marcacao[];
-  serie_7dias: SeriePonto[];
-  presenca_agora: Presenca[];
-  alertas: Alerta[];
+  /**
+   * Todas as props abaixo (exceto server_time) vêm via `Inertia::defer` do
+   * DashboardController — `undefined` no first render até o auto-fetch async
+   * resolver (RUNBOOK-inertia-defer-pattern.md). Cada seção embrulha em
+   * `<Deferred data="..." fallback={skeleton}>`.
+   */
+  kpis?: Kpis;
+  aprovacoes?: Aprovacao[];
+  atividade_recente?: Marcacao[];
+  serie_7dias?: SeriePonto[];
+  presenca_agora?: Presenca[];
+  alertas?: Alerta[];
   server_time: string;
 }
 
@@ -141,56 +146,60 @@ export default function DashboardIndex({
           </div>
         </header>
 
-        {/* KPIs */}
-        <KpiGrid cols={6}>
-          <KpiCard
-            label="Colaboradores"
-            value={kpis.colaboradores_ativos}
-            icon="users"
-            tone="info"
-            size="compact"
-            onClick={() => router.visit('/ponto/colaboradores')}
-          />
-          <KpiCard
-            label="Presentes agora"
-            value={kpis.presentes_agora}
-            icon="user-check"
-            tone="success"
-            size="compact"
-          />
-          <KpiCard
-            label="Atrasos hoje"
-            value={kpis.atrasos_hoje}
-            icon="clock-alert"
-            tone={kpis.atrasos_hoje > 0 ? 'warning' : 'default'}
-            size="compact"
-          />
-          <KpiCard
-            label="Faltas hoje"
-            value={kpis.faltas_hoje}
-            icon="user-x"
-            tone={kpis.faltas_hoje > 0 ? 'danger' : 'default'}
-            size="compact"
-          />
-          <KpiCard
-            label="HE do mês"
-            value={formatMinutes(kpis.he_mes_minutos)}
-            icon="trending-up"
-            tone="info"
-            size="compact"
-          />
-          <KpiCard
-            label="Aprovações"
-            value={kpis.aprovacoes_pendentes}
-            icon="check-check"
-            tone={kpis.aprovacoes_pendentes > 0 ? 'danger' : 'default'}
-            size="compact"
-            onClick={() => router.visit('/ponto/aprovacoes')}
-          />
-        </KpiGrid>
+        {/* KPIs — prop deferida: guarda `?.`/`?? 0` cobre o first render */}
+        <Deferred data="kpis" fallback={<KpiSkeleton />}>
+          <KpiGrid cols={6}>
+            <KpiCard
+              label="Colaboradores"
+              value={kpis?.colaboradores_ativos ?? 0}
+              icon="users"
+              tone="info"
+              size="compact"
+              onClick={() => router.visit('/ponto/colaboradores')}
+            />
+            <KpiCard
+              label="Presentes agora"
+              value={kpis?.presentes_agora ?? 0}
+              icon="user-check"
+              tone="success"
+              size="compact"
+            />
+            <KpiCard
+              label="Atrasos hoje"
+              value={kpis?.atrasos_hoje ?? 0}
+              icon="clock-alert"
+              tone={(kpis?.atrasos_hoje ?? 0) > 0 ? 'warning' : 'default'}
+              size="compact"
+            />
+            <KpiCard
+              label="Faltas hoje"
+              value={kpis?.faltas_hoje ?? 0}
+              icon="user-x"
+              tone={(kpis?.faltas_hoje ?? 0) > 0 ? 'danger' : 'default'}
+              size="compact"
+            />
+            <KpiCard
+              label="HE do mês"
+              value={formatMinutes(kpis?.he_mes_minutos ?? 0)}
+              icon="trending-up"
+              tone="info"
+              size="compact"
+            />
+            <KpiCard
+              label="Aprovações"
+              value={kpis?.aprovacoes_pendentes ?? 0}
+              icon="check-check"
+              tone={(kpis?.aprovacoes_pendentes ?? 0) > 0 ? 'danger' : 'default'}
+              size="compact"
+              onClick={() => router.visit('/ponto/aprovacoes')}
+            />
+          </KpiGrid>
+        </Deferred>
 
         {/* Presença ao vivo */}
-        <PresenceStrip colaboradores={presenca_agora} />
+        <Deferred data="presenca_agora" fallback={<StripSkeleton />}>
+          <PresenceStrip colaboradores={presenca_agora ?? []} />
+        </Deferred>
 
         {/* Grid 2 colunas — esquerda: gráfico + atividade | direita: alertas + aprovações */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -204,16 +213,22 @@ export default function DashboardIndex({
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <BarChart7Days serie={serie_7dias} />
+                <Deferred data="serie_7dias" fallback={<ChartSkeleton />}>
+                  <BarChart7Days serie={serie_7dias ?? []} />
+                </Deferred>
               </CardContent>
             </Card>
 
-            <ActivityFeed marcacoes={atividade_recente} title="Atividade de hoje" />
+            <Deferred data="atividade_recente" fallback={<CardListSkeleton />}>
+              <ActivityFeed marcacoes={atividade_recente ?? []} title="Atividade de hoje" />
+            </Deferred>
           </div>
 
           {/* Direita (1 col): alertas + aprovações */}
           <div className="space-y-4">
-            <AlertInbox alertas={alertas} />
+            <Deferred data="alertas" fallback={<CardListSkeleton />}>
+              <AlertInbox alertas={alertas ?? []} />
+            </Deferred>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -230,13 +245,15 @@ export default function DashboardIndex({
                 </Button>
               </CardHeader>
               <CardContent className="space-y-2">
-                {aprovacoes.length === 0 ? (
-                  <p className="text-xs text-muted-foreground text-center py-6">
-                    Nenhuma pendência
-                  </p>
-                ) : (
-                  aprovacoes.map((a) => <ApprovalRow key={a.id} item={a} />)
-                )}
+                <Deferred data="aprovacoes" fallback={<RowsSkeleton />}>
+                  {(aprovacoes ?? []).length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-6">
+                      Nenhuma pendência
+                    </p>
+                  ) : (
+                    (aprovacoes ?? []).map((a) => <ApprovalRow key={a.id} item={a} />)
+                  )}
+                </Deferred>
               </CardContent>
             </Card>
           </div>
@@ -251,6 +268,43 @@ DashboardIndex.layout = (page: ReactNode) => (
     {page}
   </AppShellV2>
 );
+
+// ============================================================================
+// Skeletons dos blocos deferidos (fallback do <Deferred> — first render).
+// Idioma espelha Cliente/Index.tsx (KpiSkeleton/TableSkeleton, canon defer).
+// ============================================================================
+
+function KpiSkeleton() {
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+      {[0, 1, 2, 3, 4, 5].map((i) => (
+        <div key={i} className="rounded-lg border border-border bg-background h-20 animate-pulse" />
+      ))}
+    </div>
+  );
+}
+
+function StripSkeleton() {
+  return <div className="rounded-lg border border-border bg-background h-16 animate-pulse" />;
+}
+
+function ChartSkeleton() {
+  return <div className="h-40 rounded bg-muted/50 animate-pulse" />;
+}
+
+function CardListSkeleton() {
+  return <div className="rounded-lg border border-border bg-background h-48 animate-pulse" />;
+}
+
+function RowsSkeleton() {
+  return (
+    <div className="space-y-2 py-2">
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="h-10 rounded bg-muted/50 animate-pulse" />
+      ))}
+    </div>
+  );
+}
 
 // ============================================================================
 // Bar chart 7 dias (canvas simples — ADR PontoWr2 UI-0001, sem lib externa)
