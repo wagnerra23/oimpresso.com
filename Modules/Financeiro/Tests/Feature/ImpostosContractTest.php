@@ -3,7 +3,6 @@
 declare(strict_types=1);
 // @covers-us US-FIN-062
 
-use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
