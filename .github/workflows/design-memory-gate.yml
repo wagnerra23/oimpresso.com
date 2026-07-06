@@ -166,6 +166,20 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/anchor-content-check.mjs --check
+      # Frescor do espelho (INDEX §0.2 "diffar antes de concluir" · session 2026-07-06-arte):
+      # o CI headless NÃO lê o Cowork vivo (auth interativa, sem webhook/service-token na
+      # plataforma) — então AQUI não se mede frescor. Mede-se (a) que o comparador classifica
+      # certo (selftest: identidade = hash normalizado por path completo) e (b) que a ROTINA
+      # de dispatch logado rodou dentro do SLA e a última rodada não deixou STALE (ledger
+      # datado e commitado — prova, não promessa). Frescor real = o dispatch logado.
+      - name: cowork-freshness selftest (identidade normalizada por path · morde e libera certo)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/cowork-mirror-freshness.test.mjs
+      - name: cowork-freshness SLA (rotina de dispatch em dia? · ledger · advisory)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/cowork-mirror-freshness.mjs --sla
       - name: importar-bundle selftest (import atômico · verifica antes de trocar)
         if: always()
         continue-on-error: true

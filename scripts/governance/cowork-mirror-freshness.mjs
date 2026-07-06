@@ -43,11 +43,13 @@
  * Uso:
  *   node scripts/governance/cowork-mirror-freshness.mjs --manifest          # âncoras dos charters
  *   node scripts/governance/cowork-mirror-freshness.mjs --manifest --all    # todo .jsx/.html do espelho
- *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json          # relatório
- *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check  # exit 1 se STALE
+ *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json            # relatório
+ *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check    # exit 1 se STALE
+ *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check --ledger  # + registra a rodada
+ *   node scripts/governance/cowork-mirror-freshness.mjs --sla               # headless: rotina rodou ≤14d? última limpa?
  */
 
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
@@ -84,6 +86,39 @@ export function verdictFor(relPath, repoHash, snapshot) {
 /** --check só morde em STALE — o único sinal hash-provado de divergência. */
 export function shouldFail(verdicts) {
   return verdicts.some((v) => v === 'STALE');
+}
+
+// ── LEDGER + SLA (a metade que o CI headless PODE checar com honestidade) ─────
+// O CI não lê o Cowork vivo (auth interativa). Então o CI NÃO mede frescor — mede se a
+// ROTINA de dispatch rodou dentro do SLA e qual foi o último resultado. Ledger datado,
+// append-only, commitado: prova > promessa (session 2026-07-06-arte-design-code-sync-frescor).
+export const LEDGER_REL = 'scripts/governance/.cowork-freshness-ledger.json';
+export const SLA_DAYS = 14;
+
+/** Entrada de ledger (pura, testável) a partir das rows do --compare. */
+export function ledgerEntry(rows, dateIso) {
+  const n = (v) => rows.filter((r) => r.veredito === v).length;
+  return {
+    date: dateIso,
+    files: rows.length,
+    sync: n('SYNC'),
+    stale: n('STALE'),
+    liveAbsent: n('LIVE-ABSENT'),
+    unchecked: n('UNCHECKED'),
+    staleList: rows.filter((r) => r.veredito === 'STALE').map((r) => r.cowork),
+  };
+}
+
+/** Veredito de SLA (puro): a rotina rodou há ≤ days? E a última rodada estava limpa?
+ *  NEVER-RAN e OVERDUE = vermelho de CADÊNCIA; LAST-STALE = vermelho de RESULTADO
+ *  (a última rodada achou divergência e nenhuma rodada posterior limpou). */
+export function slaVerdict(entries, nowIso, days = SLA_DAYS) {
+  if (!Array.isArray(entries) || entries.length === 0) return { veredito: 'NEVER-RAN', last: null, ageDays: null };
+  const last = entries[entries.length - 1];
+  const ageDays = Math.floor((Date.parse(nowIso) - Date.parse(last.date)) / 86400000);
+  if (ageDays > days) return { veredito: 'OVERDUE', last, ageDays };
+  if (last.stale > 0) return { veredito: 'LAST-STALE', last, ageDays };
+  return { veredito: 'FRESH', last, ageDays };
 }
 
 /** Enumera os arquivos-âncora do espelho, keyed por PATH RELATIVO COMPLETO (nunca basename).
@@ -150,6 +185,27 @@ function main() {
   const all = argv.includes('--all');
   const cmpIdx = argv.indexOf('--compare');
 
+  // --sla: modo headless-safe (lê SÓ o ledger — nada de rede/auth). Mede CADÊNCIA da rotina
+  // + último resultado; NÃO mede frescor (isso só o dispatch logado mede).
+  if (argv.includes('--sla')) {
+    const lp = join(ROOT, LEDGER_REL);
+    let entries = [];
+    try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+    const r = slaVerdict(entries, new Date().toISOString());
+    const detail = r.last ? `última rodada ${r.last.date} (há ${r.ageDays}d): ${r.last.sync} sync · ${r.last.stale} stale · ${r.last.unchecked} unchecked` : 'nenhuma rodada registrada';
+    if (r.veredito === 'FRESH') {
+      console.log(`✓ rotina de frescor dentro do SLA (${SLA_DAYS}d) — ${detail}.`);
+      return;
+    }
+    const msg = {
+      'NEVER-RAN': () => `rotina de frescor NUNCA rodou (ledger vazio) — rode o dispatch logado (--manifest → DesignSync.get_file → --compare snap.json --check --ledger).`,
+      'OVERDUE': () => `rotina de frescor FORA do SLA (${SLA_DAYS}d) — ${detail}. Rode o dispatch logado.`,
+      'LAST-STALE': () => `última rodada achou STALE não-resolvido — ${detail} (${(r.last.staleList || []).join(', ')}). Re-exporte do Cowork e rode de novo.`,
+    }[r.veredito]();
+    console.error(`✗ ${msg}`);
+    process.exit(1);
+  }
+
   const manifest = buildManifest(ROOT, { all });
 
   if (cmpIdx === -1) {
@@ -187,6 +243,16 @@ function main() {
   for (const r of absent) console.log(`  🟡 LIVE-ABSENT ${r.cowork}  (não achado no vivo — rename/delete upstream ou mapa errado)`);
   for (const r of unchecked) console.log(`  ⬜ UNCHECKED   ${r.cowork}  (agente não buscou — snapshot incompleto)`);
   console.log(`\n  ⛔ stale: ${stale.length} · 🟡 live-absent: ${absent.length} · ⬜ unchecked: ${unchecked.length} · ✓ sync: ${sync.length}\n`);
+
+  // --ledger: registra a rodada (datada, append-only) — é o que o --sla audita depois.
+  if (argv.includes('--ledger')) {
+    const lp = join(ROOT, LEDGER_REL);
+    let entries = [];
+    try { entries = existsSync(lp) ? JSON.parse(readFileSync(lp, 'utf8')) : []; } catch { entries = []; }
+    entries.push(ledgerEntry(rows, new Date().toISOString()));
+    writeFileSync(lp, JSON.stringify(entries, null, 2) + '\n');
+    console.log(`  ledger: rodada registrada em ${LEDGER_REL} (${entries.length} entrada(s)). Commite o ledger.`);
+  }
 
   if (strict && shouldFail(rows.map((r) => r.veredito))) {
     console.error(`✗ ${stale.length} arquivo(s) do espelho STALE — o vivo avançou e o espelho ficou. Re-exporte do Cowork.`);
