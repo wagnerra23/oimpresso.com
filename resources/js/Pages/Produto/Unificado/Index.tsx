@@ -100,7 +100,12 @@ function ProdutoUnificadoIndex({ tela, filters, kpis, produtos, categorias, insu
   }, []);
 
   const setSubTela = (t: Props['tela']) =>
-    router.get(route('products.unificado.index'), { ...filters, tela: t }, { preserveState: true, preserveScroll: true, replace: true });
+    // D-14: partial reload — só re-busca o que muda com a sub-tela.
+    // kpis/produtos/categorias são closures no controller (não mudam com `tela`) — pulam.
+    router.get(route('products.unificado.index'), { ...filters, tela: t }, {
+      preserveState: true, preserveScroll: true, replace: true,
+      only: ['tela', 'filters', 'insumos', 'tabelas', 'historico'],
+    });
 
   return (
     <>

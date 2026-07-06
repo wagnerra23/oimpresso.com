@@ -43,11 +43,13 @@ class AuditController extends Controller
         ];
 
         // ROLLBACK Wave W7 #953: Inertia::defer quebrava Pages que esperam props eager.
+        // (Closure ≠ defer: roda normal no 1º render, só é pulada em partial reload.)
         return Inertia::render('governance/Audit', [
             'entries'             => $this->buildEntriesPayload($filterPayload),
             'kpis'                => $this->buildKpisPayload($filterPayload),
-            'available_endpoints' => $this->service->availableEndpoints(),
-            'available_actors'    => $this->service->availableActors(),
+            // closures D-14: distinct por business, não mudam com filtro — pulam no partial reload
+            'available_endpoints' => fn () => $this->service->availableEndpoints(),
+            'available_actors'    => fn () => $this->service->availableActors(),
             'filters'             => $filterPayload,
         ]);
     }

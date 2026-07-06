@@ -353,11 +353,14 @@ function TasksIndex({
     if (m !== ALL) params.module = m;
     if (o !== ALL) params.owner = o;
     if (s !== ALL) params.sprint = s;
-    router.get('/team-mcp/tasks', params, { preserveScroll: true, preserveState: true, replace: true });
+    // D-14: partial reload — só re-busca o que muda com filtro
+    // (modulos/owners/sprints/agents são defer por business — pulam no partial).
+    router.get('/team-mcp/tasks', params, { preserveScroll: true, preserveState: true, replace: true, only: ['kanban', 'backlog', 'kpis', 'filters'] });
   }
   function clearFilter() {
     setModulo(ALL); setOwner(ALL); setSprint(ALL);
-    router.get('/team-mcp/tasks', {}, { preserveScroll: true, preserveState: true, replace: true });
+    // D-14: partial reload — idem applyFilter
+    router.get('/team-mcp/tasks', {}, { preserveScroll: true, preserveState: true, replace: true, only: ['kanban', 'backlog', 'kpis', 'filters'] });
   }
 
   const hasServerFilter = modulo !== ALL || owner !== ALL || sprint !== ALL;

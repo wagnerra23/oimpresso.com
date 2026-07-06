@@ -87,8 +87,6 @@ class HomeController extends Controller
 
         $can_dashboard_data = (bool) auth()->user()->can('dashboard.data');
 
-        $all_locations = BusinessLocation::forDropdown($business_id)->toArray();
-
         $totals = null;
         if ($can_dashboard_data) {
             $fy = $this->businessUtil->getCurrentFinancialYear($business_id);
@@ -132,7 +130,8 @@ class HomeController extends Controller
             'user_name' => (string) request()->session()->get('user.first_name', ''),
             'is_admin' => (bool) $is_admin,
             'can_dashboard_data' => $can_dashboard_data,
-            'all_locations' => $all_locations,
+            // closure D-14: dropdown por business, não muda com filtro — pula no partial reload
+            'all_locations' => fn () => BusinessLocation::forDropdown($business_id)->toArray(),
             'totals' => $totals,
             'legacy_url' => '/home?legacy=1',
             'endpoints' => [

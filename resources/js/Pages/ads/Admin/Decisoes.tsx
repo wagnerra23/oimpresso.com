@@ -68,7 +68,13 @@ const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
 const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ tab, decisions, kpis }) => {
   const k = kpis ?? KPIS_FALLBACK
   const rows = decisions ?? []
-  const setTab = (value: string) => router.get('/ads/admin/decisoes', { tab: value }, { preserveState: false })
+  // D-14: partial reload — troca de tab só re-busca tab+decisions (defer no controller);
+  // kpis são por business (não mudam com a tab) — pulam no partial. preserveState
+  // mantém o toggle de auto-refresh entre tabs (antes preserveState:false remontava tudo).
+  const setTab = (value: string) =>
+    router.get('/ads/admin/decisoes', { tab: value }, {
+      preserveState: true, preserveScroll: true, replace: true, only: ['tab', 'decisions'],
+    })
 
   // Auto-refresh: polling 10s nas abas operacionais (não no histórico)
   const [autoRefresh, setAutoRefresh] = useState(true)
