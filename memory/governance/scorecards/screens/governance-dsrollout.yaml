@@ -1,0 +1,38 @@
+# Scorecard 16-dim (screen-grade) — LLM-as-judge (agente screen-qa-specialist).
+# NÃO editar a nota à mão: é o ponto de partida do ratchet (não cai abaixo de baseline_anterior).
+# Gerado no batch MV 2026-07-06 (aprovado por Wagner) — primeira nota desta tela.
+screen: governance/DsRollout
+path: resources/js/Pages/governance/DsRollout.tsx
+archetype: dashboard
+persona: wagner
+nota: 74
+nivel: "Solid"
+baseline_anterior: 74   # ratchet — nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: mv-batch-2026-07-06
+graded_at: "2026-07-06"
+resumo: >-
+  Tela de governança que se pratica: usa o DS canon que prega (PageHeader v3.8, KpiGrid/KpiCard,
+  Card, Badge, tokens semânticos, dark:) e evita o <style> OKLCH cru do protótipo — o próprio débito
+  que combate. Render estático eager (lê 1 JSON local, zero query) coerente com p95 < 500ms. Ledger
+  vivo pela prop census com trava de governança (measured=false + TODO ledger quando artefato ausente).
+  Pesa contra: tabelas de onda em <table> Tailwind hand-rolled (não DataTable/PT-01), charter em
+  status:draft (não aprovado visualmente por Wagner), e ATÉ ESTE BATCH zero teste Pest mordia o
+  Controller (gap fechado por DsRolloutControllerTest — UC-DSR-01b/04b/08b/09/10).
+dimensoes: {}   # 16 dims individuais: a regradeação detalhada preenche (baseline só tem agregado)
+gaps:
+  - dim: "Internal-consistency"
+    best_of_class: "Linear reusa DataTable em vez de <table> manual por tela"
+    fix: "Migrar as tabelas de onda (Bloco A/B/C) e a 'Medição real @main' pro DataTable shared / PT-01 — hoje são <table> Tailwind semânticas hand-rolled"
+    esforco: medio
+    origin: mv-batch-2026-07-06
+  - dim: "Evidence-coverage"
+    best_of_class: "Stripe cobre cada tela de painel com teste de contrato da prop antes de chamar 'pronto'"
+    fix: "ATÉ ESTE BATCH nenhum Pest mordia o DsRolloutController. Fechado por DsRolloutControllerTest (trava fallback measured=false, contrato census, auth, rota). Falta CI verde no CT100 pra virar status ✅"
+    esforco: baixo
+    origin: mv-batch-2026-07-06
+  - dim: "Approval-provenance"
+    best_of_class: "Charter só vira 'live' após aprovação visual explícita (gate F2 do PROTOCOL)"
+    fix: "Charter está status:draft desde 2026-06-12 aguardando Wagner aprovar SCREENSHOT (não tabela). Promover a live só depois do smoke visual 1280+1440"
+    esforco: baixo
+    origin: mv-batch-2026-07-06

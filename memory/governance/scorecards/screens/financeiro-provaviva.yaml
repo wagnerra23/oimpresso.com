@@ -1,0 +1,37 @@
+# Nota 16-dim LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Primeira medição da tela (não vinha do baseline seed 2026-05-30): gerada no
+# piloto do metabolismo Módulo Vivo (MV batch 2026-07-06). baseline_anterior = nota
+# (âncora inicial do ratchet — nota não pode cair abaixo sem aprovação humana).
+screen: Financeiro/ProvaViva
+path: resources/js/Pages/Financeiro/ProvaViva.tsx
+archetype: dashboard
+persona: eliana
+nota: 74
+nivel: "Advanced"
+baseline_anterior: 74   # ratchet — primeira medição; nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: mv-batch-2026-07-06
+graded_at: "2026-07-06"
+resumo: "Tela-piloto que FECHA o critério de pronto da ADR 0253: Financeiro densa (hero de saldo roxo oklch, KPIs A receber/A pagar com ageing, ledger unificado por data, drawer 452px com FSM stepper + conciliação/fiscal/cobrança) composta 100% pelos primitivos de layout (Box/Stack/Inline/Grid/Container/Text), zero .css de tela, só tokens do @theme. Identidade roxa marcante, densidade ERP alta, hierarquia em 3 tiers clara, Intl pt-BR, cabe em 1280px. Tem charter + casos.md (após MV) + RUNBOOK + guard financeiro.dashboard.view. LIMITES honestos: dados são MOCK no .tsx (é prova de LAYOUT, não a Visão Unificada de produção — Non-Goal explícito), drawer de domínio é casca (não ligado a DB), ⌘K decorativo, sem estados de loading/erro (não há mutação), a11y de tabela/drawer não auditada com axe, sem E2E Browser (console/scroll-x/axe 1280+1440 não automatizados)."
+dimensoes: { density: 82, discoverability: 68, speed_to_task: 66, error_recovery: 60, cognitive_load: 76, aesthetic_usability: 82, affordance: 66, brand_confidence: 84, mobile_fit: 70, a11y_wcag: 64, i18n_ptbr: 84, performance_perceived: 82, information_hierarchy: 84, microcopy: 74, internal_consistency: 78, preflight_conformance: 82 }
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Linear/Stripe: toda ação tem estado (loading, vazio, erro) e a busca/⌘K responde ou explica por que não"
+    fix: "A ⌘K e a busca são decorativas (não filtram — Non-Goal declarado), o drawer é mock e não há estado de erro/vazio em lugar nenhum. Numa prova de layout é aceitável, MAS o clique na linha/atalho sem resposta viola a expectativa de affordance. Se virar produção: onError/empty-state no ledger + busca funcional. Como pilot, marcar visualmente o que é mock (badge 'demo') reduz a promessa quebrada."
+    esforco: baixo
+    origin: mv-batch-2026-07-06
+  - dim: "Speed-to-task"
+    best_of_class: "Bling/Conta Azul: a tela financeira principal leva direto a uma ação (baixar, conciliar, lançar)"
+    fix: "Não há tarefa completável — todos os controles (lente caixa/receber/pagar, busca, drawer) operam sobre mock e nenhum persiste. É intencional (prova de layout), mas derruba speed-to-task por definição. Sem fix na tela; a métrica sobe só quando a Visão Unificada (Financeiro/Unificado/Index) for a landing real. Documentado no Non-Goal do charter."
+    esforco: alto
+    origin: mv-batch-2026-07-06
+  - dim: "A11y-WCAG"
+    best_of_class: "GOV.UK/Stripe: drawer com focus-trap + aria-modal + Esc, ledger com semântica de tabela e status além da cor"
+    fix: "O drawer lateral 452px (clique na linha) não foi auditado: precisa focus-trap, aria-modal, retorno de foco ao fechar e Esc. O ledger denso comunica urgência (atrasado/vencendo) por acento de cor — validar contraste e reforço textual. Rodar @axe-core no E2E (1280/1440) e assertar zero violação crítica; hoje NÃO há E2E Browser desta tela (UC-PV-06 pendente)."
+    esforco: medio
+    origin: mv-batch-2026-07-06
+  - dim: "Affordance"
+    best_of_class: "Linear: um controle que não faz nada não existe na tela (ou está claramente desabilitado)"
+    fix: "⌘K/busca com placeholder 'Buscar…' e Kbd visível sugerem funcionalidade que não existe (Non-Goal). Afeta a confiança do operador. Numa prova de layout, ou remover o affordance ativo ou marcá-lo desabilitado/demo. Pareia com o gap de error-recovery."
+    esforco: baixo
+    origin: mv-batch-2026-07-06
