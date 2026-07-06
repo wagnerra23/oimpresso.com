@@ -111,6 +111,6 @@ jobs:
             exit 0
           fi
 
-          # bin/submit-handoff.sh = fonte única do sign+POST (reusada pelo publisher
-          # cowork-inbox.yml, ADR 0285). Skip-as-pass interno se faltar secret.
+          # bin/submit-handoff.sh = fonte única do sign+POST (ADR 0283/0285).
+          # Skip-as-pass interno se faltar secret.
           bash bin/submit-handoff.sh "${FILES[@]}"

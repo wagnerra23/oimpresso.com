@@ -16,7 +16,6 @@ on:
       - 'memory/**'
       - '**.md'
       - 'prototipo-ui/**'
-      - 'cowork-inbox/**'
   workflow_dispatch:
     inputs:
       skip_backup:
