@@ -73,6 +73,29 @@ export function estadoBatches(arquivos) {
   return { pendente, ultimoCiclo };
 }
 
+/**
+ * Consistência batch↔scorecard (adversário 2026-07-06 V2): um batch `proposto` cujo
+ * scorecard `source: mv-batch-<date>` JÁ existe = execução começou antes da aprovação
+ * registrada — o status do batch está mentindo. Retorna os batches inconsistentes.
+ * (pura, testável — `sources` = lista de valores `source:` dos scorecards)
+ */
+export function batchesInconsistentes(arquivos, sources) {
+  const executadas = new Set(
+    sources.filter((s) => s && s.startsWith('mv-batch-')).map((s) => s.slice('mv-batch-'.length)),
+  );
+  return arquivos.filter((b) => (b.status === 'proposto' || b.status === 'aprovado') && executadas.has(b.date));
+}
+
+/**
+ * 1 batch por dia, MÁXIMO (bug pego pelo dogfood 2026-07-06): com o batch do dia já
+ * `executado`, o metabolismo gerava um SEGUNDO batch na mesma data — sobrescrevendo o
+ * arquivo histórico (violação append-only). O batimento é no máximo diário; batch do
+ * dia existente (qualquer status) = espera o próximo dia. (pura, testável)
+ */
+export function jaHouveBatchHoje(arquivos, hojeStr) {
+  return arquivos.some((b) => b.date === hojeStr);
+}
+
 /** Módulo está devido? (batimento por classe — arte §3.4). */
 export function modDevido(mod, classe, ultimoCiclo, hojeStr) {
   const ultimo = ultimoCiclo.get(mod);
@@ -131,8 +154,27 @@ function main() {
     });
   const { pendente, ultimoCiclo } = estadoBatches(arquivos);
 
+  // Consistência batch↔scorecard (adversário V2): scorecard emitido com o batch ainda
+  // proposto/aprovado = o registro de autorização está mentindo. Falha ALTO — o humano
+  // corrige o status (executado) ou investiga quem executou sem registrar.
+  const SCORECARD_DIR_MV = join(ROOT, 'memory', 'governance', 'scorecards', 'screens');
+  const sources = existsSync(SCORECARD_DIR_MV)
+    ? readdirSync(SCORECARD_DIR_MV).filter((f) => f.endsWith('.yaml') || f.endsWith('.yml'))
+        .map((f) => (readFileSync(join(SCORECARD_DIR_MV, f), 'utf8').match(/^source:\s*"?([^"\n]+)"?/m) || [])[1])
+    : [];
+  const mentindo = batchesInconsistentes(arquivos, sources);
+  if (mentindo.length) {
+    console.error(`✗ batch(es) com status mentindo — scorecard 'mv-batch-<date>' já emitido mas status ainda proposto/aprovado: ${mentindo.map((b) => b.file).join(', ')}. Corrija pra 'executado' (ou investigue execução não registrada).`);
+    process.exit(1);
+  }
+
   if (pendente) {
     console.log(`⏸ batch ${pendente.file} ainda ${pendente.status} — gate humano pendente, não empilho (arte §3.6 regra 3).`);
+    process.exit(0);
+  }
+
+  if (jaHouveBatchHoje(arquivos, hojeStr)) {
+    console.log(`✓ já houve batch em ${hojeStr} (1 batch/dia máximo — protege o histórico append-only). Próximo batimento amanhã.`);
     process.exit(0);
   }
 

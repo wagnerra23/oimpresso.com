@@ -26,8 +26,10 @@
  *                trend da frota; NUNCA reescrever linhas antigas)
  *
  * NÃO é gate: advisory por lei (ADR 0314 — gates novos nascem advisory). O cron-metabolismo
- * (MV2) LÊ este snapshot pra priorizar; catracas continuam nos gates existentes
- * (screen-grades-ratchet, screen-coverage-map --check).
+ * (MV2) LÊ este snapshot pra priorizar; catracas que defendem a nota/cobertura:
+ * screen-grades-ratchet (via workflow screen-grades-ratchet.yml — LIGADO 2026-07-06, depois
+ * do adversário V4 provar que o script existia sem nenhum workflow rodá-lo) e
+ * screen-coverage-map --check (screen-coverage-gate.yml).
  *
  * Uso:
  *   node scripts/qa/vital-signs.mjs                  # só relatório

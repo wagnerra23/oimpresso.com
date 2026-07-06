@@ -848,6 +848,71 @@ function checkAuditCoverage() {
   }
 }
 
+// ── Check Y: watchdog do metabolismo MV (vital-signs stale = máquina morta em silêncio) ──
+// Adversário 2026-07-06 V7: o sintoma de morte do mv-metabolismo.yml (cron não roda, PAT
+// expira, peter-evans falha) é a AUSÊNCIA de PR de manhã — exatamente o que ninguém nota.
+// Selftests dentro do workflow não protegem contra o workflow não rodar. Este check vigia
+// de fora: se memory/governance/vital-signs.json tem generated_at > VITAL_STALE_DIAS atrás
+// do último commit do repo, o batimento parou. Warn-only (sentinela, lei ADR 0314).
+const VITAL_STALE_DIAS = 2;
+function checkVitalSignsFreshness() {
+  const f = 'memory/governance/vital-signs.json';
+  if (!exists(f)) {
+    warns.push({ check: 'Y', kind: 'vital-signs-ausente',
+      msg: 'memory/governance/vital-signs.json ausente — espinha dorsal MV1 nunca rodou ou foi apagada. 🟡 sentinela — não bloqueia.' });
+    return;
+  }
+  let gen;
+  try { gen = JSON.parse(read(f)).generated_at; } catch { gen = null; }
+  if (!gen || !/^\d{4}-\d{2}-\d{2}$/.test(gen)) {
+    warns.push({ check: 'Y', kind: 'vital-signs-ilegivel',
+      msg: `vital-signs.json sem generated_at legível ('${gen}') — snapshot corrompido. 🟡 sentinela.` });
+    return;
+  }
+  // Relógio determinístico: último commit do repo (evita Date.now, padrão dos irmãos).
+  const hoje = new Date(gitLastDate('.') || gen);
+  const idade = Math.floor((hoje.getTime() - new Date(`${gen}T00:00:00Z`).getTime()) / 86_400_000);
+  if (idade > VITAL_STALE_DIAS) {
+    warns.push({ check: 'Y', kind: 'metabolismo-parado', count: idade,
+      msg: `vital-signs.json com generated_at=${gen} (${idade}d atrás do último commit) — o batimento nightly do MV (mv-metabolismo.yml 06:30 BRT) pode ter parado em silêncio (cron/PAT/peter-evans). Checar gh run list --workflow mv-metabolismo.yml. 🟡 sentinela — não bloqueia.` });
+  }
+}
+
+// ── Check Z: UC 🧪/⬜ envelhecendo (museu de intenções honestas) ─────────────────────────
+// Adversário 2026-07-06 V3: o casos-gate G-7 só policia ✅ — 🧪/⬜ são "não-afirmações
+// honestas" PARA SEMPRE, sem relógio. 84% dos UCs da frota estavam nesse estado absorvente
+// (✅ custa caro, 🧪 é grátis e eterno). Este check põe o relógio: casos.md cujo ARQUIVO
+// não é tocado há > UC_STALE_DIAS e ainda carrega 🧪/⬜ entra no warn. Proxy honesto e
+// barato (data do arquivo, não do UC individual — blame por linha custaria caro); o limite
+// é declarado: tocar o arquivo por outro motivo reseta o relógio. Warn-only (lei 0314).
+const UC_STALE_DIAS = 30;
+function checkUcAging() {
+  const files = listFiles('resources/js/Pages', (rel) => rel.endsWith('.casos.md'));
+  const hoje = new Date(gitLastDate('.') || '2026-07-06');
+  const sample = []; let totalUc = 0; let filesN = 0;
+  for (const rel of files) {
+    const txt = read(rel);
+    // Conta UCs declarados (heading ## UC-) com Status 🧪 ou ⬜ no bloco.
+    let pend = 0;
+    for (const block of txt.split(/^##\s+/m).slice(1)) {
+      if (!/^UC-/i.test(block)) continue;
+      if (/Status\s*[:：][^\n]*(🧪|⬜)/.test(block)) pend++;
+    }
+    if (!pend) continue;
+    const last = gitLastDate(rel);
+    if (!last) continue;
+    const idade = Math.floor((hoje.getTime() - new Date(`${last}T00:00:00Z`).getTime()) / 86_400_000);
+    if (idade > UC_STALE_DIAS) {
+      filesN++; totalUc += pend;
+      if (sample.length < 8) sample.push(`${rel} — ${pend} UC(s) 🧪/⬜ · arquivo parado há ${idade}d`);
+    }
+  }
+  if (filesN) {
+    warns.push({ check: 'Z', kind: 'uc-museu', count: totalUc, sample,
+      msg: `${totalUc} UC(s) 🧪/⬜ em ${filesN} casos.md sem toque há > ${UC_STALE_DIAS}d — contrato declarado que não vira prova (estado absorvente que o G-7 não cobre). Triagem: rodar o teste no CT100/CI e promover a ✅ via manifesto, converter em E2E, ou rebaixar a backlog honesto. 🟡 sentinela — não bloqueia.` });
+  }
+}
+
 // ── run ─────────────────────────────────────────────────────────────────────
 checkAdrCollisions();
 checkUsCollisions(); // Check N (fail-class ratchet) — colisão de US-ID, sibling do Check A
@@ -871,6 +936,8 @@ try { checkSessionDecisionAnchor(); } catch (e) { warns.push({ check: 'K', kind:
 try { checkMortaMasCanon(); } catch (e) { warns.push({ check: 'O', kind: 'morta-mas-canon-error', msg: 'morta-mas-canon falhou (não bloqueia): ' + e.message }); } // Check O (sentinela) — ADR 0317
 try { checkStaleReview(); } catch (e) { warns.push({ check: 'R', kind: 'revisao-vencida-error', msg: 'revisao-vencida falhou (não bloqueia): ' + e.message }); } // Check R (sentinela) — ADR 0317
 try { checkAuditCoverage(); } catch (e) { warns.push({ check: 'X', kind: 'audit-coverage-error', msg: 'audit-coverage falhou (não bloqueia): ' + e.message }); } // Check X (cobertura de auditoria — módulo Tier-0/nota-baixa sem AUDIT*.md)
+try { checkVitalSignsFreshness(); } catch (e) { warns.push({ check: 'Y', kind: 'vital-signs-error', msg: 'vital-signs-freshness falhou (não bloqueia): ' + e.message }); } // Check Y (watchdog do metabolismo MV — adversário V7)
+try { checkUcAging(); } catch (e) { warns.push({ check: 'Z', kind: 'uc-museu-error', msg: 'uc-aging falhou (não bloqueia): ' + e.message }); } // Check Z (UC 🧪/⬜ >30d — adversário V3)
 
 if (UPDATE_BASELINE) {
   writeFileSync(join(ROOT, BASELINE_FILE), JSON.stringify({ checkC: checkCByFile, checkL: checkLSlugs.slice().sort(), checkM: checkMKeys.slice().sort(), checkN: checkNIds.slice().sort(), checkO: checkOSlugs.slice().sort(), checkR: checkRSlugs.slice().sort() }, null, 2) + '\n');

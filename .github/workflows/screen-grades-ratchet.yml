@@ -1,0 +1,44 @@
+name: Screen grades ratchet (nota de tela não desce · advisory)
+
+# Achado V4 do adversário de arquitetura (2026-07-06): o script screen-grades-ratchet.mjs
+# existia mas NENHUM workflow o rodava — a nota 16-dim podia descer (ou ser inflada) em
+# silêncio, enquanto vital-signs.mjs e os próprios YAMLs afirmavam que a catraca defendia.
+# Este workflow fecha a mentira estrutural: roda a catraca em todo PR que toca scorecards.
+#
+# ADVISORY (lei ADR 0314 — required = só Tier-0; nota de tela é quality): o check fica
+# vermelho na regressão mas NÃO bloqueia merge. promote_by no gates-registry força a
+# conversa de promoção em ≤14d (zelador cobra) em vez de advisory eterno.
+#
+# O script compara nota(PR) vs nota(origin/main) — robusto contra burla (não confia no
+# baseline_anterior do próprio arquivo). Override consciente Wagner:
+# SCREEN_RATCHET_ALLOW_REGRESSION=1.
+
+on:
+  pull_request:
+    paths:
+      - 'memory/governance/scorecards/screens/**'
+      - 'scripts/qa/screen-grades-ratchet.mjs'
+      - '.github/workflows/screen-grades-ratchet.yml'
+
+concurrency:
+  group: screen-grades-ratchet-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ratchet:
+    name: Nota de tela não desce vs origin/main (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # o script compara vs origin/main
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Catraca — nota(PR) >= nota(origin/main) por scorecard
+        run: node scripts/qa/screen-grades-ratchet.mjs

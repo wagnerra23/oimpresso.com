@@ -42,6 +42,6 @@ Dar à pessoa fiscal (Eliana contadora + Wagner operador) **visão consolidada d
 
 - 🚫 Não fazer N+1 query nos sparklines — agrupar com `selectRaw('DATE(emitido_em)...')` 1× e iterar em PHP
 - 🚫 Não fazer Inertia::defer nos KPIs — first paint cockpit deve mostrar números (sparklines aceitam ms de delay)
-- 🚫 Não cachear KPIs por business (multi-tenant Tier 0 já garante scope — cache só agregado)
+- 🚫 Não cachear KPI cross-tenant/agregado — a chave de cache DEVE incluir o `business_id` (Tier 0 ADR 0093; canon no código: `CockpitController` usa `fiscal:cockpit:kpis:biz:{id}`, provado por `CockpitCacheTest`). ⚠️ Corrigido 2026-07-06: o anti-hook anterior mandava o OPOSTO ("cache só agregado") — obedecê-lo criaria vazamento cross-tenant. Achado do adversário de arquitetura (V1, session 2026-07-06).
 - 🚫 Não usar LLM pra gerar alertas — receita determinística por estado (cstat/dias/pendentes)
 - 🚫 Não exibir PII (CPF/CNPJ destinatário) em KPI/alerta — usar referências abstratas ("2 rejeições", "5 DF-e")
