@@ -6,9 +6,10 @@
 //   tests: Modules/Essentials/Tests/Feature/HolidaysIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { router, useForm } from '@inertiajs/react';
+import { Deferred, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
+import { Skeleton } from '@/Components/ui/skeleton';
 import {
   CalendarDays,
   Edit,
@@ -69,8 +70,9 @@ interface Filters {
 }
 
 interface Props {
-  holidays: Holiday[];
-  locations: LocationOption[];
+  // holidays e locations vêm via Inertia::defer — undefined no first render
+  holidays?: Holiday[];
+  locations?: LocationOption[];
   filtros: Filters;
   can_manage: boolean;
 }
@@ -92,6 +94,8 @@ const emptyForm: FormData = {
 };
 
 export default function HolidaysIndex({ holidays, locations, filtros, can_manage }: Props) {
+  const rows = holidays ?? [];
+  const locs = locations ?? [];
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<Holiday | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Holiday | null>(null);
@@ -185,7 +189,7 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
               )}
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {locations.length > 0 && (
+              {locs.length > 0 && (
                 <Select
                   value={filtros.location_id ? String(filtros.location_id) : 'ALL'}
                   onValueChange={(v) => setFilter('location_id', v === 'ALL' ? null : Number(v))}
@@ -193,7 +197,7 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
                   <SelectTrigger><SelectValue placeholder="Localidade" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ALL">Todas as localidades</SelectItem>
-                    {locations.map((l) => (
+                    {locs.map((l) => (
                       <SelectItem key={l.id} value={String(l.id)}>{l.label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -221,9 +225,10 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
           </CardContent>
         </Card>
 
+        <Deferred data="holidays" fallback={<Skeleton className="h-64 w-full" />}>
         <Card>
           <CardContent className="p-0">
-            {holidays.length === 0 ? (
+            {rows.length === 0 ? (
               <div className="p-12 text-center text-sm text-muted-foreground">
                 <CalendarDays size={32} className="mx-auto mb-2 opacity-50" />
                 Nenhum feriado cadastrado.
@@ -241,7 +246,7 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {holidays.map((h) => (
+                    {rows.map((h) => (
                       <tr key={h.id} className="hover:bg-accent/30">
                         <td className="p-3 font-medium">{h.name}</td>
                         <td className="p-3 text-xs">
@@ -282,6 +287,7 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
             )}
           </CardContent>
         </Card>
+        </Deferred>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -324,7 +330,7 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
                   />
                 </div>
               </div>
-              {locations.length > 0 && (
+              {locs.length > 0 && (
                 <div className="space-y-1">
                   <Label htmlFor="h-loc">Localidade</Label>
                   <Select
@@ -336,7 +342,7 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ALL">Todas as localidades</SelectItem>
-                      {locations.map((l) => (
+                      {locs.map((l) => (
                         <SelectItem key={l.id} value={String(l.id)}>{l.label}</SelectItem>
                       ))}
                     </SelectContent>
