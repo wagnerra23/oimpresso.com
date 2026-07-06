@@ -1625,22 +1625,37 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             NF/Vendas do WR exigem link título→transaction (origem_id), ainda
             pendente. */}
         <div className="fin-filter-group" role="group" aria-label="Filtro por data">
-          {/* native <select> consistente com o select de Plano de Contas logo abaixo
-              (mesma classe fin-filter-select). Migração toolbar-wide pro <Select> do DS
-              é escopo separado — não converto só este pra não destoar do vizinho. */}
-          {/* eslint-disable-next-line no-restricted-syntax -- ds/no-native-select: paridade visual com select adjacente (fin-filter-select) */}
-          <select
-            className="fin-filter-select"
-            value={filters.data_campo}
-            onChange={(e) => aplicar({ data_campo: e.target.value as Filters['data_campo'] })}
-            aria-label="Campo de data"
-            title="Qual data filtrar (igual ao WR Comercial)"
-          >
-            <option value="vencimento">Vencimento</option>
-            <option value="emissao">Emissão</option>
-            <option value="pagamento">Pagamento</option>
-            <option value="competencia">Competência</option>
-          </select>
+          {/* Segmented "Filtrar por" (fidelidade protótipo [W] 2026-07-06: era um <select>
+              nativo, vira segmentado — igual ao proto financeiro-page.jsx e ao mesmo visual
+              dos presets do FinPeriodBar logo à frente: `bg-muted` + ativo `bg-background
+              shadow-sm`). Contrato backend INTACTO — dispara `aplicar({ data_campo })`, mesmo
+              param `data_campo` (vencimento/emissao/pagamento/competencia). Bônus: some 1
+              <select> nativo (ds/no-native-select). */}
+          <span className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium whitespace-nowrap">Filtrar por</span>
+          <div className="inline-flex items-center bg-muted rounded-md p-0.5 border border-border" role="group" aria-label="Campo de data">
+            {([
+              { id: 'vencimento', label: 'Vencimento' },
+              { id: 'emissao', label: 'Emissão' },
+              { id: 'pagamento', label: 'Pagamento' },
+              { id: 'competencia', label: 'Competência' },
+            ] as const).map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => aplicar({ data_campo: f.id })}
+                aria-pressed={filters.data_campo === f.id}
+                title={`Filtrar pela data de ${f.label.toLowerCase()} (igual ao WR Comercial)`}
+                className={
+                  'h-6 px-2 rounded text-[11.5px] transition ' +
+                  (filters.data_campo === f.id
+                    ? 'bg-background shadow-sm font-medium text-foreground'
+                    : 'text-muted-foreground hover:text-foreground')
+                }
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
           {/* PeriodBar (fidelidade protótipo [W] 2026-06-29, ADR 0313): presets Dia/
               Semana/Mês/Ano/Tudo + navegador de mês ‹ › + "Personalizado" que revela
               os dd/mm. Frontend-only — apenas seta data_inicio/fim (mesmo filtro de
