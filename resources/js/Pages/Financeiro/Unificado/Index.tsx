@@ -1140,8 +1140,10 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       </td>
       <td className="pl-2 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
         {!settled ? (
+          {/* Rótulo "Recebi/Paguei" (1ª pessoa + ✓) — fidelidade protótipo [W] 2026-07-06,
+              eq. "marcar recebido/pago". Ação inalterada (onBaixar abre a FinBaixaSheet). */}
           <Button size="sm" variant="outline" className="h-7 px-2 text-[11.5px]" onClick={onBaixar}>
-            {isIn ? 'Receber' : 'Pagar'}
+            <span aria-hidden>✓</span>{' '}{isIn ? 'Recebi' : 'Paguei'}
           </Button>
         ) : (
           <span className="text-[11px] text-stone-400">{row.liquidacao}</span>
@@ -2503,7 +2505,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   {(selected.status !== 'recebido' && selected.status !== 'pago') && (
                     <Button onClick={() => openBaixa(selected.id)} className="fin-foot-mark-btn" title={selected.kind === 'receivable' ? 'Marcar recebido (atalho R)' : 'Marcar pago (atalho R)'}>
                       <span aria-hidden>✓</span>
-                      <span className="ml-1">{selected.kind === 'receivable' ? 'Receber' : 'Pagar'}</span>
+                      <span className="ml-1">{selected.kind === 'receivable' ? 'Recebi' : 'Paguei'}</span>
                       <kbd className="fin-kbd fin-kbd-acc">R</kbd>
                     </Button>
                   )}
