@@ -1,8 +1,9 @@
 // US-INFRA-008 (2026-05-13) — Detalhe + edit de 1 feature flag.
 // Permite: adicionar/remover rule biz-{N}, mata-switch do environment.
 
-import { Head, Link, router, useForm } from '@inertiajs/react';
+import { Deferred, Head, Link, router, useForm } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
+import { Skeleton } from '@/Components/ui/skeleton';
 import { CircleDot, Circle, AlertCircle } from 'lucide-react';
 import AppShellV2 from '@/Layouts/AppShellV2';
 import PageHeader from '@/Components/shared/PageHeader';
@@ -66,9 +67,10 @@ interface AuditRow {
 interface PageProps {
   configured: boolean;
   key: string;
-  feature: Feature | null;
+  // feature, fetch_error e audits vêm via Inertia::defer — undefined no first render
+  feature?: Feature | null;
   fetch_error?: string | null;
-  audits: AuditRow[];
+  audits?: AuditRow[];
 }
 
 export default function FeatureFlagsShow({
@@ -78,6 +80,9 @@ export default function FeatureFlagsShow({
   audits,
 }: PageProps) {
   const [env, setEnv] = useState('production');
+
+  // Guardas defensivas: props deferidas são undefined no first render.
+  const auditRows = audits ?? [];
 
   const envData = useMemo<FeatureEnv | undefined>(() => {
     return feature?.environments?.[env];
@@ -367,15 +372,16 @@ export default function FeatureFlagsShow({
         )}
 
         {/* Audit history desta flag */}
+        <Deferred data="audits" fallback={<Skeleton className="h-32 w-full" />}>
         <Card>
           <CardHeader>
             <CardTitle>
               Histórico de mudanças{' '}
-              <span className="text-sm text-muted-foreground">({audits.length})</span>
+              <span className="text-sm text-muted-foreground">({auditRows.length})</span>
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {audits.length === 0 ? (
+            {auditRows.length === 0 ? (
               <div className="text-sm text-muted-foreground py-4 text-center">
                 Sem mudanças registradas pra <code>{key}</code>.
               </div>
@@ -391,7 +397,7 @@ export default function FeatureFlagsShow({
                   </tr>
                 </thead>
                 <tbody>
-                  {audits.map((a) => (
+                  {auditRows.map((a) => (
                     <tr key={a.id} className="border-b last:border-0">
                       <td className="py-1 whitespace-nowrap">
                         {new Date(a.created_at).toLocaleString('pt-BR')}
@@ -411,6 +417,7 @@ export default function FeatureFlagsShow({
             )}
           </CardContent>
         </Card>
+        </Deferred>
       </div>
     </AppShellV2>
   );
