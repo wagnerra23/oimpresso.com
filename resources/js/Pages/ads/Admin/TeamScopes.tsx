@@ -4,11 +4,12 @@
 
 import React, { useState, type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
-import { router } from '@inertiajs/react'
+import { Deferred, router } from '@inertiajs/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Switch } from '@/Components/ui/switch'
+import { Skeleton } from '@/Components/ui/skeleton'
 import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
@@ -32,17 +33,21 @@ interface User {
 }
 
 interface Props {
-  users: User[]
-  modules: string[]
+  // users e modules vêm via Inertia::defer — undefined no first render até o async fetch resolver
+  users?: User[]
+  modules?: string[]
 }
 
 const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
 
 const TeamScopes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ users, modules }) => {
-  const [selectedUser, setSelectedUser] = useState<User | null>(users[0] ?? null)
+  // Guardas defensivas: props deferidas são undefined no first render.
+  const us = users ?? []
+  const mods = modules ?? []
+  const [selectedUser, setSelectedUser] = useState<User | null>(us[0] ?? null)
 
-  const totalGrants = users.reduce((acc, u) => acc + u.modules_count, 0)
-  const usersWithAccess = users.filter(u => u.modules_count > 0).length
+  const totalGrants = us.reduce((acc, u) => acc + u.modules_count, 0)
+  const usersWithAccess = us.filter(u => u.modules_count > 0).length
 
   const grant = (userId: number, module: string, perms: Partial<ModuleAccess>) => {
     router.post('/ads/admin/team-scopes/grant', {
@@ -73,7 +78,7 @@ const TeamScopes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = (
       />
 
       <KpiGrid cols={3}>
-        <KpiCard icon="users"        tone="info"    label="Devs do business" value={num(users.length)}        description="Total de usuários" />
+        <KpiCard icon="users"        tone="info"    label="Devs do business" value={num(us.length)}           description="Total de usuários" />
         <KpiCard icon="shield-check" tone="success" label="Com acesso ativo"  value={num(usersWithAccess)}     description="Pelo menos 1 módulo" />
         <KpiCard icon="layers"       tone="default" label="Total de grants"   value={num(totalGrants)}         description="Pares (user × module)" />
       </KpiGrid>
@@ -93,6 +98,7 @@ const TeamScopes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = (
         </CardContent>
       </Card>
 
+      <Deferred data={['users', 'modules']} fallback={<Skeleton className="h-64 w-full" />}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Sidebar de usuários */}
         <div>
@@ -100,7 +106,7 @@ const TeamScopes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = (
             <CardHeader><CardTitle className="text-base">Usuários do business</CardTitle></CardHeader>
             <CardContent className="p-0">
               <ul className="divide-y divide-border">
-                {users.map(u => (
+                {us.map(u => (
                   <li key={u.id}>
                     <button
                       type="button"
@@ -150,7 +156,7 @@ const TeamScopes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = (
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
-                      {modules.map(mod => {
+                      {mods.map(mod => {
                         const access = userAccess(selectedUser, mod)
                         const hasAny = access !== null
                         return (
@@ -220,6 +226,7 @@ const TeamScopes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = (
           )}
         </div>
       </div>
+      </Deferred>
 
       <Card className="bg-muted/30">
         <CardContent className="py-3 text-xs text-muted-foreground">

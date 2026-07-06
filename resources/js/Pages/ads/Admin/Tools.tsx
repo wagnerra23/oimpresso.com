@@ -4,7 +4,9 @@
 
 import React, { useState, type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
+import { Deferred } from '@inertiajs/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Skeleton } from '@/Components/ui/skeleton'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Textarea } from '@/Components/ui/textarea'
@@ -37,11 +39,16 @@ interface Execution {
   created_at: string
 }
 
+interface Kpis { total: number; read_only: number; write: number; categories: number; executions_7d: number }
+
 interface Props {
-  tools_by_category: ToolGroup[]
-  recent_executions: Execution[]
-  kpis: { total: number; read_only: number; write: number; categories: number; executions_7d: number }
+  // tools_by_category, recent_executions e kpis vêm via Inertia::defer — undefined no first render
+  tools_by_category?: ToolGroup[]
+  recent_executions?: Execution[]
+  kpis?: Kpis
 }
+
+const KPIS_FALLBACK: Kpis = { total: 0, read_only: 0, write: 0, categories: 0, executions_7d: 0 }
 
 const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
 
@@ -54,6 +61,10 @@ const categoryIcon: Record<string, ReactNode> = {
 }
 
 const Tools: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ tools_by_category, recent_executions, kpis }) => {
+  // Guardas defensivas: props deferidas são undefined no first render.
+  const k = kpis ?? KPIS_FALLBACK
+  const groups = tools_by_category ?? []
+  const executions = recent_executions ?? []
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
       <PageHeader
@@ -62,15 +73,18 @@ const Tools: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ too
         description="Ferramentas que agentes podem invocar. Read-only chamável direto. Tools de escrita exigem aprovação Wagner. Audit log de toda invocação."
       />
 
+      <Deferred data="kpis" fallback={<Skeleton className="h-24 w-full" />}>
       <KpiGrid cols={5}>
-        <KpiCard icon="wrench"   tone="info"    label="Tools registradas"   value={num(kpis.total)}      description="Disponíveis" />
-        <KpiCard icon="eye"      tone="success" label="Read-only"           value={num(kpis.read_only)}  description="Sem aprovação" />
-        <KpiCard icon="edit-3"   tone="warning" label="Escrita"             value={num(kpis.write)}      description="Exigem Wagner" />
-        <KpiCard icon="layers"   tone="default" label="Categorias"          value={num(kpis.categories)} description="UI groups" />
-        <KpiCard icon="activity" tone="default" label="Execuções 7d"        value={num(kpis.executions_7d)} description="audit log" />
+        <KpiCard icon="wrench"   tone="info"    label="Tools registradas"   value={num(k.total)}         description="Disponíveis" />
+        <KpiCard icon="eye"      tone="success" label="Read-only"           value={num(k.read_only)}     description="Sem aprovação" />
+        <KpiCard icon="edit-3"   tone="warning" label="Escrita"             value={num(k.write)}         description="Exigem Wagner" />
+        <KpiCard icon="layers"   tone="default" label="Categorias"          value={num(k.categories)}    description="UI groups" />
+        <KpiCard icon="activity" tone="default" label="Execuções 7d"        value={num(k.executions_7d)} description="audit log" />
       </KpiGrid>
+      </Deferred>
 
-      {tools_by_category.map(group => (
+      <Deferred data="tools_by_category" fallback={<Skeleton className="h-64 w-full" />}>
+      {groups.map(group => (
         <Card key={group.category}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 capitalize">
@@ -86,13 +100,15 @@ const Tools: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ too
           </CardContent>
         </Card>
       ))}
+      </Deferred>
 
-      {recent_executions.length > 0 && (
+      <Deferred data="recent_executions" fallback={<Skeleton className="h-32 w-full" />}>
+      {executions.length > 0 && (
         <Card>
           <CardHeader><CardTitle className="text-base">Execuções recentes (audit)</CardTitle></CardHeader>
           <CardContent className="p-0">
             <ul className="divide-y divide-border">
-              {recent_executions.map(e => (
+              {executions.map(e => (
                 <li key={e.id} className="px-4 py-2 text-sm flex items-center gap-3">
                   {e.ok
                     ? <CheckCircle2 className="w-4 h-4 text-success-fg" />
@@ -113,6 +129,7 @@ const Tools: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ too
           </CardContent>
         </Card>
       )}
+      </Deferred>
 
       <Card className="border-zinc-200 bg-zinc-50/50">
         <CardContent className="py-4 text-sm text-muted-foreground">
