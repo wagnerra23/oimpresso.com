@@ -77,3 +77,38 @@ a que acha os defeitos rápido. Aqui o detector foi HUMANO — a máquina tinha 
 sentinela transfere ESTE detector pra máquina (da próxima vez ela grita antes do instinto).
 Mas registra o padrão: toda vez que um gate prova *presença/proveniência* e não
 *correção/conteúdo*, existe um buraco esperando um refactor pra abrir.
+
+---
+
+## Evolução (mesma sessão, à tarde): sentinela de FRESCOR do espelho — [ADR 0324](../decisions/proposals/0324-sentinela-frescor-espelho-cowork-designsync-read.md)
+
+O `anchor-content-check` fecha CORREÇÃO (âncora aponta pro arquivo certo do repo). Fica o
+**ponto cego #2** do "Limite honesto" acima: *"protótipo de bubble velha"* — o arquivo existe,
+tem conteúdo do módulo, PASSA no anchor-content, mas é **design ANTIGO** (a cópia do repo
+driftou do vivo no Cowork). *"Só o olho humano ou um diff pega."* A integração **DesignSync**
+(leitura, [ADR 0315](../decisions/0315-design-sync-claude-design-vs-cowork-charter.md)) agora
+permite tirar o md5 do vivo — então dá pra fazer ESSE diff por máquina.
+
+**`scripts/governance/cowork-mirror-freshness.mjs`** — compara `md5(repo)` vs `md5(vivo)` por
+arquivo-âncora do espelho: `SYNC` / `STALE` (divergiu → re-exportar) / `LIVE-ABSENT` (não achado
+no vivo) / `UNCHECKED` (agente não buscou). **Leitura pura, nunca escreve** — só GRITA "o espelho
+divergiu", humano decide re-exportar (`nuvem → git` segue proibido, 0299/0315).
+
+Split honesto (o node não fala MCP): a metade LOCAL (`--manifest` + md5 do repo, reusa
+`anchorFile`) roda em qualquer lugar; a metade VIVA (`--compare`) é **rotina de dispatch por
+agente** (chama `DesignSync.get_file`) — **não gate de PR**, porque `/design-login` não roda em
+CI headless (0315 §Furos). SÓ o `--selftest` (26 checks de contrato) foi wirado no
+`design-memory-gate.yml` advisory (lei 0314), ao lado do anchor-content.
+
+**Provado nesta sessão:** selftest 26/26 · `--manifest` real = 3 arquivos (`financeiro-page.jsx`
+`ae3a2cfe…` bate com a session da manhã) · caminho de LEITURA do DesignSync end-to-end
+(`get_file` devolveu `Button.jsx` real) · selftests existentes intactos (anchor-content +
+design-memory-gate verdes). **Pendente (Gap 1 da ADR):** o projeto vivo que espelha
+`prototipo-ui/cowork/` (`019dcfd3…` "Oimpresso ERP Conunicação Visual") não aparece em
+`list_projects` (filtra a graváveis) — a metade viva precisa do UUID pleno em runtime. O
+mecanismo está provado; falta o mapa do projeto.
+
+**Lição perene reforçada:** o dia teve TRÊS camadas de sentinela de design agora —
+proveniência (`ancora.mjs`) → correção-estática (`anchor-content-check`) → **frescor-vs-vivo**
+(`cowork-mirror-freshness`). Todo gate que prova uma camada e não a de cima deixa um buraco;
+este fecha a de frescor do espelho.

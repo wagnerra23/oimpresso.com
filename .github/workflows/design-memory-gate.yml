@@ -166,6 +166,16 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/anchor-content-check.mjs --check
+      # Frescor do espelho (Wagner 2026-07-06, ADR 0324): o anchor-content prova que a âncora
+      # aponta pro arquivo certo (correção), não que a cópia do repo ainda BATE com o design
+      # VIVO no Cowork (ponto cego #2: "bubble velha" — arquivo existe mas é design antigo).
+      # SÓ o SELFTEST roda aqui (node puro, prova a classificação): a checagem VIVA (--compare)
+      # usa DesignSync.get_file, que exige /design-login (auth claude.ai) e NÃO roda em CI
+      # headless (ADR 0315 §Furos) — é rotina local/dispatch por agente, nunca gate de PR.
+      - name: cowork-mirror-freshness selftest (o gate de frescor morde e libera certo)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/cowork-mirror-freshness.test.mjs
       - name: importar-bundle selftest (import atômico · verifica antes de trocar)
         if: always()
         continue-on-error: true
