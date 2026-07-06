@@ -154,3 +154,23 @@ Fecha o loop adversarial na camada **produto/módulo**: as afirmações escritas
 - **Rollout:** Peça A **espera S1+S7 da Onda 1** → piloto Financeiro → mede erro na população de claims de capacidade → **teto ≤10 módulos/quinzena**.
 - **Refutação dogfood 2026-07-02:** a própria 0319 passou por 3 skeptics (a Peça B aplicada a si mesma) — pegaram 1 erro factual (R12 ocupado) + duplicações (G5 já refuta lote IA; `distiller_freshness`/`sdd-verification-ledger` já existem) + tensão com a 0314 (armar doc-quality no required). **11 emendas vinculantes E1-E11 no ADR.** Núcleo sobreviveu; forma original morreu.
 - **Status:** `proposed` — nada roda sem OK. Armamento das métricas = checkbox Wagner separado do aceite.
+
+---
+
+## Stream MV — Módulo Vivo (APROVADO Wagner 2026-07-05 · fases MV2+ aguardam OK por fase)
+
+> Origem: Wagner 2026-07-05 — *"acho que eu preciso de uma máquina séria muito bem planejada para cuidar disso para mim"* + *"o software deve amadurecer e se tornar vivo por módulo"* + *"especificações e memórias e tarefas tudo integrado"* + *"interagir com scorecards das telas"*. Pesquisa + desenho completo: [arte 2026-07-05](../../../sessions/2026-07-05-arte-maquina-governanca-telas.md) (Meta ACH mutation-oracle · Spec Kit · Playwright Test Agents · Infection MSI · fitness functions). Decisão de plug: stream aqui no roadmap SDD (AUTOMATION-ROADMAP está `arquivado`; 1 tema = 1 doc vivo).
+
+Visão: cada módulo como organismo vivo — **escada M0→M3** (critérios objetivos, casa com module-grade v4 buckets + ADR 0105 sinal-cliente) · **sinais vitais** que DEGRADAM por frescor (nunca verde-stale) · **metabolismo** (cron com batimento por criticidade) · nascimento (`criar-modulo`) e morte (`deprecar-modulo`) conectados. Wagner só nos gates humanos: aprovar batch de tasks, gate visual de tela, promoção de nível.
+
+| # | Fase | Estado | Entrega |
+|---|---|---|---|
+| [MV1](MV1-espinha-dorsal-vital-signs.md) | Espinha dorsal dos sinais vitais | ✅ executado 2026-07-05 | `scripts/qa/vital-signs.mjs` + selftest contrato + `vital-signs.json` (snapshot) + `vital-signs-history.jsonl` (trend append-only). Advisory por lei (0314) — leitura, não gate. 1º run: 234 telas · 219 scorecard · 25 casos.md · 15 stale; topo da fila = dinheiro sem prontuário (Impostos/ProvaViva 600) |
+| MV2 | Cron-metabolismo (CT100, nunca Hostinger — ADR 0062) | ⏳ aprovado em tese, aguarda desenho fino | lê `vital-signs.json` → top-N por batimento/classe + budget com regra de parada → propõe batch via `audit-to-backlog` (**gate Wagner** — nunca cria task sozinho) → sessões screen-qa por tela → BRIEFING regenera |
+| MV3 | Fechar casos.md no caminho do dinheiro (ratchet) | 🔜 | contrato-first: Sells/Financeiro/RecurringBilling/NfeBrasil/Fiscal — 1 sessão/tela via screen-qa-specialist; a fila do MV1 dita a ordem |
+| MV4 | Mutation-oracle cirúrgico (Infection) no código Tier-0 | 🔜 | MSI ratchet em `num_uf`/FSM/cálculo de valor — o juiz do juiz (anti gate-teatro); roda no CT100; métrica funde no GT-G3 (lei 0314, sem gate novo) |
+| MV5 | E2E Playwright em escala (UCs críticos, self-healing) | 🔜 depende MV3 | UC vem do casos.md — nunca do código (anti-tautologia §Ideias descartadas) |
+| MV6 | Escada M0→M3 + sinais vitais renderizados (BRIEFING/cockpit) | 🔜 depende MV1 | posição na escada por módulo + prontuário visível; promoção de nível = evidência scorecard + OK Wagner |
+
+- **Anti-morte conhecida:** (a) gate-teatro → mutation é o juiz (MV4); (b) frota de testes tautológicos → asserção SEMPRE cita âncora de contrato (casos/SPEC/ADR/charter), barrada no gate pré-adoção; (c) verde-stale → frescor degrada sozinho no MV1.
+- **Custo:** tela verde+fresca PULA o ciclo; budget noturno com parada; trabalho de fundo (casos.md) é finito → vira manutenção incremental.
