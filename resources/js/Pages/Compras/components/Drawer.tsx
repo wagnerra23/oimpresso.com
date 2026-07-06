@@ -1,5 +1,5 @@
 // Drawer.tsx — DrawerView 5 tabs sobre grid (US-COM-001 Wave 5).
-// Pin literal do protótipo public/cowork-preview/erp-shell-v2/compras-page.jsx
+// Pin literal do protótipo prototipo-ui/cowork/compras-page.jsx
 // (DrawerView linhas 195-431). Substitui DrawerSimple do Index.tsx.
 //
 // Tabs: Resumo / Itens / Documentos / Pagamentos / Histórico
