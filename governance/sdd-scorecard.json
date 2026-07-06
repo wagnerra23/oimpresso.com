@@ -29,14 +29,14 @@
           "sem_campo": 145,
           "placeholder": 0,
           "pendente": 370,
-          "parcial": 119,
-          "anchored_ok": 322,
+          "parcial": 118,
+          "anchored_ok": 323,
           "anchored_dead": 0,
           "anchored_zombie": 0
         },
         "fields_total": 816,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 774,
+        "fields_grammar_ok": 773,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
@@ -95,13 +95,13 @@
     },
     "n_quarantine": {
       "status": "measured",
-      "value": 26,
+      "value": 25,
       "unit": "arquivos de teste",
       "direction": "down",
       "target": 0,
       "source": "convenção legacy-quarantine (@group | ->group() | skip) em tests/ + Modules/*/Tests (este script)",
       "detail": {
-        "quarantined_files": 26
+        "quarantined_files": 25
       },
       "stream": "FV"
     },
