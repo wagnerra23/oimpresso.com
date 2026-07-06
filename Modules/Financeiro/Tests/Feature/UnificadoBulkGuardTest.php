@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// @covers-us US-FIN-031
 
 use App\Business;
 use App\User;
@@ -100,13 +101,14 @@ function blkCleanupAudit(int $businessId): void
 }
 
 /** Business B ficcional pro cenário cross-tenant (padrão UnificadoPlanoContaGuardTest G7). */
-function blkOtherBiz(): int
+function blkOtherBiz(int $ownerId): int
 {
     $otherBizId = (int) (DB::table('business')->max('id') ?? 0) + 77777;
     DB::table('business')->insert([
         'id'          => $otherBizId,
         'name'        => 'BULK-GUARD-OTHER-BIZ',
         'currency_id' => 1,
+        'owner_id'    => $ownerId, // FK business_owner_id_foreign é NOT NULL neste schema
         'start_date'  => now()->toDateString(),
         'created_at'  => now(),
         'updated_at'  => now(),
@@ -119,7 +121,7 @@ function blkOtherBiz(): int
 it('UC-F04 GUARD G1: lote com id de outro business é rejeitado inteiro (422)', function () {
     [$business, $user] = blkBootstrap();
     $meu = blkCreateTitulo($business->id, $user->id, 100.0);
-    $otherBizId = blkOtherBiz();
+    $otherBizId = blkOtherBiz($user->id);
     $alheio = blkCreateTitulo($otherBizId, $user->id, 55.0);
     $categoria = Categoria::where('business_id', $business->id)->first();
 
@@ -264,7 +266,7 @@ it('GUARD G4: plano de contas em lote persiste e rejeita plano cross-tenant', fu
     expect($titulo->plano_conta_id)->toBe($plano->id);
 
     // Plano de OUTRO business → 422 e não altera.
-    $otherBizId = blkOtherBiz();
+    $otherBizId = blkOtherBiz($user->id);
     $planoAlheio = PlanoConta::create([
         'business_id'       => $otherBizId,
         'codigo'            => '9.9.99.BXT',
@@ -316,12 +318,15 @@ it('GUARD G6: exportar_csv devolve text/csv com o título e não muta nada', fun
         'action' => 'exportar_csv',
         'ids'    => [$titulo->id],
     ]);
-    if (in_array($resp->status(), [403, 404], true)) {
+    // streamDownload devolve StreamedResponse (Symfony) — usa getStatusCode(),
+    // não o status() do Illuminate\Http\Response.
+    $status = $resp->baseResponse->getStatusCode();
+    if (in_array($status, [403, 404], true)) {
         blkCleanup($titulo);
         test()->markTestSkipped('Module gate bloqueia neste env.');
     }
 
-    expect($resp->status())->toBe(200);
+    expect($status)->toBe(200);
     expect((string) $resp->headers->get('content-type'))->toContain('text/csv');
     $csv = $resp->streamedContent();
     expect($csv)->toContain($titulo->numero);

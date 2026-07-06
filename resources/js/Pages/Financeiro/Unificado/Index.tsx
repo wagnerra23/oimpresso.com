@@ -2814,7 +2814,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+            <Inline gap={2} className="pt-2 border-t border-stone-100">
               <Button
                 size="sm"
                 disabled={!bulkPlanoId || selectedRows.size === 0}
@@ -2825,7 +2825,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               <Button size="sm" variant="outline" onClick={() => setBulkPlanoOpen(false)}>
                 Cancelar
               </Button>
-            </div>
+            </Inline>
           </div>
         </SheetContent>
       </Sheet>
@@ -2856,7 +2856,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 <div className="text-[12px] text-stone-500">
                   O cancelamento é registrado como status (append-only) — o título sai da lista e dos KPIs, e fica visível no filtro Arquivados.
                 </div>
-                <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+                <Inline gap={2} className="pt-2 border-t border-stone-100">
                   <Button
                     size="sm"
                     variant="destructive"
@@ -2868,7 +2868,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   <Button size="sm" variant="outline" onClick={() => setBulkCancelOpen(false)}>
                     Voltar
                   </Button>
-                </div>
+                </Inline>
               </div>
             );
           })()}
