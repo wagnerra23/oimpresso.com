@@ -8,7 +8,7 @@
 //   tests: Modules/PontoWr2/Tests/Feature/BancoHorasShowTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head, router, useForm } from '@inertiajs/react';
+import { Deferred, Head, router, useForm } from '@inertiajs/react';
 import { type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
 import { ArrowLeft, Info, PiggyBank, Save } from 'lucide-react';
@@ -18,6 +18,7 @@ import { Button } from '@/Components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
+import { Skeleton } from '@/Components/ui/skeleton';
 import { Textarea } from '@/Components/ui/textarea';
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { cn, formatMinutes } from '@/Lib/utils';
@@ -49,7 +50,8 @@ interface Paginated {
 
 interface Props {
   saldo: Saldo;
-  movimentos: Paginated;
+  // movimentos vem via Inertia::defer — undefined no first render (saldo é eager)
+  movimentos?: Paginated;
 }
 
 const tipoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
@@ -61,6 +63,9 @@ const tipoVariant: Record<string, 'default' | 'secondary' | 'destructive' | 'out
 };
 
 export default function BancoHorasShow({ saldo, movimentos }: Props) {
+  // Guarda defensiva (defesa dupla com o <Deferred>): movimentos é undefined no
+  // first render.
+  const rows = movimentos?.data ?? [];
   // TODO inertia-v3: revisar timing reset (agora so no onFinish)
   const form = useForm({
     minutos: 0,
@@ -178,7 +183,8 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
             <CardTitle className="text-base">Histórico de movimentos</CardTitle>
           </CardHeader>
           <CardContent className="p-0">
-            {movimentos.data.length === 0 ? (
+            <Deferred data="movimentos" fallback={<div className="p-4"><Skeleton className="h-64 w-full" /></div>}>
+            {rows.length === 0 ? (
               <div className="p-8 text-center text-sm text-muted-foreground">Sem movimentos.</div>
             ) : (
               <div className="overflow-x-auto">
@@ -193,7 +199,7 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {movimentos.data.map((m) => (
+                    {rows.map((m) => (
                       <tr key={m.id} className="hover:bg-accent/30">
                         <td className="p-2">{m.data_referencia ?? '—'}</td>
                         <td className="p-2">
@@ -220,6 +226,7 @@ export default function BancoHorasShow({ saldo, movimentos }: Props) {
                 </table>
               </div>
             )}
+            </Deferred>
           </CardContent>
         </Card>
       </div>
