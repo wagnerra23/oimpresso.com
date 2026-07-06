@@ -1439,12 +1439,22 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               (Receber/Pagar/OCR boleto) em vez de levar pra form genérico ambíguo. */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              {/* ADR 0235 (DS v4) — primary usa o token --accent (roxo 295 universal),
-                  não cor hardcoded. O inline verde 145 (era ADR 0182, superseded) foi
-                  removido; `.os-btn.primary` já resolve `background: var(--accent)`. */}
+              {/* Primary roxo 295 FIXO (ADR 0190 — primary universal, NÃO magenta 330).
+                  BUG corrigido 2026-07-06 (diff prod×protótipo, Wagner): este botão
+                  renderiza no PageHeader, FORA do wrapper `.fin-cowork` — e a ÚNICA regra
+                  de `.os-btn.primary` do build é escopada `.fin-cowork .os-btn.primary`
+                  (cowork-canon-financeiro-bundle.css). Logo o `var(--accent)` nunca era
+                  aplicado (botão ghost) e, quando era, herdava o `--accent` tweakável do
+                  AppShellV2 (magenta 330 no browser do Wagner). Estilo inline = imune ao
+                  escopo E ao Tweaks slider, travado no roxo 295 canon (== FinanceiroPrimaryButton). */}
               <button
                 type="button"
                 className="os-btn primary"
+                style={{
+                  backgroundColor: 'oklch(0.55 0.15 295)',
+                  borderColor: 'oklch(0.45 0.15 295)',
+                  color: 'oklch(0.99 0 0)',
+                }}
               >
                 <Plus size={13} /> Novo título <ChevronDown size={11} />
               </button>

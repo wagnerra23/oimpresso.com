@@ -5,8 +5,8 @@ type: visual-comparison
 module: Financeiro
 status: approved
 date: 2026-05-09
-last_updated: 2026-05-25
-last_appended_ondas: [24, 25, "PR D quick wins"]
+last_updated: 2026-07-06
+last_appended_ondas: [24, 25, "PR D quick wins", "diff-prod-2026-07-06"]
 canon_reference: cowork-2026-05-09-protótipo "Visao Unificada" (Financeiro.html)
 canon_secundario: tasks.jsx (inbox densa com atalhos teclado)
 blade_source: n/a (greenfield — tela nova de unificação dos 4 estados)
@@ -186,3 +186,39 @@ WAI-ARIA Combobox pattern adicionado pós-smoke:
 ### PR D — G12 audit log violação coerência
 
 `UpdateTituloRequest::assertPlanoCoerente()` + `StoreTituloRequest::assertPlanoCoerente()` agora emitem `Log::warning('financeiro.plano_coerencia.violada', ...)` antes do abort(422) com payload completo (route, business_id, titulo_id, tipo_titulo, plano_id, plano_codigo, plano_tipo, user_id, ip). Permite alerta em dashboard se taxa > 0.1% (signal de bug UI ou tentativa tampering).
+
+---
+
+## Round 2026-07-06 — DIFF COMPLETO prod × protótipo aprovado (MEDIDO, não teorizado)
+
+> **Gatilho:** Wagner viu o protótipo renderizado (light), aprovou a direção ("esse mesmo, gostei"), abriu a prod e estranhou ("bem diferente"). Pedido: "faça o diff completo".
+> **Método:** o MESMO extrator DOM rodado nos dois lados (protótipo `financeiro-page.jsx` servido local + `oimpresso.com/financeiro/unificado` via Chrome logado) + inspeção da cascata CSS no repo + zoom de pixel. Deploy verificado EM DIA (main HEAD deployado; merges do dia tocaram 0 arquivos de UI).
+
+### ✅ IDÊNTICOS (a implementação segue o protótipo)
+
+Lentes Caixa/A receber/A pagar 3/3 · chips lifecycle + Só atrasados + Arquivados · período Dia→Personalizado 6/6 · KPIs 5/5 (hero SALDO PREVISTO + sparkline) · **tabela: as MESMAS 9 colunas na mesma ordem** (Vencimento→Valor, prod adiciona sort ⇅) · row-height 34px nos DOIS · fonte da tabela IBM Plex Sans nos DOIS · footer com totais + atalhos · ações por linha (Receber/Pagar ≙ Recebi/Paguei) · seletores Todas as contas / Todo o plano de contas.
+
+### 🔴 BUG (P0+P1 = MESMA causa-raiz) — CORRIGIDO 2026-07-06
+
+O botão primary "Novo título" do PageHeader é um `<button className="os-btn primary">` **cru** ([Index.tsx:1445](../../../resources/js/Pages/Financeiro/Unificado/Index.tsx)) que dependia de `.os-btn.primary { background: var(--accent) }`. **Dois sintomas, uma causa:**
+- **P0 GHOST** — a única regra `.os-btn.primary` do build é ESCOPADA `.fin-cowork .os-btn.primary` ([bundle:1549](../../../resources/css/cowork-canon-financeiro-bundle.css)) e o botão renderiza FORA do wrapper `.fin-cowork` (medido: bg transparente; se estivesse dentro, bg seria o accent, não transparente). Regra nunca casa → botão sem fundo. Mesma classe do furo do Portal Sheet (Index.tsx:1844).
+- **P1 MAGENTA** — quando `var(--accent)` resolvia, herdava o `--accent` do [AppShellV2:381](../../../resources/js/Layouts/AppShellV2.tsx), que é **tweakável ao vivo** pelo TweaksPanel (slider "Tom do accent", `onHue=setAccentHue`, renderizado sempre — feature, não bug). O browser do Wagner tinha `accentHue=330` (magenta) do próprio slider. Por ADR 0190 o **primary é roxo 295 FIXO**, então nunca deveria seguir o `--accent` tweakável.
+
+**Correção NÃO é clampar o shell** (isso mataria a personalização de accent + as bolhas WhatsApp que consomem `--bubble-me`). É travar o **primary** no 295 canon, imune ao escopo E ao slider: `style={{ backgroundColor:'oklch(0.55 0.15 295)', borderColor:'oklch(0.45 0.15 295)', color:'oklch(0.99 0 0)' }}` inline no botão (== o que `FinanceiroPrimaryButton.tsx` já fazia). **Provado ao vivo** (2026-07-06): injetar esse estilo no botão da prod → renderizou bloco roxo sólido com texto branco (antes: transparente). Fix landado em Index.tsx:1445.
+
+> **Nota sobre o resto da sessão do Wagner:** os OUTROS accents magenta que ele vê (sidebar ativo, bolhas) são o **slider dele em 330** — personalização legítima, não bug. Pra voltar ao roxo canon no shell inteiro: arrastar "Tom do accent" pra ~295 no TweaksPanel (ou limpar `localStorage['oimpresso.cockpit.tweaks.accentHue']`). Só o **primary** é canon-locked (agora 295 sempre).
+
+### 🟡 Divergências de DESIGN (decisão, não bug)
+
+3. **Pills de status:** protótipo = pílula full-round (9999px), SEM borda, saturada (bg oklch .93/.11, fg .55/.17) · prod = retângulo 4px COM borda 1px, dessaturado (bg .97/.02, fg .51/.12) + hues deslocados (verde 150→162 · vermelho 25→18 · âmbar 80→95). É a diferença mais visível na tabela. Qual é o canon?
+4. **Seletor de data-campo:** protótipo = segmented "FILTRAR POR Vencimento·Emissão·Pagamento·Competência" · prod = `<select>` dropdown compacto.
+5. **Fonte do body:** prod = ui-sans-serif (só a tabela usa IBM Plex) · protótipo = IBM Plex global.
+6. **Tema default:** protótipo = dark (decisão [W] 2026-06-03 no próprio protótipo) · prod = light. Pendente Wagner cravar o default da prod.
+
+### 🔵 Prod À FRENTE do protótipo (não é regressão)
+
+Botão flutuante **"Resolver N"** (anomalias) · ⌘K palette · J/K navegar · B favoritar linha · sorting ⇅ nas colunas.
+
+### Anexos de evidência (sessão 2026-07-06)
+
+Extractor JSON dos dois lados + probes de cascata + zoom do botão — na transcrição da sessão. localStorage do browser [W]: `oimpresso.cockpit.tweaks.accentHue=330` (confirmado ao vivo).
