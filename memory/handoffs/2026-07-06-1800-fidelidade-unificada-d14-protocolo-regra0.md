@@ -1,9 +1,16 @@
 ---
 date: "2026-07-06"
-hora: "18:00"
+time: "18:00 BRT"
 slug: fidelidade-unificada-d14-protocolo-regra0
-authors: [W, C]
+tldr: "Maratona 11 PRs: sentinela frescor v1 morta por adversário → v2 identidade canônica + dispatch/ledger/SLA (ADR 0324 proposto); [W] aprovou direção do Financeiro; diff prod×proto achou primary ghost/magenta + full-reload D-14 — consertados e provados em prod (X-Inertia-Partial-Data); deploy flaky morto (OPcache pré-gate); PROTOCOLO-COMPARACAO-RUNTIME criado com Regra 0 (pós-deploy sempre Chrome+comparação sem [W] pedir)."
+decided_by: [W, C]
+cycle: null
 prs: [3880, 3881, 3882, 3883, 3884, 3885, 3886, 3887, 3888, 3889, 3890]
+next_steps:
+  - "Integrar pixel-gate buildado (PixelBaselineTest) ao protocolo + pacote promoção a required (chip)"
+  - "Sweep D-14 repo-wide: router.get sem only (chip)"
+  - "Ratificar ADR 0324 + 1ª rodada completa do dispatch de frescor (chip)"
+  - "US-FIN-031 bulk actions — verificar âncora Implementado-em antes (chip)"
 related_adrs:
   - 0324-frescor-espelho-cowork-dispatch-sla-limite-plataforma
   - 0315-design-sync-claude-design-vs-cowork-charter
