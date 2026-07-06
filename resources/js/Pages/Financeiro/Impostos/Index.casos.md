@@ -51,3 +51,43 @@ Guias, KPIs, calendário e painel NF nunca misturam business (ADR 0093). Coberto
 Status: ⬜ (manual/visual — disclaimer fixo no rodapé)
 Rodapé fixo: "Estimativa visual … apuração oficial … módulo Fiscal". Anti-pattern do charter:
 nunca apresentar a estimativa como apuração.
+
+---
+
+> **Adendo MV batch 2026-07-06 (piloto Módulo Vivo — screen-qa Financeiro/Impostos/Index).**
+> Auditoria do contrato revelou que UC-IMP-01/04/05 tinham só cobertura de *shape* ou eram
+> manuais. Os UCs abaixo fecham o gap com asserção **backend** derivada do charter/US-FIN-062,
+> não de shape. Âncoras: charter Goals (KPIs · costura NF · valor recalculado server-side) +
+> US-FIN-062 (SPEC.md:1803) + ADR 0093 (Tier 0). Não redesenham a tela — blindam o entregue.
+
+## UC-IMP-08 — KPI "A recolher" = soma das guias abertas (não só shape)
+Status: 🧪 (ImpostosContractTest C1 — valor = soma das abertas)
+Refina UC-IMP-01: além da chave existir (I1), o **valor** de `kpis.a_recolher.valor` tem de ser
+exatamente a soma da coluna Valor das guias com `status != paga`, e `kpis.a_recolher.qtd` = a
+contagem dessas linhas. Âncora: charter Goals "A recolher (soma das guias abertas)".
+**Pronto quando:** `kpis.a_recolher.valor` == `sum(props.calendario[].valor)` e `qtd` ==
+`count(props.calendario)`, com receita seedada > 0 (DAS estimado presente na soma).
+
+## UC-IMP-09 — Valor recalculado server-side (anti tampering)
+Status: 🧪 (ImpostosContractTest C2 — client não injeta valor)
+Anti-pattern do charter ("não confiar em valor vindo do client"): o POST `/lancar` só aceita
+`competencia`; qualquer `valor`/`vencimento`/`status` enviado pelo cliente é **ignorado**. O
+título criado grava o valor recalculado (6% × receita recebida server-side), nunca o do payload.
+**Pronto quando:** POST com `valor: 999999.99` extra cria título cujo `valor_total` = 6% da
+receita recebida (não 999999.99), e vencimento = dia 20 do mês seguinte (não o do payload).
+
+## UC-IMP-10 — Costura NF↔título (backend, não só manual)
+Status: 🧪 (ImpostosContractTest C3 — sem_nf e pct_com_nf derivados)
+Refina UC-IMP-05: recebível do mês SEM `metadata.nfe_numero`/`nfe_chave` entra em `props.sem_nf`
+(até 5) e derruba `kpis.pct_com_nf`; recebível COM NF vinculada NÃO entra e conta como consistente.
+Sem recebíveis no mês → `pct_com_nf = 100`. Âncora: charter Goals "Painel NF↔título".
+**Pronto quando:** seed de 1 recebível sem NF + 1 com NF no mês → `sem_nf` contém só o sem-NF e
+`pct_com_nf` reflete a proporção (com 1/2 = 50).
+
+## UC-IMP-11 — Guia paga sai do "A recolher" e do calendário (backend)
+Status: 🧪 (ImpostosContractTest C4 — status quitado excluído dos abertos)
+Refina UC-IMP-04 pra asserção backend: título de guia (DAS/FGTS/INSS) com `status = quitado`
+aparece em `guias` com `status = paga`, mas NÃO entra em `props.calendario` nem soma no
+`kpis.a_recolher`. Âncora: charter Goals "Status: a vencer / paga / atrasada" + KPI só-abertas.
+**Pronto quando:** guia quitada seedada → presente em `guias` (status paga) e ausente de
+`calendario`; `a_recolher` não a inclui.

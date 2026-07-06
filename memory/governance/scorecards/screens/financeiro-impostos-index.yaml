@@ -1,0 +1,37 @@
+# Nota 16-dim LLM-as-judge (agente screen-qa) — NÃO editar à mão.
+# Primeira medição da tela (não vinha do baseline seed 2026-05-30): gerada no
+# piloto do metabolismo Módulo Vivo (MV batch 2026-07-06). baseline_anterior = nota
+# (âncora inicial do ratchet — nota não pode cair abaixo sem aprovação humana).
+screen: Financeiro/Impostos/Index
+path: resources/js/Pages/Financeiro/Impostos/Index.tsx
+archetype: dashboard
+persona: eliana
+nota: 78
+nivel: "Advanced"
+baseline_anterior: 78   # ratchet — primeira medição; nota não cai abaixo disto sem aprovação
+peso_real: 1.0
+source: mv-batch-2026-07-06
+graded_at: "2026-07-06"
+resumo: "Wrapper read-only maduro (estimativa Simples Nacional regime caixa) com charter + casos.md + US-FIN-062 e disclaimer fixo honesto: 3 KPIs, guias, calendário e costura NF↔título, tokens semânticos (bg-warning/success/destructive, zero cor crua), PageHeader + FinanceiroSubNav, Intl pt-BR e responsivo <1100px. Restam a <table> hand-rolled (fora do PT-01/DS DataTable), drift de wrapper (.fin-curadoria no root vs .fin-cowork no layout), lançar sem loading/confirm state e a11y de tabela não auditada com axe."
+dimensoes: { density: 80, discoverability: 74, speed_to_task: 76, error_recovery: 66, cognitive_load: 80, aesthetic_usability: 76, affordance: 72, brand_confidence: 78, mobile_fit: 68, a11y_wcag: 68, i18n_ptbr: 86, performance_perceived: 76, information_hierarchy: 80, microcopy: 82, internal_consistency: 70, preflight_conformance: 82 }
+gaps:
+  - dim: "Error-recovery"
+    best_of_class: "Linear/Stripe: mutação com estado de loading + confirm + rollback otimista"
+    fix: "router.post('/lancar') dispara sem aria-busy/loading nem confirmação; a criação de título payable (dinheiro) merece disabled+spinner no botão e onError com toast. Sem estado, duplo-clique só é barrado pela idempotência server-side (bom), mas o usuário não vê feedback."
+    esforco: baixo
+    origin: mv-batch-2026-07-06
+  - dim: "Internal-consistency"
+    best_of_class: "Linear reusa um único DataTable por app em vez de <table> por tela"
+    fix: "Guias do período é <table> hand-rolled (charter mira o vocabulário do módulo, PT-01 mira DataTable). Além disso o root usa className .fin-curadoria enquanto o comentário e o AppShellV2.layout envolvem em .fin-cowork — vocabulário divergente na mesma tela."
+    esforco: medio
+    origin: mv-batch-2026-07-06
+  - dim: "A11y-WCAG"
+    best_of_class: "GOV.UK/Stripe: <table> com <caption> + scope, e status comunicado além da cor"
+    fix: "Tabela sem <caption>/scope=col; status pills semânticos ok (texto presente), mas o conjunto não foi rodado com axe. Rodar @axe-core no E2E (viewport 1280/1440) e assertar zero violação crítica; adicionar caption sr-only e th scope."
+    esforco: medio
+    origin: mv-batch-2026-07-06
+  - dim: "Mobile-fit"
+    best_of_class: "Bling/Conta Azul: tabela com scroll horizontal contido ou cards em mobile"
+    fix: "Grid colapsa pra 1 coluna <1100px (bom p/ Larissa 1280), mas a <table> de 6 colunas não tem wrapper de overflow-x — em largura real de celular estoura. Envolver a tabela em overflow-x-auto ou virar cards <640px."
+    esforco: baixo
+    origin: mv-batch-2026-07-06
