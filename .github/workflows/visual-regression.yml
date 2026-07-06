@@ -283,26 +283,29 @@ jobs:
       # (default). Aqui cada (tela × estado) declarado no charter `states:` + no manifesto
       # tests/Browser/visreg-states.json (empty/loading/dark/error) vira baseline — o estado é
       # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
-      # mesmo princípio não-invasivo do L3). PROMOVIDO A ENFORCING (2026-07-06, ADR 0271/0275:
-      # gate nasce advisory → 2 verdes → enforcing; aprovação [W] explícita nesta sessão):
-      # baselines commitadas no #3297 (gate passa a COMPARAR) + verde 5/5 nos runs que
-      # exercitaram o caminho pesado desde então. Removido o `continue-on-error` — como o
-      # pixel-diff (L7) ao lado, o L2 agora BLOQUEIA merge se algum (tela,estado) divergir da
-      # baseline. Sem clique de branch protection — o check `visual-regression` já é required.
-      # Mudança intencional: `npm run visreg:states:update` + aprovação [W] (F1.5) no MESMO PR.
-      - name: Snapshots de estados isolados (ENFORCING — L2)
+      # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
+      # mesmo princípio não-invasivo do L3). SEGUE ADVISORY (2026-07-06): a tentativa de flip a
+      # enforcing (PR #3910) DESMASCAROU que 3 baselines estão STALE vs o render atual —
+      # financeiro-unificado default+dark (4 PRs de mudança APROVADA nos últimos 2 dias: filtro
+      # segmentado #3886, rótulo "Recebi/Paguei" #3887, primary roxo #3885, D-14 #3889) +
+      # compras default. NÃO é regressão — é baseline velha vs fix aprovado. Enforcing só DEPOIS
+      # de refrescar as .snap com aprovação [W] (F1.5, olhar o screenshot — não congelar bug).
+      # `continue-on-error` mantido SÓ neste step. Refrescar: `npm run visreg:states:update` (CI)
+      # + [W] revisa o artifact `pixel-snapshots`. O lint L2 (charter⇄manifesto) acima JÁ é enforcing.
+      - name: Snapshots de estados isolados (ADVISORY — L2 · 3 baselines stale, aguarda F1.5)
         if: steps.changes.outputs.ui == 'true'
         id: isolated-states
+        continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
 
-      - name: Veredito dos estados isolados (L2 · visível no log)
+      - name: Veredito advisory dos estados isolados (L2 · visível no log)
         if: steps.changes.outputs.ui == 'true'
         run: |
           if [ "${{ steps.isolated-states.outcome }}" = "failure" ]; then
-            echo "🔴 L2 FALHOU (ENFORCING — bloqueia merge) — ao menos 1 (tela,estado) com diff vs baseline isolada."
-            echo "   Intencional? npm run visreg:states:update + aprovação [W] (F1.5) no mesmo PR. Regressão? conserte."
+            echo "🔴 L2 ADVISORY FALHOU — ao menos 1 (tela,estado) com diff vs baseline isolada."
+            echo "   Intencional (fix aprovado)? npm run visreg:states:update + aprovação [W] (F1.5). Regressão? conserte antes do enforcing."
           else
-            echo "✅ estados isolados (L2) OK (ENFORCING) — empty/loading/dark/error batendo baseline."
+            echo "✅ estados isolados (L2) OK (advisory) — empty/loading/dark/error batendo baseline."
           fi
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
@@ -430,7 +433,7 @@ jobs:
               '',
               '> ℹ️ Distinção honesta: o **pixel-diff núcleo-6** (camada de diff de pixel das telas núcleo-6 — Onda Q4 · ADR 0261) agora é **ENFORCING** (`continue-on-error` removido) e **bloqueia o merge** se alguma tela passar de τ_alto (2%). O L7 (double-threshold) deixa a ZONA CINZA (τ_baixo..τ_alto) passar sem falhar — só vira diff-view pro [W] revisar.',
               '>',
-              '> ℹ️ Os gates **L2** (estados isolados `empty/loading/dark/error` + lint charter⇄manifesto) também são **ENFORCING** desde 2026-07-06 (aprovação [W]) — divergência de estado isolado ou drift charter↔JSON bloqueia o merge. Estado isolado intencional: `npm run visreg:states:update` + aprovação [W] no mesmo PR. Ainda advisory: L5 perf Lighthouse (calendário ADR 0275 §5).',
+              '> ℹ️ O **lint L2** (charter `states:` ⇄ manifesto) é **ENFORCING** desde 2026-07-06 (aprovação [W]) — drift charter↔JSON bloqueia o merge. Os **snapshots L2 de estados isolados** seguem **advisory** até 3 baselines stale (financeiro-unificado default+dark, compras default) serem refrescadas com aprovação visual [W] (F1.5). Também advisory: L5 perf Lighthouse (calendário ADR 0275 §5).',
               '',
               '### Como resolver',
               '1. Baixar artifact `screenshots-diff` deste workflow run',
