@@ -88,9 +88,12 @@ function TabSwitcher({ tab }: { tab: TabAtiva }) {
   // router.visit preserva scroll + replace na URL (?tab=X) pra deep-link funcionar.
   const trocaTab = (alvo: TabAtiva) => {
     if (alvo === tab) return;
+    // D-14: partial reload — troca de tab só re-busca tab/realizado
+    // (projeção 35d saldo_hoje/dias/etc são closures no controller, pulam no partial).
     router.visit(`/financeiro/fluxo?tab=${alvo}`, {
       preserveScroll: true,
       replace: true,
+      only: ['tab', 'realizado'],
     });
   };
 

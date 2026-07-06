@@ -48,7 +48,8 @@ class ContaPagarController extends Controller
                 'origem_id' => $t->origem_id,
             ]);
 
-        $contas = ContaBancaria::where('business_id', $businessId)
+        // closure D-14: por business, não muda com filtro — pula no partial reload
+        $contas = fn () => ContaBancaria::where('business_id', $businessId)
             ->select(['id', 'banco_codigo'])
             ->with(['account:id,name'])
             ->get()

@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-03"
+last_run: "2026-07-06"
 ---
 
 # Casos de Uso & Aceite — Contas a Pagar
@@ -51,6 +51,9 @@ last_run: "2026-07-03"
 - 2026-07-03 · [CC] criado na Onda de correção Financeiro (régua por tela, [ADR 0320]): charter +
   casos retroativos. Cobertura de comportamento e D1 nascem em **débito visível** — a contradição
   UX-alto (70 Advanced) / baixa-de-valor-indefesa que o programa existe pra expor.
+- 2026-07-06 · [CC] sweep D-14 (partial reload `only:` no filtro — PR #3889 pattern). Só mudou
+  COMO as props carregam; comportamento/cálculo/baixa intocados. `last_run` bumpado (G-6) — os UCs
+  em débito seguem sem teste (sem `Status: ✅`, nada a revalidar via manifesto).
 
 [ADR 0320]: ../../../../../memory/decisions/proposals/0320-programa-ondas-regua-correcao.md
 [ADR 0264]: ../../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md

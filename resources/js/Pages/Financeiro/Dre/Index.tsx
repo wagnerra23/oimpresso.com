@@ -112,9 +112,12 @@ function TabSwitcher({ aba }: { aba: AbaAtiva }) {
   // router.visit preserva scroll + replace na URL (?aba=X) pra deep-link funcionar.
   const trocaAba = (alvo: AbaAtiva) => {
     if (alvo === aba) return;
+    // D-14: partial reload — troca de aba só re-busca aba/balanco/balancete
+    // (demonstrativo meta/linhas/margem são closures no controller, pulam no partial).
     router.visit(`/financeiro/dre?aba=${alvo}`, {
       preserveScroll: true,
       replace: true,
+      only: ['aba', 'balanco', 'balancete'],
     });
   };
 
