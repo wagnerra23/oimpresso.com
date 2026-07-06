@@ -4,9 +4,10 @@
 
 import React, { type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
-import { Link } from '@inertiajs/react'
+import { Deferred, Link } from '@inertiajs/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
+import { Skeleton } from '@/Components/ui/skeleton'
 import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
@@ -43,18 +44,28 @@ interface JudgmentConflict {
   recommendation: string
 }
 
+interface Kpis { file_lock: number; drift: number; human_ai: number; total: number }
+
 interface Props {
-  file_lock_conflicts: FileLockConflict[]
-  drift_conflicts:     DriftConflict[]
-  judgment_conflicts:  JudgmentConflict[]
-  kpis: { file_lock: number; drift: number; human_ai: number; total: number }
+  // vêm via Inertia::defer (ConflictsController) — undefined no first render
+  file_lock_conflicts?: FileLockConflict[]
+  drift_conflicts?:     DriftConflict[]
+  judgment_conflicts?:  JudgmentConflict[]
+  kpis?: Kpis
 }
+
+const KPIS_FALLBACK: Kpis = { file_lock: 0, drift: 0, human_ai: 0, total: 0 }
 
 const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
 
 const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
   file_lock_conflicts, drift_conflicts, judgment_conflicts, kpis,
 }) => {
+  const k = kpis ?? KPIS_FALLBACK
+  const fileLocks = file_lock_conflicts ?? []
+  const drifts = drift_conflicts ?? []
+  const judgments = judgment_conflicts ?? []
+
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
       <PageHeader
@@ -63,14 +74,18 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
         description="Detector automático de 3 tipos de conflito. Sem essa tela, sistema quebra silenciosamente."
       />
 
+      <Deferred
+        data={['file_lock_conflicts', 'drift_conflicts', 'judgment_conflicts', 'kpis']}
+        fallback={<Skeleton className="h-64 w-full" />}
+      >
       <KpiGrid cols={4}>
-        <KpiCard icon="alert-triangle" tone="danger"  label="Total de conflitos"  value={num(kpis.total)}     description="7 dias" />
-        <KpiCard icon="file-warning"   tone="warning" label="File lock"            value={num(kpis.file_lock)} description="Decisões concorrentes" />
-        <KpiCard icon="trending-down"  tone="warning" label="Drift de padrão"      value={num(kpis.drift)}     description="Taxa caiu >25pp" />
-        <KpiCard icon="users"          tone="info"    label="Humano × IA"          value={num(kpis.human_ai)}  description="Wagner aprovou, IA<50" />
+        <KpiCard icon="alert-triangle" tone="danger"  label="Total de conflitos"  value={num(k.total)}     description="7 dias" />
+        <KpiCard icon="file-warning"   tone="warning" label="File lock"            value={num(k.file_lock)} description="Decisões concorrentes" />
+        <KpiCard icon="trending-down"  tone="warning" label="Drift de padrão"      value={num(k.drift)}     description="Taxa caiu >25pp" />
+        <KpiCard icon="users"          tone="info"    label="Humano × IA"          value={num(k.human_ai)}  description="Wagner aprovou, IA<50" />
       </KpiGrid>
 
-      {kpis.total === 0 && (
+      {k.total === 0 && (
         <Card>
           <CardContent className="p-0">
             <EmptyState
@@ -83,13 +98,13 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
       )}
 
       {/* File lock conflicts */}
-      {file_lock_conflicts.length > 0 && (
+      {fileLocks.length > 0 && (
         <Card className="border-warning/30 bg-warning-soft">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileWarning className="w-5 h-5 text-warning-fg" />
               File lock — decisões concorrentes
-              <Badge className="ml-auto bg-amber-600">{file_lock_conflicts.length}</Badge>
+              <Badge className="ml-auto bg-amber-600">{fileLocks.length}</Badge>
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Duas decisões tentaram modificar o mesmo arquivo dentro de 1 hora. Mutex evita execução simultânea, mas convém investigar duplicidade.
@@ -97,7 +112,7 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
-              {file_lock_conflicts.map((c, i) => (
+              {fileLocks.map((c, i) => (
                 <li key={i} className="text-sm space-y-1 border-l-2 border-amber-300 pl-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <code className="text-xs bg-zinc-100 px-1.5 py-0.5 rounded">{c.file}</code>
@@ -121,13 +136,13 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
       )}
 
       {/* Drift conflicts */}
-      {drift_conflicts.length > 0 && (
+      {drifts.length > 0 && (
         <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingDown className="w-5 h-5 text-destructive" />
               Drift — padrão degradando
-              <Badge className="ml-auto" variant="destructive">{drift_conflicts.length}</Badge>
+              <Badge className="ml-auto" variant="destructive">{drifts.length}</Badge>
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Taxa recente caiu mais de 25pp em relação à histórica. Pode indicar contexto mudou (Laravel update, schema novo, etc).
@@ -135,7 +150,7 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {drift_conflicts.map((d, i) => (
+              {drifts.map((d, i) => (
                 <li key={i} className="text-sm border-l-2 border-destructive pl-3">
                   <div className="font-medium">{d.domain} · <code className="text-xs">{d.event_type}</code></div>
                   <div className="text-xs text-muted-foreground">
@@ -150,13 +165,13 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
       )}
 
       {/* Human × AI judgment */}
-      {judgment_conflicts.length > 0 && (
+      {judgments.length > 0 && (
         <Card className="border-blue-500/30 bg-blue-500/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="w-5 h-5 text-blue-600" />
               Humano × IA — julgamentos divergentes
-              <Badge className="ml-auto bg-blue-600">{judgment_conflicts.length}</Badge>
+              <Badge className="ml-auto bg-blue-600">{judgments.length}</Badge>
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Wagner aprovou mas ReviewerAgent deu nota baixa. Sinal valioso: ou Wagner viu algo que IA não percebe, ou prompt do Reviewer está calibrado errado.
@@ -164,7 +179,7 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
-              {judgment_conflicts.map((c, i) => (
+              {judgments.map((c, i) => (
                 <li key={i} className="text-sm space-y-1 border-l-2 border-blue-300 pl-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Link href={`/ads/admin/decisoes/${c.decision_id}`} className="text-primary hover:underline font-medium">
@@ -189,6 +204,7 @@ const Conflicts: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({
           </CardContent>
         </Card>
       )}
+      </Deferred>
     </div>
   )
 }
