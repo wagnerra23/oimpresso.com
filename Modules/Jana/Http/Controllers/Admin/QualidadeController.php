@@ -60,8 +60,10 @@ class QualidadeController extends Controller
             'gates'   => $gates,
             'series'  => $this->buildSeriesPayload($dias, $businessId),
             'kpis'    => $this->buildKpisPayload($dias, $businessId),
-            'gabarito_total' => DB::table('jana_memoria_gabarito')->where('ativo', true)->count(),
-            'gabarito_por_categoria' => DB::table('jana_memoria_gabarito')
+            // closure D-14: gabarito da plataforma, não muda com filtro — pula no
+            // partial reload (only: series/kpis/filtros). Roda normal no load cheio.
+            'gabarito_total' => fn () => DB::table('jana_memoria_gabarito')->where('ativo', true)->count(),
+            'gabarito_por_categoria' => fn () => DB::table('jana_memoria_gabarito')
                 ->where('ativo', true)
                 ->select('categoria', DB::raw('COUNT(*) as c'))
                 ->groupBy('categoria')

@@ -115,14 +115,18 @@ class RoadmapController extends Controller
         // Wagner 2026-05-25 HOTFIX: removido Inertia::defer (owners+modules).
         // Roadmap.tsx destruct direto — TypeError `undefined.map` em prod.
         // Mesmo padrão PR #1550/#1552.
-        $owners = DB::table('mcp_tasks')
+        //
+        // closure D-14 (2026-07-06, ref PR #3889): fontes dos dropdowns, não mudam
+        // com filtro — pulam no partial reload (only: tasks/filters). Diferente do
+        // defer, closure roda no load cheio (1º render nunca vê undefined).
+        $owners = fn () => DB::table('mcp_tasks')
             ->select('owner')
             ->whereNotNull('owner')
             ->distinct()
             ->orderBy('owner')
             ->pluck('owner');
 
-        $modules = DB::table('mcp_tasks')
+        $modules = fn () => DB::table('mcp_tasks')
             ->select('module')
             ->whereNotNull('module')
             ->distinct()

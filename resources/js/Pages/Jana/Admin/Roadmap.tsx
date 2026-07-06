@@ -352,10 +352,17 @@ function RoadmapIndex(props: Props) {
 
   const aplicarFiltro = useCallback(
     (patch: Partial<Filters>) => {
+      // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
+      // cycles/owners/modules (fontes dos dropdowns) não trafegam de novo.
       router.get(
         '/ia/admin/roadmap',
         { ...filters, ...patch },
-        { preserveState: true, preserveScroll: true, replace: true },
+        {
+          preserveState: true,
+          preserveScroll: true,
+          replace: true,
+          only: ['tasks', 'filters'],
+        },
       );
     },
     [filters],
