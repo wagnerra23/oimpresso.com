@@ -18,6 +18,9 @@ import {
   verdictFor,
   shouldFail,
   buildManifest,
+  ledgerEntry,
+  slaVerdict,
+  SLA_DAYS,
 } from './cowork-mirror-freshness.mjs';
 
 let fails = 0;
@@ -124,5 +127,32 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   rmSync(bad, { force: true });
 }
 
-console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v2 do comparador de frescor preservado (path completo + hash normalizado)');
+// 8. LEDGER + SLA — o CI headless mede CADÊNCIA da rotina, nunca frescor (honestidade do
+//    split: dispatch logado mede frescor; --sla mede se o dispatch anda rodando).
+{
+  const rows = [
+    { cowork: 'a.jsx', veredito: 'SYNC' },
+    { cowork: 'b.jsx', veredito: 'STALE' },
+    { cowork: 'c.jsx', veredito: 'UNCHECKED' },
+  ];
+  const e = ledgerEntry(rows, '2026-07-06T12:00:00.000Z');
+  check('ledgerEntry conta por veredito', e.files === 3 && e.sync === 1 && e.stale === 1 && e.unchecked === 1 && e.liveAbsent === 0);
+  check('ledgerEntry lista os STALE por path', e.staleList.length === 1 && e.staleList[0] === 'b.jsx');
+  check('ledgerEntry carrega a data da rodada', e.date === '2026-07-06T12:00:00.000Z');
+
+  const NOW = '2026-07-06T12:00:00.000Z';
+  const clean = { date: '2026-07-01T12:00:00.000Z', stale: 0, sync: 3, unchecked: 0 };
+  const dirty = { date: '2026-07-01T12:00:00.000Z', stale: 2, sync: 1, unchecked: 0, staleList: ['x.jsx', 'y.jsx'] };
+  const old = { date: '2026-06-01T12:00:00.000Z', stale: 0, sync: 3, unchecked: 0 };
+  check('ledger vazio → NEVER-RAN (rotina nunca rodou ≠ tudo bem)', slaVerdict([], NOW).veredito === 'NEVER-RAN');
+  check('rodada recente e limpa → FRESH', slaVerdict([clean], NOW).veredito === 'FRESH');
+  check('rodada além do SLA → OVERDUE', slaVerdict([old], NOW).veredito === 'OVERDUE');
+  check('última rodada com STALE → LAST-STALE (resultado sujo não some no tempo)', slaVerdict([dirty], NOW).veredito === 'LAST-STALE');
+  check('rodada nova limpa APÓS suja → FRESH (só a última conta)', slaVerdict([dirty, clean], NOW).veredito === 'FRESH');
+  check('ageDays calculado', slaVerdict([clean], NOW).ageDays === 5);
+  check('fronteira: exatamente SLA_DAYS não é OVERDUE', slaVerdict([{ ...clean, date: '2026-06-22T12:00:00.000Z' }], NOW, SLA_DAYS).veredito === 'FRESH');
+  check(`SLA_DAYS = 14`, SLA_DAYS === 14);
+}
+
+console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato v2 do comparador de frescor preservado (path completo + hash normalizado + ledger/SLA)');
 process.exit(fails ? 1 : 0);
