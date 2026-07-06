@@ -577,6 +577,9 @@
       "classe": "dinheiro_fiscal",
       "nota": null,
       "stale": true,
+      "casos": true,
+      "charter": true,
+      "idade": null,
       "prioridade": 600
     },
     {
@@ -585,6 +588,9 @@
       "classe": "dinheiro_fiscal",
       "nota": null,
       "stale": true,
+      "casos": false,
+      "charter": true,
+      "idade": null,
       "prioridade": 600
     },
     {
@@ -593,6 +599,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": true,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -601,6 +610,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": false,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -609,6 +621,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": false,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -617,6 +632,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": false,
+      "charter": false,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -625,6 +643,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": true,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -633,6 +654,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": true,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -641,6 +665,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": false,
+      "charter": false,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -649,6 +676,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": false,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -657,6 +687,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": true,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -665,6 +698,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": true,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -673,6 +709,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": false,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -681,6 +720,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": false,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -689,6 +731,9 @@
       "classe": "resto",
       "nota": null,
       "stale": true,
+      "casos": true,
+      "charter": true,
+      "idade": null,
       "prioridade": 150
     },
     {
@@ -697,6 +742,9 @@
       "classe": "dinheiro_fiscal",
       "nota": 64,
       "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
       "prioridade": 144
     },
     {
@@ -705,6 +753,9 @@
       "classe": "dinheiro_fiscal",
       "nota": 65,
       "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
       "prioridade": 140
     },
     {
@@ -713,6 +764,9 @@
       "classe": "dinheiro_fiscal",
       "nota": 68,
       "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
       "prioridade": 128
     },
     {
@@ -721,6 +775,9 @@
       "classe": "dinheiro_fiscal",
       "nota": 70,
       "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 1,
       "prioridade": 120
     },
     {
@@ -729,7 +786,340 @@
       "classe": "dinheiro_fiscal",
       "nota": 70,
       "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 1,
       "prioridade": 120
+    },
+    {
+      "screen": "Financeiro/Advisor/Dashboard",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 72,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 112
+    },
+    {
+      "screen": "Financeiro/Configuracoes/Contador",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 72,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 112
+    },
+    {
+      "screen": "Financeiro/Relatorios/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 72,
+      "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
+      "prioridade": 112
+    },
+    {
+      "screen": "Sells/Subscriptions",
+      "mod": "Sells",
+      "classe": "dinheiro_fiscal",
+      "nota": 72,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 112
+    },
+    {
+      "screen": "Sells/Quotations",
+      "mod": "Sells",
+      "classe": "dinheiro_fiscal",
+      "nota": 73,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 108
+    },
+    {
+      "screen": "Financeiro/ContasBancarias/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 74,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 104
+    },
+    {
+      "screen": "NfeBrasil/Transactions/NfceStatus",
+      "mod": "NfeBrasil",
+      "classe": "dinheiro_fiscal",
+      "nota": 74,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 104
+    },
+    {
+      "screen": "Sells/Drafts",
+      "mod": "Sells",
+      "classe": "dinheiro_fiscal",
+      "nota": 74,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 104
+    },
+    {
+      "screen": "Financeiro/Categorias/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 75,
+      "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
+      "prioridade": 100
+    },
+    {
+      "screen": "Financeiro/Conciliacao/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 75,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 100
+    },
+    {
+      "screen": "Financeiro/PlanoContas/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 75,
+      "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
+      "prioridade": 100
+    },
+    {
+      "screen": "Financeiro/Caixa/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 76,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 96
+    },
+    {
+      "screen": "Financeiro/Extrato/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 76,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 96
+    },
+    {
+      "screen": "Fiscal/Nfse",
+      "mod": "Fiscal",
+      "classe": "dinheiro_fiscal",
+      "nota": 76,
+      "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 96
+    },
+    {
+      "screen": "Fiscal/Sped",
+      "mod": "Fiscal",
+      "classe": "dinheiro_fiscal",
+      "nota": 76,
+      "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 96
+    },
+    {
+      "screen": "Sells/Caixa/Index",
+      "mod": "Sells",
+      "classe": "dinheiro_fiscal",
+      "nota": 76,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 96
+    },
+    {
+      "screen": "Fiscal/Eventos",
+      "mod": "Fiscal",
+      "classe": "dinheiro_fiscal",
+      "nota": 77,
+      "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 92
+    },
+    {
+      "screen": "Nfse/Emitir",
+      "mod": "Nfse",
+      "classe": "dinheiro_fiscal",
+      "nota": 77,
+      "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
+      "prioridade": 92
+    },
+    {
+      "screen": "NfeBrasil/Tributacao/ImportCsv",
+      "mod": "NfeBrasil",
+      "classe": "dinheiro_fiscal",
+      "nota": 78,
+      "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
+      "prioridade": 88
+    },
+    {
+      "screen": "NfeBrasil/Tributacao/RegraForm",
+      "mod": "NfeBrasil",
+      "classe": "dinheiro_fiscal",
+      "nota": 78,
+      "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
+      "prioridade": 88
+    },
+    {
+      "screen": "Financeiro/Fluxo/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 79,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 84
+    },
+    {
+      "screen": "Fiscal/Dfe",
+      "mod": "Fiscal",
+      "classe": "dinheiro_fiscal",
+      "nota": 79,
+      "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 84
+    },
+    {
+      "screen": "Financeiro/Dre/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 80,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 80
+    },
+    {
+      "screen": "NfeBrasil/Tributacao/ConfigDefault",
+      "mod": "NfeBrasil",
+      "classe": "dinheiro_fiscal",
+      "nota": 80,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 80
+    },
+    {
+      "screen": "Financeiro/Dashboard/Index",
+      "mod": "Financeiro",
+      "classe": "dinheiro_fiscal",
+      "nota": 82,
+      "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
+      "prioridade": 72
+    },
+    {
+      "screen": "Fiscal/Config",
+      "mod": "Fiscal",
+      "classe": "dinheiro_fiscal",
+      "nota": 82,
+      "stale": false,
+      "casos": true,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 72
+    },
+    {
+      "screen": "NfeBrasil/Tributacao/Index",
+      "mod": "NfeBrasil",
+      "classe": "dinheiro_fiscal",
+      "nota": 82,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 72
+    },
+    {
+      "screen": "Nfse/Show",
+      "mod": "Nfse",
+      "classe": "dinheiro_fiscal",
+      "nota": 82,
+      "stale": false,
+      "casos": false,
+      "charter": false,
+      "idade": 1,
+      "prioridade": 72
+    },
+    {
+      "screen": "Sells/Edit",
+      "mod": "Sells",
+      "classe": "dinheiro_fiscal",
+      "nota": 82,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 72
+    },
+    {
+      "screen": "NfeBrasil/Manifestacao/Index",
+      "mod": "NfeBrasil",
+      "classe": "dinheiro_fiscal",
+      "nota": 83,
+      "stale": false,
+      "casos": false,
+      "charter": true,
+      "idade": 1,
+      "prioridade": 68
     }
   ]
 }

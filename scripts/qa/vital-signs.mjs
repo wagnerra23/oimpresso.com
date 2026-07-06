@@ -210,7 +210,9 @@ function main() {
   }
 
   // Fila de prioridade (o que o metabolismo atacaria primeiro).
-  const fila = [...telas].sort((a, b) => b.prioridade - a.prioridade).slice(0, 20);
+  // Display top 20; no snapshot vai top 50 — folga pro filtro de cadência do MV2 (mv-metabolismo.mjs).
+  const filaFull = [...telas].sort((a, b) => b.prioridade - a.prioridade).slice(0, 50);
+  const fila = filaFull.slice(0, 20);
   console.log('\n  FILA DE PRIORIDADE (top 20 — criticidade × (100−nota) × frescor; sem scorecard = nota 0):\n');
   for (const t of fila) {
     console.log(
@@ -238,7 +240,8 @@ function main() {
       contrato: 'memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.2/§3.4/§3.5',
       fleet,
       modulos,
-      fila_prioridade: fila.map(({ screen, mod, classe, nota, stale, prioridade: p }) => ({ screen, mod, classe, nota, stale, prioridade: p })),
+      // casos/charter entram na fila pro MV2 aplicar a regra "verde+fresca pula" e propor a ação certa.
+      fila_prioridade: filaFull.map(({ screen, mod, classe, nota, stale, casos, charter, idade, prioridade: p }) => ({ screen, mod, classe, nota, stale, casos, charter, idade, prioridade: p })),
     };
     writeFileSync(SNAPSHOT, JSON.stringify(snapshot, null, 2) + '\n');
     console.log(`  ✓ snapshot → memory/governance/vital-signs.json`);
