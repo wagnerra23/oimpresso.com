@@ -6,7 +6,7 @@
 //   §3.4: batimento — dinheiro_fiscal re-entra em 1d, vertical 3d, resto 7d
 //   budget: corta a fila, nunca ultrapassa
 // Roda: node scripts/qa/mv-metabolismo.test.mjs
-import { verdeFresca, estadoBatches, modDevido, selecionaBatch, acaoProposta, fmScalar, BATIMENTO_DIAS } from './mv-metabolismo.mjs';
+import { verdeFresca, estadoBatches, modDevido, selecionaBatch, acaoProposta, fmScalar, BATIMENTO_DIAS, batchesInconsistentes, jaHouveBatchHoje } from './mv-metabolismo.mjs';
 
 let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
@@ -73,6 +73,27 @@ const tela = (over) => ({ screen: 'X/A', mod: 'X', classe: 'resto', nota: 50, st
 // 8. Sanidade do contrato §3.4: constantes de batimento são as da arte (mudança = decisão consciente).
 {
   check('batimento = {dinheiro 1, vertical 3, resto 7}', BATIMENTO_DIAS.dinheiro_fiscal === 1 && BATIMENTO_DIAS.vertical_prod === 3 && BATIMENTO_DIAS.resto === 7);
+}
+
+// 9. Consistência batch↔scorecard (adversário 2026-07-06 V2): scorecard 'mv-batch-<date>'
+//    emitido com batch ainda proposto/aprovado = status mentindo → detectado. Counterfactual
+//    do incidente real: o batch 2026-07-06 ficou 'proposto' em main enquanto o scorecard do
+//    Impostos (source: mv-batch-2026-07-06) já tinha sido mergeado via #3858.
+{
+  const b = (status) => [{ file: '2026-07-06.md', date: '2026-07-06', status, modulos: ['Financeiro'] }];
+  const srcExec = ['mv-batch-2026-07-06', 'regrade-onda1-2026-07-05'];
+  check('proposto + scorecard emitido → mentira detectada', batchesInconsistentes(b('proposto'), srcExec).length === 1);
+  check('aprovado + scorecard emitido → também detectada (execução sem registro)', batchesInconsistentes(b('aprovado'), srcExec).length === 1);
+  check('executado + scorecard emitido → consistente (ok)', batchesInconsistentes(b('executado'), srcExec).length === 0);
+  check('proposto SEM scorecard da data → ok (ainda aguardando)', batchesInconsistentes(b('proposto'), ['regrade-onda1-2026-07-05']).length === 0);
+}
+
+// 10. 1 batch/dia máximo (bug do dogfood 2026-07-06): batch EXECUTADO do dia não abre espaço
+//     pra segundo batch na mesma data — sobrescreveria o histórico (append-only).
+{
+  const arqs = [{ file: '2026-07-06.md', date: '2026-07-06', status: 'executado', modulos: ['Financeiro'] }];
+  check('batch executado hoje → NÃO gera segundo batch hoje', jaHouveBatchHoje(arqs, '2026-07-06') === true);
+  check('sem batch hoje → gera normalmente', jaHouveBatchHoje(arqs, '2026-07-07') === false);
 }
 
 console.log(fails ? `\n✗ ${fails} falha(s)` : '\n✓ contrato do metabolismo preservado');

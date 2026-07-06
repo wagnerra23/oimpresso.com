@@ -11,6 +11,13 @@
     }
   },
   "workflows": {
+    "screen-grades-ratchet.yml": {
+      "nome": "Screen grades ratchet (nota 16-dim de tela não desce vs origin/main · advisory · robusto contra burla do baseline_anterior)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-20",
+      "anchor": "sinal de custo: adversário de arquitetura 2026-07-06 achado V4·alta — o script scripts/qa/screen-grades-ratchet.mjs existia mas NENHUM workflow o rodava; nota podia descer/inflar em silêncio enquanto vital-signs.mjs:30 e os 224 YAMLs afirmavam que a catraca defendia (mentira estrutural). A fila do metabolismo MV prioriza por essa nota. Advisory por lei (ADR 0314 — nota de tela é quality, não Tier-0); promote_by força a decisão de promoção em 14d em vez de advisory eterno."
+    },
     "mv-metabolismo.yml": {
       "nome": "MV metabolismo (batimento nightly do Módulo Vivo · stream MV · sinais vitais + proposta de batch via auto-PR SEM auto-merge — merge Wagner = aprova batch)",
       "classe": "automacao",
