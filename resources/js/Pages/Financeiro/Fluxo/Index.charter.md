@@ -8,7 +8,7 @@ parent_module: Financeiro
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [0005-financeiro-vs-accounting-paralelo, 0114-prototipo-ui-cowork-loop-formalizado, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho]
 related_us: [US-FIN-014, US-FIN-014c]
-related_prototype: prototipo Cowork "Fluxo de Caixa" (Financeiro.html), aprovado [W] 2026-05-09
+related_prototype: prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaFluxo; corrigido 2026-07-06 — antes apontava pra Financeiro.html que sumiu no refactor SSOT, âncora fantasma pega pelo sentinela)
 related_decisions: memory/requisitos/Financeiro/fluxo-visual-comparison.md (Q1-Q4 aprovadas [W] 2026-05-14)
 tier: A
 charter_version: 2
