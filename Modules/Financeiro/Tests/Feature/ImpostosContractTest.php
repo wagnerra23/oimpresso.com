@@ -3,7 +3,6 @@
 declare(strict_types=1);
 // @covers-us US-FIN-062
 
-use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -32,14 +31,12 @@ uses(Tests\TestCase::class);
 
 function impContratoBootstrap(): User
 {
+    // Tenant canônico via trait WithSeededTenant (biz=1, skip acionável se seed ausente) —
+    // NUNCA resolução crua de tenant em teste novo (catraca foundation-ratchet n_business_first).
     try {
-        $business = Business::first();
+        $business = test()->seededTenant();
     } catch (\Throwable $e) {
         test()->markTestSkipped('Tabela business indisponível: '.$e->getMessage());
-    }
-
-    if (! $business) {
-        test()->markTestSkipped('Sem business no banco.');
     }
 
     $user = User::where('business_id', $business->id)->first();
