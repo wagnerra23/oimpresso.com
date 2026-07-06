@@ -11,6 +11,12 @@
     }
   },
   "workflows": {
+    "mv-metabolismo.yml": {
+      "nome": "MV metabolismo (batimento nightly do Módulo Vivo · stream MV · sinais vitais + proposta de batch via auto-PR SEM auto-merge — merge Wagner = aprova batch)",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "sinal de custo: decisão Wagner 2026-07-05 ('o software deve amadurecer e se tornar vivo por módulo') — hoje Wagner é o único agregador/despachante manual da frota (234 telas, 25 casos.md); arte memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.3-§3.6 + roadmap SDD stream MV (MV2). Determinístico zero-LLM; NUNCA cria task/merge (publication-policy); nunca entra em required (lei ADR 0314)."
+    },
     "briefing-code-staleness.yml": {
       "nome": "BRIEFING × Código (reporter advisory · porta atrás da superfície Modules+Pages · eixo code-vs-doc que faltava · sentinela briefing-code-staleness.mjs + self-test)",
       "classe": "automacao",

@@ -1,0 +1,128 @@
+name: MV metabolismo (batimento nightly do Módulo Vivo · stream MV)
+
+# MV2 do stream MV — Módulo Vivo (roadmap SDD · aprovado Wagner 2026-07-05).
+# Contrato: memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.3-§3.6.
+#
+# O batimento: toda noite refresca a espinha dorsal (vital-signs --json --history)
+# e roda o seletor determinístico (mv-metabolismo.mjs) que propõe UM batch de telas
+# em memory/governance/mv-batches/YYYY-MM-DD.md respeitando batimento por classe,
+# budget e regras de parada (verde+fresca pula; gate pendente não empilha).
+#
+# GATE HUMANO (deliberado — publication-policy):
+#   - o auto-PR NÃO tem auto-merge (diferente do sdd-scorecard-publish): o merge do
+#     Wagner É a aprovação do batch; fechar o PR = rejeitar.
+#   - o cron NUNCA cria task MCP, NUNCA mergeia. A sessão de execução (pós-merge)
+#     cria as tasks via audit-to-backlog e roda screen-qa por tela.
+#
+# Se já existe PR mv-batch aberto OU batch proposto/aprovado em main → o próprio
+# mv-metabolismo.mjs sai sem gerar (não empilha); o passo de PR não roda.
+#
+# NÃO é gate CI (lei ADR 0314) — advisory/operacional; nunca entra em required.
+# PAT (não GITHUB_TOKEN): PR aberto por GITHUB_TOKEN não dispara CI → ficaria preso
+# no branch protection (lição sdd-scorecard-publish).
+
+on:
+  schedule:
+    - cron: '30 9 * * *' # 06:30 BRT diário — antes do brief (07:xx), depois da nightly CT100 (02:00)
+  workflow_dispatch:
+
+concurrency:
+  group: mv-metabolismo
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  batimento:
+    name: Batimento — sinais vitais + proposta de batch (gate = merge do Wagner)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Selftests de contrato (hard — batimento não roda com contrato quebrado)
+        run: |
+          node scripts/qa/vital-signs.test.mjs
+          node scripts/qa/mv-metabolismo.test.mjs
+
+      - name: Não empilhar — PR mv-batch já aberto?
+        id: pendente
+        env:
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
+        run: |
+          ABERTO=$(gh pr list --label mv-batch --state open --json number --jq 'length')
+          echo "aberto=$ABERTO" >> "$GITHUB_OUTPUT"
+          if [ "$ABERTO" != "0" ]; then
+            echo "::notice::PR mv-batch aberto aguardando Wagner — batimento pula esta noite (arte §3.6 regra 3)."
+          fi
+
+      - name: Espinha dorsal — vital-signs (snapshot + trend append-only)
+        if: steps.pendente.outputs.aberto == '0'
+        run: |
+          node scripts/qa/vital-signs.mjs --json --history | tee /tmp/vital.txt
+          { echo '## Sinais vitais desta noite'; echo '```'; tail -30 /tmp/vital.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Metabolismo — proposta de batch (determinístico, zero LLM)
+        if: steps.pendente.outputs.aberto == '0'
+        id: batch
+        run: |
+          node scripts/qa/mv-metabolismo.mjs | tee /tmp/batch.txt
+          if grep -q "batch proposto" /tmp/batch.txt; then
+            echo "gerado=true" >> "$GITHUB_OUTPUT"
+            ARQ=$(ls memory/governance/mv-batches/*.md | tail -1)
+            echo "arquivo=$ARQ" >> "$GITHUB_OUTPUT"
+            { echo '## Batch proposto (aguarda merge do Wagner)'; echo; cat "$ARQ"; } >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "gerado=false" >> "$GITHUB_OUTPUT"
+            cat /tmp/batch.txt >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # Auto-PR SEM auto-merge — o merge é o gate humano (não copiar o passo de
+      # auto-merge do sdd-scorecard-publish; a omissão aqui é a feature).
+      - name: Auto-PR do batch (merge = Wagner aprova · fechar = rejeita)
+        if: steps.pendente.outputs.aberto == '0' && steps.batch.outputs.gerado == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.COWORK_BOT_PAT }}
+          base: main
+          branch: chore/mv-batch
+          add-paths: |
+            memory/governance/vital-signs.json
+            memory/governance/vital-signs-history.jsonl
+            memory/governance/mv-batches/*.md
+          commit-message: |
+            chore(governance): batch MV do metabolismo nightly + snapshot dos sinais vitais [CC]
+
+            Proposta determinística do stream MV (Módulo Vivo) — batimento por classe,
+            budget e regras de parada (arte 2026-07-05 §3.3-§3.6). Merge = aprovação
+            Wagner do batch; a sessão de execução cria as tasks e roda screen-qa.
+
+            Refs: stream MV fase 2 · ADRs 0256/0264/0314
+            Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+          title: 'chore(governance): batch MV do metabolismo — aguarda aprovação Wagner'
+          body: |
+            **Batimento nightly do Módulo Vivo (MV2).**
+
+            O metabolismo leu os sinais vitais da frota e propõe o batch em
+            `memory/governance/mv-batches/` (ver Files changed).
+
+            **Gate humano — decisão sua:**
+            - ✅ **Merge** = batch APROVADO → próxima sessão executa (cria tasks via
+              audit-to-backlog + screen-qa por tela, sessão limpa/tela) e marca
+              `status: executado`.
+            - ❌ **Fechar** = batch rejeitado (o metabolismo re-propõe com dados frescos
+              na próxima noite).
+
+            Determinístico, zero LLM. Nunca cria task nem mergeia sozinho.
+            Contrato: arte 2026-07-05 §3.3-§3.6 · roadmap SDD stream MV.
+
+            🤖 Generated by MV metabolismo
+          labels: |
+            mv-batch
+            governance
+            automated
+          delete-branch: true
