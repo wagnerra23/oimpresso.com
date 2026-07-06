@@ -45,6 +45,18 @@ export function anchorFile(val) {
   return m ? m[1] : null;
 }
 
+/** Caminho RELATIVO dentro do espelho (`prototipo-ui/cowork/`), preservando subdiretórios.
+ *  Identidade de arquivo é por PATH COMPLETO, nunca basename — dois arquivos homônimos em
+ *  subdirs diferentes são arquivos DIFERENTES (adversário 2026-07-06: colisão por basename
+ *  fazia "byte-provado" mentir; arte 2026-07-06: hash normalizado keyed por path completo). */
+export function anchorRelPath(val) {
+  if (!val) return null;
+  if (/^n\/a\b/i.test(val) || /MIS-ANCHOR|removido/i.test(val)) return null;
+  const m = val.match(/([\w.\-\/]+\.(?:jsx|html))/i); // caminho (com / de subdir) ou nome solto
+  if (!m) return null;
+  return m[1].replace(/^.*?cowork\//i, ''); // corta o prefixo até cowork/ — resto é o rel path
+}
+
 /** Conta <link rel="stylesheet"> num HTML (assinatura de shell/índice do app). */
 export function stylesheetCount(text) {
   return (text.match(/<link[^>]+rel=["']stylesheet["']/gi) || []).length;
@@ -75,11 +87,11 @@ function main() {
     const t = readFileSync(charter, 'utf8');
     const m = t.match(/^related_prototype:\s*(.+)$/m);
     if (!m) continue;
-    const file = anchorFile(m[1].trim());
+    const file = anchorRelPath(m[1].trim());
     if (!file) continue; // prosa não-resolvível — fora do escopo deste sentinela
     const rel = charter.slice(PAGES.length + 1).replace(/\.charter\.md$/, '').replace(/\\/g, '/');
     const modulo = rel.split('/')[0].toLowerCase();
-    const abs = join(COWORK, file.split('/').pop());
+    const abs = join(COWORK, file); // path completo dentro do espelho (subdir preservado)
     const exists = existsSync(abs);
     let isHtml = /\.html$/i.test(file), stylesheetLinks = 0, moduleHits = 0;
     if (exists) {
