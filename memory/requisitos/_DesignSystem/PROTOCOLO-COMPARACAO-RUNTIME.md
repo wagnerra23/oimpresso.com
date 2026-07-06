@@ -58,6 +58,30 @@ full-reload. Comportamento **antes** de pixel.
    olhou o todo e perdeu as partes.
 6. **Registrar** no `<tela>-visual-comparison.md` (append; 1 tema = 1 doc).
 
+## Regra 0 — PÓS-DEPLOY OBRIGATÓRIO, SEM O WAGNER PEDIR (Tier 0 deste protocolo)
+
+> Origem (Wagner 2026-07-06, verbatim): *"preciso pedir para olhar se deu certo no chrome? e
+> comparar com o prototipo? por que já sei que vai falar que o que tu fez está tudo aplicado,
+> mas sempre deixa de analisar e comparar e eu tenho que falar de novo. isso deve ficar no método."*
+
+Depois de **TODO merge que toca tela** (`resources/js/Pages/**` · `resources/css/**` · controller
+que alimenta a tela), o agente **NÃO declara "aplicado/pronto/funcionando"** até completar, por
+conta própria:
+
+1. **Esperar o DEPLOY ficar `success`** (não o merge — o deploy).
+2. **Abrir a tela em PRODUÇÃO no Chrome** (aba nova, sem injeção prévia) e **verificar item a
+   item o que o PR prometeu** (computed style/DOM pra cada mudança — não só "a página abre").
+3. **Comparar com o protótipo** (render do espelho SYNC-provado ou Cowork vivo, MESMO tema) —
+   as dimensões D1–D7 tocadas pelo PR, com a MESMA sonda nos dois lados.
+4. **D1 sempre que o PR tocou navegação/filtro**: 1 interação em prod + trace de rede
+   (partial vs full-reload).
+5. **Entregar PROVA no chat**: screenshot da prod + (quando visual) do protótipo, com veredito
+   por item. "CI verde" e "merge feito" NÃO são prova de aplicado — prova é pixel/DOM/rede em prod.
+
+Divergiu do prometido → é regressão AGORA (não "quase deu"). Pareia com R1 (smoke real) do
+PROTOCOLO-WAGNER-SEMPRE e com o hook `post-merge-ui-smoke-required` — este protocolo ADICIONA o
+que o hook não cobre: **a comparação com o protótipo**, sem o Wagner mandar.
+
 ## Regra de veredito (não reverter decisão aprovada)
 
 Divergência **não é automaticamente bug**: pode ser **prod-à-frente** (evolução aprovada — ex: pills
