@@ -7,10 +7,11 @@
 
 import React, { useEffect, useRef, useState, type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
-import { Link, router } from '@inertiajs/react'
+import { Deferred, Link, router } from '@inertiajs/react'
 import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
+import { Skeleton } from '@/Components/ui/skeleton'
 import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
@@ -43,21 +44,30 @@ interface Decision {
   risk_label: string
 }
 
+interface Kpis {
+  pendentes: number
+  em_andamento: number
+  concluidas_7d: number
+  rejeitadas_7d: number
+  subtarefas: number
+}
+
 interface Props {
   tab: 'pendentes' | 'em_andamento' | 'subtarefas' | 'historico'
-  decisions: Decision[]
-  kpis: {
-    pendentes: number
-    em_andamento: number
-    concluidas_7d: number
-    rejeitadas_7d: number
-    subtarefas: number
-  }
+  // vêm via Inertia::defer (DecisoesController) — undefined no first render
+  decisions?: Decision[]
+  kpis?: Kpis
+}
+
+const KPIS_FALLBACK: Kpis = {
+  pendentes: 0, em_andamento: 0, concluidas_7d: 0, rejeitadas_7d: 0, subtarefas: 0,
 }
 
 const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
 
 const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ tab, decisions, kpis }) => {
+  const k = kpis ?? KPIS_FALLBACK
+  const rows = decisions ?? []
   const setTab = (value: string) => router.get('/ads/admin/decisoes', { tab: value }, { preserveState: false })
 
   // Auto-refresh: polling 10s nas abas operacionais (não no histórico)
@@ -103,13 +113,22 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
         )}
       />
 
+      <Deferred
+        data={['decisions', 'kpis']}
+        fallback={(
+          <div className="space-y-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        )}
+      >
       {/* 2. KPIs como filtros (clicáveis, selected = aba ativa) */}
       <KpiGrid cols={5}>
         <KpiCard
           icon="hourglass"
           tone="warning"
           label="Aguardando você"
-          value={num(kpis.pendentes)}
+          value={num(k.pendentes)}
           description="Precisam de decisão"
           onClick={() => setTab('pendentes')}
           selected={tab === 'pendentes'}
@@ -118,7 +137,7 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
           icon="brain"
           tone="info"
           label="Brain B processando"
-          value={num(kpis.em_andamento)}
+          value={num(k.em_andamento)}
           description="Claude API gerando"
           onClick={() => setTab('em_andamento')}
           selected={tab === 'em_andamento'}
@@ -127,7 +146,7 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
           icon="git-branch"
           tone="default"
           label="Subtarefas"
-          value={num(kpis.subtarefas)}
+          value={num(k.subtarefas)}
           description="Geradas pelo Planner"
           onClick={() => setTab('subtarefas')}
           selected={tab === 'subtarefas'}
@@ -136,7 +155,7 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
           icon="check-circle-2"
           tone="success"
           label="Concluídas 7d"
-          value={num(kpis.concluidas_7d)}
+          value={num(k.concluidas_7d)}
           description="Aprovadas + executadas"
           onClick={() => setTab('historico')}
           selected={tab === 'historico'}
@@ -145,7 +164,7 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
           icon="x-circle"
           tone="danger"
           label="Rejeitadas 7d"
-          value={num(kpis.rejeitadas_7d)}
+          value={num(k.rejeitadas_7d)}
           description="IA aprende"
         />
       </KpiGrid>
@@ -153,7 +172,7 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
       {/* 3. Lista canônica — Card + lista de decisões OU EmptyState */}
       <Card>
         <CardContent className="p-0">
-          {decisions.length === 0 ? (
+          {rows.length === 0 ? (
             <EmptyState
               icon="inbox"
               title={emptyTitle(tab)}
@@ -161,11 +180,12 @@ const Decisoes: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
             />
           ) : (
             <ul className="divide-y divide-border">
-              {decisions.map(d => <DecisionRow key={d.id} d={d} tab={tab} />)}
+              {rows.map(d => <DecisionRow key={d.id} d={d} tab={tab} />)}
             </ul>
           )}
         </CardContent>
       </Card>
+      </Deferred>
     </div>
   )
 }

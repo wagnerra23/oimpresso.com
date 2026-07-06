@@ -4,8 +4,10 @@
 
 import React, { type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
+import { Deferred } from '@inertiajs/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
+import { Skeleton } from '@/Components/ui/skeleton'
 import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
@@ -46,17 +48,22 @@ interface Drift {
   recommendation: string
 }
 
-interface Props {
-  patterns: Pattern[]
-  candidates: Candidate[]
-  drifts: Drift[]
-  kpis: {
-    total_patterns: number
-    candidates: number
-    drifts: number
-    hardcoded: number
-  }
+interface Kpis {
+  total_patterns: number
+  candidates: number
+  drifts: number
+  hardcoded: number
 }
+
+interface Props {
+  // vêm via Inertia::defer (PatternsController) — undefined no first render
+  patterns?: Pattern[]
+  candidates?: Candidate[]
+  drifts?: Drift[]
+  kpis?: Kpis
+}
+
+const KPIS_FALLBACK: Kpis = { total_patterns: 0, candidates: 0, drifts: 0, hardcoded: 0 }
 
 const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
 
@@ -68,6 +75,11 @@ function lbColor(lb: number): string {
 }
 
 const Patterns: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ patterns, candidates, drifts, kpis }) => {
+  const k = kpis ?? KPIS_FALLBACK
+  const patternList = patterns ?? []
+  const candidateList = candidates ?? []
+  const driftList = drifts ?? []
+
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-4">
       <PageHeader
@@ -76,21 +88,30 @@ const Patterns: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
         description="Tabela mcp_decision_patterns com Wilson Score Interval. Evita promoção por ruído de poucas amostras (3/3 ≠ confiável)."
       />
 
+      <Deferred
+        data={['patterns', 'candidates', 'drifts', 'kpis']}
+        fallback={(
+          <div className="space-y-4">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        )}
+      >
       <KpiGrid cols={4}>
-        <KpiCard icon="layers"          tone="info"    label="Padrões totais"       value={num(kpis.total_patterns)} description="Pares (domínio×tipo)"/>
-        <KpiCard icon="lightbulb"       tone="success" label="Candidatos a promoção" value={num(kpis.candidates)}     description="Wilson LB ≥ 0.80"/>
-        <KpiCard icon="alert-triangle"  tone="danger"  label="Drifts detectados"    value={num(kpis.drifts)}        description="Taxa caiu >25pp"/>
-        <KpiCard icon="lock"            tone="default" label="Já hardcoded"          value={num(kpis.hardcoded)}     description="Promovidos pra Policy"/>
+        <KpiCard icon="layers"          tone="info"    label="Padrões totais"       value={num(k.total_patterns)} description="Pares (domínio×tipo)"/>
+        <KpiCard icon="lightbulb"       tone="success" label="Candidatos a promoção" value={num(k.candidates)}     description="Wilson LB ≥ 0.80"/>
+        <KpiCard icon="alert-triangle"  tone="danger"  label="Drifts detectados"    value={num(k.drifts)}        description="Taxa caiu >25pp"/>
+        <KpiCard icon="lock"            tone="default" label="Já hardcoded"          value={num(k.hardcoded)}     description="Promovidos pra Policy"/>
       </KpiGrid>
 
       {/* Candidatos a promoção */}
-      {candidates.length > 0 && (
+      {candidateList.length > 0 && (
         <Card className="border-success/30 bg-success-soft">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Lightbulb className="w-5 h-5 text-success-fg" />
               Padrões prontos pra promoção
-              <Badge className="ml-auto bg-emerald-600">{candidates.length}</Badge>
+              <Badge className="ml-auto bg-emerald-600">{candidateList.length}</Badge>
             </CardTitle>
             <p className="text-sm text-muted-foreground mt-1">
               Estes padrões têm Wilson Score Interval LB ≥ 0.80 com ≥10 amostras.
@@ -99,7 +120,7 @@ const Patterns: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
           </CardHeader>
           <CardContent>
             <ul className="space-y-3">
-              {candidates.map((c, i) => (
+              {candidateList.map((c, i) => (
                 <li key={i} className="text-sm space-y-1">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline">{c.domain}</Badge>
@@ -120,18 +141,18 @@ const Patterns: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
       )}
 
       {/* Drifts detectados */}
-      {drifts.length > 0 && (
+      {driftList.length > 0 && (
         <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-destructive" />
               Drifts detectados
-              <Badge className="ml-auto" variant="destructive">{drifts.length}</Badge>
+              <Badge className="ml-auto" variant="destructive">{driftList.length}</Badge>
             </CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2">
-              {drifts.map((d, i) => (
+              {driftList.map((d, i) => (
                 <li key={i} className="text-sm">
                   <div className="font-medium">{d.domain} · {d.event_type}</div>
                   <div className="text-xs text-muted-foreground">
@@ -148,7 +169,7 @@ const Patterns: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
       {/* Tabela de padrões */}
       <Card>
         <CardContent className="p-0">
-          {patterns.length === 0 ? (
+          {patternList.length === 0 ? (
             <EmptyState
               icon="zap"
               title="Sem padrões aprendidos ainda"
@@ -169,7 +190,7 @@ const Patterns: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
-                  {patterns.map(p => (
+                  {patternList.map(p => (
                     <tr key={p.id} className="hover:bg-muted/30">
                       <td className="px-4 py-2 font-medium">{p.domain}</td>
                       <td className="px-4 py-2"><code className="text-xs">{p.event_type}</code></td>
@@ -201,6 +222,7 @@ const Patterns: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
           )}
         </CardContent>
       </Card>
+      </Deferred>
     </div>
   )
 }

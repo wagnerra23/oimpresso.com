@@ -4,9 +4,10 @@
 
 import React, { type ReactNode } from 'react'
 import AppShellV2 from '@/Layouts/AppShellV2'
-import { Link } from '@inertiajs/react'
+import { Deferred, Link } from '@inertiajs/react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
+import { Skeleton } from '@/Components/ui/skeleton'
 import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
@@ -30,16 +31,23 @@ interface ThroughputPoint {
   rejeitadas: number
 }
 
+interface Kpis {
+  janela_horas: number
+  eventos_24h: number
+  taxa_review: number
+  taxa_pattern: number
+  pendencia_humana: number
+}
+
 interface Props {
-  stages: Stage[]
-  throughput: ThroughputPoint[]
-  kpis: {
-    janela_horas: number
-    eventos_24h: number
-    taxa_review: number
-    taxa_pattern: number
-    pendencia_humana: number
-  }
+  // vêm via Inertia::defer (LearningController) — undefined no first render
+  stages?: Stage[]
+  throughput?: ThroughputPoint[]
+  kpis?: Kpis
+}
+
+const KPIS_FALLBACK: Kpis = {
+  janela_horas: 0, eventos_24h: 0, taxa_review: 0, taxa_pattern: 0, pendencia_humana: 0,
 }
 
 const num = (v: number) => new Intl.NumberFormat('pt-BR').format(v)
@@ -59,6 +67,10 @@ const colorMap: Record<string, string> = {
 }
 
 const Learning: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ stages, throughput, kpis }) => {
+  const k = kpis ?? KPIS_FALLBACK
+  const stageList = stages ?? []
+  const throughputList = throughput ?? []
+
   return (
     <div className="mx-auto max-w-7xl p-6 space-y-6">
       <PageHeader
@@ -67,33 +79,42 @@ const Learning: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
         description="Visualização do loop completo: evento → classificação → roteamento → execução → review → pattern → promoção. Cada estágio é clicável."
       />
 
+      <Deferred
+        data={['stages', 'throughput', 'kpis']}
+        fallback={(
+          <div className="space-y-6">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-64 w-full" />
+          </div>
+        )}
+      >
       <KpiGrid cols={4}>
         <KpiCard
           icon="activity"
           tone="info"
-          label={`Eventos (${kpis.janela_horas}h)`}
-          value={num(kpis.eventos_24h)}
+          label={`Eventos (${k.janela_horas}h)`}
+          value={num(k.eventos_24h)}
           description="Janela de análise"
         />
         <KpiCard
           icon="user-check"
           tone="warning"
           label="Aguardando humano"
-          value={num(kpis.pendencia_humana)}
+          value={num(k.pendencia_humana)}
           description="HiTL-2/3 abertos"
         />
         <KpiCard
           icon="star"
           tone="default"
           label="% Reviewed"
-          value={`${kpis.taxa_review.toFixed(1)}%`}
+          value={`${k.taxa_review.toFixed(1)}%`}
           description="ReviewerAgent rodou"
         />
         <KpiCard
           icon="zap"
           tone="success"
           label="% Pattern registrado"
-          value={`${kpis.taxa_pattern.toFixed(1)}%`}
+          value={`${k.taxa_pattern.toFixed(1)}%`}
           description="Wilson Score atualizado"
         />
       </KpiGrid>
@@ -108,7 +129,7 @@ const Learning: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {stages.map((stage, idx) => {
+            {stageList.map((stage, idx) => {
               const colorClass = colorMap[stage.color] ?? colorMap.zinc
               const isClickable = !!stage.filter_url
 
@@ -135,16 +156,17 @@ const Learning: React.FC<Props> & { layout?: (p: ReactNode) => ReactNode } = ({ 
       </Card>
 
       {/* Throughput por hora */}
-      {throughput.length > 0 && (
+      {throughputList.length > 0 && (
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Throughput por hora (últimas 24h)</CardTitle>
           </CardHeader>
           <CardContent>
-            <ThroughputChart data={throughput} />
+            <ThroughputChart data={throughputList} />
           </CardContent>
         </Card>
       )}
+      </Deferred>
 
       {/* Diagrama do loop com setas (legend) */}
       <Card className="bg-muted/30">
