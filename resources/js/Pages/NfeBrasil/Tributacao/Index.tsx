@@ -3,7 +3,8 @@
 //   adrs: NfeBrasil/adr/arq/0006-cascade-defaults-ncm-produto, ADR 0029 (Inertia + UPos)
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Deferred, Head, Link, router, usePage } from '@inertiajs/react';
+import { Skeleton } from '@/Components/ui/skeleton';
 import {
   CheckCircle2, ChevronRight, FilePlus2, FileSpreadsheet, Package, Pencil, Percent, Printer,
   Settings, ShoppingBag, Sparkles, Trash2, Zap,
@@ -51,9 +52,10 @@ interface Template {
 }
 
 interface Props {
-  regras: Regra[];
+  // regras e templates vêm via Inertia::defer — undefined no first render. config é eager.
+  regras?: Regra[];
   config: ConfigDefault | null;
-  templates: Template[];
+  templates?: Template[];
 }
 
 interface FlashProps {
@@ -87,9 +89,12 @@ function Index({ regras, config, templates }: Props) {
   const success = props.flash?.success;
   const error = props.flash?.error;
 
+  // Guardas defensivas: props deferidas são undefined no first render.
+  const rows = regras ?? [];
+
   const aplicarTemplate = (tpl: Template) => {
     const aviso = config
-      ? `Aplicar template "${tpl.titulo}"?\n\nIsso vai SUBSTITUIR a configuração atual (regime + tributação default).\nRegras NCM existentes ${regras.length > 0 ? `(${regras.length})` : ''} permanecem inalteradas.`
+      ? `Aplicar template "${tpl.titulo}"?\n\nIsso vai SUBSTITUIR a configuração atual (regime + tributação default).\nRegras NCM existentes ${rows.length > 0 ? `(${rows.length})` : ''} permanecem inalteradas.`
       : `Aplicar template "${tpl.titulo}"?\n\nIsso vai criar a configuração tributária inicial do business.`;
 
     if (!confirm(aviso)) return;
@@ -151,6 +156,7 @@ function Index({ regras, config, templates }: Props) {
         )}
 
         {/* Templates L1 — atalho de configuração rápida (US-NFE-TPL-001) */}
+        <Deferred data="templates" fallback={<Skeleton className="h-40 w-full" />}>
         {templates && templates.length > 0 && (
           <Card>
             <CardHeader className="pb-3">
@@ -202,6 +208,7 @@ function Index({ regras, config, templates }: Props) {
             </CardContent>
           </Card>
         )}
+        </Deferred>
 
         {/* Config default (Nível 4) */}
         <Card className={!config ? 'border-destructive/50' : undefined}>
@@ -276,12 +283,13 @@ function Index({ regras, config, templates }: Props) {
         )}
 
         {/* Regras NCM (Níveis 2 e 3) */}
+        <Deferred data="regras" fallback={<Skeleton className="h-64 w-full" />}>
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center justify-between gap-2">
               <span className="flex items-center gap-2">
                 Regras NCM
-                <Badge variant="secondary">{regras.length}</Badge>
+                <Badge variant="secondary">{rows.length}</Badge>
               </span>
               <div className="flex gap-2">
                 <Button asChild size="sm" variant="outline">
@@ -303,7 +311,7 @@ function Index({ regras, config, templates }: Props) {
             </p>
           </CardHeader>
           <CardContent>
-            {regras.length === 0 ? (
+            {rows.length === 0 ? (
               <p className="text-sm text-muted-foreground py-6 text-center">
                 Nenhuma regra cadastrada. Os defaults da configuração padrão atendem todos NCMs até você adicionar
                 regras específicas.
@@ -325,7 +333,7 @@ function Index({ regras, config, templates }: Props) {
                     </tr>
                   </thead>
                   <tbody>
-                    {regras.map((r) => (
+                    {rows.map((r) => (
                       <tr key={r.id} className="border-t hover:bg-muted/30">
                         <td className="px-6 py-2 font-mono">{formatNcm(r.ncm)}</td>
                         <td className="px-3 py-2 font-mono">{r.uf_origem}</td>
@@ -356,6 +364,7 @@ function Index({ regras, config, templates }: Props) {
             )}
           </CardContent>
         </Card>
+        </Deferred>
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground flex-wrap">
           <span className="font-medium">Ordem de prioridade:</span>
