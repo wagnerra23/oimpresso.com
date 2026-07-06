@@ -95,10 +95,17 @@ export default function MetricasIndex({
   breakdown,
 }: Props) {
   function setRange(newRange: number) {
+    // D-14: partial reload — só re-busca o que muda com o range. preserveState:true
+    // é seguro: a tela não tem estado local (tudo derivado de props no render);
+    // allowedRanges é constante e fica de fora do only:.
     router.get(
       '/atendimento/metricas',
       { range: newRange },
-      { preserveScroll: true, preserveState: false },
+      {
+        preserveScroll: true,
+        preserveState: true,
+        only: ['range', 'startDate', 'endDate', 'aggregated', 'breakdown'],
+      },
     );
   }
 
