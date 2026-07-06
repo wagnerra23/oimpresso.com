@@ -520,7 +520,9 @@ class UnificadoController extends Controller
                     'total'  => round($total, 2),
                 ])
                 ->tap(function (Activity $a) use ($businessId) {
-                    $a->business_id = $businessId;
+                    // setAttribute (não property dinâmica) — coluna existe no schema
+                    // mas o model Spatie não a declara; evita property.notFound no PHPStan.
+                    $a->setAttribute('business_id', $businessId);
                 })
                 ->log('bulk_'.$action);
         };
