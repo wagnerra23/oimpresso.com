@@ -348,14 +348,23 @@ function BoardIndex({ project, cycle, kanban, kpis, columns, epics = [], cycles 
     if (c !== ALL) params.cycle = c;
     if (e !== ALL) params.epic = e;
     if (o !== ALL) params.owner = o;
-    router.get('/project-mgmt/board', params, { preserveScroll: true, preserveState: true, replace: true });
+    // D-14: partial reload — só re-busca o que muda com filtro (epics/cycles/owners
+    // são Inertia::defer no controller → nem rodam a query no partial).
+    router.get('/project-mgmt/board', params, {
+      preserveScroll: true, preserveState: true, replace: true,
+      only: ['project', 'cycle', 'kanban', 'kpis', 'filters'],
+    });
   }
 
   function limpar() {
     setCycleId(ALL);
     setEpicId(ALL);
     setOwner(ALL);
-    router.get('/project-mgmt/board', {}, { preserveScroll: true, preserveState: true, replace: true });
+    // D-14: partial reload também no "Limpar" — mesmo only do aplicar()
+    router.get('/project-mgmt/board', {}, {
+      preserveScroll: true, preserveState: true, replace: true,
+      only: ['project', 'cycle', 'kanban', 'kpis', 'filters'],
+    });
   }
 
   const cycleAtivoBadge = cycle && cycle.status === 'active'

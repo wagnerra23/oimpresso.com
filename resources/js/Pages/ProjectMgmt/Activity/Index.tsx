@@ -105,7 +105,12 @@ function ActivityIndex({ project, events, kpis, authors, event_types, filters }:
     if (merged.author && merged.author !== ALL) params.author = merged.author;
     if (merged.task) params.task = String(merged.task);
     if (merged.days) params.days = String(merged.days);
-    router.get('/project-mgmt/activity', params, { preserveScroll: true, preserveState: true, replace: true });
+    // D-14: partial reload — só re-busca o que muda com filtro (authors/event_types
+    // são closures no controller → nem rodam a query no partial).
+    router.get('/project-mgmt/activity', params, {
+      preserveScroll: true, preserveState: true, replace: true,
+      only: ['project', 'events', 'kpis', 'filters'],
+    });
   }
 
   useEffect(() => {
@@ -175,8 +180,9 @@ function ActivityIndex({ project, events, kpis, authors, event_types, filters }:
               className="h-8 text-xs uppercase"
             />
           </div>
+          {/* D-14: partial reload também no "Limpar" — mesmo only do aplicar() */}
           {(filters.type || filters.author || filters.task || filters.days !== 7) && (
-            <Button variant="ghost" onClick={() => router.get('/project-mgmt/activity', {}, { preserveScroll: true })} className="h-8 text-xs">
+            <Button variant="ghost" onClick={() => router.get('/project-mgmt/activity', {}, { preserveScroll: true, only: ['project', 'events', 'kpis', 'filters'] })} className="h-8 text-xs">
               Limpar
             </Button>
           )}

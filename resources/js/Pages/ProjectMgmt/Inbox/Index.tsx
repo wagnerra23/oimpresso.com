@@ -252,7 +252,13 @@ function InboxIndex({ inbox = [], inbox_stats = EMPTY_INBOX_STATS, filters }: Pr
               variant="ghost"
               size="sm"
               className="h-8 text-xs"
-              onClick={() => router.get('/project-mgmt/inbox', { show_read: filters.show_read ? '' : '1' }, { preserveScroll: true })}
+              onClick={() => {
+                // D-14: partial reload — só re-busca o que muda com o toggle show_read.
+                router.get('/project-mgmt/inbox', { show_read: filters.show_read ? '' : '1' }, {
+                  preserveScroll: true,
+                  only: ['inbox', 'inbox_stats', 'filters'],
+                });
+              }}
             >
               {filters.show_read ? 'só não-lidas' : 'mostrar lidas'}
             </Button>
