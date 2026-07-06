@@ -195,10 +195,13 @@ function CustosIaIndex(props: Props) {
   );
 
   const aplicar = (patch: Partial<Filters>) => {
+    // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
+    // `pricing` é config estática — não trafega de novo.
     router.get('/ia/admin/custos', { ...filters, ...patch }, {
       preserveState: true,
       preserveScroll: true,
       replace: true,
+      only: ['kpis', 'por_usuario', 'serie_diaria', 'periodo', 'filters'],
     });
   };
 

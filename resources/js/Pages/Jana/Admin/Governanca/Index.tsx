@@ -201,10 +201,17 @@ function GovernancaIndex(props: Props) {
   }, []);
 
   const aplicar = (patch: Partial<Filters>) => {
+    // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
+    // Todas as props de dados dependem do período; only: evita re-buscar
+    // shared props e documenta o contrato da tela.
     router.get('/ia/admin/governanca', { ...filters, ...patch }, {
       preserveState: true,
       preserveScroll: true,
       replace: true,
+      only: [
+        'kpis', 'por_status', 'latency', 'top_tools', 'top_users',
+        'denied_por_codigo', 'serie_diaria', 'periodo', 'filters',
+      ],
     });
   };
 
