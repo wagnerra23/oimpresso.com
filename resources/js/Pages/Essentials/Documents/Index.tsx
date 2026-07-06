@@ -6,9 +6,10 @@
 //   tests: Modules/Essentials/Tests/Feature/DocumentsIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { router, useForm } from '@inertiajs/react';
+import { Deferred, router, useForm } from '@inertiajs/react';
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
+import { Skeleton } from '@/Components/ui/skeleton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,8 +58,9 @@ interface Doc {
 }
 
 interface Props {
-  documents: Doc[];
-  memos: Doc[];
+  // documents e memos vêm via Inertia::defer — undefined no first render
+  documents?: Doc[];
+  memos?: Doc[];
   initialTab: 'documents' | 'memos';
   me: number;
 }
@@ -234,7 +236,9 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
     setMemoView(memo);
   };
 
-  const rows = tab === 'documents' ? documents : memos;
+  const docs = documents ?? [];
+  const memoList = memos ?? [];
+  const rows = tab === 'documents' ? docs : memoList;
 
   return (
     <>
@@ -267,13 +271,14 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
         {/* Tabs */}
         <div className="border-b border-border flex gap-1">
           <TabButton active={tab === 'documents'} onClick={() => setTab('documents')} icon={<FileText size={14} />}>
-            Arquivos <span className="ml-1 text-xs text-muted-foreground">({documents.length})</span>
+            Arquivos <span className="ml-1 text-xs text-muted-foreground">({docs.length})</span>
           </TabButton>
           <TabButton active={tab === 'memos'} onClick={() => setTab('memos')} icon={<Mail size={14} />}>
-            Memos <span className="ml-1 text-xs text-muted-foreground">({memos.length})</span>
+            Memos <span className="ml-1 text-xs text-muted-foreground">({memoList.length})</span>
           </TabButton>
         </div>
 
+        <Deferred data={['documents', 'memos']} fallback={<Skeleton className="h-64 w-full" />}>
         <Card>
           <CardContent className="p-0">
             {rows.length === 0 ? (
@@ -346,6 +351,7 @@ export default function DocumentsIndex({ documents, memos, initialTab, me }: Pro
             )}
           </CardContent>
         </Card>
+        </Deferred>
       </div>
 
       {/* Upload dialog */}

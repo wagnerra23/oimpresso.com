@@ -8,9 +8,10 @@
 //   tests: Modules/Essentials/Tests/Feature/TodoIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Link, router, useForm } from '@inertiajs/react';
+import { Deferred, Link, router, useForm } from '@inertiajs/react';
 import { useState, type FormEvent, type ReactNode } from 'react';
 import { toast } from 'sonner';
+import { Skeleton } from '@/Components/ui/skeleton';
 import {
   ArrowRight,
   ClipboardList,
@@ -88,9 +89,10 @@ interface Filters {
 }
 
 interface Props {
-  todos: Paginated;
+  // todos e assignableUsers vêm via Inertia::defer — undefined no first render
+  todos?: Paginated;
   filtros: Filters;
-  assignableUsers: UserOption[];
+  assignableUsers?: UserOption[];
   statuses: Option[];
   priorities: Option[];
   can: { add: boolean; edit: boolean; delete: boolean; assign: boolean };
@@ -118,6 +120,8 @@ export default function TodoIndex({
   priorities,
   can,
 }: Props) {
+  const rows = todos?.data ?? [];
+  const users = assignableUsers ?? [];
   const [deleteTarget, setDeleteTarget] = useState<TodoRow | null>(null);
   const [statusTarget, setStatusTarget] = useState<TodoRow | null>(null);
 
@@ -238,7 +242,7 @@ export default function TodoIndex({
                   ))}
                 </SelectContent>
               </Select>
-              {can.assign && assignableUsers.length > 0 && (
+              {can.assign && users.length > 0 && (
                 <Select
                   value={filtros.user_id ? String(filtros.user_id) : 'ALL'}
                   onValueChange={(v) => setFilter('user_id', v === 'ALL' ? null : Number(v))}
@@ -246,7 +250,7 @@ export default function TodoIndex({
                   <SelectTrigger><SelectValue placeholder="Atribuído a" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ALL">Todos os usuários</SelectItem>
-                    {assignableUsers.map((u) => (
+                    {users.map((u) => (
                       <SelectItem key={u.id} value={String(u.id)}>{u.label}</SelectItem>
                     ))}
                   </SelectContent>
@@ -274,9 +278,10 @@ export default function TodoIndex({
           </CardContent>
         </Card>
 
+        <Deferred data="todos" fallback={<Skeleton className="h-64 w-full" />}>
         <Card>
           <CardContent className="p-0">
-            {todos.data.length === 0 ? (
+            {rows.length === 0 ? (
               <div className="p-12 text-center text-muted-foreground">
                 <Inbox size={32} className="mx-auto mb-2 opacity-50" />
                 <p className="text-sm">Nenhuma tarefa com esses filtros.</p>
@@ -297,7 +302,7 @@ export default function TodoIndex({
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-border">
-                    {todos.data.map((t) => (
+                    {rows.map((t) => (
                       <tr key={t.id} className="hover:bg-accent/30">
                         <td className="p-3 font-mono text-xs">{t.task_id ?? '—'}</td>
                         <td className="p-3">
@@ -380,7 +385,7 @@ export default function TodoIndex({
                 </table>
               </div>
             )}
-            {todos.last_page > 1 && (
+            {todos && todos.last_page > 1 && (
               <div className="flex items-center justify-between border-t border-border p-3 text-xs">
                 <span className="text-muted-foreground">
                   Página {todos.current_page} de {todos.last_page} · {todos.total} item(s)
@@ -403,6 +408,7 @@ export default function TodoIndex({
             )}
           </CardContent>
         </Card>
+        </Deferred>
       </div>
 
       {/* Modal: troca rápida de status */}

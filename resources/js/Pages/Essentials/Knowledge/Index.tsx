@@ -6,9 +6,10 @@
 //   tests: Modules/Essentials/Tests/Feature/KnowledgeIndexTest
 
 import AppShellV2 from '@/Layouts/AppShellV2';
-import { Link, router } from '@inertiajs/react';
+import { Deferred, Link, router } from '@inertiajs/react';
 import { useState, type ReactNode } from 'react';
 import { toast } from 'sonner';
+import { Skeleton } from '@/Components/ui/skeleton';
 import {
   BookOpen,
   ChevronDown,
@@ -57,10 +58,12 @@ interface Book {
 }
 
 interface Props {
-  books: Book[];
+  // books vem via Inertia::defer — undefined no first render
+  books?: Book[];
 }
 
 export default function KnowledgeIndex({ books }: Props) {
+  const bookList = books ?? [];
   const [openSections, setOpenSections] = useState<Record<number, boolean>>({});
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; title: string } | null>(null);
 
@@ -98,7 +101,8 @@ export default function KnowledgeIndex({ books }: Props) {
           </Button>
         </header>
 
-        {books.length === 0 ? (
+        <Deferred data="books" fallback={<Skeleton className="h-64 w-full" />}>
+        {bookList.length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center">
               <BookOpen size={32} className="mx-auto mb-2 opacity-50 text-muted-foreground" />
@@ -114,7 +118,7 @@ export default function KnowledgeIndex({ books }: Props) {
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {books.map((book) => (
+            {bookList.map((book) => (
               <Card key={book.id} className="flex flex-col">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center justify-between gap-2">
@@ -211,6 +215,7 @@ export default function KnowledgeIndex({ books }: Props) {
             ))}
           </div>
         )}
+        </Deferred>
       </div>
 
       <AlertDialog open={deleteTarget !== null} onOpenChange={(open) => !open && setDeleteTarget(null)}>

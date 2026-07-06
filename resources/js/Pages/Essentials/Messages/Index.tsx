@@ -44,8 +44,9 @@ interface Message {
 interface LocationOption { id: number; label: string; }
 
 interface Props {
-  messages: Message[];
-  locations: LocationOption[];
+  // messages e locations vêm via Inertia::defer — undefined no first render
+  messages?: Message[];
+  locations?: LocationOption[];
   can: { view: boolean; create: boolean };
   refreshInterval: number;
   me: number;
@@ -66,7 +67,7 @@ export default function MessagesIndex({
   refreshInterval,
   me,
 }: Props) {
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
   const [deleteTarget, setDeleteTarget] = useState<Message | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -78,7 +79,7 @@ export default function MessagesIndex({
 
   const locationName = useMemo(() => {
     const map: Record<number, string> = {};
-    locations.forEach((l) => (map[l.id] = l.label));
+    (locations ?? []).forEach((l) => (map[l.id] = l.label));
     return map;
   }, [locations]);
 
@@ -243,7 +244,7 @@ export default function MessagesIndex({
                     <p className="text-xs text-destructive mt-1">{form.errors.message}</p>
                   )}
                 </div>
-                {locations.length > 0 && (
+                {(locations ?? []).length > 0 && (
                   <Select
                     value={form.data.location_id ? String(form.data.location_id) : 'ALL'}
                     onValueChange={(v) =>
@@ -255,7 +256,7 @@ export default function MessagesIndex({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="ALL">Todas as lojas</SelectItem>
-                      {locations.map((l) => (
+                      {(locations ?? []).map((l) => (
                         <SelectItem key={l.id} value={String(l.id)}>{l.label}</SelectItem>
                       ))}
                     </SelectContent>
