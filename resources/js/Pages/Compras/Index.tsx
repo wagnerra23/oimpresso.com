@@ -141,10 +141,13 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
     for (const [k, v] of Object.entries(next)) {
       if (v !== undefined && v !== '' && v !== null) cleaned[k] = v;
     }
+    // D-14: partial reload — só re-busca o que muda com filtro/sort/página.
+    // kpis são agregados por business (Inertia::defer, sem filtro) — não re-buscam.
     router.get('/compras', cleaned, {
       preserveState: true,
       preserveScroll: true,
       replace: true,
+      only: ['rows', 'summary', 'filters'],
     });
   };
 
@@ -227,10 +230,12 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   const value = (e.target as HTMLInputElement).value;
+                  // D-14: partial reload — busca só re-busca o que muda com filtro.
                   router.visit('/compras', {
                     data: { q: value, stage: localFilter },
                     preserveScroll: true,
                     preserveState: true,
+                    only: ['rows', 'summary', 'filters'],
                   });
                 }
               }}

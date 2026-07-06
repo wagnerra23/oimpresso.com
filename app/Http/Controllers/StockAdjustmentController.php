@@ -199,8 +199,9 @@ class StockAdjustmentController extends Controller
             ->limit(200)
             ->get();
 
-        $business_locations = BusinessLocation::forDropdown($business_id);
-        $locationOptions = collect($business_locations)
+        // closure D-14: por business, não muda com filtro — pula no partial reload
+        // (only: rows/filters do aplicar() no StockAdjustment/Index.tsx).
+        $locationOptions = fn () => collect(BusinessLocation::forDropdown($business_id))
             ->map(fn ($name, $id) => ['id' => $id, 'label' => $name])
             ->values();
 

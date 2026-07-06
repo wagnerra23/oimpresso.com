@@ -92,8 +92,11 @@ function StockTransferIndex({ rows, filters, business_locations, statuses, permi
   const [busca, setBusca] = useState('');
 
   const aplicar = (patch: Partial<Filters>) => {
+    // D-14: partial reload — só re-busca o que muda com filtro.
+    // business_locations é closure no controller; statuses é estático por request.
     router.get('/stock-transfers', { ...filters, ...patch }, {
       preserveState: true, preserveScroll: true, replace: true,
+      only: ['rows', 'filters'],
     });
   };
 
