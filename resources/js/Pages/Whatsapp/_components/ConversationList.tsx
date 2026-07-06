@@ -208,8 +208,11 @@ export default function ConversationList({
 
   function resetFilters() {
     [LS.WITHIN_24H, LS.UNLINKED, LS.MEDIA_INBOUND_24H, LS.INBOUND_AGING, LS.ORDER_BY].forEach((k) => lsSet(k, null));
+    // D-14: partial reload — só re-busca a lista + props de filtro que voltam ao
+    // default no server (tab/q não mudam aqui; stats espelha cycleWithin24h).
     router.get(route(routeName), { tab, q: searchInput }, {
       preserveScroll: true, preserveState: true,
+      only: ['conversations', 'stats', 'within24h', 'unlinked', 'mediaInbound24h', 'inboundAging', 'orderBy'],
     });
   }
 

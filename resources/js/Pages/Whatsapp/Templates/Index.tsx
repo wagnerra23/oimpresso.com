@@ -54,7 +54,13 @@ export default function TemplatesIndex({ templates, filters }: Props) {
   });
 
   function applyFilter(key: string, value: string) {
-    router.get(route('whatsapp.templates.index'), { ...filters, [key]: value }, { preserveScroll: true });
+    // D-14: partial reload — só re-busca o que muda com filtro (templates é defer
+    // no controller). preserveState:true preserva o rascunho do form "Novo template".
+    router.get(route('whatsapp.templates.index'), { ...filters, [key]: value }, {
+      preserveScroll: true,
+      preserveState: true,
+      only: ['templates', 'filters'],
+    });
   }
 
   function syncMeta() {
