@@ -70,14 +70,17 @@ const tipoOptions = [
 
 export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props) {
   const filter = (key: string, value: string) => {
+    // D-14: partial reload — só re-busca o que muda com filtro
     router.get(
       '/ponto/intercorrencias',
       { ...filtros, [key]: value === 'ALL' ? undefined : value },
-      { preserveState: true, preserveScroll: true },
+      { preserveState: true, preserveScroll: true, only: ['intercorrencias', 'filtros'] },
     );
   };
 
-  const resetFilters = () => router.get('/ponto/intercorrencias', {}, { preserveScroll: true });
+  // D-14: partial reload — só re-busca o que muda com filtro
+  const resetFilters = () =>
+    router.get('/ponto/intercorrencias', {}, { preserveScroll: true, only: ['intercorrencias', 'filtros'] });
 
   const tipoLabel = (v: string) => tipoOptions.find((o) => o.value === v)?.label ?? v.replace(/_/g, ' ');
 
@@ -221,7 +224,8 @@ export default function IntercorrenciasIndex({ intercorrencias, filtros }: Props
                       size="sm"
                       className="h-7 min-w-8 px-2 text-xs"
                       disabled={!link.url}
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                      // D-14: partial reload — paginação só re-busca a página filtrada
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['intercorrencias', 'filtros'] })}
                     >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>

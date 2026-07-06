@@ -147,7 +147,8 @@ export default function ImportacoesIndex({ importacoes }: Props) {
                       size="sm"
                       className="h-7 min-w-8 px-2 text-xs"
                       disabled={!link.url}
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                      // D-14: partial reload — paginação só re-busca a página da lista
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['importacoes'] })}
                     >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>

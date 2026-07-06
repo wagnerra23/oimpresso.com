@@ -98,7 +98,12 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
   const rows = linhas ?? [];
 
   const onMesChange = (novo: string) => {
-    router.get(`/ponto/espelho/${colaborador.id}`, { mes: novo }, { preserveState: true });
+    // D-14: partial reload — só re-busca o que muda com o mês (totais/linhas defer).
+    // Cabeçalho `colaborador` é por registro, não muda com o mês → fora do only:.
+    router.get(`/ponto/espelho/${colaborador.id}`, { mes: novo }, {
+      preserveState: true,
+      only: ['mes', 'totais', 'linhas'],
+    });
   };
 
   const navegarMes = (delta: number) => {

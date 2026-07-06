@@ -51,10 +51,11 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
   useEffect(() => {
     const h = setTimeout(() => {
       if (q !== (search ?? '')) {
+        // D-14: partial reload — só re-busca o que muda com a busca
         router.get(
           '/ponto/colaboradores',
           q ? { q } : {},
-          { preserveState: true, preserveScroll: true, replace: true },
+          { preserveState: true, preserveScroll: true, replace: true, only: ['colaboradores', 'search'] },
         );
       }
     }, 350);
@@ -174,7 +175,8 @@ export default function ColaboradoresIndex({ colaboradores, search }: Props) {
                       size="sm"
                       className="h-7 min-w-8 px-2 text-xs"
                       disabled={!link.url}
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                      // D-14: partial reload — paginação só re-busca a página filtrada
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['colaboradores', 'search'] })}
                     >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>

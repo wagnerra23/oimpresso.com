@@ -175,7 +175,9 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
                       size="sm"
                       className="h-7 min-w-8 px-2 text-xs"
                       disabled={!link.url}
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                      // D-14: partial reload — paginação só re-busca `saldos`; `totais`
+                      // (agregado por business, defer) não muda com a página e nem roda
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['saldos'] })}
                     >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>
