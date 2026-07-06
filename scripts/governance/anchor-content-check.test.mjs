@@ -2,7 +2,7 @@
 // Self-test anchor-content-check — prova a classificação vs o CONTRATO (âncora tem que
 // apontar pro FONTE da tela, não pro shell/arquivo-fantasma). Origem: buraco pego por
 // Wagner 2026-07-06 (2/9 âncoras podres, nenhum gate viu). Roda: node ...test.mjs
-import { anchorFile, stylesheetCount, classifyAnchor, SHELL_MIN_CSS } from './anchor-content-check.mjs';
+import { anchorFile, anchorRelPath, stylesheetCount, classifyAnchor, SHELL_MIN_CSS } from './anchor-content-check.mjs';
 
 let fails = 0;
 const check = (n, c, extra = '') => { console.log(`${c ? '[OK]' : '[FAIL]'} ${n}${c ? '' : '  → ' + extra}`); if (!c) fails++; };
@@ -13,6 +13,15 @@ check('extrai .html com sufixo prosa', anchorFile('oimpresso.com.html (canon REA
 check('n/a → null', anchorFile('n/a (sem protótipo Cowork)') === null);
 check('MIS-ANCHOR → null', anchorFile('removido related_prototype: x.jsx — MIS-ANCHOR') === null);
 check('prosa sem arquivo → null', anchorFile('prototipo Cowork "payment-gateway-ui" F1+F1.5') === null);
+
+// 1b. anchorRelPath — identidade por PATH COMPLETO (adversário 2026-07-06: basename colide;
+//     arte 2026-07-06: hash normalizado keyed por path completo, nunca basename).
+check('relpath raiz', anchorRelPath('prototipo-ui/cowork/financeiro-page.jsx') === 'financeiro-page.jsx');
+check('relpath SUBDIR preservado (não colapsa pro basename)', anchorRelPath('prototipo-ui/cowork/prototipos/payment-gateway-ui/index.html') === 'prototipos/payment-gateway-ui/index.html');
+check('relpath nome solto (sem dir) → como veio', anchorRelPath('financeiro-telas-extras.jsx (TelaFluxo)') === 'financeiro-telas-extras.jsx');
+check('relpath dois homônimos ≠ mesma identidade', anchorRelPath('prototipo-ui/cowork/a/x.jsx') !== anchorRelPath('prototipo-ui/cowork/b/x.jsx'));
+check('relpath n/a → null', anchorRelPath('n/a (sem protótipo Cowork)') === null);
+check('relpath prosa → null', anchorRelPath('prototipo Cowork "payment-gateway-ui" F1+F1.5') === null);
 
 // 2. stylesheetCount detecta shell.
 check('conta <link stylesheet>', stylesheetCount('<link rel="stylesheet" href="a.css"/><link rel=\'stylesheet\' href="b.css">') === 2);
