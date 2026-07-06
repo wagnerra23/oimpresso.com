@@ -123,8 +123,9 @@ class DeviceModelController extends Controller
                 ],
                 'models' => Inertia::defer(fn () => $this->buildDeviceModelsInertiaPayload($request, (int) $business_id)),
                 'kpis'   => Inertia::defer(fn () => $this->buildDeviceModelsInertiaKpis((int) $business_id)),
-                'devices' => \App\Category::forDropdown($business_id, 'device'),
-                'brands'  => \App\Brands::forDropdown($business_id, false),
+                // closure D-14: por business, não muda com filtro — pula no partial reload
+                'devices' => fn () => \App\Category::forDropdown($business_id, 'device'),
+                'brands'  => fn () => \App\Brands::forDropdown($business_id, false),
             ]);
         }
     }

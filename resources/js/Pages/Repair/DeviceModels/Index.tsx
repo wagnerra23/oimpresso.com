@@ -106,13 +106,15 @@ export default function DeviceModelsIndex({ filters, models, kpis, brands, devic
     } catch {
       /* ignore */
     }
+    // D-14: partial reload — só re-busca o que muda com filtro (models/filters).
+    // brands/devices/kpis são por-business (closures/defer no controller) e nem rodam.
     router.get(
       '/repair/device-models',
       {
         brand_id: brandFilter || undefined,
         device_id: deviceFilter || undefined,
       },
-      { preserveScroll: true, preserveState: true, replace: true },
+      { preserveScroll: true, preserveState: true, replace: true, only: ['models', 'filters'] },
     );
   };
 
@@ -125,7 +127,8 @@ export default function DeviceModelsIndex({ filters, models, kpis, brands, devic
     } catch {
       /* ignore */
     }
-    router.get('/repair/device-models', {}, { preserveScroll: true, preserveState: true, replace: true });
+    // D-14: partial reload — limpar filtro só re-busca models/filters.
+    router.get('/repair/device-models', {}, { preserveScroll: true, preserveState: true, replace: true, only: ['models', 'filters'] });
   };
 
   const hasActiveFilters = Boolean(brandFilter || deviceFilter);
