@@ -12,6 +12,7 @@ import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
 import { Deferred, Head, Link, router } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid } from '@/Components/layout';
 import {
   AlertTriangle,
   ArrowLeft,
@@ -155,11 +156,11 @@ export default function EspelhoShow({ colaborador, mes, totais, linhas }: Props)
           data={['totais', 'linhas']}
           fallback={(
             <div className="space-y-4">
-              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              <Grid cols={6} gap={3}>
                 {Array.from({ length: 6 }).map((_, i) => (
                   <Skeleton key={i} className="h-20 w-full" />
                 ))}
-              </div>
+              </Grid>
               <Skeleton className="h-40 w-full" />
               <Skeleton className="h-64 w-full" />
             </div>

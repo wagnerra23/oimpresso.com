@@ -14,6 +14,7 @@ import { ArrowRight } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
 import { Skeleton } from '@/Components/ui/skeleton';
+import { Grid } from '@/Components/layout';
 import { cn, formatMinutes } from '@/Lib/utils';
 
 import PontoSubNav from '@/Pages/Ponto/_shared/PontoSubNav';
@@ -77,11 +78,11 @@ export default function BancoHorasIndex({ saldos, totais }: Props) {
           data={['saldos', 'totais']}
           fallback={(
             <div className="space-y-4">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <Grid cols={4} gap={3}>
                 {Array.from({ length: 4 }).map((_, i) => (
                   <Skeleton key={i} className="h-24 w-full" />
                 ))}
-              </div>
+              </Grid>
               <Skeleton className="h-64 w-full" />
             </div>
           )}
