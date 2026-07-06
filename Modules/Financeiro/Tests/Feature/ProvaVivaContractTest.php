@@ -8,6 +8,12 @@ use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
 
+// Rastreabilidade casos.md (ADR 0264 G-2) — todo UC declarado citado por >=1 teste:
+//   UC-PV-01, UC-PV-02 → cobertos por ProvaVivaControllerTest (rota 200 + guard 403).
+//   UC-PV-03, UC-PV-05 → C1/C2 abaixo (contrato read-only + primitivos ADR 0253).
+//   UC-PV-04 (Non-Goal, manual/doc) e UC-PV-06 (E2E/visual axe+screenshot) → sem teste
+//   backend por natureza; citados aqui para o trio de rastreabilidade (Status ⬜ honesto).
+
 /**
  * Prova viva (primitivos) — CONTRATO (MV batch 2026-07-06, piloto Módulo Vivo).
  *

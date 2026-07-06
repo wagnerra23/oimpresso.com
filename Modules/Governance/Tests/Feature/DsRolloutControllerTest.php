@@ -29,13 +29,15 @@ uses(Tests\TestCase::class, WithSeededTenant::class);
  * schema MySQL → skip gracioso em sqlite (mesma estratégia de ForjaRoutesSmokeTest).
  * biz=1 canônico via WithSeededTenant — NUNCA biz=4 (ROTA LIVRE prod · ADR 0101).
  *
- * Ancora os casos de DsRollout.casos.md (Adendo MV batch 2026-07-06):
- *   UC-DSR-01 (trava: número só de gate)  → cenário fallback measured=false
- *   UC-DSR-04 (Ledger renderiza census)   → cenário contrato prop census
- *   UC-DSR-05 (banner treeGuard)          → chave treeGuard presente no census
- *   UC-DSR-08 (acesso auth)               → smoke anônimo bloqueado
- *   UC-DSR-09 (rota nomeada + throttle)   → cenário rota
- *   UC-DSR-10 (render estático, sem defer) → cenário sem Inertia::defer
+ * Ancora os casos de DsRollout.casos.md (Adendo MV batch 2026-07-06). As variantes
+ * "b" são a versão backend-testável (mordível) dos UCs manuais base — o mesmo cenário
+ * prova ambos, por isso cada it() cita o par base+b (ADR 0264 G-2, rastreabilidade):
+ *   UC-DSR-01 / UC-DSR-01B (trava: número só de gate)  → cenário fallback measured=false
+ *   UC-DSR-04 / UC-DSR-04B (Ledger renderiza census)   → cenário contrato prop census
+ *   UC-DSR-05 (banner treeGuard)                        → chave treeGuard presente no census
+ *   UC-DSR-08 / UC-DSR-08B (acesso auth)               → smoke anônimo bloqueado
+ *   UC-DSR-09 (rota nomeada + throttle)                 → cenário rota
+ *   UC-DSR-10 (render estático, sem defer)              → cenário sem Inertia::defer
  *
  * @see Modules\Governance\Http\Controllers\DsRolloutController
  * @see resources/js/Pages/governance/DsRollout.charter.md

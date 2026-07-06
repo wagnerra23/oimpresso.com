@@ -16,14 +16,14 @@ last_run: "2026-07-06"
 > Âncoras: charter (Mission/Goals/Non-Goals/UX Targets) + ADR 0253 + ADR 0093 (Tier 0).
 
 ## UC-PV-01 — A tela abre atrás do guard de leitura do Financeiro
-Status: ✅ (ProvaVivaControllerTest — "renderiza Inertia component Financeiro/ProvaViva")
+Status: 🧪 (ProvaVivaControllerTest — "renderiza Inertia component Financeiro/ProvaViva"; aguarda manifesto verde no CT100)
 Eliana com `financeiro.dashboard.view` abre `/financeiro/prova-viva`. A rota responde **200** com
 header `X-Inertia` e o component Inertia é exatamente `Financeiro/ProvaViva`. Acesso direto por URL
 (não há link na sidebar — é pilot). Âncora: RUNBOOK "Como acessar" + charter status live.
 **Pronto quando:** GET responde 200, `X-Inertia` presente e `component == 'Financeiro/ProvaViva'`.
 
 ## UC-PV-02 — Sem a permissão, a tela nega (403)
-Status: ✅ (ProvaVivaControllerTest — "bloqueia acesso sem a permissão financeiro.dashboard.view")
+Status: 🧪 (ProvaVivaControllerTest — "bloqueia acesso sem a permissão financeiro.dashboard.view"; aguarda manifesto verde no CT100)
 Usuário sem `financeiro.dashboard.view` recebe **403** — a tela fica atrás do mesmo guard de leitura
 da Fluxo/DRE (`can:financeiro.dashboard.view`). Âncora: Controller `middleware('can:...')` + RUNBOOK "Guard".
 **Pronto quando:** GET de user sem a permissão responde 403 (e não 200).
