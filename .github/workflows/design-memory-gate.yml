@@ -155,6 +155,17 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/ancora.mjs --selftest
+      # Conteúdo da âncora (Wagner 2026-07-06): o ancora.mjs prova PROVENIÊNCIA (declarada no
+      # charter), não CORREÇÃO (o arquivo bate com a tela). 2/9 âncoras estavam podres
+      # (shell/fantasma) e nenhum gate viu — Wagner pegou no instinto. Este abre a âncora.
+      - name: anchor-content selftest (o gate morde e libera certo)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/anchor-content-check.test.mjs
+      - name: anchor-content-check (âncora aponta pro FONTE da tela, não shell/fantasma · advisory)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/anchor-content-check.mjs --check
       - name: importar-bundle selftest (import atômico · verifica antes de trocar)
         if: always()
         continue-on-error: true
