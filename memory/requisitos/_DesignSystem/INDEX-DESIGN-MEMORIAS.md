@@ -42,6 +42,23 @@ Quando duas memórias divergem, vence nesta ordem:
 
 **Enforcement:** o atrator Figma é bloqueado por `block-figma-without-optin.mjs` (PreToolUse, fail-closed) — pra usar Figma de propósito diga "figma" explícito. Os demais atratores (Notion/screenshot) ainda são **advisory** por aqui; fechar a classe inteira com block = trabalho futuro no [ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md).
 
+### 0.2 · OS PROJETOS COWORK REAIS (resolvido 2026-07-06 — pra NÃO errar de novo)
+
+> Wagner não usa Figma; usa **Claude Design (Cowork)**. O `oimpresso.com` MCP-conector Figma que aparece "conectado" é **irrelevante** pro fluxo dele. A fonte viva é o Cowork, lido pela integração `DesignSync` (ferramenta nativa do Code, após `/design-login` UMA vez no terminal CLI — a autorização fica salva na máquina).
+
+**São DOIS projetos Cowork de nomes parecidos — a confusão de hoje veio de tratar um pelo outro:**
+
+| Projeto | ID | O que é | É fonte de tela? |
+|---|---|---|---|
+| **Oimpresso ERP Conunicação Visual.** | `019dcfd3-6ef2-7ee6-8512-b1b0e5544e58` | O **ERP inteiro**: o protótipo (`oimpresso.com.html` = shell que carrega os `*-page.jsx`) + espelho do código (`Unificado/Index.tsx` + `_components/`) + `memory/` + `ds-v6/`. **1337 arquivos.** | ✅ **SIM — a fonte das telas** |
+| Office Impresso — Design System | `019dd02f-d2d0-7ba6-a57f-24b3ddd073ac` | Só a **biblioteca do DS**: `components/` (44 componentes), `templates/` (7 arquétipos: financeiro, oficina-auto, pt-01...), `Norte/`, `ui_kits/`. | ❌ NÃO — é o DS, não a tela. Os `templates/<x>.dc.html` são arquétipos do DS, não o design vivo de uma tela específica |
+
+**A âncora de uma tela do Financeiro** resolve assim: `related_prototype`/`bundle_source` → o `*-page.jsx` do projeto **019dcfd3** (ex: `financeiro-page.jsx` pro `Unificado`). O shell `oimpresso.com.html` é o **visualizador** (renderiza todas as telas via Babel); o `*-page.jsx` é o **fonte** da tela específica — a âncora aponta pro fonte, não pro shell.
+
+**O `prototipo-ui/cowork/` do repo é MIRROR do projeto 019dcfd3, em sincronia:** verificado 2026-07-06 — `financeiro-page.jsx` do repo é **byte-idêntico** ao do Cowork vivo (md5 `ae3a2cfe8855fc41e25354fcaa03de84`; a diferença de bytes é só CRLF). Ou seja: o mirror **não apodrece sozinho** — quando alguém disser "esse protótipo é antigo", **diffar antes de concluir** (`git show origin/main:prototipo-ui/cowork/<arq>` vs `DesignSync get_file projectId=019dcfd3`). "Antigo" pode significar **direção de design a redesenhar** (≠ arquivo defasado) — são coisas diferentes; perguntar qual.
+
+**Meta-lição (o erro que este bloco previne):** proveniência de design se resolve por **DIFF + integração ao vivo**, NUNCA por teoria a partir de nome de arquivo. Em 2026-07-06 o agente errou 3× seguidas teorizando (título "Chat" do shell = "arquivo errado"; puxou o projeto DS achando que era a tela; concluiu "antigo" sem diffar). Todas caíram quando trocou teoria por medição. **Ver a fonte (DesignSync/render) e diffar > adivinhar.**
+
 ---
 
 ## 1 · ORDEM DE LEITURA (sempre, antes de qualquer tela)
