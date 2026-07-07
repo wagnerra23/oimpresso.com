@@ -377,7 +377,7 @@ function PageHeaderNav({ route }) {
   const hubItem = (group.items || []).find((it) => it.id === route || (it.ghosts || []).some((g) => g.id === route));
   const ghosts = hubItem && hubItem.ghosts || [];
   const go = (id) => window.__selectRoute && window.__selectRoute(id);
-  const onColor = `oklch(0.42 0.10 ${hue})`,onBorder = `oklch(0.55 0.14 ${hue})`;
+  const onColor = "var(--accent)",onBorder = "var(--accent)";
   return (
     <nav className="ph-nav" aria-label={meta?.label || group.group}>
       {group.items.map((it) => {
