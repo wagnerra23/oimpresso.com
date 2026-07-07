@@ -14,8 +14,10 @@ tier: B
 ## O fluxo obrigatório (nenhum passo é opcional)
 
 1. **Fonte provada primeiro.** `node scripts/governance/cowork-mirror-freshness.mjs --manifest`
-   → pull das âncoras via `DesignSync.get_file` (projeto vivo `019dcfd3…`) → `--compare --check`.
-   `STALE` ⇒ re-exportar ANTES de comparar. Comparar contra espelho velho = erro raiz do v1.
+   (v3: âncoras **+ deps de render** do shell) → pull via `DesignSync.get_file` (projeto vivo
+   `019dcfd3…`) das âncoras + deps globais (`app.jsx` · `styles.css` · `ds-v6/tokens.css`) + css
+   do módulo → `--compare --check`. `STALE` ⇒ re-exportar ANTES de comparar. Só âncora = cego
+   pra infra (LC-07: o PageHeader roxo do [W] driftou no `app.jsx` e a rodada ficou verde).
 2. **Mesmo tema nos dois lados.** O tema é o que o Wagner usa (hoje: dark). Comparar light×dark
    invalida D6 inteira.
 3. **Mesma sonda, medida:** `node prototipo-ui/design-diff.mjs --probe` → injetar a sonda IGUAL
