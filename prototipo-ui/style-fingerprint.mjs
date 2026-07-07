@@ -53,6 +53,25 @@ export function normTexto(t) {
     .slice(0, 60);
 }
 
+// agruparLinhas — conta LINHAS a partir dos rects dos TEXT NODES (nunca dos SVGs/ícones).
+// Fix 2026-07-07 (dogfood [W]): a v1 media `range.selectNodeContents(elemento)` — que inclui
+// os <svg> de ícone em baseline sub-pixel diferente do texto — + bucketing fixo de 4px →
+// FALSO-POSITIVO "2 linhas" num botão de 1 linha ("Novo título" + Plus + Chevron). Aqui só
+// entram rects de text node; o agrupamento é por PROXIMIDADE proporcional (tol = 0.6× da
+// mediana das alturas): linhas reais estão a ~1 line-height de distância, jitter de baseline
+// é << line-height. Recebe [{top,height}] e devolve o nº de linhas. Função pura = testável.
+export function agruparLinhas(rects) {
+  const rs = rects.filter((r) => r && r.height > 1 && r.width > 1);
+  if (rs.length === 0) return 0;
+  const alturas = rs.map((r) => r.height).sort((a, b) => a - b);
+  const medH = alturas[Math.floor(alturas.length / 2)] || 16;
+  const tol = medH * 0.6;
+  const tops = rs.map((r) => r.top).sort((a, b) => a - b);
+  let linhas = 1;
+  for (let i = 1; i < tops.length; i++) if (tops[i] - tops[i - 1] > tol) linhas++;
+  return linhas;
+}
+
 export function chave(el) { return el.tag + '|' + normTexto(el.texto); }
 
 function ehNum(c) { return ['w', 'h', 'linhas', 'borderW'].includes(c); }
@@ -107,14 +126,26 @@ const SNIPPET = String.raw`
     }
     return getComputedStyle(document.body).backgroundColor;
   };
+  // nLinhas — só rects de TEXT NODE (ignora <svg>/ícones) + agrupamento proporcional.
+  // Espelho de agruparLinhas() do módulo (fix falso-positivo do botão ícone+texto, 2026-07-07).
   const nLinhas = (el) => {
     try {
-      const r = document.createRange();
-      r.selectNodeContents(el);
-      const rects = [...r.getClientRects()].filter((x) => x.width > 1 && x.height > 1);
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      const rects = [];
+      let tn;
+      while ((tn = walker.nextNode())) {
+        if (!tn.textContent.trim()) continue;
+        const r = document.createRange();
+        r.selectNodeContents(tn);
+        for (const x of r.getClientRects()) if (x.width > 1 && x.height > 1) rects.push({ top: x.top, height: x.height, width: x.width });
+      }
       if (!rects.length) return 0;
-      const ys = rects.map((x) => Math.round(x.top / 4) * 4);
-      return new Set(ys).size;
+      const alturas = rects.map((r) => r.height).sort((a, b) => a - b);
+      const tol = (alturas[Math.floor(alturas.length / 2)] || 16) * 0.6;
+      const tops = rects.map((r) => r.top).sort((a, b) => a - b);
+      let linhas = 1;
+      for (let i = 1; i < tops.length; i++) if (tops[i] - tops[i - 1] > tol) linhas++;
+      return linhas;
     } catch { return 0; }
   };
   const alvos = [...document.querySelectorAll('button, a, th, small, label, h1, h2, h3, [role=tab], span, b')]
@@ -191,6 +222,24 @@ function selftest() {
   const temLinhas = r7?.campos.some((c) => c.startsWith('linhas:'));
   console.log(`  [${temLinhas ? 'PASS' : 'FAIL'}] campo 'linhas' listado no diff da regra 7`);
   if (!temLinhas) fails++;
+
+  // agruparLinhas — o fix do falso-positivo (dogfood [W] 2026-07-07). Rects PLANTADOS:
+  //  A) botão real ícone+texto de 1 linha: SVG top=100 h=16 + texto top=101 h=18 (jitter
+  //     de baseline << line-height) → tem que dar 1 (a v1 dava 2 por bucket de 4px).
+  //  B) 2 linhas REAIS: texto top=100 + texto top=124 (Δ ~1 line-height) → 2.
+  //  C) vazio → 0.
+  const gA = agruparLinhas([{ top: 100, height: 16, width: 12 }, { top: 101, height: 18, width: 60 }]);
+  const gB = agruparLinhas([{ top: 100, height: 18, width: 60 }, { top: 124, height: 18, width: 40 }]);
+  const gC = agruparLinhas([]);
+  for (const [label, got, exp] of [
+    ['agruparLinhas: ícone+texto jitter = 1 linha (fix falso-positivo)', gA, 1],
+    ['agruparLinhas: 2 linhas reais = 2', gB, 2],
+    ['agruparLinhas: vazio = 0', gC, 0],
+  ]) {
+    const ok = got === exp;
+    if (!ok) fails++;
+    console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
+  }
   console.log(`  resumo: ${Object.entries(tally).map(([k, v]) => `${k}=${v}`).join(' · ')}`);
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — comparador provado pelos dois lados.');
   process.exit(fails ? 1 : 0);
