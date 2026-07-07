@@ -85,3 +85,21 @@
 - **Ocorrências:** 0
 - **Gate:** none
 - **Ref:** audit 2026-06-06 (gap nº2)
+
+## LC-06 — Comparação design×prod NO OLHO em vez de MEDIDA
+- **Erro:** comparei protótipo (Cowork vivo) × produção por screenshot/olho e declarei "estruturalmente iguais" — deixei passar diferenças MEDÍVEIS: KPI `center` na prod × `left` no design (causa: `<button>` herda center-default × `<div>` é left), dark-mode com texto `stone` invisível (escuro no escuro), e roxo do primary escuro `0.55` × roxinho `0.72` (o design clareia o accent no dark, a prod trava inline). Wagner teve que apontar cada uma.
+- **Sintoma:** agente diz "aplicado/igual/pronto"; Wagner acha a divergência que o agente não mediu. "Print igual" esconde center×left, full-reload, contraste.
+- **Regra:** comparação design×prod SÓ por MEDIÇÃO (computed style/DOM, MESMA sonda nos dois lados — `prototipo-ui/design-diff.mjs`), NUNCA no olho. Antes de comparar: provar a fonte `SYNC` (`cowork-mirror-freshness`) + validar com uma pista-canário conhecida (o alinhamento foi o canário do Wagner). Screenshot é ilustração, não prova de igualdade. Mesmo tema nos dois lados.
+- **Classe:** visual-compare-eyeball
+- **Ocorrências:** 2   (strike 1 = comparação v1 rasa "essencialmente igual" que gerou o `PROTOCOLO-COMPARACAO-RUNTIME` em 2026-07-06; strike 2 = esta sessão 2026-07-07, mesma classe)
+- **Gate:** `prototipo-ui/design-diff.mjs` — comparador determinístico D2/D4/D6/D8 + probe medida (mesma sonda) + `--selftest` no CI (design-memory-gate). ⚠️ honestidade: a comparação em si é DISPATCH do agente pós-merge de tela (browser + design vivo — CI não renderiza), como o `cowork-mirror-freshness`; o que a máquina garante é que o veredito vem de medida, não do olho. Wirado no protocolo (Regra 0 pós-deploy).
+- **Ref:** ADR 0299 (/design-diff previsto), `memory/requisitos/_DesignSystem/PROTOCOLO-COMPARACAO-RUNTIME.md` (D8), sessão 2026-07-07
+
+## LC-07 — Manifest de frescor cobria só as âncoras (cego pras deps do render)
+- **Erro:** a rodada de frescor design↔espelho media só os `.jsx` de tela declarados em charter (3 âncoras). O render depende de ~100 arquivos (`app.jsx`, `styles.css`, `ds-v6/tokens.css`, css por módulo) — nenhum era medido. O [W] mudou o PageHeaderNav pra roxo no `app.jsx` do Cowork e a rodada saiu "3 SYNC" verde com o drift passando invisível ("ele não baixou tudo?", 2026-07-07).
+- **Sintoma:** rodada de frescor verde + Wagner vê no vivo uma mudança que "não veio" no pull. Verde-parcial lido como verde-total.
+- **Regra:** manifest de frescor enumera âncoras **+ deps de render derivadas MECANICAMENTE do shell** (`parseShellDeps` — src/href, strip `?v=`, sem CDN; nunca lista curada na mão). Sem shell → WARN explícito, nunca omissão silenciosa. Rodada mínima: âncoras + deps globais + css do módulo tocado; parcial = UNCHECKED.
+- **Classe:** freshness-manifest-partial-coverage
+- **Ocorrências:** 1
+- **Gate:** `cowork-mirror-freshness.mjs` manifest v3 (kind ancora|dep) + testes §6b no `.test.mjs` (CI design-memory-gate) — o caso `app.jsx` do drift real está travado por assert nomeado.
+- **Ref:** sessão 2026-07-07 · PROTOCOLO-COMPARACAO-RUNTIME passo 0 · LC-06 (família: cobertura de medição)
