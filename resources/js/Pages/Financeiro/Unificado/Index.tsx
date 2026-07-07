@@ -880,9 +880,12 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel, lenteAtiva }: { k
   // anel de lente ativa (fin-stat-on, financeiro-page.jsx:398), hover de elevação
   // (fin-boletos.css:65) e dot entrada/saída no label (Caso 08, fin-boletos.css:77).
   // Implementados em Tailwind (zero CSS bespoke — MANUAL-CSS-JS congela sprawl).
-  const kpiHover = 'cursor-pointer transition-[box-shadow,transform] duration-150 hover:shadow-md hover:-translate-y-px';
+  // Smoke prod 2026-07-07 pegou: `ring`/`shadow` perdiam pro box-shadow bespoke de
+  // .fin-stat* (fora de @layer, vence utility em layer) — anel virou OUTLINE (não
+  // compete com box-shadow; provado no DOM vivo) e elevação virou só translate.
+  const kpiHover = 'cursor-pointer transition-transform duration-150 hover:-translate-y-px';
   const kpiOn = (lid: LenteId) =>
-    lenteAtiva === lid ? ' ring-[1.5px] ring-inset ring-[color:var(--accent,oklch(0.55_0.15_295))]' : '';
+    lenteAtiva === lid ? ' outline outline-[1.5px] -outline-offset-[1.5px] outline-[color:var(--accent,oklch(0.55_0.15_295))]' : '';
   const Dot = ({ tone }: { tone: 'in' | 'out' }) => (
     <span aria-hidden className={`inline-block size-1.5 rounded-full mr-1.5 align-middle ${tone === 'in' ? 'bg-success' : 'bg-destructive'}`} />
   );
@@ -1725,7 +1728,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         <button
           type="button"
           aria-pressed={filters.overdue}
-          className={'fin-filter-toggle' + (filters.overdue ? ' on bg-destructive-soft text-destructive-fg border-destructive/50' : '')}
+          className={'fin-filter-toggle' + (filters.overdue ? ' on bg-destructive-soft! text-destructive-fg! border-destructive/50!' : '')}
           title="AND multiplicativo: combina com lifecycle ativos"
           onClick={() => aplicar({ overdue: !filters.overdue })}
         >
@@ -1739,7 +1742,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         <button
           type="button"
           aria-pressed={filters.arquivados}
-          className={'fin-filter-toggle' + (filters.arquivados ? ' on bg-primary/10 text-primary border-primary/40' : '')}
+          className={'fin-filter-toggle' + (filters.arquivados ? ' on bg-primary/10! text-primary! border-primary/40!' : '')}
           title="Mostrar lançamentos arquivados (cancelados/inativos). Por padrão ficam escondidos e não somam no caixa."
           onClick={() => aplicar({ arquivados: !filters.arquivados })}
         >
