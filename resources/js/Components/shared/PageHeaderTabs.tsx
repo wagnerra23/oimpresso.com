@@ -215,20 +215,15 @@ export default function PageHeaderTabs({
                   'transition-colors border-b-2 border-transparent',
                   'hover:bg-accent hover:text-accent-foreground',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  // ADR 0313/0190 fidelidade [W] 2026-07-07: o tab ATIVO usa o primary roxo
+                  // universal (texto + borda), NÃO o hue-por-grupo (era verde 145 no Financeiro).
+                  // Espelha a mudança que o [W] fez no PageHeaderNav do protótipo vivo (app.jsx:
+                  // onColor/onBorder = var(--accent) pra TODOS os grupos). Alinha com o primary
+                  // universal da ADR 0190. `hue` segue só pro botão primary colorido (out of scope).
                   isActive
-                    ? [
-                        'text-foreground font-medium',
-                        hue !== undefined
-                          ? `border-b-[oklch(0.55_0.15_var(--gh))]`
-                          : 'border-b-primary',
-                      ]
+                    ? 'text-primary font-medium border-b-primary'
                     : 'text-muted-foreground',
                 )}
-                style={
-                  isActive && hue !== undefined
-                    ? { borderBottomColor: `oklch(0.55 0.15 ${hue})` }
-                    : undefined
-                }
               >
                 {ghost.label}
               </Link>
