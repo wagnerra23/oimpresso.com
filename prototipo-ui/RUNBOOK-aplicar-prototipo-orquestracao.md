@@ -66,9 +66,22 @@ A Fase 0 dá a lista de telas + arquivos; a Fase 1 (prosa) custa token e **assum
 - **1 agente por tela, em paralelo** (`general-purpose`, READ-ONLY — proibido Edit/Write/commit).
 - Cada agente:
   1. Lê o protótipo da tela + a tela viva (`Pages/<Mod>/<Tela>`) + charter + `<tela>-visual-comparison.md`.
-  2. **Divide a tela em PARTES** (header, KPIs, filtros, lista/tabela, drawer, modais, footer…).
-  3. Por parte: **o que mudou/falta** + **POR QUÊ** + esforço (P/M/G) + risco (só visual / backend / Tier 0 / governança).
+  2. **Divide a tela em REGIÕES** (formato canônico abaixo) e compara **componente a componente**.
+  3. Por região/componente: **o que mudou/falta** + **POR QUÊ** + esforço (P/M/G) + risco (só visual / backend / Tier 0 / governança).
   4. % de paridade + ordem de aplicação.
+
+#### Formato canônico do inventário por região ([W] 2026-07-07 — "divida a página em etapas e descreva cada componente modificado e sua diferença total")
+> Instância de referência (199 comparações, Financeiro/Unificado): [`financeiro-unificado-visual-comparison.md` §Round 2026-07-07](../memory/requisitos/Financeiro/financeiro-unificado-visual-comparison.md).
+
+- **Regiões canônicas** (adaptar à tela, nunca colapsar em "geral"): `PageHeader+SubNav` · `KPIs/hero` · `Barra de filtros` · `Tabela/lista` · `Footer+CmdK+atalhos+estados` · `Drawer+Sheets` · `Tema/Shell` (fontes, dark, sidebar).
+- **Linha do inventário** (1 por propriedade comparada): `componente · propriedade · valor-protótipo @arquivo:linha · valor-produção @arquivo:linha · veredito · nota`.
+- **Vereditos (enum fechado):** `IDENTICO` · `DIVERGE` · `PROD_A_FRENTE` (produção evoluiu além — NUNCA regredir) · `SO_PROTOTIPO` (falta na prod — candidato a aplicar/US) · `SO_PRODUCAO` (feature nova sem par no protótipo) · `NAO_VERIFICADO` (proibido chutar).
+- **Regras duras (violação = inventário rejeitado):**
+  1. **Âncora dupla obrigatória** em toda linha — `arquivo:linha` real (obtida por `grep -n`) dos DOIS lados; sem âncora → `NAO_VERIFICADO`, nunca valor inventado.
+  2. **Leitura SEMPRE via `git show origin/main:<path>` fresco** — worktree em disco pode estar atrás do main sem avisar (caso real 2026-07-07: base "recém-criada" não continha #3920/#3921).
+  3. **Valor LITERAL** (classe Tailwind, oklch, string PT-BR), não paráfrase.
+  4. **Cor/raio/fonte/sombra exigem medição DOM computada** (`getComputedStyle` via browser MCP) na produção ao vivo — classe na fonte não prova render (cascata/escopo mentem; caso real: `.os-btn.primary` escopado nunca casava).
+  5. Prod = o que está NO AR: confirmar o SHA de produção (SSH) == `origin/main` antes de tratar a fonte como espelho da prod.
 - **4º veredito obrigatório** (além de perto/longe/greenfield): **tela À FRENTE do protótipo** → NÃO regride; o protótipo vira backlog de catch-up, não fonte (caso real: Cliente já passou o protótipo).
 - **Saída por tela:** (a) **GAP-SPEC** em `memory/requisitos/<Mod>/<tela>-gap.md` (template abaixo); (b) **mapa design↔código** `<tela>.map.json` — análogo ao **Figma Code Connect**: por PARTE, o bloco do protótipo (+range de linha) ↔ arquivo/range da tela viva, carregando o **sha do protótipo** que o gerou. O map.json faz a sessão de aplicação ler só os trechos (economia real) e permite **invalidar** o gap quando o protótipo re-exporta (Fase 4 aborta se o sha mudou → regenera).
 
