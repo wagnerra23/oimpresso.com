@@ -160,7 +160,14 @@ function Index({ repairs, filters, meta, permissions }: Props) {
 
   const clearAll = () => {
     setSearch('');
-    router.get(ROUTE, {}, { preserveState: false, preserveScroll: false });
+    // D-14: partial reload — limpar filtro só re-busca o que muda (repairs/filters/meta;
+    // meta.totals depende do filtro). Estado local já é resetado via setSearch acima.
+    router.get(ROUTE, {}, {
+      preserveState: true,
+      preserveScroll: true,
+      only: ['repairs', 'filters', 'meta'],
+      replace: true,
+    });
   };
 
   const hasActiveFilters =
