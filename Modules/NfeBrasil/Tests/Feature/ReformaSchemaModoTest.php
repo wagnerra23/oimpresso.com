@@ -40,15 +40,24 @@ function criarConfigReforma(string $modo): void
 }
 
 beforeEach(function () {
-    if (! Schema::hasColumn('nfe_business_configs', 'reforma_tributaria_modo')) {
-        test()->markTestSkipped('coluna reforma_tributaria_modo ausente — rode migrations');
+    // `nfe_business_configs` é MySQL-only (ADR 0101) — no lane sqlite (modules-pest)
+    // a tabela nem existe. Checar hasTable ANTES de hasColumn (short-circuit) evita
+    // qualquer toque na tabela ausente. Sem o guard de tabela, o afterEach abaixo
+    // rodava forceDelete numa tabela inexistente → QueryException "no such table".
+    if (! Schema::hasTable('nfe_business_configs')
+        || ! Schema::hasColumn('nfe_business_configs', 'reforma_tributaria_modo')) {
+        test()->markTestSkipped('tabela/coluna nfe_business_configs ausente (schema MySQL-only, ADR 0101) — rode migrations');
     }
     session(['business.id' => REFORMA_BIZ]);
     NfeBusinessConfig::withoutGlobalScopes()->where('business_id', REFORMA_BIZ)->forceDelete();
 });
 
 afterEach(function () {
-    NfeBusinessConfig::withoutGlobalScopes()->where('business_id', REFORMA_BIZ)->forceDelete();
+    // Guard hasTable: o afterEach roda mesmo quando o beforeEach pulou o teste
+    // (lifecycle Pest) — sem isto, o forceDelete quebrava o lane sqlite.
+    if (Schema::hasTable('nfe_business_configs')) {
+        NfeBusinessConfig::withoutGlobalScopes()->where('business_id', REFORMA_BIZ)->forceDelete();
+    }
     \Mockery::close();
 });
 
