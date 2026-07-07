@@ -158,7 +158,13 @@ function Index({ titulos, contas_bancarias, filtros }: Props) {
   const [pagando, setPagando] = useState<Titulo | null>(null);
 
   const filtrar = (key: string, value: string | null) => {
-    router.get('/financeiro/contas-pagar', { ...filtros, [key]: value }, { preserveScroll: true, preserveState: true });
+    // D-14: partial reload — só re-busca o que muda com filtro
+    // (contas_bancarias é por business → closure no controller, pula no partial).
+    router.get('/financeiro/contas-pagar', { ...filtros, [key]: value }, {
+      preserveScroll: true,
+      preserveState: true,
+      only: ['titulos', 'filtros'],
+    });
   };
 
   return (

@@ -61,7 +61,9 @@ class VehicleController extends Controller
         $hasFsmSchema = Schema::hasColumn('vehicles', 'current_status');
 
         // KPIs — 4 contagens conforme demo Martinho (mockup demo-martinho-2026-05-13).
-        $kpis = $this->buildKpis($hasFsmSchema);
+        // closure D-14: por business, não muda com filtro q/status — pula no partial
+        // reload (only: vehicles/filters). O reload pós-FSM pede 'kpis' e re-executa.
+        $kpis = fn () => $this->buildKpis($hasFsmSchema);
 
         $query = Vehicle::query();
 

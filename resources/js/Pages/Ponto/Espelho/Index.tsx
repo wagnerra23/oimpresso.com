@@ -44,7 +44,10 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
   // no first render.
   const rows = colaboradores?.data ?? [];
   const onMesChange = (novoMes: string) => {
-    router.get('/ponto/espelho', { mes: novoMes }, { preserveState: true, preserveScroll: true });
+    // D-14: partial reload — só re-busca o que muda com o mês. A lista de
+    // colaboradores não depende de `mes` (só os links de destino usam) → fora
+    // do only:, a closure defer nem roda no server.
+    router.get('/ponto/espelho', { mes: novoMes }, { preserveState: true, preserveScroll: true, only: ['mes'] });
   };
 
   return (
@@ -141,7 +144,8 @@ export default function EspelhoIndex({ colaboradores, mes }: Props) {
                       size="sm"
                       className="h-7 min-w-8 px-2 text-xs"
                       disabled={!link.url}
-                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true })}
+                      // D-14: partial reload — paginação só re-busca a página da lista
+                      onClick={() => link.url && router.get(link.url, {}, { preserveScroll: true, only: ['colaboradores', 'mes'] })}
                     >
                       <span dangerouslySetInnerHTML={{ __html: link.label }} />
                     </Button>

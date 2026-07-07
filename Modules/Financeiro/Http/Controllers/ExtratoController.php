@@ -61,8 +61,11 @@ class ExtratoController extends Controller
         // Session key canônica UPOS `user.business_id` (B5 — padroniza com o resto do módulo).
         $businessId = (int) $request->session()->get('user.business_id');
 
-        // Conta header é cheap (firstOrFail single row) — fica eager.
-        $conta = ContaBancaria::where('business_id', $businessId)
+        // closure D-14: conta é por business (header), não muda com filtro de
+        // período — pula no partial reload. Load cheio avalia normal (404 guard
+        // do firstOrFail preservado; no partial, lancamentos seguem scoped por
+        // business_id + conta_bancaria_id — sem vazamento cross-tenant).
+        $loadConta = fn () => ContaBancaria::where('business_id', $businessId)
             ->where('id', $contaBancariaId)
             ->with('account:id,name,account_number')
             ->firstOrFail();
@@ -94,14 +97,18 @@ class ExtratoController extends Controller
         };
 
         return Inertia::render('Financeiro/Extrato/Index', [
-            'conta' => [
-                'id'                  => $conta->id,
-                'nome'                => $conta->nome,
-                'banco_nome'          => $conta->banco_nome,
-                'numero_conta'        => $conta->numero_conta,
-                'saldo_cached'        => $conta->saldo_cached,
-                'saldo_atualizado_em' => $conta->saldo_atualizado_em?->toIso8601String(),
-            ],
+            'conta' => function () use ($loadConta) {
+                $conta = $loadConta();
+
+                return [
+                    'id'                  => $conta->id,
+                    'nome'                => $conta->nome,
+                    'banco_nome'          => $conta->banco_nome,
+                    'numero_conta'        => $conta->numero_conta,
+                    'saldo_cached'        => $conta->saldo_cached,
+                    'saldo_atualizado_em' => $conta->saldo_atualizado_em?->toIso8601String(),
+                ];
+            },
             'filtros' => [
                 'from' => $from->toDateString(),
                 'to'   => $to->toDateString(),

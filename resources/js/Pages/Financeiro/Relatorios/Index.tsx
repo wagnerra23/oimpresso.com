@@ -72,10 +72,13 @@ function FinanceiroRelatorios({ filters, fluxo, resumo }: Props) {
   const [dataAte, setDataAte] = useState(filters.data_ate);
 
   const aplicarFiltro = (patch: Partial<Filters> = {}) => {
+    // D-14: partial reload — só re-busca o que muda com filtro de período
+    // (aqui TODAS as props dependem do período; only: mantém o contrato de
+    // partial reload e evita full page visit).
     router.get(
       '/financeiro/relatorios',
       { data_de: dataDe, data_ate: dataAte, ...patch },
-      { preserveScroll: true, preserveState: true, replace: true },
+      { preserveScroll: true, preserveState: true, replace: true, only: ['filters', 'fluxo', 'resumo'] },
     );
   };
 

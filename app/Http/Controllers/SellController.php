@@ -813,19 +813,29 @@ class SellController extends Controller
         })->values()->all();
 
         // ── Caixa aberto (UPOS canonical) ──────────────────────────────────────
-        $openCashRegister = \App\CashRegister::where('business_id', $business_id)
-            ->where('user_id', auth()->user()->id)
-            ->where('status', 'open')
-            ->orderBy('id', 'desc')
-            ->first();
+        // closure D-14: por user/business, não muda com o filtro de data — pula no
+        // partial reload do onChangeDate (only: porFormaPagamento/...). Memo `static`
+        // garante 1 query só quando caixaAberto + cashRegisterId resolvem no load cheio.
+        $openCashRegister = function () use ($business_id) {
+            static $reg = false;
+            if ($reg === false) {
+                $reg = \App\CashRegister::where('business_id', $business_id)
+                    ->where('user_id', auth()->user()->id)
+                    ->where('status', 'open')
+                    ->orderBy('id', 'desc')
+                    ->first();
+            }
+
+            return $reg;
+        };
 
         return \Inertia\Inertia::render('Sells/Caixa/Index', [
             'porFormaPagamento' => $porFormaPagamento,
             'porOrigem' => $porOrigem,
             'totalDia' => $totalDia,
             'countDia' => $countDia,
-            'caixaAberto' => $openCashRegister !== null,
-            'cashRegisterId' => $openCashRegister?->id,
+            'caixaAberto' => fn () => $openCashRegister() !== null,
+            'cashRegisterId' => fn () => $openCashRegister()?->id,
             'dateSelected' => $date->format('Y-m-d'),
             'permissions' => [
                 'view' => true, // Já passou o gate acima

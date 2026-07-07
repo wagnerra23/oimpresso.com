@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Financeiro\Events\TituloCriado;
@@ -466,6 +467,192 @@ class UnificadoController extends Controller
             ->update(['categoria_id' => $validated['categoria_id']]);
 
         return back()->with('flash', "$count lançamentos categorizados em lote.");
+    }
+
+    /**
+     * US-FIN-031 (Onda 25) — Ações em lote genéricas na Visão Unificada.
+     * POST /financeiro/unificado/bulk
+     * Body: { action: baixar|categoria|plano_conta|cancelar|exportar_csv, ids: number[], payload: {} }
+     *
+     * Tier 0 multi-tenant (ADR 0093): ownership de TODOS os ids é validada ANTES
+     * de qualquer escrita — 1 id de outro business no lote = 422 e NADA aplica
+     * (fail-closed; ≠ do bulkUpdateCategoria legacy, que filtra silencioso).
+     *
+     * Dinheiro (REGRA MESTRE valor — memory/proibicoes.md):
+     *  - baixar   = quitação TOTAL instantânea (charter: "espaço/bulk seguem
+     *    instantâneos") — mesmos efeitos da baixar() legacy sem body (TituloBaixa
+     *    + valor_aberto=0 + status=quitado), pulando quitados/cancelados.
+     *  - cancelar = status='cancelado' append-only (Non-Goal do charter: NUNCA
+     *    delete) só em título aberto/parcial; quitado é pulado (estorno é outro fluxo).
+     *  - Audit trail: 1 Activity por lote com {action, ids, count, total} (AC US-FIN-031).
+     */
+    public function bulk(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\StreamedResponse
+    {
+        $businessId = (int) session('user.business_id');
+
+        $validated = $request->validate([
+            'action'  => 'required|string|in:baixar,categoria,plano_conta,cancelar,exportar_csv',
+            'ids'     => 'required|array|min:1|max:500',
+            'ids.*'   => 'integer|min:1|distinct',
+            'payload' => 'sometimes|array',
+        ]);
+
+        $action = $validated['action'];
+        $ids = array_values(array_unique(array_map('intval', $validated['ids'])));
+        $payload = $validated['payload'] ?? [];
+
+        // Tier 0 — ownership de TODOS os ids. Count mismatch = há id de outro
+        // tenant (ou deletado/inexistente) no lote → rejeita o lote INTEIRO.
+        $titulos = Titulo::where('business_id', $businessId)->whereIn('id', $ids)->get();
+        if ($titulos->count() !== count($ids)) {
+            throw ValidationException::withMessages([
+                'ids' => 'Lote contém lançamentos que não pertencem a este negócio.',
+            ]);
+        }
+
+        $auditar = function (int $count, float $total) use ($request, $businessId, $action, $ids): void {
+            activity('financeiro.titulo')
+                ->causedBy($request->user())
+                ->withProperties([
+                    'action' => $action,
+                    'ids'    => $ids,
+                    'count'  => $count,
+                    'total'  => round($total, 2),
+                ])
+                ->tap(function (Activity $a) use ($businessId) {
+                    // setAttribute (não property dinâmica) — coluna existe no schema
+                    // mas o model Spatie não a declara; evita property.notFound no PHPStan.
+                    $a->setAttribute('business_id', $businessId);
+                })
+                ->log('bulk_'.$action);
+        };
+
+        switch ($action) {
+            case 'categoria': {
+                $categoriaId = (int) ($payload['categoria_id'] ?? 0);
+                $ok = $categoriaId > 0 && Categoria::where('business_id', $businessId)
+                    ->where('id', $categoriaId)->whereNull('deleted_at')->exists();
+                if (! $ok) {
+                    throw ValidationException::withMessages(['payload.categoria_id' => 'Categoria inválida pra este business.']);
+                }
+                $count = Titulo::where('business_id', $businessId)->whereIn('id', $ids)
+                    ->update(['categoria_id' => $categoriaId, 'updated_by' => $request->user()->id]);
+                $auditar($count, 0.0);
+
+                return back()->with('success', "$count lançamentos categorizados em lote.");
+            }
+
+            case 'plano_conta': {
+                $planoId = (int) ($payload['plano_conta_id'] ?? 0);
+                $ok = $planoId > 0 && PlanoConta::where('business_id', $businessId)
+                    ->where('id', $planoId)->exists();
+                if (! $ok) {
+                    throw ValidationException::withMessages(['payload.plano_conta_id' => 'Plano de contas inválido pra este business.']);
+                }
+                $count = Titulo::where('business_id', $businessId)->whereIn('id', $ids)
+                    ->update(['plano_conta_id' => $planoId, 'updated_by' => $request->user()->id]);
+                $auditar($count, 0.0);
+
+                return back()->with('success', "$count lançamentos movidos de plano de contas em lote.");
+            }
+
+            case 'cancelar': {
+                // Append-only: status='cancelado', NUNCA delete (Non-Goal charter +
+                // Titulo::delete() lança DomainException). Quitado/cancelado é pulado.
+                $elegiveis = $titulos->filter(fn (Titulo $t) => ! in_array($t->status, ['quitado', 'cancelado'], true));
+                $total = (float) $elegiveis->sum(fn (Titulo $t) => (float) $t->valor_aberto);
+                $count = 0;
+                if ($elegiveis->isNotEmpty()) {
+                    $count = Titulo::where('business_id', $businessId)
+                        ->whereIn('id', $elegiveis->pluck('id')->all())
+                        ->update(['status' => 'cancelado', 'updated_by' => $request->user()->id]);
+                }
+                $auditar($count, $total);
+                $pulados = count($ids) - $count;
+                $msg = "$count títulos cancelados em lote (R$ ".number_format($total, 2, ',', '.').').';
+                if ($pulados > 0) {
+                    $msg .= " $pulados pulados (já quitados/cancelados).";
+                }
+
+                return back()->with('success', $msg);
+            }
+
+            case 'baixar': {
+                // Quitação total instantânea — espelha a baixa rápida legacy da
+                // baixar() (body vazio): conta auto-pick, meio 'transferencia',
+                // data hoje, valor = valor_aberto CHEIO (bulk nunca faz parcial).
+                $conta = ContaBancaria::where('business_id', $businessId)
+                    ->where('ativo_para_boleto', true)->orderBy('id')->first()
+                    ?: ContaBancaria::where('business_id', $businessId)->orderBy('id')->first();
+                if (! $conta) {
+                    return back()->with('error', 'Sem conta bancária cadastrada. Cadastre em /financeiro/contas-bancarias.');
+                }
+
+                $elegiveis = $titulos->filter(fn (Titulo $t) => ! in_array($t->status, ['quitado', 'cancelado'], true) && (float) $t->valor_aberto > 0);
+                $total = 0.0;
+                $dataBaixa = now()->toDateString();
+                DB::transaction(function () use ($elegiveis, $businessId, $conta, $dataBaixa, $request, &$total) {
+                    foreach ($elegiveis as $titulo) {
+                        $valor = (float) $titulo->valor_aberto;
+                        TituloBaixa::create([
+                            'business_id'       => $businessId,
+                            'titulo_id'         => $titulo->id,
+                            'conta_bancaria_id' => $conta->id,
+                            'valor_baixa'       => $valor,
+                            'data_baixa'        => $dataBaixa,
+                            'meio_pagamento'    => 'transferencia',
+                            'idempotency_key'   => (string) Str::uuid(),
+                            'observacoes'       => 'Baixa em lote via Visão Unificada',
+                            'created_by'        => $request->user()->id,
+                        ]);
+                        $titulo->valor_aberto = 0;
+                        $titulo->status = 'quitado';
+                        $titulo->save();
+                        $total += $valor;
+                    }
+                });
+                $count = $elegiveis->count();
+                $auditar($count, $total);
+                $pulados = count($ids) - $count;
+                $msg = "$count baixas em lote confirmadas (R$ ".number_format($total, 2, ',', '.').').';
+                if ($pulados > 0) {
+                    $msg .= " $pulados pulados (já quitados/cancelados).";
+                }
+
+                return back()->with('success', $msg);
+            }
+
+            case 'exportar_csv':
+            default: {
+                $auditar($titulos->count(), (float) $titulos->sum(fn (Titulo $t) => (float) $t->valor_total));
+                $titulos->loadMissing(['categoria:id,nome', 'contaBancaria:id,account_id', 'contaBancaria.account:id,name', 'planoConta:id,nome']);
+
+                return response()->streamDownload(function () use ($titulos) {
+                    $out = fopen('php://output', 'w');
+                    fwrite($out, "\xEF\xBB\xBF"); // BOM — Excel pt-BR abre UTF-8 correto
+                    fputcsv($out, ['Numero', 'Tipo', 'Status', 'Contraparte', 'Categoria', 'Plano de contas', 'Conta', 'Emissao', 'Vencimento', 'Valor total', 'Valor aberto', 'Forma de pagamento'], ';', '"', '\\');
+                    foreach ($titulos as $t) {
+                        fputcsv($out, [
+                            $t->numero,
+                            $t->tipo,
+                            $t->status,
+                            $t->cliente_descricao,
+                            $t->categoria?->getAttribute('nome'),
+                            $t->planoConta?->getAttribute('nome'),
+                            $t->contaBancaria?->getAttribute('nome'),
+                            $t->emissao instanceof \Illuminate\Support\Carbon ? $t->emissao->format('d/m/Y') : (string) $t->emissao,
+                            (string) $t->vencimento,
+                            number_format((float) $t->valor_total, 2, ',', ''),
+                            number_format((float) $t->valor_aberto, 2, ',', ''),
+                            (string) $t->forma_pagamento,
+                        ], ';', '"', '\\');
+                    }
+                    fclose($out);
+                }, 'lancamentos-selecionados-'.now()->format('Y-m-d-His').'.csv', [
+                    'Content-Type' => 'text/csv; charset=UTF-8',
+                ]);
+            }
+        }
     }
 
     /**

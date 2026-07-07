@@ -49,10 +49,12 @@ function Index({ conta, lancamentos = [], filtros, totais }: Props) {
   const [to, setTo] = useState(filtros.to);
 
   const aplicarFiltro = () => {
+    // D-14: partial reload — só re-busca o que muda com filtro de período
+    // (conta é por business → closure no controller, pula no partial).
     router.get(
       route('financeiro.extrato.index', conta.id),
       { from, to },
-      { preserveScroll: true, preserveState: true }
+      { preserveScroll: true, preserveState: true, only: ['lancamentos', 'totais', 'filtros'] }
     );
   };
 

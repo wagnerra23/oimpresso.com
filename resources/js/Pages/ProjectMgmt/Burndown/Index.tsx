@@ -158,7 +158,14 @@ function BurndownIndex({ project, cycle, cycles, series, kpis }: Props) {
           cycles.length > 1 && (
             <Select
               value={String(cycle.id)}
-              onValueChange={(v) => router.get('/project-mgmt/burndown', { cycle: v }, { preserveScroll: true })}
+              onValueChange={(v) => {
+                // D-14: partial reload — só re-busca o que muda com a troca de cycle
+                // (`cycles`, a lista do dropdown, é Inertia::defer → pula no partial).
+                router.get('/project-mgmt/burndown', { cycle: v }, {
+                  preserveScroll: true,
+                  only: ['project', 'cycle', 'series', 'kpis', 'filters'],
+                });
+              }}
             >
               <SelectTrigger className="h-8 w-56 text-xs"><SelectValue /></SelectTrigger>
               <SelectContent>

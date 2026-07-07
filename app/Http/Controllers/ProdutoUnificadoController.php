@@ -52,9 +52,12 @@ class ProdutoUnificadoController extends Controller
         return Inertia::render('Produto/Unificado/Index', [
             'tela'       => $filters['tela'],
             'filters'    => $filters,
-            'kpis'       => $this->kpis($business_id),
-            'produtos'   => $this->produtos($business_id, $filters),
-            'categorias' => $this->categorias($business_id),
+            // closures D-14: não mudam com a troca de sub-tela (`tela`) — pulam no
+            // partial reload do setSubTela. kpis/categorias são por business; produtos
+            // varia com tab/busca/categoria mas o nav de sub-tela preserva esses filtros.
+            'kpis'       => fn () => $this->kpis($business_id),
+            'produtos'   => fn () => $this->produtos($business_id, $filters),
+            'categorias' => fn () => $this->categorias($business_id),
             'insumos'    => $filters['tela'] === 'insumos'   ? $this->insumos($business_id)   : [],
             'tabelas'    => $filters['tela'] === 'tabelas'   ? $this->tabelas($business_id)   : [],
             'historico'  => $filters['tela'] === 'historico' ? $this->historico($business_id) : [],

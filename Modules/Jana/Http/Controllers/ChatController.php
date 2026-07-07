@@ -129,16 +129,22 @@ class ChatController extends Controller
         $user    = auth()->user();
         $isSuper = $user && ($user->user_type === 'superadmin' || $user->user_type === 'user_oimpresso');
 
-        $businessesDisponiveis = $isSuper
-            ? \App\Business::orderBy('name')->limit(50)->get(['id', 'name'])
-            : \App\Business::where('id', $businessId)->get(['id', 'name']);
+        // closure D-14 (2026-07-06, ref PR #3889): por business/usuário, não muda
+        // ao trocar de conversa — pula no partial reload do selectConv (only:
+        // conversa/mensagens/sugestoesPendentes). Diferente do defer (rollback
+        // PR #963), closure roda no load cheio — 1º render nunca vê undefined.
+        $businesses = function () use ($isSuper, $businessId) {
+            $businessesDisponiveis = $isSuper
+                ? \App\Business::orderBy('name')->limit(50)->get(['id', 'name'])
+                : \App\Business::where('id', $businessId)->get(['id', 'name']);
 
-        $businesses = $businessesDisponiveis->map(fn ($b) => [
-            'id'       => $b->id,
-            'nome'     => $b->name,
-            'iniciais' => $this->iniciais($b->name),
-            'ativa'    => $b->id === (int) $businessId,
-        ])->values();
+            return $businessesDisponiveis->map(fn ($b) => [
+                'id'       => $b->id,
+                'nome'     => $b->name,
+                'iniciais' => $this->iniciais($b->name),
+                'ativa'    => $b->id === (int) $businessId,
+            ])->values();
+        };
 
         $userNome = trim(($user->first_name ?? '') . ' ' . ($user->last_name ?? '')) ?: ($user->username ?? 'Usuário');
 
@@ -163,7 +169,9 @@ class ChatController extends Controller
             'usuarioCargo'     => $cargo,
             'usuarioIniciais'  => $this->iniciais($userNome),
             // ROLLBACK Wave L/W7 PR #963: Inertia::defer quebrava Pages (initial render undefined).
-            'conversas'        => $this->buildConversasListPayload($businessId, $userId, $conversaFoco),
+            // closure D-14: lista de conversas não muda ao trocar de conversa (highlight
+            // é client-side via activeConvId) — pula no partial reload do selectConv.
+            'conversas'        => fn () => $this->buildConversasListPayload($businessId, $userId, $conversaFoco),
         ];
     }
 

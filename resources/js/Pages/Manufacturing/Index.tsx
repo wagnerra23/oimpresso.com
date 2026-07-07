@@ -95,7 +95,13 @@ function Index({ productions = [], summary, business_locations = {}, filters = {
   const clearAll = () => {
     setStart('');
     setEnd('');
-    router.get(ROUTE, {}, { preserveState: false, preserveScroll: false });
+    // D-14: partial reload — limpar filtros re-busca só o que muda (espelha applyFilter).
+    router.get(ROUTE, {}, {
+      preserveState: true,
+      preserveScroll: true,
+      only: ['productions', 'summary', 'filters'],
+      replace: true,
+    });
   };
 
   const applyDateRange = () => {

@@ -115,10 +115,14 @@ function HomeIndex({
 
   const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const locId = e.target.value;
+    // D-14: partial reload — só re-busca o que muda com filtro (totals).
+    // all_locations é closure por business no controller — pula no partial.
     router.visit('/home', {
       data: locId ? { location_id: locId } : {},
       preserveScroll: true,
+      preserveState: true,
       replace: true,
+      only: ['totals'],
     });
   };
 

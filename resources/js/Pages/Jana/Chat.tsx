@@ -233,9 +233,13 @@ export default function Chat({
   }), [conversa, mensagensCockpit]);
 
   function selectConv(id: string) {
+    // D-14: partial reload — troca de conversa só re-busca conversa/mensagens/
+    // sugestões (ref PR #3889). Shell (conversas, businesses, usuário) não
+    // trafega de novo — highlight da lista é client-side via activeConvId.
     router.get(`/ia/conversas/${id}`, {}, {
       preserveScroll: true,
       preserveState: true,
+      only: ['conversa', 'mensagens', 'sugestoesPendentes'],
     });
   }
 

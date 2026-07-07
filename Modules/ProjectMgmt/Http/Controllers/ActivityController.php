@@ -68,11 +68,13 @@ class ActivityController extends Controller
             'created_at' => optional($e->created_at)->toIso8601String(),
         ])->values()->all();
 
-        $authors = McpTaskEvent::query()
+        // closure D-14: listas pros dropdowns (janela fixa 30d), não mudam com filtro
+        // — pulam no partial reload do aplicar() (only: project/events/kpis/filters).
+        $authors = fn () => McpTaskEvent::query()
             ->where('created_at', '>=', now()->subDays(30))
             ->whereNotNull('author')->distinct()->orderBy('author')->pluck('author')->all();
 
-        $eventTypes = McpTaskEvent::query()
+        $eventTypes = fn () => McpTaskEvent::query()
             ->where('created_at', '>=', now()->subDays(30))
             ->distinct()->orderBy('event_type')->pluck('event_type')->all();
 

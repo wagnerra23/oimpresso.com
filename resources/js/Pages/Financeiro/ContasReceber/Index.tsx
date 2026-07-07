@@ -68,10 +68,11 @@ function Index({ titulos, filtros }: Props) {
   const emitirForm = useForm({});
 
   const filtrar = (key: string, value: string | null) => {
+    // D-14: partial reload — só re-busca o que muda com filtro
     router.get(
       '/financeiro/contas-receber',
       { ...filtros, [key]: value },
-      { preserveScroll: true, preserveState: true }
+      { preserveScroll: true, preserveState: true, only: ['titulos', 'filtros'] }
     );
   };
 

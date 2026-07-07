@@ -6,7 +6,7 @@ module: _DesignSystem
 status: proposto
 owner: wagner
 date: "2026-07-06"
-related_adrs: [0299, 0315, 0324, 0110]
+related_adrs: [0299, 0315, 0324, 0110, 0108]
 related: [SCREEN-GRADE-METODO.md, framework-15-dimensoes.md]
 ---
 
@@ -89,6 +89,53 @@ Divergência **não é automaticamente bug**: pode ser **prod-à-frente** (evolu
 (a) é anti-padrão do sistema (D1 full-reload), (b) contradiz o token/ADR canon, ou (c) o Wagner
 aponta como não-intencional. Caso contrário: **a prod é o mais novo → re-exportar o protótipo**, não
 arrastar a prod pra trás.
+
+## Camada BUILDADA (pixel) — regressão vs baseline própria (complementar, não substituta)
+
+Existe uma terceira camada, **já viva e REQUIRED no CI**, que este protocolo não substitui — e que
+não substitui este protocolo: a **comparação pixel-a-pixel oficial do app BUILDADO**.
+
+**Onde vive:** [`tests/Browser/CoreScreens/PixelBaselineTest.php`](../../../tests/Browser/CoreScreens/PixelBaselineTest.php)
+rodando em [`.github/workflows/visual-regression.yml`](../../../.github/workflows/visual-regression.yml)
+(Pest 4 Browser + Playwright chromium): builda o Vite (React/CSS reais), navega logado
+(auth-bridge `/_visreg-login`), tira screenshot de viewport das **núcleo-6** (Financeiro/Unificado ·
+Compras · Clientes · Oficina/OS · Sells/Index · Sells/Create) e roda pixelmatch (GD, mesma semântica
+do plugin) contra baseline `.snap` **commitada** (`tests/.pest/snapshots/Browser/CoreScreens/`).
+**Double-threshold L7:** diff < τ_baixo (0.1%) auto-aprova · > τ_alto (2%) **FALHA o merge** · o meio
+é ZONA CINZA (não falha; diff-view no artifact `pixel-diff-views` + step summary pro [W] revisar).
+Estados não-default (ex: `financeiro-unificado` **dark**) são o gate L2 irmão
+(`IsolatedStatesBaselineTest` + manifesto [`tests/Browser/visreg-states.json`](../../../tests/Browser/visreg-states.json)),
+hoje ainda ADVISORY.
+
+**Enforcement (estado 2026-07-06):** o check `visual-regression` é **required** no main
+([`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json) GT-G4;
+a poda [ADR 0314](../../decisions/proposals/0314-poda-gates-onda-2-lei-fusoes.md) o manteve como LEI)
+e o step do pixel-diff é **ENFORCING** desde o [#3277](https://github.com/wagnerra23/oimpresso.com/pull/3277)
+(2026-06-23, padrão [ADR 0271](../../decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md)
+"promover = remover o continue-on-error"). Update de baseline: `npm run visreg:update` + aprovação [W]
+(gate F1.5), no MESMO PR da mudança intencional.
+
+**O que cada camada prova (a pegadinha é achar que uma cobre a outra):**
+
+| Camada | Pergunta que responde | Referência de comparação | Exemplo que SÓ ela pega |
+|---|---|---|---|
+| **D1 (comportamento)** | filtro/nav é partial reload? | contrato Inertia (`only:` + defer) | full-reload D-14 (invisível em qualquer print) |
+| **D2–D7 (fidelidade · runtime)** | a prod bate com o DESIGN? | protótipo Cowork VIVO | primary ghost [#3885](https://github.com/wagnerra23/oimpresso.com/pull/3885) (nasceu errado — ver abaixo) |
+| **Pixel CI (regressão · buildado)** | o PR mudou a tela SEM querer? | baseline própria commitada | refactor de CSS que desloca o footer de uma núcleo-6 |
+
+**Prova de que não são substitutas — o incidente 2026-07-06 (#3885):** o primary "Novo título" da
+Unificado renderizava GHOST porque a regra `.os-btn.primary` escopada `.fin-cowork` nunca casou com o
+botão do PageHeader — o bug **nasceu com a tela**, e a baseline de pixel foi capturada JÁ com o bug
+(baseline própria congela o estado atual, certo ou errado). O acento magenta 330 vinha de
+`localStorage` legado do browser — que nem existe no chromium limpo do CI. O gate de pixel estava
+verde e SEMPRE estaria: regressão zero, fidelidade zero. Só a comparação prod × protótipo (D6) pegou.
+O inverso também vale: uma regressão de CSS num PR qualquer aparece no pixel-diff em ~10min de CI sem
+ninguém abrir o Chrome — patrulha PR-a-PR que D1–D7 (manual, por sessão) não faz.
+
+**Regra prática:** achado D2–D7 que vira fix de tela núcleo-6 provavelmente mexe o pixel → atualizar
+a baseline (`npm run visreg:update`) no MESMO PR do fix, citando o print do protótipo como
+justificativa (F1.5). Baseline que "trava" um fix de fidelidade aprovado não é gate chato — é o gate
+funcionando; atualize-a, não o contorne.
 
 ## Achados da 1ª aplicação (Financeiro/Unificado, 2026-07-06)
 

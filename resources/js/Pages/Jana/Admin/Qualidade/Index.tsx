@@ -138,7 +138,13 @@ function QualidadeIndex(props: Props) {
   function applyFilter() {
     const params: Record<string, string | number> = { dias: Number(diasFilter) };
     if (businessFilter !== '__all__') params.business_id = Number(businessFilter);
-    router.get('/ia/admin/qualidade', params, { preserveScroll: true, preserveState: true });
+    // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
+    // gates (constante) e gabarito_* (closures no controller) nem rodam no partial.
+    router.get('/ia/admin/qualidade', params, {
+      preserveScroll: true,
+      preserveState: true,
+      only: ['series', 'kpis', 'filtros'],
+    });
   }
 
   const allMetrics = [

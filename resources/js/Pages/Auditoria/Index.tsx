@@ -193,7 +193,10 @@ function ActivitiesTable({ activities }: { activities: Props['activities'] }): R
                 key={i}
                 type="button"
                 disabled={!l.url}
-                onClick={() => l.url && router.visit(l.url, { preserveScroll: true, preserveState: true })}
+                onClick={() => l.url && router.visit(l.url, {
+                  // D-14: partial reload — só re-busca o que muda ao paginar
+                  preserveScroll: true, preserveState: true, only: ['activities', 'filters'],
+                })}
                 className={
                   'min-w-7 rounded-md border px-2 py-1 text-xs transition-colors disabled:opacity-40 disabled:cursor-not-allowed ' +
                   (l.active

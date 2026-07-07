@@ -102,15 +102,17 @@ export default function NfseIndex({ notas, filters, flash }: Props) {
   }, [focusedIdx, notas.data]);
 
   function applyFilters() {
+    // D-14: partial reload — só re-busca o que muda com filtro.
     router.get('/nfse', { status: status || undefined, de: de || undefined, ate: ate || undefined, q: q || undefined }, {
-      preserveScroll: true, preserveState: true, replace: true,
+      preserveScroll: true, preserveState: true, replace: true, only: ['notas', 'filters'],
     });
   }
 
   function resetFilters() {
     setStatus(''); setDe(''); setAte(''); setQ('');
     localStorage.removeItem(LS_KEY);
-    router.get('/nfse', {}, { preserveScroll: true, preserveState: true, replace: true });
+    // D-14: partial reload — só re-busca o que muda com filtro.
+    router.get('/nfse', {}, { preserveScroll: true, preserveState: true, replace: true, only: ['notas', 'filters'] });
   }
 
   const activeChips = [

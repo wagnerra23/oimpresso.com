@@ -84,7 +84,8 @@ function ScreenReviewDashboard({ meta, grades }: Props) {
               items={[
                 { label: 'Dashboard', icon: 'layout-dashboard', href: '/admin/screen-review/dashboard', active: true },
                 { label: 'Triagem', icon: 'list-checks', href: '/admin/screen-review', count: meta.pending_count },
-                { label: 'Reload', icon: 'refresh-cw', onClick: () => router.reload(), variant: 'ghost' },
+                // D-14: partial reload — só re-busca as props de dados da tela
+                { label: 'Reload', icon: 'refresh-cw', onClick: () => router.reload({ only: ['meta', 'grades'] }), variant: 'ghost' },
               ]}
             />
           }

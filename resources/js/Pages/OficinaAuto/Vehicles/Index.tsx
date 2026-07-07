@@ -149,10 +149,12 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
   useEffect(() => {
     if (searchInput === (filters.q ?? '')) return;
     const t = setTimeout(() => {
+      // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
+      // kpis são contagens por business (não filtradas) → closure no controller, pula aqui.
       router.get(
         '/oficina-auto/veiculos',
         { q: searchInput || undefined, status: filters.status === 'all' ? undefined : filters.status },
-        { preserveState: true, preserveScroll: true, replace: true },
+        { preserveState: true, preserveScroll: true, replace: true, only: ['vehicles', 'filters'] },
       );
     }, 300);
     return () => clearTimeout(t);
@@ -275,6 +277,8 @@ export default function VehiclesIndex({ vehicles, kpis, filters }: Props) {
                     }).toString()}`}
                     preserveScroll
                     preserveState
+                    // D-14: partial reload — pill de status só re-busca rows+filters
+                    only={['vehicles', 'filters']}
                     className={
                       'px-3 py-1.5 text-xs font-medium transition-colors border-r border-border last:border-r-0 ' +
                       (isActive
@@ -585,7 +589,10 @@ function Pagination({ meta }: { meta: PaginatorMeta }) {
   const goTo = (page: number) => {
     const url = new URL(window.location.href);
     url.searchParams.set('page', String(page));
-    router.visit(url.pathname + url.search, { preserveScroll: true, preserveState: true });
+    // D-14: partial reload — paginação só re-busca as rows (kpis por business não mudam).
+    router.visit(url.pathname + url.search, {
+      preserveScroll: true, preserveState: true, only: ['vehicles', 'filters'],
+    });
   };
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 mt-3 px-1">

@@ -56,7 +56,13 @@ class FluxoController extends Controller
         return OtelHelper::spanBiz('financeiro.fluxo.render', function () use ($businessId, $tab, $dias, $meses) {
             // Projetado: sempre presente no payload (default; props no shape canon
             // pra preservar testes existentes e Pest GUARDs do charter).
-            $projetado = $this->service->projetar($businessId, $dias);
+            // closure D-14: projeção 35d é por business, não muda com a troca de tab —
+            // como closures memoizadas, o partial reload (only: tab/realizado) pula a
+            // agregação inteira do projetar(). Load cheio roda 1× só.
+            $projetadoCache = null;
+            $projetado = function () use (&$projetadoCache, $businessId, $dias): array {
+                return $projetadoCache ??= $this->service->projetar($businessId, $dias);
+            };
 
             // Realizado: só carrega quando tab=realizado pra evitar query custosa
             // em renders que não vão exibir. Estrutura ausente quando não carregada.
@@ -64,10 +70,16 @@ class FluxoController extends Controller
                 ? $this->realizadoService->buscar($businessId, $meses)
                 : null;
 
-            return Inertia::render('Financeiro/Fluxo/Index', array_merge($projetado, [
+            return Inertia::render('Financeiro/Fluxo/Index', [
+                'saldo_hoje'    => fn () => $projetado()['saldo_hoje'],
+                'saldo_30d'     => fn () => $projetado()['saldo_30d'],
+                'pior_dia'      => fn () => $projetado()['pior_dia'],
+                'margem_minima' => fn () => $projetado()['margem_minima'],
+                'conta'         => fn () => $projetado()['conta'],
+                'dias'          => fn () => $projetado()['dias'],
                 'tab' => $tab,
                 'realizado' => $realizado,
-            ]));
+            ]);
         }, ['op' => 'render', 'tab' => $tab, 'dias' => $dias, 'meses' => $meses]);
     }
 

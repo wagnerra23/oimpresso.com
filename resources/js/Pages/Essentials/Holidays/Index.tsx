@@ -103,13 +103,22 @@ export default function HolidaysIndex({ holidays, locations, filtros, can_manage
   const form = useForm<FormData>(emptyForm);
 
   const setFilter = (key: keyof Filters, value: string | number | null) => {
+    // D-14: partial reload — só re-busca o que muda com filtro. `locations` é
+    // defer por business no controller: fora do only:, nem roda a query.
     router.get('/hrm/holiday', {
       ...filtros,
       [key]: value === '' || value === null || value === 'ALL' ? undefined : value,
-    }, { preserveState: true, preserveScroll: true, replace: true });
+    }, {
+      preserveState: true,
+      preserveScroll: true,
+      replace: true,
+      only: ['holidays', 'filtros'],
+    });
   };
 
-  const clearFilters = () => router.get('/hrm/holiday', {}, { preserveScroll: true });
+  // D-14: partial reload — só re-busca o que muda com filtro.
+  const clearFilters = () =>
+    router.get('/hrm/holiday', {}, { preserveScroll: true, only: ['holidays', 'filtros'] });
 
   const openCreate = () => {
     form.setData(emptyForm);

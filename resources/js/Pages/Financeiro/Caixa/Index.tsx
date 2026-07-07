@@ -79,10 +79,13 @@ function Caixa({ caixas, stats, filters, links }: Props) {
   );
 
   const setStatusFilter = (s: 'open' | 'close' | null) => {
+    // D-14: partial reload — só re-busca o que muda com filtro
+    // (stats/links são por business → closures no controller, pulam no partial).
     router.visit('/financeiro/caixa', {
       data: s ? { status: s } : {},
       preserveScroll: true,
       replace: true,
+      only: ['caixas', 'filters'],
     });
   };
 

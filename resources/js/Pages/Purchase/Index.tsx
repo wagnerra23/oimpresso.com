@@ -137,8 +137,12 @@ function PurchaseIndex({ rows, filters, business_locations, suppliers, order_sta
   const [busca, setBusca] = useState('');
 
   const aplicar = (patch: Partial<Filters>) => {
+    // D-14: partial reload — só re-busca o que muda com filtro.
+    // business_locations/suppliers/order_statuses são closures no controller
+    // (por business) — nem rodam query no partial reload.
     router.get('/purchases', { ...filters, ...patch }, {
       preserveState: true, preserveScroll: true, replace: true,
+      only: ['rows', 'filters'],
     });
   };
 

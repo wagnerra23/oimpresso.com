@@ -388,7 +388,12 @@ function MyWorkIndex({
                 className="h-6 text-[10px] px-2"
                 onClick={(e) => {
                   e.stopPropagation();
-                  router.get('/project-mgmt/my-work', { show_read: filters.show_read ? '' : '1' }, { preserveScroll: true });
+                  // D-14: partial reload — só re-busca o que muda com o toggle show_read
+                  // (my_work não depende de show_read → pula; kpis inclui `unread` → entra).
+                  router.get('/project-mgmt/my-work', { show_read: filters.show_read ? '' : '1' }, {
+                    preserveScroll: true,
+                    only: ['inbox', 'inbox_stats', 'kpis', 'filters'],
+                  });
                 }}
               >
                 {filters.show_read ? 'só não-lidas' : 'mostrar lidas'}

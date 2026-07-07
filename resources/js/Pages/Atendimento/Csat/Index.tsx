@@ -89,9 +89,12 @@ export default function CsatIndex({ range, kpis, distribution, recent }: Props) 
 
   function onRangeChange(value: string) {
     setRangeFilter(value);
+    // D-14: partial reload — só re-busca o que muda com o range
+    // (businessId é estático por business; kpis/distribution/recent são defer no controller).
     router.get(route('atendimento.csat.index'), { range: value }, {
       preserveState: true,
       preserveScroll: true,
+      only: ['range', 'kpis', 'distribution', 'recent'],
     });
   }
 

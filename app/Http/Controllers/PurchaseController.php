@@ -72,11 +72,9 @@ class PurchaseController extends Controller
         // Inertia e retornava JSON Datatables → "All Inertia requests must receive a
         // valid Inertia response" + filtros quebravam a tela em prod.
         if (request()->header('X-Inertia') || request()->query('v') === '2') {
-            $business_locations = BusinessLocation::forDropdown($business_id);
-            $suppliers = Contact::suppliersDropdown($business_id, false);
-            $orderStatuses = $this->productUtil->orderStatuses();
-
-            return $this->indexInertia($business_id, $business_locations, $suppliers, $orderStatuses);
+            // D-14 (2026-07-06): dropdowns viraram closures dentro de indexInertia()
+            // — no partial reload (only: rows/filters) nem rodam a query.
+            return $this->indexInertia($business_id);
         }
 
         if (request()->ajax()) {
@@ -244,7 +242,7 @@ class PurchaseController extends Controller
      * MWART dual path: Inertia render preservando todos os scopes do legacy index().
      * Snapshot paridade: memory/mwart-inventory/purchase/index.snapshot.md
      */
-    private function indexInertia($business_id, $business_locations_raw, $suppliers_raw, $orderStatuses)
+    private function indexInertia($business_id)
     {
         $purchasesQuery = $this->transactionUtil->getListPurchases($business_id);
 
@@ -301,17 +299,21 @@ class PurchaseController extends Controller
             ];
         });
 
-        $business_locations = collect($business_locations_raw)->map(fn ($label, $id) => [
+        // closure D-14: por business, não muda com filtro — pula no partial reload
+        // (only: rows/filters do aplicar() no Purchase/Index.tsx).
+        $business_locations = fn () => collect(BusinessLocation::forDropdown($business_id))->map(fn ($label, $id) => [
             'id' => (int) $id,
             'label' => (string) $label,
         ])->values();
 
-        $suppliers = collect($suppliers_raw)->map(fn ($label, $id) => [
+        // closure D-14: por business, não muda com filtro — pula no partial reload
+        $suppliers = fn () => collect(Contact::suppliersDropdown($business_id, false))->map(fn ($label, $id) => [
             'id' => (int) $id,
             'label' => (string) $label,
         ])->values();
 
-        $order_statuses = collect($orderStatuses)->map(fn ($label, $id) => [
+        // closure D-14: estático por config, não muda com filtro — pula no partial reload
+        $order_statuses = fn () => collect($this->productUtil->orderStatuses())->map(fn ($label, $id) => [
             'id' => (string) $id,
             'label' => (string) $label,
         ])->values();

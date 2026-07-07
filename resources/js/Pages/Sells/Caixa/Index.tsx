@@ -97,10 +97,16 @@ export default function SellsCaixaIndex() {
 
   const onChangeDate = useCallback((newDate: string) => {
     setDate(newDate);
+    // D-14: partial reload — só re-busca o que muda com a data. caixaAberto/
+    // cashRegisterId/permissions são por user/business (closures no controller).
     router.get(
       '/vendas/caixa',
       { date: newDate },
-      { preserveState: false, preserveScroll: true }
+      {
+        preserveState: false,
+        preserveScroll: true,
+        only: ['porFormaPagamento', 'porOrigem', 'totalDia', 'countDia', 'dateSelected'],
+      }
     );
   }, []);
 
