@@ -20,6 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
 import { PlanoContaCombobox, type PlanoConta } from './PlanoContaCombobox';
+import { ClienteCombobox } from './ClienteCombobox';
 import { FORMA_PAGAMENTO_OPCOES } from '../_lib/forma-pagamento';
 
 // PR I (2026-05-25) G5 — sugestão de valor último/médio por contraparte.
@@ -120,12 +121,13 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
             <label htmlFor="cr-desc" className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
               Descrição / contraparte
             </label>
-            <Input
-              id="cr-desc"
-              value={form.data.cliente_descricao}
-              onChange={(e) => form.setData('cliente_descricao', e.target.value)}
-              onBlur={async (e) => {
-                const val = e.target.value.trim();
+            {/* Fila P10 (inventário 2026-07-07) — fecha US-FIN-024: ClienteCombobox
+                (autocomplete server-side, existia órfão desde o PR J) substitui o Input
+                cru. Sugestão de valor por histórico preservada via onBlurCapture no
+                wrapper (o blur do input interno do combobox borbulha até aqui). */}
+            <div
+              onBlurCapture={async () => {
+                const val = form.data.cliente_descricao.trim();
                 if (val.length < 3) { setSugestao(null); return; }
                 try {
                   const r = await fetch(`/financeiro/unificado/sugerir-valor?contraparte=${encodeURIComponent(val)}&tipo=${tipo}`, {
@@ -136,10 +138,15 @@ export function TituloCreateSheet({ open, onClose, tipo, categorias, planos }: T
                   if (data.count > 0) setSugestao(data);
                 } catch { /* silent */ }
               }}
-              placeholder={tipo === 'receber' ? 'Ex: Cliente João Silva · sublocação' : 'Ex: Fornecedor papelaria XYZ'}
-              maxLength={255}
-              autoFocus
-            />
+            >
+              <ClienteCombobox
+                id="cr-desc"
+                value={form.data.cliente_descricao}
+                onChange={(text) => form.setData('cliente_descricao', text)}
+                placeholder={tipo === 'receber' ? 'Ex: Cliente João Silva · sublocação' : 'Ex: Fornecedor papelaria XYZ'}
+                autoFocus
+              />
+            </div>
             {form.errors.cliente_descricao && (
               <p className="text-[11px] text-destructive">{form.errors.cliente_descricao}</p>
             )}
