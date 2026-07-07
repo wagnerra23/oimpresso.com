@@ -40,7 +40,7 @@
     {
       "tela": "Financeiro/Fluxo/Index",
       "status": "1-ciclo",
-      "prototipo": "prototipo Cowork \"Fluxo de Caixa\" (Financeiro.html), aprovado [W] 2026-05-09",
+      "prototipo": "prototipo-ui/cowork/financeiro-telas-extras.jsx (TelaFluxo; corrigido 2026-07-06 — antes apontava pra Financeiro.html que sumiu no refactor SSOT, âncora fantasma pega pelo sentinela)",
       "falta": [
         "casos.md-com-UC"
       ]
