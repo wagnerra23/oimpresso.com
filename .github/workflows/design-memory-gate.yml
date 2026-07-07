@@ -94,6 +94,12 @@ jobs:
       - name: Cowork SSOT guard (fonte única · build-only)
         run: node scripts/governance/cowork-ssot-guard.mjs
 
+      # design-diff selftest: prova que o comparador design×prod PEGA o incidente 07/07
+      # (center×left + button×div + overflow + roxo escuro×roxinho + texto dark invisível).
+      # Se o comparador parar de morder, quebra VERMELHO (é a defesa do strike 2 · LICOES LC-06).
+      - name: design-diff selftest (mede o que o olho perdeu · LC-06)
+        run: node prototipo-ui/design-diff.mjs --selftest
+
       # DS-GUARD nos arquivos TOCADOS (css/html de design-memory). O ds-guard so
       # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
