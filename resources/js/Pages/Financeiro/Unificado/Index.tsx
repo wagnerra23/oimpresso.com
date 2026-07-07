@@ -450,22 +450,26 @@ function FinMultiSelectContas({
 
 function StatusPill({ s }: { s: LancamentoStatus }) {
   const tone = statusTone(s);
+  // [W] 2026-07-07 (fila item 7 do inventário por região): pill IGUAL ao protótipo —
+  // cápsula rounded-full + font-semibold + cores SATURADAS do DS (STATUS_STYLES,
+  // financeiro-page.jsx:110-122; valores do gabarito DS-v6). Tokens .cockpit --pos/
+  // --warn/--neg com fallback light; fio = color-mix 22% da cor (proto :122). Sai o
+  // amber-* Tailwind cru do `vencendo` (estava fora dos tokens warning).
   const cls = {
-    success:     'bg-success-soft text-success-fg border-success/20',
-    warning:     'bg-amber-50 text-amber-800 border-amber-200',
-    destructive: 'bg-destructive-soft text-destructive-fg border-destructive/20',
+    success:     'bg-[color:var(--pos-soft,oklch(0.95_0.075_150))] text-[color:var(--pos,oklch(0.50_0.12_150))] border-[color:color-mix(in_oklch,var(--pos,oklch(0.50_0.12_150))_22%,transparent)]',
+    warning:     'bg-[color:var(--warn-soft,oklch(0.955_0.072_75))] text-[color:var(--warn,oklch(0.58_0.12_70))] border-[color:color-mix(in_oklch,var(--warn,oklch(0.58_0.12_70))_22%,transparent)]',
+    destructive: 'bg-[color:var(--neg-soft,oklch(0.955_0.055_25))] text-[color:var(--neg,oklch(0.55_0.18_25))] border-[color:color-mix(in_oklch,var(--neg,oklch(0.55_0.18_25))_22%,transparent)]',
     default:     'bg-muted/40 text-foreground border-border',
   }[tone];
-  // Dot por status (protótipo aprovado [W] 2026-06-29 screenshot) — cor base por tom,
-  // mantendo os fios translúcidos + fundo soft já existentes (refino premium #3391).
+  // Dot por status (protótipo aprovado [W] 2026-06-29 screenshot) — cor base por tom.
   const dotCls = {
-    success:     'bg-success',
-    warning:     'bg-amber-500',
-    destructive: 'bg-destructive',
+    success:     'bg-[color:var(--pos,oklch(0.50_0.12_150))]',
+    warning:     'bg-[color:var(--warn,oklch(0.58_0.12_70))]',
+    destructive: 'bg-[color:var(--neg,oklch(0.55_0.18_25))]',
     default:     'bg-muted-foreground',
   }[tone];
   return (
-    <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded border text-[11px] font-medium ${cls}`}>
+    <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border text-[11px] font-semibold ${cls}`}>
       <span className={`w-1.5 h-1.5 rounded-full ${dotCls}`} aria-hidden />
       {statusLabel(s)}
     </span>
@@ -1189,7 +1193,9 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
         {row.liquidacao ? row.liquidacao : <span className="text-muted-foreground">—</span>}
       </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><ApprovalPill s={row.aprovacao_status} /></div></td>
-      <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-success' : 'text-destructive'}`}>
+      {/* [W] 2026-07-07 (fila item 8): saída NEUTRA igual ao protótipo (financeiro-
+          page.jsx:816 — "saída não grita em vermelho"; só entrada é verde). */}
+      <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-success' : 'text-foreground'}`}>
         {/* FX-4 (print 06-11): zero nunca leva sinal — "−0,00" vira "0,00". */}
         <span className="text-muted-foreground mr-0.5">{Math.abs(row.valor) < 0.005 ? '' : (isIn ? '+' : '−')}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>

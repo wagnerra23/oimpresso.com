@@ -129,9 +129,9 @@ export function FinAnexosPanel({ tituloId }: Props) {
   };
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- drop-zone é
-    // enhancement progressivo (protótipo ops.jsx:205); o caminho acessível por teclado
-    // é o botão "Anexar" logo abaixo — o container não precisa ser focável.
+    // Drop-zone é enhancement progressivo (protótipo ops.jsx:205); o caminho acessível
+    // por teclado é o botão "Anexar" logo abaixo — o container não precisa ser focável.
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions
     <div
       className={`border-t border-stone-200 pt-4 rounded-b transition-colors ${dragOver ? 'bg-primary/5 outline-dashed outline-1 outline-primary/50' : ''}`}
       onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
