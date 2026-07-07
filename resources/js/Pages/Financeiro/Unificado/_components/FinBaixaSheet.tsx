@@ -27,6 +27,8 @@ interface BaixaLancamento {
   valor: number;
   valor_aberto: number;
   plano_conta_id: number | null;
+  /** Forma PREVISTA do título (pré-seleciona a baixa — fila P6, inventário 2026-07-07). */
+  forma_pagamento?: string | null;
 }
 
 interface ContaOpt {
@@ -51,11 +53,16 @@ function brl(n: number): string {
 export function FinBaixaSheet({ open, onClose, lancamento, contas, planos }: FinBaixaSheetProps) {
   const receber = lancamento.kind === 'receivable';
   const aberto = lancamento.valor_aberto > 0 ? lancamento.valor_aberto : lancamento.valor;
+  // Fila P6 (inventário 2026-07-07): forma prevista do título pré-seleciona o select
+  // (protótipo financeiro-ops.jsx:69-75) — só se for uma opção válida do domínio.
+  const formaPrevista = FORMA_PAGAMENTO_OPCOES.some((o) => o.value === lancamento.forma_pagamento)
+    ? (lancamento.forma_pagamento as string)
+    : '';
 
   const form = useForm({
     valor_baixa: aberto,
     conta_bancaria_id: (contas[0]?.id ?? '') as number | '',
-    meio_pagamento: '' as string,
+    meio_pagamento: formaPrevista,
     plano_conta_id: lancamento.plano_conta_id as number | null,
     data_baixa: hojeIso(),
   });
@@ -65,7 +72,7 @@ export function FinBaixaSheet({ open, onClose, lancamento, contas, planos }: Fin
     form.setData({
       valor_baixa: aberto,
       conta_bancaria_id: (contas[0]?.id ?? '') as number | '',
-      meio_pagamento: '' as string,
+      meio_pagamento: formaPrevista,
       plano_conta_id: lancamento.plano_conta_id as number | null,
       data_baixa: hojeIso(),
     });

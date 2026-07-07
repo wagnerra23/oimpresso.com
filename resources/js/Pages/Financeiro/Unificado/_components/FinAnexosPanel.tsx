@@ -61,6 +61,9 @@ export function FinAnexosPanel({ tituloId }: Props) {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  // Fila P7a (inventário 2026-07-07) — drag&drop + seleção múltipla
+  // (protótipo financeiro-ops.jsx:203-205). Estado visual da zona de drop.
+  const [dragOver, setDragOver] = useState(false);
 
   const fetchAnexos = useCallback(() => {
     setLoading(true);
@@ -80,23 +83,38 @@ export function FinAnexosPanel({ tituloId }: Props) {
 
   useEffect(() => { fetchAnexos(); }, [fetchAnexos]);
 
+  // Rota aceita 1 arquivo por request — múltiplos entram em fila sequencial
+  // (client-side, mesmo endpoint). fetchAnexos + uploading=false só no fim da fila.
+  const enviarArquivos = (files: File[] | FileList) => {
+    const fila = Array.from(files);
+    if (fila.length === 0) return;
+    setUploading(true);
+    const enviar = (i: number) => {
+      const arq = fila[i];
+      if (!arq) { setUploading(false); fetchAnexos(); return; }
+      const formData = new FormData();
+      formData.append('arquivo', arq);
+      router.post(`/financeiro/unificado/${tituloId}/anexos`, formData, {
+        forceFormData: true,
+        preserveScroll: true,
+        onError: () => setErrorMsg(`Falha no upload de "${arq.name}" — arquivo > 10MB ou tipo inválido?`),
+        onFinish: () => {
+          if (i + 1 < fila.length) enviar(i + 1);
+          else { setUploading(false); fetchAnexos(); }
+        },
+      });
+    };
+    enviar(0);
+  };
+
   const onUpload = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.pdf,.png,.jpg,.jpeg,.xml';
+    input.multiple = true;
     input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      const formData = new FormData();
-      formData.append('arquivo', file);
-      setUploading(true);
-      router.post(`/financeiro/unificado/${tituloId}/anexos`, formData, {
-        forceFormData: true,
-        preserveScroll: true,
-        onSuccess: () => fetchAnexos(),
-        onError: () => setErrorMsg('Falha no upload — arquivo > 10MB ou tipo inválido?'),
-        onFinish: () => setUploading(false),
-      });
+      const files = (e.target as HTMLInputElement).files;
+      if (files) enviarArquivos(files);
     };
     input.click();
   };
@@ -111,7 +129,15 @@ export function FinAnexosPanel({ tituloId }: Props) {
   };
 
   return (
-    <div className="border-t border-stone-200 pt-4">
+    // eslint-disable-next-line jsx-a11y/no-static-element-interactions -- drop-zone é
+    // enhancement progressivo (protótipo ops.jsx:205); o caminho acessível por teclado
+    // é o botão "Anexar" logo abaixo — o container não precisa ser focável.
+    <div
+      className={`border-t border-stone-200 pt-4 rounded-b transition-colors ${dragOver ? 'bg-primary/5 outline-dashed outline-1 outline-primary/50' : ''}`}
+      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files.length) enviarArquivos(e.dataTransfer.files); }}
+    >
       <div className="flex items-center justify-between mb-2">
         <div className="text-[11px] uppercase tracking-widest text-stone-500 font-medium">
           Anexos {anexos.length > 0 && <span className="text-stone-400">({anexos.length})</span>}
@@ -138,7 +164,7 @@ export function FinAnexosPanel({ tituloId }: Props) {
 
       {!loading && anexos.length === 0 && (
         <div className="text-[12px] text-stone-500 italic">
-          Nenhum anexo. Use o botão acima pra enviar NF, comprovante ou PDF (máx 10MB).
+          Arraste a NF, o comprovante ou a foto do boleto aqui — ou clique em <b>Anexar</b>. Aceita PDF, PNG, JPG e XML (máx 10MB).
         </div>
       )}
 

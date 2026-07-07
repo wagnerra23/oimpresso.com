@@ -14,7 +14,7 @@ bundle_source: financeiro-page.jsx
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 17
+charter_version: 18
 ---
 
 # Page Charter — /financeiro/unificado
@@ -150,7 +150,7 @@ Tela única de **fluxo financeiro do mês** que mistura **Pagar / Pagas / Recebe
 - ❌ Pagination explícita (default `limit(200)` no controller) — paginar quando 1000+ títulos virar dor
 - ❌ Aging buckets <30 / 30-60 / 60-90 / 90+ — ADR ui/0002 previa, F1 simplifica pra status `atrasado` único
 - ❌ Comparação **temporal** `+12% vs mês anterior` (delta_pct por KPI) — ADR ui/0002 previa; F1 não calcula; segue em **US-FIN-023**. ⚠️ **≠ da comparação cross-sectional "vs média da categoria"** (Tribunal Onda 2 #2, charter v16) que **É feita** no hero do drawer — esta compara o título com a média dos pares (mesma categoria+kind) do conjunto carregado, anti-slop ≥2 pares, tom neutro. Distinção registrada por decisão [W] 2026-06-16.
-- ❌ Combobox cliente/contraparte com autocomplete — F1 só filtra por chip, sem typeahead
+- ~~❌ Combobox cliente/contraparte com autocomplete~~ **DONE charter v18 (2026-07-07)** — `ClienteCombobox` (PR J, US-FIN-024) ligado no campo contraparte do `TituloCreateSheet` (fila P10 do inventário por região; sugestão de valor por histórico preservada via `onBlurCapture`)
 - ❌ Mobile responsive (cards stack 2×2) — F1 só desktop ≥1024px (Eliana é desktop)
 - ❌ Export PDF/Excel — Onda 4
 - ❌ KPI configurável por user (esconder card) — Onda 4

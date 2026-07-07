@@ -504,8 +504,53 @@ function ApprovalPill({ s }: { s: 'pendente' | 'aprovado' | 'rejeitado' | null }
  */
 interface SparkPoint { date: string; saldo: number; in: number; out: number }
 
+/**
+ * Inventário por região 2026-07-07 (fila P8a) — motivo de rejeição INLINE
+ * (protótipo financeiro-ops.jsx:280), substitui o window.prompt nativo.
+ * Fechado → botão "✗ Rejeitar"; aberto → input autoFocus + Confirmar/Voltar.
+ */
+function RejeitarInline({ tituloId }: { tituloId: number }) {
+  const [aberto, setAberto] = useState(false);
+  const [motivo, setMotivo] = useState('');
+  if (!aberto) {
+    return (
+      <button type="button" className="os-btn ghost" style={{ color: 'oklch(0.55 0.10 25)' }} onClick={() => setAberto(true)}>
+        ✗ Rejeitar
+      </button>
+    );
+  }
+  const confirmar = () => {
+    if (!motivo.trim()) return;
+    router.post(`/financeiro/unificado/${tituloId}/rejeitar`, { motivo: motivo.trim() }, { preserveScroll: true });
+    setAberto(false);
+    setMotivo('');
+  };
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <input
+        autoFocus
+        value={motivo}
+        onChange={(e) => setMotivo(e.target.value)}
+        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); confirmar(); } if (e.key === 'Escape') setAberto(false); }}
+        placeholder="Motivo da rejeição…"
+        maxLength={255}
+        className="h-7 w-44 rounded border border-border bg-background px-2 text-[12px] focus:outline-none focus:ring-1 focus:ring-destructive/50"
+      />
+      <button type="button" className="os-btn ghost" style={{ color: 'oklch(0.55 0.10 25)' }} disabled={!motivo.trim()} onClick={confirmar}>
+        Confirmar rejeição
+      </button>
+      <button type="button" className="os-btn ghost" onClick={() => { setAberto(false); setMotivo(''); }}>
+        Voltar
+      </button>
+    </span>
+  );
+}
+
 function FinSparkline({ tone = 'pos', points }: { tone?: 'pos' | 'neg'; points?: SparkPoint[] | null }) {
-  const color = tone === 'pos' ? 'oklch(0.78 0.13 145)' : 'oklch(0.65 0.18 25)';
+  // Inventário por região 2026-07-07: cores eram hardcoded pro hero warm-dark ANTIGO
+  // (verde-claro 0.78 ilegível no hero claro da Onda 28). Agora seguem os tokens
+  // .cockpit --pos/--neg (flipam com o tema); fallback = valor light do DS.
+  const color = tone === 'pos' ? 'var(--pos, oklch(0.50 0.12 150))' : 'var(--neg, oklch(0.55 0.18 25))';
 
   // Fallback placeholder estático (canon Cowork v1). Usado quando:
   //  - sem dados (points null ou < 2)
@@ -530,7 +575,7 @@ function FinSparkline({ tone = 'pos', points }: { tone?: 'pos' | 'neg'; points?:
         </defs>
         <path d="M0,30 L15,26 L30,22 L45,20 L60,18 L75,22 L90,16 L105,18 L120,14 L135,12 L150,16 L165,10 L180,12 L200,8 L200,36 L0,36 Z" fill="url(#finSparkG)" />
         <path d="M0,30 L15,26 L30,22 L45,20 L60,18 L75,22 L90,16 L105,18 L120,14 L135,12 L150,16 L165,10 L180,12 L200,8" stroke={color} strokeWidth="1.5" fill="none" />
-        <line x1="0" y1="24" x2="200" y2="24" stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
+        <line x1="0" y1="24" x2="200" y2="24" stroke="var(--text-mute, oklch(0.65 0.01 80))" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" />
       </svg>
     );
   }
@@ -570,7 +615,7 @@ function FinSparkline({ tone = 'pos', points }: { tone?: 'pos' | 'neg'; points?:
       </defs>
       <path d={fillPath} fill="url(#finSparkG)" aria-hidden="true" />
       <path d={linePath} stroke={color} strokeWidth="1.5" fill="none" strokeLinejoin="round" strokeLinecap="round" aria-hidden="true" />
-      <line x1="0" y1={baselineY} x2={W} y2={baselineY} stroke="oklch(0.65 0.01 80)" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" aria-hidden="true" />
+      <line x1="0" y1={baselineY} x2={W} y2={baselineY} stroke="var(--text-mute, oklch(0.65 0.01 80))" strokeWidth="0.5" strokeDasharray="2 3" opacity="0.4" aria-hidden="true" />
       {/* Hotspots invisíveis por ponto — hover mostra title nativo do browser */}
       {points.map((p, i) => {
         const x = (i / (points.length - 1)) * W;
@@ -826,7 +871,17 @@ function FinKVCategoriaInline({ selected, categorias }: { selected: Lancamento; 
   );
 }
 
-function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; lancamentos: Lancamento[]; onKpiSelect: (lente: LenteId, lifecycle: LifecycleId[]) => void; periodLabel: string }) {
+function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel, lenteAtiva }: { kpis: Kpi; lancamentos: Lancamento[]; onKpiSelect: (lente: LenteId, lifecycle: LifecycleId[]) => void; periodLabel: string; lenteAtiva: LenteId }) {
+  // Inventário por região 2026-07-07 (fila P1) — 3 affordances do protótipo que faltavam:
+  // anel de lente ativa (fin-stat-on, financeiro-page.jsx:398), hover de elevação
+  // (fin-boletos.css:65) e dot entrada/saída no label (Caso 08, fin-boletos.css:77).
+  // Implementados em Tailwind (zero CSS bespoke — MANUAL-CSS-JS congela sprawl).
+  const kpiHover = 'cursor-pointer transition-[box-shadow,transform] duration-150 hover:shadow-md hover:-translate-y-px';
+  const kpiOn = (lid: LenteId) =>
+    lenteAtiva === lid ? ' ring-[1.5px] ring-inset ring-[color:var(--accent,oklch(0.55_0.15_295))]' : '';
+  const Dot = ({ tone }: { tone: 'in' | 'out' }) => (
+    <span aria-hidden className={`inline-block size-1.5 rounded-full mr-1.5 align-middle ${tone === 'in' ? 'bg-success' : 'bg-destructive'}`} />
+  );
   // Onda 8 Cowork: hero card dark green com sparkline + 4 secundários canon.
   // Saldo previsto = posição final do mês (Recebido + AReceber - Pago - APagar).
   // Onda Polish: KPI clicável → lifecycle multi-select (não mais tab radio).
@@ -899,7 +954,7 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; la
 
   return (
     <div className="fin-stats">
-      <button type="button" className="fin-stat fin-stat-hero" onClick={() => onKpiSelect('caixa', ['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
+      <button type="button" className={`fin-stat fin-stat-hero ${kpiHover}${kpiOn('caixa')}`} onClick={() => onKpiSelect('caixa', ['ar', 'ap'])} aria-label="Filtrar abertos (a receber + a pagar)">
         {/* FX-2 (print 06-11): mês do hero vinha hardcoded "maio"; agora usa periodLabel
             (MESMA fonte do subtítulo da página — fonte única, sem drift de período). */}
         <small>
@@ -916,14 +971,14 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; la
         <FinSparkline tone={kpis.saldo_previsto >= 0 ? 'pos' : 'neg'} points={sparkPoints} />
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onKpiSelect('receber', ['re'])} aria-label="Filtrar recebidas (lente A receber)">
-        <small>Recebido</small>
+      <button type="button" className={`fin-stat ${kpiHover}${kpiOn('receber')}`} onClick={() => onKpiSelect('receber', ['re'])} aria-label="Filtrar recebidas (lente A receber)">
+        <small><Dot tone="in" />Recebido</small>
         <b className="fin-num-pos">{brl(kpis.recebido.valor)}<DeltaBadge pct={kpis.delta_pct?.recebido} valor={kpis.recebido.valor} /></b>
         <span className="fin-stat-hint">{kpis.recebido.qtd} entradas confirmadas</span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onKpiSelect('receber', ['ar'])} aria-label="Filtrar a receber (lente A receber)">
-        <small>A receber</small>
+      <button type="button" className={`fin-stat ${kpiHover}${kpiOn('receber')}`} onClick={() => onKpiSelect('receber', ['ar'])} aria-label="Filtrar a receber (lente A receber)">
+        <small><Dot tone="in" />A receber</small>
         <b>{brl(kpis.a_receber.valor)}<DeltaBadge pct={kpis.delta_pct?.a_receber} valor={kpis.a_receber.valor} /></b>
         {/* PR 2 — canon hint: "R$ X em atraso" se houver atrasados; fallback genérico. */}
         <span className="fin-stat-hint">
@@ -933,14 +988,14 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel }: { kpis: Kpi; la
         </span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onKpiSelect('pagar', ['pa'])} aria-label="Filtrar pagas (lente A pagar)">
-        <small>Pago</small>
+      <button type="button" className={`fin-stat ${kpiHover}${kpiOn('pagar')}`} onClick={() => onKpiSelect('pagar', ['pa'])} aria-label="Filtrar pagas (lente A pagar)">
+        <small><Dot tone="out" />Pago</small>
         <b className="fin-num-neg">{brl(kpis.pago.valor)}<DeltaBadge pct={kpis.delta_pct?.pago} valor={kpis.pago.valor} /></b>
         <span className="fin-stat-hint">{kpis.pago.qtd} saídas liquidadas</span>
       </button>
 
-      <button type="button" className="fin-stat" onClick={() => onKpiSelect('pagar', ['ap'])} aria-label="Filtrar a pagar (lente A pagar)">
-        <small>A pagar</small>
+      <button type="button" className={`fin-stat ${kpiHover}${kpiOn('pagar')}`} onClick={() => onKpiSelect('pagar', ['ap'])} aria-label="Filtrar a pagar (lente A pagar)">
+        <small><Dot tone="out" />A pagar</small>
         <b>{brl(kpis.a_pagar.valor)}<DeltaBadge pct={kpis.delta_pct?.a_pagar} valor={kpis.a_pagar.valor} /></b>
         {/* PR 2 — canon hint: "próx. <dia mes> · <contraparte>" do primeiro payable aberto. */}
         <span className="fin-stat-hint">
@@ -1548,7 +1603,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         />
       </div>
 
-      <KpiBar kpis={kpis} lancamentos={lancamentos} onKpiSelect={(l, lifecycle) => applyLente(l, lifecycle)} periodLabel={periodLabel} />
+      <KpiBar kpis={kpis} lancamentos={lancamentos} onKpiSelect={(l, lifecycle) => applyLente(l, lifecycle)} periodLabel={periodLabel} lenteAtiva={lente} />
 
       {/* Onda 12 (2026-05-19) — FinMonthDigest REMOVIDO (não-canon).
           Wagner pediu paridade 100% com canon REAL (/cowork-preview/Oimpresso ERP - Chat.html),
@@ -1658,10 +1713,13 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         {/* Onda 12.5 (2026-05-19) — Toggle "Só atrasados" usa classe `fin-filter-toggle`
             (canon REAL DOM forensics) em vez de `fin-filter-cb` que é dos lifecycle.
             Toggle = on/off independente; lifecycle = multi-select pill colorido. */}
+        {/* Inventário 2026-07-07 P1: `.on` sozinho não tinha NENHUMA regra CSS (só a
+            morta `.on.warn`) — toggle ligado ficava idêntico ao desligado. Estado ON
+            em Tailwind (protótipo: neg-soft/neg — financeiro-page.jsx:632). */}
         <button
           type="button"
           aria-pressed={filters.overdue}
-          className={'fin-filter-toggle' + (filters.overdue ? ' on' : '')}
+          className={'fin-filter-toggle' + (filters.overdue ? ' on bg-destructive-soft text-destructive-fg border-destructive/50' : '')}
           title="AND multiplicativo: combina com lifecycle ativos"
           onClick={() => aplicar({ overdue: !filters.overdue })}
         >
@@ -1675,7 +1733,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         <button
           type="button"
           aria-pressed={filters.arquivados}
-          className={'fin-filter-toggle' + (filters.arquivados ? ' on' : '')}
+          className={'fin-filter-toggle' + (filters.arquivados ? ' on bg-primary/10 text-primary border-primary/40' : '')}
           title="Mostrar lançamentos arquivados (cancelados/inativos). Por padrão ficam escondidos e não somam no caixa."
           onClick={() => aplicar({ arquivados: !filters.arquivados })}
         >
@@ -2465,19 +2523,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                               >
                                 ✓ Aprovar
                               </button>
-                              <button
-                                type="button"
-                                className="os-btn ghost"
-                                style={{ color: 'oklch(0.55 0.10 25)' }}
-                                onClick={() => {
-                                  const motivo = window.prompt('Motivo da rejeição:');
-                                  if (motivo) {
-                                    router.post(`/financeiro/unificado/${selected.id}/rejeitar`, { motivo }, { preserveScroll: true });
-                                  }
-                                }}
-                              >
-                                ✗ Rejeitar
-                              </button>
+                              <RejeitarInline tituloId={selected.id} />
                             </>
                           ) : (
                             <span className="text-[11px] text-muted-foreground italic">
@@ -2939,6 +2985,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               valor: baixaLanc.valor,
               valor_aberto: baixaLanc.valor_aberto,
               plano_conta_id: baixaLanc.plano_conta_id,
+              // Fila P6 (inventário 2026-07-07): forma PREVISTA pré-seleciona a baixa
+              // (protótipo financeiro-ops.jsx:69-75). Realizada não conta — título
+              // aberto ainda não tem baixa; o guard é só honestidade do dado.
+              forma_pagamento: baixaLanc.forma_pagamento_realizada ? null : baixaLanc.forma_pagamento,
             }}
             contas={contas}
             planos={planosConta}
