@@ -40,9 +40,18 @@
  * Wirar como dispatch-com-SLA (ou PR-bot regenerador, modelo Tokens Studio) = ação #3/#5 do
  * estado-da-arte 2026-07-06, pendente de aprovação [W]. Não declare isto "gate" até lá.
  *
+ * ── DEPS DE RENDER (furo LC-07, 2026-07-07) ──────────────────────────────────────
+ * O manifest por âncora media só o .jsx da TELA — mas o render dela depende de app.jsx,
+ * styles.css, ds-v6/tokens.css e os css do módulo. Drift real vazou por aí: [W] mudou o
+ * PageHeaderNav pra roxo no app.jsx do Cowork e a rodada "3 SYNC" ficou verde, cega.
+ * Agora o --manifest também enumera as DEPS DE RENDER, derivadas MECANICAMENTE dos
+ * src/href do shell (oimpresso.com.html do staging fixo) — nunca lista curada na mão.
+ * Sem shell disponível → WARN explícito (nunca omissão silenciosa). kind: ancora | dep.
+ *
  * Uso:
- *   node scripts/governance/cowork-mirror-freshness.mjs --manifest          # âncoras dos charters
- *   node scripts/governance/cowork-mirror-freshness.mjs --manifest --all    # todo .jsx/.html do espelho
+ *   node scripts/governance/cowork-mirror-freshness.mjs --manifest          # âncoras + deps de render (shell do staging)
+ *   node scripts/governance/cowork-mirror-freshness.mjs --manifest --shell <oimpresso.com.html>  # shell explícito
+ *   node scripts/governance/cowork-mirror-freshness.mjs --manifest --all    # todo .jsx/.html/.css/.js do espelho
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json            # relatório
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check    # exit 1 se STALE
  *   node scripts/governance/cowork-mirror-freshness.mjs --compare snap.json --check --ledger  # + registra a rodada
@@ -52,6 +61,7 @@
 import { readFileSync, writeFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join } from 'node:path';
+import { homedir } from 'node:os';
 import { anchorRelPath } from './anchor-content-check.mjs'; // fonte única: como extrair o path do related_prototype
 
 const ROOT = process.cwd();
@@ -121,9 +131,27 @@ export function slaVerdict(entries, nowIso, days = SLA_DAYS) {
   return { veredito: 'FRESH', last, ageDays };
 }
 
-/** Enumera os arquivos-âncora do espelho, keyed por PATH RELATIVO COMPLETO (nunca basename).
+/** Extrai as DEPS DE RENDER dos src/href de um shell HTML (pura, testável — LC-07).
+ *  Regras: strip query/hash (`app.jsx?v=eb2` → `app.jsx`, o cache-bust do exportador) ·
+ *  exclui remotos (http/https — CDN React/Babel não é espelho) · só extensões build
+ *  (jsx/css/js) · dedup preservando 1ª ocorrência · paths relativos normalizados. */
+export function parseShellDeps(html) {
+  const out = [];
+  const seen = new Set();
+  for (const m of String(html).matchAll(/(?:src|href)="([^"]+)"/g)) {
+    let p = m[1].split(/[?#]/)[0].trim();
+    if (!p || /^(https?:)?\/\//i.test(p) || p.startsWith('data:')) continue;
+    if (!/\.(jsx|css|js)$/i.test(p)) continue;
+    p = p.replace(/^\.\//, '').split('\\').join('/');
+    if (!seen.has(p)) { seen.add(p); out.push(p); }
+  }
+  return out;
+}
+
+/** Enumera os arquivos-âncora do espelho, keyed por PATH RELATIVO COMPLETO (nunca basename)
+ *  + as DEPS DE RENDER do shell (LC-07). `kind`: 'ancora' (tem tela de charter) | 'dep'.
  *  Mesmo conjunto de âncoras que o anchor-content-check enxerga (reusa anchorRelPath). */
-export function buildManifest(root = ROOT, { all = false } = {}) {
+export function buildManifest(root = ROOT, { all = false, shellHtml = null } = {}) {
   const PAGES = join(root, 'resources', 'js', 'Pages');
   const COWORK = join(root, 'prototipo-ui', 'cowork');
   const seen = new Map(); // relPath → { cowork, repoPath, repoHash, telas }
@@ -154,7 +182,24 @@ export function buildManifest(root = ROOT, { all = false } = {}) {
     const tela = charter.slice(PAGES.length + 1).split('\\').join('/').replace(/\.charter\.md$/, '');
     add(rel.split('\\').join('/'), [tela]);
   }
-  return [...seen.values()].sort((a, b) => a.cowork.localeCompare(b.cowork));
+  // DEPS DE RENDER (LC-07): derivadas do shell, nunca curadas na mão. Dep que não existe
+  // no espelho fica FORA (o espelho é o universo medível; ausência upstream é outro sinal).
+  if (shellHtml) for (const dep of parseShellDeps(shellHtml)) add(dep, []);
+  return [...seen.values()]
+    .map((e) => ({ ...e, kind: e.telas.length ? 'ancora' : 'dep' }))
+    .sort((a, b) => a.cowork.localeCompare(b.cowork));
+}
+
+/** Shell default: o oimpresso.com.html do staging fixo de handoff (RUNBOOK §−1).
+ *  Null se não houver — o CLI avisa em vez de omitir em silêncio. */
+export function defaultShellPath() {
+  const base = join(homedir(), 'Downloads', '_cowork-handoff-staging');
+  if (!existsSync(base)) return null;
+  for (const e of readdirSync(base)) {
+    const p = join(base, e, 'project', 'oimpresso.com.html');
+    if (existsSync(p)) return p;
+  }
+  return null;
 }
 
 function walkCharters(dir, acc = []) {
@@ -174,7 +219,9 @@ function walkRel(base, dir = base, acc = []) {
   for (const e of readdirSync(dir)) {
     const f = join(dir, e);
     if (statSync(f).isDirectory()) walkRel(base, f, acc);
-    else if (/\.(jsx|html)$/i.test(e)) acc.push(f.slice(base.length + 1).split('\\').join('/'));
+    // css|js incluídos em 2026-07-07 (LC-07): o --all era cego pra folha de estilo — o
+    // vetor exato do drift de design (tokens/accent vivem em .css, runtime em app.jsx).
+    else if (/\.(jsx|html|css|js)$/i.test(e)) acc.push(f.slice(base.length + 1).split('\\').join('/'));
   }
   return acc;
 }
@@ -206,12 +253,21 @@ function main() {
     process.exit(1);
   }
 
-  const manifest = buildManifest(ROOT, { all });
+  // Shell das deps de render (LC-07): --shell <path> explícito, senão o do staging fixo.
+  const shellIdx = argv.indexOf('--shell');
+  const shellPath = shellIdx !== -1 ? argv[shellIdx + 1] : defaultShellPath();
+  const shellHtml = shellPath && existsSync(shellPath) ? readFileSync(shellPath, 'utf8') : null;
+
+  const manifest = buildManifest(ROOT, { all, shellHtml });
 
   if (cmpIdx === -1) {
-    process.stdout.write(JSON.stringify({ generated: 'cowork-mirror-freshness manifest v2 (path completo · sha256 normalizado)', files: manifest }, null, 2) + '\n');
+    const nA = manifest.filter((m) => m.kind === 'ancora').length;
+    const nD = manifest.filter((m) => m.kind === 'dep').length;
+    process.stdout.write(JSON.stringify({ generated: 'cowork-mirror-freshness manifest v3 (path completo · sha256 normalizado · âncoras + deps de render)', files: manifest }, null, 2) + '\n');
     process.stderr.write(
-      `\n  ${manifest.length} arquivo(s)-âncora do espelho pra conferir contra o vivo (Cowork 019dcfd3).\n` +
+      `\n  ${manifest.length} arquivo(s) do espelho pra conferir contra o vivo (Cowork 019dcfd3): ${nA} âncora(s) + ${nD} dep(s) de render${shellHtml ? ` (shell: ${shellPath})` : ''}.\n` +
+      (shellHtml ? '' : `  ⚠ DEPS DE RENDER NÃO ENUMERADAS — shell ausente (staging vazio e sem --shell). Rodada só de âncoras é CEGA pra app.jsx/styles.css/tokens (furo LC-07 — foi por aí que o drift do PageHeader roxo passou).\n`) +
+      `  Rodada mínima recomendada: âncoras + deps globais (app.jsx · styles.css · ds-v6/tokens.css) + css do módulo tocado. Parcial = UNCHECKED (honesto).\n` +
       `  Próximo passo (agente logado): DesignSync.get_file por path → snapshot {relPath: contentHash} → --compare snap.json.\n` +
       `  ATENÇÃO: o snapshot DEVE usar a MESMA normalização (importe contentHash/normalize deste módulo).\n\n`,
     );

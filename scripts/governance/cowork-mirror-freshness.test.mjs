@@ -18,6 +18,8 @@ import {
   verdictFor,
   shouldFail,
   buildManifest,
+  parseShellDeps,
+  defaultShellPath,
   ledgerEntry,
   slaVerdict,
   SLA_DAYS,
@@ -113,6 +115,58 @@ check('UNCHECKED/LIVE-ABSENT sozinhos → NÃO morde (warn, não podre)', should
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
+}
+
+
+// 6b. DEPS DE RENDER (LC-07, 2026-07-07) — o furo por onde o drift do PageHeader roxo passou:
+//     a rodada por âncora media financeiro-page.jsx e era CEGA pra app.jsx/styles.css/tokens.
+//     Contrato: deps derivadas MECANICAMENTE do shell (nunca lista curada) · cache-bust `?v=`
+//     não vira arquivo fantasma (o 404 de app.jsx?v=eb2 provou) · CDN fora · kind separa.
+{
+  const SHELL = `<!doctype html>
+    <link rel="stylesheet" href="styles.css?v=abc" />
+    <link rel="stylesheet" href="ds-v6/tokens.css?v=v6-4" />
+    <script src="https://unpkg.com/react@18.3.1/umd/react.development.js"></script>
+    <script type="text/babel" src="app.jsx?v=eb2"></script>
+    <script type="text/babel" src="./financeiro-page.jsx?v=ops1"></script>
+    <script type="text/babel" src="app.jsx"></script>
+    <img src="logo.png" /> <a href="#top">topo</a> <a href="data:text/plain,x">d</a>`;
+  const deps = parseShellDeps(SHELL);
+  check('strip do cache-bust: app.jsx?v=eb2 vira app.jsx (sem arquivo fantasma)', deps.includes('app.jsx') && !deps.some((d) => d.includes('?')));
+  check('dedup: app.jsx com e sem ?v= = 1 entrada', deps.filter((d) => d === 'app.jsx').length === 1);
+  check('CSS entra (o blind spot que escondia tokens/accent)', deps.includes('styles.css') && deps.includes('ds-v6/tokens.css'));
+  check('CDN remoto fica FORA (não é espelho)', !deps.some((d) => d.includes('unpkg') || d.includes('react.development')));
+  check('./ normalizado', deps.includes('financeiro-page.jsx') && !deps.some((d) => d.startsWith('./')));
+  check('png/anchor/data: ficam fora (só build jsx/css/js)', !deps.some((d) => /png|#top|^data:/.test(d)));
+
+  const dir = mkdtempSync(join(tmpdir(), 'mirror-deps-'));
+  try {
+    const pages = join(dir, 'resources', 'js', 'Pages');
+    const cowork = join(dir, 'prototipo-ui', 'cowork');
+    mkdirSync(join(cowork, 'ds-v6'), { recursive: true });
+    writeFileSync(join(cowork, 'financeiro-page.jsx'), 'tela');
+    writeFileSync(join(cowork, 'app.jsx'), 'const onColor = "var(--accent)";'); // o drift real de 2026-07-07
+    writeFileSync(join(cowork, 'styles.css'), ':root{--accent:oklch(0.55 0.15 295)}');
+    mkdirSync(join(pages, 'Fin'), { recursive: true });
+    writeFileSync(join(pages, 'Fin', 'Tela.charter.md'), 'related_prototype: financeiro-page.jsx');
+
+    const man = buildManifest(dir, { shellHtml: SHELL });
+    const byPath = Object.fromEntries(man.map((m) => [m.cowork, m]));
+    check('âncora continua entrando, kind=ancora', byPath['financeiro-page.jsx']?.kind === 'ancora');
+    check('app.jsx ENTRA no manifest como dep (o drift de 2026-07-07 não passa mais cego)', byPath['app.jsx']?.kind === 'dep');
+    check('styles.css entra como dep', byPath['styles.css']?.kind === 'dep');
+    check('dep referenciada no shell mas AUSENTE do espelho fica fora (universo = espelho)', !byPath['ds-v6/tokens.css']);
+    check('âncora que TAMBÉM é dep permanece ancora (telas ganham)', byPath['financeiro-page.jsx'].telas.includes('Fin/Tela'));
+    // sem shell → só âncoras (comportamento antigo preservado; o WARN é do CLI)
+    const semShell = buildManifest(dir, {});
+    check('sem shellHtml → só âncoras (back-compat)', semShell.length === 1 && semShell[0].kind === 'ancora');
+    // STALE de dep morde no --check igual âncora
+    const st = verdictFor('app.jsx', byPath['app.jsx'].repoHash, { 'app.jsx': contentHash('const onColor = DIFERENTE;') });
+    check('dep divergente → STALE (drift de app.jsx agora É detectado)', st === 'STALE' && shouldFail([st]) === true);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+  check('defaultShellPath é função exportada (CLI resolve staging)', typeof defaultShellPath === 'function');
 }
 
 // 7. CLI: snapshot inexistente/malformado → exit 2 limpo (não stack não-capturada) (furo #5).
