@@ -14,9 +14,15 @@ name: Visual Regression (Pest 4 Browser)
 on:
   pull_request:
     branches: [main]
+  # MODO UPDATE (2026-07-07, ADR UI-0020 §4): dispatch manual re-gera as baselines
+  # NO MESMO runner que sempre as gerou (rendering determinístico) e abre PR com os
+  # .snap novos — o gate do PR re-roda e PROVA que a baseline nova bate (anti-#3297).
+  # Uso: mudança de Fundação aprovada [W] (ex.: retune dark warm) que sofre
+  # skip-as-pass aqui (não toca paths de UI) mas muda o render de TODAS as telas.
+  workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write   # modo update (dispatch) pusha branch de snapshots; PRs continuam só lendo
   pull-requests: write
 
 concurrency:
@@ -62,6 +68,7 @@ jobs:
 
       - name: Detectar mudanças de UI (skip-as-pass — required-readiness)
         id: changes
+        if: github.event_name == 'pull_request'
         uses: dorny/paths-filter@v3
         with:
           filters: |
@@ -80,12 +87,23 @@ jobs:
               - '.github/workflows/visual-regression.yml'
               - 'lighthouserc.json'
 
+      # Fonte única do "roda o pesado?": dispatch = sempre true (modo update);
+      # pull_request = o que o paths-filter disse.
+      - name: Modo de execução (ui efetivo)
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "ui=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ui=${{ steps.mode.outputs.ui }}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Skip-as-pass (nada de UI mudou)
-        if: steps.changes.outputs.ui == 'false'
+        if: steps.mode.outputs.ui == 'false'
         run: echo "✅ Sem mudanças de UI/Browser tests — skip-as-pass (required-ready, padrão ADR 0271 onda 2)."
 
       - name: Setup PHP
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
@@ -97,7 +115,7 @@ jobs:
           coverage: none
 
       - name: Wait for MySQL ready
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         run: |
           for i in {1..30}; do
             if mysqladmin ping -h127.0.0.1 -uroot -proot --silent; then
@@ -109,20 +127,20 @@ jobs:
           done
 
       - name: Setup Node
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: lts/*
 
       - name: Cache Composer
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         uses: actions/cache@v4
         with:
           path: vendor
           key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
 
       - name: Cache Playwright browsers
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         uses: actions/cache@v4
         id: playwright-cache
         with:
@@ -130,18 +148,18 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         # --ignore-platform-req=ext-opentelemetry: o pacote opentelemetry-auto-laravel
         # exige a ext no platform check, mas removemos a ext de propósito (ver Setup PHP).
         # O pacote degrada gracioso sem a ext (hooks não registram).
         run: composer install --no-progress --no-interaction --prefer-dist --no-scripts --ignore-platform-req=ext-opentelemetry
 
       - name: Install NPM dependencies
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         run: npm ci
 
       - name: Install Playwright npm client
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         # `pestphp/pest-plugin-browser ^4.0` (composer.json) spawneia o cliente
         # JS `playwright` via stdio. `playwright` NÃO está em package.json
         # devDependencies (ainda), então `npm ci` não traz `node_modules/playwright/`.
@@ -152,11 +170,11 @@ jobs:
         run: npm install playwright --no-save
 
       - name: Install Playwright browsers
-        if: steps.changes.outputs.ui == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
+        if: steps.mode.outputs.ui == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
 
       - name: Setup Laravel
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         # SCHEMA-SQUASH MODE (US-GOV-013, supersede INFRA-ONLY): `migrate` carrega
         # `database/schema/mysql-schema.sql` (squash do staging saudável, anonimizado)
         # ANTES de replayar — bypassa a podridão histórica de fresh-migrate (view×table
@@ -197,7 +215,7 @@ jobs:
           php artisan tinker --execute="echo count(DB::select('show tables')).' tabelas';"
 
       - name: Seed demo tenant (business + admin + role Admin#1)
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         # O schema-squash é schema-only (sem dados) → as telas autenticadas (Fase B)
         # precisam de um business + admin seedados.
         #
@@ -223,14 +241,14 @@ jobs:
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count();"
 
       - name: Build Inertia bundles
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true'
         # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
         # em INFRA-ONLY mode. Vide nota em "Setup Laravel" linha 92.
         continue-on-error: true
         run: npm run build:inertia
 
       - name: Run Pest Browser tests
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: pest-browser
         # GATE REAL — Fase A (públicas) + INÍCIO da Fase B (autenticadas).
         # 2026-06-06: destravado o auth cross-process via rota /_visreg-login/{id}?to=
@@ -264,7 +282,7 @@ jobs:
       # 1ª execução sem baseline GERA e passa; o artifact abaixo permite commitar.
       # Mudança intencional: npm run visreg:update (CI) + aprovação [W] (F1.5).
       - name: Pixel-diff núcleo-6 (ENFORCING — Onda Q4 · double-threshold L7)
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: pixel-diff
         # DOUBLE-THRESHOLD (L7): o teste roteia cada tela por 3 bandas (PixelBaselineTest
         # + Tests\Browser\Support\VisregThreshold) — auto-aprova < τ_baixo (VISREG_TAU_LOW,
@@ -293,13 +311,37 @@ jobs:
       # `continue-on-error` mantido SÓ neste step. Refrescar: `npm run visreg:states:update` (CI)
       # + [W] revisa o artifact `pixel-snapshots`. O lint L2 (charter⇄manifesto) acima JÁ é enforcing.
       - name: Snapshots de estados isolados (ADVISORY — L2 · 3 baselines stale, aguarda F1.5)
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: isolated-states
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
 
+      # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
+      - name: Regenerar baselines (pixel núcleo-6 + estados isolados) — modo update
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          npm run visreg:update
+          npm run visreg:states:update
+
+      - name: Abrir PR com as baselines regeneradas — modo update
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          BR="vrt/baselines-${{ github.run_id }}"
+          git checkout -b "$BR"
+          git add tests/.pest/snapshots
+          if git diff --cached --quiet; then
+            echo "Baselines já em dia — nada a commitar."; exit 0
+          fi
+          git commit -m "test(visreg): baselines regeneradas no runner canônico (modo update) [CC]" -m "Disparo manual pós-mudança de Fundação aprovada [W] — ADR UI-0020 §4 (dark warm): o PR de tokens sofre skip-as-pass neste gate e as baselines antigas quebrariam o próximo PR de UI. O gate do PR destas baselines re-roda e PROVA que batem com o render atual (anti-#3297)."
+          git push -u origin "$BR"
+          gh pr create --title "test(visreg): baselines regeneradas (modo update) [CC]" --base main --head "$BR" --body "Baselines de pixel + estados isolados regeneradas NO runner canônico via workflow_dispatch (modo update). Motivo: Fundação aprovada [W] — ADR UI-0020 (dark warm). O gate required deste PR re-roda os testes contra estas baselines e prova que batem (anti-#3297)."
+
       - name: Veredito advisory dos estados isolados (L2 · visível no log)
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.isolated-states.outcome }}" = "failure" ]; then
             echo "🔴 L2 ADVISORY FALHOU — ao menos 1 (tela,estado) com diff vs baseline isolada."
@@ -309,7 +351,7 @@ jobs:
           fi
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
-        if: ${{ !cancelled() && steps.changes.outputs.ui == 'true' }}
+        if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: pixel-snapshots
@@ -322,7 +364,7 @@ jobs:
         # step, mas grava diff-views em tests/Browser/Screenshots/ImageDiffView/ pro [W]
         # revisar — só uploadar on-failure perderia exatamente o caso de uso do L7.
         # `if-no-files-found: ignore` cobre o caso "nenhuma tela na zona cinza nem falhou".
-        if: ${{ !cancelled() && steps.changes.outputs.ui == 'true' }}
+        if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: pixel-diff-views
@@ -331,7 +373,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Veredito advisory do pixel-diff (visível no log · double-threshold L7)
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
             echo "🔴 PIXEL-DIFF ADVISORY FALHOU — ao menos 1 tela com diff > τ_alto (regressão clara) contra baseline."
@@ -367,7 +409,7 @@ jobs:
       #     protection: o check `visual-regression` já é required — idêntico à nota do pixel-diff).
 
       - name: Instalar Lighthouse CI (L5 — pin compatível com Node lts/* do runner)
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         # continue-on-error PERMANENTE (≠ lever de promoção): instalar o LHCI é INFRA do gate
         # ADVISORY — uma falha transitória de npm NÃO pode reprovar o job `visual-regression`
         # (que já é required). O lever de promoção é remover o continue-on-error do step `lhci`,
@@ -379,7 +421,7 @@ jobs:
         run: npm install -g @lhci/cli@0.15.1
 
       - name: L5 — Perf budget Lighthouse (median-of-3 · ADVISORY · ARMADO ADR 0275)
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: lhci
         continue-on-error: true
         env:
@@ -390,7 +432,7 @@ jobs:
         run: lhci autorun --config=lighthouserc.json
 
       - name: Upload resultados Lighthouse (L5 — leitura das medianas p/ armar)
-        if: ${{ !cancelled() && steps.changes.outputs.ui == 'true' }}
+        if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: lighthouse-perf-budget
@@ -403,7 +445,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Veredito advisory L5 perf budget (visível no log)
-        if: steps.changes.outputs.ui == 'true'
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.lhci.outcome }}" = "failure" ]; then
             echo "🟡 L5 PERF BUDGET ADVISORY FALHOU — alguma métrica acima do orçamento (ver artifact lighthouse-perf-budget)."
@@ -422,7 +464,7 @@ jobs:
           retention-days: 7
 
       - name: Comment on PR if regression detected
-        if: failure() || steps.pest-browser.outputs.fail == '1'
+        if: (failure() || steps.pest-browser.outputs.fail == '1') && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
