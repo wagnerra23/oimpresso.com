@@ -1,9 +1,13 @@
 ---
-slug: 2026-07-07-1240-design-sync-protocolo-grade
-date: "2026-07-07 12:40 UTC"
+slug: design-sync-protocolo-grade
+date: "2026-07-07"
+time: "12:40 UTC"
+tldr: "§10.6 DesignSync merged (#3913) + grade ponderada do handoff Design→Code (oimpresso 82/100) + decisão [F] 'não quero subir quero baixar' → descida DesignSync vira caminho preferido no F3.0; uploader adiado sem sinal. #3914 aguarda clique humano."
 autor: "[F+C] (Felipe pareado Claude Code — sessão remota claude.ai/code)"
 tema: "Protocolo Design↔Code: §10.6 DesignSync merged + grade estado-da-arte + direção baixar-primeiro"
-cycle: off-cycle
+decided_by: ["F"]
+cycle: null
+prs: [3913, 3914]
 ---
 
 # Handoff — DesignSync no protocolo Design↔Code + grade com nota
