@@ -2321,7 +2321,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                           <div className="rounded-md border border-border px-3 py-2.5 text-[12.5px] text-muted-foreground flex items-start gap-2.5">
                             <span className="text-muted-foreground mt-0.5" aria-hidden>✦</span>
                             <div>
-                              Sem match no extrato. Ao liquidar, o sistema procura linhas próximas (±R$ [redacted Tier 0] e ±2 dias) e sugere conciliação automática.
+                              {/* Tolerância do matcher (parâmetro de produto, não valor de negócio) — restaurada do
+                                  protótipo (financeiro-page.jsx:1576) após o filter-repo da redação BRL (2026-06-08)
+                                  ter reescrito esta copy de UI e o usuário passar a ver o placeholder na tela. */}
+                              Sem match no extrato. Ao liquidar, o sistema procura linhas próximas (±R$ 5,00 e ±2 dias) e sugere conciliação automática.
                             </div>
                           </div>
                         )}
