@@ -883,6 +883,11 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel, lenteAtiva }: { k
   // Smoke prod 2026-07-07 pegou: `ring`/`shadow` perdiam pro box-shadow bespoke de
   // .fin-stat* (fora de @layer, vence utility em layer) — anel virou OUTLINE (não
   // compete com box-shadow; provado no DOM vivo) e elevação virou só translate.
+  // Smoke dark 2026-07-07 [W] "KPIs acho que black": o bg dos cards vinha do CSS
+  // bespoke (branco fixo) e não flipava — texto claro sobre branco no dark. bg-card/
+  // border-border (tokens shadcn, flipam com o tema) com `!` pra vencer o bespoke
+  // fora de @layer. No light nada muda (card = branco).
+  const kpiSurface = 'bg-card! border-border!';
   const kpiHover = 'cursor-pointer transition-transform duration-150 hover:-translate-y-px';
   const kpiOn = (lid: LenteId) =>
     lenteAtiva === lid ? ' outline outline-[1.5px] -outline-offset-[1.5px] outline-[color:var(--accent,oklch(0.55_0.15_295))]' : '';
@@ -978,13 +983,13 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel, lenteAtiva }: { k
         <FinSparkline tone={kpis.saldo_previsto >= 0 ? 'pos' : 'neg'} points={sparkPoints} />
       </button>
 
-      <button type="button" className={`fin-stat ${kpiHover}${kpiOn('receber')}`} onClick={() => onKpiSelect('receber', ['re'])} aria-label="Filtrar recebidas (lente A receber)">
+      <button type="button" className={`fin-stat ${kpiSurface} ${kpiHover}${kpiOn('receber')}`} onClick={() => onKpiSelect('receber', ['re'])} aria-label="Filtrar recebidas (lente A receber)">
         <small><Dot tone="in" />Recebido</small>
         <b className="fin-num-pos">{brl(kpis.recebido.valor)}<DeltaBadge pct={kpis.delta_pct?.recebido} valor={kpis.recebido.valor} /></b>
         <span className="fin-stat-hint">{kpis.recebido.qtd} entradas confirmadas</span>
       </button>
 
-      <button type="button" className={`fin-stat ${kpiHover}${kpiOn('receber')}`} onClick={() => onKpiSelect('receber', ['ar'])} aria-label="Filtrar a receber (lente A receber)">
+      <button type="button" className={`fin-stat ${kpiSurface} ${kpiHover}${kpiOn('receber')}`} onClick={() => onKpiSelect('receber', ['ar'])} aria-label="Filtrar a receber (lente A receber)">
         <small><Dot tone="in" />A receber</small>
         <b>{brl(kpis.a_receber.valor)}<DeltaBadge pct={kpis.delta_pct?.a_receber} valor={kpis.a_receber.valor} /></b>
         {/* PR 2 — canon hint: "R$ X em atraso" se houver atrasados; fallback genérico. */}
@@ -995,13 +1000,13 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel, lenteAtiva }: { k
         </span>
       </button>
 
-      <button type="button" className={`fin-stat ${kpiHover}${kpiOn('pagar')}`} onClick={() => onKpiSelect('pagar', ['pa'])} aria-label="Filtrar pagas (lente A pagar)">
+      <button type="button" className={`fin-stat ${kpiSurface} ${kpiHover}${kpiOn('pagar')}`} onClick={() => onKpiSelect('pagar', ['pa'])} aria-label="Filtrar pagas (lente A pagar)">
         <small><Dot tone="out" />Pago</small>
         <b className="fin-num-neg">{brl(kpis.pago.valor)}<DeltaBadge pct={kpis.delta_pct?.pago} valor={kpis.pago.valor} /></b>
         <span className="fin-stat-hint">{kpis.pago.qtd} saídas liquidadas</span>
       </button>
 
-      <button type="button" className={`fin-stat ${kpiHover}${kpiOn('pagar')}`} onClick={() => onKpiSelect('pagar', ['ap'])} aria-label="Filtrar a pagar (lente A pagar)">
+      <button type="button" className={`fin-stat ${kpiSurface} ${kpiHover}${kpiOn('pagar')}`} onClick={() => onKpiSelect('pagar', ['ap'])} aria-label="Filtrar a pagar (lente A pagar)">
         <small><Dot tone="out" />A pagar</small>
         <b>{brl(kpis.a_pagar.valor)}<DeltaBadge pct={kpis.delta_pct?.a_pagar} valor={kpis.a_pagar.valor} /></b>
         {/* PR 2 — canon hint: "próx. <dia mes> · <contraparte>" do primeiro payable aberto. */}
@@ -1562,9 +1567,14 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   aplicado (botão ghost) e, quando era, herdava o `--accent` tweakável do
                   AppShellV2 (magenta 330 no browser do Wagner). Estilo inline = imune ao
                   escopo E ao Tweaks slider, travado no roxo 295 canon (== FinanceiroPrimaryButton). */}
+              {/* Smoke dark 2026-07-07 [W] "botão desconfigurado": além da COR, o LAYOUT
+                  do .os-btn também é escopado .fin-cowork — fora do wrapper o botão
+                  rendia nu (padding 0, radius 0, 66px, texto em 2 linhas). Layout do
+                  proto (styles.css:2139/2284: h-32px, radius 6, pad 0 12) em Tailwind,
+                  imune ao escopo. */}
               <button
                 type="button"
-                className="os-btn primary"
+                className="os-btn primary inline-flex items-center gap-1.5 h-8 px-3 rounded-md border text-[12.5px] font-medium whitespace-nowrap shrink-0"
                 style={{
                   backgroundColor: 'oklch(0.55 0.15 295)',
                   borderColor: 'oklch(0.45 0.15 295)',
@@ -1596,7 +1606,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           linha") — com 8 abas estourava e espremia o título numa coluna vertical.
           Própria linha = 8 abas cabem + título respira. Ações features (Buscar/
           Resumir/Fechamento/Apresentar/Imprimir/Exportar) seguem no overflow `⋯`. */}
-      <div className="mt-1 border-b border-border/60">
+      {/* Smoke dark 2026-07-07 [W]: linha do subnav em cor CHEIA do token (proto
+          ph-nav border-bottom: 1px var(--border), financeiro.css:1823) — o /60
+          praticamente sumia no dark. */}
+      <div className="mt-1 border-b border-border">
         <FinanceiroSubNav
           active="unificado"
           hidePrimary
