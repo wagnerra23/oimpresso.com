@@ -71,6 +71,13 @@
      track 3 e -1 = track 3 (no-op). Descoberto via /whatsapp/conversations
      que precisa fill pra composer no rodapé (US-WA-053, 2026-05-11). */
   grid-row-end: -1;
+  /* Containing block do scroller: descendant `position:absolute` sem ancestral
+     positioned (ex: header sr-only do CommandDialog — Tailwind sr-only é absolute)
+     ancorava no <body> com top ~4000px → esticava o <html> → a JANELA ganhava
+     ~3000px de scroll vazio ("branco infinito" no fim de /financeiro/unificado,
+     Wagner 2026-07-07; provado via computed style + scrollTo no browser MCP).
+     Relative ancora qualquer absolute descendant DENTRO do scroller. */
+  position: relative;
 }
 
 /* ────────────────── Topbar ────────────────── */.cockpit .topbar {
