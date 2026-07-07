@@ -350,7 +350,7 @@ function SortableHeader({
       <button
         type="button"
         onClick={onClick}
-        className={`inline-flex items-center gap-1 ${alignRight ? 'justify-end w-full' : ''} ${active ? 'text-stone-900' : 'text-stone-500 hover:text-stone-700'} cursor-pointer select-none transition-colors`}
+        className={`inline-flex items-center gap-1 ${alignRight ? 'justify-end w-full' : ''} ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'} cursor-pointer select-none transition-colors`}
         aria-label={`Ordenar por ${label}`}
       >
         <span>{label}</span>
@@ -407,19 +407,19 @@ function FinMultiSelectContas({
     <div ref={ref} className="relative inline-block">
       <button
         type="button"
-        className={`h-7 px-2 rounded-md border text-[12px] bg-white flex items-center gap-1 ${selectedIds.length > 0 ? 'border-stone-300 text-stone-800' : 'border-stone-200 text-stone-600'}`}
+        className={`h-7 px-2 rounded-md border text-[12px] bg-card flex items-center gap-1 ${selectedIds.length > 0 ? 'border-border text-foreground' : 'border-border text-muted-foreground'}`}
         onClick={() => setOpen((o) => !o)}
         aria-label="Conta bancária multi-select"
         aria-expanded={open}
       >
         <span>{label}</span>
-        <span className="text-stone-400 text-[10px]">▾</span>
+        <span className="text-muted-foreground text-[10px]">▾</span>
       </button>
       {open && (
-        <div className="absolute z-50 top-[110%] left-0 min-w-[220px] max-h-[320px] overflow-y-auto rounded-md border border-stone-200 bg-white shadow-lg p-1">
+        <div className="absolute z-50 top-[110%] left-0 min-w-[220px] max-h-[320px] overflow-y-auto rounded-md border border-border bg-card shadow-lg p-1">
           <button
             type="button"
-            className="w-full text-left px-2 py-1.5 text-[12px] text-stone-600 hover:bg-stone-50 rounded"
+            className="w-full text-left px-2 py-1.5 text-[12px] text-muted-foreground hover:bg-muted/40 rounded"
             onClick={() => onChange('')}
           >
             <span className="inline-flex items-center gap-2">
@@ -427,18 +427,18 @@ function FinMultiSelectContas({
               Todas as contas
             </span>
           </button>
-          <div className="h-px bg-stone-100 my-1" />
+          <div className="h-px bg-muted my-1" />
           {contas.map((c) => {
             const checked = selectedIds.includes(c.id);
             return (
               <button
                 key={c.id}
                 type="button"
-                className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-stone-50 rounded flex items-center gap-2"
+                className="w-full text-left px-2 py-1.5 text-[12px] hover:bg-muted/40 rounded flex items-center gap-2"
                 onClick={() => toggle(c.id)}
               >
                 <Check className={`h-3.5 w-3.5 shrink-0 ${checked ? 'opacity-100' : 'opacity-0'}`} />
-                <span className={checked ? 'text-stone-900 font-medium' : 'text-stone-700'}>{c.nome}</span>
+                <span className={checked ? 'text-foreground font-medium' : 'text-foreground'}>{c.nome}</span>
               </button>
             );
           })}
@@ -454,7 +454,7 @@ function StatusPill({ s }: { s: LancamentoStatus }) {
     success:     'bg-success-soft text-success-fg border-success/20',
     warning:     'bg-amber-50 text-amber-800 border-amber-200',
     destructive: 'bg-destructive-soft text-destructive-fg border-destructive/20',
-    default:     'bg-stone-50 text-stone-700 border-stone-200',
+    default:     'bg-muted/40 text-foreground border-border',
   }[tone];
   // Dot por status (protótipo aprovado [W] 2026-06-29 screenshot) — cor base por tom,
   // mantendo os fios translúcidos + fundo soft já existentes (refino premium #3391).
@@ -462,7 +462,7 @@ function StatusPill({ s }: { s: LancamentoStatus }) {
     success:     'bg-success',
     warning:     'bg-amber-500',
     destructive: 'bg-destructive',
-    default:     'bg-stone-400',
+    default:     'bg-muted-foreground',
   }[tone];
   return (
     <span className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded border text-[11px] font-medium ${cls}`}>
@@ -759,7 +759,7 @@ function FinVinculosChips({ descricao, nfeNumero }: { descricao: string; nfeNume
   if (nfeNumero) chips.push({ key: `nf-${nfeNumero}`, label: `NFe ${nfeNumero}`, href: `/fiscal/nfe?numero=${nfeNumero}`, Icon: FileText, cls: 'text-muted-foreground' });
   if (chips.length === 0) return null;
   return (
-    <section className="border-t border-stone-100 pt-4">
+    <section className="border-t border-border pt-4">
       <div className="flex items-center gap-2 flex-wrap">
         <span className="w-[22px] h-[22px] rounded-md grid place-items-center bg-primary/10 text-primary shrink-0" aria-hidden><Link2 size={12} /></span>
         <h4 className="text-[12.5px] font-semibold text-foreground mr-1">Vínculos</h4>
@@ -1030,7 +1030,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
     : undefined;
   return (
     <tr
-      className={`${dens.row} ${dens.text} border-b border-stone-100 hover:bg-stone-50/60 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-primary/5' : ''}`}
+      className={`${dens.row} ${dens.text} border-b border-border hover:bg-muted/50 cursor-pointer ${selected ? 'bg-amber-50/40' : ''} ${bulkSelected ? 'bg-primary/5' : ''}`}
       onClick={onSelect}
     >
       {/* Onda 12 (2026-05-20): checkbox bulk-select. stopPropagation pra nao abrir drawer. */}
@@ -1068,8 +1068,8 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       </td>
       {/* PR 4 (Wagner Fase 4 dim 7/8): coluna VENCIMENTO explicita
           formato canon: "dd/mm" + label temporal (paid_at / "ha N dias" / "vencendo"). */}
-      <td className="px-2 text-stone-700 text-[12px] whitespace-nowrap">
-        <div className="font-medium text-stone-900">
+      <td className="px-2 text-foreground text-[12px] whitespace-nowrap">
+        <div className="font-medium text-foreground">
           {(() => {
             const parts = row.vencimento.split('-');
             const dd = parts[2] ?? '01';
@@ -1078,7 +1078,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
           })()}
         </div>
         {row.liquidacao && (
-          <div className="text-[10px] text-stone-500">pago {row.liquidacao}</div>
+          <div className="text-[10px] text-muted-foreground">pago {row.liquidacao}</div>
         )}
         {!row.liquidacao && (row.status === 'atrasado' || row.status === 'vencendo') && (
           <div className={`text-[10px] ${row.status === 'atrasado' ? 'text-destructive' : 'text-amber-600'}`}>
@@ -1087,56 +1087,56 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
         )}
       </td>
       <td className="px-2">
-        <div className="font-medium text-stone-900 truncate max-w-[260px] flex items-center gap-1.5">
+        <div className="font-medium text-foreground truncate max-w-[260px] flex items-center gap-1.5">
           <FinCrossLinkify text={row.descricao} className="truncate" />
           <FinFavPin active={isFav} />
           <FinConferidoBadge rowId={row.id} conferido={conferido} />
           <FinCommentsBadge rowId={row.id} comments={comments} />
         </div>
-        {row.nfe_numero && <div className="text-[11px] text-stone-500">NF-e {row.nfe_numero}</div>}
+        {row.nfe_numero && <div className="text-[11px] text-muted-foreground">NF-e {row.nfe_numero}</div>}
       </td>
-      <td className="px-2 text-stone-700 truncate max-w-[160px]">{row.contraparte}</td>
+      <td className="px-2 text-foreground truncate max-w-[160px]">{row.contraparte}</td>
       {/* Fidelidade protótipo ([W] 2026-06-29): categoria = dot + texto leve, não
           pill pesada. Mantém o hue in/out no dot (verde/âmbar); o scan por kind já
           é redundante com o DirIcon (↘/↗) e a cor do valor. */}
       <td className="px-2 truncate max-w-[140px]">
-        <span className="inline-flex items-center gap-1.5 text-[12px] text-stone-600">
+        <span className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground">
           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isIn ? 'bg-success' : 'bg-amber-500'}`} aria-hidden />
           <span className="truncate">{row.categoria}</span>
         </span>
       </td>
       {/* 2026-06-03: forma de pagamento (ícone + rótulo compacto). */}
-      <td className="px-2 text-[11.5px] text-stone-600 whitespace-nowrap">
+      <td className="px-2 text-[11.5px] text-muted-foreground whitespace-nowrap">
         {(() => {
           const Icon = formaPagamentoIcon(row.forma_pagamento);
-          if (!Icon) return <span className="text-stone-300">—</span>;
+          if (!Icon) return <span className="text-muted-foreground">—</span>;
           return (
             <span className="inline-flex items-center gap-1" title={formaPagamentoLabel(row.forma_pagamento)}>
-              <Icon className="h-3.5 w-3.5 text-stone-400" aria-hidden />
+              <Icon className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
               <span className="truncate max-w-[96px]">{formaPagamentoLabel(row.forma_pagamento)}</span>
             </span>
           );
         })()}
       </td>
       {/* 2026-06-03: conta bancária (da baixa) — compacta com ícone banco. */}
-      <td className="px-2 text-[11.5px] text-stone-600 whitespace-nowrap">
+      <td className="px-2 text-[11.5px] text-muted-foreground whitespace-nowrap">
         {row.conta_bancaria && row.conta_bancaria !== '—' ? (
           <span className="inline-flex items-center gap-1" title={row.conta_bancaria}>
-            <Landmark className="h-3.5 w-3.5 text-stone-400" aria-hidden />
+            <Landmark className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
             <span className="truncate max-w-[120px]">{row.conta_bancaria}</span>
           </span>
         ) : (
-          <span className="text-stone-300">—</span>
+          <span className="text-muted-foreground">—</span>
         )}
       </td>
       {/* 2026-06-04: data da baixa (liquidação) — pedido Wagner. */}
-      <td className="px-2 text-[11.5px] text-stone-600 whitespace-nowrap">
-        {row.liquidacao ? row.liquidacao : <span className="text-stone-300">—</span>}
+      <td className="px-2 text-[11.5px] text-muted-foreground whitespace-nowrap">
+        {row.liquidacao ? row.liquidacao : <span className="text-muted-foreground">—</span>}
       </td>
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><ApprovalPill s={row.aprovacao_status} /></div></td>
       <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-success' : 'text-destructive'}`}>
         {/* FX-4 (print 06-11): zero nunca leva sinal — "−0,00" vira "0,00". */}
-        <span className="text-stone-400 mr-0.5">{Math.abs(row.valor) < 0.005 ? '' : (isIn ? '+' : '−')}</span>{brl(row.valor).replace('R$', '').trim()}
+        <span className="text-muted-foreground mr-0.5">{Math.abs(row.valor) < 0.005 ? '' : (isIn ? '+' : '−')}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>
       <td className="pl-2 pr-4 text-right" onClick={(e) => e.stopPropagation()}>
         {/* Rótulo "Recebi/Paguei" (1ª pessoa + ✓) — fidelidade protótipo [W] 2026-07-06,
@@ -1146,7 +1146,7 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
             <span aria-hidden>✓</span>{' '}{isIn ? 'Recebi' : 'Paguei'}
           </Button>
         ) : (
-          <span className="text-[11px] text-stone-400">{row.liquidacao}</span>
+          <span className="text-[11px] text-muted-foreground">{row.liquidacao}</span>
         )}
       </td>
     </tr>
@@ -1792,7 +1792,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         <CardContent className="p-0">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="text-[10px] uppercase tracking-widest text-stone-500 border-b border-stone-200 bg-stone-50/40">
+              <tr className="text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border bg-muted/30">
                 {/* Onda 12 (2026-05-20): checkbox select-all (referencia: visible rows). */}
                 <th className="pl-4 pr-1 py-2 w-7">
                   <Checkbox
@@ -1828,10 +1828,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 return (
                   <React.Fragment key={key}>
                     {showGroupHeader && (
-                      <tr><td colSpan={12} className="bg-stone-50/70 border-b border-stone-200">
-                        <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-stone-500 font-medium">
+                      <tr><td colSpan={12} className="bg-muted/60 border-b border-border">
+                        <div className="px-4 py-1.5 flex items-center text-[11px] uppercase tracking-widest text-muted-foreground font-medium">
                           <span>{label}</span>
-                          <span className="ml-auto text-stone-400 normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
+                          <span className="ml-auto text-muted-foreground normal-case tracking-normal">{rows.length} {rows.length === 1 ? 'lançamento' : 'lançamentos'}</span>
                         </div>
                       </td></tr>
                     )}
@@ -1854,7 +1854,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               {grupos.length === 0 && (
                 <tr><td colSpan={12} className="py-16">
                   <div className="flex flex-col items-center gap-3 text-center">
-                    <div className="text-sm text-stone-600">
+                    <div className="text-sm text-muted-foreground">
                       {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === ''
                         ? `Nenhum lançamento em ${periodLabel}.`
                         : 'Nenhum lançamento com os filtros atuais.'}
@@ -1871,12 +1871,12 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           </table>
           {/* Onda 13 (2026-05-20): pagination controls (só renderiza se total > per_page) */}
           {pagination && pagination.total > pagination.per_page && (
-            <div className="px-4 py-2 flex items-center justify-between border-t border-stone-200 text-[12px] text-stone-600 bg-stone-50/50">
+            <div className="px-4 py-2 flex items-center justify-between border-t border-border text-[12px] text-muted-foreground bg-muted/40">
               <span>
                 Página <b>{pagination.page}</b> de <b>{pagination.total_pages}</b>
-                <span className="mx-2 text-stone-400">·</span>
+                <span className="mx-2 text-muted-foreground">·</span>
                 <b>{pagination.total}</b> lançamentos total
-                <span className="mx-2 text-stone-400">·</span>
+                <span className="mx-2 text-muted-foreground">·</span>
                 <span>{pagination.per_page} por página</span>
               </span>
               <span className="flex items-center gap-1">
@@ -1942,14 +1942,14 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       'inline-flex items-center justify-center w-5 h-5 rounded-full text-[10px] font-bold ' +
                       (selected.kind === 'receivable'
                         ? 'bg-success-soft text-success-fg border border-success/20'
-                        : 'bg-stone-100 text-stone-700 border border-stone-200')
+                        : 'bg-muted text-foreground border border-border')
                     }
                     aria-hidden
                   >
                     {selected.kind === 'receivable' ? '↑' : '↓'}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <div className="text-[10.5px] uppercase tracking-widest text-stone-500 font-medium flex items-center gap-2">
+                    <div className="text-[10.5px] uppercase tracking-widest text-muted-foreground font-medium flex items-center gap-2">
                       <span className="inline-flex items-center gap-1">
                         {selected.kind === 'receivable' ? 'A receber' : 'A pagar'} ·{' '}
                         <CopyVal text={String(selected.numero || selected.id)}>#{selected.numero || selected.id}</CopyVal>
@@ -2205,53 +2205,53 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                       campos WR ([W] 2026-06-11). Onda 18 grid 2-col canon. */}
                   <div className="fin-kv-card grid grid-cols-2 gap-y-3 gap-x-3">
                     <div>
-                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Contraparte</div>
-                      <div className="mt-0.5 font-medium text-stone-900"><CopyVal text={selected.contraparte}>{selected.contraparte}</CopyVal></div>
-                      {selected.contraparte_doc && <div className="text-[11px] text-stone-500 font-mono">{selected.contraparte_doc}</div>}
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Contraparte</div>
+                      <div className="mt-0.5 font-medium text-foreground"><CopyVal text={selected.contraparte}>{selected.contraparte}</CopyVal></div>
+                      {selected.contraparte_doc && <div className="text-[11px] text-muted-foreground font-mono">{selected.contraparte_doc}</div>}
                     </div>
                     <div>
-                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Categoria</div>
-                      <div className="mt-0.5 text-stone-700"><FinKVCategoriaInline selected={selected} categorias={categorias} /></div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Categoria</div>
+                      <div className="mt-0.5 text-foreground"><FinKVCategoriaInline selected={selected} categorias={categorias} /></div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Canal</div>
-                      <div className="mt-0.5 text-stone-700">{selected.canal || 'manual'}</div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Canal</div>
+                      <div className="mt-0.5 text-foreground">{selected.canal || 'manual'}</div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Documento</div>
-                      <div className="mt-0.5 text-stone-700 font-mono text-[12px]">{selected.documento || '—'}</div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Documento</div>
+                      <div className="mt-0.5 text-foreground font-mono text-[12px]">{selected.documento || '—'}</div>
                     </div>
                     {/* Paridade campos lançamento WR (Fase 1 — 2026-06-03) */}
                     <div>
-                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Emissão</div>
-                      <div className="mt-0.5 text-stone-700">{selected.emissao ? selected.emissao.split('-').reverse().join('/') : '—'}</div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Emissão</div>
+                      <div className="mt-0.5 text-foreground">{selected.emissao ? selected.emissao.split('-').reverse().join('/') : '—'}</div>
                     </div>
                     <div>
-                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Competência</div>
-                      <div className="mt-0.5 text-stone-700">{selected.competencia_mes ? selected.competencia_mes.split('-').reverse().join('/') : '—'}</div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Competência</div>
+                      <div className="mt-0.5 text-foreground">{selected.competencia_mes ? selected.competencia_mes.split('-').reverse().join('/') : '—'}</div>
                     </div>
                     <div className="col-span-2">
-                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Condição de pagamento</div>
-                      <div className="mt-0.5 text-stone-700">{selected.condicao_pagamento || '—'}</div>
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Condição de pagamento</div>
+                      <div className="mt-0.5 text-foreground">{selected.condicao_pagamento || '—'}</div>
                     </div>
                     {/* 2026-06-03: forma de pagamento. Realizada (baixa) vem com hint read-only. */}
                     <div>
-                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Forma de pagamento</div>
-                      <div className="mt-0.5 text-stone-700 flex items-center gap-1.5">
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Forma de pagamento</div>
+                      <div className="mt-0.5 text-foreground flex items-center gap-1.5">
                         {(() => {
                           const Icon = formaPagamentoIcon(selected.forma_pagamento);
-                          return Icon ? <Icon className="h-4 w-4 text-stone-400" aria-hidden /> : null;
+                          return Icon ? <Icon className="h-4 w-4 text-muted-foreground" aria-hidden /> : null;
                         })()}
                         <span>{formaPagamentoLabel(selected.forma_pagamento)}</span>
                         {selected.forma_pagamento_realizada && (
-                          <span className="text-[10px] text-stone-400">· da baixa</span>
+                          <span className="text-[10px] text-muted-foreground">· da baixa</span>
                         )}
                       </div>
                     </div>
                     <div className="col-span-2">
-                      <div className="text-[11px] text-stone-500 uppercase tracking-widest font-medium">Conta</div>
-                      <div className="mt-0.5 text-stone-700 flex items-center gap-1.5">
-                        <Landmark className="h-4 w-4 text-stone-400" aria-hidden />
+                      <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Conta</div>
+                      <div className="mt-0.5 text-foreground flex items-center gap-1.5">
+                        <Landmark className="h-4 w-4 text-muted-foreground" aria-hidden />
                         <CopyVal text={selected.conta_bancaria || '—'}>{selected.conta_bancaria || '—'}</CopyVal>
                       </div>
                     </div>
@@ -2294,7 +2294,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   </div>
 
                   {selected.observacao && (
-                    <div className="rounded-md border border-stone-200 bg-stone-50 p-3 text-[12.5px] text-stone-700">{selected.observacao}</div>
+                    <div className="rounded-md border border-border bg-muted/40 p-3 text-[12.5px] text-foreground">{selected.observacao}</div>
                   )}
 
                   {/* PR-3 F2 (2026-06-10) — Conciliação vira LENTE (ícone primary/10 +
@@ -2412,7 +2412,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     );
                   })()}
 
-                  <div className="border-t border-stone-200 pt-4">
+                  <div className="border-t border-border pt-4">
                     <FinAuditTrail row={{
                       id: selected.id,
                       descricao: selected.descricao,
@@ -2428,14 +2428,14 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     }} />
                   </div>
 
-                  <div className="border-t border-stone-200 pt-4">
+                  <div className="border-t border-border pt-4">
                     <FinCommentsThread rowId={selected.id} comments={comments} />
                   </div>
 
                   {/* Onda 21 (2026-05-19) #55 — Workflow aprovação pra títulos a pagar abertos. */}
                   {selected.kind === 'payable' && (selected.status === 'aberto' || selected.status === 'atrasado' || selected.status === 'vencendo') && (
-                    <div className="border-t border-stone-200 pt-4">
-                      <div className="text-[11px] uppercase tracking-widest text-stone-500 font-medium mb-2">Aprovação</div>
+                    <div className="border-t border-border pt-4">
+                      <div className="text-[11px] uppercase tracking-widest text-muted-foreground font-medium mb-2">Aprovação</div>
                       {!(selected.aprovacao_status) && (
                         <button
                           type="button"
@@ -2477,7 +2477,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                               </button>
                             </>
                           ) : (
-                            <span className="text-[11px] text-stone-500 italic">
+                            <span className="text-[11px] text-muted-foreground italic">
                               Aguardando aprovação de quem tem permissão.
                             </span>
                           )}
@@ -2601,7 +2601,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     />
                   </section>
 
-                  <p className="text-[11.5px] text-stone-500 italic pt-3 mt-3 border-t border-stone-100">
+                  <p className="text-[11.5px] text-muted-foreground italic pt-3 mt-3 border-t border-border">
                     Insights computacionais · pure compute · Fase 2 plugará JanaService LLM
                   </p>
                 </div>
@@ -2640,8 +2640,8 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           <CommandGroup heading="Lançamentos">
             {lancamentos.slice(0, 15).map(l => (
               <CommandItem key={l.id} onSelect={() => { setPaletteOpen(false); setSelectedId(l.id); }}>
-                <span className={l.kind === 'receivable' ? 'text-success mr-2' : 'text-stone-500 mr-2'}>{l.kind === 'receivable' ? '↑' : '↓'}</span>
-                {l.descricao} <span className="ml-auto text-stone-500 tabular-nums">{brl(l.valor)}</span>
+                <span className={l.kind === 'receivable' ? 'text-success mr-2' : 'text-muted-foreground mr-2'}>{l.kind === 'receivable' ? '↑' : '↓'}</span>
+                {l.descricao} <span className="ml-auto text-muted-foreground tabular-nums">{brl(l.valor)}</span>
               </CommandItem>
             ))}
           </CommandGroup>
@@ -2665,7 +2665,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                   <b>{selectedRows.size}</b> selecionado{selectedRows.size === 1 ? '' : 's'}
                   <span className="fin-footer-sep">·</span>
                   {totalIn > 0 && <><span className="text-success"><b>+{brl(totalIn)}</b></span>{totalOut > 0 && <span className="fin-footer-sep">·</span>}</>}
-                  {totalOut > 0 && <span className="text-stone-900"><b>−{brl(totalOut)}</b></span>}
+                  {totalOut > 0 && <span className="text-foreground"><b>−{brl(totalOut)}</b></span>}
                 </span>
               );
             })()}
@@ -2757,7 +2757,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             <SheetTitle>Categorizar em lote</SheetTitle>
           </SheetHeader>
           <div className="px-1 py-4 space-y-4">
-            <div className="text-sm text-stone-600">
+            <div className="text-sm text-muted-foreground">
               Selecione a categoria a aplicar aos <b>{selectedRows.size}</b> lançamento{selectedRows.size === 1 ? '' : 's'} selecionado{selectedRows.size === 1 ? '' : 's'}:
             </div>
             <Select
@@ -2774,7 +2774,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 ))}
               </SelectContent>
             </Select>
-            <div className="flex items-center gap-2 pt-2 border-t border-stone-100">
+            <div className="flex items-center gap-2 pt-2 border-t border-border">
               <Button
                 size="sm"
                 disabled={!bulkCategoriaId || selectedRows.size === 0}
@@ -2797,7 +2797,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             <SheetTitle>Plano de contas em lote</SheetTitle>
           </SheetHeader>
           <div className="px-1 py-4 space-y-4">
-            <div className="text-sm text-stone-600">
+            <div className="text-sm text-muted-foreground">
               Selecione o plano de contas a aplicar aos <b>{selectedRows.size}</b> lançamento{selectedRows.size === 1 ? '' : 's'} selecionado{selectedRows.size === 1 ? '' : 's'}:
             </div>
             <Select
@@ -2814,7 +2814,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 ))}
               </SelectContent>
             </Select>
-            <Inline gap={2} className="pt-2 border-t border-stone-100">
+            <Inline gap={2} className="pt-2 border-t border-border">
               <Button
                 size="sm"
                 disabled={!bulkPlanoId || selectedRows.size === 0}
@@ -2845,18 +2845,18 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             const pulados = selecionados.length - elegiveis.length;
             return (
               <div className="px-1 py-4 space-y-4">
-                <div className="text-sm text-stone-700">
+                <div className="text-sm text-foreground">
                   Você está cancelando <b>{elegiveis.length}</b> título{elegiveis.length === 1 ? '' : 's'} totalizando <b>{brl(totalCancel)}</b>.
                 </div>
                 {pulados > 0 && (
-                  <div className="text-[12px] text-stone-500">
+                  <div className="text-[12px] text-muted-foreground">
                     {pulados} selecionado{pulados === 1 ? '' : 's'} já liquidado{pulados === 1 ? '' : 's'} — será{pulados === 1 ? '' : 'ão'} pulado{pulados === 1 ? '' : 's'} (estorno é outro fluxo).
                   </div>
                 )}
-                <div className="text-[12px] text-stone-500">
+                <div className="text-[12px] text-muted-foreground">
                   O cancelamento é registrado como status (append-only) — o título sai da lista e dos KPIs, e fica visível no filtro Arquivados.
                 </div>
-                <Inline gap={2} className="pt-2 border-t border-stone-100">
+                <Inline gap={2} className="pt-2 border-t border-border">
                   <Button
                     size="sm"
                     variant="destructive"
