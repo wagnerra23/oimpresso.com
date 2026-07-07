@@ -38,18 +38,44 @@ related: [SCREEN-GRADE-METODO.md, framework-15-dimensoes.md]
 | **D5** | **Footer / somatórios** | conteúdo + FORMATO de cada total (labels, ordem, se há linha de saldo/net, formatação BRL) | `textContent` estruturado do footer, campo a campo | "somatório diferente" |
 | **D6** | **Cor / token** | accent (hue), pills (radius/border/saturação), estados | `getComputedStyle` computado (v1 acertou aqui) | — (ok) |
 | **D7** | **Densidade** | row-height, paddings, gaps | computed (v1 parcial) | — (parcial) |
+| **D8** | **Alinhamento** 🆕 | `text-align`/`justify`/`align-items` do conteúdo do card (label, valor, %) **+ a TAG** (`<button>` herda `text-align:center` do navegador × `<div>` é left) | `getComputedStyle().textAlign` de cada KPI/card nos dois lados **e** comparar `tagName` (a tag explica a causa) | **center×left dos 5 KPI** — v2 (07/07) dispensou dizendo "estruturalmente igual"; o Wagner usou o alinhamento como canário |
 
 ⭐ **D1 é a mais importante e a mais barata de esquecer.** Um "print igual" pode esconder um
 full-reload. Comportamento **antes** de pixel.
+🆕 **D8 é o buraco que o strike 2 (07/07) expôs** — alinhamento não era dimensão nenhuma. `<button>` centraliza por default do UA; se o CSS não reseta, o KPI centraliza sem ninguém pedir.
+
+## Mecanização — `prototipo-ui/design-diff.mjs` (a defesa do strike 2, LC-06)
+
+> **Por que (Wagner 2026-07-07):** este protocolo em prosa não impediu o agente de comparar
+> no olho — repetiu a classe de erro. Pela regra two-strikes (`LICOES_CODE` LC-06), strike 2
+> vira **defesa mecânica**. `design-diff.mjs` é o `/design-diff` previsto na [ADR 0299](../../decisions/0299-figma-nao-e-fonte-de-design.md):
+> o veredito das dimensões medíveis (D2/D4/D6/D8) vem de um **diff computado**, não do olho.
+
+- **Split** (igual ao `cowork-mirror-freshness`): `--probe` imprime a sonda JS CANÔNICA → o agente
+  injeta ela **igual nos dois lados** via Chrome MCP (`window.__DD_ROLES` mapeia os seletores do
+  papel — as classes diferem, `.fin-stat` prod × `.os-stat` design, o PAPEL é o mesmo) → dois
+  snapshots medidos → `--compare prod.json design.json --check` (exit 1 se DIVERGE(bug)).
+- **`--selftest`** (no CI, design-memory-gate) trava um fixture hermético que **reproduz o
+  incidente 07/07** (center×left + button×div + overflow + roxo escuro×roxinho + texto dark
+  invisível) — se o comparador parar de pegar isso, o CI quebra.
+- **Honestidade:** cobre só as dimensões de **computed-style puro** (D2/D4/D6/D8). D1 (rede),
+  D3 (ícones), D5 (footer) seguem passos do agente abaixo — o tool **mecaniza** a parte medível,
+  **não substitui** o protocolo. A comparação é dispatch do agente (browser + design vivo), não
+  gate de PR (CI não renderiza — mesma limitação de plataforma do mirror-freshness).
 
 ## Procedimento (passo a passo)
 
 0. **Provar frescor da fonte** — `node scripts/governance/cowork-mirror-freshness.mjs --compare <snap>`
-   pro arquivo da tela; `STALE` ⇒ re-exportar do Cowork ANTES de comparar. (Sem isso, você compara
-   contra design velho — o erro do v1.)
+   pro arquivo da tela **E pras DEPS DE RENDER dela** (`--manifest` v3 já enumera: âncoras + o que
+   o shell carrega — `app.jsx`, `styles.css`, `ds-v6/tokens.css`, css do módulo); `STALE` ⇒
+   re-exportar do Cowork ANTES de comparar. (Sem isso, você compara contra design velho — o erro
+   do v1; e SÓ âncora é cego pro drift de infra — o furo LC-07 por onde o PageHeader roxo do [W]
+   passou em 2026-07-07: rodada "3 SYNC" verde com `app.jsx` STALE.)
 1. **Abrir os DOIS** — prod (Chrome logado) + o Cowork vivo (mesma tela, mesmo tema — o tema é
    escolha do Wagner; comparar no MESMO tema).
-2. **Rodar a MESMA sonda D1–D7** nos dois → JSON estruturado por dimensão.
+2. **Rodar a MESMA sonda D1–D8** nos dois → JSON estruturado por dimensão. Para D2/D4/D6/D8, use
+   a sonda de `node prototipo-ui/design-diff.mjs --probe` (idêntica nos dois lados) → `--compare`
+   dá o veredito MEDIDO. **Nunca** conclua "igual" por screenshot — o print não distingue center×left.
 3. **D1 sempre**: clicar 1 filtro em prod, `read_network_requests`, classificar (partial vs full).
    Ler `aplicar()`/controller pra confirmar `only:` + `defer`.
 4. **Diff por dimensão** → tabela `dimensão | prod | proto | veredito {IGUAL / DIVERGE (bug) /

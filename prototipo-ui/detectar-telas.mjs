@@ -115,10 +115,17 @@ function extractMockupFiles(text) {
 }
 // frontmatter() — ver _lib-charter.mjs (importado acima, fonte única)
 
-// módulo declarado pelo PRÓPRIO arquivo no header `// @memcofre ... module: X` (desambigua format-2)
+// módulo declarado pelo PRÓPRIO arquivo no header @memcofre (desambigua format-2).
+// O bundle usa DUAS convenções coexistentes (2026-07-07, teste de protocolo Financeiro):
+//   multi-linha:  `//   module: Financeiro`       (10 arquivos)
+//   linha-única:  `// @memcofre tela=… module=Financeiro status=…`  (8 arquivos)
+// O regex antigo só via `module:` logo após `//` → os 8 com `module=` no meio da linha
+// caíam em null → Caixa/Index.tsx (2 alvos Financeiro/Caixa + Sells/Caixa) virava falso
+// AMBIGUO e derrubava o gate inteiro (exit 1). Aceita `:` OU `=`, module em qualquer
+// ponto de uma linha de comentário `//`, e para o valor no 1º não-word (não engole `status=`).
 export function memcofreModule(src) {
   if (!src) return null;
-  const m = src.match(/\/\/\s*module:\s*(\S+)/i);
+  const m = src.match(/\/\/[^\n]*\bmodule\s*[:=]\s*([A-Za-z][\w-]*)/i);
   return m ? m[1].toLowerCase() : null;
 }
 
@@ -346,8 +353,10 @@ async function selftest() {
   if (!guardOk) console.log('  [FAIL] guard A-CRIAR×dir-vivo (acriarStem/liveDirNames) quebrado');
   // desambiguação por @memcofre (format-2 ambíguo resolve pelo módulo declarado no arquivo)
   const mcOk = memcofreModule('// @memcofre\n//   tela: /financeiro\n//   module: Financeiro\n') === 'financeiro'
+            // linha-única `module=` seguido de `status=` (Caixa/Categorias/… — 8 arquivos do bundle)
+            && memcofreModule('// @memcofre tela=/financeiro/caixa module=Financeiro status=x\n') === 'financeiro'
             && memcofreModule('sem header') === null;
-  if (!mcOk) console.log('  [FAIL] memcofreModule deveria extrair o module: do header @memcofre');
+  if (!mcOk) console.log('  [FAIL] memcofreModule deveria extrair module de `:` E `=` (Caixa era falso AMBIGUO)');
   let fails = (isACriar('forja-page.jsx') ? 0 : 1) + (isACriar('mistero-page.jsx') ? 1 : 0) + (mcOk ? 0 : 1)
             + (finOutOfACriar ? 0 : 1) + (finSemAlias ? 0 : 1) + (guardOk ? 0 : 1);
   for (const [label, row, exp] of checks) {

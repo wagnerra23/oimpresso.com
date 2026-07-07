@@ -44,7 +44,7 @@ Quando duas memórias divergem, vence nesta ordem:
 
 ### 0.2 · OS PROJETOS COWORK REAIS (resolvido 2026-07-06 — pra NÃO errar de novo)
 
-> Wagner não usa Figma; usa **Claude Design (Cowork)**. O `oimpresso.com` MCP-conector Figma que aparece "conectado" é **irrelevante** pro fluxo dele. A fonte viva é o Cowork, lido pela integração `DesignSync` (ferramenta nativa do Code, após `/design-login` UMA vez no terminal CLI — a autorização fica salva na máquina).
+> Wagner não usa Figma; usa **Claude Design (Cowork)**. O `oimpresso.com` MCP-conector Figma que aparece "conectado" é **irrelevante** pro fluxo dele. A fonte viva é o Cowork, lido pela integração `DesignSync` (ferramenta nativa do Code, após `/design-login` UMA vez no terminal CLI — a autorização fica salva na máquina). **A leitura DesignSync é também TRANSPORTE de import** ([ADR 0325](../../decisions/0325-import-prototipo-designsync-pull-direto.md), Wagner 2026-07-07 "acesso direto e não precisa de browser"): mudança escopada = `get_file` direto → staging fixo (Fase −1-PULL do `aplicar-prototipo`); ZIP fica pra bundle cheio.
 
 **São DOIS projetos Cowork de nomes parecidos — a confusão de hoje veio de tratar um pelo outro:**
 
