@@ -1687,12 +1687,19 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
               os dd/mm. Frontend-only — apenas seta data_inicio/fim (mesmo filtro de
               intervalo de antes; backend + KPIs já o seguem). "Mês" = mês atual
               reproduz o total default (periodo=mes_atual) — âncora da dual-confirmação. */}
-          <FinPeriodBar
-            dataInicio={filters.data_inicio}
-            dataFim={filters.data_fim}
-            count={pagination?.total ?? lancamentos.length}
-            onChange={(ini, fim) => aplicar({ data_inicio: ini, data_fim: fim })}
-          />
+          {/* ml-auto empurra o grupo de período pra DIREITA — fidelidade ao protótipo
+              (medido 2026-07-08 [W]: proto right-justify, folga 37px na direita; prod estava
+              left-packed, 1283px de vão vazio). O `.fin-filter-group` é flex-wrap, então em
+              1280px (Larissa) quebra pra linha própria em vez de espremer. Wrapper, não dentro
+              do FinPeriodBar (componente reusado cross-módulo). */}
+          <div className="ml-auto">
+            <FinPeriodBar
+              dataInicio={filters.data_inicio}
+              dataFim={filters.data_fim}
+              count={pagination?.total ?? lancamentos.length}
+              onChange={(ini, fim) => aplicar({ data_inicio: ini, data_fim: fim })}
+            />
+          </div>
         </div>
       </div>
 
