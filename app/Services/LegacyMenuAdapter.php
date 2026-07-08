@@ -389,6 +389,8 @@ class LegacyMenuAdapter
             // remonta o AppShell — perde o estado (filtros, accordion, sheet aberta).
             // Ver memory/claude/preference_persistent_layouts.md.
             '/financeiro',
+            // Modo Suporte (ADR 0305/0309) — telas React Suporte/Empresas + Suporte/Visao.
+            '/suporte',
             // Adicione aqui conforme migrar telas.
         ];
         // Dashboard do Ponto é `/ponto` exato (não prefixo) — o startsWith pegaria
