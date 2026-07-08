@@ -11,6 +11,12 @@
     }
   },
   "workflows": {
+    "screen-smoke-after-merge.yml": {
+      "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via browser MCP no CT 100; dispara por workflow_run após deploy.yml; filtra telas + navegação; self-disabling por `if:` até a infra ser provisionada)",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "sinal de custo: ADR 0164 §9.4 (pendência nunca feita — a skill tela-smoke-pos-merge referenciava ESTE workflow inexistente, então o smoke visual dependia de um humano-no-loop) + gap PR #3945 (item de menu 'Suporte' não é uma tela → mudança de navegação não disparava smoke) + feedback-deploy-smoke-browser-obrigatorio §6 INCONDICIONAL (Wagner 2026-07-08: 'nemme pergunte mais isso é sempre sim automatize isso'). Browser MCP isolado no CT 100 (ADR 0164 §3 + ADR 0062 Hostinger≠CT100). NUNCA required (roda pós-deploy, não valida PR); nunca cria task/merge sem HITL (único HITL = merge R10 + login)."
+    },
     "screen-grades-ratchet.yml": {
       "nome": "Screen grades ratchet (nota 16-dim de tela não desce vs origin/main · advisory · robusto contra burla do baseline_anterior)",
       "classe": "gate",
