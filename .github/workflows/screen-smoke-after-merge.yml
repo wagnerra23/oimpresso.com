@@ -44,11 +44,17 @@ name: Screen Smoke After Merge
 #     (só claude-in-chrome + Read/Write/Edit). Sem shell, a superfície de #2/#3
 #     não vira exfiltração de segredo mesmo se a injeção passar.
 #
+# ── LOOP PDCA (Act) — #5 RESOLVIDO (persist via PR, least-privilege) ────────
+#   O job `smoke` fica `contents: read` (não commita — least-privilege, ADR 0164
+#   §7/ALTO 4). Um job `persist` SEPARADO (ubuntu, sem LLM/browser, sem superfície
+#   de injeção) baixa os `.md` do artifact e abre um PR `screen-smoke/review-<run>`
+#   com o round N do `<Tela>.review.md`/`smoke-log.md`/`UI-CATALOG.md` (screenshots
+#   NÃO vão pro git — ficam no artifact; o review.md os referencia). O MERGE desse
+#   PR pelo Wagner = a decisão Act (ele edita `decisão: approved|rejected|iterate`
+#   no round). Como os rounds mergeados voltam pra main, o próximo smoke já herda
+#   os anteriores → append-only REAL (conserta o "sempre round 1"). ADR 0164 §2.2/§2.4.
+#
 # ── RESIDUAIS CONHECIDOS (pendências Wagner — NÃO resolver antes de ligar) ───
-#   • #5 loop PDCA (Act): este workflow tem `contents: read` e NÃO commita. O
-#     `<Tela>.review.md` só vive no runner + artifact (30d) → não chega ao git
-#     canon e "append round N" reinicia a cada run. Decisão de design pendente
-#     (job/PR separado que commita o round, vs a skill abrir PR). Ver ADR 0164 §2.2.
 #   • #8 credencial/PII: o item Vaultwarden TEM que ser conta biz=99 FAKE (não a
 #     conta do Wagner/biz=1) — senão screenshots capturam dados reais + VALORES R$
 #     (o auto-mask cobre CPF/CNPJ/email/telefone, NÃO razão social nem BRL) e o
@@ -281,3 +287,94 @@ jobs:
             resources/js/Pages/**/*.smoke-log.md
           if-no-files-found: ignore
           retention-days: 30
+
+  # ── JOB 3: PERSIST — #5 loop Act: leva o review.md pro git canon via PR ──────
+  # Separado do smoke DE PROPÓSITO (least-privilege): roda em ubuntu, é git/gh
+  # determinístico (sem LLM, sem browser, sem prompt → sem superfície de injeção),
+  # e é o ÚNICO com `contents: write`. Abre um PR com o round; o merge do Wagner
+  # é a decisão Act (ADR 0164 §2.4). Fail-soft: qualquer pré-condição ausente = exit 0.
+  persist:
+    name: Persistir review.md via PR (loop Act — Wagner decide)
+    needs: [detect, smoke]
+    # Roda se o smoke EXECUTOU (sucesso ou falha — a review.md documenta os dois);
+    # pula se o smoke foi skipped (infra desligada) ou cancelado.
+    if: always() && (needs.smoke.result == 'success' || needs.smoke.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+
+      - name: Baixar artefatos do smoke (tolerante a ausência)
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: screen-smoke-${{ github.run_id }}
+          path: _smoke_artifacts
+
+      - name: Aplicar .md de review no canon + abrir PR do round
+        env:
+          # PAT (não GITHUB_TOKEN): PR criado por GITHUB_TOKEN não dispara CI, e com
+          # branch protection + checks required o PR ficaria sem checks (immergeável).
+          # COWORK_BOT_PAT faz o PR rodar CI normal. Ausente → fail-soft (só warn).
+          BOT_PAT: ${{ secrets.COWORK_BOT_PAT }}
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
+          RUN_ID: ${{ github.run_id }}
+          SCREENS: ${{ needs.detect.outputs.screens }}
+        run: |
+          set -uo pipefail
+
+          if [ ! -d _smoke_artifacts ]; then
+            echo "→ smoke não gerou artefato (sem review.md) — nada a persistir."
+            exit 0
+          fi
+
+          # Copiar SÓ os .md (review/smoke-log/UI-CATALOG) de volta pros paths canon.
+          # Screenshots (.png) NÃO vão pro git — ficam no artifact; o review.md os referencia.
+          FOUND=0
+          while IFS= read -r f; do
+            rel="${f#_smoke_artifacts/}"
+            case "$rel" in
+              resources/js/Pages/*.review.md|resources/js/Pages/*.smoke-log.md|resources/js/Pages/*/UI-CATALOG.md)
+                mkdir -p "$(dirname "$rel")"
+                cp "$f" "$rel"
+                FOUND=1
+                ;;
+            esac
+          done < <(find _smoke_artifacts -type f -name '*.md')
+          rm -rf _smoke_artifacts
+
+          if [ "$FOUND" = "0" ]; then
+            echo "→ nenhum .md de review no artifact — nada a persistir."
+            exit 0
+          fi
+          if git diff --quiet -- resources/js/Pages; then
+            echo "→ review.md idêntico ao canon — nada a commitar."
+            exit 0
+          fi
+          if [ -z "${BOT_PAT:-}" ]; then
+            echo "::warning title=review.md não persistido::COWORK_BOT_PAT ausente — não abri o PR de review. O round ficou só no artifact screen-smoke-${RUN_ID} (30d). Ver ADR 0164 §2.4."
+            exit 0
+          fi
+
+          BR="screen-smoke/review-${RUN_ID}"
+          git config user.name "oimpresso-ci"
+          git config user.email "ci@oimpresso.com"
+          git remote set-url origin "https://x-access-token:${BOT_PAT}@github.com/${GITHUB_REPOSITORY}.git"
+          git checkout -b "$BR"
+          git add -A -- resources/js/Pages
+          git commit -m "docs(screen-review): round de smoke pós-deploy — ${SCREENS} [smoke]" \
+                     -m "Fase C→A do PDCA (ADR 0164). review.md/smoke-log.md gerados pelo smoke automático. Screenshots no artifact screen-smoke-${RUN_ID}. Wagner (Act): edite 'decisão: approved|rejected|iterate' no round e mergeie."
+          git push -u origin "$BR"
+          gh pr create --base main --head "$BR" \
+            --title "docs(screen-review): round smoke — ${SCREENS} [smoke]" \
+            --body "Round de smoke visual pós-deploy (ADR 0164 fase C→A). Screenshots: artifact \`screen-smoke-${RUN_ID}\` deste run.
+
+          **Wagner (Act):** edite o round no \`<Tela>.review.md\` com \`decisão: approved | rejected | iterate\` e mergeie. Merge = decisão registrada no canon; o próximo smoke herda este round (append-only real)." \
+          || echo "::warning::gh pr create falhou (talvez PR já exista pra este run) — ver logs."
