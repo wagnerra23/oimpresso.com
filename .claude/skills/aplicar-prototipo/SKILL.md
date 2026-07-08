@@ -31,3 +31,4 @@ Nunca aplicar às cegas: **mapa read-only primeiro**.
 
 ## Pareada com
 - `cowork-prototype-replication` (mecânica F0–F7 de UMA tela) · `mwart-process` (5 fases backend→cutover) · `coordenador-paralelo` (spawna as sessões limpas) · `anchor-lint` (fecha a fidelidade da SPEC).
+- **Gate de fidelidade proto×prod (medição) na Fase 4:** [`prototipo-ui/RUNBOOK-fidelidade-fingerprint.md`](../../prototipo-ui/RUNBOOK-fidelidade-fingerprint.md) — loop 0→6 (âncora via `ancora.mjs` → renderiza → `--snippet <tela>` → captura proto×prod → `--compare --tela` com **trava fail-closed**). Responde "o que apliquei bate com o design?" contra a fonte CERTA (mata a âncora podre, incidente 07-06/07-08).
