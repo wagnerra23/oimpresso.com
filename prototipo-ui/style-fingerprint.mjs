@@ -141,6 +141,22 @@ export function comparar(fpA, fpB) {
   return { rows, tally, temaA: fpA.tema, temaB: fpB.tema };
 }
 
+// resumoCampos — HISTOGRAMA de qual PROPRIEDADE diverge mais entre os DIVERGE. É a
+// diferença entre a máquina cuspir 57 linhas cruas e a máquina DIZER "borda e superfície
+// são o erro dominante (56/57)". Sem isso o humano conta na mão (2026-07-08 [W]: "quero
+// a máquina pegar o erro"). Devolve [[campo, nº de elementos que divergem nele], ...] desc.
+export function resumoCampos(rows) {
+  const freq = {};
+  for (const r of rows) {
+    if (r.veredito !== 'DIVERGE') continue;
+    for (const c of r.campos) {
+      const campo = String(c).split(':')[0].trim();
+      if (campo) freq[campo] = (freq[campo] || 0) + 1;
+    }
+  }
+  return Object.entries(freq).sort((a, b) => b[1] - a[1]);
+}
+
 // ── snippet auto-contido (roda DENTRO da página; espelho do vetor CAMPOS) ──────
 const SNIPPET = String.raw`
 (() => {
@@ -270,6 +286,13 @@ function selftest() {
   // xnorm, não virar IDENTICO mentiroso (2026-07-08 [W] "por que o protocolo não pegou?").
   proto.elementos.push(mk({ texto: 'Dia', xnorm: 0.85 }));
   prod.elementos.push(mk({ texto: 'Dia', xnorm: 0.34 }));
+  // resumoCampos: 3 elementos divergindo SÓ em borderColor (warm 282 → frio 240) → a máquina
+  // tem que NOMEAR 'borderColor' como o campo dominante, sem o humano contar (2026-07-08 [W]
+  // "quero a máquina pegar o erro"). Espelha o caso real: 56/57 divergem em borda+superfície.
+  for (const t of ['B1', 'B2', 'B3']) {
+    proto.elementos.push(mk({ texto: t, borderColor: 'oklch(0.335 0.012 282)' }));
+    prod.elementos.push(mk({ texto: t, borderColor: 'oklch(0.28 0.008 240)' }));
+  }
   // furo 1 (divisórias/bordas sem texto): a linha neutra é igual; a divisória de accent é
   // roxo BRILHANTE 0.7 no proto e vira FRIA 240 na prod → o inventário mostra SO_PROTO +
   // SO_PROD (o "constar tudo" que o vetor de texto nunca via). 2026-07-08 [W].
@@ -318,6 +341,11 @@ function selftest() {
   const temXnorm = f6?.campos.some((c) => c.startsWith('xnorm:'));
   console.log(`  [${temXnorm ? 'PASS' : 'FAIL'}] furo 6: xnorm listado no diff (posição capturada)`);
   if (!temXnorm) fails++;
+  // resumoCampos: a MÁQUINA nomeia o campo dominante (borderColor, 3 elementos) sem contar na mão.
+  const rc = resumoCampos(rows);
+  const dominante = rc[0] && rc[0][0] === 'borderColor' && rc[0][1] === 3;
+  console.log(`  [${dominante ? 'PASS' : 'FAIL'}] resumoCampos aponta campo dominante (${rc[0] ? rc[0].join('=') : '—'})`);
+  if (!dominante) fails++;
 
   // agruparLinhas — o fix do falso-positivo (dogfood [W] 2026-07-07). Rects PLANTADOS:
   //  A) botão real ícone+texto de 1 linha: SVG top=100 h=16 + texto top=101 h=18 (jitter
@@ -362,6 +390,16 @@ else if (argv.includes('--snippet')) {
       for (const c of r.campos) console.log(`      ${c}`);
     }
     console.log('\n  resumo: ' + Object.entries(tally).map(([k, v]) => `${k}=${v}`).join(' · '));
+    // A máquina NOMEIA o padrão dominante — qual propriedade erra na maioria dos elementos.
+    const rc = resumoCampos(rows);
+    const totalDiv = tally.DIVERGE || 0;
+    if (rc.length && totalDiv) {
+      console.log('\n  padrão dominante (campo · elementos que divergem nele):');
+      for (const [campo, n] of rc.slice(0, 8)) {
+        const sist = n >= totalDiv * 0.7 ? '  ⚠ SISTEMÁTICO' : '';
+        console.log(`      ${campo.padEnd(12)} ${n}/${totalDiv}${sist}`);
+      }
+    }
   }
   process.exit((tally.DIVERGE || 0) > 0 ? 1 : 0);
 } else {
