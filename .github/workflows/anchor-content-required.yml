@@ -1,0 +1,37 @@
+# Âncora de design — checagem de CONTEÚDO, agora REQUIRED (F2/F6 da revisão adversarial 2026-07-08).
+#
+# Por que existe: o `anchor-content-check.mjs` (sentinela criado 2026-07-06 após a âncora podre)
+# rodava só ADVISORY (continue-on-error, dentro do design-memory-gate) → uma âncora podre
+# (related_prototype = SHELL do app / arquivo MISSING) mergeava VERDE. Reincidiu 07-06→07-08.
+# "Presença ≠ correção" (L-24): o selftest prova que a MÁQUINA está sã, nunca que o merge é limpo.
+#
+# Esta é a MÁQUINA (determinística, headless, zero-LLM) promovida a required — a lição do dia:
+# quando a superfície do erro é não-hookável, o enforcement vive na máquina que produz o artefato
+# E ESSA MÁQUINA PRECISA SER REQUIRED, senão continua sendo lembrança.
+#
+# Exceção consciente à "required = só Tier-0" da ADR 0314 (proposta) — Wagner autorizou explícito
+# ("resolva todos, eu autorizo", 2026-07-08). Emenda: memory/decisions/proposals/anchor-content-required-emenda-0314.md
+#
+# Escopo do gate: falha o merge só em MISSING/SHELL (o sinal DURO, sem falso-positivo). NO-MODULE
+# segue warn (nomenclatura). Verde no main na promoção (6 âncoras, 0 podre).
+name: Anchor content (design ancora, required)
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  anchor-content:
+    name: Ancora de design nao-shell (F2/F6 required)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # self-test PRIMEIRO — prova que a sentinela morde/libera certo (sem máscara).
+      - name: self-test da sentinela (bloqueia se o gate mentir)
+        run: node scripts/governance/anchor-content-check.test.mjs
+      # o gate DURO — exit 1 se qualquer related_prototype for MISSING ou SHELL.
+      - name: anchor-content-check --check (MISSING/SHELL falha o merge)
+        run: node scripts/governance/anchor-content-check.mjs --check
