@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-07-07"
+last_run: "2026-07-08"
 ---
 
 # Casos de Uso & Aceite — Financeiro Unificado
