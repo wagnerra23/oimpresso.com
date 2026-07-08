@@ -17,18 +17,21 @@
 //         (console do browser, extensão MCP, playwright evaluate). Saída: JSON fingerprint.
 //         Rodar 1x por tema (a página deve estar no tema desejado; passar o nome no arg).
 //   node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json [--json]
-//       → casa elementos por (texto normalizado + tag) e compara campo a campo.
-//         Vereditos: IDENTICO · DIVERGE(campos) · SO_PROTO · SO_PROD. Exit 1 se DIVERGE>0.
+//       → casa elementos por (texto normalizado + tag) E divisórias por inventário, e
+//         compara campo a campo. Vereditos: IDENTICO · DIVERGE(campos) · SO_PROTO · SO_PROD.
 //   node prototipo-ui/style-fingerprint.mjs --selftest
 //       → fixtures herméticas inline com divergências PLANTADAS (2-linhas, cor, radius,
-//         só-de-um-lado) — prova o comparador pelos DOIS lados (L-31) antes do uso real.
+//         só-de-um-lado, glifo de header, divisória recolorida) — prova pelos DOIS lados (L-31).
 //
-// MATCHING (v1, honesto sobre limites): DOMs de protótipo e produção DIVERGEM em estrutura
-// e classes — matching posicional/por-classe não existe. Casamos por TEXTO VISÍVEL
-// normalizado + tag, cobrindo o que interessa à fidelidade (labels, botões, pills, títulos,
-// headers de coluna). Elementos sem texto (ícones puros, sparklines) ficam FORA do v1 —
-// registrado como limite, não silêncio: o resumo imprime quantos elementos cada lado tem
-// fora do matching. Texto DINÂMICO (valores R$, datas) é normalizado pra placeholder.
+// MATCHING (v2, honesto sobre limites): DOMs de protótipo e produção DIVERGEM em estrutura
+// e classes — matching posicional/por-classe não existe. DUAS passadas:
+//  (1) ELEMENTOS COM TEXTO — casados por TEXTO VISÍVEL normalizado + tag (glifos de
+//      ordenação ⇅ e afins são strippados: furo 2, 2026-07-08). Cobre labels/botões/pills/
+//      títulos/headers de coluna. Texto DINÂMICO (R$, datas) vira placeholder.
+//  (2) DIVISÓRIAS/BORDAS SEM TEXTO — 2ª passada estrutural (furo 1, 2026-07-08 [W]
+//      "deveria constar tudo"): toda borda visível vira entrada, casada por INVENTÁRIO
+//      (lado+cor+espessura+span). Linha/régua/divisória agora CONSTAM (antes eram invisíveis).
+// Ainda FORA: ícones puros/sparklines sem borda nem texto (matching sem âncora — declarado).
 
 import { readFileSync } from 'node:fs';
 
@@ -100,6 +103,21 @@ export function diffElemento(a, b) {
   return campos;
 }
 
+// furo 1 — divisórias/bordas: chave de INVENTÁRIO (lado+cor+espessura+span), sem posição.
+export function chaveDiv(d) { return 'DIV ' + d.side + '|' + d.color + '|' + d.w + '|span' + d.span; }
+
+// Compara os inventários de divisória: matched = IDENTICO; presente só de um lado = SO_*.
+// Uma divisória recolorida (ex.: warm 282 → frio 240) aparece como SO_PROTO + SO_PROD —
+// é assim que o furo 1 faz o protocolo "constar" a linha que o vetor de texto não via.
+export function compararDivisorias(divA = [], divB = []) {
+  const mapA = new Map((divA || []).map((d) => [chaveDiv(d), d]));
+  const mapB = new Map((divB || []).map((d) => [chaveDiv(d), d]));
+  const rows = [];
+  for (const [k, a] of mapA) rows.push({ chave: k, veredito: mapB.has(k) ? 'IDENTICO' : 'SO_PROTO', campos: [], banda: a.banda });
+  for (const [k, b] of mapB) if (!mapA.has(k)) rows.push({ chave: k, veredito: 'SO_PROD', campos: [], banda: b.banda });
+  return rows;
+}
+
 export function comparar(fpA, fpB) {
   const mapA = new Map(fpA.elementos.map((e) => [chave(e), e]));
   const mapB = new Map(fpB.elementos.map((e) => [chave(e), e]));
@@ -111,6 +129,8 @@ export function comparar(fpA, fpB) {
     rows.push({ chave: k, veredito: campos.length ? 'DIVERGE' : 'IDENTICO', campos });
   }
   for (const [k] of mapB) if (!mapA.has(k)) rows.push({ chave: k, veredito: 'SO_PROD', campos: [] });
+  // furo 1 — anexa o diff de divisórias (bordas/linhas sem texto) ao mesmo relatório.
+  rows.push(...compararDivisorias(fpA.divisorias, fpB.divisorias));
   rows.sort((x, y) => x.veredito.localeCompare(y.veredito) || x.chave.localeCompare(y.chave));
   const tally = {};
   for (const r of rows) tally[r.veredito] = (tally[r.veredito] || 0) + 1;
@@ -180,7 +200,32 @@ const SNIPPET = String.raw`
     vistos.add(k);
     elementos.push(item);
   }
-  return JSON.stringify({ tema: TEMA, url: location.pathname, elementos }, null, 1);
+  // ── 2ª passada — DIVISÓRIAS/BORDAS (furo 1: o vetor de texto NÃO vê linha/borda/régua).
+  // Varre TODA borda visível (>=0.4px, cor não-transparente) e a inventaria por
+  // lado + cor + espessura + span (bucket 20px). Chave = inventário (NÃO posição): robusto
+  // a drift de layout. Uma divisória que muda de cor aparece como SO_PROTO(cor velha) +
+  // SO_PROD(cor nova) — o olho vê o delta. 'banda' fica só como contexto de onde está.
+  const transpD = (c) => !c || c === 'rgba(0, 0, 0, 0)' || c === 'transparent';
+  const divisorias = [];
+  const vistosD = new Set();
+  for (const el of document.querySelectorAll('*')) {
+    const r = el.getBoundingClientRect();
+    if (r.width < 40 || r.height > 500 || !vis(el)) continue;
+    const dc = getComputedStyle(el);
+    for (const side of ['Top', 'Bottom', 'Left', 'Right']) {
+      const w = parseFloat(dc['border' + side + 'Width']) || 0;
+      const col = dc['border' + side + 'Color'];
+      if (w < 0.4 || transpD(col)) continue;
+      const isH = side === 'Top' || side === 'Bottom';
+      const pos = side === 'Top' ? r.top : side === 'Bottom' ? r.bottom : side === 'Left' ? r.left : r.right;
+      const item = { side, w: Math.round(w * 100) / 100, color: col, span: Math.round((isH ? r.width : r.height) / 20) * 20, banda: Math.round(pos) };
+      const k = side + '|' + col + '|' + item.w + '|' + item.span;
+      if (vistosD.has(k)) continue;
+      vistosD.add(k);
+      divisorias.push(item);
+    }
+  }
+  return JSON.stringify({ tema: TEMA, url: location.pathname, elementos, divisorias }, null, 1);
 })()`;
 
 // ── selftest hermético (comparador provado pelos dois lados — L-31) ────────────
@@ -212,6 +257,17 @@ function selftest() {
   // sem o strip iam pra SO_PROTO/SO_PROD e o diff de tamanho sumia (2026-07-08 [W]).
   proto.elementos.push(mk({ tag: 'th', texto: 'Vencimento', fontSize: '10.5px' }));
   prod.elementos.push(mk({ tag: 'th', texto: 'Vencimento⇅', fontSize: '10px' }));
+  // furo 1 (divisórias/bordas sem texto): a linha neutra é igual; a divisória de accent é
+  // roxo BRILHANTE 0.7 no proto e vira FRIA 240 na prod → o inventário mostra SO_PROTO +
+  // SO_PROD (o "constar tudo" que o vetor de texto nunca via). 2026-07-08 [W].
+  proto.divisorias = [
+    { side: 'Bottom', w: 1, color: 'oklch(0.335 0.012 282)', span: 1200, banda: 150 }, // neutra warm — igual dos 2 lados
+    { side: 'Bottom', w: 1, color: 'oklch(0.7 0.15 295)',   span: 100,  banda: 200 }, // accent roxo brilhante — só proto
+  ];
+  prod.divisorias = [
+    { side: 'Bottom', w: 1, color: 'oklch(0.335 0.012 282)', span: 1200, banda: 150 }, // neutra warm — idem
+    { side: 'Bottom', w: 1, color: 'oklch(0.28 0.008 240)',  span: 100,  banda: 200 }, // frio 240 — só prod (warm-miss)
+  ];
 
   const { rows, tally } = comparar(proto, prod);
   const by = (t) => rows.find((r) => r.chave.includes(t));
@@ -223,6 +279,9 @@ function selftest() {
     ['só-proto não some',             by('Ver todo o período')?.veredito, 'SO_PROTO'],
     ['só-prod não some',              by('Resolver')?.veredito, 'SO_PROD'],
     ['header glifo ⇅ pareia (furo 2)', by('Vencimento')?.veredito, 'DIVERGE'],
+    ['divisória neutra idêntica (furo 1)', by('DIV Bottom|oklch(0.335 0.012 282)')?.veredito, 'IDENTICO'],
+    ['divisória accent 0.7 só-proto (furo 1)', by('oklch(0.7 0.15 295)|1|span100')?.veredito, 'SO_PROTO'],
+    ['divisória fria 240 só-prod = o miss (furo 1)', by('oklch(0.28 0.008 240)')?.veredito, 'SO_PROD'],
   ];
   let fails = 0;
   for (const [label, got, exp] of checks) {
