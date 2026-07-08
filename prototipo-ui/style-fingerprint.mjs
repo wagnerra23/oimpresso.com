@@ -49,6 +49,7 @@
 //      (harness Playwright), backstop perceptual pra ícones/sparklines sem âncora (dep SSIM → ADR).
 
 import { readFileSync } from 'node:fs';
+import { pathToFileURL } from 'node:url';
 
 // ── vetor extraído por elemento (mantido em sync com o SNIPPET abaixo) ─────────
 // Onda 1 (2026-07-08, estado-da-arte fingerprint-vs-SOTA): aprofundado de 14 → 25 campos pra
@@ -319,7 +320,9 @@ export function veredictoNL(rows) {
 }
 
 // ── snippet auto-contido (roda DENTRO da página; espelho do vetor CAMPOS) ──────
-const SNIPPET = String.raw`
+// Exportado (Onda 3) pro harness Playwright injetar via page.evaluate(SNIPPET) — a mesma
+// string que o modo --snippet imprime pro console/MCP. Fonte única: aqui.
+export const SNIPPET = String.raw`
 (() => {
   // style-fingerprint SNIPPET v1 — rode com a página no tema desejado.
   // Devolve JSON { tema, url, elementos: [...] } — salve num arquivo .json.
@@ -718,8 +721,13 @@ function selftest() {
 }
 
 // ── main ────────────────────────────────────────────────────────────────────────
+// Guard "sou o entrypoint?" (Onda 3): o harness IMPORTA este módulo — sem o guard, o dispatch
+// abaixo rodaria no import (disparando o selftest do módulo com o argv do harness). Só executa
+// a CLI quando o arquivo é chamado direto (`node style-fingerprint.mjs ...`).
+const ehEntrypoint = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 const argv = process.argv.slice(2);
-if (argv.includes('--selftest')) selftest();
+if (!ehEntrypoint) { /* importado como módulo: não roda CLI */ }
+else if (argv.includes('--selftest')) selftest();
 else if (argv.includes('--snippet')) {
   console.log(SNIPPET.trim());
 } else if (argv.includes('--compare')) {
