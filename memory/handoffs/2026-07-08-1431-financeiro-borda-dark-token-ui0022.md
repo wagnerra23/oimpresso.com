@@ -2,7 +2,7 @@
 date: "2026-07-08"
 time: "14:31 BRT"
 slug: financeiro-borda-dark-token-ui0022
-tldr: "Fechei o borderColor 56/57 SISTEMÁTICO do fingerprint no dark do Financeiro. Diagnóstico do handoff anterior estava INVERTIDO: NÃO é hardcode sweep, É token. Provei ao vivo (browser MCP + sentinela por-var): as 575 bordas vêm de --color-border + cockpit --border; a var só parecia morta porque .cockpit tem data-theme=dark → a regra do token re-aplica e sombreia override só-na-raiz. Fix = DTCG semantic.tokens.json dark 0.30→0.335 + tokens:build (app-wide, ADR UI-0022, igual UI-0021). PR #3958 MERGEADO (Wagner aprovou). Restam --fin-line (49) + superfície (0.238 atrás do filtro) como follow-ups."
+tldr: "Fechei o borderColor 56/57 SISTEMÁTICO do fingerprint no dark do Financeiro. Diagnóstico anterior estava INVERTIDO: é TOKEN, não hardcode. Provei ao vivo (browser MCP + sentinela): as 575 bordas vêm de --color-border + cockpit --border; a var só parecia morta porque .cockpit tem data-theme=dark e sombreia override só-na-raiz. Fix = DTCG dark 0.30→0.335 + tokens:build (app-wide, ADR UI-0022). PR #3958 MERGED. Restam --fin-line + superfície como follow-ups."
 prs: [3958]
 decided_by: [W]
 related_adrs: [0022-border-dark-clareado-fidelidade, 0021-primary-dark-clareado-0190]
