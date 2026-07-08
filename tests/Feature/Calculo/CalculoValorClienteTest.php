@@ -128,6 +128,7 @@ class CalculoValorClienteTest extends TestCase
      * Se fosse contada como pagamento normal (sinal trocado), net_paid 130 também.
      * O golden trava o 157.90.
      */
+    // Cobre UC-CLED-01 (Ledger.casos.md) — saldo devedor conta a devolução com o sinal certo.
     #[Test]
     public function get_contact_due_golden_com_devolucao(): void
     {
@@ -187,6 +188,7 @@ class CalculoValorClienteTest extends TestCase
      * 157.90, que SÓ o código correto produz; a versão bugada daria 97.90 e o assert
      * quebraria (RED). Aqui deixamos o discriminador explícito.
      */
+    // Cobre UC-CLED-01 (Ledger.casos.md) — versão que ignora is_return daria número diferente (red).
     #[Test]
     public function discriminacao_versao_que_ignora_is_return_seria_red(): void
     {
@@ -230,6 +232,7 @@ class CalculoValorClienteTest extends TestCase
      * Dois clientes idênticos (mesma venda, mesmo pagamento de 100); o segundo ganha um
      * is_return=1 de 30. A diferença dos saldos devedores tem que ser +30.
      */
+    // Cobre UC-CLED-02 (Ledger.casos.md) — devolução sobe o saldo pelo valor exato, nunca em dobro.
     #[Test]
     public function property_devolucao_sobe_saldo_em_exatamente_o_valor_devolvido(): void
     {
@@ -262,6 +265,7 @@ class CalculoValorClienteTest extends TestCase
      * idêntico a um pagamento único de 100. Pega qualquer regressão que dependa da
      * granularidade das linhas de pagamento (SUM é insensível ao split).
      */
+    // Cobre UC-CLED-05 (Ledger.casos.md) — parcelar um pagamento não muda o saldo (aditividade).
     #[Test]
     public function property_saldo_e_aditivo_no_split_de_pagamentos(): void
     {
@@ -301,6 +305,7 @@ class CalculoValorClienteTest extends TestCase
      *   getContactDue        = 500 + 227.90 − (100 − 30) = 657.90
      *   all_balance_due      = mesmo 657.90 (reconcilia is_return igual)
      */
+    // Cobre UC-CLED-03 (Ledger.casos.md) — resumo (getContactDue) bate com o extrato (all_balance_due).
     #[Test]
     public function dupla_confirmacao_contact_due_bate_com_ledger_all_balance_due(): void
     {
@@ -354,6 +359,7 @@ class CalculoValorClienteTest extends TestCase
      * contato passando um business_id estrangeiro → o `where('contacts.business_id')`
      * scopa o contato pra fora e o saldo tem que dar 0 (nenhum vazamento).
      */
+    // Cobre UC-CLED-04 (Ledger.casos.md) — saldo de cliente de outro tenant nunca entra no meu.
     #[Test]
     public function regua_multi_tenant_business_id_estrangeiro_zera_o_saldo(): void
     {
