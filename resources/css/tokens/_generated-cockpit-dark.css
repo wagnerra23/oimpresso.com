@@ -4,24 +4,24 @@
    Edite o token no .tokens.json — o CSS é SAÍDA. Equivalência: scripts/governance/dtcg-equivalence.mjs. */
 
 .cockpit[data-theme="dark"] {
-  --sb-bg: oklch(0.18 0.006 282);
-  --sb-bg-2: oklch(0.16 0.006 282);
-  --sb-border: oklch(0.28 0.008 282);
+  --sb-bg: oklch(0.18 0.006 240);
+  --sb-bg-2: oklch(0.16 0.006 240);
+  --sb-border: oklch(0.28 0.008 240);
   --sb-text: oklch(0.78 0.005 90);
   --sb-text-dim: oklch(0.58 0.005 90);
   --sb-text-hi: oklch(0.96 0.005 90);
-  --sb-hover: oklch(0.24 0.008 282);
-  --sb-active: oklch(0.30 0.01 282);
-  --sb-scroll: oklch(0.36 0.008 282);
-  --sb-bullet-out: oklch(0.46 0.008 282);
-  --bg: oklch(0.165 0.008 282);
-  --bg-2: oklch(0.142 0.008 282);
-  --surface: oklch(0.205 0.009 282);
-  --border: oklch(0.335 0.012 282);
-  --border-2: oklch(0.25 0.010 282);
-  --text: oklch(0.965 0.004 282);
-  --text-dim: oklch(0.74 0.008 282);
-  --text-mute: oklch(0.58 0.009 282);
+  --sb-hover: oklch(0.27 0.008 240);
+  --sb-active: oklch(0.32 0.008 240);
+  --sb-scroll: oklch(0.36 0.008 240);
+  --sb-bullet-out: oklch(0.46 0.008 240);
+  --bg: oklch(0.26 0.006 240);
+  --bg-2: oklch(0.23 0.006 240);
+  --surface: oklch(0.30 0.008 240);
+  --border: oklch(0.34 0.008 240);
+  --border-2: oklch(0.31 0.008 240);
+  --text: oklch(0.94 0.005 90);
+  --text-dim: oklch(0.72 0.005 90);
+  --text-mute: oklch(0.58 0.005 90);
   --accent-soft: oklch(0.30 0.07 295);
   --pos: oklch(0.74 0.14 150);
   --pos-soft: oklch(0.30 0.085 150);
