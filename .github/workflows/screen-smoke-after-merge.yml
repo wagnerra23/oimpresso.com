@@ -1,0 +1,231 @@
+name: Screen Smoke After Merge
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Fase C (Check) do PDCA MWART — smoke visual REAL pós-deploy, AUTOMÁTICO e
+# INCONDICIONAL. Materializa a pendência §9.4 da ADR 0164 (que nunca foi feita:
+# a skill tela-smoke-pos-merge referenciava ESTE workflow, mas ele não existia).
+#
+# Regra Wagner (2026-07-08, textual): "nemme pergunte mais isso é sempre sim
+# automatize isso" → o smoke pós-deploy roda SOZINHO, sem HITL de decisão.
+# O único HITL é o merge (R10) e, se o browser MCP não conseguir se logar, o
+# login (feedback-deploy-smoke-browser-obrigatorio.md §6 INCONDICIONAL).
+#
+# Por que existe / gaps que fecha:
+#   • curl 302/200 do deploy.yml NÃO é smoke (prova rota, não render). Só o
+#     render real no browser (4 sinais) confirma que a tela funciona.
+#   • O gap do PR #3945 (sidebar "Suporte"): mudança de ITEM DE MENU não tocava
+#     nenhum Pages/*.tsx, então nenhum smoke disparava. Aqui os paths de
+#     navegação (Sidebar.tsx + AdminSidebarMenu.php + LegacyMenuAdapter.php)
+#     também acionam o smoke.
+#
+# Arquitetura (ADR-fiel):
+#   • Dependência: dispara via workflow_run APÓS o "Deploy to Hostinger"
+#     (deploy.yml) concluir com sucesso. deploy.yml é o auto-deploy canônico
+#     desde a ADR 0269 (quick-sync.yml virou escape manual). workflow_run não
+#     filtra path → o filtro é feito DENTRO (diff do head_sha do deploy).
+#   • O browser MCP roda ISOLADO no CT 100 (ADR 0164 §3 + ADR 0062 Hostinger≠CT100).
+#     Por isso o job de smoke usa runner self-hosted rotulado [self-hosted, ct100,
+#     browser-mcp] — NUNCA um runner efêmero do GitHub e NUNCA o Hostinger.
+#   • Fail-safe: enquanto a infra não for provisionada (runner CT100 + secret
+#     ANTHROPIC_API_KEY + item Vaultwarden), o job de smoke fica DESABILITADO
+#     por `if:` (não enfileira, não pendura, não pinta vermelho) e o job detect
+#     emite um ::warning:: dizendo o que falta. Assim que Wagner provisionar, ativa.
+#
+# PRÉ-REQS DE ATIVAÇÃO (só Wagner provisiona — ADR 0164 §9, todos ainda 🔴):
+#   1. Registrar runner self-hosted no CT 100 com labels [self-hosted, ct100,
+#      browser-mcp], com `claude` CLI + browser MCP (claude-in-chrome/headless) +
+#      Vaultwarden CLI configurados no ambiente do runner.
+#   2. `gh secret set ANTHROPIC_API_KEY` (ou auth de assinatura no runner).
+#   3. Provisionar item Vaultwarden `screen-smoke/wagner-prod-readonly` (conta
+#      read-only prod, biz=99 fake quando possível).
+#
+# Cross-refs: ADR 0164 (mãe) · ADR 0104 (MWART) · ADR 0062 (runtime) · ADR 0269
+# (deploy.yml canônico) · skill .claude/skills/tela-smoke-pos-merge/SKILL.md ·
+# memory/reference/feedback-deploy-smoke-browser-obrigatorio.md §6.
+# ─────────────────────────────────────────────────────────────────────────────
+
+on:
+  workflow_run:
+    workflows: ["Deploy to Hostinger"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      rota:
+        description: 'Rota/tela pra smoke manual (ex: Sells/Create ou /vendas). Vazio = usa telas do último deploy.'
+        required: false
+        default: ''
+        type: string
+
+concurrency:
+  group: screen-smoke
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # ── JOB 1: DETECT — o que mudou + a infra está pronta? (runner GitHub barato) ─
+  detect:
+    name: Detectar telas/navegação alteradas
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    # Só segue se o deploy que disparou concluiu com SUCESSO (ou se foi manual).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    outputs:
+      should_smoke: ${{ steps.filter.outputs.should_smoke }}
+      screens: ${{ steps.filter.outputs.screens }}
+      infra_ready: ${{ steps.infra.outputs.ready }}
+    steps:
+      - name: Checkout do SHA deployado
+        uses: actions/checkout@v4
+        with:
+          # No workflow_run, o SHA relevante é o do deploy (head_sha). fetch-depth:2
+          # traz o pai pra calcular o diff. No dispatch, usa o ref default.
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          fetch-depth: 2
+
+      - name: Filtrar paths (telas + navegação)
+        id: filter
+        run: |
+          set -uo pipefail
+
+          # Dispatch manual = smoke sempre (INCONDICIONAL, sem decisão HITL).
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            ROTA="${{ github.event.inputs.rota }}"
+            echo "should_smoke=true" >> "$GITHUB_OUTPUT"
+            echo "screens=${ROTA:-__MANUAL__}" >> "$GITHUB_OUTPUT"
+            echo "→ dispatch manual · rota='${ROTA:-(último deploy)}'"
+            exit 0
+          fi
+
+          # Arquivos alterados no deploy (merge → HEAD^ = main antes do merge).
+          CHANGED="$(git diff --name-only HEAD^ HEAD 2>/dev/null || git show --name-only --format= HEAD)"
+          echo "=== arquivos alterados ==="; echo "$CHANGED"
+
+          # 1) Telas Inertia
+          SCREENS="$(echo "$CHANGED" | grep -E '^resources/js/Pages/.*\.tsx$' || true)"
+
+          # 2) Navegação (o gap do #3945 — item de menu não é uma tela)
+          NAV="$(echo "$CHANGED" | grep -E '^(resources/js/Components/cockpit/Sidebar\.tsx|app/Http/Middleware/AdminSidebarMenu\.php|app/Services/LegacyMenuAdapter\.php)$' || true)"
+
+          if [ -z "$SCREENS" ] && [ -z "$NAV" ]; then
+            echo "should_smoke=false" >> "$GITHUB_OUTPUT"
+            echo "screens=" >> "$GITHUB_OUTPUT"
+            echo "→ nenhuma tela/navegação alterada — sem smoke."
+            exit 0
+          fi
+
+          echo "should_smoke=true" >> "$GITHUB_OUTPUT"
+          if [ -n "$SCREENS" ]; then
+            # Lista de telas alteradas (comma-separated, 1 linha)
+            LIST="$(echo "$SCREENS" | paste -sd ',' -)"
+            echo "screens=${LIST}" >> "$GITHUB_OUTPUT"
+            echo "→ smoke das telas: ${LIST}"
+          else
+            # Só navegação mudou: smoke das rotas nav-críticas (a skill resolve).
+            echo "screens=__NAV__" >> "$GITHUB_OUTPUT"
+            echo "→ mudança só de navegação — smoke nav-crítico (dashboard + render do sidebar)."
+          fi
+
+      - name: Infra pronta? (secret ANTHROPIC_API_KEY presente)
+        id: infra
+        env:
+          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          if [ -n "$KEY" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Avisar se smoke está pendente de provisionamento (WARN, não falha)
+        if: steps.filter.outputs.should_smoke == 'true' && steps.infra.outputs.ready != 'true'
+        run: |
+          echo "::warning title=Screen smoke pendente de infra::Telas/navegação mudaram e precisam de smoke, mas a infra não está provisionada. Wagner: (1) registrar runner self-hosted [ct100,browser-mcp]; (2) gh secret set ANTHROPIC_API_KEY; (3) provisionar Vaultwarden screen-smoke/wagner-prod-readonly. Ver ADR 0164 §9."
+
+  # ── JOB 2: SMOKE — browser MCP contra prod, no CT 100 (self-hosted) ──────────
+  # Desabilitado por `if:` até a infra existir → não enfileira nem pendura.
+  smoke:
+    name: Smoke visual real (browser MCP · CT 100)
+    needs: detect
+    if: needs.detect.outputs.should_smoke == 'true' && needs.detect.outputs.infra_ready == 'true'
+    # ADR 0164 §3 + ADR 0062: browser MCP roda ISOLADO no CT 100. Nunca ubuntu
+    # efêmero, nunca Hostinger. Labels definidos no registro do runner (Wagner).
+    runs-on: [self-hosted, ct100, browser-mcp]
+    timeout-minutes: 20
+    steps:
+      - name: Checkout do SHA deployado
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.ref }}
+          fetch-depth: 2
+
+      - name: Health gate — prod respondendo antes do smoke
+        run: |
+          set -uo pipefail
+          OK=""
+          for i in 1 2 3 4 5 6; do
+            CODE="$(curl -4 -sL -o /dev/null -w '%{http_code}' --max-time 20 https://oimpresso.com/login || echo 000)"
+            echo "tentativa $i: HTTP $CODE"
+            if [ "$CODE" = "200" ] || [ "$CODE" = "302" ]; then OK=1; break; fi
+            sleep 10
+          done
+          if [ -z "$OK" ]; then
+            echo "::error::prod não respondeu 200/302 em /login — abortando smoke (deploy pode ter falhado)."
+            exit 1
+          fi
+          echo "→ prod alcançável. (curl NÃO é smoke — só gate de saúde; o render real vem a seguir.)"
+
+      - name: Smoke via Claude Code + skill tela-smoke-pos-merge
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SCREENS: ${{ needs.detect.outputs.screens }}
+          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          set -uo pipefail
+          command -v claude >/dev/null 2>&1 || { echo "::error::CLI 'claude' ausente no runner CT100 — provisionar (ADR 0164 §9.1)."; exit 1; }
+
+          # Prompt em heredoc NÃO-quotado pra expandir $SCREENS/$DEPLOY_SHA.
+          # Sem outros $/backticks pra não quebrar a expansão.
+          claude -p "$(cat <<PROMPT
+          Ative a skill tela-smoke-pos-merge e execute o smoke pós-deploy INCONDICIONAL
+          contra produção (https://oimpresso.com), deploy SHA ${DEPLOY_SHA}.
+
+          Telas/rotas alvo: ${SCREENS}
+          - Se o alvo for '__NAV__', valide as rotas nav-críticas conforme a skill
+            (dashboard + render do sidebar/shell) — o gatilho foi mudança de MENU
+            (gap do PR #3945), então o foco é: o item de menu aparece? o sidebar
+            monta? navegar por ele abre a tela certa sem tela branca?
+          - Se o alvo for '__MANUAL__', use as telas do último deploy.
+
+          Login via item Vaultwarden screen-smoke/wagner-prod-readonly (read-only,
+          biz=99 fake quando possível; biz=4 ROTA LIVRE só se o charter exigir).
+
+          Siga os 8 passos da skill à risca: screenshot 1440 + 1280, coletar console
+          errors + perf, confirmar os 4 sinais de render (título/h1, sem erro JS,
+          dados/KPIs, shell montado), auto-mask PII (CPF/CNPJ/email/telefone) ANTES
+          de salvar, append <Tela>.review.md round N (status pending-wagner) +
+          <Tela>.smoke-log.md, regenerar UI-CATALOG.md e notificar via mcp_alertas.
+
+          READ-ONLY HARD: nenhum INSERT/UPDATE/DELETE no DB prod. Se não conseguir
+          logar (browser MCP sem sessão), aborte com alerta mcp_alertas em vez de
+          declarar sucesso — NUNCA reporte "funcionando" sem render real.
+          PROMPT
+          )" \
+            --permission-mode acceptEdits \
+            --allowedTools "mcp__claude-in-chrome__*,mcp__computer-use__*,Read,Write,Edit,Bash" \
+          || { echo "::error::smoke Claude Code falhou — ver logs acima."; exit 1; }
+
+      - name: Preservar evidência (screenshots + review.md)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screen-smoke-${{ github.run_id }}
+          path: |
+            storage/screen-smoke/**
+            resources/js/Pages/**/*.review.md
+            resources/js/Pages/**/*.smoke-log.md
+          if-no-files-found: ignore
+          retention-days: 30
