@@ -41,8 +41,12 @@
 // Onda 1 (estado-da-arte 2026-07-08) aprofundou o vetor 14→25 campos: elevação (box-shadow),
 //      superfície própria vs herdada (bgProprio), padding, tipografia fina, bg-image/gradiente,
 //      posição vertical (ynorm), opacity/transform. + captioning-lite (veredictoNL, verdito 1-linha).
-// Ainda FORA (roadmap): a CAUSA do layout (justify-content/gap do container — Onda 2), estados
-//      hover/focus/active e responsivo multi-viewport (Onda 3), ícones/sparklines sem âncora.
+// Onda 2 (2026-07-08) acrescentou 2 passadas: (3) CONTAINERS de layout — a CAUSA do "elemento
+//      moveu" é a regra do PAI (display/justify-content/gap/direção), inventariada por assinatura;
+//      (4) COMPOSTOS/CARDS com >2 filhos (furo 3) — superfície ancorada em texto agregado (um card
+//      que ACHATA perde sombra+padding e agora CONSTA, antes era invisível ao vetor de texto).
+// Ainda FORA (Onda 3, precisa driver/dep): estados hover/focus/active e responsivo multi-viewport
+//      (harness Playwright), backstop perceptual pra ícones/sparklines sem âncora (dep SSIM → ADR).
 
 import { readFileSync } from 'node:fs';
 
@@ -151,10 +155,10 @@ export function compararDivisorias(divA = [], divB = []) {
 // KPIs viram ambos 'button|<BRL>'. O Map antigo colidia → um KPI sumia e o outro era medido
 // contra o vizinho errado (fonte/tamanho não-confiável). Agrupo por chave e caso os candidatos
 // pela PROXIMIDADE de posição (xnorm,ynorm): o par certo é o mais perto, não "o último do Map".
-function agruparPorChave(elems) {
+function agruparPorChave(elems, keyFn = chave) {
   const m = new Map();
   for (const e of elems || []) {
-    const k = chave(e);
+    const k = keyFn(e);
     if (!m.has(k)) m.set(k, []);
     m.get(k).push(e);
   }
@@ -182,26 +186,71 @@ export function casarPorPosicao(as, bs) {
   return { pares, soA, soB: restoB };
 }
 
-export function comparar(fpA, fpB) {
-  const grpA = agruparPorChave(fpA.elementos);
-  const grpB = agruparPorChave(fpB.elementos);
+// comparador GENÉRICO de duas listas ancoradas por texto: agrupa por chave (keyFn), casa
+// candidatos ambíguos por posição (furo 4), e diffa campo-a-campo (diffFn). Reusado por
+// elementos (1ª passada) E compostos/cards (furo 3, Onda 2) — mesma mecânica, âncora diferente.
+export function compararGrupos(as, bs, keyFn, diffFn) {
+  const grpA = agruparPorChave(as, keyFn);
+  const grpB = agruparPorChave(bs, keyFn);
   const rows = [];
-  const chaves = new Set([...grpA.keys(), ...grpB.keys()]);
-  for (const k of chaves) {
-    const as = grpA.get(k) || [];
-    const bs = grpB.get(k) || [];
-    if (!bs.length) { for (const _ of as) rows.push({ chave: k, veredito: 'SO_PROTO', campos: [] }); continue; }
-    if (!as.length) { for (const _ of bs) rows.push({ chave: k, veredito: 'SO_PROD', campos: [] }); continue; }
-    const { pares, soA, soB } = casarPorPosicao(as, bs);
+  for (const k of new Set([...grpA.keys(), ...grpB.keys()])) {
+    const la = grpA.get(k) || [], lb = grpB.get(k) || [];
+    if (!lb.length) { for (const _ of la) rows.push({ chave: k, veredito: 'SO_PROTO', campos: [] }); continue; }
+    if (!la.length) { for (const _ of lb) rows.push({ chave: k, veredito: 'SO_PROD', campos: [] }); continue; }
+    const { pares, soA, soB } = casarPorPosicao(la, lb);
     for (const [a, b] of pares) {
-      const campos = diffElemento(a, b);
+      const campos = diffFn(a, b);
       rows.push({ chave: k, veredito: campos.length ? 'DIVERGE' : 'IDENTICO', campos });
     }
     for (const _ of soA) rows.push({ chave: k, veredito: 'SO_PROTO', campos: [] });
     for (const _ of soB) rows.push({ chave: k, veredito: 'SO_PROD', campos: [] });
   }
-  // furo 1 — anexa o diff de divisórias (bordas/linhas sem texto) ao mesmo relatório.
+  return rows;
+}
+
+// ── Onda 2: CONTAINERS de layout (a CAUSA) ─────────────────────────────────────
+// furo 6 via o SINTOMA (o filho moveu); a CAUSA é a regra do PAI (justify-content/gap/direção).
+// Inventário por assinatura de layout (como as divisórias, furo 1): um container re-gapado/
+// re-justificado aparece como SO_PROTO(regra velha)+SO_PROD(nova) — o olho vê a causa direto.
+export function chaveContainer(c) {
+  return 'CTR ' + [c.display, c.dir, c.justify, c.align, c.gap, 'span' + c.span, 'f' + c.filhos].join('|');
+}
+export function compararContainers(a = [], b = []) {
+  const mapA = new Map((a || []).map((c) => [chaveContainer(c), c]));
+  const mapB = new Map((b || []).map((c) => [chaveContainer(c), c]));
+  const rows = [];
+  for (const [k] of mapA) rows.push({ chave: k, veredito: mapB.has(k) ? 'IDENTICO' : 'SO_PROTO', campos: [] });
+  for (const [k] of mapB) if (!mapA.has(k)) rows.push({ chave: k, veredito: 'SO_PROD', campos: [] });
+  return rows;
+}
+
+// ── Onda 2: COMPOSTOS/CARDS (furo 3) ───────────────────────────────────────────
+// Controles/cards com >2 filhos escapam do vetor de texto (childElementCount<=2 na 1ª passada).
+// Captura a SUPERFÍCIE do composto e casa por texto AGREGADO normalizado (+ posição, furo 4).
+const CAMPOS_COMPOSTO = ['w', 'h', 'xnorm', 'ynorm', 'bgProprio', 'bgImage', 'radius', 'borderW', 'borderColor', 'boxShadow', 'padding', 'filhos'];
+export function chaveComposto(c) { return 'CARD ' + c.tag + '|' + normTexto(c.texto); }
+export function diffComposto(a, b) {
+  const campos = [];
+  for (const c of CAMPOS_COMPOSTO) {
+    const va = a[c], vb = b[c];
+    if (['w', 'h', 'xnorm', 'ynorm', 'borderW', 'filhos'].includes(c)) {
+      const na = parseFloat(va) || 0, nb = parseFloat(vb) || 0;
+      const tol = (c === 'xnorm' || c === 'ynorm') ? 0.04 : c === 'filhos' ? 0.01 : TOL_PX;
+      if (Math.abs(na - nb) > tol) campos.push(`${c}: ${va} → ${vb}`);
+    } else if (String(va ?? '') !== String(vb ?? '')) campos.push(`${c}: ${va} → ${vb}`);
+  }
+  return campos;
+}
+
+export function comparar(fpA, fpB) {
+  // 1ª passada — elementos com texto (âncora texto+tag, pareados por posição no ambíguo).
+  const rows = compararGrupos(fpA.elementos, fpB.elementos, chave, diffElemento);
+  // furo 1 — divisórias/bordas sem texto (inventário lado+cor+espessura+span).
   rows.push(...compararDivisorias(fpA.divisorias, fpB.divisorias));
+  // Onda 2 — containers de layout (a causa) por inventário de assinatura.
+  rows.push(...compararContainers(fpA.containers, fpB.containers));
+  // Onda 2 — compostos/cards (>2 filhos) por superfície ancorada em texto agregado.
+  rows.push(...compararGrupos(fpA.compostos, fpB.compostos, chaveComposto, diffComposto));
   rows.sort((x, y) => x.veredito.localeCompare(y.veredito) || x.chave.localeCompare(y.chave));
   const tally = {};
   for (const r of rows) tally[r.veredito] = (tally[r.veredito] || 0) + 1;
@@ -231,10 +280,11 @@ export function resumoCampos(rows) {
 export function triagemSO(rows) {
   return (rows || []).filter((r) => r.veredito === 'SO_PROTO' || r.veredito === 'SO_PROD')
     .filter((r) => {
-      if (r.chave.startsWith('DIV ')) return true; // divisória: sempre estrutural
+      // divisória (furo 1) e container de layout (Onda 2) recolorido/re-gapado: sempre estrutural.
+      if (r.chave.startsWith('DIV ') || r.chave.startsWith('CTR ')) return true;
       const txt = r.chave.slice(r.chave.indexOf('|') + 1);
       const real = txt.replace(/<BRL>|<N>|<DATA>/g, '').trim();
-      return real.length >= 2; // copy real além de placeholders dinâmicos
+      return real.length >= 2; // copy real além de placeholders dinâmicos (cobre CARD e elementos)
     });
 }
 
@@ -248,7 +298,7 @@ const FAMILIA_CAMPO = {
   boxShadow: 'elevação',
   color: 'texto', fontSize: 'tipografia', fontWeight: 'tipografia', letterSpacing: 'tipografia',
   lineHeight: 'tipografia', textTransform: 'tipografia', fontFamily: 'tipografia',
-  padding: 'espaçamento', w: 'tamanho', h: 'tamanho',
+  padding: 'espaçamento', w: 'tamanho', h: 'tamanho', filhos: 'estrutura',
   xnorm: 'posição', ynorm: 'posição', linhas: 'quebra', overflowX: 'overflow',
   opacity: 'opacidade', transform: 'transform', display: 'display',
 };
@@ -386,7 +436,62 @@ const SNIPPET = String.raw`
       divisorias.push(item);
     }
   }
-  return JSON.stringify({ tema: TEMA, url: location.pathname, elementos, divisorias }, null, 1);
+  // ── 3ª passada — CONTAINERS de layout (Onda 2: a CAUSA do "elemento moveu" é a regra do PAI).
+  // Inventaria flex/grid com >=2 filhos por assinatura (display|dir|justify|align|gap|span|filhos).
+  // Um container re-gapado/re-justificado vira SO_PROTO(velho)+SO_PROD(novo) — a causa fica visível.
+  const containers = [];
+  const vistosC = new Set();
+  for (const el of document.querySelectorAll('*')) {
+    const cs = getComputedStyle(el);
+    const disp = cs.display;
+    if (disp !== 'flex' && disp !== 'inline-flex' && disp !== 'grid' && disp !== 'inline-grid') continue;
+    if (el.childElementCount < 2 || !vis(el)) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 40) continue;
+    const item = {
+      display: disp,
+      dir: cs.flexDirection || cs.gridAutoFlow || '',
+      justify: cs.justifyContent, align: cs.alignItems, gap: cs.gap,
+      span: Math.round(r.width / 20) * 20, filhos: el.childElementCount,
+      banda: Math.round(r.top + window.scrollY),
+    };
+    const k = [item.display, item.dir, item.justify, item.align, item.gap, item.span, item.filhos].join('|');
+    if (vistosC.has(k)) continue;
+    vistosC.add(k);
+    containers.push(item);
+  }
+  // ── 4ª passada — COMPOSTOS/CARDS (furo 3, Onda 2): >2 filhos escapam do vetor de texto.
+  // Só os que SÃO uma superfície (bg próprio OU borda OU sombra) — capturam bbox+superfície,
+  // ancorados pelo texto AGREGADO normalizado (casados por posição no ambíguo, furo 4).
+  const compostos = [];
+  const vistosK = new Set();
+  for (const el of document.querySelectorAll('div, section, article, li, form, header, aside')) {
+    if (el.childElementCount <= 2 || !vis(el)) continue; // <=2 já é 1ª passada
+    const cs = getComputedStyle(el);
+    const temSuperficie = bgProprio(el) !== 'none'
+      || (parseFloat(cs.borderTopWidth) || 0) >= 0.4
+      || (cs.boxShadow && cs.boxShadow !== 'none');
+    if (!temSuperficie) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width < 40 || r.height < 20) continue;
+    const texto = (el.textContent || '').replace(/\s+/g, ' ').trim();
+    const item = {
+      tag: el.tagName.toLowerCase(), texto,
+      w: Math.round(r.width), h: Math.round(r.height),
+      xnorm: Math.round((r.left / (document.documentElement.clientWidth || 1)) * 100) / 100,
+      ynorm: Math.round(((r.top + window.scrollY) / (document.documentElement.scrollHeight || 1)) * 100) / 100,
+      bgProprio: bgProprio(el), bgImage: normBgImg(cs.backgroundImage),
+      radius: cs.borderRadius, borderW: cs.borderTopWidth, borderColor: cs.borderTopColor,
+      boxShadow: normShadow(cs.boxShadow),
+      padding: [cs.paddingTop, cs.paddingRight, cs.paddingBottom, cs.paddingLeft].join(' '),
+      filhos: el.childElementCount,
+    };
+    const k = item.tag + '|' + texto.slice(0, 40);
+    if (vistosK.has(k)) continue;
+    vistosK.add(k);
+    compostos.push(item);
+  }
+  return JSON.stringify({ tema: TEMA, url: location.pathname, elementos, divisorias, containers, compostos }, null, 1);
 })()`;
 
 // ── selftest hermético (comparador provado pelos dois lados — L-31) ────────────
@@ -473,6 +578,26 @@ function selftest() {
   prod.elementos.push(mk({ texto: 'R$ 9.999', xnorm: 0.2, ynorm: 0.3, fontSize: '22px' }));
   prod.elementos.push(mk({ texto: 'R$ 0.000', xnorm: 0.8, ynorm: 0.3, fontSize: '28px' }));
 
+  // ── Onda 2 — CONTAINERS (a causa do layout): a period bar era right-justify+gap16 no proto e
+  // virou left-packed+gap0 na prod → SO_PROTO(regra velha)+SO_PROD(nova). O grid dos KPIs é igual.
+  proto.containers = [
+    { display: 'flex', dir: 'row', justify: 'flex-end', align: 'center', gap: '16px', span: 1200, filhos: 5, banda: 100 },
+    { display: 'grid', dir: 'row', justify: 'normal', align: 'normal', gap: '12px', span: 1200, filhos: 4, banda: 300 },
+  ];
+  prod.containers = [
+    { display: 'flex', dir: 'row', justify: 'flex-start', align: 'center', gap: '0px', span: 1200, filhos: 5, banda: 100 },
+    { display: 'grid', dir: 'row', justify: 'normal', align: 'normal', gap: '12px', span: 1200, filhos: 4, banda: 300 },
+  ];
+  // ── Onda 2 — COMPOSTOS/CARDS (furo 3): o card "Resumo do mês" tem 6 filhos (invisível ao vetor
+  // de texto). Ele ACHATOU na prod (perdeu sombra + padding) → DIVERGE. E um card órfão só no proto.
+  proto.compostos = [
+    { tag: 'div', texto: 'Resumo do mês R$ 1.234', w: 300, h: 120, xnorm: 0.1, ynorm: 0.4, bgProprio: 'oklch(0.238 0.01 282)', bgImage: 'none', radius: '8px', borderW: '1px', borderColor: 'oklch(0.335 0.012 282)', boxShadow: '0 1px 3px 0 rgba(0,0,0,0.2)', padding: '16px 16px 16px 16px', filhos: 6 },
+    { tag: 'article', texto: 'Card orfao', w: 200, h: 80, xnorm: 0.7, ynorm: 0.4, bgProprio: 'oklch(0.24 0.01 282)', bgImage: 'none', radius: '8px', borderW: '0px', borderColor: 'rgba(0, 0, 0, 0)', boxShadow: 'none', padding: '8px 8px 8px 8px', filhos: 3 },
+  ];
+  prod.compostos = [
+    { tag: 'div', texto: 'Resumo do mês R$ 9.999', w: 300, h: 120, xnorm: 0.1, ynorm: 0.4, bgProprio: 'oklch(0.238 0.01 282)', bgImage: 'none', radius: '8px', borderW: '1px', borderColor: 'oklch(0.335 0.012 282)', boxShadow: 'none', padding: '0px 0px 0px 0px', filhos: 6 },
+  ];
+
   const { rows, tally } = comparar(proto, prod);
   const by = (t) => rows.find((r) => r.chave.includes(t));
   const checks = [
@@ -550,6 +675,25 @@ function selftest() {
   const nlOk = typeof nl === 'string' && /divergem/.test(nl) && /triar/.test(nl);
   if (!nlOk) fails++;
   console.log(`  [${nlOk ? 'PASS' : 'FAIL'}] captioning-lite: "${nl}"`);
+
+  // ── Onda 2 — containers (a CAUSA do layout) + compostos/cards (furo 3) ──
+  const ctrOk = by('CTR flex|row|flex-end')?.veredito === 'SO_PROTO'
+    && by('CTR flex|row|flex-start')?.veredito === 'SO_PROD'
+    && by('CTR grid')?.veredito === 'IDENTICO';
+  if (!ctrOk) fails++;
+  console.log(`  [${ctrOk ? 'PASS' : 'FAIL'}] Onda 2 container: period bar re-gapada = SO_PROTO+SO_PROD (a causa), grid igual`);
+  const card = by('CARD div|Resumo do mês');
+  const cardOk = card?.veredito === 'DIVERGE'
+    && card.campos.some((c) => c.startsWith('boxShadow:'))
+    && card.campos.some((c) => c.startsWith('padding:'));
+  if (!cardOk) fails++;
+  console.log(`  [${cardOk ? 'PASS' : 'FAIL'}] furo 3: card composto (6 filhos) achatou — boxShadow+padding (${card?.veredito || '—'})`);
+  const cardOrfaoOk = by('CARD article|Card orfao')?.veredito === 'SO_PROTO';
+  if (!cardOrfaoOk) fails++;
+  console.log(`  [${cardOrfaoOk ? 'PASS' : 'FAIL'}] furo 3: card órfão só-proto não some (${by('CARD article|Card orfao')?.veredito || '—'})`);
+  const triCtrOk = triagemSO(rows).some((r) => r.chave.startsWith('CTR '));
+  if (!triCtrOk) fails++;
+  console.log(`  [${triCtrOk ? 'PASS' : 'FAIL'}] furo 5: container SO_* entra na triagem obrigatória`);
 
   // agruparLinhas — o fix do falso-positivo (dogfood [W] 2026-07-07). Rects PLANTADOS:
   //  A) botão real ícone+texto de 1 linha: SVG top=100 h=16 + texto top=101 h=18 (jitter
