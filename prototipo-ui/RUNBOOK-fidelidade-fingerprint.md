@@ -2,7 +2,7 @@
 
 > **Escopo:** o **loop de MEDIÇÃO de fidelidade** — dado um design (a âncora do charter) e a tela viva, *provar mecanicamente* onde o código diverge do design, **contra a fonte CERTA** (trava de âncora fail-closed). NÃO é o processo de aplicar o protótipo — esse é o [`RUNBOOK-aplicar-prototipo-orquestracao.md`](RUNBOOK-aplicar-prototipo-orquestracao.md) (fases −1…5) + a mecânica por-tela em [`RUNBOOK-replicar-prototipo-cowork.md`](../memory/requisitos/_DesignSystem/RUNBOOK-replicar-prototipo-cowork.md) (F0–F7). Este doc é **o "está fiel?"** que roda DENTRO da Fase 4 (APLICAR) e também sozinho pra auditar uma tela já viva. 1 tema = 1 doc: aqui NÃO se repete a orquestração.
 >
-> **Origem:** 2026-07-08 — Wagner: *"as máquinas não estão funcionando em conjunto com os hooks"* (âncora podre reincidente 07-06 → 07-08). A cola virou máquina fail-closed ([ADR proposta trava-ancora-compare](../memory/decisions/proposals/trava-ancora-compare-fingerprint.md)). Este RUNBOOK desenha o fluxo ponta-a-ponta que faltava.
+> **Origem:** 2026-07-08 — Wagner: *"as máquinas não estão funcionando em conjunto com os hooks"* (âncora podre reincidente 07-06 → 07-08). A cola virou máquina fail-closed ([ADR 0326](../memory/decisions/0326-trava-ancora-compare-fingerprint.md)). Este RUNBOOK desenha o fluxo ponta-a-ponta que faltava.
 
 ## Onde encaixa
 Dentro da **Fase 4 · APLICAR** (1 sessão limpa por tela), depois de mexer no `.tsx`, ANTES do PORTÃO do screenshot. É o loop que responde *"o que eu apliquei bate com o design?"* com números — complementa o `anchor-lint --check` (que fecha fidelidade **spec↔código**; este fecha fidelidade **design-renderizado↔prod-renderizado**).

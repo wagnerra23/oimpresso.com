@@ -10,7 +10,7 @@
 # E ESSA MÁQUINA PRECISA SER REQUIRED, senão continua sendo lembrança.
 #
 # Exceção consciente à "required = só Tier-0" da ADR 0314 (proposta) — Wagner autorizou explícito
-# ("resolva todos, eu autorizo", 2026-07-08). Emenda: memory/decisions/proposals/anchor-content-required-emenda-0314.md
+# ("resolva todos, eu autorizo", 2026-07-08). Emenda: memory/decisions/0327-anchor-content-required-emenda-0314.md
 #
 # Escopo do gate: falha o merge só em MISSING/SHELL (o sinal DURO, sem falso-positivo). NO-MODULE
 # segue warn (nomenclatura). Verde no main na promoção (6 âncoras, 0 podre).

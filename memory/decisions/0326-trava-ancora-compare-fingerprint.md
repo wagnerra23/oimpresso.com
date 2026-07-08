@@ -1,16 +1,27 @@
 ---
-status: proposal
-title: Trava de âncora no compare-time do fingerprint — enforcement na MÁQUINA quando a superfície é não-hookável
-proposed_by: Wagner + Claude
-proposed_at: 2026-07-08
-relates_to:
+slug: 0326-trava-ancora-compare-fingerprint
+number: 326
+title: "Trava de âncora no compare-time do fingerprint — enforcement na MÁQUINA quando a superfície é não-hookável"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+kind: decision
+decided_by: [W]
+decided_at: "2026-07-08"
+module: governance
+tags: [design, fidelidade, ancora, fingerprint, enforcement, hook, cowork, aplicar-prototipo]
+supersedes: []
+superseded_by: []
+related:
+  - 0327-anchor-content-required-emenda-0314
   - 0264-governanca-executavel-trio-dominio-e2e
   - 0256-knowledge-survival-catraca-sentinela-gate-cadencia
 ---
 
-# PROPOSAL — trava de âncora no `--compare` do `style-fingerprint`
+# ADR 0326 — trava de âncora no `--compare` do `style-fingerprint`
 
-> **Status:** `proposal`. Wagner aprovou a implementação (2026-07-08) sabendo que **reduz + torna auditável, mas NÃO blinda o Chrome**. Promover a ADR canon se o padrão "enforcement na máquina" se provar em ≥1 reincidência evitada.
+> **Status:** `aceito` (2026-07-08, Wagner "promova"). Implementada, testada ponta-a-ponta contra captura REAL, e o gate irmão (`anchor-content-check`) foi promovido a **required** ([ADR 0327](0327-anchor-content-required-emenda-0314.md)). Promovida de proposta porque o padrão "enforcement na máquina" se provou: fecha a reincidência 07-06→07-08 no ponto de uso.
 
 ## Contexto — o incidente que a expôs
 
@@ -36,20 +47,21 @@ O erro aconteceu numa superfície que **nenhum hook vigia**, com a máquina cert
 2. **`--compare proto.json prod.json`** agora é **fail-closed**: exige `--tela <Mod/Tela>` (verifica a captura contra o charter via `ancora.mjs`) **OU** `--sem-ancora <razão>` (opt-out **explícito e logado**). Sem nenhum dos dois → **RECUSA (exit 3)**.
    - captura sem `ancora` declarada → RECUSA;
    - `ancora` declarada ≠ `related_prototype` do charter → RECUSA (pega a âncora podre);
-   - bate → passa, loga `âncora ✓ <path>`.
+   - bate → passa.
 3. `resolverAncora` chama `ancora.mjs` por **subprocesso, não import** (mesma lição do `block-ancora-no-olho`: import quebrado = fail-open; subprocesso que falha = **RECUSA**, fail-closed).
+4. **Check de CONTEÚDO (F5, `overlapConteudo`)** — porque a declaração de âncora é só um CLAIM (assado do argumento, não do DOM), o `--compare` também extrai os RÓTULOS distintivos do `.jsx` da âncora e mede quantos aparecem no texto da captura; overlap baixo ⇒ o DOM não veio daquele arquivo → **RECUSA**. Calibrado contra captura REAL (financeiro renderizado ~17-20% presente; shell ~0%; threshold 8%). Extração filtra código/className (senão inflava o denominador → falso-refuse — pego no teste-do-processo). Reduz o teto do claim; não elimina.
 
-Selftest hermético cobre os 3 vereditos (sem-declaração/podre/bate). O hook `block-ancora-no-olho` **continua** (cobre o vetor Read-png) mas deixa de ser a **única** defesa.
+Selftest hermético cobre os vereditos (sem-declaração/podre/bate + conteúdo certo/shell/anti-poluição). O hook `block-ancora-no-olho` **continua** (cobre o vetor Read-png) mas deixa de ser a **única** defesa.
 
 ## Resíduo HONESTO (declarado, não escondido)
 
-- A declaração de âncora é um **CLAIM**: `--snippet <tela>` assa a âncora certa, mas **quem cola pode colar na página errada** — o `--compare` vê "declarou financeiro-page.jsx" e passa, mesmo se o DOM capturado for o shell. **O browser é não-hookável; não há oráculo formal acima do charter.**
-- Fonte-da-captura = **URL/DOM**; âncora = **arquivo** (`.jsx`). Não há link limpo máquina-verificável entre "este DOM renderizado" e "é o financeiro-page.jsx".
-- Portanto **"resolver" aqui = converter skip silencioso → recusa/override auditável**, e mover a trava pra onde **uma tool roda de fato** (compare-time). **Não é bloqueio físico.** É o mesmo teto honesto que o `block-ancora-no-olho` já confessa.
+- A declaração de âncora é um **CLAIM**: `--snippet <tela>` assa a âncora certa, mas quem cola pode colar na página errada. O F5 (overlap de texto) reduz isso a "evidência fraca-porém-real", mas **o browser é não-hookável; não há oráculo formal acima do charter.**
+- Fonte-da-captura = **URL/DOM**; âncora = **arquivo** (`.jsx`). Não há link limpo máquina-verificável entre "este DOM renderizado" e "é o financeiro-page.jsx" — só overlap de texto, não fidelidade visual.
+- Portanto **"resolver" aqui = converter skip silencioso → recusa/override auditável**, movendo a trava pra onde **uma tool roda de fato** (compare-time). **Não é bloqueio físico.** É o mesmo teto honesto que o `block-ancora-no-olho` já confessa.
 
 ## Meta-princípio (o que generalizar)
 
-> **Quando a superfície do erro é não-hookável (Chrome, paste, ação humana), o enforcement tem que viver DENTRO da máquina que produz o artefato — como input obrigatório fail-closed — não num PreToolUse que vigia tools.** A máquina passa a exigir a âncora no próprio ponto de entrada, independente de hook.
+> **Quando a superfície do erro é não-hookável (Chrome, paste, ação humana), o enforcement tem que viver DENTRO da máquina que produz o artefato — como input obrigatório fail-closed — não num PreToolUse que vigia tools. E essa máquina precisa ser required** ([ADR 0327](0327-anchor-content-required-emenda-0314.md)), senão continua sendo lembrança.
 
 ## Alternativas descartadas
 
@@ -57,5 +69,6 @@ Selftest hermético cobre os 3 vereditos (sem-declaração/podre/bate). O hook `
 - **Fingerprint-harness fail-closed** (só) — o caminho primário é o **snippet colado na mão**, que contorna a harness (foi exatamente o que aconteceu). A trava tem que ser no `--compare`, que toda captura atravessa.
 - **Só tornar o protocolo mais alto** (skill mais barulhenta) — o skill JÁ mandava rodar `ancora.mjs`; o agente pulou. Re-inflar processo é a armadilha que a `proibicoes` cataloga.
 
-## Gate de promoção a ADR canon
-≥1 reincidência de "âncora podre" **evitada** pela trava (log de RECUSA no `--compare`) OU adoção pelo time MCP sem atrito. Até lá, `proposal`.
+## Implementação
+
+PRs #3967 (trava) · #3971 (F5 conteúdo) · #3973 (F5 fix extração, pego pelo teste-do-processo). RUNBOOK do fluxo ponta-a-ponta: [`prototipo-ui/RUNBOOK-fidelidade-fingerprint.md`](../../prototipo-ui/RUNBOOK-fidelidade-fingerprint.md).
