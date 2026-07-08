@@ -42,9 +42,16 @@ export const CAMPOS = [
 // Tolerâncias de comparação (px inteiro; strings exatas pro resto).
 const TOL_PX = 1.5;
 
-// normaliza texto visível: colapsa espaços, troca números/moeda/data por placeholder
+// normaliza texto visível: colapsa espaços, troca números/moeda/data por placeholder,
+// e TIRA glifos de afordância de UI (setas de ordenação/chevrons) — são controle, não
+// conteúdo, e coláveis ao label: header "Vencimento⇅" (prod) × "Vencimento" (proto)
+// FORKA a chave → o par cai em SO_PROTO/SO_PROD e o diff real (tamanho/peso do header)
+// nunca é computado. Furo 2 do fingerprint v1 (dogfood [W] 2026-07-08). Strip vem ANTES
+// do slice pra não truncar em cima do glifo.
+const GLIFOS_UI = /[↑↓↕⇅⇵▲▼▴▾⌃⌄‹›◂▸]/g;
 export function normTexto(t) {
   return (t || '')
+    .replace(GLIFOS_UI, '')
     .replace(/\s+/g, ' ')
     .replace(/R\$\s?[\d.,]+/g, '<BRL>')
     .replace(/\d{1,2}\/\d{1,2}(\/\d{2,4})?/g, '<DATA>')
@@ -200,6 +207,11 @@ function selftest() {
   // caso regra-7 com MESMO texto (casa e diverge em linhas):
   proto.elementos.push(mk({ texto: 'Confirmar rejeição', linhas: 1, w: 140 }));
   prod.elementos.push(mk({ texto: 'Confirmar rejeição', linhas: 2, w: 66, h: 44 }));
+  // furo 2 (glifo ⇅ de ordenação cola no header e forka a chave): proto "Vencimento" ×
+  // prod "Vencimento⇅" TÊM que parear (normTexto tira o glifo) e divergir no fontSize —
+  // sem o strip iam pra SO_PROTO/SO_PROD e o diff de tamanho sumia (2026-07-08 [W]).
+  proto.elementos.push(mk({ tag: 'th', texto: 'Vencimento', fontSize: '10.5px' }));
+  prod.elementos.push(mk({ tag: 'th', texto: 'Vencimento⇅', fontSize: '10px' }));
 
   const { rows, tally } = comparar(proto, prod);
   const by = (t) => rows.find((r) => r.chave.includes(t));
@@ -210,6 +222,7 @@ function selftest() {
     ['regra 7: linhas 1→2 diverge',   by('Confirmar rejeição')?.veredito, 'DIVERGE'],
     ['só-proto não some',             by('Ver todo o período')?.veredito, 'SO_PROTO'],
     ['só-prod não some',              by('Resolver')?.veredito, 'SO_PROD'],
+    ['header glifo ⇅ pareia (furo 2)', by('Vencimento')?.veredito, 'DIVERGE'],
   ];
   let fails = 0;
   for (const [label, got, exp] of checks) {
@@ -222,6 +235,11 @@ function selftest() {
   const temLinhas = r7?.campos.some((c) => c.startsWith('linhas:'));
   console.log(`  [${temLinhas ? 'PASS' : 'FAIL'}] campo 'linhas' listado no diff da regra 7`);
   if (!temLinhas) fails++;
+  // furo 2: o header ⇅ pareou (checado acima) E o diff de tamanho aparece nos campos.
+  const hg = by('Vencimento');
+  const temFs = hg?.campos.some((c) => c.startsWith('fontSize:'));
+  console.log(`  [${temFs ? 'PASS' : 'FAIL'}] header ⇅ recuperado: fontSize listado (não virou SO_*)`);
+  if (!temFs) fails++;
 
   // agruparLinhas — o fix do falso-positivo (dogfood [W] 2026-07-07). Rects PLANTADOS:
   //  A) botão real ícone+texto de 1 linha: SVG top=100 h=16 + texto top=101 h=18 (jitter
