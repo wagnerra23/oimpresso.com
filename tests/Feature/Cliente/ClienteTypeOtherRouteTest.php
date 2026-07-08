@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// Cobre UC-CIDX-01 (Index.casos.md) - G-2 rastreabilidade caso-teste.
 
 use App\Business;
 use App\User;
