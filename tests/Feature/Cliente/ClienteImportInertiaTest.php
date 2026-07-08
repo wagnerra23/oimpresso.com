@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * Prova COMPORTAMENTAL de que a flag MWART `cliente_import` liga o Inertia render
  * (Cliente/Import) em vez do Blade legacy `contact.import` — âncora real, NÃO o
- * Wave1ImportInertiaTest (que é source-grep + @group legacy-quarantine, fora de lane).
+ * Wave1ImportInertiaTest (source-grep, em quarentena de suíte, fora de lane).
  *
  * Backend: ContactController::getImportContacts() (routes/web.php GET /contacts/import).
  * Gate de permissão: customer.create OU supplier.create (admin seedado biz=1 tem).

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\Schema;
  * Prova COMPORTAMENTAL de que a flag MWART `cliente_map` liga o Inertia render
  * (Cliente/Map) em vez do Blade legacy `contact.contact_map` + que a lista de
  * clientes do mapa é isolada por business_id (Tier 0, ADR 0093) — âncora real,
- * NÃO o Wave1MapInertiaTest (source-grep + @group legacy-quarantine).
+ * NÃO o Wave1MapInertiaTest (source-grep, em quarentena de suíte).
  *
  * Backend: ContactController::contactMap() (routes/web.php GET /contacts/map).
  * Gate de permissão: customer.view OU supplier.view (admin seedado biz=1 tem).
