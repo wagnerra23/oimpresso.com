@@ -358,3 +358,17 @@ Extractor JSON dos dois lados + probes de cascata + zoom do botão — na transc
 1. ~~**P0 copy Conciliação**~~ ✅ #3925 → 2. ~~**CSS toggles `.on`**~~ ✅ → 3. ~~**ClienteCombobox no CreateSheet** (US-FIN-024)~~ ✅ → 4. ~~**CSS KPI** (anel+hover+dots)~~ ✅ → 5. ~~**motivo rejeição inline**~~ ✅ → 6. ~~**forma pré-selecionada na baixa**~~ ✅ → 7. ~~pills raio/saturação~~ ✅ **[W] 2026-07-07 "pode fazer igual"** (cápsula full + semibold + cores saturadas do DS) → 8. ~~Valor saída~~ ✅ **[W] idem** (saída NEUTRA como o protótipo) → 9. ~~tokens do sparkline~~ ✅ → 10. ~~drag&drop anexos~~ ✅. **US-ADR (backend):** seeds NFe · desfazer/reenviar aprovação. **Nunca aplicar:** tudo marcado PROD_A_FRENTE.
 
 > **Round fechado 2026-07-07 (mesmo dia):** fila 1-10 INTEIRA aplicada (#3925 + PR "fila do inventário", branch `claude/financeiro-unificado-fila-inventario`; tudo em Tailwind/JSX, zero CSS bespoke novo — ratchet CSS intocado). Itens 7-8 decididos por [W] no mesmo dia: **"pills e cor do valor de saída, pode fazer igual"** (= igual ao protótipo). Restam SÓ as 2 US-ADR de backend. Charter → v18 (US-FIN-024 done).
+
+### Round 2026-07-08 — sweep da borda neutra dark (`borderColor 56/57 SISTEMÁTICO`)
+
+Medição por sonda DOM ao vivo (browser MCP) + sentinela por-var. **Correção de diagnóstico** do handoff 2026-07-08 ("não é fix de token, é hardcode sweep") — na verdade **é token**, ver [ADR UI-0022](../_DesignSystem/adr/ui/0022-border-dark-clareado-fidelidade.md):
+
+| Achado | Número | Fonte real |
+|---|---|---|
+| Borda neutra dominante `oklch(0.30 0.012 282)` | **575 lados** | `--color-border` (151, utility `border-border`) + `--border` cockpit (424) — os DOIS são tokens |
+| Por que "bumpar `--color-border` falhou" antes | — | `.cockpit` tem `data-theme="dark"` → a regra `.dark,[data-theme=dark]{--color-border}` re-aplica no nível do `.cockpit` e **sombreia** override só-na-raiz. Editar o VALOR do token (não a var no DevTools) funciona: 575→0 no velho, 575 no alvo 0.335 |
+| Alvo proto | `oklch(0.335 0.012 282)` | +0.035 L, mesmo croma/hue ("linhas mais claras" [W]) |
+| **Residual pendente** — `--fin-line` clara/fria sem override dark | 49 lados `oklch(0.92 0.005 240)` | Financeiro-scoped (`.fin-cowork .fin-curadoria`), companion da superfície |
+| **Residual pendente** — superfície `bgEfetivo 56/57` | topo achata em `0.165` | proto quer painel `~0.238` atrás do filtro; tabela já tem `0.205` → **PR próprio** (precisa proto rodando) |
+
+**Fix aplicado (este PR):** DTCG `semantic.tokens.json` border/input/cockpit-border dark `0.30→0.335` + `tokens:build`. App-wide (fundação, igual UI-0021). VRT baselines dark regeneradas em modo UPDATE pós-merge.
