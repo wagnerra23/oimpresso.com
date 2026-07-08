@@ -23,6 +23,15 @@ Dentro da **Fase 4 · APLICAR** (1 sessão limpa por tela), depois de mexer no `
 - `--tela <Mod/Tela>` → verifica a captura contra o charter (o caminho normal);
 - `--sem-ancora <razão>` → opt-out **explícito e logado** (raro: comparar contra algo que não é a âncora).
 
+## Cobertura obrigatória — multi-eixo + região (NÃO é 1 foto)
+> Empírico 2026-07-08 (teste do protocolo na Financeiro/Unificado): uma captura só (1 tema · 1 largura · 1 estado · página cheia) **subestima e mente**. O loop 0→6 roda por:
+- **Tema:** light **E** dark. Proto×prod sempre no MESMO tema (regra 5) — mas OS DOIS temas medidos: um pode divergir e o outro não.
+- **Largura:** 1280 **E** 1440. **1280 = monitor real da persona Larissa (biz=4)** — não medir só no default.
+- **Estados:** default + vazio/sem-resultado + loading/skeleton + erro + hover + drawer aberto. O vetor é foto de UM estado.
+- **Região, não página:** escopar ao conteúdo da tela via [`recortar-regiao.mjs`](recortar-regiao.mjs)/[`analise-regiao.mjs`](analise-regiao.mjs). Capturar a página INTEIRA mistura shell (sidebar do ERP) + dados (linhas reais × mock) e infla os `SO_*`/miss com RUÍDO — na Unificado, 540 "miss" eram sidebar+dados, **não** gap de design.
+
+**Direção NÃO é uniforme (não aplicar cego):** o proto pode estar ATRÁS do prod. Ex.: primário — prod `oklch(0.55 0.15 295)` bate o canon ([ADR 0190](../memory/requisitos/_DesignSystem/adr/ui/)) e o proto está em `0.7` → aplicar o protótipo **REGRIDE**. Cada `DIVERGE` precisa de julgamento de direção (**prod-fora-do-canon** × **proto-atrasado** × **ruído-de-dado**). Pareia com o anti-padrão "regredir tela à frente do protótipo" da skill `aplicar-prototipo`.
+
 ## O que o vetor mede (25 campos + 3 passadas)
 `tag,w,h,xnorm,ynorm,linhas,overflowX, fontSize,fontWeight,letterSpacing,lineHeight,textTransform,fontFamily, color,bgEfetivo,bgProprio,bgImage, radius,borderW,borderColor,boxShadow,padding,opacity,transform,display` + divisórias (inventário) + containers (layout-causa) + compostos/cards (superfície). Casamento por texto+tag; KPIs ambíguos (`<BRL>`) pareados por posição (furo 4); SO_* estrutural força triagem (furo 5).
 
@@ -31,7 +40,8 @@ Antes do PR, LOCAL: `layout-primitives-guard` · `casos:check` (trio `.tsx`+`.ch
 
 ## Resíduo HONESTO (o que a máquina NÃO blinda)
 - **Passo 1 é disciplina, não máquina.** A trava confere que você **declarou** `financeiro-page.jsx` — não que o DOM capturado é de fato ele. Montar o shell mas declarar a âncora certa **passa**. O browser é não-hookável; sem oráculo formal acima do charter. Mitigação: renderizar o `related_prototype` literal (passo 1) é o único caminho honesto; auditável depois pelo `url`/conteúdo da captura.
-- **Ambiente:** o `--compare` roda em **node local** e precisa dos 2 JSON em disco → exige Bash **co-localizado** com o browser (browser POSTa pra receiver local, ou salva à mão). Bash **sandboxed** (não alcança teu localhost, retorno do browser trunca) → rodar o comparador **dentro do browser** sobre os painéis (fallback validado 2026-07-08).
+- **Ambiente:** o `--compare` roda em **node local** e precisa dos 2 JSON em disco → exige Bash **co-localizado** com o browser (browser POSTa pra receiver local, ou salva à mão). Bash **sandboxed** (não alcança teu localhost, retorno do browser trunca) → rodar o comparador **dentro do browser** sobre os painéis (fallback validado 2026-07-08). Variante validada 2026-07-08: proto servido local (`python -m http.server`, harness Cowork completo com shell `oimpresso.com.html`) + **receiver POST em `127.0.0.1:8800`** — Chrome trata `127.0.0.1` como trustworthy, então **a aba https de prod consegue POSTar** o fingerprint sem mixed-content; o `javascript_tool` trunca retorno grande, por isso o handoff é via POST-em-disco, não via valor de retorno.
+- **O map (`detectar-telas`) é CEGO a CSS e a comportamento** — só diffa o `.tsx` (estrutura, linha). Tokens/superfície/borda/tipografia vivem no **CSS computado**, e **este loop é a ÚNICA camada que os vê**. "Map limpo" ≠ "fiel ao design": as duas camadas são complementares (estrutura × pixel renderizado). Não somar diff de `.css` bruto ao map (bundle Cowork ≠ CSS do repo 1:1 → seria ruído); o fingerprint é o lugar certo pra CSS.
 
 ## Furos conhecidos & melhorias
 > Revisão **adversarial** 2026-07-08 (histórico + hooks + settings + workflows lidos de `origin/main`). **Veredito do adversário:** o gate é *teatro no ponto de enforcement* — a ferramenta (`style-fingerprint`) é boa, mas **NADA dela é required em CI** e a superfície do erro (captura no browser) é não-hookável. Ranqueado impacto×esforço:
