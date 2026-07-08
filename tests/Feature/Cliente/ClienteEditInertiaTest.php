@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// Cobre UC-CEDI-01, UC-CEDI-02, UC-CEDI-03 (Edit.casos.md) - G-2 rastreabilidade caso-teste.
 
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
