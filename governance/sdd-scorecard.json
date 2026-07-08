@@ -58,21 +58,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 298,
+      "value": 291,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "637fb9978f839423",
+        "floor_files_hash": "1670ada67b0e0424",
         "runs": [
-          {
-            "sha": "5bff76dc",
-            "ts": "20260628-020001",
-            "failed": 339,
-            "errors": 782,
-            "skipped": 2766
-          },
           {
             "sha": "20103e02",
             "ts": "20260630-020001",
@@ -86,9 +79,16 @@
             "failed": 336,
             "errors": 784,
             "skipped": 2789
+          },
+          {
+            "sha": "2dbdceed",
+            "ts": "20260706-020001",
+            "failed": 523,
+            "errors": 913,
+            "skipped": 2307
           }
         ],
-        "computed_at": "20260701-020001",
+        "computed_at": "20260706-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -106,12 +106,27 @@
       "stream": "FV"
     },
     "coverage_pct": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 15,
+      "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "governance/nightly-coverage.json sem coverage_pct numérico (schema nightly-coverage/v1) — fallback honesto.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
+      "detail": {
+        "covered": 35757,
+        "total": 238941,
+        "runs": [
+          {
+            "sha": "2dbdceed",
+            "ts": "20260706-020001",
+            "coverage_pct": 15,
+            "covered": 35757,
+            "total": 238941
+          }
+        ],
+        "computed_at": "20260706-020001",
+        "measured_of": 1
+      },
       "stream": "FV"
     },
     "sqlite_corruptors": {
