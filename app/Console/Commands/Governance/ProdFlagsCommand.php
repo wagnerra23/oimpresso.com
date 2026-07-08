@@ -14,9 +14,19 @@ use Illuminate\Console\Command;
  * Consumido por scripts/governance/charter-live-signal.mjs: charter status:live cujo component
  * não esteja em prod-flags.json `live` (e sem `smoke:`) = live_sem_sinal.
  *
+ * AUTORIDADE PARCIAL (merge-safe): o produtor só deriva os componentes de FLAG_COMPONENT
+ * (hoje Cliente/*). No --write ele faz MERGE — sobrescreve autoritativamente os componentes
+ * gerenciados (presente se live, removido se a flag caiu) e PRESERVA os não-gerenciados
+ * (Sells/Financeiro/RecurringBilling/OficinaAuto — gated fora do mwart, seed manual). Sem o
+ * merge, o --write apagava esses (a listagem inteira era substituída pelos Cliente/* — regressão).
+ *
+ * FOLLOW-UP conhecido: os flags MWART_REPAIR_* (config/mwart.php) também são deriváveis mas
+ * ainda não estão mapeados aqui — Repair segue não-rastreado no prod-flags até um PR dedicado
+ * mapear os componentes Inertia de Repair.
+ *
  * Roda no host com o .env de PROD (Hostinger). Config-puro: SEM DB, SEM rede.
- *   php artisan governance:prod-flags            # dry-run (imprime o JSON)
- *   php artisan governance:prod-flags --write     # grava governance/prod-flags.json
+ *   php artisan governance:prod-flags            # dry-run (imprime o JSON mergeado)
+ *   php artisan governance:prod-flags --write     # grava governance/prod-flags.json (merge)
  *
  * Publish: rodar com --write no prod e commitar o arquivo (manual via SSH agora; agendar/
  * pós-deploy é wiring de infra). NÃO editar prod-flags.json à mão — re-rodar o comando.
@@ -63,16 +73,67 @@ class ProdFlagsCommand extends Command
         return $live;
     }
 
+    /**
+     * Componentes que o produtor deriva do config (autoritativo sobre eles).
+     *
+     * @return list<string>
+     */
+    public function managedComponents(): array
+    {
+        return array_values(self::FLAG_COMPONENT);
+    }
+
+    /**
+     * Merge do derivado sobre o existente: PRESERVA componentes não-gerenciados
+     * (seed manual de Sells/Financeiro/RecurringBilling/OficinaAuto) e sobrescreve
+     * autoritativamente os gerenciados — presente se live agora, removido se a flag caiu.
+     *
+     * @param  array<string, list<string>>  $existing
+     * @param  array<string, list<string>>  $derived
+     * @return array<string, list<string>>
+     */
+    public function mergeLive(array $existing, array $derived): array
+    {
+        $managed = array_flip($this->managedComponents());
+        $preserved = array_diff_key($existing, $managed);
+        $merged = array_merge($preserved, $derived);
+        ksort($merged);
+
+        return $merged;
+    }
+
+    /**
+     * Lê o `live` do prod-flags.json atual (vazio se ausente/inválido).
+     *
+     * @return array<string, list<string>>
+     */
+    private function readExistingLive(): array
+    {
+        $path = base_path('governance/prod-flags.json');
+        if (! is_file($path)) {
+            return [];
+        }
+        $data = json_decode((string) file_get_contents($path), true);
+        if (! is_array($data) || ! isset($data['live']) || ! is_array($data['live'])) {
+            return [];
+        }
+
+        return $data['live'];
+    }
+
     public function handle(): int
     {
-        $live = $this->buildLive();
+        $derived = $this->buildLive();
+        $existing = $this->readExistingLive();
+        $live = $this->mergeLive($existing, $derived);
+        $preservados = count($live) - count($derived);
 
         $payload = [
             '_meta' => [
                 'schema' => 'prod-flags/v1',
-                'purpose' => 'Estado de PRODUCAO das telas Inertia flag-gated, por tenant. DERIVADO do config/env real por `php artisan governance:prod-flags` (replica ContactController::shouldRenderInertiaCliente). Consumido por scripts/governance/charter-live-signal.mjs.',
+                'purpose' => 'Estado de PRODUCAO das telas Inertia flag-gated, por tenant. Componentes gerenciados (Cliente/*) sao DERIVADOS do config/env real por `php artisan governance:prod-flags` (replica ContactController::shouldRenderInertiaCliente); os demais sao seed manual PRESERVADO no merge. Consumido por scripts/governance/charter-live-signal.mjs.',
                 'contrato' => 'live[<component>] = lista de business_id (string) onde a tela roda em React em PRODUCAO; ["*"] = todos os tenants (flag enabled sem allowlist). <component> = path Inertia sem resources/js/Pages/ e sem .tsx.',
-                'fonte' => 'gerado por `php artisan governance:prod-flags --write` no host com o .env de prod (Hostinger). NAO editar a mao — re-rodar o comando.',
+                'fonte' => 'gerado por `php artisan governance:prod-flags --write` no host com o .env de prod (Hostinger). Merge-safe: preserva componentes nao-gerenciados. NAO editar a mao — re-rodar o comando.',
                 'nao_e' => 'NAO e a lista de telas que EXISTEM (isso e charter/anchor). E a lista das que estao LIVE pra tenant real. existir != estar live.',
             ],
             'live' => (object) $live,
@@ -82,13 +143,13 @@ class ProdFlagsCommand extends Command
 
         if ($this->option('write')) {
             file_put_contents(base_path('governance/prod-flags.json'), $json);
-            $this->info('governance/prod-flags.json escrito — '.count($live).' componente(s) live.');
+            $this->info('governance/prod-flags.json escrito — '.count($derived).' gerenciado(s) + '.$preservados.' preservado(s) = '.count($live).' componente(s) live.');
 
             return self::SUCCESS;
         }
 
         $this->line($json);
-        $this->comment('dry-run — use --write pra gravar. '.count($live).' componente(s) live.');
+        $this->comment('dry-run — use --write pra gravar (merge). '.count($derived).' gerenciado(s) + '.$preservados.' preservado(s) = '.count($live).' live.');
 
         return self::SUCCESS;
     }
