@@ -1,8 +1,8 @@
 # ADR UI-0022 · Border/input neutro no dark clareado 0.30→0.335 (emenda à ADR UI-0020)
 
-- **Status**: proposed
+- **Status**: accepted
 - **Data**: 2026-07-08
-- **Aprovação**: aguardando Wagner no merge deste PR (R10) — mesmo fluxo da UI-0021.
+- **Aprovado em**: 2026-07-08 — Wagner autorizou o merge ("merge e salve tudo"), confirmando o escopo **app-wide** recomendado. PR #3958 (merge `4b666ed4f1`).
 - **Decisores**: Wagner (aprovação + escopo), Claude Code (medição + execução)
 - **Categoria**: ui · fundações · tokens
 - **Amends**: [UI-0020](0020-dark-warm-ds-v6-tokens.md) — só os valores DARK de `border`/`input` (inertia) e do `--border` (cockpit); o light permanece intacto.
