@@ -51,6 +51,7 @@
 import { readFileSync } from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { spawnSync } from 'node:child_process';
+import { resolve, dirname } from 'node:path';
 
 // ── vetor extraído por elemento (mantido em sync com o SNIPPET abaixo) ─────────
 // Onda 1 (2026-07-08, estado-da-arte fingerprint-vs-SOTA): aprofundado de 14 → 25 campos pra
@@ -348,6 +349,41 @@ export function verificarAncora(protoFp, esperada) {
   if (!decl) return { ok: false, motivo: 'captura do proto SEM âncora declarada — gere com `--snippet <Mod/Tela>` (assa a âncora resolvida por ancora.mjs), ou opt-out com `--sem-ancora <razão>`' };
   if (decl !== esperada) return { ok: false, motivo: `âncora DIVERGENTE — a captura declara "${decl}", mas o charter quer "${esperada}" (comparando contra a fonte errada?)` };
   return { ok: true, motivo: `âncora ✓ ${esperada}` };
+}
+
+// ── F5 (2026-07-08, revisão adversarial): a trava acima só confere um CLAIM — a âncora é assada
+// do ARGUMENTO `--snippet <tela>`, não do DOM. Colar o snippet ancorado no tab do SHELL passa
+// (declara certo, DOM errado). Este check transforma o claim em EVIDÊNCIA FRACA-PORÉM-REAL:
+// extrai os RÓTULOS distintivos do .jsx da âncora e mede quantos aparecem no texto capturado —
+// overlap baixo ⇒ o DOM NÃO veio daquele arquivo (recusa). RESÍDUO: JSX não renderiza offline
+// (sem computed styles) → só overlap de TEXTO, não fidelidade visual; rótulos vindos de dados
+// (outro arquivo) não contam. Heurística CONSERVADORA (alta precisão): só considera rótulos
+// multi-palavra OU acentuados (rótulo de UI PT-BR real, não identificador de código), e só recusa
+// quando há rótulos SUFICIENTES e QUASE NENHUM aparece.
+const STOPWORDS_ROT = new Set(['true', 'false', 'null', 'undefined', 'function', 'return', 'import', 'export', 'default', 'className']);
+export function rotulosDistintivos(src) {
+  const out = new Set();
+  const re = /["']([^"'\n]{4,40})["']/g;
+  let m;
+  while ((m = re.exec(src || ''))) {
+    const s = m[1].trim();
+    const temLetra = /[a-zà-ú]/i.test(s);
+    const distintivo = /\s/.test(s) || /[À-ÿ]/.test(s); // multi-palavra OU acentuado
+    if (temLetra && distintivo && !STOPWORDS_ROT.has(s.toLowerCase())) out.add(s.toLowerCase());
+  }
+  return [...out];
+}
+const normSimples = (t) => (t || '').toLowerCase().replace(/\s+/g, ' ').trim();
+// overlapConteudo — recebe os rótulos da âncora + os textos da captura. Devolve {ok,motivo,...}.
+// Pulado (ok) se rótulos < minRotulos (âncora sem material distintivo pra julgar).
+export function overlapConteudo(rotulos, protoTexts, minRotulos = 6, fracaoMin = 0.15) {
+  const rs = (rotulos || []).filter(Boolean);
+  if (rs.length < minRotulos) return { ok: true, motivo: `conteúdo: só ${rs.length} rótulos distintivos na âncora — check pulado (sem material)`, achados: 0, total: rs.length };
+  const hay = (protoTexts || []).map(normSimples).join('  ');
+  const achados = rs.filter((r) => hay.includes(normSimples(r))).length;
+  const fracao = achados / rs.length;
+  if (fracao < fracaoMin) return { ok: false, motivo: `conteúdo SUSPEITO — só ${achados}/${rs.length} (${Math.round(fracao * 100)}%) dos rótulos da âncora aparecem na captura → o DOM capturado provavelmente NÃO é do arquivo da âncora (colou na página errada?). Override: --sem-ancora <razão>.`, achados, total: rs.length };
+  return { ok: true, motivo: `conteúdo ✓ ${achados}/${rs.length} rótulos da âncora presentes (${Math.round(fracao * 100)}%)`, achados, total: rs.length };
 }
 
 // ── snippet auto-contido (roda DENTRO da página; espelho do vetor CAMPOS) ──────
@@ -761,6 +797,21 @@ function selftest() {
     if (!ok) fails++;
     console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
   }
+  // ── F5: conteúdo (overlap de rótulos .jsx × captura) — pega "declarou certo, colou na página errada".
+  const jsxFake = `const a='A receber'; b='Saldo previsto'; label('Fluxo de caixa'); const t='Novo título'; x='Visão unificada'; y='A pagar'; cls='flex'; d='none';`;
+  const rot = rotulosDistintivos(jsxFake);
+  const txtCerto = ['A receber', 'A pagar', 'Saldo previsto', 'Fluxo de caixa', 'Novo título', 'Visão unificada'];
+  const txtShell = ['Chat', 'Tarefas', 'Clientes', 'Configurações', 'Perfil', 'Início'];
+  for (const [label, got, exp] of [
+    ['F5 rótulos: extrai multi-palavra/acentuado, ignora código (flex/none)', rot.length >= 6 && !rot.includes('flex') && !rot.includes('none'), true],
+    ['F5 conteúdo: captura CERTA (rótulos presentes) → passa', overlapConteudo(rot, txtCerto).ok, true],
+    ['F5 conteúdo: captura do SHELL (rótulos ausentes) → recusa', overlapConteudo(rot, txtShell).ok, false],
+    ['F5 conteúdo: âncora sem material (poucos rótulos) → pula (ok)', overlapConteudo(['a b'], txtShell).ok, true],
+  ]) {
+    const ok = got === exp;
+    if (!ok) fails++;
+    console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
+  }
   console.log(`  resumo: ${Object.entries(tally).map(([k, v]) => `${k}=${v}`).join(' · ')}`);
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — comparador provado pelos dois lados.');
   process.exit(fails ? 1 : 0);
@@ -812,6 +863,20 @@ else if (argv.includes('--snippet')) {
     const v = verificarAncora(A, esperada); // A = proto (1º arg) é o lado da âncora de design
     if (!v.ok) { console.error('⛔ ' + v.motivo); process.exit(3); }
     console.error('# ' + v.motivo);
+    // F5 — evidência fraca-porém-real: o DOM capturado tem os rótulos do .jsx da âncora? (pega o
+    // "declarou certo, colou na página errada" que a âncora-claim sozinha deixa passar). Leitura
+    // fail-OPEN (bônus — a âncora-claim já passou); overlap suspeito = recusa fail-CLOSED.
+    let srcAnc = null;
+    try {
+      const raizRepo = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+      srcAnc = readFileSync(resolve(raizRepo, esperada), 'utf8');
+    } catch (e) { console.error(`# ⚠ conteúdo não checado (âncora ilegível: ${String(e.message).slice(0, 60)})`); }
+    if (srcAnc != null) {
+      const textos = [...A.elementos.map((e) => e.texto), ...(A.compostos || []).map((c) => c.texto)];
+      const c = overlapConteudo(rotulosDistintivos(srcAnc), textos);
+      if (!c.ok) { console.error('⛔ ' + c.motivo); process.exit(3); }
+      console.error('# ' + c.motivo);
+    }
   } else {
     console.error(`# ⚠ OVERRIDE — âncora NÃO verificada. Razão: ${semRazao}. (Logado; o browser é não-hookável — ver ADR trava-ancora-compare. Não é bloqueio físico.)`);
   }
