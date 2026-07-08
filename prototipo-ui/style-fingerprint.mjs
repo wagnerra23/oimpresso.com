@@ -33,15 +33,36 @@
 //  (2) DIVISÓRIAS/BORDAS SEM TEXTO — 2ª passada estrutural (furo 1, 2026-07-08 [W]
 //      "deveria constar tudo"): toda borda visível vira entrada, casada por INVENTÁRIO
 //      (lado+cor+espessura+span). Linha/régua/divisória agora CONSTAM (antes eram invisíveis).
-// Ainda FORA: ícones puros/sparklines sem borda nem texto (matching sem âncora — declarado).
+// AMBIGUIDADE de chave (furo 4, Onda 1): quando N elementos casam a MESMA chave (2 KPIs → <BRL>),
+//      pareiam por PROXIMIDADE de posição (xnorm,ynorm), não por colisão de Map — o KPI deixa de
+//      ser medido contra o vizinho errado. Sobra vira SO_*.
+// SO_* NÃO é ruído (furo 5, Onda 1): copy estável presente só de um lado (+ toda divisória
+//      recolorida) é diferença ESTRUTURAL — triagemSO() força a triagem e reprova o exit-code.
+// Onda 1 (estado-da-arte 2026-07-08) aprofundou o vetor 14→25 campos: elevação (box-shadow),
+//      superfície própria vs herdada (bgProprio), padding, tipografia fina, bg-image/gradiente,
+//      posição vertical (ynorm), opacity/transform. + captioning-lite (veredictoNL, verdito 1-linha).
+// Ainda FORA (roadmap): a CAUSA do layout (justify-content/gap do container — Onda 2), estados
+//      hover/focus/active e responsivo multi-viewport (Onda 3), ícones/sparklines sem âncora.
 
 import { readFileSync } from 'node:fs';
 
 // ── vetor extraído por elemento (mantido em sync com o SNIPPET abaixo) ─────────
+// Onda 1 (2026-07-08, estado-da-arte fingerprint-vs-SOTA): aprofundado de 14 → 25 campos pra
+// fechar os pontos cegos mapeados. Novos eixos:
+//   ynorm (posição VERTICAL — o par do xnorm/furo 6);
+//   letterSpacing/lineHeight/textTransform/fontFamily (tipografia FINA — antes só size/weight);
+//   bgProprio (superfície PRÓPRIA vs herdada: 'none' = herda o fundo do ancestral → deixa
+//     dizível "FALTA camada", que o walk-up de bgEfetivo escondia como mero delta de cor);
+//   bgImage (gradiente/imagem — bgEfetivo só lia cor sólida);
+//   boxShadow (ELEVAÇÃO — o "flutuar" que separa um painel do fundo; a causa do "retângulo
+//     atrás do filtro" ter aparecido só como cor);
+//   padding (respiro interno — antes só a caixa externa w/h);
+//   opacity/transform (estado de composição).
 export const CAMPOS = [
-  'tag', 'w', 'h', 'xnorm', 'linhas', 'overflowX',
-  'fontSize', 'fontWeight', 'color', 'bgEfetivo',
-  'radius', 'borderW', 'borderColor', 'display',
+  'tag', 'w', 'h', 'xnorm', 'ynorm', 'linhas', 'overflowX',
+  'fontSize', 'fontWeight', 'letterSpacing', 'lineHeight', 'textTransform', 'fontFamily',
+  'color', 'bgEfetivo', 'bgProprio', 'bgImage',
+  'radius', 'borderW', 'borderColor', 'boxShadow', 'padding', 'opacity', 'transform', 'display',
 ];
 
 // Tolerâncias de comparação (px inteiro; strings exatas pro resto).
@@ -86,7 +107,7 @@ export function agruparLinhas(rects) {
 
 export function chave(el) { return el.tag + '|' + normTexto(el.texto); }
 
-function ehNum(c) { return ['w', 'h', 'xnorm', 'linhas', 'borderW'].includes(c); }
+function ehNum(c) { return ['w', 'h', 'xnorm', 'ynorm', 'linhas', 'borderW', 'opacity'].includes(c); }
 
 export function diffElemento(a, b) {
   const campos = [];
@@ -95,10 +116,14 @@ export function diffElemento(a, b) {
     const va = a[c], vb = b[c];
     if (ehNum(c)) {
       const na = parseFloat(va) || 0, nb = parseFloat(vb) || 0;
-      // linhas: qualquer diferença é DIVERGE (regra 7). xnorm: fração 0-1 da largura →
+      // linhas: qualquer diferença é DIVERGE (regra 7). xnorm/ynorm: fração 0-1 →
       // tolerância 0.04 (4%) — abaixo é ruído de sub-pixel, acima é MUDANÇA de lugar
-      // (furo 6: mesmo elemento, alinhamento diferente = DIVERGE, não IDENTICO mentiroso).
-      const tol = c === 'linhas' ? 0.01 : c === 'xnorm' ? 0.04 : TOL_PX;
+      // (furo 6: mesmo elemento, posição diferente = DIVERGE, não IDENTICO mentiroso).
+      // opacity: 0-1, tolerância 0.02.
+      const tol = c === 'linhas' ? 0.01
+        : (c === 'xnorm' || c === 'ynorm') ? 0.04
+        : c === 'opacity' ? 0.02
+        : TOL_PX;
       if (Math.abs(na - nb) > tol) campos.push(`${c}: ${va} → ${vb}`);
     } else if (String(va ?? '') !== String(vb ?? '')) {
       campos.push(`${c}: ${va} → ${vb}`);
@@ -122,17 +147,59 @@ export function compararDivisorias(divA = [], divB = []) {
   return rows;
 }
 
-export function comparar(fpA, fpB) {
-  const mapA = new Map(fpA.elementos.map((e) => [chave(e), e]));
-  const mapB = new Map(fpB.elementos.map((e) => [chave(e), e]));
-  const rows = [];
-  for (const [k, a] of mapA) {
-    const b = mapB.get(k);
-    if (!b) { rows.push({ chave: k, veredito: 'SO_PROTO', campos: [] }); continue; }
-    const campos = diffElemento(a, b);
-    rows.push({ chave: k, veredito: campos.length ? 'DIVERGE' : 'IDENTICO', campos });
+// furo 4 (2026-07-08) — a MESMA chave (tag|texto normalizado) pode ter VÁRIOS elementos: dois
+// KPIs viram ambos 'button|<BRL>'. O Map antigo colidia → um KPI sumia e o outro era medido
+// contra o vizinho errado (fonte/tamanho não-confiável). Agrupo por chave e caso os candidatos
+// pela PROXIMIDADE de posição (xnorm,ynorm): o par certo é o mais perto, não "o último do Map".
+function agruparPorChave(elems) {
+  const m = new Map();
+  for (const e of elems || []) {
+    const k = chave(e);
+    if (!m.has(k)) m.set(k, []);
+    m.get(k).push(e);
   }
-  for (const [k] of mapB) if (!mapA.has(k)) rows.push({ chave: k, veredito: 'SO_PROD', campos: [] });
+  return m;
+}
+function distPos(a, b) {
+  const dx = (parseFloat(a.xnorm) || 0) - (parseFloat(b.xnorm) || 0);
+  const dy = (parseFloat(a.ynorm) || 0) - (parseFloat(b.ynorm) || 0);
+  return Math.hypot(dx, dy);
+}
+// casa arrays as×bs por vizinho-mais-próximo (greedy). Sobra de cada lado vira SO_*.
+export function casarPorPosicao(as, bs) {
+  const pares = [];
+  const restoB = (bs || []).slice();
+  const soA = [];
+  for (const a of as || []) {
+    let melhor = -1, md = Infinity;
+    for (let i = 0; i < restoB.length; i++) {
+      const d = distPos(a, restoB[i]);
+      if (d < md) { md = d; melhor = i; }
+    }
+    if (melhor >= 0) pares.push([a, restoB.splice(melhor, 1)[0]]);
+    else soA.push(a);
+  }
+  return { pares, soA, soB: restoB };
+}
+
+export function comparar(fpA, fpB) {
+  const grpA = agruparPorChave(fpA.elementos);
+  const grpB = agruparPorChave(fpB.elementos);
+  const rows = [];
+  const chaves = new Set([...grpA.keys(), ...grpB.keys()]);
+  for (const k of chaves) {
+    const as = grpA.get(k) || [];
+    const bs = grpB.get(k) || [];
+    if (!bs.length) { for (const _ of as) rows.push({ chave: k, veredito: 'SO_PROTO', campos: [] }); continue; }
+    if (!as.length) { for (const _ of bs) rows.push({ chave: k, veredito: 'SO_PROD', campos: [] }); continue; }
+    const { pares, soA, soB } = casarPorPosicao(as, bs);
+    for (const [a, b] of pares) {
+      const campos = diffElemento(a, b);
+      rows.push({ chave: k, veredito: campos.length ? 'DIVERGE' : 'IDENTICO', campos });
+    }
+    for (const _ of soA) rows.push({ chave: k, veredito: 'SO_PROTO', campos: [] });
+    for (const _ of soB) rows.push({ chave: k, veredito: 'SO_PROD', campos: [] });
+  }
   // furo 1 — anexa o diff de divisórias (bordas/linhas sem texto) ao mesmo relatório.
   rows.push(...compararDivisorias(fpA.divisorias, fpB.divisorias));
   rows.sort((x, y) => x.veredito.localeCompare(y.veredito) || x.chave.localeCompare(y.chave));
@@ -157,6 +224,50 @@ export function resumoCampos(rows) {
   return Object.entries(freq).sort((a, b) => b[1] - a[1]);
 }
 
+// furo 5 (2026-07-08) — SO_* não é ruído: um elemento presente só de um lado, com COPY ESTÁVEL
+// (não só <BRL>/<N>/<DATA>), é diferença ESTRUTURAL que EXIGE triagem — não "joga fora". E toda
+// divisória SO_* (recolorida/ausente) é estrutural por definição (é o payoff do furo 1). Devolve
+// as rows que a máquina obriga a olhar; alimenta o exit-code (falha se houver).
+export function triagemSO(rows) {
+  return (rows || []).filter((r) => r.veredito === 'SO_PROTO' || r.veredito === 'SO_PROD')
+    .filter((r) => {
+      if (r.chave.startsWith('DIV ')) return true; // divisória: sempre estrutural
+      const txt = r.chave.slice(r.chave.indexOf('|') + 1);
+      const real = txt.replace(/<BRL>|<N>|<DATA>/g, '').trim();
+      return real.length >= 2; // copy real além de placeholders dinâmicos
+    });
+}
+
+// captioning-lite (2026-07-08) — verdito em UMA linha (PT), derivado do diff ESTRUTURADO. É a
+// direção 2026 (semantic change captioning, arXiv 2607.01728) quase de graça: não é AI, é regra
+// sobre resumoCampos + triagemSO, agrupando campos em FAMÍLIAS legíveis (superfície/borda/
+// elevação/tipografia/espaçamento/posição). Diz o que o humano leria: "superfície+borda frias".
+const FAMILIA_CAMPO = {
+  bgEfetivo: 'superfície', bgProprio: 'superfície', bgImage: 'superfície',
+  borderColor: 'borda', borderW: 'borda', radius: 'borda',
+  boxShadow: 'elevação',
+  color: 'texto', fontSize: 'tipografia', fontWeight: 'tipografia', letterSpacing: 'tipografia',
+  lineHeight: 'tipografia', textTransform: 'tipografia', fontFamily: 'tipografia',
+  padding: 'espaçamento', w: 'tamanho', h: 'tamanho',
+  xnorm: 'posição', ynorm: 'posição', linhas: 'quebra', overflowX: 'overflow',
+  opacity: 'opacidade', transform: 'transform', display: 'display',
+};
+export function veredictoNL(rows) {
+  const rc = resumoCampos(rows);
+  const tally = {};
+  for (const r of rows || []) tally[r.veredito] = (tally[r.veredito] || 0) + 1;
+  const div = tally.DIVERGE || 0;
+  const soT = triagemSO(rows).length;
+  if (!div && !soT) return 'fiel: nenhuma divergência nem miss estrutural.';
+  const fam = {};
+  for (const [campo, n] of rc) { const f = FAMILIA_CAMPO[campo] || campo; fam[f] = (fam[f] || 0) + n; }
+  const famOrd = Object.entries(fam).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([f]) => f);
+  const partes = [];
+  if (div) partes.push(`${div} elemento(s) divergem — dominante: ${famOrd.join(' + ') || '—'}`);
+  if (soT) partes.push(`${soT} miss estrutural(is) pra triar`);
+  return partes.join('; ') + '.';
+}
+
 // ── snippet auto-contido (roda DENTRO da página; espelho do vetor CAMPOS) ──────
 const SNIPPET = String.raw`
 (() => {
@@ -173,6 +284,24 @@ const SNIPPET = String.raw`
     }
     return getComputedStyle(document.body).backgroundColor;
   };
+  // bgProprio — o fundo DECLARADO no próprio elemento (sem walk-up). 'none' = herda do ancestral.
+  // É o que distingue "este elemento TEM painel" de "empresta o fundo da página" (furo superfície).
+  const bgProprio = (el) => {
+    const b = getComputedStyle(el).backgroundColor;
+    return (b && b !== 'rgba(0, 0, 0, 0)' && b !== 'transparent') ? b : 'none';
+  };
+  // normaliza background-image: só o TIPO importa pra fidelidade (sólido × gradiente × imagem),
+  // não a data-URI gigante. bgEfetivo lê só cor sólida; isto acusa "virou/deixou de ser gradiente".
+  const normBgImg = (v) => {
+    if (!v || v === 'none') return 'none';
+    if (v.startsWith('linear-gradient')) return 'linear-gradient';
+    if (v.startsWith('radial-gradient')) return 'radial-gradient';
+    if (v.startsWith('conic-gradient')) return 'conic-gradient';
+    if (v.startsWith('url')) return 'url';
+    return v.slice(0, 24);
+  };
+  // box-shadow colapsado (espaços normalizados, cap 60) — presença+cor+offset da ELEVAÇÃO.
+  const normShadow = (v) => (!v || v === 'none') ? 'none' : v.replace(/\s+/g, ' ').slice(0, 60);
   // nLinhas — só rects de TEXT NODE (ignora <svg>/ícones) + agrupamento proporcional.
   // Espelho de agruparLinhas() do módulo (fix falso-positivo do botão ícone+texto, 2026-07-07).
   const nLinhas = (el) => {
@@ -212,11 +341,19 @@ const SNIPPET = String.raw`
       // ONDE o elemento senta. Mesmo elemento em lugar diferente (ex.: pill de período
       // right-justify no proto × left-packed na prod) vira DIVERGE em vez de IDENTICO.
       xnorm: Math.round((r.left / (document.documentElement.clientWidth || 1)) * 100) / 100,
+      // ynorm — o par VERTICAL do xnorm (Onda 1): posição no eixo Y como fração da altura
+      // TOTAL do documento (inclui scroll), pra ordem/espaçamento vertical deixar de ser cego.
+      ynorm: Math.round(((r.top + window.scrollY) / (document.documentElement.scrollHeight || 1)) * 100) / 100,
       linhas: nLinhas(el),
       overflowX: el.scrollWidth > el.clientWidth + 1,
       fontSize: c.fontSize, fontWeight: c.fontWeight,
-      color: c.color, bgEfetivo: bgEfetivo(el),
+      letterSpacing: c.letterSpacing, lineHeight: c.lineHeight, textTransform: c.textTransform,
+      fontFamily: (c.fontFamily || '').split(',')[0].replace(/["']/g, '').trim(), // 1ª família só
+      color: c.color, bgEfetivo: bgEfetivo(el), bgProprio: bgProprio(el), bgImage: normBgImg(c.backgroundImage),
       radius: c.borderRadius, borderW: c.borderTopWidth, borderColor: c.borderTopColor,
+      boxShadow: normShadow(c.boxShadow),
+      padding: [c.paddingTop, c.paddingRight, c.paddingBottom, c.paddingLeft].join(' '),
+      opacity: c.opacity, transform: c.transform,
       display: c.display,
     };
     const k = item.tag + '|' + texto.replace(/\s+/g, ' ').slice(0, 60);
@@ -255,10 +392,13 @@ const SNIPPET = String.raw`
 // ── selftest hermético (comparador provado pelos dois lados — L-31) ────────────
 function selftest() {
   const mk = (over) => ({
-    tag: 'button', texto: 'Novo título', w: 120, h: 32, xnorm: 0.1, linhas: 1, overflowX: false,
-    fontSize: '12.5px', fontWeight: '500', color: 'oklch(0.99 0 0)',
-    bgEfetivo: 'oklch(0.55 0.15 295)', radius: '6px', borderW: '1px',
-    borderColor: 'oklch(0.45 0.15 295)', display: 'inline-flex', ...over,
+    tag: 'button', texto: 'Novo título', w: 120, h: 32, xnorm: 0.1, ynorm: 0.1, linhas: 1, overflowX: false,
+    fontSize: '12.5px', fontWeight: '500', letterSpacing: 'normal', lineHeight: '20px',
+    textTransform: 'none', fontFamily: 'Inter', color: 'oklch(0.99 0 0)',
+    bgEfetivo: 'oklch(0.55 0.15 295)', bgProprio: 'oklch(0.55 0.15 295)', bgImage: 'none',
+    radius: '6px', borderW: '1px', borderColor: 'oklch(0.45 0.15 295)',
+    boxShadow: 'none', padding: '6px 10px 6px 10px', opacity: '1', transform: 'none',
+    display: 'inline-flex', ...over,
   });
   const proto = { tema: 'dark', elementos: [
     mk({}),                                                        // idêntico dos dois lados
@@ -305,6 +445,34 @@ function selftest() {
     { side: 'Bottom', w: 1, color: 'oklch(0.28 0.008 240)',  span: 100,  banda: 200 }, // frio 240 — só prod (warm-miss)
   ];
 
+  // ── Onda 1 (2026-07-08): cada EIXO NOVO ganha uma divergência plantada, provada dos 2 lados.
+  // box-shadow / elevação — o "flutuar" do painel: proto tem sombra, prod achatou (o "falta camada").
+  proto.elementos.push(mk({ texto: 'Painel filtro', boxShadow: '0 1px 3px 0 rgba(0,0,0,0.2)' }));
+  prod.elementos.push(mk({ texto: 'Painel filtro', boxShadow: 'none' }));
+  // padding / respiro interno — proto respira, prod colou (0).
+  proto.elementos.push(mk({ texto: 'Cartão KPI', padding: '12px 16px 12px 16px' }));
+  prod.elementos.push(mk({ texto: 'Cartão KPI', padding: '0px 0px 0px 0px' }));
+  // bgProprio — superfície PRÓPRIA vs herdada: proto TEM painel (0.238), prod herda o fundo ('none').
+  // bgEfetivo pode até ficar perto; é o bgProprio que denuncia "FALTA a camada".
+  proto.elementos.push(mk({ texto: 'Faixa', bgProprio: 'oklch(0.238 0.01 282)', bgEfetivo: 'oklch(0.238 0.01 282)' }));
+  prod.elementos.push(mk({ texto: 'Faixa', bgProprio: 'none', bgEfetivo: 'oklch(0.21 0.01 282)' }));
+  // tipografia fina — letter-spacing + text-transform (antes invisíveis).
+  proto.elementos.push(mk({ texto: 'CABECALHO', letterSpacing: '0.5px', textTransform: 'uppercase' }));
+  prod.elementos.push(mk({ texto: 'CABECALHO', letterSpacing: 'normal', textTransform: 'none' }));
+  // bg-image — proto usa gradiente, prod virou cor sólida ('none').
+  proto.elementos.push(mk({ texto: 'Hero', bgImage: 'linear-gradient' }));
+  prod.elementos.push(mk({ texto: 'Hero', bgImage: 'none' }));
+  // ynorm — mesmo elemento, posição VERTICAL diferente (o par do furo 6).
+  proto.elementos.push(mk({ texto: 'Nota rodape', ynorm: 0.9 }));
+  prod.elementos.push(mk({ texto: 'Nota rodape', ynorm: 0.55 }));
+  // furo 4 — DOIS KPIs viram ambos 'button|<BRL>'. Têm que parear por POSIÇÃO (xnorm), não colidir:
+  // o da esquerda (0.2) mudou fontSize 28→22; o da direita (0.8) ficou igual. Antes o Map colidia
+  // e um sumia / era medido contra o errado.
+  proto.elementos.push(mk({ texto: 'R$ 1.234', xnorm: 0.2, ynorm: 0.3, fontSize: '28px' }));
+  proto.elementos.push(mk({ texto: 'R$ 5.678', xnorm: 0.8, ynorm: 0.3, fontSize: '28px' }));
+  prod.elementos.push(mk({ texto: 'R$ 9.999', xnorm: 0.2, ynorm: 0.3, fontSize: '22px' }));
+  prod.elementos.push(mk({ texto: 'R$ 0.000', xnorm: 0.8, ynorm: 0.3, fontSize: '28px' }));
+
   const { rows, tally } = comparar(proto, prod);
   const by = (t) => rows.find((r) => r.chave.includes(t));
   const checks = [
@@ -346,6 +514,42 @@ function selftest() {
   const dominante = rc[0] && rc[0][0] === 'borderColor' && rc[0][1] === 3;
   console.log(`  [${dominante ? 'PASS' : 'FAIL'}] resumoCampos aponta campo dominante (${rc[0] ? rc[0].join('=') : '—'})`);
   if (!dominante) fails++;
+
+  // ── Onda 1 — cada EIXO NOVO prova que a máquina enxerga o que era cego (DIVERGE + campo) ──
+  const temCampo = (t, campo) => (by(t)?.campos || []).some((c) => c.startsWith(campo + ':'));
+  for (const [label, t, campo] of [
+    ['box-shadow/elevação capturado',                    'Painel filtro', 'boxShadow'],
+    ['padding interno capturado',                        'Cartão KPI',    'padding'],
+    ['superfície própria (bgProprio) vê "falta camada"', 'Faixa',         'bgProprio'],
+    ['tipografia fina: letter-spacing',                  'CABECALHO',     'letterSpacing'],
+    ['tipografia fina: text-transform',                  'CABECALHO',     'textTransform'],
+    ['bg-image/gradiente capturado',                     'Hero',          'bgImage'],
+    ['ynorm: posição vertical capturada',                'Nota rodape',   'ynorm'],
+  ]) {
+    const ok = by(t)?.veredito === 'DIVERGE' && temCampo(t, campo);
+    if (!ok) fails++;
+    console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado DIVERGE+${campo} (obtido ${by(t)?.veredito || '—'})`);
+  }
+  // furo 4 — os DOIS KPIs <BRL> pareiam por POSIÇÃO (não colidem): 1 DIVERGE (fontSize) + 1 IDENTICO.
+  const brl = rows.filter((r) => r.chave === 'button|<BRL>');
+  const brlOk = brl.length === 2
+    && brl.filter((r) => r.veredito === 'DIVERGE').length === 1
+    && brl.filter((r) => r.veredito === 'IDENTICO').length === 1
+    && brl.find((r) => r.veredito === 'DIVERGE')?.campos.some((c) => c.startsWith('fontSize:'));
+  if (!brlOk) fails++;
+  console.log(`  [${brlOk ? 'PASS' : 'FAIL'}] furo 4: 2 KPIs <BRL> pareados por posição (n=${brl.length}, ${brl.map((r) => r.veredito).join('/')})`);
+  // furo 5 — triagemSO OBRIGA a olhar SO_* estruturais (copy estável + toda divisória recolorida).
+  const tri = triagemSO(rows);
+  const triOk = tri.some((r) => r.chave.includes('Resolver'))
+    && tri.some((r) => r.chave.includes('Ver todo o período'))
+    && tri.some((r) => r.chave.startsWith('DIV ') && r.chave.includes('0.28 0.008 240'));
+  if (!triOk) fails++;
+  console.log(`  [${triOk ? 'PASS' : 'FAIL'}] furo 5: triagemSO força SO_* estruturais (n=${tri.length})`);
+  // captioning-lite — verdito em 1 linha, não-vazio, nomeia divergência + miss estrutural.
+  const nl = veredictoNL(rows);
+  const nlOk = typeof nl === 'string' && /divergem/.test(nl) && /triar/.test(nl);
+  if (!nlOk) fails++;
+  console.log(`  [${nlOk ? 'PASS' : 'FAIL'}] captioning-lite: "${nl}"`);
 
   // agruparLinhas — o fix do falso-positivo (dogfood [W] 2026-07-07). Rects PLANTADOS:
   //  A) botão real ícone+texto de 1 linha: SVG top=100 h=16 + texto top=101 h=18 (jitter
@@ -400,8 +604,18 @@ else if (argv.includes('--snippet')) {
         console.log(`      ${campo.padEnd(12)} ${n}/${totalDiv}${sist}`);
       }
     }
+    // furo 5 — SO_* estruturais NÃO são ruído: força a triagem (copy estável + toda divisória).
+    const tri = triagemSO(rows);
+    if (tri.length) {
+      console.log(`\n  ⚠ triagem obrigatória — ${tri.length} miss estrutural(is) (presente só de um lado):`);
+      for (const r of tri.slice(0, 12)) console.log(`      [${r.veredito.replace('SO_', 'só ')}] ${r.chave}`);
+      if (tri.length > 12) console.log(`      … +${tri.length - 12}`);
+    }
+    // captioning-lite — o verdito em uma linha (direção 2026: semantic change captioning).
+    console.log('\n  verdito: ' + veredictoNL(rows));
   }
-  process.exit((tally.DIVERGE || 0) > 0 ? 1 : 0);
+  // furo 5 — falha o exit-code também quando há miss estrutural pra triar (não só DIVERGE).
+  process.exit(((tally.DIVERGE || 0) > 0 || triagemSO(rows).length > 0) ? 1 : 0);
 } else {
   console.log('uso: --snippet | --compare a.json b.json [--json] | --selftest');
 }
