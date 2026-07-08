@@ -27,7 +27,9 @@
 // e classes — matching posicional/por-classe não existe. DUAS passadas:
 //  (1) ELEMENTOS COM TEXTO — casados por TEXTO VISÍVEL normalizado + tag (glifos de
 //      ordenação ⇅ e afins são strippados: furo 2, 2026-07-08). Cobre labels/botões/pills/
-//      títulos/headers de coluna. Texto DINÂMICO (R$, datas) vira placeholder.
+//      títulos/headers de coluna. Texto DINÂMICO (R$, datas) vira placeholder. O vetor
+//      carrega POSIÇÃO horizontal normalizada (xnorm: furo 6, 2026-07-08 [W]) — mesmo
+//      elemento em lugar diferente (alinhamento) vira DIVERGE, não IDENTICO mentiroso.
 //  (2) DIVISÓRIAS/BORDAS SEM TEXTO — 2ª passada estrutural (furo 1, 2026-07-08 [W]
 //      "deveria constar tudo"): toda borda visível vira entrada, casada por INVENTÁRIO
 //      (lado+cor+espessura+span). Linha/régua/divisória agora CONSTAM (antes eram invisíveis).
@@ -37,7 +39,7 @@ import { readFileSync } from 'node:fs';
 
 // ── vetor extraído por elemento (mantido em sync com o SNIPPET abaixo) ─────────
 export const CAMPOS = [
-  'tag', 'w', 'h', 'linhas', 'overflowX',
+  'tag', 'w', 'h', 'xnorm', 'linhas', 'overflowX',
   'fontSize', 'fontWeight', 'color', 'bgEfetivo',
   'radius', 'borderW', 'borderColor', 'display',
 ];
@@ -84,7 +86,7 @@ export function agruparLinhas(rects) {
 
 export function chave(el) { return el.tag + '|' + normTexto(el.texto); }
 
-function ehNum(c) { return ['w', 'h', 'linhas', 'borderW'].includes(c); }
+function ehNum(c) { return ['w', 'h', 'xnorm', 'linhas', 'borderW'].includes(c); }
 
 export function diffElemento(a, b) {
   const campos = [];
@@ -93,8 +95,10 @@ export function diffElemento(a, b) {
     const va = a[c], vb = b[c];
     if (ehNum(c)) {
       const na = parseFloat(va) || 0, nb = parseFloat(vb) || 0;
-      // linhas: qualquer diferença é DIVERGE (regra 7 — 2 linhas onde o proto tem 1)
-      const tol = c === 'linhas' ? 0.01 : TOL_PX;
+      // linhas: qualquer diferença é DIVERGE (regra 7). xnorm: fração 0-1 da largura →
+      // tolerância 0.04 (4%) — abaixo é ruído de sub-pixel, acima é MUDANÇA de lugar
+      // (furo 6: mesmo elemento, alinhamento diferente = DIVERGE, não IDENTICO mentiroso).
+      const tol = c === 'linhas' ? 0.01 : c === 'xnorm' ? 0.04 : TOL_PX;
       if (Math.abs(na - nb) > tol) campos.push(`${c}: ${va} → ${vb}`);
     } else if (String(va ?? '') !== String(vb ?? '')) {
       campos.push(`${c}: ${va} → ${vb}`);
@@ -188,6 +192,10 @@ const SNIPPET = String.raw`
       tag: el.tagName.toLowerCase(),
       texto,
       w: Math.round(r.width), h: Math.round(r.height),
+      // xnorm — posição horizontal como FRAÇÃO da largura da viewport (furo 6): captura
+      // ONDE o elemento senta. Mesmo elemento em lugar diferente (ex.: pill de período
+      // right-justify no proto × left-packed na prod) vira DIVERGE em vez de IDENTICO.
+      xnorm: Math.round((r.left / (document.documentElement.clientWidth || 1)) * 100) / 100,
       linhas: nLinhas(el),
       overflowX: el.scrollWidth > el.clientWidth + 1,
       fontSize: c.fontSize, fontWeight: c.fontWeight,
@@ -231,7 +239,7 @@ const SNIPPET = String.raw`
 // ── selftest hermético (comparador provado pelos dois lados — L-31) ────────────
 function selftest() {
   const mk = (over) => ({
-    tag: 'button', texto: 'Novo título', w: 120, h: 32, linhas: 1, overflowX: false,
+    tag: 'button', texto: 'Novo título', w: 120, h: 32, xnorm: 0.1, linhas: 1, overflowX: false,
     fontSize: '12.5px', fontWeight: '500', color: 'oklch(0.99 0 0)',
     bgEfetivo: 'oklch(0.55 0.15 295)', radius: '6px', borderW: '1px',
     borderColor: 'oklch(0.45 0.15 295)', display: 'inline-flex', ...over,
@@ -257,6 +265,11 @@ function selftest() {
   // sem o strip iam pra SO_PROTO/SO_PROD e o diff de tamanho sumia (2026-07-08 [W]).
   proto.elementos.push(mk({ tag: 'th', texto: 'Vencimento', fontSize: '10.5px' }));
   prod.elementos.push(mk({ tag: 'th', texto: 'Vencimento⇅', fontSize: '10px' }));
+  // furo 6 (posição/alinhamento): a pill "Dia" é o MESMO elemento (estilo idêntico), mas o
+  // proto right-justify (xnorm 0.85) e a prod left-packed (xnorm 0.34) → tem que DIVERGIR em
+  // xnorm, não virar IDENTICO mentiroso (2026-07-08 [W] "por que o protocolo não pegou?").
+  proto.elementos.push(mk({ texto: 'Dia', xnorm: 0.85 }));
+  prod.elementos.push(mk({ texto: 'Dia', xnorm: 0.34 }));
   // furo 1 (divisórias/bordas sem texto): a linha neutra é igual; a divisória de accent é
   // roxo BRILHANTE 0.7 no proto e vira FRIA 240 na prod → o inventário mostra SO_PROTO +
   // SO_PROD (o "constar tudo" que o vetor de texto nunca via). 2026-07-08 [W].
@@ -282,6 +295,7 @@ function selftest() {
     ['divisória neutra idêntica (furo 1)', by('DIV Bottom|oklch(0.335 0.012 282)')?.veredito, 'IDENTICO'],
     ['divisória accent 0.7 só-proto (furo 1)', by('oklch(0.7 0.15 295)|1|span100')?.veredito, 'SO_PROTO'],
     ['divisória fria 240 só-prod = o miss (furo 1)', by('oklch(0.28 0.008 240)')?.veredito, 'SO_PROD'],
+    ['furo 6: mesmo elemento, posição (xnorm) diverge', by('button|Dia')?.veredito, 'DIVERGE'],
   ];
   let fails = 0;
   for (const [label, got, exp] of checks) {
@@ -299,6 +313,11 @@ function selftest() {
   const temFs = hg?.campos.some((c) => c.startsWith('fontSize:'));
   console.log(`  [${temFs ? 'PASS' : 'FAIL'}] header ⇅ recuperado: fontSize listado (não virou SO_*)`);
   if (!temFs) fails++;
+  // furo 6: o campo xnorm aparece no diff (prova que é a POSIÇÃO que difere, não o estilo).
+  const f6 = by('button|Dia');
+  const temXnorm = f6?.campos.some((c) => c.startsWith('xnorm:'));
+  console.log(`  [${temXnorm ? 'PASS' : 'FAIL'}] furo 6: xnorm listado no diff (posição capturada)`);
+  if (!temXnorm) fails++;
 
   // agruparLinhas — o fix do falso-positivo (dogfood [W] 2026-07-07). Rects PLANTADOS:
   //  A) botão real ícone+texto de 1 linha: SVG top=100 h=16 + texto top=101 h=18 (jitter
