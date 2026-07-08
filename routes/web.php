@@ -852,7 +852,9 @@ Route::middleware(['setData', 'auth', 'SetSessionData', 'language', 'timezone'])
 // Modo Suporte — empresas-cliente acessíveis (exceto a operadora). Read-only (ADR 0305) +
 // fase A "Acessar como" (login-as guardado, ADR 0308). Autorização nível-empresa + auditoria
 // de entrada no middleware support.access (que lê {business}); a impersonação re-checa no controller.
-Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'support.access'])
+// AdminSidebarMenu popula a instância 'admin-sidebar-menu' (ShellMenuBuilder lê dela) — sem ele
+// o sidebar renderiza "Menu vazio" dentro do Modo Suporte (o agente perde a nav lateral).
+Route::middleware(['auth', 'SetSessionData', 'language', 'timezone', 'AdminSidebarMenu', 'support.access'])
     ->prefix('suporte')
     ->group(function () {
         Route::get('empresas', [\App\Http\Controllers\Support\SupportController::class, 'index'])
