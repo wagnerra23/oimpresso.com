@@ -7,7 +7,9 @@
 # Match: resources/js/Pages/<Mod>/<Tela>.tsx — exige RUNBOOK em memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md
 #
 # Override autorizado (sai do bloqueio): comentar '/mwart-override <razão>' em PR.
-#   O CI workflow .github/workflows/mwart-gate.yml registra exceção em ADR per-tela.
+#   (F7 2026-07-08: o CI workflow mwart-gate.yml foi DELETADO na onda 2 da ADR 0271 — era soft
+#    continue-on-error, teatro. Este hook runtime é o único enforcement de RUNBOOK; o override
+#    vira ADR per-tela lifecycle:historical no processo canônico, NÃO num workflow que não existe.)
 #
 # Exempções (não dispara hook):
 #   - Pages/<Mod>/_components/* (privado do módulo, não é tela)

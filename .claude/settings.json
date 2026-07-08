@@ -151,7 +151,7 @@
         ]
       },
       {
-        "matcher": "mcp__computer-use__screenshot|mcp__Claude_in_Chrome__.*",
+        "matcher": "mcp__computer-use__screenshot|mcp__[Cc]laude[-_][Ii]n[-_][Cc]hrome__.*",
         "hooks": [
           {
             "type": "command",

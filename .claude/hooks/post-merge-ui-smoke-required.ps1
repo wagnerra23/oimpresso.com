@@ -104,7 +104,10 @@ if ($hookEvent -eq 'PostToolUse' -and $toolName -eq 'Bash') {
 # CASO 2: PreToolUse — limpa flag se Claude chama browser MCP
 # ============================================================================
 if ($hookEvent -eq 'PreToolUse') {
-    if ($toolName -match '^mcp__(computer-use|Claude_in_Chrome|Windows-MCP)__' -and
+    # F4 2026-07-08: a tool real é 'mcp__claude-in-chrome__*' (MINÚSCULA, hífen). O 'Claude_in_Chrome'
+    # (capital/underscore) antigo NUNCA casava (underscore ≠ hífen) → chamada de Chrome não contava
+    # como smoke e o bloqueio nunca limpava. [-_] cobre os dois; -match do PS já é case-insensitive.
+    if ($toolName -match '^mcp__(computer-use|claude[-_]in[-_]chrome|Windows-MCP)__' -and
         $toolName -match '(screenshot|navigate|read_page|javascript_tool|get_page_text|find)') {
         if (Test-Path $flagPath) {
             Remove-Item $flagPath -Force -ErrorAction SilentlyContinue
