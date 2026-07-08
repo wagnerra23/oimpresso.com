@@ -1,3 +1,11 @@
+---
+date: "2026-07-08"
+hour: "12:00 BRT"
+topic: "Estado-da-arte do style-fingerprint.mjs vs SOTA visual-diff/design-diff — nota ponderada + roadmap impacto×esforço"
+authors: [C, W]
+prs: [3957]
+---
+
 # Estado da arte — `style-fingerprint.mjs` vs. os melhores do mundo em visual-diff / design-to-code fidelity
 
 > **Tipo:** estado-da-arte (pesquisa + nota + roadmap). **NÃO é fix de código.** O sweep de cor que a máquina achou tem chip próprio (`task_73b3a834`).
