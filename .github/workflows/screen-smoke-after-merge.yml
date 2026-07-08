@@ -2,82 +2,64 @@ name: Screen Smoke After Merge
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Fase C (Check) do PDCA MWART — smoke visual REAL pós-deploy, AUTOMÁTICO e
-# INCONDICIONAL. Materializa a pendência §9.4 da ADR 0164 (que nunca foi feita:
-# a skill tela-smoke-pos-merge referenciava ESTE workflow, mas ele não existia).
+# INCONDICIONAL. Materializa a pendência §9.4 da ADR 0164.
 #
-# Regra Wagner (2026-07-08, textual): "nemme pergunte mais isso é sempre sim
-# automatize isso" → o smoke pós-deploy roda SOZINHO, sem HITL de decisão.
-# O único HITL é o merge (R10) e, se o browser MCP não conseguir se logar, o
-# login (feedback-deploy-smoke-browser-obrigatorio.md §6 INCONDICIONAL).
+# Regra Wagner (2026-07-08): "nemme pergunte mais isso é sempre sim automatize isso"
+# → o smoke pós-deploy roda SOZINHO, sem HITL de decisão. Único HITL = merge (R10).
 #
-# Por que existe / gaps que fecha:
-#   • curl 302/200 do deploy.yml NÃO é smoke (prova rota, não render). Só o
-#     render real no browser (4 sinais) confirma que a tela funciona.
-#   • O gap do PR #3945 (sidebar "Suporte"): mudança de ITEM DE MENU não tocava
-#     nenhum Pages/*.tsx, então nenhum smoke disparava. Aqui os paths de
-#     navegação (Sidebar.tsx + AdminSidebarMenu.php + LegacyMenuAdapter.php)
-#     também acionam o smoke.
+# ── MECANISMO (Wagner 2026-07-08: "use o openai") ───────────────────────────
+# Roda TUDO num runner ubuntu do GitHub — SEM CT 100, SEM secret novo, SEM o
+# browser-MCP-headless (que era o único ponto sem receita fechada da 1ª versão):
+#   • Playwright headless (já é dep do repo — @playwright/test, gate E2E) navega
+#     prod, loga por form, screenshota 1440+1280, coleta console errors + os 4
+#     sinais de render determinísticos.
+#   • OpenAI vision (o OPENAI_API_KEY que JÁ existe no repo — RAGAS) julga se a
+#     tela renderizou ou está QUEBRADA (tela branca, erro, layout destruído).
+#   • Motor: scripts/screen-smoke/smoke.mjs · rotas curadas: scripts/screen-smoke/routes.json.
 #
-# Arquitetura (ADR-fiel):
-#   • Dependência: dispara via workflow_run APÓS o "Deploy to Hostinger"
-#     (deploy.yml) concluir com sucesso. deploy.yml é o auto-deploy canônico
-#     desde a ADR 0269 (quick-sync.yml virou escape manual). workflow_run não
-#     filtra path → o filtro é feito DENTRO (diff do head_sha do deploy).
-#   • O browser MCP roda ISOLADO no CT 100 (ADR 0164 §3 + ADR 0062 Hostinger≠CT100).
-#     Por isso o job de smoke usa runner self-hosted rotulado [self-hosted, ct100,
-#     browser-mcp] — NUNCA um runner efêmero do GitHub e NUNCA o Hostinger.
+#   Isto SUPERSEDE o mecanismo "browser MCP isolado no CT 100" da ADR 0164 §3
+#   (que pressupunha a MCP claude-in-chrome). Como não usamos mais browser MCP, o
+#   §3 não se aplica; ADR 0062 (Hostinger≠CT100) segue intacto — um runner ubuntu
+#   efêmero batendo em prod por HTTPS não é daemon no host errado. Emendar a
+#   ADR 0164 §3 pra registrar a troca de mecanismo é follow-up (append-only).
 #
-# ── HARDENING (revisão adversarial 2026-07-08) ──────────────────────────────
-# Endurecido após review adversarial. Achados corrigidos:
-#   • CRÍTICO 1 — o "fail-safe" antigo checava só o secret. Setar o secret ANTES
-#     de o runner existir enfileirava o job smoke esperando um runner inexistente
-#     (amarelo pendurado ~24h). AGORA a ativação é um SWITCH DELIBERADO e ÚNICO:
-#     a variável de repo `SCREEN_SMOKE_ENABLED=true`, que Wagner liga POR ÚLTIMO,
-#     só depois de o runner estar ONLINE. Setar o secret sozinho não liga nada.
-#   • CRÍTICO 2 — nomes de arquivo (data-driven) entravam CRUS no prompt do agente
-#     (que tinha Bash + credenciais de prod). AGORA o filtro usa allowlist ESTRITO
-#     de charset (`[A-Za-z0-9/_.-]`), então qualquer payload de injeção (espaço,
-#     pontuação, newline) é DESCARTADO na origem.
-#   • ALTO 3 — `inputs.rota` era interpolado direto no `run:` (command-injection
-#     textbook). AGORA vem por `env:` + validação de charset antes de usar.
-#   • ALTO 4 — least-privilege: o agente NÃO recebe mais `Bash` nem `computer-use`
-#     (só claude-in-chrome + Read/Write/Edit). Sem shell, a superfície de #2/#3
-#     não vira exfiltração de segredo mesmo se a injeção passar.
+# Gaps que fecha:
+#   • curl 302/200 do deploy.yml NÃO é smoke (prova rota, não render).
+#   • Gap do PR #3945: mudança de ITEM DE MENU (Sidebar.tsx/AdminSidebarMenu.php/
+#     LegacyMenuAdapter.php) não tocava Pages/*.tsx → agora também aciona o smoke.
 #
-# ── LOOP PDCA (Act) — #5 RESOLVIDO (persist via PR, least-privilege) ────────
-#   O job `smoke` fica `contents: read` (não commita — least-privilege, ADR 0164
-#   §7/ALTO 4). Um job `persist` SEPARADO (ubuntu, sem LLM/browser, sem superfície
-#   de injeção) baixa os `.md` do artifact e abre um PR `screen-smoke/review-<run>`
-#   com o round N do `<Tela>.review.md`/`smoke-log.md`/`UI-CATALOG.md` (screenshots
-#   NÃO vão pro git — ficam no artifact; o review.md os referencia). O MERGE desse
-#   PR pelo Wagner = a decisão Act (ele edita `decisão: approved|rejected|iterate`
-#   no round). Como os rounds mergeados voltam pra main, o próximo smoke já herda
-#   os anteriores → append-only REAL (conserta o "sempre round 1"). ADR 0164 §2.2/§2.4.
+# ── HARDENING (revisão adversarial 2026-07-08 — mantido) ────────────────────
+#   • CRÍTICO 1 fail-safe: ativação é um SWITCH deliberado `SCREEN_SMOKE_ENABLED=true`
+#     (+ OPENAI_API_KEY presente). Em ubuntu não há risco de job pendurado, mas o
+#     switch mantém a ativação consciente.
+#   • CRÍTICO 2 injeção: nomes de arquivo passam por allowlist ESTRITO [A-Za-z0-9/_.-].
+#   • ALTO 3: input do dispatch vem por env + validação de charset.
+#   • ALTO 4 least-privilege: o smoke.mjs é código FIXO e determinístico (não é um
+#     agente-LLM com tools/shell) → a superfície de exfiltração de #2/#3 nem existe.
+#     O job `smoke` fica `contents: read`; só o `persist` tem write.
 #
-# ── RESIDUAIS CONHECIDOS (pendências Wagner — NÃO resolver antes de ligar) ───
-#   • #8 credencial/PII: o item Vaultwarden TEM que ser conta biz=99 FAKE (não a
-#     conta do Wagner/biz=1) — senão screenshots capturam dados reais + VALORES R$
-#     (o auto-mask cobre CPF/CNPJ/email/telefone, NÃO razão social nem BRL) e o
-#     artifact (30d, baixável por quem tem Actions) vira vetor de vazamento BRL
-#     Tier 0 (regra 2026-06-08). Resolver ANTES de ligar `SCREEN_SMOKE_ENABLED`.
-#   • #6 detecção: `git diff HEAD^ HEAD` cobre squash-merge (norma do repo); um
-#     rebase-merge / push multi-commit pode perder telas de commits não-topo.
-#   • #7 race: o health gate confirma prod de pé, não que `DEPLOY_SHA` já está
-#     LIVE (LSCache/OPcache) — o smoke pode fotografar o build anterior.
+# ── LOOP PDCA (Act) — #5 RESOLVIDO (persist via PR) ─────────────────────────
+#   O smoke.mjs escreve `<Tela>.review.md` (append round N) ao lado do .tsx. O job
+#   `persist` baixa esses .md e abre um PR `screen-smoke/review-<run>`. O MERGE do
+#   Wagner = decisão Act (edita `decisão: approved|rejected|iterate`). Rounds
+#   mergeados voltam pra main → o próximo smoke herda os anteriores (append-only real).
 #
-# PRÉ-REQS DE ATIVAÇÃO (só Wagner provisiona — ADR 0164 §9, NESTA ORDEM):
-#   1. Registrar runner self-hosted no CT 100 (labels [self-hosted, ct100,
-#      browser-mcp]) com `claude` CLI + browser MCP + Vaultwarden CLI, e confirmar
-#      que está ONLINE.
-#   2. `gh secret set ANTHROPIC_API_KEY` (ou auth de assinatura no runner).
-#   3. Provisionar item Vaultwarden `screen-smoke/wagner-prod-readonly` = conta
-#      biz=99 FAKE read-only (resolve o residual #8).
-#   4. POR ÚLTIMO, o switch deliberado: `gh variable set SCREEN_SMOKE_ENABLED --body true`.
-#      (Ligar antes do runner estar online = job enfileira/pendura. Ligue por último.)
+# ── RESIDUAIS (pendências Wagner — NÃO ligar o switch antes de #8) ──────────
+#   • #8 credencial/PII/BRL: SMOKE_PROD_USER/PASS TÊM que ser conta biz=99 FAKE
+#     read-only. Senão screenshots capturam dados reais + VALORES R$ (vazam no
+#     artifact 30d E vão pra OpenAI). Sem creds, o smoke só cobre /login (público).
+#   • #6 detecção multi-commit (squash cobre) · #7 race deploy-concluiu ≠ código-live.
+#   • tsx→rota não é 1:1 → smokamos um conjunto CURADO (routes.json), priorizando as
+#     rotas cujo `source` mudou. Expandir routes.json conforme telas críticas.
 #
-# Cross-refs: ADR 0164 (mãe) · ADR 0104 (MWART) · ADR 0062 (runtime) · ADR 0269
-# (deploy.yml canônico) · skill .claude/skills/tela-smoke-pos-merge/SKILL.md ·
-# memory/reference/feedback-deploy-smoke-browser-obrigatorio.md §6.
+# ATIVAÇÃO (só Wagner — NESTA ORDEM):
+#   1. Confirmar secret OPENAI_API_KEY (já existe — RAGAS).
+#   2. (pra telas auth) gh secret set SMOKE_PROD_USER / SMOKE_PROD_PASS = conta biz=99 FAKE.
+#   3. POR ÚLTIMO: gh variable set SCREEN_SMOKE_ENABLED --body true.
+#
+# Cross-refs: ADR 0164 · ADR 0269 (deploy.yml) · scripts/screen-smoke/ ·
+# memory/reference/feedback-deploy-smoke-browser-obrigatorio.md §6 ·
+# memory/requisitos/Infra/RUNBOOK-screen-smoke-ativacao.md.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -87,7 +69,7 @@ on:
   workflow_dispatch:
     inputs:
       rota:
-        description: 'Rota/tela pra smoke manual (só [A-Za-z0-9/_.-], ex: Sells/Create). Vazio = usa telas do último deploy.'
+        description: 'Rota/tela pra smoke manual (só [A-Za-z0-9/_.-], ex: Sells/Create). Vazio = telas do último deploy.'
         required: false
         default: ''
         type: string
@@ -100,12 +82,11 @@ permissions:
   contents: read
 
 jobs:
-  # ── JOB 1: DETECT — o que mudou + a infra está LIGADA? (runner GitHub barato) ─
+  # ── JOB 1: DETECT — o que mudou + o smoke está LIGADO? ───────────────────────
   detect:
     name: Detectar telas/navegação alteradas
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    # Só segue se o deploy que disparou concluiu com SUCESSO (ou se foi manual).
     if: >-
       github.event_name == 'workflow_dispatch' ||
       github.event.workflow_run.conclusion == 'success'
@@ -117,8 +98,6 @@ jobs:
       - name: Checkout do SHA deployado
         uses: actions/checkout@v4
         with:
-          # No workflow_run, o SHA relevante é o do deploy (head_sha). fetch-depth:2
-          # traz o pai pra calcular o diff. No dispatch, usa o ref default.
           ref: ${{ github.event.workflow_run.head_sha || github.ref }}
           fetch-depth: 2
 
@@ -129,11 +108,8 @@ jobs:
           ROTA_INPUT: ${{ github.event.inputs.rota }}
         run: |
           set -uo pipefail
-
-          # Dispatch manual = smoke sempre (INCONDICIONAL, sem decisão HITL).
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
             ROTA="$ROTA_INPUT"
-            # Allowlist estrito: rejeita qualquer char que abra injeção.
             if ! printf '%s' "$ROTA" | grep -qE '^[A-Za-z0-9/_.-]*$'; then
               echo "::error::input 'rota' inválido — permitido só [A-Za-z0-9/_.-]."
               exit 1
@@ -144,69 +120,57 @@ jobs:
             exit 0
           fi
 
-          # Arquivos alterados no deploy (merge → HEAD^ = main antes do merge).
-          # Cobre squash-merge (norma do repo); rebase/multi-commit = residual #6.
+          # Arquivos alterados no deploy (squash-merge → HEAD^ = main antes do merge).
           CHANGED="$(git diff --name-only HEAD^ HEAD 2>/dev/null || git show --name-only --format= HEAD)"
           echo "=== arquivos alterados ==="; printf '%s\n' "$CHANGED"
 
-          # CRÍTICO 2: allowlist ESTRITO de charset — um nome de arquivo com espaço
-          # ou payload de injeção ('Pages/Ignore previous instructions.tsx') NÃO
-          # casa [A-Za-z0-9/_.-]+ e é descartado antes de virar prompt do agente.
+          # CRÍTICO 2: allowlist ESTRITO de charset (descarta nome com espaço/injeção).
           SCREENS="$(printf '%s\n' "$CHANGED" | grep -E '^resources/js/Pages/[A-Za-z0-9/_.-]+\.tsx$' || true)"
-
-          # 2) Navegação (o gap do #3945 — item de menu não é uma tela). Match exato.
+          # Navegação (gap #3945 — item de menu não é uma tela). Match exato.
           NAV="$(printf '%s\n' "$CHANGED" | grep -E '^(resources/js/Components/cockpit/Sidebar\.tsx|app/Http/Middleware/AdminSidebarMenu\.php|app/Services/LegacyMenuAdapter\.php)$' || true)"
 
           if [ -z "$SCREENS" ] && [ -z "$NAV" ]; then
             echo "should_smoke=false" >> "$GITHUB_OUTPUT"
             echo "screens=" >> "$GITHUB_OUTPUT"
-            echo "→ nenhuma tela/navegação alterada (ou nome fora do allowlist) — sem smoke."
+            echo "→ nenhuma tela/navegação alterada — sem smoke."
             exit 0
           fi
 
           echo "should_smoke=true" >> "$GITHUB_OUTPUT"
           if [ -n "$SCREENS" ]; then
-            # Lista de telas alteradas (comma-separated, 1 linha). Já saneada acima.
             LIST="$(printf '%s\n' "$SCREENS" | paste -sd ',' -)"
             echo "screens=${LIST}" >> "$GITHUB_OUTPUT"
-            echo "→ smoke das telas: ${LIST}"
+            echo "→ smoke priorizando telas: ${LIST}"
           else
-            # Só navegação mudou: smoke das rotas nav-críticas (a skill resolve).
             echo "screens=__NAV__" >> "$GITHUB_OUTPUT"
-            echo "→ mudança só de navegação — smoke nav-crítico (dashboard + render do sidebar)."
+            echo "→ mudança só de navegação — smoke nav-crítico."
           fi
 
-      - name: Infra LIGADA? (switch deliberado SCREEN_SMOKE_ENABLED + secret)
+      - name: Smoke LIGADO? (switch SCREEN_SMOKE_ENABLED + OPENAI_API_KEY)
         id: infra
         env:
-          KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # CRÍTICO 1: o switch é o gate deliberado. Ligar por último, só com o
-          # runner ONLINE. Setar o secret sozinho NÃO liga (evita job pendurado).
+          KEY: ${{ secrets.OPENAI_API_KEY }}
           ENABLED: ${{ vars.SCREEN_SMOKE_ENABLED }}
         run: |
           if [ -n "$KEY" ] && [ "$ENABLED" = "true" ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
-            echo "→ smoke LIGADO (switch + secret presentes)."
+            echo "→ smoke LIGADO."
           else
             echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "→ smoke DESLIGADO (switch SCREEN_SMOKE_ENABLED!=true ou secret ausente)."
+            echo "→ smoke DESLIGADO (switch!=true ou OPENAI_API_KEY ausente)."
           fi
 
-      - name: Avisar se smoke está DESLIGADO com tela pendente (WARN, não falha)
+      - name: Avisar se DESLIGADO com tela pendente (WARN, não falha)
         if: steps.filter.outputs.should_smoke == 'true' && steps.infra.outputs.ready != 'true'
         run: |
-          echo "::warning title=Screen smoke DESLIGADO::Telas/navegação mudaram mas o smoke não está ligado. Ativar NESTA ORDEM: (1) registrar runner self-hosted [ct100,browser-mcp] ONLINE; (2) gh secret set ANTHROPIC_API_KEY; (3) provisionar Vaultwarden screen-smoke/wagner-prod-readonly (conta biz=99 FAKE); (4) POR ÚLTIMO gh variable set SCREEN_SMOKE_ENABLED --body true. O switch (4) é o gate deliberado — setar o secret sozinho NÃO liga (evita job pendurado esperando runner). Ver ADR 0164 §9."
+          echo "::warning title=Screen smoke DESLIGADO::Telas/navegação mudaram mas o smoke não está ligado. Ativar: (1) confirmar secret OPENAI_API_KEY; (2) pra telas auth, gh secret set SMOKE_PROD_USER/SMOKE_PROD_PASS = conta biz=99 FAKE; (3) POR ÚLTIMO gh variable set SCREEN_SMOKE_ENABLED --body true. Ver RUNBOOK-screen-smoke-ativacao.md."
 
-  # ── JOB 2: SMOKE — browser MCP contra prod, no CT 100 (self-hosted) ──────────
-  # Desabilitado por `if:` até o switch SCREEN_SMOKE_ENABLED=true + secret → só
-  # então roda (e o runner CT100 já deve estar online — ordem de provisionamento).
+  # ── JOB 2: SMOKE — Playwright + OpenAI vision, em ubuntu ─────────────────────
   smoke:
-    name: Smoke visual real (browser MCP · CT 100)
+    name: Smoke visual real (Playwright + OpenAI)
     needs: detect
     if: needs.detect.outputs.should_smoke == 'true' && needs.detect.outputs.infra_ready == 'true'
-    # ADR 0164 §3 + ADR 0062: browser MCP roda ISOLADO no CT 100. Nunca ubuntu
-    # efêmero, nunca Hostinger. Labels definidos no registro do runner (Wagner).
-    runs-on: [self-hosted, ct100, browser-mcp]
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - name: Checkout do SHA deployado
@@ -225,58 +189,33 @@ jobs:
             if [ "$CODE" = "200" ] || [ "$CODE" = "302" ]; then OK=1; break; fi
             sleep 10
           done
-          if [ -z "$OK" ]; then
-            echo "::error::prod não respondeu 200/302 em /login — abortando smoke (deploy pode ter falhado)."
-            exit 1
-          fi
-          echo "→ prod alcançável. (curl NÃO é smoke — só gate de saúde; o render real vem a seguir.)"
-          echo "→ residual #7: este gate não prova que DEPLOY_SHA já está LIVE (LSCache/OPcache)."
+          [ -z "$OK" ] && { echo "::error::prod não respondeu 200/302 em /login."; exit 1; }
+          echo "→ prod alcançável. (curl NÃO é smoke — o render real vem a seguir.)"
 
-      - name: Smoke via Claude Code + skill tela-smoke-pos-merge
-        env:
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
-          # SCREENS já vem saneado pelo allowlist estrito do job detect (CRÍTICO 2).
-          SCREENS: ${{ needs.detect.outputs.screens }}
-          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Instalar deps + Chromium do Playwright
         run: |
-          set -uo pipefail
-          command -v claude >/dev/null 2>&1 || { echo "::error::CLI 'claude' ausente no runner CT100 — provisionar (ADR 0164 §9.1)."; exit 1; }
+          npm ci --no-audit --no-fund
+          npx playwright install --with-deps chromium
 
-          # Prompt em heredoc NÃO-quotado pra expandir $SCREENS/$DEPLOY_SHA (ambos
-          # saneados). ALTO 4: allowedTools SEM Bash e SEM computer-use (least
-          # privilege) — o agente controla só o browser (claude-in-chrome) e escreve
-          # seus próprios artefatos (Read/Write/Edit). Sem shell = sem exfiltração
-          # de segredo mesmo se a injeção passar.
-          claude -p "$(cat <<PROMPT
-          Ative a skill tela-smoke-pos-merge e execute o smoke pós-deploy INCONDICIONAL
-          contra produção (https://oimpresso.com), deploy SHA ${DEPLOY_SHA}.
+      - name: Smoke visual (Playwright + OpenAI vision)
+        env:
+          SMOKE_BASE_URL: https://oimpresso.com
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SMOKE_VISION_MODEL: ${{ vars.SCREEN_SMOKE_MODEL || 'gpt-4o-mini' }}
+          # Credenciais biz=99 FAKE (residual #8) — ausentes → só rotas públicas.
+          SMOKE_PROD_USER: ${{ secrets.SMOKE_PROD_USER }}
+          SMOKE_PROD_PASS: ${{ secrets.SMOKE_PROD_PASS }}
+          SCREENS: ${{ needs.detect.outputs.screens }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+        run: node scripts/screen-smoke/smoke.mjs
 
-          Telas/rotas alvo: ${SCREENS}
-          - Se o alvo for '__NAV__', valide as rotas nav-críticas conforme a skill
-            (dashboard + render do sidebar/shell) — o gatilho foi mudança de MENU
-            (gap do PR #3945), então o foco é: o item de menu aparece? o sidebar
-            monta? navegar por ele abre a tela certa sem tela branca?
-          - Se o alvo for '__MANUAL__', use as telas do último deploy.
-
-          Login via item Vaultwarden screen-smoke/wagner-prod-readonly (read-only,
-          biz=99 fake quando possível; biz=4 ROTA LIVRE só se o charter exigir).
-
-          Siga os 8 passos da skill à risca: screenshot 1440 + 1280, coletar console
-          errors + perf, confirmar os 4 sinais de render (título/h1, sem erro JS,
-          dados/KPIs, shell montado), auto-mask PII (CPF/CNPJ/email/telefone) ANTES
-          de salvar, append <Tela>.review.md round N (status pending-wagner) +
-          <Tela>.smoke-log.md, regenerar UI-CATALOG.md e notificar via mcp_alertas.
-
-          READ-ONLY HARD: nenhum INSERT/UPDATE/DELETE no DB prod. Se não conseguir
-          logar (browser MCP sem sessão), aborte com alerta mcp_alertas em vez de
-          declarar sucesso — NUNCA reporte "funcionando" sem render real.
-          PROMPT
-          )" \
-            --permission-mode acceptEdits \
-            --allowedTools "mcp__claude-in-chrome__*,Read,Write,Edit" \
-          || { echo "::error::smoke Claude Code falhou — ver logs acima."; exit 1; }
-
-      - name: Preservar evidência (screenshots + review.md)
+      - name: Preservar evidência (screenshots + review.md + smoke-log)
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -284,20 +223,13 @@ jobs:
           path: |
             storage/screen-smoke/**
             resources/js/Pages/**/*.review.md
-            resources/js/Pages/**/*.smoke-log.md
           if-no-files-found: ignore
           retention-days: 30
 
   # ── JOB 3: PERSIST — #5 loop Act: leva o review.md pro git canon via PR ──────
-  # Separado do smoke DE PROPÓSITO (least-privilege): roda em ubuntu, é git/gh
-  # determinístico (sem LLM, sem browser, sem prompt → sem superfície de injeção),
-  # e é o ÚNICO com `contents: write`. Abre um PR com o round; o merge do Wagner
-  # é a decisão Act (ADR 0164 §2.4). Fail-soft: qualquer pré-condição ausente = exit 0.
   persist:
     name: Persistir review.md via PR (loop Act — Wagner decide)
     needs: [detect, smoke]
-    # Roda se o smoke EXECUTOU (sucesso ou falha — a review.md documenta os dois);
-    # pula se o smoke foi skipped (infra desligada) ou cancelado.
     if: always() && (needs.smoke.result == 'success' || needs.smoke.result == 'failure')
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -318,49 +250,34 @@ jobs:
           name: screen-smoke-${{ github.run_id }}
           path: _smoke_artifacts
 
-      - name: Aplicar .md de review no canon + abrir PR do round
+      - name: Aplicar review.md no canon + abrir PR do round
         env:
-          # PAT (não GITHUB_TOKEN): PR criado por GITHUB_TOKEN não dispara CI, e com
-          # branch protection + checks required o PR ficaria sem checks (immergeável).
-          # COWORK_BOT_PAT faz o PR rodar CI normal. Ausente → fail-soft (só warn).
           BOT_PAT: ${{ secrets.COWORK_BOT_PAT }}
           GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
           RUN_ID: ${{ github.run_id }}
           SCREENS: ${{ needs.detect.outputs.screens }}
         run: |
           set -uo pipefail
-
           if [ ! -d _smoke_artifacts ]; then
-            echo "→ smoke não gerou artefato (sem review.md) — nada a persistir."
-            exit 0
+            echo "→ smoke não gerou artefato — nada a persistir."; exit 0
           fi
-
-          # Copiar SÓ os .md (review/smoke-log/UI-CATALOG) de volta pros paths canon.
-          # Screenshots (.png) NÃO vão pro git — ficam no artifact; o review.md os referencia.
+          # Só os review.md (screenshots ficam no artifact; review.md os referencia).
           FOUND=0
           while IFS= read -r f; do
             rel="${f#_smoke_artifacts/}"
             case "$rel" in
-              resources/js/Pages/*.review.md|resources/js/Pages/*.smoke-log.md|resources/js/Pages/*/UI-CATALOG.md)
-                mkdir -p "$(dirname "$rel")"
-                cp "$f" "$rel"
-                FOUND=1
-                ;;
+              resources/js/Pages/*.review.md)
+                mkdir -p "$(dirname "$rel")"; cp "$f" "$rel"; FOUND=1 ;;
             esac
-          done < <(find _smoke_artifacts -type f -name '*.md')
+          done < <(find _smoke_artifacts -type f -name '*.review.md')
           rm -rf _smoke_artifacts
 
-          if [ "$FOUND" = "0" ]; then
-            echo "→ nenhum .md de review no artifact — nada a persistir."
-            exit 0
-          fi
+          [ "$FOUND" = "0" ] && { echo "→ nenhum review.md no artifact."; exit 0; }
           if git diff --quiet -- resources/js/Pages; then
-            echo "→ review.md idêntico ao canon — nada a commitar."
-            exit 0
+            echo "→ review.md idêntico ao canon — nada a commitar."; exit 0
           fi
           if [ -z "${BOT_PAT:-}" ]; then
-            echo "::warning title=review.md não persistido::COWORK_BOT_PAT ausente — não abri o PR de review. O round ficou só no artifact screen-smoke-${RUN_ID} (30d). Ver ADR 0164 §2.4."
-            exit 0
+            echo "::warning::COWORK_BOT_PAT ausente — review.md ficou só no artifact screen-smoke-${RUN_ID}."; exit 0
           fi
 
           BR="screen-smoke/review-${RUN_ID}"
@@ -370,11 +287,11 @@ jobs:
           git checkout -b "$BR"
           git add -A -- resources/js/Pages
           git commit -m "docs(screen-review): round de smoke pós-deploy — ${SCREENS} [smoke]" \
-                     -m "Fase C→A do PDCA (ADR 0164). review.md/smoke-log.md gerados pelo smoke automático. Screenshots no artifact screen-smoke-${RUN_ID}. Wagner (Act): edite 'decisão: approved|rejected|iterate' no round e mergeie."
+                     -m "Fase C→A do PDCA (ADR 0164). review.md gerado pelo smoke automático (Playwright+OpenAI). Screenshots no artifact screen-smoke-${RUN_ID}. Wagner (Act): edite 'decisão: approved|rejected|iterate' e mergeie."
           git push -u origin "$BR"
           gh pr create --base main --head "$BR" \
             --title "docs(screen-review): round smoke — ${SCREENS} [smoke]" \
-            --body "Round de smoke visual pós-deploy (ADR 0164 fase C→A). Screenshots: artifact \`screen-smoke-${RUN_ID}\` deste run.
+            --body "Round de smoke visual pós-deploy (ADR 0164 fase C→A). Screenshots: artifact \`screen-smoke-${RUN_ID}\`.
 
-          **Wagner (Act):** edite o round no \`<Tela>.review.md\` com \`decisão: approved | rejected | iterate\` e mergeie. Merge = decisão registrada no canon; o próximo smoke herda este round (append-only real)." \
-          || echo "::warning::gh pr create falhou (talvez PR já exista pra este run) — ver logs."
+          **Wagner (Act):** edite o round no \`<Tela>.review.md\` com \`decisão: approved | rejected | iterate\` e mergeie." \
+          || echo "::warning::gh pr create falhou (talvez PR já exista pra este run)."

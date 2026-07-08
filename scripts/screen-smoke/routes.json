@@ -1,0 +1,14 @@
+{
+  "_comment": "Rotas curadas pro smoke visual pós-deploy (ADR 0164 fase C). auth=true exige SMOKE_PROD_USER/SMOKE_PROD_PASS = conta biz=99 FAKE read-only (Tier 0 — senão screenshots com PII/BRL vazam pro artifact E pra OpenAi). nav_critical=true → sempre smoka (defende o gap #3945: mudança de menu). source = o .tsx que, se mudar no deploy, prioriza esta rota (e onde o <Tela>.review.md é escrito). Expandir esta lista conforme telas críticas — é dado, não código.",
+  "base_url": "https://oimpresso.com",
+  "viewports": [
+    { "tag": "1440", "width": 1440, "height": 900 },
+    { "tag": "1280", "width": 1280, "height": 720 }
+  ],
+  "routes": [
+    { "label": "login", "path": "/login", "auth": false, "nav_critical": true },
+    { "label": "dashboard", "path": "/home", "auth": true, "nav_critical": true },
+    { "label": "sells-index", "path": "/sells", "auth": true, "nav_critical": true, "source": "resources/js/Pages/Sells/Index.tsx" },
+    { "label": "sells-create", "path": "/sells/create", "auth": true, "source": "resources/js/Pages/Sells/Create.tsx" }
+  ]
+}
