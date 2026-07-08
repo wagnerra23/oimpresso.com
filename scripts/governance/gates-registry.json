@@ -73,7 +73,7 @@
       "nome": "Ancora de design nao-shell — REQUIRED (F2/F6 revisão adversarial 2026-07-08: related_prototype do charter != shell/fantasma; anchor-content-check --check hard-fail; emenda à ADR 0314 'required = só Tier-0', Wagner autorizou)",
       "classe": "gate",
       "terminal": "required",
-      "anchor": "incidente âncora podre REINCIDENTE (2026-07-06 pego pelo Wagner, charter corrigido; voltou 2026-07-08 — o gate advisory NÃO preveniu) + revisão adversarial F2/F6 (RUNBOOK-fidelidade-fingerprint) + emenda proposals/anchor-content-required-emenda-0314.md (exceção consciente à 'required = só Tier-0', Wagner 'resolva todos, eu autorizo')"
+      "anchor": "incidente âncora podre REINCIDENTE (2026-07-06 pego pelo Wagner, charter corrigido; voltou 2026-07-08 — o gate advisory NÃO preveniu) + revisão adversarial F2/F6 (RUNBOOK-fidelidade-fingerprint) + emenda 0327-anchor-content-required-emenda-0314.md (exceção consciente à 'required = só Tier-0', Wagner 'resolva todos, eu autorizo')"
     },
     "anchor-drift.yml": {
       "nome": "Anchor Drift — lint spec↔código ADR 0273 (diff-aware no PR + cron semanal full-tree · ADVISORY F1 — SA-A2/A3)",
