@@ -49,7 +49,8 @@
 //      (harness Playwright), backstop perceptual pra ícones/sparklines sem âncora (dep SSIM → ADR).
 
 import { readFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { spawnSync } from 'node:child_process';
 
 // ── vetor extraído por elemento (mantido em sync com o SNIPPET abaixo) ─────────
 // Onda 1 (2026-07-08, estado-da-arte fingerprint-vs-SOTA): aprofundado de 14 → 25 campos pra
@@ -319,6 +320,36 @@ export function veredictoNL(rows) {
   return partes.join('; ') + '.';
 }
 
+// ── TRAVA DE ÂNCORA (compare-time) ─────────────────────────────────────────────
+// Por que existe (2026-07-08, [W] "as máquinas não estão funcionando em conjunto com os hooks"):
+// o hook block-ancora-no-olho só vê `Read` de png; anchoring errado acontece no Chrome (servir/
+// navegar/colar snippet) — superfície NÃO-hookável. E ancora.mjs (que TEM a resposta) era advisory.
+// Resultado: comparei o Financeiro contra o shell `oimpresso.com.html` (âncora podre já pega em
+// 07-06) e nada mecânico barrou até o Wagner. A cola tem que viver NA MÁQUINA, não no hook:
+//   · resolverAncora — consulta o resolvedor canônico ancora.mjs por SUBPROCESSO (não import:
+//     se ancora.mjs quebrar, LANÇA e o --compare RECUSA — fail-CLOSED, nunca âncora não verificada).
+//   · verificarAncora — o --compare exige que a captura DECLARE a âncora (assada por --snippet
+//     <tela>) e que ela BATA com o related_prototype do charter. Sem declaração → recusa;
+//     divergente → recusa; opt-out só com `--sem-ancora <razão>` (explícito, logado).
+// RESÍDUO HONESTO (declarado na ADR proposta 'trava-ancora-compare'): a declaração é um CLAIM —
+// `--snippet <tela>` assa a âncora certa, mas quem cola pode colar na página errada; o browser é
+// não-hookável e não há oráculo formal acima do charter. Reduz + torna auditável; NÃO blinda o
+// Chrome. É o mesmo teto honesto que o próprio block-ancora-no-olho confessa.
+function resolverAncora(tela) {
+  const script = fileURLToPath(new URL('./ancora.mjs', import.meta.url));
+  const r = spawnSync(process.execPath, [script, tela], { encoding: 'utf8' });
+  if (r.status !== 0 || !r.stdout) throw new Error(`ancora.mjs falhou pra "${tela}": ${(r.stderr || '').trim() || 'sem saída'}`);
+  const m = r.stdout.match(/âncora ✓:\s*\[[^\]]*\]\s*(\S+)/);
+  if (!m) throw new Error(`ancora.mjs não devolveu related_prototype pra "${tela}"`);
+  return m[1];
+}
+export function verificarAncora(protoFp, esperada) {
+  const decl = protoFp && protoFp.ancora;
+  if (!decl) return { ok: false, motivo: 'captura do proto SEM âncora declarada — gere com `--snippet <Mod/Tela>` (assa a âncora resolvida por ancora.mjs), ou opt-out com `--sem-ancora <razão>`' };
+  if (decl !== esperada) return { ok: false, motivo: `âncora DIVERGENTE — a captura declara "${decl}", mas o charter quer "${esperada}" (comparando contra a fonte errada?)` };
+  return { ok: true, motivo: `âncora ✓ ${esperada}` };
+}
+
 // ── snippet auto-contido (roda DENTRO da página; espelho do vetor CAMPOS) ──────
 // Exportado (Onda 3) pro harness Playwright injetar via page.evaluate(SNIPPET) — a mesma
 // string que o modo --snippet imprime pro console/MCP. Fonte única: aqui.
@@ -494,7 +525,11 @@ export const SNIPPET = String.raw`
     vistosK.add(k);
     compostos.push(item);
   }
-  return JSON.stringify({ tema: TEMA, url: location.pathname, elementos, divisorias, containers, compostos }, null, 1);
+  // ancora — DECLARACAO de qual related_prototype esta captura representa (trava de compare-time,
+  // 2026-07-08). Fica null a menos que a captura tenha sido gerada com "--snippet Mod/Tela", que
+  // assa window.__ANCORA__ (resolvido por ancora.mjs) ANTES do snippet. O --compare exige que ela
+  // bata com o charter. Sem isso, o proto x prod roda contra a fonte errada (ancora podre, 07-06/08).
+  return JSON.stringify({ tema: TEMA, url: location.pathname, ancora: (window.__ANCORA__ || null), elementos, divisorias, containers, compostos }, null, 1);
 })()`;
 
 // ── selftest hermético (comparador provado pelos dois lados — L-31) ────────────
@@ -715,6 +750,17 @@ function selftest() {
     if (!ok) fails++;
     console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
   }
+  // ── trava de âncora (verificarAncora) — a MÁQUINA exige âncora declarada e batendo (2026-07-08).
+  const ANC = 'prototipo-ui/cowork/financeiro-page.jsx', PODRE = 'oimpresso.com.html';
+  for (const [label, got, exp] of [
+    ['âncora: captura SEM declaração → recusa', verificarAncora({}, ANC).ok, false],
+    ['âncora: declaração PODRE (shell) → recusa', verificarAncora({ ancora: PODRE }, ANC).ok, false],
+    ['âncora: declaração BATE o charter → passa', verificarAncora({ ancora: ANC }, ANC).ok, true],
+  ]) {
+    const ok = got === exp;
+    if (!ok) fails++;
+    console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
+  }
   console.log(`  resumo: ${Object.entries(tally).map(([k, v]) => `${k}=${v}`).join(' · ')}`);
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — comparador provado pelos dois lados.');
   process.exit(fails ? 1 : 0);
@@ -729,13 +775,46 @@ const argv = process.argv.slice(2);
 if (!ehEntrypoint) { /* importado como módulo: não roda CLI */ }
 else if (argv.includes('--selftest')) selftest();
 else if (argv.includes('--snippet')) {
+  // --snippet [<Mod/Tela>] — se a tela vier, ASSA a âncora (resolvida por ancora.mjs) num preâmbulo
+  // `window.__ANCORA__=...` ANTES do snippet, pra a captura DECLARAR contra o que ela é comparável.
+  // Sem tela: preâmbulo ausente → captura fica com ancora:null → o --compare recusa (fail-closed).
+  const si = argv.indexOf('--snippet');
+  const tela = argv[si + 1] && !argv[si + 1].startsWith('--') ? argv[si + 1] : null;
+  if (tela) {
+    let anc;
+    try { anc = resolverAncora(tela); } catch (e) { console.error('⛔ ' + e.message); process.exit(2); }
+    console.error(`# âncora assada na captura: ${anc} (tela ${tela})`);
+    console.log(`window.__ANCORA__=${JSON.stringify(anc)};`);
+  } else {
+    console.error('# ⚠ sem <Mod/Tela>: captura NÃO declara âncora → o --compare vai recusar (use `--snippet <Mod/Tela>`).');
+  }
   console.log(SNIPPET.trim());
 } else if (argv.includes('--compare')) {
   const i = argv.indexOf('--compare');
   const [fa, fb] = [argv[i + 1], argv[i + 2]];
-  if (!fa || !fb) { console.error('uso: --compare proto.json prod.json'); process.exit(2); }
+  if (!fa || !fb) { console.error('uso: --compare proto.json prod.json (--tela <Mod/Tela> | --sem-ancora <razão>)'); process.exit(2); }
   const A = JSON.parse(readFileSync(fa, 'utf8'));
   const B = JSON.parse(readFileSync(fb, 'utf8'));
+  // ── TRAVA DE ÂNCORA (fail-closed, 2026-07-08) — exige `--tela <X>` (verifica a captura contra o
+  // charter) OU `--sem-ancora <razão>` (opt-out explícito e logado). Comparar contra a fonte errada
+  // (âncora podre) foi o incidente 07-06/07-08 que nenhum hook pegou — a trava vive aqui, na máquina.
+  const telaIdx = argv.indexOf('--tela');
+  const semIdx = argv.indexOf('--sem-ancora');
+  const telaCmp = telaIdx >= 0 ? argv[telaIdx + 1] : null;
+  const semRazao = semIdx >= 0 ? argv[semIdx + 1] : null;
+  if (!telaCmp && !semRazao) {
+    console.error('⛔ trava de âncora: passe `--tela <Mod/Tela>` (verifica a captura do proto contra o related_prototype do charter) OU `--sem-ancora <razão>` (opt-out explícito, logado). Comparar contra a fonte errada = âncora podre (incidente 2026-07-06/07-08).');
+    process.exit(3);
+  }
+  if (telaCmp) {
+    let esperada;
+    try { esperada = resolverAncora(telaCmp); } catch (e) { console.error('⛔ ' + e.message); process.exit(3); }
+    const v = verificarAncora(A, esperada); // A = proto (1º arg) é o lado da âncora de design
+    if (!v.ok) { console.error('⛔ ' + v.motivo); process.exit(3); }
+    console.error('# ' + v.motivo);
+  } else {
+    console.error(`# ⚠ OVERRIDE — âncora NÃO verificada. Razão: ${semRazao}. (Logado; o browser é não-hookável — ver ADR trava-ancora-compare. Não é bloqueio físico.)`);
+  }
   if (A.tema !== B.tema) console.error(`⚠ temas diferentes (${A.tema} vs ${B.tema}) — compare tema com tema (regra 5).`);
   const { rows, tally } = comparar(A, B);
   if (argv.includes('--json')) console.log(JSON.stringify({ rows, tally }, null, 1));
@@ -769,5 +848,5 @@ else if (argv.includes('--snippet')) {
   // furo 5 — falha o exit-code também quando há miss estrutural pra triar (não só DIVERGE).
   process.exit(((tally.DIVERGE || 0) > 0 || triagemSO(rows).length > 0) ? 1 : 0);
 } else {
-  console.log('uso: --snippet | --compare a.json b.json [--json] | --selftest');
+  console.log('uso: --snippet [<Mod/Tela>] | --compare proto.json prod.json (--tela <Mod/Tela> | --sem-ancora <razão>) [--json] | --selftest');
 }
