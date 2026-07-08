@@ -137,8 +137,11 @@ export default function FinPeriodBar({ dataInicio, dataFim, count, onChange }: P
 
       <span className="text-[11px] text-muted-foreground tabular-nums whitespace-nowrap">{count} lanç.</span>
 
-      {/* Presets segmentados */}
-      <div className="inline-flex items-center bg-muted rounded-md p-0.5 border border-border">
+      {/* Presets em pills independentes — fidelidade ao protótipo Cowork (financeiro.css
+          .fin-pb-preset: border-radius 999px, 12.5px/500, ativo preenchido de --accent/branco).
+          [W] 2026-07-08: substitui o segmentado (proto evoluiu além do estado da ADR 0313).
+          Ativo usa bg-primary (roxo universal ADR 0190) → segue o brilho do token no dark. */}
+      <div className="fin-period-presets inline-flex items-center gap-1 flex-wrap">
         {PRESETS.map((p) => (
           <button
             key={p.id}
@@ -146,10 +149,10 @@ export default function FinPeriodBar({ dataInicio, dataFim, count, onChange }: P
             onClick={() => apply(p.id)}
             aria-pressed={active === p.id}
             className={
-              'h-6 px-2 rounded text-[11.5px] transition ' +
+              'rounded-full border px-[11px] py-1 text-[12.5px] leading-none transition ' +
               (active === p.id
-                ? 'bg-background shadow-sm font-medium text-foreground'
-                : 'text-muted-foreground hover:text-foreground')
+                ? 'bg-primary text-primary-foreground border-primary font-semibold'
+                : 'bg-background text-muted-foreground border-border font-medium hover:text-foreground hover:border-foreground/30')
             }
           >
             {p.label}
