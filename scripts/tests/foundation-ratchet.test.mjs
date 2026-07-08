@@ -65,6 +65,14 @@ check('comment-vs-uso → exit 0 (uso real == baseline == 1)', cvu.status === 0)
 const jc = JSON.parse(run('comment-vs-uso', ['--json']).stdout);
 check('comment-vs-uso → mede 1 (ignora a menção, conta o uso Pest)', jc.counters.n_refresh_database === 1);
 
+// 8. MESMO conserto pro marker @group legacy-quarantine (fix 2026-07-08): a MENÇÃO em docstring
+//    ("…NÃO o OutroTest, que é @group legacy-quarantine") NÃO conta; só a ANOTAÇÃO real (`* @group …`
+//    em posição de tag) conta. A fixture tem 2 arquivos: 1 anotação real + 1 menção → honesto = 1.
+const qm = run('quarantine-mention');
+check('quarantine-mention → exit 0 (só a anotação real conta == baseline == 1)', qm.status === 0);
+const jq = JSON.parse(run('quarantine-mention', ['--json']).stdout);
+check('quarantine-mention → mede 1 (ignora a menção em prosa, conta a anotação)', jq.counters.n_quarantine === 1);
+
 console.log('');
 if (fails === 0) { console.log(`[PASS] catraca MORDE — subir = vermelho, sem razão = vermelho, --write só desce, menção ≠ uso. (${ran}/${ran})`); process.exit(0); }
 console.log(`[FAIL] ${fails} caso(s) — a catraca NÃO está garantida. NÃO mergear.`);
