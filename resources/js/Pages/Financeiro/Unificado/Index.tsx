@@ -1650,7 +1650,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
             com o grid filtrado. Intervalo vazio = usa o período preset do header.
             NF/Vendas do WR exigem link título→transaction (origem_id), ainda
             pendente. */}
-        <div className="fin-filter-group" role="group" aria-label="Filtro por data">
+        <div className="fin-filter-group w-full" role="group" aria-label="Filtro por data">
           {/* Segmented "Filtrar por" (fidelidade protótipo [W] 2026-07-06: era um <select>
               nativo, vira segmentado — igual ao proto financeiro-page.jsx e ao mesmo visual
               dos presets do FinPeriodBar logo à frente: `bg-muted` + ativo `bg-background
