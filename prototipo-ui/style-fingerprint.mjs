@@ -361,22 +361,40 @@ export function verificarAncora(protoFp, esperada) {
 // multi-palavra OU acentuados (rótulo de UI PT-BR real, não identificador de código), e só recusa
 // quando há rótulos SUFICIENTES e QUASE NENHUM aparece.
 const STOPWORDS_ROT = new Set(['true', 'false', 'null', 'undefined', 'function', 'return', 'import', 'export', 'default', 'className']);
+// Extração RAFINADA (fix 2026-07-08, pego pelo teste-do-processo): a v1 ("multi-palavra OU
+// acentuado") pegava CÓDIGO com espaço (`: dt.toLocaleString(`, `+ (n / 1000)`) e classNames
+// (`os-btn ghost fin-hero`) — inflava o denominador com strings que NUNCA aparecem no DOM
+// renderizado. Numa captura REAL do financeiro-page.jsx isso derrubava o overlap de 20% (limpo,
+// 82 rótulos) pra 7% (poluído, 237) → FALSO-REFUSE. Aqui só passa NATURAL-LANGUAGE de UI:
+// começa com letra, sem operadores/estruturais de código, sem kebab-case (className) nem tailwind,
+// ≤5 palavras, não termina em `,`/`:`.
 export function rotulosDistintivos(src) {
   const out = new Set();
   const re = /["']([^"'\n]{4,40})["']/g;
   let m;
   while ((m = re.exec(src || ''))) {
     const s = m[1].trim();
-    const temLetra = /[a-zà-ú]/i.test(s);
-    const distintivo = /\s/.test(s) || /[À-ÿ]/.test(s); // multi-palavra OU acentuado
-    if (temLetra && distintivo && !STOPWORDS_ROT.has(s.toLowerCase())) out.add(s.toLowerCase());
+    if (!/^[\p{L}]/u.test(s)) continue;                                   // começa com letra
+    if (!/[a-zà-ÿ]/i.test(s)) continue;                                   // tem letra
+    if (!(/\s/.test(s) || /[À-ÿ]/.test(s))) continue;                     // multi-palavra OU acentuado
+    if (/[=<>{}()/\\;$`[\]|&]/.test(s)) continue;                         // sem operadores/estruturais
+    if (/-[\d.]/.test(s)) continue;                                       // sem px-1.5 / py-0.5
+    if (/\b[a-zà-ÿ]+-[a-zà-ÿ]/i.test(s)) continue;                        // sem kebab-case (className)
+    if (/\btolocale/i.test(s)) continue;                                  // sem chamadas de método
+    if (/[,:]$/.test(s)) continue;                                        // não termina em pontuação de código
+    if (s.split(/\s+/).length > 5) continue;                             // rótulo curto
+    if (STOPWORDS_ROT.has(s.toLowerCase())) continue;
+    out.add(s.toLowerCase());
   }
   return [...out];
 }
 const normSimples = (t) => (t || '').toLowerCase().replace(/\s+/g, ' ').trim();
 // overlapConteudo — recebe os rótulos da âncora + os textos da captura. Devolve {ok,motivo,...}.
 // Pulado (ok) se rótulos < minRotulos (âncora sem material distintivo pra julgar).
-export function overlapConteudo(rotulos, protoTexts, minRotulos = 6, fracaoMin = 0.15) {
+// fracaoMin 0.08 (calibrado 2026-07-08 contra captura REAL: financeiro-page.jsx renderizado dá
+// ~20% dos rótulos limpos presentes; o shell dá ~0%. 8% separa com folga e tolera telas esparsas
+// — o objetivo é pegar o caso GROSSO (página errada, ~0%), não fidelidade fina).
+export function overlapConteudo(rotulos, protoTexts, minRotulos = 6, fracaoMin = 0.08) {
   const rs = (rotulos || []).filter(Boolean);
   if (rs.length < minRotulos) return { ok: true, motivo: `conteúdo: só ${rs.length} rótulos distintivos na âncora — check pulado (sem material)`, achados: 0, total: rs.length };
   const hay = (protoTexts || []).map(normSimples).join('  ');
@@ -798,12 +816,16 @@ function selftest() {
     console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
   }
   // ── F5: conteúdo (overlap de rótulos .jsx × captura) — pega "declarou certo, colou na página errada".
-  const jsxFake = `const a='A receber'; b='Saldo previsto'; label('Fluxo de caixa'); const t='Novo título'; x='Visão unificada'; y='A pagar'; cls='flex'; d='none';`;
+  // jsxFake mistura RÓTULOS reais com CÓDIGO/className (a poluição que o teste-do-processo pegou):
+  // operador, chamada de método, className kebab, classe tailwind — TÊM que ser excluídos.
+  const jsxFake = `const a='A receber'; b='Saldo previsto'; label('Fluxo de caixa'); const t='Novo título'; x='Visão unificada'; y='A pagar'; op='a === b'; mth=': dt.toLocaleString('; cls='os-btn ghost fin-hero'; tw='px-1.5 py-px';`;
   const rot = rotulosDistintivos(jsxFake);
+  const poluicao = ['a === b', 'os-btn ghost fin-hero', 'px-1.5 py-px'].some((p) => rot.includes(p.toLowerCase()));
   const txtCerto = ['A receber', 'A pagar', 'Saldo previsto', 'Fluxo de caixa', 'Novo título', 'Visão unificada'];
   const txtShell = ['Chat', 'Tarefas', 'Clientes', 'Configurações', 'Perfil', 'Início'];
   for (const [label, got, exp] of [
-    ['F5 rótulos: extrai multi-palavra/acentuado, ignora código (flex/none)', rot.length >= 6 && !rot.includes('flex') && !rot.includes('none'), true],
+    ['F5 rótulos: mantém os 6 rótulos reais', rot.length >= 6 && rot.includes('a receber') && rot.includes('novo título'), true],
+    ['F5 rótulos: EXCLUI código/className/tailwind (anti-poluição)', poluicao, false],
     ['F5 conteúdo: captura CERTA (rótulos presentes) → passa', overlapConteudo(rot, txtCerto).ok, true],
     ['F5 conteúdo: captura do SHELL (rótulos ausentes) → recusa', overlapConteudo(rot, txtShell).ok, false],
     ['F5 conteúdo: âncora sem material (poucos rótulos) → pula (ok)', overlapConteudo(['a b'], txtShell).ok, true],
