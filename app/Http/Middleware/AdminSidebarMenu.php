@@ -927,6 +927,32 @@ class AdminSidebarMenu
                   </svg>', 'id' => 'tour_step3']
                 )->order(85);
             }
+
+            // Modo Suporte (ADR 0305/0309) — single-link pra empresas-cliente.
+            // Só agentes de suporte veem: operadora (biz=1, todo user) OU concessão
+            // ativa em support_agents (RF4). Gate service-direct, NÃO Gate::before
+            // (que daria true a qualquer Admin#<biz> — ADR 0309). Grupo SISTEMA via
+            // attribute 'group' (Sidebar.tsx findGroupKey dá precedência ao declarado).
+            // Suporte não é módulo nWidart → não tem DataController → nasce aqui no core.
+            if (app(\App\Services\Support\SupportAccessService::class)->isSupportAgent(auth()->user())) {
+                $menu->url(
+                    route('suporte.empresas'),
+                    __('Suporte'),
+                    [
+                        'icon'   => '<svg aria-hidden="true" class="tw-size-5 tw-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                    <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+                    <path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"></path>
+                    <path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"></path>
+                    <path d="M5.7 5.7l3.1 3.1"></path>
+                    <path d="M15.2 15.2l3.1 3.1"></path>
+                    <path d="M18.3 5.7l-3.1 3.1"></path>
+                    <path d="M8.8 15.2l-3.1 3.1"></path>
+                  </svg>',
+                        'active' => request()->segment(1) == 'suporte',
+                        'group'  => 'sistema',
+                    ]
+                )->order(90);
+            }
         });
 
         //Add menus from modules
