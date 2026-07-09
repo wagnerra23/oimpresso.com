@@ -34,5 +34,14 @@
     "Stock": { "class": "C", "reason": "referencia a service externo/legacy, nunca foi Modules/Stock aqui" },
     "Auth": { "class": "C", "reason": "citacao generica de framework, nunca foi Modules/Auth aqui" },
     "Officeimpresso1": { "class": "C", "reason": "referencia HISTORICA correta — dir movido pra backup fora do repo em 2026-04-23, codigo restaurado em Modules/Officeimpresso via ADR 0017 (memory/requisitos/Officeimpresso1.md:17); nao tocar" }
-  }
+  },
+  "_path_tombstones_doc": "Tombstones de PATH concreto (workflow/script DELETADO) consumidos pelo detector de path-fantasma do knowledge-drift.mjs (--check-paths + secao advisory do batimento + --selftest). Cada entrada: {nome=path concreto, deletado_por_adr, substituto, evidencia}. Um doc/ADR pode citar um path morto SEM virar 'phantom' sse houver tombstone aqui. REGRA (P16): so entra path com evidencia dura (commit que deletou + ADR). NAO detecta 'nome-de-gate' fuzzy em prosa (falso-positivo). NAO edita ADR aceita (append-only) — o tombstone aterra o DETECTOR; a injecao no decisions-fetch (leitura humana) e PR separado (follow-up).",
+  "path_tombstones": [
+    {
+      "nome": ".github/workflows/mwart-gate.yml",
+      "deletado_por_adr": "0271",
+      "substituto": "casos-gate.yml (cobertura de tela, required — ADR 0264) + screen-coverage-gate.yml; enforcement de RUNBOOK segue via hook runtime .claude/hooks/block-mwart-violation.ps1",
+      "evidencia": "commit 7be91b3347 (PR #2531, 2026-06-11, 'onda 2 dos gates ADR 0271'): 'Softs superseded deletados: charter-gate.yml + mwart-gate.yml (teatro continue-on-error, cobertura migrou pro casos-gate required ADR 0264)'"
+    }
+  ]
 }
