@@ -11,6 +11,13 @@
     }
   },
   "workflows": {
+    "ds-mirror-drift.yml": {
+      "nome": "ds-mirror-drift (advisory) — sentinela de drift git↔espelho do Design System: compara os _generated-*.css do git contra o snapshot commitado do espelho claude.ai/design (scripts/design-sync/mirror-snapshot/), reusa o motor ds-token-diff.mjs; ::warning:: quando drift > baseline. CI do GH Actions não tem login claude.ai → compara snapshot, não o espelho vivo.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-23",
+      "anchor": "sinal de custo: 3 cópias divergentes do canvas dark (drift silencioso git↔espelho, investigação 2026-07-08) — não existia sentinela do loop de sync. Proposta 2026-07-08-profissionalizar-ds-sync-git-espelho P3 + proposta 2026-07-09-ds-transicao-congelado-para-vivo-git-ssot. Advisory por ADR 0314 (drift de espelho é quality, não Tier-0 até o loop estabilizar + snapshot semeado); promote_by força a decisão de promoção a required/enforce em 14d em vez de advisory eterno."
+    },
     "screen-smoke-after-merge.yml": {
       "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
       "classe": "automacao",
