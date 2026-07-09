@@ -1879,7 +1879,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         <CardContent className="p-0">
           <table className="w-full border-collapse">
             <thead>
-              <tr className="text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border bg-muted/30">
+              <tr className="text-[10px] uppercase tracking-widest text-muted-foreground border-b border-border">
                 {/* Onda 12 (2026-05-20): checkbox select-all (referencia: visible rows). */}
                 <th className="pl-4 pr-1 py-2 w-7">
                   <Checkbox
@@ -1958,7 +1958,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           </table>
           {/* Onda 13 (2026-05-20): pagination controls (só renderiza se total > per_page) */}
           {pagination && pagination.total > pagination.per_page && (
-            <div className="px-4 py-2 flex items-center justify-between border-t border-border text-[12px] text-muted-foreground bg-muted/40">
+            <div className="px-4 py-2 flex items-center justify-between border-t border-border text-[12px] text-muted-foreground">
               <span>
                 Página <b>{pagination.page}</b> de <b>{pagination.total_pages}</b>
                 <span className="mx-2 text-muted-foreground">·</span>
