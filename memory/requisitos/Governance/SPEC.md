@@ -744,3 +744,42 @@ Homônimo exposto pela sentinela `memory-health` (Check U `dir-homonimo`): `memo
 **Definition of Done (verificável):** `node scripts/governance/memory-health.mjs` → Check U `dir-homonimo` **= 0**.
 
 Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sync: dir-homonimo -->`
+
+### US-GOV-049 · Ratificar ADR 0329 (doutrina documentação de processo) — flip proposto→aceito
+
+> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+- ADR 0329 mergeada no main (#4008) com `status: proposto` — as 5 propriedades (executável/fonte-única/ligada-ao-gate/cross-plataforma/auto-fresca)
+- Ratificar = editar O MESMO arquivo `memory/decisions/0329-doutrina-documentacao-de-processo-executavel.md`: `status: proposto → aceito` (append-only, não move de pasta)
+- Depois: `node scripts/governance/adr-index-generate.mjs --write` + commitar índice junto
+- Só então a doutrina entra na busca default do `decisions-search` (scopePorStatusAtivo)
+
+### US-GOV-050 · Ratificar 0314 (por-item) + 0299 e mover 0320 aceita presa em proposals/
+
+> owner: wagner · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+- 0314 (poda de gates): `accepted_via` diz "aguarda ratificação POR ITEM" — decisão [W] item a item; já executou em prod (required 29→22)
+- 0299 (figma não é fonte): `status: proposto` mas citada como canon no CLAUDE.md — flip proposto→aceito
+- **Bug vivo**: 0320 está `status: aceito` porém PRESA em `memory/decisions/proposals/` → invisível ao MCP (o sync faz glob não-recursivo). Mover pro top-level `memory/decisions/0320-*.md` + `adr-index-generate --write`
+- Destrava os consertos P19/P20/P21/P4 da revisão (âncora required = ADR enacted)
+
+### US-GOV-051 · Review + merge PRs #4009 (tombstones P16) e #4010 (ref-integrity P10)
+
+> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+- #4009: cura 18 tombstones de path-fantasma (follow-up do knowledge-drift ghost #4006) — CLEAN, verde
+- #4010: sentinela `ref-integrity.mjs` advisory (middleware fantasma / colisão de rota / route() inexistente no sidebar / Inertia::render sem .tsx) — os 4 anti-padrões F3 que o PHPStan não vê
+- Últimos 2 dos 5 chips da revisão da memória do processo (2026-07-09); os outros 4 já mergeados (#4004/#4005/#4006/#4007)
+
+### US-GOV-052 · Backlog da revisão da memória do processo — consertos M/G restantes
+
+> owner: — · priority: p2 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+- Relatório completo: artifact "revisao-memoria-processo" (sessão 2026-07-09) — 26 consertos sobreviventes ao adversário, 10 rejeitados (não re-propor)
+- Restantes: P24 (portar 5-7 blockers Tier-0 .ps1→.mjs ANTES do time MCP entrar em Mac/Linux) · P31/P32/P33 (hue/skill-tier/fase fonte-única) · P6/P13/P35 (manifest duro-vs-advisory, anti-sentinela-órfã, anti-verde-no-vácuo) · P11-A (excludePaths PHPStan, prova no CT100 antes)
+- Regra transversal: cada guarda nasce com fixture good/bad no gate-selftest, ancorada em contrato citado; advisory salvo Tier-0 (0314)
+- Follow-up da sentinela #4011: FLAG "ADR pendente" no Daily Brief (server-side, Modules/Jana Brief)
