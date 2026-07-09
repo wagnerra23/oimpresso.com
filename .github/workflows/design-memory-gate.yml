@@ -145,7 +145,7 @@ jobs:
         continue-on-error: true
         run: node prototipo-ui/ds-guard.mjs --all
 
-      # integrity-check: a propria memoria nao corrompeu (espinha · pares charter/decisoes ·
+      # integrity-check: a propria memoria nao corrompeu (espinha · charter tem tela viva .tsx ·
       # LICOES contiguas · benchmark). Sai 1 se algum IT duro falhar; advisory aqui.
       - name: Integrity check (espinha da memoria · §15)
         if: always()
