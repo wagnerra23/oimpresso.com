@@ -12,6 +12,7 @@ import { Button } from '@/Components/ui/button';
 import { Label } from '@/Components/ui/label';
 import { Input } from '@/Components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -144,7 +145,7 @@ function ActivityIndex({ project, events, kpis, authors, event_types, filters }:
               <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>Todos</SelectItem>
-                {event_types.map((t) => <SelectItem key={t} value={t}>{t}</SelectItem>)}
+                {event_types.map((t) => <SafeSelectItem key={t} value={t}>{t}</SafeSelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -154,7 +155,7 @@ function ActivityIndex({ project, events, kpis, authors, event_types, filters }:
               <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>Todos</SelectItem>
-                {authors.map((a) => <SelectItem key={a} value={a}>{a}</SelectItem>)}
+                {authors.map((a) => <SafeSelectItem key={a} value={a}>{a}</SafeSelectItem>)}
               </SelectContent>
             </Select>
           </div>

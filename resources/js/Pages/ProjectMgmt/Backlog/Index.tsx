@@ -12,6 +12,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import { Checkbox } from '@/Components/ui/checkbox';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
@@ -227,7 +228,7 @@ function BacklogIndex({
               <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>Todos</SelectItem>
-                {owners.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+                {owners.map(o => <SafeSelectItem key={o} value={o}>{o}</SafeSelectItem>)}
               </SelectContent>
             </Select>
           </div>
@@ -250,7 +251,7 @@ function BacklogIndex({
                 <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value={ALL}>Todos</SelectItem>
-                  {sprints.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  {sprints.map(s => <SafeSelectItem key={s} value={s}>{s}</SafeSelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -308,7 +309,7 @@ function BacklogIndex({
           <Select onValueChange={(v) => bulk({ owner: v })}>
             <SelectTrigger className="h-7 w-32 text-xs"><SelectValue placeholder="Atribuir…" /></SelectTrigger>
             <SelectContent>
-              {owners.map(o => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+              {owners.map(o => <SafeSelectItem key={o} value={o}>{o}</SafeSelectItem>)}
             </SelectContent>
           </Select>
 
