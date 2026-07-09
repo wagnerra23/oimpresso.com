@@ -257,7 +257,7 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 | Espinha | `STATUS.md` · `MEMORY_INDEX.md` | — (só Cowork) | 1 | **início sempre** |
 | Método/este | `PROCESSO_MEMORIA_CC.md` | `prototipo-ui/PROCESSO_MEMORIA_CC.md` | 2 | **início sempre** |
 | Lições | `memory/LICOES_CC.md` | `memory/LICOES_CC.md` | 2 | **início sempre** |
-| Charter de tela | `<Tela>.charter.md` | `prototipo-ui/prototipos/<tela>/charter.md` | 2 | tocar a tela |
+| Charter de tela | `<Tela>.charter.md` | `resources/js/Pages/<Mod>/<Tela>.charter.md` (ao lado da `.tsx`) | 2 | tocar a tela |
 | Register de tela | `<Tela>.decisoes.md` | `prototipo-ui/prototipos/<tela>/decisoes.md` | 2 (snapshot) | tocar a tela |
 | Sessão | `memory/sessions/AAAA-MM-DD-*.md` | idem | 2 | fim de sessão |
 | ADR (lei) | `memory/decisions/NNNN-*.md` | idem | 2·[W] | decisão estrutural |
@@ -274,7 +274,7 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 | IT | Verifica | Falha = |
 |---|---|---|
 | IT1 | Espinha existe: `STATUS` · `PROCESSO_MEMORIA_CC` · `MEMORY_INDEX` · `LICOES_CC` | processo cego |
-| IT2 | Todo `*.charter.md` tem `*.decisoes.md` irmão (e vice-versa) | tela órfã |
+| IT2 | Todo `*.charter.md` tem tela viva (`.tsx` irmão) — advisory | charter sem tela |
 | IT3 | `STATUS` aponta pra `PROCESSO_MEMORIA_CC` (ponteiro vivo) | always-read quebrado |
 | IT4 | `LICOES_CC`: L-NN contíguo, sem buraco/duplicata | lição perdida |
 | IT5 | Benchmark (§11) tem linha da última sessão | sem medição (Sobrevivência #1) |
