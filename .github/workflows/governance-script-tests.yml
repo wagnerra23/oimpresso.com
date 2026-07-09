@@ -40,6 +40,10 @@ jobs:
         run: node scripts/governance/outcome-metrics.test.mjs
       - name: Agent PR outcomes (DORA do agente · CFR morde/libera · card #0 grade-das-reguas)
         run: node scripts/governance/agent-pr-outcomes.test.mjs
+      - name: Block-test-fora-ct100 PORTE .mjs (logica + E2E · roda em Linux · card #2 cross-platform)
+        run: node .claude/hooks/block-test-fora-ct100.test.mjs
+      - name: Block-test-fora-ct100 REGISTRADO como node (correcao != invocacao)
+        run: node scripts/governance/settings-test-fora-ct100-registration.test.mjs
       - name: Registro Figma-não-é-fonte em settings.json (camada L4)
         run: node scripts/governance/settings-figma-registration.test.mjs
       - name: Registro âncora-no-olho em settings.json (incidente #7)

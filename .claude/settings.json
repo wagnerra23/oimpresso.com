@@ -195,7 +195,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-test-fora-ct100.ps1"
+            "command": "node .claude/hooks/block-test-fora-ct100.mjs"
           }
         ]
       }
