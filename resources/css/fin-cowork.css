@@ -259,11 +259,26 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Follow-up ADR UI-0022 (superfície atrás do filtro): a barra era transparente
+     e achatava no canvas do cockpit (dark --bg 0.26). Preenche com o MESMO token
+     de painel da tabela/KPIs — var(--surface) == --color-card == oklch(0.30 0.008 240)
+     dark / #fff light — dando o degrau +0.04 acima do canvas (linguagem de superfície
+     unificada). Mantém o formato de banda full-bleed do protótipo (padding/bordas
+     como estavam); só a elevação muda. */
   padding: 8px 0;
   flex-wrap: wrap;
+  background: var(--surface);
   border-top: 1px solid var(--fin-line);
   border-bottom: 1px solid var(--fin-line);
   margin: 6px 0 4px;
+}
+/* As duas linhas do filtro ([W] 2026-07-06 "filtro em duas linhas") formam UM
+   painel contínuo — colapsa o vão + a borda dupla entre linhas .fin-toolbar
+   adjacentes pra não virar duas bandas com costura. A borda inferior da 1ª linha
+   permanece como divisor interno sutil entre as duas linhas do mesmo painel. */
+.fin-cowork .fin-curadoria .fin-toolbar + .fin-toolbar {
+  margin-top: 0;
+  border-top: 0;
 }
 .fin-cowork .fin-curadoria .fin-filter-group {
   display: flex;
