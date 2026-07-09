@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **332** arquivos · **316** números únicos · máx **0329**
-- **ADRs ATIVOS (lifecycle ativo): 310** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 280 · proposto 36 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 310 · substituido 12 · arquivado 6 · (vazio) 4
+- **333** arquivos · **317** números únicos · máx **0330**
+- **ADRs ATIVOS (lifecycle ativo): 311** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 280 · proposto 37 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 311 · substituido 12 · arquivado 6 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (332)
+## Todas as ADRs (333)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -372,3 +372,4 @@ _(íntegra)_
 | 0327 | aceito | ativo | decision | Emenda à 0314 — anchor-content-check promovido a REQUIRED (exceção consciente à  |
 | 0328 | aceito | ativo | decision | DS v6 congelado → projeto vivo no claude.ai/design (git permanece SSOT) — loop b |
 | 0329 | proposto | ativo | meta | Doutrina de documentação de processo: executável, fonte-única, ligada-ao-gate, c |
+| 0330 | proposto | ativo | meta | Mapa dos níveis — estado real 2026-07 das 7 camadas da Constituição v2 (emenda d |
