@@ -1,6 +1,6 @@
 ---
-distilled_at: "2026-07-01"
-distilled_by: jana:distill-module-truth
+distilled_at: "2026-07-09"
+distilled_by: claude-code (refresh manual pós-sessão revisão-memória-processo; base jana:distill-module-truth 2026-07-01)
 module: Governance
 ---
 
@@ -24,7 +24,7 @@ O módulo **Governance** atua como enforcer da **Constituição v2**, habilitand
 - **Cobertura Pest cross-tenant**: **40%** na medição 2026-05-16.
 
 ## Última mudança
-Em 2026-05-16 o Module Grades landou (PR #948) com a grade do módulo em 49/100; em jun/2026 o módulo recebeu novos PRs (ex.: US-GOV-043 em #3195) e a rubrica evoluiu pra v3/v4 (`module:grade-v4`).
+Em 2026-07-09 (sessão revisão-memória-processo) o módulo ganhou 3 sentinelas novas de staleness/pendência — `visual-comparison-staleness` (#4002), `knowledge-drift` ghost-ref + tombstone (#4006) e `adr-proposto-parado` (#4011, A:7 leis decididas invisíveis em proposals/ · B:3 numeradas presas · C:30 propostas >14d) — mais o hook Tier-0 `block-brl-values-in-memory` (#4004) e a **ADR 0329** (doutrina de documentação de processo, `proposto`, #4008). Pendências de ratificação registradas como **US-GOV-049..052** no SPEC. Antes disso: 2026-05-16 Module Grades landou (PR #948, grade 49/100); jun/2026 rubrica evoluiu pra v3/v4 (`module:grade-v4`).
 
 ## Proveniência (destilado de)
 
