@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 // gerar-map.mjs — deriva o ESQUELETO do <tela>.map.json a partir do <tela>-gap.md.
 //
-// Ponte design↔código PERSISTENTE (análogo ao Figma Code Connect: por PARTE, o bloco do
-// protótipo ↔ arquivo/range da tela viva, carregando o sha do protótipo que o gerou) — o gap
-// canônico #1 do estado-da-arte (memory/sessions/2026-06-22-arte-design-to-code-sdd.md: ponte
-// design↔código em ~30%, "sem Figma Code Connect") e a saída documentada da FASE 1 do
-// RUNBOOK-aplicar-prototipo-orquestracao.md. Sem isso o mapeamento é PROSA re-derivada por
-// tela a cada sessão — este script torna o artefato máquina-legível e versionado.
+// EIXO deste mapa (deconflito 2026-07-09 — RUNBOOK Fase 1 §"Deconflito dos 3 eixos"): ANCHOR-MAP
+// POR REGIÃO de tela (por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva, carregando o
+// sha do protótipo que o gerou) — parente do anchor-lint, NÃO o "Code Connect" do projeto. O
+// Code Connect (eixo componente, âncora estável, reusável entre telas) é o
+// prototipo-ui/component-registry.json; o roteamento de ARQUIVOS na ingestão é o cowork-map.json.
+// Este artefato ataca o gap canônico #1 do estado-da-arte (memory/sessions/
+// 2026-06-22-arte-design-to-code-sdd.md: mapeamento re-derivado em PROSA por tela a cada sessão)
+// tornando-o máquina-legível e versionado — saída documentada da FASE 1 do
+// RUNBOOK-aplicar-prototipo-orquestracao.md.
 //
 // Reusa parsePartes/ehAcionavel/slug/resolveGap/frontmatterBlock/fmVal de gerar-contrato.mjs —
 // a tabela de PARTES do gap.md é a MESMA fonte que o contrato região-a-região consome (1 fato =
@@ -112,7 +115,7 @@ export function gerar(gapPath, { root = REPO, hoje = null } = {}) {
 
   const mapa = {
     version: '1',
-    _doc: 'Ponte design↔código por TELA (Code-Connect-like): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha invalida o map quando o protótipo re-exportar (scripts/governance/design-code-map-check.mjs detecta o drift).',
+    _doc: 'ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha invalida o map quando o protótipo re-exportar (scripts/governance/design-code-map-check.mjs detecta o drift).',
     tela,
     gap_fonte: relPosix(root, gapPath),
     prototipo_sha,

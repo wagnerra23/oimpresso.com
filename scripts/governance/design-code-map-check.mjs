@@ -6,8 +6,16 @@
  * Contraparte de verificação do gerador `prototipo-ui/gerar-map.mjs` (mesma separação
  * gerar-contrato.mjs × contrato-de-tela.mjs --contract: um DERIVA o esqueleto, o outro VALIDA
  * o artefato preenchido). Sem esta sentinela o `<tela>.map.json` é só um JSON solto que ninguém
- * garante que continua batendo com o disco — vira "Code Connect de mentira" (RUNBOOK-aplicar-
- * prototipo-orquestracao.md, Fase 1 — o gap canônico #1 do estado-da-arte 2026-06-22).
+ * garante que continua batendo com o disco (RUNBOOK-aplicar-prototipo-orquestracao.md, Fase 1 —
+ * o gap canônico #1 do estado-da-arte 2026-06-22).
+ *
+ * EIXO (deconflito 2026-07-09 — RUNBOOK Fase 1 §"Deconflito dos 3 eixos"): o <tela>.map.json é
+ * ANCHOR-MAP POR REGIÃO de tela (âncora por range de linha, zero reuso entre telas) — NÃO o
+ * "Code Connect" do projeto (esse é component-registry.json, eixo componente, verificado por
+ * component-registry-check.mjs). LIMITE HONESTO: staleness só é detectada do lado do PROTÓTIPO
+ * (prototipo_sha); o lado VIVO ancora por linha e refactor desloca linhas em silêncio — fix
+ * planejado: validar âncora estável data-contract="<id>" no vivo.arquivo (ids batem por
+ * construção com gerar-contrato.mjs: ambos slug(parte) do mesmo gap.md).
  *
  * Pra cada `*.map.json` encontrado sob `memory/requisitos/**`:
  *   1. Schema mínimo: version/tela/prototipo_sha/gerado_em/partes[]; cada parte tem
