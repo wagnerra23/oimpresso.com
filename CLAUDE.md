@@ -52,7 +52,7 @@ Tier de cada skill em [memory/sprints/s3-constituicao/03-skills-audit.md](memory
 
 ## Constituição v2 (7 camadas + 8 princípios duros)
 
-Documento mãe: **[ADR 0094](memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)**.
+Documento mãe: **[ADR 0094](memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md)**. **Estado REAL das camadas** (retrato datado e verificado — o diagrama da 0094 congelou em 2026-05): **[ADR 0330](memory/decisions/0330-mapa-dos-niveis-estado-real-2026-07-constituicao.md)**.
 
 Princípios duros:
 1. Context as a product · 2. Tiered cost · 3. Charter > Spec · 4. Loop fechado por métrica · 5. SoC brutal · 6. **Multi-tenant Tier 0 IRREVOGÁVEL** · 7. Transparência · 8. Confiabilidade com fallback
