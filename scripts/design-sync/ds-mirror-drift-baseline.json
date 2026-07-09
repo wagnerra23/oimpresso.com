@@ -1,0 +1,6 @@
+{
+  "totalDiverge": 0,
+  "perScope": {},
+  "note": "Piso de drift git↔espelho (nº de tokens que divergem entre _generated-*.css do git e o snapshot do espelho). Semeado em 0 com o snapshot AINDA NÃO presente — o sentinela roda advisory ('snapshot ausente') até o primeiro re-espelho. Seed/refresh via .claude/runbooks/design-sync-push.md passo 5: escreve scripts/design-sync/mirror-snapshot/colors_and_type.css e roda `node scripts/governance/ds-mirror-drift.mjs --update-baseline`. Nunca SUBA o piso sem decisão consciente; só baixe (re-espelho fecha drift).",
+  "seededBy": "P3 ds-mirror-drift (advisory) — ADR de transição a ser numerada por [W]"
+}
