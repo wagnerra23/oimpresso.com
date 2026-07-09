@@ -43,6 +43,13 @@ O estado real das 7 camadas em **2026-07-09** (cada número verificado no repo n
 
 **Camada transversal que a 0094 não previa e hoje É a espinha do enforcement** (nasceu depois, ADRs 0264/0271/0314/0327): **89 workflows CI**, **24 required checks** (política "required = só Tier-0" da 0314 + exceções conscientes tipo 0327), `gate-selftest` required ("quem vigia os vigias": toda catraca prova bite/release contra fixtures), **~55 hooks** PreToolUse (43 `.ps1` + 12 `.mjs` — dívida cross-plataforma, US-GOV-052/P24) e sentinelas de staleness (briefing-code, visual-comparison, adr-proposto-parado, knowledge-drift ghost+tombstone).
 
+**Mecanismos que EXISTEM mas eram inacháveis** (desafio Wagner 2026-07-09 "acho que já estão feitas, não está no guia central" — confirmado em 7 de 9 técnicas auditadas; indexados aqui pra parar de serem redescobertos):
+- **`visual-regression` é LEI com pixel-diff L7 ENFORCING desde #3277** + L2 charter-states enforcing (2026-07-06) + Tier0RenderIsolation — fidelidade visual MORDE no PR (o que não roda é o comparador semântico `style-fingerprint --compare`, proto×prod);
+- **`outcome-metrics.mjs`** ("medidor de aceitação", Onda O1, advisory) — retrabalho/revert/first-pass REAL do loop Cowork→code via SYNC_LOG (proxy declarado) — o embrião dos evals de outcome;
+- **`charter-live-signal.mjs`** (check "charter status:live precisa de sinal de prod") — `live` exige evidência de produção (prod-flags.json por business OU `smoke:` datado), não palavra;
+- **4 blockers Tier-0 já cross-platform** (`.mjs`): block-figma, block-brl-values, block-ancora-no-olho, block-design-sync (faltam 5: automem, mwart, test-fora-ct100, claim-evidence, smoke — US-GOV-052/P24);
+- **programa SDD** = o pipeline de spec vivo (skills `sdd-fase-*`, âncora `**Implementado em:**` ADR 0273, doneness-lint 0302, anchor-covers, scorecard 10 métricas; 14 SPECs já com Definition-of-Done verificável).
+
 **Regra de manutenção deste mapa:** este ADR é um **retrato datado**. Quando o drift material acumular, cria-se a sucessora (`0330 → superseded_by`), nunca se edita este. Quem detecta o drift não é memória: são as sentinelas acima + a auditoria de guias (repetível).
 
 ## Justificativa
