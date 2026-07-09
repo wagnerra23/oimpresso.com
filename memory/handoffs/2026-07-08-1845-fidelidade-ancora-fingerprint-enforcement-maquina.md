@@ -2,7 +2,7 @@
 date: "2026-07-08"
 time: "18:45 BRT"
 slug: fidelidade-ancora-fingerprint-enforcement-maquina
-tldr: "Fidelidade de âncora do fingerprint: do estado-da-arte às Ondas 1/2/3a e à aplicação no Financeiro. Lição-mãe: comparei contra o shell (âncora podre reincidente 07-06→07-08) — o erro mora no browser, superfície não-hookável. Solução: enforcement na MÁQUINA (trava fail-closed no --compare, ADR 0326) + anchor-content-check REQUIRED com flip 23→24 (ADR 0327). Revisão adversarial (7 furos) + RUNBOOK + fixes F4/F5/F7; o teste-do-processo pegou 2 bugs reais. Records conflitantes revogados. ~13 PRs."
+tldr: "Fidelidade de âncora do fingerprint (SOTA + Ondas 1/2/3a + Financeiro). Licao-mae: comparei contra o shell = ancora podre reincidente (07-06 e 07-08); o erro mora no browser, nao-hookavel. Solucao: enforcement na MAQUINA - trava fail-closed no --compare (ADR 0326) + anchor-content-check REQUIRED, flip 23 para 24 (ADR 0327). Revisao adversarial (7 furos) + RUNBOOK + fixes. ~13 PRs."
 prs: [3957, 3959, 3961, 3962, 3967, 3968, 3970, 3971, 3972, 3973, 3975, 3977, 3978]
 decided_by: [W]
 related_adrs: [0326-trava-ancora-compare-fingerprint, 0327-anchor-content-required-emenda-0314]
