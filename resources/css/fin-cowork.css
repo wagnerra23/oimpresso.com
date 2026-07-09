@@ -260,14 +260,19 @@
   align-items: center;
   gap: 10px;
   /* Follow-up ADR UI-0022 (superfície atrás do filtro): a barra era transparente
-     e achatava no canvas do cockpit (dark --bg 0.26). Preenche com o MESMO token
-     de painel da tabela/KPIs — var(--surface) == --color-card == oklch(0.30 0.008 240)
-     dark / #fff light — dando o degrau +0.04 acima do canvas (linguagem de superfície
-     unificada). Mantém o formato de banda full-bleed do protótipo (padding/bordas
-     como estavam); só a elevação muda. */
+     e achatava no canvas do cockpit (dark --bg 0.26). Preenche com var(--color-card)
+     — o MESMO token que a tabela (<Card>) e os KPIs (bg-card) já usam
+     (oklch(0.30 0.008 240) dark / #fff light) — degrau +0.04 acima do canvas,
+     superfície unificada. Formato de banda full-bleed do protótipo (padding/bordas
+     inalterados); só a elevação muda.
+     POR QUE --color-card e NÃO var(--surface): --color-card é keyed na classe `.dark`
+     (setada no SSR via ui_theme), então flipa em lockstep com a tabela/KPIs. O
+     var(--surface) é keyed em `.cockpit[data-theme=dark]` (só client-side, useTheme)
+     e pode dessincronizar da classe `.dark` (o "precisa F5" do useTheme) → barra
+     BRANCA no escuro. Provado no smoke VRT dark: --surface renderizou #fff. */
   padding: 8px 0;
   flex-wrap: wrap;
-  background: var(--surface);
+  background: var(--color-card);
   border-top: 1px solid var(--fin-line);
   border-bottom: 1px solid var(--fin-line);
   margin: 6px 0 4px;
