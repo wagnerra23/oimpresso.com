@@ -33,8 +33,8 @@ export function slug(s) {
   return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
     .replace(/\([^)]*\)/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 }
-const fmVal = (fm, key) => { const m = fm.match(new RegExp('^' + key + ':\\s*(.+)$', 'im')); return m ? m[1].trim() : null; };
-function frontmatterBlock(md) { const m = md.match(/^---\r?\n([\s\S]*?)\r?\n---/); return m ? m[1] : ''; }
+export const fmVal = (fm, key) => { const m = fm.match(new RegExp('^' + key + ':\\s*(.+)$', 'im')); return m ? m[1].trim() : null; };
+export function frontmatterBlock(md) { const m = md.match(/^---\r?\n([\s\S]*?)\r?\n---/); return m ? m[1] : ''; }
 
 // 1º path de alvo (resources/js/Pages/... do repo, ou fixtures no selftest) → DIR
 function pagesPath(text) {
@@ -84,7 +84,8 @@ export function parsePartes(md) {
   return rows.length ? rows : null;
 }
 
-function resolveGap(arg) {
+// resolve <gap.md real|Mod/Tela> → path do gap.md (best-effort, fonte única — gerar-map.mjs reusa).
+export function resolveGap(arg) {
   if (existsSync(arg)) return arg;
   // Mod/Tela → memory/requisitos/<Mod>/<tela>-gap.md (best-effort)
   const hits = [];

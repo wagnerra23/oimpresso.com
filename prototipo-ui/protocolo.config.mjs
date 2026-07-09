@@ -80,6 +80,7 @@ export const FASES = [
       'node prototipo-ui/ancora.mjs <Mod/Tela>',
       'node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela <Mod/Tela>',
       'node prototipo-ui/design-diff.mjs --compare prod.json design.json --check',
+      'node prototipo-ui/gerar-map.mjs <gap.md>   # esqueleto do <tela>.map.json (ponte design↔código persistente)',
     ], selftest: 'node prototipo-ui/style-fingerprint.mjs --selftest' },
   { fase: '3/4', nome: 'Registrar + aplicar região', comandos: [
       'node prototipo-ui/gerar-contrato.mjs <gap.md>',
@@ -89,6 +90,7 @@ export const FASES = [
   { fase: '4-preflight', nome: 'Gates antes do PR', comandos: PREFLIGHT_GATES },
   { fase: '5', nome: 'Fechar o loop', comandos: [
       'node scripts/governance/anchor-lint.mjs --check memory/requisitos/<Mod>/SPEC.md',
+      'node scripts/governance/design-code-map-check.mjs --check --strict   # % telas mapeadas + invalida map.json com sha stale',
     ], selftest: 'node prototipo-ui/integrity-check.mjs' },
 ];
 
