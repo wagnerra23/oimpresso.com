@@ -131,6 +131,7 @@ Por tela aprovada:
 ### FASE 5 — Fechar o loop (barato)
 - `SYNC_LOG.md` append (o que foi aplicado, sha).
 - Charter: `status`/`version` atualizados.
+- **`<tela>-visual-comparison.md`: novo round + bumpar `last_updated`** — o comparativo é o insumo da Fase 1; se a tela mudou e ele não, envelhece calado. A sentinela `scripts/governance/visual-comparison-staleness.mjs` (advisory, eixo irmão do `briefing-code-staleness`) alerta quando o `.tsx` do `inertia_target` fica à frente do `last_updated`. **Não** esquecer este artefato ao fechar (era o único órfão de frescor do loop — Wagner 2026-07-09).
 - `node scripts/governance/anchor-lint.mjs --check memory/requisitos/<Mod>/SPEC.md` → fidelidade spec↔código (0 dead/zombie/teste-fantasma).
 - `brief-update` do módulo.
 
