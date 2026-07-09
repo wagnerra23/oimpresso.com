@@ -14,7 +14,7 @@ quarter: 2026-Q3
 tags: [governanca, constituicao, camadas, niveis, mapa, status]
 supersedes: []
 superseded_by: []
-related: [0094-constituicao-v2-7-camadas-8-principios, 0225-skills-tier-a-recalibracao-claude-4.8, 0257-adr-status-lifecycle-kind-modelo-canonico, 0264-governanca-executavel-trio-dominio-e2e, 0329-doutrina-documentacao-de-processo-executavel]
+related: [0094-constituicao-v2-7-camadas-8-principios, 0257-adr-status-lifecycle-kind-modelo-canonico, 0264-governanca-executavel-trio-dominio-e2e, 0329-doutrina-documentacao-de-processo-executavel]
 pii: false
 review_triggers: []
 ---
