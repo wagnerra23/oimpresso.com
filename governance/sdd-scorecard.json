@@ -15,18 +15,18 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 84.8,
+      "value": 84.5,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 84.8,
+        "coverage_pct": 84.5,
         "specs_total": 59,
-        "us_total": 956,
-        "anchor_coverage_pct": 84.8,
+        "us_total": 960,
+        "anchor_coverage_pct": 84.5,
         "by_state": {
-          "sem_campo": 145,
+          "sem_campo": 149,
           "placeholder": 0,
           "pendente": 370,
           "parcial": 118,
@@ -206,7 +206,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 5,
+      "value": 4,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -215,7 +215,7 @@
         "portas": 76,
         "carimbadas": 11,
         "sem_carimbo": 65,
-        "stale": 5,
+        "stale": 4,
         "oldest_distilled_at": "2026-07-01"
       },
       "stream": "MEM"
