@@ -91,6 +91,36 @@ writeFileSync(join(reqDir, 'index.map.json'), JSON.stringify({ version: '1', tel
 const badSchema = runCheck(['--check', '--strict']);
 check('schema sem partes[] → strict exit 1', badSchema.status === 1);
 
+// ── ÂNCORA ESTÁVEL (PR-B): vivo.ancora + data-contract="<id>" no .tsx ─────────
+const shaAtual = sha(root);
+const parteBase = (extraVivo = {}) => ({
+  id: 'header',
+  prototipo: { arquivo: 'prototipo-ui/cowork/fixture-page.jsx', linhas: '1-10' },
+  vivo: { arquivo: 'resources/js/Pages/Fixture/Index.tsx', linhas: '1-5', ...extraVivo },
+  status: 'paridade', acao: 'no-op',
+});
+
+// 7. declarada + presente → estável, strict exit 0
+writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return <div data-contract="header">x</div> }\n');
+writeMap({ prototipo_sha: shaAtual, partes: [parteBase({ ancora: true })] });
+const anchored = runCheck(['--check', '--strict']);
+check('ancora:true + data-contract presente → strict exit 0', anchored.status === 0);
+check('resumo conta 1 âncora estável', /âncora estável \(data-contract no vivo\): 1\/1/.test(anchored.stdout));
+
+// 8. declarada + AUSENTE (refactor removeu) → DRIFT, strict exit 1
+writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return <div>refatorado sem ancora</div> }\n');
+const anchorGone = runCheck(['--check', '--strict']);
+check('ancora:true + data-contract SUMIU → strict exit 1 (rot silencioso vira drift)', anchorGone.status === 1 && /DECLARADA/.test(anchorGone.stdout));
+
+// 9. NÃO-declarada: nunca pune (linha-only), e se a âncora JÁ existe no .tsx → nudge WARN
+writeMap({ prototipo_sha: shaAtual, partes: [parteBase()] });
+const linhaOnly = runCheck(['--check', '--strict']);
+check('sem vivo.ancora (linha-only) → strict exit 0 (backfill não vira punição)', linhaOnly.status === 0);
+check('resumo reporta linha-only frágil', /1 linha-only/.test(linhaOnly.stdout));
+writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return <div data-contract="header">x</div> }\n');
+const nudge = runCheck(['--check', '--strict']);
+check('âncora presente mas não-declarada → WARN nudge (declare e trave), exit 0', nudge.status === 0 && /não declara vivo\.ancora/.test(nudge.stdout));
+
 rmSync(root, { recursive: true, force: true });
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — design-code-map-check morde (âncora quebrada, sha stale, schema) e libera certo (íntegro, TODO pendente).');
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — design-code-map-check morde (âncora quebrada, sha stale, schema, data-contract declarado que sumiu) e libera certo (íntegro, TODO pendente, linha-only).');
 process.exit(fails ? 1 : 0);
