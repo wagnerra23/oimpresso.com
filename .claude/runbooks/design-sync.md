@@ -1,5 +1,10 @@
 # RUNBOOK: Design-to-Code Synchronization
 
+> **⚠️ Este runbook é DESIGN → CÓDIGO** (mockup/canvas do claude.ai/design → Pages React `resources/js/Pages/…`). Para sincronizar **TOKENS** do Design System (cor/tipo/espaço) entre git e espelho, use os companheiros:
+> - [`design-sync-pull.md`](design-sync-pull.md) — espelho (claude.ai/design) → tokens git (autoria + triagem).
+> - [`design-sync-push.md`](design-sync-push.md) — tokens git → espelho (re-espelho, incremental).
+> - Sentinela de drift: [`ds-mirror-drift`](../../scripts/governance/ds-mirror-drift.mjs). Governança do loop: proposta [`2026-07-08-profissionalizar-ds-sync-git-espelho.md`](../../memory/decisions/proposals/2026-07-08-profissionalizar-ds-sync-git-espelho.md) (+ ADR de transição a ser numerada por [W]).
+
 > **Quando usar:** Wagner (ou outro designer) trabalha mockup no **Claude Design canvas** (claude.ai/design), recebe um zip/screenshot/HTML, e precisa portar pro repo (`resources/js/Pages/...`) preservando intenção visual.
 >
 > **Quem orquestra:** Claude Code (sessão desktop). Esse runbook é o roteiro passo-a-passo.
