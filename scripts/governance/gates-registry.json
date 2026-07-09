@@ -43,6 +43,12 @@
       "terminal": "automacao",
       "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required."
     },
+    "block-brl-values-selftest.yml": {
+      "nome": "block-brl-values selftest (meta-teste do hook Tier-0 dinheiro block-brl-values-in-memory.mjs — bite/release do detector via --selftest + registration test do settings.json; advisory, não bloqueia merge)",
+      "classe": "meta",
+      "terminal": "automacao",
+      "anchor": "sinal de custo: a regra Tier-0 'NUNCA commitar valores BRL' (proibicoes.md, Wagner 2026-06-08) estava defendida só por prosa — vazar valor custou redact de 5.033 commits via git filter-repo + force-push em main; a própria proibicoes.md registrava 'considerar hook block-brl-values-in-memory' como follow-up nunca construído (conserto P26 revisão-memória-processo). O ENFORCEMENT é o hook PreToolUse LOCAL (bloqueia Write/Edit em memory/**/*.md no runtime do agente); este workflow só protege o detector de quebrar calado + prova o registro no settings.json. NUNCA required — virar required-check exige reabrir a ADR 0314 (append-only), não merge no calado; por isso terminal=automacao (fora da esteira de promoção, sem promote_by)."
+    },
     "arquivos-pest.yml": {
       "nome": "Arquivos · Pest (MySQL) — audit-log/download/enum rodam no MySQL real (skip no sqlite = verde mente); catraca allowlist verde",
       "classe": "gate",
