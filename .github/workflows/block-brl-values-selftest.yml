@@ -1,0 +1,51 @@
+name: block-brl-values selftest (hook Tier 0 dinheiro — advisory)
+
+# Meta-teste do hook block-brl-values-in-memory.mjs (proibicoes.md §"NUNCA commitar
+# valores BRL"). O ENFORCEMENT real é LOCAL — o hook PreToolUse bloqueia o Write/Edit no
+# momento em que o valor tentaria entrar em memory/**/*.md. Este workflow NÃO é esse
+# enforcement: ele só protege o DETECTOR de quebrar calado (bite/release determinístico) +
+# prova que o hook segue REGISTRADO em .claude/settings.json (criar o arquivo não ativa nada).
+#
+# CLASSE: automacao/self-test — ADVISORY. NÃO vira required-check no CI. Por quê:
+#   · ADR 0314 (poda gates onda 2): required = só Tier 0 no sentido de CI-gate de merge
+#     (dinheiro/PII/multi-tenant/fiscal PROVADO por teste que morde no diff). Este hook JÁ é a
+#     defesa Tier 0 dinheiro, mas ela mora no runtime LOCAL do agente, não num check de merge.
+#   · Promover ESTE workflow a required exige REABRIR a 0314 (append-only: nova emenda +
+#     janela + flip Wagner), NÃO merge no calado. Enquanto isso, roda advisory (X vermelho
+#     visível no PR se o detector quebrar, sem bloquear merge).
+#   · O corpo do PR (que sai via `gh`, Bash) NÃO é coberto pelo hook local — cobrir isso é
+#     trabalho de um brl-scan.mjs no pre-push (FOLLOW-UP registrado, fora deste PR).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.claude/hooks/block-brl-values-in-memory.mjs'
+      - '.claude/settings.json'
+      - 'scripts/governance/settings-brl-values-registration.test.mjs'
+      - '.github/workflows/block-brl-values-selftest.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: block-brl-values-selftest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  selftest:
+    name: block-brl-values — detector + registro (self-test, não bloqueia merge)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # 1. LÓGICA do detector — bite/release hermético (ancorado no contrato proibicoes.md,
+      #    nunca no output da própria implementação). Vermelho aqui = detector quebrado.
+      - name: self-test da lógica (bite/release · determinístico)
+        run: node .claude/hooks/block-brl-values-in-memory.mjs --selftest
+      # 2. REGISTRO — prova que o hook segue ligado no settings.json (Write|Edit|MultiEdit).
+      - name: registro em settings.json (Write/Edit/MultiEdit)
+        run: node scripts/governance/settings-brl-values-registration.test.mjs
