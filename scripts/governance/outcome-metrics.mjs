@@ -3,6 +3,12 @@
 /**
  * outcome-metrics.mjs — MEDIDOR DE ACEITAÇÃO do transporte Cowork→code (Onda O1).
  *
+ * ⚠️ DECONFLITO (NÃO confundir com agent-pr-outcomes.mjs): ESTE mede retrabalho do
+ * LOOP DE DESIGN (uma TELA foi re-mexida depois de entregue?), fonte SYNC_LOG + git
+ * das Pages/*.tsx. O irmão agent-pr-outcomes.mjs mede DORA dos PRs do AGENTE
+ * (change-failure/accept/time-to-merge via gh) — velocidade/falha do transporte
+ * PR→merge, não fidelidade de tela. Nomes próximos, escopos distintos (1 fato = 1 lugar).
+ *
  * Objetivo: substituir a "%" estimada do Wagner por NÚMERO REAL de maturidade do
  * loop de design. Mede retrabalho/revert/first-pass cruzando DUAS fontes honestas:
  *
