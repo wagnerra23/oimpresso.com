@@ -156,7 +156,9 @@ jobs:
       # protocolo aplicar-prototipo). O fixture hermetico (prototipo-ui/fixtures/detectar-telas/)
       # prova: mockup sem charter resolvido por ALIAS (P0 lock) · orfao detectado · diff
       # diffavel correto. O modo --staging (bundle->repo) so roda local (bundle vive fora do
-      # repo). Advisory de nascenca (ADR 0271/0275). TODO: integrar good/bad em gate-selftest.mjs.
+      # repo). Advisory de nascenca (ADR 0271/0275). Já integrado ao gate-selftest.mjs (id
+      # 'detectar-telas', good/bad em tests/governance-fixtures/) — este step aqui é a redundância
+      # de defesa dentro do gate de design; a catraca required vive no gate-selftest.
       - name: detectar-telas selftest (gate de import · Fase 0/0.5)
         # if: always() — roda mesmo quando um step hard-fail antes (ex: cowork-ssot-guard com
         # drift pre-existente prototipos/perfil) skiparia os steps seguintes. O selftest e'

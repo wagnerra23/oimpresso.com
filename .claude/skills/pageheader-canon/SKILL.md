@@ -388,7 +388,7 @@ Pra CADA botão do header pre-pattern, decidir destino:
 
 ### 5.1 Pré-requisito: deploy completo
 
-Aguardar ~90-120s após merge pra Vite/Hostinger rebuildar assets. Sinal de deploy completo: cor primary muda de magenta default pra hue do grupo.
+Aguardar ~90-120s após merge pra Vite/Hostinger rebuildar assets. Sinal de deploy completo: cor primary muda de magenta default pra roxo 295 universal (ADR 0190).
 
 ### 5.2 Script JS canon pra validação (rodar no browser MCP)
 
@@ -396,7 +396,7 @@ Aguardar ~90-120s após merge pra Vite/Hostinger rebuildar assets. Sinal de depl
 JSON.stringify({
   url: location.pathname,
   module: '<MODULO_AQUI>',
-  expected_hue: 145, // 145 financas | 60 vender | 350 operar | 295 pessoas | 200 sistema | 220 ia | 30 atendimento | 270 equipe
+  expected_hue: 295, // primary interno é SEMPRE roxo 295 universal (ADR 0190). O hue-per-grupo (145 financas | 60 vender | 350 operar | 295 pessoas | 200 sistema | 220 ia | 30 atendimento | 270 equipe) vale SÓ no sidebar, não aqui.
 
   // 1. Tabs ARIA renderizam
   tabs: [...document.querySelectorAll('[role="tab"]')].map(t => ({
@@ -411,15 +411,14 @@ JSON.stringify({
   labels_short: [...document.querySelectorAll('[role="tab"]')]
     .every(t => t.textContent.trim().split(' ').length <= 2),
 
-  // 4. Primary tem hue do grupo (NÃO magenta canon UPOS default)
+  // 4. Primary é roxo 295 universal (ADR 0190) — NÃO o hue-do-grupo, NÃO magenta default.
+  //    O hue-per-grupo (145 financas etc) vale SÓ no sidebar, nunca no primary interno das telas.
   primary: [...document.querySelectorAll('.os-btn.primary')].map(b => {
     const bg = getComputedStyle(b).backgroundColor;
     return {
       label: b.textContent.trim().slice(0,30),
       bg,
-      hue_correct: bg.includes('145') || bg.includes('60') || bg.includes('350')
-                 || bg.includes('295') || bg.includes('200') || bg.includes('220')
-                 || bg.includes('30 ') || bg.includes('270'),
+      hue_correct: bg.includes('295'), // ADR 0190: primary SEMPRE oklch(0.55 0.15 295) — verde-145/qualquer hue-de-grupo REPROVA
       not_magenta: !bg.includes('0.58 0.12 330'),
     };
   }),
