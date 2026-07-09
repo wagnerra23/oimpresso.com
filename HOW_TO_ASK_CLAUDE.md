@@ -242,7 +242,7 @@ Wagner pode formalizar isso como Skill `shared-code-touch` que ativa quando o pa
 **Padrão correto:**
 - Hook `PreToolUse` em `Bash` que escaneia `git diff --staged` por regex CPF/CNPJ/email/cartão antes de `git commit`. Bloqueia se achar.
 - Hook em `Write/Edit` que avisa se o conteúdo tem `\d{3}\.\d{3}\.\d{3}-\d{2}`.
-- Nas instruções (CLAUDE.md): "PII real NUNCA em commit. Substitui por `[REDACTED]` ou fixture fake. Se precisar de CPF de exemplo, use `123.456.789-09`."
+- Nas instruções (CLAUDE.md): "PII real NUNCA em commit. Substitui por `[REDACTED]` ou fixture fake. Se precisar de exemplo, use um placeholder GENÉRICO ('CPF do cliente') — NUNCA um número formatado, nem fake: o próprio PII scan do CI bloqueia o padrão `NNN.NNN.NNN-NN` em qualquer arquivo tocado (este guia já tropeçou nisso em 2026-07-09)."
 
 Pra prompts: nunca cole log de prod cru. Use `sed` antes de colar:
 ```bash
