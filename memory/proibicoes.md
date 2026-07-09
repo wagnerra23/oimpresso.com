@@ -119,7 +119,7 @@
 
 ## Ambiente
 
-- ⛔ **Nunca instalar `laravel/mcp` ou `laravel/octane` no Hostinger** (nem em worktree, nem em `/tmp`). Esses pacotes só vivem em CT 100 Proxmox e local. Hostinger é shared hosting; daemons lá violam contrato ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md))
+- ⛔ **Nunca EXPOR/RODAR `laravel/mcp` ou `laravel/octane` no Hostinger.** Nota de precisão (auditoria 2026-07-09): os pacotes estão no `composer.json` raiz (linhas ~26-27) e o deploy os instala no vendor do Hostinger — isso é inevitável num composer único e NÃO é a violação. A violação é RUNTIME: daemon octane rodando, tool MCP exposta, `Mcp::web()` sem flag. Salvaguarda real = `MCP_TOOLS_EXPOSED=false` no Hostinger + zero daemon (bullet abaixo). Hostinger é shared hosting; daemons lá violam contrato ([ADR 0062](decisions/0062-separacao-runtime-hostinger-ct100.md))
 - ⛔ **Nunca expor rota `Mcp::web()` (laravel/mcp) sem condicional `if (config('mcp.tools_exposed'))`.** MCP server tools são exposed APENAS no CT 100 Proxmox (`mcp.oimpresso.com`); Hostinger NÃO suporta MCP (lento + crasheia — Wagner regra 2026-05-07). Schema + service backend (cron `brief:generate` etc) podem ficar em Hostinger, mas tool MCP exposed nunca. Default `MCP_TOOLS_EXPOSED=false`. CT 100 .env tem `MCP_TOOLS_EXPOSED=true`
 - ⛔ **Nunca rodar Pest da suite Jana/MCP no Hostinger** — usar CT 100 (via Tailscale). **NÃO na máquina local** (ver regra "Testes/PHPStan SEMPRE no CT 100" no fim desta seção)
 - ⛔ **Nunca rodar `composer update` (sem `--lock`) em servidor de produção** sem PR aprovado
@@ -242,7 +242,7 @@
 
 ## Claim sem evidência (Tier 0 — 6ª camada Governance, sessão 2026-05-17)
 
-> Catalogado após 3 PRs em cascata em 17/mai/2026 ([#1024](https://github.com/wagnerra23/oimpresso.com/pull/1024) → [#1026](https://github.com/wagnerra23/oimpresso.com/pull/1026) → [#1028](https://github.com/wagnerra23/oimpresso.com/pull/1028)) onde Claude declarou "funcionando" sem `curl -sv` em prod. Pesquisa estado-da-arte 2025-2026 em [memory/sessions/2026-05-17-arte-evidencia-llm-agents.md](sessions/2026-05-17-arte-evidencia-llm-agents.md) identificou pattern canônico Anthropic Mar 2026 (Default-FAIL + Evidence Opening + Sprint Contract upfront).
+> Catalogado após 3 PRs em cascata em 17/mai/2026 ([#1024](https://github.com/wagnerra23/oimpresso.com/pull/1024) → [#1026](https://github.com/wagnerra23/oimpresso.com/pull/1026) → [#1028](https://github.com/wagnerra23/oimpresso.com/pull/1028)) onde Claude declarou "funcionando" sem `curl -sv` em prod. Pesquisa estado-da-arte 2025-2026 (session log purgado na auditoria de memória 2026-06-07 — o conhecimento sobrevive neste parágrafo) identificou pattern canônico Anthropic Mar 2026 (Default-FAIL + Evidence Opening + Sprint Contract upfront).
 
 - ⛔ **"✅ funcionando"** / **"smoke OK"** / **"deploy ok"** / **"está rodando"** SEM cole literal de `curl -sv URL 2>&1 | grep '^< HTTP'` mostrando status code esperado — banido. Status code de cada hop literal, não consequência observável compatível (ex: `redirects=1, final=/login` não distingue 301 do 302).
 - ⛔ **`Request::create()` em Pest** como prova de comportamento prod em middleware que olha `path()` — em prod o Symfony strip `SCRIPT_NAME` (`/public/index.php`), test com `Request::create()` não tem SCRIPT_NAME. Use `getRequestUri()` em código, e teste real via `curl -sv` pós-deploy.

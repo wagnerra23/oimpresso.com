@@ -24,7 +24,7 @@
 ## MCP server canônico ([ADR 0053](decisions/0053-mcp-server-governanca-como-produto.md))
 
 - `mcp.oimpresso.com` (CT 100/FrankenPHP)
-- 352+ docs sincronizados de `memory/*` via webhook GitHub
+- Docs de `memory/*` sincronizados via webhook GitHub (contagem viva na UI `/copiloto/admin/memoria` — na casa dos milhares em 2026-07; não fixar número aqui, ele stale)
 - Tabela `mcp_memory_documents` com índice FULLTEXT + Meilisearch hybrid embedder
 - Token gerenciado em `/copiloto/admin/team`
 

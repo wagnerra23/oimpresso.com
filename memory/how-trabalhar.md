@@ -12,14 +12,13 @@
 | "Backlog do módulo X" | `tasks-list module:X` |
 | "Detalhe da task COPI-123" | `tasks-detail task_id:COPI-123` |
 | "Tasks novas sem owner/prio" | `triage` |
-| "Velocity / burndown" | `dashboard-velocity` / `dashboard-burndown` |
 | "Qual ADR fala sobre X?" | `decisions-search query:"X"` (default só ativas) |
 | "Ler ADR completa" | `decisions-fetch slug:"0094-constituicao-v2-7-camadas-8-principios"` |
 | "Últimas sessões" | `sessions-recent limit:5` |
 | "Fato do business sobre Y" | `memoria-search query:"Y"` |
 | "Quanto eu consumi?" | `claude-code-usage-self` |
 
-UI humana: `/copiloto/admin/memoria` lista 352+ docs com filtros + preview markdown render + git_sha→GitHub.
+UI humana: `/copiloto/admin/memoria` lista os docs sincronizados (contagem viva lá) com filtros + preview markdown render + git_sha→GitHub.
 
 ## Fallback: filesystem (se sem MCP conectado)
 
