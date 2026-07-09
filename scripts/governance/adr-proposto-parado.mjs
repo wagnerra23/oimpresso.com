@@ -33,7 +33,9 @@
  *   node scripts/governance/adr-proposto-parado.mjs --selftest  (bite/release hermético — CI)
  *   OIMPRESSO_ADR_PROPOSTO_DIAS=7 node …                        (limiar tunável do check C)
  *
- * Refs: ADR 0329 (doutrina — Propriedade 5 "auto-fresca" aplicada à própria governança) ·
+ * Refs: doutrina de documentação de processo (Propriedade 5 "auto-fresca" aplicada à própria
+ *       governança — nº do ADR no handoff 2026-07-09-1520; não citado aqui: Check L exige que
+ *       código-que-roda só cite ADR aceito, e a doutrina nasce proposta) ·
  *       ADR 0257 (lifecycle) · ADR 0314 (required só Tier-0) · briefing-code-staleness.mjs e
  *       visual-comparison-staleness.mjs (a família de reporters onde este se pluga).
  */
@@ -156,7 +158,7 @@ function selftest() {
   eq('C proposto 17d top-level', classify({ emProposals: false, numerado: true, status: 'proposto', kind: 'decision', decidedAt: '2026-06-22', hojeIso: H, dias: 14 }), { check: 'C', idadeDias: 17 });
   // LIBERA: feature-wish é dormência intencional; proposto recente; aceito no top-level; kind ausente recente.
   eq('libera feature-wish velho', classify({ emProposals: false, numerado: true, status: 'proposto', kind: 'feature-wish', decidedAt: '2026-04-24', hojeIso: H }).check, null);
-  eq('libera proposto recente (0329 hoje)', classify({ emProposals: false, numerado: true, status: 'proposto', kind: 'meta', decidedAt: '2026-07-09', hojeIso: H, dias: 14 }).check, null);
+  eq('libera proposto recente (a doutrina, hoje)', classify({ emProposals: false, numerado: true, status: 'proposto', kind: 'meta', decidedAt: '2026-07-09', hojeIso: H, dias: 14 }).check, null);
   eq('libera aceito top-level', classify({ emProposals: false, numerado: true, status: 'aceito', kind: 'decision', decidedAt: '2026-05-01', hojeIso: H }).check, null);
   eq('libera sem decided_at (cobertura≠pendência)', classify({ emProposals: false, numerado: true, status: 'proposto', kind: 'decision', decidedAt: null, hojeIso: H }).check, null);
   // lerCampos: extrai status/kind/decided_at com e sem aspas — E corta comentário inline (caso real 0125).
@@ -164,7 +166,7 @@ function selftest() {
   eq('lerCampos comentário inline (0125)', lerCampos('---\nkind: feature-wish # era lifecycle feature_wish\n---').kind, 'feature-wish');
 
   if (fails.length) { console.error('SELFTEST FALHOU:\n - ' + fails.join('\n - ')); process.exit(1); }
-  console.log('✓ adr-proposto-parado selftest OK — A/B/C mordem e liberam certo (11 casos, ancorados nos ADRs reais 0320/0314/0299/0329/0125).');
+  console.log('✓ adr-proposto-parado selftest OK — A/B/C mordem e liberam certo (11 casos, ancorados nos casos reais do corpus (0320/0314/0125 e a doutrina)).');
   process.exit(0);
 }
 
