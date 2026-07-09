@@ -35,13 +35,121 @@
     "Auth": { "class": "C", "reason": "citacao generica de framework, nunca foi Modules/Auth aqui" },
     "Officeimpresso1": { "class": "C", "reason": "referencia HISTORICA correta — dir movido pra backup fora do repo em 2026-04-23, codigo restaurado em Modules/Officeimpresso via ADR 0017 (memory/requisitos/Officeimpresso1.md:17); nao tocar" }
   },
-  "_path_tombstones_doc": "Tombstones de PATH concreto (workflow/script DELETADO) consumidos pelo detector de path-fantasma do knowledge-drift.mjs (--check-paths + secao advisory do batimento + --selftest). Cada entrada: {nome=path concreto, deletado_por_adr, substituto, evidencia}. Um doc/ADR pode citar um path morto SEM virar 'phantom' sse houver tombstone aqui. REGRA (P16): so entra path com evidencia dura (commit que deletou + ADR). NAO detecta 'nome-de-gate' fuzzy em prosa (falso-positivo). NAO edita ADR aceita (append-only) — o tombstone aterra o DETECTOR; a injecao no decisions-fetch (leitura humana) e PR separado (follow-up).",
+  "_path_tombstones_doc": "Tombstones de PATH concreto (workflow/script morto) consumidos pelo detector de path-fantasma do knowledge-drift.mjs (--check-paths + secao advisory do batimento + --selftest). Cada entrada: {nome=path concreto, deletado_por_adr, substituto, evidencia}. Um doc/ADR pode citar um path morto SEM virar 'phantom' sse houver tombstone aqui. REGRA (P16): so entra path com EVIDENCIA DURA verificada no repo — commit que deletou/moveu (campo evidencia) + ADR quando a decisao veio de ADR. `deletado_por_adr` pode ser '' quando a morte NAO foi ADR-driven (dedup, rename/mudanca-de-path, nome!=path): ai a evidencia carrega o commit/fato. Cada `substituto` foi conferido VIVO no disco no momento da curadoria. NAO detecta 'nome-de-gate' fuzzy em prosa (falso-positivo). NAO edita ADR aceita (append-only) — o tombstone aterra o DETECTOR; a injecao no decisions-fetch (leitura humana) e PR separado (follow-up). Residual conhecido: paths citados que NUNCA foram versionados (planejados-nunca-construidos em session/audit historicos) NAO entram aqui sem substituto verificado — ficam advisory ate curadoria per-doc.",
   "path_tombstones": [
     {
       "nome": ".github/workflows/mwart-gate.yml",
       "deletado_por_adr": "0271",
       "substituto": "casos-gate.yml (cobertura de tela, required — ADR 0264) + screen-coverage-gate.yml; enforcement de RUNBOOK segue via hook runtime .claude/hooks/block-mwart-violation.ps1",
       "evidencia": "commit 7be91b3347 (PR #2531, 2026-06-11, 'onda 2 dos gates ADR 0271'): 'Softs superseded deletados: charter-gate.yml + mwart-gate.yml (teatro continue-on-error, cobertura migrou pro casos-gate required ADR 0264)'"
+    },
+    {
+      "nome": ".github/workflows/charter-gate.yml",
+      "deletado_por_adr": "0271",
+      "substituto": "casos-gate.yml (required, ADR 0264) — cobertura de tela migrou pra la",
+      "evidencia": "commit 7be91b3347 (PR #2531, onda 2 ADR 0271): soft superseded deletado junto do mwart-gate"
+    },
+    {
+      "nome": ".github/workflows/pr-ui-judge.yml",
+      "deletado_por_adr": "0271",
+      "substituto": "julgamento manual via skill pr-ui-judge-manual (esteira dormente, kill-switch OFF)",
+      "evidencia": "commit 7be91b3347 (PR #2531, onda 2 ADR 0271): 'pr-ui-judge.yml (dormente, kill-switch OFF — judge segue manual via skill pr-ui-judge-manual)'"
+    },
+    {
+      "nome": ".github/workflows/ragas-gate.yml",
+      "deletado_por_adr": "0271",
+      "substituto": "jana-ragas-gate.yml (o gate real de RAGAS)",
+      "evidencia": "commit 7be91b3347 (PR #2531, onda 2 ADR 0271): 'F6 ragas: deleta ragas-gate.yml (W22 MVP superseded por jana-ragas-gate, nunca exit 1)'. ATENCAO: nome!=path — jana-ragas-gate.yml existe e NAO e fantasma."
+    },
+    {
+      "nome": ".github/workflows/secrets-governance.yml",
+      "deletado_por_adr": "0271",
+      "substituto": "governance-drift.yml (job scheduled: secrets:audit --auto-pr) + governance:audit (SecretsDriftChecker no --diff-only, cobre scan de PR)",
+      "evidencia": "commit 7be91b3347 (PR #2531, onda 2 ADR 0271): 'F3 secrets: porta secrets:audit --auto-pr pro governance-drift.yml + deleta secrets-governance.yml'"
+    },
+    {
+      "nome": ".github/workflows/ui-canon-notify.yml",
+      "deletado_por_adr": "0271",
+      "substituto": "nenhum — webhook UI_NOTIF_WEBHOOK_URL nunca configurado (no-op em todo push)",
+      "evidencia": "commit ac4393ac61 (PR #2527, onda 1 ADR 0271: '6 workflows deletados'); ADR 0271 D-3 lista o DELETE"
+    },
+    {
+      "nome": ".github/workflows/hostinger-final-total-fix.yml",
+      "deletado_por_adr": "0271",
+      "substituto": "nenhum — hotfix one-shot do incidente num_uf (fechado, fix #2279)",
+      "evidencia": "commit ac4393ac61 (PR #2527, onda 1 ADR 0271); ADR 0271 D-3: 'header remover pos-incidente; incidente num_uf fechado'"
+    },
+    {
+      "nome": ".github/workflows/debug-tz-info.yml",
+      "deletado_por_adr": "0271",
+      "substituto": "nenhum — debug one-shot de incidente resolvido",
+      "evidencia": "commit ac4393ac61 (PR #2527, onda 1 ADR 0271); ADR 0271 D-3: 'debug one-shot de incidentes resolvidos'"
+    },
+    {
+      "nome": ".github/workflows/ui-lint.yml",
+      "deletado_por_adr": "0314",
+      "substituto": "ds-gate.yml (fusao de 7 workflows DS/cor num so)",
+      "evidencia": "commit 6910bf9adb (ADR 0314): 'funde 7 workflows DS/cor em ds-gate.yml'"
+    },
+    {
+      "nome": ".github/workflows/design-index-gate.yml",
+      "deletado_por_adr": "0314",
+      "substituto": "ds-gate.yml (fusao de 7 workflows DS/cor num so)",
+      "evidencia": "commit 6910bf9adb (ADR 0314): 'funde 7 workflows DS/cor em ds-gate.yml'"
+    },
+    {
+      "nome": ".github/workflows/css-size-gate.yml",
+      "deletado_por_adr": "0314",
+      "substituto": "ds-gate.yml (fusao de 7 workflows DS/cor num so)",
+      "evidencia": "commit 6910bf9adb (ADR 0314): 'funde 7 workflows DS/cor em ds-gate.yml'"
+    },
+    {
+      "nome": ".github/workflows/memory-schema-gate-extended.yml",
+      "deletado_por_adr": "0314",
+      "substituto": "memory-schema-gate.yml (ABSORVEU os sub-checks: filename + secoes + US-<MOD>-<NNN> + 'Estado MCP')",
+      "evidencia": "commit 6e1c12d0cd (PR #3459, ADR 0314 F2 fusao 1): 'memory-schema-gate.yml ABSORVE o memory-schema-gate-extended.yml; extended DELETADO'"
+    },
+    {
+      "nome": ".github/workflows/design-memory-gates.yml",
+      "deletado_por_adr": "0314",
+      "substituto": "design-memory-gate.yml (fusao design-memory 3->1)",
+      "evidencia": "commit 6e1c12d0cd (PR #3459, ADR 0314 F2 fusao 2): 'funde gates de memoria/schema e design-memory, preservam TODOS os sub-checks'"
+    },
+    {
+      "nome": ".github/workflows/daemon-docker-build.yml",
+      "deletado_por_adr": "0202",
+      "substituto": "nenhum — daemon-node removido (WhatsApp via Baileys CT 100 / Meta Cloud API, ADR 0202)",
+      "evidencia": "commit 666289ac61 (PR #1764): 'cleanup pos-merge ADR 0202 — delete daemon workflow; daemon-node foi removido'"
+    },
+    {
+      "nome": ".github/workflows/cowork-inbox.yml",
+      "deletado_por_adr": "0283",
+      "substituto": "DesignSync/design-login (acesso ao vivo) — esteira assincrona cowork-inbox aposentada",
+      "evidencia": "commit 92ca254d3c (PR #3878): 'aposenta esteira cowork-inbox (migrado p/ DesignSync); Cowork migrou 100% pra DesignSync/design-login'"
+    },
+    {
+      "nome": ".github/workflows/build-inertia-auto.yml",
+      "deletado_por_adr": "",
+      "substituto": "build:inertia roda no Hostinger local pos git-pull (NAO em CI; repo virou source-only)",
+      "evidencia": "commit 2536b7b90b (PR #174): 'build:inertia migrado pra Hostinger pos-pull; build-inertia-auto.yml deletado (obsoleto — build nao acontece no CI)'. Sem ADR (mudanca de build)."
+    },
+    {
+      "nome": "scripts/governance/plans-index-generate.mjs",
+      "deletado_por_adr": "",
+      "substituto": "scripts/governance/plans-index.mjs (sobrevivente — o generate era 100% duplicata)",
+      "evidencia": "commit 92c19f9853 (PR #3351): 'remove duplicata plans-index-generate; sobrevivente plans-index.mjs'. Dedup, nao ADR-driven."
+    },
+    {
+      "nome": "scripts/anchor-lint.mjs",
+      "deletado_por_adr": "",
+      "substituto": "scripts/governance/anchor-lint.mjs (path real — a citacao encurtou pra raiz scripts/)",
+      "evidencia": "nunca versionado em scripts/ (raiz); nome!=path — scripts/governance/anchor-lint.mjs existe e e o real. Sem commit de delecao (nunca houve o arquivo na raiz)."
+    },
+    {
+      "nome": ".github/workflows/ragas-canary.yml",
+      "deletado_por_adr": "",
+      "substituto": "jana-ragas-canary.yml (workflow real tem prefixo jana-)",
+      "evidencia": "nunca versionado como ragas-canary.yml; nome!=path — jana-ragas-canary.yml existe e e o real. Sem commit de delecao."
     }
   ]
 }
