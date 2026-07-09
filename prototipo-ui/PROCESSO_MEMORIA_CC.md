@@ -221,6 +221,7 @@ Log de tendência (append por sessão — NUNCA reescreve):
 |---|---|---|---|---|---|
 | 2026-06-02 | **75%** (E1=L-02, E2=L-21, E3=L-05) | 1 (detour venda) | 70% | 7.5 | baseline vermelho — o spike disparou a reestruturação desta sessão |
 | 2026-06-02 (b) | — (erro novo L-24, não recidiva) | **1** (casos sumiram, pego por [W]) | 70% | 7.5 | runner generalizado regrediu Oficina; corrigido. Decisão: teste estado-da-arte (Playwright+Storybook+data-testid) → `_PROPOSTA-0244`. Escape confirma: defesa atual não pega quebra de wiring. |
+| 2026-07-09 | **0%** (0 recidiva; sessão tooling de ponte design↔código) | **0** ([W] não pegou erro; o commit unsigned foi pego pelo stop-hook = guard, não [W]) | +1 nova (gate `data-contract` no lado vivo do map.json dispara sozinho) | 9 (selftests verdes + smoke real no `unificado.map.json`) | ponte design↔código map.json: mecanismo #4020 + deconflito dos 3 eixos (Code Connect=component-registry · arquivo=cowork-map · região=map.json) #4021 + âncora estável `data-contract` #4022. A pergunta [W] "o que conflita com Code Connect?" virou 3 PRs; furo do range-de-linha fechado com âncora estável. |
 
 ## 12. Gatilho de Reestruturação — "quando errar muito, me arrumo com minhas regras"
 
