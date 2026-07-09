@@ -37,6 +37,8 @@ on:
       - 'scripts/governance/briefing-code-staleness.mjs'
       - 'scripts/governance/briefing-code-staleness.test.mjs'
       - 'scripts/governance/visual-comparison-staleness.mjs'
+      - 'scripts/governance/adr-proposto-parado.mjs'
+      - 'memory/decisions/**'
       - '.github/workflows/briefing-code-staleness.yml'
   schedule:
     # Segunda 06h40 BRT (09h40 UTC) — heartbeat semanal (após memory-health 06h30).
@@ -74,3 +76,11 @@ jobs:
         run: node scripts/governance/visual-comparison-staleness.mjs --selftest
       - name: reporter visual-comparison × tela (advisory)
         run: node scripts/governance/visual-comparison-staleness.mjs
+      # Eixo 3 — ADR pendente (Wagner 2026-07-09: "isso vai acabar não sendo feito").
+      # A: decidido PRESO em proposals/ = lei invisível ao MCP (o sync não varre subpasta — caso
+      # real 0320 aceita+invisível). B: numerado em proposals/ ainda proposto (0314). C: proposto
+      # top-level >14d sem ratificação (feature-wish excluído — dormência intencional, ADR 0105).
+      - name: self-test adr-proposto-parado (bite/release · determinístico)
+        run: node scripts/governance/adr-proposto-parado.mjs --selftest
+      - name: reporter ADR pendente de ratificação (advisory)
+        run: node scripts/governance/adr-proposto-parado.mjs
