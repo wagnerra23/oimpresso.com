@@ -13,11 +13,11 @@
   --color-page-cream: oklch(0.26 0.006 240);
   --color-primary: oklch(0.7 0.15 295);
   --color-primary-foreground: oklch(0.205 0.009 240);
-  --color-secondary: oklch(0.235 0.010 240);
+  --color-secondary: oklch(0.32 0.010 240);
   --color-secondary-foreground: oklch(0.965 0.004 240);
-  --color-muted: oklch(0.235 0.010 240);
+  --color-muted: oklch(0.32 0.010 240);
   --color-muted-foreground: oklch(0.74 0.008 240);
-  --color-accent: oklch(0.235 0.010 240);
+  --color-accent: oklch(0.32 0.010 240);
   --color-accent-foreground: oklch(0.965 0.004 240);
   --color-destructive: oklch(0.55 0.17 18);
   --color-destructive-foreground: oklch(0.965 0.004 240);
