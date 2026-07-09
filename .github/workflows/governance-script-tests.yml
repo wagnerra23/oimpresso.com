@@ -54,3 +54,11 @@ jobs:
         run: node scripts/governance/design-memory-gate.test.mjs
       - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)
         run: node scripts/governance/knowledge-drift.mjs --selftest
+      # P10 — integridade referencial rota↔código (T-AP-3/14/15 · M-AP-1 do F3 rejeitado).
+      # A catraca é hermética (fixtures bite/release, ancorada no contrato LICOES_F3); se ela
+      # parar de morder, ESTE passo falha. O relatório é ADVISORY (ADR 0314 — não-Tier-0): roda
+      # em seguida, exit 0 sempre, só imprime os achados no log (o valor é o relatório).
+      - name: ref-integrity — selftest da catraca (bite/release · T-AP-3/14/15/M-AP-1)
+        run: node scripts/governance/ref-integrity.mjs --selftest
+      - name: ref-integrity — relatório advisory rota↔código (exit 0 · nunca bloqueia)
+        run: node scripts/governance/ref-integrity.mjs
