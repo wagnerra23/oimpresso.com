@@ -100,6 +100,16 @@ jobs:
       - name: design-diff selftest (mede o que o olho perdeu · LC-06)
         run: node prototipo-ui/design-diff.mjs --selftest
 
+      # style-fingerprint selftest: o VETOR de estilo completo (bbox, nº de linhas, overflow,
+      # cor computada, radius, borda) por tema — regras 4/5/7 do inventário da Fase 1. Fixtures
+      # com divergências plantadas (2-linhas, cor, radius, só-de-um-lado · L-31, provado dos dois
+      # lados). Era o ÚNICO selftest do protocolo de aplicação de protótipo que não rodava em CI
+      # (órfão); se o comparador de estilo parar de morder, quebra VERMELHO junto do design-diff
+      # (os 2 comparadores da Fase 1). Puro node, sem browser/deps — o --snippet/--compare é que
+      # dependem de página renderizada; o --selftest é hermético.
+      - name: style-fingerprint selftest (vetor de estilo · regras 4/5/7 · Fase 1)
+        run: node prototipo-ui/style-fingerprint.mjs --selftest
+
       # DS-GUARD nos arquivos TOCADOS (css/html de design-memory). O ds-guard so
       # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
