@@ -110,6 +110,14 @@ jobs:
       - name: style-fingerprint selftest (vetor de estilo · regras 4/5/7 · Fase 1)
         run: node prototipo-ui/style-fingerprint.mjs --selftest
 
+      # protocolo.config selftest: a FONTE ÚNICA executável do protocolo (IDs dos 2 projetos
+      # Cowork, staging fixo, mapa fase→comando). Trava drift — 2 IDs válidos+distintos (a confusão
+      # dos projetos mordeu 3× em 2026-07-06), MIRROR_DIR presente, e TODO script do mapa FASES
+      # existe. Se alguém renomear/mover um script do protocolo ou colidir os IDs, quebra VERMELHO.
+      # "O protocolo sabe" deixa de depender do agente ter lido o INDEX §0.2 (Wagner 2026-07-09).
+      - name: protocolo.config selftest (fonte única · IDs + paths + mapa de fases)
+        run: node prototipo-ui/protocolo.config.mjs --selftest
+
       # DS-GUARD nos arquivos TOCADOS (css/html de design-memory). O ds-guard so
       # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
