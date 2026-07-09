@@ -77,6 +77,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/block-brl-values-in-memory.mjs"
+          },
+          {
+            "type": "command",
             "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-memory-drift.ps1"
           },
           {
