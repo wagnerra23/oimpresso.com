@@ -165,6 +165,22 @@ export default [
           selector: 'JSXAttribute[name.name="className"] Literal[value=/\\btext-(rose|red|emerald|green)-(500|600|700)\\b/]',
           message: 'ds/no-adhoc-status-text — use <FieldError>/<FieldSuccess> ou <Alert> (cores semânticas), não text-rose/emerald cru.',
         },
+        {
+          // ds/no-radix-item-empty-value (ADVISORY EXTRA — a defesa REAL é o
+          // componente <SafeSelectItem>). Radix Select CRASHA o render INTEIRO
+          // (tela branca em prod) se um <SelectItem> tiver value="" literal.
+          // NÓ ÚNICO de propósito: pega só a forma LITERAL vazia — value data-
+          // driven (map/reduce/helper/`?? ''`/distinct) NÃO é cobrível por lint
+          // sintático; pra isso use <SafeSelectItem> (@/Components/ui/SafeSelectItem).
+          // Ref: memory/proibicoes.md §5 (2026-06-29) + PR #3405/#3411.
+          selector: 'JSXOpeningElement[name.name="SelectItem"] > JSXAttribute[name.name="value"][value.value=""]',
+          message: 'ds/no-radix-item-empty-value — <SelectItem value=""> derruba o render do Radix. Use um sentinela não-vazio (ex: __all__) pro item "Todos", ou <SafeSelectItem> pra value data-driven.',
+        },
+        {
+          // idem, forma entre chaves: value={''} / value={""}
+          selector: 'JSXOpeningElement[name.name="SelectItem"] > JSXAttribute[name.name="value"] > JSXExpressionContainer > Literal[value=""]',
+          message: 'ds/no-radix-item-empty-value — value vazio entre chaves derruba o render do Radix. Use um sentinela não-vazio (ex: __all__) ou <SafeSelectItem>.',
+        },
       ],
     },
   },

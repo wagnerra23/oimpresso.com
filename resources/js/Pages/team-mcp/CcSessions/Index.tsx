@@ -18,6 +18,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import PageHeader from '@/Components/shared/PageHeader';
 import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
 import KpiGrid from '@/Components/shared/KpiGrid';
@@ -205,7 +206,7 @@ function CcSessionsIndex({ sessions, filters, kpis, devs, projects, permissions 
               <SelectTrigger className="h-8"><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>Todos</SelectItem>
-                {projList.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+                {projList.map((p) => <SafeSelectItem key={p} value={p}>{p}</SafeSelectItem>)}
               </SelectContent>
             </Select>
           </div>

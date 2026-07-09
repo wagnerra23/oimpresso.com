@@ -24,6 +24,7 @@ import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
@@ -442,7 +443,7 @@ function TasksIndex({
             <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Todos</SelectItem>
-              {modulos.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              {modulos.map((m) => <SafeSelectItem key={m} value={m}>{m}</SafeSelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -452,7 +453,7 @@ function TasksIndex({
             <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Todos</SelectItem>
-              {owners.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+              {owners.map((o) => <SafeSelectItem key={o} value={o}>{o}</SafeSelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -462,7 +463,7 @@ function TasksIndex({
             <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Todas</SelectItem>
-              {sprints.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {sprints.map((s) => <SafeSelectItem key={s} value={s}>{s}</SafeSelectItem>)}
             </SelectContent>
           </Select>
         </div>
