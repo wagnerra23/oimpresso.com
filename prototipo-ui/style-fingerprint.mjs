@@ -45,8 +45,12 @@
 //      moveu" é a regra do PAI (display/justify-content/gap/direção), inventariada por assinatura;
 //      (4) COMPOSTOS/CARDS com >2 filhos (furo 3) — superfície ancorada em texto agregado (um card
 //      que ACHATA perde sombra+padding e agora CONSTA, antes era invisível ao vetor de texto).
-// Ainda FORA (Onda 3, precisa driver/dep): estados hover/focus/active e responsivo multi-viewport
-//      (harness Playwright), backstop perceptual pra ícones/sparklines sem âncora (dep SSIM → ADR).
+// Onda 3 (2026-07-09) acrescentou (5) ELEVAÇÃO por inventário — a passada de compostos casa card por
+//      TEXTO; sombra de card que não casa (N≠M cards) sumia no SO (dogfood Financeiro: 6 cards
+//      elevados no proto × 1 no prod, 0 CARD DIVERGE em boxShadow). Agora a elevação é inventariada
+//      como as divisórias (tier|cor|span), cega a texto: superfície que ACHATOU vira SO_PROTO nomeado.
+// Ainda FORA (precisa driver/dep): estados hover/focus/active e responsivo multi-viewport (harness
+//      Playwright — matched-1280 + hover + vazio/erro), backstop perceptual sem âncora (dep SSIM → ADR).
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';
@@ -227,6 +231,23 @@ export function compararContainers(a = [], b = []) {
   return rows;
 }
 
+// ── Onda 3: ELEVAÇÃO por INVENTÁRIO (o cego do dogfood Financeiro, 2026-07-09) ──
+// A passada de compostos (furo 3) casa card por TEXTO. Quando o proto tem N cards e o prod M (N≠M),
+// os cards ELEVADOS do proto que não casam caem em SO_PROTO — e a sombra PERDIDA nunca vira
+// "boxShadow → none" (dogfood: 0 CARD DIVERGE em sombra, mas 6 cards elevados no proto × 1 no prod;
+// o gap ficou escondido no SO). Aqui a elevação é inventariada como as DIVISÓRIAS (furo 1): por
+// assinatura tier|cor|span, CEGA a texto/posição. Superfície que ACHATOU aparece como SO_PROTO
+// (elevada, sem par no prod) — a máquina MORDE em vez de enterrar no casamento-por-texto.
+export function chaveSombra(s) { return 'ELEV ' + s.tier + '|' + s.cor + '|span' + s.span; }
+export function compararSombras(a = [], b = []) {
+  const mapA = new Map((a || []).map((s) => [chaveSombra(s), s]));
+  const mapB = new Map((b || []).map((s) => [chaveSombra(s), s]));
+  const rows = [];
+  for (const [k] of mapA) rows.push({ chave: k, veredito: mapB.has(k) ? 'IDENTICO' : 'SO_PROTO', campos: [] });
+  for (const [k] of mapB) if (!mapA.has(k)) rows.push({ chave: k, veredito: 'SO_PROD', campos: [] });
+  return rows;
+}
+
 // ── Onda 2: COMPOSTOS/CARDS (furo 3) ───────────────────────────────────────────
 // Controles/cards com >2 filhos escapam do vetor de texto (childElementCount<=2 na 1ª passada).
 // Captura a SUPERFÍCIE do composto e casa por texto AGREGADO normalizado (+ posição, furo 4).
@@ -254,6 +275,8 @@ export function comparar(fpA, fpB) {
   rows.push(...compararContainers(fpA.containers, fpB.containers));
   // Onda 2 — compostos/cards (>2 filhos) por superfície ancorada em texto agregado.
   rows.push(...compararGrupos(fpA.compostos, fpB.compostos, chaveComposto, diffComposto));
+  // Onda 3 — elevação por inventário (a sombra que o casamento-por-texto dos compostos enterra no SO).
+  rows.push(...compararSombras(fpA.sombras, fpB.sombras));
   rows.sort((x, y) => x.veredito.localeCompare(y.veredito) || x.chave.localeCompare(y.chave));
   const tally = {};
   for (const r of rows) tally[r.veredito] = (tally[r.veredito] || 0) + 1;
@@ -283,8 +306,9 @@ export function resumoCampos(rows) {
 export function triagemSO(rows) {
   return (rows || []).filter((r) => r.veredito === 'SO_PROTO' || r.veredito === 'SO_PROD')
     .filter((r) => {
-      // divisória (furo 1) e container de layout (Onda 2) recolorido/re-gapado: sempre estrutural.
-      if (r.chave.startsWith('DIV ') || r.chave.startsWith('CTR ')) return true;
+      // divisória (furo 1), container (Onda 2) e elevação (Onda 3) recolorido/re-gapado/achatado:
+      // sempre estrutural — sombra perdida é regressão de superfície, não ruído.
+      if (r.chave.startsWith('DIV ') || r.chave.startsWith('CTR ') || r.chave.startsWith('ELEV ')) return true;
       const txt = r.chave.slice(r.chave.indexOf('|') + 1);
       const real = txt.replace(/<BRL>|<N>|<DATA>/g, '').trim();
       return real.length >= 2; // copy real além de placeholders dinâmicos (cobre CARD e elementos)
@@ -579,11 +603,49 @@ export const SNIPPET = String.raw`
     vistosK.add(k);
     compostos.push(item);
   }
+  // ── 5ª passada — ELEVAÇÃO por INVENTÁRIO (Onda 3, 2026-07-09): a passada de compostos casa card
+  // por TEXTO; quando proto tem N cards e prod M (N≠M), o card ELEVADO do proto que não casa cai em
+  // SO_PROTO e a sombra PERDIDA nunca vira "boxShadow → none". Aqui a elevação é inventariada como as
+  // divisórias/containers: por assinatura tier(blur)|cor(neutra/accent)|span, cega a texto/posição.
+  // 'flat'/transparente é pulado (rgba(0,0,0,0) 0px 0px 0px = "sombra" nula de reset, não é elevação).
+  const elevSig = (bs) => {
+    const camadas = bs.split(/,(?![^()]*\))/); // vírgula fora de parênteses separa as camadas
+    let maxBlur = 0, colorido = false;
+    for (const ly of camadas) {
+      const cm = ly.match(/(?:oklch|oklab|rgba?|hsla?)\([^)]*\)|#[0-9a-fA-F]+/);
+      const resto = cm ? ly.replace(cm[0], '') : ly;
+      if (cm) {
+        const ok = cm[0].match(/okl(?:ch|ab)\(([^)]*)\)/);
+        if (ok) { const n = ok[1].split(/[\s/]+/).map(parseFloat).filter((x) => !isNaN(x)); if (n.length >= 3 && (Math.abs(n[1]) > 0.03 || Math.abs(n[2]) > 0.03)) colorido = true; }
+        const rg = cm[0].match(/rgba?\(([^)]*)\)/);
+        if (rg) { const p = rg[1].split(',').map(parseFloat); if (Math.max(Math.abs(p[0] - p[1]), Math.abs(p[1] - p[2]), Math.abs(p[0] - p[2])) > 12) colorido = true; }
+      }
+      const lens = (resto.replace(/inset/i, '').match(/-?\d*\.?\d+px/g) || []).map(parseFloat);
+      if (lens.length >= 3 && lens[2] > maxBlur) maxBlur = lens[2]; // 3ª length = blur radius
+    }
+    const tier = maxBlur < 1 ? 'flat' : maxBlur < 4 ? 'xs' : maxBlur < 10 ? 'sm' : maxBlur < 24 ? 'md' : 'lg';
+    return { tier, colorido };
+  };
+  const sombras = [];
+  const vistosS = new Set();
+  for (const el of document.querySelectorAll('*')) {
+    const bs = getComputedStyle(el).boxShadow;
+    if (!bs || bs === 'none' || !vis(el)) continue;
+    const sig = elevSig(bs);
+    if (sig.tier === 'flat') continue; // sombra nula/transparente = não é elevação
+    const r = el.getBoundingClientRect();
+    if (r.width < 24) continue;
+    const item = { tier: sig.tier, cor: sig.colorido ? 'accent' : 'neutral', span: Math.round(r.width / 40) * 40 };
+    const k = item.tier + '|' + item.cor + '|' + item.span;
+    if (vistosS.has(k)) continue;
+    vistosS.add(k);
+    sombras.push(item);
+  }
   // ancora — DECLARACAO de qual related_prototype esta captura representa (trava de compare-time,
   // 2026-07-08). Fica null a menos que a captura tenha sido gerada com "--snippet Mod/Tela", que
   // assa window.__ANCORA__ (resolvido por ancora.mjs) ANTES do snippet. O --compare exige que ela
   // bata com o charter. Sem isso, o proto x prod roda contra a fonte errada (ancora podre, 07-06/08).
-  return JSON.stringify({ tema: TEMA, url: location.pathname, ancora: (window.__ANCORA__ || null), elementos, divisorias, containers, compostos }, null, 1);
+  return JSON.stringify({ tema: TEMA, url: location.pathname, ancora: (window.__ANCORA__ || null), elementos, divisorias, containers, compostos, sombras }, null, 1);
 })()`;
 
 // ── selftest hermético (comparador provado pelos dois lados — L-31) ────────────
@@ -690,6 +752,19 @@ function selftest() {
     { tag: 'div', texto: 'Resumo do mês R$ 9.999', w: 300, h: 120, xnorm: 0.1, ynorm: 0.4, bgProprio: 'oklch(0.238 0.01 282)', bgImage: 'none', radius: '8px', borderW: '1px', borderColor: 'oklch(0.335 0.012 282)', boxShadow: 'none', padding: '0px 0px 0px 0px', filhos: 6 },
   ];
 
+  // ── Onda 3 — ELEVAÇÃO por inventário (o cego do dogfood Financeiro 2026-07-09): o proto eleva um
+  // card com GLOW de accent (md/accent) + 2 cards neutros (sm/neutral, spans diferentes); o prod só
+  // manteve 1 neutro. O accent-glow e um dos neutros ACHATARAM → têm que virar SO_PROTO NOMEADO (não
+  // sumir no casamento-por-texto dos compostos). Prova pelos DOIS lados: o neutro sobrevivente = IDENTICO.
+  proto.sombras = [
+    { tier: 'md', cor: 'accent', span: 320 },   // glow de accent — some no prod
+    { tier: 'sm', cor: 'neutral', span: 320 },   // card neutro elevado — sobrevive
+    { tier: 'sm', cor: 'neutral', span: 160 },   // 2º neutro elevado — achata no prod
+  ];
+  prod.sombras = [
+    { tier: 'sm', cor: 'neutral', span: 320 },   // único que sobrou elevado
+  ];
+
   const { rows, tally } = comparar(proto, prod);
   const by = (t) => rows.find((r) => r.chave.includes(t));
   const checks = [
@@ -786,6 +861,21 @@ function selftest() {
   const triCtrOk = triagemSO(rows).some((r) => r.chave.startsWith('CTR '));
   if (!triCtrOk) fails++;
   console.log(`  [${triCtrOk ? 'PASS' : 'FAIL'}] furo 5: container SO_* entra na triagem obrigatória`);
+
+  // ── Onda 3 — elevação por inventário: glow de accent + 2º neutro ACHATARAM (SO_PROTO), o neutro
+  // sobrevivente bate IDENTICO (prova dos 2 lados), e a máquina MORDE (SO_PROTO estrutural na triagem).
+  for (const [label, got, exp] of [
+    ['Onda 3 elevação: glow de accent achatou = SO_PROTO', by('ELEV md|accent|span320')?.veredito, 'SO_PROTO'],
+    ['Onda 3 elevação: neutro sobrevivente = IDENTICO (prova 2 lados)', by('ELEV sm|neutral|span320')?.veredito, 'IDENTICO'],
+    ['Onda 3 elevação: 2º neutro achatou = SO_PROTO', by('ELEV sm|neutral|span160')?.veredito, 'SO_PROTO'],
+  ]) {
+    const ok = got === exp;
+    if (!ok) fails++;
+    console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
+  }
+  const triElevOk = triagemSO(rows).some((r) => r.chave.startsWith('ELEV '));
+  if (!triElevOk) fails++;
+  console.log(`  [${triElevOk ? 'PASS' : 'FAIL'}] Onda 3: elevação SO_* (sombra perdida) entra na triagem obrigatória`);
 
   // agruparLinhas — o fix do falso-positivo (dogfood [W] 2026-07-07). Rects PLANTADOS:
   //  A) botão real ícone+texto de 1 linha: SVG top=100 h=16 + texto top=101 h=18 (jitter
