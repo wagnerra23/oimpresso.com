@@ -21,16 +21,23 @@
 //                      scripts/governance/briefing-code-staleness.mjs — pega o que este
 //                      NÃO pega: código andando com porta E docs irmãos congelados
 //                      (incidente #3714 Compras). Não duplicar aqui.
+//   - path_fantasma  : docs/ADRs citam .github/workflows/<X>.yml ou scripts/**/*.mjs que
+//                      NÃO existe no disco E não tem tombstone curado? (P16 — "mecanismo-
+//                      fantasma"). SÓ paths CONCRETOS — nunca "nome-de-gate" fuzzy em prosa
+//                      (falso-positivo: ragas VIVE como jana-ragas-gate.yml, nome≠path).
+//                      Advisory (ADR 0314); tombstones em governance/ghost-rename-map.json.
 //
 // NÃO recomenda ADICIONAR — toda nota ruim aponta pra DESTILAR/FUNDIR/APAGAR.
 // Uso:  node scripts/governance/knowledge-drift.mjs [--json]
 //       node scripts/governance/knowledge-drift.mjs --check [--baseline <dir>]
 //       node scripts/governance/knowledge-drift.mjs --write-baseline [--baseline <dir>]
+//       node scripts/governance/knowledge-drift.mjs --check-paths   (advisory: cita path morto sem tombstone?)
+//       node scripts/governance/knowledge-drift.mjs --selftest      (prova que a catraca de path morde/solta)
 // Node puro (fs + git via execSync). Sem deps, sem DB, sem PHP.
 
 import { readdirSync, statSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, sep } from 'node:path';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
@@ -87,6 +94,93 @@ const TRUTH_RE = /^(SPEC|README|ARCHITECTURE|BRIEFING|CAPTERRA.*|CAPTERRA-INVENT
 const MOD_REF_RE = /Modules\/([A-Z][A-Za-z0-9]+)/g;
 
 // ---------------------------------------------------------------------------
+// DETECTOR DE PATH FANTASMA (P16 — "docs/ADRs apontam pra mecanismo-fantasma").
+// Irmão do detector de módulo-ghost acima: aquele pega Modules/<X> inexistente;
+// este pega CAMINHO CONCRETO de mecanismo (workflow .yml / script .mjs) que o doc
+// CITA mas que não existe no disco E não tem tombstone curado. Caso-âncora: o canon
+// citava .github/workflows/mwart-gate.yml — DELETADO (commit 7be91b3347, PR #2531,
+// "onda 2 dos gates ADR 0271"; cobertura migrou pro casos-gate required ADR 0264).
+//
+// CONTRATO: um path citado é GROUNDED sse (a) resolve a arquivo real OU (b) tem
+// tombstone {nome, deletado_por_adr, substituto} em governance/ghost-rename-map.json.
+// Fora disso = phantom = drift a corrigir.
+//
+// SÓ PATHS CONCRETOS (ressalva adversária P16): a regex casa .github/workflows/<X>.yml
+// e scripts/**/*.mjs LITERAIS. NUNCA "nome-de-gate" solto em prosa (ex: "o ragas-gate")
+// — fuzzy gera falso-positivo, e ragas VIVE como jana-ragas-gate.yml (nome ≠ path).
+//
+// ADVISORY (ADR 0314): a superfície é SURGIR/MEDIR, não bloquear merge. O conserto de
+// citação-fantasma DENTRO de ADR aceita (append-only) NÃO é editar a ADR — é o tombstone
+// (aterra o detector aqui) + injeção no decisions-fetch (PR SEPARADO, follow-up).
+const RENAME_MAP_FILE = join(ROOT, 'governance', 'ghost-rename-map.json');
+const MEM = join(ROOT, 'memory');
+// Contextos de PLANEJAMENTO citam mecanismo ainda-não-criado DE PROPÓSITO (não é rot) —
+// mesma isenção que o detector de módulo-ghost dá a _Governanca/roadmap/. Proposals idem.
+const PLAN_CTX = ['memory/decisions/proposals/', 'memory/requisitos/_Governanca/roadmap/'];
+const relPosix = (abs) => abs.slice(ROOT.length + 1).split(sep).join('/');
+const isPlanningDoc = (abs) => { const r = relPosix(abs); return PLAN_CTX.some(p => r.startsWith(p)); };
+
+// Formas CONCRETAS apenas (token-boundary). Glob (`.github/workflows/*.yml`,
+// `scripts/**/*.mjs`) não casa: `*` não está na classe → o `+…\.ext` não fecha.
+const WF_CITE_RE = /\.github\/workflows\/[A-Za-z0-9._-]+\.ya?ml/g;
+const MJS_CITE_RE = /(?<![\w./-])scripts\/[A-Za-z0-9._/-]+\.mjs/g;
+
+function loadPathTombstones() {
+  const m = new Map(); // nome(=path) -> { nome, deletado_por_adr, substituto, ... }
+  try {
+    const raw = JSON.parse(readFileSync(RENAME_MAP_FILE, 'utf8'));
+    for (const t of raw.path_tombstones ?? []) if (t && t.nome) m.set(t.nome, t);
+  } catch { /* sem map = sem groundings; o detector ainda funciona (tudo vira phantom) */ }
+  return m;
+}
+
+// PURO + injetável — o --selftest exercita ISTO (o contrato), nunca o console.
+//   'live'       existe no disco
+//   'tombstoned' não existe, mas há tombstone curado
+//   'phantom'    não existe e não há tombstone → citação-fantasma
+function classifyPathCitation(citedPath, { resolveExists, tombstones }) {
+  if (resolveExists(citedPath)) return { status: 'live' };
+  const tomb = tombstones.get(citedPath);
+  if (tomb) return { status: 'tombstoned', tombstone: tomb };
+  return { status: 'phantom' };
+}
+
+function allMemoryMd(dir = MEM) {
+  const out = [];
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const p = join(dir, e.name);
+    if (e.isDirectory()) out.push(...allMemoryMd(p));
+    else if (e.name.endsWith('.md')) out.push(p);
+  }
+  return out;
+}
+
+// Varre memory/**/*.md (menos contextos de planejamento) e classifica cada path
+// concreto citado. Retorna só os MORTOS: path -> { status:'phantom'|'tombstoned', docs:Set }.
+function scanPhantomPaths() {
+  const tombstones = loadPathTombstones();
+  const resolveExists = (p) => existsSync(join(ROOT, p));
+  const byPath = new Map();
+  if (!existsSync(MEM)) return byPath;
+  for (const f of allMemoryMd()) {
+    if (isPlanningDoc(f)) continue;
+    const txt = readFileSync(f, 'utf8');
+    const cited = new Set();
+    for (const mm of txt.matchAll(WF_CITE_RE)) cited.add(mm[0]);
+    for (const mm of txt.matchAll(MJS_CITE_RE)) cited.add(mm[0]);
+    if (!cited.size) continue;
+    const rel = relPosix(f);
+    for (const c of cited) {
+      const cls = classifyPathCitation(c, { resolveExists, tombstones });
+      if (cls.status === 'live') continue; // vivo: nada a reportar
+      if (!byPath.has(c)) byPath.set(c, { status: cls.status, docs: new Set() });
+      byPath.get(c).docs.add(rel);
+    }
+  }
+  return byPath;
+}
+
+// ---------------------------------------------------------------------------
 // CATRACA ANTI-GHOST (KL-A2 — plano SDD 2026-06-12, Semana 0).
 // Baseline POR MÓDULO em governance/knowledge-ghosts-baseline/<Mod>.json
 // (1 arquivo por módulo citante — anti conflito entre streams paralelos).
@@ -100,10 +194,45 @@ const MOD_REF_RE = /Modules\/([A-Z][A-Za-z0-9]+)/g;
 // ---------------------------------------------------------------------------
 const CHECK = process.argv.includes('--check');
 const WRITE_BASELINE = process.argv.includes('--write-baseline');
+const SELFTEST = process.argv.includes('--selftest');
+const CHECK_PATHS = process.argv.includes('--check-paths');
 const bIdx = process.argv.indexOf('--baseline');
 const BASELINE_DIR = bIdx > -1 && process.argv[bIdx + 1]
   ? join(ROOT, process.argv[bIdx + 1])
   : join(ROOT, 'governance', 'knowledge-ghosts-baseline');
+
+if (SELFTEST) {
+  // Prova bite/release da catraca de path-fantasma. Asserções ancoradas em CONTRATO
+  // citado (existência REAL no repo + forma do tombstone curado) e no retorno da
+  // função pura classifyPathCitation — NUNCA no texto do console (que pode mudar).
+  let fails = 0;
+  const ok = (name, cond) => { console.log(`  ${cond ? '[OK]' : '[FAIL]'} ${name}`); if (!cond) fails++; };
+  const MWART = '.github/workflows/mwart-gate.yml';        // deletado (commit 7be91b3347 / ADR 0271 onda 2)
+  const RAGAS = '.github/workflows/jana-ragas-gate.yml';   // VIVO — o "não é fantasma" que o P16 alerta
+  const tomb = loadPathTombstones();
+
+  // Âncoras de contrato (repo real) — as PREMISSAS do P16 têm que ser verdade agora.
+  ok('contrato: mwart-gate.yml deletado (não existe no repo)', !existsSync(join(ROOT, MWART)));
+  ok('contrato: jana-ragas-gate.yml vivo (existe — nome≠path, não é fantasma)', existsSync(join(ROOT, RAGAS)));
+  const mt = tomb.get(MWART);
+  ok('contrato: tombstone de mwart-gate tem {nome,deletado_por_adr,substituto}',
+     !!mt && !!mt.nome && !!mt.deletado_por_adr && !!mt.substituto);
+
+  // BITE — path morto SEM tombstone → acusa (phantom).
+  ok('BITE: path morto sem tombstone → phantom',
+     classifyPathCitation(MWART, { resolveExists: () => false, tombstones: new Map() }).status === 'phantom');
+  // RELEASE — path morto COM tombstone → solta (tombstoned).
+  ok('RELEASE: path morto com tombstone → tombstoned',
+     classifyPathCitation(MWART, { resolveExists: () => false, tombstones: tomb }).status === 'tombstoned');
+  // RELEASE — path VIVO (resolver = existsSync real) → solta (live).
+  ok('RELEASE: path vivo → live',
+     classifyPathCitation(RAGAS, { resolveExists: p => existsSync(join(ROOT, p)), tombstones: tomb }).status === 'live');
+
+  console.log(fails
+    ? `\n  ${fails} FALHA(S) — a catraca de path-fantasma não está honesta.\n`
+    : `\n  SELFTEST OK — morde (phantom) e solta (tombstoned/live).\n`);
+  process.exit(fails ? 1 : 0);
+}
 
 function scanGhostsByModule() {
   const map = new Map(); // mod -> [ghosts sorted]
@@ -194,6 +323,22 @@ if (CHECK) {
   process.exit(0);
 }
 
+if (CHECK_PATHS) {
+  const dead = [...scanPhantomPaths()];
+  const phantom = dead.filter(([, v]) => v.status === 'phantom').sort((a, b) => b[1].docs.size - a[1].docs.size);
+  const grounded = dead.filter(([, v]) => v.status === 'tombstoned');
+  console.log(`\n  CITAÇÕES DE PATH FANTASMA (workflow/script) — advisory (ADR 0314)\n`);
+  console.log(`  ${grounded.length} path(s) morto(s) ATERRADO(s) por tombstone · ${phantom.length} FANTASMA (sem tombstone)\n`);
+  for (const [p, v] of phantom) console.log(`  👻 ${p}  — ${v.docs.size} doc(s), sem tombstone`);
+  if (phantom.length) {
+    console.log(`\n  Conserte o doc (path real) OU cure um tombstone {nome,deletado_por_adr,substituto} em governance/ghost-rename-map.json.`);
+    console.log(`  ADR aceita (append-only) NÃO se edita — aterre com tombstone + injete no decisions-fetch (PR separado).\n`);
+    process.exit(1);
+  }
+  console.log(`  OK — nenhuma citação de path fantasma sem tombstone.\n`);
+  process.exit(0);
+}
+
 const rows = [];
 for (const mod of readdirSync(REQ, { withFileTypes: true })) {
   if (!mod.isDirectory()) continue;
@@ -278,4 +423,13 @@ console.log(`\n  Cobertura de porta:        ${withDoor}/${rows.length} (${Math.r
 console.log(`  Portas auto-contidas:      ${selfContained}/${rows.length} (${Math.round(100*selfContained/rows.length)}%)`);
 console.log(`  read_path_hops mediano:    ${median}  (meta: 1)`);
 console.log(`  Módulos com identity-drift:${String(drift).padStart(3)}  (docs citam Modules/X inexistente)`);
+
+// Advisory (ADR 0314) — citações de PATH fantasma (workflow/script). Informativo: não altera exit.
+const deadPaths = [...scanPhantomPaths()];
+const phantomPaths = deadPaths.filter(([, v]) => v.status === 'phantom').sort((a, b) => b[1].docs.size - a[1].docs.size);
+const groundedPaths = deadPaths.filter(([, v]) => v.status === 'tombstoned').length;
+console.log(`  Citações de path fantasma: ${String(phantomPaths.length).padStart(3)}  (workflow/script citado sem existir nem tombstone · ${groundedPaths} aterrado; \`--check-paths\`)`);
+for (const [p, v] of phantomPaths.slice(0, 5)) console.log(`      👻 ${p} (${v.docs.size} doc)`);
+if (phantomPaths.length > 5) console.log(`      … +${phantomPaths.length - 5}`);
+
 console.log(`\n  Toda linha 🔴/🟡 = recomendação SUBTRATIVA: destilar/fundir/apagar — nunca adicionar.\n`);

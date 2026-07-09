@@ -52,3 +52,5 @@ jobs:
         run: node scripts/governance/settings-design-sync-registration.test.mjs
       - name: Design-memory gate wired no CI (Onda O3 · fundido ADR 0314 F2)
         run: node scripts/governance/design-memory-gate.test.mjs
+      - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)
+        run: node scripts/governance/knowledge-drift.mjs --selftest
