@@ -394,6 +394,13 @@
       "anchor": "ADR 0294 (loop/porta de saída) + ADR 0105 (sinal qualificado) — Onda O1 medidor de aceitação",
       "promote_by": "2026-09-30"
     },
+    "agent-pr-outcomes.yml": {
+      "nome": "Agent PR outcomes (advisory · DORA dos PRs do agente · change-failure-rate + accept-rate + time-to-merge via gh pr list · weekly schedule + dispatch · card #0 grade-das-réguas 2026-07-09)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "Dossiê grade-das-réguas card #0 'Evals de outcome' (Roubo #4): substituir 'zero evals de outcome' por número real (régua Codex/Cognition). DECONFLITO com outcome-metrics (design-loop) — eixo DORA-de-PR, não fidelidade de tela. Self-test hermético (CFR morde/libera) na suíte governance-script-tests.",
+      "promote_by": "2026-09-30"
+    },
     "design-memory-gate.yml": {
       "nome": "Design-memory gate (advisory · FUNDIDO ADR 0314 F2 de 3 workflows: registry-check ex-component-registry O2 + gates ex-design-memory-gates §8/§15 + prove ex-dtcg-equivalence Onda DTCG; 1 job por sub-check, todos os self-tests preservados)",
       "classe": "gate",

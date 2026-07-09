@@ -38,6 +38,8 @@ jobs:
         run: node scripts/governance/dup-detector.test.mjs
       - name: Outcome metrics (medidor de aceitacao · fixtures-armadilha · Onda O1)
         run: node scripts/governance/outcome-metrics.test.mjs
+      - name: Agent PR outcomes (DORA do agente · CFR morde/libera · card #0 grade-das-reguas)
+        run: node scripts/governance/agent-pr-outcomes.test.mjs
       - name: Registro Figma-não-é-fonte em settings.json (camada L4)
         run: node scripts/governance/settings-figma-registration.test.mjs
       - name: Registro âncora-no-olho em settings.json (incidente #7)
