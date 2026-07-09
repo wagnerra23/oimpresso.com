@@ -106,7 +106,10 @@ export function gerar(gapPath, { root = REPO, hoje = null } = {}) {
     return {
       id,
       prototipo: { arquivo: arquivosPrototipo[0] || 'TODO', linhas: 'TODO' },
-      vivo: { arquivo: arquivoVivo || 'TODO', linhas: 'TODO' },
+      // ancora: false = linha-only (frágil). Depois de adicionar data-contract="<id>" no .tsx
+      // (mesmo id — convergência com gerar-contrato por construção), vire true: o checker passa
+      // a EXIGIR a âncora (sumiu = DRIFT) e o range de linha vira só informativo.
+      vivo: { arquivo: arquivoVivo || 'TODO', linhas: 'TODO', ancora: false },
       status: 'pendente-mapeamento',
       acao: (p.acao || '').replace(/\*\*/g, '').trim(),
       _acionavel: ehAcionavel(p.acao),
@@ -115,7 +118,7 @@ export function gerar(gapPath, { root = REPO, hoje = null } = {}) {
 
   const mapa = {
     version: '1',
-    _doc: 'ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha invalida o map quando o protótipo re-exportar (scripts/governance/design-code-map-check.mjs detecta o drift).',
+    _doc: 'ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha invalida o map quando o protótipo re-exportar. Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract="<id>" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.',
     tela,
     gap_fonte: relPosix(root, gapPath),
     prototipo_sha,
@@ -147,6 +150,7 @@ function selftest() {
     t('gera 1 parte por linha da tabela (inclui as "no-op"/4º veredito, não só acionáveis)', !g.erro && g.mapa.partes.length === 3);
     t('ids = slug das partes', g.mapa.partes[0].id === 'parte-a' && g.mapa.partes[1].id === 'parte-b' && g.mapa.partes[2].id === 'parte-c');
     t('arquivo/linhas nascem TODO (nunca fabrica âncora)', g.mapa.partes.every((p) => p.prototipo.linhas === 'TODO' && p.vivo.linhas === 'TODO'));
+    t('vivo.ancora nasce false explícito (linha-only até ancorar com data-contract)', g.mapa.partes.every((p) => p.vivo.ancora === false));
     t('_acionavel reflete ehAcionavel (Nada=false, resto=true)', g.mapa.partes[2]._acionavel === false && g.mapa.partes[0]._acionavel === true);
     t('gap_fonte relativo ao root, POSIX', g.mapa.gap_fonte === 'prototipo-ui/fixtures/gerar-map/boa-gap.md');
     t('prototipo_sha presente (sem-historico OK em fixture sem git tracking dedicado)', typeof g.mapa.prototipo_sha === 'string' && g.mapa.prototipo_sha.length > 0);

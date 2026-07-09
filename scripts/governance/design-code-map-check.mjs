@@ -12,10 +12,21 @@
  * EIXO (deconflito 2026-07-09 — RUNBOOK Fase 1 §"Deconflito dos 3 eixos"): o <tela>.map.json é
  * ANCHOR-MAP POR REGIÃO de tela (âncora por range de linha, zero reuso entre telas) — NÃO o
  * "Code Connect" do projeto (esse é component-registry.json, eixo componente, verificado por
- * component-registry-check.mjs). LIMITE HONESTO: staleness só é detectada do lado do PROTÓTIPO
- * (prototipo_sha); o lado VIVO ancora por linha e refactor desloca linhas em silêncio — fix
- * planejado: validar âncora estável data-contract="<id>" no vivo.arquivo (ids batem por
- * construção com gerar-contrato.mjs: ambos slug(parte) do mesmo gap.md).
+ * component-registry-check.mjs).
+ *
+ * ÂNCORA ESTÁVEL do lado VIVO (PR-B do deconflito, 2026-07-09) — fecha o limite "refactor
+ * desloca linhas em silêncio": range de linha é INFORMATIVO; a âncora verificável é o atributo
+ * data-contract="<id>" no vivo.arquivo (o MESMO id — gerar-map e gerar-contrato derivam ambos
+ * slug(parte) do mesmo gap.md; a parte do map e a seção do contrato-de-tela nomeiam a mesma
+ * região). Contrato do campo opcional `vivo.ancora` (mesma filosofia do component-registry
+ * 'mapped'×'gap': declarado tem que ser REAL; ausência declarada não é punida):
+ *   - `ancora: true` (ou string com id custom) → o checker EXIGE data-contract="<id>" presente
+ *     no vivo.arquivo; sumiu = DRIFT (refactor removeu a âncora — exatamente o rot silencioso).
+ *   - ausente/false → parte é "linha-only" (frágil): contada e reportada no resumo, nunca DRIFT
+ *     (o backfill dos maps antigos não vira punição). Se o data-contract="<id>" JÁ existe no
+ *     .tsx mas não foi declarado, o checker avisa (nudge pra travar de graça).
+ *
+ * Pra cada `*.map.json` encontrado sob `memory/requisitos/**`:
  *
  * Pra cada `*.map.json` encontrado sob `memory/requisitos/**`:
  *   1. Schema mínimo: version/tela/prototipo_sha/gerado_em/partes[]; cada parte tem
@@ -34,7 +45,7 @@
  * `arquivo: 'TODO'` (âncora ainda não preenchida pelo agente da Fase 1) NUNCA é DRIFT — é
  * cobertura pendente (reportada, não punida; component-registry.json trata 'gap' do mesmo jeito:
  * ausência declarada ≠ fabricação). DRIFT é só: schema quebrado, âncora que MENTE (path que não
- * existe), ou sha que ficou pra trás.
+ * existe OU data-contract declarado que sumiu do .tsx), ou sha que ficou pra trás.
  *
  * ADVISORY de nascença (ADR 0271/0275, mesmo padrão do component-registry-check): --check imprime
  * o relatório e sai 0 sempre, a menos que --strict (aí sai 1 se houver DRIFT — nunca por TODO
@@ -91,27 +102,57 @@ export function validarSchema(mapa) {
   return problemas;
 }
 
+// id da âncora estável declarada pela parte: `vivo.ancora: true` usa o próprio p.id;
+// string não-vazia = id custom; ausente/false/'' = parte linha-only (não declarada).
+export function ancoraDeclarada(p) {
+  const a = p?.vivo?.ancora;
+  if (a === true) return p.id;
+  if (typeof a === 'string' && a.trim() && a !== 'TODO') return a.trim();
+  return null;
+}
+
 /**
- * Verifica um map.json já parseado contra o disco (âncoras + staleness).
- * @returns {{drift: string[], warn: string[], pendentes: number, totalPartes: number}}
+ * Verifica um map.json já parseado contra o disco (âncoras + staleness + âncora estável).
+ * @returns {{drift: string[], warn: string[], pendentes: number, totalPartes: number, estaveis: number, linhaOnly: number}}
  */
 export function verificarMapa(mapa, { root = ROOT } = {}) {
   const drift = [];
   const warn = [];
   const schemaProblemas = validarSchema(mapa);
-  if (schemaProblemas.length) return { drift: schemaProblemas.map((m) => `schema: ${m}`), warn, pendentes: 0, totalPartes: 0 };
+  if (schemaProblemas.length) return { drift: schemaProblemas.map((m) => `schema: ${m}`), warn, pendentes: 0, totalPartes: 0, estaveis: 0, linhaOnly: 0 };
 
-  let pendentes = 0;
+  let pendentes = 0, estaveis = 0, linhaOnly = 0;
   const arquivosPrototipoReais = new Set();
+  const fonteCache = new Map(); // vivo.arquivo → conteúdo (várias partes ancoram no mesmo .tsx)
+  const lerVivo = (rel) => {
+    if (!fonteCache.has(rel)) { try { fonteCache.set(rel, readFileSync(join(root, rel), 'utf8')); } catch { fonteCache.set(rel, null); } }
+    return fonteCache.get(rel);
+  };
+  const temAncora = (src, id) => src != null && new RegExp(`data-contract=(?:"${escRe(id)}"|'${escRe(id)}'|\\{[\`'"]${escRe(id)}[\`'"]\\})`).test(src);
+
   for (const p of mapa.partes) {
     const tag = p.id;
+    const vivoOk = !isPlaceholder(p.vivo?.arquivo) && existsSync(join(root, p.vivo.arquivo));
     if (!isPlaceholder(p.vivo?.arquivo)) {
-      if (!existsSync(join(root, p.vivo.arquivo))) drift.push(`${tag}: vivo.arquivo não existe: ${p.vivo.arquivo}`);
+      if (!vivoOk) drift.push(`${tag}: vivo.arquivo não existe: ${p.vivo.arquivo}`);
     } else pendentes++;
     if (!isPlaceholder(p.prototipo?.arquivo)) {
       if (!existsSync(join(root, p.prototipo.arquivo))) drift.push(`${tag}: prototipo.arquivo não existe: ${p.prototipo.arquivo}`);
       else arquivosPrototipoReais.add(p.prototipo.arquivo);
     } else pendentes++;
+
+    // ÂNCORA ESTÁVEL do lado vivo (PR-B): declarada tem que ser REAL; não-declarada nunca pune.
+    if (vivoOk) {
+      const idDeclarado = ancoraDeclarada(p);
+      const src = lerVivo(p.vivo.arquivo);
+      if (idDeclarado) {
+        if (temAncora(src, idDeclarado)) estaveis++;
+        else drift.push(`${tag}: âncora estável DECLARADA (vivo.ancora) mas data-contract="${idDeclarado}" NÃO existe em ${p.vivo.arquivo} — refactor removeu a âncora (re-ancorar ou remover a declaração conscientemente)`);
+      } else {
+        linhaOnly++;
+        if (temAncora(src, p.id)) warn.push(`${tag}: data-contract="${p.id}" JÁ existe em ${p.vivo.arquivo} mas o map não declara vivo.ancora — declare true e trave de graça (range de linha é frágil)`);
+      }
+    }
   }
 
   if (mapa.prototipo_sha && mapa.prototipo_sha !== 'sem-historico' && arquivosPrototipoReais.size) {
@@ -123,8 +164,10 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
     }
   }
 
-  return { drift, warn, pendentes, totalPartes: mapa.partes.length };
+  return { drift, warn, pendentes, totalPartes: mapa.partes.length, estaveis, linhaOnly };
 }
+
+function escRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 
 async function coletar(root) {
   // map.json/gap.md vivem em memory/requisitos/<Mod>/ (SPEC/CHANGELOG/GAP-SPEC do módulo);
@@ -155,7 +198,7 @@ async function main() {
   const { maps, gaps, charters } = await coletar(ROOT);
   const cov = cobertura(gaps, maps, ROOT);
 
-  let totalDrift = 0, totalWarn = 0, totalPendentes = 0, totalPartes = 0;
+  let totalDrift = 0, totalWarn = 0, totalPendentes = 0, totalPartes = 0, totalEstaveis = 0, totalLinhaOnly = 0;
   const relatorio = [];
   for (const mPath of maps) {
     const rel = relative(ROOT, mPath).replaceAll('\\', '/');
@@ -165,11 +208,14 @@ async function main() {
     const r = verificarMapa(mapa, { root: ROOT });
     relatorio.push({ rel, ...r });
     totalDrift += r.drift.length; totalWarn += r.warn.length; totalPendentes += r.pendentes; totalPartes += r.totalPartes;
+    totalEstaveis += r.estaveis; totalLinhaOnly += r.linhaOnly;
   }
 
   console.log(`design-code-map-check — ${maps.length} map.json encontrado(s) sob memory/requisitos/`);
   console.log(`cobertura: ${cov.cobertas}/${cov.total} telas com gap.md têm .map.json versionado (${cov.total ? Math.round((cov.cobertas / cov.total) * 100) : 0}%)`);
   console.log(`alcance amplo: ${maps.length}/${charters.length} charters têm .map.json (denominador maior, inclui telas ainda não analisadas pela Fase 1)`);
+  const ancoraveis = totalEstaveis + totalLinhaOnly;
+  console.log(`âncora estável (data-contract no vivo): ${totalEstaveis}/${ancoraveis} parte(s) com vivo.arquivo real${totalLinhaOnly ? ` — ${totalLinhaOnly} linha-only (frágil: refactor desloca linhas em silêncio; ancore com data-contract="<id>" + vivo.ancora: true)` : ''}`);
   if (cov.semMap.length) {
     console.log(`\ngap.md SEM map.json correspondente (candidatos a 'node prototipo-ui/gerar-map.mjs <gap.md>'):`);
     for (const g of cov.semMap) console.log(`  - ${g}`);
@@ -183,7 +229,7 @@ async function main() {
     if (!STRICT) console.log(`\n(advisory — exit 0; rode com --strict pra falhar o build)`);
   }
   if (totalWarn) {
-    console.log(`\n[WARN] ${totalWarn} aviso(s) (staleness indeterminada, não bloqueia):`);
+    console.log(`\n[WARN] ${totalWarn} aviso(s) (não bloqueia — staleness indeterminada / âncora presente não-declarada):`);
     for (const r of relatorio) if (r.warn.length) { console.log(`  ${r.rel}:`); for (const w of r.warn) console.log(`    - ${w}`); }
   }
 
