@@ -45,6 +45,11 @@ on:
       - 'scripts/governance/component-registry-check.test.mjs'
       - 'scripts/governance/dtcg-equivalence.mjs'
       - 'scripts/governance/dtcg-equivalence.test.mjs'
+      - 'scripts/governance/design-code-map-check.mjs'
+      - 'scripts/governance/design-code-map-check.test.mjs'
+      - 'prototipo-ui/gerar-map.mjs'
+      - 'memory/requisitos/**/*.map.json'
+      - 'memory/requisitos/**/*-gap.md'
       - '.github/workflows/design-memory-gate.yml'
   workflow_dispatch:
 
@@ -235,6 +240,21 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/analise-regiao.mjs --selftest
+      # Fase 1 do RUNBOOK: <tela>.map.json — ponte design↔código persistente (Code-Connect-like).
+      # gerar-map deriva o esqueleto do gap.md (nunca fabrica linha); design-code-map-check valida
+      # âncoras no disco + detecta STALE via sha (protótipo re-exportou) + calcula a % de telas
+      # com mapping versionado (métrica gradeável do roadmap #1, estado-da-arte 2026-06-22).
+      - name: gerar-map selftest (Fase 1 — esqueleto do map.json)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/gerar-map.mjs --selftest
+      - name: design-code-map-check selftest (morde âncora quebrada + sha stale · libera íntegro/TODO)
+        if: always()
+        run: node scripts/governance/design-code-map-check.test.mjs
+      - name: design-code-map-check (advisory · report-only · cobertura + drift real)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/design-code-map-check.mjs --check --strict
 
   # ── ex-dtcg-equivalence.yml (Onda DTCG ATIVADA) ──────────────────────────────
   prove:

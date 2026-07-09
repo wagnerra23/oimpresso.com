@@ -8,7 +8,7 @@
 
 Rules path-scoped carregam **só quando** Claude toca arquivos do path declarado. Ideal pra: regras específicas de área (Modules/, Pages/, Migrations/, routes/, Commands/). Economia estimada: ~10-15k tokens iniciais por sessão típica.
 
-Ver dossier: [`memory/sessions/2026-05-15-arte-claude-rules-path-scoped.md`](../../memory/sessions/2026-05-15-arte-claude-rules-path-scoped.md) e ADR proposta [`memory/decisions/proposals/claude-rules-path-scoped.md`](../../memory/decisions/proposals/claude-rules-path-scoped.md).
+Ver ADR proposta [`memory/decisions/proposals/claude-rules-path-scoped.md`](../../memory/decisions/proposals/claude-rules-path-scoped.md). (O dossier de sessão 2026-05-15 foi purgado na auditoria de memória 2026-06-07 — a proposta preserva o conteúdo.)
 
 ## Rules ativas (Fase 3 — 2026-05-15)
 

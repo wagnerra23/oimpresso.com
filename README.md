@@ -54,7 +54,7 @@ php artisan migrate --seed
 
 ## Rodando testes
 
-> ⛔ **Testes NÃO rodam local nem no Hostinger — só no CT 100** (MySQL real, biz=1 dogfooding). Regra Tier 0 ([ADR 0062](memory/decisions/0062-separacao-runtime-hostinger-ct100.md)); o hook `block-test-fora-ct100.ps1` bloqueia `vendor/bin/pest`/`php artisan test` fora do CT 100.
+> ⛔ **Testes NÃO rodam local nem no Hostinger — só no CT 100** (MySQL real, biz=1 dogfooding). Regra Tier 0 ([ADR 0062](memory/decisions/0062-separacao-runtime-hostinger-ct100.md)); o hook `block-test-fora-ct100.mjs` (cross-plataforma) bloqueia `vendor/bin/pest`/`php artisan test` fora do CT 100.
 
 ```bash
 # Canônico — via Tailscale no container de staging do CT 100:

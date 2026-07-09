@@ -106,12 +106,23 @@ const spine = {
   }
 }
 
-// ---- IT5 — Benchmark (§11) tem linha de sessao ----------------------------
+// ---- IT5 — Benchmark (§11) tem linha de sessao E nao esta STALE ------------
 {
   const s = await read(spine.PROCESSO_MEMORIA_CC);
   // procura linha de tabela comecando com | YYYY-MM-DD na area do Benchmark
-  const rows = s ? [...s.matchAll(/^\|\s*\d{4}-\d{2}-\d{2}/gm)] : [];
-  add('IT5', true, rows.length > 0, rows.length ? (rows.length + ' linha(s) no log de tendencia') : 'sem medicao no Benchmark (Sobrevivencia #1)');
+  const rows = s ? [...s.matchAll(/^\|\s*(\d{4}-\d{2}-\d{2})/gm)] : [];
+  // Staleness (auditoria dos guias 2026-07-09): a versao anterior aceitava linha de
+  // QUALQUER data — benchmark parado 5+ semanas ficava VERDE pra sempre (o proprio
+  // "verde no vacuo" que o metodo condena). Agora a linha mais recente precisa ter
+  // <= N dias (default 30, tunavel via OIMPRESSO_BENCHMARK_STALE_DIAS).
+  const DIAS = Number(process.env.OIMPRESSO_BENCHMARK_STALE_DIAS) || 30;
+  const ultima = rows.map((m) => m[1]).sort().at(-1) || null;
+  const idade = ultima ? Math.round((Date.now() - Date.parse(ultima + 'T00:00:00Z')) / 86400000) : null;
+  const ok = rows.length > 0 && idade !== null && idade <= DIAS;
+  add('IT5', true, ok,
+    !rows.length ? 'sem medicao no Benchmark (Sobrevivencia #1)'
+    : ok ? (rows.length + ' linha(s), ultima ' + ultima + ' (' + idade + 'd)')
+    : ('benchmark STALE: ultima medicao ' + ultima + ' (' + idade + 'd > ' + DIAS + 'd) — rode o Benchmark do §11 e logue a linha'));
 }
 
 // ---- IT6 — DS-GUARD limpo nos arquivos canonicos do DS (ADVISORY) ---------
