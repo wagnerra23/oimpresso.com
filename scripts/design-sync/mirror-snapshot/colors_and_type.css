@@ -1,0 +1,423 @@
+/* =============================================================================
+   Office Impresso / Ponto WR2 — DESIGN SYSTEM v6 — design tokens
+   -----------------------------------------------------------------------------
+   "DS v6" = the git source-of-truth design system (ADR 0239 DS git SSOT,
+   ADR 0249 DS v6 naming, ADR 0300 token errata). Tokens are authored as
+   DTCG JSON (resources/css/tokens/*.tokens.json in the source repo) and compiled
+   by Style Dictionary into CSS. The values below are copied verbatim from that
+   generated output — do not invent values.
+
+   THREE token layers, mirrored from the repo:
+     1. @theme  (inertia)     — Tailwind v4 color/radius/motion utilities
+     2. foundations :root      — the Type RAMP (--fs-1..9), shadows, motion, atmo
+     3. .cockpit scope         — the operational shell's own palette
+                                 (--bg / --surface / --text / --accent / …),
+                                 IBM Plex Sans/Mono, plus dozens of domain hues
+
+   KEY FACTS
+     · PRIMARY IS PURPLE — `oklch(0.55 0.15 295)` (ADR 0190 "roxo médio
+       universal", ADR 0235). It is NOT the shadcn blue. Accent hue 295 is the
+       canon default; the cockpit Tweaks panel lets users re-hue it live.
+     · Operational shell font is **IBM Plex Sans** (mono: **IBM Plex Mono**).
+       The marketing/Tailwind layer falls back to the system sans stack.
+     · Color space is OKLCH throughout. Status semantics: success(green 162) /
+       warning(amber 70-75) / destructive(red 18-25) / info(blue 244), each with
+       a `-soft` (tinted bg) and `-fg` (readable text) companion.
+     · Everything has a dark counterpart, keyed by BOTH `.dark` and
+       `[data-theme="dark"]` (the cockpit sets data-theme on the shell root).
+     ============================================================================ */
+
+/* IBM Plex — the operational typeface. Marketing may stay on system sans.
+   SELF-HOSTED (DS v6): woff2 in assets/fonts/, latin subset (cobre PT-BR).
+   No CDN dependency — funciona offline e em print, sem FOUT do Google. */
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 400; font-display: swap; src: url('assets/fonts/ibm-plex-sans-400.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 500; font-display: swap; src: url('assets/fonts/ibm-plex-sans-500.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 600; font-display: swap; src: url('assets/fonts/ibm-plex-sans-600.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Sans'; font-style: normal; font-weight: 700; font-display: swap; src: url('assets/fonts/ibm-plex-sans-700.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('assets/fonts/ibm-plex-mono-400.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 500; font-display: swap; src: url('assets/fonts/ibm-plex-mono-500.woff2') format('woff2'); }
+@font-face { font-family: 'IBM Plex Mono'; font-style: normal; font-weight: 600; font-display: swap; src: url('assets/fonts/ibm-plex-mono-600.woff2') format('woff2'); }
+
+/* =============================================================================
+   LAYER 1 — @theme (Tailwind utilities). Light.  [_generated-inertia-theme.css]
+   ============================================================================ */
+:root {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Monaco, monospace;
+  --font-plex: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+
+  --duration-fast: 120ms;   /* @kind other */
+  --duration-base: 150ms;   /* @kind other */
+  --duration-slow: 240ms;   /* @kind other */
+  --duration-slower: 360ms; /* @kind other */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);  /* @kind other */
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);       /* @kind other */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);        /* @kind other */
+
+  --color-border: oklch(0.92 0.006 90);
+  --color-input: oklch(0.92 0.006 90);
+  --color-ring: oklch(0.137 0.036 258.5);
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.137 0.036 258.5);
+  --color-page-cream: oklch(0.985 0.003 90);
+  --color-page: oklch(0.985 0.003 90);
+
+  --color-primary: oklch(0.55 0.15 295);            /* ROXO — brand primary */
+  --color-primary-foreground: oklch(0.984 0.003 247.9);
+  --color-secondary: oklch(0.968 0.007 247.9);
+  --color-secondary-foreground: oklch(0.208 0.04 265.7);
+  --color-muted: oklch(0.97 0.004 90);
+  --color-muted-foreground: oklch(0.55 0.012 90);
+  --color-accent: oklch(0.968 0.007 247.9);
+  --color-accent-foreground: oklch(0.208 0.04 265.7);
+
+  --color-destructive: oklch(0.58 0.20 18);
+  --color-destructive-foreground: oklch(0.984 0.003 247.9);
+  --color-destructive-soft: oklch(0.97 0.02 18);
+  --color-destructive-fg: oklch(0.51 0.19 18);
+  --color-success: oklch(0.62 0.13 162);
+  --color-success-foreground: oklch(0.51 0.12 162);
+  --color-success-soft: oklch(0.97 0.02 162);
+  --color-success-fg: oklch(0.51 0.12 162);
+  --color-warning: oklch(0.70 0.13 75);
+  --color-warning-foreground: oklch(0.55 0.12 75);
+  --color-warning-soft: oklch(0.97 0.03 75);
+  --color-warning-fg: oklch(0.55 0.12 75);
+  --color-info: oklch(0.58 0.13 244);
+  --color-info-foreground: oklch(0.98 0 0);
+  --color-info-soft: oklch(0.97 0.02 244);
+  --color-info-fg: oklch(0.50 0.13 244);
+
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.137 0.036 258.5);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.137 0.036 258.5);
+
+  --color-brand-meta: hsl(215 89% 53%);
+  --color-brand-meta-hover: hsl(215 89% 48%);
+
+  /* Feature/Hero KPI plate (dark navy) — Vendas/Financeiro hero cards. */
+  --color-kpi-feature-bg: oklch(0.21 0.03 264);
+  --color-kpi-feature-bg-hi: oklch(0.23 0.03 264);
+  --color-kpi-feature-line: oklch(0.31 0.04 264);
+  --color-kpi-feature-fg: oklch(0.98 0 0);
+  --color-kpi-feature-fg-2: oklch(0.72 0.02 250);
+  --color-kpi-spark: oklch(0.80 0.10 295);
+
+  /* Avatar — deterministic 8-color palette (DS v4 canon · hash → c1..c8). */
+  --av-c1: oklch(0.62 0.13 255);
+  --av-c2: oklch(0.65 0.14 145);
+  --av-c3: oklch(0.68 0.13 60);
+  --av-c4: oklch(0.62 0.14 25);
+  --av-c5: oklch(0.60 0.10 280);
+  --av-c6: oklch(0.58 0.12 165);
+  --av-c7: oklch(0.62 0.13 320);
+  --av-c8: oklch(0.55 0.08 200);
+
+  /* Tipo de cadastro (PJ violeta · PF esmeralda). */
+  --color-tipo-pj: oklch(0.55 0.18 295);  --color-tipo-pj-soft: oklch(0.96 0.03 295);
+  --color-tipo-pf: oklch(0.55 0.14 155);  --color-tipo-pf-soft: oklch(0.96 0.03 155);
+
+  /* SLA freshness (atendimento / cobrança) — soft bg + readable fg. */
+  --color-sla-fresh: oklch(0.36 0.13 145);   --color-sla-fresh-soft: oklch(0.95 0.05 145);
+  --color-sla-aging: oklch(0.42 0.13 60);    --color-sla-aging-soft: oklch(0.96 0.05 60);
+  --color-sla-late: oklch(0.45 0.16 30);     --color-sla-late-soft: oklch(0.94 0.07 30);
+  --color-sla-expired: oklch(0.46 0.18 25);  --color-sla-expired-soft: oklch(0.94 0.06 25);
+
+  /* Atendimento channels (omnichannel inbox). */
+  --color-canal-email: oklch(0.20 0.10 280); --color-canal-email-soft: oklch(0.97 0.012 280);
+  --color-canal-ig: oklch(0.22 0.10 30);     --color-canal-ig-soft: oklch(0.97 0.012 30);
+  --color-canal-fb: oklch(0.20 0.10 250);    --color-canal-fb-soft: oklch(0.97 0.012 250);
+  --color-canal-ml: oklch(0.22 0.10 95);     --color-canal-ml-soft: oklch(0.97 0.012 95);
+
+  /* VIP accent (atendimento / cadastro) */
+  --vip: oklch(0.42 0.13 75);  --vip-soft: oklch(0.92 0.07 80);
+
+  /* ---- LAYER 2 — foundations :root  [_generated-foundations-light.css] ----
+     Type RAMP: the single source of font sizes. 9 steps. */
+  --fs-1: 10.5px;  /* caption / eyebrow uppercase */
+  --fs-2: 11.5px;  /* label · chip · hint */
+  --fs-3: 12.5px;  /* dense body (cells, drawer) */
+  --fs-4: 13.5px;  /* default body (= body) */
+  --fs-5: 15px;    /* section / card title */
+  --fs-6: 18px;    /* page subtitle */
+  --fs-7: 22px;    /* page h1 · medium KPI */
+  --fs-8: 28px;    /* large number */
+  --fs-9: 38px;    /* hero number */
+
+  --sh-1: 0 4px 14px -6px oklch(0.2 0.02 282 / .10), 0 1px 3px oklch(0.2 0.02 282 / .07);
+  --sh-2: 0 18px 50px -18px oklch(0.2 0.02 282 / .30), 0 4px 14px -6px oklch(0.2 0.02 282 / .16);
+  --ease: cubic-bezier(.22, 1, .36, 1);  /* @kind other */
+  --t-1: .15s;  /* @kind other */
+  --t-2: .3s;   /* @kind other */
+  /* atmosphere: the ERP's faint background bloom — purple top-right + blue bottom-left */
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.55 0.15 295 / .05), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.55 0.10 250 / .04), transparent 62%);  /* @kind other */
+
+  /* ---- Convenience + back-compat aliases (so the UI kits/previews that use
+     short token names keep working; all resolve to DS v6 --color-* tokens
+     and therefore flip correctly in dark mode). ---- */
+  --bg-page: var(--color-page);
+  --fg-1: var(--color-foreground);
+  --fg-2: var(--color-muted-foreground);
+  --fg-3: oklch(0.65 0.01 80);
+  --surface-1: var(--color-card);
+  --surface-2: var(--color-page);
+  --surface-3: var(--color-muted);
+  --border-1: var(--color-border);
+  --primary: var(--color-primary);
+  --primary-fg: var(--color-primary-foreground);
+
+  --bg: var(--color-background);
+  --fg: var(--color-foreground);
+  --card: var(--color-card);
+  --card-fg: var(--color-card-foreground);
+  --popover: var(--color-popover);
+  --popover-fg: var(--color-popover-foreground);
+  --secondary: var(--color-secondary);
+  --secondary-fg: var(--color-secondary-foreground);
+  --muted: var(--color-muted);
+  --muted-fg: var(--color-muted-foreground);
+  --accent: var(--color-accent);
+  --accent-fg: var(--color-accent-foreground);
+  --destructive: var(--color-destructive);
+  --destructive-fg: var(--color-destructive-foreground);
+  --border: var(--color-border);
+  --input: var(--color-input);
+  --ring: var(--color-ring);
+}
+
+/* =============================================================================
+   LAYER 1+2 — DARK  [_generated-inertia-dark.css + _generated-foundations-dark.css]
+   ============================================================================ */
+.dark,
+[data-theme="dark"] {
+  --color-border: oklch(0.34 0.008 240);
+  --color-input: oklch(0.34 0.008 240);
+  --color-ring: oklch(0.87 0.012 240);
+  --color-background: oklch(0.26 0.006 240);
+  --color-foreground: oklch(0.965 0.004 240);
+  --color-page-cream: oklch(0.26 0.006 240);
+  --color-page: oklch(0.137 0.036 258.5);
+
+  --color-primary: oklch(0.7 0.15 295);
+  --color-primary-foreground: oklch(0.205 0.009 240);
+  --color-secondary: oklch(0.235 0.010 240);
+  --color-secondary-foreground: oklch(0.965 0.004 240);
+  --color-muted: oklch(0.235 0.010 240);
+  --color-muted-foreground: oklch(0.74 0.008 240);
+  --color-accent: oklch(0.235 0.010 240);
+  --color-accent-foreground: oklch(0.965 0.004 240);
+
+  --color-destructive: oklch(0.55 0.17 18);
+  --color-destructive-foreground: oklch(0.965 0.004 240);
+  --color-destructive-soft: oklch(0.26 0.07 18);
+  --color-destructive-fg: oklch(0.74 0.13 18);
+  --color-success: oklch(0.68 0.13 162);
+  --color-success-foreground: oklch(0.78 0.11 162);
+  --color-success-soft: oklch(0.27 0.06 162);
+  --color-success-fg: oklch(0.78 0.11 162);
+  --color-warning: oklch(0.74 0.13 75);
+  --color-warning-foreground: oklch(0.80 0.10 75);
+  --color-warning-soft: oklch(0.27 0.06 75);
+  --color-warning-fg: oklch(0.80 0.10 75);
+  --color-info: oklch(0.66 0.13 244);
+  --color-info-foreground: oklch(0.20 0.02 244);
+  --color-info-soft: oklch(0.27 0.05 244);
+  --color-info-fg: oklch(0.78 0.11 244);
+
+  --color-kpi-feature-bg: oklch(0.238 0.02 264);
+  --color-kpi-feature-bg-hi: oklch(0.27 0.025 264);
+  --color-kpi-feature-line: oklch(0.34 0.03 264);
+  --color-kpi-feature-fg: oklch(0.98 0 0);
+  --color-kpi-feature-fg-2: oklch(0.70 0.02 250);
+  --color-kpi-spark: oklch(0.82 0.10 295);
+
+  --color-sla-fresh: oklch(0.84 0.13 145);   --color-sla-fresh-soft: oklch(0.275 0.05 145);
+  --color-sla-aging: oklch(0.84 0.13 60);    --color-sla-aging-soft: oklch(0.275 0.05 60);
+  --color-sla-late: oklch(0.84 0.16 30);     --color-sla-late-soft: oklch(0.30 0.07 30);
+  --color-sla-expired: oklch(0.84 0.16 25);  --color-sla-expired-soft: oklch(0.30 0.06 25);
+  --color-canal-email: oklch(0.92 0.06 280); --color-canal-email-soft: oklch(0.26 0.04 280);
+  --color-canal-ig: oklch(0.92 0.07 30);     --color-canal-ig-soft: oklch(0.26 0.04 30);
+  --color-canal-fb: oklch(0.92 0.06 250);    --color-canal-fb-soft: oklch(0.26 0.04 250);
+  --color-canal-ml: oklch(0.92 0.08 95);     --color-canal-ml-soft: oklch(0.26 0.05 95);
+
+  /* Tipo — dark (brighter fg + soft dark bg) */
+  --color-tipo-pj: oklch(0.82 0.12 295);  --color-tipo-pj-soft: oklch(0.30 0.06 295);
+  --color-tipo-pf: oklch(0.82 0.12 155);  --color-tipo-pf-soft: oklch(0.30 0.05 155);
+
+  --vip: oklch(0.84 0.13 75);  --vip-soft: oklch(0.275 0.07 80);
+
+  --color-card: oklch(0.30 0.008 240);
+  --color-card-foreground: oklch(0.965 0.004 240);
+  --color-popover: oklch(0.30 0.008 240);
+  --color-popover-foreground: oklch(0.965 0.004 240);
+
+  --sh-1: 0 4px 14px -6px rgba(0,0,0,.45), 0 1px 3px rgba(0,0,0,.3);
+  --sh-2: 0 18px 50px -18px rgba(0,0,0,.6), 0 4px 14px -6px rgba(0,0,0,.4);
+  --atmo: radial-gradient(1100px 600px at 82% -8%, oklch(0.26 0.07 295 / .28), transparent 60%),
+          radial-gradient(900px 520px at 8% 108%, oklch(0.24 0.05 250 / .22), transparent 62%);  /* @kind other */
+
+  --fg-3: oklch(0.55 0.01 80);
+}
+
+/* =============================================================================
+   LAYER 3 — .cockpit scope  [_generated-cockpit-light.css]
+   The operational shell's own palette. Telas pintam com estes tokens (--bg,
+   --surface, --text, --accent, …) + IBM Plex. Reproduced here so a standalone
+   page wrapped in <div class="cockpit"> renders exactly like the real app.
+   ============================================================================ */
+.cockpit {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --bg: oklch(0.985 0.003 90);
+  --bg-2: oklch(0.965 0.004 90);
+  --surface: #ffffff;
+  --border: oklch(0.90 0.004 90);
+  --border-2: oklch(0.93 0.004 90);
+  --text: oklch(0.22 0.01 80);
+  --text-dim: oklch(0.50 0.01 80);
+  --text-mute: oklch(0.65 0.01 80);
+
+  --accent: oklch(0.55 0.15 295);
+  --accent-2: oklch(0.62 0.15 295);
+  --accent-soft: oklch(0.95 0.04 295);
+  --accent-fg: #ffffff;
+
+  --pos: oklch(0.50 0.12 150);
+  --pos-soft: oklch(0.95 0.075 150);
+  --neg: oklch(0.55 0.18 25);
+  --neg-soft: oklch(0.955 0.055 25);
+  --warn: oklch(0.58 0.12 70);
+  --warn-soft: oklch(0.955 0.072 75);
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --row-h: 30px;  /* @kind spacing */
+  --shadow-pop: 0 6px 24px -8px rgba(0,0,0,.18), 0 2px 6px -2px rgba(0,0,0,.10);
+  --shadow-soft: 0 1px 2px rgba(0,0,0,.04);
+
+  /* Sidebar is DARK-FIXED in the real cockpit (Wagner: "menu fundo black").
+     Light-mode sidebar tokens shown; dark shell keeps a near-identical dark sidebar. */
+  --sb-bg: oklch(0.18 0.006 240);
+  --sb-bg-2: oklch(0.16 0.006 240);
+  --sb-border: oklch(0.28 0.008 240);
+  --sb-text: oklch(0.78 0.005 90);
+  --sb-text-dim: oklch(0.58 0.005 90);
+  --sb-text-hi: oklch(0.96 0.005 90);
+  --sb-hover: oklch(0.27 0.008 240);
+  --sb-active: oklch(0.32 0.008 240);
+
+  /* Domain hues (origin chips / SLA / kind / canal) — full set lives in
+     _generated-cockpit-light.css; the four most common kept here. */
+  --kind-customer: oklch(0.40 0.11 145);
+  --kind-supplier: oklch(0.42 0.12 60);
+  --kind-employee: oklch(0.40 0.08 250);
+  --kind-representative: oklch(0.40 0.12 290);
+
+  font-family: var(--font-sans);
+  color: var(--text);
+}
+
+.cockpit[data-theme="dark"] {
+  --bg: oklch(0.26 0.006 240);
+  --bg-2: oklch(0.23 0.006 240);
+  --surface: oklch(0.30 0.008 240);
+  --border: oklch(0.34 0.008 240);
+  --border-2: oklch(0.31 0.008 240);
+  --text: oklch(0.94 0.005 90);
+  --text-dim: oklch(0.72 0.005 90);
+  --text-mute: oklch(0.58 0.005 90);
+  --accent-soft: oklch(0.32 0.06 295);
+  --pos: oklch(0.74 0.14 150);
+  --neg: oklch(0.72 0.16 25);
+  --warn: oklch(0.80 0.13 75);
+}
+
+/* =============================================================================
+   SEMANTIC ELEMENT STYLES
+   Mirrors the look of pages built with AppShellV2 + the Type RAMP. Marketing
+   pages use the system sans; operational pages get IBM Plex via .cockpit.
+   ============================================================================ */
+html {
+  font-family: var(--font-sans);
+  color: var(--color-foreground);
+  background: var(--color-background);
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+body {
+  margin: 0;
+  font-size: var(--fs-4);
+  line-height: 1.45;
+  color: var(--color-foreground);
+  background: var(--color-background);
+}
+
+/* Display — marketing hero only. */
+.display, h1.display {
+  font-size: clamp(2.25rem, 5vw, 3.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+h1 { font-size: var(--fs-7); line-height: 1.2; letter-spacing: -0.02em; font-weight: 600; color: var(--fg-1); margin: 0; }
+h2 { font-size: var(--fs-6); line-height: 1.2; font-weight: 600; color: var(--fg-1); margin: 0; }
+h3 { font-size: var(--fs-5); line-height: 1.2; font-weight: 600; color: var(--fg-1); margin: 0; }
+h4, h5, h6 { font-size: var(--fs-4); font-weight: 600; color: var(--fg-1); margin: 0; }
+
+p { margin: 0 0 0.75em 0; color: var(--fg-1); font-size: var(--fs-4); line-height: 1.45; }
+p.muted, .text-muted { color: var(--fg-2); }
+
+/* eyebrow / KPI label — uppercase tracked, fs-1 */
+.eyebrow, .kpi-label {
+  font-size: var(--fs-1);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--fg-2);
+}
+
+/* tabular numerics for time/money — REP-P timestamps, KPI values, espelho */
+.tabular, .num, time, .kpi-value {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+a { color: var(--color-primary); text-decoration: none; transition: color var(--duration-base) var(--ease-standard); }
+a:hover { text-decoration: underline; text-underline-offset: 4px; }
+
+code, kbd, samp, pre, .mono { font-family: var(--font-mono); font-size: 0.92em; }
+code:not(pre code) {
+  background: var(--color-muted);
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+  color: var(--fg-1);
+}
+
+hr { border: 0; border-top: 1px solid var(--color-border); margin: 1.5rem 0; }
+::selection { background: var(--color-primary); color: var(--color-primary-foreground); }
+
+/* =============================================================================
+   UNIVERSAL KEYBOARD FOCUS (ADR canon: "Focus ring is universal").
+   The pure inline-styled components don't draw their own keyboard ring (only
+   form fields do), so this fulfils the documented contract for every focusable
+   control. Low specificity via :where() so consumers can override.
+   Form fields opt out — they paint their own accent halo on focus.
+   ============================================================================ */
+:where(button, a[href], [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.cockpit :where(button, a[href], [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline-color: var(--accent);
+}
