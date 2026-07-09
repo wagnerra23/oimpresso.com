@@ -1,6 +1,12 @@
-name: BRIEFING × Código (reporter advisory)
+name: Staleness reporters (BRIEFING + visual-comparison × código)
 
-# Sentinela de STALENESS de BRIEFING contra o CÓDIGO (não presence-gate).
+# Reporters de STALENESS contra o CÓDIGO (não presence-gate). DOIS eixos irmãos:
+#   · BRIEFING.md            × Modules/<X> ∪ Pages/<X>   (briefing-code-staleness.mjs)
+#   · <tela>-visual-comparison.md × inertia_target .tsx  (visual-comparison-staleness.mjs)
+# O 2º fecha o ÚLTIMO órfão de frescor do loop de design (Wagner 2026-07-09 "acho que
+# já está velho, quem atualiza?"): o comparativo visual só atualizava quando alguém
+# rodava a skill mwart-comparative; a Fase 5 do RUNBOOK esquecia dele. Mesmo núcleo
+# (classifyCodeStaleness reusado), alvo por-tela em vez de por-módulo.
 #
 # POR QUE (incidente-âncora 2026-07-03 / #3714): o BRIEFING do Compras ficou
 # "scaffold 05-21" por 41 dias / 18 commits enquanto o módulo virou grade 59 +
@@ -27,8 +33,10 @@ on:
       - 'resources/js/Pages/**'
       # … e quando a porta ou o próprio sentinela mudam.
       - 'memory/requisitos/**/BRIEFING.md'
+      - 'memory/requisitos/**/*-visual-comparison.md'
       - 'scripts/governance/briefing-code-staleness.mjs'
       - 'scripts/governance/briefing-code-staleness.test.mjs'
+      - 'scripts/governance/visual-comparison-staleness.mjs'
       - '.github/workflows/briefing-code-staleness.yml'
   schedule:
     # Segunda 06h40 BRT (09h40 UTC) — heartbeat semanal (após memory-health 06h30).
@@ -60,3 +68,9 @@ jobs:
       # Reporter: exit 0 SEMPRE. Emite ::warning:: por porta stale (visível no PR).
       - name: reporter BRIEFING × código (advisory)
         run: node scripts/governance/briefing-code-staleness.mjs
+      # Eixo 2 — visual-comparison × tela. Selftest hermético (bite/release do núcleo
+      # reusado) + reporter advisory (::warning:: por comparativo atrás da sua tela).
+      - name: self-test visual-comparison-staleness (bite/release · determinístico)
+        run: node scripts/governance/visual-comparison-staleness.mjs --selftest
+      - name: reporter visual-comparison × tela (advisory)
+        run: node scripts/governance/visual-comparison-staleness.mjs
