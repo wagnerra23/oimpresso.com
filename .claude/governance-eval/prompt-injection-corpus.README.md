@@ -26,7 +26,7 @@ gateado por máquina é o atrator Figma (`block-figma-without-optin.mjs`, nascid
 node .claude/governance-eval/prompt-injection-corpus.mjs
 ```
 `exit 0` = sem regressão do backstop (camada A). Gaps da camada B são reportados, não falham.
-Sem `pwsh`/`powershell` no host, os casos `.ps1` viram `SKIP` (nunca falso-pass).
+Os hooks do repo são `.mjs` (rodados com `node`, ver `settings.json`); o corpus os invoca direto.
 
 ## Segurança do próprio script
 As ações maliciosas são **strings** passadas ao STDIN de um hook (que só faz regex) — **nunca
