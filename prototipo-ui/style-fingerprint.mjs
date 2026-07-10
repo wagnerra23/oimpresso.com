@@ -277,10 +277,62 @@ export function comparar(fpA, fpB) {
   rows.push(...compararGrupos(fpA.compostos, fpB.compostos, chaveComposto, diffComposto));
   // Onda 3 — elevação por inventário (a sombra que o casamento-por-texto dos compostos enterra no SO).
   rows.push(...compararSombras(fpA.sombras, fpB.sombras));
+  // v2 (2026-07-10) — ícones por elemento rotulado (fecha o ponto cego "vetor só vê texto").
+  rows.push(...compararIcones(fpA.icones, fpB.icones));
   rows.sort((x, y) => x.veredito.localeCompare(y.veredito) || x.chave.localeCompare(y.chave));
   const tally = {};
   for (const r of rows) tally[r.veredito] = (tally[r.veredito] || 0) + 1;
   return { rows, tally, temaA: fpA.tema, temaB: fpB.tema };
+}
+
+// ── v2 (2026-07-10, mandato [W]) — ICONES: proto tem <svg> num elemento rotulado e a prod
+// tem o MESMO elemento (mesma chave tag|texto) sem svg ⇒ DIVERGE "ícone sumiu" (e vice-versa,
+// "ícone a mais"). Elemento ausente do outro lado NÃO entra aqui (já é SO_* da 1ª passada) —
+// só compara quando os DOIS lados têm o elemento, então o diff é de GLYPH, não de dado.
+// Capturas v1 (sem `icones`) ⇒ passada silenciosamente pulada (retrocompatível).
+export function compararIcones(iconesA = [], iconesB = []) {
+  const rows = [];
+  if (!iconesA.length || !iconesB.length) return rows; // captura v1 de um dos lados — sem base
+  const mapB = new Map(iconesB.map((i) => [chave(i), i]));
+  for (const a of iconesA) {
+    const b = mapB.get(chave(a));
+    if (!b) continue;
+    if ((a.svgs > 0) !== (b.svgs > 0)) {
+      rows.push({ veredito: 'DIVERGE', chave: 'ICONE ' + chave(a), campos: ['svgs: ' + a.svgs + ' → ' + b.svgs + (b.svgs === 0 ? '  (ícone SUMIU na captura B)' : '  (ícone só na captura B)')] });
+    }
+  }
+  return rows;
+}
+
+// ── v2 (2026-07-10, mandato [W]) — CLARO-NO-TEMA-DARK: superfícies com luminância alta numa
+// captura tema=dark. Categoria de triagem NÃO-DESCARTÁVEL: no round 1 da Unificado a máquina
+// ACHOU o rodapé branco (bgEfetivo rgb(255,255,255)) e a triagem humana descartou como ruído
+// de pareamento — o screenshot [W] provou que era bug real. Esta função tira a detecção do
+// julgamento humano: claro-no-dark é SEMPRE reportado como bloco próprio.
+export function ehClaro(cor) {
+  if (!cor) return false;
+  // claro = luminância alta E NEUTRO (branco/cinza-claro de verdade). Chip pastel de status
+  // (ex. oklch(0.96 0.05 145) — chroma 0.05) é design aprovado (#3391), NÃO token quebrado:
+  // exigir chroma baixo separa "rodapé branco vazado no dark" de "pill de status clarinha".
+  const ok = String(cor).match(/okl(?:ch|ab)\(\s*([\d.]+)\s+([\d.-]+)/);
+  if (ok) return parseFloat(ok[1]) >= 0.9 && Math.abs(parseFloat(ok[2])) < 0.03;
+  const rg = String(cor).match(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+  if (rg) {
+    const [r, g, b] = [+rg[1], +rg[2], +rg[3]];
+    return Math.min(r, g, b) >= 230 && (Math.max(r, g, b) - Math.min(r, g, b)) < 16;
+  }
+  return false;
+}
+export function clarosNoTema(fp) {
+  if (!fp || fp.tema !== 'dark') return [];
+  const out = [];
+  for (const e of (fp.elementos || [])) {
+    if (ehClaro(e.bgProprio) || ehClaro(e.bgEfetivo)) out.push({ tipo: 'elemento', chave: chave(e), cor: ehClaro(e.bgProprio) ? e.bgProprio : e.bgEfetivo });
+  }
+  for (const c of (fp.compostos || [])) {
+    if (ehClaro(c.bgProprio)) out.push({ tipo: 'card', chave: chaveComposto(c), cor: c.bgProprio });
+  }
+  return out;
 }
 
 // resumoCampos — HISTOGRAMA de qual PROPRIEDADE diverge mais entre os DIVERGE. É a
@@ -433,9 +485,19 @@ export function overlapConteudo(rotulos, protoTexts, minRotulos = 6, fracaoMin =
 // string que o modo --snippet imprime pro console/MCP. Fonte única: aqui.
 export const SNIPPET = String.raw`
 (() => {
-  // style-fingerprint SNIPPET v1 — rode com a página no tema desejado.
-  // Devolve JSON { tema, url, elementos: [...] } — salve num arquivo .json.
-  const TEMA = document.documentElement.getAttribute('data-theme') || 'light';
+  // style-fingerprint SNIPPET v2 — rode com a página no tema desejado.
+  // Devolve JSON { tema, url, elementos, ..., icones } — salve num arquivo .json.
+  // v2 (2026-07-10, mandato [W] "corrija a máquina pra pegar e igualar tudo"):
+  //  (a) TEMA lê também o .cockpit — o AppShellV2 seta data-theme LÁ, não no <html>;
+  //      a captura de prod reportava 'light' em sessão dark (empírico 2026-07-10).
+  //  (b) window.__ROOT__ (CSS selector, opcional) escopa a captura à REGIÃO da tela —
+  //      mata o ruído de shell/sidebar (~600 miss/célula na Unificado, página inteira).
+  //  (c) 6ª passada ICONES — inventário de <svg> por elemento rotulado: fecha o ponto
+  //      cego "vetor só vê texto" (ícones das tabs invisíveis ao compare; pego por
+  //      screenshot [W], não pela máquina — nunca mais).
+  const ROOT = (window.__ROOT__ && document.querySelector(window.__ROOT__)) || document;
+  const TEMA = (document.querySelector('.cockpit') && document.querySelector('.cockpit').getAttribute('data-theme'))
+    || document.documentElement.getAttribute('data-theme') || 'light';
   const vis = (el) => { const r = el.getBoundingClientRect(); return r.width > 4 && r.height > 4; };
   const bgEfetivo = (el) => {
     let n = el;
@@ -486,7 +548,7 @@ export const SNIPPET = String.raw`
       return linhas;
     } catch { return 0; }
   };
-  const alvos = [...document.querySelectorAll('button, a, th, small, label, h1, h2, h3, [role=tab], span, b')]
+  const alvos = [...ROOT.querySelectorAll('button, a, th, small, label, h1, h2, h3, [role=tab], span, b')]
     .filter((el) => vis(el) && el.childElementCount <= 2)
     .filter((el) => (el.textContent || '').trim().length >= 2);
   const vistos = new Set();
@@ -531,7 +593,7 @@ export const SNIPPET = String.raw`
   const transpD = (c) => !c || c === 'rgba(0, 0, 0, 0)' || c === 'transparent';
   const divisorias = [];
   const vistosD = new Set();
-  for (const el of document.querySelectorAll('*')) {
+  for (const el of ROOT.querySelectorAll('*')) {
     const r = el.getBoundingClientRect();
     if (r.width < 40 || r.height > 500 || !vis(el)) continue;
     const dc = getComputedStyle(el);
@@ -553,7 +615,7 @@ export const SNIPPET = String.raw`
   // Um container re-gapado/re-justificado vira SO_PROTO(velho)+SO_PROD(novo) — a causa fica visível.
   const containers = [];
   const vistosC = new Set();
-  for (const el of document.querySelectorAll('*')) {
+  for (const el of ROOT.querySelectorAll('*')) {
     const cs = getComputedStyle(el);
     const disp = cs.display;
     if (disp !== 'flex' && disp !== 'inline-flex' && disp !== 'grid' && disp !== 'inline-grid') continue;
@@ -577,7 +639,7 @@ export const SNIPPET = String.raw`
   // ancorados pelo texto AGREGADO normalizado (casados por posição no ambíguo, furo 4).
   const compostos = [];
   const vistosK = new Set();
-  for (const el of document.querySelectorAll('div, section, article, li, form, header, aside')) {
+  for (const el of ROOT.querySelectorAll('div, section, article, li, form, header, aside')) {
     if (el.childElementCount <= 2 || !vis(el)) continue; // <=2 já é 1ª passada
     const cs = getComputedStyle(el);
     const temSuperficie = bgProprio(el) !== 'none'
@@ -628,7 +690,7 @@ export const SNIPPET = String.raw`
   };
   const sombras = [];
   const vistosS = new Set();
-  for (const el of document.querySelectorAll('*')) {
+  for (const el of ROOT.querySelectorAll('*')) {
     const bs = getComputedStyle(el).boxShadow;
     if (!bs || bs === 'none' || !vis(el)) continue;
     const sig = elevSig(bs);
@@ -645,7 +707,23 @@ export const SNIPPET = String.raw`
   // 2026-07-08). Fica null a menos que a captura tenha sido gerada com "--snippet Mod/Tela", que
   // assa window.__ANCORA__ (resolvido por ancora.mjs) ANTES do snippet. O --compare exige que ela
   // bata com o charter. Sem isso, o proto x prod roda contra a fonte errada (ancora podre, 07-06/08).
-  return JSON.stringify({ tema: TEMA, url: location.pathname, ancora: (window.__ANCORA__ || null), elementos, divisorias, containers, compostos, sombras }, null, 1);
+  // ── 6ª passada — ICONES (v2): inventário de <svg> por elemento ROTULADO. Fecha o ponto
+  // cego "vetor só vê texto": ícone que some (tab sem ícone, botão que perdeu o glyph)
+  // vira diff mecânico em vez de depender de screenshot. Chave = tag|texto (a MESMA da
+  // 1ª passada) → o compare casa ícone com o elemento certo dos dois lados.
+  const icones = [];
+  const vistosI = new Set();
+  for (const el of ROOT.querySelectorAll('button, a, [role=tab], th, label, h1, h2, h3')) {
+    if (!vis(el)) continue;
+    const texto = (el.textContent || '').trim();
+    if (texto.length < 2) continue;
+    const n = el.querySelectorAll('svg').length;
+    const k = el.tagName.toLowerCase() + '|' + texto.replace(/\s+/g, ' ').slice(0, 60);
+    if (vistosI.has(k)) continue;
+    vistosI.add(k);
+    icones.push({ tag: el.tagName.toLowerCase(), texto, svgs: n });
+  }
+  return JSON.stringify({ tema: TEMA, url: location.pathname, ancora: (window.__ANCORA__ || null), elementos, divisorias, containers, compostos, sombras, icones }, null, 1);
 })()`;
 
 // ── selftest hermético (comparador provado pelos dois lados — L-31) ────────────
@@ -924,6 +1002,27 @@ function selftest() {
     if (!ok) fails++;
     console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
   }
+  // ── v2 (2026-07-10): ícones + claro-no-dark — os 2 furos do round Financeiro/Unificado.
+  const icoA = [{ tag: 'a', texto: 'Cobrança', svgs: 1 }, { tag: 'a', texto: 'Assinaturas', svgs: 1 }, { tag: 'button', texto: 'Salvar', svgs: 0 }];
+  const icoB = [{ tag: 'a', texto: 'Cobrança', svgs: 0 }, { tag: 'a', texto: 'Assinaturas', svgs: 1 }, { tag: 'button', texto: 'Salvar', svgs: 0 }];
+  const icoRows = compararIcones(icoA, icoB);
+  const fpDark = { tema: 'dark', elementos: [mk({ texto: 'Resolver', bgEfetivo: 'rgb(255, 255, 255)', bgProprio: 'rgb(255, 255, 255)' }), mk({})], compostos: [] };
+  const fpDarkOk = { tema: 'dark', elementos: [mk({})], compostos: [] };
+  const fpLight = { tema: 'light', elementos: [mk({ bgProprio: 'rgb(255, 255, 255)' })], compostos: [] };
+  for (const [label, got, exp] of [
+    ['v2 ícones: svg sumiu no lado B → DIVERGE', icoRows.length === 1 && icoRows[0].chave.includes('Cobrança'), true],
+    ['v2 ícones: captura v1 (sem icones) → passada pulada', compararIcones(undefined, icoB).length === 0, true],
+    ['v2 ehClaro: rgb branco → claro', ehClaro('rgb(255, 255, 255)'), true],
+    ['v2 ehClaro: oklch L=0.26 → não-claro', ehClaro('oklch(0.26 0.006 240)'), false],
+    ['v2 ehClaro: pastel cromático L=0.96 C=0.05 (chip status #3391) → não-claro', ehClaro('oklch(0.96 0.05 145)'), false],
+    ['v2 claro-no-dark: dark com bg branco → flagra', clarosNoTema(fpDark).length === 1, true],
+    ['v2 claro-no-dark: dark sem claro → vazio', clarosNoTema(fpDarkOk).length === 0, true],
+    ['v2 claro-no-dark: tema light → NUNCA flagra (branco é normal)', clarosNoTema(fpLight).length === 0, true],
+  ]) {
+    const ok = got === exp;
+    if (!ok) fails++;
+    console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
+  }
   console.log(`  resumo: ${Object.entries(tally).map(([k, v]) => `${k}=${v}`).join(' · ')}`);
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — comparador provado pelos dois lados.');
   process.exit(fails ? 1 : 0);
@@ -1019,11 +1118,21 @@ else if (argv.includes('--snippet')) {
       for (const r of tri.slice(0, 12)) console.log(`      [${r.veredito.replace('SO_', 'só ')}] ${r.chave}`);
       if (tri.length > 12) console.log(`      … +${tri.length - 12}`);
     }
+    // v2 — CLARO-NO-DARK (não-descartável): superfície clara em captura tema=dark do lado B
+    // (prod). Bloco próprio SEMPRE impresso quando existir — a triagem humana NÃO pode
+    // reclassificar isto como ruído (incidente 2026-07-10: rodapé branco descartado no round 1).
+    const claros = clarosNoTema(B);
+    if (claros.length) {
+      console.log(`\n  🚩 CLARO-NO-DARK — ${claros.length} superfície(s) clara(s) na captura dark do lado B (NÃO-descartável; provável token quebrado):`);
+      for (const c of claros.slice(0, 8)) console.log(`      [${c.tipo}] ${c.chave} · ${c.cor}`);
+      if (claros.length > 8) console.log(`      … +${claros.length - 8}`);
+    }
     // captioning-lite — o verdito em uma linha (direção 2026: semantic change captioning).
     console.log('\n  verdito: ' + veredictoNL(rows));
   }
   // furo 5 — falha o exit-code também quando há miss estrutural pra triar (não só DIVERGE).
-  process.exit(((tally.DIVERGE || 0) > 0 || triagemSO(rows).length > 0) ? 1 : 0);
+  // v2 — claro-no-dark também reprova (não dá pra "passar" com token quebrado no dark).
+  process.exit(((tally.DIVERGE || 0) > 0 || triagemSO(rows).length > 0 || clarosNoTema(B).length > 0) ? 1 : 0);
 } else {
   console.log('uso: --snippet [<Mod/Tela>] | --compare proto.json prod.json (--tela <Mod/Tela> | --sem-ancora <razão>) [--json] | --selftest');
 }
