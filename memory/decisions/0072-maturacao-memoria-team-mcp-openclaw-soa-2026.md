@@ -7,7 +7,7 @@ status: deprecated
 authority: canonical
 lifecycle: arquivado
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: copiloto
 quarter: 2026-Q2
 tags: [memoria, mcp, team-mcp, retrieval, governanca, roadmap]

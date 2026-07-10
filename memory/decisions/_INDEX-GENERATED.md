@@ -6,9 +6,9 @@
 
 ## Resumo
 - **339** arquivos · **323** números únicos · máx **0333**
-- **ADRs ATIVOS (lifecycle ativo): 308** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 305 · superseded 12 · deprecated 9 · proposto 9 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 308 · arquivado 15 · substituido 12 · (vazio) 4
+- **ADRs ATIVOS (lifecycle ativo): 305** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 305 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 305 · arquivado 18 · substituido 12 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -112,7 +112,7 @@ _(íntegra)_
 | 0071 | aceito | ativo | decision | Auditoria tools MCP 2026-05-05 — bugs descobertos + workarounds |
 | 0072 | deprecated | arquivado | decision | Maturação memória + Team MCP — gaps identificados vs OpenClaw/Mem0/Letta/Zep/A-M |
 | 0073 | superseded | substituido | decision | Team MCP P0 — skills e policies como entidades governadas (mcp_skills + mcp_poli |
-| 0074 | proposto | ativo | decision | P1 — Temporal validity bi-temporal: event-time vs system-time + time-travel quer |
+| 0074 | deprecated | arquivado | decision | P1 — Temporal validity bi-temporal: event-time vs system-time + time-travel quer |
 | 0075 | superseded | substituido | decision | Team MCP P0 v2 — UI gestão de skills estilo prompt-management (5 tabelas, 5 tela |
 | 0076 | aceito | ativo | decision | Skills V2 — DB é primary, git é destino auditável; drift por-skill (auto/manual/ |
 | 0077 | superseded | substituido | decision | MCP resolver via users.mcp_handle (SUPERSEDED por ADR 0081 — Identity Mesh) |
@@ -192,13 +192,13 @@ _(íntegra)_
 | 0150 | aceito | ativo | decision | KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso |
 | 0151 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Comissao como feature-wish — aguarda cliente que reporta dor real |
 | 0152 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto |
-| 0153 | proposto | ativo | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
+| 0153 | deprecated | arquivado | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
 | 0154 | aceito | ativo | decision | Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por |
 | 0155 | aceito | ativo | decision | module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability |
 | 0156 | aceito | ativo | decision | module-grade-v3 errata — D9.a regex inclui OtelHelper canônico + ratifica na_jus |
 | 0157 | aceito | ativo | decision | module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas |
 | 0158 | aceito | ativo | decision | module-grade-v3 — endurecimento heurística D1 (recursive + scope singular + Job  |
-| 0159 | proposto | ativo | decision | module-grade-v3 errata — realismo meta 97.75 (D5 cross-cutting / D9.b ready / D4 |
+| 0159 | deprecated | arquivado | decision | module-grade-v3 errata — realismo meta 97.75 (D5 cross-cutting / D9.b ready / D4 |
 | 0160 | aceito | ativo | decision | module-grade-v4 — Scoped Scorecards (Lens per Module Kind) com 4 buckets + meta  |
 | 0161 | aceito | ativo | decision | Governance v4 — aposentar 3 dos 4 hacks ADR 0159 redundantes com Scoped Scorecar |
 | 0162 | aceito | ativo | decision | OpenTelemetry Collector ativo em prod (CT 100) — destrava D6.b + D9.b governance |

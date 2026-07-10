@@ -3,11 +3,11 @@ slug: 0074-temporal-validity-bi-temporal-time-travel
 number: 0074
 title: "P1 — Temporal validity bi-temporal: event-time vs system-time + time-travel queries"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: copiloto
 quarter: 2026-Q2
 tags: [memoria, temporal, bi-temporal, retrieval, p1]
