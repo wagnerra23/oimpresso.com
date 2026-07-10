@@ -1,6 +1,6 @@
 ---
-distilled_at: "2026-07-01"
-distilled_by: jana:distill-module-truth
+distilled_at: "2026-07-09"
+distilled_by: "manual [CC] — re-verificação do destilado de 2026-07-01 (jana:distill-module-truth) contra o único evento novo do módulo: arquivamento do charter-ghost Os/Create como lápide L-22 (PR #4037, housekeeping — nenhuma capacidade/gap mudou)"
 module: OficinaAuto
 ---
 
@@ -24,7 +24,7 @@ O módulo "OficinaAuto" é focado na gestão de **oficinas de manutenção e rep
 (gaps conforme CAPTERRA-FICHA — nota scoped 63/100, meta ≥85)
 
 ## Última mudança  
-Em 2026-05-26 o domínio Martinho foi reclassificado de "locação caçamba" para **"mecânica pesada"** (ADR 0194); em 2026-06-09 a ADR 0265 **erradicou "locação" como conceito de domínio** (`order_type ∈ {manutencao, mecanica}` — regressão proibida catalogada). O módulo seguiu evoluindo até jul/2026 (ex.: OS tela única 2026-06-11, reconciliação de OS #3433, fix de routing #3488). Nota interna scoped (rubrica Capterra): 63/100, meta ≥85.
+Em 2026-05-26 o domínio Martinho foi reclassificado de "locação caçamba" para **"mecânica pesada"** (ADR 0194); em 2026-06-09 a ADR 0265 **erradicou "locação" como conceito de domínio** (`order_type ∈ {manutencao, mecanica}` — regressão proibida catalogada). O módulo seguiu evoluindo até jul/2026 (ex.: OS tela única 2026-06-11, reconciliação de OS #3433, fix de routing #3488). Em 2026-07-09 o charter-ghost `Pages/OficinaAuto/Os/Create.charter.md` (decisão [W] 2026-06-30: "não construir", canon = `ServiceOrders/`) foi arquivado como lápide L-22 em `_arquivo/` — fecha o resíduo da reconciliação de OS; nenhuma capacidade mudou. Nota interna scoped (rubrica Capterra): 63/100, meta ≥85.
 
 ## Proveniência (destilado de)
 
