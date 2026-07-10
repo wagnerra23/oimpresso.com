@@ -3,14 +3,14 @@ slug: 0319-product-truth-stream-adversario-modulo-analise
 number: 319
 title: "Product Truth (stream PT no roadmap SDD) — adversário refutador por módulo + refutador de análise de pedido"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
 decided_by: [W]
 decided_at: "2026-07-02"
-accepted_at: ""
-accepted_via: "PROPOSTA — origem: conversa Wagner 2026-07-02 ('quero saber se eu ja tenho os gaps por modulo? e se tenho um adversario refutador por modulo?' + 'notei que a ia tem um rendimento extraordinario se no processo de analise da solicitação tiver um adversario' + 'sim pode fazer'). Redação [CC]. Aguarda decisão Wagner."
+accepted_at: "2026-07-09"
+accepted_via: "Aceito o STREAM PT (Q1 da §Decisões pendentes) — greenlight Wagner 2026-07-02 ('sim pode fazer') + ratificação 2026-07-09 ('b ratifique ou apague', US-GOV-050 follow-up). As sub-decisões Q2-Q5 (armar métrica no GT-G3, R15 vs prática, cadência, sequenciamento pós-Onda 1) ficam ABERTAS/advisory-default por design — não bloqueiam; a seção '## Decisões Wagner pendentes' segue como tracker. Redação [CC]."
 module: governance
 quarter: 2026-Q3
 tags: [governance, sdd, adversarial, skeptic, product-truth, briefing, capterra, memoria, refutador, anti-teatro]
@@ -27,6 +27,8 @@ pii: false
 ---
 
 # ADR 0319 — Product Truth: adversário refutador por módulo (stream PT) + refutador de análise de pedido
+
+> Movido de proposals/ + flip proposto→aceito em 2026-07-09 (Wagner 'b ratifique ou apague', US-GOV-050 follow-up). **Escopo ratificado:** o CONCEITO do stream PT (Q1) — respaldado no greenlight 'sim pode fazer' (2026-07-02). Execução ainda NÃO iniciada (é "após aceite"); as 5 decisões da seção "## Decisões Wagner pendentes" seguem como tracker aberto — Q2-Q5 são advisory-default e não bloqueiam. Conteúdo original 100% intacto; ajustes SÓ de frontmatter (status/accepted_at/accepted_via). Aceite é reversível via supersede/deprecate se o stream não avançar.
 
 ## Contexto
 
