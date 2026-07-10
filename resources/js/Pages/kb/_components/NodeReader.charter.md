@@ -9,6 +9,7 @@ persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional gráfica (1280px balcão, ONDA 6+)
 charter_version: 1
 charter_at: 2026-05-16
+related_us: [US-KB-002]
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
   - 0093-multi-tenant-isolation-tier-0
@@ -125,4 +126,4 @@ it('rejects body_blocks payload when is_editable=false on store')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | Wave J | Charter draft criado pra conceito CRUD Node (governa controller + service + componentes). Pendente Wagner em Non-Goals + Anti-hooks pra `status: live`. |
-| 2026-07-09 | [CC] | Movido de `kb/Node.charter.md` → `kb/_components/NodeReader.charter.md` (lado do `.tsx` real que governa). Charter-conceito nunca teve página dedicada — a promoção do IT2 (integrity-check §15) a duro exige charter ao lado de tela viva. Conteúdo intacto; só links relativos reprofundados (+1 nível). Trilha L-22. |
+| 2026-07-09 | [CC] | Movido de `kb/Node.charter.md` → `kb/_components/NodeReader.charter.md` (lado do `.tsx` real que governa). Charter-conceito nunca teve página dedicada — a promoção do IT2 (integrity-check §15) a duro exige charter ao lado de tela viva. Conteúdo intacto; só links relativos reprofundados (+1 nível). Trilha L-22. `related_us: [US-KB-002]` declarado (charter-us-gate) — é a US do CRUD de artigo cuja âncora cita os mesmos `KbNodeController`/`KbArticleService`/`BlockRenderer` que este charter governa. |
