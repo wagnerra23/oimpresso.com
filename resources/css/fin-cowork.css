@@ -141,7 +141,8 @@
 .fin-cowork .fin-curadoria .fin-stat b {
   font-size: var(--fs-7);
   font-weight: 700;
-  font-family: ui-monospace, monospace;
+  /* FIX 4 fidelidade [W] 2026-07-10: KPIs em IBM Plex Mono (fonte do design). */
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
   color: var(--fin-text);
   letter-spacing: -0.01em;
 }
@@ -367,7 +368,10 @@
   height: 24px;
   border-radius: 4px;
   border: 1px solid var(--fin-line);
-  background: white;
+  /* Fidelidade [W] 2026-07-10 (fingerprint CLARO-NO-DARK): white chumbado vazava
+     barra clara no dark. var(--surface) segue o tema (.fin-cowork/.cockpit:
+     #fff light · oklch escuro dark) — proto usa var(--surface) no toggle. */
+  background: var(--surface, white);
   font-size: var(--fs-2);
   font-weight: 500;
   color: var(--fin-text-mute);
@@ -398,7 +402,7 @@
 }
 .fin-cowork .fin-curadoria .fin-density button {
   appearance: none;
-  background: white;
+  background: var(--surface, white); /* theme-aware (fidelidade [W] 2026-07-10) */
   border: 0;
   border-right: 1px solid var(--fin-line);
   padding: 4px 8px;
@@ -408,6 +412,12 @@
 }
 .fin-cowork .fin-curadoria .fin-density button:last-child { border-right: 0; }
 .fin-cowork .fin-curadoria .fin-density button.on { background: oklch(0.95 0.04 240); color: oklch(0.36 0.13 240); }
+/* Estado ON no dark (fidelidade [W] 2026-07-10): par claro/escuro na mesma família
+   dos origin-* dark do bundle (bg 0.30 0.07 h · fg 0.85 0.07 h). */
+.cockpit[data-theme="dark"] .fin-cowork .fin-curadoria .fin-density button.on {
+  background: oklch(0.30 0.07 240);
+  color: oklch(0.85 0.07 240);
+}
 .fin-cowork .fin-curadoria .fin-density button:hover { background: var(--fin-bg-soft); }
 /* Search visible */
 .fin-cowork .fin-curadoria .fin-search-wrap {
@@ -418,7 +428,7 @@
   height: 28px;
   border: 1px solid var(--fin-line);
   border-radius: 6px;
-  background: white;
+  background: var(--surface, white); /* theme-aware (fidelidade [W] 2026-07-10) */
   width: 240px;
 }
 .fin-cowork .fin-curadoria .fin-search-wrap input {
@@ -446,7 +456,11 @@
   margin: 12px 24px 16px;
   padding: 0 16px;
   height: 48px;
-  background: white;
+  /* Fidelidade [W] 2026-07-10 (fingerprint CLARO-NO-DARK): a barra rendia BRANCA
+     no dark (rgb 255,255,255 medido). Proto (financeiro-page.jsx FooterBar):
+     bg-[var(--surface)] + border var(--border) — faixa escura integrada no dark.
+     Light continua branco (--surface = #fff no tema claro). */
+  background: var(--surface, white);
   border: 1px solid var(--fin-line);
   border-radius: 6px;
   box-shadow: var(--sh-1);
@@ -468,7 +482,9 @@
   color: var(--fin-text);
 }
 .fin-cowork .fin-curadoria .fin-footer-tips .fin-footer-summary b {
-  font-family: ui-monospace, monospace;
+  /* FIX 4 fidelidade [W] 2026-07-10: design usa IBM Plex Mono (carregada via
+     <link> em layouts/inertia.blade.php) — ui-monospace só como fallback. */
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: var(--fin-text);
@@ -480,13 +496,21 @@
 }
 .fin-cowork .fin-curadoria .fin-footer-tips .spacer { flex: 1; }
 .fin-cowork .fin-curadoria .fin-footer-tips kbd {
-  font-family: ui-monospace, monospace;
+  font-family: "IBM Plex Mono", ui-monospace, monospace; /* FIX 4 [W] 2026-07-10 */
   font-size: var(--fs-1);
   padding: 1px 5px;
   border-radius: 3px;
-  background: white;
+  /* Proto usa var(--sunken) no kbd — equivalente cockpit é --bg-2 (theme-aware). */
+  background: var(--bg-2, oklch(0.965 0.004 90));
   border: 1px solid var(--fin-line);
   color: var(--fin-text);
+}
+
+/* FIX 4 fidelidade [W] 2026-07-10 — coluna Valor da tabela em IBM Plex Mono
+   (fonte mono do design; proto usa a classe `num` + var(--mono)). A célula
+   (Index.tsx) só tinha tabular-nums (herdava a sans). Fallback ui-monospace. */
+.fin-cowork .fin-curadoria td.fin-td-valor {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
 }
 
 /* ============================================================================
