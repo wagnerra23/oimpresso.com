@@ -25,6 +25,7 @@
 // corrida live proto×prod (com screenshot/relatório) é obrigatória antes de declarar "funciona
 // end-to-end" — igual o fingerprint sempre foi rodado à mão. Este arquivo não faz essa alegação.
 
+import { pathToFileURL } from 'node:url';
 import { comparar, veredictoNL, triagemSO, SNIPPET } from './style-fingerprint.mjs';
 
 export function chaveCelula(viewport, tema) { return `${viewport}|${tema}`; }
@@ -181,6 +182,11 @@ async function live(args) {
   } finally { await context.close(); await browser.close(); }
 }
 
+// Guard "sou o entrypoint?" (mesmo pattern do style-fingerprint Onda 3): render-proto-baseline
+// IMPORTA este módulo (chaveCelula/orquestrar) — sem o guard, o import dispararia live() com o
+// argv do importador.
+const ehEntrypoint = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 const argv = process.argv.slice(2);
-if (argv.includes('--selftest')) selftest();
+if (!ehEntrypoint) { /* importado como módulo: não roda CLI */ }
+else if (argv.includes('--selftest')) selftest();
 else live(parseArgs(argv));
