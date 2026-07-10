@@ -15,23 +15,23 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 84.5,
+      "value": 84.4,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 84.5,
+        "coverage_pct": 84.4,
         "specs_total": 59,
         "us_total": 960,
-        "anchor_coverage_pct": 84.5,
+        "anchor_coverage_pct": 84.4,
         "by_state": {
           "sem_campo": 149,
           "placeholder": 0,
           "pendente": 370,
-          "parcial": 118,
+          "parcial": 117,
           "anchored_ok": 323,
-          "anchored_dead": 0,
+          "anchored_dead": 1,
           "anchored_zombie": 0
         },
         "fields_total": 816,
@@ -41,7 +41,7 @@
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 264,
-        "req_sem_covering_test_total": 394,
+        "req_sem_covering_test_total": 393,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 42,
         "behavior_known": false,
@@ -57,40 +57,12 @@
       "stream": "SA"
     },
     "full_suite_pass_rate": {
-      "status": "measured",
-      "value": 291,
-      "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
+      "status": "not_yet_measured",
+      "value": null,
       "direction": "down",
       "target": 0,
-      "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
-      "detail": {
-        "floor_files_hash": "1670ada67b0e0424",
-        "runs": [
-          {
-            "sha": "20103e02",
-            "ts": "20260630-020001",
-            "failed": 352,
-            "errors": 796,
-            "skipped": 2700
-          },
-          {
-            "sha": "e5a62ae0",
-            "ts": "20260701-020001",
-            "failed": 336,
-            "errors": 784,
-            "skipped": 2789
-          },
-          {
-            "sha": "2dbdceed",
-            "ts": "20260706-020001",
-            "failed": 523,
-            "errors": 913,
-            "skipped": 2307
-          }
-        ],
-        "computed_at": "20260706-020001",
-        "intersection_of": 3
-      },
+      "source": "governance/nightly-floor.json ainda não publicado pelo write-side CT100 (ADR 0279 PR-2 — precisa de credencial de push no CT100). A nightly FV-F3 roda (15+ runs reais); falta o transporte.",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
     "n_quarantine": {
@@ -106,27 +78,12 @@
       "stream": "FV"
     },
     "coverage_pct": {
-      "status": "measured",
-      "value": 15,
-      "unit": "%",
+      "status": "not_yet_measured",
+      "value": null,
       "direction": "up",
       "target": "só sobe (catraca C2)",
-      "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
-      "detail": {
-        "covered": 35757,
-        "total": 238941,
-        "runs": [
-          {
-            "sha": "2dbdceed",
-            "ts": "20260706-020001",
-            "coverage_pct": 15,
-            "covered": 35757,
-            "total": 238941
-          }
-        ],
-        "computed_at": "20260706-020001",
-        "measured_of": 1
-      },
+      "source": "governance/nightly-coverage.json ainda não publicado pelo write-side CT100 (SDD P07 — pcov instrumentado em ct100-fullsuite.sh; falta rebuild da imagem com pcov + 1ª nightly). Hoje ci.yml roda coverage: none / --no-coverage no lane sqlite (fonte honesta é a suíte inteira CT100 — ADR 0275:68).",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "FV"
     },
     "sqlite_corruptors": {
@@ -168,8 +125,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 73,
-        "modules": 73
+        "with_door": 74,
+        "modules": 74
       },
       "stream": "MEM"
     },
@@ -183,39 +140,26 @@
       "stream": "MEM"
     },
     "ragas_real_uptime": {
-      "status": "measured",
-      "value": 100,
-      "unit": "%",
+      "status": "not_yet_measured",
+      "value": null,
       "direction": "up",
-      "target": 95,
-      "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
-      "detail": {
-        "weeks_expected": 1,
-        "weeks_valid": 1,
-        "first_scheduled": "2026-07-05",
-        "last_week": "2026-06-28",
-        "latest": {
-          "gate_status": "pass",
-          "n_evaluated": 51,
-          "faithfulness_avg": 0.7145,
-          "relevancy_avg": 0.8745,
-          "context_recall_avg": 0.3951
-        }
-      },
+      "target": "≥95%",
+      "source": "governance/ragas-real-trend.json ainda não publicado pelo write-side CT100 — jana:ragas-real-eval semanal (dom 07:00 BRT · CT 100 staging · ADR 0318; baseline honesto em governance/jana-ragas-real-baseline.json). Transporte: órfã governance/ragas-real-trend (write-side ct100-ragas-publish.sh · pattern nightly-floor ADR 0279); 1ª execução do cron 2026-07-05.",
+      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
       "stream": "MEM"
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 4,
+      "value": 0,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
-        "portas": 76,
+        "portas": 77,
         "carimbadas": 11,
-        "sem_carimbo": 65,
-        "stale": 4,
+        "sem_carimbo": 66,
+        "stale": 0,
         "oldest_distilled_at": "2026-07-01"
       },
       "stream": "MEM"
@@ -230,12 +174,17 @@
       "stream": "MEM"
     },
     "drift_alarms": {
-      "status": "not_yet_measured",
-      "value": null,
+      "status": "measured",
+      "value": 0,
+      "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
-      "source": "gh api indisponível — drift_alarms requer GITHUB_TOKEN (protection-drift.mjs lê branch protection). Fallback honesto: vira measured assim que o gh autenticar.",
-      "baseline_rule": "1ª medição real da fonte, nunca do plano (anti-stale)",
+      "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
+      "detail": {
+        "reds": [],
+        "warns": 2,
+        "verdict": "yellow"
+      },
       "stream": "GT"
     },
     "backfill_error_rate": {

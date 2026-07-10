@@ -22,7 +22,7 @@ prs: []
 
 ## Decisão proposta
 
-1. **Template canônico** [`memory/requisitos/_TEMPLATE_FEATURE/`](../../requisitos/_TEMPLATE_FEATURE/README.md)
+1. **Template canônico** [`memory/requisitos/_TEMPLATE_FEATURE/`](../../requisitos/_TEMPLATE_FEATURE/BRIEFING.md)
    — pasta `memory/requisitos/<Mod>/features/<slug>/` com o trio:
    - `requirements.md` — user story + acceptance criteria **EARS** (`AC-N`, cada um com forma de prova) + fora-de-escopo; frontmatter `us:` aponta pra US **existente** no SPEC (a pasta **detalha, aponta, nunca duplica** a decisão).
    - `plan.md` — decisões técnicas, plug-points (comparar-e-não-duplicar) e checklist de riscos Tier-0 (business_id · REGRA MESTRE valor/estoque · PII · casos-gate · runtime).

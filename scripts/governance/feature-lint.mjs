@@ -10,7 +10,7 @@
 //   2. blocked_by irresolvível/cíclico → "grafo" de dependência que nenhuma sessão consegue
 //      ordenar (ref quebrada ou ciclo) — o plano vira prosa.
 //
-// CONTRATO validado (ver _TEMPLATE_FEATURE/README.md):
+// CONTRATO validado (ver _TEMPLATE_FEATURE/BRIEFING.md):
 //   requirements.md  frontmatter `us:` aponta pra US EXISTENTE no ../../SPEC.md (detalha,
 //                    nunca duplica) + ≥1 acceptance criteria `- **AC-N**` únicos (EARS).
 //   plan.md          presente (conteúdo é revisão humana — lint só exige o arquivo).
@@ -224,7 +224,7 @@ if (isMain) {
   }
   if (!results.length) console.log('  (nenhuma feature-pasta em memory/requisitos/*/features/ — template em memory/requisitos/_TEMPLATE_FEATURE/)');
   console.log(`\n  ERROS (mordem em --check): ${erros} · AVISOS (advisory): ${avisos}`);
-  console.log('  Contrato: _TEMPLATE_FEATURE/README.md · done-ness da feature = âncora da US no SPEC (ADR 0273/0302), nunca este arquivo.\n');
+  console.log('  Contrato: _TEMPLATE_FEATURE/BRIEFING.md · done-ness da feature = âncora da US no SPEC (ADR 0273/0302), nunca este arquivo.\n');
 
   if (CHECK && erros > 0) process.exit(1);
   process.exit(0);
