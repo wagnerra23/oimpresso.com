@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// negocio-vs-governanca-ratio.mjs — o alarme anti-atrofia da inteligência de negócio (ADR 0334).
+// negocio-vs-governanca-ratio.mjs — o alarme anti-atrofia da inteligência de negócio.
+// (Doutrina do modelo de 3 camadas — a ADR que a documenta está em ratificação; o alarme vale por si.)
 //
 // Classifica os merges (first-parent) de origin/main numa janela em 3 baldes — NEGÓCIO (A+B),
 // GOVERNANÇA-META (C), INFRA — pelo escopo/keywords do conventional-commit, e emite WARN quando
@@ -12,7 +13,7 @@
 // Trend real medido 2026-07-10: mai 38% → jun 64% → jul 78% de governança = o crossover que ninguém ouviu.
 //
 // A classificação é transparente e keyword-based (auditável, não IA) — ver CLASSIF abaixo.
-// Regra de ouro (ADR 0334): a governança-meta serve o negócio; quando ela domina o FLUXO sem
+// Regra de ouro: a governança-meta serve o negócio; quando ela domina o FLUXO sem
 // sinal de cliente, a régua virou o produto. Este script mede o fluxo, não o estoque.
 
 import { execSync } from 'node:child_process'
@@ -105,7 +106,7 @@ function main() {
     console.log(`  ratio gov÷neg : ${r.ratio_gov_neg.toFixed(1)}×`)
     console.log(`  gov / (gov+neg): ${pct(r.share_governanca_relevante)}  (limiar WARN ${pct(a.warn)})`)
     if (alarme) {
-      console.log(`\n  ⚠️  ALARME (ADR 0334): governança domina o fluxo. A régua pode estar passando por sinal.`)
+      console.log(`\n  ⚠️  ALARME (anti-atrofia da inteligência de negócio): governança domina o fluxo. A régua pode estar passando por sinal.`)
       console.log(`      Cheque: há cycle ativo com goal de NEGÓCIO? Os PRs de governança citam sinal-de-cliente?`)
     } else {
       console.log(`\n  ✓ equilíbrio dentro do limiar.`)

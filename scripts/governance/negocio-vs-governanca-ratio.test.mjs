@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Self-test do alarme anti-atrofia (ADR 0334) — a catraca morde e libera certo, sem tocar git.
+// Self-test do alarme anti-atrofia da inteligência de negócio — a catraca morde e libera certo, sem tocar git.
 // Roda: node scripts/governance/negocio-vs-governanca-ratio.test.mjs
 import { classificar, agregar } from './negocio-vs-governanca-ratio.mjs'
 

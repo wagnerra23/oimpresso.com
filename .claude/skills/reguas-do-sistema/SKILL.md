@@ -37,12 +37,13 @@ Duas fases do ciclo **já são máquina contínua** (TRAVAR: gate-selftest/senti
 APONTAR: doc-freshness-score, adr-proposto-parado, DORA/outcome-metrics). Esta skill
 é a fase **MEDIR** — periódica, contra o mercado.
 
-## Os dois eixos que a grade mede (para não repetir o ponto cego)
+## Os três eixos que a grade mede (para não repetir o ponto cego)
 
-O array `DIMS` cobre **dois eixos** — não confundir:
+O array `DIMS` cobre **três eixos** — não confundir:
 
 1. **CONSTRUIR-E-GOVERNAR** (6 dims originais): spec/governança, design→código, memória/conhecimento, orquestração adversarial, evals-outcome (DORA/agente-DEV) e ERP-IA-produto.
 2. **RODAR-E-OBSERVAR** (4 dims add 2026-07-10): `observabilidade-agente`, `qualidade-drift-ia-producao` (a Jana viva em prod — distinta do outcome do agente-DEV), `seguranca-do-agente`, `custo-eficiencia`.
+3. **SERVIR-O-NEGÓCIO** (1 dim add 2026-07-10): `inteligencia-de-negocio` — o sistema serve o cliente/negócio (A+B) ou governa a si mesmo (C)? Inteligência de negócio embarcada (Jana-BI com dado real) + cliente-como-sinal (loop `client_signal→cycle_goal` vivo) + equilíbrio de fluxo negócio÷governança. **Foi o ponto cego** que o adversário `adversario-inteligencia-negocio` (2026-07-10) expôs — a grade media como se constrói e como se observa, mas não **pra quem** a energia trabalha. Fonte interna do equilíbrio: `scripts/governance/negocio-vs-governanca-ratio.mjs`. Doutrina anti-atrofia (ADR do modelo 3-camadas, em ratificação).
 
 Até 2026-07-10 a grade só media o eixo 1 — o loop de RODAR-E-OBSERVAR a IA que o sistema produz (a Jana em produção) nunca virava régua, apesar de o rastreador "FECHAR O LOOP DO IA-OS" listar 2 desses como P0 pendentes. Ponto cego registrado na **[ADR 0333](../../../memory/decisions/0333-emenda-0330-eixo-rodar-e-observar-submedido.md)** (emenda à 0330 — Propriedade 5 da doutrina [0329] fechando sobre a própria grade). **Isto só adiciona a MEDIÇÃO** — construir observabilidade/drift/gate é trabalho Tier-0 à parte (decisão de custo do Wagner).
 

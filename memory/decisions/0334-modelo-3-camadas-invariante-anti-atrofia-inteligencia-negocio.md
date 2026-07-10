@@ -127,8 +127,14 @@ prioriza, não coberto por este ADR):**
 5. **[memória→A] Descongelar `wr-comercial` como camada anticorrupção viva** pro Vestuario
    (único vertical em prod, com só 8 arquivos em requisitos).
 
-**Imediato (neste ADR):** a sentinela `negocio-vs-governanca-ratio.mjs` + self-test entram
-junto; wiring como workflow advisory semanal é o passo seguinte.
+**Imediato (neste ADR):**
+- a sentinela `negocio-vs-governanca-ratio.mjs` + self-test entram junto;
+- **a grade `reguas-do-sistema` ganha o eixo SERVIR-O-NEGÓCIO** (dim `inteligencia-de-negocio`)
+  — a régua que estava cega pra este ponto passa a medi-lo em toda rodada (era o que faltava
+  em "atualizar as réguas do projeto");
+- wiring do alarme como workflow advisory semanal (+ registro em `gates-registry`) é o passo
+  seguinte, **decisão de custo do Wagner** (não empilhar governança-meta sem seu ok — coerente
+  com o próprio invariante deste ADR).
 
 ## Verificação
 
