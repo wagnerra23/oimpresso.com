@@ -599,7 +599,24 @@ MANUAL §5 F7. Ligar visual-regression como gate (screen-grade/`design:review` j
 
 **Refs:** incidente #3420 · medição re-trabalho visual sessão 2026-07-10.
 
+### US-_DESIGNSYSTEM-036 · L2-v2: double-threshold (3-bandas) nos snapshots de estados isolados — pré-requisito do flip a enforcing
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: —
+
+- Contexto: 2ª tentativa de flip do L2 (estados isolados) a enforcing ABORTADA em 2026-07-10 (PR #4088). Evidência que matou: PR workflow-only (zero UI) falhou `oficina-os default+dark` no attempt 1 e `oficina-os×2 + compras` no re-run do MESMO SHA (run 29102940464) — assert binário do pest-plugin (`assertScreenshotMatches`, sem zona cinza) não segura o ruído de render run-a-run. O L1 (`PixelBaselineTest`, double-threshold L7) passou ESTÁVEL nos mesmos runs — a arquitetura certa já existe no repo (o docblock do teste já antecipava a v2 3-bandas).
+
+**Acceptance:**
+- [ ] Portar o double-threshold do `PixelBaselineTest` (pixelmatch GD + `VisregThreshold`, τ_baixo/τ_alto + diff-view artifact pra zona cinza) pro `IsolatedStatesBaselineTest`
+- [ ] Prova de reprodutibilidade: 3 runs consecutivos do MESMO SHA sem mudança de UI = verde estável (o teste que matou a v1)
+- [ ] Investigar/anotar a fonte do ruído de oficina-os e compras (relógio? fonte? ordenação?)
+- [ ] Flip a enforcing (padrão #3277/#3910) + prova contrafactual NÃO-contaminada (quebra dark de superfície real, ex. filter invert, exigindo VERMELHO)
+
+**Refs:** post-mortem [session 2026-07-10](../../sessions/2026-07-10-avaliacao-protocolo-design-code-gate-cego.md) · relacionada US-COM-021 (mesma causa raiz).
+
 ---
+
+**Última atualização (US-_DESIGNSYSTEM-036):** 2026-07-10 — L2-v2 double-threshold (p1, pré-requisito do flip abortado no #4088).
 
 **Última atualização (US-_DESIGNSYSTEM-035):** 2026-07-10 — Showcase no VRT L2 (adiamento registrado do pacote dark-enforcing; bloqueios rota superadmin + charter ausente mapeados).
 
