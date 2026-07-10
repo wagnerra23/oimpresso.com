@@ -15,23 +15,23 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 84.5,
+      "value": 84.4,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 84.5,
+        "coverage_pct": 84.4,
         "specs_total": 59,
         "us_total": 960,
-        "anchor_coverage_pct": 84.5,
+        "anchor_coverage_pct": 84.4,
         "by_state": {
           "sem_campo": 149,
           "placeholder": 0,
           "pendente": 370,
-          "parcial": 118,
+          "parcial": 117,
           "anchored_ok": 323,
-          "anchored_dead": 0,
+          "anchored_dead": 1,
           "anchored_zombie": 0
         },
         "fields_total": 816,
@@ -41,10 +41,13 @@
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 264,
-        "req_sem_covering_test_total": 394,
+        "req_sem_covering_test_total": 393,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 42,
         "behavior_known": false,
+        "servido_total": 0,
+        "nao_servido_total": 0,
+        "servido_ledger": false,
         "baseline_applied": null,
         "grandfathered": {
           "aceite": 0,
@@ -143,8 +146,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 268,
-        "effectively_guarded": 268
+        "with_manual_ddl": 269,
+        "effectively_guarded": 269
       },
       "stream": "FV"
     },
@@ -168,8 +171,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 73,
-        "modules": 73
+        "with_door": 74,
+        "modules": 74
       },
       "stream": "MEM"
     },
@@ -206,16 +209,16 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 4,
+      "value": 9,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
-        "portas": 76,
+        "portas": 77,
         "carimbadas": 11,
-        "sem_carimbo": 65,
-        "stale": 4,
+        "sem_carimbo": 66,
+        "stale": 9,
         "oldest_distilled_at": "2026-07-01"
       },
       "stream": "MEM"
