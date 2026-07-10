@@ -8,10 +8,18 @@
  * CONTEXTO ZERO acha mais fundo. Por construção este processo nasce sem contexto:
  * roda em CI, recebe SÓ o diff do PR + os artefatos de contrato do manifesto.
  *
+ * Pipeline: FINDER (1 chamada/grupo propõe candidatos) → trava de citação
+ * (determinística) → VERIFICAÇÃO POR LENTES DIVERSAS (N lentes cegas votam;
+ * sobrevive quem a maioria confirma). O finder acha; as lentes filtram o
+ * falso-positivo que a citação sozinha não pega (citação REAL, contradição
+ * inferida ERRADA). Padrão "perspective-diverse verify" (Workflow tool).
+ *
  * Ressalvas de projeto (obrigatórias, ver README.md):
  *   - crítica ancora em CONTRATO CITADO (charter/casos/gap/map) — nunca opinião estética;
  *   - achado cuja citação não existe LITERALMENTE no contrato é DESCARTADO em código
  *     (trava anti-alucinação determinística) e contado no rodapé — nada some calado;
+ *   - lentes e finder nascem CONTEXTO ZERO (só diff + contrato citado; nunca a árvore
+ *     nem a sessão que gerou o PR); voto ausente NÃO conta como confirma (fail-safe);
  *   - NÃO valida cobertura (isso é o casos-gate/ADR 0264) — valida COERÊNCIA do diff;
  *   - advisory por lei (ADR 0314: required só Tier-0). Achados nunca falham o job.
  *
@@ -29,6 +37,7 @@
  * de volume do repo, mas crítica de coerência pede o tier de raciocínio).
  */
 
+import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
@@ -90,6 +99,109 @@ const SCHEMA = {
   },
 };
 
+// ── VERIFICAÇÃO POR LENTES DIVERSAS (perspective-diverse verify) ──────────────
+// O finder PROPÕE (1 chamada/grupo). Cada achado candidato — já sobrevivente da
+// trava de citação — é então VERIFICADO por N lentes CEGAS entre si e contexto-
+// zero (só a citação + o hunk + a alegação, nunca a sessão nem os outros votos).
+// Sobrevive só o achado que a MAIORIA confirma. Ataca o falso-positivo que a
+// trava de citação NÃO pega: citação REAL, mas contradição INFERIDA errada (o
+// verificador silencioso que erra é o que mata a confiança — lição #4038).
+// Padrão "perspective-diverse verify" do próprio Workflow tool. Advisory (0314).
+
+const PREAMBULO_LENTE = `Você é um VERIFICADOR CEGO de UM achado de crítica de PR do ERP oimpresso (Laravel + Inertia/React), rodando em CI com CONTEXTO ZERO: não viu a sessão que gerou o diff, não viu os outros verificadores, não pode presumir intenção não escrita. Você recebe só três coisas: (a) uma CITAÇÃO literal do contrato da tela/módulo, (b) o TRECHO do diff, (c) a ALEGAÇÃO do finder de que o diff contradiz a citação. Julgue SÓ pela sua lente. Responda em PT-BR.`;
+
+/** As lentes — cada uma cega às outras, ângulo distinto de refutação. */
+export const LENTES = [
+  {
+    id: 'contradicao-literal',
+    rotulo: 'contradição literal',
+    system: `${PREAMBULO_LENTE}
+
+LENTE — contradição literal: o TRECHO DO DIFF realmente MUDA ou REMOVE o comportamento que a CITAÇÃO descreve? Se o hunk não toca no que a citação fala (a alegação é inferência sem base no diff mostrado), responda "refuta". Só "confirma" se o hunk literalmente altera/remove o que a citação declara.`,
+  },
+  {
+    id: 'regressao-vs-adicao',
+    rotulo: 'regressão vs adição',
+    system: `${PREAMBULO_LENTE}
+
+LENTE — regressão vs adição: a CITAÇÃO declara um INVARIANTE/fluxo que o diff QUEBRA (regressão real), ou o diff apenas ADICIONA/reorganiza algo que a citação NÃO proíbe? Só "confirma" se for regressão de um invariante ou caso de uso declarado. Adição neutra, refactor equivalente ou mudança que a citação não veda = "refuta".`,
+  },
+  {
+    id: 'advogado-do-diff',
+    rotulo: 'advogado do diff',
+    system: `${PREAMBULO_LENTE}
+
+LENTE — advogado do diff (cético contra falso-positivo): seu trabalho é DEFENDER o diff. Existe uma leitura plausível em que o diff é COERENTE com a citação? Na dúvida, responda "refuta". Só "confirma" se, mesmo tentando defender o diff, ele CLARAMENTE contradiz a citação.`,
+  },
+];
+
+/** Nº mínimo de "confirma" (de LENTES.length) pra um achado sobreviver. Maioria. */
+export const MIN_CONFIRMA = 2;
+/** Teto de achados verificados por grupo (custo). Excedente vai como não-verificado. */
+export const MAX_VERIFICAR = 8;
+
+const VOTO_SCHEMA = {
+  type: 'json_schema',
+  schema: {
+    type: 'object',
+    additionalProperties: false,
+    required: ['veredito', 'razao'],
+    properties: {
+      veredito: { type: 'string', enum: ['confirma', 'refuta'] },
+      razao: { type: 'string', description: 'por que confirma/refuta, 1-2 frases ancoradas no diff+citação' },
+    },
+  },
+};
+
+/**
+ * Agregação de votos (PURA — testada bite/release). Recebe a lista de votos
+ * ({veredito}) e devolve o veredito final. Falta de voto (lente que morreu na
+ * rede) NÃO conta como confirma — fail-safe contra falso-positivo. Sobrevive só
+ * com confirma >= minConfirma.
+ */
+export function agregarVotos(votos, { minConfirma = MIN_CONFIRMA } = {}) {
+  const validos = (votos || []).filter((v) => v && (v.veredito === 'confirma' || v.veredito === 'refuta'));
+  const confirma = validos.filter((v) => v.veredito === 'confirma').length;
+  const refuta = validos.filter((v) => v.veredito === 'refuta').length;
+  return { confirma, refuta, votos_validos: validos.length, min_confirma: minConfirma, sobrevive: confirma >= minConfirma };
+}
+
+/** Prompt de UMA lente pra UM achado — só citação + hunk + alegação (contexto zero). */
+export function montarPromptLente(achado, hunk) {
+  const t = trunca(hunk || '[sem hunk no diff para este arquivo]', CORTE_DIFF, achado.arquivo);
+  return [
+    `## CITAÇÃO DO CONTRATO (${achado.contrato})`,
+    `“${achado.citacao_contrato}”`,
+    '',
+    `## TRECHO DO DIFF (${achado.arquivo})`,
+    '```diff',
+    t.texto,
+    '```',
+    '',
+    `## ALEGAÇÃO DO FINDER`,
+    achado.achado,
+    '',
+    'Confirma ou refuta a alegação, só pela sua lente?',
+  ].join('\n');
+}
+
+/** Roda as N lentes (cegas entre si) sobre um achado; devolve votos + agregação. */
+async function verificarAchado(cfg, achado, hunk) {
+  const userContent = montarPromptLente(achado, hunk);
+  const votos = [];
+  for (const lente of LENTES) {
+    const r = await chamarAgente(cfg, {
+      system: lente.system,
+      schema: VOTO_SCHEMA,
+      userContent,
+      // recusa do provider = voto ausente (fail-safe: não vira "confirma")
+      vazioSeRecusa: (m) => ({ veredito: 'refuta', razao: `recusa do provider tratada como refuta (${m})` }),
+    });
+    votos.push({ lente: lente.id, rotulo: lente.rotulo, veredito: r.veredito, razao: r.razao });
+  }
+  return { votos, agg: agregarVotos(votos) };
+}
+
 function argVal(flag, def = null) {
   const i = process.argv.indexOf(flag);
   return i !== -1 ? process.argv[i + 1] : def;
@@ -148,7 +260,14 @@ async function comRetry(nome, fazer) {
   throw new Error(`${nome}: 3 tentativas esgotadas (429/5xx)`);
 }
 
-async function chamarAnthropic(modelo, userContent) {
+/** OpenAI json_schema strict exige TODAS as props em `required` — deriva a variante. */
+function comTodasRequired(schemaObj) {
+  const clone = structuredClone(schemaObj);
+  clone.required = Object.keys(clone.properties || {});
+  return clone;
+}
+
+async function chamarAnthropic(modelo, { system, schema, userContent, vazioSeRecusa }) {
   const msg = await comRetry('Anthropic API', () => fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -160,22 +279,19 @@ async function chamarAnthropic(modelo, userContent) {
       model: modelo,
       max_tokens: 16000,
       thinking: { type: 'adaptive' },
-      system: SYSTEM,
-      output_config: { format: SCHEMA },
+      system,
+      output_config: { format: schema },
       messages: [{ role: 'user', content: userContent }],
     }),
   }));
-  if (msg.stop_reason === 'refusal') return { achados: [], observacao: 'chamada recusada pelos classifiers (stop_reason=refusal)' };
+  if (msg.stop_reason === 'refusal') return vazioSeRecusa('stop_reason=refusal');
   if (msg.stop_reason === 'max_tokens') console.log('[critica] AVISO: stop_reason=max_tokens — resposta pode estar truncada');
   const texto = (msg.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
   return JSON.parse(texto);
 }
 
-async function chamarOpenAI(modelo, userContent) {
-  // response_format json_schema strict exige TODAS as props em required — a
-  // variante estrita torna `observacao` obrigatória (pode vir vazia).
-  const schemaStrict = structuredClone(SCHEMA.schema);
-  schemaStrict.required = ['achados', 'observacao'];
+async function chamarOpenAI(modelo, { system, schema, userContent, vazioSeRecusa }) {
+  const schemaStrict = comTodasRequired(schema.schema);
   const msg = await comRetry('OpenAI API', () => fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -186,21 +302,32 @@ async function chamarOpenAI(modelo, userContent) {
       model: modelo,
       max_tokens: 8000,
       messages: [
-        { role: 'system', content: SYSTEM },
+        { role: 'system', content: system },
         { role: 'user', content: userContent },
       ],
-      response_format: { type: 'json_schema', json_schema: { name: 'pr_critic_achados', strict: true, schema: schemaStrict } },
+      response_format: { type: 'json_schema', json_schema: { name: 'pr_critic_saida', strict: true, schema: schemaStrict } },
     }),
   }));
   const escolha = msg.choices && msg.choices[0];
   if (!escolha) throw new Error('OpenAI API: resposta sem choices');
   if (escolha.finish_reason === 'length') console.log('[critica] AVISO: finish_reason=length — resposta pode estar truncada');
-  if (escolha.message.refusal) return { achados: [], observacao: `chamada recusada (refusal): ${escolha.message.refusal}` };
+  if (escolha.message.refusal) return vazioSeRecusa(`refusal: ${escolha.message.refusal}`);
   return JSON.parse(escolha.message.content);
 }
 
-function chamarAgente(cfg, userContent) {
-  return cfg.provider === 'anthropic' ? chamarAnthropic(cfg.modelo, userContent) : chamarOpenAI(cfg.modelo, userContent);
+/** Chamada genérica de agente (finder ou lente) — o `system`+`schema` vêm de fora. */
+function chamarAgente(cfg, opts) {
+  return cfg.provider === 'anthropic' ? chamarAnthropic(cfg.modelo, opts) : chamarOpenAI(cfg.modelo, opts);
+}
+
+/** Finder: 1 chamada por grupo (SYSTEM+SCHEMA do critic). Recusa → sem achados. */
+function chamarFinder(cfg, userContent) {
+  return chamarAgente(cfg, {
+    system: SYSTEM,
+    schema: SCHEMA,
+    userContent,
+    vazioSeRecusa: (m) => ({ achados: [], observacao: `chamada recusada (${m})` }),
+  });
 }
 
 function montarPromptGrupo(grupo, conteudoPorContrato, diffPorArquivo) {
@@ -228,8 +355,38 @@ function montarPromptGrupo(grupo, conteudoPorContrato, diffPorArquivo) {
 }
 
 const EMOJI = { alta: '🔴', media: '🟠', baixa: '🟡' };
+export const MARCADOR_DADOS = '<!-- pr-critic-data:';
 
-export function montarComentario({ resultados, semContrato, descartadosCap, totalDescartadosCitacao, totalTruncados, modelo }) {
+/** ID estável de um achado (pra casar depois no medidor de precisão). */
+export function idAchado(a) {
+  return createHash('sha1').update(`${a.arquivo}|${a.contrato}|${normaliza(a.citacao_contrato || '')}`).digest('hex').slice(0, 12);
+}
+
+/** Resumo do voto pra exibição: "✓ 2/3 lentes (refuta: advogado do diff)". */
+function resumoVoto(a) {
+  if (!a.votos || !a.votos.length) return null;
+  const confirma = a.votos.filter((v) => v.veredito === 'confirma');
+  const refuta = a.votos.filter((v) => v.veredito === 'refuta');
+  const cauda = refuta.length ? ` (refuta: ${refuta.map((v) => v.rotulo).join(', ')})` : '';
+  return `✓ ${confirma.length}/${a.votos.length} lentes${cauda}`;
+}
+
+/**
+ * Bloco machine-readable EMBUTIDO no comentário — o registro durável por-PR que
+ * o medidor de precisão (precisao.mjs) lê depois (o comentário persiste no gh pra
+ * sempre; não depende de artifact que expira). Só os achados SOBREVIVENTES entram.
+ */
+export function montarBlocoDados({ resultados, modelo }) {
+  const achados = [];
+  for (const r of resultados) {
+    for (const a of r.achados) {
+      achados.push({ id: idAchado(a), arquivo: a.arquivo, severidade: a.severidade, verificado: !!(a.votos && a.votos.length) });
+    }
+  }
+  return `${MARCADOR_DADOS} ${JSON.stringify({ v: 1, modelo, achados })} -->`;
+}
+
+export function montarComentario({ resultados, semContrato, descartadosCap, totalDescartadosCitacao, totalDescartadosVoto = 0, totalNaoVerificados = 0, totalTruncados, modelo }) {
   const linhas = [MARCADOR, '## 🧿 pr-critic — coerência diff × contrato (advisory)', ''];
   const totalAchados = resultados.reduce((n, r) => n + r.achados.length, 0);
   if (totalAchados === 0) {
@@ -239,7 +396,9 @@ export function montarComentario({ resultados, semContrato, descartadosCap, tota
     if (!r.achados.length) continue;
     linhas.push(`### ${r.grupo}`, '');
     for (const a of r.achados) {
-      linhas.push(`- ${EMOJI[a.severidade] || '⚪'} **${a.severidade}** · \`${a.arquivo}\` · confiança ${a.confianca}`);
+      const voto = resumoVoto(a);
+      const selo = voto ? ` · ${voto}` : (a.verificado === false ? ' · ⚠️ não verificado (teto de custo)' : '');
+      linhas.push(`- ${EMOJI[a.severidade] || '⚪'} **${a.severidade}** · \`${a.arquivo}\` · confiança ${a.confianca}${selo}`);
       linhas.push(`  ${a.achado}`);
       linhas.push(`  > contrato [\`${a.contrato}\`]: “${a.citacao_contrato.slice(0, 300)}”`);
       linhas.push('');
@@ -248,12 +407,15 @@ export function montarComentario({ resultados, semContrato, descartadosCap, tota
   linhas.push('---', '<details><summary>Como ler / limites deste critic</summary>', '');
   linhas.push(`- **Advisory** (ADR 0314 — required só Tier-0): achados NÃO bloqueiam o merge; são insumo pro review humano.`);
   linhas.push(`- Critic roda com **contexto zero** (só diff + contratos) e só pode apontar o que o **contrato cita** — não valida cobertura (casos-gate) nem estética.`);
+  linhas.push(`- Cada achado passa por **${LENTES.length} lentes cegas** (${LENTES.map((l) => l.rotulo).join(' · ')}); sobrevive quem a maioria (≥${MIN_CONFIRMA}) confirma — reduz falso-positivo sem perder recall.`);
   linhas.push(`- Grupos analisados: ${resultados.length} · sem contrato (não analisados): ${semContrato.length ? semContrato.map((g) => `\`${g.id}\``).join(', ') : 'nenhum'}.`);
   if (descartadosCap.length) linhas.push(`- ⚠️ Cortados pelo teto de grupos (NÃO analisados): ${descartadosCap.map((g) => `\`${g.id}\``).join(', ')}.`);
   if (totalDescartadosCitacao) linhas.push(`- ${totalDescartadosCitacao} achado(s) descartado(s) pela trava de citação (âncora não encontrada literalmente no contrato).`);
+  if (totalDescartadosVoto) linhas.push(`- ${totalDescartadosVoto} achado(s) descartado(s) pelas lentes (maioria refutou — provável falso-positivo).`);
+  if (totalNaoVerificados) linhas.push(`- ${totalNaoVerificados} achado(s) exibido(s) SEM verificação por lentes (teto de ${MAX_VERIFICAR}/grupo) — trate com cautela.`);
   if (totalTruncados) linhas.push(`- ${totalTruncados} artefato(s)/diff(s) truncado(s) por limite de custo — cobertura parcial nesses pontos.`);
-  linhas.push(`- Modelo: \`${modelo}\` · mecanismo: \`scripts/pr-critic/\` (roteamento determinístico + agente).`);
-  linhas.push('', '</details>');
+  linhas.push(`- Modelo: \`${modelo}\` · mecanismo: \`scripts/pr-critic/\` (roteamento determinístico + finder + lentes).`);
+  linhas.push('', '</details>', '', montarBlocoDados({ resultados, modelo }));
   return linhas.join('\n');
 }
 
@@ -287,32 +449,61 @@ async function main() {
 
   const resultados = [];
   let totalDescartadosCitacao = 0;
+  let totalDescartadosVoto = 0;
+  let totalNaoVerificados = 0;
   let totalTruncados = 0;
   for (const grupo of manifesto.grupos) {
     const { prompt, truncados } = montarPromptGrupo(grupo, conteudoPorContrato, diffPorArquivo);
     totalTruncados += truncados;
-    console.log(`[critica] ${grupo.id} — chamando ${cfg.provider}:${cfg.modelo} (${Math.round(prompt.length / 1024)}KB de prompt)`);
-    const resposta = await chamarAgente(cfg, prompt);
+    console.log(`[critica] ${grupo.id} — finder ${cfg.provider}:${cfg.modelo} (${Math.round(prompt.length / 1024)}KB de prompt)`);
+    const resposta = await chamarFinder(cfg, prompt);
     const { validos, descartados } = filtrarPorCitacao(resposta.achados || [], conteudoPorContrato);
     if (descartados.length) console.log(`[critica]   ${descartados.length} achado(s) descartado(s) pela trava de citação`);
     totalDescartadosCitacao += descartados.length;
-    resultados.push({ grupo: grupo.id, achados: validos, observacao: resposta.observacao || null });
+
+    // ── verificação por lentes diversas (só nos candidatos citação-válidos) ──
+    const sobreviventes = [];
+    for (let i = 0; i < validos.length; i++) {
+      const a = validos[i];
+      if (i >= MAX_VERIFICAR) {
+        // teto de custo: exibe sem verificar, nunca some calado nem promove calado
+        totalNaoVerificados++;
+        sobreviventes.push({ ...a, verificado: false });
+        continue;
+      }
+      const hunk = diffPorArquivo.get(a.arquivo);
+      const { votos, agg } = await verificarAchado(cfg, a, hunk);
+      console.log(`[critica]   lentes «${(a.achado || '').slice(0, 60)}…» → ${agg.confirma}/${votos.length} confirma ⇒ ${agg.sobrevive ? 'MANTÉM' : 'descarta'}`);
+      if (agg.sobrevive) sobreviventes.push({ ...a, verificado: true, votos });
+      else totalDescartadosVoto++;
+    }
+    resultados.push({ grupo: grupo.id, achados: sobreviventes, observacao: resposta.observacao || null });
   }
 
   const achadosPath = join(outDir, 'achados.json');
-  writeFileSync(achadosPath, JSON.stringify({ modelo: `${cfg.provider}:${cfg.modelo}`, resultados, descartados_citacao: totalDescartadosCitacao }, null, 2) + '\n');
+  writeFileSync(achadosPath, JSON.stringify({
+    modelo: `${cfg.provider}:${cfg.modelo}`,
+    lentes: LENTES.map((l) => l.id),
+    min_confirma: MIN_CONFIRMA,
+    resultados,
+    descartados_citacao: totalDescartadosCitacao,
+    descartados_voto: totalDescartadosVoto,
+    nao_verificados: totalNaoVerificados,
+  }, null, 2) + '\n');
 
   const comentario = montarComentario({
     resultados,
     semContrato: manifesto.sem_contrato || [],
     descartadosCap: manifesto.descartados || [],
     totalDescartadosCitacao,
+    totalDescartadosVoto,
+    totalNaoVerificados,
     totalTruncados,
     modelo: `${cfg.provider}:${cfg.modelo}`,
   });
   writeFileSync(join(outDir, 'comentario.md'), comentario + '\n');
   const total = resultados.reduce((n, r) => n + r.achados.length, 0);
-  console.log(`[critica] ${total} achado(s) confirmado(s) por citação · saída em ${outDir}/`);
+  console.log(`[critica] ${total} achado(s) sobrevivente(s) (após citação + ${LENTES.length} lentes) · ${totalDescartadosVoto} refutado(s) por voto · saída em ${outDir}/`);
 }
 
 if (process.argv[1] && import.meta.url.endsWith(basename(process.argv[1]))) {
