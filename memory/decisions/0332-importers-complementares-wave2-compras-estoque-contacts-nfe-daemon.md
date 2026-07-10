@@ -1,13 +1,16 @@
 ---
-slug: 0204-importers-complementares-wave2-compras-estoque-contacts-nfe-daemon
-number: 204
+slug: 0332-importers-complementares-wave2-compras-estoque-contacts-nfe-daemon
+number: 332
 title: "Importers complementares Wave 2 (compras/estoque/contacts-NFe-fornecedores/daemon-sync) + reflexão arqueológica · amends ADR 0197 + 0198 + 0203"
 type: adr
-status: proposed
+status: aceito
 authority: canonical
 lifecycle: ativo
+kind: decision
 decided_by: [W]
 decided_at: "2026-05-27"
+accepted_at: "2026-05-27"
+accepted_via: "Trabalho EXECUTADO e merjado: #1765 (pipeline canônico 0203, Felipe Wave 29-1) + #1766 (importers complementares Wave 2 deste ADR — cherry-pick dos 6 importers + 2 updates v0.2.0 + docs). Ratificação (flip proposed→aceito + saída de proposals/) autorizada por Wagner 2026-07-09 ('b ratifique ou apague', US-GOV-050 follow-up); número 204 preservado."
 module: officeimpresso
 tags: [migracao-legacy, python-standalone, importers-complementares, daemon-sync-experimental, sync-checkpoint, anti-pattern, arqueologia, wave2]
 supersedes: []
@@ -32,11 +35,13 @@ related:
   - 0203-legacy-migration-pipeline-firebird-oimpresso-w29
 ---
 
-# ADR 0204 — Importers complementares Wave 2 + reflexão arqueológica
+# ADR 0332 — Importers complementares Wave 2 + reflexão arqueológica
+
+> **Renumerado 0204→0332 + movido de proposals/ + flip proposed→aceito em 2026-07-09** (Wagner 'b ratifique ou apague', US-GOV-050 follow-up). **Motivo do renumber:** o número 204 pertence ao [ADR 0204 — WhatsApp whatsmeow Go driver](0204-whatsmeow-driver-substituto-baileys.md) (aceito, canônico) — este ADR era uma colisão pré-existente escondida em proposals/. Regra ADR 0028/0304: renumera o novato, não toca o legado; nenhum outro ADR referencia o slug antigo. Conteúdo original 100% intacto (só frontmatter slug/number/status + heading + esta nota). Referências históricas a "ADR 0204" no corpo abaixo (execução 2026-05-27) eram ESTE ADR. O trabalho já estava executado e merjado (#1765 + #1766) — o flip só formaliza o registro. Os links `NNNN-*.md` (sem `../`), quebrados enquanto o arquivo vivia em proposals/, passam a resolver pros ADRs-irmãos no top-level.
 
 ## Status
 
-`proposed` 2026-05-27 — Complementa [ADR 0203](0203-legacy-migration-pipeline-firebird-oimpresso-w29.md) (pipeline canônico Wave 29-1 entregue pelo Felipe). Atende pedido Wagner "consolide as memórias, organize e tome a decisão de salvar o padrão" — Wave 2 cobre importers que ADR 0203 não atacou + reflexão sobre origem biz=164 + 5 branches órfãs catalogadas.
+`proposed` 2026-05-27 (ratificado `aceito` 2026-07-09 — ver nota acima) — Complementa [ADR 0203](0203-legacy-migration-pipeline-firebird-oimpresso-w29.md) (pipeline canônico Wave 29-1 entregue pelo Felipe). Atende pedido Wagner "consolide as memórias, organize e tome a decisão de salvar o padrão" — Wave 2 cobre importers que ADR 0203 não atacou + reflexão sobre origem biz=164 + 5 branches órfãs catalogadas.
 
 ## Contexto
 
