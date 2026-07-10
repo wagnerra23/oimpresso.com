@@ -49,7 +49,9 @@ on:
       - 'scripts/governance/design-code-map-check.test.mjs'
       - 'prototipo-ui/gerar-map.mjs'
       - 'memory/requisitos/**/*.map.json'
+      - 'memory/requisitos/**/*.proto-baseline.json'
       - 'memory/requisitos/**/*-gap.md'
+      - 'prototipo-ui/render-proto-baseline.mjs'
       - '.github/workflows/design-memory-gate.yml'
   workflow_dispatch:
 
@@ -255,6 +257,21 @@ jobs:
         if: always()
         continue-on-error: true
         run: node scripts/governance/design-code-map-check.mjs --check --strict
+      # PROTO-BASELINE (roubo #7, régua Applitools Eyes): o design renderizado vira baseline
+      # versionado (<tela>.proto-baseline.json) e a prod é comparada contra a INTENÇÃO, não só
+      # contra o próprio passado. FRONTEIRA ADR 0290: o RENDER roda LOCAL (--gerar recusa sob CI,
+      # exit 4 — render pareado em CI passa verde quando os 2 lados quebram); AQUI só roda o
+      # --check HERMÉTICO sobre o JSON commitado: schema + âncora re-resolvida do charter
+      # (ancora.mjs, ADR 0326) + freshness por prototipo_sha (padrão do map.json — proto
+      # re-exportou = STALE). Selftest hard (a suite que valida o gate não pode mentir);
+      # check advisory de nascença (ADR 0271/0275/0314 — nunca required sem reabrir a 0314).
+      - name: render-proto-baseline selftest (morde stale/âncora/vazio · libera íntegro · fronteira 0290)
+        if: always()
+        run: node prototipo-ui/render-proto-baseline.mjs --selftest
+      - name: proto-baseline check (advisory · hermético — âncora + freshness dos baselines commitados)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/render-proto-baseline.mjs --check
 
   # ── ex-dtcg-equivalence.yml (Onda DTCG ATIVADA) ──────────────────────────────
   prove:

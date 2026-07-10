@@ -79,7 +79,7 @@ const BUILD_PATS = ['*.jsx', '*.tsx', '*.ts', '*.js', '*.mjs', '*.css', '*.html'
 // ── acha a RAIZ real do bundle — o zip abre em `<slug>/project/`, NÃO em `project/` no topo;
 //    assumir `destino/project` aninha o slug inteiro (bug 2026-07-01). Marca FORTE = host+app juntos;
 //    ordena os candidatos (determinístico) e avisa em ambiguidade em vez de first-wins cego (adv A3).
-function acharBundleRoot(destino) {
+export function acharBundleRoot(destino) {
   const forte = (d) => existsSync(join(d, 'oimpresso.com.html')) && existsSync(join(d, 'app.jsx'));
   const fraco = (d) => existsSync(join(d, 'oimpresso.com.html')) || existsSync(join(d, 'app.jsx'));
   let subs = [];
