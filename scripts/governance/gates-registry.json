@@ -38,7 +38,7 @@
       "anchor": "sinal de custo: decisão Wagner 2026-07-05 ('o software deve amadurecer e se tornar vivo por módulo') — hoje Wagner é o único agregador/despachante manual da frota (234 telas, 25 casos.md); arte memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.3-§3.6 + roadmap SDD stream MV (MV2). Determinístico zero-LLM; NUNCA cria task/merge (publication-policy); nunca entra em required (lei ADR 0314)."
     },
     "briefing-code-staleness.yml": {
-      "nome": "BRIEFING × Código (reporter advisory · porta atrás da superfície Modules+Pages · eixo code-vs-doc que faltava · sentinela briefing-code-staleness.mjs + self-test)",
+      "nome": "Staleness reporters (advisory · 4 eixos: BRIEFING×código briefing-code-staleness.mjs · visual-comparison×tela visual-comparison-staleness.mjs · ADR pendente adr-proposto-parado.mjs · RADAR de frescor por doc doc-freshness-score.mjs score 0-100 Dosu, agregador/Roubo #5 · todos com self-test bite/release)",
       "classe": "automacao",
       "terminal": "automacao",
       "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required."

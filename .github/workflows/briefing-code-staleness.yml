@@ -1,8 +1,10 @@
 name: Staleness reporters (BRIEFING + visual-comparison × código)
 
-# Reporters de STALENESS contra o CÓDIGO (não presence-gate). DOIS eixos irmãos:
+# Reporters de STALENESS (não presence-gate). QUATRO eixos irmãos:
 #   · BRIEFING.md            × Modules/<X> ∪ Pages/<X>   (briefing-code-staleness.mjs)
 #   · <tela>-visual-comparison.md × inertia_target .tsx  (visual-comparison-staleness.mjs)
+#   · ADR pendente de ratificação                        (adr-proposto-parado.mjs)
+#   · RADAR de frescor por doc — score 0-100 Dosu        (doc-freshness-score.mjs · agregador)
 # O 2º fecha o ÚLTIMO órfão de frescor do loop de design (Wagner 2026-07-09 "acho que
 # já está velho, quem atualiza?"): o comparativo visual só atualizava quando alguém
 # rodava a skill mwart-comparative; a Fase 5 do RUNBOOK esquecia dele. Mesmo núcleo
@@ -40,6 +42,15 @@ on:
       - 'scripts/governance/adr-proposto-parado.mjs'
       - 'memory/decisions/**'
       - '.github/workflows/briefing-code-staleness.yml'
+      # … e no PR que toca docs do corpus do eixo 4 (radar de frescor por doc).
+      - 'CLAUDE.md'
+      - 'README.md'
+      - 'memory/*.md'
+      - 'memory/requisitos/**/SPEC.md'
+      - 'memory/requisitos/**/RUNBOOK*.md'
+      - 'prototipo-ui/*.md'
+      - 'scripts/governance/doc-freshness-score.mjs'
+      - 'scripts/governance/knowledge-drift.mjs'
   schedule:
     # Segunda 06h40 BRT (09h40 UTC) — heartbeat semanal (após memory-health 06h30).
     - cron: '40 9 * * 1'
@@ -84,3 +95,12 @@ jobs:
         run: node scripts/governance/adr-proposto-parado.mjs --selftest
       - name: reporter ADR pendente de ratificação (advisory)
         run: node scripts/governance/adr-proposto-parado.mjs
+      # Eixo 4 — RADAR de frescor POR DOC (Roubo #5 · régua Dosu: score 0-100 composto
+      # determinístico — idade × churn-dos-paths-citados × refs quebradas × claims
+      # aterradas). AGREGADOR, não dente: os eixos 1-3 + knowledge-drift/memory-health
+      # seguem mandando a ação; este ranqueia ONDE olhar (::warning nos 5 piores).
+      # Ghost-check IMPORTADO do knowledge-drift.mjs (export + IS_MAIN guard), sem duplicar.
+      - name: self-test doc-freshness-score (bite/release · determinístico)
+        run: node scripts/governance/doc-freshness-score.mjs --selftest
+      - name: reporter radar de frescor por doc (advisory — top-5 piores em ::warning)
+        run: node scripts/governance/doc-freshness-score.mjs
