@@ -1,17 +1,16 @@
 ---
-slug: 2026-07-09-grade-reguas-map-json-dora-hooks
-title: "Grade das réguas: ponte Code Connect + evals DORA + hook cross-platform + 3 sessões paralelas"
-type: session
-status: live
-authority: reference
-module: _Governanca
-created: 2026-07-09
-related_prs: [4020, 4021, 4022, 4023, 4024, 4025]
-related_docs:
-  - prototipo-ui/RUNBOOK-aplicar-prototipo-orquestracao.md
-  - scripts/governance/agent-pr-outcomes.mjs
-  - .claude/hooks/block-test-fora-ct100.mjs
-  - memory/handoffs/2026-07-09-2356-grade-reguas-6prs-3sessoes.md
+date: "2026-07-09"
+hour: "23:56 BRT"
+topic: "Grade das réguas (dossiê): ponte Code Connect + evals de outcome DORA + hook Tier-0 cross-platform + 3 sessões paralelas spawnadas"
+authors: [C]
+outcomes:
+  - "Card #2 Ponte design→código FECHADO: 3 eixos de mapa deconflitados (component-registry=Code Connect real · cowork-map=arquivo · <tela>.map.json=região) + mecanismo gerar-map/design-code-map-check + âncora estável data-contract no lado vivo"
+  - "Card #0 Evals de outcome (0→~5): agent-pr-outcomes.mjs DORA dos PRs do agente (change-failure/accept/time-to-merge via gh, brief semanal); smoke real 20 PRs → CFR 7.1%"
+  - "Card #2 Enforcement cross-platform (2→7): porte block-test-fora-ct100 .ps1→.mjs pattern-setter (roda em Linux, guard correção≠invocação)"
+  - "IT5 benchmark stale 38d destravado (§11 logado) → advisory governance script tests verde de novo"
+  - "3 sessões paralelas spawnadas (fingerprint-gate/critic-loop/hooks-restantes) via create_trigger+fire, branches isoladas auto-shepherd"
+prs: [4020, 4021, 4022, 4023, 4024, 4025]
+related_adrs: [0271-revisao-gates-ci-estado-real-required-e-subtracao-segura, 0062-separacao-runtime-hostinger-ct100, 0226-daily-brief]
 ---
 
 # Sessão 2026-07-09 — Grade das réguas (dossiê) → 6 PRs + 3 sessões paralelas
