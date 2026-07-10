@@ -54,7 +54,7 @@ Assim o espelho volta a bater com o git. (É a direção legítima "read-mostly 
 ---
 
 ## Sentinela de drift (P2, opcional)
-O mesmo `ds-token-diff.mjs` rodado periodicamente (cron/CI advisory) **avisa** quando design e git separarem — sem bloquear. Promover a gate required só depois de estável (política [ADR 0314](../../memory/decisions/proposals/0314-poda-gates-onda-2-lei-fusoes.md): required = só Tier-0).
+O mesmo `ds-token-diff.mjs` rodado periodicamente (cron/CI advisory) **avisa** quando design e git separarem — sem bloquear. Promover a gate required só depois de estável (política [ADR 0314](../../memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md): required = só Tier-0).
 
 ## Anti-padrões
 - ❌ `design→git` em massa sem rodar o diff + triagem (regride git com token stale).

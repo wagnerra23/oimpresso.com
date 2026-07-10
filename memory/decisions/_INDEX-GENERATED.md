@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **335** arquivos · **319** números únicos · máx **0331**
-- **ADRs ATIVOS (lifecycle ativo): 313** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 285 · proposto 34 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 313 · substituido 12 · arquivado 6 · (vazio) 4
+- **336** arquivos · **320** números únicos · máx **0331**
+- **ADRs ATIVOS (lifecycle ativo): 314** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 286 · proposto 34 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 314 · substituido 12 · arquivado 6 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (335)
+## Todas as ADRs (336)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -359,6 +359,7 @@ _(íntegra)_
 | 0311 | aceito | ativo | decision | frescor consolidado em --sla-* (escala temporal única) — emenda ao D4 da ADR 031 |
 | 0312 | aceito | ativo | decision | decisions-search volta ao FULLTEXT — hybrid de docs desligado (embedder qwen3 ex |
 | 0313 | aceito | ativo | decision | Financeiro — barra de abas (subnav) UNIFICADA fiel ao protótipo Cowork (supersed |
+| 0314 | aceito | ativo | decision | Poda de gates onda 2 — LEI definitiva (required que mordem), fusões F1-F5 e dele |
 | 0315 | aceito | ativo | decision | /design-sync (claude.ai/design) vs. método Cowork+charter: avaliação de adoção + |
 | 0316 | aceito | ativo | decision | Esquecimento real de ADR morta — git rm + tombstone ledger + git history como au |
 | 0317 | aceito | ativo | meta | Máquina de revisão de ADR — quando rever, via 3 classes de gatilho (evento/incon |
