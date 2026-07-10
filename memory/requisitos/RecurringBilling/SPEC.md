@@ -1061,7 +1061,7 @@ Refina/separa o `InterPixCobDriver` mencionado em US-RB-047 num `InterPixCobranc
 > blocked_by: —
 > parent_plan: recurring-billing-gateway-ativacao
 
-**Implementado em:** _pendente_ — task de dados em voo (ativar gateway nas assinaturas com `gateway=NULL`); não há comando/backfill idempotente construído pra atribuição de gateway + reativação da régua
+**Implementado em:** `Modules/RecurringBilling/Services/GatewayBackfillService.php` + `Modules/RecurringBilling/Console/Commands/BackfillGatewayCommand.php` (`rb:backfill-gateway {biz}` — default dry-run) + `Modules/RecurringBilling/Tests/Feature/GatewayBackfillServiceTest.php` — **parcial**: atribuição de gateway construída (fail-closed: exige credencial ativa; Cora 403 sem driver = bloqueada); execução real + reativação da régua de emissão pendem decisão [W] (Tier 0 dinheiro) — hoje nenhum código de produção cria ChargeAttempt (gap catalogado no PR do backfill)
 
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`

@@ -132,6 +132,7 @@ class RecurringBillingServiceProvider extends ServiceProvider
                 \Modules\RecurringBilling\Console\Commands\RecurringHealthCommand::class,
                 \Modules\RecurringBilling\Console\Commands\BackfillCachedFieldsCommand::class,
                 \Modules\RecurringBilling\Console\Commands\GenerateInvoicesCommand::class,
+                \Modules\RecurringBilling\Console\Commands\BackfillGatewayCommand::class,
             ]);
         }
     }
