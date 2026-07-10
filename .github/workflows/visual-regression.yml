@@ -92,10 +92,15 @@ jobs:
       - name: Modo de execução (ui efetivo)
         id: mode
         run: |
+          # FIX 2026-07-10: o else referenciava steps.MODE.outputs.ui (auto-referência do
+          # próprio step = sempre vazio) em vez de steps.CHANGES.outputs.ui (o paths-filter).
+          # Efeito: TODO pull_request pulava o caminho pesado (pixel L1, L2, Tier0 render, axe)
+          # desde #3933 (2026-07-07) — gate required verde sem rodar teste nenhum. Achado pela
+          # prova contrafactual do PR #4089 (dark quebrado de propósito passou VERDE via skip).
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "ui=true" >> "$GITHUB_OUTPUT"
           else
-            echo "ui=${{ steps.mode.outputs.ui }}" >> "$GITHUB_OUTPUT"
+            echo "ui=${{ steps.changes.outputs.ui }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Skip-as-pass (nada de UI mudou)
@@ -302,15 +307,20 @@ jobs:
       # tests/Browser/visreg-states.json (empty/loading/dark/error) vira baseline — o estado é
       # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
       # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
-      # mesmo princípio não-invasivo do L3). SEGUE ADVISORY (2026-07-06): a tentativa de flip a
-      # enforcing (PR #3910) DESMASCAROU que 3 baselines estão STALE vs o render atual —
-      # financeiro-unificado default+dark (4 PRs de mudança APROVADA nos últimos 2 dias: filtro
-      # segmentado #3886, rótulo "Recebi/Paguei" #3887, primary roxo #3885, D-14 #3889) +
-      # compras default. NÃO é regressão — é baseline velha vs fix aprovado. Enforcing só DEPOIS
-      # de refrescar as .snap com aprovação [W] (F1.5, olhar o screenshot — não congelar bug).
-      # `continue-on-error` mantido SÓ neste step. Refrescar: `npm run visreg:states:update` (CI)
-      # + [W] revisa o artifact `pixel-snapshots`. O lint L2 (charter⇄manifesto) acima JÁ é enforcing.
-      - name: Snapshots de estados isolados (ADVISORY — L2 · 3 baselines stale, aguarda F1.5)
+      # mesmo princípio não-invasivo do L3).
+      # SEGUE ADVISORY — 2ª TENTATIVA DE FLIP ABORTADA (2026-07-10). O bloqueio de 06/jul
+      # (baselines stale) foi resolvido (#4081/#4086 refrescaram tudo incl. caixa-unificada),
+      # MAS o flip desmascarou problema mais fundo: o assert binário do pest-plugin
+      # (assertScreenshotMatches, sem zona cinza) é NÃO-REPRODUZÍVEL run-a-run — evidência:
+      # PR #4088 (workflow-only, ZERO mudança de UI) falhou oficina-os default+dark
+      # (run 29102940464 attempt 1) e no re-run do MESMO SHA falhou oficina-os×2 + compras
+      # (attempt 2) — conjunto de falhas mudou sem mudança de código. Promover assim =
+      # vermelho aleatório pra todo PR de UI. Pré-requisito do flip agora é a v2 deste gate
+      # (classificação 3-bandas/double-threshold, mesma do PixelBaselineTest L7 — que passou
+      # ESTÁVEL em todos os mesmos runs), já antecipada no docblock do teste.
+      # Motivação do flip permanece medida e válida (dark = vetor nº 1 de re-trabalho
+      # jun–jul: #3917/#3931/#3983) — flip retorna quando L2-v2 absorver o ruído de render.
+      - name: Snapshots de estados isolados (ADVISORY — L2 · flip aguarda v2 double-threshold)
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: isolated-states
         continue-on-error: true
@@ -341,13 +351,12 @@ jobs:
           gh pr create --title "test(visreg): baselines regeneradas (modo update) [CC]" --base main --head "$BR" --body "Baselines de pixel + estados isolados regeneradas NO runner canônico via workflow_dispatch (modo update). Motivo: Fundação aprovada [W] — ADR UI-0020 (dark warm). O gate required deste PR re-roda os testes contra estas baselines e prova que batem (anti-#3297)."
 
       - name: Veredito advisory dos estados isolados (L2 · visível no log)
-        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.isolated-states.outcome }}" = "failure" ]; then
-            echo "🔴 L2 ADVISORY FALHOU — ao menos 1 (tela,estado) com diff vs baseline isolada."
-            echo "   Intencional (fix aprovado)? npm run visreg:states:update + aprovação [W] (F1.5). Regressão? conserte antes do enforcing."
-          else
-            echo "✅ estados isolados (L2) OK (advisory) — empty/loading/dark/error batendo baseline."
+            echo "🔴 L2 ADVISORY FALHOU — diff vs baseline isolada. ATENÇÃO: assert binário tem flake run-a-run conhecido (evidência 2026-07-10, run 29102940464 attempts 1×2); diff pode ser ruído. Regressão real? conserte. Fix aprovado? modo update regenera."
+          elif [ "${{ steps.isolated-states.outcome }}" = "success" ]; then
+            echo "✅ estados isolados (L2 · advisory) OK — empty/loading/dark/error batendo baseline."
           fi
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
