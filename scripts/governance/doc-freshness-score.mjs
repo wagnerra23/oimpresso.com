@@ -322,8 +322,9 @@ function selftest() {
   ok(`MONOTONICIDADE: churn 20 ≤ churn 5 (${c2} ≤ ${c1})`, c2 <= c1);
 
   // EXTRAÇÃO — refs concretas saem, prosa fuzzy e lixo de link não.
-  const refs = extractCitedRefs('Ver Modules/Jana e scripts/governance/foo.mjs, o [SPEC](../Jana/SPEC.md), .github/workflows/ci.yml, [ctl](../app/Http/X.php:185), app/Services/Y.php, [p](P1), [abs](C:/Users/w/x.md) e "o ragas-gate" solto em prosa.');
+  const refs = extractCitedRefs('Ver Modules/Jana e scripts/governance/foo.mjs, o [SPEC](../Jana/SPEC.md), .github/workflows/ci.yml, [ctl](../app/Http/X.php:185), app/Services/Y.php, tests/Feature/Modules/Copiloto/AdapterResolverTest.php, [p](P1), [abs](C:/Users/w/x.md) e "o ragas-gate" solto em prosa.');
   ok('extractCitedRefs: pega Modules/Jana', refs.modules.includes('Jana'));
+  ok('extractCitedRefs: path de TESTE (tests/Feature/Modules/X) NÃO vira módulo citado (ghost falso — sub-namespace de teste, não app-module ⇒ não penaliza refs-quebradas)', !refs.modules.includes('Copiloto'));
   ok('extractCitedRefs: mecanismo (mjs/yml) vai pro phantom-check', refs.mechPaths.includes('scripts/governance/foo.mjs') && refs.mechPaths.includes('.github/workflows/ci.yml'));
   ok('extractCitedRefs: app/resources é churn-only (nunca "quebrada" — path pode ser planejado)', refs.codePaths.includes('app/Services/Y.php') && !refs.mechPaths.includes('app/Services/Y.php'));
   ok('extractCitedRefs: pega link .md relativo e strippa sufixo :linha', refs.links.includes('../Jana/SPEC.md') && refs.links.includes('../app/Http/X.php'));
