@@ -333,11 +333,25 @@ jobs:
           npm run visreg:update
           npm run visreg:states:update
 
+      # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
+      # workflows `pull_request` em eventos causados pelo GITHUB_TOKEN → PR de baselines
+      # criado com ele nascia SEM NENHUM check e ficava órfão nos required ("Expected —
+      # waiting"). Evidência 2026-07-10: #3987/#3994 órfãos por 1 dia (0 checks);
+      # #4081/#4086 só destravaram com close/reopen manual. PR criado com o PAT dispara
+      # CI normal (ex.: #3985 do shipped-log-cron, 80 checks). Mesmo padrão de
+      # shipped-log-cron.yml / sdd-scorecard-publish.yml. NÃO "simplificar" de volta pra
+      # GITHUB_TOKEN. O push do branch também usa o PAT (URL autenticada) porque o
+      # checkout persiste credencial do GITHUB_TOKEN no remote `origin`. Merge continua
+      # humano — ADR 0283 bloqueia auto-merge; o PAT aqui só CRIA o PR.
       - name: Abrir PR com as baselines regeneradas — modo update
         if: github.event_name == 'workflow_dispatch'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
         run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::COWORK_BOT_PAT ausente — sem ele o PR de baselines nasce órfão (0 checks, anti-recursão GITHUB_TOKEN). Configurar o secret e re-disparar."
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           BR="vrt/baselines-${{ github.run_id }}"
@@ -347,7 +361,7 @@ jobs:
             echo "Baselines já em dia — nada a commitar."; exit 0
           fi
           git commit -m "test(visreg): baselines regeneradas no runner canônico (modo update) [CC]" -m "Disparo manual pós-mudança de Fundação aprovada [W] — ADR UI-0020 §4 (dark warm): o PR de tokens sofre skip-as-pass neste gate e as baselines antigas quebrariam o próximo PR de UI. O gate do PR destas baselines re-roda e PROVA que batem com o render atual (anti-#3297)."
-          git push -u origin "$BR"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" -u "$BR"
           gh pr create --title "test(visreg): baselines regeneradas (modo update) [CC]" --base main --head "$BR" --body "Baselines de pixel + estados isolados regeneradas NO runner canônico via workflow_dispatch (modo update). Motivo: Fundação aprovada [W] — ADR UI-0020 (dark warm). O gate required deste PR re-roda os testes contra estas baselines e prova que batem (anti-#3297)."
 
       - name: Veredito advisory dos estados isolados (L2 · visível no log)
