@@ -4,9 +4,9 @@
 > **Tipo:** doc VIVO. Cada Onda apêndice no §5 (custo-benefício). Evolui até zero intervenção.
 > **Princípio:** o humano sai do **loop**, não da **supervisão** — transparência (Constituição v2 §7) + reversível (revert) + gate automático no lugar do gate humano. Nunca bypassa segurança (Tier 0 fica humano).
 
-> **⚠️ Atualização de enforcement (2026-06-17 — reconciliação de drift).** O estado da branch protection da `main` mudou desde a redação original. Desde **2026-06-11 ([ADR 0271](../memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md))** a `main` roda **`enforce_admins:true`** + `required_approving_review_count:0` + `strict:false` + **18 required checks** (verificado via `gh api .../branches/main/protection` em 2026-06-17). Três consequências pra este playbook:
+> **⚠️ Atualização de enforcement (2026-06-17 — reconciliação de drift).** O estado da branch protection da `main` mudou desde a redação original. Desde **2026-06-11 ([ADR 0271](../memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md))** a `main` roda **`enforce_admins:true`** + `required_approving_review_count:0` + `strict:false` + os required checks congelados em [`governance/required-checks-baseline.json`](../governance/required-checks-baseline.json) (fonte **enforced** por `protection-drift.mjs` — **não cacheie contagem em doc**: ela mudou 18→22→24 entre jun–jul/2026 e todo cache apodreceu). Três consequências pra este playbook:
 > 1. **`gh pr merge --admin` está MORTO** — com `enforce_admins:true` o admin não bypassa mais a proteção.
-> 2. **Hoje o merge é `gh pr merge --squash` NORMAL** — `reviews:0` + os 18 checks verdes já fecham o PR (sem `--admin`, sem aprovação humana).
+> 2. **Hoje o merge é `gh pr merge --squash` NORMAL** — `reviews:0` + os checks required verdes já fecham o PR (sem `--admin`, sem aprovação humana).
 > 3. O alvo **zero-humano** segue sendo o bot `grokwr2`, agora **bloqueado por [ADR 0283](../memory/decisions/0283-handoff-loop-zero-paste.md)** ("sem auto-merge até a rede existir") + token ainda não provisionado.
 >
 > A [ADR 0241](../memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md) §4 (linha ~82) descreve o mecanismo `--admin`/`enforce_admins:false` — isso reflete o estado **pré-0271** (2026-05-31). É canon append-only: não se edita; o estado vivo está aqui (§3 atualizado abaixo).
@@ -21,7 +21,7 @@
 | 4 | `lint:baseline:write` + `:check` (delta ≤ 0) | [CL] | baixo | baseline cai |
 | 5 | commit + push + `gh pr create` | [CL] | trivial | — |
 | 6 | **CI (gate automático — §2)** | GitHub Actions | ~3-4 min | **substitui o humano** |
-| 7 | merge se CI verde — `gh pr merge --squash` (§3) | [CL] | trivial | branch protection (reviews=0 + 18 checks) |
+| 7 | merge se CI verde — `gh pr merge --squash` (§3) | [CL] | trivial | branch protection (reviews=0 + required do baseline §3) |
 | 8 | sync placar (`ds:report --write` + SYNC_LOG + HANDOFF) | [CL] | baixo | — |
 | 9 | próximo módulo da fila | [CL] | — | — |
 
@@ -43,15 +43,15 @@ A suite CI já cobre o que o humano fazia — **incluindo o gate visual [W2]**:
 
 ## 3. Merge — estado atual da branch protection (pós-ADR 0271)
 
-**Branch protection `main` hoje** (verificado via `gh api repos/wagnerra23/oimpresso.com/branches/main/protection` em 2026-06-17; ligado por [ADR 0271](../memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) em 2026-06-11):
+**Branch protection `main`** (ligado por [ADR 0271](../memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) em 2026-06-11; **lista viva dos required = [`governance/required-checks-baseline.json`](../governance/required-checks-baseline.json)** enforced por `protection-drift.mjs`; snapshot abaixo verificado 2026-07-10):
 
 - **`enforce_admins: true`** — admin **não** bypassa mais a proteção
 - **`required_approving_review_count: 0`** — nenhuma aprovação exigida (`require_code_owner_reviews:true` está setado, mas é **no-op**: não há `CODEOWNERS` atribuindo donos a path algum)
 - `required_status_checks.strict: false` — não exige rebase/up-to-date pra mergear
 - `required_linear_history: true` · `allow_force_pushes: false` · `allow_deletions: false`
-- **18 required checks** — todos verdes ⇒ merge liberado
+- **required checks = a lista do baseline** (24 em 2026-07-10 — contagem ilustrativa; a fonte é o arquivo) — todos verdes ⇒ merge liberado
 
-**Consequência direta:** como `reviews:0` e os 18 checks ficam verdes, um **`gh pr merge <n> --squash` NORMAL fecha o PR** — sem aprovação humana e sem `--admin`. O squash respeita `required_linear_history`. Não existe mais bloqueio de self-approve (não há review a dar).
+**Consequência direta:** como `reviews:0` e os checks required ficam verdes, um **`gh pr merge <n> --squash` NORMAL fecha o PR** — sem aprovação humana e sem `--admin`. O squash respeita `required_linear_history`. Não existe mais bloqueio de self-approve (não há review a dar).
 
 | Mecanismo | Custo | Auditoria | Status |
 |---|---|---|---|
