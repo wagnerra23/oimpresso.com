@@ -51,6 +51,10 @@ Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php
 Modules/Governance/Tests/Feature/PlanHealthBriefLineServiceTest.php
 # Linha de revisão de ADR no brief (ADR 0317 Onda 3 · M3) — Process::fake, sem DB.
 Modules/Governance/Tests/Feature/AdrReviewBriefLineServiceTest.php
+# FLAG de ADR pendente no brief (US-GOV-052 · adr-proposto-parado) — Process::fake, sem DB.
+Modules/Governance/Tests/Feature/AdrPendenteBriefLineServiceTest.php
+# Seção OUTCOME DO AGENTE (7d) no brief (US-GOV-052 · DORA agent-pr-outcomes) — Process::fake, sem DB.
+Modules/Governance/Tests/Feature/AgentOutcomeBriefSectionServiceTest.php
 tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php
