@@ -4,8 +4,9 @@ title: "RUNBOOK — Module Grades Gate CI (anti-regressão module-grade v3)"
 type: runbook
 authority: canonical
 lifecycle: ativo
-owner: wagner
+owner: W
 last_updated: 2026-05-16
+last_validated: "2026-05-16"
 related_workflow: .github/workflows/module-grades-gate.yml
 related_baseline: governance/module-grades-baseline.json
 related_service: Modules/Governance/Services/ModuleGradeService.php
