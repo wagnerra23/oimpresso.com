@@ -10,6 +10,7 @@ description: |
   tokens por sessão.
 trust_level: 1
 tier: B
+resumo: força brief-fetch no início
 parent_mission: mission.constituicao-v2
 charter_adr: 0091-daily-brief
 auto_trigger: session_start

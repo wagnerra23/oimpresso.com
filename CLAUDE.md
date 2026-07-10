@@ -30,25 +30,33 @@
 
 ## Skills — Tier A (núcleo always-on) + auto-trigger (ADR 0225)
 
-**Tier A** (segurança/LGPD/disciplina — carregam em toda sessão):
-- **multi-tenant-patterns** — Tier 0 isolation (`business_id` global scope) — [ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+<!-- AUTO:SKILLS-BEGIN — gerado por scripts/governance/skills-index-generate.mjs (fonte única: frontmatter .claude/skills/*/SKILL.md). NÃO editar à mão; rode --write. -->
+**Tier A** (núcleo always-on — segurança/LGPD/disciplina, carregam em toda sessão):
 - **commit-discipline** — 1 PR = 1 intent, ≤300 linhas, conventional commits
+- **hostinger-dns-autonomy** — não escalar pro Wagner ação automatizável
 - **incident-done-checklist** — DoD com smoke real ANTES de declarar pronto (R1)
 - **memory-first-secret-search** — consultar `_INDEX-SECRETS` antes de buscar token
-- **hostinger-dns-autonomy** — não escalar pro Wagner ação automatizável
+- **multi-tenant-patterns** — Tier 0 isolation (`business_id` global scope) — [ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 
-**Auto-trigger** (Tier B — disparam por path/intenção, ADR 0225):
-- **brief-first** — força brief-fetch no início · **mcp-first** — tools MCP antes de filesystem
-- **mwart-process** — único caminho Blade→Inertia (5 fases) — [ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
-- **mwart-comparative V4** — gate visual F1.5 + loop Cowork ↔ Code ([`prototipo-ui/PROTOCOL.md`](prototipo-ui/PROTOCOL.md)). Orquestra Claude Design plugin (design-critique + design-system + design-handoff + ux-copy + accessibility-review + research-synthesis). 15 dimensões + gate visual via CI ([ADR 0241](memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md) emenda 0107; Protocolo v2 [ADR 0282](memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)); merge de `.tsx` segue humano ([ADR 0283](memory/decisions/0283-handoff-loop-zero-paste.md)) — [ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) + [ADR 0107](memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) + [ADR 0109](memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md)
-- **charter-first** — dispara ao editar `.tsx` com `.charter.md` · **preflight-modulo** — dispara em Edit `Modules/<X>/`
-- (dormente — ativa quando S5 entregar `decide`) **ads-route**
+**Auto-trigger** (Tier B — disparam por path/intenção/momento, ADR 0225):
+- **brief-first** _(session_start)_ — força brief-fetch no início
+- **charter-first** _(path)_ — dispara ao editar `.tsx` com `.charter.md`
+- **constituicao-ui-aware** _(path)_ — Constituição UI v2 + PT aplicável + PRE-MERGE-UI antes de Edit em Pages/Components/css ([ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md))
+- **mcp-first** _(intent)_ — tools MCP antes de filesystem
+- **mwart-comparative** _(path)_ — gate visual F1.5 + loop Cowork ↔ Code (V4, [`prototipo-ui/PROTOCOL.md`](prototipo-ui/PROTOCOL.md)). Orquestra Claude Design plugin (design-critique + design-system + design-handoff + ux-copy + accessibility-review + research-synthesis). 15 dimensões + gate visual via CI ([ADR 0241](memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md) emenda 0107; Protocolo v2 [ADR 0282](memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)); merge de `.tsx` segue humano ([ADR 0283](memory/decisions/0283-handoff-loop-zero-paste.md)) — [ADR 0114](memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md) + [ADR 0107](memory/decisions/0107-emendation-0104-visual-comparison-gate-f3.md) + [ADR 0109](memory/decisions/0109-claude-design-plugin-integrado-processo-mwart.md)
+- **mwart-process** _(path)_ — único caminho Blade→Inertia (5 fases) — [ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
+- **preflight-modulo** _(path)_ — dispara em Edit `Modules/<X>/`
+- **session-start-check** _(session_start)_ — whats-active pós-brief — detecta sessão paralela tocando o mesmo path ([ADR 0119](memory/decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
+
+**Dormente** (tier A com `enabled: false`):
+- **ads-route** — roteia mudança custosa via `decide(domain,intent,payload)` — ativa quando S5 entregar ADS Universal
+<!-- AUTO:SKILLS-END -->
 
 > **Estimates 2026-05-08+:** todos novos SPECs nascem recalibrados ([ADR 0106](memory/decisions/0106-recalibracao-velocidade-fator-10x-ia-pair.md)) — fator 10x em tarefas codáveis com IA-pair + margem 2x; tarefas humano-limitadas (canary 7d, monitor 30d, smoke real) mantém relógio do mundo real.
 
 > **Cliente como sinal qualificado** ([ADR 0105](memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)): backlog só recebe item se cliente paga + reporta OU métrica detecta drift. Hipótese sem sinal vira ADR de feature wish, não US ativa.
 
-Tier de cada skill em [memory/sprints/s3-constituicao/03-skills-audit.md](memory/sprints/s3-constituicao/03-skills-audit.md). Convenção interna formalizada em [ADR 0095](memory/decisions/0095-skills-tiers-convencao-interna.md).
+Tier de cada skill no índice GERADO [.claude/skills/_SKILLS-INDEX.md](.claude/skills/_SKILLS-INDEX.md) (fonte única = frontmatter; `skills-index-generate.mjs --write`). Convenção interna formalizada em [ADR 0095](memory/decisions/0095-skills-tiers-convencao-interna.md); histórico da auditoria S3 em [03-skills-audit.md](memory/sprints/s3-constituicao/03-skills-audit.md).
 
 ## Constituição v2 (7 camadas + 8 princípios duros)
 
