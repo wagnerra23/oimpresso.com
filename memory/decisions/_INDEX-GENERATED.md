@@ -7,7 +7,7 @@
 ## Resumo
 - **340** arquivos · **324** números únicos · máx **0334**
 - **ADRs ATIVOS (lifecycle ativo): 306** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 305 · superseded 12 · deprecated 12 · proposto 7 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 306 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 306 · arquivado 18 · substituido 12 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -379,4 +379,4 @@ _(íntegra)_
 | 0331 | aceito | ativo | decision | Trava anti-duplicação de trabalho entre sessões paralelas (claim + dup-detector  |
 | 0332 | aceito | ativo | decision | Importers complementares Wave 2 (compras/estoque/contacts-NFe-fornecedores/daemo |
 | 0333 | proposto | ativo | meta | Emenda ao mapa 0330 — eixo RODAR-E-OBSERVAR sub-medido pela grade de réguas (pon |
-| 0334 | proposto | ativo | meta | Modelo de 3 camadas (Produto ERP · Produto IA · IA-OS) + invariante anti-atrofia |
+| 0334 | aceito | ativo | meta | Modelo de 3 camadas (Produto ERP · Produto IA · IA-OS) + invariante anti-atrofia |

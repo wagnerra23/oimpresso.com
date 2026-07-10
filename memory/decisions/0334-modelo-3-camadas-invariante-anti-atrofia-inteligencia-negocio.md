@@ -3,7 +3,7 @@ slug: 0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio
 number: 334
 title: "Modelo de 3 camadas (Produto ERP · Produto IA · IA-OS) + invariante anti-atrofia da inteligência de negócio"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: meta
