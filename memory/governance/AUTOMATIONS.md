@@ -44,7 +44,7 @@ Disparados antes de cada uso de ferramenta. Tipo ADR 0234: `hook_pretooluse`.
 | Matcher | Hook | O que faz | Arquivo |
 |---------|------|-----------|---------|
 | `Write\|Edit\|MultiEdit` | `block-automem` | Bloqueia Write/Edit em auto-mem privada legada (`~/.claude/projects/*/memory/*.md`). Permite `~/.claude/oimpresso-local/` (escape valve). 3 tiers: Canônico (git), Local (~/.claude/oimpresso-local/), Segredo (Vaultwarden). ADR 0061 + ADR 0131. | `.claude/hooks/block-automem.ps1` |
-| `Write\|Edit\|MultiEdit` | `block-memory-drift` | Bloqueia edits em paths canônicos (`memory/decisions/`, `memory/08-handoff.md`, etc.) sem branch `claude/*` + workflow PR. ADRs accepted são append-only irrevogáveis. ADR 0094 Art. 3 + ADR 0061 + ADR 0130. | `.claude/hooks/block-memory-drift.ps1` |
+| `Write\|Edit\|MultiEdit` | `block-memory-drift` | Bloqueia edits em paths canônicos (`memory/decisions/`, `memory/08-handoff.md`, etc.) sem branch `claude/*` + workflow PR. ADRs accepted são append-only irrevogáveis. ADR 0094 Art. 3 + ADR 0061 + ADR 0130. | `.claude/hooks/block-memory-drift.mjs` |
 | `Write\|Edit\|MultiEdit` | `block-mwart-violation` | Bloqueia Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` sem RUNBOOK existir em `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md`. Garante que F1 PLAN acontece antes de F3 FRONTEND. Override via comentário `/mwart-override <razão>` no PR. ADR 0104. | `.claude/hooks/block-mwart-violation.ps1` |
 | `Write\|Edit\|MultiEdit` | `charter-validate` | Avisa (modo warning, não bloqueia ainda) quando Claude tenta editar Page `.tsx` que tem `.charter.md` irmão sem ter chamado `charter-fetch` previamente. Vira bloqueante quando ROI provado (≥5 sessões). ADR 0094 + ADR 0101. | `.claude/hooks/charter-validate.ps1` |
 | `Write\|Edit\|MultiEdit` | `modulo-preflight-warning` | Aviso (não bloqueia) quando Claude tenta Edit/Write em `Modules/<X>/` sem ter lido SPEC.md/RUNBOOK/charter do módulo X na sessão atual. Implementa FASE 1 PRÉ-FLIGHT da Regra Primária Tier 0. | `.claude/hooks/modulo-preflight-warning.ps1` |
@@ -108,7 +108,6 @@ Disparados a cada prompt enviado pelo usuário. Tipo ADR 0234: `hook_sessionstar
 
 | Arquivo | Observação |
 |---------|------------|
-| `block-module-drift.ps1` | Detecta Controllers fora do SCOPE.md do módulo (Mecanismo #3 ENFORCEMENT.md). Arquivo existe mas NÃO está registrado em settings.json — inativo. |
 | `block-pr-without-approval.mjs` | Bloqueia `gh pr create`/`gh pr merge` sem aprovação humana prévia (R10). Arquivo existe mas consta no cabeçalho como "PROPOSTA — ainda NÃO registrada em settings.json". Inativo. |
 
 ---

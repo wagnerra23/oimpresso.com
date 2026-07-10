@@ -211,6 +211,33 @@ function pageZombie(seg) {
   if (!g) return false;
   return g.allRendered.has(comp) && !g.liveRendered.has(comp);
 }
+// ── 4º veredito ADVISORY `servido` (2026-07-09 · grade v3 "verificação runtime") ──
+// POR QUE: dead/zombie/wired são ESTÁTICOS (disco + roteador). Faltava o eixo
+// RUNTIME (régua Coverband/Wallarm): "existe + roteado mas 0 hits em Nd" é a
+// mentira que o estático não vê. Fonte: governance/route-hits.json — ledger de
+// execução real gerado por `php artisan route-hits:export --write` no host de
+// prod (coleta: middleware ContadorHitsRota, flag ROUTE_HITS_ENABLED). fs-puro
+// (1 JSON), zero PII (só componente Inertia + hits + data).
+// ADVISORY DE NASCENÇA: NÃO entra em coverage, NÃO entra em --check/--check-*,
+// NÃO muda flag 🟢/🟡/🔴. Sem ledger (ou ledger sem pages — coleta ainda OFF)
+// → sem_ledger: NADA é marcado (zero regressão de output pra quem não tem o
+// arquivo). hit ≠ funciona — é prova de USO, não de correção.
+const HITS_PATH = join(ROOT, 'governance', 'route-hits.json');
+const HITS = (() => {
+  if (!existsSync(HITS_PATH)) return null;
+  try {
+    const d = JSON.parse(readFileSync(HITS_PATH, 'utf8'));
+    const pages = d && d.pages && typeof d.pages === 'object' ? d.pages : {};
+    return Object.keys(pages).length ? { pages, janela: d.janela_dias ?? null } : null;
+  } catch { return null; } // ledger corrompido = sem sinal (advisory nunca derruba o lint)
+})();
+// mesmo recorte do pageZombie: só Pages de 1ª classe (sub-componentes nunca)
+function pageHitKey(seg) {
+  const s = String(seg).replace(/\\/g, '/');
+  const m = s.match(/^resources\/js\/Pages\/(.+)\.tsx$/);
+  return m && !/\/_?components\//.test(s) ? m[1] : null;
+}
+
 let _testBasenames = null;
 // Map basename(sem .php) → 1º path absoluto. `.has()` segue valendo pro deadTestRefs;
 // o path serve pro covers-check (G1a) ler o arquivo do teste e procurar @covers-us.
@@ -379,16 +406,18 @@ function extractPaths(rest, specDir) {
 }
 
 function classify(rest, specDir) {
-  if (rest.startsWith('_pendente_')) return { state: 'pendente', dead: [], zombie: [] };
+  if (rest.startsWith('_pendente_')) return { state: 'pendente', dead: [], zombie: [], pages: [] };
   const parcial = rest.startsWith('_parcial_');
-  if (!parcial && PLACEHOLDER_RE.test(rest)) return { state: 'placeholder', dead: [], zombie: [] };
+  if (!parcial && PLACEHOLDER_RE.test(rest)) return { state: 'placeholder', dead: [], zombie: [], pages: [] };
   const paths = extractPaths(rest, specDir);
   const dead = paths.filter((p) => !existsSync(p.abs)).map((p) => p.seg);
-  if (!paths.length) return { state: 'anchored_dead', dead: ['(nenhum segmento-path — preenchido/parcial exige ≥1 path, ADR 0273 §1)'], zombie: [] };
-  if (dead.length) return { state: 'anchored_dead', dead, zombie: [] };
+  if (!paths.length) return { state: 'anchored_dead', dead: ['(nenhum segmento-path — preenchido/parcial exige ≥1 path, ADR 0273 §1)'], zombie: [], pages: [] };
+  if (dead.length) return { state: 'anchored_dead', dead, zombie: [], pages: [] };
   const zombie = paths.filter((p) => pageZombie(p.seg)).map((p) => p.seg);
-  if (zombie.length) return { state: 'anchored_zombie', dead: [], zombie };
-  return { state: parcial ? 'parcial' : 'anchored_ok', dead: [], zombie: [] };
+  if (zombie.length) return { state: 'anchored_zombie', dead: [], zombie, pages: [] };
+  // pages de 1ª classe da âncora — insumo do veredito advisory `servido`
+  const pages = paths.map((p) => pageHitKey(p.seg)).filter(Boolean);
+  return { state: parcial ? 'parcial' : 'anchored_ok', dead: [], zombie: [], pages };
 }
 
 function lintSpec(file) {
@@ -426,14 +455,24 @@ function lintSpec(file) {
     else if (isV1) v1Violations.push({ line: f.line, raw: f.raw.slice(0, 120) });
     const c = classify(f.rest, specDir);
     if (c.state === 'placeholder') fieldsPlaceholder++;
-    f.state = c.state; f.dead = c.dead; f.zombie = c.zombie;
+    f.state = c.state; f.dead = c.dead; f.zombie = c.zombie; f.pages = c.pages;
   }
+  const naoServido = []; // advisory `servido` — só quando HITS carregado
+  let servidoCount = 0;
   for (const u of usList) {
     if (!u.fields.length) { counts.sem_campo++; continue; }
     const c = u.fields[0]; // 1 linha por US (gramática); extras contam em fields_total
     counts[c.state]++;
     if (c.state === 'anchored_dead') deadList.push({ us: u.id, line: c.line, missing: c.dead });
     if (c.state === 'anchored_zombie') zombieList.push({ us: u.id, line: c.line, dead_screens: c.zombie });
+    // 4º veredito ADVISORY `servido`: US wired (ok/parcial) ancorada em Page —
+    // teve hit real na janela do ledger? 0 hits = wired-porém-não-servido
+    // ("existe + roteado mas 0 hits em Nd" — o que zombie/dead não veem).
+    if (HITS && (c.state === 'anchored_ok' || c.state === 'parcial') && c.pages.length) {
+      const comHit = c.pages.filter((k) => HITS.pages[k] && HITS.pages[k].hits > 0);
+      if (comHit.length) servidoCount++;
+      else naoServido.push({ us: u.id, line: c.line, pages: c.pages });
+    }
   }
   // lint de `Testado em:` — superfície antes sem governança (testes-fantasma)
   const deadTests = [];
@@ -470,7 +509,7 @@ function lintSpec(file) {
     orphan_fields: orphans.length, anchor_format_v1: isV1, dead: deadList, zombie: zombieList,
     dead_tests: deadTests, testado_sem_covers: testadoSemCovers, testado_lines: testadoLines.length, v1_violations: v1Violations,
     req_sem_aceite: reqSemAceite, req_sem_covering_test: reqSemTeste, req_teste_vermelho: reqTesteVermelho,
-    req_sem_lane: reqSemLane,
+    req_sem_lane: reqSemLane, servido: servidoCount, nao_servido: naoServido,
   };
 }
 
@@ -557,6 +596,9 @@ const reqTesteVermelhoTotal = modules.reduce((a, m) => a + m.req_teste_vermelho.
 // req_sem_lane (G1c · item b): teste-que-cobre fora das lanes de JUnit → verde impossível. NÃO
 // grandfatherado (gate à parte, advisory; só morde com --check-lane).
 const reqSemLaneTotal = modules.reduce((a, m) => a + m.req_sem_lane.length, 0);
+// servido (4º veredito · advisory runtime): só computado com ledger carregado.
+const servidoTotal = modules.reduce((a, m) => a + m.servido, 0);
+const naoServidoTotal = modules.reduce((a, m) => a + m.nao_servido.length, 0);
 
 for (const m of modules) m.flag = m.us_total === 0 ? '🟡' : (m.counts.anchored_dead > 0 || m.counts.anchored_zombie > 0 || m.dead_tests.length || m.v1_violations.length || m.coverage_pct === 0) ? '🔴' : m.coverage_pct === 100 ? '🟢' : '🟡';
 
@@ -570,6 +612,8 @@ const report = {
     covers_regra: 'testado_sem_covers (G1a · ADR 0303 emenda) = teste que EXISTE mas não declara `// @covers-us <US-ID>` da US-pai. ADVISORY: reportado sempre, exit 1 só com --check-covers (anchor-drift roda --check normal).',
     entrada_regra: 'GATE DE ENTRADA (G1b-entry): US que se diz IMPLEMENTADA (anchored_ok/parcial) precisa de DoD/aceite (req_sem_aceite) E de teste que declare @covers-us dela (req_sem_covering_test). _pendente_ é exceto. ADVISORY: exit 1 só com --check-entry (arming com baseline grandfather do legado, ADR 0275).',
     verde_regra: 'GATE VERDE (G1b-verde · Phase B): com --junit <summary.json> (junit-summary/v1), US implementada+coberta cujo arquivo-de-teste NÃO está verde no JUnit → req_teste_vermelho. verde POR ARQUIVO = passed>0 E failed=0 E errors=0; vermelho/skipped/ausente NÃO contam (skipped != passed, defesa markTestSkipped). fs-puro: lê o JSON que o CI já produz, NUNCA roda teste/PHP/DB. Sem --junit → behavior_unknown (nunca avermelha). exit 1 só com --check-verde OU --check-entry.',
+    servido_regra: 'SERVIDO (4º veredito · ADVISORY runtime): US wired (anchored_ok/parcial) ancorada em Page com hits>0 na janela do ledger governance/route-hits.json (export do middleware ContadorHitsRota em prod). nao_servido = "existe + roteado mas 0 hits em Nd" — prova de USO, não de correção. NUNCA entra em coverage/--check/flag. Sem ledger (ou pages vazio) = sem_ledger, nada é marcado.',
+    servido_ledger: HITS ? `${relative(ROOT, HITS_PATH).replace(/\\/g, '/')} (janela ${HITS.janela ?? '?'}d)` : 'sem_ledger',
     behavior: JUNIT ? `junit:${JUNIT.schema}${JUNIT.coherent === false ? ' (INCOERENTE)' : ''} · fonte ${JUNIT.source}` : 'behavior_unknown (sem --junit)',
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
     fase: 'F1 ADVISORY (ADR 0273 §4) — exit 0 sempre nos modos default/--json; --check (exit 1) reservado pra F2',
@@ -585,6 +629,7 @@ const report = {
     dead_tests_total: deadTestsTotal, testado_sem_covers_total: testadoSemCoversTotal,
     req_sem_aceite_total: reqSemAceiteTotal, req_sem_covering_test_total: reqSemTesteTotal,
     req_teste_vermelho_total: reqTesteVermelhoTotal, req_sem_lane_total: reqSemLaneTotal, behavior_known: JUNIT ? true : false,
+    servido_total: servidoTotal, nao_servido_total: naoServidoTotal, servido_ledger: HITS ? true : false,
     baseline_applied: BASELINE ? BASELINE_PATH : null,
     grandfathered: { aceite: grandfatheredAceite, covering_test: grandfatheredTeste, covers: grandfatheredCovers },
     v1_files: modules.filter((m) => m.anchor_format_v1).length, v1_violations: sum('v1_violations'),
@@ -608,6 +653,7 @@ for (const m of modules) {
   for (const r of m._teste_active) console.log(`       🚪 ${r.us} (L${r.line}): diz IMPLEMENTADA mas NENHUM teste declara @covers-us dela (regra sem teste)`);
   for (const r of m.req_teste_vermelho) console.log(`       🟥 ${r.us} (L${r.line}): diz IMPLEMENTADA + tem teste-que-cobre, mas NENHUM arquivo-de-teste está verde no JUnit → ${r.tests.map((t) => `${t.file} [${t.status}]`).join(' · ')}`);
   for (const r of m.req_sem_lane) console.log(`       🚦 ${r.us} (L${r.line}): tem teste-que-cobre mas NENHUM numa lane de JUnit (verde impossível) → ${r.tests.join(' · ')}`);
+  for (const r of m.nao_servido) console.log(`       🔕 ${r.us} (L${r.line}): wired porém NÃO-SERVIDO — 0 hits na janela do ledger (existe + roteado, ninguém usou) → ${r.pages.join(' · ')}`);
   for (const v of m.v1_violations) console.log(`       ✗ v1 L${v.line}: não casa gramática ADR 0273 §1 → ${v.raw}`);
 }
 console.log('  ' + '─'.repeat(82));
@@ -620,6 +666,7 @@ console.log(`  Testado sem covers (teste existe mas não declara @covers-us · a
 console.log(`  Gate de entrada (advisory): ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre${BASELINE ? ` (ATIVOS, pós-baseline)` : ''}`);
 if (BASELINE) console.log(`  Grandfather (${BASELINE_PATH}): ${grandfatheredAceite} aceite + ${grandfatheredTeste} teste + ${grandfatheredCovers} covers isentos (no-new-lie · ratchet só-desce · ADR 0275)`);
 console.log(`  Gate verde (advisory): ${JUNIT ? `${reqTesteVermelhoTotal} US implementada com teste-que-cobre NÃO-verde no JUnit (verde=passed>0 & fail=0; skipped/ausente não contam · skipped != passed)` : 'behavior_unknown — sem --junit (nunca avermelha)'}`);
+console.log(`  Servido (advisory runtime): ${HITS ? `${servidoTotal} US com hit real na janela · ${naoServidoTotal} wired porém 0 hits (ledger ${report._meta.servido_ledger})` : 'sem_ledger — governance/route-hits.json ausente/vazio (coleta ROUTE_HITS_ENABLED ainda OFF?); nada marcado'}`);
 console.log(`\n  💀 dead = path inexistente · 🧟 zombie = path existe mas tela desligada · 🧪 = teste citado inexistente. Corrigir via reconciliação — nunca inventar path.\n`);
 
 if (CHECK && (byState.anchored_dead > 0 || byState.anchored_zombie > 0 || deadTestsTotal > 0 || report.summary.v1_violations > 0)) process.exit(1);

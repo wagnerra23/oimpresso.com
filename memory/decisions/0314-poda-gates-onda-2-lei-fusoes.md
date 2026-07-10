@@ -3,14 +3,14 @@ slug: 0314-poda-gates-onda-2-lei-fusoes
 number: 314
 title: "Poda de gates onda 2 — LEI definitiva (required que mordem), fusões F1-F5 e deletes verificados (executa a D-4 da 0271)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
 decided_by: [W]
 decided_at: "2026-06-30"
-accepted_at: ""
-accepted_via: "PROPOSTA — Wagner greenlight 'recomendo poda de gates sim' (2026-06-30 chat). Aguarda ratificação por item (ADR 0271 D-4). Redação [CC]."
+accepted_at: "2026-06-30"
+accepted_via: "Ratificação POR ITEM concluída (ADR 0271 D-4, R10 por bloco): D-1 LEI required 29→22 (#3466, 'Wagner OK no diff'), F1 DS/cor fusão 7→1 (#3456), F2 memória/schema 8→3 (#3459), D-3 deletes (#3455). F3/F4/F5-charter retiradas por réguas ortogonais/porte caro (adversário 2026-06-30). Formalização governança (flip proposto→aceito + saída de proposals/) autorizada por Wagner 2026-07-09 ('flip', US-GOV-050); número 314 preservado."
 module: governance
 quarter: 2026-Q2
 tags: [governance, gates, ci, required, enforcement, subtracao, fusao, anti-elefante-branco, poda]
@@ -23,11 +23,13 @@ pii: false
 
 # ADR 0314 — Poda de gates onda 2: LEI, fusões, deletes (executa a D-4 da 0271)
 
-> **STATUS: PROPOSTO.** Aguarda ratificação do Wagner item-a-item (a 0271 D-4 reservou esta camada à palavra dele). Cada bloco abaixo tem um checkbox `[ ]` — ratificar = marcar + virar `status: aceito`. Nada é executado antes da ratificação.
+> Movido de proposals/ + flip proposto→aceito em 2026-07-09 (Wagner 'flip', US-GOV-050). Conteúdo original intacto; ajustes SÓ de frontmatter (status/accepted_at/accepted_via) + link relativo re-baseado pro top-level. A ratificação por item já estava registrada na seção "## Ratificação" abaixo — todos os blocos executáveis merjados em prod (#3466/#3456/#3459/#3455, R10 por PR); F3/F4/F5-charter retiradas. Este flip só formaliza o que já era lei viva.
+>
+> **STATUS: ACEITO.** Ratificação do Wagner item-a-item concluída (a 0271 D-4 reservou esta camada à palavra dele) — ver seção "## Ratificação". Os checkboxes `[ ]`/`[x]` abaixo são o registro histórico da decisão por bloco.
 
 ## Contexto
 
-A [ADR 0271](../0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) (2026-06-11) fez só a **1ª onda** (64→58: deletes de morto/debug/teatro) e deixou a **D-4 — a poda grande — explicitamente pendente da ratificação do Wagner**, item a item. Ela nunca foi executada.
+A [ADR 0271](./0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) (2026-06-11) fez só a **1ª onda** (64→58: deletes de morto/debug/teatro) e deixou a **D-4 — a poda grande — explicitamente pendente da ratificação do Wagner**, item a item. Ela nunca foi executada.
 
 Desde então o inventário **cresceu 58 → 91 workflows** (+33). Boa parte é legítima (gates SDD/casos/domínio/floor que armamos em junho), mas o sprawl voltou: clusters de gates checando a mesma coisa, "advisory" misturado no required, fusões nunca feitas. Re-auditoria 2026-06-30 (sessão da poda):
 

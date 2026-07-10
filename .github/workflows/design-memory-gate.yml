@@ -48,6 +48,7 @@ on:
       - 'scripts/governance/design-code-map-check.mjs'
       - 'scripts/governance/design-code-map-check.test.mjs'
       - 'prototipo-ui/gerar-map.mjs'
+      - 'prototipo-ui/consumir-map.mjs'
       - 'memory/requisitos/**/*.map.json'
       - 'memory/requisitos/**/*.proto-baseline.json'
       - 'memory/requisitos/**/*-gap.md'
@@ -250,6 +251,13 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/gerar-map.mjs --selftest
+      # Fase 4: consumir-map é o CONSUMO do map.json (PR-C 2026-07-09) — portão de frescor por
+      # CONTEÚDO (ADR 0324, sha256:contentHash — pega re-export sem commit, imune a commit que
+      # toca path sem mudar conteúdo) + plano de leitura (a sessão abre SÓ os ranges).
+      - name: consumir-map selftest (Fase 4 — portão de frescor morde exit 3 / solta plano)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/consumir-map.mjs --selftest
       - name: design-code-map-check selftest (morde âncora quebrada + sha stale · libera íntegro/TODO)
         if: always()
         run: node scripts/governance/design-code-map-check.test.mjs

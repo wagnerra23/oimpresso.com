@@ -8,7 +8,9 @@ use Illuminate\Support\Facades\DB;
 use Modules\Brief\Services\BriefGeneratorService;
 use Modules\Brief\Services\BriefValidator;
 use Modules\Brief\Services\LeaseBriefSectionService;
+use Modules\Governance\Services\AdrPendenteBriefLineService;
 use Modules\Governance\Services\AdrReviewBriefLineService;
+use Modules\Governance\Services\AgentOutcomeBriefSectionService;
 use Modules\Governance\Services\PlanHealthBriefLineService;
 use Modules\Governance\Services\ShippedLogBriefLineService;
 use Modules\Governance\Services\SddBriefLineService;
@@ -73,6 +75,18 @@ final class GenerateBriefCommand extends Command
         // completa sai no flush trimestral `governance:adr-review-flush` (Kernel
         // quarterlyOn). Best-effort: node ausente / filas vazias → brief intacto.
         $content = app(AdrReviewBriefLineService::class)->inject($content);
+
+        // US-GOV-052 — FLAG de ADR PENDENTE (pós-LLM, determinística) na seção
+        // FLAGS: shell-out de adr-proposto-parado.mjs --json, checks A/B/C do
+        // ciclo de ratificação (`🟠 ADR pendente: A:N B:N C:N` só quando N>0).
+        // Best-effort: node ausente / 0 pendências → brief intacto.
+        $content = app(AdrPendenteBriefLineService::class)->inject($content);
+
+        // US-GOV-052 — seção OUTCOME DO AGENTE (7d) (pós-LLM, determinística)
+        // antes de FLAGS: shell-out de agent-pr-outcomes.mjs --json (DORA dos
+        // PRs do agente — aceitação, change-failure, time-to-merge) + tendência
+        // vs 30d. Best-effort: node/gh ausentes no host → brief intacto.
+        $content = app(AgentOutcomeBriefSectionService::class)->inject($content);
 
         // C2+C3 (SDD Leva 2, ADR 0278) — bloco de leases ATIVOS + nudge "claim
         // antes de pegar", injetado sob `## EM VOO AGORA`. Best-effort (pós-LLM):

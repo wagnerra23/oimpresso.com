@@ -59,7 +59,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { join, resolve, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { computeGitSha } from '../../prototipo-ui/gerar-map.mjs';
+import { shaAtualPara, shaIndeterminado } from '../../prototipo-ui/gerar-map.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -155,12 +155,16 @@ export function verificarMapa(mapa, { root = ROOT } = {}) {
     }
   }
 
-  if (mapa.prototipo_sha && mapa.prototipo_sha !== 'sem-historico' && arquivosPrototipoReais.size) {
-    const atual = computeGitSha([...arquivosPrototipoReais], root);
-    if (atual === 'sem-historico') {
-      warn.push(`prototipo_sha='${mapa.prototipo_sha}' salvo, mas o(s) arquivo(s) de protótipo referenciado(s) não têm histórico git rastreável agora (staleness indeterminada)`);
+  // STALENESS dual-formato (PR-C 2026-07-09): `sha256:` = contentHash normalizado (ADR 0324,
+  // canônico — pega re-export sem commit, imune a commit que toca path sem mudar conteúdo);
+  // legado = git-sha (maps antigos seguem verificados no formato em que nasceram, sem punição
+  // retroativa). shaAtualPara roteia (fonte única em gerar-map.mjs).
+  if (!shaIndeterminado(mapa.prototipo_sha) && arquivosPrototipoReais.size) {
+    const atual = shaAtualPara(mapa.prototipo_sha, [...arquivosPrototipoReais], root);
+    if (shaIndeterminado(atual)) {
+      warn.push(`prototipo_sha='${mapa.prototipo_sha}' salvo, mas o(s) arquivo(s) de protótipo referenciado(s) não permitem recomputar agora (staleness indeterminada)`);
     } else if (atual !== mapa.prototipo_sha) {
-      drift.push(`STALE: prototipo_sha salvo='${mapa.prototipo_sha}' · atual='${atual}' — o protótipo re-exportou (regenerar via gerar-map.mjs)`);
+      drift.push(`STALE: prototipo_sha salvo='${mapa.prototipo_sha}' · atual='${atual}' — o protótipo re-exportou (regenerar via gerar-map.mjs --atualizar, preserva o preenchido)`);
     }
   }
 
