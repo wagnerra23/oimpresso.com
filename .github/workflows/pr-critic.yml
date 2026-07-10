@@ -1,0 +1,103 @@
+name: PR critic — coerência diff × contrato (advisory)
+
+# Ataque ① da grade-das-réguas 2026-07-09: não existia critic adversarial
+# automático em PR de agente (pr-ui-judge.yml foi DELETADO na ADR 0271 onda 2 —
+# era dormente/teatro; o judge sobrevive só manual via skill pr-ui-judge-manual).
+# Régua: Google Jules (critic no loop → 64% merge-ready) e Cognition (review
+# agent com CONTEXTO ZERO acha mais fundo, ~2 bugs/PR).
+#
+# O que este job faz (implementa a arte 2026-06-22 §3 gap #5, variante CI):
+#   1. coleta.mjs (determinístico, node puro): roteia os arquivos do diff pros
+#      CONTRATOS — <Tela>.charter.md / .casos.md ao lado do .tsx + gap-spec/map
+#      em memory/requisitos/<Mod>/ que referenciam o arquivo tocado.
+#   2. critica.mjs (agente, contexto ZERO — só diff + contratos, nunca a árvore
+#      nem a sessão que gerou o PR): pergunta se o diff CONTRADIZ o contrato.
+#      Achado sem citação LITERAL do contrato é descartado em código (trava
+#      anti-alucinação). NÃO valida cobertura (casos-gate cuida) nem estética.
+#   3. comentar.mjs: upsert de 1 comentário por PR (marcador HTML).
+#
+# ADVISORY DE NASCENÇA E POR LEI (ADR 0314: required = só Tier-0; ADR 0261/0271):
+# achados NUNCA falham o job; nunca entra em branch protection. Diferente do
+# pr-ui-judge morto, NÃO há kill-switch dormente — a presença do secret
+# ANTHROPIC_API_KEY é a chave. Sem secret: coleta+selftest rodam (grátis) e o
+# passe agente é pulado com ::notice explícito (sem teatro de verde).
+#
+# Custo: só arquivos do diff, contratos truncados, ≤8 grupos/PR.
+# Modelo: repo variable PR_CRITIC_MODEL (default claude-opus-4-8).
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'resources/js/Pages/**'
+      - 'Modules/**'
+
+concurrency:
+  group: pr-critic-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  critic:
+    name: pr-critic contrato (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Selftest do mecanismo determinístico (hard — critic não roda com roteamento quebrado)
+        run: |
+          node scripts/pr-critic/coleta.test.mjs
+          node scripts/pr-critic/critica.test.mjs
+
+      - name: Coleta — roteamento diff→contratos (determinístico, zero LLM)
+        id: coleta
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr diff "$PR" --name-only > /tmp/files.txt
+          gh pr diff "$PR" > /tmp/pr.diff
+          node scripts/pr-critic/coleta.mjs --files-from /tmp/files.txt --out /tmp/manifesto.json | tee /tmp/coleta.log
+          GRUPOS=$(node -e "console.log(JSON.parse(require('fs').readFileSync('/tmp/manifesto.json','utf8')).grupos.length)")
+          echo "grupos=$GRUPOS" >> "$GITHUB_OUTPUT"
+          { echo '## pr-critic · coleta'; echo '```'; cat /tmp/coleta.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Crítica — agente contexto-zero (pula sem secret, com aviso honesto)
+        if: steps.coleta.outputs.grupos != '0'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          PR_CRITIC_MODEL: ${{ vars.PR_CRITIC_MODEL }}
+        run: |
+          if [ -z "$ANTHROPIC_API_KEY" ]; then
+            echo "::notice title=pr-critic pulado::secret ANTHROPIC_API_KEY ausente — o passe crítico agente não rodou. Wagner: Settings → Secrets and variables → Actions → adicionar ANTHROPIC_API_KEY (advisory; custo ~US\$0,20-0,40/PR no default opus-4-8, menor com vars.PR_CRITIC_MODEL)."
+            echo '## pr-critic · agente NÃO rodou (secret ausente)' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          node scripts/pr-critic/critica.mjs --manifesto /tmp/manifesto.json --diff /tmp/pr.diff --out-dir storage/pr-critic | tee /tmp/critica.log
+          { echo '## pr-critic · crítica'; echo '```'; cat /tmp/critica.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Sem grupos com contrato — nada a criticar (honesto no summary)
+        if: steps.coleta.outputs.grupos == '0'
+        run: echo '## pr-critic · nenhum grupo do diff tem contrato (charter/casos/gap/map) — passe agente não aplicável' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Comentar no PR (upsert — 1 comentário vivo por PR)
+        if: hashFiles('storage/pr-critic/comentario.md') != ''
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/pr-critic/comentar.mjs --pr ${{ github.event.pull_request.number }} --body storage/pr-critic/comentario.md
+
+      - name: Upload achados.json
+        if: hashFiles('storage/pr-critic/achados.json') != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-critic-achados-${{ github.event.pull_request.number }}
+          path: storage/pr-critic/achados.json
+          retention-days: 30
