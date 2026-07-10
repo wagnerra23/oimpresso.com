@@ -37,6 +37,15 @@ Duas fases do ciclo **já são máquina contínua** (TRAVAR: gate-selftest/senti
 APONTAR: doc-freshness-score, adr-proposto-parado, DORA/outcome-metrics). Esta skill
 é a fase **MEDIR** — periódica, contra o mercado.
 
+## Os dois eixos que a grade mede (para não repetir o ponto cego)
+
+O array `DIMS` cobre **dois eixos** — não confundir:
+
+1. **CONSTRUIR-E-GOVERNAR** (6 dims originais): spec/governança, design→código, memória/conhecimento, orquestração adversarial, evals-outcome (DORA/agente-DEV) e ERP-IA-produto.
+2. **RODAR-E-OBSERVAR** (4 dims add 2026-07-10): `observabilidade-agente`, `qualidade-drift-ia-producao` (a Jana viva em prod — distinta do outcome do agente-DEV), `seguranca-do-agente`, `custo-eficiencia`.
+
+Até 2026-07-10 a grade só media o eixo 1 — o loop de RODAR-E-OBSERVAR a IA que o sistema produz (a Jana em produção) nunca virava régua, apesar de o rastreador "FECHAR O LOOP DO IA-OS" listar 2 desses como P0 pendentes. Ponto cego registrado na **[ADR 0333](../../../memory/decisions/0333-emenda-0330-eixo-rodar-e-observar-submedido.md)** (emenda à 0330 — Propriedade 5 da doutrina [0329] fechando sobre a própria grade). **Isto só adiciona a MEDIÇÃO** — construir observabilidade/drift/gate é trabalho Tier-0 à parte (decisão de custo do Wagner).
+
 ## Como rodar
 
 ```
@@ -76,7 +85,7 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
 
 ## Anti-padrões (desta skill)
 
-- ❌ Rodar sem refutação ("6 dimensões dizem que estou acima" — não valem sem cético).
+- ❌ Rodar sem refutação ("10 dimensões dizem que estou acima" — não valem sem cético).
 - ❌ Nota por pesquisa-só (a pesquisa NÃO vê o repo; 7/9 provou).
 - ❌ Perseguir a nota (Goodhart; errata 0159): a grade aponta ONDE trabalhar — o índice
   sobe como consequência de trabalho real, nunca como alvo.
