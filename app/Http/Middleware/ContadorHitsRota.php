@@ -33,7 +33,7 @@ use Throwable;
  *
  * Registrado no fim do grupo `web` (App\Http\Kernel) — chokepoint real: core
  * routes/web.php E módulos nWidart (`Route::middleware(['web', ...])`) passam
- * todos por ele. Verificado 2026-07-09 contra routes/web.php + Modules/*/Routes.
+ * todos por ele. Verificado 2026-07-09 contra routes/web.php + Modules/<Mod>/Routes.
  */
 class ContadorHitsRota
 {
