@@ -19,8 +19,10 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 19
+charter_version: 20
 permissao: whatsapp.access
+states: [default, dark]  # gate L2 — sync com tests/Browser/visreg-states.json (hotspot: 15 fixes visuais jun-jul/2026, 2º maior re-trabalho do mês)
+smoke: "2026-07-10 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; https://oimpresso.com/atendimento/caixa-unificada: header 'Atendimento · 2 contas ativas · 2 filas · 475 abertas', lista 477 conversas reais, ChannelHealthBanner vivo 'WhatsApp — Jana está fora do ar + Reconectar canal' (US-WA-308), topnav Templates/Filas/Canais/Broadcast/Guia/+Nova conversa; 0 erro console pós-reload com tracking ativo)."
 ---
 
 # Page Charter — `/atendimento/caixa-unificada` (V4)
