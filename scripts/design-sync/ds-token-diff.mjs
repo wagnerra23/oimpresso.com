@@ -8,8 +8,17 @@
 // pro semantic.tokens.json é decisão humana (Fundações Tier 0, gate de screenshot).
 //
 // Uso:
-//   node scripts/design-sync/ds-token-diff.mjs <design.css> [tokensDir] [--json]
+//   node scripts/design-sync/ds-token-diff.mjs <design.css> [tokensDir] [--json] [--companion <f.css> ...]
 //   tokensDir default = resources/css/tokens
+//
+// --companion (2026-07-10): o espelho pode CURAR — o `colors_and_type.css` traz fundações
+//   legíveis e OMITE de propósito o set de domínio `.cockpit`-scoped (origin/stage/sla-dot-line/
+//   canal-bg-fg-tint/kind-soft), que vive num arquivo COMPANION `cockpit_domains.css` (gerado do
+//   SSOT, PR #4097, linkado ao lado). Sem `--companion`, o motor reportaria esses ~56 tokens como
+//   "git-only" (falso drift — o espelho os tem, só noutro arquivo). `--companion` concatena esses
+//   arquivos à SUPERFÍCIE do espelho antes do diff, fechando o falso git-only. Substitui o
+//   `ds-project-diff.mjs` (que reinventava esta checagem só pro companion — 2026-07-10 [W]
+//   "leia a documentação"). Repetível: `--companion a.css --companion b.css`.
 //
 // Escopos comparados (design selector ↔ git generated file):
 //   light        : :root / @theme        ↔ _generated-inertia-theme.css + _generated-foundations-light.css
@@ -92,11 +101,18 @@ function diffScope(design, git) {
 }
 
 // ── main ──
-const [designPath, tokensDir = 'resources/css/tokens'] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
-const asJson = process.argv.includes('--json');
-if (!designPath) { console.error('uso: node ds-token-diff.mjs <design.css> [tokensDir] [--json]'); process.exit(1); }
+const argvRaw = process.argv.slice(2);
+// --companion <f> (repetível): arquivos que compõem a superfície do espelho junto do design.css.
+const companions = [];
+for (let i = 0; i < argvRaw.length; i++) if (argvRaw[i] === '--companion' && argvRaw[i + 1]) companions.push(argvRaw[++i]);
+const posic = argvRaw.filter((a, i) => !a.startsWith('--') && argvRaw[i - 1] !== '--companion');
+const [designPath, tokensDir = 'resources/css/tokens'] = posic;
+const asJson = argvRaw.includes('--json');
+if (!designPath) { console.error('uso: node ds-token-diff.mjs <design.css> [tokensDir] [--json] [--companion <f.css> ...]'); process.exit(1); }
 
-const design = parseDesign(readFileSync(designPath, 'utf8'));
+// superfície do espelho = design.css + companions concatenados (o espelho cura em N arquivos)
+const superficie = [designPath, ...companions].map((p) => readFileSync(p, 'utf8')).join('\n');
+const design = parseDesign(superficie);
 const git = parseGit(tokensDir);
 
 const report = {};
