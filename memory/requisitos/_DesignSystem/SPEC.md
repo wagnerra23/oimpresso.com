@@ -582,7 +582,26 @@ MANUAL §5 F6. Zerar `__parser_error__` + `no-undef` (bugs P0, não dívida tole
 
 MANUAL §5 F7. Ligar visual-regression como gate (screen-grade/`design:review` já existem) + axe nas telas (`screen-qa`); unificar `vite.config` quando o último Blade morrer. Esforço médio, dep. MWART.
 
+### US-_DESIGNSYSTEM-035 · Showcase do DS no gate visual L2 (default+dark) — matar a classe do #3420
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+- Contexto: token global quebrado no render (caso real #3420 — Lightning CSS dropou defs `--fin-*` → KPIs brancos com CI verde) só é pego hoje se atingir uma das telas baselinadas. Um snapshot do Showcase do DS (`/showcase/components`, `_Showcase/Components.tsx`) em default+dark pegaria a classe inteira numa tela só.
+- Bloqueios mapeados (sessão 2026-07-10):
+  - Rota `/showcase/components` é `superadmin`-middleware — o harness do VRT loga admin do tenant (403 → skip graceful → baseline vazio). Decidir: rota alternativa env-guarded pro CI, ou seed com superadmin.
+  - `_Showcase/Components.tsx` NÃO tem charter — lint L2 (enforcing #3910) exige charter existente com `states:` sincronizado. Criar charter mínimo (tela interna dev/design-review).
+
+**Acceptance:**
+- [ ] Entrada `showcase` no `tests/Browser/visreg-states.json` (default+dark) + charter sincronizado
+- [ ] Baselines geradas via update-mode + snap reproduzível 2 runs
+- [ ] Prova contrafactual: quebrar 1 token de fundação em branch descartável → gate acusa
+
+**Refs:** incidente #3420 · medição re-trabalho visual sessão 2026-07-10.
+
 ---
+
+**Última atualização (US-_DESIGNSYSTEM-035):** 2026-07-10 — Showcase no VRT L2 (adiamento registrado do pacote dark-enforcing; bloqueios rota superadmin + charter ausente mapeados).
 
 **Última atualização (US-_DESIGNSYSTEM-027..034):** 2026-06-06 — roadmap F0–F7 do [MANUAL-CSS-JS](MANUAL-CSS-JS.md) §5 seedado como tasks (de doc → MCP, conforme o próprio manual manda). IDs 027–034 (gap 019–026 = drift do contador do servidor MCP que sugeriu 027 vs SPEC.md max 018 — a reconciliar no servidor). F0/F4 marcados PARCIAL (já têm gates ativos).
 
