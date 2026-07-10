@@ -81,7 +81,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-memory-drift.ps1"
+            "command": "node .claude/hooks/block-memory-drift.mjs"
           },
           {
             "type": "command",
