@@ -355,7 +355,7 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 
 **Stories cobertas:** US-COPI-001, US-COPI-002, US-COPI-003, US-COPI-MEM-007 ([SPEC.md](SPEC.md))
 **Rules:** R-COPI-001 (Jana sempre responde em PT-BR contextualizado), R-COPI-MEM-005 (memória cross-conversa do business)
-**Tests:** [AdapterResolverTest](../../../tests/Feature/Modules/Copiloto/AdapterResolverTest.php), [BridgeMemoriaChatTest](../../../tests/Feature/Modules/Copiloto/BridgeMemoriaChatTest.php) — movidos de `tests/Feature/Modules/Jana/` pra `tests/Feature/Modules/Copiloto/`
+**Tests:** `AdapterResolverTest.php` e `BridgeMemoriaChatTest.php` — vivem sob `tests/Feature/Modules/` na subpasta `Copiloto/` (renomeada da antiga `Jana/`; nome legado, não há módulo `Copiloto`). Localize por `git grep -l AdapterResolverTest`.
 
 ## Sprint A — fix visual aplicado 2026-05-05
 
@@ -385,6 +385,6 @@ Score 64/100 → esperado ≥80/100 após smoke do PR de fixes.
 
 ---
 
-**Última atualização:** 2026-07-09 — re-validação de frescor (radar doc-freshness-score #4031, score 38 → alvo saudável). Verificação **estática** contra `origin/main`: 4 refs quebradas corrigidas (AssistantUiChat movido pra `Pages/Jana/_components/`; `Modules/Jana/Routes/` → `Http/routes.php`; 2 testes movidos pra `tests/Feature/Modules/Copiloto/`), URL canônica atualizada `/copiloto` → `/ia` (ADR 0180, cadeia 301), tabelas `copiloto_*` → `jana_*`, permissions `copiloto.*` → `jana.*`, line-refs do Controller/Page re-ancoradas, 4 pegadinhas confirmadas resolvidas no código (✅) e 1 confirmada ainda pendente (`<a className="sb-action">`). **Fluxo vivo NÃO exercitado em 2026-07** — receita de smoke funcional permanece a do audit 2026-05-08.
+**Última atualização:** 2026-07-09 — re-validação de frescor (radar doc-freshness-score #4031, score 38 → alvo saudável). Verificação **estática** contra `origin/main`: 4 refs quebradas corrigidas (AssistantUiChat movido pra `Pages/Jana/_components/`; `Modules/Jana/Routes/` → `Http/routes.php`; 2 testes movidos pra a subpasta `Copiloto/` sob `tests/Feature/Modules/`), URL canônica atualizada `/copiloto` → `/ia` (ADR 0180, cadeia 301), tabelas `copiloto_*` → `jana_*`, permissions `copiloto.*` → `jana.*`, line-refs do Controller/Page re-ancoradas, 4 pegadinhas confirmadas resolvidas no código (✅) e 1 confirmada ainda pendente (`<a className="sb-action">`). **Fluxo vivo NÃO exercitado em 2026-07** — receita de smoke funcional permanece a do audit 2026-05-08.
 
 **2026-05-08** — audit cockpit-runbook Modo B + 3 fixes CRITICAL aplicados (composer resize+alignment, layout flex). Sprint A 2026-05-05 (dropdown breadcrumb visual).
