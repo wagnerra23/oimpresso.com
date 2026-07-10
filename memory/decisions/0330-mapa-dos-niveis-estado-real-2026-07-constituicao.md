@@ -3,7 +3,7 @@ slug: 0330-mapa-dos-niveis-estado-real-2026-07-constituicao
 number: 330
 title: "Mapa dos níveis — estado real 2026-07 das 7 camadas da Constituição v2 (emenda de status à 0094)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: meta
