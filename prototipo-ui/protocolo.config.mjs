@@ -83,6 +83,7 @@ export const FASES = [
       'node prototipo-ui/gerar-map.mjs <gap.md>   # esqueleto do <tela>.map.json (ponte design↔código persistente)',
     ], selftest: 'node prototipo-ui/style-fingerprint.mjs --selftest' },
   { fase: '3/4', nome: 'Registrar + aplicar região', comandos: [
+      'node prototipo-ui/consumir-map.mjs <Mod/Tela>   # portão de frescor (aborta se o protótipo re-exportou) + plano de leitura: a sessão abre SÓ os ranges do map',
       'node prototipo-ui/gerar-contrato.mjs <gap.md>',
       'node scripts/contrato-de-tela.mjs --contract <c.json> --contract-alvo <Pages/...>',
       'node prototipo-ui/recortar-regiao.mjs --contract <c.json> --bboxes <b.json> --png <shot.png> --out <dir>',

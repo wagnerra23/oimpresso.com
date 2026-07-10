@@ -121,6 +121,28 @@ writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { ret
 const nudge = runCheck(['--check', '--strict']);
 check('âncora presente mas não-declarada → WARN nudge (declare e trave), exit 0', nudge.status === 0 && /não declara vivo\.ancora/.test(nudge.stdout));
 
+// ── SHA POR CONTEÚDO (PR-C, ADR 0324): formato sha256: roteado pro contentHash ────
+const { computeProtoHash } = await import('../../prototipo-ui/gerar-map.mjs');
+
+// 10. sha256: fresco → strict exit 0 (release no formato canônico)
+writeFileSync(join(vivoDir, 'Index.tsx'), 'export default function Index() { return null }\n');
+writeMap({ prototipo_sha: computeProtoHash(['prototipo-ui/cowork/fixture-page.jsx'], root), partes: [parteBase()] });
+const contentFresh = runCheck(['--check', '--strict']);
+check('prototipo_sha sha256: (contentHash) fresco → strict exit 0', contentFresh.status === 0);
+
+// 11. conteúdo do protótipo mudou SEM COMMIT → STALE (o git-sha era CEGO a isso)
+writeFileSync(join(protoDir, 'fixture-page.jsx'), 'export default function Page() { return "v3 re-export sobrescreveu o espelho, commit ainda não" }\n');
+const contentStale = runCheck(['--check', '--strict']);
+check('re-export sobrescreveu sem commit → sha256 STALE, strict exit 1 (contentHash morde onde git-sha não via)', contentStale.status === 1 && /STALE/.test(contentStale.stdout));
+check('mensagem manda regenerar com --atualizar (preserva preenchido)', /--atualizar/.test(contentStale.stdout));
+
+// 12. commit que toca o path SEM mudar conteúdo NÃO invalida sha256 (o falso-STALE do
+// git-sha — caso real unificado.map.json 4e3aacfc0f×6cb6566311, blobs idênticos)
+writeMap({ prototipo_sha: computeProtoHash(['prototipo-ui/cowork/fixture-page.jsx'], root), partes: [parteBase()] });
+git(root, ['add', '-A']); git(root, ['commit', '-q', '-m', 'commit toca o repo, conteúdo do proto intacto']);
+const contentImune = runCheck(['--check', '--strict']);
+check('commit sem mudança de conteúdo do proto → sha256 segue fresco (imune ao falso-STALE do git-sha)', contentImune.status === 0);
+
 rmSync(root, { recursive: true, force: true });
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — design-code-map-check morde (âncora quebrada, sha stale, schema, data-contract declarado que sumiu) e libera certo (íntegro, TODO pendente, linha-only).');
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — design-code-map-check morde (âncora quebrada, sha stale por CONTEÚDO ou legado git, schema, data-contract declarado que sumiu) e libera certo (íntegro, TODO pendente, linha-only, commit sem mudança de conteúdo).');
 process.exit(fails ? 1 : 0);
