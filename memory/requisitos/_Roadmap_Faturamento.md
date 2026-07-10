@@ -220,7 +220,7 @@ Antes de começar Financeiro, fazer:
 ## Camada de correção — régua por tela (Financeiro) · [ADR 0320]
 
 > **Encaixe T6 (não paralelo):** o "programa de ondas · régua de correção por módulo"
-> ([ADR 0320](../decisions/proposals/0320-programa-ondas-regua-correcao.md)) manda que as ondas
+> ([ADR 0320](../decisions/0320-programa-ondas-regua-correcao.md)) manda que as ondas
 > de **Financeiro / NfeBrasil / RecurringBilling** encaixem **aqui** no roadmap macro de
 > Faturamento — nunca em doc paralelo. Esta seção é a **casa** dessa camada pro Financeiro.
 > O adversário/gaps do módulo **já existe** e não se refaz: [CAPTERRA-INVENTARIO.md](Financeiro/CAPTERRA-INVENTARIO.md)

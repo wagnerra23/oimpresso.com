@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **333** arquivos · **317** números únicos · máx **0330**
-- **ADRs ATIVOS (lifecycle ativo): 311** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 282 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 311 · substituido 12 · arquivado 6 · (vazio) 4
+- **335** arquivos · **319** números únicos · máx **0331**
+- **ADRs ATIVOS (lifecycle ativo): 313** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 284 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 313 · substituido 12 · arquivado 6 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (333)
+## Todas as ADRs (335)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -363,6 +363,7 @@ _(íntegra)_
 | 0316 | aceito | ativo | decision | Esquecimento real de ADR morta — git rm + tombstone ledger + git history como au |
 | 0317 | aceito | ativo | meta | Máquina de revisão de ADR — quando rever, via 3 classes de gatilho (evento/incon |
 | 0318 | aceito | ativo | decision | RAGAS eval real da Jana — mata a tautologia answer=ground_truth, mede saída de v |
+| 0320 | aceito | ativo | decision | Programa de Ondas — ciclo-padrão adversário→régua por módulo + régua estendida ( |
 | 0321 | aceito | ativo | decision | Pin sped-nfe em dev-master (SHA fixo) pra IBS/CBS — grupo UB gated por feature f |
 | 0322 | aceito | ativo | decision | Reabre o hybrid de docs com instruction-prefix qwen3 — executa a condição de rea |
 | 0323 | aceito | ativo | decision | Governança de conhecimento em máquina — Checks S–W do memory-health + gov-sync ( |
@@ -373,3 +374,4 @@ _(íntegra)_
 | 0328 | aceito | ativo | decision | DS v6 congelado → projeto vivo no claude.ai/design (git permanece SSOT) — loop b |
 | 0329 | aceito | ativo | meta | Doutrina de documentação de processo: executável, fonte-única, ligada-ao-gate, c |
 | 0330 | aceito | ativo | meta | Mapa dos níveis — estado real 2026-07 das 7 camadas da Constituição v2 (emenda d |
+| 0331 | aceito | ativo | decision | Trava anti-duplicação de trabalho entre sessões paralelas (claim + dup-detector  |

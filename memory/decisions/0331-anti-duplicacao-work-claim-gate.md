@@ -1,15 +1,31 @@
 ---
+slug: 0331-anti-duplicacao-work-claim-gate
+number: 331
+title: "Trava anti-duplicação de trabalho entre sessões paralelas (claim + dup-detector gate)"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: ativo
+kind: decision
+decided_by: [W]
+decided_at: "2026-06-22"
+module: governance
+related:
+  - 0070-jira-style-task-management-current-md-removed
+  - 0040-policy-publicacao-claude-supervisiona
+  - 0053-mcp-server-governanca-como-produto
+  - 0256-knowledge-survival-meia-vida-catraca-sentinela
+  - 0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento
+  - 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes
+# legado da proposta (preservado — additionalProperties)
 proposal_id: anti-duplicacao-work-claim-gate
-status: accepted
 created: 2026-06-22
 proposed_by: claude-code
-decided_by: wagner
-decided_at: 2026-06-22
-parent_adr: 0094 (Constituição v2)
-related_adrs: [0070, 0040, 0053, 0256, 0270, 0275]
-type: governanca-anti-duplicacao-sessoes-paralelas
+parent_adr: "0094 (Constituição v2)"
 origem: memory/decisions/proposals/onda-0-rede-seguranca-enforcement.md
 ---
+
+> Movido de proposals/ em 2026-07-09 (lei decidida invisível ao MCP — sentinela adr-proposto-parado check A). Conteúdo original intacto; ajustes SÓ mecânicos: frontmatter adequado ao schema canônico (`status: accepted→aceito`, `type→adr`, `decided_by→[W]`, `related` com slugs completos) + links relativos re-baseados de proposals/ pro top-level.
 
 # Proposta · Trava anti-duplicação de trabalho entre sessões paralelas (claim + dup-detector gate)
 
@@ -22,7 +38,7 @@ origem: memory/decisions/proposals/onda-0-rede-seguranca-enforcement.md
 ## Contexto (o problema, com evidência)
 
 Sessões Claude paralelas **duplicam trabalho** e às vezes **aterrissam PRs concorrentes**. Não é hipótese:
-- Handoff [#3092](../../handoffs/2026-06-20-2115-sessao-duplicada-armamento-sdd.md): uma sessão repetiu o backlog de armamento SDD de outra (PR #3087 = duplicata do #3084). Recomendação dele: **disciplina** ("checar git log + sessões antes de codar").
+- Handoff [#3092](../handoffs/2026-06-20-2115-sessao-duplicada-armamento-sdd.md): uma sessão repetiu o backlog de armamento SDD de outra (PR #3087 = duplicata do #3084). Recomendação dele: **disciplina** ("checar git log + sessões antes de codar").
 - **A disciplina falhou de novo**: na Onda 0 (2026-06-22) eu dupliquei o Brick B (#3182 vs #3150) e o Brick D (plano + agenda vs #3181/#3143) — **mesmo com o #3092 já avisando**.
 
 Fato estrutural: **o paralelismo é intencional** (Wagner roda o mesmo prompt em 2-3 sessões; "a 1ª que landa vence"). Então o objetivo **não é impedir paralelo** — é garantir que **a 1ª vença, as outras abortem cedo, e nenhuma duplicata aterrisse**. Qualquer solução que dependa de alguém *lembrar* vai reincidir.
@@ -35,7 +51,7 @@ O projeto já tem a fórmula certa: **uma fonte é única só se houver (a) um a
 
 | Camada | O que é | Onde pega |
 |---|---|---|
-| **L1 · Registro de claim** | work-item = task no MCP ([ADR 0070](../0070-jira-style-task-management.md), já existe), **reivindicada** (assignee+status doing) antes de codar. A task vira a fonte única do intent. | início |
+| **L1 · Registro de claim** | work-item = task no MCP ([ADR 0070](./0070-jira-style-task-management.md), já existe), **reivindicada** (assignee+status doing) antes de codar. A task vira a fonte única do intent. | início |
 | **L2 · Pré-flight "estou atrasado?"** (hook SessionStart/pre-edit) | cruza tópico+arquivos-alvo com: PRs abertos, merges dos últimos N dias, sessões vivas (o **cc-watcher** já ingere sessões no MCP), claims abertas. Overlap → **PARA com aviso + ponteiro** | antes de gastar trabalho |
 | **L3 · Gate `dup-detector` no CI** ⭐ | no PR: compara arquivos tocados + tópico vs outros PRs abertos + merges recentes em **paths "quentes"** (gates, scorecard, baselines, registries, ADRs). Overlap alto → **bloqueia** até ack explícito "não é dup" | no merge (última linha) |
 
@@ -53,7 +69,7 @@ Esboço da L3: `scripts/governance/dup-detector.mjs` + workflow advisory; lê ho
 Nasce com: (a) métrica sobre si — `nº de PRs-duplicados que aterrissam/mês` (tem que CAIR) + `nº de falso-positivos do gate` (tem que ficar baixo); (b) auto-aplicação periódica (a cada 7 PRs barrados, revisar se o hot-paths está calibrado); (c) emenda pelo mesmo gate (PR + Wagner); (d) **núcleo imutável**: a L3 nunca pode ser afrouxada no mesmo PR que ela barraria (anti-grandfather, como o `baseline-tamper-guard`).
 
 ## Caminho de promoção
-L3 entra **advisory** e vira `required` após **3 dias verdes + 0 falso-positivo** (decisão Wagner 2026-06-22 — ritmo IA-pair torna 14d excessivo; **sobe a 7 dias depois**, quando o sistema amadurecer). Soak menor que o default de 14d da [ADR 0275](../0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md) §5 **só para gates de tempo-puro** como este; métricas SDD compostas (C2/T2/A10/G3) mantêm os critérios técnicos próprios.
+L3 entra **advisory** e vira `required` após **3 dias verdes + 0 falso-positivo** (decisão Wagner 2026-06-22 — ritmo IA-pair torna 14d excessivo; **sobe a 7 dias depois**, quando o sistema amadurecer). Soak menor que o default de 14d da [ADR 0275](./0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes.md) §5 **só para gates de tempo-puro** como este; métricas SDD compostas (C2/T2/A10/G3) mantêm os critérios técnicos próprios.
 
 ## Kill-criteria
 1. Falso-positivo frequente travando PRs legítimos (overlap de arquivo ≠ overlap de intenção) → recalibrar hot-paths / só advisory.

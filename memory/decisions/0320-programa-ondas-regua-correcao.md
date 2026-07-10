@@ -36,7 +36,7 @@ pii: false
 
 > **STATUS: ACEITO — Wagner 2026-07-02 ("aprovado merge").** Este foi o PORTÃO (Onda 0a): o mecanismo do programa está travado. As etapas seguintes (0b extensão da régua · 0c sentinela de cadência · 0d paridade de migração · Onda 1 Sells) ficam **liberadas mediante OK [W] por etapa** — cada onda de módulo ainda exige aprovação pra abrir (item 3 da Decisão / [ADR 0105]). Placement canônico/renumeração final sob soberania [CL] ([ADR 0238]); proposta aceita mantida em `proposals/` como os demais aceitos.
 >
-> Contexto vivo do programa: [PLANO-MESTRE.md](../../requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md) §Status vivo (1 plano = 1 registro, [ADR 0294]) — execução via tasks MCP `parent_plan=programa-ondas` ([ADR 0070](../0070-jira-style-task-management-current-md-removed.md)), nunca status em markdown de etapa.
+> Contexto vivo do programa: [PLANO-MESTRE.md](../requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md) §Status vivo (1 plano = 1 registro, [ADR 0294]) — execução via tasks MCP `parent_plan=programa-ondas` ([ADR 0070](./0070-jira-style-task-management-current-md-removed.md)), nunca status em markdown de etapa.
 
 ## Contexto
 
@@ -48,7 +48,7 @@ Telas migradas (`/perfil`) e módulos de **nota alta** (`Financeiro` 82) esconde
 
 **Causa-raiz:** as **3 réguas do projeto não se sobrepõem** e deixam um buraco no meio — `screen-grade` (UX), `module-grade` (estrutura, [ADR 0155]), `.casos.md` (comportamento, ortogonal, **fora das notas**). Ninguém liga "a tela funciona" à foto por tela. A máquina de durabilidade ([ADR 0256]) é **classe mundial, mas guarda a porta errada**: protege segurança (multi-tenant/PII/secrets) e é **cega no cálculo de dinheiro** (âncora 2026: D8 durabilidade ≈ 70 vs D1 cálculo ≈ 15). O gap é exatamente o que a alucinação da "locação de caçamba" atravessou ([ADR 0265]) e o que o trio de [ADR 0264] semeou mas não cobre em valor.
 
-**O caminho é reapontar, não reconstruir** — coerente com a fase de subtração da [ADR 0271](../0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) e o teto anti-proliferação da [ADR 0298](../0298-teto-de-governanca-anti-proliferacao-gates.md). O projeto **já tem todas as peças**: `capterra-senior` (adversário), `/comparativo` (gaps+backlog+changelog, [ADR 0089]), `screen-grade`, a catraca/sentinela/gate de [ADR 0256].
+**O caminho é reapontar, não reconstruir** — coerente com a fase de subtração da [ADR 0271](./0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) e o teto anti-proliferação da [ADR 0298](./0298-teto-de-governanca-anti-proliferacao-gates.md). O projeto **já tem todas as peças**: `capterra-senior` (adversário), `/comparativo` (gaps+backlog+changelog, [ADR 0089]), `screen-grade`, a catraca/sentinela/gate de [ADR 0256].
 
 ## Decisão
 
@@ -79,8 +79,8 @@ Adiciona-se ao **scorecard de tela**: (a) `casos_coverage` (quantos UCs do `.cas
 ### 3. A fila de ondas encaixa no roadmap existente (T6 — proibido paralelo)
 
 - **Roadmaps ativos seguem intactos:** OficinaAuto Fase 3 (canary Martinho), PaymentGateway (smoke/canary).
-- **Faturamento é o canon macro:** as ondas de **Financeiro / NfeBrasil / RecurringBilling encaixam** em [`_Roadmap_Faturamento.md`](../../requisitos/_Roadmap_Faturamento.md) como novas seções/etapas — **nunca** em doc paralelo. Se colidir com um item de lá, o item de lá vence e a etapa daqui vira referência a ele.
-- **Novas ondas operacionais, por exposição×débito:** **Sells (piloto) → Compras (nota 59) → Produto → Cliente.** Cada onda exige **OK [W] antes de abrir** — onda sem sinal/aprovação é hipótese, não trabalho ativo (coerente com [ADR 0105](../0105-cliente-como-sinal-guiar-sem-mandar.md)).
+- **Faturamento é o canon macro:** as ondas de **Financeiro / NfeBrasil / RecurringBilling encaixam** em [`_Roadmap_Faturamento.md`](../requisitos/_Roadmap_Faturamento.md) como novas seções/etapas — **nunca** em doc paralelo. Se colidir com um item de lá, o item de lá vence e a etapa daqui vira referência a ele.
+- **Novas ondas operacionais, por exposição×débito:** **Sells (piloto) → Compras (nota 59) → Produto → Cliente.** Cada onda exige **OK [W] antes de abrir** — onda sem sinal/aprovação é hipótese, não trabalho ativo (coerente com [ADR 0105](./0105-cliente-como-sinal-guiar-sem-mandar.md)).
 
 ### 4. O piso Tier-0: dinheiro/estoque/fiscal exige três provas
 
@@ -144,9 +144,9 @@ Após o aceite: criar as tasks MCP das etapas 0b/0c/0d e abrir a Onda 1 (Sells) 
 
 ## Refs
 
-- Plano mestre: [`memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md`](../../requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md)
-- Etapa: [`onda-0-fundacao/0a-adr-proposta.md`](../../requisitos/_Governanca/programa-ondas/onda-0-fundacao/0a-adr-proposta.md)
-- Emenda: [ADR 0256](../0256-knowledge-survival-meia-vida-catraca-sentinela.md) (durabilidade) · [ADR 0264](../0264-governanca-executavel-trio-dominio-e2e.md) (trio+E2E+domínio)
-- Coerência: [ADR 0271](../0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) (required=Tier-0) · [ADR 0298](../0298-teto-de-governanca-anti-proliferacao-gates.md) (teto de gates) · [ADR 0105](../0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal) · [ADR 0089](../0089-capterra-ficha-canonica.md) (comparativo)
+- Plano mestre: [`memory/requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md`](../requisitos/_Governanca/programa-ondas/PLANO-MESTRE.md)
+- Etapa: [`onda-0-fundacao/0a-adr-proposta.md`](../requisitos/_Governanca/programa-ondas/onda-0-fundacao/0a-adr-proposta.md)
+- Emenda: [ADR 0256](./0256-knowledge-survival-meia-vida-catraca-sentinela.md) (durabilidade) · [ADR 0264](./0264-governanca-executavel-trio-dominio-e2e.md) (trio+E2E+domínio)
+- Coerência: [ADR 0271](./0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md) (required=Tier-0) · [ADR 0298](./0298-teto-de-governanca-anti-proliferacao-gates.md) (teto de gates) · [ADR 0105](./0105-cliente-como-sinal-guiar-sem-mandar.md) (sinal) · [ADR 0089](./0089-capterra-ficha-canonica.md) (comparativo)
 - Anti-padrão citado: `memory/proibicoes.md §"Ideias avaliadas e DESCARTADAS"` — entrada 2026-07-01 (charter-sync-gate)
-- Irmã do mesmo dia: [ADR 0319](0319-product-truth-stream-adversario-modulo-analise.md) (Product Truth — adversário refutador por módulo, stream PT/SDD)
+- Irmã do mesmo dia: [ADR 0319](proposals/0319-product-truth-stream-adversario-modulo-analise.md) (Product Truth — adversário refutador por módulo, stream PT/SDD)

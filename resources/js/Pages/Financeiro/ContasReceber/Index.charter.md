@@ -97,5 +97,5 @@ Contrato de comportamento (UCs + status) vive ao lado em [Index.casos.md](Index.
 cruzado pelo `casos-coverage-guard.mjs` (G-2). Foto UX+comportamento no scorecard
 `memory/governance/scorecards/screens/financeiro-contasreceber-index.yaml`.
 
-[ADR 0320]: ../../../../../memory/decisions/proposals/0320-programa-ondas-regua-correcao.md
+[ADR 0320]: ../../../../../memory/decisions/0320-programa-ondas-regua-correcao.md
 [_Roadmap_Faturamento §Camada de correção]: ../../../../../memory/requisitos/_Roadmap_Faturamento.md

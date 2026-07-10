@@ -21,7 +21,7 @@ related_adrs:
 > _parallel-run / GitHub Scientist / strangler fig_ ("proof rather than hope").
 > Entregável do **passo F2** do processo MWART ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)); os
 > itens de **severidade alta** viram **teste de comportamento** verificado em **F4**.
-> É o **piso Tier-0 (c)** de migração da [ADR 0320](../../decisions/proposals/0320-programa-ondas-regua-correcao.md) (Onda 0a, aceita).
+> É o **piso Tier-0 (c)** de migração da [ADR 0320](../../decisions/0320-programa-ondas-regua-correcao.md) (Onda 0a, aceita).
 >
 > **Origem:** [Onda 0d](../_Governanca/programa-ondas/onda-0-fundacao/0d-paridade-migracao.md).
 > Piloto validado: [`User/perfil-parity.md`](../User/perfil-parity.md).

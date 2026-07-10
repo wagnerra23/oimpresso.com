@@ -47,7 +47,7 @@ NOTA_TELA (0-100) = Σ(dim_i × peso_persona_i) / Σ(peso_persona_max) × 100 ×
 
 ---
 
-## 3-bis. Dimensão D1 — cálculo de valor (o "dente", plugar não fundir · Onda 0b / [ADR 0320](../../decisions/proposals/0320-programa-ondas-regua-correcao.md))
+## 3-bis. Dimensão D1 — cálculo de valor (o "dente", plugar não fundir · Onda 0b / [ADR 0320](../../decisions/0320-programa-ondas-regua-correcao.md))
 
 > **PLUGAR, NÃO FUNDIR.** As 16 dimensões medem **UX** (a tela é bonita/usável). D1 mede
 > **valor** (a conta está certa). São réguas ortogonais: uma tela pode ser **90 de UX e ter
@@ -179,7 +179,7 @@ Pra cada tela, 3 simulações **em paralelo** (1 agente especialista por tela, A
 
 ---
 
-## 8. Foto lado a lado — UX × comportamento (Onda 0b / [ADR 0320](../../decisions/proposals/0320-programa-ondas-regua-correcao.md))
+## 8. Foto lado a lado — UX × comportamento (Onda 0b / [ADR 0320](../../decisions/0320-programa-ondas-regua-correcao.md))
 
 O buraco que a Onda 0b fecha: **UX** (§1-3) e **comportamento** (`.casos.md`) eram
 ortogonais e nunca apareciam na mesma foto — por isso `/perfil` era "ok" no visual e o

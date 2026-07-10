@@ -54,6 +54,6 @@ last_run: "2026-07-06"
   COMO as props carregam; comportamento/cálculo intocados. `last_run` bumpado (G-6) — UCs em
   débito seguem sem teste (sem `Status: ✅`, nada a revalidar via manifesto).
 
-[ADR 0320]: ../../../../../memory/decisions/proposals/0320-programa-ondas-regua-correcao.md
+[ADR 0320]: ../../../../../memory/decisions/0320-programa-ondas-regua-correcao.md
 [ADR 0264]: ../../../../../memory/decisions/0264-governanca-executavel-trio-dominio-e2e.md
 [ADR 0062]: ../../../../../memory/decisions/0062-separacao-runtime-hostinger-ct100.md
