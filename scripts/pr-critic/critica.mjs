@@ -19,15 +19,33 @@
  * CORTE_CONTRATO, diff por arquivo a CORTE_DIFF, ≤ MAX_GRUPOS chamadas (coleta.mjs).
  *
  * Uso (CI):
- *   ANTHROPIC_API_KEY=... node scripts/pr-critic/critica.mjs \
+ *   ANTHROPIC_API_KEY=... (ou OPENAI_API_KEY=...) node scripts/pr-critic/critica.mjs \
  *     --manifesto /tmp/manifesto.json --diff /tmp/pr.diff --out-dir storage/pr-critic
- * Modelo: env PR_CRITIC_MODEL (default claude-opus-4-8).
+ *
+ * Provider: auto — Anthropic se ANTHROPIC_API_KEY, senão OpenAI se OPENAI_API_KEY
+ * (o repo já tem OPENAI_API_KEY nos secrets — decisão Wagner 2026-07-09).
+ * Override: PR_CRITIC_PROVIDER=anthropic|openai · PR_CRITIC_MODEL=<id>.
+ * Defaults: claude-opus-4-8 (anthropic) · gpt-4o (openai — gpt-4o-mini é o canon
+ * de volume do repo, mas crítica de coerência pede o tier de raciocínio).
  */
 
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 
-const MODELO = process.env.PR_CRITIC_MODEL || 'claude-opus-4-8';
+const MODELO_DEFAULT = { anthropic: 'claude-opus-4-8', openai: 'gpt-4o' };
+
+/** Resolve provider+modelo pelas envs disponíveis (exportado pra teste). */
+export function resolverProvider(env = process.env) {
+  let provider = env.PR_CRITIC_PROVIDER || null;
+  if (!provider) {
+    if (env.ANTHROPIC_API_KEY) provider = 'anthropic';
+    else if (env.OPENAI_API_KEY) provider = 'openai';
+  }
+  if (!provider || !MODELO_DEFAULT[provider]) return null;
+  if (provider === 'anthropic' && !env.ANTHROPIC_API_KEY) return null;
+  if (provider === 'openai' && !env.OPENAI_API_KEY) return null;
+  return { provider, modelo: env.PR_CRITIC_MODEL || MODELO_DEFAULT[provider] };
+}
 const CORTE_CONTRATO = 15_000; // chars por artefato de contrato
 const CORTE_DIFF = 20_000;     // chars por arquivo do diff
 const MARCADOR = '<!-- pr-critic-contrato -->';
@@ -115,39 +133,74 @@ export function filtrarPorCitacao(achados, conteudoPorContrato) {
   return { validos, descartados };
 }
 
-async function chamarAnthropic(userContent) {
-  const body = {
-    model: MODELO,
-    max_tokens: 16000,
-    thinking: { type: 'adaptive' },
-    system: SYSTEM,
-    output_config: { format: SCHEMA },
-    messages: [{ role: 'user', content: userContent }],
-  };
+async function comRetry(nome, fazer) {
   for (let tentativa = 0; tentativa < 3; tentativa++) {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY,
-        'anthropic-version': '2023-06-01',
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
+    const res = await fazer();
     if (res.status === 429 || res.status >= 500) {
       const espera = Number(res.headers.get('retry-after')) * 1000 || 2000 * (tentativa + 1);
-      console.log(`[critica] HTTP ${res.status} — retry em ${espera}ms`);
+      console.log(`[critica] ${nome} HTTP ${res.status} — retry em ${espera}ms`);
       await new Promise((r) => setTimeout(r, espera));
       continue;
     }
-    if (!res.ok) throw new Error(`Anthropic API ${res.status}: ${(await res.text()).slice(0, 500)}`);
-    const msg = await res.json();
-    if (msg.stop_reason === 'refusal') return { achados: [], observacao: 'chamada recusada pelos classifiers (stop_reason=refusal)' };
-    const texto = (msg.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
-    if (msg.stop_reason === 'max_tokens') console.log('[critica] AVISO: stop_reason=max_tokens — resposta pode estar truncada');
-    return JSON.parse(texto);
+    if (!res.ok) throw new Error(`${nome} ${res.status}: ${(await res.text()).slice(0, 500)}`);
+    return res.json();
   }
-  throw new Error('Anthropic API: 3 tentativas esgotadas (429/5xx)');
+  throw new Error(`${nome}: 3 tentativas esgotadas (429/5xx)`);
+}
+
+async function chamarAnthropic(modelo, userContent) {
+  const msg = await comRetry('Anthropic API', () => fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': process.env.ANTHROPIC_API_KEY,
+      'anthropic-version': '2023-06-01',
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: modelo,
+      max_tokens: 16000,
+      thinking: { type: 'adaptive' },
+      system: SYSTEM,
+      output_config: { format: SCHEMA },
+      messages: [{ role: 'user', content: userContent }],
+    }),
+  }));
+  if (msg.stop_reason === 'refusal') return { achados: [], observacao: 'chamada recusada pelos classifiers (stop_reason=refusal)' };
+  if (msg.stop_reason === 'max_tokens') console.log('[critica] AVISO: stop_reason=max_tokens — resposta pode estar truncada');
+  const texto = (msg.content || []).filter((b) => b.type === 'text').map((b) => b.text).join('');
+  return JSON.parse(texto);
+}
+
+async function chamarOpenAI(modelo, userContent) {
+  // response_format json_schema strict exige TODAS as props em required — a
+  // variante estrita torna `observacao` obrigatória (pode vir vazia).
+  const schemaStrict = structuredClone(SCHEMA.schema);
+  schemaStrict.required = ['achados', 'observacao'];
+  const msg = await comRetry('OpenAI API', () => fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: modelo,
+      max_tokens: 8000,
+      messages: [
+        { role: 'system', content: SYSTEM },
+        { role: 'user', content: userContent },
+      ],
+      response_format: { type: 'json_schema', json_schema: { name: 'pr_critic_achados', strict: true, schema: schemaStrict } },
+    }),
+  }));
+  const escolha = msg.choices && msg.choices[0];
+  if (!escolha) throw new Error('OpenAI API: resposta sem choices');
+  if (escolha.finish_reason === 'length') console.log('[critica] AVISO: finish_reason=length — resposta pode estar truncada');
+  if (escolha.message.refusal) return { achados: [], observacao: `chamada recusada (refusal): ${escolha.message.refusal}` };
+  return JSON.parse(escolha.message.content);
+}
+
+function chamarAgente(cfg, userContent) {
+  return cfg.provider === 'anthropic' ? chamarAnthropic(cfg.modelo, userContent) : chamarOpenAI(cfg.modelo, userContent);
 }
 
 function montarPromptGrupo(grupo, conteudoPorContrato, diffPorArquivo) {
@@ -205,8 +258,9 @@ export function montarComentario({ resultados, semContrato, descartadosCap, tota
 }
 
 async function main() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.log('[critica] ANTHROPIC_API_KEY ausente — passe crítico pulado (advisory).');
+  const cfg = resolverProvider();
+  if (!cfg) {
+    console.log('[critica] nenhuma chave (ANTHROPIC_API_KEY/OPENAI_API_KEY) — passe crítico pulado (advisory).');
     process.exit(0);
   }
   const manifesto = JSON.parse(readFileSync(argVal('--manifesto'), 'utf8'));
@@ -237,8 +291,8 @@ async function main() {
   for (const grupo of manifesto.grupos) {
     const { prompt, truncados } = montarPromptGrupo(grupo, conteudoPorContrato, diffPorArquivo);
     totalTruncados += truncados;
-    console.log(`[critica] ${grupo.id} — chamando ${MODELO} (${Math.round(prompt.length / 1024)}KB de prompt)`);
-    const resposta = await chamarAnthropic(prompt);
+    console.log(`[critica] ${grupo.id} — chamando ${cfg.provider}:${cfg.modelo} (${Math.round(prompt.length / 1024)}KB de prompt)`);
+    const resposta = await chamarAgente(cfg, prompt);
     const { validos, descartados } = filtrarPorCitacao(resposta.achados || [], conteudoPorContrato);
     if (descartados.length) console.log(`[critica]   ${descartados.length} achado(s) descartado(s) pela trava de citação`);
     totalDescartadosCitacao += descartados.length;
@@ -246,7 +300,7 @@ async function main() {
   }
 
   const achadosPath = join(outDir, 'achados.json');
-  writeFileSync(achadosPath, JSON.stringify({ modelo: MODELO, resultados, descartados_citacao: totalDescartadosCitacao }, null, 2) + '\n');
+  writeFileSync(achadosPath, JSON.stringify({ modelo: `${cfg.provider}:${cfg.modelo}`, resultados, descartados_citacao: totalDescartadosCitacao }, null, 2) + '\n');
 
   const comentario = montarComentario({
     resultados,
@@ -254,7 +308,7 @@ async function main() {
     descartadosCap: manifesto.descartados || [],
     totalDescartadosCitacao,
     totalTruncados,
-    modelo: MODELO,
+    modelo: `${cfg.provider}:${cfg.modelo}`,
   });
   writeFileSync(join(outDir, 'comentario.md'), comentario + '\n');
   const total = resultados.reduce((n, r) => n + r.achados.length, 0);

@@ -18,12 +18,14 @@ name: PR critic — coerência diff × contrato (advisory)
 #
 # ADVISORY DE NASCENÇA E POR LEI (ADR 0314: required = só Tier-0; ADR 0261/0271):
 # achados NUNCA falham o job; nunca entra em branch protection. Diferente do
-# pr-ui-judge morto, NÃO há kill-switch dormente — a presença do secret
-# ANTHROPIC_API_KEY é a chave. Sem secret: coleta+selftest rodam (grátis) e o
-# passe agente é pulado com ::notice explícito (sem teatro de verde).
+# pr-ui-judge morto, NÃO há kill-switch dormente — a presença de uma chave de
+# provider é o interruptor: ANTHROPIC_API_KEY (preferido) OU OPENAI_API_KEY
+# (fallback — já existe nos secrets do repo; decisão Wagner 2026-07-09). Sem
+# nenhuma: coleta+selftest rodam (grátis) e o passe agente é pulado com
+# ::notice explícito (sem teatro de verde).
 #
 # Custo: só arquivos do diff, contratos truncados, ≤8 grupos/PR.
-# Modelo: repo variable PR_CRITIC_MODEL (default claude-opus-4-8).
+# Modelo: vars PR_CRITIC_PROVIDER/PR_CRITIC_MODEL (defaults: claude-opus-4-8 · gpt-4o).
 
 on:
   pull_request:
@@ -70,15 +72,17 @@ jobs:
           echo "grupos=$GRUPOS" >> "$GITHUB_OUTPUT"
           { echo '## pr-critic · coleta'; echo '```'; cat /tmp/coleta.log; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Crítica — agente contexto-zero (pula sem secret, com aviso honesto)
+      - name: Crítica — agente contexto-zero (Anthropic > OpenAI; pula sem NENHUMA chave)
         if: steps.coleta.outputs.grupos != '0'
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          PR_CRITIC_PROVIDER: ${{ vars.PR_CRITIC_PROVIDER }}
           PR_CRITIC_MODEL: ${{ vars.PR_CRITIC_MODEL }}
         run: |
-          if [ -z "$ANTHROPIC_API_KEY" ]; then
-            echo "::notice title=pr-critic pulado::secret ANTHROPIC_API_KEY ausente — o passe crítico agente não rodou. Wagner: Settings → Secrets and variables → Actions → adicionar ANTHROPIC_API_KEY (advisory; custo ~US\$0,20-0,40/PR no default opus-4-8, menor com vars.PR_CRITIC_MODEL)."
-            echo '## pr-critic · agente NÃO rodou (secret ausente)' >> "$GITHUB_STEP_SUMMARY"
+          if [ -z "$ANTHROPIC_API_KEY" ] && [ -z "$OPENAI_API_KEY" ]; then
+            echo "::notice title=pr-critic pulado::nenhuma chave (ANTHROPIC_API_KEY/OPENAI_API_KEY) nos secrets — o passe crítico agente não rodou (advisory)."
+            echo '## pr-critic · agente NÃO rodou (sem chave de provider)' >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           node scripts/pr-critic/critica.mjs --manifesto /tmp/manifesto.json --diff /tmp/pr.diff --out-dir storage/pr-critic | tee /tmp/critica.log

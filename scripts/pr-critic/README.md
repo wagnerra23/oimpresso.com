@@ -46,19 +46,22 @@ charter de módulo.
 | `comentar.mjs` | upsert de 1 comentário/PR via marcador `<!-- pr-critic-contrato -->` | ✅ |
 | `../../.github/workflows/pr-critic.yml` | orquestra em CI (advisory) | — |
 
-## Custo
+## Provider e custo
 
-Só arquivos do diff (nunca a árvore); contratos truncados a 15KB, diff/arquivo a
-20KB, ≤8 chamadas/PR. Default `claude-opus-4-8` (~US$0,20-0,40 num PR típico de
-1-2 telas). Wagner pode baratear via repo variable `PR_CRITIC_MODEL`
-(ex.: `claude-sonnet-5`).
+Auto-resolução: **Anthropic** se `ANTHROPIC_API_KEY` existir (default
+`claude-opus-4-8`); senão **OpenAI** via `OPENAI_API_KEY` (default `gpt-4o` —
+já existe nos secrets do repo; decisão Wagner 2026-07-09 "dá pra colocar o
+OpenAI, já tem lá"). Overrides: repo vars `PR_CRITIC_PROVIDER` /
+`PR_CRITIC_MODEL`. Só arquivos do diff (nunca a árvore); contratos truncados a
+15KB, diff/arquivo a 20KB, ≤8 chamadas/PR (~US$0,10-0,40/PR típico).
 
-## Ativação (pendente Wagner — R10)
+## Ativação
 
-O repo **não tem** o secret `ANTHROPIC_API_KEY` (verificado 2026-07-09; só
-OPENAI_API_KEY existe). Até Wagner adicionar em *Settings → Secrets and
-variables → Actions*, o job roda só a parte determinística e avisa. Nenhuma
-variable é necessária (sem kill-switch).
+Ativo desde o merge via `OPENAI_API_KEY` (fallback). Se Wagner adicionar
+`ANTHROPIC_API_KEY` nos secrets, o provider preferido assume sozinho — sem
+mudança de código. Registrado no censo de gates
+(`scripts/governance/gates-registry.json`, terminal `advisory`,
+`promote_by` 2026-07-23 — o zelador cobra a decisão de manter/promover).
 
 ## Rodar local
 

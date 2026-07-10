@@ -8,7 +8,7 @@
  */
 
 import assert from 'node:assert/strict';
-import { filtrarPorCitacao, montarComentario, normaliza, separarDiffPorArquivo } from './critica.mjs';
+import { filtrarPorCitacao, montarComentario, normaliza, resolverProvider, separarDiffPorArquivo } from './critica.mjs';
 
 let passou = 0;
 function t(nome, fn) { fn(); passou++; console.log(`  ok - ${nome}`); }
@@ -77,6 +77,15 @@ t('comentário carrega marcador, achados, e rodapé honesto (caps/descartes vis�
 t('comentário sem achados declara coerência explícita', () => {
   const md = montarComentario({ resultados: [{ grupo: 'g', achados: [] }], semContrato: [], descartadosCap: [], totalDescartadosCitacao: 0, totalTruncados: 0, modelo: 'm' });
   assert.ok(md.includes('Nenhuma incoerência'));
+});
+
+t('resolverProvider: anthropic tem prioridade; openai é fallback; sem chave = null; override respeita', () => {
+  assert.deepEqual(resolverProvider({ ANTHROPIC_API_KEY: 'a', OPENAI_API_KEY: 'o' }), { provider: 'anthropic', modelo: 'claude-opus-4-8' });
+  assert.deepEqual(resolverProvider({ OPENAI_API_KEY: 'o' }), { provider: 'openai', modelo: 'gpt-4o' });
+  assert.equal(resolverProvider({}), null);
+  assert.deepEqual(resolverProvider({ ANTHROPIC_API_KEY: 'a', OPENAI_API_KEY: 'o', PR_CRITIC_PROVIDER: 'openai', PR_CRITIC_MODEL: 'gpt-4o-mini' }), { provider: 'openai', modelo: 'gpt-4o-mini' });
+  // provider forçado sem a chave correspondente = null (nunca chamada quebrada)
+  assert.equal(resolverProvider({ OPENAI_API_KEY: 'o', PR_CRITIC_PROVIDER: 'anthropic' }), null);
 });
 
 console.log(`\ncritica.test.mjs: ${passou} teste(s) OK`);
