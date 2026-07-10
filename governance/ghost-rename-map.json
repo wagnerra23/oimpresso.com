@@ -40,7 +40,7 @@
     {
       "nome": ".github/workflows/mwart-gate.yml",
       "deletado_por_adr": "0271",
-      "substituto": "casos-gate.yml (cobertura de tela, required — ADR 0264) + screen-coverage-gate.yml; enforcement de RUNBOOK segue via hook runtime .claude/hooks/block-mwart-violation.ps1",
+      "substituto": "casos-gate.yml (cobertura de tela, required — ADR 0264) + screen-coverage-gate.yml; enforcement de RUNBOOK segue via hook runtime .claude/hooks/block-mwart-violation.mjs (porte cross-plataforma do .ps1, US-GOV-052/P24)",
       "evidencia": "commit 7be91b3347 (PR #2531, 2026-06-11, 'onda 2 dos gates ADR 0271'): 'Softs superseded deletados: charter-gate.yml + mwart-gate.yml (teatro continue-on-error, cobertura migrou pro casos-gate required ADR 0264)'"
     },
     {
