@@ -1,7 +1,7 @@
 ---
 date: "2026-07-10"
 topic: "Avaliação adversarial do protocolo design→code: gate visual cego 3 dias (achado por prova contrafactual) + pacote dark + flip L2 abortado com evidência"
-authors: [W, CC]
+authors: [W, C]
 prs: [4079, 4081, 4082, 4083, 4086, 4087, 4088, 4089]
 us: [US-COM-021]  # + US-_DESIGNSYSTEM-035/036 (underscore do módulo viola o pattern us[] do session.schema — quirk conhecido; IDs citados no corpo)
 outcomes:
