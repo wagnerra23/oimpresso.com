@@ -23,7 +23,9 @@ related_adrs:
 
 # Charter — Nova Ordem de Serviço (Oficina · documento vivo)
 
-> 🪦 **DEPRECATED — conflito RESOLVIDO por [W] em 2026-06-30 (sessão musing-elion).** Decisão Tier 0: **o canon é [`OficinaAuto/ServiceOrders/`](../ServiceOrders/)** (Board/Create/Edit/Show — live, Martinho biz=164, 3 testes) + o drawer rico `ProducaoOficina/_components/ServiceOrderRichSheet.tsx`. O mapeamento do bundle Cowork (`os-drawer-build-map.md`) provou que a visão "documento vivo" deste charter (stepper FSM + DVI + gate + split fiscal) **já está realizada** no canon — 11 de 13 partes vivas. Esta pasta `Os/` era um ghost: `Create.tsx` **nunca existiu**, 0 testes. **Não construir.** O detector (`detectar-telas`) aponta o mockup `oficina-os-page.jsx` pro canon via `visual_source` em `ServiceOrders/Show.charter.md`. Inventário completo: [`memory/requisitos/OficinaAuto/RECONCILIACAO-os-inventario.md`](../../../../../memory/requisitos/OficinaAuto/RECONCILIACAO-os-inventario.md).
+> 🪦 **LÁPIDE — arquivado em 2026-07-09** (movido de `resources/js/Pages/OficinaAuto/Os/Create.charter.md` pra cá; a pasta `Os/` ghost foi removida das Pages pra promoção do IT2 a duro — charter em Pages exige `.tsx` irmão vivo).
+>
+> 🪦 **DEPRECATED — conflito RESOLVIDO por [W] em 2026-06-30 (sessão musing-elion).** Decisão Tier 0: **o canon é [`OficinaAuto/ServiceOrders/`](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/)** (Board/Create/Edit/Show — live, Martinho biz=164, 3 testes) + o drawer rico `ProducaoOficina/_components/ServiceOrderRichSheet.tsx`. O mapeamento do bundle Cowork (`os-drawer-build-map.md`) provou que a visão "documento vivo" deste charter (stepper FSM + DVI + gate + split fiscal) **já está realizada** no canon — 11 de 13 partes vivas. Esta pasta `Os/` era um ghost: `Create.tsx` **nunca existiu**, 0 testes. **Não construir.** O detector (`detectar-telas`) aponta o mockup `oficina-os-page.jsx` pro canon via `visual_source` em `ServiceOrders/Show.charter.md`. Inventário completo: [`memory/requisitos/OficinaAuto/RECONCILIACAO-os-inventario.md`](../RECONCILIACAO-os-inventario.md).
 >
 > _Histórico (antes da decisão): charter F1 persona Larissa @ balcão 1280px, landado draft 2026-06-01 do handoff Cowork; sobreposição com `ServiceOrders/Create` (live) registrada como conflito aberto até [W] decidir._
 
@@ -67,8 +69,10 @@ related_adrs:
 ## Refs
 - `oficina-os-page.{jsx,css}` (build F1 Cowork) · `Oficina - Benchmark Estado da Arte.html` (16 camadas/2 matrizes) · `memory/sessions/2026-06-01-build-oficina-os.md`
 - FSM **ADR 0129 / 0143** · `CASO-PRATICO-OS-COMUNICACAO-VISUAL.md` (multi-doc fiscal) · `CONTEXTO-DE-TELA.md` + `FRESCOR-DE-TELA.md` (intake)
-- Charter live relacionado (NÃO duplicar): [`OficinaAuto/ServiceOrders/Create.charter.md`](../ServiceOrders/Create.charter.md)
+- Charter live relacionado (NÃO duplicar): [`OficinaAuto/ServiceOrders/Create.charter.md`](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Create.charter.md)
 
 ## Evolução / trilha do tempo
 - 2026-06-01 · criado por [CC] (backfill pós-build, conceito travado). Nenhum anterior superseded.
 - 2026-06-02 · landado por [CL] como `draft` em `OficinaAuto/Os/` (caminho canônico do módulo, sem fork `Oficina/`). Conflito de sobreposição com `ServiceOrders/Create` (live) registrado acima — aguarda decisão Tier 0 de [W]. Refs: PR fiscal-status `#2130` (irmão do mesmo handoff Cowork).
+- 2026-06-30 · deprecated por decisão [W] (sessão musing-elion): canon = `ServiceOrders/` + `ServiceOrderRichSheet`; **não construir** `Os/Create.tsx` (nunca existiu). Banner de decisão no topo.
+- 2026-07-09 · [CC] arquivado: movido de `resources/js/Pages/OficinaAuto/Os/Create.charter.md` → `memory/requisitos/OficinaAuto/_arquivo/Os-Create.charter.md` (lápide L-22). Motivo: promoção do IT2 (integrity-check §15) a duro — charter em Pages exige `.tsx` irmão vivo; este é tela-ghost decidida "não construir". Links relativos re-apontados. Zera 1 dos 2 refs quebrados da catraca `charter-refs` (ceiling 2→0).

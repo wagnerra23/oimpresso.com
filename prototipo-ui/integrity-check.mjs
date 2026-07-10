@@ -6,7 +6,7 @@
 // sessao / antes de formalizar.
 //
 //   IT1 Espinha existe: STATUS · PROCESSO_MEMORIA_CC · MEMORY_INDEX · LICOES_CC
-//   IT2 Todo *.charter.md tem tela viva (.tsx irmao) — ADVISORY (5 orfaos historicos)
+//   IT2 Todo *.charter.md tem tela viva (.tsx irmao) — DURO desde 2026-07-09 (orfaos zerados)
 //   IT3 STATUS aponta pra PROCESSO_MEMORIA_CC (ponteiro vivo)
 //   IT4 LICOES_CC: L-NN contiguo, sem buraco/duplicata
 //   IT5 Benchmark (§11) tem >=1 linha de sessao
@@ -15,9 +15,12 @@
 //
 // Veredito: qualquer IT DURO falho => estrutura COMPROMETIDA (exit 1).
 // IT6 e' ADVISORY (tokens.css/design-system.css DEFINEM tokens) — reporta, nao falha.
-// IT2 e' ADVISORY tambem: 5 charters legados sem .tsx irmao (kb/Node·Paths·Troubleshooter ·
-// OficinaAuto/Os/Create · Orcamento/Index) fariam duro=vermelho-por-construcao. Reporta os
-// orfaos; quando zerarem, pode subir a duro pela catraca (§12).
+// IT2 e' DURO desde 2026-07-09 (catraca §12): os 5 orfaos historicos foram zerados —
+// kb/Node·Paths·Troubleshooter movidos pro lado do componente real que governam
+// (kb/_components/{NodeReader,PathsDialog,TroubleshooterDialog}.charter.md) e
+// OficinaAuto/Os/Create + Orcamento/Index arquivados como lapide L-22 em
+// memory/requisitos/{OficinaAuto,Orcamento}/_arquivo/. Charter novo em Pages sem
+// .tsx irmao => exit 1 (lei sem tela viva nao entra mais).
 //
 // Uso: node prototipo-ui/integrity-check.mjs
 
@@ -62,12 +65,13 @@ const spine = {
   add('IT1', true, miss.length === 0, miss.length ? ('faltando: ' + miss.join(', ')) : 'STATUS · PROCESSO · MEMORY_INDEX · LICOES_CC presentes');
 }
 
-// ---- IT2 — todo charter tem tela viva (.tsx irmao) · ADVISORY -------------
+// ---- IT2 — todo charter tem tela viva (.tsx irmao) · DURO (2026-07-09) ----
 // Mede a invariante REAL: o contrato da tela e' o trio .tsx + .charter.md + .casos.md,
 // e o charter mora ao lado da tela em resources/js/Pages/<Mod>/. Charter sem .tsx irmao =
 // lei sem tela viva (candidato a lapide L-22). NAO parear com .decisoes.md: 0 no repo, era
-// vacuo (fonte-unica violada — §14 apontava pro lugar errado). Advisory ate os 5 orfaos
-// historicos zerarem; ai sobe a duro pela catraca (§12).
+// vacuo (fonte-unica violada — §14 apontava pro lugar errado). Subiu a duro pela catraca
+// (§12) quando os 5 orfaos historicos zeraram (3 movidos pro componente real em
+// kb/_components/, 2 arquivados como lapide em memory/requisitos/**/_arquivo/).
 {
   const files = await walk(join(ROOT, 'resources', 'js', 'Pages'));
   const charters = files.filter((f) => f.endsWith('.charter.md'));
@@ -75,7 +79,7 @@ const spine = {
     .filter((f) => !existsSync(f.slice(0, -'.charter.md'.length) + '.tsx'))
     .map((f) => rel(f));
   const vivos = charters.length - orphans.length;
-  add('IT2', false, orphans.length === 0,
+  add('IT2', true, orphans.length === 0,
     charters.length === 0 ? 'nenhum charter em resources/js/Pages (ok — vacuo)'
       : orphans.length ? (orphans.length + ' charter(s) sem .tsx irmao: ' + orphans.join(' · '))
       : (vivos + ' charters com tela viva (.tsx) ok'));
