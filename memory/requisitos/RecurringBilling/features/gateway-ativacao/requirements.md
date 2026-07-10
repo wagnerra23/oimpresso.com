@@ -18,6 +18,13 @@ created: "2026-07-09"
 **Quero** atribuir a conta bancária/gateway correta a cada assinatura ativa hoje dormente e reativar a emissão de cobrança
 **Para** que as faturas dessas 109 assinaturas voltem a gerar boleto/PIX de verdade (receita recorrente destravada).
 
+## Clarifications (fase Clarify — Spec Kit 2026)
+
+> Desambiguação persistida no contrato (populada por [`wagner-understand`](../../../../.claude/agents/wagner-understand.md) / `wagner-request-refiner`).
+
+- **2026-07-09** — P: atribuir gateway por assinatura é escrita em dado de cobrança (valor)? → R: sim → dry-run padrão + gate humano T-05 antes de `--apply` (REGRA MESTRE).
+- **2026-07-09** — P: assinatura de business sem conta bancária do banco esperado — o que fazer? → R: pular e listar em "não-resolvíveis" (AC-4), nunca atribuir por palpite.
+
 ## Acceptance criteria (EARS — ADR 0306)
 
 - **AC-1** — QUANDO o operador executar `php artisan rb:gateway-backfill` (modo padrão = dry-run), O SISTEMA DEVE imprimir a tabela **antes→depois** (assinatura, business, contato `[REDACTED]`, provider proposto, conta bancária alvo) SEM escrever nada no banco. _Prova: count de `rb_subscriptions.conta_bancaria_id NOT NULL` idêntico antes/depois do comando._
