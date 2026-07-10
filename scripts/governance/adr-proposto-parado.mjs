@@ -64,7 +64,13 @@ export function lerCampos(content) {
   // formalizada: a proposta aponta a LEI top-level que a realizou/substituiu — os 3 marcadores
   // reais do corpus (auditoria #4034): resulting_adr (0283/0285/UI-0014) · realized_by (0304) ·
   // superseded_by (baileys). Com marcador, o doc é registro histórico VISÍVEL via a ADR apontada.
-  const formalizada = ['resulting_adr', 'realized_by', 'superseded_by'].some((k) => (grab(k) || '').length > 0);
+  // valor VAZIO não formaliza: `superseded_by: []` / `~` / `null` são placeholder de schema
+  // (caso real: 0314 tem `superseded_by: []` — sem este filtro ela seria liberada do check B!).
+  const vazio = new Set(['[]', '~', 'null', '""', "''", '-']);
+  const formalizada = ['resulting_adr', 'realized_by', 'superseded_by'].some((k) => {
+    const v = (grab(k) || '').trim();
+    return v.length > 0 && !vazio.has(v);
+  });
   return { status: (grab('status') || '').toLowerCase(), kind: (grab('kind') || '').toLowerCase(), decidedAt: dm ? dm[1] : null, formalizada };
 }
 
@@ -170,7 +176,8 @@ function selftest() {
   eq('libera aceito top-level', classify({ emProposals: false, numerado: true, status: 'aceito', kind: 'decision', decidedAt: '2026-05-01', hojeIso: H }).check, null);
   eq('libera sem decided_at (cobertura≠pendência)', classify({ emProposals: false, numerado: true, status: 'proposto', kind: 'decision', decidedAt: null, hojeIso: H }).check, null);
   // lerCampos: extrai status/kind/decided_at com e sem aspas — E corta comentário inline (caso real 0125).
-  eq('lerCampos', lerCampos('---\nstatus: proposto\nkind: meta\ndecided_at: "2026-07-09"\n---'), { status: 'proposto', kind: 'meta', decidedAt: '2026-07-09' });
+  eq('lerCampos', lerCampos('---\nstatus: proposto\nkind: meta\ndecided_at: "2026-07-09"\n---'), { status: 'proposto', kind: 'meta', decidedAt: '2026-07-09', formalizada: false });
+  eq('lerCampos superseded_by VAZIO não formaliza (0314)', lerCampos('---\nstatus: proposto\nsuperseded_by: []\n---').formalizada, false);
   eq('lerCampos comentário inline (0125)', lerCampos('---\nkind: feature-wish # era lifecycle feature_wish\n---').kind, 'feature-wish');
   // formalizada (fix pós-#4034): proposta decidida COM ponteiro pra lei top-level = registro histórico, não lei invisível.
   eq('lerCampos formalizada (0283)', lerCampos('---\nstatus: decided\nresulting_adr: "0283-handoff-loop-zero-paste"\n---').formalizada, true);
@@ -178,7 +185,7 @@ function selftest() {
   eq('A segue mordendo SEM marcador (0320-era)', classify({ emProposals: true, numerado: true, status: 'aceito', kind: 'decision', decidedAt: '2026-06-01', hojeIso: H, formalizada: false }).check, 'A');
 
   if (fails.length) { console.error('SELFTEST FALHOU:\n - ' + fails.join('\n - ')); process.exit(1); }
-  console.log('✓ adr-proposto-parado selftest OK — A/B/C mordem e liberam certo (14 casos, ancorados nos casos reais do corpus (0320/0314/0125 e a doutrina)).');
+  console.log('✓ adr-proposto-parado selftest OK — A/B/C mordem e liberam certo (15 casos, ancorados nos casos reais do corpus (0320/0314/0125 e a doutrina)).');
   process.exit(0);
 }
 
