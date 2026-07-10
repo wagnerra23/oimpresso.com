@@ -2264,3 +2264,11 @@
   background-clip: content-box;
 }
 .cw-scroll-thin::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ⛔ PROVA CONTRAFACTUAL — NÃO MERGEAR (branch descartável 2026-07-10).
+   Quebra deliberada SÓ do dark pra provar que o gate L2 (estados isolados,
+   recém-promovido a ENFORCING no PR #4088) MORDE: se o visual-regression
+   deste PR não ficar VERMELHO no step L2, o gate é cego e a promoção mente.
+   Token existente de propósito (var(--accent)) — cor crua triparia o ds-gate
+   e contaminaria a prova com vermelho pelo motivo errado. */
+.cockpit[data-theme="dark"] { background: var(--accent) !important; }
