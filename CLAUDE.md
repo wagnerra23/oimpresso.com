@@ -83,6 +83,7 @@ Regra-mestre: pedido vago = agente **pergunta** antes de implementar (skill `wag
 | Skill Tier B/C | PR + SKILL.md description "Use ao/quando..." |
 | Charter (S4+) | PR + `*.charter.md` ao lado do `.tsx` |
 | Mudança ADR canon existente | ❌ NÃO. Append-only. Criar nova com `supersedes: [N]` |
+| Ratificação ADR (`proposto→aceito`) | PR flip SÓ da linha `status:` + índice regenerado + **label `adr-metadata-normalization`** (exceção ADR 0257 — sem ela o gate Append-only falha). Merge [W] = ato. Receita: [memory/decisions/README.md](memory/decisions/README.md) |
 
 ## Onde NÃO inventar (Tier 0)
 
