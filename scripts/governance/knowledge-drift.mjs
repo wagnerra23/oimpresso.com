@@ -35,13 +35,24 @@
 //       node scripts/governance/knowledge-drift.mjs --selftest      (prova que a catraca de path morde/solta)
 // Node puro (fs + git via execSync). Sem deps, sem DB, sem PHP.
 
-import { readdirSync, statSync, readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readdirSync, statSync, readFileSync, existsSync, mkdirSync, writeFileSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join, sep } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ROOT = process.cwd();
 const REQ = join(ROOT, 'memory', 'requisitos');
 const JSON_OUT = process.argv.includes('--json');
+
+// Import-safe (Roubo #5 · doc-freshness-score.mjs): o agregador de frescor por doc
+// IMPORTA os helpers puros do ghost-check daqui (classifyPathCitation/loadPathTombstones/
+// regexes) em vez de duplicar — o ghost-check é DESTE script. IS_MAIN garante que o CLI
+// (flags + relatório + process.exit) só roda quando executado direto, nunca no import.
+// Mesmo idioma de briefing-code-staleness.mjs (núcleo exportado + isMain guard).
+const IS_MAIN = (() => {
+  try { return realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); }
+  catch { return false; }
+})();
 
 // thresholds (calibrados na sessão 2026-06-11 — Jana porta=27 links era "índice")
 const LINKS_INDICE = 15;   // > isso, a "porta" é índice, não verdade auto-contida
@@ -91,7 +102,7 @@ function gitDate(file) {
 }
 
 const TRUTH_RE = /^(SPEC|README|ARCHITECTURE|BRIEFING|CAPTERRA.*|CAPTERRA-INVENTARIO|AUDIT.*|AUDITORIA.*)\.md$/i;
-const MOD_REF_RE = /Modules\/([A-Z][A-Za-z0-9]+)/g;
+export const MOD_REF_RE = /Modules\/([A-Z][A-Za-z0-9]+)/g;
 
 // ---------------------------------------------------------------------------
 // DETECTOR DE PATH FANTASMA (P16 — "docs/ADRs apontam pra mecanismo-fantasma").
@@ -122,10 +133,10 @@ const isPlanningDoc = (abs) => { const r = relPosix(abs); return PLAN_CTX.some(p
 
 // Formas CONCRETAS apenas (token-boundary). Glob (`.github/workflows/*.yml`,
 // `scripts/**/*.mjs`) não casa: `*` não está na classe → o `+…\.ext` não fecha.
-const WF_CITE_RE = /\.github\/workflows\/[A-Za-z0-9._-]+\.ya?ml/g;
-const MJS_CITE_RE = /(?<![\w./-])scripts\/[A-Za-z0-9._/-]+\.mjs/g;
+export const WF_CITE_RE = /\.github\/workflows\/[A-Za-z0-9._-]+\.ya?ml/g;
+export const MJS_CITE_RE = /(?<![\w./-])scripts\/[A-Za-z0-9._/-]+\.mjs/g;
 
-function loadPathTombstones() {
+export function loadPathTombstones() {
   const m = new Map(); // nome(=path) -> { nome, deletado_por_adr, substituto, ... }
   try {
     const raw = JSON.parse(readFileSync(RENAME_MAP_FILE, 'utf8'));
@@ -138,7 +149,7 @@ function loadPathTombstones() {
 //   'live'       existe no disco
 //   'tombstoned' não existe, mas há tombstone curado
 //   'phantom'    não existe e não há tombstone → citação-fantasma
-function classifyPathCitation(citedPath, { resolveExists, tombstones }) {
+export function classifyPathCitation(citedPath, { resolveExists, tombstones }) {
   if (resolveExists(citedPath)) return { status: 'live' };
   const tomb = tombstones.get(citedPath);
   if (tomb) return { status: 'tombstoned', tombstone: tomb };
@@ -157,7 +168,7 @@ function allMemoryMd(dir = MEM) {
 
 // Varre memory/**/*.md (menos contextos de planejamento) e classifica cada path
 // concreto citado. Retorna só os MORTOS: path -> { status:'phantom'|'tombstoned', docs:Set }.
-function scanPhantomPaths() {
+export function scanPhantomPaths() {
   const tombstones = loadPathTombstones();
   const resolveExists = (p) => existsSync(join(ROOT, p));
   const byPath = new Map();
@@ -201,7 +212,7 @@ const BASELINE_DIR = bIdx > -1 && process.argv[bIdx + 1]
   ? join(ROOT, process.argv[bIdx + 1])
   : join(ROOT, 'governance', 'knowledge-ghosts-baseline');
 
-if (SELFTEST) {
+if (IS_MAIN && SELFTEST) {
   // Prova bite/release da catraca de path-fantasma. Asserções ancoradas em CONTRATO
   // citado (existência REAL no repo + forma do tombstone curado) e no retorno da
   // função pura classifyPathCitation — NUNCA no texto do console (que pode mudar).
@@ -257,7 +268,7 @@ function readBaseline(mod) {
   try { return JSON.parse(readFileSync(f, 'utf8')).ghosts ?? []; } catch { return null; }
 }
 
-if (WRITE_BASELINE) {
+if (IS_MAIN && WRITE_BASELINE) {
   mkdirSync(BASELINE_DIR, { recursive: true });
   const current = scanGhostsByModule();
   let refused = 0;
@@ -295,7 +306,7 @@ if (WRITE_BASELINE) {
   process.exit(refused ? 1 : 0);
 }
 
-if (CHECK) {
+if (IS_MAIN && CHECK) {
   const current = scanGhostsByModule();
   const news = [];   // ghost fora do baseline => FAIL
   let legacy = 0;    // ghost congelado no baseline => passa
@@ -323,7 +334,7 @@ if (CHECK) {
   process.exit(0);
 }
 
-if (CHECK_PATHS) {
+if (IS_MAIN && CHECK_PATHS) {
   const dead = [...scanPhantomPaths()];
   const phantom = dead.filter(([, v]) => v.status === 'phantom').sort((a, b) => b[1].docs.size - a[1].docs.size);
   const grounded = dead.filter(([, v]) => v.status === 'tombstoned');
@@ -339,6 +350,11 @@ if (CHECK_PATHS) {
   process.exit(0);
 }
 
+// Relatório default (tabela/--json) — só quando executado direto. Guard IS_MAIN em vez
+// de wrap+reindent do bloco inteiro: diff mínimo, revisável (o corpo abaixo é intocado).
+if (IS_MAIN) reportDrift();
+
+function reportDrift() {
 const rows = [];
 for (const mod of readdirSync(REQ, { withFileTypes: true })) {
   if (!mod.isDirectory()) continue;
@@ -433,3 +449,4 @@ for (const [p, v] of phantomPaths.slice(0, 5)) console.log(`      👻 ${p} (${v
 if (phantomPaths.length > 5) console.log(`      … +${phantomPaths.length - 5}`);
 
 console.log(`\n  Toda linha 🔴/🟡 = recomendação SUBTRATIVA: destilar/fundir/apagar — nunca adicionar.\n`);
+} // fim reportDrift (guard IS_MAIN)
