@@ -1,31 +1,29 @@
 ---
-distilled_at: "2026-07-02"
+distilled_at: "2026-07-10"
 distilled_by: jana:distill-module-truth
 module: Jana
 ---
 
 # BRIEFING — Jana (verdade destilada)
 
-# BRIEFING — Modules/Jana
-
 ## Estado atual
-Jana é o analista IA do OImpressO, oferecendo monitoramento contínuo de KPIs, geração de briefs diários e sugere ações com interação humana. Atualmente, está com funcionalidades operacionais em 85% e com plena integração em governança e gestão de memória.
+Jana é o analista IA do OImpressO, responsável pelo monitoramento contínuo de KPIs, geração de briefs diários e sugestões de ações, mantendo interação humana. O módulo está operacional em 85%, com integração robusta em governança e gestão de memória.
 
 ## Capacidades
-- **Chat estruturado**: interações por business com sugestões validadas e gerenciamento de metas.
-- **Memória persistente**: suporte a múltiplos ângulos de faturamento com drivers específicos.
-- **Stack IA**: integração com Laravel AI, utilizando agentes para geração de briefs diários e análise.
-- **Governança de produtos**: governança formal com servidor MCP ativo.
-- **Telemetria avançada**: monitoramento de qualidade e performance com múltiplos serviços de checagem.
-- **Health checks**: rotinas diárias para garantir a integridade do sistema.
+- **Chat estruturado**: interações orientadas por business com sugestões validadas.
+- **Memória persistente**: suporte a múltiplos ângulos de faturamento.
+- **Stack IA**: utilização de agentes para geração de briefs e análises.
+- **Governança de produtos**: formalidade em governança com servidor MCP ativo.
+- **Telemetria avançada**: monitoramento ativo de qualidade e performance.
+- **Health checks**: rotinas diárias para manter a integridade do sistema.
 
 ## Gaps
-- Integração de novas funcionalidades de auditoria e correção em processos de drifting.
-- Aprimoramento da documentação e recursos visuais relacionados às capacidades de IA.
-- Expansão em análise e diagnósticos para operações mais complexas.
+- Integração de novas funcionalidades de auditoria em processos de drifting.
+- Necessidade de aprimoramento na documentação visual das capacidades de IA.
+- Expansão da análise para operações mais complexas.
 
 ## Última mudança
-Recentemente, foram realizadas auditorias focadas na governança, qualidade e arquitetura do conhecimento, além de revisões em processos de handoff e sessões de análise, resultando em melhorias operacionais e identificando áreas para desenvolvimento futuro.
+Foram realizadas auditorias focadas na governança e qualidade, resultando em melhorias e identificação de áreas para desenvolvimento futuro, além de sessões e handoffs que garantiram alinhamento operacional.
 
 ## Proveniência (destilado de)
 
@@ -37,6 +35,14 @@ Recentemente, foram realizadas auditorias focadas na governança, qualidade e ar
 - audit `requisitos/Jana/AUDITORIA-design-as-code-token-driven-2026-06-22.md` — AUDITORIA-design-as-code-token-driven-2026-06-22.md
 - audit `requisitos/Jana/AUDITORIA-fidelidade-anti-drift-codegen-2026-06-22.md` — AUDITORIA-fidelidade-anti-drift-codegen-2026-06-22.md
 - audit `requisitos/Jana/AUDITORIA-reconciliacao-tripla-analise-por-setor-2026-06-22.md` — AUDITORIA-reconciliacao-tripla-analise-por-setor-2026-06-22.md
+- handoff `handoffs/2026-07-05-0130-rag-investigacao-profunda-sync-fix.md` (2026-07-05) — 2026-07-05-0130-rag-investigacao-profunda-sync-fix.md
+- handoff `handoffs/2026-07-05-1830-sync-robusto-sentinela-maquina.md` (2026-07-05) — 2026-07-05-1830-sync-robusto-sentinela-maquina.md
+- session `sessions/2026-07-04-arte-rag-retrieval-conhecimento-jana.md` (2026-07-04) — 2026-07-04-arte-rag-retrieval-conhecimento-jana.md
+- session `sessions/2026-07-04-memoria-semanal.md` (2026-07-04) — 2026-07-04-memoria-semanal.md
+- handoff `handoffs/2026-07-03-1419-onda-produto-capterra-inventario-spec.md` (2026-07-03) — 2026-07-03-1419-onda-produto-capterra-inventario-spec.md
+- session `sessions/2026-07-02-dossie-triagem-onda4-revisao-adr.md` (2026-07-02) — 2026-07-02-dossie-triagem-onda4-revisao-adr.md
+- session `sessions/2026-07-02-langfuse-emissao-religada-listener-global.md` (2026-07-02) — 2026-07-02-langfuse-emissao-religada-listener-global.md
+- handoff `handoffs/2026-07-02-1619-ragas-real-transport-mergeado-aguarda-cron.md` (2026-07-02) — 2026-07-02-1619-ragas-real-transport-mergeado-aguarda-cron.md
 - session `sessions/2026-07-01-loop-ragas-real-tautologia-fechado.md` (2026-07-01) — 2026-07-01-loop-ragas-real-tautologia-fechado.md
 - session `sessions/2026-07-01-p11-e2c-fila-humana-ghosts-fora-escopo.md` (2026-07-01) — 2026-07-01-p11-e2c-fila-humana-ghosts-fora-escopo.md
 - handoff `handoffs/2026-07-01-1620-sdd-maratona-p09-p10-p12-peso-real.md` (2026-07-01) — 2026-07-01-1620-sdd-maratona-p09-p10-p12-peso-real.md
@@ -61,15 +67,3 @@ Recentemente, foram realizadas auditorias focadas na governança, qualidade e ar
 - session `sessions/2026-06-17-adversario-handoff-loop.md` (2026-06-17) — 2026-06-17-adversario-handoff-loop.md
 - session `sessions/2026-06-15-sdd-kl-e2-e3-prompts-paralelos.md` (2026-06-15) — 2026-06-15-sdd-kl-e2-e3-prompts-paralelos.md
 - session `sessions/2026-06-13-audit-sqlite-test-corruptors.md` (2026-06-13) — 2026-06-13-audit-sqlite-test-corruptors.md
-- session `sessions/2026-06-13-memoria-semanal-blocked.md` (2026-06-13) — 2026-06-13-memoria-semanal-blocked.md
-- session `sessions/2026-06-11-ciclo-de-vida-informacao-elefante-branco.md` (2026-06-11) — 2026-06-11-ciclo-de-vida-informacao-elefante-branco.md
-- handoff `handoffs/2026-06-11-0758-elefante-branco-adr0270-0271-gates-onda1.md` (2026-06-11) — 2026-06-11-0758-elefante-branco-adr0270-0271-gates-onda1.md
-- session `sessions/2026-06-08-mapa-telas-projeto.md` (2026-06-08) — 2026-06-08-mapa-telas-projeto.md
-- handoff `handoffs/2026-06-06-1650-trilha-css-f6-juiz-f4.md` (2026-06-06) — 2026-06-06-1650-trilha-css-f6-juiz-f4.md
-- handoff `handoffs/2026-06-06-2251-determinizacao-anti-dup-design.md` (2026-06-06) — 2026-06-06-2251-determinizacao-anti-dup-design.md
-- handoff `handoffs/2026-06-05-1430-parecer-pr2270-julgamento-ia-design.md` (2026-06-05) — 2026-06-05-1430-parecer-pr2270-julgamento-ia-design.md
-- handoff `handoffs/2026-06-05-2052-migracao-openai-provider.md` (2026-06-05) — 2026-06-05-2052-migracao-openai-provider.md
-
-## Fusões absorvidas (KL-E2)
-
-Este módulo **absorveu** (fusão FUNDIR de identidade, KL-E2) as pastas tombstoneadas **Copiloto**, **Chat**, **MemoriaAutonoma** e **LaravelAI** — todas redirecionam pra cá. As US órfãs de MemoriaAutonoma (5 US-MA) e LaravelAI (5 US-AI) ficaram `status: historical` in-place com ponteiro pra Jana; Copiloto teve o loop fechado por `git mv` real (#3565). Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).
