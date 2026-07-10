@@ -1063,6 +1063,8 @@ Refina/separa o `InterPixCobDriver` mencionado em US-RB-047 num `InterPixCobranc
 
 **Implementado em:** _pendente_ — task de dados em voo (ativar gateway nas assinaturas com `gateway=NULL`); não há comando/backfill idempotente construído pra atribuição de gateway + reativação da régua
 
+**Detalhamento:** [features/gateway-ativacao/](features/gateway-ativacao/requirements.md) — trio requirements/plan/tasks (template `_TEMPLATE_FEATURE`, lint `feature-lint.mjs`)
+
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
 
