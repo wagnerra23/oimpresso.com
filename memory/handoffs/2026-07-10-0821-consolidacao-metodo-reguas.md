@@ -27,8 +27,10 @@ Wagner pediu pra canonizar "como pesquisar e documentar as réguas do sistema" �
 
 ## Pendente / não fechado
 
-- **Auditoria de segurança do agente** (OWASP LLM Top 10, chip despachado) — **não apareceu** no main nem como PR até o fechamento. Confirmar próxima sessão (`gh pr list` + `Glob memory/sessions/*seguranca-agente*`) antes de re-despachar (pode estar rodando ainda ou ter morrido silenciosa).
-- **#3/#4 do loop IA-OS** (drift-sentinel Jana + Langfuse/OTel) seguem **P0 pendentes** — custam infra recorrente, decisão é do Wagner (hook da sessão obriga perguntar antes de começar). Recomendação registrada em chat: #3 primeiro (mais barato, é literalmente "próximo pendente").
+> **Correção 2026-07-10 (reavaliação pós-outage, worktree `reavaliar` @ origin/main fresco):** este handoff afirmava que a auditoria de segurança do agente "não apareceu". **ERRADO** — ela apareceu e mergeou como **#4070** (`prompt-injection-corpus` — 1º red-team do agente, advisory) + session log `memory/sessions/2026-07-10-arte-seguranca-agente.md` + `.claude/governance-eval/prompt-injection-corpus.mjs`. O claim era stale (escrito durante o outage sem re-verificar o main). Fica registrado como o próprio tipo de erro que a sessão combatia — pego na reavaliação, não confiando na memória.
+
+- **ADR 0333** (emenda RODAR-E-OBSERVAR ao mapa 0330) nasceu `proposto` e **segue proposto** — aguarda ratificação [W] (flip in-place, merge = ato). Não conta no check-C da sentinela ainda (é de hoje). Já ratificados na onda: 0299, 0314, 0319, 0332, 0334 + 16 lei-viva.
+- **#3/#4 do loop IA-OS** (drift-sentinel Jana recall<80%/halluc>5% + Langfuse/OTel) seguem **P0 pendentes** — custam infra recorrente, decisão é do Wagner (hook da sessão obriga perguntar antes de começar). O #4070 abriu a dimensão de segurança (red-team advisory); o drift-sentinel de QUALIDADE (recall/halluc) é complementar e continua não-feito. Recomendação: #3 primeiro (mais barato, é o "próximo pendente" da rotina).
 - PRs antigos ainda abertos sem relação com esta sessão: #3906 (DRAFT, precisa e2e CT100), #3914/#3916 (aguardam Wagner), #3986/#3987/#3994 (visreg/financeiro).
 
 ## Estado MCP no momento do fechamento
@@ -46,6 +48,6 @@ Wagner pediu pra canonizar "como pesquisar e documentar as réguas do sistema" �
 ## Próxima sessão — começar por
 
 1. `brief-fetch` + `my-work` (padrão).
-2. Confirmar destino da auditoria de segurança do agente (chip sumiu ou ainda roda).
-3. Se Wagner topar custo de infra: chip #3 (drift-sentinel Jana) primeiro, depois #4 (Langfuse/OTel).
-4. Ratificar ADR 0333 (nasce `proposto`, mesma mecânica do 0329/0330 — merge do Wagner é o ato).
+2. Ratificar **ADR 0333** (RODAR-E-OBSERVAR, ainda `proposto` — flip in-place + label `adr-metadata-normalization`, merge [W] = ato).
+3. Se Wagner topar custo de infra: chip #3 (drift-sentinel Jana recall/halluc) primeiro, depois #4 (Langfuse/OTel). O red-team de segurança (#4070) já rodou — próximo passo lá é rodar o corpus em cadência e ampliar os vetores.
+4. Método `reguas-do-sistema` (#4050) pronto pra próxima grade — agora com as 11 dimensões (as 4 do RODAR-E-OBSERVAR + inteligência-de-negócio já embutidas via #4064/#4066).
