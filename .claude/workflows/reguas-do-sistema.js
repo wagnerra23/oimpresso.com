@@ -6,6 +6,7 @@ export const meta = {
     { title: 'Dossiê', detail: 'monta o retrato do sistema a partir do mapa vivo (ADR 0330-corrente) + fraquezas conhecidas' },
     { title: 'Pesquisar', detail: '1 pesquisador web por dimensão: líderes 2026 + a prática exata + fontes' },
     { title: 'Refutar', detail: 'cético derruba toda claim "estamos acima" (default: derrubar)' },
+    { title: 'Integração', detail: 'o peer refutado cobre a PEÇA ou monta o TODO no mesmo contexto? (anti-falácia-de-composição)' },
     { title: 'Verificar', detail: 'toda fraqueza é caçada no REPO VIVO antes da nota — a lição 7/9' },
     { title: 'Grade', detail: 'notas com evidência + próximo degrau + chips sugeridos + rejeitados→§5' },
   ],
@@ -21,6 +22,12 @@ const DIMS = (args && args.dimensoes) || [
   { key: 'orquestracao-adversarial', escopo: 'multi-agente + verificação adversarial (Anthropic orchestrator-worker, Devin/Cognition, Jules, Amp, Agent HQ)' },
   { key: 'evals-outcome', escopo: 'evals e medição de outcome de agentes (Braintrust, LangSmith, DORA/DX for AI; goal-based evals; scorecards de processo)' },
   { key: 'erp-ia-produto', escopo: 'IA embarcada em ERP — o PRODUTO (SAP Joule, Dynamics Copilot, Odoo AI; BR: Bling/Tiny/Omie/Conta Azul)' },
+  // ── Eixo RODAR-E-OBSERVAR (a IA que o sistema produz, viva em prod — não o loop de construir/governar). ──
+  // Adicionadas 2026-07-10: as 9 réguas v1→v3 só mediam CONSTRUIR-E-GOVERNAR; este eixo era ponto cego. Ver ADR 0333 (emenda à 0330).
+  { key: 'observabilidade-agente', escopo: 'traces/custo/latência/alucinação do agente e da IA em produção (Langfuse, LangSmith, Braintrust, OpenTelemetry GenAI semantic conventions; spans + custo por run). Régua = painel vivo, não log solto — projeto tem #4 P0 "Ligar Langfuse+OTel" pendente' },
+  { key: 'qualidade-drift-ia-producao', escopo: 'qualidade + drift da IA-PRODUTO (a Jana) em prod — recall/hallucination gold-set + canary de drift (RAGAS, DeepEval, continuous-eval). DISTINTO de evals-outcome (que é DORA/outcome do agente-DEV): aqui a régua é a resposta da Jana ao cliente. Projeto tem jana-ragas-gate JÁ + #3 P0 drift-sentinel pendente' },
+  { key: 'seguranca-do-agente', escopo: 'defesa a prompt-injection + fronteira instrução-vs-dado + modelo de permissão de tools/hooks (OWASP LLM Top 10, Anthropic agent-safety, Google SAIF). Régua = superfície de tool/hook auditada + injection tratada, não confiança implícita' },
+  { key: 'custo-eficiencia', escopo: 'token/crédito por tarefa como MÉTRICA medida — hoje é só valor cultural do Wagner, sem número (Cursor, Cognition/Devin cost-per-task). Régua = custo por PR/feature observável, não "economize crédito" verbal' },
 ]
 
 const RESEARCH_SCHEMA = {
@@ -43,6 +50,9 @@ const EXISTE = { type: 'object', additionalProperties: false, required: ['veredi
   veredito: { type: 'string', enum: ['JA_EXISTE_TOTAL', 'PARCIAL', 'NAO_EXISTE'] },
   evidencia: { type: 'string', description: 'arquivo:linha / workflow / required-vs-advisory — ou prova de ausência' },
   nota_sugerida: { type: 'number' }, onde_indexar: { type: 'string' } } }
+// Teste de integração: o peer refutado monta o TODO integrado, ou só a peça isolada? (anti-falácia-de-composição — Wagner 2026-07-10, proibições §5)
+const INTEG = { type: 'object', additionalProperties: false, required: ['veredito', 'razao'], properties: {
+  veredito: { type: 'string', enum: ['DIFERENCIAL_SISTEMA', 'REFUTADO_TB'] }, razao: { type: 'string' }, quem_monta_o_todo: { type: 'string' } } }
 
 // ── Fase 0 — Dossiê (do mapa VIVO, nunca de memória) ─────────────────────────
 phase('Dossiê')
@@ -70,6 +80,17 @@ const refutados = (await parallel(claims.slice(0, 24).map((c) => () => agent(
 ).then((v) => ({ ...c, verdict: v }))))).filter(Boolean)
 log(`refutação: ${refutados.filter((r) => r.verdict.veredito === 'ACIMA_CONFIRMADO').length} acima · ${refutados.filter((r) => r.verdict.veredito === 'REFUTADO').length} derrubadas`)
 
+// ── Fase 2.5 — Teste de INTEGRAÇÃO (o TODO tem peer, ou só as partes?) ────────
+// O refutador julga slice-a-slice por construção; sem este passo a soma de peças-com-peer
+// fabrica um "0 acima" falso (falácia de composição). Wagner 2026-07-10 — proibições §5.
+phase('Integração')
+const derrubadas = refutados.filter((r) => r.verdict.veredito !== 'ACIMA_CONFIRMADO')
+const integrados = (await parallel(derrubadas.slice(0, 24).map((r) => () => agent(
+  `TESTE DE INTEGRAÇÃO (o refutador já achou peer pra ESTA peça isolada — não repita a busca da peça). Claim: "${r.ideia}" (dimensão ${r.dimensao}); refutador deu ${r.verdict.veredito} citando "${(r.verdict.quem_ja_faz || r.verdict.razao || '').slice(0, 300)}". PERGUNTA ÚNICA: algum produto/prática publicado monta o TODO INTEGRADO no MESMO contexto do oimpresso — a pilha inteira DENTRO de um ERP vertical multi-tenant BR em produção, aplicada A SI MESMA (governança recursiva: o agente-codador cita o próprio §5 pra se auto-barrar) + o loop medir→corrigir→travar que de fato fecha? Busque 2-3× o CONJUNTO, não a peça. Se um peer monta o todo no mesmo contexto → REFUTADO_TB (a integração também tem par; diga quem). Se os peers só cobrem PEÇAS e ninguém monta o conjunto → DIFERENCIAL_SISTEMA (o diferencial é de instanciação/integração/recursão, NÃO da categoria — proibido re-inflar a peça isolada como "acima"). Default: exija o peer do TODO.`,
+  { label: `i:${r.ideia}`.slice(0, 48), phase: 'Integração', schema: INTEG, agentType: 'general-purpose', effort: 'medium' },
+).then((v) => ({ ...r, integ: v }))))).filter(Boolean)
+log(`integração: ${integrados.filter((i) => i.integ.veredito === 'DIFERENCIAL_SISTEMA').length} diferenciais de sistema · ${integrados.filter((i) => i.integ.veredito === 'REFUTADO_TB').length} o todo também tem par`)
+
 // ── Fase 3 — Verificar FRAQUEZAS no repo vivo (a lição 7/9) ──────────────────
 phase('Verificar')
 const fraquezas = pesquisas.flatMap((p) => p.oimpresso_atras.map((f) => ({ fraqueza: f, dimensao: p.dimensao })))
@@ -82,12 +103,13 @@ log(`${verificadas.length} fraquezas verificadas no repo · ${verificadas.filter
 // ── Fase 4 — Grade final ──────────────────────────────────────────────────────
 phase('Grade')
 const grade = await agent(
-  `Escreva a GRADE DE RÉGUAS para Wagner (PT-BR, direto, sem ego inflado nem falsa modéstia). Datada de HOJE.\n\nPESQUISAS: ${JSON.stringify(pesquisas).slice(0, 40000)}\nREFUTAÇÃO (só sobrevivente conta como acima): ${JSON.stringify(refutados.map((r) => ({ ideia: r.ideia, v: r.verdict }))).slice(0, 10000)}\nVERIFICAÇÃO NO REPO (nota só com evidência): ${JSON.stringify(verificadas).slice(0, 20000)}\n\nEstrutura: 1) placar honesto (acima-confirmadas/empatadas/refutadas); 2) GRADE das fraquezas — técnica · régua (quem+prática+fonte) · por-que-é-grade-ável (critério objetivo: número/artefato/gate) · nota COM evidência · próximo degrau; 3) onde a régua é você (empates a defender); 4) O QUE ROUBAR top-8 (impacto÷esforço, onde plugar); 5) CHIPS SUGERIDOS (1 por fraqueza real, com ressalvas do adversário embutidas); 6) REJEITADOS desta rodada → candidatos a proibições §5; 7) leitura fria (3 frases). Regra: nenhuma nota sem evidência citada.`,
+  `Escreva a GRADE DE RÉGUAS para Wagner (PT-BR, direto, sem ego inflado nem falsa modéstia). Datada de HOJE.\n\nPESQUISAS: ${JSON.stringify(pesquisas).slice(0, 38000)}\nREFUTAÇÃO slice-a-slice: ${JSON.stringify(refutados.map((r) => ({ ideia: r.ideia, v: r.verdict }))).slice(0, 9000)}\nTESTE DE INTEGRAÇÃO (DIFERENCIAL_SISTEMA = à-frente-por-integração, o peer só cobre a peça; REFUTADO_TB = o todo também tem par): ${JSON.stringify(integrados.map((i) => ({ ideia: i.ideia, integ: i.integ }))).slice(0, 12000)}\nVERIFICAÇÃO NO REPO (nota só com evidência): ${JSON.stringify(verificadas).slice(0, 18000)}\n\nDUAS REGRAS ANTES DE ESCREVER: (a) NÃO reporte "0 acima" a partir de refutação de slices — o placar de superioridade tem DUAS colunas distintas: "acima-de-categoria" (ACIMA_CONFIRMADO) E "à-frente-por-integração" (DIFERENCIAL_SISTEMA — o diferencial real quando ninguém monta o TODO no mesmo contexto; NÃO re-inflar a peça isolada). (b) CREDITE O QUE JÁ SHIPOU: antes de listar um gap/roubar como aberto, cheque em ${BASE} (git log recente + arquivos novos) se já foi fechado desde o último retrato; se sim, marque FEITO e não re-liste.\n\nEstrutura: 1) placar honesto (acima-de-categoria · à-frente-por-integração · empatadas · refutadas); 2) DIFERENCIAIS REAIS (os DIFERENCIAL_SISTEMA, na altitude do sistema, com o limite honesto de cada um); 3) GRADE das fraquezas — técnica · régua (quem+prática+fonte) · critério objetivo · nota COM evidência · próximo degrau; 4) JÁ FEITO desde o último retrato; 5) onde a régua é você (empates a defender); 6) O QUE ROUBAR top-8 (impacto÷esforço, onde plugar) — só o que NÃO shipou; 7) CHIPS SUGERIDOS (1 por fraqueza real, ressalva do adversário embutida); 8) REJEITADOS → proibições §5; 9) leitura fria (3 frases). Regra: nenhuma nota sem evidência citada.`,
   { label: 'grade-final', phase: 'Grade', effort: 'max' },
 )
 return {
   dimensoes: pesquisas.length,
   acima_confirmadas: refutados.filter((r) => r.verdict.veredito === 'ACIMA_CONFIRMADO').length,
+  diferenciais_de_sistema: integrados.filter((i) => i.integ.veredito === 'DIFERENCIAL_SISTEMA').length,
   refutadas: refutados.filter((r) => r.verdict.veredito === 'REFUTADO').length,
   fraquezas_com_algo_existente: verificadas.filter((v) => v.check.veredito !== 'NAO_EXISTE').length,
   grade,

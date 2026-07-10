@@ -3,11 +3,11 @@ slug: 0146-contact-lid-canonico-pk-refactor
 number: 146
 title: "Refactor contact_lid como chave canônica de identidade WhatsApp"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 decided_by: [W]
-decided_at: 2026-05-15
+decided_at: "2026-05-15"
 module: whatsapp
 quarter: 2026-Q2
 tags: [whatsapp, identity, lid, refactor, feature-wish]

@@ -3,7 +3,7 @@ slug: 0267-whatsapp-queues-tabela-filas-atendimento
 number: 267
 title: "whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

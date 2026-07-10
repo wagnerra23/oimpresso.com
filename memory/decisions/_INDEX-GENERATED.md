@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **337** arquivos · **321** números únicos · máx **0332**
-- **ADRs ATIVOS (lifecycle ativo): 315** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 287 · proposto 34 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 315 · substituido 12 · arquivado 6 · (vazio) 4
+- **339** arquivos · **323** números únicos · máx **0333**
+- **ADRs ATIVOS (lifecycle ativo): 305** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 305 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 305 · arquivado 18 · substituido 12 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (337)
+## Todas as ADRs (339)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -58,7 +58,7 @@ _(íntegra)_
 | 0017 | aceito | ativo | decision | Officeimpresso restaurado da 3.7 como módulo Superadmin exclusivo |
 | 0018 | aceito | arquivado | decision | Log de acesso do desktop via triggers MySQL (passivo) |
 | 0019 | aceito | ativo | decision | Delphi legado não autentica após upgrade 3.7→6.7 (investigação) |
-| 0020 | proposto | ativo | decision | Grupo econômico (matriz + filiais) no Officeimpresso |
+| 0020 | deprecated | arquivado | decision | Grupo econômico (matriz + filiais) no Officeimpresso |
 | 0021 | aceito | ativo | decision | Contrato real da API consumida pelo Delphi |
 | 0022 | aceito | ativo | decision | Meta financeira oimpresso: R$ 5 milhões/ano |
 | 0023 | aceito | ativo | decision | Upgrade para Inertia.js v3 |
@@ -110,11 +110,11 @@ _(íntegra)_
 | 0069 | superseded | substituido | decision | Governança de tasks: TaskRegistry MCP tools canônico, TASKS.md ASCII deprecated |
 | 0070 | aceito | ativo | decision | Jira-style task management no MCP — CURRENT.md/TASKS.md removidos |
 | 0071 | aceito | ativo | decision | Auditoria tools MCP 2026-05-05 — bugs descobertos + workarounds |
-| 0072 | proposto | ativo | decision | Maturação memória + Team MCP — gaps identificados vs OpenClaw/Mem0/Letta/Zep/A-M |
+| 0072 | deprecated | arquivado | decision | Maturação memória + Team MCP — gaps identificados vs OpenClaw/Mem0/Letta/Zep/A-M |
 | 0073 | superseded | substituido | decision | Team MCP P0 — skills e policies como entidades governadas (mcp_skills + mcp_poli |
-| 0074 | proposto | ativo | decision | P1 — Temporal validity bi-temporal: event-time vs system-time + time-travel quer |
+| 0074 | deprecated | arquivado | decision | P1 — Temporal validity bi-temporal: event-time vs system-time + time-travel quer |
 | 0075 | superseded | substituido | decision | Team MCP P0 v2 — UI gestão de skills estilo prompt-management (5 tabelas, 5 tela |
-| 0076 | proposto | ativo | decision | Skills V2 — DB é primary, git é destino auditável; drift por-skill (auto/manual/ |
+| 0076 | aceito | ativo | decision | Skills V2 — DB é primary, git é destino auditável; drift por-skill (auto/manual/ |
 | 0077 | superseded | substituido | decision | MCP resolver via users.mcp_handle (SUPERSEDED por ADR 0081 — Identity Mesh) |
 | 0078 | aceito | ativo | decision | Meta-skill ROI ERP autônomo — skill+missão como unidade operacional (parcialment |
 | 0079 | superseded | substituido | decision | Constituição do Oimpresso ERP — 10 artigos supremos sobre 7 camadas de governanç |
@@ -156,16 +156,16 @@ _(íntegra)_
 | 0115 | aceito | ativo | decision | Recuperação cliente Gold Comunicação Visual via bundle oimpresso + NF-e 55 (anti |
 | 0116 | aceito | ativo | decision | Pivot caso Gold — Manifestação do Destinatário (DFe) substitui escopo de emissão |
 | 0117 | aceito | ativo | decision | Múltiplos números Whatsapp por business — 1 driver + escopo de atendimento por n |
-| 0118 | proposto | ativo | decision | Segregação de domínios externos e clientes-legacy em pastas top-level no memory/ |
-| 0119 | proposto | ativo | decision | Migration Factory — capacidade institucional do oimpresso pra ingerir cliente de |
+| 0118 | aceito | ativo | decision | Segregação de domínios externos e clientes-legacy em pastas top-level no memory/ |
+| 0119 | deprecated | arquivado | decision | Migration Factory — capacidade institucional do oimpresso pra ingerir cliente de |
 | 0119 | aceito | ativo | decision | Paralelismo de sessões — Tier 1 `whats-active` aceito, Tier 2 lease formal dorme |
 | 0120 | aceito | ativo | decision | Supersession metadata housekeeping — fix 0079 + documenta drift de direção forwa |
 | 0121 | aceito | ativo | decision | oimpresso é ERP modular especializado por vertical — núcleo comum + Modules/<Ver |
-| 0122 | proposto | ativo | decision | Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega |
+| 0122 | aceito | ativo | decision | Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega |
 | 0123 | aceito | ativo | decision | Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui) |
 | 0124 | aceito | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
 | 0125 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
-| 0126 | proposto | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
+| 0126 | aceito | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
 | 0126 | proposto | (vazio) | decision | ADR 0126 — Vault chunked encryption Sprint 2 (proposed) |
 | 0127 | aceito | ativo | decision | Modules/Auditoria — UI rica + undo sobre activity_log existente |
 | 0128 | proposto | (vazio) | decision | ADR 0128 — Smoke testing E2E pós-cycle |
@@ -185,33 +185,33 @@ _(íntegra)_
 | 0143 | aceito | ativo | decision | FSM Pipeline Canônico LIVE em prod biz=1 — marco 2026-05-12 (40+ PRs em ~10h) |
 | 0144 | aceito | ativo | decision | TaskRegistry — DB é canon de estado vivo, SPEC.md é template descritivo |
 | 0145 | aceito | ativo | decision | IA Administradora do oimpresso — pivot ADS↔FSM + piloto Cobradora ROTA LIVRE |
-| 0146 | proposto | ativo | decision | Refactor contact_lid como chave canônica de identidade WhatsApp |
+| 0146 | deprecated | arquivado | decision | Refactor contact_lid como chave canônica de identidade WhatsApp |
 | 0147 | aceito | ativo | decision | Cascade Review §10.4 — Defesa em profundidade contra drift pré-entrada time MCP |
 | 0148 | aceito | ativo | decision | Cascade Review §10.4 — Onda 6 fechamento roadmap memoria-senior pra nota 98 |
 | 0149 | aceito | ativo | decision | Screen-Pattern Reuse no MWART — Index Cowork blueprint pra Show/Edit/Detail da m |
 | 0150 | aceito | ativo | decision | KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso |
 | 0151 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Comissao como feature-wish — aguarda cliente que reporta dor real |
 | 0152 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Pcp como feature-wish — aguarda Vargas ou ComVis 1º piloto |
-| 0153 | proposto | ativo | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
+| 0153 | deprecated | arquivado | decision | Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module |
 | 0154 | aceito | ativo | decision | Rubrica `module-grade-v2` — regra N/A justificado pra dimensões inaplicáveis por |
 | 0155 | aceito | ativo | decision | module-grade-v3 — 4 sub-dimensões novas (Performance/LGPD/Security/Observability |
 | 0156 | aceito | ativo | decision | module-grade-v3 errata — D9.a regex inclui OtelHelper canônico + ratifica na_jus |
 | 0157 | aceito | ativo | decision | module-grade-v3 — endurecimento D2 detection (parser XML + verificação subpastas |
 | 0158 | aceito | ativo | decision | module-grade-v3 — endurecimento heurística D1 (recursive + scope singular + Job  |
-| 0159 | proposto | ativo | decision | module-grade-v3 errata — realismo meta 97.75 (D5 cross-cutting / D9.b ready / D4 |
+| 0159 | deprecated | arquivado | decision | module-grade-v3 errata — realismo meta 97.75 (D5 cross-cutting / D9.b ready / D4 |
 | 0160 | aceito | ativo | decision | module-grade-v4 — Scoped Scorecards (Lens per Module Kind) com 4 buckets + meta  |
 | 0161 | aceito | ativo | decision | Governance v4 — aposentar 3 dos 4 hacks ADR 0159 redundantes com Scoped Scorecar |
 | 0162 | aceito | ativo | decision | OpenTelemetry Collector ativo em prod (CT 100) — destrava D6.b + D9.b governance |
 | 0163 | aceito | ativo | decision | Governance v4 — metas por bucket alcançadas (Ondas 19-28) · 4/4 buckets acima da |
 | 0164 | aceito | ativo | decision | Screen Review PDCA — fase C (Check) automática pós-merge via skill tela-smoke-po |
-| 0165 | proposto | ativo | decision | Design System — breakpoints canon + regra mobile-first em todas as Pages Inertia |
+| 0165 | deprecated | arquivado | decision | Design System — breakpoints canon + regra mobile-first em todas as Pages Inertia |
 | 0166 | aceito | ativo | decision | Errata ADR 0162 — OTel SDK em require-dev (Hostinger shared sem ext-opentelemetr |
 | 0167 | aceito | ativo | decision | Errata ADR 0130 — Índice de handoff mantém histórico longo (não trunca 5) |
-| 0168 | proposto | ativo | decision | PROTOCOLO WAGNER SEMPRE — 10 regras canon Tier A always-on (Constituição v2 emen |
-| 0169 | proposto | ativo | decision | Errata ADR 0168 — RUNBOOK-onda-cowork.md como artefato 4º da triade governance |
+| 0168 | aceito | ativo | decision | PROTOCOLO WAGNER SEMPRE — 10 regras canon Tier A always-on (Constituição v2 emen |
+| 0169 | aceito | ativo | decision | Errata ADR 0168 — RUNBOOK-onda-cowork.md como artefato 4º da triade governance |
 | 0170 | aceito | ativo | decision | PaymentGateway Top-5 bancos brasileiros — drivers REST e CNAB SEPARADOS (Ondas 4 |
 | 0170 | aceito | ativo | decision | PaymentGateway Onda 5 SIMPLIFICADA — Dogfooding SaaS via 6º gateway adicional |
-| 0170 | proposto | ativo | decision | Modules/PaymentGateway — extração da camada técnica de cobrança |
+| 0170 | deprecated | arquivado | decision | Modules/PaymentGateway — extração da camada técnica de cobrança |
 | 0171 | aceito | ativo | decision | Ativação Modules/OficinaAuto — Piloto Martinho Caçambas (faseada, add-on faturáv |
 | 0172 | aceito | ativo | decision | Deprecar Modules/Accounting e consolidar contabilidade operacional no Modules/Fi |
 | 0173 | aceito | ativo | decision | Errata ARQ-0005 — tabelas Accounting usam nomes nus (não prefixo `accounting_*`) |
@@ -234,7 +234,7 @@ _(íntegra)_
 | 0190 | superseded | substituido | decision | Primary button interno = roxo médio universal oklch(0.55 0.15 295) — hue per gru |
 | 0191 | aceito | ativo | decision | Microsoft Clarity como ferramenta canon de session replay + heatmap LGPD-complia |
 | 0192 | aceito | ativo | decision | Auto-faturar OS → Venda via JobSheetObserver (Integração Vendas × Oficina A1 KB- |
-| 0193 | proposto | ativo | decision | NfeService.retransmitir sem forceDelete (Wave 27 D6 · CONFAZ SINIEF 07/2005 Art. |
+| 0193 | aceito | ativo | decision | NfeService.retransmitir sem forceDelete (Wave 27 D6 · CONFAZ SINIEF 07/2005 Art. |
 | 0194 | aceito | ativo | decision | Correção domínio OficinaAuto Martinho — mecânica pesada caminhão basculante (não |
 | 0195 | aceito | ativo | decision | Feedback indexing — relevance scoring + decay adaptativo + signature dedup |
 | 0195 | aceito | ativo | decision | Tabs com autosave/state user-editável ficam mount-sempre (hidden via CSS) — rend |
@@ -270,10 +270,10 @@ _(íntegra)_
 | 0225 | aceito | ativo | decision | Recalibração skills Tier A pós-Claude 4.8 — 8 always-on → 5 núcleo + 7 auto-trig |
 | 0226 | aceito | ativo | decision | Brief v2 (1M-aware) — régua 3.5k → 8k tokens, reposiciona como estado-rico-pro-W |
 | 0229 | aceito | ativo | decision | Errata 0225 — medição empírica 25/66 skills eager (corrige diagnóstico 8→5 estim |
-| 0230 | proposto | ativo | decision | Método Governance Scorecard — pontuar regras vs estado-da-arte + anti-regressão  |
-| 0231 | proposto | ativo | decision | Processo de Trabalho Canônico — dividir → especialista por área → Método Scoreca |
-| 0232 | proposto | ativo | decision | Modelo de Peso Real — classificar memórias, decisões e iniciativas por contribui |
-| 0233 | proposto | ativo | decision | Ativação de memória no momento-decisão — ciclo de vida 8 etapas + convenção gati |
+| 0230 | aceito | ativo | decision | Método Governance Scorecard — pontuar regras vs estado-da-arte + anti-regressão  |
+| 0231 | aceito | ativo | decision | Processo de Trabalho Canônico — dividir → especialista por área → Método Scoreca |
+| 0232 | deprecated | arquivado | decision | Modelo de Peso Real — classificar memórias, decisões e iniciativas por contribui |
+| 0233 | aceito | ativo | decision | Ativação de memória no momento-decisão — ciclo de vida 8 etapas + convenção gati |
 | 0234 | aceito | ativo | decision | Registry de Automações no MCP — hooks/crons/rotinas governados |
 | 0235 | aceito | ativo | decision | DS v4 — design system roxo universal (accent oklch 0.55 0.15 295); supersede ADR |
 | 0235 | aceito | ativo | decision | Ambiente de Staging no CT 100 — clone anonimizado da produção |
@@ -292,7 +292,7 @@ _(íntegra)_
 | 0246 | (vazio) | (vazio) | decision | ADR 0246 — Harmonização DS sem perder qualidade + caminho v4.2 |
 | 0246 | aceito | ativo | decision | Tipo "Outros" como categoria default pra cadastros legacy em migrações |
 | 0247 | (vazio) | (vazio) | decision | ADR 0247 — Carta de Design [CC] subordinada ao protocolo do git |
-| 0248 | proposto | ativo | decision | Gate de exclusão do Sells/Show espelha a autorização do servidor (sell.delete // |
+| 0248 | aceito | ativo | decision | Gate de exclusão do Sells/Show espelha a autorização do servidor (sell.delete // |
 | 0249 | aceito | ativo | decision | DS v6 — nome canônico único da camada de tokens semânticos (resolve divergência  |
 | 0250 | aceito | ativo | decision | QA-de-tela sustentável: enforcement determinístico do screen-grade (seed + catra |
 | 0251 | aceito | ativo | decision | Veículo na venda direta de oficina (transactions.vehicle_id) — extensão da Integ |
@@ -311,8 +311,8 @@ _(íntegra)_
 | 0264 | aceito | ativo | meta | Governança executável: trio-de-tela + caso↔teste + domínio + E2E viram gates de  |
 | 0265 | aceito | ativo | errata | Oficina = reparo é o único domínio; erradicar resíduo de order_type=locacao; 'Ca |
 | 0266 | aceito | ativo | meta | Evals de comportamento dos agentes — golden set + replay cases + escada de auton |
-| 0267 | proposto | ativo | decision | whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301) |
-| 0268 | proposto | ativo | decision | whatsapp_broadcasts — campanha broadcast cross-canal (modelo + pre-flight; dispa |
+| 0267 | aceito | ativo | decision | whatsapp_queues — filas de atendimento persistidas em DB (US-WA-301) |
+| 0268 | aceito | ativo | decision | whatsapp_broadcasts — campanha broadcast cross-canal (modelo + pre-flight; dispa |
 | 0269 | aceito | ativo | decision | Deploy automático em push pra main + build no runner (manual → automático, JS sa |
 | 0270 | aceito | ativo | decision | Ciclo de vida da informação — porta única + destilação + decaimento + medir o ca |
 | 0271 | aceito | ativo | decision | Revisão dos 64 gates CI — estado real dos required (corrige drift da 0261), font |
@@ -331,21 +331,21 @@ _(íntegra)_
 | 0284 | aceito | ativo | decision | Pipeline de incidente graduado por confiança — porta única, redação cross-tenant |
 | 0285 | aceito | ativo | decision | Publisher Cowork→repo — fechar o 1º hop do loop zero-paste reusando a cowork-inb |
 | 0286 | aceito | ativo | decision | channel_health de canal whatsmeow é corroborado por fluxo de mensagem real — inb |
-| 0287 | proposto | ativo | decision | probe whatsmeow trata PROVISION_PENDING em canal que estava healthy como queda ( |
-| 0288 | proposto | ativo | decision | SLO/SLI de saúde de canal WhatsApp — uptime%, time-to-detect e alerta canal-down |
-| 0289 | proposto | ativo | decision | failover automático por saúde de canal: tenant crítico cai pro Cloud API (oficia |
+| 0287 | aceito | ativo | decision | probe whatsmeow trata PROVISION_PENDING em canal que estava healthy como queda ( |
+| 0288 | aceito | ativo | decision | SLO/SLI de saúde de canal WhatsApp — uptime%, time-to-detect e alerta canal-down |
+| 0289 | deprecated | arquivado | decision | failover automático por saúde de canal: tenant crítico cai pro Cloud API (oficia |
 | 0290 | recusado | ativo | decision | v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  |
 | 0291 | aceito | ativo | meta | Emenda 0270 F3/D-5 — contrato do distiller-módulo-verdade (diário→manual) + inst |
-| 0292 | proposto | ativo | errata | Errata 0291 D-D — distiller_freshness no scorecard mede staleness vs doc mais no |
+| 0292 | aceito | ativo | errata | Errata 0291 D-D — distiller_freshness no scorecard mede staleness vs doc mais no |
 | 0293 | aceito | ativo | decision | Governança da decisão de design: responsável por etapa do ciclo + Decision Regis |
 | 0294 | aceito | ativo | decision | mcp_audit_log tamper-evident por hash-chain SHA-256 (cadeia global) — transplant |
 | 0294 | aceito | ativo | decision | Método de planejamento: dual-track + Shape Up travado por catraca (incubadora →  |
 | 0295 | aceito | ativo | decision | aceitar e implementar bi-temporal event-time na memoria Jana (ratifica desenho 0 |
-| 0296 | proposto | ativo | decision | Plano de capacidade à prova de falhas — taxonomia canônica de dados + placement  |
+| 0296 | deprecated | arquivado | decision | Plano de capacidade à prova de falhas — taxonomia canônica de dados + placement  |
 | 0297 | aceito | ativo | meta | Exceção append-only: migração legacy→canônico de frontmatter de ADR sob label, c |
 | 0298 | aceito | ativo | meta | Teto de governança — todo workflow novo nasce com classe terminal e âncora de cu |
 | 0299 | aceito | ativo | decision | Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (C |
-| 0300 | proposto | ativo | decision | Errata ao ADR 0239 — a fonte (SSOT) do Design System que o build consome é resou |
+| 0300 | aceito | ativo | decision | Errata ao ADR 0239 — a fonte (SSOT) do Design System que o build consome é resou |
 | 0301 | aceito | ativo | decision | Separar Cliente (cadastro) do CRM (pipeline) e deprecar o pipeline |
 | 0302 | aceito | ativo | decision | Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pront |
 | 0303 | aceito | ativo | decision | Anchor-lint SA-A2-bis — wired-check (zumbi) + testado-check: existir ≠ estar viv |
@@ -364,6 +364,7 @@ _(íntegra)_
 | 0316 | aceito | ativo | decision | Esquecimento real de ADR morta — git rm + tombstone ledger + git history como au |
 | 0317 | aceito | ativo | meta | Máquina de revisão de ADR — quando rever, via 3 classes de gatilho (evento/incon |
 | 0318 | aceito | ativo | decision | RAGAS eval real da Jana — mata a tautologia answer=ground_truth, mede saída de v |
+| 0319 | aceito | ativo | decision | Product Truth (stream PT no roadmap SDD) — adversário refutador por módulo + ref |
 | 0320 | aceito | ativo | decision | Programa de Ondas — ciclo-padrão adversário→régua por módulo + régua estendida ( |
 | 0321 | aceito | ativo | decision | Pin sped-nfe em dev-master (SHA fixo) pra IBS/CBS — grupo UB gated por feature f |
 | 0322 | aceito | ativo | decision | Reabre o hybrid de docs com instruction-prefix qwen3 — executa a condição de rea |
@@ -377,3 +378,4 @@ _(íntegra)_
 | 0330 | aceito | ativo | meta | Mapa dos níveis — estado real 2026-07 das 7 camadas da Constituição v2 (emenda d |
 | 0331 | aceito | ativo | decision | Trava anti-duplicação de trabalho entre sessões paralelas (claim + dup-detector  |
 | 0332 | aceito | ativo | decision | Importers complementares Wave 2 (compras/estoque/contacts-NFe-fornecedores/daemo |
+| 0333 | proposto | ativo | meta | Emenda ao mapa 0330 — eixo RODAR-E-OBSERVAR sub-medido pela grade de réguas (pon |

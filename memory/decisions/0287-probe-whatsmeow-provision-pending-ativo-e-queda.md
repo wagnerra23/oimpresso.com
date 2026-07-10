@@ -3,7 +3,7 @@ slug: 0287-probe-whatsmeow-provision-pending-ativo-e-queda
 number: 287
 title: "probe whatsmeow trata PROVISION_PENDING em canal que estava healthy como queda (fim da 'queda invisível') + logout remoto não é ban"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

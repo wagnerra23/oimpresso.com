@@ -25,6 +25,12 @@ module: RecurringBilling
 | `Modules/RecurringBilling/Models/SubscriptionEvent.php` | trilha de eventos por assinatura | evento `gateway_atribuido` (de→pra, ator, origem=backfill) |
 | `Modules/RecurringBilling/Tests/` | suite Pest existente do módulo | novos testes AO LADO, registrados como a suite atual (pegadinha phpunit.xml) |
 
+## Design (opcionais — do design.md do Kiro)
+
+- **(a) Dados tocados:** `rb_subscriptions.conta_bancaria_id` (write, override de gateway) · leitura de `contas_bancarias` ativas do business · `rb_subscription_events` (write, audit).
+- **(b) Contratos:** nenhuma rota HTTP nova (comando artisan `rb:gateway-backfill`); evento interno `gateway_atribuido` no `SubscriptionEvent`; a régua reativada volta a disparar o fluxo de `GenerateInvoicesCommand`.
+- **(c) Interação novo↔existente:** `GatewayBackfillCommand → Subscription (global scope biz) → grava conta_bancaria_id + SubscriptionEvent` → no próximo ciclo `InvoiceGeneratorService` L162 já copia `conta_bancaria_id` pro invoice (por isso zero mudança lá, D3).
+
 ## Riscos Tier-0 (checklist)
 
 - [x] **Multi-tenant (ADR 0093):** toda resolução conta↔assinatura DENTRO do mesmo `business_id`; Pest cross-tenant biz=1 vs biz=99 (AC-5). Comando itera por business, nunca `withoutGlobalScopes` sem `// SUPERADMIN:`.

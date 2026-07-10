@@ -3,7 +3,7 @@ slug: 0300-errata-0239-nome-real-fonte-design-system
 number: 300
 title: "Errata ao ADR 0239 — a fonte (SSOT) do Design System que o build consome é resources/css/inertia.css + foundations.css + cockpit.css, não tokens.css/design-system.css"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

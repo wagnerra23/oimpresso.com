@@ -316,7 +316,7 @@
       "classe": "gate"
     },
     "pr-critic.yml": {
-      "nome": "pr-critic contrato (advisory) — critic adversarial de PR ancorado em contrato: em PRs tocando resources/js/Pages/** ou Modules/**, roteia o diff pros contratos (charter/casos/gap/map — coleta.mjs determinístico testado) e um agente contexto-ZERO pergunta se o diff CONTRADIZ o contrato citado (trava mecânica de citação literal descarta achado sem âncora). NÃO valida cobertura (casos-gate) nem estética (pr-ui-judge-manual). Sem kill-switch dormente: chave = presença do secret ANTHROPIC_API_KEY/OPENAI_API_KEY; sem secret roda só a parte determinística + ::notice.",
+      "nome": "pr-critic contrato (advisory) — critic adversarial de PR ancorado em contrato: em PRs tocando resources/js/Pages/** ou Modules/**, roteia o diff pros contratos (charter/casos/gap/map — coleta.mjs determinístico testado); um FINDER contexto-ZERO propõe se o diff CONTRADIZ o contrato citado (trava mecânica de citação literal descarta achado sem âncora) e cada candidato passa por VERIFICAÇÃO POR LENTES DIVERSAS (3 lentes cegas votam; sobrevive quem a maioria confirma — reduz falso-positivo que a citação sozinha não pega). NÃO valida cobertura (casos-gate) nem estética (pr-ui-judge-manual). Sem kill-switch dormente: chave = presença do secret ANTHROPIC_API_KEY/OPENAI_API_KEY; sem secret roda só a parte determinística + ::notice. Precisão do próprio critic medida por pr-critic-precisao.yml (loop fechado, grade v3).",
       "classe": "gate",
       "terminal": "advisory",
       "promote_by": "2026-07-23",
@@ -406,6 +406,13 @@
       "classe": "automacao",
       "terminal": "advisory",
       "anchor": "Dossiê grade-das-réguas card #0 'Evals de outcome' (Roubo #4): substituir 'zero evals de outcome' por número real (régua Codex/Cognition). DECONFLITO com outcome-metrics (design-loop) — eixo DORA-de-PR, não fidelidade de tela. Self-test hermético (CFR morde/libera) na suíte governance-script-tests.",
+      "promote_by": "2026-09-30"
+    },
+    "pr-critic-precisao.yml": {
+      "nome": "pr-critic precisão (advisory · mede a PRÓPRIA precisão do pr-critic · taxa-de-ação dos achados: o humano mexeu no arquivo apontado depois do comentário? + first-pass + por severidade · via bloco machine-readable no comentário + commits · weekly schedule + dispatch)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "Grade v3 — fecha a última fraqueza 'critic no loop de PR' (3→6): sem medir a própria precisão, ninguém sabe se o critic ajuda ou vira ruído ignorado (lição #4038 adr-proposto-parado). DECONFLITO (4 medidores, 1 fato=1 lugar): NÃO é outcome-metrics (design-loop) nem agent-pr-outcomes (DORA) nem casos-gate (cobertura) — mede se o CRÍTICO acerta. Taxa-de-AÇÃO, não taxa-de-verdade (critic é advisory). Self-test hermético (agiu/ignorado morde) na suíte governance-script-tests.",
       "promote_by": "2026-09-30"
     },
     "design-memory-gate.yml": {

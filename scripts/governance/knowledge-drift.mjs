@@ -102,7 +102,16 @@ function gitDate(file) {
 }
 
 const TRUTH_RE = /^(SPEC|README|ARCHITECTURE|BRIEFING|CAPTERRA.*|CAPTERRA-INVENTARIO|AUDIT.*|AUDITORIA.*)\.md$/i;
-export const MOD_REF_RE = /Modules\/([A-Z][A-Za-z0-9]+)/g;
+// MOD_REF_RE — referência a um app-module Modules/<X>. Compartilhada (export): usada aqui
+// (scanGhostsByModule + reportDrift) e no doc-freshness-score.mjs (extractCitedRefs).
+// Um path de TESTE — tests/Feature/Modules/<X>/… ou tests/Unit/Modules/<X>/… — contém o
+// literal "Modules/<X>" mas NÃO é referência a módulo: os testes de um sub-namespace vivem
+// sob tests/{Feature,Unit}/Modules/<X>/ mesmo sem Modules/<X>/ no disco (ex: 21 testes em
+// tests/Feature/Modules/Copiloto/ sem Modules/Copiloto/; idem tests/Feature/Modules/Sells/).
+// Contar isso inventava um módulo-fantasma (ghost falso no --check daqui + ref-quebrada de
+// 5pts no doc-freshness). Lookbehind negativo exclui o prefixo de suíte Pest/PHPUnit — uma
+// referência REAL a Modules/<X> em prosa nunca vem precedida de "Feature/" nem "Unit/".
+export const MOD_REF_RE = /(?<!Feature\/)(?<!Unit\/)Modules\/([A-Z][A-Za-z0-9]+)/g;
 
 // ---------------------------------------------------------------------------
 // DETECTOR DE PATH FANTASMA (P16 — "docs/ADRs apontam pra mecanismo-fantasma").
@@ -238,6 +247,14 @@ if (IS_MAIN && SELFTEST) {
   // RELEASE — path VIVO (resolver = existsSync real) → solta (live).
   ok('RELEASE: path vivo → live',
      classifyPathCitation(RAGAS, { resolveExists: p => existsSync(join(ROOT, p)), tombstones: tomb }).status === 'live');
+
+  // MOD_REF_RE — referência real casa; path de suíte de teste (tests/{Feature,Unit}/Modules/X) NÃO.
+  const modsIn = (s) => [...s.matchAll(MOD_REF_RE)].map(m => m[1]);
+  ok('MOD_REF_RE: referência real Modules/Repair casa', modsIn('imite Modules/Repair/ como base').includes('Repair'));
+  ok('MOD_REF_RE: path de teste tests/Feature/Modules/Copiloto NÃO vira módulo (ghost falso)',
+     !modsIn('cobre tests/Feature/Modules/Copiloto/AdapterResolverTest.php').includes('Copiloto'));
+  ok('MOD_REF_RE: path de teste tests/Unit/Modules/Foo NÃO vira módulo (ghost falso)',
+     !modsIn('roda tests/Unit/Modules/Foo/BarTest.php').includes('Foo'));
 
   console.log(fails
     ? `\n  ${fails} FALHA(S) — a catraca de path-fantasma não está honesta.\n`

@@ -140,7 +140,7 @@ Re-rodar `/sdd-avaliar` ao fechar Fase 0+1 e a cada quinzena (skill `sdd-avaliar
 
 ---
 
-## Stream PT — Product Truth (PROPOSTO 2026-07-02 · aguarda Wagner · [ADR 0319](../../../decisions/proposals/0319-product-truth-stream-adversario-modulo-analise.md))
+## Stream PT — Product Truth (ACEITO 2026-07-09 · stream aprovado, sub-decisões Q2-Q5 advisory-default abertas · [ADR 0319](../../../decisions/0319-product-truth-stream-adversario-modulo-analise.md))
 
 > Origem: Wagner 2026-07-02 ("tenho gaps por módulo? tenho adversário refutador por módulo?" → resposta: gaps profundos só em ~10/78 módulos; refutador por módulo NÃO existe — o skeptic hoje é por stream de governança, não por módulo de produto).
 
