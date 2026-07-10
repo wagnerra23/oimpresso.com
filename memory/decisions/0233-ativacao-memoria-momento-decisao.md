@@ -3,7 +3,7 @@ slug: 0233-ativacao-memoria-momento-decisao
 number: 233
 title: "Ativação de memória no momento-decisão — ciclo de vida 8 etapas + convenção gatilho/evento + hooks comportamentais"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

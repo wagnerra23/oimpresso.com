@@ -3,7 +3,7 @@ slug: 0118-segregacao-dominios-externos-clientes-legacy
 number: 118
 title: "Segregação de domínios externos e clientes-legacy em pastas top-level no memory/"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

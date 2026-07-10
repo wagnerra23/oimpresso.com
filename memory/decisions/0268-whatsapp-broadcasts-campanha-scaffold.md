@@ -3,7 +3,7 @@ slug: 0268-whatsapp-broadcasts-campanha-scaffold
 number: 268
 title: "whatsapp_broadcasts — campanha broadcast cross-canal (modelo + pre-flight; disparo é fase 2) (US-WA-306)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision
