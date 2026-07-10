@@ -3,9 +3,9 @@ slug: 0119-migration-factory-capacidade-institucional
 number: 119
 title: "Migration Factory — capacidade institucional do oimpresso pra ingerir cliente de qualquer ERP legacy"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 decided_by: [W]
 decided_at: 2026-05-09
 module: null
