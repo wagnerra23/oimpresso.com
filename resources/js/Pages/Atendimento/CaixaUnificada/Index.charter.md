@@ -19,8 +19,9 @@ related_adrs:
   - 0135-omnichannel-inbox-arquitetura
 related_charters: [resources/js/Pages/Atendimento/Inbox/Index.charter.md]
 tier: A
-charter_version: 19
+charter_version: 20
 permissao: whatsapp.access
+states: [default, dark]  # gate L2 — sync com tests/Browser/visreg-states.json (hotspot: 15 fixes visuais jun-jul/2026, 2º maior re-trabalho do mês)
 ---
 
 # Page Charter — `/atendimento/caixa-unificada` (V4)
