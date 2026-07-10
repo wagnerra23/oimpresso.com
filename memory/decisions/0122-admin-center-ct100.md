@@ -1,7 +1,7 @@
 ---
 number: 122
 title: Admin Center — Centro de Operações @ CT 100 (Tailscale-only, Wagner-only, agrega)
-status: proposto
+status: aceito
 decided_at: "2026-05-09"
 decided_by: [W]
 supersedes: []

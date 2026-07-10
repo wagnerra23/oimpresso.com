@@ -3,7 +3,7 @@ slug: 0248-sells-show-delete-gate-paridade-authz-servidor
 number: 248
 title: "Gate de exclusão do Sells/Show espelha a autorização do servidor (sell.delete || direct_sell.delete || so.delete)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

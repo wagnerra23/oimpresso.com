@@ -3,7 +3,7 @@ slug: 0288-slo-sli-saude-canal-whatsapp
 number: 288
 title: "SLO/SLI de saúde de canal WhatsApp — uptime%, time-to-detect e alerta canal-down (observabilidade que não depende de olhar a tela)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

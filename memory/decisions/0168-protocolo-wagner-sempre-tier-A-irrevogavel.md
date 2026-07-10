@@ -3,7 +3,7 @@ slug: 0168-protocolo-wagner-sempre-tier-A-irrevogavel
 number: 0168
 title: "PROTOCOLO WAGNER SEMPRE — 10 regras canon Tier A always-on (Constituição v2 emenda)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

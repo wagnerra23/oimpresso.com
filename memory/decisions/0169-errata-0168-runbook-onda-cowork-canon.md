@@ -3,7 +3,7 @@ slug: 0169-errata-0168-runbook-onda-cowork-canon
 number: 0169
 title: "Errata ADR 0168 — RUNBOOK-onda-cowork.md como artefato 4º da triade governance"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
