@@ -1226,3 +1226,30 @@ _Validei §10.4 vs origin/main antes de tocar: ~70% do PROMPT_MESTRE_SESSAO_2026
 - **golden:** handoff Cowork pode estar parcialmente stale — validar §10.4 vs origin/main ANTES (aqui ~70% já estava landado). Espelhos com URL truncada na mensagem ≠ buscáveis (token por-arquivo 403/401); DesignSync precisa login interativo (indisponível headless) → resolver via spec inline + git, com OK do [W].
 
 **PRs:** https://github.com/wagnerra23/oimpresso.com/pull/3391 · https://github.com/wagnerra23/oimpresso.com/pull/3394
+
+---
+
+## 2026-07-10 [CL] → [CC]/[W] — Espelhar domínio no DS: decisão **CURADORIA** (path 2) + caminho pra aposentar o ds-v6
+
+_Resposta ao `PROMPT_PARA_CODE_DS-ESPELHAR-DOMINIO.md`. Validado §10.4/L-42 contra `origin/main` (não de cabeça)._
+
+### Validação (git, não afirmação de cabeça)
+- **Os 56 domínios JÁ estão no SSOT** `resources/css/tokens/semantic.tokens.json` (ADR 0310/0311), valores **canon**. `origins = canon vence` ([W]): CRM `oklch(0.92 0.06 220)`, NÃO o `245` saturado do Cowork ds-v6. `sla-paid` não é conflito (`--text-3`≡`--text-mute`, `--sunken`≡`--bg-2`).
+- **Gerados** em `_generated-cockpit-{light,dark}.css` (set completo verificado: origin 10 · stage 7 · sla 18 · canal 12 · kpi-feature 5 · kind-soft 4 · vip 2), **importados** por `cockpit.css` (@import linhas 11-12). O app consome daqui — canon, uma fonte, já ligada.
+- **`ds-v6/tokens.css` (Cowork) NÃO é importado pelo app** (grep em `resources/`, `vite`, `package.json` = 0). É 100% protótipo-side.
+
+### Decisão: **PATH 2 — curadoria intencional, NÃO atraso de espelho**
+- O `scripts/design-sync/mirror-snapshot/colors_and_type.css` **curou de propósito**: comentário na seção `.cockpit` (~L318) diz *"_generated-cockpit-light.css; **the four most common [--kind] kept here**"* — mantém só os 4 `--kind-*` base e **omite** origin/stage/sla/canal/kpi-feature/kind-soft (contagem `= 0`). É superfície LEGÍVEL (fundações+tipo+status), não o set inteiro.
+- O `ds-mirror-build.mjs` é **atualizador por scaffold** (revalua o que já existe; não adiciona seção). Logo **`/design-sync push` seria no-op** pros grupos ausentes E brigaria com a curadoria. Path 1 descartado.
+
+### Correção à moldura do path 2 (o ds-v6 NÃO precisa ficar pra sempre)
+O set canônico já existe gerado em `_generated-cockpit-{light,dark}.css`. Aposentar o ds-v6 SEM violar a camada UI-0013 (colors_and_type = fundações legíveis; domínio = camada shell/cockpit):
+- **Opção A (recomendo):** o espelho passa a emitir um **companion** `cockpit_domains.css` (concat verbatim de `_generated-cockpit-light.css` + `-dark.css`) e o Cowork faz `<link>` dele ao lado do `colors_and_type.css`. O `ds-mirror-build.mjs` JÁ conhece as categorias `cockpit-light/dark` — é estendê-lo pra emitir o companion. Cowork consome domínio AO VIVO do canon → os literais do `ds-v6` viram redundância → **deletáveis**. Mantém o `colors_and_type.css` legível.
+- **Opção B:** enfiar os grupos na seção `.cockpit` do próprio `colors_and_type.css`. Uma fonte só pro Cowork, mas incha a superfície "legível" e contraria a curadoria. Não recomendo.
+
+### O que fica
+- **Zero mudança de valor** (canon vence, [W]). **Zero `/design-sync push`** (no-op). **Zero edit no app** (DS já consolidado + ligado).
+- Até a Opção A entrar, o `ds-v6/tokens.css` **permanece adaptador dos domínios** — estado ESPERADO e documentado (não bug).
+- **Próximo passo (Tier 0, aguarda [W]):** aprovar a Opção A → eu estendo `ds-mirror-build.mjs` + emito o companion; Cowork re-linka; deleta os literais do ds-v6.
+
+**Refs:** semantic.tokens.json (ADR 0310/0311) · ADR 0328 (DS congelado→vivo) · decisão [W] "origins=canon" · PR #4093 (máquina fidelidade) · PR #4094 (Financeiro converge dark).
