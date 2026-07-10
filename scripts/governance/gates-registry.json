@@ -315,6 +315,13 @@
       "nome": "PHPStan / Larastan (ADR 0208)",
       "classe": "gate"
     },
+    "pr-critic.yml": {
+      "nome": "pr-critic contrato (advisory) — critic adversarial de PR ancorado em contrato: em PRs tocando resources/js/Pages/** ou Modules/**, roteia o diff pros contratos (charter/casos/gap/map — coleta.mjs determinístico testado) e um agente contexto-ZERO pergunta se o diff CONTRADIZ o contrato citado (trava mecânica de citação literal descarta achado sem âncora). NÃO valida cobertura (casos-gate) nem estética (pr-ui-judge-manual). Sem kill-switch dormente: chave = presença do secret ANTHROPIC_API_KEY/OPENAI_API_KEY; sem secret roda só a parte determinística + ::notice.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-23",
+      "anchor": "sinal de custo: grade-das-réguas 2026-07-09 ataque ① — única fraqueza CONFIRMADA 3/10 na re-verificação (zero critic automático em PR de agente; pr-ui-judge.yml deletado na ADR 0271 onda 2 como teatro dormente; ultrareview é manual). Implementa arte 2026-06-22 §3 gap #5. Advisory por ADR 0314 (crítica LLM é quality, não Tier-0); promote_by cobra a decisão em 14d — promover a required exige reabrir a 0314 pro item (lei das proibições)."
+    },
     "protection-drift.yml": {
       "nome": "Protection Drift — baseline de required checks + watchdog de staleness (advisory PERENE · cron diário 10:10 UTC — GT-G4, ADR 0275 §5/§3)",
       "classe": "meta"

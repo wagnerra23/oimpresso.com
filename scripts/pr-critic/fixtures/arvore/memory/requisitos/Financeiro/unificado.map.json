@@ -1,0 +1,7 @@
+{
+  "tela": "Financeiro/Unificado",
+  "partes": [
+    { "id": "header", "vivo": { "arquivo": "resources/js/Pages/Financeiro/Unificado/Index.tsx" } },
+    { "id": "baixa", "vivo": { "arquivo": "resources/js/Pages/Financeiro/Unificado/_components/FinBaixaSheet.tsx" } }
+  ]
+}

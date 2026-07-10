@@ -83,3 +83,7 @@ jobs:
         run: node scripts/governance/hue-canon-check.test.mjs
       - name: Hue primário íntegro (P32 · declarações expected_hue/hue_correct vs governance/hue-canon.json)
         run: node scripts/governance/hue-canon-check.mjs
+      - name: pr-critic — roteamento diff→contratos (fixtures-armadilha · ataque ① grade-das-réguas)
+        run: node scripts/pr-critic/coleta.test.mjs
+      - name: pr-critic — trava de citação + comentário honesto (partes determinísticas)
+        run: node scripts/pr-critic/critica.test.mjs
