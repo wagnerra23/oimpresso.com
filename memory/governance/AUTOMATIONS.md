@@ -108,7 +108,6 @@ Disparados a cada prompt enviado pelo usuário. Tipo ADR 0234: `hook_sessionstar
 
 | Arquivo | Observação |
 |---------|------------|
-| `block-module-drift.ps1` | Detecta Controllers fora do SCOPE.md do módulo (Mecanismo #3 ENFORCEMENT.md). Arquivo existe mas NÃO está registrado em settings.json — inativo. |
 | `block-pr-without-approval.mjs` | Bloqueia `gh pr create`/`gh pr merge` sem aprovação humana prévia (R10). Arquivo existe mas consta no cabeçalho como "PROPOSTA — ainda NÃO registrada em settings.json". Inativo. |
 
 ---
