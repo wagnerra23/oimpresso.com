@@ -9,13 +9,14 @@ persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional gráfica (1280px balcão, ONDA 6+)
 charter_version: 1
 charter_at: 2026-05-16
+related_us: [US-KB-002]
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
   - 0093-multi-tenant-isolation-tier-0
   - 0061-conhecimento-canonico-git-mcp-zero-automem
   - 0104-processo-mwart-canonico-unico-caminho
-related_briefing: ../../../memory/requisitos/KB/BRIEFING.md
-related_schema: ../../../memory/requisitos/KB/SCHEMA-DB-V1.md
+related_briefing: ../../../../../memory/requisitos/KB/BRIEFING.md
+related_schema: ../../../../../memory/requisitos/KB/SCHEMA-DB-V1.md
 governs_components:
   - resources/js/Pages/kb/_components/NodeReader.tsx
   - resources/js/Pages/kb/_components/NodeList.tsx
@@ -113,15 +114,16 @@ it('rejects body_blocks payload when is_editable=false on store')
 
 ## Refs
 
-- Backend: [`Modules/KB/Http/Controllers/KbNodeController.php`](../../../../Modules/KB/Http/Controllers/KbNodeController.php)
-- Service: [`Modules/KB/Services/KbArticleService.php`](../../../../Modules/KB/Services/KbArticleService.php) (criado Wave J 2026-05-16)
-- Entity: [`Modules/KB/Entities/KbNode.php`](../../../../Modules/KB/Entities/KbNode.php)
-- [SCHEMA-DB-V1 §3 + §11](../../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
-- [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
-- [ADR 0061 — Zero auto-mem privada](../../../../memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)
+- Backend: [`Modules/KB/Http/Controllers/KbNodeController.php`](../../../../../Modules/KB/Http/Controllers/KbNodeController.php)
+- Service: [`Modules/KB/Services/KbArticleService.php`](../../../../../Modules/KB/Services/KbArticleService.php) (criado Wave J 2026-05-16)
+- Entity: [`Modules/KB/Entities/KbNode.php`](../../../../../Modules/KB/Entities/KbNode.php)
+- [SCHEMA-DB-V1 §3 + §11](../../../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
+- [ADR 0093 — Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- [ADR 0061 — Zero auto-mem privada](../../../../../memory/decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)
 
 ## Histórico
 
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | Wave J | Charter draft criado pra conceito CRUD Node (governa controller + service + componentes). Pendente Wagner em Non-Goals + Anti-hooks pra `status: live`. |
+| 2026-07-09 | [CC] | Movido de `kb/Node.charter.md` → `kb/_components/NodeReader.charter.md` (lado do `.tsx` real que governa). Charter-conceito nunca teve página dedicada — a promoção do IT2 (integrity-check §15) a duro exige charter ao lado de tela viva. Conteúdo intacto; só links relativos reprofundados (+1 nível). Trilha L-22. `related_us: [US-KB-002]` declarado (charter-us-gate) — é a US do CRUD de artigo cuja âncora cita os mesmos `KbNodeController`/`KbArticleService`/`BlockRenderer` que este charter governa. |

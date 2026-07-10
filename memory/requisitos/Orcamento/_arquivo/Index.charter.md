@@ -2,8 +2,8 @@
 page: /orcamento
 component: resources/js/Pages/Orcamento/Index.tsx
 owner: wagner
-status: draft
-last_validated: "2026-05-09"
+status: deprecated
+last_validated: "2026-07-09"
 parent_module: Orcamento
 related_adrs: [110, 107, 93]
 tier: A
@@ -11,6 +11,8 @@ charter_version: 1
 ---
 
 # Page Charter — /orcamento (DRAFT)
+
+> 🪦 **LÁPIDE — arquivado em 2026-07-09.** Tela **nunca-nascida**: `Orcamento/Index.tsx` jamais existiu no git (charter draft batch 2026-05-09, F3 nunca iniciou) e o domínio Orçamento foi **FUNDIDO em Sells** (decisão E1 · frente KL · 2026-06-15 — ver [`BRIEFING.md`](../BRIEFING.md): quotation = `Transaction type:sell status:draft`, verdade viva em [`requisitos/Sells/`](../../Sells/BRIEFING.md)). Sem sinal qualificado de cliente ([ADR 0105](../../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md)) não há US ativa. **Reativar quando houver sinal** — e aí a tela nasce no domínio Sells, não numa pasta `Orcamento/` paralela. Movido de `resources/js/Pages/Orcamento/Index.charter.md` pra cá (lápide L-22) pra promoção do IT2 (integrity-check §15) a duro.
 
 > **Status:** draft criado em batch 2026-05-09 a partir de `orc-page.jsx` (6.3 KB) + `data-orc-prod.jsx`. Wagner aprova **Non-Goals + Automation Anti-hooks** ANTES de virar `status: live`.
 >
@@ -165,3 +167,4 @@ it('uses localStorage prefix oimpresso.orcamento.*')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-09 | [CL] | Charter draft criado em batch. Path `Pages/Orcamento/Index.tsx` (PT-BR). **Decisão pendente Wagner:** (1) backend Model — `App\Transaction` UPOS canon com `type='quotation'` (provável) OU model dedicado; (2) probabilidade % é manual ou calculada (histórico aprovação por cliente); (3) integração com Sells/Create (botão "converter em venda"). **Aprovação pendente** em Non-Goals + Anti-hooks pra `status: live`. |
+| 2026-07-09 | [CC] | 🪦 Arquivado: movido de `resources/js/Pages/Orcamento/Index.charter.md` → `memory/requisitos/Orcamento/_arquivo/Index.charter.md` (lápide L-22) + `status: deprecated`. Tela nunca-nascida sem sinal (ADR 0105); domínio fundido em Sells (KL-E2 2026-06-15). Motivo: promoção do IT2 (integrity-check §15) a duro. Zera 1 dos 2 refs quebrados da catraca `charter-refs` (ceiling 2→0). Reativar quando houver sinal — no domínio Sells. |

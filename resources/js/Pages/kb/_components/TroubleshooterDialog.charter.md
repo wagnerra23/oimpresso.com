@@ -14,8 +14,8 @@ related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
   - 0093-multi-tenant-isolation-tier-0
   - 0104-processo-mwart-canonico-unico-caminho
-related_briefing: ../../../memory/requisitos/KB/BRIEFING.md
-related_schema: ../../../memory/requisitos/KB/SCHEMA-DB-V1.md
+related_briefing: ../../../../../memory/requisitos/KB/BRIEFING.md
+related_schema: ../../../../../memory/requisitos/KB/SCHEMA-DB-V1.md
 governs_components:
   - resources/js/Pages/kb/_components/TroubleshooterDialog.tsx
 governs_controller: Modules/KB/Http/Controllers/KbDecisionTreeController.php
@@ -111,13 +111,14 @@ it('rejects fix_node_id pointing to soft-deleted kb_node')
 
 ## Refs
 
-- Backend: [`Modules/KB/Http/Controllers/KbDecisionTreeController.php`](../../../../Modules/KB/Http/Controllers/KbDecisionTreeController.php)
-- Component: [`TroubleshooterDialog.tsx`](_components/TroubleshooterDialog.tsx)
-- [SCHEMA-DB-V1 §11](../../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
-- [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- Backend: [`Modules/KB/Http/Controllers/KbDecisionTreeController.php`](../../../../../Modules/KB/Http/Controllers/KbDecisionTreeController.php)
+- Component: [`TroubleshooterDialog.tsx`](TroubleshooterDialog.tsx)
+- [SCHEMA-DB-V1 §11](../../../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
+- [ADR 0093 — Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 
 ## Histórico
 
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | Wave J | Charter draft criado pra conceito Troubleshooter (Decision Tree). Governa TroubleshooterDialog + KbDecisionTreeController. Pendente Wagner em Non-Goals + Anti-hooks. |
+| 2026-07-09 | [CC] | Movido de `kb/Troubleshooter.charter.md` → `kb/_components/TroubleshooterDialog.charter.md` (lado do `.tsx` real que governa). Charter-conceito nunca teve página dedicada — a promoção do IT2 (integrity-check §15) a duro exige charter ao lado de tela viva. Conteúdo intacto; só links relativos reprofundados (+1 nível). Trilha L-22. |

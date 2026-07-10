@@ -14,8 +14,8 @@ related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
   - 0093-multi-tenant-isolation-tier-0
   - 0104-processo-mwart-canonico-unico-caminho
-related_briefing: ../../../memory/requisitos/KB/BRIEFING.md
-related_schema: ../../../memory/requisitos/KB/SCHEMA-DB-V1.md
+related_briefing: ../../../../../memory/requisitos/KB/BRIEFING.md
+related_schema: ../../../../../memory/requisitos/KB/SCHEMA-DB-V1.md
 governs_components:
   - resources/js/Pages/kb/_components/PathsDialog.tsx
 governs_controller: Modules/KB/Http/Controllers/KbPathController.php
@@ -107,13 +107,14 @@ it('PathsDialog opens in <200ms with deferred prop')
 
 ## Refs
 
-- Backend: [`Modules/KB/Http/Controllers/KbPathController.php`](../../../../Modules/KB/Http/Controllers/KbPathController.php)
-- Component: [`PathsDialog.tsx`](_components/PathsDialog.tsx)
-- [SCHEMA-DB-V1 §11](../../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
-- [ADR 0093 — Multi-tenant Tier 0](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
+- Backend: [`Modules/KB/Http/Controllers/KbPathController.php`](../../../../../Modules/KB/Http/Controllers/KbPathController.php)
+- Component: [`PathsDialog.tsx`](PathsDialog.tsx)
+- [SCHEMA-DB-V1 §11](../../../../../memory/requisitos/KB/SCHEMA-DB-V1.md)
+- [ADR 0093 — Multi-tenant Tier 0](../../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 
 ## Histórico
 
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | Wave J | Charter draft criado pra conceito Paths (Trilhas). Governa PathsDialog + KbPathController. Pendente Wagner em Non-Goals + Anti-hooks. |
+| 2026-07-09 | [CC] | Movido de `kb/Paths.charter.md` → `kb/_components/PathsDialog.charter.md` (lado do `.tsx` real que governa). Charter-conceito nunca teve página dedicada — a promoção do IT2 (integrity-check §15) a duro exige charter ao lado de tela viva. Conteúdo intacto; só links relativos reprofundados (+1 nível). Trilha L-22. |

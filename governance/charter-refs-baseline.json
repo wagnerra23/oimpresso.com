@@ -1,8 +1,8 @@
 {
-  "ceiling": 2,
+  "ceiling": 0,
   "metric": "charter_refs_broken",
   "source_of_truth": "scripts/governance/charter-refs.mjs --check (espelha Modules/Jana/Services/CharterHealthChecker.php)",
   "established_at_commit": "ee798b6899",
-  "note": "Teto de refs quebradas em Page Charters. Catraca de mão única: cada PR de limpeza ABAIXA o ceiling; subir exige commit só-baseline OU `BASELINE-ABSORB:` (baseline-tamper-guard). Trajetória: 279 (pré-fix a1f0fc0724) → 64 (off-by-one) → 2 (triagem US-GOV-043). Próximo alvo: 0.",
-  "remaining_breakdown": "2 charters órfãos (fm:component aponta pra .tsx inexistente): OficinaAuto/Os/Create.charter.md (duplicata stale — a real é OficinaAuto/ServiceOrders/Create) e Orcamento/Index.charter.md (página não construída). Decisão humana (deletar/construir), não link-fix."
+  "note": "Teto de refs quebradas em Page Charters. Catraca de mão única: cada PR de limpeza ABAIXA o ceiling; subir exige commit só-baseline OU `BASELINE-ABSORB:` (baseline-tamper-guard). Trajetória: 279 (pré-fix a1f0fc0724) → 64 (off-by-one) → 2 (triagem US-GOV-043) → 0 (2026-07-09, órfãos resolvidos caso a caso: ghosts arquivados como lápide L-22 em memory/requisitos/**/_arquivo/, charters-conceito kb movidos pro lado do componente real).",
+  "remaining_breakdown": "0 — meta atingida. Qualquer ref quebrada nova falha o gate."
 }
