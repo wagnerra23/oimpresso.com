@@ -14,13 +14,14 @@ bundle_source: financeiro-page.jsx
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 18
+charter_version: 19
 ---
 
 # Page Charter — /financeiro/unificado
 
 > **Status:** F3 entregue (PR #349). Charter retroativo (sessão 2026-05-09 audit) — sem `Index.charter.md` original, divergências do ADR ui/0002 documentadas abaixo.
 > Persona: **Eliana [E]** — financeiro escritório, densidade alta, atalhos teclado.
+> **v19 (2026-07-10) · APLICADO · fidelidade proto (mandato [W] "zerar diferenças"):** (a) rodapé/status-bar + toggles "Só atrasados"/"Arquivados" theme-aware — `white` chumbado → `var(--surface)` (dark fica escuro, light continua claro; fingerprint CLARO-NO-DARK zerado); emoji 🗄 → lucide `Archive`; (b) ícones nas abas da subnav (proto data.jsx: banknote/receipt/refresh-cw/chart/file/folder — opt-in `PageHeaderGhost.icon`, outras telas inalteradas); (c) segmented (lente + Filtrar-por): 12.5px, weights 500/600, sombra do ativo literal do proto (`var(--sh-1, 0 1px 2px rgba(0,0,0,.06))`), radius 4px do DS mantido; (d) números em IBM Plex Mono (KPIs, coluna Valor, totais/kbd do rodapé — fonte já carregada via `<link>` no inertia.blade.php); (e) doc-chip inline na linha (`NFe N`/`Doc N` do payload real — substitui a 2ª linha "NF-e N"; sem tipo Fat/Recibo/OS no payload, não inventa dado).
 > **v17 (2026-07-06):** US-FIN-031 ENTREGUE — bulk actions completas (ver Goals). Endpoint genérico `POST /unificado/bulk` + footer bulk com 5 ações. Non-Goal de cancelamento **emendado** (cancelar em lote existe via rota dedicada, append-only — não é estorno).
 > **v16 (2026-06-16):** Tribunal Onda 2 ([W] aprovou Onda 2 pra produção) — drawer/lista **lideram com a conclusão** (ver Goals: veredito no topo · "vs média" cross-sectional · selo→dado · FSM-resumo · acento de ação na linha · ficha sem caixa). Non-Goal de comparação **emendado** (cross-sectional ≠ delta_pct temporal). Vetos Larissa preservados (ícones coloridos das lentes + tipografia do valor).
 > **v15 (2026-06-10):** drawer 3 camadas F2 (ver Goals — hero fixo + lentes + Lente Fiscal).

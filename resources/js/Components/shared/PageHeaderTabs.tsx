@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Link } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
+import { Icon } from '@/Components/Icon';
 import { Button } from '@/Components/ui/button';
 import {
   DropdownMenu,
@@ -60,6 +61,13 @@ export interface PageHeaderGhost {
   key: string;
   label: string;
   href: string;
+  /**
+   * OPT-IN (fidelidade proto [W] 2026-07-10): nome de ícone lucide (kebab-case,
+   * resolvido via `@/Components/Icon`). Sem `icon`, nada muda — telas que não
+   * declaram ícone renderizam exatamente como antes. Proto: PageHeaderNav
+   * (app.jsx) mostra `{Icon && <Icon size={12}/>}` por aba.
+   */
+  icon?: string;
 }
 
 /**
@@ -211,6 +219,12 @@ export default function PageHeaderTabs({
                   }
                 }}
                 className={cn(
+                  // SAFE-BY-CONSTRUCTION (revisão coordenador 2026-07-10): o `inline-flex` só
+                  // entra quando ESTA tab declara `icon`. `<a>` default é inline; trocar pra
+                  // inline-flex mexe baseline/altura ~1px em TODA tela que usa PageHeaderTabs
+                  // (Clientes/Compras/Sells/Oficina) mesmo sem ícone. Condicional = zero blast
+                  // radius; sem ícone, className byte-idêntica à de origem.
+                  ghost.icon ? 'inline-flex items-center gap-1.5' : '',
                   'px-3 py-1.5 text-sm whitespace-nowrap snap-start rounded-md',
                   'transition-colors border-b-2 border-transparent',
                   'hover:bg-accent hover:text-accent-foreground',
@@ -225,6 +239,7 @@ export default function PageHeaderTabs({
                     : 'text-muted-foreground',
                 )}
               >
+                {ghost.icon && <Icon name={ghost.icon} size={13} className="shrink-0" aria-hidden />}
                 {ghost.label}
               </Link>
             );
@@ -249,7 +264,10 @@ export default function PageHeaderTabs({
               <DropdownMenuContent align="end" className="min-w-44">
                 {overflowGhosts.map((ghost) => (
                   <DropdownMenuItem key={ghost.key} asChild>
-                    <Link href={ghost.href}>{ghost.label}</Link>
+                    <Link href={ghost.href}>
+                      {ghost.icon && <Icon name={ghost.icon} size={13} className="mr-2 shrink-0" aria-hidden />}
+                      {ghost.label}
+                    </Link>
                   </DropdownMenuItem>
                 ))}
                 {overflowGhosts.length > 0 && extraOverflowItems.length > 0 && (
