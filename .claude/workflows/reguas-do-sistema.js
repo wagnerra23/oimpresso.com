@@ -14,8 +14,12 @@ export const meta = {
 
 // ── Config (args sobrescrevem) ────────────────────────────────────────────────
 // args: { base?: 'D:/caminho/worktree-fresco-do-main', dimensoes?: [{key,escopo}] }
-const BASE = (args && args.base) || 'AJUSTE: passe args.base = worktree FRESCO do origin/main'
-const DIMS = (args && args.dimensoes) || [
+// ROBUSTEZ (2026-07-10): a fronteira do tool Workflow serializa `args` pra STRING (visto 2×
+// — `args.base` chegava undefined → BASE caía no placeholder e os agentes tinham que se
+// auto-curar lendo origin/main na mão). Então parse defensivo: aceita objeto OU string JSON.
+const A = typeof args === 'string' ? (() => { try { return JSON.parse(args) } catch { return {} } })() : (args || {})
+const BASE = (A && A.base) || 'AJUSTE: passe args.base = worktree FRESCO do origin/main'
+const DIMS = (A && A.dimensoes) || [
   { key: 'spec-governanca', escopo: 'spec-driven development + governança de agentes (Spec Kit, Kiro, Codex, Cursor, Tessl; gates/required; ratchets)' },
   { key: 'design-to-code', escopo: 'design→code fidelity (Figma Code Connect/Dev Mode, v0, Builder.io; VRT: Chromatic/Applitools/Percy; tokens DTCG/Style Dictionary)' },
   { key: 'memoria-conhecimento', escopo: 'memória de agente + sobrevivência de conhecimento (Letta, mem0, Zep, LangMem; docs-as-code freshness: Swimm, Dosu; ADR tooling)' },

@@ -82,8 +82,11 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
    → `DIFERENCIAL_SISTEMA` (instanciação/integração, **não** categoria — proibido re-inflar
    a peça isolada). E **credite o que já shipou** desde o último retrato antes de listar
    gaps. Origem: reanálise Wagner 2026-07-10 (*"foi perdido meus diferenciais"*) — proibições §5.
-   Corolário de invocação: passe `args` como **objeto JSON de verdade** (`args:{base:…}`), nunca
-   string — string vira `args.base` undefined → o script cai no placeholder e mede o repo errado.
+   Corolário de invocação (corrigido 2026-07-10): a fronteira do tool Workflow **serializa `args`
+   pra string** — visto 2× (`args.base` chegava undefined → BASE caía no placeholder → os agentes
+   tinham que se auto-curar lendo origin/main na mão). O script **já tolera as duas formas** (parse
+   defensivo `typeof args === 'string' ? JSON.parse : args`), então passar objeto OU string funciona.
+   Ainda assim confira o dossiê: se o prompt dele contém "AJUSTE: passe args.base", o `base` não chegou.
 
 ## Onde registrar (fecha o protocolo)
 
