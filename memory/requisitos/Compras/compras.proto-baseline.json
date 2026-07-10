@@ -6,7 +6,7 @@
  "ancora": "prototipo-ui/cowork/compras-page.jsx",
  "prototipo_sha": "9da73296d3",
  "shell": "oimpresso-erp-conunica-o-visual/project",
- "gerado_em": "2026-07-10T01:26:42.011Z",
+ "gerado_em": "2026-07-10T01:50:21.226Z",
  "celulas": {
   "1280|light": {
    "tema": "light",
@@ -3739,7 +3739,7 @@
     },
     {
      "tag": "span",
-     "texto": "12.345.678/0001-90",
+     "texto": "<CNPJ>",
      "w": 124,
      "h": 15,
      "xnorm": 0.59,
@@ -5214,7 +5214,7 @@
     },
     {
      "tag": "aside",
-     "texto": "#COMP-2847 · NF-e 4521Lonas & Vinis Ltda07/05 · 5 itens · Matriz · 30 dias<BRL>Recebido✕○Rascunho✎Pedido⇨Em trânsito⊞Recebido✓Conferido$PagoResumoItens5Documentos1PagamentosHistórico4FornecedorCNPJ12.345.678/0001-90CidadeSão Paulo · SPEndereço de cobrançaRua Industrial, 200 · Centro · CEP 04123-000Dados da compraRef. internaNF-e 4521Data emissão07/05LocalMatrizCond. pagamento30 diasDesconto—Frete<BRL>ObservaçõesReposição lona 380gr · pedido P-882Resumo financeiroSubtotal<BRL>Frete+<BRL>Total da compra<BRL>Pago<BRL>A pagar<BRL>FecharConferir itens →",
+     "texto": "#COMP-2847 · NF-e 4521Lonas & Vinis Ltda07/05 · 5 itens · Matriz · 30 dias<BRL>Recebido✕○Rascunho✎Pedido⇨Em trânsito⊞Recebido✓Conferido$PagoResumoItens5Documentos1PagamentosHistórico4FornecedorCNPJ<CNPJ>CidadeSão Paulo · SPEndereço de cobrançaRua Industrial, 200 · Centro · CEP 04123-000Dados da compraRef. internaNF-e 4521Data emissão07/05LocalMatrizCond. pagamento30 diasDesconto—Frete<BRL>ObservaçõesReposição lona 380gr · pedido P-882Resumo financeiroSubtotal<BRL>Frete+<BRL>Total da compra<BRL>Pago<BRL>A pagar<BRL>FecharConferir itens →",
      "w": 560,
      "h": 900,
      "xnorm": 0.56,
@@ -8968,7 +8968,7 @@
     },
     {
      "tag": "span",
-     "texto": "12.345.678/0001-90",
+     "texto": "<CNPJ>",
      "w": 124,
      "h": 15,
      "xnorm": 0.59,
@@ -10443,7 +10443,7 @@
     },
     {
      "tag": "aside",
-     "texto": "#COMP-2847 · NF-e 4521Lonas & Vinis Ltda07/05 · 5 itens · Matriz · 30 dias<BRL>Recebido✕○Rascunho✎Pedido⇨Em trânsito⊞Recebido✓Conferido$PagoResumoItens5Documentos1PagamentosHistórico4FornecedorCNPJ12.345.678/0001-90CidadeSão Paulo · SPEndereço de cobrançaRua Industrial, 200 · Centro · CEP 04123-000Dados da compraRef. internaNF-e 4521Data emissão07/05LocalMatrizCond. pagamento30 diasDesconto—Frete<BRL>ObservaçõesReposição lona 380gr · pedido P-882Resumo financeiroSubtotal<BRL>Frete+<BRL>Total da compra<BRL>Pago<BRL>A pagar<BRL>FecharConferir itens →",
+     "texto": "#COMP-2847 · NF-e 4521Lonas & Vinis Ltda07/05 · 5 itens · Matriz · 30 dias<BRL>Recebido✕○Rascunho✎Pedido⇨Em trânsito⊞Recebido✓Conferido$PagoResumoItens5Documentos1PagamentosHistórico4FornecedorCNPJ<CNPJ>CidadeSão Paulo · SPEndereço de cobrançaRua Industrial, 200 · Centro · CEP 04123-000Dados da compraRef. internaNF-e 4521Data emissão07/05LocalMatrizCond. pagamento30 diasDesconto—Frete<BRL>ObservaçõesReposição lona 380gr · pedido P-882Resumo financeiroSubtotal<BRL>Frete+<BRL>Total da compra<BRL>Pago<BRL>A pagar<BRL>FecharConferir itens →",
      "w": 560,
      "h": 900,
      "xnorm": 0.56,
@@ -14197,7 +14197,7 @@
     },
     {
      "tag": "span",
-     "texto": "12.345.678/0001-90",
+     "texto": "<CNPJ>",
      "w": 124,
      "h": 15,
      "xnorm": 0.63,
@@ -15672,7 +15672,7 @@
     },
     {
      "tag": "aside",
-     "texto": "#COMP-2847 · NF-e 4521Lonas & Vinis Ltda07/05 · 5 itens · Matriz · 30 dias<BRL>Recebido✕○Rascunho✎Pedido⇨Em trânsito⊞Recebido✓Conferido$PagoResumoItens5Documentos1PagamentosHistórico4FornecedorCNPJ12.345.678/0001-90CidadeSão Paulo · SPEndereço de cobrançaRua Industrial, 200 · Centro · CEP 04123-000Dados da compraRef. internaNF-e 4521Data emissão07/05LocalMatrizCond. pagamento30 diasDesconto—Frete<BRL>ObservaçõesReposição lona 380gr · pedido P-882Resumo financeiroSubtotal<BRL>Frete+<BRL>Total da compra<BRL>Pago<BRL>A pagar<BRL>FecharConferir itens →",
+     "texto": "#COMP-2847 · NF-e 4521Lonas & Vinis Ltda07/05 · 5 itens · Matriz · 30 dias<BRL>Recebido✕○Rascunho✎Pedido⇨Em trânsito⊞Recebido✓Conferido$PagoResumoItens5Documentos1PagamentosHistórico4FornecedorCNPJ<CNPJ>CidadeSão Paulo · SPEndereço de cobrançaRua Industrial, 200 · Centro · CEP 04123-000Dados da compraRef. internaNF-e 4521Data emissão07/05LocalMatrizCond. pagamento30 diasDesconto—Frete<BRL>ObservaçõesReposição lona 380gr · pedido P-882Resumo financeiroSubtotal<BRL>Frete+<BRL>Total da compra<BRL>Pago<BRL>A pagar<BRL>FecharConferir itens →",
      "w": 560,
      "h": 900,
      "xnorm": 0.61,
@@ -19426,7 +19426,7 @@
     },
     {
      "tag": "span",
-     "texto": "12.345.678/0001-90",
+     "texto": "<CNPJ>",
      "w": 124,
      "h": 15,
      "xnorm": 0.63,
@@ -20901,7 +20901,7 @@
     },
     {
      "tag": "aside",
-     "texto": "#COMP-2847 · NF-e 4521Lonas & Vinis Ltda07/05 · 5 itens · Matriz · 30 dias<BRL>Recebido✕○Rascunho✎Pedido⇨Em trânsito⊞Recebido✓Conferido$PagoResumoItens5Documentos1PagamentosHistórico4FornecedorCNPJ12.345.678/0001-90CidadeSão Paulo · SPEndereço de cobrançaRua Industrial, 200 · Centro · CEP 04123-000Dados da compraRef. internaNF-e 4521Data emissão07/05LocalMatrizCond. pagamento30 diasDesconto—Frete<BRL>ObservaçõesReposição lona 380gr · pedido P-882Resumo financeiroSubtotal<BRL>Frete+<BRL>Total da compra<BRL>Pago<BRL>A pagar<BRL>FecharConferir itens →",
+     "texto": "#COMP-2847 · NF-e 4521Lonas & Vinis Ltda07/05 · 5 itens · Matriz · 30 dias<BRL>Recebido✕○Rascunho✎Pedido⇨Em trânsito⊞Recebido✓Conferido$PagoResumoItens5Documentos1PagamentosHistórico4FornecedorCNPJ<CNPJ>CidadeSão Paulo · SPEndereço de cobrançaRua Industrial, 200 · Centro · CEP 04123-000Dados da compraRef. internaNF-e 4521Data emissão07/05LocalMatrizCond. pagamento30 diasDesconto—Frete<BRL>ObservaçõesReposição lona 380gr · pedido P-882Resumo financeiroSubtotal<BRL>Frete+<BRL>Total da compra<BRL>Pago<BRL>A pagar<BRL>FecharConferir itens →",
      "w": 560,
      "h": 900,
      "xnorm": 0.61,

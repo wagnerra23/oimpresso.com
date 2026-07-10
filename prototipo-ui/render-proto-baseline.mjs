@@ -112,9 +112,13 @@ export function verificarBaseline(b, { ancoraAtual = null, shaAtual = null } = {
     if (!fp.elementos.length) drift.push(`célula ${cell}: 0 elementos capturados — render provavelmente quebrou (não commite baseline vazio)`);
     if (fp.ancora !== b.ancora) drift.push(`célula ${cell}: âncora da captura ("${fp.ancora}") ≠ âncora do baseline ("${b.ancora}") — captura não foi assada por esta máquina?`);
     // Tier 0 (proibicoes.md): valor BRL não pousa em memory/ nem como mock — a máquina redige
-    // (redigirBRL) antes de gravar; baseline com R$ = gerado por fora/versão velha → drift.
-    const comBRL = [...fp.elementos, ...(fp.compostos || [])].some((e) => /R\$\s?\d/.test(e.texto || ''));
+    // (redigirSensiveis) antes de gravar; baseline com R$ = gerado por fora/versão velha → drift.
+    const textos = [...fp.elementos, ...(fp.compostos || [])];
+    const comBRL = textos.some((e) => /R\$\s?\d/.test(e.texto || ''));
     if (comBRL) drift.push(`célula ${cell}: texto com valor BRL (R$ …) — Tier 0 proíbe em memory/; regenere com --gerar (redige pra <BRL>)`);
+    // LGPD (pii-scan.sh, mesma regex): CPF/CNPJ literal — mesmo mock — bloqueia PR no CI.
+    const comPII = textos.some((e) => /\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}|\d{3}\.\d{3}\.\d{3}-\d{2}/.test(e.texto || ''));
+    if (comPII) drift.push(`célula ${cell}: texto com CPF/CNPJ literal — pii-scan bloqueia (LGPD); regenere com --gerar (redige pra <CPF>/<CNPJ>)`);
   }
   if (ancoraAtual != null && ancoraAtual !== b.ancora) {
     drift.push(`ÂNCORA DIVERGENTE: baseline carimba "${b.ancora}", mas o charter de "${b.tela}" resolve pra "${ancoraAtual}" — regenerar (--gerar) contra a âncora atual`);
@@ -137,19 +141,28 @@ export function extrairCelula(b, cell) {
   return { ...fp, ancora: fp.ancora || b.ancora };
 }
 
-// Tier 0 (proibicoes.md "NUNCA commitar valores BRL em memory/"): o texto capturado do proto
-// carrega mock "R$ 1.234,56" — mesmo sendo mock, a regra é cega. Redige pra <BRL> ANTES de gravar.
+// Tier 0 (proibicoes.md "NUNCA commitar valores BRL em memory/" + LGPD/pii-scan "CPF/CNPJ
+// literal bloqueia PR"): o texto capturado do proto carrega mock "R$ 1.234,56" e CNPJ/CPF
+// fictício ("Lonas & Vinis Ltda 12.345.678/0001-90") — mesmo sendo mock, as regras são cegas
+// (pii-scan pegou os 8 CNPJ mock do compras-page no PR #4042). Redige ANTES de gravar.
 // SEGURO pro matching: chave()/chaveComposto() aplicam normTexto nos DOIS lados (que já troca
-// R$ por <BRL> — idempotente), e diffElemento não compara `texto`. F5/overlap usa rótulos de UI,
-// não valores. Perda: zero; risco Tier 0: zero.
-export function redigirBRL(celulas) {
-  const rx = /R\$\s?[\d.,]+/g;
+// R$ por <BRL> — idempotente), diffElemento não compara `texto`, e um CNPJ/CPF mock NUNCA
+// bateria com o dado real da prod por texto de qualquer jeito. F5/overlap usa rótulos de UI,
+// não valores/documentos. Perda: zero; risco Tier 0/LGPD: zero.
+// Regex CPF/CNPJ = as MESMAS do .github/scripts/pii-scan.sh (a régua que morde no CI).
+const REDACOES = [
+  [/R\$\s?[\d.,]+/g, '<BRL>'],
+  [/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g, '<CNPJ>'],
+  [/\d{3}\.\d{3}\.\d{3}-\d{2}/g, '<CPF>'],
+];
+export function redigirSensiveis(celulas) {
+  const limpa = (s) => REDACOES.reduce((acc, [rx, sub]) => acc.replace(rx, sub), String(s || ''));
   const out = {};
   for (const [cell, fp] of Object.entries(celulas || {})) {
     out[cell] = {
       ...fp,
-      elementos: (fp.elementos || []).map((e) => ({ ...e, texto: String(e.texto || '').replace(rx, '<BRL>') })),
-      compostos: (fp.compostos || []).map((c) => ({ ...c, texto: String(c.texto || '').replace(rx, '<BRL>') })),
+      elementos: (fp.elementos || []).map((e) => ({ ...e, texto: limpa(e.texto) })),
+      compostos: (fp.compostos || []).map((c) => ({ ...c, texto: limpa(c.texto) })),
     };
   }
   return out;
@@ -301,7 +314,7 @@ async function cmdGerar(args) {
   } finally { srv.close(); }
 
   const prototipo_sha = computeGitSha([ancora], REPO);
-  celulas = redigirBRL(celulas); // Tier 0: zero R$ em memory/, mesmo mock
+  celulas = redigirSensiveis(celulas); // Tier 0 + LGPD: zero R$ / CPF / CNPJ em memory/, mesmo mock
   const baseline = montarBaseline({ tela, charter, ancora, prototipo_sha, shell: relative(staging, root).replace(/\\/g, '/') || '.', celulas });
   const v = verificarBaseline(baseline, {}); // auto-verifica ANTES de gravar — baseline vazio não pousa
   if (!v.ok) { console.error('⛔ baseline recém-gerado NÃO passa no --check — não vou gravar:\n - ' + v.drift.join('\n - ')); process.exit(1); }
@@ -437,12 +450,17 @@ function selftest() {
   t('ADR 0290: render RECUSADO sob CI', renderPermitido({ CI: 'true' }) === false);
   t('ADR 0290: render RECUSADO sob GITHUB_ACTIONS', renderPermitido({ GITHUB_ACTIONS: 'true' }) === false);
 
-  // Tier 0 BRL: redigirBRL limpa elementos+compostos; --check morde baseline com R$ cru
-  const cRs = redigirBRL({ '1280|dark': { ...fpOk, elementos: [{ tag: 'b', texto: 'Total R$ 1.234,56 hoje' }], compostos: [{ tag: 'div', texto: 'R$ 99,90' }] } });
-  t('redigirBRL: R$ vira <BRL> em elementos e compostos',
+  // Tier 0 BRL + LGPD PII: redigirSensiveis limpa elementos+compostos; --check morde cru
+  const cRs = redigirSensiveis({ '1280|dark': { ...fpOk, elementos: [{ tag: 'b', texto: 'Total R$ 1.234,56 hoje' }], compostos: [{ tag: 'div', texto: 'R$ 99,90' }] } });
+  t('redigirSensiveis: R$ vira <BRL> em elementos e compostos',
     cRs['1280|dark'].elementos[0].texto === 'Total <BRL> hoje' && cRs['1280|dark'].compostos[0].texto === '<BRL>');
+  const cPii = redigirSensiveis({ '1280|dark': { ...fpOk, elementos: [{ tag: 'td', texto: 'CNPJ 12.345.678/0001-90' }], compostos: [{ tag: 'div', texto: 'CPF 123.456.789-01' }] } });
+  t('redigirSensiveis: CNPJ/CPF mock viram <CNPJ>/<CPF> (pii-scan é cego a mock)',
+    cPii['1280|dark'].elementos[0].texto === 'CNPJ <CNPJ>' && cPii['1280|dark'].compostos[0].texto === 'CPF <CPF>');
   const comBRL = montarBaseline({ tela: 't', charter: 'c', ancora: ANC, prototipo_sha: 'a', shell: '.', celulas: { '1280|dark': { ...fpOk, ancora: ANC, elementos: [{ tag: 'b', texto: 'R$ 10,00' }] } } });
   t('morde: baseline commitado com R$ cru (Tier 0)', verificarBaseline(comBRL, {}).ok === false && verificarBaseline(comBRL, {}).drift.some((d) => d.includes('BRL')));
+  const comPII = montarBaseline({ tela: 't', charter: 'c', ancora: ANC, prototipo_sha: 'a', shell: '.', celulas: { '1280|dark': { ...fpOk, ancora: ANC, elementos: [{ tag: 'td', texto: '12.345.678/0001-90' }] } } });
+  t('morde: baseline commitado com CNPJ/CPF cru (LGPD · pii-scan)', verificarBaseline(comPII, {}).ok === false && verificarBaseline(comPII, {}).drift.some((d) => d.includes('CPF/CNPJ')));
 
   // identidade staging×repo (furo do sha-mentiroso): igual passa, drift/ausente morde
   t('identidade: staging == repo → passa', conferirIdentidadeProto('const a=1;\n', 'const a=1;\r\n').ok === true); // normalize iguala EOL
