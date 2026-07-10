@@ -143,7 +143,7 @@ export function extrairCelula(b, cell) {
 
 // Tier 0 (proibicoes.md "NUNCA commitar valores BRL em memory/" + LGPD/pii-scan "CPF/CNPJ
 // literal bloqueia PR"): o texto capturado do proto carrega mock "R$ 1.234,56" e CNPJ/CPF
-// fictício ("Lonas & Vinis Ltda 12.345.678/0001-90") — mesmo sendo mock, as regras são cegas
+// fictício (formato NN.NNN.NNN/NNNN-NN) — mesmo sendo mock, as regras são cegas
 // (pii-scan pegou os 8 CNPJ mock do compras-page no PR #4042). Redige ANTES de gravar.
 // SEGURO pro matching: chave()/chaveComposto() aplicam normTexto nos DOIS lados (que já troca
 // R$ por <BRL> — idempotente), diffElemento não compara `texto`, e um CNPJ/CPF mock NUNCA
@@ -454,12 +454,12 @@ function selftest() {
   const cRs = redigirSensiveis({ '1280|dark': { ...fpOk, elementos: [{ tag: 'b', texto: 'Total R$ 1.234,56 hoje' }], compostos: [{ tag: 'div', texto: 'R$ 99,90' }] } });
   t('redigirSensiveis: R$ vira <BRL> em elementos e compostos',
     cRs['1280|dark'].elementos[0].texto === 'Total <BRL> hoje' && cRs['1280|dark'].compostos[0].texto === '<BRL>');
-  const cPii = redigirSensiveis({ '1280|dark': { ...fpOk, elementos: [{ tag: 'td', texto: 'CNPJ 12.345.678/0001-90' }], compostos: [{ tag: 'div', texto: 'CPF 123.456.789-01' }] } });
+  const cPii = redigirSensiveis({ '1280|dark': { ...fpOk, elementos: [{ tag: 'td', texto: 'CNPJ 12.345.678/0001-90' }], compostos: [{ tag: 'div', texto: 'CPF 123.456.789-01' }] } }); // pii-allowlist (fixture mock — prova a redação)
   t('redigirSensiveis: CNPJ/CPF mock viram <CNPJ>/<CPF> (pii-scan é cego a mock)',
     cPii['1280|dark'].elementos[0].texto === 'CNPJ <CNPJ>' && cPii['1280|dark'].compostos[0].texto === 'CPF <CPF>');
   const comBRL = montarBaseline({ tela: 't', charter: 'c', ancora: ANC, prototipo_sha: 'a', shell: '.', celulas: { '1280|dark': { ...fpOk, ancora: ANC, elementos: [{ tag: 'b', texto: 'R$ 10,00' }] } } });
   t('morde: baseline commitado com R$ cru (Tier 0)', verificarBaseline(comBRL, {}).ok === false && verificarBaseline(comBRL, {}).drift.some((d) => d.includes('BRL')));
-  const comPII = montarBaseline({ tela: 't', charter: 'c', ancora: ANC, prototipo_sha: 'a', shell: '.', celulas: { '1280|dark': { ...fpOk, ancora: ANC, elementos: [{ tag: 'td', texto: '12.345.678/0001-90' }] } } });
+  const comPII = montarBaseline({ tela: 't', charter: 'c', ancora: ANC, prototipo_sha: 'a', shell: '.', celulas: { '1280|dark': { ...fpOk, ancora: ANC, elementos: [{ tag: 'td', texto: '12.345.678/0001-90' }] } } }); // pii-allowlist (fixture mock — prova o --check morder)
   t('morde: baseline commitado com CNPJ/CPF cru (LGPD · pii-scan)', verificarBaseline(comPII, {}).ok === false && verificarBaseline(comPII, {}).drift.some((d) => d.includes('CPF/CNPJ')));
 
   // identidade staging×repo (furo do sha-mentiroso): igual passa, drift/ausente morde
