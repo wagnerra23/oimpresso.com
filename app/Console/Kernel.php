@@ -1356,6 +1356,23 @@ class Kernel extends ConsoleKernel
                 );
             });
 
+        // Sinal "servido" (grade v3 verificação runtime) — move contadores de
+        // hits por rota do cache pra tabela route_hits (batch, único caminho de
+        // escrita) + prune além da retenção. No-op barato se ROUTE_HITS_ENABLED
+        // ficou false o dia todo (cache vazio). Export → JSON é manual (--write
+        // no host de prod), igual governance:prod-flags.
+        $schedule->command('route-hits:flush --prune')
+            ->dailyAt('00:15')
+            ->timezone('America/Sao_Paulo')
+            ->name('route-hits-flush')
+            ->withoutOverlapping()
+            ->environments(['live'])
+            ->onFailure(function () {
+                \Illuminate\Support\Facades\Log::channel('single')->error(
+                    'Schedule route-hits:flush FALHOU — contadores de hits podem expirar no cache (TTL 48h) sem virar ledger'
+                );
+            });
+
         // Bug #3 fix MCP inbox (2026-05-13) — auto-cleanup notifications stale.
         // Marca read todas as mcp_inbox_notifications unread com created_at > 7d.
         // Daily 04:00 BRT — antes do horário comercial, depois das janelas Brain B

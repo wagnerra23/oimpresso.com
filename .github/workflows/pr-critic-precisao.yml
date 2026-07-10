@@ -1,0 +1,73 @@
+name: pr-critic precisão (weekly · advisory)
+
+# FECHA O LOOP DO pr-critic (grade v3 — última fraqueza "critic no loop de PR" 3→6):
+# mede a PRÓPRIA precisão do critic. Roda scripts/pr-critic/precisao.mjs contra os PRs
+# REAIS (gh) e publica a seção no job summary: precisão-de-ação (achados que o humano
+# acionou depois do comentário) + first-pass + por severidade. Sem esse número, ninguém
+# sabe se o critic ajuda ou vira ruído ignorado (lição #4038 adr-proposto-parado).
+#
+# DECONFLITO (4 medidores, 1 fato = 1 lugar): NÃO é outcome-metrics (retrabalho de
+# design) nem agent-pr-outcomes (DORA dos PRs) nem casos-gate (cobertura). Este mede
+# se o CRÍTICO acerta — via o bloco machine-readable que o critica.mjs embute no
+# comentário + os commits posteriores.
+#
+# NÃO é gate de PR — é RELATÓRIO semanal (schedule) + on-demand (dispatch). Advisory de
+# nascença (ADR 0271/0275/0314): só mede, nunca bloqueia. O self-test hermético
+# (agiu/ignorado morde) roda na suíte governance-script-tests.yml (fixtures, sem rede).
+#
+# Registrado em scripts/governance/gates-registry.json classe "automacao" (advisory).
+
+on:
+  schedule:
+    - cron: '20 9 * * 1'   # seg 09:20 UTC — logo após o agent-pr-outcomes (insumo do brief)
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'janela em dias (default 60)'
+        required: false
+        default: '60'
+
+concurrency:
+  group: pr-critic-precisao-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  medir:
+    name: Precisão do pr-critic (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # o self-test hermético (prova que agiu/ignorado morde) roda na suíte
+      # governance-script-tests.yml; aqui é a MEDIÇÃO ao vivo.
+      - name: Self-test (fixtures-armadilha · redundância de defesa)
+        run: node scripts/pr-critic/precisao.test.mjs
+
+      - name: Medir precisão do critic (advisory · gh ao vivo)
+        id: medir
+        continue-on-error: true   # advisory: o número nunca derruba nada (ADR 0271/0275/0314)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DAYS="${{ github.event.inputs.days || '60' }}"
+          node scripts/pr-critic/precisao.mjs --days "$DAYS" --brief > /tmp/precisao.md 2>/tmp/precisao.err \
+            || { echo '(gh indisponível ou sem PRs com achado — ver stderr)'; cat /tmp/precisao.err; }
+
+      - name: Job summary (a seção do brief)
+        if: always()
+        run: |
+          {
+            echo '## Precisão do pr-critic (semanal · advisory)'
+            echo ''
+            echo 'ADVISORY (nao bloqueia). Taxa-de-ACAO dos achados: o humano mexeu no arquivo apontado depois do comentario?'
+            echo 'Taxa-de-acao, NAO taxa-de-verdade (critic e advisory — ignorar achado correto e valido). Proxy — ver gaps no --json.'
+            echo ''
+            cat /tmp/precisao.md 2>/dev/null || echo '(sem saida — ver passo anterior)'
+          } >> "$GITHUB_STEP_SUMMARY"

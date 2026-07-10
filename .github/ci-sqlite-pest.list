@@ -166,3 +166,6 @@ Modules/PaymentGateway/Tests/Feature/RetryOrphanWebhookJobTest.php
 # adr-lint.yml só roda o AdrFrontmatterLinter irmão, e modules-pest não pega
 # tests/Feature/. Repontado pro baseline JSON em #3479 → esta lane passa a exercê-lo per-PR.
 tests/Feature/Memory/AdrNumberCollisionTest.php
+# Sinal "servido" — route-hits (middleware contador + flush/export). Cache array + schema sintetico, sqlite-safe.
+tests/Feature/RouteHits/ContadorHitsRotaTest.php
+tests/Feature/RouteHits/RouteHitsCommandsTest.php

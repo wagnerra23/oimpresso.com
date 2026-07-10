@@ -11,6 +11,7 @@ name: UI architecture gate
 #   - CoreScreensIntegrityTest   (B)  telas-núcleo: page + AppShellV2 + charter
 #   - CharterVisualSourceGateTest (C) visual_source de charter aponta pra arquivo vivo (frescor de design · Catraca Viva Fase 0)
 #   - OrphanRenderGateTest        (D) Inertia::render aponta pra page viva (anti tela órfã/morta · Catraca Viva Fase 1)
+#   - InertiaDeferredFrontendGuardTest (E) Page alvo de Inertia::defer importa <Deferred> ou está na allowlist guard-only (anti tela-branca · defer BACKEND↔FRONTEND)
 #
 # NOTA: NoHardcodeBusinessIdInModulesTest (guard Tier 0 business_id) NÃO está aqui
 # de propósito — hoje ele false-positiva no padrão legítimo `=== 0` (no-tenant guard).
@@ -88,4 +89,5 @@ jobs:
             tests/Feature/Architecture/CoreScreensIntegrityTest.php \
             tests/Feature/Architecture/CharterVisualSourceGateTest.php \
             tests/Feature/Architecture/OrphanRenderGateTest.php \
+            tests/Feature/Architecture/InertiaDeferredFrontendGuardTest.php \
             --no-coverage

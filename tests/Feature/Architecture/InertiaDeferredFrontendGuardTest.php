@@ -18,8 +18,9 @@ declare(strict_types=1);
  *
  * O `Modules/Governance/Tests/Feature/InertiaDeferAuditTest` cobre a metade
  * BACKEND (controllers Governance USAM defer). Os
- * `*/DashboardDeferredContractTest` cobrem por-tela, por-prop, o FRONTEND de
- * telas críticas. Faltava o gate REPO-WIDE do lado frontend — este arquivo.
+ * `DashboardDeferredContractTest` por-tela (um por Módulo) cobrem por-tela,
+ * por-prop, o FRONTEND de telas críticas. Faltava o gate REPO-WIDE do lado
+ * frontend — este arquivo.
  *
  * Contrato (coarse, baixo falso-positivo — igual filosofia do
  * InertiaDeferAuditTest): toda Page alvo de um `Inertia::render(...)` cujo

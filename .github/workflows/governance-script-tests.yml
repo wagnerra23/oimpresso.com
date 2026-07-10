@@ -85,8 +85,10 @@ jobs:
         run: node scripts/governance/hue-canon-check.mjs
       - name: pr-critic — roteamento diff→contratos (fixtures-armadilha · ataque ① grade-das-réguas)
         run: node scripts/pr-critic/coleta.test.mjs
-      - name: pr-critic — trava de citação + comentário honesto (partes determinísticas)
+      - name: pr-critic — trava de citação + AGREGAÇÃO DE VOTOS das lentes + comentário honesto (determinístico)
         run: node scripts/pr-critic/critica.test.mjs
+      - name: pr-critic — precisão do próprio critic (agiu/ignorado morde · fecha o loop grade v3)
+        run: node scripts/pr-critic/precisao.test.mjs
       - name: Block-claim-without-evidence PORTE .mjs (advisory ADR 0224 · logica + E2E · roda em Linux)
         run: node .claude/hooks/block-claim-without-evidence.test.mjs
       - name: Post-merge-ui-smoke PORTE .mjs (R1 · bite/release/TTL · roda em Linux)
@@ -95,3 +97,7 @@ jobs:
         run: node scripts/governance/settings-evidence-smoke-registration.test.mjs
       - name: Block-memory-drift PORTE .mjs (Tier-0 append-only ADR/handoff · 7 regras · roda em Linux)
         run: node .claude/hooks/block-memory-drift.test.mjs
+      - name: Block-destructive PORTE .mjs (Tier-0 US-COPI-085 · 8 categorias + whitelist rm · roda em Linux)
+        run: node .claude/hooks/block-destructive.test.mjs
+      - name: Pii-redactor PORTE .mjs (Tier-0 LGPD US-COPI-086 · commit-only opcao B · roda em Linux)
+        run: node .claude/hooks/pii-redactor.test.mjs
