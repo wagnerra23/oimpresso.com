@@ -112,9 +112,13 @@ export function verificarBaseline(b, { ancoraAtual = null, shaAtual = null } = {
     if (!fp.elementos.length) drift.push(`célula ${cell}: 0 elementos capturados — render provavelmente quebrou (não commite baseline vazio)`);
     if (fp.ancora !== b.ancora) drift.push(`célula ${cell}: âncora da captura ("${fp.ancora}") ≠ âncora do baseline ("${b.ancora}") — captura não foi assada por esta máquina?`);
     // Tier 0 (proibicoes.md): valor BRL não pousa em memory/ nem como mock — a máquina redige
-    // (redigirBRL) antes de gravar; baseline com R$ = gerado por fora/versão velha → drift.
-    const comBRL = [...fp.elementos, ...(fp.compostos || [])].some((e) => /R\$\s?\d/.test(e.texto || ''));
+    // (redigirSensiveis) antes de gravar; baseline com R$ = gerado por fora/versão velha → drift.
+    const textos = [...fp.elementos, ...(fp.compostos || [])];
+    const comBRL = textos.some((e) => /R\$\s?\d/.test(e.texto || ''));
     if (comBRL) drift.push(`célula ${cell}: texto com valor BRL (R$ …) — Tier 0 proíbe em memory/; regenere com --gerar (redige pra <BRL>)`);
+    // LGPD (pii-scan.sh, mesma regex): CPF/CNPJ literal — mesmo mock — bloqueia PR no CI.
+    const comPII = textos.some((e) => /\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}|\d{3}\.\d{3}\.\d{3}-\d{2}/.test(e.texto || ''));
+    if (comPII) drift.push(`célula ${cell}: texto com CPF/CNPJ literal — pii-scan bloqueia (LGPD); regenere com --gerar (redige pra <CPF>/<CNPJ>)`);
   }
   if (ancoraAtual != null && ancoraAtual !== b.ancora) {
     drift.push(`ÂNCORA DIVERGENTE: baseline carimba "${b.ancora}", mas o charter de "${b.tela}" resolve pra "${ancoraAtual}" — regenerar (--gerar) contra a âncora atual`);
@@ -137,19 +141,28 @@ export function extrairCelula(b, cell) {
   return { ...fp, ancora: fp.ancora || b.ancora };
 }
 
-// Tier 0 (proibicoes.md "NUNCA commitar valores BRL em memory/"): o texto capturado do proto
-// carrega mock "R$ 1.234,56" — mesmo sendo mock, a regra é cega. Redige pra <BRL> ANTES de gravar.
+// Tier 0 (proibicoes.md "NUNCA commitar valores BRL em memory/" + LGPD/pii-scan "CPF/CNPJ
+// literal bloqueia PR"): o texto capturado do proto carrega mock "R$ 1.234,56" e CNPJ/CPF
+// fictício (formato NN.NNN.NNN/NNNN-NN) — mesmo sendo mock, as regras são cegas
+// (pii-scan pegou os 8 CNPJ mock do compras-page no PR #4042). Redige ANTES de gravar.
 // SEGURO pro matching: chave()/chaveComposto() aplicam normTexto nos DOIS lados (que já troca
-// R$ por <BRL> — idempotente), e diffElemento não compara `texto`. F5/overlap usa rótulos de UI,
-// não valores. Perda: zero; risco Tier 0: zero.
-export function redigirBRL(celulas) {
-  const rx = /R\$\s?[\d.,]+/g;
+// R$ por <BRL> — idempotente), diffElemento não compara `texto`, e um CNPJ/CPF mock NUNCA
+// bateria com o dado real da prod por texto de qualquer jeito. F5/overlap usa rótulos de UI,
+// não valores/documentos. Perda: zero; risco Tier 0/LGPD: zero.
+// Regex CPF/CNPJ = as MESMAS do .github/scripts/pii-scan.sh (a régua que morde no CI).
+const REDACOES = [
+  [/R\$\s?[\d.,]+/g, '<BRL>'],
+  [/\d{2}\.\d{3}\.\d{3}\/\d{4}-\d{2}/g, '<CNPJ>'],
+  [/\d{3}\.\d{3}\.\d{3}-\d{2}/g, '<CPF>'],
+];
+export function redigirSensiveis(celulas) {
+  const limpa = (s) => REDACOES.reduce((acc, [rx, sub]) => acc.replace(rx, sub), String(s || ''));
   const out = {};
   for (const [cell, fp] of Object.entries(celulas || {})) {
     out[cell] = {
       ...fp,
-      elementos: (fp.elementos || []).map((e) => ({ ...e, texto: String(e.texto || '').replace(rx, '<BRL>') })),
-      compostos: (fp.compostos || []).map((c) => ({ ...c, texto: String(c.texto || '').replace(rx, '<BRL>') })),
+      elementos: (fp.elementos || []).map((e) => ({ ...e, texto: limpa(e.texto) })),
+      compostos: (fp.compostos || []).map((c) => ({ ...c, texto: limpa(c.texto) })),
     };
   }
   return out;
@@ -158,6 +171,23 @@ export function redigirBRL(celulas) {
 // guard da fronteira ADR 0290: render NUNCA em CI (env injetável pra teste).
 export function renderPermitido(env = process.env) {
   return !(env.CI || env.GITHUB_ACTIONS);
+}
+
+// ── nudge (o COMPARE possível em CI): PR tocou Pages/ de módulo COM baseline? ──
+// O compare real proto×prod exige render dos DOIS lados = LOCAL por lei (ADR 0290). O que o CI
+// mecaniza sem render: (a) o --check hermético e (b) ESTE mapeamento — arquivos da PR → baselines
+// commitados do MESMO módulo (inclui _components/: mexer neles re-renderiza a tela) → aponta o
+// comando local exato. Pura (files×baselines → afetados), testável hermética.
+export function telasAfetadas(files, baselines) {
+  const mods = new Set();
+  for (const f of files || []) {
+    const m = String(f).replace(/\\/g, '/').match(/^resources\/js\/Pages\/([^/]+)\//);
+    if (m) mods.add(m[1]);
+  }
+  return (baselines || []).filter((b) => {
+    const m = String(b).replace(/\\/g, '/').match(/(?:^|\/)memory\/requisitos\/([^/]+)\//);
+    return m && mods.has(m[1]);
+  });
 }
 
 // FURO fechado fail-closed: o sha é carimbado do proto no REPO (SSOT prototipo-ui/cowork/),
@@ -284,7 +314,7 @@ async function cmdGerar(args) {
   } finally { srv.close(); }
 
   const prototipo_sha = computeGitSha([ancora], REPO);
-  celulas = redigirBRL(celulas); // Tier 0: zero R$ em memory/, mesmo mock
+  celulas = redigirSensiveis(celulas); // Tier 0 + LGPD: zero R$ / CPF / CNPJ em memory/, mesmo mock
   const baseline = montarBaseline({ tela, charter, ancora, prototipo_sha, shell: relative(staging, root).replace(/\\/g, '/') || '.', celulas });
   const v = verificarBaseline(baseline, {}); // auto-verifica ANTES de gravar — baseline vazio não pousa
   if (!v.ok) { console.error('⛔ baseline recém-gerado NÃO passa no --check — não vou gravar:\n - ' + v.drift.join('\n - ')); process.exit(1); }
@@ -329,6 +359,25 @@ async function cmdCheck(args) {
   if (totalDrift) { console.error(`\n✗ ${totalDrift} drift(s) em ${files.length} baseline(s).`); process.exit(1); }
   console.log(`\n✓ ${files.length} baseline(s) íntegro(s)${totalWarn ? ` (${totalWarn} aviso(s))` : ''}.`);
   process.exit(0);
+}
+
+// advisory SEMPRE (exit 0): imprime o dever-de-casa local; quem decide é o humano no merge.
+function cmdNudge(args) {
+  const files = args._.length ? args._ : readFileSync(0, 'utf8').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  const baselines = acharBaselines(join(REPO, 'memory', 'requisitos')).map((p) => relative(REPO, p).replace(/\\/g, '/'));
+  const afetados = telasAfetadas(files, baselines);
+  if (!afetados.length) { console.log('✓ nudge: nenhum arquivo da PR toca módulo com proto-baseline — nada a apontar.'); return; }
+  console.log('⚠ FIDELIDADE DE INTENÇÃO (advisory): a PR toca `Pages/` de módulo com proto-baseline commitado.');
+  console.log('  O compare proto×prod NÃO roda em CI (render = local por lei, ADR 0290). Antes do merge, rode LOCAL:');
+  for (const b of afetados) {
+    let tela = '<Mod/Tela>';
+    try { tela = JSON.parse(readFileSync(join(REPO, b), 'utf8')).tela || tela; } catch {}
+    console.log(`\n  · **${tela}** — baseline \`${b}\``);
+    console.log(`      node prototipo-ui/render-proto-baseline.mjs --extract "${b}" "1280|dark" --out proto.json`);
+    console.log(`      node prototipo-ui/style-fingerprint.mjs --snippet ${tela}   # colar na tela viva (MESMO tema) → prod.json`);
+    console.log(`      node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela ${tela}`);
+  }
+  console.log('\n  ⚠ direção NÃO é uniforme: o compare REPORTA, humano DECIDE (PROD_A_FRENTE nunca regride).');
 }
 
 function cmdExtract(args) {
@@ -401,18 +450,34 @@ function selftest() {
   t('ADR 0290: render RECUSADO sob CI', renderPermitido({ CI: 'true' }) === false);
   t('ADR 0290: render RECUSADO sob GITHUB_ACTIONS', renderPermitido({ GITHUB_ACTIONS: 'true' }) === false);
 
-  // Tier 0 BRL: redigirBRL limpa elementos+compostos; --check morde baseline com R$ cru
-  const cRs = redigirBRL({ '1280|dark': { ...fpOk, elementos: [{ tag: 'b', texto: 'Total R$ 1.234,56 hoje' }], compostos: [{ tag: 'div', texto: 'R$ 99,90' }] } });
-  t('redigirBRL: R$ vira <BRL> em elementos e compostos',
+  // Tier 0 BRL + LGPD PII: redigirSensiveis limpa elementos+compostos; --check morde cru
+  const cRs = redigirSensiveis({ '1280|dark': { ...fpOk, elementos: [{ tag: 'b', texto: 'Total R$ 1.234,56 hoje' }], compostos: [{ tag: 'div', texto: 'R$ 99,90' }] } });
+  t('redigirSensiveis: R$ vira <BRL> em elementos e compostos',
     cRs['1280|dark'].elementos[0].texto === 'Total <BRL> hoje' && cRs['1280|dark'].compostos[0].texto === '<BRL>');
+  const cPii = redigirSensiveis({ '1280|dark': { ...fpOk, elementos: [{ tag: 'td', texto: 'CNPJ 12.345.678/0001-90' }], compostos: [{ tag: 'div', texto: 'CPF 123.456.789-01' }] } }); // pii-allowlist (fixture mock — prova a redação)
+  t('redigirSensiveis: CNPJ/CPF mock viram <CNPJ>/<CPF> (pii-scan é cego a mock)',
+    cPii['1280|dark'].elementos[0].texto === 'CNPJ <CNPJ>' && cPii['1280|dark'].compostos[0].texto === 'CPF <CPF>');
   const comBRL = montarBaseline({ tela: 't', charter: 'c', ancora: ANC, prototipo_sha: 'a', shell: '.', celulas: { '1280|dark': { ...fpOk, ancora: ANC, elementos: [{ tag: 'b', texto: 'R$ 10,00' }] } } });
   t('morde: baseline commitado com R$ cru (Tier 0)', verificarBaseline(comBRL, {}).ok === false && verificarBaseline(comBRL, {}).drift.some((d) => d.includes('BRL')));
+  const comPII = montarBaseline({ tela: 't', charter: 'c', ancora: ANC, prototipo_sha: 'a', shell: '.', celulas: { '1280|dark': { ...fpOk, ancora: ANC, elementos: [{ tag: 'td', texto: '12.345.678/0001-90' }] } } }); // pii-allowlist (fixture mock — prova o --check morder)
+  t('morde: baseline commitado com CNPJ/CPF cru (LGPD · pii-scan)', verificarBaseline(comPII, {}).ok === false && verificarBaseline(comPII, {}).drift.some((d) => d.includes('CPF/CNPJ')));
 
   // identidade staging×repo (furo do sha-mentiroso): igual passa, drift/ausente morde
   t('identidade: staging == repo → passa', conferirIdentidadeProto('const a=1;\n', 'const a=1;\r\n').ok === true); // normalize iguala EOL
   t('identidade: staging driftou → morde', conferirIdentidadeProto('const a=1;', 'const a=2;').ok === false);
   t('identidade: âncora ausente no staging → morde', conferirIdentidadeProto('x', null).ok === false);
   t('identidade: âncora ausente no repo (espelho) → morde', conferirIdentidadeProto(null, 'x').ok === false);
+
+  // nudge (o compare possível em CI): PR→módulo com baseline; _components conta; resto silencia
+  const BLS = ['memory/requisitos/Sells/sells.proto-baseline.json', 'memory/requisitos/Compras/compras.proto-baseline.json'];
+  t('nudge: Page do módulo com baseline dispara', telasAfetadas(['resources/js/Pages/Sells/Index.tsx'], BLS).length === 1);
+  t('nudge: _components do módulo também dispara (re-renderiza a tela)',
+    telasAfetadas(['resources/js/Pages/Sells/_components/VdRow.tsx'], BLS)[0] === BLS[0]);
+  t('nudge: módulo SEM baseline silencia', telasAfetadas(['resources/js/Pages/Whatsapp/Index.tsx'], BLS).length === 0);
+  t('nudge: fora de Pages/ silencia (proto/backend não é dever-de-casa de compare)',
+    telasAfetadas(['prototipo-ui/cowork/vendas-page.jsx', 'Modules/Sells/Http/X.php'], BLS).length === 0);
+  t('nudge: path windows (backslash) normaliza', telasAfetadas(['resources\\js\\Pages\\Compras\\Index.tsx'], BLS).length === 1);
+  t('nudge: 2 módulos afetados → 2 baselines', telasAfetadas(['resources/js/Pages/Sells/Index.tsx', 'resources/js/Pages/Compras/Index.tsx'], BLS).length === 2);
 
   // integração: o SNIPPET importado é a fonte única (mesmo vetor do style-fingerprint)
   t('SNIPPET é a fonte única (window.__ANCORA__ presente no vetor)', typeof SNIPPET === 'string' && SNIPPET.includes('__ANCORA__'));
@@ -428,7 +493,7 @@ function parseArgs(argv) {
     const k = argv[i];
     if (k.startsWith('--')) {
       const flag = k.slice(2);
-      if (['gerar', 'check', 'extract', 'selftest'].includes(flag)) { a.modo = flag; continue; }
+      if (['gerar', 'check', 'extract', 'nudge', 'selftest'].includes(flag)) { a.modo = flag; continue; }
       const v = argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true;
       a[flag] = v;
     } else a._.push(k);
@@ -443,10 +508,12 @@ if (ehEntrypoint) {
   else if (args.modo === 'gerar') await cmdGerar(args);
   else if (args.modo === 'check') await cmdCheck(args);
   else if (args.modo === 'extract') cmdExtract(args);
+  else if (args.modo === 'nudge') cmdNudge(args);
   else {
     console.log('uso: --gerar <Mod/Tela> [--staging <dir>] [--porta N] [--viewports 1280,1440] [--themes light,dark] [--route <id>] [--out <path>]');
     console.log('   | --check [baseline.json ...]      (hermético — o modo do CI, advisory)');
     console.log('   | --extract <baseline.json> <1280|dark> [--out proto.json]');
+    console.log('   | --nudge [arquivo ...]            (ou stdin: git diff --name-only — aponta o compare LOCAL pra PR)');
     console.log('   | --selftest');
     process.exit(2);
   }

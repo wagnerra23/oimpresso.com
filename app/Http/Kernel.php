@@ -57,6 +57,11 @@ class Kernel extends HttpKernel
             // rota env-guarded /_visreg-state) e forca dark/loading EM MEMORIA. No-op em
             // producao (isProduction guard interno) e barato no caminho sem flag.
             \App\Http\Middleware\VisregStateMiddleware::class,
+            // Sinal "servido" (grade v3 verificação runtime): conta hits por rota
+            // em terminate() (pós-response, cache increment — zero DB síncrono).
+            // Default OFF (ROUTE_HITS_ENABLED). Zero PII/tenant na chave.
+            // Consumido por route-hits:flush/export → anchor-lint/charter-live-signal.
+            \App\Http\Middleware\ContadorHitsRota::class,
         ],
 
         'api' => [
