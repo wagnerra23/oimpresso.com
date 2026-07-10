@@ -45,7 +45,7 @@ const RULES = [
     baseline: 100, // medido 2026-05-28
     justification: 'Voltar reabre "declarar pronto sem evidência" — incidente reincidente 6+× (proibicoes §Claim sem evidência).',
     cases: [
-      { id: 'echo "pronto" sem merge UI pendente → passa', hook: 'post-merge-ui-smoke-required.ps1', setup: clearFlags,
+      { id: 'echo "pronto" sem merge UI pendente → passa', hook: 'post-merge-ui-smoke-required.mjs', setup: clearFlags,
         payload: { hook_event_name: 'PreToolUse', tool_name: 'Bash', tool_input: { command: 'echo "pronto"' } }, expect: 'allow',
         origin: 'proibicoes.md §Claim sem evidência (R1)' },
     ],

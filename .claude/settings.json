@@ -142,11 +142,11 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-claim-without-evidence.ps1"
+            "command": "node .claude/hooks/block-claim-without-evidence.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
+            "command": "node .claude/hooks/post-merge-ui-smoke-required.mjs"
           },
           {
             "type": "command",
@@ -159,7 +159,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
+            "command": "node .claude/hooks/post-merge-ui-smoke-required.mjs"
           }
         ]
       },
@@ -206,7 +206,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
+            "command": "node .claude/hooks/post-merge-ui-smoke-required.mjs"
           }
         ]
       },
