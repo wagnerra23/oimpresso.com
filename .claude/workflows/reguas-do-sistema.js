@@ -21,6 +21,12 @@ const DIMS = (args && args.dimensoes) || [
   { key: 'orquestracao-adversarial', escopo: 'multi-agente + verificação adversarial (Anthropic orchestrator-worker, Devin/Cognition, Jules, Amp, Agent HQ)' },
   { key: 'evals-outcome', escopo: 'evals e medição de outcome de agentes (Braintrust, LangSmith, DORA/DX for AI; goal-based evals; scorecards de processo)' },
   { key: 'erp-ia-produto', escopo: 'IA embarcada em ERP — o PRODUTO (SAP Joule, Dynamics Copilot, Odoo AI; BR: Bling/Tiny/Omie/Conta Azul)' },
+  // ── Eixo RODAR-E-OBSERVAR (a IA que o sistema produz, viva em prod — não o loop de construir/governar). ──
+  // Adicionadas 2026-07-10: as 9 réguas v1→v3 só mediam CONSTRUIR-E-GOVERNAR; este eixo era ponto cego. Ver ADR 0333 (emenda à 0330).
+  { key: 'observabilidade-agente', escopo: 'traces/custo/latência/alucinação do agente e da IA em produção (Langfuse, LangSmith, Braintrust, OpenTelemetry GenAI semantic conventions; spans + custo por run). Régua = painel vivo, não log solto — projeto tem #4 P0 "Ligar Langfuse+OTel" pendente' },
+  { key: 'qualidade-drift-ia-producao', escopo: 'qualidade + drift da IA-PRODUTO (a Jana) em prod — recall/hallucination gold-set + canary de drift (RAGAS, DeepEval, continuous-eval). DISTINTO de evals-outcome (que é DORA/outcome do agente-DEV): aqui a régua é a resposta da Jana ao cliente. Projeto tem jana-ragas-gate JÁ + #3 P0 drift-sentinel pendente' },
+  { key: 'seguranca-do-agente', escopo: 'defesa a prompt-injection + fronteira instrução-vs-dado + modelo de permissão de tools/hooks (OWASP LLM Top 10, Anthropic agent-safety, Google SAIF). Régua = superfície de tool/hook auditada + injection tratada, não confiança implícita' },
+  { key: 'custo-eficiencia', escopo: 'token/crédito por tarefa como MÉTRICA medida — hoje é só valor cultural do Wagner, sem número (Cursor, Cognition/Devin cost-per-task). Régua = custo por PR/feature observável, não "economize crédito" verbal' },
 ]
 
 const RESEARCH_SCHEMA = {

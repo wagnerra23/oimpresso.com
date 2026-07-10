@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **337** arquivos · **321** números únicos · máx **0332**
-- **ADRs ATIVOS (lifecycle ativo): 315** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 303 · proposto 18 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 315 · substituido 12 · arquivado 6 · (vazio) 4
+- **338** arquivos · **322** números únicos · máx **0333**
+- **ADRs ATIVOS (lifecycle ativo): 316** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 303 · proposto 19 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 316 · substituido 12 · arquivado 6 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (337)
+## Todas as ADRs (338)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -377,3 +377,4 @@ _(íntegra)_
 | 0330 | aceito | ativo | meta | Mapa dos níveis — estado real 2026-07 das 7 camadas da Constituição v2 (emenda d |
 | 0331 | aceito | ativo | decision | Trava anti-duplicação de trabalho entre sessões paralelas (claim + dup-detector  |
 | 0332 | aceito | ativo | decision | Importers complementares Wave 2 (compras/estoque/contacts-NFe-fornecedores/daemo |
+| 0333 | proposto | ativo | meta | Emenda ao mapa 0330 — eixo RODAR-E-OBSERVAR sub-medido pela grade de réguas (pon |
