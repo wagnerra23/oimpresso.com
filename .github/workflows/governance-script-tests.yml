@@ -68,3 +68,12 @@ jobs:
         run: node scripts/governance/ref-integrity.mjs --selftest
       - name: ref-integrity — relatório advisory rota↔código (exit 0 · nunca bloqueia)
         run: node scripts/governance/ref-integrity.mjs
+      # US-GOV-052 P31+P32 — fonte única de skills-tier e de hue primário (ADR 0314: advisory).
+      - name: Skills index gerador morde/solta (P31 · bite/release hermético)
+        run: node scripts/governance/skills-index-generate.test.mjs
+      - name: Skills index em dia (P31 · CLAUDE.md AUTO:SKILLS + _SKILLS-INDEX vs frontmatter)
+        run: node scripts/governance/skills-index-generate.mjs --check
+      - name: Hue-canon check morde/solta (P32 · construção, nunca número cru)
+        run: node scripts/governance/hue-canon-check.test.mjs
+      - name: Hue primário íntegro (P32 · declarações expected_hue/hue_correct vs governance/hue-canon.json)
+        run: node scripts/governance/hue-canon-check.mjs

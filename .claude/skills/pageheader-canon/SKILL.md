@@ -396,7 +396,7 @@ Aguardar ~90-120s após merge pra Vite/Hostinger rebuildar assets. Sinal de depl
 JSON.stringify({
   url: location.pathname,
   module: '<MODULO_AQUI>',
-  expected_hue: 295, // primary interno é SEMPRE roxo 295 universal (ADR 0190). O hue-per-grupo (145 financas | 60 vender | 350 operar | 295 pessoas | 200 sistema | 220 ia | 30 atendimento | 270 equipe) vale SÓ no sidebar, não aqui.
+  expected_hue: 295, // primary interno é SEMPRE roxo 295 universal (ADR 0190; fonte única: governance/hue-canon.json, verificada por hue-canon-check.mjs). O hue-per-grupo (145 financas | 60 vender | 350 operar | 295 pessoas | 200 sistema | 220 ia | 30 atendimento | 270 equipe) vale SÓ no sidebar, não aqui.
 
   // 1. Tabs ARIA renderizam
   tabs: [...document.querySelectorAll('[role="tab"]')].map(t => ({

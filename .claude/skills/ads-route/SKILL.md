@@ -2,6 +2,7 @@
 name: ads-route
 description: Use ANTES de qualquer mudança custosa (chamada Brain B Sonnet/Opus, deploy prod, mudança Tier 0). Roteia decisão por decide(domain,intent,payload) que faz triagem custo/risco. Tier A DORMENTE — ativa quando S5 entregar ADS Universal (~jul/2026).
 tier: A
+resumo: roteia mudança custosa via `decide(domain,intent,payload)` — ativa quando S5 entregar ADS Universal
 tier_enforce: decide-firewall
 parent_adr: 0095
 related_adrs: [0094]

@@ -6,6 +6,8 @@ owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
 charter_adr: 0080
 tier: B
+auto_trigger: intent
+resumo: tools MCP antes de filesystem
 parent_adr: 0095
 ---
 

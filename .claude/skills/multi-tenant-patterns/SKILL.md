@@ -6,6 +6,7 @@ owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
 charter_adr: 0080
 tier: A
+resumo: Tier 0 isolation (`business_id` global scope) — [ADR 0093](memory/decisions/0093-multi-tenant-isolation-tier-0.md)
 parent_adr: 0095
 ---
 

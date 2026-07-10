@@ -7,7 +7,9 @@ description: |
   conflito não mitigado por worktree isolada + tasks-update doing: Claude-A
   vs Claude-B mexendo no mesmo arquivo simultaneamente. ADR 0119 Tier 1.
 trust_level: 1
-tier: A
+tier: B
+resumo: whats-active pós-brief — detecta sessão paralela tocando o mesmo path ([ADR 0119](memory/decisions/0119-paralelismo-sessoes-whats-active-tier-1.md))
+recalibracao_nota: tier A->B 2026-07-09 (US-GOV-052 P31) — critério ADR 0225 (dispara por momento session_start, não é núcleo segurança/LGPD); banner e CLAUDE.md pós-0225 já não a listavam no núcleo.
 parent_mission: mission.constituicao-v2
 charter_adr: 0119-paralelismo-sessoes-whats-active-tier-1
 auto_trigger: session_start

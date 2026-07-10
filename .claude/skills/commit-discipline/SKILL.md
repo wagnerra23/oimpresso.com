@@ -2,6 +2,7 @@
 name: commit-discipline
 description: Use ANTES de git commit ou git push em qualquer PR do oimpresso. Garante 1 PR = 1 intent, ≤300 linhas, conventional commits format, refs sprint/cycle, sem PII em código/log/commit message. Tier A always-on — princípio duro #5 da Constituição v2 (ADR 0094) + critério Anthropic 2026 best-practice.
 tier: A
+resumo: 1 PR = 1 intent, ≤300 linhas, conventional commits
 tier_enforce: hook-pre-commit
 parent_adr: 0095
 related_adrs: [0094, 0093]

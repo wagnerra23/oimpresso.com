@@ -1,7 +1,10 @@
 ---
 name: constituicao-ui-aware
 description: Use SEMPRE antes de Edit/Write em qualquer `resources/js/Pages/<X>/*.tsx`, `resources/js/Components/shared/**/*.tsx`, `resources/css/cockpit.css`, `resources/css/inertia.css`, ou ao criar tela nova no projeto. Carrega no contexto antes de codar — (1) Constituição UI v2 — hierarquia 4 camadas Fundações→Shell→PT→Módulo + regra-mestre "pedido vago, pergunta antes" ([ADR UI-0013](../../memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md)), (2) Padrão de Tela aplicável (PT-01 Lista pros Index.tsx · drawer 760 pros Edit cadastrais), (3) anti-padrões AP1-AP8 do [PRE-MERGE-UI](../../memory/requisitos/_DesignSystem/PRE-MERGE-UI.md). Substitui leitura repetida desses 3 docs a cada sessão. ATIVA também quando user pede "criar tela X", "tela de Y", "Index do módulo Z", "PT-01 no módulo W", "drawer pra cadastro X", "tocar UI", "mudar visual de Y".
-tier: A
+tier: B
+auto_trigger: path
+resumo: Constituição UI v2 + PT aplicável + PRE-MERGE-UI antes de Edit em Pages/Components/css ([ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md))
+recalibracao_nota: tier A->B 2026-07-09 (US-GOV-052 P31) — critério ADR 0225 (dispara por path Pages/Components/css, não é núcleo segurança/LGPD); banner e CLAUDE.md pós-0225 já não a listavam no núcleo.
 status: active
 version: 1.0
 authority: canonical
