@@ -3,6 +3,7 @@ page: /sells
 page_id: sells-index
 component: resources/js/Pages/Sells/Index.tsx
 bundle_source: vendas-page.jsx
+related_prototype: prototipo-ui/cowork/vendas-page.jsx (formalizado 2026-07-09 — o visual_source já declarava vendas-page.jsx; campo canônico registrado pra âncora via ancora.mjs + proto-baseline)
 owner: wagner
 status: live
 last_validated: "2026-07-01"
