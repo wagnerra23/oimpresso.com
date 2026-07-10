@@ -21,8 +21,11 @@ use Throwable;
  *   rotas — identidade (nome/URI-pattern) → {hits, ultima_data} na janela
  *   pages — componente Inertia → {hits, ultima_data}: pra cada rota com hit,
  *           resolve o método de action (Reflection, só as linhas do método) e
- *           extrai `Inertia::render('X')` literais — atribuição por MÉTODO,
- *           não por controller inteiro (evita over-attribution).
+ *           extrai o alvo de cada render Inertia literal — atribuição por
+ *           MÉTODO, não por controller inteiro (evita over-attribution).
+ *           (Prosa sem o token de chamada de propósito: o crawler do
+ *           OrphanRenderGateTest varre app/+Modules/ por esse token e trataria
+ *           um exemplo em comentário como render órfão real.)
  *
  * Consumidores: scripts/governance/anchor-lint.mjs (4º veredito advisory
  * `servido`) e scripts/governance/charter-live-signal.mjs (3ª fonte de sinal).

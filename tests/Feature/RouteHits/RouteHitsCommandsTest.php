@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Http\Middleware\ContadorHitsRota;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
@@ -97,12 +98,17 @@ it('export (dry-run) emite ledger route-hits/v1 com a rota agregada e NÃO grava
     $ledger = base_path('governance/route-hits.json');
     $existiaAntes = file_exists($ledger);
 
-    $this->artisan('route-hits:export')
-        ->expectsOutputToContain('route-hits/v1')
-        ->expectsOutputToContain('"rh.export.rota"')
-        ->expectsOutputToContain('"hits": 15')
-        ->assertExitCode(0);
+    // Captura o output real (Artisan::output) em vez de expectsOutputToContain:
+    // aquele matcher é frágil sobre JSON pretty-print multi-linha (falso "Output
+    // does not contain" mesmo com a string presente). str-match determinístico.
+    $code = Artisan::call('route-hits:export');
+    $out = Artisan::output();
 
+    expect($code)->toBe(0)
+        ->and($out)->toContain('route-hits/v1')
+        ->and($out)->toContain('rh.export.rota')
+        ->and($out)->toContain('"hits": 15')      // SUM(10+5) na janela
+        ->and($out)->not->toContain('rh.fora.janela'); // 60d atrás, fora dos 30d
     expect(file_exists($ledger))->toBe($existiaAntes); // dry-run nunca grava
 });
 
@@ -114,8 +120,10 @@ it('export atribui hits à página Inertia via Inertia::render do MÉTODO de act
         'created_at' => $agora, 'updated_at' => $agora,
     ]);
 
-    $this->artisan('route-hits:export')
-        ->expectsOutputToContain('"RhFixture/Pagina"')
-        ->expectsOutputToContain('"hits": 12')
-        ->assertExitCode(0);
+    $code = Artisan::call('route-hits:export');
+    $out = Artisan::output();
+
+    expect($code)->toBe(0)
+        ->and($out)->toContain('RhFixture/Pagina')  // atribuição via Reflection do método de action
+        ->and($out)->toContain('"hits": 12');
 });
