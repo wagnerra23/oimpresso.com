@@ -160,6 +160,23 @@ export function renderPermitido(env = process.env) {
   return !(env.CI || env.GITHUB_ACTIONS);
 }
 
+// ── nudge (o COMPARE possível em CI): PR tocou Pages/ de módulo COM baseline? ──
+// O compare real proto×prod exige render dos DOIS lados = LOCAL por lei (ADR 0290). O que o CI
+// mecaniza sem render: (a) o --check hermético e (b) ESTE mapeamento — arquivos da PR → baselines
+// commitados do MESMO módulo (inclui _components/: mexer neles re-renderiza a tela) → aponta o
+// comando local exato. Pura (files×baselines → afetados), testável hermética.
+export function telasAfetadas(files, baselines) {
+  const mods = new Set();
+  for (const f of files || []) {
+    const m = String(f).replace(/\\/g, '/').match(/^resources\/js\/Pages\/([^/]+)\//);
+    if (m) mods.add(m[1]);
+  }
+  return (baselines || []).filter((b) => {
+    const m = String(b).replace(/\\/g, '/').match(/(?:^|\/)memory\/requisitos\/([^/]+)\//);
+    return m && mods.has(m[1]);
+  });
+}
+
 // FURO fechado fail-closed: o sha é carimbado do proto no REPO (SSOT prototipo-ui/cowork/),
 // mas o render serve o STAGING (~/Downloads) — se o staging driftou do espelho, a captura seria
 // de OUTRA versão que o sha declara (baseline mentiroso). Identidade normalizada (ADR 0324:
@@ -331,6 +348,25 @@ async function cmdCheck(args) {
   process.exit(0);
 }
 
+// advisory SEMPRE (exit 0): imprime o dever-de-casa local; quem decide é o humano no merge.
+function cmdNudge(args) {
+  const files = args._.length ? args._ : readFileSync(0, 'utf8').split(/\r?\n/).map((s) => s.trim()).filter(Boolean);
+  const baselines = acharBaselines(join(REPO, 'memory', 'requisitos')).map((p) => relative(REPO, p).replace(/\\/g, '/'));
+  const afetados = telasAfetadas(files, baselines);
+  if (!afetados.length) { console.log('✓ nudge: nenhum arquivo da PR toca módulo com proto-baseline — nada a apontar.'); return; }
+  console.log('⚠ FIDELIDADE DE INTENÇÃO (advisory): a PR toca `Pages/` de módulo com proto-baseline commitado.');
+  console.log('  O compare proto×prod NÃO roda em CI (render = local por lei, ADR 0290). Antes do merge, rode LOCAL:');
+  for (const b of afetados) {
+    let tela = '<Mod/Tela>';
+    try { tela = JSON.parse(readFileSync(join(REPO, b), 'utf8')).tela || tela; } catch {}
+    console.log(`\n  · **${tela}** — baseline \`${b}\``);
+    console.log(`      node prototipo-ui/render-proto-baseline.mjs --extract "${b}" "1280|dark" --out proto.json`);
+    console.log(`      node prototipo-ui/style-fingerprint.mjs --snippet ${tela}   # colar na tela viva (MESMO tema) → prod.json`);
+    console.log(`      node prototipo-ui/style-fingerprint.mjs --compare proto.json prod.json --tela ${tela}`);
+  }
+  console.log('\n  ⚠ direção NÃO é uniforme: o compare REPORTA, humano DECIDE (PROD_A_FRENTE nunca regride).');
+}
+
 function cmdExtract(args) {
   const [file, cell] = args._;
   if (!file || !cell) { console.error('uso: --extract <baseline.json> <viewport|tema> [--out proto.json]'); process.exit(2); }
@@ -414,6 +450,17 @@ function selftest() {
   t('identidade: âncora ausente no staging → morde', conferirIdentidadeProto('x', null).ok === false);
   t('identidade: âncora ausente no repo (espelho) → morde', conferirIdentidadeProto(null, 'x').ok === false);
 
+  // nudge (o compare possível em CI): PR→módulo com baseline; _components conta; resto silencia
+  const BLS = ['memory/requisitos/Sells/sells.proto-baseline.json', 'memory/requisitos/Compras/compras.proto-baseline.json'];
+  t('nudge: Page do módulo com baseline dispara', telasAfetadas(['resources/js/Pages/Sells/Index.tsx'], BLS).length === 1);
+  t('nudge: _components do módulo também dispara (re-renderiza a tela)',
+    telasAfetadas(['resources/js/Pages/Sells/_components/VdRow.tsx'], BLS)[0] === BLS[0]);
+  t('nudge: módulo SEM baseline silencia', telasAfetadas(['resources/js/Pages/Whatsapp/Index.tsx'], BLS).length === 0);
+  t('nudge: fora de Pages/ silencia (proto/backend não é dever-de-casa de compare)',
+    telasAfetadas(['prototipo-ui/cowork/vendas-page.jsx', 'Modules/Sells/Http/X.php'], BLS).length === 0);
+  t('nudge: path windows (backslash) normaliza', telasAfetadas(['resources\\js\\Pages\\Compras\\Index.tsx'], BLS).length === 1);
+  t('nudge: 2 módulos afetados → 2 baselines', telasAfetadas(['resources/js/Pages/Sells/Index.tsx', 'resources/js/Pages/Compras/Index.tsx'], BLS).length === 2);
+
   // integração: o SNIPPET importado é a fonte única (mesmo vetor do style-fingerprint)
   t('SNIPPET é a fonte única (window.__ANCORA__ presente no vetor)', typeof SNIPPET === 'string' && SNIPPET.includes('__ANCORA__'));
 
@@ -428,7 +475,7 @@ function parseArgs(argv) {
     const k = argv[i];
     if (k.startsWith('--')) {
       const flag = k.slice(2);
-      if (['gerar', 'check', 'extract', 'selftest'].includes(flag)) { a.modo = flag; continue; }
+      if (['gerar', 'check', 'extract', 'nudge', 'selftest'].includes(flag)) { a.modo = flag; continue; }
       const v = argv[i + 1] && !argv[i + 1].startsWith('--') ? argv[++i] : true;
       a[flag] = v;
     } else a._.push(k);
@@ -443,10 +490,12 @@ if (ehEntrypoint) {
   else if (args.modo === 'gerar') await cmdGerar(args);
   else if (args.modo === 'check') await cmdCheck(args);
   else if (args.modo === 'extract') cmdExtract(args);
+  else if (args.modo === 'nudge') cmdNudge(args);
   else {
     console.log('uso: --gerar <Mod/Tela> [--staging <dir>] [--porta N] [--viewports 1280,1440] [--themes light,dark] [--route <id>] [--out <path>]');
     console.log('   | --check [baseline.json ...]      (hermético — o modo do CI, advisory)');
     console.log('   | --extract <baseline.json> <1280|dark> [--out proto.json]');
+    console.log('   | --nudge [arquivo ...]            (ou stdin: git diff --name-only — aponta o compare LOCAL pra PR)');
     console.log('   | --selftest');
     process.exit(2);
   }
