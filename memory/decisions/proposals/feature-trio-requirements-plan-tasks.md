@@ -36,6 +36,16 @@ prs: []
 4. **Schema-gate: começa FORA (decisão consciente).** Os globs de `scripts/memory-schemas/` não cobrem `features/**`; o tipo novo é validado só pelo feature-lint. Entrar no schema-gate = decisão futura com backfill.
 5. **Quando usar:** feature multi-sessão (≥3 tasks, ≥1 dependência real). Fix de 1 arquivo NÃO ganha trio (cerimônia). Criar o trio é opt-in por feature — nenhum gate força.
 
+## Complementos do estado-da-arte 2026 (pesquisa [2026-07-10](../../sessions/2026-07-10-arte-spec-por-feature-complementos.md))
+
+Wagner pediu re-verificar o mercado ("tenho coisa melhor pra complementar"). Investigação (Spec Kit 2026 + Kiro + OpenSpec) confirmou 3 complementos baratos, aplicados neste trio:
+
+- **Fase `Clarify`** (Spec Kit `/clarify`): seção `## Clarifications` no requirements, populada pelo agente `wagner-understand` que já existe — desambiguação vira contrato, não some no session log.
+- **`design.md` mais rico** (Kiro): seções OPCIONAIS no plan.md (Dados tocados / Contratos / Interação novo↔existente) — o "como pluga no existente" é o de maior valor no brownfield. Sem renomear plan→design, sem diagrama obrigatório.
+- **EARS 6 formas** (não 4): + opcional (`ONDE ... presente`) + complexa.
+
+Descartados/adiados com razão: `/constitution` (redundante — já temos Constituição v2 enforçada); `/analyze` semântico (só authoring-time via agente, NUNCA gate CI — filosofia de gate determinístico ADR 0271); delta-spec OpenSpec (só o espírito, sem a máquina de archive que competiria com a âncora — confirmar layout antes).
+
 ## Piloto (a prova, não o template)
 
 [`RecurringBilling/features/gateway-ativacao/`](../../requisitos/RecurringBilling/features/gateway-ativacao/requirements.md)

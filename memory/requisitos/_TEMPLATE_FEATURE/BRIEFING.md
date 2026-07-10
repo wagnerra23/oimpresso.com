@@ -50,6 +50,9 @@
 ## Ciclo de vida
 
 1. Copiar template → curar placeholders → `node scripts/governance/feature-lint.mjs <Mod>/<slug>`.
+1b. **Fase Clarify (Spec Kit 2026):** se o pedido tem ambiguidade, rodar o agente `wagner-understand`
+   ANTES do plan e gravar as respostas na seção `## Clarifications` do requirements — desambiguação
+   vira parte do contrato (não some no session log). Feature clara: seção fica `_nenhuma_`.
 2. Wagner aprova o plano → `tasks-create ... parent_plan:"<slug>"` (1 task MCP por T-NN ou 1 guarda-chuva).
 3. Sessões executam na ordem topológica do `blocked_by:`; cada T-NN fechado = DoD provado.
 4. Última task SEMPRE fecha o loop: atualizar a âncora `**Implementado em:**` da US no SPEC
