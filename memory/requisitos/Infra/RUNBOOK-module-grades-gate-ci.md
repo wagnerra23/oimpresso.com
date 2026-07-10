@@ -4,8 +4,9 @@ title: "RUNBOOK — Module Grades Gate CI (anti-regressão module-grade v3)"
 type: runbook
 authority: canonical
 lifecycle: ativo
-owner: wagner
+owner: W
 last_updated: 2026-05-16
+last_validated: "2026-05-16"
 related_workflow: .github/workflows/module-grades-gate.yml
 related_baseline: governance/module-grades-baseline.json
 related_service: Modules/Governance/Services/ModuleGradeService.php
@@ -94,7 +95,7 @@ Aprova entrada de módulo novo na rubrica. **Sem ela, módulo novo bloqueia merg
 
 **Quando NÃO aplicar:**
 
-- ❌ Entrada acidental (scan pegou `Modules/Vendor/` ou `Modules/legacy_backup/`) — **remover/renomear** em vez de aplicar
+- ❌ Entrada acidental (scan pegou dir espúrio, ex.: `Modules/vendor/` ou `Modules/legacy_backup/` — não são módulos reais) — **remover/renomear** em vez de aplicar
 - ❌ Módulo embrião sem code real (pasta vazia, só `module.json` esqueleto) — esperar MVP antes de entrar na rubrica
 - ❌ Tentativa de burlar gate adicionando "shadow module" pra fazer regressão de outro virar `new`
 
