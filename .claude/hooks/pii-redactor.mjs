@@ -13,7 +13,7 @@
 // brasileiro, debug legítimo por CPF/CNPJ é operação normal.
 //
 // Bypass: adicione --allow-pii ao git commit (E confirme com Wagner).
-// Whitelist: fixtures fake bem conhecidos (CPF 123.456.789-09, cartões de teste Visa/MC).
+// Whitelist: fixtures fake bem conhecidos (CPFs de placeholder + cartões de teste Visa/MC).
 //
 // ── POR QUE .mjs (triagem 2026-07-09, classe Tier-0-esquecido) ───────────────
 // PII vazada em commit é irreversível sem filter-repo (reincidência BRL 2026-06-08
