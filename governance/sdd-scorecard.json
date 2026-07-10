@@ -209,7 +209,7 @@
     },
     "distiller_freshness": {
       "status": "measured",
-      "value": 7,
+      "value": 6,
       "unit": "portas atrás dos eventos (>7d vs doc mais novo · ADR 0291 D-D)",
       "direction": "down",
       "target": 0,
@@ -218,7 +218,7 @@
         "portas": 77,
         "carimbadas": 11,
         "sem_carimbo": 66,
-        "stale": 7,
+        "stale": 6,
         "oldest_distilled_at": "2026-07-01"
       },
       "stream": "MEM"
