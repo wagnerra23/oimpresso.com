@@ -87,3 +87,9 @@ jobs:
         run: node scripts/pr-critic/coleta.test.mjs
       - name: pr-critic — trava de citação + comentário honesto (partes determinísticas)
         run: node scripts/pr-critic/critica.test.mjs
+      - name: Block-claim-without-evidence PORTE .mjs (advisory ADR 0224 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/block-claim-without-evidence.test.mjs
+      - name: Post-merge-ui-smoke PORTE .mjs (R1 · bite/release/TTL · roda em Linux)
+        run: node .claude/hooks/post-merge-ui-smoke-required.test.mjs
+      - name: Evidence + ui-smoke REGISTRADOS como node nos 4 pontos (correcao != invocacao)
+        run: node scripts/governance/settings-evidence-smoke-registration.test.mjs
