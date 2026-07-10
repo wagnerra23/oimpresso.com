@@ -56,7 +56,7 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
 — guard de base-freshness existe por isso). `args.dimensoes` opcional pra rodada parcial
 (re-medir só a dimensão de um chip concluído).
 
-## As 6 regras duras do método (violou = grade rejeitada)
+## As 7 regras duras do método (violou = grade rejeitada)
 
 1. **Dossiê do mapa VIVO, nunca de memória** — a Fase 0 lê o `mapa-dos-niveis` corrente
    (0330 ou sucessora) + proibições §5. Dossiê de cabeça = falso-negativo garantido.
@@ -74,6 +74,15 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
 6. **Saída vira ação ou lápide**: fraqueza real → chip (com as ressalvas do adversário
    embutidas no prompt); proposta rejeitada → proibições §5 (não re-propor); claim
    refutada → registrada (não re-alegar sem re-verificar).
+7. **Teste de integração antes de "0 acima"** — a refutação é slice-a-slice por
+   construção; antes de declarar um diferencial refutado (ou o placar "0 acima"), a Fase
+   `Integração` pergunta *"algum peer monta o TODO integrado no mesmo contexto — ERP
+   vertical multi-tenant + auto-aplicação recursiva + loop-que-fecha?"*. Sem peer do TODO
+   → `DIFERENCIAL_SISTEMA` (instanciação/integração, **não** categoria — proibido re-inflar
+   a peça isolada). E **credite o que já shipou** desde o último retrato antes de listar
+   gaps. Origem: reanálise Wagner 2026-07-10 (*"foi perdido meus diferenciais"*) — proibições §5.
+   Corolário de invocação: passe `args` como **objeto JSON de verdade** (`args:{base:…}`), nunca
+   string — string vira `args.base` undefined → o script cai no placeholder e mede o repo errado.
 
 ## Onde registrar (fecha o protocolo)
 
