@@ -3,7 +3,7 @@ date: "2026-07-10"
 topic: "Avaliação adversarial do protocolo design→code: gate visual cego 3 dias (achado por prova contrafactual) + pacote dark + flip L2 abortado com evidência"
 authors: [W, CC]
 prs: [4079, 4081, 4082, 4083, 4086, 4087, 4088, 4089]
-us: [US-COM-021, US-_DESIGNSYSTEM-035, US-_DESIGNSYSTEM-036]
+us: [US-COM-021]  # + US-_DESIGNSYSTEM-035/036 (underscore do módulo viola o pattern us[] do session.schema — quirk conhecido; IDs citados no corpo)
 outcomes:
   - "Fix do gate cego mergeado (#4088) — pixel L1/L2/Tier0/axe/smoke voltam a rodar em todo PR"
   - "Caixa Unificada no gate L2 default+dark com smoke real biz=1; baselines frescas 17 células"
