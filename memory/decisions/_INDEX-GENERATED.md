@@ -7,7 +7,7 @@
 ## Resumo
 - **339** arquivos · **323** números únicos · máx **0333**
 - **ADRs ATIVOS (lifecycle ativo): 308** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 304 · superseded 12 · proposto 10 · deprecated 9 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 305 · superseded 12 · deprecated 9 · proposto 9 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 308 · arquivado 15 · substituido 12 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -165,7 +165,7 @@ _(íntegra)_
 | 0123 | aceito | ativo | decision | Modules/Arquivos — backbone DMS (todo arquivo anexado entra aqui) |
 | 0124 | aceito | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
 | 0125 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
-| 0126 | proposto | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
+| 0126 | aceito | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
 | 0126 | proposto | (vazio) | decision | ADR 0126 — Vault chunked encryption Sprint 2 (proposed) |
 | 0127 | aceito | ativo | decision | Modules/Auditoria — UI rica + undo sobre activity_log existente |
 | 0128 | proposto | (vazio) | decision | ADR 0128 — Smoke testing E2E pós-cycle |
