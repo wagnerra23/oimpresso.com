@@ -1,6 +1,6 @@
 ---
 tela: Sells/Index
-prototipo: prototipo-ui/prototipos/vendas/
+prototipo: prototipo-ui/cowork/vendas-page.jsx
 tela_viva: resources/js/Pages/Sells/Index.tsx
 paridade_atual: ~70%
 gerado_em: 2026-06-22
