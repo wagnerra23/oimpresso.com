@@ -3,9 +3,9 @@ slug: 0289-failover-saude-canal-cloud-api-tenants-criticos
 number: 289
 title: "failover automático por saúde de canal: tenant crítico cai pro Cloud API (oficial, ban-zero) quando o canal não-oficial cai — emenda 0096"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 kind: decision
 decided_by: [W]
 decided_at: "2026-06-18"

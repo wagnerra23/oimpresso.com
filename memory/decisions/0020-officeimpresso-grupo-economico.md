@@ -3,9 +3,9 @@ slug: 0020-officeimpresso-grupo-economico
 number: 20
 title: !!binary gJQgR3J1cG8gZWNvbsO0bWljbyAobWF0cml6ICsgZmlsaWFpcykgbm8gT2ZmaWNlaW1wcmVzc28=
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 decided_by:
   - W
 decided_at: '2026-04-24'
