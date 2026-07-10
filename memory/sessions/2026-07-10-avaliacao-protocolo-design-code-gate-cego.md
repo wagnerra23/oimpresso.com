@@ -1,9 +1,15 @@
 ---
-slug: avaliacao-protocolo-design-code-gate-cego
 date: "2026-07-10"
-type: session
-module: _DesignSystem
-tags: [protocolo, design-code, visual-regression, gate-cego, contrafactual, medicao, dark, caixa-unificada, maps]
+topic: "Avaliação adversarial do protocolo design→code: gate visual cego 3 dias (achado por prova contrafactual) + pacote dark + flip L2 abortado com evidência"
+authors: [W, CC]
+prs: [4079, 4081, 4082, 4083, 4086, 4087, 4088, 4089]
+us: [US-COM-021, US-_DESIGNSYSTEM-035, US-_DESIGNSYSTEM-036]
+outcomes:
+  - "Fix do gate cego mergeado (#4088) — pixel L1/L2/Tier0/axe/smoke voltam a rodar em todo PR"
+  - "Caixa Unificada no gate L2 default+dark com smoke real biz=1; baselines frescas 17 células"
+  - "Anchor-maps hotspots: caixa 13/13 + vendas 5/6 por grep real; Sells re-destilada pelo distiller CT100"
+  - "Flip L2→enforcing abortado com evidência (assert binário flaky) → US-036 p1 double-threshold"
+  - "Medições: 0,5 fix visual/entrega (70% em 2 telas) · doc-set do protocolo 67k tokens"
 ---
 
 # Sessão 2026-07-10 — Avaliação adversarial do protocolo design→code + gate cego + pacote dark

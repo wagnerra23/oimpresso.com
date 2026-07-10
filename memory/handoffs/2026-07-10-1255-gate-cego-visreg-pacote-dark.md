@@ -4,7 +4,7 @@ time: "12:55 BRT"
 slug: gate-cego-visreg-pacote-dark
 tldr: "Avaliação adversarial do protocolo design→code virou caça real: prova contrafactual achou o visual-regression CEGO em todo PR desde #3933 (07/jul, auto-referência no mode step) — fix merged #4088. Pacote dark entregue (Caixa no L2, baselines frescas, maps hotspots 13/13+5/6, Sells re-destilada). Flip L2→enforcing ABORTADO com evidência (assert binário flaky run-a-run) → US-036 p1 (double-threshold v2)."
 prs: [4079, 4081, 4082, 4083, 4086, 4087, 4088, 4089]
-related_adrs: [0271-revisao-gates-ci-estado-real-required-e-subtracao-segura, 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes, 0291-briefing-porta-unica, 0299-figma-nao-e-fonte-de-design, 0324-frescor-espelho-cowork-dispatch-sla-limite-plataforma]
+related_adrs: [0271-revisao-gates-ci-estado-real-required-e-subtracao-segura, 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes, 0291-distiller-modulo-verdade-contrato-emenda-0270-f3, 0299-figma-nao-e-fonte-de-design, 0324-frescor-espelho-cowork-dispatch-sla-limite-plataforma]
 next_steps:
   - "US-_DESIGNSYSTEM-036 (p1): L2-v2 double-threshold → flip enforcing + contrafactual round 3 (quebra de superfície real, ex. filter invert)"
   - "Chip: PAT no modo update do visreg (PR de GITHUB_TOKEN não dispara CI; workaround close/reopen documentado)"
