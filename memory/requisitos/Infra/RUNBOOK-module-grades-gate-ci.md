@@ -94,7 +94,7 @@ Aprova entrada de módulo novo na rubrica. **Sem ela, módulo novo bloqueia merg
 
 **Quando NÃO aplicar:**
 
-- ❌ Entrada acidental (scan pegou `Modules/Vendor/` ou `Modules/legacy_backup/`) — **remover/renomear** em vez de aplicar
+- ❌ Entrada acidental (scan pegou dir espúrio, ex.: `Modules/vendor/` ou `Modules/legacy_backup/` — não são módulos reais) — **remover/renomear** em vez de aplicar
 - ❌ Módulo embrião sem code real (pasta vazia, só `module.json` esqueleto) — esperar MVP antes de entrar na rubrica
 - ❌ Tentativa de burlar gate adicionando "shadow module" pra fazer regressão de outro virar `new`
 
