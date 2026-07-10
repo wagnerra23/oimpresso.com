@@ -7,7 +7,7 @@
 ## Resumo
 - **335** arquivos · **319** números únicos · máx **0331**
 - **ADRs ATIVOS (lifecycle ativo): 313** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 284 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 285 · proposto 34 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 313 · substituido 12 · arquivado 6 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -344,7 +344,7 @@ _(íntegra)_
 | 0296 | proposto | ativo | decision | Plano de capacidade à prova de falhas — taxonomia canônica de dados + placement  |
 | 0297 | aceito | ativo | meta | Exceção append-only: migração legacy→canônico de frontmatter de ADR sob label, c |
 | 0298 | aceito | ativo | meta | Teto de governança — todo workflow novo nasce com classe terminal e âncora de cu |
-| 0299 | proposto | ativo | decision | Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (C |
+| 0299 | aceito | ativo | decision | Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (C |
 | 0300 | proposto | ativo | decision | Errata ao ADR 0239 — a fonte (SSOT) do Design System que o build consome é resou |
 | 0301 | aceito | ativo | decision | Separar Cliente (cadastro) do CRM (pipeline) e deprecar o pipeline |
 | 0302 | aceito | ativo | decision | Done-ness com fonte única — a âncora 'Implementado em' decide se a US está pront |
