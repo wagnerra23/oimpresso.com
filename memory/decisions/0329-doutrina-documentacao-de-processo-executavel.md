@@ -3,7 +3,7 @@ slug: 0329-doutrina-documentacao-de-processo-executavel
 number: 329
 title: "Doutrina de documentação de processo: executável, fonte-única, ligada-ao-gate, cross-plataforma, auto-fresca"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: meta

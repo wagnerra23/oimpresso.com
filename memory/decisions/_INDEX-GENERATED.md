@@ -7,7 +7,7 @@
 ## Resumo
 - **333** arquivos · **317** números únicos · máx **0330**
 - **ADRs ATIVOS (lifecycle ativo): 311** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 280 · proposto 37 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 282 · proposto 35 · superseded 12 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 311 · substituido 12 · arquivado 6 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -371,5 +371,5 @@ _(íntegra)_
 | 0326 | aceito | ativo | decision | Trava de âncora no compare-time do fingerprint — enforcement na MÁQUINA quando a |
 | 0327 | aceito | ativo | decision | Emenda à 0314 — anchor-content-check promovido a REQUIRED (exceção consciente à  |
 | 0328 | aceito | ativo | decision | DS v6 congelado → projeto vivo no claude.ai/design (git permanece SSOT) — loop b |
-| 0329 | proposto | ativo | meta | Doutrina de documentação de processo: executável, fonte-única, ligada-ao-gate, c |
-| 0330 | proposto | ativo | meta | Mapa dos níveis — estado real 2026-07 das 7 camadas da Constituição v2 (emenda d |
+| 0329 | aceito | ativo | meta | Doutrina de documentação de processo: executável, fonte-única, ligada-ao-gate, c |
+| 0330 | aceito | ativo | meta | Mapa dos níveis — estado real 2026-07 das 7 camadas da Constituição v2 (emenda d |
