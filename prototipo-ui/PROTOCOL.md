@@ -23,7 +23,7 @@
 | §10 (10.1–10.6) + Esteira≠armazém | ✅ **VIGENTE** | gatilhos ida/retorno, gate §10.4 (Passo 0), bundle §10.5, acesso direto DesignSync §10.6, régua 6 |
 | §11 Links | ✅ referência | — |
 
-**Estado vivo (cache datado 2026-07-02 — fonte da verdade = branch protection do `main` via `gh api`, não este doc):** 23 checks required · `enforce_admins:true` · `reviews:0`. `visual-regression` **é** required; **a11y-axe e PR UI Judge são advisory hoje** — a frase "a11y-axe required" do banner refletia a Onda C da 0282 e foi alterada depois pela poda [ADR 0314](../memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md) (required = só Tier-0). Estado vivo de merge/enforcement: **[AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md) §2–§3** (casa declarada — ex.: `gh pr merge --admin` MORTO pós-ADR 0271).
+**Estado vivo (SEM contagem cacheada aqui — a lista dos required vive em [`governance/required-checks-baseline.json`](../governance/required-checks-baseline.json), enforced por `protection-drift.mjs`; contagens cacheadas em doc apodreceram 18→22→24 entre jun–jul/2026):** `enforce_admins:true` · `reviews:0`. `visual-regression` **é** required; **a11y-axe e PR UI Judge são advisory hoje** — a frase "a11y-axe required" do banner refletia a Onda C da 0282 e foi alterada depois pela poda [ADR 0314](../memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md) (required = só Tier-0). Estado vivo de merge/enforcement: **[AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md) §2–§3** (casa declarada — ex.: `gh pr merge --admin` MORTO pós-ADR 0271).
 
 ## 1. Os 6 papéis
 
