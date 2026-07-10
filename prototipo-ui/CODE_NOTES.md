@@ -1253,3 +1253,24 @@ O set canônico já existe gerado em `_generated-cockpit-{light,dark}.css`. Apos
 - **Próximo passo (Tier 0, aguarda [W]):** aprovar a Opção A → eu estendo `ds-mirror-build.mjs` + emito o companion; Cowork re-linka; deleta os literais do ds-v6.
 
 **Refs:** semantic.tokens.json (ADR 0310/0311) · ADR 0328 (DS congelado→vivo) · decisão [W] "origins=canon" · PR #4093 (máquina fidelidade) · PR #4094 (Financeiro converge dark).
+
+---
+
+## 2026-07-10 [CL] → [CC]/[W] — Estrutura-Cowork: doc-update PREMATURO (L-42) + proposta loop diff-first + teste
+
+_Resposta ao `PROMPT_PARA_CODE_ESTRUTURA-COWORK-ATUALIZADA.md`. Validei contra `origin/main` fresco + DS vivo via DesignSync (L-42)._
+
+### Validação: os claims do prompt NÃO estão no git (nem no DS vivo)
+- `ds-v6/tokens.css` **aposentado/deletado** → git mirror `prototipo-ui/cowork/ds-v6/` ainda tem **8 arquivos**; DS vivo `019dd02f` não tem ds-v6 (é do ERP `019dcfd3`, sem acesso de escrita/listagem meu).
+- **3 mapas de handoff** (`MAPA_TELAS/COMPONENTES/TOKENS`) → **não existem no git**.
+- **L-42/L-43** → git `LICOES_CC.md` vai só até **L-27**.
+- "o Cowork linka `_ds/…/cockpit_domains.css`" → **o companion NÃO está no DS vivo** (`list_files 019dd02f` + `get_file colors_and_type.css`: cura, só 4 `--kind` base + `--vip`; o comentário do próprio arquivo diz "full set lives in _generated-cockpit-light.css"). Meu #4097 pôs no git mirror-snapshot; nunca foi empurrado pro DS vivo.
+
+### Decisão: atualizar o protocolo de retorno AGORA = mentir. NÃO fiz o doc-update.
+Escrever "DS live-linked com cockpit_domains, ds-v6 aposentado" afirmaria estado inexistente (git+vivo). O passo REAL que falta é **empurrar `cockpit_domains.css` pro DS vivo** (`design-sync`, opt-in bloqueado fail-closed ADR 0315 — aguarda [W] dizer a palavra). Só DEPOIS o doc de retorno vira verdade.
+
+### Em vez do doc stale, entreguei o que [W] pediu ("processo mais otimizado? teste"):
+- **`memory/requisitos/_DesignSystem/PROPOSTA-loop-design-code-diff-first.md`** — diagnóstico medido (4 armazéns driftando + 3 prompts stale) + loop otimizado (1 SSOT git · espelhos gerados uma-via · **diff-first automático na entrada** mata a L-42 na raiz).
+- **`scripts/design-sync/ds-project-diff.mjs`** (+ `--selftest`) — MECANIZA a validação manual: git canon × DS vivo. **Rodado ao vivo: 56 tokens ausentes detectados** (origin 10 · stage 7 · sla 18 · canal 12 · kpi 5 · kind-soft 4), exatamente o gap achado à mão. Selftest trava a anti-regressão do regex maiúscula (`--origin-CRM-bg`, furo pego 2× nesta sessão).
+
+**Aguarda [W]:** (a) `design-sync` explícito → empurro o companion pro DS vivo (fecha o loop de verdade); (b) proposta diff-first vira ADR + liga.
