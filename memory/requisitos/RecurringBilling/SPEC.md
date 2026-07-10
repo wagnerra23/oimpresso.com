@@ -1063,6 +1063,8 @@ Refina/separa o `InterPixCobDriver` mencionado em US-RB-047 num `InterPixCobranc
 
 **Implementado em:** _pendente_ — a US (gateway ativado + cobrança emitida) NÃO está feita. Ferramenta de diagnóstico + backfill **dry-run** construída em `Modules/RecurringBilling/Services/GatewayBackfillService.php` + comando `rb:backfill-gateway {biz}` (`Modules/RecurringBilling/Console/Commands/BackfillGatewayCommand.php`, default dry-run) + Pest `Modules/RecurringBilling/Tests/Feature/GatewayBackfillServiceTest.php`. Execução real (`--execute`) + reativação da régua de emissão pendem decisão [W] (Tier 0 dinheiro) — hoje nenhum código de produção cria ChargeAttempt.
 
+**Detalhamento:** [features/gateway-ativacao/](features/gateway-ativacao/requirements.md) — trio requirements/plan/tasks (template `_TEMPLATE_FEATURE`, lint `feature-lint.mjs`)
+
 **Iniciativa-plano perdida** recuperada pro backlog (triagem 2026-06-20 · run wf_1bfbefba).
 labels: `plano-perdido`, `backlog-2026-06-20`
 
