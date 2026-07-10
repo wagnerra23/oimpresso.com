@@ -4,11 +4,11 @@
 > Regenerar: `node scripts/governance/skills-index-generate.mjs --write`. Convenção de tiers: ADR 0095 · recalibração 5 núcleo + auto-trigger: ADR 0225.
 
 ## Resumo
-- **72** skills · Tier A **6** (5 núcleo + 1 dormente) · Tier B **56** · Tier C **10**
+- **73** skills · Tier A **6** (5 núcleo + 1 dormente) · Tier B **57** · Tier C **10**
 - Auto-trigger explícito: 9 (session_start 2 · path 5 · intent 1 · on_demand 1)
 - Destacadas no bloco do CLAUDE.md: 14 (entre marcadores AUTO:SKILLS)
 
-## Todas as skills (72)
+## Todas as skills (73)
 | Skill | Tier | auto_trigger | enabled | Descrição (início) |
 |---|---|---|---|---|
 | ads-decision-flow | B | — | sim | Use ao trabalhar em Modules/ADS/ ou tocar fluxo de decisão automatizada (Risk → Confidence → Policy → Router → Brain … |
@@ -72,6 +72,7 @@
 | preflight-modulo | B | path | sim | BLOQUEADOR — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em Modules/<X>/. PRÉ-FLIGHT obrigatório: ler memory/requis… |
 | proxmox-docker-host | C | — | sim | Use ao mexer com infra Proxmox/CT 100/containers Docker do oimpresso. Carrega receitas: subir novo subdomínio Traefik… |
 | publication-policy | B | — | sim | Use ANTES de qualquer git push, abertura/merge de PR, deploy em produção, mudança em .env de produção, ou postagem ex… |
+| reguas-do-sistema | B | — | sim | ATIVAR quando Wagner pedir "grade de réguas", "onde sou fraco vs mercado", "quais ideias estão acima do mercado", "re… |
 | runtime-rules-hostinger-ct100 | B | — | sim | Use ANTES de SSH no Hostinger, composer install/update em servidor, criar git worktree em servidor, ou qualquer coman… |
 | screen-grade | B | — | sim | ATIVAR quando user pedir "nota da tela X", "gradear tela Y", "/screen-grade Sells/Create", "qual a maturidade da tela… |
 | sdd-avaliar | C | — | sim | Use ANTES de promover qualquer gate SDD a required (calendário ADR 0275), AO FECHAR cada onda do programa SDD (Semana… |
