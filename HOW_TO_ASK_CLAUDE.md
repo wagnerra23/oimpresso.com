@@ -43,10 +43,10 @@ A literatura 2025-2026 convergiu em **5 princípios** que valem mais que qualque
 
 **Exemplo bom** (custa 8k tokens, sai certo na primeira):
 > [OBJETIVO] Endpoint GET /api/ponto/marcacoes que lista marcações do colaborador autenticado, paginadas (50/pg).
-> [CONTEXTO] Imitar `Modules/Jana/Http/Controllers/Api/JanaItemController.php:42`. ADR 0011 (módulo de referência), ADR 0017 (api token Knox).
-> [RESTRIÇÕES] business_id scope obrigatório. Append-only (read-only no controller). PT-BR nas mensagens. Stack ADR 0035.
-> [ENTREGA] Pest test em `Modules/PontoWr2/tests/Feature/Api/MarcacoesIndexTest.php` cobrindo (a) auth, (b) scope multi-tenant, (c) paginação.
-> [VERIFY] `php artisan test --filter=MarcacoesIndexTest` verde.
+> [CONTEXTO] Imitar `Modules/Jana/Http/Controllers/MetasController.php` (controller real de referência). ADR 0011 (módulo de referência), ADR 0035 (stack canônica).
+> [RESTRIÇÕES] business_id scope obrigatório. Append-only (read-only no controller). PT-BR nas mensagens.
+> [ENTREGA] Pest test em `Modules/Ponto/Tests/Feature/Api/MarcacoesIndexTest.php` (novo — os testes vivos do módulo estão em `Modules/Ponto/Tests/`, ex. `CrossTenantMarcacaoTest`) cobrindo (a) auth, (b) scope multi-tenant, (c) paginação.
+> [VERIFY] no CT 100 (⛔ NUNCA local — hook bloqueia): `tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test --filter=MarcacoesIndexTest"` verde.
 
 ### 1.2 Decompor tarefas grandes — regra do "1 PR / 1 sessão / 1 outcome"
 
@@ -233,7 +233,7 @@ Padrão recomendado pelo Anthropic Cookbook (set/2025): **declare em CLAUDE.md a
 3. Teste de regressão
 4. PR explícita (não push direto)
 
-Wagner pode formalizar isso como Skill `shared-code-touch` que ativa quando o path matchar `app/View/Helpers/**` ou `app/Utils/**`.
+Wagner pode formalizar isso como Skill `shared-code-touch` que ativa quando o path matchar `app/View/Helpers/**` ou `app/Utils/**`. (Parcialmente coberto hoje pela rule path-scoped `.claude/rules/reuse-check.md` — anti-duplicação em Components/Lib/Hooks + Services/Entities/Models.)
 
 ### 3.4 LGPD — PII em prompts e commits
 
@@ -242,7 +242,7 @@ Wagner pode formalizar isso como Skill `shared-code-touch` que ativa quando o pa
 **Padrão correto:**
 - Hook `PreToolUse` em `Bash` que escaneia `git diff --staged` por regex CPF/CNPJ/email/cartão antes de `git commit`. Bloqueia se achar.
 - Hook em `Write/Edit` que avisa se o conteúdo tem `\d{3}\.\d{3}\.\d{3}-\d{2}`.
-- Nas instruções (CLAUDE.md): "PII real NUNCA em commit. Substitui por `[REDACTED]` ou fixture fake. Se precisar de CPF de exemplo, use `123.456.789-09`."
+- Nas instruções (CLAUDE.md): "PII real NUNCA em commit. Substitui por `[REDACTED]` ou fixture fake. Se precisar de exemplo, use um placeholder GENÉRICO ('CPF do cliente') — NUNCA um número formatado, nem fake: o próprio PII scan do CI bloqueia o padrão `NNN.NNN.NNN-NN` em qualquer arquivo tocado (este guia já tropeçou nisso em 2026-07-09)."
 
 Pra prompts: nunca cole log de prod cru. Use `sed` antes de colar:
 ```bash
@@ -274,7 +274,7 @@ Antes de commit que toca decisão arquitetural, sub-agent valida: "este diff é 
 ### 4.1 "Don't tell, show" — exemplos > descrições
 
 Ruim: "use o padrão de Service+Repository do projeto"
-Bom: "imita exatamente `Modules/Jana/Services/JanaItemService.php` — mesmo construtor, mesmo padrão de retorno"
+Bom: "imita exatamente `Modules/Jana/Services/AlertaService.php` — mesmo construtor, mesmo padrão de retorno"
 
 Few-shot prompting bate zero-shot em ~25% nas tasks SWE-bench (Anthropic eval, 2025).
 
@@ -345,7 +345,7 @@ Tese: "o código é cache do spec; o spec é a verdade". Workflow: escreve spec 
 | `~/.claude/CLAUDE.md` (user-level) | Toda sessão | Preferências pessoais que valem em todo projeto (idioma PT-BR, "decida não pergunte"). |
 | `<repo>/CLAUDE.md` (project-level) | Sessão neste repo | Stack, regras invioláveis, módulos de referência. Wagner já tem ótimo. |
 | `<repo>/AGENTS.md` (mirror) | Outros agentes (Cursor, Aider) | Espelho do CLAUDE.md em formato neutro. Wagner já tem. |
-| `<dir>/CLAUDE.md` (subdir) | Quando agente entra naquele dir | Regras específicas (ex.: `Modules/PontoWr2/CLAUDE.md` com regra append-only). |
+| `<dir>/CLAUDE.md` (subdir) | Quando agente entra naquele dir | Regras específicas por dir (nenhum módulo usa hoje; o mecanismo VIVO equivalente no oimpresso é `.claude/rules/*.md` path-scoped — ver `.claude/rules/README.md`). |
 | `memory/*.md` | Carrega sob demanda via MCP/tools | Decisões, sessões, runbooks — NÃO no contexto inicial. |
 
 **Regra-mãe:** CLAUDE.md tem **invariantes** (não muda toda semana). Estado vivo vai em CURRENT.md. Decisões em memory/decisions/. **Tasks em TaskRegistry MCP** (ADR 0069). **Não inche CLAUDE.md** — ele entra em todo prompt.
@@ -422,7 +422,7 @@ Depois eu aprovo o fix.
 [ADR] <slug ADR fundadora>
 [MODELO] Modules/Jana/.../X.php (imitar estrutura)
 [ENTREGA] migration + model + controller + Pest test
-[VERIFY] php artisan test --filter=<NomeTest>
+[VERIFY] no CT 100: tailscale ssh root@ct100-mcp "docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test --filter=<NomeTest>" (⛔ NUNCA `php artisan test` local — proibição Tier 0, hook bloqueia)
 [FORA DE ESCOPO] UI (sai em PR separado)
 ```
 
@@ -509,4 +509,4 @@ Se PRs revertidos sobem, o gargalo é **review** (faltou /ultrareview ou test-fi
 
 ---
 
-> Este documento é canônico (referenciado pelo CLAUDE.md e por slash commands). Atualizar quando Anthropic publicar guidance nova ou Wagner descobrir padrão melhor — registrar mudança em ADR se for inversão de princípio.
+> Este documento é canônico (sincronizado pro MCP via skill `sync-mem`; o CLAUDE.md pós-Constituição não o referencia mais diretamente). Atualizar quando Anthropic publicar guidance nova ou Wagner descobrir padrão melhor — registrar mudança em ADR se for inversão de princípio. Auditado claim-a-claim em 2026-07-09 (exemplos fantasma corrigidos pra âncoras reais).
