@@ -192,7 +192,7 @@
 
 ## Memória/governança
 
-- ⛔ **ZERO auto-mem privada legada** ([ADR 0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) + [ADR 0131](decisions/0131-tiering-memoria-canonico-local-segredo.md)). Hook `block-automem.ps1` BLOQUEIA `Write/Edit` em `~/.claude/projects/*/memory/*.md`. **Escape valves legítimas (ADR 0131):** (a) `~/.claude/oimpresso-local/**` pra máquina-local pessoal; (b) Vaultwarden pra segredos. Critério: segredo? → Vaultwarden; só seu? → oimpresso-local; time precisa ver? → git canônico
+- ⛔ **ZERO auto-mem privada legada** ([ADR 0061](decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md) + [ADR 0131](decisions/0131-tiering-memoria-canonico-local-segredo.md)). Hook `block-automem.mjs` (Node cross-plataforma — ex-.ps1) BLOQUEIA `Write/Edit` em `~/.claude/projects/*/memory/*.md`. **Escape valves legítimas (ADR 0131):** (a) `~/.claude/oimpresso-local/**` pra máquina-local pessoal; (b) Vaultwarden pra segredos. Critério: segredo? → Vaultwarden; só seu? → oimpresso-local; time precisa ver? → git canônico
 - ⛔ **Não duplicar info entre sistemas.** Git é canônico; MCP é cache governado
 - ⛔ **ADRs CANON são append-only.** NUNCA editar accepted records — criar nova com `supersedes: [N]`. CI `governance-gate.yml` Job 1 (Mecanismo #2 ENFORCEMENT) bloqueia merge de PR que tenha status `M`/`R*` em `memory/decisions/NNNN-*.md` ou `memory/handoffs/*.md`. CONSTITUTION editada exige label `constitution-amendment` + `audit-*.md` no mesmo PR (§10.4 Cascade Review). Runbook: [RUNBOOK-governance-gate-ci.md](requisitos/Infra/RUNBOOK-governance-gate-ci.md).
 - ⛔ **Tasks NÃO em markdown.** Estado vivo via tools MCP (`cycles-active`, `tasks-list`) — CURRENT.md/TASKS.md REMOVIDOS ([ADR 0070](decisions/0070-jira-style-task-management-current-md-removed.md))
@@ -210,7 +210,7 @@
 
 ## Processo MWART canônico — único caminho ([ADR 0104](decisions/0104-processo-mwart-canonico-unico-caminho.md))
 
-- ⛔ **Caminho alternativo de MWART** — Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` SEM `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md` existir. Hook `block-mwart-violation.ps1` bloqueia em runtime. ⚠️ **Atualização 2026-06-11 (ADR 0271 onda 2):** o CI `mwart-gate.yml` foi **deletado** (era soft `continue-on-error`, só comentava — teatro). A régua viva de cobertura de tela é o `casos-gate` (required, ADR 0264) + `screen-coverage`. O enforcement de RUNBOOK segue só via hook runtime. Override runtime: comentar `/mwart-override <razão>` em PR (vira ADR per-tela `lifecycle: historical`)
+- ⛔ **Caminho alternativo de MWART** — Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` SEM `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md` existir. Hook `block-mwart-violation.mjs` (Node cross-plataforma — ex-.ps1) bloqueia em runtime. ⚠️ **Atualização 2026-06-11 (ADR 0271 onda 2):** o CI `mwart-gate.yml` foi **deletado** (era soft `continue-on-error`, só comentava — teatro). A régua viva de cobertura de tela é o `casos-gate` (required, ADR 0264) + `screen-coverage`. O enforcement de RUNBOOK segue só via hook runtime. Override runtime: comentar `/mwart-override <razão>` em PR (vira ADR per-tela `lifecycle: historical`)
 - ⛔ **F2 BACKEND BASELINE sem Pest 5+ fixtures** do `store()` antes de mexer — gera regressão silenciosa
 - ⛔ **F4 QA sem smoke biz=1** ([ADR 0101](decisions/0101-tests-business-id-1-nunca-cliente.md)) — usar biz=4 (cliente) em smoke = grave
 - ⛔ **F5 CUTOVER sem aviso prévio cliente + canary 7d** — ROTA LIVRE 99% volume, surprise = perda

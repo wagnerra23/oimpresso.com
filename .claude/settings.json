@@ -73,7 +73,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-automem.ps1"
+            "command": "node .claude/hooks/block-automem.mjs"
           },
           {
             "type": "command",
@@ -85,7 +85,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-mwart-violation.ps1"
+            "command": "node .claude/hooks/block-mwart-violation.mjs"
           },
           {
             "type": "command",

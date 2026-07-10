@@ -44,6 +44,12 @@ jobs:
         run: node .claude/hooks/block-test-fora-ct100.test.mjs
       - name: Block-test-fora-ct100 REGISTRADO como node (correcao != invocacao)
         run: node scripts/governance/settings-test-fora-ct100-registration.test.mjs
+      - name: Block-automem PORTE .mjs (ADR 0061/0131 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/block-automem.test.mjs
+      - name: Block-mwart-violation PORTE .mjs (ADR 0104 F1 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/block-mwart-violation.test.mjs
+      - name: Block-automem + block-mwart REGISTRADOS como node (correcao != invocacao)
+        run: node scripts/governance/settings-automem-mwart-registration.test.mjs
       - name: Registro Figma-não-é-fonte em settings.json (camada L4)
         run: node scripts/governance/settings-figma-registration.test.mjs
       - name: Registro âncora-no-olho em settings.json (incidente #7)

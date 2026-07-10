@@ -29,9 +29,7 @@ $ok = 0
 
 # Payload por hook (path representativo que dispara o matcher)
 $payloads = @{
-    'block-automem'             = '{"tool_name":"Write","tool_input":{"file_path":"' + ($env:USERPROFILE -replace '\\','/') + '/.claude/projects/test/memory/test.md"}}'
     'block-destructive'         = '{"tool_name":"Bash","tool_input":{"command":"echo test"}}'
-    'block-mwart-violation'     = '{"tool_name":"Edit","tool_input":{"file_path":"resources/js/Pages/Test/Foo.tsx"}}'
     'brief-fetch-curl'          = '{"hook_event_name":"SessionStart"}'
     'charter-validate'          = '{"tool_name":"Edit","tool_input":{"file_path":"resources/js/Pages/Whatsapp/Inbox.tsx"}}'
     'check-skills-fresh'        = '{"hook_event_name":"SessionStart"}'
