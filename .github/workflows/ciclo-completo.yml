@@ -1,0 +1,48 @@
+name: Ciclo-completo por tela (advisory)
+
+# Catraca do CICLO-DE-TELA (UI-0013): quantas telas roteadas têm o conjunto obrigatório do
+# ciclo — charter + Padrão de Tela declarado + pt-conforme (assinatura) + casos.md + ref de
+# teste + golden do PT `live` (GOLDEN-LIVE). `completo` só sobe; regressão bloqueia (perdeu
+# peça do ciclo). Advisory (ADR 0314/0271 — required = só Tier-0; cobertura de ciclo é quality);
+# nunca bloqueia merge. Fix = nascer a tela com `node scripts/governance/criar-tela.mjs` (conjunto
+# completo por construção) + `--json` pra subir o piso. A "máquina de nascimento de tela" (Wagner
+# 2026-07-11: "fazer na mão é sorteio").
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/**/*.tsx'
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'resources/js/Pages/**/*.casos.md'
+      - 'memory/requisitos/_DesignSystem/padroes-tela/**'
+      - 'memory/governance/ciclo-completo-baseline.json'
+      - 'scripts/governance/ciclo-completo.mjs'
+      - 'scripts/governance/pt-conformance.mjs'
+  workflow_dispatch:
+
+concurrency:
+  group: ciclo-completo-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ciclo-completo:
+    name: ciclo-completo (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Selftest do gate (bite/release — anti-fantasma ADR 0256)
+        run: node scripts/governance/ciclo-completo.mjs --selftest
+      - name: Catraca do ciclo-de-tela (só sobe)
+        run: |
+          if node scripts/governance/ciclo-completo.mjs --check; then
+            echo "✅ ciclo-completo não regrediu."
+          else
+            echo "::warning title=ciclo-completo::Uma tela perdeu peça do ciclo (charter/PT/conforme/casos/teste/golden-live). Nasça a tela com 'node scripts/governance/criar-tela.mjs' + rode '--json' pra subir o piso (advisory, não bloqueia)."
+          fi
