@@ -1,7 +1,11 @@
 ---
 date: "2026-07-11"
+time: "21:00"
+slug: design-coverage-problema-real-aplicacao-design
+tldr: "Fechou o loop de tokens (ADR 0335) + gates de cobertura de design (design-coverage/pt-conformance) + 63 telas com Padrão de Tela verificado. No fim descobriu o PROBLEMA REAL: fidelidade/aplicação integral do design (não governança) — cliente aprova o design mas ele não chega inteiro na tela e o drift protótipo↔código não é pego. Lição: auto-nota infla ~1 grau (adversário 3×). 7 chips abertos, principal task_8af136bc respeitar-o-protótipo."
 topic: "Handoff — design coverage + wave-1 PT + descoberta do problema real (aplicação integral do design) + 7 chips"
 authors: [C, W]
+related_adrs: [0335-fechamento-loop-diff-first-ds-sync-nota-honesta, 0105-cliente-como-sinal-guiar-sem-mandar]
 ---
 
 # Handoff 2026-07-11 21:00 — design→código: o que landou, o problema real, e os 7 chips
