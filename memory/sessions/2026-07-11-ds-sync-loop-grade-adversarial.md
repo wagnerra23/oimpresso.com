@@ -1,8 +1,8 @@
 ---
 date: "2026-07-11"
 topic: "Loop diff-first DS-sync: prova a frio, 3 ferramentas, adversário (código + nota), fechamento"
-authors: [CC, W]
-prs: ["#4101", "#4102", "#4103"]
+authors: [C, W]
+prs: [4101, 4102, 4103]
 related_adrs: [0335-fechamento-loop-diff-first-ds-sync-nota-honesta, 0299-figma-nao-e-fonte-de-design]
 ---
 
