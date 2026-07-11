@@ -7,7 +7,8 @@
 //
 // ⚠️ v1 HEURÍSTICO — detecção por ASSINATURA (regex de componente), não parsing semântico.
 //   Mesma honestidade do reconcile-triplet.mjs (que faz slot-parity fino do PT-01). Aqui o
-//   escopo é mais raso e mais largo: pega MISMATCH GROSSO do PT declarado nos 5 arquétipos.
+//   escopo é mais raso e mais largo: pega MISMATCH GROSSO do PT declarado nos arquétipos formalizados
+//   (PT-01..05 + PT-07 Feed/Timeline). PT-06 (Ferramenta/Calculadora) fica de fora até ter ≥2 telas.
 //   PT-03 (Detalhe) vs PT-04 (Dashboard) compartilham KPIs → distinção fuzzy (ver classify).
 //
 // Contrato: memory/requisitos/_DesignSystem/padroes-tela/PT-0{1..5}-*.md (assinaturas dos golden).
@@ -77,7 +78,12 @@ if (process.argv.includes('--selftest')) {
   t(REQUIRED['PT-01'](s('<DataTable/><Pagination/>')), 'PT-01 ok com DataTable');
   t(!REQUIRED['PT-01'](s('const x=useForm()')), 'PT-01 MISMATCH quando é só form');
   t(REQUIRED['PT-04'](s('<KpiGrid><KpiCard/></KpiGrid>')), 'PT-04 ok com KPIs');
+  t(REQUIRED['PT-07'](s('<div className="fx-timeline">{rows.map(...)}</div>')), 'PT-07 ok com fx-timeline');
+  t(REQUIRED['PT-07'](s('data-testid="cc-feed"; {fmtRelative(x)}')), 'PT-07 ok com feed/tempo-relativo');
+  t(!REQUIRED['PT-07'](s('const x = useForm(); <form/>')), 'PT-07 MISMATCH quando é form (sem feed)');
   t(claimedPT('n/a (herda PT-05 Kanban; segue o DS)') === 'PT-05', 'extrai PT-05 do related_prototype');
+  t(claimedPT('n/a (herda PT-07 Feed/Timeline; segue o DS)') === 'PT-07', 'extrai PT-07 do related_prototype');
+  t(claimedPT('n/a — ferramenta bespoke (calculadora); segue o DS') === null, 'bespoke sem token PT → fora do escopo');
   t(claimedPT('prototipo-ui/cowork/vendas-page.jsx') === null, 'protótipo bespoke → sem PT declarado (fora do escopo)');
   console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — declaração de PT é falsificável.');
   process.exit(fails ? 1 : 0);

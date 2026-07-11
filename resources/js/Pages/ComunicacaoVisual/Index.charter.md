@@ -1,6 +1,7 @@
 ---
 page: /comunicacao-visual
 component: resources/js/Pages/ComunicacaoVisual/Index.tsx
+related_prototype: "n/a — ferramenta bespoke (calculadora de m²) construida do Design System; arquetipo unico no repo (so 1 tela do tipo), sem padrao de tela dedicado"
 status: draft
 ---
 

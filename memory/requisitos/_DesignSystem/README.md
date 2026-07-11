@@ -69,11 +69,13 @@ Decisões de UI que atravessam todos os módulos — tokens Tailwind 4, componen
 
 ### Camada 3 · Padrão de Tela (templates)
 
-- **PT-01 Lista** → [`padroes-tela/PT-01-Lista.md`](padroes-tela/PT-01-Lista.md) — 6 slots, 12+ telas aplicam
-- **PT-02 Form/Drawer** → ainda não documentado · candidato pra próximo (drawer 760px já implementado em [ADR 0179](../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md), [ADR 0185](../../decisions/0185-drawer-760-canon-entidades-cadastrais.md))
-- **PT-03 Detalhe** → não documentado
-- **PT-04 Dashboard** → não documentado
-- **PT-05 Configuração** → não documentado
+- **PT-01 Lista** → [`padroes-tela/PT-01-Lista.md`](padroes-tela/PT-01-Lista.md) (live) — 6 slots, 12+ telas aplicam
+- **PT-02 Form/Drawer** → [`padroes-tela/PT-02-Form-Drawer.md`](padroes-tela/PT-02-Form-Drawer.md) (drawer 760px — [ADR 0179](../../decisions/0179-cliente-drawer-760px-substitui-show-fullpage.md)/[0185](../../decisions/0185-drawer-760-canon-entidades-cadastrais.md))
+- **PT-03 Detalhe** → [`padroes-tela/PT-03-Detalhe.md`](padroes-tela/PT-03-Detalhe.md)
+- **PT-04 Dashboard** → [`padroes-tela/PT-04-Dashboard.md`](padroes-tela/PT-04-Dashboard.md) (draft)
+- **PT-05 Kanban** → [`padroes-tela/PT-05-Kanban.md`](padroes-tela/PT-05-Kanban.md)
+- **PT-07 Feed/Timeline** → [`padroes-tela/PT-07-Feed-Timeline.md`](padroes-tela/PT-07-Feed-Timeline.md) (draft, 2026-07-11) — cronologia de eventos/itens em cards (não `<table>`); golden `CcSessions/Index`. _PT-06 Ferramenta/Calculadora fica sem golden até ter ≥2 telas (hoje só `ComunicacaoVisual/Index`)._
+- **Verificação**: declarar "herda PT-0X" num charter é falsificável — [`scripts/governance/pt-conformance.mjs`](../../../scripts/governance/pt-conformance.mjs) checa a assinatura real do `.tsx`.
 - **Pattern operacional original** (vira PT-01) → [UI-0006](adr/ui/0006-padrao-tela-operacional.md)
 
 ### Camada 4 · Módulo (instâncias)
