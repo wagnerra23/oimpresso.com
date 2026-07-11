@@ -107,15 +107,22 @@ function bump(version, cls) {
   return `${maj}.${min}.${pat}`;
 }
 
-// surface anterior via git HEAD dos _generated-*.css (default do --write/report).
-function surfaceFromGit(tokensDir) {
-  const rel = (f) => `resources/css/tokens/${f}`;
-  return surfaceFromDir(tokensDir, (abs) => {
+// surface anterior via git dos _generated-*.css. Default ref = origin/main (a base do PR),
+// NÃO HEAD — se fosse HEAD, rodar --write DEPOIS de commitar a mudança de token daria
+// prev==cur (delta vazio) e o bump sairia errado. Compara contra o que a branch vai mergear.
+// Retorna { surface, readAny } pra o --write RECUSAR quando o baseline está indisponível
+// (em vez de fingir que tudo é "adicionado").
+function surfaceFromGit(tokensDir, ref = 'origin/main') {
+  let readAny = false;
+  const surface = surfaceFromDir(tokensDir, (abs) => {
     const f = abs.split(/[\\/]/).pop();
     try {
-      return execFileSync('git', ['show', `HEAD:${rel(f)}`], { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      const out = execFileSync('git', ['show', `${ref}:resources/css/tokens/${f}`], { cwd: REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] });
+      readAny = true;
+      return out;
     } catch { return null; }
   });
+  return { surface, readAny };
 }
 
 // ── args ──
@@ -146,24 +153,37 @@ if (has('--check')) {
   process.exit(0);
 }
 
-// ── delta contra prev (git HEAD, ou --prev dir) ──
+// ── delta contra prev (origin/main por default, ou --prev dir) ──
 const prevDir = flag('--prev', null);
-const prev = prevDir ? surfaceFromDir(resolve(prevDir), (abs) => { try { return readFileSync(abs, 'utf8'); } catch { return null; } }) : surfaceFromGit(tokensDir);
+const prevRes = prevDir
+  ? { surface: surfaceFromDir(resolve(prevDir), (abs) => { try { return readFileSync(abs, 'utf8'); } catch { return null; } }), readAny: true }
+  : surfaceFromGit(tokensDir);
+const prev = prevRes.surface;
 const d = delta(prev, cur);
 const cls = bumpClass(d);
 
 // ── --write ──
 if (has('--write')) {
   const seed = !existsSync(versionFile);
-  if (!seed && cls === 'none' && !drifted) { console.log('ds-token-version: sem delta na superfície — nada a versionar.'); process.exit(0); }
   const date = flag('--date', new Date().toISOString().slice(0, 10));
-  const newVersion = seed ? '1.0.0' : bump(recorded.version, cls === 'none' ? 'minor' : cls);
+  if (!seed) {
+    // Nada mudou vs o que já foi versionado → no-op idempotente.
+    if (!drifted) { console.log('ds-token-version: sem delta na superfície — nada a versionar.'); process.exit(0); }
+    // A superfície MUDOU (fp difere do version.json) mas o baseline não vê delta:
+    // baseline indisponível (origin/main não buscado) OU prev==cur (rodou --write DEPOIS de
+    // commitar sem --prev). NÃO inventar bump — recusar e orientar (fix do achado adversarial #1).
+    if (cls === 'none') {
+      console.error(`ds-token-version: superfície mudou vs version.json, mas o baseline (${prevDir || 'origin/main'}) não vê delta${prevRes.readAny ? '' : ' (baseline indisponível)'}.\n  Não vou inventar o bump. Rode --write ANTES de commitar a mudança de token, OU passe --prev <dir com o estado anterior>.`);
+      process.exit(1);
+    }
+  }
+  const newVersion = seed ? '1.0.0' : bump(recorded.version, cls);
   writeFileSync(versionFile, JSON.stringify({ version: newVersion, fingerprint: fp, tokenCount: tokenCount(cur), updated: date }, null, 2) + '\n');
 
   const sec = (title, arr, fmt) => arr.length ? `\n**${title}**\n${arr.map(fmt).join('\n')}\n` : '';
   const entry = seed
     ? `## v1.0.0 — ${date}  (seed)\n\nSuperfície inicial: ${tokenCount(cur)} tokens (${SCOPES.map((s) => `${s} ${cur[s].size}`).join(' · ')}).\n`
-    : `## v${newVersion} — ${date}  (${cls === 'none' ? 'MINOR' : cls.toUpperCase()})\n` +
+    : `## v${newVersion} — ${date}  (${cls.toUpperCase()})\n` +
       sec('Removidos (BREAKING)', d.removed, (x) => `- \`${x.k}\` [${x.scope}] (era \`${x.v}\`)`) +
       sec('Adicionados', d.added, (x) => `- \`${x.k}\` [${x.scope}] = \`${x.v}\``) +
       sec('Valor alterado', d.changed, (x) => `- \`${x.k}\` [${x.scope}]: \`${x.from}\` → \`${x.to}\``);
@@ -171,7 +191,7 @@ if (has('--write')) {
   const head = prevLog.split('\n').slice(0, prevLog.startsWith('#') ? 4 : 0).join('\n');
   const body = prevLog.slice(head.length);
   writeFileSync(changelogFile, `${head}\n${entry}${body}`);
-  console.log(`ds-token-version: v${recorded.version} → v${newVersion} (${cls === 'none' ? 'seed' : cls}) · +${d.added.length} ~${d.changed.length} -${d.removed.length} · CHANGELOG atualizado.`);
+  console.log(`ds-token-version: v${recorded.version} → v${newVersion} (${seed ? 'seed' : cls}) · +${d.added.length} ~${d.changed.length} -${d.removed.length} · CHANGELOG atualizado.`);
   process.exit(0);
 }
 
@@ -180,8 +200,12 @@ console.log(`═══ ds-token-version ═══`);
 console.log(`versão gravada : v${recorded.version}  (${recorded.tokenCount} tokens)`);
 console.log(`superfície atual: ${tokenCount(cur)} tokens · fp:${fp.slice(0, 12)}${drifted ? '  ⚠️ DRIFT vs gravado' : '  ✓ em dia'}`);
 if (drifted) {
-  console.log(`\ndelta vs ${prevDir ? prevDir : 'git HEAD'}: +${d.added.length} adicionados · ~${d.changed.length} valor · -${d.removed.length} removidos`);
-  console.log(`bump sugerido  : ${cls.toUpperCase()} → v${bump(recorded.version, cls === 'none' ? 'minor' : cls)}`);
+  console.log(`\ndelta vs ${prevDir || 'origin/main'}: +${d.added.length} adicionados · ~${d.changed.length} valor · -${d.removed.length} removidos`);
+  if (cls === 'none') {
+    console.log(`bump sugerido  : (superfície mudou mas o baseline não vê delta — rode --write antes de commitar OU passe --prev)`);
+  } else {
+    console.log(`bump sugerido  : ${cls.toUpperCase()} → v${bump(recorded.version, cls)}`);
+  }
   for (const x of d.removed.slice(0, 8)) console.log(`   - ${x.k} [${x.scope}]`);
   for (const x of d.changed.slice(0, 8)) console.log(`   ~ ${x.k} [${x.scope}] ${x.from} → ${x.to}`);
   for (const x of d.added.slice(0, 8)) console.log(`   + ${x.k} [${x.scope}]`);
