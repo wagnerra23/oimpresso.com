@@ -133,3 +133,4 @@ Entre as 4 candidatas, **`Sells/Show.tsx`** é o golden do arquétipo Detalhe. *
 ## Versão
 
 **v0.1** · 2026-05-30 · primeira formalização (`status: draft`). Golden = Sells/Show. Promove pra `live` quando charter Sells/Show virar `live` + ≥2 telas marcarem 8/8.
+**Verificado 2026-07-11** (re-âncora `origin/main`): golden `Sells/Show` confirmado; `pt-conformance` verde (11 declarações PT-03); charter `Sells/Show` segue `status: draft` com `blueprint_screenshot_approval: pendente`. O bump da PT-03 e o do charter compartilham o **mesmo gate de screenshot do Wagner** (F1.5 · [ADR 0107](../../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)) — aprovar o screenshot de `Sells/Show` destrava os dois.
