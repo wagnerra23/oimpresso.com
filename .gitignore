@@ -114,3 +114,6 @@ prototipo-ui/_inbox-onda2/
 
 # L5 perf budget — saída efêmera do Lighthouse CI (gerada no runner; nunca versionar)
 .lighthouseci/
+
+# ds-push: bundle montado (colors_and_type + cockpit_domains) — efêmero, validado in-loco
+scripts/design-sync/.push-bundle/
