@@ -1,6 +1,7 @@
 ---
 page: /manufacturing/v2/production
 component: resources/js/Pages/Manufacturing/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 page_id: manufacturing-index
 status: draft
 owner: wagner

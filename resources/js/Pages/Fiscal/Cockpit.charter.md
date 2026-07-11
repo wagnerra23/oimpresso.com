@@ -1,6 +1,7 @@
 ---
 page: /fiscal
 component: resources/js/Pages/Fiscal/Cockpit.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 page_id: fiscal-cockpit
 url: /fiscal
 module: Fiscal

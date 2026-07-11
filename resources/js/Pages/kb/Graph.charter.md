@@ -1,6 +1,7 @@
 ---
 page: /kb/graph
 component: resources/js/Pages/kb/Graph.tsx
+related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela — visualizador especial de grafo, ver dúvida no charter)
 controller: Modules\KB\Http\Controllers\KbGraphController@index (TODO Agent A — ONDA 5 backend)
 route: kb.graph
 status: draft

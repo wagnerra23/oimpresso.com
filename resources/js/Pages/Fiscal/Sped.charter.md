@@ -1,6 +1,7 @@
 ---
 page: /fiscal/sped
 component: resources/js/Pages/Fiscal/Sped.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 page_id: fiscal-sped
 url: /fiscal/sped
 module: Fiscal

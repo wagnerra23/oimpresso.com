@@ -35,7 +35,8 @@ function detectSignals(code) {
           has(code, /grid-cols/, /ProdutoCard/i, /<article[\s>]/),
     kanban: has(code, /dnd-kit/, /KanbanDndProvider/, /BoardColumn/, /onDragStart/, /draggable/, /\bKanban\b/),
     kpi: has(code, /KpiCard/, /KpiGrid/, /KpiFilterCard/),
-    detail: has(code, /FsmActionPanel/, /NextActionPanel/, /VdNextActionPanel/, /Timeline/, /Histórico/i),
+    detail: has(code, /FsmActionPanel/, /NextActionPanel/, /VdNextActionPanel/, /Timeline/, /Histórico/i,
+                      /<dl[\s>]/, /StatCard/, /StatTile/),  // detalhe também via <dl>/StatCard (Show clássico)
   };
 }
 

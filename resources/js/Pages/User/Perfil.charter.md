@@ -1,6 +1,7 @@
 ---
 page: /perfil (canon Inertia) · /user/profile (legacy Blade · intacto)
 component: resources/js/Pages/User/Perfil.tsx
+related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: '2026-06-24'
