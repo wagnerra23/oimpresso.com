@@ -9,7 +9,7 @@ parent_module: Sells
 related_adrs: [93, 94, 104, 107, 114, 143, 178, 192]
 tier: B
 charter_version: 1
-related_prototype: prototipo-ui/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
+related_prototype: prototipo-ui/cowork/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
 canon_method: Cowork KB-9.75 + Integração Vendas × Oficina A1 (ADR 0192) — Onda 6 wave separada
 ---
 
