@@ -47,6 +47,8 @@
     "design:coverage": "node scripts/qa/design-coverage.mjs",
     "design:coverage:check": "node scripts/qa/design-coverage.mjs --check",
     "design:coverage:baseline:write": "node scripts/qa/design-coverage.mjs --json",
+    "pt:conformance": "node scripts/governance/pt-conformance.mjs",
+    "pt:conformance:check": "node scripts/governance/pt-conformance.mjs --check",
     "test": "vitest run",
     "test:watch": "vitest",
     "conformance:check": "node scripts/conformance-gate.mjs --all",

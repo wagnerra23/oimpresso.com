@@ -453,6 +453,13 @@
     "ds-gate.yml": {
       "nome": "DS gate (fusão F1 — cor/UI/css/index/bundle/scorer · ADR 0314)",
       "classe": "gate"
+    },
+    "pt-conformance.yml": {
+      "nome": "ds-pt-conformance (advisory) — torna 'herda PT-0X' no charter FALSIFICÁVEL: verifica que a tela tem a assinatura estrutural do Padrão de Tela declarado (PT-02 exige <form>, PT-05 exige board dnd-kit). Mismatch grosso dos 5 arquétipos; complementa reconcile-triplet (slot-parity fino do PT-01).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "revisão adversarial 2026-07-11 (decisão B do Wagner): declarar PT no charter sem verificar a tela é count-pump (design-coverage conta a string). Este gate faz a declaração falsificável — pré-requisito pra a cobertura de design ser correção, não forma. Advisory por ADR 0314; promote_by força decisão em 14d."
     }
   }
 }
