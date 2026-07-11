@@ -627,3 +627,34 @@ MANUAL §5 F7. Ligar visual-regression como gate (screen-grade/`design:review` j
 **Última atualização (US-_DESIGNSYSTEM-004..013):** 2026-05-28 — adicionadas 10 tasks Onda prevenção bugs MWART frontend (ADRs 0209-0211 propostos no PR #1837). Atacam R7/R8-class via ESLint baseline, Wayfinder type-gen, TanStack Query data-fetching, MSW Vitest scanner-race tests.
 
 **Última atualização:** 2026-05-25 — adicionadas US-001/002/003 (batch validação design system pós-conversa Wagner com Claude do chat — 4 tasks no MCP US-_DESIGNSYSTEM-001/002/003 + US-INFRA-012)
+
+### US-_DESIGNSYSTEM-037 · Wave 2 — declarar Padrão de Tela nos 45 charters live (via ledger route-hits maduro)
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Gated: só executar quando o ledger `governance/route-hits.json` tiver >=3-4 semanas de coleta (coleta LIVE em prod desde 2026-07-09; ROUTE_HITS_ENABLED=true). Marco esperado: ~inicio de agosto 2026.
+
+## Contexto
+- #4109 declarou PT nas ~63 telas DRAFT (nao disparam charter-live-signal).
+- Sobraram 45 charters `status: live` SEM sinal de prod ("wave 2"). Tocar cada um pra declarar PT (`related_prototype: ...PT-0X...`) tripa o gate REQUIRED `charter-live-signal` (branch protection main, 24 required).
+- #4120 (mergeado 2026-07-11) semeou o `route-hits.json` real de prod, mas com 2 dias de dado so cobria Produto/Index (draft) + Site/Login (sem charter) = 0 dos 45.
+
+## Receita (quando ledger maduro)
+1. `route-hits:export --dias=30 --write` no host de PROD (SSH Hostinger; middleware ContadorHitsRota -> flush -> tabela route_hits). Capturar dry-run stdout, commitar do checkout (NAO editar no servidor).
+2. Recomputar `node scripts/governance/charter-live-signal.mjs --json` — ver quais dos 45 viraram live_ok (hits>0 reais).
+3. Pra cada dos 45:
+   - (a) hits>0 no ledger -> legitimamente live -> declarar PT (`related_prototype: n/a (herda PT-0X ...)`, verificado por `npm run pt:conformance:check`).
+   - (b) 0 hits APOS janela madura (>=30d) -> genuinamente nao-servido -> rebaixar `status: live` -> `draft`.
+4. 1 PR, Wagner aprova o merge (R10).
+
+## Guardrails Tier 0 (nao violar)
+- NUNCA seed manual em `prod-flags.json` (incidente Cliente 2026-06-24) — sinal so via ledger REAL de hits ou `smoke:` datado.
+- NUNCA rebaixar 0-hit com ledger jovem (<30d) — 0-hit != nunca-servido = falso-negativo.
+- Trabalhar a partir de origin/main fresco (guard base-freshness).
+- `pt-conformance` verifica que a tela que jura PT-0X tem a assinatura estrutural — 0 count-pump.
+
+## Alternativa (se urgencia)
+Smoke real por tela via browser MCP -> campo `smoke: <data>` (3a fonte honesta do gate). ~45 smokes, caro — so se nao der pra esperar o ledger.
+
+Ref: PR #4120, session 2026-07-11.
