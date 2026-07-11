@@ -38,6 +38,8 @@
     "ds:ledger": "node scripts/ds-ledger.mjs",
     "ds:ledger:write": "node scripts/ds-ledger.mjs --write",
     "ds:canon:check": "node scripts/ds-canon-color-guard.mjs",
+    "ds:push": "node scripts/design-sync/ds-push.mjs",
+    "ds:push:write": "node scripts/design-sync/ds-push.mjs --write",
     "tokens:version": "node scripts/design-sync/ds-token-version.mjs",
     "tokens:version:check": "node scripts/design-sync/ds-token-version.mjs --check",
     "tokens:version:write": "node scripts/design-sync/ds-token-version.mjs --write",

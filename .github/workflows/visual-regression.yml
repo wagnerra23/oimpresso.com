@@ -17,8 +17,10 @@ on:
   # MODO UPDATE (2026-07-07, ADR UI-0020 §4): dispatch manual re-gera as baselines
   # NO MESMO runner que sempre as gerou (rendering determinístico) e abre PR com os
   # .snap novos — o gate do PR re-roda e PROVA que a baseline nova bate (anti-#3297).
-  # Uso: mudança de Fundação aprovada [W] (ex.: retune dark warm) que sofre
-  # skip-as-pass aqui (não toca paths de UI) mas muda o render de TODAS as telas.
+  # Uso: mudança de Fundação aprovada [W] (ex.: retune dark warm). Desde 2026-07-10 um PR
+  # que toca `resources/css/tokens/**` RODA o gate pesado (não é mais skip-as-pass — ver o
+  # filtro `ui:` abaixo): a baseline antiga falha e prova a mudança visual. O dispatch serve
+  # pra REGENERAR as baselines no runner canônico quando a mudança é intencional/aprovada.
   workflow_dispatch:
 
 permissions:
@@ -86,6 +88,20 @@ jobs:
               - 'tests/.pest/snapshots/Browser/CoreScreens/**'
               - '.github/workflows/visual-regression.yml'
               - 'lighthouserc.json'
+              # Tokens do Design System (2026-07-10): um delta de VALOR (Fundação/cor/tipo/
+              # domínio) re-renderiza TODAS as telas. Sem isto, um PR só-de-token caía em
+              # skip-as-pass (verde SEM renderizar) e a mudança visual entrava sem prova — o
+              # anti-padrão "alguém tem que lembrar de disparar o modo update" (ADR 0329).
+              # Incluir força o pixel-diff a RODAR: a baseline antiga falha → o autor regenera
+              # a baseline (workflow_dispatch modo update, ou no mesmo PR). Fecha o gap #8 do
+              # loop diff-first (gate visual automatizado por delta de token, sem tirar o Tier 0).
+              # ESCOPO PRECISO: só os inputs que afetam RENDER — .tokens.json (fonte), os
+              # _generated-*.css (compilado consumido) e o config do Style Dictionary. NÃO
+              # inclui version.json/CHANGELOG.md (metadados do pacote, não mudam pixel — senão
+              # todo bump de versão dispararia ~15min de visreg à toa).
+              - 'resources/css/tokens/*.tokens.json'
+              - 'resources/css/tokens/_generated-*.css'
+              - 'resources/css/tokens/style-dictionary.config.mjs'
 
       # Fonte única do "roda o pesado?": dispatch = sempre true (modo update);
       # pull_request = o que o paths-filter disse.
