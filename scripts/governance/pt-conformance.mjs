@@ -21,42 +21,17 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+// Assinaturas dos 5 arquétipos = FONTE ÚNICA em lib/pt-signatures.mjs (o gerador criar-tela.mjs
+// consome a MESMA tabela pra carimbar tsx que passa aqui POR CONSTRUÇÃO — sem drift entre os dois).
+import { detectSignals, REQUIRED, claimedPT } from './lib/pt-signatures.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, '..', '..');
 const PAGES = join(ROOT, 'resources', 'js', 'Pages');
 
-// ── assinaturas estruturais por arquétipo (do golden de cada PT-0X) ──
-const has = (code, ...res) => res.some((r) => r.test(code));
-function detectSignals(code) {
-  return {
-    form: has(code, /\buseForm\b/, /<form[\s>]/, /FormSection/, /FormGrid/),
-    list: has(code, /<table[\s>]/, /<thead/, /<tbody/, /DataTable/i, /Pagination/) ||
-          has(code, /grid-cols/, /ProdutoCard/i, /<article[\s>]/),
-    kanban: has(code, /dnd-kit/, /KanbanDndProvider/, /BoardColumn/, /onDragStart/, /draggable/, /\bKanban\b/),
-    kpi: has(code, /KpiCard/, /KpiGrid/, /KpiFilterCard/),
-    detail: has(code, /FsmActionPanel/, /NextActionPanel/, /VdNextActionPanel/, /Timeline/, /Histórico/i,
-                      /<dl[\s>]/, /StatCard/, /StatTile/),  // detalhe também via <dl>/StatCard (Show clássico)
-  };
-}
-
-// PT declarado → sinal MÍNIMO que a tela precisa ter pra a declaração não ser mentira.
-// (Requisito grosso; não exige AUSÊNCIA de outros sinais — telas são híbridas.)
-const REQUIRED = {
-  'PT-01': (s) => s.list,
-  'PT-02': (s) => s.form,
-  'PT-03': (s) => s.detail || s.kpi,   // detalhe: painel de ação FSM/histórico ou KPIs de 1 registro
-  'PT-04': (s) => s.kpi,               // dashboard: KPIs agregados
-  'PT-05': (s) => s.kanban,
-};
-
 const fmGet = (fm, key) => {
   const m = fm.match(new RegExp('^' + key + ':\\s*(.+)$', 'im'));
   return m ? m[1].trim() : null;
-};
-const claimedPT = (relProto) => {
-  const m = (relProto || '').match(/PT-0[1-5]/i);
-  return m ? m[0].toUpperCase() : null;
 };
 
 function walk(dir) {
@@ -69,17 +44,21 @@ function walk(dir) {
   return out;
 }
 
-// classifica uma tela: { page, pt, signals, verdict }
+// classifica uma tela: { page, pt, signals, verdict, charter, tsx }
+// (charter/tsx = caminhos relativos ao ROOT — chave de JOIN estável pro ciclo-completo consumir
+//  este --json sem depender do `page:` frontmatter, que pode faltar/repetir.)
+const relRoot = (p) => resolve(p).replace(resolve(ROOT), '').replace(/^[\\/]/, '').replace(/\\/g, '/');
 function classifyCharter(charterPath) {
   const fm = readFileSync(charterPath, 'utf8').split(/^---$/m)[1] || '';
   const pt = claimedPT(fmGet(fm, 'related_prototype'));
   if (!pt) return null; // não declara PT → fora do escopo deste gate (é o design-coverage que cobra declaração)
   const comp = fmGet(fm, 'component');
   const tsx = comp ? resolve(ROOT, comp) : charterPath.replace(/\.charter\.md$/, '.tsx');
-  if (!existsSync(tsx)) return { page: fmGet(fm, 'page') || charterPath, pt, verdict: 'SEM_TSX' };
+  const base = { page: fmGet(fm, 'page') || charterPath, pt, charter: relRoot(charterPath), tsx: relRoot(tsx) };
+  if (!existsSync(tsx)) return { ...base, verdict: 'SEM_TSX' };
   const signals = detectSignals(readFileSync(tsx, 'utf8'));
   const ok = REQUIRED[pt] ? REQUIRED[pt](signals) : true;
-  return { page: fmGet(fm, 'page') || charterPath, pt, signals, verdict: ok ? 'CONFORME' : 'MISMATCH' };
+  return { ...base, signals, verdict: ok ? 'CONFORME' : 'MISMATCH' };
 }
 
 function runAll() {

@@ -74,6 +74,8 @@ jobs:
         run: node scripts/qa/design-coverage.test.mjs
       - name: pt-conformance morde (declaração de PT falsificável · PT-02..05)
         run: node scripts/governance/pt-conformance.mjs --selftest
+      - name: criar-tela GERADOR carimba conforme ao PT (máquina de nascimento de tela · UI-0013)
+        run: node scripts/governance/criar-tela.mjs --selftest
       - name: Design-memory gate wired no CI (Onda O3 · fundido ADR 0314 F2)
         run: node scripts/governance/design-memory-gate.test.mjs
       - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)
