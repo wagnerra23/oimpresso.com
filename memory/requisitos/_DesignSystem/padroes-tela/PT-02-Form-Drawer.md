@@ -84,7 +84,9 @@ Sempre que o módulo precisa **criar/editar uma entidade cadastral** (cliente, f
 
 A `Cliente/Create` é ouro em **SoC/DS/máscaras BR/a11y**, mas tem débitos catalogados — **não copie cegamente:**
 
-- ⚠️ **Charter `status: draft`** (`Create.charter.md:5`) — a tela elevada ainda não teve screenshot aprovado por Wagner (charter: *"Create elevado pendente"*, `:13`). PT-02 nasce `draft` por consequência.
+- ✅ **Charter `Create.charter.md` já é `status: live`** (verificado 2026-07-11) — o blocker original ("Create elevado pendente") **foi resolvido**. O único gate restante pra PT-02 virar `live` é a **aprovação de screenshot do golden pelo Wagner** (F1.5 · [ADR 0107](../../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)).
+- ⚠️ **Máscara só em CPF/CNPJ** — `mobile`/`landline`/`zip_code` seguem sem `formatPhone`/`formatCep` no onChange (`ClienteForm.tsx:153,162,203`), apesar de `format-br.ts` exportar ambos. Advisory: aplicar ao replicar.
+- ⚠️ **Submit hardcoded `post('/contacts')`** (`Create.tsx:82`) + **`tax_number` legado UPOS** (`ClienteForm.tsx:129`) — advisories "não copie cego": parametrize a action e use só `cpf_cnpj` em módulos novos.
 - ⚠️ **Submit hardcoded `post('/contacts')`** (`Create.tsx:81`) — rota literal na página; ao reusar o pattern, parametrize a action por prop (o corpo `ClienteForm` já recebe `onSubmit`, mas a página fixa a URL).
 - ⚠️ **`tax_number` legado UPOS** coexiste com `cpf_cnpj` BR (`ClienteForm.tsx:124-131`) — campo morto-vivo do UltimatePOS; novos módulos cadastrais **não** devem replicar esse par, só `cpf_cnpj`.
 - ⚠️ **Máscara só em CPF/CNPJ** — celular/CEP têm `placeholder` mas sem `formatPhone`/`formatCep` no onChange (`ClienteForm.tsx:153`, `:200`), apesar de `format-br.ts` exportar ambos (`format-br.ts:51`, `:65`). Aplicar ao replicar.
@@ -113,4 +115,5 @@ A `Cliente/Create` é ouro em **SoC/DS/máscaras BR/a11y**, mas tem débitos cat
 
 **v0.1** · 2026-05-30 · primeira formalização (draft). Documenta o pattern já vivo na família Cliente (Create/Edit/Sheet).
 
-**Bump v1.0** quando: Wagner aprovar screenshot do `Cliente/Create` elevado (charter sai de draft) + ≥1 segundo módulo adotar.
+**v0.2** · 2026-07-11 · re-âncora no `origin/main` atual. Charter `Create` já `live`; **19 telas** declaram PT-02 (`pt-conformance` verde). Blocker de charter resolvido — só falta o gate de screenshot.
+**Bump v1.0 (→ live)** quando Wagner aprovar o screenshot do golden `Cliente/Create` (F1.5). Adoção por 2º módulo já satisfeita (19 declarações).

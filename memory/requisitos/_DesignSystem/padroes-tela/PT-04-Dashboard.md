@@ -14,7 +14,7 @@ applied_in:
 
 > **Camada 3 · Padrão de Tela.** Herda das [Fundações](../README.md#camada-1--fundacoes) + [Shell](../README.md#camada-2--shell) e nunca contradiz. Módulo só configura os slots (KPIs, painéis, períodos), **não** muda a estrutura.
 >
-> ⚠️ **status: draft.** Golden eleito por código real (não há golden por arquétipo Dashboard ainda — [INDEX-DESIGN-MEMORIAS §2b](../INDEX-DESIGN-MEMORIAS.md)). Promove a `live` quando ≥2 dashboards convergirem no padrão + revisão Wagner.
+> ⚠️ **status: draft.** Golden eleito por código real (`governance/Dashboard`). **A barra "≥2 dashboards convergirem" já foi ATINGIDA** (verificado 2026-07-11): `Admin/GovernanceV4`, `governance/DsRollout`, `kb/Graph` e `team-mcp/Scorecard` convergem em `KpiGrid`+`KpiCard`+`PageHeader`. Único gate restante = **aprovação de screenshot do Wagner** (F1.5 · [ADR 0107](../../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)).
 
 ## Quando aplicar
 
@@ -121,4 +121,5 @@ Não aplicar pra: lista paginável de entidades → [PT-01 Lista](PT-01-Lista.md
 ## Versão
 
 **v0.1** · 2026-05-30 · primeira formalização (draft). Golden eleito por código real (`governance/Dashboard`).
-**Bump v1.0 (→ live)** quando ≥2 dashboards convergirem no padrão + Wagner aprovar screenshot.
+**v0.2** · 2026-07-11 · re-âncora no `origin/main`. Barra "≥2 dashboards" atingida (4 convergem); charter do golden já `live`; `pt-conformance` verde (4 declarações PT-04).
+**Bump v1.0 (→ live)** quando Wagner aprovar o screenshot do golden `governance/Dashboard` (F1.5). Convergência já satisfeita.
