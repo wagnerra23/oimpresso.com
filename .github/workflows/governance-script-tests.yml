@@ -70,6 +70,8 @@ jobs:
         run: node scripts/design-sync/ds-token-diff.test.mjs
       - name: ds-mirror-drift SENTINELA morde (bite/release/catraca · loop diff-first)
         run: node scripts/governance/ds-mirror-drift.test.mjs
+      - name: design-coverage CATRACA morde (bite/release · cobertura de design UI-0013)
+        run: node scripts/qa/design-coverage.test.mjs
       - name: Design-memory gate wired no CI (Onda O3 · fundido ADR 0314 F2)
         run: node scripts/governance/design-memory-gate.test.mjs
       - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)

@@ -129,13 +129,18 @@ function printResolve(r) {
   return 0;
 }
 
-async function listAll(repoRoot) {
+async function listAll(repoRoot, asJson = false) {
   const charters = (await walk(join(repoRoot, 'resources', 'js', 'Pages'))).filter((f) => f.endsWith('.charter.md'));
+  const rows = [];
   for (const cf of charters.sort()) {
     const fm = frontmatter(await read(cf));
-    const anc = fm.related_prototype || mockupJsx(fm.component) || '⚠️ sem protótipo declarado';
-    console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${anc}`);
+    const source = fm.related_prototype || mockupJsx(fm.component) || null;
+    // hasSource = o charter DECLAROU a fonte de design (protótipo bespoke OU "n/a — segue DS"
+    // explícito, que também vem em related_prototype). null = silencioso (gap real).
+    rows.push({ page: fm.page || relative(repoRoot, cf), source: source || '⚠️ sem protótipo declarado', hasSource: !!source });
+    if (!asJson) console.log(`${(fm.page || relative(repoRoot, cf)).padEnd(40)} → ${source || '⚠️ sem protótipo declarado'}`);
   }
+  if (asJson) console.log(JSON.stringify(rows, null, 2));
 }
 
 async function selftest() {
@@ -166,7 +171,7 @@ const invokedDirectly = process.argv[1] && resolve(process.argv[1]) === fileURLT
 
 if (invokedDirectly) {
   if (has('--selftest')) await selftest();
-  else if (has('--list')) { await listAll(REPO_DEFAULT); process.exit(0); }
+  else if (has('--list')) { await listAll(REPO_DEFAULT, has('--json')); process.exit(0); }
   else {
     const tela = argv.find((a) => !a.startsWith('--') && argv[argv.indexOf(a) - 1] !== '--staging');
     if (!tela) { console.error('uso: node prototipo-ui/ancora.mjs <tela> [--staging <dir>] | --list | --selftest'); process.exit(2); }

@@ -32,6 +32,13 @@
       "promote_by": "2026-07-25",
       "anchor": "gap nº1 da auditoria de cobertura do loop diff-first (2026-07-11): não existia gate provando que o _generated commitado bate com a fonte. Verificado em sincronia na criação. Advisory por ADR 0314 (integridade de tokens é quality/visual, não dinheiro/PII/multi-tenant/fiscal); promote_by força a decisão em 14d."
     },
+    "design-coverage.yml": {
+      "nome": "ds-design-coverage (advisory) — catraca da cobertura de DESIGN por tela: quantas telas DECLARAM a fonte de design (protótipo via related_prototype ou 'segue DS' explícito). Consome ancora.mjs --list --json (não duplica o resolvedor). `declared` só sobe. Complementa screen-coverage (UI-0013 herança de Padrão de Tela).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "inventário 'design para todas as páginas' (Wagner 2026-07-11): 88% das 144 telas com charter estão SILENCIOSAS sobre a fonte de design (só 18 declaram). A catraca trava o piso pra fechar por módulo sem regredir. Advisory por ADR 0314 (cobertura de design é quality, não Tier-0); promote_by força a decisão em 14d."
+    },
     "screen-smoke-after-merge.yml": {
       "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
       "classe": "automacao",
