@@ -113,3 +113,5 @@ jobs:
         run: node .claude/hooks/block-destructive.test.mjs
       - name: Pii-redactor PORTE .mjs (Tier-0 LGPD US-COPI-086 · commit-only opcao B · roda em Linux)
         run: node .claude/hooks/pii-redactor.test.mjs
+      - name: ciclo-completo GATE morde/solta (charter+PT+conforme+casos+teste+golden-live · GOLDEN-LIVE)
+        run: node scripts/governance/ciclo-completo.mjs --selftest

@@ -39,6 +39,13 @@
       "promote_by": "2026-07-25",
       "anchor": "inventário 'design para todas as páginas' (Wagner 2026-07-11): 88% das 144 telas com charter estão SILENCIOSAS sobre a fonte de design (só 18 declaram). A catraca trava o piso pra fechar por módulo sem regredir. Advisory por ADR 0314 (cobertura de design é quality, não Tier-0); promote_by força a decisão em 14d."
     },
+    "ciclo-completo.yml": {
+      "nome": "ciclo-completo (advisory) — catraca do CICLO-DE-TELA por tela: quantas telas roteadas têm o conjunto obrigatório (charter + Padrão de Tela declarado + pt-conforme via pt-conformance --json + casos.md + ref de teste + golden do PT `live`/GOLDEN-LIVE). `completo` só sobe. NÃO duplica: consome pt-conformance --json e ecoa o trio do casos-guard numa visão por-tela + a dimensão nova (PT declarado + golden-live). Par do gerador criar-tela.mjs (a máquina de nascimento de tela).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "Wagner 2026-07-11: 'fazer na mão é sorteio e não garante funcionamento'. Máquina de nascimento de tela (ADR proposta 2026-07-11-maquina-nascimento-tela): toda tela nasce carimbada do PT (criar-tela.mjs) + este gate garante o ciclo obrigatório. Estado @seed: 3/279 completas (276 débito legado absorvido). Advisory por ADR 0314 (cobertura de ciclo é quality, não Tier-0); promote_by força a decisão em 14d."
+    },
     "screen-smoke-after-merge.yml": {
       "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
       "classe": "automacao",
