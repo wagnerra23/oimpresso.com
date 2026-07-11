@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **340** arquivos · **324** números únicos · máx **0334**
-- **ADRs ATIVOS (lifecycle ativo): 306** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 306 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 306 · arquivado 18 · substituido 12 · (vazio) 4
+- **341** arquivos · **325** números únicos · máx **0335**
+- **ADRs ATIVOS (lifecycle ativo): 307** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 307 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 307 · arquivado 18 · substituido 12 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (340)
+## Todas as ADRs (341)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -380,3 +380,4 @@ _(íntegra)_
 | 0332 | aceito | ativo | decision | Importers complementares Wave 2 (compras/estoque/contacts-NFe-fornecedores/daemo |
 | 0333 | proposto | ativo | meta | Emenda ao mapa 0330 — eixo RODAR-E-OBSERVAR sub-medido pela grade de réguas (pon |
 | 0334 | aceito | ativo | meta | Modelo de 3 camadas (Produto ERP · Produto IA · IA-OS) + invariante anti-atrofia |
+| 0335 | aceito | ativo | decision | Fechamento do loop diff-first DS-sync: nota honesta (B−/C+ vs SOTA A−), régua re |
