@@ -1,6 +1,7 @@
 ---
 page: /oficina-auto/vehicles
 component: resources/js/Pages/OficinaAuto/Vehicles/Index.tsx
+related_prototype: n/a (sem protótipo Cowork — herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: live
 last_validated: "2026-05-26"

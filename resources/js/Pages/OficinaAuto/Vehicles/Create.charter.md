@@ -1,6 +1,7 @@
 ---
 page: /oficina-auto/veiculos/create
 component: resources/js/Pages/OficinaAuto/Vehicles/Create.tsx
+related_prototype: n/a (sem protótipo Cowork — herda PT-02 Form-Drawer; segue o Padrão de Tela)
 page_id: oficina-auto-veiculos-create
 owner: wagner
 status: live

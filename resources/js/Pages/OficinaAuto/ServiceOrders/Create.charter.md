@@ -1,6 +1,7 @@
 ---
 page: /oficina-auto/service-orders/create
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Create.tsx
+related_prototype: n/a (sem protótipo Cowork — herda PT-02 Form-Drawer; segue o Padrão de Tela)
 owner: wagner
 status: live
 last_validated: "2026-06-09"

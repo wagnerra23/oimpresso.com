@@ -1,6 +1,7 @@
 ---
 page: /oficina-auto/service-orders/{id}
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Show.tsx
+related_prototype: n/a (sem protótipo Cowork — herda PT-03 Detalhe; segue o Padrão de Tela)
 visual_source: oficina-os-page.jsx
 owner: wagner
 status: live

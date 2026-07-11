@@ -1,6 +1,7 @@
 ---
 page: /oficina-auto/ordens-servico
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
+related_prototype: n/a (sem protótipo Cowork bespoke — herda PT-05 Kanban · pipeline FSM; ref. board Cowork "Produção Oficina"; segue o Padrão de Tela)
 visual_source: oficina-page.jsx
 related_us: [US-OFICINA-004, US-OFICINA-006]
 owner: wagner

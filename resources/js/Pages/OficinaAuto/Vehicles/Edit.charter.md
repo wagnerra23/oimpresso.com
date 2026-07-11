@@ -1,6 +1,7 @@
 ---
 page: /oficina-auto/veiculos/{id}/edit
 component: resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx
+related_prototype: n/a (sem protótipo Cowork — herda PT-02 Form-Drawer; segue o Padrão de Tela)
 page_id: oficina-auto-veiculos-edit
 owner: wagner
 status: live

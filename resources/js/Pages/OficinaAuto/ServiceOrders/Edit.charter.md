@@ -1,6 +1,7 @@
 ---
 page: /oficina-auto/ordens-servico/{id}/edit
 component: resources/js/Pages/OficinaAuto/ServiceOrders/Edit.tsx
+related_prototype: n/a (sem protótipo Cowork — herda PT-02 Form-Drawer; segue o Padrão de Tela)
 page_id: oficina-auto-ordens-servico-edit
 owner: wagner
 status: live
