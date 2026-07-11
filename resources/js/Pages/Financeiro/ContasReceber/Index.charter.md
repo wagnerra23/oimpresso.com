@@ -1,6 +1,7 @@
 ---
 page: /financeiro/contas-receber
 component: resources/js/Pages/Financeiro/ContasReceber/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: deprecated
 last_validated: "2026-07-03"

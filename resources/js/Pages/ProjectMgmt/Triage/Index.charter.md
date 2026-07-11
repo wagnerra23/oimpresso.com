@@ -1,6 +1,7 @@
 ---
 page: /project-mgmt/triage
 component: resources/js/Pages/ProjectMgmt/Triage/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft
 parent_module: ProjectMgmt

@@ -1,6 +1,7 @@
 ---
 page: /products
 component: resources/js/Pages/Produto/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 bundle_source: produtos-page.jsx
 owner: wagner
 status: draft

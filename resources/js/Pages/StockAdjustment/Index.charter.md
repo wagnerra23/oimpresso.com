@@ -1,6 +1,7 @@
 ---
 page: /stock-adjustments
 component: resources/js/Pages/StockAdjustment/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 tela: stock_adjustment/index
 tipo: LIST
 modulo: Inventory / StockAdjustment

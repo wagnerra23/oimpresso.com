@@ -1,6 +1,7 @@
 ---
 page: /nfe-brasil/tributacao/config-default
 component: resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx
+related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-05-16"
