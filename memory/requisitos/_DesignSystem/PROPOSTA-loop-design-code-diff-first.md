@@ -40,28 +40,27 @@ semantic.tokens.json   (mirror)               claude.ai/design         claude.ai
 |---|---|---|---|---|
 | 1 | **git → DS vivo** (deploy) | uma via (o sentido que o guard 0315 abençoa: "vitrine A PARTIR do git aprovado") | job gera `colors_and_type.css` + `cockpit_domains.css` do SSOT e PUSHA pro `019dd02f` via DesignSync (opt-in `design-sync` uma vez). DS vivo = espelho, nunca autoral | companion/token ausente do DS vivo |
 | 2 | **Cowork → git mirror** (ingestão) | uma via | cron `DesignSync get_file` → atualiza `prototipo-ui/cowork/` + `memory/LICOES_CC.md`, gate `cowork-mirror-freshness` (ADR 0324) | mirror stale (ds-v6/mapas/L-43 não chegando) |
-| 3 | **diff-first = ENTRADA de toda tarefa** | bidirecional | `ds-project-diff.mjs` (git canon × vivo) roda ANTES de qualquer prompt virar trabalho; só REAL delta vira ação | **PROMPT STALE (L-42) na raiz** — o prompt é auto-refutado |
+| 3 | **diff-first = ENTRADA de toda tarefa** | bidirecional | `ds-token-diff.mjs --companion` (motor canônico; git canon × espelho vivo) roda ANTES de qualquer prompt virar trabalho; só REAL delta vira ação | **PROMPT STALE (L-42) na raiz** — o prompt é auto-refutado |
 | 4 | **handoff git-native** | — | o retorno é o diff + git (PROTOCOL §10.2), não `PROMPT_PARA_CODE` com URL que expira | relay frágil fora do perímetro |
 
 **Ganho:** de "N prompts stale + validação manual + 4 stores driftando" → "1 SSOT + 3 espelhos gerados + 1 diff que decide". O humano aprova **deltas reais**, não relê estados divergentes.
 
 ## 4. Teste (o passo pivô, rodado ao vivo 2026-07-10)
 
-`scripts/design-sync/ds-project-diff.mjs` — companion canônico (git, #4097) × inventário do DS vivo (`019dd02f`, lido via DesignSync `get_file`):
+`scripts/design-sync/ds-token-diff.mjs` (o motor canônico, agora companion-aware) × espelho vivo (`019dd02f` colors_and_type.css + cockpit_domains.css, via `get_file`):
 
 ```
-companion: 62 · já no vivo: 6 · AUSENTES: 56
-  --origin-* 10 · --stage-* 7 · --sla-* 18 · --canal-* 12 · --kpi-feature-* 5 · --kind-* 4
-  >>> AÇÃO: 56 tokens faltam no DS vivo → push cockpit_domains.css
+# ds-token-diff --companion — cockpit-light git-only: 68→10 · cockpit-dark: 76→16 · VALOR: 0
+# (o companion fechou os ~58 domínios; residual 10/16 = shell não-domínio: bubble/thread/plate/sb-scroll)
 ```
 
-**Detectou mecanicamente os 56 tokens ausentes** — exatamente o gap que eu tinha achado à mão. É a prova de que o diff-first substitui a validação manual do prompt stale. `--selftest` inclui anti-regressão do furo `[a-z0-9-]` (regex lowercase perde `--origin-CRM-bg`, pego 2× nesta sessão).
+**Fechou mecanicamente o gap de domínio** (git-only 68→10, 76→16; VALOR 0) — exatamente o que eu tinha achado à mão, agora pelo motor canônico. É a prova de que o diff-first substitui a validação manual do prompt stale. Nota: o `ds-token-diff` já casa maiúscula por construção (regex `/gi`), então não sofre o furo `[a-z0-9-]` que o `ds-project-diff` (removido) tinha — mais uma razão de usar o engine existente, não um paralelo.
 
 ## 5. Adoção (o que falta pra ligar)
 
 - **Passo 1 (deploy git→DS):** hoje manual (bloqueado pelo opt-in `design-sync`, correto). Automatizar = job que roda `ds-domains-companion --write` + DesignSync `write_files` sob flag de deploy. Governança: é o sentido "vitrine do git aprovado" (0315), não cria fonte divergente.
 - **Passo 2 (pull):** `cowork-mirror-freshness` já existe (advisory, ADR 0324) — falta o cron de pull que aplica o delta no git.
-- **Passo 3 (diff-first):** `ds-project-diff.mjs` entregue (esta proposta) + `ds-domains-companion --check` (já existe). Falta plugar como 1º passo do `aplicar-prototipo`/`mwart-comparative`.
+- **Passo 3 (diff-first):** `ds-token-diff.mjs --companion` (motor canônico ESTENDIDO 2026-07-10 — não um tool paralelo; [W] "leia a documentação") + `ds-domains-companion --check` (já existe). Falta plugar como 1º passo do `aplicar-prototipo`/`mwart-comparative`.
 - **Passo 4:** já é o §10.2; falta desativar o relay por URL expirável em favor do diff.
 
 Tier 0 (toca DS/processo) → aguarda [W] pra virar ADR + ligar.

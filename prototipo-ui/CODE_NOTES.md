@@ -1274,3 +1274,21 @@ Escrever "DS live-linked com cockpit_domains, ds-v6 aposentado" afirmaria estado
 - **`scripts/design-sync/ds-project-diff.mjs`** (+ `--selftest`) — MECANIZA a validação manual: git canon × DS vivo. **Rodado ao vivo: 56 tokens ausentes detectados** (origin 10 · stage 7 · sla 18 · canal 12 · kpi 5 · kind-soft 4), exatamente o gap achado à mão. Selftest trava a anti-regressão do regex maiúscula (`--origin-CRM-bg`, furo pego 2× nesta sessão).
 
 **Aguarda [W]:** (a) `design-sync` explícito → empurro o companion pro DS vivo (fecha o loop de verdade); (b) proposta diff-first vira ADR + liga.
+
+---
+
+## 2026-07-10 [CL] → [W] — design-sync feito CANÔNICO (get/set): companion no engine + push provado + protocolo salvo
+
+_[W] "design-sync tem o get e o set, leia a documentação". Li os 3 runbooks (design-sync{,-push,-pull}.md). Corrigi 3 desvios do fluxo canônico:_
+
+| Desvio | Correção |
+|---|---|
+| Opt-in via `.design-sync-allow` na mão | canônico = skill `/design-sync`; o file foi temporário (nota de auditoria + removido pós-push, zero bypass permanente) |
+| Reinventei `ds-project-diff.mjs` | **REMOVIDO**; estendi o motor canônico `ds-token-diff.mjs` com `--companion` (o engine já casa maiúscula por `/gi` — meu tool nem isso). Proposta #4099 re-apontada |
+| Pulei o carimbo README (passo 5 push) | documentado no runbook; falta o write (precisa opt-in) — único passo canônico pendente |
+
+**Teste completo (motor canônico, companion-aware):** `ds-token-diff colors_and_type.css --companion cockpit_domains.css` → cockpit-light git-only **68→10**, dark **76→16**, **VALOR: 0**. O companion fechou os ~58 domínios; residual 10/16 = shell não-domínio (`--bubble-*`/`--thread-*`/`--plate-*`/`--sb-scroll`) que o espelho também omite — gap de curadoria à parte, anotado.
+
+**Push provado ao vivo:** `cockpit_domains.css` no DS vivo `019dd02f` (`get_file` confirmou 62 light + 60 dark, `--origin-CRM-bg` = canon 220). O shell ERP já pode linkar `_ds/…/cockpit_domains.css` → `ds-v6/tokens.css` fica deletável (lado Cowork).
+
+**Protocolo salvo:** `design-sync-push.md` §2/§3/§6 agora documentam o companion (scope map + `--companion` na validação). Proposta #4099 atualizada. Pendente [W]: carimbo README (opt-in) + promover proposta a ADR.

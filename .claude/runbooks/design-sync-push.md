@@ -45,6 +45,8 @@ Mapeamento escopo → arquivo git (o mesmo do `ds-token-diff.mjs`):
 | LAYER 3 `.cockpit` (light) | `_generated-cockpit-light.css` |
 | LAYER 3 `.cockpit[data-theme="dark"]` | `_generated-cockpit-dark.css` |
 
+> **COMPANION `cockpit_domains.css` (2026-07-10, PR #4097 + push design-sync):** o `colors_and_type.css` **cura de propósito** a camada `.cockpit` — traz fundações legíveis + os 4 `--kind` base, mas **omite** o set de domínio (`--origin-*`/`--stage-*`/`--sla-*-dot/line`/`--canal-*-bg/fg/tint`/`--kind-*-soft`/`--kpi-feature-*`). Esse set vive num arquivo **companion** `cockpit_domains.css` no espelho (gerado por `scripts/design-sync/ds-domains-companion.mjs`, verbatim dos `_generated-cockpit-*.css`), que o shell ERP faz `<link>` **ao lado** do `colors_and_type.css`. Refrescar o companion = `ds-domains-companion --write` + empurrar `cockpit_domains.css` no MESMO `finalize_plan`. **Camada UI-0013 respeitada:** `colors_and_type` = fundações; companion = domínio shell. Retirar a redeclaração de domínio dos bundles de módulo é PROIBIDO (defesa de portal — §5 proibicoes 2026-07-10).
+
 Regra de montagem: para cada bloco, substituir o corpo `{ … }` no scaffold pelas linhas `--token: valor;` extraídas do(s) arquivo(s) git correspondente(s). Header, `@font-face`, `html/body/h1…`, `.tabular`, `::selection`, `:where(...)` focus ring = **inalterados** (não são tokens; são a identidade do espelho).
 
 > Automação (futuro): um `scripts/design-sync/ds-mirror-build.mjs` pode assemblar o `colors_and_type.css` a partir do scaffold + `_generated-*`. Enquanto não existe, faça a substituição por bloco (é o inverso exato do parse do `ds-token-diff.mjs`).
@@ -53,9 +55,11 @@ Salvar o resultado num arquivo de staging **fora do repo**, ex.: `<scratchpad>/m
 
 ### 3. Validar ANTES de empurrar (diff = 0)
 ```bash
-node scripts/design-sync/ds-token-diff.mjs <scratchpad>/mirror-colors_and_type.css resources/css/tokens
+# Espelho cura → passe o companion pra fechar o falso git-only dos domínios (2026-07-10):
+node scripts/design-sync/ds-token-diff.mjs <scratchpad>/mirror-colors_and_type.css resources/css/tokens \
+  --companion <scratchpad>/mirror-cockpit_domains.css
 ```
-`divergências de VALOR: 0` → o arquivo montado bate com o git. Só então empurre. (Se der > 0, o passo 2 errou a montagem.)
+`divergências de VALOR: 0` → o arquivo montado bate com o git. Só então empurre. (Se der > 0, o passo 2 errou a montagem.) **Sem `--companion`**, `cockpit-light/dark` reporta ~58 domínios como `git-only` — é FALSO drift (o espelho os tem no companion). O residual git-only legítimo pós-companion são tokens de shell não-domínio (`--bubble-*`/`--thread-*`/`--plate-*`/`--sb-scroll`) que o espelho também omite — decisão de curadoria à parte.
 
 ### 4. Empurrar incremental via DesignSync
 ```
@@ -69,10 +73,12 @@ O README diz *"derived from wagnerra23/oimpresso.com @ commit `<sha>`"*. Atualiz
 
 ### 6. Confirmar no espelho
 ```
-DesignSync get_file  project=019dd02f-…  path=colors_and_type.css
-node scripts/design-sync/ds-token-diff.mjs <(get_file salvo) resources/css/tokens   # 0 divergências
+DesignSync get_file  project=019dd02f-…  path=colors_and_type.css   # salva
+DesignSync get_file  project=019dd02f-…  path=cockpit_domains.css   # salva (companion)
+node scripts/design-sync/ds-token-diff.mjs <colors_and_type salvo> resources/css/tokens \
+  --companion <cockpit_domains salvo>    # VALOR: 0
 ```
-Loop fechado: `ds-token-diff.mjs` contra o espelho **vivo** agora dá 0. É o mesmo motor que o sentinela P3 roda periodicamente.
+Loop fechado: `ds-token-diff.mjs --companion` contra o espelho **vivo** agora dá VALOR 0. É o mesmo motor que o sentinela P3 roda periodicamente.
 
 ---
 
