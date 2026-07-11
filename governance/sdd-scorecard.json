@@ -45,9 +45,9 @@
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 42,
         "behavior_known": false,
-        "servido_total": 0,
-        "nao_servido_total": 0,
-        "servido_ledger": false,
+        "servido_total": 3,
+        "nao_servido_total": 113,
+        "servido_ledger": true,
         "baseline_applied": null,
         "grandfathered": {
           "aceite": 0,
