@@ -64,6 +64,8 @@ jobs:
         run: node scripts/governance/settings-design-sync-registration.test.mjs
       - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
         run: node scripts/design-sync/ds-push.test.mjs
+      - name: ds-token-version morde (seed + bumps MINOR/MAJOR + gate --check · loop diff-first)
+        run: node scripts/design-sync/ds-token-version.test.mjs
       - name: Design-memory gate wired no CI (Onda O3 · fundido ADR 0314 F2)
         run: node scripts/governance/design-memory-gate.test.mjs
       - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)

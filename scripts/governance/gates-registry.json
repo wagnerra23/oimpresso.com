@@ -18,6 +18,13 @@
       "promote_by": "2026-07-23",
       "anchor": "sinal de custo: 3 cópias divergentes do canvas dark (drift silencioso git↔espelho, investigação 2026-07-08) — não existia sentinela do loop de sync. Proposta 2026-07-08-profissionalizar-ds-sync-git-espelho P3 + ADR 0328-ds-transicao-congelado-para-vivo-git-ssot. Advisory por ADR 0314 (drift de espelho é quality, não Tier-0 até o loop estabilizar + snapshot semeado); promote_by força a decisão de promoção a required/enforce em 14d em vez de advisory eterno."
     },
+    "ds-token-version.yml": {
+      "nome": "ds-token-version (advisory) — semver + changelog do pacote de tokens do DS: versiona a superfície dos _generated-*.css (296 tokens/4 escopos), fingerprint sha256; --check acusa surface mudada sem bump (::warning::, nunca bloqueia). Reusa a disciplina do ds-token-diff (fonte = os _generated-*.css, não a palavra de ninguém).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-24",
+      "anchor": "loop diff-first DS-sync — a versão do contrato de tokens era implícita (só o commit sha no README do espelho); um consumidor não sabia se um token sumiu (quebra) ou só mudou de valor. Item #2 do loop (revisão adversarial pré-merge desta sessão pegou blocker no semver e foi corrigido). Advisory por ADR 0314 (versionar tokens é higiene, não Tier-0); promote_by força a decisão de promoção em 14d em vez de advisory eterno."
+    },
     "screen-smoke-after-merge.yml": {
       "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
       "classe": "automacao",
