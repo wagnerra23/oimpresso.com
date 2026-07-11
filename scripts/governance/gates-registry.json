@@ -25,6 +25,13 @@
       "promote_by": "2026-07-24",
       "anchor": "loop diff-first DS-sync — a versão do contrato de tokens era implícita (só o commit sha no README do espelho); um consumidor não sabia se um token sumiu (quebra) ou só mudou de valor. Item #2 do loop (revisão adversarial pré-merge desta sessão pegou blocker no semver e foi corrigido). Advisory por ADR 0314 (versionar tokens é higiene, não Tier-0); promote_by força a decisão de promoção em 14d em vez de advisory eterno."
     },
+    "ds-tokens-build-sync.yml": {
+      "nome": "ds-tokens-build-sync (advisory) — ANCORA a premissa do loop diff-first (git = fonte verdadeira): roda 'npm run tokens:build' e falha se os _generated-*.css commitados divergem do build fresco de semantic.tokens.json. Sem isto, editar o source sem rebuildar deixa o _generated stale e TODO o loop (ds-token-diff/mirror-drift/token-version) valida contra valor errado sem ninguém perceber.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "gap nº1 da auditoria de cobertura do loop diff-first (2026-07-11): não existia gate provando que o _generated commitado bate com a fonte. Verificado em sincronia na criação. Advisory por ADR 0314 (integridade de tokens é quality/visual, não dinheiro/PII/multi-tenant/fiscal); promote_by força a decisão em 14d."
+    },
     "screen-smoke-after-merge.yml": {
       "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
       "classe": "automacao",
