@@ -14,7 +14,11 @@ lifecycle: ativo
 
 ```
 Você vai trabalhar no oimpresso, meu ERP. Antes de qualquer coisa:
-1. Rode a tool `brief-fetch` (estado consolidado do projeto).
+1. Rode a tool `brief-fetch` (estado consolidado do projeto). SE você NÃO tiver
+   o servidor MCP conectado, PULE e leia em vez disso (fallback): o roadmap
+   `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` + o session log DATADO mais
+   recente (arquivo `YYYY-MM-DD-*.md` em `memory/sessions/` — IGNORE README/_INDEX/
+   _TEMPLATE, que um `ls -t` cru joga por cima). Nunca invente o retorno da tool.
 2. As regras já carregaram via CLAUDE.md — respeite-as (multi-tenant, PT-BR,
    teste só no CT 100, aprovação humana antes de merge).
 3. Leia `memory/reference/PAINEL-SISTEMA.md` — o índice GERADO do sistema
@@ -41,3 +45,4 @@ quebrar. Se algum bullet estiver vago, releia a fonte.
 - Estado consolidado agora: rode `brief-fetch`.
 - Regras Tier 0 + o que já falhou: [proibicoes.md](../proibicoes.md).
 - Como o sistema é construído: `CLAUDE.md` (carrega automático) + `memory/why-oimpresso.md` / `what-oimpresso.md` / `how-trabalhar.md`.
+- Onde o CÓDIGO mora (pra mexer, não só entender): `Modules/<Vertical>` (features por vertical) · `app/Domain/Fsm` (máquina de estados de vendas/OS) · `resources/js/Pages/<Mod>/` (telas Inertia/React). Antes de criar/alterar, ABRA `Modules/Jana` · `Modules/Repair` e imite o padrão (ADR 0011). Pra criar módulo do zero, o passo-a-passo está em `memory/requisitos/Infra/RUNBOOK-criar-modulo.md`.
