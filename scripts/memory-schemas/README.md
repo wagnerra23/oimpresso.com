@@ -15,6 +15,10 @@
 | `memory/sessions/*.md` (exceto `_*.md`, `README.md`) | `session.schema.json` | Session log diário |
 | `memory/handoffs/*.md` (exceto `_*.md`) | `handoff.schema.json` | Handoff append-only |
 | `resources/js/Pages/**/*.charter.md` | `charter.schema.json` | Page Charter (Tier A) |
+| `memory/requisitos/*/BRIEFING.md` | `briefing.schema.json` | 1-pager por módulo (⏳ não-fiado ao gate — grace até backfill) |
+| `memory/reference/*.md` + `memory/*.md` (exceto os 5 @imports do CLAUDE.md) | `reference.schema.json` | Doc canônico/gerado (⏳ não-fiado ao gate — grace até backfill) |
+
+> ⏳ **`briefing` e `reference` (proposal estrutura-canon-memoria):** os schemas EXISTEM como conceito-alvo único, mas ainda **NÃO estão na matrix bloqueante** do [memory-schema-gate.yml](../../.github/workflows/memory-schema-gate.yml). Wiring = grace→required só **depois** do backfill zerar o falso-positivo por família (disciplina ADR 0314 — gate novo nunca nasce bloqueante). Até lá servem pra: (a) validação local dos codemods de normalização, (b) `system-map.mjs` ler status confiável do BRIEFING, (c) `memory-schema-preflight`.
 
 ## Grace period 14d (ENV `JANA_VALIDATE_MEMORY_STRICT`)
 
