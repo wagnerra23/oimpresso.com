@@ -22,11 +22,18 @@ IMAGE="${FULLSUITE_IMAGE:-oimpresso/mcp:latest}"     # PHP 8.4 ZTS + pdo_mysql
 NET="${FULLSUITE_NET:-docker-host_default}"          # rede onde mysql-workers resolve por DNS
 MYSQL_CONTAINER="${FULLSUITE_MYSQL_CONTAINER:-mysql-workers}"
 REPO_URL="${FULLSUITE_REPO:-https://github.com/wagnerra23/oimpresso.com.git}"
-TIMEOUT_S="${FULLSUITE_TIMEOUT:-14400}"              # hard-kill 4h
+TIMEOUT_S="${FULLSUITE_TIMEOUT:-14400}"              # timeout do FLOOR (run 1) — 4h
+COV_TIMEOUT_S="${FULLSUITE_COV_TIMEOUT:-14400}"      # timeout da COVERAGE (run 2) — 4h; bump só quando o sharding (V1) fizer o pcov caber num nightly
+KILL_GRACE_S="${FULLSUITE_KILL_GRACE:-120}"          # timeout -k: apos TERM, SIGKILL do docker-run em Ns (V4 — sem isso o timeout NAO mata o container do pcov e ele viraria runaway de 16h)
 KEEP_RUNS="${FULLSUITE_KEEP_RUNS:-14}"
 ENV_LOCAL="$BASE/.env.local"
 
-# lock — cron + run manual nunca sobrepoem
+# lock — cron + run manual nunca sobrepoem. V4 (2 lanes): o timeout -k (KILL_GRACE_S)
+# abaixo garante que run 1 (floor) + run 2 (coverage) TERMINAM dentro de ~2x TIMEOUT
+# (~8h << 24h) — assim a lane de coverage NUNCA segura este lock alem do proximo cron
+# 02:00 e a cadencia do floor (metrica-mae) fica protegida. Antes do -k, o timeout
+# mandava TERM mas o `docker run` do pcov ignorava e rodava 16h+ -> lock preso ->
+# noite seguinte pulava por "outro run em andamento" (3 skips catalogados jul/2026).
 exec 9>"$BASE/.lock"
 flock -n 9 || { echo "ct100-fullsuite: outro run em andamento (lock $BASE/.lock) — saindo"; exit 0; }
 
@@ -197,7 +204,7 @@ for attempt in $(seq 1 12); do
   #    tabela CORE SOBREVIVE pro resto da suite. O isolamento real desses testes e a
   #    US-GOV-021 front-2 (nao deixar teste dropar tabela compartilhada). Tests\TestCase
   #    ::setUp fica inerte sem a flag (gated em getenv) — reversivel.
-  timeout -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-run \
+  timeout -k "$KILL_GRACE_S" -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-run \
     --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
     -e DB_CONNECTION=mysql -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" \
     -e "DB_DATABASE=$DB_DATABASE" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" \
@@ -292,10 +299,20 @@ echo "pest exit code: $PEST_EXIT (loader-blockers: $([ -f "$RUN_DIR/loader-block
 # aos ~53%. Sem --log-junit aqui: o junit canonico e o do run 1 (FV-F1). pcov na
 # suite INTEIRA (nunca o lane sqlite curado — ADR 0275:68). Fail e DADO: exit != 0
 # de teste falhando e esperado; o que importa e o clover flushado no fim.
+#
+# V4 (lane isolada, NUNCA contamina o floor): o pcov single-core na suite inteira leva
+# 16h+ (e travou a ~77% em jul/2026). timeout -k (KILL_GRACE_S) e OBRIGATORIO aqui — o
+# `-s TERM` sozinho NAO mata o `docker run` do pcov (o php ignora TERM no C do pcov), o
+# container virava runaway de 16h e segurava o .lock -> pulava a nightly seguinte. Com o
+# -k, o container e SIGKILLado no teto (COV_TIMEOUT_S) e o `docker rm -f` abaixo garante
+# zero zumbi. Coverage killed mid-run deixa clover TRUNCADO -> coverage-compute rejeita
+# (exige </coverage> no fim) -> read-side fica not_yet_measured (nunca mente baixo). A
+# lane so vira PRODUTIVA (clover completo -> coverage_pct) quando o sharding (V1) fizer o
+# pcov caber num nightly; ate la ela roda bounded e honestamente sem numero.
 if docker run --rm --entrypoint php "$IMAGE" -m 2>/dev/null | grep -qi '^pcov$'; then
   echo "--- [P07 coverage] run separado com pcov (clover em $RUN_DIR/clover.xml; log em cov-out.txt)"
   COV_EXIT=0
-  timeout -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-cov \
+  timeout -k "$KILL_GRACE_S" -s TERM "$COV_TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-cov \
     --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
     -e DB_CONNECTION=mysql -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" \
     -e "DB_DATABASE=$DB_DATABASE" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" \
@@ -308,8 +325,14 @@ if docker run --rm --entrypoint php "$IMAGE" -m 2>/dev/null | grep -qi '^pcov$';
       printf "[client]\nssl-verify-server-cert=0\n" > /etc/my.cnf.d/zz-fullsuite-no-ssl-verify.cnf 2>/dev/null || true
       exec php -d memory_limit=6G -d pcov.enabled=1 -d pcov.directory=. -d "pcov.exclude=~(vendor|node_modules|storage)~" vendor/bin/pest --coverage-clover /artifacts/clover.xml --colors=never
     ' > "$RUN_DIR/cov-out.txt" 2>&1 || COV_EXIT=$?
+  # `docker rm -f` sempre (o -k desbloqueia o timeout mas o container pode sobreviver ao
+  # SIGKILL do CLI — este e o kill definitivo do zumbi). exit 124/137 = timeout -k matou
+  # (pcov estourou o teto): clover truncado/ausente, coverage-compute rejeita.
   docker rm -f oimpresso-fullsuite-cov >/dev/null 2>&1 || true
-  echo "[P07 coverage] exit=$COV_EXIT clover=$(stat -c%s "$RUN_DIR/clover.xml" 2>/dev/null || echo 0) bytes"
+  case "$COV_EXIT" in
+    124|137) echo "[P07 coverage] TIMEOUT — cov matou no teto ${COV_TIMEOUT_S}s (exit=$COV_EXIT); clover incompleto, coverage_pct segue not_yet_measured (sharding V1 pendente)";;
+    *)       echo "[P07 coverage] exit=$COV_EXIT clover=$(stat -c%s "$RUN_DIR/clover.xml" 2>/dev/null || echo 0) bytes";;
+  esac
 else
   echo "--- [P07 coverage] pcov ausente na imagem — coverage pulado (read-side segue not_yet_measured)"
 fi

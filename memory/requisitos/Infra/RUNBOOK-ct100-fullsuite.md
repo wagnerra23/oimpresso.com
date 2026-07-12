@@ -3,7 +3,7 @@ title: "Full-suite Pest MySQL nightly no CT 100 (FV-F3 — diagnostica, nunca re
 module: "Infra"
 owner: "W"
 status: "ativo"
-last_validated: "2026-07-02"
+last_validated: "2026-07-12"
 preconditions:
   - "Acesso SSH root@100.99.207.66 (Tailscale, BatchMode)"
   - "Container mysql-workers up na rede docker-host_default"
@@ -34,6 +34,25 @@ related_adrs:
 5. `vendor/bin/pest --log-junit` (suite inteira, timeout 4h, lock anti-overlap), com **`mariadb-client` + `/etc/my.cnf.d/*-no-ssl-verify.cnf`** instalados no container (US-GOV-018 A.1 — o `migrate:fresh`/RefreshDatabase precisa do CLI `mysql` **e** de TLS-verify-off pra recarregar o dump). _(US-GOV-018 A.2 FK-off REVERTIDO — ver Troubleshooting.)_ Arquivo que mata o **loader** da suite (`uses(TestCase)` file-level em pasta já vinculada no `tests/Pest.php` — 4 casos conhecidos em `tests/Feature` em 2026-06-12) é posto de lado **só no clone descartável**, registrado em `loader-blockers.txt` (dado pro triage Q2) e o run re-tenta — consertar os arquivos é das lanes de burn-down;
 6. summary via [`scripts/tests/junit-summary.mjs`](../../../scripts/tests/junit-summary.mjs) (FV-F1 — tripwire de artefato 0 bytes) + retenção dos últimos 14 runs.
 
+## Duas lanes no mesmo run: FLOOR (run 1) + COVERAGE (run 2) — V4
+
+O script roda **duas invocações do Pest, sequenciais e isoladas**, contra o mesmo clone/DB seedados:
+
+| Lane | Invocação | Instrumentação | `memory_limit` | Timeout | Artefato | Métrica |
+|---|---|---|---|---|---|---|
+| **FLOOR** (run 1) | passo 6 (loop de loader-blocker) | **sem pcov** | 4G | `FULLSUITE_TIMEOUT` (4h) | `junit.xml` → `summary.json` | `full_suite_pass_rate` (floor · ADR 0279) |
+| **COVERAGE** (run 2) | bloco `[P07 coverage]` | **pcov** (2ª invocação) | 6G | `FULLSUITE_COV_TIMEOUT` (4h) | `clover.xml` | `coverage_pct` (C2 · ADR 0275 §2) |
+
+**Por que separadas** (SDD P07 · [#3622](https://github.com/wagnerra23/oimpresso.com/pull/3622)): a 1ª nightly com pcov no **mesmo** processo do diagnóstico morreu silenciosa aos 53% e zerou o `junit.xml` (incidente `20260702-073601`) — coverage e floor competiam pelo mesmo processo. Agora o floor roda **primeiro, sem pcov**; o clover só é tentado **depois** do junit salvo. **Falha na lane de coverage nunca derruba o floor.**
+
+**Como coexistem no scheduler (V4 — [PR desta seção]):** a lane de coverage (pcov single-core na suíte inteira) leva **16h+** e chegou a **travar a ~77%** em jul/2026. Sem `timeout -k`, o `timeout -s TERM` **não matava** o `docker run` do pcov (o PHP ignora TERM dentro do C do pcov) → o container `oimpresso-fullsuite-cov` virava **runaway de 16h** e segurava o `.lock` do script → a nightly seguinte pulava por *"outro run em andamento"* (**3 skips catalogados**; `20260707` sumiu). O fix:
+
+- **`timeout -k "$KILL_GRACE_S"`** (120s) nas DUAS lanes → após o TERM, `SIGKILL` no `docker run`; o `docker rm -f` seguinte é o kill definitivo do container. Assim o run inteiro (floor + coverage) **termina em ~2×timeout (~8h) « 24h** → nunca segura o `.lock` além do próximo cron 02:00. A **cadência do floor (métrica-mãe) fica protegida**.
+- **Coverage `killed` no teto** (exit 124/137) deixa o clover **truncado**; `coverage-compute.mjs` **rejeita** clover sem `</coverage>` de fechamento → `coverage_pct` fica `not_yet_measured` (**nunca mente baixo**; a catraca C2 só-sobe travaria um número falso).
+- A lane de coverage **só vira produtiva** (clover completo → `coverage_pct` real) quando o **sharding por módulo (V1)** fizer o pcov caber num nightly. Até lá ela roda **bounded** e honestamente sem número. Ao ligar V1, subir `FULLSUITE_COV_TIMEOUT` pro tempo real da suíte sharded.
+
+**Transporte (órfã `governance/nightly-floor`):** ambos os JSONs (`nightly-floor.json` + `nightly-coverage.json`) são computados no fim do run e publicados na mesma órfã via deploy key (`/root/.ssh/oimpresso_floor_deploy`) com `[skip ci]`. `coverage-compute` falhar (sem clover) **não** derruba a publicação do floor.
+
 ## Onde ficam os artefatos
 
 ```
@@ -42,8 +61,10 @@ related_adrs:
 ├── .env.local              # creds DB de TESTE — NUNCA no repo (chmod 600)
 ├── .composer-cache/        # cache composer entre runs
 ├── code/                   # clone público, reset a cada run
+├── .lock                   # flock do run (floor + coverage) — anti-overlap com o cron
 ├── cron.log                # stdout do cron
-└── runs/<YYYYMMDD-HHMMSS>/ # run.log + junit.xml + summary.json + sha.txt
+└── runs/<YYYYMMDD-HHMMSS>/ # run.log + junit.xml + summary.json + sha.txt (FLOOR)
+    │                       # + clover.xml + cov-out.txt (COVERAGE, se pcov na imagem)
     └── latest -> símlink pro run mais recente
 ```
 
@@ -75,6 +96,8 @@ ssh -o BatchMode=yes root@100.99.207.66 cat /opt/oimpresso-fullsuite/runs/latest
 | Sintoma | Ação |
 |---|---|
 | "outro run em andamento" | lock ativo (`/opt/oimpresso-fullsuite/.lock`); se órfão: `docker rm -f oimpresso-fullsuite-run` e re-rodar |
+| **container `oimpresso-fullsuite-cov` "Up N horas (unhealthy)" + script preso + nightlies pulando** | **V4 (jul/2026) — runaway da lane de coverage.** Diagnóstico: `docker ps \| grep fullsuite` mostra o cov up >8h; `pgrep -af ct100-fullsuite` com `etime` alto; `cron.log` com *"outro run em andamento"*. Causa histórica: `timeout` sem `-k` não matava o `docker run` do pcov. **Já corrigido no script** (`timeout -k`); se reaparecer (cópia driftada): `docker rm -f oimpresso-fullsuite-cov` + `kill <pid do script>` pra liberar o `.lock`, e conferir que `/opt/oimpresso-fullsuite/ct100-fullsuite.sh` tem `timeout -k` (senão o `self-update.sh` ainda não sincronizou o merge). |
+| **`clover.xml` truncado / `coverage_pct` some** | esperado quando a lane de coverage é morta no teto (`[P07 coverage] TIMEOUT` no `run.log`, exit 124/137) — `coverage-compute` rejeita clover sem `</coverage>` → `not_yet_measured` honesto. Só volta a medir quando o sharding (V1) fizer o pcov completar dentro do `FULLSUITE_COV_TIMEOUT`. |
 | junit.xml 0 bytes / ausente | run morto antes do flush (OOM/timeout) — ver fim do `run.log`; subir `FULLSUITE_TIMEOUT` ou rodar chunked (abaixo) |
 | migrate falha | schema baseline mudou em main — rodar de novo (DB é recriada do zero a cada run) |
 | disco | retenção automática mantém 14 runs; clone+vendor ~2,5 GB |
