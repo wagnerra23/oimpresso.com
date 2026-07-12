@@ -4,8 +4,8 @@ component: resources/js/Pages/Produto/Index.tsx
 related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 bundle_source: produtos-page.jsx
 owner: wagner
-status: draft
-last_validated: "2026-05-15"
+status: live
+last_validated: "2026-07-12"
 parent_module: Produto
 related_adrs: [110, 107, 93, 104, 149]
 tier: A
@@ -159,3 +159,5 @@ it('uses localStorage prefix oimpresso.produto.* if any state persisted')
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-09 | [CL] | Charter draft criado em batch. Path `Pages/Produto/Index.tsx` (flat). **Decisão pendente Wagner:** mantém Page simples + Page unificada (`Produto/Unificado/`) como duas opções, OU consolida em uma só? Material `prod-page.jsx` é mais "balcão rápido", `produto-app.jsx` é "admin completo". **Aprovação pendente** em Non-Goals + Anti-hooks pra `status: live`. |
+
+> _Promovido draft→live em 2026-07-12 por `charter-promote-signal.mjs` — sinal: route-hits:16._
