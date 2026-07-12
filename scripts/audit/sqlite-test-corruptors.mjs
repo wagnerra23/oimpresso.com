@@ -44,6 +44,8 @@
 //   node scripts/audit/sqlite-test-corruptors.mjs --tier=S        (só críticos)
 //   node scripts/audit/sqlite-test-corruptors.mjs --json          (saída máquina)
 //   node scripts/audit/sqlite-test-corruptors.mjs --strict --tier=S  (exit 1 se houver S real)
+//   node scripts/audit/sqlite-test-corruptors.mjs --leaks           (DETECTOR 2: leak de linha unique)
+//   node scripts/audit/sqlite-test-corruptors.mjs --leaks --json    (nomeia os leakers pra máquina)
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
@@ -77,6 +79,129 @@ const RE_CONN_MUT = /DB::(?:disconnect|purge|reconnect)\(|disableForeignKeyConst
 const GUARD_TOKEN = /database\.default|getDriverName|:memory:|isSqlite|SqliteMemory|sqliteMemory/i;
 const SKIP_CALL = /markTestSkipped/;
 
+// ===========================================================================
+// DETECTOR 2 — LEAK de linha unique-constrained no MySQL persistente (irmão do
+// corruptor-DDL acima; mesmo lever de isolamento, OUTRO sintoma).
+//
+// nightly 20260712: SQLSTATE 1062 na constraint `pg_cred_biz_gw_amb_unique`. Um
+// teste que INSERE tupla unique FIXA SEM trait de isolamento e SEM teardown deixa
+// a linha COMMITADA no MySQL compartilhado; o próximo insert da MESMA tupla
+// estoura 1062 → cascata. NOMEIA quem insere unique-fixa sem rede — SEM CT100.
+//
+// Rede (qualquer uma ⇒ NÃO vaza): trait rolling (rollback) · skip por driver
+// não-sqlite no setup (nem roda no MySQL) · teardown (delete/truncate). Campo:
+// `leaksOnMysql`. Precisão-leaning: teardown por-tabela conta como rede.
+// ===========================================================================
+
+// Tabelas unique-seeded de ALTA colisão (constraint é só documental no relatório).
+const UNIQUE_SEEDED = new Map([
+  ['payment_gateway_credentials', 'pg_cred_biz_gw_amb_unique'],
+  ['rb_boleto_credentials', 'rb_boleto_cred_biz_banco_unique'],
+]);
+// Model Eloquent → tabela unique-seeded (o insert real dos testes é Model::create).
+const MODEL_TO_TABLE = new Map([
+  ['PaymentGatewayCredential', 'payment_gateway_credentials'],
+  ['BoletoCredential', 'rb_boleto_credentials'],
+]);
+const ISOLATION_TRAITS_G = /\b(RefreshDatabase|LazilyRefreshDatabase|DatabaseTransactions|DatabaseMigrations)\b/g;
+// Condição de driver NÃO-sqlite (`!== 'sqlite'` / `! $isSqliteMemory`) — TRUE no MySQL.
+const NON_SQLITE_COND = /!==?\s*['"]sqlite['"]|['"]sqlite['"]\s*!==?|!\s*\$?\w*(?:isSqlite|sqliteMemory)\w*/i;
+// `'business_id' => <num>` = tupla determinística. É chave-string, então testa no
+// src cru (codeMatches ignoraria — o inserter real já foi confirmado em código).
+const RE_FIXED_BIZ = /['"]business_id['"]\s*=>\s*\d/;
+
+function reEsc(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// Puro/testável. null se o arquivo NÃO insere linha unique-seeded; senão devolve
+// o veredito com `leaksOnMysql` (a verdade sobre vazar no MySQL persistente).
+export function leaksUniqueRowOnMysql(src, rel = '') {
+  const spans = nonCodeSpans(src);
+
+  const hitTables = new Set();
+  for (const [model, table] of MODEL_TO_TABLE) {
+    const re = new RegExp(
+      `\\b${reEsc(model)}::(?:with(?:out)?GlobalScopes?\\(\\)\\s*->\\s*)?(?:create|forceCreate|firstOrCreate|updateOrCreate|insert)\\s*\\(`,
+      'g');
+    if (codeMatches(re, src, spans).length) hitTables.add(table);
+  }
+  for (const table of UNIQUE_SEEDED.keys()) {
+    const re = new RegExp(
+      `DB::table\\(\\s*['"]${reEsc(table)}['"]\\s*\\)\\s*->\\s*(?:insert|insertOrIgnore|insertGetId|updateOrInsert|firstOrCreate)\\s*\\(`,
+      'g');
+    if (codeMatches(re, src, spans).length) hitTables.add(table);
+  }
+  if (!hitTables.size) return null;
+
+  const hasRollingIsolation = codeMatches(ISOLATION_TRAITS_G, src, spans).length > 0;
+
+  const setupText = ['beforeEach', 'setUp']
+    .map((k) => blockRange(src, k)).filter(Boolean)
+    .map(([s, e]) => src.slice(s, e)).join('\n');
+  const skipsOnMysql = SKIP_CALL.test(setupText) && NON_SQLITE_COND.test(setupText);
+
+  const modelsFor = (table) => [...MODEL_TO_TABLE].filter(([, t]) => t === table).map(([m]) => m);
+  const hasCleanup = (table) => [table, ...modelsFor(table)].some((name) => {
+    const q = reEsc(name);
+    const re = new RegExp(
+      `(?:DB::table\\(\\s*['"]${q}['"]\\s*\\)|\\b${q}::)[\\s\\S]{0,120}?->\\s*(?:delete|truncate|forceDelete)\\s*\\(|\\b${q}::(?:truncate|delete)\\s*\\(`,
+      'g');
+    return codeMatches(re, src, spans).length > 0;
+  });
+
+  const uncleaned = [...hitTables].filter((t) => !hasCleanup(t));
+  const leaksOnMysql = uncleaned.length > 0 && !hasRollingIsolation && !skipsOnMysql;
+  const fixedTuple = RE_FIXED_BIZ.test(src);
+
+  const reasons = [];
+  let score = 0;
+  if (leaksOnMysql) {
+    score += 40;
+    reasons.push('insere-unique-sem-rede(no-mysql)');
+    const flagship = uncleaned.filter((t) => UNIQUE_SEEDED.has(t));
+    if (flagship.length) {
+      score += Math.min(flagship.length * 25, 50);
+      reasons.push(`tabela-alta-colisao[${flagship.join(',')}]`);
+    }
+    if (fixedTuple) { score += 15; reasons.push('tupla-fixa(business_id literal)'); }
+    reasons.push('sem-trait-isolamento');
+  } else {
+    score -= 25;
+    reasons.push(hasRollingIsolation ? 'isolado(trait-rolling)'
+      : skipsOnMysql ? 'pula-no-mysql(era-sqlite)' : 'tem-teardown');
+  }
+
+  let tier = 'C';
+  if (score >= 80) tier = 'S';
+  else if (score >= 50) tier = 'A';
+  else if (score >= 25) tier = 'B';
+
+  return {
+    file: rel,
+    leaksOnMysql,
+    score,
+    tier,
+    tables: [...hitTables],
+    uncleaned,
+    constraints: [...hitTables].map((t) => UNIQUE_SEEDED.get(t)).filter(Boolean),
+    hasRollingIsolation,
+    skipsOnMysql,
+    fixedTuple,
+    reasons,
+  };
+}
+
+function analyzeLeak(file) {
+  let src;
+  try {
+    src = readFileSync(file, 'utf8');
+  } catch {
+    return null;
+  }
+  return leaksUniqueRowOnMysql(src, relative(ROOT, file).split(sep).join('/'));
+}
+
 const args = process.argv.slice(2);
 const opt = (name, def) => {
   const hit = args.find((a) => a.startsWith(`--${name}=`));
@@ -88,6 +213,7 @@ const TOP = parseInt(opt('top', '30'), 10);
 const TIER_FILTER = (opt('tier', '') || '').toUpperCase();
 const AS_JSON = flag('json');
 const STRICT = flag('strict');
+const LEAKS = flag('leaks'); // --leaks ⇒ DETECTOR 2 (linha unique) em vez do corruptor-DDL
 
 function walk(dir, acc) {
   let entries;
@@ -349,7 +475,48 @@ function analyze(file) {
   return classifySource(src, relative(ROOT, file).split(sep).join('/'));
 }
 
+// Relatório do DETECTOR 2 (--leaks) — leakers de linha unique no MySQL.
+function mainLeaks() {
+  const files = [];
+  for (const d of SCAN_DIRS) walk(join(ROOT, d), files);
+
+  const all = files.map(analyzeLeak).filter(Boolean).sort((a, b) => b.score - a.score);
+  const leakers = all.filter((r) => r.leaksOnMysql);
+  const counts = { S: 0, A: 0, B: 0, C: 0 };
+  for (const r of leakers) counts[r.tier]++;
+
+  const view = TIER_FILTER ? leakers.filter((r) => r.tier === TIER_FILTER) : leakers;
+
+  if (AS_JSON) {
+    console.log(JSON.stringify({
+      scanned: files.length,
+      withUniqueInsert: all.length,
+      leakers: leakers.length,
+      safe: all.length - leakers.length,
+      counts,
+      results: all,
+    }, null, 2));
+  } else {
+    console.log('== Auditor SQLite LEAK de linha unique (read-only · detector 2 comportamento-no-MySQL) ==');
+    console.log(`Escaneados=${files.length} · com-insert-unique=${all.length} · LEAKERS=${leakers.length} · seguros=${all.length - leakers.length}`);
+    console.log(`Buckets(leakers): S=${counts.S} A=${counts.A} B=${counts.B} C=${counts.C}  ·  correção: seed idempotente/unique-aware OU trait rolling OU teardown.`);
+    console.log('');
+    const show = view.slice(0, TOP);
+    for (const r of show) {
+      console.log(`[${r.tier}] ${String(r.score).padStart(3)}  ${r.file}`);
+      console.log(`        unique=[${r.uncleaned.join(', ')}]${r.constraints.length ? ` (${r.constraints.join(', ')})` : ''} · ${r.reasons.join(' · ')}`);
+    }
+    if (view.length > show.length) {
+      console.log(`… +${view.length - show.length} (use --top=${view.length} ou --json pra ver todos).`);
+    }
+  }
+
+  if (STRICT && view.length > 0) process.exit(1);
+}
+
 function main() {
+  if (LEAKS) return mainLeaks();
+
   const files = [];
   for (const d of SCAN_DIRS) walk(join(ROOT, d), files);
 
