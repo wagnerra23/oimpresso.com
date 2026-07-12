@@ -1,5 +1,5 @@
 ﻿// @memcofre
-//   tela: /docs/chat
+//   tela: /memcofre/chat
 //   module: Cofre de Memórias
 //   status: implementada
 //   stories: US-DOCVAULT-005
@@ -130,7 +130,7 @@ export default function MemCofreChat({ session_id, history, recent, modules, ai_
       },
     });
     const data = await res.json();
-    router.visit(`/docs/chat?session=${data.session_id}`);
+    router.visit(`/memcofre/chat?session=${data.session_id}`);
   };
 
   return (
@@ -193,7 +193,7 @@ export default function MemCofreChat({ session_id, history, recent, modules, ai_
                     {recent.map((r) => (
                       <li key={r.session_id}>
                         <Link
-                          href={`/docs/chat?session=${r.session_id}`}
+                          href={`/memcofre/chat?session=${r.session_id}`}
                           className={`block p-2 text-xs hover:bg-accent/30 ${r.session_id === session_id ? 'bg-accent/40' : ''}`}
                         >
                           <div className="font-medium truncate">{r.preview}</div>
