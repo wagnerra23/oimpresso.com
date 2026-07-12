@@ -265,6 +265,24 @@ function runAnchorLintVerde(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// V6-A (avaliação SDD 2026-07-12 · risco #2): RESILIÊNCIA do loadJunit. Reusa o SPEC+Service+Test da
+// fixture verde/good (US implementada+coberta) e SÓ sobrepõe o junit/ da fixture -resilient — isola a
+// variável "estado do JUnit". good = --junit é um MARCADOR de run inválido (fullsuite-summary-invalid/v1)
+// → --check-verde ARMADO degrada a behavior_unknown → exit 0 (sem crash exit 2, sem false-red exit 1);
+// bad = MESMO SPEC/teste, mas junit COERENTE marca o teste-que-cobre só skipped → ainda MORDE (exit 1 🟥),
+// prova que a resiliência não desarmou o gate verde.
+function runAnchorLintVerdeResilient(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-verde-resilient-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-verde', 'good'), sb, { recursive: true }); // SPEC+Service+Test compartilhados
+    cpSync(join(FIX, 'anchor-lint-verde-resilient', kind, 'junit'), join(sb, 'junit'), { recursive: true }); // overlay do junit da variante
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // ARMING grandfather (SA-A2-ter · ADR 0275): --check-entry --baseline. Prova o no-new-lie:
 // good = US violadora MAS grandfatherada no baseline → exit 0; bad = MESMA US violadora, baseline
 // só com decoy → exit 1 ("regra de entrada"). Isola a variável estar-no-baseline (mesmo SPEC).
@@ -421,6 +439,15 @@ const CATRACAS = [
     id: 'anchor-lint-verde',
     run: runAnchorLintVerde,
     expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
+  },
+  {
+    // V6-A (avaliação SDD 2026-07-12 · risco #2): loadJunit RESILIENTE. good = --junit marcador de run
+    // inválido (fullsuite-summary-invalid/v1) com --check-verde ARMADO → behavior_unknown (exit 0, sem
+    // crash exit 2 nem false-red exit 1); bad = MESMO SPEC/teste mas junit coerente-skipped → ainda MORDE
+    // (exit 1 🟥). Prova que junit inválido não avermelha E que a resiliência não desarmou o gate verde.
+    id: 'anchor-lint-verde-resilient',
+    run: runAnchorLintVerdeResilient,
+    expect: { good: /Gate verde \(advisory\): behavior_unknown/, bad: /🟥 US-SLFV-001/ },
   },
   {
     // ARMING grandfather (SA-A2-ter · ADR 0275): baseline ISENTA o legado MAS morde mentira NOVA.

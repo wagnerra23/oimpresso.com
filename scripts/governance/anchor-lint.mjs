@@ -90,20 +90,40 @@ const JUNIT_PATH = _junitIdx !== -1 ? _rawArgv[_junitIdx + 1] : null;
 
 // loadJunit: lê o summary JSON (schema junit-summary/v1, scripts/tests/junit-summary.mjs) e
 // indexa files[] por path-relativo (forward-slash). fs-puro: só JSON.parse, zero exec de teste.
+//
+// V6-A RESILIÊNCIA (avaliação SDD 2026-07-12 risco #2 · "a suite mente"): --junit
+// ausente / 0-byte / não-JSON / schema errado / marcador de run inválido (invalid:true,
+// ex. `fullsuite-summary-invalid/v1` que junit-summary.mjs grava pro run morto) /
+// INCOERENTE (coherent:false, shard parcial) NÃO faz mais crash (exit 2) NEM avermelha —
+// degrada a behavior_unknown (advisory). POR QUÊ: o gate verde (G1b) arma sobre um JUnit que
+// a materialização sharded (chip harness) pode entregar 0-byte/parcial; um run morto/parcial
+// NÃO pode avermelhar US cujos testes passaram noutro shard. run inválido = "não sei", nunca
+// "vermelho". Retorna sentinela {unknown:true, reason} (→ JUNIT null → behavior_unknown) em vez
+// de sair. Só junit-summary/* COERENTE vira mapa usável. fs-puro (só JSON.parse), invariante ADR 0303.
 function loadJunit(p) {
   const abs = resolve(ROOT, p);
-  if (!existsSync(abs)) { console.error(`anchor-lint: --junit aponta pra arquivo inexistente: ${p}`); process.exit(2); }
+  const unknown = (reason) => {
+    console.error(`anchor-lint: --junit ${reason} (${p}) → behavior_unknown (advisory · não avermelha, não crasha)`);
+    return { unknown: true, reason };
+  };
+  if (!existsSync(abs)) return unknown('arquivo inexistente');
+  let raw;
+  try { raw = readFileSync(abs, 'utf8'); } catch (e) { return unknown(`ilegível: ${e.message}`); }
+  if (!raw.trim()) return unknown('vazio/0-byte (run morto?)');
   let data;
-  try { data = JSON.parse(readFileSync(abs, 'utf8')); }
-  catch (e) { console.error(`anchor-lint: --junit nao e JSON valido (${p}): ${e.message}`); process.exit(2); }
-  if (!data || typeof data.schema !== 'string' || !data.schema.startsWith('junit-summary/')) {
-    console.error(`anchor-lint: --junit sem schema junit-summary/* (${p}) — gere com scripts/tests/junit-summary.mjs`); process.exit(2);
-  }
+  try { data = JSON.parse(raw); } catch (e) { return unknown(`não é JSON válido: ${e.message}`); }
+  if (!data || typeof data !== 'object') return unknown('JSON não-objeto');
+  if (data.invalid === true) return unknown(`marcador de run inválido (${data.schema || 'schema?'}${data.reason ? ` · ${data.reason}` : ''})`);
+  if (typeof data.schema !== 'string' || !data.schema.startsWith('junit-summary/')) return unknown(`schema não junit-summary/* (${data.schema || 'ausente'}) — gere com scripts/tests/junit-summary.mjs`);
+  if (data.coherent === false) return unknown('run INCOERENTE (coherent:false — shard parcial? verde POR ARQUIVO seria mentira)');
   const map = new Map();
-  for (const f of (data.files || [])) if (f && f.file) map.set(String(f.file).replace(/\\/g, '/'), f);
+  for (const f of (Array.isArray(data.files) ? data.files : [])) if (f && f.file) map.set(String(f.file).replace(/\\/g, '/'), f);
   return { map, schema: data.schema, source: data.source || p, coherent: data.coherent };
 }
-const JUNIT = JUNIT_PATH ? loadJunit(JUNIT_PATH) : null;
+const JUNIT_RAW = JUNIT_PATH ? loadJunit(JUNIT_PATH) : null;
+// sentinela unknown (--junit inválido/incoerente/ausente) NÃO vira JUnit usável → behavior_unknown.
+const JUNIT = JUNIT_RAW && !JUNIT_RAW.unknown ? JUNIT_RAW : null;
+const JUNIT_UNKNOWN_REASON = JUNIT_RAW && JUNIT_RAW.unknown ? JUNIT_RAW.reason : null;
 const junitFiles = JUNIT ? JUNIT.map : null;
 // status de um arquivo-de-teste no JUnit: verde só se passou de fato (≥1 passed, 0 fail/error).
 // ausente = não rodou nesse lane · skipped = só pulou (markTestSkipped) · vazio = 0 testcases.
@@ -614,7 +634,7 @@ const report = {
     verde_regra: 'GATE VERDE (G1b-verde · Phase B): com --junit <summary.json> (junit-summary/v1), US implementada+coberta cujo arquivo-de-teste NÃO está verde no JUnit → req_teste_vermelho. verde POR ARQUIVO = passed>0 E failed=0 E errors=0; vermelho/skipped/ausente NÃO contam (skipped != passed, defesa markTestSkipped). fs-puro: lê o JSON que o CI já produz, NUNCA roda teste/PHP/DB. Sem --junit → behavior_unknown (nunca avermelha). exit 1 só com --check-verde OU --check-entry.',
     servido_regra: 'SERVIDO (4º veredito · ADVISORY runtime): US wired (anchored_ok/parcial) ancorada em Page com hits>0 na janela do ledger governance/route-hits.json (export do middleware ContadorHitsRota em prod). nao_servido = "existe + roteado mas 0 hits em Nd" — prova de USO, não de correção. NUNCA entra em coverage/--check/flag. Sem ledger (ou pages vazio) = sem_ledger, nada é marcado.',
     servido_ledger: HITS ? `${relative(ROOT, HITS_PATH).replace(/\\/g, '/')} (janela ${HITS.janela ?? '?'}d)` : 'sem_ledger',
-    behavior: JUNIT ? `junit:${JUNIT.schema}${JUNIT.coherent === false ? ' (INCOERENTE)' : ''} · fonte ${JUNIT.source}` : 'behavior_unknown (sem --junit)',
+    behavior: JUNIT ? `junit:${JUNIT.schema} · fonte ${JUNIT.source}` : `behavior_unknown (${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'})`,
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
     fase: 'F1 ADVISORY (ADR 0273 §4) — exit 0 sempre nos modos default/--json; --check (exit 1) reservado pra F2',
     baseline_regra: BASELINE
@@ -665,7 +685,7 @@ console.log(`  Cobertura fora de lane (advisory · item b): ${reqSemLaneTotal} U
 console.log(`  Testado sem covers (teste existe mas não declara @covers-us · advisory): ${testadoSemCoversTotal}`);
 console.log(`  Gate de entrada (advisory): ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre${BASELINE ? ` (ATIVOS, pós-baseline)` : ''}`);
 if (BASELINE) console.log(`  Grandfather (${BASELINE_PATH}): ${grandfatheredAceite} aceite + ${grandfatheredTeste} teste + ${grandfatheredCovers} covers isentos (no-new-lie · ratchet só-desce · ADR 0275)`);
-console.log(`  Gate verde (advisory): ${JUNIT ? `${reqTesteVermelhoTotal} US implementada com teste-que-cobre NÃO-verde no JUnit (verde=passed>0 & fail=0; skipped/ausente não contam · skipped != passed)` : 'behavior_unknown — sem --junit (nunca avermelha)'}`);
+console.log(`  Gate verde (advisory): ${JUNIT ? `${reqTesteVermelhoTotal} US implementada com teste-que-cobre NÃO-verde no JUnit (verde=passed>0 & fail=0; skipped/ausente não contam · skipped != passed)` : `behavior_unknown — ${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'} (nunca avermelha)`}`);
 console.log(`  Servido (advisory runtime): ${HITS ? `${servidoTotal} US com hit real na janela · ${naoServidoTotal} wired porém 0 hits (ledger ${report._meta.servido_ledger})` : 'sem_ledger — governance/route-hits.json ausente/vazio (coleta ROUTE_HITS_ENABLED ainda OFF?); nada marcado'}`);
 console.log(`\n  💀 dead = path inexistente · 🧟 zombie = path existe mas tela desligada · 🧪 = teste citado inexistente. Corrigir via reconciliação — nunca inventar path.\n`);
 

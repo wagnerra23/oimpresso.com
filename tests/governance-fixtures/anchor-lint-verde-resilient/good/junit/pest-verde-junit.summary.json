@@ -1,0 +1,6 @@
+{
+  "schema": "fullsuite-summary-invalid/v1",
+  "invalid": true,
+  "reason": "run morto: junit 0 bytes (fixture resiliência V6-A)",
+  "source": "test-results/pest-verde-junit.xml"
+}
