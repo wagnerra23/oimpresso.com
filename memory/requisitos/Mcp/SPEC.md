@@ -2,7 +2,7 @@
 module: Mcp
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: ativo
 na_justified:
   D5: "MCP server (`mcp.oimpresso.com`) é tools/governança consumida pelo TIME INTERNO (Wagner/Felipe/Maiara/Eliana/Luiz) e por Claude Code via protocol MCP — NÃO é módulo de features cliente. Cliente externo biz=4 ROTA LIVRE não consome tools MCP (não tem acesso ao server CT 100). D5 cliente real não aplica por design (mesma justificativa de TeamMcp/Brief — ADR 0094 Constituição §infraestrutura interna)."

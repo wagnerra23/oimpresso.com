@@ -11,7 +11,7 @@ cnae_secundarios: ["4530-7/01", "4530-7/02", "4530-7/04", "4530-7/05"]
 related_adrs: [0125-modules-autopecas-feature-wish, 0121-oimpresso-modular-especializado-por-vertical, 0094-constituicao-v2-7-camadas-8-principios, 0093-multi-tenant-isolation-tier-0, 0105-cliente-como-sinal-guiar-sem-mandar, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0035-stack-ai-canonica-wagner-2026-04-26, 0011-alinhamento-padrao-jana, 0089-capterra-driven-module-evolution, 0119-migration-factory-capacidade-institucional]
 related_proposals: []
 last_review: 2026-05-10
-owner: [W]
+owners: [W]
 ---
 
 # Especificação funcional — Autopecas (planejado — não existe)

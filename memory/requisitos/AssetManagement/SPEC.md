@@ -2,7 +2,7 @@
 module: AssetManagement
 version: "1.0"
 last_updated: "2026-07-02"
-owner: wagner
+owners: [W]
 status: ativo
 anchor_format: "v1"
 na_justified:

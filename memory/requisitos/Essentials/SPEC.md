@@ -3,7 +3,7 @@ slug: modules-essentials-spec
 title: "Modules/Essentials — SPEC"
 type: spec
 module: Essentials
-owner: wagner
+owners: [W]
 version: "1.0"
 last_updated: "2026-06-13"
 status: rascunho

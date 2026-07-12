@@ -2,7 +2,7 @@
 module: Comissao
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: rascunho
 related_adrs: [0151-modules-comissao-feature-wish, 0105-cliente-como-sinal-guiar-sem-mandar, 0143-fsm-pipeline-live-prod-marco-2026-05-12]
 ---

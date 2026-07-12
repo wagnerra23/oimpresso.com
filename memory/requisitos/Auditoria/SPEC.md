@@ -6,7 +6,7 @@ module: Auditoria
 version: "1.0"
 last_updated: "2026-07-02"
 anchor_format: "v1"
-owner: wagner
+owners: [W]
 status: ativo
 authority: canonical
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0127-modules-auditoria-undo-activity-log, 0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0156-module-grade-v3-errata-otel-helper-na-justified]

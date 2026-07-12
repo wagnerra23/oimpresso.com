@@ -4,7 +4,7 @@ title: "Especificação funcional — Produto (cadastro core / catálogo do ERP)
 type: spec
 module: Produto
 status: ativo
-owner: wagner
+owners: [W]
 version: "1.0.0"
 last_updated: "2026-07-03"
 ---

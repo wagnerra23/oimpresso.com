@@ -4,7 +4,7 @@ title: "Especificação funcional · Design System"
 type: spec
 module: _DesignSystem
 status: ativo
-owner: wagner
+owners: [W]
 version: "1.1"
 last_updated: "2026-05-25"
 ---

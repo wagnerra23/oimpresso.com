@@ -3,7 +3,7 @@ module: Jana
 status: ativo
 version: "3.1.0"
 last_updated: "2026-05-25"
-owner: wagner
+owners: [W]
 parent_adr: "0094-constituicao-v2-7-camadas-8-principios"
 related_adrs:
   - "0035-stack-ai-canonica-wagner-2026-04-26"

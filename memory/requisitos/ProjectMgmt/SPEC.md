@@ -1,6 +1,6 @@
 ---
 module: ProjectMgmt
-owner: wagner
+owners: [W]
 version: "2.0.0"
 last_updated: "2026-05-08"
 project: PMG

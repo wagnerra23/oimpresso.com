@@ -3,7 +3,7 @@ module: Inventory
 version: "1.0"
 last_updated: "2026-07-02"
 status: rascunho
-owner: [W]
+owners: [W]
 prioridade: P0-P2 (faseado)
 related_modules: [Sells, Repair, OficinaAuto, ComunicacaoVisual, Vestuario, Autopecas, NfeBrasil, Marketplaces]
 related_adrs:

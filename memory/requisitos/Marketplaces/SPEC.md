@@ -22,7 +22,7 @@ related_adrs:
   - "0129-state-machine-canonica-fsm-rbac"
 related_proposals: [proposals/drafts/marketplaces-modulo-cross-vertical.md]
 last_review: 2026-05-12
-owner: [W]
+owners: [W]
 ---
 
 # Especificação funcional — Marketplaces (planejado — não existe) (cross-vertical)

@@ -2,7 +2,7 @@
 module: NfeBrasil
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 na_justified:
   D7.a: "Fiscal compliance CONFAZ SINIEF 07/2005 — CPF/CNPJ em logs SEFAZ obrigatórios. PiiRedactor NÃO aplica em dados fiscais (XML original preservado). Detalhe em PII-LGPD-FISCAL.md."
 ---

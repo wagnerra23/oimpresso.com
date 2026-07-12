@@ -15,7 +15,7 @@ pii: false
 updated_at: 2026-05-16
 last_updated: '2026-05-27'
 version: '1.2'
-owner: wagner
+owners: [W]
 ---
 
 # Especificação funcional — Financeiro

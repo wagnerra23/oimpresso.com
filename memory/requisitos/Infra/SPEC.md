@@ -5,7 +5,7 @@ type: spec
 module: Infra
 project: COPI
 status: ativo
-owner: wagner
+owners: [W]
 version: "1.2"
 last_updated: "2026-06-04"
 na_justified:

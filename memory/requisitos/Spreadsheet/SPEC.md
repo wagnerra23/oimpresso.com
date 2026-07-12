@@ -2,7 +2,7 @@
 module: Spreadsheet
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: arquivado
 na_justified:
   D5: "Utilitário backend de import/export planilhas cross-business. Não tem cliente externo direto — serve todos businesses como infraestrutura compartilhada (mesma natureza Brief/MCP tools — ADR 0094 §SoC brutal). ADR 0105 (cliente como sinal qualificado): função é infraestrutura interna, não produto cliente-facing."

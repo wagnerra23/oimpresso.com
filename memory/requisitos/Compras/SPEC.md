@@ -25,7 +25,7 @@ pii: false
 updated_at: "2026-07-05"
 last_updated: "2026-07-05"
 version: "0.4"
-owner: wagner
+owners: [W]
 ---
 
 # Especificação funcional — Compras

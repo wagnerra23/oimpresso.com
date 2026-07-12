@@ -2,7 +2,7 @@
 module: ProductCatalogue
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: ativo
 na_justified:
   D6.b: "ProductCatalogue é catálogo público read-only — p99 OTel <500ms ainda não exportado (instrumentação OTel project-wide pendente). Performance dominada por queries simples em `App\\Product` com cache de imagens — sem otimização específica necessária no estado atual."

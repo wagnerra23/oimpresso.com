@@ -1,6 +1,6 @@
 ---
 module: Crm
-owner: wagner
+owners: [W]
 alias: crm
 version: "1.0"
 last_updated: "2026-06-13"

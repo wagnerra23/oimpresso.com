@@ -3,7 +3,7 @@ slug: modules-accounting-spec
 title: "Modules/Accounting — SPEC"
 type: spec
 module: Accounting
-owner: wagner
+owners: [W]
 version: "1.0"
 last_updated: "2026-05-16"
 status: arquivado

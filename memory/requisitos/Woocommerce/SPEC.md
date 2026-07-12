@@ -2,7 +2,7 @@
 module: Woocommerce
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: rascunho
 na_justified:
   D5: "Gateway de integração WooCommerce webhook — não módulo cliente-facing direto. Integração técnica entre oimpresso e lojas WooCommerce externas (B2B2C). ADR 0121 §integrações + ADR 0105 §cliente como sinal qualificado: módulo dormente preservado pra futuro, sem cliente ativo reportando dor pra justificar UX investigation."

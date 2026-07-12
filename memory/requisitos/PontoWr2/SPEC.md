@@ -2,7 +2,7 @@
 module: PontoWr2
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: historical
 ---
 

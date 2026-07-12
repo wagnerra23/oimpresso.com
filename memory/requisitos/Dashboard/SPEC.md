@@ -4,7 +4,7 @@ status: ativo
 phase: F6 Soft wrapper (entrega 2026-05-21)
 parent_route: /home
 version: "1.0.0"
-owner: wagner
+owners: [W]
 last_updated: "2026-05-21"
 last_validated: "2026-05-21"
 related_adrs:

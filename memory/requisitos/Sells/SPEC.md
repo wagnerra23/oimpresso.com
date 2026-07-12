@@ -4,7 +4,7 @@ title: "Especificação funcional — Sells (migração MWART de /sells/create)"
 type: spec
 module: Sells
 status: ativo
-owner: wagner
+owners: [W]
 version: "1.0.0"
 last_updated: "2026-05-31"
 ---

@@ -2,7 +2,7 @@
 module: Mwart
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 na_justified:
   D5: "Mwart é meta-processo de governança (enforcement do caminho canônico Blade→Inertia — ADR 0104) — NÃO é módulo de features cliente-facing. Não há biz=4 ROTA LIVRE consumindo features Mwart; consumidores são `Modules/*` que migram para Inertia. D5 cliente real não aplica por design."
   D4.b: "Mwart não tem state machine FSM (ADR 0143). É processo administrativo de gating (skill Tier A + hook PreToolUse + CI workflow), não fluxo de negócio com transições Eloquent. D4.b FSM canônica N/A."

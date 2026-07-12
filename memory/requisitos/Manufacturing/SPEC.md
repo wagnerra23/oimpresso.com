@@ -1,6 +1,6 @@
 ---
 module: Manufacturing
-owner: wagner
+owners: [W]
 version: "1.0"
 last_updated: "2026-06-13"
 na_justified:

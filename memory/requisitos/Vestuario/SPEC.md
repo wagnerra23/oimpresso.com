@@ -2,7 +2,7 @@
 module: Vestuario
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: ativo
 status_detalhe: "live em produção via ROTA LIVRE biz=4 desde 2024-Q1"
 piloto: ROTA LIVRE — LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME

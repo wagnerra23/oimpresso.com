@@ -4,7 +4,7 @@ status: historical
 date: 2026-05-12
 last_updated: "2026-06-13"
 version: "1.0"
-owner: wagner
+owners: [W]
 module: FinanceiroAvancado
 parent_modules: [Financeiro, Accounting, RecurringBilling, NfeBrasil, Inventory]
 convention_id: US-FINA-NNN

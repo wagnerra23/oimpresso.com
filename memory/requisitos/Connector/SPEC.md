@@ -3,7 +3,7 @@ module: Connector
 version: "1.0"
 last_updated: "2026-05-16"
 status: ativo
-owner: wagner
+owners: [W]
 na_justified:
   D4.c: "Connector é REST API externa pra clientes Delphi consumirem (zero UI Inertia/Blade próprias por design). CHARTER-rest-api-external.md documenta o contrato. Penalizar por 0 tsx não faz sentido — é módulo backend-only."
   D6.a: "Connector é REST API JSON-only — Inertia::defer N/A por design."

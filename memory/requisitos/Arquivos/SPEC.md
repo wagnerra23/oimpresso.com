@@ -5,7 +5,7 @@ type: spec
 module: Arquivos
 version: "1.0"
 last_updated: "2026-07-02"
-owner: wagner
+owners: [W]
 status: rascunho
 anchor_format: "v1"
 related_adrs: [0123-modules-arquivos-backbone, 0093-multi-tenant-isolation-tier-0, 0122-admin-center-ct100, 0053-mcp-server-governanca-como-produto]

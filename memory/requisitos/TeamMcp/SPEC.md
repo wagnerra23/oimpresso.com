@@ -2,7 +2,7 @@
 module: TeamMcp
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 na_justified:
   D1.a: "Tabela `mcp_actors` é cross-tenant POR DESIGN (sem `business_id`) — Identity Mesh governa time INTERNO oimpresso (Wagner/Felipe/Maiara/Eliana/Luiz), não clientes externos. Demais tabelas TeamMcp (`mcp_tokens`, `mcp_scopes`, `mcp_audit_log`) herdam `business_id` via `user_id` FK ou são repo-wide governance ([ADR 0053](../../decisions/0053-mcp-server-governanca-como-produto.md) MCP server canon + [ADR 0081](../../decisions/0081-identity-mesh-mcp-actors.md) Identity Mesh + Constituição v2 Art. 6)."
   D5: "TeamMcp é módulo INTERNO de gestão de tokens MCP do time (Wagner/Felipe/Maiara/Luiz/Eliana). Cliente biz=4 ROTA LIVRE não usa por design — é ferramenta da equipe, não produto pra cliente final. ADR 0081 documenta como módulo team-internal."

@@ -4,7 +4,7 @@ version: "1.0"
 last_updated: "2026-07-02"
 anchor_format: "v1"
 status: rascunho
-owner: wagner
+owners: [W]
 related_adrs: [0153-module-grade-rubrica-v1, 0154-module-grade-v2-na-justificado, 0155-module-grade-v3-sub-dimensoes-gate-ci]
 na_justified:
   D3.b: "ConsultaOs é módulo público de consulta OS (cliente final consulta status via número) — mock-only hoje. Migrar pra real (US-CONSULTA-001) está em backlog. BRIEFING.md prematuro até migração TODO."

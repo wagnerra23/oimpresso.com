@@ -1,6 +1,6 @@
 ---
 lifecycle: active
-owner: [W]
+owners: [W]
 module: Governance
 project: COPI
 status: ativo

@@ -2,7 +2,7 @@
 module: Admin
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: rascunho
 na_justified:
   D5: "Admin Center é Wagner-only no CT 100 via Tailscale (gate `is_wagner` + role `superadmin#1` + CIDR `100.99.0.0/16` whitelist — ADR 0122 Princípio 1+2). Cliente externo biz=4 ROTA LIVRE NÃO tem acesso por design — internet pública zera vetor de ataque. D5 cliente real não aplica."

@@ -2,7 +2,7 @@
 module: Brief
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: ativo
 na_justified:
   D3.a: "Brief é MCP tool por design (Daily Brief brief-fetch). Não tem US-XXX-NNN tradicional — funcionalidade é UMA tool: gerar snapshot ~3k tokens. Documentação canônica é ADR 0091."

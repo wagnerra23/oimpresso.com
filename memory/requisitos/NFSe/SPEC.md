@@ -5,7 +5,7 @@ type: spec
 module: NFSe
 status: ativo
 authority: canonical
-owner: "[E] Eliana"
+owners: [E]
 related_adrs:
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios

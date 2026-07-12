@@ -4,7 +4,7 @@ module: Garantia
 type: spec
 status: rascunho
 lifecycle: draft
-owner: [W]
+owners: [W]
 version: "1.0"
 last_updated: "2026-06-13"
 created_at: 2026-05-12

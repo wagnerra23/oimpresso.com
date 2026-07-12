@@ -2,7 +2,7 @@
 module: Superadmin
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: ativo
 na_justified:
   D5: "Cross-tenant intencional Wagner-only — superadmin opera FORA do multi-tenant por design (ADR 0093 §exceções + ADR 0094 Constituição Art. 6). Cliente externo biz=4 ROTA LIVRE não é alvo; gate `is_superadmin` bloqueia tudo que não seja Wagner. Penalizar D5 distorce ranking de módulo de backoffice."

@@ -5,7 +5,7 @@ title: Especificação funcional — RecurringBilling
 type: spec
 version: "1.0"
 last_updated: "2026-07-03"
-owner: wagner
+owners: [W]
 status: ativo
 ---
 

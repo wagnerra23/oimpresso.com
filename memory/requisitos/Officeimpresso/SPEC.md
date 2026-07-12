@@ -2,7 +2,7 @@
 module: Officeimpresso
 version: "1.0"
 last_updated: "2026-06-13"
-owner: wagner
+owners: [W]
 status: arquivado
 related_adrs:
   - 0136-sells-grade-avancada-modo-toggle
