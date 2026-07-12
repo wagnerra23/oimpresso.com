@@ -1,0 +1,6 @@
+{
+  "branch": "main",
+  "enforcement_level": "everyone",
+  "classic_protection": { "contexts": ["ci-alpha"] },
+  "rulesets": { "strict_required_status_checks_policy": false, "contexts": [] }
+}

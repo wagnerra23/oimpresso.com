@@ -36,6 +36,8 @@ jobs:
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)
         run: node scripts/governance/dup-detector.test.mjs
+      - name: Protection-drift frescor da orfa (computed_at do conteudo, nao o tip · V5 GT-G4)
+        run: node scripts/governance/protection-drift-freshness.test.mjs
       - name: Outcome metrics (medidor de aceitacao · fixtures-armadilha · Onda O1)
         run: node scripts/governance/outcome-metrics.test.mjs
       - name: Agent PR outcomes (DORA do agente · CFR morde/libera · card #0 grade-das-reguas)

@@ -1,0 +1,15 @@
+{
+  "_nota": "bad — TIP FRESCO mas computed_at do CONTEÚDO 6+ dias antes de PROTECTION_DRIFT_NOW (>48h) ⇒ 🔴. Prova que o watchdog IGNORA o tip: tip_committed_at é hoje, mesmo assim avermelha porque o floor congelou.",
+  "enforcement_level": "everyone",
+  "classic_contexts": ["ci-alpha"],
+  "ruleset_contexts": [],
+  "ruleset_strict": false,
+  "orfa_contents": {
+    "orfa:governance/nightly-floor#governance/nightly-floor.json": {
+      "schema": "nightly-floor/v1 (ADR 0279)",
+      "floor_count": 291,
+      "computed_at": "20260706-020001",
+      "tip_committed_at": "20260712-060000"
+    }
+  }
+}
