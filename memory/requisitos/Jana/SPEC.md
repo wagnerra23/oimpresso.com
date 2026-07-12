@@ -468,7 +468,7 @@ Implementar `.claude/commands/ultrareview.md` que pede ao Claude (ou sub-agent v
 
 ### US-COPI-085 · Hook block-destructive — guardrails Bash em produção
 
-**Implementado em:** `.claude/hooks/block-destructive.ps1` · verificado@dd3ed7c (2026-07-01) — hook PreToolUse bloqueia Bash destrutivo (rm -rf, push --force, DROP/DELETE, migrate:fresh)
+**Implementado em:** `.claude/hooks/block-destructive.mjs` · verificado@1f4fdc9 (2026-07-12) — path reconciliado `.ps1`→`.mjs` (migração de hooks do projeto; arquivo `.ps1` não existe mais, `.mjs` + `.test.mjs` presentes). Hook PreToolUse bloqueia Bash destrutivo (rm -rf, push --force, DROP/DELETE, migrate:fresh)
 
 > owner: wagner · sprint: 2026-W19 · priority: p0 · estimate: 3h · status: done · done_at: 2026-05-04 · tests_passing: 14/14
 > blocked_by: —
@@ -481,7 +481,7 @@ Hook PreToolUse em `.claude/settings.json` que bloqueia (exit 2) comandos Bash d
 
 ### US-COPI-086 · Hook pii-redactor — bloquear commit com PII (LGPD)
 
-**Implementado em:** `.claude/hooks/pii-redactor.ps1` · verificado@dd3ed7c (2026-07-01) — hook escaneia `git diff --staged` por CPF/CNPJ/email/cartão e bloqueia com whitelist de fixtures
+**Implementado em:** `.claude/hooks/pii-redactor.mjs` · verificado@1f4fdc9 (2026-07-12) — path reconciliado `.ps1`→`.mjs` (migração de hooks do projeto; arquivo `.ps1` não existe mais, `.mjs` + `.test.mjs` presentes). Hook escaneia `git diff --staged` por CPF/CNPJ/email/cartão e bloqueia com whitelist de fixtures
 
 > owner: wagner · sprint: 2026-W19 · priority: p1 · estimate: 3h · status: done · done_at: 2026-05-04 · tests_passing: 10/10
 > blocked_by: —
