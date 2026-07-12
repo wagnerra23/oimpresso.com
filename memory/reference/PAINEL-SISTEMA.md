@@ -65,11 +65,12 @@ lifecycle: ativo
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 24 required (enforcement: everyone)
+### Bloqueiam merge — 25 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
+- Ancora de design nao-shell (F2/F6 required)
 - Append-only canon (ADRs, handoffs, Constituição)
 - Casos-coverage · ratchet (trio + rastreabilidade)
 - DS gate
