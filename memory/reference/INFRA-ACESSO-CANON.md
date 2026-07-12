@@ -64,6 +64,17 @@ tailscale ssh root@ct100-mcp '
 ## Secrets
 **Vaultwarden** `vault.oimpresso.com` (container CT 100). Índice canon: [_INDEX-SECRETS.md](../_INDEX-SECRETS.md). NUNCA commitar valor; sempre ponteiro.
 
+### Ler segredo pelo agente — `get-secret.sh` (canônico, Opção B)
+Mecanismo único pra o agente ler QUALQUER segredo do Vaultwarden sem escalar pro Wagner e sem manusear valor no chat. Fonte no git: [`scripts/infra/get-secret.sh`](../../scripts/infra/get-secret.sh) → deployado no CT 100 em `/root/bin/get-secret.sh`.
+```bash
+tailscale ssh root@ct100-mcp '/root/bin/get-secret.sh <slug>'            # imprime o segredo
+tailscale ssh root@ct100-mcp '/root/bin/get-secret.sh <slug> --field X'  # custom field
+tailscale ssh root@ct100-mcp '/root/bin/get-secret.sh --status'          # diagnóstico
+```
+- **Login:** service account `claude-agent` (API key) → login `--apikey` + unlock com master password, sessão cacheada em `/root/.bw-session` (chmod 600). Reaproveita a sessão entre chamadas.
+- **Setup 1× (SÓ Wagner):** cria o user `claude-agent` no Vaultwarden admin (SIGNUPS_ALLOWED=false → via admin/invite), gera a API key, cola `BW_CLIENTID`/`BW_CLIENTSECRET`/`BW_PASSWORD` em `/root/.vaultwarden-agent-creds` (chmod 600) e compartilha os itens de segredo com o `claude-agent`. Sem isso, `get-secret.sh` sai com código `3` (NÃO CONFIGURADO) e imprime o passo-a-passo.
+- **Escalável:** o mesmo mecanismo serve Asaas/Sicoob/Hostinger/etc — 1 setup pra todos os segredos futuros.
+
 ## Estado conhecido (2026-05-29)
 - ⚠️ **`oimpresso-mcp` estava 1302 commits atrás** de `origin/main` (HEAD #799). DB em dia (0 migrations pendentes). Deploy do código novo estava **bloqueado**: `Dockerfile.octane` não tinha `gd/soap/sockets/opentelemetry` → `composer install` falhava. **Corrigido no Dockerfile 2026-05-29** (rebuild necessário pra aplicar).
 

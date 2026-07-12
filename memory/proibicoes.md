@@ -168,7 +168,7 @@
 
 **Recomendação:** B (Vaultwarden API key) — escalável + Wagner setup só 1× pra todos secrets futuros.
 
-**Status:** awaiting Wagner decisão A vs B. Próxima sessão começa por aceite + implementação.
+**Status (2026-07-12):** Opção B ESCOLHIDA + mecanismo implementado (parte Claude). `bw` CLI instalado no CT 100 (`/usr/bin/bw` v2026.6.0) apontando pra `vault.oimpresso.com`; script canônico `scripts/infra/get-secret.sh` deployado em `/root/bin/get-secret.sh` (smoke: exit 3 = NÃO CONFIGURADO com instrução clara). Skill `hostinger-dns-autonomy` Path 1 + `INFRA-ACESSO-CANON.md` + `_INDEX-SECRETS.md` atualizados. **Falta SÓ Wagner (setup 1×):** criar user `claude-agent` no Vaultwarden admin + gerar API key + colar `BW_CLIENTID`/`BW_CLIENTSECRET`/`BW_PASSWORD` em `/root/.vaultwarden-agent-creds` (chmod 600) + compartilhar itens de segredo. Depois disso o gap fecha (DoD: `get-secret.sh hostinger-api-token` retorna o token).
 - ⛔ **Não suba código sem alertar pré-requisitos e riscos**. Histórico de crashes:
   - 2026-04-18: scaffold incompatível
   - 2026-04-19: PHP 8 em servidor PHP 7.1
