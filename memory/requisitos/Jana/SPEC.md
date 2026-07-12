@@ -1085,6 +1085,8 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 **Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` — função applyTimeDecay() (L336) **chamada no pipeline de recall** (L194); half-life decay exponencial (L319, meia-vida sobre age em dias); config copiloto.time_decay.temporal_weight default 0.4 · verificado@42af777 (2026-07-12) — impl. completa e WIRED (não código morto); o SPEC anterior citou nome errado (applyTemporalScoring) e afirmou "não existe" — era drift doc-atrás-do-código. **Validação remanescente (não bloqueia shipped):** medir NDCG@10 +15pp no dashboard Langfuse (agora possível, US-COPI-108 vivo).
 
+**Testado em:** `Modules/Jana/Tests/Feature/Memoria/TimeDecayTest.php` (fórmula half-life por doc_type + status multipliers + feature-flag + edge cases; `// @covers-us US-COPI-110`)
+
 **Definition of Done:**
 - [ ] Função composite `score = relevance×0.6 + recency_decay(age_days, lifecycle)×0.3 + importance×0.1` documentada
 - [ ] `recency_decay()`: `exp(-age_days / half_life)` com half_life=90d default · multiplica por `(1 - decay_rate)` se `lifecycle` ∈ {historical, superseded, deprecated}
