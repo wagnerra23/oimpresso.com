@@ -140,7 +140,8 @@ class LangfuseClient
                 // "custo/latência/traces por business" no UI Langfuse (ADR 0093 Tier 0).
                 'tags' => array_values(array_filter(array_merge(
                     [(string) config('langfuse.environment', 'production')],
-                    isset($attrs['business_id']) && $attrs['business_id'] !== null
+                    // isset() já garante chave presente E não-null (não redundar com !== null)
+                    isset($attrs['business_id'])
                         ? ['business_id:' . $attrs['business_id']]
                         : [],
                     (array) ($attrs['tags'] ?? []),
