@@ -136,8 +136,13 @@ class LangfuseClient
                     ],
                     (array) ($attrs['metadata'] ?? []),
                 ),
+                // US-COPI-132: business_id como TAG (não só metadata) — habilita filtro
+                // "custo/latência/traces por business" no UI Langfuse (ADR 0093 Tier 0).
                 'tags' => array_values(array_filter(array_merge(
                     [(string) config('langfuse.environment', 'production')],
+                    isset($attrs['business_id']) && $attrs['business_id'] !== null
+                        ? ['business_id:' . $attrs['business_id']]
+                        : [],
                     (array) ($attrs['tags'] ?? []),
                 ))),
                 'release' => (string) ($attrs['release'] ?? config('langfuse.release', 'unknown')),

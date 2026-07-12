@@ -142,6 +142,51 @@ it('inclui business_id em metadata do trace (multi-tenant Tier 0)', function () 
     });
 });
 
+it('inclui business_id como TAG do trace — filtro multi-tenant no UI (US-COPI-132)', function () {
+    config()->set('langfuse.dispatch', 'sync');
+    config()->set('langfuse.environment', 'production');
+
+    Http::fake([
+        'https://langfuse.test/api/public/ingestion' => Http::response([], 207),
+    ]);
+
+    $client = new LangfuseClient;
+    $client->startTrace([
+        'name' => 'brain-b-agent',
+        'business_id' => 4,
+        'input' => 'faturamento',
+    ]);
+
+    Http::assertSent(function ($request) {
+        $tags = $request->data()['batch'][0]['body']['tags'];
+
+        // Tier 0: a tag business_id:{N} tem que estar presente pra filtrar por tenant
+        return in_array('business_id:4', $tags, true)
+            && in_array('production', $tags, true);
+    });
+});
+
+it('não cria tag business_id quando ausente (não vaza tag vazia)', function () {
+    config()->set('langfuse.dispatch', 'sync');
+
+    Http::fake([
+        'https://langfuse.test/api/public/ingestion' => Http::response([], 207),
+    ]);
+
+    $client = new LangfuseClient;
+    $client->startTrace([
+        'name' => 'anonymous-agent',
+        'input' => 'x',
+    ]);
+
+    Http::assertSent(function ($request) {
+        $tags = $request->data()['batch'][0]['body']['tags'];
+
+        // Nenhuma tag começando com "business_id:" quando business_id é null
+        return count(array_filter($tags, fn ($t) => str_starts_with($t, 'business_id:'))) === 0;
+    });
+});
+
 it('fail-open quando Http retorna 500 — não lança exception', function () {
     config()->set('langfuse.dispatch', 'sync');
 
