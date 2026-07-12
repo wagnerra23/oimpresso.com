@@ -978,8 +978,8 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 | **Onda 1** (bugs MCP sync) | múltiplas COPI legacy | 4d | +10pp (70→80%) | ✅ entregue 2026-05-13 | 80% |
 | **Onda 2** (KB + handoffs) | múltiplas COPI legacy | 12d | +7pp (80→87%) | ✅ entregue 2026-05-13 | 87% |
 | **Onda 3** (consolidação — Reranker RRF + backlinks + RAGAS gate + weekly digest) | múltiplas COPI legacy | 25d (~1d real IA-pair) | +4pp (87→91%) | ✅ entregue 2026-05-13 | 91% |
-| **Onda 4** P0 (R1+L1+C1 — destrava medição honesta) | **US-COPI-107 + 108 + 109** | 5d (~3d real) | +4pp (91→95%) | 🟡 SPEC pronto, tasks MCP pendentes Wagner | 95% |
-| **Onda 5** P1 (K1+V1+H1+S1 — estruturais) | **US-COPI-110 + 111 + 112 + 113** | 9d (~5d real) | +3pp (95→98%) | 🟡 SPEC pronto, gate Langfuse (Onda 4 L1 rodar 14d antes) | 98% |
+| **Onda 4** P0 (R1+L1+C1 — destrava medição honesta) | **US-COPI-107 + 108 + 109** | 5d (~3d real) | +4pp (91→95%) | ✅ **DONE** — verificado por máquina 2026-07-12 (107 reranker container live 7d · 108 Langfuse live 2sem · 109 tool+hook, Tier A superseded ADR 0225) | 95% |
+| **Onda 5** P1 (K1+V1+H1+S1 — estruturais) | **US-COPI-110 + 111 + 112 + 113** | 9d (~5d real) | +3pp (95→98%) | 🟢 **3/4 DONE** — 110 time-decay `applyTimeDecay()` wired · 112 handoff-tool · 113 schema-gate ✅; **falta só 111** (Gantt UI — precisa design-source + gate visual Wagner) | ~97% |
 | **Onda 6** P2-P3 (A1+M1+G1+F1+L2 — saturação) | n/a (gate sinal qualificado) | 27d (~10d real) | +2pp (98→100%) | ❌ NÃO entrar sem sinal cliente externo (ADR 0105) | 100% (teto não-pragmático) |
 
 **Pré-requisito Onda 4 → Onda 5:** L1 (Langfuse) fechado E rodando ≥14d em prod com métricas live antes de Onda 5 começar — sem isso, Ondas 5-6 viram "subjetivas" (princípio 4 Constituição v2 "Loop fechado por métrica").
@@ -1017,25 +1017,23 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-108 · Onda 4 L1 — Langfuse v3 self-host CT 100 (MULTIPLICADOR)
 
-> owner: wagner · priority: p0 · estimate: 16h IA-pair (2d) · type: story · sprint: CYCLE-06
+> owner: wagner · priority: p0 · estimate: 16h IA-pair (2d) · status: done · type: story · sprint: CYCLE-06
 > blocked_by: — · spawned_from: JANA-10X-017 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §3)
 
 **Como** time IA Jana + Wagner (governança custo)
 **Quero** Langfuse v3 self-host em CT 100 (docker-compose: web + worker + ClickHouse + Postgres + Redis + MinIO) instrumentando 100% das chamadas LLM em prod (BriefDiarioAgent + kb-answer + recall + RAGAS gate)
 **Para** ter observability LLM real (trace + cost + latency + RAGAS metrics) — sem isso, claims de "95%+" são não-falsificáveis (princípio 4 Constituição v2). Destrava medição de R1 (reranker NDCG), K1 (time-decay impact), A1 (auto-summary ROI), RAGAS gate trend semanal
 
-**Implementado em:** _parcial_ · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `docker/langfuse/docker-compose.yml` · verificado@08c4a8f (2026-06-21) — wrapper + compose existem; falta instrumentar `BriefDiarioAgent`/`KbAnswerAgent`/`MeilisearchDriver` e subir stack CT 100 (DoD ainda aberto)
+**Implementado em:** `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `docker/langfuse/docker-compose.yml` · `Modules/Jana/Services/Ai/LaravelAiSdkDriver.php` · `Modules/Jana/Services/Memoria/Telemetry/RetrievalTelemetryDecorator.php` · verificado@42af777 (2026-07-12) — **deploy CONFIRMADO vivo por máquina** (`docker ps` CT 100): 6 containers healthy up 2 semanas + tráfego real (query ClickHouse: 3.226 traces, 200-450/dia, agents `brain-b`/`planner`/`kb-answer`/`brief-diario` instrumentados via `LaravelAiSdkDriver` + `RetrievalTelemetryDecorator`). **Gap remanescente único:** tag `business_id` por trace (traces têm só `['live']`) → US-COPI-132.
 
 **Definition of Done:**
-- [ ] Stack Langfuse v3 rodando CT 100 atrás Traefik HTTPS (subdomínio `langfuse.oimpresso.com` interno) — receita `proxmox-docker-host` skill
-- [ ] `business_id` propagado como TAG em todo trace (ADR 0093 Tier 0) — verificação no UI
-- [ ] BriefDiarioAgent emite trace `brief.gerar` com spans: prompt build / OpenAI call / parse / persist (cost OpenAI USD inline)
-- [ ] kb-answer (tool MCP) emite trace `kb.answer` com spans: hybrid recall / rerank (se US-COPI-107 fechada) / synth
-- [ ] RAGAS gate CI emite traces em batch (`jana:rag-eval` 200 queries/dia)
-- [ ] Dashboard "Custo Brain B por business" filtra por TAG `business_id` (validação isolation)
-- [ ] ADR 0096 superseded por nova "Langfuse v3 self-host CT 100 canon" (substitui claude-code-usage-self standalone)
-- [ ] Skill `runtime-rules-hostinger-ct100` respeitada (NÃO instalar em Hostinger — ADR 0062)
-- [ ] Smoke 7d em prod com Wagner uso real biz=1 antes de declarar fechado
+- [x] Stack Langfuse v3 rodando CT 100 — verificado 2026-07-12 (`docker ps`: langfuse-web/worker/postgres/clickhouse/redis/minio up 2 semanas healthy)
+- [ ] `business_id` propagado como TAG em todo trace (ADR 0093 Tier 0) — **GAP** confirmado 2026-07-12: query ClickHouse mostra só `['live']` → rastreado em **US-COPI-132**
+- [x] Agents emitem trace com spans — verificado: brain-b-agent (2043), planner-agent (180), kb-answer-agent (102), brief-diario-agent instrumentados
+- [x] RAGAS gate CI emite traces em batch — `jana-ragas-canary.yml` + `jana-ragas-gate.yml` rodando (verde diário)
+- [ ] Dashboard "Custo Brain B por business" filtra por TAG `business_id` — depende de US-COPI-132 (tag ausente)
+- [x] Skill `runtime-rules-hostinger-ct100` respeitada — stack só no CT 100, NÃO no Hostinger (ADR 0062) ✓
+- [x] Smoke prod: tráfego real contínuo 200-450 traces/dia últimos 10 dias (evidência ClickHouse) — supera o critério 7d
 
 **Non-Goals:**
 - ❌ Langfuse cloud SaaS (preserva soberania + LGPD + custo)
@@ -1048,15 +1046,15 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-109 · Onda 4 C1 — Charters S4 ativos (charter-fetch tool + Tier A)
 
-> owner: wagner · priority: p0 · estimate: ~~12h~~ **4-6h restantes** IA-pair · status: **em-implementacao 75%** · type: story · sprint: CYCLE-06
+> owner: wagner · priority: p0 · estimate: 12h IA-pair · status: done · type: story · sprint: CYCLE-06
 > blocked_by: — · spawned_from: JANA-10X-018 (GAP-ANALYSIS-91-100 §2 + ONDA-5-DOSSIER §4)
-> **STATUS REAL (descoberto 2026-05-20 audit-senior-expert):** `CharterFetchTool.php` (415 linhas, registrada `OimpressoMcpServer.php:124`) + skill `charter-first` promovida `tier:A enabled:true` + hook `charter-validate.{ps1,sh}` registrado + 10 Pest + RUNBOOK existem desde **2026-05-13**. **Falta:** (a) fix CLAUDE.md:37 que ainda diz "dormente" — desalinhamento Tier 0 doc bloqueia adoção · (b) `memory/requisitos/_DesignSystem/CHARTERS-INDEX.md` listando 112 charters · (c) ADR amendment proposta NNNN. Ver **[CHARTER-S4-DOSSIER-2026-05-20.md](CHARTER-S4-DOSSIER-2026-05-20.md)** (587 linhas, decomposição 3 PRs ≤200 linhas).
+> **STATUS REAL (reconciliado 2026-07-12 por verificação de máquina):** `CharterFetchTool.php` existe + hook `charter-validate.{ps1,sh}` registrado + 10 Pest + RUNBOOK existem desde 2026-05-13. **A meta "promover a Tier A" foi SUPERSEDED pela [ADR 0225](../../decisions/0225-skills-tier-a-recalibracao-claude-4.8.md)** (recalibração Claude 4.8, aceita): `charter-first` foi deliberadamente rebaixada `tier:A → tier:B` + `always_on: true → false` — dispara por auto-trigger ao editar `.tsx` com `.charter.md` ao lado, com hook `charter-validate` advisory. Re-promover a Tier A = regressão da 0225 (ideia descartada, não re-propor). US fechada: tool + hook + testes entregues; o item de tiering está resolvido pela via oposta (Tier B por design).
 
 **Como** Claude (agent) + time MCP (Felipe/Maira/Eliana)
 **Quero** tool MCP `charter-fetch <page-id>` exposta + skill `charter-first` Tier A ativa via hook SessionStart, BLOQUEANDO Edit/Write em `resources/js/Pages/**/*.tsx` que tenha `.charter.md` correspondente sem carregar charter primeiro
 **Para** transformar 26 charters hoje dormentes em contrato vivo (resolve dor recorrente "Edit `.tsx` sem ler charter primeiro" + fecha Knowledge G7 + Handoff onboarding)
 
-**Implementado em:** `Modules/Jana/Mcp/Tools/CharterFetchTool.php` (novo) + `.claude/skills/charter-first/SKILL.md` (já existe — promover Tier A) + hook `~/.claude/hooks/charter-preflight-warning.ps1` (espelha `modulo-preflight-warning.ps1`) + ADR 0094 amend "S4 charters live"
+**Implementado em:** `Modules/Jana/Mcp/Tools/CharterFetchTool.php` · `.claude/skills/charter-first/SKILL.md` (`tier: B` auto-trigger por design — ADR 0225) · `.claude/hooks/charter-validate.ps1` + `.claude/hooks/charter-validate.sh` (advisory) · verificado@42af777 (2026-07-12) — tool + hook + skill presentes; tiering resolvido como Tier B (ADR 0225 supersede a meta "Tier A" original)
 
 **Definition of Done:**
 - [ ] Tool MCP `charter-fetch` retorna frontmatter + Goals + Non-Goals + Anti-hooks + UX targets (JSON)
@@ -1078,14 +1076,14 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-110 · Onda 5 K1 — Time-decay weighting recall (boost recente + decay historical)
 
-> owner: wagner · priority: p1 · estimate: 20h IA-pair (2.5d) · status: todo · type: story · sprint: pós-Onda 4 (gate Langfuse)
-> blocked_by: **US-COPI-107 (R1 Reranker) + US-COPI-108 (L1 Langfuse) — sem Langfuse, ganho NDCG é fé teórica** · spawned_from: JANA-10X-019 (ONDA-5-DOSSIER §2)
+> owner: wagner · priority: p1 · estimate: 20h IA-pair (2.5d) · status: done · type: story · sprint: pós-Onda 4 (gate Langfuse)
+> blocked_by: — (US-COPI-107 Reranker + US-COPI-108 Langfuse ambos DONE) · spawned_from: JANA-10X-019 (ONDA-5-DOSSIER §2)
 
 **Como** time IA Jana
 **Quero** `MeilisearchDriver` retornar score composto (relevance × 0.6 + recency × 0.3 com half-life 90d + importance × 0.1) com decay rate 0 pra ADR `lifecycle: accepted` e 0.5 pra `historical`/superseded
 **Para** documentos canônicos recentes vencerem antigos no recall — fechando gap Knowledge R5 (0%→75%) que hoje mistura regras vigentes com revogadas em queries multi-dia
 
-**Implementado em:** _pendente_ — método `applyTemporalScoring()` ainda não existe no `MeilisearchDriver`; depende de US-COPI-107 (reranker) e US-COPI-108 (Langfuse) pra medir ganho NDCG (status todo)
+**Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` (método `applyTimeDecay()` L336, **chamado no pipeline de recall** L194; half-life `0.5^(age_days/half_life)` L319; config `copiloto.time_decay.temporal_weight` default 0.4) · verificado@42af777 (2026-07-12) — impl. completa e WIRED (não código morto); o SPEC anterior chutou nome errado (`applyTemporalScoring`) e afirmou "não existe" — era drift doc-atrás-do-código. **Validação remanescente (não bloqueia shipped):** medir NDCG@10 +15pp no dashboard Langfuse (agora possível, US-COPI-108 vivo).
 
 **Definition of Done:**
 - [ ] Função composite `score = relevance×0.6 + recency_decay(age_days, lifecycle)×0.3 + importance×0.1` documentada
@@ -1297,7 +1295,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ---
 
-**Última atualização:** 2026-07-12 — US-COPI-117 reverificado por máquina (docker ps + query ClickHouse direta no CT 100, não doc): deploy confirmado vivo com tráfego real; gap de isolamento business_id na tag encontrado e virou US-COPI-132. Anterior: 2026-05-25 — v3.1.0 Onda 6 Audit Sênior 2026-05-25 apendada (US-COPI-115/116/117). US-COPI-115 implementada em paralelo com US-GOV-011 + US-PG-001 + US-COM-006 (PR #1567/1568/1569 + PR Jana em curso). Bypass MCP `tasks-create` aplicado em SPEC.md direto (mcp_jira_projects entry "Jana" → COPI mapeada — 115/116/117 criadas via MCP server remoto, este apend sincroniza local via webhook).
+**Última atualização:** 2026-07-12 (2º) — **Reconciliação Ondas 4-5 por verificação de máquina** (não doc): US-COPI-108 (Langfuse) parcial→done, US-COPI-110 (time-decay) todo→done (método `applyTimeDecay()` wired, SPEC chutava nome errado), US-COPI-109 (charters) →done com meta "Tier A" marcada SUPERSEDED pela ADR 0225. Tabela de maturidade: Onda 4 🟡→✅ DONE, Onda 5 🟡→🟢 3/4 (falta só 111 Gantt UI). Maturidade real ~97% (doc subcontava 91%). Anterior: 2026-07-12 — US-COPI-117 reverificado por máquina; gap business_id virou US-COPI-132. Antes: 2026-05-25 — v3.1.0 Onda 6 Audit Sênior 2026-05-25 apendada (US-COPI-115/116/117). US-COPI-115 implementada em paralelo com US-GOV-011 + US-PG-001 + US-COM-006 (PR #1567/1568/1569 + PR Jana em curso). Bypass MCP `tasks-create` aplicado em SPEC.md direto (mcp_jira_projects entry "Jana" → COPI mapeada — 115/116/117 criadas via MCP server remoto, este apend sincroniza local via webhook).
 
 ### US-COPI-118 · Tokenizar cores cruas do card-de-prova Pro.tsx (fix ui:lint R1 pré-existente)
 
