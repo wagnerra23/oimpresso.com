@@ -322,6 +322,37 @@ function runAnchorLintVerdeNightly(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// V6-B (avaliação SDD 2026-07-12 · risco #2): anchor-lint consome o summary da nightly full-suite SHARDED
+// (fullsuite-summary-sharded/v1 · shards-merge.mjs) — a única fonte que cobre as ~42 US nightly-only. Reusa o
+// SPEC+Test in-lane de verde/bad e só sobrepõe o junit/ da fixture -sharded (isola o schema). good = sharded
+// com o teste VERDE → schema consumido → exit 0; bad = sharded com o teste skipped → morde → exit 1 🟥.
+function runAnchorLintVerdeSharded(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-verde-sharded-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-verde', 'bad'), sb, { recursive: true }); // SPEC+Test + lane list
+    cpSync(join(FIX, 'anchor-lint-verde-sharded', kind, 'junit'), join(sb, 'junit'), { recursive: true }); // overlay do summary sharded
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
+// V6-B noite PARCIAL: MESMO teste AUSENTE do summary (files:[]) nos dois; a única variável é
+// all_shards_measured. good = false (shard morto) → ausente=unknown → exit 0 (fecha o false-red da noite
+// parcial); bad = true (noite completa) → ausente = não rodou → exit 1 🟥 (ausência em noite cheia É vermelho).
+function runAnchorLintVerdePartial(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-verde-partial-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-verde', 'bad'), sb, { recursive: true }); // SPEC+Test + lane list
+    cpSync(join(FIX, 'anchor-lint-verde-partial', kind, 'junit'), join(sb, 'junit'), { recursive: true }); // overlay do summary parcial/completo
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // ARMING grandfather (SA-A2-ter · ADR 0275): --check-entry --baseline. Prova o no-new-lie:
 // good = US violadora MAS grandfatherada no baseline → exit 0; bad = MESMA US violadora, baseline
 // só com decoy → exit 1 ("regra de entrada"). Isola a variável estar-no-baseline (mesmo SPEC).
@@ -504,6 +535,22 @@ const CATRACAS = [
     // → skipped in-lane É vermelho → exit 1 🟥. Prova que a exclusão vem da lane-membership, não do status do teste.
     id: 'anchor-lint-verde-nightly',
     run: runAnchorLintVerdeNightly,
+    expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
+  },
+  {
+    // V6-B: anchor-lint CONSOME o summary da nightly sharded (fullsuite-summary-sharded/v1). good = schema
+    // sharded + teste verde → consumido → exit 0 (sem V6-B seria behavior_unknown); bad = sharded + skipped
+    // → morde → exit 1 🟥. Prova que o schema sharded é aceito E que o gate verde bite nessa fonte.
+    id: 'anchor-lint-verde-sharded',
+    run: runAnchorLintVerdeSharded,
+    expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
+  },
+  {
+    // V6-B noite PARCIAL: mesmo teste AUSENTE nos dois; única variável = all_shards_measured. good = false
+    // (shard morto) → ausente=unknown → exit 0 (fecha o false-red da noite parcial); bad = true (noite cheia)
+    // → ausente = não rodou → exit 1 🟥. Isola all_shards_measured como a causa.
+    id: 'anchor-lint-verde-partial',
+    run: runAnchorLintVerdePartial,
     expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
   },
   {

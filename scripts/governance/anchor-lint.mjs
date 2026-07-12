@@ -114,17 +114,26 @@ function loadJunit(p) {
   try { data = JSON.parse(raw); } catch (e) { return unknown(`não é JSON válido: ${e.message}`); }
   if (!data || typeof data !== 'object') return unknown('JSON não-objeto');
   if (data.invalid === true) return unknown(`marcador de run inválido (${data.schema || 'schema?'}${data.reason ? ` · ${data.reason}` : ''})`);
-  if (typeof data.schema !== 'string' || !data.schema.startsWith('junit-summary/')) return unknown(`schema não junit-summary/* (${data.schema || 'ausente'}) — gere com scripts/tests/junit-summary.mjs`);
-  if (data.coherent === false) return unknown('run INCOERENTE (coherent:false — shard parcial? verde POR ARQUIVO seria mentira)');
+  // V6-B (avaliação SDD 2026-07-12): consome TAMBÉM o summary da nightly full-suite sharded
+  // (`fullsuite-summary-sharded/v1`, produzido por scripts/tests/shards-merge.mjs — MESMO shape:
+  // files[] {file,passed,failed,errors,skipped} + coherent), além do junit-summary/v1 do CI. É a
+  // ÚNICA fonte que cobre as ~42 US nightly-only. Expõe `all_shards_measured`: noite PARCIAL (shard
+  // morto) → `ausente` é ambíguo (shard caído ≠ teste que não rodou) → tratado adiante como unknown.
+  if (typeof data.schema !== 'string' || !/^(?:junit-summary|fullsuite-summary-sharded)\//.test(data.schema)) return unknown(`schema não junit-summary/* nem fullsuite-summary-sharded/* (${data.schema || 'ausente'}) — gere com scripts/tests/junit-summary.mjs ou shards-merge.mjs`);
+  if (data.coherent === false) return unknown('run INCOERENTE (coherent:false — todos os shards mortos? verde POR ARQUIVO seria mentira)');
   const map = new Map();
   for (const f of (Array.isArray(data.files) ? data.files : [])) if (f && f.file) map.set(String(f.file).replace(/\\/g, '/'), f);
-  return { map, schema: data.schema, source: data.source || p, coherent: data.coherent };
+  // all_shards_measured só existe no fullsuite-sharded; junit-summary/v1 (CI, lane única) = full por definição.
+  return { map, schema: data.schema, source: data.source || p, coherent: data.coherent, allShardsMeasured: data.all_shards_measured !== false };
 }
 const JUNIT_RAW = JUNIT_PATH ? loadJunit(JUNIT_PATH) : null;
 // sentinela unknown (--junit inválido/incoerente/ausente) NÃO vira JUnit usável → behavior_unknown.
 const JUNIT = JUNIT_RAW && !JUNIT_RAW.unknown ? JUNIT_RAW : null;
 const JUNIT_UNKNOWN_REASON = JUNIT_RAW && JUNIT_RAW.unknown ? JUNIT_RAW.reason : null;
 const junitFiles = JUNIT ? JUNIT.map : null;
+// V6-B: noite PARCIAL (fullsuite-sharded com ≥1 shard morto). `ausente` num run parcial não prova
+// nada (o shard do teste pode ter caído) → NÃO avermelha por ausência; só julga os arquivos PRESENTES.
+const JUNIT_PARTIAL = !!(JUNIT && JUNIT.allShardsMeasured === false);
 // status de um arquivo-de-teste no JUnit: verde só se passou de fato (≥1 passed, 0 fail/error).
 // ausente = não rodou nesse lane · skipped = só pulou (markTestSkipped) · vazio = 0 testcases.
 function junitStatus(rel) {
@@ -522,8 +531,11 @@ function lintSpec(file) {
     // aparecer no junit do PR ficaria `ausente` → false-red (as ~42 US req_sem_lane hoje). Só avalia vermelho
     // quando há ≥1 covering test in-lane (aí `ausente`/skipped in-lane É vermelho legítimo: devia ter rodado).
     if (junitFiles && inLaneCovers.length) {
-      const tests = inLaneCovers.map((rel) => ({ file: rel, status: junitStatus(rel) }));
-      if (!tests.some((t) => t.status === 'verde')) reqTesteVermelho.push({ us: u.id, line: u.line, tests });
+      let tests = inLaneCovers.map((rel) => ({ file: rel, status: junitStatus(rel) }));
+      // V6-B: noite PARCIAL → `ausente` = shard morto (ambíguo), não julga; só os PRESENTES contam.
+      // (noite completa / junit-summary/v1 → ausente É vermelho: full run, teste devia ter rodado.)
+      if (JUNIT_PARTIAL) tests = tests.filter((t) => t.status !== 'ausente');
+      if (tests.length && !tests.some((t) => t.status === 'verde')) reqTesteVermelho.push({ us: u.id, line: u.line, tests });
     }
   }
   const usTotal = usList.length;
@@ -639,7 +651,7 @@ const report = {
     verde_regra: 'GATE VERDE (G1b-verde · Phase B): com --junit <summary.json> (junit-summary/v1), US implementada+coberta cujo arquivo-de-teste NÃO está verde no JUnit → req_teste_vermelho. verde POR ARQUIVO = passed>0 E failed=0 E errors=0; vermelho/skipped/ausente NÃO contam (skipped != passed, defesa markTestSkipped). V6-C: só julga covering tests DENTRO de uma lane de JUnit — US inteiramente fora de lane (nightly-only) = req_sem_lane → behavior_unknown, nunca req_teste_vermelho (senão o teste que não pode aparecer no junit do PR viraria false-red). fs-puro: lê o JSON que o CI já produz, NUNCA roda teste/PHP/DB. Sem --junit → behavior_unknown (nunca avermelha). exit 1 só com --check-verde OU --check-entry.',
     servido_regra: 'SERVIDO (4º veredito · ADVISORY runtime): US wired (anchored_ok/parcial) ancorada em Page com hits>0 na janela do ledger governance/route-hits.json (export do middleware ContadorHitsRota em prod). nao_servido = "existe + roteado mas 0 hits em Nd" — prova de USO, não de correção. NUNCA entra em coverage/--check/flag. Sem ledger (ou pages vazio) = sem_ledger, nada é marcado.',
     servido_ledger: HITS ? `${relative(ROOT, HITS_PATH).replace(/\\/g, '/')} (janela ${HITS.janela ?? '?'}d)` : 'sem_ledger',
-    behavior: JUNIT ? `junit:${JUNIT.schema} · fonte ${JUNIT.source}` : `behavior_unknown (${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'})`,
+    behavior: JUNIT ? `junit:${JUNIT.schema}${JUNIT_PARTIAL ? ' (noite PARCIAL — ausente=unknown)' : ''} · fonte ${JUNIT.source}` : `behavior_unknown (${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'})`,
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
     fase: 'F1 ADVISORY (ADR 0273 §4) — exit 0 sempre nos modos default/--json; --check (exit 1) reservado pra F2',
     baseline_regra: BASELINE
