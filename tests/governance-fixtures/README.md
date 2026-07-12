@@ -23,6 +23,8 @@ morder — e o selftest avermelha. Salda a dívida de evidência do PR #2588
 
 | `sdd-scorecard --ratchet` (corruptors) | `sdd-scorecard-corruptors/{good,bad}/` (sandbox via cwd + `scripts/audit/sqlite-test-corruptors.mjs` copiado) — baseline arma `sqlite_corruptors=0` (armed:true, SEM SDD_RATCHET_ARM · P14 carona 2, fusão GT-G3 · ADR 0314); good = sem corruptor (0=0, exit 0); bad = `CorruptorDemoTest.php.txt` (renomeado pra `.php` SÓ no sandbox — regra dura abaixo) com `Schema::drop('business')` não-guardado ⇒ mede 1 > 0 ⇒ exit 1 |
 
+| `protection-drift.mjs --fixture` (V5 · watchdog órfã) | `protection-drift-stale-floor/{good,bad}/live.json` + `required-checks-baseline.json` + `sdd-scorecard-baseline.json` (sandbox via cwd, script REAL copiado, `PROTECTION_DRIFT_NOW` fixa o relógio) — frescor do floor vem do `computed_at` do CONTEÚDO (`orfa_contents`), não do tip; good = computed_at 24h atrás → 🟢 (exit 0); bad = **tip fresco** mas computed_at 6d atrás → 🔴 (exit 1) = prova que ignora o tip (avaliação 2026-07-12 risco nº1) |
+
 REGRA DURA: NENHUM `.php` aqui — o foundation-ratchet real varre `tests/`
 recursivamente e contaria fixture como teste do repo (poluiria os contadores).
 Conteúdo 100% fictício (DemoMod/RealDemo/Ghost*) — zero PII, repo é público.

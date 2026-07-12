@@ -112,6 +112,27 @@ function runScorecardCorruptors(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// protection-drift WATCHDOG staleness da órfã (V5 · avaliação 2026-07-12 risco nº1): o frescor
+// do floor vem do computed_at do CONTEÚDO, não do tip (que avança com [skip ci] mesmo com a suíte
+// morta por OOM). Sandbox por cwd (governance/*-baseline.json próprios) + o script REAL copiado.
+// PROTECTION_DRIFT_NOW fixa o relógio. good = computed_at 24h atrás → 🟢 (exit 0); bad = TIP FRESCO
+// mas computed_at 6d atrás → 🔴 (exit 1) — o mesmo caso PROVA que ignora o tip (tip_committed_at
+// é hoje na fixture). O required-checks-baseline embutido casa os contexts do live ⇒ compareProtection
+// não avermelha o good por drift acidental.
+function runProtectionStaleFloor(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-protection-drift-stale-floor-${kind}-`));
+  const fx = join(FIX, 'protection-drift-stale-floor');
+  try {
+    mkdirSync(join(sb, 'governance'), { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('protection-drift', 'scripts/governance/protection-drift.mjs'), join(sb, 'scripts', 'governance', 'protection-drift.mjs'));
+    cpSync(join(fx, 'required-checks-baseline.json'), join(sb, 'governance', 'required-checks-baseline.json'));
+    cpSync(join(fx, 'sdd-scorecard-baseline.json'), join(sb, 'governance', 'sdd-scorecard-baseline.json'));
+    return runNode(join(sb, 'scripts', 'governance', 'protection-drift.mjs'),
+      ['--fixture', join(fx, kind, 'live.json')], sb, { PROTECTION_DRIFT_NOW: '2026-07-12T12:00:00Z' });
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // memory-health varre process.cwd() (memory/decisions/) e lê o registro de colisões em
 // governance/adr-collisions-baseline.json (ADR 0274 §3) + o baseline de segredos em
 // scripts/governance/.memory-health-baseline.json → mesmo padrão sandbox: fixture (só
@@ -379,6 +400,15 @@ const CATRACAS = [
     id: 'sdd-scorecard-corruptors',
     run: runScorecardCorruptors,
     expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): sqlite_corruptors/ },
+  },
+  {
+    // V5 (avaliação 2026-07-12 risco nº1) — o watchdog GT-G4 mede o frescor do floor pelo
+    // computed_at do CONTEÚDO, não pelo tip da órfã. good = computed_at 24h atrás (🟢 veredito ok);
+    // bad = TIP FRESCO + computed_at 6d atrás → 🔴 (sem run verde há >48h). O bad é a prova de
+    // "tip fresco mas computed_at stale ⇒ ignora o tip".
+    id: 'protection-drift-stale-floor',
+    run: runProtectionStaleFloor,
+    expect: { good: /veredito: 🟢 ok/, bad: /full_suite_pass_rate: fonte .*sem run verde há >48h/ },
   },
   {
     id: 'memory-health',
