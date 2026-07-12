@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oimpresso.com/schemas/briefing.schema.json",
+  "title": "BRIEFING.md frontmatter — oimpresso (conceito único memory/, proposal estrutura-canon-memoria)",
+  "description": "Schema canônico do bloco YAML em memory/requisitos/<Mod>/BRIEFING.md (1-pager executivo por módulo). Preenche o dono AUSENTE do glob (não é concorrente — o memory-schema-gate nunca mapeou BRIEFING). O valor de enforcement é o ENUM `status` validável (a máquina-matriz system-map.mjs lê status confiável em vez de só frescor-git), NUNCA presence-gate de campo auto-declarado (L-24). additionalProperties:true — não reprova retroativamente frontmatter rico existente. Wiring ao gate = grace→required só após backfill FP=0 (ADR 0314).",
+  "type": "object",
+  "required": ["module", "status", "updated_at"],
+  "additionalProperties": true,
+  "properties": {
+    "module": {
+      "type": "string",
+      "description": "Nome do módulo == basename do diretório (PascalCase ex Jana / Financeiro; `_`-prefix ok pra cross-cutting).",
+      "minLength": 2,
+      "maxLength": 80
+    },
+    "status": {
+      "type": "string",
+      "description": "Estado do módulo — ENUM fechado (machine-readable). A prosa livre antiga migra pra `status_nota`.",
+      "enum": ["producao", "piloto", "em-construcao", "parcial", "backlog", "shared-infra", "meta", "deprecated"]
+    },
+    "status_nota": {
+      "type": "string",
+      "description": "Nota livre que qualifica o status (ex 'live via ROTA LIVRE biz=4'). Preserva a prosa legada sem poluir o enum."
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Último toque (unifica last_review/updated/last_pr/distilled_at)."
+    },
+    "distilled_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Alias opcional escrito pelo gerador jana:distill-module-truth."
+    },
+    "distilled_by": { "type": "string" },
+    "owner": {
+      "type": "string",
+      "enum": ["W", "F", "M", "L", "E"]
+    },
+    "related_adrs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },
+      "uniqueItems": true,
+      "default": []
+    },
+    "lifecycle": {
+      "type": "string",
+      "enum": ["ativo", "arquivado"]
+    },
+    "piloto": { "type": "string" }
+  }
+}
