@@ -11,6 +11,12 @@
     }
   },
   "workflows": {
+    "system-map.yml": {
+      "nome": "system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md das fontes canônicas (módulos+frescor git, ADRs+lifecycle, ideias mortas §5, Tier 0 gaps, scorecard). Índice DERIVADO que aponta pros donos, não recopia. --check advisory no PR (nunca bloqueia) + regen diário commit-back.",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "Wagner 2026-07-12: 'deveria ser a máquina matriz que não quebra e sempre mantém atualizado'. Reusa o padrão brief/scorecard/índice-ADR (ADR 0091/0275/0258). proposal painel-sistema-matriz-gerada.md."
+    },
     "ds-mirror-drift.yml": {
       "nome": "ds-mirror-drift (advisory) — sentinela de drift git↔espelho do Design System: compara os _generated-*.css do git contra o snapshot commitado do espelho claude.ai/design (scripts/design-sync/mirror-snapshot/), reusa o motor ds-token-diff.mjs; ::warning:: quando drift > baseline. CI do GH Actions não tem login claude.ai → compara snapshot, não o espelho vivo.",
       "classe": "gate",
