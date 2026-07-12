@@ -89,6 +89,7 @@ Quando duas memórias divergem, vence nesta ordem:
 |---|---|
 | **GOLDEN-REFERENCE.md** | tela-ouro `Sells/Create` (form) + 10 regras binárias R1-R10 |
 | **padroes-tela/PT-01-Lista.md** | golden do arquétipo **lista** (status sem bg-fill, slots) |
+| **padroes-tela/PT-07-Feed-Timeline.md** | golden do arquétipo **feed/timeline** (cronologia em cards, não `<table>`; golden `CcSessions/Index`) — draft 2026-07-11 |
 | **REGISTRY_DS_COMPONENTES.md** | componentes reais `@/Components/ui` |
 | **[ADR 0253 — primitivos de layout](../../decisions/0253-primitivos-layout.md)** ⭐ | `<Stack/Inline/Grid/Box/Container/Text>` em `@/Components/layout` — **layout é COMPOSIÇÃO de primitivo, nunca `flex`/`grid` solto** (props = token). Showcase em `/showcase/components` |
 | **tokens v4** (`resources/css/inertia.css`, ADR 0235) | cor = `primary` roxo. Zero `blue-*` de marca |
@@ -100,7 +101,7 @@ Quando duas memórias divergem, vence nesta ordem:
 | [MANUAL-CSS-JS.md](MANUAL-CSS-JS.md) | regimento **CSS/JS** — do/don't + arquitetura-alvo (token DS v6 → primitivos **layout**+ui → padrão → página) + gap dos primitivos de layout (§2.1) + roadmap de convergência F0–F7 (sair do sprawl de 28k linhas) |
 | RUNBOOK-{replicar-prototipo-cowork,onda-cowork,design-deep,inertia-defer-pattern}.md | receitas de execução (portar protótipo, ondas, defer) |
 
-> ✅ **Goldens de arquétipo (corrigido 2026-06-06): PT-01 Lista · [PT-02 Form/Drawer](padroes-tela/PT-02-Form-Drawer.md) · [PT-03 Detalhe](padroes-tela/PT-03-Detalhe.md) · [PT-04 Dashboard](padroes-tela/PT-04-Dashboard.md) · [PT-05 Kanban](padroes-tela/PT-05-Kanban.md) — TODOS existem** em [`padroes-tela/`](padroes-tela/). _(O INDEX dizia "faltam PT-02..05" — era stale de 2026-05-30; os 5 arquivos têm 116-135 linhas cada.)_
+> ✅ **Goldens de arquétipo (corrigido 2026-06-06; PT-07 add 2026-07-11): PT-01 Lista · [PT-02 Form/Drawer](padroes-tela/PT-02-Form-Drawer.md) · [PT-03 Detalhe](padroes-tela/PT-03-Detalhe.md) · [PT-04 Dashboard](padroes-tela/PT-04-Dashboard.md) · [PT-05 Kanban](padroes-tela/PT-05-Kanban.md) · [PT-07 Feed/Timeline](padroes-tela/PT-07-Feed-Timeline.md) (draft) — TODOS existem** em [`padroes-tela/`](padroes-tela/). _(PT-06 Ferramenta/Calculadora fica sem golden até ≥2 telas — hoje só `ComunicacaoVisual/Index`. O INDEX dizia "faltam PT-02..05" — era stale de 2026-05-30.)_
 
 ### 2c. Validação / definição de pronto
 | Memória | Usar pra |

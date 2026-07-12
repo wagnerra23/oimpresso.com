@@ -1,0 +1,68 @@
+{
+    "_meta": {
+        "schema": "route-hits/v1",
+        "purpose": "Ledger de EXECUCAO REAL por rota/pagina em producao (sinal \"servido\" — eixo runtime da governanca, regua Coverband/Wallarm). Agregado diario, janela movel.",
+        "contrato": "rotas[<identidade>] = {hits, ultima_data} na janela; <identidade> = nome canonico Laravel OU URI-pattern (sells/{id}) — NUNCA URL resolvida. pages[<component>] = idem, atribuido via Inertia::render do METODO de action da rota. ZERO PII, ZERO tenant.",
+        "fonte": "gerado por `php artisan route-hits:export --write` no host de prod (coleta: middleware ContadorHitsRota → route-hits:flush → tabela route_hits). Commit manual, igual prod-flags.json. NAO editar a mao — re-rodar o comando.",
+        "nao_e": "NAO e prova de correcao (hit != funciona) nem lista de telas existentes (isso e anchor/charter). E prova de USO: 0 hits em Nd = wired-porem-nao-servido.",
+        "consumido_por": [
+            "scripts/governance/anchor-lint.mjs (advisory servido/nao_servido)",
+            "scripts/governance/charter-live-signal.mjs (3a fonte de sinal live)"
+        ]
+    },
+    "janela_dias": 30,
+    "sample_rate": 1,
+    "rotas": {
+        "get-total-unread": {
+            "hits": 40,
+            "ultima_data": "2026-07-11"
+        },
+        "login": {
+            "hits": 14,
+            "ultima_data": "2026-07-11"
+        },
+        "nfe-brasil.api.transactions.emissoes": {
+            "hits": 2,
+            "ultima_data": "2026-07-11"
+        },
+        "products.index": {
+            "hits": 16,
+            "ultima_data": "2026-07-11"
+        },
+        "products/view/{id}": {
+            "hits": 5,
+            "ultima_data": "2026-07-11"
+        },
+        "reports/stock-report": {
+            "hits": 5,
+            "ultima_data": "2026-07-11"
+        },
+        "sells.audit": {
+            "hits": 2,
+            "ultima_data": "2026-07-11"
+        },
+        "sells.fsm-actions": {
+            "hits": 2,
+            "ultima_data": "2026-07-11"
+        },
+        "sells.timeline-unified": {
+            "hits": 2,
+            "ultima_data": "2026-07-11"
+        },
+        "sells/{id}/sheet-data": {
+            "hits": 2,
+            "ultima_data": "2026-07-11"
+        }
+    },
+    "pages": {
+        "Produto/Index": {
+            "hits": 16,
+            "ultima_data": "2026-07-11"
+        },
+        "Site/Login": {
+            "hits": 28,
+            "ultima_data": "2026-07-11"
+        }
+    }
+}
+
