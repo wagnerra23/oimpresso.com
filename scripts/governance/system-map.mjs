@@ -297,7 +297,10 @@ function renderComeceAqui(data) {
   L.push('');
   L.push('```');
   L.push('Você vai trabalhar no oimpresso, meu ERP. Antes de qualquer coisa:');
-  L.push('1. Rode a tool `brief-fetch` (estado consolidado do projeto).');
+  L.push('1. Rode a tool `brief-fetch` (estado consolidado do projeto). SE você NÃO tiver');
+  L.push('   o servidor MCP conectado, PULE e leia em vez disso (fallback): o roadmap');
+  L.push('   `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` + o session log mais recente');
+  L.push('   (o mais novo em `memory/sessions/`). Nunca invente o que a tool devolveria.');
   L.push('2. As regras já carregaram via CLAUDE.md — respeite-as (multi-tenant, PT-BR,');
   L.push('   teste só no CT 100, aprovação humana antes de merge).');
   L.push('3. Leia `memory/reference/PAINEL-SISTEMA.md` — o índice GERADO do sistema');
@@ -324,6 +327,7 @@ function renderComeceAqui(data) {
   L.push('- Estado consolidado agora: rode `brief-fetch`.');
   L.push('- Regras Tier 0 + o que já falhou: [proibicoes.md](../proibicoes.md).');
   L.push('- Como o sistema é construído: `CLAUDE.md` (carrega automático) + `memory/why-oimpresso.md` / `what-oimpresso.md` / `how-trabalhar.md`.');
+  L.push('- Onde o CÓDIGO mora (pra mexer, não só entender): `Modules/<Vertical>` (features por vertical) · `app/Domain/Fsm` (máquina de estados de vendas/OS) · `resources/js/Pages/<Mod>/` (telas Inertia/React). Antes de criar/alterar, ABRA `Modules/Jana` · `Modules/Repair` e imite o padrão (ADR 0011).');
   L.push('');
   return L.join('\n');
 }
@@ -332,14 +336,29 @@ function renderComeceAqui(data) {
 // sem teste — isso deveria ser uma regra clara"): o gerador NUNCA emite path que não
 // resolve. Varre os markdown-links de cada saída e existsSync cada um relativo ao dir
 // do arquivo. Qualquer path morto = FALHA (exit 1), NÃO escreve doc com link quebrado. ──
+// dirs de repo reconhecidos — um `code` inline que começa com um deles E tem `/` é
+// tratado como PATH (relativo à RAIZ do repo) e verificado. Fecha o furo que deixou
+// `Modules/Project` (inexistente) passar — antes só links markdown eram checados.
+const REPO_DIRS = /^(Modules|app|resources|scripts|governance|database|tests|config|routes|bootstrap|\.github|\.claude|memory)\/\S/;
 function deadLinks(md, outPath) {
   const base = dirname(outPath);
   const dead = [];
-  const re = /\]\(([^)]+)\)/g; let m;
-  while ((m = re.exec(md)) !== null) {
+  // 1) links markdown ](path) — relativos ao dir do doc
+  const reLink = /\]\(([^)]+)\)/g; let m;
+  while ((m = reLink.exec(md)) !== null) {
     const link = m[1].split('#')[0].trim();
     if (!link || /^(https?:|mailto:)/.test(link)) continue; // externos não se verificam no disco
     if (!existsSync(join(base, link))) dead.push(link);
+  }
+  // 2) paths de repo em `code` inline — relativos à RAIZ do repo
+  const reCode = /`([^`]+)`/g;
+  while ((m = reCode.exec(md)) !== null) {
+    const t = m[1].trim();
+    if (!REPO_DIRS.test(t)) continue;       // só o que parece path de repo
+    if (/\s/.test(t)) continue;             // tem espaço = "path + rótulo" (ex `proibicoes.md §5`), não path puro
+    if (/[<>*]/.test(t)) continue;          // templates/globs (Modules/<Vertical>, Pages/<Mod>/) não são paths reais
+    const p = t.replace(/\/$/, '');         // tira barra final de dir
+    if (!existsSync(join(ROOT, p))) dead.push(`(inline) ${t}`);
   }
   return dead;
 }
