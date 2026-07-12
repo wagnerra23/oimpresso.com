@@ -1,5 +1,5 @@
 ---
-date: 2026-07-12
+date: "2026-07-12"
 topic: "Avaliação adversarial do programa SDD (7 streams) — composto 69/100 + gargalo-mãe OOM da nightly CT100"
 authors: [W, C]
 related_adrs: [0273-anchor-spec-codigo-formato-canonico-fluxo-novo, 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes, 0231-processo-trabalho-canonico-especialista-por-area]
