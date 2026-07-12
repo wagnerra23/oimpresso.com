@@ -25,7 +25,7 @@
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, statSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, dirname } from 'node:path';
 
 const ROOT = process.cwd();
 const OUT = join(ROOT, 'memory', 'reference', 'PAINEL-SISTEMA.md');
@@ -328,12 +328,38 @@ function renderComeceAqui(data) {
   return L.join('\n');
 }
 
+// ── REGRA MECÂNICA (Wagner 2026-07-12 "os caminhos indicados são errados, sem fonte,
+// sem teste — isso deveria ser uma regra clara"): o gerador NUNCA emite path que não
+// resolve. Varre os markdown-links de cada saída e existsSync cada um relativo ao dir
+// do arquivo. Qualquer path morto = FALHA (exit 1), NÃO escreve doc com link quebrado. ──
+function deadLinks(md, outPath) {
+  const base = dirname(outPath);
+  const dead = [];
+  const re = /\]\(([^)]+)\)/g; let m;
+  while ((m = re.exec(md)) !== null) {
+    const link = m[1].split('#')[0].trim();
+    if (!link || /^(https?:|mailto:)/.test(link)) continue; // externos não se verificam no disco
+    if (!existsSync(join(base, link))) dead.push(link);
+  }
+  return dead;
+}
+function assertLinksLive(pairs) {
+  const problems = pairs.flatMap(([md, out]) => deadLinks(md, out).map((l) => `${out}: ${l}`));
+  if (problems.length) {
+    console.error('[system-map] PATH MORTO — o gerador se recusa a emitir link quebrado (regra):');
+    problems.forEach((p) => console.error('  ✗ ' + p));
+    process.exit(1);
+  }
+}
+
 const data = {
   adr: measureAdrs(), proib: measureProibicoes(), mods: measureModules(),
   sc: measureScorecard(), cnt: measureCounts(), gates: measureGates(),
 };
 const outPainel = render(data);
 const outComece = renderComeceAqui(data);
+// REGRA: prova que TODO path emitido resolve, antes de qualquer coisa (fail-closed)
+assertLinksLive([[outPainel, OUT], [outComece, OUT_COMECE]]);
 // ignora a linha de data (volátil) do PAINEL na comparação de conteúdo
 const strip = (s) => s.replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**').replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
 if (MODE_STDOUT) {
