@@ -1,0 +1,4 @@
+# Lane de JUnit da fixture (V6-C): coloca SelftestVerde/Tests DENTRO de uma lane de JUnit,
+# pra que o verde-por-arquivo julgue o teste (inLane=true). Sem isto, o teste seria "fora de
+# lane" (nightly-only) e V6-C o marcaria behavior_unknown — a fixture nightly prova esse caso.
+Modules/SelftestVerde/Tests
