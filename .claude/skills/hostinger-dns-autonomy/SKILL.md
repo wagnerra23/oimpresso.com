@@ -49,11 +49,31 @@ Hostinger DNS API token está documentado em:
 
 Status atual no índice indica se ainda funciona. Se 🔴 EXPIRED → secret-rotation needed, NÃO Tier 0 gap.
 
-## Paths fallback (1-6) — só se Path 0 não tiver entry
+## Path 1 — **`get-secret.sh` (Vaultwarden service account) — PREFERIDO**
 
-Token criado 2026-04-28 ("Claude da hostinger"). Onde pode estar (caso índice canon não cubra):
+> Opção B do Tier 0 gap 2026-05-28 (`memory/proibicoes.md`). Mecanismo canônico pra ler
+> QUALQUER segredo (Hostinger, Asaas, Sicoob, ...) sem escalar pro Wagner. Fonte no git:
+> [`scripts/infra/get-secret.sh`](../../../scripts/infra/get-secret.sh); deployado no CT 100 em `/root/bin/get-secret.sh`.
 
-### Path 1 — Arquivo canon CT 100 `/root/.hostinger-api-token`
+```bash
+# Lê o token direto do Vaultwarden via service account "claude-agent":
+tailscale ssh root@ct100-mcp '/root/bin/get-secret.sh hostinger-api-token'
+# Diagnóstico (sem ler segredo): --status
+tailscale ssh root@ct100-mcp '/root/bin/get-secret.sh --status'
+```
+
+Códigos de saída: `0` ok · `3` NÃO CONFIGURADO (falta setup 1× do Wagner: criar user
+`claude-agent` + API key + colar 3 credenciais em `/root/.vaultwarden-agent-creds` chmod 600
++ compartilhar itens) · `4` auth/unlock falhou · `5` item não encontrado/não compartilhado.
+
+Se exit `3` → é **setup pendente do Wagner** (NÃO Tier 0 gap novo; a saída já traz o passo-a-passo).
+Enquanto isso, seguir pros Paths 2-5 abaixo (fallbacks diretos).
+
+## Paths fallback (2-5) — só se Path 1 não estiver configurado
+
+Token criado 2026-04-28 ("Claude da hostinger"). Onde pode estar (caso o service account ainda não exista):
+
+### Path 2 — Arquivo canon CT 100 `/root/.hostinger-api-token`
 
 ```bash
 tailscale ssh root@ct100-mcp 'cat /root/.hostinger-api-token 2>/dev/null && echo OK || echo MISSING'
@@ -64,19 +84,19 @@ Se MISSING, criar 1× e Wagner cola:
 tailscale ssh root@ct100-mcp 'touch /root/.hostinger-api-token && chmod 600 /root/.hostinger-api-token && echo "FILE_READY_FOR_WAGNER_TO_PASTE"'
 ```
 
-### Path 2 — Arquivo Hostinger `/home/u906587222/.hostinger-api-token`
+### Path 3 — Arquivo Hostinger `/home/u906587222/.hostinger-api-token`
 
 ```bash
 ssh -4 -i ~/.ssh/id_ed25519_oimpresso -p 65002 u906587222@148.135.133.115 'cat ~/.hostinger-api-token 2>/dev/null'
 ```
 
-### Path 3 — ENV var no .env Hostinger
+### Path 4 — ENV var no .env Hostinger
 
 ```bash
 ssh ... 'grep -E "^HOSTINGER_API_TOKEN" ~/domains/oimpresso.com/public_html/.env'
 ```
 
-### Path 4 — Docker container CT 100 que use Hostinger API
+### Path 5 — Docker container CT 100 que use Hostinger API
 
 ```bash
 tailscale ssh root@ct100-mcp 'for c in $(docker ps --format "{{.Names}}"); do
@@ -84,23 +104,13 @@ tailscale ssh root@ct100-mcp 'for c in $(docker ps --format "{{.Names}}"); do
 done | head -5'
 ```
 
-### Path 5 — Vaultwarden API direta (vault.oimpresso.com)
+### ~~Path 6/7 — `bw` com session file solto / memory/claude/*~~ — SUPERSEDED / REMOVIDO
 
-```bash
-# Item canon: "hostinger-api-token"
-# API REST Vaultwarden: /api/items/{id} com Bearer
-# Pré-req: VAULTWARDEN_BEARER em algum local canon
-tailscale ssh root@ct100-mcp 'cat /root/.vaultwarden-cli-session 2>/dev/null'
-# Se token Vaultwarden existir: bw get item "hostinger-api-token" --raw
-```
-
-### Path 6 — `bw` (Bitwarden CLI) com session file
-
-```bash
-tailscale ssh root@ct100-mcp 'export BW_SESSION=$(cat /root/.bw-session 2>/dev/null) && bw get item "hostinger-api-token" --raw 2>/dev/null'
-```
-
-### ~~Path 7 — memory/claude/reference_hostinger_*.md~~ — REMOVIDO 2026-06-07
+> O antigo Path 5/6 (Vaultwarden API direta + `bw` com `/root/.bw-session` manual) virou o
+> **Path 1 `get-secret.sh`** — que encapsula login via API key + unlock + cache de sessão. Não
+> use `bw get item` na mão nem session file solto; chame `get-secret.sh`.
+> O antigo Path 7 (`grep` de token literal em `memory/claude/`) foi REMOVIDO 2026-06-07 — segredo
+> em git contradiz a própria regra "nunca commitar secret" (auditoria de conflitos, ADR 0061/0215).
 
 > O antigo Path 7 fazia `grep` de token literal em `memory/claude/` — anti-padrão (segredo em git contradiz a própria regra "nunca commitar secret"). O legado `memory/claude/` foi PURGADO na auditoria de conflitos 2026-06-07 (ADR 0061/0215). Fonte canônica = Path 0 (`_INDEX-SECRETS`) + Path 1 (CT 100 `/root/.hostinger-api-token`).
 
@@ -128,7 +138,8 @@ Se HTTP 401: token expirado/revogado. Propor Wagner regenerar:
 Após ter token:
 
 ```bash
-TOKEN=$(cat /root/.hostinger-api-token)  # ou where it ended up
+TOKEN=$(/root/bin/get-secret.sh hostinger-api-token)   # PREFERIDO (Path 1, service account)
+# fallback: TOKEN=$(cat /root/.hostinger-api-token)
 DOMAIN="oimpresso.com"
 SUB="minio"                              # subdomínio novo
 TARGET="177.74.67.30"                    # CT 100 IP
@@ -163,14 +174,20 @@ for i in 1 2 3 4 5 6; do
 done
 ```
 
-## Se TODOS os 6 paths falharem
+## Se Path 1 der exit 3 (get-secret.sh NÃO CONFIGURADO)
+
+**NÃO é Tier 0 gap** — é setup 1× pendente do Wagner (criar service account `claude-agent`).
+A própria saída do `--status` traz o passo-a-passo. Enquanto isso, tenta Paths 2-5 (fallbacks
+diretos). Se o token estiver num deles, segue o trabalho normalmente.
+
+## Se Path 1 configurado E todos os fallbacks falharem
 
 NÃO pede Wagner. Em vez disso:
 
 1. Cria entrada em `memory/proibicoes.md` (Tier 0 gap):
    ```
    ## 2026-MM-DD — Token Hostinger API inacessível ao agente
-   - 6 paths tentados (SKILL.md hostinger-dns-autonomy lista)
+   - Path 1 (get-secret.sh) + fallbacks 2-5 tentados (SKILL.md hostinger-dns-autonomy lista)
    - Bloqueador: <descrição da falha exata>
    - Solução proposta: <ADR/skill nova/setup canon>
    ```
@@ -183,13 +200,15 @@ NÃO pede Wagner. Em vez disso:
 
 ## Como funciona em prod (steady-state)
 
-- Token vive em `/root/.hostinger-api-token` (CT 100) chmod 600
-- Setado 1× quando Wagner aprovou ADR 0045 (2026-04-28)
-- Agente lê SEMPRE — não pede, não escala
-- Rotação: Wagner roda 1× quando expirar, atualiza arquivo + propaga via secret manager
+- Segredo vive **no Vaultwarden** (`vault.oimpresso.com`), lido via `get-secret.sh` (Path 1)
+- Service account `claude-agent` + API key: setup 1× do Wagner (`/root/.vaultwarden-agent-creds` chmod 600)
+- Agente lê SEMPRE via `get-secret.sh <slug>` — não pede, não escala
+- Rotação: Wagner atualiza o item no Vaultwarden; agente segue lendo o mesmo slug (zero mudança de código)
+- Fallback legado: `/root/.hostinger-api-token` (CT 100 chmod 600) continua válido se o service account ainda não existir
 
 ## Refs
 
+- [`scripts/infra/get-secret.sh`](../../../scripts/infra/get-secret.sh) — mecanismo canônico (Opção B, Tier 0 gap 2026-05-28)
 - [ADR 0045](../../../memory/decisions/0045-hostinger-dns-api-endpoint-canonico.md) — DNS endpoint canônico
 - [memory/reference/hostinger.md](../../../memory/reference/hostinger.md) — receita API completa
 - [PROTOCOLO-WAGNER-SEMPRE.md](../../../memory/reference/PROTOCOLO-WAGNER-SEMPRE.md) regra 1 — não escalar automatizável

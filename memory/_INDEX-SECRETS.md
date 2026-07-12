@@ -26,8 +26,9 @@ lifecycle: active
 | **CT 100 root SSH (LAN — fallback canônico p/ testes)** | SSH via chave | host `192.168.0.50:22` (LAN empresa, **NÃO passa pelo Tailscale**) + chave `~/.ssh/id_ed25519_oimpresso` | `ssh -i ~/.ssh/id_ed25519_oimpresso root@192.168.0.50 'docker exec -e DB_CONNECTION=mysql oimpresso-staging php artisan test --filter=X'` · ⚠️ só de dentro da LAN da empresa · ⚠️ fail2ban bane o IP após 3 falhas de auth (usar `IdentitiesOnly=yes` + chave certa; recomendado `ignoreip` da LAN) | sob demanda | ✅ active (verificado 2026-06-05 — conecta + `oimpresso-staging` Laravel 13.6 vivo) |
 | **UltimatePOS superadmin (login "WR2")** | senha de login (god-mode cross-tenant) | hash bcrypt na tabela `users`; senha em claro → Vaultwarden item `ultimatepos-superadmin` (criar) | inacessível ao agente (humano-only — conta cross-tenant Tier 0) | sob demanda | 🟡 rotacionando 2026-06-08 (Wagner) — falta cadastrar no Vault |
 | **MinIO root (CT 100 langfuse)** | Access key + secret | `/opt/langfuse/code/docker/langfuse/docker-compose.yml` env `MINIO_ROOT_USER` / `MINIO_ROOT_PASSWORD` (referenciado de `/opt/docker-host/.env`) | `tailscale ssh root@ct100-mcp 'grep MINIO_ROOT /opt/docker-host/.env'` | semestral | ✅ active |
-| **MinIO user `oimpresso_*`** | Access key + secret | salvo Vaultwarden item `arquivos-minio-app-credentials` (criar item Sprint 0 + 0.4) | Vaultwarden API user-level (futuro skill `secret-vaultwarden`) | anual | 🟡 criado 2026-05-28 (ACCESS_KEY=oimpresso_0019f2a8669f) — **falta cadastrar no Vault** |
-| **Vaultwarden ADMIN_TOKEN** | admin token | `/opt/docker-host/.env` env var `VAULTWARDEN_ADMIN_TOKEN` | `tailscale ssh root@ct100-mcp 'grep ^VAULTWARDEN_ADMIN_TOKEN /opt/docker-host/.env'` | sem rotação automática (só se vazar) | ✅ active |
+| **MinIO user `oimpresso_*`** | Access key + secret | salvo Vaultwarden item `arquivos-minio-app-credentials` (criar item Sprint 0 + 0.4) | `get-secret.sh arquivos-minio-app-credentials` (após setup service account) | anual | 🟡 criado 2026-05-28 (ACCESS_KEY=oimpresso_0019f2a8669f) — **falta cadastrar no Vault** |
+| **Vaultwarden ADMIN_TOKEN** | admin token | `/opt/docker-host/.env` env var `VAULTWARDEN_ADMIN_TOKEN` | `tailscale ssh root@ct100-mcp 'grep ^VAULTWARDEN_ADMIN_TOKEN /opt/docker-host/.env'` | sem rotação automática (só se vazar) | 🔴 **ROTACIONAR** — valor apareceu em transcript de sessão Claude 2026-07-12 (`docker inspect` sem redação). Wagner regerar token + `docker compose up -d vaultwarden` |
+| **Vaultwarden service account `claude-agent`** | API key (client_id/secret) + master pass | credenciais em `/root/.vaultwarden-agent-creds` CT 100 (chmod 600); user no Vaultwarden `vault.oimpresso.com` | `tailscale ssh root@ct100-mcp '/root/bin/get-secret.sh <slug>'` (mecanismo canônico — Opção B, `scripts/infra/get-secret.sh`) | anual (rotação da API key) | 🟡 **setup 1× pendente Wagner** (criar user + API key + colar 3 credenciais + compartilhar itens). Mecanismo (`bw` CLI + script) já pronto no CT 100 |
 | **Vaultwarden user master password (Wagner)** | master password | **MEMÓRIA HUMANA Wagner** — papel físico backup; não tem cache CT 100 | inacessível ao agente (by design) | sem rotação (perdeu = perdeu, recovery via reset email) | 🔒 LOCKED humano-only |
 | **Centrifugo HMAC + API key** | HMAC secret + API key | `/opt/centrifugo/config.json` CT 100 (vimos em incident 2026-05-28 fix `omnichannel` namespace) | `tailscale ssh root@ct100-mcp 'cat /opt/centrifugo/config.json'` | semestral | ✅ active |
 | **Whatsmeow daemon HMAC** | HMAC pra webhook | Hostinger `.env` `WHATSAPP_WHATSMEOW_HMAC_SECRET` | `ssh ... 'grep WHATSMEOW_HMAC .env'` | semestral | ✅ active |
@@ -75,6 +76,16 @@ Toda vez que:
 
 PR title sugerido: `chore(secrets): rotaciona <secret> 2026-MM-DD`.
 
+## Mecanismo de leitura canônico — `get-secret.sh` (Opção B)
+
+Depois de achar o ponteiro aqui, o agente lê o valor via **`get-secret.sh`** (Vaultwarden service account `claude-agent`) — sem manusear valor no chat, sem escalar pro Wagner:
+
+```bash
+tailscale ssh root@ct100-mcp '/root/bin/get-secret.sh <slug>'    # fonte: scripts/infra/get-secret.sh
+```
+
+Setup 1× (SÓ Wagner): criar user `claude-agent` + API key + colar credenciais em `/root/.vaultwarden-agent-creds` (chmod 600) + compartilhar itens. Detalhe em [INFRA-ACESSO-CANON.md §Secrets](reference/INFRA-ACESSO-CANON.md) e skill `hostinger-dns-autonomy` (Path 1). Enquanto não configurado, os ponteiros `.env`/CT 100-file da tabela continuam sendo os fallbacks diretos.
+
 ## Skill enforcement
 
 Skill Tier A `memory-first-secret-search` (criar pós este PR) força agente a:
@@ -88,6 +99,7 @@ Skill Tier A `memory-first-secret-search` (criar pós este PR) força agente a:
 
 - `memory/proibicoes.md` — regra Tier 0 enforcement
 - `.claude/skills/memory-first-secret-search/SKILL.md` (criar) — bloqueador agente
-- `.claude/skills/hostinger-dns-autonomy/SKILL.md` — Path 0 atualizado pra consultar este índice
+- `.claude/skills/hostinger-dns-autonomy/SKILL.md` — Path 1 = `get-secret.sh` (service account Vaultwarden)
+- `scripts/infra/get-secret.sh` — mecanismo canônico de leitura via `bw` CLI (Opção B, Tier 0 gap 2026-05-28)
 - ADR 0044 (Vaultwarden self-hosted), ADR 0061 (zero auto-mem privada), ADR 0131 (tiering memória)
 - Falha origem: 2026-05-28 18:30 incident agente declarou Tier 0 gap falsamente
