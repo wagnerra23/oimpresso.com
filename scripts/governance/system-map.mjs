@@ -154,7 +154,11 @@ function measureGates() {
   let capturado = null;
   try {
     const bl = JSON.parse(read(join(ROOT, 'governance', 'required-checks-baseline.json')));
-    required = (bl.classic_protection && bl.classic_protection.contexts) || [];
+    // contagem canônica do protection-drift.mjs: classic + ruleset (ignorar o ruleset
+    // subconta — "Governance Gate" vem de ruleset, não do required_status_checks clássico).
+    const classic = (bl.classic_protection && bl.classic_protection.contexts) || [];
+    const ruleset = (bl.rulesets && bl.rulesets.contexts) || [];
+    required = [...classic, ...ruleset];
     enforcement = bl.enforcement_level || null;
     capturado = (bl._meta && bl._meta.capturado_em) || null;
   } catch { /* ausente */ }
