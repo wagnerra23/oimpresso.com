@@ -2,10 +2,11 @@
 page: /jana/admin/roadmap
 component: resources/js/Pages/Jana/Admin/Roadmap.tsx
 owner: wagner
-status: live
-last_validated: "2026-05-13"
+status: draft
+last_validated: "2026-07-12"
 approved_by: wagner
 parent_module: Jana
+related_us: [US-COPI-111]
 related_adrs: [70, 93, 94, 110]
 tier: B
 charter_version: 1
@@ -40,7 +41,8 @@ Visualizar cronologicamente os **cycles ativos** + **tasks (US-*)** do MCP como 
 - Summary task per-module com range cobrindo mínimo até máximo de tasks do grupo
 - Progress visual: done=100%, doing/review=50%, demais=0%
 - Dependency arrows e2s (end-to-start) renderizadas a partir de `blocked_by[]`
-- Multi-tenant: query `mcp_tasks` é cache canon cross-business (ADR 0093 §exceções repo-wide). Permission `jana.mcp.tasks.read` controla acesso.
+- **Drag-drop reschedule do PRAZO (`due_date`)** — arrastar/redimensionar a barra reagenda o prazo da task via `PATCH /ia/admin/roadmap/tasks/{taskId}/schedule` (US-COPI-111 **B2**, Wagner-explícito 2026-07-12). Só habilita com `jana.mcp.tasks.write` (read-only pra quem só tem read). Persiste via `TaskCrudService::update` canônico (atômico + audit). **Só o prazo:** `started_at` é lifecycle-managed (auto quando task→'doing'), NÃO arrastável.
+- Multi-tenant: query `mcp_tasks` é cache canon cross-business (ADR 0093 §exceções repo-wide). Permission `jana.mcp.tasks.read` (leitura) / `jana.mcp.tasks.write` (reschedule) controlam acesso.
 - Limite 500 tasks por render (anti-cluttered Larissa 1280px) — se exceder, filtros refinam.
 
 ---
@@ -49,7 +51,7 @@ Visualizar cronologicamente os **cycles ativos** + **tasks (US-*)** do MCP como 
 
 > Anti-alucinação. Cada item vira Pest GUARD test (Non-Goal violado = CI quebra).
 
-- ❌ **Editar task no Gantt** (drag-drop reschedule, rename inline) — leitura pura V1; mutação fica em [task-detail MCP](mcp://tasks-detail) ou skill task management
+- ⚠️ ~~**Editar task no Gantt** (drag-drop reschedule) — leitura pura V1~~ **SUPERSEDED por Wagner 2026-07-12 (US-COPI-111 B2):** o reschedule do **prazo** (`due_date`) via drag agora É Goal (ver acima). Continua Non-Goal: **rename inline** de task no Gantt, e edição de qualquer campo que não seja `due_date` (fica em `tasks-update` MCP).
 - ❌ **Criar task** no Gantt — usar `tasks-create` MCP
 - ❌ **Hierarchy nested >1 nível** (sub-issues 8 níveis estilo GitHub Projects mar/2026) — V1 = só summary-by-module, V2 espera `mcp_tasks.parent_task_id` populado + tree view
 - ❌ **Cycle múltiplo simultâneo** (overlay de 2 cycles lado-a-lado) — V1 = 1 cycle por vez
