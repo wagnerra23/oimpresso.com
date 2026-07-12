@@ -359,6 +359,11 @@ FLOOR_KEY=/root/.ssh/oimpresso_floor_deploy
 if [ -f "$FLOOR_KEY" ]; then
   FLOORDIR="$(mktemp -d)"
   mkdir -p "$FLOORDIR/governance"
+  # V6-B (elo 2 · avaliacao SDD 2026-07-12): publica TAMBEM o summary per-file (files[]) da noite
+  # pro gate verde advisory (anchor-lint --junit --check-verde le da orfa no CI · anchor-drift.yml).
+  # So se COHERENT (>=1 shard vivo); noite invalida => ausente => la vira behavior_unknown (V6-A).
+  { [ "$COHERENT" = "true" ] && [ -f "$RUN_DIR/summary.json" ] \
+      && cp "$RUN_DIR/summary.json" "$FLOORDIR/governance/nightly-fullsuite-summary.json"; } || true
   if node "$CODE/scripts/tests/floor-compute.mjs" --runs "$RUNS" --window 3 --out "$FLOORDIR/governance/nightly-floor.json"; then
     # SDD P07 (ADR 0275 coverage_pct): mesmo transporte do floor (branch orfa +
     # deploy key + push [skip ci]). coverage-compute le os clover.xml das ultimas
@@ -377,7 +382,8 @@ if [ -f "$FLOOR_KEY" ]; then
       && git config core.sshCommand "ssh -i $FLOOR_KEY -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new" \
       && git add governance/nightly-floor.json \
       && { [ -f governance/nightly-coverage.json ] && git add governance/nightly-coverage.json || true; } \
-      && git -c user.email=ct100-floor@oimpresso.local -c user.name="ct100-nightly-floor" commit -q -m "chore(sdd): nightly floor+coverage $TS [skip ci]" \
+      && { [ -f governance/nightly-fullsuite-summary.json ] && git add governance/nightly-fullsuite-summary.json || true; } \
+      && git -c user.email=ct100-floor@oimpresso.local -c user.name="ct100-nightly-floor" commit -q -m "chore(sdd): nightly floor+coverage+verde-summary $TS [skip ci]" \
       && git push -f git@github.com:wagnerra23/oimpresso.com.git HEAD:refs/heads/governance/nightly-floor 2>&1 | tail -2 ) \
       && echo "[floor] publicado em governance/nightly-floor (+coverage se presente)" \
       || echo "[floor] push falhou (ver acima) — read-side fica notYet"

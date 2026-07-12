@@ -165,6 +165,37 @@ jobs:
             node scripts/governance/charter-live-signal.mjs
           fi
 
+  # V6-B (elo 4 · avaliação SDD 2026-07-12): gate verde ADVISORY sobre a nightly full-suite.
+  # Lê o summary per-file (files[]) da nightly sharded publicado na órfã governance/nightly-floor
+  # pelo ct100-fullsuite.sh (elo 2) e roda anchor-lint --junit --check-verde. É a ÚNICA fonte que
+  # cobre as ~42 US nightly-only. NUNCA-RED de nascença (report-only, `|| warning`): reporta o veredito
+  # verde-por-arquivo sem bloquear merge — promoção a "morde"/required = flip do Wagner (ADR 0275 §5).
+  # DORMANTE-SEGURO: sem summary na órfã (nenhuma nightly ainda) → anchor-lint (V6-A) degrada a
+  # behavior_unknown → exit 0. Mesmo workflow (teto ADR 0298 — estende, não cria).
+  verde-gate-advisory:
+    name: gate verde nightly (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: materializa o summary da nightly (órfã governance/nightly-floor · ausente = dormante)
+        run: |
+          git fetch --no-tags --depth=1 origin governance/nightly-floor 2>/dev/null \
+            || echo "órfã governance/nightly-floor ausente (nenhuma nightly publicada ainda) — gate fica dormante"
+          if git show FETCH_HEAD:governance/nightly-fullsuite-summary.json > governance/nightly-fullsuite-summary.json 2>/dev/null; then
+            echo "summary da nightly materializado:"; head -c 400 governance/nightly-fullsuite-summary.json; echo
+          else
+            echo "sem summary per-file na órfã — gate verde fica behavior_unknown (dormante até a 1ª nightly com o elo 2)"
+          fi
+      - name: anchor-lint --junit --check-verde (ADVISORY · nunca required · report-only)
+        run: |
+          # NUNCA-RED de nascença: reporta o veredito, não bloqueia. Sem summary → behavior_unknown → exit 0.
+          # Wagner promove a "morde" (tirar o `|| ...`) / required por calendário quando confiar na fonte (ADR 0275 §5).
+          node scripts/governance/anchor-lint.mjs --junit governance/nightly-fullsuite-summary.json --check-verde \
+            || echo "::warning::gate verde (advisory): há US implementada+coberta com teste NÃO-verde na nightly full-suite — ver saída acima (não bloqueia; ADR 0275 §5)"
+
   # ═══ RENAME P14 fix (d) — SHIMS TEMPORÁRIOS (remover no PR-2 do rename) ═════
   # Os 4 jobs acima são REQUIRED na branch protection desde 2026-06-30, mas o nome
   # CATRACA "1 lugar fixo" (Wagner 2026-07-01 "não pode trocar de lugar nunca. deve ser isso que fica
