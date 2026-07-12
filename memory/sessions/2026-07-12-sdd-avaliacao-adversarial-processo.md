@@ -9,6 +9,10 @@ related_adrs: [0273-anchor-spec-codigo-formato-canonico-fluxo-novo, 0275-scoreca
 
 **Worktree de build:** `sdd-oom-fix` (branch `claude/sdd-avaliacao-2026-07-12`, partiu de `origin/main` @ e8d0b71ff5). A avaliação em si rodou a partir do checkout `quirky-mclaren-cf1013` (stale −5074), mas **todos os 7 skeptics verificaram o estado REAL em `origin/main` live** (1f4fdc98) via `git show`/`gh api` — não o working tree stale, não o plano.
 
+## TL;DR
+
+Avaliação adversarial do programa SDD (7 streams, verificação LIVE em `origin/main`): **composto 69/100**. O plumbing de governança é sólido e honesto (gate-selftest 46/46 mordem, P14 fail-closed provado); o que falha é a **FONTE** que ele governa — a nightly full-suite do CT 100 morre por OOM mid-suite → `junit.xml` 0-byte em 9/10 noites → floor congelado há 6 dias → estrangula R1/C2/T1/P13. Maior alavanca única: consertar o OOM da nightly.
+
 ## O que foi feito
 
 Wagner: **"sdd-avaliar"** → rodei o workflow canônico `sdd-avaliador-processo` (skill `sdd-avaliar`). 1 skeptic adversarial por stream (7 streams SA/FV/KL/GT/Charters/Fase2b/Promoções), cada um medindo LIVE (rodou anchor-lint, sdd-scorecard, foundation-ratchet, gate-selftest; leu branch protection via `gh api`; mediu o floor no CT100), + síntese.
