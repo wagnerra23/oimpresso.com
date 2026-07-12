@@ -1083,7 +1083,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** `MeilisearchDriver` retornar score composto (relevance × 0.6 + recency × 0.3 com half-life 90d + importance × 0.1) com decay rate 0 pra ADR `lifecycle: accepted` e 0.5 pra `historical`/superseded
 **Para** documentos canônicos recentes vencerem antigos no recall — fechando gap Knowledge R5 (0%→75%) que hoje mistura regras vigentes com revogadas em queries multi-dia
 
-**Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` (método `applyTimeDecay()` L336, **chamado no pipeline de recall** L194; half-life `0.5^(age_days/half_life)` L319; config `copiloto.time_decay.temporal_weight` default 0.4) · verificado@42af777 (2026-07-12) — impl. completa e WIRED (não código morto); o SPEC anterior chutou nome errado (`applyTemporalScoring`) e afirmou "não existe" — era drift doc-atrás-do-código. **Validação remanescente (não bloqueia shipped):** medir NDCG@10 +15pp no dashboard Langfuse (agora possível, US-COPI-108 vivo).
+**Implementado em:** `Modules/Jana/Services/Memoria/MeilisearchDriver.php` — função applyTimeDecay() (L336) **chamada no pipeline de recall** (L194); half-life decay exponencial (L319, meia-vida sobre age em dias); config copiloto.time_decay.temporal_weight default 0.4 · verificado@42af777 (2026-07-12) — impl. completa e WIRED (não código morto); o SPEC anterior citou nome errado (applyTemporalScoring) e afirmou "não existe" — era drift doc-atrás-do-código. **Validação remanescente (não bloqueia shipped):** medir NDCG@10 +15pp no dashboard Langfuse (agora possível, US-COPI-108 vivo).
 
 **Definition of Done:**
 - [ ] Função composite `score = relevance×0.6 + recency_decay(age_days, lifecycle)×0.3 + importance×0.1` documentada
