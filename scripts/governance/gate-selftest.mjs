@@ -283,6 +283,24 @@ function runAnchorLintVerdeResilient(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// V6-C (avaliação SDD 2026-07-12 · risco #2): "nightly-only lane → behavior_unknown, não false-red".
+// Reusa a fixture verde/bad (MESMO SPEC+Service+Test + junit COERENTE marcando o teste-que-cobre skipped)
+// e isola a variável LANE: good tira o .github/ci-sqlite-pest.list (teste fora de lane / nightly-only) →
+// V6-C degrada a behavior_unknown → exit 0 (o skipped que estruturalmente não aparece no junit do PR NÃO
+// avermelha); bad mantém a lista (teste in-lane) → skipped in-lane É vermelho legítimo → exit 1 (🟥). O par
+// prova que a exclusão é lane-membership, não o status do teste (idêntico nos dois).
+function runAnchorLintVerdeNightly(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-verde-nightly-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-verde', 'bad'), sb, { recursive: true }); // SPEC+Test + junit skipped + lane list
+    if (kind === 'good') rmSync(join(sb, '.github', 'ci-sqlite-pest.list'), { force: true }); // fora de lane = nightly-only
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // ARMING grandfather (SA-A2-ter · ADR 0275): --check-entry --baseline. Prova o no-new-lie:
 // good = US violadora MAS grandfatherada no baseline → exit 0; bad = MESMA US violadora, baseline
 // só com decoy → exit 1 ("regra de entrada"). Isola a variável estar-no-baseline (mesmo SPEC).
@@ -448,6 +466,15 @@ const CATRACAS = [
     id: 'anchor-lint-verde-resilient',
     run: runAnchorLintVerdeResilient,
     expect: { good: /Gate verde \(advisory\): behavior_unknown/, bad: /🟥 US-SLFV-001/ },
+  },
+  {
+    // V6-C (avaliação SDD 2026-07-12 · risco #2): US com teste-que-cobre fora das lanes de JUnit (nightly-only)
+    // NÃO vira false-red. MESMO SPEC/teste/junit-skipped nos dois; a única variável é o .github/ci-sqlite-pest.list.
+    // good = SEM lista (fora de lane) → behavior_unknown → 0 req_teste_vermelho → exit 0; bad = COM lista (in-lane)
+    // → skipped in-lane É vermelho → exit 1 🟥. Prova que a exclusão vem da lane-membership, não do status do teste.
+    id: 'anchor-lint-verde-nightly',
+    run: runAnchorLintVerdeNightly,
+    expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
   },
   {
     // ARMING grandfather (SA-A2-ter · ADR 0275): baseline ISENTA o legado MAS morde mentira NOVA.

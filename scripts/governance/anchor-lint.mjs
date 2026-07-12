@@ -514,10 +514,15 @@ function lintSpec(file) {
     if (!coveredUs.has(u.id)) { reqSemTeste.push({ us: u.id, line: u.line }); continue; } // sem teste = G1b-entry, não verde
     // G1c (item b): tem teste-que-cobre, mas NENHUM numa lane de JUnit → verde estruturalmente impossível
     const coverFiles = [...usFiles.get(u.id)];
-    if (!coverFiles.some((rel) => inLane(rel))) reqSemLane.push({ us: u.id, line: u.line, tests: coverFiles });
-    // tem teste-que-cobre declarado → se temos JUnit, exige ≥1 arquivo VERDE (senão behavior_unknown)
-    if (junitFiles) {
-      const tests = [...usFiles.get(u.id)].map((rel) => ({ file: rel, status: junitStatus(rel) }));
+    const inLaneCovers = coverFiles.filter((rel) => inLane(rel));
+    if (!inLaneCovers.length) reqSemLane.push({ us: u.id, line: u.line, tests: coverFiles });
+    // V6-C (avaliação SDD 2026-07-12 · risco #2): o verde-por-arquivo só JULGA covering tests DENTRO de uma
+    // lane de JUnit. US inteiramente FORA de lane (nightly-only / shard não-materializado neste run) =
+    // req_sem_lane → behavior_unknown, NUNCA req_teste_vermelho: o teste que estruturalmente não pode
+    // aparecer no junit do PR ficaria `ausente` → false-red (as ~42 US req_sem_lane hoje). Só avalia vermelho
+    // quando há ≥1 covering test in-lane (aí `ausente`/skipped in-lane É vermelho legítimo: devia ter rodado).
+    if (junitFiles && inLaneCovers.length) {
+      const tests = inLaneCovers.map((rel) => ({ file: rel, status: junitStatus(rel) }));
       if (!tests.some((t) => t.status === 'verde')) reqTesteVermelho.push({ us: u.id, line: u.line, tests });
     }
   }
@@ -631,7 +636,7 @@ const report = {
     testado_regra: 'dead_tests = ref em `**Testado em:**` (path .php OU ClassName…Test) inexistente no repo.',
     covers_regra: 'testado_sem_covers (G1a · ADR 0303 emenda) = teste que EXISTE mas não declara `// @covers-us <US-ID>` da US-pai. ADVISORY: reportado sempre, exit 1 só com --check-covers (anchor-drift roda --check normal).',
     entrada_regra: 'GATE DE ENTRADA (G1b-entry): US que se diz IMPLEMENTADA (anchored_ok/parcial) precisa de DoD/aceite (req_sem_aceite) E de teste que declare @covers-us dela (req_sem_covering_test). _pendente_ é exceto. ADVISORY: exit 1 só com --check-entry (arming com baseline grandfather do legado, ADR 0275).',
-    verde_regra: 'GATE VERDE (G1b-verde · Phase B): com --junit <summary.json> (junit-summary/v1), US implementada+coberta cujo arquivo-de-teste NÃO está verde no JUnit → req_teste_vermelho. verde POR ARQUIVO = passed>0 E failed=0 E errors=0; vermelho/skipped/ausente NÃO contam (skipped != passed, defesa markTestSkipped). fs-puro: lê o JSON que o CI já produz, NUNCA roda teste/PHP/DB. Sem --junit → behavior_unknown (nunca avermelha). exit 1 só com --check-verde OU --check-entry.',
+    verde_regra: 'GATE VERDE (G1b-verde · Phase B): com --junit <summary.json> (junit-summary/v1), US implementada+coberta cujo arquivo-de-teste NÃO está verde no JUnit → req_teste_vermelho. verde POR ARQUIVO = passed>0 E failed=0 E errors=0; vermelho/skipped/ausente NÃO contam (skipped != passed, defesa markTestSkipped). V6-C: só julga covering tests DENTRO de uma lane de JUnit — US inteiramente fora de lane (nightly-only) = req_sem_lane → behavior_unknown, nunca req_teste_vermelho (senão o teste que não pode aparecer no junit do PR viraria false-red). fs-puro: lê o JSON que o CI já produz, NUNCA roda teste/PHP/DB. Sem --junit → behavior_unknown (nunca avermelha). exit 1 só com --check-verde OU --check-entry.',
     servido_regra: 'SERVIDO (4º veredito · ADVISORY runtime): US wired (anchored_ok/parcial) ancorada em Page com hits>0 na janela do ledger governance/route-hits.json (export do middleware ContadorHitsRota em prod). nao_servido = "existe + roteado mas 0 hits em Nd" — prova de USO, não de correção. NUNCA entra em coverage/--check/flag. Sem ledger (ou pages vazio) = sem_ledger, nada é marcado.',
     servido_ledger: HITS ? `${relative(ROOT, HITS_PATH).replace(/\\/g, '/')} (janela ${HITS.janela ?? '?'}d)` : 'sem_ledger',
     behavior: JUNIT ? `junit:${JUNIT.schema} · fonte ${JUNIT.source}` : `behavior_unknown (${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'})`,
