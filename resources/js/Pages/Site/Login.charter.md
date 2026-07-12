@@ -3,17 +3,17 @@ page: /login
 component: resources/js/Pages/Site/Login.tsx
 related_prototype: n/a (herda PT-02 Formulário; useForm + <form> presentes — mas é auth público fora do AppShellV2)
 owner: wagner
-status: draft
-last_validated: "2026-07-11"
+status: live
+last_validated: "2026-07-12"
 parent_module: Auth
 related_adrs: [114, 101, 94]
 tier: B
 charter_version: 1
 ---
 
-# Page Charter — /login (DRAFT)
+# Page Charter — /login (LIVE)
 
-> **Status:** draft criado em 2026-07-11 no lote de cobertura de charters. Wagner aprova **Non-Goals + Anti-hooks** ANTES de virar `status: live`.
+> **Status:** **live** — promovido em 2026-07-12. Wagner aprovou Non-Goals + Anti-hooks ("Promova") **e** há sinal de prod real: `governance/route-hits.json` → `Site/Login` = **28 hits** (última 2026-07-11, middleware `ContadorHitsRota`). `live = evidência` (gate `charter-live-signal`).
 >
 > Backend: `app/Http/Controllers/Auth/LoginController@showLoginForm` (rota pública `GET /login`, middleware `guest`). Tela de login redesenhada em Inertia com social-first (Google/Microsoft). `SiteLayout` (sem AppShellV2). PT-02 Formulário: `useForm` + `<form>`.
 
@@ -57,7 +57,7 @@ Porta de autenticação do produto. O usuário entra com Google/Microsoft (login
 
 ---
 
-## Pendências antes de `status: live`
-- [ ] Wagner aprova Non-Goals + Anti-hooks
+## Follow-up (pós-live)
+- [x] Wagner aprovou Non-Goals + Anti-hooks (2026-07-12, "Promova") + sinal de prod (route-hits 28)
 - [ ] Smoke visual 1280/1440 (screenshot)
 - [ ] Confirmar fluxo de erro de credencial + rate-limit/brute-force em prod
