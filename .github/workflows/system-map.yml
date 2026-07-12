@@ -1,0 +1,70 @@
+name: System Map (matriz gerada · advisory)
+
+# Painel do sistema como MATRIZ gerada (proposal painel-sistema-matriz-gerada.md).
+# Deriva memory/reference/PAINEL-SISTEMA.md das fontes canônicas — índice que aponta
+# pros donos, não cópia. Anti-drift: editar à mão é inútil (a máquina regenera).
+#
+# 2 modos:
+#   - PR (advisory): --check avisa se o painel ficou stale vs as fontes tocadas.
+#     Nasce advisory (continue-on-error) — ADR 0261/0271, gate novo nunca nasce required.
+#   - schedule/dispatch: regenera + commit-back se mudou (a "máquina que mantém").
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'memory/requisitos/*/BRIEFING.md'
+      - 'memory/decisions/*.md'
+      - 'memory/proibicoes.md'
+      - 'governance/sdd-scorecard.json'
+      - 'scripts/governance/system-map.mjs'
+      - '.github/workflows/system-map.yml'
+  schedule:
+    - cron: '30 10 * * *' # 07:30 BRT diário (pós-scorecard 06:50)
+  workflow_dispatch:
+
+concurrency:
+  group: system-map-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: painel bate com as fontes (advisory)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 } # git log precisa do histórico p/ frescor
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: system-map --check (stale = avisa, não bloqueia)
+        continue-on-error: true
+        run: node scripts/governance/system-map.mjs --check
+
+  refresh:
+    name: regenera + commit-back (matriz que mantém)
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Regenera o painel
+        run: node scripts/governance/system-map.mjs
+      - name: Commit-back se mudou
+        run: |
+          if git diff --quiet -- memory/reference/PAINEL-SISTEMA.md; then
+            echo "painel em dia — nada a commitar"
+          else
+            git config user.name "oimpresso-bot"
+            git config user.email "bot@oimpresso.com"
+            git add memory/reference/PAINEL-SISTEMA.md
+            git commit -m "chore(matriz): regenera PAINEL-SISTEMA [skip ci]"
+            git push
+          fi
