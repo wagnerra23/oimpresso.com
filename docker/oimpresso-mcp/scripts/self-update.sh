@@ -91,6 +91,22 @@ if [ -f "$RAGASPUB_SRC" ]; then
   fi
 fi
 
+# Mesmo sync anti-drift pra cópia do snapshot DIÁRIO do scorecard SDD (SDD P06 / GT-G7,
+# ADR 0275 §1 — decisão Wagner 2026-07-01: agendar no CT 100, não Hostinger, ADR 0062).
+# O cron 07:10 BRT roda /opt/oimpresso-governance/ct100-sdd-scorecard-snapshot.sh. mkdir -p
+# deliberado (dir novo — a cópia nasce no 1º sync sem passo manual; só a linha de crontab
+# é manual 1×, ver header do .sh + RUNBOOK-ct100-sdd-scorecard-snapshot.md).
+SDDSNAP_SRC="$REPO_DIR/scripts/tests/ct100-sdd-scorecard-snapshot.sh"
+SDDSNAP_DST="${SDDSNAP_SCRIPT:-/opt/oimpresso-governance/ct100-sdd-scorecard-snapshot.sh}"
+if [ -f "$SDDSNAP_SRC" ]; then
+  mkdir -p "$(dirname "$SDDSNAP_DST")"
+  if ! cmp -s "$SDDSNAP_SRC" "$SDDSNAP_DST"; then
+    install -m 0755 "$SDDSNAP_SRC" "$SDDSNAP_DST.tmp" && mv -f "$SDDSNAP_DST.tmp" "$SDDSNAP_DST" \
+      && log "sdd-snapshot: cópia do diário sincronizada com o canônico" \
+      || log "WARN: sync da cópia do sdd-snapshot falhou (não-fatal)"
+  fi
+fi
+
 git fetch --quiet origin main || { log "FATAL: git fetch falhou"; exit 1; }
 LOCAL="$(git rev-parse HEAD)"
 REMOTE="$(git rev-parse origin/main)"
