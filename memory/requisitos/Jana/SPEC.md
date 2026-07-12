@@ -1116,7 +1116,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 **Quero** rota `/copiloto/admin/roadmap` com Gantt visual cronológico (SVAR React Gantt MIT) + sub-issues hierarchy view (parent_task_id) + drag-drop datas + filtro current cycle default
 **Para** fechar gap Viz (5%→70%) — listas markdown via tools MCP não mostram cronologia/dependências; Linear/Plane/GitHub Projects vão 5 anos à frente em viz
 
-**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` · `resources/js/Pages/ProjectMgmt/Roadmap/Index.tsx` · verificado@08c4a8f (2026-06-21) — controller + página existem; falta RoadmapTaskResource + componentes Gantt SVAR (RoadmapGantt, SubIssuesPanel) + charter (Gantt visual não construído)
+**Implementado em:** _parcial_ · `Modules/Jana/Http/Controllers/Admin/RoadmapController.php` · `resources/js/Pages/ProjectMgmt/Roadmap/Index.tsx` · `resources/js/Pages/ProjectMgmt/Roadmap/Index.charter.md` · verificado@e8d0b71 (2026-07-12, máquina) — controller + página + **charter existem** (anchor anterior dizia "charter não construído": era drift, corrigido) e a lib SVAR react-gantt ^2.6.1 já está no package.json. **Falta (único gap real das Ondas 4-5 pra ~98% — exige sessão MWART dedicada + gate visual Wagner, R7):** componentes RoadmapGantt + SubIssuesPanel (0 no repo) + RoadmapTaskResource (0 no repo). Pré-reqs prontos: charter (design-source ✓), lib instalada, página base. NÃO construir blind (ADR 0299 + R7).
 
 **Definition of Done:**
 - [ ] npm dep `@svar-widgets/react-gantt` (MIT, ~80KB, React 19 nativo — rejeitado DHTMLX/Bryntum/Frappe por licença ou bundle)
