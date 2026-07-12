@@ -467,6 +467,13 @@
       "terminal": "advisory",
       "promote_by": "2026-07-25",
       "anchor": "revisão adversarial 2026-07-11 (decisão B do Wagner): declarar PT no charter sem verificar a tela é count-pump (design-coverage conta a string). Este gate faz a declaração falsificável — pré-requisito pra a cobertura de design ser correção, não forma. Advisory por ADR 0314; promote_by força decisão em 14d."
+    },
+    "detect-ui-drift.yml": {
+      "nome": "detect-ui-drift — M1 (advisory) — eixo de AUTORIZAÇÃO: quando uma .tsx de tela muda num PR, exige sinal FRESCO no mesmo PR (divergence_from_blueprint com razão real no charter irmão · OU related_prototype mudou pra protótipo real · OU entrada nova no SYNC_LOG citando a tela). Sem sinal → 🚩 mudança não-declarada. Mede VALOR SEMÂNTICO do campo (não presença — L-24). Self-test morde/libera; ::warning:: + job summary (visível). Detecção-only, nunca edita a tela.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-26",
+      "anchor": "Wagner 2026-07-11/12 (dor textual): 'cada customização não é pega como alteração da máquina — parece que não sabe que alterou.' Custo provado: desastre do Financeiro (PRs #1085→#1091→#1092 — cores erradas, abas faltando, textos colados) — telas quebradas por cherry-pick sem declaração. As máquinas existentes respondem 'o QUE mudou' (design-spec ADR 0255) / 'está bonito' (design-diff ADR 0299), NENHUMA respondia 'foi AUTORIZADA?'. Interseção vazia (mapa como-integrar 2026-07-11). Advisory por ADR 0314 (autorização de UI é quality, não Tier-0 dinheiro/PII/multi-tenant/fiscal); promote_by força decisão de promoção a --strict em 14d. Reusa fmScalar (reconcile-triplet:68) + forma diff-aware (design-return-gate.yml) + SYNC_LOG (loop Cowork↔Code) — zero vocabulário novo. Norma defendida: RESPEITAR-PROTOTIPO.md."
     }
   }
 }

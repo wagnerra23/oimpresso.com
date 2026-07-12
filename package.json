@@ -100,6 +100,8 @@
     "components:check": "node scripts/components-tree-guard.mjs",
     "design-spec:check": "node scripts/design-spec-gen.mjs --check",
     "design-spec:write-all": "node scripts/design-spec-gen.mjs --write-all",
+    "ui-drift:check": "node scripts/governance/detect-ui-drift.mjs",
+    "ui-drift:selftest": "node scripts/governance/detect-ui-drift.test.mjs",
     "a11y:check": "node scripts/a11y-ratchet.mjs",
     "a11y:report": "node scripts/a11y-ratchet.mjs --report",
     "a11y:baseline:write": "node scripts/a11y-ratchet.mjs --write",

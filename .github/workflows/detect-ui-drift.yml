@@ -1,0 +1,53 @@
+name: Detect UI drift — M1 (advisory)
+
+# M1 · detector de MUDANÇA DE UI NÃO-DECLARADA (eixo de AUTORIZAÇÃO).
+# Quando uma .tsx de tela muda num PR, exige um SINAL DE AUTORIZAÇÃO FRESCO no MESMO PR:
+#   · divergence_from_blueprint (razão real) no charter irmão  — desvio declarado, OU
+#   · related_prototype mudou pra protótipo real / SYNC_LOG novo citando a tela — protótipo aplicado.
+# Sem sinal → 🚩 (mudança não-declarada = drift). Responde a dor "não sabe que alterou".
+# Ortogonal ao design-spec-gate (o QUE mudou) e ao design-diff (estética). NÃO julga bonito.
+#
+# ADVISORY (ADR 0314 — required = só Tier-0) mas VISÍVEL (ADR 0336 — ::warning:: + job summary,
+# nunca teatro silencioso). Self-test morde/libera antes. Detecção-only: NUNCA edita a tela.
+# Refs: memory/requisitos/_DesignSystem/RESPEITAR-PROTOTIPO.md · scripts/governance/detect-ui-drift.mjs
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/**/*.tsx'
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'prototipo-ui/SYNC_LOG.md'
+      - 'scripts/governance/detect-ui-drift.mjs'
+      - 'scripts/governance/detect-ui-drift.test.mjs'
+      - '.github/workflows/detect-ui-drift.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: detect-ui-drift-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ui-drift:
+    name: mudança de UI não-declarada (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # precisa da base pro diff base...HEAD
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Self-test do gate (prova que morde e libera)
+        run: node scripts/governance/detect-ui-drift.test.mjs
+
+      - name: Fetch base ref
+        run: git fetch --no-tags origin ${{ github.base_ref }}
+
+      - name: Detectar mudança de UI não-declarada (advisory, exit 0)
+        run: node scripts/governance/detect-ui-drift.mjs --base=origin/${{ github.base_ref }}
