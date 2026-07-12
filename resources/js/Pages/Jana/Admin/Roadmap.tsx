@@ -98,6 +98,8 @@ interface Props {
   owners: string[];
   modules: string[];
   active_cycle_id: number | null;
+  /** US-COPI-111 B2: habilita drag-drop reschedule (só com jana.mcp.tasks.write). */
+  can_edit?: boolean;
 }
 
 // ---------------------------------------------------------------------------
@@ -331,8 +333,16 @@ function TaskDetailDrawer({
 // Page principal
 // ---------------------------------------------------------------------------
 
+// Formata Date → 'YYYY-MM-DD' (o backend valida `date`; evita ambiguidade de fuso).
+function toIsoDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function RoadmapIndex(props: Props) {
-  const { cycles, tasks, filters, owners, modules, active_cycle_id } = props;
+  const { cycles, tasks, filters, owners, modules, active_cycle_id, can_edit = false } = props;
 
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -379,6 +389,28 @@ function RoadmapIndex(props: Props) {
         setSelectedTask(task);
         setDrawerOpen(true);
       }
+    },
+    [tasks],
+  );
+
+  // US-COPI-111 B2 (Wagner 2026-07-12): drag/resize da barra → reagenda o PRAZO.
+  // SVAR dispara `update-task` no commit do drag com a task já com novas datas.
+  // Persistimos APENAS `due_date` (a ponta editável — started_at é lifecycle-managed
+  // no backend). Summary parents têm id string ('g-N') → ignorados. Partial reload
+  // (only: tasks) re-renderiza o Gantt com a data persistida.
+  const handleReschedule = useCallback(
+    (ev: { id?: string | number; task?: { end?: Date | string } }) => {
+      const id = ev.id;
+      if (typeof id !== 'number') return; // ignora summary parents ('g-N')
+      const task = tasks.find((t) => t.id === id);
+      const end = ev.task?.end;
+      if (!task || !end) return;
+      const dueDate = end instanceof Date ? toIsoDate(end) : toIsoDate(new Date(end));
+      router.patch(
+        `/ia/admin/roadmap/tasks/${encodeURIComponent(task.task_id)}/schedule`,
+        { due_date: dueDate },
+        { preserveState: true, preserveScroll: true, only: ['tasks'] },
+      );
     },
     [tasks],
   );
@@ -543,9 +575,16 @@ function RoadmapIndex(props: Props) {
       {/* Gantt */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-semibold">
-            Timeline ({ganttTasks.length} linha
-            {ganttTasks.length === 1 ? '' : 's'})
+          <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <span>
+              Timeline ({ganttTasks.length} linha
+              {ganttTasks.length === 1 ? '' : 's'})
+            </span>
+            {can_edit && (
+              <Badge variant="secondary" className="font-normal">
+                arraste a barra p/ reagendar o prazo
+              </Badge>
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -563,10 +602,14 @@ function RoadmapIndex(props: Props) {
                 tasks={ganttTasks as never}
                 links={ganttLinks as never}
                 scales={scales as never}
-                readonly
+                readonly={!can_edit}
                 cellBorders="full"
                 init={(api) => {
                   api.on('select-task', handleTaskClick);
+                  // B2: só escuta reschedule quando editável (readonly nem dispara drag).
+                  if (can_edit) {
+                    api.on('update-task', handleReschedule);
+                  }
                 }}
               />
             </div>
