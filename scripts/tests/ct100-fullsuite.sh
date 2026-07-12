@@ -187,14 +187,25 @@ echo "--- [6/7] pest SHARDED (V1/V3 fix OOM — 1 processo PHP fresco por shard;
 # C1 (triage Q2): DB_* como -e REAL => o <env DB_CONNECTION=sqlite> sem force= do phpunit
 # e ignorado, pest usa o MySQL seedado (ADR 0101). US-GOV-018 A.1: mariadb-client (apk
 # fallback) + TLS-verify-off por container. A.2 FULLSUITE_FK_OFF continua REVERTIDO.
-node "$CODE/scripts/tests/shards-plan.mjs" --roots tests,Modules --shards "$SHARDS_N" \
-  --out "$RUN_DIR/shards-plan.json" > /dev/null \
+# CWD OBRIGATORIO = $CODE: o shards-plan.mjs (chip #4166) descobre os dirs de teste
+# relativos a process.cwd() (discoverTestDirs(roots, base=cwd)) — sem CLI --base. O
+# harness roda de /opt/oimpresso-fullsuite, entao `--roots tests,Modules` daqui acha 0
+# dirs => noite VAZIA (universe-gate passa vacuo "0 cobertos/0 perdidos"). Provado no run
+# 20260712-195945: 8 shards vazios, 0 vivos. cd pro clone faz os roots resolverem.
+( cd "$CODE" && node "$CODE/scripts/tests/shards-plan.mjs" --roots tests,Modules --shards "$SHARDS_N" \
+    --out "$RUN_DIR/shards-plan.json" ) > /dev/null \
   || { echo "FATAL: shards-plan falhou — sem plano nao rodo"; exit 1; }
+# GUARD anti-noite-vazia: 0 dirs descobertos (cwd errado / roots errados / clone vazio) NAO
+# pode virar universe-gate verde vacuo. Aborta ALTO em vez de gravar uma noite falsa-valida.
+TOTAL_DIRS=$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).total_dirs||0))' "$RUN_DIR/shards-plan.json")
+[ "${TOTAL_DIRS:-0}" -gt 0 ] 2>/dev/null \
+  || { echo "FATAL: shards-plan descobriu 0 dirs de teste (cwd=$CODE? roots?) — noite vazia NAO e valida, abortando"; exit 1; }
 # universe-gate (SDD P04): prova que os shards cobrem EXATAMENTE o universo descoberto —
 # nenhum dir de teste some no particionamento (senao a noite mede menos e mente non-stale).
-node "$CODE/scripts/tests/shards-plan.mjs" --verify --roots tests,Modules --plan "$RUN_DIR/shards-plan.json" \
+( cd "$CODE" && node "$CODE/scripts/tests/shards-plan.mjs" --verify --roots tests,Modules --plan "$RUN_DIR/shards-plan.json" ) \
   || { echo "FATAL: universe-gate do plano de shards FALHOU (dir de teste perdido) — abortando"; exit 1; }
 N_SHARDS=$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).n_shards||0))' "$RUN_DIR/shards-plan.json")
+echo "shards-plan: $TOTAL_DIRS dirs de teste descobertos"
 echo "shards planejados: $N_SHARDS (bin-pack de tests/ + Modules/; 1 processo php fresco por shard)"
 
 SHARDS_LIVE=0

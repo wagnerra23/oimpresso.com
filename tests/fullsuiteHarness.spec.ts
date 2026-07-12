@@ -59,6 +59,10 @@ describe('US-GOV-018 Frente A — harness do nightly (DoD A do SPEC)', () => {
     // da noite — 1 shard morto perde só ele (all_shards_measured=false), não zera a noite.
     expect(harness).toMatch(/shards-plan\.mjs" --roots tests,Modules --shards/); // plano bin-pack (chip node)
     expect(harness).toMatch(/shards-plan\.mjs" --verify/); // universe-gate (nenhum dir de teste some)
+    // regressão do run 20260712-195945: o shards-plan descobre dirs relativos a cwd — DEVE
+    // rodar com `cd "$CODE"` (senão acha 0 dirs de /opt e a noite vira vazia-válida vácua).
+    expect(harness).toMatch(/cd "\$CODE" && node "\$CODE\/scripts\/tests\/shards-plan\.mjs"/);
+    expect(harness).toMatch(/total_dirs/); // guard: 0 dirs descobertos aborta (não vira noite falsa)
     expect(harness).toMatch(/vendor\/bin\/pest \$SHARD_DIRS/); // diagnóstico roda os dirs do shard
     expect(harness).toMatch(/--log-junit "\/artifacts\/junit-shard-\$SHARD_IDX\.xml"/); // junit POR-SHARD
     expect(harness).not.toMatch(/--log-junit \/artifacts\/junit\.xml/); // nunca mais o SPOF do run único
