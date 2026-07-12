@@ -25,6 +25,8 @@ REPO_URL="${FULLSUITE_REPO:-https://github.com/wagnerra23/oimpresso.com.git}"
 TIMEOUT_S="${FULLSUITE_TIMEOUT:-14400}"              # timeout do FLOOR (run 1) — 4h
 COV_TIMEOUT_S="${FULLSUITE_COV_TIMEOUT:-14400}"      # timeout da COVERAGE (run 2) — 4h; bump só quando o sharding (V1) fizer o pcov caber num nightly
 KILL_GRACE_S="${FULLSUITE_KILL_GRACE:-120}"          # timeout -k: apos TERM, SIGKILL do docker-run em Ns (V4 — sem isso o timeout NAO mata o container do pcov e ele viraria runaway de 16h)
+SHARDS_N="${FULLSUITE_SHARDS:-8}"                     # V1 sharding: N shards bin-packed (OOM: suite unica morria a ~53%; 8 => ~1/8 do pico por processo)
+SHARD_TIMEOUT_S="${FULLSUITE_SHARD_TIMEOUT:-3600}"   # timeout por shard (1h; -k KILL_GRACE_S) — a noite nao tem teto unico, o .lock evita overlap
 KEEP_RUNS="${FULLSUITE_KEEP_RUNS:-14}"
 ENV_LOCAL="$BASE/.env.local"
 
@@ -173,119 +175,92 @@ dphp artisan db:seed --class="Database\\Seeders\\CurrenciesTableSeeder" --force 
 dphp artisan db:seed --class="Database\\Seeders\\PermissionsTableSeeder" --force || true
 dphp artisan tinker --execute="require base_path('storage/fullsuite-seed.php');"
 
-echo "--- [6/7] pest full-suite (diagnostico — fail e DADO, nao erro; timeout ${TIMEOUT_S}s)"
-docker rm -f oimpresso-fullsuite-run >/dev/null 2>&1 || true
-# Arquivo com uses(TestCase) file-level dentro de pasta ja vinculada no
-# tests/Pest.php ->in('Feature') MATA o loader da suite inteira (exit 255)
-# antes de executar 1 teste — 4 casos conhecidos em tests/Feature (2026-06-12).
-# Diagnostico nao pode morrer com isso: poe o arquivo de lado SO NO CLONE
-# descartavel, REGISTRA em loader-blockers.txt (vira dado pro triage Q2) e
-# re-tenta. Consertar os arquivos e das lanes de burn-down, nao desta.
+echo "--- [6/7] pest SHARDED (V1/V3 fix OOM — 1 processo PHP fresco por shard; consome shards-plan.mjs)"
+# ARQUITETURA (ADR proposta 2026-07-12 + chip node #4166 SDD P04): a suite inteira num
+# processo unico morria por OOM a ~53% (SIGKILL do LXC) => junit.xml 0 bytes em 9/10
+# noites => floor congelado. Cura: shards-plan.mjs particiona os dirs de teste (tests/ +
+# Modules/) em N shards bin-packed por contagem de arquivo; cada shard roda num processo
+# php FRESCO (heap reset => pico cai pra fracao da suite), escreve junit-shard-<i>.xml e
+# vira shard-<i>.summary.json (junit-summary FV-F1). O passo [7/7] funde os summaries
+# VIVOS (shards-merge.mjs): 1 shard morto perde SO ele, NAO a noite.
+#
+# C1 (triage Q2): DB_* como -e REAL => o <env DB_CONNECTION=sqlite> sem force= do phpunit
+# e ignorado, pest usa o MySQL seedado (ADR 0101). US-GOV-018 A.1: mariadb-client (apk
+# fallback) + TLS-verify-off por container. A.2 FULLSUITE_FK_OFF continua REVERTIDO.
+node "$CODE/scripts/tests/shards-plan.mjs" --roots tests,Modules --shards "$SHARDS_N" \
+  --out "$RUN_DIR/shards-plan.json" > /dev/null \
+  || { echo "FATAL: shards-plan falhou — sem plano nao rodo"; exit 1; }
+# universe-gate (SDD P04): prova que os shards cobrem EXATAMENTE o universo descoberto —
+# nenhum dir de teste some no particionamento (senao a noite mede menos e mente non-stale).
+node "$CODE/scripts/tests/shards-plan.mjs" --verify --roots tests,Modules --plan "$RUN_DIR/shards-plan.json" \
+  || { echo "FATAL: universe-gate do plano de shards FALHOU (dir de teste perdido) — abortando"; exit 1; }
+N_SHARDS=$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).n_shards||0))' "$RUN_DIR/shards-plan.json")
+echo "shards planejados: $N_SHARDS (bin-pack de tests/ + Modules/; 1 processo php fresco por shard)"
+
+SHARDS_LIVE=0
 PEST_EXIT=0
-for attempt in $(seq 1 12); do
-  PEST_EXIT=0
-  # C1 (triage Q2 2026-06-13): phpunit.xml <env DB_CONNECTION=sqlite> NAO tem force=,
-  # entao o PHPUnit so seta a var se ela ainda NAO existir no ambiente. Sem estes -e,
-  # o pest rodava contra sqlite :memory: VAZIO (sem schema/seed) — ~880 'no such table'
-  # / 'near MODIFY syntax error' (DDL MySQL-only). Passando DB_* como env REAL do
-  # container, o <env> sqlite e ignorado e o pest usa o MySQL seedado (mysql-schema.sql
-  # + migrate + seed biz=1/biz=2 dos passos 3-5). ADR 0101 (testes MySQL real, nao sqlite).
-  #
-  # US-GOV-018 Frente A (A.1 + A.2):
-  #  - A.1: a imagem oimpresso/mcp nao tem o binario CLI mysql que o migrate:fresh/
-  #    schema:load do RefreshDatabase invoca em "Loading stored database schemas" pra
-  #    recarregar o dump => 72x "mysql: not found" => schema some mid-run. O Dockerfile
-  #    da imagem ja ganhou mariadb-client (fix duravel); este apk-add e o fallback
-  #    imediato ate o rebuild+deploy da imagem ao CT 100 (no-op se ja presente).
-  #  - A.2 (FULLSUITE_FK_OFF) REVERTIDO: o floor empirico do run 20260613-115507 PROVOU
-  #    que o FK-off PIORAVA — deixava ~30 testes era-sqlite dropar tabelas CORE
-  #    compartilhadas (business sumiu 252x) que entao faltavam pros testes seguintes.
-  #    SEM o FK-off esses drops falham-seguro (Cannot-drop 3730 no proprio teste) e a
-  #    tabela CORE SOBREVIVE pro resto da suite. O isolamento real desses testes e a
-  #    US-GOV-021 front-2 (nao deixar teste dropar tabela compartilhada). Tests\TestCase
-  #    ::setUp fica inerte sem a flag (gated em getenv) — reversivel.
-  timeout -k "$KILL_GRACE_S" -s TERM "$TIMEOUT_S" docker run --rm --name oimpresso-fullsuite-run \
-    --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
-    -e DB_CONNECTION=mysql -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" \
-    -e "DB_DATABASE=$DB_DATABASE" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" \
-    -w /workspace --entrypoint sh "$IMAGE" -c '
-      if ! command -v mysql >/dev/null 2>&1; then
-        apk add --no-cache mariadb-client >/dev/null 2>&1 \
-          || apk add --no-cache mysql-client >/dev/null 2>&1 || true
-      fi
-      if command -v mysql >/dev/null 2>&1; then
-        echo "[harness A.1] mysql client OK: $(mysql --version 2>&1 | head -1)"
-      else
-        echo "[harness A.1] WARN mysql client AUSENTE — migrate:fresh/RefreshDatabase vai envenenar o schema (sem reload do dump)"
-      fi
-      # A.1 (parte 2 — TLS): o mariadb-client VERIFICA o cert TLS de mysql-workers por
-      # DEFAULT, e o "mysql ... < dump" que o migrate:fresh/RefreshDatabase emite NAO passa
-      # flag de ssl (Laravel so emite --ssl=off se config options MYSQL_ATTR_SSL_VERIFY_
-      # SERVER_CERT===false, que o repo nao seta) => ERROR 2026 "Certificate verification
-      # failure" => o dump NAO recarrega. So o binario NAO basta (provado no CT100: bare
-      # load TLS-fail; com este config => OK). Desliga a verificacao SO neste container
-      # efemero do nightly (encriptacao mantida; o config NAO entra na imagem de prod).
-      mkdir -p /etc/my.cnf.d 2>/dev/null || true
-      printf "[client]\nssl-verify-server-cert=0\n" > /etc/my.cnf.d/zz-fullsuite-no-ssl-verify.cnf 2>/dev/null || true
-      # SDD P07 (ADR 0275 coverage_pct): o pcov NAO roda mais AQUI. A 1a nightly
-      # instrumentada (20260702-073601) morreu SILENCIOSA aos 5933/11144 testes (53%)
-      # com pcov no MESMO processo do diagnostico — junit.xml 0 bytes = noite de floor
-      # PERDIDA ("coverage e aditivo" era promessa, nao arquitetura). Coverage agora
-      # roda numa 2a invocacao SEPARADA depois do junit salvo (bloco [P07 coverage]
-      # apos o loop) — o diagnostico nunca mais e refem da instrumentacao.
-      # FV-F4 (US-GOV-045): --log-events-text streama 1 linha POR EVENTO (flush
-      # imediato) — sobrevive a morte silenciosa do processo (padrao 20260629-020001:
-      # exit 2 mid-suite, sem fatal impresso, junit 0 bytes) e o ultimo "Test Prepared"
-      # NOMEIA o teste em voo. Provado no CT100 2026-07-02: SIGKILL mid-run preservou
-      # o arquivo com o teste assassinado na ultima linha. O junit continua o artefato
-      # canonico (FV-F1); os eventos sao instrumento de post-mortem, apagados em run
-      # valido no passo 7 (disco CT100 ~95%).
-      # FV-F1 causa-raiz (diagnostico 2026-07-02): a morte mid-suite dominante e OOM externo
-      # (SIGKILL do LXC), NAO bug de flush — o junit so grava no fim, entao um kill a ~53% deixa
-      # 0 bytes. Prova experimental: a 2a invocacao (coverage) morria a ~53% com 2G e o probe a 6G
-      # ultrapassou folgado (swap estavel). Run 1 (SEM pcov) precisa menos que o Run 2 (6G, com
-      # pcov): 4G da 2x de folga sobre o 2G que matava, preservando RAM do host (disco ~95% +
-      # swap ja apertado). Se uma nightly AINDA morrer a 4G: subir pra 6G (teto provado do Run 2).
-      # Cura duravel = sharding por modulo (pico de memoria por processo), roadmap T1/P07 §riscos.
-      exec php -d memory_limit=4G vendor/bin/pest --log-junit /artifacts/junit.xml --log-events-text /artifacts/pest-events.txt --colors=never
-    ' \
-    2>&1 | tee "$RUN_DIR/pest-out.txt" || PEST_EXIT=$?
-  # Detector 1 — Pest loader: uses(TestCase) file-level dentro de pasta ja vinculada
-  # ("can not be used. The folder [/workspace/...]").
-  BLOCKER=$(grep -oP 'can not be used\. The folder \[/workspace/\K[^]]+' "$RUN_DIR/pest-out.txt" | head -1 || true)
-  # Detector 2 — PHP "Cannot redeclare" fatal no LOAD (helper/classe/const global com
-  # mesmo nome em 2 arquivos do escopo ->in()). PHP morre ANTES do 1o teste (exit 255 +
-  # junit.xml 0 bytes) e o detector 1 NAO pega. A mensagem nomeia o arquivo SENDO
-  # CARREGADO em "... in /workspace/<F> on line N"; quarentenar ESSE deixa a declaracao
-  # "previously declared in <outro>" sobreviver. Caso real 2026-06-16..18 (3 nights sem
-  # floor): insertAuditLog() em Jana/ImmutabilityTriggersTest vs Arquivos/AuditLogCommandTest.
-  # O loop re-tenta e pega colisao em cadeia (1 arquivo por volta, ate 12).
-  if [ -z "$BLOCKER" ] && grep -qE 'Cannot (re)?declare' "$RUN_DIR/pest-out.txt"; then
-    BLOCKER=$(grep -E 'Cannot (re)?declare' "$RUN_DIR/pest-out.txt" \
-      | grep -oP 'in /workspace/\K[^ ]+(?= on line)' | head -1 || true)
+i=0
+while [ "$i" -lt "$N_SHARDS" ]; do
+  # dirs deste shard (do plano landado #4166: shards[].index / .dirs)
+  SDIRS=$(node -e 'const p=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); const s=(p.shards||[]).find(x=>x.index==Number(process.argv[2])); process.stdout.write((s?s.dirs:[]).join(" "))' "$RUN_DIR/shards-plan.json" "$i")
+  if [ -z "$SDIRS" ]; then echo "SHARD $i: sem dirs (vazio) — pulado"; i=$((i+1)); continue; fi
+  SJUNIT="$RUN_DIR/junit-shard-$i.xml"
+  SOUT="$RUN_DIR/shard-$i-out.txt"
+  docker rm -f "oimpresso-fullsuite-run-$i" >/dev/null 2>&1 || true
+  for attempt in 1 2 3; do
+    # 1 processo php FRESCO por shard (container efemero -> heap zerado). memory_limit 4G =
+    # TETO (nao reserva); com sharding raramente alcancado. timeout -k mata o container no
+    # teto (V4). Mesmos fixes A.1 do run unico (mysql client + TLS-off). SHARD_DIRS/SHARD_IDX
+    # via -e (o container nao tem node/plano). --log-events-text por-shard = post-mortem FV-F4.
+    timeout -k "$KILL_GRACE_S" -s TERM "$SHARD_TIMEOUT_S" docker run --rm --name "oimpresso-fullsuite-run-$i" \
+      --network "$NET" -v "$CODE":/workspace -v "$RUN_DIR":/artifacts \
+      -e DB_CONNECTION=mysql -e "DB_HOST=$DB_HOST" -e "DB_PORT=$DB_PORT" \
+      -e "DB_DATABASE=$DB_DATABASE" -e "DB_USERNAME=$DB_USERNAME" -e "DB_PASSWORD=$DB_PASSWORD" \
+      -e "SHARD_DIRS=$SDIRS" -e "SHARD_IDX=$i" \
+      -w /workspace --entrypoint sh "$IMAGE" -c '
+        if ! command -v mysql >/dev/null 2>&1; then
+          apk add --no-cache mariadb-client >/dev/null 2>&1 \
+            || apk add --no-cache mysql-client >/dev/null 2>&1 || true
+        fi
+        mkdir -p /etc/my.cnf.d 2>/dev/null || true
+        printf "[client]\nssl-verify-server-cert=0\n" > /etc/my.cnf.d/zz-fullsuite-no-ssl-verify.cnf 2>/dev/null || true
+        # shellcheck disable=SC2086
+        exec php -d memory_limit=4G vendor/bin/pest $SHARD_DIRS \
+          --log-junit "/artifacts/junit-shard-$SHARD_IDX.xml" \
+          --log-events-text "/artifacts/pest-events-shard-$SHARD_IDX.txt" --colors=never
+      ' \
+      < /dev/null 2>&1 | tee "$SOUT" || true
+    docker rm -f "oimpresso-fullsuite-run-$i" >/dev/null 2>&1 || true
+    # junit presente e NAO-vazio => shard OK (pass OU fail = DADO). Para de retentar.
+    [ -s "$SJUNIT" ] && break
+    # junit 0b/ausente: php morreu no LOAD. Detectores loader-blocker (HOST, grep -oP GNU):
+    # folder / redeclare / parse — os 3 do run unico, agora por-shard, quarentena no clone.
+    BLOCKER=$(grep -oP 'can not be used\. The folder \[/workspace/\K[^]]+' "$SOUT" | head -1 || true)
+    if [ -z "$BLOCKER" ] && grep -qE 'Cannot (re)?declare' "$SOUT"; then
+      BLOCKER=$(grep -E 'Cannot (re)?declare' "$SOUT" | grep -oP 'in /workspace/\K[^ ]+(?= on line)' | head -1 || true)
+    fi
+    if [ -z "$BLOCKER" ] && grep -qE 'Parse error' "$SOUT"; then
+      BLOCKER=$(grep -E 'Parse error' "$SOUT" | grep -oP 'in /workspace/\K[^ ]+(?= on line)' | head -1 || true)
+    fi
+    # sem blocker recuperavel => shard morto (OOM/timeout/outro). NAO retenta: o merge do
+    # passo 7 registra como missing e a noite segue (all_shards_measured=false).
+    [ -z "$BLOCKER" ] && { echo "SHARD $i: morto sem loader-blocker recuperavel (OOM/timeout?) — segue"; break; }
+    [ ! -f "$CODE/$BLOCKER" ] && { echo "SHARD $i: blocker inexistente no clone ($BLOCKER) — sem quarentena"; break; }
+    echo "SHARD $i loader-blocker ($attempt): $BLOCKER — quarentena no clone, registrado"
+    echo "$BLOCKER" >> "$RUN_DIR/loader-blockers.txt"
+    mkdir -p "$CODE/.loader-quarantine/$(dirname "$BLOCKER")"
+    mv "$CODE/$BLOCKER" "$CODE/.loader-quarantine/$BLOCKER"
+  done
+  # summary por-shard (junit-summary FV-F1): junit valido => shard-<i>.summary.json coerente;
+  # junit 0b/ausente => marcador {invalid} (o shards-merge trata como shard morto = missing).
+  if node "$CODE/scripts/tests/junit-summary.mjs" "$SJUNIT" --out "$RUN_DIR/shard-$i.summary.json" >/dev/null 2>&1; then
+    SHARDS_LIVE=$((SHARDS_LIVE+1)); echo "SHARD $i: ok (summary coerente)"
+  else
+    echo "SHARD $i: DEAD (summary invalido/ausente — perde so ele)"
   fi
-  # Detector 3 — PHP "Parse error" no LOAD: arquivo com sintaxe quebrada tambem zera a
-  # suite (exit 255 + junit.xml 0 bytes) ANTES do 1o teste e nao cai em 1 nem 2. Mensagem:
-  # "PHP Parse error: ... in /workspace/<F> on line N" — mesmo formato de cauda do detector 2.
-  # (Salvo de #2954, sessao paralela 2026-06-18 — #2953 cobriu redeclare, este cobre parse.)
-  if [ -z "$BLOCKER" ] && grep -qE 'Parse error' "$RUN_DIR/pest-out.txt"; then
-    BLOCKER=$(grep -E 'Parse error' "$RUN_DIR/pest-out.txt" \
-      | grep -oP 'in /workspace/\K[^ ]+(?= on line)' | head -1 || true)
-  fi
-  [ -z "$BLOCKER" ] && break
-  # Sanity: extracao errada de path NAO deve matar o run sob set -e — so quarentena o
-  # arquivo que realmente existe no clone.
-  if [ ! -f "$CODE/$BLOCKER" ]; then
-    echo "LOADER-BLOCKER ($attempt): '$BLOCKER' detectado mas inexistente no clone — sem quarentena; abortando loop"
-    break
-  fi
-  echo "LOADER-BLOCKER ($attempt): $BLOCKER — movido pro lado no clone, registrado"
-  echo "$BLOCKER" >> "$RUN_DIR/loader-blockers.txt"
-  mkdir -p "$CODE/.loader-quarantine/$(dirname "$BLOCKER")"
-  mv "$CODE/$BLOCKER" "$CODE/.loader-quarantine/$BLOCKER"
+  i=$((i+1))
 done
-docker rm -f oimpresso-fullsuite-run >/dev/null 2>&1 || true
-echo "pest exit code: $PEST_EXIT (loader-blockers: $([ -f "$RUN_DIR/loader-blockers.txt" ] && wc -l < "$RUN_DIR/loader-blockers.txt" || echo 0))"
+echo "shards vivos: $SHARDS_LIVE/$N_SHARDS (loader-blockers: $([ -f "$RUN_DIR/loader-blockers.txt" ] && wc -l < "$RUN_DIR/loader-blockers.txt" || echo 0))"
 
 # --- [P07 coverage] (ADR 0275 C2 · 2a invocacao SEPARADA — floor nunca refem) -----
 # Historia: a 1a nightly com pcov no MESMO processo (20260702-073601) morreu silenciosa
@@ -337,21 +312,27 @@ else
   echo "--- [P07 coverage] pcov ausente na imagem — coverage pulado (read-side segue not_yet_measured)"
 fi
 
-echo "--- [7/7] summary (junit-summary.mjs FV-F1 — tripwire artefato 0 bytes) + retencao"
-# FV-F4 (US-GOV-045): run invalido nunca mais e SILENCIOSO. junit-summary com --out
-# grava o marcador {invalid:true, reason} no summary.json quando o XML esta ausente/
-# 0 bytes/incoerente (floor-compute e nightly-diff ignoram — dupla guarda alem da
-# ausencia de coherent/n_testcases). O [ALERT] estruturado abaixo e 1 linha key=value
-# grep-avel por triage/cron, e nomeia o teste EM VOO via pest-events.txt (2 de 5 runs
-# 29/jun-02/jul morreram sem fatal impresso — o floor exclui certo, mas se a taxa de
-# morte subir o floor congela stale; o alerta da o sinal ANTES disso).
-if node "$CODE/scripts/tests/junit-summary.mjs" "$RUN_DIR/junit.xml" --out "$RUN_DIR/summary.json"; then
-  rm -f "$RUN_DIR/pest-events.txt"   # run valido: junit ja conta tudo; eventos so servem pra post-mortem
+echo "--- [7/7] merge dos summaries por-shard -> summary.json (shards-merge SDD P04 · FV-F1) + retencao"
+# shards-merge funde os shard-<i>.summary.json VIVOS numa medicao da noite (schema
+# fullsuite-summary-sharded/v1): coherent=(>=1 shard vivo), all_shards_measured=(0 mortos).
+# floor-compute v2 le all_shards_measured — noite parcial NAO vira burn-down fake (guard
+# anti-mascaramento). O summary.json canonico da noite agora VEM do merge (nao do junit
+# unico): 1 shard OOM perde so ele, a noite segue valida com os outros.
+node "$CODE/scripts/tests/shards-merge.mjs" --shards-dir "$RUN_DIR" --plan "$RUN_DIR/shards-plan.json" \
+  --out "$RUN_DIR/summary.json" || true
+COHERENT=$(node -e 'try{process.stdout.write(String(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).coherent===true))}catch{process.stdout.write("false")}' "$RUN_DIR/summary.json")
+ALL_MEASURED=$(node -e 'try{process.stdout.write(String(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).all_shards_measured!==false))}catch{process.stdout.write("false")}' "$RUN_DIR/summary.json")
+MISSING=$(node -e 'try{process.stdout.write((JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).shards_missing||[]).join(","))}catch{}' "$RUN_DIR/summary.json")
+if [ "$COHERENT" = "true" ]; then
+  echo "[7/7] noite VALIDA — shards vivos $SHARDS_LIVE/$N_SHARDS, all_shards_measured=$ALL_MEASURED${MISSING:+, mortos: $MISSING}"
+  # all_shards_measured (0 mortos) => apaga eventos; parcial => mantem (post-mortem dos mortos)
+  [ "$ALL_MEASURED" = "true" ] && rm -f "$RUN_DIR"/pest-events-shard-*.txt
 else
-  SUMMARY_EXIT=$?
-  IN_FLIGHT="$(grep 'Test Prepared (' "$RUN_DIR/pest-events.txt" 2>/dev/null | tail -1 | sed 's/^Test Prepared (//; s/)[[:space:]]*$//' || true)"
-  PREPARED_N="$(grep -c 'Test Prepared (' "$RUN_DIR/pest-events.txt" 2>/dev/null || true)"
-  echo "[ALERT] fullsuite_run_invalid ts=$TS sha=$SHA pest_exit=$PEST_EXIT junit_summary_exit=$SUMMARY_EXIT tests_prepared=${PREPARED_N:-0} last_test_in_flight=\"${IN_FLIGHT:-desconhecido}\""
+  # coherent=false => TODOS os shards morreram => noite invalida (muito mais raro que o run
+  # unico, onde 1 morte ja zerava). FV-F4: alerta grep-avel nomeia o teste em voo.
+  LAST_EVENTS="$(ls -t "$RUN_DIR"/pest-events-shard-*.txt 2>/dev/null | head -1)"
+  IN_FLIGHT="$(grep 'Test Prepared (' "$LAST_EVENTS" 2>/dev/null | tail -1 | sed 's/^Test Prepared (//; s/)[[:space:]]*$//' || true)"
+  echo "[ALERT] fullsuite_run_invalid ts=$TS sha=$SHA shards_live=$SHARDS_LIVE n_shards=$N_SHARDS shards_missing=\"${MISSING:-todos}\" last_test_in_flight=\"${IN_FLIGHT:-desconhecido}\""
 fi
 ln -sfn "$RUN_DIR" "$RUNS/latest"
 find "$RUNS" -maxdepth 1 -mindepth 1 -type d | sort | head -n "-$KEEP_RUNS" | xargs -r rm -rf
