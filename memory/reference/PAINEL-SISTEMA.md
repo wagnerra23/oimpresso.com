@@ -61,6 +61,49 @@ lifecycle: ativo
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
+## Auditorias & Gates
+
+> Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
+
+### Bloqueiam merge — 24 required (enforcement: everyone)
+> Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
+
+- ADR 0216 PR scan (governance:audit --diff-only)
+- ADR frontmatter
+- Append-only canon (ADRs, handoffs, Constituição)
+- Casos-coverage · ratchet (trio + rastreabilidade)
+- DS gate
+- Dominio-dict · ratchet (enum ⇔ dicionário)
+- Frontend / Vite build
+- No hardcode business_id (Tier 0)
+- No-mock-in-prod · ratchet
+- PHP / Pest (Financeiro · MySQL)
+- PHP / Pest (NfeBrasil · MySQL)
+- PHP / Pest (Unit)
+- PHPStan / Larastan · ratchet vs baseline
+- PII scan (CPF/CNPJ literal)
+- SDD scorecard ratchet (métrica armada não regride · GT-G3)
+- Secret scan (gitleaks · só linhas novas do PR)
+- Tier-0 guards (WithoutGlobalScopes + BusinessId)
+- anchor entry/covers gate
+- anchor-lint ADR 0273
+- charter status:live precisa de sinal de prod
+- doneness-lint ADR 0302
+- gate selftest (as catracas mordem · GT-G6)
+- visual-regression
+- Governance Gate (índice + memory-health + meta-teste)
+
+### Censo — 99 workflows por classe
+
+> Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
+
+| Classe | Qtd | Exemplos |
+|---|---|---|
+| gate (bloqueia/valida PR) | 74 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| meta (testa os gates) | 5 | block-brl-values-selftest, gate-selftest, guards-meta-gate, protection-drift, … |
+| automacao (cron/dispatch) | 18 | agent-pr-outcomes, briefing-code-staleness, composer-lock-sync, design-return-gate, … |
+| deploy (entrega) | 2 | deploy, quick-sync |
+
 ## Decisões (ADRs)
 
 - **342** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
@@ -69,7 +112,7 @@ lifecycle: ativo
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 17 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 18 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -88,6 +131,7 @@ lifecycle: ativo
 - ~~2026-07-09 — Claims de superioridade "acima do mercado" REFUTADAS (lápides de humildade — não re-alegar sem re-verificar)~~
 - ~~2026-07-10 — Grade de réguas por decomposição em slices, sem teste de integração (fabrica "0 acima" falso)~~
 - ~~2026-07-10 — Remover a redeclaração de tokens de domínio nos bundles `.fin-cowork`/`.sells-cowork` (parece "não-redeclarar", reintroduz bug de PORTAL)~~
+- ~~2026-07-12 — Normalização MECÂNICA em massa de arquivos LEGADOS de `memory/` (backfill de frontmatter)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -95,14 +139,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **239** handoffs · **430** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **240** handoffs · **431** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-12-sdd-avaliacao-adversarial-processo`
+  - `2026-07-12-cobertura-charters-100-por-cento`
   - `2026-07-11-pt-atipicas-retriage-pt07`
   - `2026-07-11-ds-sync-loop-grade-adversarial`
   - `2026-07-11-design-coverage-adversario-e-problema-real`
   - `2026-07-11-como-integrar-m1-detector-drift-ui-m2-verdade-visual`
-  - `2026-07-10-reguas-atrofia-inteligencia-negocio`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-07-12 · deriva das fontes canônicas, não as substitui._

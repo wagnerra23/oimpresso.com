@@ -17,6 +17,8 @@ on:
       - 'memory/decisions/*.md'
       - 'memory/proibicoes.md'
       - 'governance/sdd-scorecard.json'
+      - 'scripts/governance/gates-registry.json'
+      - 'governance/required-checks-baseline.json'
       - 'scripts/governance/system-map.mjs'
       - '.github/workflows/system-map.yml'
   schedule:

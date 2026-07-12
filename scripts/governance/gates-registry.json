@@ -177,10 +177,6 @@
       "nome": "XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo)",
       "classe": "gate"
     },
-    "cowork-inbox.yml": {
-      "nome": "cowork-inbox",
-      "classe": "automacao"
-    },
     "deploy.yml": {
       "nome": "Deploy to Hostinger",
       "classe": "deploy"

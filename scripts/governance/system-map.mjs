@@ -132,6 +132,39 @@ function measureCounts() {
   return { handoffs, sessions: sessions.length, recent };
 }
 
+// ── fonte 6: auditorias & gates (censo + o que bloqueia) ──────────────────────
+// Deriva de DUAS fontes JÁ versionadas (offline, determinístico — nada de gh api):
+//   - scripts/governance/gates-registry.json    → censo (o que EXISTE, por classe;
+//     cobrado por memory-health Check G/M — workflow fora do censo = 🔴).
+//   - governance/required-checks-baseline.json  → o que BLOQUEIA merge (required
+//     CONGELADO, vigiado por protection-drift.mjs contra demoção invisível · GT-G4).
+// O baseline commitado É a fonte-única do "required"; divergência do vivo é sinalizada
+// pelo protection-drift, NÃO reconciliada aqui (promoção = PR + ADR 0275 §5).
+function measureGates() {
+  let registry = {};
+  try { registry = JSON.parse(read(join(ROOT, 'scripts', 'governance', 'gates-registry.json'))).workflows || {}; } catch { /* ausente */ }
+  const byClass = {};
+  for (const [file, w] of Object.entries(registry)) {
+    const cls = (w && w.classe) || 'sem-classe';
+    (byClass[cls] = byClass[cls] || []).push(file.replace(/\.ya?ml$/, ''));
+  }
+  for (const c of Object.keys(byClass)) byClass[c].sort();
+  let required = [];
+  let enforcement = null;
+  let capturado = null;
+  try {
+    const bl = JSON.parse(read(join(ROOT, 'governance', 'required-checks-baseline.json')));
+    // contagem canônica do protection-drift.mjs: classic + ruleset (ignorar o ruleset
+    // subconta — "Governance Gate" vem de ruleset, não do required_status_checks clássico).
+    const classic = (bl.classic_protection && bl.classic_protection.contexts) || [];
+    const ruleset = (bl.rulesets && bl.rulesets.contexts) || [];
+    required = [...classic, ...ruleset];
+    enforcement = bl.enforcement_level || null;
+    capturado = (bl._meta && bl._meta.capturado_em) || null;
+  } catch { /* ausente */ }
+  return { total: Object.keys(registry).length, byClass, required, enforcement, capturado };
+}
+
 // ── render ────────────────────────────────────────────────────────────────────
 function render() {
   const adr = measureAdrs();
@@ -139,6 +172,7 @@ function render() {
   const mods = measureModules();
   const sc = measureScorecard();
   const cnt = measureCounts();
+  const gates = measureGates();
 
   const L = [];
   L.push('---');
@@ -179,6 +213,32 @@ function render() {
     L.push('- `governance/sdd-scorecard.json` ausente — rodar `node scripts/governance/sdd-scorecard.mjs`.');
   }
   L.push('- Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).');
+  L.push('');
+
+  // Auditorias & Gates
+  L.push('## Auditorias & Gates');
+  L.push('');
+  L.push('> Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.');
+  L.push('');
+  L.push(`### Bloqueiam merge — ${gates.required.length} required${gates.enforcement ? ` (enforcement: ${gates.enforcement})` : ''}`);
+  if (gates.capturado) L.push(`> Congelados no baseline (captura ${gates.capturado}). Divergência do vivo é sinalizada pelo \`protection-drift\`, não reconciliada aqui.`);
+  L.push('');
+  for (const c of gates.required) L.push(`- ${c}`);
+  L.push('');
+  L.push(`### Censo — ${gates.total} workflows por classe`);
+  L.push('');
+  L.push('> Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.');
+  L.push('');
+  L.push('| Classe | Qtd | Exemplos |');
+  L.push('|---|---|---|');
+  const classLabel = { gate: 'gate (bloqueia/valida PR)', meta: 'meta (testa os gates)', automacao: 'automacao (cron/dispatch)', deploy: 'deploy (entrega)' };
+  const order = ['gate', 'meta', 'automacao', 'deploy'];
+  const classes = [...order.filter((c) => gates.byClass[c]), ...Object.keys(gates.byClass).filter((c) => !order.includes(c)).sort()];
+  for (const cls of classes) {
+    const files = gates.byClass[cls] || [];
+    const ex = files.slice(0, 4).join(', ') + (files.length > 4 ? ', …' : '');
+    L.push(`| ${classLabel[cls] || cls} | ${files.length} | ${ex} |`);
+  }
   L.push('');
 
   // ADRs
