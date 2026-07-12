@@ -37,6 +37,10 @@ on:
       - 'scripts/governance/sdd-ragas-read.test.mjs'
       - 'scripts/tests/floor-compute.mjs'
       - 'scripts/tests/floor-compute.test.mjs'
+      - 'scripts/tests/shards-plan.mjs'            # sharding do junit (SDD P04 · ADR 0279)
+      - 'scripts/tests/shards-plan.test.mjs'
+      - 'scripts/tests/shards-merge.mjs'
+      - 'scripts/tests/shards-merge.test.mjs'
       - 'scripts/tests/coverage-compute.mjs'
       - 'scripts/tests/coverage-compute.test.mjs'
       - 'scripts/tests/ragas-trend-compute.mjs'
@@ -72,6 +76,12 @@ jobs:
 
       - name: Write-side do floor — meta-teste do compute (hard · ADR 0279 PR-2)
         run: node scripts/tests/floor-compute.test.mjs
+
+      - name: Sharding do junit — plano determinístico + universe-gate (hard · SDD P04)
+        run: node scripts/tests/shards-plan.test.mjs
+
+      - name: Sharding do junit — merge preserva shards vivos + anti-mascaramento (hard · SDD P04)
+        run: node scripts/tests/shards-merge.test.mjs
 
       - name: Marcador de run inválido — junit-summary (hard · FV-F4 · US-GOV-045)
         # Prova que XML 0 bytes/ausente/incoerente grava {invalid,reason} no summary

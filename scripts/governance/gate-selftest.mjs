@@ -485,6 +485,22 @@ const CATRACAS = [
       ['--staging', join(FIX, 'handoff-changed', kind), '--baseline', join(FIX, 'handoff-changed', 'baseline.json')], ROOT),
     expect: { good: /IDÊNTICO ao baseline/, bad: /MUDOU/ },
   },
+  {
+    // universe-gate (shards-plan --verify · SDD P04 · ADR 0279): o conjunto de shards cobre
+    // EXATAMENTE o universo de dirs de teste — nenhum some no particionamento (=teste perdido).
+    // Fixture sob scripts/tests/fixtures/ (fora dos roots prod tests,Modules → não contamina a
+    // suíte real, igual foundation-ratchet). Roda com cwd=fixture, --roots tests (relativo).
+    // good = SEM --plan (plano auto-computado sempre cobre) → exit 0 "universe-gate OK". bad =
+    // --plan tamper.json que DROPA tests/Unit → exit 1 "PERDIDO" (o vetor: shard some no plano).
+    id: 'shards-universe',
+    run: (kind) => {
+      const fx = join(ROOT, 'scripts', 'tests', 'fixtures', 'shards-universe', kind);
+      const argv = ['--verify', '--roots', 'tests'];
+      if (existsSync(join(fx, 'plan.json'))) argv.push('--plan', join(fx, 'plan.json'));
+      return runNode(script('shards-plan', 'scripts/tests/shards-plan.mjs'), argv, fx);
+    },
+    expect: { good: /universe-gate OK/, bad: /PERDIDO|universe-gate FALHOU/ },
+  },
 ];
 
 const results = [];
