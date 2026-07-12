@@ -575,13 +575,14 @@ function RoadmapIndex(props: Props) {
       {/* Gantt */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-sm font-semibold flex items-center gap-2">
-            <span>
-              Timeline ({ganttTasks.length} linha
-              {ganttTasks.length === 1 ? '' : 's'})
-            </span>
+          <CardTitle className="text-sm font-semibold">
+            Timeline ({ganttTasks.length} linha
+            {ganttTasks.length === 1 ? '' : 's'})
             {can_edit && (
-              <Badge variant="secondary" className="font-normal">
+              <Badge
+                variant="secondary"
+                className="ml-2 font-normal align-middle"
+              >
                 arraste a barra p/ reagendar o prazo
               </Badge>
             )}

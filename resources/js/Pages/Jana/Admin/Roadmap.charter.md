@@ -6,6 +6,7 @@ status: live
 last_validated: "2026-05-13"
 approved_by: wagner
 parent_module: Jana
+related_us: [US-COPI-111]
 related_adrs: [70, 93, 94, 110]
 tier: B
 charter_version: 1
