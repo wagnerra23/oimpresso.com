@@ -6,7 +6,8 @@
 // Ao consumir a mesma tabela, o scaffold PASSA no pt-conformance POR CONSTRUÇÃO — provado no
 // --selftest de ambos (anti-fantasma, ADR 0256: a lib é exercida por fixtures nos dois lados).
 //
-// Contrato: memory/requisitos/_DesignSystem/padroes-tela/PT-0{1..5}-*.md (assinaturas do golden).
+// Contrato: memory/requisitos/_DesignSystem/padroes-tela/PT-0{1..5,7}-*.md (assinaturas do golden).
+// PT-07 (Feed/Timeline) add 2026-07-11. PT-06 (Ferramenta) fica sem assinatura até ter ≥2 telas.
 
 // ── assinaturas estruturais por arquétipo (do golden de cada PT-0X) ──
 const has = (code, ...res) => res.some((r) => r.test(code));
@@ -20,6 +21,11 @@ export function detectSignals(code) {
     kpi: has(code, /KpiCard/, /KpiGrid/, /KpiFilterCard/),
     detail: has(code, /FsmActionPanel/, /NextActionPanel/, /VdNextActionPanel/, /Timeline/, /Histórico/i,
                       /<dl[\s>]/, /StatCard/, /StatTile/),
+    // feed/timeline: lista CRONOLÓGICA de eventos/itens renderizada em cards via .map (NÃO <table>),
+    // com carimbo de tempo relativo. Assinatura: container timeline/feed OU helper de tempo relativo.
+    feed: has(code, /fx-timeline/, /-timeline["'\s]/, /\bTimeline\b/,
+                    /data-testid="[^"]*feed/, /role="feed"/, /ActivityFeed/,
+                    /\btimeAgo\b/, /\bfmtRelative\b/),
   };
 }
 
@@ -30,9 +36,14 @@ export const REQUIRED = {
   'PT-03': (s) => s.detail || s.kpi,
   'PT-04': (s) => s.kpi,
   'PT-05': (s) => s.kanban,
+  'PT-07': (s) => s.feed,   // feed/timeline: cronologia de eventos/itens em cards (não <table>)
+  // PT-06 (Ferramenta/Calculadora) NÃO existe: só 1 tela do arquétipo no repo (ComunicacaoVisual/Index) —
+  // não há golden nem ≥2 pra formalizar. Reabrir quando surgir 2ª ferramenta. Por isso claimedPT NÃO
+  // reconhece "PT-06" (usa [1-57]): declaração de PT inexistente não deve passar trivialmente.
 };
 
 export const claimedPT = (relProto) => {
-  const m = (relProto || '').match(/PT-0[1-5]/i);
+  // [1-57] = PTs que EXISTEM hoje: 01-05 + 07. Exclui 06 de propósito (não formalizado).
+  const m = (relProto || '').match(/PT-0[1-57]/i);
   return m ? m[0].toUpperCase() : null;
 };
