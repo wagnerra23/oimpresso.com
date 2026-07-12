@@ -1259,27 +1259,45 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ### US-COPI-117 · Deploy Langfuse self-host CT 100 (ADR 0132)
 
-**Implementado em:** _parcial_ · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `docker/langfuse/docker-compose.yml` · `Modules/Jana/Jobs/Telemetry/LangfuseTraceJob.php` · verificado@dd3ed7c (2026-07-01) — client de traces/spans/scores + compose + job de trace existem; deploy vivo CT 100 + OTel GenAI apontando + dashboards + smoke 7d não confirmados (sobrepõe US-COPI-108)
+**Implementado em:** `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `docker/langfuse/docker-compose.yml` · `Modules/Jana/Jobs/Telemetry/LangfuseTraceJob.php` · verificado@1f4fdc98 (2026-07-12) — **deploy CT 100 CONFIRMADO vivo** via `docker ps` direto no host (não só código): 6 containers healthy (`langfuse-web`, `langfuse-worker`, `postgres-langfuse`, `clickhouse-langfuse`, `redis-langfuse`, `minio-langfuse`), up 2 semanas. Tráfego real verificado via query ClickHouse: **3.226 traces**, volume diário ativo 200-450/dia (últimos 10d), 7 agents instrumentados (`brain-b-agent` 2043, `anonymous-agent` 722, `planner-agent` 180, `health-narrator-agent` 174, `kb-answer-agent` 102, `brief-diario-agent`/`briefing-agent` 3). **GAP encontrado nesta verificação:** tag de trace é só `['live']` — isolamento por `business_id` (acceptance item 3) NÃO implementado. Sobrepõe US-COPI-108.
 
-> owner: — · priority: p0 · estimate: 6h · type: story
+> owner: — · priority: p1 · estimate: 2h (fecha só o gap business_id) · type: story
 > blocked_by: —
 
 **Origem:** Audit Sênior Jana 2026-05-25 — G3 P0 (Onda 6).
 
-**Sintoma:** OTel GenAI instrumentado mas collector off. ADR 0132 já decidida (Langfuse self-host CT 100).
+**Sintoma (histórico):** OTel GenAI instrumentado mas collector off. ADR 0132 já decidida (Langfuse self-host CT 100). **Sintoma atual (2026-07-12):** collector está ON e recebendo tráfego real — o gap real é isolamento multi-tenant na tag, não o deploy.
 
 **Acceptance:**
-- [ ] Langfuse docker-compose no CT 100 Proxmox
-- [ ] OTel GenAI semconv native pointing pro Langfuse
-- [ ] Workspace-level isolation (1 workspace por business_id)
-- [ ] Custo: R$ [redacted Tier 0]-80/mês CT 100 — Wagner aprova
-- [ ] Dashboards default: token usage, latência p50/p95, custo por agent, traces por business
+- [x] Langfuse docker-compose no CT 100 Proxmox — verificado 2026-07-12 via `docker ps` (6/6 containers healthy)
+- [ ] OTel GenAI semconv native pointing pro Langfuse — não re-verificado nesta passada (traces chegam via `LangfuseClient`/`LangfuseTraceJob`, não confirmado se é semconv OTel nativo ou wrapper direto)
+- [ ] **Workspace-level isolation (1 workspace por business_id) — GAP CONFIRMADO 2026-07-12:** `SELECT tags FROM traces WHERE timestamp > now() - INTERVAL 1 DAY` retorna só `['live']`. Sem `business_id` na tag, viola isolamento Tier 0 ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) para efeitos de observability (dado operacional continua isolado — é o TRACE que vaza granularidade)
+- [ ] Custo: R$ [redacted Tier 0]-80/mês CT 100 — Wagner aprova — não verificado
+- [ ] Dashboards default: token usage, latência p50/p95, custo por agent, traces por business — não verificado (não abri a UI Langfuse)
 
 **Refs:** AUDIT-SENIOR-2026-05-25.md §G3, ADR 0132, [LLM Observability 2026](https://www.spheron.network/blog/llm-observability-gpu-cloud-langfuse-arize-phoenix-helicone/), [OpenTelemetry GenAI](https://dev.to/x4nent/opentelemetry-genai-semantic-conventions-the-standard-for-llm-observability-1o2a)
 
+### US-COPI-132 · Langfuse traces sem tag business_id (isolamento multi-tenant observability)
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** verificação de máquina 2026-07-12 (query direta ClickHouse no CT 100, não doc) durante fechamento do gap US-COPI-117.
+
+**Achado:** `docker exec clickhouse-langfuse clickhouse-client --query "SELECT tags, count() FROM traces WHERE timestamp > now() - INTERVAL 1 DAY GROUP BY tags"` retorna só `['live']`. Nenhuma trace tem `business_id` na tag, apesar do deploy Langfuse estar vivo e recebendo tráfego real (3.226 traces, 200-450/dia, 7 agents instrumentados incl. brain-b-agent, planner-agent, kb-answer-agent).
+
+**Por que importa:** ADR 0093 (multi-tenant Tier 0) exige isolamento por business_id em toda camada que toca dado de negócio — observability inclusa quando prompts/respostas carregam contexto do cliente. Sem a tag, não dá pra filtrar "custo/latência/traces do business X" nem auditar vazamento cross-tenant no nível de trace.
+
+**Acceptance:**
+- [ ] `LangfuseClient`/`LangfuseTraceJob` propaga `business_id` como tag em toda trace criada
+- [ ] Query ClickHouse `SELECT DISTINCT tags FROM traces WHERE timestamp > now() - INTERVAL 1 DAY` mostra tags com `business_id:N` (não só `live`)
+- [ ] Dashboard "custo/latência por business" fica possível filtrando pela tag
+
+**Relacionado:** US-COPI-117 (Deploy Langfuse self-host CT 100, ADR 0132) — deploy confirmado done nesta mesma verificação, este é o sub-gap que ficou.
+
 ---
 
-**Última atualização:** 2026-05-25 — v3.1.0 Onda 6 Audit Sênior 2026-05-25 apendada (US-COPI-115/116/117). US-COPI-115 implementada em paralelo com US-GOV-011 + US-PG-001 + US-COM-006 (PR #1567/1568/1569 + PR Jana em curso). Bypass MCP `tasks-create` aplicado em SPEC.md direto (mcp_jira_projects entry "Jana" → COPI mapeada — 115/116/117 criadas via MCP server remoto, este apend sincroniza local via webhook).
+**Última atualização:** 2026-07-12 — US-COPI-117 reverificado por máquina (docker ps + query ClickHouse direta no CT 100, não doc): deploy confirmado vivo com tráfego real; gap de isolamento business_id na tag encontrado e virou US-COPI-132. Anterior: 2026-05-25 — v3.1.0 Onda 6 Audit Sênior 2026-05-25 apendada (US-COPI-115/116/117). US-COPI-115 implementada em paralelo com US-GOV-011 + US-PG-001 + US-COM-006 (PR #1567/1568/1569 + PR Jana em curso). Bypass MCP `tasks-create` aplicado em SPEC.md direto (mcp_jira_projects entry "Jana" → COPI mapeada — 115/116/117 criadas via MCP server remoto, este apend sincroniza local via webhook).
 
 ### US-COPI-118 · Tokenizar cores cruas do card-de-prova Pro.tsx (fix ui:lint R1 pré-existente)
 
