@@ -153,7 +153,7 @@ it('inclui business_id como TAG do trace — filtro multi-tenant no UI (US-COPI-
     $client = new LangfuseClient;
     $client->startTrace([
         'name' => 'brain-b-agent',
-        'business_id' => 4,
+        'business_id' => 1, // biz=1 (Wagner) — nunca 4 (cliente RotaLivre), ADR 0101
         'input' => 'faturamento',
     ]);
 
@@ -161,7 +161,7 @@ it('inclui business_id como TAG do trace — filtro multi-tenant no UI (US-COPI-
         $tags = $request->data()['batch'][0]['body']['tags'];
 
         // Tier 0: a tag business_id:{N} tem que estar presente pra filtrar por tenant
-        return in_array('business_id:4', $tags, true)
+        return in_array('business_id:1', $tags, true)
             && in_array('production', $tags, true);
     });
 });
