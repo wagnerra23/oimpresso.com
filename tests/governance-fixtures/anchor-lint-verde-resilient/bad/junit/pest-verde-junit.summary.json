@@ -1,0 +1,12 @@
+{
+  "schema": "junit-summary/v1",
+  "generated_at": "2026-06-23T00:00:00.000Z",
+  "source": "test-results/pest-verde-junit.xml",
+  "n_testcases": 1,
+  "n_testcases_declared": 1,
+  "coherent": true,
+  "totals": { "passed": 0, "failed": 0, "errors": 0, "skipped": 1 },
+  "files": [
+    { "file": "Modules/SelftestVerde/Tests/Feature/VerdeTest.php", "tests": 1, "passed": 0, "failed": 0, "errors": 0, "skipped": 1, "time": 0.0 }
+  ]
+}
