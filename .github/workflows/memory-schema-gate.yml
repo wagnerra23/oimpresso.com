@@ -81,6 +81,23 @@ jobs:
           - label: Charter (resources/js/Pages/**/*.charter.md)
             schema: scripts/memory-schemas/charter.schema.json
             glob: "resources/js/Pages/**/*.charter.md"
+          # 2026-07-12 (proposal estrutura-canon-memoria · Fase 0): as famílias
+          # BRIEFING + reference entram em GRACE (warn-only, diff-aware) — o
+          # campo `grace: true` força STRICT=false SÓ pra elas (ver step
+          # "Compute strict mode flag"), independente da var global. Motivo:
+          # ~143 reference + ~55 BRIEFING legados divergentes; required só
+          # após backfill zerar o FP por família (ADR 0314 — gate novo nasce
+          # grace, nunca required de nascença). Reference escopado a
+          # memory/reference/*.md (os 5 @imports do CLAUDE.md em memory/*.md
+          # ficam FORA — instrução Tier 0 do reference.schema.json).
+          - label: BRIEFING (memory/requisitos/*/BRIEFING.md) [grace]
+            schema: scripts/memory-schemas/briefing.schema.json
+            glob: "memory/requisitos/*/BRIEFING.md"
+            grace: true
+          - label: Reference (memory/reference/*.md) [grace]
+            schema: scripts/memory-schemas/reference.schema.json
+            glob: "memory/reference/*.md"
+            grace: true
 
     steps:
       - uses: actions/checkout@v4
@@ -108,6 +125,15 @@ jobs:
           # NOVOS/MODIFICADOS. Override via var JANA_VALIDATE_MEMORY_STRICT=false
           # caso precise emergência (downgrade pra warning).
           STRICT="${{ vars.JANA_VALIDATE_MEMORY_STRICT || 'true' }}"
+          # 2026-07-12 (estrutura-canon-memoria · Fase 0): famílias marcadas
+          # `grace: true` na matriz (BRIEFING + reference) ficam warn-only
+          # SEMPRE, independente da var global — gate novo nasce grace (ADR
+          # 0314), required só após backfill FP=0. STRICT=false já aciona o
+          # continue-on-error do step de validação + a redação "grace" no
+          # comentário do PR (nada de código extra).
+          if [ "${{ matrix.grace }}" = "true" ]; then
+            STRICT="false"
+          fi
           echo "value=$STRICT" >> "$GITHUB_OUTPUT"
           echo "Strict mode: $STRICT (false=warning, true=fail merge)"
 

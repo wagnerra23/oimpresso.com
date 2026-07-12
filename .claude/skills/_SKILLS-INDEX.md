@@ -47,7 +47,7 @@
 | jana-recall-flow | B | — | sim | Use ao tocar Modules/Jana/Services/Memoria/, ContextSnapshotService, recall hybrid (Meilisearch + HyDE + reranker), M… |
 | mcp-first | B | intent | sim | ATIVAR antes de Read/Glob/Grep em memory/, ler ADR/session/spec do projeto, buscar conhecimento canônico do oimpresso… |
 | memory-first-secret-search | A | — | sim | BLOQUEADOR Tier A — ATIVAR ANTES de qualquer busca por token / API key / password / SSH key / credential / secret. Sk… |
-| memory-schema-preflight | B | — | sim | ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/decisions/*… |
+| memory-schema-preflight | B | — | sim | ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/requisitos/… |
 | memory-sync | B | — | sim | ATIVAR após criar/editar arquivo em memory/, atualizar SPEC.md/TEAM.md, salvar ADR/session log, ou usar trigger "salv… |
 | meta-skill-roi-erp-autonomo | C | — | sim | ATIVAR ao criar skill nova, usar `skill:scaffold`, discutir se uma ideia merece virar skill, ou perguntar "isso vira … |
 | migracao-blade-react | B | — | sim | ATIVAR quando user pedir "migrar tela X", "migrar Blade pra React", "migração massiva", "/migracao-blade-react <modul… |
