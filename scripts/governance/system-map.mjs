@@ -26,8 +26,12 @@
 import { readdirSync, readFileSync, existsSync, writeFileSync, statSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join, dirname } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const ROOT = process.cwd();
+// só roda a geração/CI quando invocado DIRETO (node system-map.mjs). Importado
+// (ex: onboarding-paths-check.mjs reusa deadLinks) NÃO dispara escrita nem process.exit.
+const IS_DIRECT_RUN = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 const OUT = join(ROOT, 'memory', 'reference', 'PAINEL-SISTEMA.md');
 const MODE_STDOUT = process.argv.includes('--stdout');
 const MODE_CHECK = process.argv.includes('--check');
@@ -341,7 +345,7 @@ function renderComeceAqui(data) {
 // tratado como PATH (relativo à RAIZ do repo) e verificado. Fecha o furo que deixou
 // `Modules/Project` (inexistente) passar — antes só links markdown eram checados.
 const REPO_DIRS = /^(Modules|app|resources|scripts|governance|database|tests|config|routes|bootstrap|\.github|\.claude|memory)\/\S/;
-function deadLinks(md, outPath) {
+export function deadLinks(md, outPath) {
   const base = dirname(outPath);
   const dead = [];
   // 1) links markdown ](path) — relativos ao dir do doc
@@ -351,9 +355,13 @@ function deadLinks(md, outPath) {
     if (!link || /^(https?:|mailto:)/.test(link)) continue; // externos não se verificam no disco
     if (!existsSync(join(base, link))) dead.push(link);
   }
-  // 2) paths de repo em `code` inline — relativos à RAIZ do repo
+  // 2) paths de repo em `code` inline — relativos à RAIZ do repo.
+  // Remove blocos cercados ``` … ``` ANTES de casar inline: os backticks internos
+  // do bloco bagunçam o pareamento do regex e engoliriam paths inline reais depois
+  // dele (Modules/Jana, app/Domain/Fsm ficavam SEM verificação — furo silencioso).
+  const noFences = md.replace(/```[\s\S]*?```/g, '');
   const reCode = /`([^`]+)`/g;
-  while ((m = reCode.exec(md)) !== null) {
+  while ((m = reCode.exec(noFences)) !== null) {
     const t = m[1].trim();
     if (!REPO_DIRS.test(t)) continue;       // só o que parece path de repo
     if (/\s/.test(t)) continue;             // tem espaço = "path + rótulo" (ex `proibicoes.md §5`), não path puro
@@ -363,7 +371,7 @@ function deadLinks(md, outPath) {
   }
   return dead;
 }
-function assertLinksLive(pairs) {
+export function assertLinksLive(pairs) {
   const problems = pairs.flatMap(([md, out]) => deadLinks(md, out).map((l) => `${out}: ${l}`));
   if (problems.length) {
     console.error('[system-map] PATH MORTO — o gerador se recusa a emitir link quebrado (regra):');
@@ -372,26 +380,28 @@ function assertLinksLive(pairs) {
   }
 }
 
-const data = {
-  adr: measureAdrs(), proib: measureProibicoes(), mods: measureModules(),
-  sc: measureScorecard(), cnt: measureCounts(), gates: measureGates(),
-};
-const outPainel = render(data);
-const outComece = renderComeceAqui(data);
-// REGRA: prova que TODO path emitido resolve, antes de qualquer coisa (fail-closed)
-assertLinksLive([[outPainel, OUT], [outComece, OUT_COMECE]]);
-// ignora a linha de data (volátil) do PAINEL na comparação de conteúdo
-const strip = (s) => s.replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**').replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
-if (MODE_STDOUT) {
-  process.stdout.write(outPainel + '\n\n' + outComece);
-} else if (MODE_CHECK) {
-  let stale = false;
-  if (strip(read(OUT)) !== strip(outPainel)) { console.error('[system-map] PAINEL-SISTEMA.md desatualizado'); stale = true; }
-  if (strip(read(OUT_COMECE)) !== strip(outComece)) { console.error('[system-map] COMECE-AQUI.md desatualizado'); stale = true; }
-  if (stale) { console.error('  → rode: node scripts/governance/system-map.mjs'); process.exit(1); }
-  console.log('[system-map] PAINEL + COMECE-AQUI em dia.');
-} else {
-  writeFileSync(OUT, outPainel);
-  writeFileSync(OUT_COMECE, outComece);
-  console.log(`[system-map] escrito: ${OUT} + ${OUT_COMECE}`);
+if (IS_DIRECT_RUN) {
+  const data = {
+    adr: measureAdrs(), proib: measureProibicoes(), mods: measureModules(),
+    sc: measureScorecard(), cnt: measureCounts(), gates: measureGates(),
+  };
+  const outPainel = render(data);
+  const outComece = renderComeceAqui(data);
+  // REGRA: prova que TODO path emitido resolve, antes de qualquer coisa (fail-closed)
+  assertLinksLive([[outPainel, OUT], [outComece, OUT_COMECE]]);
+  // ignora a linha de data (volátil) do PAINEL na comparação de conteúdo
+  const strip = (s) => s.replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**').replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
+  if (MODE_STDOUT) {
+    process.stdout.write(outPainel + '\n\n' + outComece);
+  } else if (MODE_CHECK) {
+    let stale = false;
+    if (strip(read(OUT)) !== strip(outPainel)) { console.error('[system-map] PAINEL-SISTEMA.md desatualizado'); stale = true; }
+    if (strip(read(OUT_COMECE)) !== strip(outComece)) { console.error('[system-map] COMECE-AQUI.md desatualizado'); stale = true; }
+    if (stale) { console.error('  → rode: node scripts/governance/system-map.mjs'); process.exit(1); }
+    console.log('[system-map] PAINEL + COMECE-AQUI em dia.');
+  } else {
+    writeFileSync(OUT, outPainel);
+    writeFileSync(OUT_COMECE, outComece);
+    console.log(`[system-map] escrito: ${OUT} + ${OUT_COMECE}`);
+  }
 }
