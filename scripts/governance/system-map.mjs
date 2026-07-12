@@ -299,8 +299,9 @@ function renderComeceAqui(data) {
   L.push('Você vai trabalhar no oimpresso, meu ERP. Antes de qualquer coisa:');
   L.push('1. Rode a tool `brief-fetch` (estado consolidado do projeto). SE você NÃO tiver');
   L.push('   o servidor MCP conectado, PULE e leia em vez disso (fallback): o roadmap');
-  L.push('   `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` + o session log mais recente');
-  L.push('   (o mais novo em `memory/sessions/`). Nunca invente o que a tool devolveria.');
+  L.push('   `memory/requisitos/_Governanca/roadmap/_ROADMAP.md` + o session log DATADO mais');
+  L.push('   recente (arquivo `YYYY-MM-DD-*.md` em `memory/sessions/` — IGNORE README/_INDEX/');
+  L.push('   _TEMPLATE, que um `ls -t` cru joga por cima). Nunca invente o retorno da tool.');
   L.push('2. As regras já carregaram via CLAUDE.md — respeite-as (multi-tenant, PT-BR,');
   L.push('   teste só no CT 100, aprovação humana antes de merge).');
   L.push('3. Leia `memory/reference/PAINEL-SISTEMA.md` — o índice GERADO do sistema');
@@ -327,7 +328,7 @@ function renderComeceAqui(data) {
   L.push('- Estado consolidado agora: rode `brief-fetch`.');
   L.push('- Regras Tier 0 + o que já falhou: [proibicoes.md](../proibicoes.md).');
   L.push('- Como o sistema é construído: `CLAUDE.md` (carrega automático) + `memory/why-oimpresso.md` / `what-oimpresso.md` / `how-trabalhar.md`.');
-  L.push('- Onde o CÓDIGO mora (pra mexer, não só entender): `Modules/<Vertical>` (features por vertical) · `app/Domain/Fsm` (máquina de estados de vendas/OS) · `resources/js/Pages/<Mod>/` (telas Inertia/React). Antes de criar/alterar, ABRA `Modules/Jana` · `Modules/Repair` e imite o padrão (ADR 0011).');
+  L.push('- Onde o CÓDIGO mora (pra mexer, não só entender): `Modules/<Vertical>` (features por vertical) · `app/Domain/Fsm` (máquina de estados de vendas/OS) · `resources/js/Pages/<Mod>/` (telas Inertia/React). Antes de criar/alterar, ABRA `Modules/Jana` · `Modules/Repair` e imite o padrão (ADR 0011). Pra criar módulo do zero, o passo-a-passo está em `memory/requisitos/Infra/RUNBOOK-criar-modulo.md`.');
   L.push('');
   return L.join('\n');
 }
