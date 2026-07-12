@@ -15,10 +15,12 @@
 | `memory/sessions/*.md` (exceto `_*.md`, `README.md`) | `session.schema.json` | Session log diário |
 | `memory/handoffs/*.md` (exceto `_*.md`) | `handoff.schema.json` | Handoff append-only |
 | `resources/js/Pages/**/*.charter.md` | `charter.schema.json` | Page Charter (Tier A) |
-| `memory/requisitos/*/BRIEFING.md` | `briefing.schema.json` | 1-pager por módulo (⏳ não-fiado ao gate — grace até backfill) |
-| `memory/reference/*.md` + `memory/*.md` (exceto os 5 @imports do CLAUDE.md) | `reference.schema.json` | Doc canônico/gerado (⏳ não-fiado ao gate — grace até backfill) |
+| `memory/requisitos/*/BRIEFING.md` | `briefing.schema.json` | 1-pager por módulo (🟡 fiado em GRACE — warn-only, diff-aware) |
+| `memory/reference/*.md` | `reference.schema.json` | Doc canônico/gerado (🟡 fiado em GRACE — warn-only, diff-aware) |
 
-> ⏳ **`briefing` e `reference` (proposal estrutura-canon-memoria):** os schemas EXISTEM como conceito-alvo único, mas ainda **NÃO estão na matrix bloqueante** do [memory-schema-gate.yml](../../.github/workflows/memory-schema-gate.yml). Wiring = grace→required só **depois** do backfill zerar o falso-positivo por família (disciplina ADR 0314 — gate novo nunca nasce bloqueante). Até lá servem pra: (a) validação local dos codemods de normalização, (b) `system-map.mjs` ler status confiável do BRIEFING, (c) `memory-schema-preflight`.
+> 🟡 **`briefing` e `reference` (proposal estrutura-canon-memoria · Fase 0, fiadas 2026-07-12):** já estão na matriz do [memory-schema-gate.yml](../../.github/workflows/memory-schema-gate.yml) com `grace: true` (força `STRICT=false` só pra elas → `continue-on-error` + comentário de PR "grace"). **NÃO bloqueiam merge** — tocar um BRIEFING/reference divergente gera WARNING, não red (a skill `brief-update` toca BRIEFING direto e não pode travar o time). Promoção grace→required só **depois** do backfill zerar o falso-positivo por família (disciplina ADR 0314 — gate novo nunca nasce bloqueante). Servem também pra: (a) validação local dos codemods de normalização, (b) `system-map.mjs` ler status confiável do BRIEFING, (c) `memory-schema-preflight`.
+>
+> **Escopo do glob `reference`:** só `memory/reference/*.md` (os ~143 divergentes vivem aí). Os docs de topo `memory/*.md` — incluindo os **5 @imports do CLAUDE.md** (`why-`/`what-`/`how-trabalhar`/`proibicoes`/`regras-time`) — ficam **FORA** da matriz (instrução Tier 0 do `reference.schema.json`); ampliar o glob pra `memory/*.md` exige excluir esses 5 primeiro.
 
 ## Grace period 14d (ENV `JANA_VALIDATE_MEMORY_STRICT`)
 
@@ -43,3 +45,4 @@ Rejeitados: B (`frontmatter-json-schema-action` magro), D (pre-commit não enfor
 ## Histórico
 
 - **2026-05-13** — Schemas criados em ONDA 5 S1 (agent schema-validator-expert).
+- **2026-07-12** — `briefing` + `reference` (proposal estrutura-canon-memoria Fase 0) fiadas à matriz em GRACE (`grace: true` → warn-only, diff-aware). Forward-only: LEGADO em massa segue bloqueado pelos gates diff-aware (proibicoes.md §5). Promoção a required só após backfill FP=0 (ADR 0314).
