@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-COPI-110 — time-decay weighting no recall (K1): fórmula half-life por doc_type + status multipliers, feature-flag e edge cases, exercitando applyTimeDecay() do MeilisearchDriver.
+
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Modules\Jana\Entities\MemoriaFato;
