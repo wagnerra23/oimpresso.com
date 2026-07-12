@@ -58,6 +58,9 @@ const WATCHDOG_SOURCES = {
   // P14 carona 2 (#3548): a auditoria do repo pelo sqlite-test-corruptors roda dentro do
   // agregador sdd-scorecard — mesmo frescor do resto do scorecard.
   sqlite_corruptors: 'sdd-scorecard.yml',
+  // measureDistillerFreshness() roda dentro do agregador sdd-scorecard.mjs — mesmo
+  // frescor do resto do scorecard (measured desde o 1º carimbo distilled_at).
+  distiller_freshness: 'sdd-scorecard.yml',
   full_suite_pass_rate: 'orfa:governance/nightly-floor',
 };
 
