@@ -2,8 +2,8 @@
 page: /jana/admin/roadmap
 component: resources/js/Pages/Jana/Admin/Roadmap.tsx
 owner: wagner
-status: live
-last_validated: "2026-05-13"
+status: draft
+last_validated: "2026-07-12"
 approved_by: wagner
 parent_module: Jana
 related_us: [US-COPI-111]
