@@ -41,7 +41,7 @@
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 264,
-        "req_sem_covering_test_total": 393,
+        "req_sem_covering_test_total": 392,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 42,
         "behavior_known": false,
