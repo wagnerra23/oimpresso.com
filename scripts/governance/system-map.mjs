@@ -166,13 +166,8 @@ function measureGates() {
 }
 
 // ── render ────────────────────────────────────────────────────────────────────
-function render() {
-  const adr = measureAdrs();
-  const proib = measureProibicoes();
-  const mods = measureModules();
-  const sc = measureScorecard();
-  const cnt = measureCounts();
-  const gates = measureGates();
+function render(data) {
+  const { adr, proib, mods, sc, cnt, gates } = data;
 
   const L = [];
   L.push('---');
@@ -280,19 +275,77 @@ function render() {
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
-const out = render();
+// ── COMECE-AQUI.md — a porta de entrada GERADA (não apodrece: zero fato volátil
+// hardcoded; só o prompt estável + ponteiros pras fontes VIVAS + contagens derivadas). ──
+const OUT_COMECE = join(ROOT, 'memory', 'reference', 'COMECE-AQUI.md');
+function renderComeceAqui(data) {
+  const { adr, mods } = data;
+  const L = [];
+  L.push('---');
+  L.push('name: COMECE-AQUI — porta de entrada do oimpresso (onboarding gerado)');
+  L.push('description: Front door pra uma IA nova (ou pro Wagner) entender o sistema. GERADO por system-map.mjs — só prompt estável + ponteiros pras fontes vivas, zero fato volátil à mão. NÃO apodrece.');
+  L.push('type: guide');
+  L.push('authority: generated');
+  L.push('lifecycle: ativo');
+  L.push('---');
+  L.push('');
+  L.push('# 📖 COMECE AQUI — oimpresso');
+  L.push('');
+  L.push('> ⚙️ **Gerado por `system-map.mjs`.** NÃO editar à mão (regenera). Contém ZERO fato volátil hardcoded — só o prompt estável + ponteiros pras fontes que se atualizam sozinhas. **Por isso não apodrece** (ao contrário de um doc escrito à mão).');
+  L.push('');
+  L.push('## Pra uma IA nova entender tudo — cole numa sessão nova');
+  L.push('');
+  L.push('```');
+  L.push('Você vai trabalhar no oimpresso, meu ERP. Antes de qualquer coisa:');
+  L.push('1. Rode a tool `brief-fetch` (estado consolidado do projeto).');
+  L.push('2. As regras já carregaram via CLAUDE.md — respeite-as (multi-tenant, PT-BR,');
+  L.push('   teste só no CT 100, aprovação humana antes de merge).');
+  L.push('3. Leia `memory/reference/PAINEL-SISTEMA.md` — o índice GERADO do sistema');
+  L.push('   inteiro (módulos + frescor, ADRs, ideias descartadas, o que está em aberto).');
+  L.push('4. Pra o histórico do que já foi tentado e por que caiu, leia');
+  L.push('   `memory/proibicoes.md` (seção "Ideias avaliadas e DESCARTADAS").');
+  L.push('');
+  L.push('Agora, ANTES de começar, me diga em 5 bullets o que você entendeu: o que é,');
+  L.push('como roda, quem é o cliente, o que está em voo, e uma regra que nunca pode');
+  L.push('quebrar. Se algum bullet estiver vago, releia a fonte.');
+  L.push('```');
+  L.push('');
+  L.push('> O último passo força a IA a **provar** que entendeu, em vez de fingir.');
+  L.push('');
+  L.push('## Pra auditar / revisar o sistema (2 comandos bastam)');
+  L.push('');
+  L.push('- **`/sdd-avaliar`** — auditoria geral do processo (7 especialistas adversariais checam o estado REAL, nota 0-100 + riscos). Responde "o sistema está honesto?".');
+  L.push('- **`/avaliar-modulo <X>`** — nota de um módulo em 9 dimensões + gaps. Responde "este módulo está bom?".');
+  L.push('- _Mais fundo:_ `/audit-and-fix <tema>` · `capterra-senior` (vs mercado) · `design-arte` (UX) · `php artisan jana:health-check` (saúde diária).');
+  L.push('');
+  L.push('## Estado vivo (não apodrece — é derivado)');
+  L.push('');
+  L.push(`- **${mods.length} módulos** · **${adr.total} ADRs** — detalhe + frescor no [PAINEL-SISTEMA.md](PAINEL-SISTEMA.md) (gerado junto deste).`);
+  L.push('- Estado consolidado agora: rode `brief-fetch`.');
+  L.push('- Regras Tier 0 + o que já falhou: [proibicoes.md](../proibicoes.md).');
+  L.push('- Como o sistema é construído: `CLAUDE.md` (carrega automático) + `memory/why-oimpresso.md` / `what-oimpresso.md` / `how-trabalhar.md`.');
+  L.push('');
+  return L.join('\n');
+}
+
+const data = {
+  adr: measureAdrs(), proib: measureProibicoes(), mods: measureModules(),
+  sc: measureScorecard(), cnt: measureCounts(), gates: measureGates(),
+};
+const outPainel = render(data);
+const outComece = renderComeceAqui(data);
+// ignora a linha de data (volátil) do PAINEL na comparação de conteúdo
+const strip = (s) => s.replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**').replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
 if (MODE_STDOUT) {
-  process.stdout.write(out);
+  process.stdout.write(outPainel + '\n\n' + outComece);
 } else if (MODE_CHECK) {
-  const cur = read(OUT);
-  // ignora a linha de data (volátil) na comparação de conteúdo
-  const strip = (s) => s.replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**').replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
-  if (strip(cur) !== strip(out)) {
-    console.error('[system-map] PAINEL-SISTEMA.md desatualizado — rode: node scripts/governance/system-map.mjs');
-    process.exit(1);
-  }
-  console.log('[system-map] PAINEL-SISTEMA.md em dia.');
+  let stale = false;
+  if (strip(read(OUT)) !== strip(outPainel)) { console.error('[system-map] PAINEL-SISTEMA.md desatualizado'); stale = true; }
+  if (strip(read(OUT_COMECE)) !== strip(outComece)) { console.error('[system-map] COMECE-AQUI.md desatualizado'); stale = true; }
+  if (stale) { console.error('  → rode: node scripts/governance/system-map.mjs'); process.exit(1); }
+  console.log('[system-map] PAINEL + COMECE-AQUI em dia.');
 } else {
-  writeFileSync(OUT, out);
-  console.log(`[system-map] escrito: ${OUT}`);
+  writeFileSync(OUT, outPainel);
+  writeFileSync(OUT_COMECE, outComece);
+  console.log(`[system-map] escrito: ${OUT} + ${OUT_COMECE}`);
 }
