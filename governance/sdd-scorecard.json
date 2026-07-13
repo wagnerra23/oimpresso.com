@@ -61,38 +61,33 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 291,
+      "value": 358,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "1670ada67b0e0424",
+        "floor_files_hash": "03ab660bc1f09abd",
         "runs": [
-          {
-            "sha": "20103e02",
-            "ts": "20260630-020001",
-            "failed": 352,
-            "errors": 796,
-            "skipped": 2700
-          },
-          {
-            "sha": "e5a62ae0",
-            "ts": "20260701-020001",
-            "failed": 336,
-            "errors": 784,
-            "skipped": 2789
-          },
           {
             "sha": "2dbdceed",
             "ts": "20260706-020001",
             "failed": 523,
             "errors": 913,
-            "skipped": 2307
+            "skipped": 2307,
+            "all_shards_measured": true
+          },
+          {
+            "sha": "3acabd2f",
+            "ts": "20260713-020001",
+            "failed": 608,
+            "errors": 617,
+            "skipped": 2254,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260706-020001",
-        "intersection_of": 3
+        "computed_at": "20260713-020001",
+        "intersection_of": 2
       },
       "stream": "FV"
     },
@@ -110,14 +105,14 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 15,
+      "value": 16.8,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 35757,
-        "total": 238941,
+        "covered": 40231,
+        "total": 239512,
         "runs": [
           {
             "sha": "2dbdceed",
@@ -125,10 +120,24 @@
             "coverage_pct": 15,
             "covered": 35757,
             "total": 238941
+          },
+          {
+            "sha": "dd6c8c97",
+            "ts": "20260712-212018",
+            "coverage_pct": 16.4,
+            "covered": 39200,
+            "total": 239512
+          },
+          {
+            "sha": "3acabd2f",
+            "ts": "20260713-020001",
+            "coverage_pct": 16.8,
+            "covered": 40231,
+            "total": 239512
           }
         ],
-        "computed_at": "20260706-020001",
-        "measured_of": 1
+        "computed_at": "20260713-020001",
+        "measured_of": 3
       },
       "stream": "FV"
     },
@@ -146,8 +155,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 270,
-        "effectively_guarded": 270
+        "with_manual_ddl": 269,
+        "effectively_guarded": 269
       },
       "stream": "FV"
     },
@@ -238,17 +247,15 @@
     },
     "drift_alarms": {
       "status": "measured",
-      "value": 1,
+      "value": 0,
       "unit": "alarmes duros (reds do protection-drift · GT-G4)",
       "direction": "down",
       "target": "advisory perene (0 alarmes duros)",
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
-        "reds": [
-          "full_suite_pass_rate: fonte orfa:governance/nightly-floor#governance/nightly-floor.json sem run verde há >48h (último sucesso: 2026-07-06T02:00:01.000Z) — canário parado é regressão silenciosa (ADR 0275 §3: desarmar MANUALMENTE via PR no baseline até nova sequência de 3 — o ratchet required não afrouxa sozinho)"
-        ],
+        "reds": [],
         "warns": 0,
-        "verdict": "red"
+        "verdict": "green"
       },
       "stream": "GT"
     },
