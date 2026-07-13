@@ -63,6 +63,25 @@ final class VisregThreshold
     }
 
     /**
+     * Pest propaga o modo de atualização via argv (`--update-snapshots`).
+     * Nesse modo o gate não pode comparar contra a baseline antiga antes de
+     * deixar o SnapshotRepository gravar a nova imagem.
+     */
+    private static function isUpdatingSnapshots(): bool
+    {
+        foreach ($_SERVER['argv'] ?? [] as $arg) {
+            $arg = (string) $arg;
+
+            if ($arg === '--update-snapshots' || str_starts_with($arg, '--update-snapshots=')) {
+                return true;
+            }
+        }
+
+        return getenv('PEST_UPDATE_SNAPSHOTS') === '1'
+            || getenv('UPDATE_SNAPSHOTS') === '1';
+    }
+
+    /**
      * Captura o screenshot atual, compara com a baseline e roteia nas 3 bandas.
      *
      * @param  object  $page  AwaitableWebpage do pest-plugin-browser (tem ->screenshot())
@@ -79,6 +98,13 @@ final class VisregThreshold
     {
         $tauLow = self::tauLow();
         $tauHigh = self::tauHigh();
+
+        if (self::isUpdatingSnapshots()) {
+            $page->assertScreenshotMatches(fullPage: false);
+            test()->expect(true)->toBeTrue('update-snapshots: baseline regenerada sem comparar contra a anterior');
+
+            return;
+        }
 
         // 1. Baseline commitada (.snap base64 PNG) desta tela.
         $baselineBlob = self::readBaseline($baselineSuite);
