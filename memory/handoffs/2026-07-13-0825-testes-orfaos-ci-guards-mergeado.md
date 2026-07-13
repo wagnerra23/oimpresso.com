@@ -1,13 +1,19 @@
 ---
-data: "2026-07-13 08:25 BRT"
+date: "2026-07-13"
+time: "08:25 BRT"
 slug: testes-orfaos-ci-guards-mergeado
+tldr: "PR #4205 (testes órfãos registrados no CI + guards de staleness/UTF-8) mergeado por wagnerra23, CI 100% verde. Fecha ações #3/resíduos #4 do juiz adversarial wf_33e38126."
 autor: "[CC]"
 status: accepted
 tipo: handoff
-pr: 4205
-merged_by: wagnerra23
+prs: [4205]
 related_prs: [4193, 4195, 4201, 4210, 4213]
-related_adrs: [0314, 0275, 0291, 0271]
+merged_by: wagnerra23
+related_adrs:
+  - "0314-poda-gates-onda-2-lei-fusoes"
+  - "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes"
+  - "0291-distiller-modulo-verdade-contrato-emenda-0270-f3"
+  - "0271-revisao-gates-ci-estado-real-required-e-subtracao-segura"
 tags: [governance, ci, testes-orfaos, sdd, encoding]
 ---
 
