@@ -97,6 +97,8 @@
     "visreg:states:lint": "node scripts/visreg-states-lint.mjs",
     "visreg:flows": "./vendor/bin/pest tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php",
     "visreg:flows:update": "./vendor/bin/pest tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php --update-snapshots",
+    "visreg:flows:compras": "./vendor/bin/pest tests/Browser/CoreScreens/ComprasFlowBaselineTest.php",
+    "visreg:flows:compras:update": "./vendor/bin/pest tests/Browser/CoreScreens/ComprasFlowBaselineTest.php --update-snapshots",
     "visreg:flows:lint": "node scripts/visreg-flows-lint.mjs",
     "layout:check": "node scripts/layout-primitives-guard.mjs",
     "layout:baseline:write": "node scripts/layout-primitives-guard.mjs --write-baseline",
