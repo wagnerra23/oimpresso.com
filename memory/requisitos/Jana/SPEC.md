@@ -1089,7 +1089,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 **Testado em:** `Modules/Jana/Tests/Feature/Memoria/TemporalScoringTest.php` (**contrato fim-de-estágio** decay→reranker REAL do container: ADR accepted recente vence superseded antiga com input adverso — falha no código pré-fix; `// @covers-us US-COPI-110`) + `Modules/Jana/Tests/Feature/Memoria/TimeDecayTest.php` (fórmula half-life + multipliers + flag + edge cases + contrato de reordenamento do estágio)
 
-**Definition of Done (reconciliado 2026-07-12, 4º):**
+**Definition of Done:** _(reconciliado 2026-07-12, 4º)_
 - [x] Fórmula canônica documentada — **divergência declarada vs DoD original:** implementada a forma multiplicativa `base × ((1-w) + w×0.5^(age/half_life)) × status_mult` (aprovada Wagner 2026-05-13, docblock `applyTimeDecay`), NÃO a aditiva `relevance×0.6 + recency×0.3 + importance×0.1`; relevância entra como ordem de entrada preservada em empate, `importance` não implementado
 - [x] `recency_decay()`: half-life exponencial `0.5^(age_days/half_life)` per doc_type (adr=365, spec=180, session=30, handoff=14) · status multipliers accepted=1.2 / historical=0.5 / superseded=0.3
 - [x] `lifecycle`/`status` lido de `metadata.status` do fato indexado (via `MemoriaFato.metadata`)
