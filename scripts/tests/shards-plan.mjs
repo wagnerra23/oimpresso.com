@@ -9,10 +9,19 @@
 // bash que roda os shards é OUTRO chip. Unidade de shard = dir com *Test.php direto.
 //
 // Uso:
-//   node scripts/tests/shards-plan.mjs --shards 6 [--roots tests,Modules] [--out plan.json]
-//   node scripts/tests/shards-plan.mjs --verify --roots <tree> [--plan <plan.json>]
+//   node scripts/tests/shards-plan.mjs --shards 6 [--roots tests,Modules] [--exclude tests/Browser,...] [--out plan.json]
+//   node scripts/tests/shards-plan.mjs --verify --roots <tree> [--exclude ...] [--plan <plan.json>]
 //     ↑ universe-gate: prova que os shards cobrem EXATAMENTE o universo descoberto —
 //       nenhum dir some (=teste sumido no particionamento) nem duplica. Exit 1 se violar.
+//
+// --exclude <prefixos-csv>: poda subárvores NÃO-rodáveis no nightly (dir cujo path
+// relativo == prefixo OU começa com prefixo+'/'). O phpunit.xml (testsuites) é a fonte
+// do que a suíte roda de fato; a descoberta por filesystem é MAIS ampla e pega dirs que
+// o `pest` (sem args) nunca rodou — ex tests/Browser (Pest Browser exige Playwright, que
+// a imagem do nightly não tem → PlaywrightNotInstalledException mata o shard antes do 1º
+// teste) e tests/governance-fixtures (testes SINTÉTICOS bad/good que alimentam os gates,
+// não são testes reais). Sem a poda, cada shard que herda um desses dir morre 0-byte
+// (provado na 1ª nightly real sharded 2026-07-12: 3 shards mortos só por tests/Browser).
 import { readdirSync, existsSync, writeFileSync, readFileSync, realpathSync } from 'node:fs';
 import { join, relative, isAbsolute } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -21,16 +30,19 @@ const arg = (k, d) => { const i = process.argv.indexOf(k); return i >= 0 ? proce
 
 // dirs que contêm ao menos um *Test.php DIRETO (unidade de shard), com contagem de
 // arquivos pra balancear. Recursivo, mas conta só o arquivo direto de cada dir.
-export function discoverTestDirs(roots, base = process.cwd()) {
+export function discoverTestDirs(roots, base = process.cwd(), exclude = []) {
   const found = [];
+  const isExcluded = (rel) => exclude.some((p) => rel === p || rel.startsWith(p + '/'));
   const walk = (abs) => {
+    const rel = relative(base, abs).replace(/\\/g, '/');
+    if (rel && isExcluded(rel)) return; // poda a subárvore não-rodável inteira
     let entries; try { entries = readdirSync(abs, { withFileTypes: true }); } catch { return; }
     let n = 0;
     for (const e of entries) {
       if (e.isDirectory()) walk(join(abs, e.name));
       else if (/Test\.php$/.test(e.name)) n++;
     }
-    if (n > 0) found.push({ dir: relative(base, abs).replace(/\\/g, '/'), files: n });
+    if (n > 0) found.push({ dir: rel, files: n });
   };
   for (const r of roots) { const abs = isAbsolute(r) ? r : join(base, r); if (existsSync(abs)) walk(abs); }
   return found.sort((a, b) => a.dir.localeCompare(b.dir));
@@ -49,13 +61,14 @@ export function planShards(dirs, nShards) {
   return shards;
 }
 
-export function buildPlan(roots, nShards, base = process.cwd()) {
-  const dirs = discoverTestDirs(roots, base);
+export function buildPlan(roots, nShards, base = process.cwd(), exclude = []) {
+  const dirs = discoverTestDirs(roots, base, exclude);
   return {
     schema: 'shards-plan/v1',
     n_shards: Math.max(1, nShards),
     total_dirs: dirs.length,
     total_files: dirs.reduce((a, d) => a + d.files, 0),
+    excluded: exclude,
     universe: dirs.map((d) => d.dir),
     shards: planShards(dirs, nShards),
   };
@@ -76,11 +89,12 @@ export function verifyPlan(plan, universe) {
 const isMain = (() => { try { return realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); } catch { return false; } })();
 if (isMain) {
   const roots = arg('--roots', 'tests,Modules').split(',').map((s) => s.trim()).filter(Boolean);
+  const exclude = arg('--exclude', '').split(',').map((s) => s.trim()).filter(Boolean);
   const N = Math.max(1, parseInt(arg('--shards', '6'), 10) || 6);
   if (process.argv.includes('--verify')) {
-    const universe = discoverTestDirs(roots).map((d) => d.dir);
+    const universe = discoverTestDirs(roots, process.cwd(), exclude).map((d) => d.dir);
     const planPath = arg('--plan', null);
-    const plan = planPath ? JSON.parse(readFileSync(planPath, 'utf8')) : buildPlan(roots, N);
+    const plan = planPath ? JSON.parse(readFileSync(planPath, 'utf8')) : buildPlan(roots, N, process.cwd(), exclude);
     const v = verifyPlan(plan, universe);
     if (!v.ok) {
       console.error(`universe-gate FALHOU — ${v.missing.length} dir(s) PERDIDO(s), ${v.duplicated.length} duplicado(s), ${v.extra.length} fantasma(s):`);
@@ -92,7 +106,7 @@ if (isMain) {
     console.log(`universe-gate OK — ${universe.length} dir(s) de teste cobertos por ${plan.shards.length} shard(s), 0 perdidos.`);
     process.exit(0);
   }
-  const plan = buildPlan(roots, N);
+  const plan = buildPlan(roots, N, process.cwd(), exclude);
   const out = arg('--out', null);
   if (out) writeFileSync(out, JSON.stringify(plan, null, 2) + '\n');
   console.log(JSON.stringify(plan, null, 2));

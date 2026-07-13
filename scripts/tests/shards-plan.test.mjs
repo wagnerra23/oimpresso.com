@@ -46,6 +46,19 @@ try {
   // universe-gate: duplicar um dir → duplicated
   const dup = { ...plan, shards: plan.shards.map((s, i) => i === 1 ? { ...s, dirs: [...s.dirs, plan.universe[0]] } : s) };
   ok(!verifyPlan(dup, plan.universe).ok, 'verifyPlan MORDE dir duplicado');
+
+  // --exclude: poda subárvore não-rodável (tests/Browser → PlaywrightNotInstalled mata o shard)
+  mk('tests/Browser/Sells', ['SellsBrowserTest.php']);
+  mk('tests/governance-fixtures/g/bad/tests/Feature', ['SyntheticTest.php']);
+  const noExcl = discoverTestDirs(['tests', 'Modules'], root);
+  ok(noExcl.some((d) => d.dir === 'tests/Browser/Sells'), 'sem exclude: Browser descoberto (o bug)');
+  const excl = discoverTestDirs(['tests', 'Modules'], root, ['tests/Browser', 'tests/governance-fixtures']);
+  ok(!excl.some((d) => d.dir.startsWith('tests/Browser')), 'exclude poda tests/Browser inteiro');
+  ok(!excl.some((d) => d.dir.startsWith('tests/governance-fixtures')), 'exclude poda tests/governance-fixtures inteiro');
+  ok(excl.some((d) => d.dir === 'tests/Feature'), 'exclude preserva dirs rodáveis (tests/Feature)');
+  const planE = buildPlan(['tests', 'Modules'], 3, root, ['tests/Browser', 'tests/governance-fixtures']);
+  ok(verifyPlan(planE, planE.universe).ok && !planE.universe.some((d) => d.startsWith('tests/Browser')), 'plano+universe-gate consistentes sob exclude');
+  ok(JSON.stringify(planE.excluded) === JSON.stringify(['tests/Browser', 'tests/governance-fixtures']), 'plano ecoa excluded[]');
 } finally { rmSync(root, { recursive: true, force: true }); }
 
 console.log(fails === 0 ? '\n  shards-plan (SDD P04): OK\n' : `\n  shards-plan: ${fails} FALHA(S)\n`);
