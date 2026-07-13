@@ -135,3 +135,32 @@ jobs:
         run: node scripts/governance/selftest-registry-check.mjs --selftest
       - name: Selftest-registry sweep advisory (teste .mjs órfão de workflow · exit 0 sempre)
         run: node scripts/governance/selftest-registry-check.mjs
+      # P15 entrega 3 — desorfanar .test.mjs (sweep selftest-registry-check.mjs, 2026-07-13).
+      # Estes 9 tinham .test.mjs no repo mas nenhum step de CI: passavam só na máquina do dev
+      # (mesmo gap "test local-only" da Onda 1). Todos verdes em node puro no momento do wiring.
+      # (O 10º órfão, sdd-distiller-freshness.test.mjs, já é wireado acima pelo PR #4205 / chip A3.)
+      # Advisory de nascença (ADR 0314 — nada vira required).
+      - name: Block-askq-execution-menu PORTE .mjs (menu de execução/escopo · roda em Linux)
+        run: node .claude/hooks/block-askq-execution-menu.test.mjs
+      - name: Block-figma-without-optin PORTE .mjs (ADR 0299 · classificação + opt-in · roda em Linux)
+        run: node .claude/hooks/block-figma-without-optin.test.mjs
+      - name: Design-handoff-reprocess PORTE .mjs (G2 ADR 0236 · idempotência + header · roda em Linux)
+        run: node .claude/hooks/design-handoff-reprocess.test.mjs
+      - name: Git-base-freshness-guard PORTE .mjs (§10.4 · stale morde/solta · roda em Linux)
+        run: node .claude/hooks/git-base-freshness-guard.test.mjs
+      - name: Feature-lint (contrato do trio de feature · us-no-spec/dod/plan/covers)
+        run: node scripts/governance/feature-lint.test.mjs
+      - name: Ghost-fix (reescrita SPEC + ADR append-only intacto)
+        run: node scripts/governance/ghost-fix.test.mjs
+      - name: Negócio-vs-governança ratio (alarme morde no crossover, solta no equilíbrio)
+        run: node scripts/governance/negocio-vs-governanca-ratio.test.mjs
+      - name: Prototipo-readiness (contrato de prontidão · casos/UC/scorecard/âncora)
+        run: node scripts/qa/prototipo-readiness.test.mjs
+      - name: Screen-grade-report (contrato de derivação · cobertura/D1/drift)
+        run: node scripts/qa/screen-grade-report.test.mjs
+      # +2 órfãos surgidos após 13-jul, pegos ao re-rodar o sweep (agora vivo via #4210).
+      # Fecha em 0 órfãos. Ambos verdes em node puro.
+      - name: Adversário-intenção-fluxo (rota legada crítica · cobertura mínima · contraprova)
+        run: node scripts/adversario-intencao-fluxo.test.mjs
+      - name: Auditar-intenção-fluxo (contrato + evidência + rota proibida + prosa não mascara)
+        run: node scripts/auditar-intencao-fluxo.test.mjs
