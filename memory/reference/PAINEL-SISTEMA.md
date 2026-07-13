@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-12**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-13**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -57,7 +57,7 @@ lifecycle: ativo
 
 ## Programa SDD (governança)
 
-- Scorecard: **10/13** métricas medidas · floor full-suite = **291**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **358**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -94,7 +94,7 @@ lifecycle: ativo
 - visual-regression
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 99 workflows por classe
+### Censo — 100 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
@@ -102,7 +102,7 @@ lifecycle: ativo
 |---|---|---|
 | gate (bloqueia/valida PR) | 74 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 5 | block-brl-values-selftest, gate-selftest, guards-meta-gate, protection-drift, … |
-| automacao (cron/dispatch) | 18 | agent-pr-outcomes, briefing-code-staleness, composer-lock-sync, design-return-gate, … |
+| automacao (cron/dispatch) | 19 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, composer-lock-sync, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 
 ## Decisões (ADRs)
@@ -140,14 +140,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **240** handoffs · **431** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **246** handoffs · **437** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-12-spike-hybrid-jana-bi-us-copi-133`
+  - `2026-07-12-sdd-prova-6de8-plano-v2-disjuncao`
   - `2026-07-12-sdd-avaliacao-adversarial-processo`
-  - `2026-07-12-cobertura-charters-100-por-cento`
-  - `2026-07-11-pt-atipicas-retriage-pt07`
-  - `2026-07-11-ds-sync-loop-grade-adversarial`
-  - `2026-07-11-design-coverage-adversario-e-problema-real`
-  - `2026-07-11-como-integrar-m1-detector-drift-ui-m2-verdade-visual`
+  - `2026-07-12-reguas-adversario-grade`
+  - `2026-07-12-painel-auditorias-gates-e-maquina-que-mantem`
+  - `2026-07-12-matriz-onboarding-maquinas-canario`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-12 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-13 · deriva das fontes canônicas, não as substitui._
