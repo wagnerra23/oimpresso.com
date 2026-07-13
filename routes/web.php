@@ -80,13 +80,42 @@ include_once 'install_r.php';
 if (! app()->isProduction()) {
     Route::get('/_smoke-probe', fn () => view('_smoke-probe'))->name('smoke.probe');
 
+    $seedFinanceiroVisregFlow = static function (int $businessId, int $userId, string $to): void {
+        if (! str_starts_with($to, '/financeiro/unificado')) {
+            return;
+        }
+
+        $dia = str_contains($to, 'data_inicio=2026-06-01') ? '2026-06-11' : now()->toDateString();
+
+        \Illuminate\Support\Facades\DB::table('fin_titulos')->updateOrInsert(
+            ['business_id' => $businessId, 'origem' => 'manual', 'origem_id' => 987654, 'parcela_numero' => 1],
+            [
+                'numero' => 'VISREG-FIN-001',
+                'tipo' => 'receber',
+                'status' => 'aberto',
+                'cliente_descricao' => 'Cliente de prova visual',
+                'valor_total' => 1500.00,
+                'valor_aberto' => 1500.00,
+                'moeda' => 'BRL',
+                'emissao' => $dia,
+                'vencimento' => $dia,
+                'competencia_mes' => substr($dia, 0, 7),
+                'parcela_total' => 1,
+                'created_by' => $userId,
+                'updated_by' => $userId,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ],
+        );
+    };
+
     // US-GOV-013 Fase B — auth bridge cross-process pro Pest 4 Browser (visual-regression).
     // O browser Playwright roda em SUBPROCESSO: a sessão do test process NÃO cruza pra ele.
     // Esta rota loga um user por id DENTRO do subprocesso do server → seta o cookie de
     // sessão no browser → as visits seguintes ficam autenticadas. Persistência exige
     // SESSION_DRIVER não-array (file/database) no .env do gate. NUNCA em produção
     // (isProduction guard) — destrava o smoke das telas autenticadas que vinha bloqueado.
-    Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) {
+    Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) use ($seedFinanceiroVisregFlow) {
         $request->session()->forget(['user', 'business', 'business_timezone', 'currency', 'financial_year']);
         \Illuminate\Support\Facades\Auth::loginUsingId($id);
         $request->session()->forget(\App\Http\Middleware\VisregStateMiddleware::SESSION_KEY);
@@ -95,6 +124,11 @@ if (! app()->isProduction()) {
         // open-redirect, ainda que env-guarded). Default '/'.
         $to = (string) $request->query('to', '/');
         $to = str_starts_with($to, '/') ? $to : '/';
+
+        $user = \Illuminate\Support\Facades\Auth::user();
+        if ($user !== null) {
+            $seedFinanceiroVisregFlow((int) $user->business_id, (int) $user->id, $to);
+        }
 
         return redirect($to);
     })->middleware('web')->name('visreg.login');
