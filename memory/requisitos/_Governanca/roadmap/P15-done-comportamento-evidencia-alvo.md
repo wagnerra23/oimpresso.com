@@ -2,7 +2,7 @@
 roadmap_item: P15
 slug: done-comportamento-evidencia-alvo
 onda: 3
-status: proposed
+status: em_execucao
 depende_de: []
 destrava: []
 related_adrs: [0256, 0302, 0275, 0314, 0334]
@@ -37,3 +37,13 @@ O adversário de verificação 2026-07-13 (`wf_33e38126`, 14 agentes) deu placar
 ## Origem
 
 Adversário de verificação 2026-07-13 (`wf_33e38126`) + plano 3-frentes aprovado por Wagner na mesma data (ver `_ROADMAP.md` §Atualização 2026-07-13). Regra-mãe: ADR 0256 (derivado+enforçado — done-por-comportamento) + ADR 0334 (camada C em manutenção: estas entregas fecham furo de mecanismo EXISTENTE, não criam gate novo).
+
+## Execução (2026-07-13 — status `proposed` → `em_execucao`)
+
+Entregas 1-3 implementadas em PR (todas advisory, lei ADR 0314):
+
+1. **doneness-lint v2** — kind novo `conflito_done_dod_aberto` (done × checkbox `[ ]` na seção DoD/aceite); sempre reporta 🔴, só morde em `--check --dod` (opt-in de promoção futura). **Baseline honesto no dia do land: 62 US `done` com DoD aberto** (Sells 20 · Whatsapp 11 · Financeiro 8 · Jana 7 incl. US-COPI-107..113 · Infra 6 · RecurringBilling 6 · NfeBrasil 3 · OficinaAuto 1) — por isso advisory-com-contagem, não fail. Selftest: `scripts/governance/doneness-lint.test.mjs` (registrado no `governance-script-tests.yml`).
+2. **Matcher alvo no hook** — `block-claim-without-evidence.mjs` ganhou dimensão paralela `evaluateAlvo` (paths `scripts/tests/ct100-*.sh` · `docker/oimpresso-mcp/scripts/*` · `app/Console/Kernel.php`): exige output com timestamp+host OU tag `<!-- alvo-pendente: razão + quando -->`; escape valves preservadas; advisory exit 0 (ADR 0224).
+3. **Sweep selftest-registry** — `scripts/governance/selftest-registry-check.mjs` (advisory + `--check` de promoção + `--selftest` hermético). **Órfãos no dia do land: 10** (4 hooks + `feature-lint` + `ghost-fix` + `negocio-vs-governanca-ratio` + `sdd-distiller-freshness` [fecha com PR #4205/A3] + 2 de `scripts/qa/`).
+
+**Checkpoint quinzenal (entrega 4): próximo adversário de verificação (`adversario-leva-teste-conhecimento`) roda ~27/jul/2026** sobre a leva das 2 semanas — é ele que mede o critério de saída (≥6/8 TESTADO_REAL · 0 done com DoD aberto no delta novo · 0 teste órfão novo).

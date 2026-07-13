@@ -127,3 +127,11 @@ jobs:
         run: node .claude/hooks/pii-redactor.test.mjs
       - name: ciclo-completo GATE morde/solta (charter+PT+conforme+casos+teste+golden-live · GOLDEN-LIVE)
         run: node scripts/governance/ciclo-completo.mjs --selftest
+      # P15 "done = comportamento + evidência do alvo" (adversário 2026-07-13 wf_33e38126) —
+      # todas advisory (lei ADR 0314): doneness v2 (done×DoD aberto) + sweep de teste órfão.
+      - name: Doneness-lint v2 morde/solta (P15 · done × DoD checkbox aberto · fixtures)
+        run: node scripts/governance/doneness-lint.test.mjs
+      - name: Selftest-registry CATRACA morde/solta (P15 · fixtures herméticas)
+        run: node scripts/governance/selftest-registry-check.mjs --selftest
+      - name: Selftest-registry sweep advisory (teste .mjs órfão de workflow · exit 0 sempre)
+        run: node scripts/governance/selftest-registry-check.mjs
