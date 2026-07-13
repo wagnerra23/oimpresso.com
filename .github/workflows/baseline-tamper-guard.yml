@@ -37,5 +37,12 @@ jobs:
           node-version: '20'
       - name: Run baseline tamper-guard
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          # BASE_SHA removido (2026-07-13): github.event.pull_request.base.sha e o
+          # sha da CRIACAO do PR — quando main avanca com mudanca legitima de
+          # baseline (ex #4213 desarme isolado), todo PR pre-existente com codigo
+          # vira falso-positivo "afrouxou + codigo" (incidente #4209). Sem BASE_SHA
+          # o guard cai em GITHUB_BASE_REF -> origin/main ATUAL (fetch fresco,
+          # baseline-tamper-guard.mjs:213-215) = "o que ESTE PR muda em relacao a
+          # onde vai pousar", a semantica anti-grandfather correta.
+          GUARD_BASE_NOTE: base-fresca-via-GITHUB_BASE_REF
         run: node scripts/governance/baseline-tamper-guard.mjs
