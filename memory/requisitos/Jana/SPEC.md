@@ -1299,7 +1299,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 ---
 
-**Última atualização:** 2026-07-12 (2º) — **Reconciliação Ondas 4-5 por verificação de máquina** (não doc): US-COPI-108 (Langfuse) parcial→done, US-COPI-110 (time-decay) todo→done (método `applyTimeDecay()` wired, SPEC chutava nome errado), US-COPI-109 (charters) →done com meta "Tier A" marcada SUPERSEDED pela ADR 0225. Tabela de maturidade: Onda 4 🟡→✅ DONE, Onda 5 🟡→🟢 3/4 (falta só 111 Gantt UI). Maturidade real ~97% (doc subcontava 91%). Anterior: 2026-07-12 — US-COPI-117 reverificado por máquina; gap business_id virou US-COPI-132. Antes: 2026-05-25 — v3.1.0 Onda 6 Audit Sênior 2026-05-25 apendada (US-COPI-115/116/117). US-COPI-115 implementada em paralelo com US-GOV-011 + US-PG-001 + US-COM-006 (PR #1567/1568/1569 + PR Jana em curso). Bypass MCP `tasks-create` aplicado em SPEC.md direto (mcp_jira_projects entry "Jana" → COPI mapeada — 115/116/117 criadas via MCP server remoto, este apend sincroniza local via webhook).
+**Última atualização:** 2026-07-12 (3º) — **US-COPI-133 + US-COPI-134 criadas via MCP `tasks-create`** (sessão CYCLE-BI-01): 133 = descongelar Jana-BI (context_recall 0,38→0,60, o número 132 planejado no handoff 2026-07-10-1443 estava ocupado); 134 = régua ADR 0318 órfã (schedules staging sem runner no CT100, achado do spike hybrid 2026-07-12). Anterior: 2026-07-12 (2º) — **Reconciliação Ondas 4-5 por verificação de máquina** (não doc): US-COPI-108 (Langfuse) parcial→done, US-COPI-110 (time-decay) todo→done (método `applyTimeDecay()` wired, SPEC chutava nome errado), US-COPI-109 (charters) →done com meta "Tier A" marcada SUPERSEDED pela ADR 0225. Tabela de maturidade: Onda 4 🟡→✅ DONE, Onda 5 🟡→🟢 3/4 (falta só 111 Gantt UI). Maturidade real ~97% (doc subcontava 91%). Anterior: 2026-07-12 — US-COPI-117 reverificado por máquina; gap business_id virou US-COPI-132. Antes: 2026-05-25 — v3.1.0 Onda 6 Audit Sênior 2026-05-25 apendada (US-COPI-115/116/117). US-COPI-115 implementada em paralelo com US-GOV-011 + US-PG-001 + US-COM-006 (PR #1567/1568/1569 + PR Jana em curso). Bypass MCP `tasks-create` aplicado em SPEC.md direto (mcp_jira_projects entry "Jana" → COPI mapeada — 115/116/117 criadas via MCP server remoto, este apend sincroniza local via webhook).
 
 ### US-COPI-118 · Tokenizar cores cruas do card-de-prova Pro.tsx (fix ui:lint R1 pré-existente)
 
@@ -1507,3 +1507,42 @@ Gaps (`jana-regras-index.yaml`):
 - **Information-hierarchy (médio):** sem preview de regras; agregar contagem/estado das políticas ativas.
 
 DoD: nota ≥70 + ratchet verde. Charter + gate visual antes de Editar a Page.
+
+### US-COPI-133 · Descongelar Jana-BI — context_recall 0,38→0,60 (régua jana:ragas-real-eval CT100)
+
+**Implementado em:** _pendente_
+
+> owner: wagner · sprint: CYCLE-BI-01 · priority: p0 · estimate: 12h · status: todo · type: story
+> blocked_by: —
+
+Descongelar a Jana-BI (camada B, ADR 0334): subir context_recall do pipeline kb-answer/docs de 0,3839 (baseline `governance/jana-ragas-real-baseline.json`, ADR 0318) pra ≥0,60, medido por `jana:ragas-real-eval` no CT 100 staging (NUNCA local/Hostinger — Tier 0).
+
+**Contexto (verificado 2026-07-12):**
+- Substitui o número planejado "US-COPI-132" do handoff 2026-07-10-1443 — o 132 foi consumido pela tag business_id no Langfuse (handoff 2026-07-12-2245). Esta é a US nova do CYCLE-BI-01 (cycle fica em **planning** — NÃO ativar; `client_signal` só faz sentido depois que a Larissa usar).
+- Spike hybrid (docs_pipeline camada 1) MEDIDO 2×: A/B 2026-07-04 (US-COPI-130) context_recall 0,395→0,422; **re-run 2026-07-12 desta US (CT 100 staging, N=51, ~USD 0,17): faithfulness 0,7355→0,7675 (+0,032) · relevancy 0,8784→0,8510 (−0,027) · context_recall 0,3939→0,4506 (+0,057)**. Hybrid melhora mas NÃO chega a 0,60 — reabertura sozinha não é o PR pra prod.
+- **Causa dominante identificada no código (2026-07-12):** `KbAnswerService::renderFontes()` corta cada doc a **400 chars do INÍCIO** (`extrairExcerpt`) — síntese e juiz nunca veem o fato se ele mora no meio da ADR. É o item (b) pendente da condição de reativação da ADR 0312 (documentTemplate real). Por isso ranking 9,5× melhor (recall@5 0,074→0,704) quase não move o context_recall.
+
+**Caminho (ordem de ROI, recalibrada pelo spike):**
+1. **Excerpt/chunk query-aware no `renderFontes`** (passar o trecho relevante à pergunta, não os primeiros 400 chars) — alavanca mais barata, ataca o gargalo medido.
+2. US-COPI-130 camadas 2-3 (Contextual Retrieval nos campos `contextual_*` já existentes + REUSAR BgeReranker de US-COPI-087 no índice `mcp_memory_documents`) — âncora 0,80-0,85.
+3. Bipartir corpus negócio ≠ processo (ADR 0334 §4) + **bipartir o eval junto**: o golden set atual (`jana-gold-set.json`, 51q) é de PROCESSO (format_date, Permission Registry, Vizra) — bipartir corpus sem bipartir eval não move o número.
+4. Re-medir antes→depois a cada camada com `jana:ragas-real-eval` (mesma régua, N=51).
+
+**Guard-rails Tier 0:** eval SÓ no CT 100 staging · não tocar prod nem biz=4 · gates humanos (confiabilidade → mão da Larissa → `client_signal`) ficam com Wagner · dupla-conferência em qualquer número apresentado.
+
+**Refs:** ADR 0334 · ADR 0318 · ADR 0312 (condição de reativação hybrid) · ADR 0322 · US-COPI-130 · handoffs 2026-07-10-1443 e 2026-07-12-2245.
+
+### US-COPI-134 · Régua ADR 0318 órfã — schedules staging (ragas-real-eval + recall-eval) sem runner no CT100
+
+**Implementado em:** _pendente_
+
+> owner: wagner · priority: p1 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) e a do loop IA-OS #3 (`jana:recall-eval --mode=real`, dom 06:30 staging) NÃO têm runner — verificado 2026-07-12 no CT 100: container `oimpresso-staging` sem processo `schedule:run` e sem cron de container (só `/etc/periodic` default Alpine); crontab do host só tem o PUBLISHER (`ct100-ragas-publish.sh`, dom 08:30).
+
+**Consequências medidas:** `storage/app/governance/ragas-real-eval-latest.json` datado 04/jul (rodada MANUAL do A/B US-COPI-130, não cron); trend órfã `governance/ragas-real-trend` com última semana válida 2026-06-28; publisher de 12/jul publicou dado stale.
+
+**Fix:** instalar runner canônico (host cron chamando `docker exec oimpresso-staging php artisan schedule:run` por minuto, OU cron semanal direto dos 2 comandos, seguindo o pattern do `ct100-ragas-publish.sh`) + REGISTRAR no git (mexeu-registra) + investigar por que o trend rejeitou a semana de 04/jul ("1 semana(s), última 2026-06-28"). Sem isso, `ragas_real_uptime` do scorecard SDD mede uma régua morta.
+
+**Refs:** ADR 0318 · `scripts/tests/ct100-ragas-publish.sh` · `app/Console/Kernel.php` (schedules dom 06:30/07:00 staging).
