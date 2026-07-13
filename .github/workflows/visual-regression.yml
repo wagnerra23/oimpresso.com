@@ -67,6 +67,8 @@ jobs:
         run: |
           node scripts/visreg-states-lint.mjs --selftest
           node scripts/visreg-states-lint.mjs
+          node scripts/visreg-flows-lint.mjs --selftest
+          node scripts/visreg-flows-lint.mjs
 
       - name: Detectar mudanças de UI (skip-as-pass — required-readiness)
         id: changes
@@ -81,6 +83,7 @@ jobs:
               - 'tests/Browser/**/*.php'
               # Gate L2: manifesto de estados isolados (fonte única do IsolatedStatesBaselineTest).
               - 'tests/Browser/visreg-states.json'
+              - 'tests/Browser/visreg-flows.json'
               # Baselines de pixel commitadas: um update de baseline (PixelBaseline OU L2
               # IsolatedStates) tem que RE-RODAR o gate pra provar que a baseline nova bate
               # com o render atual — senão um commit de baseline ruim passava sem comparar
@@ -334,12 +337,19 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
 
+      - name: Fluxos visuais Financeiro (ADVISORY — L2.5 · interação × viewport)
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: financeiro-flows
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
+
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
-      - name: Regenerar baselines (pixel núcleo-6 + estados isolados) — modo update
+      - name: Regenerar baselines (pixel + estados + fluxos) — modo update
         if: github.event_name == 'workflow_dispatch'
         run: |
           npm run visreg:update
           npm run visreg:states:update
+          npm run visreg:flows:update
 
       # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
       # workflows `pull_request` em eventos causados pelo GITHUB_TOKEN → PR de baselines
@@ -379,6 +389,15 @@ jobs:
             echo "🔴 L2-v2 ADVISORY FALHOU — diff acima de τ_alto contra baseline isolada. Ver artifact pixel-diff-views; regressão real? conserte. Fix aprovado? modo update regenera."
           elif [ "${{ steps.isolated-states.outcome }}" = "success" ]; then
             echo "✅ estados isolados (L2-v2 · advisory) OK — empty/loading/dark/error sem regressão clara; zona cinza, se houver, está no summary + artifact."
+          fi
+
+      - name: Veredito advisory dos fluxos Financeiro (L2.5 · visível no log)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: |
+          if [ "${{ steps.financeiro-flows.outcome }}" = "failure" ]; then
+            echo "🔴 L2.5 ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
+          elif [ "${{ steps.financeiro-flows.outcome }}" = "success" ]; then
+            echo "✅ fluxos Financeiro OK — criar, drawer, baixa e lote capturados em compact/desktop/wide."
           fi
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
