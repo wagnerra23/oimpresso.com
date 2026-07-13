@@ -59,7 +59,7 @@ class UnificadoController extends Controller
     public function index(Request $request): Response|\Illuminate\Http\Response
     {
 
-        $businessId = (int) session('user.business_id');
+        $businessId = (int) (session('user.business_id') ?: $request->user()?->business_id ?: 0);
         $hoje = now()->toDateString();
         $vencendoLimite = now()->addDays(7)->toDateString();
 
