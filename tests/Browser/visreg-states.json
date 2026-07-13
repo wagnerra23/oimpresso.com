@@ -24,7 +24,7 @@
       "route": "/financeiro/unificado",
       "anchor": "Financeiro",
       "charter": "resources/js/Pages/Financeiro/Unificado/Index.charter.md",
-      "states": ["default", "dark"]
+      "states": ["default", "empty", "loading", "dark", "error"]
     },
     "oficina-os": {
       "route": "/oficina-auto/ordens-servico",

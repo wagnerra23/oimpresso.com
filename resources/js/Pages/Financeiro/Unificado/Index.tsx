@@ -1968,7 +1968,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         : 'Nenhum lançamento com os filtros atuais.'}
                     </div>
                     {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === '' && (
-                      <Button size="sm" onClick={() => router.visit('/financeiro/unificado/novo')}>
+                      <Button size="sm" onClick={() => setCreateTipo('receber')}>
                         + Adicionar primeiro lançamento
                       </Button>
                     )}
@@ -2719,7 +2719,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         <CommandList>
           <CommandEmpty>Sem resultados.</CommandEmpty>
           <CommandGroup heading="Ações">
-            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/unificado/novo'); }}>Novo lançamento</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); setCreateTipo('receber'); }}>Novo lançamento</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/conciliacao'); }}>Conciliar extrato (OFX)</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/relatorios'); }}>DRE / Relatórios</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/plano-contas'); }}>Plano de contas</CommandItem>
