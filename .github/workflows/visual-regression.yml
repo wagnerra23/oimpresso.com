@@ -252,6 +252,9 @@ jobs:
         run: |
           php artisan db:seed --force
           php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
+          # Título determinístico semeado ANTES do servidor Browser subir. Os fluxos
+          # Financeiro precisam de linha aberta para drawer, baixa e lote.
+          php artisan db:seed --class=Database\\Seeders\\VisregFinanceiroFlowSeeder --force
           # TENANT-B SENTINELA (gate L3 Tier 0 — Tier0RenderIsolationTest): business 99 +
           # admin id=99 + dado com token ZZLEAK99 nos campos visíveis. Sem este segundo
           # tenant é IMPOSSÍVEL provar não-vazamento no render (o VisregTenantSeeder é
@@ -262,7 +265,7 @@ jobs:
           # GATE REAL — se quebrar, o job falha. Vide VisregEmptyTenantSeeder.php.
           php artisan db:seed --class=Database\\Seeders\\VisregEmptyTenantSeeder --force
           echo "=== seed check ==="
-          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count();"
+          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count().' fin_titulos='.DB::table('fin_titulos')->where('business_id', 1)->count();"
 
       - name: Build Inertia bundles
         if: steps.mode.outputs.ui == 'true'
