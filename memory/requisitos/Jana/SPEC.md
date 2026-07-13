@@ -1026,7 +1026,7 @@ Entregar Jana V2 demo navegável (goal #4 CYCLE-06 — alvo: 1 cliente piloto ap
 
 **Implementado em:** `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `docker/langfuse/docker-compose.yml` · `Modules/Jana/Services/Ai/LaravelAiSdkDriver.php` · `Modules/Jana/Services/Memoria/Telemetry/RetrievalTelemetryDecorator.php` · verificado@42af777 (2026-07-12) — **deploy CONFIRMADO vivo por máquina** (`docker ps` CT 100): 6 containers healthy up 2 semanas + tráfego real (query ClickHouse: 3.226 traces, 200-450/dia, agents `brain-b`/`planner`/`kb-answer`/`brief-diario` instrumentados via `LaravelAiSdkDriver` + `RetrievalTelemetryDecorator`). **Gap remanescente único:** tag `business_id` por trace (traces têm só `['live']`) → US-COPI-132. **Reconciliado 2026-07-12 (4º):** call-sites LLM via `Http::` direto (fora do listener global) instrumentados inline — `RagasJudgeService` (+`recordScore` por métrica) · `ContextualizerService` · `AiScorecardJudge` · `SkillTestRunnerService`.
 
-**Definition of Done (reconciliado 2026-07-12, 4º — juiz wf_33e38126):**
+**Definition of Done:** _(reconciliado 2026-07-12, 4º — juiz wf_33e38126)_
 - [x] Stack Langfuse v3 rodando CT 100 — verificado 2026-07-12 (`docker ps`: langfuse-web/worker/postgres/clickhouse/redis/minio up 2 semanas healthy)
 - [ ] `business_id` propagado como TAG em todo trace (ADR 0093 Tier 0) — **GAP** confirmado 2026-07-12: query ClickHouse mostra só `['live']` → rastreado em **US-COPI-132**
 - [x] Agents emitem trace com spans — verificado: brain-b-agent (2043), planner-agent (180), kb-answer-agent (102), brief-diario-agent instrumentados
