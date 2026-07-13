@@ -13,7 +13,7 @@ description: >
   versionado `.claude/workflows/reguas-do-sistema.js`.
 tier: B
 status: active
-version: 1.0
+version: "1.1"
 authority: canonical
 related_adrs: [0329-doutrina-documentacao-de-processo-executavel, 0330-mapa-dos-niveis-estado-real-2026-07-constituicao]
 ---
@@ -88,6 +88,45 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
    defensivo `typeof args === 'string' ? JSON.parse : args`), então passar objeto OU string funciona.
    Ainda assim confira o dossiê: se o prompt dele contém "AJUSTE: passe args.base", o `base` não chegou.
 
+## Regras 8-15 — lições do adversário formal de 2026-07-12 (mesma força das 7 acima)
+
+> **Origem:** workflow 4-atacantes→contraprojeto→juiz sobre a grade emitida em prosa no
+> mesmo dia ([session](../../../memory/sessions/2026-07-12-reguas-adversario-grade.md)).
+> Placar: 9/11 notas sobreviveram, mas os 3 números de máquina e o ranking inteiro caíram.
+> Cada regra abaixo é um modo de falha REAL daquele dia — não hipótese.
+
+8. **Reconciliação same-day OBRIGATÓRIA antes de emitir grade** — rodar
+   `git log --since=<data do retrato-base>` e ler sessões/handoffs do PRÓPRIO dia.
+   A grade omitiu o gargalo-mãe (OOM da nightly) cujo fix mergeou no mesmo 12/jul e citou
+   US que o handoff do dia declarava consumida. Re-resolver IDs de US contra o estado do dia.
+9. **Número de máquina só entra se (a) reproduzível do repo versionado OU (b) rotulado
+   com proveniência e limitação** (`k=N`, snapshot de onde, staleness). "64,1" era snapshot
+   CT100 parcial não-reproduzível (recompute versionado = 41,0); "Jana 73" era prosa de
+   handoff com baseline em 71.
+10. **Alerta = output literal do `summarize`/alerts da máquina, NUNCA paráfrase** —
+    "alerta full_suite=291" era métrica que tinha MELHORADO (291<298); o alerta armado real
+    (`distiller_freshness` 0→6) ficou invisível.
+11. **Checar `computed_at`/staleness da fonte antes de tratar métrica como viva** — o 291
+    vinha de nightly morta há 6 dias; valor E delta de fonte congelada não sustentam nem
+    alerta nem celebração (modo de falha "congelado-e-verde").
+12. **Δ por dimensão exige commit datado DENTRO do intervalo entre retratos** — senão
+    rotular **"correção de retrato stale"**, não capacidade nova (o Δ+4 de observabilidade
+    creditava commits 8 dias anteriores ao retrato-base; o Δ+1 de memória creditava código
+    de maio). Corolário estrutural: as notas de cada retrato precisam de artefato
+    **versionado no repo** (artifact privado = Δ inauditável) — formato pendente de decisão
+    Wagner (proposta em aberto: `memory/reguas/YYYY-MM-DD-notas.json`).
+13. **Evidência conta UMA vez e dentro do escopo da régua da dimensão** (o escopo está
+    escrito em `reguas-do-sistema.js`) — a tag `business_id` foi dupla-contada em
+    observabilidade E segurança, sendo fora do escopo da segunda.
+14. **Item GATED exige prova do gate** — full_suite tinha autorização explícita do Wagner
+    no dia; LGPD só tinha o FLIP gated (prep executável hoje); cycle em planning era decisão
+    deliberada, não bloqueio. Separar sempre **prep agent-executável** de **flip HITL** — e
+    listar o gated mais barato antes dos caros.
+15. **Grade sem passe adversarial próprio = modo de falha** — rodar refutador interno
+    ANTES de publicar. O sistema tem orquestração adversarial nota 8 que no mesmo dia achou
+    o que a grade não achou; re-score manual em prosa com aparência do método é exatamente
+    o que as regras 3 e 6 já proibiam.
+
 ## Onde registrar (fecha o protocolo)
 
 - **Artifact** navegável da grade (padrão: tabela técnica × régua × nota × degrau).
@@ -103,3 +142,11 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
 - ❌ Perseguir a nota (Goodhart; errata 0159): a grade aponta ONDE trabalhar — o índice
   sobe como consequência de trabalho real, nunca como alvo.
 - ❌ Re-medir tudo a cada chip: rodada parcial por dimensão (`args.dimensoes`) é mais barata.
+- ❌ Re-score manual em prosa "porque o retrato é recente": reusar o LADO MERCADO é legítimo
+  (regra 5), mas se o LADO PRÓPRIO mudou (merges novos), a rodada parcial `args.dimensoes`
+  — que INCLUI refutação — é o caminho. Pular o workflow inteiro = atalho, não uso legítimo
+  (adversário 2026-07-12: as 3 notas re-notadas à mão saíram todas com Δ mal-atribuído).
+- ❌ Parafrasear alerta ou compor score fora do regime do gerador canônico (regras 9-10):
+  se o `sdd-scorecard.mjs` se recusa a compor com `not_yet_measured`, a grade também se recusa.
+- ❌ Tratar "GATED no Wagner" como categoria preguiçosa (regra 14): checar se a autorização
+  já existe registrada e se só o flip é HITL antes de arquivar o item.
