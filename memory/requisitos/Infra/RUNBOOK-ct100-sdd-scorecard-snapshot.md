@@ -39,13 +39,32 @@ o comando no CT 100 (direto, sem `schedule:run`, então o gate de env não se ap
 | Fato | Consequência |
 |------|--------------|
 | O container `oimpresso-mcp` conecta na **Hostinger prod DB** (`u906587222_oimpresso@srv1818.hstgr.io`) | É lá que o comando precisa gravar — o brief lê dessa DB |
-| O container `oimpresso-mcp` **NÃO tem node** | O comando (que shella `node scripts/governance/sdd-scorecard.mjs`) falharia dentro dele |
-| O **host** CT 100 tem node v20 (`/usr/bin/node`) + o checkout `/opt/oimpresso-mcp/code` | Gera o scorecard JSON no host e passa via `--input` (caminho canônico "sem node", ADR 0275 §3) |
+| O container `oimpresso-mcp` **NÃO tem node** | Re-medir dentro dele falharia; e re-medir no host divergia (ver "UMA composta" abaixo) |
+| O **host** CT 100 tem o checkout `/opt/oimpresso-mcp/code` sincronizado (self-update 15min) | Copia o **artefato versionado** `governance/sdd-scorecard.json` e passa via `--input` (caminho canônico "sem node", ADR 0275 §3) |
 | `--environments(['live'])` no Kernel | Só vale via `schedule:run` — rodando o comando direto, o gate não bloqueia |
+
+### UMA composta — por que o wrapper NÃO re-mede (2026-07-13)
+
+Até 2026-07-12 o wrapper rodava `node sdd-scorecard.mjs --json` no host — **sem** o
+ambiente do CI (`GH_TOKEN` pro `drift_alarms`, materialização da branch órfã
+`governance/nightly-floor`). Resultado: **composta fantasma não-reproduzível** — o
+smoke de 12/jul gravou `64.1 (k=6, 7/13 vivas)` enquanto o recompute do artefato
+versionado dava `41.0 (k=7)`. Pego pelo adversário da grade de réguas 2026-07-12.
+
+Regra agora: **UMA medição (CI `sdd-scorecard-publish.yml`, diário 07:10 BRT +
+push(main)) → UM artefato versionado (`governance/sdd-scorecard.json`, SSOT ADR 0279
+Opção A) → o snapshot só faz JOIN com o baseline + persiste.** Composta do brief ==
+recompute do repo, sha-rastreável. Lag máx ~1 dia (self-update 15min × publish diário).
+
+Deconflito de nomes (3 números ≠ 1): **composta v1** (este snapshot — média das métricas
+ARMADAS normalizadas, ADR 0275 §4) ≠ **composto do `/sdd-avaliar`** (juízo adversarial
+de processo, 7 skeptics — ex: 69/100 em 12/jul) ≠ qualquer re-medição local parcial.
+Ao citar, sempre rotular qual instrumento + k + fonte.
 
 Fluxo do wrapper `ct100-sdd-scorecard-snapshot.sh`:
 
-1. `node scripts/governance/sdd-scorecard.mjs --json` (HOST) → grava em
+1. Valida e copia `/opt/oimpresso-mcp/code/governance/sdd-scorecard.json` (artefato
+   versionado; loga sha do checkout + último commit do artefato) → 
    `/opt/oimpresso-mcp/storage/app/sdd-scorecard-input.json` (bind-mount rw
    `/opt/oimpresso-mcp/storage → /var/www/html/storage`, fora do checkout git ⇒ imune
    ao `git reset --hard` do self-update).
@@ -72,10 +91,10 @@ canônico do `Kernel.php`, 10min após `governance:scorecard-snapshot` 07:00).
 
 ## Honestidade (Tier 0)
 
-Se o node ou o comando falharem, o script sai `!= 0` e o dia fica **SEM row nova** (o brief
-mostra o snapshot de ontem) — a falha aparece no `snapshot.log` e no `->onFailure()` do
-comando. **Nunca inventa row.** A staleness reaparece se o cron parar → sintoma: brief com
-linha SDD parada + `snapshot_date` máx defasada da data de hoje.
+Se o artefato estiver ausente/inválido ou o comando falhar, o script sai `!= 0` e o dia fica
+**SEM row nova** (o brief mostra o snapshot de ontem) — a falha aparece no `snapshot.log` e
+no `->onFailure()` do comando. **Nunca inventa row.** A staleness reaparece se o cron parar
+→ sintoma: brief com linha SDD parada + `snapshot_date` máx defasada da data de hoje.
 
 ## Diagnóstico rápido (linha SDD do brief parece stale)
 
@@ -96,3 +115,11 @@ recriar (ou rodar `bash /opt/oimpresso-mcp/code/docker/oimpresso-mcp/scripts/sel
 - **2026-07-12** — mecanismo provado ponta-a-ponta (R1 smoke): `Snapshot SDD OK — 2026-07-12
   · composta 64.1 (k=6) · 7/13 vivas · 1 alertas`; row fresca confirmada na prod DB
   (antes: máx era 2026-07-01, composta 50.0 — 11 dias stale). Cron 07:10 BRT instalado.
+- **2026-07-13** — ⚰️ **lápide do 64,1**: o adversário da grade de réguas (2026-07-12)
+  provou que a re-medição no host era **não-reproduzível** (64,1 k=6 vs 41,0 k=7 do
+  artefato versionado — 3 medidas a menos por falta de `GH_TOKEN` + transporte da órfã).
+  Wrapper trocado pra consumir o artefato versionado (SSOT — seção "UMA composta" acima).
+  Consequência esperada e CORRETA: a linha SDD do brief **cai ~64→~41** na primeira row
+  nova — não é regressão do sistema, é o instrumento parando de contar só as fáceis; e o
+  alerta armado real (`distiller_freshness` 0→6) passa a aparecer. Δ vs rows k=6 antigas
+  NÃO é comparável (regimes diferentes).
