@@ -438,6 +438,13 @@
       "anchor": "Dossiê grade-das-réguas card #0 'Evals de outcome' (Roubo #4): substituir 'zero evals de outcome' por número real (régua Codex/Cognition). DECONFLITO com outcome-metrics (design-loop) — eixo DORA-de-PR, não fidelidade de tela. Self-test hermético (CFR morde/libera) na suíte governance-script-tests.",
       "promote_by": "2026-09-30"
     },
+    "agent-cost-per-pr.yml": {
+      "nome": "Agent cost per PR (advisory · custo USD estimado por PR do agente · join 2-sinais JSONL local: gitBranch==headRefName + citação /pull/N diluída · % sem-match publicado · weekly schedule + dispatch · item #7 ranking adversarial grade-das-réguas 2026-07-12)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "Ranking adversarial 2026-07-12 item #7: fecha a última régua 'só verbal' — custo-eficiência nota 3 porque 'economize crédito' não tinha NÚMERO. Fonte Langfuse DERRUBADA pelo adversário (traceia Jana por conversa, sem dimensão PR/branch); fonte viável = JSONL local do Claude Code (mesma do cc-watcher). DECONFLITO com agent-pr-outcomes (DORA: aceitação/CFR/velocidade) — este mede o CUSTO do mesmo transporte. Honestidade: CI só roda selftest + renderiza snapshot commitado com staleness (G5, anti-teatro ADR 0271); buraco do join publicado como % sem-match; USD/tokens apenas, sem R$ (Tier 0). Self-test hermético na suíte governance-script-tests.",
+      "promote_by": "2026-09-30"
+    },
     "pr-critic-precisao.yml": {
       "nome": "pr-critic precisão (advisory · mede a PRÓPRIA precisão do pr-critic · taxa-de-ação dos achados: o humano mexeu no arquivo apontado depois do comentário? + first-pass + por severidade · via bloco machine-readable no comentário + commits · weekly schedule + dispatch)",
       "classe": "automacao",
