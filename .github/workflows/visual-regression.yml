@@ -69,6 +69,8 @@ jobs:
           node scripts/visreg-states-lint.mjs
           node scripts/visreg-flows-lint.mjs --selftest
           node scripts/visreg-flows-lint.mjs
+          node scripts/visreg-sells-lint.mjs --selftest
+          node scripts/visreg-sells-lint.mjs
 
       - name: Detectar mudanças de UI (skip-as-pass — required-readiness)
         id: changes
@@ -84,6 +86,7 @@ jobs:
               # Gate L2: manifesto de estados isolados (fonte única do IsolatedStatesBaselineTest).
               - 'tests/Browser/visreg-states.json'
               - 'tests/Browser/visreg-flows.json'
+              - 'tests/Browser/visreg-flows-sells.json'
               # Baselines de pixel commitadas: um update de baseline (PixelBaseline OU L2
               # IsolatedStates) tem que RE-RODAR o gate pra provar que a baseline nova bate
               # com o render atual — senão um commit de baseline ruim passava sem comparar
@@ -358,6 +361,19 @@ jobs:
         id: financeiro-flows
         run: ./vendor/bin/pest tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
 
+      - name: Fluxos visuais Sells/Create (ADVISORY — L2.5 · interação × viewport)
+        # NASCE ADVISORY (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing). Cobre a
+        # tela de 99% do volume (venda balcão, ROTA LIVRE): adicionar produto, abrir a busca,
+        # aplicar desconto e adicionar pagamento em compact/desktop/wide — estado pós-clique,
+        # antes de persistir. Baselines geradas via workflow_dispatch (modo update), nunca
+        # local (Tier 0). Promover a enforcing = remover o continue-on-error após 2 verdes.
+        # Roda mesmo se o Financeiro falhar (always()): fluxo novo não perde evidência por
+        # regressão independente de outra tela.
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: sells-flows
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/SellsCreateFlowBaselineTest.php
+
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
       - name: Regenerar baselines (pixel + estados + fluxos) — modo update
         if: github.event_name == 'workflow_dispatch'
@@ -365,6 +381,7 @@ jobs:
           npm run visreg:update
           npm run visreg:states:update
           npm run visreg:flows:update
+          npm run visreg:sells:update
 
       # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
       # workflows `pull_request` em eventos causados pelo GITHUB_TOKEN → PR de baselines
@@ -413,6 +430,15 @@ jobs:
             echo "🔴 L2.5 ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
           elif [ "${{ steps.financeiro-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Financeiro OK — criar, drawer, baixa e lote capturados em compact/desktop/wide."
+          fi
+
+      - name: Veredito advisory dos fluxos Sells/Create (L2.5 · visível no log)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: |
+          if [ "${{ steps.sells-flows.outcome }}" = "failure" ]; then
+            echo "🔴 L2.5 Sells/Create ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto (ou baseline ausente na 1ª execução). Ver pixel-diff-views."
+          elif [ "${{ steps.sells-flows.outcome }}" = "success" ]; then
+            echo "✅ fluxos Sells/Create OK — adicionar produto, abrir busca, aplicar desconto e adicionar pagamento capturados em compact/desktop/wide."
           fi
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
