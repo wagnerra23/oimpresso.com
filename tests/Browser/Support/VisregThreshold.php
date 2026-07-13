@@ -68,20 +68,28 @@ final class VisregThreshold
      * @param  object  $page  AwaitableWebpage do pest-plugin-browser (tem ->screenshot())
      * @param  string  $screenName  nome legível da tela (ex: "Sells/Create")
      * @param  ArrayObject<int, array{screen:string,ratio:float,diffView:?string}>  $grayZone
+     * @param  string  $baselineSuite  diretório da suíte no SnapshotRepository do Pest
      */
-    public static function assertBandedScreenshot(object $page, string $screenName, ArrayObject $grayZone): void
+    public static function assertBandedScreenshot(
+        object $page,
+        string $screenName,
+        ArrayObject $grayZone,
+        string $baselineSuite = 'PixelBaselineTest',
+    ): void
     {
         $tauLow = self::tauLow();
         $tauHigh = self::tauHigh();
 
         // 1. Baseline commitada (.snap base64 PNG) desta tela.
-        $baselineBlob = self::readBaseline();
+        $baselineBlob = self::readBaseline($baselineSuite);
 
         if ($baselineBlob === null) {
             // Sem baseline = 1ª execução: o engine do plugin GERARIA e passaria. Aqui
             // espelhamos esse contrato — capturamos o screenshot pra o artifact
             // pixel-snapshots poder commitar, e tratamos como aprovado (não regressão).
-            $page->screenshot(false, self::actualFilename($screenName));
+            // Mantém o contrato do Pest: a primeira execução materializa a .snap no
+            // repositório de snapshots (o workflow de update a publica como artifact).
+            $page->assertScreenshotMatches(fullPage: false);
             test()->expect(true)->toBeTrue(); // baseline ausente → gera e segue (não falha)
 
             return;
@@ -387,9 +395,16 @@ final class VisregThreshold
      * EXATAMENTE como o SnapshotRepository do Pest (vendor pest/src/Repositories/
      * SnapshotRepository.php:107 + TestSuite::getDescription:118).
      */
-    private static function readBaseline(): ?string
+    private static function readBaseline(string $baselineSuite): ?string
     {
-        $dir = base_path('tests/.pest/snapshots/Browser/CoreScreens/PixelBaselineTest');
+        // Nome da suíte vem de código, mas ainda assim só aceita identificador PHP para
+        // não transformar um helper de teste em leitor arbitrário de arquivos.
+        if (! preg_match('/^[A-Za-z0-9_]+$/', $baselineSuite)) {
+            test()->fail("VisregThreshold: nome de suíte inválido: {$baselineSuite}.");
+
+            return null;
+        }
+        $dir = base_path('tests/.pest/snapshots/Browser/CoreScreens/' . $baselineSuite);
         $file = $dir . '/' . self::snapshotDescription() . '.snap';
 
         if (! is_file($file)) {

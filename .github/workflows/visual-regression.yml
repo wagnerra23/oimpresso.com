@@ -324,19 +324,11 @@ jobs:
       # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
       # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
       # mesmo princípio não-invasivo do L3).
-      # SEGUE ADVISORY — 2ª TENTATIVA DE FLIP ABORTADA (2026-07-10). O bloqueio de 06/jul
-      # (baselines stale) foi resolvido (#4081/#4086 refrescaram tudo incl. caixa-unificada),
-      # MAS o flip desmascarou problema mais fundo: o assert binário do pest-plugin
-      # (assertScreenshotMatches, sem zona cinza) é NÃO-REPRODUZÍVEL run-a-run — evidência:
-      # PR #4088 (workflow-only, ZERO mudança de UI) falhou oficina-os default+dark
-      # (run 29102940464 attempt 1) e no re-run do MESMO SHA falhou oficina-os×2 + compras
-      # (attempt 2) — conjunto de falhas mudou sem mudança de código. Promover assim =
-      # vermelho aleatório pra todo PR de UI. Pré-requisito do flip agora é a v2 deste gate
-      # (classificação 3-bandas/double-threshold, mesma do PixelBaselineTest L7 — que passou
-      # ESTÁVEL em todos os mesmos runs), já antecipada no docblock do teste.
-      # Motivação do flip permanece medida e válida (dark = vetor nº 1 de re-trabalho
-      # jun–jul: #3917/#3931/#3983) — flip retorna quando L2-v2 absorver o ruído de render.
-      - name: Snapshots de estados isolados (ADVISORY — L2 · flip aguarda v2 double-threshold)
+      # L2-v2 usa a mesma classificação 3-bandas do L7: ruído não interrompe PR, mas uma
+      # regressão clara falha no step e a zona cinza sobe diff-view para revisão humana.
+      # Permanece advisory enquanto coleta estabilidade em estados forçados; o mecanismo não
+      # é mais binário/flaky e a promoção futura só remove este continue-on-error.
+      - name: Estados isolados (ADVISORY — L2-v2 · double-threshold + diff-view)
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: isolated-states
         continue-on-error: true
@@ -384,9 +376,9 @@ jobs:
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.isolated-states.outcome }}" = "failure" ]; then
-            echo "🔴 L2 ADVISORY FALHOU — diff vs baseline isolada. ATENÇÃO: assert binário tem flake run-a-run conhecido (evidência 2026-07-10, run 29102940464 attempts 1×2); diff pode ser ruído. Regressão real? conserte. Fix aprovado? modo update regenera."
+            echo "🔴 L2-v2 ADVISORY FALHOU — diff acima de τ_alto contra baseline isolada. Ver artifact pixel-diff-views; regressão real? conserte. Fix aprovado? modo update regenera."
           elif [ "${{ steps.isolated-states.outcome }}" = "success" ]; then
-            echo "✅ estados isolados (L2 · advisory) OK — empty/loading/dark/error batendo baseline."
+            echo "✅ estados isolados (L2-v2 · advisory) OK — empty/loading/dark/error sem regressão clara; zona cinza, se houver, está no summary + artifact."
           fi
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
