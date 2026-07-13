@@ -47,6 +47,19 @@ try {
   const dup = { ...plan, shards: plan.shards.map((s, i) => i === 1 ? { ...s, dirs: [...s.dirs, plan.universe[0]] } : s) };
   ok(!verifyPlan(dup, plan.universe).ok, 'verifyPlan MORDE dir duplicado');
 
+  // DISJUNÇÃO RECURSIVA (fix run 20260712-212018 shard 2 DEAD): tests/Feature é unidade
+  // MISTA (tem Sub) → paths expandem pros arquivos DIRETOS; unidades folha continuam dirs.
+  const allPaths = plan.shards.flatMap((s) => s.paths);
+  ok(allPaths.includes('tests/Feature/AlphaTest.php') && allPaths.includes('tests/Feature/BetaTest.php'), 'unidade MISTA expande pros arquivos diretos (paths)');
+  ok(!allPaths.includes('tests/Feature'), 'dir misto NÃO entra como path (pest recursivo engoliria a filha 2×)');
+  ok(allPaths.includes('tests/Feature/Sub') && allPaths.includes('tests/Unit'), 'unidades folha continuam dirs em paths');
+  const dirPaths = allPaths.filter((p) => !p.endsWith('.php'));
+  ok(!allPaths.some((p) => dirPaths.some((d) => d !== p && p.startsWith(d + '/'))), 'paths RECURSIVAMENTE disjuntos (nenhum entry sob outro)');
+  // plano v1 (sem paths — fallback dirs): pai misto + filha como dirs → verifyPlan MORDE (nested)
+  const v1Style = { ...plan, shards: plan.shards.map((s) => ({ index: s.index, dirs: s.dirs, file_count: s.file_count })) };
+  const vNest = verifyPlan(v1Style, plan.universe);
+  ok(!vNest.ok && (vNest.nested || []).length >= 1, 'verifyPlan MORDE plano v1 aninhado (pai misto engole filha no pest recursivo)');
+
   // --exclude: poda subárvore não-rodável (tests/Browser → PlaywrightNotInstalled mata o shard)
   mk('tests/Browser/Sells', ['SellsBrowserTest.php']);
   mk('tests/governance-fixtures/g/bad/tests/Feature', ['SyntheticTest.php']);
