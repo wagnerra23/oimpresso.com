@@ -44,6 +44,12 @@ jobs:
         run: node scripts/governance/agent-pr-outcomes.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         run: node scripts/governance/agent-cost-per-pr.test.mjs
+      # ex-órfãos de CI (adversário 2026-07-13): existiam no repo mas nenhum workflow os
+      # rodava — reencarnação da proibição "Tests sem phpunit.xml = falsa cobertura".
+      - name: SDD distiller_freshness read-side (anti-stale + shallow honesto · ADR 0291 D-D)
+        run: node scripts/governance/sdd-distiller-freshness.test.mjs
+      - name: CT100 sdd-scorecard-snapshot wrapper (sintaxe + fatal-sem-artefato + docker mock + staleness WARNING)
+        run: bash scripts/tests/ct100-sdd-scorecard-snapshot.test.sh
       - name: Block-test-fora-ct100 PORTE .mjs (logica + E2E · roda em Linux · card #2 cross-platform)
         run: node .claude/hooks/block-test-fora-ct100.test.mjs
       - name: Block-test-fora-ct100 REGISTRADO como node (correcao != invocacao)

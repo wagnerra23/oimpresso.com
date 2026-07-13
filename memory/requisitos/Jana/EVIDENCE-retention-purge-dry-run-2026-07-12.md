@@ -103,3 +103,89 @@ Estratégia default `anonymize` substitui PII via `PiiRedactor` — **não tem r
 ---
 
 *Prep loop-6 concluído por [CC] em 2026-07-12 — código pronto, dry-run provado em staging, flip aguardando Wagner (R10). Nenhuma flag alterada, nenhum DML em prod, biz=4 intocado.*
+
+---
+
+## 5. Atualização 2026-07-13 — execução REAL do path `anonymize` + desquarentena do teste MySQL
+
+> **Achado adversarial (verificação wf_33e38126, maior risco da leva):** o canary de ~28/jul estava armado sobre um caminho que **NUNCA executou em ambiente nenhum**. A estratégia `anonymize` (UPDATE via `PiiRedactor`) só tinha rodado em `--dry-run` (`purged=0` sempre — §2.2/§2.3 acima). E o único teste que a cobria — `RetentionPurgeCommandTest` — estava em **quarentena universal**: `markTestSkipped` quando driver≠sqlite (skipava na fullsuite CT100 MySQL), ausente de `.github/ci-sqlite-pest.list` E da allowlist `jana-pest.yml`. Ou seja: **zero cobertura executada** do exato path que o canary arma. O dano de `anonymize` é irreversível por design (§3.3). Esta seção fecha esse gap com dois outputs literais.
+
+### 5.1 Execução REAL (não dry-run) do path `anonymize` em staging CT100
+
+Sem banco de teste dedicado no CT100 (só existe `oimpresso_staging`, biz=1 dogfooding), semeei **3 registros sintéticos biz=1** em `jana_cache_semantico` com `created_at = -120d` (fora do TTL 90d) e PII real de teste. Escopei a `--business=1` (override Tier-0 do comando literal `--entity=cache_semantico --force`, pra jamais tocar biz=4/164). PII exibida abaixo é 100% sintética (nunca dado real biz=4).
+
+**Antes (PII literal, pré-anonimização) — `oimpresso-staging` @ UTC 2026-07-13T02:31:30Z:**
+
+```
+id=18 biz=1 [canary-desq-20260713-a]
+   query_original: Larissa perguntou sobre cliente CPF [REDACTED — sintético]
+   resposta      : Resposta: enviar boleto pro email [REDACTED — sintético]
+id=19 biz=1 [canary-desq-20260713-b]
+   query_original: Consulta de saldo do CNPJ [REDACTED — sintético]
+   resposta      : Titular telefone [REDACTED — sintético]
+id=20 biz=1 [canary-desq-20260713-c]  (sem PII — controle negativo)
+contagem fora-TTL-90d: biz=1 fora90=3 · biz=4 fora90=0 · biz=164 fora90=0
+```
+
+**Run real (output literal de console):**
+
+```
+### RUN @ host=docker-host container=oimpresso-staging UTC=2026-07-13T02:32:01Z
+### cmd: php artisan jana:retention-purge --business=1 --entity=cache_semantico --force
+jana:retention-purge — 2026-07-12 23:32:02
+  estratégia    : anonymize
+  enabled       : false (forçado via flag)
+  businesses    : 1
+  entidades     : 1
+
++-------------+-----------------+----------------+---------+--------+--------+
+| business_id | entity          | retention_days | matched | purged | status |
++-------------+-----------------+----------------+---------+--------+--------+
+| 1           | cache_semantico | 90             | 3       | 3      | OK     |
++-------------+-----------------+----------------+---------+--------+--------+
+
+Total: 3 matched · 3 purged · 0 failures · 1 businesses · 1 entities
+```
+
+**Depois (anonimizado) — mesma janela UTC 2026-07-13T02:32:20Z:**
+
+```
+id=18 query_original: ...cliente CPF [REDACTED:CPF]   resposta: ...email [REDACTED:EMAIL]
+id=19 query_original: ...CNPJ [REDACTED:CNPJ]         resposta: ...telefone [REDACTED:PHONE]
+id=20 query_original/resposta: INALTERADOS (sem PII — controle negativo confirma que anonymize não corrompe row sem PII)
+biz=4 (1 row) + biz=164 (5 rows): INTOCADOS — texto legível, zero [REDACTED]
+```
+
+Cleanup: os 3 registros sintéticos foram deletados; `jana_cache_semantico` voltou a **14 rows (biz=1:8, biz=4:1, biz=164:5)** — idêntico ao pré-seed. Staging pristino.
+
+**Conclusão 5.1:** o `PiiRedactor` redigiu CPF/CNPJ/EMAIL/PHONE de verdade num UPDATE real; o `--business=1` não iterou biz=4/164; o controle negativo (id=20) prova que row sem PII sobrevive intacta. É a **primeira execução não-dry-run do path do canary em qualquer ambiente**.
+
+### 5.2 Desquarentena do teste — verde em MySQL real (CT100)
+
+Reescrevi `Modules/Jana/Tests/Feature/RetentionPurgeCommandTest.php` pra rodar na lane MySQL (padrão canônico do `BuscarHistoricoTest`): `DatabaseTransactions` (rollback preserva schema+seed — nunca `migrate:fresh`), schema REAL (removido o `Schema::drop/create` que destruiria as tabelas do `oimpresso_staging`), `business_id` sentinela 990001/990099 (sem FK), insert/assert via `DB::table` raw. Adicionado à allowlist `jana-pest.yml` (ratchet-up da catraca).
+
+**Output literal:**
+
+```
+### host=docker-host UTC=2026-07-13T02:36:30Z
+   PASS  Modules\Jana\Tests\Feature\RetentionPurgeCommandTest
+  ✓ it RetentionPurge 002 — dry-run não persiste nada
+  ✓ it RetentionPurge 005 — entidade desconhecida retorna erro estruturado sem crash
+  ✓ it RetentionPurge 001 — anonimiza memoria_fato fora do TTL preservando row (path do canary)
+  ✓ it RetentionPurge 004 — service listEntities() retorna 7 entidades canon
+  ✓ it RetentionPurge 003 — Tier 0: purge do tenant-alvo NUNCA toca outro tenant
+
+  Tests:    5 passed (22 assertions)
+  Duration: 2.83s
+```
+
+Passaram (não skiparam) ⇒ rodou no driver mysql. Leak-check pós-run: `residual_sentinela=0` (rollback do `DatabaseTransactions` confirmado — nenhuma linha sentinela vazou no banco compartilhado). Arquivo do container restaurado via `git checkout` (zero drift).
+
+### 5.3 Impacto no pedido de flip
+
+O caveat **§3.3** (path irreversível que nunca rodou) fica materialmente mitigado: o path `anonymize` agora tem (a) execução real provada com antes→depois, e (b) teste MySQL verde na catraca CI cobrindo TTL + PiiRedactor + isolamento Tier 0 cross-tenant. Os caveats **§3.1** (cron itera biz=4) e **§3.2** (`health_narrative` plataforma-wide) **seguem abertos** — o flip global ainda exige a condição estrutural do passo 3 (§4). O canary por `cache_semantico --business=1` continua sendo o começo de menor risco.
+
+**Sign-off atualizado (o canary só destrava com os 2 outputs de §5.1 e §5.2 colados — feito):**
+☑ path `anonymize` executado de verdade em staging (§5.1) · ☑ teste desquarentenado verde em MySQL (§5.2) · ☐ Wagner aprova canary 7d biz=1 (§4 passo 1) · ☐ Wagner aprova PR de allowlist por-business (§4 passo 3) · ☐ Wagner aprova flip `JANA_RETENTION_ENABLED=true` pós-canary.
+
+*Atualização 5 por [CC] em 2026-07-13 — execução real + desquarentena provadas em staging CT100. Flag prod segue `false`; flip permanece HITL Wagner (R10). Nenhum DML em prod, biz=4/164 intocados.*
