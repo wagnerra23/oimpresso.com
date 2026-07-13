@@ -346,7 +346,11 @@ jobs:
         # segue advisory porque Oficina dark ainda tem drift independente.
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: financeiro-states
-        run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php --filter=financeiro-unificado
+        # RETRY-ONCE anti-flake (scripts/tests/visreg-flake-retry.sh): re-roda UMA vez SÓ
+        # quando a falha tem assinatura de execução (browser não sobe/timeout/socket) — uma
+        # REGRESSÃO DE PIXEL real (double-threshold "REGRESSÃO CLARA" > τ_alto) NUNCA é
+        # re-rodada, pra não mascarar o que o gate enforcing existe pra pegar.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php --filter=financeiro-unificado
 
       - name: Fluxos visuais Financeiro (ENFORCING — L2.5 · interação × viewport)
         # Executa mesmo se o núcleo-6 falhar: o fluxo novo não pode ficar sem
@@ -356,7 +360,10 @@ jobs:
         # BLOQUEIA merge.
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: financeiro-flows
-        run: ./vendor/bin/pest tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
+        # RETRY-ONCE anti-flake (mesma política do financeiro-states): re-roda UMA vez só na
+        # assinatura de execução (o fluxo levou 11 patches por relógio cross-processo → o
+        # residual é flake de timing/browser, não pixel). Diff de pixel real NUNCA re-roda.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
 
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
       - name: Regenerar baselines (pixel + estados + fluxos) — modo update
