@@ -88,6 +88,7 @@ if (! app()->isProduction()) {
     // (isProduction guard) — destrava o smoke das telas autenticadas que vinha bloqueado.
     Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) {
         \Illuminate\Support\Facades\Auth::loginUsingId($id);
+        $request->session()->forget(\App\Http\Middleware\VisregStateMiddleware::SESSION_KEY);
 
         // `to` = tela alvo (1 visit só: loga + redireciona). Só path relativo (anti
         // open-redirect, ainda que env-guarded). Default '/'.
