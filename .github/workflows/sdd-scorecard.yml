@@ -60,13 +60,25 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read # drift_alarms (GT-G4): protection-drift.mjs lê last run verde dos workflows-fonte
 
 jobs:
   scorecard:
     name: SDD scorecard meta-catraca (advisory · determinismo + staleness + ratchet)
     runs-on: ubuntu-latest
+    # Job-level (não por step): o agregador roda 3× aqui (Medir + Determinismo + Ratchet)
+    # e as 3 runs precisam do MESMO ambiente — com token só no Medir, drift_alarms sairia
+    # measured na 1ª e not_yet_measured na 2ª → falso-vermelho de determinismo. Sem token
+    # nenhum, Staleness viraria perma-warn (committed measured ≠ medição local sem gh).
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # distiller_freshness usa data-git do doc mais novo por módulo (ADR 0291 D-D);
+          # shallow (depth 1) mede stale fantasma → Staleness perma-warn vs o valor correto
+          # commitado (mesmo bug já corrigido no sdd-scorecard-ratchet.yml).
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'

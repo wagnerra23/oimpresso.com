@@ -46,7 +46,16 @@ function measureKnowledgeDrift() {
   let citing = 0;
   for (const r of rows) if (r.ghosts.length) { citing++; for (const g of r.ghosts) names.add(g); }
   const withDoor = rows.filter((r) => r.door !== 'NÃO').length;
-  return { ghost_count: names.size, ghost_citing_modules: citing, door_num: withDoor, door_den: rows.length };
+  // read_path_hops (ADR 0270 D-5): a fonte JÁ computa hops por módulo — este script só
+  // transporta a MEDIANA, com a MESMA fórmula do relatório humano do knowledge-drift.mjs
+  // (sort asc + [floor(n/2)]) — um conceito, um número, dois lados.
+  const hopsArr = rows.map((r) => r.hops).filter((h) => typeof h === 'number').sort((a, b) => a - b);
+  const hopsMedian = hopsArr.length ? hopsArr[Math.floor(hopsArr.length / 2)] : null;
+  return {
+    ghost_count: names.size, ghost_citing_modules: citing, door_num: withDoor, door_den: rows.length,
+    hops_median: hopsMedian, hops_worst: hopsArr.length ? hopsArr[hopsArr.length - 1] : null,
+    hops_modules: hopsArr.length,
+  };
 }
 
 // ── fonte 2: anchor-lint --json (FONTE ÚNICA do anchor_coverage — ADR 0273 §2) ─
@@ -450,8 +459,19 @@ function buildScorecard() {
         'golden set recall (KL-C2) — depende do alias map das 13 colisões ADR'),
       ragas_real_uptime: measureRagasRealUptime(),
       distiller_freshness: measureDistillerFreshness(),
-      read_path_hops: notYet('down', 1,
-        'ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1; instrumentação pendente)'),
+      // ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1).
+      // Fonte viva: knowledge-drift.mjs --json .[].hops → mediana (mesma medição do
+      // relatório humano). Fallback honesto se a fonte não trouxe rows (NUNCA mente 0).
+      read_path_hops: kd.hops_median == null
+        ? notYet('down', 1,
+            'ADR 0270 D-5 — knowledge-drift.mjs --json sem rows com hops numérico (nenhum módulo elegível); fallback honesto.')
+        : {
+            status: 'measured', value: kd.hops_median,
+            unit: 'docs abertos pra saber a verdade atual (mediana por módulo · ADR 0270 D-5)',
+            direction: 'down', target: 1,
+            source: 'scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)',
+            detail: { modules: kd.hops_modules, hops_worst: kd.hops_worst },
+          },
       drift_alarms: measureDriftAlarms(),
       backfill_error_rate: measureBackfillErrorRate(),
     },
