@@ -104,7 +104,9 @@ it('flag OFF (default) NÃO reordena — saída idêntica ao applyTimeDecay (nã
 
     // Igualdade ESTRITA: mesma ordem, mesmos ids, mesmos scores, mesmo shape.
     expect($resultado)->toBe($candidatos);
-    expect(array_column($resultado, 'id'))->toBe([1, 2]); // ordem do applyTimeDecay preservada
+    // Desde o fix US-COPI-110 (2026-07-12) o applyTimeDecay ORDENA por score
+    // decaído: accepted (1.2) vence superseded (0.3) mesmo entrando depois.
+    expect(array_column($resultado, 'id'))->toBe([2, 1]);
 });
 
 it('KL-C1 — config resolve NÃO-NULL: retrieval_enabled === true (LIGADO 2026-07-01) e lifecycle_mult populado (fim do duplo-OFF)', function () {

@@ -186,11 +186,10 @@ class MeilisearchDriver implements MemoriaContrato
         $reranker   = app(Reranker::class);
 
         // 3.5 Time-decay (K1 — Onda 5 dossier 2026-05-13). Aplica half-life decay
-        // pós-recall, pré-rerank. Doc velho (lifecycle=historical/superseded) cai;
-        // doc recente accepted sobe. Score base fica 1.0 (sem hybrid score do Scout
-        // exposto), então time-decay opera como pure multiplier sobre o material já
-        // filtered (ordem preservada pelo $merged). Reranker depois reordena por
-        // score ajustado.
+        // pós-recall, pré-rerank E JÁ ORDENA por score decaído (a ordenação vive
+        // DENTRO do applyTimeDecay). O RrfReranker default single-source ranqueia
+        // por POSIÇÃO de entrada e ignora `score` — sem a ordenação interna o decay
+        // era calculado e descartado (reconciliação US-COPI-110, 2026-07-12).
         $candidatos = $this->applyTimeDecay($merged);
 
         // 3.6 Peso Real (Área C — Etapa 5 IAOS / ADR 0232). Reordena por
@@ -330,8 +329,14 @@ class MeilisearchDriver implements MemoriaContrato
      *   - doc_type/status ausente em metadata → defaults da config
      *   - half_life inválido (<=0) → fallback default
      *
-     * @param  Collection<int, MemoriaFato> $hits Collection mapped por buscar() — ordem do RRF preservada.
-     * @return array<int, array{id:int, snippet:string, score:float}> Formato esperado pelo Reranker.
+     * Contrato (US-COPI-110): documento canônico recente VENCE antigo no recall.
+     * Como o RrfReranker default (caso single-source) usa a POSIÇÃO de entrada
+     * como rank e ignora `score`, a reordenação por score decaído acontece AQUI
+     * (sort estável desc — empate preserva ordem RRF de entrada, o sinal de
+     * relevância). Com flag off o passo é bypass total (ordem + score legados).
+     *
+     * @param  Collection<int, MemoriaFato> $hits Collection mapped por buscar() — ordem do RRF de entrada.
+     * @return array<int, array{id:int, snippet:string, score:float}> Ordenado por score decaído desc.
      */
     private function applyTimeDecay(Collection $hits): array
     {
@@ -355,7 +360,7 @@ class MeilisearchDriver implements MemoriaContrato
 
         $now = now();
 
-        return $hits->map(function (MemoriaFato $f) use (
+        $candidatos = $hits->map(function (MemoriaFato $f) use (
             $temporalWeight,
             $halfLifeMap,
             $statusMultipliers,
@@ -388,7 +393,7 @@ class MeilisearchDriver implements MemoriaContrato
             }
 
             // Score base 1.0 (Scout hybrid não expõe score raw via Eloquent —
-            // ordem do RRF é o sinal preservado). Reranker depois reordena.
+            // ordem do RRF de entrada é o sinal de relevância, preservada em empate).
             $scoreBase  = 1.0;
             $scoreFinal = $scoreBase * $temporalFactor * $statusMultiplier;
 
@@ -398,6 +403,15 @@ class MeilisearchDriver implements MemoriaContrato
                 'score'   => $scoreFinal,
             ];
         })->values()->all();
+
+        // Reordena por score decaído (fix reconciliação US-COPI-110 2026-07-12):
+        // sem este sort o RrfReranker default descartava o decay — idade tinha
+        // efeito ZERO na ordem final. usort é estável (PHP 8+): empates (mesmo
+        // decay) preservam a ordem RRF de entrada → com decay uniforme o pipeline
+        // fica idêntico ao legado.
+        usort($candidatos, fn (array $a, array $b) => $b['score'] <=> $a['score']);
+
+        return $candidatos;
     }
 
     /**
