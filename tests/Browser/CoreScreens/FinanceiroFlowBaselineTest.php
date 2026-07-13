@@ -80,11 +80,11 @@ function aguardarAlvoVisual($page, string $script, string $alvo): void
  */
 function semearTituloVisualFinanceiro(int $userId): void
 {
-    // O servidor que o Browser visita é outro processo e usa o relógio real;
-    // `Carbon::setTestNow()` só congela o processo do Pest. Mantemos o título
-    // no mês corrente do runner para que o filtro padrão da rota o enxergue.
-    $hoje = date('Y-m-d');
-    $competencia = date('Y-m');
+    // A rota do manifesto fixa junho/2026. Usar o mesmo relógio congelado evita
+    // o falso vazio quando o runner muda de mês entre a geração e a comparação.
+    $agora = \Carbon\Carbon::getTestNow() ?? \Carbon\Carbon::now();
+    $hoje = $agora->toDateString();
+    $competencia = $agora->format('Y-m');
 
     \Illuminate\Support\Facades\DB::table('fin_titulos')->updateOrInsert(
         ['business_id' => 1, 'origem' => 'manual', 'origem_id' => 987654, 'parcela_numero' => 1],
