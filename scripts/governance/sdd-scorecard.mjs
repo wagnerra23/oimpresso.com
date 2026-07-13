@@ -26,7 +26,7 @@
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = process.cwd();
@@ -256,6 +256,29 @@ function gitDateOf(file) {
   } catch { return null; }
 }
 
+// Checkout shallow (fetch-depth:1) fabrica datas: `git log -1` só enxerga o HEAD, então
+// TODO arquivo "foi commitado hoje" — qualquer métrica baseada em data-git mente nesse
+// cenário (mede calendário, não eventos). PEGADINHA (pega no smoke 2026-07-12):
+// `--is-shallow-repository` é grosso demais — o `git fetch origin governance/nightly-floor
+// --depth 1` (materialização da órfã, que o próprio ratchet manda rodar) marca o repo
+// shallow SEM truncar a history do HEAD. Shallow só invalida a medição se algum boundary
+// do `.git/shallow` for ANCESTRAL do HEAD. Erro de git = não-confiável → true.
+function isShallowHistory() {
+  const git = (cmd) => execSync(cmd, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  try {
+    if (git('git rev-parse --is-shallow-repository') === 'false') return false;
+    const shallowFile = resolve(ROOT, git('git rev-parse --git-path shallow'));
+    if (!existsSync(shallowFile)) return true; // marcado shallow sem boundary legível — não confia
+    for (const sha of readFileSync(shallowFile, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean)) {
+      try {
+        execSync(`git merge-base --is-ancestor ${sha} HEAD`, { cwd: ROOT, stdio: 'ignore' });
+        return true; // boundary corta a ancestry do HEAD → datas fabricáveis
+      } catch { /* boundary fora da ancestry (ex: órfã nightly-floor) — não trunca */ }
+    }
+    return false;
+  } catch { return true; }
+}
+
 // Data-git (committer %cs) do doc .md mais novo do módulo, EXCETO a própria BRIEFING.
 // Só é chamada pras portas carimbadas → barato no rollout (poucas portas têm carimbo).
 function gitNewestModuleDocDate(modDir) {
@@ -281,9 +304,19 @@ function daysAhead(fromDate, toDate) {
 
 export function measureDistillerFreshness(
   reqDir = join(ROOT, 'memory', 'requisitos'),
-  { newestDocDate = gitNewestModuleDocDate, staleDays = STALE_DAYS_DISTILLER } = {},
+  { newestDocDate = gitNewestModuleDocDate, staleDays = STALE_DAYS_DISTILLER, shallow = isShallowHistory } = {},
 ) {
   const FRESH_TARGET = '< 7d atrás do doc mais novo em 100% das portas';
+  // Guard anti-fabricação: em checkout shallow o gitNewestModuleDocDate devolve a data
+  // do HEAD pra todo módulo → portas carimbadas >7d atrás viram "stale" só pelo passar
+  // do calendário, sem doc novo nenhum. Foi o drift real 2026-07-08→12 (0→5→9→7→6 no
+  // scorecard publicado, medição em checkout full = 0 o tempo todo): o publish rodava
+  // com fetch-depth default (1). Honesto: not_yet_measured, NUNCA fabrica stale.
+  // Fonte injetada (meta-teste) não passa por git → guard não se aplica.
+  if (newestDocDate === gitNewestModuleDocDate && shallow()) {
+    return notYet('down', FRESH_TARGET,
+      'ADR 0291 D-D — checkout shallow: data-git do doc mais novo é infabricável (git log só vê o HEAD; mediria calendário, não eventos). Use actions/checkout com fetch-depth: 0.');
+  }
   if (!existsSync(reqDir)) {
     return notYet('down', FRESH_TARGET, 'ADR 0291 D-D — memory/requisitos/ ausente; nada a medir.');
   }
