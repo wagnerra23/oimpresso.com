@@ -90,7 +90,8 @@ jobs:
             node scripts/auditar-intencao-fluxo.mjs --contract "$c"
             node scripts/adversario-intencao-fluxo.mjs --contract "$c" --strict
           done
-          node scripts/mapa-intencao-tela.mjs --check
+          # O mapa de intenção é derivado pelo mesmo contrato-de-tela.mjs; não há mapa paralelo.
+          node scripts/contrato-de-tela.mjs --map --check
       - name: Diagnóstico em caso de falha
         if: failure()
         run: |
