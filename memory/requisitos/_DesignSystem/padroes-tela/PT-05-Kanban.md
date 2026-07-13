@@ -3,9 +3,9 @@ pattern_id: PT-05
 nome: Kanban
 camada: 3-padroes-tela
 status: draft
-versao: 0.2
+versao: 0.3
 created: 2026-05-30
-updated: 2026-07-11
+updated: 2026-07-12
 parent_adr: UI-0013
 golden_eleito: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
 golden_score: ~8/10 regras binárias — board rolável + FSM + tokens OK; residual header/tap-target
@@ -81,8 +81,9 @@ Por que `Board.tsx` é o arquétipo Kanban:
 | **R8** | Handlers descendentes em `useCallback`/`useMemo` (evita re-render loop — lição PR #717)? | [Board.tsx:330-426](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) (comment [:22](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)) |
 | **R9** | Busca com debounce (≥300ms) via `router.get` `preserveState`+`preserveScroll`+`replace`, sem visit por keystroke? | `applyBoardFilter` [:361-379](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
 | **R10** | Cor de status/KPI semântica via `kpiTone()`/`tone.dot`/`tone.badge` + `primary` roxo, **NÃO** `blue-*` cru? | [BoardKpiCard.tsx:25,41-55](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/BoardKpiCard.tsx) · [ServiceOrderKanbanColumn.tsx:64,78](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/ServiceOrderKanbanColumn.tsx) |
+| **R11** | Card oferece caminho **sem-drag** (botão/menu "Mover para…") pra quem não arrasta — a11y + monitor 1280px sem touch (persona Larissa)? | ❌ ausente no golden — `KeyboardSensor` existe mas não substitui menu explícito. Ver §Drift item 4 |
 
-**Placar:** 10/10 = canon. O golden marca **~8/10** — passa R1-R7,R9-R10; residual é **tap-target ≥44px não explícito** (persona touch) e **header hand-rolled** (não `PageHeader`). Ver §Drift.
+**Placar:** 11/11 = canon. O golden marca **~8/11** — passa R1-R7,R9-R10; residual é **tap-target ≥44px não explícito** (persona touch), **header hand-rolled** (não `PageHeader`) e **R11 fallback "Mover para…" ausente**. Ver §Drift.
 
 ## Nunca
 
@@ -102,6 +103,7 @@ Resolvidos na reeleição (o golden anterior tinha; `Board.tsx` **não**): board
 1. ⚠️ **Header hand-rolled `<header>`** ([Board.tsx:685](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)), não `<PageHeader>` shared → migrar pro componente canônico (slot 1). Não bloqueia copiar, mas é o alvo.
 2. ⚠️ **Tap-target ≥44px não explícito** no card (`ServiceOrderKanbanCard`) e nas ações — persona touch exige `min-h-[44px]`/`h-11`. Auditar e travar ao evoluir.
 3. ℹ️ **Consumidor `Repair/ProducaoOficina/Index.tsx` ainda com drift** (`grid-cols-5` fixo, HTML5 drag) — migrar pro esqueleto do golden ao tocar a tela.
+4. ⚠️ **Fallback sem-drag "Mover para…" ausente** (R11) — requisito **restaurado 2026-07-12**: a v0.1 exigia *"somar botão/menu 'Mover para…' em cada card pra quem não arrasta (acessibilidade + dedo grosso)"* e a reancoragem [#4115](https://github.com/wagnerra23/oimpresso.com/pull/4115) o removeu sem registro ao trocar a lista pela tabela de eixos. O golden `Board.tsx` **não** implementa (só `KeyboardSensor`, que não cobre touch impreciso nem monitor 1280px sem drag da persona Larissa) — é gap conhecido a fechar ao evoluir o golden, não requisito descartado.
 
 ## Aplicado em (estado real)
 
@@ -124,6 +126,7 @@ Resolvidos na reeleição (o golden anterior tinha; `Board.tsx` **não**): board
 
 ## Versão
 
+**v0.3** · 2026-07-12 · `draft`. **Requisito restaurado** (forense reescritas-sem-lápide 10→13/jul): fallback sem-drag "Mover para…" da v0.1, perdido na reancoragem #4115, volta como **R11** + §Drift item 4 (golden ainda não implementa — gap conhecido, não descarte). Placar vira /11.
 **v0.2** · 2026-07-11 · `draft`. **Golden reeleito** `OficinaAuto/ServiceOrders/Board.tsx` (o anterior `ProducaoOficina/Index.tsx` foi deletado). Drifts estruturais (board rolável, tones) resolvidos pela reeleição; residual = header + tap-target. Re-âncora completa dos slots + R1-R10.
 **v0.1** · 2026-05-30 · golden estrutural anterior (OficinaAuto/ProducaoOficina, score 68), aposentado.
 **Bump v1.0/`live`** após aprovação de screenshot Wagner (F1.5).
