@@ -64,6 +64,12 @@ JS);
  */
 function semearTituloVisualFinanceiro(int $userId): void
 {
+    // O servidor que o Browser visita é outro processo e usa o relógio real;
+    // `Carbon::setTestNow()` só congela o processo do Pest. Mantemos o título
+    // no mês corrente do runner para que o filtro padrão da rota o enxergue.
+    $hoje = date('Y-m-d');
+    $competencia = date('Y-m');
+
     \Illuminate\Support\Facades\DB::table('fin_titulos')->updateOrInsert(
         ['business_id' => 1, 'origem' => 'manual', 'origem_id' => 987654, 'parcela_numero' => 1],
         [
@@ -74,9 +80,9 @@ function semearTituloVisualFinanceiro(int $userId): void
             'valor_total' => 1500.00,
             'valor_aberto' => 1500.00,
             'moeda' => 'BRL',
-            'emissao' => '2026-06-01',
-            'vencimento' => '2026-06-15',
-            'competencia_mes' => '2026-06',
+            'emissao' => $hoje,
+            'vencimento' => $hoje,
+            'competencia_mes' => $competencia,
             'parcela_total' => 1,
             'created_by' => $userId,
             'updated_at' => now(),
