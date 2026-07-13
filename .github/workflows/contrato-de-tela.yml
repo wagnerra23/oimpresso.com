@@ -77,6 +77,20 @@ jobs:
           node scripts/contrato-de-tela.mjs --map || true
           echo "::endgroup::"
           node scripts/contrato-de-tela.mjs --map --check
+      - name: Intenção de fluxo (advisory na adoção)
+        run: |
+          set -euo pipefail
+          mapfile -t contratos < <(git ls-files 'prototipo-ui/contrato/*.intent.json' || true)
+          if [ "${#contratos[@]}" -eq 0 ]; then
+            echo "Nenhum contrato de intenção ativo ainda."
+            exit 0
+          fi
+          for c in "${contratos[@]}"; do
+            echo "== $c =="
+            node scripts/auditar-intencao-fluxo.mjs --contract "$c"
+            node scripts/adversario-intencao-fluxo.mjs --contract "$c" --strict
+          done
+          node scripts/mapa-intencao-tela.mjs --check
       - name: Diagnóstico em caso de falha
         if: failure()
         run: |
