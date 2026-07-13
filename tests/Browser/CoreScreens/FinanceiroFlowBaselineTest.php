@@ -97,7 +97,7 @@ foreach (financeiroFlowCases() as $label => [$screen, $flow, $viewport, $slug, $
         if (!$business || !$admin) test()->markTestSkipped('Tenant visual biz=1 sem admin.');
 
         $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($screen['route']))
-            ->inViewport($viewport['width'], $viewport['height'])
+            ->resize($viewport['width'], $viewport['height'])
             ->assertSee($screen['anchor']);
         executarFluxoFinanceiro($page, $flow['action']);
         estabilizarVisual($page);
