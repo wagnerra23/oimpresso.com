@@ -87,6 +87,7 @@ if (! app()->isProduction()) {
     // SESSION_DRIVER não-array (file/database) no .env do gate. NUNCA em produção
     // (isProduction guard) — destrava o smoke das telas autenticadas que vinha bloqueado.
     Route::get('/_visreg-login/{id}', function (int $id, \Illuminate\Http\Request $request) {
+        $request->session()->forget(['user', 'business', 'business_timezone', 'currency', 'financial_year']);
         \Illuminate\Support\Facades\Auth::loginUsingId($id);
         $request->session()->forget(\App\Http\Middleware\VisregStateMiddleware::SESSION_KEY);
 
@@ -139,6 +140,7 @@ if (! app()->isProduction()) {
         }
 
         \Illuminate\Support\Facades\Auth::loginUsingId($admin->id);
+        $request->session()->forget(['user', 'business', 'business_timezone', 'currency', 'financial_year']);
 
         // Flag de estado pro VisregStateMiddleware (dark/loading). Sempre (re)grava — pra
         // estados sem lever de middleware (default/empty) ela so sobrescreve flag stale de
