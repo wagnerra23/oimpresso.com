@@ -380,6 +380,21 @@ jobs:
         # residual é flake de timing/browser, não pixel). Diff de pixel real NUNCA re-roda.
         run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
 
+      - name: Fluxos visuais Compras (ADVISORY — L2.5 · interação × viewport)
+        # NASCE ADVISORY (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing).
+        # Cobre os 3 fluxos pós-clique do cockpit /compras (visibilidade de colunas,
+        # menu de Ações da linha, drawer) × 3 viewports = 9 snapshots. O double-threshold
+        # (VisregThreshold) roteia por bandas; a zona cinza sobe diff-view pro [W].
+        # Promoção L1 = remover o `continue-on-error` (o check `visual-regression` já é
+        # required; sem clique de branch protection). Baseline via modo update (dispatch)
+        # NO runner canônico — nunca local (Tier 0: testes no CT100/CI, proibicoes.md).
+        # `always()`: roda mesmo se um passo anterior falhar (fluxo novo não pode ficar
+        # sem evidência por regressão independente de outra tela).
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: compras-flows
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/ComprasFlowBaselineTest.php
+
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
       - name: Regenerar baselines (pixel + estados + fluxos) — modo update
         if: github.event_name == 'workflow_dispatch'
@@ -387,6 +402,7 @@ jobs:
           npm run visreg:update
           npm run visreg:states:update
           npm run visreg:flows:update
+          npm run visreg:flows:compras:update
 
       # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
       # workflows `pull_request` em eventos causados pelo GITHUB_TOKEN → PR de baselines
@@ -435,6 +451,16 @@ jobs:
             echo "🔴 L2.5 ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
           elif [ "${{ steps.financeiro-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Financeiro OK — criar, drawer, baixa e lote capturados em compact/desktop/wide."
+          fi
+
+      - name: Veredito advisory dos fluxos Compras (L2.5 · visível no log)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: |
+          if [ "${{ steps.compras-flows.outcome }}" = "failure" ]; then
+            echo "🔴 L2.5 COMPRAS ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
+            echo "   1ª execução sem baseline GERA e passa (artifact pixel-snapshots comita). Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
+          elif [ "${{ steps.compras-flows.outcome }}" = "success" ]; then
+            echo "✅ fluxos Compras OK — visibilidade de colunas, menu de Ações e drawer capturados em compact/desktop/wide."
           fi
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)

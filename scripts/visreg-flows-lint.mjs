@@ -6,7 +6,16 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const FILE = 'tests/Browser/visreg-flows.json';
-const ACTIONS = new Set(['create_receivable', 'open_drawer', 'open_baixa', 'select_bulk']);
+const ACTIONS = new Set([
+  // Financeiro/Unificado (FinanceiroFlowBaselineTest)
+  'create_receivable', 'open_drawer', 'open_baixa', 'select_bulk',
+  // Compras/Index (ComprasFlowBaselineTest)
+  'open_column_visibility', 'open_actions_menu',
+]);
+// `suite` roteia a tela ao arquivo de teste. Ausente = financeiro (back-compat). Um
+// valor inválido faria AMBOS os testes pularem a tela (zero cobertura, sem baseline) —
+// por isso a catraca morde suite desconhecida.
+const SUITES = new Set(['financeiro', 'compras']);
 
 export function validate(manifest, root = ROOT) {
   const errors = [];
@@ -19,6 +28,7 @@ export function validate(manifest, root = ROOT) {
   }
   for (const [screen, spec] of Object.entries(manifest?.screens ?? {})) {
     if (!spec.route?.startsWith('/') || !spec.anchor || !spec.charter) errors.push(`${screen}: route/anchor/charter obrigatório`);
+    if (spec.suite !== undefined && !SUITES.has(spec.suite)) errors.push(`${screen}: suite inválida ${spec.suite}`);
     if (!existsSync(resolve(root, spec.charter ?? ''))) errors.push(`${screen}: charter ausente`);
     if (!Array.isArray(spec.viewports) || !spec.viewports.length) errors.push(`${screen}: sem viewports`);
     for (const id of spec.viewports ?? []) if (!viewports[id]) errors.push(`${screen}: viewport inexistente ${id}`);
@@ -41,6 +51,8 @@ if (process.argv.includes('--selftest')) {
     ['contrato íntegro passa', validate(good).length === 0],
     ['viewport inválido morde', validate({ ...good, viewports: { x: { width: 1, height: 2 } } }).length > 0],
     ['ação desconhecida morde', validate({ ...good, screens: { f: { ...good.screens.f, flows: [{ id: 'a', action: 'inventada', evidence: 'x' }] } } }).length > 0],
+    ['suite conhecida passa', validate({ ...good, screens: { f: { ...good.screens.f, suite: 'compras' } } }).length === 0],
+    ['suite inválida morde', validate({ ...good, screens: { f: { ...good.screens.f, suite: 'inventada' } } }).length > 0],
   ];
   const fails = cases.filter(([, ok]) => !ok);
   for (const [label, ok] of cases) console.log(`${ok ? 'OK' : 'X'} ${label}`);

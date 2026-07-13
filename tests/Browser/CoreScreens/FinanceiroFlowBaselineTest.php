@@ -34,6 +34,12 @@ function financeiroFlowCases(): array
     }
     $cases = [];
     foreach ($manifest['screens'] as $slug => $screen) {
+        // Só os fluxos de Financeiro — telas `suite: compras` rodam no
+        // ComprasFlowBaselineTest (dispatcher de ações próprio). `suite` ausente =
+        // financeiro (back-compat: a financeiro-unificado segue inclusa).
+        if (($screen['suite'] ?? 'financeiro') !== 'financeiro') {
+            continue;
+        }
         foreach ($screen['viewports'] as $viewportId) {
             $viewport = $manifest['viewports'][$viewportId];
             foreach ($screen['flows'] as $flow) {
