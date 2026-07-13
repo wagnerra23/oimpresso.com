@@ -38,8 +38,9 @@ export const meta = {
 // Contrato de entrada: `achados` = array de { id (curto), autor (quem achou), texto }. Ids ausentes/
 //   repetidos são normalizados p/ únicos internamente (não confie no chamador pra unicidade).
 // Contrato de saída:   { achados, reacoes, debatido, surfaces } — passe debatido+surfaces ao juiz.
-//   Garantias: auto-reação (r.por===autor) NÃO conta no sinal · dedup por (debatedor,alvo,modo) ·
-//   CONNECT registra nos dois lados · empate → NEUTRO · ≥1 SURFACE alvo="TODO" garantido (fallback integrador).
+//   Garantias: auto-reação (r.por===autor OU r.por===id) NÃO conta no sinal · dedup por (debatedor,alvo,modo) ·
+//   CONNECT registra nos dois lados · alvo normalizado (strip "[id]") · ≥1 SURFACE alvo="TODO" (fallback integrador).
+//   sinal ∈ { REFORCADO, CONTESTADO, DIVIDIDO (empate >0), SEM_SINAL (0 reações) } — SEM_SINAL ≠ empate deliberado.
 
 const REACAO_SCHEMA = {
   type: 'object', additionalProperties: false,
@@ -102,7 +103,10 @@ Emita reações TIPADAS (0..N — foque onde há sinal, não reaja a tudo). Prio
     { label: `debate:${String(quem).slice(0, 20)}`, phase, schema: REACAO_SCHEMA, model, effort },
   ).then((r) => (r && r.reacoes ? r.reacoes : []).map((x) => ({ ...x, por: quem })))))
 
-  const reacoes = lotes.filter(Boolean).flat()
+  // Normaliza os ids-alvo: o catálogo mostra "[id]", então o modelo às vezes responde alvo="[id]" —
+  // sem strip, byId["[id]"] é undefined e TODA reação vira órfã (roteamento colapsa, sinal some).
+  const limpaId = (v) => (v == null ? v : String(v).trim().replace(/^\[|\]$/g, '').trim())
+  const reacoes = lotes.filter(Boolean).flat().map((r) => ({ ...r, alvo: limpaId(r.alvo), alvo_secundario: limpaId(r.alvo_secundario) }))
 
   // Anexa reações a cada achado; SURFACE (e reações órfãs) ficam separados pro juiz.
   const byId = Object.fromEntries(ach.map((a) => [a.id, { ...a, agree: [], challenge: [], connect: [] }]))
@@ -112,7 +116,9 @@ Emita reações TIPADAS (0..N — foque onde há sinal, não reaja a tudo). Prio
     if (r.modo === 'SURFACE') { surfaces.push(r); continue }
     const alvo = byId[r.alvo]
     if (!alvo) { surfaces.push({ ...r, _orfa: true }); continue } // alvo alucinado/inexistente → não some, vira sinal
-    if (r.por && r.por === alvo.autor) continue // auto-reação NÃO conta como consenso de par (senão AGREE no próprio achado fabrica REFORCADO)
+    // auto-reação NÃO conta como consenso de par (AGREE no próprio achado fabricaria REFORCADO). No ramo
+    // sem-autor, `r.por` é o id do achado — por isso compara com autor E id (namespaces diferentes).
+    if (r.por && (r.por === alvo.autor || r.por === alvo.id)) continue
     const chave = `${r.por}|${r.alvo}|${r.modo}`
     if (vistos.has(chave)) continue
     vistos.add(chave)
@@ -136,11 +142,13 @@ Emita reações TIPADAS (0..N — foque onde há sinal, não reaja a tudo). Prio
     if (integ && integ.razao) surfaces.push({ modo: 'SURFACE', alvo: 'TODO', razao: integ.razao, novo_achado: integ.novo_achado, por: 'integrador', _fallback: true })
   }
 
-  const debatido = Object.values(byId).map((a) => ({
-    ...a,
-    // Sinal pro juiz (empate → NEUTRO; só é REFORCADO/CONTESTADO com maioria estrita de pares distintos).
-    sinal: a.challenge.length > a.agree.length ? 'CONTESTADO' : (a.agree.length > a.challenge.length ? 'REFORCADO' : 'NEUTRO'),
-  }))
+  const debatido = Object.values(byId).map((a) => {
+    const na = a.agree.length, nc = a.challenge.length
+    // Sinal honesto pro juiz: distingue "ninguém reagiu" (SEM_SINAL) de "empate real" (DIVIDIDO) —
+    // conflar os dois num "NEUTRO" mentiria "o conjunto debateu e empatou" sobre um achado ignorado.
+    const sinal = nc > na ? 'CONTESTADO' : (na > nc ? 'REFORCADO' : (na === 0 ? 'SEM_SINAL' : 'DIVIDIDO'))
+    return { ...a, sinal }
+  })
 
   log(`debate: ${reacoes.length} reações — ${reacoes.filter((r) => r.modo === 'AGREE').length} agree · ${reacoes.filter((r) => r.modo === 'CHALLENGE').length} challenge · ${reacoes.filter((r) => r.modo === 'CONNECT').length} connect · ${surfaces.length} surface`)
   return { achados: ach, reacoes, debatido, surfaces }

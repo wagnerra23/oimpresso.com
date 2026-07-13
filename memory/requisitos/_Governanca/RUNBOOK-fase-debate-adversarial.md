@@ -79,10 +79,12 @@ dura #7, agora **forçado pelo schema**, não confiado à disciplina manual.
 - **Entrada:** `achados` = `Array<{ id: string, autor: string, texto: string }>` (ids únicos).
 - **Saída:** `{ achados, reacoes, debatido, surfaces }`.
   - `reacoes` = todas as reações tipadas (com `por` = quem reagiu).
-  - `debatido` = achados enriquecidos com reações + `sinal`.
-  - `surfaces` = os `SURFACE` (incl. `alvo="TODO"`) + reações órfãs (alvo inexistente).
+  - `debatido` = achados enriquecidos com reações + `sinal ∈ { REFORCADO, CONTESTADO, DIVIDIDO (empate >0), SEM_SINAL (0 reações) }`. `SEM_SINAL` ≠ empate deliberado — não trate "ninguém reagiu" como "o conjunto debateu e empatou".
+  - `surfaces` = os `SURFACE` (incl. `alvo="TODO"` garantido por fallback integrador) + reações órfãs (alvo inexistente).
+- **Robustez (do dogfood 2026-07-13):** ids ausentes/repetidos são normalizados p/ únicos internamente; `alvo="[id]"` (colchete ecoado do catálogo) é normalizado antes do lookup; auto-reação é filtrada por autor **e** id (o ramo sem-autor usa id como `por`); dedup por `(debatedor,alvo,modo)`; `CONNECT` registra nos dois nós e valida o secundário.
 - **Degenerescência:** `< 2` achados → retorna sem debate (não há o que cruzar).
 - **Debatedores:** 1 por autor distinto (fallback: 1 por achado se não houver autores).
+- **Residual honesto:** o fallback do `SURFACE alvo="TODO"` é best-effort (se o agente integrador falhar/voltar vazio, não há garantia dura). Revisão adversarial nunca retorna zero — os fixes cobrem o caminho principal + os edge-cases documentados; residuais mais fundos ficam pro chip de quem plugar num workflow real.
 
 ## Onde plugar primeiro (candidatos)
 
