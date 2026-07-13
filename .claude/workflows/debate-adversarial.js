@@ -35,8 +35,11 @@ export const meta = {
 // ══════════════════════════ BEGIN TEMPLATE: fase Debate ═══════════════════════════
 // Cole ESTE bloco no seu workflow adversarial, entre a fase de refutação e a de juiz.
 // Depende só dos globais do harness Workflow (agent/parallel/log) — nada a importar.
-// Contrato de entrada: `achados` = array de { id (único, curto), autor (quem achou), texto }.
+// Contrato de entrada: `achados` = array de { id (curto), autor (quem achou), texto }. Ids ausentes/
+//   repetidos são normalizados p/ únicos internamente (não confie no chamador pra unicidade).
 // Contrato de saída:   { achados, reacoes, debatido, surfaces } — passe debatido+surfaces ao juiz.
+//   Garantias: auto-reação (r.por===autor) NÃO conta no sinal · dedup por (debatedor,alvo,modo) ·
+//   CONNECT registra nos dois lados · empate → NEUTRO · ≥1 SURFACE alvo="TODO" garantido (fallback integrador).
 
 const REACAO_SCHEMA = {
   type: 'object', additionalProperties: false,
@@ -65,11 +68,21 @@ async function faseDebate(achados, opts = {}) {
   // Debate exige ≥2 achados pra reagir a algo que não seja o próprio.
   if (!achados || achados.length < 2) return { achados: achados || [], reacoes: [], debatido: achados || [], surfaces: [] }
 
-  const catalogo = achados.map((a) => `[${a.id}] (por ${a.autor || '?'}) ${a.texto}`).join('\n')
+  // Normaliza ids: ÚNICOS e presentes. O debatedor referencia o achado pelo `id` no catálogo — id
+  // ausente/repetido = referência ambígua + colapso silencioso em byId (Object.fromEntries last-wins).
+  const usados = new Set()
+  const ach = achados.map((a, i) => {
+    let id = a && a.id != null && String(a.id).trim() ? String(a.id) : `a${i}`
+    if (usados.has(id)) id = `${id}#${i}`
+    usados.add(id)
+    return { ...a, id }
+  })
+
+  const catalogo = ach.map((a) => `[${a.id}] (por ${a.autor || '?'}) ${a.texto}`).join('\n')
   // Um debatedor por AUTOR (cada cético reage ao que os OUTROS acharam, não só ao seu slice).
-  // Fallback sem autores: um debatedor por achado.
-  const autores = [...new Set(achados.map((a) => a.autor).filter(Boolean))]
-  const debatedores = autores.length >= 2 ? autores : achados.map((a) => a.id)
+  // Fallback sem autores: um debatedor por achado (id já normalizado, nunca undefined/duplicado).
+  const autores = [...new Set(ach.map((a) => a.autor).filter(Boolean))]
+  const debatedores = autores.length >= 2 ? autores : ach.map((a) => a.id)
 
   const lotes = await parallel(debatedores.map((quem) => () => agent(
     `Você é o revisor "${quem}" no DEBATE ESTRUTURADO (protocolo Open Code Review) sobre ${foco}.
@@ -92,24 +105,45 @@ Emita reações TIPADAS (0..N — foque onde há sinal, não reaja a tudo). Prio
   const reacoes = lotes.filter(Boolean).flat()
 
   // Anexa reações a cada achado; SURFACE (e reações órfãs) ficam separados pro juiz.
-  const byId = Object.fromEntries(achados.map((a) => [a.id, { ...a, agree: [], challenge: [], connect: [] }]))
+  const byId = Object.fromEntries(ach.map((a) => [a.id, { ...a, agree: [], challenge: [], connect: [] }]))
   const surfaces = []
+  const vistos = new Set() // dedup por (debatedor|alvo|modo) — evita empilhar N reações iguais que inflam o sinal
   for (const r of reacoes) {
     if (r.modo === 'SURFACE') { surfaces.push(r); continue }
     const alvo = byId[r.alvo]
-    if (!alvo) { surfaces.push({ ...r, _orfa: true }); continue }
+    if (!alvo) { surfaces.push({ ...r, _orfa: true }); continue } // alvo alucinado/inexistente → não some, vira sinal
+    if (r.por && r.por === alvo.autor) continue // auto-reação NÃO conta como consenso de par (senão AGREE no próprio achado fabrica REFORCADO)
+    const chave = `${r.por}|${r.alvo}|${r.modo}`
+    if (vistos.has(chave)) continue
+    vistos.add(chave)
     if (r.modo === 'AGREE') alvo.agree.push(r)
     else if (r.modo === 'CHALLENGE') alvo.challenge.push(r)
-    else if (r.modo === 'CONNECT') alvo.connect.push(r)
+    else if (r.modo === 'CONNECT') {
+      alvo.connect.push(r)
+      // CONNECT liga DOIS achados — registra nos dois lados e valida o secundário (senão a metade da aresta some).
+      const sec = r.alvo_secundario ? byId[r.alvo_secundario] : null
+      if (sec && sec !== alvo) sec.connect.push({ ...r, _lado: 'secundario' })
+      else if (r.alvo_secundario && !sec) surfaces.push({ ...r, _orfa_secundario: true })
+    }
   }
+  // Garante o SURFACE do TODO integrado — o schema não força (é só texto do prompt) e ELE é o core anti-falácia.
+  // Fallback barato: só dispara quando nenhum debatedor levantou o conjunto (nas rodadas reais eles levantaram 3-4).
+  if (!surfaces.some((s) => s.alvo === 'TODO')) {
+    const integ = await agent(
+      `Olhe os achados JUNTOS (não um a um) e aponte a FALHA DO CONJUNTO INTEGRADO que nenhum revisor pegou porque cada um olhou o seu slice (anti-falácia-de-composição). Se genuinamente não houver, diga isso.\nACHADOS:\n${catalogo}`,
+      { label: 'debate:integrador', phase, schema: { type: 'object', additionalProperties: false, required: ['razao'], properties: { razao: { type: 'string' }, novo_achado: { type: 'string' } } }, model, effort },
+    )
+    if (integ && integ.razao) surfaces.push({ modo: 'SURFACE', alvo: 'TODO', razao: integ.razao, novo_achado: integ.novo_achado, por: 'integrador', _fallback: true })
+  }
+
   const debatido = Object.values(byId).map((a) => ({
     ...a,
-    // Sinal pro juiz: mais desafios que concordâncias = CONTESTADO (candidato a derrubar).
-    sinal: a.challenge.length > a.agree.length ? 'CONTESTADO' : (a.agree.length ? 'REFORCADO' : 'NEUTRO'),
+    // Sinal pro juiz (empate → NEUTRO; só é REFORCADO/CONTESTADO com maioria estrita de pares distintos).
+    sinal: a.challenge.length > a.agree.length ? 'CONTESTADO' : (a.agree.length > a.challenge.length ? 'REFORCADO' : 'NEUTRO'),
   }))
 
   log(`debate: ${reacoes.length} reações — ${reacoes.filter((r) => r.modo === 'AGREE').length} agree · ${reacoes.filter((r) => r.modo === 'CHALLENGE').length} challenge · ${reacoes.filter((r) => r.modo === 'CONNECT').length} connect · ${surfaces.length} surface`)
-  return { achados, reacoes, debatido, surfaces }
+  return { achados: ach, reacoes, debatido, surfaces }
 }
 // ╚══════════════════════════ END TEMPLATE: fase Debate ══════════════════════════════
 
