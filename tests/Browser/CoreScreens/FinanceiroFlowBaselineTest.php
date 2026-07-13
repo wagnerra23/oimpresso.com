@@ -57,6 +57,34 @@ JS);
     $page->wait(0.5);
 }
 
+/** Linha determinística para os fluxos que partem de um lançamento existente.
+ *
+ * O seed visual padrão só garante empresa+admin. Sem este título, drawer, baixa
+ * e lote viram testes acidentais do conteúdo de demo em vez de contratos de UI.
+ */
+function semearTituloVisualFinanceiro(int $userId): void
+{
+    \Illuminate\Support\Facades\DB::table('fin_titulos')->updateOrInsert(
+        ['business_id' => 1, 'origem' => 'manual', 'origem_id' => 987654, 'parcela_numero' => 1],
+        [
+            'numero' => 'VISREG-FIN-001',
+            'tipo' => 'receber',
+            'status' => 'aberto',
+            'cliente_descricao' => 'Cliente de prova visual',
+            'valor_total' => 1500.00,
+            'valor_aberto' => 1500.00,
+            'moeda' => 'BRL',
+            'emissao' => '2026-06-01',
+            'vencimento' => '2026-06-15',
+            'competencia_mes' => '2026-06',
+            'parcela_total' => 1,
+            'created_by' => $userId,
+            'updated_at' => now(),
+            'created_at' => now(),
+        ],
+    );
+}
+
 function executarFluxoFinanceiro($page, string $action): void
 {
     if ($action === 'create_receivable') {
@@ -95,6 +123,7 @@ foreach (financeiroFlowCases() as $label => [$screen, $flow, $viewport, $slug, $
         $business = Business::find(1);
         $admin = $business ? User::where('business_id', 1)->orderBy('id')->first() : null;
         if (!$business || !$admin) test()->markTestSkipped('Tenant visual biz=1 sem admin.');
+        semearTituloVisualFinanceiro($admin->id);
 
         $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($screen['route']))
             ->resize($viewport['width'], $viewport['height'])
