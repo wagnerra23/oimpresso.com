@@ -351,6 +351,15 @@ jobs:
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php --filter=oficina-os
 
+      - name: DIAG — captura actual+diff-view do oficina dark (TEMP, não mergear)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: diag-oficina-dark
+          path: tests/Browser/Screenshots/
+          if-no-files-found: warn
+          retention-days: 3
+
       - name: Estados isolados matriz (ENFORCING — Financeiro+Sells+Clientes+Compras+Caixa)
         # MATRIZ GLOBAL ENFORCING. Financeiro foi a 1ª onda (#4239, #4237/#4238). Onda 2
         # (2026-07-13) adiciona as 4 telas ESTÁVEIS restantes — sells-index, clientes, compras,
