@@ -783,3 +783,19 @@ Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sy
 - Restantes: P24 (portar 5-7 blockers Tier-0 .ps1→.mjs ANTES do time MCP entrar em Mac/Linux) · P31/P32/P33 (hue/skill-tier/fase fonte-única) · P6/P13/P35 (manifest duro-vs-advisory, anti-sentinela-órfã, anti-verde-no-vácuo) · P11-A (excludePaths PHPStan, prova no CT100 antes)
 - Regra transversal: cada guarda nasce com fixture good/bad no gate-selftest, ancorada em contrato citado; advisory salvo Tier-0 (0314)
 - Follow-up da sentinela #4011: FLAG "ADR pendente" no Daily Brief (server-side, Modules/Jana Brief)
+
+### US-GOV-053 · recall_eval_violations: transporte versionado do cron dominical pro scorecard SDD
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_
+
+Última métrica `not_yet_measured` do scorecard SDD (as outras 2 do lote — `drift_alarms` + `read_path_hops` — foram fiadas no PR #4196; ranking adversarial 2026-07-12 item #6). Diferente delas, esta é **write-side novo**: o golden set recall (KL-C2) roda no cron dominical do CT100 mas o resultado não chega ao repo.
+
+**DoD (pattern nightly-floor · ADR 0279 Opção A — espelhar `measureRagasRealUptime`):**
+- Write-side CT100: script publica `governance/recall-eval-trend.json` (violations por run + schema versionado) em branch órfã própria, git-push `[skip ci]`.
+- Read-side: `measureRecallEvalViolations()` em `sdd-scorecard.mjs` com fallback honesto (ausente/inválido → `not_yet_measured`, NUNCA mente 0) + materialização da órfã nos workflows do scorecard (publish + advisory; ratchet soft enquanto armed:false).
+- REGRA DURA (ADR 0275 §3 + ADR 0314): nasce not-armed e advisory — baseline só arma após 3 medições válidas consecutivas, via PR explícito; nada vira required.
+
+**Aceite:** scorecard 13/13 measured após 1º cron pós-merge; `--ratchet` ignora a métrica (sem entrada armada no baseline). Refs: KL-C2 · ADR 0279 · ADR 0318 (espelho ragas).
