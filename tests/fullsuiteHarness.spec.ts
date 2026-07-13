@@ -64,6 +64,11 @@ describe('US-GOV-018 Frente A — harness do nightly (DoD A do SPEC)', () => {
     expect(harness).toMatch(/cd "\$CODE" && node "\$CODE\/scripts\/tests\/shards-plan\.mjs"/);
     expect(harness).toMatch(/total_dirs/); // guard: 0 dirs descobertos aborta (não vira noite falsa)
     expect(harness).toMatch(/vendor\/bin\/pest \$SHARD_DIRS/); // diagnóstico roda os dirs do shard
+    // regressão do run 20260712-212018 (shard 2 DEAD por coleta): args do pest vêm de
+    // shards[].paths (plano v2 — recursivo-disjuntos) com fallback .dirs (plano v1)
+    expect(harness).toMatch(/s\.paths\|\|s\.dirs/);
+    // quarentena com args-arquivo (v2): o arquivo movido sai da lista antes do retry
+    expect(harness).toMatch(/grep -vxF "\$BLOCKER"/);
     expect(harness).toMatch(/--log-junit "\/artifacts\/junit-shard-\$SHARD_IDX\.xml"/); // junit POR-SHARD
     expect(harness).not.toMatch(/--log-junit \/artifacts\/junit\.xml/); // nunca mais o SPOF do run único
     expect(harness).toMatch(/junit-summary\.mjs" "\$SJUNIT" --out "\$RUN_DIR\/shard-\$i\.summary\.json"/);

@@ -246,8 +246,9 @@ i=0
 # quando um shard crasha. `set +e` no laço + `set -e` depois. Shard morto NUNCA derruba a noite.
 set +e
 while [ "$i" -lt "$N_SHARDS" ]; do
-  # dirs deste shard (do plano landado #4166: shards[].index / .dirs)
-  SDIRS=$(node -e 'const p=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); const s=(p.shards||[]).find(x=>x.index==Number(process.argv[2])); process.stdout.write((s?s.dirs:[]).join(" "))' "$RUN_DIR/shards-plan.json" "$i")
+  # args pest deste shard: shards[].paths (plano v2 — recursivo-disjuntos; unidade mista
+  # expandida em arquivos, fix do shard 2 morto run 20260712-212018) com fallback .dirs (v1)
+  SDIRS=$(node -e 'const p=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); const s=(p.shards||[]).find(x=>x.index==Number(process.argv[2])); process.stdout.write(((s&&(s.paths||s.dirs))||[]).join(" "))' "$RUN_DIR/shards-plan.json" "$i")
   if [ -z "$SDIRS" ]; then echo "SHARD $i: sem dirs (vazio) — pulado"; i=$((i+1)); continue; fi
   SJUNIT="$RUN_DIR/junit-shard-$i.xml"
   SOUT="$RUN_DIR/shard-$i-out.txt"
@@ -312,6 +313,10 @@ while [ "$i" -lt "$N_SHARDS" ]; do
     echo "$BLOCKER" >> "$RUN_DIR/loader-blockers.txt"
     mkdir -p "$CODE/.loader-quarantine/$(dirname "$BLOCKER")" 2>/dev/null || true
     mv "$CODE/$BLOCKER" "$CODE/.loader-quarantine/$BLOCKER" 2>/dev/null || true
+    # plano v2 passa ARQUIVOS como args: arg quarentenado (movido) quebraria o pest no
+    # retry ("path does not exist") — remove da lista; se esvaziou, nada a rodar.
+    SDIRS=$(printf '%s\n' $SDIRS | grep -vxF "$BLOCKER" | tr '\n' ' ' | sed 's/ $//')
+    [ -z "$SDIRS" ] && { echo "SHARD $i: todos os args quarentenados — sem retry"; break; }
   done
   # summary por-shard (junit-summary FV-F1): junit valido => shard-<i>.summary.json coerente;
   # junit 0b/ausente => marcador {invalid} (o shards-merge trata como shard morto = missing).
