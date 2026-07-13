@@ -338,7 +338,9 @@ jobs:
         run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
 
       - name: Fluxos visuais Financeiro (ADVISORY — L2.5 · interação × viewport)
-        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        # Executa mesmo se o núcleo-6 falhar: o fluxo novo não pode ficar sem
+        # evidência por uma regressão independente de outra tela.
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: financeiro-flows
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
