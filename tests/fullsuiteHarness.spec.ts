@@ -89,6 +89,17 @@ describe('US-GOV-018 Frente A — harness do nightly (DoD A do SPEC)', () => {
     expect(harness).toMatch(/all_shards_measured/); // guard anti-mascaramento (schema sharded/v1)
     expect(harness).toMatch(/FULLSUITE_SHARDS/); // N shards configurável (default 8)
   });
+
+  it('V1 resiliência (run 202355): shard que crasha NÃO derruba o pai (set +e no laço + saída só no $SOUT)', () => {
+    // O run 20260712-202355 morreu SILENCIOSO no shard 1: a saída do shard (MBs de
+    // stacktrace, ×até SHARD_MAX_ATTEMPTS) era teada pro run.log (via `exec > >(tee)`) e o
+    // burst quebrou o pipe → SIGPIPE no pai. Fix: (a) saída do shard só no $SOUT (não teada);
+    // (b) o laço roda sob `set +e` (faz tratamento próprio) e restaura `set -e` depois.
+    expect(harness).toMatch(/< \/dev\/null > "\$SOUT" 2>&1/); // saída do shard só no $SOUT
+    expect(harness).not.toMatch(/\| tee "\$SOUT"/); // NUNCA teada pro run.log (burst quebra o pipe)
+    expect(harness).toMatch(/^set \+e$/m); // laço de shards sem errexit (tratamento próprio)
+    expect(harness).toMatch(/^set -e {2}# restaura/m); // errexit restaurado após o done
+  });
 });
 
 describe('US-GOV-018 Frente B — config_json json→longtext (DoD B do SPEC)', () => {

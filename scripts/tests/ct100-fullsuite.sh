@@ -235,9 +235,16 @@ killer_from_events() {
   printf '%s.php' "$cls"
 }
 
+# reset da quarentena de runs anteriores (o `git clean -fd` do passo 1 nao pega
+# .loader-quarantine se gitignored) — cada run parte do universo COMPLETO.
+rm -rf "$CODE/.loader-quarantine" 2>/dev/null || true
 SHARDS_LIVE=0
 PEST_EXIT=0
 i=0
+# RESILIENCIA (run 20260712-202355 morreu no shard 1): o laço faz seu PROPRIO tratamento de
+# erro (checa -s $SJUNIT, detecta blocker/killer, loop-guard) — errexit AQUI so mata o pai
+# quando um shard crasha. `set +e` no laço + `set -e` depois. Shard morto NUNCA derruba a noite.
+set +e
 while [ "$i" -lt "$N_SHARDS" ]; do
   # dirs deste shard (do plano landado #4166: shards[].index / .dirs)
   SDIRS=$(node -e 'const p=JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")); const s=(p.shards||[]).find(x=>x.index==Number(process.argv[2])); process.stdout.write((s?s.dirs:[]).join(" "))' "$RUN_DIR/shards-plan.json" "$i")
@@ -267,8 +274,12 @@ while [ "$i" -lt "$N_SHARDS" ]; do
           --log-junit "/artifacts/junit-shard-$SHARD_IDX.xml" \
           --log-events-text "/artifacts/pest-events-shard-$SHARD_IDX.txt" --colors=never
       ' \
-      < /dev/null 2>&1 | tee "$SOUT" || true
+      < /dev/null > "$SOUT" 2>&1
     docker rm -f "oimpresso-fullsuite-run-$i" >/dev/null 2>&1 || true
+    # NAO teamos a saida do shard pro run.log (ia via `exec > >(tee run.log)`): um shard que
+    # crasha despeja MBs de stacktrace num burst (×ate SHARD_MAX_ATTEMPTS) e pode quebrar o pipe
+    # do tee do run.log -> o pai bash leva SIGPIPE no proximo write e morre SILENCIOSO (causa do
+    # run 20260712-202355). A saida vive so no $SOUT (post-mortem/detectores); run.log fica limpo.
     # junit presente e NAO-vazio => shard OK (pass OU fail = DADO). Para de retentar.
     [ -s "$SJUNIT" ] && break
     # junit 0b/ausente: php morreu no LOAD. Detectores loader-blocker (HOST, grep -oP GNU):
@@ -299,8 +310,8 @@ while [ "$i" -lt "$N_SHARDS" ]; do
     fi
     echo "SHARD $i quarentena ($attempt/$SHARD_MAX_ATTEMPTS): $BLOCKER — movido no clone, registrado"
     echo "$BLOCKER" >> "$RUN_DIR/loader-blockers.txt"
-    mkdir -p "$CODE/.loader-quarantine/$(dirname "$BLOCKER")"
-    mv "$CODE/$BLOCKER" "$CODE/.loader-quarantine/$BLOCKER"
+    mkdir -p "$CODE/.loader-quarantine/$(dirname "$BLOCKER")" 2>/dev/null || true
+    mv "$CODE/$BLOCKER" "$CODE/.loader-quarantine/$BLOCKER" 2>/dev/null || true
   done
   # summary por-shard (junit-summary FV-F1): junit valido => shard-<i>.summary.json coerente;
   # junit 0b/ausente => marcador {invalid} (o shards-merge trata como shard morto = missing).
@@ -311,6 +322,7 @@ while [ "$i" -lt "$N_SHARDS" ]; do
   fi
   i=$((i+1))
 done
+set -e  # restaura errexit apos o laço de shards (resiliencia do run 202355)
 echo "shards vivos: $SHARDS_LIVE/$N_SHARDS (loader-blockers: $([ -f "$RUN_DIR/loader-blockers.txt" ] && wc -l < "$RUN_DIR/loader-blockers.txt" || echo 0))"
 
 # --- [P07 coverage] (ADR 0275 C2 · 2a invocacao SEPARADA — floor nunca refem) -----
