@@ -7,6 +7,7 @@ namespace Modules\Jana\Services\Memoria\Contextual;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Telemetry\LangfuseClient;
 
 /**
  * Contextual Retrieval Anthropic — gera contexto curto (50-100 tokens)
@@ -136,6 +137,8 @@ final class ContextualizerService
         ];
 
         try {
+            $t0 = microtime(true);
+
             $response = Http::withHeaders([
                 'x-api-key' => $apiKey,
                 'anthropic-version' => self::ANTHROPIC_VERSION,
@@ -166,6 +169,30 @@ final class ContextualizerService
                 'cache_creation_input_tokens' => $usage['cache_creation_input_tokens'] ?? null,
                 'cache_read_input_tokens' => $usage['cache_read_input_tokens'] ?? null,
                 'output_tokens' => $usage['output_tokens'] ?? null,
+            ]);
+
+            // US-COPI-108 (reconciliação 2026-07-12): call-site Http:: direto, fora do
+            // listener global Langfuse — instrumentação inline. Input omitido de
+            // propósito (doc inteiro é grande e potencialmente sensível); contadores
+            // + cache tokens vão em metadata. No-op se langfuse.enabled=false.
+            app(LangfuseClient::class)->traceComGeneration([
+                'name'        => 'contextual-retrieval',
+                'business_id' => null, // mcp_memory_documents é repo-wide (ADR 0053)
+                'tool'        => 'contextualizer',
+                'metadata'    => ['doc_chars' => strlen($documentFull), 'chunk_chars' => strlen($chunkContent)],
+            ], [
+                'name'        => 'contextualize-chunk',
+                'model'       => $model,
+                'output'      => trim($context),
+                'usage'       => [
+                    'input'  => $usage['input_tokens'] ?? null,
+                    'output' => $usage['output_tokens'] ?? null,
+                ],
+                'metadata'    => [
+                    'cache_creation_input_tokens' => $usage['cache_creation_input_tokens'] ?? null,
+                    'cache_read_input_tokens'     => $usage['cache_read_input_tokens'] ?? null,
+                ],
+                'duration_ms' => (int) round((microtime(true) - $t0) * 1000),
             ]);
 
             return trim($context);

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Modules\Jana\Entities\Mcp\McpSkillTestRun;
 use Modules\Jana\Entities\Mcp\McpSkillVersion;
 use Modules\Jana\Services\Ai\LaravelAiSdkDriver;
+use Modules\Jana\Services\Telemetry\LangfuseClient;
 
 /**
  * ADR 0076 (Fase 3) — roda uma version de skill contra prompt do user.
@@ -130,6 +131,8 @@ class SkillTestRunnerService
 
         $model = config('copiloto.skill_test_model', 'claude-haiku-4-5-20251001');
 
+        $t0 = microtime(true);
+
         $response = Http::withHeaders([
             'x-api-key'         => $apiKey,
             'anthropic-version' => '2023-06-01',
@@ -156,6 +159,25 @@ class SkillTestRunnerService
             ->join("\n");
 
         $outputTokens = $body['usage']['output_tokens'] ?? null;
+
+        // US-COPI-108 (reconciliação 2026-07-12): call-site Http:: direto, fora do
+        // listener global Langfuse — instrumentação inline. Prompt já passou pelo
+        // PII redactor upstream (runInternal). No-op se langfuse.enabled=false.
+        app(LangfuseClient::class)->traceComGeneration([
+            'name'     => 'skill-test-run',
+            'tool'     => 'skill-test-runner',
+            'metadata' => ['system_chars' => strlen($systemPrompt)],
+        ], [
+            'name'        => 'skill-test-call',
+            'model'       => (string) $model,
+            'input'       => $userPrompt,
+            'output'      => $output,
+            'usage'       => [
+                'input'  => $body['usage']['input_tokens'] ?? null,
+                'output' => $outputTokens,
+            ],
+            'duration_ms' => (int) round((microtime(true) - $t0) * 1000),
+        ]);
 
         return [$output, $outputTokens];
     }
