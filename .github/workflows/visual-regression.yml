@@ -332,20 +332,30 @@ jobs:
       # mesmo princípio não-invasivo do L3).
       # L2-v2 usa a mesma classificação 3-bandas do L7: ruído não interrompe PR, mas uma
       # regressão clara falha no step e a zona cinza sobe diff-view para revisão humana.
-      # Permanece advisory enquanto coleta estabilidade em estados forçados; o mecanismo não
-      # é mais binário/flaky e a promoção futura só remove este continue-on-error.
+      # Permanece como radar global advisory enquanto estados de outros módulos estabilizam.
+      # Financeiro tem gate dedicado enforcing logo abaixo.
       - name: Estados isolados (ADVISORY — L2-v2 · double-threshold + diff-view)
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: isolated-states
         continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
 
-      - name: Fluxos visuais Financeiro (ADVISORY — L2.5 · interação × viewport)
+      - name: Estados isolados Financeiro (ENFORCING — L2-v2 · double-threshold + diff-view)
+        # PROMOVIDO A ENFORCING (2026-07-13): os 5 estados do Financeiro/Unificado foram
+        # armados via #4237/#4238 depois do fix do modo update (#4236). A matriz global
+        # segue advisory porque Oficina dark ainda tem drift independente.
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: financeiro-states
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php --filter=financeiro-unificado
+
+      - name: Fluxos visuais Financeiro (ENFORCING — L2.5 · interação × viewport)
         # Executa mesmo se o núcleo-6 falhar: o fluxo novo não pode ficar sem
         # evidência por uma regressão independente de outra tela.
+        # PROMOVIDO A ENFORCING (2026-07-13): os 12 fluxos × viewport foram armados
+        # via #4237/#4238. Sem continue-on-error: regressão clara pós-clique agora
+        # BLOQUEIA merge.
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: financeiro-flows
-        continue-on-error: true
         run: ./vendor/bin/pest tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
 
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
