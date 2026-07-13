@@ -1,12 +1,12 @@
 ---
 date: "2026-07-13"
 hour: "12:20 BRT"
-topic: "Existe OSS parecido com o IA-OS? Pesquisa profunda (deep-research: 105 agentes, 23 fontes, 20 claims confirmadas por votação adversarial 0 refutadas)"
+topic: "Existe OSS parecido com o IA-OS? Pesquisa profunda (deep-research: 2 rodadas, 25 claims confirmadas por votação adversarial 0 refutadas, síntese completa)"
 authors: [C]
 outcomes:
   - "Veredito: NÃO existe OSS que monte o TODO integrado dos 5 blocos; SIM existe cobertura por-peça madura"
-  - "Bloco 5 (auto-aplicação recursiva) e a INTEGRAÇÃO dos 5 num loop-fechado-por-métrica = vazio de mercado (nada equivalente encontrado)"
-  - "Roubar: Betterer (ratchet de referência), Conftest/OPA (policy-as-code), validar Constituição vs /speckit.constitution"
+  - "Bloco 5 (auto-aplicação recursiva) + INTEGRAÇÃO dos 5 + anchor-lint código-ancorado + lápides append-only = vazio de mercado (inéditos)"
+  - "Roubar: já temos equivalente de tudo roubável wholesale (Betterer/OPA/Danger/Sphinx-Needs) → migrar=retrabalho. Única peça cheap: protocolo de debate AGREE/CHALLENGE/CONNECT/SURFACE do Open Code Review, como padrão a adaptar nos workflows adversariais"
 related_adrs: [0334-emenda-0330-modelo-3-camadas-anti-atrofia, 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes, 0256-conhecimento-derivado-enforcado]
 ---
 
@@ -55,10 +55,29 @@ Os mais próximos (agentic-os, Spec-Flow) cobrem b1+b2+b3 de forma **mais leve**
 
 **Recomendação:** não adotar framework inteiro (todos mais fracos em b1-b2 e param antes de b3-b5). Roubar conceitos pontuais. Bloco 5 + integração = o diferencial publicável, se um dia quiser reputação/contribuição OSS.
 
+## ATUALIZAÇÃO 2026-07-13 14h — retomada completou (síntese + OCR/OPA verificados)
+
+A 1ª rodada cortou no limite de sessão (12:30); retomada via `resumeFromRunId: wf_53aa5343` fechou: **25 claims confirmadas, 0 refutadas, 0 unverified, 11 achados sintetizados** (1 único erro: v1 OpenSpec rate-limit — v0+v2 passaram, claim resolveu). Duas correções materiais ao quadro acima:
+
+**Bloco 2 (adversarial) EXISTE em OSS maduro — corrige o "só paper" da 1ª rodada:** **Open Code Review** (Apache-2.0, v2.4.0 jun/2026, ~299★, 28 personas em 4 tiers) faz revisores independentes **DEBATEREM** antes da síntese via fase estruturada `AGREE / CHALLENGE / CONNECT / SURFACE` — "pega falso-positivo que revisor único perderia" (README + paper OpenReview "Adversarial Review: Cooperative Code Review through Structured Disagreement"). É o padrão refutador/juiz do oimpresso, **escopado a code-review**, sem lápides append-only. Família acadêmica ativa (agent-as-a-judge → debate multi-agente, surveys 2508.02994 / 2601.05111) confirma consenso: avaliação por agente **COMPLEMENTA, não substitui** HITL — casa com o Wagner-approval.
+
+**Mais OSS roubável confirmado:** **Danger JS** (MIT, convention-as-code em PR via Dangerfile) · **Sphinx-Needs** (v8.3.0 safety-critical, rastreabilidade req↔teste — mas ancora na DOC, não no CÓDIGO como o anchor-lint).
+
+### Veredito de ROUBO (honesto, impacto÷esforço)
+
+| Item | Existe pronto | Roubar? |
+|---|---|---|
+| ratchet/baseline | Betterer (~630★, match 1:1) | ❌ **já temos funcionando** (22 gates + desarme-por-PR) — trocar = reescrita sem ganho |
+| policy-as-code | OPA/conftest, Danger JS | ❌ já temos (`.mjs`+hooks+trailers); migração prematura |
+| rastreabilidade | Sphinx-Needs | ❌ o nosso é **melhor** pro caso (ancora no código) |
+| **debate adversarial** | **Open Code Review** ⭐ | ✅ **ler+adaptar** o protocolo `AGREE/CHALLENGE/CONNECT/SURFACE` nos templates dos nossos workflows adversariais (refutador→juiz→**debate**→síntese). Barato, afia o diferencial. NÃO adotar a ferramenta (é code-review-only) |
+
+**Conclusão de roubo:** já temos equivalente funcional de tudo que é roubável wholesale → adotar = retrabalho. A **única** peça cheap+valiosa é o protocolo de debate do OCR, como padrão a incorporar (não ferramenta a instalar). Bloco 5 (auto-aplicação recursiva) + integração dos 5 + anchor-lint código-ancorado + lápides append-only + scorecards-do-próprio-processo com paired-indicators seguem **inéditos** — material de open-sourcear ao contrário.
+
 ## Honestidade (Tier 0)
 
-- Síntese automática + verificação de 5 claims (OCR, OPA) caíram no **limite de sessão** (reset 12:30). As 5 estão `unverified` — tratadas como "promissor, a confirmar", não fato. Re-rodável via `resumeFromRunId: wf_53aa5343` (cache aproveita 91 agentes).
-- Stars/datas são snapshot de julho/2026 (envelhece por design). 0 claims refutadas nesta rodada — mas 0-refutado num corte não é o mesmo que "tudo robusto"; a síntese não passou pelo integrador.
+- Stars/datas são snapshot de julho/2026 (envelhece por design). Rodada completa: 25 confirmadas / 0 refutadas — robusto, síntese passou pelo integrador (11 achados alta-confiança, exceto o veredito de originalidade que é `medium`, inferência-por-ausência).
+- BMAD/Archon/claude-flow/task-master não foram verificados a fundo (mesma família SDD dos verificados = geração+alinhamento, não enforcement+recursão) — se algum ganhar tração como "governance OS", re-medir.
 
 ## Fontes-chave (23 total)
 github.com/KbWen/agentic-os · marcusgoll/Spec-Flow · github/spec-kit · Fission-AI/OpenSpec · buildermethods/agent-os · phenomnomnominal/betterer · openpolicyagent.org/docs/cicd · spencermarx/open-code-review · thomvaill/log4brains · adr.github.io/adr-tooling · basicmachines-co/basic-memory · XMUDeepLIT/Awesome-Self-Evolving-Agents · getdx.com/research/measuring-ai-code-assistants · comparativos SDD (hackernoon/reenbit/medium).
