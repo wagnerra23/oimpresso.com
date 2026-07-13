@@ -39,8 +39,16 @@
 # HONESTIDADE (Tier 0): se o artefato estiver ausente/inválido ou o comando falhar,
 # o script sai != 0 e o dia fica SEM row nova (o brief mostra o snapshot de ontem) —
 # a falha aparece no cron.log e no ->onFailure() do comando. NUNCA inventa row.
+#
+# STALENESS (advisory): se o último commit do artefato tiver mais que SDD_MAX_AGE_DAYS
+# (default 3), loga WARNING alto e SEGUE. Escolha deliberada: abortar deixaria o dia
+# sem row (pior sinal — o brief mostraria ontem sem explicação); row honesta + WARNING
+# no snapshot.log preserva o sintoma de diagnóstico do RUNBOOK (publish parado).
+#
+# Selftest (CI governance-script-tests.yml + local): scripts/tests/ct100-sdd-scorecard-snapshot.test.sh
 set -euo pipefail
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# SDD_TEST_BIN: seam do selftest — prependa um dir com `docker` mock. Vazio em produção.
+export PATH="${SDD_TEST_BIN:+$SDD_TEST_BIN:}/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 CONTAINER="${SDD_CONTAINER:-oimpresso-mcp}"
 # checkout versionado do MCP (self-update.sh + oimpresso-git-sync.timer o mantêm em
@@ -61,6 +69,24 @@ grep -q '"metrics"' "$SRC" || { log "FATAL: $SRC sem chave metrics (artefato cor
 # do JSON é determinístico por design — sem timestamp; a rastreabilidade é o git).
 cd "$CODE"
 log "fonte: artefato versionado governance/sdd-scorecard.json @ checkout $(git rev-parse --short HEAD 2>/dev/null || echo '?') (último commit do artefato: $(git log -1 --format='%h %cs' -- governance/sdd-scorecard.json 2>/dev/null || echo '?'))"
+
+# GUARD DE STALENESS (advisory, não aborta): sem isso o snapshot carimba row FRESCA
+# com artefato potencialmente VELHO e mata o sintoma de diagnóstico do RUNBOOK
+# (publish parado ⇒ brief continua "atualizado"). O corpo do JSON é determinístico
+# (sem timestamp, by design) — o relógio é o git do checkout. Decisão conservadora:
+# row honesta COM aviso > dia sem row (abortar esconderia o snapshot de ontem também);
+# o WARNING no snapshot.log é o sintoma que o RUNBOOK usa.
+MAX_AGE_DAYS="${SDD_MAX_AGE_DAYS:-3}"
+ARTIFACT_CT="$(git log -1 --format=%ct -- governance/sdd-scorecard.json 2>/dev/null || true)"
+if [ -n "$ARTIFACT_CT" ]; then
+  AGE_DAYS=$(( ($(date +%s) - ARTIFACT_CT) / 86400 ))
+  if [ "$AGE_DAYS" -gt "$MAX_AGE_DAYS" ]; then
+    log "WARNING: artefato governance/sdd-scorecard.json está ${AGE_DAYS}d sem commit (> ${MAX_AGE_DAYS}d) — publish diário parado? (ver sdd-scorecard-publish.yml + self-update do checkout). Row do dia SEGUE, mas o número pode estar velho."
+  fi
+else
+  log "aviso: idade do artefato indeterminada (git log vazio — checkout raso/sem histórico?)"
+fi
+
 cp "$SRC" "$INPUT_HOST"
 [ -s "$INPUT_HOST" ] || { log "FATAL: cópia do scorecard vazia"; exit 1; }
 
