@@ -5,12 +5,17 @@
 // SEM MATCH publicado; branch alheia não vaza; sessão casada por branch NÃO
 // re-atribui por citação; modelo sem preço não inventa USD), e que a matemática de
 // cache confere (read 0.1× · write 5m 1.25× · write 1h 2×).
-// Hermético: fixtures em memória — zero gh/fs/rede. Exit 0 = passa.
+// Hermético: fixtures em memória — zero gh/rede (fs só em tmpdir, pro round-trip de
+// encoding UTF-8 do snapshot: título PT-BR não-ASCII tem que sobreviver sem mojibake/BOM).
+// Exit 0 = passa.
 
 import {
   buildReport, parseUsageLine, custoUSD, resolvePreco, aggregatePorBranch,
   aggregatePorModelo, extractPrMentions, PRECOS_USD_MTOK, CACHE_MULT,
 } from './agent-cost-per-pr.mjs';
+import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 let fails = 0;
 const check = (name, cond) => { console.log(`${cond ? '[OK]  ' : '[FAIL]'} ${name}`); if (!cond) fails++; };
@@ -47,8 +52,12 @@ check('extractPrMentions acha /pull/N e deduplica', JSON.stringify(extractPrMent
 check('extractPrMentions fronteira: /pull/100 não casa 10', !extractPrMentions('/pull/100').includes(10));
 
 // ── fixture de PRs + sessões (join de 2 sinais morde/libera) ────────────────────
+// título do #10 é não-ASCII de PROPÓSITO (resíduo (d) adversário 2026-07-13: fixtures
+// ASCII-only deixariam mojibake de encoding Windows — proibições: Set-Content BOM/cp1252 —
+// atravessar o pipeline report→snapshot sem nenhum teste gritar).
+const TITULO_PT = 'feat: memória canônica — adversário à prova [CC]';
 const PRS = [
-  { number: 10, title: 'feat: a [CC]', author: { login: 'x' }, headRefName: 'claude/a', createdAt: '2026-07-01T00:00:00Z', mergedAt: '2026-07-02T00:00:00Z' },
+  { number: 10, title: TITULO_PT, author: { login: 'x' }, headRefName: 'claude/a', createdAt: '2026-07-01T00:00:00Z', mergedAt: '2026-07-02T00:00:00Z' },
   { number: 11, title: 'feat: b [CC]', author: { login: 'x' }, headRefName: 'claude/b', createdAt: '2026-07-03T00:00:00Z', mergedAt: '2026-07-04T00:00:00Z' },
   { number: 12, title: 'feat: c [CC]', author: { login: 'x' }, headRefName: 'claude/c', createdAt: '2026-07-05T00:00:00Z', mergedAt: '2026-07-06T00:00:00Z' },
   { number: 15, title: 'feat: d [CC]', author: { login: 'x' }, headRefName: 'claude/d', createdAt: '2026-07-05T12:00:00Z', mergedAt: '2026-07-06T12:00:00Z' },
@@ -91,6 +100,22 @@ check('modelo desconhecido listado', r.join.modelos_desconhecidos.includes('clau
 check('LIBERA: sessão sem sinal vira fora da janela ($1.00)', r.custo.usd_fora_da_janela === 1);
 check('msgs sem branch contadas, não atribuídas', r.join.msgs_sem_branch === 1);
 check('total matched = 14+2+2 = $18.00', r.custo.total_usd_matched === 18);
+
+// ── encoding PT-BR sobrevive report → snapshot em disco (mesma escrita do --snapshot) ──
+const MOJIBAKE = /Ã[£©¡§µ­ª‚ƒ†]|â€|Ãƒ|�/; // Ã£/Ã©/â€œ/â€”/U+FFFD etc
+check('título PT-BR intacto no por_pr (sem mojibake)', pr10 && pr10.title === TITULO_PT);
+check('título PT-BR intacto no top_prs', r.custo.top_prs.some((t) => t.pr === 10 && t.title === TITULO_PT));
+const snapDir = mkdtempSync(join(tmpdir(), 'costsnap-'));
+try {
+  const snapFile = join(snapDir, 'snap.json');
+  writeFileSync(snapFile, JSON.stringify(r, null, 2) + '\n'); // idêntico ao caminho --snapshot
+  const buf = readFileSync(snapFile);
+  check('snapshot em disco sem BOM UTF-8', !(buf[0] === 0xEF && buf[1] === 0xBB && buf[2] === 0xBF));
+  const texto = buf.toString('utf8');
+  check('snapshot em disco sem padrões de mojibake', !MOJIBAKE.test(texto));
+  const volta = JSON.parse(texto);
+  check('round-trip disco preserva título PT-BR byte a byte', volta.por_pr.find((p) => p.pr === 10)?.title === TITULO_PT);
+} finally { rmSync(snapDir, { recursive: true, force: true }); }
 
 // ── LIBERA: sem sessões → tudo sem match (100%), nada inventado ──────────────────
 const r2 = buildReport({ prs: PRS, sessions: [], generated: '2026-07-12' });
