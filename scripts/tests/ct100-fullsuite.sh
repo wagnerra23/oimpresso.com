@@ -27,6 +27,15 @@ COV_TIMEOUT_S="${FULLSUITE_COV_TIMEOUT:-14400}"      # timeout da COVERAGE (run 
 KILL_GRACE_S="${FULLSUITE_KILL_GRACE:-120}"          # timeout -k: apos TERM, SIGKILL do docker-run em Ns (V4 — sem isso o timeout NAO mata o container do pcov e ele viraria runaway de 16h)
 SHARDS_N="${FULLSUITE_SHARDS:-8}"                     # V1 sharding: N shards bin-packed (OOM: suite unica morria a ~53%; 8 => ~1/8 do pico por processo)
 SHARD_TIMEOUT_S="${FULLSUITE_SHARD_TIMEOUT:-3600}"   # timeout por shard (1h; -k KILL_GRACE_S) — a noite nao tem teto unico, o .lock evita overlap
+# dirs descobertos pelo filesystem mas NAO-rodaveis no nightly (poda no shards-plan). tests/Browser
+# = Pest Browser (exige Playwright, ausente na imagem => PlaywrightNotInstalledException mata o shard);
+# tests/governance-fixtures = testes SINTETICOS bad/good dos gates, nao reais. Provado 2026-07-12:
+# 3 shards mortos so por tests/Browser. O `pest` sem-args (single-process) so roda os <testsuite> do
+# phpunit.xml; o sharded passa dirs explicitos, entao precisa da MESMA poda.
+SHARD_EXCLUDE="${FULLSUITE_SHARD_EXCLUDE:-tests/Browser,tests/governance-fixtures}"
+# tentativas de quarentena por shard (loader-blocker de LOAD + killer-test MID-RUN via events).
+# 12 = mesmo teto do run unico historico; o SHARD_TIMEOUT_S e o bound duro real.
+SHARD_MAX_ATTEMPTS="${FULLSUITE_SHARD_ATTEMPTS:-12}"
 KEEP_RUNS="${FULLSUITE_KEEP_RUNS:-14}"
 ENV_LOCAL="$BASE/.env.local"
 
@@ -193,7 +202,7 @@ echo "--- [6/7] pest SHARDED (V1/V3 fix OOM — 1 processo PHP fresco por shard;
 # dirs => noite VAZIA (universe-gate passa vacuo "0 cobertos/0 perdidos"). Provado no run
 # 20260712-195945: 8 shards vazios, 0 vivos. cd pro clone faz os roots resolverem.
 ( cd "$CODE" && node "$CODE/scripts/tests/shards-plan.mjs" --roots tests,Modules --shards "$SHARDS_N" \
-    --out "$RUN_DIR/shards-plan.json" ) > /dev/null \
+    --exclude "$SHARD_EXCLUDE" --out "$RUN_DIR/shards-plan.json" ) > /dev/null \
   || { echo "FATAL: shards-plan falhou — sem plano nao rodo"; exit 1; }
 # GUARD anti-noite-vazia: 0 dirs descobertos (cwd errado / roots errados / clone vazio) NAO
 # pode virar universe-gate verde vacuo. Aborta ALTO em vez de gravar uma noite falsa-valida.
@@ -202,11 +211,29 @@ TOTAL_DIRS=$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readF
   || { echo "FATAL: shards-plan descobriu 0 dirs de teste (cwd=$CODE? roots?) — noite vazia NAO e valida, abortando"; exit 1; }
 # universe-gate (SDD P04): prova que os shards cobrem EXATAMENTE o universo descoberto —
 # nenhum dir de teste some no particionamento (senao a noite mede menos e mente non-stale).
-( cd "$CODE" && node "$CODE/scripts/tests/shards-plan.mjs" --verify --roots tests,Modules --plan "$RUN_DIR/shards-plan.json" ) \
+( cd "$CODE" && node "$CODE/scripts/tests/shards-plan.mjs" --verify --roots tests,Modules --exclude "$SHARD_EXCLUDE" --plan "$RUN_DIR/shards-plan.json" ) \
   || { echo "FATAL: universe-gate do plano de shards FALHOU (dir de teste perdido) — abortando"; exit 1; }
 N_SHARDS=$(node -e 'process.stdout.write(String(JSON.parse(require("fs").readFileSync(process.argv[1],"utf8")).n_shards||0))' "$RUN_DIR/shards-plan.json")
 echo "shards-plan: $TOTAL_DIRS dirs de teste descobertos"
 echo "shards planejados: $N_SHARDS (bin-pack de tests/ + Modules/; 1 processo php fresco por shard)"
+
+# killer-test MID-RUN (fix "todos" 2026-07-12): quando o junit fica 0-byte SEM loader-blocker
+# de LOAD, o php morreu NO MEIO rodando um teste que TRAVA o processo (segfault/exit/crash) —
+# nao ha fatal impresso (padrao "morte silenciosa"). O events-log (--log-events-text) grava 1
+# linha por evento com flush imediato; o ULTIMO "Test Preparation Started" NOMEIA o teste em voo
+# no instante da morte. Deriva o arquivo PSR-4 da classe (Pest prefixa P\; converte \ -> / via
+# octal \134 pra nao depender de backslash-literal; Tests\ do topo mapeia pra tests/). Quarentenar
+# esse arquivo deixa o shard SOBREVIVER perdendo so o teste assassino (registrado), nao a noite.
+# Provado 2026-07-12: shard 0 morreu em Wave23SaturationTest (37 testes, nao OOM), shard 1 em
+# SeedAdrsMetadataTest (986) — ambos derivados corretos + existentes no clone.
+killer_from_events() {
+  ev="$1"; [ -f "$ev" ] || return 0
+  line=$(grep 'Test Preparation Started (' "$ev" | tail -1)
+  [ -z "$line" ] && return 0
+  cls=$(printf '%s' "$line" | tr '\134' '/' | sed 's|.*(P/||; s|::.*||; s|^Tests/|tests/|')
+  [ -z "$cls" ] && return 0
+  printf '%s.php' "$cls"
+}
 
 SHARDS_LIVE=0
 PEST_EXIT=0
@@ -218,7 +245,7 @@ while [ "$i" -lt "$N_SHARDS" ]; do
   SJUNIT="$RUN_DIR/junit-shard-$i.xml"
   SOUT="$RUN_DIR/shard-$i-out.txt"
   docker rm -f "oimpresso-fullsuite-run-$i" >/dev/null 2>&1 || true
-  for attempt in 1 2 3; do
+  for attempt in $(seq 1 "$SHARD_MAX_ATTEMPTS"); do
     # 1 processo php FRESCO por shard (container efemero -> heap zerado). memory_limit 4G =
     # TETO (nao reserva); com sharding raramente alcancado. timeout -k mata o container no
     # teto (V4). Mesmos fixes A.1 do run unico (mysql client + TLS-off). SHARD_DIRS/SHARD_IDX
@@ -253,11 +280,24 @@ while [ "$i" -lt "$N_SHARDS" ]; do
     if [ -z "$BLOCKER" ] && grep -qE 'Parse error' "$SOUT"; then
       BLOCKER=$(grep -E 'Parse error' "$SOUT" | grep -oP 'in /workspace/\K[^ ]+(?= on line)' | head -1 || true)
     fi
-    # sem blocker recuperavel => shard morto (OOM/timeout/outro). NAO retenta: o merge do
+    # junit 0b SEM loader-blocker de LOAD => killer-test MID-RUN (trava o processo, sem fatal).
+    # O events-log nomeia o teste em voo; quarentena ele e retenta (shard sobrevive perdendo
+    # so o assassino). Bound real = SHARD_TIMEOUT_S; killer profundo caro (re-roda ate ele) mas
+    # limitado. OOM externo genuino nao nomeia culpado util => quarentena nao progride e desiste.
+    if [ -z "$BLOCKER" ]; then
+      BLOCKER=$(killer_from_events "$RUN_DIR/pest-events-shard-$i.txt")
+      [ -n "$BLOCKER" ] && echo "SHARD $i: killer-test em voo detectado via events: $BLOCKER"
+    fi
+    # sem blocker/killer recuperavel => shard morto (OOM externo/timeout). NAO retenta: o merge do
     # passo 7 registra como missing e a noite segue (all_shards_measured=false).
-    [ -z "$BLOCKER" ] && { echo "SHARD $i: morto sem loader-blocker recuperavel (OOM/timeout?) — segue"; break; }
+    [ -z "$BLOCKER" ] && { echo "SHARD $i: morto sem blocker/killer recuperavel (OOM externo/timeout?) — segue"; break; }
     [ ! -f "$CODE/$BLOCKER" ] && { echo "SHARD $i: blocker inexistente no clone ($BLOCKER) — sem quarentena"; break; }
-    echo "SHARD $i loader-blocker ($attempt): $BLOCKER — quarentena no clone, registrado"
+    # loop-guard: se ja quarentenamos ESSE arquivo e o shard AINDA morre, nao ha progresso
+    # (ex OOM que nomeia sempre o mesmo teste em voo) — desiste em vez de girar em falso.
+    if grep -qxF "$BLOCKER" "$RUN_DIR/loader-blockers.txt" 2>/dev/null; then
+      echo "SHARD $i: $BLOCKER ja quarentenado e o shard ainda morre — sem progresso, desiste"; break
+    fi
+    echo "SHARD $i quarentena ($attempt/$SHARD_MAX_ATTEMPTS): $BLOCKER — movido no clone, registrado"
     echo "$BLOCKER" >> "$RUN_DIR/loader-blockers.txt"
     mkdir -p "$CODE/.loader-quarantine/$(dirname "$BLOCKER")"
     mv "$CODE/$BLOCKER" "$CODE/.loader-quarantine/$BLOCKER"
