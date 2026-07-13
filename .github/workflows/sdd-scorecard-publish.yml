@@ -55,6 +55,7 @@ concurrency:
 permissions:
   contents: write
   pull-requests: write
+  actions: read # drift_alarms (GT-G4): protection-drift.mjs lê last run verde dos workflows-fonte
 
 jobs:
   publish:
@@ -62,6 +63,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # distiller_freshness usa data-git do doc mais novo por módulo (ADR 0291 D-D);
+          # shallow (depth 1) faz todo doc voltar a data do HEAD → stale fantasma aterrissado
+          # no main (mesmo bug já corrigido no sdd-scorecard-ratchet.yml).
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -100,6 +106,11 @@ jobs:
           fi
 
       - name: Medir — agregador reescreve governance/sdd-scorecard.json
+        # GH_TOKEN: sem ele, measureDriftAlarms cai no fallback honesto (not_yet_measured)
+        # e a métrica NUNCA aterrissa — o protection-drift.mjs (fonte GT-G4) exige gh
+        # autenticado. Mesmo token do protection-drift.yml (rotas públicas, read-only).
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           node scripts/governance/sdd-scorecard.mjs | tee /tmp/scorecard.txt
           { echo '## SDD Scorecard publish (medição desta run)'; echo '```'; cat /tmp/scorecard.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
