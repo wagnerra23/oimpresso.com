@@ -57,6 +57,22 @@ JS);
     $page->wait(0.5);
 }
 
+/** Aguarda o React montar o alvo real do fluxo, sem assumir que o cabeçalho da
+ * página significa que a tabela, os portais e seus handlers já estão prontos.
+ */
+function aguardarAlvoVisual($page, string $script, string $alvo): void
+{
+    for ($tentativa = 0; $tentativa < 20; $tentativa++) {
+        if ($page->script($script) === true) {
+            return;
+        }
+
+        $page->wait(0.25);
+    }
+
+    throw new RuntimeException("Alvo visual não ficou disponível: {$alvo}");
+}
+
 /** Linha determinística para os fluxos que partem de um lançamento existente.
  *
  * O seed visual padrão só garante empresa+admin. Sem este título, drawer, baixa
@@ -98,25 +114,30 @@ function executarFluxoFinanceiro($page, string $action): void
         return;
     }
     if ($action === 'open_drawer') {
-        expect($page->script("(() => { const row=document.querySelector('tbody tr'); if (!row) return false; row.click(); return true; })()"))->toBeTrue();
-        $page->wait(0.3);
-        expect($page->script("!!document.querySelector('[role=dialog]')"))->toBeTrue();
+        aguardarAlvoVisual($page, "!!document.querySelector('tbody tr')", 'linha de lançamento');
+        expect($page->script("(() => { document.querySelector('tbody tr').click(); return true; })()"))->toBeTrue();
+        aguardarAlvoVisual($page, "!!document.querySelector('[role=dialog]')", 'drawer do lançamento');
         return;
     }
     if ($action === 'open_baixa') {
+        aguardarAlvoVisual($page, <<<'JS'
+(() => {
+  return [...document.querySelectorAll('button')].some((el) => /\b(Recebi|Paguei)\b/.test(el.textContent || ''));
+})()
+JS, 'botão de baixa');
         expect($page->script(<<<'JS'
 (() => {
   const button = [...document.querySelectorAll('button')].find((el) => /\b(Recebi|Paguei)\b/.test(el.textContent || ''));
-  if (!button) return false; button.click(); return true;
+  button.click(); return true;
 })()
 JS))->toBeTrue();
-        $page->wait(0.3);
-        expect($page->script("!!document.querySelector('[role=dialog]')"))->toBeTrue();
+        aguardarAlvoVisual($page, "!!document.querySelector('[role=dialog]')", 'sheet de baixa');
         return;
     }
     if ($action === 'select_bulk') {
+        aguardarAlvoVisual($page, "!!document.querySelector('[aria-label^=\"Selecionar lançamento\"]')", 'checkbox de lote');
         expect($page->script(<<<'JS'
-(() => { const box=document.querySelector('[aria-label^="Selecionar lançamento"]'); if (!box) return false; box.click(); return true; })()
+(() => { document.querySelector('[aria-label^="Selecionar lançamento"]').click(); return true; })()
 JS))->toBeTrue();
         $page->assertSee('Cancelar lote');
         return;
