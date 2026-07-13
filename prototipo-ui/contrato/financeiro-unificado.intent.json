@@ -3,9 +3,9 @@
   "fonte": "prototipo-ui/cowork/financeiro-page.jsx",
   "charter": "resources/js/Pages/Financeiro/Unificado/Index.charter.md",
   "alvo": ["resources/js/Pages/Financeiro/Unificado/Index.tsx"],
-  "modo": "advisory",
+  "modo": "enforcing",
   "cobertura_minima": 5,
-  "nota": "Piloto de contrato de intenção. Cada intenção tem evidência positiva e caminhos proibidos verificáveis; prosa não cria exceção.",
+  "nota": "Contrato de intenção ENFORCING. Cada intenção tem evidência positiva e caminhos proibidos verificáveis; prosa não cria exceção. Campo `modo` é declarativo — a tranca real é o workflow `contrato-de-tela` (step 'Intenção de fluxo', exit-code real) promovido a required status check sob enforce_admins (ADR 0261). Reintroduzir a rota legada = job vermelho = merge bloqueado.",
   "fluxos": [
     {
       "id": "novo-titulo-escolhe-tipo",

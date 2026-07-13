@@ -151,6 +151,12 @@ Os adversários derrubaram, com evidência do repo:
 
 Piloto: **Caixa Unificada** (`resources/js/Pages/Atendimento/CaixaUnificada/`) — não tem `casos.md` (gap) e é a tela que originou esta sessão.
 
+### Estado da adoção (2026-07-13) — promovido a enforcing-ready (ADR 0261 Alavanca 2)
+
+- **Instrumentado:** `Atendimento/CaixaUnificada` (contrato visual, 🟢 portado) + `Financeiro/Unificado` (contrato de **intenção** `financeiro-unificado.intent.json`, `modo: enforcing`, 5/5 fluxos 🟢).
+- **Gate:** `contrato-de-tela.yml` convertido de path-scoped → **always-run + skip-as-pass** (step `detect` reusa o filtro de path antigo). Passa a **sempre reportar status** → requerível sem o deadlock "Expected — waiting" (causa-raiz [ADR 0261](../../decisions/0261-enforcement-faseado-gates-ci.md)). Falso-positivo medido = 0 (3+ verdes; 2 vermelhos legítimos quando a tela divergiu).
+- **Falta (passo 4, [W] · Tier 0):** adicionar o check `Preflight + contratos ativos` aos required status checks do `main` (`gh api -X PATCH .../required_status_checks`) — branch protection é admin-only ([ADR 0261](../../decisions/0261-enforcement-faseado-gates-ci.md) §Autoridade). Até lá o job fica **vermelho de verdade** mas não bloqueia merge.
+
 ---
 
 ## Refs

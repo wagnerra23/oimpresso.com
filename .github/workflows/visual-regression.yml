@@ -335,21 +335,40 @@ jobs:
       # mesmo princípio não-invasivo do L3).
       # L2-v2 usa a mesma classificação 3-bandas do L7: ruído não interrompe PR, mas uma
       # regressão clara falha no step e a zona cinza sobe diff-view para revisão humana.
-      # Permanece como radar global advisory enquanto estados de outros módulos estabilizam.
-      # Financeiro tem gate dedicado enforcing logo abaixo.
-      - name: Estados isolados (ADVISORY — L2-v2 · double-threshold + diff-view)
+      #
+      # ONDA 2 DA MATRIZ (2026-07-13): a matriz global de estados deixa de ser advisory-em-bloco.
+      # O único estado que ainda dá REGRESSÃO CLARA determinística é `oficina-os · dark` — fica
+      # sozinho no step advisory ABAIXO (radar). Todas as outras telas (financeiro + sells +
+      # clientes + compras + caixa) vão pro step ENFORCING mais abaixo. Cada tela runa 1× só.
+      - name: Estados isolados Oficina dark (ADVISORY — drift independente ~6.8% > τ_alto)
+        # RADAR do único estado que ainda NÃO estabiliza: `oficina-os · dark` rende 6.7793%
+        # diferente da baseline commitada — MESMO % em 2 runs (29279148405 + 29280327554), logo
+        # NÃO é flake, é drift determinístico. O modo update tampouco resolve: a baseline
+        # regenerada em vrt/baselines-* (dispatch #4237/#4238) volta a falhar o gate no MESMO
+        # 6.7793% (run 29279148405 do próprio PR de baselines). Ou seja, o render do dark da
+        # Oficina diverge de forma estável entre a captura --update e a captura do gate — precisa
+        # de FIX DE RENDER (dark-warm ADR UI-0020 na Board), não de re-baseline. Fica advisory
+        # até resolver; promover = mover 'oficina-os' pro filtro enforcing abaixo (ADR 0261).
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: isolated-states
         continue-on-error: true
-        run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php --filter=oficina-os
 
-      - name: Estados isolados Financeiro (ENFORCING — L2-v2 · double-threshold + diff-view)
-        # PROMOVIDO A ENFORCING (2026-07-13): os 5 estados do Financeiro/Unificado foram
-        # armados via #4237/#4238 depois do fix do modo update (#4236). A matriz global
-        # segue advisory porque Oficina dark ainda tem drift independente.
+      - name: Estados isolados matriz (ENFORCING — Financeiro+Sells+Clientes+Compras+Caixa)
+        # MATRIZ GLOBAL ENFORCING. Financeiro foi a 1ª onda (#4239, #4237/#4238). Onda 2
+        # (2026-07-13) adiciona as 4 telas ESTÁVEIS restantes — sells-index, clientes, compras,
+        # caixa-unificada — cada uma com 2 runs VERDES determinísticos (0 zona-cinza) contra a
+        # baseline commitada em main: runs 29279148405 e 29280327554 dão 19/20 pass, e a única
+        # falha é sempre `oficina-os · dark`. Critério ADR 0261 "nasce advisory → 2 verdes →
+        # enforcing" cumprido por tela. Oficina-os fica de fora (advisory acima) até o drift dark
+        # resolver. Sem continue-on-error: regressão clara nessas 5 telas BLOQUEIA o merge.
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
-        id: financeiro-states
-        run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php --filter=financeiro-unificado
+        id: matriz-states
+        # RETRY-ONCE anti-flake (scripts/tests/visreg-flake-retry.sh, mesma política do #4241):
+        # re-roda UMA vez SÓ na assinatura de EXECUÇÃO (browser não sobe/timeout/socket). Uma
+        # REGRESSÃO DE PIXEL real (double-threshold "REGRESSÃO CLARA" > τ_alto) NUNCA re-roda —
+        # o wrapper falha com o código original, preservando o que o gate enforcing existe p/ pegar.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php --filter="financeiro-unificado|sells-index|clientes|compras|caixa-unificada"
 
       - name: Fluxos visuais Financeiro (ENFORCING — L2.5 · interação × viewport)
         # Executa mesmo se o núcleo-6 falhar: o fluxo novo não pode ficar sem
@@ -359,7 +378,25 @@ jobs:
         # BLOQUEIA merge.
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: financeiro-flows
-        run: ./vendor/bin/pest tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
+        # RETRY-ONCE anti-flake (mesma política do financeiro-states): re-roda UMA vez só na
+        # assinatura de execução (o fluxo levou 11 patches por relógio cross-processo → o
+        # residual é flake de timing/browser, não pixel). Diff de pixel real NUNCA re-roda.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
+
+      - name: Fluxos visuais Compras (ADVISORY — L2.5 · interação × viewport)
+        # NASCE ADVISORY (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing).
+        # Cobre os 3 fluxos pós-clique do cockpit /compras (visibilidade de colunas,
+        # menu de Ações da linha, drawer) × 3 viewports = 9 snapshots. O double-threshold
+        # (VisregThreshold) roteia por bandas; a zona cinza sobe diff-view pro [W].
+        # Promoção L1 = remover o `continue-on-error` (o check `visual-regression` já é
+        # required; sem clique de branch protection). Baseline via modo update (dispatch)
+        # NO runner canônico — nunca local (Tier 0: testes no CT100/CI, proibicoes.md).
+        # `always()`: roda mesmo se um passo anterior falhar (fluxo novo não pode ficar
+        # sem evidência por regressão independente de outra tela).
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: compras-flows
+        continue-on-error: true
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/ComprasFlowBaselineTest.php
 
       - name: Fluxos visuais Sells/Create (ADVISORY — L2.5 · interação × viewport)
         # NASCE ADVISORY (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing). Cobre a
@@ -382,6 +419,7 @@ jobs:
           npm run visreg:states:update
           npm run visreg:flows:update
           npm run visreg:sells:update
+          npm run visreg:flows:compras:update
 
       # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
       # workflows `pull_request` em eventos causados pelo GITHUB_TOKEN → PR de baselines
@@ -414,13 +452,13 @@ jobs:
           git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" -u "$BR"
           gh pr create --title "test(visreg): baselines regeneradas (modo update) [CC]" --base main --head "$BR" --body "Baselines de pixel + estados isolados regeneradas NO runner canônico via workflow_dispatch (modo update). Motivo: Fundação aprovada [W] — ADR UI-0020 (dark warm). O gate required deste PR re-roda os testes contra estas baselines e prova que batem (anti-#3297)."
 
-      - name: Veredito advisory dos estados isolados (L2 · visível no log)
+      - name: Veredito advisory Oficina dark (L2 · visível no log)
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
           if [ "${{ steps.isolated-states.outcome }}" = "failure" ]; then
-            echo "🔴 L2-v2 ADVISORY FALHOU — diff acima de τ_alto contra baseline isolada. Ver artifact pixel-diff-views; regressão real? conserte. Fix aprovado? modo update regenera."
+            echo "🔴 L2 ADVISORY (oficina-os · dark) FALHOU — drift determinístico ~6.8% > τ_alto. Precisa de fix de RENDER (dark-warm da Board), não re-baseline. Ver artifact pixel-diff-views."
           elif [ "${{ steps.isolated-states.outcome }}" = "success" ]; then
-            echo "✅ estados isolados (L2-v2 · advisory) OK — empty/loading/dark/error sem regressão clara; zona cinza, se houver, está no summary + artifact."
+            echo "✅ oficina-os · dark (L2 · advisory) OK — drift resolvido. Pronto pra promover ao filtro enforcing da matriz (ADR 0261)."
           fi
 
       - name: Veredito advisory dos fluxos Financeiro (L2.5 · visível no log)
@@ -439,6 +477,16 @@ jobs:
             echo "🔴 L2.5 Sells/Create ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto (ou baseline ausente na 1ª execução). Ver pixel-diff-views."
           elif [ "${{ steps.sells-flows.outcome }}" = "success" ]; then
             echo "✅ fluxos Sells/Create OK — adicionar produto, abrir busca, aplicar desconto e adicionar pagamento capturados em compact/desktop/wide."
+          fi
+
+      - name: Veredito advisory dos fluxos Compras (L2.5 · visível no log)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: |
+          if [ "${{ steps.compras-flows.outcome }}" = "failure" ]; then
+            echo "🔴 L2.5 COMPRAS ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
+            echo "   1ª execução sem baseline GERA e passa (artifact pixel-snapshots comita). Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
+          elif [ "${{ steps.compras-flows.outcome }}" = "success" ]; then
+            echo "✅ fluxos Compras OK — visibilidade de colunas, menu de Ações e drawer capturados em compact/desktop/wide."
           fi
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
@@ -566,7 +614,7 @@ jobs:
               '',
               '> ℹ️ Distinção honesta: o **pixel-diff núcleo-6** (camada de diff de pixel das telas núcleo-6 — Onda Q4 · ADR 0261) agora é **ENFORCING** (`continue-on-error` removido) e **bloqueia o merge** se alguma tela passar de τ_alto (2%). O L7 (double-threshold) deixa a ZONA CINZA (τ_baixo..τ_alto) passar sem falhar — só vira diff-view pro [W] revisar.',
               '>',
-              '> ℹ️ O **lint L2** (charter `states:` ⇄ manifesto) é **ENFORCING** desde 2026-07-06 (aprovação [W]) — drift charter↔JSON bloqueia o merge. Os **snapshots L2 de estados isolados** seguem **advisory** até 3 baselines stale (financeiro-unificado default+dark, compras default) serem refrescadas com aprovação visual [W] (F1.5). Também advisory: L5 perf Lighthouse (calendário ADR 0275 §5).',
+              '> ℹ️ O **lint L2** (charter `states:` ⇄ manifesto) é **ENFORCING** desde 2026-07-06 (aprovação [W]) — drift charter↔JSON bloqueia o merge. Os **snapshots L2 de estados isolados** são **ENFORCING** pra matriz Financeiro+Sells+Clientes+Compras+Caixa (onda 2, 2026-07-13) — regressão clara nessas telas bloqueia o merge. Só `oficina-os · dark` segue **advisory** (drift determinístico ~6.8% que re-baseline não resolve — precisa fix de render). Também advisory: L5 perf Lighthouse (calendário ADR 0275 §5).',
               '',
               '### Como resolver',
               '1. Baixar artifact `screenshots-diff` deste workflow run',

@@ -81,3 +81,28 @@ A 1ª rodada cortou no limite de sessão (12:30); retomada via `resumeFromRunId:
 
 ## Fontes-chave (23 total)
 github.com/KbWen/agentic-os · marcusgoll/Spec-Flow · github/spec-kit · Fission-AI/OpenSpec · buildermethods/agent-os · phenomnomnominal/betterer · openpolicyagent.org/docs/cicd · spencermarx/open-code-review · thomvaill/log4brains · adr.github.io/adr-tooling · basicmachines-co/basic-memory · XMUDeepLIT/Awesome-Self-Evolving-Agents · getdx.com/research/measuring-ai-code-assistants · comparativos SDD (hackernoon/reenbit/medium).
+
+## ATUALIZAÇÃO 2026-07-13 — ROUBO EXECUTADO: fase Debate (OCR) adaptada ao harness
+
+A única peça que esta pesquisa marcou como "roubar vale a pena, e é barato" — o protocolo de
+discourse estruturado do **Open Code Review** (AGREE/CHALLENGE/CONNECT/SURFACE) — foi **adaptada**
+(não instalada; o OCR é code-review-only) ao nosso harness `Workflow`, como fase `Debate` colável
+entre a refutação e o juiz dos workflows adversariais. Isso mata a **falácia de composição** (regra
+dura #7 de `reguas-do-sistema`) **por construção**: o modo `SURFACE alvo="TODO"` força cada cético a
+olhar os achados JUNTOS e apontar a falha do conjunto integrado que nenhum slice isolado pega.
+
+**Entregáveis (1 PR):**
+- **Template + referência runnable:** [`.claude/workflows/debate-adversarial.js`](../../.claude/workflows/debate-adversarial.js)
+  — bloco `BEGIN/END TEMPLATE` com `REACAO_SCHEMA` + `faseDebate(achados, opts)` (colável, sem
+  imports) + demo barato (3 lentes → debate → juiz) que valida o padrão 1×.
+- **RUNBOOK de como plugar:** [`memory/requisitos/_Governanca/RUNBOOK-fase-debate-adversarial.md`](../requisitos/_Governanca/RUNBOOK-fase-debate-adversarial.md)
+  — contrato, 3 passos, candidatos, anti-padrões.
+
+**Onde plugar (não migrar tudo de uma vez — commit-discipline):** `sdd-avaliador-processo.js`
+(entre `Avaliar` e `Síntese` — o SURFACE pega risco sistêmico ENTRE os 7 streams, hoje invisível
+ao juiz que só agrega); `reguas-do-sistema.js` (a Fase `Integração` já é um debate manual da mesma
+falácia — migrar pro protocolo tipado unifica); `scripts/adr-0296-adversarial-*.js`. Cada migração
+é um chip próprio quando doer.
+
+**Nada rejeitado** (é adoção, não recusa — sem entrada em proibições §5). O resto do quadro de roubo
+(Betterer/OPA/Sphinx-Needs/Danger) segue como "já temos equivalente → não migrar".

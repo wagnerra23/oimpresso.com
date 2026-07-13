@@ -1,5 +1,5 @@
 {
-  "_doc": "Contrato dos baselines visuais pós-interação. Cada fluxo roda em todos os viewports declarados e gera snapshot próprio; não usar para testar escrita, só estados antes da confirmação.",
+  "_doc": "Contrato dos baselines visuais pós-interação. Cada fluxo roda em todos os viewports declarados e gera snapshot próprio; não usar para testar escrita, só estados antes da confirmação. O campo `suite` roteia cada tela ao seu arquivo de teste (financeiro → FinanceiroFlowBaselineTest, compras → ComprasFlowBaselineTest) — ausente = financeiro (back-compat).",
   "viewports": {
     "compact": { "width": 1024, "height": 768 },
     "desktop": { "width": 1280, "height": 800 },
@@ -7,6 +7,7 @@
   },
   "screens": {
     "financeiro-unificado": {
+      "suite": "financeiro",
       "route": "/financeiro/unificado?data_inicio=2026-06-01&data_fim=2026-06-30&_visreg_flow=1",
       "anchor": "Financeiro",
       "charter": "resources/js/Pages/Financeiro/Unificado/Index.charter.md",
@@ -16,6 +17,18 @@
         { "id": "abrir-drawer", "action": "open_drawer", "evidence": "dialog" },
         { "id": "abrir-baixa", "action": "open_baixa", "evidence": "Receber lançamento|Pagar lançamento" },
         { "id": "selecionar-lote", "action": "select_bulk", "evidence": "Cancelar lote" }
+      ]
+    },
+    "compras": {
+      "suite": "compras",
+      "route": "/compras",
+      "anchor": "Compras",
+      "charter": "resources/js/Pages/Compras/Index.charter.md",
+      "viewports": ["compact", "desktop", "wide"],
+      "flows": [
+        { "id": "abrir-visibilidade-colunas", "action": "open_column_visibility", "evidence": "Compra (ref)" },
+        { "id": "abrir-menu-acoes", "action": "open_actions_menu", "evidence": "Ver pagamentos" },
+        { "id": "abrir-drawer", "action": "open_drawer", "evidence": "Total da compra" }
       ]
     }
   }
