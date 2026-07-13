@@ -64,6 +64,7 @@ class UnificadoController extends Controller
         $vencendoLimite = now()->addDays(7)->toDateString();
 
         $filters = $this->parseFilters($request);
+        $this->ensureVisregFlowTitulo($request, $businessId);
         [$start, $end] = $this->parsePeriodo($filters['periodo']);
         // Paridade filtros WR (2026-06-03): intervalo explícito sobrepõe o período preset.
         if ($filters['data_inicio'] !== '' && $filters['data_fim'] !== '') {
@@ -1403,6 +1404,47 @@ class UnificadoController extends Controller
             'page' => max(1, (int) $request->integer('page', 1)),
             'per_page' => max(20, min(500, (int) $request->integer('per_page', 100))),
         ];
+    }
+
+    /**
+     * Seed estritamente visual/test-only para o baseline de fluxos L2.5.
+     *
+     * O Pest Browser renderiza a tela em outro processo HTTP; semear no processo do
+     * teste nem sempre chega antes da query que monta KPIs/tabela. Este gancho roda no
+     * mesmo request do controller, mas somente em APP_ENV=testing e com marcador
+     * explícito do manifesto visual. Produção/local comum seguem sem side effect.
+     */
+    private function ensureVisregFlowTitulo(Request $request, int $businessId): void
+    {
+        if (! app()->environment('testing') || ! $request->boolean('_visreg_flow')) {
+            return;
+        }
+
+        $userId = (int) ($request->user()?->id ?? session('user.id') ?? 1);
+        $dia = $request->string('data_inicio')->toString() === '2026-06-01'
+            ? '2026-06-11'
+            : now()->toDateString();
+
+        DB::table('fin_titulos')->updateOrInsert(
+            ['business_id' => $businessId, 'origem' => 'manual', 'origem_id' => 987654, 'parcela_numero' => 1],
+            [
+                'numero' => 'VISREG-FIN-001',
+                'tipo' => 'receber',
+                'status' => 'aberto',
+                'cliente_descricao' => 'Cliente de prova visual',
+                'valor_total' => 1500.00,
+                'valor_aberto' => 1500.00,
+                'moeda' => 'BRL',
+                'emissao' => $dia,
+                'vencimento' => $dia,
+                'competencia_mes' => substr($dia, 0, 7),
+                'parcela_total' => 1,
+                'created_by' => $userId,
+                'updated_by' => $userId,
+                'updated_at' => now(),
+                'created_at' => now(),
+            ],
+        );
     }
 
     private function parsePeriodo(string $periodo): array
