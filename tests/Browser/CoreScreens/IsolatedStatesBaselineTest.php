@@ -24,11 +24,10 @@ declare(strict_types=1);
  *   rota e o scripts/visreg-states-lint.mjs leem — o lint falha se charter `states:` divergir
  *   deste manifesto). NÃO ha mapa hardcoded aqui — evita o drift que o lint existe pra pegar.
  *
- * BASELINE = assertScreenshotMatches(fullPage:false) NATIVO do pest-plugin-browser (espelha o
- *   PixelBaselineTest PRE-#3271): pixelmatch interno + .snap commitado. 1a execucao sem baseline
- *   GERA e passa; o artifact pixel-snapshots permite commitar (aprovacao [W], gate F1.5). A
- *   classificacao 3-bandas (zona cinza · VisregThreshold/L7) fica pra v2 deste gate — aqui e o
- *   assert binario simples, suficiente pra um gate que NASCE ADVISORY (ADR 0271/0275).
+ * BASELINE v2 = VisregThreshold (o mesmo double-threshold L7 das telas núcleo): ruído abaixo de
+ * τ_baixo aprova, regressão acima de τ_alto falha e a zona cinza produz um diff-view navegável.
+ * Isso remove o flake conhecido do assert binário sem esconder regressão clara. A primeira execução
+ * ainda usa assertScreenshotMatches para materializar a .snap que o artifact permite versionar.
  *
  * Mesmo harness auth-bridge cross-process do AuthBridgeSmokeTest/PixelBaselineTest (visit
  * /_visreg-state... e tudo numa visit so). Carbon::setTestNow pra matar flakiness de datas.
@@ -49,6 +48,12 @@ declare(strict_types=1);
 use App\Business;
 use App\User;
 use Database\Seeders\VisregEmptyTenantSeeder;
+
+$grayZone = new \ArrayObject();
+
+afterAll(function () use ($grayZone) {
+    \Tests\Browser\Support\VisregThreshold::writeGrayZoneSummary($grayZone->getArrayCopy());
+});
 
 beforeEach(function () {
     // CROSS-PROCESS DB (igual PixelBaseline/AuthBridge): o browser (subprocesso) usa MySQL
@@ -99,7 +104,7 @@ function isolatedStatesCases(): array
 }
 
 foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
-    it("{$label} bate com a baseline isolada", function () use ($slug, $ancora, $estado) {
+    it("{$label} bate com a baseline isolada", function () use ($slug, $ancora, $estado, $grayZone) {
         // Tenant exigido pelo estado: empty usa o biz=98 (VisregEmptyTenantSeeder); os demais
         // usam o biz=1 (VisregTenantSeeder). Sem o seed → skip (nao falha), igual AuthBridge.
         $businessId = $estado === 'empty' ? VisregEmptyTenantSeeder::BIZ_EMPTY : 1;
@@ -137,8 +142,13 @@ foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
         JS);
         $page->wait(1.5);
 
-        // fullPage:false — viewport e o contrato visual estavel (full page em lista longa
-        // varia com o seed). Baseline .snap commitada por (tela,estado) via test()->name().
-        $page->assertScreenshotMatches(fullPage: false);
+        // fullPage:false — viewport e o contrato visual estável (full page em lista longa
+        // varia com o seed). A baseline é por (tela,estado); só diferenças claras falham.
+        \Tests\Browser\Support\VisregThreshold::assertBandedScreenshot(
+            page: $page,
+            screenName: "{$slug} · estado={$estado}",
+            grayZone: $grayZone,
+            baselineSuite: 'IsolatedStatesBaselineTest',
+        );
     });
 }
