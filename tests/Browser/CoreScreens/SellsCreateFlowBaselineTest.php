@@ -65,7 +65,7 @@ function estabilizarVisualSells($page): void
     $page->script(<<<'JS'
 (() => {
   const s = document.createElement('style');
-  s.textContent = '* { transition:none !important; animation:none !important; font-family:Arial,sans-serif !important; } body { -webkit-font-smoothing:antialiased !important; } select,input[type=date],input[type=datetime-local],input[type=time] { visibility:hidden !important; } input[placeholder="DD/MM/AAAA HH:mm"] { visibility:hidden !important; }';
+  s.textContent = '* { transition:none !important; animation:none !important; caret-color:transparent !important; font-family:Arial,sans-serif !important; } body { -webkit-font-smoothing:antialiased !important; } select,input[type=date],input[type=datetime-local],input[type=time],.animate-spin { visibility:hidden !important; } input[placeholder="DD/MM/AAAA HH:mm"] { visibility:hidden !important; }';
   document.head.appendChild(s); return true;
 })()
 JS);
@@ -145,9 +145,18 @@ function executarFluxoSells($page, string $action): void
 })()
 JS))->toBeTrue();
         // Captura o DROPDOWN aberto (não clica): estado da busca com a opção listada.
+        // Espera o fetch do /products/list ASSENTAR (sem spinner) — senão a requisição em
+        // voo deixa a página instável e o screenshot do Playwright estoura o timeout de 5s
+        // (flake do run 29285231295, `abrir-busca-produto · wide`).
         aguardarAlvoVisualSells($page, <<<'JS'
-(() => !!document.querySelector('[role=listbox]') && [...document.querySelectorAll('[role=option]')].some((o) => /Produto E2E Balcão/i.test(o.textContent || '')))()
-JS, 'dropdown de busca aberto');
+(() => {
+  const box = document.querySelector('[role=listbox]');
+  const hasOpt = [...document.querySelectorAll('[role=option]')].some((o) => /Produto E2E Balcão/i.test(o.textContent || ''));
+  const settled = !document.querySelector('.animate-spin'); // fetch terminou (Loader2 sumiu)
+  return !!box && hasOpt && settled;
+})()
+JS, 'dropdown de busca aberto e estável');
+        $page->wait(0.5); // settle extra do portal antes do screenshot
         return;
     }
     if ($action === 'apply_discount') {

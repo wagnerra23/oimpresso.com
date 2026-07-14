@@ -409,7 +409,10 @@ jobs:
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: sells-flows
         continue-on-error: true
-        run: ./vendor/bin/pest tests/Browser/CoreScreens/SellsCreateFlowBaselineTest.php
+        # Retry-once guard (mesmo do Financeiro/Compras): re-roda só em FLAKE de execução
+        # (browser/socket/timeout), NUNCA em regressão de pixel (double-threshold é veredito
+        # duro). O motor VisregThreshold segue intocado.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/SellsCreateFlowBaselineTest.php
 
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
       - name: Regenerar baselines (pixel + estados + fluxos) — modo update
