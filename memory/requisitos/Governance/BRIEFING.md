@@ -2,6 +2,8 @@
 distilled_at: "2026-07-09"
 distilled_by: claude-code (refresh manual pós-sessão revisão-memória-processo; base jana:distill-module-truth 2026-07-01)
 module: Governance
+status: producao
+updated_at: "2026-07-09"
 ---
 
 # BRIEFING — Governance (verdade destilada)

@@ -2,6 +2,8 @@
 distilled_at: "2026-07-10"
 distilled_by: jana:distill-module-truth
 module: Sells
+status: producao
+updated_at: "2026-07-10"
 ---
 
 # BRIEFING — Sells (verdade destilada)

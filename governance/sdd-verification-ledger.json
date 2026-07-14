@@ -836,6 +836,23 @@
       "error_rate_pct": 0.7,
       "veredito": "aprovado",
       "evidencia": "Refutacao Fable r6 exaustiva: 142 itens, 1 nit prosa (vault_encryption_ratio mede encrypted=true nao disk) corrigido->0. 34 anchors 100% corretos, dead 0, zombie 0. Bug lateral flagado a task separada: signed_url_consumed emitido em DownloadController fora do enum do audit log."
+    },
+    {
+      "tipo": "prosa",
+      "gerador": "opus-4.8 (backfill deterministico de frontmatter, nao LLM)",
+      "refutador": "fable-5 (sessao fresca, tier superior)",
+      "sessao_fresca": true,
+      "amostra_pct": 100,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "data": "2026-07-14",
+      "pr": 4274,
+      "lote_id": "backfill-briefings-status-updated-at",
+      "itens_verificados": 11,
+      "erros_confirmados": 0,
+      "error_rate_pct": 0,
+      "veredito": "aprovado",
+      "evidencia": "PR #4274 comment-4971852530 (refutacao Fable 5): 11/11 status verificados contra codigo real em origin/main, todos CONFIRMADO com evidencia por modulo (OficinaAuto piloto=Config/config.php:15 biz=164; PaymentGateway parcial=flags OFF #3371/#3364; Repair shared-infra=consumido por 3 verticais; demais producao). Backfill so insere status/updated_at no frontmatter, corpo intacto (+2/-0 por arquivo). PII 0. Achado lateral: why-oimpresso.md/what-oimpresso.md stale sobre OficinaAuto/PaymentGateway (docs, nao este PR)."
     }
   ]
 }

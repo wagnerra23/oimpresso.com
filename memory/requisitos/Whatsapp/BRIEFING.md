@@ -2,6 +2,8 @@
 distilled_at: "2026-07-01"
 distilled_by: jana:distill-module-truth
 module: Whatsapp
+status: producao
+updated_at: "2026-07-01"
 ---
 
 # BRIEFING — Whatsapp (verdade destilada)
