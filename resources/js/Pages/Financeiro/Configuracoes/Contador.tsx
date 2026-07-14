@@ -9,7 +9,7 @@ import { useForm, router, usePage } from '@inertiajs/react';
 import { useState, FormEvent, ReactNode } from 'react';
 import { UserPlus } from 'lucide-react';
 
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { Button } from '@/Components/ui/button';
 import { Card, CardContent } from '@/Components/ui/card';
@@ -89,19 +89,16 @@ function Contador({ accesses }: Props) {
   return (
     <div className="fin-curadoria p-6 max-w-5xl mx-auto space-y-6">
       <PageHeader
-        icon="user-cog"
         title="Contador Parceiro"
-        description="Adicione o contador da sua empresa pra ele acompanhar relatórios e visão unificada num portal próprio. Zero credenciais compartilhadas. Revogue a qualquer momento."
-        action={
-          <div className="flex items-center gap-1.5">
-            <FinanceiroSubNav active="contador" hidePrimary />
-            {!showForm && (
-              <Button onClick={() => setShowForm(true)}>
-                <UserPlus className="h-4 w-4" />
-                Adicionar contador
-              </Button>
-            )}
-          </div>
+        subtitle="Adicione o contador da sua empresa pra ele acompanhar relatórios e visão unificada num portal próprio. Zero credenciais compartilhadas. Revogue a qualquer momento."
+        subnav={<FinanceiroSubNav active="contador" hidePrimary />}
+        actions={
+          !showForm && (
+            <Button onClick={() => setShowForm(true)}>
+              <UserPlus className="h-4 w-4" />
+              Adicionar contador
+            </Button>
+          )
         }
       />
 
