@@ -167,6 +167,35 @@ Ou seja: *"esconder e liberar só o necessário"* no código = escolher **quais 
 
 > ⚠️ Isto **revisa a Topologia B do §2**: ela vale só pra código **medidamente extraível** (verificar por grep, não pelo nome "é módulo") e que alguém precise *não ler* — condição que hoje **não existe** pra Jana/Financeiro/NfeBrasil (entrelaçados com a fundação).
 
+### 2.7 O que esconder — o cérebro de IA (corte medido por grep, 2026-07-13)
+
+> Decisão do Wagner: "quero esconder parte do código". Levantamento por grep no `origin/main` (subagente) achou **onde** vale — e onde não vale. Resultado bom e raro: o IP valioso está genuinamente desacoplado.
+
+**Achado central:** o **cérebro de IA** (~7.000 LOC) é consumido por **só 4 arquivos** fora dele (`KB/KbRagService`, `KB/KbBgeRerankerService`, `SellController` via `SaleInsightAgent`, `UiJudgePrCommand` dev-tool), atrás da fachada **`AiAdapter` que já existe**. Isso é o alinhamento raro entre *valioso* e *separável*. O resto confirmou o oposto: `ScopeByBusiness` (~200+ imports) e `PiiRedactor` (~200) são **plumbing e não são secretos**; verticais folha são separáveis mas **CRUD**.
+
+**O corte — o que SAI (o molho secreto):**
+
+| Pasta | Conteúdo |
+|---|---|
+| `Modules/Jana/Ai/` | 19 agentes + **prompts** (hardcoded em `instructions()`) + tools |
+| `Modules/Jana/Services/Retrieval/` | rerankers (LLM/BGE/RRF), HyDE (expansão de query) |
+| `Modules/Jana/Services/Memoria/` | distillers de perfil/verdade, contextual, bi-temporal, supersede |
+| `Modules/ADS/Ai/` (opcional) | Brain B / autonomia / decomposição |
+
+**O que FICA no repo (o time precisa, não é segredo):** contratos (`AiAdapter`, `MemoriaContrato`, `Reranker`), entidades, migrations, `Http/`, scaffolding MCP, e **todo o plumbing multi-tenant/LGPD** (`ScopeByBusiness`, `PiiRedactor` — não saem, são fundação).
+
+**Mecanismo (alvo que esconde do time de verdade):** o cérebro roda como **serviço no CT 100** (parte já roda lá — Ollama, Meilisearch, MCP), o ERP chama via `AiAdapter`, e a **fonte do cérebro vive num repo restrito** (só Wagner + confiança). No dev local do time, fallback degradado (`NullReranker`/`NullMemoriaDriver`, já existem) cobre. Alternativa mais barata: submódulo git privado só dessas pastas (esconde de quem não tem acesso; quem tem, clona).
+
+**O que vaza mesmo depois de esconder (honestidade):**
+- **Langfuse/OTel** capturam prompt+completion nos traces → **fechar o acesso do time ao Langfuse** junto.
+- **Schema** (`mcp_memory_documents`, `mcp_dual_brain_decisions`…), **DTOs do `AiAdapter`**, **tools MCP** ficam visíveis → revelam a *forma/superfície*, não a lógica.
+
+**Pré-requisitos Tier 0 (travam a execução):**
+1. Rotacionar segredos + repo privado (Fase 0 — independe disto).
+2. **Fechar o P0 de DR do CT 100** ([AUDITORIA-OPS-DR-2026-07](AUDITORIA-OPS-DR-2026-07.md)) **antes** de o cérebro virar dependência de rede — senão CT 100 cai e derruba Jana/KB/vendas.
+
+**Sequência recomendada:** (1) Fase 0 · (2) fechar DR CT 100 · (3) carvoar o cérebro atrás do `AiAdapter` (já quase todo lá) + mover prompts · (4) fonte do cérebro em repo restrito, servido pelo CT 100 · (5) NDA cobre o resíduo (interface/schema/telemetria sempre vazam um pouco). **É o único ponto do código onde vale investir em esconder.**
+
 ---
 
 ## 3. Parte 2 — Controle dos novos integrantes (onboarding, guarda-corpos, offboarding)
@@ -335,6 +364,7 @@ Nada acima foi executado. Ao aprovar, a Fase 0 (privado + rotação) é a primei
 ---
 
 **Rodapé de evolução**
+- 2026-07-13 (4) — add §2.7 "o que esconder — o cérebro de IA": levantamento por grep achou o corte medido (`Ai/`+`Retrieval/`+`Memoria/`+ADS/Ai, ~7k LOC, só 4 consumidores externos, fachada `AiAdapter` pronta). Único ponto valioso E separável. Mecanismo Nível 3 (serviço CT 100); pré-req fechar DR CT 100 + rotacionar segredo. Origem: Wagner "quero esconder parte do código".
 - 2026-07-13 (3) — add §2.6 "quantos repositórios" + **revisão adversarial**: refuta a Jana como joia extraível (grep origin/main: `ScopeByBusiness` multi-tenant Tier 0 em ~207 arquivos/30 módulos; core importa Jana em ~23). Resposta: 1 repo agora + 1 (daemons CT 100) em 6–12 meses; zero "só-Wagner". Corrige §2.4/§5/roadmap Fase 3. Prioridade: rotacionar segredo antes de topologia.
 - 2026-07-13 (2) — add §2.5 "vão poder ver e copiar tudo?" (máquinas NÃO / código = quais repos; estrutura de 2 repos núcleo+joias; analogia da loja; o que não dá pra prevenir tecnicamente). Concretiza a Topologia B. Origem: pergunta direta do Wagner na sessão.
 - 2026-07-13 — criação. Cruzamento canon interno (ADRs 0080/0081/0055/0057/0044/0030/0131/0093 + CODEOWNERS + branch-protection + `_INDEX-SECRETS` + tailscale-acl) × estado-da-arte 2026. Diagnóstico-chave: repo **público** + time ainda não é colaborador. Recomendação: **A** (privado + Org/Teams/CODEOWNERS) agora, **B** cirúrgico sob demanda, **C** não. Aguarda decisão do Wagner sobre o fork §5. Nada executado.
