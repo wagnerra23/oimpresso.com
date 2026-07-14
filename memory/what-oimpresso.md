@@ -54,13 +54,13 @@ oimpresso (núcleo comum)
 ├── Modules/Financeiro    (visão unificada AR/AP)
 ├── Modules/NfeBrasil     (NFe/NFC-e/NFSe)
 ├── Modules/RecurringBilling (assinaturas + boletos)
-├── Modules/PaymentGateway   (🟡 Onda 0 docs only — ADR 0170 proposto — drivers Inter/C6/Asaas/PixAuto/CNAB, extração de RecurringBilling, status: later phase=2)
+├── Modules/PaymentGateway   (🟡 parcial — código real (drivers Inter/C6/Asaas/PixAuto/CNAB + webhooks + 47 testes) porém flags OFF em prod; boleto Inter disponível — ADR 0170, extração de RecurringBilling)
 ├── Modules/SRS           (Software Requirements System, ex-MemCofre — uso interno raro)
 ├── Modules/Repair        (Kanban OS — shared infrastructure entre verticais)
 └── Modules/<Vertical>    ← ESPECIALIZAÇÕES PROFUNDAS
     ├── Vestuario              ✅ em prod (ROTA LIVRE) — CNAE 4781-4/00
     ├── ComunicacaoVisual      🟡 em construção — CNAE 1813-0/01
-    ├── OficinaAuto            ⏸️ aguarda sinal — CNAE 4520-0/01
+    ├── OficinaAuto            🟡 piloto LIVE (Martinho biz=164) — CNAE 4520-0/01
     └── ...                    🔒 backlog ADR feature-wish
 ```
 
