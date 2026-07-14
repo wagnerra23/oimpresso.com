@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/Components/ui/select';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import { toast } from 'sonner';
 
 interface Assinatura {
@@ -136,10 +136,9 @@ export default function AssinaturaAtualizar({ assinaturas }: Props) {
         <div className="fin-curadoria vendas-aplus container mx-auto max-w-3xl space-y-6 py-6">
           {/* Onda Wave 4 — header legacy os-page-h/fin-page-h -> PageHeader canon */}
           <PageHeader
-            icon="repeat"
             title="Atualizar cobrança"
-            description="Altere valor, ciclo ou forma de pagamento de uma assinatura ativa. Confira o impacto antes de salvar."
-            action={
+            subtitle="Altere valor, ciclo ou forma de pagamento de uma assinatura ativa. Confira o impacto antes de salvar."
+            actions={
               <Badge variant="outline">
                 {assinaturas.length} {assinaturas.length === 1 ? 'assinatura' : 'assinaturas'}
               </Badge>

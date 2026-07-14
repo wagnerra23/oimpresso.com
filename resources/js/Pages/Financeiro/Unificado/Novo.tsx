@@ -1,7 +1,7 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, Link } from '@inertiajs/react';
 import { ArrowDownCircle, ArrowUpCircle, ArrowRight } from 'lucide-react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { Card, CardContent } from '@/Components/ui/card';
 
@@ -29,10 +29,9 @@ export default function Novo(_props: Props) {
     <AppShellV2>
       <Head title="Novo lançamento — Financeiro" />
       <PageHeader
-        icon="plus"
         title="Novo lançamento"
-        description="Escolha o tipo de título a registrar."
-        action={<FinanceiroSubNav active="unificado" hidePrimary />}
+        subtitle="Escolha o tipo de título a registrar."
+        subnav={<FinanceiroSubNav active="unificado" hidePrimary />}
       />
       <div className="mx-auto max-w-3xl px-4 py-6">
         <div className="grid gap-4 sm:grid-cols-2">
