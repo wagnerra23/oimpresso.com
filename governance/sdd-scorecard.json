@@ -61,13 +61,13 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 358,
+      "value": 353,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "03ab660bc1f09abd",
+        "floor_files_hash": "ff1cc224a2bc8cf7",
         "runs": [
           {
             "sha": "2dbdceed",
@@ -84,10 +84,18 @@
             "errors": 617,
             "skipped": 2254,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260714-020001",
+            "failed": 621,
+            "errors": 593,
+            "skipped": 2255,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260713-020001",
-        "intersection_of": 2
+        "computed_at": "20260714-020001",
+        "intersection_of": 3
       },
       "stream": "FV"
     },
@@ -105,22 +113,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 16.8,
+      "value": 17.1,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 40231,
-        "total": 239512,
+        "covered": 40873,
+        "total": 239618,
         "runs": [
-          {
-            "sha": "2dbdceed",
-            "ts": "20260706-020001",
-            "coverage_pct": 15,
-            "covered": 35757,
-            "total": 238941
-          },
           {
             "sha": "dd6c8c97",
             "ts": "20260712-212018",
@@ -134,9 +135,16 @@
             "coverage_pct": 16.8,
             "covered": 40231,
             "total": 239512
+          },
+          {
+            "sha": null,
+            "ts": "20260714-020001",
+            "coverage_pct": 17.1,
+            "covered": 40873,
+            "total": 239618
           }
         ],
-        "computed_at": "20260713-020001",
+        "computed_at": "20260714-020001",
         "measured_of": 3
       },
       "stream": "FV"
