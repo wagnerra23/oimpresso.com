@@ -96,7 +96,7 @@ final class DistillerModuloVerdade
             return ['status' => 'refused_pii', 'written' => false, 'selected' => count($selected), 'pii' => $detected];
         }
 
-        $content = $this->montarBriefing($module, $body, $selected, $now);
+        $content = $this->montarBriefing($module, $body, $selected, $now, $existing);
 
         if ($dryRun) {
             return ['status' => 'dry', 'written' => false, 'selected' => count($selected), 'content' => $content];
@@ -112,15 +112,35 @@ final class DistillerModuloVerdade
         return ['status' => 'written', 'written' => true, 'selected' => count($selected), 'content' => $content, 'path' => $briefingPath];
     }
 
+    /** Enum fechado de `status` (espelha briefing.schema.json — mantenha em sincronia). */
+    private const STATUS_ENUM = [
+        'producao', 'piloto', 'em-construcao', 'parcial', 'backlog', 'shared-infra', 'meta', 'deprecated',
+    ];
+
     /**
      * Monta a porta final: frontmatter (carimbo) + corpo destilado + proveniência
      * no RODAPÉ (não inline — D-2). Sobrescreve por completo (mutável).
      *
+     * Frontmatter emite os 3 campos `required` do briefing.schema.json — `module`,
+     * `status`, `updated_at` — além dos aliases do gerador (`distilled_at`/`distilled_by`).
+     * Sem eles todo BRIEFING re-destilado dispara o memory-schema-gate (hoje grace/warning;
+     * required após backfill — ADR 0314). `updated_at` == `distilled_at` (o schema unifica
+     * last_review/updated/last_pr/distilled_at). `status` PRESERVA o valor anterior da porta
+     * (não re-infere a cada destilação: o distiller não pode rebaixar um módulo em produção
+     * só porque re-rodou); sem valor prévio válido → 'em-construcao' (conservador; um humano promove).
+     *
      * @param  array<int, array<string, mixed>>  $selected
      */
-    private function montarBriefing(string $module, string $body, array $selected, string $now): string
+    private function montarBriefing(string $module, string $body, array $selected, string $now, ?string $existing): string
     {
-        $fm = "---\ndistilled_at: \"{$now}\"\ndistilled_by: jana:distill-module-truth\nmodule: {$module}\n---\n";
+        $status = $this->statusPreservado($existing);
+        $fm = "---\n"
+            . "module: {$module}\n"
+            . "status: {$status}\n"
+            . "updated_at: \"{$now}\"\n"
+            . "distilled_at: \"{$now}\"\n"
+            . "distilled_by: jana:distill-module-truth\n"
+            . "---\n";
 
         $prov = "\n\n## Proveniência (destilado de)\n\n";
         foreach ($selected as $e) {
@@ -132,6 +152,23 @@ final class DistillerModuloVerdade
         }
 
         return $fm . "\n# BRIEFING — {$module} (verdade destilada)\n\n" . $body . $prov;
+    }
+
+    /**
+     * Status pro frontmatter: preserva o `status:` da porta anterior se for um valor
+     * válido do enum; senão devolve o default conservador 'em-construcao'. Casa só
+     * `status:` (não `status_nota:`) no início de linha, tolerando aspas.
+     */
+    private function statusPreservado(?string $existing): string
+    {
+        if ($existing !== null
+            && preg_match('/^status:[ \t]*["\']?([a-z][a-z-]*)/m', $existing, $m)
+            && in_array($m[1], self::STATUS_ENUM, true)
+        ) {
+            return $m[1];
+        }
+
+        return 'em-construcao';
     }
 
     private function systemPrompt(string $module): string
