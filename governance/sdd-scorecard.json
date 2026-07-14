@@ -28,9 +28,9 @@
         "by_state": {
           "sem_campo": 151,
           "placeholder": 0,
-          "pendente": 372,
+          "pendente": 371,
           "parcial": 115,
-          "anchored_ok": 326,
+          "anchored_ok": 327,
           "anchored_dead": 1,
           "anchored_zombie": 0
         },
@@ -46,7 +46,7 @@
         "req_sem_lane_total": 42,
         "behavior_known": false,
         "servido_total": 3,
-        "nao_servido_total": 113,
+        "nao_servido_total": 114,
         "servido_ledger": true,
         "baseline_applied": null,
         "grandfathered": {
