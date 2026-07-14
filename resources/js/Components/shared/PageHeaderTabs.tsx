@@ -233,7 +233,9 @@ export default function PageHeaderTabs({
                   // radius; sem ícone, className byte-idêntica à de origem. Badge também
                   // exige inline-flex pra centrar o pill numérico verticalmente.
                   ghost.icon || ghost.badge != null ? 'inline-flex items-center gap-1.5' : '',
-                  'px-3 py-1.5 text-sm whitespace-nowrap snap-start rounded-md',
+                  // Fiel ao protótipo `.cli-moduletopnav-tab`: slim, RETO (sem border-radius)
+                  // e `-mb-px` pra o underline da aba ativa colar/sobrepor a linha da base.
+                  'px-3 py-1.5 text-sm whitespace-nowrap snap-start -mb-px',
                   'transition-colors border-b-2 border-transparent',
                   'hover:bg-accent hover:text-accent-foreground',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
