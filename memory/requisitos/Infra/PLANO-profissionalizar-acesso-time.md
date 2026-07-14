@@ -114,7 +114,7 @@ Migrar o hospedagem do código pra um servidor próprio (o CT 100 já roda a sta
 **Recomendo A agora, B cirúrgico depois, C não (por ora).**
 
 1. **A (fazer já):** fechar o repo (privado) + ligar Org/Teams/CODEOWNERS/reviews. Resolve 90% do problema real ("controlar os novos" + estancar exposição) com o menor atrito, reusando tudo que já existe. É pré-requisito de qualquer outra topologia.
-2. **B (avaliar em seguida, escopo mínimo):** extrair **só** o núcleo de IP que não pode ser lido por ninguém abaixo de L1 — na prática, os *prompts/lógica de decisão da Jana* e/ou regras fiscais proprietárias, **se e quando** entrar alguém que não seja de confiança L1 e precise mexer no ERP sem ver essas joias. Não extrair "por precaução" — só quando houver um dev concreto que deve ficar de fora daquele subconjunto.
+2. **B (avaliar em seguida, escopo mínimo) — com ressalva forte do §2.6:** extrair só código **medidamente extraível** (medir por grep, não pelo nome "é módulo") que alguém precise *não ler*. ⚠️ A revisão adversarial do §2.6 provou que **Jana/Financeiro/NfeBrasil NÃO são extraíveis** (a Jana hospeda o global scope multi-tenant importado por ~207 arquivos). Candidatos reais a B são verticais folha (`OficinaAuto`/`ComunicacaoVisual`) — que **não são IP secreto**, logo B raramente se aplica. Nunca "por precaução"; só com um dev concreto a excluir **e** extração comprovada.
 3. **C (não agora):** o ganho (RBAC granular + residência) não paga o custo (perder GitHub Actions/ecossistema + mais SPOF no CT 100 já apertado de DR). Reavaliar só se (a) exigência contratual de air-gap/residência aparecer, ou (b) o time passar de ~15 pessoas com necessidade de RBAC por-path que o GitHub não dá.
 
 **Critério de decisão (o que faz mudar de A→B ou A→C):**
@@ -145,18 +145,27 @@ Pergunta recorrente do Wagner. Resposta separada por superfície, porque é **di
 
 Ou seja: *"esconder e liberar só o necessário"* no código = escolher **quais repositórios cada pessoa enxerga**, não "esconder pastas dentro do repo".
 
-**A estrutura concreta que resolve — dois repositórios:**
+**A analogia da loja:** o funcionário entra no salão e no estoque onde trabalha (vê e pega o que está ali); o **cofre da fórmula** fica numa sala sem a chave dele; e o **contrato/NDA** é a lei sobre o que ele faz com o que viu no salão. Least-privilege = dar a chave só das salas certas. NDA = a defesa jurídica do resto.
 
-| Repo | Conteúdo | Quem tem acesso | Consequência |
-|---|---|---|---|
-| **`oimpresso-nucleo`** (privado) | ERP do dia a dia — módulos que o time trabalha | time todo, com write mínimo | clonam/copiam isto — e tudo bem: é o que precisam pra trabalhar, e o **NDA** cobre uso indevido |
-| **`oimpresso-joias`** (privado, restrito) | Jana core (prompts/lógica de decisão), regras fiscais proprietárias | **só Wagner (+ confiança máxima)** | novo **não tem acesso → não clona → não copia**. Referenciado no núcleo via submodule/pacote com interface estável |
+**O que NÃO dá pra prevenir tecnicamente (honestidade):** não existe como impedir que alguém com acesso **legítimo** a um repo copie aquele repo. As defesas contra o *uso indevido* dessa cópia são **(1)** least-privilege (limita **quanto** cada um pode copiar — só os repos do papel), **(2)** audit/detecção (clone anômalo / download em massa vira alerta — "trust but verify", Apêndice §1) e **(3)** NDA + cessão de IP (a defesa **jurídica** real — competência da Eliana[E]). É contrato + auditoria, não uma muralha técnica, que protege o núcleo.
 
-> **A analogia da loja:** o funcionário entra no salão e no estoque onde trabalha (vê e pega o que está ali); o **cofre da fórmula** fica numa sala sem a chave dele; e o **contrato/NDA** é a lei sobre o que ele faz com o que viu no salão. Least-privilege = dar a chave só das salas certas. NDA = a defesa jurídica do resto.
+### 2.6 Quantos repositórios? — e por que a Jana NÃO é uma joia extraível (revisão adversarial 2026-07-13)
 
-**O que NÃO dá pra prevenir tecnicamente (honestidade):** não existe como impedir que alguém com acesso **legítimo** a um repo copie aquele repo. As defesas contra o *uso indevido* dessa cópia são **(1)** least-privilege (limita **quanto** cada um pode copiar — só os repos do papel), **(2)** audit/detecção (clone anômalo / download em massa vira alerta — "trust but verify", Apêndice §1) e **(3)** NDA + cessão de IP (a defesa **jurídica** real — competência da Eliana[E]). É a extração (repo joias) + contrato, não uma muralha técnica, que protege o núcleo.
+> Uma primeira versão deste plano sugeriu 2 repos (`oimpresso-nucleo` + `oimpresso-joias` com a Jana dentro). Uma **revisão adversarial** (subagente cético, grep no `origin/main`) **refutou** a premissa. Registro a correção — deixar canon errado é pior que não ter.
 
-> ⚠️ Isto **concretiza a Topologia B** (§2) num formato de 2 repos e mantém o critério do §2.4: só acionar `oimpresso-joias` quando entrar alguém que não pode ler o núcleo de IP — não preventivamente.
+**Resposta:** **1 repositório agora** (só torná-lo privado). **+1 em 6–12 meses** — o dos **daemons/infra do CT 100** (Baileys, crons, Proxmox/Docker), justificado por **fronteira de runtime real** ([ADR 0062](../../decisions/0062-separacao-runtime-hostinger-ct100.md)), **não** por segredo. **Zero repos "só-Wagner".**
+
+**Por que a Jana não sai (prova por grep):**
+- `Modules\Jana\Scopes\ScopeByBusiness` — o **global scope multi-tenant Tier 0** ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)) — é importado por **~207 arquivos em 30 módulos**; `PiiRedactor` (LGPD) por **~90**; o core (`app/`) importa Jana em **~23** arquivos.
+- A "joia" que se quer esconder **é a fundação multi-tenant do ERP inteiro**, não um pedaço isolável. Extrair pra repo separado (Nível 2) → **o build quebra pra todo o time**, ou pior, o isolamento entre empresas **some silenciosamente** (o pior bug possível).
+- Nível 3 (serviço) também não resolve: `ScopeByBusiness`/`PiiRedactor` rodam **in-process no Eloquent/pipeline**, não são endpoint; e pôr lógica fiscal atrás de HTTP num CT 100 que **já é P0 de DR** ([AUDITORIA-OPS-DR-2026-07](AUDITORIA-OPS-DR-2026-07.md)) vira **SPOF de faturamento** (CT 100 cai → ROTA LIVRE, 99% do volume, para de vender/emitir NFe).
+- O que **seria** extraível (verticais folha `OficinaAuto`/`ComunicacaoVisual`) **não é IP secreto** — logo, não há o que esconder ali.
+
+**A divisão pode ser ilusória mesmo quando feita:** a lógica vaza pela **interface** (request/response, OpenAPI, DTOs tipados, migrations `mcp_*`/`fin_*`, enums de domínio). Regra fiscal BR é **lei pública** (CONFAZ/SINIEF), não segredo. Prompt de LLM vaza no primeiro log/telemetria (Langfuse está no CT 100).
+
+**Correção de prioridade (o erro maior):** debater topologia de repo enquanto o repo está **público com segredo vivo no histórico** é rearranjar cadeiras. A ordem correta está na Fase 0 (§4): **rotacionar segredo → privado → fechar DR do CT 100 → Nível 1 + NDA + branch protection + CODEOWNERS + review**. Topologia de repo é o **último** passo, e provavelmente **nunca** pra Jana. A defesa do IP da Jana é **contrato + auditoria**, não arquitetura.
+
+> ⚠️ Isto **revisa a Topologia B do §2**: ela vale só pra código **medidamente extraível** (verificar por grep, não pelo nome "é módulo") e que alguém precise *não ler* — condição que hoje **não existe** pra Jana/Financeiro/NfeBrasil (entrelaçados com a fundação).
 
 ---
 
@@ -273,7 +282,8 @@ A defesa **jurídica** do IP — a única que realmente "protege o fonte" de que
 
 | Ação | Tipo | Esforço | Estado |
 |---|---|---|---|
-| **Topologia B:** extrair joias (prompts Jana / regras fiscais) pra repo(s) restrito(s) via submodule | **HITL** decide + Auto executa | 🔴 | ⏸️ só quando entrar dev que não pode ler as joias |
+| **Topologia B:** extrair código **medidamente extraível** (vertical folha) pra repo restrito — **NÃO** Jana/Financeiro/NfeBrasil (§2.6: entrelaçados com a fundação) | **HITL** decide + Auto executa | 🔴 | ⏸️ raro — só com dev concreto a excluir + extração comprovada por grep |
+| **Repo dos daemons/infra CT 100** (Baileys, crons, Proxmox/Docker) — fronteira de runtime real, não segredo | **HITL** decide + Auto executa | 🟡 | ⏸️ 6–12 meses (o 2º repo que faz sentido de verdade — §2.6) |
 | **Topologia C:** self-host git (GitLab CE/Gitea no CT 100) — **precede** plano de DR (AUDITORIA-OPS-DR §P0) | **HITL** decide | 🔴 | ⏸️ só se air-gap/residência exigir |
 
 ### O que já existe (não construir)
@@ -285,7 +295,7 @@ Branch protection + 22 required checks · CODEOWNERS (estrutura) · Trust Tiers 
 ## 5. Decisão que só o Wagner toma (resumo do fork)
 
 1. **Topologia principal:** A (privado + Org/Teams/CODEOWNERS) — recomendada — vs C (self-host). → **recomendo A**; C só se air-gap/residência exigir.
-2. **Grau de B (extrair joias):** nenhum agora / cirúrgico quando entrar dev que não pode ler as joias. → **recomendo cirúrgico sob demanda**, não preventivo.
+2. **Quantos repositórios (§2.6):** **1 agora** (privado) + **1 em 6–12 meses** (daemons/infra CT 100, por runtime). **Zero repos "só-Wagner"** — a Jana não é extraível (grep: global scope multi-tenant em ~207 arquivos). → **recomendo 1 agora**; topologia de repo é o último passo, depois da rotação de segredo + DR.
 3. **GitHub Org sim/não:** Org dá Teams (mais escalável) vs repo pessoal com collaborators (mais simples). → **recomendo Org** pra profissionalizar.
 4. **Signed commits obrigatórios:** sim/não. → **recomendo sim** (barato, rastreabilidade).
 5. **Ordem/timing das fases** e quando adicionar cada pessoa.
@@ -325,5 +335,6 @@ Nada acima foi executado. Ao aprovar, a Fase 0 (privado + rotação) é a primei
 ---
 
 **Rodapé de evolução**
+- 2026-07-13 (3) — add §2.6 "quantos repositórios" + **revisão adversarial**: refuta a Jana como joia extraível (grep origin/main: `ScopeByBusiness` multi-tenant Tier 0 em ~207 arquivos/30 módulos; core importa Jana em ~23). Resposta: 1 repo agora + 1 (daemons CT 100) em 6–12 meses; zero "só-Wagner". Corrige §2.4/§5/roadmap Fase 3. Prioridade: rotacionar segredo antes de topologia.
 - 2026-07-13 (2) — add §2.5 "vão poder ver e copiar tudo?" (máquinas NÃO / código = quais repos; estrutura de 2 repos núcleo+joias; analogia da loja; o que não dá pra prevenir tecnicamente). Concretiza a Topologia B. Origem: pergunta direta do Wagner na sessão.
 - 2026-07-13 — criação. Cruzamento canon interno (ADRs 0080/0081/0055/0057/0044/0030/0131/0093 + CODEOWNERS + branch-protection + `_INDEX-SECRETS` + tailscale-acl) × estado-da-arte 2026. Diagnóstico-chave: repo **público** + time ainda não é colaborador. Recomendação: **A** (privado + Org/Teams/CODEOWNERS) agora, **B** cirúrgico sob demanda, **C** não. Aguarda decisão do Wagner sobre o fork §5. Nada executado.
