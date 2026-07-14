@@ -51,6 +51,7 @@ import { Input } from '@/Components/ui/input';
 import { Button } from '@/Components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
 import { PageHeader, PageHeaderPrimary } from '@/Components/PageHeader';
+import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -214,15 +215,16 @@ const SLOT2_TABS: Array<{
   shortLabel: string;   // ADR 0189 v3.1: nome encurtado p/ desktop md+
   href: string;
   Icon: typeof Users;
+  iconName: string;     // nome lucide (kebab) pro PageHeaderTabs canônico
 }> = [
-  { key: 'all',            label: 'Todos',          shortLabel: 'Todos',    href: '/cliente?type=all',            Icon: List },
-  { key: 'customer',       label: 'Clientes',       shortLabel: 'Clientes', href: '/cliente?type=customer',       Icon: Users },
-  { key: 'supplier',       label: 'Fornecedores',   shortLabel: 'Fornec.',  href: '/cliente?type=supplier',       Icon: Truck },
-  { key: 'employee',       label: 'Funcionários',   shortLabel: 'Equipe',   href: '/cliente?type=employee',       Icon: Briefcase },
-  { key: 'representative', label: 'Representantes', shortLabel: 'Repr.',    href: '/cliente?type=representative', Icon: UserCheck },
+  { key: 'all',            label: 'Todos',          shortLabel: 'Todos',    href: '/cliente?type=all',            Icon: List,      iconName: 'list' },
+  { key: 'customer',       label: 'Clientes',       shortLabel: 'Clientes', href: '/cliente?type=customer',       Icon: Users,     iconName: 'users' },
+  { key: 'supplier',       label: 'Fornecedores',   shortLabel: 'Fornec.',  href: '/cliente?type=supplier',       Icon: Truck,     iconName: 'truck' },
+  { key: 'employee',       label: 'Funcionários',   shortLabel: 'Equipe',   href: '/cliente?type=employee',       Icon: Briefcase, iconName: 'briefcase' },
+  { key: 'representative', label: 'Representantes', shortLabel: 'Repr.',    href: '/cliente?type=representative', Icon: UserCheck, iconName: 'user-check' },
   // ADR 0246 (2026-06-03) — categoria "Outros" pra cadastros sem CPF/CNPJ
   // obrigatório (prospects, leads, contatos avulsos, migração legacy WR Comercial).
-  { key: 'other',          label: 'Outros',         shortLabel: 'Outros',   href: '/cliente?type=other',          Icon: Layers },
+  { key: 'other',          label: 'Outros',         shortLabel: 'Outros',   href: '/cliente?type=other',          Icon: Layers,    iconName: 'layers' },
 ];
 
 const ROLE_TITLE: Record<ContactRoleType, { title: string; singular: string; collective: string }> = {
@@ -797,7 +799,6 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
   // PageHeader canon v3.1 (ADR 0189): primary roxo medio + 3 blocos fechados.
   // Tokens inline (skel componente <PageHeader> ainda nao codificado em Wave 1).
   const PRIMARY_HUE = 295;
-  const primaryBg   = `oklch(0.55 0.15 ${PRIMARY_HUE})`;
   const primaryDk   = `oklch(0.45 0.15 ${PRIMARY_HUE})`;
   const primarySoft = `oklch(0.96 0.03 ${PRIMARY_HUE})`;
   const primaryTxt  = `oklch(0.35 0.15 ${PRIMARY_HUE})`;
@@ -814,6 +815,17 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
     employee:       0,
     representative: 0,
   };
+
+  // Barra de abas canônica (PageHeaderTabs) — faixa própria abaixo do header,
+  // fiel ao protótipo cadastro (`.cli-moduletopnav`): label completo + ícone +
+  // badge de contagem ([W] 2026-07-14: trazer contadores de volta).
+  const contactGhosts = SLOT2_TABS.map((t) => ({
+    key: t.key,
+    label: t.label,
+    href: t.href,
+    icon: t.iconName,
+    badge: tabCounts[t.key],
+  }));
 
   return (
     /* canon v3.4 (Wagner 2026-05-25): bg-page-cream substitui bg-slate-50 — fundo cream
@@ -866,44 +878,8 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
             </p>
           </div>
 
-          {/* ZONA C · subnav inline (md+) com tabs abreviadas + counter */}
-          <nav
-            className="hidden md:flex items-center gap-0 shrink-0 self-stretch ml-2"
-            aria-label="Tipo de contato"
-          >
-            {SLOT2_TABS.map(({ key, label, shortLabel, href, Icon }) => {
-              const isActive = activeType === key;
-              return (
-                <a
-                  key={key}
-                  href={href}
-                  aria-current={isActive ? 'page' : undefined}
-                  aria-label={`Filtrar por ${label}`}
-                  title={label}
-                  className={
-                    'group inline-flex items-center gap-1.5 px-3 h-9 text-[12.5px] border-b-2 -mb-px transition-colors ' +
-                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ' +
-                    (isActive
-                      ? 'text-foreground font-medium'
-                      : 'border-transparent text-muted-foreground font-normal hover:text-foreground')
-                  }
-                  style={isActive ? { borderBottomColor: primaryBg } : undefined}
-                >
-                  {/* Ícone canon LEARNINGS Decisão #2: size 16 + stroke 1.75 + vector-effect + shrink-0 (anti-borrão Lucide DPR=1) */}
-                  <Icon
-                    className="h-4 w-4 shrink-0"
-                    aria-hidden="true"
-                    strokeWidth={1.75}
-                    style={{ vectorEffect: 'non-scaling-stroke' }}
-                  />
-                  <span>{shortLabel}</span>
-                  {/* Wagner 2026-05-25: counter REMOVIDO da tab — duplicava info do KPI strip abaixo.
-                      Contador continua sendo computado backend via props.tab_counts (defer paralelo
-                      sem custo extra) — fica disponível pra future re-add ou outras telas. */}
-                </a>
-              );
-            })}
-          </nav>
+          {/* ZONA C · subnav MOVIDA pra faixa própria abaixo do header ([W] 2026-07-14:
+              "mesma posição do Clientes/protótipo em todas") — ver <PageHeaderTabs> logo após o header. */}
 
           {/* ZONA R · actions (apenas ⋮ + primary roxo) */}
           <div className="flex-shrink-0 flex items-center gap-1.5">
@@ -976,41 +952,17 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
           </div>
         </div>
 
-        {/* Mobile fallback: tabs em 2ª linha quando <md (no md+ ficam inline acima).
-            canon v3.4: removido `border-t border-border` — consistência com header transparente. */}
-        <nav
-          className="md:hidden flex items-center gap-0 overflow-x-auto px-4"
-          aria-label="Tipo de contato (mobile)"
-        >
-          {SLOT2_TABS.map(({ key, label, shortLabel, href, Icon }) => {
-            const isActive = activeType === key;
-            return (
-              <a
-                key={key}
-                href={href}
-                aria-current={isActive ? 'page' : undefined}
-                aria-label={`Filtrar por ${label}`}
-                title={label}
-                className={
-                  'group inline-flex items-center gap-1.5 px-3 h-11 text-[12.5px] border-b-2 -mb-px shrink-0 transition-colors ' +
-                  (isActive
-                    ? 'text-foreground font-medium'
-                    : 'border-transparent text-muted-foreground font-normal')
-                }
-                style={isActive ? { borderBottomColor: primaryBg } : undefined}
-              >
-                <Icon
-                  className="h-4 w-4 shrink-0"
-                  aria-hidden="true"
-                  strokeWidth={1.75}
-                  style={{ vectorEffect: 'non-scaling-stroke' }}
-                />
-                <span>{shortLabel}</span>
-                {/* Wagner 2026-05-25: counter removido — duplicava KPI strip */}
-              </a>
-            );
-          })}
-        </nav>
+        {/* Faixa de abas CANÔNICA full-width abaixo do título — PageHeaderTabs, fiel ao
+            protótipo cadastro (`.cli-moduletopnav`): faixa própria (não inline), label
+            completo + ícone roxo + badge de contagem. Vale desktop e mobile (scroll-x
+            embutido). [W] 2026-07-14: "mesma posição do Clientes/protótipo em todas". */}
+        <div className="px-6">
+          <PageHeaderTabs
+            ghosts={contactGhosts}
+            activeGhostKey={activeType}
+            maxVisible={6}
+          />
+        </div>
       </header>
 
       {/* ───── BLOCO 2 · KPI STRIP FLUTUANTE (sem moldura · 5 cards autossuficientes) ─────
