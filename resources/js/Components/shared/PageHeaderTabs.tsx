@@ -229,15 +229,17 @@ export default function PageHeaderTabs({
                   'transition-colors border-b-2 border-transparent',
                   'hover:bg-accent hover:text-accent-foreground',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  // ADR 0313/0190 fidelidade [W] 2026-07-07: o tab ATIVO usa o primary roxo
-                  // universal (texto + borda), NÃO o hue-por-grupo (era verde 145 no Financeiro).
-                  // Espelha a mudança que o [W] fez no PageHeaderNav do protótipo vivo (app.jsx:
-                  // onColor/onBorder = var(--accent) pra TODOS os grupos). Alinha com o primary
-                  // universal da ADR 0190. `hue` segue só pro botão primary colorido (out of scope).
+                  // Fidelidade ao protótipo cadastro (`clientes-page.css` `.cli-moduletopnav-tab.active`)
+                  // [W] 2026-07-14: aba ATIVA = texto foreground (var(--text) do protótipo, branco)
+                  // + peso 600 + underline roxo `--accent` oklch(0.55 0.15 295) — o MESMO valor do
+                  // botão PageHeaderPrimary (ADR 0190). NÃO `text-primary`/`border-b-primary`: o
+                  // token `--primary` resolve pra oklch(0.70 …) e destoava do botão (2 roxos no
+                  // header). `hue` segue só pro botão primary colorido (out of scope).
                   isActive
-                    ? 'text-primary font-medium border-b-primary'
+                    ? 'text-foreground font-semibold'
                     : 'text-muted-foreground',
                 )}
+                style={isActive ? { borderBottomColor: 'oklch(0.55 0.15 295)' } : undefined}
               >
                 {ghost.icon && <Icon name={ghost.icon} size={13} className="shrink-0" aria-hidden />}
                 {ghost.label}
