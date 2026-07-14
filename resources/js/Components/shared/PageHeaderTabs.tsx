@@ -68,6 +68,13 @@ export interface PageHeaderGhost {
    * (app.jsx) mostra `{Icon && <Icon size={12}/>}` por aba.
    */
   icon?: string;
+  /**
+   * OPT-IN: contagem exibida como pill numérico (`.cli-moduletopnav-n` do
+   * protótipo cadastro). Base cinza; na aba ATIVA fica roxo (`--accent`) com
+   * texto branco. Só renderiza se a tela declarar `badge` — telas sem contagem
+   * (Financeiro/Ponto) não mudam.
+   */
+  badge?: number | string;
 }
 
 /**
@@ -223,8 +230,9 @@ export default function PageHeaderTabs({
                   // entra quando ESTA tab declara `icon`. `<a>` default é inline; trocar pra
                   // inline-flex mexe baseline/altura ~1px em TODA tela que usa PageHeaderTabs
                   // (Clientes/Compras/Sells/Oficina) mesmo sem ícone. Condicional = zero blast
-                  // radius; sem ícone, className byte-idêntica à de origem.
-                  ghost.icon ? 'inline-flex items-center gap-1.5' : '',
+                  // radius; sem ícone, className byte-idêntica à de origem. Badge também
+                  // exige inline-flex pra centrar o pill numérico verticalmente.
+                  ghost.icon || ghost.badge != null ? 'inline-flex items-center gap-1.5' : '',
                   'px-3 py-1.5 text-sm whitespace-nowrap snap-start rounded-md',
                   'transition-colors border-b-2 border-transparent',
                   'hover:bg-accent hover:text-accent-foreground',
@@ -239,10 +247,41 @@ export default function PageHeaderTabs({
                     ? 'text-foreground font-semibold'
                     : 'text-muted-foreground',
                 )}
-                style={isActive ? { borderBottomColor: 'oklch(0.55 0.15 295)' } : undefined}
+                style={
+                  isActive
+                    ? {
+                        // Fiel ao protótipo `.cli-moduletopnav-tab.active`: underline `--accent`
+                        // + pill roxo suave (accent-soft 50%). Ambos oklch(0.55 0.15 295).
+                        borderBottomColor: 'oklch(0.55 0.15 295)',
+                        backgroundColor: 'oklch(0.55 0.15 295 / 0.10)',
+                      }
+                    : undefined
+                }
               >
-                {ghost.icon && <Icon name={ghost.icon} size={13} className="shrink-0" aria-hidden />}
+                {ghost.icon && (
+                  <Icon
+                    name={ghost.icon}
+                    size={13}
+                    className="shrink-0"
+                    // ícone roxo na aba ativa (`.cli-moduletopnav-tab.active svg{color:var(--accent)}`)
+                    style={isActive ? { color: 'oklch(0.55 0.15 295)' } : undefined}
+                    aria-hidden
+                  />
+                )}
                 {ghost.label}
+                {ghost.badge != null && (
+                  <span
+                    className="ml-1.5 inline-block rounded-full px-1.5 min-w-[18px] text-center text-[10.5px] leading-[1.4] font-semibold tabular-nums"
+                    // `.cli-moduletopnav-n`: base cinza; ativo roxo (`--accent`) + branco.
+                    style={
+                      isActive
+                        ? { backgroundColor: 'oklch(0.55 0.15 295)', color: 'oklch(0.99 0 0)' }
+                        : { backgroundColor: 'oklch(0.32 0.01 240)', color: 'oklch(0.70 0.01 240)' }
+                    }
+                  >
+                    {ghost.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
