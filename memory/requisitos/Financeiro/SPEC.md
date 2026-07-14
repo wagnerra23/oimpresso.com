@@ -1327,6 +1327,8 @@ Diferencial Conta Azul KILLER que ataca direto seu moat de mercado: network de c
 
 **Implementado em:** `resources/js/Pages/Financeiro/Unificado/Index.tsx` · `resources/js/Pages/Financeiro/Unificado/_components/FinPillContaIndefinida.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `Modules/Financeiro/Tests/Feature/UnificadoContaIndefinidaGuardTest.php` · verificado@fd4e96b (2026-07-14) — pill "Conta indefinida" (baixa paga sem conta, ADR 0175) na Visão Unificada, com CTA pra `/financeiro/contas-bancarias`; GUARD UC-F05 na lane financeiro-pest.
 
+**Testado em:** `Modules/Financeiro/Tests/Feature/UnificadoContaIndefinidaGuardTest.php`
+
 Pós-ADR 0175 (baixa permite `fin_titulo_baixas.conta_bancaria_id NULL`), a linha/drawer com baixa paga SEM conta mostra o pill 'Conta indefinida' (warning leve, dark-aware) no lugar do "—" na coluna Conta — o pill é o CTA pra cadastro de conta. Backend `shapeTitulo.conta_indefinida` (booleano de exibição; zero valor/estoque).
 
 **Escopo corrigido (2026-07-14, [W] aprovou fechar via PR1):** a acceptance original listava 3 telas (Unificado + ContasReceber + Cobranca), mas o conceito só existe na **Visão Unificada** — a única com coluna Conta + fluxo de caixa (baixa). **ContasReceber** é lista de recebíveis EM ABERTO (colunas Nº/Cliente/Vencimento/Valor aberto/Status/Boleto; sem coluna Conta, foco no não-pago) → **N/A**. **Cobranca** usa o model `PaymentGateway\Cobranca` (cobranças de gateway), não `fin_titulo_baixas` → **N/A**. Pôr o pill nelas seria código morto (proibicoes: não inventar onde não se aplica).

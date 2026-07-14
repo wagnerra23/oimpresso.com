@@ -12,6 +12,8 @@ use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
 
+// @covers-us US-FIN-038
+
 /**
  * US-FIN-038 — pill "Conta indefinida" nas linhas/drawer da Visão Unificada.
  *
