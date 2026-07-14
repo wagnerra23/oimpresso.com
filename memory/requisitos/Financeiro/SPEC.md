@@ -1322,22 +1322,23 @@ Diferencial Conta Azul KILLER que ataca direto seu moat de mercado: network de c
 
 ### US-FIN-038 · UI label 'Conta indefinida' + CTA 'vincular conta' nas linhas com conta_bancaria_id NULL
 
-> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 2h · status: done · type: story
 > blocked_by: —
 
-**Implementado em:** _pendente_ — pill "Conta indefinida" + CTA "vincular conta" nas linhas com `conta_bancaria_id NULL` nunca construídos nas telas do Financeiro.
+**Implementado em:** `resources/js/Pages/Financeiro/Unificado/Index.tsx` · `resources/js/Pages/Financeiro/Unificado/_components/FinPillContaIndefinida.tsx` · `Modules/Financeiro/Http/Controllers/UnificadoController.php` · `Modules/Financeiro/Tests/Feature/UnificadoContaIndefinidaGuardTest.php` · verificado@fd4e96b (2026-07-14) — pill "Conta indefinida" (baixa paga sem conta, ADR 0175) na Visão Unificada, com CTA pra `/financeiro/contas-bancarias`; GUARD UC-F05 na lane financeiro-pest.
 
-Pos-ADR 0175 (Observer permite baixa sem fin_contas_bancarias), drawer/list Financeiro/ContasReceber + Financeiro/Unificado + Financeiro/Cobranca devem mostrar pill cinza 'Conta indefinida' nas linhas onde `fin_titulo_baixas.conta_bancaria_id IS NULL`, com CTA pra modal de cadastro fin_contas_bancarias.
+Pós-ADR 0175 (baixa permite `fin_titulo_baixas.conta_bancaria_id NULL`), a linha/drawer com baixa paga SEM conta mostra o pill 'Conta indefinida' (warning leve, dark-aware) no lugar do "—" na coluna Conta — o pill é o CTA pra cadastro de conta. Backend `shapeTitulo.conta_indefinida` (booleano de exibição; zero valor/estoque).
 
-Acceptance:
-- Tooltip: 'Pagamento registrado sem vinculação bancária. Cadastre conta pra organizar caixa.'
-- Pill cinza-amarelado (warning leve, não vermelho de erro)
-- Click no CTA abre `/financeiro/contas-bancarias/create` em modal ou nova rota
-- Pos-cadastro, oferecer artisan-equivalente UI: 'Vincular automaticamente N baixas órfãs?' (executa `financeiro:vincular-baixas-sem-conta {biz} {conta}` via fila/job)
-- Pest GUARD: titulo com baixa conta_bancaria_id NULL renderiza pill 'indefinida'
-- Smoke browser Brave biz=4 Larissa apos PR mergeada: deve aparecer pill nos 15.412 baixas backfill SQL ja existentes + nos NOVAS pos-pagamento
+**Escopo corrigido (2026-07-14, [W] aprovou fechar via PR1):** a acceptance original listava 3 telas (Unificado + ContasReceber + Cobranca), mas o conceito só existe na **Visão Unificada** — a única com coluna Conta + fluxo de caixa (baixa). **ContasReceber** é lista de recebíveis EM ABERTO (colunas Nº/Cliente/Vencimento/Valor aberto/Status/Boleto; sem coluna Conta, foco no não-pago) → **N/A**. **Cobranca** usa o model `PaymentGateway\Cobranca` (cobranças de gateway), não `fin_titulo_baixas` → **N/A**. Pôr o pill nelas seria código morto (proibicoes: não inventar onde não se aplica).
 
-Refs ADR 0175, sessao 2026-05-20-financeiro-bridge-larissa-backfill-recovery.md.
+**Aceite:** (entregue na Visão Unificada — PR #4263)
+- ✅ Tooltip: 'Pagamento registrado sem vinculação bancária. Cadastre conta pra organizar caixa.'
+- ✅ Pill warning leve (tokens `warning-*` do DS, dark-aware — não vermelho de erro)
+- ✅ CTA leva a `/financeiro/contas-bancarias` (a rota `/create` não existe; padrão canônico das outras telas)
+- ✅ Pest GUARD `UnificadoContaIndefinidaGuardTest` (G1 null→pill · G2 vinculada→sem · G3 sem baixa→sem), biz=1
+- ⏭️ Auto-vincular baixas órfãs (`financeiro:vincular-baixas-sem-conta`) → follow-up **US-FIN-039** (já no SPEC)
+
+Refs ADR 0175, PR #4263, sessao 2026-05-20-financeiro-bridge-larissa-backfill-recovery.md.
 
 ### US-FIN-039 · Artisan command financeiro:vincular-baixas-sem-conta - reconciliacao posterior
 
