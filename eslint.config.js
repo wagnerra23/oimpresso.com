@@ -206,7 +206,10 @@ export default [
           // não uma enumeração de palavras. Só LITERAL — texto data-driven ({x.foo_id})
           // NÃO é cobrível por lint sintático (mesma fronteira honesta do
           // no-radix-item-empty-value acima; a raiz disso se conserta no dado, não aqui).
-          selector: 'JSXText[value=/\\b(distinct\\s+\\w+|\\w+_(id|total|status|at|amount|qty|price|count))\\b/]',
+          // EXCLUI <code>/<pre>/<kbd>: ali o nome de tabela/coluna/rota é DOC TÉCNICA
+          // intencional (telas de admin/dev), não jargão vazando — falso-positivo removido
+          // na raiz em vez de tolerado no baseline (verificado 2026-07-14, 5 dos 11 hits).
+          selector: 'JSXText[value=/\\b(distinct\\s+\\w+|\\w+_(id|total|status|at|amount|qty|price|count))\\b/]:not(JSXElement[openingElement.name.name=/^(code|pre|kbd)$/] > JSXText)',
           message: 'ds/no-db-jargon-in-ui — texto visível com nome de coluna/SQL cru. Use linguagem de negócio PT (ex: "distinct contact_id" → "fornecedores no período"; "final_total" → "total").',
         },
       ],
