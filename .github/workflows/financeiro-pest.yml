@@ -140,6 +140,7 @@ jobs:
             Modules/Financeiro/Tests/Feature/UnificadoFormaPagamentoGuardTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoBaixaDialogGuardTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoBulkGuardTest.php \
+            Modules/Financeiro/Tests/Feature/UnificadoContaIndefinidaGuardTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoEditPlanoContaTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoCommentsAuditTest.php \
             Modules/Financeiro/Tests/Feature/UnificadoConferirTest.php \
