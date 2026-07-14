@@ -114,7 +114,7 @@ function ci038FetchShape(User $user, Titulo $t): ?array
 }
 
 // G1 — baixa SEM conta → conta_indefinida = true
-it('GUARD G1: baixa com conta_bancaria_id NULL expõe conta_indefinida = true', function () {
+it('UC-F05 GUARD G1: baixa com conta_bancaria_id NULL expõe conta_indefinida = true', function () {
     [$business, $user] = ci038Bootstrap();
     $titulo = ci038CreateTitulo($business->id, $user->id);
     ci038InsertBaixa($business->id, $titulo->id, $user->id, null);
@@ -130,7 +130,7 @@ it('GUARD G1: baixa com conta_bancaria_id NULL expõe conta_indefinida = true', 
 });
 
 // G2 — baixa COM conta → conta_indefinida = false
-it('GUARD G2: baixa com conta vinculada expõe conta_indefinida = false', function () {
+it('UC-F05 GUARD G2: baixa com conta vinculada expõe conta_indefinida = false', function () {
     [$business, $user] = ci038Bootstrap();
     $conta = ContaBancaria::where('business_id', $business->id)->orderBy('id')->first();
     if (! $conta) {
@@ -149,7 +149,7 @@ it('GUARD G2: baixa com conta vinculada expõe conta_indefinida = false', functi
 });
 
 // G3 — título sem baixa (não pago) → conta_indefinida = false (pill NÃO aparece)
-it('GUARD G3: título sem baixa expõe conta_indefinida = false', function () {
+it('UC-F05 GUARD G3: título sem baixa expõe conta_indefinida = false', function () {
     [$business, $user] = ci038Bootstrap();
     $titulo = ci038CreateTitulo($business->id, $user->id);
 
