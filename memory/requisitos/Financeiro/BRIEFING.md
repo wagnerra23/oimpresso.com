@@ -2,6 +2,8 @@
 distilled_at: "2026-07-14"
 distilled_by: jana:distill-module-truth
 module: Financeiro
+status: producao
+updated_at: "2026-07-14"
 ---
 
 # BRIEFING — Financeiro (verdade destilada)

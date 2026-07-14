@@ -2,6 +2,8 @@
 distilled_at: "2026-07-02"
 distilled_by: jana:distill-module-truth
 module: Repair
+status: shared-infra
+updated_at: "2026-07-02"
 ---
 
 # BRIEFING — Repair (verdade destilada)

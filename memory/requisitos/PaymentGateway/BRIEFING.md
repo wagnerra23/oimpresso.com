@@ -2,6 +2,8 @@
 distilled_at: "2026-07-02"
 distilled_by: jana:distill-module-truth
 module: PaymentGateway
+status: parcial
+updated_at: "2026-07-02"
 ---
 
 # BRIEFING — PaymentGateway (verdade destilada)
