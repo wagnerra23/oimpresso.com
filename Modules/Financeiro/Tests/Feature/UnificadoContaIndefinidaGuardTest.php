@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Business;
 use App\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -31,12 +30,9 @@ uses(Tests\TestCase::class);
 function ci038Bootstrap(): array
 {
     try {
-        $business = Business::first();
-    } catch (\Throwable $e) {
+        $business = test()->seededTenant(); // trait WithSeededTenant (biz=1 canônico, ADR 0101)
+    } catch (\Illuminate\Database\QueryException $e) {
         test()->markTestSkipped('Tabela business indisponível: '.$e->getMessage());
-    }
-    if (! $business) {
-        test()->markTestSkipped('Sem business no banco.');
     }
     $user = User::where('business_id', $business->id)->first();
     if (! $user) {
