@@ -197,6 +197,18 @@ export default [
           selector: 'JSXOpeningElement[name.name="SelectItem"] > JSXAttribute[name.name="value"] > JSXExpressionContainer > Literal[value=""]',
           message: 'ds/no-radix-item-empty-value — value vazio entre chaves derruba o render do Radix. Use um sentinela não-vazio (ex: __all__) ou <SafeSelectItem>.',
         },
+        {
+          // ds/no-db-jargon-in-ui — nome de coluna/SQL cru no TEXTO VISÍVEL da UI.
+          // Pega JSXText literal com snake_case de coluna (foo_id/foo_total/foo_status/
+          // foo_at/foo_amount…) ou "distinct <col>" — jargão de dev que vaza pro usuário
+          // final (ex vividos em /compras: "distinct contact_id", "soma final_total mês
+          // corrente"). EIXO POR FORMA: qualquer snake_case-de-coluna em texto visível,
+          // não uma enumeração de palavras. Só LITERAL — texto data-driven ({x.foo_id})
+          // NÃO é cobrível por lint sintático (mesma fronteira honesta do
+          // no-radix-item-empty-value acima; a raiz disso se conserta no dado, não aqui).
+          selector: 'JSXText[value=/\\b(distinct\\s+\\w+|\\w+_(id|total|status|at|amount|qty|price|count))\\b/]',
+          message: 'ds/no-db-jargon-in-ui — texto visível com nome de coluna/SQL cru. Use linguagem de negócio PT (ex: "distinct contact_id" → "fornecedores no período"; "final_total" → "total").',
+        },
       ],
     },
   },
