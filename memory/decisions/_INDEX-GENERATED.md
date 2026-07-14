@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **342** arquivos · **326** números únicos · máx **0336**
-- **ADRs ATIVOS (lifecycle ativo): 308** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 308 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 308 · arquivado 18 · substituido 12 · (vazio) 4
+- **343** arquivos · **327** números únicos · máx **0337**
+- **ADRs ATIVOS (lifecycle ativo): 309** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 309 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 309 · arquivado 18 · substituido 12 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (342)
+## Todas as ADRs (343)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -382,3 +382,4 @@ _(íntegra)_
 | 0334 | aceito | ativo | meta | Modelo de 3 camadas (Produto ERP · Produto IA · IA-OS) + invariante anti-atrofia |
 | 0335 | aceito | ativo | decision | Fechamento do loop diff-first DS-sync: nota honesta (B−/C+ vs SOTA A−), régua re |
 | 0336 | aceito | ativo | decision | Emenda à 0314 — gates de design PODEM virar required quando provarem mordida REA |
+| 0337 | aceito | ativo | decision | Emenda à 0144 — o sync FECHA-pra-frente um card quando a âncora está verificada  |
