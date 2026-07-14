@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-13**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-14**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -57,7 +57,7 @@ lifecycle: ativo
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **358**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **353**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -140,14 +140,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **246** handoffs · **437** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **247** handoffs · **439** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-13-financeiro-visreg-enforcing`
+  - `2026-07-13-arte-oss-comparavel-ia-os`
   - `2026-07-12-spike-hybrid-jana-bi-us-copi-133`
   - `2026-07-12-sdd-prova-6de8-plano-v2-disjuncao`
   - `2026-07-12-sdd-avaliacao-adversarial-processo`
   - `2026-07-12-reguas-adversario-grade`
-  - `2026-07-12-painel-auditorias-gates-e-maquina-que-mantem`
-  - `2026-07-12-matriz-onboarding-maquinas-canario`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-13 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-14 · deriva das fontes canônicas, não as substitui._
