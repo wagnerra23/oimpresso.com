@@ -4,7 +4,7 @@ irmaos: Index.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — os KPIs reais, paginação/ordenação server-side e a aba "Outros" não mudam no refactor.
 owner: wagner
-last_run: "2026-07-08"
+last_run: "2026-07-14"
 ---
 
 # Casos de Uso & Aceite — Lista de clientes
@@ -12,6 +12,8 @@ last_run: "2026-07-08"
 > Fase 2 (lanes do Cliente). Tela principal do módulo. UCs ancorados em testes da lane ativa (Pest, CT100): `ClienteTypeOtherRouteTest` (render HTTP real), `ClientePaginacaoServerSideTest`, `ClienteSortServerSideTest`, `ClienteKpisServerSideTest`. Onde o teste é guard estrutural do query (a semântica É a corretude), o **número real** vira ✅ só com smoke — por isso os status são 🧪.
 >
 > **Status:** ✅ passa (prova no manifesto G-7) · 🧪 teste cita o UC e passa (manifesto não regravado / prova de render = smoke) · ⬜ não verificado · ❌ quebrou.
+>
+> **Revalidação 2026-07-14 (consolidação DS):** a barra de abas migrou da versão inline hand-rolled pro componente canônico `PageHeaderTabs` em faixa própria (posição do protótipo + contadores). Os UCs abaixo são de **rota/query** (`?type=X`, paginação, ordenação, KPIs) — os `href` das abas são **idênticos**, então a navegação testada não muda. Status mantidos (🧪).
 
 ---
 
