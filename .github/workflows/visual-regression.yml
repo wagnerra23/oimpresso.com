@@ -371,20 +371,22 @@ jobs:
         # residual é flake de timing/browser, não pixel). Diff de pixel real NUNCA re-roda.
         run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
 
-      - name: Fluxos visuais Compras (ADVISORY — L2.5 · interação × viewport)
-        # NASCE ADVISORY (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing).
-        # Cobre os 3 fluxos pós-clique do cockpit /compras (visibilidade de colunas,
-        # menu de Ações da linha, drawer) × 3 viewports = 9 snapshots. O double-threshold
-        # (VisregThreshold) roteia por bandas; a zona cinza sobe diff-view pro [W].
-        # Promoção L1 = remover o `continue-on-error` (o check `visual-regression` já é
-        # required; sem clique de branch protection). Baseline via modo update (dispatch)
-        # NO runner canônico — nunca local (Tier 0: testes no CT100/CI, proibicoes.md).
+      - name: Fluxos visuais Compras (ENFORCING — L2.5 · interação × viewport)
+        # PROMOVIDO A ENFORCING (2026-07-14, ADR 0261 "promover = remover o continue-on-error"):
+        # os 9 baselines (3 fluxos pós-clique do cockpit /compras — visibilidade de colunas,
+        # menu de Ações da linha, drawer × 3 viewports) foram armados via #4251 e provaram
+        # match (9 passed nos runs 29297033941 e 29298250328). Sem continue-on-error: regressão
+        # clara pós-clique de Compras agora BLOQUEIA merge. O double-threshold (VisregThreshold)
+        # roteia por bandas; a zona cinza (não-falha) sobe diff-view pro [W]. Baseline via modo
+        # update (dispatch) NO runner canônico — nunca local (Tier 0: testes no CT100/CI).
         # `always()`: roda mesmo se um passo anterior falhar (fluxo novo não pode ficar
         # sem evidência por regressão independente de outra tela).
         if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: compras-flows
-        continue-on-error: true
-        run: ./vendor/bin/pest tests/Browser/CoreScreens/ComprasFlowBaselineTest.php
+        # RETRY-ONCE anti-flake (scripts/tests/visreg-flake-retry.sh, mesmo do Sells/Financeiro):
+        # re-roda só em FLAKE de execução (browser/socket/timeout), NUNCA em regressão de pixel
+        # (double-threshold é veredito duro). Sem ele, um flake de browser travaria o merge do time.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/ComprasFlowBaselineTest.php
 
       - name: Fluxos visuais Sells/Create (ENFORCING — L2.5 · interação × viewport)
         # PROMOVIDO A ENFORCING (2026-07-14, ADR 0261 "promover = remover o continue-on-error"):
