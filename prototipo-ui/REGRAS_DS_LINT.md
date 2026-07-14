@@ -38,14 +38,30 @@ Adicionar ao bloco `rules` do override `files: ['resources/js/**/*.{ts,tsx}']`. 
     message: 'ds/no-arbitrary-color — sem hex cru. Use token semântico (bg-muted, text-foreground, border-border, text-destructive…).',
   },
   {
-    // texto de status colorido na mão → FieldError/FieldSuccess/Alert
-    selector: 'JSXAttribute[name.name="className"] Literal[value=/\\btext-(rose|red|emerald|green)-(500|600|700)\\b/]',
-    message: 'ds/no-adhoc-status-text — use <FieldError>/<FieldSuccess> ou <Alert> (cores semânticas), não text-rose/emerald cru.',
+    // QUALQUER cor crua do palette Tailwind → token. Fecha o EIXO por FORMA
+    // (set fechado 22 nomes × 11 steps), não por enumeração de leaks conhecidos.
+    // Absorve o antigo no-adhoc-status-text. Casa variante (hover:text-red-500).
+    selector: 'JSXAttribute[name.name="className"] Literal[value=/\\b(bg|text|border|ring|divide|fill|stroke|from|via|to|accent|caret|decoration|outline|placeholder|shadow|ring-offset)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|100|200|300|400|500|600|700|800|900|950)\\b/]',
+    message: 'ds/no-raw-palette-color — sem cor crua do Tailwind. Use token semântico: bg-card/bg-muted, text-foreground/text-muted-foreground, border-border, text-destructive, text-primary…',
+  },
+  {
+    // classe de shell os-btn tem substituto DS (<Button>). Lista CURADA/finita —
+    // os-page-h / os-drawer-head são scaffold sem substituto → NÃO entram.
+    selector: 'JSXAttribute[name.name="className"] Literal[value=/\\bos-btn\\b/]',
+    message: 'ds/no-os-btn — use <Button> (@/Components/ui/button), não a classe de shell os-btn.',
   },
 ],
 ```
 
 > **Nota:** os selectors de className casam tanto `Literal` puro quanto o `Literal` dentro de `BinaryExpression` (ex.: `'rounded-xl border ' + (danger ? …)`) — pega os dois. `<select>` lowercase = nativo; `<Select>` (Radix) não casa (esquery é case-sensitive).
+
+> ### Por que FORMA > enumeração (a decisão "virar máquina")
+>
+> Enumerar leak-a-leak (`stone|slate|gray`…) = **sempre um leak atrás**: incompleto por construção (mesma lição da âncora-guard, `memory/proibicoes.md` 2026-06-30). A regra `no-raw-palette-color` casa a **forma** do eixo — todo o palette Tailwind, que é **conjunto fechado**. Assim nenhum valor cru novo (`red-400`, `amber-700`, cor imprevista) passa: **completo por construção pra o eixo de cor**. Fica seguro porque **forma-completa + ratchet**: a regra acende em centenas de usos legados, o `lint:baseline:write` absorve toda a dívida, e só o **delta novo** quebra CI — sem flag day.
+>
+> **O que NÃO fecha por forma (residual honesto, fica humano/charter):**
+> - **Component-substitute** (`os-btn`→`<Button>`, `<select>`→`<Select>`): não tem shape genérico sem pegar scaffold legítimo → lista **curada e finita** (cresce só quando surge substituto). `os-page-h`/`os-drawer-head` **não** entram.
+> - **Uso semântico errado** (`text-foreground` onde era `text-muted-foreground`), spacing/layout drift, família de classe nova não-mapeada. Nenhum lint pega "tokenizado, mas no token errado".
 
 ## 2. Regra custom (form-section composto — AST não pega via string simples)
 
@@ -95,6 +111,7 @@ Promover componente = entregar o **tripé**: impl em `@/Components/ui` + regra `
 | `ds/no-native-select` | `<select>` | Select |
 | `ds/no-rounded-xl` | `rounded-xl\|2xl\|3xl` | rounded-lg máx |
 | `ds/no-arbitrary-color` | `bg-[#..]`, `text-[#..]` | token semântico |
-| `ds/no-adhoc-status-text` | `text-rose/emerald-600` | FieldError/Success/Alert |
+| `ds/no-raw-palette-color` | `bg/text/border-<cor>-<n>` (palette Tailwind, set fechado) | token semântico |
+| `ds/no-os-btn` | classe de shell `os-btn` | `<Button>` |
 | `ds/no-handrolled-form-section` | `rounded-lg border p-4\|p-5` | FormSection |
 | `ds/icons` (opt) | import direto `lucide-react` | icon-registry |

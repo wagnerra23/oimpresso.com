@@ -161,9 +161,25 @@ export default [
           message: 'ds/no-arbitrary-color — sem hex cru. Use token semântico (bg-muted, text-foreground, border-border, text-destructive…).',
         },
         {
-          // texto de status colorido na mão → FieldError/FieldSuccess/Alert
-          selector: 'JSXAttribute[name.name="className"] Literal[value=/\\btext-(rose|red|emerald|green)-(500|600|700)\\b/]',
-          message: 'ds/no-adhoc-status-text — use <FieldError>/<FieldSuccess> ou <Alert> (cores semânticas), não text-rose/emerald cru.',
+          // ds/no-raw-palette-color — QUALQUER cor crua do palette Tailwind num
+          // prefixo que carrega cor → token semântico. Fecha o EIXO por FORMA, não
+          // por enumeração: o palette é set FECHADO (22 nomes × 11 steps), então
+          // nenhum leak de cor novo (red-400, amber-700, cor imprevista) passa —
+          // completo por construção. Absorve o antigo no-adhoc-status-text (text-
+          // rose/emerald cru) e cobre bg/border/ring/from/via/to/shadow/etc.
+          // Casa também variante (hover:text-red-500) por não estar ancorado.
+          // Só muda se o Tailwind inventar nome novo (raro → 1 update). Ref §"Onde
+          // NÃO dá pra virar máquina" em REGRAS_DS_LINT.md §1.
+          selector: 'JSXAttribute[name.name="className"] Literal[value=/\\b(bg|text|border|ring|divide|fill|stroke|from|via|to|accent|caret|decoration|outline|placeholder|shadow|ring-offset)-(slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-(50|100|200|300|400|500|600|700|800|900|950)\\b/]',
+          message: 'ds/no-raw-palette-color — sem cor crua do Tailwind (bg/text/border-<cor>-<n>). Use token semântico: bg-card/bg-muted, text-foreground/text-muted-foreground, border-border, text-destructive, text-primary…',
+        },
+        {
+          // ds/no-os-btn — classe de shell os-btn tem substituto DS (<Button>).
+          // NÃO é eixo-de-valor: é component-substitute, lista CURADA e finita
+          // (cresce só quando um shell class ganha equivalente DS). os-page-h /
+          // os-drawer-head são scaffold SEM substituto ainda → NÃO entram aqui.
+          selector: 'JSXAttribute[name.name="className"] Literal[value=/\\bos-btn\\b/]',
+          message: 'ds/no-os-btn — use <Button> (@/Components/ui/button, variant/size), não a classe de shell os-btn.',
         },
         {
           // ds/no-radix-item-empty-value (ADVISORY EXTRA — a defesa REAL é o
