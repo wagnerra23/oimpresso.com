@@ -133,6 +133,31 @@ Migrar o hospedagem do código pra um servidor próprio (o CT 100 já roda a sta
 - **Camada de valores R$:** manter e reforçar a regra 2026-06-08 (time vê escopo, não valores) — considerar o hook `block-brl-values-in-memory.ps1` já cogitado nas proibições.
 - **Secret scanning:** o gate `gitleaks` já é required no PR; ligar também **GitHub secret scanning + push protection** no repo (nativo, grátis em privado) como segunda camada.
 
+### 2.5 "Vão poder ver e copiar tudo — as máquinas e os fontes?" (a verdade sem ilusão)
+
+Pergunta recorrente do Wagner. Resposta separada por superfície, porque é **diferente** pra máquina e pra código.
+
+**Máquinas → NÃO.** Infra é genuinamente segmentável. Um integrante novo **não alcança** produção (Hostinger) nem o Proxmox (hypervisor) — zero acesso. No CT 100 entra só no staging, **como não-root e com a sessão gravada**. Ninguém "copia as máquinas". Já está montado ([`tailscale-acl.hujson`](tailscale-acl.hujson) + SSH só-chave + Proxmox atrás do NAT). Mudar a estrutura (criar/derrubar container, rede, Proxmox) exige ser **admin** — e admin é só o Wagner.
+
+**Código → depende de QUAIS repositórios você libera.** Verdade dura: **quem tem acesso de leitura a um repositório pode clonar tudo daquele repo e copiar pra onde quiser.** No git, *clonar já é copiar* — e **não existe "ver só metade do repo"** (o GitHub é tudo-ou-nada na leitura de um repositório; ver Apêndice §2). Logo:
+- Se está **tudo num repo só** e você dá acesso → sim, copiam tudo.
+- A **única** forma de impedir que copiem um pedaço é esse pedaço morar em **outro repositório sem acesso deles**.
+
+Ou seja: *"esconder e liberar só o necessário"* no código = escolher **quais repositórios cada pessoa enxerga**, não "esconder pastas dentro do repo".
+
+**A estrutura concreta que resolve — dois repositórios:**
+
+| Repo | Conteúdo | Quem tem acesso | Consequência |
+|---|---|---|---|
+| **`oimpresso-nucleo`** (privado) | ERP do dia a dia — módulos que o time trabalha | time todo, com write mínimo | clonam/copiam isto — e tudo bem: é o que precisam pra trabalhar, e o **NDA** cobre uso indevido |
+| **`oimpresso-joias`** (privado, restrito) | Jana core (prompts/lógica de decisão), regras fiscais proprietárias | **só Wagner (+ confiança máxima)** | novo **não tem acesso → não clona → não copia**. Referenciado no núcleo via submodule/pacote com interface estável |
+
+> **A analogia da loja:** o funcionário entra no salão e no estoque onde trabalha (vê e pega o que está ali); o **cofre da fórmula** fica numa sala sem a chave dele; e o **contrato/NDA** é a lei sobre o que ele faz com o que viu no salão. Least-privilege = dar a chave só das salas certas. NDA = a defesa jurídica do resto.
+
+**O que NÃO dá pra prevenir tecnicamente (honestidade):** não existe como impedir que alguém com acesso **legítimo** a um repo copie aquele repo. As defesas contra o *uso indevido* dessa cópia são **(1)** least-privilege (limita **quanto** cada um pode copiar — só os repos do papel), **(2)** audit/detecção (clone anômalo / download em massa vira alerta — "trust but verify", Apêndice §1) e **(3)** NDA + cessão de IP (a defesa **jurídica** real — competência da Eliana[E]). É a extração (repo joias) + contrato, não uma muralha técnica, que protege o núcleo.
+
+> ⚠️ Isto **concretiza a Topologia B** (§2) num formato de 2 repos e mantém o critério do §2.4: só acionar `oimpresso-joias` quando entrar alguém que não pode ler o núcleo de IP — não preventivamente.
+
 ---
 
 ## 3. Parte 2 — Controle dos novos integrantes (onboarding, guarda-corpos, offboarding)
@@ -300,4 +325,5 @@ Nada acima foi executado. Ao aprovar, a Fase 0 (privado + rotação) é a primei
 ---
 
 **Rodapé de evolução**
+- 2026-07-13 (2) — add §2.5 "vão poder ver e copiar tudo?" (máquinas NÃO / código = quais repos; estrutura de 2 repos núcleo+joias; analogia da loja; o que não dá pra prevenir tecnicamente). Concretiza a Topologia B. Origem: pergunta direta do Wagner na sessão.
 - 2026-07-13 — criação. Cruzamento canon interno (ADRs 0080/0081/0055/0057/0044/0030/0131/0093 + CODEOWNERS + branch-protection + `_INDEX-SECRETS` + tailscale-acl) × estado-da-arte 2026. Diagnóstico-chave: repo **público** + time ainda não é colaborador. Recomendação: **A** (privado + Org/Teams/CODEOWNERS) agora, **B** cirúrgico sob demanda, **C** não. Aguarda decisão do Wagner sobre o fork §5. Nada executado.
