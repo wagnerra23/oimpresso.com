@@ -404,7 +404,7 @@ function KpisGrid({ k }: { k: Kpis }) {
       <div className="kpi warn">
         <small>A pagar</small>
         <b>{k.aberto}</b>
-        <div className="ln">compras em aberto (due + partial)</div>
+        <div className="ln">compras com saldo em aberto</div>
       </div>
       <div className="kpi">
         <small>Em trânsito</small>
@@ -414,12 +414,12 @@ function KpisGrid({ k }: { k: Kpis }) {
       <div className="kpi">
         <small>Volume do mês</small>
         <b>{fmtMoney(k.mes)}</b>
-        <div className="ln">soma final_total mês corrente</div>
+        <div className="ln">total comprado no mês</div>
       </div>
       <div className="kpi ok">
         <small>Fornecedores ativos</small>
         <b>{k.fornec}</b>
-        <div className="ln">distinct contact_id</div>
+        <div className="ln">fornecedores com compra no período</div>
       </div>
     </div>
   );
