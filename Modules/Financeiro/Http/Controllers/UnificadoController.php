@@ -1665,6 +1665,11 @@ class UnificadoController extends Controller
             'plano_conta_nome' => $t->planoConta?->nome,
             'conta_bancaria' => $contaBancariaNome,
             'conta_bancaria_id' => $t->getAttribute('conta_bancaria_id'),
+            // US-FIN-038 — pago SEM vinculação bancária: há baixa realizada mas a
+            // última tem conta_bancaria_id NULL (ADR 0175 permite baixa sem conta).
+            // Alimenta o pill "Conta indefinida" na linha/drawer. Não mexe em valor.
+            'conta_indefinida' => $ultimaBaixa !== null
+                && $ultimaBaixa->getAttribute('conta_bancaria_id') === null,
             // Forma de pagamento: a REALIZADA (última baixa) manda quando existe
             // e é read-only; senão a PREVISTA (titulo.forma_pagamento), editável.
             // Fallback `delphi_tipopagto` (metadata) pros títulos migrados do WR.

@@ -39,6 +39,7 @@ import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
+import { FinPillContaIndefinida } from './_components/FinPillContaIndefinida';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
 import { FinCommentsThread, FinCommentsBadge, useFinComments, type UseFinCommentsApi } from './_components/FinCommentsThread';
 import { FinAuditTrail } from './_components/FinAuditTrail';
@@ -94,6 +95,7 @@ interface Lancamento {
   plano_conta_nome: string | null;
   conta_bancaria: string;
   conta_bancaria_id: number | null;
+  conta_indefinida: boolean;
   // 2026-06-03 — forma de pagamento. `forma_pagamento` = exibida (baixa realizada
   // tem prioridade, senão a prevista do título). `forma_pagamento_realizada` =
   // true quando veio da baixa → read-only (espelha valor_mutavel).
@@ -1202,6 +1204,9 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
             <Landmark className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
             <span className="truncate max-w-[120px]">{row.conta_bancaria}</span>
           </span>
+        ) : row.conta_indefinida ? (
+          /* US-FIN-038 — pago sem vinculação bancária: pill CTA (não "—") */
+          <FinPillContaIndefinida />
         ) : (
           <span className="text-muted-foreground">—</span>
         )}
@@ -2359,8 +2364,15 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     <div className="col-span-2">
                       <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Conta</div>
                       <div className="mt-0.5 text-foreground flex items-center gap-1.5">
-                        <Landmark className="h-4 w-4 text-muted-foreground" aria-hidden />
-                        <CopyVal text={selected.conta_bancaria || '—'}>{selected.conta_bancaria || '—'}</CopyVal>
+                        {selected.conta_indefinida && !(selected.conta_bancaria && selected.conta_bancaria !== '—') ? (
+                          /* US-FIN-038 — baixa sem vinculação bancária: pill CTA no drawer */
+                          <FinPillContaIndefinida />
+                        ) : (
+                          <>
+                            <Landmark className="h-4 w-4 text-muted-foreground" aria-hidden />
+                            <CopyVal text={selected.conta_bancaria || '—'}>{selected.conta_bancaria || '—'}</CopyVal>
+                          </>
+                        )}
                       </div>
                     </div>
                     {/* Paridade campos WR Fase 2 (2026-06-04, sobre base Felipe). Tokens

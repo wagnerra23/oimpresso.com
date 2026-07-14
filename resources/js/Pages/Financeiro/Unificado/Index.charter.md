@@ -10,19 +10,20 @@ parent_module: Financeiro
 states: [default, empty, loading, dark, error]  # gate L2 — cada estado é forçado pelo harness não-produtivo e recebe baseline próprio; sync com tests/Browser/visreg-states.json
 parent_capterra: memory/requisitos/Financeiro/CAPTERRA-INVENTARIO.md
 related_adrs: [93, 94]
-related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-031, US-FIN-050-anexos, US-FIN-055-aprovacao]
+related_us: [US-FIN-013, US-FIN-020, US-FIN-021, US-FIN-027, US-FIN-029, US-FIN-031, US-FIN-038, US-FIN-050-anexos, US-FIN-055-aprovacao]
 related_prototype: prototipo-ui/cowork/financeiro-page.jsx (design real da Visão Unificada; corrigido 2026-07-06 — antes apontava pro shell oimpresso.com.html, âncora podre pega pelo Wagner)
 bundle_source: financeiro-page.jsx
 canon_method: Bundle copy CSS 9054 LOC inteiro (regra Tier 0 feedback-cowork-bundle-aplicar-inteiro) — Ondas 12-21
 runbook: memory/requisitos/Financeiro/RUNBOOK-unificado.md
 tier: A
-charter_version: 21
+charter_version: 22
 ---
 
 # Page Charter — /financeiro/unificado
 
 > **Status:** F3 entregue (PR #349). Charter retroativo (sessão 2026-05-09 audit) — sem `Index.charter.md` original, divergências do ADR ui/0002 documentadas abaixo.
 > Persona: **Eliana [E]** — financeiro escritório, densidade alta, atalhos teclado.
+> **v22 (2026-07-14) · US-FIN-038 (PR1/3 — Visão Unificada):** linhas/drawer pagos SEM vinculação bancária (baixa com `conta_bancaria_id NULL`, ADR 0175) passam a mostrar o pill **"Conta indefinida"** (warning leve amber, dark-aware) no lugar do "—" na coluna Conta — o próprio pill é o CTA (link `/financeiro/contas-bancarias`). Backend: `shapeTitulo.conta_indefinida` (não mexe em valor). Componente reusável `_components/FinPillContaIndefinida.tsx` (ContasReceber/Cobranca herdam nas PRs 2/3). GUARD `UnificadoContaIndefinidaGuardTest` (G1 null→pill · G2 vinculada→sem pill · G3 sem baixa→sem pill), lane financeiro-pest. UC-F05.
 > **v21 (2026-07-13) · intenção e estados verificáveis:** o charter aponta para `financeiro-unificado.intent.json`, que transforma cinco fluxos críticos em evidências verificáveis. O empty state e Cmd+K de "Novo lançamento" passam a abrir o mesmo `TituloCreateSheet` de "Novo recebimento" — nunca a rota legada `/financeiro/unificado/novo`. `default`, `empty`, `loading`, `dark` e `error` entram no manifesto L2; o runner usa tenant vazio, defer congelado, tema em memória e flash de erro, sem contaminar produção.
 > **v19 (2026-07-10) · APLICADO · fidelidade proto (mandato [W] "zerar diferenças"):** (a) rodapé/status-bar + toggles "Só atrasados"/"Arquivados" theme-aware — `white` chumbado → `var(--surface)` (dark fica escuro, light continua claro; fingerprint CLARO-NO-DARK zerado); emoji 🗄 → lucide `Archive`; (b) ícones nas abas da subnav (proto data.jsx: banknote/receipt/refresh-cw/chart/file/folder — opt-in `PageHeaderGhost.icon`, outras telas inalteradas); (c) segmented (lente + Filtrar-por): 12.5px, weights 500/600, sombra do ativo literal do proto (`var(--sh-1, 0 1px 2px rgba(0,0,0,.06))`), radius 4px do DS mantido; (d) números em IBM Plex Mono (KPIs, coluna Valor, totais/kbd do rodapé — fonte já carregada via `<link>` no inertia.blade.php); (e) doc-chip inline na linha (`NFe N`/`Doc N` do payload real — substitui a 2ª linha "NF-e N"; sem tipo Fat/Recibo/OS no payload, não inventa dado).
 > **v17 (2026-07-06):** US-FIN-031 ENTREGUE — bulk actions completas (ver Goals). Endpoint genérico `POST /unificado/bulk` + footer bulk com 5 ações. Non-Goal de cancelamento **emendado** (cancelar em lote existe via rota dedicada, append-only — não é estorno).

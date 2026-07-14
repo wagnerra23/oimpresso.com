@@ -44,6 +44,12 @@ last_run: "2026-07-13"
 - **Teste:** `UnificadoBulkGuardTest` ("UC-F04 GUARD G1..G3" + G4/G5/G6) — DB MySQL real, lane `financeiro-pest.yml`.
 - **Status: 🧪** (vira ✅ com veredito `pass` no manifesto G-7)
 
+## UC-F05 · Pagamento sem vinculação bancária sinaliza "Conta indefinida" (US-FIN-038)
+- **Persona:** Eliana [E] — precisa VER quais recebimentos/pagamentos foram baixados sem conta bancária (ADR 0175 permite), pra organizar o caixa depois — sem caçar linha a linha.
+- **Aceite:** Dado um título com baixa cuja `conta_bancaria_id` é NULL · Quando a linha/drawer renderiza na Visão Unificada · Então a coluna Conta mostra o pill **"Conta indefinida"** (warning leve, CTA pra cadastro de conta) em vez de "—"; título com baixa vinculada ou sem baixa NÃO mostra o pill. Não altera valor/estoque.
+- **Teste:** `UnificadoContaIndefinidaGuardTest` ("GUARD G1..G3") — DB MySQL real, lane `financeiro-pest.yml`.
+- **Status: 🧪** (vira ✅ com veredito `pass` no manifesto G-7)
+
 ---
 
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
@@ -71,3 +77,4 @@ last_run: "2026-07-13"
 - 2026-07-07 · [CC] revalidado (bump last_run): dark-mode legível — ~99 classes de tema-claro fixas (`text-stone-*`/`bg-stone-*`/`border-stone-*`/`bg-white`) → tokens shadcn dark-aware (`text-foreground`/`text-muted-foreground`/`border-border`/`bg-muted`/`bg-card`). SÓ cor (diff toca apenas strings de `className`; zero lógica/valor — REGRA MESTRE n/a). Prova ao vivo browser MCP: remap nas classes reais de 1312 elementos → tabela inteira legível no dark (antes: thead/colunas invisíveis, escuro-no-escuro). UC-F01..04 (fluxo backend + bulk) intocados — seguem ✅ por RetencaoLoopE2ETest + UnificadoBulkGuardTest.
 - 2026-07-10 · [CC] revalidado (bump last_run): pacote fidelidade proto (mandato [W] "zerar diferenças", charter v19) — (a) rodapé/toggles dark theme-aware (`white`→`var(--surface)` em fin-cowork.css; emoji 🗄→lucide Archive); (b) ícones opt-in nas abas da subnav; (c) segmented 12.5px/500/600 + sombra do ativo; (d) IBM Plex Mono nos números (KPI/Valor/rodapé); (e) doc-chip inline NFe/Doc (dado do payload, zero backend). SÓ apresentação (className/CSS/ícone; zero lógica/valor/rota — REGRA MESTRE n/a). UC-F01..04 (fluxo backend + bulk) intocados — seguem ✅ por RetencaoLoopE2ETest + UnificadoBulkGuardTest.
 - 2026-07-09 · [CC] revalidado (bump last_run): fix "duas cores" no header/footer da lista ([W] screenshot anotado) — remove o tint `bg-muted/30` do `<thead>` e `bg-muted/40` do rodapé de paginação, que no dark liam mais escuros que o card (2ª cor emoldurando topo/fim). Agora header/footer herdam a cor do card (1 cor), separados só pela régua `border-b`/`border-t`. SÓ cor/className (diff = 2 classes removidas; zero lógica/valor — REGRA MESTRE n/a). UC-F01..04 (fluxo backend + bulk) intocados — seguem ✅ por RetencaoLoopE2ETest + UnificadoBulkGuardTest.
+- 2026-07-14 · [CC] US-FIN-038 PR1/3 (Visão Unificada): novo **UC-F05** — pill "Conta indefinida" na coluna Conta (linha + drawer) quando a baixa tem `conta_bancaria_id NULL` (ADR 0175), CTA pra cadastro de conta. Backend `shapeTitulo.conta_indefinida` (booleano de exibição; zero valor/estoque — REGRA MESTRE n/a). GUARD real `UnificadoContaIndefinidaGuardTest` (G1 null→pill · G2 vinculada→sem pill · G3 sem baixa→sem pill) na allowlist financeiro-pest. ContasReceber/Cobranca herdam o componente nas PRs 2/3 (US-FIN-038 segue `doing`). UC-F01..04 intocados.
