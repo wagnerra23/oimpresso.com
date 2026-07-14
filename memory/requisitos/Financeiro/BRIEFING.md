@@ -1,50 +1,39 @@
 ---
-distilled_at: "2026-07-01"
+distilled_at: "2026-07-14"
 distilled_by: jana:distill-module-truth
 module: Financeiro
 ---
 
 # BRIEFING — Financeiro (verdade destilada)
 
-O módulo "Financeiro" oferece uma visão unificada de Contas a Receber (AR), Contas a Pagar (AP), Fluxo de Caixa, Boletos, Conciliação OFX, Plano de Contas BR e um workflow de aprovação. Está em operação com paridade VISUAL 9.5/10 vs canon e cobertura funcional de 87% (53/61, medições 2026-05-20).
+# BRIEFING — Financeiro (verdade destilada)
+
+O módulo "Financeiro" fornece uma visão unificada de Contas a Receber (AR), Contas a Pagar (AP), Fluxo de Caixa, Boletos, Conciliação OFX e um workflow de aprovação. Atualmente, está em operação com 87% de cobertura funcional e paridade visual de 9.5/10 em relação ao canon (medição de 2026-05-20).
 
 ## Capacidades
-- Emissão de boletos real via Banco Inter, com integração completa (mTLS, Webhook).
-- Conciliação de pagamentos automatizada através de eventos de cobrança.
+- Emissão de boletos real via Banco Inter com integração completa (mTLS, Webhook).
+- Conciliação automatizada de pagamentos através de eventos de cobrança.
 - Workflow para aprovação de transações com visualização integrada de AR/AP.
-- Interface de usuário com paridade visual de 9.5/10 vs canon (medição 2026-05-20).
-- Ações em lote na Visão Unificada (US-FIN-031, 2026-07-06): baixar/categorizar/plano de contas/cancelar/exportar CSV até 500 títulos por chamada, com isolamento multi-tenant fail-closed, confirmação destrutiva com total e audit trail por lote.
+- Integração de bulk actions para operações em lote com confirmacão e audit trail.
+- Ações em lote na Visão Unificada para até 500 títulos por chamada.
 
 ## Gaps
-- Drivers de pagamento adicionais (Asaas, C6, BCB Pix, etc.) aguardando credenciais ativas para ativação.
-- Melhora na documentação de processos e integração para novos usuários.
+- Drivers de pagamento adicionais (Asaas, C6, BCB Pix) aguardando credenciais ativas.
+- Melhora necessária na documentação para novos usuários.
 - Implementação de relatórios financeiros avançados e métricas de performance.
 
 ## Última mudança
-Em 2026-07-06 a US-FIN-031 fechou as bulk actions da Visão Unificada: endpoint genérico `POST /unificado/bulk` (5 ações), footer bulk com Plano lote + Cancelar lote + Exportar CSV, baixa em lote em 1 request e `UnificadoBulkGuardTest` (UC-F04) na lane required do CI. Antes disso, em 2026-06-08, a emissão de boletos foi corrigida de mock para operação real via `PaymentGateway` (o `CnabDirectStrategy` legado está sendo aposentado, não depurado); a cobertura funcional subiu de 75% para 87% e 7 funções novas entraram nas Ondas 12-21 (medição 2026-05-20).
+Recentemente, em 2026-07-06, foi concluída a implementação das ações em lote na Visão Unificada, permitindo operações eficientes por meio do novo endpoint `POST /unificado/bulk`. Em junho, a emissão de boletos foi corrigida para operação real, elevando a cobertura funcional de 75% para 87% e introduzindo novas funções.
 
 ## Proveniência (destilado de)
 
 - audit `requisitos/Financeiro/AUDIT-FUNCOES-2026-05-19.md` — AUDIT-FUNCOES-2026-05-19.md
 - audit `requisitos/Financeiro/CAPTERRA-INVENTARIO.md` — CAPTERRA-INVENTARIO.md
+- session `sessions/2026-07-08-financeiro-borda-dark-token.md` (2026-07-08) — 2026-07-08-financeiro-borda-dark-token.md
+- session `sessions/2026-07-08-financeiro-fidelidade-fingerprint-protocolo.md` (2026-07-08) — 2026-07-08-financeiro-fidelidade-fingerprint-protocolo.md
+- handoff `handoffs/2026-07-08-1044-financeiro-fidelidade-fingerprint-furos.md` (2026-07-08) — 2026-07-08-1044-financeiro-fidelidade-fingerprint-furos.md
+- handoff `handoffs/2026-07-08-1431-financeiro-borda-dark-token-ui0022.md` (2026-07-08) — 2026-07-08-1431-financeiro-borda-dark-token-ui0022.md
+- handoff `handoffs/2026-07-07-1746-financeiro-fidelidade-dark-mecanismos-comparacao.md` (2026-07-07) — 2026-07-07-1746-financeiro-fidelidade-dark-mecanismos-comparacao.md
 - session `sessions/2026-06-22-adversario-sag-financeiro.md` (2026-06-22) — 2026-06-22-adversario-sag-financeiro.md
 - session `sessions/2026-06-21-verificacao-rede-onda0-estado-real.md` (2026-06-21) — 2026-06-21-verificacao-rede-onda0-estado-real.md
 - handoff `handoffs/2026-06-16-2006-financeiro-hero-gabarito-licao-copiar.md` (2026-06-16) — 2026-06-16-2006-financeiro-hero-gabarito-licao-copiar.md
-- session `sessions/2026-06-13-audit-sqlite-test-corruptors.md` (2026-06-13) — 2026-06-13-audit-sqlite-test-corruptors.md
-- session `sessions/2026-06-11-financeiro-resync-larissa-numuf-residue.md` (2026-06-11) — 2026-06-11-financeiro-resync-larissa-numuf-residue.md
-- session `sessions/2026-06-08-mapa-telas-projeto.md` (2026-06-08) — 2026-06-08-mapa-telas-projeto.md
-- handoff `handoffs/2026-06-08-2115-boleto-unificado-merge-c-comando-existente.md` (2026-06-08) — 2026-06-08-2115-boleto-unificado-merge-c-comando-existente.md
-- handoff `handoffs/2026-06-07-0220-migracao-financeira-wr2-completa-fix-kpi-juros.md` (2026-06-07) — 2026-06-07-0220-migracao-financeira-wr2-completa-fix-kpi-juros.md
-- session `sessions/2026-06-06-migracao-wr-comercial-financeiro-eliana.md` (2026-06-06) — 2026-06-06-migracao-wr-comercial-financeiro-eliana.md
-- session `sessions/2026-06-06-plano-inventario-anti-duplicacao.md` (2026-06-06) — 2026-06-06-plano-inventario-anti-duplicacao.md
-- handoff `handoffs/2026-06-06-1312-deprecar-dashboard-deploy-manual-visreg-harness.md` (2026-06-06) — 2026-06-06-1312-deprecar-dashboard-deploy-manual-visreg-harness.md
-- handoff `handoffs/2026-06-06-1650-trilha-css-f6-juiz-f4.md` (2026-06-06) — 2026-06-06-1650-trilha-css-f6-juiz-f4.md
-- session `sessions/2026-06-05-arte-programacao-autonoma-rapida-qualidade.md` (2026-06-05) — 2026-06-05-arte-programacao-autonoma-rapida-qualidade.md
-- handoff `handoffs/2026-06-05-2152-css-prune-freeze-gate-statstrip-pilot.md` (2026-06-05) — 2026-06-05-2152-css-prune-freeze-gate-statstrip-pilot.md
-- session `sessions/2026-06-04-financeiro-suite-landscape.md` (2026-06-04) — 2026-06-04-financeiro-suite-landscape.md
-- handoff `handoffs/2026-06-02-1805-dedupe-financeiro-bundle-duplo.md` (2026-06-02) — 2026-06-02-1805-dedupe-financeiro-bundle-duplo.md
-- handoff `handoffs/2026-06-01-1510-financeiro-reimpl-fase12-prod-gatilho-ct100.md` (2026-06-01) — 2026-06-01-1510-financeiro-reimpl-fase12-prod-gatilho-ct100.md
-
-## Fusões absorvidas (KL-E2)
-
-Este módulo **absorveu** (fusão FUNDIR, KL-E2) a pasta tombstoneada **FinanceiroAvancado** (feature-wish). As 33 US-FINA ficaram `status: historical` in-place com ponteiro pra Financeiro. Não existe `ROADMAP-avancado` separado — o wish é HISTORICAL nesta pasta. Ver [_TRIAGEM-IDENTIDADE-2026-06.md](../_TRIAGEM-IDENTIDADE-2026-06.md) §"Estado de execução E2/E3" (fusões FUNDIR, redirects #2750/#2757, fechamento #3653).
