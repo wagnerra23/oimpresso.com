@@ -75,6 +75,17 @@ Adicionar ao bloco `rules` do override `files: ['resources/js/**/*.{ts,tsx}']`. 
     selector: 'JSXAttribute[name.name="aria-autocomplete"], JSXOpeningElement[name.name="input"] > JSXAttribute[name.name="role"][value.value="combobox"]',
     message: 'ds/no-handrolled-combobox — campo de busca com dropdown = <Command> (motor cmdk) dentro de <Popover>, não input + role="listbox" à mão. Ref: ServiceOrders/Create.tsx.',
   },
+  {
+    // ds/no-handrolled-status-pill — COMPONENT-SUBSTITUTE (tipo 2, lista curada). A
+    // "pílula de status" canoniza em <Badge variant="success|warning|danger|info|neutral">
+    // (@/Components/ui/badge) OU no wrapper de domínio <StatusBadge kind value>
+    // (@/Components/shared). Fecha o subconjunto MECÂNICO: um className Literal que junta,
+    // no MESMO string, rounded-full + px- + TOKEN de status (não palette cru — esse já cai
+    // no no-raw-palette-color). É o pill que hoje escapa de TODO gate por usar o token
+    // certo mas hand-rolar a forma. px- exclui círculo de ícone (h-10 w-10 sem padding).
+    selector: 'JSXAttribute[name.name="className"] Literal[value=/(?=[\\s\\S]*\\brounded-full\\b)(?=[\\s\\S]*\\bpx-\\d)(?=[\\s\\S]*\\b(?:success|warning|destructive|info)-(?:soft|fg)\\b)/]',
+    message: 'ds/no-handrolled-status-pill — use <Badge variant="…"> ou <StatusBadge kind value>, não a pílula de status hand-rolada.',
+  },
 ],
 ```
 
@@ -149,5 +160,6 @@ Promover componente = entregar o **tripé**: impl em `@/Components/ui` + regra `
 | `ds/no-inline-tablist` | `role="tablist"` hand-rolado na tela | `<PageHeaderTabs>` (barra de abas de topo) |
 | `ds/no-inline-raw-color` | cor/borda/sombra crua em `style={{}}` inline | token dark-aware (`var(--…)`) |
 | `ds/no-handrolled-combobox` | `aria-autocomplete` / `role="combobox"` num `<input>` nativo | `<Command>` (motor cmdk) dentro de `<Popover>` — campo de busca com dropdown |
+| `ds/no-handrolled-status-pill` | pill `rounded-full` + `px-` + token de status (`*-soft/-fg`) inline | `<Badge variant="…">` / `<StatusBadge kind value>` |
 | `ds/no-handrolled-form-section` | `rounded-lg border p-4\|p-5` | FormSection |
 | `ds/icons` (opt) | import direto `lucide-react` | icon-registry |

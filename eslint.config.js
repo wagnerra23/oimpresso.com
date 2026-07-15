@@ -268,6 +268,28 @@ export default [
           selector: 'JSXAttribute[name.name="aria-autocomplete"], JSXOpeningElement[name.name="input"] > JSXAttribute[name.name="role"][value.value="combobox"]',
           message: 'ds/no-handrolled-combobox — não hand-role o combobox/autocomplete (input + lista role="listbox" à mão). Campo de busca com dropdown = <Command> (@/Components/ui/command, motor cmdk) dentro de <Popover> (@/Components/ui/popover). Ref: Pages/OficinaAuto/ServiceOrders/Create.tsx. Ver REGISTRY_DS_COMPONENTES.md §"Combobox".',
         },
+        {
+          // ds/no-handrolled-status-pill — COMPONENT-SUBSTITUTE (tipo 2 do ADR 0338,
+          // lista curada). O papel "pílula de STATUS" (estado success/warning/danger/
+          // info/neutral) canoniza em <Badge variant="…"> (@/Components/ui/badge) OU no
+          // wrapper de domínio <StatusBadge kind value> (@/Components/shared/StatusBadge,
+          // que mapeia string-de-domínio → tone+label sobre Badge). Hand-rolar o pill
+          // (`<span className="… rounded-full … px-… bg-*-soft text-*-fg">`) reintroduz o
+          // shape fora da camada DS — foi o mesmo vetor dos topnavs divergentes.
+          // Fecha o subconjunto MECÂNICO: um className Literal que junta, no MESMO
+          // string, rounded-full + padding horizontal (px-) + um TOKEN de status
+          // (success/warning/destructive/info)-(soft/fg). O token é o sinal preciso
+          // (não é palette cru — esse já cai no no-raw-palette-color; não dupla-conta):
+          // é EXATAMENTE o pill que hoje escapa de TODO gate por usar o token certo mas
+          // hand-rolar a forma. `px-` exclui o círculo de ícone (h-10 w-10 rounded-full
+          // sem padding). Fronteira honesta (a confiança termina no AST): cor-em-variável
+          // (StatusPill/FrescorPill — o token vem de um mapa) fica em literais separados
+          // e não casa; e `rounded` reto (não -full) não casa. Esses ficam pro detector
+          // de papel (component-registry-check --roles) + migração humana. Ver
+          // REGISTRY_DS_COMPONENTES.md §"pílula de status" · REGRAS_DS_LINT.md §1.
+          selector: 'JSXAttribute[name.name="className"] Literal[value=/(?=[\\s\\S]*\\brounded-full\\b)(?=[\\s\\S]*\\bpx-\\d)(?=[\\s\\S]*\\b(?:success|warning|destructive|info)-(?:soft|fg)\\b)/]',
+          message: 'ds/no-handrolled-status-pill — não hand-role a pílula de status. Use <Badge variant="success|warning|danger|info|neutral"> (@/Components/ui/badge) ou <StatusBadge kind value> (@/Components/shared/StatusBadge). Ver REGISTRY_DS_COMPONENTES.md §"pílula de status".',
+        },
       ],
     },
   },
