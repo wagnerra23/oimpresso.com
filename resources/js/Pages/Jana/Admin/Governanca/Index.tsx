@@ -21,9 +21,9 @@ import KpiCard from '@/Components/shared/KpiCard';
 import StatusBadge from '@/Components/shared/StatusBadge';
 import EmptyState from '@/Components/shared/EmptyState';
 import SubNav from '@/Components/shared/SubNav';
+import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 
 const LS_PRESET_KEY = 'oimpresso.copiloto.governanca.preset';
-const LS_SECAO_KEY  = 'oimpresso.copiloto.governanca.secao';
 
 type Secao    = 'consumo' | 'acesso' | 'usuarios';
 type ChartMode = 'calls' | 'custo';
@@ -58,6 +58,8 @@ interface Props {
   serie_diaria: DiaRow[];
   periodo: Periodo;
   filters: Filters;
+  // DS Onda 3 — seção ativa vem da rota (?secao=), whitelist server-side no GovernancaController.
+  secao: Secao;
 }
 
 const brl = (v: number) =>
@@ -164,15 +166,25 @@ function CallsDiariasChart({ dados, mode = 'calls' }: { dados: DiaRow[]; mode?: 
 function GovernancaIndex(props: Props) {
   const {
     kpis, por_status, latency, top_tools, top_users,
-    denied_por_codigo, serie_diaria, periodo, filters,
+    denied_por_codigo, serie_diaria, periodo, filters, secao,
   } = props;
 
   const [de, setDe] = useState(filters.de ?? '');
   const [ate, setAte] = useState(filters.ate ?? '');
-  const [secao, setSecao] = useState<Secao>(
-    () => (localStorage.getItem(LS_SECAO_KEY) as Secao | null) ?? 'consumo',
-  );
+  // DS Onda 3 — seção ativa dirigida pela rota (?secao=); barra canônica navega por href.
   const [chartMode, setChartMode] = useState<ChartMode>('calls');
+
+  // Preserva o período (preset/de/ate) ao trocar de seção pela barra de abas.
+  const secaoHref = (s: Secao) => {
+    const params = new URLSearchParams();
+    params.set('secao', s);
+    if (filters.preset) params.set('preset', filters.preset);
+    if (filters.preset === 'custom') {
+      if (filters.de) params.set('de', filters.de);
+      if (filters.ate) params.set('ate', filters.ate);
+    }
+    return `/ia/admin/governanca?${params.toString()}`;
+  };
   const selectRef = useRef<HTMLButtonElement>(null);
 
   // Persiste preset no localStorage (ADR 0039 §4)
@@ -181,11 +193,6 @@ function GovernancaIndex(props: Props) {
       localStorage.setItem(LS_PRESET_KEY, filters.preset);
     }
   }, [filters.preset]);
-
-  // Persiste seção ativa
-  useEffect(() => {
-    localStorage.setItem(LS_SECAO_KEY, secao);
-  }, [secao]);
 
   // Atalho '/' → foca no seletor de período (DESIGN.md §13)
   useEffect(() => {
@@ -204,7 +211,7 @@ function GovernancaIndex(props: Props) {
     // D-14: partial reload — só re-busca o que muda com filtro (ref PR #3889).
     // Todas as props de dados dependem do período; only: evita re-buscar
     // shared props e documenta o contrato da tela.
-    router.get('/ia/admin/governanca', { ...filters, ...patch }, {
+    router.get('/ia/admin/governanca', { ...filters, ...patch, secao }, {
       preserveState: true,
       preserveScroll: true,
       replace: true,
@@ -244,19 +251,19 @@ function GovernancaIndex(props: Props) {
         </div>
       </div>
 
-      {/* Sub-navegação por seção — variante underline */}
-      <SubNav
-        className="mt-4"
-        variant="underline"
-        value={secao}
-        onChange={(v) => setSecao(v as Secao)}
-        items={[
-          { value: 'consumo',  label: 'Consumo',       icon: 'bar-chart-2' },
-          { value: 'acesso',   label: 'Acesso / RBAC', icon: 'shield-check',
-            badge: denied_por_codigo.length > 0 ? denied_por_codigo.length : undefined },
-          { value: 'usuarios', label: 'Usuários',      icon: 'users' },
-        ]}
-      />
+      {/* DS Onda 3 — barra de abas CANÔNICA (PageHeaderTabs) em faixa própria,
+          navegando por rota (?secao=). Padroniza o visual com Clientes/Financeiro/Ponto. */}
+      <div className="px-6 mt-4">
+        <PageHeaderTabs
+          ghosts={[
+            { key: 'consumo',  label: 'Consumo',       href: secaoHref('consumo'),  icon: 'bar-chart-2' },
+            { key: 'acesso',   label: 'Acesso / RBAC', href: secaoHref('acesso'),   icon: 'shield-check', badge: denied_por_codigo.length || undefined },
+            { key: 'usuarios', label: 'Usuários',      href: secaoHref('usuarios'), icon: 'users' },
+          ]}
+          activeGhostKey={secao}
+          maxVisible={6}
+        />
+      </div>
 
       {/* ── Seção: Consumo ───────────────────────────────────────────── */}
       {secao === 'consumo' && (
