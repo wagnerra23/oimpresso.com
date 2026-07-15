@@ -22,6 +22,7 @@ on:
       - 'eslint.config.js'
       - 'config/eslint-baseline.json'
       - 'scripts/eslint-baseline.mjs'
+      - 'scripts/governance/ds-lint-selftest.mjs'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/eslint-gate.yml'
@@ -52,6 +53,7 @@ jobs:
               - 'eslint.config.js'
               - 'config/eslint-baseline.json'
               - 'scripts/eslint-baseline.mjs'
+              - 'scripts/governance/ds-lint-selftest.mjs'
               - 'package.json'
               - 'package-lock.json'
               - '.github/workflows/eslint-gate.yml'
@@ -78,6 +80,14 @@ jobs:
       - name: ESLint ratchet (falha só em regressão vs baseline)
         if: steps.decide.outputs.run == 'true'
         run: node scripts/eslint-baseline.mjs
+
+      # QUEM VIGIA O VIGIA — prova que as 13 regras ds/* MORDEM (bad-fixture) e não
+      # falso-positivam (good-fixture). Sem isso, "simplificar" um selector quebra a
+      # regra em silêncio e o ratchet acima conta 0 pra sempre (teatro). Auditoria
+      # 2026-07-15 (controle-negativo visto falhar → revert).
+      - name: ds/* selftest (as regras mordem)
+        if: steps.decide.outputs.run == 'true'
+        run: node scripts/governance/ds-lint-selftest.mjs
 
       - name: Diagnóstico em caso de falha
         if: failure()
