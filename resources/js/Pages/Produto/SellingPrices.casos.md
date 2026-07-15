@@ -28,6 +28,7 @@ last_run: "2026-07-15"
 | UC-PTAB-01 | Salvar a matriz persiste o preço por (variação × tabela) | must | item 1 | `TabelaPrecoContratoTest` | 🧪 |
 | UC-PTAB-02 | Produto de outro business não vaza (Tier 0) | must | item 4 `[T0]` | `TabelaPrecoContratoTest` | 🧪 |
 | UC-PTAB-03 | Preço da tabela não infla no parser pt-BR (`num_uf`) | must | item 1 `[V0]` | `TabelaPrecoContratoTest` | 🧪 |
+| UC-PTAB-04 | `price_group` de outro business não grava row (Tier 0) | must | `CU-PROD-10.1` `[T0]` | `TabelaPrecoContratoTest` | ⬜ |
 
 **Veredito:** os 3 UCs **rodaram e passaram** na lane `PHP / Pest (Estoque · MySQL)` do
 [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) — MySQL real, biz=1 + biz=2 semeados
@@ -72,6 +73,16 @@ ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como
 
 ---
 
+## UC-PTAB-04 · `price_group` de outro business não grava row · `must` `[T0]`
+- **Persona:** qualquer tenant. O `UC-PTAB-02` fecha o eixo do **produto** (produto alheio). Este fecha o eixo da **tabela**: produto meu + `price_group` alheio — o caminho que o `findOrFail` escopado **não** cobre.
+- **Aceite:** Dado um produto **do meu business** e um `price_group_id` que pertence a **outro** business · Quando envio `group_prices[{tabela_alheia}][{minha_variação}]` · Então **nenhuma** linha liga a minha variação à tabela alheia.
+- **Teste:** `tests/Feature/Produto/TabelaPrecoContratoTest.php` — `UC-PTAB-04 · price_group de outro business não grava row`.
+- **Contrato:** **`CU-PROD-10`** — *"Isolamento multi-tenant `[must]` ✅ (reusa guard)"*, item 1: *"`[must][T0]` `App\Product` global scope em **toda** query"*.
+- **Regressão que defende:** o `saveSellingPrices` escopa por `business_id` **apenas** o `Product::findOrFail`. O `price_group_id` vem **cru da chave do array do request** (`foreach ($request->input('group_prices') as $key => $value)`) — sem `validate`, sem `exists:` escopado. E o `VariationGroupPrice` **não tem global scope** (`$guarded = ['id']`, nada mais). O FK barra id **inexistente**, mas não barra id **de outro tenant**. O "reusa guard" do `CU-PROD-10` cobre `Product` — a tabela de preço não é `Product`.
+- **Status: ⬜** — escrito, aguardando o 1º veredito do CI. **Este UC pode nascer vermelho de propósito:** ele cobra o `✅` do `CU-PROD-10` e a leitura do código diz que a promessa é falsa. Se vermelho, é prova — e a correção vira US própria (não se conserta contrato no mesmo PR que o denuncia).
+
+---
+
 ## Backlog de casos (sem id — entram quando tiverem teste que os defenda)
 
 > Regra G-2: UC declarado sem teste citando o id = órfão = violação nova no `casos-gate`.
@@ -107,6 +118,45 @@ ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como
   redescoberto como "gap" na próxima auditoria.
 
 ---
+
+## Pendência de CONTRATO (achado sem caso de uso — não vira UC até [W] decidir)
+
+> Diferente do Backlog acima: lá o contrato **existe** e falta teste. Aqui **falta o contrato**.
+> Escrever UC pra estes seria inventar a regra a partir do código — tautologia
+> (`proibicoes.md` §5). O SDD §6 diz a mesma coisa na linha 139: *"teste E2E ancora no contrato
+> (SPEC/casos), **nunca** na implementação"*. Ficam registrados pra não serem redescobertos.
+>
+> **Origem:** passe adversarial 2026-07-15 sobre o ecossistema da tabela de preço.
+
+**O `getVariationGroupPrice` tem 5 consumidores e 3 não guardam o retorno.** Ele devolve
+`price_inc_tax => ''` quando **não há row** (caso normal: produto sem preço naquela tabela) e `0`
+quando há row com zero. Quem consome:
+
+| Consumidor | Guarda `!empty()`? | Efeito sem row (`''`) |
+|---|---|---|
+| `SellPosController:1791` (PDV) | ✅ | cai no preço padrão |
+| `Modules/Crm/OrderRequestController:325` | ✅ | cai no preço padrão |
+| `LabelsController:145` | ❌ | `sell_price_inc_tax = ''` → **etiqueta sem preço** |
+| `WoocommerceUtil:343` | ❌ | sincroniza preço vazio pra loja |
+| `WoocommerceUtil:733` | ❌ | idem, por variação |
+
+Os dois caminhos de **venda interna** guardam; os três de **saída pro cliente final** não.
+
+- **Etiqueta (`LabelsController`)** — o `CU-PROD-09` ("Código de barras + etiqueta") fala só de
+  `barcode_types` + ZPL/PDF + GTIN. **Não menciona preço.** Sem contrato dizendo o que é certo
+  quando a tabela não tem preço, não há UC possível. Decisão [W]: vira `CU-PROD-09.3`?
+- **WooCommerce** — **não tem CU nenhum** no SDD do Produto (aparece no SPEC §2 como capacidade
+  em produção, sem caso de uso). Decisão [W]: nasce CU de canal?
+- **O 0-row é inerte por acidente** — a UI (React **e** Blade) pré-preenche célula sem preço com
+  `0` e envia (`row[v.id] = existing ?? { price: 0, ... }` / `... : 0`). Salvar a tela converte
+  "sem row (usa o padrão)" em "row com preço 0". No PDV isso não faz mal **só porque `!empty(0)`
+  é `false` em PHP** — coincidência de semântica, não invariante desenhado. Um refactor razoável
+  (`isset`, `!== null`, tipar `?float`) destrava preço zero em produção. Nada testa esse acidente.
+  Corolário: **preço 0 legítimo é inexprimível** (tabela promocional "grátis" não existe).
+
+> ⚠️ As correções **brigam entre si**: fazer a UI parar de gravar zeros (bom) aumenta os casos de
+> "sem row" → **piora** etiqueta/Woo. Não há uma raiz única; são 3 defeitos independentes
+> (contrato do caller · contrato do writer · validação). Decidir um sem os outros regride.
 
 ## Notas de cobertura
 

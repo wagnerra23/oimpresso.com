@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PTAB-01, UC-PTAB-02, UC-PTAB-03 (SellingPrices.casos.md) - G-2 rastreabilidade caso-teste.
+// Cobre UC-PTAB-01, UC-PTAB-02, UC-PTAB-03, UC-PTAB-04 (SellingPrices.casos.md) - G-2 rastreabilidade caso-teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -181,6 +181,52 @@ it('UC-PTAB-02 · salvar preço em produto de outro business não grava nada (mu
     // (b) E a operação não pode reportar sucesso (hoje: 302 + status.success=0 — ver docblock).
     $response->assertStatus(302);
     expect(session('status.success'))->not->toBe(1, 'Cross-tenant reportou sucesso ao operador.');
+});
+
+// =============================================================================
+// UC-PTAB-04 — CU-PROD-10.1/.2 `[T0]`: o OUTRO eixo do cross-tenant
+//
+//   O UC-PTAB-02 prova o eixo do PRODUTO (produto alheio). Este prova o eixo da
+//   TABELA: produto MEU + price_group ALHEIO. O `saveSellingPrices` escopa por
+//   business_id apenas o `Product::findOrFail`; o price_group_id vem CRU da chave
+//   do array do request (`foreach ($request->input('group_prices') as $key => ...)`),
+//   sem validate/exists. E o VariationGroupPrice NÃO tem global scope ($guarded=['id']).
+//
+//   CU-PROD-10 está marcado "✅ (reusa guard)" no SDD §6.1 e promete:
+//     1. [must][T0] `App\Product` global scope em TODA query
+//     2. [T0] Cross-tenant por ID → 404 (não 403)
+//   O guard reusado cobre `Product`. A tabela de preço não é `Product`.
+// =============================================================================
+
+it('UC-PTAB-04 · price_group de outro business não grava row (multi-tenant Tier 0)', function () {
+    $outroBizId = EstoqueFixture::secondBusinessId();
+    if ($outroBizId === null) {
+        $this->markTestSkipped('DB só tem 1 business — sem par cross-tenant pra provar isolamento.');
+    }
+
+    $bizId = (int) $this->business->id;
+
+    // Produto MEU (passa no findOrFail escopado) + tabela de preço do OUTRO business.
+    $meuProduto = EstoqueFixture::singleProduct($bizId);
+    $minhaVariation = $meuProduto->variationId();
+    $tabelaAlheia = tabelaPrecoAtiva($outroBizId, 'Atacado alheio UC-PTAB-04');
+
+    $this->post('/products/save-selling-prices', [
+        'product_id' => $meuProduto->productId,
+        'group_prices' => [
+            $tabelaAlheia => [
+                $minhaVariation => ['price' => '1,00', 'price_type' => 'fixed'],
+            ],
+        ],
+    ]);
+
+    // O INVARIANTE (CU-PROD-10.1 — escopo em TODA query, não só em Product):
+    // nenhuma linha pode ligar a minha variação a uma tabela de preço de outro business.
+    expect(precoGravado($minhaVariation, $tabelaAlheia))->toBeNull(
+        'Gravou (minha variação × price_group de OUTRO business). O price_group_id entra cru do '
+        .'request, sem validate/exists escopado, e VariationGroupPrice não tem global scope — '
+        .'o "✅ reusa guard" do CU-PROD-10 cobre Product, não a tabela de preço.'
+    );
 });
 
 // =============================================================================
