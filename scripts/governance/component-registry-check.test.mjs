@@ -110,5 +110,43 @@ check('roles: strict MORDE hand-roll independente (exit 1)', run(['--roles', '--
 check('roles: aponta o independente FakeTopNav', /FakeTopNav/.test(rolesDrift.stdout) && /INDEPENDENTE/i.test(rolesDrift.stdout));
 check('roles: NÃO marca o consumer como independente', !new RegExp('⚠️[^\\n]*FakeSubNav').test(rolesDrift.stdout));
 
+// 9. SPECIFICIDADE (stripComments) — "subnav"/"topnav" citado SÓ em COMENTÁRIO + um
+//    tablist de OUTRO papel (drawer) + NÃO importa o canon → NÃO é independente. É o par
+//    de controle da SENSIBILIDADE do check 8 (FakeTopNav: MESMA palavra em className REAL
+//    → mordido). Prova que o papel se lê no markup renderizado, não na prosa. Se o
+//    stripComments regredir, o comentário volta a casar e este check FALHA (visto falhar
+//    ao construir — ADR 0258). Espelha o falso-positivo real Financeiro/Unificado 2026-07-15.
+writeFileSync(join(fakePages, 'FakeDrawerComment.tsx'),
+  [
+    'export default function FakeDrawerComment(){',
+    '  // subnav citado em comentário de linha — NÃO é markup de barra de topo',
+    '  /* topnav e moduletopnav citados em bloco de prosa, sem virar markup */',
+    '  return <nav role="tablist" className="fake-drawer-tabs" aria-label="Abas do drawer" />;',
+    '}',
+  ].join('\n') + '\n');
+const rolesComment = run(['--roles']);
+check('roles: SPECIFICIDADE — keyword só em comentário NÃO vira independente (stripComments)',
+  !new RegExp('⚠️[^\\n]*FakeDrawerComment').test(rolesComment.stdout));
+check('roles: SENSIBILIDADE — FakeTopNav (keyword em className REAL) segue mordido no mesmo run',
+  new RegExp('⚠️[^\\n]*FakeTopNav').test(rolesComment.stdout));
+
+// 10. PAPEL DISTINTO — o SubNav genérico casa a barra-de-topo por NOME (`*SubNav.tsx`) mas
+//     é o CANON do papel sub-navegacao-contextual: NÃO pode aparecer como independente da
+//     barra de topo (exclusão allCanons). Quem importa @/Components/shared/SubNav vira
+//     consumer do papel 2.
+writeFileSync(join(sharedDir, 'SubNav.tsx'),
+  `export default function SubNav(){ return <nav role="tablist" className="subnav" /> }\n`);
+writeFileSync(join(fakePages, 'FakeSegmented.tsx'),
+  `import SubNav from '@/Components/shared/SubNav';\nexport default function FakeSegmented(){ return <SubNav /> }\n`);
+const rolesSubnav = run(['--roles']);
+check('roles: SubNav genérico NÃO é independente da barra de topo (papel distinto)',
+  !new RegExp('⚠️[^\\n]*shared/SubNav').test(rolesSubnav.stdout));
+check('roles: rastreia o papel sub-navegacao-contextual',
+  /sub-navegacao-contextual/.test(rolesSubnav.stdout));
+check('roles: SubNav.tsx é canon do papel sub-navegacao-contextual',
+  /canon: resources\/js\/Components\/shared\/SubNav\.tsx/.test(rolesSubnav.stdout));
+check('roles: consumer do SubNav entra como consumidor (não independente)',
+  /FakeSegmented/.test(rolesSubnav.stdout) && !new RegExp('⚠️[^\\n]*FakeSegmented').test(rolesSubnav.stdout));
+
 console.log(fails === 0 ? '\n✓ todos os checks passaram' : `\n✗ ${fails} check(s) falharam`);
 process.exit(fails === 0 ? 0 : 1);

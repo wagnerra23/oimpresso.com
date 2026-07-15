@@ -64,11 +64,13 @@
 
 | Componente | Import | Existe | Substitui (anti-pattern) |
 |---|---|---|---|
-| **PageHeaderTabs** | `@/Components/shared/PageHeaderTabs` | ✅ canon | `ModuleTopNav` · `SubNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · **`role="tablist"` hand-rolado na tela** · qualquer `<nav>` de sub-tabs com cor/borda em `style={{}}` inline |
+| **PageHeaderTabs** | `@/Components/shared/PageHeaderTabs` | ✅ canon | `ModuleTopNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · **`role="tablist"` de barra-de-topo hand-rolado na tela** · qualquer `<nav>` de sub-tabs com cor/borda em `style={{}}` inline |
 
 > **Como consumir:** não renderize `PageHeaderTabs` cru na tela — passe pelo `*SubNav` do módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`), que resolve os ghosts + active a partir do `shell.menu`. Fidelidade da aba ativa (radius 0 · underline `var(--accent)` · pill accent-soft · font 600) travada por `tests/pageHeaderTabsFidelity.spec.tsx`.
 >
-> **Catracas ativas:** regra `ds/no-inline-tablist` (barra `role="tablist"` hand-rolada) + `ds/no-inline-raw-color` (cor/borda/sombra crua em `style` inline — o buraco do dark) no `eslint.config.js`; detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory). Migração dos independentes = incremental por tela.
+> **Catracas ativas:** regra `ds/no-inline-tablist` (barra `role="tablist"` hand-rolada) + `ds/no-inline-raw-color` (cor/borda/sombra crua em `style` inline — o buraco do dark) no `eslint.config.js`; detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory). **Migração concluída (2026-07-15): 0 independentes** — 2 migrados/removidos (`FiscalModuleTopNav` #4287, `ModuleTopNav` dead-code) + 1 falso-positivo (`Financeiro/Unificado` já consome `FinanceiroSubNav`→canon) + 1 reclassificado (ver abaixo).
+
+> **Papel DISTINTO — `sub-navegacao-contextual` ([W] 2026-07-15):** o `SubNav` genérico (`@/Components/shared/SubNav`) **não** é hand-roll da barra de topo — é o **canon** de outro papel: sub-navegação in-content (variantes underline/segmented, modo controlado `value/onChange`, troca conteúdo dentro de card/seção **sem** mudar a URL; único uso vivo = toggle `Calls · Custo` no card da Governança). O detector `--roles` rastreia os **dois papéis separadamente** (hoje 0 independentes em ambos). **Não migre `SubNav` pra `PageHeaderTabs`** — papéis diferentes.
 
 ---
 

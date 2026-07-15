@@ -104,24 +104,53 @@ function collectExports(src) {
  * (11 hand-rolls do pill de status) e `combobox` (5 hand-rolls do dropdown de
  * busca). Entram como novas entradas aqui quando a onda respectiva abrir.
  */
+
+// Remove comentários (bloco /* */ — cobre JSX {/* */} — e linha //) ANTES do teste
+// de markup. CAUSA (falso-positivo 2026-07-15): telas com um tablist de OUTRO papel
+// (drawer detalhes/IA, sheet de tabs) + a palavra "subnav"/"topnav" citada só em PROSA
+// de comentário casavam como se hand-rolassem a barra de topo. O papel se prova no
+// markup RENDERIZADO, não no comentário. Preserva `://` (URLs) ao cortar linha-comentário.
+function stripComments(src) {
+  return src
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/[^\n]*/g, '$1');
+}
+
 const ROLE_SIGNATURES = [
   {
     role: 'barra-de-abas-de-topo',
     canon: 'resources/js/Components/shared/PageHeaderTabs.tsx',
     canonImport: '@/Components/shared/PageHeaderTabs',
     // Um componente cumpre o papel se: (markup) declara uma nav-bar com role=tablist
-    // ou classe de topnav conhecida, OU (nome) o basename é de nav/tabs de topo.
+    // + uma classe de topnav conhecida, OU (nome) o basename é de nav/tabs de topo.
     matches(file, src) {
       const name = basename(file);
-      // markup = role=tablist ACOMPANHADO de uma classe de barra-de-topo conhecida
-      // (não basta tablist: in-panel/mobile tabs também usam tablist e são OUTRO papel).
+      // markup avaliado no código SEM comentários — senão "subnav"/"topnav" mencionados
+      // em prosa + um tablist de OUTRO papel (drawer/sheet) casam falso-positivo.
+      const code = stripComments(src);
       const markup =
-        /role=["']tablist["']/.test(src) &&
-        /(moduletopnav|cli-moduletopnav|fx-subtabs|\bsubtabs\b|\btopnav\b|\bsubnav\b)/i.test(src);
+        /role=["']tablist["']/.test(code) &&
+        /(moduletopnav|cli-moduletopnav|fx-subtabs|\bsubtabs\b|\btopnav\b|\bsubnav\b)/i.test(code);
       const byName = /(ModuleTopNav|TopNav|SubNav|Tabs|Tablist)\.tsx$/.test(name);
       // exclui falsos-amigos de nome que NÃO são barra de navegação de topo
       const notNav = /(MobileTabs|Chips|Preview|Message)\.tsx$/.test(name);
       return (markup || byName) && !notNav;
+    },
+  },
+  {
+    // PAPEL DISTINTO — o SubNav genérico (Components/shared) é um PRIMITIVO de
+    // sub-navegação in-content: variantes underline/segmented + modo controlado
+    // (value/onChange) que troca conteúdo dentro de card/seção SEM mudar a URL. NÃO é
+    // hand-roll do PageHeaderTabs (barra de topo, nav por href + hue + primary): é o
+    // CANON do seu próprio papel. Registrá-lo aqui impede que a heurística de nome
+    // (`*SubNav.tsx`) o marque como "independente" da barra de topo (ver a exclusão
+    // `allCanons` em scanRoles). Decisão [W] 2026-07-15.
+    role: 'sub-navegacao-contextual',
+    canon: 'resources/js/Components/shared/SubNav.tsx',
+    canonImport: '@/Components/shared/SubNav',
+    matches(file, src) {
+      const name = basename(file);
+      return name === 'SubNav.tsx' || src.includes('@/Components/shared/SubNav');
     },
   },
 ];
@@ -142,6 +171,11 @@ function walkTsx(dir, acc = []) {
 function scanRoles(root) {
   const base = join(root, 'resources/js');
   const files = existsSync(base) ? walkTsx(base) : [];
+  // Canons de TODOS os papéis: um arquivo que é canon de UM papel não é
+  // "independente" de OUTRO papel (é o dono do seu próprio papel, não drift) —
+  // ex o SubNav genérico casa a barra-de-topo por nome mas é canon do papel
+  // sub-navegacao-contextual.
+  const allCanons = new Set(ROLE_SIGNATURES.map((s) => s.canon));
   const clusters = [];
   for (const sig of ROLE_SIGNATURES) {
     const canon = [], consumers = [], independent = [];
@@ -151,6 +185,8 @@ function scanRoles(root) {
       try { src = readFileSync(abs, 'utf8'); } catch { continue; }
       if (!sig.matches(rel, src)) continue;
       if (rel === sig.canon) { canon.push(rel); continue; }
+      // canon de OUTRO papel que casou aqui por heurística de nome — pula (não é drift).
+      if (allCanons.has(rel)) continue;
       // consumidor legítimo = importa o canônico (wrapper). Independente = não.
       const importsCanon = src.includes(sig.canonImport);
       (importsCanon ? consumers : independent).push(rel);
