@@ -122,7 +122,7 @@ it('Financeiro/Unificado — PIXEL morde dims 1/2/3/4/9/10/11/12 e LIBERA no lim
         'dim1-layout'        => ['__pd_layout', '.fin-stat { transform: translateY(40px) !important; }'],
         'dim2-hierarquia'    => ['__pd_hier',   '.fin-stat-hero { transform: scale(0.6) !important; }'],
         'dim3-densidade'     => ['__pd_dens',   '.fin-stat, .fin-stat * { letter-spacing: 4px !important; }'],
-        'dim4-iconografia'   => ['__pd_icon',   '.fin-stat svg, header svg { visibility: hidden !important; }'],
+        'dim4-iconografia'   => ['__pd_icon',   'svg { display: none !important; }'], // todos os ícones do viewport (sidebar+toolbar+cards) — hidden só nos cards era sub-limiar (0.036%)
         'dim9-tipografia'    => ['__pd_type',   '.fin-stat, .fin-stat * { font-size: 30px !important; line-height: 1.1 !important; }'],
         'dim10-espacamento'  => ['__pd_space',  '.fin-stat { padding: 40px !important; }'],
         'dim11-cor'          => ['__pd_cor',    '.fin-stat { background: #fde68a !important; border-color: #f59e0b !important; }'],
@@ -157,14 +157,15 @@ it('Financeiro/Unificado — atalho "/" foca a busca (dim 6, comportamental) + c
     $page->wait(2.5); // hidratação: o handler global só existe após o useEffect (window.addEventListener)
 
     // CONTROLE-NEGATIVO: sem apertar nada, a busca NÃO está focada.
-    $before = $page->script("return (document.activeElement && document.activeElement.id) || '';");
+    // (scripts em IIFE — `return` cru no topo é "illegal return", igual ConformanceProbes)
+    $before = $page->script("(() => (document.activeElement && document.activeElement.id) || '')()");
     expect($before)->not->toBe('fin-search-input', 'A busca já estava focada sem apertar / — controle-negativo inválido');
 
     // MORDE: dispara '/' direto no window (onde vive o addEventListener, linha ~1503 da tela).
-    $page->script("window.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true, cancelable: true })); return true;");
+    $page->script("(() => { window.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true, cancelable: true })); return true; })()");
     $page->wait(0.6);
 
-    $after = $page->script("return (document.activeElement && document.activeElement.id) || '';");
+    $after = $page->script("(() => (document.activeElement && document.activeElement.id) || '')()");
     expect($after)->toBe(
         'fin-search-input',
         'Atalho "/" NÃO focou #fin-search-input → dim 6 quebrada OU handler não capturou (a máquina comportamental estaria cega)'
