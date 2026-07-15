@@ -1,0 +1,12 @@
+{
+  "_meta": {
+    "generated_at": "2026-07-15T00:00:00.000Z",
+    "total_violations": 1,
+    "eslint_version": "flat-config 9.x",
+    "adr": "0209",
+    "fixture": "good — a violação de absorvida.js está no baseline (delta 0 = sem regressão)"
+  },
+  "counts": {
+    "tests/governance-fixtures/eslint/good/absorvida.js|no-unused-vars": 1
+  }
+}

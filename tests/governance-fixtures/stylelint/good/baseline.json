@@ -1,0 +1,10 @@
+{
+  "_meta": {
+    "nota": "baseline da fixture GOOD do self-test da catraca stylelint (ADR 0209). Congela a divida do target.css (2 color-no-hex + 1 declaration-no-important). O ratchet deve enxergar delta 0 e sair 0 com 'Sem regressoes vs baseline'.",
+    "adr": "0209"
+  },
+  "counts": {
+    "tests/governance-fixtures/stylelint/good/target.css|color-no-hex": 2,
+    "tests/governance-fixtures/stylelint/good/target.css|declaration-no-important": 1
+  }
+}

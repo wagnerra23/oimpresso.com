@@ -632,6 +632,47 @@ const CATRACAS = [
     },
     expect: { good: /universe-gate OK/, bad: /PERDIDO|universe-gate FALHOU/ },
   },
+  {
+    // layout-primitives-guard (ADR 0253 · RATCHET por arquivo): flex/grid solto nas telas.
+    // 3 gates DS promovidos a required 2026-07-15 (flip 24→27) — entram no selftest pra provar que
+    // mordem (US-GOV-054 / o "verde não prova visão"). --root/--baseline isolam o scan na fixture
+    // (backward-compat: sem elas = cwd + baseline hardcoded, gate de prod inalterado). good = .tsx
+    // BATE o baseline (0 regressão, exit 0); bad = Fixture.tsx CRESCE (2 > baseline 1) → exit 1 pela
+    // REGRESSÃO (não por crash — a fixture bad traz o próprio baseline.json).
+    id: 'layout-primitives',
+    run: (kind) => {
+      const fx = join(FIX, 'layout-primitives', kind);
+      return runNode(script('layout-primitives', 'scripts/layout-primitives-guard.mjs'),
+        ['--root', fx, '--baseline', join(fx, 'baseline.json')], ROOT);
+    },
+    expect: { good: /Sem regressões vs baseline/, bad: /REGRESSÃO — \d+ arquivo\(s\) com MAIS flex\/grid solto/ },
+  },
+  {
+    // stylelint-baseline (G5 · ADR 0209 · RATCHET path|rule): drift CSS (color-no-hex etc).
+    // --baseline/--target isolam na fixture; cwd=ROOT resolve stylelint.config.mjs + node_modules.
+    // good = css BATE baseline (delta 0, exit 0); bad = 1 hex cru novo → delta +1 → morde (exit 1).
+    id: 'stylelint-baseline',
+    run: (kind) => {
+      const fx = join(FIX, 'stylelint', kind);
+      return runNode(script('stylelint-baseline', 'scripts/stylelint-baseline.mjs'),
+        ['--baseline', join(fx, 'baseline.json'), '--target', `tests/governance-fixtures/stylelint/${kind}/**/*.css`], ROOT);
+    },
+    expect: { good: /Sem regressões vs baseline/, bad: /REGRESSÃO — \d+ entrada/ },
+  },
+  {
+    // eslint-baseline (ADR 0209 · RATCHET path|rule): regressão ESLint. --baseline/--target isolam;
+    // cwd=ROOT acha node_modules/eslint + eslint.config.js. Fixture usa .js c/ no-unused-vars: a config
+    // só lina TS/regras ds sob resources/js (.tsx sob tests/ = "ignored"), então o que o selftest prova
+    // é que o COMPARADOR ratchet morde em delta>0 — que é o que pode apodrecer em silêncio.
+    // good = delta 0 (exit 0); bad = 1 no-unused-vars novo → delta +1 → morde (exit 1).
+    id: 'eslint',
+    run: (kind) => {
+      const fx = join(FIX, 'eslint', kind);
+      return runNode(script('eslint', 'scripts/eslint-baseline.mjs'),
+        ['--baseline', join(fx, 'baseline.json'), '--target', fx], ROOT);
+    },
+    expect: { good: /Sem regress/, bad: /hits AUMENTADOS/ },
+  },
 ];
 
 const results = [];

@@ -1,0 +1,11 @@
+/* Fixture BAD do self-test da catraca stylelint (ADR 0209).
+ * O baseline.json ao lado congela 2 color-no-hex + 1 declaration-no-important.
+ * Este CSS introduz um TERCEIRO hex cru (#ff0000 abaixo) — regressao delta +1.
+ * A catraca DEVE detectar e sair 1 com '❌ REGRESSAO'. NÃO remover o hex novo:
+ * ele é a violacao que prova que a catraca morde. */
+.selftest-card {
+  color: #fff;                  /* color-no-hex #1 (congelado no baseline) */
+  background: #1a1a1a;          /* color-no-hex #2 (congelado no baseline) */
+  outline-color: #ff0000;       /* color-no-hex #3 — REGRESSAO nova (nao esta no baseline) */
+  border-color: red !important; /* declaration-no-important #1 (congelado no baseline) */
+}

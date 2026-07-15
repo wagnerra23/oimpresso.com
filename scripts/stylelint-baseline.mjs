@@ -18,9 +18,22 @@ import stylelint from 'stylelint';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const BASELINE_PATH = resolve(process.cwd(), 'config/stylelint-baseline.json');
+// Lê o valor de uma flag `--nome <valor>` do argv (retorna fallback se ausente).
+function readFlag(name, fallback) {
+  const i = process.argv.indexOf(name);
+  if (i !== -1 && i + 1 < process.argv.length) return process.argv[i + 1];
+  return fallback;
+}
+
+// Flags backward-compat (ADR 0209 · self-test gate-selftest):
+//   --baseline <path>  → default config/stylelint-baseline.json (comportamento de produção)
+//   --target   <glob>  → default resources/css/**/*.css        (comportamento de produção)
+// Sem flags = comportamento IDÊNTICO ao gate required em produção. O cwd permanece ROOT
+// (pra resolver node_modules/stylelint + stylelint.config.mjs); só baseline+target apontam
+// pra fixture no self-test.
+const BASELINE_PATH = resolve(process.cwd(), readFlag('--baseline', 'config/stylelint-baseline.json'));
 const CONFIG_FILE = resolve(process.cwd(), 'stylelint.config.mjs');
-const TARGET = 'resources/css/**/*.css';
+const TARGET = readFlag('--target', 'resources/css/**/*.css');
 const MODE_WRITE = process.argv.includes('--write');
 
 async function runStylelint() {

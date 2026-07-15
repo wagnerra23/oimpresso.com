@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "generated_at": "2026-07-15T00:00:00.000Z",
+    "total_findings": 1,
+    "files_with_findings": 1,
+    "files_scanned": 1,
+    "refs": [
+      "ADR 0253",
+      "ADR 0209",
+      "ADR 0240"
+    ],
+    "nota": "Fixture GOOD do gate-selftest — a árvore .tsx BATE o baseline (0 regressão)."
+  },
+  "files": {
+    "resources/js/Pages/Fixture.tsx": 1
+  }
+}
