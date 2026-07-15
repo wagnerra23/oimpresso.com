@@ -301,7 +301,7 @@ jobs:
         # visível (assertDontSee) nem no payload cru (data-page Inertia, via ->content()/
         # ->script()). Dois lados: CONTROLE (biz=99 VÊ o token) + ISOLAMENTO (biz=1 NÃO vê).
         # BLOCKING (sem continue-on-error): o princípio #1 não admite merge-vermelho.
-        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php tests/Browser/CoreScreens/Tier0RenderIsolationTest.php
+        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php tests/Browser/CoreScreens/PixelDimensionProbesTest.php tests/Browser/CoreScreens/Tier0RenderIsolationTest.php
 
       # ── Onda Q4 (US-GOV-013) — GATE VISUAL DE PIXEL das núcleo-6 ─────────────────────
       # FASE ENFORCING (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing).
