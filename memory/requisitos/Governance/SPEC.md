@@ -799,3 +799,19 @@ Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sy
 - REGRA DURA (ADR 0275 §3 + ADR 0314): nasce not-armed e advisory — baseline só arma após 3 medições válidas consecutivas, via PR explícito; nada vira required.
 
 **Aceite:** scorecard 13/13 measured após 1º cron pós-merge; `--ratchet` ignora a métrica (sem entrada armada no baseline). Refs: KL-C2 · ADR 0279 · ADR 0318 (espelho ragas).
+
+### US-GOV-054 · Coletar bite-log retroativo dos 3 gates DS required (fechamento empírico ADR 0339 / DR-2a 0336)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_
+
+A promoção de `Layout primitives · ratchet`, `Stylelint · ratchet vs baseline` e `ESLint · ratchet vs baseline` a required (2026-07-15, flip 24→27) desviou da DR-2 da ADR 0336: o bite-log de ≥2 PRs contrafactuais por gate NÃO foi coletado. Foi mantido por exceção soberana [W] (ADR 0238), registrada honestamente na ADR 0339 como desvio consciente.
+
+**Follow-up pra dar fechamento empírico:**
+1. Ativar/alimentar `memory/governance/design-gate-bites.jsonl` (DR-2a da 0336) — registrar `{gate, pr, sha, arquivo, quando}` toda vez que um dos 3 reprovaria uma violação que mergeou.
+2. Acumular ≥2 mordidas reais por gate ao longo de N semanas.
+3. Se algum dos 3 NÃO acumular ≥2 mordidas reais em ~4-6 semanas, reconsiderar a demoção daquele item (gate sem mordida no mundo = só selftest = candidato a advisory de volta). Reversível via `gh api` re-remove do context na branch protection.
+
+**Aceite:** `design-gate-bites.jsonl` ativo + ≥2 mordidas por gate registradas, OU decisão explícita de demoção do(s) gate(s) sem mordida. Contexto: exit-code real (DR-3.1) já cumprido pelos 3; evidência atual fraca (layout 1 fail / stylelint 2 fails / eslint 0 na janela, mas ratchet conta warnings). Refs: ADR 0339 · 0336 (DR-2/DR-2a) · 0314 · 0238 · PRs #4301 (require-safe) + #4307 (registro).
