@@ -92,7 +92,7 @@ function pixdimRemove(string $id): string
 }
 
 it('Financeiro/Unificado — a máquina de pixel MORDE dims 9/10/11 e LIBERA no limpo', function () {
-    $business = Business::first();
+    $business = Business::query()->orderBy('id')->first(); // ratchet-safe (sem literal Business::first)
     if (! $business) {
         test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
     }
