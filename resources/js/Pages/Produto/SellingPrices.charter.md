@@ -105,11 +105,18 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 ```php
 it('Page Inertia existe em Pages/Produto/SellingPrices.tsx')
 it('Page declara matriz variations × priceGroups')
-it('Controller cross-tenant retorna 404')   // ⚠️ PROMETIDO, NÃO EXISTE — ver Backlog
+// ⚠️ REVOGADO na v2: a v1 prometia `it('Controller cross-tenant retorna 404')`.
+// O teste nunca existiu (o que havia era um grep de string no fonte) e, quando foi
+// escrito de verdade, o CI provou que a promessa era FALSA pro POST: `saveSellingPrices`
+// engole a ModelNotFoundException num catch(\Exception) generico e devolve 302, nao 404.
+// O GET devolve 404. Contrato real (isolamento, nao status HTTP) vive em SellingPrices.casos.md
+// UC-PTAB-02; a divergencia 302-vs-404 esta no §Backlog de la aguardando decisao [W].
 ```
 
+Contrato executável da tela: [`SellingPrices.casos.md`](SellingPrices.casos.md) — `UC-PTAB-01/02/03`
+(`tests/Feature/Produto/TabelaPrecoContratoTest.php`, lane `Estoque · MySQL`).
 Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/095/006`):
-`tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php`.
+`tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php` (lane `Pest (Unit)`).
 
 ## Backlog de contrato (dívida conhecida — não é Non-Goal, é buraco)
 

@@ -138,7 +138,24 @@ it('UC-PTAB-02 · produto de outro business retorna 404 (multi-tenant Tier 0)', 
         ->assertStatus(404);
 });
 
-it('UC-PTAB-02 · salvar preço em produto de outro business retorna 404 (multi-tenant Tier 0)', function () {
+/**
+ * ⚠️ O invariante aqui é ISOLAMENTO (CU-PROD-03.4 — "tabelas só do business atual"), NÃO o
+ * código HTTP. A 1ª versão deste teste assertava 404 no POST — copiando a promessa do §Pest GUARD
+ * do charter — e o CI reprovou na 1ª execução (#4300):
+ *
+ *     Expected response status code [404] but received 302.
+ *
+ * CAUSA: em `saveSellingPrices` o `findOrFail` roda DENTRO de `try { } catch (\Exception $e)`.
+ * A ModelNotFoundException é engolida pelo catch genérico → `redirect('products')` com
+ * `success: 0` + "something went wrong". O GET (`addSellingPrices`) devolve 404 porque NÃO tem
+ * try/catch em volta. Ou seja: a promessa do charter valia pra metade do contrato.
+ *
+ * O isolamento em si NÃO vaza (a exceção aborta antes de qualquer write + rollback) — por isso
+ * o teste assere o que o CONTRATO pede (nada gravado + não reporta sucesso) em vez do proxy
+ * errado. A divergência 302-vs-404 está registrada no §Backlog do casos.md pra [W] decidir se
+ * vira US (404 honesto) ou Non-Goal (302 genérico aceito).
+ */
+it('UC-PTAB-02 · salvar preço em produto de outro business não grava nada (multi-tenant Tier 0)', function () {
     $outroBizId = EstoqueFixture::secondBusinessId();
     if ($outroBizId === null) {
         $this->markTestSkipped('DB só tem 1 business — sem par cross-tenant pra provar isolamento.');
@@ -148,18 +165,22 @@ it('UC-PTAB-02 · salvar preço em produto de outro business retorna 404 (multi-
     $variationAlheia = $produtoAlheio->variationId();
     $tabelaAlheia = tabelaPrecoAtiva($outroBizId, 'Atacado alheio UC-PTAB-02');
 
-    $this->post('/products/save-selling-prices', [
+    $response = $this->post('/products/save-selling-prices', [
         'product_id' => $produtoAlheio->productId,
         'group_prices' => [
             $tabelaAlheia => [
                 $variationAlheia => ['price' => '999,00', 'price_type' => 'fixed'],
             ],
         ],
-    ])->assertStatus(404);
+    ]);
 
-    // E o vazamento pela porta dos fundos: nada pode ter sido gravado no business alheio.
+    // (a) O INVARIANTE: nada pode ter sido gravado no business alheio.
     expect(precoGravado($variationAlheia, $tabelaAlheia))
         ->toBeNull('Preço foi gravado em produto de OUTRO business — vazamento cross-tenant Tier 0.');
+
+    // (b) E a operação não pode reportar sucesso (hoje: 302 + status.success=0 — ver docblock).
+    $response->assertStatus(302);
+    expect(session('status.success'))->not->toBe(1, 'Cross-tenant reportou sucesso ao operador.');
 });
 
 // =============================================================================

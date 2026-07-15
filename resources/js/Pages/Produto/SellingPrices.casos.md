@@ -45,13 +45,14 @@ regravar o manifesto.
 
 ---
 
-## UC-PTAB-02 · Produto de outro business retorna 404 · `must` `[T0]`
+## UC-PTAB-02 · Produto de outro business não vaza · `must` `[T0]`
 - **Persona:** qualquer tenant — o preço de um business jamais pode ser lido nem gravado por outro. É o pior bug possível neste projeto.
-- **Aceite:** Dado um produto que pertence a **outro** `business_id` · Quando abro `/products/add-selling-prices/{id}` **ou** envio `save-selling-prices` com aquele `product_id` · Então volta **404** e **nada** é gravado em `variation_group_prices` do business alheio.
-- **Teste:** `tests/Feature/Produto/TabelaPrecoContratoTest.php` — `UC-PTAB-02 · produto de outro business retorna 404` + `UC-PTAB-02 · salvar preço em produto de outro business retorna 404`.
+- **Aceite:** Dado um produto que pertence a **outro** `business_id` · Quando abro `/products/add-selling-prices/{id}` **ou** envio `save-selling-prices` com aquele `product_id` · Então **nada** é gravado em `variation_group_prices` do business alheio e a operação **não reporta sucesso**. (O GET volta **404**; o POST volta **302** com `status.success=0` — ver a divergência abaixo.)
+- **Teste:** `tests/Feature/Produto/TabelaPrecoContratoTest.php` — `UC-PTAB-02 · produto de outro business retorna 404` + `UC-PTAB-02 · salvar preço em produto de outro business não grava nada`.
 - **Regressão que defende:** o `SellingPrices.charter.md` **prometia** `it('Controller cross-tenant retorna 404')` no §Pest GUARD desde 2026-05-15 e esse teste **nunca existiu** — o que havia era um grep procurando a string `session()->get('user.business_id')` no fonte do controller. Buraco Tier 0 documentado como se estivesse coberto.
-- **Contrato:** `CU-PROD-03` item 4 `[T0]` — *"Tabelas só do business atual"* + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
-- **Status: ⬜** — teste escrito, não executado (CT 100 fora).
+- **⚠️ Divergência achada na 1ª execução real ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)):** a promessa do charter valia só pra **metade** do contrato. O GET (`addSellingPrices`) devolve 404 de verdade. O **POST** (`saveSellingPrices`) **não**: o `findOrFail` roda dentro de `try { } catch (\Exception $e)`, a `ModelNotFoundException` é engolida pelo catch genérico e vira `redirect('products')` + *"something went wrong"* — **302**. O isolamento **não vaza** (a exceção aborta antes de qualquer write + rollback), mas uma tentativa cross-tenant fica **indistinguível de um erro de banco** no log e pro operador. Decisão pendente [W] no Backlog abaixo.
+- **Contrato:** `CU-PROD-03` item 4 `[T0]` — *"Tabelas só do business atual"* + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md). Note que o contrato pede **isolamento**, não um código HTTP — o 404 era proxy do charter, e o proxy estava errado pro POST.
+- **Status: ⬜** — teste corrigido pro invariante real; aguarda o re-run do CI.
 
 ---
 
@@ -84,6 +85,16 @@ regravar o manifesto.
   tabela reprecifica. Vira UC junto com a US-PROD-022.
 - **Piso de venda vs preço de tabela** — `AR-PROD-101` (`R$ Valor mínimo de venda`) é piso que
   bloqueia venda abaixo. A tabela pode furar o piso? Sem contrato hoje — decisão pendente.
+- **⚠️ [W] DECIDIR — cross-tenant no POST devolve 302, não 404.** Achado pela 1ª execução real do
+  `UC-PTAB-02` ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)). Em
+  `ProductController@saveSellingPrices` o `findOrFail` está dentro de `try { } catch (\Exception $e)`
+  — a `ModelNotFoundException` é engolida e vira `redirect('products')` + `success: 0`. **Não é
+  vazamento** (nada grava; o `UC-PTAB-02` prova). Mas tentativa cross-tenant fica indistinguível de
+  falha de banco no `Log::emergency`, e o charter prometia 404. Duas saídas: (a) **US** pra
+  re-lançar `ModelNotFoundException` (ou `abort(404)`) antes do catch genérico → o POST passa a
+  honrar o mesmo contrato do GET; (b) **Non-Goal declarado** — 302 genérico é aceito de propósito,
+  e o §Pest GUARD do charter é corrigido pra parar de prometer 404. Enquanto não decide, o UC
+  defende o invariante que importa (isolamento), não o proxy.
 - **Preço especial por (produto × cliente)** — `AR-PROD-111..116` do legado. **Non-Goal declarado**
   (Wagner 2026-07-15): o modelo é tabela vinculada ao cadastro do cliente; o produto nunca é
   vinculado direto. Não é backlog, é divergência consciente — registrado aqui só pra não ser
