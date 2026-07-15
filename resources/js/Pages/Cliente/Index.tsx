@@ -843,13 +843,14 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       {/* ───── BLOCO 1 · HEADER TRANSPARENTE + border-b warm (canon v3.4 polish · 2026-05-25) ─────
           Wagner pediu remover `bg-background border rounded-t-lg` pra header herdar
           o cream `--color-page-cream` do parent — espelha `/sells` canon Cowork exato.
-          v3.4 polish: adicionado `border-b` warm `oklch(0.93 0.004 90)` pra criar linha
-          divisora visual entre BLOCO 1 e BLOCO 2 (espelha `.vd-toolbar` border-bottom
-          em /sells). Mesmo hue 90 da familia cream — afinidade visual com fundo. */}
+          v3.4 polish: adicionado `border-b` warm pra criar linha divisora visual entre
+          BLOCO 1 e BLOCO 2 (espelha `.vd-toolbar` border-bottom em /sells).
+          dark-aware (2026-07-15): `var(--border)` (light 0.90 warm → dark 0.34) substitui
+          o hardcoded `oklch(0.93 0.004 90)` que ficava claro no tema dark. */}
       <header
         className="border-b overflow-visible"
         role="banner"
-        style={{ borderBottomColor: 'oklch(0.93 0.004 90)' }}
+        style={{ borderBottomColor: 'var(--border)' }}
       >
         {/* Wagner 2026-05-25: BLOCO 1 header padding canon Vendas (referência /sells):
             pt-6 px-6 pb-3.5 (24px topo+lateral · 14px rodapé). Bottom menor pra underline
@@ -986,12 +987,12 @@ export default function ClienteIndex(props: ClienteIndexPageProps) {
       {/* ───── BLOCO 3 · TOOLBAR transparente + LISTA card warm (canon v3.5 · 2026-05-25) ─────
           Wagner sessao polish #4: toolbar transparente herda cream do parent (espelha
           /sells `.vd-tabs-row` bg `rgba(0,0,0,0)`). Busca AGORA a direita (ml-auto),
-          filtros a esquerda. Linha divisora warm `oklch(0.93 0.004 90)` igual a linha
-          entre BLOCO 1 e BLOCO 2 (consistencia visual canon v3.4). */}
+          filtros a esquerda. Linha divisora warm `var(--border)` (dark-aware) igual a linha
+          entre BLOCO 1 e BLOCO 2 (consistencia visual canon v3.4 · corrige claro no dark). */}
       <div className="overflow-visible">
         <div
           className="px-4 py-3 border-b"
-          style={{ borderBottomColor: 'oklch(0.93 0.004 90)' }}
+          style={{ borderBottomColor: 'var(--border)' }}
         >
           <div className="flex items-center gap-3 flex-wrap" aria-label="Filtros e busca de contato">
             {/* Filtros combobox a esquerda — 6 FilterDropdown.

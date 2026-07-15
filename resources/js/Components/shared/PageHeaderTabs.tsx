@@ -241,8 +241,8 @@ export default function PageHeaderTabs({
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   // Fidelidade ao protótipo cadastro (`clientes-page.css` `.cli-moduletopnav-tab.active`)
                   // [W] 2026-07-14: aba ATIVA = texto foreground (var(--text) do protótipo, branco)
-                  // + peso 600 + underline roxo `--accent` oklch(0.55 0.15 295) — o MESMO valor do
-                  // botão PageHeaderPrimary (ADR 0190). NÃO `text-primary`/`border-b-primary`: o
+                  // + peso 600 + underline roxo `--accent` — o MESMO valor do botão
+                  // PageHeaderPrimary (ADR 0190). NÃO `text-primary`/`border-b-primary`: o
                   // token `--primary` resolve pra oklch(0.70 …) e destoava do botão (2 roxos no
                   // header). `hue` segue só pro botão primary colorido (out of scope).
                   isActive
@@ -252,10 +252,16 @@ export default function PageHeaderTabs({
                 style={
                   isActive
                     ? {
-                        // Fiel ao protótipo `.cli-moduletopnav-tab.active`: underline `--accent`
-                        // + pill roxo suave (accent-soft 50%). Ambos oklch(0.55 0.15 295).
-                        borderBottomColor: 'oklch(0.55 0.15 295)',
-                        backgroundColor: 'oklch(0.55 0.15 295 / 0.10)',
+                        // Fiel ao protótipo `.cli-moduletopnav-tab.active` (clientes-page.css):
+                        // underline `var(--accent)` + pill `color-mix(--accent-soft 50%)`. Os tokens
+                        // vivem na camada gerada do `.cockpit` (AppShellV2 embrulha todo o app —
+                        // _generated-cockpit-{light,dark}.css). Antes eram literais hardcodados
+                        // oklch(0.55 0.15 295); bindados no token pra o dark fluir de UM lugar só —
+                        // `--accent-soft` escurece no dark (0.95→0.32) e o pill fica legível.
+                        // Light idêntico p/ underline (var(--accent)==0.55 0.15 295); pill segue o
+                        // protótipo (accent-soft 50%). Harness claro+escuro com tokens reais em [W].
+                        borderBottomColor: 'var(--accent)',
+                        backgroundColor: 'color-mix(in oklch, var(--accent-soft) 50%, transparent)',
                       }
                     : undefined
                 }
@@ -266,7 +272,7 @@ export default function PageHeaderTabs({
                     size={13}
                     className="shrink-0"
                     // ícone roxo na aba ativa (`.cli-moduletopnav-tab.active svg{color:var(--accent)}`)
-                    style={isActive ? { color: 'oklch(0.55 0.15 295)' } : undefined}
+                    style={isActive ? { color: 'var(--accent)' } : undefined}
                     aria-hidden
                   />
                 )}
@@ -274,10 +280,10 @@ export default function PageHeaderTabs({
                 {ghost.badge != null && (
                   <span
                     className="ml-1.5 inline-block rounded-full px-1.5 min-w-[18px] text-center text-[10.5px] leading-[1.4] font-semibold tabular-nums"
-                    // `.cli-moduletopnav-n`: base cinza; ativo roxo (`--accent`) + branco.
+                    // `.cli-moduletopnav-n`: base cinza; ativo roxo (`--accent`) + `--accent-fg`.
                     style={
                       isActive
-                        ? { backgroundColor: 'oklch(0.55 0.15 295)', color: 'oklch(0.99 0 0)' }
+                        ? { backgroundColor: 'var(--accent)', color: 'var(--accent-fg)' }
                         : { backgroundColor: 'oklch(0.32 0.01 240)', color: 'oklch(0.70 0.01 240)' }
                     }
                   >

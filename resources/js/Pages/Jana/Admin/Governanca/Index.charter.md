@@ -3,7 +3,8 @@ page: /copiloto/admin/governanca
 component: resources/js/Pages/Jana/Admin/Governanca/Index.tsx
 owner: wagner
 status: live
-last_validated: "2026-05-16"
+last_validated: "2026-07-15"
+smoke: "2026-07-15 — render prod OK biz=1 (Chrome MCP, sessão WR2 Sistemas; https://oimpresso.com/ia/admin/governanca?secao=acesso: barra canônica PageHeaderTabs (Consumo · Acesso/RBAC · Usuários) em faixa própria, aba Acesso ativa (pill roxo oklch 0.55 0.15 295 + underline), seção dirigida por rota ?secao=, painel 'Distribuição por status' 3.521 calls; 0 erro render). DS Onda 3 — barra-de-abas única."
 parent_module: Jana
 parent_adr: memory/decisions/0053-mcp-server-governanca-como-produto.md
 related_adrs: [39, 53, 61, 70, 93, 94, 95, 131]
@@ -51,8 +52,8 @@ Audiência primária: **Wagner (superadmin único)**. Eventualmente Felipe quand
 
 ## UX targets
 
-- Padrão Chat Cockpit V2 ([ADR 0039](../../../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md)) — shared components (`KpiGrid`, `KpiCard`, `StatusBadge`, `EmptyState`, `SubNav`, `PageHeader`)
-- LocalStorage persiste preset filtros + seção ativa (`LS_PRESET_KEY`, `LS_SECAO_KEY`)
+- Padrão Chat Cockpit V2 ([ADR 0039](../../../../../../memory/decisions/0039-ui-chat-cockpit-padrao.md)) — shared components (`KpiGrid`, `KpiCard`, `StatusBadge`, `EmptyState`, `PageHeaderTabs` (barra de seção), `SubNav` (segmented Calls/Custo), `PageHeader`)
+- DS Onda 3 — seção ativa navega por rota (`?secao=consumo|acesso|usuarios`) na barra canônica `PageHeaderTabs`; LocalStorage persiste só o preset de período (`LS_PRESET_KEY`)
 - Render < 300ms p95 com `Inertia::defer()` em audit log paginated
 - Dark mode obrigatório
 - Mobile-friendly mas otimizado desktop (uso real Wagner monitor)

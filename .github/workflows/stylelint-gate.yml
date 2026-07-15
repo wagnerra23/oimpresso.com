@@ -9,6 +9,12 @@ name: Stylelint CSS anti-drift (G5 · ADR 0209)
 # pre-commit" do CODE_DESIGN_CONTRACT.md.
 #
 # Comando manual local: npm run stylelint:baseline:check
+#
+# REQUIRED-READINESS (2026-07-15, padrão ADR 0271 onda 2, idêntico ao e2e-gate.yml /
+# visual-regression.yml): `pull_request` SEM `paths:` (always-run) pra ser promovível a
+# required sem deadlock "Expected — waiting for status" em PR que não toca os paths. O
+# custo é evitado por skip-as-pass interno: dorny/paths-filter detecta se algo relevante
+# mudou; se não, conclui verde (~segundos) sem rodar o ratchet.
 
 on:
   push:
@@ -22,14 +28,8 @@ on:
       - 'package-lock.json'
       - '.github/workflows/stylelint-gate.yml'
   pull_request:
-    paths:
-      - 'resources/css/**'
-      - 'stylelint.config.mjs'
-      - 'config/stylelint-baseline.json'
-      - 'scripts/stylelint-baseline.mjs'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/stylelint-gate.yml'
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: stylelint-gate-${{ github.ref }}
@@ -43,16 +43,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Detectar mudanças relevantes (skip-as-pass — required-readiness)
+        id: changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - 'resources/css/**'
+              - 'stylelint.config.mjs'
+              - 'config/stylelint-baseline.json'
+              - 'scripts/stylelint-baseline.mjs'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/stylelint-gate.yml'
+
+      - name: Decidir execução
+        id: decide
+        run: echo "run=${{ github.event_name != 'pull_request' || steps.changes.outputs.relevant == 'true' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip-as-pass (nada de CSS mudou)
+        if: steps.decide.outputs.run != 'true'
+        run: echo "✅ Sem mudanças de CSS — skip-as-pass (required-ready, padrão ADR 0271 onda 2)."
+
       - name: Setup Node.js
+        if: steps.decide.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: 'npm'
 
       - name: Install npm deps
+        if: steps.decide.outputs.run == 'true'
         run: npm ci --no-audit --no-fund
 
       - name: Stylelint ratchet (falha só em regressão vs baseline)
+        if: steps.decide.outputs.run == 'true'
         run: node scripts/stylelint-baseline.mjs
 
       - name: Diagnóstico em caso de falha

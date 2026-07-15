@@ -1,0 +1,47 @@
+name: PageHeaderTabs Fidelity Gate — aba ativa fiel ao protótipo (não regride)
+
+# A "barra de abas de topo" canoniza em <PageHeaderTabs>. A aba ATIVA precisa bater com
+# `.cli-moduletopnav-tab.active` do protótipo Cowork (clientes-page.css): radius 0 (RETO),
+# underline var(--accent), pill accent-soft, font-weight 600. O bug que o [W] pegou no olho
+# (2026-07) foi `rounded-md` numa aba — nenhum gate de cor/CSS pega isso (é className + style
+# inline no TSX). Este render-test (vitest/jsdom) trava a fidelidade computada + tem controle-
+# negativo do detector de radius (injeta rounded-md → detecta).
+#
+# Path-scoped (faz npm ci): roda só quando o componente, o spec ou este workflow mudam.
+# Comando manual local: npx vitest run tests/pageHeaderTabsFidelity.spec.tsx
+#
+# Refs: ADR proposta tab-nav-canonico · ADR 0182 (PageHeaderTabs canon) · ADR 0190 (accent 295)
+#       · ADR 0258 (gate só vale se o controle-negativo roda no CI).
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/Components/shared/PageHeaderTabs.tsx'
+      - 'tests/pageHeaderTabsFidelity.spec.tsx'
+      - '.github/workflows/pageheader-tabs-fidelity-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Components/shared/PageHeaderTabs.tsx'
+      - 'tests/pageHeaderTabsFidelity.spec.tsx'
+
+concurrency:
+  group: pht-fidelity-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pht-fidelity:
+    name: PageHeaderTabs · aba ativa fiel ao protótipo (radius 0 · accent · font 600)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: fidelidade PageHeaderTabs (vitest)
+        run: npx vitest run tests/pageHeaderTabsFidelity.spec.tsx

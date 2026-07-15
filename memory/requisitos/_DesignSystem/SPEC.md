@@ -658,3 +658,19 @@ Gated: só executar quando o ledger `governance/route-hits.json` tiver >=3-4 sem
 Smoke real por tela via browser MCP -> campo `smoke: <data>` (3a fonte honesta do gate). ~45 smokes, caro — so se nao der pra esperar o ledger.
 
 Ref: PR #4120, session 2026-07-11.
+
+### US-_DESIGNSYSTEM-038 · Migrar os 3 independentes de status-badge pro canon (Badge/StatusBadge)
+
+> owner: — · priority: p3 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Follow-up da Onda status-badge (PR #4298, mergeado 2026-07-15). O detector `node scripts/governance/component-registry-check.mjs --roles` (papel `status-badge`, advisory) cataloga 3 componentes que hand-rolam a pílula de status SEM consumir o canon. Migração incremental — 1 PR pequeno por tela, cada um com gate visual + screenshot aprovado por Wagner (R2/R7).
+
+Alvos (canon = `<Badge variant="success|warning|danger|info|neutral">` de @/Components/ui/badge OU `<StatusBadge kind value>` de @/Components/shared):
+1. resources/js/Pages/OficinaAuto/Vehicles/_components/VehicleStatusBadge.tsx — DUPLICA o `kind:"vehicle"` que o StatusBadge JÁ tem; candidato a deletar e trocar por `<StatusBadge kind="vehicle" value={...}>`.
+2. resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderStatusBadge.tsx — hand-rola palette cru (emerald/amber); estender `mappings` do StatusBadge com um kind de OS OU consumir Badge variants.
+3. resources/js/Pages/Cliente/_components/Pills.tsx — StatusPill + FrescorPill (já usam tokens -soft/-fg corretos, mas hand-rolam a forma do Badge). TagChip/TipoPill/ActiveChip NÃO entram (cor de categoria/filtro = papel diferente, exceção documentada).
+
+Fora de escopo: FiscalStatusBadge/NfceStatusBadge = canon fiscal próprio (R-DS-002/ADR 0235), NÃO migrar.
+
+Pronto quando: detector `--roles` reporta 0 independentes no papel status-badge. Advisory (DS ≠ Tier-0, ADR 0271/0314) — sem pressa, puxar por tela quando conveniente.
