@@ -35,7 +35,9 @@ Este é o mesmo diagnóstico do [ADR 0338](../0338-ds-lint-eixo-valor-token-fech
 
 ### D-1 · 1 componente de tab-nav canônico
 
-O papel **"barra de abas de topo"** canoniza em **`PageHeaderTabs`** (`@/Components/shared`), consumido via o `*SubNav` do módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`), que resolve ghosts + active a partir do `shell.menu`. Anti-pattern (não se escreve mais): `ModuleTopNav` · `SubNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · `role="tablist"` hand-rolado na tela. Registrado em `prototipo-ui/REGISTRY_DS_COMPONENTES.md` §"Navegação de página".
+O papel **"barra de abas de topo"** canoniza em **`PageHeaderTabs`** (`@/Components/shared`), consumido via o `*SubNav` do módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`), que resolve ghosts + active a partir do `shell.menu`. Anti-pattern (não se escreve mais): `ModuleTopNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · `role="tablist"` hand-rolado na tela. Registrado em `prototipo-ui/REGISTRY_DS_COMPONENTES.md` §"Navegação de página".
+
+> **Errata [W] 2026-07-15** — `SubNav` (`@/Components/shared/SubNav`) **saiu** da lista anti-pattern acima. Revisão DS constatou que é **papel DISTINTO** (sub-navegação contextual in-page: `value`/`onChange`, sem `shell.menu`/`href`), não um hand-roll do tab-nav. Registrado como papel próprio (`sub-navegacao-contextual`) no REGISTRY §"Sub-navegação contextual" e em `ROLE_SIGNATURES`. O detector `--roles` deixou de marcá-lo como drift (era falso-positivo por proximidade de nome).
 
 ### D-2 · Padrão de criação de componentes POR PAPEL (a CAUSA)
 
@@ -62,12 +64,12 @@ Máquinas (b) e (c) entram no **mesmo ratchet** do 0209 (`config/eslint-baseline
 - **(b)/(c) fecham por FORMA, não por enumeração** (doutrina 0338): (c) casa a **forma do valor** (qualquer função de cor ou hex) num surface novo (o `style` inline) — completo por construção pra esse surface, sem "sempre um leak atrás". (b) é component-substitute curado (o papel tem 1 substituto).
 - **Ratchet = completude sem flag day**: as regras acendem no legado, o baseline perdoa a dívida, o gap só desce.
 - **(d) trava o que o gate sintático não vê**: `rounded-md` é className (não pego por gate de cor); o render-test é o único que prova a fidelidade computada. Controle-negativo real (injeção provada) satisfaz o [ADR 0258](../0258-processo-adr-estado-arte-indice-gerado-supersede-atomico.md).
-- **(a) surface o drift residual** honestamente: a consolidação NÃO migrou tudo — o detector lista 4 independentes vivos (`ModuleTopNav`, `SubNav`, `Financeiro/Unificado/Index`, `FiscalModuleTopNav`) pra migração incremental, sem mentir "está tudo consolidado".
+- **(a) surface o drift residual** honestamente: a consolidação NÃO migrou tudo — hoje (pós-remoção de `ModuleTopNav`/`FiscalModuleTopNav` e reclassificação do `SubNav` como papel próprio) o detector lista **1 independente vivo** (`Financeiro/Unificado/Index`) pra migração incremental, sem mentir "está tudo consolidado".
 
 ## Consequências
 
 - Papel "barra de abas de topo" deixa de ter hand-roll novo (b) e cor inline nova (c) sem alarme; a fidelidade da aba ativa não regride (d); o drift residual fica visível (a).
-- **Migração incremental** dos 4 independentes → `PageHeaderTabs`, tela a tela, por gate visual (fora do escopo desta proposta; catalogado pelo detector).
+- **Migração incremental** do independente restante (`Financeiro/Unificado/Index`) → `PageHeaderTabs`, por gate visual (fora do escopo desta proposta; catalogado pelo detector).
 - **Ondas futuras (catalogadas, NÃO implementadas agora):** o detector de papel já rodou outros papéis suspeitos — **`status-badge`** (11 componentes hand-rolam o pill de status) e **`combobox`** (5 hand-rolam o dropdown de busca). Cada um vira Onda própria com o mesmo tripé (canon + regra `ds/no-*` + fidelidade). Entram como novas entradas em `ROLE_SIGNATURES` e no REGISTRY quando abrirem.
 - **Residual honesto (fica humano/charter, não vira máquina):** nome de cor nu (`'white'`/`'red'`) em style inline não casa (ambíguo vs `transparent`/`inherit`/`currentColor`); template literal de cor (`` `oklch(${x})` ``) não casa (não é Literal); distinguir "aba de topo" de "aba dentro de painel" é heurística sintática, por isso (a) é report-only e (b) é ratchet — nenhum é gate cego. A confiança termina onde o AST/regex termina.
 

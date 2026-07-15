@@ -64,11 +64,27 @@
 
 | Componente | Import | Existe | Substitui (anti-pattern) |
 |---|---|---|---|
-| **PageHeaderTabs** | `@/Components/shared/PageHeaderTabs` | ✅ canon | `ModuleTopNav` · `SubNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · **`role="tablist"` hand-rolado na tela** · qualquer `<nav>` de sub-tabs com cor/borda em `style={{}}` inline |
+| **PageHeaderTabs** | `@/Components/shared/PageHeaderTabs` | ✅ canon | `ModuleTopNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · **`role="tablist"` hand-rolado na tela** · qualquer `<nav>` de sub-tabs com cor/borda em `style={{}}` inline |
+
+> ⚠️ **`SubNav` (`@/Components/shared/SubNav`) NÃO entra aqui.** É papel DISTINTO — sub-navegação contextual in-page (seção abaixo), não navegação de topo por URL. Decisão DS [W] 2026-07-15.
 
 > **Como consumir:** não renderize `PageHeaderTabs` cru na tela — passe pelo `*SubNav` do módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`), que resolve os ghosts + active a partir do `shell.menu`. Fidelidade da aba ativa (radius 0 · underline `var(--accent)` · pill accent-soft · font 600) travada por `tests/pageHeaderTabsFidelity.spec.tsx`.
 >
 > **Catracas ativas:** regra `ds/no-inline-tablist` (barra `role="tablist"` hand-rolada) + `ds/no-inline-raw-color` (cor/borda/sombra crua em `style` inline — o buraco do dark) no `eslint.config.js`; detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory). Migração dos independentes = incremental por tela.
+
+---
+
+## Sub-navegação contextual (in-page section switch)
+
+> Papel **"sub-navegação contextual"** = trocar de seção DENTRO de uma mesma página **sem mudar a URL** — estado controlado (`value`/`onChange`), baixo contraste. **Não confundir com a barra de abas de topo acima:** aquela é navegação por URL (`href`/`shell.menu`, slot `action` do PageHeader); esta é um switch local (variantes `underline`/`segmented`), tipicamente dentro de um card. Papel distinto reconhecido por decisão DS [W] 2026-07-15 (antes o detector `--roles` o confundia com tab-nav por proximidade de nome).
+
+| Componente | Import | Existe | Substitui (anti-pattern) |
+|---|---|---|---|
+| **SubNav** | `@/Components/shared/SubNav` | ✅ canon | `useState` + grupo de `<button>`/pill segmented hand-rolado dentro da tela pra alternar seção sem URL |
+
+> **Como consumir:** `<SubNav items={tabs} value={aba} onChange={setAba} />` (modo controlado) ou `variant="segmented"` pra pill inline num card. O modo `href` (Link Inertia) existe na API mas o caso vivo é controlado — pra navegação real por URL use a barra de abas de topo (`PageHeaderTabs` via `*SubNav` do módulo), não este.
+>
+> **Consumidor vivo:** `Jana/Admin/Governanca/Index.tsx` (sub-tabs de modo de gráfico). Rastreado como papel próprio (`sub-navegacao-contextual`) no detector `--roles`.
 
 ---
 
