@@ -113,6 +113,11 @@ const ROLE_SIGNATURES = [
     // ou classe de topnav conhecida, OU (nome) o basename é de nav/tabs de topo.
     matches(file, src) {
       const name = basename(file);
+      // O SubNav compartilhado NÃO é barra de abas de topo — é sub-navegação
+      // contextual in-page (papel próprio, abaixo). Casava por nome/JSDoc
+      // (`subnav`) = falso-positivo de proximidade. Exclui explicitamente
+      // (decisão DS [W] 2026-07-15: SubNav = papel distinto, não drift do tab-nav).
+      if (file === 'resources/js/Components/shared/SubNav.tsx') return false;
       // markup = role=tablist ACOMPANHADO de uma classe de barra-de-topo conhecida
       // (não basta tablist: in-panel/mobile tabs também usam tablist e são OUTRO papel).
       const markup =
@@ -122,6 +127,24 @@ const ROLE_SIGNATURES = [
       // exclui falsos-amigos de nome que NÃO são barra de navegação de topo
       const notNav = /(MobileTabs|Chips|Preview|Message)\.tsx$/.test(name);
       return (markup || byName) && !notNav;
+    },
+  },
+  {
+    // Papel DISTINTO da barra de abas de topo (decisão DS [W] 2026-07-15).
+    // Sub-navegação CONTEXTUAL dentro de uma mesma página: troca de seção via
+    // estado controlado (`value`/`onChange`), SEM mudar a URL — não tem `href`
+    // nem lê `shell.menu`. Variantes underline/segmented, baixo contraste.
+    // Consumidor vivo: Jana/Admin/Governanca (sub-tabs de modo de gráfico).
+    role: 'sub-navegacao-contextual',
+    canon: 'resources/js/Components/shared/SubNav.tsx',
+    canonImport: '@/Components/shared/SubNav',
+    // Discriminador do papel: controlado (value/onChange), sem shell.menu/href.
+    // Detecção de hand-rolls independentes fica DEFERIDA à onda respectiva
+    // (mesmo padrão de status-badge/combobox acima) — hoje só registra o canon
+    // pra o papel existir no tooling e o detector parar de confundi-lo com
+    // tab-nav. Ampliar o matches() é decisão de abrir a onda (não unilateral).
+    matches(file /*, src */) {
+      return file === 'resources/js/Components/shared/SubNav.tsx';
     },
   },
 ];
