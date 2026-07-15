@@ -2,7 +2,7 @@
 
 > **Versão:** 1.1 — reconciliada com o modelo **autônomo** de 2026-05-31 (ver overlay no §2 + [AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md)). Formalizado em [ADR 0241](../memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md).
 > **Documento mãe:** [ADR 0114](../memory/decisions/0114-prototipo-ui-cowork-loop-formalizado.md)
-> **Última revisão:** 2026-07-07 (+§10.6 acesso direto DesignSync — conteúdo base 1.0 = 2026-05-09; reconciliação v1.1 = 2026-05-31)
+> **Última revisão:** 2026-07-15 (+§0.1 acesso ao design v2 — resolve a contradição §1-corpo↔§0/§10.6; +§10.6 acesso direto DesignSync 2026-07-07; conteúdo base 1.0 = 2026-05-09; reconciliação v1.1 = 2026-05-31)
 > **🔁 v2 (colapso) — ratificado em [ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md) (2026-06-17):** 6→2 papéis · 7→3 fases · memória=git SSOT · intake=Issues/`cowork-inbox` · gates=CI (a11y-axe required) · code write-path com review-gate. **O overlay autônomo do §2 é o modelo principal da v2.** v1 preservado (append-only — o histórico fica).
 
 ## 0. Mapa de vigência (v2 — leia isto primeiro)
@@ -11,7 +11,7 @@
 
 | Seção | Status v2 | Nota |
 |---|---|---|
-| §1 Os 6 papéis | 🪦 superado | v2 = **2 papéis**: `[CC]` designer-agente (F1 + abre PR) · `[W]` aprovador Tier 0. `[CD]`/`[CA]`/`[W2]` → CI; `[CL]` → Cowork commitando / agente de tradução ([ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)) |
+| §1 Os 6 papéis | 🪦 superado | v2 = **2 papéis**: `[CC]` designer-agente (F1 + abre PR) · `[W]` aprovador Tier 0. `[CD]`/`[CA]`/`[W2]` → CI; `[CL]` → Cowork commitando / agente de tradução ([ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md)). **O agente Code É o designer-agente e tem acesso completo ao design → ver §0.1** (o corpo do §1, que diz "Cowork gera / Code traduz", é v1 morto) |
 | §2 As fases | 🟡 corpo superado · **overlay VIGENTE** | o overlay autônomo (+ atualização v2 no fim dele) **é o modelo principal**: F0 brief → F1 design + auto-checks → gates CI → merge |
 | §3 Critérios de transição | 🪦 superado | gates humanos (F1.5/F2/F3.5/F4) viraram checks de CI — ver overlay §2 |
 | §4 Onde cada fase escreve | 🟡 parcial | `COWORK_NOTES.md` **congelada** — intake via Issue `cowork-intake` ou `cowork-inbox/`; `SYNC_LOG.md`/`HANDOFF.md` seguem vivos (§10.2) |
@@ -24,6 +24,20 @@
 | §11 Links | ✅ referência | — |
 
 **Estado vivo (SEM contagem cacheada aqui — a lista dos required vive em [`governance/required-checks-baseline.json`](../governance/required-checks-baseline.json), enforced por `protection-drift.mjs`; contagens cacheadas em doc apodreceram 18→22→24 entre jun–jul/2026):** `enforce_admins:true` · `reviews:0`. `visual-regression` **é** required; **a11y-axe e PR UI Judge são advisory hoje** — a frase "a11y-axe required" do banner refletia a Onda C da 0282 e foi alterada depois pela poda [ADR 0314](../memory/decisions/0314-poda-gates-onda-2-lei-fusoes.md) (required = só Tier-0). Estado vivo de merge/enforcement: **[AUTOMACAO-LOOP-AUTONOMO.md](AUTOMACAO-LOOP-AUTONOMO.md) §2–§3** (casa declarada — ex.: `gh pr merge --admin` MORTO pós-ADR 0271).
+
+### 0.1 Acesso ao design (v2) — o agente Code **é** o designer-agente, com acesso completo
+
+> Inserido 2026-07-15. **Origem:** ao pedido de campos de UI (wizard tipo=cartão · Financeiro), a IA respondeu *"precisa nascer no Cowork primeiro / me autorize a desenhar"* — tratou design como dependência **externa/humana**. Wagner: *"você tem acesso completo ao design, atualize o protocolo, investigue"*. Causa-raiz: o **corpo do §1** (modelo v1: "`[CC]` Cowork web app **gera** / `[CL]` Code **traduz**") vive no topo e venceu a leitura, **contradizendo** a v2 (§0 tabela + §10.6). Esta nota resolve a contradição no lugar que se lê primeiro.
+
+Na **v2** ([ADR 0282](../memory/decisions/0282-protocolo-v2-colapso-ratificacao.md) + overlay autônomo [ADR 0241](../memory/decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md)) o agente **Claude Code é o designer-agente** — ele **gera** o design (F1), não só traduz. Tem acesso **completo** ao design por **3 vias**, todas já disponíveis:
+
+| Via | O que é | Onde |
+|---|---|---|
+| 1. Protótipo Cowork no repo | `prototipos/<tela>/` read-only — fonte de design Tier 0 ([ADR 0299](../memory/decisions/0299-figma-nao-e-fonte-de-design.md)) | git |
+| 2. **`DesignSync`** | tool nativa — lê/escreve o projeto claude.ai/design **fresco** (agente desktop/GUI com login claude.ai) | §10.6 |
+| 3. Plugin Claude Design | skills `design:design-system` / `-critique` / `-handoff` / `ux-copy` / `accessibility-review` | local |
+
+**Corolário (anti-padrão — mata o incidente):** é **proibido** tratar design como dependência externa — dizer *"precisa vir do Cowork / esperar handoff"* ou *"me autorize a desenhar"* quando falta a fonte visual de uma tela. Nesse caso o agente **gera** (via 2/3 acima, ancorado no DS canon), valida pelos **gates CI** (visual-regression + PR UI Judge) e abre PR. **Soberania [W] Tier 0** é sobre **merge · produto · token/componente novo** ([ADR 0282] "o ouro": constituição/ADR/token = só [W]), **não** sobre "posso desenhar". Onde há protótipo, ele **é** a fonte (§1/§9); onde não há, é fluxo MWART direto — nunca se espera insumo externo.
 
 ## 1. Os 6 papéis
 
@@ -152,6 +166,7 @@ Telas que fazem sentido juntas (ex: `Repair/Dashboard` + `JobSheet` + `Status`) 
 - ❌ Loopar F1 → F1.5 → F1 mais de 3x sem ADR — sinal que protocolo é insuficiente, abrir reflexão
 - ❌ Mais de 2 telas simultâneas em F3 (`[CL]` perde foco) — backpressure obrigatório
 - ❌ Editar `SYNC_LOG.md` no meio (não-append) — log é imutável, só append
+- ❌ **Tratar design como dependência externa** — dizer "precisa vir do Cowork / esperar handoff" ou "me autorize a desenhar" quando falta a fonte visual (v2: o agente Code **é** o designer-agente com acesso completo — **§0.1**). Sem protótipo → **gera** (protótipo repo · `DesignSync` §10.6 · plugin Claude Design), valida por gates CI, abre PR. Incidente 2026-07-15 (wizard cartão Financeiro).
 
 ## 9. Ciclo de vida de um arquivo `prototipos/<tela>/`
 
