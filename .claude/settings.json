@@ -262,6 +262,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/design-compare-protocol.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/design-agente-ativa.mjs"
           }
         ]
       }
