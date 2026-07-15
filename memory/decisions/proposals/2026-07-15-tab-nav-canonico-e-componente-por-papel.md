@@ -70,7 +70,9 @@ Máquinas (b) e (c) entram no **mesmo ratchet** do 0209 (`config/eslint-baseline
 
 - Papel "barra de abas de topo" deixa de ter hand-roll novo (b) e cor inline nova (c) sem alarme; a fidelidade da aba ativa não regride (d); o drift residual fica visível (a).
 - **Migração incremental** do independente restante (`Financeiro/Unificado/Index`) → `PageHeaderTabs`, por gate visual (fora do escopo desta proposta; catalogado pelo detector).
-- **Ondas futuras (catalogadas, NÃO implementadas agora):** o detector de papel já rodou outros papéis suspeitos — **`status-badge`** (11 componentes hand-rolam o pill de status) e **`combobox`** (5 hand-rolam o dropdown de busca). Cada um vira Onda própria com o mesmo tripé (canon + regra `ds/no-*` + fidelidade). Entram como novas entradas em `ROLE_SIGNATURES` e no REGISTRY quando abrirem.
+- **Ondas do detector — estado:**
+  - ✅ **`combobox`** (campo de busca com dropdown — 5 hand-rolls) — **ABERTA** (tripé entregue: canon = composição `Popover`+`Command`/cmdk ref `ServiceOrders/Create.tsx` · regra `ds/no-handrolled-combobox` no ratchet 0209 · assinatura `combobox` em `ROLE_SIGNATURES` + `--roles` self-test + entrada no REGISTRY §"Combobox"). Detector confirma 5 independentes + 1 consumidor. Migração dos 5 = incremental por tela.
+  - ⏳ **`status-badge`** (11 componentes hand-rolam o pill de status) — catalogada, NÃO implementada. Vira Onda própria com o mesmo tripé quando abrir (nova entrada em `ROLE_SIGNATURES` + REGISTRY).
 - **Residual honesto (fica humano/charter, não vira máquina):** nome de cor nu (`'white'`/`'red'`) em style inline não casa (ambíguo vs `transparent`/`inherit`/`currentColor`); template literal de cor (`` `oklch(${x})` ``) não casa (não é Literal); distinguir "aba de topo" de "aba dentro de painel" é heurística sintática, por isso (a) é report-only e (b) é ratchet — nenhum é gate cego. A confiança termina onde o AST/regex termina.
 
 ## Referências

@@ -88,6 +88,20 @@
 
 ---
 
+## Combobox (campo de busca com dropdown)
+
+> Papel **"combobox"** = campo que combina um input de busca com um dropdown de opções filtradas (autocomplete / busca-e-seleciona). **Não** é um componente único — canoniza na **composição `Popover` + `Command`** (shadcn/cmdk), onde o `Command` é o **motor**: input de busca + lista filtrada + navegação de teclado + a11y (`role=combobox/listbox/option`, `aria-activedescendant`) **de fábrica**. Hand-rolar isso (input próprio + `<ul role="listbox">` + `onKeyDown` ArrowUp/Down) reimplementa o motor de um jeito ligeiramente diferente a cada tela — a11y divergente/bugada é a CAUSA. Detalhe: [ADR proposta tab-nav-canonico §Ondas futuras](../memory/decisions/proposals/2026-07-15-tab-nav-canonico-e-componente-por-papel.md).
+
+| Componente | Import | Existe | Substitui (anti-pattern) |
+|---|---|---|---|
+| **Command** (motor) + **Popover** (shell) | `@/Components/ui/command` + `@/Components/ui/popover` | ✅ canon | `ClienteCombobox` · `PlanoContaCombobox` · `GradeProductCombobox` · `CustomerSearchAutocomplete` · `ProductSearchAutocomplete` · qualquer **`<input role="combobox">`** / **`aria-autocomplete`** + `<ul role="listbox">` hand-rolado na tela |
+
+> **Como consumir** (imite `Pages/OficinaAuto/ServiceOrders/Create.tsx` — a referência viva): `<Popover>` com um `<Button role="combobox">` de trigger + `<PopoverContent><Command><CommandInput/><CommandList><CommandEmpty/><CommandGroup>…<CommandItem/></CommandGroup></CommandList></Command></PopoverContent>`. Busca **client-side** (lista pré-carregada) = default do `Command`; busca **server-side/async** (debounce, texto livre) = `Command` com `shouldFilter={false}` alimentando `CommandItem`s dos resultados — o motor cmdk ainda dá a a11y e a navegação de teclado, a tela só troca a fonte dos itens.
+>
+> **Catracas ativas:** regra `ds/no-handrolled-combobox` (`aria-autocomplete` ou `role="combobox"` num `<input>` nativo — os signals que NUNCA aparecem no consumo canônico; o `<Button role="combobox">` do padrão certo **não** é pego) no `eslint.config.js`; detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory · papel `combobox`, âncora = importar `@/Components/ui/command`). **Fronteira honesta:** o hand-roll com `<Button>` trigger + `<ul role="listbox">` à mão é indistinguível do canônico sem análise de import — por isso o lint pega só o signal preciso do `<input>` e quem cataloga o resto é o detector `--roles`. Migração dos 5 independentes = incremental por tela (fora do escopo desta onda).
+
+---
+
 ## Primitivos de layout ([ADR 0253](../memory/decisions/0253-primitivos-layout.md) · F3)
 
 > A camada entre tokens DS v6 e telas. **Layout é COMPOSIÇÃO destes primitivos**, nunca `<div className="flex gap-4">` solto nem `.css` bespoke. Props = token (enumerado via CVA) → espaço/tipo nunca vêm de px literal. Superfície única: **`@/Components/layout`**.

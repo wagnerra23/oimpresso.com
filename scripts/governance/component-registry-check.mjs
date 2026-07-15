@@ -100,9 +100,10 @@ function collectExports(src) {
  * Assinaturas de papel. Cada papel canoniza 1 componente; o detector procura
  * OUTROS componentes cumprindo o mesmo papel sem consumir o canônico.
  *
- * FUTURO (ondas da ADR — NÃO implementado agora, só catalogado): `status-badge`
- * (11 hand-rolls do pill de status) e `combobox` (5 hand-rolls do dropdown de
- * busca). Entram como novas entradas aqui quando a onda respectiva abrir.
+ * ONDAS ABERTAS: `barra-de-abas-de-topo` (ADR proposta tab-nav-canonico) +
+ * `combobox` (campo de busca com dropdown — 5 hand-rolls, esta onda).
+ * FUTURO (ainda só catalogado): `status-badge` (11 hand-rolls do pill de
+ * status). Entra como nova entrada aqui quando a onda respectiva abrir.
  */
 const ROLE_SIGNATURES = [
   {
@@ -145,6 +146,36 @@ const ROLE_SIGNATURES = [
     // tab-nav. Ampliar o matches() é decisão de abrir a onda (não unilateral).
     matches(file /*, src */) {
       return file === 'resources/js/Components/shared/SubNav.tsx';
+    },
+  },
+  {
+    // O "campo de busca com dropdown" (combobox / autocomplete) canoniza na
+    // composição Popover + Command (cmdk) — o Command é o MOTOR: input de busca +
+    // lista filtrada + navegação de teclado + a11y (role=combobox/listbox/option,
+    // aria-activedescendant) de fábrica. Cada hand-roll reimplementa esse motor à
+    // mão (input + <ul role="listbox"> + onKeyDown ArrowUp/Down) de um jeito
+    // ligeiramente diferente — a11y divergente/bugada é a CAUSA. Referência viva do
+    // consumo certo: Pages/OficinaAuto/ServiceOrders/Create.tsx (Popover+Command).
+    role: 'combobox',
+    // Âncora = o MOTOR canônico (Command). "Importa o canon" = importa
+    // @/Components/ui/command = construiu sobre o motor (qualquer skin) = consumidor.
+    // Popover sozinho é só posicionamento — não conta como consumir o combobox.
+    canon: 'resources/js/Components/ui/command.tsx',
+    canonImport: '@/Components/ui/command',
+    matches(file, src) {
+      const name = basename(file);
+      // markup = signals de um combobox hand-rolado na TELA (aria-autocomplete é o
+      // sinal-definidor de input-autocomplete à mão; role=combobox idem). O padrão
+      // canônico põe role=combobox no <Button> trigger e NUNCA usa aria-autocomplete.
+      const markup = /aria-autocomplete\s*=/.test(src) || /role=["']combobox["']/.test(src);
+      // nome = o papel está no nome do componente
+      const byName = /(Combobox|Autocomplete|Typeahead|Lookup)\.tsx$/.test(name);
+      // o próprio motor canônico self-matcha pelo basename (cmdk seta os ARIA em
+      // runtime, não escreve role=combobox literal) → evita "canon AUSENTE" falso.
+      const isCanon = /^command\.tsx$/i.test(name);
+      // falsos-amigos: ⌘K palette e card-grid picker NÃO são o combobox-de-campo.
+      const notCombobox = /(CommandPalette|CommandDialog|TemplatePicker|Preview|Message)\.tsx$/.test(name);
+      return (markup || byName || isCanon) && !notCombobox;
     },
   },
 ];
