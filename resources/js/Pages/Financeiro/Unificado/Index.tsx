@@ -889,7 +889,7 @@ function KpiBar({ kpis, lancamentos, onKpiSelect, periodLabel, lenteAtiva }: { k
   // bespoke (branco fixo) e não flipava — texto claro sobre branco no dark. bg-card/
   // border-border (tokens shadcn, flipam com o tema) com `!` pra vencer o bespoke
   // fora de @layer. No light nada muda (card = branco).
-  const kpiSurface = 'bg-card! border-border!';
+  const kpiSurface = 'bg-amber-100! border-amber-500!'; // EXPERIMENTO visreg dim11-cor — NAO MERGEAR
   const kpiHover = 'cursor-pointer transition-transform duration-150 hover:-translate-y-px';
   const kpiOn = (lid: LenteId) =>
     lenteAtiva === lid ? ' outline outline-[1.5px] -outline-offset-[1.5px] outline-[color:var(--accent,oklch(0.55_0.15_295))]' : '';
