@@ -335,7 +335,6 @@
     "resources/js/Pages/Purchase/Index.tsx|no-restricted-syntax": 9,
     "resources/js/Pages/Purchase/Show.tsx|no-restricted-syntax": 47,
     "resources/js/Pages/Purchase/_components/GradeMatrixInput.tsx|no-restricted-syntax": 19,
-    "resources/js/Pages/Purchase/_components/GradeProductCombobox.tsx|no-restricted-syntax": 7,
     "resources/js/Pages/RecurringBilling/Configuracoes/Index.tsx|no-restricted-syntax": 55,
     "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|@typescript-eslint/no-unused-vars": 1,
     "resources/js/Pages/RecurringBilling/Faturas/Index.tsx|no-restricted-syntax": 57,
