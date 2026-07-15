@@ -15,6 +15,15 @@ name: Estoque · Pest (MySQL)
 #
 # CATRACA (allowlist verde): a lane roda só os arquivos comprovadamente verdes. Cada PR de
 # cobertura adiciona arquivos AQUI (ratchet up). Modelado em .github/workflows/financeiro-pest.yml.
+#
+# 2026-07-15 — ESCOPO ESTENDIDO a `tests/Feature/Produto/**` (mesma doença, mesmo remédio).
+# O contrato da tabela de preço (TabelaPrecoContratoTest — CU-PROD-03) precisa de MySQL real +
+# DOIS businesses semeados: o UC-PTAB-02 prova isolamento cross-tenant, o que exige biz=1 E biz=2
+# (`EstoqueFixture::secondBusinessId()`). Em sqlite ele daria SKIP — "skipa e mente" de novo.
+# Não é lane nova de propósito: Produto e Estoque são o mesmo grafo (a `EstoqueFixture` LITERALMENTE
+# cria products+variations, e esta lane já disparava em `app/Utils/ProductUtil.php`). Somar arquivo
+# aqui custa 0 contexto de CI novo, numa fase em que as ADRs 0271/0314 estão PODANDO gates.
+# Se o Produto crescer a ponto de merecer lane própria, vira `produto-pest.yml` — é um rename.
 
 on:
   workflow_dispatch: {}
@@ -67,8 +76,10 @@ jobs:
           filters: |
             est:
               - 'tests/Feature/Estoque/**'
+              - 'tests/Feature/Produto/**'
               - 'tests/Support/EstoqueFixture.php'
               - 'tests/Support/EstoqueProduto.php'
+              - 'app/Http/Controllers/ProductController.php'
               - 'app/Utils/ProductUtil.php'
               - 'app/Utils/TransactionUtil.php'
               - 'database/schema/mysql-schema.sql'
@@ -122,7 +133,8 @@ jobs:
             tests/Feature/Estoque/EstoqueInvarianteRascunhoTest.php \
             tests/Feature/Estoque/EstoqueInvarianteTransacaoTest.php \
             tests/Feature/Estoque/EstoqueInvarianteEnableStockTest.php \
-            tests/Feature/Estoque/EstoqueInvarianteTenantTest.php
+            tests/Feature/Estoque/EstoqueInvarianteTenantTest.php \
+            tests/Feature/Produto/TabelaPrecoContratoTest.php
 
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}
