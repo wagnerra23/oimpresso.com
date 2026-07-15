@@ -80,11 +80,13 @@
 
 | Componente | Import | Existe | Substitui (anti-pattern) |
 |---|---|---|---|
-| **SubNav** | `@/Components/shared/SubNav` | ✅ canon | `useState` + grupo de `<button>`/pill segmented hand-rolado dentro da tela pra alternar seção sem URL |
+| **SubNav** | `@/Components/shared/SubNav` | ✅ canon | `role="tablist"` hand-rolado na tela com estado `value`/`onChange` (grupo de `<button>` ou pill segmented) pra alternar seção **sem** mudar a URL |
 
 > **Como consumir:** `<SubNav items={tabs} value={aba} onChange={setAba} />` (modo controlado) ou `variant="segmented"` pra pill inline num card. O modo `href` (Link Inertia) existe na API mas o caso vivo é controlado — pra navegação real por URL use a barra de abas de topo (`PageHeaderTabs` via `*SubNav` do módulo), não este.
 >
-> **Consumidor vivo:** `Jana/Admin/Governanca/Index.tsx` (sub-tabs de modo de gráfico). Rastreado como papel próprio (`sub-navegacao-contextual`) no detector `--roles`.
+> **Consumidor vivo:** `Jana/Admin/Governanca/Index.tsx` (sub-tabs de modo de gráfico).
+>
+> **Catracas ativas:** regra `ds/no-inline-tablist` (a mesma do tab-nav — a mensagem agora nomeia OS DOIS alvos: topo-por-URL → `PageHeaderTabs`, in-page-controlado → `SubNav`); detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory · papel `sub-navegacao-contextual`, âncora = importar `@/Components/shared/SubNav`). **Fronteira honesta:** distinguir "aba de topo" de "aba in-page" é heurística sintática — o detector usa o discriminador `role="tablist"` + `value` + `onChange` **sem** marca de topo (`moduletopnav`/`subtabs`/`subnav`) nem consumo do `PageHeaderTabs`; por isso é report-only, não gate cego. Onda de detecção in-page aberta [W] 2026-07-15 — **5 independentes** vivos catalogados pra migração incremental por tela: `Fiscal/_components/SavedViewsChips` · `Jana/Chat` · `Settings/PaymentGateways/_components/DrawerGateway` · `team-mcp/Tasks/Index` · `Whatsapp/_components/ConversationList`. Migração = incremental por gate visual (fora do escopo desta onda).
 
 ---
 

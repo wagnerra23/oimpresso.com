@@ -142,13 +142,22 @@ const ROLE_SIGNATURES = [
     role: 'sub-navegacao-contextual',
     canon: 'resources/js/Components/shared/SubNav.tsx',
     canonImport: '@/Components/shared/SubNav',
-    // Discriminador do papel: controlado (value/onChange), sem shell.menu/href.
-    // Detecção de hand-rolls independentes fica DEFERIDA à onda respectiva
-    // (mesmo padrão de status-badge/combobox) — hoje só registra o canon
-    // pra o papel existir no tooling e o detector parar de confundi-lo com
-    // tab-nav. Ampliar o matches() é decisão de abrir a onda (não unilateral).
-    matches(file /*, src */) {
-      return file === 'resources/js/Components/shared/SubNav.tsx';
+    // Discriminador do papel (onda aberta [W] 2026-07-15): switch in-page
+    // CONTROLADO — markup `role="tablist"` + estado `value` + `onChange`, SEM
+    // marca de barra-de-topo e SEM consumir o canon de topo. Não confundir com
+    // a barra de abas de topo (papel acima): aquela navega por URL/shell.menu.
+    matches(file, src) {
+      if (file === 'resources/js/Components/shared/SubNav.tsx') return true; // canon
+      // NÃO reivindica quem já é barra-de-abas-de-topo (classe topnav/subtabs/
+      // subnav OU consome o PageHeaderTabs) — esse é o OUTRO papel. Cobre o
+      // Financeiro/Unificado (independente de tab-nav), que não pode ser
+      // duplo-reivindicado aqui.
+      const isTopNav =
+        /(moduletopnav|cli-moduletopnav|fx-subtabs|\bsubtabs\b|\btopnav\b|\bsubnav\b)/i.test(src) ||
+        src.includes('@/Components/shared/PageHeaderTabs');
+      if (isTopNav) return false;
+      // in-page controlado = tablist + value + onChange (estado local, sem URL).
+      return /role=["']tablist["']/.test(src) && /\bvalue\b/.test(src) && /onChange/.test(src);
     },
   },
   {
