@@ -14,7 +14,8 @@
 //
 // Refs: ADR 0209 · CODE_DESIGN_CONTRACT.md · prototipo-ui/F0-AUDITORIA-ROTINAS-DESIGN-2026-05-31.md (G5)
 
-import stylelint from 'stylelint';
+// `stylelint` é import LAZY (dentro de runStylelint) — no gate-selftest (Node puro, sem
+// node_modules) o modo --counts-from nunca carrega a lib, então importá-la no topo quebraria.
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
@@ -35,8 +36,13 @@ const BASELINE_PATH = resolve(process.cwd(), readFlag('--baseline', 'config/styl
 const CONFIG_FILE = resolve(process.cwd(), 'stylelint.config.mjs');
 const TARGET = readFlag('--target', 'resources/css/**/*.css');
 const MODE_WRITE = process.argv.includes('--write');
+// --counts-from <json>: pula o Stylelint real e usa contagens {"path|rule": n} pré-computadas.
+// Existe SÓ pro gate-selftest (Node puro, sem node_modules/stylelint no CI) provar que o
+// COMPARADOR ratchet morde. Ignorado no fluxo de produção (que nunca passa a flag).
+const COUNTS_FROM = readFlag('--counts-from', null);
 
 async function runStylelint() {
+  const stylelint = (await import('stylelint')).default; // lazy: só carrega quando NÃO é --counts-from
   const { results } = await stylelint.lint({
     files: TARGET,
     configFile: CONFIG_FILE,
@@ -64,8 +70,9 @@ async function main() {
   console.log(`Stylelint baseline · ${MODE_WRITE ? 'WRITE' : 'VALIDATE'} mode`);
   console.log(`Scanning ${TARGET}...`);
 
-  const results = await runStylelint();
-  const counts = buildCounts(results);
+  const counts = COUNTS_FROM
+    ? JSON.parse(readFileSync(resolve(process.cwd(), COUNTS_FROM), 'utf8'))
+    : buildCounts(await runStylelint());
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
   console.log(`Total violations atual: ${total}`);

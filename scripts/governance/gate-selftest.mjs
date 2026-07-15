@@ -649,27 +649,28 @@ const CATRACAS = [
   },
   {
     // stylelint-baseline (G5 · ADR 0209 · RATCHET path|rule): drift CSS (color-no-hex etc).
-    // --baseline/--target isolam na fixture; cwd=ROOT resolve stylelint.config.mjs + node_modules.
-    // good = css BATE baseline (delta 0, exit 0); bad = 1 hex cru novo → delta +1 → morde (exit 1).
+    // O gate-selftest é Node puro SEM node_modules → --counts-from alimenta contagens pré-computadas
+    // e pula o linter real (stylelint é import lazy). Prova o COMPARADOR ratchet, que é o que pode
+    // apodrecer; o linter em si é exercitado pelo stylelint-gate.yml (que faz npm ci).
+    // good = counts == baseline (delta 0, exit 0); bad = counts +1 → delta>0 → morde (exit 1).
     id: 'stylelint-baseline',
     run: (kind) => {
       const fx = join(FIX, 'stylelint', kind);
       return runNode(script('stylelint-baseline', 'scripts/stylelint-baseline.mjs'),
-        ['--baseline', join(fx, 'baseline.json'), '--target', `tests/governance-fixtures/stylelint/${kind}/**/*.css`], ROOT);
+        ['--baseline', join(fx, 'baseline.json'), '--counts-from', join(fx, 'counts.json')], ROOT);
     },
     expect: { good: /Sem regressões vs baseline/, bad: /REGRESSÃO — \d+ entrada/ },
   },
   {
-    // eslint-baseline (ADR 0209 · RATCHET path|rule): regressão ESLint. --baseline/--target isolam;
-    // cwd=ROOT acha node_modules/eslint + eslint.config.js. Fixture usa .js c/ no-unused-vars: a config
-    // só lina TS/regras ds sob resources/js (.tsx sob tests/ = "ignored"), então o que o selftest prova
-    // é que o COMPARADOR ratchet morde em delta>0 — que é o que pode apodrecer em silêncio.
-    // good = delta 0 (exit 0); bad = 1 no-unused-vars novo → delta +1 → morde (exit 1).
+    // eslint-baseline (ADR 0209 · RATCHET path|rule): regressão ESLint. Mesmo motivo do stylelint:
+    // --counts-from pula o `npx eslint` (indisponível no gate-selftest sem node_modules) e prova o
+    // COMPARADOR ratchet. As regras ds/* são exercitadas pelo eslint-gate.yml (com npm ci).
+    // good = counts == baseline (delta 0, exit 0); bad = counts +1 → delta>0 → morde (exit 1).
     id: 'eslint',
     run: (kind) => {
       const fx = join(FIX, 'eslint', kind);
       return runNode(script('eslint', 'scripts/eslint-baseline.mjs'),
-        ['--baseline', join(fx, 'baseline.json'), '--target', fx], ROOT);
+        ['--baseline', join(fx, 'baseline.json'), '--counts-from', join(fx, 'counts.json')], ROOT);
     },
     expect: { good: /Sem regress/, bad: /hits AUMENTADOS/ },
   },

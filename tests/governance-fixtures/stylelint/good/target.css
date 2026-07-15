@@ -1,9 +1,0 @@
-/* Fixture GOOD do self-test da catraca stylelint (ADR 0209).
- * A dívida abaixo é INTENCIONAL e está CONGELADA no baseline.json ao lado:
- * o ratchet deve enxergar delta 0 e passar. NÃO "consertar" estes hex/!important —
- * eles são o baseline que prova que a catraca tolera dívida existente. */
-.selftest-card {
-  color: #fff;              /* color-no-hex #1 (congelado) */
-  background: #1a1a1a;      /* color-no-hex #2 (congelado) */
-  border-color: red !important; /* declaration-no-important #1 (congelado) */
-}

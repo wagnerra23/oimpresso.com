@@ -1,12 +1,8 @@
 {
   "_meta": {
-    "generated_at": "2026-07-15T00:00:00.000Z",
-    "total_violations": 1,
-    "eslint_version": "flat-config 9.x",
-    "adr": "0209",
-    "fixture": "bad — base.js absorvida (1); regressao.js NÃO está no baseline → delta +1 → catraca FALHA"
+    "nota": "self-test · bad = counts excede baseline em +1"
   },
   "counts": {
-    "tests/governance-fixtures/eslint/bad/base.js|no-unused-vars": 1
+    "fixture.js|no-unused-vars": 1
   }
 }
