@@ -10,6 +10,13 @@
     { "label": "dashboard", "path": "/home", "auth": true, "nav_critical": true },
     { "label": "sells-index", "path": "/sells", "auth": true, "nav_critical": true, "source": "resources/js/Pages/Sells/Index.tsx" },
     { "label": "sells-create", "path": "/sells/create", "auth": true, "source": "resources/js/Pages/Sells/Create.tsx" },
-    { "label": "financeiro-unificado", "path": "/financeiro/unificado", "auth": true, "source": "resources/js/Pages/Financeiro/Unificado/Index.tsx" }
+    { "label": "financeiro-unificado", "path": "/financeiro/unificado", "auth": true, "source": "resources/js/Pages/Financeiro/Unificado/Index.tsx" },
+    { "label": "financeiro-cobranca", "path": "/financeiro/cobranca", "auth": true, "source": "resources/js/Pages/Financeiro/Cobranca/Index.tsx" },
+    { "label": "financeiro-caixa", "path": "/financeiro/caixa", "auth": true, "source": "resources/js/Pages/Financeiro/Caixa/Index.tsx" },
+    { "label": "financeiro-fluxo", "path": "/financeiro/fluxo", "auth": true, "source": "resources/js/Pages/Financeiro/Fluxo/Index.tsx" },
+    { "label": "financeiro-conciliacao", "path": "/financeiro/conciliacao", "auth": true, "source": "resources/js/Pages/Financeiro/Conciliacao/Index.tsx" },
+    { "label": "financeiro-dre", "path": "/financeiro/dre", "auth": true, "source": "resources/js/Pages/Financeiro/Dre/Index.tsx" },
+    { "label": "financeiro-plano-contas", "path": "/financeiro/plano-contas", "auth": true, "source": "resources/js/Pages/Financeiro/PlanoContas/Index.tsx" },
+    { "label": "financeiro-impostos", "path": "/financeiro/impostos", "auth": true, "source": "resources/js/Pages/Financeiro/Impostos/Index.tsx" }
   ]
 }
