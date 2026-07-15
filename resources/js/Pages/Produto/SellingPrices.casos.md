@@ -28,18 +28,24 @@ last_run: "2026-07-15"
 | UC-PTAB-01 | Salvar a matriz persiste o preço por (variação × tabela) | must | item 1 | `TabelaPrecoContratoTest` | 🧪 |
 | UC-PTAB-02 | Produto de outro business não vaza (Tier 0) | must | item 4 `[T0]` | `TabelaPrecoContratoTest` | 🧪 |
 | UC-PTAB-03 | Preço da tabela não infla no parser pt-BR (`num_uf`) | must | item 1 `[V0]` | `TabelaPrecoContratoTest` | 🧪 |
-| UC-PTAB-04 | `price_group` de outro business não grava row (Tier 0) | must | `CU-PROD-10.1` `[T0]` | `TabelaPrecoContratoTest` | ⬜ |
+| UC-PTAB-04 | `price_group` de outro business não grava row (Tier 0) | must | `CU-PROD-10.1` `[T0]` | `TabelaPrecoContratoTest` | 🧪 |
 
-**Veredito:** os 3 UCs **rodaram e passaram** na lane `PHP / Pest (Estoque · MySQL)` do
-[#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) — MySQL real, biz=1 + biz=2 semeados
-(`Tests: 32 passed`, run `29418132080`). Não é verde-por-skip: o `paths-filter` da lane inclui
-`tests/Feature/Produto/**` e o log traz `PASS Tests\Feature\Produto\TabelaPrecoContratoTest`.
+**Veredito:** os 4 UCs **rodam e passam** na lane `PHP / Pest (Estoque · MySQL)` do
+[#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) — MySQL real, biz=1 + biz=2 semeados.
+Não é verde-por-skip: o `paths-filter` da lane inclui `tests/Feature/Produto/**` e o log traz
+`PASS Tests\Feature\Produto\TabelaPrecoContratoTest`.
 
 `🧪` e não `✅` porque o manifesto do G-7 (`scripts/casos-test-results.json`, via `npm run casos:results`)
 ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como `unverified`.
 
-> A 1ª execução **reprovou** (`Expected 404 but received 302`) e o achado virou contrato: ver a
-> divergência no `UC-PTAB-02` + a decisão pendente [W] no §Backlog.
+> **Dois vermelhos vieram antes do verde, e os dois viraram conhecimento:**
+> 1. `UC-PTAB-02` — `Expected 404 but received 302` → o §Pest GUARD do charter prometia 404 e o POST
+>    engole a exceção. Proxy errado; UC corrigido pro invariante. Divergência registrada + decisão [W].
+> 2. `UC-PTAB-04` — `Gravou (minha variação × price_group de OUTRO business)` → o `✅ (reusa guard)`
+>    do `CU-PROD-10` era **falso**. Virou correção Tier 0 no `saveSellingPrices`, no mesmo PR.
+>
+> Nos dois casos eu tinha **afirmado a conclusão lendo o código** antes de rodar. O CI foi quem
+> separou o que era verdade do que era narrativa.
 
 ---
 
@@ -79,7 +85,9 @@ ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como
 - **Teste:** `tests/Feature/Produto/TabelaPrecoContratoTest.php` — `UC-PTAB-04 · price_group de outro business não grava row`.
 - **Contrato:** **`CU-PROD-10`** — *"Isolamento multi-tenant `[must]` ✅ (reusa guard)"*, item 1: *"`[must][T0]` `App\Product` global scope em **toda** query"*.
 - **Regressão que defende:** o `saveSellingPrices` escopa por `business_id` **apenas** o `Product::findOrFail`. O `price_group_id` vem **cru da chave do array do request** (`foreach ($request->input('group_prices') as $key => $value)`) — sem `validate`, sem `exists:` escopado. E o `VariationGroupPrice` **não tem global scope** (`$guarded = ['id']`, nada mais). O FK barra id **inexistente**, mas não barra id **de outro tenant**. O "reusa guard" do `CU-PROD-10` cobre `Product` — a tabela de preço não é `Product`.
-- **Status: ⬜** — escrito, aguardando o 1º veredito do CI. **Este UC pode nascer vermelho de propósito:** ele cobra o `✅` do `CU-PROD-10` e a leitura do código diz que a promessa é falsa. Se vermelho, é prova — e a correção vira US própria (não se conserta contrato no mesmo PR que o denuncia).
+- **Nasceu vermelho — e foi assim que virou prova.** 1ª execução ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300), run `29421329161`): `FAILED — Gravou (minha variação × price_group de OUTRO business)`. O `✅ (reusa guard)` do `CU-PROD-10` era **falso**: eu tinha afirmado isso lendo o código 3 turnos antes, e só virou fato quando o CI reprovou.
+- **Correção (mesmo PR — failing-first):** `saveSellingPrices` agora resolve `$allowedPriceGroupIds = SellingPriceGroup::where('business_id', $business_id)->pluck('id')` **antes** do laço e pula (+ `Log::warning`) qualquer `price_group_id` fora do business. `abort(404)` ali seria engolido pelo `catch (\Exception)` genérico — por isso skip + log, e o UC assere o invariante (nada gravado), não o status.
+- **Status: 🧪** — vermelho → correção → verde na mesma lane (`Estoque · MySQL`); ✅ quando o manifesto G-7 for regravado.
 
 ---
 

@@ -2029,10 +2029,32 @@ class ProductController extends Controller
             $product = Product::where('business_id', $business_id)
                             ->with(['variations'])
                             ->findOrFail($request->input('product_id'));
+            // Tier 0 — ADR 0093 / CU-PROD-10.1 ("business_id scope em TODA query").
+            // O $key do laço abaixo é o price_group_id e vem CRU da chave do array do request:
+            // sem isto, produto MEU (que passa no findOrFail escopado) + price_group ALHEIO grava
+            // linha cross-tenant em variation_group_prices — que não tem global scope próprio
+            // ($guarded = ['id']) e cujo FK só exige que o grupo EXISTA, não que seja seu.
+            // Provado por UC-PTAB-04 (SellingPrices.casos.md) — falhou em CI antes deste guard.
+            $allowedPriceGroupIds = SellingPriceGroup::where('business_id', $business_id)
+                ->pluck('id')
+                ->all();
+
             DB::beginTransaction();
             foreach ($product->variations as $variation) {
                 $variation_group_prices = [];
                 foreach ($request->input('group_prices') as $key => $value) {
+                    if (! in_array((int) $key, $allowedPriceGroupIds, true)) {
+                        // Tabela de preço de outro business — não grava. Log pra a tentativa não
+                        // ficar invisível (abort() aqui seria engolido pelo catch genérico abaixo).
+                        \Log::warning('saveSellingPrices: price_group_id fora do business — ignorado', [
+                            'business_id' => $business_id,
+                            'price_group_id' => $key,
+                            'product_id' => $product->id,
+                        ]);
+
+                        continue;
+                    }
+
                     if (isset($value[$variation->id])) {
                         $variation_group_price =
                         VariationGroupPrice::where('variation_id', $variation->id)
