@@ -7,10 +7,16 @@
 // inline (style={{}}) + className no TSX. Este render-test trava as 4 propriedades-chave
 // extraídas de prototipo-ui/cowork/clientes-page.css `.cli-moduletopnav-tab.active`:
 //
-//   border-radius     : 0                         → RETO (o bug foi rounded-md)
-//   border-bottom-color: var(--accent)            → oklch(0.55 0.15 295) (ADR 0190)
-//   background        : color-mix(--accent-soft…) → oklch(0.55 0.15 295 / 0.10) suave
-//   font-weight       : 600                        → font-semibold
+//   border-radius     : 0                                        → RETO (o bug foi rounded-md)
+//   border-bottom-color: var(--accent)                           → underline roxo 295 (ADR 0190)
+//   background        : color-mix(in oklch, var(--accent-soft)…) → pill roxo suave, dark-aware
+//   font-weight       : 600                                       → font-semibold
+//
+// 2026-07-15: o inline migrou de literais hardcodados (oklch(0.55 0.15 295) + /0.10) pra
+// tokens `var(--accent)` / `color-mix(--accent-soft 50%)` — idênticos ao protótipo, e
+// dark-aware de UM lugar só (`--accent-soft` escurece no `.cockpit[data-theme=dark]`).
+// Harness claro+escuro (tokens reais) revisado por [W]. As constantes ACCENT/PILL_BG
+// abaixo são a NOVA expectativa consciente (ponto único de verdade da fidelidade).
 //
 // Método (ADR 0258 — "todo ✅ tem que ter sido visto falhar"): controle-negativo
 // explícito no detector de radius (sensibilidade: injeta `rounded-md` → detecta;
@@ -26,12 +32,14 @@ import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 
 afterEach(cleanup);
 
-// Valor do token --accent no light (resources/css/*.css `:root`) — o MESMO do botão
-// primary (ADR 0190). Se um dia o componente migrar pra var(--accent) puro (dark-aware),
+// Inline vivo da aba ativa = os tokens do protótipo (jsdom preserva `var(...)` verbatim —
+// provado por probe jsdom antes da entrega). `--accent` == roxo 295 do botão primary
+// (ADR 0190); no `.cockpit` (AppShellV2) resolve em toda tela. Se o inline mudar de token,
 // atualizar aqui CONSCIENTEMENTE (o teste é o ponto único de verdade da fidelidade).
-const ACCENT = 'oklch(0.55 0.15 295)';
-// jsdom normaliza `/ 0.10` → `/ 0.1` (provado na entrega). accent-soft translúcido 10%.
-const ACCENT_SOFT = 'oklch(0.55 0.15 295 / 0.1)';
+const ACCENT = 'var(--accent)';
+// pill = `color-mix(--accent-soft 50%)` (idem protótipo `.cli-moduletopnav-tab.active`).
+// `--accent-soft` é dark-aware (light 0.95 0.04 295 → dark 0.32 0.06 295) → dark de um lugar só.
+const PILL_BG = 'color-mix(in oklch, var(--accent-soft) 50%, transparent)';
 
 // Detector de utilitário de radius. É a peça que "quebra se alguém puser rounded-md".
 function hasRoundedUtility(className: string): boolean {
@@ -80,9 +88,9 @@ describe('PageHeaderTabs — aba ativa fiel ao protótipo (não regride)', () =>
     expect(active.style.borderBottomColor).toBe(ACCENT);
   });
 
-  it('background: accent-soft translúcido — pill roxo suave inline', () => {
+  it('background: color-mix(--accent-soft 50%) — pill roxo suave dark-aware inline', () => {
     const { active } = renderTabs('unificado');
-    expect(active.style.backgroundColor).toBe(ACCENT_SOFT);
+    expect(active.style.backgroundColor).toBe(PILL_BG);
   });
 
   it('font-weight: 600 — aba ativa em font-semibold', () => {
