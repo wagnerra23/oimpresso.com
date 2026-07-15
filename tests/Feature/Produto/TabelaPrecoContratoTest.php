@@ -6,6 +6,7 @@ declare(strict_types=1);
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\EstoqueFixture;
 use Tests\TestCase;
@@ -75,24 +76,44 @@ function precoUnitarioNoPdv(string $html): ?float
  * ⚠️ A rota devolve **200 mesmo quando falha por dentro**: `getProductRow` embrulha tudo num
  * `try { } catch (\Exception $e)` que engole a exceção e devolve `['success' => false]` sem
  * `html_content`. Ou seja, `assertOk()` NÃO prova que a linha foi montada — por isso o assert
- * explícito aqui. (Custou os 2 vermelhos da 1ª execução deste UC: o produto da fixture nasce
+ * explícito aqui. (Custou os 2 vermelhos da 1ª execução deste UC: o produto da fixture nascia
  * `enable_stock = 1` sem estoque, o `getDetailsFromVariation` roda com `check_qty = true` e filtra
  * por `enable_stock != 1 OR qty_available > 0` → não achava a variação e o caso morria ANTES de
  * chegar no guard do preço. Verde-por-engano seria impossível, mas vermelho-por-engano quase
  * passou por achado.)
+ *
+ * POR QUE `enableStock: false` E NÃO `setStock()` — este UC é contrato de **preço**
+ * (`CU-PROD-03` + REGRA MESTRE). Dar estoque ao produto pra "passar pelo `check_qty`" acoplaria o
+ * contrato de preço ao subsistema de **estoque**: o caso quebraria por mudança de semântica de
+ * saldo, que não tem nada a ver com o invariante defendido, e o aceite ganharia uma pré-condição
+ * falsa ("dado 10 em estoque"). A célula em branco não pode virar R$ 0,00 **independente** de
+ * quantidade. Produto que não gerencia estoque satisfaz o filtro pelo ramo `enable_stock != 1`
+ * (os dois `where` são `leftjoin` + short-circuit — `ProductUtil:478` e `:487`) e deixa o teste
+ * exercitar só o caminho do preço. Cobertura com estoque ligado é competência do `tests/Feature/Estoque/**`.
  */
 function rowDoPdvComTabela(TestCase $test, int $variationId, int $locationId, int $priceGroupId): string
 {
+    // O `catch (\Exception)` do getProductRow manda a causa real pro Log::emergency e devolve
+    // `msg = "item out of stock"` — mensagem ENGANOSA (mente sobre a causa; custou um diagnóstico
+    // errado meu). Capturo o log pra a falha do teste dizer o que de fato quebrou.
+    $causaReal = null;
+    Log::listen(function ($log) use (&$causaReal) {
+        if ($causaReal === null) {
+            $causaReal = $log->message;
+        }
+    });
+
     $response = $test->get("/sells/pos/get_product_row/{$variationId}/{$locationId}?price_group={$priceGroupId}");
     $response->assertOk();
 
     $html = $response->json('html_content');
 
     expect($html)->not->toBeNull(
-        'A rota devolveu 200 mas sem `html_content` (success='
-        .var_export($response->json('success'), true)
-        .') — a linha do PDV não foi montada. Não é veredito do preço: o caso não chegou lá. '
-        .'Causa comum: variação sem estoque com `enable_stock = 1` (use EstoqueFixture::setStock).'
+        'A rota devolveu 200 mas sem `html_content` — a linha do PDV não foi montada, então o caso '
+        .'NÃO chegou no guard do preço. Isto não é veredito do preço, é falha de montagem. '
+        .'success='.var_export($response->json('success'), true)
+        .' · msg='.var_export($response->json('msg'), true).' (a msg mente: é sempre "item out of stock")'
+        .' · CAUSA REAL (Log::emergency): '.var_export($causaReal, true)
     );
 
     return (string) $html;
@@ -358,7 +379,8 @@ it('UC-PTAB-03 · preço fracionário com ponto NÃO infla ×100k (vetor do inci
 
 it('UC-PTAB-05 · célula da matriz salva com 0 não faz a venda sair a zero', function () {
     $bizId = (int) $this->business->id;
-    $produto = EstoqueFixture::singleProduct($bizId); // default_sell_price = 20
+    // `enableStock: false` de propósito — ver o docblock de `rowDoPdvComTabela()`.
+    $produto = EstoqueFixture::singleProduct($bizId, false); // default_sell_price = 20
     $variationId = $produto->variationId();
     $locationId = EstoqueFixture::locationId($bizId);
     $tabelaId = tabelaPrecoAtiva($bizId, 'Atacado UC-PTAB-05 zero');
@@ -394,7 +416,8 @@ it('UC-PTAB-05 · célula da matriz salva com 0 não faz a venda sair a zero', f
 
 it('UC-PTAB-05 · tabela sem row pra variação usa o preço padrão (caso normal)', function () {
     $bizId = (int) $this->business->id;
-    $produto = EstoqueFixture::singleProduct($bizId); // default_sell_price = 20
+    // `enableStock: false` de propósito — ver o docblock de `rowDoPdvComTabela()`.
+    $produto = EstoqueFixture::singleProduct($bizId, false); // default_sell_price = 20
     $variationId = $produto->variationId();
     $locationId = EstoqueFixture::locationId($bizId);
     $tabelaId = tabelaPrecoAtiva($bizId, 'Atacado UC-PTAB-05 sem row');
