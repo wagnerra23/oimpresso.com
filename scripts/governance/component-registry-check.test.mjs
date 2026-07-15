@@ -187,5 +187,42 @@ writeFileSync(join(pages2, 'FiscalStatusBadge.tsx'),
   `export default function FiscalStatusBadge(){ return <span className="rounded-full px-2 py-0.5">fiscal</span> }\n`);
 check('status-badge: FiscalStatusBadge (exceção documentada) NÃO é reportado como drift', !/FiscalStatusBadge/.test(run2().stdout));
 
+// ── MODO --roles: papel sub-navegacao-contextual (onda in-page 2026-07-15) ──
+// Repo-fixture SEPARADO (root3) pra isolar do cluster tab-nav. Prova que a
+// detecção in-page MORDE o hand-roll controlado e NÃO reivindica barra-de-topo.
+const root3 = mkdtempSync(join(tmpdir(), 'compreg-sn-'));
+const sharedDir3 = join(root3, 'resources', 'js', 'Components', 'shared');
+const pages3 = join(root3, 'resources', 'js', 'Pages', 'Fake');
+mkdirSync(sharedDir3, { recursive: true });
+mkdirSync(pages3, { recursive: true });
+// canon do papel (path EXATO que ROLE_SIGNATURES canoniza)
+writeFileSync(join(sharedDir3, 'SubNav.tsx'),
+  `export default function SubNav(){ return <nav role="tablist" /> }\n`);
+const run3 = (extra = []) => spawnSync('node', [SCRIPT, '--root', root3, '--roles', ...extra], { encoding: 'utf8' });
+
+// 15. LIBERA: só canon → sem independente (advisory exit 0)
+const snClean = run3();
+check('sub-nav: canon SubNav.tsx presente (não AUSENTE)',
+  /papel "sub-navegacao-contextual"[\s\S]*?canon:\s*resources\/js\/Components\/shared\/SubNav\.tsx/.test(snClean.stdout));
+check('sub-nav: advisory exit 0 sem independente', snClean.status === 0);
+
+// 16. DRIFT: switch in-page CONTROLADO hand-rolado (tablist + value + onChange, sem marca de topo)
+writeFileSync(join(pages3, 'FakeFiltroSecao.tsx'),
+  `export default function FakeFiltroSecao({value,onChange}){ return <div role="tablist"><button onClick={()=>onChange('a')} aria-selected={value==='a'}>A</button></div> }\n`);
+const snDrift = run3();
+check('sub-nav: advisory NÃO morde com drift (exit 0)', snDrift.status === 0);
+check('sub-nav: strict MORDE hand-roll in-page independente (exit 1)', run3(['--strict']).status === 1);
+check('sub-nav: aponta FakeFiltroSecao como INDEPENDENTE',
+  new RegExp('⚠️[^\\n]*FakeFiltroSecao').test(snDrift.stdout) && /INDEPENDENTE/i.test(snDrift.stdout));
+
+// 17. NÃO double-claim: markup de barra-de-topo (cli-moduletopnav) NÃO entra no cluster
+// sub-nav (fica no cluster tab-nav). Recorta o bloco do papel sub-nav e confere que
+// FakeTopBar não está lá dentro, mas o FakeFiltroSecao (in-page legítimo) está.
+writeFileSync(join(pages3, 'FakeTopBar.tsx'),
+  `export default function FakeTopBar({value,onChange}){ return <nav role="tablist" className="cli-moduletopnav"><button onClick={()=>onChange('x')} aria-selected={value==='x'}/></nav> }\n`);
+const snBlock = (run3().stdout.split('▸ papel').find((b) => b.includes('sub-navegacao-contextual')) || '');
+check('sub-nav: markup de topo (cli-moduletopnav) NÃO entra no cluster sub-nav', !snBlock.includes('FakeTopBar'));
+check('sub-nav: in-page legítimo (FakeFiltroSecao) segue no cluster sub-nav', snBlock.includes('FakeFiltroSecao'));
+
 console.log(fails === 0 ? '\n✓ todos os checks passaram' : `\n✗ ${fails} check(s) falharam`);
 process.exit(fails === 0 ? 0 : 1);

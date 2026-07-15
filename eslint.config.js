@@ -218,14 +218,15 @@ export default [
           // (@/Components/shared), consumida via *SubNav do módulo (FinanceiroSubNav/
           // JanaSubNav/PontoSubNav). Hand-rolar `role="tablist"` na tela foi a CAUSA
           // dos 8 topnavs divergentes (dark quebrado, radius errado, abas coladas).
-          // Ratchet absorve os tablists legados (aba-em-painel/mobile são OUTRO papel
-          // e não têm primitivo DS ainda) — só o NOVO hand-roll de tela quebra o delta.
-          // Regra de decisão: aba de topo → PageHeaderTabs; aba dentro de painel sem
-          // primitivo → é BURACO DO DS (abrir Onda, ver ADR proposta tab-nav-canonico),
-          // não hand-rolar calado. Fronteira honesta: um lint sintático não distingue
-          // os dois papéis — por isso ratchet + mensagem, não proibição cega.
+          // Ratchet absorve os tablists legados — só o NOVO hand-roll de tela quebra
+          // o delta. Regra de decisão (DOIS papéis, DOIS alvos — onda in-page aberta
+          // [W] 2026-07-15): aba de topo que NAVEGA por URL → <PageHeaderTabs>; switch
+          // in-page CONTROLADO (value/onChange, sem URL) → <SubNav>. Fronteira honesta:
+          // um lint sintático não distingue os dois papéis — por isso ratchet + mensagem
+          // que nomeia os dois alvos, não proibição cega. O detector `--roles` cataloga
+          // qual papel cada hand-roll cumpre (advisory).
           selector: 'JSXAttribute[name.name="role"][value.value="tablist"]',
-          message: 'ds/no-inline-tablist — não hand-role `role="tablist"` na tela. Barra de abas de topo = <PageHeaderTabs> (@/Components/shared, via *SubNav do módulo). Ver REGISTRY_DS_COMPONENTES.md §"barra de abas de topo".',
+          message: 'ds/no-inline-tablist — não hand-role `role="tablist"` na tela. Barra de abas de topo (navega por URL) = <PageHeaderTabs> (@/Components/shared, via *SubNav do módulo); switch in-page controlado (value/onChange, sem URL) = <SubNav> (@/Components/shared). Ver REGISTRY_DS_COMPONENTES.md §"barra de abas de topo" / §"Sub-navegação contextual".',
         },
         {
           // ds/no-inline-raw-color — EIXO valor-vs-token (tipo 1 do ADR 0338) num
