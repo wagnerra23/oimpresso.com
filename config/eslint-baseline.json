@@ -175,8 +175,6 @@
     "resources/js/Pages/Financeiro/Unificado/Index.tsx|@typescript-eslint/no-explicit-any": 1,
     "resources/js/Pages/Financeiro/Unificado/Index.tsx|react-hooks/exhaustive-deps": 1,
     "resources/js/Pages/Financeiro/Unificado/Index.tsx|jsx-a11y/no-noninteractive-element-to-interactive-role": 1,
-    "resources/js/Pages/Financeiro/Unificado/_components/ClienteCombobox.tsx|no-restricted-syntax": 2,
-    "resources/js/Pages/Financeiro/Unificado/_components/ClienteCombobox.tsx|jsx-a11y/click-events-have-key-events": 1,
     "resources/js/Pages/Financeiro/Unificado/_components/FinAnexosPanel.tsx|no-restricted-syntax": 11,
     "resources/js/Pages/Financeiro/Unificado/_components/FinAnomalyDetector.tsx|react-refresh/only-export-components": 1,
     "resources/js/Pages/Financeiro/Unificado/_components/FinAnomalyDetector.tsx|react-hooks/exhaustive-deps": 1,
