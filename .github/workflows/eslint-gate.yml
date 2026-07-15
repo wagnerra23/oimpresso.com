@@ -7,6 +7,12 @@ name: ESLint 9 (ADR 0209)
 # Captura react-hooks/exhaustive-deps (R7 raiz) entre outros bugs.
 #
 # Comando manual local: npm run lint:baseline:check
+#
+# REQUIRED-READINESS (2026-07-15, padrão ADR 0271 onda 2, idêntico ao e2e-gate.yml /
+# visual-regression.yml): `pull_request` SEM `paths:` (always-run) pra ser promovível a
+# required sem deadlock "Expected — waiting for status" em PR que não toca os paths. O
+# custo é evitado por skip-as-pass interno: dorny/paths-filter detecta se algo relevante
+# mudou; se não, conclui verde (~segundos) sem rodar o ratchet.
 
 on:
   push:
@@ -20,14 +26,8 @@ on:
       - 'package-lock.json'
       - '.github/workflows/eslint-gate.yml'
   pull_request:
-    paths:
-      - 'resources/js/**'
-      - 'eslint.config.js'
-      - 'config/eslint-baseline.json'
-      - 'scripts/eslint-baseline.mjs'
-      - 'package.json'
-      - 'package-lock.json'
-      - '.github/workflows/eslint-gate.yml'
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: eslint-gate-${{ github.ref }}
@@ -41,16 +41,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Detectar mudanças relevantes (skip-as-pass — required-readiness)
+        id: changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - 'resources/js/**'
+              - 'eslint.config.js'
+              - 'config/eslint-baseline.json'
+              - 'scripts/eslint-baseline.mjs'
+              - 'package.json'
+              - 'package-lock.json'
+              - '.github/workflows/eslint-gate.yml'
+
+      - name: Decidir execução
+        id: decide
+        run: echo "run=${{ github.event_name != 'pull_request' || steps.changes.outputs.relevant == 'true' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip-as-pass (nada de JS/TS mudou)
+        if: steps.decide.outputs.run != 'true'
+        run: echo "✅ Sem mudanças de JS/TS — skip-as-pass (required-ready, padrão ADR 0271 onda 2)."
+
       - name: Setup Node.js
+        if: steps.decide.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: 'npm'
 
       - name: Install npm deps
+        if: steps.decide.outputs.run == 'true'
         run: npm ci --no-audit --no-fund
 
       - name: ESLint ratchet (falha só em regressão vs baseline)
+        if: steps.decide.outputs.run == 'true'
         run: node scripts/eslint-baseline.mjs
 
       - name: Diagnóstico em caso de falha
