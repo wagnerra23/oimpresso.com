@@ -33,9 +33,10 @@ observacao: "Contrato de paridade — a tela nova (Inertia/React) NÃO pode perd
 | AR-PROD-003 | **Ativo** S/N (dropdown) — produto inativo não some do cadastro, só do fluxo de venda | print 1 |
 | AR-PROD-004 | **Última Alteração** — timestamp read-only `dd/mm/aaaa hh:mm:ss` (auditoria de edição) | print 1 |
 | AR-PROD-005 | **Unidade** (dropdown, ex: `UN`) | print 1 |
-| AR-PROD-006 `[V0]` | **R$ Custo** com precisão de casas do legado (exibido `4,300000`) — parser pt-BR sem inflar ×100 | print 1 |
-| AR-PROD-007 `[V0][calc]` | **Margem %** calculada a partir de Custo e Valor. ✅ **CONFIRMADO na aba Formação de Preço:** `Margem% = (Valor − Custo) / Custo` → (7000−4300)/4300 = **62,79%** (markup sobre custo). Ver AR-PROD-093/094. | prints 1 + 6 |
-| AR-PROD-008 `[V0]` | **R$ Valor** (preço de venda) — campo destacado (fundo laranja); editar Valor recalcula Margem (ou vice-versa) `[?]` | print 1 |
+| AR-PROD-006 `[V0]` | **R$ Custo** — é a **ÂNCORA** do cabeçalho: editar Custo **NÃO** propaga pra Valor nem Margem (`ProdutoAlterarCusto` só grava + `CalcBuild`/`SprCopiarFormula`; a chamada que propagaria está **comentada** no fonte, com a nota do autor *"AQUI DEVE PERGUNTAR SE MANTEM O CALCULO ATÉ O VALOR DE COMPRA"*). Precisão: coluna Firebird é **DOUBLE PRECISION** (não `NUMERIC(15,2)`) → o round-trip fecha no banco; o "4,300000" é máscara de **display** (`DecimalFinanceiro`, configurável por cliente), aplicada também ao Valor. Parser pt-BR sem inflar ×100 segue valendo. Ver §"Confirmado empiricamente". | print 1 + fonte + base real |
+| AR-PROD-007 `[V0][calc]` | **Margem %** = `((Valor / Custo) − 1) × 100` — **markup sobre custo**. ✅ **CONFIRMADO por 5 caminhos independentes** (satisfaz a dupla-confirmação da REGRA MESTRE): (1) print da aba Formação de Preço → (7000−4300)/4300 = **62,79%**; (2) fonte Delphi — `PercAplicado(VALOR, CUSTO)` dentro de `ProdutoAlterarValor`; (3) fonte oimpresso — `Util::get_percent($base = custo, $number = venda)`; (4) base demo do instalador — **674/675 = 99,85%**; (5) **base real de cliente (oficina, 2026-03-30) — 3.569/3.668 = 97,3%**. Hipótese rival (margem sobre venda, `(V−C)/V`) fecha em **3,9%** — descartada. Ver AR-PROD-093/094. | prints 1 + 6 + fonte + 2 bases |
+| AR-PROD-008 `[V0]` | ✅ **RESOLVIDO** (era `[?]`) — **R$ Valor** (preço de venda, campo destacado fundo laranja). **Os três campos são editáveis**, cada um com handler próprio, e o binding é **bidirecional Valor↔Margem pivotando no Custo**: editar **Valor** → `MARGEM := ((Valor/Custo) − 1) × 100`; editar **Margem** → `Valor := Custo × (1 + Margem/100)` (chama o mesmo caminho do Valor, e o round-trip converge — `PercAdd` é inverso exato de `PercAplicado`); editar **Custo** → não propaga (AR-PROD-006). **Não** é "Valor recalcula Margem OU vice-versa" — é ambos, e o Custo é assimétrico. | print 1 + fonte (3 handlers) |
+| AR-PROD-015 `[V0]` | **Custo e Margem são gated por permissão** — os dois campos **somem** da tela (não ficam read-only) para quem não tem o direito de ver custos (`liedtCusto.Visible`/`liedtMargem.Visible := GetPodeVerCustos`). Há ainda direito por campo no Valor e um bloqueio que desabilita os três juntos. A tela nova precisa do estado "sem permissão de custo". | fonte (frame do cabeçalho) |
 | AR-PROD-009 | **Cód. Fábrica** (código do fabricante) | print 1 |
 | AR-PROD-010 | **Código EAN** + ícone de código de barras (leitura/geração) | print 1 |
 | AR-PROD-011 | **Categoria** — código + descrição (ex: `1.1 · ABEL/ELETRICA`), com lookup (`...`) | print 1 |
@@ -309,17 +310,64 @@ observacao: "Contrato de paridade — a tela nova (Inertia/React) NÃO pode perd
 Itens que **calculam ou movimentam dinheiro/estoque** e exigem teste com dupla-confirmação
 (2 caminhos numéricos + antes→depois) na migração:
 
-1. ✅ **Margem % = (Valor − Custo)/Custo** e **Lucro Previsto = Valor − Custo** (AR-PROD-093/094) — confirmado nos prints.
-2. **Precisão de casas** — Custo exibe 6 casas (`4,300000`), Valor 4 casas (`7.000,0000`); preservar sem truncar/`num_uf`-inflar (AR-PROD-006/008).
+1. ✅ **RESOLVIDO** — **Margem % = (Valor − Custo)/Custo** e **Lucro Previsto = Valor − Custo** (AR-PROD-093/094) — confirmado nos prints **e em 5 caminhos independentes** (AR-PROD-007), incl. 97,3% de 3.668 linhas de base real.
+2. ✅ **RESOLVIDO (parcial)** — **Precisão**: as colunas `CUSTO`/`VALOR`/`MARGEM` são **DOUBLE PRECISION** no Firebird, não decimal com escala → **não há truncamento na persistência** e o round-trip Margem→Valor→Margem é estável. As "6 casas / 4 casas" são **máscara de display** (`DecimalFinanceiro`, mesma pro Custo e pro Valor, configurável por cliente) — o furo é o display mentir sobre o double (ex.: `6,99997` exibido como `7,00`, e `1.000 ×` isso dá **3 centavos** de diferença no total). O guard `num_uf` (AR-PROD-006/008) **continua obrigatório** — ele é do parser de entrada, não da persistência.
 3. **Saldos de disponibilidade** — Disponível × Em Produção × Pendente são 3 conceitos distintos (AR-PROD-051).
 4. **Saldo inicial/final do kardex** por período (AR-PROD-061).
 5. **Bloquear venda com estoque negativo** — regra de negócio ligada por produto (AR-PROD-056).
 6. **Rendimento/custo da última compra** — custo derivado de `Valor Compra + Impostos + Rendimento` (AR-PROD-091) — cadeia de cálculo inteira a preservar.
-7. **Markup ↔ Margem ↔ Valor** — 3 campos ligados; confirmar qual é o mestre e a ordem de recálculo (AR-PROD-095).
+7. ✅ **RESOLVIDO (no cabeçalho)** — **Markup ↔ Margem ↔ Valor**: no cabeçalho o **Custo é a âncora** e Valor↔Margem são duas vistas ligadas por `((V/C)−1)×100` (AR-PROD-008). ⚠️ **`MARGEM` ≠ `CALC_PMARKUP`** — são colunas distintas: em base real, das linhas com ambos preenchidos, **nenhuma** tinha valores iguais, e `CALC_PMARKUP` **não fecha** com `((V/C)−1)×100` em nenhuma das 3.668 linhas testadas. O `CALC_PMARKUP` (perfil composto de `PRODUTO_MARKUP`, AR-PROD-095) **continua sem fórmula conhecida** — não presumir que é o mesmo número da Margem do cabeçalho.
 8. **Preço por faixa de quantidade** (AR-PROD-107) e **por quantidade de peças** (AR-PROD-108) — regras de atacado/dimensão.
 9. **Preço especial por cliente** = Valor Original ± %acréscimo/%desconto (AR-PROD-112/113).
 10. **Valor mínimo de venda** como piso (AR-PROD-101) e **Mantém Margem na importação** (AR-PROD-097).
 11. **Dimensões Larg/Comp/Espessura/Qtd de Peça** (AR-PROD-102) — base de m²/volume; é o gap "produto por m²" de comunicação visual (CV-01 do SDD) que o **legado já resolvia**.
+
+---
+
+## Confirmado empiricamente contra base real (2026-07-15)
+
+> **Método.** Leitura de fonte (motor de cálculo `uWRCalculaConfiguracoes.pas` + frame do cabeçalho + `UnitFuncoes.pas`) **cruzada com consulta read-only** a duas bases: a demo do instalador (1.152 produtos, schema antigo) e **uma base real de cliente de oficina, backup de 2026-03-30 (4.342 produtos)**. As bases foram **copiadas pra scratchpad e consultadas na cópia** — os arquivos vivos não foram tocados, nenhuma escrita, e as cópias foram apagadas ao fim. Só agregados saíram; nenhum dado identificável de cliente.
+>
+> ⚠️ **O que isto NÃO é.** Não há **teste Pest vermelho** para nenhum item abaixo — é evidência de fonte + dado, não contrato executável. Enquanto não houver `casos.md` (US-PROD-020) + teste ancorado, **nada aqui autoriza mexer em código de valor** (REGRA MESTRE §2/§3: falta a tabela antes→depois e a aprovação). Ver a lápide *2026-07-15 "Apresentar ACHADO … sem prova e sem varredura"* em [`proibicoes.md`](../../proibicoes.md).
+
+### A-1 · Flag de propagação custo→preço `TEM_MARGEM_FIXA_CONTIBUICAO` — capacidade a NÃO perder
+
+O legado tem, **por produto**, a flag que decide o que acontece quando chega nota de compra com custo maior (`Services.Compra.pas`):
+
+| Valor | Comportamento | Base real (oficina) |
+|---|---|---|
+| **`N`** | mantém o **preço**, deixa a **margem flutuar** | **3.639 = 83,8%** |
+| `S` | mantém a **margem**, **sobe o preço** sozinho | 354 = 8,2% |
+| `NULL` | — | 349 = 8,0% |
+
+**Por que importa na migração:** é o mesmo par que a Linx vende como diferencial (*"Preço de Venda: mantém markup fixo… / Mark-up: mantém preço fixo…"*) e que **nenhum** dos ERPs pesquisados (8 BR + 9 globais) faz automático por default — propagação custo→preço é sempre ato deliberado. O oimpresso **não tem essa flag**: só implementa o modo `N`, implicitamente (`ProductUtil::updateProductFromPurchase` recalcula `profit_percent` e preserva o preço). Logo, migrar como está **funciona por acidente pros 84%** e **quebra silenciosamente pros 8,2%** que dependem do modo `S`. Não é bug a corrigir — é **capacidade a preservar**.
+
+> ⚠️ **Cuidado com o default do código:** `Controller.Produto.Definicoes.pas` tem `.AdicionarValorPadrao('TEM_MARGEM_FIXA_CONTIBUICAO', 'S')`, mas a **população real é 84% `N`**. Ler o default e concluir o comportamento da base é erro — foi cometido e corrigido nesta apuração.
+
+### A-2 · Custo zero → preço zero (sem guarda em nenhum dos dois sistemas)
+
+`Valor := PercAdd(Custo, Margem) = (1 + Margem/100) × Custo`. Com **Custo = 0** o resultado é **0**, e o `MARGEM` default é **100** (`Controller.Produto.Definicoes.pas`). Produto de **serviço** é exatamente o caso sem custo.
+
+| Medida | Base real (oficina, 4.342 produtos) |
+|---|---|
+| Produtos com custo zero/nulo | **453 (10,4%)** |
+| **Desses, com preço zero** | **242 = 53,4%** |
+| Com custo preenchido e preço zero | 126 |
+| `MARGEM = 100` (default intocado) | 211 (4,9%) |
+
+Não há guarda: o `ValidaNumero` só trata NaN/Inf **depois** da divisão, e a assimetria prova que a omissão é acidental — a margem **de contribuição** tem guard explícito (*"Não é possível alterar a Margem de Contribuição quando o Custo é 0 (Zero)"*), a margem normal não. Do lado oimpresso o comportamento é idêntico (`calc_percentage(0, 100, 0) = 0` → produto vendável **com preço zerado**, sem exceção e sem log).
+
+**Contexto de mercado:** dos 17 concorrentes pesquisados (8 BR + 9 globais), **nenhum** documenta tratamento de custo zero — o Odoo tem ≥7 módulos de terceiros só pra alertar margem baixa. É buraco de mercado, não só nosso.
+
+> ⚠️ **Não superdimensionar:** a base **demo** dava 91,2% nessa mesma taxa condicional; a base **real** deu 53,4%. Taxa de demo não descreve cliente.
+
+### A-3 · O que continua em aberto
+
+- **`CALC_PMARGEM_CONTRIBUICAO`** — **não** é margem sobre venda (fecha em 9,7%). A hipótese que melhor explica é **markup sobre o custo mínimo de venda** (`((Valor / CALC_VVENDA_CUSTO_MINIMO) − 1) × 100`, **960/1.497 = 64,1%**) — coerente com a fonte (`ProdutoAlterarMargemContribuicao` usa `CALC_VENDA_MINIMO_VALOR` como base). **64% não é fechado** — segue hipótese, não fato.
+- **`CALC_PMARKUP`** — 0/3.668. Sem fórmula conhecida (ver Achado 7).
+- **Custo médio ponderado** — 8 de 8 ERPs BR têm como piso; o oimpresso não foi medido (é o SPIKE da US-PROD-024).
+- **`CUSTO_LOJA`** — existe na base demo (antiga) e **não existe** na base real de oficina. O reajuste em massa da grade usa `CUSTO_LOJA` como denominador → ou o schema varia por cliente, ou aquele caminho está morto. Não determinado.
+- **Escopo medido = oficina.** Comunicação visual (bases de gráfica) pode ter perfil de custo diferente — não medido.
 
 ---
 
@@ -416,3 +464,12 @@ virar contrato de não-regressão (cada `[reg]`/`[V0]` → teste Pest failing-fi
 
 **Próximo passo sugerido:** converter em `casos.md` (US-PROD-020) ancorando UC-IDs, OU cruzar os
 ~120 itens contra as 8 telas React (`Pages/Produto/`) pra medir paridade antes do cutover.
+
+---
+
+## Trilha do tempo
+
+| Data | O que mudou |
+|---|---|
+| 2026-07-13 | Documento criado — ~120 itens `AR-PROD-*` catalogados dos prints das 8 abas + ícones + diálogos + planilha de composição ([PR #4260](https://github.com/wagnerra23/oimpresso.com/pull/4260)). Dúvidas das Partes 1-4 resolvidas com Wagner no mesmo dia. |
+| 2026-07-15 | **Cabeçalho: `[?]` do AR-PROD-008 fechado.** Apuração por leitura de fonte (motor de cálculo Delphi + frame do cabeçalho) cruzada com consulta read-only a 2 bases (demo do instalador + base real de cliente de oficina, 4.342 produtos). Atualizados **AR-PROD-006** (Custo é âncora, não propaga; coluna é DOUBLE, não decimal) · **AR-PROD-007** (fórmula confirmada por 5 caminhos, 97,3% em base real) · **AR-PROD-008** (`[?]`→✅: binding bidirecional Valor↔Margem pivotando no Custo). Novo **AR-PROD-015** (Custo/Margem gated por permissão — somem da tela). Achados de valor 1/2/7 marcados RESOLVIDOS. Nova §"Confirmado empiricamente" com **A-1** (flag `TEM_MARGEM_FIXA_CONTIBUICAO` — 84% `N` em base real; capacidade que o oimpresso não tem e perderia na migração) e **A-2** (custo zero → preço zero, sem guarda nos dois sistemas; 53,4% em base real). Sem teste Pest — evidência, não contrato. |
