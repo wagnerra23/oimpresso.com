@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-14**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-15**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -29,35 +29,35 @@ lifecycle: ativo
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-06-15 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-06-08 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-06-15 |
-| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-02 |
+| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-14 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-06-13 |
-| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-06 |
+| Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-14 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-03 |
-| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-09 |
-| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-10 |
+| Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-14 |
+| Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-14 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-06-13 |
 | Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-06-08 |
-| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-02 |
+| NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-14 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-06-08 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-06-15 |
-| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-10 |
-| PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-02 |
+| OficinaAuto | [BRIEFING](../requisitos/OficinaAuto/BRIEFING.md) | 2026-07-14 |
+| PaymentGateway | [BRIEFING](../requisitos/PaymentGateway/BRIEFING.md) | 2026-07-14 |
 | Ponto | [BRIEFING](../requisitos/Ponto/BRIEFING.md) | 2026-07-02 |
 | ProductCatalogue | [BRIEFING](../requisitos/ProductCatalogue/BRIEFING.md) | 2026-06-08 |
 | ProjectMgmt | [BRIEFING](../requisitos/ProjectMgmt/BRIEFING.md) | 2026-06-13 |
-| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-07-10 |
-| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-02 |
+| RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-07-14 |
+| Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-14 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-06-08 |
 | SRS | [BRIEFING](../requisitos/SRS/BRIEFING.md) | 2026-06-21 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-06-08 |
 | TeamMcp | [BRIEFING](../requisitos/TeamMcp/BRIEFING.md) | 2026-07-02 |
 | Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-06-08 |
-| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-02 |
+| Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-14 |
 | Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-06-08 |
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **353**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **360**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -94,21 +94,21 @@ lifecycle: ativo
 - visual-regression
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 100 workflows por classe
+### Censo — 101 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 74 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 75 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 5 | block-brl-values-selftest, gate-selftest, guards-meta-gate, protection-drift, … |
 | automacao (cron/dispatch) | 19 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, composer-lock-sync, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 
 ## Decisões (ADRs)
 
-- **342** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 308 · superseded: 12 · deprecated: 12 · proposto: 4 · sem-status: 4 · rascunho: 1 · recusado: 1.
+- **344** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 310 · superseded: 12 · deprecated: 12 · proposto: 4 · sem-status: 4 · rascunho: 1 · recusado: 1.
 - **3** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
@@ -140,7 +140,7 @@ lifecycle: ativo
 
 ## Rastro
 
-- **247** handoffs · **439** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **249** handoffs · **439** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-13-financeiro-visreg-enforcing`
   - `2026-07-13-arte-oss-comparavel-ia-os`
@@ -150,4 +150,4 @@ lifecycle: ativo
   - `2026-07-12-reguas-adversario-grade`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-14 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-15 · deriva das fontes canônicas, não as substitui._

@@ -25,12 +25,20 @@ class DfeController extends Controller
             abort(403, 'Sem permissão fiscal.dfe.manage');
         }
 
+        // Aba ativa via rota (?tab=) — barra canônica PageHeaderTabs navega por href
+        // (padronização DS Onda 3). Whitelist server-side; default 'pendente'.
+        $activeTab = (string) $request->query('tab', 'pendente');
+        if (! in_array($activeTab, ['pendente', 'historico'], true)) {
+            $activeTab = 'pendente';
+        }
+
         $filters = [
             'status' => (string) $request->input('status', 'pendentes'),
             'search' => (string) $request->input('search', ''),
         ];
 
         return Inertia::render('Fiscal/Dfe', [
+            'activeTab' => $activeTab,
             'filters' => $filters,
             'counts'  => $this->computeCounts(),
             'rows'    => Inertia::defer(fn () => $this->buildRowsPayload($filters)),

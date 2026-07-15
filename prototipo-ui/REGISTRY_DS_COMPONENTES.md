@@ -46,7 +46,7 @@
 | **Tooltip** | `@/Components/ui/tooltip` | ✅ | `title=""` / tooltip CSS ad-hoc |
 | **Command** (⌘K) | `@/Components/ui/command` | ✅ | palette hand-rolled |
 | **Alert** | `@/Components/ui/alert` | ✅ | banner `bg-red-50 border …` cru |
-| **Badge** | `@/Components/ui/badge` | ✅ | pílula `<span className="rounded-full px-2 …">` cru |
+| **Badge** | `@/Components/ui/badge` | ✅ | pílula `<span className="rounded-full px-2 …">` cru (status → ver §"Pílula de status") |
 | **Avatar** | `@/Components/ui/avatar` | ✅ | inicial em `<div>` redondo na mão |
 | **Card** | `@/Components/ui/card` | ✅ | `<div className="rounded-lg border bg-card p-…">` |
 | **Skeleton** | `@/Components/ui/skeleton` | ✅ | `animate-pulse bg-muted` na mão |
@@ -55,6 +55,73 @@
 | **icon-registry** | `@/Components/ui/icon-registry` | ✅ | import solto de `lucide-react` fora do registry |
 
 > Os ✅ "Existe" são fato (lidos do diretório). Detalhe de variante confirmado pra Input/Button/RadioGroup; demais seguem convenção shadcn + bridge cowork. Code valida ao criar as stories.
+
+---
+
+## Navegação de página (barra de abas de topo)
+
+> Papel **"barra de abas de topo"** = a fita horizontal de sub-navegação abaixo do título (`Unificado · Pagar · Receber · ⋯ Mais`). Fiel ao protótipo `prototipo-ui/cowork/clientes-page.css` `.cli-moduletopnav-tab`. Foi a origem do drift catalogado: **8 componentes divergentes** (dark quebrado por cor inline hardcoded, radius errado). Consolidado num único canônico. Detalhe: [ADR proposta tab-nav-canonico](../memory/decisions/proposals/2026-07-15-tab-nav-canonico-e-componente-por-papel.md).
+
+| Componente | Import | Existe | Substitui (anti-pattern) |
+|---|---|---|---|
+| **PageHeaderTabs** | `@/Components/shared/PageHeaderTabs` | ✅ canon | `ModuleTopNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · **`role="tablist"` hand-rolado na tela** · qualquer `<nav>` de sub-tabs com cor/borda em `style={{}}` inline |
+
+> ⚠️ **`SubNav` (`@/Components/shared/SubNav`) NÃO entra aqui.** É papel DISTINTO — sub-navegação contextual in-page (seção abaixo), não navegação de topo por URL. Decisão DS [W] 2026-07-15.
+
+> **Como consumir:** não renderize `PageHeaderTabs` cru na tela — passe pelo `*SubNav` do módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`), que resolve os ghosts + active a partir do `shell.menu`. Fidelidade da aba ativa (radius 0 · underline `var(--accent)` · pill accent-soft · font 600) travada por `tests/pageHeaderTabsFidelity.spec.tsx`.
+>
+> **Catracas ativas:** regra `ds/no-inline-tablist` (barra `role="tablist"` hand-rolada) + `ds/no-inline-raw-color` (cor/borda/sombra crua em `style` inline — o buraco do dark) no `eslint.config.js`; detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory). Migração dos independentes = incremental por tela.
+
+---
+
+## Sub-navegação contextual (in-page section switch)
+
+> Papel **"sub-navegação contextual"** = trocar de seção DENTRO de uma mesma página **sem mudar a URL** — estado controlado (`value`/`onChange`), baixo contraste. **Não confundir com a barra de abas de topo acima:** aquela é navegação por URL (`href`/`shell.menu`, slot `action` do PageHeader); esta é um switch local (variantes `underline`/`segmented`), tipicamente dentro de um card. Papel distinto reconhecido por decisão DS [W] 2026-07-15 (antes o detector `--roles` o confundia com tab-nav por proximidade de nome).
+
+| Componente | Import | Existe | Substitui (anti-pattern) |
+|---|---|---|---|
+| **SubNav** | `@/Components/shared/SubNav` | ✅ canon | `role="tablist"` hand-rolado na tela com estado `value`/`onChange` (grupo de `<button>` ou pill segmented) pra alternar seção **sem** mudar a URL |
+
+> **Como consumir:** `<SubNav items={tabs} value={aba} onChange={setAba} />` (modo controlado) ou `variant="segmented"` pra pill inline num card. O modo `href` (Link Inertia) existe na API mas o caso vivo é controlado — pra navegação real por URL use a barra de abas de topo (`PageHeaderTabs` via `*SubNav` do módulo), não este.
+>
+> **Consumidor vivo:** `Jana/Admin/Governanca/Index.tsx` (sub-tabs de modo de gráfico).
+>
+> **Catracas ativas:** regra `ds/no-inline-tablist` (a mesma do tab-nav — a mensagem agora nomeia OS DOIS alvos: topo-por-URL → `PageHeaderTabs`, in-page-controlado → `SubNav`); detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory · papel `sub-navegacao-contextual`, âncora = importar `@/Components/shared/SubNav`). **Fronteira honesta:** distinguir "aba de topo" de "aba in-page" é heurística sintática — o detector usa o discriminador `role="tablist"` + `value` + `onChange` **sem** marca de topo (`moduletopnav`/`subtabs`/`subnav`) nem consumo do `PageHeaderTabs`; por isso é report-only, não gate cego. Onda de detecção in-page aberta [W] 2026-07-15 — **5 independentes** vivos catalogados pra migração incremental por tela: `Fiscal/_components/SavedViewsChips` · `Jana/Chat` · `Settings/PaymentGateways/_components/DrawerGateway` · `team-mcp/Tasks/Index` · `Whatsapp/_components/ConversationList`. Migração = incremental por gate visual (fora do escopo desta onda).
+
+---
+
+## Combobox (campo de busca com dropdown)
+
+> Papel **"combobox"** = campo que combina um input de busca com um dropdown de opções filtradas (autocomplete / busca-e-seleciona). **Não** é um componente único — canoniza na **composição `Popover` + `Command`** (shadcn/cmdk), onde o `Command` é o **motor**: input de busca + lista filtrada + navegação de teclado + a11y (`role=combobox/listbox/option`, `aria-activedescendant`) **de fábrica**. Hand-rolar isso (input próprio + `<ul role="listbox">` + `onKeyDown` ArrowUp/Down) reimplementa o motor de um jeito ligeiramente diferente a cada tela — a11y divergente/bugada é a CAUSA. Detalhe: [ADR proposta tab-nav-canonico §Ondas futuras](../memory/decisions/proposals/2026-07-15-tab-nav-canonico-e-componente-por-papel.md).
+
+| Componente | Import | Existe | Substitui (anti-pattern) |
+|---|---|---|---|
+| **Command** (motor) + **Popover** (shell) | `@/Components/ui/command` + `@/Components/ui/popover` | ✅ canon | `ClienteCombobox` · `PlanoContaCombobox` · `GradeProductCombobox` · `CustomerSearchAutocomplete` · `ProductSearchAutocomplete` · qualquer **`<input role="combobox">`** / **`aria-autocomplete`** + `<ul role="listbox">` hand-rolado na tela |
+
+> **Como consumir** (imite `Pages/OficinaAuto/ServiceOrders/Create.tsx` — a referência viva): `<Popover>` com um `<Button role="combobox">` de trigger + `<PopoverContent><Command><CommandInput/><CommandList><CommandEmpty/><CommandGroup>…<CommandItem/></CommandGroup></CommandList></Command></PopoverContent>`. Busca **client-side** (lista pré-carregada) = default do `Command`; busca **server-side/async** (debounce, texto livre) = `Command` com `shouldFilter={false}` alimentando `CommandItem`s dos resultados — o motor cmdk ainda dá a a11y e a navegação de teclado, a tela só troca a fonte dos itens.
+>
+> **Catracas ativas:** regra `ds/no-handrolled-combobox` (`aria-autocomplete` ou `role="combobox"` num `<input>` nativo — os signals que NUNCA aparecem no consumo canônico; o `<Button role="combobox">` do padrão certo **não** é pego) no `eslint.config.js`; detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory · papel `combobox`, âncora = importar `@/Components/ui/command`). **Fronteira honesta:** o hand-roll com `<Button>` trigger + `<ul role="listbox">` à mão é indistinguível do canônico sem análise de import — por isso o lint pega só o signal preciso do `<input>` e quem cataloga o resto é o detector `--roles`. Migração dos 5 independentes = incremental por tela (fora do escopo desta onda).
+
+---
+
+## Pílula de status (estado success/warning/danger/info/neutral)
+
+> Papel **"pílula de status"** = a badge que apresenta um ESTADO semântico (pago/vencido, ativo/bloqueado, ok/erro…) como pill colorida. Onda 2026-07-15 (mesmo tripé do tab-nav) — ADR proposta [tab-nav/componente-por-papel](../memory/decisions/proposals/2026-07-15-tab-nav-canonico-e-componente-por-papel.md) §Consequências. **O papel JÁ está no DS — não se cria componente novo, consome-se o canônico.**
+
+| Componente | Import | Existe | Papel |
+|---|---|---|---|
+| **Badge** (`variant="success\|warning\|danger\|info\|neutral"`) | `@/Components/ui/badge` | ✅ canon (primitivo) | tom de status tokenizado `-soft/-fg` (dark-aware) |
+| **StatusBadge** (`kind` + `value`) | `@/Components/shared/StatusBadge` | ✅ canon (wrapper de domínio) | mapeia string-de-domínio (payment/financeiro_titulo/nfse/vehicle/…) → tone+label sobre Badge |
+
+> **Anti-pattern (não se escreve mais):** `<span className="… rounded-full … px-… bg-*-soft text-*-fg">` hand-rolado na tela; `*StatusBadge`/`*StatusPill` que reimplementa o mapa de cor em vez de consumir Badge/StatusBadge.
+>
+> **Como consumir:** tom simples → `<Badge variant="success">Pago</Badge>`. Status de domínio → `<StatusBadge kind="payment" value="paid" />` (estender o `mappings` do StatusBadge pra domínio novo, não criar componente). **Corolário de cor (fecha o buraco do dark):** a cor mora em token dark-aware (`-soft/-fg`), NUNCA em palette cru (`bg-green-100`) nem hardcoded em `style` inline.
+>
+> **Exceção documentada (NÃO é drift):** `Components/NfeBrasil/FiscalStatusBadge` (+ wrapper reativo `NfceStatusBadge`) é a fonte única do status FISCAL (NFC-e/NF-e/NFS-e), com paleta oklch própria (R-DS-002 · [ADR 0235](../memory/decisions/0235-ds-v4-accent-roxo-universal.md)). Fica de fora do detector por decisão.
+>
+> **Catracas ativas:** regra `ds/no-handrolled-status-pill` (pill tokenizado `rounded-full` + `px-` + token de status inline) no `eslint.config.js` (ratchet 0209 — absorve o legado, delta-guarda o novo); detector de papel `node scripts/governance/component-registry-check.mjs --roles` (papel `status-badge`, advisory); fidelidade `tests/statusBadgeFidelity.spec.tsx` (rounded-full + par `-soft/-fg` dark-aware por variante, controle-negativo de cor-crua).
+>
+> **Independentes a migrar (detector, incremental por tela):** `Pages/Cliente/_components/Pills.tsx` (StatusPill/FrescorPill) · `Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderStatusBadge.tsx` · `Pages/OficinaAuto/Vehicles/_components/VehicleStatusBadge.tsx` (este duplica o `kind:"vehicle"` que o StatusBadge já tem). **Fronteira honesta:** o lint pega só o pill tokenizado inline num literal; cor-em-variável e `rounded` reto (não `-full`) ficam pro detector + revisão humana (a confiança termina no AST).
 
 ---
 

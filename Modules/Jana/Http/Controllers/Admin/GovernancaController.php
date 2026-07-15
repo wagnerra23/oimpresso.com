@@ -36,6 +36,13 @@ class GovernancaController extends Controller
             $preset = '30d';
         }
 
+        // DS Onda 3 — seção ativa via rota (?secao=) — barra canônica PageHeaderTabs
+        // navega por href (padroniza com Clientes/Financeiro/Ponto). Whitelist server-side.
+        $secao = (string) $request->get('secao', 'consumo');
+        if (! in_array($secao, ['consumo', 'acesso', 'usuarios'], true)) {
+            $secao = 'consumo';
+        }
+
         $range = $service->resolverPeriodo(
             $preset,
             $request->get('de'),
@@ -48,6 +55,7 @@ class GovernancaController extends Controller
         $painel = $service->painel($range['inicio'], $range['fim']);
 
         return Inertia::render('Jana/Admin/Governanca/Index', [
+            'secao'   => $secao,
             'periodo' => $range,
             'filters' => [
                 'preset' => $preset,

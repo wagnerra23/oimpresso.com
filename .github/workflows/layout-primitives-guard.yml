@@ -11,6 +11,12 @@ name: Layout primitives guard (flex/grid solto)
 # Ratchet por arquivo — espelha no-mock/eslint/css-size (ADR 0209), "teste pra não piorar".
 #
 # Node puro (fs), sem deps, sem npm ci. Comando local: npm run layout:check
+#
+# REQUIRED-READINESS (2026-07-15, padrão ADR 0271 onda 2, idêntico ao e2e-gate.yml /
+# visual-regression.yml): `pull_request` SEM `paths:` (always-run) pra ser promovível a
+# required sem deadlock "Expected — waiting for status" em PR que não toca os paths. O
+# custo é evitado por skip-as-pass interno: dorny/paths-filter detecta se algo relevante
+# mudou; se não, conclui verde (~segundos) sem rodar o ratchet.
 
 on:
   push:
@@ -22,12 +28,8 @@ on:
       - 'scripts/layout-primitives-baseline.json'
       - '.github/workflows/layout-primitives-guard.yml'
   pull_request:
-    paths:
-      - 'resources/js/Pages/**/*.tsx'
-      - 'resources/js/Components/**/*.tsx'
-      - 'scripts/layout-primitives-guard.mjs'
-      - 'scripts/layout-primitives-baseline.json'
-      - '.github/workflows/layout-primitives-guard.yml'
+    branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: layout-primitives-guard-${{ github.ref }}
@@ -41,12 +43,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Detectar mudanças relevantes (skip-as-pass — required-readiness)
+        id: changes
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            relevant:
+              - 'resources/js/Pages/**/*.tsx'
+              - 'resources/js/Components/**/*.tsx'
+              - 'scripts/layout-primitives-guard.mjs'
+              - 'scripts/layout-primitives-baseline.json'
+              - '.github/workflows/layout-primitives-guard.yml'
+
+      - name: Decidir execução
+        id: decide
+        run: echo "run=${{ github.event_name != 'pull_request' || steps.changes.outputs.relevant == 'true' }}" >> "$GITHUB_OUTPUT"
+
+      - name: Skip-as-pass (nada de layout mudou)
+        if: steps.decide.outputs.run != 'true'
+        run: echo "✅ Sem mudanças de layout/primitivos — skip-as-pass (required-ready, padrão ADR 0271 onda 2)."
+
       - name: Setup Node.js
+        if: steps.decide.outputs.run == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '24'
 
       - name: Layout ratchet (falha em aumento de flex/grid solto)
+        if: steps.decide.outputs.run == 'true'
         run: node scripts/layout-primitives-guard.mjs
 
       - name: Diagnóstico em caso de falha

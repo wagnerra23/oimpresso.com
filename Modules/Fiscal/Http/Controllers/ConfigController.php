@@ -30,6 +30,13 @@ class ConfigController extends Controller
             abort(403, 'Sem permissão fiscal.config.edit');
         }
 
+        // Aba ativa via rota (?tab=) — barra canônica PageHeaderTabs navega por href
+        // (padronização DS Onda 3). Whitelist server-side; default 'cert'.
+        $activeTab = (string) $request->query('tab', 'cert');
+        if (! in_array($activeTab, ['cert', 'series', 'ambiente', 'sped'], true)) {
+            $activeTab = 'cert';
+        }
+
         $businessId = (int) $request->session()->get('business.id');
         $cnpjBusinessSession = (string) $request->session()->get('business.tax_number_1', '');
 
@@ -70,6 +77,7 @@ class ConfigController extends Controller
         }
 
         return Inertia::render('Fiscal/Config', [
+            'activeTab' => $activeTab,
             'certificado' => $certPayload,
             'config' => $config ? [
                 'regime'              => $config->regime ?? 'lucro_presumido',
