@@ -50,6 +50,8 @@ export interface SubNavItem {
   inertia?: boolean;
   /** Desabilitar o item. */
   disabled?: boolean;
+  /** `data-testid` do elemento (locator E2E — NÚCLEO #7 anti-quebra-silenciosa). */
+  testId?: string;
 }
 
 interface SubNavProps {
@@ -60,6 +62,8 @@ interface SubNavProps {
   value?: string;
   /** Callback em modo controlado. */
   onChange?: (value: string) => void;
+  /** Nome acessível do tablist (`aria-label`). Default: "Seções da página". */
+  ariaLabel?: string;
   className?: string;
 }
 
@@ -68,23 +72,24 @@ export default function SubNav({
   variant = 'underline',
   value,
   onChange,
+  ariaLabel,
   className,
 }: SubNavProps) {
   if (variant === 'segmented') {
-    return <Segmented items={items} value={value} onChange={onChange} className={className} />;
+    return <Segmented items={items} value={value} onChange={onChange} ariaLabel={ariaLabel} className={className} />;
   }
-  return <Underline items={items} value={value} onChange={onChange} className={className} />;
+  return <Underline items={items} value={value} onChange={onChange} ariaLabel={ariaLabel} className={className} />;
 }
 
 /* ─── Variante: underline ─────────────────────────────────────────────── */
 
-function Underline({ items, value, onChange, className }: Omit<SubNavProps, 'variant'>) {
+function Underline({ items, value, onChange, ariaLabel, className }: Omit<SubNavProps, 'variant'>) {
   const { url } = usePage();
 
   return (
     <nav
       role="tablist"
-      aria-label="Seções da página"
+      aria-label={ariaLabel ?? 'Seções da página'}
       className={cn('flex items-center gap-0.5 border-b border-border/60 overflow-x-auto', className)}
     >
       {items.map((item, i) => {
@@ -114,13 +119,14 @@ function Underline({ items, value, onChange, className }: Omit<SubNavProps, 'var
 
         if (item.href) {
           return item.inertia
-            ? <Link key={key} href={item.href} role="tab" aria-selected={isActive} className={cls}>{content}</Link>
-            : <a key={key} href={item.href} role="tab" aria-selected={isActive} className={cls}>{content}</a>;
+            ? <Link key={key} href={item.href} data-testid={item.testId} role="tab" aria-selected={isActive} className={cls}>{content}</Link>
+            : <a key={key} href={item.href} data-testid={item.testId} role="tab" aria-selected={isActive} className={cls}>{content}</a>;
         }
 
         return (
           <button
             key={key}
+            data-testid={item.testId}
             role="tab"
             aria-selected={isActive}
             disabled={item.disabled}
@@ -137,13 +143,13 @@ function Underline({ items, value, onChange, className }: Omit<SubNavProps, 'var
 
 /* ─── Variante: segmented ─────────────────────────────────────────────── */
 
-function Segmented({ items, value, onChange, className }: Omit<SubNavProps, 'variant'>) {
+function Segmented({ items, value, onChange, ariaLabel, className }: Omit<SubNavProps, 'variant'>) {
   const { url } = usePage();
 
   return (
     <div
       role="tablist"
-      aria-label="Seções da página"
+      aria-label={ariaLabel ?? 'Seções da página'}
       className={cn(
         'inline-flex items-center gap-0.5 bg-muted rounded-lg p-1',
         className,
@@ -179,13 +185,14 @@ function Segmented({ items, value, onChange, className }: Omit<SubNavProps, 'var
 
         if (item.href) {
           return item.inertia
-            ? <Link key={key} href={item.href} role="tab" aria-selected={isActive} className={cls}>{content}</Link>
-            : <a key={key} href={item.href} role="tab" aria-selected={isActive} className={cls}>{content}</a>;
+            ? <Link key={key} href={item.href} data-testid={item.testId} role="tab" aria-selected={isActive} className={cls}>{content}</Link>
+            : <a key={key} href={item.href} data-testid={item.testId} role="tab" aria-selected={isActive} className={cls}>{content}</a>;
         }
 
         return (
           <button
             key={key}
+            data-testid={item.testId}
             role="tab"
             aria-selected={isActive}
             disabled={item.disabled}
