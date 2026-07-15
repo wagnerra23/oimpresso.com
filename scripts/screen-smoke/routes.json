@@ -9,6 +9,7 @@
     { "label": "login", "path": "/login", "auth": false, "nav_critical": true },
     { "label": "dashboard", "path": "/home", "auth": true, "nav_critical": true },
     { "label": "sells-index", "path": "/sells", "auth": true, "nav_critical": true, "source": "resources/js/Pages/Sells/Index.tsx" },
-    { "label": "sells-create", "path": "/sells/create", "auth": true, "source": "resources/js/Pages/Sells/Create.tsx" }
+    { "label": "sells-create", "path": "/sells/create", "auth": true, "source": "resources/js/Pages/Sells/Create.tsx" },
+    { "label": "financeiro-unificado", "path": "/financeiro/unificado", "auth": true, "source": "resources/js/Pages/Financeiro/Unificado/Index.tsx" }
   ]
 }
