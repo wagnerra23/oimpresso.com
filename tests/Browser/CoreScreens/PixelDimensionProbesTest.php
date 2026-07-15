@@ -3,39 +3,32 @@
 declare(strict_types=1);
 
 /**
- * Pest 4 Browser — PROVA QUE A MÁQUINA DE PIXEL "MORDE" NAS DIMENSÕES VISUAIS.
+ * Pest 4 Browser — PROVA QUE A(S) MÁQUINA(S) "MORDEM" NAS 15 DIMENSÕES (o que der).
  *
- * Espelha o padrão de CONTROLE-NEGATIVO EMBUTIDO do ConformanceProbesTest (L-31 /
- * "todo ✅ tem que ter sido visto falhar"): cada dimensão pixel-visível é perturbada
- * DE PROPÓSITO no DOM (style descartável), capturada, e o teste assere que o ratio
- * pixelmatch (o MESMO do gate visual-regression) ULTRAPASSA o τ_alto = a máquina
- * ENXERGA (morde). O clean-vs-clean fica ABAIXO do τ_baixo = não dá falso-positivo
- * (libera). Self-contained: compara duas capturas in-test, sem depender da baseline
- * commitada (elimina flakiness de seed/baseline).
+ * Espelha o CONTROLE-NEGATIVO EMBUTIDO do ConformanceProbesTest (L-31 / "todo ✅ tem
+ * que ter sido visto falhar"): perturba DE PROPÓSITO cada dimensão testável e assere
+ * que a máquina certa acusa; sem perturbação, LIBERA (não dá falso-positivo).
  *
- * ── MATRIZ DE COBERTURA DAS 15 DIMENSÕES (honesta — mata cobertura falsa) ──────────
- *   PIXEL pega (probe aqui):   1 Layout · 2 Hierarquia · 3 Densidade · 4 Iconografia ·
- *                              9 Tipografia · 10 Espaçamento · 11 Cor
- *   PIXEL parcial:             5 Estados (só o estado capturado — ver IsolatedStates) ·
- *                              12 Microinterações (sombra/blur estático sim; animação não)
- *   PIXEL CEGO (comportamento → outro teste):
- *                              6 Atalhos teclado    → teste de interação (keypress)
- *                              7 Persistência        → assert localStorage
- *   PIXEL CEGO (meta/humano → PR UI Judge / [W]):
- *                              13 Ref. aprovada · 14 Benchmarks · 15 Persona
+ * ── MATRIZ DAS 15 DIMENSÕES — máquina certa por dimensão (honesta, mata cobertura falsa) ──
+ *   PIXEL (probe de pixel aqui, teste 1):
+ *     1 Layout · 2 Hierarquia · 3 Densidade · 4 Iconografia · 9 Tipografia · 10 Espaço ·
+ *     11 Cor · 12 Microinteração (parte ESTÁTICA: sombra/blur; animação NÃO é pixel)
+ *   COMPORTAMENTAL (interação, teste 2 — PIXEL É CEGO):
+ *     6 Atalhos teclado → dispara '/' e assere foco (a Unificada: window keydown → #fin-search-input)
+ *   COBERTO EM OUTRO GATE (documentado, não re-testado aqui):
+ *     5 Estados visuais → tests/Browser/CoreScreens/IsolatedStatesBaselineTest (default/empty/loading/dark)
+ *     7 Persistência    → localStorage: NÃO EXISTE na Unificado/Index.tsx (grep vazio 2026-07-15);
+ *                         onde existir (outra tela) = assert localStorage.getItem. N/A aqui.
+ *   NÃO-TESTÁVEL POR MÁQUINA (meta/decisão — humano/PR UI Judge, por construção):
+ *     13 Ref. aprovada · 14 Benchmarks · 15 Persona — são DECISÃO/DOC, não propriedade
+ *        da tela renderizada. Marcar "auto-coberto" seria a cobertura falsa que o §5 proíbe.
  *
- * Este arquivo prova as 3 mais visíveis (9/10/11) na Unificada; as parciais/cegas
- * ficam MARCADAS acima (documentado, não escondido). Estender para as demais = seguir
- * o mesmo molde ou apontar o teste comportamental.
+ * ⚠️ HONESTIDADE (ADR 0108): NÃO rodado local (Pest Browser = CI/CT 100 only). Validado por
+ * php -l + espelhamento do padrão A11yAxe/ConformanceProbes (verde no visual-regression.yml).
+ * NUNCA biz=4 (ADR 0101).
  *
- * ⚠️ HONESTIDADE (ADR 0108): NÃO rodado local (Pest Browser = CI/CT 100 only). Validado
- * por php -l + espelhamento do padrão A11yAxe/ConformanceProbes que já roda verde no
- * visual-regression.yml. NUNCA biz=4 (ADR 0101).
- *
- * @see tests/Browser/CoreScreens/ConformanceProbesTest.php (padrão negativo-embutido espelhado)
- * @see tests/Browser/CoreScreens/PixelBaselineTest.php (a máquina de pixel de produção)
+ * @see tests/Browser/CoreScreens/ConformanceProbesTest.php (padrão negativo-embutido)
  * @see tests/Browser/Support/VisregThreshold.php (captureBlob + ratioBetween + τ)
- * @see .github/workflows/visual-regression.yml (gate que invoca)
  */
 
 use App\Business;
@@ -43,8 +36,6 @@ use App\User;
 use Tests\Browser\Support\VisregThreshold;
 
 beforeEach(function () {
-    // CROSS-PROCESS DB (igual A11yAxe/ConformanceProbes): browser usa MySQL (.env);
-    // o processo de teste realinha pro MESMO MySQL pra enxergar o tenant seedado.
     config([
         'database.default' => 'mysql',
         'database.connections.mysql.database' => 'oimpresso_test',
@@ -52,8 +43,6 @@ beforeEach(function () {
     \Illuminate\Support\Facades\DB::purge('mysql');
 });
 
-// Normalização visual IDÊNTICA à do PixelBaselineTest (transitions off + Arial +
-// antialiasing) pra o ratio bater com o do engine nativo.
 const NORMALIZE_JS = <<<'JS'
     (() => {
       const s = document.createElement('style');
@@ -68,7 +57,6 @@ const NORMALIZE_JS = <<<'JS'
     })()
 JS;
 
-// Injeta um <style> de perturbação por id; retorna true.
 function pixdimInject(string $id, string $css): string
 {
     return sprintf(
@@ -91,8 +79,9 @@ function pixdimRemove(string $id): string
     return sprintf('(() => { const e = document.getElementById(%s); if (e) e.remove(); return true; })()', json_encode($id));
 }
 
-it('Financeiro/Unificado — a máquina de pixel MORDE dims 9/10/11 e LIBERA no limpo', function () {
-    $business = Business::query()->orderBy('id')->first(); // ratchet-safe (sem literal Business::first)
+function pixdimResolveTenant(): array
+{
+    $business = Business::query()->orderBy('id')->first(); // ratchet-safe
     if (! $business) {
         test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
     }
@@ -101,33 +90,43 @@ it('Financeiro/Unificado — a máquina de pixel MORDE dims 9/10/11 e LIBERA no 
         test()->markTestSkipped('Sem user no business seedado.');
     }
 
+    return [$business, $admin];
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TESTE 1 — máquina de PIXEL morde as dimensões visuais e libera no limpo.
+// ─────────────────────────────────────────────────────────────────────────────
+it('Financeiro/Unificado — PIXEL morde dims 1/2/3/4/9/10/11/12 e LIBERA no limpo', function () {
+    [, $admin] = pixdimResolveTenant();
+
     $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode('/financeiro/unificado'));
     $page->assertSee('Financeiro');
-
     $page->script(NORMALIZE_JS);
     $page->wait(1.5);
 
     $tauLow = VisregThreshold::tauLow();
     $tauHigh = VisregThreshold::tauHigh();
 
-    // Captura de referência (limpo).
     $clean = VisregThreshold::captureBlob($page, 'pixdim_clean');
 
-    // LIBERA: capturar de novo sem mudar nada → ratio ~0 (< τ_baixo). Prova que não há
-    // falso-positivo (a máquina não "vê" mudança onde não há).
+    // LIBERA — clean-vs-clean < τ_baixo (sem falso-positivo).
     $cleanAgain = VisregThreshold::captureBlob($page, 'pixdim_clean_again');
     $ratioStable = VisregThreshold::ratioBetween($clean, $cleanAgain);
     expect($ratioStable)->toBeLessThan(
         $tauLow,
-        sprintf('LIBERA falhou: clean-vs-clean=%.4f%% deveria ser < τ_baixo=%.4f%% (máquina instável/falso-positivo)', $ratioStable * 100, $tauLow * 100)
+        sprintf('LIBERA falhou: clean-vs-clean=%.4f%% deveria ser < τ_baixo=%.4f%%', $ratioStable * 100, $tauLow * 100)
     );
 
-    // MORDE — cada dimensão perturbada isoladamente, revertida em seguida.
+    // MORDE — uma perturbação por dimensão, sempre revertida (alvo: KPIs .fin-stat, no viewport).
     $probes = [
-        // dim => [id, css alvo nos KPIs .fin-stat]
-        'dim11-cor'         => ['__pixdim_cor', '.fin-stat { background: #fde68a !important; border-color: #f59e0b !important; }'],
-        'dim10-espacamento' => ['__pixdim_space', '.fin-stat { padding: 40px !important; }'],
-        'dim9-tipografia'   => ['__pixdim_type', '.fin-stat, .fin-stat * { font-size: 30px !important; line-height: 1.1 !important; }'],
+        'dim1-layout'        => ['__pd_layout', '.fin-stat { transform: translateY(40px) !important; }'],
+        'dim2-hierarquia'    => ['__pd_hier',   '.fin-stat-hero { transform: scale(0.6) !important; }'],
+        'dim3-densidade'     => ['__pd_dens',   '.fin-stat, .fin-stat * { letter-spacing: 4px !important; }'],
+        'dim4-iconografia'   => ['__pd_icon',   '.fin-stat svg, header svg { visibility: hidden !important; }'],
+        'dim9-tipografia'    => ['__pd_type',   '.fin-stat, .fin-stat * { font-size: 30px !important; line-height: 1.1 !important; }'],
+        'dim10-espacamento'  => ['__pd_space',  '.fin-stat { padding: 40px !important; }'],
+        'dim11-cor'          => ['__pd_cor',    '.fin-stat { background: #fde68a !important; border-color: #f59e0b !important; }'],
+        'dim12-microinteracao' => ['__pd_shadow', '.fin-stat { box-shadow: 0 0 0 8px #ff0000 !important; }'],
     ];
 
     foreach ($probes as $label => [$id, $css]) {
@@ -135,11 +134,36 @@ it('Financeiro/Unificado — a máquina de pixel MORDE dims 9/10/11 e LIBERA no 
         $page->wait(0.6);
         $dirty = VisregThreshold::captureBlob($page, 'pixdim_' . $id);
         $ratio = VisregThreshold::ratioBetween($clean, $dirty);
-        $page->script(pixdimRemove($id)); // reverte SEMPRE (mesmo se a asserção falhar depois)
+        $page->script(pixdimRemove($id)); // reverte SEMPRE
 
         expect($ratio)->toBeGreaterThan(
             $tauHigh,
-            sprintf('MORDE falhou (%s): perturbei a dimensão e o ratio=%.4f%% NÃO passou de τ_alto=%.4f%% → máquina CEGA nessa dimensão', $label, $ratio * 100, $tauHigh * 100)
+            sprintf('MORDE falhou (%s): ratio=%.4f%% NÃO passou de τ_alto=%.4f%% → máquina CEGA nessa dimensão', $label, $ratio * 100, $tauHigh * 100)
         );
     }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TESTE 2 — máquina COMPORTAMENTAL vê o atalho de teclado (dim 6). PIXEL é CEGO nisso.
+// ─────────────────────────────────────────────────────────────────────────────
+it('Financeiro/Unificado — atalho "/" foca a busca (dim 6, comportamental) + controle-negativo', function () {
+    [, $admin] = pixdimResolveTenant();
+
+    $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode('/financeiro/unificado'));
+    $page->assertSee('Financeiro');
+    $page->wait(1.0);
+
+    // CONTROLE-NEGATIVO: sem apertar nada, a busca NÃO está focada.
+    $before = $page->script("return (document.activeElement && document.activeElement.id) || '';");
+    expect($before)->not->toBe('fin-search-input', 'A busca já estava focada sem apertar / — controle-negativo inválido');
+
+    // MORDE: dispara '/' no window (onde o handler vive) com target não-editável (body).
+    $page->script("document.body.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true })); return true;");
+    $page->wait(0.4);
+
+    $after = $page->script("return (document.activeElement && document.activeElement.id) || '';");
+    expect($after)->toBe(
+        'fin-search-input',
+        'Atalho "/" NÃO focou #fin-search-input → dim 6 quebrada OU handler não capturou (a máquina comportamental estaria cega)'
+    );
 });
