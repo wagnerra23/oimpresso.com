@@ -8,18 +8,32 @@
 // Busca client-side por código OU nome (case insensitive). Hierarquia visual
 // indentada por nivel (folhas tipicamente nivel=4).
 //
-// PR D (2026-05-25) — WAI-ARIA Combobox keyboard nav (auditoria G7):
-//   - ↑ / ↓ navega lista
-//   - Enter seleciona ativo
-//   - Esc fecha
-//   - Home / End primeiro/último
-//   - aria-activedescendant pra screen reader
+// Onda combobox (2026-07-15, ADR proposta tab-nav-canonico + ADR 0338): MIGRADO
+// do hand-roll (input + <ul role="listbox"> + onKeyDown à mão) pro CANON do papel
+// = Popover + Command (cmdk, @/Components/ui/{popover,command}). O motor cmdk dá a
+// a11y (role=combobox/listbox/option, aria-activedescendant) e a navegação de
+// teclado (↑↓ Enter Esc) de fábrica — o que o hand-roll reimplementava. Busca fica
+// `shouldFilter={false}` + filtro client-side `includes` PRESERVADO exatamente
+// (código OU nome), pra não mudar 1 caractere do que casa numa tela de dinheiro.
+// API externa (props) inalterada — consumidores (TituloCreate/Edit/BaixaSheet)
+// não mudam. Ref viva do padrão: Pages/OficinaAuto/ServiceOrders/Create.tsx.
 //
 // Reusável entre Edit e Create. Backend defesa em profundidade via
 // `UpdateTituloRequest::assertPlanoCoerente()`.
 
-import { useMemo, useRef, useState, useEffect, type KeyboardEvent } from 'react';
-import { Search, X } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { Check, ChevronsUpDown, X } from 'lucide-react';
+import { cn } from '@/Lib/utils';
+import { Button } from '@/Components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/Components/ui/command';
 
 export interface PlanoConta {
   id: number;
@@ -56,11 +70,7 @@ const TIPO_STYLE: Record<PlanoConta['tipo'], React.CSSProperties> = {
 export function PlanoContaCombobox({ planos, value, onChange, kind, id, placeholder, disabled }: Props) {
   const [open, setOpen] = useState(false);
   const [busca, setBusca] = useState('');
-  const [activeIdx, setActiveIdx] = useState(0);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const listboxRef = useRef<HTMLUListElement>(null);
   const baseId = id ?? 'plano-combobox';
-  const listboxId = `${baseId}-listbox`;
 
   const tiposPermitidos = kind === 'receivable' ? TIPOS_RECEBER : TIPOS_PAGAR;
 
@@ -69,6 +79,9 @@ export function PlanoContaCombobox({ planos, value, onChange, kind, id, placehol
     [planos, value]
   );
 
+  // Filtro PRESERVADO do hand-roll: kind (tipos permitidos) + busca `includes`
+  // por código OU nome. shouldFilter={false} no Command pra usar ESTE filtro
+  // (não o fuzzy do cmdk) — casa exatamente o que casava antes.
   const lista = useMemo(() => {
     const base = planos.filter((p) => tiposPermitidos.includes(p.tipo));
     if (! busca.trim()) return base;
@@ -78,162 +91,87 @@ export function PlanoContaCombobox({ planos, value, onChange, kind, id, placehol
     );
   }, [planos, tiposPermitidos, busca]);
 
-  // Reset índice ativo quando filtro muda OU abre.
-  useEffect(() => {
-    if (open) {
-      const idxAtual = lista.findIndex((p) => p.id === value);
-      setActiveIdx(idxAtual >= 0 ? idxAtual : 0);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, busca]);
-
-  // Garante que item ativo fique visível durante navegação por teclado.
-  useEffect(() => {
-    if (! open || ! listboxRef.current) return;
-    const activeEl = listboxRef.current.querySelector<HTMLLIElement>(`#${baseId}-opt-${activeIdx}`);
-    activeEl?.scrollIntoView({ block: 'nearest' });
-  }, [activeIdx, open, baseId]);
-
-  // Fecha ao clicar fora.
-  useEffect(() => {
-    if (! open) return;
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && ! containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-        setBusca('');
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  const close = () => {
-    setOpen(false);
-    setBusca('');
-  };
-
-  const handleKey = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      setActiveIdx((i) => Math.min(i + 1, Math.max(0, lista.length - 1)));
-    } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setActiveIdx((i) => Math.max(0, i - 1));
-    } else if (e.key === 'Home') {
-      e.preventDefault();
-      setActiveIdx(0);
-    } else if (e.key === 'End') {
-      e.preventDefault();
-      setActiveIdx(Math.max(0, lista.length - 1));
-    } else if (e.key === 'Enter') {
-      e.preventDefault();
-      const ativo = lista[activeIdx];
-      if (ativo) {
-        onChange(ativo.id);
-        close();
-      }
-    } else if (e.key === 'Escape') {
-      e.preventDefault();
-      close();
-    }
+  const handleOpenChange = (o: boolean) => {
+    setOpen(o);
+    if (! o) setBusca('');
   };
 
   return (
-    <div className="relative" ref={containerRef}>
-      <button
-        type="button"
-        id={baseId}
-        disabled={disabled}
-        onClick={() => setOpen((o) => !o)}
-        className="w-full h-9 rounded-md border border-input bg-background px-3 text-left text-[13px] flex items-center justify-between gap-2 hover:border-ring disabled:bg-muted disabled:cursor-not-allowed"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={open ? listboxId : undefined}
-      >
-        {selecionado ? (
-          <span className="flex items-center gap-2 truncate">
-            <span className="font-mono text-foreground text-[12px] tabular-nums">{selecionado.codigo}</span>
-            <span className="truncate">{selecionado.nome}</span>
-            <span
-              className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
-              style={TIPO_STYLE[selecionado.tipo]}
-            >
-              {selecionado.tipo}
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          id={baseId}
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          disabled={disabled}
+          className="w-full h-9 justify-between gap-2 px-3 text-left text-[13px] font-normal"
+        >
+          {selecionado ? (
+            <span className="flex items-center gap-2 truncate">
+              <span className="font-mono text-foreground text-[12px] tabular-nums">{selecionado.codigo}</span>
+              <span className="truncate">{selecionado.nome}</span>
+              <span
+                className="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium"
+                style={TIPO_STYLE[selecionado.tipo]}
+              >
+                {selecionado.tipo}
+              </span>
             </span>
-          </span>
-        ) : (
-          <span className="text-muted-foreground">{placeholder ?? '(Sem plano de contas)'}</span>
-        )}
-        {selecionado && ! disabled && (
-          <span
-            role="button"
-            aria-label="Limpar plano de contas"
-            tabIndex={0}
-            onClick={(e) => {
-              e.stopPropagation();
-              onChange(null);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
+          ) : (
+            <span className="text-muted-foreground">{placeholder ?? '(Sem plano de contas)'}</span>
+          )}
+          {selecionado && ! disabled ? (
+            <span
+              role="button"
+              aria-label="Limpar plano de contas"
+              tabIndex={0}
+              onClick={(e) => {
                 e.stopPropagation();
                 onChange(null);
-              }
-            }}
-            className="shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
-          >
-            <X size={14} />
-          </span>
-        )}
-      </button>
-
-      {open && (
-        <div className="absolute z-20 left-0 right-0 mt-1 rounded-md border border-border bg-popover shadow-lg max-h-[280px] flex flex-col">
-          <div className="flex items-center gap-2 px-3 py-2 border-b border-border">
-            <Search size={14} className="text-muted-foreground" />
-            <input
-              autoFocus
-              type="text"
-              role="combobox"
-              aria-controls={listboxId}
-              aria-expanded={true}
-              aria-activedescendant={lista[activeIdx] ? `${baseId}-opt-${activeIdx}` : undefined}
-              placeholder={`Buscar ${kind === 'receivable' ? 'receita/ativo' : 'despesa/custo/passivo'} (↑↓ navega · Enter seleciona)`}
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              onKeyDown={handleKey}
-              className="flex-1 text-[13px] outline-none bg-transparent"
-            />
-          </div>
-          <ul
-            id={listboxId}
-            ref={listboxRef}
-            role="listbox"
-            aria-label="Planos de contas disponíveis"
-            className="overflow-y-auto flex-1"
-          >
-            {lista.length === 0 && (
-              <li className="px-3 py-4 text-center text-[12px] text-muted-foreground">
-                Nenhum plano encontrado.
-              </li>
-            )}
-            {lista.map((p, idx) => {
-              const isSelected = p.id === value;
-              const isActive = idx === activeIdx;
-              return (
-                <li
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onChange(null);
+                }
+              }}
+              className="shrink-0 text-muted-foreground hover:text-foreground cursor-pointer"
+            >
+              <X size={14} />
+            </span>
+          ) : (
+            <ChevronsUpDown className="ml-auto size-4 shrink-0 opacity-50" />
+          )}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+        align="start"
+      >
+        <Command shouldFilter={false}>
+          <CommandInput
+            value={busca}
+            onValueChange={setBusca}
+            placeholder={`Buscar ${kind === 'receivable' ? 'receita/ativo' : 'despesa/custo/passivo'}…`}
+          />
+          <CommandList>
+            <CommandEmpty>Nenhum plano encontrado.</CommandEmpty>
+            <CommandGroup>
+              {lista.map((p) => (
+                <CommandItem
                   key={p.id}
-                  id={`${baseId}-opt-${idx}`}
-                  role="option"
-                  aria-selected={isSelected}
-                  onClick={() => {
+                  value={String(p.id)}
+                  onSelect={() => {
                     onChange(p.id);
-                    close();
+                    handleOpenChange(false);
                   }}
-                  onMouseEnter={() => setActiveIdx(idx)}
-                  className={`flex items-center gap-2 px-3 py-1.5 text-[13px] cursor-pointer ${isActive ? 'bg-accent' : ''} ${isSelected && ! isActive ? 'bg-accent/50' : ''}`}
+                  className="gap-2 text-[13px]"
                   style={{ paddingLeft: 12 + (p.nivel - 1) * 12 }}
                 >
+                  <Check className={cn('size-4 shrink-0', p.id === value ? 'opacity-100' : 'opacity-0')} />
                   <span className="font-mono text-foreground text-[12px] tabular-nums shrink-0">{p.codigo}</span>
                   <span className="truncate flex-1">{p.nome}</span>
                   <span
@@ -242,13 +180,13 @@ export function PlanoContaCombobox({ planos, value, onChange, kind, id, placehol
                   >
                     {p.tipo}
                   </span>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      )}
-    </div>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
 
