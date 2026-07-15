@@ -61,22 +61,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 353,
+      "value": 360,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "ff1cc224a2bc8cf7",
+        "floor_files_hash": "2c86a013f90c762d",
         "runs": [
-          {
-            "sha": "2dbdceed",
-            "ts": "20260706-020001",
-            "failed": 523,
-            "errors": 913,
-            "skipped": 2307,
-            "all_shards_measured": true
-          },
           {
             "sha": "3acabd2f",
             "ts": "20260713-020001",
@@ -86,15 +78,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "52da896a",
             "ts": "20260714-020001",
             "failed": 621,
             "errors": 593,
             "skipped": 2255,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260715-020001",
+            "failed": 597,
+            "errors": 587,
+            "skipped": 2266,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260714-020001",
+        "computed_at": "20260715-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -119,16 +119,9 @@
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 40873,
-        "total": 239618,
+        "covered": 40955,
+        "total": 239719,
         "runs": [
-          {
-            "sha": "dd6c8c97",
-            "ts": "20260712-212018",
-            "coverage_pct": 16.4,
-            "covered": 39200,
-            "total": 239512
-          },
           {
             "sha": "3acabd2f",
             "ts": "20260713-020001",
@@ -137,14 +130,21 @@
             "total": 239512
           },
           {
-            "sha": null,
+            "sha": "52da896a",
             "ts": "20260714-020001",
             "coverage_pct": 17.1,
             "covered": 40873,
             "total": 239618
+          },
+          {
+            "sha": null,
+            "ts": "20260715-020001",
+            "coverage_pct": 17.1,
+            "covered": 40955,
+            "total": 239719
           }
         ],
-        "computed_at": "20260714-020001",
+        "computed_at": "20260715-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -275,10 +275,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 33,
+        "entries_aprovadas": 34,
         "max_error_rate_pct": 1.82,
-        "last_pr": 3664,
-        "last_lote": "SA-A5-baldeD-arquivos"
+        "last_pr": 4274,
+        "last_lote": "backfill-briefings-status-updated-at"
       },
       "stream": "GT"
     }
