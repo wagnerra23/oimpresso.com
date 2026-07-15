@@ -113,21 +113,28 @@ it('Page declara matriz variations × priceGroups')
 // UC-PTAB-02; a divergencia 302-vs-404 esta no §Backlog de la aguardando decisao [W].
 ```
 
-Contrato executável da tela: [`SellingPrices.casos.md`](SellingPrices.casos.md) — `UC-PTAB-01/02/03`
+Contrato executável da tela: [`SellingPrices.casos.md`](SellingPrices.casos.md) — `UC-PTAB-01/02/03/04`
 (`tests/Feature/Produto/TabelaPrecoContratoTest.php`, lane `Estoque · MySQL`).
 Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/095/006`):
 `tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php` (lane `Pest (Unit)`).
 
 ## Backlog de contrato (dívida conhecida — não é Non-Goal, é buraco)
 
-- **`casos.md` não existe** — a tela está nas 268 violações `trio:missing-casos` do baseline.
-- **Os testes atuais são tautológicos** — `Wave2SellingPricesInertiaTest` / `Wave2SellingPricesBaselineTest`
-  só fazem grep de string no fonte ("contém `variations.map`"). Nenhum exercita comportamento.
-- **O `it('Controller cross-tenant retorna 404')` do Pest GUARD acima NÃO existe** — o que existe é um
-  grep procurando `session()->get('user.business_id')` no fonte do controller. Buraco Tier 0.
+> ✅ **Fechados no mesmo PR ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)) — esta lista
+> foi escrita ANTES deles existirem e ficou falsa ao mergear:**
+> - ~~`casos.md` não existe~~ → [`SellingPrices.casos.md`](SellingPrices.casos.md) existe, com
+>   `UC-PTAB-01..04` verdes na lane `Estoque · MySQL`. O trio fechou; o baseline caiu 316 → 315.
+> - ~~O `it('Controller cross-tenant retorna 404')` NÃO existe~~ → existe comportamento de verdade
+>   (`UC-PTAB-02` GET/POST + `UC-PTAB-04` price_group alheio). E provou que a promessa de **404**
+>   era falsa no POST — ver §Pest GUARD.
+
+- **Os testes legados seguem tautológicos** — `Wave2SellingPricesInertiaTest` /
+  `Wave2SellingPricesBaselineTest` só fazem grep de string no fonte ("contém `variations.map`").
+  Nenhum UC os cita de propósito. Ficam até alguém decidir se apagam ou viram teste de verdade.
 - **Multiplicador da tabela (`SellingPriceGroup.mult`) é oco** — hardcoded `1.00`. US-PROD-022 /
   ADR ARQ-0001 (proposed). O `Unificado/Index.charter.md` registra a mesma pendência.
 - **Piso `AR-PROD-101` vs preço de tabela** — sem contrato: a tabela pode furar o valor mínimo?
+- **302-vs-404 no POST cross-tenant** — decisão [W] pendente; detalhe no §Backlog do `casos.md`.
 
 ## Refs
 

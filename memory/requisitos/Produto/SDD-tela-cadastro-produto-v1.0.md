@@ -5,8 +5,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.0
-last_updated: 2026-07-10
+version: 1.0.1
+last_updated: 2026-07-15
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -39,6 +39,17 @@ related_adrs:
 >
 > **Documento-modelo:** [SDD — Tela de Vendas (família Sells)](../Sells/SDD-tela-vendas-FINAL-v1.2.md) — mesmo formato canônico.
 
+> ### 🔖 Changelog v1.0.1 (2026-07-15) — correção de claim, não de escopo
+> **`CU-PROD-10` deixa de ser `✅ (reusa guard)` e vira 🟡 parcial.** O ✅ da v1.0.0 nunca foi medido —
+> era leitura de código. Quando o `UC-PTAB-04` rodou pela 1ª vez em CI ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)),
+> **reprovou**: o guard reusado cobre `App\Product`, e a tabela de preço não é `Product` — o
+> `price_group_id` entrava cru do request e gravava linha cross-tenant. Corrigido no mesmo PR
+> (failing-first), mas **por validação explícita**, não por global scope. E o item 2 ("cross-tenant → 404")
+> segue **falso no POST** (302 — exceção engolida por `catch` genérico); decisão [W] pendente.
+> Itens 3-4 rebaixados a ⬜ não-verificado: nenhum teste os cita.
+> **Nada no código piorou** — o que mudou foi o documento parar de afirmar o que não media.
+> Lição de método registrada em [`proibicoes.md`](../../proibicoes.md) §5, entrada 2026-07-15.
+>
 > ### 🔖 Changelog v1.0.0 (2026-07-10)
 > Primeiro SDD do domínio Produto, criado logo após o SPEC (G-04 da onda Produto). Consolida:
 > - **§1–§5** — visão, personas, governança, design system e arquitetura do cadastro core.
@@ -317,11 +328,13 @@ Fechar essa lacuna é o **maior retorno** do roadmap (§10.2/§10.3) e o que dif
 1. `barcode_types` (C128 etc) + etiquetas ZPL/PDF (`LabelsController`).
 2. Geração auto de GTIN por variação (Hiper tem) — gap.
 
-#### CU-PROD-10 — Isolamento multi-tenant `[must]` ✅ (reusa guard)
-1. `[must][T0]` `App\Product` global scope em toda query.
-2. `[T0]` Cross-tenant por ID → **404** (não 403).
-3. `[T0]` `ProductBom` `ScopeByBusiness` + `firstOrFail`.
-4. `[T0]` `localStorage` sempre `oimpresso.produto.b<bizId>.*`.
+#### CU-PROD-10 — Isolamento multi-tenant `[must]` 🟡 **parcial** (era ✅ "reusa guard" — falso, ver v1.0.1)
+1. `[must][T0]` `App\Product` global scope em toda query. — 🟡 **o guard reusado cobre `Product`, não o que pendura nele.** `VariationGroupPrice` não tem global scope (`$guarded = ['id']`) e o `price_group_id` entrava **cru da chave do array do request** em `saveSellingPrices`: produto MEU + `price_group` ALHEIO gravava linha cross-tenant. Provado vermelho em CI ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300), `UC-PTAB-04`) e **corrigido no mesmo PR** (`$allowedPriceGroupIds` resolvido antes do laço + skip + `Log::warning`). ✅ hoje **por validação explícita**, não por global scope — a distinção importa: o próximo model pendurado em `Product` nasce com o mesmo buraco.
+2. `[T0]` Cross-tenant por ID → **404** (não 403). — 🔴 **verdadeiro só no GET.** O `addSellingPrices` devolve 404. O **POST** `saveSellingPrices` roda o `findOrFail` dentro de `try { } catch (\Exception $e)`: a `ModelNotFoundException` é engolida pelo catch genérico e vira `redirect('products')` + `success: 0` — **302**. Isolamento não vaza (aborta antes do write + rollback), mas o contrato prometido é falso e a tentativa cross-tenant fica indistinguível de erro de banco no `Log::emergency`. Decisão [W] pendente no §Backlog de [`SellingPrices.casos.md`](../../../resources/js/Pages/Produto/SellingPrices.casos.md): US pra re-lançar antes do catch, ou Non-Goal declarado.
+3. `[T0]` `ProductBom` `ScopeByBusiness` + `firstOrFail`. — ⬜ **não verificado** (nenhum teste cita; o ✅ da v1.0.0 valia por leitura de código, não por execução).
+4. `[T0]` `localStorage` sempre `oimpresso.produto.b<bizId>.*`. — ⬜ **não verificado** (idem).
+
+> ⚠️ **Por que este CU mudou de ✅ pra 🟡 sem o código piorar:** o ✅ da v1.0.0 nunca foi medido — era leitura de código. Quando o `UC-PTAB-04` rodou pela 1ª vez, reprovou. Os itens 1-2 hoje têm **teste vivo** (`tests/Feature/Produto/TabelaPrecoContratoTest.php`, lane `Estoque · MySQL`); os itens 3-4 seguem sem. O 🟡 é **mais honesto** que o ✅ anterior: mede o que existe em vez de afirmar o que se supunha. Lição registrada em `proibicoes.md` §5, entrada 2026-07-15.
 
 #### CU-PROD-11 — Kardex real na tela React `[must]` 🟡 **fachada** (G-01)
 1. `[must][reg]` Controller passa `movements` (JSON) via `Inertia::defer` — data · operação · qty · `stock_before`/`stock_after` · ref clicável (OS/Compra/Venda). Hoje `undefined`.
