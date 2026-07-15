@@ -7,7 +7,11 @@ decided_by: [W]
 prs: [4299, 4300, 4308, 4319]
 us: [US-PROD-020, US-PROD-022, US-PROD-027]
 related_adrs: [0093-multi-tenant-isolation-tier-0, 0264-governanca-executavel-trio-dominio-e2e]
-next_steps: "US-PROD-027 (0-row, TEST-ONLY, não precisa de decisão) → 4 decisões [W] no §Backlog do SellingPrices.casos.md → design da Variação destrava a branch parked"
+next_steps:
+  - "US-PROD-027 — travar o acidente do 0-row (TEST-ONLY; não precisa de decisão de ninguém)"
+  - "Wagner decide as 4 do §Backlog do SellingPrices.casos.md (302-vs-404 · Labels/Woo sem CU · default 0 da UI · piso AR-PROD-101)"
+  - "Design da Variação volta → destrava a branch parked docs/charter-variacao-precos-parked + casos.md de Create/StockHistory"
+  - "Revogar o PAT vazado em github.com/settings/tokens (removido do .git/config nesta sessão)"
 ---
 
 # Produto · tabela de preço — do design ao Tier 0, guiado por corte
