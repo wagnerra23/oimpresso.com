@@ -139,21 +139,40 @@ function walkTsx(dir, acc = []) {
   return acc;
 }
 
+// rel repo-relativo → specifier de import com alias @/ (sem extensão). Espelha o
+// alias @/ → resources/js/ do projeto. Usado pra detectar consumo TRANSITIVO.
+function relToAlias(rel) {
+  return rel.replace(/^resources\/js\//, '@/').replace(/\.(t|j)sx?$/, '');
+}
+
 function scanRoles(root) {
   const base = join(root, 'resources/js');
   const files = existsSync(base) ? walkTsx(base) : [];
   const clusters = [];
   for (const sig of ROLE_SIGNATURES) {
-    const canon = [], consumers = [], independent = [];
+    const canon = [];
+    const matched = []; // {rel, src} que cumprem o papel e NÃO são o canon
     for (const abs of files) {
       const rel = relative(root, abs).replaceAll('\\', '/');
       let src;
       try { src = readFileSync(abs, 'utf8'); } catch { continue; }
       if (!sig.matches(rel, src)) continue;
       if (rel === sig.canon) { canon.push(rel); continue; }
-      // consumidor legítimo = importa o canônico (wrapper). Independente = não.
-      const importsCanon = src.includes(sig.canonImport);
-      (importsCanon ? consumers : independent).push(rel);
+      matched.push({ rel, src });
+    }
+    // Consumidor DIRETO = importa o canon (é um wrapper, ex *SubNav).
+    const direct = matched.filter((m) => m.src.includes(sig.canonImport));
+    const rest = matched.filter((m) => !m.src.includes(sig.canonImport));
+    // Consumo TRANSITIVO: uma tela que renderiza um wrapper (que por sua vez
+    // importa o canon) JÁ consome o papel — não é hand-roll independente. Sem
+    // isso, telas como Financeiro/Unificado (importam FinanceiroSubNav + têm um
+    // tablist de DRAWER, papel diferente) viravam falso-positivo de drift.
+    const consumerSpecs = direct.map((m) => relToAlias(m.rel));
+    const consumers = direct.map((m) => m.rel);
+    const independent = [];
+    for (const m of rest) {
+      const transitive = consumerSpecs.some((spec) => m.src.includes(spec));
+      (transitive ? consumers : independent).push(m.rel);
     }
     clusters.push({ role: sig.role, canon: sig.canon, canonPresent: canon.length > 0, consumers, independent });
   }
@@ -167,7 +186,7 @@ function reportRoles(clusters, strict) {
     const total = (c.canonPresent ? 1 : 0) + c.consumers.length + c.independent.length;
     console.log(`\n▸ papel "${c.role}" — ${total} componente(s) no cluster`);
     console.log(`  canon: ${c.canonPresent ? c.canon : `⚠️ AUSENTE (${c.canon})`}`);
-    if (c.consumers.length) console.log(`  consumidores (wrapper legítimo, importam o canon): ${c.consumers.length}`);
+    if (c.consumers.length) console.log(`  consumidores (consomem o canon — direto ou via wrapper *SubNav): ${c.consumers.length}`);
     for (const f of c.consumers) console.log(`    ✓ ${f}`);
     if (c.independent.length) {
       drift += c.independent.length;
