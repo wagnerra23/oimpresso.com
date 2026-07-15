@@ -125,7 +125,7 @@ it('Financeiro/Unificado — PIXEL morde dims 1/2/3/4/9/10/11/12 e LIBERA no lim
         'dim4-iconografia'   => ['__pd_icon',   'svg { display: none !important; }'], // todos os ícones do viewport (sidebar+toolbar+cards) — hidden só nos cards era sub-limiar (0.036%)
         'dim9-tipografia'    => ['__pd_type',   '.fin-stat, .fin-stat * { font-size: 30px !important; line-height: 1.1 !important; }'],
         'dim10-espacamento'  => ['__pd_space',  '.fin-stat { padding: 40px !important; }'],
-        'dim11-cor'          => ['__pd_cor',    '.fin-stat { background: #fde68a !important; border-color: #f59e0b !important; }'],
+        'dim11-cor'          => ['__pd_cor',    '.fin-stat { filter: invert(1) hue-rotate(90deg) !important; }'], // invert afeta a subarvore renderizada (o bg do card vem de filho opaco; background no .fin-stat dava 0%)
         'dim12-microinteracao' => ['__pd_shadow', '.fin-stat { box-shadow: 0 0 0 8px #ff0000 !important; }'],
     ];
 
