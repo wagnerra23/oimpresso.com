@@ -227,6 +227,13 @@
       "anchor": "ADR proposta 2026-07-15-tab-nav-canonico-e-componente-por-papel (máquina d) + bug tab-nav 2026-07 (rounded-md + dark quebrado, [W] pegou no olho). DS é qualidade/higiene, não Tier-0 → advisory (ADR 0271/0314). Custo: regressão de fidelidade da barra de abas de topo sem alarme.",
       "promote_by": "2026-09-30"
     },
+    "status-badge-fidelity-gate.yml": {
+      "nome": "StatusBadge Fidelity — pílula de status fiel ao protótipo (rounded-full · token -soft/-fg dark-aware)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "ADR proposta 2026-07-15-tab-nav-canonico-e-componente-por-papel — Onda status-badge (mesmo tripé da máquina d do tab-nav). Trava o contrato dark-aware do <Badge variant> (cor mora em token -soft/-fg, nunca palette cru) vs .cli-status-pill do protótipo Cowork; controle-negativo do detector de cor-crua (ADR 0258). DS é qualidade/higiene, não Tier-0 → advisory (ADR 0271/0314). Custo: regressão de cor de status em palette cru quebra o dark sem alarme (mesmo vetor do bug tab-nav 2026-07).",
+      "promote_by": "2026-09-30"
+    },
     "compras-pest.yml": {
       "nome": "Compras · Pest (MySQL)",
       "classe": "gate",

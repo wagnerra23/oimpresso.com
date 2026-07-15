@@ -100,10 +100,13 @@ function collectExports(src) {
  * Assinaturas de papel. Cada papel canoniza 1 componente; o detector procura
  * OUTROS componentes cumprindo o mesmo papel sem consumir o canônico.
  *
- * ONDAS ABERTAS: `barra-de-abas-de-topo` (ADR proposta tab-nav-canonico) +
- * `combobox` (campo de busca com dropdown — 5 hand-rolls, esta onda).
- * FUTURO (ainda só catalogado): `status-badge` (11 hand-rolls do pill de
- * status). Entra como nova entrada aqui quando a onda respectiva abrir.
+ * `canonImport` aceita string OU lista de strings (o papel pode ser cumprido por
+ * mais de um canônico — ex status-badge = o primitivo <Badge> OU o wrapper de
+ * domínio <StatusBadge>; importar QUALQUER um = consumidor legítimo).
+ *
+ * ONDAS ABERTAS: `barra-de-abas-de-topo` + `sub-navegacao-contextual` (ADR proposta
+ * tab-nav-canonico) · `combobox` (campo de busca com dropdown) · `status-badge`
+ * (pílula de status, Onda 2026-07-15). Cada nova onda entra como entrada aqui.
  */
 const ROLE_SIGNATURES = [
   {
@@ -141,7 +144,7 @@ const ROLE_SIGNATURES = [
     canonImport: '@/Components/shared/SubNav',
     // Discriminador do papel: controlado (value/onChange), sem shell.menu/href.
     // Detecção de hand-rolls independentes fica DEFERIDA à onda respectiva
-    // (mesmo padrão de status-badge/combobox acima) — hoje só registra o canon
+    // (mesmo padrão de status-badge/combobox) — hoje só registra o canon
     // pra o papel existir no tooling e o detector parar de confundi-lo com
     // tab-nav. Ampliar o matches() é decisão de abrir a onda (não unilateral).
     matches(file /*, src */) {
@@ -176,6 +179,30 @@ const ROLE_SIGNATURES = [
       // falsos-amigos: ⌘K palette e card-grid picker NÃO são o combobox-de-campo.
       const notCombobox = /(CommandPalette|CommandDialog|TemplatePicker|Preview|Message)\.tsx$/.test(name);
       return (markup || byName || isCanon) && !notCombobox;
+    },
+  },
+  {
+    role: 'status-badge',
+    // Papel cumprido por DOIS canônicos (importar qualquer um = consumidor):
+    //   - primitivo <Badge variant="success|warning|danger|info|neutral"> (tokenizado -soft/-fg)
+    //   - wrapper de domínio <StatusBadge kind value> (mapeia string-de-domínio → tone+label
+    //     sobre Badge). O `canon` abaixo é o wrapper (é o arquivo que casa por NOME e ancora
+    //     a fidelidade); o primitivo entra via canonImport.
+    canon: 'resources/js/Components/shared/StatusBadge.tsx',
+    canonImport: ['@/Components/shared/StatusBadge', '@/Components/ui/badge'],
+    matches(file /* , src */) {
+      const name = basename(file);
+      // Sinal = NOME. O markup de pill (rounded+px+cor-de-status) é genérico demais —
+      // casa centenas de usos INLINE; esse eixo inline fica com a regra
+      // ds/no-handrolled-status-pill + ratchet (0209). O detector rastreia COMPONENTES
+      // reusáveis que reimplementam o papel (fronteira honesta: nome ≠ prova de papel →
+      // report-only, humano decide a migração).
+      const byName = /(StatusBadge|StatusPill|StatusChip|StageBadge|StagePill|Pills)\.tsx$/.test(name);
+      // Exclui: (a) canon fiscal FiscalStatusBadge/NfceStatusBadge — exceção DOCUMENTADA
+      // (R-DS-002 / ADR 0235, paleta oklch própria, fonte única do status fiscal; NÃO é
+      // drift); (b) chips de CATEGORIA/FILTRO/avatar (papel diferente).
+      const notStatus = /(FiscalStatusBadge|NfceStatusBadge|TagChip|TipoPill|ActiveChip|Avatar)\.tsx$/.test(name);
+      return byName && !notStatus;
     },
   },
 ];
@@ -214,9 +241,13 @@ function scanRoles(root) {
       if (rel === sig.canon) { canon.push(rel); continue; }
       matched.push({ rel, src });
     }
+    // canonImport pode ser string OU lista (papel com >1 canônico — ex status-badge
+    // = <Badge> OU <StatusBadge>). Importar QUALQUER um = consumidor direto.
+    const imports = Array.isArray(sig.canonImport) ? sig.canonImport : [sig.canonImport];
+    const importsAny = (src) => imports.some((i) => src.includes(i));
     // Consumidor DIRETO = importa o canon (é um wrapper, ex *SubNav).
-    const direct = matched.filter((m) => m.src.includes(sig.canonImport));
-    const rest = matched.filter((m) => !m.src.includes(sig.canonImport));
+    const direct = matched.filter((m) => importsAny(m.src));
+    const rest = matched.filter((m) => !importsAny(m.src));
     // Consumo TRANSITIVO: uma tela que renderiza um wrapper (que por sua vez
     // importa o canon) JÁ consome o papel — não é hand-roll independente. Sem
     // isso, telas como Financeiro/Unificado (importam FinanceiroSubNav + têm um

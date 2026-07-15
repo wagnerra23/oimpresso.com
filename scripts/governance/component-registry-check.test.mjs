@@ -149,5 +149,43 @@ check('roles/combobox: strict MORDE o hand-roll independente (exit 1)',
 check('roles/combobox: NÃO marca o consumer como independente mesmo com drift',
   !new RegExp('⚠️[^\\n]*FakeVehiclePicker').test(cbxDrift.stdout));
 
+// ── MODO --roles: papel status-badge (Onda 2026-07-15, ADR proposta tab-nav/papel) ──
+// Repo-fixture SEPARADO (root2) pra isolar do cluster tab-nav acima.
+const root2 = mkdtempSync(join(tmpdir(), 'compreg-sb-'));
+const sharedDir2 = join(root2, 'resources', 'js', 'Components', 'shared');
+const uiDir2 = join(root2, 'resources', 'js', 'Components', 'ui');
+const pages2 = join(root2, 'resources', 'js', 'Pages', 'Fake');
+mkdirSync(sharedDir2, { recursive: true });
+mkdirSync(uiDir2, { recursive: true });
+mkdirSync(pages2, { recursive: true });
+// canon do papel = wrapper de domínio StatusBadge (path EXATO que ROLE_SIGNATURES canoniza)
+writeFileSync(join(sharedDir2, 'StatusBadge.tsx'),
+  `import { Badge } from '@/Components/ui/badge';\nexport default function StatusBadge(){ return <Badge/> }\n`);
+// primitivo Badge (não casa por nome → não entra no cluster; alvo de import)
+writeFileSync(join(uiDir2, 'badge.tsx'), `export function Badge(){ return null }\n`);
+// consumidor via PRIMITIVO @/Components/ui/badge — exercita canonImport COMO LISTA
+writeFileSync(join(pages2, 'OkStageBadge.tsx'),
+  `import { Badge } from '@/Components/ui/badge';\nexport default function OkStageBadge(){ return <Badge variant="success" /> }\n`);
+const run2 = (extra = []) => spawnSync('node', [SCRIPT, '--root', root2, '--roles', ...extra], { encoding: 'utf8' });
+
+// 12. LIBERA: canon + consumidor-via-primitivo → sem independente (advisory E strict exit 0)
+const sbClean = run2();
+check('status-badge: advisory exit 0 sem independente', sbClean.status === 0);
+check('status-badge: consumidor via @/Components/ui/badge (canonImport LISTA) = consumer', /OkStageBadge/.test(sbClean.stdout) && /consumidores/.test(sbClean.stdout));
+check('status-badge: strict exit 0 sem independente', run2(['--strict']).status === 0);
+
+// 13. DRIFT: hand-roll INDEPENDENTE (*StatusBadge, NÃO importa nenhum canon)
+writeFileSync(join(pages2, 'VehicleStatusBadge.tsx'),
+  `export default function VehicleStatusBadge(){ return <span className="inline-flex rounded-full px-2 py-0.5 bg-success-soft text-success-fg">ok</span> }\n`);
+const sbDrift = run2();
+check('status-badge: advisory NÃO morde com drift (exit 0)', sbDrift.status === 0);
+check('status-badge: strict MORDE hand-roll independente (exit 1)', run2(['--strict']).status === 1);
+check('status-badge: aponta VehicleStatusBadge como INDEPENDENTE', /VehicleStatusBadge/.test(sbDrift.stdout) && /INDEPENDENTE/i.test(sbDrift.stdout));
+
+// 14. EXCEÇÃO documentada: FiscalStatusBadge (R-DS-002/ADR 0235) NÃO entra no cluster
+writeFileSync(join(pages2, 'FiscalStatusBadge.tsx'),
+  `export default function FiscalStatusBadge(){ return <span className="rounded-full px-2 py-0.5">fiscal</span> }\n`);
+check('status-badge: FiscalStatusBadge (exceção documentada) NÃO é reportado como drift', !/FiscalStatusBadge/.test(run2().stdout));
+
 console.log(fails === 0 ? '\n✓ todos os checks passaram' : `\n✗ ${fails} check(s) falharam`);
 process.exit(fails === 0 ? 0 : 1);
