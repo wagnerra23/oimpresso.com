@@ -1,7 +1,7 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PTAB-01, UC-PTAB-02, UC-PTAB-03, UC-PTAB-04 (SellingPrices.casos.md) - G-2 rastreabilidade caso-teste.
+// Cobre UC-PTAB-01, UC-PTAB-02, UC-PTAB-03, UC-PTAB-04, UC-PTAB-05 (SellingPrices.casos.md) - G-2 rastreabilidade caso-teste.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -48,6 +48,24 @@ function tabelaPrecoAtiva(int $businessId, string $nome): int
         'created_at' => now(),
         'updated_at' => now(),
     ]);
+}
+
+/**
+ * Preço unitário que o PDV monta pra variação — lido do row real do POS.
+ *
+ * O `hidden_base_unit_sell_price` da view `sale_pos.product_row` (linha 294) imprime
+ * `$product->default_sell_price / $multiplier` CRU (sem `num_format`), e `$multiplier` é 1
+ * quando o produto não tem sub-unidade. É exatamente o campo que o guard do
+ * `SellPosController::getSellLineRow` sobrescreve quando há preço de tabela — por isso é ele
+ * que responde "com que preço esta venda sai?", que é o que o UC-PTAB-05 pergunta.
+ */
+function precoUnitarioNoPdv(string $html): ?float
+{
+    if (! preg_match('/class="hidden_base_unit_sell_price" value="([^"]*)"/', $html, $m)) {
+        return null;
+    }
+
+    return (float) $m[1];
 }
 
 /** Preço gravado para o par (variação × tabela), ou null se não persistiu. */
@@ -274,4 +292,97 @@ it('UC-PTAB-03 · preço fracionário com ponto NÃO infla ×100k (vetor do inci
         "Preço da tabela inflou: gravou {$gravado} a partir de '204.99605' — vetor num_uf do incidente 2026-06-05."
     );
     expect($gravado)->toEqualWithDelta(204.996, 0.01);
+});
+
+// =============================================================================
+// UC-PTAB-05 — `[V0]` REGRA MESTRE: célula não preenchida da matriz não vende a zero
+//
+//   ÂNCORA (contrato, NÃO implementação): CU-PROD-03 item 1 + REGRA MESTRE valor/estoque
+//   (`proibicoes.md`). O contrato é de DINHEIRO: a venda não pode sair a R$ 0,00 porque o
+//   operador deixou uma célula da matriz em branco. Nenhum operador aceitaria isso — é o
+//   mesmo invariante do UC-PTAB-03 (preço não pode virar o número errado), no outro sentido.
+//
+//   POR QUE ESTE CASO EXISTE — o fato que o motiva (verificado, não lido de passagem):
+//   a UI pré-preenche célula sem preço com 0 e ENVIA. React `SellingPrices.tsx:73`
+//   (`row[v.id] = existing ?? { price: 0, price_type: 'fixed' }`) e Blade
+//   `add-selling-prices.blade.php:50` (`... : 0`). E o `saveSellingPrices` GRAVA: o laço
+//   filtra por `isset($value[$variation->id])`, não por valor — zero passa. Logo "sem preço
+//   nesta tabela" vira, no banco, "row com preço 0". Os dois casos abaixo são as duas formas
+//   que esse mesmo estado de negócio assume.
+//
+//   ⛔ TEST-ONLY: não altera cálculo nenhum. Se ficar vermelho, o vermelho é o achado —
+//      a correção é US separada sob REGRA MESTRE (dupla-confirmação + antes→depois + [W]).
+//
+//   ⚠️ FAILING-FIRST DECLARADO (US-PROD-027, escrito 2026-07-16): a US afirma que o 0-row é
+//   inofensivo "por sorte do PHP" — `SellPosController:1792` guarda com
+//   `!empty($variation_group_prices['price_inc_tax'])` e `!empty(0)` é `false`. Ao escrever
+//   este caso, a premissa NÃO foi verificada e há motivo concreto pra duvidar dela:
+//   `variation_group_prices.price_inc_tax` é `decimal(22,4)` e `App\VariationGroupPrice` não
+//   declara `$casts` — PDO/MySQL devolve DECIMAL como STRING pra preservar precisão. Em PHP
+//   só `"0"` e `""` são strings falsy: `empty("0.0000")` é `false`. Se for esse o caso, o
+//   guard NÃO segura e a venda sai a zero hoje, em produção.
+//   Este teste não decide isso lendo — ele assere o CONTRATO e deixa a lane responder.
+//   Escrevê-lo ancorado no comportamento observado o faria nascer verde documentando o bug
+//   como se fosse regra (a tautologia de `proibicoes.md` §5, entrada 2026-06-05).
+// =============================================================================
+
+it('UC-PTAB-05 · célula da matriz salva com 0 não faz a venda sair a zero', function () {
+    $bizId = (int) $this->business->id;
+    $produto = EstoqueFixture::singleProduct($bizId); // default_sell_price = 20
+    $variationId = $produto->variationId();
+    $locationId = EstoqueFixture::locationId($bizId);
+    $tabelaId = tabelaPrecoAtiva($bizId, 'Atacado UC-PTAB-05 zero');
+
+    // O caminho REAL: salvar a tela com a célula como a UI a manda quando ninguém digitou nada.
+    $this->post('/products/save-selling-prices', [
+        'product_id' => $produto->productId,
+        'group_prices' => [
+            $tabelaId => [$variationId => ['price' => '0', 'price_type' => 'fixed']],
+        ],
+    ])->assertStatus(302);
+
+    // Pré-condição do caso: a row zerada existe mesmo (senão o teste não prova nada).
+    $gravado = precoGravado($variationId, $tabelaId);
+    expect($gravado)->not->toBeNull('A UI manda 0 e o controller grava — se sumiu, a premissa do caso mudou.');
+    expect($gravado['price_inc_tax'])->toEqualWithDelta(0.0, 0.0001);
+
+    // O PDV monta a linha da venda aplicando essa tabela.
+    $response = $this->get("/sells/pos/get_product_row/{$variationId}/{$locationId}?price_group={$tabelaId}");
+    $response->assertOk();
+
+    $preco = precoUnitarioNoPdv((string) $response->json('html_content'));
+    expect($preco)->not->toBeNull('Não achei o preço unitário no row do POS — a view mudou de forma.');
+
+    // O INVARIANTE (REGRA MESTRE): célula em branco = "esta tabela não define preço" =
+    // usa o preço padrão da variação. Nunca R$ 0,00.
+    expect($preco)->toEqualWithDelta(20.0, 0.0001,
+        "A venda saiu a {$preco} aplicando uma tabela cuja célula a UI preencheu com 0. "
+        .'Célula em branco na matriz NÃO é preço zero — é ausência de preço, e ausência cai no '
+        .'padrão da variação (R$ 20,00). Ver US-PROD-027 + REGRA MESTRE valor/estoque.'
+    );
+});
+
+it('UC-PTAB-05 · tabela sem row pra variação usa o preço padrão (caso normal)', function () {
+    $bizId = (int) $this->business->id;
+    $produto = EstoqueFixture::singleProduct($bizId); // default_sell_price = 20
+    $variationId = $produto->variationId();
+    $locationId = EstoqueFixture::locationId($bizId);
+    $tabelaId = tabelaPrecoAtiva($bizId, 'Atacado UC-PTAB-05 sem row');
+
+    // Nada é salvo: a tabela existe, mas não define preço pra esta variação.
+    expect(precoGravado($variationId, $tabelaId))->toBeNull();
+
+    $response = $this->get("/sells/pos/get_product_row/{$variationId}/{$locationId}?price_group={$tabelaId}");
+    $response->assertOk();
+
+    $preco = precoUnitarioNoPdv((string) $response->json('html_content'));
+    expect($preco)->not->toBeNull('Não achei o preço unitário no row do POS — a view mudou de forma.');
+
+    // Este é o caso NORMAL (produto sem preço naquela tabela) — e é o mesmo retorno (`''`) que
+    // LabelsController:143 e WoocommerceUtil:341,731 consomem SEM guardar. Aqui só o PDV está
+    // sob contrato; os outros 3 consumidores não têm CU (§Pendência de CONTRATO do casos.md).
+    expect($preco)->toEqualWithDelta(20.0, 0.0001,
+        "A venda saiu a {$preco} aplicando uma tabela que não define preço pra esta variação. "
+        .'Sem row = sem preço na tabela = preço padrão da variação (R$ 20,00).'
+    );
 });

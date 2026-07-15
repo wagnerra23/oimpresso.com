@@ -29,11 +29,14 @@ last_run: "2026-07-15"
 | UC-PTAB-02 | Produto de outro business não vaza (Tier 0) | must | item 4 `[T0]` | `TabelaPrecoContratoTest` | 🧪 |
 | UC-PTAB-03 | Preço da tabela não infla no parser pt-BR (`num_uf`) | must | item 1 `[V0]` | `TabelaPrecoContratoTest` | 🧪 |
 | UC-PTAB-04 | `price_group` de outro business não grava row (Tier 0) | must | `CU-PROD-10.1` `[T0]` | `TabelaPrecoContratoTest` | 🧪 |
+| UC-PTAB-05 | Célula em branco da matriz não faz a venda sair a zero | must | item 1 `[V0]` | `TabelaPrecoContratoTest` | ⬜ |
 
-**Veredito:** os 4 UCs **rodam e passam** na lane `PHP / Pest (Estoque · MySQL)` do
+**Veredito:** os **4 primeiros** UCs **rodam e passam** na lane `PHP / Pest (Estoque · MySQL)` do
 [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) — MySQL real, biz=1 + biz=2 semeados.
 Não é verde-por-skip: o `paths-filter` da lane inclui `tests/Feature/Produto/**` e o log traz
 `PASS Tests\Feature\Produto\TabelaPrecoContratoTest`.
+O **`UC-PTAB-05` é novo** (US-PROD-027) e está `⬜` — nasce **failing-first declarado**: ele existe
+justamente pra decidir se a premissa da US ("0-row é inerte") é verdadeira. Ver a seção do UC.
 
 `🧪` e não `✅` porque o manifesto do G-7 (`scripts/casos-test-results.json`, via `npm run casos:results`)
 ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como `unverified`.
@@ -88,6 +91,17 @@ ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como
 - **Nasceu vermelho — e foi assim que virou prova.** 1ª execução ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300), run `29421329161`): `FAILED — Gravou (minha variação × price_group de OUTRO business)`. O `✅ (reusa guard)` do `CU-PROD-10` era **falso**: eu tinha afirmado isso lendo o código 3 turnos antes, e só virou fato quando o CI reprovou.
 - **Correção (mesmo PR — failing-first):** `saveSellingPrices` agora resolve `$allowedPriceGroupIds = SellingPriceGroup::where('business_id', $business_id)->pluck('id')` **antes** do laço e pula (+ `Log::warning`) qualquer `price_group_id` fora do business. `abort(404)` ali seria engolido pelo `catch (\Exception)` genérico — por isso skip + log, e o UC assere o invariante (nada gravado), não o status.
 - **Status: 🧪** — vermelho → correção → verde na mesma lane (`Estoque · MySQL`); ✅ quando o manifesto G-7 for regravado.
+
+---
+
+## UC-PTAB-05 · Célula em branco da matriz não faz a venda sair a zero · `must` `[V0]`
+- **Persona:** Larissa / operador — abre a matriz pra definir o preço de atacado de UM produto, salva, e as outras células (que ele nunca digitou) vão junto com `0`. Se a tabela de atacado passar a vender esses produtos a R$ 0,00, é prejuízo direto e silencioso.
+- **Aceite:** Dado um produto cuja variação tem preço padrão R$ 20,00 e uma tabela de preço ativa · Quando a tabela **não define preço** pra essa variação — seja porque a célula foi salva com `0` (o que a UI manda pra célula em branco), seja porque não há row nenhuma · Então a venda que aplica essa tabela usa **o preço padrão da variação (R$ 20,00)**, nunca R$ 0,00.
+- **Teste:** `tests/Feature/Produto/TabelaPrecoContratoTest.php` — `UC-PTAB-05 · célula da matriz salva com 0 não faz a venda sair a zero` + `UC-PTAB-05 · tabela sem row pra variação usa o preço padrão (caso normal)`.
+- **Contrato:** `CU-PROD-03` item 1 + **REGRA MESTRE valor/estoque** (`proibicoes.md`). O contrato é de **dinheiro**: célula em branco é *ausência de preço*, não *preço zero*. Note que o UC assere o **preço que a venda assume**, não o `!empty()` do controller — o guard é implementação e pode mudar; o invariante não.
+- **O fato que o motiva (verificado):** a UI pré-preenche célula sem preço com `0` e **envia** — React [`SellingPrices.tsx:73`](SellingPrices.tsx) (`row[v.id] = existing ?? { price: 0, price_type: 'fixed' }`) e Blade `add-selling-prices.blade.php:50` (`... : 0`). E o `saveSellingPrices` **grava**: o laço filtra por `isset($value[$variation->id])`, não por valor. Logo "sem preço nesta tabela" vira, no banco, "row com preço 0". Os dois casos do aceite são as duas formas que esse mesmo estado de negócio assume.
+- **⚠️ Nasceu failing-first declarado (US-PROD-027).** A US afirma que o 0-row é inofensivo *"por sorte do PHP"* (`SellPosController:1792` guarda com `!empty($variation_group_prices['price_inc_tax'])`, e `!empty(0)` é `false`). Essa premissa **não foi verificada** — e há motivo concreto pra duvidar: `variation_group_prices.price_inc_tax` é `decimal(22,4)` e `App\VariationGroupPrice` **não declara `$casts`**; PDO/MySQL devolve DECIMAL como **string**, e em PHP só `"0"` e `""` são strings falsy — `empty("0.0000")` é `false`. Se for o caso, o guard não segura e a venda **já sai a zero em produção**. O UC não decide isso lendo: assere o contrato e deixa a lane `Estoque · MySQL` responder. Verde → a US era TEST-ONLY mesmo. Vermelho → o vermelho é o achado, e a correção vira US separada sob REGRA MESTRE.
+- **Status: ⬜** — não verificado até a lane rodar. Vira 🧪/❌ conforme o resultado da 1ª execução.
 
 ---
 
@@ -155,12 +169,15 @@ Os dois caminhos de **venda interna** guardam; os três de **saída pro cliente 
   quando a tabela não tem preço, não há UC possível. Decisão [W]: vira `CU-PROD-09.3`?
 - **WooCommerce** — **não tem CU nenhum** no SDD do Produto (aparece no SPEC §2 como capacidade
   em produção, sem caso de uso). Decisão [W]: nasce CU de canal?
-- **O 0-row é inerte por acidente** — a UI (React **e** Blade) pré-preenche célula sem preço com
-  `0` e envia (`row[v.id] = existing ?? { price: 0, ... }` / `... : 0`). Salvar a tela converte
-  "sem row (usa o padrão)" em "row com preço 0". No PDV isso não faz mal **só porque `!empty(0)`
-  é `false` em PHP** — coincidência de semântica, não invariante desenhado. Um refactor razoável
-  (`isset`, `!== null`, tipar `?float`) destrava preço zero em produção. Nada testa esse acidente.
-  Corolário: **preço 0 legítimo é inexprimível** (tabela promocional "grátis" não existe).
+- **~~O 0-row é inerte por acidente~~ → virou `UC-PTAB-05`** (US-PROD-027, 2026-07-16). Este item
+  saiu da pendência: o PDV **tem** contrato (`CU-PROD-03` item 1 + REGRA MESTRE), então o caso é
+  escrevível — o que faltava era percebê-lo como invariante de dinheiro ("célula em branco não
+  vende a zero"), e não como curiosidade sobre o `!empty()`. ⚠️ **A premissa "inerte" está sob
+  suspeita e o UC-PTAB-05 é quem decide:** `price_inc_tax` é `decimal(22,4)` e o model não tem
+  `$casts` → PDO devolve string `"0.0000"`, e `empty("0.0000")` é `false` (só `"0"` e `""` são
+  falsy). Se confirmar, não é acidente inerte — é venda a zero **hoje**. Continua verdade que um
+  refactor (`isset`, `!== null`, `?float`) mexe nesse caminho, e o corolário segue de pé:
+  **preço 0 legítimo é inexprimível** (tabela promocional "grátis" não existe) — decisão [W].
 
 > ⚠️ As correções **brigam entre si**: fazer a UI parar de gravar zeros (bom) aumenta os casos de
 > "sem row" → **piora** etiqueta/Woo. Não há uma raiz única; são 3 defeitos independentes
