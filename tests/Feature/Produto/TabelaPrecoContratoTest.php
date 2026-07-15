@@ -8,6 +8,7 @@ use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Tests\Support\EstoqueFixture;
+use Tests\TestCase;
 
 /**
  * Contrato de comportamento da Tabela de Preço do produto (/products/add-selling-prices/{id}).
@@ -66,6 +67,35 @@ function precoUnitarioNoPdv(string $html): ?float
     }
 
     return (float) $m[1];
+}
+
+/**
+ * Monta a linha do PDV pra (variação × local) aplicando uma tabela de preço, e devolve o HTML.
+ *
+ * ⚠️ A rota devolve **200 mesmo quando falha por dentro**: `getProductRow` embrulha tudo num
+ * `try { } catch (\Exception $e)` que engole a exceção e devolve `['success' => false]` sem
+ * `html_content`. Ou seja, `assertOk()` NÃO prova que a linha foi montada — por isso o assert
+ * explícito aqui. (Custou os 2 vermelhos da 1ª execução deste UC: o produto da fixture nasce
+ * `enable_stock = 1` sem estoque, o `getDetailsFromVariation` roda com `check_qty = true` e filtra
+ * por `enable_stock != 1 OR qty_available > 0` → não achava a variação e o caso morria ANTES de
+ * chegar no guard do preço. Verde-por-engano seria impossível, mas vermelho-por-engano quase
+ * passou por achado.)
+ */
+function rowDoPdvComTabela(TestCase $test, int $variationId, int $locationId, int $priceGroupId): string
+{
+    $response = $test->get("/sells/pos/get_product_row/{$variationId}/{$locationId}?price_group={$priceGroupId}");
+    $response->assertOk();
+
+    $html = $response->json('html_content');
+
+    expect($html)->not->toBeNull(
+        'A rota devolveu 200 mas sem `html_content` (success='
+        .var_export($response->json('success'), true)
+        .') — a linha do PDV não foi montada. Não é veredito do preço: o caso não chegou lá. '
+        .'Causa comum: variação sem estoque com `enable_stock = 1` (use EstoqueFixture::setStock).'
+    );
+
+    return (string) $html;
 }
 
 /** Preço gravado para o par (variação × tabela), ou null se não persistiu. */
@@ -333,6 +363,9 @@ it('UC-PTAB-05 · célula da matriz salva com 0 não faz a venda sair a zero', f
     $locationId = EstoqueFixture::locationId($bizId);
     $tabelaId = tabelaPrecoAtiva($bizId, 'Atacado UC-PTAB-05 zero');
 
+    // Estoque real: o PDV só monta a linha de produto que ele pode vender (`check_qty`).
+    EstoqueFixture::setStock($produto, 0, $locationId, 10);
+
     // O caminho REAL: salvar a tela com a célula como a UI a manda quando ninguém digitou nada.
     $this->post('/products/save-selling-prices', [
         'product_id' => $produto->productId,
@@ -347,10 +380,7 @@ it('UC-PTAB-05 · célula da matriz salva com 0 não faz a venda sair a zero', f
     expect($gravado['price_inc_tax'])->toEqualWithDelta(0.0, 0.0001);
 
     // O PDV monta a linha da venda aplicando essa tabela.
-    $response = $this->get("/sells/pos/get_product_row/{$variationId}/{$locationId}?price_group={$tabelaId}");
-    $response->assertOk();
-
-    $preco = precoUnitarioNoPdv((string) $response->json('html_content'));
+    $preco = precoUnitarioNoPdv(rowDoPdvComTabela($this, $variationId, $locationId, $tabelaId));
     expect($preco)->not->toBeNull('Não achei o preço unitário no row do POS — a view mudou de forma.');
 
     // O INVARIANTE (REGRA MESTRE): célula em branco = "esta tabela não define preço" =
@@ -369,13 +399,12 @@ it('UC-PTAB-05 · tabela sem row pra variação usa o preço padrão (caso norma
     $locationId = EstoqueFixture::locationId($bizId);
     $tabelaId = tabelaPrecoAtiva($bizId, 'Atacado UC-PTAB-05 sem row');
 
+    EstoqueFixture::setStock($produto, 0, $locationId, 10);
+
     // Nada é salvo: a tabela existe, mas não define preço pra esta variação.
     expect(precoGravado($variationId, $tabelaId))->toBeNull();
 
-    $response = $this->get("/sells/pos/get_product_row/{$variationId}/{$locationId}?price_group={$tabelaId}");
-    $response->assertOk();
-
-    $preco = precoUnitarioNoPdv((string) $response->json('html_content'));
+    $preco = precoUnitarioNoPdv(rowDoPdvComTabela($this, $variationId, $locationId, $tabelaId));
     expect($preco)->not->toBeNull('Não achei o preço unitário no row do POS — a view mudou de forma.');
 
     // Este é o caso NORMAL (produto sem preço naquela tabela) — e é o mesmo retorno (`''`) que
