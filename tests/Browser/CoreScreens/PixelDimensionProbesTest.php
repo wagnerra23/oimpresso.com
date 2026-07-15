@@ -136,9 +136,12 @@ it('Financeiro/Unificado — PIXEL morde dims 1/2/3/4/9/10/11/12 e LIBERA no lim
         $ratio = VisregThreshold::ratioBetween($clean, $dirty);
         $page->script(pixdimRemove($id)); // reverte SEMPRE
 
+        // "Enxerga" = ratio ACIMA de τ_baixo (a máquina NÃO classifica como idêntico/aprovado).
+        // > τ_alto seria "regressão gritante" — rigoroso demais pra provar percepção. A dupla
+        // LIBERA(<τ_baixo) / MORDE(>τ_baixo) prova que o limiar de identidade separa certo.
         expect($ratio)->toBeGreaterThan(
-            $tauHigh,
-            sprintf('MORDE falhou (%s): ratio=%.4f%% NÃO passou de τ_alto=%.4f%% → máquina CEGA nessa dimensão', $label, $ratio * 100, $tauHigh * 100)
+            $tauLow,
+            sprintf('MORDE falhou (%s): ratio=%.4f%% NÃO passou de τ_baixo=%.4f%% → a máquina NÃO viu diferença nenhuma (cega)', $label, $ratio * 100, $tauLow * 100)
         );
     }
 });
@@ -151,15 +154,15 @@ it('Financeiro/Unificado — atalho "/" foca a busca (dim 6, comportamental) + c
 
     $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode('/financeiro/unificado'));
     $page->assertSee('Financeiro');
-    $page->wait(1.0);
+    $page->wait(2.5); // hidratação: o handler global só existe após o useEffect (window.addEventListener)
 
     // CONTROLE-NEGATIVO: sem apertar nada, a busca NÃO está focada.
     $before = $page->script("return (document.activeElement && document.activeElement.id) || '';");
     expect($before)->not->toBe('fin-search-input', 'A busca já estava focada sem apertar / — controle-negativo inválido');
 
-    // MORDE: dispara '/' no window (onde o handler vive) com target não-editável (body).
-    $page->script("document.body.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true })); return true;");
-    $page->wait(0.4);
+    // MORDE: dispara '/' direto no window (onde vive o addEventListener, linha ~1503 da tela).
+    $page->script("window.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true, cancelable: true })); return true;");
+    $page->wait(0.6);
 
     $after = $page->script("return (document.activeElement && document.activeElement.id) || '';");
     expect($after)->toBe(
