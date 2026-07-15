@@ -5,7 +5,7 @@ import * as React from 'react';
  *
  * Pattern canon v3.8 (LEARNINGS Decisão #4 + amendments v3.4 polish + v3.8 spacing):
  *   - `border-b overflow-visible` (FLAT — sem bg, sem rounded, sem border full)
- *   - `borderBottomColor: 'oklch(0.93 0.004 90)'` inline (linha divisora warm)
+ *   - `borderBottomColor: 'var(--border)'` inline (linha divisora dark-aware · token)
  *   - `pt-6 px-6 pb-3.5` (24/24/14 espelha Vendas canon Cowork)
  *   - `min-h-[60px] flex items-center gap-4` (3 zonas L/C/R)
  *   - H1 `text-[22px] font-bold tracking-tight leading-snug` (peso Vendas)
@@ -15,7 +15,8 @@ import * as React from 'react';
  *   v3.1 (PR #1457): card `bg-background border rounded-lg` + h1 16/600 + padding 16/16/14
  *   v3.2 (PR #1477): h1 22/700 (peso Vendas) + padding 24/24/14
  *   v3.2  (PR #1478): rounded-t-lg (bottom reta · conecta com BLOCO 2)
- *   v3.4 polish:       border-b warm `oklch(0.93 0.004 90)` separação visual
+ *   v3.4 polish:       border-b warm separação visual (era `oklch(0.93 0.004 90)`)
+ *   dark-aware:        borderBottomColor `var(--border)` (light 0.90 warm → dark 0.34) · corrige linha clara no dark
  *   v3.8 spacing:      header transparent (sem bg + sem border full + sem radius) · flat puro
  *                      tipo /sells Cowork · linha warm divisora abaixo
  *
@@ -68,7 +69,7 @@ export function PageHeader({
     <header
       className={`border-b overflow-visible ${className}`.trim()}
       role="banner"
-      style={{ borderBottomColor: 'oklch(0.93 0.004 90)' }}
+      style={{ borderBottomColor: 'var(--border)' }}
     >
       <div className="flex items-center gap-4 pt-6 px-6 pb-3.5 min-h-[60px]">
         {/* ZONA L · identidade */}
