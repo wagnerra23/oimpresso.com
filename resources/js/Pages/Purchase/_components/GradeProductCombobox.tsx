@@ -9,11 +9,28 @@
 // do produto variável). Agrupamos por product_id; o nome canônico vem depois do
 // grade-matrix (product_name), então o label do dropdown só precisa ser legível.
 //
+// Onda combobox (2026-07-15, ADR proposta tab-nav-canonico + ADR 0338): MIGRADO do
+// hand-roll (Input + <div role="listbox"> + <button role="option"> + onKeyDown +
+// highlight à mão) pro CANON do papel = Command (cmdk, @/Components/ui/command),
+// usado INLINE — sub-shape async do combobox (input sempre visível, busca no
+// servidor). shouldFilter={false}: o motor NÃO filtra; os itens vêm do fetch
+// debounceado (a busca é server-side). O cmdk assume o input + a lista + navegação
+// de teclado (↑↓ Enter) + a11y (role=combobox/listbox/option, aria-activedescendant)
+// que o componente reimplementava. TODA a lógica de fetch (debounce 250ms +
+// AbortController + groupByProduct + cleanLabel) e a API (props locationId/onPick/
+// disabled) ficam INALTERADAS — consumidor (Purchase/Create) não muda.
+//
 // Não vira shared ainda (R-DS-001 — reutilização sob demanda).
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Search, Loader2, X } from 'lucide-react';
-import { Input } from '@/Components/ui/input';
+import { Loader2, X } from 'lucide-react';
+import {
+  Command,
+  CommandEmpty,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/Components/ui/command';
 
 interface GetProductsRow {
   id: number;
@@ -65,11 +82,10 @@ export default function GradeProductCombobox({ locationId, onPick, disabled = fa
   const [options, setOptions] = useState<PickedProduct[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [highlight, setHighlight] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Busca debounceada com cancelamento de request stale.
+  // Busca debounceada com cancelamento de request stale (INALTERADA do hand-roll —
+  // a navegação/highlight é do cmdk agora, então some o setHighlight daqui).
   useEffect(() => {
     if (query.trim().length < MIN_QUERY) {
       setOptions([]);
@@ -95,7 +111,6 @@ export default function GradeProductCombobox({ locationId, onPick, disabled = fa
         const grouped = groupByProduct(Array.isArray(data) ? data : []);
         setOptions(grouped);
         setOpen(true);
-        setHighlight(-1);
       } catch (err) {
         if ((err as Error).name !== 'AbortError') setOptions([]);
       } finally {
@@ -125,97 +140,67 @@ export default function GradeProductCombobox({ locationId, onPick, disabled = fa
       setQuery('');
       setOptions([]);
       setOpen(false);
-      setHighlight(-1);
-      inputRef.current?.blur();
     },
     [onPick]
   );
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Escape') {
-      setOpen(false);
-      setHighlight(-1);
-      return;
-    }
-    if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      if (!open && options.length > 0) setOpen(true);
-      setHighlight((h) => Math.min(h + 1, options.length - 1));
-      return;
-    }
-    if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      setHighlight((h) => Math.max(h - 1, 0));
-      return;
-    }
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      const target = highlight >= 0 ? options[highlight] : options[0];
-      if (target) pick(target);
-    }
-  };
+  const podeBuscar = query.trim().length >= MIN_QUERY;
 
   return (
     <div ref={containerRef} className="relative w-full">
-      <div className="relative">
-        <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-stone-400 pointer-events-none" />
-        <Input
-          ref={inputRef}
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => options.length > 0 && setOpen(true)}
-          onKeyDown={handleKeyDown}
-          placeholder={locationId ? 'Buscar produto pra abrir a grade…' : 'Selecione a filial primeiro'}
-          disabled={disabled || !locationId}
-          className="pl-7 pr-8 h-9 text-[13px]"
-          aria-label="Buscar produto pra grade"
-          aria-expanded={open}
-          autoComplete="off"
-        />
-        {loading && (
-          <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 animate-spin text-stone-400" />
-        )}
-        {!loading && query.length > 0 && (
-          <button
-            type="button"
-            onClick={() => { setQuery(''); setOptions([]); setOpen(false); inputRef.current?.focus(); }}
-            aria-label="Limpar"
-            className="absolute right-2 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-700"
-          >
-            <X className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-
-      {open && options.length > 0 && (
-        <div
-          role="listbox"
-          className="absolute z-50 mt-1 w-full max-h-64 overflow-auto rounded-md border border-stone-200 bg-white shadow-md"
-        >
-          {options.map((opt, idx) => (
+      {/* Command inline: shouldFilter=false porque a busca é server-side (os itens já
+          vêm filtrados do fetch). O motor cmdk dá input + lista + teclado + a11y. */}
+      <Command
+        shouldFilter={false}
+        className="overflow-visible rounded-md border border-input bg-background"
+      >
+        <div className="relative">
+          <CommandInput
+            value={query}
+            onValueChange={setQuery}
+            onFocus={() => options.length > 0 && setOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') setOpen(false);
+            }}
+            placeholder={locationId ? 'Buscar produto pra abrir a grade…' : 'Selecione a filial primeiro'}
+            disabled={disabled || !locationId}
+            aria-label="Buscar produto pra grade"
+            className="text-[13px] pr-8"
+          />
+          {loading && (
+            <Loader2 className="absolute right-2 top-1/2 -translate-y-1/2 size-3.5 animate-spin text-muted-foreground" />
+          )}
+          {!loading && query.length > 0 && (
             <button
-              key={opt.product_id}
               type="button"
-              role="option"
-              aria-selected={idx === highlight}
-              onMouseEnter={() => setHighlight(idx)}
-              onClick={() => pick(opt)}
-              className={`flex w-full items-center px-3 py-2 text-left text-[13px] ${
-                idx === highlight ? 'bg-stone-100 text-stone-900' : 'hover:bg-stone-50 text-stone-700'
-              }`}
+              onClick={() => {
+                setQuery('');
+                setOptions([]);
+                setOpen(false);
+              }}
+              aria-label="Limpar"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
-              <span className="truncate">{opt.label}</span>
+              <X className="size-3.5" />
             </button>
-          ))}
+          )}
         </div>
-      )}
-
-      {open && query.trim().length >= MIN_QUERY && options.length === 0 && !loading && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border border-stone-200 bg-white px-3 py-2 text-[13px] text-stone-500 shadow-md">
-          Nenhum produto encontrado para "{query}".
-        </div>
-      )}
+        {open && podeBuscar && (
+          <CommandList className="absolute z-50 left-0 right-0 top-full mt-1 max-h-64 rounded-md border bg-popover shadow-md">
+            {!loading && <CommandEmpty>Nenhum produto encontrado para "{query}".</CommandEmpty>}
+            {options.map((opt) => (
+              <CommandItem
+                key={opt.product_id}
+                value={String(opt.product_id)}
+                onSelect={() => pick(opt)}
+                className="text-[13px]"
+              >
+                <span className="truncate">{opt.label}</span>
+              </CommandItem>
+            ))}
+          </CommandList>
+        )}
+      </Command>
     </div>
   );
 }
