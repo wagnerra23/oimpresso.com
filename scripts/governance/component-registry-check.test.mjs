@@ -110,5 +110,16 @@ check('roles: strict MORDE hand-roll independente (exit 1)', run(['--roles', '--
 check('roles: aponta o independente FakeTopNav', /FakeTopNav/.test(rolesDrift.stdout) && /INDEPENDENTE/i.test(rolesDrift.stdout));
 check('roles: NÃO marca o consumer como independente', !new RegExp('⚠️[^\\n]*FakeSubNav').test(rolesDrift.stdout));
 
+// 9. TRANSITIVO — tela que renderiza o wrapper (FakeSubNav → importa o canon) +
+// tem markup de topo NÃO é independente: consome o papel via wrapper. Sem essa
+// regra, Financeiro/Unificado (importa FinanceiroSubNav + tablist de drawer)
+// virava falso-positivo de drift.
+writeFileSync(join(fakePages, 'FakeUnificado.tsx'),
+  `import FakeSubNav from '@/Pages/Fake/FakeSubNav';\nexport default function FakeUnificado(){ return <div><FakeSubNav /><nav role="tablist" className="subnav-inner" /></div> }\n`);
+const rolesTrans = run(['--roles']);
+check('roles: consumo TRANSITIVO (renderiza wrapper) conta como consumidor', new RegExp('✓[^\\n]*FakeUnificado').test(rolesTrans.stdout));
+check('roles: consumo TRANSITIVO NÃO é marcado independente', !new RegExp('⚠️[^\\n]*FakeUnificado').test(rolesTrans.stdout));
+check('roles: FakeTopNav (sem wrapper nem canon) segue independente', new RegExp('⚠️[^\\n]*FakeTopNav').test(rolesTrans.stdout));
+
 console.log(fails === 0 ? '\n✓ todos os checks passaram' : `\n✗ ${fails} check(s) falharam`);
 process.exit(fails === 0 ? 0 : 1);
