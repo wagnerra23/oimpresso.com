@@ -64,8 +64,23 @@ Adicionar ao bloco `rules` do override `files: ['resources/js/**/*.{ts,tsx}']`. 
     selector: 'JSXAttribute[name.name="style"] Literal[value=/(#[0-9a-fA-F]{3,8}\\b|rgba?\\(|hsla?\\(|oklch\\(|oklab\\(|lab\\(|lch\\(|color\\()/]',
     message: 'ds/no-inline-raw-color — sem cor/borda/sombra crua em style inline. Use token dark-aware (var(--accent)…).',
   },
+  {
+    // ds/no-handrolled-combobox — COMPONENT-SUBSTITUTE (tipo 2, lista curada).
+    // Campo de busca com dropdown canoniza na composição Popover + Command (cmdk,
+    // @/Components/ui/{popover,command}) — o Command é o MOTOR (input + lista +
+    // teclado + a11y de fábrica). SELECTOR PRECISO: pega só os signals que NUNCA
+    // aparecem no consumo canônico — aria-autocomplete e role="combobox" num <input>
+    // nativo (o padrão certo põe role=combobox no <Button> trigger). Assim
+    // ServiceOrders/Create (Button + Command) não é pego.
+    selector: 'JSXAttribute[name.name="aria-autocomplete"], JSXOpeningElement[name.name="input"] > JSXAttribute[name.name="role"][value.value="combobox"]',
+    message: 'ds/no-handrolled-combobox — campo de busca com dropdown = <Command> (motor cmdk) dentro de <Popover>, não input + role="listbox" à mão. Ref: ServiceOrders/Create.tsx.',
+  },
 ],
 ```
+
+> ### Combobox: selector PRECISO, não broad ([ADR proposta tab-nav-canonico §Ondas futuras])
+>
+> Ao contrário do `ds/no-inline-tablist` (broad: pega TODO `role="tablist"` e deixa o ratchet absorver os in-panel), o combobox **não** tem um signal broad limpo — `role="listbox"` é sobrecarregado (listas de mensagem, keyboard-nav de qualquer coisa usam listbox e **não** são combobox). Então a regra fecha por signal PRECISO do input hand-rolado: `aria-autocomplete` (a tela nunca escreve isso quando usa `Command` — o cmdk trata a a11y internamente) e `role="combobox"` num `<input>` **nativo** (o consumo canônico põe `role=combobox` no `<Button>` trigger, jamais no input). Isso pega os hand-rolls de input (`ClienteCombobox`, `PlanoContaCombobox`) sem falso-positivar o padrão certo. **Residual honesto:** o hand-roll com `<Button>` trigger + `<ul role="listbox">` à mão (`GradeProductCombobox`, `Customer/ProductSearchAutocomplete`) é indistinguível do canônico sem análise de **import** — quem cataloga esses é o detector `component-registry-check --roles` (papel `combobox`, âncora = importar `@/Components/ui/command`), advisory. Lint = signal per-nó; detector = análise de import. Divisão honesta de trabalho, os dois fecham por forma no que cada um consegue ver.
 
 > ### O surface INLINE (`style={{}}`) — o buraco do dark ([ADR proposta tab-nav-canonico])
 >
@@ -133,5 +148,6 @@ Promover componente = entregar o **tripé**: impl em `@/Components/ui` + regra `
 | `ds/no-os-btn` | classe de shell `os-btn` | `<Button>` |
 | `ds/no-inline-tablist` | `role="tablist"` hand-rolado na tela | `<PageHeaderTabs>` (barra de abas de topo) |
 | `ds/no-inline-raw-color` | cor/borda/sombra crua em `style={{}}` inline | token dark-aware (`var(--…)`) |
+| `ds/no-handrolled-combobox` | `aria-autocomplete` / `role="combobox"` num `<input>` nativo | `<Command>` (motor cmdk) dentro de `<Popover>` — campo de busca com dropdown |
 | `ds/no-handrolled-form-section` | `rounded-lg border p-4\|p-5` | FormSection |
 | `ds/icons` (opt) | import direto `lucide-react` | icon-registry |

@@ -246,6 +246,28 @@ export default [
           selector: 'JSXAttribute[name.name="style"] Literal[value=/(#[0-9a-fA-F]{3,8}\\b|rgba?\\(|hsla?\\(|oklch\\(|oklab\\(|lab\\(|lch\\(|color\\()/]',
           message: 'ds/no-inline-raw-color — sem cor/borda/sombra crua em style inline. Use token dark-aware: var(--accent)/var(--border)/var(--text)/var(--surface)… ou classe utilitária semântica. Hardcode de tom claro quebra o dark sem alarme (bug tab-nav 2026-07).',
         },
+        {
+          // ds/no-handrolled-combobox — COMPONENT-SUBSTITUTE (tipo 2 do ADR 0338,
+          // lista curada): o "campo de busca com dropdown" (combobox/autocomplete)
+          // canoniza na composição Popover + Command (cmdk, @/Components/ui/{popover,
+          // command}) — o Command é o MOTOR (input de busca + lista filtrada +
+          // navegação de teclado + a11y role=combobox/listbox/option de fábrica).
+          // Hand-rolar o combobox (input próprio + <ul role="listbox"> + onKeyDown
+          // ArrowUp/Down) reimplementa esse motor de um jeito ligeiramente diferente
+          // a cada tela → a11y divergente/bugada é a CAUSA (5 hand-rolls catalogados:
+          // Cliente/PlanoConta-Combobox, GradeProductCombobox, Customer/Product-
+          // SearchAutocomplete). SELECTOR PRECISO (não broad): pega só os signals que
+          // NUNCA aparecem no consumo canônico — `aria-autocomplete` (o cmdk trata a11y
+          // internamente, a tela nunca escreve isso) e `role="combobox"` num <input>
+          // NATIVO (o padrão canônico põe role=combobox no <Button> trigger, jamais no
+          // input). Assim ServiceOrders/Create (Button role=combobox + Command) NÃO é
+          // pego. Ratchet absorve os hand-rolls atuais; só o NOVO quebra o delta.
+          // Fronteira honesta (fica pro detector --roles, advisory): o hand-roll com
+          // <Button> trigger + <ul role="listbox"> à mão é indistinguível do canônico
+          // sem análise de import — quem pega isso é component-registry-check --roles.
+          selector: 'JSXAttribute[name.name="aria-autocomplete"], JSXOpeningElement[name.name="input"] > JSXAttribute[name.name="role"][value.value="combobox"]',
+          message: 'ds/no-handrolled-combobox — não hand-role o combobox/autocomplete (input + lista role="listbox" à mão). Campo de busca com dropdown = <Command> (@/Components/ui/command, motor cmdk) dentro de <Popover> (@/Components/ui/popover). Ref: Pages/OficinaAuto/ServiceOrders/Create.tsx. Ver REGISTRY_DS_COMPONENTES.md §"Combobox".',
+        },
       ],
     },
   },

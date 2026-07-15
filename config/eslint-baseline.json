@@ -536,6 +536,8 @@
     "resources/js/Pages/team-mcp/Tasks/_components/TaskDrawer.tsx|no-restricted-syntax": 1,
     "resources/js/bootstrap.js|no-undef": 31,
     "resources/js/bootstrap.js|no-unused-vars": 3,
-    "resources/js/bootstrap.js|no-empty": 1
+    "resources/js/bootstrap.js|no-empty": 1,
+    "resources/js/Pages/Financeiro/Unificado/_components/ClienteCombobox.tsx|no-restricted-syntax": 2,
+    "resources/js/Pages/Financeiro/Unificado/_components/PlanoContaCombobox.tsx|no-restricted-syntax": 1
   }
 }

@@ -121,5 +121,33 @@ check('roles: consumo TRANSITIVO (renderiza wrapper) conta como consumidor', new
 check('roles: consumo TRANSITIVO NÃO é marcado independente', !new RegExp('⚠️[^\\n]*FakeUnificado').test(rolesTrans.stdout));
 check('roles: FakeTopNav (sem wrapper nem canon) segue independente', new RegExp('⚠️[^\\n]*FakeTopNav').test(rolesTrans.stdout));
 
+// ── MODO --roles: papel "combobox" (campo de busca com dropdown · esta onda) ──
+// canon do papel = o MOTOR cmdk (self-matcha pelo basename command.tsx). Escrito
+// em Components/ui (mesmo dir das fixtures button/badge, que NÃO casam combobox).
+writeFileSync(join(uiDir, 'command.tsx'),
+  `import { Command as CommandPrimitive } from 'cmdk';\nexport function Command(p){ return <CommandPrimitive {...p} /> }\nexport function CommandInput(){ return null }\n`);
+// consumidor legítimo: constrói SOBRE o motor (importa @/Components/ui/command) —
+// espelha ServiceOrders/Create: role=combobox no Button trigger + Popover+Command.
+writeFileSync(join(fakePages, 'FakeVehiclePicker.tsx'),
+  `import { Command, CommandInput } from '@/Components/ui/command';\nimport { Popover } from '@/Components/ui/popover';\nexport default function FakeVehiclePicker(){ return <Popover><button role="combobox" /><Command><CommandInput /></Command></Popover> }\n`);
+
+// 10. combobox: canon presente + consumidor classificado (constrói sobre Command)
+const cbxClean = run(['--roles']);
+check('roles/combobox: canon command.tsx presente (não AUSENTE)',
+  /papel "combobox"[\s\S]*?canon:\s*resources\/js\/Components\/ui\/command\.tsx/.test(cbxClean.stdout));
+check('roles/combobox: consumidor FakeVehiclePicker NÃO é independente (importa o motor)',
+  /FakeVehiclePicker/.test(cbxClean.stdout) && !new RegExp('⚠️[^\\n]*FakeVehiclePicker').test(cbxClean.stdout));
+
+// 11. combobox: hand-roll INDEPENDENTE (nome *Combobox + markup à mão, NÃO importa command)
+writeFileSync(join(fakePages, 'FakeClienteCombobox.tsx'),
+  `export default function FakeClienteCombobox(){ return <div><input role="combobox" aria-autocomplete="list" /><ul role="listbox" /></div> }\n`);
+const cbxDrift = run(['--roles']);
+check('roles/combobox: aponta o hand-roll independente FakeClienteCombobox',
+  new RegExp('⚠️[^\\n]*FakeClienteCombobox').test(cbxDrift.stdout));
+check('roles/combobox: strict MORDE o hand-roll independente (exit 1)',
+  run(['--roles', '--strict']).status === 1);
+check('roles/combobox: NÃO marca o consumer como independente mesmo com drift',
+  !new RegExp('⚠️[^\\n]*FakeVehiclePicker').test(cbxDrift.stdout));
+
 console.log(fails === 0 ? '\n✓ todos os checks passaram' : `\n✗ ${fails} check(s) falharam`);
 process.exit(fails === 0 ? 0 : 1);
