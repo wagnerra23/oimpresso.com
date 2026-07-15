@@ -25,14 +25,20 @@ last_run: "2026-07-15"
 
 | UC | Caso de uso | Prio | CU-PROD-03 | Teste | Status |
 |----|-------------|------|-----------|-------|--------|
-| UC-PTAB-01 | Salvar a matriz persiste o preço por (variação × tabela) | must | item 1 | `TabelaPrecoContratoTest` | ⬜ |
-| UC-PTAB-02 | Produto de outro business retorna 404 (Tier 0) | must | item 4 `[T0]` | `TabelaPrecoContratoTest` | ⬜ |
-| UC-PTAB-03 | Preço da tabela não infla no parser pt-BR (`num_uf`) | must | item 1 `[V0]` | `TabelaPrecoContratoTest` | ⬜ |
+| UC-PTAB-01 | Salvar a matriz persiste o preço por (variação × tabela) | must | item 1 | `TabelaPrecoContratoTest` | 🧪 |
+| UC-PTAB-02 | Produto de outro business não vaza (Tier 0) | must | item 4 `[T0]` | `TabelaPrecoContratoTest` | 🧪 |
+| UC-PTAB-03 | Preço da tabela não infla no parser pt-BR (`num_uf`) | must | item 1 `[V0]` | `TabelaPrecoContratoTest` | 🧪 |
 
-**Veredito honesto:** os 3 UCs têm teste escrito e citando o id, mas **nenhum rodou** — o CT 100 está
-inacessível (Tailscale em `NoState`) e teste local é proibição Tier 0. Por isso `⬜ não verificado`, não
-`🧪`. Sobem pra `🧪` quando a lane MySQL do CT 100 rodar, e pra `✅` quando `npm run casos:results`
-regravar o manifesto.
+**Veredito:** os 3 UCs **rodaram e passaram** na lane `PHP / Pest (Estoque · MySQL)` do
+[#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) — MySQL real, biz=1 + biz=2 semeados
+(`Tests: 32 passed`, run `29418132080`). Não é verde-por-skip: o `paths-filter` da lane inclui
+`tests/Feature/Produto/**` e o log traz `PASS Tests\Feature\Produto\TabelaPrecoContratoTest`.
+
+`🧪` e não `✅` porque o manifesto do G-7 (`scripts/casos-test-results.json`, via `npm run casos:results`)
+ainda não foi regravado — `✅` sem prova no manifesto o gate classifica como `unverified`.
+
+> A 1ª execução **reprovou** (`Expected 404 but received 302`) e o achado virou contrato: ver a
+> divergência no `UC-PTAB-02` + a decisão pendente [W] no §Backlog.
 
 ---
 
@@ -41,7 +47,7 @@ regravar o manifesto.
 - **Aceite:** Dado um produto com variação e uma tabela de preço ativa no business · Quando envio `group_prices[{tabela}][{variação}] = {price, price_type}` pro `POST /products/save-selling-prices` · Então redireciona (302) e o par (variação × tabela) persiste em `variation_group_prices` com o preço e o `price_type`.
 - **Teste:** `tests/Feature/Produto/TabelaPrecoContratoTest.php` — `UC-PTAB-01 · salvar a matriz persiste o preço por (variação × tabela)`.
 - **Contrato:** `CU-PROD-03` item 1 — *"Matriz grupo × variação salva preço por tabela (`variation_group_prices`)"*.
-- **Status: ⬜** — teste escrito, não executado (CT 100 fora).
+- **Status: 🧪** — passou na lane Estoque · MySQL (#4300, run 29418132080); ✅ quando o manifesto G-7 for regravado.
 
 ---
 
@@ -52,7 +58,7 @@ regravar o manifesto.
 - **Regressão que defende:** o `SellingPrices.charter.md` **prometia** `it('Controller cross-tenant retorna 404')` no §Pest GUARD desde 2026-05-15 e esse teste **nunca existiu** — o que havia era um grep procurando a string `session()->get('user.business_id')` no fonte do controller. Buraco Tier 0 documentado como se estivesse coberto.
 - **⚠️ Divergência achada na 1ª execução real ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)):** a promessa do charter valia só pra **metade** do contrato. O GET (`addSellingPrices`) devolve 404 de verdade. O **POST** (`saveSellingPrices`) **não**: o `findOrFail` roda dentro de `try { } catch (\Exception $e)`, a `ModelNotFoundException` é engolida pelo catch genérico e vira `redirect('products')` + *"something went wrong"* — **302**. O isolamento **não vaza** (a exceção aborta antes de qualquer write + rollback), mas uma tentativa cross-tenant fica **indistinguível de um erro de banco** no log e pro operador. Decisão pendente [W] no Backlog abaixo.
 - **Contrato:** `CU-PROD-03` item 4 `[T0]` — *"Tabelas só do business atual"* + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md). Note que o contrato pede **isolamento**, não um código HTTP — o 404 era proxy do charter, e o proxy estava errado pro POST.
-- **Status: ⬜** — teste corrigido pro invariante real; aguarda o re-run do CI.
+- **Status: 🧪** — passou na lane Estoque · MySQL após a correção do proxy (#4300, run 29418132080); ✅ quando o manifesto G-7 for regravado.
 
 ---
 
@@ -62,7 +68,7 @@ regravar o manifesto.
 - **Teste:** `tests/Feature/Produto/TabelaPrecoContratoTest.php` — `UC-PTAB-03 · preço pt-BR com milhar e decimal grava o valor certo` + `UC-PTAB-03 · preço fracionário com ponto NÃO infla ×100k`.
 - **Regressão que defende:** `saveSellingPrices` faz `price_inc_tax = productUtil->num_uf($value[...]['price'])` — **o mesmo parser** que no incidente 2026-06-05 leu o `.` de `204.99605` como separador de milhar e gravou R$ [redacted Tier 0] numa venda de R$ [redacted Tier 0] (16 vendas infladas ×100k na ROTA LIVRE). O caminho do preço de tabela passa pelo mesmo `num_uf` e **não tinha teste nenhum**. Lição perene: separador de milhar tem SEMPRE 3 dígitos.
 - **Contrato:** `CU-PROD-03` item 1 + REGRA MESTRE valor/estoque (`proibicoes.md`).
-- **Status: ⬜** — teste escrito, não executado (CT 100 fora).
+- **Status: 🧪** — passou na lane Estoque · MySQL (#4300, run 29418132080); ✅ quando o manifesto G-7 for regravado.
 
 ---
 
