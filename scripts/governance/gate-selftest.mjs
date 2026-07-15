@@ -632,6 +632,48 @@ const CATRACAS = [
     },
     expect: { good: /universe-gate OK/, bad: /PERDIDO|universe-gate FALHOU/ },
   },
+  {
+    // layout-primitives-guard (ADR 0253 · RATCHET por arquivo): flex/grid solto nas telas.
+    // 3 gates DS promovidos a required 2026-07-15 (flip 24→27) — entram no selftest pra provar que
+    // mordem (US-GOV-054 / o "verde não prova visão"). --root/--baseline isolam o scan na fixture
+    // (backward-compat: sem elas = cwd + baseline hardcoded, gate de prod inalterado). good = .tsx
+    // BATE o baseline (0 regressão, exit 0); bad = Fixture.tsx CRESCE (2 > baseline 1) → exit 1 pela
+    // REGRESSÃO (não por crash — a fixture bad traz o próprio baseline.json).
+    id: 'layout-primitives',
+    run: (kind) => {
+      const fx = join(FIX, 'layout-primitives', kind);
+      return runNode(script('layout-primitives', 'scripts/layout-primitives-guard.mjs'),
+        ['--root', fx, '--baseline', join(fx, 'baseline.json')], ROOT);
+    },
+    expect: { good: /Sem regressões vs baseline/, bad: /REGRESSÃO — \d+ arquivo\(s\) com MAIS flex\/grid solto/ },
+  },
+  {
+    // stylelint-baseline (G5 · ADR 0209 · RATCHET path|rule): drift CSS (color-no-hex etc).
+    // O gate-selftest é Node puro SEM node_modules → --counts-from alimenta contagens pré-computadas
+    // e pula o linter real (stylelint é import lazy). Prova o COMPARADOR ratchet, que é o que pode
+    // apodrecer; o linter em si é exercitado pelo stylelint-gate.yml (que faz npm ci).
+    // good = counts == baseline (delta 0, exit 0); bad = counts +1 → delta>0 → morde (exit 1).
+    id: 'stylelint-baseline',
+    run: (kind) => {
+      const fx = join(FIX, 'stylelint', kind);
+      return runNode(script('stylelint-baseline', 'scripts/stylelint-baseline.mjs'),
+        ['--baseline', join(fx, 'baseline.json'), '--counts-from', join(fx, 'counts.json')], ROOT);
+    },
+    expect: { good: /Sem regressões vs baseline/, bad: /REGRESSÃO — \d+ entrada/ },
+  },
+  {
+    // eslint-baseline (ADR 0209 · RATCHET path|rule): regressão ESLint. Mesmo motivo do stylelint:
+    // --counts-from pula o `npx eslint` (indisponível no gate-selftest sem node_modules) e prova o
+    // COMPARADOR ratchet. As regras ds/* são exercitadas pelo eslint-gate.yml (com npm ci).
+    // good = counts == baseline (delta 0, exit 0); bad = counts +1 → delta>0 → morde (exit 1).
+    id: 'eslint',
+    run: (kind) => {
+      const fx = join(FIX, 'eslint', kind);
+      return runNode(script('eslint', 'scripts/eslint-baseline.mjs'),
+        ['--baseline', join(fx, 'baseline.json'), '--counts-from', join(fx, 'counts.json')], ROOT);
+    },
+    expect: { good: /Sem regress/, bad: /hits AUMENTADOS/ },
+  },
 ];
 
 const results = [];

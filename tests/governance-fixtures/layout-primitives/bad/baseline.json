@@ -1,0 +1,17 @@
+{
+  "_meta": {
+    "generated_at": "2026-07-15T00:00:00.000Z",
+    "total_findings": 1,
+    "files_with_findings": 1,
+    "files_scanned": 1,
+    "refs": [
+      "ADR 0253",
+      "ADR 0209",
+      "ADR 0240"
+    ],
+    "nota": "Fixture BAD do gate-selftest — Fixture.tsx CRESCEU (2) vs este baseline (1) → catraca morde."
+  },
+  "files": {
+    "resources/js/Pages/Fixture.tsx": 1
+  }
+}
