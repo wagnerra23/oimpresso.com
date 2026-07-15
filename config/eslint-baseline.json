@@ -198,8 +198,6 @@
     "resources/js/Pages/Financeiro/Unificado/_components/FinPillFrescor.tsx|react-hooks/exhaustive-deps": 1,
     "resources/js/Pages/Financeiro/Unificado/_components/FinTranscriptPDF.tsx|no-restricted-syntax": 2,
     "resources/js/Pages/Financeiro/Unificado/_components/FinTroubleshooter.tsx|react-refresh/only-export-components": 1,
-    "resources/js/Pages/Financeiro/Unificado/_components/PlanoContaCombobox.tsx|no-restricted-syntax": 1,
-    "resources/js/Pages/Financeiro/Unificado/_components/PlanoContaCombobox.tsx|jsx-a11y/click-events-have-key-events": 1,
     "resources/js/Pages/Financeiro/Unificado/_components/TituloCreateSheet.tsx|@typescript-eslint/no-explicit-any": 1,
     "resources/js/Pages/Financeiro/Unificado/_components/TituloCreateSheet.tsx|no-restricted-syntax": 1,
     "resources/js/Pages/Financeiro/Unificado/_components/TituloEditSheet.tsx|@typescript-eslint/no-explicit-any": 1,
