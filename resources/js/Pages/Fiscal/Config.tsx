@@ -11,12 +11,12 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import type { PageProps } from '@inertiajs/core';
-import { Archive, CheckCircle2, FileText, KeyRound, Loader2, Lock, PlugZap, Settings, Shield, Upload, XCircle } from 'lucide-react';
+import { Archive, CheckCircle2, FileText, KeyRound, Loader2, Lock, PlugZap, Shield, Upload, XCircle } from 'lucide-react';
 import { type FormEvent, useRef, useState } from 'react';
 import { toast } from 'sonner';
 
 import FxShell from './_components/FxShell';
-import FiscalModuleTopNav from './_components/FiscalModuleTopNav';
+import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group';
 
 import '../../../css/fiscal-cockpit.css';
@@ -66,6 +66,8 @@ interface Painel {
 }
 
 interface ConfigProps {
+  // DS Onda 3 — aba ativa vem da rota (?tab=), whitelist server-side no ConfigController.
+  activeTab?: ConfigTab;
   certificado: Certificado | null;
   config: Config | null;
   painel: Painel;
@@ -102,8 +104,9 @@ function formatCnpj(raw: string | null): string {
   return `${digits.slice(0, 2)}.${digits.slice(2, 5)}.${digits.slice(5, 8)}/${digits.slice(8, 12)}-${digits.slice(12)}`;
 }
 
-export default function Config({ certificado, config, painel, seriesMock = [] }: ConfigProps) {
-  const [tab, setTab] = useState<ConfigTab>('cert');
+export default function Config({ activeTab, certificado, config, painel, seriesMock = [] }: ConfigProps) {
+  // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
+  const tab = activeTab ?? 'cert';
 
   const { props: pageProps } = usePage<FlashProps>();
   const flashSuccess = pageProps.flash?.success;
@@ -258,17 +261,20 @@ export default function Config({ certificado, config, painel, seriesMock = [] }:
           </div>
         )}
 
-        {/* Onda 2 H — ModuleTopNav 4 tabs */}
-        <FiscalModuleTopNav
-          items={[
-            { id: 'cert',     label: 'Certificado A1', icon: <Shield size={12} />,    count: certificado ? undefined : 0, tone: certificado ? null : 'bad' },
-            { id: 'series',   label: 'Séries',         icon: <FileText size={12} />,  count: seriesMock.filter((s) => s.ativo).length },
-            { id: 'ambiente', label: 'Ambiente',       icon: <Settings size={12} /> },
-            { id: 'sped',     label: 'SPED & Livros',  icon: <Archive size={12} /> },
-          ]}
-          value={tab}
-          onChange={(id) => setTab(id as ConfigTab)}
-        />
+        {/* DS Onda 3 — barra de abas CANÔNICA (PageHeaderTabs) em faixa própria,
+            navegando por rota (?tab=). Padroniza o visual com Clientes/Financeiro/Ponto. */}
+        <div className="mb-4">
+          <PageHeaderTabs
+            ghosts={[
+              { key: 'cert',     label: 'Certificado A1', href: '/fiscal/config?tab=cert',     icon: 'shield' },
+              { key: 'series',   label: 'Séries',         href: '/fiscal/config?tab=series',   icon: 'file-text', badge: seriesMock.filter((s) => s.ativo).length || undefined },
+              { key: 'ambiente', label: 'Ambiente',       href: '/fiscal/config?tab=ambiente', icon: 'settings' },
+              { key: 'sped',     label: 'SPED & Livros',  href: '/fiscal/config?tab=sped',     icon: 'archive' },
+            ]}
+            activeGhostKey={tab}
+            maxVisible={6}
+          />
+        </div>
 
         {tab === 'cert' && (<>
         {/* Cert + Help (2-col grid — port fiscal-page.jsx §12 CertificadoTab) */}
