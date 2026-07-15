@@ -21,11 +21,25 @@
  * SAI 0 SEMPRE no modo advisory (default). Use --strict pra exit 1 quando houver drift
  * (usado pelo self-test e por promoção futura a required). Determinístico, sem deps, sem rede.
  *
+ * ── MODO --roles (detector de PAPEL-duplicado, ADR proposta tab-nav-canonico) ──
+ * Responde a outra face do MESMO drift: o registry canoniza 1 componente por PAPEL
+ * (ex "barra de abas de topo" → PageHeaderTabs), mas o código pode ter N componentes
+ * hand-rolando esse papel (foi a CAUSA dos 8 topnavs divergentes — dark quebrado,
+ * radius errado). Agrupa os .tsx por papel (heurística: markup `role="tablist"` de
+ * nav-bar + nome `*Nav`/`*Tabs`/`*TopNav`) e particiona cada cluster em:
+ *   - CANON     : o componente canônico do papel (1)
+ *   - CONSUMER  : importa o canônico (wrapper legítimo — FinanceiroSubNav/JanaSubNav…)
+ *   - INDEPENDENTE: cumpre o papel SEM importar o canônico = drift a migrar
+ * Sinaliza clusters com INDEPENDENTE > 0. Advisory por default (exit 0); --strict
+ * pra exit 1. Fronteira honesta: heurística sintática ≠ prova de papel — por isso
+ * report-only, um humano decide a migração (não é gate cego).
+ *
  * Uso:
  *   node scripts/governance/component-registry-check.mjs [--check] [--strict] [--registry <path>] [--root <path>]
+ *   node scripts/governance/component-registry-check.mjs --roles [--strict] [--root <path>]
  */
-import { readFileSync, existsSync, statSync } from 'node:fs';
-import { join, resolve, relative } from 'node:path';
+import { readFileSync, existsSync, statSync, readdirSync } from 'node:fs';
+import { join, resolve, relative, basename } from 'node:path';
 
 // existsSync casa diretório também; aqui só queremos ARQUIVO (senão '@/Components/layout'
 // casaria a pasta antes de chegar no /index.ts barril).
@@ -78,7 +92,107 @@ function collectExports(src) {
   return found;
 }
 
+// ══════════════════════════════════════════════════════════════════════════
+// MODO --roles: detector de PAPEL-duplicado (ADR proposta tab-nav-canonico)
+// ══════════════════════════════════════════════════════════════════════════
+
+/**
+ * Assinaturas de papel. Cada papel canoniza 1 componente; o detector procura
+ * OUTROS componentes cumprindo o mesmo papel sem consumir o canônico.
+ *
+ * FUTURO (ondas da ADR — NÃO implementado agora, só catalogado): `status-badge`
+ * (11 hand-rolls do pill de status) e `combobox` (5 hand-rolls do dropdown de
+ * busca). Entram como novas entradas aqui quando a onda respectiva abrir.
+ */
+const ROLE_SIGNATURES = [
+  {
+    role: 'barra-de-abas-de-topo',
+    canon: 'resources/js/Components/shared/PageHeaderTabs.tsx',
+    canonImport: '@/Components/shared/PageHeaderTabs',
+    // Um componente cumpre o papel se: (markup) declara uma nav-bar com role=tablist
+    // ou classe de topnav conhecida, OU (nome) o basename é de nav/tabs de topo.
+    matches(file, src) {
+      const name = basename(file);
+      // markup = role=tablist ACOMPANHADO de uma classe de barra-de-topo conhecida
+      // (não basta tablist: in-panel/mobile tabs também usam tablist e são OUTRO papel).
+      const markup =
+        /role=["']tablist["']/.test(src) &&
+        /(moduletopnav|cli-moduletopnav|fx-subtabs|\bsubtabs\b|\btopnav\b|\bsubnav\b)/i.test(src);
+      const byName = /(ModuleTopNav|TopNav|SubNav|Tabs|Tablist)\.tsx$/.test(name);
+      // exclui falsos-amigos de nome que NÃO são barra de navegação de topo
+      const notNav = /(MobileTabs|Chips|Preview|Message)\.tsx$/.test(name);
+      return (markup || byName) && !notNav;
+    },
+  },
+];
+
+// Walker recursivo simples (sem deps). Ignora node_modules/dist/vendor.
+function walkTsx(dir, acc = []) {
+  let ents;
+  try { ents = readdirSync(dir, { withFileTypes: true }); } catch { return acc; }
+  for (const ent of ents) {
+    if (ent.name === 'node_modules' || ent.name === 'dist' || ent.name === '.git') continue;
+    const full = join(dir, ent.name);
+    if (ent.isDirectory()) walkTsx(full, acc);
+    else if (ent.isFile() && ent.name.endsWith('.tsx')) acc.push(full);
+  }
+  return acc;
+}
+
+function scanRoles(root) {
+  const base = join(root, 'resources/js');
+  const files = existsSync(base) ? walkTsx(base) : [];
+  const clusters = [];
+  for (const sig of ROLE_SIGNATURES) {
+    const canon = [], consumers = [], independent = [];
+    for (const abs of files) {
+      const rel = relative(root, abs).replaceAll('\\', '/');
+      let src;
+      try { src = readFileSync(abs, 'utf8'); } catch { continue; }
+      if (!sig.matches(rel, src)) continue;
+      if (rel === sig.canon) { canon.push(rel); continue; }
+      // consumidor legítimo = importa o canônico (wrapper). Independente = não.
+      const importsCanon = src.includes(sig.canonImport);
+      (importsCanon ? consumers : independent).push(rel);
+    }
+    clusters.push({ role: sig.role, canon: sig.canon, canonPresent: canon.length > 0, consumers, independent });
+  }
+  return clusters;
+}
+
+function reportRoles(clusters, strict) {
+  let drift = 0;
+  console.log(`component-registry-check --roles — ${clusters.length} papel(éis) rastreado(s)`);
+  for (const c of clusters) {
+    const total = (c.canonPresent ? 1 : 0) + c.consumers.length + c.independent.length;
+    console.log(`\n▸ papel "${c.role}" — ${total} componente(s) no cluster`);
+    console.log(`  canon: ${c.canonPresent ? c.canon : `⚠️ AUSENTE (${c.canon})`}`);
+    if (c.consumers.length) console.log(`  consumidores (wrapper legítimo, importam o canon): ${c.consumers.length}`);
+    for (const f of c.consumers) console.log(`    ✓ ${f}`);
+    if (c.independent.length) {
+      drift += c.independent.length;
+      console.log(`  INDEPENDENTES (cumprem o papel SEM importar o canon → drift a migrar): ${c.independent.length}`);
+      for (const f of c.independent) console.log(`    ⚠️ ${f}`);
+    } else {
+      console.log(`  independentes: 0 ✅ (nenhum hand-roll paralelo ao canon)`);
+    }
+  }
+  if (drift === 0) {
+    console.log(`\n[OK] nenhum papel com hand-roll independente do canon.`);
+  } else {
+    console.log(`\n[DRIFT] ${drift} componente(s) independente(s) cumprindo papel canonizado — migrar pro canon (ver REGISTRY_DS_COMPONENTES.md).`);
+    if (!strict) console.log(`(advisory — exit 0; rode com --strict pra falhar o build)`);
+  }
+  return drift;
+}
+
 function main() {
+  // MODO --roles: detector de papel-duplicado (separado do drift de registry JSON).
+  if (args.includes('--roles')) {
+    const drift = reportRoles(scanRoles(ROOT), STRICT);
+    process.exit(STRICT && drift ? 1 : 0);
+  }
+
   if (!existsSync(REGISTRY)) {
     console.error(`[ERRO] registry não encontrado: ${REGISTRY}`);
     process.exit(STRICT ? 1 : 0);

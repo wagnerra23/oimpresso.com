@@ -212,6 +212,40 @@ export default [
           selector: 'JSXText[value=/\\b(distinct\\s+\\w+|\\w+_(id|total|status|at|amount|qty|price|count))\\b/]:not(JSXElement[openingElement.name.name=/^(code|pre|kbd)$/] > JSXText)',
           message: 'ds/no-db-jargon-in-ui — texto visível com nome de coluna/SQL cru. Use linguagem de negócio PT (ex: "distinct contact_id" → "fornecedores no período"; "final_total" → "total").',
         },
+        {
+          // ds/no-inline-tablist — COMPONENT-SUBSTITUTE (tipo 2 do ADR 0338, lista
+          // curada): a "barra de abas de topo" canoniza em <PageHeaderTabs>
+          // (@/Components/shared), consumida via *SubNav do módulo (FinanceiroSubNav/
+          // JanaSubNav/PontoSubNav). Hand-rolar `role="tablist"` na tela foi a CAUSA
+          // dos 8 topnavs divergentes (dark quebrado, radius errado, abas coladas).
+          // Ratchet absorve os tablists legados (aba-em-painel/mobile são OUTRO papel
+          // e não têm primitivo DS ainda) — só o NOVO hand-roll de tela quebra o delta.
+          // Regra de decisão: aba de topo → PageHeaderTabs; aba dentro de painel sem
+          // primitivo → é BURACO DO DS (abrir Onda, ver ADR proposta tab-nav-canonico),
+          // não hand-rolar calado. Fronteira honesta: um lint sintático não distingue
+          // os dois papéis — por isso ratchet + mensagem, não proibição cega.
+          selector: 'JSXAttribute[name.name="role"][value.value="tablist"]',
+          message: 'ds/no-inline-tablist — não hand-role `role="tablist"` na tela. Barra de abas de topo = <PageHeaderTabs> (@/Components/shared, via *SubNav do módulo). Ver REGISTRY_DS_COMPONENTES.md §"barra de abas de topo".',
+        },
+        {
+          // ds/no-inline-raw-color — EIXO valor-vs-token (tipo 1 do ADR 0338) num
+          // SURFACE NOVO: o className já fecha por forma (no-raw-palette-color /
+          // no-arbitrary-color), mas `style={{ borderBottomColor: 'oklch(0.93 …)' }}`
+          // inline escapava de TODO gate — o conformance-gate.mjs e o stylelint
+          // color-no-hex só olham arquivos .css, nunca style inline de JSX/TSX. Foi o
+          // BURACO DO DARK: hardcode de tom claro (L alto) num inline quebra o modo
+          // escuro sem alarme (bug tab-nav pego pelo [W] no olho, 2026-07). Fecha por
+          // FORMA DO VALOR: qualquer função de cor (rgb/rgba/hsl/hsla/oklch/oklab/lab/
+          // lch/color) ou hex literal DENTRO de um style attribute. `var(--x)` NÃO casa
+          // (é token dark-aware) → é exatamente a saída correta. Completo por construção
+          // pro surface inline; residual honesto = nome de cor nu ('white'/'red') não
+          // casa (ambíguo vs 'transparent'/'inherit'/'currentColor') — fica humano.
+          // Escopo do bloco = telas (Pages/Modules); os componentes canônicos
+          // (Components/ui + shared, ex PageHeaderTabs) legitimamente carregam o valor
+          // do token na camada DS e estão FORA deste files[] — por design.
+          selector: 'JSXAttribute[name.name="style"] Literal[value=/(#[0-9a-fA-F]{3,8}\\b|rgba?\\(|hsla?\\(|oklch\\(|oklab\\(|lab\\(|lch\\(|color\\()/]',
+          message: 'ds/no-inline-raw-color — sem cor/borda/sombra crua em style inline. Use token dark-aware: var(--accent)/var(--border)/var(--text)/var(--surface)… ou classe utilitária semântica. Hardcode de tom claro quebra o dark sem alarme (bug tab-nav 2026-07).',
+        },
       ],
     },
   },
