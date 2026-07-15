@@ -50,8 +50,26 @@ Adicionar ao bloco `rules` do override `files: ['resources/js/**/*.{ts,tsx}']`. 
     selector: 'JSXAttribute[name.name="className"] Literal[value=/\\bos-btn\\b/]',
     message: 'ds/no-os-btn — use <Button> (@/Components/ui/button), não a classe de shell os-btn.',
   },
+  {
+    // ds/no-inline-tablist — COMPONENT-SUBSTITUTE (tipo 2, lista curada). Barra de
+    // abas de topo canoniza em <PageHeaderTabs> (@/Components/shared). Hand-rolar
+    // role="tablist" na tela foi a CAUSA dos 8 topnavs divergentes.
+    selector: 'JSXAttribute[name.name="role"][value.value="tablist"]',
+    message: 'ds/no-inline-tablist — barra de abas de topo = <PageHeaderTabs>, não role="tablist" hand-rolado.',
+  },
+  {
+    // ds/no-inline-raw-color — EIXO valor-vs-token num SURFACE NOVO (style inline).
+    // O className fecha por forma; o style={{}} inline escapava de TODO gate (o
+    // conformance-gate.mjs + stylelint só olham .css). Foi o BURACO DO DARK.
+    selector: 'JSXAttribute[name.name="style"] Literal[value=/(#[0-9a-fA-F]{3,8}\\b|rgba?\\(|hsla?\\(|oklch\\(|oklab\\(|lab\\(|lch\\(|color\\()/]',
+    message: 'ds/no-inline-raw-color — sem cor/borda/sombra crua em style inline. Use token dark-aware (var(--accent)…).',
+  },
 ],
 ```
+
+> ### O surface INLINE (`style={{}}`) — o buraco do dark ([ADR proposta tab-nav-canonico])
+>
+> O eixo valor-vs-token do [ADR 0338](../memory/decisions/0338-ds-lint-eixo-valor-token-fecha-por-forma.md) fechava o **className**. Faltava o **style inline**: `style={{ borderBottomColor: 'oklch(0.93 …)' }}` não é pego por `no-raw-palette-color` (é objeto JS, não classe), nem pelo `conformance-gate.mjs`/stylelint (só olham `.css`). Foi por aí que um **hardcode de tom claro** entrou numa aba e **quebrou o dark sem alarme**. `ds/no-inline-raw-color` fecha esse surface **por forma do valor** — qualquer função de cor (`rgb/rgba/hsl/hsla/oklch/oklab/lab/lch/color`) ou hex literal dentro de um `style`. `var(--x)` **não** casa (é a saída dark-aware correta). Residual honesto: **nome de cor nu** (`'white'`/`'red'`) não casa — ambíguo vs `'transparent'`/`'inherit'`/`'currentColor'` — fica humano. Os componentes canônicos (`Components/ui` + `shared`) estão **fora** do `files[]` do bloco: ali o valor do token vive legitimamente na camada DS.
 
 > **Nota:** os selectors de className casam tanto `Literal` puro quanto o `Literal` dentro de `BinaryExpression` (ex.: `'rounded-xl border ' + (danger ? …)`) — pega os dois. `<select>` lowercase = nativo; `<Select>` (Radix) não casa (esquery é case-sensitive).
 
@@ -113,5 +131,7 @@ Promover componente = entregar o **tripé**: impl em `@/Components/ui` + regra `
 | `ds/no-arbitrary-color` | `bg-[#..]`, `text-[#..]` | token semântico |
 | `ds/no-raw-palette-color` | `bg/text/border-<cor>-<n>` (palette Tailwind, set fechado) | token semântico |
 | `ds/no-os-btn` | classe de shell `os-btn` | `<Button>` |
+| `ds/no-inline-tablist` | `role="tablist"` hand-rolado na tela | `<PageHeaderTabs>` (barra de abas de topo) |
+| `ds/no-inline-raw-color` | cor/borda/sombra crua em `style={{}}` inline | token dark-aware (`var(--…)`) |
 | `ds/no-handrolled-form-section` | `rounded-lg border p-4\|p-5` | FormSection |
 | `ds/icons` (opt) | import direto `lucide-react` | icon-registry |

@@ -58,6 +58,20 @@
 
 ---
 
+## Navegação de página (barra de abas de topo)
+
+> Papel **"barra de abas de topo"** = a fita horizontal de sub-navegação abaixo do título (`Unificado · Pagar · Receber · ⋯ Mais`). Fiel ao protótipo `prototipo-ui/cowork/clientes-page.css` `.cli-moduletopnav-tab`. Foi a origem do drift catalogado: **8 componentes divergentes** (dark quebrado por cor inline hardcoded, radius errado). Consolidado num único canônico. Detalhe: [ADR proposta tab-nav-canonico](../memory/decisions/proposals/2026-07-15-tab-nav-canonico-e-componente-por-papel.md).
+
+| Componente | Import | Existe | Substitui (anti-pattern) |
+|---|---|---|---|
+| **PageHeaderTabs** | `@/Components/shared/PageHeaderTabs` | ✅ canon | `ModuleTopNav` · `SubNav` · `PageHeaderModuleNav` · `FiscalModuleTopNav` · **`role="tablist"` hand-rolado na tela** · qualquer `<nav>` de sub-tabs com cor/borda em `style={{}}` inline |
+
+> **Como consumir:** não renderize `PageHeaderTabs` cru na tela — passe pelo `*SubNav` do módulo (`FinanceiroSubNav`/`JanaSubNav`/`PontoSubNav`), que resolve os ghosts + active a partir do `shell.menu`. Fidelidade da aba ativa (radius 0 · underline `var(--accent)` · pill accent-soft · font 600) travada por `tests/pageHeaderTabsFidelity.spec.tsx`.
+>
+> **Catracas ativas:** regra `ds/no-inline-tablist` (barra `role="tablist"` hand-rolada) + `ds/no-inline-raw-color` (cor/borda/sombra crua em `style` inline — o buraco do dark) no `eslint.config.js`; detector de papel-duplicado `node scripts/governance/component-registry-check.mjs --roles` (advisory). Migração dos independentes = incremental por tela.
+
+---
+
 ## Primitivos de layout ([ADR 0253](../memory/decisions/0253-primitivos-layout.md) · F3)
 
 > A camada entre tokens DS v6 e telas. **Layout é COMPOSIÇÃO destes primitivos**, nunca `<div className="flex gap-4">` solto nem `.css` bespoke. Props = token (enumerado via CVA) → espaço/tipo nunca vêm de px literal. Superfície única: **`@/Components/layout`**.

@@ -83,5 +83,32 @@ check('aponta fabricação no gap', /fabricação/.test(fabricatedGap.stdout));
 writeReg([{ bloco_prototipo: 'c-tl', componente_react: null, import_path: null, file: null, exports: [], status: 'gap' }]);
 check('gap legítimo passa (exit 0)', run(['--check', '--strict']).status === 0);
 
+// ── MODO --roles: detector de papel-duplicado (ADR proposta tab-nav-canonico) ──
+const sharedDir = join(root, 'resources', 'js', 'Components', 'shared');
+const fakePages = join(root, 'resources', 'js', 'Pages', 'Fake');
+mkdirSync(sharedDir, { recursive: true });
+mkdirSync(fakePages, { recursive: true });
+// canon do papel (path EXATO que ROLE_SIGNATURES canoniza) + markup de barra de topo
+writeFileSync(join(sharedDir, 'PageHeaderTabs.tsx'),
+  `export default function PageHeaderTabs(){ return <div role="tablist" className="moduletopnav" /> }\n`);
+// consumidor legítimo: importa o canon (wrapper)
+writeFileSync(join(fakePages, 'FakeSubNav.tsx'),
+  `import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';\nexport default function FakeSubNav(){ return <PageHeaderTabs /> }\n`);
+
+// 7. LIBERA: só canon + consumer → sem independente → advisory E strict exit 0
+const rolesClean = run(['--roles']);
+check('roles: advisory exit 0 sem hand-roll independente', rolesClean.status === 0);
+check('roles: strict exit 0 sem hand-roll independente', run(['--roles', '--strict']).status === 0);
+check('roles: classifica o wrapper como consumidor (não drift)', /FakeSubNav/.test(rolesClean.stdout) && /consumidores/.test(rolesClean.stdout));
+
+// 8. DRIFT: injeta hand-roll INDEPENDENTE (markup de topo, NÃO importa o canon)
+writeFileSync(join(fakePages, 'FakeTopNav.tsx'),
+  `export default function FakeTopNav(){ return <nav role="tablist" className="fx-subtabs" /> }\n`);
+const rolesDrift = run(['--roles']);
+check('roles: advisory NÃO morde mesmo com drift (exit 0)', rolesDrift.status === 0);
+check('roles: strict MORDE hand-roll independente (exit 1)', run(['--roles', '--strict']).status === 1);
+check('roles: aponta o independente FakeTopNav', /FakeTopNav/.test(rolesDrift.stdout) && /INDEPENDENTE/i.test(rolesDrift.stdout));
+check('roles: NÃO marca o consumer como independente', !new RegExp('⚠️[^\\n]*FakeSubNav').test(rolesDrift.stdout));
+
 console.log(fails === 0 ? '\n✓ todos os checks passaram' : `\n✗ ${fails} check(s) falharam`);
 process.exit(fails === 0 ? 0 : 1);
