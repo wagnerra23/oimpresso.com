@@ -39,6 +39,9 @@ aqui"**. Por isso este protótipo **não** espelha `AR-PROD-1xx`; ele espelha o 
 
 | Interação | O que prova |
 |---|---|
+| **Aba `Preço base`** | o preço é **da variação** — Azul-G nasce `120` e os outros `100`: a base **varia por célula** |
+| **Base → `Atacado` (−20%)** | Azul-P vira `80,00` e Azul-G vira `96,00` — **uma regra, bases diferentes** |
+| **Editar a base e voltar à tabela** | o preço da lista **segue sozinho** (base 200 → atacado 160) |
 | **Trocar o modelo** (Tamanho/Cor/Numeração/Voltagem) | os eixos vêm do `variation_templates` — a grade inteira se refaz |
 | **Desmarcar um chip** (PP, GG…) | marcar ≠ todos — o valor some da grade e o preview recalcula |
 | **Clicar na célula hachurada** | reativa a combinação "não existe" — **desativa, nunca apaga** (padrão Bling) |
@@ -49,6 +52,27 @@ aqui"**. Por isso este protótipo **não** espelha `AR-PROD-1xx`; ele espelha o 
 | Mudar a regra **com exceção viva** | **o invariante**: herdadas movem, exceção **não** |
 | `Tab` / `Enter` | teclado canônico Cin7/Lightspeed (Tab = coluna, Enter = linha) |
 | Célula `Vermelho-G` | hachurada = **combinação que não existe** (desmarcada na geração) |
+
+## Onde o preço mora (o 2º corte de [F])
+
+**Na variação, sempre.** `variations` tem `default_purchase_price` / `profit_percent` /
+`default_sell_price` / `sell_price_inc_tax` **por filho** (migration 2017 +
+`product_variation_row.blade.php:60-84`). E **produto simples não é outro modelo**:
+`ProductUtil::createSingleProductVariation()` cria 1 variação `DUMMY` (`is_dummy=1`) e grava o
+preço nela → **simples = grade de 1 célula**.
+
+Por isso o seletor é `[Preço base] │ [Varejo] [Atacado] [Revenda]` — e os 3 casos que [F] levantou
+caem **sem tela condicional**:
+
+| Produto tem | O que ele vê |
+|---|---|
+| Só variação (sem tabela) | só a aba **Base** |
+| Só tabela (sem variação) | grade de **1 célula** (`DUMMY`) × as tabelas |
+| Os dois | grade cheia × Base + tabelas |
+
+⚠️ **Base ≠ tabela.** Base é dado real (digitado, fonte); tabela é regra (calculada, derivada). A UI
+não finge que são irmãs: divisor no seletor, sem caixa de regra na Base, e a exceção mostra o
+`calc.` de onde desviou.
 
 ## De onde vêm os eixos (não inventei)
 
@@ -64,6 +88,14 @@ a pesquisa apontou como o ponto fraco do mercado inteiro.
 ## Verificado (browser, 2026-07-16)
 
 Não é screenshot de intenção — o comportamento foi medido no DOM:
+
+**Base → tabela (o modelo):**
+- Abre no **Base**: `Azul|P` `100,00` · `Azul|M` `100,00` · **`Azul|G` `120,00`** · sem itálico, sem caixa de regra
+- **Atacado −20%** → `Azul|P` **`80,00`** e **`Azul|G` `96,00`** — **uma regra, bases diferentes**
+- Editar base `Azul|P` 100 → 200 · voltar ao Atacado → **`160,00`** (seguiu sozinho)
+- Exceção `Azul|G = 90,00` → `is-override` + badge `•1` + subline **`calc. 96,00`** (de onde desviou)
+- Regra −20% → −35%: herdadas `65,00`/`130,00`, **exceção intacta `90,00`**, subline recalcula pra `calc. 78,00`
+- Na Base **não existe exceção** (`Azul|G` volta a ser `120,00`, sem override)
 
 **Eixos → grade:**
 - Tamanho(P,M,G) × Cor(Azul,Vermelho) → 3 colunas × 2 linhas; `PP`/`GG` desmarcados **não** viram coluna
@@ -110,4 +142,5 @@ python -m http.server 8899
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-07-16 | [F+CC] | Protótipo criado. Modelo regra+exceção ancorado na pesquisa de mercado do mesmo dia (13 sistemas; Shopify B2B/Tiny-Olist/Bling/Odoo convergentes). Charter da tabela vai a **v3** citando este pino em `related_prototype`. |
+| 2026-07-16 | [F+CC] | **+ §Preço base — [F] cortou: *"o produto pode ter só variação, ou só tabela, ou os dois, mas a adição do preço está ligada somente ao preço por lista"*.** Procedente, e era furo de **modelo**: eu tratava a base como escalar ("R$ 100 da aba Custos") e pendurava tudo debaixo da tabela → produto com variação e sem tabela não tinha onde ser precificado. Agora `[Preço base]│[tabelas]`, base **por célula**, regra sobre a base de cada uma. **Aberto:** tensão markup-mestre × Base editando venda direto (§Backlog do charter — [W]/[F]). |
 | 2026-07-16 | [F+CC] | **+ §Modelo de grade — [F] cortou: *"não encontrei opção de selecionar o modelo de grade desejado"*.** Procedente: a v1 do pino desenhava a grade **já montada** (Azul/Vermelho × P/M/G caindo do céu) e pulava o passo que vem antes. A matriz agora é **gerada dos eixos**, não hardcoded: 2 selects (`variation_templates`) + chips de valores (`variation_value_templates`, marcar ≠ todos) + célula desmarcável/reativável + preview que conta sozinho. O invariante regra-vs-exceção foi re-medido após a reescrita e sobreviveu. |
