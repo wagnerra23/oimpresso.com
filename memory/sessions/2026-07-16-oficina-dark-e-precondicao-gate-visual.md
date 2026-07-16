@@ -1,20 +1,40 @@
 ---
 title: "Oficina/Board — dark quebrado + gate visual herdando vazamento (2 defeitos ligados)"
 date: "2026-07-16"
+topic: "Oficina/Board: dark renderizando branco (1.10:1, baseline fotografando o bug) + gate visual herdando vazamento de teste em vez de estabelecer a pré-condição FSM"
 type: session
 authority: informativa
 module: OficinaAuto
+authors: [C]
+prs: [4366, 4367]
 related_adrs:
   - 0114-prototipo-ui-cowork-loop-formalizado
   - 0261-gate-novo-nasce-advisory
   - 0101-tests-business-id-1-nunca-cliente
   - 0093-multi-tenant-isolation-tier-0
+  - 0264-governanca-executavel-trio-dominio-e2e
 ---
 
 # Oficina/Board — dark quebrado + gate visual herdando vazamento
 
-Origem: destravar o [PR #4358](https://github.com/wagnerra23/oimpresso.com/pull/4358) (baselines de
-estados) expôs **dois defeitos ligados**. Nenhum é flake — ambos com evidência dura e reprodutível.
+## TL;DR
+
+Destravar o [PR #4358](https://github.com/wagnerra23/oimpresso.com/pull/4358) expôs **dois defeitos
+ligados** — nenhum é flake, ambos com evidência dura e reprodutível, e ambos com a **mesma raiz
+conceitual: corrigiram a FOTO, não a CAUSA**.
+
+1. **Produto** — `Board.tsx` tinha 14 `bg-white` e zero `dark:`: no dark o header renderizava branco
+   com texto claro por cima. Medido no PNG do gate: título a **1.10:1** de contraste (AA exige 4.5:1)
+   = invisível, em tela de cliente **LIVE** (Martinho biz=164). E a **baseline fotografava o bug**,
+   travando-o como contrato — o gate defendia o defeito. Migrado pros tokens: **1.10:1 → 12.40:1**.
+2. **Mecanismo** — o modo *update* do gate visual gerava baseline que o *verify* rejeitava (6.7793%,
+   delta idêntico em 2 runs). Causa: o processo FSM da Oficina é **pré-condição de render** e nenhum
+   seeder o semeava — ele só existia por **vazamento** do `ConformanceProbesTest`, cujo step é
+   **pulado no `workflow_dispatch`**. O gate agora **estabelece** a pré-condição nos dois modos.
+
+**Provado pelo CI** (não afirmado): `1 failed, 19 passed` — falhou **só** `oficina-os · dark`
+(11.0394%, a mudança intencional); `default` e `empty` passaram, confirmando o zero-delta no light e
+que o biz=98 ficou intacto. Os 9 UCs do Board foram **re-provados** pelo E2E real (não re-declarados).
 
 PRs: [#4366](https://github.com/wagnerra23/oimpresso.com/pull/4366) (mecanismo) ·
 [#4367](https://github.com/wagnerra23/oimpresso.com/pull/4367) (produto).
