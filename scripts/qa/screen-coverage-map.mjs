@@ -25,10 +25,12 @@
 
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, sep, basename } from 'node:path';
+import assert from 'node:assert/strict';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
 const BROWSER_DIR = join(ROOT, 'tests', 'Browser');
+const VISREG_MANIFEST = join(BROWSER_DIR, 'visreg-screens.json');
 const SCORECARD_DIR = join(ROOT, 'memory', 'governance', 'scorecards', 'screens');
 const BASELINE = join(ROOT, 'memory', 'governance', 'screen-coverage-baseline.json');
 
@@ -60,6 +62,9 @@ const browserFiles = walk(BROWSER_DIR, (f) => f.endsWith('.php'));
 const browserCorpus = browserFiles
   .map((f) => ({ file: f, body: readFileSync(f, 'utf8') }))
   .map((x) => ({ ...x, hasAxe: /axe|accessibilit/i.test(x.body) }));
+const visregSources = new Set(
+  JSON.parse(readFileSync(VISREG_MANIFEST, 'utf8')).map((entry) => entry.source),
+);
 
 // 3. Scorecards existentes (slug modulo-tela).
 const scorecards = new Set(
@@ -81,17 +86,35 @@ function e2eFor(relTsx) {
   return browserCorpus.filter((b) => b.body.includes(key) || b.body.includes(keyAlt));
 }
 
+export function inertiaSourcesFor(relTsx) {
+  const pageSource = relTsx.replace(/\.tsx$/, '');
+  return pageSource.endsWith('/Index')
+    ? [pageSource, pageSource.slice(0, -'/Index'.length)]
+    : [pageSource];
+}
+
+if (flags.has('--selftest')) {
+  assert.deepEqual(inertiaSourcesFor('Financeiro/Unificado/Index.tsx'), [
+    'Financeiro/Unificado/Index',
+    'Financeiro/Unificado',
+  ]);
+  assert.deepEqual(inertiaSourcesFor('Sells/Create.tsx'), ['Sells/Create']);
+  console.log('screen-coverage selftest: aliases Inertia explícitos passaram');
+  process.exit(0);
+}
+
 const rows = screens.map((abs) => {
   const relTsx = relative(PAGES_DIR, abs).split(sep).join('/');
   const mod = relTsx.split('/')[0];
   const charter = existsSync(abs.replace(/\.tsx$/, '.charter.md'));
   const e2e = e2eFor(relTsx);
+  const hasVisregContract = inertiaSourcesFor(relTsx).some((source) => visregSources.has(source));
   const slug = relTsx.replace(/\.tsx$/, '').replace(/\//g, '-').toLowerCase();
   return {
     screen: relTsx,
     module: mod,
     charter,
-    e2e: e2e.length > 0,
+    e2e: e2e.length > 0 || hasVisregContract,
     a11y: e2e.some((b) => b.hasAxe),
     scorecard: scorecards.has(slug),
   };
