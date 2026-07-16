@@ -1,17 +1,17 @@
 {
   "_meta": {
-    "generated_at": "2026-06-11T18:28:57.253Z",
-    "gate": "casos status derivado (ADR 0264 G-7 \u00e2\u20ac\u201d Status por UC vem do veredito real do teste)",
+    "generated_at": "2026-07-16T17:22:43.838Z",
+    "gate": "casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste)",
     "sources": [
-      "test-results/pest-financeiro-junit.xml"
+      "test-results/playwright-junit.xml"
     ],
     "stats": {
-      "ucs": 14,
-      "pass": 14,
+      "ucs": 15,
+      "pass": 15,
       "fail": 0,
       "skip": 0
     },
-    "nota": "Veredito por-UC derivado dos relat\u00c3\u00b3rios JUnit (test-results/). Lido offline pelo casos:check G-7. Regerar quando a su\u00c3\u00adte rodar: npm run casos:results. UC sem entrada aqui = sem prova capturada (G-7 marca \u00e2\u0153\u2026 declarado como unverified).",
+    "nota": "Veredito por-UC derivado dos relatórios JUnit (test-results/). Lido offline pelo casos:check G-7. Regerar quando a suíte rodar: npm run casos:results. UC sem entrada aqui = sem prova capturada (G-7 marca ✅ declarado como unverified).",
     "refs": [
       "ADR 0264",
       "ADR 0261",
@@ -19,6 +19,66 @@
     ]
   },
   "ucs": {
+    "UC-11": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-01": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-02": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-03": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-06": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-04": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-05": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-07": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-09": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-S10": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-S01": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
+    "UC-S11": {
+      "verdict": "pass",
+      "ran_at": "2026-07-16",
+      "tests": 1
+    },
     "UC-F02": {
       "verdict": "pass",
       "ran_at": null,
@@ -32,61 +92,6 @@
     "UC-F01": {
       "verdict": "pass",
       "ran_at": null,
-      "tests": 1
-    },
-    "UC-11": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-01": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-02": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-03": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-06": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-04": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-05": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-07": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-09": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-S10": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
-      "tests": 1
-    },
-    "UC-S01": {
-      "verdict": "pass",
-      "ran_at": "2026-06-11",
       "tests": 1
     }
   }

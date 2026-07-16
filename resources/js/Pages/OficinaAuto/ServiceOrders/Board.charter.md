@@ -14,7 +14,7 @@ related_adrs:
   - 0129-state-machine-canonica-fsm-rbac
   - 0093-multi-tenant-isolation-tier-0
 tier: A
-charter_version: 5
+charter_version: 6
 ---
 
 # Charter — Oficina Auto · workspace de OS (tela unificada)
@@ -112,6 +112,25 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
 - Nunca hardcodar colunas: ler do payload `columns` (etapas reais do processo).
 - Nunca exibir vocabulário de caçamba/locação (m³, diária, recolhimento) — é carro.
 - Nunca cor de status crua `text-rose/emerald-700` — usar `text-destructive`/`text-success`.
+- Nunca **`bg-white`/`text-white`** (nem `bg-black`/`text-black`): são cor CRUA e **não têm par
+  dark** — o tema é resolvido pelos tokens, então branco hardcodado continua branco no dark.
+  Superfície = `bg-card`; sobre `bg-primary` = `text-primary-foreground` (e `/20` pra overlay).
+  **Não confie no `ds/no-raw-palette-color`**: o seletor dele exige step numérico
+  (`bg-<cor>-<n>`), então `bg-white` (sem escala) passa batido — a regra do lint não cobre
+  este caso. _Origem (2026-07-16): a tela tinha 14 `bg-white` e ZERO `dark:`; no dark o
+  header renderizava branco com `text-foreground` claro por cima — o título "Oficina Auto"
+  media **1.10:1** de contraste (WCAG AA exige 4.5:1), i.e. branco-sobre-branco, invisível.
+  Pior: a baseline `oficina-os · dark` do gate visual estava FOTOGRAFANDO o bug e o travando
+  como contrato de não-regressão. Migrado pros tokens: 1.10:1 → 12.40:1._
+- Nunca cor clara do palette (`bg-<hue>-50/100`) **sem par `dark:`** — vale inclusive em
+  `.ts` (`boardTone.ts`), onde o `ds/no-raw-palette-color` **não enxerga**: o seletor dele é
+  `JSXAttribute[name.name="className"]`, então cor fora de JSX escapa por construção (o
+  próprio arquivo dizia "em .ts, não flagada por R1"). Sem par dark o fundo fica claro e o
+  título (`text-foreground`, claro no dark) some. _Origem (2026-07-16): `emphasisClass` deixou
+  "Aguardando aprovação" a **1.56:1** e "Aguardando peças" a **1.76:1** no dark — mesmo defeito
+  dos `bg-white`, só escondido do lint. Corrigido com par `dark:` (→ 12.99:1 / 13.10:1),
+  preservando âmbar × violeta que §UX targets exige. `--color-*-soft` (dark-aware) NÃO serve
+  aqui: existe warning/info/success/destructive, não violeta — e **token novo é [W] Tier 0**._
 
 ## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
 
