@@ -57,8 +57,27 @@
     {{-- Ziggy: gera função `route()` global no JS a partir das rotas Laravel.
          Sem isso, todas Pages React que chamam `route('xxx.yyy')` viram
          ReferenceError silencioso (links com href=undefined). Pacote
-         `tightenco/ziggy` precisa estar instalado (composer.json). --}}
-    @routes
+         `tightenco/ziggy` precisa estar instalado (composer.json).
+
+         PERF (2026-07-16): o mapa COMPLETO são 1.418 rotas / ~169 KB inline —
+         99,3% do peso desta página — e o HTML é `no-cache`, então isso é
+         re-baixado e re-parseado a CADA navegação, sem nunca ir pro cache.
+
+         ANÔNIMO = páginas públicas (Pages/Site/*: Login, Home, Blogs, BlogPost,
+         Page). Auditadas em 2026-07-16: ZERO chamadas a `route()` nas 4 camadas
+         que elas alcançam (Pages/Site, Components/Site, SiteLayout, app.tsx) —
+         navegam por <Link href> e o login faz `post('/login')` com URL literal.
+         Recebem o grupo mínimo `public` (config/ziggy.php).
+
+         LOGADO = app do ERP: mapa completo, INTOCADO. Cortar lá exigiria resolver
+         as 21 chamadas `route(nomeVindoDoServidor)` (nome dinâmico via prop
+         Inertia), que nenhum grep enumera — e o gate visual não pegaria a quebra
+         (erro de rota acontece em clique, não em screenshot). --}}
+    @auth
+        @routes
+    @else
+        @routes('public')
+    @endauth
 
     @inertiaHead
 </head>
