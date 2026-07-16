@@ -235,7 +235,7 @@
   font-variant-numeric: tabular-nums;
   pointer-events: none;
 }
-/* exceção = valor digitado à mão */
+/* EXCEÇÃO (tabela com regra %) = fugiu da regra → tarja de aviso, é um desvio */
 .pe-cell.is-override input {
   color: var(--text);
   font-weight: 600;
@@ -248,6 +248,12 @@
   left: 0; top: 0; bottom: 0;
   width: 3px;
   background: var(--warn-fg);
+}
+/* PREÇO PRÓPRIO (tabela manual) = é o ponto da tabela, não um desvio → neutro, sem alarme */
+.pe-cell.is-set input {
+  color: var(--text);
+  font-weight: 600;
+  font-style: normal;
 }
 .pe-revert {
   position: absolute;
@@ -262,7 +268,9 @@
   display: none;
   line-height: 1;
 }
-.pe-cell.is-override .pe-revert { display: block; }
+/* o ↺ só é RENDERIZADO quando a célula tem valor próprio (regra ou manual) — o JS decide */
+.pe-cell.is-override .pe-revert,
+.pe-cell.is-set .pe-revert { display: block; }
 /* célula que não existe */
 .pe-cell.is-off { background: var(--bg-2); opacity: 0.7; }
 .pe-cell.is-off input { visibility: hidden; }
@@ -281,6 +289,7 @@
 .pe-legend span { display: flex; align-items: center; gap: 6px; }
 .pe-swatch { width: 11px; height: 11px; border-radius: 2px; border: 1px solid var(--border); }
 .pe-swatch.inherit { background: var(--surface); }
+.pe-swatch.set { background: var(--surface); border-color: var(--text-dim); }
 .pe-swatch.override { background: var(--warn-bg); border-color: var(--warn-fg); }
 .pe-swatch.off { background: var(--bg-2); }
 .pe-link {

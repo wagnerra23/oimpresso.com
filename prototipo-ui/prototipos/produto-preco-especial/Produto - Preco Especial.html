@@ -29,7 +29,9 @@
   </p>
   <ul>
     <li><b>Aba “Preço base”</b> → o preço próprio de cada variação. <b>Azul-G nasce 120</b> (os outros 100) de propósito: a base <b>varia por célula</b>.</li>
-    <li><b>Clique em “Atacado”</b> (−20%) → Azul-P vira <b>80,00</b> e Azul-G vira <b>96,00</b>. Uma regra só, bases diferentes.</li>
+    <li><b>“Atacado” = regra %</b> (−20%) → Azul-P vira <b>80,00</b> e Azul-G vira <b>96,00</b>. Uma regra só, bases diferentes.</li>
+    <li><b>“Revenda” = preço definido por produto</b> — <b>sem %</b>: o cliente digita o valor na tabela (o modo “Customizada” do Bling). Célula não digitada usa o preço base.</li>
+    <li><b>Troque o modo</b> no seletor da tabela — o mesmo valor deixa de ser “exceção com tarja” e vira “o preço” (neutro), porque é isso que ele é.</li>
     <li><b>Edite a base</b> e volte à tabela → o preço da lista <b>segue sozinho</b>.</li>
     <li><b>Digite</b> numa célula de tabela → vira exceção (negrito + tarja + o <code>calc.</code> embaixo mostra de onde desviou). O <b>↺</b> desfaz.</li>
     <li><b>Mude o %</b> → o herdado recalcula; <b>a exceção não se mexe</b> (o invariante).</li>
@@ -112,19 +114,21 @@
           <b>nenhuma tabela</b> se aplica. Digitado, não calculado. As tabelas abaixo derivam daqui.
         </div>
 
-        <!-- LISTA: regra sobre a base de cada célula -->
+        <!-- TABELA: ou uma REGRA (%) sobre a base, ou PREÇO PRÓPRIO digitado por produto -->
         <div class="pe-rule" id="rule-box" hidden>
-          <label for="rule-op">Regra desta lista:</label>
+          <label for="rule-op">Como esta tabela define o preço:</label>
           <select id="rule-op">
-            <option value="desconto">Desconto sobre o preço base</option>
-            <option value="acrescimo">Acréscimo sobre o preço base</option>
-            <option value="fixo">Preço fixo</option>
+            <option value="desconto">Desconto % sobre o preço base</option>
+            <option value="acrescimo">Acréscimo % sobre o preço base</option>
+            <option value="manual">Preço definido por produto</option>
           </select>
-          <input type="text" id="rule-val" value="0" inputmode="decimal" />
-          <span style="font-size:13px">%</span>
+          <span id="rule-val-wrap">
+            <input type="text" id="rule-val" value="0" inputmode="decimal" />
+            <span style="font-size:13px">%</span>
+          </span>
           <div class="pe-rule-result" id="rule-result-box">Aplica sobre a base de <b>cada célula</b></div>
         </div>
-        <p class="pe-rule-note" id="rule-note" hidden>Um número resolve a lista inteira. As células abaixo são <b>calculadas</b> — não digitadas.</p>
+        <p class="pe-rule-note" id="rule-note" hidden></p>
       </section>
 
       <!-- ============ SEÇÃO 2 — a matriz ============ -->
@@ -140,8 +144,9 @@
         <div class="pe-matrix-wrap" id="matrix-wrap"></div>
 
         <div class="pe-legend">
-          <span><i class="pe-swatch inherit"></i> herdado da regra</span>
-          <span><i class="pe-swatch override"></i> exceção manual</span>
+          <span><i class="pe-swatch inherit"></i> herdado (regra ou preço base)</span>
+          <span><i class="pe-swatch set"></i> preço definido nesta tabela</span>
+          <span><i class="pe-swatch override"></i> exceção à regra</span>
           <span><i class="pe-swatch off"></i> combinação que não existe (clique pra reativar)</span>
         </div>
 
@@ -222,12 +227,16 @@
   const baseDe = (k) => (bases[k] !== undefined ? bases[k] : DEFAULT_BASE);
 
   // ---- listas: a REGRA (hoje SEM coluna no banco — US-PROD-022) ----
+  // As 3 tabelas nascem em modos diferentes DE PROPÓSITO — os dois modos são reais:
+  //   Varejo/Atacado = regra %  ·  Revenda = preço digitado por produto (Bling "Customizada")
   const regras = {
     varejo:  { op: 'desconto', val: 0  },
     atacado: { op: 'desconto', val: 20 },
-    revenda: { op: 'desconto', val: 35 },
+    revenda: { op: 'manual',   val: 0  },
   };
-  const excecoes = { varejo: {}, atacado: {}, revenda: {} };
+  // valor próprio por (célula × tabela) = 1 row em variation_group_prices.
+  // Em tabela com regra isso é EXCEÇÃO; em tabela manual isso é O PREÇO.
+  const excecoes = { varejo: {}, atacado: {}, revenda: { 'Azul|P': 75, 'Azul|M': 75 } };
   let listaAtiva = 'base';           // abre no Base — é a fonte
   const ehBase = () => listaAtiva === 'base';
 
@@ -236,10 +245,19 @@
   const chave = (linha, col) => linha + '|' + col;
 
   // preço que a célula assume na lista ativa — sobre a base DAQUELA célula
+  // A tabela é MANUAL quando o cliente digita o preço do produto nela (sem regra).
+  // O schema já suporta: `variation_group_prices.price_type ∈ {fixed, percentage}` —
+  // `fixed` = o valor É o preço. Bling chama a lista assim de "Customizada":
+  // "não será necessário informar acréscimo ou desconto, pois o valor do produto será
+  // personalizado na lista". Corte de [F] 2026-07-16.
+  const ehManual = () => !ehBase() && regras[listaAtiva].op === 'manual';
+
+  // Preço que a célula assume SEM valor próprio gravado (o "herdado").
+  // Em tabela manual não há regra: sem linha gravada, cai no preço base — que é
+  // exatamente o que o getVariationGroupPrice faz ao devolver '' (sem row).
   function precoCalculado(k) {
-    if (ehBase()) return baseDe(k);
+    if (ehBase() || ehManual()) return baseDe(k);
     const r = regras[listaAtiva];
-    if (r.op === 'fixo') return r.val;
     if (r.op === 'acrescimo') return baseDe(k) * (1 + r.val / 100);
     return baseDe(k) * (1 - r.val / 100);
   }
@@ -306,15 +324,23 @@
       return '<td class="pe-cell is-base-cell" data-cell="' + k + '">'
            + '<input type="text" inputmode="decimal" value="' + brl(baseDe(k)).replace('R$ ', '') + '" /></td>';
     }
-    // TABELA: calculado sobre a base DESTA célula; digitar cria exceção
+    // TABELA — dois modos, e o VISUAL não pode mentir sobre qual é:
+    //   • regra %  → célula digitada é EXCEÇÃO (tarja de aviso: fugiu da regra)
+    //   • manual   → célula digitada é O PREÇO (neutro: é o ponto da tabela, não um desvio)
+    // Em ambos: sem valor próprio = herdado (itálico) — sem linha em variation_group_prices.
     const ex = excecoes[listaAtiva][k];
-    const val = (ex !== undefined ? brl(ex) : brl(precoCalculado(k))).replace('R$ ', '');
-    const sub = ex !== undefined
+    const temValor = ex !== undefined;
+    const val = (temValor ? brl(ex) : brl(precoCalculado(k))).replace('R$ ', '');
+    const classe = temValor ? (ehManual() ? ' is-set' : ' is-override') : '';
+    // o "de onde desviou" só faz sentido quando existe regra pra desviar
+    const sub = (temValor && !ehManual())
       ? '<span class="pe-cell-sub">calc. ' + brl(precoCalculado(k)).replace('R$ ', '') + '</span>'
       : '';
-    return '<td class="pe-cell' + (ex !== undefined ? ' is-override' : '') + '" data-cell="' + k + '">'
-         + '<input type="text" inputmode="decimal" value="' + val + '" />' + sub
-         + '<button class="pe-revert" title="Voltar ao calculado">↺</button></td>';
+    const limpar = temValor
+      ? '<button class="pe-revert" title="' + (ehManual() ? 'Limpar — volta ao preço base' : 'Voltar ao calculado') + '">↺</button>'
+      : '';
+    return '<td class="pe-cell' + classe + '" data-cell="' + k + '">'
+         + '<input type="text" inputmode="decimal" value="' + val + '" />' + sub + limpar + '</td>';
   }
 
   function renderMatriz() {
@@ -384,6 +410,10 @@
       const n = Object.keys(excecoes[l]).length;
       badge.hidden = n === 0;
       badge.textContent = n;
+      // o contador significa coisas diferentes: desvio (regra) vs preço definido (manual)
+      badge.title = regras[l].op === 'manual'
+        ? n + ' preço(s) definido(s) nesta tabela'
+        : n + ' exceção(ões) à regra';
     });
   }
 
@@ -443,21 +473,39 @@
 
   function renderRegra() {
     const base = ehBase();
-    // Base = fonte (dado real). Lista = regra. Naturezas diferentes → a UI não finge que são iguais.
+    // Base = fonte (dado real). Tabela = regra OU preço próprio. Naturezas diferentes → a UI não finge.
     document.getElementById('rule-box').hidden = base;
     document.getElementById('rule-note').hidden = base;
     document.getElementById('base-note').hidden = !base;
-    document.getElementById('btn-clear').hidden = base;   // não há exceção na base
+    document.getElementById('btn-clear').hidden = base;
 
     document.getElementById('grade-list-name').textContent =
       base ? 'Preço base' : listaAtiva.charAt(0).toUpperCase() + listaAtiva.slice(1);
-    document.getElementById('grade-list-hint').textContent = base
-      ? 'Preço próprio de cada variação — digitado, não calculado.'
-      : 'Cinza itálico = herdado da regra · Negrito = exceção que você digitou';
 
-    if (base) return;
+    if (base) {
+      document.getElementById('grade-list-hint').textContent =
+        'Preço próprio de cada variação — digitado, não calculado.';
+      return;
+    }
+
     document.getElementById('rule-op').value = regras[listaAtiva].op;
     document.getElementById('rule-val').value = String(regras[listaAtiva].val).replace('.', ',');
+
+    const manual = ehManual();
+    // no modo manual não existe % — esconder o campo em vez de mostrar "%" mentindo
+    document.getElementById('rule-val-wrap').hidden = manual;
+    document.getElementById('rule-result-box').innerHTML = manual
+      ? 'Sem regra — <b>você digita o preço</b> de cada produto nesta tabela'
+      : 'Aplica sobre a base de <b>cada célula</b>';
+    document.getElementById('rule-note').innerHTML = manual
+      ? 'O preço vale <b>só nesta tabela</b>. Célula não digitada usa o <b>preço base</b>.'
+      : 'Um número resolve a tabela inteira. As células abaixo são <b>calculadas</b> — não digitadas.';
+    document.getElementById('grade-list-hint').textContent = manual
+      ? 'Negrito = preço que você definiu nesta tabela · Cinza itálico = usa o preço base'
+      : 'Cinza itálico = herdado da regra · Negrito = exceção que você digitou';
+    document.getElementById('btn-clear').textContent = manual
+      ? 'Limpar preços desta tabela'
+      : 'Limpar exceções desta tabela';
   }
 
   function render() { renderRegra(); renderMatriz(); renderBadges(); renderPreview(); renderDelta(); }

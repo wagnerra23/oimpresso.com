@@ -39,6 +39,8 @@ aqui"**. Por isso este protótipo **não** espelha `AR-PROD-1xx`; ele espelha o 
 
 | Interação | O que prova |
 |---|---|
+| **Aba `Revenda`** | tabela em modo **manual** — **sem campo de %**: o cliente digita o preço do produto nela |
+| **Troque o modo** da tabela (regra ↔ manual) | o mesmo valor deixa de ser "exceção com tarja" e vira "o preço" (neutro) — o visual não mente sobre o modo |
 | **Tire os 2 modelos** (`Selecione um modelo…`) | vira **1 célula** (o `DUMMY`) — e as **tabelas continuam funcionando**. Grade e tabela são independentes. |
 | **Deixe 1 modelo só** | vira **lista vertical**, não matriz |
 | **Aba `Preço base`** | o preço é **da variação** — Azul-G nasce `120` e os outros `100`: a base **varia por célula** |
@@ -90,6 +92,12 @@ a pesquisa apontou como o ponto fraco do mercado inteiro.
 ## Verificado (browser, 2026-07-16)
 
 Não é screenshot de intenção — o comportamento foi medido no DOM:
+
+**Os 2 modos da tabela (o schema já suportava — `price_type ∈ {fixed, percentage}`):**
+- **Atacado = regra %** (−20%) → campo de % visível · Azul-P `80,00` · Azul-G `96,00`
+- **Revenda = preço por produto** → **campo de % escondido** · Azul-P `75,00` como `is-set` (neutro, sem tarja) · Azul-G `120,00` herdado da base · **sem** subline `calc.` (não há regra da qual desviar)
+- **Trocar regra → manual**: o `90,00` que era `is-override` (tarja de aviso) vira `is-set` (neutro); o `calc.` some; herdadas caem pra base
+- Contador `•N` muda de significado no `title`: "3 exceções à regra" vs "3 preços definidos nesta tabela"
 
 **As 4 formas da grade (eixo vazio → `DUMMY`, nunca zera a tela):**
 - **0 eixos** → 1 célula `Produto (sem grade) │ Preço único` · base `100,00` · **Atacado −20% → `80,00`** ← o corte de [F]
@@ -150,6 +158,7 @@ python -m http.server 8899
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-07-16 | [F+CC] | Protótipo criado. Modelo regra+exceção ancorado na pesquisa de mercado do mesmo dia (13 sistemas; Shopify B2B/Tiny-Olist/Bling/Odoo convergentes). Charter da tabela vai a **v3** citando este pino em `related_prototype`. |
+| 2026-07-16 | [F+CC] | **+ §2 modos — 4º corte de [F]: *"nem sempre o cliente define o valor por porcentagem, muitas vezes define o valor do produto dentro da tabela, e no protótipo vejo apenas o campo de percentual"*.** Procedente — **o schema já suportava** (`price_type ∈ {fixed, percentage}`, lido no 1º dia e ignorado) e a **pesquisa também** (linha do Bling: lista "Customizada" = valor personalizado, citada por mim no charter). Modelar só o % forçava inventar regra + marcar cada célula como "exceção". Agora modo **regra %** vs **preço por produto** (sem %, célula = O preço, neutro). Revenda nasce manual pro contraste ser visível. |
 | 2026-07-16 | [F+CC] | **+ §4 formas — 3º corte de [F]: *"se não existe um modelo de grade escolhido, não vejo a opção de adicionar um valor do produto na tabela de preço"*.** O mais grave dos três: **o charter já dizia** ("Só tabela = grade de 1 célula (`DUMMY`) × as tabelas") **e o pino violava** — exigia os 2 eixos pra desenhar. Escrever a regra não implementa a regra. Agora 0 eixos → 1 célula · 1 eixo → lista · 2 eixos → matriz; sem eixo some só o preview. Bug lateral: `\` do header era escape inválido em JS. |
 | 2026-07-16 | [F+CC] | **+ §Preço base — [F] cortou: *"o produto pode ter só variação, ou só tabela, ou os dois, mas a adição do preço está ligada somente ao preço por lista"*.** Procedente, e era furo de **modelo**: eu tratava a base como escalar ("R$ 100 da aba Custos") e pendurava tudo debaixo da tabela → produto com variação e sem tabela não tinha onde ser precificado. Agora `[Preço base]│[tabelas]`, base **por célula**, regra sobre a base de cada uma. **Aberto:** tensão markup-mestre × Base editando venda direto (§Backlog do charter — [W]/[F]). |
 | 2026-07-16 | [F+CC] | **+ §Modelo de grade — [F] cortou: *"não encontrei opção de selecionar o modelo de grade desejado"*.** Procedente: a v1 do pino desenhava a grade **já montada** (Azul/Vermelho × P/M/G caindo do céu) e pulava o passo que vem antes. A matriz agora é **gerada dos eixos**, não hardcoded: 2 selects (`variation_templates`) + chips de valores (`variation_value_templates`, marcar ≠ todos) + célula desmarcável/reativável + preview que conta sozinho. O invariante regra-vs-exceção foi re-medido após a reescrita e sobreviveu. |

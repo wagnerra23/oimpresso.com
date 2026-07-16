@@ -10,7 +10,7 @@ parent_module: Produto
 related_adrs: [93, 104, 107, 149, 182]
 related_us: [US-PROD-022, US-PROD-023]
 tier: A
-charter_version: 3.3
+charter_version: 3.4
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
@@ -51,9 +51,22 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 
 ## Modelo de digitação — REGRA + EXCEÇÃO (v3, 2026-07-16)
 
-> **A lista de preço é uma REGRA (%), não uma grade de digitação. A grade é CALCULADA; a célula é
-> EXCEÇÃO.** Decidido por [F] 2026-07-16 sob o critério *"a melhor usabilidade ganha — o legado
+> **A tabela de preço tem DOIS MODOS — e os dois são de primeira classe:**
+> **(1) Regra %** — um número resolve a tabela inteira; a grade é **calculada**; a célula digitada é
+> **exceção**. **(2) Preço definido por produto** — **sem %**; o cliente digita o valor do produto
+> **naquela tabela**; a célula digitada **é o preço**, não um desvio; célula não digitada usa o
+> **preço base**. Decidido por [F] 2026-07-16 sob o critério *"a melhor usabilidade ganha — o legado
 > Delphi não entra"*. Protótipo navegável: [`prototipo-ui/prototipos/produto-preco-especial/`](../../../../prototipo-ui/prototipos/produto-preco-especial/Produto%20-%20Preco%20Especial.html).
+>
+> ⚠️ **A v3 dizia só "a lista É uma regra" — meia-verdade, corrigida na v3.4** (4º corte de [F]:
+> *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele
+> define o valor do produto dentro da tabela e no protótipo vejo apenas o campo de percentual"*).
+> **O schema já suportava e o charter ignorava:** `variation_group_prices.price_type ∈
+> {'fixed', 'percentage'}` — `fixed` significa *o valor É o preço*. E a própria pesquisa citada na
+> tabela abaixo já dizia, na linha do **Bling**: *"se você selecionar a lista 'Customizada', não
+> será necessário informar acréscimo ou desconto, pois **o valor do produto será personalizado na
+> lista**"*. Modelar só o % forçava o operador a inventar uma regra que não quer e marcar **cada
+> célula como "exceção"** — semanticamente errado.
 
 **O problema que ele resolve.** Variação × lista é **cartesiano**: 20 variações × 3 listas = 60
 células. Digitar 60 números é a tela ruim — e a pesquisa achou que **nenhum dos 13 sistemas
@@ -119,8 +132,16 @@ pesquisados faz isso**. O padrão convergente (4 sistemas, independentes) é:
 1. **Uma lista por vez** — seletor no topo (`Varejo | Atacado | Revenda`). Nunca as N juntas: é a
    dimensão que causa a explosão. Contador de exceções por lista no seletor (`Atacado •3`) mostra
    divergência sem precisar abrir.
-2. **A regra-mãe num campo só** — `Atacado = −20% sobre o preço base`. Resolve a lista inteira com
-   **um número** — incidindo sobre a base **de cada célula** (ver 0-A).
+2. **O modo da tabela — regra % OU preço por produto.** No modo regra: `Atacado = −20% sobre o
+   preço base` resolve a tabela inteira com **um número**, incidindo sobre a base **de cada célula**
+   (ver 0-A). No modo manual: **o campo de % não existe** (esconder, nunca mostrar "%" mentindo) e o
+   operador digita o preço direto. Persistência: 1 row em `variation_group_prices` nos dois modos —
+   muda o `price_type` e o significado, não o lugar.
+
+   ⛔ **O visual não pode mentir sobre o modo.** Célula digitada em tabela **com regra** = exceção
+   (tarja de aviso — fugiu da regra). Em tabela **manual** = o preço (neutro — é o ponto da tabela).
+   Mesmo dado, significados opostos: pintar de aviso um preço normal treina o operador a ignorar o
+   aviso. Vale pro contador da aba também (`•3` = "3 exceções" vs "3 preços definidos").
 3. **A matriz mostra o preço EFETIVO**, nunca célula vazia — cinza/itálico = **herdado** da regra;
    negrito + tarja = **exceção** manual. O operador vê a verdade, não um formulário em branco.
 4. **Digitar numa célula cria a exceção** daquela variação naquela lista. `↺` por célula volta ao
@@ -241,6 +262,14 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
 - ❌ **Pendurar TODA a digitação de preço debaixo da tabela.** Produto com variação e **sem** tabela
   não teria onde ser precificado — foi exatamente o corte de [F]. A aba **Base** é a fonte e existe
   sempre; as tabelas são opcionais.
+- ❌ **Assumir que toda tabela é uma regra %.** O cliente muitas vezes **digita o valor do produto
+  na tabela** — o `price_type='fixed'` do schema é isso, e o Bling chama de "Customizada". Forçar
+  o % obriga a inventar uma regra que ninguém quer e a marcar cada célula como "exceção". 4º corte
+  de [F]; o schema já suportava e o charter ignorava.
+- ❌ **Mostrar "%" quando o modo não tem percentual.** Se o modo é manual, o campo **some** — sufixo
+  que mente é pior que campo ausente.
+- ❌ **Pintar preço normal com cor de aviso.** Célula digitada em tabela manual **não é exceção** —
+  é o preço. Alarme em dado normal treina o operador a ignorar alarme.
 - ❌ **Exigir eixo (ou os 2 eixos) pra desenhar a grade.** Sem modelo → `DUMMY` → **1 célula**, e o
   produto segue com base **e** tabelas. Com 1 eixo → **lista**, não matriz. Grade e tabela são
   **independentes**: uma não é pré-requisito da outra. Foi o 3º corte de [F] — e o mais grave,
@@ -329,6 +358,7 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
 | 2026-05-31 | [DS-upgrade] | Paleta stone→tokens v4; header hand-rolled→tokens (breadcrumb/título/SKU); + dirty-state, Cmd+S, navegação teclado, erros por célula, toast. Contrato backend (group_prices, POST save-selling-prices, price_type) intacto. |
 | 2026-07-15 | [CC] | **v2** — reescrito pro modelo real (Wagner): tabela nasce fora → produto seleciona + precifica → tabela vincula a cliente/tipo de venda; produto nunca vinculado direto ao cliente. Preço Especial produto×cliente (`AR-PROD-111..116`) vira **Non-Goal declarado**. Faixa de quantidade (`AR-PROD-105..109`) movida pro charter da Variação. + §Invariantes de valor (markup mestre, 4 casas, condicional ao `AR-PROD-097`) ancorados em teste. + §Backlog de contrato explicitando os buracos (casos.md ausente, testes tautológicos, cross-tenant prometido e inexistente, `mult` oco). |
+| 2026-07-16 | [F+CC] | **v3.4 — a tabela tem DOIS MODOS.** 4º corte de [F]: *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele define o valor do produto dentro da tabela e no protótipo vejo apenas o campo de percentual"*. **Procedente — e o schema JÁ suportava:** `variation_group_prices.price_type ∈ {'fixed','percentage'}` (`fixed` = o valor É o preço), lido por mim no 1º dia e ignorado ao modelar. A pesquisa também já dizia, na linha do **Bling** que eu mesmo citei no charter: *"lista 'Customizada' → o valor do produto será personalizado na lista"*. A v3 afirmava "a lista **é** uma regra" — meia-verdade que forçava inventar regra + marcar cada célula como "exceção". Agora: modo **regra %** (célula digitada = exceção, tarja) OU **preço por produto** (sem %, célula digitada = O preço, neutro; não digitada = base). + 3 anti-padrões (toda tabela é regra · "%" que mente · alarme em dado normal). Revenda nasce manual no pino pra o contraste ser visível. |
 | 2026-07-16 | [F+CC] | **v3.3** — 3º corte de [F]: *"se não existe um modelo de grade escolhido, não vejo a opção de adicionar um valor do produto na tabela de preço… não ter modelo de grade não invalida a possibilidade de existir uma ou mais tabelas de preço"*. **Procedente — e o mais grave dos três: o contrato JÁ dizia isso** (a tabela do 0-A, linha "Só tabela = grade de 1 célula (o `DUMMY`) × as tabelas") **e o protótipo violava**, exigindo os 2 eixos pra desenhar qualquer coisa → sem grade, o produto não tinha onde ser precificado nem na Base nem nas tabelas. Escrever a regra não implementa a regra. + **4 formas** (0 eixos → 1 célula · 1 eixo → **lista**, não matriz · 2 eixos → matriz) + 1 anti-padrão. Sem eixo some só o §preview (não há grade a gerar). Bug lateral achado na verificação: o `\` do header `Cor \ Tamanho` era escape inválido em JS (` \ ` → espaço) — corrigido. |
 | 2026-07-16 | [F+CC] | **v3.2** — 2º corte de [F]: *"o produto pode ter só variação, ou só tabela, ou os dois — mas no protótipo a adição do preço está ligada somente ao preço por lista"*. **Procedente e era furo de MODELO, não de tela:** eu tratava o preço base como escalar ("R$ 100,00, vem da aba Custos") e pendurava toda a digitação debaixo da tabela → produto com variação e **sem** tabela não tinha onde ser precificado. Verificado: `variations` tem custo/markup/venda **por filho** (2017 + `product_variation_row.blade.php:60-84`), e `createSingleProductVariation()` grava o preço numa variação `DUMMY` → **produto simples é grade de 1 célula, não outro modelo**. + **item 0-A** (Base é a 1ª aba do seletor; a regra incide sobre a base **de cada célula**: −20% → Azul-P 80,00 · Azul-G 96,00) + tabela dos 3 casos + 3 anti-padrões (base escalar · tudo debaixo da tabela · Base e tabela como irmãs) + **§Backlog: tensão markup-mestre × Base editando venda** ([W]/[F] decidem — 3 saídas mapeadas). |
 | 2026-07-16 | [F+CC] | **v3.1** — corte de [F] sobre o protótipo: *"não encontrei opção de selecionar o modelo de grade desejado"*. **Procedente** — a v3 descrevia o **preço** e calava sobre **de onde vêm os eixos**, e o pino desenhava a grade já montada. + **item 0 do contrato** (modelo de grade: `variation_templates` → `values`, existe desde 2017 com CRUD vivo e 2 selects encadeados no Blade legado; a tela React não usa) + 4 anti-padrões (grade já-montada · delete destrutivo · regenerar do zero · >2 eixos). Protótipo: matriz agora **gerada dos eixos**, com chips desmarcáveis + célula reativável + preview que conta sozinho. |
