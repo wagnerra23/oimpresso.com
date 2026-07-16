@@ -1,7 +1,7 @@
 ---
 date: "2026-07-16"
 slug: "smoke-financeiro-15-dimensoes-verde-vazio-ziggy"
-tldr: "Pedido inicial era validar a Visão Unificada do Financeiro; ela já estava no ar e a produção JÁ tinha passado à frente do protótipo (não aplicar por cima). O caminho destapou 4 defeitos reais, todos mergeados: teste Onda10 lendo FinSubNav.tsx deletado escondido por skip-as-pass (#4332), 6 seeders com senha pública sem guard de produção em repo ABERTO (#4333, nasceu de pergunta do Wagner), smoke dando verde tendo testado 1 de 12 rotas (#4340, canário — pego ao vivo 3x), e Ziggy inline de 169KB/1418 rotas na /login pública que usa ZERO delas (#4361, 171KB->24KB medido em prod). Mais o teste permanente das 15 dimensões com controle-negativo (#4331). Smoke de máquina NÃO fechou: login do biz=99 recusado, causa não isolada."
+tldr: "Pedido era aplicar o protótipo do Financeiro em produção, mas a prod já estava à frente dele (aplicar reverteria ~20 PRs). O caminho destapou 4 defeitos, todos mergeados: teste lendo arquivo deletado escondido por skip-as-pass (#4332), 6 seeders com senha pública sem guard em repo aberto (#4333), smoke dando verde tendo testado 1 de 12 rotas (#4340, canário) e Ziggy de 169KB na /login que usa zero rotas (#4361, 171KB→24KB). Smoke de máquina não fechou: login biz=99 recusado."
 time: "17:30 BRT"
 prs: [4327, 4329, 4331, 4332, 4333, 4340, 4361]
 decided_by: [W]
@@ -13,7 +13,7 @@ next_steps:
 
 # Handoff — 2026-07-16 17:30 · Smoke Financeiro, 15 dimensões, verde-vazio e Ziggy
 
-## Estado MCP no momento
+## Estado MCP no momento do fechamento
 
 - **Cycle:** sem foco declarado no brief do dia.
 - **PRs mergeados na sessão:** 7 (#4327, #4329, #4331, #4332, #4333, #4340, #4361).
