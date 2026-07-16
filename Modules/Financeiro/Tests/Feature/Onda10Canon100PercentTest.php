@@ -56,36 +56,11 @@ describe('Onda 10 — FinAgeing (barra ageing A receber)', function () {
     });
 });
 
-describe('Onda 10 — FinSubNav (sub-rotas horizontais)', function () {
-    it('FinSubNav.tsx exporta componente', function () {
-        $src = file_get_contents(FIN_BASE_10 . '/_components/FinSubNav.tsx');
-        expect($src)->toContain('export function FinSubNav');
-    });
-
-    it('5 sub-rotas canon: unified/fluxo/concil/dre/pcontas', function () {
-        $src = file_get_contents(FIN_BASE_10 . '/_components/FinSubNav.tsx');
-        expect($src)->toContain("id: 'unified'");
-        expect($src)->toContain("id: 'fluxo'");
-        expect($src)->toContain("id: 'concil'");
-        expect($src)->toContain("id: 'dre'");
-        expect($src)->toContain("id: 'pcontas'");
-    });
-
-    it('Hrefs canônicos do projeto (não mock)', function () {
-        $src = file_get_contents(FIN_BASE_10 . '/_components/FinSubNav.tsx');
-        expect($src)->toContain('/financeiro/unificado');
-        expect($src)->toContain('/financeiro/fluxo');
-        expect($src)->toContain('/financeiro/extrato');
-        expect($src)->toContain('/financeiro/relatorios');
-        expect($src)->toContain('/financeiro/plano-contas');
-    });
-
-    it('Inertia router.visit pra navegação (não <a> hardcoded)', function () {
-        $src = file_get_contents(FIN_BASE_10 . '/_components/FinSubNav.tsx');
-        expect($src)->toContain("from '@inertiajs/react'");
-        expect($src)->toContain('router.visit(item.href)');
-    });
-});
+// Onda 10 — FinSubNav REMOVIDO (#4279 'limpa FinSubNav orfao'): o componente
+// _components/FinSubNav.tsx foi deletado — a navheader migrou pro PageHeader canon v3.8
+// e a sub-navegacao (5 sub-rotas) vive no PageHeader/tablist, nao num componente separado.
+// Os 4 testes que liam FinSubNav.tsx (404) ficaram orfaos e falhavam de forma flaky.
+// Sec.5: FinSubNav NAO volta como componente (navheader = PageHeader canon).
 
 describe('Onda 10 — FinEditPanel (form inline REAL)', function () {
     it('FinEditPanel.tsx exporta componente', function () {
