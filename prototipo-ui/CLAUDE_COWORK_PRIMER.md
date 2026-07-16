@@ -195,7 +195,7 @@ Override só via comando explícito (`/screenshot-override <razão> --tela=<nome
 `memory/requisitos/_DesignSystem/adr/ui/`:
 
 - **ui/0008** — Cockpit layout-mãe
-- **ui/0009** — Sidebar light por padrão (Wagner: "branca é a correta muito mais linda")
+- **ui/0023** — Sidebar PRETA (dark-fixo) nos dois modos (Wagner 2026-07-16: "sidebar é como esta black então"). Supersede UI-0009/0014/0019, que diziam "light" e estavam erradas — sidebar dark de protótipo está **de acordo**, não gera gap
 - **ui/0010** — Zip Cowork 2026-04-27 canon (precedente)
 - **ui/0011** — Sidebar single-pane cascata
 - **ui/0012** — Zip Cowork 2026-05-09 canon (este — atualizado)
@@ -253,7 +253,7 @@ Detalhes vivos em [LARAVEL_REPO_CONTEXT.md](https://github.com/wagnerra23/oimpre
 
 | Aspecto | Repo decidiu | Motivo |
 |---|---|---|
-| Sidebar light | UI-0009 | Wagner: "branca é a correta muito mais linda" |
+| Sidebar PRETA (dark-fixo, 2 modos) | UI-0023 | Wagner 2026-07-16: "sidebar é como esta black então" |
 | AppShell legado removido | sessão 2026-05-04 | Cockpit é shell único |
 | CSS escopado em `.cockpit{}` | repo | Evita vazamento Site/Cms |
 | Stack IA Vizra ADK rejeitada | ADR 0048 | Decisão técnica |

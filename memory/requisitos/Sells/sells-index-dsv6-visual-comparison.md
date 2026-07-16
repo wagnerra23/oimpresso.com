@@ -26,6 +26,14 @@ refs_prs:
 
 # Sells /sells — Comparativo visual DS v6 (PR3 · re-skin por token)
 
+> ⚠️ **ERRATA 2026-07-16 — descritor de shell errado (registro preservado, não reescrito).**
+> A Região 1 (Layout) abaixo descreve o shell como *"AppShellV2 (sidebar light + topnav)"*. **A sidebar
+> é PRETA (dark-fixo) nos dois modos desde 2026-05-05** — já era, na data deste round (2026-06-03).
+> Lei vigente: [ADR UI-0023](../_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)
+> (supersede UI-0009/0014/0019, que afirmavam "light" e estavam erradas). O descritor **não alterou o
+> veredito** deste round ("Paridade · sem mudança de layout"), por isso o corpo aprovado por [W] em
+> 2026-06-03 fica como está — trilha do tempo, não regravação.
+
 > **Natureza do PR3:** NÃO é rebuild. O `Index.tsx` (charter v6, 1805 LOC) já tem **paridade
 > estrutural ~95%** com o gabarito — o gabarito foi *derivado* desta tela. O delta DS v6 é
 > **migração de cor**: hoje a tela usa classes escopadas `.vd-*`/`.os-*` (paleta própria em

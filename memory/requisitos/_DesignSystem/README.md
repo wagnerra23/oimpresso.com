@@ -63,7 +63,7 @@ Decisões de UI que atravessam todos os módulos — tokens Tailwind 4, componen
 - **AppShellV2** → [`resources/js/Layouts/AppShellV2.tsx`](../../../resources/js/Layouts/AppShellV2.tsx)
 - **PageHeader canon** → [`Components/shared/PageHeader.tsx`](../../../resources/js/Components/shared/PageHeader.tsx) + [ADR 0182](../../decisions/) + skill [`pageheader-canon`](../../../.claude/skills/pageheader-canon/SKILL.md)
 - **Cockpit layout-mãe** → [UI-0008](adr/ui/0008-cockpit-layout-mae-do-erp.md)
-- **Sidebar light padrão** → [UI-0009](adr/ui/0009-cockpit-sidebar-light-padrao.md) (Wagner-explícito 2026-05-04) · **proposal de desempate v2 dark** → [proposals/2026-05-24-sidebar-dark-vs-light.md](../../decisions/proposals/2026-05-24-sidebar-dark-vs-light.md)
+- **Sidebar PRETA (dark-fixo), nos dois modos** → [UI-0023](adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) (Wagner-explícito 2026-07-16). Fonte da verdade = `resources/css/cockpit.css` bloco `Sidebar — DARK FIXO` (Wagner 2026-05-05 *"Menu Fundo Black como no cokpit"*). ⚠️ UI-0009/UI-0014/UI-0019 diziam "light" — **superseded e erradas**
 - **Sidebar single-pane + user menu cascata** → [UI-0011](adr/ui/0011-sidebar-single-pane-cascata-user-menu.md)
 - **Skill correlata** → [`sidebar-menu-arch`](../../../.claude/skills/sidebar-menu-arch/SKILL.md)
 

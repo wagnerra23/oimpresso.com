@@ -73,7 +73,7 @@ Documento mãe UI: **[ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-c
 
 Hierarquia: **Fundações** (tokens cor/tipo/espaço · imutável via ADR) → **Shell** (AppShellV2 + PageHeader · 1× pro app) → **Padrão de Tela** ([PT-01 Lista](memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md) · 5-7 templates) → **Módulo** (varia). Camada superior **herda** das inferiores e **nunca contradiz**.
 
-Regra-mestre: pedido vago = agente **pergunta** antes de implementar (skill `wagner-request-refiner` + agente `wagner-understand` operacionalizam). Sidebar light **DEFINITIVO** ([UI-0019](memory/requisitos/_DesignSystem/adr/ui/0019-sidebar-light-definitivo-supersede-0009-0014.md) — Wagner 2026-07-07 "revogue as anteriores"; supersede UI-0009 + UI-0014; dark-sidebar de protótipo NUNCA gera gap).
+Regra-mestre: pedido vago = agente **pergunta** antes de implementar (skill `wagner-request-refiner` + agente `wagner-understand` operacionalizam). Sidebar **PRETA (dark-fixo)** nos dois modos — **DEFINITIVO** ([UI-0023](memory/requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) — Wagner 2026-07-16 "sidebar é como esta black então"; supersede UI-0019 + UI-0009 + UI-0014, que afirmavam "light" e estavam **erradas**; fonte da verdade = `resources/css/cockpit.css` bloco `Sidebar — DARK FIXO` (Wagner 2026-05-05); dark-sidebar de protótipo está **DE ACORDO**, não gera gap).
 
 ## Proibições (Tier 0 — sem ADR mãe nova é proibido)
 @memory/proibicoes.md

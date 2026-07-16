@@ -241,7 +241,7 @@ Antes de abrir PR (vide [CHECKLIST.md](../../../.claude/skills/cockpit-runbook/C
 - [ADR 0011 — Padrão Jana](../../decisions/0011-alinhamento-padrao-jana.md) — base estrutural UltimatePOS-like
 - [ADR 0023 — Inertia v3](../../decisions/0023-inertia-v3.md) — base técnica (substituir slug pela rota correta se diferente)
 - [_DS ADR 0008 — Cockpit layout-mãe](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)
-- [_DS ADR 0009 — Sidebar light](../_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)
+- [_DS ADR UI-0023 — Sidebar preta (dark-fixo)](../_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)
 - [<ADR específica desta tela, se houver>]
 
 > Se a tela quebra padrão de UI: **NÃO publicar runbook** — abrir ADR substitutiva primeiro (DESIGN.md §14).

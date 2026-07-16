@@ -94,9 +94,11 @@ Lê completo em [PRE-MERGE-UI.md](../../memory/requisitos/_DesignSystem/PRE-MERG
 | **AP7** | Status badge com `bg-fill` — Stripe-style usa dot + texto colorido | Manual review |
 | **AP8** | Copy não-PT-BR em label/erro/mensagem | Manual review · sem grep ainda |
 
-## Sidebar permanece light · NÃO mudar pra dark
+## Sidebar é PRETA (dark-fixo) · NÃO mudar pra light
 
-[ADR UI-0009](../../memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md) + [ADR UI-0014](../../memory/requisitos/_DesignSystem/adr/ui/0014-sidebar-light-mantida-v2-parcial.md) — Wagner explícito 2026-05-24. Constituição UI v2 externa propõe sidebar dark sempre · **NÃO aplicar** no oimpresso. Próxima Claude Design lendo v2 vai propor dark de novo · esta skill é a resposta canônica.
+[ADR UI-0023](../../memory/requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) — Wagner explícito 2026-07-16: *"sidebar é como esta black então"*. Preta nos **dois** modos (claro e escuro): `.cockpit .sb` fixa os tokens `--sb-*` independente do `data-theme` ([`cockpit.css`](../../resources/css/cockpit.css) bloco `Sidebar — DARK FIXO`, Wagner 2026-05-05 *"Menu Fundo Black como no cokpit"*).
+
+⚠️ **UI-0009 / UI-0014 / UI-0019 diziam "light" — estão SUPERSEDED e erradas.** O código é preto desde 2026-05-05; a UI-0019 carimbou o erro como "definitivo" alegando uma medição que o CSS contradizia. Sidebar dark de protótipo Cowork está **de acordo** com o canon — não gera gap nem task.
 
 ## Workflow obrigatório (resumido)
 
