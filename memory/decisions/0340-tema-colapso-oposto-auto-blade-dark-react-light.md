@@ -3,7 +3,7 @@ slug: 0340-tema-colapso-oposto-auto-blade-dark-react-light
 number: 340
 title: "O tema colapsa em direções OPOSTAS no mesmo request — `auto`→dark no Blade × `auto`→light no React; o gate visual fotografa o híbrido (errata da premissa da 0281)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

@@ -7,7 +7,7 @@
 ## Resumo
 - **346** arquivos · **330** números únicos · máx **0340**
 - **ADRs ATIVOS (lifecycle ativo): 312** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 311 · superseded 12 · deprecated 12 · proposto 7 · (vazio) 2 · rascunho 1 · recusado 1
+- Por status: aceito 312 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
 - Por lifecycle: ativo 312 · arquivado 18 · substituido 12 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
@@ -385,4 +385,4 @@ _(íntegra)_
 | 0337 | aceito | ativo | decision | Emenda à 0144 — o sync FECHA-pra-frente um card quando a âncora está verificada  |
 | 0338 | aceito | ativo | decision | DS lint — eixo valor-vs-token fecha por FORMA (completo por construção); compone |
 | 0339 | aceito | ativo | decision | Emenda à 0336/0314 — promoção SOBERANA [W] de 3 gates ratchet DS (layout/styleli |
-| 0340 | proposto | ativo | decision | O tema colapsa em direções OPOSTAS no mesmo request — `auto`→dark no Blade × `au |
+| 0340 | aceito | ativo | decision | O tema colapsa em direções OPOSTAS no mesmo request — `auto`→dark no Blade × `au |
