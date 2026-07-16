@@ -146,7 +146,7 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ubuntu-24.04-${{ runner.arch }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          key: ubuntu-24.04-${{ runner.arch }}-playwright-all-browsers-v1-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
         if: steps.mode.outputs.ui == 'true'
@@ -167,9 +167,13 @@ jobs:
         run: |
           node -e "const fs=require('fs'); const lock=require('./package-lock.json'); const expected=lock.packages['node_modules/playwright']?.version; const actual=JSON.parse(fs.readFileSync('./node_modules/playwright/package.json','utf8')).version; if (!expected || actual !== expected) throw new Error('Playwright fora do lock: '+actual+' != '+expected); console.log('Playwright lockado:', actual)"
 
+      - name: Install Playwright system dependencies
+        if: steps.mode.outputs.ui == 'true'
+        run: npx playwright install-deps chromium firefox webkit
+
       - name: Install Playwright browsers
         if: steps.mode.outputs.ui == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium firefox webkit
 
       - name: Setup Laravel
         if: steps.mode.outputs.ui == 'true'
@@ -270,6 +274,14 @@ jobs:
         # ->script()). Dois lados: CONTROLE (biz=99 VÊ o token) + ISOLAMENTO (biz=1 NÃO vê).
         # BLOCKING (sem continue-on-error): o princípio #1 não admite merge-vermelho.
         run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php tests/Browser/CoreScreens/PixelDimensionProbesTest.php tests/Browser/CoreScreens/Tier0RenderIsolationTest.php
+
+      - name: Cross-browser smoke · Firefox
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/AuthBridgeSmokeTest.php --browser firefox
+
+      - name: Cross-browser smoke · WebKit
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/AuthBridgeSmokeTest.php --browser safari
 
       # ── Onda Q4 (US-GOV-013) — GATE VISUAL DE PIXEL das núcleo-6 ─────────────────────
       # FASE ENFORCING (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing).
