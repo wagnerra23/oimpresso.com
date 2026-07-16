@@ -1,14 +1,14 @@
 name: Visual Regression (Pest 4 Browser)
 
 # ADR 0108 — Camada Tier 2 de validação visual.
-# Roda Pest browser snapshot tests em PRs que tocam Pages Inertia.
-# Falha se diff > 0.1% sem update-snapshots aprovado.
+# Roda Pest browser snapshot tests em PRs cujo diff pode alterar o render.
+# O double-threshold separa ruído, zona cinza revisável e regressão clara.
 #
 # REQUIRED-READINESS (2026-06-11, aprovação Wagner — padrão ADR 0271 onda 2 item 4,
 # idêntico ao financeiro-pest.yml): `pull_request` SEM paths (always-run) pra ser
 # promovível a required sem deadlock "Expected — waiting". O custo (PHP + composer +
-# playwright + migrate + Pest ~10min) é evitado por skip-as-pass interno: o step
-# dorny/paths-filter detecta se algo de UI mudou; se não, pula o pesado e conclui
+# playwright + migrate + Pest ~10min) é evitado por skip-as-pass interno: o classificador
+# `ui-impact.mjs` detecta se algo visual mudou; se não, pula o pesado e conclui
 # verde (~1-2min, só checkout + boot do service).
 
 on:
@@ -19,7 +19,7 @@ on:
   # .snap novos — o gate do PR re-roda e PROVA que a baseline nova bate (anti-#3297).
   # Uso: mudança de Fundação aprovada [W] (ex.: retune dark warm). Desde 2026-07-10 um PR
   # que toca `resources/css/tokens/**` RODA o gate pesado (não é mais skip-as-pass — ver o
-  # filtro `ui:` abaixo): a baseline antiga falha e prova a mudança visual. O dispatch serve
+  # classificador abaixo): a baseline antiga falha e prova a mudança visual. O dispatch serve
   # pra REGENERAR as baselines no runner canônico quando a mudança é intencional/aprovada.
   workflow_dispatch:
 
@@ -56,8 +56,8 @@ jobs:
           lfs: true
 
       # Gate L2 — lint charter `states:` ⇄ manifesto (cheap, node pre-instalado no runner).
-      # Roda SEMPRE (não gateado pelo paths-filter de UI): drift charter↔manifesto pode vir
-      # de um charter ou do JSON, que não disparam o job pesado. --selftest prova o comparador
+      # Roda SEMPRE (antes do classificador de UI): drift charter↔manifesto precisa falhar
+      # mesmo em PR documental. --selftest prova o comparador
       # (L-31, dois lados) antes do lint real.
       # PROMOVIDO A ENFORCING (2026-07-06, ADR 0271/0275 "promover = remover o continue-on-error"):
       # verde em todos os runs desde a criação (0 fail em 30+), critério "2 verdes" cumprido com
@@ -71,58 +71,29 @@ jobs:
           node scripts/visreg-flows-lint.mjs
           node scripts/visreg-sells-lint.mjs --selftest
           node scripts/visreg-sells-lint.mjs
+          node scripts/governance/ui-impact.mjs --selftest
 
-      - name: Detectar mudanças de UI (skip-as-pass — required-readiness)
-        id: changes
+      # Fonte única do skip-as-pass. Diferente da antiga allowlist duplicada, cobre
+      # CSS global, assets/fontes, Blade, toolchain e Controllers/rotas Inertia.
+      # Falha fechado se não conseguir ler o diff (anti-verde-vazio).
+      - name: Classificar impacto visual do diff
+        id: impact
         if: github.event_name == 'pull_request'
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            ui:
-              - 'resources/js/Pages/**/*.tsx'
-              - 'resources/js/Layouts/**/*.tsx'
-              - 'resources/js/Components/**/*.tsx'
-              - 'tests/Browser/**/*.php'
-              # Gate L2: manifesto de estados isolados (fonte única do IsolatedStatesBaselineTest).
-              - 'tests/Browser/visreg-states.json'
-              - 'tests/Browser/visreg-flows.json'
-              - 'tests/Browser/visreg-flows-sells.json'
-              # Baselines de pixel commitadas: um update de baseline (PixelBaseline OU L2
-              # IsolatedStates) tem que RE-RODAR o gate pra provar que a baseline nova bate
-              # com o render atual — senão um commit de baseline ruim passava sem comparar
-              # (foi o que aconteceu no #3297: PR só-de-.snap pulou via skip-as-pass).
-              - 'tests/.pest/snapshots/Browser/CoreScreens/**'
-              - '.github/workflows/visual-regression.yml'
-              - 'lighthouserc.json'
-              # Tokens do Design System (2026-07-10): um delta de VALOR (Fundação/cor/tipo/
-              # domínio) re-renderiza TODAS as telas. Sem isto, um PR só-de-token caía em
-              # skip-as-pass (verde SEM renderizar) e a mudança visual entrava sem prova — o
-              # anti-padrão "alguém tem que lembrar de disparar o modo update" (ADR 0329).
-              # Incluir força o pixel-diff a RODAR: a baseline antiga falha → o autor regenera
-              # a baseline (workflow_dispatch modo update, ou no mesmo PR). Fecha o gap #8 do
-              # loop diff-first (gate visual automatizado por delta de token, sem tirar o Tier 0).
-              # ESCOPO PRECISO: só os inputs que afetam RENDER — .tokens.json (fonte), os
-              # _generated-*.css (compilado consumido) e o config do Style Dictionary. NÃO
-              # inclui version.json/CHANGELOG.md (metadados do pacote, não mudam pixel — senão
-              # todo bump de versão dispararia ~15min de visreg à toa).
-              - 'resources/css/tokens/*.tokens.json'
-              - 'resources/css/tokens/_generated-*.css'
-              - 'resources/css/tokens/style-dictionary.config.mjs'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --no-tags --depth=1 origin "$BASE_SHA"
+          node scripts/governance/ui-impact.mjs --base="$BASE_SHA" --head=HEAD --github-output="$GITHUB_OUTPUT"
 
       # Fonte única do "roda o pesado?": dispatch = sempre true (modo update);
-      # pull_request = o que o paths-filter disse.
+      # pull_request = decisão estruturada do ui-impact.mjs.
       - name: Modo de execução (ui efetivo)
         id: mode
         run: |
-          # FIX 2026-07-10: o else referenciava steps.MODE.outputs.ui (auto-referência do
-          # próprio step = sempre vazio) em vez de steps.CHANGES.outputs.ui (o paths-filter).
-          # Efeito: TODO pull_request pulava o caminho pesado (pixel L1, L2, Tier0 render, axe)
-          # desde #3933 (2026-07-07) — gate required verde sem rodar teste nenhum. Achado pela
-          # prova contrafactual do PR #4089 (dark quebrado de propósito passou VERDE via skip).
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "ui=true" >> "$GITHUB_OUTPUT"
           else
-            echo "ui=${{ steps.changes.outputs.ui }}" >> "$GITHUB_OUTPUT"
+            echo "ui=${{ steps.impact.outputs.visual_required }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Skip-as-pass (nada de UI mudou)
@@ -272,9 +243,6 @@ jobs:
 
       - name: Build Inertia bundles
         if: steps.mode.outputs.ui == 'true'
-        # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
-        # em INFRA-ONLY mode. Vide nota em "Setup Laravel" linha 92.
-        continue-on-error: true
         run: npm run build:inertia
 
       - name: Run Pest Browser tests
@@ -307,13 +275,16 @@ jobs:
       # FASE ENFORCING (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing).
       # Promoção L1 = remover o continue-on-error deste step (não muda required
       # check, só para de mascarar a falha; sem clique de branch protection: o
-      # check `visual-regression` já é required). Baseline = snapshot Pest COMMITADO
-      # (tests/.pest/snapshots), gerado NESTE runner (rendering determinístico) — a
-      # 1ª execução sem baseline GERA e passa; o artifact abaixo permite commitar.
+      # check `visual-regression` já é required). O contrato source→rota→âncora→baseline
+      # vive em tests/Browser/visreg-screens.json. Diff targeted executa exatamente as
+      # telas mapeadas; diff global executa a matriz núcleo-6. Baseline ausente BLOQUEIA.
       # Mudança intencional: npm run visreg:update (CI) + aprovação [W] (F1.5).
-      - name: Pixel-diff núcleo-6 (ENFORCING — Onda Q4 · double-threshold L7)
+      - name: Pixel-diff afetadas/núcleo-6 (ENFORCING · double-threshold L7)
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: pixel-diff
+        env:
+          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
+          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
         # DOUBLE-THRESHOLD (L7): o teste roteia cada tela por 3 bandas (PixelBaselineTest
         # + Tests\Browser\Support\VisregThreshold) — auto-aprova < τ_baixo (VISREG_TAU_LOW,
         # default 0.1%), auto-falha > τ_alto (VISREG_TAU_HIGH, default 2%), e o MEIO é a
@@ -473,6 +444,20 @@ jobs:
             echo "✅ fluxos Compras OK — visibilidade de colunas, menu de Ações e drawer capturados em compact/desktop/wide."
           fi
 
+      # Prova contrafactual final: mudança visual nunca pode concluir verde se o
+      # classificador, o modo e a execução real do pixel-diff divergirem.
+      - name: Canário anti-verde-vazio
+        if: always() && github.event_name == 'pull_request'
+        env:
+          IMPACT: ${{ steps.impact.outputs.visual_required }}
+          MODE: ${{ steps.mode.outputs.ui }}
+          PIXEL_OUTCOME: ${{ steps.pixel-diff.outcome }}
+          UNCOVERED_SCREENS: ${{ steps.impact.outputs.uncovered_screens }}
+        run: |
+          node scripts/governance/ui-impact.mjs --assert-execution \
+            --visual-required="$IMPACT" --mode="$MODE" --pixel-outcome="$PIXEL_OUTCOME" \
+            --uncovered-screens="${UNCOVERED_SCREENS:-[]}"
+
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
         if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
         uses: actions/upload-artifact@v4
@@ -503,7 +488,7 @@ jobs:
             echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing (L1)."
             echo "   Telas em ZONA CINZA (τ_baixo..τ_alto) NÃO falham — ver o resumo 'Zona Cinza' no step summary + artifact pixel-diff-views."
           else
-            echo "✅ pixel-diff núcleo-6 OK (advisory) — nenhuma tela acima de τ_alto."
+            echo "✅ pixel-diff afetadas/núcleo-6 OK — nenhuma tela acima de τ_alto."
             echo "   Se houve ZONA CINZA, ela está no step summary (resumo 'Pixel-diff — Zona Cinza') + artifact pixel-diff-views pro [W] revisar."
           fi
 
@@ -596,7 +581,7 @@ jobs:
               '',
               'Screenshots têm diff > threshold contra baseline no **gate real** (Pest Browser smoke: telas públicas + auth-bridge + a11y axe + conformance). Esse check é **REQUIRED** — o PR não mergeia vermelho.',
               '',
-              '> ℹ️ Distinção honesta: o **pixel-diff núcleo-6** (camada de diff de pixel das telas núcleo-6 — Onda Q4 · ADR 0261) agora é **ENFORCING** (`continue-on-error` removido) e **bloqueia o merge** se alguma tela passar de τ_alto (2%). O L7 (double-threshold) deixa a ZONA CINZA (τ_baixo..τ_alto) passar sem falhar — só vira diff-view pro [W] revisar.',
+              '> ℹ️ O **pixel-diff afetadas/núcleo-6** é **ENFORCING**: diff targeted executa as telas afetadas mapeadas; diff global executa o núcleo-6. Tela sem contrato ou baseline, ou diff acima de τ_alto (2%), bloqueia o merge. A ZONA CINZA só vira diff-view pro [W] revisar.',
               '>',
               '> ℹ️ O **lint L2** (charter `states:` ⇄ manifesto) é **ENFORCING** desde 2026-07-06 (aprovação [W]) — drift charter↔JSON bloqueia o merge. Os **snapshots L2 de estados isolados** são **ENFORCING pra a matriz global inteira** — as 6 telas (Financeiro+Sells+Clientes+Compras+Caixa+Oficina) × estados (onda 3, 2026-07-14) — regressão clara em qualquer estado bloqueia o merge. Não há mais estado advisory na matriz L2. Segue advisory: L5 perf Lighthouse (calendário ADR 0275 §5).',
               '',
