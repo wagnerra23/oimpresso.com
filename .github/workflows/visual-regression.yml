@@ -412,10 +412,6 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
         run: |
-          if [ -z "$GH_TOKEN" ]; then
-            echo "::error::COWORK_BOT_PAT ausente — sem ele o PR de baselines nasce órfão (0 checks, anti-recursão GITHUB_TOKEN). Configurar o secret e re-disparar."
-            exit 1
-          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           BR="vrt/baselines-${{ github.run_id }}"
@@ -423,6 +419,14 @@ jobs:
           git add tests/.pest/snapshots
           if git diff --cached --quiet; then
             echo "Baselines já em dia — nada a commitar."; exit 0
+          fi
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::COWORK_BOT_PAT ausente. Baixe o artifact pixel-snapshots e publique manualmente."
+            exit 1
+          fi
+          if [ "$(gh api "repos/${{ github.repository }}" --jq '.permissions.push // false')" != "true" ]; then
+            echo "::error::COWORK_BOT_PAT sem contents:write. Artifact pixel-snapshots preservado para recuperação; corrija a permissão antes do próximo dispatch."
+            exit 1
           fi
           git commit -m "test(visreg): baselines regeneradas no runner canônico (modo update) [CC]" -m "Disparo manual pós-mudança de Fundação aprovada [W] — ADR UI-0020 §4 (dark warm): o PR de tokens sofre skip-as-pass neste gate e as baselines antigas quebrariam o próximo PR de UI. O gate do PR destas baselines re-roda e PROVA que batem com o render atual (anti-#3297)."
           git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" -u "$BR"
