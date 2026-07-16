@@ -277,6 +277,23 @@ prejuízo"*. Vale pra **qualquer** preço (base, tabela, exceção, faixa), não
 > — e o piso comparado é o **custo**. ⚠️ O `AR-PROD-101` (`R$ Valor mínimo de venda`, piso
 > explícito do legado que **bloqueia** venda) é **outra coisa** e segue sem contrato.
 
+### ⚠️ O charter da Variação está STALE — não reintroduzir os "modos excludentes"
+
+O [`VariacaoPrecos.charter.md`](VariacaoPrecos.charter.md) vive **parkeado** na branch
+`docs/charter-variacao-precos-parked` (`41046e1`, PR [#4324](https://github.com/wagnerra23/oimpresso.com/pull/4324)
+**fechado** — nunca entrou; charter sem `.tsx` não passa nos 3 gates). Ele declara:
+
+> ## Os dois modos (`AR-PROD-171` — `VARIACAO_TIPO`, **excludentes**)
+> ### Modo A — Preço por quantidade · ### Modo B — Cor e Tamanho (grade)
+
+⛔ **REVOGADO na v3.8.** *"Excludentes"* é `VARIACAO_TIPO`, **campo do Delphi** — e o legado não
+entra ([F] 2026-07-16). **Quantidade e variação são ORTOGONAIS**: *quantidade* = quanto leva;
+*variação* = qual filho. Cruzam-se (faixa × grade), não se alternam. O protótipo prova: as faixas
+funcionam com 0, 1, 2 ou 3 eixos ligados.
+
+Idem o **"Produto Vinculado"** do `AR-PROD-178` (faixa que materializa SKU) — ver o Non-Goal de
+sub-unidade acima. **Quando esse charter desparkear, nasce v2 sem os dois.**
+
 ## ⚠️ Dependência que não existe no banco (bloqueia o item 2)
 
 `selling_price_groups` tem **`name` · `description` · `business_id` · `is_active`** — e **nenhuma
@@ -326,6 +343,27 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
   **Status:** pesquisa de mercado disparada 2026-07-16 (onde a faixa mora · por-variante? ·
   dentro-da-lista? · como não explodir a UI · precedência). Decisão depois dela — mesmo caminho que
   acertou o regra+exceção. ⚠️ Enquanto isso, **não é esquecimento, é fila**.
+- ❌ **"Caixa com 12" / embalagem — é SUB-UNIDADE, não variação nem faixa** (v3.8). Levantado por
+  [F] 2026-07-16 (*"existem ambos os casos"*). **Já existe e está VIVO** — não é gap:
+  `units.base_unit_id` + `units.base_unit_multiplier`
+  ([migration 2018](../../../../database/migrations/2018_11_28_104410_modify_units_table_for_multi_unit.php))
+  + `products.sub_unit_ids` (2019) + `purchase_lines.sub_unit_id` + `transaction_sell_lines.sub_unit_id`.
+  Vender 1 Caixa **baixa 12 do estoque** — `SellPosController:637`
+  (`$decrease_qty * $base_unit_multiplier`). O [`Inventory/SPEC.md`](../../../../memory/requisitos/Inventory/SPEC.md)
+  cataloga como *"Multi-unit (compra em caixa, vende em UN) — **Funciona**"*; o que falta lá é
+  **UI Inertia** + custo per unit, e isso é charter de `Pages/Unit/*` que **ainda não existe** (a
+  tela é Blade legado — `Route::resource('units', UnitController::class)`).
+
+  **A régua pra não reabrir o debate:** *vender a caixa diminui o estoque das soltas?*
+  **Sim** → sub-unidade (mesmo produto físico, jeito de contar). **Não** → é **outro produto** no
+  cadastro (você compra e estoca caixas). Se os dois precisarem se relacionar (abrir caixa → 12 un),
+  aí é **BOM** — `ProductBom` já tem CRUD API sem UI, é a `US-PROD-025`.
+
+  ⛔ **Não usar SKU/variação pra representar embalagem** — cria **dois estoques do mesmo produto
+  físico** que não conversam (vende 8 caixas e o sistema segue dizendo 120 soltas). A pesquisa
+  2026-07-16 cataloga como anti-padrão explícito (*"tier virar SKU… destrói estoque, relatório e
+  NFe"* — workaround do Shopify Community). É o que o **"Produto Vinculado"** do `AR-PROD-178` faz —
+  e ele é artefato do Delphi, que **não tinha sub-unidade nem BOM**. Legado não entra ([F]).
 - ❌ Editar nome de variation/price_group inline
 - ❌ Bulk apply (mesmo preço em N variações) — Wave 3
 

@@ -39,6 +39,8 @@ aqui"**. Por isso este protótipo **não** espelha `AR-PROD-1xx`; ele espelha o 
 
 | Interação | O que prova |
 |---|---|
+| **§Faixas — em QUALQUER aba, inclusive a Base** | não ter tabela não invalida ter faixa. Base = contexto de preço (`tabela_preco_id NULL`) |
+| **`de 10 até 49 un`** | o **teto é derivado** do piso da faixa seguinte — não é campo. Mude o piso da 2ª → o teto da 1ª acompanha |
 | **Aba `Atacado` → §Faixas** | faixa `10un = R$80` passa · `50un = R$55` **avisa**: abaixo do custo, por variação afetada |
 | **Corrija a faixa pra R$70** | o aviso **encolhe** — só a Azul-G (custo R$75) segue em prejuízo. Não avisa em bloco. |
 | **Aba `Preço base`** | **sem faixas** — elas vivem DENTRO da tabela (Shopify: `priceList!`) |
@@ -46,6 +48,7 @@ aqui"**. Por isso este protótipo **não** espelha `AR-PROD-1xx`; ele espelha o 
 | **Troque o modo** da tabela (regra ↔ manual) | o mesmo valor deixa de ser "exceção com tarja" e vira "o preço" (neutro) — o visual não mente sobre o modo |
 | **Tire os 2 modelos** (`Selecione um modelo…`) | vira **1 célula** (o `DUMMY`) — e as **tabelas continuam funcionando**. Grade e tabela são independentes. |
 | **Deixe 1 modelo só** | vira **lista vertical**, não matriz |
+| **Ligue o 3º eixo** (Material) | padrão Odoo: eixo 1 nas colunas, os demais **combinados** nas linhas (`Azul · Algodão`) |
 | **Aba `Preço base`** | o preço é **da variação** — Azul-G nasce `120` e os outros `100`: a base **varia por célula** |
 | **Base → `Atacado` (−20%)** | Azul-P vira `80,00` e Azul-G vira `96,00` — **uma regra, bases diferentes** |
 | **Editar a base e voltar à tabela** | o preço da lista **segue sozinho** (base 200 → atacado 160) |
@@ -101,6 +104,17 @@ Não é screenshot de intenção — o comportamento foi medido no DOM:
 - **Revenda = preço por produto** → **campo de % escondido** · Azul-P `75,00` como `is-set` (neutro, sem tarja) · Azul-G `120,00` herdado da base · **sem** subline `calc.` (não há regra da qual desviar)
 - **Trocar regra → manual**: o `90,00` que era `is-override` (tarja de aviso) vira `is-set` (neutro); o `calc.` some; herdadas caem pra base
 - Contador `•N` muda de significado no `title`: "3 exceções à regra" vs "3 preços definidos nesta tabela"
+
+**Faixa de quantidade (v3.8 — 3 cortes de [F]):**
+- **Base TAMBÉM tem faixas** — não ter tabela não invalida ter faixa (espelho do "não ter grade não invalida ter tabela")
+- **`de 1 até 9` → preço normal · `de 10 até 49` → 80,00 · `de 50 até ∞` → 55,00** — o teto é **derivado**, nunca digitado
+- Mudar o piso da 2ª faixa pra `30` → o teto da 1ª virou **29** sozinho
+- Guarda o piso (overlap impossível), exibe o intervalo (é como o operador pensa)
+
+**3+ eixos (padrão Odoo — v3.8):**
+- `Cor · Material \ Tamanho` — eixo 1 nas colunas, demais **combinados** nas linhas
+- 5 tam × 4 cor × 2 mat = **8 linhas × 5 colunas = 40 células**, preview "Criar 40"
+- tirar o 3º eixo volta pra matriz normal · núcleo intacto (chave `Azul · Algodão|PP`, atacado 80,00)
 
 **As 4 formas da grade (eixo vazio → `DUMMY`, nunca zera a tela):**
 - **0 eixos** → 1 célula `Produto (sem grade) │ Preço único` · base `100,00` · **Atacado −20% → `80,00`** ← o corte de [F]
@@ -162,6 +176,7 @@ python -m http.server 8899
 |---|---|---|
 | 2026-07-16 | [F+CC] | Protótipo criado. Modelo regra+exceção ancorado na pesquisa de mercado do mesmo dia (13 sistemas; Shopify B2B/Tiny-Olist/Bling/Odoo convergentes). Charter da tabela vai a **v3** citando este pino em `related_prototype`. |
 | 2026-07-16 | [F+CC] | **+ §Faixas de quantidade** (fecha a 2ª frente do 5º corte). Pesquisa 2026-07-16 (11 plataformas + 9 BR, schemas primários): faixa = **linha esparsa DENTRO da tabela** (`QuantityPriceBreak.priceList: PriceList!` non-null) · **só piso** (overlap impossível por construção) · **VOLUME/bloco** · `variacao NULL` = todas → **9 linhas cobrem 180 células**. **Penhasco** (9un=90 · 10un=80): [F] decidiu **não avisar** — é a alavanca do atacado. **Único aviso: preço < custo** (`variations.default_purchase_price`), **por variação afetada**, avisa e não bloqueia — fecha o backlog "piso vs tabela" aberto na v2. |
+| 2026-07-16 | [F+CC] | **+ faixa na Base · "de X até Y" · 3º eixo — 3 cortes de [F], e 2 revogam o charter.** (1) *"a faixa não aparece na aba de preço base, porquê?"* → a v3.6 dizia "nunca existe no Base": **errado**, é o espelho do corte "não ter grade não invalida ter tabela". Importei o `priceList!` do Shopify como lei — mas lá não existe preço base fora de catálogo. (2) *"falta faixa de x até y"* → guarda o **piso**, exibe o **intervalo** (teto derivado). (3) *"casos especiais com mais de duas grades"* → o anti-padrão "máx. 2 eixos" era **meu**: Shopify permite 3, Lightspeed 3. Revogado; 3+ usa o padrão Odoo (linhas combinadas), opt-in. |
 | 2026-07-16 | [F+CC] | **− delta por eixo (5º corte de [F]): *"se na variação gerada eu consigo alterar o valor, pra quê a função ajuste por tamanho?"*.** Removido: ambíguo (2 caminhos pro mesmo dado) + **o botão `aplicar` nunca teve handler** (controle morto que passou 2 rodadas de verificação — eu media cálculo, não se os botões respondem) + o charter já proibia bulk-apply (Wave 3). Veio de importar o `Value Price Extra` do Odoo sem checar o modelo: lá o preço é composto, aqui a base é digitada por célula. **Preço por quantidade** (2ª frente do mesmo corte) → 🟡 reaberto no charter, pesquisa disparada. |
 | 2026-07-16 | [F+CC] | **+ §2 modos — 4º corte de [F]: *"nem sempre o cliente define o valor por porcentagem, muitas vezes define o valor do produto dentro da tabela, e no protótipo vejo apenas o campo de percentual"*.** Procedente — **o schema já suportava** (`price_type ∈ {fixed, percentage}`, lido no 1º dia e ignorado) e a **pesquisa também** (linha do Bling: lista "Customizada" = valor personalizado, citada por mim no charter). Modelar só o % forçava inventar regra + marcar cada célula como "exceção". Agora modo **regra %** vs **preço por produto** (sem %, célula = O preço, neutro). Revenda nasce manual pro contraste ser visível. |
 | 2026-07-16 | [F+CC] | **+ §4 formas — 3º corte de [F]: *"se não existe um modelo de grade escolhido, não vejo a opção de adicionar um valor do produto na tabela de preço"*.** O mais grave dos três: **o charter já dizia** ("Só tabela = grade de 1 célula (`DUMMY`) × as tabelas") **e o pino violava** — exigia os 2 eixos pra desenhar. Escrever a regra não implementa a regra. Agora 0 eixos → 1 célula · 1 eixo → lista · 2 eixos → matriz; sem eixo some só o preview. Bug lateral: `\` do header era escape inválido em JS. |
