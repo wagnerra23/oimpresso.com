@@ -88,6 +88,8 @@ jobs:
         run: node scripts/governance/criar-tela.mjs --selftest
       - name: Design-memory gate wired no CI (Onda O3 · fundido ADR 0314 F2)
         run: node scripts/governance/design-memory-gate.test.mjs
+      - name: UI-impact classificador (paths visuais + negativos + escopo affected)
+        run: node scripts/governance/ui-impact.mjs --selftest
       - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)
         run: node scripts/governance/knowledge-drift.mjs --selftest
       # P10 — integridade referencial rota↔código (T-AP-3/14/15 · M-AP-1 do F3 rejeitado).
