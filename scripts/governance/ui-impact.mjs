@@ -7,9 +7,9 @@
  * Paths dentro de raízes de UI desconhecidos falham de forma conservadora:
  * rodam o visual em vez de ganhar um verde vazio.
  */
-import { appendFileSync, existsSync, readFileSync, realpathSync } from 'node:fs';
+import { appendFileSync, existsSync, readFileSync, realpathSync, readdirSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, posix, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
@@ -39,6 +39,76 @@ function isPageSource(path) {
 function isPageAuxiliary(path) {
   const rel = path.replace(/^resources\/js\/Pages\//, '').split('/');
   return rel.slice(0, -1).some((part) => PAGE_AUX_DIR.test(part));
+}
+
+function importSpecifiers(content) {
+  const found = [];
+  const patterns = [
+    /\b(?:import|export)\s+(?:type\s+)?(?:[^;'\"]*?\s+from\s+)?['\"]([^'\"]+)['\"]/g,
+    /\b(?:import|require)\s*\(\s*['\"]([^'\"]+)['\"]\s*\)/g,
+  ];
+  for (const pattern of patterns) {
+    for (const match of String(content || '').matchAll(pattern)) found.push(match[1]);
+  }
+  return [...new Set(found)];
+}
+
+function resolveImport(fromPath, specifier, knownPaths) {
+  let base;
+  if (specifier.startsWith('@/')) base = `resources/js/${specifier.slice(2)}`;
+  else if (specifier.startsWith('.')) base = posix.normalize(posix.join(posix.dirname(fromPath), specifier));
+  else return null;
+
+  const extensions = ['.tsx', '.ts', '.jsx', '.js', '.mjs', '.cjs', '.vue'];
+  const candidates = [base];
+  for (const extension of extensions) candidates.push(`${base}${extension}`, `${base}/index${extension}`);
+  return candidates.map(normalizePath).find((candidate) => knownPaths.has(candidate)) ?? null;
+}
+
+/** Grafo reverso importado → Pages consumidoras, incluindo wrappers transitivos. */
+export function createConsumerResolver(sourceEntries) {
+  const sources = new Map([...sourceEntries].map(([path, content]) => [normalizePath(path), String(content || '')]));
+  const knownPaths = new Set(sources.keys());
+  const reverse = new Map();
+  for (const [consumer, content] of sources) {
+    for (const specifier of importSpecifiers(content)) {
+      const imported = resolveImport(consumer, specifier, knownPaths);
+      if (!imported) continue;
+      if (!reverse.has(imported)) reverse.set(imported, new Set());
+      reverse.get(imported).add(consumer);
+    }
+  }
+
+  return (rawPath) => {
+    const queue = [normalizePath(rawPath)];
+    const visited = new Set(queue);
+    const screens = new Set();
+    while (queue.length) {
+      const imported = queue.shift();
+      for (const consumer of reverse.get(imported) ?? []) {
+        if (visited.has(consumer)) continue;
+        visited.add(consumer);
+        if (isPageSource(consumer) && !isPageAuxiliary(consumer)) screens.add(pageScreen(consumer));
+        queue.push(consumer);
+      }
+    }
+    return [...screens].sort();
+  };
+}
+
+export function createRepositoryConsumerResolver() {
+  const entries = new Map();
+  const visit = (directory) => {
+    for (const item of readdirSync(directory, { withFileTypes: true })) {
+      const fullPath = join(directory, item.name);
+      if (item.isDirectory()) visit(fullPath);
+      else if (new RegExp(`\\.${SOURCE_EXT}$`, 'i').test(item.name)) {
+        entries.set(normalizePath(relative(ROOT, fullPath)), readFileSync(fullPath, 'utf8'));
+      }
+    }
+  };
+  visit(join(ROOT, 'resources/js'));
+  return createConsumerResolver(entries);
 }
 
 function normalizeScreenName(screen) {
@@ -99,7 +169,7 @@ export function classifyFile(rawPath, content = '') {
   if (/^tests\/Browser\//i.test(path) || /^tests\/\.pest\/snapshots\/Browser\//i.test(path)) {
     return { path, scope: 'global', reason: 'contrato-visual' };
   }
-  if (lower === '.github/workflows/visual-regression.yml' || lower === 'lighthouserc.json') {
+  if (lower === '.github/workflows/visual-regression.yml' || lower === 'scripts/governance/ui-impact.mjs' || lower === 'lighthouserc.json') {
     return { path, scope: 'global', reason: 'infra-visual' };
   }
   if (/^(?:package(?:-lock)?\.json|pnpm-lock\.yaml|yarn\.lock|composer\.(?:json|lock))$/i.test(path)
@@ -120,7 +190,7 @@ function summarizeImpact(impacted) {
   return { visual_required: impacted.length > 0, scope, screens, impacted };
 }
 
-export function classifyChanges(changes, { readContent = () => '' } = {}) {
+export function classifyChanges(changes, { readContent = () => '', consumerScreens = () => [] } = {}) {
   const impacted = [];
   const seen = new Set();
   for (const change of changes) {
@@ -136,7 +206,11 @@ export function classifyChanges(changes, { readContent = () => '' } = {}) {
     }
 
     const content = CONTENT_AWARE_BACKEND.test(rawPath) ? readContent(rawPath) : '';
-    const hit = classifyFile(rawPath, content);
+    let hit = classifyFile(rawPath, content);
+    if (hit?.scope === 'global' && /^resources\/js\//i.test(rawPath)) {
+      const consumers = consumerScreens(rawPath);
+      if (consumers.length) hit = { ...hit, screens: [...new Set([...(hit.screens ?? []), ...consumers])].sort() };
+    }
     if (status.startsWith('R') && change.oldPath) {
       const oldPath = normalizePath(change.oldPath);
       const oldHit = classifyFile(oldPath, readContent(oldPath));
@@ -245,7 +319,9 @@ function run(argv) {
       .some((suffix) => existsSync(join(ROOT, 'resources/js/Pages', `${source}${suffix}`))),
   });
   if (manifestErrors.length) throw new Error(`contrato ${SCREEN_MANIFEST} invalido: ${manifestErrors.join('; ')}`);
-  const impact = classifyChanges(changes, { readContent });
+  const needsConsumerGraph = changes.some((change) => /^resources\/js\//i.test(normalizePath(change.path)));
+  const consumerScreens = needsConsumerGraph ? createRepositoryConsumerResolver() : () => [];
+  const impact = classifyChanges(changes, { readContent, consumerScreens });
   const result = {
     base,
     diff_base: diffBase,
@@ -298,6 +374,7 @@ function selfTest() {
     'app/Http/Middleware/HandleInertiaRequests.php',
     'app/Services/ShellMenuBuilder.php',
     'app/View/Helpers/Form.php',
+    'scripts/governance/ui-impact.mjs',
     '.github/workflows/visual-regression.yml',
   ]) assert.equal(classifyFile(path)?.scope, 'global', path);
 
@@ -320,6 +397,17 @@ function selfTest() {
   ]);
   const deleted = classifyChanges([{ status: 'D', path: 'resources/js/Pages/Old/Index.tsx' }]);
   assert.deepEqual([deleted.scope, deleted.screens], ['global', []]);
+  const consumers = createConsumerResolver(new Map([
+    ['resources/js/Components/Site/Hero.tsx', 'export default function Hero() {}'],
+    ['resources/js/Layouts/SiteLayout.tsx', "import Hero from '@/Components/Site/Hero';"],
+    ['resources/js/Pages/Site/Home.tsx', "import SiteLayout from '../../Layouts/SiteLayout';"],
+    ['resources/js/Lib/money.ts', 'export const money = 1;'],
+    ['resources/js/Pages/Sells/Create.tsx', "export { money } from '@/Lib/money';"],
+  ]));
+  assert.deepEqual(consumers('resources/js/Components/Site/Hero.tsx'), ['Site/Home']);
+  assert.deepEqual(consumers('resources/js/Lib/money.ts'), ['Sells/Create']);
+  const shared = classifyFiles(['resources/js/Components/Site/Hero.tsx'], { consumerScreens: consumers });
+  assert.deepEqual([shared.scope, shared.screens], ['global', ['Site/Home']]);
   assert.equal(classifyFiles(['resources/css/inertia.css']).scope, 'global');
   assert.equal(classifyFiles(['docs/arquitetura.md']).visual_required, false);
 
