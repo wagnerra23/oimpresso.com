@@ -119,11 +119,12 @@ foreach ($screens as $screen) {
     }
 
     $nome = $screen['screen'];
+    $source = $screen['source'];
     $rota = $screen['route'];
     $ancora = $screen['anchor'];
     $baseline = $screen['baseline'];
 
-    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $rota, $ancora, $baseline, $grayZone) {
+    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $source, $rota, $ancora, $baseline, $grayZone) {
         $business = Business::first();
         if (! $business) {
             test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
@@ -135,6 +136,15 @@ foreach ($screens as $screen) {
 
         $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota));
         $page->assertSee($ancora);
+
+        $dataPage = (string) $page->script(
+            "(() => document.getElementById('app')?.getAttribute('data-page') || '')()"
+        );
+        $runtimePage = json_decode($dataPage, true, 512, JSON_THROW_ON_ERROR);
+        expect($runtimePage['component'] ?? null)->toBe(
+            $source,
+            "A rota {$rota} renderizou um componente Inertia diferente do contrato visreg."
+        );
 
         // ESTABILIZAÇÃO (diagnóstico runs 27370651063/27370956421 — diff views):
         // (a) controles NATIVOS (select / input date|datetime|time) pintam com variação

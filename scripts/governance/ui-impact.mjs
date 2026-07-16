@@ -260,14 +260,18 @@ export function validateExecution({ visualRequired, mode, pixelOutcome, uncovere
 export function validateScreenManifest(entries, { baselineExists = () => true, sourceExists = () => true } = {}) {
   if (!Array.isArray(entries) || entries.length === 0) return ['manifesto visreg vazio ou invalido'];
   const errors = [];
-  const sources = new Set();
+  const uniqueFields = Object.fromEntries(
+    ['screen', 'source', 'route', 'baseline'].map((field) => [field, new Set()]),
+  );
   for (const [index, entry] of entries.entries()) {
     for (const field of ['screen', 'source', 'route', 'anchor', 'baseline']) {
       if (typeof entry?.[field] !== 'string' || entry[field].trim() === '') errors.push(`entrada ${index}: ${field} ausente`);
     }
     if (entry?.route && !entry.route.startsWith('/')) errors.push(`entrada ${index}: route deve comecar com /`);
-    if (entry?.source && sources.has(entry.source)) errors.push(`source duplicado: ${entry.source}`);
-    if (entry?.source) sources.add(entry.source);
+    for (const [field, values] of Object.entries(uniqueFields)) {
+      if (entry?.[field] && values.has(entry[field])) errors.push(`${field} duplicado: ${entry[field]}`);
+      if (entry?.[field]) values.add(entry[field]);
+    }
     if (entry?.baseline && !baselineExists(entry.baseline)) errors.push(`baseline ausente: ${entry.baseline}`);
     if (entry?.source && !sourceExists(entry.source)) errors.push(`source Inertia ausente: ${entry.source}`);
   }
@@ -415,6 +419,13 @@ function selfTest() {
   assert.deepEqual(validateScreenManifest(contract), []);
   assert.ok(validateScreenManifest([]).length > 0);
   assert.ok(validateScreenManifest([...contract, contract[0]]).length > 0);
+  for (const field of ['screen', 'route', 'baseline']) {
+    const duplicate = { ...contract[1], [field]: contract[0][field] };
+    assert.ok(
+      validateScreenManifest([contract[0], duplicate]).some((error) => error.includes(`${field} duplicado`)),
+      `manifesto deve rejeitar ${field} duplicado`,
+    );
+  }
   assert.ok(validateScreenManifest(contract, { baselineExists: () => false }).length > 0);
   assert.deepEqual(coverageForScreens(['Cliente', 'Sells/Create'], contract).uncovered_screens, ['Cliente']);
   assert.ok(validateExecution({ visualRequired: 'true', mode: 'false', pixelOutcome: 'success' }).length > 0);
