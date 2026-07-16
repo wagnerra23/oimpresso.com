@@ -489,14 +489,13 @@ jobs:
 
       - name: Upload diff views do pixel (falha OU zona cinza — double-threshold L7)
         # Sobe os diff-views SEMPRE que o pixel-diff rodou: a ZONA CINZA (L7) NÃO falha o
-        # step, mas grava diff-views em tests/Browser/Screenshots/ImageDiffView/ pro [W]
-        # revisar — só uploadar on-failure perderia exatamente o caso de uso do L7.
+        # step, mas grava diff-views fora do diretório que o Pest limpa entre suítes.
         # `if-no-files-found: ignore` cobre o caso "nenhuma tela na zona cinza nem falhou".
         if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: pixel-diff-views
-          path: tests/Browser/Screenshots/ImageDiffView/
+          path: storage/app/visreg-diffs/
           retention-days: 7
           if-no-files-found: ignore
 
