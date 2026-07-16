@@ -44,7 +44,14 @@ ação explícita "Perguntar ao KB". Âncora: charter Anti-hooks "NÃO dispara J
 **Pronto quando:** com `Queue::fake()`, GET `/kb/v2` resulta em `Queue::assertNothingPushed()`.
 
 ## UC-KBV2-05 — Tier 0: rota não vaza nós de outro business_id
-Status: 🧪 (KbIndexV2ContractTest V5 — biz=1 vs biz=99 cross-tenant)
+Status: ⬜ (rebaixado 2026-07-16 — o teste V5 existe mas passa POR CONSTRUÇÃO; não é prova)
+
+> **Por que ⬜ e não 🧪 (revisão adversarial 2026-07-16):** o `KbIndexV2ContractTest:135-137` confessa
+> no próprio comentário — *"render mock-only → prop `nodes` ausente, então o slug/título de biz=99
+> nunca aparece no payload **por construção**"*. Um teste que passaria mesmo se o scope multi-tenant
+> não existisse **não prova isolamento**: prova que a tela não serve dado nenhum. Contar isso como
+> cobertura Tier 0 no placar é verde tautológico (§5 2026-06-05). Ele vira prova forte de verdade
+> quando o `indexV2` real chegar e a asserção passar a morder um payload scopado — aí volta pra 🧪/✅.
 A rota nunca serve nós de outro tenant. Hoje o render é mock (sem props), então o piso a
 provar é que a rota **não expõe** dados de `kb_nodes` de biz=99 quando aberta por um usuário
 biz=1 (o mock não injeta dado real de tenant nenhum). Quando o Controller `indexV2` real chegar
@@ -68,12 +75,29 @@ Favoritos, recentes e categorias expandidas persistem via `localStorage` prefixa
 > **Errata 2026-07-16 (medido, não suposto):** este UC afirmava prefixo `oimpresso.kb.v2.*`.
 > As chaves REAIS são `oimpresso.kb.favs.v1` · `oimpresso.kb.recent.v1` · `oimpresso.kb.paths.v1`
 > (`_lib/useKbFavorites.ts:12` · `useKbRecent.ts:9` · `useKbPathProgress.ts:14`) — **sem** o `v2`.
-> O `v2` era afirmação nunca verificada (o UC nascera ⬜). O código está CERTO e o texto errado:
-> favorito é do KB, não da versão da tela — compartilhar a chave com a V3 é o que faz o favorito
-> sobreviver ao cutover, e renomear a chave apagaria os favoritos já salvos de quem usa hoje.
-> Corrigido o PERDEDOR (este casos.md), conforme a regra de precedência (proibicoes.md §Precedência:
-> teste > casos > charter > SPEC). O contrato travado é o **prefixo** `oimpresso.kb.`, não a chave
-> exata (o sufixo é versionamento interno; travá-lo engessaria sem proteger nada).
+> O `v2` era afirmação nunca verificada (o UC nascera ⬜). Corrigido o PERDEDOR (este casos.md),
+> conforme a regra de precedência (proibicoes.md §Precedência: teste > casos > charter > SPEC).
+> O contrato travado é o **prefixo** `oimpresso.kb.`, não a chave exata (o sufixo é versionamento
+> interno; travá-lo engessaria sem proteger nada).
+>
+> **Auto-errata da errata (mesmo dia, achada por revisão adversarial):** a 1ª versão desta nota
+> justificou a chave com *"compartilhar a chave com a V3 é o que faz o favorito sobreviver ao
+> cutover"*. Isso é **FALSO por medição**: `grep -ci fav resources/js/Pages/kb/Index.tsx` = **0** —
+> a V3 **não tem favorito nenhum** pra compartilhar chave (`useKbFavorites` só é importado por
+> `Index.v2.tsx`). Era racional plausível inventado sem medir, exatamente o que a lápide §5 de
+> 2026-07-15 proíbe (achado/justificativa por leitura, sem varredura). O prefixo segue certo; o
+> **motivo** que eu dei estava errado.
+
+> ⚠️ **DECISÃO DE ARQUITETURA PENDENTE — este UC NÃO é contrato estável (2026-07-16):**
+> existe favorito **server-side REAL e não usado**: `routes.php:100` → `KbFavoriteController@toggle`,
+> que grava `kb_favorites` com `business_id` (`:48`) — cross-device e por tenant. O próprio docblock
+> do hook (`useKbFavorites.ts:6-8`) declara o localStorage como **temporário**: *"quando user tiver
+> permission kb.favorite + cloud sync, trocar pra POST /kb/nodes/{slug}/favorite"*.
+> Logo o teste que defende este UC trava em contrato uma decisão **da era-mock** (favorito é
+> device-local) contra a implementação real que já existe no servidor — é a lápide §5 de 2026-06-05
+> (teste derivado do código, tautológico) na camada de UC. **Não use este UC como argumento pra não
+> migrar pro favorito server-side.** Quando [W] decidir o destino da V2 (promover/manter/arquivar),
+> este UC é reescrito junto: device-local vs `kb_favorites` é decisão de produto, não de teste.
 
 ## UC-KBV2-08 — ⌘K/Esc (teste) + tri-pane a 1280px sem scroll (manual)
 Status: 🧪 (kbIndexV2Client.spec.tsx — ⌘K/Ctrl+K abre paleta, Esc fecha, "/" foca busca; aguarda run verde CT100)
