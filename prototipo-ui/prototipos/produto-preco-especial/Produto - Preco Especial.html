@@ -55,16 +55,19 @@
 
     <div class="pe-body">
 
-      <!-- ============ SEÇÃO 0 — os eixos: escolher o MODELO DE GRADE ============ -->
+      <!-- ============ SEÇÃO 0 — os eixos: escolher o MODELO DE GRADE ============
+           Colapsa depois de configurado: é SETUP (mexe 1×), não trabalho diário.
+           Sem isso empurra o §Faixas pra fora da dobra — foi o corte de [F] 2026-07-16. -->
       <section class="pe-section">
         <div class="pe-section-head">
           <div>
             <h2 class="pe-h2">Modelo de grade</h2>
-            <p class="pe-hint">Escolha o modelo e marque só os valores que este produto tem. O modelo é cadastrado fora daqui (Produto → Modelo de Variação).</p>
+            <p class="pe-hint" id="grade-setup-hint">Escolha o modelo e marque só os valores que este produto tem. O modelo é cadastrado fora daqui (Produto → Modelo de Variação).</p>
           </div>
+          <button class="pe-link" id="grade-toggle">Alterar</button>
         </div>
 
-        <div class="pe-axes">
+        <div class="pe-axes" id="axes-wrap">
           <div class="pe-axis" data-axis="1">
             <select class="pe-axis-tpl" data-axis-tpl="1">
               <option value="">Selecione um modelo…</option>
@@ -129,6 +132,18 @@
           <div class="pe-rule-result" id="rule-result-box">Aplica sobre a base de <b>cada célula</b></div>
         </div>
         <p class="pe-rule-note" id="rule-note" hidden></p>
+        <!-- FAIXAS: só existem DENTRO de uma tabela (Shopify: priceList!). Nunca no Base. -->
+        <div class="pe-faixas" id="faixas-box" hidden>
+          <div class="pe-section-head">
+            <div>
+              <h3 class="pe-h3">Faixas de quantidade</h3>
+              <p class="pe-hint" id="faixas-hint"></p>
+            </div>
+            <button class="pe-link" id="faixa-add">+ Adicionar faixa</button>
+          </div>
+          <table class="pe-faixa-grid" id="faixa-grid"></table>
+          <p class="pe-hint" id="faixas-vazio" hidden>Sem faixas — o preço da tabela vale para qualquer quantidade.</p>
+        </div>
       </section>
 
       <!-- ============ SEÇÃO 2 — a matriz ============ -->
@@ -143,18 +158,6 @@
 
         <div class="pe-matrix-wrap" id="matrix-wrap"></div>
 
-        <!-- FAIXAS: só existem DENTRO de uma tabela (Shopify: priceList!). Nunca no Base. -->
-        <div class="pe-faixas" id="faixas-box" hidden>
-          <div class="pe-section-head">
-            <div>
-              <h3 class="pe-h3">Faixas de quantidade</h3>
-              <p class="pe-hint" id="faixas-hint"></p>
-            </div>
-            <button class="pe-link" id="faixa-add">+ Adicionar faixa</button>
-          </div>
-          <table class="pe-faixa-grid" id="faixa-grid"></table>
-          <p class="pe-hint" id="faixas-vazio" hidden>Sem faixas — o preço da tabela vale para qualquer quantidade.</p>
-        </div>
 
         <div class="pe-legend">
           <span><i class="pe-swatch inherit"></i> herdado (regra ou preço base)</span>
@@ -323,7 +326,7 @@
       b.setAttribute('aria-pressed', String(on));
       b.addEventListener('click', () => {
         if (on) eixos[n].marcados.delete(v); else eixos[n].marcados.add(v);
-        renderValores(n); renderMatriz(); renderPreview();
+        renderValores(n); renderMatriz(); renderPreview(); renderSetup(); renderFaixas();
       });
       box.appendChild(b);
     });
@@ -603,7 +606,34 @@
       : 'Limpar exceções desta tabela';
   }
 
-  function render() { renderRegra(); renderMatriz(); renderBadges(); renderPreview(); renderFaixas(); }
+  // O §Modelo de grade é SETUP (mexe 1×). Colapsado, ele devolve ~200px e traz o
+  // §Faixas pra dentro da dobra — corte de [F] 2026-07-16 ("não estou vendo a grade
+  // por quantidade": estava em top:1046 num quadro de 860).
+  let gradeAberta = false;
+  function renderSetup() {
+    const g = formaDaGrade();
+    document.getElementById('axes-wrap').hidden = !gradeAberta;
+    document.getElementById('grade-toggle').textContent = gradeAberta ? 'Pronto' : 'Alterar';
+    if (gradeAberta) {
+      document.getElementById('grade-setup-hint').textContent =
+        'Escolha o modelo e marque só os valores que este produto tem. O modelo é cadastrado fora daqui (Produto → Modelo de Variação).';
+      return;
+    }
+    // resumo de 1 linha quando fechado
+    const resumo = (n) => nomeEixo(n) + ' (' + valores(n).join(', ') + ')';
+    document.getElementById('grade-setup-hint').textContent = g.forma === 'simples'
+      ? 'Sem grade — produto simples (1 variação).'
+      : g.forma === 'matriz'
+        ? resumo(1) + ' × ' + resumo(2)
+        : resumo(valores(1).length ? 1 : 2);
+  }
+
+  document.getElementById('grade-toggle').addEventListener('click', () => {
+    gradeAberta = !gradeAberta;
+    renderSetup();
+  });
+
+  function render() { renderSetup(); renderRegra(); renderMatriz(); renderBadges(); renderPreview(); renderFaixas(); }
 
   document.getElementById('faixa-add').addEventListener('click', () => {
     const lista = faixas[listaAtiva];
@@ -619,7 +649,7 @@
       const n = e.target.dataset.axisTpl;
       eixos[n].tpl = e.target.value;
       eixos[n].marcados = new Set(e.target.value ? MODELOS[e.target.value].valores : []);
-      renderValores(n); renderMatriz(); renderPreview();
+      renderValores(n); renderMatriz(); renderPreview(); renderSetup(); renderFaixas();
     });
   });
 

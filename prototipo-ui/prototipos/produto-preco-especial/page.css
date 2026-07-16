@@ -10,6 +10,12 @@
 
 * { box-sizing: border-box; }
 
+/* ⚠️ DEFESA GERAL — `display:` vindo de CLASSE vence o `[hidden]` do user-agent (especificidade),
+   e aí `elemento.hidden = true` NÃO esconde nada. Pegou 2 vezes aqui em 2026-07-16: o §Modelo de
+   grade (`.pe-axes{display:flex}`) e a caixa de regra (`.pe-rule{display:flex}`) ficavam visíveis
+   na aba Base. Esta linha vale pra qualquer elemento da tela — não precisa lembrar caso a caso. */
+[hidden] { display: none !important; }
+
 .pe {
   /* único override permitido pelo §8: accent no escopo da tela */
   --accent: oklch(0.48 0.11 155);
@@ -62,6 +68,7 @@
 
 /* ---- eixos: modelo de grade + valores (variation_templates → values) ---- */
 .pe-axes { display: flex; gap: 12px; margin-bottom: 10px; }
+/* (o `[hidden]{display:none!important}` no topo cobre este e todos os outros) */
 .pe-axis {
   flex: 1;
   padding: 12px;
