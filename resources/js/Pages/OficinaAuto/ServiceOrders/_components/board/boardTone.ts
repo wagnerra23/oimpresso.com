@@ -33,11 +33,21 @@ export function toneForColor(color: string | null | undefined): StageTone {
 
 // Destaque das colunas de espera ([W] mod #4): aguardando-aprovação (âmbar · OK do
 // cliente) × aguardando-peças (violeta · peça física). bg/border de coluna.
+//
+// PAR `dark:` OBRIGATÓRIO (2026-07-16) — o step 50/40 é claro e NÃO tem par automático:
+// no dark o fundo continuava pastel-claro enquanto o título da coluna usa `text-foreground`
+// (claro no dark) → texto claro sobre fundo claro. MEDIDO no render do gate: "Aguardando
+// aprovação" 1.56:1 e "Aguardando peças" 1.76:1 (WCAG AA exige 4.5:1) = ilegível.
+// O tom escuro espelha o claro (mesmo hue, step 950/900) preservando a distinção âmbar ×
+// violeta que o charter exige como lei (§UX targets). Não dá pra usar `--color-*-soft`
+// (que já é dark-aware): existe warning/info/success/destructive — NÃO existe violeta, e
+// token novo é soberania [W] Tier 0. `dark:` explícito é o padrão já usado em Clientes.
+// [W] aprovou este caminho em 2026-07-16.
 export type ColumnEmphasis = 'aprovacao' | 'pecas' | null;
 
 export function emphasisClass(emphasis: ColumnEmphasis): string {
-  if (emphasis === 'aprovacao') return 'bg-amber-50/40 border-amber-200';
-  if (emphasis === 'pecas') return 'bg-violet-50/30 border-violet-200';
+  if (emphasis === 'aprovacao') return 'bg-amber-50/40 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800';
+  if (emphasis === 'pecas') return 'bg-violet-50/30 dark:bg-violet-950/25 border-violet-200 dark:border-violet-800';
   return 'bg-card border-border';
 }
 

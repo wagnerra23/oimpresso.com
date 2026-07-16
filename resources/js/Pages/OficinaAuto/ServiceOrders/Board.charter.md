@@ -122,6 +122,15 @@ corrigido pela [ADR 0194]. Este quadro roda no processo FSM **`oficina_mecanica_
   media **1.10:1** de contraste (WCAG AA exige 4.5:1), i.e. branco-sobre-branco, invisível.
   Pior: a baseline `oficina-os · dark` do gate visual estava FOTOGRAFANDO o bug e o travando
   como contrato de não-regressão. Migrado pros tokens: 1.10:1 → 12.40:1._
+- Nunca cor clara do palette (`bg-<hue>-50/100`) **sem par `dark:`** — vale inclusive em
+  `.ts` (`boardTone.ts`), onde o `ds/no-raw-palette-color` **não enxerga**: o seletor dele é
+  `JSXAttribute[name.name="className"]`, então cor fora de JSX escapa por construção (o
+  próprio arquivo dizia "em .ts, não flagada por R1"). Sem par dark o fundo fica claro e o
+  título (`text-foreground`, claro no dark) some. _Origem (2026-07-16): `emphasisClass` deixou
+  "Aguardando aprovação" a **1.56:1** e "Aguardando peças" a **1.76:1** no dark — mesmo defeito
+  dos `bg-white`, só escondido do lint. Corrigido com par `dark:` (→ 12.99:1 / 13.10:1),
+  preservando âmbar × violeta que §UX targets exige. `--color-*-soft` (dark-aware) NÃO serve
+  aqui: existe warning/info/success/destructive, não violeta — e **token novo é [W] Tier 0**._
 
 ## UCs cobertos (PRECISA TER · rastreável · §10.4 [CC])
 
