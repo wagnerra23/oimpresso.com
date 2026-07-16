@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-15**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-16**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -22,7 +22,7 @@ lifecycle: ativo
 | ADS | [BRIEFING](../requisitos/ADS/BRIEFING.md) | 2026-06-08 |
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-06-08 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-06-08 |
-| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-06-08 |
+| Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-15 |
 | Brief | [BRIEFING](../requisitos/Brief/BRIEFING.md) | 2026-06-08 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-02 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-03 |
@@ -65,7 +65,7 @@ lifecycle: ativo
 
 > Fontes versionadas (offline, sem `gh api`): censo [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o que **existe**) + [`required-checks-baseline.json`](../../governance/required-checks-baseline.json) (o que **bloqueia**, congelado). Anti-demoção invisível: `protection-drift.mjs` (GT-G4). As catracas mordem: `gate-selftest` (GT-G6). Censo cobrado por `memory-health` Check G/M.
 
-### Bloqueiam merge — 25 required (enforcement: everyone)
+### Bloqueiam merge — 28 required (enforcement: everyone)
 > Congelados no baseline (captura 2026-06-20). Divergência do vivo é sinalizada pelo `protection-drift`, não reconciliada aqui.
 
 - ADR 0216 PR scan (governance:audit --diff-only)
@@ -75,7 +75,9 @@ lifecycle: ativo
 - Casos-coverage · ratchet (trio + rastreabilidade)
 - DS gate
 - Dominio-dict · ratchet (enum ⇔ dicionário)
+- ESLint · ratchet vs baseline
 - Frontend / Vite build
+- Layout primitives · ratchet
 - No hardcode business_id (Tier 0)
 - No-mock-in-prod · ratchet
 - PHP / Pest (Financeiro · MySQL)
@@ -85,6 +87,7 @@ lifecycle: ativo
 - PII scan (CPF/CNPJ literal)
 - SDD scorecard ratchet (métrica armada não regride · GT-G3)
 - Secret scan (gitleaks · só linhas novas do PR)
+- Stylelint · ratchet vs baseline
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
 - anchor entry/covers gate
 - anchor-lint ADR 0273
@@ -94,26 +97,26 @@ lifecycle: ativo
 - visual-regression
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 101 workflows por classe
+### Censo — 102 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
 | Classe | Qtd | Exemplos |
 |---|---|---|
-| gate (bloqueia/valida PR) | 75 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
+| gate (bloqueia/valida PR) | 76 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 5 | block-brl-values-selftest, gate-selftest, guards-meta-gate, protection-drift, … |
 | automacao (cron/dispatch) | 19 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, composer-lock-sync, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 
 ## Decisões (ADRs)
 
-- **344** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 310 · superseded: 12 · deprecated: 12 · proposto: 4 · sem-status: 4 · rascunho: 1 · recusado: 1.
+- **345** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 311 · superseded: 12 · deprecated: 12 · proposto: 4 · sem-status: 4 · rascunho: 1 · recusado: 1.
 - **3** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 18 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 20 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -133,6 +136,8 @@ lifecycle: ativo
 - ~~2026-07-10 — Grade de réguas por decomposição em slices, sem teste de integração (fabrica "0 acima" falso)~~
 - ~~2026-07-10 — Remover a redeclaração de tokens de domínio nos bundles `.fin-cowork`/`.sells-cowork` (parece "não-redeclarar", reintroduz bug de PORTAL)~~
 - ~~2026-07-12 — Normalização MECÂNICA em massa de arquivos LEGADOS de `memory/` (backfill de frontmatter)~~
+- ~~2026-07-15 — Apresentar ACHADO / causa-raiz / correção a partir de LEITURA de código, sem prova e sem varredura~~
+- ~~2026-07-15 — Force-migrar os 2 comboboxes async de `Sells` pro canon `Command` (onda combobox)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -140,14 +145,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **249** handoffs · **439** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **254** handoffs · **442** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-15-tabnav-detector-superseded`
+  - `2026-07-15-protocolo-design-v2-hook-ativacao`
+  - `2026-07-15-pageheadertabs-accent-token-dark-aware`
   - `2026-07-13-financeiro-visreg-enforcing`
   - `2026-07-13-arte-oss-comparavel-ia-os`
   - `2026-07-12-spike-hybrid-jana-bi-us-copi-133`
-  - `2026-07-12-sdd-prova-6de8-plano-v2-disjuncao`
-  - `2026-07-12-sdd-avaliacao-adversarial-processo`
-  - `2026-07-12-reguas-adversario-grade`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-15 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-16 · deriva das fontes canônicas, não as substitui._
