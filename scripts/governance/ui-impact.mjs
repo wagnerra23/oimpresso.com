@@ -209,7 +209,24 @@ export function classifyChanges(changes, { readContent = () => '', consumerScree
     let hit = classifyFile(rawPath, content);
     if (hit?.scope === 'global' && /^resources\/js\//i.test(rawPath)) {
       const consumers = consumerScreens(rawPath);
-      if (consumers.length) hit = { ...hit, screens: [...new Set([...(hit.screens ?? []), ...consumers])].sort() };
+      if (consumers.length) {
+        const screens = [...new Set([...(hit.screens ?? []), ...consumers])].sort();
+        // PROVENIÊNCIA (import real) VENCE O PALPITE DE PATH — 2026-07-16.
+        // Pra um auxiliar, `screen` vem de pageScreen(), que corta o path no 1º diretório
+        // aux: `Pages/<Mod>/<Sub>/_components/x.ts` → `<Mod>/<Sub>`. Isso só coincide com a
+        // tela quando ela é `<Sub>/Index.tsx` (pageScreen poda "index"). Se a tela tem nome
+        // próprio — `OficinaAuto/ServiceOrders/Board.tsx`, cujo Index foi aposentado — o
+        // recorte gera uma tela FANTASMA (`OficinaAuto/ServiceOrders`) que não existe, nunca
+        // tem contrato, e derruba o fail-closed do main() mesmo com a tela real já coberta.
+        // Quando os imports resolvem os consumidores, eles são a proveniência REAL: usar o
+        // palpite junto só adiciona fantasma. NÃO perde cobertura — `scope` continua 'global'
+        // (a matriz inteira roda) e a tela real segue em `screens`. Sem consumidores resolvidos
+        // o palpite é mantido (conservador, comportamento de sempre).
+        // Doutrina: proveniência é o que o artefato declara, não a string do path.
+        hit = hit.reason === 'componente-de-page-compartilhado'
+          ? { ...hit, screen: undefined, screens }
+          : { ...hit, screens };
+      }
     }
     if (status.startsWith('R') && change.oldPath) {
       const oldPath = normalizePath(change.oldPath);
@@ -436,6 +453,27 @@ function selfTest() {
   assert.deepEqual(consumers('resources/js/Lib/money.ts'), ['Sells/Create']);
   const shared = classifyFiles(['resources/js/Components/Site/Hero.tsx'], { consumerScreens: consumers });
   assert.deepEqual([shared.scope, shared.screens], ['global', ['Site/Home']]);
+
+  // Auxiliar de Page cuja tela tem NOME PRÓPRIO (não Index): o palpite de path recorta em
+  // `Mod/Sub` (tela fantasma, sem contrato) — a proveniência por import tem que vencer.
+  // Repro do fail-closed de 2026-07-16 (run 29522631495: uncovered=['OficinaAuto/ServiceOrders']
+  // com a tela real já coberta no mesmo diff). Par de fixtures: com consumidor e sem.
+  const auxConsumers = createConsumerResolver(new Map([
+    ['resources/js/Pages/Mod/Sub/_components/tone.ts', 'export const tone = 1;'],
+    ['resources/js/Pages/Mod/Sub/Board.tsx', "import { tone } from './_components/tone';"],
+    ['resources/js/Pages/Mod/Orfao/_components/solto.ts', 'export const solto = 1;'],
+  ]));
+  assert.deepEqual(auxConsumers('resources/js/Pages/Mod/Sub/_components/tone.ts'), ['Mod/Sub/Board']);
+  const auxHit = classifyFiles(['resources/js/Pages/Mod/Sub/_components/tone.ts'], { consumerScreens: auxConsumers });
+  assert.deepEqual(
+    [auxHit.scope, auxHit.screens],
+    ['global', ['Mod/Sub/Board']],
+    'auxiliar com consumidor resolvido não pode emitir a tela fantasma Mod/Sub',
+  );
+  // Controle-negativo: SEM consumidor resolvido o palpite continua (conservador — não
+  // silencia o fail-closed; só deixa de inventar tela quando há proveniência melhor).
+  const orfao = classifyFiles(['resources/js/Pages/Mod/Orfao/_components/solto.ts'], { consumerScreens: auxConsumers });
+  assert.deepEqual([orfao.scope, orfao.screens], ['global', ['Mod/Orfao']], 'sem consumidor, mantém o palpite de path');
   assert.equal(classifyFiles(['resources/css/inertia.css']).scope, 'global');
   assert.equal(classifyFiles(['docs/arquitetura.md']).visual_required, false);
 
