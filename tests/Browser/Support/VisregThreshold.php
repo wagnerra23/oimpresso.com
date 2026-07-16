@@ -23,7 +23,7 @@ use ArrayObject;
  *   - $page->screenshot(): vendor pest-plugin-browser/src/Api/Concerns/InteractsWithScreen.php:12
  *   - baseline .snap (base64 PNG): vendor pest/src/Repositories/SnapshotRepository.php:58
  *   - threshold pixelmatch 0.3: vendor pest-plugin-browser/src/Playwright/Page.php:524
- *   - artifact pixel-diff-views (ImageDiffView/): .github/workflows/visual-regression.yml:256
+ *   - artifact pixel-diff-views (storage/app/visreg-diffs): visual-regression.yml
  *
  * @see tests/Browser/CoreScreens/PixelBaselineTest.php (consumidor)
  */
@@ -386,13 +386,11 @@ final class VisregThreshold
     }
 
     /**
-     * Grava o diff-view HTML em tests/Browser/Screenshots/ImageDiffView/ (mesmo dir que o
-     * artifact `pixel-diff-views` sobe — visual-regression.yml:261). Formato espelha o
-     * ImageDiffView do plugin (Diff + Slider Expected/Actual).
+     * Grava o diff-view fora de Screenshots/, que o Pest limpa entre arquivos de teste.
      */
     private static function writeDiffView(string $screenName, string $expectedBlob, string $actualBlob, string $diffBlob): string
     {
-        $dir = self::screenshotDir() . '/ImageDiffView';
+        $dir = base_path('storage/app/visreg-diffs');
         if (! is_dir($dir)) {
             @mkdir($dir, 0755, true);
         }
@@ -428,7 +426,7 @@ final class VisregThreshold
 
         @file_put_contents($path, $html);
 
-        return 'tests/Browser/Screenshots/ImageDiffView/' . $slug . '.html';
+        return 'storage/app/visreg-diffs/' . $slug . '.html';
     }
 
     /**
