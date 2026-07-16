@@ -34,6 +34,17 @@ UI humana: `/copiloto/admin/memoria` lista os docs sincronizados (contagem viva 
 - **Plan mode** (Shift+Tab×2) pra mudanças não-triviais
 - **`/continuar`** pra retomar sessão sem re-explorar repo do zero (chama `cycles-active` + `my-work` + handoff + último session log)
 
+## Pedido de tela/feature — onde a palavra do dono vira máquina (verificado 2026-07-16)
+
+Canal de entrada REAL do [W] = **chat** (linguagem natural; o agente materializa US/tasks downstream — verificação adversarial 7 agentes, [session 2026-07-16](sessions/2026-07-16-adversario-ponto-entrada-us-uc.md)). **US e UC não são canal de pedido** — SPEC é o elo mais fraco da precedência (e `_pendente_` já conta como coberto no anchor-lint); UC sem teste quebra o casos-gate required (lápide §5 em [proibicoes.md](proibicoes.md)). Os slots onde o pedido vira máquina:
+
+| [W] informa | Onde | Força |
+|---|---|---|
+| `(Mod/Tela, PT-0X)` | `node scripts/governance/criar-tela.mjs` | carimba trio + stub e2e citando UC; passa `pt-conformance` por construção |
+| **Non-Goals + Automation Anti-hooks** | `<Tela>.charter.md` | cada item vira Pest GUARD (CI); `charter-write` é proibida de inferir — só [W] preenche |
+| `## Contrato visual` (copy literal + ordem) | charter + `prototipo-ui/contrato/` | gate `contrato-de-tela` (always-run; required = passo 4 pendente, [W] admin-only) |
+| `[BACKLOG] <frase>` sem id | `<Tela>.casos.md` | prosa visível sem gate — vira UC quando ganhar teste que o cite |
+
 ## Transferir trabalho entre sessões (nuvem ↔ local)
 
 Sessão claude.ai/code (nuvem) e Claude Code local não se enxergam — git é a ponte. Caminho canônico: **bridge branch via GitHub device flow** (sem PAT no chat, sem chunks copiados). Ver [`memory/how-bridge-cloud-local.md`](how-bridge-cloud-local.md).

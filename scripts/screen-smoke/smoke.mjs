@@ -207,13 +207,20 @@ async function run() {
   // smoke-log consolidado
   const worst = results.some((r) => r.verdict === 'QUEBRADO') ? 'QUEBRADO'
     : results.some((r) => r.verdict === 'AVISO') ? 'AVISO' : 'OK';
+
+  // CANARIO ANTI-"VERDE VAZIO": rota SELECIONADA que nao foi exercida nao pode sair verde.
+  // Rota pulada e {...route, skipped:true} — sem `verdict` — entao nao entrava em nenhum
+  // some() acima e 8 telas puladas davam geral=OK. Falso-negativo REAL: run 29496887149
+  // (2026-07-16) passou verde tendo testado so /login, com o login quebrado.
+  const skipped = results.filter((r) => r.skipped);
+  const credsConfigured = Boolean(USER && PASS);
   const summaryPath = path.join(OUT, `smoke-${RUN_ID}.md`);
   const lines = [
     `# Smoke visual pós-deploy — run ${RUN_ID}`,
     ``,
     `- **quando:** ${TS}`,
     `- **base:** ${BASE} · **login:** ${loggedIn ? 'ok' : 'não'} · **modelo:** ${MODEL}`,
-    `- **veredito geral:** ${worst}`,
+    `- **veredito geral:** ${worst}${skipped.length ? ` · ⚠️ ${skipped.length} rota(s) NAO exercida(s) — canario` : ''}`,
     ``,
     `| rota | veredito | console | openai | resumo |`,
     `|---|---|---:|---|---|`,
@@ -232,6 +239,15 @@ async function run() {
 
   if (worst === 'QUEBRADO') {
     console.error('[smoke] ::error::Smoke QUEBRADO — ao menos uma tela não renderizou. Ver review.md + artifact.');
+    process.exit(1);
+  }
+
+  // Fail-closed: cobertura prometida e nao entregue = falha, nao verde.
+  if (skipped.length) {
+    const motivo = credsConfigured
+      ? 'login FALHOU com SMOKE_PROD_USER/PASS configurados (segredo ou conta invalidos)'
+      : 'SMOKE_PROD_USER/PASS ausentes';
+    console.error(`[smoke] ::error::CANARIO: ${skipped.length} rota(s) auth NAO foram exercidas (${motivo}). O verde seria vazio. Rotas: ${skipped.map((r) => r.label).join(', ')}`);
     process.exit(1);
   }
 }

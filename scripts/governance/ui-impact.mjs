@@ -257,19 +257,28 @@ export function validateExecution({ visualRequired, mode, pixelOutcome, uncovere
   return [];
 }
 
-export function validateScreenManifest(entries, { baselineExists = () => true, sourceExists = () => true } = {}) {
+export function validateScreenManifest(entries, {
+  baselineExists = () => true,
+  sourceExists = () => true,
+  componentExists = () => true,
+} = {}) {
   if (!Array.isArray(entries) || entries.length === 0) return ['manifesto visreg vazio ou invalido'];
   const errors = [];
-  const sources = new Set();
+  const uniqueFields = Object.fromEntries(
+    ['screen', 'source', 'component', 'route', 'baseline'].map((field) => [field, new Set()]),
+  );
   for (const [index, entry] of entries.entries()) {
-    for (const field of ['screen', 'source', 'route', 'anchor', 'baseline']) {
+    for (const field of ['screen', 'source', 'component', 'route', 'anchor', 'baseline']) {
       if (typeof entry?.[field] !== 'string' || entry[field].trim() === '') errors.push(`entrada ${index}: ${field} ausente`);
     }
     if (entry?.route && !entry.route.startsWith('/')) errors.push(`entrada ${index}: route deve comecar com /`);
-    if (entry?.source && sources.has(entry.source)) errors.push(`source duplicado: ${entry.source}`);
-    if (entry?.source) sources.add(entry.source);
+    for (const [field, values] of Object.entries(uniqueFields)) {
+      if (entry?.[field] && values.has(entry[field])) errors.push(`${field} duplicado: ${entry[field]}`);
+      if (entry?.[field]) values.add(entry[field]);
+    }
     if (entry?.baseline && !baselineExists(entry.baseline)) errors.push(`baseline ausente: ${entry.baseline}`);
     if (entry?.source && !sourceExists(entry.source)) errors.push(`source Inertia ausente: ${entry.source}`);
+    if (entry?.component && !componentExists(entry.component)) errors.push(`componente Inertia ausente: ${entry.component}`);
   }
   return errors;
 }
@@ -317,6 +326,8 @@ function run(argv) {
     baselineExists: (baseline) => existsSync(join(ROOT, 'tests/.pest/snapshots/Browser/CoreScreens/PixelBaselineTest', baseline)),
     sourceExists: (source) => ['.tsx', '/Index.tsx', '.jsx', '/Index.jsx', '.ts', '/Index.ts', '.js', '/Index.js', '.vue', '/Index.vue']
       .some((suffix) => existsSync(join(ROOT, 'resources/js/Pages', `${source}${suffix}`))),
+    componentExists: (component) => ['.tsx', '.jsx', '.ts', '.js', '.vue']
+      .some((suffix) => existsSync(join(ROOT, 'resources/js/Pages', `${component}${suffix}`))),
   });
   if (manifestErrors.length) throw new Error(`contrato ${SCREEN_MANIFEST} invalido: ${manifestErrors.join('; ')}`);
   const needsConsumerGraph = changes.some((change) => /^resources\/js\//i.test(normalizePath(change.path)));
@@ -411,10 +422,17 @@ function selfTest() {
   assert.equal(classifyFiles(['resources/css/inertia.css']).scope, 'global');
   assert.equal(classifyFiles(['docs/arquitetura.md']).visual_required, false);
 
-  const contract = [{ screen: 'Venda', source: 'Sells/Create', route: '/sells/create', anchor: 'Venda', baseline: 'venda.snap' }];
+  const contract = [{ screen: 'Venda', source: 'Sells/Create', component: 'Sells/Create', route: '/sells/create', anchor: 'Venda', baseline: 'venda.snap' }];
   assert.deepEqual(validateScreenManifest(contract), []);
   assert.ok(validateScreenManifest([]).length > 0);
   assert.ok(validateScreenManifest([...contract, contract[0]]).length > 0);
+  for (const field of ['screen', 'component', 'route', 'baseline']) {
+    const duplicate = { ...contract[1], [field]: contract[0][field] };
+    assert.ok(
+      validateScreenManifest([contract[0], duplicate]).some((error) => error.includes(`${field} duplicado`)),
+      `manifesto deve rejeitar ${field} duplicado`,
+    );
+  }
   assert.ok(validateScreenManifest(contract, { baselineExists: () => false }).length > 0);
   assert.deepEqual(coverageForScreens(['Cliente', 'Sells/Create'], contract).uncovered_screens, ['Cliente']);
   assert.ok(validateExecution({ visualRequired: 'true', mode: 'false', pixelOutcome: 'success' }).length > 0);

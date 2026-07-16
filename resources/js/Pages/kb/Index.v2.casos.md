@@ -4,7 +4,7 @@ irmaos: Index.v2.charter.md (lei) · Index.charter.md (V3 atual, coexiste)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
 status_tela: viva-gate-visual (roteada /kb/v2 + /sops; render mock-only — indexV2 backend pendente)
-last_run: "2026-07-06"
+last_run: "2026-07-16"
 ---
 
 # Casos de uso — /kb/v2 (SOPs · KB Unificado tri-pane)
@@ -59,26 +59,61 @@ Enquanto `KbController@indexV2` não existir, a tela renderiza com `MOCK_NODES` 
 "Fallback MOCK_NODES quando rotas backend ausentes" + `usingMock = !props.nodes`.
 **Pronto quando:** GET `/kb/v2` autenticado responde 200 mesmo sem nenhuma prop passada pela closure (sem exceção de "prop undefined").
 
-## UC-KBV2-07 — Persistência client-side é localStorage prefixado (visual/manual)
-Status: ⬜ (manual/browser — favoritos/recentes/expandidos sobrevivem reload)
-Favoritos, recentes e categorias expandidas persistem via `localStorage` prefix
-`oimpresso.kb.v2.*` (nunca `sessionStorage`). Anti-pattern do charter: `sessionStorage`.
-**Pronto quando:** favoritar um SOP + reload mantém o favorito; DevTools mostra chaves `oimpresso.kb.v2.*` e zero uso de `sessionStorage`.
+## UC-KBV2-07 — Persistência client-side é localStorage prefixado
+Status: 🧪 (kbIndexV2Client.spec.tsx — prefixo + sobrevive remount + zero sessionStorage; aguarda run verde CT100)
+Favoritos, recentes e categorias expandidas persistem via `localStorage` prefixado
+`oimpresso.kb.*` (nunca `sessionStorage`). Anti-pattern do charter: `sessionStorage`.
+**Pronto quando:** favoritar um SOP + reload mantém o favorito; as chaves gravadas são prefixadas `oimpresso.kb.` e `sessionStorage` fica intocado.
 
-## UC-KBV2-08 — Tri-pane a 1280px sem scroll horizontal + ⌘K (visual/manual)
-Status: ⬜ (manual/browser — Larissa balcão 1280px)
+> **Errata 2026-07-16 (medido, não suposto):** este UC afirmava prefixo `oimpresso.kb.v2.*`.
+> As chaves REAIS são `oimpresso.kb.favs.v1` · `oimpresso.kb.recent.v1` · `oimpresso.kb.paths.v1`
+> (`_lib/useKbFavorites.ts:12` · `useKbRecent.ts:9` · `useKbPathProgress.ts:14`) — **sem** o `v2`.
+> O `v2` era afirmação nunca verificada (o UC nascera ⬜). O código está CERTO e o texto errado:
+> favorito é do KB, não da versão da tela — compartilhar a chave com a V3 é o que faz o favorito
+> sobreviver ao cutover, e renomear a chave apagaria os favoritos já salvos de quem usa hoje.
+> Corrigido o PERDEDOR (este casos.md), conforme a regra de precedência (proibicoes.md §Precedência:
+> teste > casos > charter > SPEC). O contrato travado é o **prefixo** `oimpresso.kb.`, não a chave
+> exata (o sufixo é versionamento interno; travá-lo engessaria sem proteger nada).
+
+## UC-KBV2-08 — ⌘K/Esc (teste) + tri-pane a 1280px sem scroll (manual)
+Status: 🧪 (kbIndexV2Client.spec.tsx — ⌘K/Ctrl+K abre paleta, Esc fecha, "/" foca busca; aguarda run verde CT100)
 A 1280px o layout tri-pane (sidebar + lista + leitor) não gera scroll horizontal; `⌘K` (ou `/`)
 abre o CommandPalette; `Esc` fecha o leitor. 0 erros no console. Âncora: charter UX Targets
 (1280px sem scroll horizontal, 0 erros JS) + Goal 5 (CommandPalette ⌘K).
-**Pronto quando:** screenshot 1280px sem barra horizontal; ⌘K abre a paleta; console limpo.
+**Pronto quando:** ⌘K/Ctrl+K abre a paleta e Esc fecha (automatizado); screenshot 1280px sem barra horizontal + console limpo (manual — ver limite abaixo).
+
+> **Limite honesto (2026-07-16):** o teste cobre a metade COMPORTAMENTAL (atalhos), incluindo os
+> controles-negativos que importam: `k` sem modificador NÃO abre a paleta, e atalho de letra não
+> dispara enquanto se digita num input. A metade VISUAL (1280px sem scroll horizontal · console
+> limpo) é irredutível em jsdom — que não tem layout engine — e segue **manual/browser**. Dividido
+> em vez de fingir: um teste que "provasse" 1280px em jsdom seria teatro.
 
 ## UC-KBV2-09 — Tokens semânticos, zero cor crua (visual/manual · anti-regressão DS)
-Status: ⬜ (manual/visual — diferencial vs V3)
+Status: ❌ (medido 2026-07-16 — a tela VIOLA: 68 ocorrências de cor crua absorvidas no baseline do `ui:lint`)
 Diferente da V3 (`kb/Index`, que usa `bg-blue-100` + emojis), a V2 usa só tokens semânticos
 Cockpit V2 (`text-primary`, `text-muted-foreground`, `border-border`) e ícones lucide — nenhum
 `bg-(blue|red|green)-N` cru, nenhum emoji-como-ícone. Âncora: charter UX Anti-patterns "Cor crua
 hardcoded sem semantic token".
-**Pronto quando:** grep no `.tsx` + `_components/` não acha classe de cor crua com número (`-100/-500`) nem emoji em papel de ícone.
+**Pronto quando:** `php artisan ui:lint --path=resources/js/Pages/kb` reporta 0 violações R1 (cor crua) e R3 (emoji) nos arquivos da V2 — hoje reporta 68 R1.
+
+> **Veredito 2026-07-16 (o ⬜ escondia um ❌):** a afirmação "diferente da V3, a V2 usa só tokens"
+> é FALSA. Medido em `config/ui-lint-baseline.json`: **68 violações R1** absorvidas nos componentes
+> da V2 — `NodeReader` 22 · `BlockRenderer` 18 · `NodeList` 8 · `HealthPanel` 8 ·
+> `TroubleshooterDialog` 8 · `KbFavStar` 2 · `CategorySidebar` 1 · `PathsDialog` 1 (incl. o
+> `bg-blue-100` que o UC cita como sendo "o defeito da V3"). Enquanto ninguém verificava, o ⬜
+> parecia dívida de verificação; era dívida de código.
+>
+> **Dono do contrato = mecanismo que JÁ existe:** `ui:lint` R1 (cor crua) + R3 (emoji), ratchet
+> **required** no CI (`UI Lint ratchet vs baseline (LEI)`, `app/Console/Commands/UiLintCommand.php`).
+> Ele já impede PIORAR — as 68 estão fotografadas no baseline. Um teste novo medindo cor crua aqui
+> seria régua paralela ao juiz consolidado (proibicoes.md §5, entrada 2026-07-09 "gate redundante
+> com régua consolidada") — por isso este UC **NÃO** ganhou teste próprio e segue fora do G-2, de
+> propósito e declarado.
+>
+> **Por que não corrigi agora:** trocar 68 cores cruas por token é mudança VISUAL na tela — exige
+> charter + gate visual (ADR 0114, pendente nesta tela desde 2026-05-16) e decisão de design de [W],
+> não escolha de agente. Fechar este UC = fechar o gate visual da V2, que é a mesma decisão pendente
+> registrada no rodapé (promover / manter flag / arquivar).
 
 ---
 
