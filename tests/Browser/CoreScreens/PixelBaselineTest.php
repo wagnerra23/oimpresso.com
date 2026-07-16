@@ -68,6 +68,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Inertia\Testing\AssertableInertia;
 
 beforeEach(function () {
     config([
@@ -134,19 +135,13 @@ foreach ($screens as $screen) {
             test()->markTestSkipped('Sem user no business seedado.');
         }
 
+        $this->actingAs($admin)
+            ->get($rota)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page->component($source));
+
         $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota));
         $page->assertSee($ancora);
-
-        $runtimeSource = $page->script(<<<'JS'
-            (() => {
-              const serialized = document.getElementById('app')?.getAttribute('data-page');
-              return serialized ? (JSON.parse(serialized).component || '') : '';
-            })()
-        JS);
-        expect($runtimeSource)->toBe(
-            $source,
-            "A rota {$rota} renderizou um componente Inertia diferente do contrato visreg."
-        );
 
         // ESTABILIZAÇÃO (diagnóstico runs 27370651063/27370956421 — diff views):
         // (a) controles NATIVOS (select / input date|datetime|time) pintam com variação
