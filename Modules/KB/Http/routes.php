@@ -35,29 +35,34 @@ Route::group(
 
         Route::get('/',                  'KbController@index')->name('kb.index');
 
-        // ---- Index V2 tri-pane (ONDA 2, Agent B) — gate visual pré-cutover ----
-        // Page Inertia tri-pane portada do Cowork. Tem fallback mock interno —
-        // Wagner abre /kb/v2 e vê 18 nós seed pra aprovar screenshot ADR 0114
-        // ANTES de cutover Index.tsx V3 → Index.v2.tsx (Wagner decide).
-        Route::get('/v2', function () {
-            return \Inertia\Inertia::render('kb/Index.v2');
-        })->name('kb.v2');
-
-        // ---- Grafo (ONDA 5, Agent E) — vis-grafo Reactflow ----
-        // Page Inertia com mock 50 nodes / 64 edges quando /kb/graph/data não
-        // está populado ainda. Coração da promessa "visualização sobre meus
-        // dados e arquivos importantes".
-        Route::get('/graph', function () {
-            return \Inertia\Inertia::render('kb/Graph');
-        })->name('kb.graph.page');
-
-        // /kb/graph/data — endpoint JSON pro Reactflow.
-        // V1 placeholder: retorna estrutura vazia; frontend cai automaticamente
-        // pra mockGraphData.ts (badge "modo mock" visível). Agent A substitui
-        // por KbGraphController@vis real (Inertia::defer business_id scope).
-        Route::get('/graph/data', function () {
-            return response()->json(['nodes' => [], 'edges' => [], 'kpis' => null]);
-        })->name('kb.graph.data');
+        // ---- FREEZER do par mock (V2 tri-pane + Grafo) — [W] 2026-07-16 -------------
+        // As rotas /kb/v2, /sops, /kb/graph e /kb/graph/data foram REMOVIDAS. O código
+        // das telas está PRESERVADO (resources/js/Pages/kb/Index.v2.tsx · Graph.tsx ·
+        // _components/ · _lib/ · schema kb_* · 6 controllers · KbBridgeFromMcpJob).
+        //
+        // POR QUÊ: as duas rodavam em prod com auth real servindo dado FICTÍCIO —
+        // MOCK_NODES é uma KB de gráfica (Roland VS-540 / HP Latex) num tenant que é
+        // loja de vestuário. Quatro ações respondiam `toast.success('Artigo re-verificado
+        // e marcado como fresco')` sem persistir nada, e o /kb/graph/data devolvia
+        // `{nodes:[],edges:[],kpis:null}` HARDCODED — backend falso que garantia que o
+        // fallback mock nunca desligasse. Zero link na UI apontava pra cá: o acesso era
+        // digitar a URL. [W] 2026-07-16: "difícil de decidir, pois estão em obras" —
+        // obra fica atrás do tapume, não aberta ao público.
+        //
+        // NÃO é arquivamento, e NÃO decide o destino da V2 (Tier 0 [W], em aberto:
+        // promover / manter / arquivar). É freezer: tira do ar o que engana enquanto a
+        // decisão amadurece, sem jogar fora o trabalho.
+        //
+        // COMO VOLTAR (1 commit): restaure este bloco. A tela renderiza igual — o
+        // fallback mock é interno a ela. Se a volta for pra valer, o caminho é o
+        // Controller real (KbController@indexV2) servindo kb_nodes, não a closure.
+        //
+        // GATILHO objetivo pra reabrir (do veredito adversarial 2026-07-16):
+        //   SELECT COUNT(*) FROM kb_nodes WHERE is_editable = 1  → > 0 fora do seed
+        //   significa que existe humano criando SOP = há demanda (ADR 0105).
+        //
+        // Contrato do freezer: UC-KBV2-11 (Index.v2.casos.md) + KbIndexV2ContractTest.
+        // Refs: veredito adversarial 2026-07-16 · ADR 0105 (sinal de cliente) · ADR 0114.
 
         // ---- LEGACY (V0) — KB browser dos docs MCP. Continua respondendo /kb/{slug}/show etc.
         Route::get('/{slug}/show',       'KbController@show')
@@ -154,26 +159,18 @@ Route::group(
 );
 
 // ===========================================================================
-// 3) Alias /sops — atalho semântico pra KB v2 (Standard Operating Procedures)
+// 3) Alias /sops — REMOVIDO no freezer do par mock ([W] 2026-07-16)
 // ===========================================================================
-// Wagner pediu rota memorável pra acessar V2 sem digitar /kb/v2 (2026-05-17).
-// Mesma stack middleware /kb canônica. Index.v2.tsx renderizado igual /kb/v2 —
-// SEM rename de arquivos, SEM cutover de /kb (V3 continua browser dos 352 docs
-// canônicos). Wagner decide depois se promove V2 oficialmente.
+// O alias existia desde 2026-05-17 como atalho pra abrir a V2 sem digitar /kb/v2
+// (o comentário original dizia "Wagner decide depois se promove V2 oficialmente" —
+// era conveniência de gate visual, nunca pedido de produto confirmado; a revisão
+// adversarial de 2026-07-16 flagrou que o único artefato disso era este comentário,
+// escrito por agente, e que ele não deve contar como sinal em nenhuma direção).
 //
-// Coexistência: /kb (V3 docs canon) · /kb/v2 (gate visual) · /sops (alias).
-// Reversível: deletar este bloco remove a rota sem afetar V2 nem V3.
-Route::group(
-    [
-        'middleware' => ['web', 'SetSessionData', 'auth', 'language', 'timezone', 'AdminSidebarMenu', 'CheckUserLogin'],
-        'prefix'     => 'sops',
-    ],
-    function () {
-        Route::get('/', function () {
-            return \Inertia\Inertia::render('kb/Index.v2');
-        })->name('sops.index');
-    }
-);
+// Foi removido junto com /kb/v2 · /kb/graph · /kb/graph/data — ver o bloco FREEZER
+// no group /kb acima pro porquê completo, o caminho de volta (1 commit) e o gatilho
+// objetivo de reabertura. A V3 (/kb, docs canônicos com dado REAL) segue intacta e
+// continua sendo pra onde o sidebar aponta (DataController → route('kb.index')).
 
 // ============= IA RAG (Agent F · ONDA 4) =============
 // Adicionado em paralelo ao Agent A (CRUD nodes/paths/...). Wagner: no merge

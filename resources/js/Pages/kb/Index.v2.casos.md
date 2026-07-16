@@ -1,70 +1,31 @@
 ---
-casos: SOPs / KB Unificado V2 (tri-pane) · /kb/v2 + /sops
+casos: SOPs / KB Unificado V2 (tri-pane) · EM FREEZER (rotas removidas 2026-07-16)
 irmaos: Index.v2.charter.md (lei) · Index.charter.md (V3 atual, coexiste)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-status_tela: viva-gate-visual (roteada /kb/v2 + /sops; render mock-only — indexV2 backend pendente)
+status_tela: freezer ([W] 2026-07-16 — /kb/v2 · /sops · /kb/graph desroteadas; código preservado; re-rotear = 1 commit)
 last_run: "2026-07-16"
 ---
 
-# Casos de uso — /kb/v2 (SOPs · KB Unificado tri-pane)
+# Casos de uso — kb/Index.v2 (SOPs · tri-pane) — **EM FREEZER**
 
 > **Status:** ✅ passa (provado por teste) · 🧪 em teste (Pest escrito, aguarda run verde CT100) · ⬜ não verificado · ❌ quebrou.
 
-> Derivados do charter `Index.v2.charter.md` (Goals + Automation Anti-hooks + "Métricas vivas (Pest GUARD)") + protótipo Cowork `kb-page.jsx`. Persona principal: Wagner / governança (1440px). Secundária: Larissa balcão (1280px).
+> ## 🧊 Esta tela está no FREEZER desde 2026-07-16 ([W])
 >
-> **Contexto de maturidade (âncora honesta):** a rota `/kb/v2` (`kb.v2`) e o alias `/sops` (`sops.index`) são **closures inline** que fazem `Inertia::render('kb/Index.v2')` **sem props** — o Controller `KbController@indexV2` do charter **nunca foi implementado**. Logo, em prod a tela roda 100% em **modo mock** (`usingMock = !props.nodes` → sempre `true`). Os UCs abaixo blindam o **contrato da rota viva** (auth, render, read-only, sem side-effects, Tier 0) — NÃO o contrato de dados backend, que fica pendente da ONDA 1. Não redesenham a tela.
+> **As rotas foram removidas** — `/kb/v2` · `/sops` · `/kb/graph` · `/kb/graph/data` devolvem **404**. O **código está preservado** (`Index.v2.tsx` 609 ln · `_components/` · `_lib/` · schema `kb_*` · 6 controllers · `KbBridgeFromMcpJob`). **Não é arquivamento**, e o destino da V2 segue **em aberto** (promover / manter / arquivar = Tier 0 [W]).
+>
+> **Por quê:** rodava em prod com auth real servindo dado **fictício** — o `MOCK_NODES` é uma KB de **gráfica** (Roland VS-540 / HP Latex) num tenant que é **loja de vestuário** (biz=4, ROTA LIVRE), e 4 ações afirmavam sucesso sem persistir nada (`toast.success` sem nenhuma chamada de rede). Zero link na UI apontava pra cá — o acesso era digitar a URL. [W] 2026-07-16: *"difícil de decidir, pois estão em obras"* — obra fica atrás do tapume, não aberta ao público.
+>
+> **Gatilho pra reabrir** (veredito adversarial 2026-07-16): `SELECT COUNT(*) FROM kb_nodes WHERE is_editable = 1` **> 0** fora do seed = existe humano criando SOP = há demanda real (ADR 0105). Aí re-rotear é 1 commit — mas pra valer o caminho é o **Controller real** servindo `kb_nodes`, não a closure mock.
+>
+> **O que sobrou aqui:** [[UC-KBV2-07]] · [[UC-KBV2-08]] são contratos do **código preservado** (hooks — testados isoladamente em `tests/kbIndexV2Client.spec.tsx`, seguem verdes no freezer e protegem o trabalho pra quando/se voltar). [[UC-KBV2-09]] é dívida de código medida (68 cores cruas). O contrato do freezer em si é [[UC-KBV2-11]].
+>
+> **Pendente, atrás do freezer:** o de-risk dos 4 `toast.success` mentirosos ([PR #4365](https://github.com/wagnerra23/oimpresso.com/pull/4365), draft) segue **bloqueado** — tocar o `.tsx` exige contrato visreg, e o freezer **não** muda isso (o classificador vê o path, não a rota). Ficou sem urgência: fora do ar, ninguém alcança aqueles toasts. Se a tela voltar, o de-risk entra junto — e aí ela terá contrato visreg de qualquer forma.
+>
+> **O que saiu:** os **UC-KBV2-01..06** (contrato da *rota viva*: auth · render · read-only · sem Jobs/IA · Tier 0 · fallback mock) foram **removidos** — perderam objeto quando a rota saiu do ar. Mantê-los citados sem testar nada seria cobertura-fantasma. Dois deles estavam podres e a revisão adversarial provou: o **UC-05** (Tier 0) passava *por construção* (sem prop `nodes`, biz=99 nunca aparecia — passaria mesmo sem multi-tenant), e o **UC-06** assertava `missing('nodes')`, ou seja **o contrato proibia a promoção** (o Controller real deixaria um teste required vermelho por sucesso). Histórico completo no cabeçalho de `KbIndexV2ContractTest.php`.
 
-## UC-KBV2-01 — Rota viva exige autenticação
-Status: 🧪 (KbIndexV2ContractTest V1 — GET anônimo redireciona login)
-Um visitante não autenticado que abre `/kb/v2` ou `/sops` é barrado pela stack middleware
-canônica (`auth`) — nunca vê o conteúdo. Âncora: rotas KB registradas com middleware `['web',
-'SetSessionData', 'auth', ...]`; ADR 0093 (nada de dado exposto sem sessão).
-**Pronto quando:** GET anônimo em `/kb/v2` e `/sops` retorna redirect (302) OR 401/403 — nunca 200 nem 500.
-
-## UC-KBV2-02 — Renderiza o componente Inertia kb/Index.v2
-Status: 🧪 (KbIndexV2ContractTest V2 — component + rota nomeada)
-Wagner autenticado (biz=1) abre `/kb/v2` e recebe a página Inertia `kb/Index.v2` (tri-pane
-SOPs). O alias `/sops` renderiza o **mesmo** componente (coexistência /kb V3 · /kb/v2 gate ·
-/sops atalho). Âncora: charter `component: kb/Index.v2.tsx` + rotas `kb.v2` / `sops.index`.
-**Pronto quando:** `/kb/v2` responde 200 com `assertInertia(component == 'kb/Index.v2')`; `Route::has('kb.v2')` e `Route::has('sops.index')` são true; ambas resolvem pro mesmo componente.
-
-## UC-KBV2-03 — GET é read-only (não muta estado)
-Status: 🧪 (KbIndexV2ContractTest V3 — nenhuma escrita no render)
-Abrir a tela é leitura pura: nada é escrito no banco no render (`reads_count++` só acontece no
-endpoint `show`, nunca no `Inertia::render`). Âncora: charter Automation Anti-hook "NÃO escreve
-no DB no render (read-only)".
-**Pronto quando:** o count de linhas de `kb_nodes` (e de `kb_node_versions`) é idêntico antes e depois do GET `/kb/v2`.
-
-## UC-KBV2-04 — Abrir a tela não dispara Jobs nem IA
-Status: 🧪 (KbIndexV2ContractTest V4 — Queue::fake sem push)
-Renderizar `/kb/v2` não enfileira nenhum Job e não chama Brain B/Sonnet — a IA RAG só roda na
-ação explícita "Perguntar ao KB". Âncora: charter Anti-hooks "NÃO dispara Jobs ao abrir" +
-"NÃO chama Brain B/Sonnet". Também cobre "NÃO envia emails/SMS/WhatsApp ao abrir".
-**Pronto quando:** com `Queue::fake()`, GET `/kb/v2` resulta em `Queue::assertNothingPushed()`.
-
-## UC-KBV2-05 — Tier 0: rota não vaza nós de outro business_id
-Status: ⬜ (rebaixado 2026-07-16 — o teste V5 existe mas passa POR CONSTRUÇÃO; não é prova)
-
-> **Por que ⬜ e não 🧪 (revisão adversarial 2026-07-16):** o `KbIndexV2ContractTest:135-137` confessa
-> no próprio comentário — *"render mock-only → prop `nodes` ausente, então o slug/título de biz=99
-> nunca aparece no payload **por construção**"*. Um teste que passaria mesmo se o scope multi-tenant
-> não existisse **não prova isolamento**: prova que a tela não serve dado nenhum. Contar isso como
-> cobertura Tier 0 no placar é verde tautológico (§5 2026-06-05). Ele vira prova forte de verdade
-> quando o `indexV2` real chegar e a asserção passar a morder um payload scopado — aí volta pra 🧪/✅.
-A rota nunca serve nós de outro tenant. Hoje o render é mock (sem props), então o piso a
-provar é que a rota **não expõe** dados de `kb_nodes` de biz=99 quando aberta por um usuário
-biz=1 (o mock não injeta dado real de tenant nenhum). Quando o Controller `indexV2` real chegar
-(ONDA 1), este UC vira a asserção forte de `has('nodes')` scopado. Âncora: charter Anti-hook
-"NÃO acessa nodes de outro business_id (ADR 0093)".
-**Pronto quando:** com nó seedado em biz=99, o payload Inertia servido a um usuário biz=1 NÃO contém o slug/título desse nó (hoje: prop `nodes` ausente → vazia por construção; futuro: prop scopada por `business_id`).
-
-## UC-KBV2-06 — Fallback mock declarado enquanto backend ausente
-Status: 🧪 (KbIndexV2ContractTest V6 — render OK sem props)
-Enquanto `KbController@indexV2` não existir, a tela renderiza com `MOCK_NODES` e o
-`PageHeader.description` sinaliza "MOCK (Agent A pendente)" — sem 500. Âncora: charter Goal 7
-"Fallback MOCK_NODES quando rotas backend ausentes" + `usingMock = !props.nodes`.
-**Pronto quando:** GET `/kb/v2` autenticado responde 200 mesmo sem nenhuma prop passada pela closure (sem exceção de "prop undefined").
+> Derivados do charter `Index.v2.charter.md` (Goals + Automation Anti-hooks) + protótipo Cowork `kb-page.jsx`. Persona declarada: Wagner / governança (1440px) + Larissa balcão (1280px) — **atenção**: a persona do corpus mock (operadora de gráfica) **não existe** no cliente real (ADR 0265 §5 da Oficina reencenada; ver veredito 2026-07-16).
 
 ## UC-KBV2-07 — Persistência client-side é localStorage prefixado
 Status: 🧪 (kbIndexV2Client.spec.tsx — prefixo + sobrevive remount + zero sessionStorage; aguarda run verde CT100)
@@ -138,6 +99,19 @@ hardcoded sem semantic token".
 > charter + gate visual (ADR 0114, pendente nesta tela desde 2026-05-16) e decisão de design de [W],
 > não escolha de agente. Fechar este UC = fechar o gate visual da V2, que é a mesma decisão pendente
 > registrada no rodapé (promover / manter flag / arquivar).
+
+## UC-KBV2-11 — As rotas do par mock NÃO respondem (contrato do freezer)
+Status: 🧪 (KbIndexV2ContractTest — 3 testes: nomes de rota · 404 · V3 intacta; aguarda run verde CT100)
+Quem digitar `/kb/v2`, `/sops`, `/kb/graph` ou `/kb/graph/data` recebe **404** — a tela não
+serve mais SOP inventado a ninguém. As rotas nomeadas (`kb.v2`, `sops.index`, `kb.graph.page`,
+`kb.graph.data`) não existem, então `route()` falha alto se alguém tentar linkar. E a **V3
+(`/kb`, dado REAL)** segue viva — o freezer tirou o par mock do ar, não o KB.
+**Pronto quando:** `Route::has()` é falso pros 4 nomes; GET nos 4 caminhos devolve 404; `Route::has('kb.index')` é verdadeiro e `/kb` não devolve 404.
+
+> **Este UC é a catraca do freezer.** Se alguém re-rotear sem decisão [W], ele fica **vermelho**
+> e obriga a conversa. Reabrir é legítimo — mas é ato consciente, com este contrato mudando
+> junto. O 3º teste é **controle-negativo**: prova que o freezer pegou o par mock e **não** o KB
+> inteiro (sem ele, deletar o módulo todo passaria verde).
 
 ---
 

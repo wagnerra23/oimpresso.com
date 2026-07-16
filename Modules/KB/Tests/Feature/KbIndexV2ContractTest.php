@@ -2,158 +2,69 @@
 
 declare(strict_types=1);
 
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Queue;
-use Inertia\Testing\AssertableInertia;
-
 /**
- * Contrato da tela VIVA `/kb/v2` (+ alias `/sops`) — SOPs / KB Unificado tri-pane.
+ * Contrato do FREEZER do par mock do KB — `/kb/v2` · `/sops` · `/kb/graph` · `/kb/graph/data`.
  *
  * `uses(Tests\TestCase::class)` já aplicado globalmente em tests/Pest.php
  * (uses(TestCase::class)->in(Modules/KB/Tests/Feature)). NÃO redeclarar aqui.
  *
- * Contexto de maturidade (honesto): a rota `kb.v2` e o alias `sops.index` são
- * CLOSURES INLINE que fazem `Inertia::render('kb/Index.v2')` SEM props — o
- * Controller `KbController@indexV2` do charter NUNCA foi implementado. Logo a
- * tela roda 100% em modo mock (`usingMock = !props.nodes` → true). Este teste
- * blinda o CONTRATO DA ROTA VIVA (auth · render · read-only · sem side-effects
- * · Tier 0), derivado do charter `Index.v2.charter.md` §"Automation Anti-hooks"
- * + §"Métricas vivas (Pest GUARD)" — NÃO o contrato de dados backend (pendente
- * ONDA 1). Quando o `indexV2` real chegar, V5 vira o `has('nodes')` scopado.
+ * =====================================================================================
+ * O QUE MUDOU (2026-07-16) — de "contrato da rota viva" pra "contrato do freezer"
+ * =====================================================================================
+ * Até 2026-07-16 este arquivo tinha 6 testes (UC-KBV2-01..06) blindando a ROTA VIVA:
+ * auth · render do componente · read-only · sem Jobs/IA · Tier 0 · fallback mock. Eles
+ * eram honestos pro estado da época, mas o estado acabou: [W] mandou as 4 rotas pro
+ * freezer porque serviam dado FICTÍCIO em prod com auth real (MOCK_NODES = KB de gráfica
+ * num tenant de vestuário) e 4 ações mentiam sucesso sem persistir nada.
  *
- * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): NUNCA biz=4 (ROTA LIVRE prod).
- * biz=1 canônico (ADR 0101); biz=99 = cliente fictício cross-tenant.
+ * Os 6 UCs não "falharam" — deixaram de ter objeto. Não há rota viva pra blindar. Mantê-los
+ * verdes exigiria manter a rota, e mantê-los citados sem testar nada seria cobertura-fantasma
+ * (o anti-padrão que o próprio casos-gate combate). Foram substituídos por UC-KBV2-11, que
+ * prova o oposto: que as rotas NÃO respondem.
  *
- * Casos: resources/js/Pages/kb/Index.v2.casos.md (UC-KBV2-01..06)
+ * Dois deles merecem lápide, porque a revisão adversarial mostrou que estavam podres:
+ *   - UC-KBV2-05 (Tier 0 cross-tenant) passava POR CONSTRUÇÃO — sem prop `nodes`, biz=99
+ *     nunca aparecia porque a tela não servia dado nenhum. Passaria mesmo sem multi-tenant.
+ *   - UC-KBV2-06 assertava `missing('nodes')`, ou seja: o contrato PROIBIA a promoção — o
+ *     Controller real deixaria um teste REQUIRED vermelho por sucesso.
  *
- * @see resources/js/Pages/kb/Index.v2.charter.md
- * @see Modules/KB/Http/routes.php — Route::get('/v2') + prefix('sops')
- * @see Modules/KB/Tests/Feature/Wave26KbSmokeTest.php — pattern smoke rota Inertia
+ * Este teste é a catraca do freezer: se alguém re-rotear sem decisão [W], ele fica VERMELHO
+ * e obriga a conversa. Re-abrir é legítimo — mas é ato consciente, com este arquivo mudando
+ * junto (e aí o contrato volta a ser o da tela real, com Controller, não o da closure mock).
+ *
+ * Casos: resources/js/Pages/kb/Index.v2.casos.md (UC-KBV2-11)
+ *
+ * @see Modules/KB/Http/routes.php — bloco FREEZER (porquê + caminho de volta + gatilho)
+ * @see resources/js/Pages/kb/Index.v2.charter.md — charter preservado (status draft)
  */
 
-// Guard SQLite: kbActAsUser/kbBootstrapSchema montam schema kb_* + business/users.
-// KB dogfooding roda em MySQL real (CT 100, oimpresso-staging biz=1) — ADR 0101.
-beforeEach(function () {
-    if (DB::connection()->getDriverName() === 'sqlite') {
-        $this->markTestSkipped(
-            'SQLite: rodar no CT 100 (oimpresso-staging MySQL, biz=1). ADR 0101 / ADR 0061.'
-        );
+// ── UC-KBV2-11 — as rotas do par mock NÃO respondem (freezer) ─────────────────
+// Sem beforeEach de schema: o freezer não toca banco — só o roteador. Isso também
+// tira o skip de SQLite que os 6 testes antigos carregavam (eles precisavam do schema
+// kb_* e por isso só rodavam no MySQL do CT100; este roda em qualquer runner do CI).
+
+it('UC-KBV2-11: as rotas nomeadas do par mock foram removidas', function () {
+    // Nome de rota é o contrato que outro código consome (route('kb.v2') quebraria o
+    // build). Se alguém re-rotear, este teste vermelho força a decisão consciente.
+    expect(\Route::has('kb.v2'))->toBeFalse();
+    expect(\Route::has('sops.index'))->toBeFalse();
+    expect(\Route::has('kb.graph.page'))->toBeFalse();
+    expect(\Route::has('kb.graph.data'))->toBeFalse();
+});
+
+it('UC-KBV2-11: os caminhos do par mock devolvem 404 (não servem mais ficção)', function () {
+    // O ponto do freezer: quem digitar a URL NÃO vê mais SOP inventado. 404 é a
+    // resposta honesta — a tela não existe pra fora. Anônimo de propósito: se a rota
+    // existisse, o `auth` devolveria 302 e o teste pegaria a diferença (302 ≠ 404).
+    foreach (['/kb/v2', '/sops', '/kb/graph', '/kb/graph/data'] as $path) {
+        expect($this->get($path)->status())->toBe(404, "{$path} ainda responde — o freezer vazou");
     }
-
-    kbBootstrapSchema();
 });
 
-afterEach(function () {
-    kbTeardownSchema();
-});
-
-// ── UC-KBV2-01 — rota viva exige autenticação ──────────────────────────────
-it('V1: GET /kb/v2 anonimo redireciona login (nunca 200 nem 500)', function () {
-    $response = $this->get('/kb/v2');
-
-    expect($response->status())->not->toBe(200);
-    expect($response->status())->not->toBe(500);
-    // stack middleware `auth` → redirect login (302) OR 401/403.
-    expect(in_array($response->status(), [302, 401, 403], true))->toBeTrue();
-});
-
-it('V1b: GET /sops anonimo tambem exige auth', function () {
-    $response = $this->get('/sops');
-
-    expect($response->status())->not->toBe(200);
-    expect($response->status())->not->toBe(500);
-    expect(in_array($response->status(), [302, 401, 403], true))->toBeTrue();
-});
-
-// ── UC-KBV2-02 — renderiza o componente Inertia kb/Index.v2 ─────────────────
-it('V2: rotas kb.v2 e sops.index estao registradas nomeadas', function () {
-    expect(\Route::has('kb.v2'))->toBeTrue();
-    expect(\Route::has('sops.index'))->toBeTrue();
-});
-
-it('V2b: GET /kb/v2 autenticado renderiza Inertia kb/Index.v2', function () {
-    kbActAsUser(bizId: 1);
-
-    $response = $this->get('/kb/v2');
-
-    $response->assertOk();
-    $response->assertInertia(fn (AssertableInertia $p) => $p->component('kb/Index.v2'));
-});
-
-it('V2c: alias /sops renderiza o MESMO componente kb/Index.v2', function () {
-    kbActAsUser(bizId: 1);
-
-    $response = $this->get('/sops');
-
-    $response->assertOk();
-    $response->assertInertia(fn (AssertableInertia $p) => $p->component('kb/Index.v2'));
-});
-
-// ── UC-KBV2-03 — GET é read-only (não muta estado) ─────────────────────────
-it('V3: GET /kb/v2 nao escreve em kb_nodes nem kb_node_versions (read-only)', function () {
-    kbActAsUser(bizId: 1);
-
-    $nodesAntes    = DB::table('kb_nodes')->count();
-    $versionsAntes = DB::table('kb_node_versions')->count();
-
-    $this->get('/kb/v2')->assertOk();
-
-    expect(DB::table('kb_nodes')->count())->toBe($nodesAntes);
-    expect(DB::table('kb_node_versions')->count())->toBe($versionsAntes);
-});
-
-// ── UC-KBV2-04 — abrir a tela não dispara Jobs nem IA ──────────────────────
-it('V4: GET /kb/v2 nao enfileira nenhum Job (sem IA/email/whatsapp no render)', function () {
-    kbActAsUser(bizId: 1);
-    Queue::fake();
-
-    $this->get('/kb/v2')->assertOk();
-
-    Queue::assertNothingPushed();
-});
-
-// ── UC-KBV2-05 — Tier 0: rota não vaza nós de outro business_id ─────────────
-it('V5: payload servido a biz=1 nao contem no de biz=99 (ADR 0093)', function () {
-    // Nó seedado no tenant CLIENTE fictício (biz=99), NUNCA biz=4 (ROTA LIVRE prod).
-    kbActAsUser(bizId: 99);
-    DB::table('kb_nodes')->insert([
-        'business_id' => 99,
-        'type'        => 'article',
-        'slug'        => 'segredo-biz99-nao-vaza',
-        'title'       => 'SEGREDO BIZ99 NAO PODE VAZAR',
-        'is_editable' => true,
-        'body_blocks' => json_encode([['kind' => 'para', 'text' => 'confidencial']]),
-        'status'      => 'ok',
-        'created_at'  => now(),
-        'updated_at'  => now(),
-    ]);
-
-    // Agora o operador biz=1 abre a tela.
-    kbActAsUser(bizId: 1);
-    $response = $this->get('/kb/v2');
-
-    $response->assertOk();
-    // Hoje: render mock-only → prop `nodes` ausente, então o slug/título de biz=99
-    // nunca aparece no payload por construção. Quando indexV2 real chegar, esta
-    // asserção continua válida (scope business_id) e vira a prova forte.
-    $response->assertInertia(fn (AssertableInertia $p) =>
-        $p->component('kb/Index.v2')->missing('nodes.data')
-    );
-    expect($response->getContent())->not->toContain('SEGREDO BIZ99 NAO PODE VAZAR');
-    expect($response->getContent())->not->toContain('segredo-biz99-nao-vaza');
-});
-
-// ── UC-KBV2-06 — fallback mock declarado enquanto backend ausente ───────────
-it('V6: GET /kb/v2 responde 200 sem nenhuma prop (fallback MOCK_NODES)', function () {
-    kbActAsUser(bizId: 1);
-
-    // A closure inline (kb.v2) NÃO passa props → a page precisa sobreviver via
-    // MOCK_NODES sem lançar "prop undefined". Prova: 200 + componente certo,
-    // sem exigir prop `nodes` (que hoje é ausente por design).
-    $response = $this->get('/kb/v2');
-
-    $response->assertOk();
-    $response->assertInertia(fn (AssertableInertia $p) =>
-        $p->component('kb/Index.v2')->missing('nodes')
-    );
+it('UC-KBV2-11: a V3 (/kb, dado REAL) segue viva — o freezer não a atingiu', function () {
+    // Controle-negativo do freezer: prova que removi o par mock e NÃO o KB inteiro.
+    // A V3 serve os docs canônicos reais (McpMemoryDocument) e é pra onde o sidebar
+    // aponta. Se este teste ficar vermelho, o freezer passou do ponto.
+    expect(\Route::has('kb.index'))->toBeTrue();
+    expect($this->get('/kb')->status())->not->toBe(404);
 });
