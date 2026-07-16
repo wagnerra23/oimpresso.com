@@ -37,6 +37,16 @@ tier: B
 - ⛔ Comparar contra `prototipo-ui/cowork/` sem provar `SYNC` naquele arquivo.
 - ⛔ Sondas diferentes em cada lado (a régua tem que ser idêntica).
 - ⛔ Pular D1 (rede): "print igual" esconde full-reload (o pior anti-padrão, D-14).
+- ⛔ **Medir contraste pelo AGREGADO de um elemento composto** (range min↔max do card/bloco) —
+  **medir não basta, tem que ser POR ELEMENTO**. Card com 3+ cores tem par bom e par ruim ao
+  mesmo tempo; o agregado pega o melhor e **mascara o pior**. _Caso 2026-07-16 (KPIs do Board
+  da Oficina, PR #4367→#4373):_ agregado do card = **8,75:1** → veredito "passa AA, é só
+  estética" → **falso**. Por elemento: sub `"0 boxes/elevadores"` = **1,92:1** · `"0 aguardam OK
+  do cliente"` = **2,04:1** — **AA reprovado**. Controle que fecha a causa: a MESMA sub no tom
+  `default` (fundo `bg-card` escuro) = **5,27:1** → o culpado é o **fundo claro**, não a sub
+  (`text-muted-foreground` é fixo). Sempre medir **par a par (fg×bg de cada texto)** + rodar um
+  **controle** que isole a variável. Corolário do LC-06: o strike 1 é olhar; o strike 2 é medir
+  a coisa errada — e esse passa despercebido porque **vem com número**.
 
 ## Pareada com
 
