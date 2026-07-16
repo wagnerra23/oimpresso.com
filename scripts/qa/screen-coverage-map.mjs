@@ -97,8 +97,14 @@ export function inertiaSourcesFor(relTsx) {
     : [pageSource];
 }
 
-export function coverageRegressions(current, previous) {
-  return ['charter', 'e2e', 'a11y', 'scorecard'].filter((key) => current[key] < previous[key]);
+export function coverageRegressions(current, previous, currentCovered = {}, previousCovered = {}) {
+  const decode = (value) => new Set((value ?? '').split('|').filter(Boolean));
+
+  return ['charter', 'e2e', 'a11y', 'scorecard'].filter((key) => {
+    if (current[key] < previous[key]) return true;
+    const now = decode(currentCovered[key]);
+    return [...decode(previousCovered[key])].some((screen) => !now.has(screen));
+  });
 }
 
 if (flags.has('--selftest')) {
@@ -114,6 +120,15 @@ if (flags.has('--selftest')) {
     coverageRegressions(
       { charter: 10, e2e: 1, a11y: 1, scorecard: 10 },
       { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
+    ),
+    ['e2e'],
+  );
+  assert.deepEqual(
+    coverageRegressions(
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
+      { e2e: 'B.tsx|C.tsx' },
+      { e2e: 'A.tsx|B.tsx' },
     ),
     ['e2e'],
   );
@@ -148,6 +163,12 @@ const agg = {
   a11y: rows.filter((r) => r.a11y).length,
   scorecard: rows.filter((r) => r.scorecard).length,
 };
+const coveredScreens = Object.fromEntries(
+  ['charter', 'e2e', 'a11y', 'scorecard'].map((key) => [
+    key,
+    rows.filter((row) => row[key]).map((row) => row.screen).sort().join('|'),
+  ]),
+);
 
 // Por módulo.
 const byModule = {};
@@ -176,7 +197,12 @@ for (const [m, s] of mods) {
 }
 
 // --- Baseline / catraca ---
-const snapshot = { generated_note: 'baseline da catraca de cobertura — NÃO editar à mão', aggregates: agg, by_module: byModule };
+const snapshot = {
+  generated_note: 'baseline da catraca de cobertura — NÃO editar à mão',
+  aggregates: agg,
+  covered_screens: coveredScreens,
+  by_module: byModule,
+};
 
 if (flags.has('--json')) {
   writeFileSync(BASELINE, JSON.stringify(snapshot, null, 2) + '\n');
@@ -188,8 +214,9 @@ if (flags.has('--check')) {
     console.error('\n✗ baseline ausente — rode com --json primeiro.');
     process.exit(2);
   }
-  const prev = JSON.parse(readFileSync(BASELINE, 'utf8')).aggregates;
-  const regress = coverageRegressions(agg, prev);
+  const previousSnapshot = JSON.parse(readFileSync(BASELINE, 'utf8'));
+  const prev = previousSnapshot.aggregates;
+  const regress = coverageRegressions(agg, prev, coveredScreens, previousSnapshot.covered_screens);
   if (regress.length) {
     console.error(`\n✗ CATRACA: cobertura regrediu em ${regress.join(', ')} (vs baseline). PR bloqueado.`);
     for (const k of regress) console.error(`   ${k}: ${prev[k]} → ${agg[k]}`);
