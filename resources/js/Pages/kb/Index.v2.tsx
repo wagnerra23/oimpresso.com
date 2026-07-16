@@ -316,22 +316,31 @@ function KbIndexV2(props: KbIndexProps) {
     hasActiveNode: !!activeNode,
   });
 
-  // ── Ações com toast (V1 mock; ONDA 1 vira fetch real) ─────────
+  // ── Ações sem backend — o toast NÃO pode afirmar o que não aconteceu ─────────
+  // Estas 4 ações não têm chamada de rede (a tela é write-free: zero router./fetch/useForm).
+  // Até 2026-07-16 elas devolviam `toast.success('Voto registrado')` / `'…re-verificado e
+  // marcado como fresco'` — afirmação de escrita que nunca ocorreu. O rótulo `· MOCK` do
+  // PageHeader (:365) rotula a FONTE DE DADOS, não a AÇÃO: quem clica lê o success e acredita.
+  // Numa KB cujo produto é frescor (HealthPanel), isso corrompe o próprio sinal que a tela vende.
+  // Regra (UC-KBV2-10, travada por teste): enquanto não existir a chamada real, o toast é `info`
+  // e diz que nada foi salvo. Quando a ONDA 1 ligar o endpoint (os handlers reais JÁ existem —
+  // ver TODOs), o `success` volta NO MESMO commit que introduz o await da resposta, nunca antes.
+  // Achado da revisão adversarial 2026-07-16 (lente custo-de-manter).
   const voteHelpful = (id: number) => {
-    // TODO[CL]: ONDA 1 — POST /kb/nodes/{id}/vote {kind:'helpful'}
-    toast.success('Voto registrado — obrigado!');
+    // TODO[CL]: ONDA 1 — POST /kb/nodes/{id}/vote {kind:'helpful'} → aí vira success
+    toast.info('Demonstração — o voto não é salvo (backend pendente)');
   };
   const voteOutdated = (id: number) => {
-    // TODO[CL]: ONDA 1 — POST /kb/nodes/{id}/vote {kind:'outdated'}
-    toast.success('Marcado como possivelmente desatualizado');
+    // TODO[CL]: ONDA 1 — POST /kb/nodes/{id}/vote {kind:'outdated'} → aí vira success
+    toast.info('Demonstração — a marcação não é salva (backend pendente)');
   };
   const reverify = (id: number) => {
-    // TODO[CL]: ONDA 1 — POST /kb/nodes/{slug}/reverify (requer kb.write)
-    toast.success('Artigo re-verificado e marcado como fresco');
+    // TODO[CL]: ONDA 1 — POST /kb/nodes/{slug}/reverify (requer kb.write) → aí vira success
+    toast.info('Demonstração — a re-verificação não é salva (backend pendente)');
   };
   const attachToOS = (id: number) => {
-    // TODO[CL]: ONDA 6 — POST /kb/nodes/{slug}/attach-to-current-os
-    toast.success('Artigo anexado à OS ativa');
+    // TODO[CL]: ONDA 6 — POST /kb/nodes/{slug}/attach-to-current-os → aí vira success
+    toast.info('Demonstração — o artigo não é anexado à OS (backend pendente)');
   };
   const summarizeAI = (id: number) => {
     // TODO[CL]: ONDA 4 — POST /kb/ai/summarize/{slug}

@@ -22,6 +22,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act, cleanup } from '@testing-library/react';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 import { useKbFavorites } from '@/Pages/kb/_lib/useKbFavorites';
 import { useKbRecent } from '@/Pages/kb/_lib/useKbRecent';
@@ -196,5 +198,75 @@ describe('UC-KBV2-08 — atalhos: ⌘K abre a paleta, Esc fecha (1280px/scroll s
     });
     expect(a.onOpenPalette).toHaveBeenCalledTimes(1);
     input.remove();
+  });
+});
+
+// =====================================================================================
+// UC-KBV2-10 — ação sem backend NÃO afirma sucesso
+// =====================================================================================
+// Contrato (casos.md UC-KBV2-10): enquanto a tela não faz chamada de rede, nenhuma ação de
+// ESCRITA pode devolver `toast.success` — afirmar "Artigo re-verificado e marcado como fresco"
+// sem persistir nada mente pro usuário, e numa KB cujo produto é frescor isso corrompe o
+// próprio sinal que a tela vende. O rótulo `· MOCK` do PageHeader rotula a FONTE DE DADOS,
+// não a AÇÃO — por isso ele não cobre este caso.
+//
+// A invariante LIGA duas propriedades independentes (não é tautologia): "não há rede no
+// arquivo" ⟹ "não há afirmação de sucesso nas ações de escrita". Quando a ONDA 1 ligar o
+// endpoint, o detector de rede passa a achar o POST e o teste LIBERA o `success` — o teste
+// não engessa a promoção, só proíbe a mentira. Achado da revisão adversarial 2026-07-16.
+describe('UC-KBV2-10 — ação sem backend não afirma sucesso (anti-mentira)', () => {
+  const PAGE = resolve(process.cwd(), 'resources/js/Pages/kb/Index.v2.tsx');
+  // As 4 ações de ESCRITA declaradas no charter (Automation Hooks) que ainda não têm endpoint.
+  // `toggleFav` NÃO entra: ele persiste de verdade (localStorage, UC-KBV2-07) — o success dele
+  // é honesto. A lista é do contrato, não "o que o código faz hoje".
+  const ACOES_DE_ESCRITA = ['voteHelpful', 'voteOutdated', 'reverify', 'attachToOS'];
+
+  const semComentarios = (src: string) =>
+    src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+  /** corpo do handler `const <nome> = (...) => { ... };` (até o fecho no mesmo nível). */
+  const corpoDoHandler = (src: string, nome: string): string => {
+    const i = src.indexOf(`const ${nome} = (`);
+    if (i === -1) return '';
+    const fim = src.indexOf('\n  };', i);
+    return src.slice(i, fim === -1 ? src.length : fim);
+  };
+
+  const temRede = (src: string) =>
+    /\brouter\.(post|put|patch|delete|visit)\b|\baxios\b|\bfetch\s*\(|\buseForm\b/.test(semComentarios(src));
+
+  it('nenhuma das 4 ações de escrita devolve toast.success enquanto a tela é write-free', () => {
+    const src = readFileSync(PAGE, 'utf8');
+    const redeAtiva = temRede(src);
+    for (const acao of ACOES_DE_ESCRITA) {
+      const corpo = corpoDoHandler(src, acao);
+      expect(corpo, `handler ${acao} sumiu/renomeou — atualize o contrato UC-KBV2-10`).not.toBe('');
+      if (!redeAtiva) {
+        expect(corpo, `${acao} afirma sucesso sem persistir nada (tela write-free)`).not.toMatch(/toast\.success/);
+      }
+    }
+  });
+
+  it('as 4 ações avisam que é demonstração (não ficam mudas)', () => {
+    // Não basta remover o success: sumir com o feedback deixaria o clique sem resposta —
+    // o usuário reclicaria achando que falhou. O contrato pede aviso honesto, não silêncio.
+    const src = readFileSync(PAGE, 'utf8');
+    for (const acao of ACOES_DE_ESCRITA) {
+      expect(corpoDoHandler(src, acao), `${acao} sem feedback nenhum`).toMatch(/toast\.info\(/);
+    }
+  });
+
+  it('CONTROLE-NEGATIVO: o detector morde uma fixture mentirosa e libera uma com rede', () => {
+    // Prova que o teste acima não passa por acidente (ADR 0258 — visto falhar).
+    const mentirosa = `const reverify = (id: number) => {\n    toast.success('Artigo re-verificado');\n  };`;
+    expect(temRede(mentirosa)).toBe(false);
+    expect(corpoDoHandler(mentirosa, 'reverify')).toMatch(/toast\.success/); // → o assert acima falharia
+
+    // Com rede real, o success é legítimo e o teste NÃO deve bloquear a promoção.
+    const comRede = `const reverify = (id: number) => {\n    router.post('/kb/nodes/x/reverify');\n    toast.success('ok');\n  };`;
+    expect(temRede(comRede)).toBe(true);
+
+    // E comentário citando router/fetch NÃO conta como rede (senão um TODO liberaria a mentira).
+    expect(temRede(`// TODO: trocar pra router.post(...) depois\nconst x = 1;`)).toBe(false);
   });
 });

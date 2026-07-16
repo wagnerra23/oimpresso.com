@@ -139,6 +139,25 @@ hardcoded sem semantic token".
 > não escolha de agente. Fechar este UC = fechar o gate visual da V2, que é a mesma decisão pendente
 > registrada no rodapé (promover / manter flag / arquivar).
 
+## UC-KBV2-10 — Ação sem backend NÃO afirma sucesso (anti-mentira)
+Status: 🧪 (kbIndexV2Client.spec.tsx — 3 testes incl. controle-negativo; aguarda run verde CT100)
+Enquanto a tela não fizer chamada de rede, nenhuma ação de **escrita** (`voteHelpful`,
+`voteOutdated`, `reverify`, `attachToOS`) pode devolver `toast.success`: afirmar *"Artigo
+re-verificado e marcado como fresco"* sem persistir nada mente pro usuário. O rótulo `· MOCK`
+do PageHeader rotula a **fonte de dados**, não a **ação** — não cobre este caso. Numa KB cujo
+produto é frescor (HealthPanel), a mentira corrompe o próprio sinal que a tela vende.
+`toggleFav` está FORA da lista: ele persiste de verdade (localStorage, [[UC-KBV2-07]]) — o
+success dele é honesto.
+**Pronto quando:** com a tela write-free (sem `router.`/`fetch`/`axios`/`useForm` fora de comentário), as 4 ações usam `toast.info` avisando "Demonstração — … (backend pendente)"; nenhuma usa `toast.success`. Quando a ONDA 1 ligar o endpoint, o `success` volta **no mesmo commit** que introduz a chamada.
+
+> **Origem (2026-07-16):** revisão adversarial do destino da V2 (lente *custo-de-manter*). Até
+> então os 4 handlers devolviam `toast.success` — "Voto registrado — obrigado!" · "Artigo
+> re-verificado e marcado como fresco" · "Marcado como possivelmente desatualizado" · "Artigo
+> anexado à OS ativa" — com **zero** chamada de rede na tela inteira. O teste liga duas
+> propriedades independentes ("não há rede" ⟹ "não há afirmação de sucesso"), então **não é
+> tautológico** e **não engessa a promoção**: assim que existir o POST, o detector o vê e o
+> `success` fica liberado.
+
 ---
 
 > **Decisão pendente (metabolismo — reportada ao parent MV batch 2026-07-06):**
