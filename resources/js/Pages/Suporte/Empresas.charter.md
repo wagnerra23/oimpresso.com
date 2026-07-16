@@ -35,7 +35,7 @@ O agente de suporte precisa escolher **qual cliente** atender. Esta tela lista, 
 
 ## UX targets
 
-- AppShellV2 + sidebar preta/dark-fixo (UI-0023). PT-BR. `tabular-nums` no ID.
+- AppShellV2 + sidebar light (UI-0009). PT-BR. `tabular-nums` no ID.
 - Tokens shadcn semânticos (sem cor crua). Dark mode ok (contraste ≥ 4.5:1).
 - Estados: cheia · busca-sem-resultado · vazia ("Nenhuma empresa-cliente acessível").
 - Botão primário "Entrar (suporte)" por linha.
