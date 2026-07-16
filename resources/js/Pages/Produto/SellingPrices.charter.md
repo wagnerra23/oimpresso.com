@@ -10,7 +10,7 @@ parent_module: Produto
 related_adrs: [93, 104, 107, 149, 182]
 related_us: [US-PROD-022, US-PROD-023]
 tier: A
-charter_version: 3.2
+charter_version: 3.3
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
@@ -81,6 +81,22 @@ pesquisados faz isso**. O padrão convergente (4 sistemas, independentes) é:
    | **Só tabela** (sem variação) | grade de **1 célula** (o `DUMMY`) × as abas de tabela |
    | **Os dois** | grade cheia × Base + tabelas |
    | Nenhum | 1 célula, só Base — o produto simples de sempre |
+
+   **Eixo vazio NÃO zera a tela** — vira o `DUMMY`. São **4 formas**, e a grade assume a sua:
+
+   | Eixos | Forma | Exemplo |
+   |---|---|---|
+   | 0 | **1 célula** | produto simples — a variação `DUMMY` |
+   | 1 | **lista vertical** (não matriz) | só Tamanho: P/M/G × 1 coluna de preço |
+   | 2 | **matriz** | Cor × Tamanho |
+
+   ⛔ **Não ter modelo de grade NÃO invalida ter tabela de preço** — as duas coisas são
+   independentes. Origem: 3º corte de [F] 2026-07-16 (*"o fato dele não ter um modelo de grade não
+   invalida a possibilidade de existir uma ou mais tabelas de preço que serão aplicadas a ele"*),
+   sobre a v3.2 do protótipo, que exigia **os 2 eixos** pra desenhar qualquer coisa → sem grade, o
+   produto não tinha onde ser precificado **nem na Base nem nas tabelas**. ⚠️ O contrato desta
+   tabela (linha "Só tabela") já dizia isso **e o protótipo violava** — o charter estava certo e o
+   pino errado. Sem eixo, some só o §preview de geração (não há grade a gerar; o `DUMMY` já existe).
 
    ⚠️ **Base e tabela NÃO são a mesma natureza** — base é **dado real** (digitado, fonte); tabela é
    **regra** (calculada, derivada). A UI não finge que são irmãs: a Base vem primeiro, separada por
@@ -225,6 +241,11 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
 - ❌ **Pendurar TODA a digitação de preço debaixo da tabela.** Produto com variação e **sem** tabela
   não teria onde ser precificado — foi exatamente o corte de [F]. A aba **Base** é a fonte e existe
   sempre; as tabelas são opcionais.
+- ❌ **Exigir eixo (ou os 2 eixos) pra desenhar a grade.** Sem modelo → `DUMMY` → **1 célula**, e o
+  produto segue com base **e** tabelas. Com 1 eixo → **lista**, não matriz. Grade e tabela são
+  **independentes**: uma não é pré-requisito da outra. Foi o 3º corte de [F] — e o mais grave,
+  porque o contrato (tabela dos 3 casos, linha "Só tabela") **já dizia isso** e o protótipo
+  violava. Lição: escrever a regra não implementa a regra.
 - ❌ **DELETAR combinação que não existe.** Desativar, sempre. Na Shopify deletar é a **única**
   saída e leva junto SKU, preço, peso e histórico de estoque, **sem undo**
   ([craftshift](https://craftshift.com/delete-out-of-stock-variants-on-shopify/)); a própria doc
@@ -308,6 +329,7 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
 | 2026-05-31 | [DS-upgrade] | Paleta stone→tokens v4; header hand-rolled→tokens (breadcrumb/título/SKU); + dirty-state, Cmd+S, navegação teclado, erros por célula, toast. Contrato backend (group_prices, POST save-selling-prices, price_type) intacto. |
 | 2026-07-15 | [CC] | **v2** — reescrito pro modelo real (Wagner): tabela nasce fora → produto seleciona + precifica → tabela vincula a cliente/tipo de venda; produto nunca vinculado direto ao cliente. Preço Especial produto×cliente (`AR-PROD-111..116`) vira **Non-Goal declarado**. Faixa de quantidade (`AR-PROD-105..109`) movida pro charter da Variação. + §Invariantes de valor (markup mestre, 4 casas, condicional ao `AR-PROD-097`) ancorados em teste. + §Backlog de contrato explicitando os buracos (casos.md ausente, testes tautológicos, cross-tenant prometido e inexistente, `mult` oco). |
+| 2026-07-16 | [F+CC] | **v3.3** — 3º corte de [F]: *"se não existe um modelo de grade escolhido, não vejo a opção de adicionar um valor do produto na tabela de preço… não ter modelo de grade não invalida a possibilidade de existir uma ou mais tabelas de preço"*. **Procedente — e o mais grave dos três: o contrato JÁ dizia isso** (a tabela do 0-A, linha "Só tabela = grade de 1 célula (o `DUMMY`) × as tabelas") **e o protótipo violava**, exigindo os 2 eixos pra desenhar qualquer coisa → sem grade, o produto não tinha onde ser precificado nem na Base nem nas tabelas. Escrever a regra não implementa a regra. + **4 formas** (0 eixos → 1 célula · 1 eixo → **lista**, não matriz · 2 eixos → matriz) + 1 anti-padrão. Sem eixo some só o §preview (não há grade a gerar). Bug lateral achado na verificação: o `\` do header `Cor \ Tamanho` era escape inválido em JS (` \ ` → espaço) — corrigido. |
 | 2026-07-16 | [F+CC] | **v3.2** — 2º corte de [F]: *"o produto pode ter só variação, ou só tabela, ou os dois — mas no protótipo a adição do preço está ligada somente ao preço por lista"*. **Procedente e era furo de MODELO, não de tela:** eu tratava o preço base como escalar ("R$ 100,00, vem da aba Custos") e pendurava toda a digitação debaixo da tabela → produto com variação e **sem** tabela não tinha onde ser precificado. Verificado: `variations` tem custo/markup/venda **por filho** (2017 + `product_variation_row.blade.php:60-84`), e `createSingleProductVariation()` grava o preço numa variação `DUMMY` → **produto simples é grade de 1 célula, não outro modelo**. + **item 0-A** (Base é a 1ª aba do seletor; a regra incide sobre a base **de cada célula**: −20% → Azul-P 80,00 · Azul-G 96,00) + tabela dos 3 casos + 3 anti-padrões (base escalar · tudo debaixo da tabela · Base e tabela como irmãs) + **§Backlog: tensão markup-mestre × Base editando venda** ([W]/[F] decidem — 3 saídas mapeadas). |
 | 2026-07-16 | [F+CC] | **v3.1** — corte de [F] sobre o protótipo: *"não encontrei opção de selecionar o modelo de grade desejado"*. **Procedente** — a v3 descrevia o **preço** e calava sobre **de onde vêm os eixos**, e o pino desenhava a grade já montada. + **item 0 do contrato** (modelo de grade: `variation_templates` → `values`, existe desde 2017 com CRUD vivo e 2 selects encadeados no Blade legado; a tela React não usa) + 4 anti-padrões (grade já-montada · delete destrutivo · regenerar do zero · >2 eixos). Protótipo: matriz agora **gerada dos eixos**, com chips desmarcáveis + célula reativável + preview que conta sozinho. |
 | 2026-07-16 | [F+CC] | **v3 — modelo REGRA + EXCEÇÃO.** [F] está construindo a aba "Preço especial" do cadastro (parte 2 de N; a aba Custos já saiu) e cravou o critério: *"a melhor usabilidade ganha, o legado Delphi não entra aqui"*. Pesquisa de mercado (13 sistemas, 2026-07-16) achou que **nenhum** renderiza variação × lista como matriz: 4 sistemas independentes (Shopify B2B · Tiny/Olist · Bling · Odoo) convergiram em **lista = regra %, célula = exceção**. Adicionado §Modelo de digitação + §Dependência (a regra-mãe **não tem coluna** — promove a `US-PROD-022` de extra a pré-requisito) + 6 anti-padrões com fonte. `related_prototype` deixa de ser `n/a` → protótipo navegável verificado no browser (regra −20%→−35%: herdadas 80,00→65,00, exceção fixa em 90,00). **Não revoga a v2** — refina o "como se digita"; o fluxo canônico e os Non-Goals dela seguem de pé. Efeito colateral: o 0-row da `US-PROD-027` morre por construção (célula em branco = nenhuma linha gravada), mas o efeito de 2ª ordem em Labels/Woo (3 dos 5 consumidores não guardam o `''`) segue decisão [W]. |

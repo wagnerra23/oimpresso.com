@@ -245,15 +245,24 @@
   }
 
   // eixo 1 = COLUNAS · eixo 2 = LINHAS (grade clássica de vestuário: tamanho × cor)
-  function colsAtivas() {
-    const m = MODELOS[eixos[1].tpl];
-    return m ? m.valores.filter((v) => eixos[1].marcados.has(v)) : [];
+  // Eixo VAZIO não zera a tela: vira a variação DUMMY (`is_dummy=1`), que é como o
+  // UltimatePOS representa produto sem variação. Por isso 0 eixos = grade de 1 célula —
+  // e essa célula tem preço base E recebe as tabelas normalmente.
+  // Corte de [F] 2026-07-16: "não ter modelo de grade não invalida ter tabela de preço".
+  const DUMMY = 'DUMMY';
+  function valores(n) {
+    const m = MODELOS[eixos[n].tpl];
+    if (!m) return [];
+    return m.valores.filter((v) => eixos[n].marcados.has(v));
   }
-  function linhasAtivas() {
-    const m = MODELOS[eixos[2].tpl];
-    return m ? m.valores.filter((v) => eixos[2].marcados.has(v)) : [];
-  }
+  const colsAtivas = () => valores(1);
+  const linhasAtivas = () => valores(2);
+  // o que a grade DESENHA (eixo vazio → 1 pseudo-valor = o DUMMY)
+  const colsGrade = () => (valores(1).length ? valores(1) : [DUMMY]);
+  const linhasGrade = () => (valores(2).length ? valores(2) : [DUMMY]);
   const nomeEixo = (n) => (MODELOS[eixos[n].tpl] ? MODELOS[eixos[n].tpl].nome : '—');
+  const temEixo = (n) => valores(n).length > 0;
+  const nEixos = () => (temEixo(1) ? 1 : 0) + (temEixo(2) ? 1 : 0);
 
   // ---- chips de valores por eixo ----
   function renderValores(n) {
@@ -277,46 +286,54 @@
   }
 
   // ---- a matriz: GERADA dos eixos ----
-  function renderMatriz() {
-    const wrap = document.getElementById('matrix-wrap');
-    const cols = colsAtivas(), linhas = linhasAtivas();
+  // Forma da grade — o eixo vazio vira DUMMY, nunca zera a tela.
+  //   2 eixos → matriz  ·  1 eixo → lista vertical  ·  0 eixos → 1 célula (produto simples)
+  function formaDaGrade() {
+    const v1 = valores(1), v2 = valores(2);
+    if (v1.length && v2.length) return { linhas: v2, cols: v1, nomeLinha: nomeEixo(2), nomeCol: nomeEixo(1), forma: 'matriz' };
+    if (v1.length)              return { linhas: v1, cols: [DUMMY], nomeLinha: nomeEixo(1), nomeCol: null, forma: 'lista' };
+    if (v2.length)              return { linhas: v2, cols: [DUMMY], nomeLinha: nomeEixo(2), nomeCol: null, forma: 'lista' };
+    return { linhas: [DUMMY], cols: [DUMMY], nomeLinha: null, nomeCol: null, forma: 'simples' };
+  }
 
-    if (!cols.length || !linhas.length) {
-      wrap.innerHTML = '<div class="pe-simple">Escolha os dois modelos e marque ao menos um valor em cada — a grade aparece aqui.</div>';
-      return;
+  function celulaHtml(k) {
+    if (celulasOff.has(k)) {
+      return '<td class="pe-cell is-off" data-cell="' + k + '" title="Combinação desmarcada — clique pra reativar">'
+           + '<input type="text" tabindex="-1" /><span class="pe-off-tag">não existe</span></td>';
     }
+    // BASE: dado real — sempre próprio, nunca herdado. Não existe exceção aqui.
+    if (ehBase()) {
+      return '<td class="pe-cell is-base-cell" data-cell="' + k + '">'
+           + '<input type="text" inputmode="decimal" value="' + brl(baseDe(k)).replace('R$ ', '') + '" /></td>';
+    }
+    // TABELA: calculado sobre a base DESTA célula; digitar cria exceção
+    const ex = excecoes[listaAtiva][k];
+    const val = (ex !== undefined ? brl(ex) : brl(precoCalculado(k))).replace('R$ ', '');
+    const sub = ex !== undefined
+      ? '<span class="pe-cell-sub">calc. ' + brl(precoCalculado(k)).replace('R$ ', '') + '</span>'
+      : '';
+    return '<td class="pe-cell' + (ex !== undefined ? ' is-override' : '') + '" data-cell="' + k + '">'
+         + '<input type="text" inputmode="decimal" value="' + val + '" />' + sub
+         + '<button class="pe-revert" title="Voltar ao calculado">↺</button></td>';
+  }
 
-    const th = cols.map((c) => '<th>' + c + '</th>').join('');
-    const corpo = linhas.map((l) => {
-      const tds = cols.map((c) => {
-        const k = chave(l, c);
-        if (celulasOff.has(k)) {
-          return '<td class="pe-cell is-off" data-cell="' + k + '" title="Combinação desmarcada — clique pra reativar">'
-               + '<input type="text" tabindex="-1" /><span class="pe-off-tag">não existe</span></td>';
-        }
+  function renderMatriz() {
+    const g = formaDaGrade();
 
-        // BASE: dado real — sempre "próprio", nunca herdado. Não existe exceção aqui.
-        if (ehBase()) {
-          return '<td class="pe-cell is-base-cell" data-cell="' + k + '">'
-               + '<input type="text" inputmode="decimal" value="' + brl(baseDe(k)).replace('R$ ', '') + '" /></td>';
-        }
+    const thead = g.forma === 'matriz'
+      ? '<tr><th style="text-align:left">' + g.nomeLinha + ' \\ ' + g.nomeCol + '</th>'
+        + g.cols.map((c) => '<th>' + c + '</th>').join('') + '</tr>'
+      : g.forma === 'lista'
+        ? '<tr><th style="text-align:left">' + g.nomeLinha + '</th><th>Preço</th></tr>'
+        : '<tr><th style="text-align:left">Produto (sem grade)</th><th>Preço</th></tr>';
 
-        // LISTA: calculado sobre a base DESTA célula; digitar cria exceção
-        const ex = excecoes[listaAtiva][k];
-        const val = (ex !== undefined ? brl(ex) : brl(precoCalculado(k))).replace('R$ ', '');
-        // na exceção, mostra de onde ela desviou (o cuidado do modelo: base ≠ lista)
-        const sub = ex !== undefined
-          ? '<span class="pe-cell-sub">calc. ' + brl(precoCalculado(k)).replace('R$ ', '') + '</span>'
-          : '';
-        return '<td class="pe-cell' + (ex !== undefined ? ' is-override' : '') + '" data-cell="' + k + '">'
-             + '<input type="text" inputmode="decimal" value="' + val + '" />' + sub
-             + '<button class="pe-revert" title="Voltar ao calculado">↺</button></td>';
-      }).join('');
-      return '<tr><th>' + l + '</th>' + tds + '</tr>';
+    const corpo = g.linhas.map((l) => {
+      const th = g.forma === 'simples' ? '<th>Preço único</th>' : '<th>' + l + '</th>';
+      return '<tr>' + th + g.cols.map((c) => celulaHtml(chave(l, c))).join('') + '</tr>';
     }).join('');
 
-    wrap.innerHTML = '<table class="pe-matrix"><thead><tr><th style="text-align:left">'
-      + nomeEixo(2) + ' \\ ' + nomeEixo(1) + '</th>' + th + '</tr></thead><tbody>' + corpo + '</tbody></table>';
+    document.getElementById('matrix-wrap').innerHTML =
+      '<table class="pe-matrix"><thead>' + thead + '</thead><tbody>' + corpo + '</tbody></table>';
 
     ligarCelulas();
   }
@@ -372,31 +389,56 @@
 
   // ---- preview de geração: o diferencial ----
   function renderPreview() {
-    const cols = colsAtivas(), linhas = linhasAtivas();
-    const total = cols.length * linhas.length;
+    const secao = document.getElementById('preview-btn').closest('.pe-section');
+    const g = formaDaGrade();
+
+    // Sem eixo nenhum não há grade a GERAR — o DUMMY já existe. Mas o produto segue
+    // precificável (base + tabelas): some só esta seção, a tela continua inteira.
+    // Corte de [F]: "não ter modelo de grade não invalida ter tabela de preço".
+    if (g.forma === 'simples') {
+      secao.hidden = true;
+      document.getElementById('axes-resumo').textContent =
+        'Sem modelo de grade — produto simples (1 variação DUMMY). Ele continua tendo preço base e tabelas.';
+      return;
+    }
+    secao.hidden = false;
+
+    const total = g.linhas.length * g.cols.length;
     let off = 0, existentes = 0;
-    linhas.forEach((l) => cols.forEach((c) => {
+    g.linhas.forEach((l) => g.cols.forEach((c) => {
       const k = chave(l, c);
       if (celulasOff.has(k)) off++;
       else if (jaExistem.has(k)) existentes++;
     }));
     const criar = Math.max(0, total - off - existentes);
 
+    const desc = g.forma === 'matriz'
+      ? g.linhas.length + ' ' + g.nomeLinha.toLowerCase() + ' × ' + g.cols.length + ' ' + g.nomeCol.toLowerCase()
+      : g.linhas.length + ' ' + g.nomeLinha.toLowerCase();
+
     document.getElementById('preview-texto').innerHTML =
-      linhas.length + ' ' + nomeEixo(2).toLowerCase() + ' × ' + cols.length + ' ' + nomeEixo(1).toLowerCase()
-      + ' = <b>' + total + ' combinações</b>.'
+      desc + ' = <b>' + total + (total === 1 ? ' combinação' : ' combinações') + '</b>.'
       + (off ? ' Você desmarcou <b>' + off + '</b>.' : '')
       + (existentes ? ' <b>' + existentes + '</b> já existem e serão <b>preservadas</b> — nada é recriado nem perde estoque.' : '')
-      + '<br />Serão criadas <b>' + criar + ' variações</b> novas, cada uma com SKU e estoque próprios.';
-    document.getElementById('preview-btn').textContent = 'Criar ' + criar + ' variações';
+      + '<br />Serão criadas <b>' + criar + (criar === 1 ? ' variação' : ' variações') + '</b> nova(s), cada uma com SKU e estoque próprios.';
+    document.getElementById('preview-btn').textContent = 'Criar ' + criar + (criar === 1 ? ' variação' : ' variações');
     document.getElementById('axes-resumo').textContent =
-      '2 eixos · ' + total + ' combinações' + (off ? ' · ' + off + ' desmarcada(s)' : '') + ' — a grade abaixo acompanha.';
+      (g.forma === 'matriz' ? '2 eixos' : '1 eixo') + ' · ' + total + ' combinações'
+      + (off ? ' · ' + off + ' desmarcada(s)' : '') + ' — a grade abaixo acompanha.';
   }
 
   // ---- delta por eixo (Value Price Extra do Odoo) ----
   function renderDelta() {
-    document.getElementById('delta-valor').innerHTML = colsAtivas().map((v) => '<option>' + v + '</option>').join('');
-    document.getElementById('delta-eixo-nome').textContent = nomeEixo(1).toLowerCase();
+    const g = formaDaGrade();
+    const box = document.querySelector('.pe-delta');
+    // sem eixo não há "ajuste por eixo" — e na Base o ajuste seria o próprio dado
+    box.hidden = g.forma === 'simples' || ehBase();
+    if (box.hidden) return;
+    // o delta é do eixo 1 (o "G custa mais"); se só o eixo 2 existe, é dele
+    const vals = valores(1).length ? valores(1) : valores(2);
+    const nome = valores(1).length ? nomeEixo(1) : nomeEixo(2);
+    document.getElementById('delta-valor').innerHTML = vals.map((v) => '<option>' + v + '</option>').join('');
+    document.getElementById('delta-eixo-nome').textContent = nome.toLowerCase();
   }
 
   function renderRegra() {
