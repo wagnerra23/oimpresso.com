@@ -31,10 +31,11 @@ observacao: "Cruzamento contrato-vivo × comportamento legado. Base de decisão 
 | Métrica | Valor |
 |---|---|
 | Itens anti-regressão catalogados | **~140** (`AR-PROD-001..187`) |
-| Cobertos pelo `Create.charter.md` | **~15** (formulário básico) |
+| Cobertos pelo `Create.charter.md` | **~9 distintos** (era "~15" — corrigido 2026-07-16, §1) |
 | Mapeáveis a telas-irmãs (charter existe, cobertura parcial) | ~25 |
 | **Sem casa em nenhum charter atual** | **~100** ⚠️ |
 | Colisão direta charter Non-Goal × legado | **2 áreas inteiras** (Composição, Variação) 🔴 |
+| **Falso-crédito corrigido** | **2 itens** — `AR-PROD-014` (Tipo) e `AR-PROD-007` (Margem %) estavam creditados ao charter e **não estão nele** (§1) |
 
 **Leitura:** o `Create.charter` é honesto sobre seu escopo mínimo, mas **não é o contrato de paridade**
 da migração. O cadastro legado é uma tela-mãe de 8 abas + Composição + Variação; a arquitetura nova
@@ -42,18 +43,76 @@ espalha isso em 8 páginas — e a maioria das funções de valor/fiscal/produç
 
 ---
 
-## 1. O que o `Create.charter.md` COBRE ✅ (~15 itens)
+## 1. O que o `Create.charter.md` COBRE ✅ (~9 itens distintos)
 
-| Charter (Goals) | Item anti-regressão |
-|---|---|
-| 8 campos sempre visíveis: name · sku · type · unit · category · brand · tax · alert_quantity | AR-PROD-001, 002, 005, 011, 014, 053 |
-| Avançado: barcode_type · sub_category · sub_units · weight · description · enable_sr_no · expiry · racks · custom_fields 1-20 | AR-PROD-010, 042, 004 (parcial) |
-| Card "Estoque" + "Localizações" (opening stock) | AR-PROD-050, 051, 055 (parcial) |
-| SKU server-side + duplicate `?d=N` + multi-tenant scope | AR-PROD-002, 007 (dup), 010 |
-| Defaults type=single · enable_stock=true · tax_type=exclusive | AR-PROD-001 |
+> ⚠️ **Corrigido 2026-07-16.** A tabela original creditava **~15** e continha **2 falso-créditos** +
+> **3 contagens duplas**. Reverificado campo a campo contra o `Create.charter.md` (Goals), o
+> `Create.tsx` (461 linhas, enumerado) e o dicionário `memory/dominio/estoque.md`.
 
-> O charter também acerta os invariantes Tier 0 (business_id, sem sessionStorage, SKU server-side) —
-> alinhado com o SDD §3.
+**Cobertura real do cabeçalho legado (`AR-PROD-001..014`) — a "aba geral":**
+
+| # | Campo legado | AR | Charter | Veredito |
+|---|---|---|---|---|
+| 2 | Descrição | 002 | `name` | ✅ |
+| 5 | Unidade | 005 | `unit` | ✅ |
+| 11 | Categoria | 011 | `category` | ✅ |
+| 1 | Código (`SG03#`) | 001 | `sku` | 🟡 provável, não declarado 1:1 |
+| 10 | Código EAN | 010 | `barcode_type` (Avançado) | 🟡 é o **tipo** do código, não o EAN |
+| 12 | Quant. Estoque | 012 `[V0]` | card "Estoque" | 🟡 agregado + 2 ícones do cabeçalho ausentes |
+| 3 · 4 · 9 · 13 | Ativo S/N · Última Alteração · Cód. Fábrica · data de Cadastro | 003, 004, 009, 013 | — | ❌ ausentes |
+| 6 · 7 · 8 | **R$ Custo · Margem % · R$ Valor** | 006, 007, 008 `[V0]` | — | ❌ **ausentes do charter E do código** (ver ⚠️ abaixo) |
+| 14 | Tipo | 014 | `type` | 🔴 **falso-crédito** (ver abaixo) |
+
+**Outras áreas creditadas (fora do cabeçalho):** `AR-PROD-042` (Observações → `description`) ✅ ·
+`AR-PROD-050/051/055` (opening stock, parcial) 🟡 · `AR-PROD-053` (estoque mín/máx → `alert_quantity`) 🟡
+— `alert_quantity` é alerta, não o par mín/máx do legado.
+
+### ⚠️ Os 3 campos de dinheiro não existem — nem no charter, nem na tela
+
+O `Create.charter` declara 5 seções Card, entre elas **"Preço & Imposto"**. Mas os 8 campos visíveis que
+ele enumera são `name · sku · type · unit · category · brand · tax · alert_quantity` — **nenhum é preço**.
+Verificado no código (`Create.tsx`, 461 linhas, enumerado 2026-07-16): os Cards reais são
+**Identificação · Preço & Imposto · Estoque**, e a busca por `price`/`preço`/`custo`/`margem` retorna
+apenas `sellingPriceGroupCount` (uma contagem), o título do card, e o label `tax_type`
+("Imposto inclui no preço?"). **A tela React de cadastro não define preço de produto.** O card promete
+preço e entrega imposto.
+
+Consequência: `AR-PROD-006/007/008` — os três `[V0]` cuja fórmula (`Margem% = ((Valor/Custo) − 1) × 100`)
+e binding bidirecional foram confirmados por 5 caminhos ([ANTI-REGRESSAO §Confirmado empiricamente]) —
+**não têm onde pousar**. São a ponta visível da **Formação de Preço** (`AR-PROD-090..103`, §3), que
+também não tem charter. Ver §5 item 1.
+
+### 🔴 Falso-crédito 1 — `AR-PROD-014` (Tipo): mesmo nome, outro conceito
+
+| | Legado | Charter |
+|---|---|---|
+| **Campo** | `Tipo` (dropdown, ex: `PRODUTO`) | `type` (default `single`) |
+| **O que é** | `PRODUTO_TIPO` — **tabela configurável** de natureza do item (PRODUTO/SERVIÇO/matéria-prima/uso-e-consumo) + flags `TEM_*` | `products.type` do UltimatePOS — **estrutura de variação** |
+| **Valores** | configuráveis por business | `{single, variable, modifier}` (`memory/dominio/estoque.md`) |
+
+São conceitos distintos. O charter **não** cobre a natureza do item — e o `Edit.charter` reforça o
+engano ao declarar Non-Goal *"Mudar `type` (Single/Variable/Combo)"*, que fala da estrutura, não do Tipo.
+
+> ⚠️ **Bônus:** o charter cita **`combo`** (Mission + Non-Goals + Edit), mas o dicionário de domínio diz
+> `products.type ∈ {single, variable, modifier}` e **"`combo` não existe no enum atual — não inventar"**.
+> Esse enum é machine-checked pelo `dominio:check` ([ADR 0264](../../decisions/0264-governanca-executavel-trio-dominio-e2e.md) G-4, **required**). Ver §4.
+
+### 🔴 Falso-crédito 2 — `AR-PROD-007` (Margem %) creditado a "SKU server-side + duplicate"
+
+A linha original creditava `AR-PROD-002, 007 (dup), 010` à feature *"SKU server-side + duplicate `?d=N`
++ multi-tenant scope"*. Mas `AR-PROD-007` é a **Margem %** — um campo `[V0]` de dinheiro, sem relação
+com SKU ou duplicação, e **ausente do charter e do código**. A anotação `(dup)` sugere que se quis dizer
+"duplicate", mas o número aponta pra outro item. Além disso `002` e `010` já constavam em linhas
+anteriores (**contagem dupla**, junto com `001`, que aparecia em duas) — é o que inflava o "~15".
+
+> **Por que isso importa:** um `[V0]` marcado como coberto sem estar é a **mesma classe de erro** que o
+> [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) achou no `SellingPrices.charter` — o §Pest GUARD prometia `it('Controller cross-tenant
+> retorna 404')` desde 2026-05-15 e **esse teste nunca existiu**. Documentação afirmando cobertura que
+> o código não tem é instrução ativa pra regressão ([proibicoes.md](../../proibicoes.md) §Precedência: *"o charter pode estar
+> ERRADO e ainda é lei"*).
+
+> O charter acerta os invariantes Tier 0 (business_id, sem sessionStorage, SKU server-side) —
+> alinhado com o SDD §3. A crítica acima é de **cobertura**, não de qualidade do que ele declara.
 
 ---
 
@@ -65,9 +124,34 @@ Na arquitetura nova, abas do legado viram páginas separadas. Precisam do seu pr
 |---|---|---|---|
 | Estoque › Histórico de Movimento (kardex) | AR-PROD-060..065 | `StockHistory.charter.md` | 🔴 grade 47 "fachada" (`movements` undefined) — G-01 do SDD |
 | Custos e Tabelas de Preços | AR-PROD-090..109 | `SellingPrices.charter.md` / `Unificado` | 🟡 multiplicador oco (G-02); Formação de Preço ausente |
+| **Preço Especial por cliente** | AR-PROD-111..116 | `SellingPrices` (trio fechado, [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)) | ✅ **topologia substituída** — ver abaixo |
 | Estoque › Fornecedor | AR-PROD-070..075 | `Unificado` (insumos) | ❌ `fornecedor => null` (C18 do SDD) |
 | Estoque › Compras | AR-PROD-080..084 | `Unificado` / `Show` | ❌ sem cobertura |
 | Estoque › Geral + saldo por local | AR-PROD-050..057, 144..145 | `StockHistory` / `Unificado` | 🟡 parcial |
+
+### Preço Especial — a topologia mudou (decisão [W] 2026-07-15)
+
+Estava listado no §3 como *"sem casa em nenhum charter"*. **Não está mais** — a capacidade foi
+entregue por um **desenho diferente**, decidido pelo [W] e registrado no
+[`SellingPrices.casos.md`](../../../resources/js/Pages/Produto/SellingPrices.casos.md):
+
+> *"a tabela nasce **fora** do produto (`/produto/unificado?tela=tabelas`); aqui o operador **seleciona**
+> a tabela e define o preço que o produto assume quando ela for aplicada; **depois** a tabela é vinculada
+> ao cadastro do cliente ou a um tipo de venda. O produto **nunca** é vinculado direto ao cliente."*
+
+| | Legado (`AR-PROD-111`) | Novo (decisão [W]) |
+|---|---|---|
+| **Topologia** | produto → cliente (lookup dentro do produto) | produto → **tabela** → cliente |
+| **Onde vive** | aba "Preço Especial" do cadastro | `/products/add-selling-prices/{id}` + vínculo no cadastro do cliente |
+
+Isso **revoga** `AR-PROD-111` como comportamento a preservar: o lookup de cliente dentro do produto
+contradiz a decisão. O trio da tela está fechado (charter v2 + `casos.md` + `TabelaPrecoContratoTest`
+com 4 UCs rodando em MySQL real).
+
+> ⚠️ **Resíduo não verificado** — o legado tinha, por cliente: `% Acréscimo` / `% Desconto` sobre o
+> `Valor Original` (AR-PROD-112/113) e o checkbox **"Manter Desconto"** (AR-PROD-114). O modelo novo tem
+> `price_type ∈ {fixed, percentage}` por célula, o que cobre o eixo percentual — mas **não confirmei**
+> equivalência item a item, nem onde "Manter Desconto" pousa. Não tratar como coberto sem checar.
 
 ---
 
@@ -78,8 +162,7 @@ Nenhuma página/charter atual contempla estas áreas — cada uma precisa virar 
 | Área legada | Itens | Por que importa |
 |---|---|---|
 | **Aba Fiscal** (NCM · CEST · origem · grupo imposto · PAF-ECF IAT/IPPT · pesos) | AR-PROD-124..130 | o charter só tem o campo `tax`; NF-e depende disso |
-| **Formação de Preço** (markup composto · rendimento última compra · dimensões Larg/Comp/Espessura · valor mínimo · flags pode comprar/vender/movimenta estoque) | AR-PROD-090..103 | é o motor de custo/margem — Tier 0 valor |
-| **Preço Especial por cliente** (valor original ± %acréscimo/%desconto) | AR-PROD-111..116 | preço vinculado a cliente |
+| **Formação de Preço** (markup composto · rendimento última compra · dimensões Larg/Comp/Espessura · valor mínimo · flags pode comprar/vender/movimenta estoque) | AR-PROD-090..103 | é o motor de custo/margem — Tier 0 valor. **Inclui os 3 campos de dinheiro do cabeçalho** (`AR-PROD-006/007/008`), que o `Create.charter` não tem (§1) |
 | **Anexo** (visibilidade cadastro/venda/produção · caminho de rede) | AR-PROD-117..123 | charter diz "1 imagem só"; é a "arte anexada" (F4 do SDD) |
 | **Atividade** (histórico de alterações do cadastro) | AR-PROD-131..134 | auditoria append-only |
 | **Ícones de estoque do cabeçalho** (ajuste manual E/S · saldo por local) | AR-PROD-012, 140..145 | movimento de estoque manual |
@@ -116,10 +199,25 @@ Ordem sugerida (cada um vira charter Tier A + US no SPEC + casos.md ancorado nos
 3. **Composição/BOM + fórmulas** (AR-PROD-150..168) — a perna de comunicação visual (CV-01/CV-03 do SDD); a mais rica e a que o legado já resolvia.
 4. **Variação/Grade** (AR-PROD-170..187) — grade tam×cor + preço por quantidade.
 5. **Kardex real** (AR-PROD-060..065) — fecha a fachada `StockHistory` (G-01).
-6. **Fornecedor + Compras + Preço Especial + Anexo + Atividade + Excluir** (AR-PROD-070..084, 111..134, 022) — completam a paridade.
+6. **Fornecedor + Compras + Anexo + Atividade + Excluir** (AR-PROD-070..084, 117..134, 022) — completam a paridade. *(Preço Especial saiu da fila — §2.)*
 
-**Gate de cada item:** US no SPEC → casos.md com UC-IDs ancorados nos `AR-PROD-*` → Pest failing-first
-(`[V0]` onde toca valor) → charter draft→live com smoke biz=1 → (se V0) dupla-confirmação + aprovação.
+**Gate de cada item — o trio** ([ADR 0264](../../decisions/0264-governanca-executavel-trio-dominio-e2e.md), `casos-gate` **required**): `.charter.md` (lei) + `.casos.md`
+(contrato UC) + teste que **cita o UC**. G-1 exige o par charter+casos por tela roteada; G-2 reprova
+UC órfão (caso no papel sem teste). As 7 telas de Produto estão no baseline da dívida
+(`missing_casos: 243`) — e a regra F3 é **"cada tela tocada fecha o trio dela"**: mexer no `Create.tsx`
+**obriga** a criar o `Create.casos.md`. Molde vivo: o [#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300) (`SellingPrices` — charter v2 + casos +
+`TabelaPrecoContratoTest` em MySQL real).
+
+> ⚠️ **Onde o pedido do dono entra — verificado 2026-07-16.** O canal real é o **chat**; o agente
+> materializa downstream. **US no SPEC e UC no casos.md NÃO são canal de pedido** — foi proposto e
+> **refutado** (2 céticos + 7 verificadores): o SPEC é o elo mais fraco da precedência e `_pendente_` já
+> conta como coberto; UC sem teste **quebra o `casos-gate` required**. Ver [proibicoes.md](../../proibicoes.md)
+> §5 entrada *"Eleger US (SPEC) ou UC (casos.md) como CANAL DE PEDIDO do dono"* +
+> [how-trabalhar.md §Pedido de tela/feature](../../how-trabalhar.md). Os 4 slots onde a palavra do [W]
+> vira máquina: `criar-tela.mjs (Mod/Tela, PT-0X)` · **Non-Goals + Automation Anti-hooks** do charter
+> (só [W] preenche — `charter-write` é proibida de inferir) · `## Contrato visual` (copy literal) ·
+> bullet **`[BACKLOG] <frase>` sem id** no `casos.md` (prosa honesta pré-teste, sem gate — vira UC
+> quando ganhar teste que o cite). **É o slot certo pros campos ausentes do §1.**
 
 ---
 
@@ -133,6 +231,9 @@ Ordem sugerida (cada um vira charter Tier A + US no SPEC + casos.md ancorado nos
 
 ---
 
-**Histórico:** 2026-07-13 — Cruzamento criado a partir do `Create.charter.md` × lista anti-regressão
-(~140 itens). Conclusão: charter atual cobre ~15%; Composição e Variação (núcleo das verticais) estão
-como Non-Goal adiado. [CC]
+## Trilha do tempo
+
+| Data | O que mudou |
+|---|---|
+| 2026-07-13 | Cruzamento criado a partir do `Create.charter.md` × lista anti-regressão (~140 itens). Conclusão: charter atual cobre ~15%; Composição e Variação (núcleo das verticais) estão como Non-Goal adiado. [CC] |
+| 2026-07-16 | **Reverificação do mapa da "aba geral" (cabeçalho `AR-PROD-001..014`) + Preço Especial.** §0/§1: "~15 cobertos" → **~9 distintos** — 2 **falso-créditos** (`AR-PROD-014` Tipo: `products.type` é estrutura de variação, não `PRODUTO_TIPO`; `AR-PROD-007` Margem % creditado a "SKU server-side + duplicate") + 3 contagens duplas (001, 002, 010). §1: registrado que **`AR-PROD-006/007/008` não existem no charter NEM no código** — `Create.tsx` (461 linhas, enumerado) tem card "Preço & Imposto" **sem preço**; só `tax`/`tax_type`. §2: **Preço Especial movido do §3** — topologia produto→cliente **substituída** por produto→tabela→cliente (decisão [W] 2026-07-15 no `SellingPrices.casos.md`, trio fechado no #4300); resíduo `%acr`/`%desc`/"Manter Desconto" declarado **não verificado**. §5: gate de cada item reescrito pro **trio** (ADR 0264) + registrado o canal real de pedido (chat; US/UC **não** são canal — refutado 2026-07-16). [CC] |
