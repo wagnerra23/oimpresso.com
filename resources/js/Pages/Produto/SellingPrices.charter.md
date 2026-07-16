@@ -10,7 +10,7 @@ parent_module: Produto
 related_adrs: [93, 104, 107, 149, 182]
 related_us: [US-PROD-022, US-PROD-023]
 tier: A
-charter_version: 3.6
+charter_version: 3.7
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
@@ -311,18 +311,75 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
 > Esta tela declara **preço**. Toda regra abaixo é `[V0]` e tem teste que a defende — e, pela regra
 > de precedência (`proibicoes.md`), **o teste verde vence este charter** se os dois discordarem.
 
-- **Markup é o campo mestre** (`AR-PROD-095`, confirmado por Wagner 2026-07-15) — dele derivam
-  margem, valor de venda e lucro previsto.
+- ⚠️ ~~**Markup é o campo mestre** (`AR-PROD-095`, confirmado por Wagner 2026-07-15)~~ —
+  **CORRIGIDO na v3.7. A afirmação juntava DUAS colunas diferentes** e citava a errada:
+
+  | O que | É | Estado |
+  |---|---|---|
+  | **`MARGEM`** (cabeçalho) | `((Valor / Custo) − 1) × 100` | ✅ **confirmado por 5 caminhos** — `AR-PROD-007` |
+  | **`CALC_PMARKUP`** (`AR-PROD-095`) | perfil composto de `PRODUTO_MARKUP` | ❌ **fórmula desconhecida** |
+
+  **`MARGEM` ≠ `CALC_PMARKUP`** — em base real de cliente, **nenhuma** das 3.668 linhas com os dois
+  preenchidos tinha valores iguais, e o `CALC_PMARKUP` **não fecha** com `((V/C)−1)×100` em
+  linha nenhuma. O charter citava o `095` (o desconhecido) pra afirmar o comportamento do outro.
+
+- **O CUSTO é a âncora — e o binding é BIDIRECIONAL** `[V0]` (`AR-PROD-006/007/008`, resolvido
+  2026-07-15 por **5 caminhos independentes**: print + fonte Delphi + fonte oimpresso + base demo +
+  **base real de cliente, 3.668 linhas**):
+
+  - editar **Valor** → `Margem := ((Valor / Custo) − 1) × 100`
+  - editar **Margem** → `Valor := Custo × (1 + Margem/100)`
+  - editar **Custo** → **não propaga** (assimétrico — é a âncora)
+
+  > *"Não é 'Valor recalcula Margem OU vice-versa' — é **ambos**, e o Custo é assimétrico."*
+
+  E o motor do oimpresso **já faz isso hoje, em produção**: `public/js/product.js:300-341` — digitar
+  markup escreve a venda (`:313`), digitar a venda regrava o markup (`:338`, via
+  `Util::get_percent`, que é `((V−C)/C)×100` — o gêmeo exato do `AR-PROD-007`).
+  **Não existe campo mestre no motor: mestre é quem foi digitado por último.**
+
 - **Grave 4 casas, exiba 2.** `variations.profit_percent` é `DECIMAL(22,4)`. Markup gravado com 2
   casas **não reconstitui** o preço de origem: custo 4.300,00 + markup 62,79% → **6.999,97**, não
   7.000,00 (medido no motor real). Com 2 casas, R$ 7.000,00 é inexpressável.
-- **O mestre é condicional.** `AR-PROD-097` ("Mantém Margem na importação") decide quem ganha quando
-  o custo muda: marcado → o Valor recalcula preservando a margem; desmarcado → o Valor fica.
-  Não cravar "markup sempre vence" ignorando o flag.
+  ⚠️ No legado o furo é **o inverso**: as colunas são `DOUBLE PRECISION` (não decimal com escala) →
+  **não há truncamento na persistência**; as "6 casas" são **máscara de display**. Lá quem mente é
+  a tela (`6,99997` exibido como `7,00` → 3 centavos em 1.000 un). Aqui é a gravação.
+
+- **A propagação custo→preço é FLAG POR PRODUTO — e o oimpresso só tem metade** `[V0]`
+  (`AR-PROD-097` = `TEM_MARGEM_FIXA_CONTIBUICAO`). Quando chega nota de compra com custo maior:
+
+  | Flag | Comportamento | Base real (oficina) |
+  |---|---|---|
+  | **`N`** | mantém o **preço**, deixa a margem flutuar | **83,8%** |
+  | `S` | mantém a **margem**, **sobe o preço** sozinho | **8,2%** |
+
+  O oimpresso **não tem a flag** — implementa só o modo `N`, implicitamente
+  (`ProductUtil::updateProductFromPurchase` recalcula `profit_percent` e preserva o preço). Migrar
+  como está **funciona por acidente pros 84% e quebra silencioso pros 8,2%**. É **capacidade a
+  preservar**, não bug a corrigir. Nenhum dos 17 ERPs pesquisados (8 BR + 9 globais) propaga
+  automático por default — a Linx vende esse par como diferencial.
 - **Preço abaixo do CUSTO avisa, não bloqueia** `[V0]` (v3.6, decisão [F]). Custo =
   `variations.default_purchase_price`, **por variação**. Vale pra qualquer preço — base, tabela,
   exceção ou faixa. O aviso nomeia **quais** variações dão prejuízo, nunca em bloco. É o **único**
   aviso de preço da tela: o penhasco do volume **não** se avisa (ver §Faixa de quantidade).
+
+  > 🕳️ **FURO CONHECIDO — custo zero (v3.7).** O aviso é `preço < custo`; com **custo = 0 ele
+  > nunca dispara** (nada é menor que zero). E custo zero **não é raro**: base real de cliente,
+  > **453 de 4.342 produtos = 10,4%** sem custo — e **242 desses (53,4%) estão com preço zero**.
+  > É o produto de **serviço**, que não tem custo por natureza.
+  >
+  > Pior: `Valor = (1 + Margem/100) × Custo` com custo 0 dá **preço 0**, e **não há guarda em
+  > nenhum dos dois sistemas** — nem no Delphi (`ValidaNumero` só trata NaN/Inf **depois** da
+  > divisão) nem aqui (`calc_percentage(0, 100, 0) = 0` → produto vendável a zero, **sem exceção e
+  > sem log**). A assimetria prova que é acidente: a margem **de contribuição** tem guard explícito
+  > (*"Não é possível alterar a Margem de Contribuição quando o Custo é 0"*); a margem normal não.
+  >
+  > Contexto: dos 17 concorrentes pesquisados, **nenhum** documenta tratamento de custo zero — o
+  > Odoo tem ≥7 módulos de terceiros só pra alertar margem baixa. É buraco de mercado.
+  >
+  > **Decisão [F]/[W] pendente:** avisar *"produto sem custo — preço não é conferível"*? Avisar só
+  > quando preço **também** é zero (o caso que sangra)? Ou aceitar como está? Sendo `[V0]`, carrega
+  > a REGRA MESTRE. Enquanto não decide, **o aviso da tela tem esse cego declarado**.
 - **Piso de venda `AR-PROD-101`** (`R$ Valor mínimo de venda`) — piso **explícito** do legado que
   **bloqueia** venda. É **outra coisa** que o aviso de custo acima (aquele avisa; este bloqueia) e
   **segue sem contrato** — decisão pendente no Backlog.
@@ -426,22 +483,29 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 
 ## Backlog de contrato (dívida conhecida — não é Non-Goal, é buraco)
 
-> ### ⚠️ [W]/[F] DECIDIR — a aba Base edita VENDA, mas "markup é o campo mestre"
+> ### 🟡 A aba Base edita VENDA — a tensão ENCOLHEU (v3.7), sobra 1 escolha
 >
-> Aberto em 2026-07-16 pelo item 0-A. O §Invariantes de valor deste charter diz **"Markup é o campo
-> mestre (`AR-PROD-095`, confirmado por Wagner 2026-07-15) — dele derivam margem, valor de venda e
-> lucro previsto"**. O Blade legado é coerente com isso: mostra **custo + markup% + venda** por
-> variação (`product_variation_row.blade.php:60-84`), os três ligados.
+> **Aberto na v3.6** sobre a premissa *"markup é o campo mestre, e a Base editando venda contradiz"*.
+> **A premissa caiu** (ver §Invariantes): não existe campo mestre — o **Custo é a âncora** e
+> Valor↔Margem é **bidirecional**, tanto no Delphi (`AR-PROD-008`, 5 caminhos) quanto no oimpresso
+> (`product.js:319-341`, **em produção hoje**). Logo a saída **(a)** — digitar a venda regrava o
+> markup — **não é divergência: é paridade** com o que já roda.
 >
-> A grade Base do protótipo edita **só `default_sell_price`** — escolha de legibilidade ([F]
-> 2026-07-16: *"você decide ao ver"*). Três saídas, nenhuma escolhida:
-> **(a)** digitar a venda **recalcula o markup por trás** (bidirecional, como o legado);
-> **(b)** a Base é **read-only** aqui e o preço se edita na aba **Custos** (que [F] já construiu —
-> falta saber como ela trata produto **variável**: markup por produto ou por variação?);
-> **(c)** a célula abre custo+markup+venda (fiel ao legado, mas 3 campos × N células).
+> **E o conflito só existe porque a aba Base existe.** Verificado: o `SellingPrices.tsx` atual
+> **não toca** `default_sell_price` (`git grep` → **0 hits**) — ele só escreve `variation_group_prices`,
+> outra tabela. Markup e preço de tabela **nunca se cruzaram**. Quem cruzou fui eu, ao criar a Base
+> (que resolve o corte legítimo de [F]: *"produto pode ter só variação, sem tabela"*).
 >
-> Enquanto não decide, o protótipo mostra (a) sem o recálculo — **o markup não existe na tela**, o
-> que é a divergência honesta a resolver antes do F3. Sendo `[V0]`, a decisão carrega a REGRA MESTRE.
+> **Sobram 2 saídas** (a (c) morreu: 3 campos × N células é a grade ilegível que a pesquisa reprova):
+> - **(a) Bidirecional** — digitar venda regrava `profit_percent` via `Util::get_percent`. É paridade
+>   com prod. ⚠️ Pegadinha medida: **custo 0 → markup vira 0 silenciosamente** (`product.js:332`).
+> - **(b) Base read-only aqui**, editável só na Formação de Preço. Zero conflito, zero código — mas
+>   ⚠️ **a aba Custos/Formação de Preço NÃO EXISTE em git** (varrido 2026-07-16: 0 `.tsx`, 0 branch;
+>   `FormacaoPrecoParidadeLegadoTest.php:56` confirma — *"crava o contrato ANTES da tela existir;
+>   implementar é US separada"*). Escolher (b) **cria dependência de uma tela que não existe**.
+>
+> Sendo `[V0]`, a decisão carrega a REGRA MESTRE. Enquanto não decide, o protótipo faz (a) **sem** o
+> recálculo — o markup não aparece na tela, e essa é a divergência honesta a fechar antes do F3.
 
 > ✅ **Fechados no mesmo PR ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)) — esta lista
 > foi escrita ANTES deles existirem e ficou falsa ao mergear:**
@@ -477,6 +541,7 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
 | 2026-05-31 | [DS-upgrade] | Paleta stone→tokens v4; header hand-rolled→tokens (breadcrumb/título/SKU); + dirty-state, Cmd+S, navegação teclado, erros por célula, toast. Contrato backend (group_prices, POST save-selling-prices, price_type) intacto. |
 | 2026-07-15 | [CC] | **v2** — reescrito pro modelo real (Wagner): tabela nasce fora → produto seleciona + precifica → tabela vincula a cliente/tipo de venda; produto nunca vinculado direto ao cliente. Preço Especial produto×cliente (`AR-PROD-111..116`) vira **Non-Goal declarado**. Faixa de quantidade (`AR-PROD-105..109`) movida pro charter da Variação. + §Invariantes de valor (markup mestre, 4 casas, condicional ao `AR-PROD-097`) ancorados em teste. + §Backlog de contrato explicitando os buracos (casos.md ausente, testes tautológicos, cross-tenant prometido e inexistente, `mult` oco). |
+| 2026-07-16 | [F+CC] | **v3.7 — o "markup é mestre" estava ERRADO: citava a coluna errada.** Levantamento no código + `docs/produto-custo-margem-evidencia` (branch `b04ca994`, **não mergeada**) fecharam o `[?]` do `AR-PROD-008` com **5 caminhos** (print + fonte Delphi + fonte oimpresso + base demo + **base real de cliente, 3.668 linhas**). **`MARGEM` ≠ `CALC_PMARKUP`** — colunas distintas; **nenhuma** das 3.668 linhas tinha valores iguais e o `CALC_PMARKUP` (que É o `AR-PROD-095`) **não fecha** com `((V/C)−1)×100` em linha nenhuma: **sua fórmula segue desconhecida**. O charter citava o `095` (o desconhecido) pra afirmar o comportamento do outro, e eu repeti 3×. **O certo:** o **Custo é a âncora** (editar custo não propaga) e **Valor↔Margem é bidirecional** — e o oimpresso **já faz isso em produção** (`product.js:300-341`: markup→venda `:313`, **venda→markup** `:338`). **Não existe campo mestre: mestre é quem foi digitado por último.** + `AR-PROD-097` = `TEM_MARGEM_FIXA_CONTIBUICAO`, **flag POR PRODUTO** que o oimpresso **não tem** (só o modo `N`) — 83,8% `N` / **8,2% `S`** na base real → migrar como está funciona por acidente pros 84% e **quebra silencioso pros 8,2%**. + 🕳️ **FURO do aviso de custo**: `preço < custo` **nunca dispara com custo 0**, e custo 0 é **10,4% da base real** (453/4.342) — **53,4% deles já com preço zero**. Sem guarda em nenhum dos 2 sistemas. Decisão [F]/[W] pendente. A tensão da Base encolheu: (a) bidirecional **é paridade com prod**, não divergência; (c) morreu; (b) depende de tela que **não existe em git**. |
 | 2026-07-16 | [F+CC] | **v3.6 — FAIXA DE QUANTIDADE vira contrato** (fecha o 🟡 reaberto na v3.5). Pesquisa de mercado 2026-07-16 (11 plataformas + 9 BR, **schemas primários** — GraphQL/OpenAPI/source, não help center). **Achado central:** quantidade É 3ª dimensão, mas **ninguém materializa** — todos usam **linha esparsa** `(tabela × variante × qtd_min)`. Prova de schema: `QuantityPriceBreak.priceList: PriceList!` **non-null** (Shopify) → a faixa **pertence à tabela**. 180 células viram **9 linhas** autoradas (`variacao_id NULL` = todas — Odoo `applied_on` + cascata Tiny). 4 decisões: **só piso** (VTEX sem `maxQuantity` → overlap impossível por construção; BigCommerce tem teto e teve que validar, Medusa não validou → issue #3584) · **VOLUME/bloco** `[V0]` (~33% de diferença vs graduated) · **SUBSTITUI, NÃO MESCLA** `[V0]` (Shopify: *"the price becomes fixed. Any overall adjustment discount won't apply"*) · **`variacao_id` nullable no schema, UI depois** (sem precedente BR). Precedência adaptada do `_order` do Odoo (única em código, não prosa). **Penhasco** (9un=R$90 · 10un=R$80): conhecido, **aceito, NÃO avisado** — decisão [F]: é a alavanca comercial do atacado. **⛔ ÚNICO aviso da tela: preço < CUSTO** (decisão [F]: *"só exiba aviso caso o preço definido for menor que o custo. De resto não precisa exibir nada"*) — custo já existe (`variations.default_purchase_price`), aviso **por variação afetada**, avisa e não bloqueia. **Isso FECHA o backlog "piso de venda vs preço de tabela"** aberto na v2 (pode furar, mas avisa; o piso comparado é o custo). O `AR-PROD-101` (piso que **bloqueia**) é outra coisa e segue sem contrato. **Achado comercial:** Bling/Tiny/Conta Azul/Microvix = **zero** faixa; Omie = meia-solução em "característica", só no PDV; faixa real só em TOTVS/Sankhya (ERP grande) → **espaço aberto**. |
 | 2026-07-16 | [F+CC] | **v3.5 — remove o delta por eixo + REABRE preço por quantidade.** 5º corte de [F], duas frentes. **(1)** *"se na variação gerada eu consigo alterar o valor, pra quê a função ajuste por tamanho?"* → **REMOVIDO**: era ambíguo (2 caminhos pro mesmo dado), o botão `aplicar` **nunca teve handler** (controle morto que passou 2 rodadas de verificação — eu media cálculo, não se os botões respondem) e **o charter já proibia** (`❌ Bulk apply — Wave 3`; "ajuste por eixo" é bulk com outro nome). Origem do erro: importei o `Value Price Extra` do Odoo sem checar o modelo — lá o preço é **composto** (template+extra), aqui a base é **digitada por célula**; o problema não existia. + 3 anti-padrões (2 caminhos pro mesmo dado · controle sem handler · importar solução de outro modelo). **(2)** *"no modelo de grade não vi as fórmulas de variação por quantidade"* → o Non-Goal "pertence ao charter da Variação" assumia o modelo **do legado** (`VARIACAO_TIPO`: quantidade vs cor/tamanho **excludentes**) — e [F] cravou que o legado não entra. Vira 🟡 **reaberto**, pesquisa de mercado disparada (sem schema hoje; cruza com grade E tabela = 3ª dimensão). |
 | 2026-07-16 | [F+CC] | **v3.4 — a tabela tem DOIS MODOS.** 4º corte de [F]: *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele define o valor do produto dentro da tabela e no protótipo vejo apenas o campo de percentual"*. **Procedente — e o schema JÁ suportava:** `variation_group_prices.price_type ∈ {'fixed','percentage'}` (`fixed` = o valor É o preço), lido por mim no 1º dia e ignorado ao modelar. A pesquisa também já dizia, na linha do **Bling** que eu mesmo citei no charter: *"lista 'Customizada' → o valor do produto será personalizado na lista"*. A v3 afirmava "a lista **é** uma regra" — meia-verdade que forçava inventar regra + marcar cada célula como "exceção". Agora: modo **regra %** (célula digitada = exceção, tarja) OU **preço por produto** (sem %, célula digitada = O preço, neutro; não digitada = base). + 3 anti-padrões (toda tabela é regra · "%" que mente · alarme em dado normal). Revenda nasce manual no pino pra o contraste ser visível. |
