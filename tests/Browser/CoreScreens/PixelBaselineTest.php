@@ -137,11 +137,13 @@ foreach ($screens as $screen) {
         $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota));
         $page->assertSee($ancora);
 
-        $dataPage = (string) $page->script(
-            "(() => document.getElementById('app')?.getAttribute('data-page') || '')()"
-        );
-        $runtimePage = json_decode($dataPage, true, 512, JSON_THROW_ON_ERROR);
-        expect($runtimePage['component'] ?? null)->toBe(
+        $runtimeSource = $page->script(<<<'JS'
+            (() => {
+              const serialized = document.getElementById('app')?.getAttribute('data-page');
+              return serialized ? (JSON.parse(serialized).component || '') : '';
+            })()
+        JS);
+        expect($runtimeSource)->toBe(
             $source,
             "A rota {$rota} renderizou um componente Inertia diferente do contrato visreg."
         );
