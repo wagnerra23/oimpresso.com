@@ -1,0 +1,122 @@
+# Stack Docker do CT 100 docker-host (192.168.0.50) no Proxmox empresa
+#
+# ⚠️ FONTE ÚNICA (2026-07-16): este arquivo É o canon. A cópia viva em
+# /opt/docker-host/compose.yml no CT 100 deve ser um `git pull` desta — NUNCA
+# editada in-place (regra Tier 0 "mexeu, registra" · memory/proibicoes.md).
+# Até 2026-07-16 esta stack vivia SÓ no servidor, sem versionamento: mudança
+# não passava por PR/CI e drift não era detectável. Ver o PR que trouxe o arquivo.
+#
+# Segredos NÃO vivem aqui — só referências ${VAR}, resolvidas pelo
+# /opt/docker-host/.env do servidor (não versionado, chmod 600).
+#
+# Hospeda:
+#   - Traefik (reverse-proxy + Let's Encrypt automático)
+#   - Portainer (UI Docker)
+#   - Vaultwarden (cofre de segredos — vault.oimpresso.com)
+#
+# Pré-requisitos pra TLS funcionar (responsabilidade do Wagner antes de subir):
+#   1. DNS: A records pra portainer/traefik/vault.oimpresso.com → 177.74.67.30
+#      (laranja-OFF se for Cloudflare, senão WS quebra)
+#   2. TP-Link port forwards:
+#      - regra "https" 443 → 192.168.0.50:443
+#      - nova regra        80  → 192.168.0.50:80  (HTTP-01 challenge ACME)
+#
+# Sem isso, Let's Encrypt falha emitir cert e Traefik fica em fallback self-signed.
+# Pra teste LAN sem TLS válido, use --certificatesresolvers.le.acme.caserver=staging
+# (ver compose.yml.staging) ou aceite warning de cert no browser.
+
+services:
+  traefik:
+    image: traefik:v3.6
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "127.0.0.1:8085:8080"  # dashboard só LAN do CT (acessar via SSH tunnel)
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-acme:/acme
+    command:
+      - "--api.dashboard=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.web.http.redirections.entrypoint.to=websecure"
+      - "--entrypoints.web.http.redirections.entrypoint.scheme=https"
+      - "--entrypoints.websecure.address=:443"
+      - "--serversTransport.maxIdleConnsPerHost=500"
+      - "--serversTransport.forwardingTimeouts.dialTimeout=5s"
+      - "--serversTransport.forwardingTimeouts.responseHeaderTimeout=60s"
+      - "--serversTransport.forwardingTimeouts.idleConnTimeout=90s"
+      - "--certificatesresolvers.le.acme.email=${ACME_EMAIL:-wagnerra@gmail.com}"
+      - "--certificatesresolvers.le.acme.storage=/acme/acme.json"
+      - "--certificatesresolvers.le.acme.httpchallenge=true"
+      - "--certificatesresolvers.le.acme.httpchallenge.entrypoint=web"
+      - "--log.level=INFO"
+      - "--accesslog=true"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.dashboard.rule=Host(`traefik.oimpresso.com`)"
+      - "traefik.http.routers.dashboard.entrypoints=websecure"
+      - "traefik.http.routers.dashboard.service=api@internal"
+      - "traefik.http.routers.dashboard.tls.certresolver=le"
+      - "traefik.http.routers.dashboard.middlewares=auth"
+      - "traefik.http.middlewares.auth.basicauth.users=${TRAEFIK_DASHBOARD_AUTH}"
+
+  portainer:
+    image: portainer/portainer-ce:lts
+    container_name: portainer
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer-data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.rule=Host(`portainer.oimpresso.com`)"
+      - "traefik.http.routers.portainer.entrypoints=websecure"
+      - "traefik.http.routers.portainer.tls.certresolver=le"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+  # Vaultwarden — cofre de senhas self-hosted (compatível com clientes Bitwarden)
+  # ADR 0044. Acesso: https://vault.oimpresso.com
+  # IMPORTANTE: SIGNUPS_ALLOWED=true só na 1ª inicialização (Wagner cria conta);
+  # depois trocar pra false em .env e `docker compose up -d vaultwarden` pra
+  # recriar com cadastro fechado. Convidar equipe via email-invite do admin.
+  vaultwarden:
+    image: vaultwarden/server:1.35.8-alpine
+    container_name: vaultwarden
+    restart: unless-stopped
+    environment:
+      DOMAIN: https://vault.oimpresso.com
+      SIGNUPS_ALLOWED: ${VAULTWARDEN_SIGNUPS_ALLOWED:-false}
+      INVITATIONS_ALLOWED: "true"
+      WEBSOCKET_ENABLED: "true"
+      ADMIN_TOKEN: ${VAULTWARDEN_ADMIN_TOKEN}
+      LOG_LEVEL: warn
+      ROCKET_PORT: "80"
+      # Backup interno SQLite + envio por email do reset (configurar SMTP futuro)
+    volumes:
+      - vaultwarden-data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.vault.rule=Host(`vault.oimpresso.com`)"
+      - "traefik.http.routers.vault.entrypoints=websecure"
+      - "traefik.http.routers.vault.tls.certresolver=le"
+      - "traefik.http.services.vault.loadbalancer.server.port=80"
+
+  # Reverb REMOVIDO em 2026-07-16 (autorização [W]: "reverb pode remover, foi
+  # trocado pelo centrifugo"). O broadcaster é o Centrifugo desde 2026-04-30 —
+  # ADR 0058 supersede as ADR 0042/0043 citadas aqui. O container estava parado
+  # (ExitCode 0) desde então, mas o serviço seguia DECLARADO neste compose: um
+  # `docker rm` sozinho seria desfeito no próximo `up`. Removidos juntos: bloco
+  # do serviço, container órfão e imagem (964MB).
+  # Resíduo conhecido: A record `reverb.oimpresso.com` → 177.74.67.30 e as 4
+  # vars REVERB_* no .env do servidor seguem órfãos (limpeza pendente [W]).
+volumes:
+  traefik-acme:
+    name: traefik-acme
+  portainer-data:
+    name: portainer-data
+  vaultwarden-data:
+    name: vaultwarden-data
