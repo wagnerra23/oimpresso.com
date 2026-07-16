@@ -148,7 +148,7 @@ describe('Onda 10 — wire-up Index.tsx (REVISADO 2026-05-18 Wagner: FinSubNav/F
     });
 
     it('Componentes preservados em _components/ pra fallback (não deletados)', function () {
-        expect(file_exists(FIN_BASE_10 . '/_components/FinSubNav.tsx'))->toBeTrue();
+        // FinSubNav.tsx removido no #4279 (navheader->PageHeader) — nao checa file_exists dele
         expect(file_exists(FIN_BASE_10 . '/_components/FinAgeing.tsx'))->toBeTrue();
     });
 
