@@ -89,6 +89,19 @@
             </select>
             <div class="pe-values" data-values="2"></div>
           </div>
+
+          <!-- 3º eixo: caso especial (ex: Tamanho × Cor × Material). Some quando vazio. -->
+          <div class="pe-axis" data-axis="3">
+            <select class="pe-axis-tpl" data-axis-tpl="3">
+              <option value="">+ 3º eixo (opcional)…</option>
+              <option value="tamanho">Tamanho</option>
+              <option value="cor">Cor</option>
+              <option value="numeracao">Numeração (calçado)</option>
+              <option value="voltagem">Voltagem</option>
+              <option value="material">Material</option>
+            </select>
+            <div class="pe-values" data-values="3"></div>
+          </div>
         </div>
 
         <p class="pe-rule-note" id="axes-resumo"></p>
@@ -201,6 +214,7 @@
     cor:       { nome: 'Cor',       valores: ['Azul', 'Vermelho', 'Preto', 'Branco'] },
     numeracao: { nome: 'Numeração', valores: ['37', '38', '39', '40', '41', '42'] },
     voltagem:  { nome: 'Voltagem',  valores: ['110v', '220v', 'Bivolt'] },
+    material:  { nome: 'Material',  valores: ['Algodão', 'Poliéster'] },
   };
 
   // Marcar != todos: é o "não gerar o que não existe" que a pesquisa apontou como o
@@ -208,6 +222,7 @@
   const eixos = {
     1: { tpl: 'tamanho', marcados: new Set(['P', 'M', 'G']) },
     2: { tpl: 'cor',     marcados: new Set(['Azul', 'Vermelho']) },
+    3: { tpl: '',        marcados: new Set() },   // 3º eixo: opcional, vazio por padrão
   };
 
   // Combinação que não existe (ex: Vermelho não vem em G). Desativa, nunca apaga (padrão Bling).
@@ -249,7 +264,13 @@
   // a faixa seguinte fecha a anterior → sobreposição impossível por construção.
   // `variacao: null` = vale pra TODAS (Odoo `applied_on`) → 9 linhas cobrem 180 células.
   // Cálculo: VOLUME/bloco — atingiu a faixa, TUDO reprecifica (Shopify/BigCommerce/VTEX/TOTVS).
+  // `base` também tem faixas: não ter tabela NÃO invalida ter faixa de quantidade
+  // (corte de [F] 2026-07-16 — espelho exato do "não ter grade não invalida ter tabela").
+  // No schema isso é `tabela_preco_id NULL` = contexto base, igual a `variacao_id NULL` = todas.
+  // ⚠️ Diverge do Shopify (`priceList!` non-null) porque lá NÃO EXISTE preço base fora de
+  // catálogo — todo preço é de um catálogo. Aqui a Base é um contexto de preço como outro.
   const faixas = {
+    base:    [],
     varejo:  [],
     atacado: [{ qtd: 10, valor: 80, variacao: null }, { qtd: 50, valor: 55, variacao: null }],
     revenda: [],
@@ -335,12 +356,37 @@
   // ---- a matriz: GERADA dos eixos ----
   // Forma da grade — o eixo vazio vira DUMMY, nunca zera a tela.
   //   2 eixos → matriz  ·  1 eixo → lista vertical  ·  0 eixos → 1 célula (produto simples)
+  // 3+ EIXOS — padrão Odoo: o eixo 1 fica nas COLUNAS e os demais se COMBINAM nas linhas.
+  // Verbatim da doc: "the matrix is organized by using the first attribute values as
+  // X-coordinates and will then combine all other attribute combinations as Y-coordinates".
+  // Com 3 eixos deixa de ser matriz e vira lista larga — é o preço de ter 3, e é consciente.
+  // Shopify permite 3 · Lightspeed 3 (cor/tam/material) · Akeneo/Microvix limitam a 2.
+  // Corte de [F] 2026-07-16: "existem casos especiais onde será necessário mais de duas grades".
+  function produto(listas) {
+    return listas.reduce((acc, vals) =>
+      acc.flatMap((pre) => vals.map((v) => pre.concat([v]))), [[]]);
+  }
+
   function formaDaGrade() {
-    const v1 = valores(1), v2 = valores(2);
-    if (v1.length && v2.length) return { linhas: v2, cols: v1, nomeLinha: nomeEixo(2), nomeCol: nomeEixo(1), forma: 'matriz' };
-    if (v1.length)              return { linhas: v1, cols: [DUMMY], nomeLinha: nomeEixo(1), nomeCol: null, forma: 'lista' };
-    if (v2.length)              return { linhas: v2, cols: [DUMMY], nomeLinha: nomeEixo(2), nomeCol: null, forma: 'lista' };
-    return { linhas: [DUMMY], cols: [DUMMY], nomeLinha: null, nomeCol: null, forma: 'simples' };
+    const v1 = valores(1), v2 = valores(2), v3 = valores(3);
+    const cols = v1.length ? v1 : [DUMMY];
+
+    // eixos de LINHA = todos menos o 1 (na ordem 2, 3, ...)
+    const eixosLinha = [2, 3].filter((n) => valores(n).length);
+    if (!eixosLinha.length) {
+      return v1.length
+        ? { linhas: v1, cols: [DUMMY], nomeLinha: nomeEixo(1), nomeCol: null, forma: 'lista', nEixos: 1 }
+        : { linhas: [DUMMY], cols: [DUMMY], nomeLinha: null, nomeCol: null, forma: 'simples', nEixos: 0 };
+    }
+    if (!v1.length) {  // só eixos de linha → lista vertical do 1º deles
+      const n = eixosLinha[0];
+      return { linhas: valores(n), cols: [DUMMY], nomeLinha: nomeEixo(n), nomeCol: null, forma: 'lista', nEixos: eixosLinha.length };
+    }
+
+    // linhas = produto cartesiano dos eixos de linha (1 eixo → ele mesmo; 2 → combinações)
+    const linhas = produto(eixosLinha.map((n) => valores(n))).map((combo) => combo.join(' · '));
+    const nomeLinha = eixosLinha.map((n) => nomeEixo(n)).join(' · ');
+    return { linhas, cols, nomeLinha, nomeCol: nomeEixo(1), forma: 'matriz', nEixos: 1 + eixosLinha.length };
   }
 
   function celulaHtml(k) {
@@ -463,35 +509,50 @@
 
   function renderFaixas() {
     const box = document.getElementById('faixas-box');
-    box.hidden = ehBase();                    // faixa vive DENTRO da tabela, nunca no Base
-    if (box.hidden) return;
-
+    box.hidden = false;                       // a Base TAMBÉM tem faixas (corte de [F])
     const lista = faixas[listaAtiva];
     const nCel = celulasCobertas().length;
+
     document.getElementById('faixas-hint').textContent =
-      'A partir de X unidades, o preço muda — e vale para todas as ' + nCel +
-      (nCel === 1 ? ' variação' : ' variações') + ' deste produto. Ao atingir a faixa, o pedido INTEIRO reprecifica.';
+      (ehBase()
+        ? 'Vale quando NENHUMA tabela se aplica. '
+        : 'Vale nesta tabela. ')
+      + 'Cobre todas as ' + nCel + (nCel === 1 ? ' variação' : ' variações')
+      + ' — e ao atingir a faixa o pedido INTEIRO reprecifica.';
     document.getElementById('faixas-vazio').hidden = lista.length > 0;
 
-    const linhas = lista
-      .slice()
-      .sort((a, b) => a.qtd - b.qtd)
-      .map((f, i) => {
-        const perda = abaixoDoCusto(f.valor);
-        const aviso = perda.length
-          ? '<div class="pe-alerta">⚠️ <b>' + brl(f.valor) + '</b> está abaixo do custo de '
-            + perda.map((k) => k.replace('|', '-') + ' (' + brl(custoDe(k)) + ')').join(' · ')
-            + ' — venda com prejuízo.</div>'
-          : '';
-        return '<tr data-faixa="' + i + '">'
-          + '<td><span class="pe-faixa-lbl">a partir de</span> <input type="text" class="pe-faixa-qtd" value="' + f.qtd + '" inputmode="numeric" /> <span class="pe-faixa-lbl">un</span></td>'
-          + '<td><span class="pe-faixa-lbl">R$</span> <input type="text" class="pe-faixa-val' + (perda.length ? ' is-perda' : '') + '" value="' + brl(f.valor).replace('R$ ', '') + '" inputmode="decimal" /></td>'
-          + '<td class="pe-faixa-acao"><button class="pe-faixa-del" title="Remover faixa">🗑</button></td>'
-          + '</tr>'
-          + (aviso ? '<tr class="pe-faixa-aviso"><td colspan="3">' + aviso + '</td></tr>' : '');
-      }).join('');
+    // ORDENA e calcula o TETO de cada faixa a partir do PISO da seguinte.
+    // Guardar só o piso (VTEX/Shopify/Odoo) → buraco e sobreposição impossíveis por
+    // construção. Mas EXIBIR "de X até Y" é o que o operador pensa (corte de [F]).
+    const ord = lista.slice().sort((a, b) => a.qtd - b.qtd);
+    const linhas = ord.map((f, i) => {
+      const prox = ord[i + 1];
+      const ate = prox ? prox.qtd - 1 : null;         // teto derivado, nunca digitado
+      const perda = abaixoDoCusto(f.valor);
+      const aviso = perda.length
+        ? '<div class="pe-alerta">⚠️ <b>' + brl(f.valor) + '</b> está abaixo do custo de '
+          + perda.map((k) => k.replace('|', '-') + ' (' + brl(custoDe(k)) + ')').join(' · ')
+          + ' — venda com prejuízo.</div>'
+        : '';
+      return '<tr data-faixa="' + i + '">'
+        + '<td><span class="pe-faixa-lbl">de</span> <input type="text" class="pe-faixa-qtd" value="' + f.qtd + '" inputmode="numeric" />'
+        + '<span class="pe-faixa-lbl"> até </span>'
+        + '<span class="pe-faixa-ate">' + (ate === null ? '∞' : ate) + '</span>'
+        + '<span class="pe-faixa-lbl"> un</span></td>'
+        + '<td><span class="pe-faixa-lbl">R$</span> <input type="text" class="pe-faixa-val' + (perda.length ? ' is-perda' : '') + '" value="' + brl(f.valor).replace('R$ ', '') + '" inputmode="decimal" /></td>'
+        + '<td class="pe-faixa-acao"><button class="pe-faixa-del" title="Remover faixa">🗑</button></td>'
+        + '</tr>'
+        + (aviso ? '<tr class="pe-faixa-aviso"><td colspan="3">' + aviso + '</td></tr>' : '');
+    }).join('');
 
-    document.getElementById('faixa-grid').innerHTML = linhas;
+    // a 1ª faixa começa em 1 e usa o preço normal — mostrar isso fecha a régua mental
+    const cabeca = ord.length
+      ? '<tr class="pe-faixa-zero"><td><span class="pe-faixa-lbl">de</span> 1 <span class="pe-faixa-lbl">até</span> '
+        + (ord[0].qtd - 1) + ' <span class="pe-faixa-lbl">un</span></td>'
+        + '<td class="pe-faixa-lbl">' + (ehBase() ? 'preço base' : 'preço da tabela') + '</td><td></td></tr>'
+      : '';
+
+    document.getElementById('faixa-grid').innerHTML = cabeca + linhas;
     ligarFaixas();
   }
 
@@ -564,7 +625,7 @@
       + '<br />Serão criadas <b>' + criar + (criar === 1 ? ' variação' : ' variações') + '</b> nova(s), cada uma com SKU e estoque próprios.';
     document.getElementById('preview-btn').textContent = 'Criar ' + criar + (criar === 1 ? ' variação' : ' variações');
     document.getElementById('axes-resumo').textContent =
-      (g.forma === 'matriz' ? '2 eixos' : '1 eixo') + ' · ' + total + ' combinações'
+      g.nEixos + (g.nEixos === 1 ? ' eixo' : ' eixos') + ' · ' + total + ' combinações'
       + (off ? ' · ' + off + ' desmarcada(s)' : '') + ' — a grade abaixo acompanha.';
   }
 
@@ -619,13 +680,11 @@
         'Escolha o modelo e marque só os valores que este produto tem. O modelo é cadastrado fora daqui (Produto → Modelo de Variação).';
       return;
     }
-    // resumo de 1 linha quando fechado
-    const resumo = (n) => nomeEixo(n) + ' (' + valores(n).join(', ') + ')';
-    document.getElementById('grade-setup-hint').textContent = g.forma === 'simples'
-      ? 'Sem grade — produto simples (1 variação).'
-      : g.forma === 'matriz'
-        ? resumo(1) + ' × ' + resumo(2)
-        : resumo(valores(1).length ? 1 : 2);
+    // resumo de 1 linha quando fechado — N eixos, não só 2
+    const ativos = [1, 2, 3].filter((n) => valores(n).length);
+    document.getElementById('grade-setup-hint').textContent = ativos.length
+      ? ativos.map((n) => nomeEixo(n) + ' (' + valores(n).join(', ') + ')').join(' × ')
+      : 'Sem grade — produto simples (1 variação).';
   }
 
   document.getElementById('grade-toggle').addEventListener('click', () => {
@@ -676,7 +735,7 @@
     renderMatriz(); renderBadges();
   });
 
-  renderValores(1); renderValores(2); render();
+  renderValores(1); renderValores(2); renderValores(3); render();
 </script>
 
 </body>

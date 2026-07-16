@@ -341,6 +341,16 @@
   color: var(--danger-fg);
   font-weight: 600;
 }
+/* TETO da faixa — DERIVADO do piso da seguinte, nunca digitado.
+   Guardar só o piso torna buraco e sobreposição impossíveis; exibir "de X até Y" é o que
+   o operador pensa (corte de [F] 2026-07-16). Por isso é texto, não input. */
+.pe-faixa-ate {
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  font-weight: 600;
+}
+/* a faixa 0 (1 até o 1º piso) = preço normal — fecha a régua mental, não é editável */
+.pe-faixa-zero td { color: var(--text-mute); font-size: 12px; }
 .pe-faixa-acao { text-align: right; }
 .pe-faixa-del {
   border: 0;
