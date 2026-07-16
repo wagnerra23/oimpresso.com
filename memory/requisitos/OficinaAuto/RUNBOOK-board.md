@@ -28,6 +28,16 @@ steps:
 > **NÃO confundir** com o Kanban de caçamba (`ProducaoOficina/Index`) — vertical legado
 > (ADR 0194). Este é o **fluxo real do carro** (caminhão entra pra reparo/troca de peça).
 
+> **Renomeado 2026-07-16** — era `RUNBOOK-serviceorders-board.md`. A convenção canônica
+> (`proibicoes.md §MWART` + `block-mwart-violation.mjs`) é `RUNBOOK-<tela-kebab>.md`, e o
+> hook resolve a Page pelo nome do arquivo (`Board.tsx` → `board`), ignorando a subpasta —
+> então o nome qualificado com `serviceorders-` NUNCA era encontrado e este RUNBOOK
+> (que existe e cobre a tela desde 2026-06-02) não contava: editar `Board.tsx` batia em
+> bloqueio como se o F1 PLAN não existisse. O nome novo alinha aos 4 irmãos do módulo
+> (`RUNBOOK-create/edit/index/show.md`, todos planos). Sem referências a atualizar
+> (`grep serviceorders-board` = 0 fora deste arquivo). Rename via `git mv` (histórico
+> preservado); conteúdo inalterado.
+
 ## 1. O que esta tela faz
 
 Quadro Kanban das Ordens de Serviço de **mecânica** (`order_type='mecanica'`), com

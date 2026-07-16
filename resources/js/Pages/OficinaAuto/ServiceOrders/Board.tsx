@@ -459,10 +459,10 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
 
   // Preview do drag (sem a palavra "Caçamba")
   const renderPreview = useCallback((c: ServiceOrderCardData) => (
-    <div className="bg-white border-2 border-primary rounded shadow-lg p-3 max-w-[260px] cursor-grabbing rotate-2 opacity-95" role="presentation" aria-hidden>
+    <div className="bg-card border-2 border-primary rounded shadow-lg p-3 max-w-[260px] cursor-grabbing rotate-2 opacity-95" role="presentation" aria-hidden>
       <div className="flex items-center gap-2">
         {c.plate ? (
-          <span className="font-mono text-[11px] bg-primary text-white px-1.5 py-0.5 rounded">{c.plate}</span>
+          <span className="font-mono text-[11px] bg-primary text-primary-foreground px-1.5 py-0.5 rounded">{c.plate}</span>
         ) : null}
         <div className="flex flex-col min-w-0">
           <span className="text-[12.5px] font-medium text-foreground truncate">{c.number}</span>
@@ -682,7 +682,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           sumiam ao rolar — "a tela corta" ([W] 2026-06-11, sintoma sistêmico do shell). */}
       <div className="flex-1 min-h-0 flex flex-col bg-muted/40 @container/board">
         {/* Topbar */}
-        <header className="bg-white border-b border-border px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
+        <header className="bg-card border-b border-border px-6 py-4 flex items-start justify-between gap-4 flex-wrap">
           <div className="min-w-0">
             <h1 className="text-lg font-semibold text-foreground">Oficina Auto</h1>
             <p className="text-xs text-muted-foreground mt-0.5">Recepção, diagnóstico, peças, execução e entrega de veículos</p>
@@ -703,7 +703,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
 
         {/* KPIs compactos — densidade @container (@1280 expande colunas).
             D-05: KPI clicável filtra os cards client-side (clicar de novo limpa). */}
-        <div className="bg-white border-b border-border px-6 py-3">
+        <div className="bg-card border-b border-border px-6 py-3">
           <div className={'grid grid-cols-2 @[700px]/board:grid-cols-3 @[1100px]/board:grid-cols-6 gap-2'}>
             {kpiCards.map(({ id, filterKey, ...kpi }) => (
               <BoardKpiCard
@@ -720,19 +720,19 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
         {/* Abas de box/elevador (paridade Cowork .prod-equip-filters) — filtro
             client-side instantâneo. "Todos os boxes" + cada box com contador. */}
         {filterOptions.boxes.length > 0 && (
-          <Inline gap={1} className="bg-white border-b border-border px-6 py-2 gap-1.5 overflow-x-auto" role="group" aria-label="Filtrar por box">
+          <Inline gap={1} className="bg-card border-b border-border px-6 py-2 gap-1.5 overflow-x-auto" role="group" aria-label="Filtrar por box">
             <button
               type="button"
               onClick={() => setBoxFilter(null)}
               aria-pressed={boxFilter === null}
               className={
                 'inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 border whitespace-nowrap transition-colors '
-                + (boxFilter === null ? 'bg-primary text-white border-primary' : 'bg-white text-foreground border-border hover:bg-muted')
+                + (boxFilter === null ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border hover:bg-muted')
               }
               data-testid="board-box-tab-all"
             >
               Todos os boxes
-              <span className={'tabular-nums rounded px-1 ' + (boxFilter === null ? 'bg-white/20' : 'bg-muted')}>{kpis.total}</span>
+              <span className={'tabular-nums rounded px-1 ' + (boxFilter === null ? 'bg-primary-foreground/20' : 'bg-muted')}>{kpis.total}</span>
             </button>
             {filterOptions.boxes.map((b) => {
               const active = boxFilter === b;
@@ -744,12 +744,12 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
                   aria-pressed={active}
                   className={
                     'inline-flex items-center gap-1.5 text-xs font-medium rounded-full px-2.5 py-1 border whitespace-nowrap transition-colors '
-                    + (active ? 'bg-primary text-white border-primary' : 'bg-white text-foreground border-border hover:bg-muted')
+                    + (active ? 'bg-primary text-primary-foreground border-primary' : 'bg-card text-foreground border-border hover:bg-muted')
                   }
                   data-testid={`board-box-tab-${b}`}
                 >
                   {b}
-                  <span className={'tabular-nums rounded px-1 ' + (active ? 'bg-white/20' : 'bg-muted')}>{boxCounts.get(b) ?? 0}</span>
+                  <span className={'tabular-nums rounded px-1 ' + (active ? 'bg-primary-foreground/20' : 'bg-muted')}>{boxCounts.get(b) ?? 0}</span>
                 </button>
               );
             })}
@@ -759,7 +759,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
         {/* Barra de views (canon .ofc-view-toolbar) — [busca + contador] | [toggle
             Quadro·Lista·Grade·Fila] | [Visão]. Toggle e Visão migraram do header pra
             cá ([W] 2026-06-11). O contador "N OS · N atrasadas" fica à direita da busca. */}
-        <Inline wrap gap={3} className="bg-white border-b border-border px-6 py-2.5 sticky top-0 z-10">
+        <Inline wrap gap={3} className="bg-card border-b border-border px-6 py-2.5 sticky top-0 z-10">
           {/* Grupo busca (flex-1): input + limpar + chip KPI + contador à direita */}
           <Inline gap={2} className="flex-1 min-w-[240px]">
             <Search size={14} className="text-muted-foreground flex-shrink-0" />
@@ -809,7 +809,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
           {/* Toggle de views (canon .prod-view-toggle): Quadro · Lista · Grade · Fila —
               TODAS in-page (tela unificada, pedido [W] 2026-06-11). Trocam só o miolo
               sobre o mesmo payload `columns`; KPIs/abas/toolbar continuam acima. */}
-          <div className="inline-flex flex-shrink-0 rounded border border-border bg-white overflow-hidden" role="group" aria-label="Visualização">
+          <div className="inline-flex flex-shrink-0 rounded border border-border bg-card overflow-hidden" role="group" aria-label="Visualização">
             {([
               { v: 'quadro', label: 'Quadro', Icon: LayoutGrid },
               { v: 'lista', label: 'Lista', Icon: ListIcon },
@@ -824,7 +824,7 @@ export default function ServiceOrdersBoard({ columns, kpis, process_seeded, filt
                 className={
                   'px-2.5 py-1 text-xs font-medium inline-flex items-center gap-1 transition-colors '
                   + (i > 0 ? 'border-l border-border ' : '')
-                  + (view === v ? 'bg-primary text-white' : 'text-foreground hover:bg-muted')
+                  + (view === v ? 'bg-primary text-primary-foreground' : 'text-foreground hover:bg-muted')
                 }
                 data-testid={`board-view-${v}`}
               >
@@ -972,7 +972,7 @@ function BoardGrade({ columns, rows, onRowClick }: BoardGradeProps) {
     'bg-muted text-[9.5px] font-semibold uppercase tracking-[0.05em] text-muted-foreground border-b border-r border-border align-bottom';
   return (
     <div className="p-6 h-full overflow-auto">
-      <table className="w-full border-separate border-spacing-0 text-[11.5px] bg-white border border-border rounded-lg overflow-hidden">
+      <table className="w-full border-separate border-spacing-0 text-[11.5px] bg-card border border-border rounded-lg overflow-hidden">
         <thead>
           <tr>
             <th className={`${headCls} sticky left-0 z-[2] text-left w-[240px] px-3.5 py-2.5`}>
@@ -992,7 +992,7 @@ function BoardGrade({ columns, rows, onRowClick }: BoardGradeProps) {
               onClick={() => onRowClick(card)}
               className="group cursor-pointer"
             >
-              <td className="sticky left-0 z-[1] bg-white group-hover:bg-muted/60 px-3.5 py-2.5 border-b border-r border-border flex items-center gap-2.5 font-medium">
+              <td className="sticky left-0 z-[1] bg-card group-hover:bg-muted/60 px-3.5 py-2.5 border-b border-r border-border flex items-center gap-2.5 font-medium">
                 {card.plate ? (
                   <MercosulPlate plate={card.plate} size="sm" />
                 ) : (
@@ -1072,7 +1072,7 @@ const fmtBRL2 = (n: number): string =>
 function BoardLista({ rows, stageByCardId, onRowClick }: BoardListaProps) {
   return (
     <div className="p-6 h-full overflow-auto">
-      <table className="w-full text-sm bg-white border border-border rounded-lg overflow-hidden">
+      <table className="w-full text-sm bg-card border border-border rounded-lg overflow-hidden">
         <thead className="border-b bg-muted/50 text-[11px] uppercase tracking-wide text-muted-foreground">
           <tr>
             <th className="px-3 py-2.5 text-left font-semibold">OS</th>
@@ -1289,7 +1289,7 @@ function BoardFila({ rows, stageByCardId, onOpenFull, onOrderChanged }: BoardFil
 
 function EmptyProcessState() {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-white p-10 text-center max-w-lg mx-auto">
+    <div className="rounded-lg border border-dashed border-border bg-card p-10 text-center max-w-lg mx-auto">
       <p className="text-sm font-medium text-foreground">Quadro ainda não configurado</p>
       <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
         O processo FSM <code className="font-mono">oficina_mecanica_os</code> não está cadastrado pra este negócio.
