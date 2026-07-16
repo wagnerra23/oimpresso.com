@@ -90,7 +90,9 @@ it('Financeiro/Unificado — 0 violações axe CRITICAL no browser real (auth br
     // Tenant SEEDADO (VisregTenantSeeder roda no workflow): business 1 + admin id=1 +
     // role spatie Admin#1 (Gate::before concede tudo). Sem seed = skip (não falha) —
     // idêntico ao guard do AuthBridgeSmokeTest.
-    $business = Business::first();
+    // orderBy('id') = biz 1 determinístico: o gate também seeda 98 (VisregEmptyTenantSeeder)
+    // e 99 (VisregTenantBLeakSeeder) — sem ordem explícita o "first" é o que o MySQL devolver.
+    $business = Business::orderBy('id')->first();
     if (! $business) {
         test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
     }

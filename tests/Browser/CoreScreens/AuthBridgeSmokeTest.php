@@ -81,7 +81,9 @@ foreach ($screens as $nome => [$rota, $permissao, $ancora]) {
         // (id=1, role spatie Admin#1 → Gate::before concede tudo). Padrão do
         // FinanceiroTestCase — o schema-squash é schema-only, o seed traz os dados.
         // Sem seed é falha de fixture: smoke verde sem render seria falso positivo.
-        $business = Business::first();
+        // orderBy('id') = biz 1 determinístico: o gate também seeda 98 (VisregEmptyTenantSeeder)
+        // e 99 (VisregTenantBLeakSeeder) — sem ordem explícita o "first" é o que o MySQL devolver.
+        $business = Business::orderBy('id')->first();
         if (! $business) {
             throw new RuntimeException('Sem business seedado: o smoke cross-browser não executou a fixture obrigatória.');
         }
