@@ -2,15 +2,15 @@
 page: /products/add-selling-prices/{id}
 component: resources/js/Pages/Produto/SellingPrices.tsx
 page_id: produto-tabela-preco
-related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
+related_prototype: prototipo-ui/prototipos/produto-preco-especial/Produto - Preco Especial.html
 owner: wagner
 status: draft
-last_validated: "2026-07-15"
+last_validated: "2026-07-16"
 parent_module: Produto
 related_adrs: [93, 104, 107, 149, 182]
 related_us: [US-PROD-022, US-PROD-023]
 tier: A
-charter_version: 2
+charter_version: 3
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
@@ -19,6 +19,13 @@ mwart_pattern_reuse:
 ---
 
 # Page Charter — Tabela de Preço do produto (DRAFT)
+
+> **v3 (2026-07-16).** Acrescenta o **modelo regra + exceção** (§ abaixo) — decidido por [F] com
+> critério declarado *"a melhor usabilidade ganha; o legado Delphi não entra"*. A v2 descrevia a
+> tela como declaração de preço **célula a célula**; a v3 mantém tudo o que ela diz sobre **quem é
+> dono do quê** (fluxo canônico, Non-Goals) e troca só o **como se digita**: a lista passa a ser
+> uma **regra (%)** e a célula vira **exceção**. Não revoga a v2 — refina o Goal "por
+> linha/célula: valor + price_type". Âncora empírica: pesquisa de mercado 2026-07-16 (13 sistemas).
 
 > **v2 (2026-07-15).** Reescrito pro modelo de negócio real, declarado por Wagner nesta data. A v1
 > descrevia a tela como "matriz variations × price_groups" — verdadeiro como *forma*, mas escondia
@@ -42,9 +49,67 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 > tabela que o cliente carrega, não de um vínculo produto×cliente. É o que torna o
 > `AR-PROD-111..116` (Preço Especial do legado) um Non-Goal — ver abaixo.
 
+## Modelo de digitação — REGRA + EXCEÇÃO (v3, 2026-07-16)
+
+> **A lista de preço é uma REGRA (%), não uma grade de digitação. A grade é CALCULADA; a célula é
+> EXCEÇÃO.** Decidido por [F] 2026-07-16 sob o critério *"a melhor usabilidade ganha — o legado
+> Delphi não entra"*. Protótipo navegável: [`prototipo-ui/prototipos/produto-preco-especial/`](../../../../prototipo-ui/prototipos/produto-preco-especial/Produto%20-%20Preco%20Especial.html).
+
+**O problema que ele resolve.** Variação × lista é **cartesiano**: 20 variações × 3 listas = 60
+células. Digitar 60 números é a tela ruim — e a pesquisa achou que **nenhum dos 13 sistemas
+pesquisados faz isso**. O padrão convergente (4 sistemas, independentes) é:
+
+| Sistema | Como faz | Fonte |
+|---|---|---|
+| Shopify B2B | `-20%` no catálogo inteiro; preço fixo por variante **sobrescreve** o % | [catalogs](https://help.shopify.com/en/manual/b2b/catalogs/creating-catalogs) |
+| **Tiny/Olist** (BR — o mais próximo do nosso caso) | define **%** da lista → aplica ao pai → confirma pra todas as variações → **edita/remove individualmente** depois | [listas-de-precos](https://ajuda.olist.com/precificacao/listas-de-precos) |
+| Bling | lista percentual/valor · só a **"customizada"** pede preço item a item | [listas de preços](https://ajuda.bling.com.br/hc/pt-br/articles/360054015233-Como-criar-listas-de-pre%C3%A7os-para-os-produtos) |
+| Odoo | `Fixed Price` / `Discount (%)` / `Formula` | [pricing](https://www.odoo.com/documentation/17.0/applications/sales/sales/products_prices/prices/pricing.html) |
+
+**O contrato da tela:**
+
+1. **Uma lista por vez** — seletor no topo (`Varejo | Atacado | Revenda`). Nunca as N juntas: é a
+   dimensão que causa a explosão. Contador de exceções por lista no seletor (`Atacado •3`) mostra
+   divergência sem precisar abrir.
+2. **A regra-mãe num campo só** — `Atacado = −20% sobre o preço base`. Resolve a lista inteira com
+   **um número**.
+3. **A matriz mostra o preço EFETIVO**, nunca célula vazia — cinza/itálico = **herdado** da regra;
+   negrito + tarja = **exceção** manual. O operador vê a verdade, não um formulário em branco.
+4. **Digitar numa célula cria a exceção** daquela variação naquela lista. `↺` por célula volta ao
+   calculado; "limpar exceções desta lista" no rodapé.
+5. **Delta por eixo ANTES de exceção por célula** — `G: +R$ 5,00` resolve "GG custa mais" com 1
+   campo em vez de 6 células (padrão `Value Price Extra` do Odoo · "preço adicional" do Vendizap).
+6. **Mudar a regra recalcula o herdado e NÃO toca na exceção** — é o invariante que define o
+   modelo. Verificado no protótipo: regra −20%→−35% moveu as herdadas 80,00→65,00 e a exceção
+   ficou em 90,00.
+
+**Efeito colateral bom — o 0-row morre por construção.** Célula em branco = *herdada da regra* =
+**nenhuma linha gravada** em `variation_group_prices`. Hoje a UI pré-preenche com `0` e grava
+(`SellingPrices.tsx:73` · `add-selling-prices.blade.php:50` · `saveSellingPrices` filtra por
+`isset`, não por valor), o que torna "sem preço" indistinguível de "preço zero" — a dívida da
+`US-PROD-027` / `UC-PTAB-05`. No modelo novo isso **nasce certo**. ⚠️ **Mas o efeito de segunda
+ordem é real e é decisão [W]:** menos linhas gravadas = mais retorno `''` do
+`getVariationGroupPrice`, e **3 dos 5 consumidores não guardam** esse retorno
+(`LabelsController:143` · `WoocommerceUtil:341,731` — etiqueta sai sem preço, Woo sincroniza
+vazio). Ver §Pendência de CONTRATO do [`casos.md`](SellingPrices.casos.md).
+
+## ⚠️ Dependência que não existe no banco (bloqueia o item 2)
+
+`selling_price_groups` tem **`name` · `description` · `business_id` · `is_active`** — e **nenhuma
+coluna de regra**. A regra-mãe (`op` + `valor`) não tem onde morar hoje. Isso é exatamente a
+**[US-PROD-022](../../../../memory/requisitos/Produto/SPEC.md)** (`SellingPriceGroup.mult` hardcoded
+`1.00` — [ADR ARQ-0001](../../../../memory/requisitos/Produto/adr/arq/0001-selling-price-multiplier.md),
+`proposed`), hoje catalogada como *"multiplicador oco"*. **A pesquisa promove essa US de extra a
+coração da tela:** sem ela, a aba cai de volta na digitação célula a célula.
+
+Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação + antes→depois + [W]).
+
 ## Goals
 
 - Selecionar tabela(s) de preço existentes e definir o preço do produto em cada uma
+- **Regra por lista + exceção por célula** (v3 — ver § acima). O `price_type` (`fixed`/`percentage`)
+  por célula da v2 **continua válido** no banco; o modelo v3 sobe o `percentage` um nível (da célula
+  pra regra da lista) e usa a célula pro caso `fixed` de exceção
 - Por linha/célula: valor + `price_type` (`fixed` / `percentage`)
 - **Produto simples** (o caso comum): lista de tabelas × preço — 1 linha por tabela
 - **Produto com variação**: a mesma declaração vira matriz (variação × tabela) — a variação em si
@@ -100,6 +165,27 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 - ❌ Exibir markup/margem com a precisão de gravação (2 casas na tela, 4 no banco — não inverter)
 - ❌ Tratar a matriz como forma padrão — produto simples é o caso comum e vê uma lista
 
+### Anti-padrões do modelo regra+exceção (v3 — cada um tem dono e fonte)
+
+- ❌ **Renderizar variação × lista como matriz 2D** (as 60 células). **Ninguém no mercado faz** —
+  pesquisa 2026-07-16, 13 sistemas, zero. Uma lista por vez.
+- ❌ **Célula vazia** esperando digitação. A célula mostra o **preço efetivo** (herdado da regra);
+  vazio esconde a verdade e é o que gera o 0-row de hoje.
+- ❌ **Mudar a regra e sobrescrever exceção.** Exceção é decisão humana explícita — regra só move o
+  herdado. É o invariante do modelo.
+- ❌ **Bulk editor que tira o operador da tela.** Queixa documentada da Shopify: o bulk editor
+  *"displays variants in the order they were sorted… not by product grouping"* + crash por heap
+  ([klinkode](https://klinkode.com/shopify-bulk-edit-variants/)). Edição é **inline, onde ele já
+  está olhando**.
+- ❌ **Paginar a matriz** — WooCommerce pagina e o resultado documentado é *"viewing 300 variations
+  requires clicking through more than 20 separate pages"*
+  ([wpsheeteditor](https://wpsheeteditor.com/problems-editing-hundreds-variations/)). Matriz
+  paginada não é matriz: virtualizar > paginar.
+- ❌ **Grade virar mini-Excel** (paste, fórmula, coluna dinâmica). Larissa (persona real, biz=4,
+  1280px, não-técnica) precisa de *"uma tabelinha com números"* — a Shopify separou os fluxos
+  justamente por isso. Ver [arte grade 2026-05-21](../../../../memory/sessions/2026-05-21-arte-grade-matrix-input-vestuario.md)
+  §Anti-pattern 2.
+
 ## Pest GUARD
 
 ```php
@@ -154,3 +240,4 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
 | 2026-05-31 | [DS-upgrade] | Paleta stone→tokens v4; header hand-rolled→tokens (breadcrumb/título/SKU); + dirty-state, Cmd+S, navegação teclado, erros por célula, toast. Contrato backend (group_prices, POST save-selling-prices, price_type) intacto. |
 | 2026-07-15 | [CC] | **v2** — reescrito pro modelo real (Wagner): tabela nasce fora → produto seleciona + precifica → tabela vincula a cliente/tipo de venda; produto nunca vinculado direto ao cliente. Preço Especial produto×cliente (`AR-PROD-111..116`) vira **Non-Goal declarado**. Faixa de quantidade (`AR-PROD-105..109`) movida pro charter da Variação. + §Invariantes de valor (markup mestre, 4 casas, condicional ao `AR-PROD-097`) ancorados em teste. + §Backlog de contrato explicitando os buracos (casos.md ausente, testes tautológicos, cross-tenant prometido e inexistente, `mult` oco). |
+| 2026-07-16 | [F+CC] | **v3 — modelo REGRA + EXCEÇÃO.** [F] está construindo a aba "Preço especial" do cadastro (parte 2 de N; a aba Custos já saiu) e cravou o critério: *"a melhor usabilidade ganha, o legado Delphi não entra aqui"*. Pesquisa de mercado (13 sistemas, 2026-07-16) achou que **nenhum** renderiza variação × lista como matriz: 4 sistemas independentes (Shopify B2B · Tiny/Olist · Bling · Odoo) convergiram em **lista = regra %, célula = exceção**. Adicionado §Modelo de digitação + §Dependência (a regra-mãe **não tem coluna** — promove a `US-PROD-022` de extra a pré-requisito) + 6 anti-padrões com fonte. `related_prototype` deixa de ser `n/a` → protótipo navegável verificado no browser (regra −20%→−35%: herdadas 80,00→65,00, exceção fixa em 90,00). **Não revoga a v2** — refina o "como se digita"; o fluxo canônico e os Non-Goals dela seguem de pé. Efeito colateral: o 0-row da `US-PROD-027` morre por construção (célula em branco = nenhuma linha gravada), mas o efeito de 2ª ordem em Labels/Woo (3 dos 5 consumidores não guardam o `''`) segue decisão [W]. |

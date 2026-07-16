@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=1280, initial-scale=1" />
+  <title>F1 Protótipo — Preço especial (regra + exceção)</title>
+  <!-- DS canônico primeiro: page.css consome os tokens daqui (DS-GUARD §8 — sem paleta bespoke) -->
+  <link rel="stylesheet" href="../../tokens.css" />
+  <link rel="stylesheet" href="page.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #f0ede5; min-height: 100vh; font-family: ui-sans-serif, system-ui, sans-serif; }
+    .frame { max-width: 1280px; margin: 24px auto; box-shadow: 0 2px 14px rgba(0,0,0,.08); border-radius: 8px; overflow: hidden; background: #fff; height: 760px; }
+    .meta { max-width: 1280px; margin: 0 auto 16px; padding: 20px 24px; background: #fff; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.04); font-size: 13px; color: #5b574f; line-height: 1.55; }
+    .meta h1 { font-size: 17px; margin: 0 0 8px; color: #1a1917; font-weight: 600; }
+    .meta ul { margin: 8px 0 0; padding-left: 18px; }
+    .meta li { margin-bottom: 4px; }
+    .meta code { background: #f2efe8; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  </style>
+</head>
+<body>
+
+<div class="meta">
+  <h1>F1 — Aba “Preço especial” · modelo regra + exceção</h1>
+  <p>
+    A lista de preço é uma <b>regra (%)</b>, não uma grade de digitação. A matriz mostra o preço
+    <b>efetivo calculado</b>; digitar numa célula cria uma <b>exceção</b>. Uma lista por vez.
+    Padrão convergente de Shopify B2B · Tiny/Olist · Bling · Odoo — ver
+    <code>memory/sessions/2026-07-16-arte-grade-variacao-lista-preco.md</code>.
+  </p>
+  <ul>
+    <li><b>Clique</b> nas listas (Varejo / Atacado / Revenda) — o preço recalcula pela regra de cada uma.</li>
+    <li><b>Digite</b> numa célula → vira exceção (negrito + tarja + contador na aba). O <b>↺</b> desfaz.</li>
+    <li><b>Mude o %</b> da regra → tudo que é herdado recalcula; exceção não se mexe.</li>
+    <li><b>Vermelho-G não existe</b> (célula hachurada) — combinação desmarcada na geração.</li>
+    <li>Teclado: <code>Tab</code> anda coluna · <code>Enter</code> pula linha (padrão Cin7/Lightspeed).</li>
+  </ul>
+</div>
+
+<div class="frame">
+  <div class="pe">
+
+    <div class="pe-head">
+      <div class="pe-tabs" role="tablist">
+        <button class="pe-tab" role="tab" aria-selected="false">Dados gerais</button>
+        <button class="pe-tab" role="tab" aria-selected="false">Custos</button>
+        <button class="pe-tab" role="tab" aria-selected="true">Preço especial</button>
+        <button class="pe-tab" role="tab" aria-selected="false">Estoque</button>
+      </div>
+    </div>
+
+    <div class="pe-body">
+
+      <!-- ============ SEÇÃO 1 — a lista como REGRA ============ -->
+      <section class="pe-section">
+        <div class="pe-section-head">
+          <div>
+            <h2 class="pe-h2">Preço por lista</h2>
+            <p class="pe-hint">Cada lista aplica uma regra sobre o preço base. Você só digita onde a regra não vale.</p>
+          </div>
+          <div class="pe-hint">Preço base: <b style="font-variant-numeric:tabular-nums;color:#1a1917">R$ 100,00</b> <span style="color:#8b857a">(vem da aba Custos)</span></div>
+        </div>
+
+        <div class="pe-lists" role="group">
+          <button class="pe-list-btn" aria-pressed="true"  data-list="varejo">Varejo</button>
+          <button class="pe-list-btn" aria-pressed="false" data-list="atacado">Atacado <span class="pe-badge" data-badge="atacado" hidden>0</span></button>
+          <button class="pe-list-btn" aria-pressed="false" data-list="revenda">Revenda <span class="pe-badge" data-badge="revenda" hidden>0</span></button>
+        </div>
+
+        <div class="pe-rule">
+          <label for="rule-op">Regra desta lista:</label>
+          <select id="rule-op">
+            <option value="desconto">Desconto sobre o preço base</option>
+            <option value="acrescimo">Acréscimo sobre o preço base</option>
+            <option value="fixo">Preço fixo</option>
+          </select>
+          <input type="text" id="rule-val" value="0" inputmode="decimal" />
+          <span style="font-size:13px">%</span>
+          <div class="pe-rule-result">Preço da lista: <b id="rule-result">R$ 100,00</b></div>
+        </div>
+        <p class="pe-rule-note">Um número resolve a lista inteira. As 6 células abaixo são <b>calculadas</b> — não digitadas.</p>
+      </section>
+
+      <!-- ============ SEÇÃO 2 — a matriz ============ -->
+      <section class="pe-section">
+        <div class="pe-section-head">
+          <div>
+            <h2 class="pe-h2">Grade — <span id="grade-list-name">Varejo</span></h2>
+            <p class="pe-hint">Cinza itálico = herdado da regra · Negrito = exceção que você digitou</p>
+          </div>
+          <button class="pe-link" id="btn-clear">Limpar exceções desta lista</button>
+        </div>
+
+        <div class="pe-matrix-wrap">
+          <table class="pe-matrix">
+            <thead>
+              <tr>
+                <th style="text-align:left">Cor \ Tamanho</th>
+                <th>P</th>
+                <th>M</th>
+                <th>G</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Azul</th>
+                <td class="pe-cell" data-cell="azul-p"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
+                <td class="pe-cell" data-cell="azul-m"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
+                <td class="pe-cell" data-cell="azul-g"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
+              </tr>
+              <tr>
+                <th>Vermelho</th>
+                <td class="pe-cell" data-cell="vermelho-p"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
+                <td class="pe-cell" data-cell="vermelho-m"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
+                <td class="pe-cell is-off" data-cell="vermelho-g"><input type="text" tabindex="-1" /><span class="pe-off-tag">não existe</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="pe-legend">
+          <span><i class="pe-swatch inherit"></i> herdado da regra</span>
+          <span><i class="pe-swatch override"></i> exceção manual</span>
+          <span><i class="pe-swatch off"></i> combinação que não existe</span>
+        </div>
+
+        <div class="pe-delta">
+          <span><b>Ajuste por tamanho</b> — resolve “GG custa mais” sem digitar célula a célula:</span>
+          <select>
+            <option>G</option>
+            <option>M</option>
+            <option>P</option>
+          </select>
+          <span>+ R$</span>
+          <input type="text" value="0" inputmode="decimal" />
+          <button class="pe-link">aplicar</button>
+        </div>
+      </section>
+
+      <!-- ============ SEÇÃO 3 — preview de geração ============ -->
+      <section class="pe-section">
+        <div class="pe-section-head">
+          <div>
+            <h2 class="pe-h2">Ao gerar a grade</h2>
+            <p class="pe-hint">Nenhum sistema pesquisado mostra isso antes de criar. É o diferencial.</p>
+          </div>
+        </div>
+        <div class="pe-preview">
+          <h3>Confirmar geração</h3>
+          <p>
+            2 cores × 3 tamanhos = <b>6 combinações</b>. Você desmarcou <b>1</b> (Vermelho-G).
+            Serão criadas <b>5 variações</b>, cada uma com SKU e estoque próprios.
+            <br />As <b>3 já existentes</b> serão preservadas — nada é recriado nem perde estoque.
+          </p>
+          <button class="pe-btn">Criar 5 variações</button>
+          <button class="pe-btn ghost">Revisar combinações</button>
+        </div>
+      </section>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  // Regras por lista (o que hoje NÃO existe no banco — selling_price_groups não tem coluna de regra).
+  const PRECO_BASE = 100;
+  const regras = {
+    varejo:  { op: 'desconto',  val: 0  },
+    atacado: { op: 'desconto',  val: 20 },
+    revenda: { op: 'desconto',  val: 35 },
+  };
+  // Exceções por lista: { 'azul-g': 90 }
+  const excecoes = { varejo: {}, atacado: {}, revenda: {} };
+  let listaAtiva = 'varejo';
+
+  const brl = (n) => 'R$ ' + n.toFixed(2).replace('.', ',');
+  const parse = (s) => parseFloat(String(s).replace(/\./g, '').replace(',', '.')) || 0;
+
+  function precoDaRegra(lista) {
+    const r = regras[lista];
+    if (r.op === 'fixo') return r.val;
+    if (r.op === 'acrescimo') return PRECO_BASE * (1 + r.val / 100);
+    return PRECO_BASE * (1 - r.val / 100);
+  }
+
+  function render() {
+    const base = precoDaRegra(listaAtiva);
+    document.getElementById('rule-result').textContent = brl(base);
+    document.getElementById('grade-list-name').textContent =
+      listaAtiva.charAt(0).toUpperCase() + listaAtiva.slice(1);
+
+    const r = regras[listaAtiva];
+    document.getElementById('rule-op').value = r.op;
+    document.getElementById('rule-val').value = String(r.val).replace('.', ',');
+
+    document.querySelectorAll('.pe-cell').forEach((cell) => {
+      if (cell.classList.contains('is-off')) return;
+      const key = cell.dataset.cell;
+      const input = cell.querySelector('input');
+      const ex = excecoes[listaAtiva][key];
+      if (ex !== undefined) {
+        cell.classList.add('is-override');
+        input.value = brl(ex).replace('R$ ', '');
+      } else {
+        cell.classList.remove('is-override');
+        input.value = brl(base).replace('R$ ', '');
+      }
+    });
+
+    // contador de exceções por lista
+    ['atacado', 'revenda'].forEach((l) => {
+      const badge = document.querySelector(`[data-badge="${l}"]`);
+      const n = Object.keys(excecoes[l]).length;
+      badge.hidden = n === 0;
+      badge.textContent = n;
+    });
+  }
+
+  // trocar de lista
+  document.querySelectorAll('.pe-list-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.pe-list-btn').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+      btn.setAttribute('aria-pressed', 'true');
+      listaAtiva = btn.dataset.list;
+      render();
+    });
+  });
+
+  // mudar a regra
+  document.getElementById('rule-op').addEventListener('change', (e) => {
+    regras[listaAtiva].op = e.target.value;
+    render();
+  });
+  document.getElementById('rule-val').addEventListener('input', (e) => {
+    regras[listaAtiva].val = parse(e.target.value);
+    const base = precoDaRegra(listaAtiva);
+    document.getElementById('rule-result').textContent = brl(base);
+    document.querySelectorAll('.pe-cell:not(.is-off):not(.is-override) input')
+      .forEach((i) => { i.value = brl(base).replace('R$ ', ''); });
+  });
+
+  // digitar numa célula = criar exceção
+  document.querySelectorAll('.pe-cell:not(.is-off) input').forEach((input) => {
+    input.addEventListener('change', () => {
+      const cell = input.closest('.pe-cell');
+      const key = cell.dataset.cell;
+      const v = parse(input.value);
+      if (Math.abs(v - precoDaRegra(listaAtiva)) < 0.005) {
+        delete excecoes[listaAtiva][key];   // igual ao calculado = não é exceção
+      } else {
+        excecoes[listaAtiva][key] = v;
+      }
+      render();
+    });
+    // teclado canônico: Enter pula linha (Tab é nativo entre colunas)
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      e.preventDefault();
+      const cell = input.closest('.pe-cell');
+      const idx = [...cell.parentElement.children].indexOf(cell);
+      const nextRow = cell.parentElement.nextElementSibling || cell.parentElement.parentElement.firstElementChild;
+      const alvo = nextRow?.children[idx]?.querySelector('input');
+      if (alvo && !alvo.closest('.pe-cell').classList.contains('is-off')) alvo.focus();
+    });
+  });
+
+  // ↺ voltar ao calculado
+  document.querySelectorAll('.pe-revert').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      delete excecoes[listaAtiva][btn.closest('.pe-cell').dataset.cell];
+      render();
+    });
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    excecoes[listaAtiva] = {};
+    render();
+  });
+
+  render();
+</script>
+
+</body>
+</html>
