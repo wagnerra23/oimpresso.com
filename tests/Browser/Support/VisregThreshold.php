@@ -185,6 +185,32 @@ final class VisregThreshold
     }
 
     /**
+     * Captura o PNG atual do viewport (mesmo motor/contrato do gate) e devolve o blob raw.
+     * Usado por provas de "morde e libera" self-contained (compara duas capturas in-test,
+     * sem depender da baseline commitada). @see PixelDimensionProbesTest.
+     */
+    public static function captureBlob(object $page, string $label): string
+    {
+        $path = self::screenshotPath(self::actualFilename($label));
+        $page->screenshot(false, self::actualFilename($label));
+        $blob = @file_get_contents($path);
+        if ($blob === false) {
+            test()->fail("VisregThreshold::captureBlob — nao consegui ler o screenshot em {$path}.");
+        }
+
+        return $blob;
+    }
+
+    /**
+     * Ratio pixelmatch (0..1) entre dois blobs PNG — MESMA semantica do gate. Expoe o
+     * pixelmatchRatio privado pra comparar A-vs-B (perturbacao deliberada vs limpo).
+     */
+    public static function ratioBetween(string $blobA, string $blobB): float
+    {
+        return self::pixelmatchRatio($blobA, $blobB)[0];
+    }
+
+    /**
      * Pixelmatch em PHP/GD — porta da MESMA lógica do mapbox/pixelmatch que o Playwright
      * usa internamente (YIQ NTSC perceptual + skip de anti-aliasing + threshold 0.3).
      *
