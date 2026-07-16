@@ -58,15 +58,15 @@ const CHECK = process.argv.includes('--check');
 // G1a (ADR 0303 emenda): --check-covers exit 1 se houver `testado_sem_covers` —
 // teste que EXISTE mas não declara `// @covers-us <US-ID>` da US-pai (a brecha do
 // `Testado em: \`SpatiePermissionsTest\``: teste genérico que não prova nada sobre a US).
-// ADVISORY em produção (anchor-drift roda --check, NÃO --check-covers); flag opt-in
-// pro gate-selftest provar que morde + arming futuro por calendário (ADR 0275).
+// REQUIRED em produção desde 2026-06-24: o job "anchor entry/covers gate" (anchor-drift.yml)
+// roda --check-entry --check-covers diff-aware com baseline grandfather; gate-selftest prova que morde.
 const CHECK_COVERS = process.argv.includes('--check-covers');
 // G1b-entry: --check-entry exit 1 se houver req_sem_aceite OU req_sem_covering_test —
 // uma US que se diz IMPLEMENTADA (anchored_ok/parcial) SEM DoD/aceite definido OU SEM
 // teste que declare @covers-us dela. É a "regra de entrada" (Wagner: "não pode ser feito
-// e refeito por cada pessoa"): regra nova não nasce pronta sem aceite + teste. ADVISORY em
-// produção (--check normal não inclui); opt-in pro fixture + arming (ADR 0275, com baseline
-// grandfather do legado no flip).
+// e refeito por cada pessoa"): regra nova não nasce pronta sem aceite + teste. REQUIRED em
+// produção desde 2026-06-24 via job "anchor entry/covers gate" (diff-aware + baseline grandfather
+// governance/anchor-entry-baseline.json — morde só mentira NOVA; ADR 0275/0303).
 const CHECK_ENTRY = process.argv.includes('--check-entry');
 // G1b-verde (Phase B · "âncora improvada" design §1b · re-eval prioridade #1): --check-verde
 // exit 1 se houver req_teste_vermelho — uma US que se diz IMPLEMENTADA (anchored_ok/parcial) E
@@ -646,14 +646,14 @@ const report = {
     coverage_regra: 'anchor_coverage = (anchored_ok + pendente + parcial) / us_total — _pendente_ é coberto (tela não construída ≠ dívida de anchor); anchored_ok exige TODOS os paths existentes (§2) E vivos no roteador (zumbi não conta)',
     wired_regra: 'Page-âncora ZUMBI = existe no disco + renderizada por controller NÃO-referenciado nas rotas (dormente/atrás de 301). Existir ≠ estar vivo. Conservador: sub-componentes e renders por variável nunca marcados.',
     testado_regra: 'dead_tests = ref em `**Testado em:**` (path .php OU ClassName…Test) inexistente no repo.',
-    covers_regra: 'testado_sem_covers (G1a · ADR 0303 emenda) = teste que EXISTE mas não declara `// @covers-us <US-ID>` da US-pai. ADVISORY: reportado sempre, exit 1 só com --check-covers (anchor-drift roda --check normal).',
-    entrada_regra: 'GATE DE ENTRADA (G1b-entry): US que se diz IMPLEMENTADA (anchored_ok/parcial) precisa de DoD/aceite (req_sem_aceite) E de teste que declare @covers-us dela (req_sem_covering_test). _pendente_ é exceto. ADVISORY: exit 1 só com --check-entry (arming com baseline grandfather do legado, ADR 0275).',
+    covers_regra: 'testado_sem_covers (G1a · ADR 0303 emenda) = teste que EXISTE mas não declara `// @covers-us <US-ID>` da US-pai. Reportado sempre; exit 1 com --check-covers — que RODA no job required "anchor entry/covers gate" (diff-aware + baseline grandfather) desde 2026-06-24.',
+    entrada_regra: 'GATE DE ENTRADA (G1b-entry): US que se diz IMPLEMENTADA (anchored_ok/parcial) precisa de DoD/aceite (req_sem_aceite) E de teste que declare @covers-us dela (req_sem_covering_test). _pendente_ é exceto. REQUIRED desde 2026-06-24: exit 1 com --check-entry, que roda no job "anchor entry/covers gate" (diff-aware, baseline grandfather do legado — morde só mentira NOVA; ADR 0275/0303).',
     verde_regra: 'GATE VERDE (G1b-verde · Phase B): com --junit <summary.json> (junit-summary/v1), US implementada+coberta cujo arquivo-de-teste NÃO está verde no JUnit → req_teste_vermelho. verde POR ARQUIVO = passed>0 E failed=0 E errors=0; vermelho/skipped/ausente NÃO contam (skipped != passed, defesa markTestSkipped). V6-C: só julga covering tests DENTRO de uma lane de JUnit — US inteiramente fora de lane (nightly-only) = req_sem_lane → behavior_unknown, nunca req_teste_vermelho (senão o teste que não pode aparecer no junit do PR viraria false-red). fs-puro: lê o JSON que o CI já produz, NUNCA roda teste/PHP/DB. Sem --junit → behavior_unknown (nunca avermelha). exit 1 só com --check-verde OU --check-entry.',
     servido_regra: 'SERVIDO (4º veredito · ADVISORY runtime): US wired (anchored_ok/parcial) ancorada em Page com hits>0 na janela do ledger governance/route-hits.json (export do middleware ContadorHitsRota em prod). nao_servido = "existe + roteado mas 0 hits em Nd" — prova de USO, não de correção. NUNCA entra em coverage/--check/flag. Sem ledger (ou pages vazio) = sem_ledger, nada é marcado.',
     servido_ledger: HITS ? `${relative(ROOT, HITS_PATH).replace(/\\/g, '/')} (janela ${HITS.janela ?? '?'}d)` : 'sem_ledger',
     behavior: JUNIT ? `junit:${JUNIT.schema}${JUNIT_PARTIAL ? ' (noite PARCIAL — ausente=unknown)' : ''} · fonte ${JUNIT.source}` : `behavior_unknown (${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'})`,
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
-    fase: 'F1 ADVISORY (ADR 0273 §4) — exit 0 sempre nos modos default/--json; --check (exit 1) reservado pra F2',
+    fase: 'F2 VIGENTE (ADR 0273 §4) — modos default/--json seguem exit 0 (report); --check/--check-entry/--check-covers mordem nos jobs required do anchor-drift (diff-aware · desde 2026-06-24/30). --check-verde/--check-lane seguem advisory.',
     baseline_regra: BASELINE
       ? `grandfather aplicado (${BASELINE_PATH}): entry/covers grandfatherados NÃO mordem (no-new-lie · ADR 0275). Totais entry/covers no summary = ATIVOS (mentira NOVA/tocada).`
       : 'sem --baseline: totais entry/covers = brutos (legado + novo). Arming passa --baseline pra grandfatherar o legado.',
@@ -700,7 +700,11 @@ console.log(`  Estados por US: sem_campo ${byState.sem_campo} · placeholder ${b
 console.log(`  Testes-fantasma (dead_tests): ${deadTestsTotal}`);
 console.log(`  Cobertura fora de lane (advisory · item b): ${reqSemLaneTotal} US com teste-que-cobre fora das lanes de JUnit (verde impossível até entrar numa lane)`);
 console.log(`  Testado sem covers (teste existe mas não declara @covers-us · advisory): ${testadoSemCoversTotal}`);
-console.log(`  Gate de entrada (advisory): ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre${BASELINE ? ` (ATIVOS, pós-baseline)` : ''}`);
+// SEM adjetivo de enforcement (higiene 2026-07-16): o lint reporta o NÚMERO; se isso bloqueia
+// merge é da branch protection (camada de cima), não do script. Label que não afirma enforcement
+// não pode afirmar enforcement FALSO — foi assim que "(advisory)" apodreceu por 22 dias e enganou
+// um verificador. Dono de "o que é required": governance/required-checks-baseline.json.
+console.log(`  Gate de entrada: ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre${BASELINE ? ` (ATIVOS, pós-baseline)` : ''}`);
 if (BASELINE) console.log(`  Grandfather (${BASELINE_PATH}): ${grandfatheredAceite} aceite + ${grandfatheredTeste} teste + ${grandfatheredCovers} covers isentos (no-new-lie · ratchet só-desce · ADR 0275)`);
 console.log(`  Gate verde (advisory): ${JUNIT ? `${reqTesteVermelhoTotal} US implementada com teste-que-cobre NÃO-verde no JUnit (verde=passed>0 & fail=0; skipped/ausente não contam · skipped != passed)` : `behavior_unknown — ${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'} (nunca avermelha)`}`);
 console.log(`  Servido (advisory runtime): ${HITS ? `${servidoTotal} US com hit real na janela · ${naoServidoTotal} wired porém 0 hits (ledger ${report._meta.servido_ledger})` : 'sem_ledger — governance/route-hits.json ausente/vazio (coleta ROUTE_HITS_ENABLED ainda OFF?); nada marcado'}`);
