@@ -31,6 +31,13 @@ class FullSuiteMinimalTenantSeeder extends Seeder
 {
     public function run(): void
     {
+        // Tier 0 · repo PUBLICO: este seeder cria login com senha CONHECIDA no codigo-fonte.
+        // Rodar em producao publicaria uma porta de entrada (a senha esta no GitHub, aberta).
+        // CI usa APP_ENV=testing e o CT100 usa staging — ambos passam. So producao aborta.
+        if (app()->isProduction()) {
+            throw new RuntimeException(static::class . ': seeder de fixture com senha publica NAO roda em producao (APP_ENV=production).');
+        }
+
         // pré-requisitos do FK (currencies) + RBAC (permissions) — best-effort, como o
         // write-side (`|| true`): se um seeder próprio já rodou ou falha parcial, não aborta.
         foreach ([CurrenciesTableSeeder::class, PermissionsTableSeeder::class] as $seeder) {
