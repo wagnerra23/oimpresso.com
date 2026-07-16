@@ -20,7 +20,7 @@ declare(strict_types=1);
  * que roda SEMPRE (sem DB, sem chromium) — se uma tela-núcleo perder .tsx, AppShellV2
  * ou charter, o CI quebra antes do balcão da Kamila.
  *
- * @see tests/Browser/CoreScreens/SmokeTest.php  (camada browser, CI com chromium)
+ * @see tests/Browser/CoreScreens/AuthBridgeSmokeTest.php  (camada browser, CI com chromium)
  */
 
 const CORE_SCREENS = [

@@ -47,7 +47,7 @@ declare(strict_types=1);
  * @see resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx (tela sob teste)
  * @see resources/js/Hooks/useNfceStatus.ts (polling 2s, cap 30, abort unmount)
  * @see memory/governance/scorecards/screens/nfebrasil-transactions-nfcestatus.yaml
- * @see tests/Browser/CoreScreens/SmokeTest.php (idioma autenticado espelhado aqui)
+ * @see tests/Browser/CoreScreens/AuthBridgeSmokeTest.php (idioma autenticado que de fato roda no gate)
  */
 
 use App\User;
@@ -61,8 +61,13 @@ afterEach(function () {
     \Carbon\Carbon::setTestNow();
 });
 
-// Guard idêntico ao do CoreScreens/SmokeTest.php: sem o runtime de browser
-// (chromium/pest-plugin-browser bootstrap) o teste fica skip em vez de falso-verde.
+// ⚠️ GUARD QUEBRADO — este teste NUNCA executou. `Pest\Browser\Bootstrap` não existe no
+// pest-plugin-browser v4.3.1 (provado em runtime: `php -r` → false; o vizinho real é
+// `Pest\Bootstrappers\*`, outro namespace). Logo `$browserMissing` é SEMPRE true → skip
+// eterno. Somado a isso, nenhum workflow invoca este path. Mesmo diagnóstico já registrado
+// em tests/Browser/Public/PublicSmokeTest.php:24-27.
+// Mantido intencionalmente até [W] decidir entre religar (fixar guard + invocar no
+// visual-regression.yml) ou remover — ver PR de remoção de falsa cobertura.
 $browserMissing = ! class_exists(\Pest\Browser\Bootstrap::class);
 
 // Transaction de smoke SEM emissão NFC-e: caracteriza o estado-base "Aguardando

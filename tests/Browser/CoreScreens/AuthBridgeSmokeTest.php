@@ -46,8 +46,9 @@ afterEach(fn () => \Carbon\Carbon::setTestNow());
  * Tela => [rota, slug-permissão (informativo — Admin#1 já concede tudo via Gate::before),
  * âncora-de-texto que prova que montou (não 403/login/erro)].
  *
- * Núcleo-6 de retenção (espelha tests/Browser/CoreScreens/SmokeTest.php, mas no padrão
- * auth-bridge que de fato roda no gate). Rotas confirmadas nos route files dos módulos.
+ * Núcleo-6 de retenção. Sucede o antigo tests/Browser/CoreScreens/SmokeTest.php (removido:
+ * guard `Bootstrap` inexistente = skip eterno + nenhum workflow o invocava — nunca executou).
+ * Este é o padrão auth-bridge que de fato roda no gate. Rotas confirmadas nos route files.
  * Telas de módulo opcional podem gatear por install/enabled_modules — se o CI mostrar
  * 403/redirect, a tela sai daqui com nota (não bloqueia o ganho das demais).
  */
