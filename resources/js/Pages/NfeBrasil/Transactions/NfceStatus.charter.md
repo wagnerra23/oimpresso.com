@@ -1,6 +1,7 @@
 ---
 page: /nfe-brasil/transactions/{tx}/status
 component: resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx
+related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-05-16"

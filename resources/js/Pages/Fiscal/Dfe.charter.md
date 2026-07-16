@@ -1,6 +1,7 @@
 ---
 page: /fiscal/dfe
 component: resources/js/Pages/Fiscal/Dfe.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 page_id: fiscal-dfe
 url: /fiscal/dfe
 module: Fiscal

@@ -1,0 +1,219 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "_nota_mapeamento": "Preenchido 2026-07-10 com grep -n real (zero linha fabricada). Contexto do gap.md: a tela viva ULTRAPASSOU o protótipo (paridade 100%+) — este map PROVA os vereditos 'vivo à frente'/'no-op' com âncora dupla; não é fila de aplicação. LEI do charter: a Caixa é o OURO, nenhum .tsx foi tocado. data-contract existentes no vivo (reconnect-cta/modal/qr/meta/ok + guia*) têm ids ≠ dos ids das partes deste map → vivo.ancora fica false em todas (ver _nota por parte).",
+  "tela": "/atendimento/caixa-unificada",
+  "gap_fonte": "memory/requisitos/Atendimento/caixa-unificada-gap.md",
+  "prototipo_sha": "sha256:1a05cdbf51be",
+  "gerado_em": "2026-07-10",
+  "partes": [
+    {
+      "id": "header-da-pagina",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "linhas": "531-562"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
+        "linhas": "331-442",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada (vivo à frente; consolidação é melhoria).",
+      "_acionavel": false,
+      "_nota": "Proto: os-page-h 532 (h1 'Atendimento' 534) + topnav Templates/Filas/Canais/Troubleshooters/Trilhas/+Nova 542-560. Vivo: header 332-341 (h1 'Atendimento' 335) + topnav 343-441 com Guia (424-429) unificando Troubleshooters+Trilhas."
+    },
+    {
+      "id": "faixa-de-chips-de-canais",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.css",
+        "linhas": "8-20"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationListV4.tsx",
+        "linhas": "305-351",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "NÃO RESSUSCITAR. Regressão proibida (decisão [W] + charter Goals).",
+      "_acionavel": false,
+      "_nota": "Único artefato sobrevivente da faixa no espelho é o CSS .om-filter/.om-filter.sub (inbox-page.css 8-20): o jsx atual JÁ removeu a faixa — comentário-lápide em inbox-page.jsx:564-565 ('Canais + contas migraram pro popover Filtros... Sem faixa horizontal no topo', [W] 2026-06-16). Vivo: FilterSection Canal 305-329 + Conta 330-351 dentro do popover Filtros. Proto e vivo CONVERGEM — regressão continua proibida."
+    },
+    {
+      "id": "lista-de-conversas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "linhas": "576-836"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationListV4.tsx",
+        "linhas": "87-613",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada. Protótipo é subconjunto.",
+      "_acionavel": false,
+      "_nota": "Proto: coluna Conversas 576 (busca 731-735). Vivo: 7 tabs canônicas TABS 87-96 + dropdown Status 223-263 + popover Filtros 264-437 (Canal/Conta/Fila/Tags/Ordenar/Esperando-há/Outros 305-412) + favoritos isFav 491/111 + SLA pill 4-estados 581-589. ChannelHealthBanner é componente próprio (ChannelHealthBanner.tsx, data-contract reconnect-cta:153)."
+    },
+    {
+      "id": "thread",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-cur.jsx",
+        "linhas": "9-126"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ConversationThreadV4.tsx",
+        "linhas": "48-477",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Catch-up opcional (ver Ordem). Avaliar utilidade real antes — pode ser low-signal.",
+      "_acionavel": true,
+      "_nota": "Âncora no inbox-cur.jsx = o item que o gap destaca: linkifyMessage 9-32 (uso na bubble via window.linkifyMessage 234) + MsgCommentWrap 68-126. Região de bubbles do protótipo: inbox-page.jsx 837-987 (Thread 837, composer começa 988). Vivo: MsgComments portado (import 34-35, uso 111), nota interna 300-308, lightbox MediaFullscreenModal 32/375. AUSENTE no vivo (grep 'linkify' em Pages/Atendimento/CaixaUnificada/** = 0 hits): o linkify de cross-refs #xxx no corpo da bubble — único catch-up do gap.md, opcional."
+    },
+    {
+      "id": "composer",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "linhas": "988-1072"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ComposerV4.tsx",
+        "linhas": "101-896",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada.",
+      "_acionavel": false,
+      "_nota": "Proto: om-composer 988, toggle Resp/Nota ⌘⇧N 1043-1048, Templates ⌘T 1051-1053 (mock). Vivo: TemplatePicker/MicRecorder/InteractiveMessageDialog reais (imports 34-36), macros US-WA-303, vars {{nome/telefone/operador}}, cap mídia 16MB MEDIA_MAX_BYTES 80."
+    },
+    {
+      "id": "sidebar-de-contexto",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "linhas": "1073-1242"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ContextSidebarV4.tsx",
+        "linhas": "62-662",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada. Drawer é decisão [W] posterior ao protótipo.",
+      "_acionavel": false,
+      "_nota": "Proto: 1073 já é drawer lateral ('[W] 2026-06-19: some com a coluna, abre por botão na thread') — espelho re-sincronizado convergiu com o vivo. Vivo: Fila override US-WA-305 231-235, assignee picker US-WA-302 assignTo 88-91, CustomerMemoryBlock 205; render dentro do drawer do Index.tsx 571-587."
+    },
+    {
+      "id": "drawer-canais-e-contas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "linhas": "1288-1389"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/ChannelsDrawer.tsx",
+        "linhas": "42-158",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada.",
+      "_acionavel": false,
+      "_nota": "Proto: drawer Canais e contas 1288-1334 + modal Reconectar QR 1335-1389. Vivo: reconnect real vive em ReconnectModal.tsx (data-contract reconnect-modal:104, reconnect-meta:113, reconnect-ok:124, reconnect-qr:132) + ChannelHealthBanner.tsx (reconnect-cta:153) — ids do contrato caixa-unificada.contract.json ≠ id desta parte, por isso ancora:false aqui (a catraca das seções reconnect-* já é enforçada pelo contrato-de-tela)."
+    },
+    {
+      "id": "drawer-filas",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "linhas": "1390-1439"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/QueuesSheet.tsx",
+        "linhas": "63-350",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada.",
+      "_acionavel": false,
+      "_nota": "Proto: drawer read-only 1390-1439 sobre array QUEUES hardcoded (118-129). Vivo: QueuesSheet CRUD sobre whatsapp_queues (ADR 0267)."
+    },
+    {
+      "id": "broadcast",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "linhas": "1440-1475"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/BroadcastSheet.tsx",
+        "linhas": "58-256",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada agora. Fase 2 é US futura, não gap de protótipo.",
+      "_acionavel": false,
+      "_nota": "Proto: 'Disparar broadcast' fake 1471-1473 (setToast sem backend — anti-pattern que o vivo corretamente NÃO copiou). Vivo: fase 1 real US-WA-306/ADR 0268."
+    },
+    {
+      "id": "nova-conversa",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "linhas": "558-560"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/NewConversationDialog.tsx",
+        "linhas": "41-207",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada.",
+      "_acionavel": false,
+      "_nota": "Proto: botão placeholder + TODO US-WA-307 (558-560, sem onClick). Vivo: botão em Index.tsx 432-440 abre NewConversationDialog (find-or-create Tier 0, render Index.tsx 553-554)."
+    },
+    {
+      "id": "ia-na-thread",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-ai.jsx",
+        "linhas": "57-342"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/_components/InboxAiDialog.tsx",
+        "linhas": "33-118",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada.",
+      "_acionavel": false,
+      "_nota": "Proto (mock): SummarizeThreadDialog 57-126 + AskInboxDialog 131-252 + SuggestReplyButton 284-342. Vivo: InboxAiDialog único com mode summarize/ask/suggest contra InboxAiController real (US-WA-309/PR-9)."
+    },
+    {
+      "id": "atalhos-cheat-sheet-mobile-favoritos-palette",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-extras.jsx",
+        "linhas": "1-343"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
+        "linhas": "257-314",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada. Não duplicar palette.",
+      "_acionavel": false,
+      "_nota": "Proto: arquivo inteiro é este tema ('Pílula SLA · Command palette ⌘K · Cheat-sheet (?) · Mobile 3-tabs · Atalhos J/K', linha 2): InboxPalette 69, InboxCheatSheet 223, mobile tabs 285. Vivo: handler J/K/E/A + '/' + '?' 257-314; peças em InboxCheatSheet.tsx (render Index 603), InboxMobileTabs.tsx (render Index 445-450), useInboxFavs.ts (uso ConversationListV4 111). ⌘K local do proto = TODO honesto no vivo (usa palette global PMG-002, anti-duplicação MANUAL #5)."
+    },
+    {
+      "id": "real-time-perf-tier-0",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/inbox-page.jsx",
+        "linhas": "164-224"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx",
+        "linhas": "140-204",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "Nada.",
+      "_acionavel": false,
+      "_nota": "Proto: estado mock client-side sem rede (CONVS_INIT 165-224). Vivo: Centrifugo WSS 140-192 (import Centrifuge 29) + polling fallback 5s US-WA-066 194-204 com preserveScroll/State; Tier 0 business_id no backend (13 testes Pest R-WA-CAIXA-UNIF)."
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "_nota": "good — computed_at do CONTEÚDO 24h antes de PROTECTION_DRIFT_NOW (<48h) ⇒ 🟢. tip_committed_at é fresco (ruído): o frescor NÃO vem do tip.",
+  "enforcement_level": "everyone",
+  "classic_contexts": ["ci-alpha"],
+  "ruleset_contexts": [],
+  "ruleset_strict": false,
+  "orfa_contents": {
+    "orfa:governance/nightly-floor#governance/nightly-floor.json": {
+      "schema": "nightly-floor/v1 (ADR 0279)",
+      "floor_count": 291,
+      "computed_at": "20260711-120000",
+      "tip_committed_at": "20260712-060000"
+    }
+  }
+}

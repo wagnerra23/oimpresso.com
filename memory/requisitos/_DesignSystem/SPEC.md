@@ -582,7 +582,43 @@ MANUAL §5 F6. Zerar `__parser_error__` + `no-undef` (bugs P0, não dívida tole
 
 MANUAL §5 F7. Ligar visual-regression como gate (screen-grade/`design:review` já existem) + axe nas telas (`screen-qa`); unificar `vite.config` quando o último Blade morrer. Esforço médio, dep. MWART.
 
+### US-_DESIGNSYSTEM-035 · Showcase do DS no gate visual L2 (default+dark) — matar a classe do #3420
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+- Contexto: token global quebrado no render (caso real #3420 — Lightning CSS dropou defs `--fin-*` → KPIs brancos com CI verde) só é pego hoje se atingir uma das telas baselinadas. Um snapshot do Showcase do DS (`/showcase/components`, `_Showcase/Components.tsx`) em default+dark pegaria a classe inteira numa tela só.
+- Bloqueios mapeados (sessão 2026-07-10):
+  - Rota `/showcase/components` é `superadmin`-middleware — o harness do VRT loga admin do tenant (403 → skip graceful → baseline vazio). Decidir: rota alternativa env-guarded pro CI, ou seed com superadmin.
+  - `_Showcase/Components.tsx` NÃO tem charter — lint L2 (enforcing #3910) exige charter existente com `states:` sincronizado. Criar charter mínimo (tela interna dev/design-review).
+
+**Acceptance:**
+- [ ] Entrada `showcase` no `tests/Browser/visreg-states.json` (default+dark) + charter sincronizado
+- [ ] Baselines geradas via update-mode + snap reproduzível 2 runs
+- [ ] Prova contrafactual: quebrar 1 token de fundação em branch descartável → gate acusa
+
+**Refs:** incidente #3420 · medição re-trabalho visual sessão 2026-07-10.
+
+### US-_DESIGNSYSTEM-036 · L2-v2: double-threshold (3-bandas) nos snapshots de estados isolados — pré-requisito do flip a enforcing
+
+> owner: — · priority: p1 · status: todo · type: story
+> blocked_by: —
+
+- Contexto: 2ª tentativa de flip do L2 (estados isolados) a enforcing ABORTADA em 2026-07-10 (PR #4088). Evidência que matou: PR workflow-only (zero UI) falhou `oficina-os default+dark` no attempt 1 e `oficina-os×2 + compras` no re-run do MESMO SHA (run 29102940464) — assert binário do pest-plugin (`assertScreenshotMatches`, sem zona cinza) não segura o ruído de render run-a-run. O L1 (`PixelBaselineTest`, double-threshold L7) passou ESTÁVEL nos mesmos runs — a arquitetura certa já existe no repo (o docblock do teste já antecipava a v2 3-bandas).
+
+**Acceptance:**
+- [ ] Portar o double-threshold do `PixelBaselineTest` (pixelmatch GD + `VisregThreshold`, τ_baixo/τ_alto + diff-view artifact pra zona cinza) pro `IsolatedStatesBaselineTest`
+- [ ] Prova de reprodutibilidade: 3 runs consecutivos do MESMO SHA sem mudança de UI = verde estável (o teste que matou a v1)
+- [ ] Investigar/anotar a fonte do ruído de oficina-os e compras (relógio? fonte? ordenação?)
+- [ ] Flip a enforcing (padrão #3277/#3910) + prova contrafactual NÃO-contaminada (quebra dark de superfície real, ex. filter invert, exigindo VERMELHO)
+
+**Refs:** post-mortem [session 2026-07-10](../../sessions/2026-07-10-avaliacao-protocolo-design-code-gate-cego.md) · relacionada US-COM-021 (mesma causa raiz).
+
 ---
+
+**Última atualização (US-_DESIGNSYSTEM-036):** 2026-07-10 — L2-v2 double-threshold (p1, pré-requisito do flip abortado no #4088).
+
+**Última atualização (US-_DESIGNSYSTEM-035):** 2026-07-10 — Showcase no VRT L2 (adiamento registrado do pacote dark-enforcing; bloqueios rota superadmin + charter ausente mapeados).
 
 **Última atualização (US-_DESIGNSYSTEM-027..034):** 2026-06-06 — roadmap F0–F7 do [MANUAL-CSS-JS](MANUAL-CSS-JS.md) §5 seedado como tasks (de doc → MCP, conforme o próprio manual manda). IDs 027–034 (gap 019–026 = drift do contador do servidor MCP que sugeriu 027 vs SPEC.md max 018 — a reconciliar no servidor). F0/F4 marcados PARCIAL (já têm gates ativos).
 
@@ -591,3 +627,50 @@ MANUAL §5 F7. Ligar visual-regression como gate (screen-grade/`design:review` j
 **Última atualização (US-_DESIGNSYSTEM-004..013):** 2026-05-28 — adicionadas 10 tasks Onda prevenção bugs MWART frontend (ADRs 0209-0211 propostos no PR #1837). Atacam R7/R8-class via ESLint baseline, Wayfinder type-gen, TanStack Query data-fetching, MSW Vitest scanner-race tests.
 
 **Última atualização:** 2026-05-25 — adicionadas US-001/002/003 (batch validação design system pós-conversa Wagner com Claude do chat — 4 tasks no MCP US-_DESIGNSYSTEM-001/002/003 + US-INFRA-012)
+
+### US-_DESIGNSYSTEM-037 · Wave 2 — declarar Padrão de Tela nos 45 charters live (via ledger route-hits maduro)
+
+> owner: — · priority: p2 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Gated: só executar quando o ledger `governance/route-hits.json` tiver >=3-4 semanas de coleta (coleta LIVE em prod desde 2026-07-09; ROUTE_HITS_ENABLED=true). Marco esperado: ~inicio de agosto 2026.
+
+## Contexto
+- #4109 declarou PT nas ~63 telas DRAFT (nao disparam charter-live-signal).
+- Sobraram 45 charters `status: live` SEM sinal de prod ("wave 2"). Tocar cada um pra declarar PT (`related_prototype: ...PT-0X...`) tripa o gate REQUIRED `charter-live-signal` (branch protection main, 24 required).
+- #4120 (mergeado 2026-07-11) semeou o `route-hits.json` real de prod, mas com 2 dias de dado so cobria Produto/Index (draft) + Site/Login (sem charter) = 0 dos 45.
+
+## Receita (quando ledger maduro)
+1. `route-hits:export --dias=30 --write` no host de PROD (SSH Hostinger; middleware ContadorHitsRota -> flush -> tabela route_hits). Capturar dry-run stdout, commitar do checkout (NAO editar no servidor).
+2. Recomputar `node scripts/governance/charter-live-signal.mjs --json` — ver quais dos 45 viraram live_ok (hits>0 reais).
+3. Pra cada dos 45:
+   - (a) hits>0 no ledger -> legitimamente live -> declarar PT (`related_prototype: n/a (herda PT-0X ...)`, verificado por `npm run pt:conformance:check`).
+   - (b) 0 hits APOS janela madura (>=30d) -> genuinamente nao-servido -> rebaixar `status: live` -> `draft`.
+4. 1 PR, Wagner aprova o merge (R10).
+
+## Guardrails Tier 0 (nao violar)
+- NUNCA seed manual em `prod-flags.json` (incidente Cliente 2026-06-24) — sinal so via ledger REAL de hits ou `smoke:` datado.
+- NUNCA rebaixar 0-hit com ledger jovem (<30d) — 0-hit != nunca-servido = falso-negativo.
+- Trabalhar a partir de origin/main fresco (guard base-freshness).
+- `pt-conformance` verifica que a tela que jura PT-0X tem a assinatura estrutural — 0 count-pump.
+
+## Alternativa (se urgencia)
+Smoke real por tela via browser MCP -> campo `smoke: <data>` (3a fonte honesta do gate). ~45 smokes, caro — so se nao der pra esperar o ledger.
+
+Ref: PR #4120, session 2026-07-11.
+
+### US-_DESIGNSYSTEM-038 · Migrar os 3 independentes de status-badge pro canon (Badge/StatusBadge)
+
+> owner: — · priority: p3 · estimate: 6h · status: todo · type: story
+> blocked_by: —
+
+Follow-up da Onda status-badge (PR #4298, mergeado 2026-07-15). O detector `node scripts/governance/component-registry-check.mjs --roles` (papel `status-badge`, advisory) cataloga 3 componentes que hand-rolam a pílula de status SEM consumir o canon. Migração incremental — 1 PR pequeno por tela, cada um com gate visual + screenshot aprovado por Wagner (R2/R7).
+
+Alvos (canon = `<Badge variant="success|warning|danger|info|neutral">` de @/Components/ui/badge OU `<StatusBadge kind value>` de @/Components/shared):
+1. resources/js/Pages/OficinaAuto/Vehicles/_components/VehicleStatusBadge.tsx — DUPLICA o `kind:"vehicle"` que o StatusBadge JÁ tem; candidato a deletar e trocar por `<StatusBadge kind="vehicle" value={...}>`.
+2. resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderStatusBadge.tsx — hand-rola palette cru (emerald/amber); estender `mappings` do StatusBadge com um kind de OS OU consumir Badge variants.
+3. resources/js/Pages/Cliente/_components/Pills.tsx — StatusPill + FrescorPill (já usam tokens -soft/-fg corretos, mas hand-rolam a forma do Badge). TagChip/TipoPill/ActiveChip NÃO entram (cor de categoria/filtro = papel diferente, exceção documentada).
+
+Fora de escopo: FiscalStatusBadge/NfceStatusBadge = canon fiscal próprio (R-DS-002/ADR 0235), NÃO migrar.
+
+Pronto quando: detector `--roles` reporta 0 independentes no papel status-badge. Advisory (DS ≠ Tier-0, ADR 0271/0314) — sem pressa, puxar por tela quando conveniente.

@@ -75,7 +75,7 @@ Adicionar = PR + comentário. Remover = ADR amendada. Detalhe em [SPEC.md §Whit
 - ✅ Sprint 2 (US-AUDIT-005..006): migration `causer_kind`/`agent_run_id`/`reverted_*` + `CauserKindResolver`
 - ✅ Sprint 3 scaffold (US-AUDIT-007): módulo nWidart com 8 peças + 3 rotas Install
 - ✅ `RevertService` + `RevertCheck` (US-AUDIT-008) com whitelist viva
-- 🟡 Pages Inertia `Index.tsx`/`Detail.tsx` + charter F1.5+F3 (US-AUDIT-009) — aguarda Wagner aprovar screenshot
+- 🟡 Pages Inertia `Index.tsx`/`Detail.tsx` + charter F1.5+F3 (US-AUDIT-009) — gate visual = **CI** (visual-regression + PR UI Judge), **não** aprovação síncrona de screenshot (v2 · [ADR 0241](../../decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md)/[0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md), [PROTOCOL §0.1](../../../prototipo-ui/PROTOCOL.md))
 - 🟡 Permissões Spatie 3 níveis + redirect 301 legacy (US-AUDIT-010) — em revisão
 - 🟢 Wave M: extração `AuditEntryService` pareada com `Modules/Governance/AuditDrillDownService` (Wave H)
 

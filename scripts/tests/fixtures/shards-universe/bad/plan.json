@@ -1,0 +1,11 @@
+{
+  "schema": "shards-plan/v1",
+  "n_shards": 2,
+  "total_dirs": 1,
+  "total_files": 1,
+  "universe": ["tests/Feature"],
+  "shards": [
+    { "index": 0, "dirs": ["tests/Feature"], "file_count": 1 },
+    { "index": 1, "dirs": [], "file_count": 0 }
+  ]
+}

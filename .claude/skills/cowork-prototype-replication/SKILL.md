@@ -32,8 +32,16 @@ Resumo:
 
 ```
 F0 SYNC LOOP (5min)
+   ⭐ OBTER/atualizar o protótipo do Cowork = transporte −1-PULL DIRETO via DesignSync.get_file
+      (projeto Cowork PROJECT_TYPE_PROJECT 019dcfd3-6ef2-7ee6-8512-b1b0e5544e58 · ADR 0325).
+      NÃO peça ZIP ao Wagner numa sessão logada — a nota velha "DesignSync indisponível
+      headless" só vale cron/webhook (0324); leitura em sessão logada funciona. Escrita segue
+      gateada (0315). Fluxo escopado: get_file(âncora do charter via ancora.mjs) → persistir no
+      staging fixo → detectar-telas.mjs. Orquestração multi-tela + transporte completo (pull vs
+      ZIP fallback): skill `aplicar-prototipo` Fase −1.
+   SSOT vivo hoje = prototipo-ui/cowork/<tela>-page.jsx (o prototipos/<tela>/*.html é legado).
    Read prototipo-ui/HANDOFF.md + identificar protótipo alvo
-   Glob prototipo-ui/prototipos/<tela>/{F1.html,visual-source.html,cowork-app.jsx}
+   Glob prototipo-ui/cowork/<tela>-page.jsx  (fallback legado: prototipos/<tela>/{F1.html,visual-source.html,cowork-app.jsx})
 
 F1 MAPPING VOCABULÁRIO VERTICAL (10min) ⭐ CRÍTICO
    Ler memory/reference_dominios_verticais_oimpresso.md

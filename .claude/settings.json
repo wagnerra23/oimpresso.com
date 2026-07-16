@@ -130,11 +130,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-destructive.ps1"
+            "command": "node .claude/hooks/block-destructive.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/pii-redactor.ps1"
+            "command": "node .claude/hooks/pii-redactor.mjs"
           },
           {
             "type": "command",
@@ -262,6 +262,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/design-compare-protocol.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/design-agente-ativa.mjs"
           }
         ]
       }

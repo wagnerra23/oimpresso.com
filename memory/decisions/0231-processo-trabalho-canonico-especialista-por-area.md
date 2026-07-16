@@ -3,7 +3,7 @@ slug: 0231-processo-trabalho-canonico-especialista-por-area
 number: 231
 title: "Processo de Trabalho Canônico — dividir → especialista por área → Método Scorecard → consolidar (sempre)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

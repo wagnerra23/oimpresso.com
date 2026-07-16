@@ -2,6 +2,8 @@
 distilled_at: "2026-07-09"
 distilled_by: "manual [CC] — re-verificação do destilado de 2026-07-01 (jana:distill-module-truth) contra o único evento novo do módulo: arquivamento do charter-ghost Os/Create como lápide L-22 (PR #4037, housekeeping — nenhuma capacidade/gap mudou)"
 module: OficinaAuto
+status: piloto
+updated_at: "2026-07-09"
 ---
 
 # BRIEFING — OficinaAuto (verdade destilada)

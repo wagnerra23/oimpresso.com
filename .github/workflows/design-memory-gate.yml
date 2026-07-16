@@ -80,6 +80,11 @@ jobs:
       - name: component-registry-check (advisory · report-only)
         continue-on-error: true
         run: node scripts/governance/component-registry-check.mjs --check --strict
+      # papel-duplicado (ADR proposta tab-nav-canonico) — advisory · report-only.
+      # Surface os hand-rolls independentes de papel canonizado (barra de abas de topo).
+      - name: component-registry-check --roles (advisory · report-only)
+        continue-on-error: true
+        run: node scripts/governance/component-registry-check.mjs --roles
 
   # ── ex-design-memory-gates.yml ──────────────────────────────────────────────
   gates:
@@ -280,6 +285,20 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/render-proto-baseline.mjs --check
+      # O COMPARE possível em CI (fronteira ADR 0290 — o compare REAL proto×prod exige render
+      # dos DOIS lados = LOCAL por lei): mapear os arquivos da PR pros baselines commitados do
+      # mesmo módulo e apontar o comando local exato (--nudge, exit 0 sempre). Zero render,
+      # zero rede — git diff × JSONs commitados. Lado-proto coberto pelo --check acima (sha
+      # STALE quando o protótipo re-exporta); lado-Page coberto por este nudge + passo local
+      # do RUNBOOK-fidelidade-fingerprint §Baseline.
+      - name: proto-compare nudge (advisory · aponta o compare LOCAL pro módulo afetado)
+        if: always()
+        continue-on-error: true
+        run: |
+          BASE="origin/${{ github.base_ref }}"
+          if [ -z "${{ github.base_ref }}" ]; then BASE="origin/main"; fi
+          git diff --name-only "$BASE"...HEAD -- 'resources/js/Pages/**' \
+            | node prototipo-ui/render-proto-baseline.mjs --nudge | tee -a "$GITHUB_STEP_SUMMARY"
 
   # ── ex-dtcg-equivalence.yml (Onda DTCG ATIVADA) ──────────────────────────────
   prove:

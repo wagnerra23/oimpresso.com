@@ -1,6 +1,7 @@
 ---
 page: /sells/{id}
 component: resources/js/Pages/Sells/Show.tsx
+related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-05-15"

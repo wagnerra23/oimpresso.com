@@ -3,7 +3,7 @@ roadmap_item: P06
 slug: materializar-g7-g8-historia-brief
 onda: 3
 status: executed
-executed_at: "2026-07-01"
+executed_at: "2026-07-12"
 depende_de: [P01]
 destrava: []
 related_adrs: [275, 226, 279]
@@ -11,7 +11,7 @@ esforco_estimado: "0.2d codável (zero código novo) + 1 deploy real + 2 ciclos 
 ---
 # P06 · Materializar G7+G8 (migrate prod + linha SDD no brief)
 
-> **🟡 PARCIAL 2026-07-01** (verificado em prod) — tabela `mcp_sdd_scorecard_history` **existe**, 1 row (refrescada à mão hoje: composta 50, k=2), linha SDD **aparece no brief**. **Falta o cron diário:** `schedule:run` não está no crontab do Hostinger. **Decisão Wagner 2026-07-01:** agendar no **CT100**, não Hostinger (ADR 0062 — IA/governança ≠ shared hosting). Enquanto isso a composta no brief fica stale entre snapshots manuais.
+> **✅ EXECUTADO 2026-07-12** — tabela `mcp_sdd_scorecard_history` aplicada em prod, linha SDD no brief, e agora o **cron diário 07:10 BRT roda no CT 100** (host-cron `ct100-sdd-scorecard-snapshot.sh`: node no host gera o JSON → `docker exec oimpresso-mcp php artisan governance:sdd-scorecard-snapshot --input=...`; o container conecta na prod DB, a imagem não tem node). **Decisão Wagner 2026-07-01:** não-Hostinger (`schedule:run` não roda no shared hosting; ADR 0062). Provado ponta-a-ponta 2026-07-12: row fresca `2026-07-12 · composta 64.1 (k=6)`, contra o máx anterior `2026-07-01 · composta 50.0` (11 dias stale). RUNBOOK: [RUNBOOK-ct100-sdd-scorecard-snapshot](../../Infra/RUNBOOK-ct100-sdd-scorecard-snapshot.md). Residual opcional de hardening (fora do escopo do cron): alarme 3 camadas (wrapper→`mcp_alertas`, check `sdd_snapshot_freshness` no `jana:health-check`, stale-guard no `SddBriefLineService`).
 
 ## Problema (o que está quebrado, em 2-3 frases)
 O código de G7 (snapshot diário do scorecard SDD) e G8 (linha SDD no Daily Brief) está

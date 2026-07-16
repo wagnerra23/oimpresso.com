@@ -453,6 +453,22 @@ Como usuário de teclado/leitor de tela, quero o drawer acessível (WCAG 2.1 AA)
 
 **Refs:** CAPTERRA C18 🟡, WCAG 2.1 AA.
 
+### US-COM-021 · Investigar flakiness das baselines dark/empty do VRT e reabilitar no gate L2
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+- Contexto: charter `Compras/Index.charter.md` registra poda deliberada — `states: [default, loading]` com nota "dark/empty podados: baselines flaky (não-reproduzíveis run-a-run no CI)".
+- Motivação: medição 12/jun–10/jul mostrou dark = vetor nº 1 de re-trabalho visual do mês; Compras é a única tela do manifesto L2 sem dark.
+
+**Acceptance:**
+- [ ] Identificar a fonte de não-determinismo run-a-run (dados seedados? animação? fonte? data relativa?)
+- [ ] Reproduzir 2 runs consecutivos do update-mode com snap idêntico (hash igual)
+- [ ] Reabilitar `dark` (e `empty` se estabilizar) no charter + `tests/Browser/visreg-states.json` juntos (lint L2 exige sync)
+- [ ] Regenerar baselines via workflow_dispatch update-mode
+
+**Refs:** medição re-trabalho visual sessão 2026-07-10 · NÃO re-adicionar sem prova de reprodutibilidade (a poda no charter é decisão consciente).
+
 ### 9.1 Seguradas (feature-wish ADR 0105 — NÃO no backlog ativo)
 
 Sem dor reportada por cliente / sinal qualificado, estas **não** viram US ativa (ADR 0105 — cliente como sinal). Ficam catalogadas como wish, reabrem com sinal:

@@ -7,6 +7,7 @@ route: /settings/payment-gateways/{credentialId}/cnab-retorno
 controller: Modules/PaymentGateway/Http/Controllers/Settings/PaymentGatewaysCnabRetornoController
 page: /settings/payment-gateways/{id}/cnab-retorno
 component: resources/js/Pages/Settings/PaymentGateways/CnabRetorno.tsx
+related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 last_validated: "2026-05-31"
 parent_module: PaymentGateway
 tier: B

@@ -1,5 +1,5 @@
 ﻿// @memcofre
-//   tela: /docs/inbox
+//   tela: /memcofre/inbox
 //   module: Cofre de Memórias
 //   status: implementada
 //   stories: US-DOCVAULT-003
@@ -153,7 +153,7 @@ export default function MemCofreInbox({ evidences, filtros, counts }: Props) {
   const submitEdit = (ev: FormEvent) => {
     ev.preventDefault();
     if (!editTarget) return;
-    editForm.post(`/docs/inbox/${editTarget.id}/triage`, {
+    editForm.post(`/memcofre/inbox/${editTarget.id}/triage`, {
       preserveScroll: true,
       onSuccess: () => {
         toast.success('Evidência atualizada.');
@@ -164,7 +164,7 @@ export default function MemCofreInbox({ evidences, filtros, counts }: Props) {
   };
 
   const apply = (e: Evidence) => {
-    router.post(`/docs/inbox/${e.id}/apply`, {}, {
+    router.post(`/memcofre/inbox/${e.id}/apply`, {}, {
       preserveScroll: true,
       onSuccess: () => toast.success('Marcada como aplicada.'),
       onError: () => toast.error('Falha.'),
@@ -173,7 +173,7 @@ export default function MemCofreInbox({ evidences, filtros, counts }: Props) {
 
   const confirmDelete = () => {
     if (!deleteTarget) return;
-    router.delete(`/docs/inbox/${deleteTarget.id}`, {
+    router.delete(`/memcofre/inbox/${deleteTarget.id}`, {
       preserveScroll: true,
       onSuccess: () => {
         toast.success('Removida.');

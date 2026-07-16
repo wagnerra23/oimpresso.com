@@ -1,6 +1,7 @@
 ---
 page: /sells/drafts
 component: resources/js/Pages/Sells/Drafts.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft
 status_detail: wave1-draft

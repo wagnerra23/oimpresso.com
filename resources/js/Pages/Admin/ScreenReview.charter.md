@@ -1,6 +1,7 @@
 ---
 page: /admin/screen-review
 component: resources/js/Pages/Admin/ScreenReview.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 controller: Modules\Admin\Http\Controllers\ScreenReviewController@index
 route: admin.screen-review
 status: draft

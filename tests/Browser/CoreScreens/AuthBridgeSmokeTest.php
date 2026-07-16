@@ -46,8 +46,9 @@ afterEach(fn () => \Carbon\Carbon::setTestNow());
  * Tela => [rota, slug-permissão (informativo — Admin#1 já concede tudo via Gate::before),
  * âncora-de-texto que prova que montou (não 403/login/erro)].
  *
- * Núcleo-6 de retenção (espelha tests/Browser/CoreScreens/SmokeTest.php, mas no padrão
- * auth-bridge que de fato roda no gate). Rotas confirmadas nos route files dos módulos.
+ * Núcleo-6 de retenção. Sucede o antigo tests/Browser/CoreScreens/SmokeTest.php (removido:
+ * guard `Bootstrap` inexistente = skip eterno + nenhum workflow o invocava — nunca executou).
+ * Este é o padrão auth-bridge que de fato roda no gate. Rotas confirmadas nos route files.
  * Telas de módulo opcional podem gatear por install/enabled_modules — se o CI mostrar
  * 403/redirect, a tela sai daqui com nota (não bloqueia o ganho das demais).
  */
@@ -80,14 +81,16 @@ foreach ($screens as $nome => [$rota, $permissao, $ancora]) {
         // Usa o tenant SEEDADO (VisregTenantSeeder roda no workflow): business 1 + admin
         // (id=1, role spatie Admin#1 → Gate::before concede tudo). Padrão do
         // FinanceiroTestCase — o schema-squash é schema-only, o seed traz os dados.
-        // Sem seed = skip (não falha).
-        $business = Business::first();
+        // Sem seed é falha de fixture: smoke verde sem render seria falso positivo.
+        // orderBy('id') = biz 1 determinístico: o gate também seeda 98 (VisregEmptyTenantSeeder)
+        // e 99 (VisregTenantBLeakSeeder) — sem ordem explícita o "first" é o que o MySQL devolver.
+        $business = Business::orderBy('id')->first();
         if (! $business) {
-            test()->markTestSkipped('Sem business seedado (DummyBusinessSeeder não rodou).');
+            throw new RuntimeException('Sem business seedado: o smoke cross-browser não executou a fixture obrigatória.');
         }
         $admin = User::where('business_id', $business->id)->orderBy('id')->first();
         if (! $admin) {
-            test()->markTestSkipped('Sem user no business seedado.');
+            throw new RuntimeException('Sem user no business seedado: o smoke cross-browser não pode autenticar.');
         }
 
         // 1 visit: loga o admin no subprocesso + redireciona pra tela → carrega autenticada.

@@ -8,10 +8,12 @@ name: NfeBrasil · Pest (MySQL)
 # POR QUE IMPORTA (risco fiscal ×150 clientes — escala-migracao-carteira-delphi.md): uma nota
 # fiscal certificada "verde" por uma suite que pulou as regras tributárias = nota errada ×150.
 #
-# ADVISORY (ADR 0271/0298 — gate novo nasce advisory): continue-on-error no Pest → a falha NÃO
-# derruba o PR; o JUnit registra a VERDADE (qual teste fiscal passa no MySQL). Allowlist =
-# testes que cobrem as US/R-NFE fiscais (reconciliados 2026-06-23, #3312). Cresce (ratchet)
-# conforme prova verde; arming a required por calendário (ADR 0275).
+# ARMADO (2026-06/07 · ADR 0275): o `continue-on-error` foi REMOVIDO — a falha do Pest derruba o
+# PR (ver step "Run Pest" abaixo). O JUnit segue registrando a VERDADE (qual teste fiscal passa no
+# MySQL). Allowlist = testes que cobrem as US/R-NFE fiscais (reconciliados 2026-06-23, #3312);
+# cresce por ratchet conforme prova verde. Enforcement vigente: governance/required-checks-baseline.json
+# (higiene 2026-07-16: este header dizia "ADVISORY … NÃO derruba o PR", contradizendo a L90 do próprio
+# arquivo — gate fiscal que se descreve como inofensivo é o pior caso de rótulo que mente).
 
 on:
   workflow_dispatch: {}
@@ -85,7 +87,7 @@ jobs:
           }
           EOF
 
-      - name: Run Pest (NfeBrasil · MySQL · ADVISORY — JUnit é a verdade) — ALLOWLIST VERDE (catraca)
+      - name: Run Pest (NfeBrasil · MySQL — JUnit é a verdade) — ALLOWLIST VERDE (catraca)
         if: steps.changes.outputs.nfe == 'true'
         # ARMADO (ADR 0275): continue-on-error removido — a allowlist dos 7 arquivos (todos VERDES no MySQL, ratchet concluído) agora MORDE; skip-as-pass cobre PR fora do NfeBrasil. JUnit segue como evidência.
         #

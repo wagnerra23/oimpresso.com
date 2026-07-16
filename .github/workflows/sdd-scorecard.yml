@@ -37,6 +37,10 @@ on:
       - 'scripts/governance/sdd-ragas-read.test.mjs'
       - 'scripts/tests/floor-compute.mjs'
       - 'scripts/tests/floor-compute.test.mjs'
+      - 'scripts/tests/shards-plan.mjs'            # sharding do junit (SDD P04 · ADR 0279)
+      - 'scripts/tests/shards-plan.test.mjs'
+      - 'scripts/tests/shards-merge.mjs'
+      - 'scripts/tests/shards-merge.test.mjs'
       - 'scripts/tests/coverage-compute.mjs'
       - 'scripts/tests/coverage-compute.test.mjs'
       - 'scripts/tests/ragas-trend-compute.mjs'
@@ -56,13 +60,25 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read # drift_alarms (GT-G4): protection-drift.mjs lê last run verde dos workflows-fonte
 
 jobs:
   scorecard:
     name: SDD scorecard meta-catraca (advisory · determinismo + staleness + ratchet)
     runs-on: ubuntu-latest
+    # Job-level (não por step): o agregador roda 3× aqui (Medir + Determinismo + Ratchet)
+    # e as 3 runs precisam do MESMO ambiente — com token só no Medir, drift_alarms sairia
+    # measured na 1ª e not_yet_measured na 2ª → falso-vermelho de determinismo. Sem token
+    # nenhum, Staleness viraria perma-warn (committed measured ≠ medição local sem gh).
+    env:
+      GH_TOKEN: ${{ github.token }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          # distiller_freshness usa data-git do doc mais novo por módulo (ADR 0291 D-D);
+          # shallow (depth 1) mede stale fantasma → Staleness perma-warn vs o valor correto
+          # commitado (mesmo bug já corrigido no sdd-scorecard-ratchet.yml).
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -72,6 +88,12 @@ jobs:
 
       - name: Write-side do floor — meta-teste do compute (hard · ADR 0279 PR-2)
         run: node scripts/tests/floor-compute.test.mjs
+
+      - name: Sharding do junit — plano determinístico + universe-gate (hard · SDD P04)
+        run: node scripts/tests/shards-plan.test.mjs
+
+      - name: Sharding do junit — merge preserva shards vivos + anti-mascaramento (hard · SDD P04)
+        run: node scripts/tests/shards-merge.test.mjs
 
       - name: Marcador de run inválido — junit-summary (hard · FV-F4 · US-GOV-045)
         # Prova que XML 0 bytes/ausente/incoerente grava {invalid,reason} no summary

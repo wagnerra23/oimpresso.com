@@ -4,7 +4,7 @@ irmaos: Config.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-03"
+last_run: "2026-07-15"
 ---
 
 # Casos de Uso & Aceite — Configuração Fiscal
@@ -34,3 +34,4 @@ last_run: "2026-07-03"
 
 ## Trilha do tempo
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). Débito = UC-traceability.
+- 2026-07-15 · [CC] revalidado após DS Onda 3 — abas cert/series/ambiente/sped viraram navegação por rota (`?tab=`, `PageHeaderTabs`). Nenhum dos casos acima toca a barra de abas (cert/tenant/SPED/permissão) — comportamento preservado; só `last_run` bumpado.

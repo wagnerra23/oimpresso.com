@@ -14,9 +14,24 @@ import { execSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const BASELINE_PATH = resolve(process.cwd(), 'config/eslint-baseline.json');
-const TARGET = 'resources/js';
+// Flags backward-compat (Onda selftest — entrada no gate-selftest REQUIRED):
+//   --baseline <path>  baseline JSON alvo (default: config/eslint-baseline.json)
+//   --target   <path>  diretório/arquivo linado (default: resources/js)
+// SEM flags = comportamento IDÊNTICO ao original (gate de produção intocado).
+// cwd continua sendo o ROOT do repo (acha node_modules/eslint + eslint.config.js).
+// Usado pelas fixtures good/bad em tests/governance-fixtures/eslint/ pelo MESMO code path.
+function argVal(flag, def) {
+  const i = process.argv.indexOf(flag);
+  return i >= 0 && process.argv[i + 1] ? process.argv[i + 1] : def;
+}
+const BASELINE_PATH = resolve(process.cwd(), argVal('--baseline', 'config/eslint-baseline.json'));
+const TARGET = argVal('--target', 'resources/js');
 const MODE_WRITE = process.argv.includes('--write');
+// --counts-from <json>: pula o ESLint real e usa contagens {"path|rule": n} pré-computadas.
+// Existe SÓ pro gate-selftest (Node puro, sem node_modules/eslint no CI) provar que o COMPARADOR
+// ratchet morde — o linter é a lib (não apodrece do nosso lado); o que pode apodrecer é o diff
+// vs baseline. Ignorado no fluxo de produção (que nunca passa a flag).
+const COUNTS_FROM = argVal('--counts-from', null);
 
 function runEslint() {
   // Windows: `npx` é .cmd; usar shell: true pra portabilidade. Linux CI também OK.
@@ -52,8 +67,9 @@ function main() {
   console.log(`ESLint baseline · ${MODE_WRITE ? 'WRITE' : 'VALIDATE'} mode`);
   console.log(`Scanning ${TARGET}...`);
 
-  const results = runEslint();
-  const counts = buildCounts(results);
+  const counts = COUNTS_FROM
+    ? JSON.parse(readFileSync(resolve(process.cwd(), COUNTS_FROM), 'utf8'))
+    : buildCounts(runEslint());
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
   console.log(`Total violations atual: ${total}`);

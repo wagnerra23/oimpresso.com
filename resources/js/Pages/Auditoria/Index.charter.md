@@ -1,6 +1,7 @@
 ---
 page: /auditoria
 component: resources/js/Pages/Auditoria/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 status: draft
 related_us: [US-AUDIT-009]
 ---

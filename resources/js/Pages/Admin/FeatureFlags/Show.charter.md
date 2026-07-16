@@ -4,6 +4,7 @@ status: draft
 owner: wagner
 updated: 2026-05-31
 component: resources/js/Pages/Admin/FeatureFlags/Show.tsx
+related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 last_validated: "2026-05-31"
 parent_module: Admin
 related_us: [US-INFRA-008]

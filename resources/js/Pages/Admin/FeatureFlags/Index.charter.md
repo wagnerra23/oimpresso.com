@@ -1,6 +1,7 @@
 ---
 page: /admin/feature-flags
 component: resources/js/Pages/Admin/FeatureFlags/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-05-31"

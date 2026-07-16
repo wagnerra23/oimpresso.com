@@ -7,6 +7,8 @@
 //   C) carimbada e fresca             → não conta como stale
 //   D) porta SEM carimbo              → entra no detail (cobertura pendente), não stale
 //   E) reqDir ausente                 → not_yet_measured
+//   F) checkout shallow + fonte git   → not_yet_measured (não fabrica stale de calendário);
+//      fonte injetada ignora o guard  (incidente 2026-07-08→12: publish shallow publicou 6)
 // `newestDocDate` é injetado (mapa) → sem git/FS real, determinístico.
 // Uso: node scripts/governance/sdd-distiller-freshness.test.mjs
 import { measureDistillerFreshness } from './sdd-scorecard.mjs';
@@ -67,6 +69,19 @@ dir = makeReq({ Fresca: { distilledAt: '2026-06-15' } });
 try {
   const r = measureDistillerFreshness(dir, { newestDocDate: newestFrom({ Fresca: '2026-06-20' }) });
   ok(r.status === 'measured' && r.value === 0, 'porta carimbada e fresca (5d) → value 0');
+} finally { rmSync(dir, { recursive: true, force: true }); }
+
+// ── F: checkout shallow com fonte git default → notYet (não fabrica stale) ──
+dir = makeReq({ CarimbadaVelha: { distilledAt: '2026-05-01' } });
+try {
+  const r = measureDistillerFreshness(dir, { shallow: () => true });
+  ok(r.status === 'not_yet_measured', 'shallow + fonte git default → not_yet_measured (não mede calendário)');
+  ok(/shallow|fetch-depth/.test(r.source ?? ''), 'source explica o shallow e aponta fetch-depth: 0');
+  const r2 = measureDistillerFreshness(dir, {
+    shallow: () => true,
+    newestDocDate: newestFrom({ CarimbadaVelha: '2026-05-02' }),
+  });
+  ok(r2.status === 'measured' && r2.value === 0, 'fonte injetada ignora o guard de shallow (determinístico)');
 } finally { rmSync(dir, { recursive: true, force: true }); }
 
 // ── E: reqDir ausente → notYet ──────────────────────────────────────────────

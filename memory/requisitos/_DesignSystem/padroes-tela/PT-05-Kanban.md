@@ -3,130 +3,130 @@ pattern_id: PT-05
 nome: Kanban
 camada: 3-padroes-tela
 status: draft
-versao: 0.1
+versao: 0.3
 created: 2026-05-30
+updated: 2026-07-12
 parent_adr: UI-0013
-golden_eleito: resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx
-golden_score: 68/100 (Developing) — estrutural com drift a corrigir
+golden_eleito: resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx
+golden_score: ~8/10 regras binárias — board rolável + FSM + tokens OK; residual header/tap-target
 persona: Técnico chão de fábrica (tablet, touch ≥44px, mobile_fit ALTO)
 applied_in:
-  - Pages/OficinaAuto/ProducaoOficina/Index.tsx
-  - Pages/Repair/ProducaoOficina/Index.tsx
+  - Pages/OficinaAuto/ServiceOrders/Board.tsx (golden)
+  - Pages/Repair/ProducaoOficina/Index.tsx (consumidor — herda, ainda com drift)
+  - Pages/team-mcp/Tasks/Index.tsx (consumidor — board de tasks)
 ---
 
 # PT-05 · Kanban — board de colunas com cards arrastáveis
 
 > **Camada 3 · Padrão de Tela.** Herda das [Fundações](../README.md) + [Shell](../README.md) e nunca contradiz. Módulo só configura colunas/cards/transições, **não** muda a estrutura.
-> **Status `draft`** — golden eleito é estrutural mas ainda tem drift sério (score 68 no piloto). Use como esqueleto, **corrija os drifts da §Drift conhecido ao copiar.**
+> **Status `draft`** — golden reeleito (`ServiceOrders/Board.tsx`, 2026-07-11) já resolve os drifts estruturais do golden anterior. Bump pra `live` aguarda **aprovação de screenshot do Wagner** (gate F1.5 · [ADR 0107](../../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)).
 
 ## Quando aplicar
 
 Fluxo operacional com **estados sequenciais** onde o usuário move uma entidade de uma fase pra outra (OS de oficina, produção, pipeline FSM, etapas de serviço). Persona típica = operador de chão de fábrica em tablet (touch).
 
-Não aplicar pra: lista paginável ([PT-01 Lista](PT-01-Lista.md)), form/cadastro (PT-02 quando documentado), dashboard de gráficos (PT-04 quando documentado).
+Não aplicar pra: lista paginável ([PT-01 Lista](PT-01-Lista.md)), form/cadastro ([PT-02 Form/Drawer](PT-02-Form-Drawer.md)), dashboard de gráficos ([PT-04 Dashboard](PT-04-Dashboard.md)).
 
 ## Golden eleito + por quê
 
-**[`Pages/OficinaAuto/ProducaoOficina/Index.tsx`](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx)** — vence a candidata `Repair/ProducaoOficina` em 4 eixos que importam pra persona touch:
+**[`Pages/OficinaAuto/ServiceOrders/Board.tsx`](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)** (charter `live`, rota `/oficina-auto/ordens-servico`).
 
-| Eixo | OficinaAuto (eleito) | Repair (rejeitado) |
+> **Reeleição 2026-07-11.** O golden anterior (`OficinaAuto/ProducaoOficina/Index.tsx`, score 68) **foi deletado/refatorado** — o board da oficina migrou pra `ServiceOrders/Board.tsx`, que herdou o `KanbanDndProvider` e evoluiu. O novo golden **resolve os 2 drifts estruturais** que travavam o bump (board não-rolável + tones inline) e é mais maduro (4 views Quadro·Lista·Grade·Fila + `ServiceOrderRichSheet`). Reusa o mesmo `_components/KanbanDndProvider` da oficina.
+
+Por que `Board.tsx` é o arquétipo Kanban:
+
+| Eixo | Board.tsx (eleito) | Repair/ProducaoOficina (consumidor c/ drift) |
 |---|---|---|
-| **Drag touch** | `@dnd-kit/core` — `PointerSensor` cobre mouse+touch + `KeyboardSensor` a11y ([KanbanDndProvider.tsx:86-91](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx)) | HTML5 nativo `draggable`/`onDragStart` ([Index.tsx:419-425](../../../../resources/js/Pages/Repair/ProducaoOficina/Index.tsx)) — **não dispara em touch**, gap fatal no piloto |
-| **Transição validada** | `resolveDragMapping` FSM FROM→TO + `DragConfirmDialog` ([Index.tsx:124-236](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx)) | `handleDrop` POST direto sem confirmação ([Index.tsx:136-165](../../../../resources/js/Pages/Repair/ProducaoOficina/Index.tsx)) |
-| **Token v4** | `border-primary` no preview ([KanbanDndProvider.tsx:54](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx)) | `bg-blue-400`/`bg-blue-50` crus ([Index.tsx:89-102](../../../../resources/js/Pages/Repair/ProducaoOficina/Index.tsx)) |
-| **Componentes DS** | `@/Components/ui` Input/Button ([Index.tsx:34-35](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx)) | zero `@/ui` — tudo `<button>` nativo |
-
-> **Honestidade (regra GOLDEN-REFERENCE §4):** o eleito é **golden estrutural com drift a corrigir**, score **68/100 Developing** no [piloto](../../../governance/screen-grades-pilot.md). Tem o esqueleto certo (dnd-kit + FSM + dialog + ui), mas o piloto achou: grid fixo `grid-cols-5` ([Index.tsx:603](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx)) que não rola; tones `bg-slate/amber/rose/emerald` direto no `KpiCard` ([Index.tsx:649-675](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx)) em vez de `<Badge>`; e card tap-target não auditado pra ≥44px.
-
-### O golden IDEAL (alvo do bump v1.0)
-
-1. **Colunas flex roláveis** — `flex gap-4 overflow-x-auto` com `min-w` por coluna + scroll-snap, NÃO `grid-cols-5` fixo (quebra em tablet retrato).
-2. **Drag com fallback** — dnd-kit cobre touch; **somar** botão/menu "Mover para…" em cada card pra quem não arrasta (acessibilidade + dedo grosso).
-3. **Tap ≥44px** — card inteiro clicável com altura mínima `min-h-[44px]`, ações com `h-11 w-11` (alvo WCAG 2.5.5 / persona touch).
-4. **Tokens v4** — `primary` roxo + status na escala warm semântica (`emerald/amber/rose/sky`), zero `blue-*`/`slate-*` cru de marca ([INDEX §0 regra 2](../INDEX-DESIGN-MEMORIAS.md)).
+| **Board rolável** | `repeat(n, minmax(228px,1fr))` em wrapper `overflow-auto` ([Board.tsx:670-673](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx), [:908-910](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)) — rola X/Y, não estoura viewport | `grid grid-cols-5` fixo ([Index.tsx:249](../../../../resources/js/Pages/Repair/ProducaoOficina/Index.tsx)) — não rola em tablet retrato |
+| **Drag touch** | `@dnd-kit/core` `PointerSensor` (mouse+touch) + `KeyboardSensor` a11y ([KanbanDndProvider.tsx:81-82](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx)) | HTML5 `draggable`/`onDragStart` — não dispara em touch |
+| **Transição validada** | mapping FSM FROM→TO ([Board.tsx:271-302](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)) + `DragConfirmDialog` ([:946](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)) antes do POST | POST direto sem confirmação |
+| **KPI/token** | `BoardKpiCard` com `kpiTone()` semântico + `rounded-lg` + `ring-primary` ([BoardKpiCard.tsx:41-55](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/BoardKpiCard.tsx)) | `bg-blue-*` cru |
 
 ## Anatomia · 5 slots fixos
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ 1 · PageHeader     h1 + sub · toggle Kanban|Lista · ações    │
+│ 1 · Header         h1 + ações de página (Nova OS · imprimir) │
 ├─────────────────────────────────────────────────────────────┤
-│ 2 · KPI strip      cards de contagem por estado (opcional)   │
+│ 2 · KPI strip      BoardKpiCard por estado (container-query) │
 ├─────────────────────────────────────────────────────────────┤
-│ 3 · Toolbar        filtros (pills) · busca · KPI inline      │ ← sticky
+│ 3 · Toolbar        filtros (box) · busca · toggle de views   │ ← sticky
 ├─────────────────────────────────────────────────────────────┤
-│ 4 · Board          N colunas flex roláveis · cards arrastáv. │
-│                      header(dot+label+count) · scroll interno │
+│ 4 · Board          N colunas minmax roláveis · cards arrast. │
+│                      header(dot+label+count) · overflow-auto  │
 ├─────────────────────────────────────────────────────────────┤
-│ 5 · Drawer/Dialog  Sheet do card + DragConfirmDialog FSM     │
+│ 5 · Drawer/Dialog  RichSheet do card + DragConfirmDialog FSM │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 | Slot | Onde no golden | Faz | Não faz |
 |---|---|---|---|
-| **1 · Header** | [Index.tsx:478-521](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) | h1 + sub + toggle Kanban\|Lista + Novo. Migrar p/ `<PageHeader>` shared | filtros · busca |
-| **2 · KPI strip** | [Index.tsx:523-530](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) | contagem por estado, `tabular-nums` | navegação |
-| **3 · Toolbar** | [Index.tsx:533-598](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) | pills filtro + busca debounce 300ms + KPI inline. Sticky `z-10` | mover card |
-| **4 · Board** | [Index.tsx:601-615](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) + `CacambaKanbanColumn` | colunas + drag dnd-kit + drop highlight `useDroppable.isOver` | persistir sem dialog |
-| **5 · Drawer/Dialog** | [Index.tsx:618-633](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) | `Sheet` do card + `DragConfirmDialog` antes do POST FSM | modal sobre modal |
+| **1 · Header** | [Board.tsx:685-700](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) | h1 + "Nova OS" + imprimir fila. **Drift:** hand-rolled `<header>`, migrar p/ `<PageHeader>` shared | filtros · busca |
+| **2 · KPI strip** | [Board.tsx:707-720](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) (`BoardKpiCard`) | contagem por estado, grid container-query `@[700px]/@[1100px]`, KPI-ativo-como-filtro (`ring-primary`+`aria-pressed`) | navegação |
+| **3 · Toolbar** | [Board.tsx:723](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) (filtro box `overflow-x-auto`) + barra de views | pills filtro + busca debounce 300ms + toggle Quadro·Lista·Grade·Fila. Sticky | mover card |
+| **4 · Board** | [Board.tsx:908-931](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) + `ServiceOrderKanbanColumn` | colunas minmax roláveis + drag dnd-kit + drop highlight | persistir sem dialog |
+| **5 · Drawer/Dialog** | [Board.tsx:946](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) (`DragConfirmDialog`) + `ServiceOrderRichSheet` | Sheet do card + confirm antes do POST FSM | modal sobre modal |
 
 ## Regras binárias (sim/não)
 
 | # | Regra | Evidência no golden |
 |---|---|---|
-| **R1** | Drag usa `@dnd-kit/core` (`PointerSensor`+`KeyboardSensor`), **NÃO** HTML5 `draggable` nativo? | [KanbanDndProvider.tsx:86-91](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx) |
-| **R2** | `PointerSensor` tem `activationConstraint.distance` (≥8) pra clique-abre-drawer não virar drag acidental? | [KanbanDndProvider.tsx:87-89](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx) |
-| **R3** | Transição de coluna passa por mapping FSM (FROM→TO→action) **antes** de persistir, bloqueando inválida com toast? | [Index.tsx:124-236](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) |
-| **R4** | Ação crítica (`isCritical`) abre `DragConfirmDialog` antes do POST — drop nunca persiste direto? | [Index.tsx:316-333](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) + [:627-633](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) |
-| **R5** | Persistência via endpoint FSM `service-orders/{id}/fsm/execute` com CSRF + `router.reload({only:['kanban','kpis']})` — **não** muta `current_stage_id` direto ([ADR 0143](../../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md))? | [Index.tsx:356-386](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) |
-| **R6** | Header de coluna = dot de tom + label + count em pílula `tabular-nums`? | `CacambaKanbanColumn` (header pattern espelha [Repair Index.tsx:359-367](../../../../resources/js/Pages/Repair/ProducaoOficina/Index.tsx)) |
-| **R7** | Drop-target destaca coluna no hover (`useDroppable.isOver`), e o card arrastado tem `DragOverlay` preview leve (não duplica o card)? | [KanbanDndProvider.tsx:51-77,143-145](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx) |
-| **R8** | Handlers descendentes em `useCallback`/`useMemo` (evita re-render loop — lição PR #717)? | [Index.tsx:263-279,286,335,400-407](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) |
-| **R9** | Busca tem debounce (≥300ms) via `router.get` `preserveState`+`preserveScroll`+`replace`, sem visit por keystroke? | [Index.tsx:244-258](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) |
-| **R10** | Cor de status/KPI na escala warm semântica (`amber/rose/emerald`) + `primary` roxo, **NÃO** `blue-*` cru? | [Index.tsx:657-674](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx) (warm ✓) · drift `border-primary` ✓ · ver §Drift |
+| **R1** | Drag usa `@dnd-kit/core` (`PointerSensor`+`KeyboardSensor`), **NÃO** HTML5 `draggable`? | [KanbanDndProvider.tsx:81-82](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx) · [Board.tsx:909](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
+| **R2** | `PointerSensor` tem `activationConstraint.distance` (≥8) pra clique-abre-drawer não virar drag? | [KanbanDndProvider.tsx:82](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx) (`distance: 8`) |
+| **R3** | Transição de coluna passa por mapping FSM (FROM→TO→action) **antes** de persistir? | [Board.tsx:271-302](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) + `handleDragMove` [:398](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
+| **R4** | Ação `isCritical` abre `DragConfirmDialog` antes do POST — drop nunca persiste direto? | isCritical [:230,234,246](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) · dialog [:946](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) · `handleConfirm` [:426](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
+| **R5** | Persistência via endpoint FSM `/fsm/execute` + `router.reload({only})` — **não** muta `current_stage_id` direto ([ADR 0143](../../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md))? | fetch [:431](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) · reload [:391](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
+| **R6** | Header de coluna = dot de tom + label + count em pílula `tabular-nums`? | [ServiceOrderKanbanColumn.tsx:62-80](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/ServiceOrderKanbanColumn.tsx) |
+| **R7** | Board rola (`overflow-auto`) com colunas `minmax`, **NÃO** `grid-cols-N` fixo? | [Board.tsx:670-673,908-910](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
+| **R8** | Handlers descendentes em `useCallback`/`useMemo` (evita re-render loop — lição PR #717)? | [Board.tsx:330-426](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) (comment [:22](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)) |
+| **R9** | Busca com debounce (≥300ms) via `router.get` `preserveState`+`preserveScroll`+`replace`, sem visit por keystroke? | `applyBoardFilter` [:361-379](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx) |
+| **R10** | Cor de status/KPI semântica via `kpiTone()`/`tone.dot`/`tone.badge` + `primary` roxo, **NÃO** `blue-*` cru? | [BoardKpiCard.tsx:25,41-55](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/BoardKpiCard.tsx) · [ServiceOrderKanbanColumn.tsx:64,78](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/ServiceOrderKanbanColumn.tsx) |
+| **R11** | Card oferece caminho **sem-drag** (botão/menu "Mover para…") pra quem não arrasta — a11y + monitor 1280px sem touch (persona Larissa)? | ❌ ausente no golden — `KeyboardSensor` existe mas não substitui menu explícito. Ver §Drift item 4 |
 
-**Placar:** 10/10 = canon. <8 = volta pro Claude Design. Golden eleito hoje: ~7/10 (falha R-touch-target e colunas-flex que viram regras do IDEAL acima).
+**Placar:** 11/11 = canon. O golden marca **~8/11** — passa R1-R7,R9-R10; residual é **tap-target ≥44px não explícito** (persona touch), **header hand-rolled** (não `PageHeader`) e **R11 fallback "Mover para…" ausente**. Ver §Drift.
 
 ## Nunca
 
-- ❌ **Drag HTML5 nativo** (`draggable`/`onDragStart`/`onDrop`) — não funciona em touch, persona não consegue mover (gap do piloto Repair). Sempre `@dnd-kit`.
+- ❌ **Drag HTML5 nativo** (`draggable`/`onDragStart`/`onDrop`) — não funciona em touch. Sempre `@dnd-kit`.
 - ❌ **Drop que persiste direto** sem `DragConfirmDialog` em ação `isCritical` — risco de transição irreversível por toque acidental.
 - ❌ **Mutar `current_stage_id` direto** (Eloquent `save()` ou POST genérico) — passa por `ExecuteStageActionService`/endpoint FSM ([ADR 0143](../../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md), [proibições](../../../proibicoes.md)).
-- ❌ **`grid-cols-N` fixo no board** — não rola em tablet retrato. Use `flex overflow-x-auto`.
-- ❌ **Cor crua** (`bg-blue-500`, `#hex`) — token CSS var / escala warm. (anti-padrão AP1 / [INDEX §3c](../INDEX-DESIGN-MEMORIAS.md))
+- ❌ **`grid-cols-N` fixo no board** — não rola em tablet retrato. Use `repeat(n, minmax(…,1fr))` + wrapper `overflow-auto` (como o golden), ou `flex overflow-x-auto`.
+- ❌ **Cor crua** (`bg-blue-500`, `#hex`) — token CSS var / escala semântica via `tone`. (anti-padrão AP1 / [INDEX §3c](../INDEX-DESIGN-MEMORIAS.md))
 - ❌ **Tap-target <44px** em card ou ação — persona é dedo em tablet (WCAG 2.5.5).
-- ❌ **Drawer mock** com dados hardcoded (sintoma/fotos/preço fixos) declarado pronto — o `JobDrawer` da Repair ([Index.tsx:532-565](../../../../resources/js/Pages/Repair/ProducaoOficina/Index.tsx)) tem texto fixo "barulho na suspensão" e fotos 📷; golden real usa `ServiceOrderRichSheet` com dados do servidor.
-- ❌ **Emoji em UI produtiva** (📷/✓ no card Repair) — ícone lucide.
+- ❌ **Emoji em UI produtiva** — ícone lucide.
 - ❌ Modal sobre modal — Sheet do card + Dialog de confirmação são camadas distintas, não empilhar.
 
 ## Drift conhecido do golden (corrija ao copiar)
 
-1. ⚠️ **Board `grid grid-cols-5` fixo** ([Index.tsx:603](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx)) → trocar por `flex gap-4 overflow-x-auto` + `min-w-[280px]` por coluna (board IDEAL §2).
-2. ⚠️ **`KpiCard` com tones inline** `bg-amber-50/bg-rose-50/...` ([Index.tsx:649-675](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx)) → migrar pra `<Badge variant>` shared quando existir (tipo-2 da MATRIZ — não bloqueia copiar, mas é o alvo).
-3. ⚠️ **Tap-target não auditado** — card e botões precisam `min-h-[44px]`/`h-11` explícito pra persona touch (não verificado no código atual).
-4. ⚠️ **`bg-slate-50`/`bg-slate-900` de chrome** espalhados — manter como neutro estrutural OK, mas accent/marca = `primary` roxo nunca `blue-*` ([INDEX §0](../INDEX-DESIGN-MEMORIAS.md)).
-5. ⚠️ **Header é `<header>` hand-rolled** ([Index.tsx:478](../../../../resources/js/Pages/OficinaAuto/ProducaoOficina/Index.tsx)), não `<PageHeader>` shared → migrar pro componente canônico (slot 1).
+Resolvidos na reeleição (o golden anterior tinha; `Board.tsx` **não**): board rolável ✓ · KPI tones semânticos + `rounded-lg` ✓ · tokens `primary`/`tone` ✓. Residual honesto:
+
+1. ⚠️ **Header hand-rolled `<header>`** ([Board.tsx:685](../../../../resources/js/Pages/OficinaAuto/ServiceOrders/Board.tsx)), não `<PageHeader>` shared → migrar pro componente canônico (slot 1). Não bloqueia copiar, mas é o alvo.
+2. ⚠️ **Tap-target ≥44px não explícito** no card (`ServiceOrderKanbanCard`) e nas ações — persona touch exige `min-h-[44px]`/`h-11`. Auditar e travar ao evoluir.
+3. ℹ️ **Consumidor `Repair/ProducaoOficina/Index.tsx` ainda com drift** (`grid-cols-5` fixo, HTML5 drag) — migrar pro esqueleto do golden ao tocar a tela.
+4. ⚠️ **Fallback sem-drag "Mover para…" ausente** (R11) — requisito **restaurado 2026-07-12**: a v0.1 exigia *"somar botão/menu 'Mover para…' em cada card pra quem não arrasta (acessibilidade + dedo grosso)"* e a reancoragem [#4115](https://github.com/wagnerra23/oimpresso.com/pull/4115) o removeu sem registro ao trocar a lista pela tabela de eixos. O golden `Board.tsx` **não** implementa (só `KeyboardSensor`, que não cobre touch impreciso nem monitor 1280px sem drag da persona Larissa) — é gap conhecido a fechar ao evoluir o golden, não requisito descartado.
 
 ## Aplicado em (estado real)
 
-| Página | Drag | FSM | Confirm dialog | Token v4 | Touch ok | Score |
-|---|---|---|---|---|---|---|
-| `OficinaAuto/ProducaoOficina/Index.tsx` | dnd-kit ✓ | ✓ | ✓ | parcial (`primary` no preview, warm KPI) | parcial | **68** (golden) |
-| `Repair/ProducaoOficina/Index.tsx` | HTML5 ✗ | ✗ (POST direto) | ✗ | ✗ (`blue-*` cru) | ✗ | — |
+| Página | Papel | Drag | FSM | Confirm | Board rolável | Token | Score |
+|---|---|---|---|---|---|---|---|
+| `OficinaAuto/ServiceOrders/Board.tsx` | **golden** | dnd-kit ✓ | ✓ | ✓ | ✓ | semântico ✓ | **~8/10** |
+| `Repair/ProducaoOficina/Index.tsx` | consumidor | HTML5 ✗ | POST direto ✗ | ✗ | ✗ (`grid-cols-5`) | `blue-*` ✗ | drift |
+| `team-mcp/Tasks/Index.tsx` | consumidor | — | — | — | — | — | — |
 
-**Próximo passo:** quando OficinaAuto fechar os 5 drifts (board flex + tap≥44 + Badge + PageHeader) e marcar ≥8/10, bump PT-05 pra `status: live` e migrar a Repair pro mesmo esqueleto.
+**Próximo passo:** aprovação de screenshot Wagner (F1.5) → bump `status: live`. Depois, migrar `Repair/ProducaoOficina` pro esqueleto do golden e auditar tap-target.
 
 ## Referências
 
 - **ADR-mãe:** [UI-0013 Constituição UI v2](../adr/ui/0013-constituicao-ui-v2-camadas.md)
+- **Gate visual:** [ADR 0107](../../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md) (Wagner aprova screenshot, não tabela)
 - **FSM canon:** [ADR 0143](../../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md) (LIVE prod) · [ADR 0129](../../../decisions/0129-state-machine-canonica-fsm-rbac.md)
-- **Domínio Martinho:** [ADR 0194](../../../decisions/0194-correcao-dominio-martinho-mecanica-pesada.md) · [ADR 0137](../../../decisions/0137-oficinaauto-qualificada.md)
+- **Domínio Martinho:** [ADR 0194](../../../decisions/0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada.md) · [ADR 0265](../../../decisions/0265-oficina-reparo-erradica-locacao.md) (reparo, não locação)
 - **Golden form/lista:** [GOLDEN-REFERENCE.md](../../../../prototipo-ui/GOLDEN-REFERENCE.md) · [PT-01 Lista](PT-01-Lista.md)
 - **Índice de design:** [INDEX-DESIGN-MEMORIAS.md](../INDEX-DESIGN-MEMORIAS.md) (regra de ouro + negativo)
-- **Piloto que gradeou:** [screen-grades-pilot.md](../../../governance/screen-grades-pilot.md) (Repair/ProducaoOficina kanban = 68 Developing)
-- **Protótipo de origem:** [`prototipo-ui/prototipos/producao-oficina/visual-source.html`](../../../../prototipo-ui/prototipos/producao-oficina/visual-source.html)
 
 ## Versão
 
-**v0.1** · 2026-05-30 · `draft`. Golden estrutural eleito (OficinaAuto), drifts catalogados, golden IDEAL definido.
-**Bump v1.0** quando golden fechar os 5 drifts + marcar ≥8/10 nas regras binárias.
+**v0.3** · 2026-07-12 · `draft`. **Requisito restaurado** (forense reescritas-sem-lápide 10→13/jul): fallback sem-drag "Mover para…" da v0.1, perdido na reancoragem #4115, volta como **R11** + §Drift item 4 (golden ainda não implementa — gap conhecido, não descarte). Placar vira /11.
+**v0.2** · 2026-07-11 · `draft`. **Golden reeleito** `OficinaAuto/ServiceOrders/Board.tsx` (o anterior `ProducaoOficina/Index.tsx` foi deletado). Drifts estruturais (board rolável, tones) resolvidos pela reeleição; residual = header + tap-target. Re-âncora completa dos slots + R1-R10.
+**v0.1** · 2026-05-30 · golden estrutural anterior (OficinaAuto/ProducaoOficina, score 68), aposentado.
+**Bump v1.0/`live`** após aprovação de screenshot Wagner (F1.5).

@@ -1,0 +1,10 @@
+{
+  "schema": "fullsuite-summary-sharded/v1",
+  "coherent": true,
+  "all_shards_measured": true,
+  "shards_completed": [0, 1, 2, 3, 4, 5, 6, 7],
+  "shards_missing": [],
+  "source": "ct100-nightly/summary.json",
+  "totals": { "passed": 0, "failed": 0, "errors": 0, "skipped": 0 },
+  "files": []
+}

@@ -1,0 +1,5 @@
+{
+  "metrics": {
+    "full_suite_pass_rate": { "status": "measured", "value": 291, "armed": true }
+  }
+}

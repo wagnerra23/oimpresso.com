@@ -1,7 +1,7 @@
 {
   "_meta": {
     "generated_at": "2026-06-18T11:02:07.887Z",
-    "count": 101,
+    "count": 97,
     "note": "F4 — ratchet do PageHeader antigo (shared/PageHeader). Contador só desce (migração pro canon @/Components/PageHeader). Tela nova nunca adota o antigo. Ver MANUAL-CSS-JS.md §5."
   },
   "files": [
@@ -43,10 +43,6 @@
     "resources/js/Pages/Auditoria/Detail.tsx",
     "resources/js/Pages/Auditoria/Index.tsx",
     "resources/js/Pages/ComunicacaoVisual/Index.tsx",
-    "resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx",
-    "resources/js/Pages/Financeiro/Configuracoes/Contador.tsx",
-    "resources/js/Pages/Financeiro/Extrato/Index.tsx",
-    "resources/js/Pages/Financeiro/Unificado/Novo.tsx",
     "resources/js/Pages/governance/Audit.tsx",
     "resources/js/Pages/governance/Dashboard.tsx",
     "resources/js/Pages/governance/DriftAlerts.tsx",

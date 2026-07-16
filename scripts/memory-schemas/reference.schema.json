@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oimpresso.com/schemas/reference.schema.json",
+  "title": "Reference doc frontmatter — oimpresso (conceito único memory/, proposal estrutura-canon-memoria)",
+  "description": "Schema canônico do bloco YAML em memory/reference/*.md + docs canônicos de topo (INFRA-ACESSO-CANON, feedback-*, _INDEX-*, PAINEL-SISTEMA). Preenche o dono AUSENTE do glob. Campo-chave `authority`: distingue doc editável-à-mão (canonical) de doc REGENERADO por máquina (generated — ex PAINEL-SISTEMA.md, _INDEX-GENERATED) que o normalizador DEVE pular. additionalProperties:true — não reprova frontmatter existente. Sem seção nomeada obrigatória (L-24: enforcement = AJV enum/regex, não presence-gate). Wiring ao gate = grace→required só após backfill FP=0 (ADR 0314). Os 5 @imports do CLAUDE.md (why-/what-/how-/proibicoes/regras-time) ficam FORA do glob (instrução Tier 0).",
+  "type": "object",
+  "required": ["name", "description", "type", "authority"],
+  "additionalProperties": true,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Nome curto do doc (título canônico).",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "description": "1 linha — usada pra decidir relevância no recall.",
+      "minLength": 10
+    },
+    "type": {
+      "type": "string",
+      "enum": ["reference", "feedback", "protocol", "guide", "index"]
+    },
+    "authority": {
+      "type": "string",
+      "description": "canonical = verdade editável à mão; generated = REGENERADO por máquina (não editar; normalizador pula).",
+      "enum": ["canonical", "generated"]
+    },
+    "lifecycle": {
+      "type": "string",
+      "enum": ["ativo", "arquivado"]
+    },
+    "updated_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "decided_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "related_adrs": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[0-9]{4}-[a-z0-9-]+$" },
+      "uniqueItems": true,
+      "default": []
+    },
+    "related": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    }
+  }
+}

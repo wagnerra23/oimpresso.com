@@ -18,7 +18,7 @@ declare(strict_types=1);
  * de tests/Pest.php é o que boota o app aqui (sem ele = BindingResolutionException [config]).
  *
  * @see .github/workflows/visual-regression.yml (step "Run Pest Browser tests")
- * @see tests/Browser/CoreScreens/SmokeTest.php (Fase B — telas autenticadas, pendente harness)
+ * @see tests/Browser/CoreScreens/AuthBridgeSmokeTest.php (Fase B — telas autenticadas, entregue)
  */
 
 // SEM guard de skip: este teste roda só pelo path `tests/Browser/Public/` que o

@@ -9,6 +9,12 @@
 // o read-side (sdd-scorecard.mjs) trata como not_yet_measured (nunca mente 0).
 //
 // Determinístico: para o MESMO conjunto de runs, mesmo output (sem timestamp no corpo).
+//
+// v2 SHARD-AWARE (SDD P04): quando o run é um summary shardeado (fullsuite-summary-
+// sharded/v1, produzido por shards-merge.mjs), lê all_shards_measured. Se algum run da
+// janela foi PARCIAL (shard morto), o floor NÃO é vendido — floor_count=null +
+// all_shards_measured=false (guard anti-mascaramento: run parcial não vira burn-down
+// fake). Summary legado sem o campo = completo (back-compat).
 // Uso: node scripts/tests/floor-compute.mjs [--runs <dir>] [--window N] [--out <file>]
 import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -33,10 +39,13 @@ export function validRuns(runsDir = RUNS) {
     if (s.invalid) continue; // marcador explicito FV-F4 (US-GOV-045) — run morto declarado
     if (!s.coherent || !s.n_testcases || !Array.isArray(s.files)) continue;
     const failingFiles = s.files.filter((f) => (f.failed || 0) > 0 || (f.errors || 0) > 0).map((f) => f.file);
+    // v2 shard-aware (fullsuite-summary-sharded/v1): all_shards_measured=false ⇒ a noite
+    // foi PARCIAL (algum shard morto). Ausente ⇒ summary não-shardeado legado = completo.
+    const allShardsMeasured = s.all_shards_measured !== false;
     let sha = null;
     const lp = join(runsDir, name, 'run.log');
     if (existsSync(lp)) { const m = readFileSync(lp, 'utf8').match(/sha=([0-9a-f]{7,40})/); if (m) sha = m[1]; }
-    out.push({ ts: name, sha, totals: s.totals || {}, failingFiles });
+    out.push({ ts: name, sha, totals: s.totals || {}, failingFiles, allShardsMeasured });
   }
   return out;
 }
@@ -44,12 +53,21 @@ export function validRuns(runsDir = RUNS) {
 // floor = arquivos que falham em TODOS os runs da janela (interseção)
 export function computeFloor(runs, window = WINDOW) {
   const w = runs.slice(-window);
-  if (w.length < 2) {
+  const runsMeta = w.map((r) => ({ sha: r.sha, ts: r.ts, failed: r.totals.failed ?? null, errors: r.totals.errors ?? null, skipped: r.totals.skipped ?? null, all_shards_measured: r.allShardsMeasured !== false }));
+  // GUARD ANTI-MASCARAMENTO (v2): se QUALQUER run da janela foi parcial (shard morto),
+  // a interseção pode cair um arquivo que só faltou por o shard dele ter crashado →
+  // floor falso-menor = burn-down FAKE. Nesse caso NÃO vendemos o número: floor_count
+  // = null + all_shards_measured=false, tratado como not_yet_measured pelo read-side.
+  const partial = w.filter((r) => r.allShardsMeasured === false).map((r) => r.ts);
+  if (w.length < 2 || partial.length) {
     return {
       schema: 'nightly-floor/v1 (ADR 0279)', floor_count: null, floor_files_hash: null,
-      runs: w.map((r) => ({ sha: r.sha, ts: r.ts, failed: r.totals.failed ?? null, errors: r.totals.errors ?? null, skipped: r.totals.skipped ?? null })),
+      all_shards_measured: partial.length === 0, partial_runs: partial,
+      runs: runsMeta,
       computed_at: w.length ? w[w.length - 1].ts : null, intersection_of: w.length,
-      note: 'aguardando >=2 nightlies validos; read-side trata como not_yet_measured',
+      note: partial.length
+        ? `medicao PARCIAL: shard(s) faltando em ${partial.length} run(s) da janela — read-side trata como not_yet_measured (anti-mascaramento; floor nao pode ser vendido como completo)`
+        : 'aguardando >=2 nightlies validos; read-side trata como not_yet_measured',
     };
   }
   let inter = new Set(w[0].failingFiles);
@@ -59,7 +77,8 @@ export function computeFloor(runs, window = WINDOW) {
     schema: 'nightly-floor/v1 (ADR 0279)',
     floor_count: floorFiles.length,
     floor_files_hash: createHash('sha256').update(floorFiles.join('\n')).digest('hex').slice(0, 16),
-    runs: w.map((r) => ({ sha: r.sha, ts: r.ts, failed: r.totals.failed ?? null, errors: r.totals.errors ?? null, skipped: r.totals.skipped ?? null })),
+    all_shards_measured: true, partial_runs: [],
+    runs: runsMeta,
     computed_at: w[w.length - 1].ts,
     intersection_of: w.length,
     note: `floor = intersecao de ${w.length} runs validos (arquivos com failed>0||errors>0 em TODOS)`,

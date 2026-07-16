@@ -1,0 +1,114 @@
+#!/usr/bin/env node
+// pt-conformance.mjs — VERIFICA que uma tela que DECLARA "herda PT-0X" tem de fato a
+//   assinatura estrutural desse Padrão de Tela. Sem isto, declarar `related_prototype: "herda
+//   PT-05 Kanban"` num charter é COUNT-PUMP: o design-coverage conta a string, ninguém checa se
+//   a tela é mesmo um kanban (revisão adversarial 2026-07-11). Este gate torna a declaração
+//   FALSIFICÁVEL — uma tela que jura PT-02 mas não tem <form> é MISMATCH.
+//
+// ⚠️ v1 HEURÍSTICO — detecção por ASSINATURA (regex de componente), não parsing semântico.
+//   Mesma honestidade do reconcile-triplet.mjs (que faz slot-parity fino do PT-01). Aqui o
+//   escopo é mais raso e mais largo: pega MISMATCH GROSSO do PT declarado nos arquétipos formalizados
+//   (PT-01..05 + PT-07 Feed/Timeline). PT-06 (Ferramenta/Calculadora) fica de fora até ter ≥2 telas.
+//   PT-03 (Detalhe) vs PT-04 (Dashboard) compartilham KPIs → distinção fuzzy (ver classify).
+//
+// Contrato: memory/requisitos/_DesignSystem/padroes-tela/PT-0{1..5}-*.md (assinaturas dos golden).
+//
+// Uso:
+//   node scripts/governance/pt-conformance.mjs            # relatório de todas as telas que declaram PT
+//   node scripts/governance/pt-conformance.mjs --json      # JSON determinístico
+//   node scripts/governance/pt-conformance.mjs --check     # exit 1 se houver MISMATCH (declara PT que não é)
+//   node scripts/governance/pt-conformance.mjs --selftest  # fixtures herméticas
+
+import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { join, dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+// Assinaturas dos 5 arquétipos = FONTE ÚNICA em lib/pt-signatures.mjs (o gerador criar-tela.mjs
+// consome a MESMA tabela pra carimbar tsx que passa aqui POR CONSTRUÇÃO — sem drift entre os dois).
+import { detectSignals, REQUIRED, claimedPT } from './lib/pt-signatures.mjs';
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(HERE, '..', '..');
+const PAGES = join(ROOT, 'resources', 'js', 'Pages');
+
+const fmGet = (fm, key) => {
+  const m = fm.match(new RegExp('^' + key + ':\\s*(.+)$', 'im'));
+  return m ? m[1].trim() : null;
+};
+
+function walk(dir) {
+  const out = [];
+  for (const e of readdirSync(dir)) {
+    const p = join(dir, e); const st = statSync(p);
+    if (st.isDirectory()) out.push(...walk(p));
+    else if (e.endsWith('.charter.md')) out.push(p);
+  }
+  return out;
+}
+
+// classifica uma tela: { page, pt, signals, verdict, charter, tsx }
+// (charter/tsx = caminhos relativos ao ROOT — chave de JOIN estável pro ciclo-completo consumir
+//  este --json sem depender do `page:` frontmatter, que pode faltar/repetir.)
+const relRoot = (p) => resolve(p).replace(resolve(ROOT), '').replace(/^[\\/]/, '').replace(/\\/g, '/');
+function classifyCharter(charterPath) {
+  const fm = readFileSync(charterPath, 'utf8').split(/^---$/m)[1] || '';
+  const pt = claimedPT(fmGet(fm, 'related_prototype'));
+  if (!pt) return null; // não declara PT → fora do escopo deste gate (é o design-coverage que cobra declaração)
+  const comp = fmGet(fm, 'component');
+  const tsx = comp ? resolve(ROOT, comp) : charterPath.replace(/\.charter\.md$/, '.tsx');
+  const base = { page: fmGet(fm, 'page') || charterPath, pt, charter: relRoot(charterPath), tsx: relRoot(tsx) };
+  if (!existsSync(tsx)) return { ...base, verdict: 'SEM_TSX' };
+  const signals = detectSignals(readFileSync(tsx, 'utf8'));
+  const ok = REQUIRED[pt] ? REQUIRED[pt](signals) : true;
+  return { ...base, signals, verdict: ok ? 'CONFORME' : 'MISMATCH' };
+}
+
+function runAll() {
+  return walk(PAGES).map(classifyCharter).filter(Boolean);
+}
+
+// ── selftest ──
+if (process.argv.includes('--selftest')) {
+  let fails = 0;
+  const t = (c, m) => { if (c) console.log(`  ✓ ${m}`); else { console.error(`  ✗ ${m}`); fails++; } };
+  const s = detectSignals;
+  t(REQUIRED['PT-02'](s('const x = useForm({}); <form>')), 'PT-02 ok com useForm/<form>');
+  t(!REQUIRED['PT-02'](s('<div><table><tbody/></table></div>')), 'PT-02 MISMATCH quando é table (sem form)');
+  t(REQUIRED['PT-05'](s('import {KanbanDndProvider} from "x"; <BoardColumn/>')), 'PT-05 ok com kanban');
+  t(!REQUIRED['PT-05'](s('<form><Input/></form>')), 'PT-05 MISMATCH quando é form');
+  t(REQUIRED['PT-01'](s('<DataTable/><Pagination/>')), 'PT-01 ok com DataTable');
+  t(!REQUIRED['PT-01'](s('const x=useForm()')), 'PT-01 MISMATCH quando é só form');
+  t(REQUIRED['PT-04'](s('<KpiGrid><KpiCard/></KpiGrid>')), 'PT-04 ok com KPIs');
+  t(REQUIRED['PT-07'](s('<div className="fx-timeline">{rows.map(...)}</div>')), 'PT-07 ok com fx-timeline');
+  t(REQUIRED['PT-07'](s('data-testid="cc-feed"; {fmtRelative(x)}')), 'PT-07 ok com feed/tempo-relativo');
+  t(!REQUIRED['PT-07'](s('const x = useForm(); <form/>')), 'PT-07 MISMATCH quando é form (sem feed)');
+  t(claimedPT('n/a (herda PT-05 Kanban; segue o DS)') === 'PT-05', 'extrai PT-05 do related_prototype');
+  t(claimedPT('n/a (herda PT-07 Feed/Timeline; segue o DS)') === 'PT-07', 'extrai PT-07 do related_prototype');
+  t(claimedPT('n/a — ferramenta bespoke (calculadora); segue o DS') === null, 'bespoke sem token PT → fora do escopo');
+  t(claimedPT('prototipo-ui/cowork/vendas-page.jsx') === null, 'protótipo bespoke → sem PT declarado (fora do escopo)');
+  console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — declaração de PT é falsificável.');
+  process.exit(fails ? 1 : 0);
+}
+
+const rows = runAll();
+const mismatch = rows.filter((r) => r.verdict === 'MISMATCH');
+const conforme = rows.filter((r) => r.verdict === 'CONFORME');
+
+if (process.argv.includes('--json')) {
+  console.log(JSON.stringify({ total: rows.length, conforme: conforme.length, mismatch: mismatch.length, rows }, null, 2));
+  process.exit(0);
+}
+if (process.argv.includes('--check')) {
+  if (mismatch.length) {
+    console.error(`pt-conformance: ${mismatch.length} tela(s) declaram um PT que NÃO têm a assinatura:`);
+    for (const r of mismatch) console.error(`  ✗ ${r.page} declara ${r.pt} — sinais: ${JSON.stringify(r.signals)}`);
+    console.error(`  → corrija o related_prototype pro PT correto, OU a tela não segue o padrão que declara.`);
+    process.exit(1);
+  }
+  console.log(`pt-conformance: OK — ${conforme.length} declarações de PT conferem com a assinatura (0 mismatch).`);
+  process.exit(0);
+}
+
+console.log('═══ PT-conformance (declaração de Padrão de Tela × assinatura real) ═══');
+console.log(`telas que declaram PT : ${rows.length}  ·  ✅ conforme: ${conforme.length}  ·  ⚠️ mismatch: ${mismatch.length}`);
+for (const r of mismatch) console.log(`  ⚠️ ${r.page} declara ${r.pt} mas não tem a assinatura`);
+console.log(`\n(v1 heurístico — pega mismatch grosso. Complementa reconcile-triplet.mjs, que faz slot-parity fino do PT-01.)`);

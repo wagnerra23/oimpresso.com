@@ -23,7 +23,7 @@ use ArrayObject;
  *   - $page->screenshot(): vendor pest-plugin-browser/src/Api/Concerns/InteractsWithScreen.php:12
  *   - baseline .snap (base64 PNG): vendor pest/src/Repositories/SnapshotRepository.php:58
  *   - threshold pixelmatch 0.3: vendor pest-plugin-browser/src/Playwright/Page.php:524
- *   - artifact pixel-diff-views (ImageDiffView/): .github/workflows/visual-regression.yml:256
+ *   - artifact pixel-diff-views (storage/app/visreg-diffs): visual-regression.yml
  *
  * @see tests/Browser/CoreScreens/PixelBaselineTest.php (consumidor)
  */
@@ -63,26 +63,95 @@ final class VisregThreshold
     }
 
     /**
+     * Pest propaga o modo de atualização via argv (`--update-snapshots`).
+     * Nesse modo o gate não pode comparar contra a baseline antiga antes de
+     * deixar o SnapshotRepository gravar a nova imagem.
+     */
+    private static function isUpdatingSnapshots(): bool
+    {
+        foreach ($_SERVER['argv'] ?? [] as $arg) {
+            $arg = (string) $arg;
+
+            if ($arg === '--update-snapshots' || str_starts_with($arg, '--update-snapshots=')) {
+                return true;
+            }
+        }
+
+        return getenv('PEST_UPDATE_SNAPSHOTS') === '1'
+            || getenv('UPDATE_SNAPSHOTS') === '1';
+    }
+
+    /**
      * Captura o screenshot atual, compara com a baseline e roteia nas 3 bandas.
      *
      * @param  object  $page  AwaitableWebpage do pest-plugin-browser (tem ->screenshot())
      * @param  string  $screenName  nome legível da tela (ex: "Sells/Create")
      * @param  ArrayObject<int, array{screen:string,ratio:float,diffView:?string}>  $grayZone
+     * @param  string  $baselineSuite  diretório da suíte no SnapshotRepository do Pest
+     * @param  string|null  $baselineFile  snapshot explícito do contrato visreg
      */
-    public static function assertBandedScreenshot(object $page, string $screenName, ArrayObject $grayZone): void
+    public static function assertBandedScreenshot(
+        object $page,
+        string $screenName,
+        ArrayObject $grayZone,
+        string $baselineSuite = 'PixelBaselineTest',
+        ?string $baselineFile = null,
+    ): void
     {
         $tauLow = self::tauLow();
         $tauHigh = self::tauHigh();
 
+        if (self::isUpdatingSnapshots()) {
+            if ($baselineFile !== null) {
+                $actualFilename = self::actualFilename($screenName);
+                $actualPath = self::screenshotPath($actualFilename);
+                $baselinePath = self::baselinePath($baselineSuite, $baselineFile);
+                $page->screenshot(false, $actualFilename);
+                $actualBlob = @file_get_contents($actualPath);
+
+                if ($baselinePath === null || $actualBlob === false) {
+                    test()->fail("VisregThreshold [{$screenName}]: não foi possível materializar a baseline explícita.");
+
+                    return;
+                }
+
+                if (! is_dir(dirname($baselinePath))) {
+                    @mkdir(dirname($baselinePath), 0755, true);
+                }
+                if (@file_put_contents($baselinePath, base64_encode($actualBlob)) === false) {
+                    test()->fail("VisregThreshold [{$screenName}]: falha ao gravar {$baselinePath}.");
+
+                    return;
+                }
+
+                test()->expect(is_file($baselinePath))->toBeTrue('update-snapshots: baseline explícita regenerada');
+
+                return;
+            }
+
+            $page->assertScreenshotMatches(fullPage: false);
+            test()->expect(true)->toBeTrue('update-snapshots: baseline regenerada sem comparar contra a anterior');
+
+            return;
+        }
+
         // 1. Baseline commitada (.snap base64 PNG) desta tela.
-        $baselineBlob = self::readBaseline();
+        $baselineBlob = self::readBaseline($baselineSuite, $baselineFile);
 
         if ($baselineBlob === null) {
-            // Sem baseline = 1ª execução: o engine do plugin GERARIA e passaria. Aqui
-            // espelhamos esse contrato — capturamos o screenshot pra o artifact
-            // pixel-snapshots poder commitar, e tratamos como aprovado (não regressão).
-            $page->screenshot(false, self::actualFilename($screenName));
-            test()->expect(true)->toBeTrue(); // baseline ausente → gera e segue (não falha)
+            if ($baselineFile !== null) {
+                test()->fail(
+                    "VisregThreshold [{$screenName}]: baseline contratada ausente. "
+                    . 'Gere no workflow_dispatch com --update-snapshots e versione o .snap antes do merge.'
+                );
+
+                return;
+            }
+
+            // Suítes legadas sem manifesto mantêm o contrato nativo do Pest: a primeira
+            // execução materializa o snapshot e o publica no artifact para versionamento.
+            $page->assertScreenshotMatches(fullPage: false);
+            test()->expect(true)->toBeTrue();
 
             return;
         }
@@ -148,6 +217,32 @@ final class VisregThreshold
         test()->expect($ratio)
             ->toBeGreaterThanOrEqual($tauLow)
             ->toBeLessThanOrEqual($tauHigh, "ZONA CINZA {$pct}% (τ {$lowPct}%..{$highPct}%) — [W] revisa");
+    }
+
+    /**
+     * Captura o PNG atual do viewport (mesmo motor/contrato do gate) e devolve o blob raw.
+     * Usado por provas de "morde e libera" self-contained (compara duas capturas in-test,
+     * sem depender da baseline commitada). @see PixelDimensionProbesTest.
+     */
+    public static function captureBlob(object $page, string $label): string
+    {
+        $path = self::screenshotPath(self::actualFilename($label));
+        $page->screenshot(false, self::actualFilename($label));
+        $blob = @file_get_contents($path);
+        if ($blob === false) {
+            test()->fail("VisregThreshold::captureBlob — nao consegui ler o screenshot em {$path}.");
+        }
+
+        return $blob;
+    }
+
+    /**
+     * Ratio pixelmatch (0..1) entre dois blobs PNG — MESMA semantica do gate. Expoe o
+     * pixelmatchRatio privado pra comparar A-vs-B (perturbacao deliberada vs limpo).
+     */
+    public static function ratioBetween(string $blobA, string $blobB): float
+    {
+        return self::pixelmatchRatio($blobA, $blobB)[0];
     }
 
     /**
@@ -291,13 +386,11 @@ final class VisregThreshold
     }
 
     /**
-     * Grava o diff-view HTML em tests/Browser/Screenshots/ImageDiffView/ (mesmo dir que o
-     * artifact `pixel-diff-views` sobe — visual-regression.yml:261). Formato espelha o
-     * ImageDiffView do plugin (Diff + Slider Expected/Actual).
+     * Grava o diff-view fora de Screenshots/, que o Pest limpa entre arquivos de teste.
      */
     private static function writeDiffView(string $screenName, string $expectedBlob, string $actualBlob, string $diffBlob): string
     {
-        $dir = self::screenshotDir() . '/ImageDiffView';
+        $dir = base_path('storage/app/visreg-diffs');
         if (! is_dir($dir)) {
             @mkdir($dir, 0755, true);
         }
@@ -333,7 +426,7 @@ final class VisregThreshold
 
         @file_put_contents($path, $html);
 
-        return 'tests/Browser/Screenshots/ImageDiffView/' . $slug . '.html';
+        return 'storage/app/visreg-diffs/' . $slug . '.html';
     }
 
     /**
@@ -387,12 +480,10 @@ final class VisregThreshold
      * EXATAMENTE como o SnapshotRepository do Pest (vendor pest/src/Repositories/
      * SnapshotRepository.php:107 + TestSuite::getDescription:118).
      */
-    private static function readBaseline(): ?string
+    private static function readBaseline(string $baselineSuite, ?string $baselineFile = null): ?string
     {
-        $dir = base_path('tests/.pest/snapshots/Browser/CoreScreens/PixelBaselineTest');
-        $file = $dir . '/' . self::snapshotDescription() . '.snap';
-
-        if (! is_file($file)) {
+        $file = self::baselinePath($baselineSuite, $baselineFile);
+        if ($file === null || ! is_file($file)) {
             return null;
         }
 
@@ -405,6 +496,26 @@ final class VisregThreshold
         $decoded = base64_decode(trim($contents), true);
 
         return $decoded !== false ? $decoded : $contents;
+    }
+
+    private static function baselinePath(string $baselineSuite, ?string $baselineFile = null): ?string
+    {
+        // Nome da suíte vem de código, mas ainda assim só aceita identificador PHP para
+        // não transformar um helper de teste em leitor arbitrário de arquivos.
+        if (! preg_match('/^[A-Za-z0-9_]+$/', $baselineSuite)) {
+            test()->fail("VisregThreshold: nome de suíte inválido: {$baselineSuite}.");
+
+            return null;
+        }
+        if ($baselineFile !== null && (basename($baselineFile) !== $baselineFile || ! str_ends_with($baselineFile, '.snap'))) {
+            test()->fail("VisregThreshold: nome de baseline inválido: {$baselineFile}.");
+
+            return null;
+        }
+
+        $dir = base_path('tests/.pest/snapshots/Browser/CoreScreens/' . $baselineSuite);
+
+        return $dir . '/' . ($baselineFile ?? self::snapshotDescription() . '.snap');
     }
 
     /**

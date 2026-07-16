@@ -510,7 +510,7 @@ export default function DrawerGateway({ gateway, accounts, onClose, onToggle }: 
                 <Btn variant="outline" size="xs"><Copy className="h-3 w-3" />Copiar</Btn>
               </div>
               <div className="text-[10.5px] text-stone-500">
-                Cole esta URL no painel {d.nome} → Integrações → Webhooks. Idempotência garantida via <span className="font-mono">gateway_webhook_events.external_id</span>.
+                Cole esta URL no painel {d.nome} → Integrações → Webhooks. Idempotência garantida via <code className="font-mono">gateway_webhook_events.external_id</code>.
               </div>
 
               <div className="pt-2">

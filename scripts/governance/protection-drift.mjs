@@ -31,9 +31,10 @@
 //   node scripts/governance/protection-drift.mjs --fixture <f.json> # estado vivo vem de arquivo (simulação/selftest GT-G6)
 // Node puro (fs + execSync). Idioma: clone de sdd-scorecard.mjs.
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const ROOT = process.cwd();
 const REPO = 'wagnerra23/oimpresso.com';
@@ -47,9 +48,12 @@ const FIXTURE = fxIdx > -1 ? process.argv[fxIdx + 1] : null;
 
 // métrica measured do scorecard → workflow que mantém a fonte viva (watchdog ADR 0275 §3).
 // Métrica nova `measured` sem entry aqui = 🟡 aviso (adicionar o mapeamento).
-// P14b: fonte `orfa:<branch>` = frescor do TIP da branch órfã (nightly CT100 publica lá).
-// Staleness da nightly fica AQUI (advisory) por decisão deliberada do P14 — o required
-// GT-G3 nunca depende de wall-clock (gate-que-grita-lobo); a órfã retém o último floor.
+// V5 (2026-07-12): fonte `orfa:<branch>#<path>` = frescor do `computed_at` do CONTEÚDO do
+// arquivo publicado na órfã — NÃO do tip do commit. O write-side da nightly re-pusha com
+// [skip ci] todo dia, então o tip avança mesmo quando a suíte morre por OOM e o floor congela;
+// medir o tip deixaria 6 dias de floor stale passar como "fresco". Ler o computed_at fecha esse
+// buraco (avaliação adversarial 2026-07-12 risco nº1). Fail-closed: sem computed_at legível =
+// stale. Segue advisory (GT-G4); o required GT-G3 nunca depende de wall-clock (gate-grita-lobo).
 const WATCHDOG_SOURCES = {
   anchor_coverage: 'sdd-scorecard.yml',
   ghost_count: 'sdd-scorecard.yml',
@@ -58,15 +62,60 @@ const WATCHDOG_SOURCES = {
   // P14 carona 2 (#3548): a auditoria do repo pelo sqlite-test-corruptors roda dentro do
   // agregador sdd-scorecard — mesmo frescor do resto do scorecard.
   sqlite_corruptors: 'sdd-scorecard.yml',
-  full_suite_pass_rate: 'orfa:governance/nightly-floor',
+  // measureDistillerFreshness() roda dentro do agregador sdd-scorecard.mjs — mesmo
+  // frescor do resto do scorecard (measured desde o 1º carimbo distilled_at).
+  distiller_freshness: 'sdd-scorecard.yml',
+  full_suite_pass_rate: 'orfa:governance/nightly-floor#governance/nightly-floor.json',
 };
+
+// ── frescor de fonte órfã: computed_at do CONTEÚDO, não o tip ─────────────────
+// PURAS + exportadas (testadas em protection-drift-freshness.test.mjs sem rede).
+// parseFloorTs: normaliza o carimbo do write-side (floor-compute.mjs grava `ts`/`computed_at`
+// no formato compacto 'YYYYMMDD-HHMMSS', UTC) OU um ISO 8601 → string ISO canônica (ou null).
+export function parseFloorTs(s) {
+  if (typeof s !== 'string' || !s.trim()) return null;
+  const t = s.trim();
+  const m = /^(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(\d{2})$/.exec(t);
+  if (m) {
+    const iso = `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}Z`;
+    return Number.isNaN(Date.parse(iso)) ? null : new Date(iso).toISOString();
+  }
+  const ms = Date.parse(t);
+  return Number.isNaN(ms) ? null : new Date(ms).toISOString();
+}
+
+// resolveOrfaFreshness: dado o JSON já parseado do arquivo da órfã, devolve o frescor
+// (ISO do computed_at) ou null. fail-closed — sem computed_at reconhecível o watchdog
+// trata null como stale (NUNCA), que é o comportamento seguro.
+export function resolveOrfaFreshness(content) {
+  return parseFloorTs(content?.computed_at);
+}
+
+// ghContent: lê o CONTEÚDO de um arquivo numa ref via API `contents` (base64) e devolve o
+// JSON parseado. fail-closed: encoding != 'base64' ou content vazio → lança (o caller reduz a
+// null = stale). ghFn injetável pra teste sem rede.
+export function ghContent(repo, ref, path, ghFn = gh) {
+  const res = ghFn(`repos/${repo}/contents/${path}?ref=${encodeURIComponent(ref)}`);
+  if (res?.encoding !== 'base64' || !res?.content)
+    throw new Error(`contents API: encoding='${res?.encoding ?? 'none'}' (esperado base64 não-vazio) em ${ref}:${path}`);
+  return JSON.parse(Buffer.from(res.content, 'base64').toString('utf8'));
+}
 
 function gh(path) {
   return JSON.parse(execSync(`gh api "${path}"`, { maxBuffer: 8 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] }).toString());
 }
 
 function fetchLive() {
-  if (FIXTURE) return JSON.parse(readFileSync(FIXTURE, 'utf8'));
+  if (FIXTURE) {
+    const fx = JSON.parse(readFileSync(FIXTURE, 'utf8'));
+    // Fixture pode trazer o CONTEÚDO cru da órfã em `orfa_contents` (chave = wf) — resolve o
+    // frescor pelo computed_at do CONTEÚDO, sem rede. Prova que o tip é ignorado (selftest GT-G6).
+    if (fx.orfa_contents) {
+      fx.workflow_runs = fx.workflow_runs ?? {};
+      for (const [wf, content] of Object.entries(fx.orfa_contents)) fx.workflow_runs[wf] = resolveOrfaFreshness(content);
+    }
+    return fx;
+  }
   const branch = gh(`repos/${REPO}/branches/main`);
   const rules = gh(`repos/${REPO}/rules/branches/main`).filter((r) => r.type === 'required_status_checks');
   const live = {
@@ -78,9 +127,15 @@ function fetchLive() {
   };
   for (const wf of [...new Set(Object.values(WATCHDOG_SOURCES))].sort()) {
     if (wf.startsWith('orfa:')) {
-      // P14b: última publicação do write-side = data do commit no tip da órfã.
-      const br = gh(`repos/${REPO}/branches/${encodeURIComponent(wf.slice(5))}`);
-      live.workflow_runs[wf] = br.commit?.commit?.committer?.date ?? null;
+      // V5: frescor = computed_at do CONTEÚDO do arquivo na órfã (não o tip, que avança com
+      // [skip ci] mesmo com o floor congelado por OOM). Formato: orfa:<branch>#<path>.
+      const spec = wf.slice(5);
+      const hash = spec.indexOf('#');
+      const brName = hash > -1 ? spec.slice(0, hash) : spec;
+      const path = hash > -1 ? spec.slice(hash + 1) : null;
+      let fresh = null;
+      if (path) { try { fresh = resolveOrfaFreshness(ghContent(REPO, brName, path)); } catch { fresh = null; } }
+      live.workflow_runs[wf] = fresh; // fail-closed: erro/encoding ruim/sem computed_at = null = stale
     } else {
       const runs = gh(`repos/${REPO}/actions/workflows/${wf}/runs?status=success&per_page=1`);
       live.workflow_runs[wf] = runs.workflow_runs?.[0]?.run_started_at ?? null;
@@ -144,7 +199,8 @@ function watchdog(live) {
   if (FIXTURE && !('workflow_runs' in live)) return { rows, red, warn, skipped: 'fixture sem workflow_runs' };
   if (!existsSync(SCORECARD_BASELINE)) return { rows, red, warn: ['governance/sdd-scorecard-baseline.json ausente — watchdog sem métricas'], skipped: null };
   const sb = JSON.parse(readFileSync(SCORECARD_BASELINE, 'utf8'));
-  const now = Date.now();
+  // PROTECTION_DRIFT_NOW: relógio injetável (ISO) pra testar staleness determinística.
+  const now = process.env.PROTECTION_DRIFT_NOW ? Date.parse(process.env.PROTECTION_DRIFT_NOW) : Date.now();
   for (const [name, m] of Object.entries(sb.metrics ?? {})) {
     if (m.status !== 'measured') continue;
     const wf = WATCHDOG_SOURCES[name];
@@ -158,6 +214,16 @@ function watchdog(live) {
 }
 
 // ── main ────────────────────────────────────────────────────────────────────
+// isMain guard: importar as puras (parseFloorTs/resolveOrfaFreshness/ghContent) no
+// protection-drift-freshness.test.mjs NÃO pode disparar fetchLive() (rede). Clone do
+// padrão de sdd-scorecard.mjs.
+const isMain = (() => {
+  try { return realpathSync(process.argv[1]) === fileURLToPath(import.meta.url); }
+  catch { return false; }
+})();
+if (isMain) main();
+
+function main() {
 const live = fetchLive();
 if (MODE_CAPTURE) { capture(live); process.exit(0); }
 if (!existsSync(BASELINE)) {
@@ -189,3 +255,4 @@ for (const w of warns) console.log(`  🟡 ${w}`);
 for (const r of reds) console.log(`  🔴 ${r}`);
 console.log(`\n  veredito: ${verdict === 'red' ? '🔴 DRIFT' : verdict === 'yellow' ? '🟡 avisos' : '🟢 ok'}\n`);
 process.exit(reds.length ? 1 : 0);
+}

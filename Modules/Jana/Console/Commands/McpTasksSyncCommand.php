@@ -47,6 +47,15 @@ class McpTasksSyncCommand extends Command
         $this->line("  Inseridas:    {$relatorio['inseridas']}");
         $this->line("  Atualizadas:  {$relatorio['atualizadas']}");
         $this->line("  Canceladas:   {$relatorio['canceladas']} (US sumiu do SPEC)");
+        // ADR 0337 — forward-close por âncora verificada (fecha card cujo SPEC declara
+        // done + âncora anchored_ok mas o DB ficou preso em todo/doing/review).
+        $fechadas = $relatorio['fechadas_por_ancora'] ?? 0;
+        $linhaFechadas = "  Fechadas p/ âncora: {$fechadas} (SPEC done + âncora verificada — ADR 0337)";
+        if ($fechadas > 0) {
+            $this->info($linhaFechadas);
+        } else {
+            $this->line($linhaFechadas);
+        }
         // SDD C4 — visibilidade de drift descritivo (title/description) DB↔SPEC.
         // git venceu o update (não muda quem é canon); só reportamos a divergência.
         $divergentes = $relatorio['descritivos_divergentes'] ?? 0;

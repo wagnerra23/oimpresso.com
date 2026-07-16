@@ -9,15 +9,9 @@ name: Screen Coverage Gate (catraca de cobertura)
 # e commite o baseline atualizado junto.
 
 on:
+  # Sem filtro de paths: um check que virar required precisa publicar resultado
+  # em TODO PR, inclusive documentação e backend, para não bloquear por ausência.
   pull_request:
-    paths:
-      - 'resources/js/Pages/**/*.tsx'
-      - 'resources/js/Pages/**/*.charter.md'
-      - 'tests/Browser/**/*.php'
-      - 'memory/governance/scorecards/screens/**'
-      - 'memory/governance/screen-coverage-baseline.json'
-      - 'scripts/qa/screen-coverage-map.mjs'
-      - '.github/workflows/screen-coverage-gate.yml'
 
 permissions:
   contents: read
@@ -31,7 +25,9 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 22.17.0
 
       - name: Catraca de cobertura (telas cobertas só sobem)
-        run: node scripts/qa/screen-coverage-map.mjs --check
+        run: |
+          node scripts/qa/screen-coverage-map.mjs --selftest
+          node scripts/qa/screen-coverage-map.mjs --check

@@ -1,0 +1,22 @@
+{
+  "_doc": "Contrato dos baselines visuais pós-interação de Sells/Create (venda balcão — tela de 99% do volume, ROTA LIVRE). Espelha visreg-flows.json (Financeiro) mas com manifesto/lint/dispatcher PRÓPRIOS porque as ações divergem por completo — opção (b) da decisão de design: mantém o gate ENFORCING do Financeiro intocado. Cada fluxo roda em todos os viewports declarados, captura o estado APÓS a interação e ANTES de persistir (nunca testa escrita).",
+  "viewports": {
+    "compact": { "width": 1024, "height": 768 },
+    "desktop": { "width": 1280, "height": 800 },
+    "wide": { "width": 1440, "height": 900 }
+  },
+  "screens": {
+    "sells-create": {
+      "route": "/sells/create",
+      "anchor": "Adicionar venda",
+      "charter": "resources/js/Pages/Sells/Create.charter.md",
+      "viewports": ["compact", "desktop", "wide"],
+      "flows": [
+        { "id": "adicionar-produto", "action": "add_product", "evidence": "Produto E2E Balcão" },
+        { "id": "abrir-busca-produto", "action": "open_product_search", "evidence": "role=option Produto E2E Balcão" },
+        { "id": "aplicar-desconto", "action": "apply_discount", "evidence": "Desconto do pedido" },
+        { "id": "adicionar-pagamento", "action": "add_payment", "evidence": "Pago em (2ª linha)" }
+      ]
+    }
+  }
+}

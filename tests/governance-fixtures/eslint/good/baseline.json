@@ -1,0 +1,8 @@
+{
+  "_meta": {
+    "nota": "self-test gate-selftest · contagens pré-computadas (--counts-from)"
+  },
+  "counts": {
+    "fixture.js|no-unused-vars": 1
+  }
+}

@@ -17,7 +17,7 @@ import React, { useState, useMemo, useCallback, useEffect, type ReactNode } from
 // Onda 12 (2026-05-19) — paridade 100% canon REAL (/cowork-preview/Oimpresso ERP - Chat.html):
 // emoji → lucide-react nos 8 botões + Download icon adicional + remoção FinMonthDigest
 // (não-canon) + summary numérica footer + KPI hero dark.
-import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, Link2, ShoppingBag, Wrench, Package, Receipt, Send, type LucideIcon } from 'lucide-react';
+import { Search, Plus, Sparkles, CheckSquare, Check, Play, Printer, RefreshCw, FolderOpen, Download, ChevronDown, TrendingUp, TrendingDown, Camera, Landmark, Eye, FileText, Percent, Link2, ShoppingBag, Wrench, Package, Receipt, Send, Archive, type LucideIcon } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +39,7 @@ import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { Grid, Inline, Stack } from '@/Components/layout';
 import KpiCard from '@/Components/shared/KpiCard';
 import { FinPillFrescor } from './_components/FinPillFrescor';
+import { FinPillContaIndefinida } from './_components/FinPillContaIndefinida';
 import { FinConferidoToggle, FinConferidoBadge, useFinConferido, type UseFinConferidoApi } from './_components/FinConferidoToggle';
 import { FinCommentsThread, FinCommentsBadge, useFinComments, type UseFinCommentsApi } from './_components/FinCommentsThread';
 import { FinAuditTrail } from './_components/FinAuditTrail';
@@ -94,6 +95,7 @@ interface Lancamento {
   plano_conta_nome: string | null;
   conta_bancaria: string;
   conta_bancaria_id: number | null;
+  conta_indefinida: boolean;
   // 2026-06-03 — forma de pagamento. `forma_pagamento` = exibida (baixa realizada
   // tem prioridade, senão a prevista do título). `forma_pagamento_realizada` =
   // true quando veio da baixa → read-only (espelha valor_mutavel).
@@ -1156,11 +1158,21 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       <td className="px-2">
         <div className="font-medium text-foreground truncate max-w-[260px] flex items-center gap-1.5">
           <FinCrossLinkify text={row.descricao} className="truncate" />
+          {/* FIX 5 doc-chip inline (fidelidade [W] 2026-07-10, proto financeiro-
+              page.jsx:784: `{row.invoice && <span fs-1 text-3 font-mono>}` ao lado
+              da descrição). Dado JÁ vem no payload: nfe_numero (shapeTitulo) com
+              fallback documento (CODPEDIDO WR). Substitui a 2ª linha "NF-e N"
+              (proto é inline — mais denso). Sem tipo de doc no payload (Fat/
+              Recibo/OS do proto), o rótulo é NFe/Doc — não inventa dado. */}
+          {row.nfe_numero ? (
+            <span className="text-[10.5px] text-muted-foreground font-mono whitespace-nowrap shrink-0">NFe {row.nfe_numero}</span>
+          ) : row.documento ? (
+            <span className="text-[10.5px] text-muted-foreground font-mono whitespace-nowrap shrink-0">Doc {row.documento}</span>
+          ) : null}
           <FinFavPin active={isFav} />
           <FinConferidoBadge rowId={row.id} conferido={conferido} />
           <FinCommentsBadge rowId={row.id} comments={comments} />
         </div>
-        {row.nfe_numero && <div className="text-[11px] text-muted-foreground">NF-e {row.nfe_numero}</div>}
       </td>
       <td className="px-2 text-foreground truncate max-w-[160px]">{row.contraparte}</td>
       {/* Fidelidade protótipo ([W] 2026-06-29): categoria = dot + texto leve, não
@@ -1192,6 +1204,9 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
             <Landmark className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
             <span className="truncate max-w-[120px]">{row.conta_bancaria}</span>
           </span>
+        ) : row.conta_indefinida ? (
+          /* US-FIN-038 — pago sem vinculação bancária: pill CTA (não "—") */
+          <FinPillContaIndefinida />
         ) : (
           <span className="text-muted-foreground">—</span>
         )}
@@ -1203,7 +1218,9 @@ function LinhaTabela({ row, dens, selected, onSelect, onBaixar, conferido, comme
       <td className="px-2"><div className="flex items-center gap-1.5"><StatusPill s={row.status} /><ApprovalPill s={row.aprovacao_status} /></div></td>
       {/* [W] 2026-07-07 (fila item 8): saída NEUTRA igual ao protótipo (financeiro-
           page.jsx:816 — "saída não grita em vermelho"; só entrada é verde). */}
-      <td className={`px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-success' : 'text-foreground'}`}>
+      {/* FIX 4 fidelidade [W] 2026-07-10: valor em IBM Plex Mono (classe
+          fin-td-valor em fin-cowork.css — proto usa `num` + var(--mono)). */}
+      <td className={`fin-td-valor px-2 text-right font-medium tabular-nums whitespace-nowrap ${isIn ? 'text-success' : 'text-foreground'}`}>
         {/* FX-4 (print 06-11): zero nunca leva sinal — "−0,00" vira "0,00". */}
         <span className="text-muted-foreground mr-0.5">{Math.abs(row.valor) < 0.005 ? '' : (isIn ? '+' : '−')}</span>{brl(row.valor).replace('R$', '').trim()}
       </td>
@@ -1542,10 +1559,14 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 onClick={() => { if (l.id !== lente) applyLente(l.id); }}
                 aria-pressed={lente === l.id}
                 className={
-                  'h-7 px-3 rounded text-[12px] flex items-center transition tabular-nums ' +
+                  // FIX 3 fidelidade [W] 2026-07-10 (micro-pacote segmented, proto
+                  // financeiro.css .fin-lens-btn/.fin-pb-segbtn): fs-3 12.5px,
+                  // inativo 500, ativo 600 + sombra literal var(--sh-1, 0 1px 2px
+                  // rgba(0,0,0,.06)). Radius fica 4px (token DS — não o 5px do proto).
+                  'h-7 px-3 rounded text-[12.5px] leading-none flex items-center transition tabular-nums ' +
                   (lente === l.id
-                    ? 'bg-background shadow-sm font-medium text-foreground'
-                    : 'text-muted-foreground hover:text-foreground')
+                    ? 'bg-background shadow-[var(--sh-1,0_1px_2px_rgba(0,0,0,.06))] font-semibold text-foreground'
+                    : 'font-medium text-muted-foreground hover:text-foreground')
                 }
               >
                 {l.label}
@@ -1672,10 +1693,12 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                 aria-pressed={filters.data_campo === f.id}
                 title={`Filtrar pela data de ${f.label.toLowerCase()} (igual ao WR Comercial)`}
                 className={
-                  'h-6 px-2 rounded text-[11.5px] transition ' +
+                  // FIX 3 fidelidade [W] 2026-07-10 (proto .fin-pb-segbtn): 12.5px,
+                  // 500 inativo / 600 ativo + box-shadow literal do proto no ativo.
+                  'h-6 px-2 rounded text-[12.5px] leading-none transition ' +
                   (filters.data_campo === f.id
-                    ? 'bg-background shadow-sm font-medium text-foreground'
-                    : 'text-muted-foreground hover:text-foreground')
+                    ? 'bg-background shadow-[var(--sh-1,0_1px_2px_rgba(0,0,0,.06))] font-semibold text-foreground'
+                    : 'font-medium text-muted-foreground hover:text-foreground')
                 }
               >
                 {f.label}
@@ -1766,7 +1789,10 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
           title="Mostrar lançamentos arquivados (cancelados/inativos). Por padrão ficam escondidos e não somam no caixa."
           onClick={() => aplicar({ arquivados: !filters.arquivados })}
         >
-          <span>🗄 Arquivados</span>
+          {/* Fidelidade [W] 2026-07-10: emoji 🗄 → lucide Archive (proibição
+              "emoji em UI cliente-facing"; REGISTRY manda lucide-react). */}
+          <Archive size={12} aria-hidden />
+          <span>Arquivados</span>
         </button>
 
         <span className="fin-filter-sep" />
@@ -1947,7 +1973,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                         : 'Nenhum lançamento com os filtros atuais.'}
                     </div>
                     {filters.lifecycle.length === 0 && !filters.overdue && !filters.busca && filters.conta === '' && filters.categoria === '' && (
-                      <Button size="sm" onClick={() => router.visit('/financeiro/unificado/novo')}>
+                      <Button size="sm" onClick={() => setCreateTipo('receber')}>
                         + Adicionar primeiro lançamento
                       </Button>
                     )}
@@ -2338,8 +2364,15 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
                     <div className="col-span-2">
                       <div className="text-[11px] text-muted-foreground uppercase tracking-widest font-medium">Conta</div>
                       <div className="mt-0.5 text-foreground flex items-center gap-1.5">
-                        <Landmark className="h-4 w-4 text-muted-foreground" aria-hidden />
-                        <CopyVal text={selected.conta_bancaria || '—'}>{selected.conta_bancaria || '—'}</CopyVal>
+                        {selected.conta_indefinida && !(selected.conta_bancaria && selected.conta_bancaria !== '—') ? (
+                          /* US-FIN-038 — baixa sem vinculação bancária: pill CTA no drawer */
+                          <FinPillContaIndefinida />
+                        ) : (
+                          <>
+                            <Landmark className="h-4 w-4 text-muted-foreground" aria-hidden />
+                            <CopyVal text={selected.conta_bancaria || '—'}>{selected.conta_bancaria || '—'}</CopyVal>
+                          </>
+                        )}
                       </div>
                     </div>
                     {/* Paridade campos WR Fase 2 (2026-06-04, sobre base Felipe). Tokens
@@ -2698,7 +2731,7 @@ function FinanceiroUnificado({ kpis, lancamentos, pagination, filters, contas, c
         <CommandList>
           <CommandEmpty>Sem resultados.</CommandEmpty>
           <CommandGroup heading="Ações">
-            <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/unificado/novo'); }}>Novo lançamento</CommandItem>
+            <CommandItem onSelect={() => { setPaletteOpen(false); setCreateTipo('receber'); }}>Novo lançamento</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/conciliacao'); }}>Conciliar extrato (OFX)</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/relatorios'); }}>DRE / Relatórios</CommandItem>
             <CommandItem onSelect={() => { setPaletteOpen(false); router.visit('/financeiro/plano-contas'); }}>Plano de contas</CommandItem>

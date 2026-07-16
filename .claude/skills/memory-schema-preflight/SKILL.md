@@ -1,6 +1,6 @@
 ---
 name: memory-schema-preflight
-description: ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `resources/js/Pages/**/*.charter.md`, OU antes de `git commit` que tocar esses paths. Carrega regras de schema canônico extraídas de `scripts/memory-schemas/*.schema.json` (status enum estrito, version como string quoted, dates como string quoted, related_adrs como list de slugs `^[0-9]{4}-[a-z0-9-]+$`, owner RUNBOOK enum letras únicas `W/F/M/L/E`, seções obrigatórias por tipo) e roda validator local antes de commit pra zerar o loop CI fail (~10min/iteração). Cobre também o campo anchor `**Implementado em:**` + key opcional `anchor_format` do fluxo novo de SPEC (ADR 0273, lint `anchor-lint.mjs` — REQUIRED no CI desde 2026-07-01, context `anchor-lint ADR 0273`). Origem 2026-05-25 — 4 PRs (#1568/#1569/#1570/#1579) bloqueados em memory-schema-gate por erros previsíveis.
+description: ATIVAR ANTES de Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/requisitos/**/BRIEFING.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `memory/reference/*.md`, `resources/js/Pages/**/*.charter.md`, OU antes de `git commit` que tocar esses paths. Carrega regras de schema canônico extraídas de `scripts/memory-schemas/*.schema.json` (status enum estrito, version como string quoted, dates como string quoted, related_adrs como list de slugs `^[0-9]{4}-[a-z0-9-]+$`, owner RUNBOOK enum letras únicas `W/F/M/L/E`, `status` enum BRIEFING, `type`/`authority` enum reference, seções obrigatórias por tipo) e roda validator local antes de commit pra zerar o loop CI fail (~10min/iteração). Cobre também o campo anchor `**Implementado em:**` + key opcional `anchor_format` do fluxo novo de SPEC (ADR 0273, lint `anchor-lint.mjs` — REQUIRED no CI desde 2026-07-01, context `anchor-lint ADR 0273`) e as famílias BRIEFING + reference fiadas em GRACE (warn-only) na matriz do memory-schema-gate (proposal estrutura-canon-memoria Fase 0). Origem 2026-05-25 — 4 PRs (#1568/#1569/#1570/#1579) bloqueados em memory-schema-gate por erros previsíveis.
 tier: B
 trigger: description-matching
 parent_adr: 0094
@@ -9,7 +9,7 @@ related_adrs: [0094, 0095, 0273]
 
 # memory-schema-preflight — Tier B auto-trigger
 
-> **Quando ativar:** ANTES de qualquer Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `resources/js/Pages/**/*.charter.md`. Também antes de `git commit` que tocar esses paths.
+> **Quando ativar:** ANTES de qualquer Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/requisitos/**/BRIEFING.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `memory/reference/*.md`, `resources/js/Pages/**/*.charter.md`. Também antes de `git commit` que tocar esses paths.
 
 ## Origem (custo capturado)
 
@@ -158,6 +158,41 @@ status: live|draft|apodrecido
 
 Seções obrigatórias: `## Mission`, `## Goals`, `## Non-Goals`, `## UX targets`, `## Anti-hooks`.
 
+### BRIEFING — `memory/requisitos/<Mod>/BRIEFING.md` (🟡 GRACE — warn-only)
+
+Fiado à matriz do gate em GRACE (proposal estrutura-canon-memoria Fase 0): divergência gera WARNING, não bloqueia merge. `additionalProperties: true` — frontmatter rico existente NÃO reprova.
+
+```yaml
+---
+module: Financeiro                  # basename do diretório (PascalCase; `_`-prefix ok cross-cutting)
+status: producao                    # ENUM: producao|piloto|em-construcao|parcial|backlog|shared-infra|meta|deprecated
+status_nota: "live via ROTA LIVRE"  # opcional — prosa livre que qualifica o status (não polui o enum)
+updated_at: "YYYY-MM-DD"            # STRING quoted, format date
+owner: W                            # opcional, enum W/F/M/L/E
+related_adrs:                       # opcional, LIST de slugs (NUNCA integers)
+  - "0143-fsm-pipeline-live-prod-marco-2026-05-12"
+---
+```
+
+Required: `module`, `status`, `updated_at`. Sem seção nomeada obrigatória (L-24: enforcement = enum, não presence-gate).
+
+### reference — `memory/reference/*.md` (🟡 GRACE — warn-only)
+
+Fiado à matriz em GRACE. Glob = SÓ `memory/reference/*.md` (os 5 @imports do CLAUDE.md em `memory/*.md` ficam FORA — Tier 0). `additionalProperties: true`.
+
+```yaml
+---
+name: "Feedback — testes no CT 100"  # título curto (3-120 chars)
+description: "1 linha ≥10 chars usada no recall pra decidir relevância"
+type: feedback                       # ENUM: reference|feedback|protocol|guide|index
+authority: canonical                 # ENUM: canonical (editável à mão) | generated (regenerado por máquina — normalizador pula)
+lifecycle: ativo                     # opcional, enum ativo|arquivado
+updated_at: "YYYY-MM-DD"             # opcional, string quoted
+---
+```
+
+Required: `name`, `description`, `type`, `authority`. Campo-chave `authority` distingue doc editável (`canonical`) de doc REGENERADO por máquina (`generated`, ex `PAINEL-SISTEMA.md`) que o normalizador deve pular.
+
 ## Auto-fix patterns (do CI fail message → fix)
 
 | Mensagem CI | Fix exato |
@@ -174,6 +209,9 @@ Seções obrigatórias: `## Mission`, `## Goals`, `## Non-Goals`, `## UX targets
 | SPEC sem `## Histórico` ou `## Referências` | warning, não bloqueia merge (mas adicionar é boa prática) |
 | `/anchor_format must be equal to one of the allowed values` | `anchor_format: v2` → `anchor_format: "v1"` (único valor; AST v2 é evolução futura do ADR 0273) |
 | anchor-lint `placeholder` / `anchored_dead` numa US | trocar `_[TODO]_` / path-morto por `_pendente_` (não construída) OU path real + `verificado@<sha7> (<data>)` — NUNCA inventar path (required desde 2026-07-01 — BLOQUEIA merge) |
+| `/status must be equal to one of allowed values` (BRIEFING) | mover prosa livre pra `status_nota:` e pôr enum em `status:` (`producao\|piloto\|em-construcao\|parcial\|backlog\|shared-infra\|meta\|deprecated`) — 🟡 GRACE (warning, não bloqueia) |
+| `/ must have required property 'authority'` (reference) | adicionar `authority: canonical` (à mão) ou `generated` (regenerado por máquina) — 🟡 GRACE (warning, não bloqueia) |
+| `/type must be equal to one of allowed values` (reference) | `type` ∈ `reference\|feedback\|protocol\|guide\|index` — 🟡 GRACE (warning, não bloqueia) |
 
 ## Validador local — rodar ANTES de commit
 
@@ -213,6 +251,12 @@ git diff --name-only origin/main HEAD | while read f; do
       ;;
     memory/handoffs/*.md)
       npx ajv validate -s scripts/memory-schemas/handoff.schema.json -d "$f"
+      ;;
+    memory/requisitos/*/BRIEFING.md)
+      npx ajv validate -s scripts/memory-schemas/briefing.schema.json -d "$f"  # 🟡 GRACE — warning-only no CI
+      ;;
+    memory/reference/*.md)
+      npx ajv validate -s scripts/memory-schemas/reference.schema.json -d "$f"  # 🟡 GRACE — warning-only no CI
       ;;
     resources/js/Pages/**/*.charter.md)
       npx ajv validate -s scripts/memory-schemas/charter.schema.json -d "$f"
@@ -315,6 +359,8 @@ E adicionar no corpo:
 - `scripts/memory-schemas/session.schema.json`
 - `scripts/memory-schemas/handoff.schema.json`
 - `scripts/memory-schemas/charter.schema.json`
+- `scripts/memory-schemas/briefing.schema.json` — BRIEFING (🟡 GRACE — status enum machine-readable)
+- `scripts/memory-schemas/reference.schema.json` — reference (🟡 GRACE — type/authority enum)
 - `.github/workflows/memory-schema-gate.yml` — CI gate único (AJV/frontmatter + sub-checks do corpo · FUNDIDO ADR 0314 F2; absorveu o ex-`memory-schema-gate-extended.yml`)
 - `.github/scripts/validate-memory-schema.sh` — script bash extra (SPEC/Session/Handoff sections), invocado pelos jobs `validate-*-schema` do gate fundido
 - `scripts/governance/anchor-lint.mjs` — lint do corpo `**Implementado em:**` (**required desde 2026-07-01** — contexts `anchor-lint ADR 0273` + `anchor entry/covers gate`) + `.github/workflows/anchor-drift.yml`

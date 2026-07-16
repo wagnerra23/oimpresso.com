@@ -558,7 +558,7 @@ export default function SheetNovoGateway({ accounts, nfeCertificadoAtivo, onClos
                 </label>
               </div>
               <div className="bg-stone-50 border border-stone-200 rounded p-3 text-[11px] text-stone-700">
-                Ao confirmar, será criada uma linha em <span className="font-mono">payment_gateway_credentials</span> com <span className="font-mono">business_id</span> do business logado.
+                Ao confirmar, será criada uma linha em <code className="font-mono">payment_gateway_credentials</code> com <code className="font-mono">business_id</code> do business logado.
                 Webhook URL será gerada automaticamente — cole no painel do {d.nome} após criação.
               </div>
               {error && (

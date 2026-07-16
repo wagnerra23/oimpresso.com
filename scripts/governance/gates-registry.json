@@ -11,12 +11,46 @@
     }
   },
   "workflows": {
+    "system-map.yml": {
+      "nome": "system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md das fontes canônicas (módulos+frescor git, ADRs+lifecycle, ideias mortas §5, Tier 0 gaps, scorecard). Índice DERIVADO que aponta pros donos, não recopia. --check advisory no PR (nunca bloqueia) + regen diário commit-back.",
+      "classe": "automacao",
+      "terminal": "automacao",
+      "anchor": "Wagner 2026-07-12: 'deveria ser a máquina matriz que não quebra e sempre mantém atualizado'. Reusa o padrão brief/scorecard/índice-ADR (ADR 0091/0275/0258). proposal painel-sistema-matriz-gerada.md."
+    },
     "ds-mirror-drift.yml": {
       "nome": "ds-mirror-drift (advisory) — sentinela de drift git↔espelho do Design System: compara os _generated-*.css do git contra o snapshot commitado do espelho claude.ai/design (scripts/design-sync/mirror-snapshot/), reusa o motor ds-token-diff.mjs; ::warning:: quando drift > baseline. CI do GH Actions não tem login claude.ai → compara snapshot, não o espelho vivo.",
       "classe": "gate",
       "terminal": "advisory",
       "promote_by": "2026-07-23",
       "anchor": "sinal de custo: 3 cópias divergentes do canvas dark (drift silencioso git↔espelho, investigação 2026-07-08) — não existia sentinela do loop de sync. Proposta 2026-07-08-profissionalizar-ds-sync-git-espelho P3 + ADR 0328-ds-transicao-congelado-para-vivo-git-ssot. Advisory por ADR 0314 (drift de espelho é quality, não Tier-0 até o loop estabilizar + snapshot semeado); promote_by força a decisão de promoção a required/enforce em 14d em vez de advisory eterno."
+    },
+    "ds-token-version.yml": {
+      "nome": "ds-token-version (advisory) — semver + changelog do pacote de tokens do DS: versiona a superfície dos _generated-*.css (296 tokens/4 escopos), fingerprint sha256; --check acusa surface mudada sem bump (::warning::, nunca bloqueia). Reusa a disciplina do ds-token-diff (fonte = os _generated-*.css, não a palavra de ninguém).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-24",
+      "anchor": "loop diff-first DS-sync — a versão do contrato de tokens era implícita (só o commit sha no README do espelho); um consumidor não sabia se um token sumiu (quebra) ou só mudou de valor. Item #2 do loop (revisão adversarial pré-merge desta sessão pegou blocker no semver e foi corrigido). Advisory por ADR 0314 (versionar tokens é higiene, não Tier-0); promote_by força a decisão de promoção em 14d em vez de advisory eterno."
+    },
+    "ds-tokens-build-sync.yml": {
+      "nome": "ds-tokens-build-sync (advisory) — ANCORA a premissa do loop diff-first (git = fonte verdadeira): roda 'npm run tokens:build' e falha se os _generated-*.css commitados divergem do build fresco de semantic.tokens.json. Sem isto, editar o source sem rebuildar deixa o _generated stale e TODO o loop (ds-token-diff/mirror-drift/token-version) valida contra valor errado sem ninguém perceber.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "gap nº1 da auditoria de cobertura do loop diff-first (2026-07-11): não existia gate provando que o _generated commitado bate com a fonte. Verificado em sincronia na criação. Advisory por ADR 0314 (integridade de tokens é quality/visual, não dinheiro/PII/multi-tenant/fiscal); promote_by força a decisão em 14d."
+    },
+    "design-coverage.yml": {
+      "nome": "ds-design-coverage (advisory) — catraca da cobertura de DESIGN por tela: quantas telas DECLARAM a fonte de design (protótipo via related_prototype ou 'segue DS' explícito). Consome ancora.mjs --list --json (não duplica o resolvedor). `declared` só sobe. Complementa screen-coverage (UI-0013 herança de Padrão de Tela).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "inventário 'design para todas as páginas' (Wagner 2026-07-11): 88% das 144 telas com charter estão SILENCIOSAS sobre a fonte de design (só 18 declaram). A catraca trava o piso pra fechar por módulo sem regredir. Advisory por ADR 0314 (cobertura de design é quality, não Tier-0); promote_by força a decisão em 14d."
+    },
+    "ciclo-completo.yml": {
+      "nome": "ciclo-completo (advisory) — catraca do CICLO-DE-TELA por tela: quantas telas roteadas têm o conjunto obrigatório (charter + Padrão de Tela declarado + pt-conforme via pt-conformance --json + casos.md + ref de teste + golden do PT `live`/GOLDEN-LIVE). `completo` só sobe. NÃO duplica: consome pt-conformance --json e ecoa o trio do casos-guard numa visão por-tela + a dimensão nova (PT declarado + golden-live). Par do gerador criar-tela.mjs (a máquina de nascimento de tela).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "Wagner 2026-07-11: 'fazer na mão é sorteio e não garante funcionamento'. Máquina de nascimento de tela (ADR proposta 2026-07-11-maquina-nascimento-tela): toda tela nasce carimbada do PT (criar-tela.mjs) + este gate garante o ciclo obrigatório. Estado @seed: 3/279 completas (276 débito legado absorvido). Advisory por ADR 0314 (cobertura de ciclo é quality, não Tier-0); promote_by força a decisão em 14d."
     },
     "screen-smoke-after-merge.yml": {
       "nome": "Screen Smoke After Merge (fase C do PDCA MWART — smoke visual REAL pós-deploy via Playwright headless + OpenAI vision, runner ubuntu; dispara por workflow_run após deploy.yml; filtra telas + navegação; ligado pelo switch SCREEN_SMOKE_ENABLED)",
@@ -143,10 +177,6 @@
       "nome": "XSS content ratchet (.tsx · dSIH + scheme · funde dsih-gate + scheme-gate · oráculo de conteúdo)",
       "classe": "gate"
     },
-    "cowork-inbox.yml": {
-      "nome": "cowork-inbox",
-      "classe": "automacao"
-    },
     "deploy.yml": {
       "nome": "Deploy to Hostinger",
       "classe": "deploy"
@@ -189,6 +219,20 @@
     "fin-subnav-gate.yml": {
       "nome": "Fin SubNav Gate — abas seguem a entry do active (anti-regressão ADR 0180 split)",
       "classe": "gate"
+    },
+    "pageheader-tabs-fidelity-gate.yml": {
+      "nome": "PageHeaderTabs Fidelity — aba ativa fiel ao protótipo (radius 0 · accent · font 600)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "ADR proposta 2026-07-15-tab-nav-canonico-e-componente-por-papel (máquina d) + bug tab-nav 2026-07 (rounded-md + dark quebrado, [W] pegou no olho). DS é qualidade/higiene, não Tier-0 → advisory (ADR 0271/0314). Custo: regressão de fidelidade da barra de abas de topo sem alarme.",
+      "promote_by": "2026-09-30"
+    },
+    "status-badge-fidelity-gate.yml": {
+      "nome": "StatusBadge Fidelity — pílula de status fiel ao protótipo (rounded-full · token -soft/-fg dark-aware)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "anchor": "ADR proposta 2026-07-15-tab-nav-canonico-e-componente-por-papel — Onda status-badge (mesmo tripé da máquina d do tab-nav). Trava o contrato dark-aware do <Badge variant> (cor mora em token -soft/-fg, nunca palette cru) vs .cli-status-pill do protótipo Cowork; controle-negativo do detector de cor-crua (ADR 0258). DS é qualidade/higiene, não Tier-0 → advisory (ADR 0271/0314). Custo: regressão de cor de status em palette cru quebra o dark sem alarme (mesmo vetor do bug tab-nav 2026-07).",
+      "promote_by": "2026-09-30"
     },
     "compras-pest.yml": {
       "nome": "Compras · Pest (MySQL)",
@@ -316,7 +360,7 @@
       "classe": "gate"
     },
     "pr-critic.yml": {
-      "nome": "pr-critic contrato (advisory) — critic adversarial de PR ancorado em contrato: em PRs tocando resources/js/Pages/** ou Modules/**, roteia o diff pros contratos (charter/casos/gap/map — coleta.mjs determinístico testado) e um agente contexto-ZERO pergunta se o diff CONTRADIZ o contrato citado (trava mecânica de citação literal descarta achado sem âncora). NÃO valida cobertura (casos-gate) nem estética (pr-ui-judge-manual). Sem kill-switch dormente: chave = presença do secret ANTHROPIC_API_KEY/OPENAI_API_KEY; sem secret roda só a parte determinística + ::notice.",
+      "nome": "pr-critic contrato (advisory) — critic adversarial de PR ancorado em contrato: em PRs tocando resources/js/Pages/** ou Modules/**, roteia o diff pros contratos (charter/casos/gap/map — coleta.mjs determinístico testado); um FINDER contexto-ZERO propõe se o diff CONTRADIZ o contrato citado (trava mecânica de citação literal descarta achado sem âncora) e cada candidato passa por VERIFICAÇÃO POR LENTES DIVERSAS (3 lentes cegas votam; sobrevive quem a maioria confirma — reduz falso-positivo que a citação sozinha não pega). NÃO valida cobertura (casos-gate) nem estética (pr-ui-judge-manual). Sem kill-switch dormente: chave = presença do secret ANTHROPIC_API_KEY/OPENAI_API_KEY; sem secret roda só a parte determinística + ::notice. Precisão do próprio critic medida por pr-critic-precisao.yml (loop fechado, grade v3).",
       "classe": "gate",
       "terminal": "advisory",
       "promote_by": "2026-07-23",
@@ -408,6 +452,20 @@
       "anchor": "Dossiê grade-das-réguas card #0 'Evals de outcome' (Roubo #4): substituir 'zero evals de outcome' por número real (régua Codex/Cognition). DECONFLITO com outcome-metrics (design-loop) — eixo DORA-de-PR, não fidelidade de tela. Self-test hermético (CFR morde/libera) na suíte governance-script-tests.",
       "promote_by": "2026-09-30"
     },
+    "agent-cost-per-pr.yml": {
+      "nome": "Agent cost per PR (advisory · custo USD estimado por PR do agente · join 2-sinais JSONL local: gitBranch==headRefName + citação /pull/N diluída · % sem-match publicado · weekly schedule + dispatch · item #7 ranking adversarial grade-das-réguas 2026-07-12)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "Ranking adversarial 2026-07-12 item #7: fecha a última régua 'só verbal' — custo-eficiência nota 3 porque 'economize crédito' não tinha NÚMERO. Fonte Langfuse DERRUBADA pelo adversário (traceia Jana por conversa, sem dimensão PR/branch); fonte viável = JSONL local do Claude Code (mesma do cc-watcher). DECONFLITO com agent-pr-outcomes (DORA: aceitação/CFR/velocidade) — este mede o CUSTO do mesmo transporte. Honestidade: CI só roda selftest + renderiza snapshot commitado com staleness (G5, anti-teatro ADR 0271); buraco do join publicado como % sem-match; USD/tokens apenas, sem R$ (Tier 0). Self-test hermético na suíte governance-script-tests.",
+      "promote_by": "2026-09-30"
+    },
+    "pr-critic-precisao.yml": {
+      "nome": "pr-critic precisão (advisory · mede a PRÓPRIA precisão do pr-critic · taxa-de-ação dos achados: o humano mexeu no arquivo apontado depois do comentário? + first-pass + por severidade · via bloco machine-readable no comentário + commits · weekly schedule + dispatch)",
+      "classe": "automacao",
+      "terminal": "advisory",
+      "anchor": "Grade v3 — fecha a última fraqueza 'critic no loop de PR' (3→6): sem medir a própria precisão, ninguém sabe se o critic ajuda ou vira ruído ignorado (lição #4038 adr-proposto-parado). DECONFLITO (4 medidores, 1 fato=1 lugar): NÃO é outcome-metrics (design-loop) nem agent-pr-outcomes (DORA) nem casos-gate (cobertura) — mede se o CRÍTICO acerta. Taxa-de-AÇÃO, não taxa-de-verdade (critic é advisory). Self-test hermético (agiu/ignorado morde) na suíte governance-script-tests.",
+      "promote_by": "2026-09-30"
+    },
     "design-memory-gate.yml": {
       "nome": "Design-memory gate (advisory · FUNDIDO ADR 0314 F2 de 3 workflows: registry-check ex-component-registry O2 + gates ex-design-memory-gates §8/§15 + prove ex-dtcg-equivalence Onda DTCG; 1 job por sub-check, todos os self-tests preservados)",
       "classe": "gate",
@@ -425,6 +483,20 @@
     "ds-gate.yml": {
       "nome": "DS gate (fusão F1 — cor/UI/css/index/bundle/scorer · ADR 0314)",
       "classe": "gate"
+    },
+    "pt-conformance.yml": {
+      "nome": "ds-pt-conformance (advisory) — torna 'herda PT-0X' no charter FALSIFICÁVEL: verifica que a tela tem a assinatura estrutural do Padrão de Tela declarado (PT-02 exige <form>, PT-05 exige board dnd-kit). Mismatch grosso dos 5 arquétipos; complementa reconcile-triplet (slot-parity fino do PT-01).",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-25",
+      "anchor": "revisão adversarial 2026-07-11 (decisão B do Wagner): declarar PT no charter sem verificar a tela é count-pump (design-coverage conta a string). Este gate faz a declaração falsificável — pré-requisito pra a cobertura de design ser correção, não forma. Advisory por ADR 0314; promote_by força decisão em 14d."
+    },
+    "detect-ui-drift.yml": {
+      "nome": "detect-ui-drift — M1 (advisory) — eixo de AUTORIZAÇÃO: quando uma .tsx de tela muda num PR, exige sinal FRESCO no mesmo PR (divergence_from_blueprint com razão real no charter irmão · OU related_prototype mudou pra protótipo real · OU entrada nova no SYNC_LOG citando a tela). Sem sinal → 🚩 mudança não-declarada. Mede VALOR SEMÂNTICO do campo (não presença — L-24). Self-test morde/libera; ::warning:: + job summary (visível). Detecção-only, nunca edita a tela.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-26",
+      "anchor": "Wagner 2026-07-11/12 (dor textual): 'cada customização não é pega como alteração da máquina — parece que não sabe que alterou.' Custo provado: desastre do Financeiro (PRs #1085→#1091→#1092 — cores erradas, abas faltando, textos colados) — telas quebradas por cherry-pick sem declaração. As máquinas existentes respondem 'o QUE mudou' (design-spec ADR 0255) / 'está bonito' (design-diff ADR 0299), NENHUMA respondia 'foi AUTORIZADA?'. Interseção vazia (mapa como-integrar 2026-07-11). Advisory por ADR 0314 (autorização de UI é quality, não Tier-0 dinheiro/PII/multi-tenant/fiscal); promote_by força decisão de promoção a --strict em 14d. Reusa fmScalar (reconcile-triplet:68) + forma diff-aware (design-return-gate.yml) + SYNC_LOG (loop Cowork↔Code) — zero vocabulário novo. Norma defendida: RESPEITAR-PROTOTIPO.md."
     }
   }
 }

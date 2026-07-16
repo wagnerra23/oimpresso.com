@@ -3,7 +3,23 @@
 > Origem: avaliação adversarial 2026-06-21 (composto **60/100**) — [session log](../../../sessions/2026-06-21-sdd-avaliacao-adversarial.md).
 > Régua: o **teste contrafactual** (se um funcionário tentar quebrar uma decisão já tomada, o processo barra sozinho?). Hoje a detecção está em **L2 (medido, advisory)**; **L3 (required + counterfactual) tem 0 gates SDD**.
 > 13 projetos detalhados, cada um verificado no repo real. **Status: EM EXECUÇÃO — vários itens já landaram (ver reconciliação abaixo).**
-> Última atualização: **2026-07-02 (pós-BALDE D — composto 79, ver seção "✅ Atualização 2026-07-02" abaixo)**; anterior 2026-07-01 (noite, 2º passe) — **P14 EXECUTADO na mesma noite** (2 sessões paralelas coordenadas): core #3536 (materialização + fail-red armed∧¬measured + counterfactuals floor no selftest), rename dos 6 required sem "(advisory)" (#3535 shims → flips → #3550 baseline + #3552 jobs/watchdog), caronas #3537 (n_quarantine=27 ARMADO) e #3548 (sqlite_corruptors=0 ARMADO, fusão GT-G3 — lei 0314, sem gate novo). O defeito nº 1 da avaliação 67 está fechado: floor=298 agora MORDE no required (counterfactual live: checkout sem órfã → exit 1). Passe anterior (mesmo dia): **avaliação adversarial deu composto 67/100** ([session log](../../../sessions/2026-07-01-sdd-avaliacao-adversarial.md)) + plano de execução pós-avaliação (§ no fim) verificado por 4 agents em origin/main: **P14 novo** (catraca do floor inerte no required — defeito nº 1), errata do falso-positivo "12 tier-A", chips paralelos P10/P11 disparados. Anterior (mesmo dia): P09 executado + reconciliações P01/P03/P05/P08/P13/Pfr.
+> Última atualização: **2026-07-13 (plano 3-frentes Wagner-aprovado + P15 novo — ver seção "Atualização 2026-07-13" abaixo)**; anterior 2026-07-02 (pós-BALDE D — composto 79, ver seção "✅ Atualização 2026-07-02" abaixo); anterior 2026-07-01 (noite, 2º passe) — **P14 EXECUTADO na mesma noite** (2 sessões paralelas coordenadas): core #3536 (materialização + fail-red armed∧¬measured + counterfactuals floor no selftest), rename dos 6 required sem "(advisory)" (#3535 shims → flips → #3550 baseline + #3552 jobs/watchdog), caronas #3537 (n_quarantine=27 ARMADO) e #3548 (sqlite_corruptors=0 ARMADO, fusão GT-G3 — lei 0314, sem gate novo). O defeito nº 1 da avaliação 67 está fechado: floor=298 agora MORDE no required (counterfactual live: checkout sem órfã → exit 1). Passe anterior (mesmo dia): **avaliação adversarial deu composto 67/100** ([session log](../../../sessions/2026-07-01-sdd-avaliacao-adversarial.md)) + plano de execução pós-avaliação (§ no fim) verificado por 4 agents em origin/main: **P14 novo** (catraca do floor inerte no required — defeito nº 1), errata do falso-positivo "12 tier-A", chips paralelos P10/P11 disparados. Anterior (mesmo dia): P09 executado + reconciliações P01/P03/P05/P08/P13/Pfr.
+
+## Atualização 2026-07-13 — nível profissional medido + plano 3-frentes (Wagner-aprovado)
+
+Dia de auto-medição em cadeia: grade de réguas re-julgada por adversário formal (`wf_8739a1f4`: 9/11 notas mantidas, máquina+ranking corrigidos) → composta SDD virou **reproduzível** (#4193: 64,1 fantasma → 41,0 → **55,3 k=7, 12/13 vivas, 0 alertas** — provada 2× no caminho real CT100→prod DB) → adversário de verificação sobre a leva (`wf_33e38126`, 14 agentes): placar **3 TESTADO_REAL · 5 PARCIAL · 0 NARRADO**; perda de conhecimento **PARCIAL** (zero deleções; perdas semânticas: "done sem gate" na Jana + 5 reescritas-sem-lápide → chips A1/A2/A3/A5). Distiller 0→6 era **artefato de checkout shallow** (fabricado ~5 dias pelo publish; #4196/#4201 corrigiram; erratas postadas em #4193/#4201).
+
+**Nível profissional (retrato honesto, escala CMMI-like):** máquinas de medir/corrigir = **4-5** (loop MEDIR→VERIFICAR→CORRIGIR→TRAVAR auto-corrigiu 2× no mesmo dia; mercado: 0 acima-de-categoria, 8/8 à-frente-por-integração) · governança spec/design/memória = **3-4** · **execução/teste = 2-3** (coverage 15%, floor 291, 5/8 PRs param antes do ambiente-alvo) · **direção-por-sinal = 1-2** (`client_signal=0`, ratio jul 78% governança). Perfil desigual: qualidade nível 5 sobre fábrica 2-3 sobre nervo comercial 1-2.
+
+**Plano 3-frentes (princípio-mãe ADR 0334: camada C congelada em manutenção; termômetro = `negocio-vs-governanca-ratio` <50% em agosto):**
+
+| Frente | Passos | Onde vive (canon) | Saída medível |
+|---|---|---|---|
+| **1 · Execução 2-3→4** | 1.1 nightly verde + burn-down classe cascata-57% · 1.2 done=comportamento · 1.3 evidência-do-alvo · 1.4 desquarentenar | 1.1 = **[P04](P04-burn-down-ate-nightly-verde.md)** (em execução) · 1.2/1.3 = **[P15](P15-done-comportamento-evidencia-alvo.md)** (novo) · 1.4 = chips A1/A3 | floor **<150** · **0 done com DoD aberto** · próxima leva **≥6/8 TESTADO_REAL** · quarentena **<10** |
+| **2 · Nervo de negócio 1-2→3** | recall→Larissa→sinal (ordem inegociável) | US-COPI-133 + CYCLE-BI-01 (planning até sinal) + ADR 0334 §4 — **canon lá, não aqui** | `context_recall ≥0,60` (eval de NEGÓCIO) → 1ª semana Larissa → `client_signal ≥1` → cycle ativo |
+| **3 · Camada C manutenção** | só fechar o aberto: chips A2/A3/A5 · LGPD canary (gated no A1) · HITL Wagner (Vaultwarden 30min · bump-em-leva 28 baselines · flip LGPD) | este roadmap + proibições §5 | ratio ago **<50%**; grade de réguas só parcial/por-dim até o trimestre |
+
+**Teste do plano (em ~4 semanas, 4 números):** floor <150 · placar ≥6/8 REAL · recall ≥0,60 · client_signal ≥1. Ratio de agosto >60% governança = o plano falhou → cortar C mais fundo, não medir mais. Checkpoint quinzenal = re-rodar o adversário de verificação (roteirizado).
 
 ## ✅ Atualização 2026-07-02 (pós-BALDE D) — composto 79 (subiu 60→67→76→79)
 
@@ -25,7 +41,7 @@ Os docs nasceram `proposed` mas o trabalho landou sem atualizar o bookkeeping. E
 | **P01** | ✅ executado | floor commit-back ativo (auto-PR); `full_suite=298 measured` no main |
 | **P03** | ✅ executado | `sqlite-test-corruptors --strict` exit 0 (corruptores REAIS=0) |
 | **P05** | ✅ executado | `anchor entry/covers gate` na lista `required` (branch protection) |
-| **P06** | 🟡 parcial | migration `mcp_sdd_scorecard_history` **aplicada em prod** + linha SDD **aparece no brief** (composta 50, k=2). Snapshot refrescado à mão 2026-07-01. **Falta:** o cron diário — `schedule:run` NÃO está no Hostinger; **decisão Wagner 2026-07-01: agendar no CT100, não Hostinger** (ADR 0062 — IA/governança ≠ shared hosting). |
+| **P06** | ✅ executado | migration `mcp_sdd_scorecard_history` aplicada em prod + linha SDD no brief + **cron diário 07:10 BRT no CT 100** (host-cron `ct100-sdd-scorecard-snapshot.sh`: node no host gera o JSON → `docker exec oimpresso-mcp ... --input`, container conecta na prod DB). Provado ponta-a-ponta 2026-07-12 (row fresca `composta 64.1`; antes máx era 2026-07-01 = 11d stale). Não-Hostinger (decisão Wagner 2026-07-01, ADR 0062). RUNBOOK: [RUNBOOK-ct100-sdd-scorecard-snapshot](../../Infra/RUNBOOK-ct100-sdd-scorecard-snapshot.md). Residual opcional (hardening, fora do escopo do cron): alarme 3 camadas do §"G7/G8" abaixo. |
 | **P07** | 🟡 código-completo (arquitetura revista 2026-07-02) | 6 peças no main + **incidente do 1º run instrumentado** (20260702-073601: pcov no mesmo processo matou a suíte aos 53% E o junit → noite de floor perdida). Correção estrutural: coverage = 2ª invocação separada pós-junit (`[P07 coverage]`, 6G), contrato no `fullsuiteHarness.spec.ts`. Mecânica clover provada em fatia (14MB válido). Relógio recomeça: 3 nightlies válidas p/ armar. Detalhe no [P07](P07-instrumentar-pcov-ci-coverage.md). |
 | **P08** | ✅ executado | `drift_alarms`+`backfill_error_rate` = `measured` no scorecard + 6ª catraca `anchor-lint` morde no gate-selftest (#3140); needed 0 secret/prod |
 | **P09** | ✅ executado | `anchored_dead=0` E `placeholder=0` no main (#3473+#3475) |
@@ -76,7 +92,7 @@ Esforço dominado por **7+ noites de relógio real** (CT100). Semanas, não dias
 | [P03](P03-us-gov-021-isolamento-era-sqlite.md) ✅ | US-GOV-021: isolar 18 corruptores | 2 | — | P04 | **executado** | ✅ `sqlite-test-corruptors --strict` exit 0 (REAIS=0) |
 | [P04](P04-burn-down-ate-nightly-verde.md) 🔜 | Burn-down até nightly verde | 2 | P03,P01,P02 | (R1) | 3-4d / **2-3 sem** | **DESBLOQUEADO** (deps executed) — **PRÓXIMO PASSO**, gated no nightly confirmar o fix FV-F1 (#3676) primeiro. Alavanca: fatia DB 57% antes de asserts. DoD: 7 noites floor=0, skipped não infla |
 | [P05](P05-fechar-grandfather-baseline-tamper-guard.md) ✅ | Fechar grandfather (vetor #2848) | 1 | — | P11,P13 | **executado** | ✅ entry/covers armado a required |
-| [P06](P06-materializar-g7-g8-historia-brief.md) | Migrar prod → linha SDD no brief | 3 | (P01 soft) | — | **~1h** / 1-2d cron | `snapshot` FAILURE→exit 0 + 1 row |
+| [P06](P06-materializar-g7-g8-historia-brief.md) ✅ | Migrar prod → linha SDD no brief | 3 | (P01 soft) | — | **executado** (2026-07-12) | ✅ cron 07:10 BRT CT 100 + 1 row/dia (row fresca provada; RUNBOOK-ct100-sdd-scorecard-snapshot) |
 | [P07](P07-instrumentar-pcov-ci-coverage.md) | `pcov` no CI (coverage_pct) | 3 | — | P13 | 0.8d / 3+14d | `coverage_pct` vira `measured` |
 | [P08](P08-conectar-metricas-gt-e-fixture-anchor.md) ✅ | Conectar 2 métricas GT + fixture anchor | 1 | — | P13 | **executado** (#3140) | ✅ `drift_alarms`+`backfill_error_rate` `measured`; 6ª catraca `anchor-lint` morde |
 | [P09](P09-sa-a4-sanear-placeholders-anchored-dead.md) ✅ | SA-A4: sanear placeholders + dead | 4 | — | P10 | **executado 2026-07-01** (#3473+#3475) | ✅ `anchor-lint` dead=0, placeholder=0 |
@@ -140,7 +156,7 @@ Re-rodar `/sdd-avaliar` ao fechar Fase 0+1 e a cada quinzena (skill `sdd-avaliar
 
 ---
 
-## Stream PT — Product Truth (PROPOSTO 2026-07-02 · aguarda Wagner · [ADR 0319](../../../decisions/proposals/0319-product-truth-stream-adversario-modulo-analise.md))
+## Stream PT — Product Truth (ACEITO 2026-07-09 · stream aprovado, sub-decisões Q2-Q5 advisory-default abertas · [ADR 0319](../../../decisions/0319-product-truth-stream-adversario-modulo-analise.md))
 
 > Origem: Wagner 2026-07-02 ("tenho gaps por módulo? tenho adversário refutador por módulo?" → resposta: gaps profundos só em ~10/78 módulos; refutador por módulo NÃO existe — o skeptic hoje é por stream de governança, não por módulo de produto).
 

@@ -32,6 +32,13 @@ const OUT = arg('--out', join(process.cwd(), 'governance', 'nightly-coverage.jso
 // `<metrics ... statements="N" ... coveredstatements="M" ...>` (atributos em
 // qualquer ordem). line-rate = coveredstatements / statements.
 export function parseCloverLineRate(xml) {
+  // V4 (nunca mente baixo): guard anti-truncamento. Um coverage killed mid-flush (o
+  // timeout -k mata o pcov no teto — exit 124/137) deixa um clover TRUNCADO cujo ULTIMO
+  // <metrics> e um agregado PARCIAL de <file>, nao o <metrics> do <project> — daria um
+  // coverage_pct falso-baixo que a catraca C2 (so-sobe) travaria pra sempre. pcov/PHPUnit
+  // so escrevem o </coverage> de fechamento no flush COMPLETO; sua ausencia = clover
+  // incompleto -> nao conta (read-side fica not_yet_measured, honesto).
+  if (!/<\/coverage>\s*$/.test(xml)) return null;
   const blocks = [...xml.matchAll(/<metrics\b[^>]*>/g)].map((m) => m[0]);
   if (!blocks.length) return null;
   const last = blocks[blocks.length - 1]; // <metrics> do <project> (agregado)

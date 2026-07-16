@@ -9,6 +9,8 @@ use Spatie\Permission\Models\Permission;
 
 uses(Tests\TestCase::class);
 
+// @covers-us US-COPI-111 — Roadmap Gantt (leitura) + reschedule do prazo via drag-drop (B2): guard write, update de due_date pelo TaskCrudService canônico, validação e 403 sem permissão.
+
 /**
  * Onda 5 V1 — Roadmap timeline (SVAR React Gantt MIT).
  *
@@ -312,4 +314,82 @@ it('renderiza com lista de tasks vazia sem quebrar (estado inicial DB limpo)', f
 
     expect($tasks)->toBeArray();
     expect(count($tasks))->toBe(0);
+});
+
+// ---------------------------------------------------------------------------
+// US-COPI-111 B2 (Wagner 2026-07-12) — reschedule do prazo via drag-drop.
+// Endpoint PATCH /ia/admin/roadmap/tasks/{taskId}/schedule, gated write.
+// ---------------------------------------------------------------------------
+
+function roadmapEnsureWritePerm(App\User $user, bool $grant): void
+{
+    $perm = Permission::firstOrCreate(['name' => 'jana.mcp.tasks.write', 'guard_name' => 'web']);
+    // Read é pré-req do fluxo; write é o gate do reschedule.
+    roadmapGivePerm($user);
+    if ($grant && ! $user->hasPermissionTo($perm)) {
+        $user->givePermissionTo($perm);
+    }
+    if (! $grant && $user->hasPermissionTo($perm)) {
+        $user->revokePermissionTo($perm);
+    }
+    // Reset do cache de permissions do Spatie (o método vive no registrar, não no user).
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+}
+
+it('responde 403 no reschedule sem permission jana.mcp.tasks.write', function () {
+    [, $user] = roadmapBootstrap();
+    roadmapEnsureWritePerm($user, grant: false);
+
+    $this->actingAs($user);
+    $response = $this->patch('/ia/admin/roadmap/tasks/__test_roadmap_v1__resched/schedule', [
+        'due_date' => now()->addWeek()->toDateString(),
+    ]);
+
+    expect($response->status())->toBe(403);
+});
+
+it('valida due_date obrigatório no reschedule (422 sem data)', function () {
+    [, $user] = roadmapBootstrap();
+    roadmapEnsureWritePerm($user, grant: true);
+
+    $this->actingAs($user);
+    $response = $this->from('/ia/admin/roadmap')
+        ->patch('/ia/admin/roadmap/tasks/__test_roadmap_v1__resched/schedule', []);
+
+    expect($response->status())->toBe(302); // redirect back com erros de validação
+    $response->assertSessionHasErrors('due_date');
+});
+
+it('reagenda o due_date da task via TaskCrudService (biz=1)', function () {
+    [, $user] = roadmapBootstrap();
+    roadmapEnsureWritePerm($user, grant: true);
+
+    DB::table('mcp_tasks')->insert([
+        'task_id'     => '__test_roadmap_v1__resched',
+        'module'      => 'Jana',
+        'title'       => 'Task reschedule B2',
+        'status'      => 'todo',
+        'priority'    => 'p2',
+        'due_date'    => now()->toDateString(),
+        'source_path' => 'memory/requisitos/Jana/SPEC.md#__test_roadmap_v1__resched',
+        'parsed_at'   => now(),
+        'created_at'  => now(),
+        'updated_at'  => now(),
+    ]);
+
+    $novoPrazo = now()->addWeeks(2)->toDateString();
+
+    $this->actingAs($user);
+    $response = $this->patch('/ia/admin/roadmap/tasks/__test_roadmap_v1__resched/schedule', [
+        'due_date' => $novoPrazo,
+    ]);
+
+    expect($response->status())->toBeIn([302, 303]); // back()
+
+    $persisted = DB::table('mcp_tasks')
+        ->where('task_id', '__test_roadmap_v1__resched')
+        ->value('due_date');
+
+    // due_date persistido = novo prazo (compara só a parte de data).
+    expect(substr((string) $persisted, 0, 10))->toBe($novoPrazo);
 });

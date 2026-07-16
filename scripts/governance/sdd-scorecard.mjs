@@ -26,7 +26,7 @@
 
 import { readdirSync, readFileSync, existsSync, writeFileSync, realpathSync } from 'node:fs';
 import { execSync } from 'node:child_process';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = process.cwd();
@@ -46,7 +46,16 @@ function measureKnowledgeDrift() {
   let citing = 0;
   for (const r of rows) if (r.ghosts.length) { citing++; for (const g of r.ghosts) names.add(g); }
   const withDoor = rows.filter((r) => r.door !== 'NÃO').length;
-  return { ghost_count: names.size, ghost_citing_modules: citing, door_num: withDoor, door_den: rows.length };
+  // read_path_hops (ADR 0270 D-5): a fonte JÁ computa hops por módulo — este script só
+  // transporta a MEDIANA, com a MESMA fórmula do relatório humano do knowledge-drift.mjs
+  // (sort asc + [floor(n/2)]) — um conceito, um número, dois lados.
+  const hopsArr = rows.map((r) => r.hops).filter((h) => typeof h === 'number').sort((a, b) => a - b);
+  const hopsMedian = hopsArr.length ? hopsArr[Math.floor(hopsArr.length / 2)] : null;
+  return {
+    ghost_count: names.size, ghost_citing_modules: citing, door_num: withDoor, door_den: rows.length,
+    hops_median: hopsMedian, hops_worst: hopsArr.length ? hopsArr[hopsArr.length - 1] : null,
+    hops_modules: hopsArr.length,
+  };
 }
 
 // ── fonte 2: anchor-lint --json (FONTE ÚNICA do anchor_coverage — ADR 0273 §2) ─
@@ -247,6 +256,29 @@ function gitDateOf(file) {
   } catch { return null; }
 }
 
+// Checkout shallow (fetch-depth:1) fabrica datas: `git log -1` só enxerga o HEAD, então
+// TODO arquivo "foi commitado hoje" — qualquer métrica baseada em data-git mente nesse
+// cenário (mede calendário, não eventos). PEGADINHA (pega no smoke 2026-07-12):
+// `--is-shallow-repository` é grosso demais — o `git fetch origin governance/nightly-floor
+// --depth 1` (materialização da órfã, que o próprio ratchet manda rodar) marca o repo
+// shallow SEM truncar a history do HEAD. Shallow só invalida a medição se algum boundary
+// do `.git/shallow` for ANCESTRAL do HEAD. Erro de git = não-confiável → true.
+function isShallowHistory() {
+  const git = (cmd) => execSync(cmd, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'] }).toString().trim();
+  try {
+    if (git('git rev-parse --is-shallow-repository') === 'false') return false;
+    const shallowFile = resolve(ROOT, git('git rev-parse --git-path shallow'));
+    if (!existsSync(shallowFile)) return true; // marcado shallow sem boundary legível — não confia
+    for (const sha of readFileSync(shallowFile, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean)) {
+      try {
+        execSync(`git merge-base --is-ancestor ${sha} HEAD`, { cwd: ROOT, stdio: 'ignore' });
+        return true; // boundary corta a ancestry do HEAD → datas fabricáveis
+      } catch { /* boundary fora da ancestry (ex: órfã nightly-floor) — não trunca */ }
+    }
+    return false;
+  } catch { return true; }
+}
+
 // Data-git (committer %cs) do doc .md mais novo do módulo, EXCETO a própria BRIEFING.
 // Só é chamada pras portas carimbadas → barato no rollout (poucas portas têm carimbo).
 function gitNewestModuleDocDate(modDir) {
@@ -272,9 +304,19 @@ function daysAhead(fromDate, toDate) {
 
 export function measureDistillerFreshness(
   reqDir = join(ROOT, 'memory', 'requisitos'),
-  { newestDocDate = gitNewestModuleDocDate, staleDays = STALE_DAYS_DISTILLER } = {},
+  { newestDocDate = gitNewestModuleDocDate, staleDays = STALE_DAYS_DISTILLER, shallow = isShallowHistory } = {},
 ) {
   const FRESH_TARGET = '< 7d atrás do doc mais novo em 100% das portas';
+  // Guard anti-fabricação: em checkout shallow o gitNewestModuleDocDate devolve a data
+  // do HEAD pra todo módulo → portas carimbadas >7d atrás viram "stale" só pelo passar
+  // do calendário, sem doc novo nenhum. Foi o drift real 2026-07-08→12 (0→5→9→7→6 no
+  // scorecard publicado, medição em checkout full = 0 o tempo todo): o publish rodava
+  // com fetch-depth default (1). Honesto: not_yet_measured, NUNCA fabrica stale.
+  // Fonte injetada (meta-teste) não passa por git → guard não se aplica.
+  if (newestDocDate === gitNewestModuleDocDate && shallow()) {
+    return notYet('down', FRESH_TARGET,
+      'ADR 0291 D-D — checkout shallow: data-git do doc mais novo é infabricável (git log só vê o HEAD; mediria calendário, não eventos). Use actions/checkout com fetch-depth: 0.');
+  }
   if (!existsSync(reqDir)) {
     return notYet('down', FRESH_TARGET, 'ADR 0291 D-D — memory/requisitos/ ausente; nada a medir.');
   }
@@ -450,8 +492,19 @@ function buildScorecard() {
         'golden set recall (KL-C2) — depende do alias map das 13 colisões ADR'),
       ragas_real_uptime: measureRagasRealUptime(),
       distiller_freshness: measureDistillerFreshness(),
-      read_path_hops: notYet('down', 1,
-        'ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1; instrumentação pendente)'),
+      // ADR 0270 D-5 — nº de docs abertos pra saber o estado atual de um módulo (meta 1).
+      // Fonte viva: knowledge-drift.mjs --json .[].hops → mediana (mesma medição do
+      // relatório humano). Fallback honesto se a fonte não trouxe rows (NUNCA mente 0).
+      read_path_hops: kd.hops_median == null
+        ? notYet('down', 1,
+            'ADR 0270 D-5 — knowledge-drift.mjs --json sem rows com hops numérico (nenhum módulo elegível); fallback honesto.')
+        : {
+            status: 'measured', value: kd.hops_median,
+            unit: 'docs abertos pra saber a verdade atual (mediana por módulo · ADR 0270 D-5)',
+            direction: 'down', target: 1,
+            source: 'scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)',
+            detail: { modules: kd.hops_modules, hops_worst: kd.hops_worst },
+          },
       drift_alarms: measureDriftAlarms(),
       backfill_error_rate: measureBackfillErrorRate(),
     },

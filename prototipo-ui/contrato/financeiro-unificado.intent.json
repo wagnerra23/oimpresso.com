@@ -1,0 +1,42 @@
+{
+  "tela": "Financeiro/Unificado",
+  "fonte": "prototipo-ui/cowork/financeiro-page.jsx",
+  "charter": "resources/js/Pages/Financeiro/Unificado/Index.charter.md",
+  "alvo": ["resources/js/Pages/Financeiro/Unificado/Index.tsx"],
+  "modo": "enforcing",
+  "cobertura_minima": 5,
+  "nota": "Contrato de intenção ENFORCING. Cada intenção tem evidência positiva e caminhos proibidos verificáveis; prosa não cria exceção. Campo `modo` é declarativo — a tranca real é o workflow `contrato-de-tela` (step 'Intenção de fluxo', exit-code real), hoje always-run porém AINDA NÃO-required (passo 4 pendente, flip [W] admin-only — ADR 0261; RUNBOOK-contrato-de-tela §Estado da adoção; higiene 2026-07-16: a versão anterior desta nota afirmava 'promovido a required', à frente do estado real). Reintroduzir a rota legada = job vermelho (sinal honesto); bloqueio de merge só após o flip [W].",
+  "fluxos": [
+    {
+      "id": "novo-titulo-escolhe-tipo",
+      "intencao": "A pessoa inicia um único novo título e escolhe receber ou pagar antes de preencher o formulário.",
+      "deve_conter": ["Novo título", "Novo recebimento", "Novo pagamento", "setCreateTipo('receber')", "setCreateTipo('pagar')"],
+      "nao_pode_conter": ["router.visit('/financeiro/unificado/novo')"],
+      "fonte_humana": "O protótipo expõe um único Novo título; o charter registra a escolha explícita de tipo antes do formulário. O invariante é que todos os pontos de entrada terminem no fluxo atual, não na rota legada."
+    },
+    {
+      "id": "filtros-preservam-contexto",
+      "intencao": "Eliana refina a visão por lente, campo de data e lifecycle sem sair da Visão Unificada.",
+      "deve_conter": ["applyLente", "aplicar({ data_campo: f.id })", "aplicar({ lifecycle: next })"],
+      "nao_pode_conter": ["window.location.href = '/financeiro/unificado'"]
+    },
+    {
+      "id": "drawer-abre-no-lancamento",
+      "intencao": "Ao escolher uma linha, a pessoa abre o detalhe lateral do lançamento sem perder a lista.",
+      "deve_conter": ["setSelectedId(r.id)", "<Sheet open={!!selected}"],
+      "nao_pode_conter": ["router.visit('/financeiro/unificado/detalhe')"]
+    },
+    {
+      "id": "baixa-pede-confirmacao-operacional",
+      "intencao": "Receber ou pagar abre a folha de baixa para escolher valor, conta e forma antes de gravar.",
+      "deve_conter": ["openBaixa(r.id)", "FinBaixaSheet", "onBaixar"],
+      "nao_pode_conter": ["window.confirm('Baixar título?')"]
+    },
+    {
+      "id": "lote-e-explicito",
+      "intencao": "Ação em lote exige seleção explícita e confirmação própria para cancelamento.",
+      "deve_conter": ["selectedRows", "submitBulk", "setBulkCancelOpen(true)"],
+      "nao_pode_conter": ["window.confirm('Cancelar títulos selecionados?')"]
+    }
+  ]
+}

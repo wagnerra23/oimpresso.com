@@ -1,0 +1,5 @@
+{
+  "completo": 3,
+  "total": 279,
+  "note": "Catraca do ciclo-de-tela (UI-0013): `completo` (telas com charter+PT+conforme+casos+teste+golden-live) só sobe. Baixar exige decisão consciente. ADVISORY (ADR 0314)."
+}

@@ -117,6 +117,26 @@ last_updated: "2026-07-03"
 
 **Por quê.** Feature do drawer rico do mockup Cowork ([produtos-gap.md](produtos-gap.md) Parte 6): melhor cotação por fornecedor destacada. Hoje `ProdutoUnificadoController::insumos()` retorna `fornecedor => null` (TODO). Único ❌ AUSENTE do inventário.
 
+### US-PROD-027 · [V0] Travar o acidente do 0-row: preço zero em tabela é inerte só por sorte do PHP
+
+> owner: wagner · priority: p1 · status: todo · type: story · estimate: 3h · origin: adversario-tabela-preco-2026-07-15
+
+**Por quê.** Uma row em `variation_group_prices` com `price_inc_tax = 0` + `price_type = 'fixed'` é **inofensiva no PDV** — mas por **coincidência de semântica do PHP**, não por invariante desenhado. O `SellPosController:1791` faz `if (! empty($variation_group_prices['price_inc_tax']))`, e `!empty(0)` é `false` → cai no preço padrão. Um refactor razoável (`isset()`, `!== null`, tipar `?float`) **destrava venda a preço zero** em todo produto que já tem 0 gravado. **Nada testa esse acidente.**
+
+E há zeros gravados: a UI (React **e** Blade) pré-preenche célula sem preço com `0` e envia — `row[v.id] = existing ?? { price: 0, price_type: 'fixed' }` (`SellingPrices.tsx`) e `... : 0` (`add-selling-prices.blade.php`). Salvar a tela converte "sem row (usa o padrão)" em "row com preço 0".
+
+**Escopo — TEST-ONLY, não muda comportamento, não precisa de decisão [W]:** cravar o comportamento atual como contrato explícito. Vira `UC-PTAB-05` em [`SellingPrices.casos.md`](../../../resources/js/Pages/Produto/SellingPrices.casos.md) (hoje está no §Backlog de casos sem id).
+
+**Aceite:**
+- [ ] Teste na lane `Estoque · MySQL` (allowlist do `estoque-pest.yml`): dado row `(variação × tabela)` com `price_inc_tax = 0` e `price_type = 'fixed'`, quando a venda busca o preço com aquele price_group, então usa o **preço padrão da variação** — não zero.
+- [ ] Cobrir também o caso **sem row** (`getVariationGroupPrice` devolve `''`) → também cai no padrão. É o caso NORMAL e o que sangra em Labels/Woo.
+- [ ] `UC-PTAB-05` no `casos.md` ancorado em `CU-PROD-03` + REGRA MESTRE, com `// Cobre UC-PTAB-05` no teste (G-2).
+- [ ] Comentário no `SellPosController` marcando o `!empty()` como **load-bearing** (hoje quem refatora não tem como saber).
+
+**NÃO cobre (decisão [W] separada — §Backlog do `casos.md`):** consertar o default 0 da UI · guard em `LabelsController:145`/`WoocommerceUtil:343,733` (que **não** guardam e quebram no `''`) · preço 0 legítimo inexprimível. As três **brigam entre si** — parar de gravar zeros piora etiqueta/Woo.
+
+**Origem:** passe adversarial 2026-07-15 sobre o ecossistema da tabela de preço (PRs #4299/#4300/#4308/#4319).
+
 ## 4. Backlog fora do batch (sem sinal ainda — ADR 0105)
 
 Viram US quando houver cliente/sinal ou drift de métrica:

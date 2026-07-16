@@ -123,12 +123,15 @@ it('relatorio inclui chave descritivos_divergentes', function () {
         ->getMethod('relatorio');
     $reflect->setAccessible(true);
 
-    $rel = $reflect->invoke($svc, 5, 1, 2, 0, 3, ['X' => 5]);
+    // Assinatura relatorio(): processadas, ins, upd, can, fechadasAncora, descritivosDivergentes, modulos
+    // (fechadas_por_ancora inserido entre canceladas e descritivos — ADR 0337).
+    $rel = $reflect->invoke($svc, 5, 1, 2, 0, 0, 3, ['X' => 5]);
 
     expect($rel)->toHaveKey('descritivos_divergentes')
         ->and($rel['descritivos_divergentes'])->toBe(3)
         ->and($rel)->toHaveKey('atualizadas')
-        ->and($rel['atualizadas'])->toBe(2);
+        ->and($rel['atualizadas'])->toBe(2)
+        ->and($rel)->toHaveKey('fechadas_por_ancora');
 });
 
 // ─── Teste integração (skip local — roda em CT 100/MySQL) ───────────────

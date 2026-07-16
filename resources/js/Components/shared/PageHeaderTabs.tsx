@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { Link } from '@inertiajs/react';
 import { MoreHorizontal } from 'lucide-react';
+import { Icon } from '@/Components/Icon';
 import { Button } from '@/Components/ui/button';
 import {
   DropdownMenu,
@@ -60,6 +61,20 @@ export interface PageHeaderGhost {
   key: string;
   label: string;
   href: string;
+  /**
+   * OPT-IN (fidelidade proto [W] 2026-07-10): nome de ícone lucide (kebab-case,
+   * resolvido via `@/Components/Icon`). Sem `icon`, nada muda — telas que não
+   * declaram ícone renderizam exatamente como antes. Proto: PageHeaderNav
+   * (app.jsx) mostra `{Icon && <Icon size={12}/>}` por aba.
+   */
+  icon?: string;
+  /**
+   * OPT-IN: contagem exibida como pill numérico (`.cli-moduletopnav-n` do
+   * protótipo cadastro). Base cinza; na aba ATIVA fica roxo (`--accent`) com
+   * texto branco. Só renderiza se a tela declarar `badge` — telas sem contagem
+   * (Financeiro/Ponto) não mudam.
+   */
+  badge?: number | string;
 }
 
 /**
@@ -211,21 +226,70 @@ export default function PageHeaderTabs({
                   }
                 }}
                 className={cn(
-                  'px-3 py-1.5 text-sm whitespace-nowrap snap-start rounded-md',
+                  // SAFE-BY-CONSTRUCTION (revisão coordenador 2026-07-10): o `inline-flex` só
+                  // entra quando ESTA tab declara `icon`. `<a>` default é inline; trocar pra
+                  // inline-flex mexe baseline/altura ~1px em TODA tela que usa PageHeaderTabs
+                  // (Clientes/Compras/Sells/Oficina) mesmo sem ícone. Condicional = zero blast
+                  // radius; sem ícone, className byte-idêntica à de origem. Badge também
+                  // exige inline-flex pra centrar o pill numérico verticalmente.
+                  ghost.icon || ghost.badge != null ? 'inline-flex items-center gap-1.5' : '',
+                  // Fiel ao protótipo `.cli-moduletopnav-tab`: slim, RETO (sem border-radius)
+                  // e `-mb-px` pra o underline da aba ativa colar/sobrepor a linha da base.
+                  'px-3 py-1.5 text-sm whitespace-nowrap snap-start -mb-px',
                   'transition-colors border-b-2 border-transparent',
                   'hover:bg-accent hover:text-accent-foreground',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  // ADR 0313/0190 fidelidade [W] 2026-07-07: o tab ATIVO usa o primary roxo
-                  // universal (texto + borda), NÃO o hue-por-grupo (era verde 145 no Financeiro).
-                  // Espelha a mudança que o [W] fez no PageHeaderNav do protótipo vivo (app.jsx:
-                  // onColor/onBorder = var(--accent) pra TODOS os grupos). Alinha com o primary
-                  // universal da ADR 0190. `hue` segue só pro botão primary colorido (out of scope).
+                  // Fidelidade ao protótipo cadastro (`clientes-page.css` `.cli-moduletopnav-tab.active`)
+                  // [W] 2026-07-14: aba ATIVA = texto foreground (var(--text) do protótipo, branco)
+                  // + peso 600 + underline roxo `--accent` — o MESMO valor do botão
+                  // PageHeaderPrimary (ADR 0190). NÃO `text-primary`/`border-b-primary`: o
+                  // token `--primary` resolve pra oklch(0.70 …) e destoava do botão (2 roxos no
+                  // header). `hue` segue só pro botão primary colorido (out of scope).
                   isActive
-                    ? 'text-primary font-medium border-b-primary'
+                    ? 'text-foreground font-semibold'
                     : 'text-muted-foreground',
                 )}
+                style={
+                  isActive
+                    ? {
+                        // Fiel ao protótipo `.cli-moduletopnav-tab.active` (clientes-page.css):
+                        // underline `var(--accent)` + pill `color-mix(--accent-soft 50%)`. Os tokens
+                        // vivem na camada gerada do `.cockpit` (AppShellV2 embrulha todo o app —
+                        // _generated-cockpit-{light,dark}.css). Antes eram literais hardcodados
+                        // oklch(0.55 0.15 295); bindados no token pra o dark fluir de UM lugar só —
+                        // `--accent-soft` escurece no dark (0.95→0.32) e o pill fica legível.
+                        // Light idêntico p/ underline (var(--accent)==0.55 0.15 295); pill segue o
+                        // protótipo (accent-soft 50%). Harness claro+escuro com tokens reais em [W].
+                        borderBottomColor: 'var(--accent)',
+                        backgroundColor: 'color-mix(in oklch, var(--accent-soft) 50%, transparent)',
+                      }
+                    : undefined
+                }
               >
+                {ghost.icon && (
+                  <Icon
+                    name={ghost.icon}
+                    size={13}
+                    className="shrink-0"
+                    // ícone roxo na aba ativa (`.cli-moduletopnav-tab.active svg{color:var(--accent)}`)
+                    style={isActive ? { color: 'var(--accent)' } : undefined}
+                    aria-hidden
+                  />
+                )}
                 {ghost.label}
+                {ghost.badge != null && (
+                  <span
+                    className="ml-1.5 inline-block rounded-full px-1.5 min-w-[18px] text-center text-[10.5px] leading-[1.4] font-semibold tabular-nums"
+                    // `.cli-moduletopnav-n`: base cinza; ativo roxo (`--accent`) + `--accent-fg`.
+                    style={
+                      isActive
+                        ? { backgroundColor: 'var(--accent)', color: 'var(--accent-fg)' }
+                        : { backgroundColor: 'oklch(0.32 0.01 240)', color: 'oklch(0.70 0.01 240)' }
+                    }
+                  >
+                    {ghost.badge}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -249,7 +313,10 @@ export default function PageHeaderTabs({
               <DropdownMenuContent align="end" className="min-w-44">
                 {overflowGhosts.map((ghost) => (
                   <DropdownMenuItem key={ghost.key} asChild>
-                    <Link href={ghost.href}>{ghost.label}</Link>
+                    <Link href={ghost.href}>
+                      {ghost.icon && <Icon name={ghost.icon} size={13} className="mr-2 shrink-0" aria-hidden />}
+                      {ghost.label}
+                    </Link>
                   </DropdownMenuItem>
                 ))}
                 {overflowGhosts.length > 0 && extraOverflowItems.length > 0 && (

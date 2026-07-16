@@ -112,6 +112,27 @@ function runScorecardCorruptors(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// protection-drift WATCHDOG staleness da órfã (V5 · avaliação 2026-07-12 risco nº1): o frescor
+// do floor vem do computed_at do CONTEÚDO, não do tip (que avança com [skip ci] mesmo com a suíte
+// morta por OOM). Sandbox por cwd (governance/*-baseline.json próprios) + o script REAL copiado.
+// PROTECTION_DRIFT_NOW fixa o relógio. good = computed_at 24h atrás → 🟢 (exit 0); bad = TIP FRESCO
+// mas computed_at 6d atrás → 🔴 (exit 1) — o mesmo caso PROVA que ignora o tip (tip_committed_at
+// é hoje na fixture). O required-checks-baseline embutido casa os contexts do live ⇒ compareProtection
+// não avermelha o good por drift acidental.
+function runProtectionStaleFloor(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-protection-drift-stale-floor-${kind}-`));
+  const fx = join(FIX, 'protection-drift-stale-floor');
+  try {
+    mkdirSync(join(sb, 'governance'), { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('protection-drift', 'scripts/governance/protection-drift.mjs'), join(sb, 'scripts', 'governance', 'protection-drift.mjs'));
+    cpSync(join(fx, 'required-checks-baseline.json'), join(sb, 'governance', 'required-checks-baseline.json'));
+    cpSync(join(fx, 'sdd-scorecard-baseline.json'), join(sb, 'governance', 'sdd-scorecard-baseline.json'));
+    return runNode(join(sb, 'scripts', 'governance', 'protection-drift.mjs'),
+      ['--fixture', join(fx, kind, 'live.json')], sb, { PROTECTION_DRIFT_NOW: '2026-07-12T12:00:00Z' });
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // memory-health varre process.cwd() (memory/decisions/) e lê o registro de colisões em
 // governance/adr-collisions-baseline.json (ADR 0274 §3) + o baseline de segredos em
 // scripts/governance/.memory-health-baseline.json → mesmo padrão sandbox: fixture (só
@@ -265,6 +286,73 @@ function runAnchorLintVerde(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// V6-A (avaliação SDD 2026-07-12 · risco #2): RESILIÊNCIA do loadJunit. Reusa o SPEC+Service+Test da
+// fixture verde/good (US implementada+coberta) e SÓ sobrepõe o junit/ da fixture -resilient — isola a
+// variável "estado do JUnit". good = --junit é um MARCADOR de run inválido (fullsuite-summary-invalid/v1)
+// → --check-verde ARMADO degrada a behavior_unknown → exit 0 (sem crash exit 2, sem false-red exit 1);
+// bad = MESMO SPEC/teste, mas junit COERENTE marca o teste-que-cobre só skipped → ainda MORDE (exit 1 🟥),
+// prova que a resiliência não desarmou o gate verde.
+function runAnchorLintVerdeResilient(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-verde-resilient-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-verde', 'good'), sb, { recursive: true }); // SPEC+Service+Test compartilhados
+    cpSync(join(FIX, 'anchor-lint-verde-resilient', kind, 'junit'), join(sb, 'junit'), { recursive: true }); // overlay do junit da variante
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
+// V6-C (avaliação SDD 2026-07-12 · risco #2): "nightly-only lane → behavior_unknown, não false-red".
+// Reusa a fixture verde/bad (MESMO SPEC+Service+Test + junit COERENTE marcando o teste-que-cobre skipped)
+// e isola a variável LANE: good tira o .github/ci-sqlite-pest.list (teste fora de lane / nightly-only) →
+// V6-C degrada a behavior_unknown → exit 0 (o skipped que estruturalmente não aparece no junit do PR NÃO
+// avermelha); bad mantém a lista (teste in-lane) → skipped in-lane É vermelho legítimo → exit 1 (🟥). O par
+// prova que a exclusão é lane-membership, não o status do teste (idêntico nos dois).
+function runAnchorLintVerdeNightly(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-verde-nightly-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-verde', 'bad'), sb, { recursive: true }); // SPEC+Test + junit skipped + lane list
+    if (kind === 'good') rmSync(join(sb, '.github', 'ci-sqlite-pest.list'), { force: true }); // fora de lane = nightly-only
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
+// V6-B (avaliação SDD 2026-07-12 · risco #2): anchor-lint consome o summary da nightly full-suite SHARDED
+// (fullsuite-summary-sharded/v1 · shards-merge.mjs) — a única fonte que cobre as ~42 US nightly-only. Reusa o
+// SPEC+Test in-lane de verde/bad e só sobrepõe o junit/ da fixture -sharded (isola o schema). good = sharded
+// com o teste VERDE → schema consumido → exit 0; bad = sharded com o teste skipped → morde → exit 1 🟥.
+function runAnchorLintVerdeSharded(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-verde-sharded-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-verde', 'bad'), sb, { recursive: true }); // SPEC+Test + lane list
+    cpSync(join(FIX, 'anchor-lint-verde-sharded', kind, 'junit'), join(sb, 'junit'), { recursive: true }); // overlay do summary sharded
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
+// V6-B noite PARCIAL: MESMO teste AUSENTE do summary (files:[]) nos dois; a única variável é
+// all_shards_measured. good = false (shard morto) → ausente=unknown → exit 0 (fecha o false-red da noite
+// parcial); bad = true (noite completa) → ausente = não rodou → exit 1 🟥 (ausência em noite cheia É vermelho).
+function runAnchorLintVerdePartial(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-anchor-lint-verde-partial-${kind}-`));
+  try {
+    cpSync(join(FIX, 'anchor-lint-verde', 'bad'), sb, { recursive: true }); // SPEC+Test + lane list
+    cpSync(join(FIX, 'anchor-lint-verde-partial', kind, 'junit'), join(sb, 'junit'), { recursive: true }); // overlay do summary parcial/completo
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('anchor-lint', 'scripts/governance/anchor-lint.mjs'), join(sb, 'scripts', 'governance', 'anchor-lint.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'anchor-lint.mjs'),
+      ['--junit', 'junit/pest-verde-junit.summary.json', '--check-verde', 'memory/requisitos/SelftestVerde/SPEC.md'], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // ARMING grandfather (SA-A2-ter · ADR 0275): --check-entry --baseline. Prova o no-new-lie:
 // good = US violadora MAS grandfatherada no baseline → exit 0; bad = MESMA US violadora, baseline
 // só com decoy → exit 1 ("regra de entrada"). Isola a variável estar-no-baseline (mesmo SPEC).
@@ -345,6 +433,15 @@ const CATRACAS = [
     expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): sqlite_corruptors/ },
   },
   {
+    // V5 (avaliação 2026-07-12 risco nº1) — o watchdog GT-G4 mede o frescor do floor pelo
+    // computed_at do CONTEÚDO, não pelo tip da órfã. good = computed_at 24h atrás (🟢 veredito ok);
+    // bad = TIP FRESCO + computed_at 6d atrás → 🔴 (sem run verde há >48h). O bad é a prova de
+    // "tip fresco mas computed_at stale ⇒ ignora o tip".
+    id: 'protection-drift-stale-floor',
+    run: runProtectionStaleFloor,
+    expect: { good: /veredito: 🟢 ok/, bad: /full_suite_pass_rate: fonte .*sem run verde há >48h/ },
+  },
+  {
     id: 'memory-health',
     run: runMemoryHealth,
     expect: { good: /base de conhecimento saudável/, bad: /colidiu.*adr-collisions-baseline/ },
@@ -412,7 +509,7 @@ const CATRACAS = [
     // G1b gate de entrada: req_sem_aceite / req_sem_covering_test (regra nova sem aceite/teste)
     id: 'anchor-lint-entry',
     run: runAnchorLintEntry,
-    expect: { good: /Gate de entrada \(advisory\): 0 US/, bad: /regra de entrada|regra sem teste/ },
+    expect: { good: /Gate de entrada: 0 US/, bad: /regra de entrada|regra sem teste/ },
   },
   {
     // G1b verde-por-arquivo (Phase B): --junit summary + --check-verde. good = teste-que-cobre VERDE
@@ -423,11 +520,45 @@ const CATRACAS = [
     expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
   },
   {
+    // V6-A (avaliação SDD 2026-07-12 · risco #2): loadJunit RESILIENTE. good = --junit marcador de run
+    // inválido (fullsuite-summary-invalid/v1) com --check-verde ARMADO → behavior_unknown (exit 0, sem
+    // crash exit 2 nem false-red exit 1); bad = MESMO SPEC/teste mas junit coerente-skipped → ainda MORDE
+    // (exit 1 🟥). Prova que junit inválido não avermelha E que a resiliência não desarmou o gate verde.
+    id: 'anchor-lint-verde-resilient',
+    run: runAnchorLintVerdeResilient,
+    expect: { good: /Gate verde \(advisory\): behavior_unknown/, bad: /🟥 US-SLFV-001/ },
+  },
+  {
+    // V6-C (avaliação SDD 2026-07-12 · risco #2): US com teste-que-cobre fora das lanes de JUnit (nightly-only)
+    // NÃO vira false-red. MESMO SPEC/teste/junit-skipped nos dois; a única variável é o .github/ci-sqlite-pest.list.
+    // good = SEM lista (fora de lane) → behavior_unknown → 0 req_teste_vermelho → exit 0; bad = COM lista (in-lane)
+    // → skipped in-lane É vermelho → exit 1 🟥. Prova que a exclusão vem da lane-membership, não do status do teste.
+    id: 'anchor-lint-verde-nightly',
+    run: runAnchorLintVerdeNightly,
+    expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
+  },
+  {
+    // V6-B: anchor-lint CONSOME o summary da nightly sharded (fullsuite-summary-sharded/v1). good = schema
+    // sharded + teste verde → consumido → exit 0 (sem V6-B seria behavior_unknown); bad = sharded + skipped
+    // → morde → exit 1 🟥. Prova que o schema sharded é aceito E que o gate verde bite nessa fonte.
+    id: 'anchor-lint-verde-sharded',
+    run: runAnchorLintVerdeSharded,
+    expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
+  },
+  {
+    // V6-B noite PARCIAL: mesmo teste AUSENTE nos dois; única variável = all_shards_measured. good = false
+    // (shard morto) → ausente=unknown → exit 0 (fecha o false-red da noite parcial); bad = true (noite cheia)
+    // → ausente = não rodou → exit 1 🟥. Isola all_shards_measured como a causa.
+    id: 'anchor-lint-verde-partial',
+    run: runAnchorLintVerdePartial,
+    expect: { good: /Gate verde \(advisory\): 0 US/, bad: /🟥 US-SLFV-001/ },
+  },
+  {
     // ARMING grandfather (SA-A2-ter · ADR 0275): baseline ISENTA o legado MAS morde mentira NOVA.
     // good = US violadora grandfatherada → exit 0; bad = mesma US fora do baseline (só decoy) → exit 1.
     id: 'anchor-lint-entry-baseline',
     run: runAnchorLintEntryBaseline,
-    expect: { good: /Gate de entrada \(advisory\): 0 US/, bad: /regra de entrada|regra sem teste/ },
+    expect: { good: /Gate de entrada: 0 US/, bad: /regra de entrada|regra sem teste/ },
   },
   {
     // ARMING grandfather doneness (ADR 0302/0275): baseline ISENTA o conflito legado MAS morde o NOVO.
@@ -485,6 +616,64 @@ const CATRACAS = [
       ['--staging', join(FIX, 'handoff-changed', kind), '--baseline', join(FIX, 'handoff-changed', 'baseline.json')], ROOT),
     expect: { good: /IDÊNTICO ao baseline/, bad: /MUDOU/ },
   },
+  {
+    // universe-gate (shards-plan --verify · SDD P04 · ADR 0279): o conjunto de shards cobre
+    // EXATAMENTE o universo de dirs de teste — nenhum some no particionamento (=teste perdido).
+    // Fixture sob scripts/tests/fixtures/ (fora dos roots prod tests,Modules → não contamina a
+    // suíte real, igual foundation-ratchet). Roda com cwd=fixture, --roots tests (relativo).
+    // good = SEM --plan (plano auto-computado sempre cobre) → exit 0 "universe-gate OK". bad =
+    // --plan tamper.json que DROPA tests/Unit → exit 1 "PERDIDO" (o vetor: shard some no plano).
+    id: 'shards-universe',
+    run: (kind) => {
+      const fx = join(ROOT, 'scripts', 'tests', 'fixtures', 'shards-universe', kind);
+      const argv = ['--verify', '--roots', 'tests'];
+      if (existsSync(join(fx, 'plan.json'))) argv.push('--plan', join(fx, 'plan.json'));
+      return runNode(script('shards-plan', 'scripts/tests/shards-plan.mjs'), argv, fx);
+    },
+    expect: { good: /universe-gate OK/, bad: /PERDIDO|universe-gate FALHOU/ },
+  },
+  {
+    // layout-primitives-guard (ADR 0253 · RATCHET por arquivo): flex/grid solto nas telas.
+    // 3 gates DS promovidos a required 2026-07-15 (flip 24→27) — entram no selftest pra provar que
+    // mordem (US-GOV-054 / o "verde não prova visão"). --root/--baseline isolam o scan na fixture
+    // (backward-compat: sem elas = cwd + baseline hardcoded, gate de prod inalterado). good = .tsx
+    // BATE o baseline (0 regressão, exit 0); bad = Fixture.tsx CRESCE (2 > baseline 1) → exit 1 pela
+    // REGRESSÃO (não por crash — a fixture bad traz o próprio baseline.json).
+    id: 'layout-primitives',
+    run: (kind) => {
+      const fx = join(FIX, 'layout-primitives', kind);
+      return runNode(script('layout-primitives', 'scripts/layout-primitives-guard.mjs'),
+        ['--root', fx, '--baseline', join(fx, 'baseline.json')], ROOT);
+    },
+    expect: { good: /Sem regressões vs baseline/, bad: /REGRESSÃO — \d+ arquivo\(s\) com MAIS flex\/grid solto/ },
+  },
+  {
+    // stylelint-baseline (G5 · ADR 0209 · RATCHET path|rule): drift CSS (color-no-hex etc).
+    // O gate-selftest é Node puro SEM node_modules → --counts-from alimenta contagens pré-computadas
+    // e pula o linter real (stylelint é import lazy). Prova o COMPARADOR ratchet, que é o que pode
+    // apodrecer; o linter em si é exercitado pelo stylelint-gate.yml (que faz npm ci).
+    // good = counts == baseline (delta 0, exit 0); bad = counts +1 → delta>0 → morde (exit 1).
+    id: 'stylelint-baseline',
+    run: (kind) => {
+      const fx = join(FIX, 'stylelint', kind);
+      return runNode(script('stylelint-baseline', 'scripts/stylelint-baseline.mjs'),
+        ['--baseline', join(fx, 'baseline.json'), '--counts-from', join(fx, 'counts.json')], ROOT);
+    },
+    expect: { good: /Sem regressões vs baseline/, bad: /REGRESSÃO — \d+ entrada/ },
+  },
+  {
+    // eslint-baseline (ADR 0209 · RATCHET path|rule): regressão ESLint. Mesmo motivo do stylelint:
+    // --counts-from pula o `npx eslint` (indisponível no gate-selftest sem node_modules) e prova o
+    // COMPARADOR ratchet. As regras ds/* são exercitadas pelo eslint-gate.yml (com npm ci).
+    // good = counts == baseline (delta 0, exit 0); bad = counts +1 → delta>0 → morde (exit 1).
+    id: 'eslint',
+    run: (kind) => {
+      const fx = join(FIX, 'eslint', kind);
+      return runNode(script('eslint', 'scripts/eslint-baseline.mjs'),
+        ['--baseline', join(fx, 'baseline.json'), '--counts-from', join(fx, 'counts.json')], ROOT);
+    },
+    expect: { good: /Sem regress/, bad: /hits AUMENTADOS/ },
+  },
 ];
 
 const results = [];
@@ -516,7 +705,7 @@ for (const r of results) {
   }
 }
 if (SUMMARY) {
-  appendFileSync(SUMMARY, ['## Gate selftest (advisory · GT-G6)', '', '| catraca | good | bad |', '|---|---|---|',
+  appendFileSync(SUMMARY, ['## Gate selftest (GT-G6)', '', '| catraca | good | bad |', '|---|---|---|',
     ...CATRACAS.filter((c) => !ONLY || c.id === ONLY).map((c) => {
       const g = results.find((r) => r.catraca === c.id && r.fixture === 'good');
       const b = results.find((r) => r.catraca === c.id && r.fixture === 'bad');

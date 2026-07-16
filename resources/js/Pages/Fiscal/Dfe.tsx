@@ -6,11 +6,11 @@
 
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { Deferred, Head, router } from '@inertiajs/react';
-import { Check, CheckCircle2, Eye, FileSearch, Info, Inbox, ShieldAlert, XCircle } from 'lucide-react';
+import { Check, CheckCircle2, Eye, FileSearch, Info, ShieldAlert, XCircle } from 'lucide-react';
 import { useState } from 'react';
 
 import FxShell from './_components/FxShell';
-import FiscalModuleTopNav from './_components/FiscalModuleTopNav';
+import PageHeaderTabs from '@/Components/shared/PageHeaderTabs';
 import { brl, formatDoc, truncKey } from './_lib/fiscal-helpers';
 
 import '../../../css/fiscal-cockpit.css';
@@ -61,6 +61,8 @@ interface DfeRow {
 }
 
 interface DfeProps {
+  // DS Onda 3 — aba ativa vem da rota (?tab=), whitelist server-side no DfeController.
+  activeTab?: DfeTab;
   filters: Filters;
   counts: Counts;
   rows?: { data: DfeRow[]; meta: { total: number; current_page: number; last_page: number } };
@@ -78,9 +80,10 @@ const STATUS_META: Record<StatusManifestacao, { label: string; tone: 'ok' | 'war
 
 type ManifestAction = 'cienciar' | 'confirmar' | 'desconhecer' | 'nao_realizada';
 
-export default function Dfe({ filters: initialFilters, counts, rows, historicoMock = [] }: DfeProps) {
+export default function Dfe({ activeTab, filters: initialFilters, counts, rows, historicoMock = [] }: DfeProps) {
   const [filters, setFilters] = useState<Filters>(initialFilters);
-  const [tab, setTab] = useState<DfeTab>('pendente');
+  // Aba ativa dirigida pela rota (?tab=) — barra canônica navega por href (DS Onda 3).
+  const tab = activeTab ?? 'pendente';
   const dataRows = rows?.data ?? [];
   const [busyId, setBusyId] = useState<number | null>(null);
   const [modal, setModal] = useState<{ id: number; acao: 'desconhecer' | 'nao_realizada' } | null>(null);
@@ -139,15 +142,18 @@ export default function Dfe({ filters: initialFilters, counts, rows, historicoMo
           </button>
         }
       >
-        {/* ModuleTopNav — Onda 2 G — tabs Pendentes / Histórico */}
-        <FiscalModuleTopNav
-          items={[
-            { id: 'pendente',  label: 'Aguardando ciência', icon: <Inbox size={12} />,          count: counts.pendentes, tone: counts.pendentes > 0 ? 'warn' : null },
-            { id: 'historico', label: 'Histórico',          icon: <CheckCircle2 size={12} />, count: historicoMock.length },
-          ]}
-          value={tab}
-          onChange={(id) => setTab(id as DfeTab)}
-        />
+        {/* DS Onda 3 — barra de abas CANÔNICA (PageHeaderTabs) em faixa própria,
+            navegando por rota (?tab=). Padroniza o visual com Clientes/Financeiro/Ponto. */}
+        <div className="mb-4">
+          <PageHeaderTabs
+            ghosts={[
+              { key: 'pendente',  label: 'Aguardando ciência', href: '/fiscal/dfe?tab=pendente',  icon: 'inbox',         badge: counts.pendentes || undefined },
+              { key: 'historico', label: 'Histórico',          href: '/fiscal/dfe?tab=historico', icon: 'check-circle-2', badge: historicoMock.length || undefined },
+            ]}
+            activeGhostKey={tab}
+            maxVisible={6}
+          />
+        </div>
 
         {tab === 'pendente' && (<>
         {/* Callout informativo (port do fiscal-page.jsx §10 FiscalDFePage) */}

@@ -9,7 +9,7 @@ parent_module: Sells
 related_adrs: [93, 94, 104, 107, 114, 143, 178, 192]
 tier: B
 charter_version: 1
-visual_source: prototipo-ui/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
+related_prototype: prototipo-ui/cowork/vendas-extras.jsx · função VendasCaixaPage (linhas 123-354)
 canon_method: Cowork KB-9.75 + Integração Vendas × Oficina A1 (ADR 0192) — Onda 6 wave separada
 ---
 
@@ -92,7 +92,7 @@ Caixa do dia — resumo financeiro por forma de pagamento + **por origem** (Balc
 - **ADR 0094** — Constituição v2 (Charter > Spec · este charter v1 atende princípio 3)
 - **ADR 0104** — MWART processo único (5 fases · esta tela passa F0-F4)
 - **ADR 0107** — Visual comparison gate F3 (cumprido via `Caixa-r1-visual-comparison.md` 15 dimensões)
-- **ADR 0114** — Cowork loop formalizado (visual_source canonical)
+- **ADR 0114** — Cowork loop formalizado (related_prototype = âncora canônica; ver `prototipo-ui/ancora.mjs`)
 - **ADR 0178** — Sells unified tabs (paridade arquitetura · Sells/Caixa irmã de Sells/Index)
 - **Backend payload** `/sells-list-json` (commit `e98649989`) já retorna `source`/`source_label`/`os_ref` desde Onda 2
 - **Listener** `oimpresso:open-venda` já registrado em Sells/Index Onda 4 (`e40289010` linha 928)

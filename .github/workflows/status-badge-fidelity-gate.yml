@@ -1,0 +1,51 @@
+name: StatusBadge Fidelity Gate — pílula de status fiel ao protótipo + dark-aware (não regride)
+
+# A "pílula de status" canoniza em <Badge variant="success|warning|danger|info|neutral">
+# (@/Components/ui/badge) — e no wrapper de domínio <StatusBadge> (@/Components/shared).
+# A pílula precisa bater com `.cli-status-pill` do protótipo Cowork (clientes-page.css:
+# border-radius 999px = rounded-full) E manter o contrato dark-aware: cor mora em token
+# -soft/-fg, NUNCA em palette cru (o vetor que quebra o dark sem alarme — mesmo bug do
+# tab-nav 2026-07). Nenhum gate de className pega "trocou token por bg-green-100 numa
+# variante"; este render-test (vitest/jsdom) trava a fidelidade + tem controle-negativo
+# do detector de cor-crua (ADR 0258).
+#
+# Path-scoped (faz npm ci): roda só quando o componente, o spec ou este workflow mudam.
+# Comando manual local: npx vitest run tests/statusBadgeFidelity.spec.tsx
+#
+# Advisory (ADR 0271/0314 — DS é higiene/qualidade, não Tier-0). Ver gates-registry.json.
+# Refs: ADR proposta tab-nav/componente-por-papel (Onda status-badge) · ADR 0338 · ADR 0258.
+
+on:
+  pull_request:
+    paths:
+      - 'resources/js/Components/ui/badge.tsx'
+      - 'resources/js/Components/shared/StatusBadge.tsx'
+      - 'tests/statusBadgeFidelity.spec.tsx'
+      - '.github/workflows/status-badge-fidelity-gate.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'resources/js/Components/ui/badge.tsx'
+      - 'resources/js/Components/shared/StatusBadge.tsx'
+      - 'tests/statusBadgeFidelity.spec.tsx'
+
+concurrency:
+  group: status-badge-fidelity-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  status-badge-fidelity:
+    name: Badge · pílula de status fiel ao protótipo (rounded-full · token -soft/-fg dark-aware)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install deps
+        run: npm ci
+      - name: fidelidade Badge status-pill (vitest)
+        run: npx vitest run tests/statusBadgeFidelity.spec.tsx

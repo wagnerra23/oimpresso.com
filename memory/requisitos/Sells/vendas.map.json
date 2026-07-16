@@ -1,0 +1,106 @@
+{
+  "version": "1",
+  "_doc": "ANCHOR-MAP POR REGIÃO de tela (eixo tela — NÃO o Code Connect do projeto, que é component-registry.json no eixo componente; ver RUNBOOK Fase 1 §Deconflito dos 3 eixos): por PARTE, o bloco do protótipo ↔ arquivo/range da tela viva. Gerado por prototipo-ui/gerar-map.mjs a partir do gap_fonte — TODO em arquivo/linhas = âncora ainda não preenchida (grep -n real, nunca fabricar). prototipo_sha = sha256:contentHash(normalize) dos arquivos-fonte (ADR 0324 — identidade por CONTEÚDO, não git-sha); invalida o map quando o protótipo re-exportar: a Fase 4 consome via prototipo-ui/consumir-map.mjs (aborta se stale → regenerar com gerar-map.mjs --atualizar, que preserva o preenchido). Lado VIVO: range de linha é INFORMATIVO (frágil); a âncora verificável é vivo.ancora: true + data-contract=\"<id>\" no .tsx (declarada e ausente = DRIFT). scripts/governance/design-code-map-check.mjs verifica tudo.",
+  "tela": "Sells/Index",
+  "gap_fonte": "memory/requisitos/Sells/vendas-gap.md",
+  "prototipo_sha": "sha256:badb7bfa27ba",
+  "gerado_em": "2026-07-10",
+  "partes": [
+    {
+      "id": "menu-visoes",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-page.jsx",
+        "linhas": "535-543"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Index.tsx",
+        "linhas": "1239-1276",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "✅ APLICADO 2026-06-22 (link adicionado)",
+      "_acionavel": true,
+      "_nota": "entregue pós-gap (o próprio gap.md marca APLICADO 2026-06-22). Proto: comentário Refino #4 + estado visoesOpen/visoesRef (o dropdown 'Visões ▾' com sub-rotas Caixa/Devoluções só existe como stub de estado no vendas-page.jsx — sem render JSX próprio). Vivo: dropdown vd-visoes completo; link 'Caixa do dia' → /vendas/caixa na linha 1258."
+    },
+    {
+      "id": "drawer-fiscal",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-page.jsx",
+        "linhas": "166-247"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/_components/FiscalSection.tsx",
+        "linhas": "168-231",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "próxima fatia (maior valor)",
+      "_nota": "gap AINDA ABERTO. Proto: VdFiscalCard (timeline 5 passos tlSteps 173-178 · chave copiável vd-fcard-chave 219-224 · CC-e 235-238 · botão XML 242) — uso no drawer via tab fiscal 1385+. Vivo: EmissaoRow segue linha plana (<li> com badge + chave em texto 177-198, sem card/timeline/CC-e); montado no drawer em SaleSheet.tsx:713.",
+      "_acionavel": true
+    },
+    {
+      "id": "foco-comissao",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-page.jsx",
+        "linhas": "805-831"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Index.tsx",
+        "linhas": "1440-1452",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "onda backend",
+      "_nota": "gap AINDA ABERTO (aguarda agregado por vendedor no backend). Proto: seção vd-rank-section 'Ranking vendedores · mês' com avatar+barra de meta por vendedor (vd-rank-grid 812). Vivo: só o KPI 'Top vendedor (mês)' via props.coworkAggregates.topSeller (definição do agregado em 144-149/860); sem seção de ranking (grep 'rank' não acha render de lista).",
+      "_acionavel": true
+    },
+    {
+      "id": "saved-tree",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-page.jsx",
+        "linhas": "880-888"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Index.tsx",
+        "linhas": "1145-1162",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "fatia rápida",
+      "_nota": "gap AINDA ABERTO. Proto: filhos 'por <vendedor>' derivados de VENDEDORES_MAP quando sv.id==='pendentes' (children por vendedor 880-888, render l1 expandível 916-925). Vivo: SAVED_VIEWS.map renderiza todas as views flat (vd-tree-arr empty 1157 — sem expansão); só o branch 'Por origem' (1168+, ADR 0192) tem filhos.",
+      "_acionavel": true
+    },
+    {
+      "id": "painel-ia",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-page.jsx",
+        "linhas": "1536-1541"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/_components/SaleAiPanel.tsx",
+        "linhas": "152-176",
+        "ancora": false
+      },
+      "status": "mapeado",
+      "acao": "fatia rápida",
+      "_nota": "entregue no vivo — o card de produto sugerido EXISTE: AiBlock '🎯 Oferta cruzada' com renderOutput parseando PRODUTO/PREÇO/PORQUE em card vd-ai-suggest (159-176); montado no drawer via SaleSheet.tsx:400. Sem PR pós-gap identificável pelo git (arquivo não muda desde a restauração 8cd20a3486; painel nasceu no #1036) — possível falso-gap na análise de 2026-06-22. Proto: tab '✦ IA' (def 1320) renderiza window.VdAiPanel 1536-1541; o card em si vive em prototipo-ui/cowork/vendas-ai.jsx 250-273 (fora do prototipo_sha, que cobre só vendas-page.jsx conforme charter).",
+      "_acionavel": true
+    },
+    {
+      "id": "devolucoes-relatorios",
+      "prototipo": {
+        "arquivo": "prototipo-ui/cowork/vendas-page.jsx",
+        "linhas": "535"
+      },
+      "vivo": {
+        "arquivo": "resources/js/Pages/Sells/Index.tsx",
+        "linhas": "TODO",
+        "ancora": false
+      },
+      "status": "pendente-mapeamento",
+      "acao": "backlog (ADR 0105 sinal)",
+      "_nota": "TODO no vivo porque a REGIÃO não existe: sub-views/rotas Devoluções e Relatórios seguem sem tela (ls Pages/Sells/ não tem Devolucoes/Relatorios; grep vendas/devolucoes|vendas/relatorios em routes/web.php vazio). Proto também só as PREVÊ em comentário (linha 535 'sub-rotas Caixa/Devoluções/etc'); o vivo as cita como plano no footer do cheat-sheet (Index.tsx:1665). Entregas parciais relacionadas pós-gap (não são a sub-view): menu Ações por linha com Devolução → /sell-return/add/{id} (SellsTabelaUnificada.tsx 547-551, PR #3494) + badge has_return/Undo2 'Venda com devolução' (338-345, PR #3734).",
+      "_acionavel": true
+    }
+  ]
+}

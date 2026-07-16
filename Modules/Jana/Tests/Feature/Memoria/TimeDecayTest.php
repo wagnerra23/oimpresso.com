@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-COPI-110 — time-decay weighting no recall (K1): fórmula half-life por doc_type + status multipliers, feature-flag e edge cases, exercitando applyTimeDecay() do MeilisearchDriver.
+
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Modules\Jana\Entities\MemoriaFato;
@@ -21,6 +23,8 @@ uses(Tests\TestCase::class);
  *   - Edge case: doc_type desconhecido → fallback half_life=default
  *   - Edge case: status desconhecido → fallback multiplier=1.0
  *   - Multi-tenant Tier 0: time-decay aplica per-query, sem business scope
+ *   - REORDENAMENTO por score decaído (contrato US-COPI-110) — o estágio ordena;
+ *     o contrato fim-a-fim decay→reranker vive em TemporalScoringTest.php
  *
  * Testa applyTimeDecay() via reflection — método private, sem precisar bootar
  * Scout/Meilisearch (lentos em CI). Defaults da config exercitados pelos testes.
@@ -287,9 +291,9 @@ it('half_life <= 0 (config corrompida) cai pro default sem dividir por zero', fu
     expect($out[0]['score'])->toEqualWithDelta(0.883, 0.05);
 });
 
-// ── 4. Output shape — contrato com Reranker ──────────────────────────────
+// ── 4. Output — contrato de REORDENAMENTO (US-COPI-110) + shape ───────────
 
-it('output preserva ordem do input + shape {id, snippet, score}', function () {
+it('REORDENA por score decaído: doc recente entra por último e sai primeiro', function () {
     config([
         'copiloto.time_decay.enabled'         => true,
         'copiloto.time_decay.temporal_weight' => 0.4,
@@ -299,22 +303,50 @@ it('output preserva ordem do input + shape {id, snippet, score}', function () {
 
     $driver = new MeilisearchDriver();
 
+    // Input ADVERSO: mais velho primeiro. Contrato US-COPI-110 (ADR 0256 —
+    // teste ancorado no contrato, não na implementação): recente vence antigo,
+    // logo o output INVERTE a ordem de entrada. O teste anterior assertava
+    // "ordem preservada" — tautológico, travava exatamente o bug (decay
+    // calculado e descartado pelo RrfReranker posicional).
     $hits = collect([
-        decayMakeFato(11, 'doc um',   ageDays: 10),
-        decayMakeFato(22, 'doc dois', ageDays: 20),
         decayMakeFato(33, 'doc três', ageDays: 30),
+        decayMakeFato(22, 'doc dois', ageDays: 20),
+        decayMakeFato(11, 'doc um',   ageDays: 10),
     ]);
 
     $out = decayInvoke($driver, $hits);
 
     expect($out)->toHaveCount(3);
-    expect(array_column($out, 'id'))->toBe([11, 22, 33]);  // ordem RRF preservada
+    expect(array_column($out, 'id'))->toBe([11, 22, 33]);  // reordenado: recente → antigo
 
     foreach ($out as $c) {
         expect($c)->toHaveKeys(['id', 'snippet', 'score']);
         expect($c['score'])->toBeFloat();
         expect($c['snippet'])->toBeString();
     }
+});
+
+it('empate de decay preserva ordem RRF de entrada (sort estável — relevância é o desempate)', function () {
+    config([
+        'copiloto.time_decay.enabled'         => true,
+        'copiloto.time_decay.temporal_weight' => 0.4,
+        'copiloto.time_decay.half_life'       => ['default' => 180],
+        'copiloto.time_decay.status_multipliers' => ['default' => 1.0],
+    ]);
+
+    $driver = new MeilisearchDriver();
+
+    // Mesma idade + mesmo status → decay idêntico → ordem de entrada (sinal de
+    // relevância do RRF merge) decide. Com decay uniforme, pipeline = legado.
+    $hits = collect([
+        decayMakeFato(1, 'mais relevante',  ageDays: 15),
+        decayMakeFato(2, 'menos relevante', ageDays: 15),
+        decayMakeFato(3, 'menos ainda',     ageDays: 15),
+    ]);
+
+    $out = decayInvoke($driver, $hits);
+
+    expect(array_column($out, 'id'))->toBe([1, 2, 3]);
 });
 
 it('snippet é truncado a 300 chars (mb_substr)', function () {

@@ -25,14 +25,17 @@
 
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, sep, basename } from 'node:path';
+import assert from 'node:assert/strict';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
 const BROWSER_DIR = join(ROOT, 'tests', 'Browser');
+const VISREG_MANIFEST = join(BROWSER_DIR, 'visreg-screens.json');
 const SCORECARD_DIR = join(ROOT, 'memory', 'governance', 'scorecards', 'screens');
 const BASELINE = join(ROOT, 'memory', 'governance', 'screen-coverage-baseline.json');
 
 const flags = new Set(process.argv.slice(2));
+const PAGE_AUX_DIR = /^(?:_.*|components?|partials?|hooks?|utils?|lib|types?|constants?|schemas?|stores?|contexts?)$/i;
 
 /** Lista recursiva de arquivos sob `dir` cujo nome casa `match`. */
 function walk(dir, match, acc = []) {
@@ -46,11 +49,14 @@ function walk(dir, match, acc = []) {
   return acc;
 }
 
-// 1. Universo de telas: Pages/**/*.tsx, exceto _components/ e *.charter.* e *.test.*
+export function isAuxiliaryScreenPath(relTsx) {
+  return relTsx.split(/[\\/]/).slice(0, -1).some((part) => PAGE_AUX_DIR.test(part));
+}
+
+// 1. Universo de telas: Pages/**/*.tsx, exceto diretórios auxiliares e testes.
 const isScreen = (f) =>
   f.endsWith('.tsx') &&
-  !f.includes(`${sep}_components${sep}`) &&
-  !f.includes(`${sep}Partials${sep}`) &&
+  !isAuxiliaryScreenPath(relative(PAGES_DIR, f)) &&
   !f.endsWith('.charter.tsx') &&
   !f.includes('.test.');
 const screens = walk(PAGES_DIR, isScreen);
@@ -60,6 +66,9 @@ const browserFiles = walk(BROWSER_DIR, (f) => f.endsWith('.php'));
 const browserCorpus = browserFiles
   .map((f) => ({ file: f, body: readFileSync(f, 'utf8') }))
   .map((x) => ({ ...x, hasAxe: /axe|accessibilit/i.test(x.body) }));
+const visregSources = new Set(
+  JSON.parse(readFileSync(VISREG_MANIFEST, 'utf8')).map((entry) => entry.source),
+);
 
 // 3. Scorecards existentes (slug modulo-tela).
 const scorecards = new Set(
@@ -81,17 +90,64 @@ function e2eFor(relTsx) {
   return browserCorpus.filter((b) => b.body.includes(key) || b.body.includes(keyAlt));
 }
 
+export function inertiaSourcesFor(relTsx) {
+  const pageSource = relTsx.replace(/\.tsx$/, '');
+  return pageSource.endsWith('/Index')
+    ? [pageSource, pageSource.slice(0, -'/Index'.length)]
+    : [pageSource];
+}
+
+export function coverageRegressions(current, previous, currentCovered = {}, previousCovered = {}) {
+  const decode = (value) => new Set((value ?? '').split('|').filter(Boolean));
+
+  return ['charter', 'e2e', 'a11y', 'scorecard'].filter((key) => {
+    if (current[key] < previous[key]) return true;
+    const now = decode(currentCovered[key]);
+    return [...decode(previousCovered[key])].some((screen) => !now.has(screen));
+  });
+}
+
+if (flags.has('--selftest')) {
+  assert.deepEqual(inertiaSourcesFor('Financeiro/Unificado/Index.tsx'), [
+    'Financeiro/Unificado/Index',
+    'Financeiro/Unificado',
+  ]);
+  assert.deepEqual(inertiaSourcesFor('Sells/Create.tsx'), ['Sells/Create']);
+  assert.equal(isAuxiliaryScreenPath('Compras/components/Drawer.tsx'), true);
+  assert.equal(isAuxiliaryScreenPath('Cliente/_drawer/AuditoriaTab.tsx'), true);
+  assert.equal(isAuxiliaryScreenPath('Compras/Index.tsx'), false);
+  assert.deepEqual(
+    coverageRegressions(
+      { charter: 10, e2e: 1, a11y: 1, scorecard: 10 },
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
+    ),
+    ['e2e'],
+  );
+  assert.deepEqual(
+    coverageRegressions(
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
+      { e2e: 'B.tsx|C.tsx' },
+      { e2e: 'A.tsx|B.tsx' },
+    ),
+    ['e2e'],
+  );
+  console.log('screen-coverage selftest: aliases Inertia e universo de telas passaram');
+  process.exit(0);
+}
+
 const rows = screens.map((abs) => {
   const relTsx = relative(PAGES_DIR, abs).split(sep).join('/');
   const mod = relTsx.split('/')[0];
   const charter = existsSync(abs.replace(/\.tsx$/, '.charter.md'));
   const e2e = e2eFor(relTsx);
+  const hasVisregContract = inertiaSourcesFor(relTsx).some((source) => visregSources.has(source));
   const slug = relTsx.replace(/\.tsx$/, '').replace(/\//g, '-').toLowerCase();
   return {
     screen: relTsx,
     module: mod,
     charter,
-    e2e: e2e.length > 0,
+    e2e: e2e.length > 0 || hasVisregContract,
     a11y: e2e.some((b) => b.hasAxe),
     scorecard: scorecards.has(slug),
   };
@@ -107,6 +163,12 @@ const agg = {
   a11y: rows.filter((r) => r.a11y).length,
   scorecard: rows.filter((r) => r.scorecard).length,
 };
+const coveredScreens = Object.fromEntries(
+  ['charter', 'e2e', 'a11y', 'scorecard'].map((key) => [
+    key,
+    rows.filter((row) => row[key]).map((row) => row.screen).sort().join('|'),
+  ]),
+);
 
 // Por módulo.
 const byModule = {};
@@ -135,7 +197,12 @@ for (const [m, s] of mods) {
 }
 
 // --- Baseline / catraca ---
-const snapshot = { generated_note: 'baseline da catraca de cobertura — NÃO editar à mão', aggregates: agg, by_module: byModule };
+const snapshot = {
+  generated_note: 'baseline da catraca de cobertura — NÃO editar à mão',
+  aggregates: agg,
+  covered_screens: coveredScreens,
+  by_module: byModule,
+};
 
 if (flags.has('--json')) {
   writeFileSync(BASELINE, JSON.stringify(snapshot, null, 2) + '\n');
@@ -147,8 +214,9 @@ if (flags.has('--check')) {
     console.error('\n✗ baseline ausente — rode com --json primeiro.');
     process.exit(2);
   }
-  const prev = JSON.parse(readFileSync(BASELINE, 'utf8')).aggregates;
-  const regress = ['charter', 'e2e', 'a11y', 'scorecard'].filter((k) => agg[k] < prev[k]);
+  const previousSnapshot = JSON.parse(readFileSync(BASELINE, 'utf8'));
+  const prev = previousSnapshot.aggregates;
+  const regress = coverageRegressions(agg, prev, coveredScreens, previousSnapshot.covered_screens);
   if (regress.length) {
     console.error(`\n✗ CATRACA: cobertura regrediu em ${regress.join(', ')} (vs baseline). PR bloqueado.`);
     for (const k of regress) console.error(`   ${k}: ${prev[k]} → ${agg[k]}`);

@@ -52,15 +52,18 @@ export function pickFinanceiroEntry(
  * destinos legacy que vão pro overflow `⋯` — nada se perde (Contas a Pagar/
  * Receber, Categorias, Caixa, Extrato, etc).
  */
+// Ícones por aba (fidelidade proto [W] 2026-07-10 — mandato "zerar diferenças"):
+// espelham o MENU do protótipo (prototipo-ui/cowork/data.jsx:40-55 — cash/receipt/
+// refresh/chart/doc/folder) traduzidos pro nome lucide (opt-in via PageHeaderGhost.icon).
 export const FINANCEIRO_SUBNAV_GHOSTS: PageHeaderGhost[] = [
-  { key: 'unificado',         label: 'Financeiro',            href: '/financeiro/unificado' },
-  { key: 'cobranca',          label: 'Cobrança',              href: '/financeiro/cobranca' },
-  { key: 'recurring-billing', label: 'Assinaturas',           href: '/recurring-billing' },
-  { key: 'fluxo',             label: 'Fluxo de caixa',        href: '/financeiro/fluxo' },
-  { key: 'conciliacao',       label: 'Conciliação',           href: '/financeiro/conciliacao' },
-  { key: 'dre',               label: 'DRE / Relatórios',      href: '/financeiro/dre' },
-  { key: 'plano-contas',      label: 'Plano de contas',       href: '/financeiro/plano-contas' },
-  { key: 'impostos',          label: 'Impostos e obrigações', href: '/financeiro/impostos' },
+  { key: 'unificado',         label: 'Financeiro',            href: '/financeiro/unificado',    icon: 'banknote' },
+  { key: 'cobranca',          label: 'Cobrança',              href: '/financeiro/cobranca',     icon: 'receipt' },
+  { key: 'recurring-billing', label: 'Assinaturas',           href: '/recurring-billing',       icon: 'refresh-cw' },
+  { key: 'fluxo',             label: 'Fluxo de caixa',        href: '/financeiro/fluxo',        icon: 'chart-column-increasing' },
+  { key: 'conciliacao',       label: 'Conciliação',           href: '/financeiro/conciliacao',  icon: 'file' },
+  { key: 'dre',               label: 'DRE / Relatórios',      href: '/financeiro/dre',          icon: 'file' },
+  { key: 'plano-contas',      label: 'Plano de contas',       href: '/financeiro/plano-contas', icon: 'folder' },
+  { key: 'impostos',          label: 'Impostos e obrigações', href: '/financeiro/impostos',     icon: 'receipt' },
   // — abaixo NÃO estão no protótipo: overflow `⋯` (maxVisible=8), nada se perde —
   { key: 'contas-pagar',      label: 'Contas a Pagar',        href: '/financeiro/contas-pagar' },
   { key: 'contas-receber',    label: 'Contas a Receber',      href: '/financeiro/contas-receber' },
