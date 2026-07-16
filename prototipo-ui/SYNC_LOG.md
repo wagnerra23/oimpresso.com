@@ -237,3 +237,9 @@ Residual aplicado (2 PRs):
 - **SEMANTICO (13 telas únicas):** sem design novo (mockups idênticos ao SSOT) → Fase 1 de mapeamento NÃO disparada (queimaria crédito pra concluir "nada a aplicar"). Gap eventual mockup×tela já é da fila per-tela existente, não deste bundle.
 - **A-CRIAR (12) seguradas [W]:** pg-* bloqueado por ADR 0170 (proposta, módulo Onda 0 docs-only); advisories `os-page` (×2) e `cobranca-page` suspeitos de mapeamento perdido — resolver no ALIAS conscientemente antes de qualquer criação.
 Próximo sync real = ZIP novo do Cowork → `node prototipo-ui/importar-bundle.mjs "<zip>"`.
+
+## 2026-07-07 · PROTOCOL §10.6 acesso direto DesignSync merged (PR #3913) + grade estado-da-arte
+
+- 11:22 [CL] PR #3913 mergeado (squash, required verdes): §10.6 documenta tool `DesignSync` + skill `/design-sync` como transporte direto (leitura/escrita) de projetos design-system claude.ai/design. Governança inalterada (proposta≠autoridade §10.4 · reporte §10.2 · git=SSOT). Sondagem empírica: funciona no desktop (login claude.ai); remoto exige `/design-login` interativo.
+- 11:34 [CL] Grade com nota (pedido [F]): [`memory/sessions/2026-07-07-arte-handoff-design-code-grade.md`](../memory/sessions/2026-07-07-arte-handoff-design-code-grade.md) — oimpresso **82/100** (líder por governança P0) vs Claude Design+DesignSync 52 · Figma DevMode MCP 52 · Builder.io 48 · Locofy 41 · v0 40 · DTCG 62. Fluidez de ida (formato + tradução estilo→código) segue com Claude Design (9 vs 6).
+- Decisão pendente [W]: gap #1 — uploader `canon → DesignSync` (subir DS canon na origem, ~2h, desktop-gated, sem pré-req bloqueante).
