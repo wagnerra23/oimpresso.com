@@ -68,6 +68,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Inertia\Testing\AssertableInertia;
 
 beforeEach(function () {
     config([
@@ -112,18 +113,19 @@ if ($scope === 'targeted') {
 }
 
 foreach ($screens as $screen) {
-    foreach (['screen', 'source', 'route', 'anchor', 'baseline'] as $required) {
+    foreach (['screen', 'source', 'component', 'route', 'anchor', 'baseline'] as $required) {
         if (! isset($screen[$required]) || ! is_string($screen[$required]) || $screen[$required] === '') {
             throw new RuntimeException("Contrato visreg inválido: campo {$required} ausente.");
         }
     }
 
     $nome = $screen['screen'];
+    $component = $screen['component'];
     $rota = $screen['route'];
     $ancora = $screen['anchor'];
     $baseline = $screen['baseline'];
 
-    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $rota, $ancora, $baseline, $grayZone) {
+    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $component, $rota, $ancora, $baseline, $grayZone) {
         $business = Business::first();
         if (! $business) {
             test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
@@ -132,6 +134,11 @@ foreach ($screens as $screen) {
         if (! $admin) {
             test()->markTestSkipped('Sem user no business seedado.');
         }
+
+        $this->actingAs($admin)
+            ->get($rota)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page->component($component));
 
         $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota));
         $page->assertSee($ancora);
