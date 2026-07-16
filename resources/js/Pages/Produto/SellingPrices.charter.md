@@ -10,7 +10,7 @@ parent_module: Produto
 related_adrs: [93, 104, 107, 149, 182]
 related_us: [US-PROD-022, US-PROD-023]
 tier: A
-charter_version: 3
+charter_version: 3.1
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
@@ -68,6 +68,16 @@ pesquisados faz isso**. O padrão convergente (4 sistemas, independentes) é:
 
 **O contrato da tela:**
 
+0. **Os eixos vêm do MODELO DE GRADE — e o modelo se escolhe aqui.** `variation_templates` (id,
+   name, business_id) → `variation_value_templates` (name, template_id) **existem desde 2017**, com
+   CRUD vivo (`VariationTemplateController` + rota `variation-templates`). O Blade legado já
+   encadeia os 2 selects — **modelo → valores (múltipla escolha)** —
+   (`product_variation_row.blade.php:19-23`, servido por `ProductController:1351`); **a tela React
+   não usa**. A tela seleciona (o modelo nasce em *Produto → Modelo de Variação*, como a tabela
+   nasce fora — mesmo princípio do fluxo canônico acima) e **marcar ≠ todos**: o operador escolhe
+   quais valores este produto tem. Isso É o "não gerar o que não existe", que a pesquisa apontou
+   como o ponto fraco do mercado inteiro. Origem: corte de [F] 2026-07-16 — *"não encontrei opção
+   de selecionar o modelo de grade"* — sobre a v1 do protótipo, que desenhava a grade já montada.
 1. **Uma lista por vez** — seletor no topo (`Varejo | Atacado | Revenda`). Nunca as N juntas: é a
    dimensão que causa a explosão. Contador de exceções por lista no seletor (`Atacado •3`) mostra
    divergência sem precisar abrir.
@@ -185,6 +195,19 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
   1280px, não-técnica) precisa de *"uma tabelinha com números"* — a Shopify separou os fluxos
   justamente por isso. Ver [arte grade 2026-05-21](../../../../memory/sessions/2026-05-21-arte-grade-matrix-input-vestuario.md)
   §Anti-pattern 2.
+- ❌ **Desenhar a grade "já montada"** sem o operador escolher o modelo/valores — foi o furo da v1
+  do protótipo, cortado por [F]. A grade é **consequência** dos eixos, nunca um dado fixo.
+- ❌ **DELETAR combinação que não existe.** Desativar, sempre. Na Shopify deletar é a **única**
+  saída e leva junto SKU, preço, peso e histórico de estoque, **sem undo**
+  ([craftshift](https://craftshift.com/delete-out-of-stock-variants-on-shopify/)); a própria doc
+  deles recomenda *"manage publishing… instead of deleting"*. O Bling acerta: *"você pode
+  **desativar** a variação"*.
+- ❌ **Regenerar a grade do zero** ao adicionar um valor de eixo. Geração é **incremental**: cor
+  nova = só as combinações novas; as existentes ficam **intactas** (padrão Shopify — *"the system
+  generates three new variants"*). Regenerar = perder SKU e estoque já digitados.
+- ❌ **Mais de 2 eixos no cadastro.** Com 3 a matriz deixa de ser matriz — o Odoo achata o eixo Y em
+  combinações e a exclusão vira inviável (*"impossible to exclude only certain combinations… where
+  you have more than 2 variant attributes"*). Akeneo (PIM sério) limita a 2; Microvix idem.
 
 ## Pest GUARD
 
@@ -240,4 +263,5 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
 | 2026-05-31 | [DS-upgrade] | Paleta stone→tokens v4; header hand-rolled→tokens (breadcrumb/título/SKU); + dirty-state, Cmd+S, navegação teclado, erros por célula, toast. Contrato backend (group_prices, POST save-selling-prices, price_type) intacto. |
 | 2026-07-15 | [CC] | **v2** — reescrito pro modelo real (Wagner): tabela nasce fora → produto seleciona + precifica → tabela vincula a cliente/tipo de venda; produto nunca vinculado direto ao cliente. Preço Especial produto×cliente (`AR-PROD-111..116`) vira **Non-Goal declarado**. Faixa de quantidade (`AR-PROD-105..109`) movida pro charter da Variação. + §Invariantes de valor (markup mestre, 4 casas, condicional ao `AR-PROD-097`) ancorados em teste. + §Backlog de contrato explicitando os buracos (casos.md ausente, testes tautológicos, cross-tenant prometido e inexistente, `mult` oco). |
+| 2026-07-16 | [F+CC] | **v3.1** — corte de [F] sobre o protótipo: *"não encontrei opção de selecionar o modelo de grade desejado"*. **Procedente** — a v3 descrevia o **preço** e calava sobre **de onde vêm os eixos**, e o pino desenhava a grade já montada. + **item 0 do contrato** (modelo de grade: `variation_templates` → `values`, existe desde 2017 com CRUD vivo e 2 selects encadeados no Blade legado; a tela React não usa) + 4 anti-padrões (grade já-montada · delete destrutivo · regenerar do zero · >2 eixos). Protótipo: matriz agora **gerada dos eixos**, com chips desmarcáveis + célula reativável + preview que conta sozinho. |
 | 2026-07-16 | [F+CC] | **v3 — modelo REGRA + EXCEÇÃO.** [F] está construindo a aba "Preço especial" do cadastro (parte 2 de N; a aba Custos já saiu) e cravou o critério: *"a melhor usabilidade ganha, o legado Delphi não entra aqui"*. Pesquisa de mercado (13 sistemas, 2026-07-16) achou que **nenhum** renderiza variação × lista como matriz: 4 sistemas independentes (Shopify B2B · Tiny/Olist · Bling · Odoo) convergiram em **lista = regra %, célula = exceção**. Adicionado §Modelo de digitação + §Dependência (a regra-mãe **não tem coluna** — promove a `US-PROD-022` de extra a pré-requisito) + 6 anti-padrões com fonte. `related_prototype` deixa de ser `n/a` → protótipo navegável verificado no browser (regra −20%→−35%: herdadas 80,00→65,00, exceção fixa em 90,00). **Não revoga a v2** — refina o "como se digita"; o fluxo canônico e os Non-Goals dela seguem de pé. Efeito colateral: o 0-row da `US-PROD-027` morre por construção (célula em branco = nenhuma linha gravada), mas o efeito de 2ª ordem em Labels/Woo (3 dos 5 consumidores não guardam o `''`) segue decisão [W]. |

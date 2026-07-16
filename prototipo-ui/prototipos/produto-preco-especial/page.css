@@ -60,6 +60,47 @@
 .pe-h2 { font-size: 14px; font-weight: 600; margin: 0; }
 .pe-hint { font-size: 12px; color: var(--text-mute); margin: 2px 0 0; }
 
+/* ---- eixos: modelo de grade + valores (variation_templates → values) ---- */
+.pe-axes { display: flex; gap: 12px; margin-bottom: 10px; }
+.pe-axis {
+  flex: 1;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-2);
+}
+.pe-axis-tpl {
+  width: 100%;
+  height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.pe-values { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; min-height: 26px; }
+/* chip = valor do modelo. Marcar ≠ todos — é o "não gerar o que não existe". */
+.pe-chip {
+  padding: 4px 10px;
+  font-size: 12px;
+  font-family: inherit;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-mute);
+  text-decoration: line-through;
+}
+.pe-chip.is-on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
 /* ---- seletor de lista (1 lista por vez) ---- */
 .pe-lists { display: flex; gap: 6px; margin-bottom: 14px; }
 .pe-list-btn {
@@ -265,3 +306,11 @@
   font-weight: 600;
 }
 .pe-btn.ghost { background: none; color: var(--accent); }
+
+/* ---- estado vazio (sem eixo escolhido) ---- */
+.pe-simple {
+  padding: 28px;
+  text-align: center;
+  color: var(--text-mute);
+  font-size: 13px;
+}

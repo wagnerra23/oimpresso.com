@@ -39,6 +39,9 @@ aqui"**. Por isso este protótipo **não** espelha `AR-PROD-1xx`; ele espelha o 
 
 | Interação | O que prova |
 |---|---|
+| **Trocar o modelo** (Tamanho/Cor/Numeração/Voltagem) | os eixos vêm do `variation_templates` — a grade inteira se refaz |
+| **Desmarcar um chip** (PP, GG…) | marcar ≠ todos — o valor some da grade e o preview recalcula |
+| **Clicar na célula hachurada** | reativa a combinação "não existe" — **desativa, nunca apaga** (padrão Bling) |
 | Clicar `Varejo` / `Atacado` / `Revenda` | uma lista por vez — a dimensão que explode fica fechada |
 | Mudar o **%** da regra | a lista inteira reprecifica com **um número** |
 | Digitar numa célula | vira **exceção** (negrito + tarja + contador `•N` na aba) |
@@ -47,14 +50,32 @@ aqui"**. Por isso este protótipo **não** espelha `AR-PROD-1xx`; ele espelha o 
 | `Tab` / `Enter` | teclado canônico Cin7/Lightspeed (Tab = coluna, Enter = linha) |
 | Célula `Vermelho-G` | hachurada = **combinação que não existe** (desmarcada na geração) |
 
+## De onde vêm os eixos (não inventei)
+
+`variation_templates` (id, name, business_id) → `variation_value_templates` (name, template_id).
+**Existem no schema desde 2017**, com CRUD vivo (`VariationTemplateController` + rota
+`variation-templates`). O Blade legado **já encadeia os 2 selects** — modelo → valores (múltipla
+escolha) — em `product_variation_row.blade.php:19-23`, servido por
+`ProductController:1351`. **A tela React do cadastro não usa isso hoje**; este protótipo usa.
+
+O "marcar só alguns valores" do legado é, por acaso, a base do **"não gerar o que não existe"** que
+a pesquisa apontou como o ponto fraco do mercado inteiro.
+
 ## Verificado (browser, 2026-07-16)
 
 Não é screenshot de intenção — o comportamento foi medido no DOM:
 
-- Varejo 0% → 5 células a `100,00`; Atacado −20% → 5 células a `80,00`
-- Exceção `Azul-G = 90,00` → `is-override` + badge `•1` no seletor
+**Eixos → grade:**
+- Tamanho(P,M,G) × Cor(Azul,Vermelho) → 3 colunas × 2 linhas; `PP`/`GG` desmarcados **não** viram coluna
+- Trocar eixo 1 pra **Numeração** → colunas `37..42`, header `Cor \ Numeração`, preview `12`, delta acompanha
+- Desmarcar o chip `42` → coluna some
+- Preview: 6 total − 1 desmarcada − 3 já existentes = **2 novas** (a conta fecha)
+- Reativar a célula hachurada → preview sobe pra **3**
+
+**Regra → exceção:**
+- Atacado −20% → 5 células a `80,00` · exceção `Azul|G = 90,00` → `is-override` + badge `•1`
 - **Regra −20% → −35%**: herdadas `80,00 → 65,00`; **exceção permaneceu `90,00`**
-- Exceção do Atacado **não vaza** pro Varejo (troca de lista → `100,00` limpo)
+- Exceção do Atacado **não vaza** pro Varejo
 - Zero erro no console
 
 ## O que este protótipo NÃO decide
@@ -89,3 +110,4 @@ python -m http.server 8899
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-07-16 | [F+CC] | Protótipo criado. Modelo regra+exceção ancorado na pesquisa de mercado do mesmo dia (13 sistemas; Shopify B2B/Tiny-Olist/Bling/Odoo convergentes). Charter da tabela vai a **v3** citando este pino em `related_prototype`. |
+| 2026-07-16 | [F+CC] | **+ §Modelo de grade — [F] cortou: *"não encontrei opção de selecionar o modelo de grade desejado"*.** Procedente: a v1 do pino desenhava a grade **já montada** (Azul/Vermelho × P/M/G caindo do céu) e pulava o passo que vem antes. A matriz agora é **gerada dos eixos**, não hardcoded: 2 selects (`variation_templates`) + chips de valores (`variation_value_templates`, marcar ≠ todos) + célula desmarcável/reativável + preview que conta sozinho. O invariante regra-vs-exceção foi re-medido após a reescrita e sobreviveu. |

@@ -9,7 +9,7 @@
   <link rel="stylesheet" href="page.css" />
   <style>
     html, body { margin: 0; padding: 0; background: #f0ede5; min-height: 100vh; font-family: ui-sans-serif, system-ui, sans-serif; }
-    .frame { max-width: 1280px; margin: 24px auto; box-shadow: 0 2px 14px rgba(0,0,0,.08); border-radius: 8px; overflow: hidden; background: #fff; height: 760px; }
+    .frame { max-width: 1280px; margin: 24px auto; box-shadow: 0 2px 14px rgba(0,0,0,.08); border-radius: 8px; overflow: hidden; background: #fff; height: 860px; }
     .meta { max-width: 1280px; margin: 0 auto 16px; padding: 20px 24px; background: #fff; border-radius: 8px; box-shadow: 0 1px 6px rgba(0,0,0,.04); font-size: 13px; color: #5b574f; line-height: 1.55; }
     .meta h1 { font-size: 17px; margin: 0 0 8px; color: #1a1917; font-weight: 600; }
     .meta ul { margin: 8px 0 0; padding-left: 18px; }
@@ -20,18 +20,20 @@
 <body>
 
 <div class="meta">
-  <h1>F1 — Aba “Preço especial” · modelo regra + exceção</h1>
+  <h1>F1 — Aba “Preço especial” · modelo de grade + regra + exceção</h1>
   <p>
-    A lista de preço é uma <b>regra (%)</b>, não uma grade de digitação. A matriz mostra o preço
-    <b>efetivo calculado</b>; digitar numa célula cria uma <b>exceção</b>. Uma lista por vez.
-    Padrão convergente de Shopify B2B · Tiny/Olist · Bling · Odoo — ver
-    <code>memory/sessions/2026-07-16-arte-grade-variacao-lista-preco.md</code>.
+    <b>O modelo de grade define os eixos</b> (`variation_templates`, que já existe no schema com CRUD
+    vivo desde 2017). A <b>lista de preço é uma regra (%)</b>, não uma grade de digitação: a matriz
+    mostra o <b>preço efetivo calculado</b>, e digitar numa célula cria uma <b>exceção</b>.
+    Padrão convergente de Shopify B2B · Tiny/Olist · Bling · Odoo.
   </p>
   <ul>
+    <li><b>Troque o modelo</b> (Tamanho / Cor / Numeração / Voltagem) — a grade inteira se refaz.</li>
+    <li><b>Desmarque um valor</b> (chip) — ele some da grade e o preview recalcula.</li>
+    <li><b>Clique numa célula hachurada</b> pra reativar a combinação que “não existe”.</li>
     <li><b>Clique</b> nas listas (Varejo / Atacado / Revenda) — o preço recalcula pela regra de cada uma.</li>
     <li><b>Digite</b> numa célula → vira exceção (negrito + tarja + contador na aba). O <b>↺</b> desfaz.</li>
-    <li><b>Mude o %</b> da regra → tudo que é herdado recalcula; exceção não se mexe.</li>
-    <li><b>Vermelho-G não existe</b> (célula hachurada) — combinação desmarcada na geração.</li>
+    <li><b>Mude o %</b> da regra → o herdado recalcula; <b>a exceção não se mexe</b> (o invariante).</li>
     <li>Teclado: <code>Tab</code> anda coluna · <code>Enter</code> pula linha (padrão Cin7/Lightspeed).</li>
   </ul>
 </div>
@@ -50,6 +52,42 @@
 
     <div class="pe-body">
 
+      <!-- ============ SEÇÃO 0 — os eixos: escolher o MODELO DE GRADE ============ -->
+      <section class="pe-section">
+        <div class="pe-section-head">
+          <div>
+            <h2 class="pe-h2">Modelo de grade</h2>
+            <p class="pe-hint">Escolha o modelo e marque só os valores que este produto tem. O modelo é cadastrado fora daqui (Produto → Modelo de Variação).</p>
+          </div>
+        </div>
+
+        <div class="pe-axes">
+          <div class="pe-axis" data-axis="1">
+            <select class="pe-axis-tpl" data-axis-tpl="1">
+              <option value="">Selecione um modelo…</option>
+              <option value="tamanho" selected>Tamanho</option>
+              <option value="cor">Cor</option>
+              <option value="numeracao">Numeração (calçado)</option>
+              <option value="voltagem">Voltagem</option>
+            </select>
+            <div class="pe-values" data-values="1"></div>
+          </div>
+
+          <div class="pe-axis" data-axis="2">
+            <select class="pe-axis-tpl" data-axis-tpl="2">
+              <option value="">Selecione um modelo…</option>
+              <option value="tamanho">Tamanho</option>
+              <option value="cor" selected>Cor</option>
+              <option value="numeracao">Numeração (calçado)</option>
+              <option value="voltagem">Voltagem</option>
+            </select>
+            <div class="pe-values" data-values="2"></div>
+          </div>
+        </div>
+
+        <p class="pe-rule-note" id="axes-resumo"></p>
+      </section>
+
       <!-- ============ SEÇÃO 1 — a lista como REGRA ============ -->
       <section class="pe-section">
         <div class="pe-section-head">
@@ -57,7 +95,7 @@
             <h2 class="pe-h2">Preço por lista</h2>
             <p class="pe-hint">Cada lista aplica uma regra sobre o preço base. Você só digita onde a regra não vale.</p>
           </div>
-          <div class="pe-hint">Preço base: <b style="font-variant-numeric:tabular-nums;color:#1a1917">R$ 100,00</b> <span style="color:#8b857a">(vem da aba Custos)</span></div>
+          <div class="pe-hint">Preço base: <b style="font-variant-numeric:tabular-nums;color:var(--text)">R$ 100,00</b> <span>(vem da aba Custos)</span></div>
         </div>
 
         <div class="pe-lists" role="group">
@@ -77,7 +115,7 @@
           <span style="font-size:13px">%</span>
           <div class="pe-rule-result">Preço da lista: <b id="rule-result">R$ 100,00</b></div>
         </div>
-        <p class="pe-rule-note">Um número resolve a lista inteira. As 6 células abaixo são <b>calculadas</b> — não digitadas.</p>
+        <p class="pe-rule-note">Um número resolve a lista inteira. As células abaixo são <b>calculadas</b> — não digitadas.</p>
       </section>
 
       <!-- ============ SEÇÃO 2 — a matriz ============ -->
@@ -90,46 +128,17 @@
           <button class="pe-link" id="btn-clear">Limpar exceções desta lista</button>
         </div>
 
-        <div class="pe-matrix-wrap">
-          <table class="pe-matrix">
-            <thead>
-              <tr>
-                <th style="text-align:left">Cor \ Tamanho</th>
-                <th>P</th>
-                <th>M</th>
-                <th>G</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th>Azul</th>
-                <td class="pe-cell" data-cell="azul-p"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
-                <td class="pe-cell" data-cell="azul-m"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
-                <td class="pe-cell" data-cell="azul-g"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
-              </tr>
-              <tr>
-                <th>Vermelho</th>
-                <td class="pe-cell" data-cell="vermelho-p"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
-                <td class="pe-cell" data-cell="vermelho-m"><input type="text" inputmode="decimal" /><button class="pe-revert" title="Voltar ao calculado">↺</button></td>
-                <td class="pe-cell is-off" data-cell="vermelho-g"><input type="text" tabindex="-1" /><span class="pe-off-tag">não existe</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <div class="pe-matrix-wrap" id="matrix-wrap"></div>
 
         <div class="pe-legend">
           <span><i class="pe-swatch inherit"></i> herdado da regra</span>
           <span><i class="pe-swatch override"></i> exceção manual</span>
-          <span><i class="pe-swatch off"></i> combinação que não existe</span>
+          <span><i class="pe-swatch off"></i> combinação que não existe (clique pra reativar)</span>
         </div>
 
         <div class="pe-delta">
-          <span><b>Ajuste por tamanho</b> — resolve “GG custa mais” sem digitar célula a célula:</span>
-          <select>
-            <option>G</option>
-            <option>M</option>
-            <option>P</option>
-          </select>
+          <span><b>Ajuste por <span id="delta-eixo-nome">tamanho</span></b> — resolve “G custa mais” sem digitar célula a célula:</span>
+          <select id="delta-valor"></select>
           <span>+ R$</span>
           <input type="text" value="0" inputmode="decimal" />
           <button class="pe-link">aplicar</button>
@@ -146,12 +155,8 @@
         </div>
         <div class="pe-preview">
           <h3>Confirmar geração</h3>
-          <p>
-            2 cores × 3 tamanhos = <b>6 combinações</b>. Você desmarcou <b>1</b> (Vermelho-G).
-            Serão criadas <b>5 variações</b>, cada uma com SKU e estoque próprios.
-            <br />As <b>3 já existentes</b> serão preservadas — nada é recriado nem perde estoque.
-          </p>
-          <button class="pe-btn">Criar 5 variações</button>
+          <p id="preview-texto"></p>
+          <button class="pe-btn" id="preview-btn">Criar variações</button>
           <button class="pe-btn ghost">Revisar combinações</button>
         </div>
       </section>
@@ -161,19 +166,46 @@
 </div>
 
 <script>
-  // Regras por lista (o que hoje NÃO existe no banco — selling_price_groups não tem coluna de regra).
+  // ============================================================================
+  // MODELO DE GRADE (os eixos) — `variation_templates` + `variation_value_templates`
+  // Existem no schema desde 2017, com CRUD vivo (VariationTemplateController) e rota
+  // `variation-templates`. O legado JÁ encadeia 2 selects: template_id -> values[]
+  // (múltipla escolha) — ver product_variation_row.blade.php:19-23.
+  // A tela React do cadastro NÃO usa isso hoje. Aqui usa.
+  // ============================================================================
+  const MODELOS = {
+    tamanho:   { nome: 'Tamanho',   valores: ['PP', 'P', 'M', 'G', 'GG'] },
+    cor:       { nome: 'Cor',       valores: ['Azul', 'Vermelho', 'Preto', 'Branco'] },
+    numeracao: { nome: 'Numeração', valores: ['37', '38', '39', '40', '41', '42'] },
+    voltagem:  { nome: 'Voltagem',  valores: ['110v', '220v', 'Bivolt'] },
+  };
+
+  // Marcar != todos: é o "não gerar o que não existe" que a pesquisa apontou como o
+  // ponto fraco do mercado inteiro (Shopify só deixa DELETAR depois — destrutivo).
+  const eixos = {
+    1: { tpl: 'tamanho', marcados: new Set(['P', 'M', 'G']) },
+    2: { tpl: 'cor',     marcados: new Set(['Azul', 'Vermelho']) },
+  };
+
+  // Combinação que não existe (ex: Vermelho não vem em G). Desativa, nunca apaga (padrão Bling).
+  const celulasOff = new Set(['Vermelho|G']);
+
+  // Já existentes: geração incremental preserva (padrão Shopify — não recria, não perde estoque).
+  const jaExistem = new Set(['Azul|P', 'Azul|M', 'Azul|G']);
+
+  // ---- listas: a REGRA (hoje SEM coluna no banco — US-PROD-022) ----
   const PRECO_BASE = 100;
   const regras = {
-    varejo:  { op: 'desconto',  val: 0  },
-    atacado: { op: 'desconto',  val: 20 },
-    revenda: { op: 'desconto',  val: 35 },
+    varejo:  { op: 'desconto', val: 0  },
+    atacado: { op: 'desconto', val: 20 },
+    revenda: { op: 'desconto', val: 35 },
   };
-  // Exceções por lista: { 'azul-g': 90 }
   const excecoes = { varejo: {}, atacado: {}, revenda: {} };
   let listaAtiva = 'varejo';
 
   const brl = (n) => 'R$ ' + n.toFixed(2).replace('.', ',');
   const parse = (s) => parseFloat(String(s).replace(/\./g, '').replace(',', '.')) || 0;
+  const chave = (linha, col) => linha + '|' + col;
 
   function precoDaRegra(lista) {
     const r = regras[lista];
@@ -182,40 +214,164 @@
     return PRECO_BASE * (1 - r.val / 100);
   }
 
-  function render() {
+  // eixo 1 = COLUNAS · eixo 2 = LINHAS (grade clássica de vestuário: tamanho × cor)
+  function colsAtivas() {
+    const m = MODELOS[eixos[1].tpl];
+    return m ? m.valores.filter((v) => eixos[1].marcados.has(v)) : [];
+  }
+  function linhasAtivas() {
+    const m = MODELOS[eixos[2].tpl];
+    return m ? m.valores.filter((v) => eixos[2].marcados.has(v)) : [];
+  }
+  const nomeEixo = (n) => (MODELOS[eixos[n].tpl] ? MODELOS[eixos[n].tpl].nome : '—');
+
+  // ---- chips de valores por eixo ----
+  function renderValores(n) {
+    const box = document.querySelector('[data-values="' + n + '"]');
+    const tpl = eixos[n].tpl;
+    box.innerHTML = '';
+    if (!tpl) { box.innerHTML = '<span class="pe-hint">Escolha um modelo pra ver os valores.</span>'; return; }
+    MODELOS[tpl].valores.forEach((v) => {
+      const on = eixos[n].marcados.has(v);
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pe-chip' + (on ? ' is-on' : '');
+      b.textContent = v;
+      b.setAttribute('aria-pressed', String(on));
+      b.addEventListener('click', () => {
+        if (on) eixos[n].marcados.delete(v); else eixos[n].marcados.add(v);
+        renderValores(n); renderMatriz(); renderPreview(); renderDelta();
+      });
+      box.appendChild(b);
+    });
+  }
+
+  // ---- a matriz: GERADA dos eixos ----
+  function renderMatriz() {
+    const wrap = document.getElementById('matrix-wrap');
+    const cols = colsAtivas(), linhas = linhasAtivas();
+
+    if (!cols.length || !linhas.length) {
+      wrap.innerHTML = '<div class="pe-simple">Escolha os dois modelos e marque ao menos um valor em cada — a grade aparece aqui.</div>';
+      return;
+    }
+
     const base = precoDaRegra(listaAtiva);
-    document.getElementById('rule-result').textContent = brl(base);
-    document.getElementById('grade-list-name').textContent =
-      listaAtiva.charAt(0).toUpperCase() + listaAtiva.slice(1);
+    const th = cols.map((c) => '<th>' + c + '</th>').join('');
+    const corpo = linhas.map((l) => {
+      const tds = cols.map((c) => {
+        const k = chave(l, c);
+        if (celulasOff.has(k)) {
+          return '<td class="pe-cell is-off" data-cell="' + k + '" title="Combinação desmarcada — clique pra reativar">'
+               + '<input type="text" tabindex="-1" /><span class="pe-off-tag">não existe</span></td>';
+        }
+        const ex = excecoes[listaAtiva][k];
+        const val = (ex !== undefined ? brl(ex) : brl(base)).replace('R$ ', '');
+        return '<td class="pe-cell' + (ex !== undefined ? ' is-override' : '') + '" data-cell="' + k + '">'
+             + '<input type="text" inputmode="decimal" value="' + val + '" />'
+             + '<button class="pe-revert" title="Voltar ao calculado">↺</button></td>';
+      }).join('');
+      return '<tr><th>' + l + '</th>' + tds + '</tr>';
+    }).join('');
 
-    const r = regras[listaAtiva];
-    document.getElementById('rule-op').value = r.op;
-    document.getElementById('rule-val').value = String(r.val).replace('.', ',');
+    wrap.innerHTML = '<table class="pe-matrix"><thead><tr><th style="text-align:left">'
+      + nomeEixo(2) + ' \\ ' + nomeEixo(1) + '</th>' + th + '</tr></thead><tbody>' + corpo + '</tbody></table>';
 
-    document.querySelectorAll('.pe-cell').forEach((cell) => {
-      if (cell.classList.contains('is-off')) return;
-      const key = cell.dataset.cell;
-      const input = cell.querySelector('input');
-      const ex = excecoes[listaAtiva][key];
-      if (ex !== undefined) {
-        cell.classList.add('is-override');
-        input.value = brl(ex).replace('R$ ', '');
-      } else {
-        cell.classList.remove('is-override');
-        input.value = brl(base).replace('R$ ', '');
-      }
+    ligarCelulas();
+  }
+
+  function ligarCelulas() {
+    document.querySelectorAll('.pe-cell.is-off').forEach((cell) => {
+      cell.addEventListener('click', () => {              // reativar combinação
+        celulasOff.delete(cell.dataset.cell);
+        renderMatriz(); renderPreview();
+      });
     });
 
-    // contador de exceções por lista
+    document.querySelectorAll('.pe-cell:not(.is-off) input').forEach((input) => {
+      input.addEventListener('change', () => {
+        const k = input.closest('.pe-cell').dataset.cell;
+        const v = parse(input.value);
+        if (Math.abs(v - precoDaRegra(listaAtiva)) < 0.005) delete excecoes[listaAtiva][k];
+        else excecoes[listaAtiva][k] = v;
+        renderMatriz(); renderBadges();
+      });
+      input.addEventListener('keydown', (e) => {          // Enter pula LINHA (Tab = coluna, nativo)
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        const cell = input.closest('.pe-cell');
+        const idx = [].indexOf.call(cell.parentElement.children, cell);
+        const prox = cell.parentElement.nextElementSibling || cell.parentElement.parentElement.firstElementChild;
+        const alvo = prox && prox.children[idx] ? prox.children[idx].querySelector('input') : null;
+        if (alvo && !alvo.closest('.pe-cell').classList.contains('is-off')) alvo.focus();
+      });
+    });
+
+    document.querySelectorAll('.pe-revert').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        delete excecoes[listaAtiva][btn.closest('.pe-cell').dataset.cell];
+        renderMatriz(); renderBadges();
+      });
+    });
+  }
+
+  function renderBadges() {
     ['atacado', 'revenda'].forEach((l) => {
-      const badge = document.querySelector(`[data-badge="${l}"]`);
+      const badge = document.querySelector('[data-badge="' + l + '"]');
       const n = Object.keys(excecoes[l]).length;
       badge.hidden = n === 0;
       badge.textContent = n;
     });
   }
 
-  // trocar de lista
+  // ---- preview de geração: o diferencial ----
+  function renderPreview() {
+    const cols = colsAtivas(), linhas = linhasAtivas();
+    const total = cols.length * linhas.length;
+    let off = 0, existentes = 0;
+    linhas.forEach((l) => cols.forEach((c) => {
+      const k = chave(l, c);
+      if (celulasOff.has(k)) off++;
+      else if (jaExistem.has(k)) existentes++;
+    }));
+    const criar = Math.max(0, total - off - existentes);
+
+    document.getElementById('preview-texto').innerHTML =
+      linhas.length + ' ' + nomeEixo(2).toLowerCase() + ' × ' + cols.length + ' ' + nomeEixo(1).toLowerCase()
+      + ' = <b>' + total + ' combinações</b>.'
+      + (off ? ' Você desmarcou <b>' + off + '</b>.' : '')
+      + (existentes ? ' <b>' + existentes + '</b> já existem e serão <b>preservadas</b> — nada é recriado nem perde estoque.' : '')
+      + '<br />Serão criadas <b>' + criar + ' variações</b> novas, cada uma com SKU e estoque próprios.';
+    document.getElementById('preview-btn').textContent = 'Criar ' + criar + ' variações';
+    document.getElementById('axes-resumo').textContent =
+      '2 eixos · ' + total + ' combinações' + (off ? ' · ' + off + ' desmarcada(s)' : '') + ' — a grade abaixo acompanha.';
+  }
+
+  // ---- delta por eixo (Value Price Extra do Odoo) ----
+  function renderDelta() {
+    document.getElementById('delta-valor').innerHTML = colsAtivas().map((v) => '<option>' + v + '</option>').join('');
+    document.getElementById('delta-eixo-nome').textContent = nomeEixo(1).toLowerCase();
+  }
+
+  function renderRegra() {
+    document.getElementById('rule-result').textContent = brl(precoDaRegra(listaAtiva));
+    document.getElementById('grade-list-name').textContent = listaAtiva.charAt(0).toUpperCase() + listaAtiva.slice(1);
+    document.getElementById('rule-op').value = regras[listaAtiva].op;
+    document.getElementById('rule-val').value = String(regras[listaAtiva].val).replace('.', ',');
+  }
+
+  function render() { renderRegra(); renderMatriz(); renderBadges(); renderPreview(); renderDelta(); }
+
+  // ---- eventos ----
+  document.querySelectorAll('.pe-axis-tpl').forEach((sel) => {
+    sel.addEventListener('change', (e) => {
+      const n = e.target.dataset.axisTpl;
+      eixos[n].tpl = e.target.value;
+      eixos[n].marcados = new Set(e.target.value ? MODELOS[e.target.value].valores : []);
+      renderValores(n); renderMatriz(); renderPreview(); renderDelta();
+    });
+  });
+
   document.querySelectorAll('.pe-list-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       document.querySelectorAll('.pe-list-btn').forEach((b) => b.setAttribute('aria-pressed', 'false'));
@@ -225,58 +381,21 @@
     });
   });
 
-  // mudar a regra
   document.getElementById('rule-op').addEventListener('change', (e) => {
     regras[listaAtiva].op = e.target.value;
     render();
   });
   document.getElementById('rule-val').addEventListener('input', (e) => {
     regras[listaAtiva].val = parse(e.target.value);
-    const base = precoDaRegra(listaAtiva);
-    document.getElementById('rule-result').textContent = brl(base);
-    document.querySelectorAll('.pe-cell:not(.is-off):not(.is-override) input')
-      .forEach((i) => { i.value = brl(base).replace('R$ ', ''); });
-  });
-
-  // digitar numa célula = criar exceção
-  document.querySelectorAll('.pe-cell:not(.is-off) input').forEach((input) => {
-    input.addEventListener('change', () => {
-      const cell = input.closest('.pe-cell');
-      const key = cell.dataset.cell;
-      const v = parse(input.value);
-      if (Math.abs(v - precoDaRegra(listaAtiva)) < 0.005) {
-        delete excecoes[listaAtiva][key];   // igual ao calculado = não é exceção
-      } else {
-        excecoes[listaAtiva][key] = v;
-      }
-      render();
-    });
-    // teclado canônico: Enter pula linha (Tab é nativo entre colunas)
-    input.addEventListener('keydown', (e) => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      const cell = input.closest('.pe-cell');
-      const idx = [...cell.parentElement.children].indexOf(cell);
-      const nextRow = cell.parentElement.nextElementSibling || cell.parentElement.parentElement.firstElementChild;
-      const alvo = nextRow?.children[idx]?.querySelector('input');
-      if (alvo && !alvo.closest('.pe-cell').classList.contains('is-off')) alvo.focus();
-    });
-  });
-
-  // ↺ voltar ao calculado
-  document.querySelectorAll('.pe-revert').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      delete excecoes[listaAtiva][btn.closest('.pe-cell').dataset.cell];
-      render();
-    });
+    renderRegra(); renderMatriz();   // herdadas recalculam; exceção NÃO (o invariante)
   });
 
   document.getElementById('btn-clear').addEventListener('click', () => {
     excecoes[listaAtiva] = {};
-    render();
+    renderMatriz(); renderBadges();
   });
 
-  render();
+  renderValores(1); renderValores(2); render();
 </script>
 
 </body>
