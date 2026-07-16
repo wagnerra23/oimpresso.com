@@ -55,6 +55,13 @@ class VisregTenantBLeakSeeder extends Seeder
 
     public function run(): void
     {
+        // Tier 0 · repo PUBLICO: este seeder cria login com senha CONHECIDA no codigo-fonte.
+        // Rodar em producao publicaria uma porta de entrada (a senha esta no GitHub, aberta).
+        // CI usa APP_ENV=testing e o CT100 usa staging — ambos passam. So producao aborta.
+        if (app()->isProduction()) {
+            throw new RuntimeException(static::class . ': seeder de fixture com senha publica NAO roda em producao (APP_ENV=production).');
+        }
+
         // Idempotente: se o business 99 já existe, garante só role + dado sentinela e sai.
         if (DB::table('business')->where('id', self::BIZ_B)->exists()) {
             $this->ensureAdminRole();
