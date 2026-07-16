@@ -14,6 +14,7 @@ name: Visual Regression (Pest 4 Browser)
 on:
   pull_request:
     branches: [main]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   # MODO UPDATE (2026-07-07, ADR UI-0020 §4): dispatch manual re-gera as baselines
   # NO MESMO runner que sempre as gerou (rendering determinístico) e abre PR com os
   # .snap novos — o gate do PR re-roda e PROVA que a baseline nova bate (anti-#3297).
@@ -37,6 +38,8 @@ jobs:
   visual-regression:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    env:
+      VISREG_GRAY_APPROVED: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'visreg-gray-approved') && '1' || '0' }}
 
     services:
       mysql:
@@ -317,7 +320,7 @@ jobs:
         # DOUBLE-THRESHOLD (L7): o teste roteia cada tela por 3 bandas (PixelBaselineTest
         # + Tests\Browser\Support\VisregThreshold) — auto-aprova < τ_baixo (VISREG_TAU_LOW,
         # default 0.1%), auto-falha > τ_alto (VISREG_TAU_HIGH, default 2%), e o MEIO é a
-        # ZONA CINZA que NÃO falha (só coleta + diff-view + step summary pro [W] revisar).
+        # ZONA CINZA coleta evidência e bloqueia até o label explícito de revisão [W].
         # Calibrar sem mexer no código: setar VISREG_TAU_LOW / VISREG_TAU_HIGH aqui.
         #
         # PROMOVIDO A ENFORCING (L1) — `continue-on-error` REMOVIDO: o step agora BLOQUEIA
@@ -390,7 +393,7 @@ jobs:
         # menu de Ações da linha, drawer × 3 viewports) foram armados via #4251 e provaram
         # match (9 passed nos runs 29297033941 e 29298250328). Sem continue-on-error: regressão
         # clara pós-clique de Compras agora BLOQUEIA merge. O double-threshold (VisregThreshold)
-        # roteia por bandas; a zona cinza (não-falha) sobe diff-view pro [W]. Baseline via modo
+        # roteia por bandas; a zona cinza bloqueia e sobe diff-view pro [W]. Baseline via modo
         # update (dispatch) NO runner canônico — nunca local (Tier 0: testes no CT100/CI).
         # `always()`: roda mesmo se um passo anterior falhar (fluxo novo não pode ficar
         # sem evidência por regressão independente de outra tela).
@@ -518,8 +521,10 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload diff views do pixel (falha OU zona cinza — double-threshold L7)
-        # Sobe os diff-views SEMPRE que o pixel-diff rodou: a ZONA CINZA (L7) NÃO falha o
-        # step, mas grava diff-views fora do diretório que o Pest limpa entre suítes.
+        # Sobe os diff-views SEMPRE que o pixel-diff rodou: a ZONA CINZA (L7) bloqueia o step
+        # sem o label de aprovação e grava os diff-views em storage/app/visreg-diffs/ — fora do
+        # diretório que o Pest limpa entre suítes (#4360) — pro [W] revisar. Só uploadar
+        # on-failure perderia exatamente o caso de uso do L7.
         # `if-no-files-found: ignore` cobre o caso "nenhuma tela na zona cinza nem falhou".
         if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
         uses: actions/upload-artifact@v4
@@ -535,7 +540,7 @@ jobs:
           if [ "${{ steps.pixel-diff.outcome }}" = "failure" ]; then
             echo "🔴 PIXEL-DIFF ADVISORY FALHOU — ao menos 1 tela com diff > τ_alto (regressão clara) contra baseline."
             echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing (L1)."
-            echo "   Telas em ZONA CINZA (τ_baixo..τ_alto) NÃO falham — ver o resumo 'Zona Cinza' no step summary + artifact pixel-diff-views."
+            echo "   Telas em ZONA CINZA bloqueiam sem o label visreg-gray-approved — ver resumo + artifact pixel-diff-views."
           else
             echo "✅ pixel-diff afetadas/núcleo-6 OK — nenhuma tela acima de τ_alto."
             echo "   Se houve ZONA CINZA, ela está no step summary (resumo 'Pixel-diff — Zona Cinza') + artifact pixel-diff-views pro [W] revisar."
@@ -630,7 +635,7 @@ jobs:
               '',
               'Screenshots têm diff > threshold contra baseline no **gate real** (Pest Browser smoke: telas públicas + auth-bridge + a11y axe + conformance). Esse check é **REQUIRED** — o PR não mergeia vermelho.',
               '',
-              '> ℹ️ O **pixel-diff afetadas/núcleo-6** é **ENFORCING**: diff targeted executa as telas afetadas mapeadas; diff global executa o núcleo-6. Tela sem contrato ou baseline, ou diff acima de τ_alto (2%), bloqueia o merge. A ZONA CINZA só vira diff-view pro [W] revisar.',
+              '> ℹ️ O **pixel-diff afetadas/núcleo-6** é **ENFORCING**: diff targeted executa as telas afetadas mapeadas; diff global executa o núcleo-6. Tela sem contrato ou baseline, diff acima de τ_alto (2%) ou zona cinza sem label de aprovação bloqueiam o merge.',
               '>',
               '> ℹ️ O **lint L2** (charter `states:` ⇄ manifesto) é **ENFORCING** desde 2026-07-06 (aprovação [W]) — drift charter↔JSON bloqueia o merge. Os **snapshots L2 de estados isolados** são **ENFORCING pra a matriz global inteira** — as 6 telas (Financeiro+Sells+Clientes+Compras+Caixa+Oficina) × estados (onda 3, 2026-07-14) — regressão clara em qualquer estado bloqueia o merge. Não há mais estado advisory na matriz L2. Segue advisory: L5 perf Lighthouse (calendário ADR 0275 §5).',
               '',
