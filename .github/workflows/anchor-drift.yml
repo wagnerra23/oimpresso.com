@@ -8,17 +8,19 @@ name: Anchor & Doneness Drift
 #     56 teste) → morde só mentira NOVA (no-new-lie). Contexto PRÓPRIO pra promoção independente.
 #   - doneness-lint      (ADR 0302): conflito `status:` à mão × âncora (fonte-única de done-ness).
 # Todos diff-aware no PR (--check só SPEC tocado = no-new-lie, grandfather legado), report full-tree
-# no cron. `anchor entry/covers gate` PROMOVIDO a required em 2026-06-30 (require-safe: paths-filter
-# removido do trigger pra reportar em TODO PR — ver bloco `on:`); os outros 4 jobs seguem advisory
-# (flip do Wagner por calendário, 1/semana — ADR 0275 §5).
+# no cron. 4 jobs são REQUIRED na branch protection — `anchor entry/covers gate` (2026-06-24, PR #3320)
+# e `anchor-lint`/`doneness-lint`/`charter-live-signal` (2026-06-30, promoção conjunta; require-safe:
+# paths-filter removido do trigger pra reportar em TODO PR — ver bloco `on:`). P14 rename 2026-07-01
+# tirou "(advisory)" dos nomes. Segue advisory: só o gate verde nightly
+# (fonte: governance/required-checks-baseline.json · higiene 2026-07-16, comentário estava stale).
 #
 # Lint do anchor spec↔código — SA-A3 do plano SDD (memory/sessions/2026-06-12-
 # plano-reestruturacao-sdd-ondas-paralelas.md, frente SA) · gramática ADR 0273.
 #
 # SA-A2-bis (ADR 0303): o passo DIFF-AWARE dos PRs roda --check (exit 1) só nos
 # SPECs TOCADOS — proíbe mentira NOVA (dead/zombie/teste-fantasma) sem travar a
-# dívida legada (grandfathering por não-toque). NÃO é required ainda: vermelho
-# aqui sinaliza; branch protection é flip do Wagner (ADR 0275 §5 · calendário).
+# dívida legada (grandfathering por não-toque). REQUIRED desde 2026-06-30
+# (context "anchor-lint ADR 0273" na branch protection · P14 rename 2026-07-01).
 # CRON semanal e o fallback full-tree seguem REPORT (exit 0) — a dívida dos
 # legados não pode avermelhar o cron antes de reconciliada.
 #
@@ -91,7 +93,7 @@ jobs:
         run: |
           # Gate de entrada (US implementada SEM aceite/teste-que-cobre) + covers (teste citado SEM
           # @covers-us), nos SPECs TOCADOS, com baseline grandfather do legado (43 aceite + 56 teste) →
-          # morde só mentira NOVA (no-new-lie). ADVISORY: não-required até flip do Wagner (ADR 0275 §5).
+          # morde só mentira NOVA (no-new-lie). REQUIRED desde 2026-06-24 (PR #3320 · P14 rename 2026-07-01 tirou "(advisory)" do nome).
           CHANGED=$(git diff --name-only --diff-filter=d "origin/${{ github.base_ref }}...HEAD" -- 'memory/requisitos/*/SPEC.md')
           if [ -n "$CHANGED" ]; then
             echo "Gate de entrada + covers (no-new-lie · baseline grandfather · ADR 0275/0303) nos SPECs tocados:"; echo "$CHANGED"
@@ -149,8 +151,8 @@ jobs:
         run: |
           # status:live de charter precisa de SINAL de prod (governance/prod-flags.json ou campo smoke:).
           # Diff-aware nos charters TOCADOS → morde só `live` NOVO/TOCADO sem sinal (os ~57 live legados
-          # sem sinal NÃO avermelham · grandfather por não-toque). ADVISORY: não-required até flip do
-          # Wagner (ADR 0275 §5 · proposta 2026-06-24). Cron/dispatch = report full-tree (exit 0).
+          # sem sinal NÃO avermelham · grandfather por não-toque). REQUIRED desde 2026-06-30 (promoção
+          # conjunta dos 3 jobs irmãos · P14 rename 2026-07-01). Cron/dispatch = report full-tree (exit 0).
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             CHANGED=$(git diff --name-only --diff-filter=d "origin/${{ github.base_ref }}...HEAD" -- 'resources/js/Pages/' | grep '\.charter\.md$' || true)
             if [ -n "$CHANGED" ]; then
@@ -196,8 +198,8 @@ jobs:
           node scripts/governance/anchor-lint.mjs --junit governance/nightly-fullsuite-summary.json --check-verde \
             || echo "::warning::gate verde (advisory): há US implementada+coberta com teste NÃO-verde na nightly full-suite — ver saída acima (não bloqueia; ADR 0275 §5)"
 
-  # ═══ RENAME P14 fix (d) — SHIMS TEMPORÁRIOS (remover no PR-2 do rename) ═════
-  # Os 4 jobs acima são REQUIRED na branch protection desde 2026-06-30, mas o nome
+  # (Os shims temporários do rename P14 viveram aqui — removidos no PR-2 do rename 2026-07-01;
+  #  fragmento de comentário órfão limpo na higiene 2026-07-16.)
   # CATRACA "1 lugar fixo" (Wagner 2026-07-01 "não pode trocar de lugar nunca. deve ser isso que fica
   # errando"): a âncora de charter (related_prototype/canon_source) NÃO pode citar lugar velho/volátil
   # (public/cowork-preview, erp-shell, _cowork-handoff-staging, Downloads) e todo path prototipo-ui/cowork/

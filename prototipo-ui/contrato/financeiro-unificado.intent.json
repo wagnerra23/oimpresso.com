@@ -5,7 +5,7 @@
   "alvo": ["resources/js/Pages/Financeiro/Unificado/Index.tsx"],
   "modo": "enforcing",
   "cobertura_minima": 5,
-  "nota": "Contrato de intenção ENFORCING. Cada intenção tem evidência positiva e caminhos proibidos verificáveis; prosa não cria exceção. Campo `modo` é declarativo — a tranca real é o workflow `contrato-de-tela` (step 'Intenção de fluxo', exit-code real) promovido a required status check sob enforce_admins (ADR 0261). Reintroduzir a rota legada = job vermelho = merge bloqueado.",
+  "nota": "Contrato de intenção ENFORCING. Cada intenção tem evidência positiva e caminhos proibidos verificáveis; prosa não cria exceção. Campo `modo` é declarativo — a tranca real é o workflow `contrato-de-tela` (step 'Intenção de fluxo', exit-code real), hoje always-run porém AINDA NÃO-required (passo 4 pendente, flip [W] admin-only — ADR 0261; RUNBOOK-contrato-de-tela §Estado da adoção; higiene 2026-07-16: a versão anterior desta nota afirmava 'promovido a required', à frente do estado real). Reintroduzir a rota legada = job vermelho (sinal honesto); bloqueio de merge só após o flip [W].",
   "fluxos": [
     {
       "id": "novo-titulo-escolhe-tipo",

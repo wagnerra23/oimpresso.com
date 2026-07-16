@@ -509,7 +509,7 @@ const CATRACAS = [
     // G1b gate de entrada: req_sem_aceite / req_sem_covering_test (regra nova sem aceite/teste)
     id: 'anchor-lint-entry',
     run: runAnchorLintEntry,
-    expect: { good: /Gate de entrada \(advisory\): 0 US/, bad: /regra de entrada|regra sem teste/ },
+    expect: { good: /Gate de entrada \(required · job 'anchor entry\/covers gate'\): 0 US/, bad: /regra de entrada|regra sem teste/ },
   },
   {
     // G1b verde-por-arquivo (Phase B): --junit summary + --check-verde. good = teste-que-cobre VERDE
@@ -558,7 +558,7 @@ const CATRACAS = [
     // good = US violadora grandfatherada → exit 0; bad = mesma US fora do baseline (só decoy) → exit 1.
     id: 'anchor-lint-entry-baseline',
     run: runAnchorLintEntryBaseline,
-    expect: { good: /Gate de entrada \(advisory\): 0 US/, bad: /regra de entrada|regra sem teste/ },
+    expect: { good: /Gate de entrada \(required · job 'anchor entry\/covers gate'\): 0 US/, bad: /regra de entrada|regra sem teste/ },
   },
   {
     // ARMING grandfather doneness (ADR 0302/0275): baseline ISENTA o conflito legado MAS morde o NOVO.
