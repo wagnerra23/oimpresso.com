@@ -88,12 +88,14 @@ final class VisregThreshold
      * @param  string  $screenName  nome legível da tela (ex: "Sells/Create")
      * @param  ArrayObject<int, array{screen:string,ratio:float,diffView:?string}>  $grayZone
      * @param  string  $baselineSuite  diretório da suíte no SnapshotRepository do Pest
+     * @param  string|null  $baselineFile  snapshot explícito do contrato visreg
      */
     public static function assertBandedScreenshot(
         object $page,
         string $screenName,
         ArrayObject $grayZone,
         string $baselineSuite = 'PixelBaselineTest',
+        ?string $baselineFile = null,
     ): void
     {
         $tauLow = self::tauLow();
@@ -107,16 +109,22 @@ final class VisregThreshold
         }
 
         // 1. Baseline commitada (.snap base64 PNG) desta tela.
-        $baselineBlob = self::readBaseline($baselineSuite);
+        $baselineBlob = self::readBaseline($baselineSuite, $baselineFile);
 
         if ($baselineBlob === null) {
-            // Sem baseline = 1ª execução: o engine do plugin GERARIA e passaria. Aqui
-            // espelhamos esse contrato — capturamos o screenshot pra o artifact
-            // pixel-snapshots poder commitar, e tratamos como aprovado (não regressão).
-            // Mantém o contrato do Pest: a primeira execução materializa a .snap no
-            // repositório de snapshots (o workflow de update a publica como artifact).
+            if ($baselineFile !== null) {
+                test()->fail(
+                    "VisregThreshold [{$screenName}]: baseline contratada ausente. "
+                    . 'Gere no workflow_dispatch com --update-snapshots e versione o .snap antes do merge.'
+                );
+
+                return;
+            }
+
+            // Suítes legadas sem manifesto mantêm o contrato nativo do Pest: a primeira
+            // execução materializa o snapshot e o publica no artifact para versionamento.
             $page->assertScreenshotMatches(fullPage: false);
-            test()->expect(true)->toBeTrue(); // baseline ausente → gera e segue (não falha)
+            test()->expect(true)->toBeTrue();
 
             return;
         }
@@ -447,7 +455,7 @@ final class VisregThreshold
      * EXATAMENTE como o SnapshotRepository do Pest (vendor pest/src/Repositories/
      * SnapshotRepository.php:107 + TestSuite::getDescription:118).
      */
-    private static function readBaseline(string $baselineSuite): ?string
+    private static function readBaseline(string $baselineSuite, ?string $baselineFile = null): ?string
     {
         // Nome da suíte vem de código, mas ainda assim só aceita identificador PHP para
         // não transformar um helper de teste em leitor arbitrário de arquivos.
@@ -456,8 +464,14 @@ final class VisregThreshold
 
             return null;
         }
+        if ($baselineFile !== null && (basename($baselineFile) !== $baselineFile || ! str_ends_with($baselineFile, '.snap'))) {
+            test()->fail("VisregThreshold: nome de baseline inválido: {$baselineFile}.");
+
+            return null;
+        }
+
         $dir = base_path('tests/.pest/snapshots/Browser/CoreScreens/' . $baselineSuite);
-        $file = $dir . '/' . self::snapshotDescription() . '.snap';
+        $file = $dir . '/' . ($baselineFile ?? self::snapshotDescription() . '.snap');
 
         if (! is_file($file)) {
             return null;
