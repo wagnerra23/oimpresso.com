@@ -143,7 +143,9 @@ foreach ($screens as $screen) {
     $baseline = $screen['baseline'];
 
     it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $component, $rota, $ancora, $baseline, $grayZone, $execution) {
-        $business = Business::first();
+        // orderBy('id') = biz 1 determinístico: o gate também seeda 98 (VisregEmptyTenantSeeder)
+        // e 99 (VisregTenantBLeakSeeder) — sem ordem explícita o "first" é o que o MySQL devolver.
+        $business = Business::orderBy('id')->first();
         if (! $business) {
             throw new RuntimeException('Sem business seedado: o gate visual não executou a fixture obrigatória.');
         }
