@@ -80,14 +80,14 @@ foreach ($screens as $nome => [$rota, $permissao, $ancora]) {
         // Usa o tenant SEEDADO (VisregTenantSeeder roda no workflow): business 1 + admin
         // (id=1, role spatie Admin#1 → Gate::before concede tudo). Padrão do
         // FinanceiroTestCase — o schema-squash é schema-only, o seed traz os dados.
-        // Sem seed = skip (não falha).
+        // Sem seed é falha de fixture: smoke verde sem render seria falso positivo.
         $business = Business::first();
         if (! $business) {
-            test()->markTestSkipped('Sem business seedado (DummyBusinessSeeder não rodou).');
+            throw new RuntimeException('Sem business seedado: o smoke cross-browser não executou a fixture obrigatória.');
         }
         $admin = User::where('business_id', $business->id)->orderBy('id')->first();
         if (! $admin) {
-            test()->markTestSkipped('Sem user no business seedado.');
+            throw new RuntimeException('Sem user no business seedado: o smoke cross-browser não pode autenticar.');
         }
 
         // 1 visit: loga o admin no subprocesso + redireciona pra tela → carrega autenticada.
