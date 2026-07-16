@@ -37,7 +37,7 @@ Destino do "Entrar (suporte)" da [Empresas](Empresas.charter.md). Mostra, de uma
 
 ## UX targets
 
-- AppShellV2 + sidebar light (UI-0009). PT-BR. `tabular-nums` em ID/contagens.
+- AppShellV2 + sidebar preta/dark-fixo (UI-0023). PT-BR. `tabular-nums` em ID/contagens.
 - Tokens semânticos (sem cor crua) + primitivos `Inline`/`Stack`/`Grid` (ADR 0253). `rounded-lg` máx. Dark mode ok (contraste ≥ 4.5:1) — mesmos tokens da Empresas.
 - Banner de Modo Suporte no topo; ícone em `--warn`.
 - "Acessar como" = `Button` primário por linha; confirma antes (a ação troca a identidade); estado "Entrando…" enquanto posta.

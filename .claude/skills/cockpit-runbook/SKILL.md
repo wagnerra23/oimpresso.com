@@ -53,7 +53,7 @@ Carregar TODAS antes de gerar — economiza round-trips:
 1. [DESIGN.md](../../DESIGN.md) — hub visual + §6-§15 padrão técnico React
 2. [ADR 0039 — Chat Cockpit](../../memory/decisions/0039-ui-chat-cockpit-padrao.md) — layout-mãe 3 colunas
 3. [_DesignSystem ADR 0008](../../memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md) — Cockpit como mãe ERP
-4. [_DesignSystem ADR 0009](../../memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md) — sidebar light padrão
+4. [_DesignSystem ADR UI-0023](../../memory/requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) — sidebar PRETA (dark-fixo) nos dois modos
 5. [_DesignSystem/SPEC.md](../../memory/requisitos/_DesignSystem/SPEC.md) — regras R-DS-001..N (tokens, shadcn, lucide, dark mode)
 6. [_DesignSystem/ARCHITECTURE.md](../../memory/requisitos/_DesignSystem/ARCHITECTURE.md) — visão arquitetural
 7. [Infra/RUNBOOK-criar-modulo.md](../../memory/requisitos/Infra/RUNBOOK-criar-modulo.md) — régua de profundidade

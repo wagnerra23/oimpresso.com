@@ -381,7 +381,7 @@ interface SellsCreatePageProps {
 - [ADR 0023 — Inertia v3](../../decisions/0023-inertia-v3.md) — base técnica
 - [ADR 0093 — Multi-tenant Tier 0](../../decisions/0093-multi-tenant-isolation-tier-0.md) — `business_id` global scope IRREVOGÁVEL
 - [_DS ADR 0008 — Cockpit layout-mãe](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)
-- [_DS ADR 0009 — Sidebar light](../_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)
+- [_DS ADR UI-0023 — Sidebar preta (dark-fixo)](../_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)
 
 > Esta tela **não tem coluna direita "Apps Vinculados"** porque é criação (sem entidade-foco). Justificado inline acima — não exige ADR substitutiva.
 

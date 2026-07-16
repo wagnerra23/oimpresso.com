@@ -350,7 +350,7 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 - [ADR 0036 — Replanejamento Meilisearch-first](../../decisions/0036-replanejamento-meilisearch-first.md) — driver de retrieval (afeta latência das respostas)
 - [ADR 0039 — Chat Cockpit (3 colunas)](../../decisions/0039-ui-chat-cockpit-padrao.md) — layout-mãe
 - [_DS UI-0008 — Cockpit layout-mãe ERP](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)
-- [_DS UI-0009 — Sidebar light padrão](../_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)
+- [_DS UI-0023 — Sidebar preta (dark-fixo)](../_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)
 - [_DS UI-0010 — Zip Cowork canon visual](../_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md) — referência canônica `chat.jsx`
 
 **Stories cobertas:** US-COPI-001, US-COPI-002, US-COPI-003, US-COPI-MEM-007 ([SPEC.md](SPEC.md))

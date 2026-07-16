@@ -34,7 +34,7 @@ Carregar TODAS antes de criar/auditar tela MWART — economiza round-trips e evi
 4. [_DS UI-0010](../../memory/requisitos/_DesignSystem/adr/ui/0010-zip-cowork-2026-04-27-canon-visual.md) — formaliza zip Cowork como canon visual
 5. [ADR 0039](../../memory/decisions/0039-ui-chat-cockpit-padrao.md) — Cockpit layout-mãe 3-colunas
 6. [_DS UI-0008](../../memory/requisitos/_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md) — Cockpit como mãe ERP
-7. [_DS UI-0009](../../memory/requisitos/_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md) — sidebar light padrão
+7. [_DS UI-0023](../../memory/requisitos/_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md) — sidebar PRETA (dark-fixo) nos dois modos
 8. [_DesignSystem/SPEC.md](../../memory/requisitos/_DesignSystem/SPEC.md) — regras R-DS-001..N (tokens, shadcn, lucide, dark mode)
 9. [Skill cockpit-runbook](../cockpit-runbook/SKILL.md) — para gerar/auditar runbook detalhado por tela
 10. **A própria tela alvo** — `Modules/<X>/Http/Controllers/*Controller.php` + `resources/js/Pages/<Module>/<Tela>.tsx`
