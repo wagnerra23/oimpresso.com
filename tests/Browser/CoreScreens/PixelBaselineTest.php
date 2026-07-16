@@ -167,9 +167,22 @@ foreach ($screens as $screen) {
         //     visibility:hidden preserva o layout e zera a variância;
         // (b) settle explícito mata o early-paint (baseline de 2KB com "?" de fonte
         //     não carregada que o networkidle+readyState do plugin não pegou);
-        // (c) MESMA normalização visual do plugin (transitions/animations off + fonte
-        //     Arial + antialiasing) pra o nosso ratio bater com o do engine nativo —
-        //     vendor pest-plugin-browser/src/Api/Concerns/MakesScreenshotAssertions.php:20.
+        // (c) normalização visual (transitions/animations off + fonte Arial + antialiasing).
+        //     NÃO é "pra o nosso ratio bater com o do engine nativo": estas 6 telas passam
+        //     `baselineFile` (linha 198), então o VisregThreshold GERA (update-snapshots:
+        //     :105-129) e COMPARA (:159-171) com $page->screenshot() + pixelmatch-GD — o
+        //     plugin não entra no caminho delas, logo não há ratio nativo pra bater. As duas
+        //     pontas usam esta MESMA injeção, então ela se cancela: as 6 são auto-consistentes.
+        //     Onde o Arial É load-bearing: as outras 4 suítes (53 dos 59 .snap) NÃO passam
+        //     baselineFile → a baseline NASCE via assertScreenshotMatches (VisregThreshold:132),
+        //     que injeta o próprio Arial (MakesScreenshotAssertions.php:19-27). Remover a
+        //     injeção só aqui desalinharia aquelas baselines.
+        //     CUSTO MEDIDO (2026-07-16): `* { font-family: Arial !important }` cega este gate
+        //     pra regressão de font-family — 318 declarações de font-family em resources/css,
+        //     0 com !important → o universal author-!important vence todas. O escopo da
+        //     cegueira é só `family`: font-size/weight/line-height/letter-spacing seguem
+        //     cobertos. Remoção exige self-host da fonte + document.fonts.ready (ITEM 7 · 3c)
+        //     e regenera as 59 baselines.
         $page->script(<<<'JS'
             (() => {
               const s = document.createElement('style');
@@ -186,8 +199,14 @@ foreach ($screens as $screen) {
 
         // CLASSIFICAÇÃO 3-BANDAS — substitui o assertScreenshotMatches() binário.
         // O helper:
-        //   1. captura o PNG atual via $page->screenshot() (fullPage:false — viewport é o
-        //      contrato visual estável; full em lista longa varia com o seed),
+        //   1. captura o PNG atual via $page->screenshot() (fullPage:false — as baselines
+        //      commitadas foram capturadas assim, e VisregThreshold:175-183 trata dimensão
+        //      divergente como regressão estrutural → trocar fullPage regenera as 59).
+        //      NÃO é "full em lista longa varia com o seed": medido 2026-07-16, os 6 seeders
+        //      Visreg têm 0 ocorrência de faker|Faker|rand(|random|uniqid|Str::random — o
+        //      VisregTenantSeeder é hardcoded e o VisregFinanceiroFlowSeeder cria 1 linha via
+        //      updateOrInsert idempotente. O gap real do viewport é o abaixo-da-dobra
+        //      (Sells/Create = 2004 linhas), avaliado no ITEM 7 · 3d,
         //   2. lê a baseline commitada (.snap base64) desta tela,
         //   3. roda pixelmatch-GD (mesma semântica do plugin) → ratio,
         //   4. roteia: <τ_baixo APROVA · >τ_alto FALHA · meio = ZONA CINZA (coleta).
