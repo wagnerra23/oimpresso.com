@@ -210,6 +210,19 @@ interface CockpitShellPropsRaw {
   usuarioIniciais?: string;
 }
 
+// Espelha o anti-flash do inertia.blade.php: a classe `.dark` no <html> é a FONTE
+// ÚNICA do que o modo `auto` (ui_theme NULL) resolveu — ele já cruzou localStorage
+// `oi.theme` + prefers-color-scheme antes do primeiro paint. Ler daqui mantém shell
+// e Tailwind no MESMO tema por construção, em vez de dois colapsos independentes.
+// Guard de SSR: no bundle node não existe `document`. Cai em 'light' porque o
+// servidor não tem como saber a preferência do SO — é exatamente por isso que o
+// anti-flash existe. (SSR está inerte hoje: `bootstrap/ssr/ssr.mjs` não é buildado
+// e não há daemon na 13714 — daemon no Hostinger é proibido, ADR 0062.)
+function resolveAutoTheme(): 'light' | 'dark' {
+  if (typeof document === 'undefined') return 'light';
+  return document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+}
+
 export default function AppShellV2({
   title,
   children,
@@ -239,7 +252,13 @@ export default function AppShellV2({
   const shellMenu: ShellMenuItem[] = shellProps?.menu ?? [];
   // Tema do user — aplicado no .cockpit pra cores ficarem coerentes com
   // shadcn (que usa dark mode automatico via classe 'dark' no <html>).
-  const userTheme = allProps?.auth?.user?.ui_theme ?? 'light';
+  // `ui_theme` NULL = "seguir sistema" (95% da base em 2026-07-16: 117/123).
+  // Quem resolve o `auto` é o anti-flash do inertia.blade.php, que já pôs (ou não)
+  // `.dark` no <html> antes do primeiro paint — ler a classe é espelhar a decisão
+  // dele. O `?? 'light'` de antes CHUTAVA light: o Blade colapsava auto→dark e o
+  // React colapsava auto→light no mesmo request, e o shell ficava claro por baixo
+  // do Tailwind escuro (ADR 0340).
+  const userTheme = allProps?.auth?.user?.ui_theme ?? resolveAutoTheme();
   // Wagner 2026-05-20: superadmin switched para conta de outro user (Modules/Superadmin
   // "Sign in as user"). Banner "Voltar para X" no topo de toda tela Inertia, espelha
   // link Blade em resources/views/layouts/partials/header.blade.php (linha 47-49).
