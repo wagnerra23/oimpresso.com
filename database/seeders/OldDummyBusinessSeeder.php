@@ -18,6 +18,13 @@ class OldDummyBusinessSeeder extends Seeder
      */
     public function run()
     {
+        // Tier 0 · repo PUBLICO: este seeder cria login com senha CONHECIDA no codigo-fonte.
+        // Rodar em producao publicaria uma porta de entrada (a senha esta no GitHub, aberta).
+        // CI usa APP_ENV=testing e o CT100 usa staging — ambos passam. So producao aborta.
+        if (app()->isProduction()) {
+            throw new RuntimeException(static::class . ': seeder de fixture com senha publica NAO roda em producao (APP_ENV=production).');
+        }
+
         DB::beginTransaction();
 
         $password = Hash::make('123456');
