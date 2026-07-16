@@ -242,8 +242,25 @@ jobs:
           # (zero dado de dominio) → as telas-lista renderizam o empty-state REAL e estavel.
           # GATE REAL — se quebrar, o job falha. Vide VisregEmptyTenantSeeder.php.
           php artisan db:seed --class=Database\\Seeders\\VisregEmptyTenantSeeder --force
+          # PIPELINE FSM DA OFICINA (gate L2 estados `default`/`dark` do oficina-os): o Quadro de
+          # OS é data-driven pelas etapas do processo `oficina_mecanica_os` — sem ele a tela cai
+          # no EmptyProcessState ("Quadro ainda não configurado"), ou seja, o FSM é PRÉ-CONDIÇÃO
+          # DE RENDER. Até 2026-07-16 nenhum seeder daqui semeava Oficina: o que fazia o kanban
+          # aparecer era VAZAMENTO do ConformanceProbesTest (que chama OficinaAutoFsmSeeder pra si
+          # e cujo afterEach nunca limpa o processo). Como aquele step é pulado no workflow_dispatch
+          # (`if: github.event_name != 'workflow_dispatch'`), o modo UPDATE gerava baseline com a
+          # tela não-configurada e o modo VERIFY a rejeitava (diff 6.7793% > τ_alto 2%, idêntico
+          # nos runs 29512533782/29514784095). Este seeder ESTABELECE a pré-condição nos DOIS
+          # modos em vez de herdar o vazamento. Zero-delta no verify: é o MESMO seeder canônico
+          # que já rodava de carona. Só biz=1 — o biz=98 fica sem FSM de propósito (estado
+          # `empty`). GATE REAL — se quebrar, o job falha. Vide VisregOficinaFsmSeeder.php.
+          php artisan db:seed --class=Database\\Seeders\\VisregOficinaFsmSeeder --force
           echo "=== seed check ==="
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count().' fin_titulos='.DB::table('fin_titulos')->where('business_id', 1)->count();"
+          # PROVA da pré-condição do oficina-os (a sonda que o defeito 2 não tinha): conta os
+          # stages do processo da Oficina no biz=1. Espera-se > 0 nos DOIS modos — se um dispatch
+          # voltar a imprimir 0, a baseline de `dark`/`default` nasceria errada OUTRA VEZ.
+          php artisan tinker --execute="echo 'oficina_stages_biz1='.DB::table('sale_process_stages')->join('sale_processes','sale_processes.id','=','sale_process_stages.process_id')->where('sale_processes.business_id',1)->where('sale_processes.key','oficina_mecanica_os')->count();"
 
       - name: Build Inertia bundles
         if: steps.mode.outputs.ui == 'true'
@@ -320,11 +337,24 @@ jobs:
       # regressão clara falha no step e a zona cinza sobe diff-view para revisão humana.
       #
       # ONDA 3 — MATRIZ GLOBAL 100% ENFORCING (2026-07-14): a matriz de estados isolados deixa
-      # de ter QUALQUER estado advisory. `oficina-os · dark` (o último drift) foi resolvido em
-      # #4248 — a baseline stale mostrava "Quadro não configurado" (pipeline FSM ausente) e o
-      # render real do gate é o kanban; a baseline foi corrigida pro kanban real do runner
-      # canônico e o gate provou verde (run 29285558238: oficina 3/3 pass). Agora TODAS as 6
-      # telas × estados rodam num único step enforcing.
+      # de ter QUALQUER estado advisory. Agora TODAS as 6 telas × estados rodam num único step
+      # enforcing.
+      #
+      # HISTÓRICO do drift `oficina-os · dark` (por que ele voltou — leia antes de "corrigir
+      # baseline" na mão):
+      #   - 2026-07-14 (#4248): a baseline stale mostrava "Quadro não configurado" (pipeline FSM
+      #     ausente) enquanto o render do verify era o kanban. Corrigiu-se a FOTO (baseline
+      #     regravada pro kanban) e o gate ficou verde (run 29285558238: oficina 3/3 pass).
+      #   - 2026-07-16: o drift REAPARECEU no primeiro dispatch seguinte (baseline do modo update
+      #     rejeitada pelo verify, diff 6.7793% > τ_alto, idêntico nos runs 29512533782/
+      #     29514784095). Motivo: o #4248 tratou o SINTOMA (a foto), não a CAUSA — o render do
+      #     Quadro dependia do processo FSM `oficina_mecanica_os`, que NENHUM seeder semeava;
+      #     ele só existia por VAZAMENTO do ConformanceProbesTest, e aquele step é pulado no
+      #     workflow_dispatch → update e verify fotografavam telas diferentes.
+      #   - Causa fechada no step "Seed demo tenant" (VisregOficinaFsmSeeder), que estabelece a
+      #     pré-condição nos DOIS modos. Se `oficina-os · dark` divergir de novo, cheque PRIMEIRO
+      #     a sonda `oficina_stages_biz1=` daquele step: 0 = pré-condição perdida (regravar a
+      #     baseline só re-esconderia o problema).
       - name: Estados isolados matriz (ENFORCING — matriz global completa · 6 telas)
         # MATRIZ GLOBAL ENFORCING COMPLETA. Ondas: 1 Financeiro (#4239) · 2 Sells+Clientes+
         # Compras+Caixa (#4243) · 3 Oficina (#4248 baseline fix + esta promoção). Cada tela com
