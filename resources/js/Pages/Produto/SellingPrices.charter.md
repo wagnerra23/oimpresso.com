@@ -10,7 +10,7 @@ parent_module: Produto
 related_adrs: [93, 104, 107, 149, 182]
 related_us: [US-PROD-022, US-PROD-023]
 tier: A
-charter_version: 3.4
+charter_version: 3.5
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
@@ -146,8 +146,17 @@ pesquisados faz isso**. O padrão convergente (4 sistemas, independentes) é:
    negrito + tarja = **exceção** manual. O operador vê a verdade, não um formulário em branco.
 4. **Digitar numa célula cria a exceção** daquela variação naquela lista. `↺` por célula volta ao
    calculado; "limpar exceções desta lista" no rodapé.
-5. **Delta por eixo ANTES de exceção por célula** — `G: +R$ 5,00` resolve "GG custa mais" com 1
-   campo em vez de 6 células (padrão `Value Price Extra` do Odoo · "preço adicional" do Vendizap).
+5. ~~**Delta por eixo ANTES de exceção por célula**~~ — **REMOVIDO na v3.5** (5º corte de [F]:
+   *"se na variação gerada eu consigo alterar o valor, pra quê a função ajuste por tamanho?"*).
+   **Procedente, e por 3 motivos:** (a) **ambíguo** — com a célula editável, o delta cria **dois
+   jeitos de dizer a mesma coisa** e o operador não sabe qual ganha; (b) o botão "aplicar" **nunca
+   teve handler — era controle morto**; (c) **o charter já proibia**: `❌ Bulk apply (mesmo preço em
+   N variações) — Wave 3` (§Non-Goals) — "ajuste por eixo" é bulk-apply com outro nome.
+   **De onde veio o erro:** a pesquisa recomendou o `Value Price Extra` do Odoo — mas lá o preço da
+   variante é **composto** (template + extra do atributo); **aqui a base é digitada por célula**.
+   Importei a solução sem checar se o problema existia neste modelo. Se um dia bulk-apply entrar
+   (grade grande, "GG +5 em 4 cores"), é **como bulk explícito da Wave 3**, não como 2º modelo de
+   preço concorrendo com a célula.
 6. **Mudar a regra recalcula o herdado e NÃO toca na exceção** — é o invariante que define o
    modelo. Verificado no protótipo: regra −20%→−35% moveu as herdadas 80,00→65,00 e a exceção
    ficou em 90,00.
@@ -196,8 +205,19 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
   `% Desconto` sobre o `Valor Original`, gravado por produto×cliente). **Non-Goal declarado**
   (Wagner 2026-07-15): no modelo novo o preço de cliente vem da tabela vinculada ao cadastro do
   cliente. Divergência consciente vs o legado — não é regressão.
-- ❌ **Faixa de quantidade** (`De`/`Até`/`% Desconto`/`R$ Valor` — `AR-PROD-105..109`) — é *preço por
-  quantidade*, que pertence ao charter da Variação, não a este
+- 🟡 **Faixa de quantidade** (`De`/`Até`/`% Desconto`/`R$ Valor` — `AR-PROD-105..109`) —
+  **REABERTO na v3.5**, era Non-Goal ("pertence ao charter da Variação"). 5º corte de [F]:
+  *"no modelo de grade não vi as fórmulas de variação por quantidade"*. **Por que reabre:** o
+  despacho pro charter da Variação assumia o modelo **do legado** — lá `VARIACAO_TIPO`
+  (`AR-PROD-171`) faz "preço por quantidade" e "cor/tamanho" serem **modos excludentes**, e o
+  charter parkeado da Variação herdou isso (Modo A vs Modo B). Mas [F] cravou que **o legado não
+  entra** — logo "excludentes" é herança que talvez não sobreviva: *quantidade* (quanto leva) e
+  *variação* (qual filho) parecem **eixos ortogonais**, não alternativas. **Fatos:** não existe
+  schema de faixa de quantidade hoje (nenhuma tabela/coluna) — é feature nova por inteiro; e ela
+  cruza com grade **e** com tabela (5×4 grade × 3 tabelas × 3 faixas = 3ª dimensão).
+  **Status:** pesquisa de mercado disparada 2026-07-16 (onde a faixa mora · por-variante? ·
+  dentro-da-lista? · como não explodir a UI · precedência). Decisão depois dela — mesmo caminho que
+  acertou o regra+exceção. ⚠️ Enquanto isso, **não é esquecimento, é fila**.
 - ❌ Editar nome de variation/price_group inline
 - ❌ Bulk apply (mesmo preço em N variações) — Wave 3
 
@@ -262,6 +282,15 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
 - ❌ **Pendurar TODA a digitação de preço debaixo da tabela.** Produto com variação e **sem** tabela
   não teria onde ser precificado — foi exatamente o corte de [F]. A aba **Base** é a fonte e existe
   sempre; as tabelas são opcionais.
+- ❌ **Dois caminhos pro mesmo dado.** Se a célula é editável, um "ajuste por eixo" que mexe no
+  mesmo valor é ambiguidade — o operador não sabe qual ganha. Um dado, um lugar de editar. (5º
+  corte de [F]; ver item 5.)
+- ❌ **Controle que não faz nada.** O `aplicar` do delta nunca teve handler — passou 2 rodadas de
+  verificação porque eu media *cálculo*, não *se os botões respondem*. Checklist de pino: todo
+  controle interativo tem handler, ou não existe.
+- ❌ **Importar solução de outro modelo sem checar se o problema existe no nosso.** O `Value Price
+  Extra` do Odoo resolve preço **composto** (template + extra); nossa base é **digitada por
+  célula** — o problema que ele resolve aqui não existia.
 - ❌ **Assumir que toda tabela é uma regra %.** O cliente muitas vezes **digita o valor do produto
   na tabela** — o `price_type='fixed'` do schema é isso, e o Bling chama de "Customizada". Forçar
   o % obriga a inventar uma regra que ninguém quer e a marcar cada célula como "exceção". 4º corte
@@ -358,6 +387,7 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
 | 2026-05-31 | [DS-upgrade] | Paleta stone→tokens v4; header hand-rolled→tokens (breadcrumb/título/SKU); + dirty-state, Cmd+S, navegação teclado, erros por célula, toast. Contrato backend (group_prices, POST save-selling-prices, price_type) intacto. |
 | 2026-07-15 | [CC] | **v2** — reescrito pro modelo real (Wagner): tabela nasce fora → produto seleciona + precifica → tabela vincula a cliente/tipo de venda; produto nunca vinculado direto ao cliente. Preço Especial produto×cliente (`AR-PROD-111..116`) vira **Non-Goal declarado**. Faixa de quantidade (`AR-PROD-105..109`) movida pro charter da Variação. + §Invariantes de valor (markup mestre, 4 casas, condicional ao `AR-PROD-097`) ancorados em teste. + §Backlog de contrato explicitando os buracos (casos.md ausente, testes tautológicos, cross-tenant prometido e inexistente, `mult` oco). |
+| 2026-07-16 | [F+CC] | **v3.5 — remove o delta por eixo + REABRE preço por quantidade.** 5º corte de [F], duas frentes. **(1)** *"se na variação gerada eu consigo alterar o valor, pra quê a função ajuste por tamanho?"* → **REMOVIDO**: era ambíguo (2 caminhos pro mesmo dado), o botão `aplicar` **nunca teve handler** (controle morto que passou 2 rodadas de verificação — eu media cálculo, não se os botões respondem) e **o charter já proibia** (`❌ Bulk apply — Wave 3`; "ajuste por eixo" é bulk com outro nome). Origem do erro: importei o `Value Price Extra` do Odoo sem checar o modelo — lá o preço é **composto** (template+extra), aqui a base é **digitada por célula**; o problema não existia. + 3 anti-padrões (2 caminhos pro mesmo dado · controle sem handler · importar solução de outro modelo). **(2)** *"no modelo de grade não vi as fórmulas de variação por quantidade"* → o Non-Goal "pertence ao charter da Variação" assumia o modelo **do legado** (`VARIACAO_TIPO`: quantidade vs cor/tamanho **excludentes**) — e [F] cravou que o legado não entra. Vira 🟡 **reaberto**, pesquisa de mercado disparada (sem schema hoje; cruza com grade E tabela = 3ª dimensão). |
 | 2026-07-16 | [F+CC] | **v3.4 — a tabela tem DOIS MODOS.** 4º corte de [F]: *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele define o valor do produto dentro da tabela e no protótipo vejo apenas o campo de percentual"*. **Procedente — e o schema JÁ suportava:** `variation_group_prices.price_type ∈ {'fixed','percentage'}` (`fixed` = o valor É o preço), lido por mim no 1º dia e ignorado ao modelar. A pesquisa também já dizia, na linha do **Bling** que eu mesmo citei no charter: *"lista 'Customizada' → o valor do produto será personalizado na lista"*. A v3 afirmava "a lista **é** uma regra" — meia-verdade que forçava inventar regra + marcar cada célula como "exceção". Agora: modo **regra %** (célula digitada = exceção, tarja) OU **preço por produto** (sem %, célula digitada = O preço, neutro; não digitada = base). + 3 anti-padrões (toda tabela é regra · "%" que mente · alarme em dado normal). Revenda nasce manual no pino pra o contraste ser visível. |
 | 2026-07-16 | [F+CC] | **v3.3** — 3º corte de [F]: *"se não existe um modelo de grade escolhido, não vejo a opção de adicionar um valor do produto na tabela de preço… não ter modelo de grade não invalida a possibilidade de existir uma ou mais tabelas de preço"*. **Procedente — e o mais grave dos três: o contrato JÁ dizia isso** (a tabela do 0-A, linha "Só tabela = grade de 1 célula (o `DUMMY`) × as tabelas") **e o protótipo violava**, exigindo os 2 eixos pra desenhar qualquer coisa → sem grade, o produto não tinha onde ser precificado nem na Base nem nas tabelas. Escrever a regra não implementa a regra. + **4 formas** (0 eixos → 1 célula · 1 eixo → **lista**, não matriz · 2 eixos → matriz) + 1 anti-padrão. Sem eixo some só o §preview (não há grade a gerar). Bug lateral achado na verificação: o `\` do header `Cor \ Tamanho` era escape inválido em JS (` \ ` → espaço) — corrigido. |
 | 2026-07-16 | [F+CC] | **v3.2** — 2º corte de [F]: *"o produto pode ter só variação, ou só tabela, ou os dois — mas no protótipo a adição do preço está ligada somente ao preço por lista"*. **Procedente e era furo de MODELO, não de tela:** eu tratava o preço base como escalar ("R$ 100,00, vem da aba Custos") e pendurava toda a digitação debaixo da tabela → produto com variação e **sem** tabela não tinha onde ser precificado. Verificado: `variations` tem custo/markup/venda **por filho** (2017 + `product_variation_row.blade.php:60-84`), e `createSingleProductVariation()` grava o preço numa variação `DUMMY` → **produto simples é grade de 1 célula, não outro modelo**. + **item 0-A** (Base é a 1ª aba do seletor; a regra incide sobre a base **de cada célula**: −20% → Azul-P 80,00 · Azul-G 96,00) + tabela dos 3 casos + 3 anti-padrões (base escalar · tudo debaixo da tabela · Base e tabela como irmãs) + **§Backlog: tensão markup-mestre × Base editando venda** ([W]/[F] decidem — 3 saídas mapeadas). |

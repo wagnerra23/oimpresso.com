@@ -150,13 +150,6 @@
           <span><i class="pe-swatch off"></i> combinação que não existe (clique pra reativar)</span>
         </div>
 
-        <div class="pe-delta">
-          <span><b>Ajuste por <span id="delta-eixo-nome">tamanho</span></b> — resolve “G custa mais” sem digitar célula a célula:</span>
-          <select id="delta-valor"></select>
-          <span>+ R$</span>
-          <input type="text" value="0" inputmode="decimal" />
-          <button class="pe-link">aplicar</button>
-        </div>
       </section>
 
       <!-- ============ SEÇÃO 3 — preview de geração ============ -->
@@ -297,7 +290,7 @@
       b.setAttribute('aria-pressed', String(on));
       b.addEventListener('click', () => {
         if (on) eixos[n].marcados.delete(v); else eixos[n].marcados.add(v);
-        renderValores(n); renderMatriz(); renderPreview(); renderDelta();
+        renderValores(n); renderMatriz(); renderPreview();
       });
       box.appendChild(b);
     });
@@ -457,19 +450,6 @@
       + (off ? ' · ' + off + ' desmarcada(s)' : '') + ' — a grade abaixo acompanha.';
   }
 
-  // ---- delta por eixo (Value Price Extra do Odoo) ----
-  function renderDelta() {
-    const g = formaDaGrade();
-    const box = document.querySelector('.pe-delta');
-    // sem eixo não há "ajuste por eixo" — e na Base o ajuste seria o próprio dado
-    box.hidden = g.forma === 'simples' || ehBase();
-    if (box.hidden) return;
-    // o delta é do eixo 1 (o "G custa mais"); se só o eixo 2 existe, é dele
-    const vals = valores(1).length ? valores(1) : valores(2);
-    const nome = valores(1).length ? nomeEixo(1) : nomeEixo(2);
-    document.getElementById('delta-valor').innerHTML = vals.map((v) => '<option>' + v + '</option>').join('');
-    document.getElementById('delta-eixo-nome').textContent = nome.toLowerCase();
-  }
 
   function renderRegra() {
     const base = ehBase();
@@ -508,7 +488,7 @@
       : 'Limpar exceções desta tabela';
   }
 
-  function render() { renderRegra(); renderMatriz(); renderBadges(); renderPreview(); renderDelta(); }
+  function render() { renderRegra(); renderMatriz(); renderBadges(); renderPreview(); }
 
   // ---- eventos ----
   document.querySelectorAll('.pe-axis-tpl').forEach((sel) => {
@@ -516,7 +496,7 @@
       const n = e.target.dataset.axisTpl;
       eixos[n].tpl = e.target.value;
       eixos[n].marcados = new Set(e.target.value ? MODELOS[e.target.value].valores : []);
-      renderValores(n); renderMatriz(); renderPreview(); renderDelta();
+      renderValores(n); renderMatriz(); renderPreview();
     });
   });
 

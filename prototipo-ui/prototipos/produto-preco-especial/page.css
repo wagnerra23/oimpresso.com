@@ -303,31 +303,6 @@
   font-family: inherit;
 }
 
-/* ---- delta por eixo ---- */
-.pe-delta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 1px dashed var(--border);
-  border-radius: var(--radius);
-  margin-top: 14px;
-  font-size: 13px;
-  color: var(--text-dim);
-}
-.pe-delta select,
-.pe-delta input {
-  height: 30px;
-  padding: 0 8px;
-  font-size: 13px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-family: inherit;
-  background: var(--surface);
-  color: var(--text);
-}
-.pe-delta input { width: 78px; text-align: right; font-variant-numeric: tabular-nums; }
-
 /* ---- preview de geração (o que ninguém tem) ---- */
 .pe-preview {
   border: 1px solid var(--accent);
