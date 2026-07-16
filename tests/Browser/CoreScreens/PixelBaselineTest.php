@@ -91,10 +91,6 @@ afterEach(fn () => \Carbon\Carbon::setTestNow());
  */
 $grayZone = new ArrayObject();
 
-afterAll(function () use ($grayZone) {
-    \Tests\Browser\Support\VisregThreshold::writeGrayZoneSummary($grayZone->getArrayCopy());
-});
-
 $manifestPath = dirname(__DIR__) . '/visreg-screens.json';
 $screens = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
 $scope = getenv('VISREG_SCOPE') ?: 'global';
@@ -112,6 +108,27 @@ if ($scope === 'targeted') {
     }
 }
 
+$execution = new ArrayObject([
+    'expected' => count($screens),
+    'executed' => 0,
+    'compared' => 0,
+]);
+
+afterAll(function () use ($execution, $grayZone) {
+    \Tests\Browser\Support\VisregThreshold::writeGrayZoneSummary($grayZone->getArrayCopy());
+
+    $githubOutput = getenv('GITHUB_OUTPUT');
+    if ($githubOutput !== false && $githubOutput !== '') {
+        $lines = sprintf(
+            "expected=%d\nexecuted=%d\ncompared=%d\n",
+            $execution['expected'],
+            $execution['executed'],
+            $execution['compared'],
+        );
+        file_put_contents($githubOutput, $lines, FILE_APPEND | LOCK_EX);
+    }
+});
+
 foreach ($screens as $screen) {
     foreach (['screen', 'source', 'component', 'route', 'anchor', 'baseline'] as $required) {
         if (! isset($screen[$required]) || ! is_string($screen[$required]) || $screen[$required] === '') {
@@ -125,14 +142,14 @@ foreach ($screens as $screen) {
     $ancora = $screen['anchor'];
     $baseline = $screen['baseline'];
 
-    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $component, $rota, $ancora, $baseline, $grayZone) {
+    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $component, $rota, $ancora, $baseline, $grayZone, $execution) {
         $business = Business::first();
         if (! $business) {
-            test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
+            throw new RuntimeException('Sem business seedado: o gate visual não executou a fixture obrigatória.');
         }
         $admin = User::where('business_id', $business->id)->orderBy('id')->first();
         if (! $admin) {
-            test()->markTestSkipped('Sem user no business seedado.');
+            throw new RuntimeException('Sem user no business seedado: o gate visual não pode autenticar.');
         }
 
         $this->actingAs($admin)
@@ -142,6 +159,7 @@ foreach ($screens as $screen) {
 
         $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota));
         $page->assertSee($ancora);
+        $execution['executed'] = (int) $execution['executed'] + 1;
 
         // ESTABILIZAÇÃO (diagnóstico runs 27370651063/27370956421 — diff views):
         // (a) controles NATIVOS (select / input date|datetime|time) pintam com variação
@@ -179,5 +197,6 @@ foreach ($screens as $screen) {
             grayZone: $grayZone,
             baselineFile: $baseline,
         );
+        $execution['compared'] = (int) $execution['compared'] + 1;
     });
 }

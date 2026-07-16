@@ -247,12 +247,29 @@ export function parseNameStatusZ(raw) {
 }
 
 /** Contraprova do required check: impacto, modo e execução precisam concordar. */
-export function validateExecution({ visualRequired, mode, pixelOutcome, uncoveredScreens = [] }) {
+export function validateExecution({
+  visualRequired,
+  mode,
+  pixelOutcome,
+  uncoveredScreens = [],
+  expected,
+  executed,
+  compared,
+}) {
   if (!['true', 'false'].includes(visualRequired)) return ['classificador de impacto não produziu decisão booleana'];
   if (uncoveredScreens.length > 0) return [`telas afetadas sem contrato visreg: ${uncoveredScreens.join(', ')}`];
   if (visualRequired !== mode) return [`impacto=${visualRequired}, mas modo pesado=${mode}`];
   if (visualRequired === 'true' && !['success', 'failure'].includes(pixelOutcome)) {
     return ['impacto visual detectado, mas nenhum pixel-diff executou (verde vazio)'];
+  }
+  if (visualRequired === 'true') {
+    const counts = [expected, executed, compared].map(Number);
+    if (!counts.every(Number.isInteger) || counts[0] < 1 || counts.slice(1).some((count) => count < 0)) {
+      return ['pixel-diff não publicou contagens válidas de expected/executed/compared'];
+    }
+    if (counts[0] !== counts[1] || counts[0] !== counts[2]) {
+      return [`pixel-diff incompleto: expected=${counts[0]}, executed=${counts[1]}, compared=${counts[2]}`];
+    }
   }
   return [];
 }
@@ -435,9 +452,10 @@ function selfTest() {
   }
   assert.ok(validateScreenManifest(contract, { baselineExists: () => false }).length > 0);
   assert.deepEqual(coverageForScreens(['Cliente', 'Sells/Create'], contract).uncovered_screens, ['Cliente']);
-  assert.ok(validateExecution({ visualRequired: 'true', mode: 'false', pixelOutcome: 'success' }).length > 0);
-  assert.ok(validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'skipped' }).length > 0);
-  assert.deepEqual(validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success' }), []);
+  assert.ok(validateExecution({ visualRequired: 'true', mode: 'false', pixelOutcome: 'success', expected: 1, executed: 1, compared: 1 }).length > 0);
+  assert.ok(validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'skipped', expected: 1, executed: 1, compared: 1 }).length > 0);
+  assert.ok(validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', expected: 2, executed: 2, compared: 1 }).length > 0);
+  assert.deepEqual(validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', expected: 2, executed: 2, compared: 2 }), []);
   console.log('ui-impact selftest: sensibilidade, especificidade e fail-closed passaram');
 }
 
@@ -451,6 +469,9 @@ if (isEntry) {
       mode: argValue(argv, 'mode'),
       pixelOutcome: argValue(argv, 'pixel-outcome'),
       uncoveredScreens: jsonArray(argValue(argv, 'uncovered-screens', '[]')),
+      expected: argValue(argv, 'expected'),
+      executed: argValue(argv, 'executed'),
+      compared: argValue(argv, 'compared'),
     });
     if (errors.length) {
       for (const error of errors) console.error(`::error::${error}`);
