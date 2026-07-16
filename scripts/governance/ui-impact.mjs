@@ -17,16 +17,28 @@ const ROOT = process.cwd();
 const SCREEN_MANIFEST = 'tests/Browser/visreg-screens.json';
 const SOURCE_EXT = String.raw`(?:[cm]?[jt]sx?|vue)`;
 const ASSET_EXT = String.raw`(?:[cm]?js|css|scss|sass|less|png|jpe?g|gif|webp|avif|svg|ico|woff2?|ttf|otf)`;
+const PAGE_AUX_DIR = /^(?:_.*|components?|partials?|hooks?|utils?|lib|types?|constants?|schemas?|stores?|contexts?)$/i;
+const BACKEND_ROUTE = /^(?:routes\/.+|Modules\/[^/]+\/(?:(?:Routes|routes)\/.+|Http\/routes))\.php$/i;
+const CONTENT_AWARE_BACKEND = /(?:Http\/Controllers\/.+\.php$|^routes\/.+\.php$|^Modules\/[^/]+\/(?:(?:Routes|routes)\/.+|Http\/routes)\.php$)/i;
 
 export const normalizePath = (path) => String(path || '').replace(/\\/g, '/').replace(/^\.\//, '');
 
 function pageScreen(path) {
   const rel = path.replace(/^resources\/js\/Pages\//, '').replace(new RegExp(`\\.${SOURCE_EXT}$`, 'i'), '');
   const parts = rel.split('/');
-  const privatePart = parts.findIndex((part) => part.startsWith('_'));
-  const visible = privatePart > 0 ? parts.slice(0, privatePart) : parts;
+  const auxiliaryPart = parts.findIndex((part, index) => index < parts.length - 1 && PAGE_AUX_DIR.test(part));
+  const visible = auxiliaryPart > 0 ? parts.slice(0, auxiliaryPart) : parts;
   if (visible.length > 1 && visible.at(-1)?.toLowerCase() === 'index') visible.pop();
   return visible.join('/');
+}
+
+function isPageSource(path) {
+  return new RegExp(`^resources/js/Pages/.+\\.${SOURCE_EXT}$`, 'i').test(path);
+}
+
+function isPageAuxiliary(path) {
+  const rel = path.replace(/^resources\/js\/Pages\//, '').split('/');
+  return rel.slice(0, -1).some((part) => PAGE_AUX_DIR.test(part));
 }
 
 function normalizeScreenName(screen) {
@@ -56,23 +68,33 @@ export function classifyFile(rawPath, content = '') {
   // Contratos e metadados ao lado da UI não alteram o render por si sós.
   if (/^(?:resources|Modules\/[^/]+\/Resources)\/.*\.(?:md|mdx)$/i.test(path)) return null;
   if (/^resources\/css\/tokens\/(?:version\.json|changelog\.json)$/i.test(path)) return null;
-  if (new RegExp(`^resources/js/Pages/.+\\.${SOURCE_EXT}$`, 'i').test(path) && /\/_.*\//.test(path)) {
+  if (isPageSource(path) && isPageAuxiliary(path)) {
     return { path, scope: 'global', reason: 'componente-de-page-compartilhado', screen: pageScreen(path) };
   }
-  if (new RegExp(`^resources/js/Pages/.+\\.${SOURCE_EXT}$`, 'i').test(path)) {
+  if (isPageSource(path)) {
     return { path, scope: 'targeted', reason: 'page-inertia', screen: pageScreen(path) };
   }
   if (/^resources\/js\//i.test(path)) return { path, scope: 'global', reason: 'frontend-compartilhado' };
   if (/^resources\/(?:css|views|lang|images?|fonts?)\//i.test(path)) return { path, scope: 'global', reason: 'fundacao-visual' };
-  if (/^Modules\/[^/]+\/Resources\/(?:js|css|views)\//i.test(path)) return { path, scope: 'global', reason: 'ui-de-modulo' };
-  if (new RegExp(`^public/(?:css|js|img|images|fonts)/.+\\.${ASSET_EXT}$`, 'i').test(path)) {
+  if (/^lang\//i.test(path)) return { path, scope: 'global', reason: 'traducao-visivel' };
+  if (/^Modules\/[^/]+\/Resources\/(?:js|css|views|lang|images?|fonts?|menus)\//i.test(path)) {
+    return { path, scope: 'global', reason: 'ui-de-modulo' };
+  }
+  if (new RegExp(`^public/.+\\.${ASSET_EXT}$`, 'i').test(path)) {
     return { path, scope: 'global', reason: 'asset-publico' };
   }
   if (/^(?:app|Modules\/[^/]+)\/Http\/Controllers\/.+\.php$/i.test(path) && inertia) {
     return { path, scope: 'global', reason: 'controller-inertia', screens: inertiaScreens(content) };
   }
-  if (/^(?:routes\/web\.php|Modules\/[^/]+\/(?:Routes|routes)\/web\.php)$/i.test(path) || (/^routes\/.+\.php$/i.test(path) && inertia)) {
+  if (BACKEND_ROUTE.test(path) && (/(?:^|\/)web\.php$/i.test(path) || inertia || /\/Http\/routes\.php$/i.test(path))) {
     return { path, scope: 'global', reason: 'rota-inertia', screens: inertiaScreens(content) };
+  }
+  if (/^(?:app|Modules\/[^/]+)\/Http\/Middleware\/HandleInertiaRequests\.php$/i.test(path)
+    || /^app\/Services\/.*(?:Menu|Navigation|Nav|Shell|Inertia|Frontend).*\.php$/i.test(path)
+    || /^app\/View\//i.test(path)
+    || /^app\/Providers\/(?:App|Route)ServiceProvider\.php$/i.test(path)
+    || /^config\/(?:app|inertia|view|vite)\.php$/i.test(path)) {
+    return { path, scope: 'global', reason: 'backend-apresentacao' };
   }
   if (/^tests\/Browser\//i.test(path) || /^tests\/\.pest\/snapshots\/Browser\//i.test(path)) {
     return { path, scope: 'global', reason: 'contrato-visual' };
@@ -80,7 +102,9 @@ export function classifyFile(rawPath, content = '') {
   if (lower === '.github/workflows/visual-regression.yml' || lower === 'lighthouserc.json') {
     return { path, scope: 'global', reason: 'infra-visual' };
   }
-  if (/^(?:package(?:-lock)?\.json|pnpm-lock\.yaml|yarn\.lock|vite\.config\.|tailwind\.config\.|postcss\.config\.)/i.test(path)) {
+  if (/^(?:package(?:-lock)?\.json|pnpm-lock\.yaml|yarn\.lock|composer\.(?:json|lock))$/i.test(path)
+    || /(?:^|\/)vite(?:\.[^/]+)*\.config\.[^/]+$/i.test(path)
+    || /(?:^|\/)(?:webpack\.mix\.js|tsconfig(?:\.[^/]+)?\.json|tailwind\.config\.[^/]+|postcss\.config\.[^/]+)$/i.test(path)) {
     return { path, scope: 'global', reason: 'toolchain-frontend' };
   }
   // Raiz de UI conhecida, extensão nova/desconhecida: conservador por desenho.
@@ -90,18 +114,62 @@ export function classifyFile(rawPath, content = '') {
   return null;
 }
 
-export function classifyFiles(files, { readContent = () => '' } = {}) {
-  const impacted = [];
-  for (const rawPath of [...new Set(files.map(normalizePath).filter(Boolean))]) {
-    let hit = classifyFile(rawPath);
-    if (!hit && /(?:Http\/Controllers\/|^routes\/).+\.php$/i.test(rawPath)) {
-      hit = classifyFile(rawPath, readContent(rawPath));
-    }
-    if (hit) impacted.push(hit);
-  }
+function summarizeImpact(impacted) {
   const screens = [...new Set(impacted.flatMap((item) => [item.screen, ...(item.screens ?? [])]).filter(Boolean))].sort();
   const scope = impacted.some((item) => item.scope === 'global') ? 'global' : impacted.length ? 'targeted' : 'none';
   return { visual_required: impacted.length > 0, scope, screens, impacted };
+}
+
+export function classifyChanges(changes, { readContent = () => '' } = {}) {
+  const impacted = [];
+  const seen = new Set();
+  for (const change of changes) {
+    const rawPath = normalizePath(change?.path);
+    const status = String(change?.status || 'M');
+    if (!rawPath || seen.has(`${status}:${rawPath}`)) continue;
+    seen.add(`${status}:${rawPath}`);
+
+    if (status.startsWith('D')) {
+      const removed = classifyFile(rawPath, readContent(rawPath));
+      if (removed) impacted.push({ path: rawPath, scope: 'global', reason: `${removed.reason}-removido` });
+      continue;
+    }
+
+    const content = CONTENT_AWARE_BACKEND.test(rawPath) ? readContent(rawPath) : '';
+    const hit = classifyFile(rawPath, content);
+    if (status.startsWith('R') && change.oldPath) {
+      const oldPath = normalizePath(change.oldPath);
+      const oldHit = classifyFile(oldPath, readContent(oldPath));
+      if (oldHit) impacted.push({ path: oldPath, scope: 'global', reason: `${oldHit.reason}-renomeado` });
+    }
+    if (hit) impacted.push(hit);
+  }
+  return summarizeImpact(impacted);
+}
+
+export function classifyFiles(files, options = {}) {
+  return classifyChanges([...new Set(files.map(normalizePath).filter(Boolean))].map((path) => ({ status: 'M', path })), options);
+}
+
+export function parseNameStatusZ(raw) {
+  const fields = String(raw || '').split('\0');
+  if (fields.at(-1) === '') fields.pop();
+  const changes = [];
+  for (let index = 0; index < fields.length;) {
+    const status = fields[index++];
+    if (!status) continue;
+    if (status.startsWith('R') || status.startsWith('C')) {
+      const oldPath = normalizePath(fields[index++]);
+      const path = normalizePath(fields[index++]);
+      if (!oldPath || !path) throw new Error(`diff --name-status truncado em ${status}`);
+      changes.push({ status, oldPath, path });
+    } else {
+      const path = normalizePath(fields[index++]);
+      if (!path) throw new Error(`diff --name-status truncado em ${status}`);
+      changes.push({ status, path });
+    }
+  }
+  return changes;
 }
 
 /** Contraprova do required check: impacto, modo e execução precisam concordar. */
@@ -160,13 +228,14 @@ function run(argv) {
   const base = argValue(argv, 'base', 'origin/main');
   const head = argValue(argv, 'head', 'HEAD');
   const githubOutput = argValue(argv, 'github-output');
-  const files = git(['diff', '--name-only', '--diff-filter=ACDMRTUXB', base, head, '--'])
-    .split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const diffBase = git(['merge-base', base, head]).trim();
+  if (!diffBase) throw new Error(`merge-base ausente entre ${base} e ${head}`);
+  const changes = parseNameStatusZ(git(['diff', '--name-status', '-z', '--find-renames', '--diff-filter=ACDMRTUXB', diffBase, head, '--']));
   const readContent = (path) => {
     const disk = join(ROOT, path);
     const current = existsSync(disk) ? readFileSync(disk, 'utf8') : '';
     let previous = '';
-    try { previous = git(['show', `${base}:${path}`]); } catch { /* arquivo novo */ }
+    try { previous = git(['show', `${diffBase}:${path}`]); } catch { /* arquivo novo */ }
     return `${previous}\n${current}`;
   };
   const manifest = JSON.parse(readFileSync(join(ROOT, SCREEN_MANIFEST), 'utf8'));
@@ -176,11 +245,12 @@ function run(argv) {
       .some((suffix) => existsSync(join(ROOT, 'resources/js/Pages', `${source}${suffix}`))),
   });
   if (manifestErrors.length) throw new Error(`contrato ${SCREEN_MANIFEST} invalido: ${manifestErrors.join('; ')}`);
-  const impact = classifyFiles(files, { readContent });
+  const impact = classifyChanges(changes, { readContent });
   const result = {
     base,
+    diff_base: diffBase,
     head,
-    changed_files: files.length,
+    changed_files: changes.length,
     ...impact,
     ...coverageForScreens(impact.screens, manifest),
   };
@@ -208,14 +278,26 @@ function selfTest() {
   assert.equal(classifyFile('resources/js/Pages/Index.tsx')?.screen, 'Index');
   const privatePart = classifyFile('resources/js/Pages/Sells/_components/Card.tsx');
   assert.deepEqual([privatePart?.scope, privatePart?.screen], ['global', 'Sells']);
+  const publicComponent = classifyFile('resources/js/Pages/Compras/components/Drawer.tsx');
+  assert.deepEqual([publicComponent?.scope, publicComponent?.screen], ['global', 'Compras']);
 
   for (const path of [
     'resources/js/Components/shared/PageHeader.tsx',
     'resources/css/cockpit.css',
     'resources/views/auth/login.blade.php',
+    'lang/pt/messages.php',
     'public/fonts/inter.woff2',
+    'public/favicon.ico',
+    'public/vendor/myfatoorah/css/style.css',
     'tests/.pest/snapshots/Browser/CoreScreens/foo.snap',
     'package-lock.json',
+    'composer.lock',
+    'vite.inertia.config.mjs',
+    'Modules/Sells/vite.config.js',
+    'config/inertia.php',
+    'app/Http/Middleware/HandleInertiaRequests.php',
+    'app/Services/ShellMenuBuilder.php',
+    'app/View/Helpers/Form.php',
     '.github/workflows/visual-regression.yml',
   ]) assert.equal(classifyFile(path)?.scope, 'global', path);
 
@@ -226,6 +308,18 @@ function selfTest() {
 
   const targeted = classifyFiles(['resources/js/Pages/Sells/Create.tsx', 'resources/js/Pages/Sells/Create.tsx']);
   assert.deepEqual([targeted.visual_required, targeted.scope, targeted.screens], [true, 'targeted', ['Sells/Create']]);
+  const route = classifyFiles(['routes/web.php'], { readContent: () => "return inertia('Tarefas/Index');" });
+  assert.deepEqual(route.screens, ['Tarefas']);
+  const moduleRoute = classifyFiles(['Modules/KB/Http/routes.php'], { readContent: () => "return Inertia::render('KB/Index');" });
+  assert.deepEqual(moduleRoute.screens, ['KB']);
+  assert.deepEqual(parseNameStatusZ('D\0resources/js/Pages/Old/Index.tsx\0'), [
+    { status: 'D', path: 'resources/js/Pages/Old/Index.tsx' },
+  ]);
+  assert.deepEqual(parseNameStatusZ('R100\0resources/js/Pages/Old.tsx\0resources/js/Pages/New.tsx\0'), [
+    { status: 'R100', oldPath: 'resources/js/Pages/Old.tsx', path: 'resources/js/Pages/New.tsx' },
+  ]);
+  const deleted = classifyChanges([{ status: 'D', path: 'resources/js/Pages/Old/Index.tsx' }]);
+  assert.deepEqual([deleted.scope, deleted.screens], ['global', []]);
   assert.equal(classifyFiles(['resources/css/inertia.css']).scope, 'global');
   assert.equal(classifyFiles(['docs/arquitetura.md']).visual_required, false);
 
