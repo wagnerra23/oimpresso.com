@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-07-16T14:06:22.380Z",
+    "generated_at": "2026-07-16T14:24:10.512Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "stats": {
       "pages": 279,
@@ -8,7 +8,7 @@
       "ucs_declared": 143,
       "missing_charter": 45,
       "missing_casos": 243,
-      "orphan_ucs": 30,
+      "orphan_ucs": 28,
       "metadata_issues": 0,
       "stale_cases": 0,
       "status_lies": 0,
@@ -320,8 +320,6 @@
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-03",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-06",
     "uc-orphan:resources/js/Pages/governance/DsRollout.casos.md#UC-DSR-07",
-    "uc-orphan:resources/js/Pages/kb/Index.v2.casos.md#UC-KBV2-07",
-    "uc-orphan:resources/js/Pages/kb/Index.v2.casos.md#UC-KBV2-08",
     "uc-orphan:resources/js/Pages/kb/Index.v2.casos.md#UC-KBV2-09",
     "uc-orphan:resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-01",
     "uc-orphan:resources/js/Pages/team-mcp/Forja/Cockpit.casos.md#UC-FORJA-02",
