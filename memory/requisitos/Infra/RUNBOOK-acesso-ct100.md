@@ -1,7 +1,12 @@
 # RUNBOOK — Acesso ao CT 100 (oimpresso-mcp + Docker stack)
 
+> 🔌 **CT 100 inacessível / "offline"? → O CABO DE REDE É RUIM (hardware conhecido, [W] 2026-07-16).**
+> É a **1ª hipótese**, não a última. Máquina viva + rede morta se parecem **exatamente** com máquina
+> desligada (sem ping, sem ARP, `rx 0`). Prove em 1 comando — `journalctl --list-boots` — antes de
+> caçar energia/OOM/software. Receita completa: §"CT 100 sumiu da rede?" abaixo.
+
 > **Tipo:** receita operacional "como executar comando hoje"
-> **Validado:** 2026-05-06 (Claude Code @ wagner-pc)
+> **Validado:** 2026-05-06 (Claude Code @ wagner-pc) · **incidente de rede catalogado:** 2026-07-16
 > **Hostinger paralelo:** ver CLAUDE.md §7 (warm-up + retry)
 > **Hardening setup:** ver `RUNBOOK-ssh-hardening-ct.md` (receita inicial)
 
@@ -93,6 +98,46 @@ tailscale ssh root@ct100-mcp 'docker exec oimpresso-mcp php artisan mcp:list-too
 ```bash
 tailscale ssh root@ct100-mcp 'systemctl status autossh-mysql 2>/dev/null || ss -tlnp | grep 3307'
 ```
+
+---
+
+## ⚠️ CT 100 "sumiu" da rede? Suspeite do CABO ANTES de qualquer outra coisa
+
+> **[W] 2026-07-16:** *"acho que foi cabo de rede. anote para lembrar, o cabo está ruim"* — **o cabo do CT 100 é hardware sabidamente ruim.** É a **primeira hipótese**, não a última.
+
+**Sintoma que engana** (medido no incidente 2026-07-16, ~23h de "queda"):
+
+| O que se vê | O que parece | O que É |
+|---|---|---|
+| `tailscale status` → `offline, last seen 23h ago, **rx 0**` | máquina morta | rede morta, **máquina viva** |
+| `ping 192.168.0.50` → sem resposta | máquina desligada | idem |
+| **ausente do `arp -a`** (camada 2!) | desligada/sem cabo | cabo ruim = igual a sem cabo |
+| `mcp.oimpresso.com` + `vault.oimpresso.com` → timeout | stack caiu | só o transporte caiu |
+
+**O teste que MATA a dúvida em 1 comando** (assim que houver qualquer janela de acesso):
+
+```bash
+tailscale ssh root@ct100-mcp 'journalctl --list-boots | tail -3'
+```
+
+Se o boot anterior **terminou só quando você reiniciou** (e não 23h atrás), a máquina **esteve ligada o tempo todo** → **o problema foi REDE, não host**. No incidente 2026-07-16 o boot `-1` ia de `2026-06-22 13:53` até `2026-07-16 15:57` (o reboot do [W]) — 24 dias de uptime durante a "queda". Confirmação por descarte no mesmo comando: `free -h` (27Gi livres) + `dmesg | grep -i oom` (vazio) ⇒ não foi recurso.
+
+**Assinatura do cabo ruim** (≠ host desligado):
+- **Intermitência**: conecta, responde alguns segundos, cai com `Connection closed by UNKNOWN port 65535` / `502 Bad Gateway`.
+- **Perde a rota direta**: alterna `direct 192.168.0.50:41641` → `relay "sao"`.
+- `rx 0` com `tx` subindo = seu lado fala, o outro não volta (link físico morto). Já `rx > 0` + queda = link **intermitente** (cabo ruim), não ausente.
+- **Nós vizinhos caem juntos** (`pve-empresa`, `recorder`) — se o cabo é do host/switch, leva todos.
+
+**Ordem de diagnóstico (barato → caro):**
+1. **Cabo/porta do switch** — trocar o cabo é o fix de 30s (hardware conhecido como ruim).
+2. `journalctl --list-boots` — separa "rede caiu" de "host caiu".
+3. Só então: energia · disco · OOM · software de rede (Tor/VPN/proxy mexem em rota+iptables e isolam a máquina igualzinho).
+
+**⛔ Não repita meu erro (Claude, 2026-07-16):** conclui *"host desligado ou desconectado"* a partir de ping+ARP negativos. A metade "desligado" estava **errada** — e o `--list-boots` provava em 1 comando. **Ausência de rede não distingue máquina morta de cabo morto**; o log de boot distingue.
+
+### Achado lateral do mesmo incidente: disco em 87%
+
+`/dev/mapper/pve-vm--100--disk--0` → **81G de 99G (87%)**. Não causou a queda (é rede), mas está apertado: 13G livres num host que roda Langfuse + Postgres + MinIO + staging + Jaeger. **Vale um `docker system prune` + rotação de log/trace antes que vire incidente de verdade** (aí sim derruba, e por causa real).
 
 ---
 
