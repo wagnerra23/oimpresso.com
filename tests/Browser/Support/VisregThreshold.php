@@ -14,7 +14,7 @@ use ArrayObject;
  *
  *   ratio <  τ_baixo → AUTO-APROVA (match — não falha)
  *   ratio >  τ_alto  → AUTO-FALHA  (regressão clara)
- *   τ_baixo..τ_alto  → ZONA CINZA  (não falha; coleta + diff-view + step summary)
+ *   τ_baixo..τ_alto  → ZONA CINZA  (coleta + bloqueia até label de aprovação [W])
  *
  * É o "Accept" do Chromatic sem dashboard: o [W] só olha a zona cinza, não 24
  * screenshots/tela. Threshold configurável (env, default 0.001/0.02) pro [W] calibrar.
@@ -205,7 +205,7 @@ final class VisregThreshold
             return;
         }
 
-        // ZONA CINZA (τ_baixo..τ_alto) → NÃO falha; coleta + diff-view pro [W] revisar.
+        // ZONA CINZA (τ_baixo..τ_alto) → coleta + diff-view pro [W] revisar.
         $diffView = self::writeDiffView($screenName, $baselineBlob, $actualBlob, $diffBlob);
         $grayZone->append([
             'screen' => $screenName,
@@ -213,7 +213,7 @@ final class VisregThreshold
             'diffView' => $diffView,
         ]);
 
-        // Assertion verde — a zona cinza por design NÃO falha o teste (é o "Accept").
+        // A comparação individual conclui; o afterAll bloqueia a suíte sem aprovação [W].
         test()->expect($ratio)
             ->toBeGreaterThanOrEqual($tauLow)
             ->toBeLessThanOrEqual($tauHigh, "ZONA CINZA {$pct}% (τ {$lowPct}%..{$highPct}%) — [W] revisa");
@@ -438,9 +438,6 @@ final class VisregThreshold
     public static function writeGrayZoneSummary(array $items): void
     {
         $summaryPath = getenv('GITHUB_STEP_SUMMARY');
-        if ($summaryPath === false || $summaryPath === '') {
-            return; // fora do CI (local/CT 100) — nada a escrever.
-        }
 
         $tauLow = number_format(self::tauLow() * 100, 4);
         $tauHigh = number_format(self::tauHigh() * 100, 4);
@@ -449,7 +446,7 @@ final class VisregThreshold
         $lines[] = '## 🟡 Pixel-diff — Zona Cinza (double-threshold · L7)';
         $lines[] = '';
         $lines[] = "Bandas: **auto-aprova** `< {$tauLow}%` · **auto-falha** `> {$tauHigh}%` · "
-            . '**zona cinza** = entre as duas (NÃO falha — só [W] revisa).';
+            . '**zona cinza** = entre as duas (bloqueia até aprovação [W]).';
         $lines[] = '';
 
         if ($items === []) {
@@ -472,7 +469,23 @@ final class VisregThreshold
         }
 
         $lines[] = '';
-        @file_put_contents($summaryPath, implode("\n", $lines) . "\n", FILE_APPEND);
+        if ($summaryPath !== false && $summaryPath !== '') {
+            @file_put_contents($summaryPath, implode("\n", $lines) . "\n", FILE_APPEND);
+        }
+
+        if (self::grayZoneRequiresApproval($items)) {
+            throw new \RuntimeException(
+                'Zona cinza visual pendente: revise o artifact e aplique o label visreg-gray-approved.'
+            );
+        }
+    }
+
+    /** @param array<int, mixed> $items */
+    public static function grayZoneRequiresApproval(array $items, ?string $approval = null): bool
+    {
+        $approval ??= (string) (getenv('VISREG_GRAY_APPROVED') ?: '0');
+
+        return $items !== [] && $approval !== '1';
     }
 
     /**
