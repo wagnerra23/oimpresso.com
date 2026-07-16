@@ -24,7 +24,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # modo update (dispatch) pusha branch de snapshots; PRs continuam só lendo
+  # O modo update autentica push/PR exclusivamente com COWORK_BOT_PAT. O GITHUB_TOKEN
+  # do job não precisa escrever no repositório em nenhum evento.
+  contents: read
   pull-requests: write
 
 concurrency:
@@ -33,7 +35,7 @@ concurrency:
 
 jobs:
   visual-regression:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     services:
@@ -129,7 +131,7 @@ jobs:
         if: steps.mode.outputs.ui == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 22.17.0
 
       - name: Cache Composer
         if: steps.mode.outputs.ui == 'true'
@@ -144,7 +146,7 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          key: ubuntu-24.04-${{ runner.arch }}-playwright-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
         if: steps.mode.outputs.ui == 'true'
@@ -157,16 +159,13 @@ jobs:
         if: steps.mode.outputs.ui == 'true'
         run: npm ci
 
-      - name: Install Playwright npm client
+      - name: Verify Playwright npm client from lockfile
         if: steps.mode.outputs.ui == 'true'
-        # `pestphp/pest-plugin-browser ^4.0` (composer.json) spawneia o cliente
-        # JS `playwright` via stdio. `playwright` NÃO está em package.json
-        # devDependencies (ainda), então `npm ci` não traz `node_modules/playwright/`.
-        # Sem este step, o cache de `~/.cache/ms-playwright/` (binários dos browsers)
-        # acerta mas o cliente JS está ausente → `PlaywrightNotInstalledException`.
-        # `--no-save` evita drift no package.json/lock — declarar como devDep
-        # propriamente fica pra PR follow-up.
-        run: npm install playwright --no-save
+        # @playwright/test é devDependency e o lock materializa `playwright` na raiz.
+        # Proíbe `npm install --no-save`, que consultava o registry e podia trocar a
+        # versão depois do npm ci sem alterar o diff revisado.
+        run: |
+          node -e "const fs=require('fs'); const lock=require('./package-lock.json'); const expected=lock.packages['node_modules/playwright']?.version; const actual=JSON.parse(fs.readFileSync('./node_modules/playwright/package.json','utf8')).version; if (!expected || actual !== expected) throw new Error('Playwright fora do lock: '+actual+' != '+expected); console.log('Playwright lockado:', actual)"
 
       - name: Install Playwright browsers
         if: steps.mode.outputs.ui == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
@@ -517,7 +516,7 @@ jobs:
       #     Promover = REMOVER o `continue-on-error: true` deste step (sem clique de branch
       #     protection: o check `visual-regression` já é required — idêntico à nota do pixel-diff).
 
-      - name: Instalar Lighthouse CI (L5 — pin compatível com Node lts/* do runner)
+      - name: Instalar Lighthouse CI (L5 — pin compatível com Node 22.17.0)
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         # continue-on-error PERMANENTE (≠ lever de promoção): instalar o LHCI é INFRA do gate
         # ADVISORY — uma falha transitória de npm NÃO pode reprovar o job `visual-regression`
@@ -525,7 +524,7 @@ jobs:
         # NÃO deste. Sem o LHCI, o step `lhci` falha e é engolido → nenhuma medição, sem dano.
         continue-on-error: true
         # @lhci/cli@0.15.1 empacota lighthouse@12.6.1 (engine node >=18.20) → compatível com
-        # `node-version: lts/*` (Node 22/24). Pin explícito (NÃO `@latest`) pra build determinístico.
+        # Node 22.17.0 fixado no job. Pin explícito (NÃO `@latest`) pra build determinístico.
         # Chrome: o runner ubuntu-latest já traz google-chrome-stable → chrome-launcher acha sozinho.
         run: npm install -g @lhci/cli@0.15.1
 
