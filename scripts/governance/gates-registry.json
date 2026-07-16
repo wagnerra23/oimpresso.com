@@ -497,6 +497,12 @@
       "terminal": "advisory",
       "promote_by": "2026-07-26",
       "anchor": "Wagner 2026-07-11/12 (dor textual): 'cada customização não é pega como alteração da máquina — parece que não sabe que alterou.' Custo provado: desastre do Financeiro (PRs #1085→#1091→#1092 — cores erradas, abas faltando, textos colados) — telas quebradas por cherry-pick sem declaração. As máquinas existentes respondem 'o QUE mudou' (design-spec ADR 0255) / 'está bonito' (design-diff ADR 0299), NENHUMA respondia 'foi AUTORIZADA?'. Interseção vazia (mapa como-integrar 2026-07-11). Advisory por ADR 0314 (autorização de UI é quality, não Tier-0 dinheiro/PII/multi-tenant/fiscal); promote_by força decisão de promoção a --strict em 14d. Reusa fmScalar (reconcile-triplet:68) + forma diff-aware (design-return-gate.yml) + SYNC_LOG (loop Cowork↔Code) — zero vocabulário novo. Norma defendida: RESPEITAR-PROTOTIPO.md."
+    },
+    "casos-results-publish.yml": {
+      "nome": "Casos results publish — colhe o JUnit das lanes (que já emitem --log-junit) e aterrissa o veredito por-UC em scripts/casos-test-results.json, fonte do G-7 do casos-gate; auto-PR + auto-merge (main protegido = GH013)",
+      "classe": "automacao",
+      "terminal": "cron",
+      "anchor": "ADR 0264 (G-7: Status do UC vem do veredito REAL do teste) · custo medido 2026-07-16: manifesto alimentado À MÃO fazia exec_backed_pct medir CADÊNCIA DE BOOKKEEPING, não qualidade — UC-F04/UC-F05 com Pest verde na lane required financeiro-pest valiam 0, e UC-S02 (vetor da venda inflada ×100k, fix #2279) idem; colheita real dos 7 JUnits: 15 → 25 UCs (10% → 17%)"
     }
   }
 }
