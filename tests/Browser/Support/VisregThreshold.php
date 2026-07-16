@@ -102,6 +102,33 @@ final class VisregThreshold
         $tauHigh = self::tauHigh();
 
         if (self::isUpdatingSnapshots()) {
+            if ($baselineFile !== null) {
+                $actualFilename = self::actualFilename($screenName);
+                $actualPath = self::screenshotPath($actualFilename);
+                $baselinePath = self::baselinePath($baselineSuite, $baselineFile);
+                $page->screenshot(false, $actualFilename);
+                $actualBlob = @file_get_contents($actualPath);
+
+                if ($baselinePath === null || $actualBlob === false) {
+                    test()->fail("VisregThreshold [{$screenName}]: não foi possível materializar a baseline explícita.");
+
+                    return;
+                }
+
+                if (! is_dir(dirname($baselinePath))) {
+                    @mkdir(dirname($baselinePath), 0755, true);
+                }
+                if (@file_put_contents($baselinePath, base64_encode($actualBlob)) === false) {
+                    test()->fail("VisregThreshold [{$screenName}]: falha ao gravar {$baselinePath}.");
+
+                    return;
+                }
+
+                test()->expect(is_file($baselinePath))->toBeTrue('update-snapshots: baseline explícita regenerada');
+
+                return;
+            }
+
             $page->assertScreenshotMatches(fullPage: false);
             test()->expect(true)->toBeTrue('update-snapshots: baseline regenerada sem comparar contra a anterior');
 
@@ -457,6 +484,24 @@ final class VisregThreshold
      */
     private static function readBaseline(string $baselineSuite, ?string $baselineFile = null): ?string
     {
+        $file = self::baselinePath($baselineSuite, $baselineFile);
+        if ($file === null || ! is_file($file)) {
+            return null;
+        }
+
+        $contents = @file_get_contents($file);
+        if ($contents === false) {
+            return null;
+        }
+
+        // .snap guarda o PNG em base64 (magic bytes iVBORw0KGgo = base64 de \x89PNG).
+        $decoded = base64_decode(trim($contents), true);
+
+        return $decoded !== false ? $decoded : $contents;
+    }
+
+    private static function baselinePath(string $baselineSuite, ?string $baselineFile = null): ?string
+    {
         // Nome da suíte vem de código, mas ainda assim só aceita identificador PHP para
         // não transformar um helper de teste em leitor arbitrário de arquivos.
         if (! preg_match('/^[A-Za-z0-9_]+$/', $baselineSuite)) {
@@ -471,21 +516,8 @@ final class VisregThreshold
         }
 
         $dir = base_path('tests/.pest/snapshots/Browser/CoreScreens/' . $baselineSuite);
-        $file = $dir . '/' . ($baselineFile ?? self::snapshotDescription() . '.snap');
 
-        if (! is_file($file)) {
-            return null;
-        }
-
-        $contents = @file_get_contents($file);
-        if ($contents === false) {
-            return null;
-        }
-
-        // .snap guarda o PNG em base64 (magic bytes iVBORw0KGgo = base64 de \x89PNG).
-        $decoded = base64_decode(trim($contents), true);
-
-        return $decoded !== false ? $decoded : $contents;
+        return $dir . '/' . ($baselineFile ?? self::snapshotDescription() . '.snap');
     }
 
     /**
