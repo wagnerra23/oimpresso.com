@@ -94,7 +94,7 @@ afterAll(function () use ($grayZone) {
     \Tests\Browser\Support\VisregThreshold::writeGrayZoneSummary($grayZone->getArrayCopy());
 });
 
-$manifestPath = base_path('tests/Browser/visreg-screens.json');
+$manifestPath = dirname(__DIR__) . '/visreg-screens.json';
 $screens = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
 $scope = getenv('VISREG_SCOPE') ?: 'global';
 $requested = json_decode(getenv('VISREG_SCREENS') ?: '[]', true, 512, JSON_THROW_ON_ERROR);
