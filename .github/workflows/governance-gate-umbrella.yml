@@ -4,9 +4,9 @@ name: Governance Gate (umbrella)
 # Roda em TODO PR pro main (SEM path-filter) → sempre reporta → pode ser marcado
 # `required` no ruleset sem travar PR não-relacionado (resolve o deadlock de path-filter).
 #
-# FASE: nasce ADVISORY (roda + mostra verde/vermelho, NÃO bloqueia até ser adicionado
-# aos required-checks do ruleset). Flip pra enforce = passo deliberado após ~2 semanas
-# limpo (ver memory: decisao-pendente-enforcement-gates). Break-glass = ruleset bypass-actor
+# FASE: nasceu advisory e o flip JÁ OCORREU — o context "Governance Gate (índice +
+# memory-health + meta-teste)" está nos required do ruleset (fonte: governance/required-checks-baseline.json).
+# Break-glass = ruleset bypass-actor
 # com audit log (mantém escape de emergência, mas registrado) — não enforce_admins binário.
 #
 # Agrega: índice de ADR (--check + supersede-integrity) · memory-health (enforce) ·
@@ -83,9 +83,9 @@ jobs:
 
   # Segredo NOVO em QUALQUER arquivo do diff (API key, token, senha) — fecha o gap
   # entre o memory-health (só memory/) e o secrets:audit (só scheduled, não barra PR).
-  # Job SEPARADO de propósito: check context próprio ("Secret scan ...") nasce
-  # ADVISORY (método faseado ADR 0271 — promover a required via gh api após ~2
-  # semanas sem falso-positivo). Always-run sem paths = required-ready desde já.
+  # Job SEPARADO de propósito: check context próprio ("Secret scan (gitleaks · só
+  # linhas novas do PR)") — nasceu advisory pelo método faseado (ADR 0271) e o flip
+  # JÁ OCORREU (fonte: governance/required-checks-baseline.json). Always-run sem paths.
   # gitleaks-action escaneia só os COMMITS do PR (linhas adicionadas) — segredos
   # históricos já catalogados (incidente memory/claude) NÃO flagam a menos que o PR
   # os toque. Falso-positivo (fixture fake etc) → allowlist em .gitleaks.toml na raiz.

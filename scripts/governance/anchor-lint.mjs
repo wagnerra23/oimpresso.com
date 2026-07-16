@@ -700,7 +700,11 @@ console.log(`  Estados por US: sem_campo ${byState.sem_campo} · placeholder ${b
 console.log(`  Testes-fantasma (dead_tests): ${deadTestsTotal}`);
 console.log(`  Cobertura fora de lane (advisory · item b): ${reqSemLaneTotal} US com teste-que-cobre fora das lanes de JUnit (verde impossível até entrar numa lane)`);
 console.log(`  Testado sem covers (teste existe mas não declara @covers-us · advisory): ${testadoSemCoversTotal}`);
-console.log(`  Gate de entrada (required · job 'anchor entry/covers gate'): ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre${BASELINE ? ` (ATIVOS, pós-baseline)` : ''}`);
+// SEM adjetivo de enforcement (higiene 2026-07-16): o lint reporta o NÚMERO; se isso bloqueia
+// merge é da branch protection (camada de cima), não do script. Label que não afirma enforcement
+// não pode afirmar enforcement FALSO — foi assim que "(advisory)" apodreceu por 22 dias e enganou
+// um verificador. Dono de "o que é required": governance/required-checks-baseline.json.
+console.log(`  Gate de entrada: ${reqSemAceiteTotal} US implementada SEM aceite/DoD · ${reqSemTesteTotal} US implementada SEM teste que a cobre${BASELINE ? ` (ATIVOS, pós-baseline)` : ''}`);
 if (BASELINE) console.log(`  Grandfather (${BASELINE_PATH}): ${grandfatheredAceite} aceite + ${grandfatheredTeste} teste + ${grandfatheredCovers} covers isentos (no-new-lie · ratchet só-desce · ADR 0275)`);
 console.log(`  Gate verde (advisory): ${JUNIT ? `${reqTesteVermelhoTotal} US implementada com teste-que-cobre NÃO-verde no JUnit (verde=passed>0 & fail=0; skipped/ausente não contam · skipped != passed)` : `behavior_unknown — ${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'} (nunca avermelha)`}`);
 console.log(`  Servido (advisory runtime): ${HITS ? `${servidoTotal} US com hit real na janela · ${naoServidoTotal} wired porém 0 hits (ledger ${report._meta.servido_ledger})` : 'sem_ledger — governance/route-hits.json ausente/vazio (coleta ROUTE_HITS_ENABLED ainda OFF?); nada marcado'}`);
