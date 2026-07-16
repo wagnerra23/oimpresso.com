@@ -34,4 +34,6 @@ jobs:
           node-version: lts/*
 
       - name: Catraca de cobertura (telas cobertas só sobem)
-        run: node scripts/qa/screen-coverage-map.mjs --check
+        run: |
+          node scripts/qa/screen-coverage-map.mjs --selftest
+          node scripts/qa/screen-coverage-map.mjs --check
