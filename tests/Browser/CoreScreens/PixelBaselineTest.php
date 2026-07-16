@@ -51,8 +51,9 @@ declare(strict_types=1);
  * decisão de promoção do [W], NÃO mexida aqui). L1 (remover o continue-on-error) vem
  * DEPOIS de 2 runs verdes + aprovação [W].
  *
- * Telas núcleo-6 (mandato ONDAS-QUALIDADE Q4): Financeiro/Unificado · Compras ·
- * Clientes · Oficina/OS · Sells/Index · Sells/Create.
+ * O contrato executável (source Inertia → rota → âncora → baseline) vive em
+ * tests/Browser/visreg-screens.json. Em diff targeted, VISREG_SCREENS seleciona
+ * exatamente as telas afetadas; em diff global, a suíte inteira é executada.
  *
  * ⚠️ HONESTIDADE (ADR 0108 + hook block-test-fora-ct100): NÃO rodado local — Pest
  * Browser só roda no CI (visual-regression.yml, chromium garantido) ou no CT 100.
@@ -93,21 +94,36 @@ afterAll(function () use ($grayZone) {
     \Tests\Browser\Support\VisregThreshold::writeGrayZoneSummary($grayZone->getArrayCopy());
 });
 
-/**
- * Tela => [rota, âncora que prova que montou ANTES do screenshot (sem ela o snapshot
- * congelaria um loading/skeleton — falso baseline)].
- */
-$screens = [
-    'Financeiro/Unificado' => ['/financeiro/unificado',        'Financeiro'],
-    'Compras'              => ['/compras',                     'Compras'],
-    'Clientes'             => ['/cliente',                     'Clientes'],
-    'Oficina/OS'           => ['/oficina-auto/ordens-servico', 'Oficina Auto'],
-    'Sells/Index'          => ['/sells',                       'Vendas'],
-    'Sells/Create'         => ['/sells/create',                'Adicionar venda'],
-];
+$manifestPath = base_path('tests/Browser/visreg-screens.json');
+$screens = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+$scope = getenv('VISREG_SCOPE') ?: 'global';
+$requested = json_decode(getenv('VISREG_SCREENS') ?: '[]', true, 512, JSON_THROW_ON_ERROR);
 
-foreach ($screens as $nome => [$rota, $ancora]) {
-    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $rota, $ancora, $grayZone) {
+if ($scope === 'targeted') {
+    $screens = array_values(array_filter(
+        $screens,
+        static fn (array $screen): bool => in_array($screen['source'] ?? '', $requested, true),
+    ));
+    $resolved = array_column($screens, 'source');
+    $missing = array_values(array_diff($requested, $resolved));
+    if ($missing !== []) {
+        throw new RuntimeException('Telas sem contrato visreg: ' . implode(', ', $missing));
+    }
+}
+
+foreach ($screens as $screen) {
+    foreach (['screen', 'source', 'route', 'anchor', 'baseline'] as $required) {
+        if (! isset($screen[$required]) || ! is_string($screen[$required]) || $screen[$required] === '') {
+            throw new RuntimeException("Contrato visreg inválido: campo {$required} ausente.");
+        }
+    }
+
+    $nome = $screen['screen'];
+    $rota = $screen['route'];
+    $ancora = $screen['anchor'];
+    $baseline = $screen['baseline'];
+
+    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $rota, $ancora, $baseline, $grayZone) {
         $business = Business::first();
         if (! $business) {
             test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
@@ -154,6 +170,7 @@ foreach ($screens as $nome => [$rota, $ancora]) {
             page: $page,
             screenName: $nome,
             grayZone: $grayZone,
+            baselineFile: $baseline,
         );
     });
 }
