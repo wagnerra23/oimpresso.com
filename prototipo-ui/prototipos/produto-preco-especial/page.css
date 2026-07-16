@@ -303,6 +303,62 @@
   font-family: inherit;
 }
 
+/* ---- faixas de quantidade (linha esparsa DENTRO da tabela) ---- */
+.pe-faixas { margin-top: 18px; }
+.pe-h3 { font-size: 13px; font-weight: 600; margin: 0; }
+.pe-faixa-grid { border-collapse: collapse; width: 100%; font-size: 13px; }
+.pe-faixa-grid td {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--border-2);
+  vertical-align: middle;
+}
+.pe-faixa-grid tr.pe-faixa-aviso td { border-bottom: 0; padding-top: 0; }
+.pe-faixa-lbl { color: var(--text-mute); font-size: 12px; }
+.pe-faixa-qtd, .pe-faixa-val {
+  height: 30px;
+  padding: 0 8px;
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  width: 90px;
+}
+/* preço abaixo do custo — o ÚNICO aviso da tela */
+.pe-faixa-val.is-perda {
+  border-color: var(--danger-fg);
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+  font-weight: 600;
+}
+.pe-faixa-acao { text-align: right; }
+.pe-faixa-del {
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 6px;
+  opacity: 0.55;
+}
+.pe-faixa-del:hover { opacity: 1; }
+.pe-alerta {
+  font-size: 12px;
+  color: var(--danger-fg);
+  background: var(--danger-bg);
+  border-left: 3px solid var(--danger-fg);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 6px 10px;
+  margin: 2px 0 6px;
+}
+/* célula com preço abaixo do custo (base, tabela ou exceção) */
+.pe-cell.is-perda input {
+  background: var(--danger-bg);
+  color: var(--danger-fg);
+}
+
 /* ---- preview de geração (o que ninguém tem) ---- */
 .pe-preview {
   border: 1px solid var(--accent);

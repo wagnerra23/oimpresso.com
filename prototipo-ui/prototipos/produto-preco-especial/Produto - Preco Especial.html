@@ -143,6 +143,19 @@
 
         <div class="pe-matrix-wrap" id="matrix-wrap"></div>
 
+        <!-- FAIXAS: só existem DENTRO de uma tabela (Shopify: priceList!). Nunca no Base. -->
+        <div class="pe-faixas" id="faixas-box" hidden>
+          <div class="pe-section-head">
+            <div>
+              <h3 class="pe-h3">Faixas de quantidade</h3>
+              <p class="pe-hint" id="faixas-hint"></p>
+            </div>
+            <button class="pe-link" id="faixa-add">+ Adicionar faixa</button>
+          </div>
+          <table class="pe-faixa-grid" id="faixa-grid"></table>
+          <p class="pe-hint" id="faixas-vazio" hidden>Sem faixas — o preço da tabela vale para qualquer quantidade.</p>
+        </div>
+
         <div class="pe-legend">
           <span><i class="pe-swatch inherit"></i> herdado (regra ou preço base)</span>
           <span><i class="pe-swatch set"></i> preço definido nesta tabela</span>
@@ -218,6 +231,26 @@
   const DEFAULT_BASE = 100;
   const bases = { 'Azul|P': 100, 'Azul|M': 100, 'Azul|G': 120, 'Vermelho|P': 100, 'Vermelho|M': 100 };
   const baseDe = (k) => (bases[k] !== undefined ? bases[k] : DEFAULT_BASE);
+
+  // CUSTO por variação — `variations.default_purchase_price` (existe no schema desde 2017).
+  // Decisão [F] 2026-07-16: o "penhasco" do volume (9un=90 · 10un=80) NÃO se avisa — é
+  // comportamento esperado do atacado, e é a alavanca comercial da faixa. O que se avisa é
+  // **preço abaixo do custo**: aí é prejuízo, não estratégia.
+  const DEFAULT_CUSTO = 60;
+  const custos = { 'Azul|P': 60, 'Azul|M': 60, 'Azul|G': 75, 'Vermelho|P': 60, 'Vermelho|M': 60 };
+  const custoDe = (k) => (custos[k] !== undefined ? custos[k] : DEFAULT_CUSTO);
+
+  // FAIXA DE QUANTIDADE — linha esparsa DENTRO da tabela (nunca fora; nunca no Base).
+  // Pesquisa 2026-07-16: `QuantityPriceBreak.priceList: PriceList!` (Shopify) é non-null —
+  // não existe faixa fora de uma tabela. Só PISO, sem teto (VTEX não tem maxQuantity):
+  // a faixa seguinte fecha a anterior → sobreposição impossível por construção.
+  // `variacao: null` = vale pra TODAS (Odoo `applied_on`) → 9 linhas cobrem 180 células.
+  // Cálculo: VOLUME/bloco — atingiu a faixa, TUDO reprecifica (Shopify/BigCommerce/VTEX/TOTVS).
+  const faixas = {
+    varejo:  [],
+    atacado: [{ qtd: 10, valor: 80, variacao: null }, { qtd: 50, valor: 55, variacao: null }],
+    revenda: [],
+  };
 
   // ---- listas: a REGRA (hoje SEM coluna no banco — US-PROD-022) ----
   // As 3 tabelas nascem em modos diferentes DE PROPÓSITO — os dois modos são reais:
@@ -312,10 +345,19 @@
       return '<td class="pe-cell is-off" data-cell="' + k + '" title="Combinação desmarcada — clique pra reativar">'
            + '<input type="text" tabindex="-1" /><span class="pe-off-tag">não existe</span></td>';
     }
+    // ⚠️ o ÚNICO aviso de preço da tela (decisão [F] 2026-07-16): abaixo do CUSTO = prejuízo.
+    // O penhasco do volume (9un=90 · 10un=80) NÃO se avisa — é o ponto do atacado.
+    const perda = (valor) => valor < custoDe(k);
+    const tituloPerda = 'Abaixo do custo (' + brl(custoDe(k)) + ') — venda com prejuízo';
+    const td = (classes, valor, dentro) =>
+      '<td class="pe-cell ' + classes + (perda(valor) ? ' is-perda' : '') + '"'
+      + (perda(valor) ? ' title="' + tituloPerda + '"' : '')
+      + ' data-cell="' + k + '">' + dentro + '</td>';
+
     // BASE: dado real — sempre próprio, nunca herdado. Não existe exceção aqui.
     if (ehBase()) {
-      return '<td class="pe-cell is-base-cell" data-cell="' + k + '">'
-           + '<input type="text" inputmode="decimal" value="' + brl(baseDe(k)).replace('R$ ', '') + '" /></td>';
+      return td('is-base-cell', baseDe(k),
+        '<input type="text" inputmode="decimal" value="' + brl(baseDe(k)).replace('R$ ', '') + '" />');
     }
     // TABELA — dois modos, e o VISUAL não pode mentir sobre qual é:
     //   • regra %  → célula digitada é EXCEÇÃO (tarja de aviso: fugiu da regra)
@@ -324,7 +366,8 @@
     const ex = excecoes[listaAtiva][k];
     const temValor = ex !== undefined;
     const val = (temValor ? brl(ex) : brl(precoCalculado(k))).replace('R$ ', '');
-    const classe = temValor ? (ehManual() ? ' is-set' : ' is-override') : '';
+    const efetivo = temValor ? ex : precoCalculado(k);
+    const classe = temValor ? (ehManual() ? 'is-set' : 'is-override') : '';
     // o "de onde desviou" só faz sentido quando existe regra pra desviar
     const sub = (temValor && !ehManual())
       ? '<span class="pe-cell-sub">calc. ' + brl(precoCalculado(k)).replace('R$ ', '') + '</span>'
@@ -332,8 +375,8 @@
     const limpar = temValor
       ? '<button class="pe-revert" title="' + (ehManual() ? 'Limpar — volta ao preço base' : 'Voltar ao calculado') + '">↺</button>'
       : '';
-    return '<td class="pe-cell' + classe + '" data-cell="' + k + '">'
-         + '<input type="text" inputmode="decimal" value="' + val + '" />' + sub + limpar + '</td>';
+    return td(classe, efetivo,
+      '<input type="text" inputmode="decimal" value="' + val + '" />' + sub + limpar);
   }
 
   function renderMatriz() {
@@ -393,6 +436,78 @@
       btn.addEventListener('click', () => {
         delete excecoes[listaAtiva][btn.closest('.pe-cell').dataset.cell];
         renderMatriz(); renderBadges();
+      });
+    });
+  }
+
+  // ---- faixas de quantidade ----
+  // Quais células a faixa cobre (variacao null = todas as ativas). Serve pro check de custo.
+  function celulasCobertas() {
+    const g = formaDaGrade();
+    const ks = [];
+    g.linhas.forEach((l) => g.cols.forEach((c) => {
+      const k = chave(l, c);
+      if (!celulasOff.has(k)) ks.push(k);
+    }));
+    return ks;
+  }
+
+  // ⚠️ o ÚNICO aviso da tela (decisão [F]): preço abaixo do CUSTO = prejuízo.
+  // O penhasco do volume (9un=90 · 10un=80) NÃO se avisa — é o ponto do atacado.
+  function abaixoDoCusto(valor) {
+    return celulasCobertas().filter((k) => valor < custoDe(k));
+  }
+
+  function renderFaixas() {
+    const box = document.getElementById('faixas-box');
+    box.hidden = ehBase();                    // faixa vive DENTRO da tabela, nunca no Base
+    if (box.hidden) return;
+
+    const lista = faixas[listaAtiva];
+    const nCel = celulasCobertas().length;
+    document.getElementById('faixas-hint').textContent =
+      'A partir de X unidades, o preço muda — e vale para todas as ' + nCel +
+      (nCel === 1 ? ' variação' : ' variações') + ' deste produto. Ao atingir a faixa, o pedido INTEIRO reprecifica.';
+    document.getElementById('faixas-vazio').hidden = lista.length > 0;
+
+    const linhas = lista
+      .slice()
+      .sort((a, b) => a.qtd - b.qtd)
+      .map((f, i) => {
+        const perda = abaixoDoCusto(f.valor);
+        const aviso = perda.length
+          ? '<div class="pe-alerta">⚠️ <b>' + brl(f.valor) + '</b> está abaixo do custo de '
+            + perda.map((k) => k.replace('|', '-') + ' (' + brl(custoDe(k)) + ')').join(' · ')
+            + ' — venda com prejuízo.</div>'
+          : '';
+        return '<tr data-faixa="' + i + '">'
+          + '<td><span class="pe-faixa-lbl">a partir de</span> <input type="text" class="pe-faixa-qtd" value="' + f.qtd + '" inputmode="numeric" /> <span class="pe-faixa-lbl">un</span></td>'
+          + '<td><span class="pe-faixa-lbl">R$</span> <input type="text" class="pe-faixa-val' + (perda.length ? ' is-perda' : '') + '" value="' + brl(f.valor).replace('R$ ', '') + '" inputmode="decimal" /></td>'
+          + '<td class="pe-faixa-acao"><button class="pe-faixa-del" title="Remover faixa">🗑</button></td>'
+          + '</tr>'
+          + (aviso ? '<tr class="pe-faixa-aviso"><td colspan="3">' + aviso + '</td></tr>' : '');
+      }).join('');
+
+    document.getElementById('faixa-grid').innerHTML = linhas;
+    ligarFaixas();
+  }
+
+  function ligarFaixas() {
+    const lista = faixas[listaAtiva];
+    const ordenada = lista.slice().sort((a, b) => a.qtd - b.qtd);
+    document.querySelectorAll('#faixa-grid tr[data-faixa]').forEach((tr) => {
+      const f = ordenada[Number(tr.dataset.faixa)];
+      tr.querySelector('.pe-faixa-qtd').addEventListener('change', (e) => {
+        f.qtd = Math.max(1, Math.round(parse(e.target.value)) || 1);
+        renderFaixas();
+      });
+      tr.querySelector('.pe-faixa-val').addEventListener('change', (e) => {
+        f.valor = parse(e.target.value);
+        renderFaixas();
+      });
+      tr.querySelector('.pe-faixa-del').addEventListener('click', () => {
+        faixas[listaAtiva] = lista.filter((x) => x !== f);
+        renderFaixas();
       });
     });
   }
@@ -488,7 +603,15 @@
       : 'Limpar exceções desta tabela';
   }
 
-  function render() { renderRegra(); renderMatriz(); renderBadges(); renderPreview(); }
+  function render() { renderRegra(); renderMatriz(); renderBadges(); renderPreview(); renderFaixas(); }
+
+  document.getElementById('faixa-add').addEventListener('click', () => {
+    const lista = faixas[listaAtiva];
+    const ultima = lista.slice().sort((a, b) => a.qtd - b.qtd).pop();
+    // sugere a próxima faixa: 10× a anterior, ou 10 se é a 1ª. `variacao: null` = todas.
+    lista.push({ qtd: ultima ? ultima.qtd * 5 : 10, valor: ultima ? ultima.valor : baseDe(celulasCobertas()[0] || ''), variacao: null });
+    renderFaixas();
+  });
 
   // ---- eventos ----
   document.querySelectorAll('.pe-axis-tpl').forEach((sel) => {

@@ -10,7 +10,7 @@ parent_module: Produto
 related_adrs: [93, 104, 107, 149, 182]
 related_us: [US-PROD-022, US-PROD-023]
 tier: A
-charter_version: 3.5
+charter_version: 3.6
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
@@ -171,6 +171,89 @@ ordem é real e é decisão [W]:** menos linhas gravadas = mais retorno `''` do
 (`LabelsController:143` · `WoocommerceUtil:341,731` — etiqueta sai sem preço, Woo sincroniza
 vazio). Ver §Pendência de CONTRATO do [`casos.md`](SellingPrices.casos.md).
 
+## Faixa de quantidade (v3.6 — 2026-07-16)
+
+> **A faixa é uma LINHA ESPARSA DENTRO da tabela de preço. Não é 3ª dimensão materializada, não é
+> seção órfã, não sai da aba — e nunca existe no Preço base.** Âncora: pesquisa de mercado
+> 2026-07-16 (11 plataformas + 9 BR, schemas primários — GraphQL/OpenAPI/source, não help center).
+
+**A prova de que a faixa pertence à tabela** é de schema, não de prosa: o `QuantityPriceBreak` do
+Shopify tem `priceList: PriceList!` — **non-null**. Não existe faixa fora de uma lista.
+([GraphQL Admin](https://shopify.dev/docs/api/admin-graphql/latest/objects/QuantityPriceBreak))
+
+**O que mata a explosão.** 20 variantes × 3 tabelas × 3 faixas = **180 células** se materializar.
+O operador autora **9 linhas** (3 tabelas × 3 faixas, `variacao_id = NULL`) e cobre as 180 —
+**20× menos autoria, mesma expressividade**. Ancorado em: Odoo *"If no variants are selected, then
+this price will apply to all variants of the product"*; Shopify *"10 price breaks per product
+**applied to each variant**"*; Tiny/Olist (aplica no pai → edita individualmente depois).
+
+**Formato** (conceito, não código — reusa o `price_type` que já existe):
+
+```
+preco_faixa
+  tabela_preco_id  NOT NULL   ← a faixa PERTENCE à tabela (Shopify: priceList!)
+  produto_id       NOT NULL
+  variacao_id      NULL       ← NULL = todas as variações (Odoo applied_on)
+  qtd_min          NOT NULL   ← só PISO, sem teto
+  price_type       ∈ {fixed, percentage}
+  valor
+UNIQUE (tabela_preco_id, produto_id, variacao_id, qtd_min)
+```
+
+**As 4 decisões, e por quê:**
+
+1. **Só piso, sem teto.** VTEX não tem `maxQuantity` no OpenAPI; Shopify e Odoo idem. A faixa
+   seguinte **fecha a anterior** → **sobreposição e buraco são impossíveis por construção**. Quem
+   usa piso+teto **compra** a obrigação de validar: o BigCommerce validou, o **Medusa não** e tem
+   issue aberta ([#3584](https://github.com/medusajs/medusa/issues/3584)).
+2. **VOLUME (bloco), não graduated** `[V0]`. Atingiu a faixa, **o pedido inteiro reprecifica**:
+   12 un a R$8 = **R$96**, não 9×R$10 + 3×R$8 = R$114. É o que Shopify/BigCommerce(`fixed`)/VTEX/
+   TOTVS fazem e o que o atacadista BR espera; graduated é padrão de metering SaaS. **A diferença é
+   ~33% no mesmo pedido** — cravar isto no ADR e testar.
+3. **SUBSTITUI, NÃO MESCLA** `[V0]`. Se a faixa venceu, ela **é** o preço — a regra % da tabela
+   **não aplica por cima**. Shopify verbatim: *"After you apply volume pricing to a product the
+   price becomes fixed. Any overall adjustment discount set on the catalog won't apply."*
+   BigCommerce: *"If a variant has a Price Record, any existing product-level bulk pricing will not
+   apply in the cart."* É a regra que o Medusa **não escreveu** — e por isso tem bug aberto.
+4. **`variacao_id` nullable no schema, UI de exceção depois.** NULL cobre 100% dos casos conhecidos;
+   faixa **por variação não tem precedente documentado no BR** (seria design original). Nasce no
+   schema pra não exigir migration em tabela de preço (Tier 0) quando alguém pedir.
+
+**Precedência** (adaptada do `_order` do Odoo — a única que existe em **código**, não em prosa:
+`"applied_on, min_quantity desc, categ_id desc, id desc"`), do mais forte ao mais fraco:
+
+```
+1. Faixa + exceção da variação   (tabela × variação × qtd_min)
+2. Faixa do produto              (tabela × NULL × qtd_min)
+3. Preço digitado na tabela      (exceção/manual, sem faixa)
+4. Regra % da tabela             (sobre a base)
+5. default_sell_price da variação (a base)
+```
+Filtra `qtd_min <= quantidade`, ordena por especificidade → maior `qtd_min` → desempate menor preço.
+
+### ⚠️ O penhasco — conhecido, aceito, NÃO avisado
+
+O volume cria **inversão**: com `1+ = R$10` e `10+ = R$8`, comprar **9 un custa R$90** e **10 un
+custa R$80**. Comprar mais paga menos. É **matemático**, não tem como evitar mantendo bloco.
+
+**Decisão [F] 2026-07-16: não se avisa.** É comportamento esperado do atacado — e é a **alavanca
+comercial** da faixa (o vendedor *quer* que o cliente feche 10). Nenhum dos pesquisados avisa.
+
+### ⛔ O ÚNICO aviso da tela: preço abaixo do CUSTO
+
+**Decisão [F] 2026-07-16** — *"Só exiba uma mensagem de aviso caso o preço definido for menor que o
+custo do produto. De resto não precisa exibir nada."*
+
+O custo já existe: **`variations.default_purchase_price`, por variação**. O aviso é **por variação
+afetada**, não em bloco — *"R$ 70,00 está abaixo do custo de Azul-G (R$ 75,00) — venda com
+prejuízo"*. Vale pra **qualquer** preço (base, tabela, exceção, faixa), não só faixa. Avisa,
+**não bloqueia**.
+
+> Isto **fecha** o item *"Piso de venda vs preço de tabela"* que estava no §Backlog desde a v2
+> (*"A tabela pode furar o piso? Sem contrato hoje"*). Agora tem contrato: **pode furar, mas avisa**
+> — e o piso comparado é o **custo**. ⚠️ O `AR-PROD-101` (`R$ Valor mínimo de venda`, piso
+> explícito do legado que **bloqueia** venda) é **outra coisa** e segue sem contrato.
+
 ## ⚠️ Dependência que não existe no banco (bloqueia o item 2)
 
 `selling_price_groups` tem **`name` · `description` · `business_id` · `is_active`** — e **nenhuma
@@ -205,7 +288,9 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
   `% Desconto` sobre o `Valor Original`, gravado por produto×cliente). **Non-Goal declarado**
   (Wagner 2026-07-15): no modelo novo o preço de cliente vem da tabela vinculada ao cadastro do
   cliente. Divergência consciente vs o legado — não é regressão.
-- 🟡 **Faixa de quantidade** (`De`/`Até`/`% Desconto`/`R$ Valor` — `AR-PROD-105..109`) —
+- ✅ **Faixa de quantidade** — **RESOLVIDO na v3.6, virou contrato** (ver §Faixa de quantidade
+  abaixo). Histórico do que era, preservado:
+- ~~🟡 **Faixa de quantidade**~~ (`De`/`Até`/`% Desconto`/`R$ Valor` — `AR-PROD-105..109`) —
   **REABERTO na v3.5**, era Non-Goal ("pertence ao charter da Variação"). 5º corte de [F]:
   *"no modelo de grade não vi as fórmulas de variação por quantidade"*. **Por que reabre:** o
   despacho pro charter da Variação assumia o modelo **do legado** — lá `VARIACAO_TIPO`
@@ -234,8 +319,13 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
 - **O mestre é condicional.** `AR-PROD-097` ("Mantém Margem na importação") decide quem ganha quando
   o custo muda: marcado → o Valor recalcula preservando a margem; desmarcado → o Valor fica.
   Não cravar "markup sempre vence" ignorando o flag.
-- **Piso de venda.** `AR-PROD-101` (`R$ Valor mínimo de venda`) é piso — preço de tabela abaixo dele
-  precisa de decisão explícita (hoje sem contrato; ver Backlog).
+- **Preço abaixo do CUSTO avisa, não bloqueia** `[V0]` (v3.6, decisão [F]). Custo =
+  `variations.default_purchase_price`, **por variação**. Vale pra qualquer preço — base, tabela,
+  exceção ou faixa. O aviso nomeia **quais** variações dão prejuízo, nunca em bloco. É o **único**
+  aviso de preço da tela: o penhasco do volume **não** se avisa (ver §Faixa de quantidade).
+- **Piso de venda `AR-PROD-101`** (`R$ Valor mínimo de venda`) — piso **explícito** do legado que
+  **bloqueia** venda. É **outra coisa** que o aviso de custo acima (aquele avisa; este bloqueia) e
+  **segue sem contrato** — decisão pendente no Backlog.
 
 ## UX Targets
 
@@ -387,6 +477,7 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
 | 2026-05-31 | [DS-upgrade] | Paleta stone→tokens v4; header hand-rolled→tokens (breadcrumb/título/SKU); + dirty-state, Cmd+S, navegação teclado, erros por célula, toast. Contrato backend (group_prices, POST save-selling-prices, price_type) intacto. |
 | 2026-07-15 | [CC] | **v2** — reescrito pro modelo real (Wagner): tabela nasce fora → produto seleciona + precifica → tabela vincula a cliente/tipo de venda; produto nunca vinculado direto ao cliente. Preço Especial produto×cliente (`AR-PROD-111..116`) vira **Non-Goal declarado**. Faixa de quantidade (`AR-PROD-105..109`) movida pro charter da Variação. + §Invariantes de valor (markup mestre, 4 casas, condicional ao `AR-PROD-097`) ancorados em teste. + §Backlog de contrato explicitando os buracos (casos.md ausente, testes tautológicos, cross-tenant prometido e inexistente, `mult` oco). |
+| 2026-07-16 | [F+CC] | **v3.6 — FAIXA DE QUANTIDADE vira contrato** (fecha o 🟡 reaberto na v3.5). Pesquisa de mercado 2026-07-16 (11 plataformas + 9 BR, **schemas primários** — GraphQL/OpenAPI/source, não help center). **Achado central:** quantidade É 3ª dimensão, mas **ninguém materializa** — todos usam **linha esparsa** `(tabela × variante × qtd_min)`. Prova de schema: `QuantityPriceBreak.priceList: PriceList!` **non-null** (Shopify) → a faixa **pertence à tabela**. 180 células viram **9 linhas** autoradas (`variacao_id NULL` = todas — Odoo `applied_on` + cascata Tiny). 4 decisões: **só piso** (VTEX sem `maxQuantity` → overlap impossível por construção; BigCommerce tem teto e teve que validar, Medusa não validou → issue #3584) · **VOLUME/bloco** `[V0]` (~33% de diferença vs graduated) · **SUBSTITUI, NÃO MESCLA** `[V0]` (Shopify: *"the price becomes fixed. Any overall adjustment discount won't apply"*) · **`variacao_id` nullable no schema, UI depois** (sem precedente BR). Precedência adaptada do `_order` do Odoo (única em código, não prosa). **Penhasco** (9un=R$90 · 10un=R$80): conhecido, **aceito, NÃO avisado** — decisão [F]: é a alavanca comercial do atacado. **⛔ ÚNICO aviso da tela: preço < CUSTO** (decisão [F]: *"só exiba aviso caso o preço definido for menor que o custo. De resto não precisa exibir nada"*) — custo já existe (`variations.default_purchase_price`), aviso **por variação afetada**, avisa e não bloqueia. **Isso FECHA o backlog "piso de venda vs preço de tabela"** aberto na v2 (pode furar, mas avisa; o piso comparado é o custo). O `AR-PROD-101` (piso que **bloqueia**) é outra coisa e segue sem contrato. **Achado comercial:** Bling/Tiny/Conta Azul/Microvix = **zero** faixa; Omie = meia-solução em "característica", só no PDV; faixa real só em TOTVS/Sankhya (ERP grande) → **espaço aberto**. |
 | 2026-07-16 | [F+CC] | **v3.5 — remove o delta por eixo + REABRE preço por quantidade.** 5º corte de [F], duas frentes. **(1)** *"se na variação gerada eu consigo alterar o valor, pra quê a função ajuste por tamanho?"* → **REMOVIDO**: era ambíguo (2 caminhos pro mesmo dado), o botão `aplicar` **nunca teve handler** (controle morto que passou 2 rodadas de verificação — eu media cálculo, não se os botões respondem) e **o charter já proibia** (`❌ Bulk apply — Wave 3`; "ajuste por eixo" é bulk com outro nome). Origem do erro: importei o `Value Price Extra` do Odoo sem checar o modelo — lá o preço é **composto** (template+extra), aqui a base é **digitada por célula**; o problema não existia. + 3 anti-padrões (2 caminhos pro mesmo dado · controle sem handler · importar solução de outro modelo). **(2)** *"no modelo de grade não vi as fórmulas de variação por quantidade"* → o Non-Goal "pertence ao charter da Variação" assumia o modelo **do legado** (`VARIACAO_TIPO`: quantidade vs cor/tamanho **excludentes**) — e [F] cravou que o legado não entra. Vira 🟡 **reaberto**, pesquisa de mercado disparada (sem schema hoje; cruza com grade E tabela = 3ª dimensão). |
 | 2026-07-16 | [F+CC] | **v3.4 — a tabela tem DOIS MODOS.** 4º corte de [F]: *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele define o valor do produto dentro da tabela e no protótipo vejo apenas o campo de percentual"*. **Procedente — e o schema JÁ suportava:** `variation_group_prices.price_type ∈ {'fixed','percentage'}` (`fixed` = o valor É o preço), lido por mim no 1º dia e ignorado ao modelar. A pesquisa também já dizia, na linha do **Bling** que eu mesmo citei no charter: *"lista 'Customizada' → o valor do produto será personalizado na lista"*. A v3 afirmava "a lista **é** uma regra" — meia-verdade que forçava inventar regra + marcar cada célula como "exceção". Agora: modo **regra %** (célula digitada = exceção, tarja) OU **preço por produto** (sem %, célula digitada = O preço, neutro; não digitada = base). + 3 anti-padrões (toda tabela é regra · "%" que mente · alarme em dado normal). Revenda nasce manual no pino pra o contraste ser visível. |
 | 2026-07-16 | [F+CC] | **v3.3** — 3º corte de [F]: *"se não existe um modelo de grade escolhido, não vejo a opção de adicionar um valor do produto na tabela de preço… não ter modelo de grade não invalida a possibilidade de existir uma ou mais tabelas de preço"*. **Procedente — e o mais grave dos três: o contrato JÁ dizia isso** (a tabela do 0-A, linha "Só tabela = grade de 1 célula (o `DUMMY`) × as tabelas") **e o protótipo violava**, exigindo os 2 eixos pra desenhar qualquer coisa → sem grade, o produto não tinha onde ser precificado nem na Base nem nas tabelas. Escrever a regra não implementa a regra. + **4 formas** (0 eixos → 1 célula · 1 eixo → **lista**, não matriz · 2 eixos → matriz) + 1 anti-padrão. Sem eixo some só o §preview (não há grade a gerar). Bug lateral achado na verificação: o `\` do header `Cor \ Tamanho` era escape inválido em JS (` \ ` → espaço) — corrigido. |
