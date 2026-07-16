@@ -453,10 +453,14 @@ jobs:
           MODE: ${{ steps.mode.outputs.ui }}
           PIXEL_OUTCOME: ${{ steps.pixel-diff.outcome }}
           UNCOVERED_SCREENS: ${{ steps.impact.outputs.uncovered_screens }}
+          EXPECTED: ${{ steps.pixel-diff.outputs.expected }}
+          EXECUTED: ${{ steps.pixel-diff.outputs.executed }}
+          COMPARED: ${{ steps.pixel-diff.outputs.compared }}
         run: |
           node scripts/governance/ui-impact.mjs --assert-execution \
             --visual-required="$IMPACT" --mode="$MODE" --pixel-outcome="$PIXEL_OUTCOME" \
-            --uncovered-screens="${UNCOVERED_SCREENS:-[]}"
+            --uncovered-screens="${UNCOVERED_SCREENS:-[]}" \
+            --expected="$EXPECTED" --executed="$EXECUTED" --compared="$COMPARED"
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
         if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
