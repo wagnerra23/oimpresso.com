@@ -3,9 +3,9 @@
 // ⚠️ CONVENÇÃO (US-GOV-031) — NUNCA use um UC-id REAL (declarado em qualquer *.casos.md) em
 //    fixture OU comentário deste arquivo. O guard concatena TODO *.spec.ts no testCorpus e
 //    faz `testCorpus.includes(uc)`; um UC-id real citado aqui vira COBERTURA-FANTASMA (o UC
-//    conta como coberto sem teste de verdade). Use ids fictícios UC-ZZx — prefixo "ZZ"+1 letra
-//    (≤3 letras p/ casar UC_RE do coletor `UC-[A-Z]{0,3}\d`) e SEM hífen interno (o head-regex
-//    de G-5/G-7 é `UC-[A-Z]*\d+`, NÃO aceita hífen-antes-do-dígito). Ex.: UC-ZZA01, UC-ZZB02.
+//    conta como coberto sem teste de verdade). Use ids fictícios — prefixo "ZZ"+letra
+//    (UC-ZZA01, UC-ZZB02) ou X2Y (digit-prefix). O regex canônico é a fonte única
+//    scripts/lib/uc-regex.mjs (`UC-(?:[A-Z][A-Z0-9]{0,5})?-?\d{1,3}[a-zA-Z]?`).
 //
 // Regra do MÉTODO ("todo ✅ tem que ter sido visto falhar"): monta um repo-fixture num
 // dir temporário, RODA o script real (node, subprocess) e exige o comportamento —
@@ -126,6 +126,25 @@ describe('casos:check — G-2 rastreabilidade caso↔teste (físico)', () => {
     const out = runExpectFail('');
     expect(out).toMatch(/uc-orphan:resources\/js\/Pages\/H\/Index\.casos\.md#UC-ZZB-02/);
     expect(out).not.toMatch(/UC-ZZA-01/); // coberto → não é órfão (prova que é VISTO)
+  });
+
+  it('REGEX: dígito no PREFIXO (UC-X2Y-01) é ENXERGADO — sem truncar no dedupe', () => {
+    // O regex antigo ([A-Z]{0,6} sem dígito) truncava UC-KBV2-01..09 pro token único
+    // UC-KBV2: os 9 headings viravam 1 declarado (Set) e um teste citando QUALQUER
+    // UC-KBV2-0N "cobria" todos via substring — órfão engolido, guard verde mentiroso.
+    // Visto FALHAR (ADR 0258): com o regex antigo este teste passa batido (UC-X2Y-02
+    // trunca pra UC-X2Y, coberto pelo corpus "UC-X2Y-01"); com o fix, vira órfão.
+    // (ids UC-X2Y fictícios de propósito — ver convenção no topo do arquivo.)
+    write(page('X'), 'export default function X() { return null }');
+    write('resources/js/Pages/X/Index.charter.md', '# c');
+    write('resources/js/Pages/X/Index.casos.md', '## UC-X2Y-01 · x');
+    write('tests/XTest.php', '<?php // UC-X2Y-01'); // cobre UC-X2Y-01 (string-match)
+    run('--write-baseline'); // limpo: UC-X2Y-01 é enxergado (id COMPLETO) e coberto
+    write('resources/js/Pages/X/Index.casos.md', '## UC-X2Y-01 · x\n## UC-X2Y-02 · y');
+    const out = runExpectFail('');
+    expect(out).toMatch(/uc-orphan:resources\/js\/Pages\/X\/Index\.casos\.md#UC-X2Y-02/);
+    expect(out).not.toMatch(/#UC-X2Y-01/); // coberto → não é órfão
+    expect(out).not.toMatch(/#UC-X2Y(?![-0-9A-Za-z])/); // e NUNCA o token truncado (a regressão)
   });
 });
 
