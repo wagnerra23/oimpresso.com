@@ -4,7 +4,7 @@ irmaos: Board.charter.md (lei)
 tecnica: Caso de uso = narrativa do cliente + critério de aceite verificável (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso E material de treino.
 owner: wagner
-last_run: "2026-06-11"
+last_run: "2026-07-16"
 ---
 
 # Casos de Uso & Aceite — Quadro de OS da Oficina
@@ -16,6 +16,13 @@ last_run: "2026-06-11"
 > `scripts/casos-test-results.json`), nunca declarado de cabeça.
 >
 > **Status:** ✅ passa (com prova no manifesto) · 🧪 em teste/prova parcial · ⬜ não verificado · ❌ quebrou (regressão → vira lição).
+>
+> **Revalidado 2026-07-16** (`last_run` bumpado) — a tela migrou pros tokens semânticos do DS
+> (14 `bg-white` → `bg-card` etc, PR #4367): mudança de **cor**, não de comportamento. O G-6/G-7
+> acusou `stale`/`stale-results` corretamente (o `.tsx` ficou mais novo que o teste), então os UCs
+> foram **re-provados**, não re-declarados: o E2E Playwright rodou contra este código no CI
+> (`E2E Playwright · UCs críticos` verde) e o veredito real foi coletado do JUnit pro manifesto
+> — **9/9 UCs do Board `pass`, `ran_at: 2026-07-16`**. Nenhum `last_run` bumpado no escuro.
 
 ---
 
