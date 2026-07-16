@@ -35,6 +35,7 @@ const SCORECARD_DIR = join(ROOT, 'memory', 'governance', 'scorecards', 'screens'
 const BASELINE = join(ROOT, 'memory', 'governance', 'screen-coverage-baseline.json');
 
 const flags = new Set(process.argv.slice(2));
+const PAGE_AUX_DIR = /^(?:_.*|components?|partials?|hooks?|utils?|lib|types?|constants?|schemas?|stores?|contexts?)$/i;
 
 /** Lista recursiva de arquivos sob `dir` cujo nome casa `match`. */
 function walk(dir, match, acc = []) {
@@ -48,11 +49,14 @@ function walk(dir, match, acc = []) {
   return acc;
 }
 
-// 1. Universo de telas: Pages/**/*.tsx, exceto _components/ e *.charter.* e *.test.*
+export function isAuxiliaryScreenPath(relTsx) {
+  return relTsx.split(/[\\/]/).slice(0, -1).some((part) => PAGE_AUX_DIR.test(part));
+}
+
+// 1. Universo de telas: Pages/**/*.tsx, exceto diretórios auxiliares e testes.
 const isScreen = (f) =>
   f.endsWith('.tsx') &&
-  !f.includes(`${sep}_components${sep}`) &&
-  !f.includes(`${sep}Partials${sep}`) &&
+  !isAuxiliaryScreenPath(relative(PAGES_DIR, f)) &&
   !f.endsWith('.charter.tsx') &&
   !f.includes('.test.');
 const screens = walk(PAGES_DIR, isScreen);
@@ -93,13 +97,27 @@ export function inertiaSourcesFor(relTsx) {
     : [pageSource];
 }
 
+export function coverageRegressions(current, previous) {
+  return ['charter', 'e2e', 'a11y', 'scorecard'].filter((key) => current[key] < previous[key]);
+}
+
 if (flags.has('--selftest')) {
   assert.deepEqual(inertiaSourcesFor('Financeiro/Unificado/Index.tsx'), [
     'Financeiro/Unificado/Index',
     'Financeiro/Unificado',
   ]);
   assert.deepEqual(inertiaSourcesFor('Sells/Create.tsx'), ['Sells/Create']);
-  console.log('screen-coverage selftest: aliases Inertia explícitos passaram');
+  assert.equal(isAuxiliaryScreenPath('Compras/components/Drawer.tsx'), true);
+  assert.equal(isAuxiliaryScreenPath('Cliente/_drawer/AuditoriaTab.tsx'), true);
+  assert.equal(isAuxiliaryScreenPath('Compras/Index.tsx'), false);
+  assert.deepEqual(
+    coverageRegressions(
+      { charter: 10, e2e: 1, a11y: 1, scorecard: 10 },
+      { charter: 10, e2e: 2, a11y: 1, scorecard: 10 },
+    ),
+    ['e2e'],
+  );
+  console.log('screen-coverage selftest: aliases Inertia e universo de telas passaram');
   process.exit(0);
 }
 
@@ -171,7 +189,7 @@ if (flags.has('--check')) {
     process.exit(2);
   }
   const prev = JSON.parse(readFileSync(BASELINE, 'utf8')).aggregates;
-  const regress = ['charter', 'e2e', 'a11y', 'scorecard'].filter((k) => agg[k] < prev[k]);
+  const regress = coverageRegressions(agg, prev);
   if (regress.length) {
     console.error(`\n✗ CATRACA: cobertura regrediu em ${regress.join(', ')} (vs baseline). PR bloqueado.`);
     for (const k of regress) console.error(`   ${k}: ${prev[k]} → ${agg[k]}`);
