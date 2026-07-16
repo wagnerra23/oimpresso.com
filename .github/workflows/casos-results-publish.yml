@@ -1,0 +1,151 @@
+name: Casos results publish (manifesto por-UC · ADR 0264 G-7)
+
+# FECHA O ELO "TESTE VERDE -> STATUS DO UC". O manifesto scripts/casos-test-results.json
+# alimenta o G-7 do casos-gate (REQUIRED): o Status de um UC vem do veredito REAL do teste,
+# não de prosa. Só que ele era alimentado À MÃO — as 7 lanes Pest + o e2e já emitem JUnit
+# (`--log-junit`), mas o XML subia como ARTIFACT e morria lá; o manifesto só mudava quando
+# um dev lembrava de rodar `npm run casos:results` e commitar.
+#
+# Consequência medida (2026-07-16): `exec_backed_pct` media CADÊNCIA DE BOOKKEEPING, não
+# qualidade de teste. UC-F04/UC-F05 têm Pest verde na lane REQUIRED `financeiro-pest` e
+# valiam 0; UC-S02 (o vetor da venda inflada ×100k, fix #2279) idem. Manifesto tinha 15 UCs
+# de uma única fonte (playwright), enquanto 40 UCs carregam o id no título de algum teste.
+#
+# PROVA que motivou este workflow (rodada à mão, 2026-07-16): baixar os 7 JUnits dos últimos
+# runs verdes de main + `node scripts/casos-results-collect.mjs` →
+#   "✅ Manifesto gravado: 25 UCs (25 pass · 0 fail · 0 skip) — 12 preservado(s) ... de 7 relatório(s)"
+#   exec_backed_pct: 15/146 (10%) -> 25/146 (17%).
+# Este workflow automatiza exatamente esse comando.
+#
+# HONESTIDADE (não vender o que não é): isto NÃO reduz risco — os testes já rodavam e já
+# eram verdes nas lanes required. Isto conserta a HONESTIDADE do painel (o UC deixa de
+# valer 0 por falta de carimbo). Ver ADR 0336/0339 e a bronca "gate virou required" != "coisa
+# ficou coberta".
+#
+# Transporte: auto-PR (peter-evans) + auto-merge — padrão de sdd-scorecard-publish.yml /
+# shipped-log-cron.yml. `git push origin HEAD` direto em main é REJEITADO (GH013, branch
+# protection: 28 required + enforce_admins). PAT dispara o CI; GITHUB_TOKEN não dispararia
+# e o PR ficaria preso.
+#
+# Refs: ADR 0264 (G-7) · ADR 0279 (transporte/commit-back) · US-GOV-054
+
+on:
+  schedule:
+    - cron: '30 10 * * *' # 07:30 BRT — depois das lanes noturnas e do sdd-scorecard-publish (10:10)
+  workflow_dispatch:
+
+concurrency:
+  group: casos-results-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read # baixar os artifacts JUnit dos runs das lanes
+
+jobs:
+  publish:
+    name: Colhe JUnit das lanes + aterrissa manifesto por-UC (só quando muda)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Colher JUnit do último run VERDE de main de cada lane
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p test-results
+          # lane:artifact — todas já emitem --log-junit hoje; o artifact é o transporte.
+          for pair in \
+            "ci.yml:pest-ci-junit" \
+            "financeiro-pest.yml:pest-financeiro-junit" \
+            "estoque-pest.yml:pest-estoque-junit" \
+            "compras-pest.yml:pest-compras-junit" \
+            "jana-pest.yml:pest-jana-junit" \
+            "nfebrasil-pest.yml:pest-nfebrasil-junit" \
+            "arquivos-pest.yml:pest-arquivos-junit" \
+            "e2e-gate.yml:casos-test-results" \
+          ; do
+            wf="${pair%%:*}"; art="${pair##*:}"
+            rid=$(gh run list --workflow="$wf" --branch main --status success --limit 1 \
+                    --json databaseId --jq '.[0].databaseId' 2>/dev/null || true)
+            if [ -z "$rid" ]; then echo "::warning::$wf — sem run verde em main; lane pulada"; continue; fi
+            if gh run download "$rid" -n "$art" -D test-results 2>/dev/null; then
+              echo "  ok  $wf (run $rid) → $art"
+            else
+              echo "::warning::$wf (run $rid) — artifact '$art' ausente/expirado; lane pulada"
+            fi
+          done
+          echo "--- XMLs colhidos ---"; ls -1 test-results/ 2>/dev/null || echo "(nenhum)"
+
+      - name: Coletar veredito por UC (merge per-UC — lane pulada preserva o veredito anterior)
+        # SEGURANÇA do coletor: se NENHUM relatório for encontrado, ele NÃO sobrescreve o
+        # manifesto (não zera o painel num dia de artifact expirado).
+        run: |
+          node scripts/casos-results-collect.mjs | tee /tmp/collect.txt
+          { echo '## Casos results publish'; echo '```'; cat /tmp/collect.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Detecta mudança no manifesto
+        id: diff
+        run: |
+          if git diff --quiet -- scripts/casos-test-results.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "manifesto já em dia com o veredito das lanes — nada a aterrissar."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            UCS=$(node -e "const j=require('./scripts/casos-test-results.json');console.log(j._meta.stats.ucs)")
+            PASS=$(node -e "const j=require('./scripts/casos-test-results.json');console.log(j._meta.stats.pass)")
+            FAIL=$(node -e "const j=require('./scripts/casos-test-results.json');console.log(j._meta.stats.fail)")
+            echo "ucs=$UCS" >> "$GITHUB_OUTPUT"; echo "pass=$PASS" >> "$GITHUB_OUTPUT"; echo "fail=$FAIL" >> "$GITHUB_OUTPUT"
+            git diff --stat scripts/casos-test-results.json
+          fi
+
+      # Auto-PR (NÃO push direto): main exige PR + required checks (GH013). add-paths garante
+      # que só o manifesto entra — test-results/ é transporte efêmero, nunca commitado.
+      - name: Auto-PR de aterrissagem do manifesto
+        if: steps.diff.outputs.changed == 'true'
+        id: cpr
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.COWORK_BOT_PAT }}
+          base: main
+          branch: chore/casos-results-manifesto
+          add-paths: scripts/casos-test-results.json
+          commit-message: |
+            chore(governance): aterrissa manifesto por-UC (${{ steps.diff.outputs.ucs }} UCs · ${{ steps.diff.outputs.pass }} pass) [CC]
+
+            Veredito real das lanes (JUnit) → G-7 do casos-gate. Fecha o elo
+            "teste verde -> status do UC" sem depender de `casos:results` manual.
+
+            Refs: ADR 0264 (G-7) · ADR 0279 (transporte) · US-GOV-054
+            Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
+          title: 'chore(governance): aterrissa manifesto por-UC (${{ steps.diff.outputs.ucs }} UCs · ${{ steps.diff.outputs.pass }} pass)'
+          body: |
+            **Aterrissagem automática do veredito por UC** (ADR 0264 G-7).
+
+            As lanes já emitem JUnit; este PR traz o veredito real pro manifesto canônico
+            em `main`, que o `casos-gate` (required) lê pra derivar o Status de cada UC.
+            Sem isto, o manifesto só mudava quando alguém rodava `npm run casos:results` à mão
+            — e `exec_backed_pct` media cadência de bookkeeping, não qualidade de teste.
+
+            Desta medição: **${{ steps.diff.outputs.ucs }} UCs** · ${{ steps.diff.outputs.pass }} pass · ${{ steps.diff.outputs.fail }} fail.
+
+            ⚠️ Se aparecer `fail > 0`, NÃO mergear no automático: um UC declarado ✅ com teste
+            vermelho é exatamente o que o G-7 existe pra pegar — investigar o teste primeiro.
+
+            🤖 Generated by Casos results publish
+          labels: |
+            governance
+            automated
+          delete-branch: true
+
+      - name: Auto-merge no PR gerado (só se não houver UC vermelho)
+        # fail>0 = veredito ruim aterrissando; exige olho humano (o G-7 vai morder no PR
+        # de quem declarou ✅). Sem auto-merge nesse caso — o PR fica aberto pra revisão.
+        if: steps.cpr.outputs.pull-request-number && steps.diff.outputs.fail == '0'
+        env:
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
+        run: gh pr merge ${{ steps.cpr.outputs.pull-request-number }} --squash --auto --delete-branch

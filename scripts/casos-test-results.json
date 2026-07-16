@@ -1,13 +1,19 @@
 {
   "_meta": {
-    "generated_at": "2026-07-16T17:22:43.838Z",
+    "generated_at": "2026-07-16T20:13:42.769Z",
     "gate": "casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste)",
     "sources": [
-      "test-results/playwright-junit.xml"
+      "test-results/junit.xml",
+      "test-results/pest-arquivos-junit.xml",
+      "test-results/pest-compras-junit.xml",
+      "test-results/pest-estoque-junit.xml",
+      "test-results/pest-financeiro-junit.xml",
+      "test-results/pest-jana-junit.xml",
+      "test-results/pest-nfebrasil-junit.xml"
     ],
     "stats": {
-      "ucs": 15,
-      "pass": 15,
+      "ucs": 25,
+      "pass": 25,
       "fail": 0,
       "skip": 0
     },
@@ -19,6 +25,71 @@
     ]
   },
   "ucs": {
+    "UC-PTAB-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PTAB-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PTAB-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PTAB-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-IMP-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-IMP-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-IMP-02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-IMP-03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-F01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-F03": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-F02": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-F04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 3
+    },
+    "UC-F05": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 3
+    },
     "UC-11": {
       "verdict": "pass",
       "ran_at": "2026-07-16",
@@ -77,21 +148,6 @@
     "UC-S11": {
       "verdict": "pass",
       "ran_at": "2026-07-16",
-      "tests": 1
-    },
-    "UC-F02": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-F03": {
-      "verdict": "pass",
-      "ran_at": null,
-      "tests": 1
-    },
-    "UC-F01": {
-      "verdict": "pass",
-      "ran_at": null,
       "tests": 1
     }
   }
