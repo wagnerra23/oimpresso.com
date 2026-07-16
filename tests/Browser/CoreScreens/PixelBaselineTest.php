@@ -14,10 +14,8 @@ declare(strict_types=1);
  *
  *   - diff ratio  <  τ_baixo (0.1%) → AUTO-APROVA  (trata como match — não falha)
  *   - diff ratio  >  τ_alto  (2%)   → AUTO-FALHA   (regressão clara — falha o teste)
- *   - τ_baixo..τ_alto               → ZONA CINZA   (NÃO falha; coleta a tela, sobe o
- *                                      diff-view dela pro artifact `pixel-diff-views`
- *                                      e emite "N telas pro Wagner revisar" no
- *                                      $GITHUB_STEP_SUMMARY)
+ *   - τ_baixo..τ_alto               → ZONA CINZA   (coleta a tela e bloqueia até revisão
+ *                                      [W] via label explícito no PR)
  *
  * τ_baixo/τ_alto são CONFIGURÁVEIS (env `VISREG_TAU_LOW`/`VISREG_TAU_HIGH`, default
  * 0.001/0.02) pro Wagner calibrar sem mexer no código. Por-arquétipo (form mais
@@ -115,8 +113,6 @@ $execution = new ArrayObject([
 ]);
 
 afterAll(function () use ($execution, $grayZone) {
-    \Tests\Browser\Support\VisregThreshold::writeGrayZoneSummary($grayZone->getArrayCopy());
-
     $githubOutput = getenv('GITHUB_OUTPUT');
     if ($githubOutput !== false && $githubOutput !== '') {
         $lines = sprintf(
@@ -127,6 +123,8 @@ afterAll(function () use ($execution, $grayZone) {
         );
         file_put_contents($githubOutput, $lines, FILE_APPEND | LOCK_EX);
     }
+
+    \Tests\Browser\Support\VisregThreshold::writeGrayZoneSummary($grayZone->getArrayCopy());
 });
 
 foreach ($screens as $screen) {
