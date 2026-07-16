@@ -3,18 +3,18 @@ slug: 0119-migration-factory-capacidade-institucional
 number: 119
 title: "Migration Factory — capacidade institucional do oimpresso pra ingerir cliente de qualquer ERP legacy"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 decided_by: [W]
-decided_at: 2026-05-09
+decided_at: "2026-05-09"
 module: null
 quarter: 2026-Q2
 tags: [migration-factory, legacy-migration, business-strategy, brownfield-ai, ddd, multi-tenant]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0061, 0070, 0093, 0094, 0106, 0113, 0118]
+related: [0061-conhecimento-canonico-git-mcp-zero-automem, 0070-jira-style-task-management-current-md-removed, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0113-integracao-delphi-laravel-ads-3-caminhos, 0118-segregacao-dominios-externos-clientes-legacy]
 pii: false
 review_triggers:
   - "terceira fonte de migração entrar em produção (atual: WR Comercial; previstas: Bling, Tiny, Sankhya, concorrentes nicho gráfico)"

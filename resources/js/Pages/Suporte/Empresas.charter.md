@@ -1,6 +1,7 @@
 ---
 page: /suporte/empresas
 component: resources/js/Pages/Suporte/Empresas.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 page_id: suporte-empresas
 owner: wagner
 status: draft

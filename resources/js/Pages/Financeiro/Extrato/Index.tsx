@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { ArrowDownCircle, ArrowUpCircle, RefreshCw, ArrowLeft } from 'lucide-react';
-import PageHeader from '@/Components/shared/PageHeader';
+import { PageHeader } from '@/Components/PageHeader';
 import FinanceiroSubNav from '@/Pages/Financeiro/_shared/FinanceiroSubNav';
 import { piiMask } from '@/Pages/Financeiro/Cobranca/_lib/cobranca-shared';
 
@@ -62,16 +62,13 @@ function Index({ conta, lancamentos = [], filtros, totais }: Props) {
     // Wave 4 (2026-05-31) — header canon via <PageHeader> + FinanceiroSubNav (substitui os-page-h inline)
     <div className="fin-curadoria vendas-aplus p-6 space-y-6">
       <PageHeader
-        icon="landmark"
         title={`Extrato · ${conta.banco_nome}`}
-        description={`${conta.nome}${conta.numero_conta ? ` · Conta ${conta.numero_conta}` : ''}`}
-        action={
-          <div className="flex-shrink-0 flex items-center gap-1.5 ml-auto">
-            <FinanceiroSubNav active="extrato" hidePrimary />
-            <Button variant="outline" size="sm" onClick={() => router.visit(route('financeiro.contas-bancarias.index'))}>
-              <ArrowLeft className="h-4 w-4 mr-1.5" /> Voltar pra contas
-            </Button>
-          </div>
+        subtitle={`${conta.nome}${conta.numero_conta ? ` · Conta ${conta.numero_conta}` : ''}`}
+        subnav={<FinanceiroSubNav active="extrato" hidePrimary />}
+        actions={
+          <Button variant="outline" size="sm" onClick={() => router.visit(route('financeiro.contas-bancarias.index'))}>
+            <ArrowLeft className="h-4 w-4 mr-1.5" /> Voltar pra contas
+          </Button>
         }
       />
 

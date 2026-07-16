@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// Cobre UC-CIDX-02 (Index.casos.md) - G-2 rastreabilidade caso-teste.
 
 /**
  * Bug Wagner (2026-06-12): "paginação não está funcionando" + "desalinhados".

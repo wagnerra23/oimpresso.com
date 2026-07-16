@@ -67,6 +67,8 @@ Fontes no rodapé.
 | 4 | **VRT é screenshot-humano + Playwright parcial** | Promover `visual-regression.yml` a baseline-gateado de fato (remover `continue-on-error` residual); usar como pré-filtro do gate-Wagner, não substituto | **médio** | ~2h | não (infra existe) |
 | 5 | **Critic é só humano no fim** | Step de critic automático na FASE 4: após aplicar, um agente read-only confere GAP-SPEC×diff (achievement check) antes do screenshot. Espelha spec2code backprompting + LLM-as-judge da Anthropic | **médio** | ~2h | depende de #1 (precisa do map pra conferir) |
 
+> **#5 implementado (variante CI) em 2026-07-09** — ataque ① da grade-das-réguas: `scripts/pr-critic/` (coleta determinística diff→charter/casos/gap/map + agente contexto-zero com trava de citação literal) + `.github/workflows/pr-critic.yml` (advisory, ADR 0314). A dependência do #1 foi relaxada: o `.map.json` entra QUANDO existe (roteamento por conteúdo); charter+casos+gap bastam pra ancorar. A variante FASE-4-pré-screenshot do fluxo aplicar-prototipo segue aberta — pode reusar `critica.mjs` local.
+
 ### Recomendação concreta
 
 **Comece pelo #1 — mapa design↔código persistente.** Alto-impacto, baixo-esforço (~3h IA-pair), sem pré-req bloqueante, e é o gap de **maior distância** (aderência 30%) que está na **rota crítica** do método (a FASE 1 já produz a informação — falta só persistir num formato máquina-legível em vez de prosa re-derivada). Desbloqueia o critic automático (#5) e dá ao oimpresso uma versão "Code Connect sem Figma" adequada ao seu protótipo Cowork-HTML.

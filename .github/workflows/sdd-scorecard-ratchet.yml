@@ -36,6 +36,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          # distiller_freshness (measureDistillerFreshness) usa a data-git do doc
+          # mais novo de cada módulo (ADR 0291 D-D). O default shallow (depth 1) do
+          # checkout fazia o `git log` do doc voltar a data do HEAD → TODA porta
+          # carimbada virava >7d → fantasma stale=5 (local, clone cheio, media 0).
+          # fetch-depth:0 dá a history completa → medição correta. NÃO afrouxa o
+          # floor 0 (ADR 0275) — conserta a MEDIÇÃO, não a trava.
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '20'

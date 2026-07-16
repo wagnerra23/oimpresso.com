@@ -80,7 +80,7 @@ Regra de aplicação (lição PR #963/KB): defer no backend **sempre pareado** c
 | `render_paginate_sem_defer` | Controllers com `Inertia::render` + `paginate(` e zero `Inertia::defer` | **8** |
 | `render_count_sem_defer` | Controllers com `Inertia::render` + `->count()` e zero `Inertia::defer` | **20** |
 
-Advisory por ora (política [ADR 0314](../decisions/proposals/0314-poda-gates-onda-2-lei-fusoes.md): required = só Tier-0); roda local/por-PR sob demanda. Promover a CI advisory é follow-up.
+Advisory por ora (política [ADR 0314](../decisions/0314-poda-gates-onda-2-lei-fusoes.md): required = só Tier-0); roda local/por-PR sob demanda. Promover a CI advisory é follow-up.
 
 ## 5. Próximos passos (humano-gated — nenhuma task auto-criada)
 

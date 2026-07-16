@@ -1,36 +1,44 @@
-name: Contrato de Tela (fidelidade visual — advisory na adoção)
+name: Contrato de Tela (fidelidade visual · always-run — ADR 0261)
 
 # A perna de fidelidade visual do trio-de-tela (charter/casos/Pest já mecanizados).
 # Doc: memory/requisitos/_DesignSystem/RUNBOOK-contrato-de-tela.md
 #
 # REGRA ANTI-TEATRO (veredito dos adversários, sessão 2026-06-18):
-#  - SEM `continue-on-error`, SEM skip-as-pass via paths-filter mal-calibrado.
-#  - O "advisory" da fase de adoção vem de NÃO estar nos required checks (branch
-#    protection — decisão [W]), NÃO de esconder o vermelho. O job mostra vermelho
-#    de verdade; só não BLOQUEIA o merge até ser promovido.
-#  - Promoção a required (sob enforce_admins) = quando ≥1 tela estiver instrumentada
-#    e o falso-positivo medido = 0 por 1–2 semanas. Ver RUNBOOK §3 condição 2 + §5.
+#  - SEM `continue-on-error`, SEM mascarar o vermelho. O job mostra vermelho de verdade.
+#  - O check bloqueia o merge quando (e só quando) for `required` no branch protection —
+#    decisão Tier 0 do [W] (ADR 0261 · "Autoridade: branch protection é admin-only").
+#
+# ── PROMOÇÃO A ENFORCING (2026-07-13) — always-run + skip-as-pass (ADR 0261 Alavanca 2) ──
+# Convertido de path-scoped (workflow-level `paths:`) → ALWAYS-RUN + detecção in-job.
+# Motivo (causa-raiz ADR 0261): um required-check path-scoped que NÃO roda (path não bateu)
+# nunca reporta status e trava o PR não-relacionado eternamente em "Expected — waiting".
+# Agora o check SEMPRE reporta: o step `detect` reusa EXATAMENTE o filtro de path antigo —
+# roda os verificadores de verdade quando um arquivo relevante muda; passa instantâneo (verde)
+# quando não muda nada relevante (não há o que verificar → verde é correto, não mascarado).
+# Mesma cobertura de antes, reportando sempre → seguro pra virar `required` sem deadlock.
+# Isto NÃO é o "skip-as-pass mal-calibrado" que o v1 baniu (paths-filter que engole divergência):
+# o filtro in-job é idêntico ao filtro de workflow que já existia; nada de novo passa despercebido.
+#
+# Enforcement da INTENÇÃO do Financeiro (rota legada `/financeiro/unificado/novo`): o step
+# "Intenção de fluxo" roda auditar + adversário `--strict` com exit-code real → job VERMELHO se a
+# rota legada reaparecer. Bloqueio de merge = quando [W] adicionar este check aos required
+# status checks (`Preflight + contratos ativos`) sob enforce_admins (já ligado). Ver PR + RUNBOOK §5.
 
 on:
+  push:
+    branches: [main]
   pull_request:
-    paths:
-      - 'scripts/contrato-de-tela.mjs'
-      - 'scripts/contrato-de-tela.test.mjs'
-      - 'prototipo-ui/contrato/**'
-      - '**/*.contract.json'
-      - 'resources/js/Pages/**/*.tsx'
-      - 'resources/js/Pages/**/*.ts'
-      # backends que a catraca semântica (2b) inspeciona — em sync com os campos `backend` dos
-      # *.contract.json. Sem isto, um rename de state:'paired' SÓ no backend não dispara o gate
-      # (blind-spot achado pelo painel adversarial final · ADR 0286 §5).
-      - 'Modules/Whatsapp/Http/Controllers/Admin/ChannelsController.php'
-      - '.github/workflows/contrato-de-tela.yml'
+
+concurrency:
+  group: contrato-de-tela-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
   # Integridade do próprio gate — HARD (se o gate não morde, nada disto vale).
+  # Always-run: node puro, ~segundos; sempre reporta status → requerível sem deadlock.
   selftest:
     name: Self-test — o gate morde e libera certo
     runs-on: ubuntu-latest
@@ -43,7 +51,7 @@ jobs:
       - name: node scripts/contrato-de-tela.test.mjs
         run: node scripts/contrato-de-tela.test.mjs
 
-  # Preflight de base + contratos de tela ativos. Exit code real (sem mascarar).
+  # Preflight de base + contratos de tela ativos + intenção de fluxo. Exit code real (sem mascarar).
   contratos:
     name: Preflight + contratos ativos
     runs-on: ubuntu-latest
@@ -51,13 +59,47 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # preflight/omissão precisam de origin/main
-      - uses: actions/setup-node@v4
+          fetch-depth: 0   # preflight/omissão precisam de origin/main + o diff de detecção
+
+      - name: Detecta arquivos relevantes (skip-as-pass · ADR 0261)
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            base="${{ github.event.pull_request.base.sha }}"
+          else
+            base="${{ github.event.before }}"
+          fi
+          # Fallback se base vazio/inválido (primeiro push, force-push, etc.)
+          if [ -z "${base}" ] || [ "${base}" = "0000000000000000000000000000000000000000" ] || ! git cat-file -e "${base}" 2>/dev/null; then
+            base="$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)"
+          fi
+          echo "Base do diff: ${base}"
+          changed="$(git diff --name-only "${base}" HEAD || true)"
+          echo "Arquivos mudados:"; echo "${changed:-<nenhum>}"
+          # Filtro IDÊNTICO ao antigo workflow-level `paths:` (+ os scripts de intenção, que
+          # antes não disparavam o gate — blind-spot corrigido nesta conversão).
+          if echo "${changed}" | grep -Eq '(^scripts/contrato-de-tela\.mjs$|^scripts/contrato-de-tela\.test\.mjs$|^scripts/auditar-intencao-fluxo\.mjs$|^scripts/adversario-intencao-fluxo\.mjs$|^prototipo-ui/contrato/|^resources/js/Pages/.+\.tsx?$|\.contract\.json$|^Modules/Whatsapp/Http/Controllers/Admin/ChannelsController\.php$|^\.github/workflows/contrato-de-tela\.yml$)'; then
+            echo "relevant=true" >> "${GITHUB_OUTPUT}"
+            echo "→ arquivo de contrato/tela mudou: RODA os verificadores."
+          else
+            echo "relevant=false" >> "${GITHUB_OUTPUT}"
+            echo "→ nada relevante mudou: SKIP-AS-PASS (gate verde sem rodar; mesma cobertura de antes)."
+          fi
+
+      - name: Setup Node
+        if: steps.detect.outputs.relevant == 'true'
+        uses: actions/setup-node@v4
         with:
           node-version: '24'
+
       - name: Preflight de base (branch ancestral de origin/main)
+        if: steps.detect.outputs.relevant == 'true'
         run: node scripts/contrato-de-tela.mjs --preflight origin/main
+
       - name: Contratos de tela ativos (ignora EXEMPLO/template)
+        if: steps.detect.outputs.relevant == 'true'
         run: |
           set -euo pipefail
           mapfile -t contratos < <(git ls-files '*.contract.json' | grep -v EXEMPLO || true)
@@ -71,17 +113,38 @@ jobs:
             node scripts/contrato-de-tela.mjs --contract "$c" || rc=1
           done
           exit $rc
+
       - name: Mapa protótipo→prod (gerado) + --map --check (fonte existe + âncoras)
+        if: steps.detect.outputs.relevant == 'true'
         run: |
           echo "::group::Mapa protótipo → produção (derivado · régua 5)"
           node scripts/contrato-de-tela.mjs --map || true
           echo "::endgroup::"
           node scripts/contrato-de-tela.mjs --map --check
+
+      - name: Intenção de fluxo (bloqueante — rota legada = vermelho)
+        if: steps.detect.outputs.relevant == 'true'
+        run: |
+          set -euo pipefail
+          mapfile -t contratos < <(git ls-files 'prototipo-ui/contrato/*.intent.json' || true)
+          if [ "${#contratos[@]}" -eq 0 ]; then
+            echo "Nenhum contrato de intenção ativo ainda."
+            exit 0
+          fi
+          for c in "${contratos[@]}"; do
+            echo "== $c =="
+            node scripts/auditar-intencao-fluxo.mjs --contract "$c"
+            node scripts/adversario-intencao-fluxo.mjs --contract "$c" --strict
+          done
+          # O mapa de intenção é derivado pelo mesmo contrato-de-tela.mjs; não há mapa paralelo.
+          node scripts/contrato-de-tela.mjs --map --check
+
       - name: Diagnóstico em caso de falha
         if: failure()
         run: |
           echo ""
           echo "❌ Contrato de Tela divergente OU base atrás de origin/main."
+          echo "   - 'caminho proibido' → uma ação voltou pra rota legada (ex: /financeiro/unificado/novo). Use o fluxo atual."
           echo "   - 'sem âncora' → instrumente a tela com <... data-contract=\"<id>\">."
           echo "   - 'copy ausente' → a string literal do contrato sumiu/mudou no .tsx."
           echo "   - 'ordem divergente' → a sequência das seções no fonte != contrato."

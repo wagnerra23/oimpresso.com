@@ -26,6 +26,7 @@ Declarei as telas Triage/Inbox "no ar / live" baseado em **curl retornando 302**
 3. **Se Chrome MCP indisponível** (computer-use read-tier / sem extensão): smoke **colaborativo** — Wagner navega logado, Claude screenshota + verifica os 4 sinais. Login é sempre do Wagner (privacy: Claude não digita senha).
 4. **Evidência anexada** ao handoff (screenshot ou os 4 sinais confirmados). Sem evidência de render = não está pronto.
 5. Se deploy é **automático** (quick-sync.yml builda na Hostinger pós push main), o smoke continua obrigatório — auto-deploy não dispensa o teste do render.
+6. **INCONDICIONAL — nunca perguntar "quer que eu faça o smoke?".** É **sempre-sim**, faz parte do processo, não é uma opção que o Wagner escolhe turno a turno. Perguntar sobre o já-decidido viola a **Lei de Uma Tela §3 MANDATO** (*"decidido → EXECUTO, não pergunto; 'quer que eu…?' sobre o já-decidido = desperdício do tempo do Wagner"*). Reincidência 2026-07-08 (PR #3945 sidebar Suporte): perguntei *"quer que eu agende o smoke ou me chama depois?"* — Wagner textual: *"nemme pergunte mais isso é sempre sim automatize isso"*. O smoke pós-deploy roda **sozinho**, sem HITL de decisão; o único HITL é o **merge** (R10) e, quando o Chrome MCP não estiver disponível, o **login** (passo 3).
 
 ## Liga com
 

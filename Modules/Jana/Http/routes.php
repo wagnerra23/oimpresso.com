@@ -153,6 +153,12 @@ Route::group(
         Route::get('/admin/roadmap',                       'Admin\RoadmapController@index')
             ->name('jana.admin.roadmap.index');
 
+        // US-COPI-111 B2 (Wagner 2026-07-12) — reschedule do prazo via drag-drop no
+        // Gantt. PATCH gated por jana.mcp.tasks.write (controller ->only). {taskId} =
+        // task_id string (ex US-COPI-110), mapeado no frontend via $payload.
+        Route::patch('/admin/roadmap/tasks/{taskId}/schedule', 'Admin\RoadmapController@updateSchedule')
+            ->name('jana.admin.roadmap.schedule');
+
         // ---- JANA Pro Sprint A (US-COPI-201, ADR 0140) — preview brief diário
         // Endpoint admin pra rodar BriefDiarioService manualmente e ver JSON
         // antes de configurar Job 8h. Permission: copiloto.superadmin

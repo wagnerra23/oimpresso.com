@@ -1,7 +1,7 @@
 {
   "_meta": {
-    "generated_at": "2026-07-07T17:34:40.014Z",
-    "total_lines": 20646,
+    "generated_at": "2026-07-11T20:28:02.231Z",
+    "total_lines": 20680,
     "file_count": 35,
     "note": "Ratchet de tamanho — passo 1 MANUAL-CSS-JS. Cada .css só pode encolher; arquivo novo exige --write (decisão consciente / ADR).",
     "refs": [
@@ -15,8 +15,8 @@
     "resources/css/cowork-compras-bundle.css": 182,
     "resources/css/cowork-fields.css": 409,
     "resources/css/cowork-payment-gateway-bundle.css": 257,
-    "resources/css/fin-cowork.css": 680,
-    "resources/css/fin-curadoria.css": 289,
+    "resources/css/fin-cowork.css": 704,
+    "resources/css/fin-curadoria.css": 299,
     "resources/css/fin-ia.css": 291,
     "resources/css/fin-mobile.css": 67,
     "resources/css/fin-output.css": 1004,

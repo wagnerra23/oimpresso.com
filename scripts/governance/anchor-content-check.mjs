@@ -20,9 +20,11 @@
  *              Suspeita (âncora provavelmente errada).
  *   OK       — arquivo existe, é fonte de tela (não-shell) e menciona o módulo.
  *
- * NÃO é gate required (lei ADR 0314 — advisory; report). Com --check sai 1 se houver
- * âncora MISSING/SHELL (o sinal duro); NO-MODULE é warn (pode ser falso-positivo de
- * nomenclatura). Roda no design-memory-gate.yml (advisory) ao lado do ancora selftest.
+ * REQUIRED desde 2026-07-08 (ADR 0327 — emenda à 0314, exceção consciente à "required = só
+ * Tier-0", Wagner autorizado). Revoga o "advisory" antigo, que deixou a âncora podre REINCIDIR
+ * (07-06→07-08). Com --check sai 1 se houver âncora MISSING/SHELL (o sinal duro); NO-MODULE é
+ * warn (pode ser falso-positivo de nomenclatura). Job dedicado hard-fail em
+ * anchor-content-required.yml; o design-memory-gate.yml segue advisory pros outros steps.
  *
  * Uso:
  *   node scripts/governance/anchor-content-check.mjs            # relatório

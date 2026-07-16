@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// Cobre UC-CSHW-02 (Show.casos.md) - G-2 rastreabilidade caso-teste.
 
 // Wave C — US-CRM-065 Tab Vendas DataTable
 // Restrição Tier 0 ADR 0093: backend SellController filtra business_id global scope.

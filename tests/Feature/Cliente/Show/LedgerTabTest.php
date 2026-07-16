@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 // @covers-us US-CRM-064
+// Cobre UC-CSHW-01 (Show.casos.md) - G-2 rastreabilidade caso-teste.
 
 // Wave B — US-CRM-064 Tab Ledger inline
 // Restrição Tier 0 ADR 0093: backend ContactController::getLedger() filtra business_id.

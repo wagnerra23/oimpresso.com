@@ -11,7 +11,7 @@ import { usePage } from '@inertiajs/react';
 import {
   ArrowRightLeft, Banknote, BarChart3, Bell, BookOpen, Bot, Box, Calculator, Calendar,
   Check, ChevronDown, ChevronRight, ChevronUp, ClipboardList, Clock, CreditCard,
-  Factory, FileSearch, FileSpreadsheet, FileText, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LogOut,
+  Factory, FileSearch, FileSpreadsheet, FileText, FolderKanban, HandCoins, Hash, Home, Inbox, Keyboard, LifeBuoy, LogOut,
   MessageCircle, Monitor, Moon, Package, PackageCheck, Palette, Plug, Receipt,
   RefreshCw, Rocket, Search, Settings, Sheet, ShieldAlert, ShieldCheck, ShoppingCart, Sun,
   TrendingUp, UserCog, Users, Utensils, User, Vault, Wallet, Wrench,
@@ -109,6 +109,7 @@ const MENU_ICON_MAP: Record<string, LucideIcon> = {
   'cofre de memórias': Vault,
   'base de conhecimento': BookOpen,
   planilha: Sheet,
+  suporte: LifeBuoy,
 };
 
 function findMenuIcon(label: string): LucideIcon {

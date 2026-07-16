@@ -16,7 +16,7 @@
 // Refs: memory/sessions/2026-06-15-sdd-longtail-triage-refuted.md · ADR 0276 (refutador).
 
 import { describe, it, expect } from 'vitest';
-import { classifySource } from '../scripts/audit/sqlite-test-corruptors.mjs';
+import { classifySource, leaksUniqueRowOnMysql } from '../scripts/audit/sqlite-test-corruptors.mjs';
 
 describe('sqlite-corruptors — SENSIBILIDADE (pega corruptor real)', () => {
   it('drop NÃO-guardado de tabela CORE no beforeEach → corruptsOnMysql + alto-raio', () => {
@@ -176,5 +176,135 @@ it('algo', function () { $this->assertTrue(true); });`;
     const r = classifySource(src, 'X/CrmIdempotentTest.php');
     // tem DDL manual (create), mas nunca dropa → não corrompe downstream no MySQL
     expect(r === null || r.corruptsOnMysql === false).toBe(true);
+  });
+});
+
+// DETECTOR 2 — LEAK de linha unique-constrained no MySQL persistente.
+// nightly 20260712: SQLSTATE 1062 na constraint `pg_cred_biz_gw_amb_unique`.
+// Refuta os 2 lados do `leaksUniqueRowOnMysql`:
+//   SENSIBILIDADE  → PEGA o inserter sem rede (caso-farol pg + irmão real rb).
+//   ESPECIFICIDADE → NÃO acusa quem tem rede (trait rolling · skip driver · teardown).
+// Risco-mãe (a suíte mente): ver a rede NÃO pode sub-contar o leaker; reconhecer o
+// inserter NÃO pode dar falso-positivo no isolado. Residual: teardown por-tabela
+// conta como rede (limpar A e vazar B escaparia — aceito p/ precisão).
+
+describe('leaksUniqueRowOnMysql — SENSIBILIDADE (pega o leaker real)', () => {
+  it('CASO-FAROL: insere payment_gateway_credentials (tupla fixa) sem isolamento nem teardown → vaza', () => {
+    const src = `<?php
+it('resolve driver a partir da credencial', function () {
+    PaymentGatewayCredential::create([
+        'business_id'  => 1,
+        'gateway_key'  => 'inter',
+        'ambiente'     => 'sandbox',
+    ]);
+    $this->assertTrue(true);
+});`;
+    const r = leaksUniqueRowOnMysql(src, 'X/PaymentGatewayLeakTest.php');
+    expect(r).not.toBeNull();
+    expect(r.leaksOnMysql).toBe(true);
+    expect(r.tables).toContain('payment_gateway_credentials');
+    expect(r.constraints).toContain('pg_cred_biz_gw_amb_unique');
+    expect(r.fixedTuple).toBe(true);
+    expect(r.tier === 'S' || r.tier === 'A').toBe(true);
+  });
+
+  it('IRMÃO REAL: BoletoCredential::create em rb_boleto_credentials sem rede → vaza (regressão do repo)', () => {
+    const src = `<?php
+it('resolve driver inter', function () {
+    BoletoCredential::create([
+        'business_id'  => 1,
+        'banco'        => 'inter',
+        'ambiente'     => 'sandbox',
+    ]);
+    $this->assertTrue(true);
+});`;
+    const r = leaksUniqueRowOnMysql(src, 'X/BoletoServiceTest.php');
+    expect(r).not.toBeNull();
+    expect(r.leaksOnMysql).toBe(true);
+    expect(r.uncleaned).toContain('rb_boleto_credentials');
+  });
+
+  it('insert RAW DB::table(...)->insert sem isolamento também vaza', () => {
+    const src = `<?php
+beforeEach(function () {
+    DB::table('payment_gateway_credentials')->insert([
+        'business_id' => 1, 'gateway_key' => 'asaas', 'ambiente' => 'production',
+    ]);
+});
+it('algo', function () { $this->assertTrue(true); });`;
+    const r = leaksUniqueRowOnMysql(src, 'X/RawInsertTest.php');
+    expect(r).not.toBeNull();
+    expect(r.leaksOnMysql).toBe(true);
+  });
+});
+
+describe('leaksUniqueRowOnMysql — ESPECIFICIDADE (não acusa quem tem rede)', () => {
+  it('trait rolling (DatabaseTransactions) → NÃO vaza (rollback isola)', () => {
+    const src = `<?php
+uses(Tests\\TestCase::class, Illuminate\\Foundation\\Testing\\DatabaseTransactions::class);
+
+it('algo', function () {
+    PaymentGatewayCredential::create(['business_id' => 1, 'gateway_key' => 'inter', 'ambiente' => 'sandbox']);
+    $this->assertTrue(true);
+});`;
+    const r = leaksUniqueRowOnMysql(src, 'X/IsolatedTest.php');
+    expect(r).not.toBeNull();
+    expect(r.leaksOnMysql).toBe(false);
+    expect(r.hasRollingIsolation).toBe(true);
+  });
+
+  it('skip por driver não-sqlite no beforeEach → NÃO vaza (nem roda no MySQL)', () => {
+    const src = `<?php
+beforeEach(function () {
+    if (DB::connection()->getDriverName() !== 'sqlite') {
+        test()->markTestSkipped('era-sqlite: schema sintético manual.');
+    }
+    PaymentGatewayCredential::create(['business_id' => 1, 'gateway_key' => 'inter', 'ambiente' => 'sandbox']);
+});
+it('algo', function () { $this->assertTrue(true); });`;
+    const r = leaksUniqueRowOnMysql(src, 'X/SqliteOnlyTest.php');
+    expect(r).not.toBeNull();
+    expect(r.leaksOnMysql).toBe(false);
+    expect(r.skipsOnMysql).toBe(true);
+  });
+
+  it('teardown (afterEach delete da tabela) → NÃO vaza', () => {
+    const src = `<?php
+it('algo', function () {
+    PaymentGatewayCredential::create(['business_id' => 1, 'gateway_key' => 'inter', 'ambiente' => 'sandbox']);
+    $this->assertTrue(true);
+});
+afterEach(function () {
+    DB::table('payment_gateway_credentials')->delete();
+});`;
+    const r = leaksUniqueRowOnMysql(src, 'X/CleanedTest.php');
+    expect(r).not.toBeNull();
+    expect(r.leaksOnMysql).toBe(false);
+    expect(r.reasons.join(' ')).toMatch(/teardown/);
+  });
+
+  it('cleanup via Model (PaymentGatewayCredential::query()->delete()) → NÃO vaza', () => {
+    const src = `<?php
+afterEach(function () {
+    PaymentGatewayCredential::withoutGlobalScopes()->delete();
+});
+it('algo', function () {
+    PaymentGatewayCredential::create(['business_id' => 1, 'gateway_key' => 'inter', 'ambiente' => 'sandbox']);
+    $this->assertTrue(true);
+});`;
+    const r = leaksUniqueRowOnMysql(src, 'X/ModelCleanupTest.php');
+    expect(r).not.toBeNull();
+    expect(r.leaksOnMysql).toBe(false);
+  });
+
+  it('não-relevante → null: source-reader (create em toContain) E sem insert unique-seeded', () => {
+    const sourceReader = `<?php
+it('cria credencial', function () {
+    expect($s)->toContain("PaymentGatewayCredential::create([");
+});`;
+    const semInsert = `<?php
+it('algo', function () { User::factory()->create(['business_id' => 1]); });`;
+    expect(leaksUniqueRowOnMysql(sourceReader, 'X/SourceReaderTest.php')).toBeNull();
+    expect(leaksUniqueRowOnMysql(semInsert, 'X/UserFactoryTest.php')).toBeNull();
   });
 });

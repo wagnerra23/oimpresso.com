@@ -19,16 +19,18 @@
 import AppShellV2 from '@/Layouts/AppShellV2';
 import { router } from '@inertiajs/react';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { ChevronRight, LayoutGrid, ListTree, Lock } from 'lucide-react';
+import { ChevronRight, Lock } from 'lucide-react';
 import { Button } from '@/Components/ui/button';
 import { Input } from '@/Components/ui/input';
 import { Label } from '@/Components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import PageHeader from '@/Components/shared/PageHeader';
 import KpiGrid from '@/Components/shared/KpiGrid';
 import KpiCard from '@/Components/shared/KpiCard';
 import BulkActionBar from '@/Components/shared/BulkActionBar';
 import EmptyState from '@/Components/shared/EmptyState';
+import SubNav from '@/Components/shared/SubNav';
 import { Checkbox } from '@/Components/ui/checkbox';
 import { cn } from '@/Lib/utils';
 import ForjaHub from '@/Pages/team-mcp/Forja/_components/ForjaHub';
@@ -374,30 +376,16 @@ function TasksIndex({
         title="Tasks"
         description={`${isLoading ? '—' : k.total} tasks · ${isLoading ? '—' : k.total_h.toFixed(0)}h estimadas · ${isLoading ? '—' : k.doing} fazendo`}
         action={
-          <div className="inline-flex rounded-lg border bg-muted/40 p-0.5" role="tablist" aria-label="Visão">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'backlog'}
-              data-testid="view-backlog"
-              onClick={() => setTab('backlog')}
-              className={cn('inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors',
-                tab === 'backlog' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground')}
-            >
-              <ListTree size={14} /> Backlog
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={tab === 'quadro'}
-              data-testid="view-quadro"
-              onClick={() => setTab('quadro')}
-              className={cn('inline-flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors',
-                tab === 'quadro' ? 'bg-background text-primary shadow-sm' : 'text-muted-foreground hover:text-foreground')}
-            >
-              <LayoutGrid size={14} /> Quadro
-            </button>
-          </div>
+          <SubNav
+            variant="segmented"
+            value={tab}
+            onChange={(v) => setTab(v as Tab)}
+            ariaLabel="Visão"
+            items={[
+              { value: 'backlog', label: 'Backlog', icon: 'list-tree', testId: 'view-backlog' },
+              { value: 'quadro', label: 'Quadro', icon: 'layout-grid', testId: 'view-quadro' },
+            ]}
+          />
         }
       />
 
@@ -442,7 +430,7 @@ function TasksIndex({
             <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Todos</SelectItem>
-              {modulos.map((m) => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+              {modulos.map((m) => <SafeSelectItem key={m} value={m}>{m}</SafeSelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -452,7 +440,7 @@ function TasksIndex({
             <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Todos</SelectItem>
-              {owners.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
+              {owners.map((o) => <SafeSelectItem key={o} value={o}>{o}</SafeSelectItem>)}
             </SelectContent>
           </Select>
         </div>
@@ -462,7 +450,7 @@ function TasksIndex({
             <SelectTrigger className="h-8"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>Todas</SelectItem>
-              {sprints.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+              {sprints.map((s) => <SafeSelectItem key={s} value={s}>{s}</SafeSelectItem>)}
             </SelectContent>
           </Select>
         </div>

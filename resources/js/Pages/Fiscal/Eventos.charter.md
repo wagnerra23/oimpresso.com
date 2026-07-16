@@ -1,6 +1,7 @@
 ---
 page: /fiscal/eventos
 component: resources/js/Pages/Fiscal/Eventos.tsx
+related_prototype: "n/a (herda PT-07 Feed/Timeline; segue o DS) · origem: bundle Cowork fiscal §11 FiscalEventosPage (mockup não versionado no repo)"
 page_id: fiscal-eventos
 url: /fiscal/eventos
 module: Fiscal

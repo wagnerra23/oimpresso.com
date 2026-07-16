@@ -1,6 +1,7 @@
 ---
 page: /stock-transfers
 component: resources/js/Pages/StockTransfer/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 tela: stock_transfers/index
 tipo: LIST
 modulo: Inventory / StockTransfer

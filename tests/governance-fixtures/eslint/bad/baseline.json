@@ -1,0 +1,8 @@
+{
+  "_meta": {
+    "nota": "self-test · bad = counts excede baseline em +1"
+  },
+  "counts": {
+    "fixture.js|no-unused-vars": 1
+  }
+}

@@ -1,6 +1,7 @@
 ---
 page: /fiscal/config
 component: resources/js/Pages/Fiscal/Config.tsx
+related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 page_id: fiscal-config
 url: /fiscal/config
 module: Fiscal

@@ -1,0 +1,11 @@
+{
+  "totalDiverge": 0,
+  "perScope": {
+    "light": 0,
+    "dark": 0,
+    "cockpit-light": 0,
+    "cockpit-dark": 0
+  },
+  "note": "Piso de drift git↔espelho. Baixe com re-espelho (design-sync-push.md). Nunca suba sem decisão.",
+  "updatedFrom": "ds-mirror-drift.mjs --update-baseline"
+}

@@ -1,0 +1,8 @@
+{
+  "_meta": {
+    "nota": "Fonte única do hue primário universal (US-GOV-052 P32). O hue vivia em 3 mapas divergentes — pageheader-canon chegou a ter check aprovando o 145 morto (corrigido no PR #4003, mas sem fonte). Todo doc/skill/check que DECLARA hue primário esperado (construções expected_hue/expectedHue/hue_correct/hueCorrect/primary_hue) deve bater com primary_hue daqui — verificado por scripts/governance/hue-canon-check.mjs (advisory, ADR 0314). Detecção é pela CONSTRUÇÃO, nunca por número cru (145 solto não é violação).",
+    "escopo": "APENAS o primary interno universal — oklch(0.55 0.15 295) bg + oklch(0.45 0.15 295) border (ADR 0190, supersede hue-per-grupo no primary). sidebar_group_hue (hue por grupo do sidebar: 145 financas | 60 vender | 350 operar | 295 pessoas | 200 sistema | 220 ia | 30 atendimento | 270 equipe) fica FORA — fonte é SIDEBAR_GROUP_HUE em resources/js/Components/cockpit/shared.ts (não duplicar aqui)."
+  },
+  "primary_hue": 295,
+  "fonte": "ADR 0190"
+}

@@ -8,6 +8,7 @@ use App\Util\OtelHelper;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Modules\Jana\Services\Privacy\PiiRedactor;
+use Modules\Jana\Services\Telemetry\LangfuseClient;
 use Throwable;
 
 /**
@@ -271,6 +272,8 @@ class AiScorecardJudge
         }
 
         // HTTP wrapper canônico via Illuminate\Support\Facades\Http permite mock em tests.
+        $t0 = microtime(true);
+
         $response = \Illuminate\Support\Facades\Http::withHeaders([
             'x-api-key' => $apiKey,
             'anthropic-version' => '2023-06-01',
@@ -292,6 +295,24 @@ class AiScorecardJudge
         if ($text === '') {
             throw new \RuntimeException('LLM retornou content vazio');
         }
+
+        // US-COPI-108 (reconciliação 2026-07-12): call-site Http:: direto, fora do
+        // listener global Langfuse — instrumentação inline. No-op se disabled.
+        app(LangfuseClient::class)->traceComGeneration([
+            'name'        => 'scorecard-ai-judge',
+            'business_id' => null, // governance meta repo-wide (ADR 0093 §metadata)
+            'tool'        => 'scorecard-ai-judge',
+            'metadata'    => ['prompt_chars' => strlen($prompt)],
+        ], [
+            'name'        => 'scorecard-suggest-delta',
+            'model'       => $this->modelName(),
+            'output'      => $text,
+            'usage'       => [
+                'input'  => $body['usage']['input_tokens'] ?? null,
+                'output' => $body['usage']['output_tokens'] ?? null,
+            ],
+            'duration_ms' => (int) round((microtime(true) - $t0) * 1000),
+        ]);
 
         return $text;
     }

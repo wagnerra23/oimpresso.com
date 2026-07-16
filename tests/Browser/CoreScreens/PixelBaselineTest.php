@@ -51,8 +51,9 @@ declare(strict_types=1);
  * decisão de promoção do [W], NÃO mexida aqui). L1 (remover o continue-on-error) vem
  * DEPOIS de 2 runs verdes + aprovação [W].
  *
- * Telas núcleo-6 (mandato ONDAS-QUALIDADE Q4): Financeiro/Unificado · Compras ·
- * Clientes · Oficina/OS · Sells/Index · Sells/Create.
+ * O contrato executável (source Inertia → rota → âncora → baseline) vive em
+ * tests/Browser/visreg-screens.json. Em diff targeted, VISREG_SCREENS seleciona
+ * exatamente as telas afetadas; em diff global, a suíte inteira é executada.
  *
  * ⚠️ HONESTIDADE (ADR 0108 + hook block-test-fora-ct100): NÃO rodado local — Pest
  * Browser só roda no CI (visual-regression.yml, chromium garantido) ou no CT 100.
@@ -67,6 +68,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Inertia\Testing\AssertableInertia;
 
 beforeEach(function () {
     config([
@@ -89,36 +91,77 @@ afterEach(fn () => \Carbon\Carbon::setTestNow());
  */
 $grayZone = new ArrayObject();
 
-afterAll(function () use ($grayZone) {
+$manifestPath = dirname(__DIR__) . '/visreg-screens.json';
+$screens = json_decode((string) file_get_contents($manifestPath), true, 512, JSON_THROW_ON_ERROR);
+$scope = getenv('VISREG_SCOPE') ?: 'global';
+$requested = json_decode(getenv('VISREG_SCREENS') ?: '[]', true, 512, JSON_THROW_ON_ERROR);
+
+if ($scope === 'targeted') {
+    $screens = array_values(array_filter(
+        $screens,
+        static fn (array $screen): bool => in_array($screen['source'] ?? '', $requested, true),
+    ));
+    $resolved = array_column($screens, 'source');
+    $missing = array_values(array_diff($requested, $resolved));
+    if ($missing !== []) {
+        throw new RuntimeException('Telas sem contrato visreg: ' . implode(', ', $missing));
+    }
+}
+
+$execution = new ArrayObject([
+    'expected' => count($screens),
+    'executed' => 0,
+    'compared' => 0,
+]);
+
+afterAll(function () use ($execution, $grayZone) {
     \Tests\Browser\Support\VisregThreshold::writeGrayZoneSummary($grayZone->getArrayCopy());
+
+    $githubOutput = getenv('GITHUB_OUTPUT');
+    if ($githubOutput !== false && $githubOutput !== '') {
+        $lines = sprintf(
+            "expected=%d\nexecuted=%d\ncompared=%d\n",
+            $execution['expected'],
+            $execution['executed'],
+            $execution['compared'],
+        );
+        file_put_contents($githubOutput, $lines, FILE_APPEND | LOCK_EX);
+    }
 });
 
-/**
- * Tela => [rota, âncora que prova que montou ANTES do screenshot (sem ela o snapshot
- * congelaria um loading/skeleton — falso baseline)].
- */
-$screens = [
-    'Financeiro/Unificado' => ['/financeiro/unificado',        'Financeiro'],
-    'Compras'              => ['/compras',                     'Compras'],
-    'Clientes'             => ['/cliente',                     'Clientes'],
-    'Oficina/OS'           => ['/oficina-auto/ordens-servico', 'Oficina Auto'],
-    'Sells/Index'          => ['/sells',                       'Vendas'],
-    'Sells/Create'         => ['/sells/create',                'Adicionar venda'],
-];
+foreach ($screens as $screen) {
+    foreach (['screen', 'source', 'component', 'route', 'anchor', 'baseline'] as $required) {
+        if (! isset($screen[$required]) || ! is_string($screen[$required]) || $screen[$required] === '') {
+            throw new RuntimeException("Contrato visreg inválido: campo {$required} ausente.");
+        }
+    }
 
-foreach ($screens as $nome => [$rota, $ancora]) {
-    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $rota, $ancora, $grayZone) {
-        $business = Business::first();
+    $nome = $screen['screen'];
+    $component = $screen['component'];
+    $rota = $screen['route'];
+    $ancora = $screen['anchor'];
+    $baseline = $screen['baseline'];
+
+    it("{$nome} bate com a baseline de pixel (núcleo-6)", function () use ($nome, $component, $rota, $ancora, $baseline, $grayZone, $execution) {
+        // orderBy('id') = biz 1 determinístico: o gate também seeda 98 (VisregEmptyTenantSeeder)
+        // e 99 (VisregTenantBLeakSeeder) — sem ordem explícita o "first" é o que o MySQL devolver.
+        $business = Business::orderBy('id')->first();
         if (! $business) {
-            test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
+            throw new RuntimeException('Sem business seedado: o gate visual não executou a fixture obrigatória.');
         }
         $admin = User::where('business_id', $business->id)->orderBy('id')->first();
         if (! $admin) {
-            test()->markTestSkipped('Sem user no business seedado.');
+            throw new RuntimeException('Sem user no business seedado: o gate visual não pode autenticar.');
         }
+
+        $this->actingAs($admin)
+            ->get($rota)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page->component($component));
 
         $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode($rota));
         $page->assertSee($ancora);
+        $execution['executed'] = (int) $execution['executed'] + 1;
 
         // ESTABILIZAÇÃO (diagnóstico runs 27370651063/27370956421 — diff views):
         // (a) controles NATIVOS (select / input date|datetime|time) pintam com variação
@@ -154,6 +197,8 @@ foreach ($screens as $nome => [$rota, $ancora]) {
             page: $page,
             screenName: $nome,
             grayZone: $grayZone,
+            baselineFile: $baseline,
         );
+        $execution['compared'] = (int) $execution['compared'] + 1;
     });
 }

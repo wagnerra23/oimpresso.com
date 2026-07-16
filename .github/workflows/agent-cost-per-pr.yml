@@ -1,0 +1,62 @@
+name: Agent cost per PR (weekly · advisory)
+
+# CUSTO POR PR do agente (USD estimado) — item #7 do ranking adversarial da grade de
+# réguas 2026-07-12: fecha a última régua "só verbal" ("economize crédito" sem número).
+# Roda scripts/governance/agent-cost-per-pr.mjs.
+#
+# HONESTIDADE (G5 do script, ADR 0271 anti-teatro): a fonte viva é o JSONL LOCAL do
+# Claude Code (~/.claude/projects) — o CI NÃO enxerga. Este workflow NUNCA finge medir:
+# (1) roda o selftest hermético (fixtures-armadilha, join morde/libera);
+# (2) renderiza o ÚLTIMO snapshot commitado por um run local
+#     (`node scripts/governance/agent-cost-per-pr.mjs --snapshot` → data/*.json),
+#     com staleness declarada (>14d avisa); sem snapshot, diz isso no summary.
+# Próximo degrau: agregação server-side no ingest do cc-watcher (MCP server).
+#
+# DECONFLITO: NÃO é o agent-pr-outcomes.yml (DORA: aceitação/CFR/velocidade) — este
+# mede o CUSTO em USD/tokens do mesmo transporte PR→merge. Sem valores R$ (Tier 0):
+# nada aqui mapeia pra faturamento/receita.
+#
+# NÃO é gate de PR — advisory de nascença (ADR 0271/0275): só mede, nunca bloqueia.
+# Registrado em scripts/governance/gates-registry.json classe "automacao" (advisory).
+
+on:
+  schedule:
+    - cron: '20 9 * * 1'   # seg 09:20 UTC — logo após o agent-pr-outcomes (insumo do brief)
+  workflow_dispatch:
+
+concurrency:
+  group: agent-cost-per-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  measure:
+    name: custo por PR do agente (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # o self-test também roda na suíte governance-script-tests.yml (por PR);
+      # aqui é redundância de defesa antes de render o snapshot.
+      - name: Self-test (fixtures-armadilha · join morde/libera + preço de cache)
+        run: node scripts/governance/agent-cost-per-pr.test.mjs
+
+      - name: Render do snapshot local (ou declarar ausência)
+        run: |
+          SNAP=scripts/governance/data/agent-cost-per-pr-snapshot.json
+          {
+            echo '## Custo por PR — agente (USD · semanal · advisory)'
+            echo ''
+            echo 'ADVISORY (nao bloqueia). Fonte viva = JSONL local do dev (CI nao enxerga — G5).'
+            echo ''
+            if [ -f "$SNAP" ]; then
+              node scripts/governance/agent-cost-per-pr.mjs --render-snapshot "$SNAP"
+            else
+              echo '_(sem snapshot commitado — rode local `node scripts/governance/agent-cost-per-pr.mjs --snapshot` e commite `scripts/governance/data/agent-cost-per-pr-snapshot.json` pra este relatorio ter numero)_'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"

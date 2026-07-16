@@ -3,9 +3,9 @@ slug: 0159-module-grade-v3-errata-meta-97-realismo
 number: 159
 title: "module-grade-v3 errata — realismo meta 97.75 (D5 cross-cutting / D9.b ready / D4.b N/A / D3.b CHANGELOG)"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 decided_by: [W]
 decided_at: "2026-05-16"
 proposed_at: 2026-05-16

@@ -221,6 +221,7 @@ Log de tendência (append por sessão — NUNCA reescreve):
 |---|---|---|---|---|---|
 | 2026-06-02 | **75%** (E1=L-02, E2=L-21, E3=L-05) | 1 (detour venda) | 70% | 7.5 | baseline vermelho — o spike disparou a reestruturação desta sessão |
 | 2026-06-02 (b) | — (erro novo L-24, não recidiva) | **1** (casos sumiram, pego por [W]) | 70% | 7.5 | runner generalizado regrediu Oficina; corrigido. Decisão: teste estado-da-arte (Playwright+Storybook+data-testid) → `_PROPOSTA-0244`. Escape confirma: defesa atual não pega quebra de wiring. |
+| 2026-07-09 | **0%** (0 recidiva; sessão tooling de ponte design↔código) | **0** ([W] não pegou erro; o commit unsigned foi pego pelo stop-hook = guard, não [W]) | +1 nova (gate `data-contract` no lado vivo do map.json dispara sozinho) | 9 (selftests verdes + smoke real no `unificado.map.json`) | ponte design↔código map.json: mecanismo #4020 + deconflito dos 3 eixos (Code Connect=component-registry · arquivo=cowork-map · região=map.json) #4021 + âncora estável `data-contract` #4022. A pergunta [W] "o que conflita com Code Connect?" virou 3 PRs; furo do range-de-linha fechado com âncora estável. |
 
 ## 12. Gatilho de Reestruturação — "quando errar muito, me arrumo com minhas regras"
 
@@ -257,7 +258,7 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 | Espinha | `STATUS.md` · `MEMORY_INDEX.md` | — (só Cowork) | 1 | **início sempre** |
 | Método/este | `PROCESSO_MEMORIA_CC.md` | `prototipo-ui/PROCESSO_MEMORIA_CC.md` | 2 | **início sempre** |
 | Lições | `memory/LICOES_CC.md` | `memory/LICOES_CC.md` | 2 | **início sempre** |
-| Charter de tela | `<Tela>.charter.md` | `prototipo-ui/prototipos/<tela>/charter.md` | 2 | tocar a tela |
+| Charter de tela | `<Tela>.charter.md` | `resources/js/Pages/<Mod>/<Tela>.charter.md` (ao lado da `.tsx`) | 2 | tocar a tela |
 | Register de tela | `<Tela>.decisoes.md` | `prototipo-ui/prototipos/<tela>/decisoes.md` | 2 (snapshot) | tocar a tela |
 | Sessão | `memory/sessions/AAAA-MM-DD-*.md` | idem | 2 | fim de sessão |
 | ADR (lei) | `memory/decisions/NNNN-*.md` | idem | 2·[W] | decisão estrutural |
@@ -274,7 +275,7 @@ O processo sobrevive só enquanto for **lido, medido e auto-corrigido**. Invaria
 | IT | Verifica | Falha = |
 |---|---|---|
 | IT1 | Espinha existe: `STATUS` · `PROCESSO_MEMORIA_CC` · `MEMORY_INDEX` · `LICOES_CC` | processo cego |
-| IT2 | Todo `*.charter.md` tem `*.decisoes.md` irmão (e vice-versa) | tela órfã |
+| IT2 | Todo `*.charter.md` tem tela viva (`.tsx` irmão) — advisory | charter sem tela |
 | IT3 | `STATUS` aponta pra `PROCESSO_MEMORIA_CC` (ponteiro vivo) | always-read quebrado |
 | IT4 | `LICOES_CC`: L-NN contíguo, sem buraco/duplicata | lição perdida |
 | IT5 | Benchmark (§11) tem linha da última sessão | sem medição (Sobrevivência #1) |

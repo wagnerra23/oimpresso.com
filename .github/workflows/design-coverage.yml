@@ -1,0 +1,42 @@
+name: DS design-coverage (advisory)
+
+# Catraca da cobertura de DESIGN por tela: quantas telas DECLARAM sua fonte de design
+# (protótipo bespoke via related_prototype OU "n/a — segue DS/padrão" explícito). Complementa
+# o screen-coverage (charter/e2e/scorecard/a11y) com a dimensão UI-0013 (herança de Padrão de
+# Tela). `declared` só sobe — regressão bloqueia. Advisory (ADR 0314 — cobertura de design é
+# quality, não Tier-0); nunca bloqueia merge. Fix = declarar o Padrão/protótipo no charter +
+# `node scripts/qa/design-coverage.mjs --json` pra subir o piso.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'resources/js/Pages/**/*.tsx'
+      - 'prototipo-ui/ancora.mjs'
+      - 'memory/governance/design-coverage-baseline.json'
+  workflow_dispatch:
+
+concurrency:
+  group: design-coverage-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  design-coverage:
+    name: ds-design-coverage (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Catraca de cobertura de design (só sobe)
+        run: |
+          if node scripts/qa/design-coverage.mjs --check; then
+            echo "✅ cobertura de design não regrediu."
+          else
+            echo "::warning title=DS design-coverage::Uma tela perdeu a fonte de design declarada (declared regrediu). Declare o Padrão de Tela/protótipo no charter + rode 'node scripts/qa/design-coverage.mjs --json' (advisory, não bloqueia)."
+          fi

@@ -6,6 +6,7 @@ use App\Services\Support\SupportAccessService;
 use App\SupportAgent;
 use App\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Inertia\Testing\AssertableInertia as Assert;
 
@@ -93,4 +94,16 @@ it('UC-SUP-03 · sem capability 403 — usuário sem suporte é bloqueado na lis
     $naoAgente = makeEmpAgent('emp_nao_agente', grant: false, businessId: BIZ_CLIENTE_EMP);
 
     $this->actingAs($naoAgente)->get('/suporte/empresas')->assertStatus(403);
+});
+
+it('rota suporte.empresas roda AdminSidebarMenu (senão o sidebar fica vazio dentro do Modo Suporte)', function () {
+    $route = Route::getRoutes()->getByName('suporte.empresas');
+    expect($route)->not->toBeNull();
+
+    $middleware = $route->gatherMiddleware();
+    // Sem AdminSidebarMenu a instância 'admin-sidebar-menu' não é populada → ShellMenuBuilder
+    // devolve [] → sidebar renderiza "Menu vazio" (regressão observada em prod 2026-07-08).
+    expect($middleware)->toContain('AdminSidebarMenu');
+    // Guarda de regressão: o gate de acesso não pode sumir junto.
+    expect($middleware)->toContain('support.access');
 });

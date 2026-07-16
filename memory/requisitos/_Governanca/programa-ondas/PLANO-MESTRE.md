@@ -59,7 +59,7 @@ related_adrs:
 | 6.3 Régua telas Fiscal | (template) | — | ✅ 7 scorecards (Nfe UX 84 · Sped UX 68 **d1 aplica ✔** cross_check/golden✘ · casos 0% G-2; 4 agents) (#3761) | ~3h (4 agents) |
 | 6.4 Catraca+sentinela Fiscal | (template) | — | ✅ emergente — verificado 2026-07-03: ratchet bloqueia `fiscal-sped` 68→50 (exit 1 · "PR bloqueado"); sentinela `exposicao-tier0` cobre telas fiscal-Tier0 (peso 3); casos-gate vê 7 casos.md (débito −13) (sem gate novo) | ~1h |
 
-> Onda 3 (Financeiro) **encaixa no `_Roadmap_Faturamento.md`** por [ADR 0320](../../decisions/proposals/0320-programa-ondas-regua-correcao.md) (T6 — Faturamento é canon macro; correção transversal ancora lá, status vivo aqui). Não é doc paralelo. Mesmo padrão valerá pra NfeBrasil/RecurringBilling.
+> Onda 3 (Financeiro) **encaixa no `_Roadmap_Faturamento.md`** por [ADR 0320](../../decisions/0320-programa-ondas-regua-correcao.md) (T6 — Faturamento é canon macro; correção transversal ancora lá, status vivo aqui). Não é doc paralelo. Mesmo padrão valerá pra NfeBrasil/RecurringBilling.
 
 > Estimativas em horas-agente IA-pair (fator 10x ADR 0106); tarefas humano-limitadas (OK [W], canary) seguem relógio real.
 

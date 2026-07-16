@@ -48,6 +48,7 @@ Sem tocar valor/FSM: busca multi-campo (P) · faixa de 6 KPIs clicáveis por eta
 ## Decisões de [W] (2026-06-30, sessão musing-elion)
 
 1. ✅ **Deprecar ghost `OficinaAuto/Os/`** — APLICADO. `Os/Create.charter.md` → `status: deprecated` + banner de decisão; `visual_source: oficina-os-page.jsx` em `ServiceOrders/Show.charter.md` → detector aponta o mockup pro canon (verificado: `oficina-os-page → ServiceOrders/Show.tsx`, 0 órfãos).
+   - _Update 2026-07-09:_ charter deprecated **arquivado** — movido de `Pages/OficinaAuto/Os/Create.charter.md` → [`_arquivo/Os-Create.charter.md`](_arquivo/Os-Create.charter.md) (lápide L-22; pasta `Os/` removida das Pages). Motivo: promoção do IT2 (integrity-check §15) a duro — charter em Pages exige `.tsx` irmão vivo.
 2. ✅ **C (`Repair/ProducaoOficina`) é redundante → deprecar** — DECIDIDO, plano abaixo (NÃO aplicado: mexe em rota/controller/Sells/teste → gate de paridade + go de [W]).
 
 ---

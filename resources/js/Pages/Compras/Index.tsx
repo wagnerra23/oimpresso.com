@@ -13,6 +13,10 @@ import VisibilidadeColunas, { type ColumnDef, useColumnVisibility } from './comp
 
 type Stage = 'rascunho' | 'pedido' | 'transito' | 'recebido' | 'conferido' | 'pago' | 'cancelada';
 
+// Status CORE do UltimatePOS (transactions.status) — o que o backend REALMENTE manda (inglês).
+// Fonte canônica: memory/dominio/compras.md → ordered=pedido · pending=aguardando · received=recebida.
+type CoreStatus = 'draft' | 'ordered' | 'pending' | 'received' | 'cancelled';
+
 interface Kpis {
   aberto: number;
   transito: number;
@@ -27,7 +31,7 @@ interface Row {
   transaction_date: string;
   name: string | null; // contact name
   supplier_business_name: string | null;
-  status: Stage;
+  status: CoreStatus | string; // core cru do backend — normalizado p/ exibição via stageOf()
   payment_status: string;
   final_total: number;
   location_name: string;
@@ -103,11 +107,28 @@ const DEFAULT_COL_VISIBILITY: Record<string, boolean> = {
 const STAGES: { id: Stage; l: string; ic: string }[] = [
   { id: 'rascunho', l: 'Rascunho', ic: '○' },
   { id: 'pedido', l: 'Pedido', ic: '✎' },
-  { id: 'transito', l: 'Em trânsito', ic: '⇨' },
-  { id: 'recebido', l: 'Recebido', ic: '⊞' },
+  { id: 'transito', l: 'Aguardando', ic: '⇨' },
+  { id: 'recebido', l: 'Recebida', ic: '⊞' },
   { id: 'conferido', l: 'Conferido', ic: '✓' },
   { id: 'pago', l: 'Pago', ic: '$' },
 ];
+
+// Normaliza o status CORE (transactions.status, inglês) → id PT do FSM acima.
+// Sem isso o pill caía no fallback e mostrava "RECEIVED" cru, e os filtros de aba
+// (que comparavam em PT) nunca batiam com o dado (inglês). memory/dominio/compras.md.
+const CORE_TO_STAGE: Record<string, Stage> = {
+  draft: 'rascunho',
+  ordered: 'pedido',
+  pending: 'transito',
+  received: 'recebido',
+  cancelled: 'cancelada',
+  // aliases defensivos: se o backend já mandar o id PT, passa reto
+  rascunho: 'rascunho', pedido: 'pedido', transito: 'transito',
+  recebido: 'recebido', conferido: 'conferido', pago: 'pago', cancelada: 'cancelada',
+};
+function stageOf(coreStatus: string): Stage {
+  return CORE_TO_STAGE[coreStatus] ?? 'rascunho';
+}
 
 function fmtMoney(v: number | null | undefined): string {
   return 'R$ ' + Number(v ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -204,8 +225,8 @@ function ComprasIndex({ filters, selected_id, permissions, kpis, rows, summary, 
     const data = rows.data;
     if (localFilter === 'all') return data;
     if (localFilter === 'abertas') return data.filter((p) => dueAmount(p) > 0);
-    if (localFilter === 'rascunhos') return data.filter((p) => p.status === 'rascunho');
-    if (localFilter === 'transito') return data.filter((p) => p.status === 'transito' || p.status === 'pedido');
+    if (localFilter === 'rascunhos') return data.filter((p) => stageOf(p.status) === 'rascunho');
+    if (localFilter === 'transito') return data.filter((p) => stageOf(p.status) === 'transito' || stageOf(p.status) === 'pedido');
     return data;
   }, [rows, localFilter]);
 
@@ -383,7 +404,7 @@ function KpisGrid({ k }: { k: Kpis }) {
       <div className="kpi warn">
         <small>A pagar</small>
         <b>{k.aberto}</b>
-        <div className="ln">compras em aberto (due + partial)</div>
+        <div className="ln">compras com saldo em aberto</div>
       </div>
       <div className="kpi">
         <small>Em trânsito</small>
@@ -393,12 +414,12 @@ function KpisGrid({ k }: { k: Kpis }) {
       <div className="kpi">
         <small>Volume do mês</small>
         <b>{fmtMoney(k.mes)}</b>
-        <div className="ln">soma final_total mês corrente</div>
+        <div className="ln">total comprado no mês</div>
       </div>
       <div className="kpi ok">
         <small>Fornecedores ativos</small>
         <b>{k.fornec}</b>
-        <div className="ln">distinct contact_id</div>
+        <div className="ln">fornecedores com compra no período</div>
       </div>
     </div>
   );
@@ -550,7 +571,8 @@ function TableCompras({
         <tbody>
           {rows.map((p) => {
             const due = dueAmount(p);
-            const stageInfo = STAGES.find((x) => x.id === p.status);
+            const stageId = stageOf(p.status);
+            const stageInfo = STAGES.find((x) => x.id === stageId);
             return (
               <tr
                 key={p.id}
@@ -565,7 +587,7 @@ function TableCompras({
                   <td onClick={(e) => e.stopPropagation()} style={{ cursor: 'default' }}>
                     <AcoesDropdown
                       compraId={p.id}
-                      status={p.status}
+                      status={stageId}
                       paymentStatus={p.payment_status}
                       onOpenDrawer={onOpenDrawer}
                     />
@@ -587,9 +609,9 @@ function TableCompras({
                 {v.estagio && (
                   <td>
                     {stageInfo ? (
-                      <span className={`pill ${p.status}`}>{stageInfo.l}</span>
+                      <span className={`pill ${stageId}`}>{stageInfo.l}</span>
                     ) : (
-                      <span className="pill">{p.status}</span>
+                      <span className={`pill ${stageId}`}>{stageId}</span>
                     )}
                   </td>
                 )}

@@ -3,7 +3,7 @@ slug: 0076-skills-db-primary-git-destino-drift-alert
 number: 0076
 title: "Skills V2 — DB é primary, git é destino auditável; drift por-skill (auto/manual/pinned)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

@@ -3,21 +3,20 @@ slug: 0170-paymentgateway-extracao-camada-cobranca
 number: 170
 title: "Modules/PaymentGateway — extração da camada técnica de cobrança"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 decided_by:
   - W
 decided_at: '2026-05-19'
 quarter: 2026-Q2
 related:
-  - '0079'
-  - '0080'
-  - '0093'
-  - '0094'
-  - '0101'
-  - '0114'
-  - '0143'
+  - 0079-constituicao-oimpresso-7-camadas-governanca
+  - 0080-trust-tiers-operacional-audit-findings
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
 amends:
   - '0017'
 pii: false

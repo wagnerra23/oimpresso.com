@@ -1,6 +1,7 @@
 ---
 page: /cliente/{id} (canon) · /contacts/{id} (legacy dual-render)
 component: resources/js/Pages/Cliente/Show.tsx
+related_prototype: n/a (herda PT-03 Detalhe; segue o Padrão de Tela)
 owner: wagner
 status: deprecated
 status_detail: superseded

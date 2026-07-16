@@ -1,0 +1,4 @@
+# Lane de JUnit da fixture (V6-C): coloca SelftestVerde/Tests DENTRO de uma lane de JUnit,
+# pra que o verde-por-arquivo julgue o teste (inLane=true). Aqui o teste está skipped no summary
+# → não-verde → req_teste_vermelho → exit 1 (o gate verde MORDE o skipped in-lane).
+Modules/SelftestVerde/Tests

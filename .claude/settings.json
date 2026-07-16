@@ -73,15 +73,19 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-automem.ps1"
+            "command": "node .claude/hooks/block-automem.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-memory-drift.ps1"
+            "command": "node .claude/hooks/block-brl-values-in-memory.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-mwart-violation.ps1"
+            "command": "node .claude/hooks/block-memory-drift.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/block-mwart-violation.mjs"
           },
           {
             "type": "command",
@@ -126,11 +130,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-destructive.ps1"
+            "command": "node .claude/hooks/block-destructive.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/pii-redactor.ps1"
+            "command": "node .claude/hooks/pii-redactor.mjs"
           },
           {
             "type": "command",
@@ -138,11 +142,11 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-claim-without-evidence.ps1"
+            "command": "node .claude/hooks/block-claim-without-evidence.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
+            "command": "node .claude/hooks/post-merge-ui-smoke-required.mjs"
           },
           {
             "type": "command",
@@ -151,11 +155,11 @@
         ]
       },
       {
-        "matcher": "mcp__computer-use__screenshot|mcp__Claude_in_Chrome__.*",
+        "matcher": "mcp__computer-use__screenshot|mcp__[Cc]laude[-_][Ii]n[-_][Cc]hrome__.*",
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
+            "command": "node .claude/hooks/post-merge-ui-smoke-required.mjs"
           }
         ]
       },
@@ -191,7 +195,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-test-fora-ct100.ps1"
+            "command": "node .claude/hooks/block-test-fora-ct100.mjs"
           }
         ]
       }
@@ -202,7 +206,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/post-merge-ui-smoke-required.ps1"
+            "command": "node .claude/hooks/post-merge-ui-smoke-required.mjs"
           }
         ]
       },
@@ -258,6 +262,10 @@
           {
             "type": "command",
             "command": "node .claude/hooks/design-compare-protocol.mjs"
+          },
+          {
+            "type": "command",
+            "command": "node .claude/hooks/design-agente-ativa.mjs"
           }
         ]
       }

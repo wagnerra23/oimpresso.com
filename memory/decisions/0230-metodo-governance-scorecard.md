@@ -3,7 +3,7 @@ slug: 0230-metodo-governance-scorecard
 number: 230
 title: "Método Governance Scorecard — pontuar regras vs estado-da-arte + anti-regressão justificada + rastreabilidade teste→memória"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]

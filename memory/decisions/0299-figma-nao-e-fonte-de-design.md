@@ -3,7 +3,7 @@ slug: 0299-figma-nao-e-fonte-de-design
 number: 299
 title: "Figma não é fonte de design: bloqueio determinístico do atrator + fonte única (Cowork + DS + charter)"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: decision

@@ -30,7 +30,12 @@ const opt = (n) => { const i = args.indexOf(n); return i >= 0 ? args[i + 1] : nu
 const ROOT = opt('--root') || process.cwd();
 const BASELINE = opt('--baseline') || join(ROOT, 'scripts/tests/baselines/foundation-ratchet-baseline.json');
 
-const MARKER = /@group\s+legacy-quarantine\b|#\[Group\(['"]legacy-quarantine['"]\)\]|->group\(['"]legacy-quarantine['"]/;
+// MARKER — o `@group legacy-quarantine` do PHPDoc só conta como ANOTAÇÃO real (início de linha
+// de docblock: `* @group …`), NÃO como MENÇÃO em prosa ("…é @group legacy-quarantine, fora de lane"
+// falando de OUTRO teste). Sem essa âncora, a menção em docstring inflava n_quarantine (FORMA, não
+// USO — mesmo falso-positivo que o refreshDatabaseTraitUsed já corrige; ADR 0275 métrica honesta).
+// Pego 2026-07-08: ClienteImport/MapInertiaTest citavam Wave1*Test no docblock → +2 falso-positivo.
+const MARKER = /(?:^|\n)[ \t]*\*?[ \t]*@group[ \t]+legacy-quarantine\b|#\[Group\(['"]legacy-quarantine['"]\)\]|->group\(['"]legacy-quarantine['"]/;
 const REASON = /quarantine-reason:\s*\S/;
 
 // USO REAL do trait RefreshDatabase (≠ MENÇÃO). Conta só quem APLICA o trait:

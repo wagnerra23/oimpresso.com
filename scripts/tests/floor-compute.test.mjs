@@ -54,6 +54,30 @@ try {
   rmSync(root1, { recursive: true, force: true });
 
   ok(computeFloor([], 3).floor_count === null, '0 runs → floor_count null');
+
+  // v2 SHARD-AWARE — guard anti-mascaramento (SDD P04)
+  ok(f.all_shards_measured === true, 'runs sem o campo (legado não-shardeado) → all_shards_measured=true (back-compat)');
+
+  const rootS = join(tmpdir(), `floor-shard-${process.pid}`);
+  const mkS = (name, files, allMeasured) => {
+    const d = join(rootS, name); mkdirSync(d, { recursive: true });
+    writeFileSync(join(d, 'summary.json'), JSON.stringify({
+      coherent: true, n_testcases: 100, all_shards_measured: allMeasured,
+      totals: { failed: files.length, errors: 0, skipped: 0 },
+      files: files.map((x) => ({ file: x, failed: 1, errors: 0 })),
+    }));
+  };
+  // 2 noites completas (all_shards_measured:true) → floor vendido normalmente
+  mkS('20260301-020000', ['F1', 'F2'], true);
+  mkS('20260302-020000', ['F1', 'F2'], true);
+  let fs2 = computeFloor(validRuns(rootS), 3);
+  ok(fs2.floor_count === 2 && fs2.all_shards_measured === true, '2 noites shardeadas completas → floor=2, all_shards_measured=true');
+  // 3ª noite PARCIAL (shard morto) entra na janela → floor NÃO vendido (anti-mascaramento)
+  mkS('20260303-020000', ['F1'], false); // F2 sumiria por o shard dele ter crashado → floor falso-menor
+  const fp = computeFloor(validRuns(rootS), 3);
+  ok(fp.floor_count === null, 'janela com noite PARCIAL → floor_count null (não vira burn-down fake)');
+  ok(fp.all_shards_measured === false && fp.partial_runs.includes('20260303-020000'), 'all_shards_measured=false + partial_runs aponta a noite morta');
+  rmSync(rootS, { recursive: true, force: true });
 } finally { rmSync(root, { recursive: true, force: true }); }
 
 console.log(fails === 0 ? '\n  floor-compute (ADR 0279 PR-2): OK\n' : `\n  floor-compute: ${fails} FALHA(S)\n`);

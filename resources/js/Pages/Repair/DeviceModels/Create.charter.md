@@ -1,6 +1,7 @@
 ---
 page: /repair/device-models/create
 component: resources/js/Pages/Repair/DeviceModels/Create.tsx
+related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-05-17"

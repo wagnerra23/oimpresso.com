@@ -204,12 +204,14 @@ export function KpiStripClickable({
               'group flex items-center gap-3 p-3 rounded-md border text-left transition-all ' +
               (on ? 'shadow-sm' : 'bg-card hover:shadow-sm')
             }
-            // canon v3.4 polish (Wagner 2026-05-25): border warm `oklch(0.9 0.004 90)`
-            // (cream-deeper · familia hue 90) substitui `border-border` cool slate-200.
-            // Espelha /sells `.os-kpi` exato. Afinidade visual com fundo cream.
+            // canon v3.4 polish (Wagner 2026-05-25): contorno warm no light (era hardcoded
+            // `oklch(0.9 0.004 90)`, cream-deeper hue 90). dark-aware (2026-07-15): trocado
+            // por `var(--border)` (light 0.90 warm → dark 0.34) — no light fica idêntico,
+            // no dark o contorno vira hairline escuro sutil (corrige creme brilhante). Dá a
+            // "profundidade do contorno" pedida pelo Wagner sem mexer no layout de cards.
             style={on
               ? { borderColor: tone.border, backgroundColor: tone.bgActive }
-              : { borderColor: 'oklch(0.9 0.004 90)' }}
+              : { borderColor: 'var(--border)' }}
           >
             <div
               className="h-9 w-9 rounded-md flex items-center justify-center flex-shrink-0"

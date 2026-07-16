@@ -45,6 +45,14 @@ on:
       - 'scripts/governance/component-registry-check.test.mjs'
       - 'scripts/governance/dtcg-equivalence.mjs'
       - 'scripts/governance/dtcg-equivalence.test.mjs'
+      - 'scripts/governance/design-code-map-check.mjs'
+      - 'scripts/governance/design-code-map-check.test.mjs'
+      - 'prototipo-ui/gerar-map.mjs'
+      - 'prototipo-ui/consumir-map.mjs'
+      - 'memory/requisitos/**/*.map.json'
+      - 'memory/requisitos/**/*.proto-baseline.json'
+      - 'memory/requisitos/**/*-gap.md'
+      - 'prototipo-ui/render-proto-baseline.mjs'
       - '.github/workflows/design-memory-gate.yml'
   workflow_dispatch:
 
@@ -72,6 +80,11 @@ jobs:
       - name: component-registry-check (advisory · report-only)
         continue-on-error: true
         run: node scripts/governance/component-registry-check.mjs --check --strict
+      # papel-duplicado (ADR proposta tab-nav-canonico) — advisory · report-only.
+      # Surface os hand-rolls independentes de papel canonizado (barra de abas de topo).
+      - name: component-registry-check --roles (advisory · report-only)
+        continue-on-error: true
+        run: node scripts/governance/component-registry-check.mjs --roles
 
   # ── ex-design-memory-gates.yml ──────────────────────────────────────────────
   gates:
@@ -100,6 +113,24 @@ jobs:
       - name: design-diff selftest (mede o que o olho perdeu · LC-06)
         run: node prototipo-ui/design-diff.mjs --selftest
 
+      # style-fingerprint selftest: o VETOR de estilo completo (bbox, nº de linhas, overflow,
+      # cor computada, radius, borda) por tema — regras 4/5/7 do inventário da Fase 1. Fixtures
+      # com divergências plantadas (2-linhas, cor, radius, só-de-um-lado · L-31, provado dos dois
+      # lados). Era o ÚNICO selftest do protocolo de aplicação de protótipo que não rodava em CI
+      # (órfão); se o comparador de estilo parar de morder, quebra VERMELHO junto do design-diff
+      # (os 2 comparadores da Fase 1). Puro node, sem browser/deps — o --snippet/--compare é que
+      # dependem de página renderizada; o --selftest é hermético.
+      - name: style-fingerprint selftest (vetor de estilo · regras 4/5/7 · Fase 1)
+        run: node prototipo-ui/style-fingerprint.mjs --selftest
+
+      # protocolo.config selftest: a FONTE ÚNICA executável do protocolo (IDs dos 2 projetos
+      # Cowork, staging fixo, mapa fase→comando). Trava drift — 2 IDs válidos+distintos (a confusão
+      # dos projetos mordeu 3× em 2026-07-06), MIRROR_DIR presente, e TODO script do mapa FASES
+      # existe. Se alguém renomear/mover um script do protocolo ou colidir os IDs, quebra VERMELHO.
+      # "O protocolo sabe" deixa de depender do agente ter lido o INDEX §0.2 (Wagner 2026-07-09).
+      - name: protocolo.config selftest (fonte única · IDs + paths + mapa de fases)
+        run: node prototipo-ui/protocolo.config.mjs --selftest
+
       # DS-GUARD nos arquivos TOCADOS (css/html de design-memory). O ds-guard so
       # checa .css/.html; .tsx e ignorado por ele (log '. ... ignorado'), entao
       # alimentamos so o que ele entende. Sem arquivos tocados -> ds-guard imprime
@@ -127,7 +158,7 @@ jobs:
         continue-on-error: true
         run: node prototipo-ui/ds-guard.mjs --all
 
-      # integrity-check: a propria memoria nao corrompeu (espinha · pares charter/decisoes ·
+      # integrity-check: a propria memoria nao corrompeu (espinha · charter tem tela viva .tsx ·
       # LICOES contiguas · benchmark). Sai 1 se algum IT duro falhar; advisory aqui.
       - name: Integrity check (espinha da memoria · §15)
         if: always()
@@ -138,7 +169,9 @@ jobs:
       # protocolo aplicar-prototipo). O fixture hermetico (prototipo-ui/fixtures/detectar-telas/)
       # prova: mockup sem charter resolvido por ALIAS (P0 lock) · orfao detectado · diff
       # diffavel correto. O modo --staging (bundle->repo) so roda local (bundle vive fora do
-      # repo). Advisory de nascenca (ADR 0271/0275). TODO: integrar good/bad em gate-selftest.mjs.
+      # repo). Advisory de nascenca (ADR 0271/0275). Já integrado ao gate-selftest.mjs (id
+      # 'detectar-telas', good/bad em tests/governance-fixtures/) — este step aqui é a redundância
+      # de defesa dentro do gate de design; a catraca required vive no gate-selftest.
       - name: detectar-telas selftest (gate de import · Fase 0/0.5)
         # if: always() — roda mesmo quando um step hard-fail antes (ex: cowork-ssot-guard com
         # drift pre-existente prototipos/perfil) skiparia os steps seguintes. O selftest e'
@@ -215,6 +248,57 @@ jobs:
         if: always()
         continue-on-error: true
         run: node prototipo-ui/analise-regiao.mjs --selftest
+      # Fase 1 do RUNBOOK: <tela>.map.json — ponte design↔código persistente (Code-Connect-like).
+      # gerar-map deriva o esqueleto do gap.md (nunca fabrica linha); design-code-map-check valida
+      # âncoras no disco + detecta STALE via sha (protótipo re-exportou) + calcula a % de telas
+      # com mapping versionado (métrica gradeável do roadmap #1, estado-da-arte 2026-06-22).
+      - name: gerar-map selftest (Fase 1 — esqueleto do map.json)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/gerar-map.mjs --selftest
+      # Fase 4: consumir-map é o CONSUMO do map.json (PR-C 2026-07-09) — portão de frescor por
+      # CONTEÚDO (ADR 0324, sha256:contentHash — pega re-export sem commit, imune a commit que
+      # toca path sem mudar conteúdo) + plano de leitura (a sessão abre SÓ os ranges).
+      - name: consumir-map selftest (Fase 4 — portão de frescor morde exit 3 / solta plano)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/consumir-map.mjs --selftest
+      - name: design-code-map-check selftest (morde âncora quebrada + sha stale · libera íntegro/TODO)
+        if: always()
+        run: node scripts/governance/design-code-map-check.test.mjs
+      - name: design-code-map-check (advisory · report-only · cobertura + drift real)
+        if: always()
+        continue-on-error: true
+        run: node scripts/governance/design-code-map-check.mjs --check --strict
+      # PROTO-BASELINE (roubo #7, régua Applitools Eyes): o design renderizado vira baseline
+      # versionado (<tela>.proto-baseline.json) e a prod é comparada contra a INTENÇÃO, não só
+      # contra o próprio passado. FRONTEIRA ADR 0290: o RENDER roda LOCAL (--gerar recusa sob CI,
+      # exit 4 — render pareado em CI passa verde quando os 2 lados quebram); AQUI só roda o
+      # --check HERMÉTICO sobre o JSON commitado: schema + âncora re-resolvida do charter
+      # (ancora.mjs, ADR 0326) + freshness por prototipo_sha (padrão do map.json — proto
+      # re-exportou = STALE). Selftest hard (a suite que valida o gate não pode mentir);
+      # check advisory de nascença (ADR 0271/0275/0314 — nunca required sem reabrir a 0314).
+      - name: render-proto-baseline selftest (morde stale/âncora/vazio · libera íntegro · fronteira 0290)
+        if: always()
+        run: node prototipo-ui/render-proto-baseline.mjs --selftest
+      - name: proto-baseline check (advisory · hermético — âncora + freshness dos baselines commitados)
+        if: always()
+        continue-on-error: true
+        run: node prototipo-ui/render-proto-baseline.mjs --check
+      # O COMPARE possível em CI (fronteira ADR 0290 — o compare REAL proto×prod exige render
+      # dos DOIS lados = LOCAL por lei): mapear os arquivos da PR pros baselines commitados do
+      # mesmo módulo e apontar o comando local exato (--nudge, exit 0 sempre). Zero render,
+      # zero rede — git diff × JSONs commitados. Lado-proto coberto pelo --check acima (sha
+      # STALE quando o protótipo re-exporta); lado-Page coberto por este nudge + passo local
+      # do RUNBOOK-fidelidade-fingerprint §Baseline.
+      - name: proto-compare nudge (advisory · aponta o compare LOCAL pro módulo afetado)
+        if: always()
+        continue-on-error: true
+        run: |
+          BASE="origin/${{ github.base_ref }}"
+          if [ -z "${{ github.base_ref }}" ]; then BASE="origin/main"; fi
+          git diff --name-only "$BASE"...HEAD -- 'resources/js/Pages/**' \
+            | node prototipo-ui/render-proto-baseline.mjs --nudge | tee -a "$GITHUB_STEP_SUMMARY"
 
   # ── ex-dtcg-equivalence.yml (Onda DTCG ATIVADA) ──────────────────────────────
   prove:

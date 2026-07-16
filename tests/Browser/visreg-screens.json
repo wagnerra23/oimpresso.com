@@ -1,0 +1,50 @@
+[
+  {
+    "screen": "Financeiro/Unificado",
+    "source": "Financeiro/Unificado",
+    "component": "Financeiro/Unificado/Index",
+    "route": "/financeiro/unificado",
+    "anchor": "Financeiro",
+    "baseline": "it_Financeiro_Unificado_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Compras",
+    "source": "Compras",
+    "component": "Compras/Index",
+    "route": "/compras",
+    "anchor": "Compras",
+    "baseline": "it_Compras_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Clientes",
+    "source": "Cliente",
+    "component": "Cliente/Index",
+    "route": "/cliente",
+    "anchor": "Clientes",
+    "baseline": "it_Clientes_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Oficina/OS",
+    "source": "OficinaAuto/ServiceOrders/Board",
+    "component": "OficinaAuto/ServiceOrders/Board",
+    "route": "/oficina-auto/ordens-servico",
+    "anchor": "Oficina Auto",
+    "baseline": "it_Oficina_OS_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Sells/Index",
+    "source": "Sells",
+    "component": "Sells/Index",
+    "route": "/sells",
+    "anchor": "Vendas",
+    "baseline": "it_Sells_Index_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Sells/Create",
+    "source": "Sells/Create",
+    "component": "Sells/Create",
+    "route": "/sells/create",
+    "anchor": "Adicionar venda",
+    "baseline": "it_Sells_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  }
+]

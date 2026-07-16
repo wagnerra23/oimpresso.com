@@ -13,10 +13,12 @@ name: Tier-0 guards
 # ARMADO 2026-06-30: PR #3438 zerou as 2 violações; CT 100 (oimpresso-staging) e o
 # CI provaram `2 passed (4 assertions)`. O `continue-on-error: true` foi REMOVIDO —
 # o job agora reporta FAILURE de verdade se qualquer guard violar (não mascara mais).
-# O check entrou no governance/required-checks-baseline.json no MESMO lote; o flip
-# pra required na branch protection é ação do Wagner (ADR 0275 §5 / R10).
-# ⚠️ O nome do job ("...advisory...") é mantido LITERAL — é o context string já
-# registrado no baseline; renomear quebraria o binding do required check.
+# ⚠️ O NOME DO ARQUIVO ainda diz "advisory" — resíduo histórico. O NOME DO JOB não:
+# foi renomeado pra "Tier-0 guards (WithoutGlobalScopes + BusinessId)" no P14 (2026-07-01,
+# "o nome mentia"), e é esse o context registrado. Renomear o JOB quebraria o binding do
+# required check — renomear o ARQUIVO é seguro (o context não vem do filename), só não
+# vale o churn. Enforcement vigente: governance/required-checks-baseline.json.
+# (higiene 2026-07-16: o comentário anterior defendia um rename que já tinha ocorrido.)
 #
 # Guards são varredura estática + unit (Symfony Finder sobre o filesystem): NÃO
 # precisam de MySQL/migrate. Por isso o setup mais leve disponível (sqlite :memory:),

@@ -15,6 +15,8 @@ lifecycle: active
 
 # Auditoria skills atuais — pós-Constituição (v2)
 
+> ⚠️ **Reconciliação v2 (2026-07-15):** menções abaixo a *"`mwart-comparative` aguarda Wagner aprovar SCREENSHOT síncrono / é o gate visual"* refletem o loop **v1** — **superadas** pela v2 ([ADR 0241](../../decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md) + [ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md)): o gate visual é **CI** (visual-regression + PR UI Judge), **não** aprovação síncrona. O agente Code **é** o designer-agente com acesso completo ao design ([PROTOCOL §0.1](../../../prototipo-ui/PROTOCOL.md)). Texto v1 preservado como histórico (append-only).
+
 > **v2 — 2026-05-09** corrige drift detectado pela skill [`audit-constituicao`](../../../.claude/skills/audit-constituicao/SKILL.md) (recém-criada, primeira execução do audit 6-dimensional). Doc original (v1, 2026-05-06) parou no momento do PR Constituição v2 e não acompanhou as 9 skills criadas depois + 3 renames + drift triplo Tier A.
 >
 > **Lifecycle anterior:** v1 fica preservada como `superseded` no histórico git (commit `8e7f5657` linha 1‑208). Esta v2 substitui na íntegra.

@@ -42,6 +42,12 @@
 //   node scripts/layout-primitives-guard.mjs                  # validate vs baseline (default)
 //   node scripts/layout-primitives-guard.mjs --write-baseline # (re)grava baseline (consciente)
 //   node scripts/layout-primitives-guard.mjs --json           # saída JSON pra CI
+//   node scripts/layout-primitives-guard.mjs --root <dir>     # raiz de scan (default: cwd) — pro selftest
+//   node scripts/layout-primitives-guard.mjs --baseline <path># baseline alternativo (default: o hardcoded)
+//
+// FLAGS --root/--baseline: existem SÓ pra o gate-selftest (GT-G6) rodar o gate real
+// contra fixtures isoladas. SEM elas, o comportamento é IDÊNTICO ao de produção
+// (ROOT = cwd, baseline = scripts/layout-primitives-baseline.json) — backward-compat.
 //
 // RATCHET: baseline (scripts/layout-primitives-baseline.json) fotografa a CONTAGEM
 // atual POR ARQUIVO. Gate falha se algum arquivo AUMENTAR vs baseline, ou se um
@@ -54,8 +60,17 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 
-const ROOT = process.cwd();
-const BASELINE_PATH = resolve(ROOT, 'scripts/layout-primitives-baseline.json');
+// --root <dir> / --baseline <path>: valor no argv seguinte à flag. Sem a flag → default
+// idêntico ao de hoje (cwd / baseline hardcoded relativo ao ROOT). Backward-compat.
+function argValue(flag) {
+  const i = process.argv.indexOf(flag);
+  return i !== -1 && process.argv[i + 1] ? process.argv[i + 1] : null;
+}
+
+const ROOT_ARG = argValue('--root');
+const ROOT = ROOT_ARG ? resolve(ROOT_ARG) : process.cwd();
+const BASELINE_ARG = argValue('--baseline');
+const BASELINE_PATH = BASELINE_ARG ? resolve(BASELINE_ARG) : resolve(ROOT, 'scripts/layout-primitives-baseline.json');
 const MODE_WRITE = process.argv.includes('--write-baseline');
 const MODE_JSON = process.argv.includes('--json');
 

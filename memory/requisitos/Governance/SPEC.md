@@ -744,3 +744,74 @@ Homônimo exposto pela sentinela `memory-health` (Check U `dir-homonimo`): `memo
 **Definition of Done (verificável):** `node scripts/governance/memory-health.mjs` → Check U `dir-homonimo` **= 0**.
 
 Origem: sessão 2026-07-04. Proposta por `governance-backlog-sync`. `<!-- gov-sync: dir-homonimo -->`
+
+### US-GOV-049 · Ratificar ADR 0329 (doutrina documentação de processo) — flip proposto→aceito
+
+> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+- ADR 0329 mergeada no main (#4008) com `status: proposto` — as 5 propriedades (executável/fonte-única/ligada-ao-gate/cross-plataforma/auto-fresca)
+- Ratificar = editar O MESMO arquivo `memory/decisions/0329-doutrina-documentacao-de-processo-executavel.md`: `status: proposto → aceito` (append-only, não move de pasta)
+- Depois: `node scripts/governance/adr-index-generate.mjs --write` + commitar índice junto
+- Só então a doutrina entra na busca default do `decisions-search` (scopePorStatusAtivo)
+
+### US-GOV-050 · Ratificar 0314 (por-item) + 0299 e mover 0320 aceita presa em proposals/
+
+> owner: wagner · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+- 0314 (poda de gates): `accepted_via` diz "aguarda ratificação POR ITEM" — decisão [W] item a item; já executou em prod (required 29→22)
+- 0299 (figma não é fonte): `status: proposto` mas citada como canon no CLAUDE.md — flip proposto→aceito
+- **Bug vivo**: 0320 está `status: aceito` porém PRESA em `memory/decisions/proposals/` → invisível ao MCP (o sync faz glob não-recursivo). Mover pro top-level `memory/decisions/0320-*.md` + `adr-index-generate --write`
+- Destrava os consertos P19/P20/P21/P4 da revisão (âncora required = ADR enacted)
+
+### US-GOV-051 · Review + merge PRs #4009 (tombstones P16) e #4010 (ref-integrity P10)
+
+> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story
+> blocked_by: —
+
+- #4009: cura 18 tombstones de path-fantasma (follow-up do knowledge-drift ghost #4006) — CLEAN, verde
+- #4010: sentinela `ref-integrity.mjs` advisory (middleware fantasma / colisão de rota / route() inexistente no sidebar / Inertia::render sem .tsx) — os 4 anti-padrões F3 que o PHPStan não vê
+- Últimos 2 dos 5 chips da revisão da memória do processo (2026-07-09); os outros 4 já mergeados (#4004/#4005/#4006/#4007)
+
+### US-GOV-052 · Backlog da revisão da memória do processo — consertos M/G restantes
+
+> owner: — · priority: p2 · estimate: 16h · status: todo · type: story
+> blocked_by: —
+
+- Relatório completo: artifact "revisao-memoria-processo" (sessão 2026-07-09) — 26 consertos sobreviventes ao adversário, 10 rejeitados (não re-propor)
+- Restantes: P24 (portar 5-7 blockers Tier-0 .ps1→.mjs ANTES do time MCP entrar em Mac/Linux) · P31/P32/P33 (hue/skill-tier/fase fonte-única) · P6/P13/P35 (manifest duro-vs-advisory, anti-sentinela-órfã, anti-verde-no-vácuo) · P11-A (excludePaths PHPStan, prova no CT100 antes)
+- Regra transversal: cada guarda nasce com fixture good/bad no gate-selftest, ancorada em contrato citado; advisory salvo Tier-0 (0314)
+- Follow-up da sentinela #4011: FLAG "ADR pendente" no Daily Brief (server-side, Modules/Jana Brief)
+
+### US-GOV-053 · recall_eval_violations: transporte versionado do cron dominical pro scorecard SDD
+
+> owner: — · priority: p2 · estimate: 4h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_
+
+Última métrica `not_yet_measured` do scorecard SDD (as outras 2 do lote — `drift_alarms` + `read_path_hops` — foram fiadas no PR #4196; ranking adversarial 2026-07-12 item #6). Diferente delas, esta é **write-side novo**: o golden set recall (KL-C2) roda no cron dominical do CT100 mas o resultado não chega ao repo.
+
+**DoD (pattern nightly-floor · ADR 0279 Opção A — espelhar `measureRagasRealUptime`):**
+- Write-side CT100: script publica `governance/recall-eval-trend.json` (violations por run + schema versionado) em branch órfã própria, git-push `[skip ci]`.
+- Read-side: `measureRecallEvalViolations()` em `sdd-scorecard.mjs` com fallback honesto (ausente/inválido → `not_yet_measured`, NUNCA mente 0) + materialização da órfã nos workflows do scorecard (publish + advisory; ratchet soft enquanto armed:false).
+- REGRA DURA (ADR 0275 §3 + ADR 0314): nasce not-armed e advisory — baseline só arma após 3 medições válidas consecutivas, via PR explícito; nada vira required.
+
+**Aceite:** scorecard 13/13 measured após 1º cron pós-merge; `--ratchet` ignora a métrica (sem entrada armada no baseline). Refs: KL-C2 · ADR 0279 · ADR 0318 (espelho ragas).
+
+### US-GOV-054 · Coletar bite-log retroativo dos 3 gates DS required (fechamento empírico ADR 0339 / DR-2a 0336)
+
+> owner: — · priority: p2 · estimate: 3h · status: todo · type: story
+> blocked_by: —
+
+**Implementado em:** _pendente_
+
+A promoção de `Layout primitives · ratchet`, `Stylelint · ratchet vs baseline` e `ESLint · ratchet vs baseline` a required (2026-07-15, flip 24→27) desviou da DR-2 da ADR 0336: o bite-log de ≥2 PRs contrafactuais por gate NÃO foi coletado. Foi mantido por exceção soberana [W] (ADR 0238), registrada honestamente na ADR 0339 como desvio consciente.
+
+**Follow-up pra dar fechamento empírico:**
+1. Ativar/alimentar `memory/governance/design-gate-bites.jsonl` (DR-2a da 0336) — registrar `{gate, pr, sha, arquivo, quando}` toda vez que um dos 3 reprovaria uma violação que mergeou.
+2. Acumular ≥2 mordidas reais por gate ao longo de N semanas.
+3. Se algum dos 3 NÃO acumular ≥2 mordidas reais em ~4-6 semanas, reconsiderar a demoção daquele item (gate sem mordida no mundo = só selftest = candidato a advisory de volta). Reversível via `gh api` re-remove do context na branch protection.
+
+**Aceite:** `design-gate-bites.jsonl` ativo + ≥2 mordidas por gate registradas, OU decisão explícita de demoção do(s) gate(s) sem mordida. Contexto: exit-code real (DR-3.1) já cumprido pelos 3; evidência atual fraca (layout 1 fail / stylelint 2 fails / eslint 0 na janela, mas ratchet conta warnings). Refs: ADR 0339 · 0336 (DR-2/DR-2a) · 0314 · 0238 · PRs #4301 (require-safe) + #4307 (registro).

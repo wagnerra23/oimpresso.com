@@ -1,0 +1,44 @@
+name: DS pt-conformance (advisory)
+
+# Torna a declaração "herda PT-0X" no charter FALSIFICÁVEL: verifica que a tela tem a
+# assinatura estrutural do Padrão de Tela que declara (PT-02 exige <form>, PT-05 exige
+# board dnd-kit, etc.). Sem isto, declarar um PT no charter é count-pump (o design-coverage
+# conta a string, ninguém checa a tela — revisão adversarial 2026-07-11). Com isto, uma tela
+# que jura PT-05 mas é form vira MISMATCH. É o que torna a cobertura de design correção, não
+# forma. Advisory (ADR 0314 — quality, não Tier-0); nunca bloqueia. Complementa reconcile-triplet
+# (slot-parity fino do PT-01) com o mismatch grosso dos 5 arquétipos.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/js/Pages/**/*.charter.md'
+      - 'resources/js/Pages/**/*.tsx'
+      - 'scripts/governance/pt-conformance.mjs'
+  workflow_dispatch:
+
+concurrency:
+  group: pt-conformance-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pt-conformance:
+    name: ds-pt-conformance (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Selftest (a lógica morde/solta)
+        run: node scripts/governance/pt-conformance.mjs --selftest
+      - name: Declarações de PT conferem com a assinatura?
+        run: |
+          if node scripts/governance/pt-conformance.mjs --check; then
+            echo "✅ nenhuma tela declara um PT que não é."
+          else
+            echo "::warning title=DS pt-conformance::Uma tela declara um Padrão de Tela que não tem a assinatura (ex: jura PT-05 Kanban mas é form). Corrija o related_prototype pro PT correto (advisory, não bloqueia)."
+          fi

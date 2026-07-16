@@ -1,6 +1,7 @@
 ---
 page: /financeiro/contas-receber
 component: resources/js/Pages/Financeiro/ContasReceber/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: deprecated
 last_validated: "2026-07-03"
@@ -97,5 +98,5 @@ Contrato de comportamento (UCs + status) vive ao lado em [Index.casos.md](Index.
 cruzado pelo `casos-coverage-guard.mjs` (G-2). Foto UX+comportamento no scorecard
 `memory/governance/scorecards/screens/financeiro-contasreceber-index.yaml`.
 
-[ADR 0320]: ../../../../../memory/decisions/proposals/0320-programa-ondas-regua-correcao.md
+[ADR 0320]: ../../../../../memory/decisions/0320-programa-ondas-regua-correcao.md
 [_Roadmap_Faturamento §Camada de correção]: ../../../../../memory/requisitos/_Roadmap_Faturamento.md

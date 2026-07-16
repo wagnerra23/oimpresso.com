@@ -1,11 +1,11 @@
 ---
 slug: 0020-officeimpresso-grupo-economico
 number: 20
-title: !!binary gJQgR3J1cG8gZWNvbsO0bWljbyAobWF0cml6ICsgZmlsaWFpcykgbm8gT2ZmaWNlaW1wcmVzc28=
+title: "Grupo econômico (matriz + filiais) no Officeimpresso"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 decided_by:
   - W
 decided_at: '2026-04-24'
@@ -13,9 +13,9 @@ module: officeimpresso
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0017'
-  - '0018'
-  - '0019'
+  - 0017-officeimpresso-restaurado-superadmin-exclusivo
+  - 0018-officeimpresso-log-acesso-passivo
+  - 0019-officeimpresso-delphi-nao-autentica
 pii: false
 ---
 # ADR 0020 — Grupo econômico (matriz + filiais) no Officeimpresso

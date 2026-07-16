@@ -3,10 +3,12 @@
 namespace Modules\Jana\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Modules\Jana\Services\TaskRegistry\TaskCrudService;
 
 /**
  * Onda 5 V1 — Roadmap timeline UI (SVAR React Gantt MIT).
@@ -31,9 +33,10 @@ class RoadmapController extends Controller
     public function __construct()
     {
         $this->middleware('auth');
-        // Reusa permission canônica do task board MCP.
-        // Wagner pode promover pra jana.admin.roadmap.view dedicada depois.
-        $this->middleware('can:jana.mcp.tasks.read');
+        // Leitura do roadmap: permission canônica do task board MCP.
+        $this->middleware('can:jana.mcp.tasks.read')->only('index');
+        // Reschedule via drag-drop (US-COPI-111 B2, Wagner 2026-07-12): exige WRITE.
+        $this->middleware('can:jana.mcp.tasks.write')->only('updateSchedule');
     }
 
     public function index(Request $request): Response
@@ -179,7 +182,40 @@ class RoadmapController extends Controller
             'owners'  => $owners,
             'modules' => $modules,
             'active_cycle_id' => $activeCycle?->id,
+            // Drag-drop reschedule só habilita se o user tem write (US-COPI-111 B2).
+            'can_edit' => (bool) $request->user()?->can('jana.mcp.tasks.write'),
         ]);
+    }
+
+    /**
+     * Reschedule via drag-drop no Gantt (US-COPI-111 B2 — Wagner 2026-07-12).
+     *
+     * Move APENAS o `due_date` (prazo) — a ponta arrastável da barra. `started_at`
+     * é lifecycle-managed (auto-setado quando task→'doing', ADR 0070), NÃO editável
+     * manualmente: por isso o drag reagenda o PRAZO, não o início. Reusa o
+     * `TaskCrudService::update` canônico (mesma via do MCP `tasks-update`): atômico
+     * (lock de linha), audita via OTel + McpTaskEvent, allowlist de campos.
+     *
+     * Recebe o `task_id` STRING (ex US-COPI-110), não o id numérico do Gantt — o
+     * frontend mapeia via `$payload.task_id` antes do PATCH.
+     */
+    public function updateSchedule(Request $request, string $taskId): RedirectResponse
+    {
+        $data = $request->validate([
+            'due_date' => ['required', 'date'],
+        ]);
+
+        $user = $request->user();
+
+        app(TaskCrudService::class)->update(
+            $taskId,
+            ['due_date' => $data['due_date']],
+            author: $user?->name ?? 'web',
+            principal: $user?->email ?? $user?->name,
+        );
+
+        // Inertia: volta e re-busca só `tasks` (partial reload no frontend).
+        return back();
     }
 
     /**

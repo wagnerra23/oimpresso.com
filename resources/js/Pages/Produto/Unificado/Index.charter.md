@@ -1,6 +1,7 @@
 ---
 page: /produto/unificado
 component: resources/js/Pages/Produto/Unificado/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-05-09"

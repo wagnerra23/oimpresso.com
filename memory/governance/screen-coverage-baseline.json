@@ -1,11 +1,17 @@
 {
   "generated_note": "baseline da catraca de cobertura — NÃO editar à mão",
   "aggregates": {
-    "total": 275,
-    "charter": 132,
-    "e2e": 4,
+    "total": 234,
+    "charter": 234,
+    "e2e": 8,
     "a11y": 1,
-    "scorecard": 218
+    "scorecard": 223
+  },
+  "covered_screens": {
+    "charter": "Admin/FeatureFlags/Index.tsx|Admin/FeatureFlags/Show.tsx|Admin/GovernanceV4.tsx|Admin/GovernanceV4Dashboard.tsx|Admin/Index.tsx|Admin/RagQualityDashboard.tsx|Admin/ScreenReview.tsx|Admin/ScreenReviewDashboard.tsx|Atendimento/CaixaUnificada/Index.tsx|Atendimento/Channels/Index.tsx|Atendimento/Channels/Show.tsx|Atendimento/Csat/Index.tsx|Atendimento/JanaTemplates.tsx|Atendimento/Macros/Index.tsx|Atendimento/Macros/Variants.tsx|Atendimento/Metricas/Index.tsx|Auditoria/Detail.tsx|Auditoria/Index.tsx|Cliente/Create.tsx|Cliente/Edit.tsx|Cliente/Import.tsx|Cliente/Index.tsx|Cliente/Ledger.tsx|Cliente/Map.tsx|Cliente/Show.tsx|Compras/Index.tsx|ComunicacaoVisual/Index.tsx|ConsultaOs/Index.tsx|Essentials/Documents/Index.tsx|Essentials/Holidays/Index.tsx|Essentials/Knowledge/Create.tsx|Essentials/Knowledge/Edit.tsx|Essentials/Knowledge/Index.tsx|Essentials/Knowledge/Show.tsx|Essentials/Messages/Index.tsx|Essentials/Reminders/Index.tsx|Essentials/Settings/Index.tsx|Essentials/Todo/Create.tsx|Essentials/Todo/Edit.tsx|Essentials/Todo/Index.tsx|Essentials/Todo/Show.tsx|Financeiro/Advisor/Dashboard.tsx|Financeiro/Advisor/Login.tsx|Financeiro/AssinaturaAtualizar.tsx|Financeiro/Caixa/Index.tsx|Financeiro/Categorias/Index.tsx|Financeiro/Cobranca/Index.tsx|Financeiro/Conciliacao/Index.tsx|Financeiro/Configuracoes/Contador.tsx|Financeiro/ContasBancarias/Index.tsx|Financeiro/ContasPagar/Index.tsx|Financeiro/ContasReceber/Index.tsx|Financeiro/Dashboard/Index.tsx|Financeiro/Dre/Index.tsx|Financeiro/Extrato/Index.tsx|Financeiro/Fluxo/Index.tsx|Financeiro/Impostos/Index.tsx|Financeiro/PlanoContas/Index.tsx|Financeiro/ProvaViva.tsx|Financeiro/Relatorios/Index.tsx|Financeiro/Unificado/Index.tsx|Financeiro/Unificado/Novo.tsx|Fiscal/Cockpit.tsx|Fiscal/Config.tsx|Fiscal/Dfe.tsx|Fiscal/Eventos.tsx|Fiscal/Nfe.tsx|Fiscal/Nfse.tsx|Fiscal/Sped.tsx|Home/Index.tsx|Jana/Admin/Custos/Index.tsx|Jana/Admin/Governanca/Index.tsx|Jana/Admin/Qualidade/Index.tsx|Jana/Admin/Roadmap.tsx|Jana/Chat.tsx|Jana/Cockpit.tsx|Jana/Dashboard.tsx|Jana/Memoria.tsx|Jana/Painel.tsx|Jana/Pro.tsx|Jana/Regras/Index.tsx|Manufacturing/Index.tsx|MemCofre/Chat.tsx|MemCofre/Dashboard.tsx|MemCofre/Inbox.tsx|MemCofre/Ingest.tsx|MemCofre/Memoria.tsx|MemCofre/Modulo.tsx|Modules/Index.tsx|NfeBrasil/Manifestacao/Index.tsx|NfeBrasil/Transactions/NfceStatus.tsx|NfeBrasil/Tributacao/ConfigDefault.tsx|NfeBrasil/Tributacao/ImportCsv.tsx|NfeBrasil/Tributacao/Index.tsx|NfeBrasil/Tributacao/RegraForm.tsx|Nfse/Emitir.tsx|Nfse/Index.tsx|Nfse/Show.tsx|OficinaAuto/AprovacaoPublica.tsx|OficinaAuto/ServiceOrders/Board.tsx|OficinaAuto/ServiceOrders/Create.tsx|OficinaAuto/ServiceOrders/Edit.tsx|OficinaAuto/ServiceOrders/Show.tsx|OficinaAuto/Vehicles/Create.tsx|OficinaAuto/Vehicles/Edit.tsx|OficinaAuto/Vehicles/Index.tsx|OficinaAuto/Vehicles/Show.tsx|Ponto/Aprovacoes/Index.tsx|Ponto/BancoHoras/Index.tsx|Ponto/BancoHoras/Show.tsx|Ponto/Colaboradores/Edit.tsx|Ponto/Colaboradores/Index.tsx|Ponto/Configuracoes/Index.tsx|Ponto/Configuracoes/Reps.tsx|Ponto/Dashboard/Index.tsx|Ponto/Escalas/Form.tsx|Ponto/Escalas/Index.tsx|Ponto/Espelho/Index.tsx|Ponto/Espelho/Show.tsx|Ponto/Importacoes/Create.tsx|Ponto/Importacoes/Index.tsx|Ponto/Importacoes/Show.tsx|Ponto/Intercorrencias/Create.tsx|Ponto/Intercorrencias/Index.tsx|Ponto/Intercorrencias/Show.tsx|Ponto/Relatorios/Index.tsx|Ponto/Welcome.tsx|Produto/BulkEdit.tsx|Produto/Create.tsx|Produto/Edit.tsx|Produto/Index.tsx|Produto/SellingPrices.tsx|Produto/Show.tsx|Produto/StockHistory.tsx|Produto/Unificado/Index.tsx|ProjectMgmt/Activity/Index.tsx|ProjectMgmt/Backlog/Index.tsx|ProjectMgmt/Board/DetailSheet.tsx|ProjectMgmt/Board/Index.tsx|ProjectMgmt/Burndown/Index.tsx|ProjectMgmt/Inbox/Index.tsx|ProjectMgmt/MyWork/Index.tsx|ProjectMgmt/Roadmap/Index.tsx|ProjectMgmt/Triage/Index.tsx|Purchase/Create.tsx|Purchase/Edit.tsx|Purchase/Index.tsx|Purchase/Show.tsx|RecurringBilling/Configuracoes/Index.tsx|RecurringBilling/Faturas/Index.tsx|RecurringBilling/Index.tsx|RecurringBilling/Planos/Create.tsx|RecurringBilling/Planos/Edit.tsx|RecurringBilling/Planos/Index.tsx|Repair/Dashboard/Index.tsx|Repair/DeviceModels/Create.tsx|Repair/DeviceModels/Edit.tsx|Repair/DeviceModels/Index.tsx|Repair/Index.tsx|Repair/JobSheet/AddParts.tsx|Repair/JobSheet/Create.tsx|Repair/JobSheet/Edit.tsx|Repair/JobSheet/Index.tsx|Repair/JobSheet/Show.tsx|Repair/ProducaoOficina/Index.tsx|Repair/Show.tsx|Repair/Status/Index.tsx|Sells/Caixa/Index.tsx|Sells/Create.tsx|Sells/Drafts.tsx|Sells/Edit.tsx|Sells/Index.tsx|Sells/Quotations.tsx|Sells/Show.tsx|Sells/Subscriptions.tsx|Settings/PaymentGateways/CnabRetorno.tsx|Settings/PaymentGateways/Index.tsx|Site/BlogPost.tsx|Site/Blogs.tsx|Site/Home.tsx|Site/Login.tsx|Site/Page.tsx|Site/Pricing.tsx|Site/Register.tsx|StockAdjustment/Create.tsx|StockAdjustment/Index.tsx|StockTransfer/Create.tsx|StockTransfer/Index.tsx|Suporte/Empresas.tsx|Suporte/Visao.tsx|Tarefas/Index.tsx|TransactionPayment/Edit.tsx|TransactionPayment/Index.tsx|TransactionPayment/Show.tsx|User/Perfil.tsx|Vestuario/Etiquetas/Index.tsx|Whatsapp/Settings.tsx|Whatsapp/Templates/Index.tsx|ads/Admin/Confidence.tsx|ads/Admin/Conflicts.tsx|ads/Admin/DecisaoShow.tsx|ads/Admin/Decisoes.tsx|ads/Admin/Graph.tsx|ads/Admin/Learning.tsx|ads/Admin/MetaSkills.tsx|ads/Admin/Metricas.tsx|ads/Admin/Patterns.tsx|ads/Admin/Policy.tsx|ads/Admin/ProjectShow.tsx|ads/Admin/Projects.tsx|ads/Admin/Skills/Edit.tsx|ads/Admin/Skills/Index.tsx|ads/Admin/Skills/Review.tsx|ads/Admin/Skills/Show.tsx|ads/Admin/Skills/Test.tsx|ads/Admin/TeamScopes.tsx|ads/Admin/Tools.tsx|governance/Audit.tsx|governance/Dashboard.tsx|governance/DriftAlerts.tsx|governance/DsRollout.tsx|governance/ModuleGrades/Index.tsx|governance/ModuleGrades/Show.tsx|governance/Policies.tsx|kb/Graph.tsx|kb/Index.tsx|kb/Index.v2.tsx|superadmin/Usuario360/Index.tsx|superadmin/Usuario360/Show.tsx|team-mcp/CcSessions/Index.tsx|team-mcp/Forja/Cockpit.tsx|team-mcp/Scorecard/Index.tsx|team-mcp/Tasks/Index.tsx|team-mcp/Team/Index.tsx",
+    "e2e": "Cliente/Index.tsx|Compras/Index.tsx|Financeiro/Unificado/Index.tsx|Fiscal/Cockpit.tsx|NfeBrasil/Transactions/NfceStatus.tsx|OficinaAuto/ServiceOrders/Board.tsx|Sells/Create.tsx|Sells/Index.tsx",
+    "a11y": "NfeBrasil/Transactions/NfceStatus.tsx",
+    "scorecard": "Admin/FeatureFlags/Index.tsx|Admin/FeatureFlags/Show.tsx|Admin/GovernanceV4.tsx|Admin/GovernanceV4Dashboard.tsx|Admin/Index.tsx|Admin/RagQualityDashboard.tsx|Admin/ScreenReview.tsx|Admin/ScreenReviewDashboard.tsx|Atendimento/CaixaUnificada/Index.tsx|Atendimento/Channels/Index.tsx|Atendimento/Channels/Show.tsx|Atendimento/Csat/Index.tsx|Atendimento/JanaTemplates.tsx|Atendimento/Macros/Index.tsx|Atendimento/Macros/Variants.tsx|Atendimento/Metricas/Index.tsx|Auditoria/Detail.tsx|Auditoria/Index.tsx|Cliente/Create.tsx|Cliente/Edit.tsx|Cliente/Import.tsx|Cliente/Index.tsx|Cliente/Ledger.tsx|Cliente/Map.tsx|Cliente/Show.tsx|Compras/Index.tsx|ComunicacaoVisual/Index.tsx|ConsultaOs/Index.tsx|Essentials/Documents/Index.tsx|Essentials/Holidays/Index.tsx|Essentials/Knowledge/Create.tsx|Essentials/Knowledge/Edit.tsx|Essentials/Knowledge/Index.tsx|Essentials/Knowledge/Show.tsx|Essentials/Messages/Index.tsx|Essentials/Reminders/Index.tsx|Essentials/Settings/Index.tsx|Essentials/Todo/Create.tsx|Essentials/Todo/Edit.tsx|Essentials/Todo/Index.tsx|Essentials/Todo/Show.tsx|Financeiro/Advisor/Dashboard.tsx|Financeiro/Advisor/Login.tsx|Financeiro/AssinaturaAtualizar.tsx|Financeiro/Caixa/Index.tsx|Financeiro/Categorias/Index.tsx|Financeiro/Cobranca/Index.tsx|Financeiro/Conciliacao/Index.tsx|Financeiro/Configuracoes/Contador.tsx|Financeiro/ContasBancarias/Index.tsx|Financeiro/ContasPagar/Index.tsx|Financeiro/ContasReceber/Index.tsx|Financeiro/Dashboard/Index.tsx|Financeiro/Dre/Index.tsx|Financeiro/Extrato/Index.tsx|Financeiro/Fluxo/Index.tsx|Financeiro/Impostos/Index.tsx|Financeiro/PlanoContas/Index.tsx|Financeiro/ProvaViva.tsx|Financeiro/Relatorios/Index.tsx|Financeiro/Unificado/Index.tsx|Financeiro/Unificado/Novo.tsx|Fiscal/Cockpit.tsx|Fiscal/Config.tsx|Fiscal/Dfe.tsx|Fiscal/Eventos.tsx|Fiscal/Nfe.tsx|Fiscal/Nfse.tsx|Fiscal/Sped.tsx|Home/Index.tsx|Jana/Admin/Custos/Index.tsx|Jana/Admin/Governanca/Index.tsx|Jana/Admin/Qualidade/Index.tsx|Jana/Admin/Roadmap.tsx|Jana/Chat.tsx|Jana/Cockpit.tsx|Jana/Dashboard.tsx|Jana/Memoria.tsx|Jana/Painel.tsx|Jana/Pro.tsx|Jana/Regras/Index.tsx|Manufacturing/Index.tsx|MemCofre/Chat.tsx|MemCofre/Dashboard.tsx|MemCofre/Inbox.tsx|MemCofre/Ingest.tsx|MemCofre/Memoria.tsx|MemCofre/Modulo.tsx|Modules/Index.tsx|NfeBrasil/Manifestacao/Index.tsx|NfeBrasil/Transactions/NfceStatus.tsx|NfeBrasil/Tributacao/ConfigDefault.tsx|NfeBrasil/Tributacao/ImportCsv.tsx|NfeBrasil/Tributacao/Index.tsx|NfeBrasil/Tributacao/RegraForm.tsx|Nfse/Emitir.tsx|Nfse/Index.tsx|Nfse/Show.tsx|OficinaAuto/AprovacaoPublica.tsx|OficinaAuto/ServiceOrders/Board.tsx|OficinaAuto/ServiceOrders/Create.tsx|OficinaAuto/ServiceOrders/Edit.tsx|OficinaAuto/ServiceOrders/Show.tsx|OficinaAuto/Vehicles/Create.tsx|OficinaAuto/Vehicles/Edit.tsx|OficinaAuto/Vehicles/Index.tsx|OficinaAuto/Vehicles/Show.tsx|Ponto/Aprovacoes/Index.tsx|Ponto/BancoHoras/Index.tsx|Ponto/BancoHoras/Show.tsx|Ponto/Colaboradores/Edit.tsx|Ponto/Colaboradores/Index.tsx|Ponto/Configuracoes/Index.tsx|Ponto/Configuracoes/Reps.tsx|Ponto/Dashboard/Index.tsx|Ponto/Escalas/Form.tsx|Ponto/Escalas/Index.tsx|Ponto/Espelho/Index.tsx|Ponto/Espelho/Show.tsx|Ponto/Importacoes/Create.tsx|Ponto/Importacoes/Index.tsx|Ponto/Importacoes/Show.tsx|Ponto/Intercorrencias/Create.tsx|Ponto/Intercorrencias/Index.tsx|Ponto/Intercorrencias/Show.tsx|Ponto/Relatorios/Index.tsx|Ponto/Welcome.tsx|Produto/BulkEdit.tsx|Produto/Create.tsx|Produto/Edit.tsx|Produto/Index.tsx|Produto/SellingPrices.tsx|Produto/Show.tsx|Produto/StockHistory.tsx|Produto/Unificado/Index.tsx|ProjectMgmt/Activity/Index.tsx|ProjectMgmt/Backlog/Index.tsx|ProjectMgmt/Board/Index.tsx|ProjectMgmt/Burndown/Index.tsx|ProjectMgmt/Inbox/Index.tsx|ProjectMgmt/MyWork/Index.tsx|ProjectMgmt/Roadmap/Index.tsx|ProjectMgmt/Triage/Index.tsx|Purchase/Create.tsx|Purchase/Edit.tsx|Purchase/Index.tsx|Purchase/Show.tsx|RecurringBilling/Configuracoes/Index.tsx|RecurringBilling/Faturas/Index.tsx|RecurringBilling/Index.tsx|RecurringBilling/Planos/Create.tsx|RecurringBilling/Planos/Edit.tsx|RecurringBilling/Planos/Index.tsx|Repair/Dashboard/Index.tsx|Repair/DeviceModels/Create.tsx|Repair/DeviceModels/Edit.tsx|Repair/DeviceModels/Index.tsx|Repair/Index.tsx|Repair/JobSheet/AddParts.tsx|Repair/JobSheet/Create.tsx|Repair/JobSheet/Edit.tsx|Repair/JobSheet/Index.tsx|Repair/JobSheet/Show.tsx|Repair/ProducaoOficina/Index.tsx|Repair/Show.tsx|Repair/Status/Index.tsx|Sells/Caixa/Index.tsx|Sells/Create.tsx|Sells/Drafts.tsx|Sells/Edit.tsx|Sells/Index.tsx|Sells/Quotations.tsx|Sells/Show.tsx|Sells/Subscriptions.tsx|Settings/PaymentGateways/CnabRetorno.tsx|Settings/PaymentGateways/Index.tsx|Site/BlogPost.tsx|Site/Blogs.tsx|Site/Home.tsx|Site/Login.tsx|Site/Page.tsx|Site/Pricing.tsx|Site/Register.tsx|StockAdjustment/Create.tsx|StockAdjustment/Index.tsx|StockTransfer/Create.tsx|StockTransfer/Index.tsx|TransactionPayment/Edit.tsx|TransactionPayment/Index.tsx|TransactionPayment/Show.tsx|Vestuario/Etiquetas/Index.tsx|Whatsapp/Settings.tsx|Whatsapp/Templates/Index.tsx|ads/Admin/Confidence.tsx|ads/Admin/Conflicts.tsx|ads/Admin/DecisaoShow.tsx|ads/Admin/Decisoes.tsx|ads/Admin/Graph.tsx|ads/Admin/Learning.tsx|ads/Admin/MetaSkills.tsx|ads/Admin/Metricas.tsx|ads/Admin/Patterns.tsx|ads/Admin/Policy.tsx|ads/Admin/ProjectShow.tsx|ads/Admin/Projects.tsx|ads/Admin/Skills/Edit.tsx|ads/Admin/Skills/Index.tsx|ads/Admin/Skills/Review.tsx|ads/Admin/Skills/Show.tsx|ads/Admin/Skills/Test.tsx|ads/Admin/TeamScopes.tsx|ads/Admin/Tools.tsx|governance/Audit.tsx|governance/Dashboard.tsx|governance/DriftAlerts.tsx|governance/DsRollout.tsx|governance/ModuleGrades/Index.tsx|governance/ModuleGrades/Show.tsx|governance/Policies.tsx|kb/Graph.tsx|kb/Index.tsx|superadmin/Usuario360/Index.tsx|superadmin/Usuario360/Show.tsx"
   },
   "by_module": {
     "Admin": {
@@ -17,36 +23,36 @@
     },
     "ads": {
       "total": 19,
-      "charter": 0,
+      "charter": 19,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 19
     },
     "Atendimento": {
       "total": 8,
-      "charter": 5,
+      "charter": 8,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 8
     },
     "Auditoria": {
       "total": 2,
-      "charter": 1,
+      "charter": 2,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 2
     },
     "Cliente": {
-      "total": 34,
+      "total": 7,
       "charter": 7,
-      "e2e": 0,
+      "e2e": 1,
       "a11y": 0,
       "scorecard": 7
     },
     "Compras": {
-      "total": 5,
+      "total": 1,
       "charter": 1,
-      "e2e": 0,
+      "e2e": 1,
       "a11y": 0,
       "scorecard": 1
     },
@@ -59,27 +65,27 @@
     },
     "ConsultaOs": {
       "total": 1,
-      "charter": 0,
+      "charter": 1,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 1
     },
     "Essentials": {
       "total": 13,
-      "charter": 3,
+      "charter": 13,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 13
     },
     "Financeiro": {
-      "total": 26,
-      "charter": 14,
-      "e2e": 0,
+      "total": 21,
+      "charter": 21,
+      "e2e": 1,
       "a11y": 0,
-      "scorecard": 19
+      "scorecard": 21
     },
     "Fiscal": {
-      "total": 8,
+      "total": 7,
       "charter": 7,
       "e2e": 1,
       "a11y": 0,
@@ -90,7 +96,7 @@
       "charter": 7,
       "e2e": 0,
       "a11y": 0,
-      "scorecard": 6
+      "scorecard": 7
     },
     "Home": {
       "total": 1,
@@ -100,11 +106,11 @@
       "scorecard": 1
     },
     "Jana": {
-      "total": 16,
-      "charter": 8,
+      "total": 11,
+      "charter": 11,
       "e2e": 0,
       "a11y": 0,
-      "scorecard": 10
+      "scorecard": 11
     },
     "kb": {
       "total": 3,
@@ -122,28 +128,28 @@
     },
     "MemCofre": {
       "total": 6,
-      "charter": 0,
+      "charter": 6,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 6
     },
     "Modules": {
       "total": 1,
-      "charter": 0,
+      "charter": 1,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 1
     },
     "NfeBrasil": {
       "total": 6,
-      "charter": 4,
+      "charter": 6,
       "e2e": 1,
       "a11y": 1,
       "scorecard": 6
     },
     "Nfse": {
       "total": 3,
-      "charter": 0,
+      "charter": 3,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 3
@@ -151,13 +157,13 @@
     "OficinaAuto": {
       "total": 9,
       "charter": 9,
-      "e2e": 0,
+      "e2e": 1,
       "a11y": 0,
-      "scorecard": 8
+      "scorecard": 9
     },
     "Ponto": {
-      "total": 22,
-      "charter": 0,
+      "total": 20,
+      "charter": 20,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 20
@@ -171,14 +177,14 @@
     },
     "ProjectMgmt": {
       "total": 9,
-      "charter": 3,
+      "charter": 9,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 8
     },
     "Purchase": {
       "total": 4,
-      "charter": 2,
+      "charter": 4,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 4
@@ -192,7 +198,7 @@
     },
     "Repair": {
       "total": 13,
-      "charter": 12,
+      "charter": 13,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 13
@@ -213,7 +219,7 @@
     },
     "Site": {
       "total": 7,
-      "charter": 0,
+      "charter": 7,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 7
@@ -239,16 +245,23 @@
       "a11y": 0,
       "scorecard": 2
     },
+    "Suporte": {
+      "total": 2,
+      "charter": 2,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 0
+    },
     "Tarefas": {
       "total": 1,
-      "charter": 0,
+      "charter": 1,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 0
     },
     "team-mcp": {
-      "total": 3,
-      "charter": 1,
+      "total": 5,
+      "charter": 5,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 0
@@ -260,26 +273,26 @@
       "a11y": 0,
       "scorecard": 3
     },
+    "User": {
+      "total": 1,
+      "charter": 1,
+      "e2e": 0,
+      "a11y": 0,
+      "scorecard": 0
+    },
     "Vestuario": {
       "total": 1,
-      "charter": 0,
+      "charter": 1,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 1
     },
     "Whatsapp": {
       "total": 2,
-      "charter": 1,
+      "charter": 2,
       "e2e": 0,
       "a11y": 0,
       "scorecard": 2
-    },
-    "_Showcase": {
-      "total": 2,
-      "charter": 0,
-      "e2e": 0,
-      "a11y": 0,
-      "scorecard": 0
     }
   }
 }

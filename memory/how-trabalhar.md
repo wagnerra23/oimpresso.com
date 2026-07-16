@@ -12,14 +12,13 @@
 | "Backlog do módulo X" | `tasks-list module:X` |
 | "Detalhe da task COPI-123" | `tasks-detail task_id:COPI-123` |
 | "Tasks novas sem owner/prio" | `triage` |
-| "Velocity / burndown" | `dashboard-velocity` / `dashboard-burndown` |
 | "Qual ADR fala sobre X?" | `decisions-search query:"X"` (default só ativas) |
 | "Ler ADR completa" | `decisions-fetch slug:"0094-constituicao-v2-7-camadas-8-principios"` |
 | "Últimas sessões" | `sessions-recent limit:5` |
 | "Fato do business sobre Y" | `memoria-search query:"Y"` |
 | "Quanto eu consumi?" | `claude-code-usage-self` |
 
-UI humana: `/copiloto/admin/memoria` lista 352+ docs com filtros + preview markdown render + git_sha→GitHub.
+UI humana: `/copiloto/admin/memoria` lista os docs sincronizados (contagem viva lá) com filtros + preview markdown render + git_sha→GitHub.
 
 ## Fallback: filesystem (se sem MCP conectado)
 
@@ -34,6 +33,17 @@ UI humana: `/copiloto/admin/memoria` lista 352+ docs com filtros + preview markd
 - **`/clear`** ao trocar escopo (ex: terminou Jana, vai mexer em Ponto) — começa limpo
 - **Plan mode** (Shift+Tab×2) pra mudanças não-triviais
 - **`/continuar`** pra retomar sessão sem re-explorar repo do zero (chama `cycles-active` + `my-work` + handoff + último session log)
+
+## Pedido de tela/feature — onde a palavra do dono vira máquina (verificado 2026-07-16)
+
+Canal de entrada REAL do [W] = **chat** (linguagem natural; o agente materializa US/tasks downstream — verificação adversarial 7 agentes, [session 2026-07-16](sessions/2026-07-16-adversario-ponto-entrada-us-uc.md)). **US e UC não são canal de pedido** — SPEC é o elo mais fraco da precedência (e `_pendente_` já conta como coberto no anchor-lint); UC sem teste quebra o casos-gate required (lápide §5 em [proibicoes.md](proibicoes.md)). Os slots onde o pedido vira máquina:
+
+| [W] informa | Onde | Força |
+|---|---|---|
+| `(Mod/Tela, PT-0X)` | `node scripts/governance/criar-tela.mjs` | carimba trio + stub e2e citando UC; passa `pt-conformance` por construção |
+| **Non-Goals + Automation Anti-hooks** | `<Tela>.charter.md` | cada item vira Pest GUARD (CI); `charter-write` é proibida de inferir — só [W] preenche |
+| `## Contrato visual` (copy literal + ordem) | charter + `prototipo-ui/contrato/` | gate `contrato-de-tela` (always-run; required = passo 4 pendente, [W] admin-only) |
+| `[BACKLOG] <frase>` sem id | `<Tela>.casos.md` | prosa visível sem gate — vira UC quando ganhar teste que o cite |
 
 ## Transferir trabalho entre sessões (nuvem ↔ local)
 

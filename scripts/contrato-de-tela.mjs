@@ -34,6 +34,7 @@ import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import { resolve, join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
+import { auditar, validarContrato } from './auditar-intencao-fluxo.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url)); // scripts/
 // ROOT default = raiz do repo; --root <dir> sobrescreve (hermético pra self-test / CI).
@@ -378,6 +379,39 @@ function listContracts() {
   const out = git('ls-files "*.contract.json"');
   return out ? out.split('\n').filter(p => p && !/EXEMPLO/i.test(p)) : [];
 }
+function listIntentContracts() {
+  const dir = resolve(ROOT, 'prototipo-ui/contrato');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter(name => name.endsWith('.intent.json') && !/EXEMPLO/i.test(name))
+    .map(name => `prototipo-ui/contrato/${name}`)
+    .sort();
+}
+function checkIntentMap(file) {
+  let c;
+  try { c = JSON.parse(readFileSync(resolve(ROOT, file), 'utf8')); }
+  catch { err(`contrato de intenção ilegível: ${file}`); return 1; }
+  const invalid = validarContrato(c);
+  if (invalid) { err(`${file}: ${invalid}`); return 1; }
+  const sourceOk = !!c.fonte && existsSync(resolve(ROOT, c.fonte));
+  const charterOk = !!c.charter && existsSync(resolve(ROOT, c.charter));
+  const targets = c.alvo.map(path => resolve(ROOT, path));
+  const targetsOk = targets.every(existsSync);
+  let linked = false;
+  if (charterOk) {
+    const charter = readFileSync(resolve(ROOT, c.charter), 'utf8');
+    linked = charter.includes(`intent_contract: ${file}`) && charter.includes(c.fonte);
+  }
+  const issues = targetsOk ? auditar(c, targets.map(path => readFileSync(path, 'utf8')).join('\n')) : [{ kind: 'alvo-ausente' }];
+  const state = sourceOk && charterOk && targetsOk && linked && !issues.length ? '🟢 íntegro' : '🔴 elo quebrado';
+  log(`| ${c.tela ?? file} | \`${c.fonte ?? '—'}\` ${sourceOk ? '✓' : '✗'} | \`${c.charter ?? '—'}\` ${charterOk && linked ? '✓' : '✗'} | ${c.fluxos.length}/${c.fluxos.length} | ${state} |`);
+  if (!sourceOk) err(`${c.tela ?? file}: protótipo ausente — ${c.fonte ?? 'sem fonte'}`);
+  if (!charterOk) err(`${c.tela ?? file}: charter ausente — ${c.charter ?? 'sem charter'}`);
+  else if (!linked) err(`${c.tela ?? file}: charter não aponta para o contrato e protótipo corretos`);
+  if (!targetsOk) err(`${c.tela ?? file}: alvo ausente`);
+  for (const issue of issues) err(`${c.tela ?? file}: ${issue.kind}${issue.flow ? ` — ${issue.flow}: ${issue.literal}` : ''}`);
+  return sourceOk && charterOk && targetsOk && linked && !issues.length ? 0 : 1;
+}
 function anchorsOf(alvo) {
   const ids = new Set();
   for (const f of (alvo || []).flatMap(collectTargets)) {
@@ -419,6 +453,15 @@ function buildMap(doCheck) {
       if (!fonteOk) { err(`${tela}: fonte aponta arquivo inexistente — ${c.fonte}`); fail++; }
       if (missing.length && !dev) { err(`${tela}: seção(ões) sem âncora e sem design-deviation — ${missing.map(s => s.id).join(', ')}`); fail++; }
     }
+  }
+  const intents = listIntentContracts();
+  log('\n## Intenção de fluxo (Charter → protótipo → produção)\n');
+  log('| Tela | Fonte (protótipo) | Charter ligado | Fluxos | Estado |');
+  log('|---|---|---|---:|---|');
+  if (!intents.length) log('| _(nenhum contrato de intenção ativo)_ | — | — | — | — |');
+  for (const file of intents) {
+    const localFail = checkIntentMap(file);
+    if (doCheck) fail += localFail;
   }
   return fail;
 }

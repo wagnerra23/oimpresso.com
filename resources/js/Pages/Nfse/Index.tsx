@@ -54,6 +54,12 @@ const brl = (v: number | null) =>
     ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
     : '—';
 
+// Sentinela NÃO-vazio pro item "Todos". O Radix Select CRASHA a tela inteira
+// (branco em prod) se um <SelectItem> tiver value="" — o item literal aqui era
+// um crash latente vivo. O estado `status` segue '' pra "sem filtro"; só o
+// Select mapeia '' <-> STATUS_ALL. Ref: memory/proibicoes.md §5 (2026-06-29).
+const STATUS_ALL = '__all__';
+
 function savedFilters(): Filters {
   try {
     return JSON.parse(localStorage.getItem(LS_KEY) ?? '{}');
@@ -283,12 +289,12 @@ export default function NfseIndex({ notas, filters, flash }: Props) {
         >
           <div className="flex flex-col gap-1">
             <label className="text-xs text-[color:var(--text-mute)]">Status</label>
-            <Select value={status} onValueChange={setStatus}>
+            <Select value={status || STATUS_ALL} onValueChange={(v) => setStatus(v === STATUS_ALL ? '' : v)}>
               <SelectTrigger className="h-9">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value={STATUS_ALL}>Todos</SelectItem>
                 <SelectItem value="rascunho">Rascunho</SelectItem>
                 <SelectItem value="processando">Processando</SelectItem>
                 <SelectItem value="emitida">Emitida</SelectItem>

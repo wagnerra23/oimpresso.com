@@ -135,7 +135,7 @@ hoje ainda ADVISORY.
 
 **Enforcement (estado 2026-07-06):** o check `visual-regression` é **required** no main
 ([`governance/required-checks-baseline.json`](../../../governance/required-checks-baseline.json) GT-G4;
-a poda [ADR 0314](../../decisions/proposals/0314-poda-gates-onda-2-lei-fusoes.md) o manteve como LEI)
+a poda [ADR 0314](../../decisions/0314-poda-gates-onda-2-lei-fusoes.md) o manteve como LEI)
 e o step do pixel-diff é **ENFORCING** desde o [#3277](https://github.com/wagnerra23/oimpresso.com/pull/3277)
 (2026-06-23, padrão [ADR 0271](../../decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md)
 "promover = remover o continue-on-error"). Update de baseline: `npm run visreg:update` + aprovação [W]

@@ -1,0 +1,8 @@
+{
+  "generated_by": "fixture do selftest — só a ANOTAÇÃO real conta (1), a MENÇÃO em docstring não",
+  "counters": {
+    "n_quarantine": 1,
+    "n_refresh_database": 0,
+    "n_business_first": 0
+  }
+}

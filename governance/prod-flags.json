@@ -1,28 +1,62 @@
 {
-  "_meta": {
-    "schema": "prod-flags/v1",
-    "purpose": "Estado de PRODUÇÃO das telas Inertia flag-gated, por tenant — fonte de verdade pra derivar charter status:live honesto (proposta SDD 2026-06-24). Consumido por scripts/governance/charter-live-signal.mjs.",
-    "contrato": "live[<component>] = lista de business_id (string) onde a tela roda em React EM PRODUÇÃO. <component> = path Inertia sem 'resources/js/Pages/' e sem '.tsx' (ex 'Cliente/Create'). Charter status:live cujo component NÃO esteja aqui (e sem campo smoke:) = live_sem_sinal.",
-    "nao_e": "NÃO é a lista de telas que EXISTEM (isso é o charter/anchor). É a lista das que estão LIVE pra tenant real. existir != estar live — foi o ponto cego que deixou promover charter a 'live' sem prova (reconciliação Cliente 2026-06-24).",
-    "fonte": "SEED MANUAL 2026-06-24 — Wagner confirmou biz=4 (ROTA LIVRE) roda o cadastro Cliente em React (flags MWART_CLIENTE_* ON). Produtor AUTOMATIZADO (probe de prod -> branch órfã -> commit-back [skip ci], padrão nightly-floor/ADR 0279) é follow-up de infra.",
-    "legado": "telas live SEM entrada aqui sao dívida legada (grandfather por diff-aware: o gate só morde charter live NOVO/TOCADO sem sinal). Preencher conforme o probe (ou smoke) confirmar cada uma."
-  },
-  "live": {
-    "Cliente/Index": ["4"],
-    "Cliente/Create": ["4"],
-    "Cliente/Edit": ["4"],
-    "Cliente/Ledger": ["4"],
-    "Cliente/Map": ["4"],
-    "Cliente/Import": ["4"],
-    "Sells/Index": ["4"],
-    "RecurringBilling/Index": ["4"],
-    "Financeiro/Unificado/Index": ["4"],
-    "Financeiro/Dre/Index": ["4"],
-    "Financeiro/Conciliacao/Index": ["1"],
-    "Financeiro/ContasBancarias/Index": ["1"],
-    "Financeiro/Impostos/Index": ["1"],
-    "Financeiro/Extrato/Index": ["1"],
-    "OficinaAuto/ServiceOrders/Show": ["164"],
-    "OficinaAuto/ServiceOrders/Board": ["164"]
-  }
+    "_meta": {
+        "schema": "prod-flags/v1",
+        "purpose": "Estado de PRODUCAO das telas Inertia flag-gated, por tenant. Componentes gerenciados (Cliente/*) sao DERIVADOS do config/env real por `php artisan governance:prod-flags` (replica ContactController::shouldRenderInertiaCliente); os demais sao seed manual PRESERVADO no merge. Consumido por scripts/governance/charter-live-signal.mjs.",
+        "contrato": "live[<component>] = lista de business_id (string) onde a tela roda em React em PRODUCAO; [\"*\"] = todos os tenants (flag enabled sem allowlist). <component> = path Inertia sem resources/js/Pages/ e sem .tsx.",
+        "fonte": "gerado por `php artisan governance:prod-flags --write` no host com o .env de prod (Hostinger). Merge-safe: preserva componentes nao-gerenciados. NAO editar a mao — re-rodar o comando.",
+        "nao_e": "NAO e a lista de telas que EXISTEM (isso e charter/anchor). E a lista das que estao LIVE pra tenant real. existir != estar live."
+    },
+    "live": {
+        "Cliente/Create": [
+            "*"
+        ],
+        "Cliente/Edit": [
+            "*"
+        ],
+        "Cliente/Import": [
+            "*"
+        ],
+        "Cliente/Index": [
+            "*"
+        ],
+        "Cliente/Ledger": [
+            "*"
+        ],
+        "Cliente/Map": [
+            "*"
+        ],
+        "Cliente/Show": [
+            "*"
+        ],
+        "Financeiro/Conciliacao/Index": [
+            "1"
+        ],
+        "Financeiro/ContasBancarias/Index": [
+            "1"
+        ],
+        "Financeiro/Dre/Index": [
+            "4"
+        ],
+        "Financeiro/Extrato/Index": [
+            "1"
+        ],
+        "Financeiro/Impostos/Index": [
+            "1"
+        ],
+        "Financeiro/Unificado/Index": [
+            "4"
+        ],
+        "OficinaAuto/ServiceOrders/Board": [
+            "164"
+        ],
+        "OficinaAuto/ServiceOrders/Show": [
+            "164"
+        ],
+        "RecurringBilling/Index": [
+            "4"
+        ],
+        "Sells/Index": [
+            "4"
+        ]
+    }
 }

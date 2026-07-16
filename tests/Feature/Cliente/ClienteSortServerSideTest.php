@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// Cobre UC-CIDX-03 (Index.casos.md) - G-2 rastreabilidade caso-teste.
 
 /**
  * Bug Wagner (P1b): a lista vinha alfabética (server hardcoded `name asc`) → lixo de

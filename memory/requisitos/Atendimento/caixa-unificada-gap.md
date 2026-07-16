@@ -1,6 +1,6 @@
 ---
 tela: /atendimento/caixa-unificada
-prototipo: prototipo-ui/prototipos/caixa-unificada/ (inbox-page.jsx 1141 ln + inbox-page.css 2336 ln + inbox-ai/cur/extras/out.jsx)
+prototipo: prototipo-ui/cowork/inbox-page.jsx + inbox-page.css + inbox-cur.jsx + inbox-ai.jsx + inbox-extras.jsx # path corrigido 2026-07-10 — espelho consolidado em cowork/ (visual_source do charter); lista = arquivos ancorados pelo map.json
 tela_viva: resources/js/Pages/Atendimento/CaixaUnificada/Index.tsx (+ _components ComposerV4/ConversationListV4/ConversationThreadV4/ContextSidebarV4/ChannelsDrawer/QueuesSheet/BroadcastSheet/ChannelHealthBanner/ReconnectModal/...)
 paridade_atual: "100%+ (tela viva ULTRAPASSOU o protótipo)"
 gerado_em: "2026-06-23"

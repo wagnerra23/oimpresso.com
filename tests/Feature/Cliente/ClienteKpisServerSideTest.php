@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// Cobre UC-CIDX-04 (Index.casos.md) - G-2 rastreabilidade caso-teste.
 
 /**
  * P0 — KPIs do placar Cliente: número que veio de query, não de amostra.

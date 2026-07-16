@@ -18,7 +18,7 @@ related_adrs: [0164, 0104, 0107, 0114, 0094, 0093, 0062]
 
 Esta skill ativa automaticamente em 3 cenários:
 
-1. **Pós-merge PR automático** — workflow `.github/workflows/screen-smoke-after-merge.yml` detecta merge em `main` tocando `resources/js/Pages/**/*.tsx` → invoca Claude Code remote → ativa esta skill
+1. **Pós-deploy automático (sem esta skill)** — o workflow `.github/workflows/screen-smoke-after-merge.yml` (dispara via `workflow_run` após o `deploy.yml`) detecta que o deploy tocou telas `resources/js/Pages/**/*.tsx` **OU navegação** (`resources/js/Components/cockpit/Sidebar.tsx` · `app/Http/Middleware/AdminSidebarMenu.php` · `app/Services/LegacyMenuAdapter.php` — gap do PR #3945) e roda o smoke **determinístico** via `scripts/screen-smoke/smoke.mjs` (Playwright headless + OpenAI vision, runner ubuntu — Wagner 2026-07-08 "use o openai"). Esse caminho **não** usa esta skill nem browser MCP; ela cobre o caminho **manual/interativo** abaixo
 2. **Pedido explícito Wagner** — frases-gatilho catalogadas no `description` (matcher Tier B):
    - "smoke a tela X" / "validar tela X visualmente" / "ver como ficou tela Y"
    - `/tela-smoke <rota>` (slash command convention)

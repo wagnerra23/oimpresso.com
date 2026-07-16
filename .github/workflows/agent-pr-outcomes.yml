@@ -1,0 +1,70 @@
+name: Agent PR outcomes (weekly · advisory)
+
+# EVALS DE OUTCOME dos PRs do agente (DORA-style) — card #0 do dossiê grade-das-réguas
+# 2026-07-09 ("zero evals de outcome"). Roda scripts/governance/agent-pr-outcomes.mjs contra
+# os PRs REAIS (gh pr list, via GITHUB_TOKEN) e publica a seção do BRIEF no job summary:
+# change-failure-rate (hotfix ≤48h citando #N) · accept-rate (merged/terminais) · time-to-merge.
+#
+# DECONFLITO: NÃO é o outcome-metrics.yml (aquele mede retrabalho do LOOP DE DESIGN via
+# SYNC_LOG+git das Pages). Este mede DORA dos PRs do agente via GitHub. Eixos distintos.
+#
+# NÃO é gate de PR — é RELATÓRIO semanal (schedule) + on-demand (dispatch). Advisory de
+# nascença (ADR 0271/0275): só mede, nunca bloqueia. O self-test hermético que prova que
+# o CFR morde/libera roda na suíte governance-script-tests.yml (fixtures, sem rede).
+#
+# Registrado em scripts/governance/gates-registry.json classe "automacao" (advisory).
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'   # seg 09:00 UTC — insumo do brief semanal
+  workflow_dispatch:
+    inputs:
+      days:
+        description: 'janela em dias (default 30)'
+        required: false
+        default: '30'
+
+concurrency:
+  group: agent-pr-outcomes-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  measure:
+    name: DORA dos PRs do agente (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # o self-test hermético (prova que o CFR morde/libera) roda na suíte
+      # governance-script-tests.yml; aqui é a MEDIÇÃO ao vivo.
+      - name: Self-test (fixtures-armadilha · redundância de defesa)
+        run: node scripts/governance/agent-pr-outcomes.test.mjs
+
+      - name: Medir DORA do agente (advisory · gh ao vivo)
+        id: measure
+        continue-on-error: true   # advisory: o número nunca derruba nada (ADR 0271/0275)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          DAYS="${{ github.event.inputs.days || '30' }}"
+          node scripts/governance/agent-pr-outcomes.mjs --days "$DAYS" --brief > /tmp/agent-pr.md 2>/tmp/agent-pr.err \
+            || { echo '(gh indisponível ou sem PRs — ver stderr)'; cat /tmp/agent-pr.err; }
+
+      - name: Job summary (a seção do brief)
+        if: always()
+        run: |
+          {
+            echo '## Evals de outcome — PRs do agente (DORA · semanal · advisory)'
+            echo ''
+            echo 'ADVISORY (nao bloqueia). change-failure-rate + accept-rate + time-to-merge via gh pr list.'
+            echo 'A tendencia por cycle e o sinal, nao o valor absoluto. Proxy — ver gaps no --json.'
+            echo ''
+            cat /tmp/agent-pr.md 2>/dev/null || echo '(sem saida — ver passo anterior)'
+          } >> "$GITHUB_STEP_SUMMARY"

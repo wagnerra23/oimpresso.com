@@ -4,7 +4,7 @@ irmaos: Dfe.charter.md (lei)
 tecnica: Caso de uso = narrativa do operador + critério de aceite (Dado/Quando/Então)
 por_que: comportamento é durável — não muda no refactor; é teste E explicação de uso.
 owner: wagner
-last_run: "2026-07-03"
+last_run: "2026-07-15"
 ---
 
 # Casos de Uso & Aceite — Manifesto DF-e
@@ -36,3 +36,4 @@ last_run: "2026-07-03"
 
 ## Trilha do tempo
 - 2026-07-03 · [CC] criado no Passo 3 do programa de ondas (régua por tela). Débito = UC-traceability.
+- 2026-07-15 · [CC] revalidado após DS Onda 3 — abas Pendente/Histórico viraram navegação por rota (`?tab=`, `PageHeaderTabs`). A aba Histórico e o filtro por status seguem descritos como antes (comportamento preservado); só `last_run` bumpado.

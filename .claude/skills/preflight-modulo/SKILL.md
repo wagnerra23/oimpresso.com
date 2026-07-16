@@ -2,6 +2,8 @@
 name: preflight-modulo
 description: BLOQUEADOR — ATIVAR ANTES de qualquer Edit/Write/MultiEdit em Modules/<X>/. PRÉ-FLIGHT obrigatório: ler memory/requisitos/<X>/SPEC.md + RUNBOOK*.md + CAPTERRA*.md + charter da página + decisions-search ADRs relacionadas + skill como-integrar se feature parcial. Regra Primária Tier 0 IRREVOGÁVEL (memory/proibicoes.md). Workflow 3 fases obrigatório (PRE-FLIGHT/DURING/POST). Auto-trigger por path Modules/ (ADR 0225 — dispara no momento exato vs banner always-on) — pareada com hook .claude/hooks/modulo-preflight-warning.ps1. Wagner regra 2026-05-15: "vai mexer no módulo ler briefing e se mexer salva o progresso. mexe não registra altera sem ler as regras do módulo fica sempre errando." Time MCP (Felipe/Maiara/Eliana/Luiz) entra em breve — sem essa skill ativa, fica zona.
 tier: B
+auto_trigger: path
+resumo: dispara em Edit `Modules/<X>/`
 ---
 
 # preflight-modulo — Workflow Tier 0 obrigatório ao tocar Module/

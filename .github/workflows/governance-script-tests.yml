@@ -36,8 +36,30 @@ jobs:
         run: node scripts/governance/shipped-log-generate.test.mjs
       - name: Dup-detector L3 (overlap/ack/exclude)
         run: node scripts/governance/dup-detector.test.mjs
+      - name: Protection-drift frescor da orfa (computed_at do conteudo, nao o tip · V5 GT-G4)
+        run: node scripts/governance/protection-drift-freshness.test.mjs
       - name: Outcome metrics (medidor de aceitacao · fixtures-armadilha · Onda O1)
         run: node scripts/governance/outcome-metrics.test.mjs
+      - name: Agent PR outcomes (DORA do agente · CFR morde/libera · card #0 grade-das-reguas)
+        run: node scripts/governance/agent-pr-outcomes.test.mjs
+      - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
+        run: node scripts/governance/agent-cost-per-pr.test.mjs
+      # ex-órfãos de CI (adversário 2026-07-13): existiam no repo mas nenhum workflow os
+      # rodava — reencarnação da proibição "Tests sem phpunit.xml = falsa cobertura".
+      - name: SDD distiller_freshness read-side (anti-stale + shallow honesto · ADR 0291 D-D)
+        run: node scripts/governance/sdd-distiller-freshness.test.mjs
+      - name: CT100 sdd-scorecard-snapshot wrapper (sintaxe + fatal-sem-artefato + docker mock + staleness WARNING)
+        run: bash scripts/tests/ct100-sdd-scorecard-snapshot.test.sh
+      - name: Block-test-fora-ct100 PORTE .mjs (logica + E2E · roda em Linux · card #2 cross-platform)
+        run: node .claude/hooks/block-test-fora-ct100.test.mjs
+      - name: Block-test-fora-ct100 REGISTRADO como node (correcao != invocacao)
+        run: node scripts/governance/settings-test-fora-ct100-registration.test.mjs
+      - name: Block-automem PORTE .mjs (ADR 0061/0131 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/block-automem.test.mjs
+      - name: Block-mwart-violation PORTE .mjs (ADR 0104 F1 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/block-mwart-violation.test.mjs
+      - name: Block-automem + block-mwart REGISTRADOS como node (correcao != invocacao)
+        run: node scripts/governance/settings-automem-mwart-registration.test.mjs
       - name: Registro Figma-não-é-fonte em settings.json (camada L4)
         run: node scripts/governance/settings-figma-registration.test.mjs
       - name: Registro âncora-no-olho em settings.json (incidente #7)
@@ -50,5 +72,97 @@ jobs:
         run: node .claude/hooks/block-skill-design-sync-without-optin.test.mjs
       - name: Registro design-sync-não-é-fonte em settings.json (camada L4 · DesignSync + Skill)
         run: node scripts/governance/settings-design-sync-registration.test.mjs
+      - name: ds-push orquestrador morde (dry-run VALOR:0 + determinismo · loop diff-first)
+        run: node scripts/design-sync/ds-push.test.mjs
+      - name: ds-token-version morde (seed + bumps MINOR/MAJOR + gate --check · loop diff-first)
+        run: node scripts/design-sync/ds-token-version.test.mjs
+      - name: ds-token-diff MOTOR morde (diverge/designOnly/gitOnly/alias-skip/companion · loop diff-first)
+        run: node scripts/design-sync/ds-token-diff.test.mjs
+      - name: ds-mirror-drift SENTINELA morde (bite/release/catraca · loop diff-first)
+        run: node scripts/governance/ds-mirror-drift.test.mjs
+      - name: design-coverage CATRACA morde (bite/release · cobertura de design UI-0013)
+        run: node scripts/qa/design-coverage.test.mjs
+      - name: pt-conformance morde (declaração de PT falsificável · PT-02..05)
+        run: node scripts/governance/pt-conformance.mjs --selftest
+      - name: criar-tela GERADOR carimba conforme ao PT (máquina de nascimento de tela · UI-0013)
+        run: node scripts/governance/criar-tela.mjs --selftest
       - name: Design-memory gate wired no CI (Onda O3 · fundido ADR 0314 F2)
         run: node scripts/governance/design-memory-gate.test.mjs
+      - name: UI-impact classificador (paths visuais + negativos + escopo affected)
+        run: node scripts/governance/ui-impact.mjs --selftest
+      - name: Catraca de path-fantasma morde/solta (P16 · knowledge-drift --selftest)
+        run: node scripts/governance/knowledge-drift.mjs --selftest
+      # P10 — integridade referencial rota↔código (T-AP-3/14/15 · M-AP-1 do F3 rejeitado).
+      # A catraca é hermética (fixtures bite/release, ancorada no contrato LICOES_F3); se ela
+      # parar de morder, ESTE passo falha. O relatório é ADVISORY (ADR 0314 — não-Tier-0): roda
+      # em seguida, exit 0 sempre, só imprime os achados no log (o valor é o relatório).
+      - name: ref-integrity — selftest da catraca (bite/release · T-AP-3/14/15/M-AP-1)
+        run: node scripts/governance/ref-integrity.mjs --selftest
+      - name: ref-integrity — relatório advisory rota↔código (exit 0 · nunca bloqueia)
+        run: node scripts/governance/ref-integrity.mjs
+      # US-GOV-052 P31+P32 — fonte única de skills-tier e de hue primário (ADR 0314: advisory).
+      - name: Skills index gerador morde/solta (P31 · bite/release hermético)
+        run: node scripts/governance/skills-index-generate.test.mjs
+      - name: Skills index em dia (P31 · CLAUDE.md AUTO:SKILLS + _SKILLS-INDEX vs frontmatter)
+        run: node scripts/governance/skills-index-generate.mjs --check
+      - name: Hue-canon check morde/solta (P32 · construção, nunca número cru)
+        run: node scripts/governance/hue-canon-check.test.mjs
+      - name: Hue primário íntegro (P32 · declarações expected_hue/hue_correct vs governance/hue-canon.json)
+        run: node scripts/governance/hue-canon-check.mjs
+      - name: pr-critic — roteamento diff→contratos (fixtures-armadilha · ataque ① grade-das-réguas)
+        run: node scripts/pr-critic/coleta.test.mjs
+      - name: pr-critic — trava de citação + AGREGAÇÃO DE VOTOS das lentes + comentário honesto (determinístico)
+        run: node scripts/pr-critic/critica.test.mjs
+      - name: pr-critic — precisão do próprio critic (agiu/ignorado morde · fecha o loop grade v3)
+        run: node scripts/pr-critic/precisao.test.mjs
+      - name: Block-claim-without-evidence PORTE .mjs (advisory ADR 0224 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/block-claim-without-evidence.test.mjs
+      - name: Post-merge-ui-smoke PORTE .mjs (R1 · bite/release/TTL · roda em Linux)
+        run: node .claude/hooks/post-merge-ui-smoke-required.test.mjs
+      - name: Evidence + ui-smoke REGISTRADOS como node nos 4 pontos (correcao != invocacao)
+        run: node scripts/governance/settings-evidence-smoke-registration.test.mjs
+      - name: Block-memory-drift PORTE .mjs (Tier-0 append-only ADR/handoff · 7 regras · roda em Linux)
+        run: node .claude/hooks/block-memory-drift.test.mjs
+      - name: Block-destructive PORTE .mjs (Tier-0 US-COPI-085 · 8 categorias + whitelist rm · roda em Linux)
+        run: node .claude/hooks/block-destructive.test.mjs
+      - name: Pii-redactor PORTE .mjs (Tier-0 LGPD US-COPI-086 · commit-only opcao B · roda em Linux)
+        run: node .claude/hooks/pii-redactor.test.mjs
+      - name: ciclo-completo GATE morde/solta (charter+PT+conforme+casos+teste+golden-live · GOLDEN-LIVE)
+        run: node scripts/governance/ciclo-completo.mjs --selftest
+      # P15 "done = comportamento + evidência do alvo" (adversário 2026-07-13 wf_33e38126) —
+      # todas advisory (lei ADR 0314): doneness v2 (done×DoD aberto) + sweep de teste órfão.
+      - name: Doneness-lint v2 morde/solta (P15 · done × DoD checkbox aberto · fixtures)
+        run: node scripts/governance/doneness-lint.test.mjs
+      - name: Selftest-registry CATRACA morde/solta (P15 · fixtures herméticas)
+        run: node scripts/governance/selftest-registry-check.mjs --selftest
+      - name: Selftest-registry sweep advisory (teste .mjs órfão de workflow · exit 0 sempre)
+        run: node scripts/governance/selftest-registry-check.mjs
+      # P15 entrega 3 — desorfanar .test.mjs (sweep selftest-registry-check.mjs, 2026-07-13).
+      # Estes 9 tinham .test.mjs no repo mas nenhum step de CI: passavam só na máquina do dev
+      # (mesmo gap "test local-only" da Onda 1). Todos verdes em node puro no momento do wiring.
+      # (O 10º órfão, sdd-distiller-freshness.test.mjs, já é wireado acima pelo PR #4205 / chip A3.)
+      # Advisory de nascença (ADR 0314 — nada vira required).
+      - name: Block-askq-execution-menu PORTE .mjs (menu de execução/escopo · roda em Linux)
+        run: node .claude/hooks/block-askq-execution-menu.test.mjs
+      - name: Block-figma-without-optin PORTE .mjs (ADR 0299 · classificação + opt-in · roda em Linux)
+        run: node .claude/hooks/block-figma-without-optin.test.mjs
+      - name: Design-handoff-reprocess PORTE .mjs (G2 ADR 0236 · idempotência + header · roda em Linux)
+        run: node .claude/hooks/design-handoff-reprocess.test.mjs
+      - name: Git-base-freshness-guard PORTE .mjs (§10.4 · stale morde/solta · roda em Linux)
+        run: node .claude/hooks/git-base-freshness-guard.test.mjs
+      - name: Feature-lint (contrato do trio de feature · us-no-spec/dod/plan/covers)
+        run: node scripts/governance/feature-lint.test.mjs
+      - name: Ghost-fix (reescrita SPEC + ADR append-only intacto)
+        run: node scripts/governance/ghost-fix.test.mjs
+      - name: Negócio-vs-governança ratio (alarme morde no crossover, solta no equilíbrio)
+        run: node scripts/governance/negocio-vs-governanca-ratio.test.mjs
+      - name: Prototipo-readiness (contrato de prontidão · casos/UC/scorecard/âncora)
+        run: node scripts/qa/prototipo-readiness.test.mjs
+      - name: Screen-grade-report (contrato de derivação · cobertura/D1/drift)
+        run: node scripts/qa/screen-grade-report.test.mjs
+      # +2 órfãos surgidos após 13-jul, pegos ao re-rodar o sweep (agora vivo via #4210).
+      # Fecha em 0 órfãos. Ambos verdes em node puro.
+      - name: Adversário-intenção-fluxo (rota legada crítica · cobertura mínima · contraprova)
+        run: node scripts/adversario-intencao-fluxo.test.mjs
+      - name: Auditar-intenção-fluxo (contrato + evidência + rota proibida + prosa não mascara)
+        run: node scripts/auditar-intencao-fluxo.test.mjs

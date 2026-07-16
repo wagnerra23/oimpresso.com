@@ -6,7 +6,7 @@
 // sessao / antes de formalizar.
 //
 //   IT1 Espinha existe: STATUS · PROCESSO_MEMORIA_CC · MEMORY_INDEX · LICOES_CC
-//   IT2 Todo *.charter.md tem *.decisoes.md irmao (e vice-versa)
+//   IT2 Todo *.charter.md tem tela viva (.tsx irmao) — DURO desde 2026-07-09 (orfaos zerados)
 //   IT3 STATUS aponta pra PROCESSO_MEMORIA_CC (ponteiro vivo)
 //   IT4 LICOES_CC: L-NN contiguo, sem buraco/duplicata
 //   IT5 Benchmark (§11) tem >=1 linha de sessao
@@ -15,6 +15,12 @@
 //
 // Veredito: qualquer IT DURO falho => estrutura COMPROMETIDA (exit 1).
 // IT6 e' ADVISORY (tokens.css/design-system.css DEFINEM tokens) — reporta, nao falha.
+// IT2 e' DURO desde 2026-07-09 (catraca §12): os 5 orfaos historicos foram zerados —
+// kb/Node·Paths·Troubleshooter movidos pro lado do componente real que governam
+// (kb/_components/{NodeReader,PathsDialog,TroubleshooterDialog}.charter.md) e
+// OficinaAuto/Os/Create + Orcamento/Index arquivados como lapide L-22 em
+// memory/requisitos/{OficinaAuto,Orcamento}/_arquivo/. Charter novo em Pages sem
+// .tsx irmao => exit 1 (lei sem tela viva nao entra mais).
 //
 // Uso: node prototipo-ui/integrity-check.mjs
 
@@ -59,20 +65,24 @@ const spine = {
   add('IT1', true, miss.length === 0, miss.length ? ('faltando: ' + miss.join(', ')) : 'STATUS · PROCESSO · MEMORY_INDEX · LICOES_CC presentes');
 }
 
-// ---- IT2 — charter <-> decisoes pareados ----------------------------------
+// ---- IT2 — todo charter tem tela viva (.tsx irmao) · DURO (2026-07-09) ----
+// Mede a invariante REAL: o contrato da tela e' o trio .tsx + .charter.md + .casos.md,
+// e o charter mora ao lado da tela em resources/js/Pages/<Mod>/. Charter sem .tsx irmao =
+// lei sem tela viva (candidato a lapide L-22). NAO parear com .decisoes.md: 0 no repo, era
+// vacuo (fonte-unica violada — §14 apontava pro lugar errado). Subiu a duro pela catraca
+// (§12) quando os 5 orfaos historicos zeraram (3 movidos pro componente real em
+// kb/_components/, 2 arquivados como lapide em memory/requisitos/**/_arquivo/).
 {
-  const files = await walk(join(PROTO, 'prototipos'));
+  const files = await walk(join(ROOT, 'resources', 'js', 'Pages'));
   const charters = files.filter((f) => f.endsWith('.charter.md'));
-  const decisoes = files.filter((f) => f.endsWith('.decisoes.md'));
-  const stem = (f, suf) => f.slice(0, -suf.length);
-  const dSet = new Set(decisoes.map((f) => stem(f, '.decisoes.md')));
-  const cSet = new Set(charters.map((f) => stem(f, '.charter.md')));
-  const orphanC = charters.filter((f) => !dSet.has(stem(f, '.charter.md'))).map((f) => rel(f));
-  const orphanD = decisoes.filter((f) => !cSet.has(stem(f, '.decisoes.md'))).map((f) => rel(f));
-  const orphans = [...orphanC.map((f) => f + ' (sem .decisoes)'), ...orphanD.map((f) => f + ' (sem .charter)')];
-  const total = charters.length + decisoes.length;
+  const orphans = charters
+    .filter((f) => !existsSync(f.slice(0, -'.charter.md'.length) + '.tsx'))
+    .map((f) => rel(f));
+  const vivos = charters.length - orphans.length;
   add('IT2', true, orphans.length === 0,
-    orphans.length ? ('orfaos: ' + orphans.join(' · ')) : (total === 0 ? 'nenhum par charter/decisoes ainda (ok — vacuo)' : (charters.length + ' pares ok')));
+    charters.length === 0 ? 'nenhum charter em resources/js/Pages (ok — vacuo)'
+      : orphans.length ? (orphans.length + ' charter(s) sem .tsx irmao: ' + orphans.join(' · '))
+      : (vivos + ' charters com tela viva (.tsx) ok'));
 }
 
 // ---- IT3 — STATUS aponta pra PROCESSO -------------------------------------
@@ -100,12 +110,23 @@ const spine = {
   }
 }
 
-// ---- IT5 — Benchmark (§11) tem linha de sessao ----------------------------
+// ---- IT5 — Benchmark (§11) tem linha de sessao E nao esta STALE ------------
 {
   const s = await read(spine.PROCESSO_MEMORIA_CC);
   // procura linha de tabela comecando com | YYYY-MM-DD na area do Benchmark
-  const rows = s ? [...s.matchAll(/^\|\s*\d{4}-\d{2}-\d{2}/gm)] : [];
-  add('IT5', true, rows.length > 0, rows.length ? (rows.length + ' linha(s) no log de tendencia') : 'sem medicao no Benchmark (Sobrevivencia #1)');
+  const rows = s ? [...s.matchAll(/^\|\s*(\d{4}-\d{2}-\d{2})/gm)] : [];
+  // Staleness (auditoria dos guias 2026-07-09): a versao anterior aceitava linha de
+  // QUALQUER data — benchmark parado 5+ semanas ficava VERDE pra sempre (o proprio
+  // "verde no vacuo" que o metodo condena). Agora a linha mais recente precisa ter
+  // <= N dias (default 30, tunavel via OIMPRESSO_BENCHMARK_STALE_DIAS).
+  const DIAS = Number(process.env.OIMPRESSO_BENCHMARK_STALE_DIAS) || 30;
+  const ultima = rows.map((m) => m[1]).sort().at(-1) || null;
+  const idade = ultima ? Math.round((Date.now() - Date.parse(ultima + 'T00:00:00Z')) / 86400000) : null;
+  const ok = rows.length > 0 && idade !== null && idade <= DIAS;
+  add('IT5', true, ok,
+    !rows.length ? 'sem medicao no Benchmark (Sobrevivencia #1)'
+    : ok ? (rows.length + ' linha(s), ultima ' + ultima + ' (' + idade + 'd)')
+    : ('benchmark STALE: ultima medicao ' + ultima + ' (' + idade + 'd > ' + DIAS + 'd) — rode o Benchmark do §11 e logue a linha'));
 }
 
 // ---- IT6 — DS-GUARD limpo nos arquivos canonicos do DS (ADVISORY) ---------

@@ -15,6 +15,16 @@
   --fin-line: oklch(0.92 0.005 240);
   --fin-bg-soft: oklch(0.97 0.005 240);
 }
+/* Variante DARK dos tokens bespoke --fin-* — follow-up da ADR UI-0022 (PR #3958).
+   Sem override dark, --fin-line (0.92) e --fin-bg-soft (0.97) ficavam quase BRANCOS
+   no escuro → "linhas fortes" que o [W] apontou (2026-07-09). Espelha os tokens
+   dark do shell cockpit (border 0.34/surface 0.30/text 0.94/mute 0.58). */
+.cockpit[data-theme="dark"] .fin-cowork .fin-curadoria {
+  --fin-text: oklch(0.94 0.005 90);
+  --fin-text-mute: oklch(0.58 0.005 90);
+  --fin-line: oklch(0.34 0.008 240);
+  --fin-bg-soft: oklch(0.30 0.008 240);
+}
 /* ─────────────────────────────────────────────────────────────
  * Conferido — toggle grande + badge silencioso + pill inline
  * ───────────────────────────────────────────────────────────── */

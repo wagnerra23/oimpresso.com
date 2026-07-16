@@ -1,0 +1,272 @@
+{
+  "ok": true,
+  "generated": "2026-07-13",
+  "janela": {
+    "prs": 20,
+    "pedidos": 20,
+    "marker": "[CC]"
+  },
+  "custo": {
+    "total_usd_matched": 387.79,
+    "mediana_usd_por_pr": 14.9,
+    "top_prs": [
+      {
+        "pr": 4191,
+        "usd": 36.46,
+        "title": "docs(reguas): adversário formal 2026-07-12 — session log da grade + regras 8-15 na skill [CC]"
+      },
+      {
+        "pr": 4171,
+        "usd": 27.49,
+        "title": "feat(governance): agenda snapshot diário do scorecard SDD no CT 100 (P06/GT-G7) [CC]"
+      },
+      {
+        "pr": 4164,
+        "usd": 26.86,
+        "title": "ci(memory-schema): fia briefing+reference à matriz em GRACE (warn-only) [CC]"
+      }
+    ],
+    "usd_fora_da_janela": 11857.07
+  },
+  "join": {
+    "sem_match": 0,
+    "sem_match_pct": 0,
+    "matched_por_branch": 0,
+    "matched_por_citacao": 20,
+    "msgs_sem_branch": 0,
+    "modelos_desconhecidos": [
+      "<synthetic>"
+    ]
+  },
+  "por_pr": [
+    {
+      "pr": 4192,
+      "title": "docs(jana): evidence pack dry-run jana:retention-purge + pedido formal flip JANA_RETENTION_ENABLED [CC]",
+      "branch": "claude/lgpd-retention-flip-evidence",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 8310361,
+      "usd": 25.94
+    },
+    {
+      "pr": 4191,
+      "title": "docs(reguas): adversário formal 2026-07-12 — session log da grade + regras 8-15 na skill [CC]",
+      "branch": "claude/reguas-adversario-grade",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 11576582,
+      "usd": 36.46
+    },
+    {
+      "pr": 4185,
+      "title": "feat(governance): ativa o gate verde advisory da nightly — transporte (elo 2) + job anchor-drift (elo 4) (V6-B) [CC]",
+      "branch": "claude/v6b-activate-verde-advisory",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 30655360,
+      "usd": 22.73
+    },
+    {
+      "pr": 4184,
+      "title": "feat(governance): anchor-lint consome nightly full-suite sharded + noite parcial → unknown (V6-B link 3) [CC]",
+      "branch": "claude/v6b-consume-sharded-summary",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 30655360,
+      "usd": 22.73
+    },
+    {
+      "pr": 4182,
+      "title": "fix(governance): anchor-lint verde só julga teste in-lane — US nightly-only → behavior_unknown, não false-red (V6-C) [CC]",
+      "branch": "claude/v6c-nightly-lane-unknown",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 30655360,
+      "usd": 22.73
+    },
+    {
+      "pr": 4171,
+      "title": "feat(governance): agenda snapshot diário do scorecard SDD no CT 100 (P06/GT-G7) [CC]",
+      "branch": "claude/sdd-p06-cron-ct100",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 31858306,
+      "usd": 27.49
+    },
+    {
+      "pr": 4164,
+      "title": "ci(memory-schema): fia briefing+reference à matriz em GRACE (warn-only) [CC]",
+      "branch": "claude/canon-memoria-grace-briefing-reference",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 38123868,
+      "usd": 26.86
+    },
+    {
+      "pr": 4165,
+      "title": "feat(infra): get-secret.sh — leitura canônica de segredos via Vaultwarden service account (Opção B) [CC]",
+      "branch": "claude/vaultwarden-get-secret",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 18630226,
+      "usd": 16.22
+    },
+    {
+      "pr": 4161,
+      "title": "fix(governance): anchor-lint loadJunit resiliente — junit inválido → behavior_unknown, não crash/false-red (V6-A) [CC]",
+      "branch": "claude/v6a-anchor-junit-resilient",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 30655360,
+      "usd": 22.73
+    },
+    {
+      "pr": 4155,
+      "title": "feat(governance): passe repetível charter-promote-signal + 1ª run (Produto/Index) [CC]",
+      "branch": "claude/charter-promote-signal-pass",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4153,
+      "title": "docs(site): promove charter /login draft→live (sinal de prod real) [CC]",
+      "branch": "claude/promote-site-login-live",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4152,
+      "title": "docs(handoff): session log + handoff cobertura de charters 100% [CC]",
+      "branch": "claude/session-log-charters",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4148,
+      "title": "fix(memcofre): corrige chamadas /docs → /memcofre (404) [CC]",
+      "branch": "claude/fix-memcofre-docs-routes",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4142,
+      "title": "docs(nfebrasil): charters draft das 2 telas sem contrato [CC]",
+      "branch": "claude/charters-nfebrasil",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4141,
+      "title": "docs(purchase): charters draft das 2 telas sem contrato [CC]",
+      "branch": "claude/charters-purchase",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4136,
+      "title": "docs(ads): charters draft das 19 telas sem contrato [CC]",
+      "branch": "claude/charters-ads",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4140,
+      "title": "docs(financeiro): charters draft das 5 telas sem contrato [CC]",
+      "branch": "claude/charters-financeiro",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4139,
+      "title": "docs(memcofre): charters draft das 6 telas sem contrato [CC]",
+      "branch": "claude/charters-memcofre",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4137,
+      "title": "docs(essentials): charters draft das 10 telas sem contrato [CC]",
+      "branch": "claude/charters-essentials",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    },
+    {
+      "pr": 4138,
+      "title": "docs(site): charters draft das 7 telas sem contrato [CC]",
+      "branch": "claude/charters-site",
+      "matched": true,
+      "sinais": [
+        "citacao"
+      ],
+      "tokens": 15691951,
+      "usd": 14.9
+    }
+  ],
+  "confianca": "proxy (JSONL local → branch OU citação /pull/N → PR; ver gaps)",
+  "gaps": [
+    "G1 sinal-branch (gitBranch==headRefName): consolidação parent / rename / sessão sem branch escapam — % de PRs sem match publicado é o tamanho do buraco.",
+    "G2 custo é da SESSÃO/BRANCH inteira: superconta exploração descartada e funde PRs que reusaram branch.",
+    "G3 fonte = JSONL desta máquina: cloud/CI/outros devs não aparecem → subconta.",
+    "G4 preços hardcoded (2026-07-12); modelo desconhecido → USD null declarado; sem breakdown de cache → tudo vira write 5m; não modela server tools/fast-mode.",
+    "G5 CI só roda selftest + snapshot commitado (staleness declarada); medição viva é local.",
+    "G6 sinal-citação (/pull/N no transcript): citar ≠ ser autor — custo diluído por N PRs citados; matched_por_citacao é reportado separado do matched_por_branch."
+  ]
+}

@@ -7,6 +7,7 @@ namespace Modules\Jana\Services\Ragas;
 use App\Util\OtelHelper;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Modules\Jana\Services\Telemetry\LangfuseClient;
 
 /**
  * RagasJudgeService — LLM-as-a-judge pra métricas RAGAS canônicas.
@@ -248,6 +249,8 @@ PROMPT;
         $timeout = (int) config('ragas.judge_timeout', 60);
 
         try {
+            $t0 = microtime(true);
+
             $response = Http::withHeaders([
                 'Authorization' => "Bearer {$apiKey}",
                 'Content-Type'  => 'application/json',
@@ -275,7 +278,33 @@ PROMPT;
             $score = (float) ($data['score'] ?? 0.0);
 
             // Sanitiza pra range 0..1
-            return max(0.0, min(1.0, $score));
+            $score = max(0.0, min(1.0, $score));
+
+            // US-COPI-108 (reconciliação 2026-07-12): este call-site usa Http::
+            // direto — fora do listener global Langfuse (que só cobre events do
+            // laravel/ai). Instrumentação inline: 1 trace + 1 generation + 1 score
+            // por métrica. LangfuseClient é fail-open + no-op se langfuse.enabled=false
+            // (caso do CI GH Actions, que nem alcança o host CT 100).
+            $langfuse = app(LangfuseClient::class);
+            $traceId  = $langfuse->traceComGeneration([
+                'name'        => 'ragas-judge',
+                'business_id' => null, // eval de governança repo-wide, sem tenant
+                'tool'        => 'ragas-gate',
+                'metadata'    => ['metric' => $metric],
+            ], [
+                'name'        => "ragas-{$metric}",
+                'model'       => $model,
+                'input'       => $prompt,
+                'output'      => $raw,
+                'usage'       => [
+                    'input'  => $response->json('usage.prompt_tokens'),
+                    'output' => $response->json('usage.completion_tokens'),
+                ],
+                'duration_ms' => (int) round((microtime(true) - $t0) * 1000),
+            ]);
+            $langfuse->recordScore($traceId, "ragas_{$metric}", $score);
+
+            return $score;
         } catch (\Throwable $e) {
             Log::warning("[RAGAS] Exception metric={$metric}: " . $e->getMessage());
 

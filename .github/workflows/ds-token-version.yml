@@ -1,0 +1,40 @@
+name: DS token version (advisory)
+
+# Advisory (ADR 0314 — required = só Tier-0; versionar o pacote de tokens é HIGIENE, não
+# dinheiro/PII/multi-tenant/fiscal). Roda quando um PR toca a superfície de tokens e AVISA se
+# a superfície mudou sem bump de version.json + CHANGELOG. Nunca bloqueia merge (continue-on-error).
+# Fix = npm run tokens:version:write. O selftest (governance-script-tests.yml) prova que morde.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/css/tokens/**'
+      - 'scripts/design-sync/ds-token-version.mjs'
+  workflow_dispatch:
+
+concurrency:
+  group: ds-token-version-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  version-check:
+    name: ds-token-version (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # Tokens são build inputs rastreados (ver .gitignore) — não precisa buildar; o script
+      # lê os _generated-*.css do repo direto.
+      - name: Versão do pacote de tokens em dia?
+        run: |
+          if node scripts/design-sync/ds-token-version.mjs --check; then
+            echo "✅ version.json + CHANGELOG em dia com a superfície de tokens."
+          else
+            echo "::warning title=DS token version::Superfície de tokens mudou sem bump — rode 'npm run tokens:version:write' e commite version.json + CHANGELOG.md (advisory, não bloqueia)."
+          fi

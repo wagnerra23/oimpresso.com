@@ -1,6 +1,7 @@
 ---
 page: /team-mcp/scorecard
 component: resources/js/Pages/team-mcp/Scorecard/Index.tsx
+related_prototype: n/a (herda PT-04 Dashboard; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-06-16"

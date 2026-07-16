@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+// Cobre UC-CCRE-01, UC-CCRE-02, UC-CCRE-03 (Create.casos.md) - G-2 rastreabilidade caso-teste.
 // @covers-us US-CRM-076
 
 use App\Business;

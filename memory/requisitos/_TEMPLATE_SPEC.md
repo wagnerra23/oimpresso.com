@@ -14,8 +14,8 @@
 ---
 module: {{PascalCase}}
 last_updated: {{YYYY-MM-DD}}
-version: v0.1.0
-owner: W
+version: "0.1.0"
+owners: [W]
 status: rascunho
 us_count: 0
 us_list: []

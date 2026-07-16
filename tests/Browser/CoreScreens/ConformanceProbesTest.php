@@ -106,7 +106,9 @@ const PROBE_G4 = <<<'JS'
 JS;
 
 it('Oficina drawer (estado "adicionando" ABERTO) — probes G2/G3/G4 limpos + controle-negativo discrimina', function () {
-    $business = Business::first();
+    // orderBy('id') = biz 1 determinístico: o gate também seeda 98 (VisregEmptyTenantSeeder)
+    // e 99 (VisregTenantBLeakSeeder) — sem ordem explícita o "first" é o que o MySQL devolver.
+    $business = Business::orderBy('id')->first();
     if (! $business) {
         test()->markTestSkipped('Sem business seedado (VisregTenantSeeder não rodou).');
     }

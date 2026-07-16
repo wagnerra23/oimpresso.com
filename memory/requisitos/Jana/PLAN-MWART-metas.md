@@ -12,6 +12,8 @@ gate_visual: F1.5-pendente
 
 # PLAN MWART — `metas/*` (Jana)
 
+> ⚠️ **Reconciliação v2 (2026-07-15):** este PLAN (draft 2026-05-09) descreve o gate v1 *"Wagner aprova SCREENSHOT síncrono, sem aprovação F3 não inicia"* — **superado** pela v2 ([ADR 0241](../../decisions/0241-loop-design-cowork-code-autonomo-zero-humano.md) + [ADR 0282](../../decisions/0282-protocolo-v2-colapso-ratificacao.md)): gate visual = **CI** (visual-regression + PR UI Judge), não aprovação síncrona; o agente Code **gera** o design com acesso completo ([PROTOCOL §0.1](../../../prototipo-ui/PROTOCOL.md)). Texto v1 preservado como histórico.
+
 > **Tipo:** PLAN Fase 1 do [ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md) — único caminho de migração Blade→Inertia
 > **Status:** DRAFT aguardando aprovação Wagner antes de F2 (BACKEND BASELINE)
 > **Gate F1.5 ([ADR 0107](../../decisions/0107-emendation-0104-visual-comparison-gate-f3.md)):** screenshots prototipo-ui pendentes — bloqueia qualquer Edit em `.tsx`

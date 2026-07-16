@@ -1,6 +1,7 @@
 ---
 page: /stock-adjustments/create
 component: resources/js/Pages/StockAdjustment/Create.tsx
+related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 tela: stock_adjustment/create
 tipo: FORM CREATE
 modulo: Inventory / StockAdjustment

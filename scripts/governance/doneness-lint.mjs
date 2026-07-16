@@ -30,6 +30,8 @@
 //                                                             # ADVISORY até promoção (calendário ADR 0275)
 //   node scripts/governance/doneness-lint.mjs --baseline <path>      # grandfathera o conflito LEGADO
 //   node scripts/governance/doneness-lint.mjs --emit-baseline        # imprime o baseline da dívida ATUAL
+//   node scripts/governance/doneness-lint.mjs --check --dod          # v2 P15: done×DoD-aberto também MORDE
+//                                                                    # (sem --dod: sempre reporta, nunca morde)
 //
 // SA-A2-ter ARMING (ADR 0275 calendário + ADR 0303), espelho do --baseline do anchor-lint:
 // --baseline <path> grandfathera o conflito status×âncora LEGADO (chave `<kind>:<US-ID>`,
@@ -60,6 +62,20 @@ const MDLINK_RE = /\[`([^`]+)`\]\(([^)]+)\)/g;
 // status: só na linha de metadados do US (blockquote `> ...`) — evita falso match de
 // `{status: 'arquivada'}` em corpo de Rota e do frontmatter `status: ativo` (fora de US).
 const STATUS_RE = /^>\s*.*\bstatus:\s*([A-Za-z][A-Za-z0-9_-]*)/;
+
+// ── v2 (P15 · done×DoD): consistência interna done × checkbox do DoD/aceite ─────────────
+// Adversário 2026-07-13 (wf_33e38126): US-COPI-110 `status: done` com DoD 0/10 marcado —
+// "done deixou de ser gate". Novo conflito `conflito_done_dod_aberto` = status done + checkbox
+// `[ ]` desmarcado DENTRO da seção DoD/aceite da própria US. É checagem de CONSISTÊNCIA
+// INTERNA do doc (o done contradiz o próprio DoD) — NÃO gate-de-presença (lápide §5
+// 2026-07-01 não se aplica: não exigimos "arquivo X no diff", exigimos que o done não minta).
+// Escopo: só checkboxes da seção DoD/aceite (marker bold abaixo até o próximo bold/heading) —
+// checklist de "Plano"/"Passos" fora do DoD não conta. Sempre REPORTA (🔴 advisory); só MORDE
+// em --check com opt-in --dod (promoção por calendário ADR 0275; hoje advisory — lei 0314).
+const DOD_MARK_RE = /^(?:>\s*)?\*\*(Definition of Done|DoD|Crit[ée]rios? de aceite|Aceite|Acceptance Criteria)\b/i;
+const BOLD_SECTION_RE = /^(?:>\s*)?\*\*[^*]+\*\*/;
+const CHECKBOX_RE = /^\s*[-*]\s*\[( |x|X)\]/;
+const DOD_BITE = process.argv.includes('--dod');
 
 // vocabulário de status (84 done · 365 todo · 17 review · 16 backlog · 6 blocked · 5 doing ·
 // 4 in[_-]progress · 1 superseded — medido 2026-06-22). done = único "declara pronto".
@@ -122,16 +138,17 @@ function lintSpec(file) {
   const txt = readFileSync(file, 'utf8');
   const specDir = dirname(file);
   const lines = txt.split('\n');
-  const usList = []; // {id, line, level, status, anchorRest}
+  const usList = []; // {id, line, level, status, anchorRest, dodTotal, dodOpen}
   let cur = null;
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i].trimEnd();
     const head = line.match(HEAD_RE);
     if (head) {
       if (US_HEAD_RE.test(line)) {
-        cur = { id: (line.match(US_ID_RE) || ['US-?'])[0], line: i + 1, level: head[1].length, status: null, anchorRest: null };
+        cur = { id: (line.match(US_ID_RE) || ['US-?'])[0], line: i + 1, level: head[1].length, status: null, anchorRest: null, dodTotal: 0, dodOpen: 0, inDod: false };
         usList.push(cur);
       } else if (cur && head[1].length <= cur.level) cur = null;
+      else if (cur) cur.inDod = false; // sub-heading dentro da US encerra a seção DoD
       continue;
     }
     if (!cur) continue;
@@ -139,9 +156,17 @@ function lintSpec(file) {
     if (s && cur.status == null) cur.status = s[1].toLowerCase();
     const f = line.match(FIELD_RE);
     if (f && cur.anchorRest == null) cur.anchorRest = f[1];
+    // seção DoD/aceite: abre no marker, fecha no próximo bold-section (Non-Goals:, Refs:, ...)
+    if (DOD_MARK_RE.test(line)) cur.inDod = true;
+    else if (cur.inDod && BOLD_SECTION_RE.test(line)) cur.inDod = false;
+    else if (cur.inDod) {
+      const cb = line.match(CHECKBOX_RE);
+      if (cb) { cur.dodTotal++; if (cb[1] === ' ') cur.dodOpen++; }
+    }
   }
   const counts = Object.fromEntries(RECON.map((r) => [r, 0]));
   const conflicts = [];
+  const dodConflicts = [];
   let withStatus = 0;
   for (const u of usList) {
     if (u.status == null) continue; // US sem status não entra na reconciliação
@@ -150,8 +175,12 @@ function lintSpec(file) {
     const r = reconcile(u.status, state);
     counts[r]++;
     if (r.startsWith('conflito_')) conflicts.push({ us: u.id, line: u.line, status: u.status, anchor: state, kind: r });
+    // v2 (P15): done que contradiz o próprio DoD — checkbox desmarcado na seção DoD/aceite
+    if (DONE.has(u.status) && u.dodOpen > 0) {
+      dodConflicts.push({ us: u.id, line: u.line, status: u.status, dod_open: u.dodOpen, dod_total: u.dodTotal, kind: 'conflito_done_dod_aberto' });
+    }
   }
-  return { us_total: usList.length, us_with_status: withStatus, counts, conflicts };
+  return { us_total: usList.length, us_with_status: withStatus, counts, conflicts, dod_conflicts: dodConflicts };
 }
 
 // ── seleção de SPECs: full-tree ou diff-aware (args posicionais) — igual anchor-lint ─────
@@ -173,11 +202,15 @@ const byRecon = Object.fromEntries(RECON.map((r) => [r, modules.reduce((a, m) =>
 const usTotal = modules.reduce((a, m) => a + m.us_total, 0);
 const withStatus = modules.reduce((a, m) => a + m.us_with_status, 0);
 const conflictsTotal = byRecon.conflito_done_sem_ancora + byRecon.conflito_aberto_com_ancora;
+const dodConflictsTotal = modules.reduce((a, m) => a + m.dod_conflicts.length, 0);
 
 // ── baseline grandfather (ARMING SA-A2-ter · ADR 0275/0303) — espelho do anchor-lint ──────
 // emit: imprime a dívida de conflito ATUAL (chave canônica, sorted+unique) — fonte regenerável;
 // arming consome o que ele emite. Mesma engine que CHECA é a que EMITE → chaves nunca derivam.
-const _allConflictKeys = modules.flatMap((m) => m.conflicts.map(keyConflict));
+// v2 (P15): chaves DoD só entram no emit com --dod (senão regenerar o baseline hoje CRESCERIA
+// a lista → trailer BASELINE-GROW à toa; promoção do --dod regenera com a flag, deliberado).
+const _allConflictKeys = modules.flatMap((m) => m.conflicts.map(keyConflict)
+  .concat(DOD_BITE ? m.dod_conflicts.map(keyConflict) : []));
 if (EMIT_BASELINE) {
   const grandfathered = [...new Set(_allConflictKeys)].sort();
   process.stdout.write(JSON.stringify({
@@ -203,14 +236,18 @@ function loadBaseline(p) {
   catch { console.error(`doneness-lint: --baseline ${p} não parseia como JSON.`); process.exit(2); }
 }
 const BASELINE = loadBaseline(BASELINE_PATH);
-for (const m of modules) m._conflicts_active = BASELINE ? m.conflicts.filter((c) => !BASELINE.has(keyConflict(c))) : m.conflicts;
+for (const m of modules) {
+  m._conflicts_active = BASELINE ? m.conflicts.filter((c) => !BASELINE.has(keyConflict(c))) : m.conflicts;
+  m._dod_active = BASELINE ? m.dod_conflicts.filter((c) => !BASELINE.has(keyConflict(c))) : m.dod_conflicts;
+}
 const grandfatheredConflicts = BASELINE ? _allConflictKeys.filter((k) => BASELINE.has(k)).length : 0;
 // ATIVOS (= raw quando sem --baseline; raw-menos-grandfathered quando com baseline) — é o que MORDE.
 const conflictsActiveTotal = modules.reduce((a, m) => a + m._conflicts_active.length, 0);
+const dodActiveTotal = modules.reduce((a, m) => a + m._dod_active.length, 0);
 
 for (const m of modules) {
   const c = m.counts;
-  m.flag = m._conflicts_active.length > 0 ? '🔴'
+  m.flag = (m._conflicts_active.length > 0 || m._dod_active.length > 0) ? '🔴'
     : c.zona_cinza_aberto_sem_anc > 0 ? '🟡' : m.us_with_status > 0 ? '🟢' : '⚪';
 }
 
@@ -222,6 +259,7 @@ const report = {
     ancora_viva: 'anchored_ok | parcial (paths existem no disco · ADR 0273 §2). _pendente_ NÃO é viva (tela não construída).',
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
     fase: 'ADVISORY (ADR 0271/0275) — exit 0 sempre nos modos default/--json; --check (exit 1) é o primitivo de enforcement, promovido por calendário (ADR 0275)',
+    v2_dod: 'P15 (wf_33e38126): conflito_done_dod_aberto = status:done + checkbox [ ] na seção DoD/aceite da própria US. CONSISTÊNCIA INTERNA (done contradiz o próprio DoD), NÃO gate-de-presença (lápide §5 2026-07-01 não se aplica). Sempre reportado (🔴); só morde em --check com --dod (advisory hoje — lei ADR 0314).',
     baseline: BASELINE
       ? `grandfather aplicado (${BASELINE_PATH}): conflitos legados grandfatherados NÃO mordem (no-new-lie · ADR 0275). conflitos_ativos = conflito NOVO/tocado.`
       : 'sem --baseline: conflitos_total = brutos (legado + novo). Arming passa --baseline pra grandfatherar o legado.',
@@ -230,6 +268,7 @@ const report = {
   summary: {
     specs_total: modules.length, us_total: usTotal, us_with_status: withStatus,
     conflitos_total: conflictsTotal, conflitos_ativos: conflictsActiveTotal, grandfathered: grandfatheredConflicts,
+    conflito_done_dod_aberto: dodConflictsTotal, conflito_done_dod_aberto_ativos: dodActiveTotal,
     conflito_done_sem_ancora: byRecon.conflito_done_sem_ancora,
     conflito_aberto_com_ancora: byRecon.conflito_aberto_com_ancora,
     zona_cinza_aberto_sem_anc: byRecon.zona_cinza_aberto_sem_anc,
@@ -242,22 +281,24 @@ const report = {
 if (JSON_OUT) { process.stdout.write(JSON.stringify(report, null, 2) + '\n'); process.exit(0); }
 
 console.log(`\n  DONENESS LINT — fonte-única status:×âncora (ADR 0302) · ${modules.length} SPECs · escopo: ${report._meta.scope}\n`);
-console.log(`  ${'MÓDULO'.padEnd(20)} ${'US'.padStart(4)} ${'c/st'.padStart(5)} ${'done✗'.padStart(6)} ${'abrt✗'.padStart(6)} ${'cinza'.padStart(6)} ${'ok'.padStart(4)}`);
-console.log('  ' + '─'.repeat(64));
+console.log(`  ${'MÓDULO'.padEnd(20)} ${'US'.padStart(4)} ${'c/st'.padStart(5)} ${'done✗'.padStart(6)} ${'abrt✗'.padStart(6)} ${'dod✗'.padStart(5)} ${'cinza'.padStart(6)} ${'ok'.padStart(4)}`);
+console.log('  ' + '─'.repeat(70));
 for (const m of modules) {
   if (m.us_with_status === 0) continue;
   const c = m.counts;
   const ok = c.consistente_done + c.consistente_aberto;
-  console.log(`  ${m.flag} ${m.module.padEnd(18)} ${String(m.us_total).padStart(4)} ${String(m.us_with_status).padStart(5)} ${String(c.conflito_done_sem_ancora).padStart(6)} ${String(c.conflito_aberto_com_ancora).padStart(6)} ${String(c.zona_cinza_aberto_sem_anc).padStart(6)} ${String(ok).padStart(4)}`);
+  console.log(`  ${m.flag} ${m.module.padEnd(18)} ${String(m.us_total).padStart(4)} ${String(m.us_with_status).padStart(5)} ${String(c.conflito_done_sem_ancora).padStart(6)} ${String(c.conflito_aberto_com_ancora).padStart(6)} ${String(m.dod_conflicts.length).padStart(5)} ${String(c.zona_cinza_aberto_sem_anc).padStart(6)} ${String(ok).padStart(4)}`);
   for (const x of m._conflicts_active) console.log(`       ⚠️  ${x.us} (L${x.line}): status=${x.status} × anchor=${x.anchor} → ${x.kind}`);
+  for (const x of m._dod_active) console.log(`       🔴 ${x.us} (L${x.line}): status=done × DoD ${x.dod_total - x.dod_open}/${x.dod_total} marcado (${x.dod_open} aberto) → ${x.kind}`);
 }
-console.log('  ' + '─'.repeat(64));
+console.log('  ' + '─'.repeat(70));
 console.log(`\n  US: ${usTotal} total · ${withStatus} com status: (superfície do dual-source) · ${usTotal - withStatus} sem status:`);
 console.log(`  CONFLITOS (mordem em --check): ${conflictsActiveTotal}${BASELINE ? ` ativo(s) (bruto ${conflictsTotal} − ${grandfatheredConflicts} grandfathered)` : `  = ${byRecon.conflito_done_sem_ancora} done-sem-âncora + ${byRecon.conflito_aberto_com_ancora} aberto-com-âncora`}`);
 if (BASELINE) console.log(`  Grandfather (${BASELINE_PATH}): ${grandfatheredConflicts} conflito(s) legado(s) isento(s) (no-new-lie · ratchet só-desce · ADR 0275)`);
 console.log(`  Zona-cinza (advisory, NÃO morde): ${byRecon.zona_cinza_aberto_sem_anc} aberto-sem-âncora (ingovernável até backfill)`);
+console.log(`  DONE×DoD aberto (v2 P15${DOD_BITE ? ' · --dod ARMADO, morde' : ' · advisory, morde só com --dod'}): ${dodConflictsTotal} US done com checkbox [ ] no DoD${BASELINE && DOD_BITE ? ` (${dodActiveTotal} ativo(s))` : ''}`);
 console.log(`  Consistentes: ${byRecon.consistente_done} done+âncora · ${byRecon.consistente_aberto} aberto+pendente · terminal ${byRecon.terminal} · outro ${byRecon.outro}`);
 console.log(`\n  Fonte única de done-ness = **Implementado em:** (ADR 0273). status: é legado derivado/aposentado (ADR 0302).\n`);
 
-if (CHECK && conflictsActiveTotal > 0) process.exit(1);
+if (CHECK && (conflictsActiveTotal + (DOD_BITE ? dodActiveTotal : 0)) > 0) process.exit(1);
 process.exit(0);

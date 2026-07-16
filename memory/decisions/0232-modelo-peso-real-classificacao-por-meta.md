@@ -3,9 +3,9 @@ slug: 0232-modelo-peso-real-classificacao-por-meta
 number: 232
 title: "Modelo de Peso Real — classificar memórias, decisões e iniciativas por contribuição à meta (R$ [redacted Tier 0]M/ano)"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 decided_by: [W]
 decided_at: "2026-05-28"
 proposed_at: "2026-05-28"

@@ -31,6 +31,16 @@ Sequencial, 4 dígitos, zero à esquerda: `0001`, `0002`, ...
 
 Nome do arquivo: `NNNN-titulo-curto-em-kebab.md`
 
+## Como ratificar uma ADR proposta (flip `proposto → aceito`)
+
+A ratificação é ato soberano do Wagner (R10) — o **merge do PR de flip é o ato**. Mecânica canônica (convenção [ADR 0257](./0257-adr-status-lifecycle-kind-modelo-canonico.md), validada no [PR #4027](https://github.com/wagnerra23/oimpresso.com/pull/4027)):
+
+1. **Base fresca**: branch a partir de `origin/main`; confirmar via `git show origin/main:<adr>` que o status ainda é `proposto` (sessão paralela pode ter flipado).
+2. **Flip in-place**: mudar SÓ a linha `status: proposto → aceito` no frontmatter. NUNCA mover de pasta, NUNCA criar arquivo novo, corpo INTACTO (append-only).
+3. **Índice**: `node scripts/governance/adr-index-generate.mjs --write` e commitar o `_INDEX-GENERATED.md` junto; `--check` deve sair exit 0.
+4. **Label OBRIGATÓRIA no PR: `adr-metadata-normalization`** — sem ela o gate required `Append-only canon` FALHA mesmo com diff perfeito (a exceção 0257 do `governance-gate.yml` só aplica sob essa label e valida que o diff toca apenas `status`/`lifecycle`/`kind`/`authority`/`supersedes*`/`superseded_by`). Se esquecer: `gh pr edit <PR> --add-label adr-metadata-normalization` + `gh run rerun <run-id> --failed` (o step lê a label em runtime).
+5. **Corpo do PR**: deixar explícito que "o merge deste PR = ratificação formal pelo Wagner (R10); a ADR só entra na busca default do `decisions-search` (`scopePorStatusAtivo`) após o merge". Quem mergeia (ou manda mergear) é o Wagner.
+
 ## Índice de ADRs
 
 | # | Título | Status |
@@ -58,4 +68,4 @@ Nome do arquivo: `NNNN-titulo-curto-em-kebab.md`
 > O lifecycle (aceita / superseded / proposta) é resolvido pela tool MCP `decisions-search` +
 > [`_INDEX-LIFECYCLE.md`](./_INDEX-LIFECYCLE.md). Regra de numeração: ADR 0028 (monotônica).
 
-**Última atualização:** 2026-05-30
+**Última atualização:** 2026-07-09 — seção "Como ratificar uma ADR proposta" (label `adr-metadata-normalization` obrigatória no PR de flip, lição do #4027).

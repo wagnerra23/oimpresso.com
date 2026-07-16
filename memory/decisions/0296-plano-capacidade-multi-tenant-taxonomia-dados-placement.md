@@ -3,9 +3,9 @@ slug: 0296-plano-capacidade-multi-tenant-taxonomia-dados-placement
 number: 296
 title: "Plano de capacidade à prova de falhas — taxonomia canônica de dados + placement multi-DB (Hostinger 6GB → ops no CT 100 → tenant DB off-shared)"
 type: adr
-status: proposto
+status: deprecated
 authority: canonical
-lifecycle: ativo
+lifecycle: arquivado
 kind: decision
 decided_by: [W]
 decided_at: "2026-06-21"

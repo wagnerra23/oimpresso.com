@@ -1,5 +1,5 @@
 ﻿// @memcofre
-//   tela: /docs/memoria
+//   tela: /memcofre/memoria
 //   module: Cofre de Memórias
 //   status: implementada
 //   adrs: 0007
@@ -86,7 +86,7 @@ export default function Memoria({ roots, stats, selected: initialSelected, paths
   const openFile = async (key: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/docs/memoria/file?key=${encodeURIComponent(key)}`);
+      const res = await fetch(`/memcofre/memoria/file?key=${encodeURIComponent(key)}`);
       if (res.ok) {
         const data: Selected = await res.json();
         setSelected(data);

@@ -19,7 +19,7 @@ related_adrs:
 related_briefing: ../../../memory/requisitos/KB/BRIEFING.md
 related_schema: ../../../memory/requisitos/KB/SCHEMA-DB-V1.md
 related_capterra: ../../../memory/requisitos/KB/CAPTERRA-FICHA.md
-related_prototipo: ../../../prototipo-ui/cowork/kb-page.jsx
+related_prototype: ../../../prototipo-ui/cowork/kb-page.jsx
 ---
 
 # Charter — `resources/js/Pages/kb/Index.tsx`

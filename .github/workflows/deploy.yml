@@ -64,9 +64,13 @@ jobs:
       - name: Detecta se resources/js|css mudou neste push
         id: diff
         run: |
+          # Exclui *.md (charter.md/casos.md ficam sob resources/js/ por convenção, ADR 0264)
+          # — não rebuildam bundle Vite, então não devem marcar frontend_changed. Sem o
+          # exclude, uma PR só-de-casos disparava frontend_changed=true e o gate de hash
+          # de bundle no smoke dava falso-positivo (hash idêntico = "publicação não chegou").
           if [ "${{ github.event_name }}" = "push" ] && \
              [ "${{ github.event.before }}" != "0000000000000000000000000000000000000000" ]; then
-            if git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- resources/js resources/css | grep -q .; then
+            if git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" -- resources/js resources/css ':(exclude)*.md' | grep -q .; then
               echo "frontend_changed=true" >> "$GITHUB_OUTPUT"
             else
               echo "frontend_changed=false" >> "$GITHUB_OUTPUT"

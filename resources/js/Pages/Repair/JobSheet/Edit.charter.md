@@ -1,6 +1,7 @@
 ---
 page: /repair/job-sheet/{id}/edit
 component: resources/js/Pages/Repair/JobSheet/Edit.tsx
+related_prototype: n/a (herda PT-02 Form-Drawer; segue o Padrão de Tela)
 owner: wagner
 status: draft
 last_validated: "2026-05-15"

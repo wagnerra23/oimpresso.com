@@ -1,6 +1,7 @@
 ---
 page: /team-mcp/cc-sessions
 component: resources/js/Pages/team-mcp/CcSessions/Index.tsx
+related_prototype: "n/a (herda PT-07 Feed/Timeline; segue o DS) · golden do arquétipo · ref cc-sessions-visual-comparison.md"
 owner: wagner
 status: draft
 last_validated: "2026-06-16"

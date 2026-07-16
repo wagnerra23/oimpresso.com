@@ -1,14 +1,14 @@
 name: Visual Regression (Pest 4 Browser)
 
 # ADR 0108 — Camada Tier 2 de validação visual.
-# Roda Pest browser snapshot tests em PRs que tocam Pages Inertia.
-# Falha se diff > 0.1% sem update-snapshots aprovado.
+# Roda Pest browser snapshot tests em PRs cujo diff pode alterar o render.
+# O double-threshold separa ruído, zona cinza revisável e regressão clara.
 #
 # REQUIRED-READINESS (2026-06-11, aprovação Wagner — padrão ADR 0271 onda 2 item 4,
 # idêntico ao financeiro-pest.yml): `pull_request` SEM paths (always-run) pra ser
 # promovível a required sem deadlock "Expected — waiting". O custo (PHP + composer +
-# playwright + migrate + Pest ~10min) é evitado por skip-as-pass interno: o step
-# dorny/paths-filter detecta se algo de UI mudou; se não, pula o pesado e conclui
+# playwright + migrate + Pest ~10min) é evitado por skip-as-pass interno: o classificador
+# `ui-impact.mjs` detecta se algo visual mudou; se não, pula o pesado e conclui
 # verde (~1-2min, só checkout + boot do service).
 
 on:
@@ -17,12 +17,16 @@ on:
   # MODO UPDATE (2026-07-07, ADR UI-0020 §4): dispatch manual re-gera as baselines
   # NO MESMO runner que sempre as gerou (rendering determinístico) e abre PR com os
   # .snap novos — o gate do PR re-roda e PROVA que a baseline nova bate (anti-#3297).
-  # Uso: mudança de Fundação aprovada [W] (ex.: retune dark warm) que sofre
-  # skip-as-pass aqui (não toca paths de UI) mas muda o render de TODAS as telas.
+  # Uso: mudança de Fundação aprovada [W] (ex.: retune dark warm). Desde 2026-07-10 um PR
+  # que toca `resources/css/tokens/**` RODA o gate pesado (não é mais skip-as-pass — ver o
+  # classificador abaixo): a baseline antiga falha e prova a mudança visual. O dispatch serve
+  # pra REGENERAR as baselines no runner canônico quando a mudança é intencional/aprovada.
   workflow_dispatch:
 
 permissions:
-  contents: write   # modo update (dispatch) pusha branch de snapshots; PRs continuam só lendo
+  # O modo update autentica push/PR exclusivamente com COWORK_BOT_PAT. O GITHUB_TOKEN
+  # do job não precisa escrever no repositório em nenhum evento.
+  contents: read
   pull-requests: write
 
 concurrency:
@@ -31,7 +35,7 @@ concurrency:
 
 jobs:
   visual-regression:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
 
     services:
@@ -52,10 +56,11 @@ jobs:
       - uses: actions/checkout@v4
         with:
           lfs: true
+          fetch-depth: 100
 
       # Gate L2 — lint charter `states:` ⇄ manifesto (cheap, node pre-instalado no runner).
-      # Roda SEMPRE (não gateado pelo paths-filter de UI): drift charter↔manifesto pode vir
-      # de um charter ou do JSON, que não disparam o job pesado. --selftest prova o comparador
+      # Roda SEMPRE (antes do classificador de UI): drift charter↔manifesto precisa falhar
+      # mesmo em PR documental. --selftest prova o comparador
       # (L-31, dois lados) antes do lint real.
       # PROMOVIDO A ENFORCING (2026-07-06, ADR 0271/0275 "promover = remover o continue-on-error"):
       # verde em todos os runs desde a criação (0 fail em 30+), critério "2 verdes" cumprido com
@@ -65,37 +70,33 @@ jobs:
         run: |
           node scripts/visreg-states-lint.mjs --selftest
           node scripts/visreg-states-lint.mjs
+          node scripts/visreg-flows-lint.mjs --selftest
+          node scripts/visreg-flows-lint.mjs
+          node scripts/visreg-sells-lint.mjs --selftest
+          node scripts/visreg-sells-lint.mjs
+          node scripts/governance/ui-impact.mjs --selftest
 
-      - name: Detectar mudanças de UI (skip-as-pass — required-readiness)
-        id: changes
+      # Fonte única do skip-as-pass. Diferente da antiga allowlist duplicada, cobre
+      # CSS global, assets/fontes, Blade, toolchain e Controllers/rotas Inertia.
+      # Falha fechado se não conseguir ler o diff (anti-verde-vazio).
+      - name: Classificar impacto visual do diff
+        id: impact
         if: github.event_name == 'pull_request'
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            ui:
-              - 'resources/js/Pages/**/*.tsx'
-              - 'resources/js/Layouts/**/*.tsx'
-              - 'resources/js/Components/**/*.tsx'
-              - 'tests/Browser/**/*.php'
-              # Gate L2: manifesto de estados isolados (fonte única do IsolatedStatesBaselineTest).
-              - 'tests/Browser/visreg-states.json'
-              # Baselines de pixel commitadas: um update de baseline (PixelBaseline OU L2
-              # IsolatedStates) tem que RE-RODAR o gate pra provar que a baseline nova bate
-              # com o render atual — senão um commit de baseline ruim passava sem comparar
-              # (foi o que aconteceu no #3297: PR só-de-.snap pulou via skip-as-pass).
-              - 'tests/.pest/snapshots/Browser/CoreScreens/**'
-              - '.github/workflows/visual-regression.yml'
-              - 'lighthouserc.json'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch --no-tags --depth=100 origin "$BASE_SHA"
+          node scripts/governance/ui-impact.mjs --base="$BASE_SHA" --head=HEAD --github-output="$GITHUB_OUTPUT"
 
       # Fonte única do "roda o pesado?": dispatch = sempre true (modo update);
-      # pull_request = o que o paths-filter disse.
+      # pull_request = decisão estruturada do ui-impact.mjs.
       - name: Modo de execução (ui efetivo)
         id: mode
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "ui=true" >> "$GITHUB_OUTPUT"
           else
-            echo "ui=${{ steps.mode.outputs.ui }}" >> "$GITHUB_OUTPUT"
+            echo "ui=${{ steps.impact.outputs.visual_required }}" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Skip-as-pass (nada de UI mudou)
@@ -130,7 +131,7 @@ jobs:
         if: steps.mode.outputs.ui == 'true'
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: 22.17.0
 
       - name: Cache Composer
         if: steps.mode.outputs.ui == 'true'
@@ -145,7 +146,7 @@ jobs:
         id: playwright-cache
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ hashFiles('**/package-lock.json') }}
+          key: ubuntu-24.04-${{ runner.arch }}-playwright-all-browsers-v1-${{ hashFiles('**/package-lock.json') }}
 
       - name: Install Composer dependencies
         if: steps.mode.outputs.ui == 'true'
@@ -158,20 +159,21 @@ jobs:
         if: steps.mode.outputs.ui == 'true'
         run: npm ci
 
-      - name: Install Playwright npm client
+      - name: Verify Playwright npm client from lockfile
         if: steps.mode.outputs.ui == 'true'
-        # `pestphp/pest-plugin-browser ^4.0` (composer.json) spawneia o cliente
-        # JS `playwright` via stdio. `playwright` NÃO está em package.json
-        # devDependencies (ainda), então `npm ci` não traz `node_modules/playwright/`.
-        # Sem este step, o cache de `~/.cache/ms-playwright/` (binários dos browsers)
-        # acerta mas o cliente JS está ausente → `PlaywrightNotInstalledException`.
-        # `--no-save` evita drift no package.json/lock — declarar como devDep
-        # propriamente fica pra PR follow-up.
-        run: npm install playwright --no-save
+        # @playwright/test é devDependency e o lock materializa `playwright` na raiz.
+        # Proíbe `npm install --no-save`, que consultava o registry e podia trocar a
+        # versão depois do npm ci sem alterar o diff revisado.
+        run: |
+          node -e "const fs=require('fs'); const lock=require('./package-lock.json'); const expected=lock.packages['node_modules/playwright']?.version; const actual=JSON.parse(fs.readFileSync('./node_modules/playwright/package.json','utf8')).version; if (!expected || actual !== expected) throw new Error('Playwright fora do lock: '+actual+' != '+expected); console.log('Playwright lockado:', actual)"
+
+      - name: Install Playwright system dependencies
+        if: steps.mode.outputs.ui == 'true'
+        run: npx playwright install-deps chromium firefox webkit
 
       - name: Install Playwright browsers
         if: steps.mode.outputs.ui == 'true' && steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps chromium
+        run: npx playwright install chromium firefox webkit
 
       - name: Setup Laravel
         if: steps.mode.outputs.ui == 'true'
@@ -228,6 +230,9 @@ jobs:
         run: |
           php artisan db:seed --force
           php artisan db:seed --class=Database\\Seeders\\VisregTenantSeeder --force
+          # Título determinístico semeado ANTES do servidor Browser subir. Os fluxos
+          # Financeiro precisam de linha aberta para drawer, baixa e lote.
+          php artisan db:seed --class=Database\\Seeders\\VisregFinanceiroFlowSeeder --force
           # TENANT-B SENTINELA (gate L3 Tier 0 — Tier0RenderIsolationTest): business 99 +
           # admin id=99 + dado com token ZZLEAK99 nos campos visíveis. Sem este segundo
           # tenant é IMPOSSÍVEL provar não-vazamento no render (o VisregTenantSeeder é
@@ -237,14 +242,28 @@ jobs:
           # (zero dado de dominio) → as telas-lista renderizam o empty-state REAL e estavel.
           # GATE REAL — se quebrar, o job falha. Vide VisregEmptyTenantSeeder.php.
           php artisan db:seed --class=Database\\Seeders\\VisregEmptyTenantSeeder --force
+          # PIPELINE FSM DA OFICINA (gate L2 estados `default`/`dark` do oficina-os): o Quadro de
+          # OS é data-driven pelas etapas do processo `oficina_mecanica_os` — sem ele a tela cai
+          # no EmptyProcessState ("Quadro ainda não configurado"), ou seja, o FSM é PRÉ-CONDIÇÃO
+          # DE RENDER. Até 2026-07-16 nenhum seeder daqui semeava Oficina: o que fazia o kanban
+          # aparecer era VAZAMENTO do ConformanceProbesTest (que chama OficinaAutoFsmSeeder pra si
+          # e cujo afterEach nunca limpa o processo). Como aquele step é pulado no workflow_dispatch
+          # (`if: github.event_name != 'workflow_dispatch'`), o modo UPDATE gerava baseline com a
+          # tela não-configurada e o modo VERIFY a rejeitava (diff 6.7793% > τ_alto 2%, idêntico
+          # nos runs 29512533782/29514784095). Este seeder ESTABELECE a pré-condição nos DOIS
+          # modos em vez de herdar o vazamento. Zero-delta no verify: é o MESMO seeder canônico
+          # que já rodava de carona. Só biz=1 — o biz=98 fica sem FSM de propósito (estado
+          # `empty`). GATE REAL — se quebrar, o job falha. Vide VisregOficinaFsmSeeder.php.
+          php artisan db:seed --class=Database\\Seeders\\VisregOficinaFsmSeeder --force
           echo "=== seed check ==="
-          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count();"
+          php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count().' fin_titulos='.DB::table('fin_titulos')->where('business_id', 1)->count();"
+          # PROVA da pré-condição do oficina-os (a sonda que o defeito 2 não tinha): conta os
+          # stages do processo da Oficina no biz=1. Espera-se > 0 nos DOIS modos — se um dispatch
+          # voltar a imprimir 0, a baseline de `dark`/`default` nasceria errada OUTRA VEZ.
+          php artisan tinker --execute="echo 'oficina_stages_biz1='.DB::table('sale_process_stages')->join('sale_processes','sale_processes.id','=','sale_process_stages.process_id')->where('sale_processes.business_id',1)->where('sale_processes.key','oficina_mecanica_os')->count();"
 
       - name: Build Inertia bundles
         if: steps.mode.outputs.ui == 'true'
-        # Build pode falhar se Setup Laravel quebrou (sem .env válido) — tolerar
-        # em INFRA-ONLY mode. Vide nota em "Setup Laravel" linha 92.
-        continue-on-error: true
         run: npm run build:inertia
 
       - name: Run Pest Browser tests
@@ -271,19 +290,30 @@ jobs:
         # visível (assertDontSee) nem no payload cru (data-page Inertia, via ->content()/
         # ->script()). Dois lados: CONTROLE (biz=99 VÊ o token) + ISOLAMENTO (biz=1 NÃO vê).
         # BLOCKING (sem continue-on-error): o princípio #1 não admite merge-vermelho.
-        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php tests/Browser/CoreScreens/Tier0RenderIsolationTest.php
+        run: ./vendor/bin/pest tests/Browser/Public/ tests/Browser/CoreScreens/AuthBridgeSmokeTest.php tests/Browser/CoreScreens/A11yAxeBrowserTest.php tests/Browser/CoreScreens/ConformanceProbesTest.php tests/Browser/CoreScreens/PixelDimensionProbesTest.php tests/Browser/CoreScreens/Tier0RenderIsolationTest.php
+
+      - name: Cross-browser smoke · Firefox
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/AuthBridgeSmokeTest.php --browser firefox
+
+      - name: Cross-browser smoke · WebKit
+        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: ./vendor/bin/pest tests/Browser/CoreScreens/AuthBridgeSmokeTest.php --browser safari
 
       # ── Onda Q4 (US-GOV-013) — GATE VISUAL DE PIXEL das núcleo-6 ─────────────────────
       # FASE ENFORCING (ADR 0261: gate novo nasce advisory → 2 verdes → enforcing).
       # Promoção L1 = remover o continue-on-error deste step (não muda required
       # check, só para de mascarar a falha; sem clique de branch protection: o
-      # check `visual-regression` já é required). Baseline = snapshot Pest COMMITADO
-      # (tests/.pest/snapshots), gerado NESTE runner (rendering determinístico) — a
-      # 1ª execução sem baseline GERA e passa; o artifact abaixo permite commitar.
+      # check `visual-regression` já é required). O contrato source→rota→âncora→baseline
+      # vive em tests/Browser/visreg-screens.json. Diff targeted executa exatamente as
+      # telas mapeadas; diff global executa a matriz núcleo-6. Baseline ausente BLOQUEIA.
       # Mudança intencional: npm run visreg:update (CI) + aprovação [W] (F1.5).
-      - name: Pixel-diff núcleo-6 (ENFORCING — Onda Q4 · double-threshold L7)
+      - name: Pixel-diff afetadas/núcleo-6 (ENFORCING · double-threshold L7)
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         id: pixel-diff
+        env:
+          VISREG_SCOPE: ${{ steps.impact.outputs.scope }}
+          VISREG_SCREENS: ${{ steps.impact.outputs.screens }}
         # DOUBLE-THRESHOLD (L7): o teste roteia cada tela por 3 bandas (PixelBaselineTest
         # + Tests\Browser\Support\VisregThreshold) — auto-aprova < τ_baixo (VISREG_TAU_LOW,
         # default 0.1%), auto-falha > τ_alto (VISREG_TAU_HIGH, default 2%), e o MEIO é a
@@ -302,31 +332,115 @@ jobs:
       # tests/Browser/visreg-states.json (empty/loading/dark/error) vira baseline — o estado é
       # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
       # forçado pela rota /_visreg-state + VisregStateMiddleware (sem tocar controller/Page,
-      # mesmo princípio não-invasivo do L3). SEGUE ADVISORY (2026-07-06): a tentativa de flip a
-      # enforcing (PR #3910) DESMASCAROU que 3 baselines estão STALE vs o render atual —
-      # financeiro-unificado default+dark (4 PRs de mudança APROVADA nos últimos 2 dias: filtro
-      # segmentado #3886, rótulo "Recebi/Paguei" #3887, primary roxo #3885, D-14 #3889) +
-      # compras default. NÃO é regressão — é baseline velha vs fix aprovado. Enforcing só DEPOIS
-      # de refrescar as .snap com aprovação [W] (F1.5, olhar o screenshot — não congelar bug).
-      # `continue-on-error` mantido SÓ neste step. Refrescar: `npm run visreg:states:update` (CI)
-      # + [W] revisa o artifact `pixel-snapshots`. O lint L2 (charter⇄manifesto) acima JÁ é enforcing.
-      - name: Snapshots de estados isolados (ADVISORY — L2 · 3 baselines stale, aguarda F1.5)
+      # mesmo princípio não-invasivo do L3).
+      # L2-v2 usa a mesma classificação 3-bandas do L7: ruído não interrompe PR, mas uma
+      # regressão clara falha no step e a zona cinza sobe diff-view para revisão humana.
+      #
+      # ONDA 3 — MATRIZ GLOBAL 100% ENFORCING (2026-07-14): a matriz de estados isolados deixa
+      # de ter QUALQUER estado advisory. Agora TODAS as 6 telas × estados rodam num único step
+      # enforcing.
+      #
+      # HISTÓRICO do drift `oficina-os · dark` (por que ele voltou — leia antes de "corrigir
+      # baseline" na mão):
+      #   - 2026-07-14 (#4248): a baseline stale mostrava "Quadro não configurado" (pipeline FSM
+      #     ausente) enquanto o render do verify era o kanban. Corrigiu-se a FOTO (baseline
+      #     regravada pro kanban) e o gate ficou verde (run 29285558238: oficina 3/3 pass).
+      #   - 2026-07-16: o drift REAPARECEU no primeiro dispatch seguinte (baseline do modo update
+      #     rejeitada pelo verify, diff 6.7793% > τ_alto, idêntico nos runs 29512533782/
+      #     29514784095). Motivo: o #4248 tratou o SINTOMA (a foto), não a CAUSA — o render do
+      #     Quadro dependia do processo FSM `oficina_mecanica_os`, que NENHUM seeder semeava;
+      #     ele só existia por VAZAMENTO do ConformanceProbesTest, e aquele step é pulado no
+      #     workflow_dispatch → update e verify fotografavam telas diferentes.
+      #   - Causa fechada no step "Seed demo tenant" (VisregOficinaFsmSeeder), que estabelece a
+      #     pré-condição nos DOIS modos. Se `oficina-os · dark` divergir de novo, cheque PRIMEIRO
+      #     a sonda `oficina_stages_biz1=` daquele step: 0 = pré-condição perdida (regravar a
+      #     baseline só re-esconderia o problema).
+      - name: Estados isolados matriz (ENFORCING — matriz global completa · 6 telas)
+        # MATRIZ GLOBAL ENFORCING COMPLETA. Ondas: 1 Financeiro (#4239) · 2 Sells+Clientes+
+        # Compras+Caixa (#4243) · 3 Oficina (#4248 baseline fix + esta promoção). Cada tela com
+        # ≥2 runs VERDES determinísticos contra a baseline commitada (ADR 0261 "advisory → 2
+        # verdes → enforcing" cumprido por tela). Sem continue-on-error: regressão clara em
+        # QUALQUER estado das 6 telas BLOQUEIA o merge. Não há mais radar advisory — a matriz
+        # inteira é gate duro.
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
-        id: isolated-states
-        continue-on-error: true
-        run: ./vendor/bin/pest tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
+        id: matriz-states
+        # RETRY-ONCE anti-flake (scripts/tests/visreg-flake-retry.sh, mesma política do #4241):
+        # re-roda UMA vez SÓ na assinatura de EXECUÇÃO (browser não sobe/timeout/socket). Uma
+        # REGRESSÃO DE PIXEL real (double-threshold "REGRESSÃO CLARA" > τ_alto) NUNCA re-roda —
+        # o wrapper falha com o código original, preservando o que o gate enforcing existe p/ pegar.
+        # Sem --filter: a matriz inteira (todas as telas do manifesto) é enforcing.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/IsolatedStatesBaselineTest.php
+
+      - name: Fluxos visuais Financeiro (ENFORCING — L2.5 · interação × viewport)
+        # Executa mesmo se o núcleo-6 falhar: o fluxo novo não pode ficar sem
+        # evidência por uma regressão independente de outra tela.
+        # PROMOVIDO A ENFORCING (2026-07-13): os 12 fluxos × viewport foram armados
+        # via #4237/#4238. Sem continue-on-error: regressão clara pós-clique agora
+        # BLOQUEIA merge.
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: financeiro-flows
+        # RETRY-ONCE anti-flake (mesma política do financeiro-states): re-roda UMA vez só na
+        # assinatura de execução (o fluxo levou 11 patches por relógio cross-processo → o
+        # residual é flake de timing/browser, não pixel). Diff de pixel real NUNCA re-roda.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/FinanceiroFlowBaselineTest.php
+
+      - name: Fluxos visuais Compras (ENFORCING — L2.5 · interação × viewport)
+        # PROMOVIDO A ENFORCING (2026-07-14, ADR 0261 "promover = remover o continue-on-error"):
+        # os 9 baselines (3 fluxos pós-clique do cockpit /compras — visibilidade de colunas,
+        # menu de Ações da linha, drawer × 3 viewports) foram armados via #4251 e provaram
+        # match (9 passed nos runs 29297033941 e 29298250328). Sem continue-on-error: regressão
+        # clara pós-clique de Compras agora BLOQUEIA merge. O double-threshold (VisregThreshold)
+        # roteia por bandas; a zona cinza (não-falha) sobe diff-view pro [W]. Baseline via modo
+        # update (dispatch) NO runner canônico — nunca local (Tier 0: testes no CT100/CI).
+        # `always()`: roda mesmo se um passo anterior falhar (fluxo novo não pode ficar
+        # sem evidência por regressão independente de outra tela).
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: compras-flows
+        # RETRY-ONCE anti-flake (scripts/tests/visreg-flake-retry.sh, mesmo do Sells/Financeiro):
+        # re-roda só em FLAKE de execução (browser/socket/timeout), NUNCA em regressão de pixel
+        # (double-threshold é veredito duro). Sem ele, um flake de browser travaria o merge do time.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/ComprasFlowBaselineTest.php
+
+      - name: Fluxos visuais Sells/Create (ENFORCING — L2.5 · interação × viewport)
+        # PROMOVIDO A ENFORCING (2026-07-14, ADR 0261 "promover = remover o continue-on-error"):
+        # as 12 baselines (4 fluxos × 3 viewports) foram armadas no runner canônico (#4251) e o
+        # gate comparou verde. Cobre a tela de 99% do volume (venda balcão, ROTA LIVRE):
+        # adicionar produto, abrir a busca, aplicar desconto e adicionar pagamento em
+        # compact/desktop/wide — estado pós-clique, antes de persistir. Baselines geradas via
+        # workflow_dispatch (modo update), nunca local (Tier 0). Sem continue-on-error:
+        # regressão clara pós-clique agora BLOQUEIA merge (o double-threshold absorve a zona
+        # cinza; só > τ_alto falha). Roda mesmo se o Financeiro falhar (always()).
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        id: sells-flows
+        # Retry-once guard (mesmo do Financeiro/Compras): re-roda só em FLAKE de execução
+        # (browser/socket/timeout), NUNCA em regressão de pixel (double-threshold é veredito
+        # duro). O motor VisregThreshold segue intocado.
+        run: bash scripts/tests/visreg-flake-retry.sh tests/Browser/CoreScreens/SellsCreateFlowBaselineTest.php
 
       # ── MODO UPDATE (dispatch): regenera as baselines e abre PR ─────────────────
-      - name: Regenerar baselines (pixel núcleo-6 + estados isolados) — modo update
+      - name: Regenerar baselines (pixel + estados + fluxos) — modo update
         if: github.event_name == 'workflow_dispatch'
         run: |
           npm run visreg:update
           npm run visreg:states:update
+          npm run visreg:flows:update
+          npm run visreg:sells:update
+          npm run visreg:flows:compras:update
 
+      # COWORK_BOT_PAT, NÃO GITHUB_TOKEN (anti-recursão do Actions): o GitHub NÃO dispara
+      # workflows `pull_request` em eventos causados pelo GITHUB_TOKEN → PR de baselines
+      # criado com ele nascia SEM NENHUM check e ficava órfão nos required ("Expected —
+      # waiting"). Evidência 2026-07-10: #3987/#3994 órfãos por 1 dia (0 checks);
+      # #4081/#4086 só destravaram com close/reopen manual. PR criado com o PAT dispara
+      # CI normal (ex.: #3985 do shipped-log-cron, 80 checks). Mesmo padrão de
+      # shipped-log-cron.yml / sdd-scorecard-publish.yml. NÃO "simplificar" de volta pra
+      # GITHUB_TOKEN. O push do branch também usa o PAT (URL autenticada) porque o
+      # checkout persiste credencial do GITHUB_TOKEN no remote `origin`. Merge continua
+      # humano — ADR 0283 bloqueia auto-merge; o PAT aqui só CRIA o PR.
       - name: Abrir PR com as baselines regeneradas — modo update
         if: github.event_name == 'workflow_dispatch'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.COWORK_BOT_PAT }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -336,19 +450,63 @@ jobs:
           if git diff --cached --quiet; then
             echo "Baselines já em dia — nada a commitar."; exit 0
           fi
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::error::COWORK_BOT_PAT ausente. Baixe o artifact pixel-snapshots e publique manualmente."
+            exit 1
+          fi
+          if [ "$(gh api "repos/${{ github.repository }}" --jq '.permissions.push // false')" != "true" ]; then
+            echo "::error::COWORK_BOT_PAT sem contents:write. Artifact pixel-snapshots preservado para recuperação; corrija a permissão antes do próximo dispatch."
+            exit 1
+          fi
           git commit -m "test(visreg): baselines regeneradas no runner canônico (modo update) [CC]" -m "Disparo manual pós-mudança de Fundação aprovada [W] — ADR UI-0020 §4 (dark warm): o PR de tokens sofre skip-as-pass neste gate e as baselines antigas quebrariam o próximo PR de UI. O gate do PR destas baselines re-roda e PROVA que batem com o render atual (anti-#3297)."
-          git push -u origin "$BR"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" -u "$BR"
           gh pr create --title "test(visreg): baselines regeneradas (modo update) [CC]" --base main --head "$BR" --body "Baselines de pixel + estados isolados regeneradas NO runner canônico via workflow_dispatch (modo update). Motivo: Fundação aprovada [W] — ADR UI-0020 (dark warm). O gate required deste PR re-roda os testes contra estas baselines e prova que batem (anti-#3297)."
 
-      - name: Veredito advisory dos estados isolados (L2 · visível no log)
-        if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+      - name: Veredito advisory dos fluxos Financeiro (L2.5 · visível no log)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         run: |
-          if [ "${{ steps.isolated-states.outcome }}" = "failure" ]; then
-            echo "🔴 L2 ADVISORY FALHOU — ao menos 1 (tela,estado) com diff vs baseline isolada."
-            echo "   Intencional (fix aprovado)? npm run visreg:states:update + aprovação [W] (F1.5). Regressão? conserte antes do enforcing."
-          else
-            echo "✅ estados isolados (L2) OK (advisory) — empty/loading/dark/error batendo baseline."
+          if [ "${{ steps.financeiro-flows.outcome }}" = "failure" ]; then
+            echo "🔴 L2.5 ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
+          elif [ "${{ steps.financeiro-flows.outcome }}" = "success" ]; then
+            echo "✅ fluxos Financeiro OK — criar, drawer, baixa e lote capturados em compact/desktop/wide."
           fi
+
+      - name: Veredito advisory dos fluxos Sells/Create (L2.5 · visível no log)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: |
+          if [ "${{ steps.sells-flows.outcome }}" = "failure" ]; then
+            echo "🔴 L2.5 Sells/Create ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto (ou baseline ausente na 1ª execução). Ver pixel-diff-views."
+          elif [ "${{ steps.sells-flows.outcome }}" = "success" ]; then
+            echo "✅ fluxos Sells/Create OK — adicionar produto, abrir busca, aplicar desconto e adicionar pagamento capturados em compact/desktop/wide."
+          fi
+
+      - name: Veredito advisory dos fluxos Compras (L2.5 · visível no log)
+        if: always() && steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
+        run: |
+          if [ "${{ steps.compras-flows.outcome }}" = "failure" ]; then
+            echo "🔴 L2.5 COMPRAS ADVISORY FALHOU — fluxo ou viewport divergiu acima de τ_alto. Ver pixel-diff-views."
+            echo "   1ª execução sem baseline GERA e passa (artifact pixel-snapshots comita). Regressão? conserte. Fix aprovado? modo update (dispatch) regenera."
+          elif [ "${{ steps.compras-flows.outcome }}" = "success" ]; then
+            echo "✅ fluxos Compras OK — visibilidade de colunas, menu de Ações e drawer capturados em compact/desktop/wide."
+          fi
+
+      # Prova contrafactual final: mudança visual nunca pode concluir verde se o
+      # classificador, o modo e a execução real do pixel-diff divergirem.
+      - name: Canário anti-verde-vazio
+        if: always() && github.event_name == 'pull_request'
+        env:
+          IMPACT: ${{ steps.impact.outputs.visual_required }}
+          MODE: ${{ steps.mode.outputs.ui }}
+          PIXEL_OUTCOME: ${{ steps.pixel-diff.outcome }}
+          UNCOVERED_SCREENS: ${{ steps.impact.outputs.uncovered_screens }}
+          EXPECTED: ${{ steps.pixel-diff.outputs.expected }}
+          EXECUTED: ${{ steps.pixel-diff.outputs.executed }}
+          COMPARED: ${{ steps.pixel-diff.outputs.compared }}
+        run: |
+          node scripts/governance/ui-impact.mjs --assert-execution \
+            --visual-required="$IMPACT" --mode="$MODE" --pixel-outcome="$PIXEL_OUTCOME" \
+            --uncovered-screens="${UNCOVERED_SCREENS:-[]}" \
+            --expected="$EXPECTED" --executed="$EXECUTED" --compared="$COMPARED"
 
       - name: Upload baseline/snapshots de pixel (sempre que rodou)
         if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
@@ -361,14 +519,13 @@ jobs:
 
       - name: Upload diff views do pixel (falha OU zona cinza — double-threshold L7)
         # Sobe os diff-views SEMPRE que o pixel-diff rodou: a ZONA CINZA (L7) NÃO falha o
-        # step, mas grava diff-views em tests/Browser/Screenshots/ImageDiffView/ pro [W]
-        # revisar — só uploadar on-failure perderia exatamente o caso de uso do L7.
+        # step, mas grava diff-views fora do diretório que o Pest limpa entre suítes.
         # `if-no-files-found: ignore` cobre o caso "nenhuma tela na zona cinza nem falhou".
         if: ${{ !cancelled() && steps.mode.outputs.ui == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: pixel-diff-views
-          path: tests/Browser/Screenshots/ImageDiffView/
+          path: storage/app/visreg-diffs/
           retention-days: 7
           if-no-files-found: ignore
 
@@ -380,7 +537,7 @@ jobs:
             echo "   Intencional? npm run visreg:update + aprovação [W]. Regressão? conserte antes do enforcing (L1)."
             echo "   Telas em ZONA CINZA (τ_baixo..τ_alto) NÃO falham — ver o resumo 'Zona Cinza' no step summary + artifact pixel-diff-views."
           else
-            echo "✅ pixel-diff núcleo-6 OK (advisory) — nenhuma tela acima de τ_alto."
+            echo "✅ pixel-diff afetadas/núcleo-6 OK — nenhuma tela acima de τ_alto."
             echo "   Se houve ZONA CINZA, ela está no step summary (resumo 'Pixel-diff — Zona Cinza') + artifact pixel-diff-views pro [W] revisar."
           fi
 
@@ -408,7 +565,7 @@ jobs:
       #     Promover = REMOVER o `continue-on-error: true` deste step (sem clique de branch
       #     protection: o check `visual-regression` já é required — idêntico à nota do pixel-diff).
 
-      - name: Instalar Lighthouse CI (L5 — pin compatível com Node lts/* do runner)
+      - name: Instalar Lighthouse CI (L5 — pin compatível com Node 22.17.0)
         if: steps.mode.outputs.ui == 'true' && github.event_name != 'workflow_dispatch'
         # continue-on-error PERMANENTE (≠ lever de promoção): instalar o LHCI é INFRA do gate
         # ADVISORY — uma falha transitória de npm NÃO pode reprovar o job `visual-regression`
@@ -416,7 +573,7 @@ jobs:
         # NÃO deste. Sem o LHCI, o step `lhci` falha e é engolido → nenhuma medição, sem dano.
         continue-on-error: true
         # @lhci/cli@0.15.1 empacota lighthouse@12.6.1 (engine node >=18.20) → compatível com
-        # `node-version: lts/*` (Node 22/24). Pin explícito (NÃO `@latest`) pra build determinístico.
+        # Node 22.17.0 fixado no job. Pin explícito (NÃO `@latest`) pra build determinístico.
         # Chrome: o runner ubuntu-latest já traz google-chrome-stable → chrome-launcher acha sozinho.
         run: npm install -g @lhci/cli@0.15.1
 
@@ -473,9 +630,9 @@ jobs:
               '',
               'Screenshots têm diff > threshold contra baseline no **gate real** (Pest Browser smoke: telas públicas + auth-bridge + a11y axe + conformance). Esse check é **REQUIRED** — o PR não mergeia vermelho.',
               '',
-              '> ℹ️ Distinção honesta: o **pixel-diff núcleo-6** (camada de diff de pixel das telas núcleo-6 — Onda Q4 · ADR 0261) agora é **ENFORCING** (`continue-on-error` removido) e **bloqueia o merge** se alguma tela passar de τ_alto (2%). O L7 (double-threshold) deixa a ZONA CINZA (τ_baixo..τ_alto) passar sem falhar — só vira diff-view pro [W] revisar.',
+              '> ℹ️ O **pixel-diff afetadas/núcleo-6** é **ENFORCING**: diff targeted executa as telas afetadas mapeadas; diff global executa o núcleo-6. Tela sem contrato ou baseline, ou diff acima de τ_alto (2%), bloqueia o merge. A ZONA CINZA só vira diff-view pro [W] revisar.',
               '>',
-              '> ℹ️ O **lint L2** (charter `states:` ⇄ manifesto) é **ENFORCING** desde 2026-07-06 (aprovação [W]) — drift charter↔JSON bloqueia o merge. Os **snapshots L2 de estados isolados** seguem **advisory** até 3 baselines stale (financeiro-unificado default+dark, compras default) serem refrescadas com aprovação visual [W] (F1.5). Também advisory: L5 perf Lighthouse (calendário ADR 0275 §5).',
+              '> ℹ️ O **lint L2** (charter `states:` ⇄ manifesto) é **ENFORCING** desde 2026-07-06 (aprovação [W]) — drift charter↔JSON bloqueia o merge. Os **snapshots L2 de estados isolados** são **ENFORCING pra a matriz global inteira** — as 6 telas (Financeiro+Sells+Clientes+Compras+Caixa+Oficina) × estados (onda 3, 2026-07-14) — regressão clara em qualquer estado bloqueia o merge. Não há mais estado advisory na matriz L2. Segue advisory: L5 perf Lighthouse (calendário ADR 0275 §5).',
               '',
               '### Como resolver',
               '1. Baixar artifact `screenshots-diff` deste workflow run',

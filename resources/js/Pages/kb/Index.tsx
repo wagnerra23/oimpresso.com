@@ -25,6 +25,7 @@ import { Badge } from '@/Components/ui/badge';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/Components/ui/select';
+import { SafeSelectItem } from '@/Components/ui/SafeSelectItem';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -608,7 +609,7 @@ function KbIndex(props: Props) {
               <SelectContent>
                 <SelectItem value="__all__">Todos</SelectItem>
                 {Object.keys(kpis.tipos).map((t) => (
-                  <SelectItem key={t} value={t}>{t} ({kpis.tipos[t]})</SelectItem>
+                  <SafeSelectItem key={t} value={t}>{t} ({kpis.tipos[t]})</SafeSelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -623,7 +624,7 @@ function KbIndex(props: Props) {
               <SelectContent>
                 <SelectItem value="__all__">Todos</SelectItem>
                 {Object.keys(kpis.modulos).map((m) => (
-                  <SelectItem key={m} value={m}>{m} ({kpis.modulos[m]})</SelectItem>
+                  <SafeSelectItem key={m} value={m}>{m} ({kpis.modulos[m]})</SafeSelectItem>
                 ))}
               </SelectContent>
             </Select>

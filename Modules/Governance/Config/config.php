@@ -201,4 +201,27 @@ return [
     | @see Modules\Governance\Services\AdrReviewBriefLineService
     */
     'adr_review_brief_line' => true, // literal (não env): evita larastan noEnvCallsOutsideOfConfig; toggle via config()
+
+    /*
+    |--------------------------------------------------------------------------
+    | FLAG de ADR PENDENTE no Daily Brief (US-GOV-052 · ciclo de ratificação)
+    |--------------------------------------------------------------------------
+    | Kill-switch do AdrPendenteBriefLineService (checks A/B/C da sentinela
+    | adr-proposto-parado.mjs — `🟠 ADR pendente: A:N B:N C:N`). Default ON.
+    |
+    | @see Modules\Governance\Services\AdrPendenteBriefLineService
+    */
+    'adr_pendente_brief_line' => true, // literal (não env): evita larastan noEnvCallsOutsideOfConfig; toggle via config()
+
+    /*
+    |--------------------------------------------------------------------------
+    | Seção OUTCOME DO AGENTE (7d) no Daily Brief (US-GOV-052 · evals de outcome)
+    |--------------------------------------------------------------------------
+    | Kill-switch do AgentOutcomeBriefSectionService (DORA dos PRs do agente via
+    | agent-pr-outcomes.mjs --json — aceitação, change-failure, time-to-merge +
+    | tendência vs 30d). Default ON.
+    |
+    | @see Modules\Governance\Services\AgentOutcomeBriefSectionService
+    */
+    'agent_outcome_brief_section' => true, // literal (não env): evita larastan noEnvCallsOutsideOfConfig; toggle via config()
 ];

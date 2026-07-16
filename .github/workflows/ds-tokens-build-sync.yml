@@ -1,0 +1,47 @@
+name: DS tokens build-sync (advisory)
+
+# ANCORA a premissa do loop diff-first: git = fonte VERDADEIRA. Os _generated-*.css são
+# build inputs RASTREADOS (committados) consumidos pelo app, pelo espelho e por TODO o loop
+# (ds-token-diff/ds-mirror-drift/ds-token-version). Se alguém editar semantic.tokens.json e
+# NÃO rebuildar, o _generated commitado fica stale e o loop inteiro valida contra o valor
+# ERRADO — sem ninguém perceber. Este gate roda o build fresco e falha se o resultado difere
+# do commitado. Advisory (ADR 0314 — integridade de tokens é quality, não Tier-0); nunca
+# bloqueia. Fix = `npm run tokens:build && git add resources/css/tokens/_generated-*.css`.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'resources/css/tokens/*.tokens.json'
+      - 'resources/css/tokens/style-dictionary.config.mjs'
+      - 'resources/css/tokens/_generated-*.css'
+  workflow_dispatch:
+
+concurrency:
+  group: ds-tokens-build-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-sync:
+    name: ds-tokens-build-sync (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Instalar deps (style-dictionary)
+        run: npm ci --no-audit --no-fund
+      - name: Build fresco de tokens
+        run: npm run tokens:build
+      - name: _generated commitado == build fresco?
+        run: |
+          if git diff --exit-code -- resources/css/tokens/_generated-*.css; then
+            echo "✅ _generated-*.css em sincronia com semantic.tokens.json (build determinístico)."
+          else
+            echo "::warning title=DS tokens build-sync::_generated-*.css DIVERGE de um build fresco — semantic.tokens.json mudou sem rebuildar. O loop valida contra valor stale. Rode 'npm run tokens:build' e commite (advisory, não bloqueia)."
+            exit 0
+          fi

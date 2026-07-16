@@ -10,6 +10,7 @@ use Modules\Jana\Entities\Mcp\McpCycle;
 use Modules\Jana\Entities\Mcp\McpEpic;
 use Modules\Jana\Entities\Mcp\McpProject;
 use Modules\Jana\Entities\Mcp\McpTask;
+use Modules\Jana\Entities\Mcp\McpTaskEvent;
 
 /**
  * TaskRegistry parser (ADR 0070, supersedes ADR 0069).
@@ -81,10 +82,27 @@ class TaskParserService
      */
     public const DESCRITIVOS_DETECTAVEIS = ['title', 'description'];
 
+    /** Classificador de âncora (fonte de done-ness, ADR 0302/0273) — injetável pra teste. */
+    protected SpecAnchorClassifier $anchorClassifier;
+
+    /**
+     * Mapa task_id → veredito de âncora do último parseSpec (ADR 0337). Populado em
+     * parseSpec, consumido no forward-close de syncAllInternal. Vive só em memória —
+     * NUNCA entra no payload persistido (não é coluna de mcp_tasks).
+     *
+     * @var array<string, array{state: string, sha: ?string, paths: list<string>}>
+     */
+    protected array $anchorPorTask = [];
+
+    public function __construct(?SpecAnchorClassifier $anchorClassifier = null)
+    {
+        $this->anchorClassifier = $anchorClassifier ?? new SpecAnchorClassifier();
+    }
+
     /**
      * Parser SPEC + sync DB. Retorna relatório por módulo.
      *
-     * @return array{tasks_processadas:int, inseridas:int, atualizadas:int, canceladas:int, descritivos_divergentes:int, modulos:array<string,int>}
+     * @return array{tasks_processadas:int, inseridas:int, atualizadas:int, canceladas:int, fechadas_por_ancora:int, descritivos_divergentes:int, modulos:array<string,int>}
      */
     public function syncAll(?string $apenasModulo = null): array
     {
@@ -98,12 +116,13 @@ class TaskParserService
     {
         $base = base_path('memory/requisitos');
         if (! is_dir($base)) {
-            return $this->relatorio(0, 0, 0, 0, 0, []);
+            return $this->relatorio(0, 0, 0, 0, 0, 0, []);
         }
 
         $reportadasNoSync = [];
         $inseridas = 0;
         $atualizadas = 0;
+        $fechadasPorAncora = 0;
         $descritivosDivergentes = 0;
         $modulos = [];
 
@@ -132,22 +151,34 @@ class TaskParserService
                     // Task nova — usa SPEC integral (status inicial vem do SPEC)
                     McpTask::create($cand);
                     $inseridas++;
-                } elseif ($this->precisaAtualizar($existente, $cand)) {
-                    // SDD C4 — detectar (não resolver) divergência SPEC↔DB em
-                    // campos descritivos (title/description). git continua canon
-                    // (preserva ADR 0144 zero-regressão de estado vivo); aqui só
-                    // contabilizamos + logamos pra dar visibilidade ao drift.
-                    if ($this->detectarDivergenciaDescritiva($existente, $cand)) {
-                        $descritivosDivergentes++;
+                } else {
+                    if ($this->precisaAtualizar($existente, $cand)) {
+                        // SDD C4 — detectar (não resolver) divergência SPEC↔DB em
+                        // campos descritivos (title/description). git continua canon
+                        // (preserva ADR 0144 zero-regressão de estado vivo); aqui só
+                        // contabilizamos + logamos pra dar visibilidade ao drift.
+                        if ($this->detectarDivergenciaDescritiva($existente, $cand)) {
+                            $descritivosDivergentes++;
+                        }
+
+                        // Task existente — ADR 0144 — só atualiza campos descritivos.
+                        // Estado vivo (status/owner/sprint/priority) é canônico no DB,
+                        // mudança via `tasks-update`. SPEC vira template descritivo.
+                        $updatePayload = $this->extrairCamposDescritivos($cand);
+                        $this->logarSkipsDeEstadoVivo($existente, $cand);
+                        $existente->update($updatePayload);
+                        $atualizadas++;
                     }
 
-                    // Task existente — ADR 0144 — só atualiza campos descritivos.
-                    // Estado vivo (status/owner/sprint/priority) é canônico no DB,
-                    // mudança via `tasks-update`. SPEC vira template descritivo.
-                    $updatePayload = $this->extrairCamposDescritivos($cand);
-                    $this->logarSkipsDeEstadoVivo($existente, $cand);
-                    $existente->update($updatePayload);
-                    $atualizadas++;
+                    // ADR 0337 (emenda cirúrgica à 0144) — forward-close por âncora
+                    // verificada, INDEPENDENTE do update descritivo. O DB segue canon
+                    // de estado vivo, MAS a âncora `**Implementado em:** ...verificado@sha`
+                    // é a fonte de done-ness (ADR 0302/0273): carrega o veredito do git
+                    // pro card quando o SPEC declara done + a âncora prova. Só fecha-pra-
+                    // frente; nunca reabre, nunca toca owner/sprint/priority.
+                    if ($this->fecharPorAncoraSeElegivel($existente, $cand)) {
+                        $fechadasPorAncora++;
+                    }
                 }
             }
         }
@@ -180,10 +211,11 @@ class TaskParserService
             'inseridas' => $inseridas,
             'atualizadas' => $atualizadas,
             'canceladas' => $canceladas,
+            'fechadas_por_ancora' => $fechadasPorAncora,
             'descritivos_divergentes' => $descritivosDivergentes,
         ]);
 
-        return $this->relatorio(count($reportadasNoSync), $inseridas, $atualizadas, $canceladas, $descritivosDivergentes, $modulos);
+        return $this->relatorio(count($reportadasNoSync), $inseridas, $atualizadas, $canceladas, $fechadasPorAncora, $descritivosDivergentes, $modulos);
     }
 
     /**
@@ -226,6 +258,14 @@ class TaskParserService
                 ? $matches[0][$i + 1][1]
                 : strlen($conteudo);
             $bloco = substr($conteudo, $offsetInicio, $offsetFim - $offsetInicio);
+
+            // ADR 0337 — veredito de âncora (fonte de done-ness, ADR 0302/0273) por
+            // task, consumido pelo forward-close de syncAllInternal. NÃO entra no
+            // payload persistido (vive só em memória). Path-existence contra o disco.
+            $this->anchorPorTask[$taskId] = $this->anchorClassifier->classify(
+                $bloco,
+                static fn (string $p): bool => file_exists(base_path($p)),
+            );
 
             $meta = $this->parseFrontmatterInline($bloco);
             $description = $this->extrairDescription($bloco);
@@ -605,15 +645,108 @@ class TaskParserService
         return $head !== '' ? substr($head, 0, 40) : null;
     }
 
-    protected function relatorio(int $processadas, int $ins, int $upd, int $can, int $descritivosDivergentes, array $modulos): array
+    protected function relatorio(int $processadas, int $ins, int $upd, int $can, int $fechadasAncora, int $descritivosDivergentes, array $modulos): array
     {
         return [
             'tasks_processadas' => $processadas,
             'inseridas' => $ins,
             'atualizadas' => $upd,
             'canceladas' => $can,
+            'fechadas_por_ancora' => $fechadasAncora,
             'descritivos_divergentes' => $descritivosDivergentes,
             'modulos' => $modulos,
         ];
+    }
+
+    /**
+     * ADR 0337 — decide + aplica o forward-close por âncora. Retorna true se fechou.
+     *
+     * Gatilho (TODAS obrigatórias, fail-closed) via {@see deveFecharPorAncora()}:
+     *   1. card ainda ATIVO (não done/cancelled);
+     *   2. SPEC declara `status: done` (decisão humana explícita — 1 dos 2 sinais);
+     *   3. âncora `anchored_ok` COM sha (ADR 0273/0302 — prova verificável no disco).
+     *
+     * NUNCA reabre, NUNCA toca owner/sprint/priority. Fecho DIRETO (contorna a FSM,
+     * igual ao cancel-de-órfãs logo abaixo) — o PR já passou pelo review real no git;
+     * forçar doing→review→done fabricaria eventos falsos. Evento de auditoria honesto
+     * + `completed_at` + `acceptance_ref` (do SHA) preservam a rastreabilidade (não
+     * dispara o R-B "done sem acceptance" do TasksReconciler).
+     */
+    protected function fecharPorAncoraSeElegivel(McpTask $existente, array $cand): bool
+    {
+        $taskId = (string) ($cand['task_id'] ?? '');
+        $ancora = $this->anchorPorTask[$taskId] ?? null;
+
+        if (! $this->deveFecharPorAncora(
+            (string) $existente->status,
+            $cand['status'] ?? null,
+            $ancora['state'] ?? null,
+            $ancora['sha'] ?? null,
+        )) {
+            return false;
+        }
+
+        $sha = (string) $ancora['sha'];
+        $paths = implode(' · ', $ancora['paths'] ?? []);
+        $de = (string) $existente->status;
+
+        // Preserva acceptance_ref humano se já houver; senão deriva da âncora.
+        $acceptance = $existente->getAttribute('acceptance_ref');
+        if (! is_string($acceptance) || trim($acceptance) === '') {
+            $acceptance = "âncora verificada@{$sha}"
+                . ($paths !== '' ? " · {$paths}" : '')
+                . ' (forward-close ADR 0337/0302)';
+        }
+
+        $existente->status = 'done';
+        if ($existente->completed_at === null) {
+            $existente->completed_at = now();
+        }
+        $existente->acceptance_ref = $acceptance;
+        $existente->save();
+
+        McpTaskEvent::log(
+            taskId: $existente->task_id,
+            eventType: 'status_changed',
+            from: $de,
+            to: 'done',
+            author: 'webhook-sync',
+            note: "Forward-close por âncora verificada@{$sha} (ADR 0337, emenda 0144): "
+                . 'SPEC declara done + âncora anchored_ok. Estado vivo carregado do git pro card.',
+        );
+
+        Log::channel('copiloto-ai')->info('TaskParser forward-close por âncora (ADR 0337)', [
+            'task_id' => $existente->task_id,
+            'de' => $de,
+            'para' => 'done',
+            'sha' => $sha,
+            'paths' => $ancora['paths'] ?? [],
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Núcleo PURO do gatilho de forward-close (ADR 0337) — sem I/O, determinístico,
+     * testável sem DB (espelha o padrão de núcleo puro do TasksReconciler::analisar).
+     *
+     * @param  string  $dbStatus     status atual do card no DB.
+     * @param  ?string $specStatus   status declarado no SPEC (`status:` do blockquote).
+     * @param  ?string $anchorState  estado da âncora (SpecAnchorClassifier::classify).
+     * @param  ?string $anchorSha    sha `verificado@` da âncora (null se não-verificada).
+     */
+    public function deveFecharPorAncora(string $dbStatus, ?string $specStatus, ?string $anchorState, ?string $anchorSha): bool
+    {
+        // 1. card ainda ativo (nunca reabre done/cancelled — preserva estado terminal do DB)
+        if (in_array($dbStatus, ['done', 'cancelled'], true)) {
+            return false;
+        }
+        // 2. SPEC declara done — decisão humana explícita (1 dos 2 sinais; sozinho o
+        //    `status:` NÃO basta, ADR 0144 desconfia dele — por isso exigimos a âncora)
+        if ($specStatus !== 'done') {
+            return false;
+        }
+        // 3. âncora verificada anchored_ok com sha (ADR 0273/0302 — prova no disco)
+        return $anchorState === 'anchored_ok' && is_string($anchorSha) && $anchorSha !== '';
     }
 }

@@ -2,6 +2,8 @@
 name: mwart-process
 description: Use SEMPRE que o trabalho envolva migrar tela Blade legacy → Inertia/React no oimpresso (MWART). Carrega o processo canônico ÚNICO definido em ADR 0104 — 5 fases obrigatórias e sequenciais (PLAN → BACKEND BASELINE → FRONTEND INCREMENTAL → QA → CUTOVER). Não há caminho alternativo. Ativa quando o pedido é "migrar tela X pra MWART", "criar tela em Pages/<Mod>/<Tela>.tsx", "migrar Blade pra React", ou quando Edit/Write em qualquer `resources/js/Pages/<Mod>/<Tela>.tsx` ou em controller chamando `Inertia::render`.
 tier: B
+auto_trigger: path
+resumo: único caminho Blade→Inertia (5 fases) — [ADR 0104](memory/decisions/0104-processo-mwart-canonico-unico-caminho.md)
 status: active
 version: 1.3
 authority: canonical
@@ -145,5 +147,5 @@ Sem `/mwart-override`, gates de processo não cedem. Iniciante (`[L]`), esposa (
 
 ---
 
-**Última atualização:** 2026-07-02 — **v1.3** (Onda 0d): F2 passa a exigir o `<tela>-parity.md` (mapa campo-a-campo Blade↔React, [template](../../memory/requisitos/_DesignSystem/PARITY-TEMPLATE.md)); F4 exige teste de comportamento pros itens de severidade `alta` (enforcement por comportamento, não presença). Piloto: [`User/perfil-parity.md`](../../memory/requisitos/User/perfil-parity.md). Autorizado pela **[ADR 0320](../../memory/decisions/proposals/0320-programa-ondas-regua-correcao.md)** (Onda 0a, aceita 2026-07-02) — o mecanismo do programa; a paridade é o **piso Tier-0 (c)** de migração Blade→React.
+**Última atualização:** 2026-07-02 — **v1.3** (Onda 0d): F2 passa a exigir o `<tela>-parity.md` (mapa campo-a-campo Blade↔React, [template](../../memory/requisitos/_DesignSystem/PARITY-TEMPLATE.md)); F4 exige teste de comportamento pros itens de severidade `alta` (enforcement por comportamento, não presença). Piloto: [`User/perfil-parity.md`](../../memory/requisitos/User/perfil-parity.md). Autorizado pela **[ADR 0320](../../memory/decisions/0320-programa-ondas-regua-correcao.md)** (Onda 0a, aceita 2026-07-02) — o mecanismo do programa; a paridade é o **piso Tier-0 (c)** de migração Blade→React.
 > v1.1 (2026-05-10) adiciona F0 (classificação por tipo de módulo). v1.1.1 (mesmo dia, pós-PR #516): cascata Superadmin removida; placement via `SIDEBAR_GROUPS` (`office` pra uso pesado, `plataforma` pra esporádico)

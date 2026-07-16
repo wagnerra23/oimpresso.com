@@ -1,8 +1,10 @@
 # Manual de Uso — Oimpresso Design System no Claude Code
 
+> ⚠️ **HISTÓRICO (2026-04) — NÃO SEGUIR COMO RECEITA.** Auditoria 2026-07-09: o checklist §5 tem 3 comandos que **falham hoje** (commitar `public/build-inertia/` = gitignored; `git push origin main` direto = branch protection rejeita; import do §8 não compila — `KpiGrid` é export default e `KpiCard` vive em arquivo próprio). **Fonte viva:** [`CLAUDE.md`](CLAUDE.md) (protocolo de sessão) + [Constituição UI v2 · ADR UI-0013](memory/requisitos/_DesignSystem/adr/ui/0013-constituicao-ui-v2-camadas.md) + [`memory/requisitos/_DesignSystem/PRE-MERGE-UI.md`](memory/requisitos/_DesignSystem/PRE-MERGE-UI.md). Mantido só como contexto histórico do DS.
+
 > **Para:** Wagner, Maiara, Felipe, Luiz, Eliana  
-> **Quando usar:** sempre que for criar ou alterar tela React no ERP  
-> **Última atualização:** 2026-04-30
+> **Quando usar:** ver banner acima — use a fonte viva; este manual é histórico  
+> **Última atualização:** 2026-04-30 (banner de vigência: 2026-07-09)
 
 ---
 

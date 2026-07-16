@@ -3,7 +3,7 @@ slug: 0292-errata-0291-distiller-freshness-scorecard-deterministico
 number: 292
 title: "Errata 0291 D-D — distiller_freshness no scorecard mede staleness vs doc mais novo do módulo (determinístico, não vs 'hoje')"
 type: adr
-status: proposto
+status: aceito
 authority: canonical
 lifecycle: ativo
 kind: errata

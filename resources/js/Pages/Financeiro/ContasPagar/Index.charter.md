@@ -1,6 +1,7 @@
 ---
 page: /financeiro/contas-pagar
 component: resources/js/Pages/Financeiro/ContasPagar/Index.tsx
+related_prototype: n/a (herda PT-01 Lista; segue o Padrão de Tela)
 owner: wagner
 status: deprecated
 last_validated: "2026-07-03"
@@ -105,5 +106,5 @@ D1 entra **visível** no scorecard como débito.
 UCs + status em [Index.casos.md](Index.casos.md), cruzado pelo `casos-coverage-guard.mjs` (G-2).
 Foto UX+comportamento+D1 no scorecard `memory/governance/scorecards/screens/financeiro-contaspagar-index.yaml`.
 
-[ADR 0320]: ../../../../../memory/decisions/proposals/0320-programa-ondas-regua-correcao.md
+[ADR 0320]: ../../../../../memory/decisions/0320-programa-ondas-regua-correcao.md
 [_Roadmap_Faturamento §Camada de correção]: ../../../../../memory/requisitos/_Roadmap_Faturamento.md
