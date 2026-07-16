@@ -42,10 +42,23 @@ Linha do tempo verificada em git+código:
 
 ## Consequências
 
-- **13 sites de lei viva corrigidos no mesmo PR** (não são ADRs — ADR não se edita): `CLAUDE.md` §Constituição UI v2 · `.claude/skills/constituicao-ui-aware/SKILL.md` (§"Sidebar permanece light · NÃO mudar pra dark" — **era instrução ativa pra regressão**, dispara em toda edição de UI) · `.claude/skills/cockpit-runbook/{SKILL,TEMPLATE}.md` · `.claude/skills/mwart-quality/SKILL.md` · `prototipo-ui/CLAUDE_COWORK_PRIMER.md` (×2) · `_DesignSystem/README.md` · `Jana/RUNBOOK-{chat,governanca-mcp}.md` · `Jana/RUNBOOK-dashboard.md` (×2) · `Sells/RUNBOOK-create.md`.
+- **9 sites de lei viva corrigidos no mesmo PR** (não são ADRs — ADR não se edita): `CLAUDE.md` §Constituição UI v2 · `.claude/skills/constituicao-ui-aware/SKILL.md` (§"Sidebar permanece light · NÃO mudar pra dark" — **era instrução ativa pra regressão**, dispara em toda edição de UI) · `.claude/skills/cockpit-runbook/{SKILL,TEMPLATE}.md` · `.claude/skills/mwart-quality/SKILL.md` · `prototipo-ui/CLAUDE_COWORK_PRIMER.md` (×2) · `_DesignSystem/README.md` · `Jana/RUNBOOK-chat.md` · errata em `Sells/sells-index-dsv6-visual-comparison.md`.
 
-- 🔴 **RESÍDUO HONESTO — 2 charters do Suporte seguem dizendo "sidebar light (UI-0009)"**: [`Suporte/Visao.charter.md:40`](../../../../../resources/js/Pages/Suporte/Visao.charter.md) e [`Suporte/Empresas.charter.md:38`](../../../../../resources/js/Pages/Suporte/Empresas.charter.md). **Por que não foram corrigidos:** eles são 2 dos **133 charters legados sem `related_us`** (cobertura 43,9%), protegidos por *grandfather*. Tocá-los — mesmo pra corrigir 1 linha — **acorda** o `charter-us-lint --check` (diff-aware, no-new-lie), que passa a exigir a US que a tela atende. O `memory/requisitos/Suporte/SPEC.md` **não tem nenhuma US** — não há o que declarar, e **inferir uma seria mentira** (`charter-write` é proibida de inferir; só [W] preenche). Reverter foi a saída honesta: a lápide de 2026-07-12 (`memory/proibicoes.md`) proíbe exatamente tocar legado sob gate diff-aware sem pagar a dívida que o toque acorda. **Desbloqueio:** [W] declarar a US das 2 telas de Suporte → aí o fix vira toque oportunístico legítimo.
-  - ⚠️ **Lição de método:** rodar `charter-us-lint.mjs` **sem `--check`** (modo report full-tree, exit 0) **não prova nada** sobre o PR — o CI roda `--check` diff-aware. Validar no MESMO modo do CI.
+- 🔴 **RESÍDUO HONESTO — 5 arquivos LEGADOS seguem dizendo "sidebar light (UI-0009)"**. Eu tentei corrigir os 5, os gates diff-aware ficaram vermelhos, e **revertei**:
+
+  | Arquivo | Gate que acordou | Dívida que o toque exige |
+  |---|---|---|
+  | [`Suporte/Visao.charter.md:40`](../../../../../resources/js/Pages/Suporte/Visao.charter.md) | `charter-us-lint --check` | `related_us` (é 1 dos **133 charters sem US**, cobertura 43,9%) |
+  | [`Suporte/Empresas.charter.md:38`](../../../../../resources/js/Pages/Suporte/Empresas.charter.md) | `charter-us-lint --check` | idem |
+  | [`Jana/RUNBOOK-dashboard.md:13,23`](../../../Jana/RUNBOOK-dashboard.md) | `RUNBOOK` schema gate | `owner` · `last_validated` · `status` fora do enum (`active` ≠ `ativo`) |
+  | [`Jana/RUNBOOK-governanca-mcp.md:350`](../../../Jana/RUNBOOK-governanca-mcp.md) | `RUNBOOK` schema gate | idem |
+  | [`Sells/RUNBOOK-create.md:384`](../../../Sells/RUNBOOK-create.md) | `RUNBOOK` schema gate | idem |
+
+  **Por que reverter é a saída honesta, não preguiça:** é a lápide de **2026-07-12** (`memory/proibicoes.md`) em ação — *"tocar um arquivo legado ACORDA os gates diff-aware que o protegiam por grandfather"*. Para calar os gates eu teria que **fabricar**: uma US que o `Suporte/SPEC.md` **não tem** (`charter-write` é proibida de inferir — só [W] preenche), um `owner` que eu não sei, e um **`last_validated` auto-declarado** — que é exatamente o campo que a lápide de **2026-07-09** classifica como *teatro* (*"catraca sobre campo auto-declarado — o próprio agente escreve a data"*). Preferi 5 linhas erradas e visíveis a 5 âncoras inventadas.
+
+  **Desbloqueio (precisa de [W]):** declarar `related_us` das 2 telas de Suporte + `owner`/`status` dos 3 RUNBOOKs. Aí o fix vira **toque oportunístico legítimo** (o caminho que a própria lápide 07-12 abençoa) e essas 5 linhas caem junto.
+
+  - ⚠️ **Lição de método (paguei pra aprender neste PR):** rodei `charter-us-lint.mjs` **sem `--check`** (modo report full-tree, exit 0) e li como verde — o CI roda `--check` **diff-aware**. **Modo errado não prova nada.** Validar sempre no MESMO modo/flag que o CI usa.
 - **Histórico não se toca**: ADRs superseded, handoffs, session logs e a proposta 07-08 permanecem como estão (append-only). Quem ler UI-0019 chega aqui pelo campo `Supersede`.
 - **Nenhuma mudança de código** — o código já está certo. Esta ADR alinha a lei à realidade, não o contrário. Zero risco de render.
 - **D-1 e D-3 da proposta 07-08 seguem NÃO ratificados** — esta ADR numera **só o D-2** (sidebar). Direção design→git e reconciliação de tokens dark continuam aguardando decisão [W] separada.

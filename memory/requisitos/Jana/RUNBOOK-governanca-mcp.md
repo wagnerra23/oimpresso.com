@@ -347,7 +347,7 @@ interface Props {
 - [ADR 0053 — MCP Server Governança como Produto](../../decisions/0053-mcp-server-governanca-como-produto.md) — `mcp_audit_log` append-only + RBAC `copiloto.mcp.*` + endpoint canônico `mcp.oimpresso.com`
 - [ADR 0011 — Padrãa Jana](../../decisions/0011-alinhamento-padrao-jana.md) — base estrutural UltimatePOS-like
 - [_DS ADR 0008 — Cockpit layout-mãe](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)
-- [_DS ADR UI-0023 — Sidebar preta (dark-fixo)](../_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)
+- [_DS ADR 0009 — Sidebar light](../_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)
 
 ---
 

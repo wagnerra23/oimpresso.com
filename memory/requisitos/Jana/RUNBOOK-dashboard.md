@@ -20,7 +20,7 @@ Tela read-only que lista as metas ativas do business em foco como cards com **fa
 | Verificação | Como conferir |
 |---|---|
 | Tela renderiza em `/copiloto/dashboard` | Login com `copiloto.access` → URL → header "Dashboard de Metas" + N cards |
-| AppShellV2 envolvendo | Inspetor: `<div class="cockpit">` ao redor; sidebar preta (dark-fixo) + breadcrumb "Jana / Dashboard" |
+| AppShellV2 envolvendo | Inspetor: `<div class="cockpit">` ao redor; sidebar light + breadcrumb "Jana / Dashboard" |
 | Farol lateral colorido em cada card | Faixa de 1px à esquerda do card: emerald/amber/rose/muted-foreground/30 |
 | Sparkline renderiza com ≥ 2 apurações | SVG inline 120×32 + ícone TrendingUp/Down/Minus |
 | Empty state quando `metas.length === 0` | Icon MessageSquare + "Nenhuma meta ativa" + Button "Iniciar conversa" → `/copiloto` |
@@ -378,7 +378,7 @@ Pegadinhas genéricas em [`.claude/skills/cockpit-runbook/GOTCHAS.md`](../../../
 - [ADR 0036 — Replanejamento Meilisearch-first](../../decisions/0036-replanejamento-meilisearch-first.md) — driver de retrieval atual (afeta latência das apurações)
 - [ADR 0039 — Chat Cockpit (3 colunas)](../../decisions/0039-ui-chat-cockpit-padrao.md) — layout-mãe (esta tela vive dentro)
 - [_DS UI-0008 — Cockpit layout-mãe ERP](../_DesignSystem/adr/ui/0008-cockpit-layout-mae-do-erp.md)
-- [_DS UI-0023 — Sidebar preta (dark-fixo)](../_DesignSystem/adr/ui/0023-sidebar-dark-fixo-preto-definitivo-supersede-0019.md)
+- [_DS UI-0009 — Sidebar light padrão](../_DesignSystem/adr/ui/0009-cockpit-sidebar-light-padrao.md)
 
 **Stories cobertas:** US-COPI-010, US-COPI-011, US-COPI-012 ([SPEC.md](SPEC.md))
 **Rules:** R-COPI-002 (semáforo de metas), R-COPI-FAROL-001 (cálculo de desvio % vs trajetória) — formalmente em [SPEC.md](SPEC.md)
