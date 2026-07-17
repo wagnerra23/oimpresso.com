@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-INFRA-002
+
 use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\URL;
 

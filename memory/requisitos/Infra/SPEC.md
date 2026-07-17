@@ -65,10 +65,27 @@ related_adrs: ["0105-cliente-como-sinal-guiar-sem-mandar", "0106-recalibracao-ve
 
 ### US-INFRA-002 · Client Signal — entidade + canal estruturado
 
-**Implementado em:** _pendente_ — não construído: sem tabela `mcp_client_signals`, sem `Pages/Feedback/Form.tsx`, sem endpoint `POST /api/feedback` nem tools MCP `client-signals-*` (grep zero por client_signal em Modules/app/database). O feature de feedback do Whatsapp (`clients_feedbacks`) é outra coisa
+**Implementado em:** _parcial_ · `Modules/Whatsapp/Http/Controllers/Publico/FeedbackFormController.php` · `Modules/Whatsapp/Database/Migrations/2026_07_17_100000_add_web_form_channel_to_clients_feedbacks.php` · `Modules/Whatsapp/Console/Commands/FeedbackLinkCommand.php` · `resources/js/Pages/Whatsapp/FeedbackPublico.tsx` · [RUNBOOK](RUNBOOK-feedback-publico.md) — o **órgão sensor** (o cliente reporta direto, sem o [W] transcrever) está no ar; faltam tools MCP `client-signals-*` + contagem no brief (ver Desvios abaixo)
 
-> owner: wagner · priority: p1 · estimate: 1h · status: todo · type: story · origin: adr-0105
+**Testado em:** `Modules/Whatsapp/Tests/Feature/FeedbackPublicoSignedUrlTest.php` — 6 casos Tier 0 (UC-FBP-01..05), bite/release provado no CT 100 (com `signed` removido, 5/6 falham).
+
+> owner: wagner · priority: p1 · estimate: 1h · status: doing · type: story · origin: adr-0105
 > blocked_by: US-INFRA-001
+
+**Desvios do escopo original (decisão [W] 2026-07-17 — ver [RUNBOOK §2](RUNBOOK-feedback-publico.md)):**
+
+A nota anterior deste anchor dizia que `clients_feedbacks` (Whatsapp) "é outra coisa". **Não é** — aquela migration cita a ADR 0105 nos próprios Refs e é o mesmo tema. O que ela não tinha era a peça que a [ADR 0334](../../decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md) chama de nervo: a captura é `can:whatsapp.access` (admin), então o sinal só existe quando o [W] ouve e clica "Capturar".
+
+| SPEC pedia | Entregue | Por quê |
+|---|---|---|
+| tabela `mcp_client_signals` | `clients_feedbacks` + 5 colunas nullable + `canal=web_form` | tabela nova duplicaria dedup/relevance/status/dashboard/sync-git já existentes e já Tier 0 ("duplica régua consolidada", proibicoes §5) |
+| `Pages/Feedback/Form.tsx` | `Pages/Whatsapp/FeedbackPublico.tsx` | a tela é do módulo Whatsapp; `Pages/Feedback/` criaria módulo-fantasma em `memory/requisitos/` |
+| `POST /api/feedback` + token 30d | `GET\|POST /feedback` com `URL::temporarySignedRoute` | HMAC + expiração nativos; o business fica **amarrado à URL** (adulterar `?biz` = 403) em vez de ser um campo forjável |
+| tools MCP `client-signals-*` | ⬜ **não feito** | outro intent; o dashboard `/atendimento/feedback` já lê a tabela |
+| brief "client_signals 24h: N" | ⬜ **não feito** | pareia com `US-COPI-139` |
+| `screenshot_url` (upload) | coluna criada, upload ⬜ | arquivo em rota pública sem auth é superfície de abuso; reservado pro APM (US-INFRA-003) |
+
+**Nota pras US dependentes (004/005):** elas citam `client_signal`/`client_signal_triage`. A entidade real é `Modules\Whatsapp\Entities\ClientFeedback` (tabela `clients_feedbacks`), com `canal=web_form` pro sinal do cliente e `reporter_name='SYSTEM'` disponível pro drift interno da 004.
 
 **Contexto.** ADR 0105 estabelece "cliente como sinal" como princípio canônico. Hoje Larissa (ROTA LIVRE biz=4) reporta dor via WhatsApp pra Wagner — sinal não rastreável, vira backlog mental. Esta US formaliza: tabela `client_signals` no MCP, URL pública `/feedback?biz=X&token=Y` simplificada, ADS triage (mesmo manual em 2026-Q2), virar US automática se passar threshold.
 
