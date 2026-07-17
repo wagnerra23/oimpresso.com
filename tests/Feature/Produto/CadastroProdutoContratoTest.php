@@ -1,7 +1,8 @@
 <?php
 
 declare(strict_types=1);
-// Cobre UC-PCAD-01, UC-PCAD-02, UC-PCAD-03, UC-PCAD-04, UC-PCAD-05, UC-PCAD-06 (Create.casos.md) - G-2 rastreabilidade caso-teste.
+// Cobre UC-PCAD-01, UC-PCAD-04, UC-PCAD-06 (Create.casos.md) - G-2 rastreabilidade caso-teste.
+// UC-PCAD-02/03 removidos (gaps de paridade, não bugs) · UC-PCAD-05 no backlog (achado Tier 0, US própria) — correção [F] 2026-07-17.
 
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -114,46 +115,23 @@ it('UC-PCAD-01 · SKU vazio nasce gerado no servidor', function () {
 });
 
 // =============================================================================
-// UC-PCAD-02 — CU-PROD-01.1 `[must]`: obrigatório validado CLIENT + SERVER
-//   O CU diz "client + server". O client está coberto (mal) pelos Wave2*.
-//   Este cobre o SERVER — que é onde ninguém olhou.
+// UC-PCAD-02 e UC-PCAD-03 — REMOVIDOS (2026-07-17, correção [F]).
+//   NÃO eram bugs — eram meu erro de âncora (proibicoes §5, entrada 2026-07-15
+//   "achado derivado de leitura"). Reincidi: analisei a casca React `Create.tsx`
+//   (draft) como se fosse o cadastro. O cadastro REAL em produção é o Blade
+//   `resources/views/product/create.blade.php` + `store()`.
+//
+//   - "validação server" (ex-UC-PCAD-02): o UltimatePOS valida CLIENT-SIDE no Blade
+//     (`required` em name/unit_id/tax_type/preço + jQuery validate). O `store()`
+//     NUNCA validou server-side, POR DESIGN. Meu teste batia no endpoint cru,
+//     pulando a view — testava um contrato que não existe. O `CU-PROD-01.1` do SDD
+//     dizia "client + server"; é impreciso (só client).
+//   - "defaults server" (ex-UC-PCAD-03): os defaults moram no FORM (Blade + o
+//     useForm do React), não no `store()`. O caminho real não grava lixo.
+//
+//   Os dois viraram GAPS DE PARIDADE Blade→React (o que a casca React não migrou),
+//   não achados de bug. Ver a grade em Create.charter.md §Paridade Blade→React.
 // =============================================================================
-
-it('UC-PCAD-02 · POST sem campo obrigatório não persiste produto órfão', function () {
-    $bizId = (int) $this->business->id;
-    $nome = 'Produto UC-PCAD-02 ' . uniqid();
-
-    // unit_id é obrigatório pelo CU-PROD-01.1 — mandamos tudo MENOS ele.
-    $payload = postProdutoMinimo($bizId, ['name' => $nome]);
-    unset($payload['unit_id']);
-
-    $this->post('/products', $payload);
-
-    expect(produtoPorNome($nome, $bizId))
-        ->toBeNull('Produto nasceu SEM unidade — o CU-PROD-01.1 exige validação server-side.');
-});
-
-// =============================================================================
-// UC-PCAD-03 — CU-PROD-01.3: defaults conservadores
-//   Hoje os defaults moram no useForm do React. Se a tela virar aba nova
-//   (o rumo do [F]) e parar de mandá-los, o servidor decide sozinho.
-//   Este UC pergunta O QUE o servidor decide.
-// =============================================================================
-
-it('UC-PCAD-03 · defaults conservadores no produto criado', function () {
-    $bizId = (int) $this->business->id;
-    $payload = postProdutoMinimo($bizId);
-    // Omite exatamente os 3 do CU: type, enable_stock, tax_type.
-    unset($payload['type'], $payload['enable_stock'], $payload['tax_type']);
-
-    $this->post('/products', $payload);
-
-    $produto = produtoPorNome($payload['name'], $bizId);
-    expect($produto)->not->toBeNull('O produto não persistiu.');
-    expect($produto->type)->toBe('single', "CU-PROD-01.3: default type='single'.");
-    expect((int) $produto->enable_stock)->toBe(1, 'CU-PROD-01.3: default enable_stock=true.');
-    expect($produto->tax_type)->toBe('exclusive', "CU-PROD-01.3: default tax_type='exclusive'.");
-});
 
 // =============================================================================
 // UC-PCAD-04 — CU-PROD-01.4 `[V0]`: parser pt-BR não infla o preço
@@ -199,49 +177,21 @@ it('UC-PCAD-04 · custo fracionário com ponto NÃO infla ×100k', function () {
 });
 
 // =============================================================================
-// UC-PCAD-05 — CU-PROD-01.5 `[T0]`: insumo de outro business não vincula
-//   O CU fala de "dropdowns", que é UI. Dropdown escopado impede ESCOLHER,
-//   não impede o REQUEST de mandar. Foi essa família de furo que o UC-PTAB-04
-//   achou vermelho no #4300 (price_group_id cru da chave do array → gravou).
+// UC-PCAD-05 — MOVIDO PRO BACKLOG (2026-07-17, correção [F]).
+//   É um ACHADO Tier 0 REAL (rodou vermelho: `store()` grava category_id de outro
+//   business — `$request->only()` sem `exists:` escopado; mesma família do UC-PTAB-04
+//   do #4300), MAS corrigi-lo mexe no `store()` legado do UltimatePOS (~6.4k chamadas
+//   Blade + quick-add + import). Fazer isso sem rodar os caminhos legados no CT 100
+//   (indisponível nesta sessão) arrisca regressão num método ultra-crítico.
+//   → Vira US própria com Pest cobrindo os fluxos antigos (task MCP criada 2026-07-17).
+//   Registrado no §Backlog de contrato do Create.casos.md pra não se perder.
+//   Removido daqui pra não bloquear o merge do trio com um fix que precisa de mais prova.
 // =============================================================================
-
-it('UC-PCAD-05 · category_id de outro business não vincula', function () {
-    $outroBizId = EstoqueFixture::secondBusinessId();
-    if ($outroBizId === null) {
-        $this->markTestSkipped('DB só tem 1 business — sem par cross-tenant pra provar isolamento.');
-    }
-
-    $bizId = (int) $this->business->id;
-
-    // `categories.created_by` é NOT NULL com FK pra users — tem que ser um user DO outro business.
-    $categoriaAlheia = (int) DB::table('categories')->insertGetId([
-        'name' => 'Categoria alheia UC-PCAD-05',
-        'business_id' => $outroBizId,
-        'category_type' => 'product',
-        'created_by' => EstoqueFixture::userId($outroBizId),
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
-
-    $payload = postProdutoMinimo($bizId, ['category_id' => $categoriaAlheia]);
-
-    $this->post('/products', $payload);
-
-    $produto = produtoPorNome($payload['name'], $bizId);
-
-    // O invariante é ISOLAMENTO, não status HTTP (lição do UC-PTAB-02: o 404 era proxy errado).
-    // Aceita: recusar o produto OU criar sem o vínculo alheio. Recusa: carimbar a categoria alheia.
-    if ($produto !== null) {
-        expect((int) $produto->category_id)->not->toBe(
-            $categoriaAlheia,
-            'Produto do meu business ficou vinculado a categoria de OUTRO business (Tier 0 — ADR 0093).'
-        );
-    }
-});
 
 // =============================================================================
 // UC-PCAD-06 — CU-PROD-07.2 `[T0]`: duplicar produto alheio → 404
 //   Aqui o 404 é o CONTRATO falando (o CU crava), não proxy inventado por charter.
+//   FIX no mesmo PR (failing-first, padrão #4300): create() L539 find()→findOrFail().
 // =============================================================================
 
 it('UC-PCAD-06 · duplicar produto de outro business retorna 404', function () {

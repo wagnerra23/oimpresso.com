@@ -9,7 +9,7 @@ parent_module: Produto
 related_adrs: [104, 149, 93, 107, 101, 264]
 related_us: [US-PROD-020, US-PROD-023]
 tier: A
-charter_version: 2
+charter_version: 3
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente — Wave 2 B4 Produto 2026-05-15)"
@@ -100,40 +100,43 @@ por `tests/Feature/Produto/CadastroProdutoContratoTest.php` (lane `Estoque · My
 Os `Wave2Create*Test` ficam como higiene estrutural até alguém decidir se apagam ou viram teste de
 verdade — **nenhum UC os cita de propósito**.
 
-## Backlog de contrato (o CI provou que a v1 mentia — decisão pendente)
+## 2 bugs reais no controller (independem da migração)
 
-> Run `29587401307` / `29588143635` (lane `Estoque · MySQL`, MySQL real, biz=1+biz=2). **Não corrigidos
-> aqui** porque os três exigem tocar o `store()`, que é Non-Goal declarado desta tela — e o
-> `CU-PROD-01` é `[must]` do registro-mãe do ERP. Ver §Pendência de CONTRATO do `casos.md`.
+> Correção de rumo (2026-07-17, [F]): a v2 deste charter chamava **4 UCs de "bugs"**. **Estava errado**
+> — 2 deles (`UC-PCAD-02` validação, `UC-PCAD-03` defaults) **não são bugs**, são **gaps de paridade**
+> (ver grade abaixo): o UltimatePOS valida client-side no Blade e os defaults moram no form. Sobram
+> **2 bugs reais**, que vivem no `store()`/`create()` e independem de qual front chama:
 
-- **⚠️ `store()` não valida nada** (`UC-PCAD-02` 🔴) — só `$request->only($form_fields)`, zero
-  `$request->validate()`. Produto nasce **sem unidade** e entra no catálogo. O `CU-PROD-01` item 1
-  promete *"validados client **+ server**"*; o server nunca validou. **A tela é a única validação
-  que existe** — e isso importa agora que o cadastro está virando abas.
-- **⚠️ Os defaults só existem no React** (`UC-PCAD-03` 🔴) — POST sem `type` → produto nasce
-  `type = null`, não `'single'`. O §Goals abaixo diz "Defaults: type='single'…" e está certo **sobre o
-  form**; o servidor não tem default nenhum. Aba nova que esqueça o campo grava lixo, calada.
-- **⚠️ Tier 0 — insumo de outro business vincula** (`UC-PCAD-05` 🔴) — `category_id` de outro
-  `business_id` **grava** no meu produto: *"Produto do meu business ficou vinculado a categoria de
-  OUTRO business"*. O `category_id` vem cru do `$request->only()`, sem `exists:` escopado. É a **mesma
-  família** do `UC-PTAB-04` ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)), onde o
-  `price_group_id` vinha cru da chave do array e gravou cross-tenant. O §Automation Anti-hooks abaixo
-  diz *"❌ Não acessa produto de outro `business_id`"* — verdadeiro pro **produto**, falso pro **insumo**.
-- **⚠️ Duplicar produto alheio dá 500, não 404** (`UC-PCAD-06` 🔴) — `CU-PROD-07` item 2 crava 404.
-  Não vaza dado (crasha antes), mas é exceção não-tratada. Aqui o 404 é o **contrato** falando, não
-  proxy inventado por charter.
+- **✅ `UC-PCAD-06` (500→404) — corrigido neste PR.** `ProductController@create` L539 `find()`→
+  `findOrFail()`. Duplicar produto de outro business dava 500 (acesso a `->name` de `null`); o scope
+  de business já estava lá, agora dá 404 limpo. Failing-first, padrão #4300.
+- **🔶 `UC-PCAD-05` (cross-tenant Tier 0) — achado real, US própria.** O `store()` grava `category_id`
+  de outro business (`$request->only()` sem `exists:` escopado; família do `UC-PTAB-04`/#4300).
+  **Não corrigido aqui** — mexe no `store()` legado (~6.4k chamadas) e exige Pest nos caminhos antigos
+  no CT 100 (fora nesta sessão). Task MCP criada. O §Automation Anti-hooks diz *"❌ Não acessa produto
+  de outro `business_id`"* — verdadeiro pro **produto**, mas o **insumo** (FK) precisa do mesmo scope.
 
-## Pendência de CONTRATO — preço não é Non-Goal nem Goal (decisão `[F]`)
+## Paridade Blade → React (o que a casca draft ainda não migrou)
 
-> A tela tem `<CardTitle>Preço & Imposto</CardTitle>` e **nenhum campo de preço**. Recibo datado
-> (lei [#4411](https://github.com/wagnerra23/oimpresso.com/pull/4411) — doc não restateia fato derivado):
-> em **2026-07-17**, contra `origin/main` `25b448019`, medindo o **fonte**:
-> `git grep -cE 'single_dpp|single_dsp|profit_percent' -- resources/js/Pages/Produto/Create.tsx` → **0**.
->
-> O `store()` lê os três do request; nenhum sai do React. O prop `defaultProfitPercent` é recebido e
-> nunca usado. **Os 6 Non-Goals abaixo não incluem preço** — logo isto é buraco não-declarado, não
-> decisão. As duas saídas (`[F]`): **(a)** Non-Goal declarado — preço mora na aba Custos → entra na
-> lista abaixo; **(b)** US sob REGRA MESTRE (`[V0]`). Detalhe no §Pendência de CONTRATO do `casos.md`.
+> O cadastro **real em produção** é o Blade `resources/views/product/create.blade.php` + `store()`.
+> O `Create.tsx` é **draft** — cópia ~70% completa. A migração fecha esta lista. Ancorado no Blade
+> lido por inteiro (395 linhas) + `useForm` do React (2026-07-17). Legenda: ✅ migrado · ⚠️ parcial · ❌ falta.
+
+| Falta no React | Blade (linha) | Crit. |
+|---|---|---|
+| **Formação de preço** (`single_dpp`/`_inc_tax`, `profit_percent`, `single_dsp`/`_inc_tax`, todos `required`) | `single_product_form_part` L26-47 | **P0** `[V0]` |
+| **Imagem** (upload) | L157 + form-part L52 | **P0** |
+| **Validação client-side** (`required` + jQuery validate em ~8 campos) | todo o form | P1 |
+| **custom_field 5-20** (React só 1-4) | L272+ | P1 |
+| **`product_racks`** (rack/row/position) | L240-249 | P1 |
+| **`module_form_part` / `pos_module_data`** (campos de módulos) | L144, L303 | P1 |
+| **`type=variable`** (grade tam×cor) · **`type=combo`** (picker) | partials | P1 (já Non-Goal "Wave 3") |
+| `secondary_unit_id` · `product_brochure` · `preparation_time_in_minutes` · quick-add unidade/marca | L71/168/297/54 | P2 |
+
+> **Nota sobre os defaults/validação:** o §Goals abaixo lista "Defaults: type='single'…" — correto
+> **sobre o form** (Blade + `useForm`). O `store()` não default nem valida server-side, **por design**
+> UltimatePOS (validação é client). Isso **não é bug** — é a arquitetura legada que a migração herda.
+> O `CU-PROD-01.1` do SDD dizer *"validados client **+ server**"* é o único ponto impreciso (só client).
 
 ## Refs
 
@@ -151,4 +154,5 @@ verdade — **nenhum UC os cita de propósito**.
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto (Agent paralelo W2-C). |
-| 2026-07-17 | [F+CC] | **v2** — fecha o trio (US-PROD-020): + link pro [`Create.casos.md`](Create.casos.md) (`UC-PCAD-01..06`). **§Pest GUARD REVOGADO** — o `it('Controller isola business_id em dropdowns')` nunca existiu e os outros 5 são grep de string. + §Backlog de contrato com os **4 vermelhos do CI** (store() sem validate · defaults só no React · **Tier 0 insumo cross-tenant grava** · duplicar alheio = 500). + §Pendência do preço (card "Preço & Imposto" sem campo de preço — recibo datado). Link-rot `Inventory/` → `Produto/_telas/` corrigido. |
+| 2026-07-17 | [F+CC] | **v2** — fecha o trio (US-PROD-020): + link pro `Create.casos.md`. **§Pest GUARD REVOGADO** (teste fantasma). + §Backlog com "4 vermelhos do CI" **(depois corrigido na v3)**. |
+| 2026-07-17 | [F+CC] | **v3 — correção de rumo ([F] pegou meu erro).** A v2 chamou os 4 vermelhos de "bugs". Errado: analisei a **casca React `Create.tsx`** (draft) como se fosse o cadastro — o real é o **Blade** `create.blade.php` + `store()`. Reclassificado: **02/03 não são bugs** (validação client-side no Blade + defaults no form, por design UltimatePOS) → viraram **§Paridade Blade→React** (grade do que falta migrar). **05** (cross-tenant) = achado Tier 0 real → US própria. **06** (500→404) = corrigido neste PR. §Pendência do preço vira 1ª linha da grade de paridade (o Blade tem preço; a casca React não migrou). |
