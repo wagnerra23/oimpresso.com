@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Business;
 use App\User;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Modules\Jana\Entities\Conversa;
@@ -14,7 +15,10 @@ use Modules\Jana\Entities\MetaFonte;
 use Modules\Jana\Entities\MetaPeriodo;
 use Modules\Jana\Entities\Sugestao;
 
-uses(Tests\TestCase::class);
+// DatabaseTransactions: o stub biz=99 (abaixo) + toda a data criada rolam
+// back ao fim de cada teste — nada persiste no clone-de-prod. Este teste NÃO
+// faz DDL (DROP TRIGGER etc.), então o transaction-wrap é seguro.
+uses(Tests\TestCase::class, DatabaseTransactions::class);
 
 /**
  * Audit Wave 7 — Multi-tenant Tier 0 via parent (ADR 0093 IRREVOGÁVEL).
@@ -57,6 +61,30 @@ beforeEach(function () {
 
     $this->wagnerBusiness = $business;
     $this->wagnerUser = $user;
+
+    // biz=99 adversário (test-only, ADR 0101). O clone-de-prod do CT100 (e o seed
+    // biz=1/biz=2 do pest-mysql-setup) NÃO tem biz=99 → o FK
+    // jana_conversas/jana_metas.business_id → business(id) rejeita o insert das
+    // Conversas/Metas fictícias (QueryException 1452) ANTES do scope rodar, e a
+    // asserção de isolamento nunca chega a ser exercitada. Criamos o stub aqui
+    // (rollback via DatabaseTransactions). Mesma convenção da
+    // Modules/Compras/Tests/Feature/MultiTenantTest.
+    if (! Business::find(JANA_VIA_PARENT_BIZ_FICTICIO)) {
+        Business::forceCreate([
+            'id' => JANA_VIA_PARENT_BIZ_FICTICIO,
+            'name' => 'Test Biz Adversario#99 (Wave7)',
+            'currency_id' => 1,
+            'start_date' => now()->toDateString(),
+            'default_profit_percent' => 0,
+            'owner_id' => $user->id,
+            // NOT NULL sem default no schema real (business) — espelha o seed
+            // .github/actions/pest-mysql-setup + Compras/MultiTenantTest.
+            'stop_selling_before' => 0,
+            'weighing_scale_setting' => '',
+            'certificado' => '',
+            'officeimpresso_numerodemaquinas' => 0,
+        ]);
+    }
 });
 
 // ------------------------------------------------------------------
