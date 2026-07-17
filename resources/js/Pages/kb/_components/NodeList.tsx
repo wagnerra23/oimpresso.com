@@ -160,29 +160,21 @@ export default function NodeList({
                 className={cn(
                   'group rounded-md border border-border border-l-[3px] bg-card px-3 py-2.5 cursor-pointer transition-all',
                   'hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                  isActive && 'shadow-sm',
+                  isActive && 'shadow-sm kb-row-active',
                   outdated && 'bg-amber-50/40 dark:bg-amber-900/10',
                 )}
                 style={{
+                  '--kb-hue': hue,
                   borderLeftColor: isActive
                     ? `oklch(0.55 0.13 ${hue})`
                     : n.pinned
                       ? `oklch(0.55 0.13 ${hue})`
                       : undefined,
-                  ...(isActive
-                    ? { background: `oklch(0.985 0.012 ${hue})` }
-                    : {}),
-                }}
+                } as React.CSSProperties}
               >
                 <div className="flex flex-wrap items-center gap-1.5 mb-1">
                   {cat && (
-                    <span
-                      className="inline-flex items-center rounded-sm px-1.5 py-px text-[9.5px] font-semibold lowercase"
-                      style={{
-                        background: `oklch(0.94 0.05 ${hue})`,
-                        color: `oklch(0.36 0.10 ${hue})`,
-                      }}
-                    >
+                    <span className="kb-hue-chip inline-flex items-center rounded-sm px-1.5 py-px text-[9.5px] font-semibold lowercase">
                       {cat.label}
                     </span>
                   )}
