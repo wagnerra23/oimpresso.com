@@ -3,27 +3,32 @@
 > Declaração canônica de pontos de hook OTel (D9.a Observability v3 — 2026-05-16).
 > **Jana JÁ tem OTel forte** — `Modules/Jana/Services/Memoria/Telemetry/RetrievalSpan*.php` (POPO + Builder + Decorator) está implementado seguindo OTel GenAI semantic conventions 2026. Este doc CATALOGA o que existe + declara spans futuros.
 
-## Spans canônicos JÁ IMPLEMENTADOS (verificáveis no código)
+> **Atualização 2026-07-17 (destaleamento — grade de réguas observabilidade-agente):** os spans D9.a Wave 17 foram implementados mas este doc nunca foi atualizado. A tabela "PLANEJADOS" ficou 2 meses afirmando `não-live` sobre 6 spans que estão LIVE — e a grade de mercado leu o doc stale como "spans do agente não instrumentados" (falso-negativo). Corrigido abaixo com **os nomes REAIS de span + file:line** (os nomes antigos do doc — `jana.context.snapshot` etc — nunca bateram com o código: o real é `jana.context.para_business`). Fonte da verdade = o `OtelHelper::spanBiz(...)`/`::span(...)` no código, não esta tabela.
 
-| Service / Método | Span name | Status | Atributos |
+## Spans canônicos JÁ IMPLEMENTADOS (verificados no código · file:line = âncora)
+
+| Service / Método | Span name (REAL) | Status | Âncora |
 |---|---|---|---|
-| `RetrievalTelemetryDecorator::recall()` | `jana.retrieval.recall` | ✅ live | `business_id`, `query.sha256`, `count.results`, `driver` (meilisearch/null/mcp), `reranker` |
+| `RetrievalTelemetryDecorator::recall()` | `jana.retrieval.recall` | ✅ live | `business_id`, `query.sha256`, `count.results`, `driver`, `reranker` |
 | `MeilisearchDriver::recall()` (decorated) | `jana.retrieval.meilisearch` | ✅ live | `business_id`, `index`, `limit`, `hybrid.enabled` |
 | `LlmReranker::rerank()` | `jana.rerank.llm` | ✅ live | `business_id`, `model`, `count.candidates`, `count.kept` |
 | `HydeQueryExpander::expand()` | `jana.hyde.expand` | ✅ live | `business_id`, `query.sha256`, `count.expansions` |
-| `LangfuseClient::recordSpan()` | (exporter) | ✅ live | Recebe `RetrievalSpan` POPO → POST Langfuse self-host CT 100 |
+| `LangfuseClient::recordSpan()` | (exporter) | ✅ live | `RetrievalSpan` POPO → POST Langfuse self-host CT 100 |
+| `ContextSnapshotService::montar()` | `jana.context.para_business` | ✅ live | [ContextSnapshotService.php:21](../../../Modules/Jana/Services/ContextSnapshotService.php#L21) — nome antigo do doc: `jana.context.snapshot` |
+| `BriefDiarioService::gerar()` | `jana.brief_diario.snapshot` | ✅ live | [BriefDiarioService.php:46](../../../Modules/Jana/Services/BriefDiarioService.php#L46) — nome antigo: `jana.brief.gerar` |
+| `ApuracaoService::apurar()` | `jana.apuracao.run` | ✅ live | [ApuracaoService.php:30](../../../Modules/Jana/Services/ApuracaoService.php#L30) — nome antigo: `jana.apuracao.apurar` |
+| `HealthSnapshotService::snapshot()` | `jana.health.snapshot` | ✅ live | [HealthSnapshotService.php:36](../../../Modules/Jana/Services/HealthSnapshotService.php#L36) |
+| `ProfileDistiller::distill()` | `jana.profile.distill` | ✅ live | [ProfileDistiller.php:52](../../../Modules/Jana/Services/Memoria/ProfileDistiller.php#L52) |
+| `SemanticCacheService::lookup()` | `jana.semantic_cache.buscar` | ✅ live | [SemanticCacheService.php:59](../../../Modules/Jana/Services/Cache/SemanticCacheService.php#L59) (`OtelHelper::span`) — nome antigo: `jana.cache.semantic` |
+| `ContextualizerService` (contextual retrieval) | `jana.contextual_retrieval.contextualize` | ✅ live | [ContextualizerService.php:82](../../../Modules/Jana/Services/Memoria/Contextual/ContextualizerService.php#L82) — não estava catalogado |
+| `DocumentChunker` (contextual retrieval) | `jana.contextual.chunk` | ✅ live | [DocumentChunker.php:34](../../../Modules/Jana/Services/Memoria/Contextual/DocumentChunker.php#L34) — não estava catalogado |
+| `LaravelAiSdkDriver::emitirOtelGenAi()` | `gen_ai.span` (OTel GenAI) | ✅ live | turno LLM: tokens/custo/latência/erro + `gen_ai.business_id`; teste `OtelGenAiEmissionTest` (ADR 0051) |
 
-## Spans canônicos PLANEJADOS (gaps D9.a)
+## Spans canônicos PLANEJADOS (o que ainda NÃO é live)
 
 | Service / Método | Span name | Atributos obrigatórios | Trigger |
 |---|---|---|---|
-| `ContextSnapshotService::montar()` | `jana.context.snapshot` | `business_id`, `count.facts`, `count.tokens`, `angulos` (3 ângulos faturamento ADR 0052) | Cada chat turn |
-| `BriefDiarioService::gerar()` | `jana.brief.gerar` | `business_id`, `data`, `count.sources` (vendas/inadimplencia/tickets/nfe/oportunidades), `provider` (groq/haiku) | Cron daily 06:00 BRT |
-| `ApuracaoService::apurar()` | `jana.apuracao.apurar` | `business_id`, `periodo`, `count.metricas` | Comando artisan |
-| `HealthSnapshotService::snapshot()` | `jana.health.snapshot` | `count.checks`, `count.failing` | Cron daily |
-| `ProfileDistiller::distill()` | `jana.profile.distill` | `business_id`, `count.facts_before`, `count.facts_after`, `drift_detected` | Job weekly |
-| `SemanticCacheService::lookup()` | `jana.cache.semantic` | `business_id`, `hit`, `similarity`, `ttl_remaining` | Cada query LLM |
-| `RagasJudgeService::judge()` | `jana.ragas.judge` | `business_id`, `metric` (faithfulness/answer_relevancy/context_precision), `score` | Eval batch |
+| `RagasJudgeService::judge()` | `jana.ragas.judge` | `business_id`, `metric` (faithfulness/answer_relevancy/context_precision), `score` | **Batch, NÃO online** — decisão ADR 0318 (eval RAGAS roda em staging/gold-set, não sobre tráfego de prod). O `LangfuseClient::recordScore()` (transporte de score online) já existe; falta invocá-lo no caminho servido. É o gap #1 da dimensão observabilidade-agente (grade 2026-07-17). |
 
 ## Princípios Tier 0
 
