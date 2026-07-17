@@ -12,7 +12,6 @@ module: governance
 related:
   - 0061-conhecimento-canonico-git-mcp-zero-automem
   - 0094-constituicao-v2-7-camadas-8-principios
-  - 0155-module-grade-rubrica-v1
   - 0180-drift-numero-adr-0178-conflito-paralelo
   - 0215-secrets-governance-5-camadas-automaticas
   - 0250-screen-qa-specialist-sustentavel

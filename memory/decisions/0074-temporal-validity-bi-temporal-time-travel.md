@@ -1,6 +1,6 @@
 ---
 slug: 0074-temporal-validity-bi-temporal-time-travel
-number: 0074
+number: 74
 title: "P1 — Temporal validity bi-temporal: event-time vs system-time + time-travel queries"
 type: adr
 status: deprecated
@@ -15,7 +15,6 @@ supersedes: []
 supersedes_partially: []
 superseded_by: []
 related:
-  - 0035-stack-canonica-ia-laravel-ai-memoria-contrato
   - 0036-replanejamento-meilisearch-first
   - 0049-camadas-memoria-agente-fase-por-fase
   - 0050-metricas-obrigatorias-memoria-table

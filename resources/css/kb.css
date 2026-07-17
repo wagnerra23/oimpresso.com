@@ -139,6 +139,23 @@
   color: oklch(0.82 0.11 240);
 }
 
+/* ── Acentos com hue dinâmico (--kb-hue) — mesmos valores nos 2 modos ─── */
+.kb-hue-dot {
+  background: oklch(0.62 0.13 var(--kb-hue, 240));
+}
+
+.kb-hue-border-l {
+  border-left-color: oklch(0.55 0.13 var(--kb-hue, 240));
+}
+
+.kb-hue-bar {
+  background: oklch(0.52 0.13 var(--kb-hue, 240));
+}
+
+.kb-hue-step-on {
+  background: oklch(0.55 0.13 var(--kb-hue, 240));
+}
+
 /* ── Pares claro/escuro com hue dinâmico (--kb-hue) ───
  * O hue vem por categoria via inline style; inline não tem variante dark,
  * então o par de cores vive aqui. Light = valores originais do port Cowork. */

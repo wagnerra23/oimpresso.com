@@ -1,13 +1,13 @@
 ---
 slug: 0073-team-mcp-skills-policies-entidades-governadas
-number: 0073
+number: 73
 title: "Team MCP P0 — skills e policies como entidades governadas (mcp_skills + mcp_policies)"
 type: adr
 status: superseded
 authority: reference
 lifecycle: substituido
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: copiloto
 quarter: 2026-Q2
 tags: [mcp, team-mcp, skills, policies, governanca, sync, p0, superseded]

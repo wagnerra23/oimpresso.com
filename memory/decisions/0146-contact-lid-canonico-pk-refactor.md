@@ -14,7 +14,6 @@ tags: [whatsapp, identity, lid, refactor, feature-wish]
 related:
   - 0093-multi-tenant-isolation-tier-0
   - 0105-cliente-como-sinal-guiar-sem-mandar
-  - 0117-multi-numero-business-phone
   - 0135-omnichannel-inbox-arquitetura
 pii: false
 review_triggers:

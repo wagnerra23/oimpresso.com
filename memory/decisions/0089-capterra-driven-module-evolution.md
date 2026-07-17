@@ -6,7 +6,7 @@ type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
-decided_at: 2026-05-06
+decided_at: "2026-05-06"
 decided_by: [W]
 module: governance
 quarter: 2026-Q2

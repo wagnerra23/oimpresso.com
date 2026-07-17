@@ -19,7 +19,6 @@ related:
   - 0257-adr-status-lifecycle-kind-modelo-canonico
   - 0258-processo-adr-estado-arte-indice-gerado-supersede-atomico
   - 0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento
-  - 0219-governance-drift-framework-driftchecker-plugavel
   - 0316-esquecimento-real-adr-morta-tombstone-git-auditoria
 pii: false
 ---

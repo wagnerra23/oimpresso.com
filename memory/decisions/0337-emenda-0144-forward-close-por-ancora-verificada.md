@@ -19,8 +19,6 @@ supersedes_partially: []
 superseded_by: []
 related:
   - 0144-tasks-db-canonico-spec-template
-  - 0302-ancora-fonte-unica-doneness
-  - 0273-anchor-spec-codigo-gramatica
   - 0237-jana-reconcile-loop-unico
   - 0070-jira-style-task-management-current-md-removed
 ---

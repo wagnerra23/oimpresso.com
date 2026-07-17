@@ -1,6 +1,6 @@
 ---
 slug: 0072-maturacao-memoria-team-mcp-openclaw-soa-2026
-number: 0072
+number: 72
 title: "Maturação memória + Team MCP — gaps identificados vs OpenClaw/Mem0/Letta/Zep/A-Mem (mai/2026)"
 type: adr
 status: deprecated
@@ -15,7 +15,6 @@ supersedes: []
 supersedes_partially: []
 superseded_by: []
 related:
-  - 0035-stack-canonica-ia-laravel-ai-memoria-contrato
   - 0036-replanejamento-meilisearch-first
   - 0037-roadmap-evolucao-tier-7-plus
   - 0049-camadas-memoria-agente-fase-por-fase

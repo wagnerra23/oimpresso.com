@@ -44,6 +44,18 @@ jobs:
         run: node scripts/governance/agent-pr-outcomes.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         run: node scripts/governance/agent-cost-per-pr.test.mjs
+      # Aritmetica de viabilidade do contrafactual de corpus (chip C1 da grade 2026-07-17 ·
+      # fraqueza F1 "corpus nunca medido" 3/10). O harness de 3 arms foi PODADO em
+      # 2026-07-17 (autorizado [W]: zero invocador + experimento nao autorizado, ADR
+      # 0105/0334) -- sobrou a aritmetica que responde "quantas rodadas pra ver delta?",
+      # que foi o que matou a versao cara do chip.
+      # O selftest SIMULA (Monte Carlo deterministico, semente fixa, ~170ms) em vez de
+      # conferir a formula contra si mesma: prova que nNeededFor CUMPRE os 80% de poder
+      # que promete, e que o decisor nao grita vencedor sob H0 nem em n=5. Formula que
+      # mentisse SUBESTIMARIA o custo do experimento -- o numero que [W] usa pra decidir.
+      # Deterministico de proposito: nao flaka. Advisory por desenho.
+      - name: Agent corpus counterfactual (aritmética de viabilidade · poder por Monte Carlo determinístico · chip C1 grade 2026-07-17)
+        run: node scripts/governance/agent-corpus-counterfactual.test.mjs
       # ex-órfãos de CI (adversário 2026-07-13): existiam no repo mas nenhum workflow os
       # rodava — reencarnação da proibição "Tests sem phpunit.xml = falsa cobertura".
       - name: SDD distiller_freshness read-side (anti-stale + shallow honesto · ADR 0291 D-D)
@@ -164,6 +176,11 @@ jobs:
         run: node scripts/governance/ghost-fix.test.mjs
       - name: Negócio-vs-governança ratio (alarme morde no crossover, solta no equilíbrio)
         run: node scripts/governance/negocio-vs-governanca-ratio.test.mjs
+      # Chip C10 (grade 2026-07-17 · orquestração-adversarial 6,0): o tipo `juiz` entra
+      # num script que roda --enforce em job REQUIRED — os 2 vetores testados são
+      # "calibração vira atalho pra liberar lote" e "número sem rótulo humano".
+      - name: Ledger tipo juiz — calibração não libera lote + rótulo humano às cegas (C10)
+        run: node scripts/governance/ledger-check-juiz.test.mjs
       - name: Prototipo-readiness (contrato de prontidão · casos/UC/scorecard/âncora)
         run: node scripts/qa/prototipo-readiness.test.mjs
       - name: Screen-grade-report (contrato de derivação · cobertura/D1/drift)

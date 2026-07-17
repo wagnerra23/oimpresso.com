@@ -1,13 +1,13 @@
 ---
 slug: 0076-skills-db-primary-git-destino-drift-alert
-number: 0076
+number: 76
 title: "Skills V2 — DB é primary, git é destino auditável; drift por-skill (auto/manual/pinned)"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: copiloto
 quarter: 2026-Q2
 tags: [mcp, skills, prompt-management, drift, governance, p0]

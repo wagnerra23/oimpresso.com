@@ -53,11 +53,26 @@ function fakeLangfuse(array $response, int $status = 200): void
  * @see Modules/Jana/Services/Telemetry/LangfuseClient.php (lado da emissão)
  */
 
-test('não-configurado (dev/CI sem host/keys) não acende', function () {
-    $r = HealthCheckCommand::evaluateTraceUptime(false, false, null);
+test('não-configurado em dev/CI (env não-prod) pula silencioso', function () {
+    $r = HealthCheckCommand::evaluateTraceUptime(false, false, null, 1, isProd: false);
     expect($r['ok'])->toBeTrue();
     expect($r['state'])->toBe('nao-configurado');
+    expect($r['advisory'] ?? false)->toBeFalse();
 });
+
+// Residual fechado (US-COPI-138): flag caída num deploy que resetou o .env é um modo
+// de falha real (classe ext-sodium/classmap). Advisory — visível, NÃO pagina (pode ser
+// desligamento intencional). O que distingue de dev é SÓ o ambiente.
+test('desligado EM PRODUÇÃO = advisory (visível, não derruba o cron)', function () {
+    $r = HealthCheckCommand::evaluateTraceUptime(false, false, null, 1, isProd: true);
+    expect($r['ok'])->toBeFalse();          // aparece como não-ok na tabela
+    expect($r['state'])->toBe('desligado-prod');
+    expect($r['advisory'])->toBeTrue();     // ...mas advisory: allChecksOk NÃO derruba por ele
+});
+
+// A distinção acidente-vs-intenção não existe sem estado histórico; por isso é advisory,
+// não duro. Mesmo desligado, um flanco fica coberto: o observability_pipeline do
+// jana:system-audit exige LANGFUSE_HOST setado.
 
 test('trace chegando nas últimas 24h = ok (fluxo vivo)', function () {
     $r = HealthCheckCommand::evaluateTraceUptime(true, true, 137);
@@ -122,8 +137,9 @@ test('FIAÇÃO: Langfuse recebendo traces = check VERDE (não morde à toa)', fu
     expect($check['value'])->toBe(42);
 });
 
-test('langfuse_trace_uptime_24h está registrado no jana:health-check e é hard (não-advisory)', function () {
+test('langfuse_trace_uptime_24h está registrado no jana:health-check e é hard no fluxo', function () {
     // Sem credencial o check pula (ok=true) e NÃO faz HTTP real — determinístico no CI.
+    // O env de teste NÃO é prod, então cai em 'nao-configurado' (não 'desligado-prod').
     config(['langfuse.enabled' => false]);
 
     Artisan::call('jana:health-check', ['--json' => true]);
@@ -133,6 +149,9 @@ test('langfuse_trace_uptime_24h está registrado no jana:health-check e é hard 
 
     $check = collect($json['checks'] ?? [])->firstWhere('name', 'langfuse_trace_uptime_24h');
     expect($check)->not->toBeNull('check langfuse_trace_uptime_24h ausente do jana:health-check');
-    expect($check['advisory'] ?? false)->toBeFalse(); // hard check — derruba exit + ALERT do cron
+    // No caso de FLUXO (mudo/inacessível/ilegível) o check é HARD — derruba exit + ALERT.
+    // Só o caso desligado-prod é advisory (coberto pelo teste puro acima). Em CI (env de
+    // teste) o campo advisory sai false.
+    expect($check['advisory'] ?? false)->toBeFalse();
     expect($check)->toHaveKeys(['name', 'ok', 'value', 'threshold', 'message']);
 });

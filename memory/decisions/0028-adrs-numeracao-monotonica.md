@@ -1,7 +1,7 @@
 ---
 slug: 0028-adrs-numeracao-monotonica
 number: 28
-title: !!binary gJQgQURScyBjb20gbnVtZXJhw6fDo28gbW9ub3TDtG5pY2EgZSBmb3JtYXRvIE55Z2FyZA==
+title: "ADRs com numeração monotônica e formato Nygard"
 type: adr
 status: superseded
 authority: canonical
@@ -13,10 +13,9 @@ decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0010'
-  - '0012'
-  - '0024'
-  - '0027'
+  - 0010-sistema-memoria-projeto
+  - 0024-instalacao-1-clique-modulos
+  - 0027-gestao-memoria-roles-claros
 pii: false
 ---
 # ADR 0028 — ADRs com numeração monotônica e formato Nygard

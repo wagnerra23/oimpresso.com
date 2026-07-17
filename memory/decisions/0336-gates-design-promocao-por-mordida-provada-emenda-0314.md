@@ -20,7 +20,6 @@ superseded_by: []
 related:
   - 0314-poda-gates-onda-2-lei-fusoes
   - 0327-anchor-content-required-emenda-0314
-  - 0298-teto-de-governanca-check-m
   - 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes
   - 0271-revisao-gates-ci-estado-real-required-e-subtracao-segura
   - 0328-ds-transicao-congelado-para-vivo-git-ssot

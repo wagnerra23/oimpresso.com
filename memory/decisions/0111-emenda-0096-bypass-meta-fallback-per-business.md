@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-08
+decided_at: "2026-05-08"
 accepted_at: 2026-05-08
 accepted_by: wagner
 module: whatsapp

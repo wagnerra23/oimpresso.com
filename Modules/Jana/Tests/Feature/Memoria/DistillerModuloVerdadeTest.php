@@ -135,6 +135,20 @@ test('sem eventos relevantes → no_events, não escreve', function () use ($NOW
     expect(File::exists(test()->path))->toBeFalse();
 });
 
+test('systemPrompt proíbe restatear número derivado (lei #4411 — guarda a INSTRUÇÃO, não a obediência da LLM)', function () {
+    // A obediência precisa de eval com modelo vivo (fora do CI — ADR 0291 D-E).
+    // Aqui a guarda é determinística: a regra da lei #4411 tem que estar no prompt,
+    // pra não ser removida em silêncio (o vetor do bug "85%" — meta de maio carimbada
+    // como estado). Reflection porque systemPrompt é private (contrato interno).
+    $m = new ReflectionMethod(DistillerModuloVerdade::class, 'systemPrompt');
+    $m->setAccessible(true);
+    $prompt = $m->invoke(distillerSvc(), 'Financeiro');
+
+    expect($prompt)->toContain('NÚMERO DERIVADO')
+        ->toContain('ALVO, não')          // "é ALVO, não estado" — meta ≠ estado
+        ->toContain('fato derivado');     // cita a lei #4411
+});
+
 test('sobrescreve a porta (mutável, não append)', function () use ($NOW) {
     File::put(test()->path, "VELHO CONTEUDO QUE DEVE SUMIR");
     Ai::fakeAgent(AnonymousAgent::class, ["## Estado atual\nnovo conteudo destilado"]);

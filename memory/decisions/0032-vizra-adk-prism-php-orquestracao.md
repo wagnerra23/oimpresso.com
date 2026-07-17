@@ -1,7 +1,7 @@
 ---
 slug: 0032-vizra-adk-prism-php-orquestracao
 number: 32
-title: !!binary gJQgVml6cmEgQURLICsgUHJpc20gUEhQIGNvbW8gY2FtYWRhIGRlIG9ycXVlc3RyYcOnw6NvIGUgd3JhcHBlciBMTE0gZG8gQ29waWxvdG8=
+title: "Vizra ADK + Prism PHP como camada de orquestração e wrapper LLM do Copiloto"
 type: adr
 status: superseded
 authority: canonical
@@ -14,17 +14,12 @@ quarter: 2026-Q2
 tags: {  }
 supersedes: []
 superseded_by:
-  - '0048'
-  - 0048-vizra-rejeitada-laravel-ai-consolidado
+  - 0048-framework-agentes-laravel-ai-vizra-rejeitada
 triage_2026_05_06_note: Frontmatter corrigido — campo supersedes estava errado (continha 0048, mas 0048 é quem rejeitou Vizra/supersede 0032). Vizra ADK rejeitada oficialmente. Wagner confirmou 2026-05-06 que Vizra foi descontinuada pelo upstream e substituída por laravel/ai SDK nativo ("muito melhor" — palavras dele).
 related:
-  - '0026'
   - 0026-posicionamento-erp-grafico-com-ia
-  - '0027'
   - 0027-gestao-memoria-roles-claros
-  - '0031'
   - 0031-memoriacontrato-mem0-default
-  - '0033'
   - 0033-vector-store-meilisearch-pgvector-mem0
 pii: false
 ---

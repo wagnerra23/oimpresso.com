@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-26
+decided_at: "2026-05-26"
 module: OficinaAuto
 quarter: 2026-Q2
 tags: [oficina-auto, correcao-dominio, martinho-cacambas, vocabulario, cnae, errata]
@@ -15,7 +15,7 @@ supersedes: []
 supersedes_partially: []
 amends: [0137, 0171]
 superseded_by: []
-related: [0105, 0121, 0137, 0143, 0171, 0192]
+related: [0105-cliente-como-sinal-guiar-sem-mandar, 0121-oimpresso-modular-especializado-por-vertical, 0137-modules-oficinaauto-qualificada, 0143-fsm-pipeline-live-prod-marco-2026-05-12, 0171-oficinaauto-ativacao-piloto-martinho-faseada, 0192-auto-faturar-os-venda-jobsheet-observer]
 pii: false
 review_triggers:
   - "Cliente real de locação caçamba container m³/diária aparecer — reabrir sub-vertical 3 com piloto ancorado"

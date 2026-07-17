@@ -11,10 +11,10 @@ decided_by:
 decided_at: '2026-05-09'
 quarter: 2026-Q2
 related:
-  - '0061'
-  - '0063'
-  - '0094'
-  - '0105'
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0063-prevenir-composer-lock-drift
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0105-cliente-como-sinal-guiar-sem-mandar
 pii: false
 ---
 
