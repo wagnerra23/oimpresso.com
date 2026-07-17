@@ -65,7 +65,7 @@ function estabilizarVisualSells($page): void
     $page->script(<<<'JS'
 (() => {
   const s = document.createElement('style');
-  s.textContent = '* { transition:none !important; animation:none !important; caret-color:transparent !important; font-family:Arial,sans-serif !important; } body { -webkit-font-smoothing:antialiased !important; } select,input[type=date],input[type=datetime-local],input[type=time],.animate-spin { visibility:hidden !important; } input[placeholder="DD/MM/AAAA HH:mm"] { visibility:hidden !important; }';
+  s.textContent = '* { transition:none !important; animation:none !important; caret-color:transparent !important; font-family:Arial,sans-serif !important; } body { -webkit-font-smoothing:antialiased !important; } input[type=date],input[type=datetime-local],input[type=time],.animate-spin { visibility:hidden !important; } input[placeholder="DD/MM/AAAA HH:mm"] { visibility:hidden !important; }';
   document.head.appendChild(s); return true;
 })()
 JS);
