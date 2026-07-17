@@ -83,7 +83,12 @@ import { homedir } from 'node:os';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { isAgentPR, DEFAULT_MARKER, median } from './agent-pr-outcomes.mjs';
 
-// ── preços (USD por MTok · snapshot 2026-07-12 da tabela oficial — G4) ──────────
+// ── preços (USD por MTok · da tabela oficial Anthropic — G4) ────────────────────
+// Preços são FATO EXTERNO (não dá pra derivar do dado em mãos). O honesto não é
+// adivinhar — é (a) datar a fonte num só lugar e (b) declarar modelo sem preço em vez
+// de inventar USD (ver custoUSD → null). A data abaixo é surfada no relatório pra a
+// idade dos PREÇOS também ficar visível, não só a idade da medição.
+export const PRECOS_ATUALIZADOS_EM = '2026-07-12';
 export const PRECOS_USD_MTOK = {
   'claude-fable-5': { input: 10, output: 50 },
   'claude-opus-4-8': { input: 5, output: 25 },
@@ -322,6 +327,12 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
   const usdAtribuido = matched.reduce((a, p) => a + (p.usd || 0), 0);
   const usdResiduo = [...residuo.values()].reduce((a, v) => a + v, 0);
 
+  // CALIBRAÇÃO DERIVADA (não cravada): a velocidade sai do dado em mãos, e o limite de
+  // idade sai da velocidade × tolerância. Assim o "quando o retrato apodrece" acompanha
+  // o ritmo real do repo em vez de um "3 dias" que quebra quando o ritmo muda.
+  const velocidadePrsDia = Math.round((universo.length / days) * 10) / 10;
+  const limiarIdadeDias = derivaLimiarIdade(days);
+
   return {
     ok: true,
     generated: generated || new Date(now).toISOString().slice(0, 10),
@@ -353,6 +364,14 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
       matched_por_citacao: todosPR.filter((p) => p.sinais.includes('citacao')).length,
       msgs_sem_branch: semBranchMsgs,
       modelos_desconhecidos: [...modelosDesconhecidos],
+    },
+    calibracao: {
+      // TUDO derivado/datado, nada de magic number escondido — a próxima coisa a
+      // apodrecer é a calibração, então ela fica à vista pra ser questionada.
+      velocidade_prs_dia: velocidadePrsDia,
+      limiar_idade_dias: limiarIdadeDias,
+      tolerancia_staleness: TOLERANCIA_STALENESS,
+      precos_atualizados_em: PRECOS_ATUALIZADOS_EM,
     },
     por_pr: porPR,
     confianca: 'proxy (JSONL local → SESSÃO → PR por branch OU citação /pull/N; ver gaps)',
@@ -419,12 +438,25 @@ const usd = (v) => (v == null ? 'n/d' : `$${v.toFixed(2)}`);
 const kTok = (n) => `${Math.round(n / 1000)}k`;
 
 /**
- * Meia-vida MEDIDA desta métrica: 4 dias. Não é chute — em 2026-07-17 a grade de réguas
- * citou "matched_por_branch: 0 · 96,8% órfão" como fato vivo; era o snapshot de 07-13, e
- * ao vivo o número era 12/20. Quatro dias bastaram pra INVERTER o diagnóstico e quase
- * fabricar o conserto errado (fonte por SHA — hoje lápide no §5 das proibições).
+ * Tolerância de ROTATIVIDADE: acima desta fração a janela deslizante já trocou de
+ * composição demais pro retrato valer. É POLÍTICA — NÃO muda quando `--days` muda —, o
+ * oposto de cravar "3 dias". Calibrada no incidente 2026-07-17: um snapshot de 4d numa
+ * janela de 14d (~29% de rotatividade) INVERTEU o diagnóstico (matched_por_branch 0→12).
+ * 0.2 = "aceito até 20% de rotação antes de chamar de velho".
  */
-export const IDADE_SUSPEITA_DIAS = 3;
+export const TOLERANCIA_STALENESS = 0.2;
+
+/**
+ * dia-limite de suspeita DERIVADO da janela: tolerância × dias. DERIVA, não afirma —
+ * quando a janela cresce, o limite cresce junto (um agregado de 90d mal se mexe em 3
+ * dias; um de 14d inverte). Antes era `3` cravado, que quebrava silencioso se `--days`
+ * mudasse: é a MESMA doença de snapshot velho que este script mede, uma camada acima.
+ */
+export function derivaLimiarIdade(days = DEFAULT_DAYS) {
+  return Math.max(1, Math.round(days * TOLERANCIA_STALENESS));
+}
+/** compat: limiar da janela default (14d → 3d). Prefira derivaLimiarIdade(r.janela.dias). */
+export const IDADE_SUSPEITA_DIAS = derivaLimiarIdade(DEFAULT_DAYS);
 
 /**
  * Linha de idade — SEMPRE colada nos números, nunca em rodapé.
@@ -447,11 +479,11 @@ export function avisoSnapshot(generated) {
     + `node scripts/governance/agent-cost-per-pr.mjs --json`;
 }
 
-export function linhaIdade(idadeDias) {
+export function linhaIdade(idadeDias, limiarDias = IDADE_SUSPEITA_DIAS) {
   if (idadeDias == null || !Number.isFinite(idadeDias)) return '⚠️ IDADE DESCONHECIDA — não dá pra saber se estes números valem hoje.';
   if (idadeDias <= 0) return '📍 MEDIDO AGORA — AO VIVO (não é retrato).';
-  if (idadeDias <= IDADE_SUSPEITA_DIAS) return `⏳ Medido há ${idadeDias}d — retrato, não medição viva.`;
-  return `⚠️ MEDIDO HÁ ${idadeDias}d — retrato VELHO, não medição viva. Esta métrica já inverteu em 4 dias (a grade de 2026-07-17 citou "96,8% órfão" de um snapshot de 07-13; ao vivo era outro número). NÃO cite os valores abaixo sem rodar \`node scripts/governance/agent-cost-per-pr.mjs\` antes.`;
+  if (idadeDias <= limiarDias) return `⏳ Medido há ${idadeDias}d — retrato ainda dentro da tolerância (${limiarDias}d), não medição viva.`;
+  return `⚠️ MEDIDO HÁ ${idadeDias}d (limite ${limiarDias}d) — retrato VELHO, não medição viva. Esta métrica já inverteu em 4 dias (a grade de 2026-07-17 citou "96,8% órfão" de um snapshot de 07-13; ao vivo era outro número). NÃO cite os valores abaixo sem rodar \`node scripts/governance/agent-cost-per-pr.mjs\` antes.`;
 }
 
 export function renderHuman(r, idadeDias) {
@@ -461,7 +493,8 @@ export function renderHuman(r, idadeDias) {
   L.push(` janela ${r.janela.dias}d desde ${r.janela.desde} · ${r.janela.prs_no_universo} PRs ${r.janela.marker} mergeados`);
   L.push('═══════════════════════════════════════════════════════════════');
   L.push('');
-  L.push('  ' + linhaIdade(idadeDias));
+  L.push('  ' + linhaIdade(idadeDias, r.calibracao?.limiar_idade_dias));
+  if (r.calibracao) L.push(`  calibração: ~${r.calibracao.velocidade_prs_dia} PRs/dia → suspeito após ${r.calibracao.limiar_idade_dias}d (${Math.round(r.calibracao.tolerancia_staleness * 100)}% de rotação) · preços de ${r.calibracao.precos_atualizados_em}`);
   L.push('');
   if (r.janela.fonte_truncada) {
     L.push('  ⚠️  FONTE TRUNCADA: o fetch bateu no cap de PRs — o universo NÃO cobre a');
@@ -495,9 +528,10 @@ export function renderBriefMd(r, idadeDias) {
   const L = [];
   L.push('### Custo por PR — agente (USD estimado · advisory)');
   L.push('');
-  L.push(`> ${linhaIdade(idadeDias)}`);
+  L.push(`> ${linhaIdade(idadeDias, r.calibracao?.limiar_idade_dias)}`);
   L.push('');
   L.push(`_Janela ${r.janela.dias}d desde ${r.janela.desde} · ${r.janela.prs_no_universo} PRs \`${r.janela.marker}\` mergeados · gerado ${r.generated} · fonte JSONL local (G3)._`);
+  if (r.calibracao) L.push(`_Calibração derivada: ~${r.calibracao.velocidade_prs_dia} PRs/dia → retrato suspeito após **${r.calibracao.limiar_idade_dias}d** (${Math.round(r.calibracao.tolerancia_staleness * 100)}% de rotação da janela) · preços de ${r.calibracao.precos_atualizados_em}._`);
   L.push('');
   if (r.janela.fonte_truncada) {
     L.push('> ⚠️ **FONTE TRUNCADA** — o fetch bateu no cap de PRs; o universo não cobre a janela inteira, então o resíduo abaixo está inflado por artefato (PR ausente = sessão sem dono).');
@@ -518,7 +552,7 @@ export function renderBriefMd(r, idadeDias) {
     L.push('Top custo: ' + r.custo.top_prs.map((t) => `#${t.pr} ${usd(t.usd)}`).join(' · '));
   }
   L.push('');
-  L.push('> Proxy (gaps no `--json`): unidade = sessão, fonte é local, preços snapshot 2026-07-12. NÃO é gate.');
+  L.push(`> Proxy (gaps no \`--json\`): unidade = sessão, fonte é local, preços de ${r.calibracao?.precos_atualizados_em ?? 'n/d'}. NÃO é gate.`);
   return L.join('\n');
 }
 
@@ -537,7 +571,7 @@ export function renderPrBlockMd(r, p, idadeDias) {
     ? `**${usd(p.usd)}**${p.usd_incompleto ? ' (parcial — modelo sem preço)' : ''} · ${kTok(p.tokens)} tok · sinal \`${p.sinais.join('+')}\``
     : '_sem sessão local casada — não medido (G1/G3)_'));
   L.push('');
-  L.push(`${linhaIdade(idadeDias)}`);
+  L.push(`${linhaIdade(idadeDias, r.calibracao?.limiar_idade_dias)}`);
   L.push('');
   L.push(`_Mediana da janela ${r.janela.dias}d: **${usd(r.custo.mediana_usd_por_pr)}**/PR · cobertura de alocação **${r.custo.cobertura_alocacao_pct ?? 'n/d'}%** (${usd(r.custo.total_usd_atribuido)} de ${usd(r.custo.total_usd_escaneado)}). Proxy do JSONL local; unidade = sessão (G2). Sem valores em reais — custo em USD._`);
   if (r.janela.fonte_truncada) L.push('\n> ⚠️ fonte truncada — universo incompleto, mediana/cobertura subestimadas.');
@@ -562,7 +596,9 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
     // "há 0 dias" pra sempre. É o único jeito de envelhecer junto com o dado.
     const idadeDias = Math.floor((Date.now() - Date.parse(r.generated)) / 86400000);
     process.stdout.write(renderBriefMd(r, idadeDias) + '\n');
-    if (idadeDias > IDADE_SUSPEITA_DIAS) {
+    // limiar DERIVADO da janela do próprio snapshot (não o fixo 3): se um snapshot antigo
+    // usou --days diferente, o limite acompanha. Fallback pro default se o campo faltar.
+    if (idadeDias > (r.calibracao?.limiar_idade_dias ?? derivaLimiarIdade(r.janela?.dias ?? DEFAULT_DAYS))) {
       process.stdout.write(`\n> Pra atualizar: \`node scripts/governance/agent-cost-per-pr.mjs --snapshot\` (LOCAL — o CI não enxerga o JSONL, G5) e commite \`${renderSnapshot}\`.\n`);
     }
     process.exit(0);

@@ -14,6 +14,7 @@ import {
   aggregatePorModelo, extractPrMentions, PRECOS_USD_MTOK, CACHE_MULT,
   PR_FETCH_LIMIT, DEFAULT_DAYS, renderHuman, renderBriefMd, renderPrBlockMd,
   linhaIdade, avisoSnapshot, IDADE_SUSPEITA_DIAS,
+  derivaLimiarIdade, TOLERANCIA_STALENESS,
 } from './agent-cost-per-pr.mjs';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -172,9 +173,35 @@ check('--pr: bloco NÃO traz valores R$ (Tier 0 — só USD)', !/R\$/.test(bloco
 // calibrado pela meia-vida MEDIDA (4d), não por um número arbitrário.
 check('idade 0 → diz "AO VIVO" (não cala: dizer que é vivo é informação)', linhaIdade(0).includes('AO VIVO'));
 check('idade 4d (o caso REAL do incidente) → GRITA "não é medição viva"', /MEDIDO HÁ 4d/.test(linhaIdade(4)) && linhaIdade(4).includes('NÃO cite'));
-check('limiar calibrado pela meia-vida medida: 4d > IDADE_SUSPEITA_DIAS(3)', IDADE_SUSPEITA_DIAS === 3 && 4 > IDADE_SUSPEITA_DIAS);
+check('limiar default ainda é 3d (14d × 20%), mas agora DERIVADO', IDADE_SUSPEITA_DIAS === 3 && 4 > IDADE_SUSPEITA_DIAS);
 check('idade 1d ainda declara que é retrato (não finge vivo)', linhaIdade(1).includes('retrato'));
 check('idade AUSENTE não passa em silêncio (declara desconhecida)', linhaIdade(undefined).includes('DESCONHECIDA'));
+
+// ── CONTRATO: a calibração é DERIVADA da janela, não cravada (evolução 2026-07-17) ──
+// O "3 dias" era magic number que quebrava silencioso se --days mudasse — a MESMA doença
+// de snapshot velho que o script mede, uma camada acima. Agora o dia-limite = tolerância
+// (política estável) × janela (dado), e AUTO-ESCALA.
+check('derivaLimiarIdade(14) = 3 (janela default)', derivaLimiarIdade(14) === 3);
+check('AUTO-ESCALA: janela 30d → 6d · 90d → 18d (agregado longo tolera mais idade)', derivaLimiarIdade(30) === 6 && derivaLimiarIdade(90) === 18);
+check('piso em 1d (janela minúscula não zera o limiar)', derivaLimiarIdade(3) === 1 && derivaLimiarIdade(1) === 1);
+check('tolerância é a política estável (0.2 = 20% de rotação)', TOLERANCIA_STALENESS === 0.2);
+// o limiar FLUI pro texto: mesma idade, veredito diferente conforme a janela
+check('limiar flui: idade 5d é RETRATO numa janela de 30d (limite 6) …', linhaIdade(5, derivaLimiarIdade(30)).includes('retrato') && !linhaIdade(5, derivaLimiarIdade(30)).includes('VELHO'));
+check('… mas é VELHO numa janela de 14d (limite 3) — mesma idade, veredito derivado', linhaIdade(5, derivaLimiarIdade(14)).includes('VELHO'));
+
+// ── CONTRATO: velocidade DERIVADA do dado + calibração à vista no relatório ──────
+// Fixture: 3 PRs [CC] numa janela de 6d → 0.5 PR/dia. O número sai do dado em mãos,
+// não de "~30/dia" cravado.
+const PRS_VEL = [
+  { number: 21, title: 'a [CC]', author: { login: 'x' }, headRefName: 'c/a', createdAt: '2026-07-10T00:00:00Z', mergedAt: '2026-07-11T00:00:00Z' },
+  { number: 22, title: 'b [CC]', author: { login: 'x' }, headRefName: 'c/b', createdAt: '2026-07-11T00:00:00Z', mergedAt: '2026-07-12T00:00:00Z' },
+  { number: 23, title: 'c [CC]', author: { login: 'x' }, headRefName: 'c/c', createdAt: '2026-07-12T00:00:00Z', mergedAt: '2026-07-13T00:00:00Z' },
+];
+const rv = buildReport({ prs: PRS_VEL, sessions: [], days: 6, generated: '2026-07-14' });
+check('velocidade DERIVADA do dado: 3 PRs / 6d = 0.5/dia', rv.calibracao.velocidade_prs_dia === 0.5);
+check('calibração publica limiar derivado + tolerância + data dos preços', rv.calibracao.limiar_idade_dias === derivaLimiarIdade(6) && rv.calibracao.tolerancia_staleness === 0.2 && rv.calibracao.precos_atualizados_em === '2026-07-12');
+check('calibração aparece no texto humano (velocidade + rotação à vista)', renderHuman(rv, 0).includes('PRs/dia') && renderHuman(rv, 0).includes('rotação'));
+check('preços datados no brief (idade dos preços também visível, não só a da medição)', renderBriefMd(r, 0).includes('preços de 2026-07-12'));
 check('brief de 4d carrega o alerta ACIMA da tabela (não em rodapé)', (() => {
   const md = renderBriefMd(r, 4);
   return md.indexOf('MEDIDO HÁ 4d') < md.indexOf('| Métrica |');

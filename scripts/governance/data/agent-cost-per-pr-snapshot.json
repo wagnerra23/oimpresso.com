@@ -5,61 +5,198 @@
   "janela": {
     "dias": 14,
     "desde": "2026-07-03",
-    "prs_no_universo": 433,
+    "prs_no_universo": 421,
     "prs_exibidos": 20,
     "marker": "[CC]"
   },
   "custo": {
-    "total_usd_escaneado": 19599.07,
-    "total_usd_atribuido": 15884.74,
-    "cobertura_alocacao_pct": 81.05,
-    "mediana_usd_por_pr": 18.98,
+    "total_usd_escaneado": 20695.2,
+    "total_usd_atribuido": 16312.89,
+    "cobertura_alocacao_pct": 78.82,
+    "mediana_usd_por_pr": 21.01,
     "top_prs": [
       {
+        "pr": 3780,
+        "usd": 244.59,
+        "title": "docs(handoff): mãe consolidado — programa de ondas, cálculo Tier-0 blindado [CC]"
+      },
+      {
         "pr": 4201,
-        "usd": 244.04,
+        "usd": 242.29,
         "title": "fix(sdd): distiller_freshness não fabrica stale em checkout shallow (o 6 era artefato de medição, não dívida) [CC]"
       },
       {
         "pr": 3833,
-        "usd": 163.09,
+        "usd": 194.66,
         "title": "fix(governance): grader D8.a detecta throttle em array + D4.d detecta OtelHelper/Activitylog [CC]"
-      },
-      {
-        "pr": 3915,
-        "usd": 161.49,
-        "title": "fix(shell): main-body position:relative — elimina o branco infinito no fim das telas do cockpit [CC]"
       }
     ]
   },
   "residuo": {
-    "usd": 3714.33,
-    "pct": 18.95,
+    "usd": 4382.38,
+    "pct": 21.18,
     "por_categoria": {
-      "sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)": 3714.33
+      "sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)": 4382.38
     }
   },
   "join": {
-    "sem_match": 14,
-    "sem_match_pct": 3.23,
-    "matched_por_branch": 18,
-    "matched_por_citacao": 405,
+    "sem_match": 15,
+    "sem_match_pct": 3.56,
+    "matched_por_branch": 29,
+    "matched_por_citacao": 382,
     "msgs_sem_branch": 0,
     "modelos_desconhecidos": [
       "<synthetic>"
     ]
   },
+  "calibracao": {
+    "velocidade_prs_dia": 30.1,
+    "limiar_idade_dias": 3,
+    "tolerancia_staleness": 0.2,
+    "precos_atualizados_em": "2026-07-12"
+  },
   "por_pr": [
+    {
+      "pr": 4444,
+      "title": "feat(jana): fecha residual do heartbeat — desligado-prod advisory (empilhado no #4425) [CC]",
+      "branch": "claude/us-copi-138-residual-prod-off",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 47609615,
+      "usd": 36.59
+    },
+    {
+      "pr": 4441,
+      "title": "feat(governance): anchor-content-check NO-SECTION — dead-anchor de fragmento [CC]",
+      "branch": "claude/anchor-no-section",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 38707553,
+      "usd": 30.95
+    },
+    {
+      "pr": 4425,
+      "title": "feat(jana): heartbeat langfuse_trace_uptime_24h — US-COPI-138 [CC]",
+      "branch": "claude/us-copi-138-langfuse-heartbeat",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 47609615,
+      "usd": 36.59
+    },
+    {
+      "pr": 4430,
+      "title": "docs(infra): RUNBOOK CT100 — rodar Pest de branch sem tocar o staging [CC]",
+      "branch": "claude/runbook-ct100-worktree-pest",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 68516374,
+      "usd": 47.03
+    },
+    {
+      "pr": 4428,
+      "title": "docs(proibicoes): §5 — mata o chip C9 razão de fidelidade [CC]",
+      "branch": "claude/lapide-c9-razao-fidelidade",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 38707553,
+      "usd": 30.95
+    },
+    {
+      "pr": 4423,
+      "title": "fix(kb): âncora repo-relativa nos charters — o ../../../ desligava o guarda de frescor [CC]",
+      "branch": "claude/kb-ancora-repo-relativa",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 38707553,
+      "usd": 30.95
+    },
+    {
+      "pr": 4424,
+      "title": "feat(proto-baseline): cobertura 3→10 telas ancoráveis [CC]",
+      "branch": "claude/proto-baseline-cobertura-7telas",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 38707553,
+      "usd": 30.95
+    },
+    {
+      "pr": 4422,
+      "title": "fix(proto-baseline): --gerar recusa rota fantasma + nudge para de morrer por case [CC]",
+      "branch": "claude/proto-baseline-trava-rota",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 38707553,
+      "usd": 30.95
+    },
+    {
+      "pr": 4427,
+      "title": "fix(jana): OtelGenAiEmissionTest asseria biz=4 (cliente) — chip C5 [CC]",
+      "branch": "claude/otel-genai-biz1-fix",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 47609615,
+      "usd": 36.59
+    },
+    {
+      "pr": 4413,
+      "title": "feat(whatsapp): canal público de feedback — o cliente reporta sem o [W] no meio [CC]",
+      "branch": "claude/feedback-publico-orgao-sensor",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 68516374,
+      "usd": 47.03
+    },
+    {
+      "pr": 4405,
+      "title": "docs(produto): §1.1 — como o oimpresso trata os 14 campos da aba geral (+ corrige imprecisão do #4370) [CC]",
+      "branch": "docs/produto-oimpresso-mapa",
+      "matched": false,
+      "sinais": [],
+      "tokens": 0,
+      "usd": null
+    },
+    {
+      "pr": 4418,
+      "title": "docs(memoria): redistila Governance + Jana — 2 portas voltam a dizer a verdade [CC]",
+      "branch": "claude/zen-mccarthy-de45e4",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 112460917,
+      "usd": 99.62
+    },
     {
       "pr": 4410,
       "title": "feat(governance): liga o alarme da 0334 — a sentinela existia e nunca disparava [CC]",
       "branch": "claude/sensor-ratio-negocio-governanca",
       "matched": true,
       "sinais": [
-        "branch"
+        "branch",
+        "citacao"
       ],
-      "tokens": 74412964,
-      "usd": 53.64
+      "tokens": 125479425,
+      "usd": 99.55
     },
     {
       "pr": 4406,
@@ -113,11 +250,10 @@
       "branch": "claude/fix-canario-scope-global",
       "matched": true,
       "sinais": [
-        "branch",
-        "citacao"
+        "branch"
       ],
-      "tokens": 49028092,
-      "usd": 39.39,
+      "tokens": 47075096,
+      "usd": 37.64,
       "usd_incompleto": true
     },
     {
@@ -141,147 +277,6 @@
       ],
       "tokens": 14539427,
       "usd": 11.97
-    },
-    {
-      "pr": 4388,
-      "title": "test(visreg): o `default` da Oficina fotografa quadro COM dado + card dark legível [CC]",
-      "branch": "claude/visreg-oficina-default-com-dado",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 63019414,
-      "usd": 54.63
-    },
-    {
-      "pr": 4382,
-      "title": "docs(sessions): smoke do `auto` EXECUTADO — 95% da base no híbrido; fecha o §Verificação da 0340 [CC]",
-      "branch": "claude/session-smoke-auto-hibrido",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 47075096,
-      "usd": 37.64,
-      "usd_incompleto": true
-    },
-    {
-      "pr": 4378,
-      "title": "docs(ui): sidebar é PRETA (dark-fixo) — UI-0023 supersede UI-0019 e erradica o conflito [CC]",
-      "branch": "claude/blissful-cori-9e0703",
-      "matched": true,
-      "sinais": [
-        "branch",
-        "citacao"
-      ],
-      "tokens": 142590163,
-      "usd": 118.91
-    },
-    {
-      "pr": 4380,
-      "title": "docs(adr): 0340 — o tema colapsa em direções opostas; o resíduo dark da Oficina não é do Board [CC]",
-      "branch": "claude/adr-0340-tema-colapso-oposto",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 47075096,
-      "usd": 37.64,
-      "usd_incompleto": true
-    },
-    {
-      "pr": 4379,
-      "title": "docs(handoff): sessão grade de qualidade DS — flip 3 gates + self-test + plumbing [CC]",
-      "branch": "claude/handoff-grade-ds-2026-07-16",
-      "matched": true,
-      "sinais": [
-        "citacao"
-      ],
-      "tokens": 36757088,
-      "usd": 29.24
-    },
-    {
-      "pr": 4377,
-      "title": "feat(governance): plumbing do manifesto por-UC — JUnit das lanes → G-7 (10%→17%) [CC]",
-      "branch": "claude/casos-results-plumbing",
-      "matched": true,
-      "sinais": [
-        "citacao"
-      ],
-      "tokens": 38710084,
-      "usd": 30.99
-    },
-    {
-      "pr": 4376,
-      "title": "docs(handoff): sessao 2026-07-16 — smoke Financeiro, 15 dimensoes, verde-vazio e Ziggy [CC]",
-      "branch": "claude/handoff-2026-07-16-smoke-15dims-ziggy",
-      "matched": true,
-      "sinais": [
-        "citacao"
-      ],
-      "tokens": 58802560,
-      "usd": 55.57,
-      "usd_incompleto": true
-    },
-    {
-      "pr": 4373,
-      "title": "fix(oficina): par dark: nos 6 tons de KPI do Board (sub 1.92:1 → 6.3:1) [CC]",
-      "branch": "claude/oficina-kpi-dark-tons",
-      "matched": true,
-      "sinais": [
-        "branch",
-        "citacao"
-      ],
-      "tokens": 131004533,
-      "usd": 102.25,
-      "usd_incompleto": true
-    },
-    {
-      "pr": 4068,
-      "title": "docs(sessions): fecha protocolo 2026-07-09/10 — método reguas-do-sistema + reanálise ponto cego [CC]",
-      "branch": "docs/fechamento-2026-07-10",
-      "matched": true,
-      "sinais": [
-        "citacao"
-      ],
-      "tokens": 120681346,
-      "usd": 136.29,
-      "usd_incompleto": true
-    },
-    {
-      "pr": 4367,
-      "title": "fix(oficina): Board usa tokens semânticos do DS — dark deixa de renderizar branco [CC]",
-      "branch": "claude/oficina-board-dark-tokens",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 86458647,
-      "usd": 66.96,
-      "usd_incompleto": true
-    },
-    {
-      "pr": 4371,
-      "title": "test(browser): remover 2 testes que nunca executaram (falsa cobertura) [CC]",
-      "branch": "claude/remover-falsa-cobertura-browser",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 32825885,
-      "usd": 24.06
-    },
-    {
-      "pr": 4370,
-      "title": "docs(produto): corrige o mapa da aba geral — 2 falso-créditos + Preço Especial mudou de topologia [CC]",
-      "branch": "docs/produto-paridade-correcao",
-      "matched": true,
-      "sinais": [
-        "citacao"
-      ],
-      "tokens": 44545886,
-      "usd": 35.29,
-      "usd_incompleto": true
     }
   ],
   "confianca": "proxy (JSONL local → SESSÃO → PR por branch OU citação /pull/N; ver gaps)",
