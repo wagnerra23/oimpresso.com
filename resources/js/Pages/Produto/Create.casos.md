@@ -5,6 +5,7 @@ tecnica: Caso de uso = narrativa do operador + critério de aceite verificável 
 por_que: comportamento é durável — o produto que NASCE do cadastro não muda quando a tela vira aba.
 owner: wagner
 last_run: "2026-07-17"
+last_run_ci: "run 29588143635 · lane Estoque · MySQL · biz=1+biz=2 · 2 pass / 4 fail"
 ---
 
 # Casos de Uso & Aceite — Cadastro de produto
@@ -31,19 +32,25 @@ last_run: "2026-07-17"
 
 | UC | Caso de uso | Prio | CU-PROD | Teste | Status |
 |----|-------------|------|---------|-------|--------|
-| UC-PCAD-01 | Cadastro mínimo persiste e o SKU nasce no servidor | must | `CU-PROD-01.2` | `CadastroProdutoContratoTest` | ⬜ |
-| UC-PCAD-02 | Campo obrigatório ausente não cria produto órfão | must | `CU-PROD-01.1` | `CadastroProdutoContratoTest` | ⬜ |
-| UC-PCAD-03 | Defaults conservadores valem quando o operador não escolhe | must | `CU-PROD-01.3` | `CadastroProdutoContratoTest` | ⬜ |
-| UC-PCAD-04 | Custo e preço de venda não inflam no parser pt-BR | must `[V0]` | `CU-PROD-01.4` | `CadastroProdutoContratoTest` | ⬜ |
-| UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | `CadastroProdutoContratoTest` | ⬜ |
-| UC-PCAD-06 | Duplicar produto de outro business não vaza | should `[T0]` | `CU-PROD-07.2` | `CadastroProdutoContratoTest` | ⬜ |
+| UC-PCAD-01 | Cadastro mínimo persiste e o SKU nasce no servidor | must | `CU-PROD-01.2` | `CadastroProdutoContratoTest` | 🧪 passa |
+| UC-PCAD-02 | Campo obrigatório ausente não cria produto órfão | must | `CU-PROD-01.1` | `CadastroProdutoContratoTest` | ❌ **CI vermelho** |
+| UC-PCAD-03 | Defaults conservadores valem quando o operador não escolhe | must | `CU-PROD-01.3` | `CadastroProdutoContratoTest` | ❌ **CI vermelho** |
+| UC-PCAD-04 | Custo e preço de venda não inflam no parser pt-BR | must `[V0]` | `CU-PROD-01.4` | `CadastroProdutoContratoTest` | 🧪 passa |
+| UC-PCAD-05 | Cadastro não aceita insumo de outro business | must `[T0]` | `CU-PROD-01.5` | `CadastroProdutoContratoTest` | ❌ **CI vermelho (Tier 0)** |
+| UC-PCAD-06 | Duplicar produto de outro business não vaza | should `[T0]` | `CU-PROD-07.2` | `CadastroProdutoContratoTest` | ❌ **CI vermelho** |
 
-**Veredito: ⬜ nenhum rodou ainda.** Este arquivo entra junto com o teste que o defende; o status
-sobe pra 🧪 quando a lane `PHP / Pest (Estoque · MySQL)` publicar o veredito, e pra ✅ quando o
-manifesto por-UC ([#4400](https://github.com/wagnerra23/oimpresso.com/pull/4400)) capturar a prova.
-**Declarar verde antes disso seria a doença que este arquivo existe pra curar** — ver o §Lição do
-`SellingPrices.casos.md`: *"eu tinha afirmado a conclusão lendo o código antes de rodar; o CI foi
-quem separou o que era verdade do que era narrativa."*
+**Veredito: 2 passam, 4 reprovam — e os 4 vermelhos são reais.** Run `29588143635` (lane `Estoque ·
+MySQL`, MySQL real, biz=1+biz=2). O `UC-PCAD-01` e o `UC-PCAD-04` (`[V0]`, os dois casos de `num_uf`)
+passam: o **endpoint** cadastra e parseia pt-BR sem inflar. Os 4 vermelhos provam que o **`✅` do
+`CU-PROD-01` no SDD é falso** — `store()` não valida (`02`), não tem default server-side (`03`), aceita
+`category_id` cross-tenant (`05`, **Tier 0**) e crasha 500 ao duplicar alheio (`06`).
+
+> **⚠️ O PR está vermelho DE PROPÓSITO.** Os 4 UCs são `❌` (não `🧪`/`✅`) porque o teste **prova a falha**
+> — corrigir exige tocar o `store()`, que é Non-Goal declarado do `Create.charter.md`, e o `CU-PROD-01`
+> é `[must]`. Isso é decisão de contrato (`[F]`), não bug de tela. As saídas estão no §Backlog de
+> contrato do charter. Isto é exatamente o §Lição do `SellingPrices.casos.md`: *"eu tinha afirmado a
+> conclusão lendo o código antes de rodar; o CI foi quem separou o que era verdade do que era
+> narrativa."* Aqui eu não afirmei verde — o CI falou, e os 4 vermelhos viraram contrato.
 
 ---
 
@@ -53,7 +60,7 @@ quem separou o que era verdade do que era narrativa."*
 - **Teste:** `tests/Feature/Produto/CadastroProdutoContratoTest.php` — `UC-PCAD-01 · SKU vazio nasce gerado no servidor`.
 - **Contrato:** `CU-PROD-01` item 2 — *"SKU vazio → gerado **server-side**; SKU digitado → validado duplicado"*.
 - **Regressão que defende:** o `Create.charter.md` declara Non-Goal *"❌ NÃO gera SKU client-side (server-side em `store()`)"*. Hoje nada prova que o servidor cumpre a outra metade — se o `store()` passar a confiar num SKU do request, o Non-Goal cai calado.
-- **Status: ⬜**
+- **Status: 🧪** — passou (run 29588143635, lane Estoque · MySQL).
 
 ---
 
@@ -63,7 +70,7 @@ quem separou o que era verdade do que era narrativa."*
 - **Teste:** `tests/Feature/Produto/CadastroProdutoContratoTest.php` — `UC-PCAD-02 · POST sem campo obrigatório não persiste nada`.
 - **Contrato:** `CU-PROD-01` item 1 — *"Campos obrigatórios (name, unit, tax) validados client + server"*.
 - **Regressão que defende:** o CU diz "client **+** server". Os testes atuais (`Wave2CreateInertiaTest`) só provam o lado **client**, e provam por `str_contains` no fonte do `.tsx` — nunca fazem POST. O lado server não tem prova nenhuma.
-- **Status: ⬜**
+- **Status: ❌** — **CI vermelho** (run 29588143635): `Produto nasceu SEM unidade`. O `store()` não tem `$request->validate()` — só `$request->only()`. O `CU-PROD-01.1` (client **+ server**) é falso no server.
 
 ---
 
@@ -73,7 +80,7 @@ quem separou o que era verdade do que era narrativa."*
 - **Teste:** `tests/Feature/Produto/CadastroProdutoContratoTest.php` — `UC-PCAD-03 · defaults conservadores no produto criado`.
 - **Contrato:** `CU-PROD-01` item 3 — *"Defaults: `type='single'`, `enable_stock=true`, `tax_type='exclusive'`"*.
 - **Regressão que defende:** hoje o default existe **só no `useForm` do React** — `Wave2CreateInertiaTest` assere a **string** `"type: (dup?.type ?? 'single')"` no fonte. Renomear a variável `dup` deixa o teste vermelho sem mudar comportamento; trocar a lógica mantendo a string deixa verde com o comportamento quebrado. E `tax_type='exclusive'` **toca preço** (`[V0]`): se o servidor assumir outro default quando o campo não vem, o preço muda e nada avisa.
-- **Status: ⬜**
+- **Status: ❌** — **CI vermelho** (run 29588143635): `Failed asserting that null is identical to 'single'`. POST sem `type` → produto nasce `type=null`. O default só existe no `useForm` do React.
 
 ---
 
@@ -84,7 +91,7 @@ quem separou o que era verdade do que era narrativa."*
 - **Contrato:** `CU-PROD-01` item 4 `[V0]` — *"Preço de custo e venda passam pelo parser pt-BR sem ×100 (`num_uf`); arredondar 2 casas"* + REGRA MESTRE valor/estoque (`proibicoes.md`).
 - **Regressão que defende:** `ProductController@store` entrega `single_dpp`/`single_dsp` a `createSingleProductVariation`, e o caminho de update faz `num_uf($single_data['single_dpp'])` — **o mesmo parser** que no incidente 2026-06-05 leu o `.` de `204.99605` como separador de milhar e inflou 16 vendas ×100k na ROTA LIVRE. O Produto **alimenta** Sells: um custo inflado aqui contamina margem, tabela de preço e valor de estoque. Lição perene: separador de milhar tem SEMPRE 3 dígitos.
 - **⚠️ O que este UC NÃO cobre — e é o achado:** ele prova o **endpoint**. Ele **não** prova que a tela manda o campo. Ver §Pendência de CONTRATO abaixo.
-- **Status: ⬜**
+- **Status: 🧪** — passou os DOIS casos (run 29588143635): `1.234,56`→1234.56 e `204.99605` não estoura. O endpoint parseia pt-BR corretamente.
 
 ---
 
@@ -94,7 +101,7 @@ quem separou o que era verdade do que era narrativa."*
 - **Teste:** `tests/Feature/Produto/CadastroProdutoContratoTest.php` — `UC-PCAD-05 · category_id de outro business não vincula`.
 - **Contrato:** `CU-PROD-01` item 5 `[T0]` — *"Dropdowns (categoria/marca/unidade/imposto) só do business atual"* + [ADR 0093](../../../../memory/decisions/0093-multi-tenant-isolation-tier-0.md).
 - **Regressão que defende:** o CU fala dos **dropdowns** — que é a UI. O dropdown escopado impede o operador de *escolher*, não impede o *request* de mandar. É exatamente o buraco que o `UC-PTAB-04` achou vermelho na tabela de preço ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)): o `price_group_id` vinha cru da chave do array, sem `exists:` escopado, e **gravou** row cross-tenant. O `CU-PROD-10` também dizia `✅ (reusa guard)` lá — e era falso. **Este UC existe pra descobrir se a mesma família de furo vive no `store()`.** Pode nascer vermelho; se nascer, a correção entra no mesmo PR (failing-first).
-- **Status: ⬜**
+- **Status: ❌** — **CI vermelho (Tier 0)** (run 29588143635): `Produto do meu business ficou vinculado a categoria de OUTRO business`. O `category_id` vem cru do `$request->only()`, sem `exists:` escopado. Mesma família do `UC-PTAB-04` (#4300).
 
 ---
 
@@ -104,7 +111,7 @@ quem separou o que era verdade do que era narrativa."*
 - **Teste:** `tests/Feature/Produto/CadastroProdutoContratoTest.php` — `UC-PCAD-06 · duplicar produto de outro business retorna 404`.
 - **Contrato:** `CU-PROD-07` item 2 `[T0]` — *"Só duplica produto do business atual (externo → 404)"*.
 - **Regressão que defende:** o CU crava **404** explicitamente — diferente do `UC-PTAB-02`, onde o 404 era proxy inventado pelo charter. Aqui é o contrato falando. Se o `create()` devolver 200 com o produto alheio no form, é vazamento de leitura.
-- **Status: ⬜**
+- **Status: ❌** — **CI vermelho** (run 29588143635): `Expected 404 but received 500`. Não vaza (crasha antes), mas é exceção não-tratada onde o CU crava 404.
 
 ---
 
