@@ -554,10 +554,16 @@ class Kernel extends ConsoleKernel
         // 2026-07-12 06:01:27, mock_mode:false). Prod tem scheduler (cron do hPanel);
         // o CT 100 não.
         //
-        // Ver gaps_conhecidos.eval_nao_roda_sozinho no baseline + US-COPI-140 (inclui
-        // a errata dos números da 1ª redação: eram 2 evals, não 3; e o raio real de
-        // `schedule:run` em staging é 1 colateral benigno, não 7 perigosos — os
-        // pos:* de cobrança/fatura estão dentro de `if ($env === 'live')` na L28).
+        // INVOCADOR REAL (decisão [W] 2026-07-17, caminho A): scripts/tests/ct100-jana-evals.sh,
+        // cron dom 06:00 no host do CT 100. Esta declaração aqui é a INTENÇÃO (cadência,
+        // ambiente, racional) — quem dispara é o cron. Custo aceito do caminho A: agenda
+        // em 2 lugares. Se um dia o CT 100 ganhar `schedule:run`, este entry volta a ser
+        // o invocador e o cron sai.
+        //
+        // Ver gaps_conhecidos.eval_nao_roda_sozinho + _errata_2026_07_17 no baseline, e
+        // US-COPI-140 (que carrega a errata dos números: NÃO tente deduzir o raio de
+        // `schedule:run` lendo este arquivo — o app registra 82 eventos e MÓDULOS
+        // registram os seus; a autoridade é Event::runsInEnvironment() no runtime).
         $schedule->command('jana:ragas-real-eval --json')
             ->weeklyOn(0, '07:00')
             ->timezone('America/Sao_Paulo')
