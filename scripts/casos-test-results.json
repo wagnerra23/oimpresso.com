@@ -1,10 +1,9 @@
 {
   "_meta": {
-    "generated_at": "2026-07-16T20:13:42.769Z",
+    "generated_at": "2026-07-17T11:50:52.935Z",
     "gate": "casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste)",
     "sources": [
       "test-results/junit.xml",
-      "test-results/pest-arquivos-junit.xml",
       "test-results/pest-compras-junit.xml",
       "test-results/pest-estoque-junit.xml",
       "test-results/pest-financeiro-junit.xml",
