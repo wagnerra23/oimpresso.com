@@ -2,7 +2,7 @@
 date: "2026-07-16"
 hour: "19:30"
 topic: Produto · aba "Preço especial" — F1 do protótipo + charter v2→v3
-authors: [F, CC]
+authors: [F, C]
 outcomes:
   - "F1 navegável da aba Preço especial (verificado no browser, DOM medido)"
   - "Charter SellingPrices v2 → v3 — 8 cortes de [F], todos procedentes; 2 revogaram o que eu tinha escrito"

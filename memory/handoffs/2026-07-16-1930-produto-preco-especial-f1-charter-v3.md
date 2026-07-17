@@ -1,8 +1,8 @@
 ---
 date: "2026-07-16"
 time: "19:30"
-slug: produto-preco-especial-f1-charter-v38
-tldr: "[F] pediu a aba "Preço especial" do cadastro ("a melhor usabilidade ganha; o legado Delphi não entra"). Saiu F1 navegável + charter v2→v3 + 2 pesquisas (24 plataformas). Achado: Bling/Tiny/ContaAzul/Microvix têm ZERO faixa de quantidade. [F] cortou 8x, todas procedentes - 2 revogaram o charter. Meus 2 padrões de erro foram pro §5: importar solução sem checar a premissa (3x) e medir a propriedade errada chamando de verificado."
+slug: produto-preco-especial-f1-charter-v3
+tldr: '[F] pediu a aba ''Preço especial'' do cadastro (''a melhor usabilidade ganha; o legado Delphi não entra''). Saiu F1 navegável + charter v2→v3 + 2 pesquisas (24 plataformas). Achado: Bling/Tiny/ContaAzul/Microvix têm ZERO faixa de quantidade. [F] cortou 8x, todas procedentes - 2 revogaram o charter. Meus 2 padrões de erro foram pro §5: importar solução sem checar a premissa (3x) e medir a propriedade errada chamando de verificado.'
 decided_by: [F]
 prs: []
 us: [US-PROD-022, US-PROD-023, US-PROD-027]
