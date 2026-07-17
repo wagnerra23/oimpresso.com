@@ -1577,18 +1577,27 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 ### US-COPI-136 · Piso de context_recall no baseline (recall 0,3839 pode cair sem alarme)
 
-> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 3h · status: done · type: story
+
+**Implementado em:** `Modules/Jana/Console/Commands/JanaRagasRealEvalCommand.php` · `governance/jana-ragas-real-baseline.json` · `app/Console/Kernel.php` · verificado@9c52b31 (2026-07-17) — `gateVerdict()` (função pura) inclui `context_recall` no veredito; piso 0.36 em `thresholds_regressao`, lido em runtime por `resolveThresholds()`.
+
+**Testado em:** `Modules/Jana/Tests/Feature/Ai/RagasRealEvalGateTest.php` — bite-test do piso: recall 0.20 derruba o gate mesmo com faithfulness/relevancy bons; os 3 pontos medidos passam; fronteira fechada; null não fabrica regressão.
 
 **Origem:** grade de réguas 2026-07-17 — chip C6; dimensão `qualidade-drift-ia-producao` nota 4,0/10.
 
 **Sinal (ADR 0105 — métrica detecta drift):** `context_recall = 0,3839` medido. A Jana responde ao cliente com contexto reconhecidamente incompleto e **não há piso** — o número pode cair pra 0,20 sem nada avermelhar.
 
 **Escopo:**
-- [ ] **Estender** o baseline existente em `governance/` — NUNCA régua paralela (lápide §5 2026-07-09 "duplica régua consolidada")
-- [ ] Piso = **medido menos margem**, não o 0.80 aspiracional (piso que nasce vermelho é ignorado no dia seguinte)
-- [ ] Advisory primeiro; required só via emenda ADR + flip [W] (lápide §5 2026-07-01)
+- [x] **Estender** o baseline existente em `governance/` — NUNCA régua paralela (lápide §5 2026-07-09 "duplica régua consolidada"). Feito de forma mais forte que o pedido: `thresholds_regressao` era **decorativo** (grep = 1 hit, ele mesmo) enquanto os pisos reais viviam duplicados no default do signature **e** nas flags do `Kernel.php`. O bloco virou **dono único**, lido em runtime — fecha o follow-up que a própria ADR 0318 registrou em §Consequências e remove a régua paralela que já existia.
+- [x] Piso = **medido menos margem**, não o 0.80 aspiracional. `0.36 = min(0.3839, 0.3951, 0.3939) × (1 − 6%)`, mesma margem relativa dos pisos irmãos; folga = 2,1× o spread observado. Derivação versionada em `_derivacao_piso_context_recall`.
+- [x] Advisory primeiro; required só via emenda ADR + flip [W] (lápide §5 2026-07-01). **Nenhuma emenda foi necessária:** este comando não roda em CI (o `jana-ragas-gate.yml` roda o `ci-eval` tautológico e só o cita em comentário) — o exit 1 é alerta de cron (`->onFailure()` loga ERROR), não gate de merge. Não houve flip de required.
+- [x] Bônus não pedido: matou o default `--threshold-faithfulness=0.80` do signature, que era **acima** do medido (0.69) e fabricava `gate_status: fail` em toda run manual.
+
+**DoD:** (1) `context_recall` entra no veredito do gate — não mais impresso como `(info)` com piso `—`; (2) piso derivado de medida real, com a derivação versionada e auditável (não número escolhido no olho); (3) o piso **não reprova o estado atual** — os 3 pontos medidos passam; (4) teste prova a **mordida** (recall abaixo do piso derruba o gate mesmo com faithfulness/relevancy bons) e prova que métrica não-medida **não** fabrica regressão; (5) um só dono do piso — `thresholds_regressao` lido em runtime, sem valor duplicado em signature/Kernel.
 
 **Ressalva do adversário:** o piso trava a QUEDA, não conserta o recall. É anti-regressão, não melhoria — não confundir "piso armado" com "busca funciona".
+
+**⚠️ Achado durante a implementação (2026-07-17) — o piso está armado mas ainda NÃO é alarme:** o schedule semanal que produziria o número **nunca disparou sozinho**. `schedule:run` = **0 ocorrências** em todo cron do CT 100 (4 entradas no crontab do host, nenhuma é scheduler; container sem cron/supervisord; `/etc/periodic/*` vazios). O gate `environments(['staging'])` casa — o `APP_ENV` do container **é** staging — mas nada invoca o scheduler: os 3 pontos medidos vieram de runs **manuais**. Vale igual pros irmãos staging `jana:drift-sentinel` e `jana:recall-eval --mode=real`. O transporte (`ct100-ragas-publish.sh`, dom 08:30) está **vivo** e relê o mesmo report velho toda semana — por isso a órfã `governance/ragas-real-trend` tem 1 semana só. Ver `gaps_conhecidos.eval_nao_roda_sozinho` no baseline. **Ligar `schedule:run` genérico não é o fix** — 7 schedules sem `environments()` viriam junto, incl. `pos:generateSubscriptionInvoices` e `pos:autoSendPaymentReminder` contra o clone da produção. Endereçado por **US-COPI-140**.
 
 **Pareia com:** US-COPI-135 — subir o modelo sem piso de recall = responder melhor sobre o contexto errado.
 
@@ -1645,3 +1654,44 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 **Ressalva do adversário:** pendurar no brief é relato. Se o número subir e ninguém agir, o badalo vira ruído — a decisão de agir é [W], o ticket só torna o número impossível de não ver.
 
 **Refs:** ADR 0334 · ADR 0105 · `scripts/governance/negocio-vs-governanca-ratio.mjs`
+
+### US-COPI-140 · Os 3 evals de qualidade da Jana nunca rodam sozinhos (schedule fantasma no CT 100)
+
+> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> blocked_by: — (precisa de decisão [W] sobre o caminho — ver Escopo)
+
+**Origem:** achado durante a implementação da US-COPI-136 (2026-07-17). A US-136 pedia um piso pro `context_recall`; ao verificar **quem consome** o número, a série provou-se parada.
+
+**Sinal (ADR 0105 — métrica detecta drift · MEDIDO, não estimado):** os três schedules de qualidade da Jana — `jana:drift-sentinel` (dom 06:00), `jana:recall-eval --mode=real` (dom 06:30) e `jana:ragas-real-eval` (dom 07:00), todos `environments(['staging'])` no `app/Console/Kernel.php` — **nunca dispararam sozinhos**. Não é o gate de ambiente: o `APP_ENV` do container `oimpresso-staging` **é** `staging` e casa. É que **nada invoca o scheduler**:
+
+| Verificação (CT 100, 2026-07-17) | Resultado |
+|---|---|
+| `schedule:run` em todo cron do host | **0 ocorrências** (4 entradas no crontab; nenhuma é scheduler) |
+| `/etc/cron.d` | `baileys-backup`, `e2scrub_all`, `tsrecorder-prune` — nenhum relacionado |
+| systemd timers | só `oimpresso-git-sync` |
+| cron/supervisord **dentro** do container | nenhum processo; `/etc/periodic/{15min,hourly,daily}` **vazios** |
+
+**Consequência medida:** todo número do `governance/jana-ragas-real-baseline.json` veio de run **manual** (2026-07-01, 07-04, 07-12 21:48 — este último fora de qualquer janela agendada). A órfã `governance/ragas-real-trend` tem **1 semana** (`2026-06-28`) desde 2026-07-04, com `first_scheduled: 2026-07-05`. O transporte **não é o culpado** — `ct100-ragas-publish.sh` roda religiosamente (publish.log de 12/07 08:30) e faz o certo: relê o report do container e republica. Como o report nunca muda, ele republica a mesma semana pra sempre. Transporte impecável carregando sinal parado.
+
+**Classe do defeito:** "correção-do-mecanismo ≠ invocação" — irmão direto da US-COPI-139 (*"o alarme já existe e nunca dispara — fora de memory/ só é invocado pelo próprio unit test. Zero cron."*) e da lápide §5 2026-07-09 *"Chokepoint de guard em comando fantasma que o fluxo real não atravessa"*. Aqui o guard é real, o baseline é honesto, o transporte é vivo — **falta o invocador**.
+
+**⛔ O fix ÓBVIO é o errado.** Instalar `* * * * * docker exec oimpresso-staging php artisan schedule:run` acorda **os 87 schedules** do Kernel, e **7 não têm `environments()`** — rodariam em staging, que é clone da produção:
+
+| Schedule sem `environments()` | Risco |
+|---|---|
+| `pos:generateSubscriptionInvoices` (23:30) | **gera faturas** |
+| `pos:autoSendPaymentReminder` (08:00) | **dispara lembrete de cobrança** |
+| `backup:run` / `backup:clean` (01:30 / 01:00) | escrita de backup |
+| `pos:updateRewardPoints`, `pos:dummyBusiness`, `errors:archive-stale-groups` | menor |
+
+**Escopo (decisão [W] entre dois caminhos):**
+- [ ] **Caminho A — cron direto por job** (segue o padrão vivo do CT 100: as 4 entradas do host são invocações diretas, nenhuma usa scheduler). Barato, blast-radius zero, mas duplica a declaração (Kernel diz uma coisa, cron diz outra → drift de agenda).
+- [ ] **Caminho B — `schedule:run` + fechar os 7 buracos** com `->environments(['live'])` explícito nos schedules que não devem rodar em staging. Honra o Kernel como dono único da agenda; exige auditar os 7 (e `pos:autoSendPaymentReminder` toca cliente — Tier 0).
+- [ ] Qualquer que seja: **provar a invocação com controle-negativo** (o schedule tem que rodar sozinho ao menos 1× e aparecer no trend com semana nova) — senão trocamos um fantasma por outro.
+- [ ] Só depois disso o piso da US-COPI-136 vira alarme de verdade.
+
+**Ressalva do adversário:** não confundir "cron instalado" com "sinal fluindo". O DoD é **uma semana nova na órfã `governance/ragas-real-trend` que ninguém rodou à mão** — não é o `crontab -l` mostrando a linha (isso seria presence-gate, lápide §5 2026-07-16).
+
+**Pareia com:** US-COPI-136 (o piso que este ticket faz valer) · US-COPI-139 (mesma classe: alarme sem invocador) · US-COPI-138 (heartbeat — o que detectaria isto automaticamente).
+
+**Refs:** ADR 0318 · ADR 0062 (Hostinger ≠ CT 100) · `app/Console/Kernel.php` · `scripts/tests/ct100-ragas-publish.sh` · `governance/jana-ragas-real-baseline.json` (`gaps_conhecidos.eval_nao_roda_sozinho`)

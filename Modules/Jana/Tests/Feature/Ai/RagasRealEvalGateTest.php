@@ -1,5 +1,7 @@
 <?php
 
+// @covers-us US-COPI-136
+
 declare(strict_types=1);
 
 use Modules\Jana\Console\Commands\JanaRagasRealEvalCommand;
