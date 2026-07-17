@@ -189,7 +189,13 @@ Do handoff estão prontos e são os blocos de montagem das telas de produto:
 
 ### 4.2 Padrão do tri-campo Custo · Margem · Valor + progressive disclosure da Formação de Preço
 
-> **Natureza deste bloco:** é **evidência de mercado + dado de uso** pra uma **decisão de produto ainda pendente do [W]** — *onde fica a fronteira entre a aba geral (básico) e a Formação de Preço (composto)*. **Não é regra decidida.** Fundamenta a decisão; não a substitui.
+> **Natureza deste bloco:** era evidência pra uma decisão de fronteira; **[W] DECIDIU (Opção A) em 2026-07-17** — *onde fica a fronteira entre a aba geral (básico) e a Formação de Preço (composto)*. A evidência abaixo fundamentou a decisão; agora é **regra de desenho da aba geral**.
+>
+> ### ✅ DECISÃO [W] 2026-07-17 — Opção A (via aprovação no [PR #4446](https://github.com/wagnerra23/oimpresso.com/pull/4446))
+>
+> **Os 3 campos de dinheiro — Custo · Margem/Markup · Valor (`AR-PROD-006/007/008`) — ficam na ABA GERAL** (cadastro básico), com a Margem/Markup **derivada e visível**. A **decomposição** (custo fixo/variável/comissão/perda/lucro-desejado, `AR-PROD-090..103`) fica **fora** da aba geral — em collapse "Avançado" ou tela separada (modelo Bling "Formação de Preço" nomeada). É o padrão de 10/10 concorrentes, e o dado interno confirma (`0/5.559` usam a decomposição). As **4 guardas de desenho** abaixo passam de "recomendação" a **contrato de desenho** da aba geral.
+>
+> **O que isto NÃO decide:** continua valendo a **REGRA MESTRE** (`[V0]`) pra qualquer código que toque esses 3 campos — a decisão fixa **onde ficam na tela**, não autoriza mexer no cálculo sem dupla-confirmação + antes→depois + aprovação. E a **Formação de Preço** (composição) segue como item de roadmap (charter próprio, PARIDADE §5) — a decisão só a separa da aba geral, não a cancela. Implementação entra pela US-PROD-023 (promover as 8 telas) via o trio (charter + casos + teste).
 >
 > **Origem:** pergunta [F] 2026-07-17 sobre usabilidade da aba geral + 3 pesquisas de mercado (2 de binding do tri-campo global/BR, 1 de progressive disclosure) + medição direta em base real.
 
@@ -234,14 +240,14 @@ Progressive disclosure é o padrão para o caso 80/20: **caminho comum sempre vi
 
 Em 17/07, **nenhum produto** preenchia a decomposição de custo nessas bases. **Não** é "ninguém usará" (atemporal) — é "o dado medido nesta data diz zero". Achado lateral: a completude do par custo+valor **varia muito** (3,7% a 77% por cliente) — muitos produtos de gráfica têm **só valor, sem custo** (precificados por m²); a tela básica **precisa tolerar custo ausente** (pareia com o guard custo-zero → preço-zero, US-PROD-027).
 
-#### Guardas de desenho da aba geral (derivadas do acima)
+#### Guardas de desenho da aba geral (contrato — [W] Opção A 2026-07-17)
 
 1. **Básico = Custo + Valor + Margem/Markup derivada visível.** Composição fica fora (collapse "Avançado" ou tela, modelo Bling "Formação de Preço" nomeada).
 2. **Rotular "Markup %"**, nunca "Profit %"/"Margem" ambíguo (anti-padrão BC).
 3. **Tolerar custo ausente** (produto por m²) — nunca zerar o preço quando custo=0.
 4. **Nenhum campo obrigatório/validável dentro de collapse fechado** (anti-padrão Baymard/Falcon) + **no máx. 1 nível** de disclosure (NN/g).
 
-> **Fica pendente do [W]:** decidir se os 3 campos `[V0]` (Custo/Margem/Valor) ficam na aba geral ou pertencem à Formação de Preço (`AR-PROD-090..103`, item nº1 do roadmap de charters do PARIDADE §5). Esta seção dá o número embaixo da decisão; não a toma. **Sem teste** — evidência de mercado + uso, não contrato.
+> **Decisão fechada** ([W] Opção A, 2026-07-17): os 3 campos `[V0]` ficam na aba geral (guarda 1). A implementação entra pela **US-PROD-023** via o trio (charter `Create` carimba os campos + `Create.casos.md` + teste). **Sem teste ainda** — este é o contrato de desenho, não o código; a REGRA MESTRE `[V0]` vale quando o cálculo for tocado.
 
 ---
 
@@ -582,5 +588,6 @@ Fechar essa lacuna é o **maior retorno** do roadmap (§10.2/§10.3) e o que dif
 
 **Histórico:**
 
+- 2026-07-17 (tarde) — **§4.2: decisão [W] Opção A registrada** (aprovada no [PR #4446](https://github.com/wagnerra23/oimpresso.com/pull/4446)). Os 3 campos Custo/Margem/Valor ficam na **aba geral**; a decomposição (Formação de Preço) fica fora. Flip "pendente → decidido"; as 4 guardas viram contrato de desenho. Implementação = US-PROD-023 via trio. [CC]
 - 2026-07-17 — **§4.2 nova: padrão do tri-campo Custo/Margem/Valor + progressive disclosure da Formação de Preço** (pergunta [F] sobre usabilidade da aba geral). Evidência de mercado (17 concorrentes BR+global, binding do tri-campo + progressive disclosure UX/NN·g) cruzada com **medição datada** em 5 bases de cliente reais: **0 de 5.559 produtos** de comunicação visual usam a formação avançada (17/07). Distinção-chave registrada: **margem simples** (derivada, visível) ≠ **markup composto** (decomposição, separado). Cada recomendação de mercado vem com **premissa checada** (⚠️ lápide 2026-07-16 "importar solução sem checar se o problema é nosso"). Correção: a hipótese "avançado assusta" **não tem base** — NN/g fundamenta em frequência, não medo. **Evidência pra decisão [W] pendente** (fronteira aba geral × Formação de Preço), não regra decidida. Sem teste. [CC]
 - 2026-07-10 — SDD v1.0.0 criado com referência no SDD de Vendas, especializado para o cadastro de produto e as duas verticais do oimpresso (comunicação visual + oficina). Fontes cruzadas: código real + CAPTERRA (61/100) + mockup Cowork + estado-da-arte de mercado. [CC]
