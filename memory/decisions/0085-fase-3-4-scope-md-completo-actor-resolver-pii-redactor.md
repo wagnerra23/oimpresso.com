@@ -1,13 +1,13 @@
 ---
 slug: 0085-fase-3-4-scope-md-completo-actor-resolver-pii-redactor
-number: 0085
+number: 85
 title: "Fase 3.4 SCOPE.md completo + ActorResolver + PII Redactor + roadmap pendências"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: governance
 quarter: 2026-Q2
 tags: [governance, scope-md, identity-mesh, lgpd, p1]

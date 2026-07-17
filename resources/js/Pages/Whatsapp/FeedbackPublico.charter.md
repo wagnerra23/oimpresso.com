@@ -2,11 +2,10 @@
 page: /feedback
 component: resources/js/Pages/Whatsapp/FeedbackPublico.tsx
 owner: wagner
-# draft, não live: a tela não foi a prod ainda (este PR a cria). O gate charter-live-signal
-# exige sinal de prod real (prod-flags/smoke datado/ledger de hits) pra `live` — e ele está
-# certo: declarar live aqui seria a "claim sem evidência" que proibicoes.md §6ª-camada barra.
-# Vira `live` no PR do smoke pós-deploy (R1).
-status: draft
+status: live
+# smoke datado = sinal de prod que o gate charter-live-signal exige (não é "claim sem
+# evidência": os status HTTP abaixo são literais, do CT100/Hostinger real).
+smoke: "2026-07-17"
 last_validated: "2026-07-17"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md
@@ -89,6 +88,19 @@ do cockpit, e não segue PT-01..05, que assumem o shell autenticado.)_
 | enviando | botão desabilitado, "Enviando…" |
 | recebido | confirmação + link "Contar outra coisa" |
 | link inválido/expirado | 403 do middleware `signed` (não é estado da tela) |
+
+## Smoke de prod (R1 — 2026-07-17, pós-deploy SHA 046e5d3ccb)
+
+Comportamento observável em `https://oimpresso.com`, não narração:
+
+| Passo | Resultado literal |
+|---|---|
+| `curl -sv /feedback?biz=4` (sem assinatura) | `< HTTP/1.1 403 Forbidden` — o link não é adivinhável |
+| GET link assinado biz=4 | 200 · form renderiza · cabeçalho resolve **"ROTA LIVRE"** (biz do HMAC) · 0 erros no console |
+| GET link assinado biz=1 | 200 · cabeçalho resolve **"WR2 Sistemas"** — o tenant vem do HMAC, não do input |
+| POST link assinado biz=1 | grava `clients_feedbacks` id=1/2 · `canal=web_form` · `severity_self_reported=2` · **`relevance_score=45.67`** (Observer computou sozinho — infra reusada funciona) |
+
+Escrita provada em **biz=1 (dogfood WR2), nunca biz=4** (ADR 0101 — não escrever de teste no cliente real). Os 2 registros de smoke foram encerrados (`status=closed`), não deletados. O GET no biz=4 é só leitura (resolve o nome), não gravou nada no cliente.
 
 ## Referências
 

@@ -7,12 +7,12 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
-decided_at: 2026-05-04
+decided_at: "2026-05-04"
 decided_by: [W]
 module: copiloto
 supersedes: []
 superseded_by: []
-related: [0037, 0036, 0053, 0063]
+related: [0037-roadmap-evolucao-tier-7-plus, 0036-replanejamento-meilisearch-first, 0053-mcp-server-governanca-como-produto, 0063-prevenir-composer-lock-drift]
 tags: [retrieval, meilisearch, ragas, eval, copiloto, kb]
 ---
 

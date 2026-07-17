@@ -20,7 +20,7 @@ tags: [whatsapp, integracao, whatsmeow, baileys-substituto, daemon-go, wuzapi, m
 parent_adr: 0094-constituicao-v2-7-camadas-8-principios
 supersedes_partially: [0202-whatsapp-profissionalizacao-baileys-out]
 supersedes: []
-related: [0058, 0062, 0093, 0094, 0096, 0105, 0117, 0202]
+related: [0058-reverb-substituido-por-centrifugo-frankenphp, 0062-separacao-runtime-hostinger-ct100, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0096-modulo-whatsapp-meta-cloud-api-direto, 0105-cliente-como-sinal-guiar-sem-mandar, 0117-multiplos-numeros-whatsapp-por-business, 0202-whatsapp-profissionalizacao-baileys-out]
 authors: [audit-implement-expert, wagner]
 pii: false
 review_triggers:

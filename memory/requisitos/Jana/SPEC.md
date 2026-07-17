@@ -1827,3 +1827,28 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 - Ligar tools **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passa a buscar melhor o contexto errado. Piso de recall segue pendente.
 
 **Refs:** ADR 0245 · ADR 0141 · ADR 0101 · US-COPI-141 · US-COPI-136 (piso de recall) · US-COPI-137 (eval online) · US-COPI-135 (modelo frontier)
+
+### US-COPI-143 · Deprecar o `jana:drift-sentinel` tautológico (o "alarme de drift" mede gt-vs-gt, não a Jana)
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+
+**Implementado em:** _pendente_ — o código de honestidade já está (docblock + `caveat` no report + guard no `--update-baseline` + bite-test), mas a **deprecação formal** (tirar a alegação de "alarme de drift da Jana" do dashboard de governança + decidir aposentar vs manter como sonda) é decisão [W] — por isso `_pendente_`.
+
+**Origem:** re-grade da dimensão `qualidade-drift-ia-producao` (2026-07-17). O chip C3 pedia "regravar o baseline real do drift-sentinel". Ao verificar, o sentinel provou-se **tautológico**.
+
+**Sinal (PROVADO no CT 100):** `jana:drift-sentinel --detail` real → as **51 perguntas dão `Current = 1.0`**. O código chama `scoreFaithfulness(question, ground_truth, ground_truth)` — answer = context = ground_truth. É a **mesma tautologia que a ADR 0318 matou no `ci-eval`**, sobrevivente porque a 0318 só tocou aquele comando. O sentinel **nunca roda o pipeline real** (`KbAnswerService`) — mede a auto-consistência do juiz em gt-vs-gt, não a Jana. Regravar o baseline (o chip C3) tornaria o alarme **estritamente pior** (baseline=1.0 → Δ=0 pra sempre → nunca dispara). Lápide §5 2026-07-17.
+
+**O que já foi feito (PR de honestidade, esta sessão):**
+- [x] Docblock do comando marca a tautologia + aponta pro sinal real (`ragas-real-eval`).
+- [x] `caveat` no report semanal — o "ok" não pode ser lido como "Jana OK".
+- [x] Guard no `--update-baseline` fora de `--mock` (fecha a armadilha do chip C3; exige `DRIFT_BASELINE_TAUTOLOGIA_OK=1` consciente).
+- [x] Bite-test: o guard bloqueia + o caveat viaja no report.
+
+**Escopo (decisão [W]):**
+- [ ] **A (recomendado) — aposentar:** o sinal de drift real da Jana já existe (`jana:ragas-real-eval`, ADR 0318, roda via US-COPI-140 + piso US-COPI-136). Remover o sentinel do schedule + do `governance-audit.mjs` como "alarme de drift", registrando via ADR de deprecação. Não duplicar régua (§5).
+- [ ] **B — reconectar ao pipeline real** (rodar `KbAnswerService`): mata a tautologia mas **duplica** o `ragas-real-eval` — a §5 alerta contra régua paralela. Menos preferível.
+- [ ] **C — manter só como sonda relabelada** ("auto-consistência do juiz", não drift da Jana): o mínimo já entregue por este PR; formalizar se [W] quiser manter o probe.
+
+**DoD:** a alegação "alarme de drift da Jana" some do dashboard de governança (ou o sentinel some), e o único sinal de drift da Jana que o dashboard mostra é o `ragas-real-eval`.
+
+**Refs:** ADR 0318 · US-COPI-136 · US-COPI-140 · `Modules/Jana/Console/Commands/JanaDriftSentinelCommand.php` · proibicoes.md §5 2026-07-17

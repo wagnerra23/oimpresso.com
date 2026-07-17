@@ -1,7 +1,7 @@
 ---
 slug: 0033-vector-store-meilisearch-pgvector-mem0
 number: 33
-title: !!binary gJQgVmVjdG9yIHN0b3JlIC8gc2VhcmNoIGJhY2tlbmQgZG8gb2ltcHJlc3NvOiBwZ3ZlY3RvciB2cyBNZWlsaXNlYXJjaCtTY291dCB2cyBNZW0w
+title: "Vector store / search backend do oimpresso: pgvector vs Meilisearch+Scout vs Mem0"
 type: adr
 status: aceito
 authority: canonical
@@ -15,13 +15,9 @@ supersedes: []
 superseded_by: []
 triage_2026_05_06_note: Debate vector store (pgvector vs Meilisearch+Scout vs Mem0) resolvido em 0036 (Meilisearch first canônico).
 related:
-  - '0026'
   - 0026-posicionamento-erp-grafico-com-ia
-  - '0031'
   - 0031-memoriacontrato-mem0-default
-  - '0032'
   - 0032-vizra-adk-prism-php-orquestracao
-  - '0034'
   - 0034-laravel-ai-sdk-oficial-boost-mcp
 pii: false
 ---

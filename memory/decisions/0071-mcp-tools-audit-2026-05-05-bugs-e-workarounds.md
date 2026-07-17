@@ -1,18 +1,18 @@
 ---
 slug: 0071-mcp-tools-audit-2026-05-05-bugs-e-workarounds
-number: 0071
+number: 71
 title: "Auditoria tools MCP 2026-05-05 — bugs descobertos + workarounds"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: core
 quarter: 2026-Q2
 tags: [mcp, taskregistry, audit, bugs, schema]
 supersedes: []
-related: [0053, 0069, 0070]
+related: [0053-mcp-server-governanca-como-produto, 0069-taskregistry-mcp-tools-canonico-tasks-md-deprecated, 0070-jira-style-task-management-current-md-removed]
 pii: false
 review_triggers: ["bugs corrigidos por PR futura", "schema mcp_jira_projects unificado"]
 ---

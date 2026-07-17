@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: 2026-Q2
-decided_at: 2026-05-08
+decided_at: "2026-05-08"
 decided_by: [W]
 accepted_at: 2026-05-08
 accepted_by: wagner

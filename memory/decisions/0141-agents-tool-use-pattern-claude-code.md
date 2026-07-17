@@ -13,11 +13,8 @@ quarter: 2026-Q2
 tags: {}
 supersedes: []
 related:
-  - '0035'
   - 0035-stack-ai-canonica-wagner-2026-04-26
-  - '0048'
   - 0048-framework-agentes-laravel-ai-vizra-rejeitada
-  - '0140'
   - 0140-jana-pro-produto-comercial-saas
 pii: false
 ---

@@ -1,20 +1,20 @@
 ---
 slug: 0113-integracao-delphi-laravel-ads-3-caminhos
-number: 0113
+number: 113
 title: "Integração Delphi WR Comercial ↔ Laravel oimpresso ↔ ADs em 3 caminhos aditivos"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-09
+decided_at: "2026-05-09"
 module: null
 quarter: 2026-Q2
 tags: [integracao, delphi, ads, connector, multi-system]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0021, 0015, 0096-arq-0001-ads]
+related: [0021-officeimpresso-contrato-api-delphi, 0015-connector-api-gateway, 0096-arq-0001-ads]
 pii: false
 review_triggers:
   - cliente Delphi for recompilado e redistribuído

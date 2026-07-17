@@ -1,7 +1,7 @@
 ---
 slug: 0060-tudo-rede-interna-proxmox-bye-hostinger
 number: 60
-title: !!binary gJQgSUEgKyB3b3JrZXJzIHBlc2Fkb3MgbmEgcmVkZSBpbnRlcm5hIChQcm94bW94KSwgYXBwIHByaW5jaXBhbCBjb250aW51YSBIb3N0aW5nZXIgKE9ww6fDo28gQyBow61icmlkYSk=
+title: "IA + workers pesados na rede interna (Proxmox), app principal continua Hostinger (Opção C híbrida)"
 type: adr
 status: aceito
 authority: canonical
@@ -13,15 +13,13 @@ module: infra
 quarter: 2026-Q2
 tags: {  }
 supersedes:
-  - '0042'
+  - 0042-reverb-substitui-pusher-cloud
 related:
-  - '0030'
-  - '0042'
+  - 0030-credenciais-jamais-em-git
+  - 0042-reverb-substitui-pusher-cloud
   - 0042-infra-empresa-padrao
-  - '0044'
-  - '0053'
+  - 0044-vaultwarden-self-hosted-cofre
   - 0053-mcp-server-governanca-como-produto
-  - '0058'
   - 0058-reverb-substituido-por-centrifugo-frankenphp
 pii: false
 ---

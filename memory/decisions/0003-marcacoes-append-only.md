@@ -1,7 +1,7 @@
 ---
 slug: 0003-marcacoes-append-only
 number: 3
-title: !!binary gJQgTWFyY2HDp8O1ZXMgYXBwZW5kLW9ubHkgY29tIHRyaWdnZXJzIE15U1FMICsgcHJvdGXDp8OjbyBuYSBhcGxpY2HDp8Ojbw==
+title: "Marcações append-only com triggers MySQL + proteção na aplicação"
 type: adr
 status: aceito
 authority: canonical
@@ -11,7 +11,7 @@ decided_by:
 decided_at: '2026-04-18'
 quarter: 2026-Q2
 tags: {  }
-related: {  }
+related: []
 pii: false
 ---
 # ADR 0003 — Marcações append-only com triggers MySQL + proteção na aplicação

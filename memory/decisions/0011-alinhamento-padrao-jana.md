@@ -1,7 +1,7 @@
 ---
 slug: 0011-alinhamento-padrao-jana
 number: 11
-title: !!binary gJQgQWxpbmhhbWVudG8gY29tIG8gcGFkcsOjbyBKYW5hIChVbHRpbWF0ZVBPUyk=
+title: "Alinhamento com o padrão Jana (UltimatePOS)"
 type: adr
 status: aceito
 authority: canonical
@@ -16,8 +16,8 @@ supersedes: []
 supersedes_partially:
   - '0002-nwidart-laravel-modules'
 related:
-  - '0001'
-  - '0002'
+  - 0001-estender-ultimatepos-opcao-c
+  - 0002-nwidart-laravel-modules
 pii: false
 ---
 # ADR 0011 — Alinhamento com o padrãa Jana (UltimatePOS)

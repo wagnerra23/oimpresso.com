@@ -10,7 +10,7 @@ renumbered_reason: "Conflito de numeração — PR #308 (ADRs 0115-Gold + 0116-G
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-09
+decided_at: "2026-05-09"
 accepted_at: 2026-05-09
 accepted_by: wagner
 module: whatsapp
@@ -21,7 +21,7 @@ related_adrs: [0093, 0094, 0096, 0105, 0111]
 parent_charter: resources/js/Pages/Whatsapp/Settings.charter.md
 parent_adr: 0096
 supersedes: []
-supersedes_partially: [0096]
+supersedes_partially: [0096-modulo-whatsapp-meta-cloud-api-direto]
 superseded_by: []
 authors: [wagner, opus-4.7]
 pii: false

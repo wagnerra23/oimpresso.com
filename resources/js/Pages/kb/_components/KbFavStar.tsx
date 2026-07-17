@@ -41,7 +41,7 @@ export default function KbFavStar({
         'inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         active
-          ? 'text-amber-500 hover:text-amber-600'
+          ? 'text-warning hover:text-warning-fg'
           : 'text-muted-foreground hover:text-foreground hover:bg-muted',
         className,
       )}

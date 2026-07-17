@@ -1,6 +1,6 @@
 ---
 slug: 0203-legacy-migration-pipeline-firebird-oimpresso-w29
-number: 0203
+number: 203
 title: "Pipeline legacy-migration Firebird → oimpresso completo (Wave 29-1)"
 type: adr
 status: aceito
