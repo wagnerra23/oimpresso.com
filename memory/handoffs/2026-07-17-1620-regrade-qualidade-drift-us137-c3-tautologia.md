@@ -2,7 +2,7 @@
 date: "2026-07-17"
 time: "16:20"
 slug: regrade-qualidade-drift-us137-c3-tautologia
-tldr: Re-grade pontuada da dimensão qualidade-drift-ia-producao + "vai faz" dos 2 itens de maior alavanca. US-137 (eval online 5%) construída atrás de flag OFF com prova LGPD (PII redigida antes do juiz). Chip C3 NÃO foi feito como pedido — provei que o drift-sentinel é TAUTOLÓGICO (mede gt-vs-gt=1.0, nunca roda a Jana), então regravar o baseline seria pior; em vez disso tornei o comando honesto + guard + US-143 pra deprecação [W]. US-138 (heartbeat) já estava done por sessão paralela. Os itens meus-de-construir estão completos; resta decisão [W] (135/143/ligar-137) e o projeto grande US-133 (subir o recall de verdade).
+tldr: Re-grade pontuada de qualidade-drift-ia-producao + "vai faz". US-137 (eval online 5%) construída atrás de flag OFF, prova LGPD (PII antes do juiz). Chip C3 NÃO feito como pedido — provei que o drift-sentinel é TAUTOLÓGICO (gt-vs-gt=1.0); regravar seria pior, então tornei honesto + guard + US-143 (deprecação [W]). US-138 já estava done. Itens meus-de-construir completos; resta decisão [W] (135/143/ligar-137) e US-133 (subir o recall de verdade).
 owners: [W]
 prs: [4457, 4460]
 us: [US-COPI-136, US-COPI-137, US-COPI-138, US-COPI-140, US-COPI-143, US-COPI-135, US-COPI-133]
@@ -46,7 +46,7 @@ Sessão paralela construiu (`commit e7f6090`, status done): check `langfuse_trac
 
 ## Lições da sessão (CI fez o trabalho)
 
-A US-137 custou **4 rodadas de CI**, todas reais: PHPStan (env fora de config de módulo fura o baseline larastan) · PII scan (CPF sintético de teste — resolvido com `// pii-allowlist`) · 2× **base-fantasma** (PR #4456 normalizou 140 ADRs na main depois do meu fork → append-only via diff-aware acusava minha branch de "reverter" ADRs; fix = merge da main na branch, NÃO force-push que o hook bloqueia). Nenhuma foi teatro; o de base-fantasma exigiu diagnosticar a causa antes de rebasear às cegas.
+A US-137 custou **4 rodadas de CI**, todas reais: PHPStan (env fora de config de módulo fura o baseline larastan) · PII scan (CPF sintético de teste — resolvido com `// pii-allowlist`) · 2× **base-fantasma** (PR #4456 normalizou 140 ADRs na main depois do meu fork → append-only via diff-aware acusava minha branch de "reverter" ADRs; fix = merge da main na branch, NÃO force-push que o hook bloqueia). E este próprio handoff bateu 2× (base-fantasma + `tldr>500`). Nenhuma foi teatro; o de base-fantasma exigiu diagnosticar a causa antes de rebasear às cegas.
 
 ## Estado MCP no momento do fechamento
 
