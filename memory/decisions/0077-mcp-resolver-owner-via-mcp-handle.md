@@ -1,13 +1,13 @@
 ---
 slug: 0077-mcp-resolver-owner-via-mcp-handle
-number: 0077
+number: 77
 title: "MCP resolver via users.mcp_handle (SUPERSEDED por ADR 0081 — Identity Mesh)"
 type: adr
 status: superseded
 authority: canonical
 lifecycle: substituido
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: copiloto
 quarter: 2026-Q2
 tags: [mcp, governance, identity, p1, superseded]

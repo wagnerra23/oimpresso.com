@@ -1166,9 +1166,16 @@ class HealthCheckCommand extends Command
      * telemetria muda derruba o exit code e dispara o ALERT do cron 06:00.
      *
      * Skip gracioso sem host/keys (dev/CI não têm credencial — mesmo padrão de
-     * `memoria_recall_backend` e `mcp_webhook_5xx_2h`). Residual honesto: com
-     * `LANGFUSE_ENABLED=false` em prod o check pula em vez de acender; quem cobre esse
-     * flanco é o `observability_pipeline` (env setado) do system-audit.
+     * `memoria_recall_backend` e `mcp_webhook_5xx_2h`).
+     *
+     * Desligado EM PRODUÇÃO (`LANGFUSE_ENABLED=false` ou config pela metade quando o env é
+     * live) não pula silencioso: vira ADVISORY `desligado-prod` — visível na tabela do
+     * health-check, mas NÃO pagina (não derruba o exit/cron). Um deploy que reseta o `.env`
+     * derruba a flag sem ninguém ver — a mesma classe dos incidentes ext-sodium/classmap
+     * stale. Advisory (não-duro) porque o desligamento PODE ser intencional (custo/
+     * manutenção): a decisão de religar é humana. Trade-off honesto: se o Langfuse ficar
+     * intencionalmente desligado em prod por um período, esta linha fica amarela até religar.
+     * Em dev/CI (env não-prod) segue pulando silencioso — sem ruído local.
      *
      * @see Modules/Jana/Services/Telemetry/LangfuseClient.php (lado da emissão)
      * @see memory/sessions/2026-07-17-reguas-grade-truncagem-silenciosa.md
@@ -1183,6 +1190,10 @@ class HealthCheckCommand extends Command
         $secretKey = (string) config('langfuse.secret_key', '');
         $configured = (bool) config('langfuse.enabled', false)
             && $host !== '' && $publicKey !== '' && $secretKey !== '';
+        // Alinhado com o schedule (`->environments(['live'])`): em prod, telemetria
+        // desligada merece olho; em dev/CI é normal. app()->environment cobre os dois
+        // rótulos de prod que o projeto usa (Hostinger = 'live'; fallback 'production').
+        $isProd = app()->environment(['production', 'live']);
 
         $reachable = false;
         $count = null;
@@ -1215,10 +1226,11 @@ class HealthCheckCommand extends Command
             $detalhe = mb_substr($e->getMessage(), 0, 80);
         }
 
-        $r = self::evaluateTraceUptime($configured, $reachable, $count, $threshold);
+        $r = self::evaluateTraceUptime($configured, $reachable, $count, $threshold, $isProd);
 
         $messages = [
             'nao-configurado' => 'Skipped (Langfuse não configurado — dev/CI sem host/keys)',
+            'desligado-prod' => 'ATENÇÃO (advisory): Langfuse DESLIGADO em produção (LANGFUSE_ENABLED=false ou host/keys ausentes) — telemetria LLM não emite. Se não foi intencional, um deploy pode ter resetado o .env; religue no .env de prod. Não pagina (pode ser desligamento deliberado).',
             'inacessivel' => "ALERTA: API do Langfuse inacessível ({$detalhe}) — não dá pra provar que trace está chegando. Checar CT 100: tailscale ssh root@ct100-mcp 'cd /opt/langfuse/code/docker/langfuse && docker compose ps'",
             'ilegivel' => 'ALERTA: Langfuse respondeu mas sem meta.totalItems — contrato da API mudou, o heartbeat parou de medir (conserte o check, não ignore)',
             'mudo' => 'ALERTA: ZERO traces no Langfuse em 24h — telemetria LLM parou de chegar (checar LANGFUSE_ENABLED, keys, fila LangfuseTraceJob e workers). Servidor pode estar 200 e mesmo assim mudo.',
@@ -1228,6 +1240,8 @@ class HealthCheckCommand extends Command
         return [
             'name' => $name,
             'ok' => $r['ok'],
+            // Advisory só no caso desligado-prod: aparece na tabela, não derruba o exit/cron.
+            'advisory' => $r['advisory'] ?? false,
             'value' => $r['count'] ?? $r['state'],
             'threshold' => ">= {$threshold}",
             'message' => $messages[$r['state']] ?? $r['state'],
@@ -1239,22 +1253,28 @@ class HealthCheckCommand extends Command
      * nem relógio real (mesmo padrão de evaluateCanaryFreshness / evaluateInboundFlow).
      *
      * Contrato (US-COPI-138), NÃO derivado da implementação:
-     *   - sem credencial            → pula (dev/CI não medem)
+     *   - sem credencial + dev/CI   → pula (dev/CI não medem)
+     *   - sem credencial + prod      → ADVISORY "desligado-prod" (visível, NÃO pagina)
      *   - API não respondeu         → ALERTA (sem resposta não há prova de fluxo)
      *   - respondeu sem contagem    → ALERTA "ilegível" (o monitor apodreceu; não é 0)
      *   - contagem < threshold      → ALERTA (fluxo morto = o buraco de 7 semanas)
      *   - contagem >= threshold     → verde
      *
-     * @return array{ok: bool, state: string, count: ?int}
+     * @return array{ok: bool, state: string, count: ?int, advisory?: bool}
      */
     public static function evaluateTraceUptime(
         bool $configured,
         bool $reachable,
         ?int $traceCount,
         int $threshold = 1,
+        bool $isProd = false,
     ): array {
         if (! $configured) {
-            return ['ok' => true, 'state' => 'nao-configurado', 'count' => null];
+            // Em prod, telemetria desligada não some silenciosa: advisory (visível, não
+            // pagina — pode ser desligamento intencional). Em dev/CI, pula limpo.
+            return $isProd
+                ? ['ok' => false, 'state' => 'desligado-prod', 'count' => null, 'advisory' => true]
+                : ['ok' => true, 'state' => 'nao-configurado', 'count' => null];
         }
 
         if (! $reachable) {

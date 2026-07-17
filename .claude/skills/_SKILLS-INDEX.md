@@ -4,11 +4,11 @@
 > Regenerar: `node scripts/governance/skills-index-generate.mjs --write`. Convenção de tiers: ADR 0095 · recalibração 5 núcleo + auto-trigger: ADR 0225.
 
 ## Resumo
-- **73** skills · Tier A **6** (5 núcleo + 1 dormente) · Tier B **57** · Tier C **10**
+- **74** skills · Tier A **6** (5 núcleo + 1 dormente) · Tier B **58** · Tier C **10**
 - Auto-trigger explícito: 9 (session_start 2 · path 5 · intent 1 · on_demand 1)
 - Destacadas no bloco do CLAUDE.md: 14 (entre marcadores AUTO:SKILLS)
 
-## Todas as skills (73)
+## Todas as skills (74)
 | Skill | Tier | auto_trigger | enabled | Descrição (início) |
 |---|---|---|---|---|
 | ads-decision-flow | B | — | sim | Use ao trabalhar em Modules/ADS/ ou tocar fluxo de decisão automatizada (Risk → Confidence → Policy → Router → Brain … |
@@ -82,5 +82,6 @@
 | tela-smoke-pos-merge | B | — | sim | ATIVAR após PR mergeado que toca resources/js/Pages/**/*.tsx OU quando Wagner pedir "smoke a tela X", "validar tela X… |
 | ticket-triage | B | — | sim | ATIVAR quando user pedir "analise esse ticket", "triage", "vale a pena atender X?", "qual a prioridade", "esse client… |
 | ui-component-creator | B | — | sim | Use ao criar/modificar componentes React (Pages Inertia, sub-componentes em _components/, ou shareds em Components/sh… |
+| validador-modulo | B | — | sim | ATIVAR quando Wagner pedir "valida o módulo X inteiro", "confere a estrutura de <Mod> ligada ao protótipo", "passe ad… |
 | wagner-protocol-enforce | B | on_demand | sim | BLOQUEADOR Tier A always-on — carrega memory/reference/PROTOCOLO-WAGNER-SEMPRE.md no SessionStart de TODA sessão Clau… |
 | wagner-request-refiner | B | — | sim | ATIVAR quando Wagner manda múltiplos pedidos curtos não-estruturados num mesmo turno (ex: lista com 3+ items, "todo: … |

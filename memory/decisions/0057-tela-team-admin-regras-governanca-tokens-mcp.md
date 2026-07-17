@@ -1,7 +1,7 @@
 ---
 slug: 0057-tela-team-admin-regras-governanca-tokens-mcp
 number: 57
-title: !!binary gJQgVGVsYSBgL3RlYW0tbWNwL3RlYW1gOiByZWdyYXMgZGUgZ292ZXJuYW7Dp2EgZGUgdG9rZW5zIE1DUCBlIGRpc3RyaWJ1acOnw6NvIHZpYSBgLmR4dGA=
+title: "Tela `/team-mcp/team`: regras de governança de tokens MCP e distribuição via `.dxt`"
 type: adr
 status: aceito
 authority: canonical
@@ -13,13 +13,9 @@ module: copiloto
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0040'
   - 0040-policy-publicacao-claude-supervisiona
-  - '0053'
   - 0053-mcp-server-governanca-como-produto
-  - '0055'
   - 0055-self-host-team-plan-equivalente-anthropic
-  - '0056'
   - 0056-mcp-fonte-unica-memoria-copiloto-claude-code
 pii: false
 ---

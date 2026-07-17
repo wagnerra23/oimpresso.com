@@ -23,6 +23,7 @@ on:
     branches: [main]
     paths:
       - 'Modules/NfeBrasil/**'
+      - 'Modules/Fiscal/Tests/**'
       - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
       - 'tests/Feature/Calculo/CalculoTributarioTest.php'
       - 'database/schema/mysql-schema.sql'
@@ -62,6 +63,7 @@ jobs:
           filters: |
             nfe:
               - 'Modules/NfeBrasil/**'
+              - 'Modules/Fiscal/Tests/**'
               - 'Modules/NFSe/DTO/NfseEmissaoPayload.php'
               - 'tests/Feature/Calculo/CalculoTributarioTest.php'
               - 'database/schema/mysql-schema.sql'
@@ -123,6 +125,17 @@ jobs:
         #   DatabaseTransactions (não RefreshDatabase — não envenena o seed); nfe_fiscal_rules.business_id
         #   é int indexado SEM FK → não depende de seed. Verde no CT100 (17/17) + provado nesta lane.
         #
+        # RATCHET UP (2026-07-17): + os 2 isolation-guards do cockpit Fiscal (thin agregador que lê
+        #   NfeEmissao/NfeBrasil). SKIPavam no lane sqlite (markTestSkipped) → só rodavam na nightly
+        #   diagnóstica CT100, onde falhavam INVISÍVEIS ao PR (2≠1 / 3≠1). Causa = MESMA dos irmãos
+        #   NfeBrasilMultiTenantIsolationTest/Wave25 (2026-06-24): setavam session sem actingAs, então
+        #   ScopeByBusiness no-opava (early-return `! auth()->check()`) e contava biz=1+biz=99. NÃO era
+        #   vazamento de produto (a rota /fiscal roda atrás do middleware `auth`). Fix = actingAs(biz=1)
+        #   no beforeEach; provado verde no CT100 (5/5, 31 assertions). Trigger + allowlist estendidos
+        #   pra Modules/Fiscal/Tests/** pararem de ser invisíveis ao PR.
+        #   - Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php
+        #   - Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php
+        #
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema baseline e
         # limpam o seed biz=1/biz=2, envenenando os demais.
         env:
@@ -145,7 +158,9 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/EmitirNfceAoFinalizarVendaTest.php \
             Modules/NfeBrasil/Tests/Feature/ReformaSchemaModoTest.php \
             Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
-            tests/Feature/Calculo/CalculoTributarioTest.php
+            tests/Feature/Calculo/CalculoTributarioTest.php \
+            Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
+            Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php
 
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}

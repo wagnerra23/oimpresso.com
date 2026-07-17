@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **347** arquivos · **331** números únicos · máx **0341**
-- **ADRs ATIVOS (lifecycle ativo): 313** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 313 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 313 · arquivado 18 · substituido 12 · (vazio) 4
+- **348** arquivos · **332** números únicos · máx **0342**
+- **ADRs ATIVOS (lifecycle ativo): 314** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 314 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 314 · arquivado 18 · substituido 12 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (347)
+## Todas as ADRs (348)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -60,7 +60,7 @@ _(íntegra)_
 | 0019 | aceito | ativo | decision | Delphi legado não autentica após upgrade 3.7→6.7 (investigação) |
 | 0020 | deprecated | arquivado | decision | Grupo econômico (matriz + filiais) no Officeimpresso |
 | 0021 | aceito | ativo | decision | Contrato real da API consumida pelo Delphi |
-| 0022 | aceito | ativo | decision | Meta financeira oimpresso: R$ 5 milhões/ano |
+| 0022 | aceito | ativo | decision | Meta financeira oimpresso: R$ [redacted Tier 0] milhões/ano |
 | 0023 | aceito | ativo | decision | Upgrade para Inertia.js v3 |
 | 0024 | aceito | ativo | decision | Instalação 1-clique padronizada para todos os módulos |
 | 0025 | aceito | ativo | decision | Redesign da landing pública (`Modules/Cms`) em Inertia/React |
@@ -77,7 +77,7 @@ _(íntegra)_
 | 0036 | aceito | ativo | decision | Replanejamento canônico: Meilisearch primeiro, Mem0 por último |
 | 0037 | aceito | ativo | decision | Roadmap de evolução pós-Sprint 5: Tier 5-6 → Tier 7-9 LongMemEval |
 | 0038 | aceito | ativo | decision | Promoção de `6.7-bootstrap` para `main` como branch principal |
-| 0039 | aceito | ativo | decision | Padrão de UI "Chat Cockpit" (3 colunas) para o ERP |
+| 0039 | aceito | ativo | decision | Padrão de UI \"Chat Cockpit\" (3 colunas) para o ERP |
 | 0040 | aceito | ativo | decision | Policy de publicação: Claude supervisiona, Wagner escala |
 | 0041 | aceito | ativo | decision | Stack de QA de IA: Vizra ADK eval + Langfuse self-host + DeepEval CLI (Caminho B |
 | 0042 | superseded | substituido | decision | Reverb (self-hosted) substitui Pusher Cloud como broadcaster |
@@ -387,3 +387,4 @@ _(íntegra)_
 | 0339 | aceito | ativo | decision | Emenda à 0336/0314 — promoção SOBERANA [W] de 3 gates ratchet DS (layout/styleli |
 | 0340 | aceito | ativo | decision | O tema colapsa em direções OPOSTAS no mesmo request — `auto`→dark no Blade × `au |
 | 0341 | aceito | ativo | decision | Emenda à 0314 — memory-schema REQUIRED só nas 2 famílias limpas (charter · spec) |
+| 0342 | aceito | ativo | meta | Schema de ADR: slug/refs aceitam ponto e maiúscula pra casar 3 filenames legacy  |

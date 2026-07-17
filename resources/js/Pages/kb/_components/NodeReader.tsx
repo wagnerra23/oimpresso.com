@@ -227,7 +227,7 @@ export default function NodeReader({
             className={cn(
               'inline-flex items-center gap-1 text-[10px] font-medium px-1.5 py-px rounded-sm',
               fresh.level === 'fresh' && 'text-success-fg bg-success-soft',
-              fresh.level === 'aging' && 'text-blue-700 bg-blue-100 dark:text-blue-300 dark:bg-blue-900/30',
+              fresh.level === 'aging' && 'text-info-fg bg-info-soft',
               fresh.level === 'stale' && 'text-warning-fg bg-warning-soft',
               fresh.level === 'expired' && 'text-destructive bg-destructive/10',
             )}
@@ -380,7 +380,7 @@ export default function NodeReader({
         <button
           type="button"
           onClick={onVoteHelpful}
-          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-[11.5px] font-medium text-foreground hover:border-emerald-500/40 hover:bg-emerald-500/5"
+          className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-2.5 py-1 text-[11.5px] font-medium text-foreground hover:border-success/40 hover:bg-success/5"
           title="Marcar como útil"
         >
           <ThumbsUp size={12} /> Útil{' '}

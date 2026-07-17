@@ -1,7 +1,7 @@
 ---
 slug: 0041-stack-qa-ia-vizra-langfuse-deepeval
 number: 41
-title: !!binary gJQgU3RhY2sgZGUgUUEgZGUgSUE6IFZpenJhIEFESyBldmFsICsgTGFuZ2Z1c2Ugc2VsZi1ob3N0ICsgRGVlcEV2YWwgQ0xJIChDYW1pbmhvIEIp
+title: "Stack de QA de IA: Vizra ADK eval + Langfuse self-host + DeepEval CLI (Caminho B)"
 type: adr
 status: aceito
 authority: canonical
@@ -13,14 +13,12 @@ decided_at: '2026-04-29'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0026'
-  - '0030'
+  - 0026-posicionamento-erp-grafico-com-ia
+  - 0030-credenciais-jamais-em-git
   - 0030-credenciais-nunca-no-git
-  - '0035'
   - 0035-stack-ai-canonica-wagner-2026-04-26
-  - '0036'
   - 0036-replanejamento-meilisearch-first
-  - '0037'
+  - 0037-roadmap-evolucao-tier-7-plus
 pii: false
 ---
 # ADR 0041 — Stack de QA de IA: Vizra ADK eval + Langfuse self-host + DeepEval CLI (Caminho B)

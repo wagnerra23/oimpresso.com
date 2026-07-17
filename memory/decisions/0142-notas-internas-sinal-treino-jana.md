@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-12
+decided_at: "2026-05-12"
 module: whatsapp
 tags: [whatsapp, jana, memoria, slash-commands, atendimento, training-signal, ux-chatwoot]
 supersedes: []
 supersedes_partially: []
 amends: [0135]
 superseded_by: []
-related: [0035, 0048, 0052, 0093, 0135]
+related: [0035-stack-ai-canonica-wagner-2026-04-26, 0048-framework-agentes-laravel-ai-vizra-rejeitada, 0052-contextonegocio-expor-multiplos-angulos, 0093-multi-tenant-isolation-tier-0, 0135-omnichannel-inbox-arquitetura]
 pii: false
 review_triggers:
   - "Volume de correções `/corrigir` > 50/mês/business → ativar export JSONL automático pra fine-tune"

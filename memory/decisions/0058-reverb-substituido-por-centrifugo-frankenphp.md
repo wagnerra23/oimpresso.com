@@ -1,7 +1,7 @@
 ---
 slug: 0058-reverb-substituido-por-centrifugo-frankenphp
 number: 58
-title: !!binary gJQgUmV2ZXJiIHN1YnN0aXR1w61kbyBwb3IgQ2VudHJpZnVnbyArIEZyYW5rZW5QSFA=
+title: "Reverb substituído por Centrifugo + FrankenPHP"
 type: adr
 status: aceito
 authority: canonical
@@ -13,7 +13,7 @@ module: copiloto
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0042'
+  - 0042-reverb-substitui-pusher-cloud
   - 0042-infra-empresa-padrao
 pii: false
 ---

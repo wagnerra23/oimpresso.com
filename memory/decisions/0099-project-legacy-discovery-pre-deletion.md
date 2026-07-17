@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-07
+decided_at: "2026-05-07"
 module: governance
 quarter: 2026-Q2
 tags: [mwart, legacy, project, discovery, pre-deletion, queue-for-delete]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0011, 0070, 0079, 0080, 0086, 0087, 0088, 0089, 0093, 0094]
+related: [0011-alinhamento-padrao-jana, 0070-jira-style-task-management-current-md-removed, 0079-constituicao-oimpresso-7-camadas-governanca, 0080-trust-tiers-operacional-audit-findings, 0086-fase-5-mvp-governance-actiongate-warn, 0087-drift-resolution-sem-mover-url, 0088-module-rename-php-only, 0089-capterra-driven-module-evolution, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios]
 pii: false
 review_triggers: ["Quando Fase 3.8 começar — usar este discovery pra decidir o que extrair antes de git rm", "Se ProjectMgmt absorver alguma capacidade do legacy (ex: TimeLogs, Invoice from work)"]
 ---

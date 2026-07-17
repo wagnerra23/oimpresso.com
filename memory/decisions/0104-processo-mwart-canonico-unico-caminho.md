@@ -11,12 +11,12 @@ decided_by:
 decided_at: '2026-05-08'
 quarter: 2026-Q2
 related:
-  - '0011'
-  - '0023'
-  - '0039'
-  - '0093'
-  - '0094'
-  - '0095'
+  - 0011-alinhamento-padrao-jana
+  - 0023-inertia-v3-upgrade
+  - 0039-ui-chat-cockpit-padrao
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0095-skills-tiers-convencao-interna
 pii: false
 ---
 

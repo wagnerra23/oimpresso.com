@@ -1,7 +1,7 @@
 ---
 slug: 0054-pacote-enterprise-busca-memoria-evolucao
 number: 54
-title: !!binary gJQgUGFjb3RlIGVudGVycHJpc2UgZGUgYnVzY2EgZGUgbWVtw7NyaWE6IHBvciBxdcOqICsgY29tbyBldm9sdWk=
+title: "Pacote enterprise de busca de memória: por quê + como evolui"
 type: adr
 status: aceito
 authority: canonical
@@ -14,13 +14,9 @@ decided_at: '2026-04-29'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0035'
   - 0035-stack-ai-canonica-wagner-2026-04-26
-  - '0036'
   - 0036-replanejamento-meilisearch-first
-  - '0037'
   - 0037-roadmap-evolucao-tier-7-plus
-  - '0046'
   - 0046-chat-agent-gap-contexto-rico
 pii: false
 ---

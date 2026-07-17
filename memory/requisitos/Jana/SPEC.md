@@ -1665,7 +1665,7 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 
 **Por que o monitor que já existia não pegou:** o `observability_pipeline` do `jana:system-audit` (ADR 0133 check 1) mede a **VIA** (`/api/public/health` == 200). Langfuse de pé recebendo ZERO trace responde 200 e pinta verde — daí as 7 semanas. Este check mede o **FLUXO**, fechando o mesmo par que o Whatsapp já tem entre `whatsapp_inbound_canary` (via) e `whatsapp_inbound_flow` (resultado). Lição do #2726, idêntica: todo monitor media degradação DENTRO de um fluxo vivo, nunca a AUSÊNCIA do fluxo.
 
-**Residual honesto:** com `LANGFUSE_ENABLED=false` em prod o check PULA em vez de acender (mesmo padrão de skip de `memoria_recall_backend`/`mcp_webhook_5xx_2h`). Quem cobre esse flanco é o `observability_pipeline` (exige env setado). Fechar de vez exigiria distinguir "dev sem credencial" de "prod com flag derrubada" — NÃO resolvido aqui.
+**Residual (fechado como advisory · follow-up 2026-07-17):** com `LANGFUSE_ENABLED=false` **em produção** (`app()->environment(['production','live'])`, alinhado ao schedule `->environments(['live'])`), o check agora vira ADVISORY `desligado-prod` — visível na tabela do health-check, mas **NÃO** pagina (não derruba o exit/cron). Pega o modo de falha "deploy resetou o `.env` e derrubou a flag" (classe ext-sodium/classmap stale) sem presumir que o Langfuse é obrigatório. Em dev/CI (env não-prod) segue pulando silencioso. **Trade-off honesto:** a distinção acidente-vs-desligamento-intencional não existe sem estado histórico — por isso advisory (não duro); se o Langfuse ficar intencionalmente desligado em prod por um período, esta linha fica amarela até religar. O flanco `observability_pipeline` do `jana:system-audit` (exige `LANGFUSE_HOST` setado) segue como cobertura paralela.
 
 **Refs:** `app/Console/Kernel.php:200` (schedule daily 06:00 BRT — já existente) · `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · `Modules/Jana/Services/Telemetry/LangfuseClient.php` (emissão) · ADR 0132 · ADR 0133
 
@@ -1835,3 +1835,28 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 - Ligar tools **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passa a buscar melhor o contexto errado. Piso de recall segue pendente.
 
 **Refs:** ADR 0245 · ADR 0141 · ADR 0101 · US-COPI-141 · US-COPI-136 (piso de recall) · US-COPI-137 (eval online) · US-COPI-135 (modelo frontier)
+
+### US-COPI-143 · Deprecar o `jana:drift-sentinel` tautológico (o "alarme de drift" mede gt-vs-gt, não a Jana)
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+
+**Implementado em:** _pendente_ — o código de honestidade já está (docblock + `caveat` no report + guard no `--update-baseline` + bite-test), mas a **deprecação formal** (tirar a alegação de "alarme de drift da Jana" do dashboard de governança + decidir aposentar vs manter como sonda) é decisão [W] — por isso `_pendente_`.
+
+**Origem:** re-grade da dimensão `qualidade-drift-ia-producao` (2026-07-17). O chip C3 pedia "regravar o baseline real do drift-sentinel". Ao verificar, o sentinel provou-se **tautológico**.
+
+**Sinal (PROVADO no CT 100):** `jana:drift-sentinel --detail` real → as **51 perguntas dão `Current = 1.0`**. O código chama `scoreFaithfulness(question, ground_truth, ground_truth)` — answer = context = ground_truth. É a **mesma tautologia que a ADR 0318 matou no `ci-eval`**, sobrevivente porque a 0318 só tocou aquele comando. O sentinel **nunca roda o pipeline real** (`KbAnswerService`) — mede a auto-consistência do juiz em gt-vs-gt, não a Jana. Regravar o baseline (o chip C3) tornaria o alarme **estritamente pior** (baseline=1.0 → Δ=0 pra sempre → nunca dispara). Lápide §5 2026-07-17.
+
+**O que já foi feito (PR de honestidade, esta sessão):**
+- [x] Docblock do comando marca a tautologia + aponta pro sinal real (`ragas-real-eval`).
+- [x] `caveat` no report semanal — o "ok" não pode ser lido como "Jana OK".
+- [x] Guard no `--update-baseline` fora de `--mock` (fecha a armadilha do chip C3; exige `DRIFT_BASELINE_TAUTOLOGIA_OK=1` consciente).
+- [x] Bite-test: o guard bloqueia + o caveat viaja no report.
+
+**Escopo (decisão [W]):**
+- [ ] **A (recomendado) — aposentar:** o sinal de drift real da Jana já existe (`jana:ragas-real-eval`, ADR 0318, roda via US-COPI-140 + piso US-COPI-136). Remover o sentinel do schedule + do `governance-audit.mjs` como "alarme de drift", registrando via ADR de deprecação. Não duplicar régua (§5).
+- [ ] **B — reconectar ao pipeline real** (rodar `KbAnswerService`): mata a tautologia mas **duplica** o `ragas-real-eval` — a §5 alerta contra régua paralela. Menos preferível.
+- [ ] **C — manter só como sonda relabelada** ("auto-consistência do juiz", não drift da Jana): o mínimo já entregue por este PR; formalizar se [W] quiser manter o probe.
+
+**DoD:** a alegação "alarme de drift da Jana" some do dashboard de governança (ou o sentinel some), e o único sinal de drift da Jana que o dashboard mostra é o `ragas-real-eval`.
+
+**Refs:** ADR 0318 · US-COPI-136 · US-COPI-140 · `Modules/Jana/Console/Commands/JanaDriftSentinelCommand.php` · proibicoes.md §5 2026-07-17

@@ -1,7 +1,7 @@
 ---
 slug: 0045-hostinger-dns-api-endpoint-canonico
 number: 45
-title: !!binary gJQgRW5kcG9pbnQgY2Fuw7RuaWNvIGRhIEhvc3RpbmdlciBETlMgQVBJIFYx
+title: "Endpoint canônico da Hostinger DNS API V1"
 type: adr
 status: aceito
 authority: canonical
@@ -13,9 +13,7 @@ module: infra
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0043'
   - 0043-docker-host-traefik-vs-lxc-nativo
-  - '0044'
   - 0044-vaultwarden-self-hosted-cofre
 pii: false
 ---
