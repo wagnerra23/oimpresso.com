@@ -718,13 +718,18 @@ return [
     | O PiiRedactor roda ANTES do juiz SEMPRE. Rodar de verdade = enabled=true E
     | judge=openai (ambas decisões [W]). Estado default (OFF + local) = nada sai, nada roda.
     |
+    | Hardcoded (NÃO env): a regra larastan noEnvCallsOutsideOfConfig conta env() deste
+    | arquivo num baseline fixo (mesmo motivo do ui_judge acima) — flag nova não fura o
+    | teto. Ligar = editar AQUI + `php artisan config:clear` (decisão [W]). Pra flag LGPD
+    | isso é bom: o enable vira commit auditável no git, não um toggle silencioso de .env.
+    |
     | @see Modules/Jana/Jobs/Telemetry/JudgeTraceOnlineJob.php
     | @see memory/requisitos/Jana/SPEC.md#US-COPI-137
     */
     'online_eval' => [
-        'enabled'     => (bool) env('JANA_ONLINE_EVAL_ENABLED', false),
-        'sample_rate' => (float) env('JANA_ONLINE_EVAL_SAMPLE_RATE', 0.05),
-        'judge'       => (string) env('JANA_ONLINE_EVAL_JUDGE', 'local'),
+        'enabled'     => false,   // [W] liga aqui (gate 1)
+        'sample_rate' => 0.05,    // ~5% dos traces
+        'judge'       => 'local', // 'local' (zero egress, a implementar) | 'openai' (aceite LGPD [W]) — gate 2
     ],
 
     /*

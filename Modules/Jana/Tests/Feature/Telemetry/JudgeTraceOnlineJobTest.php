@@ -58,7 +58,7 @@ it('judge=local (default): SKIPa — juiz NÃO chamado, recordScore NÃO chamado
     $client = Mockery::mock(LangfuseClient::class);
     $client->shouldNotReceive('recordScore');       // nada gravado
 
-    $job = new JudgeTraceOnlineJob('trace-1', 4, 'input com CPF 111.444.777-35', 'resposta');
+    $job = new JudgeTraceOnlineJob('trace-1', 4, 'input do cliente', 'resposta');
     $job->handle(app(PiiRedactor::class), $judge, $client);
 
     // Mockery verifica os shouldNotReceive no teardown.
@@ -70,7 +70,7 @@ it('judge=local (default): SKIPa — juiz NÃO chamado, recordScore NÃO chamado
 it('judge=openai: PiiRedactor roda ANTES do juiz — texto pro juiz externo NÃO tem PII crua', function () {
     config(['jana.online_eval.judge' => 'openai']);
 
-    $cpfCru = '111.444.777-35';
+    $cpfCru = '111.444.777-35'; // pii-allowlist (CPF sintético de teste — prova de redação)
     $emailCru = 'larissa@rotalivre.com.br';
 
     // Fake judge: NÃO é mock-mode (pra passar do guard de mock), captura o que recebe.
