@@ -1,46 +1,47 @@
 {
+  "_LEIA_PRIMEIRO": "SNAPSHOT de 2026-07-17 — retrato, NÃO medição viva. Esta métrica já INVERTEU em 4 dias (a grade de 2026-07-17 citou \"matched_por_branch: 0 · 96,8% órfão\" daqui como fato; ao vivo era 12/20 e o diagnóstico estava errado). NÃO cite nenhum número deste arquivo sem rodar antes: node scripts/governance/agent-cost-per-pr.mjs --json",
   "ok": true,
   "generated": "2026-07-17",
   "janela": {
     "dias": 14,
     "desde": "2026-07-03",
-    "prs_no_universo": 435,
+    "prs_no_universo": 433,
     "prs_exibidos": 20,
     "marker": "[CC]"
   },
   "custo": {
-    "total_usd_escaneado": 19549.97,
-    "total_usd_atribuido": 15878.26,
-    "cobertura_alocacao_pct": 81.22,
+    "total_usd_escaneado": 19599.07,
+    "total_usd_atribuido": 15884.74,
+    "cobertura_alocacao_pct": 81.05,
     "mediana_usd_por_pr": 18.98,
     "top_prs": [
       {
         "pr": 4201,
-        "usd": 242.29,
+        "usd": 244.04,
         "title": "fix(sdd): distiller_freshness não fabrica stale em checkout shallow (o 6 era artefato de medição, não dívida) [CC]"
+      },
+      {
+        "pr": 3833,
+        "usd": 163.09,
+        "title": "fix(governance): grader D8.a detecta throttle em array + D4.d detecta OtelHelper/Activitylog [CC]"
       },
       {
         "pr": 3915,
         "usd": 161.49,
         "title": "fix(shell): main-body position:relative — elimina o branco infinito no fim das telas do cockpit [CC]"
-      },
-      {
-        "pr": 3833,
-        "usd": 150.08,
-        "title": "fix(governance): grader D8.a detecta throttle em array + D4.d detecta OtelHelper/Activitylog [CC]"
       }
     ]
   },
   "residuo": {
-    "usd": 3671.77,
-    "pct": 18.78,
+    "usd": 3714.33,
+    "pct": 18.95,
     "por_categoria": {
-      "sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)": 3671.77
+      "sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)": 3714.33
     }
   },
   "join": {
     "sem_match": 14,
-    "sem_match_pct": 3.22,
+    "sem_match_pct": 3.23,
     "matched_por_branch": 18,
     "matched_por_citacao": 405,
     "msgs_sem_branch": 0,
@@ -57,8 +58,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 34449017,
-      "usd": 29.88
+      "tokens": 74412964,
+      "usd": 53.64
     },
     {
       "pr": 4406,
@@ -112,10 +113,11 @@
       "branch": "claude/fix-canario-scope-global",
       "matched": true,
       "sinais": [
-        "branch"
+        "branch",
+        "citacao"
       ],
-      "tokens": 47075096,
-      "usd": 37.64,
+      "tokens": 49028092,
+      "usd": 39.39,
       "usd_incompleto": true
     },
     {
@@ -172,8 +174,8 @@
         "branch",
         "citacao"
       ],
-      "tokens": 140637167,
-      "usd": 117.16
+      "tokens": 142590163,
+      "usd": 118.91
     },
     {
       "pr": 4380,
@@ -206,8 +208,8 @@
       "sinais": [
         "citacao"
       ],
-      "tokens": 36757088,
-      "usd": 29.24
+      "tokens": 38710084,
+      "usd": 30.99
     },
     {
       "pr": 4376,

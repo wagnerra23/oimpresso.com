@@ -13,6 +13,7 @@ import {
   buildReport, parseUsageLine, custoUSD, resolvePreco, aggregatePorBranch,
   aggregatePorModelo, extractPrMentions, PRECOS_USD_MTOK, CACHE_MULT,
   PR_FETCH_LIMIT, DEFAULT_DAYS, renderHuman, renderBriefMd, renderPrBlockMd,
+  linhaIdade, avisoSnapshot, IDADE_SUSPEITA_DIAS,
 } from './agent-cost-per-pr.mjs';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -162,6 +163,33 @@ check('--pr: bloco publica cobertura de alocação junto (contexto do número)',
 check('--pr: PR sem sessão casada DECLARA "não medido" (não inventa $0)', renderPrBlockMd(r, r.por_pr.find((p) => p.pr === 11)).includes('não medido'));
 check('--pr: bloco é RELATO — não fala em bloquear/gate/falhar', !/\b(bloqueia merge|reprova|falha o PR)\b/i.test(blocoPago) && blocoPago.includes('não bloqueia'));
 check('--pr: bloco NÃO traz valores R$ (Tier 0 — só USD)', !/R\$/.test(blocoPago));
+
+// ── CONTRATO: nenhum número sai sem a IDADE colada nele ─────────────────────────
+// Incidente de origem (2026-07-17): a grade citou "96,8% órfão" de um snapshot de 4 dias
+// como fato vivo — e o diagnóstico estava invertido (matched_por_branch 0 vs 12 ao vivo).
+// O campo `generated` JÁ existia e não impediu: data exige subtração contra hoje. Idade
+// não exige nada. O limiar antigo (14d) não disparou porque 4 < 14 — por isso o alerta é
+// calibrado pela meia-vida MEDIDA (4d), não por um número arbitrário.
+check('idade 0 → diz "AO VIVO" (não cala: dizer que é vivo é informação)', linhaIdade(0).includes('AO VIVO'));
+check('idade 4d (o caso REAL do incidente) → GRITA "não é medição viva"', /MEDIDO HÁ 4d/.test(linhaIdade(4)) && linhaIdade(4).includes('NÃO cite'));
+check('limiar calibrado pela meia-vida medida: 4d > IDADE_SUSPEITA_DIAS(3)', IDADE_SUSPEITA_DIAS === 3 && 4 > IDADE_SUSPEITA_DIAS);
+check('idade 1d ainda declara que é retrato (não finge vivo)', linhaIdade(1).includes('retrato'));
+check('idade AUSENTE não passa em silêncio (declara desconhecida)', linhaIdade(undefined).includes('DESCONHECIDA'));
+check('brief de 4d carrega o alerta ACIMA da tabela (não em rodapé)', (() => {
+  const md = renderBriefMd(r, 4);
+  return md.indexOf('MEDIDO HÁ 4d') < md.indexOf('| Métrica |');
+})());
+check('texto humano de 4d carrega o alerta ACIMA dos números', (() => {
+  const t = renderHuman(r, 4);
+  return t.indexOf('MEDIDO HÁ 4d') < t.indexOf('COBERTURA DE ALOCAÇÃO');
+})());
+check('bloco do PR também declara a idade', renderPrBlockMd(r, r.por_pr.find((p) => p.pr === 10), 4).includes('MEDIDO HÁ 4d'));
+
+// snapshot se AUTO-DENUNCIA: a grade leu o JSON, não o markdown — a defesa mora no arquivo
+check('aviso do snapshot é a PRIMEIRA chave do JSON (o leitor não passa reto)',
+  Object.keys({ _LEIA_PRIMEIRO: avisoSnapshot('2026-07-13'), ...r })[0] === '_LEIA_PRIMEIRO');
+check('aviso do snapshot carrega a data + o mando de rodar ao vivo',
+  avisoSnapshot('2026-07-13').includes('2026-07-13') && avisoSnapshot('2026-07-13').includes('--json') && avisoSnapshot('2026-07-13').includes('NÃO cite'));
 
 // ── encoding PT-BR sobrevive report → snapshot em disco (mesma escrita do --snapshot) ──
 const MOJIBAKE = /Ã[£©¡§µ­ª‚ƒ†]|â€|Ãƒ|�/; // Ã£/Ã©/â€œ/â€”/U+FFFD etc

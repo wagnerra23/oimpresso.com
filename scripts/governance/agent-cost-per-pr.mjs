@@ -418,12 +418,50 @@ export function scanSessionsLocal({ projectsDir, projectFilter = 'oimpresso', si
 const usd = (v) => (v == null ? 'n/d' : `$${v.toFixed(2)}`);
 const kTok = (n) => `${Math.round(n / 1000)}k`;
 
-export function renderHuman(r) {
+/**
+ * Meia-vida MEDIDA desta métrica: 4 dias. Não é chute — em 2026-07-17 a grade de réguas
+ * citou "matched_por_branch: 0 · 96,8% órfão" como fato vivo; era o snapshot de 07-13, e
+ * ao vivo o número era 12/20. Quatro dias bastaram pra INVERTER o diagnóstico e quase
+ * fabricar o conserto errado (fonte por SHA — hoje lápide no §5 das proibições).
+ */
+export const IDADE_SUSPEITA_DIAS = 3;
+
+/**
+ * Linha de idade — SEMPRE colada nos números, nunca em rodapé.
+ *
+ * Por que não bastava o `generated`: ele JÁ existia no JSON e não impediu nada. Data
+ * exige que o leitor faça a subtração contra hoje; IDADE não exige nada. E o limiar de
+ * 14d do --render-snapshot não disparou porque o snapshot tinha 4 dias — "fresco" pela
+ * régua e já errado. Por isso o alerta é calibrado pela meia-vida medida (4d), não por
+ * um 14 arbitrário, e a idade aparece mesmo quando é 0 (dizer "ao vivo" é informação).
+ */
+/**
+ * Aviso gravado como PRIMEIRA chave do snapshot (`_LEIA_PRIMEIRO`).
+ * O leitor que rotou o diagnóstico em 2026-07-17 foi um agente lendo o JSON — markdown
+ * bonito não o alcança. A defesa tem que morar no arquivo que ele abre.
+ */
+export function avisoSnapshot(generated) {
+  return `SNAPSHOT de ${generated} — retrato, NÃO medição viva. Esta métrica já INVERTEU em 4 dias `
+    + `(a grade de 2026-07-17 citou "matched_por_branch: 0 · 96,8% órfão" daqui como fato; ao vivo era 12/20 e o `
+    + `diagnóstico estava errado). NÃO cite nenhum número deste arquivo sem rodar antes: `
+    + `node scripts/governance/agent-cost-per-pr.mjs --json`;
+}
+
+export function linhaIdade(idadeDias) {
+  if (idadeDias == null || !Number.isFinite(idadeDias)) return '⚠️ IDADE DESCONHECIDA — não dá pra saber se estes números valem hoje.';
+  if (idadeDias <= 0) return '📍 MEDIDO AGORA — AO VIVO (não é retrato).';
+  if (idadeDias <= IDADE_SUSPEITA_DIAS) return `⏳ Medido há ${idadeDias}d — retrato, não medição viva.`;
+  return `⚠️ MEDIDO HÁ ${idadeDias}d — retrato VELHO, não medição viva. Esta métrica já inverteu em 4 dias (a grade de 2026-07-17 citou "96,8% órfão" de um snapshot de 07-13; ao vivo era outro número). NÃO cite os valores abaixo sem rodar \`node scripts/governance/agent-cost-per-pr.mjs\` antes.`;
+}
+
+export function renderHuman(r, idadeDias) {
   const L = [];
   L.push('═══════════════════════════════════════════════════════════════');
   L.push(' CUSTO POR PR — agente (USD estimado · advisory) · ' + r.generated);
   L.push(` janela ${r.janela.dias}d desde ${r.janela.desde} · ${r.janela.prs_no_universo} PRs ${r.janela.marker} mergeados`);
   L.push('═══════════════════════════════════════════════════════════════');
+  L.push('');
+  L.push('  ' + linhaIdade(idadeDias));
   L.push('');
   if (r.janela.fonte_truncada) {
     L.push('  ⚠️  FONTE TRUNCADA: o fetch bateu no cap de PRs — o universo NÃO cobre a');
@@ -453,9 +491,11 @@ export function renderHuman(r) {
   return L.join('\n');
 }
 
-export function renderBriefMd(r) {
+export function renderBriefMd(r, idadeDias) {
   const L = [];
   L.push('### Custo por PR — agente (USD estimado · advisory)');
+  L.push('');
+  L.push(`> ${linhaIdade(idadeDias)}`);
   L.push('');
   L.push(`_Janela ${r.janela.dias}d desde ${r.janela.desde} · ${r.janela.prs_no_universo} PRs \`${r.janela.marker}\` mergeados · gerado ${r.generated} · fonte JSONL local (G3)._`);
   L.push('');
@@ -490,12 +530,14 @@ export function renderBriefMd(r) {
  * DESTE PR). Este bloco é o número real do PR, medido onde o dado mora.
  * RELATO, não gate (ADR 0271/0314): nada aqui bloqueia merge.
  */
-export function renderPrBlockMd(r, p) {
+export function renderPrBlockMd(r, p, idadeDias) {
   const L = [];
   L.push('<!-- agent-cost-per-pr -->');
   L.push('**Custo estimado deste PR** (advisory · não bloqueia): ' + (p && p.matched
     ? `**${usd(p.usd)}**${p.usd_incompleto ? ' (parcial — modelo sem preço)' : ''} · ${kTok(p.tokens)} tok · sinal \`${p.sinais.join('+')}\``
     : '_sem sessão local casada — não medido (G1/G3)_'));
+  L.push('');
+  L.push(`${linhaIdade(idadeDias)}`);
   L.push('');
   L.push(`_Mediana da janela ${r.janela.dias}d: **${usd(r.custo.mediana_usd_por_pr)}**/PR · cobertura de alocação **${r.custo.cobertura_alocacao_pct ?? 'n/d'}%** (${usd(r.custo.total_usd_atribuido)} de ${usd(r.custo.total_usd_escaneado)}). Proxy do JSONL local; unidade = sessão (G2). Sem valores em reais — custo em USD._`);
   if (r.janela.fonte_truncada) L.push('\n> ⚠️ fonte truncada — universo incompleto, mediana/cobertura subestimadas.');
@@ -516,9 +558,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const renderSnapshot = argVal(argv, '--render-snapshot', null);
   if (renderSnapshot) {
     const r = JSON.parse(readFileSync(renderSnapshot, 'utf8'));
+    // idade é calculada no RENDER, nunca gravada: guardada no arquivo, ela mentiria
+    // "há 0 dias" pra sempre. É o único jeito de envelhecer junto com o dado.
     const idadeDias = Math.floor((Date.now() - Date.parse(r.generated)) / 86400000);
-    process.stdout.write(renderBriefMd(r) + '\n');
-    if (idadeDias > 14) process.stdout.write(`\n> ⚠️ snapshot com ${idadeDias}d — rode local: \`node scripts/governance/agent-cost-per-pr.mjs --snapshot\` e commite.\n`);
+    process.stdout.write(renderBriefMd(r, idadeDias) + '\n');
+    if (idadeDias > IDADE_SUSPEITA_DIAS) {
+      process.stdout.write(`\n> Pra atualizar: \`node scripts/governance/agent-cost-per-pr.mjs --snapshot\` (LOCAL — o CI não enxerga o JSONL, G5) e commite \`${renderSnapshot}\`.\n`);
+    }
     process.exit(0);
   }
 
@@ -563,7 +609,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const prAlvo = Number(argVal(argv, '--pr', ''));
   if (prAlvo) {
     const rp = buildReport({ prs, sessions, marker, prWindow: Number.MAX_SAFE_INTEGER, days, fonteTruncada });
-    process.stdout.write(renderPrBlockMd(rp, rp.por_pr.find((x) => x.pr === prAlvo)) + '\n');
+    process.stdout.write(renderPrBlockMd(rp, rp.por_pr.find((x) => x.pr === prAlvo), 0) + '\n');
     process.exit(0);
   }
 
@@ -572,12 +618,16 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   if (argv.includes('--snapshot')) {
     const out = argVal(argv, '--snapshot', null) || join(dirname(fileURLToPath(import.meta.url)), 'data', 'agent-cost-per-pr-snapshot.json');
     mkdirSync(dirname(out), { recursive: true });
-    writeFileSync(out, JSON.stringify(r, null, 2) + '\n');
+    // O arquivo se AUTO-DENUNCIA. A grade de 2026-07-17 leu ESTE JSON (não o markdown) e
+    // citou "96,8% órfão" como fato vivo: o `generated` estava lá, mas era só uma data no
+    // meio do objeto — exigia o leitor subtrair contra hoje, e ninguém subtraiu. Este
+    // aviso é a PRIMEIRA chave que qualquer leitor (humano ou agente) encontra.
+    writeFileSync(out, JSON.stringify({ _LEIA_PRIMEIRO: avisoSnapshot(r.generated), ...r }, null, 2) + '\n');
     console.error(`[agent-cost-per-pr] snapshot gravado em ${out}`);
   }
 
   if (argv.includes('--json')) process.stdout.write(JSON.stringify(r, null, 2) + '\n');
-  else if (argv.includes('--brief')) process.stdout.write(renderBriefMd(r) + '\n');
-  else process.stdout.write(renderHuman(r) + '\n');
+  else if (argv.includes('--brief')) process.stdout.write(renderBriefMd(r, 0) + '\n');
+  else process.stdout.write(renderHuman(r, 0) + '\n');
   process.exit(0);
 }
