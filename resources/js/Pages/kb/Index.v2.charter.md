@@ -5,6 +5,8 @@ controller: Modules\KB\Http\Controllers\KbController@indexV2
 route: kb.v2
 status: draft
 owner: wagner
+parent_module: KB
+related_us: [US-KB-001]
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional (1280px balcão) — só quando existir SOP escrito à mão
 charter_version: 2.0
@@ -38,6 +40,15 @@ mwart_pattern_reuse:
 
 **O leitor dos documentos da empresa, num layout de três colunas** — categorias à esquerda, lista de
 documentos no meio, documento aberto à direita — com busca instantânea e `⌘K`.
+
+> **A US que esta tela atende — [US-KB-001](../../../memory/requisitos/KB/SPEC.md):** *"Como Wagner
+> governance, **quero ver** os ADRs do projeto como nós navegáveis, **para** consultar dependências
+> sem grep cego no filesystem."* O **backend dela já está ✅ LIVE** (o `KbBridgeFromMcpJob` popula
+> `kb_nodes` em prod há meses) — **o que falta é o "ver"**. Esta tela É o ver. Sem ela, a US está
+> entregue pela metade: o dado existe, ninguém enxerga.
+>
+> A tela também **encosta** em US-KB-004 (trilhas) e US-KB-005 (troubleshooter) — os diálogos existem
+> na header —, mas o contrato aqui é a **001**; as outras têm charter próprio quando saírem do mock.
 
 ## 2. O que a tela mostra (isto é o contrato)
 
