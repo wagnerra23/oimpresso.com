@@ -29,6 +29,11 @@
 //   node prototipo-ui/render-proto-baseline.mjs --gerar Financeiro/Unificado
 //        [--staging <dir>] [--porta 8799] [--viewports 1280,1440] [--themes light,dark]
 //        [--route <id>] [--out <path.json>]
+//     · --gerar RECUSA (exit 3) se o id de rota não existir no roteador do app.jsx — rota
+//       desconhecida ⇒ o shell renderiza o placeholder "Módulo legado" (ModuleStub) e o baseline
+//       nasceria com o DOM ERRADO passando por íntegro (dogfood 2026-07-17). A recusa lista os
+//       ids válidos. Atenção: `rotaDoAnchor` deriva a rota do NOME do arquivo (forja-page.jsx →
+//       "forja") e isso NEM SEMPRE é o id real ("projects") — quando divergir, passe --route.
 //   node prototipo-ui/render-proto-baseline.mjs --check [arquivo.json ...]   # sem args: varre tudo
 //   node prototipo-ui/render-proto-baseline.mjs --extract <baseline.json> <1280|dark> [--out proto.json]
 //   node prototipo-ui/render-proto-baseline.mjs --selftest                   # hermético, morde/libera
@@ -43,7 +48,7 @@ import { join, resolve, dirname, extname, relative, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { resolveAncora } from './ancora.mjs';
-import { SNIPPET } from './style-fingerprint.mjs';
+import { SNIPPET, rotulosDistintivos, overlapConteudo } from './style-fingerprint.mjs';
 import { computeGitSha } from './gerar-map.mjs';
 import { acharBundleRoot } from './importar-bundle.mjs';
 import { STAGING_DIR, normalize, contentHash } from './protocolo.config.mjs';
@@ -68,8 +73,30 @@ export function rotaDoAnchor(ancora) {
   return m ? m[1] : null;
 }
 
+// normModulo — a chave de módulo é o MESMO fato escrito com convenções diferentes nas 2 árvores:
+// `Pages/kb` × `memory/requisitos/KB`; `Pages/team-mcp` × `memory/requisitos/TeamMcp`. Comparar
+// string-exata (o que o telasAfetadas fazia) deixa o nudge MORTO justo nesses módulos — provado
+// 2026-07-17 com controle-negativo: `Pages/kb/Index.tsx` → "nenhum módulo com baseline", mesmo
+// com o baseline commitado; `Pages/Sells` (case casa por sorte) disparava. Os 3 baselines antigos
+// só funcionavam porque Sells/Compras/Financeiro batem exato. Normaliza: caixa + separadores.
+export function normModulo(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+// resolveDirModulo — o dir CANÔNICO de memory/requisitos pro módulo (o que já existe manda: é a
+// convenção viva). Sem match (ou sem árvore legível) usa o nome do Pages/ — dir novo, honesto.
+export function resolveDirModulo(mod, repoRoot = REPO) {
+  try {
+    const base = join(repoRoot, 'memory', 'requisitos');
+    const alvo = normModulo(mod);
+    for (const d of readdirSync(base, { withFileTypes: true })) {
+      if (d.isDirectory() && normModulo(d.name) === alvo) return d.name;
+    }
+  } catch { /* árvore ausente (fixture/selftest) → cai no nome do Pages/ */ }
+  return mod;
+}
+
 // destino canônico do baseline — imita o naming do map.json (memory/requisitos/Financeiro/
 // unificado.map.json): Mod = 1º segmento após Pages/, tela = dirs seguintes minus Index, lowercase.
+// O DIR sai do resolveDirModulo (canônico > derivado) pra não criar `team-mcp/` ao lado de `TeamMcp/`.
 export function destinoBaseline(telaViva, repoRoot = REPO) {
   const norm = String(telaViva || '').replace(/\\/g, '/');
   const m = norm.match(/resources\/js\/Pages\/([^/]+)\/(.+)\.tsx$/);
@@ -77,7 +104,7 @@ export function destinoBaseline(telaViva, repoRoot = REPO) {
   const mod = m[1];
   const partes = m[2].split('/').filter((p) => p.toLowerCase() !== 'index');
   const slug = (partes.length ? partes : [mod]).join('-').toLowerCase();
-  return join(repoRoot, 'memory', 'requisitos', mod, `${slug}.proto-baseline.json`);
+  return join(repoRoot, 'memory', 'requisitos', resolveDirModulo(mod, repoRoot), `${slug}.proto-baseline.json`);
 }
 
 export function montarBaseline({ tela, charter, ancora, prototipo_sha, shell, celulas }) {
@@ -128,6 +155,58 @@ export function verificarBaseline(b, { ancoraAtual = null, shaAtual = null } = {
     else if (shaAtual !== b.prototipo_sha) drift.push(`STALE: prototipo_sha salvo='${b.prototipo_sha}' · atual='${shaAtual}' — o protótipo re-exportou; regenerar via --gerar`);
   }
   return { ok: drift.length === 0, drift, warn };
+}
+
+// ── ROTA VÁLIDA: a trava do --gerar (2026-07-17) ───────────────────────────────
+// O BUG: quando a rota não existe no shell, o app.jsx cai no `ModuleStub` (a página-placeholder
+// "Módulo legado": Roadmap MWART / "Ver no Blade atual") — e o baseline nascia com o DOM ERRADO,
+// carimbado âncora ✓ / sha ✓. O --check hermético chamava de ÍNTEGRO porque nenhuma pergunta dele
+// (schema · âncora-STRING · sha) é sobre PROCEDÊNCIA do conteúdo: a âncora podre entrava pela porta
+// que a ADR 0326 fechou só na saída. Pego no dogfood team-mcp/Forja/Cockpit: `rotaDoAnchor` deriva
+// a rota do NOME do arquivo (forja-page.jsx → "forja"), mas o id real no roteador é "projects".
+//
+// POR QUE AQUI E NÃO NO OVERLAP DE CONTEÚDO (F5): a 1ª tentativa foi reusar `overlapConteudo` do
+// --compare (os rótulos da âncora têm que aparecer no DOM). MEDIDO em 7 telas reais: kb 52% ·
+// Jana 51% · Concil 30% · Impostos 27% · DRE 18% · **Fluxo 0%** · **Forja(rota certa) 7%** →
+// 2 de 7 REPROVAM sendo LEGÍTIMAS = 29% de falso-positivo. A causa é estrutural e o próprio
+// style-fingerprint já a confessa ("rótulos vindos de dados (outro arquivo) não contam"): tela
+// chart-only (Fluxo = saldo/entrada/saída + projeção BRL) e tela data-driven (Forja = FORJA-141/
+// ADR0253 vindos de mock) pontuam baixo POR ESTAREM CERTAS. Guard que bloqueia o legítimo é a
+// lápide do `@scope` (proibicoes §5, 2026-07-09) se repetindo. Então o overlap vira AVISO.
+//
+// A trava real é um FATO, não heurística: o id de rota está no roteador do app.jsx? Rota inválida
+// ⇒ ModuleStub garantido ⇒ recusa ANTES de renderizar (barato) e diz os ids válidos. Fail-OPEN se
+// o parse não reconhecer o roteador (<5 ids): o que não dá pra medir não reprova.
+const RE_ROTA_IF = /route\s*===\s*["']([\w-]+)["']/g;              // if (route === "kb")
+const RE_ROTA_LISTA = /\[([^\]]*?)\]\s*\.\s*includes\(\s*route\s*\)/gs; // ["crm","inbox",…].includes(route)
+export function rotasValidas(appJsxSrc) {
+  const ids = new Set();
+  for (const m of String(appJsxSrc || '').matchAll(RE_ROTA_IF)) ids.add(m[1]);
+  for (const m of String(appJsxSrc || '').matchAll(RE_ROTA_LISTA)) {
+    for (const s of m[1].matchAll(/["']([\w-]+)["']/g)) ids.add(s[1]);
+  }
+  return ids;
+}
+export function verificarRota(route, appJsxSrc) {
+  const ids = rotasValidas(appJsxSrc);
+  if (ids.size < 5) return { ok: true, motivo: `rota NÃO checada (roteador do app.jsx não reconhecido: ${ids.size} ids) — fail-open` };
+  if (!ids.has(route)) {
+    const perto = [...ids].filter((i) => i.includes(route) || route.includes(i)).slice(0, 4);
+    return { ok: false, motivo: `rota "${route}" NÃO existe no roteador do app.jsx → o shell cairia no placeholder "Módulo legado" (ModuleStub) e o baseline nasceria com o DOM ERRADO.${perto.length ? ` Próximas: ${perto.join(' · ')}.` : ''} ids válidos (${ids.size}): ${[...ids].sort().join(' · ')}` };
+  }
+  return { ok: true, motivo: `rota ✓ "${route}" existe no roteador do app.jsx` };
+}
+
+// AVISO (não trava): o DOM capturado tem a copy da âncora? Sinal útil, mas NÃO decide — ver o
+// bloco acima (29% de FP em telas legítimas chart-only/data-driven). Reusa a F5 do --compare.
+export function verificarConteudo(srcAncora, celulas) {
+  if (srcAncora == null) return { ok: true, motivo: 'conteúdo NÃO checado (âncora ilegível) — fail-open, igual ao --compare', achados: 0, total: 0 };
+  const textos = [];
+  for (const fp of Object.values(celulas || {})) {
+    for (const e of fp?.elementos || []) textos.push(e.texto);
+    for (const k of fp?.compostos || []) textos.push(k.texto);
+  }
+  return overlapConteudo(rotulosDistintivos(srcAncora), textos);
 }
 
 // extrai 1 célula como fingerprint standalone — o formato que o style-fingerprint --compare
@@ -184,9 +263,12 @@ export function telasAfetadas(files, baselines) {
     const m = String(f).replace(/\\/g, '/').match(/^resources\/js\/Pages\/([^/]+)\//);
     if (m) mods.add(m[1]);
   }
+  // normalizado nos 2 lados (Pages/kb × requisitos/KB · Pages/team-mcp × requisitos/TeamMcp) —
+  // string-exata deixava o nudge morto justo nesses módulos (ver normModulo).
+  const modsN = new Set([...mods].map(normModulo));
   return (baselines || []).filter((b) => {
     const m = String(b).replace(/\\/g, '/').match(/(?:^|\/)memory\/requisitos\/([^/]+)\//);
-    return m && mods.has(m[1]);
+    return m && modsN.has(normModulo(m[1]));
   });
 }
 
@@ -302,6 +384,12 @@ async function cmdGerar(args) {
 
   const route = args.route || rotaDoAnchor(ancora);
   if (!route) { console.error(`⛔ não sei derivar a rota do shell pra âncora "${ancora}" (não segue <id>-page.jsx) — passe --route <id> (ids em app.jsx::MODULES)`); process.exit(2); }
+  // TRAVA (2026-07-17): rota inexistente ⇒ ModuleStub ⇒ baseline com o DOM ERRADO passando por
+  // íntegro. Checa contra o roteador REAL (fato, não heurística) ANTES de subir o browser.
+  const appJsx = join(root, 'app.jsx');
+  const vr = verificarRota(route, existsSync(appJsx) ? readFileSync(appJsx, 'utf8') : null);
+  if (!vr.ok) { console.error(`⛔ ${vr.motivo}`); process.exit(3); }
+  console.error(`# ${vr.motivo}`);
   const porta = parseInt(args.porta || '8799', 10);
   const viewports = String(args.viewports || '1280,1440').split(',').map((s) => parseInt(s.trim(), 10)).filter(Boolean);
   const temas = String(args.themes || 'light,dark').split(',').map((s) => s.trim()).filter(Boolean);
@@ -312,6 +400,13 @@ async function cmdGerar(args) {
   try {
     celulas = await capturarProto({ url: `http://127.0.0.1:${porta}/oimpresso.com.html`, route, ancora, viewports, temas });
   } finally { srv.close(); }
+
+  // AVISO de conteúdo (NÃO trava — 29% de FP medido em telas chart-only/data-driven; a trava é a
+  // rota, acima). Serve de pista quando algo cheira errado: overlap alto = confiança extra.
+  const srcAncora = existsSync(resolve(REPO, ancora)) ? readFileSync(resolve(REPO, ancora), 'utf8') : null;
+  const vc = verificarConteudo(srcAncora, celulas);
+  const motivoVc = String(vc.motivo).replace(/\s*Override:.*$/, ''); // a cauda oferece a flag do --compare
+  console.error(vc.ok ? `# ${motivoVc}` : `# ⚠ ${motivoVc}\n#   (aviso, não trava: tela chart-only/data-driven pontua baixo por estar CERTA. A rota já foi validada contra o roteador.)`);
 
   const prototipo_sha = computeGitSha([ancora], REPO);
   celulas = redigirSensiveis(celulas); // Tier 0 + LGPD: zero R$ / CPF / CNPJ em memory/, mesmo mock
@@ -426,6 +521,33 @@ function selftest() {
   const semHist = montarBaseline({ ...bom, prototipo_sha: 'sem-historico', tela: 't', charter: 'c', ancora: ANC, shell: '.', celulas: bom.celulas });
   t('libera: sha salvo sem-historico não é drift', verificarBaseline(semHist, { ancoraAtual: ANC, shaAtual: 'zzz' }).ok === true);
 
+  // ── TRAVA DE ROTA (2026-07-17): rota fora do roteador ⇒ ModuleStub ⇒ baseline com DOM errado.
+  // Fixture = o shape REAL do app.jsx (if-chain + lista .includes(route)) com os ids que o dogfood
+  // usou. Morde a rota derivada-do-nome ("forja") E libera a real ("projects") — os 2 lados do bug.
+  const appFake = `
+    if (route === "chat") content = <JanaCockpit />;else
+    if (route === "kb") content = <KBPage />;else
+    if (route === "fin-fluxo") content = <FinanceiroPage initialTela="fluxo" />;else
+    if (route === "projects" || route === "teammcp") content = <ForjaPage />;else
+    if (["crm", "inbox", "vestuario"].includes(route)) content = <MockupPage route={route} />;else
+    content = <ModuleStub routeId={route} />;`;
+  const ids = rotasValidas(appFake);
+  t('rotas: extrai o if-chain', ids.has('chat') && ids.has('kb') && ids.has('fin-fluxo') && ids.has('projects') && ids.has('teammcp'));
+  t('rotas: extrai também a lista .includes(route)', ids.has('crm') && ids.has('inbox') && ids.has('vestuario'));
+  t('rotas: NÃO inventa id que não está no roteador', !ids.has('forja') && !ids.has('ModuleStub'));
+  t('morde: rota derivada-do-nome "forja" não existe → recusa (o bug real do dogfood)', verificarRota('forja', appFake).ok === false);
+  t('morde: a recusa DIZ os ids válidos (acionável, não só "não")', /ids válidos/.test(verificarRota('forja', appFake).motivo) && /projects/.test(verificarRota('forja', appFake).motivo));
+  t('libera: rota real "projects" passa', verificarRota('projects', appFake).ok === true);
+  t('libera: rota real "fin-fluxo" passa (tela chart-only não é punida)', verificarRota('fin-fluxo', appFake).ok === true);
+  t('fail-open: roteador não reconhecido (<5 ids) não reprova', verificarRota('qualquer', 'const x = 1;').ok === true);
+
+  // ── conteúdo = AVISO, nunca trava (29% de FP medido: Fluxo 0% e Forja 7% são LEGÍTIMAS).
+  const jsxAnc = `const t='Fluxo de caixa'; a='Saldo previsto'; b='A receber'; c='A pagar'; d='Novo título'; e='Visão unificada'; f='Conciliação bancária';`;
+  const celReal = { '1280|dark': { elementos: [{ texto: 'Fluxo de caixa' }, { texto: 'Saldo previsto' }, { texto: 'A receber' }, { texto: 'A pagar' }], compostos: [{ texto: 'Visão unificada' }] } };
+  const vcReal = verificarConteudo(jsxAnc, celReal);
+  t('aviso: captura com a copy da âncora reporta overlap alto', vcReal.ok === true && vcReal.achados >= 5);
+  t('fail-open: âncora ilegível não reprova (igual ao --compare)', verificarConteudo(null, celReal).ok === true);
+
   // extract: célula existente sai com âncora; ausente lança com as disponíveis
   t('extract: célula existente sai com âncora assada', extrairCelula(bom, '1280|dark').ancora === ANC);
   let lancou = false; try { extrairCelula(bom, '9999|sepia'); } catch (e) { lancou = /não existe/.test(e.message) && /1280\|dark/.test(e.message); }
@@ -471,6 +593,14 @@ function selftest() {
   // nudge (o compare possível em CI): PR→módulo com baseline; _components conta; resto silencia
   const BLS = ['memory/requisitos/Sells/sells.proto-baseline.json', 'memory/requisitos/Compras/compras.proto-baseline.json'];
   t('nudge: Page do módulo com baseline dispara', telasAfetadas(['resources/js/Pages/Sells/Index.tsx'], BLS).length === 1);
+  // case/separador: as 2 árvores escrevem o MESMO módulo diferente (Pages/kb × requisitos/KB;
+  // Pages/team-mcp × requisitos/TeamMcp). String-exata deixava o nudge MORTO — regressão de 2026-07-17
+  // pega por controle-negativo no repo real. Trava os 2 lados: casa o equivalente, NÃO casa o alheio.
+  const BLS2 = ['memory/requisitos/KB/kb.proto-baseline.json', 'memory/requisitos/TeamMcp/forja-cockpit.proto-baseline.json'];
+  t('nudge: Pages/kb casa requisitos/KB (case difere)', telasAfetadas(['resources/js/Pages/kb/Index.tsx'], BLS2).length === 1);
+  t('nudge: Pages/team-mcp casa requisitos/TeamMcp (separador difere)', telasAfetadas(['resources/js/Pages/team-mcp/Forja/Cockpit.tsx'], BLS2).length === 1);
+  t('nudge: módulo alheio NÃO casa (normalização não vira coringa)', telasAfetadas(['resources/js/Pages/Produto/Index.tsx'], BLS2).length === 0);
+  t('normModulo: kb/KB e team-mcp/TeamMcp colapsam; Produto não vira KB', normModulo('KB') === normModulo('kb') && normModulo('team-mcp') === normModulo('TeamMcp') && normModulo('Produto') !== normModulo('KB'));
   t('nudge: _components do módulo também dispara (re-renderiza a tela)',
     telasAfetadas(['resources/js/Pages/Sells/_components/VdRow.tsx'], BLS)[0] === BLS[0]);
   t('nudge: módulo SEM baseline silencia', telasAfetadas(['resources/js/Pages/Whatsapp/Index.tsx'], BLS).length === 0);
