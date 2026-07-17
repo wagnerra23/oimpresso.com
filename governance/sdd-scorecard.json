@@ -267,8 +267,8 @@
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
         "reds": [],
-        "warns": 1,
-        "verdict": "yellow"
+        "warns": 0,
+        "verdict": "green"
       },
       "stream": "GT"
     },
