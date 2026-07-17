@@ -1,11 +1,11 @@
 ---
 date: "2026-07-16"
 hour: "19:30"
-topic: Produto · aba "Preço especial" — F1 do protótipo + charter v2→v3.8
+topic: Produto · aba "Preço especial" — F1 do protótipo + charter v2→v3
 authors: [F, CC]
 outcomes:
   - "F1 navegável da aba Preço especial (verificado no browser, DOM medido)"
-  - "Charter SellingPrices v2 → v3.8 — 8 cortes de [F], todos procedentes; 2 revogaram o que eu tinha escrito"
+  - "Charter SellingPrices v2 → v3 — 8 cortes de [F], todos procedentes; 2 revogaram o que eu tinha escrito"
   - "2 pesquisas de mercado (24 plataformas, schemas primários) — achado: Bling/Tiny/ContaAzul/Microvix têm ZERO faixa de quantidade"
   - "proibicoes.md §5 +2 entradas — as 2 famílias de erro que REPETIRAM na sessão"
   - "Correções de canon: AR-PROD-095 cita a coluna errada · ADR ARQ-0001 tem premissa falsa · charter da Variação stale"
@@ -14,7 +14,7 @@ us: [US-PROD-022, US-PROD-023, US-PROD-027]
 related_adrs: [0104-processo-mwart-canonico-unico-caminho, 0107-emendation-0104-visual-comparison-gate-f3]
 ---
 
-# Aba "Preço especial" do cadastro de produto — F1 + charter v3.8
+# Aba "Preço especial" do cadastro de produto — F1 + charter v3
 
 **Quem dirigiu:** [F]. **O que eu fiz:** protótipo + charter. **Quem achou os erros:** [F], 8 vezes.
 
@@ -28,7 +28,7 @@ Critério declarado: **"a melhor usabilidade ganha; o legado Delphi não entra a
 
 - **Protótipo F1 navegável** — [`prototipo-ui/cowork/produto-preco-especial/`](../../prototipo-ui/cowork/produto-preco-especial/)
   (verificado no browser a cada rodada; DOM medido, não screenshot de intenção)
-- **Charter v2 → v3.8** — [`SellingPrices.charter.md`](../../resources/js/Pages/Produto/SellingPrices.charter.md)
+- **Charter v2 → v3** — [`SellingPrices.charter.md`](../../resources/js/Pages/Produto/SellingPrices.charter.md)
 - **2 pesquisas de mercado** (24 plataformas somadas, schemas primários — GraphQL/OpenAPI/source)
 - **11 commits** em `claude/tabela-preco-regra-excecao` — **sem push**
 
@@ -108,7 +108,7 @@ Ambas em [`proibicoes.md` §5](../proibicoes.md) (2026-07-16).
 
 ## Refs
 
-- Charter: [`SellingPrices.charter.md`](../../resources/js/Pages/Produto/SellingPrices.charter.md) v3.8
+- Charter: [`SellingPrices.charter.md`](../../resources/js/Pages/Produto/SellingPrices.charter.md) v3
 - Protótipo: [`produto-preco-especial/`](../../prototipo-ui/cowork/produto-preco-especial/) + `NOTES.md`
 - Lições: [`proibicoes.md` §5](../proibicoes.md) — 2 entradas 2026-07-16
 - Evidência custo/margem: PR [#4321](https://github.com/wagnerra23/oimpresso.com/pull/4321) (`docs/produto-custo-margem-evidencia`)

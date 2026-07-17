@@ -10,7 +10,7 @@ parent_module: Produto
 related_adrs: [93, 104, 107, 149, 182]
 related_us: [US-PROD-022, US-PROD-023]
 tier: A
-charter_version: 3.8
+charter_version: 3
 mwart_pattern_reuse:
   blueprint_cowork: "prototipo-ui/cowork/produtos-page.jsx"
   blueprint_screenshot_approval: "SYNC_LOG (pendente)"
@@ -58,7 +58,7 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 > **preço base**. Decidido por [F] 2026-07-16 sob o critério *"a melhor usabilidade ganha — o legado
 > Delphi não entra"*. Protótipo navegável: [`prototipo-ui/cowork/produto-preco-especial/`](../../../../prototipo-ui/cowork/produto-preco-especial/produto-preco-especial.html).
 >
-> ⚠️ **A v3 dizia só "a lista É uma regra" — meia-verdade, corrigida na v3.4** (4º corte de [F]:
+> ⚠️ **A v3 dizia só "a lista É uma regra" — meia-verdade, corrigida na v3** (4º corte de [F]:
 > *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele
 > define o valor do produto dentro da tabela e no protótipo vejo apenas o campo de percentual"*).
 > **O schema já suportava e o charter ignorava:** `variation_group_prices.price_type ∈
@@ -102,12 +102,12 @@ pesquisados faz isso**. O padrão convergente (4 sistemas, independentes) é:
    | 0 | **1 célula** | produto simples — a variação `DUMMY` |
    | 1 | **lista vertical** (não matriz) | só Tamanho: P/M/G × 1 coluna de preço |
    | 2 | **matriz** | Cor × Tamanho |
-   | **3+** | **matriz de linhas COMBINADAS** (padrão Odoo — v3.8) | Tamanho nas colunas · `Cor · Material` nas linhas |
+   | **3+** | **matriz de linhas COMBINADAS** (padrão Odoo — v3) | Tamanho nas colunas · `Cor · Material` nas linhas |
 
    ⛔ **Não ter modelo de grade NÃO invalida ter tabela de preço** — as duas coisas são
    independentes. Origem: 3º corte de [F] 2026-07-16 (*"o fato dele não ter um modelo de grade não
    invalida a possibilidade de existir uma ou mais tabelas de preço que serão aplicadas a ele"*),
-   sobre a v3.2 do protótipo, que exigia **os 2 eixos** pra desenhar qualquer coisa → sem grade, o
+   sobre a v3 do protótipo, que exigia **os 2 eixos** pra desenhar qualquer coisa → sem grade, o
    produto não tinha onde ser precificado **nem na Base nem nas tabelas**. ⚠️ O contrato desta
    tabela (linha "Só tabela") já dizia isso **e o protótipo violava** — o charter estava certo e o
    pino errado. Sem eixo, some só o §preview de geração (não há grade a gerar; o `DUMMY` já existe).
@@ -147,7 +147,7 @@ pesquisados faz isso**. O padrão convergente (4 sistemas, independentes) é:
    negrito + tarja = **exceção** manual. O operador vê a verdade, não um formulário em branco.
 4. **Digitar numa célula cria a exceção** daquela variação naquela lista. `↺` por célula volta ao
    calculado; "limpar exceções desta lista" no rodapé.
-5. ~~**Delta por eixo ANTES de exceção por célula**~~ — **REMOVIDO na v3.5** (5º corte de [F]:
+5. ~~**Delta por eixo ANTES de exceção por célula**~~ — **REMOVIDO na v3** (5º corte de [F]:
    *"se na variação gerada eu consigo alterar o valor, pra quê a função ajuste por tamanho?"*).
    **Procedente, e por 3 motivos:** (a) **ambíguo** — com a célula editável, o delta cria **dois
    jeitos de dizer a mesma coisa** e o operador não sabe qual ganha; (b) o botão "aplicar" **nunca
@@ -172,13 +172,13 @@ ordem é real e é decisão [W]:** menos linhas gravadas = mais retorno `''` do
 (`LabelsController:143` · `WoocommerceUtil:341,731` — etiqueta sai sem preço, Woo sincroniza
 vazio). Ver §Pendência de CONTRATO do [`casos.md`](SellingPrices.casos.md).
 
-## Faixa de quantidade (v3.6 — 2026-07-16)
+## Faixa de quantidade (v3 — 2026-07-16)
 
 > **A faixa é uma LINHA ESPARSA DENTRO de um CONTEXTO DE PREÇO. Não é 3ª dimensão materializada,
 > não é seção órfã, não sai da aba.** Âncora: pesquisa de mercado 2026-07-16 (11 plataformas + 9 BR,
 > schemas primários — GraphQL/OpenAPI/source, não help center).
 >
-> ⚠️ **A v3.6 dizia "e nunca existe no Preço base" — ERRADO, corrigido na v3.8.** Corte de [F]
+> ⚠️ **A v3 dizia "e nunca existe no Preço base" — ERRADO, corrigido na v3.** Corte de [F]
 > 2026-07-16 (*"a opção de criar a faixa por quantidade não aparece na aba de preço base, porquê?"*).
 > **É o espelho exato do corte anterior dele** (*"não ter modelo de grade não invalida ter tabela"*):
 > **não ter tabela não invalida ter faixa**. Produto sem tabela nenhuma + cliente leva 10 → o preço
@@ -213,7 +213,7 @@ UNIQUE (tabela_preco_id, produto_id, variacao_id, qtd_min)
 
 **As 4 decisões, e por quê:**
 
-1. **Guarda só o PISO — mas EXIBE "de X até Y"** (v3.8, corte de [F]: *"falta a opção de faixa de
+1. **Guarda só o PISO — mas EXIBE "de X até Y"** (v3, corte de [F]: *"falta a opção de faixa de
    x até y = R$"*). As duas coisas são verdadeiras e não brigam:
    - **Storage = só piso.** VTEX não tem `maxQuantity` no OpenAPI; Shopify e Odoo idem. A faixa
      seguinte **fecha a anterior** → **sobreposição e buraco são impossíveis por construção**. Quem
@@ -286,7 +286,7 @@ O [`VariacaoPrecos.charter.md`](VariacaoPrecos.charter.md) vive **parkeado** na 
 > ## Os dois modos (`AR-PROD-171` — `VARIACAO_TIPO`, **excludentes**)
 > ### Modo A — Preço por quantidade · ### Modo B — Cor e Tamanho (grade)
 
-⛔ **REVOGADO na v3.8.** *"Excludentes"* é `VARIACAO_TIPO`, **campo do Delphi** — e o legado não
+⛔ **REVOGADO na v3.** *"Excludentes"* é `VARIACAO_TIPO`, **campo do Delphi** — e o legado não
 entra ([F] 2026-07-16). **Quantidade e variação são ORTOGONAIS**: *quantidade* = quanto leva;
 *variação* = qual filho. Cruzam-se (faixa × grade), não se alternam. O protótipo prova: as faixas
 funcionam com 0, 1, 2 ou 3 eixos ligados.
@@ -328,10 +328,10 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
   `% Desconto` sobre o `Valor Original`, gravado por produto×cliente). **Non-Goal declarado**
   (Wagner 2026-07-15): no modelo novo o preço de cliente vem da tabela vinculada ao cadastro do
   cliente. Divergência consciente vs o legado — não é regressão.
-- ✅ **Faixa de quantidade** — **RESOLVIDO na v3.6, virou contrato** (ver §Faixa de quantidade
+- ✅ **Faixa de quantidade** — **RESOLVIDO na v3, virou contrato** (ver §Faixa de quantidade
   abaixo). Histórico do que era, preservado:
 - ~~🟡 **Faixa de quantidade**~~ (`De`/`Até`/`% Desconto`/`R$ Valor` — `AR-PROD-105..109`) —
-  **REABERTO na v3.5**, era Non-Goal ("pertence ao charter da Variação"). 5º corte de [F]:
+  **REABERTO na v3**, era Non-Goal ("pertence ao charter da Variação"). 5º corte de [F]:
   *"no modelo de grade não vi as fórmulas de variação por quantidade"*. **Por que reabre:** o
   despacho pro charter da Variação assumia o modelo **do legado** — lá `VARIACAO_TIPO`
   (`AR-PROD-171`) faz "preço por quantidade" e "cor/tamanho" serem **modos excludentes**, e o
@@ -343,7 +343,7 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
   **Status:** pesquisa de mercado disparada 2026-07-16 (onde a faixa mora · por-variante? ·
   dentro-da-lista? · como não explodir a UI · precedência). Decisão depois dela — mesmo caminho que
   acertou o regra+exceção. ⚠️ Enquanto isso, **não é esquecimento, é fila**.
-- ❌ **"Caixa com 12" / embalagem — é SUB-UNIDADE, não variação nem faixa** (v3.8). Levantado por
+- ❌ **"Caixa com 12" / embalagem — é SUB-UNIDADE, não variação nem faixa** (v3). Levantado por
   [F] 2026-07-16 (*"existem ambos os casos"*). **Já existe e está VIVO** — não é gap:
   `units.base_unit_id` + `units.base_unit_multiplier`
   ([migration 2018](../../../../database/migrations/2018_11_28_104410_modify_units_table_for_multi_unit.php))
@@ -373,7 +373,7 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
 > de precedência (`proibicoes.md`), **o teste verde vence este charter** se os dois discordarem.
 
 - ⚠️ ~~**Markup é o campo mestre** (`AR-PROD-095`, confirmado por Wagner 2026-07-15)~~ —
-  **CORRIGIDO na v3.7. A afirmação juntava DUAS colunas diferentes** e citava a errada:
+  **CORRIGIDO na v3. A afirmação juntava DUAS colunas diferentes** e citava a errada:
 
   | O que | É | Estado |
   |---|---|---|
@@ -419,12 +419,12 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
   como está **funciona por acidente pros 84% e quebra silencioso pros 8,2%**. É **capacidade a
   preservar**, não bug a corrigir. Nenhum dos 17 ERPs pesquisados (8 BR + 9 globais) propaga
   automático por default — a Linx vende esse par como diferencial.
-- **Preço abaixo do CUSTO avisa, não bloqueia** `[V0]` (v3.6, decisão [F]). Custo =
+- **Preço abaixo do CUSTO avisa, não bloqueia** `[V0]` (v3, decisão [F]). Custo =
   `variations.default_purchase_price`, **por variação**. Vale pra qualquer preço — base, tabela,
   exceção ou faixa. O aviso nomeia **quais** variações dão prejuízo, nunca em bloco. É o **único**
   aviso de preço da tela: o penhasco do volume **não** se avisa (ver §Faixa de quantidade).
 
-  > 🕳️ **FURO CONHECIDO — custo zero (v3.7).** O aviso é `preço < custo`; com **custo = 0 ele
+  > 🕳️ **FURO CONHECIDO — custo zero (v3).** O aviso é `preço < custo`; com **custo = 0 ele
   > nunca dispara** (nada é menor que zero). E custo zero **não é raro**: base real de cliente,
   > **453 de 4.342 produtos = 10,4%** sem custo — e **242 desses (53,4%) estão com preço zero**.
   > É o produto de **serviço**, que não tem custo por natureza.
@@ -520,7 +520,7 @@ Sendo `[V0]` sobre preço, a US carrega a **REGRA MESTRE** (dupla-confirmação 
 - ❌ **Regenerar a grade do zero** ao adicionar um valor de eixo. Geração é **incremental**: cor
   nova = só as combinações novas; as existentes ficam **intactas** (padrão Shopify — *"the system
   generates three new variants"*). Regenerar = perder SKU e estoque já digitados.
-- ⚠️ ~~**Mais de 2 eixos no cadastro**~~ — **REVOGADO na v3.8.** Corte de [F] 2026-07-16: *"nos
+- ⚠️ ~~**Mais de 2 eixos no cadastro**~~ — **REVOGADO na v3.** Corte de [F] 2026-07-16: *"nos
   modelos de grade, existem casos especiais onde será necessário utilizar mais de duas grades"*.
   **O anti-padrão era meu, não do mercado:** Shopify permite **3** options e **Lightspeed** suporta
   3 atributos (cor/tam/material) — a pesquisa dizia isso e eu li como "2 é o teto". O que Akeneo e
@@ -561,9 +561,9 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 
 ## Backlog de contrato (dívida conhecida — não é Non-Goal, é buraco)
 
-> ### 🟡 A aba Base edita VENDA — a tensão ENCOLHEU (v3.7), sobra 1 escolha
+> ### 🟡 A aba Base edita VENDA — a tensão ENCOLHEU (v3), sobra 1 escolha
 >
-> **Aberto na v3.6** sobre a premissa *"markup é o campo mestre, e a Base editando venda contradiz"*.
+> **Aberto na v3** sobre a premissa *"markup é o campo mestre, e a Base editando venda contradiz"*.
 > **A premissa caiu** (ver §Invariantes): não existe campo mestre — o **Custo é a âncora** e
 > Valor↔Margem é **bidirecional**, tanto no Delphi (`AR-PROD-008`, 5 caminhos) quanto no oimpresso
 > (`product.js:319-341`, **em produção hoje**). Logo a saída **(a)** — digitar a venda regrava o
@@ -619,12 +619,12 @@ Teste de valor que defende os invariantes acima (ancorado em `AR-PROD-093/094/09
 | 2026-05-15 | [W2-C] | Charter criado em Wave 2 B4 Produto. |
 | 2026-05-31 | [DS-upgrade] | Paleta stone→tokens v4; header hand-rolled→tokens (breadcrumb/título/SKU); + dirty-state, Cmd+S, navegação teclado, erros por célula, toast. Contrato backend (group_prices, POST save-selling-prices, price_type) intacto. |
 | 2026-07-15 | [CC] | **v2** — reescrito pro modelo real (Wagner): tabela nasce fora → produto seleciona + precifica → tabela vincula a cliente/tipo de venda; produto nunca vinculado direto ao cliente. Preço Especial produto×cliente (`AR-PROD-111..116`) vira **Non-Goal declarado**. Faixa de quantidade (`AR-PROD-105..109`) movida pro charter da Variação. + §Invariantes de valor (markup mestre, 4 casas, condicional ao `AR-PROD-097`) ancorados em teste. + §Backlog de contrato explicitando os buracos (casos.md ausente, testes tautológicos, cross-tenant prometido e inexistente, `mult` oco). |
-| 2026-07-16 | [F+CC] | **v3.8 — 3 cortes de [F], e 2 revogam o que EU tinha escrito.** **(1)** *"a faixa por quantidade não aparece na aba de preço base, porquê?"* → a v3.6 dizia *"nunca existe no Preço base"*: **ERRADO**. É o **espelho exato** do corte dele de antes (*"não ter grade não invalida ter tabela"*): **não ter tabela não invalida ter faixa**. Importei o `priceList: PriceList!` do Shopify como lei — mas lá **não existe preço base fora de catálogo**; aqui a Base **é** um contexto de preço. Schema: `tabela_preco_id NULL` = base (mesma forma do `variacao_id NULL` = todas). **(2)** *"falta a opção de faixa de x até y"* → **guarda o piso, EXIBE o intervalo**: o teto é **derivado** (`próxima.qtd − 1`), nunca digitado, + faixa 0 (`de 1 até <piso−1> → preço normal`). Medido: mudar o piso da 2ª pra 30 → teto da 1ª vira 29 sozinho. Exibir ≠ armazenar: o teto como campo devolveria a classe de bug que o piso-só elimina. Custo declarado: *"de 10 a 20 e acima volta ao normal"* segue inexprimível. **(3)** *"existem casos especiais onde será necessário mais de duas grades"* → o anti-padrão **"máx. 2 eixos" era MEU, não do mercado**: Shopify permite 3, Lightspeed 3 (cor/tam/material); o limite de 2 do Akeneo/Microvix é do **eixo de PIM**, não da tela de preço. Revogado. 3+ eixos usa o **padrão Odoo** (eixo 1 nas colunas, demais **combinados** nas linhas), opt-in, com o custo declarado (5×4×2 = 8 linhas × 5 col = 40 células — medido). |
-| 2026-07-16 | [F+CC] | **v3.7 — o "markup é mestre" estava ERRADO: citava a coluna errada.** Levantamento no código + `docs/produto-custo-margem-evidencia` (branch `b04ca994`, **não mergeada**) fecharam o `[?]` do `AR-PROD-008` com **5 caminhos** (print + fonte Delphi + fonte oimpresso + base demo + **base real de cliente, 3.668 linhas**). **`MARGEM` ≠ `CALC_PMARKUP`** — colunas distintas; **nenhuma** das 3.668 linhas tinha valores iguais e o `CALC_PMARKUP` (que É o `AR-PROD-095`) **não fecha** com `((V/C)−1)×100` em linha nenhuma: **sua fórmula segue desconhecida**. O charter citava o `095` (o desconhecido) pra afirmar o comportamento do outro, e eu repeti 3×. **O certo:** o **Custo é a âncora** (editar custo não propaga) e **Valor↔Margem é bidirecional** — e o oimpresso **já faz isso em produção** (`product.js:300-341`: markup→venda `:313`, **venda→markup** `:338`). **Não existe campo mestre: mestre é quem foi digitado por último.** + `AR-PROD-097` = `TEM_MARGEM_FIXA_CONTIBUICAO`, **flag POR PRODUTO** que o oimpresso **não tem** (só o modo `N`) — 83,8% `N` / **8,2% `S`** na base real → migrar como está funciona por acidente pros 84% e **quebra silencioso pros 8,2%**. + 🕳️ **FURO do aviso de custo**: `preço < custo` **nunca dispara com custo 0**, e custo 0 é **10,4% da base real** (453/4.342) — **53,4% deles já com preço zero**. Sem guarda em nenhum dos 2 sistemas. Decisão [F]/[W] pendente. A tensão da Base encolheu: (a) bidirecional **é paridade com prod**, não divergência; (c) morreu; (b) depende de tela que **não existe em git**. |
-| 2026-07-16 | [F+CC] | **v3.6 — FAIXA DE QUANTIDADE vira contrato** (fecha o 🟡 reaberto na v3.5). Pesquisa de mercado 2026-07-16 (11 plataformas + 9 BR, **schemas primários** — GraphQL/OpenAPI/source, não help center). **Achado central:** quantidade É 3ª dimensão, mas **ninguém materializa** — todos usam **linha esparsa** `(tabela × variante × qtd_min)`. Prova de schema: `QuantityPriceBreak.priceList: PriceList!` **non-null** (Shopify) → a faixa **pertence à tabela**. 180 células viram **9 linhas** autoradas (`variacao_id NULL` = todas — Odoo `applied_on` + cascata Tiny). 4 decisões: **só piso** (VTEX sem `maxQuantity` → overlap impossível por construção; BigCommerce tem teto e teve que validar, Medusa não validou → issue #3584) · **VOLUME/bloco** `[V0]` (~33% de diferença vs graduated) · **SUBSTITUI, NÃO MESCLA** `[V0]` (Shopify: *"the price becomes fixed. Any overall adjustment discount won't apply"*) · **`variacao_id` nullable no schema, UI depois** (sem precedente BR). Precedência adaptada do `_order` do Odoo (única em código, não prosa). **Penhasco** (9un=R$90 · 10un=R$80): conhecido, **aceito, NÃO avisado** — decisão [F]: é a alavanca comercial do atacado. **⛔ ÚNICO aviso da tela: preço < CUSTO** (decisão [F]: *"só exiba aviso caso o preço definido for menor que o custo. De resto não precisa exibir nada"*) — custo já existe (`variations.default_purchase_price`), aviso **por variação afetada**, avisa e não bloqueia. **Isso FECHA o backlog "piso de venda vs preço de tabela"** aberto na v2 (pode furar, mas avisa; o piso comparado é o custo). O `AR-PROD-101` (piso que **bloqueia**) é outra coisa e segue sem contrato. **Achado comercial:** Bling/Tiny/Conta Azul/Microvix = **zero** faixa; Omie = meia-solução em "característica", só no PDV; faixa real só em TOTVS/Sankhya (ERP grande) → **espaço aberto**. |
-| 2026-07-16 | [F+CC] | **v3.5 — remove o delta por eixo + REABRE preço por quantidade.** 5º corte de [F], duas frentes. **(1)** *"se na variação gerada eu consigo alterar o valor, pra quê a função ajuste por tamanho?"* → **REMOVIDO**: era ambíguo (2 caminhos pro mesmo dado), o botão `aplicar` **nunca teve handler** (controle morto que passou 2 rodadas de verificação — eu media cálculo, não se os botões respondem) e **o charter já proibia** (`❌ Bulk apply — Wave 3`; "ajuste por eixo" é bulk com outro nome). Origem do erro: importei o `Value Price Extra` do Odoo sem checar o modelo — lá o preço é **composto** (template+extra), aqui a base é **digitada por célula**; o problema não existia. + 3 anti-padrões (2 caminhos pro mesmo dado · controle sem handler · importar solução de outro modelo). **(2)** *"no modelo de grade não vi as fórmulas de variação por quantidade"* → o Non-Goal "pertence ao charter da Variação" assumia o modelo **do legado** (`VARIACAO_TIPO`: quantidade vs cor/tamanho **excludentes**) — e [F] cravou que o legado não entra. Vira 🟡 **reaberto**, pesquisa de mercado disparada (sem schema hoje; cruza com grade E tabela = 3ª dimensão). |
-| 2026-07-16 | [F+CC] | **v3.4 — a tabela tem DOIS MODOS.** 4º corte de [F]: *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele define o valor do produto dentro da tabela e no protótipo vejo apenas o campo de percentual"*. **Procedente — e o schema JÁ suportava:** `variation_group_prices.price_type ∈ {'fixed','percentage'}` (`fixed` = o valor É o preço), lido por mim no 1º dia e ignorado ao modelar. A pesquisa também já dizia, na linha do **Bling** que eu mesmo citei no charter: *"lista 'Customizada' → o valor do produto será personalizado na lista"*. A v3 afirmava "a lista **é** uma regra" — meia-verdade que forçava inventar regra + marcar cada célula como "exceção". Agora: modo **regra %** (célula digitada = exceção, tarja) OU **preço por produto** (sem %, célula digitada = O preço, neutro; não digitada = base). + 3 anti-padrões (toda tabela é regra · "%" que mente · alarme em dado normal). Revenda nasce manual no pino pra o contraste ser visível. |
-| 2026-07-16 | [F+CC] | **v3.3** — 3º corte de [F]: *"se não existe um modelo de grade escolhido, não vejo a opção de adicionar um valor do produto na tabela de preço… não ter modelo de grade não invalida a possibilidade de existir uma ou mais tabelas de preço"*. **Procedente — e o mais grave dos três: o contrato JÁ dizia isso** (a tabela do 0-A, linha "Só tabela = grade de 1 célula (o `DUMMY`) × as tabelas") **e o protótipo violava**, exigindo os 2 eixos pra desenhar qualquer coisa → sem grade, o produto não tinha onde ser precificado nem na Base nem nas tabelas. Escrever a regra não implementa a regra. + **4 formas** (0 eixos → 1 célula · 1 eixo → **lista**, não matriz · 2 eixos → matriz) + 1 anti-padrão. Sem eixo some só o §preview (não há grade a gerar). Bug lateral achado na verificação: o `\` do header `Cor \ Tamanho` era escape inválido em JS (` \ ` → espaço) — corrigido. |
-| 2026-07-16 | [F+CC] | **v3.2** — 2º corte de [F]: *"o produto pode ter só variação, ou só tabela, ou os dois — mas no protótipo a adição do preço está ligada somente ao preço por lista"*. **Procedente e era furo de MODELO, não de tela:** eu tratava o preço base como escalar ("R$ 100,00, vem da aba Custos") e pendurava toda a digitação debaixo da tabela → produto com variação e **sem** tabela não tinha onde ser precificado. Verificado: `variations` tem custo/markup/venda **por filho** (2017 + `product_variation_row.blade.php:60-84`), e `createSingleProductVariation()` grava o preço numa variação `DUMMY` → **produto simples é grade de 1 célula, não outro modelo**. + **item 0-A** (Base é a 1ª aba do seletor; a regra incide sobre a base **de cada célula**: −20% → Azul-P 80,00 · Azul-G 96,00) + tabela dos 3 casos + 3 anti-padrões (base escalar · tudo debaixo da tabela · Base e tabela como irmãs) + **§Backlog: tensão markup-mestre × Base editando venda** ([W]/[F] decidem — 3 saídas mapeadas). |
-| 2026-07-16 | [F+CC] | **v3.1** — corte de [F] sobre o protótipo: *"não encontrei opção de selecionar o modelo de grade desejado"*. **Procedente** — a v3 descrevia o **preço** e calava sobre **de onde vêm os eixos**, e o pino desenhava a grade já montada. + **item 0 do contrato** (modelo de grade: `variation_templates` → `values`, existe desde 2017 com CRUD vivo e 2 selects encadeados no Blade legado; a tela React não usa) + 4 anti-padrões (grade já-montada · delete destrutivo · regenerar do zero · >2 eixos). Protótipo: matriz agora **gerada dos eixos**, com chips desmarcáveis + célula reativável + preview que conta sozinho. |
+| 2026-07-16 | [F+CC] | **v3 — 3 cortes de [F], e 2 revogam o que EU tinha escrito.** **(1)** *"a faixa por quantidade não aparece na aba de preço base, porquê?"* → a v3 dizia *"nunca existe no Preço base"*: **ERRADO**. É o **espelho exato** do corte dele de antes (*"não ter grade não invalida ter tabela"*): **não ter tabela não invalida ter faixa**. Importei o `priceList: PriceList!` do Shopify como lei — mas lá **não existe preço base fora de catálogo**; aqui a Base **é** um contexto de preço. Schema: `tabela_preco_id NULL` = base (mesma forma do `variacao_id NULL` = todas). **(2)** *"falta a opção de faixa de x até y"* → **guarda o piso, EXIBE o intervalo**: o teto é **derivado** (`próxima.qtd − 1`), nunca digitado, + faixa 0 (`de 1 até <piso−1> → preço normal`). Medido: mudar o piso da 2ª pra 30 → teto da 1ª vira 29 sozinho. Exibir ≠ armazenar: o teto como campo devolveria a classe de bug que o piso-só elimina. Custo declarado: *"de 10 a 20 e acima volta ao normal"* segue inexprimível. **(3)** *"existem casos especiais onde será necessário mais de duas grades"* → o anti-padrão **"máx. 2 eixos" era MEU, não do mercado**: Shopify permite 3, Lightspeed 3 (cor/tam/material); o limite de 2 do Akeneo/Microvix é do **eixo de PIM**, não da tela de preço. Revogado. 3+ eixos usa o **padrão Odoo** (eixo 1 nas colunas, demais **combinados** nas linhas), opt-in, com o custo declarado (5×4×2 = 8 linhas × 5 col = 40 células — medido). |
+| 2026-07-16 | [F+CC] | **v3 — o "markup é mestre" estava ERRADO: citava a coluna errada.** Levantamento no código + `docs/produto-custo-margem-evidencia` (branch `b04ca994`, **não mergeada**) fecharam o `[?]` do `AR-PROD-008` com **5 caminhos** (print + fonte Delphi + fonte oimpresso + base demo + **base real de cliente, 3.668 linhas**). **`MARGEM` ≠ `CALC_PMARKUP`** — colunas distintas; **nenhuma** das 3.668 linhas tinha valores iguais e o `CALC_PMARKUP` (que É o `AR-PROD-095`) **não fecha** com `((V/C)−1)×100` em linha nenhuma: **sua fórmula segue desconhecida**. O charter citava o `095` (o desconhecido) pra afirmar o comportamento do outro, e eu repeti 3×. **O certo:** o **Custo é a âncora** (editar custo não propaga) e **Valor↔Margem é bidirecional** — e o oimpresso **já faz isso em produção** (`product.js:300-341`: markup→venda `:313`, **venda→markup** `:338`). **Não existe campo mestre: mestre é quem foi digitado por último.** + `AR-PROD-097` = `TEM_MARGEM_FIXA_CONTIBUICAO`, **flag POR PRODUTO** que o oimpresso **não tem** (só o modo `N`) — 83,8% `N` / **8,2% `S`** na base real → migrar como está funciona por acidente pros 84% e **quebra silencioso pros 8,2%**. + 🕳️ **FURO do aviso de custo**: `preço < custo` **nunca dispara com custo 0**, e custo 0 é **10,4% da base real** (453/4.342) — **53,4% deles já com preço zero**. Sem guarda em nenhum dos 2 sistemas. Decisão [F]/[W] pendente. A tensão da Base encolheu: (a) bidirecional **é paridade com prod**, não divergência; (c) morreu; (b) depende de tela que **não existe em git**. |
+| 2026-07-16 | [F+CC] | **v3 — FAIXA DE QUANTIDADE vira contrato** (fecha o 🟡 reaberto na v3). Pesquisa de mercado 2026-07-16 (11 plataformas + 9 BR, **schemas primários** — GraphQL/OpenAPI/source, não help center). **Achado central:** quantidade É 3ª dimensão, mas **ninguém materializa** — todos usam **linha esparsa** `(tabela × variante × qtd_min)`. Prova de schema: `QuantityPriceBreak.priceList: PriceList!` **non-null** (Shopify) → a faixa **pertence à tabela**. 180 células viram **9 linhas** autoradas (`variacao_id NULL` = todas — Odoo `applied_on` + cascata Tiny). 4 decisões: **só piso** (VTEX sem `maxQuantity` → overlap impossível por construção; BigCommerce tem teto e teve que validar, Medusa não validou → issue #3584) · **VOLUME/bloco** `[V0]` (~33% de diferença vs graduated) · **SUBSTITUI, NÃO MESCLA** `[V0]` (Shopify: *"the price becomes fixed. Any overall adjustment discount won't apply"*) · **`variacao_id` nullable no schema, UI depois** (sem precedente BR). Precedência adaptada do `_order` do Odoo (única em código, não prosa). **Penhasco** (9un=R$90 · 10un=R$80): conhecido, **aceito, NÃO avisado** — decisão [F]: é a alavanca comercial do atacado. **⛔ ÚNICO aviso da tela: preço < CUSTO** (decisão [F]: *"só exiba aviso caso o preço definido for menor que o custo. De resto não precisa exibir nada"*) — custo já existe (`variations.default_purchase_price`), aviso **por variação afetada**, avisa e não bloqueia. **Isso FECHA o backlog "piso de venda vs preço de tabela"** aberto na v2 (pode furar, mas avisa; o piso comparado é o custo). O `AR-PROD-101` (piso que **bloqueia**) é outra coisa e segue sem contrato. **Achado comercial:** Bling/Tiny/Conta Azul/Microvix = **zero** faixa; Omie = meia-solução em "característica", só no PDV; faixa real só em TOTVS/Sankhya (ERP grande) → **espaço aberto**. |
+| 2026-07-16 | [F+CC] | **v3 — remove o delta por eixo + REABRE preço por quantidade.** 5º corte de [F], duas frentes. **(1)** *"se na variação gerada eu consigo alterar o valor, pra quê a função ajuste por tamanho?"* → **REMOVIDO**: era ambíguo (2 caminhos pro mesmo dado), o botão `aplicar` **nunca teve handler** (controle morto que passou 2 rodadas de verificação — eu media cálculo, não se os botões respondem) e **o charter já proibia** (`❌ Bulk apply — Wave 3`; "ajuste por eixo" é bulk com outro nome). Origem do erro: importei o `Value Price Extra` do Odoo sem checar o modelo — lá o preço é **composto** (template+extra), aqui a base é **digitada por célula**; o problema não existia. + 3 anti-padrões (2 caminhos pro mesmo dado · controle sem handler · importar solução de outro modelo). **(2)** *"no modelo de grade não vi as fórmulas de variação por quantidade"* → o Non-Goal "pertence ao charter da Variação" assumia o modelo **do legado** (`VARIACAO_TIPO`: quantidade vs cor/tamanho **excludentes**) — e [F] cravou que o legado não entra. Vira 🟡 **reaberto**, pesquisa de mercado disparada (sem schema hoje; cruza com grade E tabela = 3ª dimensão). |
+| 2026-07-16 | [F+CC] | **v3 — a tabela tem DOIS MODOS.** 4º corte de [F]: *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele define o valor do produto dentro da tabela e no protótipo vejo apenas o campo de percentual"*. **Procedente — e o schema JÁ suportava:** `variation_group_prices.price_type ∈ {'fixed','percentage'}` (`fixed` = o valor É o preço), lido por mim no 1º dia e ignorado ao modelar. A pesquisa também já dizia, na linha do **Bling** que eu mesmo citei no charter: *"lista 'Customizada' → o valor do produto será personalizado na lista"*. A v3 afirmava "a lista **é** uma regra" — meia-verdade que forçava inventar regra + marcar cada célula como "exceção". Agora: modo **regra %** (célula digitada = exceção, tarja) OU **preço por produto** (sem %, célula digitada = O preço, neutro; não digitada = base). + 3 anti-padrões (toda tabela é regra · "%" que mente · alarme em dado normal). Revenda nasce manual no pino pra o contraste ser visível. |
+| 2026-07-16 | [F+CC] | **v3** — 3º corte de [F]: *"se não existe um modelo de grade escolhido, não vejo a opção de adicionar um valor do produto na tabela de preço… não ter modelo de grade não invalida a possibilidade de existir uma ou mais tabelas de preço"*. **Procedente — e o mais grave dos três: o contrato JÁ dizia isso** (a tabela do 0-A, linha "Só tabela = grade de 1 célula (o `DUMMY`) × as tabelas") **e o protótipo violava**, exigindo os 2 eixos pra desenhar qualquer coisa → sem grade, o produto não tinha onde ser precificado nem na Base nem nas tabelas. Escrever a regra não implementa a regra. + **4 formas** (0 eixos → 1 célula · 1 eixo → **lista**, não matriz · 2 eixos → matriz) + 1 anti-padrão. Sem eixo some só o §preview (não há grade a gerar). Bug lateral achado na verificação: o `\` do header `Cor \ Tamanho` era escape inválido em JS (` \ ` → espaço) — corrigido. |
+| 2026-07-16 | [F+CC] | **v3** — 2º corte de [F]: *"o produto pode ter só variação, ou só tabela, ou os dois — mas no protótipo a adição do preço está ligada somente ao preço por lista"*. **Procedente e era furo de MODELO, não de tela:** eu tratava o preço base como escalar ("R$ 100,00, vem da aba Custos") e pendurava toda a digitação debaixo da tabela → produto com variação e **sem** tabela não tinha onde ser precificado. Verificado: `variations` tem custo/markup/venda **por filho** (2017 + `product_variation_row.blade.php:60-84`), e `createSingleProductVariation()` grava o preço numa variação `DUMMY` → **produto simples é grade de 1 célula, não outro modelo**. + **item 0-A** (Base é a 1ª aba do seletor; a regra incide sobre a base **de cada célula**: −20% → Azul-P 80,00 · Azul-G 96,00) + tabela dos 3 casos + 3 anti-padrões (base escalar · tudo debaixo da tabela · Base e tabela como irmãs) + **§Backlog: tensão markup-mestre × Base editando venda** ([W]/[F] decidem — 3 saídas mapeadas). |
+| 2026-07-16 | [F+CC] | **v3** — corte de [F] sobre o protótipo: *"não encontrei opção de selecionar o modelo de grade desejado"*. **Procedente** — a v3 descrevia o **preço** e calava sobre **de onde vêm os eixos**, e o pino desenhava a grade já montada. + **item 0 do contrato** (modelo de grade: `variation_templates` → `values`, existe desde 2017 com CRUD vivo e 2 selects encadeados no Blade legado; a tela React não usa) + 4 anti-padrões (grade já-montada · delete destrutivo · regenerar do zero · >2 eixos). Protótipo: matriz agora **gerada dos eixos**, com chips desmarcáveis + célula reativável + preview que conta sozinho. |
 | 2026-07-16 | [F+CC] | **v3 — modelo REGRA + EXCEÇÃO.** [F] está construindo a aba "Preço especial" do cadastro (parte 2 de N; a aba Custos já saiu) e cravou o critério: *"a melhor usabilidade ganha, o legado Delphi não entra aqui"*. Pesquisa de mercado (13 sistemas, 2026-07-16) achou que **nenhum** renderiza variação × lista como matriz: 4 sistemas independentes (Shopify B2B · Tiny/Olist · Bling · Odoo) convergiram em **lista = regra %, célula = exceção**. Adicionado §Modelo de digitação + §Dependência (a regra-mãe **não tem coluna** — promove a `US-PROD-022` de extra a pré-requisito) + 6 anti-padrões com fonte. `related_prototype` deixa de ser `n/a` → protótipo navegável verificado no browser (regra −20%→−35%: herdadas 80,00→65,00, exceção fixa em 90,00). **Não revoga a v2** — refina o "como se digita"; o fluxo canônico e os Non-Goals dela seguem de pé. Efeito colateral: o 0-row da `US-PROD-027` morre por construção (célula em branco = nenhuma linha gravada), mas o efeito de 2ª ordem em Labels/Woo (3 dos 5 consumidores não guardam o `''`) segue decisão [W]. |

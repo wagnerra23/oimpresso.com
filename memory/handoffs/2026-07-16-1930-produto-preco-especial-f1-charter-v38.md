@@ -2,7 +2,7 @@
 date: "2026-07-16"
 time: "19:30"
 slug: produto-preco-especial-f1-charter-v38
-tldr: "[F] está construindo a tela de produto em partes e pediu a aba Preço especial. Saiu F1 navegável + charter v2→v3.8, com 2 pesquisas de mercado (24 plataformas, schemas primários). O modelo: base mora na variação · tabela tem 2 modos (regra % OU preço digitado) · faixa de quantidade é linha esparsa em QUALQUER contexto de preço (inclusive a Base) · único aviso é preço abaixo do custo. Achado comercial: Bling/Tiny/ContaAzul/Microvix têm ZERO faixa de quantidade. [F] cortou 8×, todas procedentes — e 2 cortes REVOGARAM o que eu tinha escrito no charter. Padrão dos meus erros (2 famílias, foram pro §5): importar solução de outro sistema sem checar se o problema existe aqui (3× na mesma sessão) e medir a propriedade errada chamando de verificado (2 bugs vivos passaram). 11 commits, SEM PUSH."
+tldr: "[F] pediu a aba "Preço especial" do cadastro ("a melhor usabilidade ganha; o legado Delphi não entra"). Saiu F1 navegável + charter v2→v3 + 2 pesquisas (24 plataformas). Achado: Bling/Tiny/ContaAzul/Microvix têm ZERO faixa de quantidade. [F] cortou 8x, todas procedentes - 2 revogaram o charter. Meus 2 padrões de erro foram pro §5: importar solução sem checar a premissa (3x) e medir a propriedade errada chamando de verificado."
 decided_by: [F]
 prs: []
 us: [US-PROD-022, US-PROD-023, US-PROD-027]
@@ -17,7 +17,7 @@ next_steps:
   - "[F] resolver a colisão de nome — o charter declara 'Preço Especial' (AR-PROD-111..116) Non-Goal, e a aba se chama Preço especial"
 ---
 
-# Produto · aba "Preço especial" — F1 + charter v3.8
+# Produto · aba "Preço especial" — F1 + charter v3
 
 ## Onde parou
 
@@ -33,11 +33,11 @@ browser a cada rodada (DOM medido, zero erro no console).
 | Artefato | Estado |
 |---|---|
 | [`prototipo-ui/cowork/produto-preco-especial/`](../../prototipo-ui/cowork/produto-preco-especial/) | F1 **navegável** — HTML + CSS + `NOTES.md` |
-| [`SellingPrices.charter.md`](../../resources/js/Pages/Produto/SellingPrices.charter.md) | **v2 → v3.8** |
+| [`SellingPrices.charter.md`](../../resources/js/Pages/Produto/SellingPrices.charter.md) | **v2 → v3** |
 | [`proibicoes.md` §5](../proibicoes.md) | **+2 entradas** (as lições que se repetiram) |
 | [session log](../sessions/2026-07-16-produto-preco-especial-f1.md) | narrativa completa |
 
-## O modelo (contrato v3.8)
+## O modelo (contrato v3)
 
 - **Grade** — 1-3 eixos do `variation_templates` (existe desde 2017, CRUD vivo, a tela React não
   usava). 0 eixos → 1 célula (`DUMMY`) · 1 → lista · 2 → matriz · **3+ → linhas combinadas** (Odoo)
@@ -130,7 +130,7 @@ git worktree list | grep tabela-regra          # a worktree ainda existe
 ```
 
 Depois: abrir o protótipo (`cd prototipo-ui && python -m http.server 8903` →
-`/prototipos/produto-preco-especial/`) e ler o charter v3.8 §Modelo de digitação.
+`/prototipos/produto-preco-especial/`) e ler o charter v3 §Modelo de digitação.
 
 **A aba está fechada como F1.** O que trava o F3 é a **`US-PROD-022`** (a regra da tabela não tem
 coluna) — e ela é Tier 0, precisa de [W].
