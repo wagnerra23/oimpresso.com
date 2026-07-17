@@ -27,9 +27,9 @@ CMS embarcado do oimpresso que serve **2 papéis distintos**:
 
 Stack: Laravel + Inertia/React (migração MWART em curso); tabelas `cms_pages`, `cms_site_details`, `cms_page_metas`. Importer WordPress + autenticação social Socialite.
 
-## Estado atual (2026-05-16)
+## Estado atual (2026-05-16 · nota reconciliada 2026-07-17)
 
-- **Nota auditoria:** 30/100 — Crítico
+- **Module grade:** **76/100 (Bom) em 2026-07-17** — dono do número: [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json); recomputar com `php artisan module:grade Cms`. Era **30/100 (Crítico)** em 2026-05-16: a rubrica evoluiu pra v3 ([ADR 0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)) e o módulo recebeu PRs desde então — os gaps abaixo são daquela medição e podem estar fechados.
 - **Gap principal:** D1 (escopo features básicas) 5/30 · D3 (multi-tenant Tier 0) **0/15**
 - **Bloqueador Tier 0:** tabelas SEM `business_id` — funcionam como globais, impedem evolução pra CMS multi-tenant produto vendável
 

@@ -1,7 +1,8 @@
 # BRIEFING — Modules/TeamMcp
 
-> Estado consolidado 1-pager · Última atualização: 2026-05-16
-> Owner: Wagner [W] · Trust: L1 · Status prod: ✅ live · Nota auditoria: 29/100 (Crítico — gap em testes + governança)
+> Estado consolidado 1-pager · Última atualização: 2026-05-16 · nota reconciliada 2026-07-17
+> Owner: Wagner [W] · Trust: L1 · Status prod: ✅ live
+> **Module grade: 79/100 (Bom) em 2026-07-17.** Dono do número: [`governance/module-grades-baseline.json`](../../../governance/module-grades-baseline.json) — recomputar com `php artisan module:grade TeamMcp`. Era **29/100 (Crítico)** em 2026-05-16, quando este 1-pager nasceu: a rubrica evoluiu pra v3 ([ADR 0155](../../decisions/0155-module-grade-v3-sub-dimensoes-gate-ci.md)) e o módulo recebeu PRs desde então. Os gaps listados abaixo são de 2026-05-16 e podem estar fechados.
 
 ## O que faz (1 frase)
 
