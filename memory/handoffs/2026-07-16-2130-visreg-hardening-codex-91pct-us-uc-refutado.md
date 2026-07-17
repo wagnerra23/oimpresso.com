@@ -1,5 +1,5 @@
 ---
-date: 2026-07-16
+date: "2026-07-16"
 time: "2130"
 slug: visreg-hardening-codex-91pct-us-uc-refutado
 tldr: Fechou o plano do Codex de 64% → 91% (10/11) — a zona cinza esvaziou SOZINHA (12→1→0), sem [W] aprovar drift. Antes disso, 2 céticos + 7 verificadores refutaram "US ou UC como canal de pedido do dono" — o canal real, medido, é o CHAT.
