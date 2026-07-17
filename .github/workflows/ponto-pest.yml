@@ -1,0 +1,126 @@
+name: Ponto · Pest (MySQL)
+
+# Lane dedicada pra rodar a suíte Pest MySQL-only do Modules/Ponto contra MySQL
+# REAL + seed mínimo (biz=1 + biz=2 — via .github/actions/pest-mysql-setup, FV-F2).
+#
+# Por que existe: ci.yml e modules-pest.yml rodam SQLite :memory' — e os cross-
+# tenant do Ponto (Wave27CrossTenantEscalaTest) dão `w27NeedsMysql()` →
+# markTestSkipped lá (falsa cobertura). O floor MySQL só existia na nightly
+# diagnóstica CT100 (`ct100-fullsuite`, NUNCA required por design → invisível ao
+# PR). Esta lane fecha o gap: o guard Tier 0 (ADR 0093) do Ponto passa a rodar
+# de verdade em todo PR que toca Ponto.
+#
+# Espelha jana-pest.yml (mesma composite action pest-mysql-setup) — HOME do
+# ratchet pra TODO teste/trigger MySQL-only do Ponto.
+# Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1 nunca cliente) ·
+#       ADR 0271 onda 2 (required-readiness via skip-as-pass) · ADR 0062.
+
+on:
+  workflow_dispatch: {}
+  # ADR 0271 onda 2 (required-readiness): pull_request SEM paths (always-run) pra
+  # ser promovível a required sem deadlock "Expected — waiting". O custo (MySQL +
+  # migrate + Pest) é evitado por skip-as-pass interno: dorny/paths-filter detecta
+  # se algo do Ponto mudou; se não, pula o pesado e conclui verde. push segue
+  # path-filtered (contém custo no main).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Ponto/**'
+      - 'app/Concerns/HasBusinessScope.php'
+      - 'Modules/Jana/Scopes/ScopeByBusiness.php'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/ponto-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: ponto-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Ponto · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Ponto (skip-as-pass — ADR 0271 onda 2)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            ponto:
+              - 'Modules/Ponto/**'
+              - 'app/Concerns/HasBusinessScope.php'
+              - 'Modules/Jana/Scopes/ScopeByBusiness.php'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/ponto-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Ponto mudou)
+        if: steps.changes.outputs.ponto == 'false'
+        run: echo "✅ Sem mudanças no Modules/Ponto — skip-as-pass (required-ready, ADR 0271 onda 2)."
+
+      # Setup canônico reusável (composite action). O service container MySQL fica
+      # DECLARADO ACIMA no job (composite action não pode declarar services).
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.ponto == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (Inertia root view sem build do front)
+        if: steps.changes.outputs.ponto == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Ponto · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.ponto == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: — se não sobrescrever, os
+        # testes MySQL-only (w27NeedsMysql) SKIPam (a falsa cobertura). Exportar
+        # aqui faz rodar no MySQL real semeado.
+        #
+        # CATRACA: a lane roda só os arquivos comprovadamente verdes (MySQL-only do
+        # Ponto). Cada novo teste MySQL-only do Ponto é adicionado AQUI (ratchet up).
+        # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — eles dropam o
+        # schema (FK) e LIMPAM o biz=1 seedado, envenenando os demais.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-ponto-junit.xml \
+            Modules/Ponto/Tests/Feature/Wave27CrossTenantEscalaTest.php
+
+      - name: Upload JUnit (Ponto · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.ponto == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-ponto-junit
+          path: test-results/pest-ponto-junit.xml
+          retention-days: 14

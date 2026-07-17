@@ -1,11 +1,11 @@
 {
-  "$description": "DTCG base (primitive) tokens — extracted verbatim from the canonical CSS the build consumes (ADR 0300 errata). NÃO inventar token: cada $value abaixo é cópia literal do valor encontrado na fonte citada em $extensions.com.oimpresso.source. Fonte canônica permanece os .css; este JSON é fonte PARALELA provada (não consumida pelo build vivo). Camada base→semantic.",
+  "$description": "DTCG base (primitive) tokens. Onda DTCG ATIVADA (PR #3230, ~2026-06): este JSON é a FONTE de edição do token — o Style Dictionary emite os _generated-*.css (npm run tokens:build) que os .css canônicos (inertia/foundations/cockpit) consomem via @import; o CSS é SAÍDA. git = SSOT (ADR 0239, reafirmada pela 0328). NÃO inventar token: cada $value é a string CSS verbatim (sem reparse), citando seu escopo canônico em $extensions.com.oimpresso.source; equivalência byte-a-byte provada por scripts/governance/dtcg-equivalence.mjs. Camada base→semantic.",
   "$extensions": {
     "com.oimpresso.dtcg": {
       "spec": "W3C Design Tokens Community Group (application/design-tokens+json)",
       "layer": "base",
-      "anchors": ["ADR 0300 (errata 0239 — nome real da fonte)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)"],
-      "build_consumes_this": false
+      "anchors": ["ADR 0300 (errata 0239 — nome real da fonte)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)", "ADR 0328 (ativação — JSON é fonte, CSS é saída)"],
+      "build_consumes_this": true
     }
   },
   "font": {
