@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-// @covers-us US-COPI-140 — tool use READ-ONLY no chat: contrato de que o
+// @covers-us US-COPI-141 — tool use READ-ONLY no chat: contrato de que o
 // ChatCopilotoAgent declara as 5 tools do BriefDiarioAgent com o business_id
 // vindo da conversa (Tier 0 mecânico), que a flag OFF mantém o pipeline
 // byte-idêntico ao legado, e que o prompt nunca promete ferramenta que o SDK
@@ -16,7 +16,7 @@ use Modules\Jana\Entities\Conversa;
 uses(Tests\TestCase::class);
 
 /**
- * R-COPI-140 — GUARD tests pro tool use READ-ONLY no chat (US-COPI-140, ADR 0141).
+ * R-COPI-141 — GUARD tests pro tool use READ-ONLY no chat (US-COPI-141, ADR 0141).
  *
  * O que estes testes defendem (contrato, não implementação):
  *  001. Flag OFF (default) → zero tools. O SDK omite a chave `tools` do request
@@ -39,26 +39,26 @@ uses(Tests\TestCase::class);
  */
 
 /** ADR 0101 — biz=1 (dogfooding), NUNCA biz=4 (ROTA LIVRE, cliente real). */
-const R_COPI_140_BIZ = 1;
+const R_COPI_141_BIZ = 1;
 
-const R_COPI_140_BIZ_ALHEIO = 99;
+const R_COPI_141_BIZ_ALHEIO = 99;
 
 function chatAgentComBusiness(?int $businessId): ChatCopilotoAgent
 {
     return new ChatCopilotoAgent(new Conversa(['business_id' => $businessId]));
 }
 
-it('R-COPI-140-001 — flag OFF (default) → zero tools, pipeline idêntico ao legado', function () {
+it('R-COPI-141-001 — flag OFF (default) → zero tools, pipeline idêntico ao legado', function () {
     // Não seta a flag: exercita o DEFAULT de verdade, que é o que roda em prod.
-    $tools = iterator_to_array(chatAgentComBusiness(R_COPI_140_BIZ)->tools(), false);
+    $tools = iterator_to_array(chatAgentComBusiness(R_COPI_141_BIZ)->tools(), false);
 
     expect($tools)->toBe([]);
 });
 
-it('R-COPI-140-002 — flag ON → declara as 5 tools READ-ONLY', function () {
+it('R-COPI-141-002 — flag ON → declara as 5 tools READ-ONLY', function () {
     config()->set('copiloto.chat_tools.enabled', true);
 
-    $tools = iterator_to_array(chatAgentComBusiness(R_COPI_140_BIZ)->tools(), false);
+    $tools = iterator_to_array(chatAgentComBusiness(R_COPI_141_BIZ)->tools(), false);
 
     expect($tools)->toHaveCount(5)
         ->and(array_map(fn ($t) => class_basename($t), $tools))
@@ -71,10 +71,10 @@ it('R-COPI-140-002 — flag ON → declara as 5 tools READ-ONLY', function () {
         ]);
 });
 
-it('R-COPI-140-003 — Tier 0: a tool recebe o business_id DA CONVERSA', function () {
+it('R-COPI-141-003 — Tier 0: a tool recebe o business_id DA CONVERSA', function () {
     config()->set('copiloto.chat_tools.enabled', true);
 
-    $tools = iterator_to_array(chatAgentComBusiness(R_COPI_140_BIZ)->tools(), false);
+    $tools = iterator_to_array(chatAgentComBusiness(R_COPI_141_BIZ)->tools(), false);
 
     // Reflection porque o businessId é readonly private de propósito (ADR 0141 —
     // o LLM não tem como injetar business). O contrato aqui é o REPASSE: se
@@ -84,24 +84,24 @@ it('R-COPI-140-003 — Tier 0: a tool recebe o business_id DA CONVERSA', functio
         $prop->setAccessible(true);
 
         expect($prop->getValue($tool))
-            ->toBe(R_COPI_140_BIZ, class_basename($tool) . ' recebeu business errado');
+            ->toBe(R_COPI_141_BIZ, class_basename($tool) . ' recebeu business errado');
     }
 });
 
-it('R-COPI-140-003b — Tier 0: conversa de outro business gera tool daquele business, nunca vazamento cruzado', function () {
+it('R-COPI-141-003b — Tier 0: conversa de outro business gera tool daquele business, nunca vazamento cruzado', function () {
     config()->set('copiloto.chat_tools.enabled', true);
 
-    $tools = iterator_to_array(chatAgentComBusiness(R_COPI_140_BIZ_ALHEIO)->tools(), false);
+    $tools = iterator_to_array(chatAgentComBusiness(R_COPI_141_BIZ_ALHEIO)->tools(), false);
 
     $prop = new ReflectionProperty($tools[0], 'businessId');
     $prop->setAccessible(true);
 
     expect($tools[0])->toBeInstanceOf(VendasPeriodoTool::class)
-        ->and($prop->getValue($tools[0]))->toBe(R_COPI_140_BIZ_ALHEIO)
-        ->and($prop->getValue($tools[0]))->not->toBe(R_COPI_140_BIZ);
+        ->and($prop->getValue($tools[0]))->toBe(R_COPI_141_BIZ_ALHEIO)
+        ->and($prop->getValue($tools[0]))->not->toBe(R_COPI_141_BIZ);
 });
 
-it('R-COPI-140-004 — Tier 0 fail-safe: conversa sem business_id → zero tools', function () {
+it('R-COPI-141-004 — Tier 0 fail-safe: conversa sem business_id → zero tools', function () {
     config()->set('copiloto.chat_tools.enabled', true);
 
     $tools = iterator_to_array(chatAgentComBusiness(null)->tools(), false);
@@ -111,12 +111,12 @@ it('R-COPI-140-004 — Tier 0 fail-safe: conversa sem business_id → zero tools
     expect($tools)->toBe([]);
 });
 
-it('R-COPI-140-005 — o prompt só promete ferramenta quando o SDK realmente vai mandar', function () {
-    $semTools = chatAgentComBusiness(R_COPI_140_BIZ);
+it('R-COPI-141-005 — o prompt só promete ferramenta quando o SDK realmente vai mandar', function () {
+    $semTools = chatAgentComBusiness(R_COPI_141_BIZ);
     expect((string) $semTools->instructions())->not->toContain('FERRAMENTAS DE CONSULTA');
 
     config()->set('copiloto.chat_tools.enabled', true);
-    $comTools = chatAgentComBusiness(R_COPI_140_BIZ);
+    $comTools = chatAgentComBusiness(R_COPI_141_BIZ);
     expect((string) $comTools->instructions())->toContain('FERRAMENTAS DE CONSULTA');
 
     // Conversa sem business: flag ON mas tools() vazio → o prompt NÃO pode
@@ -125,6 +125,6 @@ it('R-COPI-140-005 — o prompt só promete ferramenta quando o SDK realmente va
     expect((string) $semBusiness->instructions())->not->toContain('FERRAMENTAS DE CONSULTA');
 });
 
-it('R-COPI-140-006 — ChatCopilotoAgent declara o contrato HasTools', function () {
-    expect(chatAgentComBusiness(R_COPI_140_BIZ))->toBeInstanceOf(HasTools::class);
+it('R-COPI-141-006 — ChatCopilotoAgent declara o contrato HasTools', function () {
+    expect(chatAgentComBusiness(R_COPI_141_BIZ))->toBeInstanceOf(HasTools::class);
 });

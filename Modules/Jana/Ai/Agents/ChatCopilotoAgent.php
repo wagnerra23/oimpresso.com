@@ -34,7 +34,7 @@ use Stringable;
  * (empresa, faturamento 90d, clientes, metas) no system prompt — Caminho A.
  * BC-compat: ChatCopilotoAgent($conv) sem ctx mantém comportamento anterior.
  *
- * US-COPI-140 — tool use no chat (Camada B v2, [ADR 0141]). Até aqui este era
+ * US-COPI-141 — tool use no chat (Camada B v2, [ADR 0141]). Até aqui este era
  * o único caminho conversacional da Jana e era single-shot: o PHP pré-cozinhava
  * o ContextoNegocio e o LLM só formatava. Agora declara HasTools e reusa as 5
  * tools READ-ONLY já provadas em prod pelo BriefDiarioAgent — o LLM decide se

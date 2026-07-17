@@ -544,7 +544,7 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Chat tools — tool use READ-ONLY no ChatCopilotoAgent (US-COPI-140)
+    | Chat tools — tool use READ-ONLY no ChatCopilotoAgent (US-COPI-141)
     |--------------------------------------------------------------------------
     |
     | Até 2026-07 o chat era o único caminho conversacional da Jana e era
