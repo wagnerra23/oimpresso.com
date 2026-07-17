@@ -544,6 +544,33 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Chat tools — tool use READ-ONLY no ChatCopilotoAgent (US-COPI-140)
+    |--------------------------------------------------------------------------
+    |
+    | Até 2026-07 o chat era o único caminho conversacional da Jana e era
+    | single-shot: 1 de 14 agents declarava tools, e não era este. O LLM recebia
+    | ContextoNegocio pré-cozido e só formatava. Com a flag ON, o
+    | ChatCopilotoAgent declara as 5 tools READ-ONLY do BriefDiarioAgent e o LLM
+    | decide se busca número vivo (ADR 0141 — pattern "Claude Code").
+    |
+    | Default OFF (ADR 0245 — homolog liga, prod espera): com a flag OFF
+    | `tools()` devolve [] e o SDK omite a chave `tools` do request
+    | (BuildsTextRequests: `if (filled($tools))`) → pipeline byte-idêntico ao
+    | legado. Ligar muda custo/latência por mensagem (tool call = round-trip
+    | extra), então o flip é decisão [W] com medição antes/depois.
+    |
+    | Tier 0: a flag NÃO afeta isolamento — o business_id das tools vem sempre do
+    | `conversa->business_id` (constructor), nunca do LLM (ADR 0093 + 0141).
+    |
+    | A chave env() abaixo entra na contagem baselined do Larastan
+    | (noEnvCallsOutsideOfConfig) deste arquivo — igual clarify/reranker/freshness.
+    */
+    'chat_tools' => [
+        'enabled' => (bool) env('JANA_CHAT_TOOLS_ENABLED', false),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | JANA ADVISOR — Metade B: Próxima-melhor-pergunta proativa (ADR 0245)
     |--------------------------------------------------------------------------
     | A Jana surfa, por persona, as perguntas que [W]/a equipe deveriam estar
