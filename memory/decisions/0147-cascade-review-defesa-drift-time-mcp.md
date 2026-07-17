@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-15
+decided_at: "2026-05-15"
 quarter: 2026-Q2
 module: governance
 tags: [governance, drift, enforcement, team-mcp, cascade-review, constitution-art-7-8-9-10]

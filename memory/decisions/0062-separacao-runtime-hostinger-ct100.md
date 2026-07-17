@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-04-30
+decided_at: "2026-04-30"
 module: infra
 quarter: 2026-Q2
 tags: [ambiente, hostinger, proxmox, octane, mcp, regras, governanca]

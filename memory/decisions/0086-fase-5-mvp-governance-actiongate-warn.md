@@ -1,13 +1,13 @@
 ---
 slug: 0086-fase-5-mvp-governance-actiongate-warn
-number: 0086
+number: 86
 title: "Fase 5 MVP — Modules/Governance scaffold + ActionGate (warn-only) + Sidebar GOVERNANÇA"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: governance
 quarter: 2026-Q2
 tags: [governance, actiongate, fase-5, mvp]

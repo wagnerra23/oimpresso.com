@@ -1,7 +1,7 @@
 ---
 slug: 0043-docker-host-traefik-vs-lxc-nativo
 number: 43
-title: !!binary gJQgRG9ja2VyICsgVHJhZWZpayArIFBvcnRhaW5lciBudW0gTFhDLCBlbSB2ZXogZGUgTiBMWENzIG5hdGl2b3M=
+title: "Docker + Traefik + Portainer num LXC, em vez de N LXCs nativos"
 type: adr
 status: aceito
 authority: canonical
@@ -12,9 +12,7 @@ decided_at: '2026-04-28'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0035'
   - 0035-stack-ai-canonica-wagner-2026-04-26
-  - '0042'
   - 0042-reverb-substitui-pusher-cloud
 pii: false
 ---

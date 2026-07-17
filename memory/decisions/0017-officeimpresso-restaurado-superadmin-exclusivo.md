@@ -1,7 +1,7 @@
 ---
 slug: 0017-officeimpresso-restaurado-superadmin-exclusivo
 number: 17
-title: !!binary gJQgT2ZmaWNlaW1wcmVzc28gcmVzdGF1cmFkbyBkYSAzLjcgY29tbyBtw7NkdWxvIFN1cGVyYWRtaW4gZXhjbHVzaXZv
+title: "Officeimpresso restaurado da 3.7 como módulo Superadmin exclusivo"
 type: adr
 status: aceito
 authority: canonical
@@ -13,7 +13,7 @@ module: officeimpresso
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0018'
+  - 0018-officeimpresso-log-acesso-passivo
 pii: false
 ---
 # ADR 0017 — Officeimpresso restaurado da 3.7 como módulo Superadmin exclusivo

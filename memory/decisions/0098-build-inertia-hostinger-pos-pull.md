@@ -1,20 +1,20 @@
 ---
 slug: 0098-build-inertia-hostinger-pos-pull
-number: 0098
+number: 98
 title: "build:inertia roda na Hostinger pós git-pull (substitui GH Actions runner)"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-07
+decided_at: "2026-05-07"
 module: infra
 quarter: 2026-Q2
 tags: [ci, deploy, hostinger, inertia, vite]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0062]
+related: [0062-separacao-runtime-hostinger-ct100]
 pii: false
 review_triggers:
   - Hostinger remover Node ou nvm

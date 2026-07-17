@@ -1,7 +1,7 @@
 ---
 slug: 0051-schema-proprio-adapter-otel-genai
 number: 51
-title: !!binary gJQgU2NoZW1hIHByw7NwcmlvICsgYWRhcHRlciBwYXR0ZXJuICsgZW1pc3PDo28gT3BlblRlbGVtZXRyeSBHZW5BSQ==
+title: "Schema próprio + adapter pattern + emissão OpenTelemetry GenAI"
 type: adr
 status: aceito
 authority: canonical
@@ -13,8 +13,8 @@ module: copiloto
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0049'
-  - '0050'
+  - 0049-camadas-memoria-agente-fase-por-fase
+  - 0050-metricas-obrigatorias-memoria-table
 pii: false
 ---
 # ADR 0051 — Schema próprio + adapter pattern + emissão OpenTelemetry GenAI

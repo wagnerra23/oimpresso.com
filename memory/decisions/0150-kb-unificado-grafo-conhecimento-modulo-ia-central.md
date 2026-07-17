@@ -1,13 +1,13 @@
 ---
 slug: 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
-number: 0150
+number: 150
 title: "KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
+decided_at: "2026-05-16"
 proposed_at: 2026-05-15
 accepted_at: 2026-05-16
 implemented_in_pr: 934

@@ -1,13 +1,13 @@
 ---
 slug: 0191-microsoft-clarity-session-replay-lgpd
-number: 0191
+number: 191
 title: "Microsoft Clarity como ferramenta canon de session replay + heatmap LGPD-compliant — 1 projeto global + custom tag business_id"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-25
+decided_at: "2026-05-25"
 accepted_at: 2026-05-25
 accepted_via: "Wagner aprovou em sessão `frosty-greider-83ab2f` 2026-05-25 — comando exato: 'Aceito — marca aceito + commit + começa PR 1 (banner)'. Decisão precedida por 4 escolhas explícitas via AskUserQuestion: (1) multi-tenant = 1 projeto + custom tag business_id, (2) consent banner = PR separado prerequisito, (3) mask PII = mask all default + unmask seguro, (4) carregar Clarity = só após autenticar."
 module: null
@@ -16,7 +16,7 @@ tags: [observability, ux-analytics, lgpd, session-replay, heatmap, microsoft-cla
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0061, 0062, 0093, 0094]
+related: [0061-conhecimento-canonico-git-mcp-zero-automem, 0062-separacao-runtime-hostinger-ct100, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios]
 pii: true
 review_triggers:
   - Larissa biz=4 reportar invasão de privacidade após ver session replay
