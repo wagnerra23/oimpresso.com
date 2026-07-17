@@ -1798,22 +1798,32 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 
 ### US-COPI-142 · Flip da flag chat_tools + medição antes/depois (decisão [W])
 
-> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 2h · status: done · type: story
 
-**Implementado em:** _pendente_ — a capacidade está pronta e testada (US-COPI-141); isto aqui é o flip, que é decisão [W] sobre custo/latência
+**Implementado em:** `Modules/Jana/Config/config.php` · verificado@f73157e (2026-07-17) — a flag `copiloto.chat_tools.enabled` vive aqui; o flip = `JANA_CHAT_TOOLS_ENABLED=true` no `.env` do Hostinger (config de ambiente, não código versionável) + `config:cache`, autorizado por [W] "flip e vai sim" (2026-07-17)
 
-**Origem:** US-COPI-141 landou a capacidade atrás de flag default-OFF (ADR 0245 — "homolog liga, prod espera"). Enquanto a flag não vira, **prod segue exatamente como antes**: a Jana continua sem consultar nada.
+**Testado em:** `Modules/Jana/Tests/Feature/Ai/ChatCopilotoAgentToolsTest.php` · verificado@f73157e (2026-07-17) — a capacidade (R-COPI-141); o flip em si foi validado por **smoke real** em homolog (CT 100) + prod (Hostinger), evidência no corpo
 
-**O ponto:** ligar tools **muda custo e latência por mensagem** — cada tool call é round-trip extra de LLM. Por isso o flip não é automático: é decisão [W], como o `clarify` (mesma ADR).
+**Origem:** US-COPI-141 landou a capacidade atrás de flag default-OFF (ADR 0245 — "homolog liga, prod espera"). [W] autorizou o flip em 2026-07-17 ("flip e vai sim").
 
-**Escopo:**
-- [ ] Ligar `JANA_CHAT_TOOLS_ENABLED=true` em **homolog** (CT 100) primeiro — nunca prod direto
-- [ ] Medir **antes/depois**: tokens/mensagem · latência p50/p95 · nº de tool calls por conversa
-- [ ] Medir no gold-set (`jana:recall-eval`) se a resposta melhorou **de fato** — não só ficou mais cara
-- [ ] Só então flip em prod, com kill-switch documentado (`JANA_CHAT_TOOLS_ENABLED=false`)
+**Como foi feito (homolog → smoke → prod → smoke, ADR 0245 + R1):**
+1. Flip em **homolog** (CT 100 staging) — flag ON + smoke real biz=1 (dogfooding, ADR 0101, nunca biz=4)
+2. Smoke comparativo OFF vs ON, mesma pergunta ("Quanto vendi hoje e nesta semana?"):
 
-**DoD:** existe número antes→depois (custo + latência + qualidade) que justifica manter a flag ON; se o custo subir sem a resposta melhorar, a flag volta pra OFF e a US vira lição.
+| | Flag OFF (legado) | Flag ON |
+|---|---|---|
+| Tool chamada | nenhuma | `VendasPeriodoTool` ✓ |
+| Comportamento | **pede ao cliente os dados** ("preciso saber quais são os dados de vendas que você possui") | **consulta e responde** com número vivo do business |
+| tokens_in | 104 | 830 (+7×) |
+| latência | 2,9s | 5,2s (+1,8×) |
 
-**Ressalva do adversário:** medir só custo é meia medida — o gold-set pode não capturar "a Jana buscou número vivo em vez de repetir snapshot", que é o ganho real. Pareia com **US-COPI-137** (eval online em 5% do tráfego): sem ela, o efeito no cliente real segue invisível. E ligar tools **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passaria a buscar melhor o contexto errado.
+3. Flip em **prod** (Hostinger `.env`, backup `.env.bak-chattools-*` criado) + `config:cache`
+4. R1 smoke prod: `GET /login` + `/` → `200 OK` (config:cache não quebrou); tinker biz=1 → `TOOL_CALLS=1 [VendasPeriodoTool]`, latência 4,3s, resposta com dado vivo
 
-**Refs:** ADR 0245 · ADR 0141 · US-COPI-141 · US-COPI-136 (piso de recall) · US-COPI-137 (eval online) · US-COPI-135 (modelo frontier)
+**DoD:** existe número antes→depois (cumprido acima). Custo por mensagem-que-pede-número sobe (tokens_in ~7×, latência ~1,8×), mas em valor absoluto é trivial (gpt-4o-mini) e **só** dispara quando a pergunta pede número — mensagens normais não chamam tool. O ganho (deixar de pedir ao cliente dados que a Jana deveria buscar) justifica. **Kill-switch:** `JANA_CHAT_TOOLS_ENABLED=false` no `.env` + `config:cache`.
+
+**Ressalvas que seguem abertas (não são desta US):**
+- Medir no gold-set (`jana:recall-eval`) e eval online (**US-COPI-137**) se a resposta melhora **na média do tráfego real** — o smoke prova o caminho, não a distribuição. Fica pra quando a US-137 der o eval online.
+- Ligar tools **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passa a buscar melhor o contexto errado. Piso de recall segue pendente.
+
+**Refs:** ADR 0245 · ADR 0141 · ADR 0101 · US-COPI-141 · US-COPI-136 (piso de recall) · US-COPI-137 (eval online) · US-COPI-135 (modelo frontier)
