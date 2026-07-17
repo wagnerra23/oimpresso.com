@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-11
+decided_at: "2026-05-11"
 module: null
 quarter: 2026-Q2
 tags: [arquitetura, modular, vertical, oficina-auto, modules-oficina, qualified-signal, ADR-0105, ADR-0121]
@@ -16,7 +16,7 @@ supersedes_partially: []
 amends: [0121]
 superseded_by: []
 amended_by: [0194]
-related: [0105, 0121, 0136, 0194]
+related: [0105-cliente-como-sinal-guiar-sem-mandar, 0121-oimpresso-modular-especializado-por-vertical, 0136-sells-grade-avancada-modo-toggle, 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada]
 pii: false
 review_triggers:
   - "Modules/OficinaAuto ter <2 clientes pagantes após 12m de scaffold (candidato lifecycle: historical)"

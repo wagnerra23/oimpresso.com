@@ -27,6 +27,10 @@
  *   X · COBERTURA DE AUDITORIA — módulo Tier-0 OU nota module-grade < FLOOR sem NENHUM
  *       AUDIT*.md no dir de requisitos. Responde "isso está auditado?" mecanicamente.
  *       (🟡 warn · determinístico · PLANO-APROFUNDAMENTO-AVALIACOES.md F1/F2.)
+ *   P · REF DE AUTOMAÇÃO MORTA — code-span `.claude/**` cujo alvo não existe em disco.
+ *       No registry AUTOMATIONS.md = 🔴 fail (é o que o time consome via MCP); no resto
+ *       da canon front-facing = 🟡 warn. Sibling do Check V (mesmo defeito, extrator de
+ *       code-span em vez de link markdown). Pega o porte .ps1→.mjs que esquece o registry.
  *
  * Uso:
  *   node scripts/governance/memory-health.mjs            (CI: exit 1 se algum 🔴)
@@ -387,6 +391,71 @@ function checkBrokenLinks() {
   if (broken.length) {
     warns.push({ check: 'V', kind: 'link-quebrado', count: broken.length, sample: broken.slice(0, 15),
       msg: `${broken.length} link(s) interno(s) quebrado(s) na canon front-facing (alvo inexistente) — determinístico, sem FP. Corrigir slug/caminho (ADR renomeada? use o slug real; arquivo movido/esquecido? re-apontar). 🟡 sentinela.` });
+  }
+}
+
+// ── Check P: ref de automação apontando pra arquivo morto ───────────────────
+// AUTOMATIONS.md é o inventário canônico de automações — indexado pelo MCP server,
+// serve o time como fonte de "quais automações existem e ONDE moram". A coluna
+// "Arquivo" é, por contrato do próprio doc (§"Como manter": *"Ao criar ou alterar
+// hook em `.claude/hooks/`: atualizar a seção correspondente"*), o path real. Todo
+// porte .ps1→.mjs que esquece o registry deixa a linha apontando pra arquivo que não
+// existe: o time lê o canon e vai no vazio — vetor "drift entre prod e git canônico"
+// da REGRA PRIMÁRIA (proibicoes.md). Medido 2026-07-17: 4 refs mortas em main (2
+// portes, PRs #4028/#4035), consertadas à mão no #4416 — o conserto não impede a
+// reincidência, este check impede.
+//
+// POR QUE NÃO É REDUNDANTE COM O CHECK V (lápide §5 2026-07-09 — gate redundante com
+// régua consolidada): o V só enxerga link markdown `](path)`; estas refs vivem em
+// code-span. MEDIDO (não presumido): na mesma árvore o V acusava 29 links quebrados e
+// ZERO era .claude/**. Mesmo defeito (alvo inexistente), outro extrator, MESMO dono
+// (memory-health) — extensão, não régua paralela.
+//
+// É EXISTÊNCIA, não presença: pergunta "o alvo existe em disco?", nunca "o doc foi
+// tocado no diff" (presence-gate — lápide §5 2026-07-01).
+//
+// FILTROS medidos, não adivinhados (2026-07-17: 71 refs concretas · 35 casos de prosa):
+// glob/placeholder/template = prosa (a própria AUTOMATIONS.md cita `.claude/worktrees/*`);
+// sem-extensão = diretório; gitignored = artefato de runtime (`.claude/run/`, .gitignore:107).
+// Sem eles o check nasceria com falso-positivo — a doença do guard `@scope` e do
+// allowlist-de-pasta (§5 2026-06-30/07-09): critério sintático que bloqueia o legítimo.
+//
+// SEVERIDADE espelha o Check G (workflow-fora-do-registry 🔴 · entrada-órfã 🟡):
+// no registry = 🔴 (contrato explícito + é o que o time consome); no resto da canon
+// front-facing = 🟡 (prosa de referência, contrato frouxo). Nasce 🔴-verde: 0 refs
+// mortas no registry em main pós-#4416 — sem baseline/grandfather.
+const REGISTRY_DOC = 'memory/governance/AUTOMATIONS.md';
+function isGitIgnored(p) {
+  try {
+    execSync(`git check-ignore -q "${p}"`, { stdio: 'ignore' }); // exit 0 = ignorado
+    return true;
+  } catch { return false; } // exit 1 = não-ignorado · sem git (sandbox) = fail-open
+}
+function checkRegistryRefViva() {
+  const files = [...listFiles('memory', (p) => p.endsWith('.md')), 'README.md', 'CLAUDE.md', 'DESIGN.md'].filter(LINK_CANON);
+  const noRegistry = [], naCanon = [];
+  for (const rel of files) {
+    let txt = ''; try { txt = read(rel); } catch { continue; }
+    txt.split('\n').forEach((line, i) => {
+      for (const m of line.matchAll(/`(\.claude\/[^`\s]*)`/g)) {
+        const ref = m[1].trim();
+        if (/[*?]/.test(ref)) continue;             // glob = padrão em prosa
+        if (/[<>]/.test(ref)) continue;             // <nome> = placeholder
+        if (/NNNN|YYYY/.test(ref)) continue;        // template
+        if (!/\.[a-z0-9]+$/i.test(ref)) continue;   // sem extensão = diretório
+        if (existsSync(join(ROOT, ref))) continue;  // alvo vivo
+        if (isGitIgnored(ref)) continue;            // artefato de runtime, não versionado
+        (rel === REGISTRY_DOC ? noRegistry : naCanon).push({ file: rel, linha: i + 1, ref });
+      }
+    });
+  }
+  if (noRegistry.length) {
+    fails.push({ check: 'P', kind: 'registry-ref-morta', count: noRegistry.length, sample: noRegistry.slice(0, 10),
+      msg: `${REGISTRY_DOC} cita ${noRegistry.length} path(s) de automação que NÃO existe(m) em disco — o registry é indexado pelo MCP e serve o time como fonte de onde mora cada automação; apontar pra arquivo morto serve dado errado. Atualize a coluna "Arquivo" no MESMO PR que portar/renomear/apagar o hook (§"Como manter" do próprio doc).` });
+  }
+  if (naCanon.length) {
+    warns.push({ check: 'P', kind: 'canon-ref-morta', count: naCanon.length, sample: naCanon.slice(0, 15),
+      msg: `${naCanon.length} ref(s) .claude/** em canon front-facing apontando pra alvo inexistente (hook/skill/agent portado, renomeado ou apagado) — re-apontar pro path real. 🟡 sentinela: o 🔴 é só no registry (${REGISTRY_DOC}).` });
   }
 }
 
@@ -927,6 +996,7 @@ try { checkBacklogIndexStale(); } catch (e) { warns.push({ check: 'W', kind: 'ba
 checkAdrEnumDrift();
 checkAntiResurrection();
 checkGatesRegistry();
+checkRegistryRefViva(); // Check P (fail-class no registry) — ref de automação apontando pra arquivo morto
 checkGovernanceCeiling(); // Check M (teto de governança — ADR 0298)
 checkLidoFreshness();
 checkLicaoSemAssercao();

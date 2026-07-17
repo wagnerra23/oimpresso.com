@@ -1,130 +1,121 @@
+---
+module: KB
+status: parcial
+status_nota: "backend LIVE em prod (bridge 15-em-15min + schema + CRUD, biz=1); a tela /kb/v2 ainda roda 100% MOCK — o Controller nunca ligou o dado ao frontend"
+updated_at: "2026-07-17"
+owner: W
+related_adrs:
+  - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
+  - 0093-multi-tenant-isolation-tier-0
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0101-tests-business-id-1-nunca-cliente
+lifecycle: ativo
+piloto: "Wagner / governança (biz=1) — dono do acervo; biz=4 (Larissa/vestuário) só 3 articles"
+---
+
 # KB Unificado — BRIEFING (estado consolidado 1 página)
 
-**Última atualização:** 2026-05-16 — Wave 25 saturação D9 (KbHealthCommand + OTel spans expandidos)
-**Owner:** [W] Wagner · **Persona-piloto:** Wagner governança (ONDAS 1-5) → Larissa operacional gráfica (ONDA 6+)
-**Status:**
-- ✅ **ONDA 0+1+2+4+5(parcial) LIVE no main** (PR #934 mergeado 2026-05-16 00:32 UTC, 132 arquivos, +25.465 LOC, 7 agents)
-- ⏳ **ONDA 3 + 5(restante) + 6(parcial) em execução** (sessão 2026-05-16, 4 agents H/I/J/K paralelos background)
-- 📋 **ADR 0150:** **ACEITA** ([decided_at 2026-05-16](../../decisions/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md))
-- 🆕 **Wave 25 (2026-05-16):** `kb:health-check` artisan (4 checks RAG saudáveis) + OTel spans em `KbArticleService::paginate` + `KbBridgeStateService::markRun` (D9.a expandido); +10 Pest tests health command (multi-tenant Tier 0 cross-tenant biz=1 vs biz=99 cobertos)
+**Última atualização:** 2026-07-17 — reescrito pra realidade **medida** no banco de produção (CT 100). A versão de 2026-05-16 dizia "ONDA 0+1+2+4+5 LIVE" e descrevia uma persona ("Larissa operadora gráfica") que **não existe no acervo real**. Este briefing corrige as duas mentiras.
 
-**Critério de sucesso:** Wagner consegue (a) ver grafo navegável dos 143 ADRs + sessions + charters com edges de dependência; (b) perguntar IA "qual ADR rege X?" e receber resposta com citações; (c) usar trilha didática "Como funciona Multi-tenant Tier 0 aqui".
+**Owner:** [W] Wagner · **Persona real:** **Wagner / governança (biz=1)** — o acervo é 99,8% documento de governança (ADR / session / reference / spec). A "operadora de gráfica" era ficção do corpus mock.
+
+**Status honesto:** `parcial`.
+- ✅ **Backend LIVE em prod (biz=1):** schema `kb_*`, `KbBridgeFromMcpJob` populando `kb_nodes` a cada 15 min, taxonomia seeded, CRUD de artigo editável, permissions.
+- 🔴 **A tela `/kb/v2` NÃO serve o dado — roda MOCK.** A rota passa zero props → `usingMock=true` → mostra `MOCK_NODES`. Falta o Controller `indexV2` injetar `props.nodes` filtrado por `business_id`.
+- 🔴 **Mesmo ligada ao banco, nasceria vazia por categoria** para governança (biz=1): o filtro ancora em `category_id`, e a quase totalidade dos nós está com `category_id` NULL (ver §Bloqueador). Falta o **classificador** que lê `auto_match` — hoje com **zero leitores em PHP**.
 
 ---
 
 ## O que é
 
-`Modules/KB/` re-escopado como **módulo IA central** do oimpresso. Não é mais "browser de docs canônicos" — é o **cérebro consultável da empresa** sobre TODO conhecimento: ADRs, sessions, charters, runbooks, briefings, artigos operacionais de gráfica, dados ERP (OS, vendas, NFe, clientes) e arquivos externos (manuais, contratos).
+`Modules/KB/` = o **leitor consultável do conhecimento canônico da empresa**: ADRs, session logs, charters, runbooks, briefings, specs — os documentos de governança que já vivem no git e que o `KbBridgeFromMcpJob` copia (read-only) pra dentro de `kb_nodes` em produção. A tela alvo é `/kb/v2` (`kb/Index.v2.tsx`), tri-pane Cockpit V2 (categorias · lista · leitor).
 
-Construído sobre um **grafo de conhecimento multi-tenant** (`kb_nodes` + `kb_edges`) com bridge read-only pra `mcp_memory_documents` (fotografia git intacta). Frontend tri-pane Cockpit V2 (port do protótipo Cowork [CC] handoff (5), self-score 9,40/10 Bench v2).
+**Não é** um "browser de SOPs de gráfica com dados inventados". Esse enquadramento (persona Larissa operacional, corpus Roland VS-540) era **mock** e sai — [W] 2026-07-17: *"eu quero os dados, mas com o design do KB"*.
 
-## Diferenciais vs mercado (Bench v5 estimado ~9,55-9,70/10)
+## Estado real — pronto vs gap
 
-| Vetor | Score | vs líder concorrente | Por quê único |
-|---|---|---|---|
-| **Integração ERP nativa** | 9,5 | Notion 6,0 | KB cita OS/cliente/NFe reais com edges `references-data` |
-| **Visualização-grafo de governança** | 9,5 | Confluence 7,5 | 143 ADRs com supersedes/related/charter-of navegáveis em Cytoscape |
-| **Troubleshoot interativo + editor visual** | 10,0 | Stonly 9,8 (empate técnico) | Edição WYSIWYG sem código, fix linka artigo direto |
-| **Trilhas de aprendizado por persona** | 9,5 | ninguém faz bem | Larissa/Wagner/Mateus/Eliana, progresso por dispositivo |
-| **Imprimir SOP balcão físico** | 10,0 | ninguém faz | Layout oficial Oimpresso pra colar ao lado da Roland VS-540 |
-| **Fit pt-BR/gráfica** | 10,0 | todos ~5-7 | 18 artigos seed do domínio + vocabulário Larissa |
-| **Custo** | 10,0 | Guru ~R$ [redacted Tier 0]/u | Zero licença extra — parte do ERP |
-| **Densidade Larissa 1280px** | 9,5 | Confluence 6,0 | Cowork V2 sem rounded-xl, sem espaçamento desperdiçado |
+| Peça | Estado | Onde |
+|---|---|---|
+| Schema `kb_nodes` + taxonomia (`kb_categories`/`kb_subcategories` com `auto_match` seeded) | ✅ pronto, seeded em biz=1 e biz=4 | `Modules/KB/Database` |
+| Bridge git→banco (`KbBridgeFromMcpJob`) rodando em prod | ✅ LIVE (15/15 min) | `Modules/KB/Jobs/KbBridgeFromMcpJob.php` |
+| CRUD de artigo editável + versões + permissions | ✅ existe | `Modules/KB/Http` / `Entities` |
+| Global scope `business_id` (Tier 0) | ✅ provado (governança não vaza pro cliente) | `BelongsToBusinessTrait` |
+| Troca de empresa (herda o tenant) | ✅ via `CompanyPicker` na Sidebar | `resources/js/Components/cockpit/Sidebar.tsx` |
+| **Tela `/kb/v2` servindo o dado** | 🔴 **MOCK — Controller não ligou** | `Modules/KB/Http/routes.php` / `Index.v2.tsx` |
+| **Classificador `auto_match` → `category_id`** | 🔴 **zero leitores em PHP** | (a construir) |
+| Template de categorias por vertical | 🟡 **D6 ABERTA — [W] decide** | charter §3 |
 
-Score esperado **acima de 9,5/10** — líder de categoria ERP-com-KB-IA-integrado no Brasil.
+## Os números do acervo — **este briefing NÃO os guarda** (fato derivado não se restateia)
 
-## Estrutura conceitual (grafo unificado)
+> **Lei aplicada** (proibições §5, 2026-07-17): documento canônico não repete número que **outro sistema** sabe melhor. O dono do tamanho do acervo é o **banco** (`kb_nodes`), não este arquivo.
+>
+> - **O recibo datado de record** (total · por tipo · `category_id` NULL · árvore) vive no **[charter §3 do `Index.v2.tsx`](../../../resources/js/Pages/kb/Index.v2.charter.md)** — medição em prod (CT 100 `oimpresso-mcp`, biz=1), com sistema + data + query declarados.
+> - **Pra re-medir** (o número envelhece à vista — se a data incomodar, re-rode, não edite):
+>   ```sql
+>   SELECT type, COUNT(*) FROM kb_nodes WHERE business_id = ? GROUP BY type;
+>   SELECT COUNT(*) FROM kb_nodes WHERE category_id IS NULL;
+>   ```
+>   Roda no **CT 100** (`tailscale ssh root@ct100-mcp "docker exec oimpresso-mcp php artisan tinker"`), **nunca no CI** — o CI não tem o banco de governança.
+>
+> **Não invente esses números aqui nem em terceiro doc** — aponte pro charter §3 ou re-meça.
 
-| Estrutura | Forma | Quando usar | Origem do conteúdo |
-|---|---|---|---|
-| **Nó** | Unidade atômica (artigo, ADR, session, charter, runbook, briefing, OS, cliente, NFe, arquivo externo) | Atom de informação | `kb_nodes` ou bridge pra `mcp_memory_documents` |
-| **Aresta** | Ligação tipada (next-in-path, fix-of, supersedes, charter-of, references-data, ai-related, cross-link, related-by-tag) | Relação semântica entre nós | `kb_edges` (manual ou auto-derivada) |
-| **Trilha** | Sequência ordenada de nós + checkbox de progresso + persona-target | Aprendizado guiado proativo | `kb_paths` + `kb_path_steps` |
-| **Decisão** | Grafo Q→Sim/Não→Q'/Fix | Resolução reativa de problema | `kb_decision_trees` + `kb_decision_tree_steps` |
-| **Versão** | Snapshot append-only por edit | Histórico de artigos editáveis | `kb_node_versions` |
+## Bloqueador — dois níveis, sem maquiar
 
-Trilha vs Decisão = views diferentes sobre o mesmo grafo. **Decisão pode gerar trilha curativa** (artigos referenciados nos fixes em ordem). **Trilha pode gerar decisão contextual** (qual passo aplicar agora). Função sobre o grafo, não estrutura nova.
+**Nível 0 — a tela nem lê o banco hoje.** `Modules/KB/Http/routes.php` renderiza `kb/Index.v2` com **zero props** → `Index.v2.tsx` cai em `usingMock` → mostra `MOCK_NODES`. É o gate visual pra [W] aprovar screenshot (ADR 0114), **não** está fiado ao DB. Falta o Controller `indexV2` injetar `props.nodes` escopado por `business_id`.
+
+**Nível 1 — fiada ao DB, o filtro por categoria vem vazio pra governança (biz=1).** O filtro ancora em `n.category_id === cat.id`, mas a **quase totalidade dos nós de governança está com `category_id` NULL** (structural: `category_id` NULL corresponde a **exatamente todo o biz=1** — medido 2026-07-17, contagem no recibo do charter §3). Clicar qualquer categoria em biz=1 → 0 linhas. (biz=4 é a exceção: seus 3 articles estão categorizados → funcionam.)
+
+**Causa-raiz — `auto_match` tem ZERO leitores em PHP.** A regra de classificação (`{"field":"type","op":"=","value":"adr"}` etc.) já existe como **dado** seeded em `kb_subcategories`, mas **nenhuma linha de runtime a lê**: `KbBridgeFromMcpJob::bridgeDocument()` preenche ~9 campos e **não** seta `category_id`/`subcategory_id`; os únicos writers de `category_id` são seeders. O eixo "Governança" está pronto como dado e **morto como comportamento**.
+
+**Fechar isso** (próximo passo de CÓDIGO, gated em D6): (a) serviço que lê `auto_match` e escreve `category_id`; (b) backfill dos nós NULL; (c) o bridge passa a classificar no fill; (d) corrigir `KbArticleService` (`->integer('category')` espera int, a tela manda slug → filtra por 0 em silêncio). É **pré-requisito** do Controller, não paralelo. **A equipe especifica o classificador; não o implementa neste briefing.**
+
+## Taxonomia — 1 KB com filtro, dois eixos ([W] 2026-07-17)
+
+Já **seeded** no banco (não inventar, não revogar seeder). Contagens exatas no charter §3 — aqui só a forma:
+
+- **Eixo 1 — `Governança` (interno, igual pra todo business):** uma categoria cujas **subcategorias são os tipos de documento** (ADR · Session · Charter · Runbook · Briefing · Spec), cada uma com `auto_match` por `type` já gravado. É o eixo que a tela serve hoje. Não vaza pro cliente (global scope; ver charter §3 + UC-05: governança de biz=1 não aparece pra outro business).
+- **Eixo 2 — conteúdo do cliente (template POR VERTICAL):** Produção · Equipamentos · Pré-impressão · Atendimento · Fiscal · Sistema · Pessoas. Seeded **idêntico** em biz=1 e biz=4 — e todo de **gráfica**, o que é ficção pra biz=4 (vestuário). **D6 ABERTA:** [W] define as categorias por vertical (ou o agente propõe gráfica/vestuário/oficina e [W] corta). Não bloqueia o Eixo 1.
+
+**Invariante:** a lateral é a árvore `kb_categories → kb_subcategories` **do business**; o tipo do documento é subcategoria de `Governança`, não a categoria raiz. (A antiga formulação "categoria = `kb_nodes.type`" foi **derrubada** — achatava a árvore e apagava o eixo do cliente.)
+
+## Indicador da empresa ativa (NOVO-A) + categoria vazia oculta (NOVO-B)
+
+- **NOVO-A** ([W]: *"qual KB que o cliente está filtrando? isso deveria estar ao lado do buscar"*): ao lado da busca vai um **RÓTULO** da empresa ativa — leitura do `ativa` do `CompanyPicker` (rodapé da Sidebar). **Não é seletor de eixo** e **não é seletor de empresa** (o KB não tem um; herda o tenant via `SetSessionData` → global scope). Cliente normal (Larissa) nunca troca — ela **é** a única empresa dela.
+- **NOVO-B** (achado da medição): a lateral **só mostra categoria com ≥1 documento** pra empresa ativa. Medido: biz=4 tem a categoria "Governança" seeded com **0 documentos** → categoria fantasma. Regra elimina a promessa de conteúdo que o multi-tenant nunca deixa aparecer.
 
 ## Inviolabilidades Tier 0 (sem ADR mãe nova é proibido)
 
-- `business_id` global scope em TODAS as tabelas `kb_*` ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md))
-- `kb_nodes` bridge canônico (`is_editable=false`) NUNCA tem versionamento local — vem só do git ([ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md))
-- ADRs canon append-only via bridge — `kb_nodes.body_blocks IS NULL` pra type ADR; conteúdo vem do JOIN com `mcp_memory_documents.content_md`
-- IA RAG roteia via `Modules/Jana/Ai/` ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)) — laravel/ai SDK + MeilisearchDriver hybrid embedder. NÃO criar provider novo.
-- Pest tests biz=1 + cross-tenant biz=99 obrigatórios ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md))
-- F3 do `Pages/kb/Index.tsx` segue MWART canônico 5 fases ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md))
-- Gate visual screenshot Wagner antes de F4 merge ([ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md))
-- Inertia::defer em props caras ([RUNBOOK-inertia-defer-pattern](../_DesignSystem/RUNBOOK-inertia-defer-pattern.md))
+- `business_id` global scope em TODAS as tabelas `kb_*` — provado que governança (biz=1) não vaza pro cliente ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
+- `kb_nodes` bridge canônico (`is_editable=false`) NUNCA versiona local — vem só do git ([ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md)).
+- IA/RAG roteia via `Modules/Jana/Ai/` ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)) — não criar provider novo.
+- Pest biz=1 canônico + cross-tenant biz=99 fictício; **nunca biz=4** (ROTA LIVRE prod) em teste que escreve ([ADR 0101](../../decisions/0101-tests-business-id-1-nunca-cliente.md)).
+- `Index.v2.tsx` segue MWART 5 fases ([ADR 0104](../../decisions/0104-processo-mwart-canonico-unico-caminho.md)) + gate visual screenshot [W] antes do merge ([ADR 0114](../../decisions/0114-prototipo-ui-cowork-loop-formalizado.md)).
 
-## Plano em 6 ondas (~12-18 dias com agents paralelos)
+## Decisões [W] já tomadas (input, não pergunta)
 
-```
-ONDA 0 (em execução agora — eu sequencial)
-   ADR 0150 proposal + CAPTERRA-FICHA + BRIEFING + SCHEMA-DB-V1 + charter
+- **D1** — a tela serve os DOCUMENTOS REAIS (não SOP inventado).
+- **D3** — 1 KB com filtro, dois eixos (Governança = tipos de doc via `auto_match`; + conteúdo do cliente). **Não** é "categoria = type".
+- **NOVO-A / NOVO-B** — ver seção acima.
 
-ONDA 1 (3-4d, 1-2 agents paralelos)
-   Migrations + Models + Controllers + Services + bridge job
-   ↘ outputs: kb_* tables + Modules/KB/Entities/ + Modules/KB/Http/Controllers/
+## Decisão ABERTA (bloqueia o backfill, não a leitura de governança)
 
-ONDA 2 (3-4d, 1-2 agents paralelos)
-   Frontend tri-pane Inertia (port kb-page.jsx → React 19/TS)
-   ↘ outputs: resources/js/Pages/kb/Index.tsx + _components/
-
-ONDA 3 (2-3d, 1 agent)
-   Block editor + composer + comments + versions + editor visual de árvore
-   ↘ outputs: Composer.tsx + Editor visual KBTroubleEditor
-
-ONDA 4 (2-3d, 1 agent)
-   IA RAG sobre grafo completo (KbRagService → Modules/Jana/Ai/)
-   ↘ outputs: Modules/KB/Services/KbRagService.php + endpoints /kb/ai/*
-
-ONDA 5 (2-3d, 1 agent)
-   Visualização-grafo (Cytoscape.js) + Imprimir SOP + favoritos
-   ↘ outputs: resources/js/Pages/kb/Graph.tsx + KbGraphController + KBPrintSOP
-
-ONDA 6 (3-5d, escopo aberto)
-   Dados ERP no grafo (references-data edges + reverse use)
-   ↘ outputs: KbScanReferencesJob + useKbContext hook nos módulos
-```
-
-## Pré-requisitos cumpridos
-
-- ✅ ADR proposal 0149 escrita
-- ✅ CAPTERRA-FICHA porting Bench v2 + adendo v5
-- ✅ SCHEMA-DB-V1 contrato técnico
-- ✅ Charter `Pages/kb/Index.charter.md`
-- ✅ Sync Cowork v5 commitado em `prototipo-ui/prototipos/kb/` (e601471f1)
-- ✅ `Modules/KB/` skeleton existente conhecido (6 controllers, permissions parciais)
-
-## Pré-requisitos pendentes
-
-- ⏳ Aceite Wagner da ADR 0150 (promover de proposals → memory/decisions/)
-- ⏳ Spawn dos agents paralelos (ONDA 1+)
-- ⏳ Decisão sobre roles Spatie: criar role `kb-author` por business? ou reusar `Admin#{biz}` mais wide?
-- ⏳ Decisão sobre persona-handler do MCP server: o servidor MCP `mcp.oimpresso.com` deve EXPOR tool `kb-search` e `kb-graph-query` pro Copiloto/Jana? (recomendação: sim, ONDA 4)
-
-## Riscos catalogados (re-validar mensalmente)
-
-- **R1** Duplicação acidental kb_nodes ↔ mcp_memory_documents → mitigado por invariante `is_editable=false ⇒ body_blocks IS NULL`
-- **R2** Custo IA RAG explode → mitigado por cache embeddings Meilisearch + cache de respostas curtas
-- **R3** UX visualização-grafo confunde Wagner → mitigado por gate visual ADR 0114
-- **R4** Concurrent edit (raro mas possível) → mitigado por updated_at otimista pre-save
-- **R5** Multi-tenant leak via bridge → mitigado por business_id global scope
+- **D6** — template de categorias por vertical (Eixo 2). Seeded hoje é tudo gráfica; biz=4 é vestuário. [W] define ou corta uma proposta. Enquanto aberta, o classificador do Eixo 1 (Governança) já pode ser construído — é o que a tela serve.
 
 ## Arquivos canônicos relacionados (ler ANTES de tocar código)
 
-- [ADR 0150 proposal](../../decisions/proposals/0150-kb-unificado-grafo-conhecimento-modulo-ia-central.md) — decisão arquitetural
-- [SCHEMA-DB-V1.md](SCHEMA-DB-V1.md) — contrato técnico de migrations/tabelas
-- [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — benchmark de mercado (16 dimensões, Bench v2 + adendo v5)
-- [Index.charter.md](../../../resources/js/Pages/kb/Index.charter.md) — Mission/Goals/Non-Goals/UX
-- [prototipo-ui/prototipos/kb/](../../../prototipo-ui/prototipos/kb/) — material visual F1 do Cowork (9 arquivos, 280KB)
-- [Modules/KB/SCOPE.md](../../../Modules/KB/SCOPE.md) — escopo atual do módulo
-- [Modules/KB/Resources/permissions.php](../../../Modules/KB/Resources/permissions.php) — permissions já declaradas
+- [Index.v2.charter.md](../../../resources/js/Pages/kb/Index.v2.charter.md) — **lei da tela + recibo do acervo (§3)** · charter_version 3, DRAFT aguardando [W].
+- [SPEC.md](SPEC.md) — US-KB-001 (o "ver" dos ADRs) e demais US.
+- [SCHEMA-DB-V1.md](SCHEMA-DB-V1.md) — contrato das tabelas `kb_*`.
+- [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) — benchmark de mercado.
+- `Modules/KB/Jobs/KbBridgeFromMcpJob.php` — o bridge que popula `kb_nodes` (e onde o `category_id` **não** é setado hoje).
+- `resources/js/Pages/kb/Index.v2.tsx` — a tela (hoje MOCK) + `Modules/KB/Http/routes.php` (rota sem props).
 
-## Roadmap pós-ONDA 5
+## Riscos (re-validar mensalmente)
 
-- **ONDA 6** Dados ERP no grafo (cross-link OS/cliente/NFe/equipamento ↔ artigos)
-- **ONDA 7** MCP server expõe tools `kb-search` + `kb-graph-query` pro Copiloto/Jana consumir programaticamente
-- **ONDA 8** Skill `/kb-curate` que sugere edges ao curador (auto-detecção de cross-link em texto)
-- **ONDA 9** Webhook KB → ADS pra disparar Brain B em decision-tree complexa
-- **ONDA 10** Marketplace de trilhas/troubleshooters cross-business (gráficas compartilham SOPs)
+- **R1** Tela declarada "pronta" enquanto serve MOCK — mitigado por este briefing + smoke real pós-merge (R1 do protocolo).
+- **R2** Backfill de `category_id` toca 1 nó por vez sob global scope — job usa `withoutGlobalScopes()` + `business_id` explícito (bridge já faz assim).
+- **R3** Multi-tenant leak via bridge — mitigado por `business_id` global scope (KbNode via BelongsToBusinessTrait; prova em charter §3 + UC-05).
+- **R4** Restatement de número de acervo em doc canônico (drift) — mitigado pela lei §5: apontar pro charter §3 / re-medir, nunca copiar o número.

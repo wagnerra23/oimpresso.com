@@ -69,7 +69,7 @@ Relatório atualizado em `memory/requisitos/Whatsapp/COMPARATIVO-MERCADO-2026-05
 
 ## Subagent criado
 
-`.claude/agents/whatsapp-baileys-expert.md` — invoke via `Agent({subagent_type:'whatsapp-baileys-expert'})` em sessões futuras pra estabilidade Baileys.
+`whatsapp-baileys-expert` — subagente descrito nesta sessão, mas **nunca versionado em git** (o arquivo `.claude/agents/` nunca foi commitado). Agente vivo dessa área hoje: `whatsapp-doctor`.
 
 ## Lições da sessão (técnicas)
 

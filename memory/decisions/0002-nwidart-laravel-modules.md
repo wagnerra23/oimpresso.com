@@ -1,7 +1,7 @@
 ---
 slug: 0002-nwidart-laravel-modules
 number: 2
-title: !!binary gJQgVXNhciBuV2lkYXJ0L2xhcmF2ZWwtbW9kdWxlcyBjb21vIHNpc3RlbWEgZGUgbcOzZHVsb3M=
+title: "Usar nWidart/laravel-modules como sistema de módulos"
 type: adr
 status: aceito
 authority: canonical
@@ -13,7 +13,7 @@ decided_at: '2026-04-18'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0001'
+  - 0001-estender-ultimatepos-opcao-c
 pii: false
 ---
 # ADR 0002 — Usar nWidart/laravel-modules como sistema de módulos

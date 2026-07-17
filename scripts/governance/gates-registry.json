@@ -72,10 +72,10 @@
       "anchor": "sinal de custo: decisão Wagner 2026-07-05 ('o software deve amadurecer e se tornar vivo por módulo') — hoje Wagner é o único agregador/despachante manual da frota (234 telas, 25 casos.md); arte memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.3-§3.6 + roadmap SDD stream MV (MV2). Determinístico zero-LLM; NUNCA cria task/merge (publication-policy); nunca entra em required (lei ADR 0314)."
     },
     "briefing-code-staleness.yml": {
-      "nome": "Staleness reporters (advisory · 4 eixos: BRIEFING×código briefing-code-staleness.mjs · visual-comparison×tela visual-comparison-staleness.mjs · ADR pendente adr-proposto-parado.mjs · RADAR de frescor por doc doc-freshness-score.mjs score 0-100 Dosu, agregador/Roubo #5 · todos com self-test bite/release)",
+      "nome": "Staleness reporters (advisory · 5 eixos: BRIEFING×código briefing-code-staleness.mjs · visual-comparison×tela visual-comparison-staleness.mjs · ADR pendente adr-proposto-parado.mjs · RADAR de frescor por doc doc-freshness-score.mjs score 0-100 Dosu, agregador/Roubo #5 · AGENTS.md×CLAUDE.md∪@imports agents-md-staleness.mjs · todos com self-test bite/release)",
       "classe": "automacao",
       "terminal": "automacao",
-      "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required."
+      "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required. | EIXO 5 (2026-07-17, chip F2 da grade 2026-07-17): sinal de custo próprio — AGENTS.md serviu stack REJEITADA (Vizra ADK, rejeitada pela ADR 0048 em 2026-04-29) até auditoria humana pegar (#4017, 2026-07-09); Codex/Cursor não expandem `@CLAUDE.md`, então pra eles o resumo do AGENTS.md É o corpus. Núcleo classifyCodeStaleness reusado (não é motor novo — proibicoes §5 2026-07-09); data DECLARADA obrigatória porque os toques mecânicos de 06-08 (restore de squash + MapaTelas) faziam a data-git medir 30d em vez dos 73d reais (o fallback escapa por 1 dia exato)."
     },
     "block-brl-values-selftest.yml": {
       "nome": "block-brl-values selftest (meta-teste do hook Tier-0 dinheiro block-brl-values-in-memory.mjs — bite/release do detector via --selftest + registration test do settings.json; advisory, não bloqueia merge)",
@@ -270,7 +270,7 @@
       "classe": "gate"
     },
     "governance-script-tests.yml": {
-      "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1)",
+      "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1; inclui agent-corpus-counterfactual.test.mjs, chip C1 da grade 2026-07-17: prova por Monte Carlo determinístico que a aritmética de viabilidade CUMPRE o poder que promete e não grita vencedor sob H0 — o harness de 3 arms que ela servia foi podado em 2026-07-17, autorizado [W])",
       "classe": "gate"
     },
     "infra-contract-required.yml": {
@@ -365,6 +365,12 @@
       "terminal": "advisory",
       "promote_by": "2026-07-23",
       "anchor": "sinal de custo: grade-das-réguas 2026-07-09 ataque ① — única fraqueza CONFIRMADA 3/10 na re-verificação (zero critic automático em PR de agente; pr-ui-judge.yml deletado na ADR 0271 onda 2 como teatro dormente; ultrareview é manual). Implementa arte 2026-06-22 §3 gap #5. Advisory por ADR 0314 (crítica LLM é quality, não Tier-0); promote_by cobra a decisão em 14d — promover a required exige reabrir a 0314 pro item (lei das proibições)."
+    },
+    "devcontainer-firewall.yml": {
+      "nome": "devcontainer firewall (egress default-deny · chip C7) — prova que o firewall do devcontainer do agente MORDE (corta host fora da allowlist) e SOLTA (deixa passar github/anthropic/oimpresso/CT100/Hostinger que o trabalho exige). 3 steps: (1) controle do probe — SEM firewall example.com responde 200, senao o 'bloqueado' do step 2 nao distingue firewall de rede quebrada; (2) bite+release com firewall; (3) fail-loud — sem NET_ADMIN o script morre em vez de rodar com a rede aberta se achando protegido.",
+      "classe": "meta",
+      "terminal": "cron",
+      "anchor": "sinal de custo: dimensao seguranca-do-agente 5,0/10 na grade 2026-07-17 — '30 hooks PreToolUse com exit 2 (forte) + ZERO controle de ambiente (fraco)'. Toda a defesa e SINTATICA (regex sobre o comando) e regex nao enumera a classe que nao conhece: o corpus de injection documenta 4 caminhos UNGUARDED (curl exfil, gh api, gh pr merge, node -e) que nenhum hook cobre. Este e o UNICO controle de TIPO diferente (corta a saida, nao adivinha o comando). Ref: devcontainer do Claude Code + sandbox Anthropic (gVisor + MITM). Decisao [W] 2026-07-17 (faseado: portar hooks #4416 primeiro, C7 depois sobre base cross-plataforma — fazer antes deixaria os .ps1 no-op silencioso em Linux). terminal=cron (NAO advisory, sem promote_by): o fim-de-vida E path-filter + cron; virar required exige reabrir a ADR 0314 (egress de devcontainer nao e Tier-0 de merge). Provado em CI porque o Docker Desktop do [W] estava PARADO em 2026-07-17 — sem o CI o firewall nasceria sem nunca ter sido visto funcionar. Alvo do controle e example.com (resolve/responde), NUNCA .example: TLD reservado falharia por DNS mesmo sem firewall — o falso-verde que matou a ADR 0290. Hard-fail intencional: nao adicionar continue-on-error (lapide §5 2026-07-09)."
     },
     "prompt-injection-corpus.yml": {
       "nome": "prompt-injection corpus (red-team do agente · OWASP LLM01) — invoca .claude/governance-eval/prompt-injection-corpus.mjs: alimenta aos hooks REAIS as ações induzidas por injection vinda de dado que o agente LÊ (db-row, WhatsApp inbound, doc do MCP, WebFetch) e assere o backstop. Camada A = ratchet (6 cenários; exit 1 se block-destructive/pii-redactor pararem de morder). Camada B = 4 caminhos UNGUARDED reportados, não falham (exfil via curl, gh api, gh pr merge, node -e) — fechá-los toca o modelo de permissão = decisão [W]. Step 2 (settings-backstop-registration.test.mjs) prova que o backstop segue REGISTRADO no settings.json: sem ele o step 1 fica VERDE com a defesa desligada (medido 2026-07-17 — o corpus invoca o hook pelo caminho do arquivo, então prova a lógica e não a ativação).",

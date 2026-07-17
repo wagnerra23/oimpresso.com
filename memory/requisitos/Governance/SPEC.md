@@ -815,3 +815,31 @@ A promoção de `Layout primitives · ratchet`, `Stylelint · ratchet vs baselin
 3. Se algum dos 3 NÃO acumular ≥2 mordidas reais em ~4-6 semanas, reconsiderar a demoção daquele item (gate sem mordida no mundo = só selftest = candidato a advisory de volta). Reversível via `gh api` re-remove do context na branch protection.
 
 **Aceite:** `design-gate-bites.jsonl` ativo + ≥2 mordidas por gate registradas, OU decisão explícita de demoção do(s) gate(s) sem mordida. Contexto: exit-code real (DR-3.1) já cumprido pelos 3; evidência atual fraca (layout 1 fail / stylelint 2 fails / eslint 0 na janela, mas ratchet conta warnings). Refs: ADR 0339 · 0336 (DR-2/DR-2a) · 0314 · 0238 · PRs #4301 (require-safe) + #4307 (registro).
+
+### US-GOV-055 · Âncora ganha eixo TEMPORAL: consumir o `verificado@sha` que a gramática já exigia
+
+> owner: — · priority: p2 · estimate: 3h · status: done · type: story
+> blocked_by: —
+
+**Implementado em:** `scripts/governance/anchor-lint.mjs` · `scripts/governance/anchor-stale.test.mjs` · `.github/workflows/anchor-drift.yml` · verificado@387dfcc (2026-07-17)
+
+**Testado em:** [`scripts/governance/anchor-stale.test.mjs`](../../../scripts/governance/anchor-stale.test.mjs)
+
+**Origem (medida, não hipótese — grade de réguas 2026-07-17):** a gramática do campo `**Implementado em:**` ([ADR 0273](../../decisions/0273-anchor-spec-codigo-formato-canonico-fluxo-novo.md) §1) **exige** `verificado@<sha7> (YYYY-MM-DD)` desde sempre, e o `anchor-lint` reprova quem não põe. Varredura contada: o SHA é lido em **2 arquivos / 5 sites** — `SpecAnchorClassifier::GRAMMAR_OK_RE` (que o **captura**) e `TaskParserService::deveFecharPorAncora` — e o único uso é **presença** (`is_string($sha) && $sha !== ''`). **Ninguém comparava com o HEAD.** Ou seja: o projeto cobrava um dado, o dado chegava, e ele morria no parser.
+
+Os 4 vereditos que existiam respondem o **presente**: `dead` (path sumiu) · `zombie` (tela desligada) · `servido` (teve hit). Faltava o **passado**: *"o código mudou desde que alguém verificou?"*.
+
+**Medição de estreia (full-tree, 2026-07-17):** **21** âncoras stale · **123** sem movimento · **298** não-medíveis — destas, **277 (63% do total) por `sha_fora_da_ancestralidade`**. Achado colateral e maior que o chip: **a convenção do carimbo está sistematicamente quebrada** — o agente carimba o sha do HEAD da *própria branch*, e o **squash-merge come esse commit**; o sha resolve no clone de quem fez o PR e some no CI. Só sobrevive quem carimba sha **já na main** (medido: 8 dos 20 SHAs distintos do repo).
+
+**DoD:**
+- **D.1 — o eixo existe e morde:** `--stale` marca `anchor_stale` quando ≥1 path da âncora foi tocado por commit entre o `verificado@sha` e o HEAD (`git log <sha>..HEAD --name-only`, **1 chamada por sha DISTINTO** — 20 distintos pra 427 âncoras, não 1 por âncora).
+- **D.2 — guard anti-fabricação (o coração):** todo caso ambíguo vira `anchor_stale_unknown` com motivo, **NUNCA "fresco"** — `checkout_shallow` · `sha_ausente` · `sha_fora_da_ancestralidade` · `git_log_falhou`. Razão dura: `git log <sha>..HEAD` sobre sha **não-ancestral não erra — MENTE** (mede desde o merge-base, inflando). O shallow-check é o fino do `sdd-scorecard::isShallowHistory` (boundary de órfã **não** trunca o HEAD), não o `--is-shallow-repository` grosso.
+- **D.3 — não contamina o veredito:** fora de `anchor_coverage`, fora da flag 🟢/🟡/🔴, fora de todo `--check*`. É sinal, não veredito.
+- **D.4 — invariante fs-puro do caminho required preservada:** sem `--stale` o script **não executa git nenhum** — os jobs required `anchor-lint ADR 0273` e `anchor entry/covers gate` seguem fs-puros ([ADR 0303](../../decisions/0303-anchor-lint-wired-testado-sa-a2-bis.md)). Provado rodando o script com `PATH` **sem git**: exit 0, output byte-idêntico ao HEAD.
+- **D.5 — nasce com invocador:** job `anchor-stale` no `anchor-drift.yml` (`fetch-depth: 0`), espelhando o `verde-gate-advisory`. Flag sem quem chame seria a lápide do *chokepoint fantasma* ([proibicoes §5](../../proibicoes.md) 2026-07-09).
+
+**Por que NÃO é a lápide §5 de 2026-07-09** (*"frescor por `verificado_em` vs git-mtime duplica o `briefing-code-staleness`"*): (a) **não é motor novo** — a lápide manda **estender o dono do tema**, e o dono da gramática `**Implementado em:**` é este script; (b) **granularidade inédita** — `briefing-code-staleness` mede PORTA×código-do-MÓDULO, `doc-freshness-score` é score por doc, `distiller_freshness` é `distilled_at`×doc-mais-novo; **nenhum** mede US-âncora × os paths **concretos** que aquela US declara; (c) **não é catraca sobre campo auto-declarado** (a lápide do `last_validated`): o sha é declarado, mas o que se **mede** são os commits reais entre ele e o HEAD — mesma estrutura do churn do `doc-freshness-score` (o declarado é só a base).
+
+**Resíduo honesto (registrado, não escondido):** quem re-carimbar o sha sem re-verificar zera o sinal. Isto detecta **divergência**, não desonestidade — o custo do gaming é um commit auditável no diff do PR. E hoje o eixo só mede ~40% das âncoras; os 60% `unknown` são, eles próprios, o achado.
+
+**Aceite:** `anchor-lint --stale` reporta os 3 números (stale/fresco/não-medível com motivos) e `anchor-stale.test.mjs` passa contra **repo git real** — bite (path tocado → stale), release (path parado → não-stale), os 2 guards (sha ausente e sha não-ancestral → `unknown`, nunca fresco) e a invariante (sem `--stale`, `anchor_stale_on: false` e `anchor_coverage` inalterado). Mutação verificada: desligar o eixo → 3 FAILs; desligar o guard da ancestralidade → 2 FAILs (incluindo o falso "fresco"). Refs: ADR 0273 · ADR 0303 · ADR 0314 (required = Tier 0; este é higiene) · US-GOV-045 (padrão do teste .mjs)

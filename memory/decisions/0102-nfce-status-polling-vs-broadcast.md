@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-07
+decided_at: "2026-05-07"
 module: nfebrasil
 quarter: 2026-Q2
 tags: [nfe, ui, polling, broadcast, centrifugo, runtime-split, hostinger, ct100]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0058, 0062, 0093]
+related: [0058-reverb-substituido-por-centrifugo-frankenphp, 0062-separacao-runtime-hostinger-ct100, 0093-multi-tenant-isolation-tier-0]
 pii: false
 review_triggers: ["Quando Centrifugo HTTP bridge Hostinger→CT 100 for desbloqueado, reavaliar substituir polling por broadcast (sem mudar componentes consumidores)", "Se polling 2s × 30 max não cobrir p99 SEFAZ em prod, ajustar maxPolls antes de migrar pra broadcast"]
 ---

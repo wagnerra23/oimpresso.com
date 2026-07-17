@@ -170,4 +170,4 @@ Doc dedicado: [observability-jaeger-ct100.md](observability-jaeger-ct100.md).
 
 ## Subagent dedicado
 
-`.claude/agents/whatsapp-baileys-expert.md` (300+ linhas) — invoque com `Agent({subagent_type: 'whatsapp-baileys-expert', ...})` em sessões futuras pra trabalho em estabilidade operacional Baileys.
+`whatsapp-baileys-expert` — subagente descrito nesta sessão, mas **nunca versionado em git** (arquivo `.claude/agents/` nunca commitado). Para estabilidade operacional Baileys, o agente vivo hoje é `whatsapp-doctor`.

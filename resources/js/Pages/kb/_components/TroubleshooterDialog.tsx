@@ -159,15 +159,13 @@ function ListView({
               key={t.id}
               type="button"
               onClick={() => onPick(t.id)}
-              className="w-full text-left rounded-md border border-border border-l-[3px] bg-card px-3 py-2.5 hover:shadow-sm transition-all"
-              style={{
-                borderLeftColor: `oklch(0.55 0.13 ${t.hue})`,
-              }}
+              className="kb-hue-border-l w-full text-left rounded-md border border-border border-l-[3px] bg-card px-3 py-2.5 hover:shadow-sm transition-all"
+              style={{ '--kb-hue': t.hue } as React.CSSProperties}
             >
               {t.equip && (
                 <small
-                  className="block text-[10.5px] font-medium"
-                  style={{ color: `oklch(0.42 0.13 ${t.hue})` }}
+                  className="kb-hue-label block text-[10.5px] font-medium"
+                  style={{ '--kb-hue': t.hue } as React.CSSProperties}
                 >
                   {t.equip !== '—' ? t.equip : 'fiscal'}
                 </small>
@@ -276,11 +274,8 @@ function WizardView({
           <>
             <div className="flex items-start gap-3">
               <span
-                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12px] font-bold font-mono"
-                style={{
-                  background: `oklch(0.94 0.06 ${tree.hue})`,
-                  color: `oklch(0.36 0.13 ${tree.hue})`,
-                }}
+                className="kb-hue-chip inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12px] font-bold font-mono"
+                style={{ '--kb-hue': tree.hue } as React.CSSProperties}
               >
                 {path.length + 1}
               </span>
@@ -292,14 +287,14 @@ function WizardView({
               <button
                 type="button"
                 onClick={() => onAnswer(true)}
-                className="flex-1 rounded-md bg-emerald-600 hover:bg-emerald-700 px-3 py-2 text-sm font-semibold text-white"
+                className="flex-1 rounded-md bg-success-fg hover:bg-success-fg/90 dark:bg-success/30 dark:hover:bg-success/40 px-3 py-2 text-sm font-semibold text-white dark:text-success-foreground"
               >
                 Sim
               </button>
               <button
                 type="button"
                 onClick={() => onAnswer(false)}
-                className="flex-1 rounded-md bg-amber-600 hover:bg-amber-700 px-3 py-2 text-sm font-semibold text-white"
+                className="flex-1 rounded-md bg-warning-fg hover:bg-warning-fg/90 dark:bg-warning/30 dark:hover:bg-warning/40 px-3 py-2 text-sm font-semibold text-white dark:text-warning-foreground"
               >
                 Não
               </button>
@@ -310,14 +305,11 @@ function WizardView({
                   key={i}
                   className={cn(
                     'h-1.5 w-1.5 rounded-full transition-colors',
-                    i <= position ? 'opacity-100' : 'opacity-30',
+                    i <= position
+                      ? 'kb-hue-step-on opacity-100'
+                      : 'bg-border opacity-30',
                   )}
-                  style={{
-                    background:
-                      i <= position
-                        ? `oklch(0.55 0.13 ${tree.hue})`
-                        : 'var(--border)',
-                  }}
+                  style={{ '--kb-hue': tree.hue } as React.CSSProperties}
                   aria-hidden
                 />
               ))}
@@ -325,16 +317,10 @@ function WizardView({
           </>
         ) : (
           <div
-            className="rounded-md border px-3 py-2.5"
-            style={{
-              background: `oklch(0.97 0.025 ${tree.hue})`,
-              borderColor: `oklch(0.86 0.06 ${tree.hue})`,
-            }}
+            className="kb-fix-box rounded-md border px-3 py-2.5"
+            style={{ '--kb-hue': tree.hue } as React.CSSProperties}
           >
-            <small
-              className="block text-[10px] font-bold uppercase tracking-wider mb-1"
-              style={{ color: `oklch(0.42 0.13 ${tree.hue})` }}
-            >
+            <small className="kb-hue-label block text-[10px] font-bold uppercase tracking-wider mb-1">
               Solução sugerida
             </small>
             <p className="m-0 text-[13.5px] leading-relaxed text-foreground">

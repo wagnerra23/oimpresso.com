@@ -19,7 +19,7 @@
   "properties": {
     "slug": {
       "type": "string",
-      "pattern": "^[0-9]{4}-[a-z0-9-]+$",
+      "pattern": "^[0-9]{4}-[A-Za-z0-9.-]+$",
       "description": "Bate com o nome do arquivo sem .md, ex: 0053-mcp-server-governanca-como-produto"
     },
     "number": {
@@ -145,7 +145,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^[0-9]{4}-[a-z0-9-]+$"
+        "pattern": "^[0-9]{4}-[A-Za-z0-9.-]+$"
       },
       "uniqueItems": true,
       "default": []
@@ -154,7 +154,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^[0-9]{4}-[a-z0-9-]+$"
+        "pattern": "^[0-9]{4}-[A-Za-z0-9.-]+$"
       },
       "uniqueItems": true,
       "default": []
@@ -163,7 +163,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^[0-9]{4}-[a-z0-9-]+$"
+        "pattern": "^[0-9]{4}-[A-Za-z0-9.-]+$"
       },
       "uniqueItems": true,
       "default": [],
@@ -173,7 +173,7 @@
       "type": "array",
       "items": {
         "type": "string",
-        "pattern": "^[0-9]{4}-[a-z0-9-]+$"
+        "pattern": "^[0-9]{4}-[A-Za-z0-9.-]+$"
       },
       "uniqueItems": true,
       "default": []

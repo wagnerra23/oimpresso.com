@@ -17,7 +17,7 @@ supersedes: []
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0192-auto-faturar-os-venda-jobsheet-observer, 0093-multi-tenant-isolation-tier-0, 0137-oficinaauto-qualificada]
+related: [0192-auto-faturar-os-venda-jobsheet-observer, 0093-multi-tenant-isolation-tier-0]
 ---
 
 # ADR 0251 — Veículo na venda direta de oficina (`transactions.vehicle_id`)

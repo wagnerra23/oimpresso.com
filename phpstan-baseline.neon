@@ -6436,7 +6436,7 @@ parameters:
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'
 			identifier: larastan.noEnvCallsOutsideOfConfig
-			count: 80
+			count: 82
 			path: Modules/Jana/Config/config.php
 
 		-

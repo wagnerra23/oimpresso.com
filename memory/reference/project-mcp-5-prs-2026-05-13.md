@@ -54,4 +54,4 @@ type: project
 - COMPARATIVO-MCP-ESTADO-DA-ARTE-2026-05-13.md — 62% vs Linear/Jira/etc
 - AUDITORIA-KNOWLEDGE-ARCHITECTURE-2026-05-13.md — 73% vs Notion/Obsidian/Mem0/etc
 - ADR 0144 (decisions/0144-tasks-db-canonico-spec-template.md)
-- Agents: `.claude/agents/mcp-quality-expert.md` + `.claude/agents/knowledge-architecture-expert.md`
+- Agents (efêmeros da sessão — **nunca versionados em git**): `mcp-quality-expert` + `knowledge-architecture-expert`

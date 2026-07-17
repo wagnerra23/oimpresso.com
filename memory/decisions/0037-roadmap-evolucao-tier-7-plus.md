@@ -1,7 +1,7 @@
 ---
 slug: 0037-roadmap-evolucao-tier-7-plus
 number: 37
-title: !!binary gJQgUm9hZG1hcCBkZSBldm9sdcOnw6NvIHDDs3MtU3ByaW50IDU6IFRpZXIgNS02IOKGkiBUaWVyIDctOSBMb25nTWVtRXZhbA==
+title: "Roadmap de evolução pós-Sprint 5: Tier 5-6 → Tier 7-9 LongMemEval"
 type: adr
 status: aceito
 authority: canonical
@@ -13,11 +13,8 @@ decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0033'
   - 0033-vector-store-meilisearch-pgvector-mem0
-  - '0035'
   - 0035-stack-ai-canonica-wagner-2026-04-26
-  - '0036'
   - 0036-replanejamento-meilisearch-first
 pii: false
 ---

@@ -60,7 +60,7 @@ espalha isso em 8 páginas — e a maioria das funções de valor/fiscal/produç
 | 10 | Código EAN | 010 | `barcode_type` (Avançado) | 🟡 é o **tipo** do código, não o EAN |
 | 12 | Quant. Estoque | 012 `[V0]` | card "Estoque" | 🟡 agregado + 2 ícones do cabeçalho ausentes |
 | 3 · 4 · 9 · 13 | Ativo S/N · Última Alteração · Cód. Fábrica · data de Cadastro | 003, 004, 009, 013 | — | ❌ ausentes |
-| 6 · 7 · 8 | **R$ Custo · Margem % · R$ Valor** | 006, 007, 008 `[V0]` | — | ❌ **ausentes do charter E do código** (ver ⚠️ abaixo) |
+| 6 · 7 · 8 | **R$ Custo · Margem % · R$ Valor** | 006, 007, 008 `[V0]` | — | ❌ ausentes do charter **e da tela React** — mas **existem no oimpresso** (Blade + `variations` + `product.js`). Ver ⚠️ + §1.1 |
 | 14 | Tipo | 014 | `type` | 🔴 **falso-crédito** (ver abaixo) |
 
 **Outras áreas creditadas (fora do cabeçalho):** `AR-PROD-042` (Observações → `description`) ✅ ·
@@ -77,10 +77,90 @@ apenas `sellingPriceGroupCount` (uma contagem), o título do card, e o label `ta
 ("Imposto inclui no preço?"). **A tela React de cadastro não define preço de produto.** O card promete
 preço e entrega imposto.
 
-Consequência: `AR-PROD-006/007/008` — os três `[V0]` cuja fórmula (`Margem% = ((Valor/Custo) − 1) × 100`)
-e binding bidirecional foram confirmados por 5 caminhos ([ANTI-REGRESSAO §Confirmado empiricamente]) —
-**não têm onde pousar**. São a ponta visível da **Formação de Preço** (`AR-PROD-090..103`, §3), que
-também não tem charter. Ver §5 item 1.
+> ⚠️ **Escopo da frase acima: é sobre a TELA REACT, não sobre o oimpresso.** Os três campos **existem**
+> no produto — no Blade que roda hoje, nas colunas de `variations` e no `product.js`. O gap é do
+> `Create.tsx`. Ver §1.1. *(Precisão corrigida 2026-07-17 — a redação anterior dizia "ausentes do
+> charter E do código" e generalizava indevidamente de `Create.tsx` pro sistema inteiro.)*
+
+---
+
+## 1.1 Como o oimpresso trata esses campos hoje (verificado 2026-07-17)
+
+> Varredura de **todas** as migrations de `products` + leitura do Blade de cadastro + `product.js`.
+> Responde "onde cada campo da aba geral vive no oimpresso" — e mostra que o gap é **da tela React**,
+> não do sistema.
+
+### Mapa dos 14 campos
+
+| Campo legado | oimpresso | Tabela |
+|---|---|---|
+| Descrição | `name` | `products` |
+| Código | `sku` | `products` |
+| Ativo S/N | `is_inactive` | `products` (migration 2019) |
+| Unidade | `unit_id` | `products` |
+| Categoria | `category_id` + `sub_category_id` | `products` |
+| Última Alteração | `updated_at` | `products` (`timestamps()`) |
+| data de Cadastro | `created_at` | `products` |
+| **R$ Custo** | `default_purchase_price` + `dpp_inc_tax` | **`variations`** |
+| **Margem %** | `profit_percent` | **`variations`** |
+| **R$ Valor** | `default_sell_price` + `sell_price_inc_tax` | **`variations`** |
+| Quant. Estoque | `qty_available` | `variation_location_details` |
+| Código EAN | `barcode_type` cobre o formato (`EAN-13`/`EAN-8`/`UPC-A`…) | `products` |
+| Cód. Fábrica | sem coluna própria — cairia em `product_custom_field1..20` | `products` |
+| **Tipo** (PRODUTO/SERVIÇO) | **não existe** (`products.type` é outra coisa — §1 falso-crédito 1) | — |
+
+### A diferença de topologia: o dinheiro mora na VARIAÇÃO, não no produto
+
+**`products` não tem nenhuma coluna de dinheiro.** Varredura de todas as migrations de `products`:
+**zero** ocorrências de `profit_percent`, `default_sell_price`, `default_purchase_price`. Os três são
+`decimal(22,4)` em **`variations`** (migration `2017_08_10_061216_create_variations_table.php`).
+
+| | Legado | oimpresso |
+|---|---|---|
+| Onde o preço mora | `PRODUTO.CUSTO` / `.VALOR` / `.MARGEM` — **no produto** | `variations.default_purchase_price` / `.default_sell_price` / `.profit_percent` — **na variação** |
+
+Até um produto `single` tem uma **variação DUMMY interna** que carrega o preço (idioma UltimatePOS —
+`memory/dominio/estoque.md`). É a **mesma classe de diferença** do Preço Especial (§2): a capacidade
+existe, a topologia é outra.
+
+### O Blade tem os 5 campos — todos `required`
+
+`resources/views/product/partials/single_product_form_part.blade.php`: `single_dpp` (custo exc.) ·
+`single_dpp_inc_tax` · `profit_percent` (com tooltip) · `single_dsp` (venda exc.) · `single_dsp_inc_tax`.
+Todos com `'required'`.
+
+### O binding do oimpresso é o MESMO do Delphi
+
+`public/js/product.js:37-54` — ao mudar o custo, recalcula o valor a partir da margem:
+
+```js
+var selling_price = __add_percent(purchase_exc_tax, profit_percent);
+```
+
+E as funções (`public/js/functions.js`) são algebricamente idênticas às do Delphi:
+
+| oimpresso | Delphi (`UnitFuncoes.pas`) | Fórmula |
+|---|---|---|
+| `__add_percent(amount, pct)` | `PercAdd(AValor, APerc)` | `amount × (1 + pct/100)` |
+| `__get_rate(principal, amount)` | `PercAplicado(ATotal, AValor)` | `((amount − principal) / principal) × 100` |
+
+**Custo é a âncora nos dois; Valor↔Margem se recalculam.** A investigação não achou divergência a
+corrigir — achou **convergência a preservar**. (O oimpresso usa `Decimal.js`, não float nativo — mais
+seguro que o Delphi nesse ponto.)
+
+### O diagnóstico correto
+
+O gap **não** é "o oimpresso não sabe precificar". É: **o `Create.tsx` é um subconjunto do Blade que
+ele deveria substituir.** O Blade exige custo/margem/valor como obrigatórios; o React não tem onde
+digitá-los. Logo o `Create.tsx` **não consegue substituir o Blade** — não por falta de polimento, por
+falta de função. É o que mantém as 8 telas `draft` atrás da flag `X-Inertia` (US-PROD-023).
+
+Isso **não elimina** a fronteira com a Formação de Preço (`AR-PROD-090..103`, §3): o legado tem markup
+composto, rendimento da última compra e valor mínimo, que o `profit_percent` simples não cobre. Ver §5
+item 1.
+
+> ⚠️ **Sem teste.** Isto é leitura de schema + Blade + JS, enumerada. Não há Pest cobrindo o binding do
+> `product.js` nem a paridade Blade↔React. Vale como mapa, não como contrato.
 
 ### 🔴 Falso-crédito 1 — `AR-PROD-014` (Tipo): mesmo nome, outro conceito
 
@@ -236,4 +316,5 @@ UC órfão (caso no papel sem teste). As 7 telas de Produto estão no baseline d
 | Data | O que mudou |
 |---|---|
 | 2026-07-13 | Cruzamento criado a partir do `Create.charter.md` × lista anti-regressão (~140 itens). Conclusão: charter atual cobre ~15%; Composição e Variação (núcleo das verticais) estão como Non-Goal adiado. [CC] |
+| 2026-07-17 | **§1.1 nova — como o oimpresso trata os 14 campos** (pergunta [F]). Varredura de todas as migrations de `products` + Blade + `product.js`: os 3 campos de dinheiro **existem** (em `variations`, `decimal(22,4)`), o Blade os exige (`required`), e o binding do `product.js` é **algebricamente idêntico** ao do Delphi (`__add_percent` ≡ `PercAdd`; `__get_rate` ≡ `PercAplicado`) — convergência a preservar, não divergência a corrigir. Diferença de topologia registrada: dinheiro na **variação** (oimpresso) vs no **produto** (legado). **Corrigida imprecisão** do §1 de ontem ("ausentes do charter E do código" generalizava de `Create.tsx` pro sistema). Diagnóstico refinado: o `Create.tsx` é **subconjunto do Blade** que deveria substituir — não consegue substituí-lo por falta de função (US-PROD-023). [CC] |
 | 2026-07-16 | **Reverificação do mapa da "aba geral" (cabeçalho `AR-PROD-001..014`) + Preço Especial.** §0/§1: "~15 cobertos" → **~9 distintos** — 2 **falso-créditos** (`AR-PROD-014` Tipo: `products.type` é estrutura de variação, não `PRODUTO_TIPO`; `AR-PROD-007` Margem % creditado a "SKU server-side + duplicate") + 3 contagens duplas (001, 002, 010). §1: registrado que **`AR-PROD-006/007/008` não existem no charter NEM no código** — `Create.tsx` (461 linhas, enumerado) tem card "Preço & Imposto" **sem preço**; só `tax`/`tax_type`. §2: **Preço Especial movido do §3** — topologia produto→cliente **substituída** por produto→tabela→cliente (decisão [W] 2026-07-15 no `SellingPrices.casos.md`, trio fechado no #4300); resíduo `%acr`/`%desc`/"Manter Desconto" declarado **não verificado**. §5: gate de cada item reescrito pro **trio** (ADR 0264) + registrado o canal real de pedido (chat; US/UC **não** são canal — refutado 2026-07-16). [CC] |

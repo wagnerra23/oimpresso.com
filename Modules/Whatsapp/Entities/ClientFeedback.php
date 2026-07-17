@@ -37,17 +37,22 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property ?int $conversation_id
  * @property ?string $persona_slug
  * @property ?string $cliente_slug
+ * @property ?string $reporter_name
  * @property string $canal
  * @property string $literal
  * @property ?string $contexto
  * @property ?string $modulo_afetado
  * @property ?string $tela_afetada
+ * @property ?string $url_seen
+ * @property ?string $browser_console_dump
+ * @property ?string $screenshot_url
  * @property ?string $acao_afetada
  * @property ?string $job
  * @property ?string $motivacao_tipo
  * @property ?string $workaround_o_que_faz
  * @property ?string $workaround_custo
  * @property int $severity_nng
+ * @property ?int $severity_self_reported
  * @property bool $primeira_vez
  * @property int $recorrente_count
  * @property bool $pattern_emergente
@@ -93,14 +98,25 @@ class ClientFeedback extends Model
         4 => 'Catastrófico (bloqueia uso)',
     ];
 
+    /** Sinal transcrito por quem atende (o [W] clica "Capturar" no inbox). */
+    public const CANAL_WHATSAPP = 'whatsapp';
+
+    /**
+     * Sinal reportado DIRETO pelo cliente, via /feedback assinado — sem intermediário.
+     * É o "órgão sensor" da ADR 0334: o canal whatsapp depende de alguém ouvir e
+     * transcrever; este não. US-INFRA-002.
+     */
+    public const CANAL_WEB_FORM = 'web_form';
+
     protected $fillable = [
         'business_id', 'contact_id', 'source_message_id', 'conversation_id',
-        'persona_slug', 'cliente_slug',
+        'persona_slug', 'cliente_slug', 'reporter_name',
         'canal', 'literal', 'contexto',
         'modulo_afetado', 'tela_afetada', 'acao_afetada',
+        'url_seen', 'browser_console_dump', 'screenshot_url',
         'job', 'motivacao_tipo',
         'workaround_o_que_faz', 'workaround_custo',
-        'severity_nng', 'primeira_vez', 'recorrente_count', 'pattern_emergente',
+        'severity_nng', 'severity_self_reported', 'primeira_vez', 'recorrente_count', 'pattern_emergente',
         'status', 'responder_cliente',
         'mcp_task_id', 'dev_task_requested',
         'signature', 'relevance_score', 'relevance_score_at', 'last_seen_at',
@@ -114,6 +130,7 @@ class ClientFeedback extends Model
         'source_message_id' => 'integer',
         'conversation_id' => 'integer',
         'severity_nng' => 'integer',
+        'severity_self_reported' => 'integer',
         'primeira_vez' => 'boolean',
         'recorrente_count' => 'integer',
         'pattern_emergente' => 'boolean',

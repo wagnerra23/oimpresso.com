@@ -1,6 +1,6 @@
 ---
 slug: 0088-module-rename-php-only
-number: 0088
+number: 88
 title: "Module rename PHP-only — fachada legacy mantida durante transição"
 type: adr
 status: aceito
@@ -9,7 +9,7 @@ superseded_by_section:
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-06
+decided_at: "2026-05-06"
 module: null
 quarter: 2026-Q2
 tags: [governance, refactor, rename, module-charter, migration-pattern, php-only]

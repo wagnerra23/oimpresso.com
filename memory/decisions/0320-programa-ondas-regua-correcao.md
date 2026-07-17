@@ -20,15 +20,13 @@ supersedes_partially:
   - "0264-governanca-executavel-trio-dominio-e2e"
 superseded_by: []
 related:
-  - "0271-revisao-gates-ci-estado-real-required-e-subtracao-segura"
-  - "0298-teto-de-governanca-anti-proliferacao-gates"
-  - "0105-cliente-como-sinal-guiar-sem-mandar"
-  - "0089-capterra-ficha-canonica"
-  - "0106-recalibracao-velocidade-fator-10x-ia-pair"
-  - "0143-fsm-pipeline-live-prod-marco-2026-05-12"
-  - "0250-screen-qa-specialist-sustentavel"
-  - "0155-module-grade-rubrica-v1"
-  - "0319-product-truth-stream-adversario-modulo-analise"
+  - 0271-revisao-gates-ci-estado-real-required-e-subtracao-segura
+  - 0298-teto-de-governanca-anti-proliferacao-gates
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0106-recalibracao-velocidade-fator-10x-ia-pair
+  - 0143-fsm-pipeline-live-prod-marco-2026-05-12
+  - 0250-screen-qa-specialist-sustentavel
+  - 0319-product-truth-stream-adversario-modulo-analise
 pii: false
 ---
 

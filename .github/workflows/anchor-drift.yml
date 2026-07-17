@@ -198,6 +198,50 @@ jobs:
           node scripts/governance/anchor-lint.mjs --junit governance/nightly-fullsuite-summary.json --check-verde \
             || echo "::warning::gate verde (advisory): há US implementada+coberta com teste NÃO-verde na nightly full-suite — ver saída acima (não bloqueia; ADR 0275 §5)"
 
+  # C8 (grade de réguas 2026-07-17) — 5º eixo da âncora: o TEMPORAL.
+  # dead (path sumiu) e zombie (tela desligada) são estáticos e falam do PRESENTE. Faltava
+  # "o código MUDOU desde que alguém verificou?" — e a base dessa resposta (`verificado@<sha7>`)
+  # a gramática §1 já EXIGE há tempo, sem ninguém consumir: o SHA é capturado em 2 arquivos /
+  # 5 sites e o único uso é PRESENÇA (SpecAnchorClassifier → deveFecharPorAncora).
+  #
+  # POR QUE JOB SEPARADO (e não um `--stale` nos jobs de cima): os jobs `anchor-lint ADR 0273`
+  # e `anchor entry/covers gate` são REQUIRED (governance/required-checks-baseline.json) e o
+  # anchor-lint é fs-puro por invariante (ADR 0303). Sem a flag ele não executa git NENHUM —
+  # provado rodando o script com `PATH` sem git: exit 0, output byte-idêntico ao HEAD. O eixo
+  # temporal precisa de git, então mora aqui, fora do caminho required. E a flag nasce COM
+  # invocador de propósito: flag sem quem chame é a lápide do chokepoint fantasma
+  # (proibicoes §5 2026-07-09 — o guard no `flag:set` que o fluxo real não atravessa).
+  #
+  # Enforcement: NÃO afirmo aqui em presente (lápide proibicoes §5 2026-07-16 — "segue advisory"
+  # apodrece no 1º flip e já enganou um verificador por 22 dias; o nome do check viraria mentira
+  # com certificado). FATO DATADO: nasceu fora de governance/required-checks-baseline.json em
+  # 2026-07-17, que é o DONO único de "o que é required". Promoção só por emenda de ADR + flip [W]
+  # (lápide §5 2026-07-01), e a régua da ADR 0314 é required = Tier 0 (dinheiro/PII/multi-tenant/
+  # fiscal) — frescor de âncora é higiene, então o caminho natural dele é seguir reportando.
+  anchor-stale:
+    name: âncora stale — verificado@sha × HEAD
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # OBRIGATÓRIO: em shallow o guard reporta unknown pra tudo (e está certo em fazê-lo)
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # 2 camadas, de propósito: o selftest cobre o MATCHER puro (fronteira de path,
+      # normalização, gramática — barato, sem git); o .test.mjs roda o script REAL contra um
+      # REPO GIT DE VERDADE (bite/release + os 2 guards + a invariante fs-puro). Fixture em
+      # memória provaria só o matcher; e um eixo que não morde passa verde "por não medir nada".
+      - name: selftest do matcher (a régua tem que morder E soltar)
+        run: node scripts/governance/anchor-lint.mjs --stale-selftest
+      - name: teste e2e contra repo git real (US-GOV-055)
+        run: node scripts/governance/anchor-stale.test.mjs
+      - name: anchor-lint --stale (full-tree · report-only)
+        run: |
+          # Reporta o NÚMERO; não participa de --check* nem de anchor_coverage (exit 0 sempre).
+          # unknown NUNCA vira "fresco": sha ausente / não-ancestral (squash-merge) / shallow = "não sei".
+          node scripts/governance/anchor-lint.mjs --stale
+
   # (Os shims temporários do rename P14 viveram aqui — removidos no PR-2 do rename 2026-07-01;
   #  fragmento de comentário órfão limpo na higiene 2026-07-16.)
   # CATRACA "1 lugar fixo" (Wagner 2026-07-01 "não pode trocar de lugar nunca. deve ser isso que fica

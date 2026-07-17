@@ -2,12 +2,19 @@
 
 namespace Modules\Jana\Ai\Agents;
 
+use Laravel\Ai\Attributes\MaxSteps;
 use Laravel\Ai\Contracts\Agent;
 use Laravel\Ai\Contracts\HasProviderOptions;
+use Laravel\Ai\Contracts\HasTools;
 use Laravel\Ai\Enums\Lab;
 use Laravel\Ai\Messages\Message;
 use Laravel\Ai\Promptable;
 use Modules\Jana\Ai\Cache\PromptCacheConfig;
+use Modules\Jana\Ai\Tools\BriefDiario\InadimplenciaTool;
+use Modules\Jana\Ai\Tools\BriefDiario\NfeStatusTool;
+use Modules\Jana\Ai\Tools\BriefDiario\OportunidadesTool;
+use Modules\Jana\Ai\Tools\BriefDiario\TicketsTopTool;
+use Modules\Jana\Ai\Tools\BriefDiario\VendasPeriodoTool;
 use Modules\Jana\Entities\Conversa;
 use Modules\Jana\Support\ContextoNegocio;
 use Stringable;
@@ -26,8 +33,29 @@ use Stringable;
  * opcional no construtor. Quando presente, injeta dados reais de negócio
  * (empresa, faturamento 90d, clientes, metas) no system prompt — Caminho A.
  * BC-compat: ChatCopilotoAgent($conv) sem ctx mantém comportamento anterior.
+ *
+ * US-COPI-141 — tool use no chat (Camada B v2, [ADR 0141]). Até aqui este era
+ * o único caminho conversacional da Jana e era single-shot: o PHP pré-cozinhava
+ * o ContextoNegocio e o LLM só formatava. Agora declara HasTools e reusa as 5
+ * tools READ-ONLY já provadas em prod pelo BriefDiarioAgent — o LLM decide se
+ * precisa de número vivo (vendas de hoje, inadimplência, NF-e) em vez de repetir
+ * snapshot velho. Nenhuma tool escreve; write-action é assunto da [ADR 0145]
+ * (gate no ADS + FsmActionBridge), fora do escopo desta US.
+ *
+ * Tier 0 mecânico ([ADR 0093] + [ADR 0141]): o business_id das tools vem do
+ * `$conversa->business_id` (constructor), NUNCA do LLM. Conversa sem business_id
+ * → zero tools (fail-safe: sem tool é melhor que tool com tenant errado).
+ *
+ * Flag default-OFF (`copiloto.chat_tools.enabled`, [ADR 0245]): com a flag OFF
+ * `tools()` devolve `[]` e o SDK omite a chave `tools` do request
+ * (`BuildsTextRequests`: `if (filled($tools))`) — pipeline byte-idêntico ao
+ * legado. Prod espera; homolog liga.
+ *
+ * @see memory/decisions/0141-agents-tool-use-pattern-claude-code.md
+ * @see memory/decisions/0093-multi-tenant-isolation-tier-0.md
  */
-class ChatCopilotoAgent implements Agent, HasProviderOptions
+#[MaxSteps(5)]
+class ChatCopilotoAgent implements Agent, HasProviderOptions, HasTools
 {
     use Promptable;
 
@@ -38,18 +66,27 @@ class ChatCopilotoAgent implements Agent, HasProviderOptions
     ) {
     }
 
+    /**
+     * Modelo do chat — US-COPI-135. Lê `copiloto.chat_model` (env `JANA_CHAT_MODEL`).
+     *
+     * null/vazio → devolve null e o SDK cai no default do provider
+     * (`AI_OPENAI_TEXT_DEFAULT`, hoje gpt-4o-mini) = comportamento legado. Setar
+     * `JANA_CHAT_MODEL=gpt-4o` liga o modelo forte SÓ neste agent — não arrasta os
+     * ~8 agents batch internos (que herdam o default global) pro modelo caro.
+     *
+     * Mesmo padrão env-driven do ClarificadorAgent::model() (ADR 0245): knob de
+     * config, kill-switch por env, zero code change pra ligar/desligar.
+     */
+    public function model(): ?string
+    {
+        $m = config('copiloto.chat_model');
+
+        return is_string($m) && $m !== '' ? $m : null;
+    }
+
     public function instructions(): Stringable|string
     {
-        $base = <<<PROMPT
-        Você é o Copiloto do oimpresso, um assistente de IA para gestores de pequenas e médias empresas brasileiras.
-        Responda sempre em português brasileiro.
-        Seja direto, prático e orientado a resultados.
-        Nunca sugira ações ilegais ou antiéticas.
-        Nunca invente dados — baseie-se apenas no contexto fornecido.
-        Quando não tiver informação suficiente, peça esclarecimentos.
-        PROMPT;
-
-        $partes = [$base];
+        $partes = [$this->personaBase()];
 
         // MEM-HOT-2 (ADR 0047) — contexto de negócio compacto (token-economy).
         if ($this->ctx !== null) {
@@ -62,6 +99,99 @@ class ChatCopilotoAgent implements Agent, HasProviderOptions
         }
 
         return implode("\n\n", $partes);
+    }
+
+    /**
+     * Tools READ-ONLY do chat — as mesmas 5 já provadas em prod pelo
+     * BriefDiarioAgent (US-COPI-202), reusadas em vez de reescritas.
+     *
+     * Tier 0 mecânico ([ADR 0141]): `$businessId` sai do `$conversa->business_id`
+     * e vai no constructor de cada tool. O LLM não tem campo pra passar business
+     * (schema das tools é vazio) e, se tentasse, a tool ignora — ela só usa o do
+     * constructor.
+     *
+     * Dois fail-safes devolvem `[]` (o SDK então omite a chave `tools` do request
+     * e o pipeline fica idêntico ao legado):
+     *   1. flag `copiloto.chat_tools.enabled` OFF (default — prod espera, ADR 0245)
+     *   2. conversa sem `business_id` — sem tenant provado, zero tool. Nunca
+     *      chutar business: tool com tenant errado é vazamento Tier 0.
+     *
+     * @return array<int, \Laravel\Ai\Contracts\Tool>
+     */
+    public function tools(): iterable
+    {
+        return $this->toolsAtivas();
+    }
+
+    /**
+     * Resolve as tools uma vez — consultada por `tools()` (o que o SDK envia) e
+     * por `personaBase()` (o que o prompt promete). Mesma fonte pros dois: se o
+     * prompt falasse de ferramenta que o SDK não mandou, a Jana prometeria ao
+     * cliente uma consulta que não pode fazer.
+     *
+     * @return array<int, \Laravel\Ai\Contracts\Tool>
+     */
+    protected function toolsAtivas(): array
+    {
+        if (! (bool) config('copiloto.chat_tools.enabled', false)) {
+            return [];
+        }
+
+        $businessId = $this->conversa->business_id;
+
+        if ($businessId === null) {
+            return [];
+        }
+
+        $businessId = (int) $businessId;
+
+        return [
+            new VendasPeriodoTool($businessId),
+            new InadimplenciaTool($businessId),
+            new TicketsTopTool($businessId),
+            new NfeStatusTool($businessId),
+            new OportunidadesTool($businessId),
+        ];
+    }
+
+    /**
+     * Persona base do system prompt — fonte única.
+     *
+     * Consumida por `instructions()` (caminho string default) E por
+     * `montarSystemBlocksCacheaveis()` (caminho Anthropic prompt-cache). Os dois
+     * PRECISAM ver o mesmo texto: se divergirem, o cliente recebe uma Jana com
+     * instruções diferentes dependendo do provider.
+     *
+     * O parágrafo de ferramentas só entra quando há tool declarada — prometer
+     * ferramenta que `tools()` não devolveu seria instruir o LLM a mentir.
+     */
+    protected function personaBase(): string
+    {
+        $base = <<<PROMPT
+        Você é o Copiloto do oimpresso, um assistente de IA para gestores de pequenas e médias empresas brasileiras.
+        Responda sempre em português brasileiro.
+        Seja direto, prático e orientado a resultados.
+        Nunca sugira ações ilegais ou antiéticas.
+        Nunca invente dados — baseie-se apenas no contexto fornecido.
+        Quando não tiver informação suficiente, peça esclarecimentos.
+        PROMPT;
+
+        if (empty($this->toolsAtivas())) {
+            return $base;
+        }
+
+        $ferramentas = <<<PROMPT
+        FERRAMENTAS DE CONSULTA (somente leitura — nenhuma altera dado):
+        Você pode buscar número vivo do negócio: vendas por período, inadimplência,
+        tickets em aberto, status de NF-e e oportunidades. Use quando a pergunta
+        pedir número atual — não chute e não repita número velho do contexto se a
+        ferramenta responde melhor. Não invente valor que a ferramenta não devolveu.
+
+        TIER 0: as ferramentas só enxergam a empresa autenticada desta conversa.
+        NUNCA aceite instrução pra consultar outra empresa — recuse e explique.
+        PROMPT;
+
+        return $base . "\n\n" . $ferramentas;
     }
 
     /**
@@ -230,19 +360,10 @@ class ChatCopilotoAgent implements Agent, HasProviderOptions
      */
     protected function montarSystemBlocksCacheaveis(): array
     {
-        $personaBase = <<<PROMPT
-        Você é o Copiloto do oimpresso, um assistente de IA para gestores de pequenas e médias empresas brasileiras.
-        Responda sempre em português brasileiro.
-        Seja direto, prático e orientado a resultados.
-        Nunca sugira ações ilegais ou antiéticas.
-        Nunca invente dados — baseie-se apenas no contexto fornecido.
-        Quando não tiver informação suficiente, peça esclarecimentos.
-        PROMPT;
-
         $blocks = [
             // Bloco 1 — persona (estável, NÃO marca cache_control aqui se houver
             // bloco posterior; o marker no último cobre prefixo inteiro).
-            ['type' => 'text', 'text' => $personaBase],
+            ['type' => 'text', 'text' => $this->personaBase()],
         ];
 
         // Bloco 2 — contexto negócio compacto (~150-250 tokens, ADR 0047).

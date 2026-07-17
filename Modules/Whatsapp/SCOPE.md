@@ -20,6 +20,8 @@ contains:
   - "Admin/BroadcastController — broadcast fase 1: pre-flight audiencia (opt-in LGPD + janela 24h) + draft auditavel whatsapp_broadcasts (US-WA-306 ADR 0268; disparo = fase 2 gate W)"
   - "Admin/InboxAiController — IA na thread V4 (resumir/perguntar/sugerir resposta) via laravel/ai InboxAssistAgent; PII redigida (PiiRedactor Jana) + dry_run gateia custo (PR-9 brief CC 2026-06-10)"
   - "Admin/ClientFeedbackController — captura Voice of Customer canon a partir de bubble inbox (PR #1711 2026-05-27); ADR UI-0016 + ADR 0105 cliente-como-sinal"
+  # Público sem auth (US-INFRA-002)
+  - "Publico/FeedbackFormController — canal web_form: o CLIENTE reporta direto em /feedback (link assinado 30d), sem o [W] transcrever do inbox. Órgão sensor da ADR 0334; grava na mesma clients_feedbacks do canal whatsapp. Tier 0: sem auth o global scope é no-op — business_id vem do HMAC da URL, nunca do input"
   # API webhooks (US-WA-010/010b/002d)
   - "Api/MetaWebhookController — recebe events Meta Cloud (HMAC SHA-256 verify)"
   - "Api/ZapiWebhookController — recebe events Z-API (Client-Token timing-safe)"
@@ -37,6 +39,7 @@ contains:
   - "Observers/WhatsappMessageObserver — append-only enforcement Tier 0"
   # Console
   - "Console/Commands/DriverHealthCheckAllCommand — schedule cron 6h"
+  - "Console/Commands/FeedbackLinkCommand — feedback:link {biz}: gera a URL assinada (30d) do canal público web_form (US-INFRA-002)"
 ---
 
 # SCOPE — Modules/Whatsapp/

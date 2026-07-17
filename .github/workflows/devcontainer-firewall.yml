@@ -1,0 +1,85 @@
+name: devcontainer firewall (egress default-deny · chip C7)
+
+# O QUE PROVA
+#   Que o egress default-deny do devcontainer MORDE (corta o que não está na allowlist) e
+#   SOLTA (deixa passar o que o trabalho exige). Sem os dois lados não é firewall, é teatro.
+#
+# POR QUE EM CI E NÃO "TESTEI NA MINHA MÁQUINA"
+#   O Docker Desktop do Wagner estava parado em 2026-07-17 (named pipe ausente) e o WSL não
+#   tem engine — logo o firewall NASCERIA sem nunca ter sido visto funcionar. Aqui ele roda
+#   a cada PR que toca .devcontainer/** e no cron: vira prova repetível contra apodrecimento
+#   (a allowlist é resolvida por DNS; host que troca de faixa quebra calado sem isto).
+#
+# O CONTROLE QUE FAZ O TESTE VALER (senão passa pelo motivo errado)
+#   O step 1 prova que example.com é ALCANÇÁVEL sem firewall. Sem esse controle, o
+#   "curl falhou" do step 2 não distingue firewall funcionando de rede quebrada / host
+#   inexistente — foi exatamente assim que a ADR 0290 (fidelity-lock) morreu: o par ficava
+#   VERDE quando os dois lados quebravam junto. Por isso o alvo é example.com (resolve,
+#   responde 200) e NUNCA um .example/.invalid, que falharia por DNS mesmo sem firewall.
+#
+# ENFORCEMENT — quem decide não é este arquivo
+#   Dono: governance/required-checks-baseline.json (branch protection decide).
+#   Fato datado: nasceu FORA desse baseline em 2026-07-17. Promover exige reabrir a ADR 0314.
+#
+# HARD-FAIL AQUI É INTENCIONAL — NÃO adicionar continue-on-error (lápide §5 2026-07-09).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.devcontainer/**'
+      - '.github/workflows/devcontainer-firewall.yml'
+  schedule:
+    - cron: '45 7 * * 1' # segunda 07:45 UTC — 20min após o corpus de injection; slot livre
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: devcontainer-firewall-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  firewall:
+    name: egress default-deny — morde o que não está na lista, solta o que o trabalho exige
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build da imagem do devcontainer
+        run: docker build -t oimpresso-agent-dev -f .devcontainer/Dockerfile .devcontainer/
+
+      # ── 1. CONTROLE DO PROBE (o step que impede o falso-verde da ADR 0290) ──────
+      # SEM firewall, example.com TEM que responder. Se não responder aqui, o "bloqueado"
+      # do step 2 não prova nada — e este job falha em vez de mentir verde.
+      - name: 1. Controle — SEM firewall, example.com responde (o probe é válido)
+        run: |
+          set -euo pipefail
+          code=$(docker run --rm oimpresso-agent-dev \
+            curl -sS --max-time 10 -o /dev/null -w '%{http_code}' https://example.com)
+          echo "example.com sem firewall -> HTTP $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::probe inválido: example.com não respondeu 200 SEM firewall."
+            echo "O teste do step 2 passaria pelo motivo errado (rede/DNS, não firewall)."
+            exit 1
+          fi
+
+      # ── 2. BITE + RELEASE (o firewall de verdade, dentro do container) ──────────
+      - name: 2. Com firewall — example.com BLOQUEADO + api.github.com alcançável
+        run: |
+          set -euo pipefail
+          docker run --rm --cap-add=NET_ADMIN --cap-add=NET_RAW oimpresso-agent-dev \
+            sudo /usr/local/bin/init-firewall.sh
+
+      # ── 3. FAIL-LOUD: sem NET_ADMIN o firewall não aplica. Tem que MORRER, não passar. ──
+      # Um container que roda com a rede aberta achando que está protegido é pior que
+      # nenhum container. Este step prova que esse estado é impossível em silêncio.
+      - name: 3. Sem NET_ADMIN — o script FALHA alto (não degrada em silêncio)
+        run: |
+          set -euo pipefail
+          if docker run --rm oimpresso-agent-dev sudo /usr/local/bin/init-firewall.sh 2>/dev/null; then
+            echo "::error::o firewall 'passou' SEM NET_ADMIN — degradaria em silêncio, com a rede aberta."
+            exit 1
+          fi
+          echo "OK: sem NET_ADMIN o script falha alto (o container não finge estar protegido)."

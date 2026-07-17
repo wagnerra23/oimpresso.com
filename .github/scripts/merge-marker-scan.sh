@@ -2,7 +2,7 @@
 # merge-marker-scan.sh — Detecta marcadores de conflito de merge COMMITADOS.
 #
 # Mecanismo #2 ENFORCEMENT — Job do governance-gate.yml.
-# Complementa o hook runtime .claude/hooks/block-merge-markers.ps1 (PreToolUse):
+# Complementa o hook runtime .claude/hooks/block-merge-markers.mjs (PreToolUse):
 # o hook barra na hora do Write/Edit local; este gate barra no CI, pegando o que
 # entrou por caminho que não passou pelo hook (merge manual, cherry-pick, edição
 # fora do agente). Origem: 2026-07-02 — 11 CHANGELOG/README de módulos entraram em
@@ -62,7 +62,7 @@ SKIP_EXT_REGEX='\.(lock|min\.js|min\.css|map|svg|png|jpg|jpeg|gif|webp|pdf|zip|w
 
 # Fixtures que legitimamente contêm marcadores (self-test do próprio mecanismo).
 # Manter EXPLÍCITO e mínimo — cada entrada é uma exceção auditável.
-SKIP_FILE_REGEX='(\.claude/hooks/block-merge-markers\.test\.ps1|\.github/scripts/merge-marker-scan\.sh)$'
+SKIP_FILE_REGEX='(\.claude/hooks/block-merge-markers\.test\.mjs|\.github/scripts/merge-marker-scan\.sh)$'
 
 violations=0
 violation_report=""
@@ -101,7 +101,7 @@ if [ "$violations" -gt 0 ]; then
   echo "  - Se for fixture legítima (self-test), adicionar à SKIP_FILE_REGEX do scan."
   echo ""
   echo "Contexto: canon malformado = defeito. Complementa o hook runtime"
-  echo ".claude/hooks/block-merge-markers.ps1 (PreToolUse). Origem: PR #3660 (2026-07-02)."
+  echo ".claude/hooks/block-merge-markers.mjs (PreToolUse). Origem: PR #3660 (2026-07-02)."
   exit 1
 fi
 

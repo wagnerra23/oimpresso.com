@@ -17,6 +17,7 @@ use Modules\Whatsapp\Http\Controllers\Admin\TemplatesController;
 use Modules\Whatsapp\Http\Controllers\Admin\SettingsController;
 use Modules\Whatsapp\Http\Controllers\Api\CustomerProfileController;
 use Modules\Whatsapp\Http\Controllers\Api\EmployeeScorecardController;
+use Modules\Whatsapp\Http\Controllers\Publico\FeedbackFormController;
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +36,30 @@ use Modules\Whatsapp\Http\Controllers\Api\EmployeeScorecardController;
 | @see memory/requisitos/Whatsapp/SPEC.md
 | @see memory/requisitos/Infra/RUNBOOK-criar-modulo.md (3 rotas Install obrigatórias)
 */
+
+// ── Canal PÚBLICO de sinal do cliente (US-INFRA-002 · ADR 0105 · ADR 0334) ───────────
+//
+// O órgão sensor: a Larissa reporta a dor dela sem depender de o [W] ouvir no WhatsApp e
+// clicar "Capturar". Sem auth de propósito — o cliente não tem login no nosso admin.
+//
+// Tier 0: o business NÃO vem do input, vem da URL assinada. O middleware `signed` valida
+// HMAC (APP_KEY) sobre a URL inteira, então adulterar ?biz=4→1 dá 403. Expiração de 30d
+// é nativa do temporarySignedRoute — sem tabela de token pra manter ou vazar.
+//
+// GET e POST compartilham path E assinatura: o HMAC do Laravel cobre a URL, não o método,
+// então o form posta na mesma URL que abriu (1 link só, sem 2º token).
+// throttle espelha o portal público do ConsultaOs (anti-abuso em rota sem auth).
+//
+// Link: `php artisan feedback:link {business_id}`
+Route::prefix('feedback')->name('feedback.')->middleware('signed')->group(function () {
+    Route::get('/', [FeedbackFormController::class, 'show'])
+        ->name('form')
+        ->middleware('throttle:30,1');
+
+    Route::post('/', [FeedbackFormController::class, 'store'])
+        ->name('submit')
+        ->middleware('throttle:10,1');
+});
 
 // Rotas de instalação 1-click (via /manage-modules → botão Install)
 // Pattern: ADR 0024 / feedback_pattern_install_modulos

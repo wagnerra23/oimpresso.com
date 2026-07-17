@@ -28,23 +28,18 @@ name: Memory schema gate (ONDA 5 S1)
 # Trigger: PR que toca memory/**/*.md OU charter ao lado de Page Inertia OU o
 # script validador de schema do corpo.
 
+# ALWAYS-RUN desde 2026-07-17 (ADR 0341 · flip [W]) — o filtro `paths:` FOI REMOVIDO.
+# POR QUÊ: `Charter (...)` e `SPEC (...)` viraram REQUIRED. Required + path-scoped =
+# DEADLOCK: em PR que não toca o path, o job nem começa, o check NUNCA reporta, e o
+# merge fica pendente pra sempre (ADR 0261 Alavanca 2: "always-run > path-scoped
+# required"; é a mesma razão do casos-gate.yml, que diz literalmente "tirar o filtro
+# paths: é o flip"). O custo de rodar sempre é ~0: o step de validação já é
+# skip-as-pass interno — intersecta o glob da matriz com os arquivos MUDADOS e sai
+# `[OK] nenhum arquivo NOVO/MODIFICADO bate <pattern>` + exit 0 quando não há nada.
 on:
   pull_request:
-    paths:
-      - 'memory/**/*.md'
-      - 'resources/js/Pages/**/*.charter.md'
-      - 'scripts/memory-schemas/**'
-      - '.github/scripts/validate-memory-schema.sh'
-      - '.remarkrc.cjs'
-      - '.github/workflows/memory-schema-gate.yml'
   push:
     branches: [main]
-    paths:
-      - 'memory/**/*.md'
-      - 'resources/js/Pages/**/*.charter.md'
-      - 'scripts/memory-schemas/**'
-      - '.github/scripts/validate-memory-schema.sh'
-      - '.remarkrc.cjs'
 
 concurrency:
   group: memory-schema-gate-${{ github.ref }}

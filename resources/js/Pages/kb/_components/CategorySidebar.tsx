@@ -111,16 +111,10 @@ export default function CategorySidebar({
           className={cn(
             'kb-side-btn w-full flex items-center gap-2 px-2 py-1.5 text-left text-[12.5px] rounded-r-md border-l-2 transition-colors',
             active
-              ? 'bg-surface text-foreground font-semibold'
+              ? 'kb-hue-border-l bg-muted text-foreground font-semibold'
               : 'border-l-transparent text-muted-foreground hover:bg-muted hover:text-foreground',
           )}
-          style={
-            active
-              ? ({
-                  borderLeftColor: `oklch(0.55 0.13 ${hue})`,
-                } as React.CSSProperties)
-              : undefined
-          }
+          style={{ '--kb-hue': hue } as React.CSSProperties}
           onClick={() => {
             if (hasSub) onToggleExpand(slug);
             onPickCategory(slug);
@@ -140,8 +134,7 @@ export default function CategorySidebar({
             />
           )}
           <span
-            className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-            style={{ background: `oklch(0.62 0.13 ${hue})` }}
+            className="kb-hue-dot inline-block h-1.5 w-1.5 shrink-0 rounded-full"
             aria-hidden
           />
           <span className="flex-1 truncate">{label}</span>
@@ -226,7 +219,7 @@ export default function CategorySidebar({
                   <Star
                     size={10}
                     fill="currentColor"
-                    className="shrink-0 mt-0.5 text-amber-500"
+                    className="shrink-0 mt-0.5 text-warning"
                     aria-hidden
                   />
                   <span className="truncate flex-1">{n.title}</span>

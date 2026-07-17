@@ -1,7 +1,7 @@
 ---
 slug: 0055-self-host-team-plan-equivalente-anthropic
 number: 55
-title: !!binary gJQgU2VsZi1ob3N0IFRlYW0gcGxhbiBlcXVpdmFsZW50ZSBhbyBBbnRocm9waWMgVGVhbS9FbnRlcnByaXNl
+title: "Self-host Team plan equivalente ao Anthropic Team/Enterprise"
 type: adr
 status: aceito
 authority: canonical
@@ -15,9 +15,7 @@ supersedes: []
 supersedes_partially:
   - 0054-pacote-enterprise-busca-memoria-evolucao
 related:
-  - '0053'
   - 0053-mcp-server-governanca-como-produto
-  - '0054'
   - 0054-pacote-enterprise-busca-memoria-evolucao
 pii: false
 ---

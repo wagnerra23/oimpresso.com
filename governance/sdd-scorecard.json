@@ -15,39 +15,44 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 83.7,
+      "value": 84.3,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 83.7,
+        "coverage_pct": 84.3,
         "specs_total": 59,
-        "us_total": 972,
-        "anchor_coverage_pct": 83.7,
+        "us_total": 978,
+        "anchor_coverage_pct": 84.3,
         "by_state": {
-          "sem_campo": 157,
+          "sem_campo": 153,
           "placeholder": 0,
-          "pendente": 372,
+          "pendente": 375,
           "parcial": 115,
-          "anchored_ok": 327,
+          "anchored_ok": 334,
           "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 820,
+        "fields_total": 830,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 774,
+        "fields_grammar_ok": 784,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 264,
         "req_sem_covering_test_total": 392,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 42,
+        "req_sem_lane_total": 44,
         "behavior_known": false,
         "servido_total": 3,
         "nao_servido_total": 114,
         "servido_ledger": true,
+        "anchor_stale_on": false,
+        "anchor_stale_total": null,
+        "anchor_stale_fresco_total": null,
+        "anchor_stale_unknown_total": null,
+        "anchor_stale_unknown_motivos": null,
         "baseline_applied": null,
         "grandfathered": {
           "aceite": 0,
@@ -236,7 +241,7 @@
         "carimbadas": 11,
         "sem_carimbo": 66,
         "stale": 0,
-        "oldest_distilled_at": "2026-07-01"
+        "oldest_distilled_at": "2026-07-02"
       },
       "stream": "MEM"
     },
@@ -249,7 +254,7 @@
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
         "modules": 74,
-        "hops_worst": 8
+        "hops_worst": 13
       },
       "stream": "MEM"
     },

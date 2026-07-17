@@ -362,7 +362,13 @@ export function measureBackfillErrorRate(ledgerPath = join(ROOT, 'governance', '
   try { l = JSON.parse(readFileSync(ledgerPath, 'utf8')); }
   catch { return notYet('down', '<2%', 'governance/sdd-verification-ledger.json presente mas JSON inválido — fallback honesto.'); }
   const entries = Array.isArray(l.entries) ? l.entries : [];
-  const aprovadas = entries.filter((e) => e.veredito === 'aprovado' && typeof e.error_rate_pct === 'number');
+  // `e.tipo !== 'juiz'`: o ledger é append-only e agora carrega DOIS fatos — refutação
+  // de lote (anchors|prosa) E calibração do juiz (tipo `juiz`, chip C10). Só a refutação
+  // alimenta o backfill_error_rate. Uma entry de calibração bem-formada nem tem
+  // `veredito`/`error_rate_pct` (schema_entry_juiz), mas o filtro exclui `juiz` na BORDA
+  // pra que uma entry malformada (campos copiados de um lote por engano) NUNCA polua uma
+  // métrica que alimenta o ratchet required (achado adversarial 2026-07-17, skeptic 1).
+  const aprovadas = entries.filter((e) => e.tipo !== 'juiz' && e.veredito === 'aprovado' && typeof e.error_rate_pct === 'number');
   if (!aprovadas.length) {
     return notYet('down', '<2%',
       'governance/sdd-verification-ledger.json sem entry `aprovado` com error_rate_pct numérico — só existe após 1º lote IA refutado; fallback honesto.');

@@ -1,7 +1,7 @@
 ---
 slug: 0030-credenciais-jamais-em-git
 number: 30
-title: !!binary gJQgQ3JlZGVuY2lhaXMgc2Vuc8OtdmVpczogbnVuY2EgZW0gZ2l0
+title: "Credenciais sensíveis: nunca em git"
 type: adr
 status: aceito
 authority: canonical
@@ -12,7 +12,7 @@ decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0027'
+  - 0027-gestao-memoria-roles-claros
 pii: false
 ---
 # ADR 0030 — Credenciais sensíveis: nunca em git

@@ -94,6 +94,7 @@ class KBServiceProvider extends ServiceProvider
                 \Modules\KB\Console\Commands\KbReindexCommand::class,
                 \Modules\KB\Console\Commands\KbDriftDetectorCommand::class, // Wave 23 §G4 — drift artigo KB vs git log
                 \Modules\KB\Console\Commands\KbHealthCommand::class,        // Wave 25 §G D9 — health-check RAG (corpus_size/bridge_freshness/retrieval_latency/editable_ratio)
+                \Modules\KB\Console\Commands\KbClassifyCommand::class,       // 2026-07-17 — classifica kb_nodes via auto_match (dry-run default; resolve category_id NULL)
             ]);
         }
     }

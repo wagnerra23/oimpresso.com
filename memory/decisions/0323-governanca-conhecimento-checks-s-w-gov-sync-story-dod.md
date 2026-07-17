@@ -16,7 +16,6 @@ supersedes: []
 superseded_by: []
 related:
   - 0070-jira-style-task-management-current-md-removed
-  - 0144-tasks-create-reconcilia-por-id
   - 0213-audit-creates-tasks-loop-fechado
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
   - 0258-processo-adr-estado-arte-indice-gerado-supersede-atomico

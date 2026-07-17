@@ -1,13 +1,13 @@
 ---
 slug: 0075-team-mcp-skills-ui-prompt-management-style
-number: 0075
+number: 75
 title: "Team MCP P0 v2 — UI gestão de skills estilo prompt-management (5 tabelas, 5 telas, approval obrigatório)"
 type: adr
 status: superseded
 authority: reference
 lifecycle: substituido
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: copiloto
 quarter: 2026-Q2
 tags: [mcp, team-mcp, skills, prompt-management, governance, approval, p0, superseded]

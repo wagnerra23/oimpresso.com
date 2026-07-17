@@ -13,6 +13,23 @@ use Modules\Jana\Services\Ragas\RagasJudgeService;
 /**
  * jana:drift-sentinel — Wave 23 — canary semanal Jana.
  *
+ * ⚠️⚠️ TAUTOLÓGICO — NÃO detecta drift REAL da Jana (provado 2026-07-17, US-COPI-143).
+ * Este canary chama `scoreFaithfulness(question, ground_truth, ground_truth)` — ou seja,
+ * answer = context = ground_truth. O ground_truth é trivialmente fiel a si mesmo, então
+ * `Current = 1.0` nas 51 perguntas SEMPRE (medido no CT 100: as 51 deram 1.0). Ele NUNCA
+ * roda o pipeline real (`KbAnswerService`: retrieval + síntese) — é a MESMA tautologia que
+ * a ADR 0318 matou no `jana:ragas-ci-eval`, e que sobreviveu porque a 0318 só tocou aquele.
+ * O que varia run-a-run é só a auto-consistência do juiz LLM em gt-vs-gt, não a Jana.
+ *
+ * ⛔ NÃO "conserte" via `--update-baseline` (era o chip C3): regravar captura o gt-vs-gt=1.0,
+ * setaria baseline=1.0 pra tudo → Δ=0 pra SEMPRE → o alarme ficaria ESTRITAMENTE pior (nunca
+ * dispara). Polir um instrumento tautológico é teatro (proibicoes.md §5 2026-07-17).
+ *
+ * ✅ O sinal de drift REAL da Jana é `jana:ragas-real-eval` (ADR 0318, roda no CT 100 via
+ * US-COPI-140) + o piso de context_recall (US-COPI-136). Deprecação formal deste sentinel:
+ * US-COPI-143 (decisão [W]). Até lá, a fiação fica (não quebra o dashboard), mas o report
+ * carrega `caveat` explícito pra ninguém ler o "ok" como "qualidade da Jana OK".
+ *
  * Compara respostas atuais vs baseline checked-in (baseline-responses.json).
  * Alerta se >10% das perguntas divergirem ≥ DRIFT_THRESHOLD do baseline.
  *
@@ -191,6 +208,10 @@ class JanaDriftSentinelCommand extends Command
             'ran_at' => now()->toIso8601String(),
             'status' => $isAlert ? 'drift' : 'ok',
             'ok' => ! $isAlert,
+            // TAUTOLOGIA (US-COPI-143): o 'ok' aqui NÃO significa "Jana OK". Este canary
+            // mede faithfulness(gt, gt)≈1.0 (answer=context=ground_truth), não o pipeline
+            // real. Sinal de drift REAL = jana:ragas-real-eval (ADR 0318) + piso US-COPI-136.
+            'caveat' => 'tautologico: mede gt-vs-gt (~1.0), NAO drift real da Jana — ver US-COPI-143; sinal real=jana:ragas-real-eval',
             'total_questions' => $total,
             'diverged' => $diverged,
             'drift_pct' => round($driftPct, 2),
@@ -300,6 +321,22 @@ class JanaDriftSentinelCommand extends Command
 
     private function updateBaseline(string $baselinePath, array $questions, RagasJudgeService $judge): int
     {
+        // ⛔ GUARD (US-COPI-143): regravar aqui captura faithfulness(gt, gt)≈1.0 — a mesma
+        // tautologia do resto do comando. Setaria baseline=1.0 pra tudo → Δ=0 pra sempre →
+        // alarme NUNCA dispara (pior que o mock 0.85 atual, que ao menos dá Δ=0.15). Era o
+        // "chip C3"; provado contraproducente 2026-07-17 (proibicoes.md §5). Exige override
+        // consciente pra não acontecer por reflexo.
+        if (! $this->option('mock') && ! env('DRIFT_BASELINE_TAUTOLOGIA_OK')) {
+            $this->error(
+                'BLOQUEADO: regravar o baseline captura gt-vs-gt (~1.0) — tautológico, deixa o '.
+                'alarme cego pra sempre (US-COPI-143). O sinal de drift real é jana:ragas-real-eval. '.
+                'Se você REALMENTE quer regravar mesmo assim (ex: só pro modo --mock de CI), use '.
+                '--mock, ou defina DRIFT_BASELINE_TAUTOLOGIA_OK=1 cientemente.'
+            );
+
+            return self::FAILURE;
+        }
+
         $this->warn('Regravando baseline-responses.json a partir do gold-set atual...');
 
         $responses = [];
