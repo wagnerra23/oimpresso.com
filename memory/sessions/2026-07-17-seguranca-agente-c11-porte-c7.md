@@ -1,10 +1,12 @@
 ---
 slug: 2026-07-17-seguranca-agente-c11-porte-c7
 title: "Segurança-do-agente 5,0/10 — C11 corpus invocado · porte lote B · C7 egress default-deny"
+topic: "Segurança-do-agente (grade 2026-07-17, 5,0/10) — 3 chips: C11 corpus de injection invocado, porte lote B .ps1→.mjs, C7 devcontainer egress default-deny"
 type: session-log
 authority: informativo
 lifecycle: ativo
 date: "2026-07-17"
+prs: [4409, 4416, 4420, 4433]
 related_adrs: [0224, 0298, 0314, 0271, 0290]
 pii: false
 ---

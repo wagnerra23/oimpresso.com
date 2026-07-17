@@ -1,5 +1,8 @@
 ---
 slug: 2026-07-17-1503-seguranca-agente-c11-porte-c7
+tldr: "Fechei 3 chips da dimensão segurança-do-agente (grade 2026-07-17, 5,0/10): C11 invoca o corpus de injection em CI (path-filter + cron) + teste que fecha o furo 'verde com defesa desligada'; porte de 2 blockers .ps1→.mjs cross-plataforma (escopo real = 2, medido); C7 devcontainer com egress default-deny (o único controle de TIPO diferente). Todos MERGED e verificados rodando no estado de main. Rumo [W]: fechar em vez de puxar mais chips — a grade aponta ratio negócio/governança 3,33× alarme:true."
+time: "15:03 UTC"
+prs: [4409, 4416, 4420]
 title: "Segurança-do-agente 5,0/10 → 3 chips (C11 corpus · porte lote B · C7 egress) todos MERGED"
 type: handoff
 authority: informativo
