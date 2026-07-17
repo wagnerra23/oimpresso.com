@@ -1,9 +1,19 @@
 ---
 title: "RUNBOOK — Feedback Público (canal web_form)"
+module: Whatsapp
+tela: Whatsapp/FeedbackPublico
 owner: W
 status: ativo
-version: "1.0"
-updated: "2026-07-17"
+last_validated: "2026-07-17"
+preconditions:
+  - "Módulo Whatsapp habilitado no business (modules_statuses.json)"
+  - "APP_KEY definida (o HMAC do link assinado depende dela)"
+steps:
+  - "Gerar o link: php artisan feedback:link {business_id} --detail"
+  - "Enviar a URL ao cliente (WhatsApp / e-mail / rodapé de nota)"
+  - "Cliente abre, escreve a dor e informa severidade 0-4"
+  - "Ler os sinais em /atendimento/feedback (filtro canal=web_form)"
+  - "Revogar: gerar link novo, ou rotacionar APP_KEY (invalida TODOS os links assinados)"
 related_adrs: [0105-cliente-como-sinal-guiar-sem-mandar, 0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio, 0093-multi-tenant-isolation-tier-0, 0104-processo-mwart-canonico-unico-caminho]
 ---
 
