@@ -270,7 +270,7 @@
       "classe": "gate"
     },
     "governance-script-tests.yml": {
-      "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1)",
+      "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1; inclui agent-corpus-counterfactual.test.mjs, chip C1 da grade 2026-07-17: prova por Monte Carlo determinístico que a aritmética de viabilidade CUMPRE o poder que promete e não grita vencedor sob H0 — o harness de 3 arms que ela servia foi podado em 2026-07-17, autorizado [W])",
       "classe": "gate"
     },
     "infra-contract-required.yml": {
