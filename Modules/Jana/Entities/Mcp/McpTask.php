@@ -87,6 +87,56 @@ class McpTask extends Model
     /** Status canônicos (ADR 0070 — backlog adicionado). */
     public const STATUSES = ['backlog', 'todo', 'doing', 'review', 'done', 'blocked', 'cancelled'];
 
+    /** Status terminais — task nesses estados não trava mais ninguém. */
+    public const CLOSED_STATUSES = ['done', 'cancelled'];
+
+    /**
+     * Mapa task_id => status pros ids dados (1 query — evita N+1 em listagem).
+     *
+     * @param  list<string>  $taskIds
+     * @return array<string, string>
+     */
+    public static function statusMapFor(array $taskIds): array
+    {
+        $taskIds = array_values(array_unique(array_filter($taskIds)));
+
+        if ($taskIds === []) {
+            return [];
+        }
+
+        return static::query()
+            ->whereIn('task_id', $taskIds)
+            ->pluck('status', 'task_id')
+            ->all();
+    }
+
+    /**
+     * Dos bloqueadores registrados, quais AINDA travam a task.
+     *
+     * `blocked_by` é histórico: registra de quem a task dependeu, e continua verdadeiro depois
+     * que o bloqueador fecha. Quem lê o campo cru e anuncia "⛔ bloqueada" no presente mente —
+     * foi assim que US-INFRA-002 (Client Signal) passou 7 semanas marcada como presa por
+     * US-INFRA-001, concluída em 2026-05-28. Ninguém pega task "bloqueada": o trabalho congela.
+     *
+     * Bloqueador desconhecido (id fora do mapa) conta como aberto — fail-safe: some com o
+     * cadeado só quando há prova de que fechou.
+     *
+     * @param  list<string>|null  $blockedBy
+     * @param  array<string, string>  $statusMap  de statusMapFor()
+     * @return list<string>
+     */
+    public static function openBlockers(?array $blockedBy, array $statusMap): array
+    {
+        if (empty($blockedBy)) {
+            return [];
+        }
+
+        return array_values(array_filter(
+            $blockedBy,
+            static fn (string $id): bool => ! in_array($statusMap[$id] ?? '', self::CLOSED_STATUSES, true)
+        ));
+    }
+
     /**
      * FSM mcp_tasks — matriz de transições permitidas (single source-of-truth em código).
      *

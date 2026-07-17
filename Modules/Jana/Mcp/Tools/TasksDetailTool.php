@@ -59,7 +59,13 @@ class TasksDetailTool extends Tool
         $output .= "- **Priority**: " . ($t->priority ?? 'p2') . "\n";
         if ($t->estimate_h) $output .= "- **Estimate**: ~{$t->estimate_h}h\n";
         if (! empty($t->blocked_by)) {
-            $output .= "- **Blocked by**: " . implode(', ', $t->blocked_by) . "\n";
+            $abertos = McpTask::openBlockers($t->blocked_by, McpTask::statusMapFor($t->blocked_by));
+            if ($abertos !== []) {
+                $output .= "- **Blocked by**: " . implode(', ', $abertos) . "\n";
+            } else {
+                // O campo é histórico e segue verdadeiro; só não vale mais no presente.
+                $output .= "- **Dependeu de** (concluída — não trava mais): " . implode(', ', $t->blocked_by) . "\n";
+            }
         }
         $output .= "- **Source**: `{$t->source_path}`";
         if ($t->source_git_sha) $output .= " (sha {$t->source_git_sha})";
