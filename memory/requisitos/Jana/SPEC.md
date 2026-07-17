@@ -1578,14 +1578,14 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 **Fallback ≠ modelo (bloqueios diferentes):** subir o modelo custa em **toda** request → decisão [W]. O **fallback** só custa quando o primário cai, e já é Princípio duro #8 da Constituição ("Confiabilidade com fallback", ADR 0094). Medido: `config/ai.php` tem `'default' => 'openai'` único e o `ChatController` só tem `catch` devolvendo *"Estou com dificuldades técnicas"* — o provider `anthropic` já está declarado em `config/ai.php` e o `ChatCopilotoAgent` **já tem prompt-caching Anthropic** (`providerOptions()`), então a metade fallback é mais curta do que parece.
 
 **Escopo:**
-- [ ] Liberar `gpt-4o` OU `provider=anthropic` no config (decisão [W] — envolve custo)
-- [ ] Cadeia de fallback (provider primário → secundário) — hoje inexistente
-- [ ] Medir antes/depois no gold-set (`jana:recall-eval`) pra provar que a resposta melhorou, não só o preço subiu
-- [ ] Registrar o custo/1k tokens antes→depois (pareia com `agent-cost-per-pr`)
+- [x] Liberar `gpt-4o` no config + ligar SÓ no chat → **entregue na [US-COPI-144](#us-copi-144--modelo-forte-no-chat-jana_chat_model-cirúrgico)** ([W] liberou o acesso OpenAI 2026-07-17)
+- [ ] **Cadeia de fallback** (provider primário → secundário) — **hoje inexistente, segue pendente**. Se o provider cai, a Jana cai. Esta é a metade que sobra da 135.
+- [x] Medir antes/depois → feito na US-143 (mini vs gpt-4o, custo + qualidade)
+- [ ] Registrar custo/1k tokens antes→depois no monitoramento contínuo (pareia com `agent-cost-per-pr`) — pontual feito, contínuo pendente
 
-**Ressalva do adversário:** trocar o modelo NÃO conserta o `context_recall 0,3839` — recall é retrieval, não geração. Se subir só o modelo, a Jana responde melhor sobre o contexto errado. Fazer junto do piso de recall.
+**Ressalva do adversário:** trocar o modelo NÃO conserta o `context_recall 0,3839` — recall é retrieval, não geração. Se subir só o modelo, a Jana responde melhor sobre o contexto errado. Fazer junto do piso de recall (**US-COPI-136**).
 
-**Bloqueio real:** decisão [W] sobre custo. Sem isso o ticket não anda.
+**Estado (2026-07-17):** a metade **modelo** foi cindida pra US-143 e entregue (mecanismo cirúrgico `JANA_CHAT_MODEL` + gpt-4o ligado no chat em prod). O que mantém a **135 aberta** é o **fallback** — nenhuma cadeia primário→secundário existe ainda.
 
 ### US-COPI-136 · Piso de context_recall no baseline (recall 0,3839 pode cair sem alarme)
 
@@ -1852,3 +1852,31 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 **DoD:** a alegação "alarme de drift da Jana" some do dashboard de governança (ou o sentinel some), e o único sinal de drift da Jana que o dashboard mostra é o `ragas-real-eval`.
 
 **Refs:** ADR 0318 · US-COPI-136 · US-COPI-140 · `Modules/Jana/Console/Commands/JanaDriftSentinelCommand.php` · proibicoes.md §5 2026-07-17
+
+### US-COPI-144 · Modelo forte no chat (JANA_CHAT_MODEL cirúrgico)
+
+> owner: wagner · priority: p1 · estimate: 2h · status: done · type: story
+
+**Implementado em:** `Modules/Jana/Ai/Agents/ChatCopilotoAgent.php` · `Modules/Jana/Config/config.php` · verificado@daca7b3 (2026-07-17) — `ChatCopilotoAgent::model()` lê `copiloto.chat_model` (env `JANA_CHAT_MODEL`); null → default do provider (gpt-4o-mini, legado), string → liga o modelo SÓ neste agent
+
+**Testado em:** `Modules/Jana/Tests/Feature/Ai/ChatCopilotoAgentModelTest.php` · verificado@daca7b3 (2026-07-17) — R-COPI-135 (3 casos, sem LLM): sem config → null; vazio → null; `gpt-4o` → `gpt-4o`
+
+**Origem:** cindida da US-COPI-135. [W] liberou o acesso gpt-4o no projeto OpenAI (2026-07-17, resolvendo o 403 que bloqueava a 135) e autorizou ligar ("pode ligar").
+
+**Por que cirúrgico (não `AI_OPENAI_TEXT_DEFAULT=gpt-4o`):** o env global é o default de ~8 agents sem `#[Model]`, incluindo batch internos (Briefing, WeeklyDigest, SinteseSemanal) que rodariam a 16× o custo **sem ganho pro cliente**. O knob `JANA_CHAT_MODEL` sobe só a superfície que a Larissa usa.
+
+**Medição real (staging, mesma pergunta analítica, tools ON):**
+
+| | gpt-4o-mini | gpt-4o |
+|---|---|---|
+| custo/msg | $0,00031 | $0,00470 (~15×) |
+| latência | 14,0s | 5,4s |
+| qualidade | 5 recomendações genéricas | mais conciso, integrou "tickets em aberto" |
+
+Ganho de qualidade **marginal** nesta amostra; custo absoluto **trivial** (meio centavo/msg, só nas que pedem análise). gpt-4o foi até mais rápido aqui.
+
+**DoD:** o mecanismo liga o modelo só no chat, com kill-switch por env (`JANA_CHAT_MODEL` apagada + `config:cache` → volta ao mini). Provado por R-COPI-135 + o gpt-4o confirmado respondendo com a chave de prod (smoke 1,5s, zero 403). **Flip prod:** `JANA_CHAT_MODEL=gpt-4o` no `.env` do Hostinger após o deploy deste PR — evidência de smoke prod no fecho.
+
+**Ressalvas (não desta US):** (1) o ganho na **média** do tráfego real é a **US-COPI-137** (eval online) — o comparativo é 1 amostra, não distribuição; (2) subir o modelo **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passa a raciocinar melhor sobre o contexto errado; (3) **fallback** primário→secundário segue aberto na **US-COPI-135**.
+
+**Refs:** ADR 0245 · ADR 0141 · US-COPI-135 (fallback) · US-COPI-136 (recall) · US-COPI-137 (eval online)

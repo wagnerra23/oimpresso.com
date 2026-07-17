@@ -571,6 +571,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Chat model — modelo do ChatCopilotoAgent (US-COPI-135)
+    |--------------------------------------------------------------------------
+    |
+    | O chat da Jana respondia ao cliente com gpt-4o-mini (o mais fraco do
+    | mercado) porque o projeto OpenAI não tinha acesso ao gpt-4o (403). Com o
+    | acesso liberado ([W] 2026-07-17), este knob liga um modelo mais forte SÓ no
+    | chat — sem mexer no `AI_OPENAI_TEXT_DEFAULT` global, que arrastaria os ~8
+    | agents batch internos (Briefing, WeeklyDigest, etc) pro modelo caro sem
+    | ganho pro cliente.
+    |
+    | Mesmo padrão env-driven do `clarify` (ADR 0245): `ChatCopilotoAgent::model()`
+    | lê daqui. null/vazio → cai no default do provider (`AI_OPENAI_TEXT_DEFAULT`,
+    | hoje gpt-4o-mini) — comportamento legado. Pra ligar: `JANA_CHAT_MODEL=gpt-4o`.
+    | Kill-switch: apagar a env + `config:cache`.
+    |
+    | Custo: gpt-4o ~16× o mini por token; medido 2026-07-17, o ganho de qualidade
+    | é marginal-a-moderado e o custo absoluto trivial pro volume de chat
+    | (~meio centavo/mensagem). A confirmação na MÉDIA do tráfego é a US-COPI-137
+    | (eval online). A chave env() entra na contagem baselined do Larastan.
+    */
+    'chat_model' => env('JANA_CHAT_MODEL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | JANA ADVISOR — Metade B: Próxima-melhor-pergunta proativa (ADR 0245)
     |--------------------------------------------------------------------------
     | A Jana surfa, por persona, as perguntas que [W]/a equipe deveriam estar
