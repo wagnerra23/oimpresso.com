@@ -37,18 +37,43 @@ use Modules\Jana\Services\Ragas\RagasJudgeService;
  *   php artisan jana:ragas-real-eval --json                  # JSON p/ runner/baseline
  *   php artisan jana:ragas-real-eval --sample-size=5 --json  # smoke barato (~$0.01)
  *
+ * PISOS (US-COPI-136): o dono único é `thresholds_regressao` em
+ * governance/jana-ragas-real-baseline.json — o comando LÊ de lá (fecha o follow-up
+ * registrado na própria ADR 0318 §"v1 usa thresholds absolutos"). As flags de CLI só
+ * sobrescrevem quando passadas explicitamente. Antes deste commit os pisos viviam em
+ * DOIS lugares (default do signature + flags do Kernel.php) e o `thresholds_regressao`
+ * do baseline era decorativo — lido por ninguém (grep: 1 hit, ele mesmo).
+ *
  * Exit code:
  *   0 = gate pass (thresholds OK) OU skipped (sem infra — neutro, não bloqueia)
- *   1 = gate fail (faithfulness/relevancy real abaixo do threshold)
+ *   1 = gate fail (faithfulness/relevancy/context_recall real abaixo do piso)
+ *
+ * O exit 1 aqui é ALERTA de cron (Kernel.php ->onFailure() loga ERROR no canal
+ * copiloto-ai), NÃO gate de merge — este comando não roda em CI (o workflow
+ * jana-ragas-gate.yml roda o `ci-eval` tautológico, e só o cita em comentário).
  *
  * @see Modules/Jana/Services/Kb/KbAnswerService.php
  * @see Modules/Jana/Services/Ragas/RagasJudgeService.php
  * @see memory/decisions/0271-revisao-gates-ci-estado-real-required-e-subtracao-segura.md
+ * @see memory/decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md
  */
 class JanaRagasRealEvalCommand extends Command
 {
     /** Mesmo gold-set canônico do ci-eval (51 perguntas, 6 buckets, sem PII). */
     protected const GOLD_SET_PATH = 'Modules/Jana/Tests/Feature/Ai/fixtures/jana-gold-set.json';
+
+    /** Dono único dos pisos (US-COPI-136) — `thresholds_regressao` mora aqui. */
+    protected const BASELINE_PATH = 'governance/jana-ragas-real-baseline.json';
+
+    /**
+     * Fallback SÓ pra baseline ausente/ilegível (ex: checkout parcial). Iguais aos
+     * valores versionados no baseline — se divergirem, o baseline vence.
+     */
+    protected const FALLBACK_THRESHOLDS = [
+        'faithfulness' => 0.65,
+        'answer_relevancy' => 0.75,
+        'context_recall' => 0.36,
+    ];
 
     /** Custo aprox por judge call gpt-4o-mini (2026-05). */
     protected const COST_PER_JUDGE_CALL_USD = 0.0004;
@@ -59,17 +84,104 @@ class JanaRagasRealEvalCommand extends Command
     protected $signature = 'jana:ragas-real-eval
                             {--json : Output só JSON estruturado (sem tabela humana)}
                             {--sample-size=0 : Limita N perguntas (0 = gold-set completo)}
-                            {--threshold-faithfulness=0.80 : Threshold mínimo faithfulness médio}
-                            {--threshold-relevancy=0.75 : Threshold mínimo answer_relevancy médio}
+                            {--threshold-faithfulness= : Piso faithfulness (default: thresholds_regressao do baseline)}
+                            {--threshold-relevancy= : Piso answer_relevancy (default: thresholds_regressao do baseline)}
+                            {--threshold-context-recall= : Piso context_recall (default: thresholds_regressao do baseline)}
                             {--topk=10 : Docs recuperados por pergunta (retrieval)}
                             {--max-citacoes=5 : Máx citações na síntese}';
 
     protected $description = 'RAGAS eval REAL (não-tautológico) — mede a saída do pipeline Jana (KbAnswerService) vs threshold';
 
+    /** Procedência dos pisos (vai no report — auditável, não adivinhado). */
+    protected string $thresholdsFonte = '';
+
+    /**
+     * Veredito do gate — função PURA (testável sem DB, sem LLM, sem corpus).
+     *
+     * Extraída pelo mesmo motivo do `HealthCheckCommand::allChecksOk` (bite-tests dos
+     * sentinelas, 2026-06-20): sem isto nenhum teste PROVA que o piso morde, e um
+     * refactor poderia silenciar o exit code com a suíte verde ("a suite mente").
+     *
+     * Métrica sem medida (null) NÃO é julgada — 0.0 fabricaria regressão falsa.
+     *
+     * @param  array<string, float|null>  $medidas   metrica => média medida
+     * @param  array<string, float|null>  $pisos     metrica => piso (null = não julga)
+     */
+    public static function gateVerdict(array $medidas, array $pisos): bool
+    {
+        foreach ($pisos as $metrica => $piso) {
+            if ($piso === null) {
+                continue;
+            }
+            $medida = $medidas[$metrica] ?? null;
+            if ($medida === null) {
+                continue;
+            }
+            if ($medida < $piso) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Resolve os pisos: baseline honesto (dono único) → CLI sobrescreve se passada.
+     *
+     * Fecha o follow-up da ADR 0318 §"v1 usa thresholds absolutos ... Follow-up: fazer
+     * o comando ler jana-ragas-real-baseline.json". Antes, `thresholds_regressao` era
+     * decorativo e os pisos reais viviam duplicados no signature + no Kernel.php.
+     *
+     * @return array<string, float|null>
+     */
+    protected function resolveThresholds(): array
+    {
+        $doBaseline = [];
+        $fonte = 'fallback do comando (baseline ausente/ilegível)';
+
+        try {
+            $path = base_path(self::BASELINE_PATH);
+            if (File::exists($path)) {
+                $json = json_decode((string) File::get($path), true);
+                $lidos = $json['thresholds_regressao'] ?? null;
+                if (is_array($lidos)) {
+                    foreach ($lidos as $k => $v) {
+                        if (is_numeric($v)) {
+                            $doBaseline[$k] = (float) $v;
+                        }
+                    }
+                    $fonte = self::BASELINE_PATH.' (thresholds_regressao)';
+                }
+            }
+        } catch (\Throwable $e) {
+            $this->warn('Baseline ilegível — usando fallback do comando: '.$e->getMessage());
+        }
+
+        $cli = [
+            'faithfulness' => $this->option('threshold-faithfulness'),
+            'answer_relevancy' => $this->option('threshold-relevancy'),
+            'context_recall' => $this->option('threshold-context-recall'),
+        ];
+
+        $pisos = [];
+        $sobrescritas = [];
+        foreach (self::FALLBACK_THRESHOLDS as $metrica => $fallback) {
+            if ($cli[$metrica] !== null && is_numeric($cli[$metrica])) {
+                $pisos[$metrica] = (float) $cli[$metrica];
+                $sobrescritas[] = $metrica;
+            } else {
+                $pisos[$metrica] = $doBaseline[$metrica] ?? $fallback;
+            }
+        }
+
+        $this->thresholdsFonte = $fonte.($sobrescritas ? ' · CLI sobrescreveu: '.implode(', ', $sobrescritas) : '');
+
+        return $pisos;
+    }
+
     public function handle(RagasJudgeService $judge, KbAnswerService $kb): int
     {
-        $thresholdFaith = (float) $this->option('threshold-faithfulness');
-        $thresholdRel = (float) $this->option('threshold-relevancy');
+        $thresholds = $this->resolveThresholds();
         $sampleSize = (int) $this->option('sample-size');
         $topK = max(1, (int) $this->option('topk'));
         $maxCitacoes = max(1, (int) $this->option('max-citacoes'));
@@ -80,8 +192,7 @@ class JanaRagasRealEvalCommand extends Command
         if (empty($apiKey)) {
             return $this->emitSkip(
                 'OPENAI_API_KEY ausente — eval real exige LLM. Rode no CT 100 staging (infra real). NÃO caímos em mock (seria tautologia).',
-                $thresholdFaith,
-                $thresholdRel,
+                $thresholds,
             );
         }
 
@@ -89,8 +200,7 @@ class JanaRagasRealEvalCommand extends Command
             // Proteção dura: mock injetado externamente tornaria o eval teatro.
             return $this->emitSkip(
                 'RagasJudgeService está em mock — abortado (eval real não pode usar scores fixos).',
-                $thresholdFaith,
-                $thresholdRel,
+                $thresholds,
             );
         }
 
@@ -166,7 +276,11 @@ class JanaRagasRealEvalCommand extends Command
             $relScores[] = $rel;
             $recallScores[] = $recall;
 
-            if (! ($faith >= $thresholdFaith && $rel >= $thresholdRel)) {
+            // Diagnóstico POR PERGUNTA fica em faith/rel de propósito: o piso de
+            // context_recall (US-COPI-136) é sobre a MÉDIA (o 0.3839 medido é média).
+            // Aplicá-lo aqui marcaria a maioria das perguntas como falha e afundaria
+            // n_passed/n_failed no trend por mudança de régua, não por regressão.
+            if (! ($faith >= $thresholds['faithfulness'] && $rel >= $thresholds['answer_relevancy'])) {
                 $failures[] = [
                     'idx' => $i,
                     'q' => mb_substr($question, 0, 120),
@@ -183,18 +297,23 @@ class JanaRagasRealEvalCommand extends Command
         if ($nEval === 0) {
             return $this->emitSkip(
                 "Nenhuma pergunta avaliável (no_context={$noContext}, synth_failed={$synthFailed}) — corpus/infra insuficiente. Não inventamos score.",
-                $thresholdFaith,
-                $thresholdRel,
+                $thresholds,
                 extra: ['n_no_context' => $noContext, 'n_synth_failed' => $synthFailed],
             );
         }
 
         $faithAvg = array_sum($faithScores) / $nEval;
         $relAvg = array_sum($relScores) / $nEval;
-        $recallAvg = $recallScores ? array_sum($recallScores) / count($recallScores) : 0.0;
+        // null (não 0.0) quando não há recall medido: 0.0 fabricaria uma regressão
+        // contra o piso. Sem medida → gateVerdict não julga a métrica.
+        $recallAvg = $recallScores ? array_sum($recallScores) / count($recallScores) : null;
         $scoreAvg = ($faithAvg + $relAvg) / 2.0;
 
-        $gatePass = $faithAvg >= $thresholdFaith && $relAvg >= $thresholdRel;
+        $gatePass = self::gateVerdict([
+            'faithfulness' => $faithAvg,
+            'answer_relevancy' => $relAvg,
+            'context_recall' => $recallAvg,
+        ], $thresholds);
         $costUsd = round($judgeCalls * self::COST_PER_JUDGE_CALL_USD + $synthCalls * self::COST_PER_SYNTH_CALL_USD, 4);
 
         $report = [
@@ -203,7 +322,7 @@ class JanaRagasRealEvalCommand extends Command
             'score_avg' => round($scoreAvg, 4),
             'faithfulness_avg' => round($faithAvg, 4),
             'relevancy_avg' => round($relAvg, 4),
-            'context_recall_avg' => round($recallAvg, 4),
+            'context_recall_avg' => $recallAvg === null ? null : round($recallAvg, 4),
             'n_questions' => count($questions),
             'n_evaluated' => $nEval,
             'n_no_context' => $noContext,
@@ -214,10 +333,8 @@ class JanaRagasRealEvalCommand extends Command
             'mode' => 'real',
             'cost_usd' => $costUsd,
             'ran_at' => now()->toIso8601String(),
-            'thresholds' => [
-                'faithfulness' => $thresholdFaith,
-                'answer_relevancy' => $thresholdRel,
-            ],
+            'thresholds' => $thresholds,
+            'thresholds_fonte' => $this->thresholdsFonte,
         ];
 
         $this->persistReport($report);
@@ -256,14 +373,31 @@ class JanaRagasRealEvalCommand extends Command
         $icon = $report['gate_status'] === 'pass' ? '[PASS]' : '[FAIL]';
         $this->line("{$icon} Jana RAGAS REAL-eval — pipeline real (custo: \${$report['cost_usd']})");
         $this->newLine();
+        $linha = function (string $metrica, string $chaveAvg) use ($report): array {
+            $valor = $report[$chaveAvg];
+            $piso = $report['thresholds'][$metrica] ?? null;
+
+            if ($valor === null) {
+                return [$metrica, '—', $piso === null ? '—' : sprintf('%.2f', $piso), 'NÃO MEDIDO'];
+            }
+
+            return [
+                $metrica,
+                sprintf('%.3f', $valor),
+                $piso === null ? '—' : sprintf('%.2f', $piso),
+                $piso === null ? '—' : ($valor >= $piso ? 'OK' : 'FAIL'),
+            ];
+        };
+
         $this->table(
-            ['Métrica', 'Score médio', 'Threshold', 'Status'],
+            ['Métrica', 'Score médio', 'Piso', 'Status'],
             [
-                ['faithfulness', sprintf('%.3f', $report['faithfulness_avg']), sprintf('%.2f', $report['thresholds']['faithfulness']), $report['faithfulness_avg'] >= $report['thresholds']['faithfulness'] ? 'OK' : 'FAIL'],
-                ['answer_relevancy', sprintf('%.3f', $report['relevancy_avg']), sprintf('%.2f', $report['thresholds']['answer_relevancy']), $report['relevancy_avg'] >= $report['thresholds']['answer_relevancy'] ? 'OK' : 'FAIL'],
-                ['context_recall (info)', sprintf('%.3f', $report['context_recall_avg']), '—', '—'],
+                $linha('faithfulness', 'faithfulness_avg'),
+                $linha('answer_relevancy', 'relevancy_avg'),
+                $linha('context_recall', 'context_recall_avg'),
             ]
         );
+        $this->line("Pisos: {$report['thresholds_fonte']}");
         $this->info("Avaliadas: {$report['n_evaluated']}/{$report['n_questions']} · sem contexto: {$report['n_no_context']} · síntese falhou: {$report['n_synth_failed']}");
         if (! empty($report['failures'])) {
             $this->warn('Primeiras falhas:');
@@ -278,7 +412,7 @@ class JanaRagasRealEvalCommand extends Command
      * SKIP neutro (exit 0) — infra insuficiente pra eval real. NÃO é pass nem
      * fail: é honestidade (não medimos nada, não bloqueamos, não inventamos).
      */
-    protected function emitSkip(string $reason, float $tFaith, float $tRel, array $extra = []): int
+    protected function emitSkip(string $reason, array $thresholds, array $extra = []): int
     {
         $report = array_merge([
             'eval_kind' => 'real_pipeline',
@@ -287,10 +421,12 @@ class JanaRagasRealEvalCommand extends Command
             'score_avg' => null,
             'faithfulness_avg' => null,
             'relevancy_avg' => null,
+            'context_recall_avg' => null,
             'mode' => 'real',
             'cost_usd' => 0.0,
             'ran_at' => now()->toIso8601String(),
-            'thresholds' => ['faithfulness' => $tFaith, 'answer_relevancy' => $tRel],
+            'thresholds' => $thresholds,
+            'thresholds_fonte' => $this->thresholdsFonte,
         ], $extra);
 
         $this->persistReport($report);

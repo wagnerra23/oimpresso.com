@@ -534,12 +534,22 @@ class Kernel extends ConsoleKernel
         // BRT, scripts/tests/ct100-ragas-publish.sh) faz merge no trend e publica na órfã
         // governance/ragas-real-trend — o scorecard SDD mede ragas_real_uptime de lá.
         //
-        // Thresholds = baseline honesto MENOS margem pequena (estado-da-arte: "start lower,
-        // establish baseline, tighten iteratively"). Baseline real 2026-07-01 (N=51, CT 100
-        // staging): faithfulness 0.6916 · relevancy 0.8039 (governance/jana-ragas-real-baseline.json).
-        // Floors 0.65/0.75 alertam em REGRESSÃO real, não no 0.80 aspiracional (que falharia
-        // toda semana = ruído). O gap de retrieval (context_recall 0.38) é follow-up separado.
-        $schedule->command('jana:ragas-real-eval --json --threshold-faithfulness=0.65 --threshold-relevancy=0.75')
+        // Pisos NÃO vêm mais por flag aqui (US-COPI-136): o dono único é
+        // `thresholds_regressao` em governance/jana-ragas-real-baseline.json, lido pelo
+        // comando em runtime. Manter as flags aqui seria régua paralela — duas fontes
+        // dizendo o mesmo número até o dia em que divergem. Hoje: faithfulness 0.65 ·
+        // answer_relevancy 0.75 · context_recall 0.36 (medido menos margem; "start lower,
+        // tighten iteratively"), todos alertando em REGRESSÃO real, não no 0.80 aspiracional.
+        //
+        // ⚠️ MEDIDO 2026-07-17: este schedule NUNCA disparou sozinho — nada invoca
+        // `schedule:run` no CT 100 (0 ocorrências em todo cron do host; container sem
+        // cron/supervisord). O gate environments(['staging']) casa, mas o scheduler não
+        // roda: os números do baseline vieram de runs MANUAIS. Mesmo caso dos irmãos
+        // staging acima (drift-sentinel, recall-eval). Ver gaps_conhecidos.eval_nao_roda_sozinho
+        // no baseline. Ligar `schedule:run` genérico NÃO é o fix: 7 schedules sem
+        // environments() viriam junto (pos:generateSubscriptionInvoices, pos:autoSendPaymentReminder)
+        // contra o clone da produção.
+        $schedule->command('jana:ragas-real-eval --json')
             ->weeklyOn(0, '07:00')
             ->timezone('America/Sao_Paulo')
             ->withoutOverlapping()

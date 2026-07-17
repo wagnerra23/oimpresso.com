@@ -43,14 +43,14 @@ Disparados antes de cada uso de ferramenta. Tipo ADR 0234: `hook_pretooluse`.
 
 | Matcher | Hook | O que faz | Arquivo |
 |---------|------|-----------|---------|
-| `Write\|Edit\|MultiEdit` | `block-automem` | Bloqueia Write/Edit em auto-mem privada legada (`~/.claude/projects/*/memory/*.md`). Permite `~/.claude/oimpresso-local/` (escape valve). 3 tiers: Canônico (git), Local (~/.claude/oimpresso-local/), Segredo (Vaultwarden). ADR 0061 + ADR 0131. | `.claude/hooks/block-automem.ps1` |
+| `Write\|Edit\|MultiEdit` | `block-automem` | Bloqueia Write/Edit em auto-mem privada legada (`~/.claude/projects/*/memory/*.md`). Permite `~/.claude/oimpresso-local/` (escape valve). 3 tiers: Canônico (git), Local (~/.claude/oimpresso-local/), Segredo (Vaultwarden). ADR 0061 + ADR 0131. | `.claude/hooks/block-automem.mjs` |
 | `Write\|Edit\|MultiEdit` | `block-memory-drift` | Bloqueia edits em paths canônicos (`memory/decisions/`, `memory/08-handoff.md`, etc.) sem branch `claude/*` + workflow PR. ADRs accepted são append-only irrevogáveis. ADR 0094 Art. 3 + ADR 0061 + ADR 0130. | `.claude/hooks/block-memory-drift.mjs` |
-| `Write\|Edit\|MultiEdit` | `block-mwart-violation` | Bloqueia Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` sem RUNBOOK existir em `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md`. Garante que F1 PLAN acontece antes de F3 FRONTEND. Override via comentário `/mwart-override <razão>` no PR. ADR 0104. | `.claude/hooks/block-mwart-violation.ps1` |
+| `Write\|Edit\|MultiEdit` | `block-mwart-violation` | Bloqueia Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` sem RUNBOOK existir em `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md`. Garante que F1 PLAN acontece antes de F3 FRONTEND. Override via comentário `/mwart-override <razão>` no PR. ADR 0104. | `.claude/hooks/block-mwart-violation.mjs` |
 | `Write\|Edit\|MultiEdit` | `charter-validate` | Avisa (modo warning, não bloqueia ainda) quando Claude tenta editar Page `.tsx` que tem `.charter.md` irmão sem ter chamado `charter-fetch` previamente. Vira bloqueante quando ROI provado (≥5 sessões). ADR 0094 + ADR 0101. | `.claude/hooks/charter-validate.ps1` |
 | `Write\|Edit\|MultiEdit` | `modulo-preflight-warning` | Aviso (não bloqueia) quando Claude tenta Edit/Write em `Modules/<X>/` sem ter lido SPEC.md/RUNBOOK/charter do módulo X na sessão atual. Implementa FASE 1 PRÉ-FLIGHT da Regra Primária Tier 0. | `.claude/hooks/modulo-preflight-warning.ps1` |
 | `Write\|Edit\|MultiEdit` | `block-bom-encoding` | Bloqueia Write/Edit que reintroduza UTF-8 BOM (EF BB BF) em arquivos de código. Origem: post-mortem v4 go-live (PR #984) — PowerShell 5.1 `Set-Content -Encoding utf8` gravava BOM que quebrava PHP (`Namespace declaration statement has to be the very first statement`). | `.claude/hooks/block-bom-encoding.ps1` |
-| `Write\|Edit\|MultiEdit` | `block-merge-markers` | Bloqueia Write/Edit que contenha git merge conflict markers não-resolvidos (`<<<<<<<`, `=======`, `>>>>>>>`). Origem: post-mortem v4 go-live (PRs #1000/#1001) — markers chegaram em prod causando PHP parse error. | `.claude/hooks/block-merge-markers.ps1` |
-| `Write\|Edit\|MultiEdit` | `block-routes-string-legacy` | Bloqueia Write/Edit em `routes/*.php` e `Modules/*/Routes/*.php` que use sintaxe string legacy `'Controller@method'`. FQCN obrigatório: `[Class::class, 'method']`. Origem: post-mortem v4 go-live (PR #843) — strings quebravam `php artisan route:cache`. | `.claude/hooks/block-routes-string-legacy.ps1` |
+| `Write\|Edit\|MultiEdit` | `block-merge-markers` | Bloqueia Write/Edit que contenha git merge conflict markers não-resolvidos (`<<<<<<<`, `=======`, `>>>>>>>`). Origem: post-mortem v4 go-live (PRs #1000/#1001) — markers chegaram em prod causando PHP parse error. Irmão em CI: `.github/scripts/merge-marker-scan.sh`. | `.claude/hooks/block-merge-markers.mjs` |
+| `Write\|Edit\|MultiEdit` | `block-routes-string-legacy` | Bloqueia Write/Edit em `routes/*.php` e `Modules/*/Routes/*.php` que use sintaxe string legacy `'Controller@method'`. FQCN obrigatório: `[Class::class, 'method']`. Origem: post-mortem v4 go-live (PR #843) — strings quebravam `php artisan route:cache`. | `.claude/hooks/block-routes-string-legacy.mjs` |
 
 ### Matcher: `Bash`
 
@@ -59,15 +59,15 @@ Disparados antes de cada uso de ferramenta. Tipo ADR 0234: `hook_pretooluse`.
 | `Bash` | `block-destructive` | Bloqueia comandos Bash destrutivos sem confirmação humana: `rm -rf` em paths críticos, `git push --force` em main/master, `git reset --hard origin/*`, `DROP TABLE/DATABASE`, `DELETE FROM` sem WHERE, `composer update` sem `--lock`, `migrate:fresh/reset` em prod, `TRUNCATE TABLE`. | `.claude/hooks/block-destructive.mjs` |
 | `Bash` | `pii-redactor` | Bloqueia `git commit` que levaria PII real (CPF, CNPJ, cartão) pro repo — escaneia a mensagem do commit + o staged diff. Comandos não-commit (mysql/grep/ssh/cat/echo) passam direto, sem inspeção (opção B, PR #2683 — não atrapalhar debug de ERP por CPF/CNPJ). Bypass `--allow-pii`. LGPD Art. 7 (minimização). Whitelist de fixtures fake. | `.claude/hooks/pii-redactor.mjs` |
 | `Bash` | `commit-discipline-check` | Enforcement Skill Tier A commit-discipline via PreToolUse Bash (git commit/add). ADR 0094 §5. | `.claude/hooks/commit-discipline-check.ps1` |
-| `Bash` | `block-claim-without-evidence` | Bloqueia `gh pr create`/`gh pr merge --admin`/`git push` para branches que tocam infra crítica se o body do PR não contém evidência curl/HTTP literal. Camada B pareada com CI gate `.github/workflows/infra-contract-required.yml`. Escape: `# evidence-override: <razão>`. | `.claude/hooks/block-claim-without-evidence.ps1` |
-| `Bash` | `post-merge-ui-smoke-required` | Após `gh pr merge --admin` de PR com arquivos UI (.tsx/.css/.blade.php), marca flag pendente e bloqueia Claude de declarar "pronto"/"deployed" sem screenshot real. Enforcement Tier 0 smoke visual pós-merge. Também ativo em PreToolUse `mcp__computer-use__screenshot\|mcp__Claude_in_Chrome__.*`. | `.claude/hooks/post-merge-ui-smoke-required.ps1` |
+| `Bash` | `block-claim-without-evidence` | Bloqueia `gh pr create`/`gh pr merge --admin`/`git push` para branches que tocam infra crítica se o body do PR não contém evidência curl/HTTP literal. Camada B pareada com CI gate `.github/workflows/infra-contract-required.yml`. Escape: `# evidence-override: <razão>`. | `.claude/hooks/block-claim-without-evidence.mjs` |
+| `Bash` | `post-merge-ui-smoke-required` | Após `gh pr merge --admin` de PR com arquivos UI (.tsx/.css/.blade.php), marca flag pendente e bloqueia Claude de declarar "pronto"/"deployed" sem screenshot real. Enforcement Tier 0 smoke visual pós-merge. Também ativo em PreToolUse `mcp__computer-use__screenshot\|mcp__Claude_in_Chrome__.*`. | `.claude/hooks/post-merge-ui-smoke-required.mjs` |
 | `Bash` | `block-serving-branch-switch` | Bloqueia troca de branch no checkout MAIN (`D:\oimpresso.com`) que serve `oimpresso.test` via Herd. Trabalho de feature vai em worktree isolado. Worktrees linkados (`.claude/worktrees/*`) são liberados. ADR 0233. Fail-open. | `.claude/hooks/block-serving-branch-switch.ps1` |
 
 ### Matcher: `mcp__computer-use__screenshot|mcp__Claude_in_Chrome__.*`
 
 | Matcher | Hook | O que faz | Arquivo |
 |---------|------|-----------|---------|
-| `mcp__computer-use__screenshot\|mcp__Claude_in_Chrome__.*` | `post-merge-ui-smoke-required` | Mesmo hook acima — também disparado em ferramentas de screenshot para verificar contexto de smoke pós-merge pendente. | `.claude/hooks/post-merge-ui-smoke-required.ps1` |
+| `mcp__computer-use__screenshot\|mcp__Claude_in_Chrome__.*` | `post-merge-ui-smoke-required` | Mesmo hook acima — também disparado em ferramentas de screenshot para verificar contexto de smoke pós-merge pendente. | `.claude/hooks/post-merge-ui-smoke-required.mjs` |
 
 ---
 
@@ -77,7 +77,7 @@ Disparados após uso de ferramenta. Tipo ADR 0234: `hook_posttooluse`.
 
 | Matcher | Hook | O que faz | Arquivo |
 |---------|------|-----------|---------|
-| `Bash` | `post-merge-ui-smoke-required` | PostToolUse Bash: detecta `gh pr merge --admin` em PR que tocou arquivos UI e marca timestamp em flag `$env:TEMP/oimpresso-ui-merge-pending.flag`. Trabalha em conjunto com a verificação PreToolUse do mesmo hook. | `.claude/hooks/post-merge-ui-smoke-required.ps1` |
+| `Bash` | `post-merge-ui-smoke-required` | PostToolUse Bash: detecta `gh pr merge --admin` em PR que tocou arquivos UI e marca timestamp em flag `$env:TEMP/oimpresso-ui-merge-pending.flag`. Trabalha em conjunto com a verificação PreToolUse do mesmo hook. | `.claude/hooks/post-merge-ui-smoke-required.mjs` |
 | `Write\|Edit` | `audit-creates-tasks` | PostToolUse Write/Edit: detecta tasks órfãs em documentos de audit (`memory/sessions/*-audit-*.md` ou `memory/requisitos/*/AUDIT-*.md`) e propõe `tasks-create` MCP para cada gap identificado. Mecanismo 2 do ADR 0213 (audit-to-backlog loop fechado). Cross-platform Node.js. | `.claude/hooks/audit-creates-tasks.mjs` |
 
 ---

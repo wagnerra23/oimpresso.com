@@ -366,6 +366,12 @@
       "promote_by": "2026-07-23",
       "anchor": "sinal de custo: grade-das-réguas 2026-07-09 ataque ① — única fraqueza CONFIRMADA 3/10 na re-verificação (zero critic automático em PR de agente; pr-ui-judge.yml deletado na ADR 0271 onda 2 como teatro dormente; ultrareview é manual). Implementa arte 2026-06-22 §3 gap #5. Advisory por ADR 0314 (crítica LLM é quality, não Tier-0); promote_by cobra a decisão em 14d — promover a required exige reabrir a 0314 pro item (lei das proibições)."
     },
+    "prompt-injection-corpus.yml": {
+      "nome": "prompt-injection corpus (red-team do agente · OWASP LLM01) — invoca .claude/governance-eval/prompt-injection-corpus.mjs: alimenta aos hooks REAIS as ações induzidas por injection vinda de dado que o agente LÊ (db-row, WhatsApp inbound, doc do MCP, WebFetch) e assere o backstop. Camada A = ratchet (6 cenários; exit 1 se block-destructive/pii-redactor pararem de morder). Camada B = 4 caminhos UNGUARDED reportados, não falham (exfil via curl, gh api, gh pr merge, node -e) — fechá-los toca o modelo de permissão = decisão [W]. Step 2 (settings-backstop-registration.test.mjs) prova que o backstop segue REGISTRADO no settings.json: sem ele o step 1 fica VERDE com a defesa desligada (medido 2026-07-17 — o corpus invoca o hook pelo caminho do arquivo, então prova a lógica e não a ativação).",
+      "classe": "meta",
+      "terminal": "cron",
+      "anchor": "sinal de custo: dimensão seguranca-do-agente da grade de réguas 2026-07-17 = 5,0/10 — a resistência a injection vinda de tool-result era ASSUMIDA, nunca testada (auditoria 2026-07-10 arte-seguranca-agente, onde o corpus nasceu). O corpus ficou 7 dias sem NADA que o invocasse: mecanismo impecável que nenhum caminho real executa é o meta-padrão 'correção-do-mecanismo ≠ invocação' já catalogado em proibicoes.md §5 (2026-07-09, guard acoplado ao comando fantasma flag:set). Chokepoint medido, não assumido: 30/30 dos últimos commits tocando .claude/hooks/ vieram por PR (git log -30) — por isso o path-filter casa o caminho vivo; o cron semanal cobre deriva fora desses globs. terminal=cron (NÃO advisory, logo sem promote_by): o fim-de-vida É path-filter + cron, não há promoção pendente — virar required exige reabrir a ADR 0314 (append-only + janela + flip [W]), e um gate de comportamento-de-LLM 'verde' viraria o teatro que a 0314 podou. Controle-negativo provado 2026-07-17: neutralizar block-destructive.mjs → 6/6 vira 1/6 (5 regressões, exit 1); desregistrar pii-redactor → step 2 exit 1. Hard-fail dentro do job é INTENCIONAL (sinal honesto sem bloquear merge) — não adicionar continue-on-error, lápide §5 2026-07-09."
+    },
     "protection-drift.yml": {
       "nome": "Protection Drift — baseline de required checks + watchdog de staleness (advisory PERENE · cron diário 10:10 UTC — GT-G4, ADR 0275 §5/§3)",
       "classe": "meta"
@@ -503,6 +509,12 @@
       "classe": "automacao",
       "terminal": "cron",
       "anchor": "ADR 0264 (G-7: Status do UC vem do veredito REAL do teste) · custo medido 2026-07-16: manifesto alimentado À MÃO fazia exec_backed_pct medir CADÊNCIA DE BOOKKEEPING, não qualidade — UC-F04/UC-F05 com Pest verde na lane required financeiro-pest valiam 0, e UC-S02 (vetor da venda inflada ×100k, fix #2279) idem; colheita real dos 7 JUnits: 15 → 25 UCs (10% → 17%)"
+    },
+    "negocio-vs-governanca-ratio.yml": {
+      "nome": "Ratio negócio × governança (sentinela anti-atrofia) — mede o FLUXO de merges (first-parent, janela 4 semanas) classificado em NEGÓCIO (A+B) × GOVERNANÇA-META (C) × INFRA, e emite ::warning + summary quando governança domina. Cron semanal (seg 09h50 UTC). NÃO bloqueia: a ADR 0334 §5 rejeitou o teto rígido ≤35% (criminalizaria CAPEX legítimo) — é trend-alarm, aponta onde olhar.",
+      "classe": "automacao",
+      "terminal": "cron",
+      "anchor": "ADR 0334 (invariante anti-atrofia da inteligência de negócio) §Consequências — a ADR entregou a sentinela + prometeu o \"wiring do alarme como workflow advisory semanal\" e deixou como decisão de custo do [W]; [W] autorizou 2026-07-17. Sinal de custo MEDIDO: até este PR o único invocador do script fora de memory/ era o próprio .test.mjs (correção-do-mecanismo ≠ invocação, proibicoes §5 2026-07-09) — o crossover de junho (governança 8× negócio) passou silencioso e o 3,4× de 2026-07-17 (1311 merges: 228 negócio × 778 governança, 77% > limiar 65%) só apareceu porque um verificador rodou na mão."
     }
   }
 }

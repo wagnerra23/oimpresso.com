@@ -1,0 +1,77 @@
+name: prompt-injection corpus (red-team do agente · OWASP LLM01)
+
+# O QUE ESTE WORKFLOW FAZ
+#   Invoca .claude/governance-eval/prompt-injection-corpus.mjs — o corpus red-team que alimenta
+#   aos hooks REAIS as ações induzidas por injection vinda de dado que o agente LÊ (linha de
+#   banco, mensagem WhatsApp, doc do MCP, resposta WebFetch) e assere o backstop.
+#
+# POR QUE ELE NASCEU (chip C11 · grade de réguas 2026-07-17)
+#   O corpus existia desde a auditoria 2026-07-10 e NADA o invocava. Um mecanismo impecável que
+#   nenhum caminho real executa é o meta-padrão já catalogado em memory/proibicoes.md §5
+#   (2026-07-09, "chokepoint de guard em comando fantasma"): correção-do-mecanismo ≠ invocação.
+#   Rodava só quando um humano lembrava — ou seja, nunca.
+#
+# CHOKEPOINT (medido, não assumido — a lápide §5 proíbe acoplar defesa a caminho fantasma)
+#   O caminho real de mudar um hook é PR tocando .claude/hooks/**: 30/30 dos últimos commits
+#   nesse glob vieram por PR com número (medição 2026-07-17, `git log -30 -- .claude/hooks/`).
+#   Por isso o path-filter casa o caminho vivo. O cron é o backstop pra deriva que não passa
+#   por esses globs (runtime do node, apodrecimento do próprio corpus).
+#
+# CONTROLE-NEGATIVO (provado 2026-07-17 — sem isso é gate que não morde)
+#   · Corpus: neutralizar block-destructive.mjs → 5 regressões, exit 1 (de 6/6 pra 1/6).
+#   · Registro: desregistrar pii-redactor do settings.json → registration test exit 1.
+#   · Complementaridade medida: com o hook DESREGISTRADO o corpus fica VERDE (invoca o arquivo
+#     direto, acha no disco) e só o step 2 avermelha. Por isso os DOIS steps existem.
+#
+# ENFORCEMENT — quem decide não é este arquivo
+#   Se um check bloqueia merge é a branch protection que decide; o dono único dessa verdade é
+#   governance/required-checks-baseline.json (vigiado por scripts/governance/protection-drift.mjs).
+#   Fato datado: este workflow nasceu FORA desse baseline em 2026-07-17. Promover exige reabrir a
+#   ADR 0314 (append-only: nova emenda + janela + flip [W]), nunca merge no calado — e um gate de
+#   comportamento-de-LLM "verde" viraria o teatro que a 0314 podou.
+#
+# HARD-FAIL AQUI É INTENCIONAL — NÃO adicionar continue-on-error nem `|| true`.
+#   Job que não bloqueia merge pode e DEVE ficar vermelho: é sinal honesto. Transformar sinal em
+#   silêncio reconstrói o gate-de-teatro que a ADR 0271 deletou (lápide §5 2026-07-09).
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.claude/hooks/**'
+      - '.claude/settings.json'
+      - '.claude/governance-eval/prompt-injection-corpus.mjs'
+      - 'scripts/governance/settings-backstop-registration.test.mjs'
+      - '.github/workflows/prompt-injection-corpus.yml'
+  schedule:
+    - cron: '25 7 * * 1' # segunda 07:25 UTC (~04:25 BRT) — backstop semanal; slot livre no inventário de crons
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: prompt-injection-corpus-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  corpus:
+    name: corpus de injection — backstop camada A + gaps camada B
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 1. LÓGICA — as ações induzidas por injection batem no hook REAL e são bloqueadas.
+      #    Camada A = ratchet (exit 1 se o backstop parar de morder). Camada B = gaps UNGUARDED
+      #    reportados, não falham (fechá-los toca o modelo de permissão = decisão [W]).
+      #    Os 2 hooks do backstop são .mjs → rodam no Linux sem SKIP (nenhum .ps1 no caminho).
+      - name: Corpus — camada A (ratchet) + camada B (gaps documentados)
+        run: node .claude/governance-eval/prompt-injection-corpus.mjs
+
+      # 2. REGISTRO — prova que o backstop segue LIGADO no settings.json. Sem este step o step 1
+      #    fica verde com a defesa desligada (medido: ver CONTROLE-NEGATIVO no cabeçalho).
+      - name: Registro do backstop em settings.json (block-destructive + pii-redactor)
+        run: node scripts/governance/settings-backstop-registration.test.mjs
