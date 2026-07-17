@@ -17,11 +17,8 @@ amends:
   - 0199-errata-bucket-b-json-catchall-amends-0197
 related:
   - 0017-officeimpresso-restaurado-superadmin-exclusivo
-  - 0019-passport-v10-v13-auth-delphi
-  - 0021-contrato-real-api-delphi-3-geracoes
   - 0093-multi-tenant-isolation-tier-0
   - 0105-cliente-como-sinal-guiar-sem-mandar
-  - 0188-multi-type-flags-aditivas
   - 0197-extend-contacts-absorcao-pessoas-legacy
   - 0199-errata-bucket-b-json-catchall-amends-0197
 ---

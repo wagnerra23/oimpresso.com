@@ -19,7 +19,7 @@ export const meta = {
 // auto-curar lendo origin/main na mão). Então parse defensivo: aceita objeto OU string JSON.
 const A = typeof args === 'string' ? (() => { try { return JSON.parse(args) } catch { return {} } })() : (args || {})
 const BASE = (A && A.base) || 'AJUSTE: passe args.base = worktree FRESCO do origin/main'
-const DIMS = (A && A.dimensoes) || [
+const DIMS_DEFAULT = [
   { key: 'spec-governanca', escopo: 'spec-driven development + governança de agentes (Spec Kit, Kiro, Codex, Cursor, Tessl; gates/required; ratchets)' },
   { key: 'design-to-code', escopo: 'design→code fidelity (Figma Code Connect/Dev Mode, v0, Builder.io; VRT: Chromatic/Applitools/Percy; tokens DTCG/Style Dictionary)' },
   { key: 'memoria-conhecimento', escopo: 'memória de agente + sobrevivência de conhecimento (Letta, mem0, Zep, LangMem; docs-as-code freshness: Swimm, Dosu; ADR tooling)' },
@@ -28,7 +28,7 @@ const DIMS = (A && A.dimensoes) || [
   { key: 'erp-ia-produto', escopo: 'IA embarcada em ERP — o PRODUTO (SAP Joule, Dynamics Copilot, Odoo AI; BR: Bling/Tiny/Omie/Conta Azul)' },
   // ── Eixo RODAR-E-OBSERVAR (a IA que o sistema produz, viva em prod — não o loop de construir/governar). ──
   // Adicionadas 2026-07-10: as 9 réguas v1→v3 só mediam CONSTRUIR-E-GOVERNAR; este eixo era ponto cego. Ver ADR 0333 (emenda à 0330).
-  { key: 'observabilidade-agente', escopo: 'traces/custo/latência/alucinação do agente e da IA em produção (Langfuse, LangSmith, Braintrust, OpenTelemetry GenAI semantic conventions; spans + custo por run). Régua = painel vivo, não log solto — projeto tem #4 P0 "Ligar Langfuse+OTel" pendente' },
+  { key: 'observabilidade-agente', escopo: 'traces/custo/latência/alucinação do agente e da IA em produção (Langfuse, LangSmith, Braintrust, OpenTelemetry GenAI semantic conventions; spans + custo por run). Régua = painel vivo + heartbeat que prova o FLUXO (não só a via), não log solto. Estado (2026-07): Langfuse LIVE desde 2026-07-02 + emissão OTel GenAI (LaravelAiSdkDriver::emitirOtelGenAi); heartbeat langfuse_trace_uptime_24h no HealthCheckCommand shipado 2026-07-17 (#4425, lê a fonte real da API /api/public/traces) + fix da prova multi-tenant do OTel biz=1 (#4427) + advisory desligado-prod (#4444). Baseline da dimensão na grade v2 (2026-07-17) = 6,5/10 — medir o Δ pós-chips' },
   { key: 'qualidade-drift-ia-producao', escopo: 'qualidade + drift da IA-PRODUTO (a Jana) em prod — recall/hallucination gold-set + canary de drift (RAGAS, DeepEval, continuous-eval). DISTINTO de evals-outcome (que é DORA/outcome do agente-DEV): aqui a régua é a resposta da Jana ao cliente. Projeto tem jana-ragas-gate JÁ + #3 P0 drift-sentinel pendente' },
   { key: 'seguranca-do-agente', escopo: 'defesa a prompt-injection + fronteira instrução-vs-dado + modelo de permissão de tools/hooks (OWASP LLM Top 10, Anthropic agent-safety, Google SAIF). Régua = superfície de tool/hook auditada + injection tratada, não confiança implícita' },
   { key: 'custo-eficiencia', escopo: 'token/crédito por tarefa como MÉTRICA medida — hoje é só valor cultural do Wagner, sem número (Cursor, Cognition/Devin cost-per-task). Régua = custo por PR/feature observável, não "economize crédito" verbal' },
@@ -36,6 +36,32 @@ const DIMS = (A && A.dimensoes) || [
   // A grade media CONSTRUIR-E-GOVERNAR e RODAR-E-OBSERVAR, mas nunca "o sistema serve o negócio (A+B) ou governa a si mesmo (C)?".
   { key: 'inteligencia-de-negocio', escopo: 'inteligência de negócio embarcada + cliente-como-sinal: a IA responde o DONO do negócio com dado real do tenant (SAP Joule, Odoo AI, Dynamics Copilot) e o backlog nasce de sinal de cliente/uso, não de régua/prazo (product-led: Linear, Productboard, PLG). Régua = (1) equilíbrio entre construir-produto (A+B) e governar-o-processo (C) — fonte interna scripts/governance/negocio-vs-governanca-ratio.mjs; (2) órgão-sensor do sinal do cliente vivo e conectado (loop client_signal→cycle_goal), não apodrecido. DISTINTO de erp-ia-produto (features do ERP) e de qualidade-drift-ia-producao (recall da Jana): aqui a régua é se a ENERGIA do sistema serve o negócio ou a própria governança. Ponto cego confirmado pelo adversário-inteligencia-negocio 2026-07-10.' },
 ]
+
+// Resolve args.dimensoes pra rodada PARCIAL (re-medir 1 dimensão após um chip). Aceita:
+//   ["observabilidade-agente"]            → string: resolve o escopo do DIMS_DEFAULT pela key
+//   [{ key, escopo }]                     → objeto: usa direto (escopo custom)
+// Sem esta resolução uma STRING vira {key:undefined, escopo:undefined} → o prompt do pesquisador
+// fica "SUA DIMENSÃO: undefined — undefined" e o agente se auto-cura na dimensão transversal do
+// dossiê → a grade mede a dimensão ERRADA em silêncio. É a MESMA classe da truncagem silenciosa
+// corrigida na Fase 4. Incidente 2026-07-17: dimensoes:["observabilidade-agente"] rodou a grade de
+// governança executável por 1,77M tokens. String sem match no default: escopo = a própria key +
+// log() (nunca undefined mudo). Regra do tool Workflow: "No silent caps — log() what was dropped".
+const DIMS = (() => {
+  const req = A && A.dimensoes
+  if (!Array.isArray(req) || req.length === 0) return DIMS_DEFAULT
+  const semMatch = []
+  const resolved = req.map((d) => {
+    if (d && typeof d === 'object' && d.key) return d
+    const key = String(d)
+    const found = DIMS_DEFAULT.find((x) => x.key === key)
+    if (found) return found
+    semMatch.push(key)
+    return { key, escopo: key }
+  })
+  if (semMatch.length) log(`⚠️ dimensoes sem match no DIMS_DEFAULT (escopo = a própria key, pesquisa mais fraca): ${semMatch.join(', ')} — keys válidas: ${DIMS_DEFAULT.map((x) => x.key).join(', ')}`)
+  else log(`rodada parcial: ${resolved.map((x) => x.key).join(', ')}`)
+  return resolved
+})()
 
 const RESEARCH_SCHEMA = {
   type: 'object', additionalProperties: false,

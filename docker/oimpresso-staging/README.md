@@ -71,13 +71,26 @@ bash docker/oimpresso-staging/staging-freshness-sentinel.sh --selftest # prova q
 ```
 
 - **Exit 0** fresco / atrás-mas-recente (< `STAGING_FRESHNESS_THRESHOLD_DAYS`, default 3d) / não-aplicável (branch ≠ `main`).
-- **Exit 2** STALE (apodreceu > threshold) — a linha `ALERTA` no log é o sinal.
+- **Exit 2** STALE (apodreceu > threshold) — a linha `ALERTA` no log **+ alerta em `mcp_alertas`**.
 - **Exit 3** indeterminado (não leu HEAD ou main).
 - Veredito também em `/opt/oimpresso-staging/freshness-status.json` (machine-readable).
 - **Não-destrutiva:** zero `pull`/`fetch`/`reset` — o `ls-remote` do fallback é read-only.
 
-> Escalar o exit-2 pra `mcp_alertas` (brief/inbox do time) é o próximo passo — hoje o
-> sinal é o log + status file + exit code (heartbeat, igual `self-update.log`).
+### Sink: mcp_alertas (brief/inbox do time)
+
+No STALE, o sentinela escala pro **brief/inbox** onde o time olha — via
+`docker exec oimpresso-mcp php artisan governance:staging-freshness-alert` (único
+caminho: o staging tem DB isolada; o exit-2 sozinho só vive no log do host). O comando
+reusa `PersistsDriftAlert` ([ADR 0216](../../memory/decisions/0216-deploy-drift-checker.md)):
+**idempotência diária** (o cron é hourly → 1 alerta/dia, não spam) + **escalonamento**
+(aberto > `governance.drift_escalation_days` = 3d → severidade sobe + `[ESCALADO]`).
+`business_id` null (repo-wide, ADR 0093 §Exceção).
+
+- **Best-effort:** se `docker`/container/DB estiverem fora, o `exit 2` + a linha `ALERTA`
+  no log seguem sendo o sinal — a escalação nunca derruba o sentinela.
+- Desligar (host sem docker): `STAGING_FRESHNESS_ESCALATE=0`.
+- **Sem auto-resolve:** quando staging volta a ficar fresco o sentinela para de emitir,
+  mas o alerta aberto é resolvido **à mão** na UI Governance (convenção dos demais checkers).
 
 ## Arquivos
 

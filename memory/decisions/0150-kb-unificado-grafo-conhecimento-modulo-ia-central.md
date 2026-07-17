@@ -28,7 +28,6 @@ related:
   - 0053-mcp-server-governanca-como-produto
   - 0061-conhecimento-canonico-git-mcp-zero-automem
   - 0080-trust-tiers-operacional-audit-findings
-  - 0089-capterra-ficha-formato-canonico
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0104-processo-mwart-canonico-unico-caminho

@@ -571,6 +571,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Chat model — modelo do ChatCopilotoAgent (US-COPI-135)
+    |--------------------------------------------------------------------------
+    |
+    | O chat da Jana respondia ao cliente com gpt-4o-mini (o mais fraco do
+    | mercado) porque o projeto OpenAI não tinha acesso ao gpt-4o (403). Com o
+    | acesso liberado ([W] 2026-07-17), este knob liga um modelo mais forte SÓ no
+    | chat — sem mexer no `AI_OPENAI_TEXT_DEFAULT` global, que arrastaria os ~8
+    | agents batch internos (Briefing, WeeklyDigest, etc) pro modelo caro sem
+    | ganho pro cliente.
+    |
+    | Mesmo padrão env-driven do `clarify` (ADR 0245): `ChatCopilotoAgent::model()`
+    | lê daqui. null/vazio → cai no default do provider (`AI_OPENAI_TEXT_DEFAULT`,
+    | hoje gpt-4o-mini) — comportamento legado. Pra ligar: `JANA_CHAT_MODEL=gpt-4o`.
+    | Kill-switch: apagar a env + `config:cache`.
+    |
+    | Custo: gpt-4o ~16× o mini por token; medido 2026-07-17, o ganho de qualidade
+    | é marginal-a-moderado e o custo absoluto trivial pro volume de chat
+    | (~meio centavo/mensagem). A confirmação na MÉDIA do tráfego é a US-COPI-137
+    | (eval online). A chave env() entra na contagem baselined do Larastan.
+    */
+    'chat_model' => env('JANA_CHAT_MODEL'),
+
+    /*
+    |--------------------------------------------------------------------------
     | JANA ADVISOR — Metade B: Próxima-melhor-pergunta proativa (ADR 0245)
     |--------------------------------------------------------------------------
     | A Jana surfa, por persona, as perguntas que [W]/a equipe deveriam estar
@@ -700,6 +724,36 @@ return [
         'retrieval_spans_enabled' => (bool) env('JANA_RETRIEVAL_SPANS', false),
         'redact_query'            => (bool) env('JANA_REDACT_QUERY_IN_SPANS', true),
         'audit_log_enabled'       => (bool) env('JANA_RETRIEVAL_AUDIT_LOG', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Online eval (US-COPI-137) — RAGAS no tráfego REAL do cliente
+    |--------------------------------------------------------------------------
+    | Amostra ~5% dos traces reais da Jana e pontua qualidade (faithfulness) no
+    | tráfego do cliente — a única medição hoje é offline (gold-set), então se a
+    | Jana degradar pro cliente ninguém sabe até ele reclamar.
+    |
+    | ⛔ DOIS gates OFF por LGPD (trace de cliente é biz≠1 — ADR 0093 + LGPD):
+    |   - enabled: liga a amostragem. Default false.
+    |   - judge:   'local' (default — zero egress; hoje NÃO-implementado, então o job
+    |              SKIPa sem mandar nada) vs 'openai' (manda a amostra PII-REDACTED pro
+    |              juiz externo — exige aceite LGPD explícito do [W]).
+    | O PiiRedactor roda ANTES do juiz SEMPRE. Rodar de verdade = enabled=true E
+    | judge=openai (ambas decisões [W]). Estado default (OFF + local) = nada sai, nada roda.
+    |
+    | Hardcoded (NÃO env): a regra larastan noEnvCallsOutsideOfConfig conta env() deste
+    | arquivo num baseline fixo (mesmo motivo do ui_judge acima) — flag nova não fura o
+    | teto. Ligar = editar AQUI + `php artisan config:clear` (decisão [W]). Pra flag LGPD
+    | isso é bom: o enable vira commit auditável no git, não um toggle silencioso de .env.
+    |
+    | @see Modules/Jana/Jobs/Telemetry/JudgeTraceOnlineJob.php
+    | @see memory/requisitos/Jana/SPEC.md#US-COPI-137
+    */
+    'online_eval' => [
+        'enabled'     => false,   // [W] liga aqui (gate 1)
+        'sample_rate' => 0.05,    // ~5% dos traces
+        'judge'       => 'local', // 'local' (zero egress, a implementar) | 'openai' (aceite LGPD [W]) — gate 2
     ],
 
     /*

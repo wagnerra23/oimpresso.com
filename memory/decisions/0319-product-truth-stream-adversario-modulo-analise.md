@@ -22,7 +22,6 @@ related:
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
   - 0070-jira-style-task-management-current-md-removed
   - 0061-conhecimento-canonico-git-mcp-zero-automem
-  - 0089-capterra-ficha-canonica
 pii: false
 ---
 

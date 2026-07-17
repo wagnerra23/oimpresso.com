@@ -42,8 +42,29 @@ THRESHOLD_DAYS="${STAGING_FRESHNESS_THRESHOLD_DAYS:-3}"
 # qualquer outra (worktree/feature) o veredito é "não-aplicável" (staleness vs main ≠
 # SHA-equality quando a branch tem commits próprios). Hoje staging roda em `main`.
 TRACK_BRANCH="${STAGING_TRACK_BRANCH:-main}"
+# Escalação do STALE pra mcp_alertas (brief/inbox do time) via `docker exec` no container
+# do MCP — o único caminho, já que o staging tem DB isolada e o exit-2 sozinho só vive
+# no log do host. Best-effort: se docker/container/DB estiverem fora, o exit 2 + log
+# seguem sendo o sinal. `0` desliga (dev/host sem docker).
+MCP_CONTAINER="${MCP_CONTAINER:-oimpresso-mcp}"
+ESCALATE="${STAGING_FRESHNESS_ESCALATE:-1}"
 
 log() { echo "[$(date -Is)] [staging-freshness] $*"; }
+
+# Escala o veredito STALE pra mcp_alertas via o comando canônico (PersistsDriftAlert:
+# idempotente/dia + escalação). NUNCA derruba o sentinela — é aditivo ao exit 2.
+escalar_mcp_alertas() {
+  [ "$ESCALATE" = "1" ] || { log "escalação p/ mcp_alertas desligada (STAGING_FRESHNESS_ESCALATE=0)"; return 0; }
+  command -v docker >/dev/null 2>&1 || { log "docker ausente — só log (sem mcp_alertas)"; return 0; }
+  docker ps --format '{{.Names}}' 2>/dev/null | grep -qx "$MCP_CONTAINER" \
+    || { log "container $MCP_CONTAINER não está up — só log (sem mcp_alertas)"; return 0; }
+  if docker exec "$MCP_CONTAINER" php artisan governance:staging-freshness-alert \
+        --verdict="$1" --head="$2" --main="$3" --age="$4" >/dev/null 2>&1; then
+    log "escalado p/ mcp_alertas (brief/inbox) via $MCP_CONTAINER"
+  else
+    log "AVISO: docker exec p/ mcp_alertas falhou (best-effort) — exit 2 + este log seguem sendo o sinal"
+  fi
+}
 
 # --- núcleo puro: veredito a partir de valores INJETADOS (sem git, sem relógio) ---
 # args: head_sha  main_sha  head_age_days  threshold_days
@@ -109,6 +130,7 @@ case "$veredito" in
     exit 0 ;;
   stale:*)
     log "ALERTA staging APODRECEU ($veredito) — head=${head_sha:0:12} != main=${main_sha:0:12} há > ${THRESHOLD_DAYS}d. Sincronizar com fetch + merge --ff-only (ou descartar edições conscientemente e reset) — NUNCA pull cego com trabalho em voo."
+    escalar_mcp_alertas "$veredito" "$head_sha" "$main_sha" "$age_days"
     exit 2 ;;
   *)
     log "ALERTA indeterminado ($veredito) — não medi frescor (head='${head_sha}' main='${main_sha}'). Checar $STAGING_DIR e $MAIN_SHA_FILE."
