@@ -45,6 +45,28 @@ Canal de entrada REAL do [W] = **chat** (linguagem natural; o agente materializa
 | `## Contrato visual` (copy literal + ordem) | charter + `prototipo-ui/contrato/` | gate `contrato-de-tela` (always-run; required = passo 4 pendente, [W] admin-only) |
 | `[BACKLOG] <frase>` sem id | `<Tela>.casos.md` | prosa visível sem gate — vira UC quando ganhar teste que o cite |
 
+### Quando [W] pede explícito "o contrato da tela X" (verificado 2026-07-17)
+
+Pedido direto — *"me dá o contrato da tela"*, *"charter, casos e testes existem e vinculados?"*. A resposta **não é** só rodar `criar-tela.mjs` (esse é pra tela **nova**). É garantir que o **trio existe, está vinculado e reflete a verdade** — inclusive pra tela que **já existe** com contrato parcial. Padrão fechado no trio do Create (US-PROD-020, [PR #4417](https://github.com/wagnerra23/oimpresso.com/pull/4417)).
+
+**As 3 pernas — todas ao lado do `.tsx`, todas linkando as outras:**
+
+| Perna | Arquivo | Regra dura |
+|---|---|---|
+| **Charter** (lei) | `<Tela>.charter.md` | linka o `casos.md`; §Pest GUARD que **promete teste inexistente = revogar** (grep antes de confiar) |
+| **Casos** (contrato) | `<Tela>.casos.md` | UC derivado do **SDD/CU**, nunca do `.tsx` (§5 tautológico); cada UC citado por ≥1 teste (G-2) |
+| **Teste** (defesa) | `tests/Feature/<Mod>/…ContratoTest.php` | rodado na lane MySQL real (biz=1+biz=2); nome cita o UC; status vem do **veredito**, não de leitura |
+
+**Se uma perna falta → criar. Antes de escrever o caso, a ordem de fonte é fixa** (Felipe 2026-07-17):
+
+1. **Documentação canon** — SDD `§6 CU-*` + SPEC `US-*` + charter existente. É a âncora do caso (deriva daqui, não do código).
+2. **Código oimpresso** — o Controller/Service real, só pra **confirmar o comportamento**, nunca pra derivar o caso.
+3. **Delphi legado** (`ANTI-REGRESSAO-*.md` / manual WR Comercial) — contrato de paridade quando a tela migra do Office Comercial.
+4. **Concorrentes de mercado** (`estado-da-arte`/`capterra-senior`) — só quando 1-3 não resolvem. **Traduzir premissa, não copiar solução** (§5, 2026-07-16).
+5. **Em dúvida ou sem fonte → PERGUNTAR ao [W]**, não inventar. Anti-padrão inventado no charter é pior que ausente (parece canon).
+
+**Reconciliação (precedência — [proibicoes.md](proibicoes.md)):** rodado o teste, *teste verde > casos > charter > SPEC*. Onde discordam, **corrigir o perdedor no MESMO PR**. O trio pode fechar **vermelho** — se o teste prova falha de `[must]`, o `❌` é o achado (com run id de recibo), e a correção é decisão [W], não conserto silencioso. Enforce: casos-gate (ADR 0264 G-1/G-2/G-5/G-6/G-7).
+
 ## Transferir trabalho entre sessões (nuvem ↔ local)
 
 Sessão claude.ai/code (nuvem) e Claude Code local não se enxergam — git é a ponte. Caminho canônico: **bridge branch via GitHub device flow** (sem PAT no chat, sem chunks copiados). Ver [`memory/how-bridge-cloud-local.md`](how-bridge-cloud-local.md).
