@@ -88,6 +88,11 @@ class TasksListTool extends Tool
 
         $output = "Encontradas {$rows->count()} task(s) [{$filtroStr}]:\n\n";
 
+        // Resolve os bloqueadores de todas as linhas numa query só (N+1 morreria com 40 tasks).
+        $statusMap = McpTask::statusMapFor(
+            $rows->pluck('blocked_by')->filter()->flatten()->all()
+        );
+
         foreach ($rows as $t) {
             $output .= sprintf(
                 "**%s** [%s] [%s] (%s)%s%s%s\n  %s\n",
@@ -100,8 +105,9 @@ class TasksListTool extends Tool
                 $t->estimate_h ? " · ~{$t->estimate_h}h" : '',
                 $t->title
             );
-            if (! empty($t->blocked_by)) {
-                $output .= '  ⛔ bloqueada por: ' . implode(', ', $t->blocked_by) . "\n";
+            $abertos = McpTask::openBlockers($t->blocked_by, $statusMap);
+            if ($abertos !== []) {
+                $output .= '  ⛔ bloqueada por: ' . implode(', ', $abertos) . "\n";
             }
             $output .= "  _Use `tasks-detail task_id={$t->task_id}` pra ler completa._\n\n";
         }
