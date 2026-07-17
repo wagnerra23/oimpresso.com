@@ -123,6 +123,14 @@ jobs:
       - name: style-fingerprint selftest (vetor de estilo · regras 4/5/7 · Fase 1)
         run: node prototipo-ui/style-fingerprint.mjs --selftest
 
+      # fingerprint-harness selftest: a ORQUESTRAÇÃO da matriz viewport×tema×estado (Onda 3a/3a.2).
+      # Hermético (sem browser — a cola Playwright é a captura, não a orquestração): prova pareamento
+      # por célula + agregação + regressão de recorte (mobile 375-only / tema-only) + o fluxo dos
+      # ESTADOS hover/focus/active pro comparador. Se a orquestração parar de morder, quebra VERMELHO
+      # junto dos 2 comparadores da Fase 1. A captura live proto×prod segue LOCAL/dispatch (ADR 0290).
+      - name: fingerprint-harness selftest (orquestração matriz + estados + mobile · Onda 3a)
+        run: node prototipo-ui/fingerprint-harness.mjs --selftest
+
       # protocolo.config selftest: a FONTE ÚNICA executável do protocolo (IDs dos 2 projetos
       # Cowork, staging fixo, mapa fase→comando). Trava drift — 2 IDs válidos+distintos (a confusão
       # dos projetos mordeu 3× em 2026-07-06), MIRROR_DIR presente, e TODO script do mapa FASES
