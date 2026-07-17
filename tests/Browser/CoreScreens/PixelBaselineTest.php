@@ -162,9 +162,18 @@ foreach ($screens as $screen) {
         $execution['executed'] = (int) $execution['executed'] + 1;
 
         // ESTABILIZAÇÃO (diagnóstico runs 27370651063/27370956421 — diff views):
-        // (a) controles NATIVOS (select / input date|datetime|time) pintam com variação
-        //     subpixel run-a-run E carregam valores vivos (Data da venda = agora) →
-        //     visibility:hidden preserva o layout e zera a variância;
+        // (a) input date|datetime-local|time seguem escondidos: o "Data da venda" do
+        //     Sells/Create (Create.tsx:1129) cai em `nowLocalIso()` (:171-176 — `new Date()`
+        //     NO BROWSER, fora do alcance do Carbon::setTestNow da :78) quando o
+        //     defaultDatetime do backend não parseia → valor vivo minuto-a-minuto.
+        //     O `select` SAIU da máscara em 2026-07-16 (ITEM 7 · 3b): contado no manifesto
+        //     visreg-screens.json, a máscara escondia UM ÚNICO select nativo nas 6 telas
+        //     (Compras/Index.tsx:674 — o "Mostrar"/perPage). O Financeiro erradicou os
+        //     dele (as 2 ocorrências em Unificado/Index.tsx:1675,1680 estão DENTRO de um
+        //     comentário JSX documentando a migração pro segmentado). Esconder um controle
+        //     real = o gate não vê regressão nele; o ruído subpixel que a máscara comprava
+        //     cabe no τ_baixo (0,1% = 921px de 921.600): um select de ~60×24px = 1.440px
+        //     cairia na ZONA CINZA (que coleta e não falha), nunca em falha automática;
         // (b) settle explícito mata o early-paint (baseline de 2KB com "?" de fonte
         //     não carregada que o networkidle+readyState do plugin não pegou);
         // (c) normalização visual (transitions/animations off + fonte Arial + antialiasing).
@@ -189,7 +198,7 @@ foreach ($screens as $screen) {
               s.textContent = `
                 * { transition: none !important; animation: none !important; font-family: Arial, sans-serif !important; }
                 body { -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; }
-                select, input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
+                input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
               `;
               document.head.appendChild(s);
               return true;

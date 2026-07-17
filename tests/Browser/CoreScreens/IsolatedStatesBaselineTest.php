@@ -134,7 +134,7 @@ foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
               s.textContent = `
                 * { transition: none !important; animation: none !important; font-family: Arial, sans-serif !important; }
                 body { -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; }
-                select, input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
+                input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
               `;
               document.head.appendChild(s);
               return true;
