@@ -9,7 +9,7 @@ parent_module: KB
 related_us: [US-KB-001]
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional (1280px balcão) — só quando existir SOP escrito à mão
-charter_version: 2.0
+charter_version: 2.1
 charter_at: 2026-07-17
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central # proposta
@@ -27,12 +27,27 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "tri-pane sidebar+lista+leitor (port direto JSX→TSX)"
 ---
 
-# Charter — `kb/Index.v2.tsx` · v2.0 **DRAFT (aguarda [W])**
+# Charter — `kb/Index.v2.tsx` · v2.1 **DRAFT (aguarda [W])**
 
 > **O que mudou da v1.0 (2026-05-16):** a v1.0 descrevia uma tela de **SOPs de gráfica com dados
 > inventados** ("fallback MOCK_NODES" era Goal 7). [W] 2026-07-17: *"eu quero os dados, mas com o
-> design do KB"*. Esta v2.0 descreve a MESMA tela servindo os **documentos canônicos reais**. O
-> desenho não muda; a fonte de dados muda — e é isso que a torna verdadeira.
+> design do KB"*. A v2.0 passou a descrever a MESMA tela servindo os **documentos canônicos reais**.
+> O desenho não muda; a fonte de dados muda — e é isso que a torna verdadeira.
+>
+> ### 🔴 O que a v2.1 corrige da v2.0 (mergeada com erro em #4393/#4396)
+>
+> A v2.0 foi escrita **medindo o disco** (`git ls-files`) pra descrever uma tela que **lê o banco**.
+> Todos os números da §3 estavam errados (3.016 → **1.408** real; "237 contratos de tela" → **0**;
+> "152 receitas" → **11**), e o invariante *"categoria = `kb_nodes.type`"* **achatava a árvore e
+> apagava o eixo do cliente**. A v2.1 mede `kb_nodes` no CT 100 e adota a taxonomia que **já está
+> seeded** ([W]: *"1 KB com esse filtro"*). Três coisas que só apareceram por medir o lugar certo:
+>
+> 1. **1.405 de 1.408 nós têm `category_id` NULL** → a tela nasceria **vazia** (§3).
+> 2. **O `auto_match` já existe como dado e tem ZERO leitores** → falta o classificador, não o modelo.
+> 3. **O gate NÃO reprovaria o Controller** → a ordem da §8-bis estava invertida e custaria 3
+>    aprovações [W] onde 1 basta.
+>
+> Achado por revisão adversarial (3 lentes + debate + juiz, 2026-07-17), confirmado por `SELECT`.
 
 ---
 
@@ -76,44 +91,91 @@ módulo, especificações.
 ficção e **sai** — a persona "operadora de gráfica" não existe no cliente real (o piloto biz=4 é loja
 de **vestuário**).
 
-## 3. As categorias (painel esquerdo) — **medidas, não estimadas**
+## 3. As categorias (painel esquerdo) — **medidas NO BANCO** (v2.1)
 
-**São os tipos de documento — não precisam ser inventadas, já vêm no dado.** Contagem real do
-acervo (medida em 2026-07-17, `git ls-files memory/**/*.md` = **3.016**):
-
-| Categoria | Quantos | O que é |
-|---|---:|---|
-| **Decisões (ADR)** | 447 | por que o sistema é como é |
-| **Sessões** | 453 | o que foi feito, quando, por quem |
-| **Handoffs** | 258 | o estado que uma sessão passa pra próxima |
-| **Contratos de tela** | 237 | o que cada tela promete fazer |
-| **Receitas (runbook)** | 152 | como executar uma operação |
-| **Referências** | 125 | fatos e apontadores |
-| **Resumos (briefing)** | 80 | estado consolidado de um módulo |
-| **Especificações (spec)** | 59 | o que foi pedido |
-| **Comparativos** | 11 | nós vs mercado |
-| **Diversos** | **639** | **o que não tem tipo** — planos, pegadinhas, índices, lições |
-
-> **Invariante:** categoria = `kb_nodes.type`. Nada de classificador "inteligente" adivinhando —
-> se o dado não traz o tipo, a categoria não existe. (A v1.0 previa classificar por *equipamento*,
-> ex. `auto_match: {field:'equip', value:'Roland VS-540'}` — isso **morre** aqui: classificar um ADR
-> de governança por impressora é ficção herdada do corpus falso.)
-
-> ### ⚠️ "Diversos: 639" é dívida VISÍVEL de propósito — não é bug de desenho
+> ### 🔴 ERRATA v2.1 (2026-07-17) — a v2.0 mediu o lugar errado
 >
-> Dos 3.016 documentos, **~1.600 têm tipo** e **~1.400 não**. Além dos 639 sem classificação em
-> `requisitos/`, o bridge hoje **nem lista** `handoffs` (258) · `sprints` (40) · `governance` (9) ·
-> `audits` (6) · `dominio` (6) entre os tipos que aceita (`KbBridgeFromMcpJob::tipos()`).
+> A v2.0 contou `git ls-files memory/**/*.md` (**o disco**) e chamou de "medido". **A tela lê
+> `kb_nodes`** — três linhas abaixo, o próprio charter dizia "categoria = `kb_nodes.type`". Ele se
+> autodenunciava e eu não vi. **Todos os números estavam errados.** Medido no banco (CT 100,
+> `oimpresso-mcp`, 2026-07-17):
+
+| | v2.0 dizia (disco) | **Banco (real)** | |
+|---|---:|---:|---|
+| **Total** | 3.016 | **1.408** | metade do acervo nunca chegou |
+| Decisões (ADR) | 447 | **497** | |
+| Sessões | 453 | **451** | |
+| Referências | 125 | **365** | |
+| Especificações (spec) | 59 | **62** | |
+| Comparativos | 11 | **19** | |
+| Receitas (runbook) | 152 | **11** | o coletor descarta `RUNBOOK-*.md` pelo nome |
+| **Contratos de tela** | 237 | **0** | charters vivem fora de `memory/` — o coletor não os vê |
+| **Resumos (briefing)** | 80 | **0** | não chegam |
+| **Handoffs** | 258 | **0** | `bridgeableTypes()` não aceita |
+| **"Diversos: 639"** | 639 | **não existe** | era artefato da contagem no disco |
+
+**A tela mostraria 1.405 documentos (biz=1)** — `adr` 497 · `session` 451 · `reference` 365 ·
+`spec` 62 · `comparativo` 19 · `runbook` 11. Os outros ~1.600 do disco **não estão no banco**:
+isso é **gap de ingestão** (coletor + `bridgeableTypes()`), PR próprio, e some da lateral.
+
+### 🧊 O bloqueador real: **1.405 de 1.408 nós têm `category_id` NULL**
+
+`Index.v2.tsx:147` filtra `n.category_id === cat.id`. Com o campo nulo, **toda categoria renderiza
+zero linhas** — a tela nasceria **vazia**, e o CI passaria **100% verde** (os testes olham a *prop*,
+que vem cheia; o pixel não olha a tela; o único teste que descreve o estado de dado era revogado no
+mesmo commit). Não é detalhe de implementação: é **o** item.
+
+### A taxonomia REAL — dois eixos, 1 KB com filtro ([W] 2026-07-17)
+
+**Já está seeded no banco.** Não precisa inventar nem revogar seeder nenhum:
+
+**Eixo 1 — `Governança` (interno, igual pra todo business):** uma categoria, com os **tipos de
+documento** como subcategorias, cada uma já sabendo se classificar:
+
+| Subcategoria | Regra JÁ gravada em `kb_subcategories.auto_match` |
+|---|---|
+| ADR (Decisão Arquitetural) | `{"field":"type","op":"=","value":"adr"}` |
+| Session Log | `type = session` |
+| Page Charter | `type = charter` |
+| Runbook operacional | `type = runbook` |
+| Briefing executivo | `type = briefing` |
+| Spec / US-XXX-NNN | `type = spec` |
+
+**Eixo 2 — conteúdo do cliente (template POR VERTICAL):** `Produção` (Plotter/Impressão ·
+Corte/Acabamento · Instalação) · `Equipamentos` · `Pré-impressão` · `Atendimento` · `Fiscal` ·
+`Sistema` · `Pessoas`. Hoje **16 categorias / 36 subcategorias** seeded (8 por business, biz=1 e 4).
+
+> **Invariante v2.1 (substitui o da v2.0):** a lateral é a árvore `kb_categories` →
+> `kb_subcategories` **do business**, e o tipo do documento é **subcategoria de `Governança`** —
+> não é a categoria raiz.
 >
-> **A tela mostraria pouco mais da metade do acervo — e ninguém perceberia**, porque o que falta
-> simplesmente não aparece. Esconder isso seria a meia-verdade que já custou caro aqui (o `⬜` do
-> UC-09 escondia um `❌`; o rótulo "MOCK" no cabeçalho não cobria os botões que mentiam).
+> **A v2.0 dizia "categoria = `kb_nodes.type`". DERRUBADO** — achatava tudo em 8 categorias de tipo
+> e **apagava o eixo do cliente inteiro**. Pior: matava o `auto_match` citando o exemplo errado dele
+> (`field:'equip'`, do corpus falso) quando o mecanismo **certo** (`field:'type'`) já estava seeded.
+> Matei o mecanismo certo pelo exemplo errado. ([W] 2026-07-17: *"tipo de documento, e outro por
+> tipo de conteúdo do cliente? eu quero dois KB ou 1 com esse filtro"* → **1 KB com filtro**: são a
+> mesma árvore, `Governança` é uma categoria como as outras.)
+
+> ### ⚠️ O gap NÃO é o modelo — é que **`auto_match` tem ZERO leitores**
 >
-> **Decisão de desenho:** a categoria "Diversos" **existe e mostra o número**. Feia por fora,
-> honesta por dentro: você olha a lateral e sabe que 639 documentos ainda não foram organizados.
-> A alternativa (omitir) faria a tela parecer completa mentindo. **Fechar essa dívida = dar tipo aos
-> 639 + estender `tipos()` pra handoffs/sprints/governance/audits/dominio** — trabalho real, PR
-> próprio, não bloqueia esta tela.
+> A regra existe como **dado** e nenhuma linha de PHP a lê. `KbBridgeFromMcpJob::bridgeDocument()`
+> preenche 9 campos e **nenhum deles é `category_id`**. Por isso 1.405 nós sem categoria: não falta
+> taxonomia, falta **o classificador que aplica a taxonomia**.
+>
+> **Fechar isso = (a)** serviço que lê `auto_match` e escreve `category_id`; **(b)** backfill dos
+> 1.405; **(c)** o bridge passa a classificar no fill; **(d)** corrigir `KbArticleService:49`
+> (`$request->integer('category')` espera int, a tela manda **slug** → `where('category_id',0)` →
+> zero **em silêncio**). Isso é **pré-requisito do Controller**, não paralelo.
+
+> ### 🔴 Decisão [W] ABERTA — o template por vertical
+>
+> As 7 categorias de cliente estão seeded **idênticas** em biz=1 e biz=4, e são todas de **gráfica**
+> (Plotter · Corte · Pré-impressão). Mas **biz=4 é a ROTA LIVRE — vestuário**. É a mesma ficção do
+> corpus mock, agora na taxonomia. O eixo `Governança` é o único igual pra todos (é interno).
+>
+> **Pendente:** [W] define as categorias por vertical, ou o agente propõe um jogo (gráfica ·
+> vestuário · oficina) e [W] corta. **Não bloqueia** o eixo `Governança` (que é o que a tela serve
+> hoje: 1.405 documentos, todos de governança).
 
 ## 4. O que dá pra fazer (Goals)
 
@@ -153,33 +215,36 @@ acervo (medida em 2026-07-17, `git ls-files memory/**/*.md` = **3.016**):
 | # | Decisão | Status |
 |---|---|---|
 | **D1** | "Os dados" = os documentos canônicos (ADR/session/charter/…) | ✅ **RESPONDIDA** — [W]: *"eu quero os dados, mas com o design do KB"*, sobre o mockup que exibia ADR 0340/0339 reais. |
-| **D3** | As categorias = os tipos do documento | ✅ **RESPONDIDA** — [W] aprovou o mockup com a lateral por tipo: *"eu gostei sim, ficou bom"*. |
-| **D5** | "Diversos: 639" visível na lateral | ✅ **RESPONDIDA** — [W] viu o mockup **com** a linha "Diversos 639" exposta e aprovou (§3). Dívida fica **à vista**, não escondida. |
+| **D3** | **O nível da taxonomia** | ✅ **RESPONDIDA (v2.1)** — [W] 2026-07-17: *"tipo de documento, e outro por tipo de conteúdo do cliente? eu quero dois KB ou 1 com esse filtro"* → **1 KB com filtro, 2 eixos**: `Governança` (tipos de documento como subcategorias) + categorias de conteúdo do cliente. **Já seeded** (§3). A v2.0 lia isto como "categoria = type" e estava **errada** — [W] aprovou o *mockup*, não o achatamento. |
+| **D5** | ~~"Diversos: 639" visível na lateral~~ | ⚰️ **SEM OBJETO (v2.1)** — os "639 sem tipo" eram artefato da contagem no **disco**. No banco **todo nó tem `type`**; o que não tem é `category_id` (1.405/1.408) — e isso não é uma linha da lateral, é o **bloqueador** (§3). O princípio de [W] (dívida à vista, não escondida) sobrevive **melhor**: a tela não abre até classificar. |
 | **D2** | **O `/kb` de hoje continua, ou a V2 toma o lugar?** | 🔴 **ABERTA** — o `/kb` tem **histórico de versões, soft-delete e filtro de PII** que a V2 **não tem**. Cutover sem isso **perde função**. Enquanto indefinido: **coexistem** (`/kb` legado · `/kb/v2` novo) — é o estado atual e não bloqueia o Controller. |
 | **D4** | As **68 cores cruas** → tokens (gate visual ADR 0114) | 🔴 **ABERTA** — mudança visual, PR separado, não bloqueia o Controller. **Mas bloqueia a baseline definitiva:** contratar a tela no visreg congela em pixel o que existir na hora (§8-bis). |
+| **D6** | **O template de categorias por vertical** | 🔴 **ABERTA (v2.1)** — as 7 categorias de cliente são de **gráfica** e estão seeded igual em biz=4, que é **vestuário**. [W] define por vertical, ou o agente propõe e [W] corta. **Não bloqueia** o eixo `Governança` — que é 100% do que a tela serve hoje. |
 
-## 8-bis. O caminho até a tela viva (medido, não estimado)
+## 8-bis. O caminho até a tela viva — **v2.1 (a ordem da v2.0 estava errada)**
 
-O gate `visual-regression` (**required**) reprova qualquer PR que toque a tela **ou o Controller que
-a serve** enquanto ela não estiver contratada em `tests/Browser/visreg-screens.json`. Medido hoje:
+> **Errata:** a v2.0 mandava **contratar a tela no visreg PRIMEIRO**, alegando que o gate reprovaria
+> o Controller. **Falso, e medido errado** — rodei `classifyFile`, não `validateExecution`. O gate
+> só morde em diff **Page-only**: um PR com Controller vira `scope: global` (`ui-impact.mjs:283`
+> não cobra `uncovered` no global). Consequência: eu ia te pedir **3 aprovações F1.5** (baseline do
+> mock → re-aprovar com dado real → re-aprovar pós-cores) onde **1 basta** — e a primeira congelaria
+> em pixel a tela **mock**, virando lixo por construção.
 
-```
-classify(KbController.php c/ indexV2) → reason: controller-inertia · screens: [kb/Index.v2]
-coverage → uncovered: [kb/Index.v2] → BLOQUEIA
-```
+**Ordem v2.1 — o dado antes do render:**
 
-Não há atalho (o veredito adversarial de 2026-07-16 mediu todos: `abort`/flag/delete bloqueiam
-igual; rename de path/ServiceProvider passam mas são *laundering*, proibidos por `proibicoes §5`).
+| # | Passo | Por quê nesta ordem |
+|---|---|---|
+| **1** | **Classificador** (`auto_match` → `category_id`) + **backfill** dos 1.405 + fix do `fill()` do bridge + fix slug↔int (`KbArticleService:49`) | Sem isto a tela abre **vazia**. É o item, não o acessório. |
+| **2** | **Controller `indexV2`** + revogar `UC-KBV2-06` **no mesmo commit** (ele asserta `missing('nodes')` → deixaria o CI vermelho *por ter funcionado*) | Só faz sentido depois que há categoria pra filtrar. |
+| **3** | **Toasts** — com a tela viva, os 4 `toast.success` mentirosos deixam de ser inofensivos | ([#4365](https://github.com/wagnerra23/oimpresso.com/pull/4365) foi fechado; o de-risk volta aqui) |
+| **4** | **Cores (D4)** → tokens | mudança visual, PR próprio |
+| **5** | **Contratar no visreg 1× no estado final** + **F1.5 [W]** | 1 aprovação, sobre a tela que fica. **Com data de corte** — senão "quando estabilizar" nunca chega e nada força (todo PR de onda vira `global` e passa). |
 
-**Ordem obrigatória:**
-
-1. **Contratar a tela** no visreg (entry + baseline gerada no runner canônico via `visreg:update`) —
-   exige **[W] no gate F1.5**. Agora isso **faz sentido**: a tela vai ficar no ar. (Enquanto a
-   decisão era "freezer", contratar era absurdo — baseline de tela que sairia do ar.)
-2. **Controller `indexV2`** + revogar UC-KBV2-06 **no mesmo commit** (ele asserta `missing('nodes')`
-   — deixaria o CI vermelho *por ter funcionado*).
-3. **Toasts** ([#4365](https://github.com/wagnerra23/oimpresso.com/pull/4365)) — com a tela viva, os 4 `toast.success` mentirosos deixam de ser inofensivos.
-4. **Cores (D4)** — PR próprio; a baseline é re-gerada com aprovação [W].
+> **⚠️ O plano da v2.0 shipava tela vazia a VERDE.** Composto: `category_id` NULL ⇒ render vazio ×
+> `scope:global` ⇒ o pixel não olha × os testes da §8 assertam **prop** (que vem cheia) × o passo 2
+> revoga o único teste que descrevia o estado de dado. **Por isso o §8 ganhou 2 travas** (abaixo):
+> um caso que conta **linhas renderizadas** (não prop, não `COUNT`) e **smoke real com screenshot**
+> (R1) como último passo — a ordem não termina em "cores", termina em **abrir a tela e ver**.
 
 ## 8. Como se prova que está pronto (contrato executável)
 
@@ -188,11 +253,13 @@ Estes são os testes que nascem deste charter — sem eles, `status` não vira `
 ```php
 it('serve documentos REAIS do business (nunca MOCK_NODES quando há dado)')
 it('isola por business_id — biz=1 não vê documento de biz=99')   // Tier 0
-it('categoria = type do documento, com contagem correta')
+it('a lateral é a árvore kb_categories→kb_subcategories do business')   // v2.1: NÃO "categoria=type"
+it('cada categoria RENDERIZA linhas > 0 com dado real')               // v2.1: linhas, não prop/COUNT
 it('não escreve no banco ao abrir (GET é leitura)')
 it('não dispara Job/IA ao abrir')
 it('nenhuma ação afirma sucesso sem persistir')                   // UC-KBV2-10
 it('abre em 1280px sem scroll horizontal')                        // visual/manual
+// + R1 OBRIGATÓRIO: smoke real em prod com screenshot ANTES de declarar pronto (v2.1)
 ```
 
 > **Atenção — dívida que precisa morrer junto:** hoje existe um teste **required** afirmando que a
@@ -220,4 +287,5 @@ it('abre em 1280px sem scroll horizontal')                        // visual/manu
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | Wave J | Charter draft v1.0 — port Cowork, tela **mock-first** (Goal 7 = "fallback MOCK_NODES"). Nunca saiu de draft; gate visual nunca fechou. |
+| 2026-07-17 | [CC] | **v2.1 (errata)** — a v2.0 mediu o **disco**; a tela lê o **banco**. §3 refeita com `SELECT` no CT 100: 1.408 nós (não 3.016), `runbook` 11 (não 152), `charter`/`briefing`/`handoff` **0** (gap de ingestão). Invariante "categoria = type" **derrubado** — [W] decidiu **1 KB com filtro / 2 eixos**: `Governança` (tipos como subcategorias, `auto_match` já seeded) + conteúdo do cliente. Exposto o bloqueador real: **1.405 sem `category_id`** ⇒ tela vazia, e o `auto_match` com **zero leitores**. §8-bis reordenada (dado antes do render; 1 F1.5 no fim, não 3) + §8 ganha teste de **linhas renderizadas** e **R1**. D5 sem objeto; **D6 nova** (template por vertical). Origem: adversário 3×"emenda antes do código". |
 | 2026-07-17 | [CC] | **v2.0** — [W]: *"quero os dados, mas com o design do KB"*. Reescrito pro acervo **real** (o bridge já popula `kb_nodes` em prod). Categorias = os 8 `type` do dado (mata o classificador-por-equipamento da v1.0). Persona "operadora de gráfica" removida (não existe no cliente). Anti-hook novo: ação não afirma o que não fez. §7 lista as 4 decisões [W] que bloqueiam `live`. **Aguarda [W]** — nenhum código escrito até D1 ser respondida. |
