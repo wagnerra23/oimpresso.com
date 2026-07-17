@@ -37,6 +37,9 @@ use Illuminate\Database\Eloquent\Scope;
  */
 class ScopeByBusinessViaParent implements Scope
 {
+    /** Cache classe → nome da relação parent (evita reflection por query). */
+    private static array $relationByClass = [];
+
     public function apply(Builder $builder, Model $model): void
     {
         // CLI/jobs sem auth → sem filtro (resolve manualmente).
@@ -50,10 +53,9 @@ class ScopeByBusinessViaParent implements Scope
             return;
         }
 
-        // Property obrigatória na Model que usa este scope.
-        $relation = property_exists($model, 'businessParentRelation')
-            ? $model->businessParentRelation
-            : null;
+        // Nome da relação parent declarado no Model. NÃO pode ser lido via
+        // `$model->businessParentRelation` — ver resolveRelation() abaixo.
+        $relation = $this->resolveRelation($model);
 
         if (! $relation || ! method_exists($model, $relation)) {
             // Defensivo: se Model não declarou parent relation, não filtra
@@ -79,5 +81,34 @@ class ScopeByBusinessViaParent implements Scope
 
             $q->where("{$parentTable}.business_id", $businessId);
         });
+    }
+
+    /**
+     * Resolve o nome da relação parent declarado no Model.
+     *
+     * ⚠️ NUNCA ler via `$model->businessParentRelation`: a property é `protected`,
+     * então lida de FORA (desta classe Scope) cai no `__get` do Eloquent →
+     * getAttribute → **NULL** (não o valor real 'conversa'/'meta'). Isso zerava o
+     * scope silenciosamente (`if (! $relation) return` → fail-open → vazamento
+     * cross-tenant Tier 0, ADR 0093). Bug latente desde Wave 7 (2026-05-16),
+     * mascarado pelo FK-1452 do teste; descoberto e provado no CT100 em 2026-07-17
+     * (SQL sem whereHas + LEAKED=YES). Reflection lê o valor real independentemente
+     * da visibilidade. Cacheado por classe (valor é default estático do Model).
+     */
+    private function resolveRelation(Model $model): ?string
+    {
+        $class = get_class($model);
+
+        if (! array_key_exists($class, self::$relationByClass)) {
+            $value = null;
+            if (property_exists($model, 'businessParentRelation')) {
+                $ref = new \ReflectionProperty($model, 'businessParentRelation');
+                $ref->setAccessible(true);
+                $value = $ref->getValue($model);
+            }
+            self::$relationByClass[$class] = (is_string($value) && $value !== '') ? $value : null;
+        }
+
+        return self::$relationByClass[$class];
     }
 }
