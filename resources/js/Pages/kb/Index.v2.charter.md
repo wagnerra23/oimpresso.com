@@ -9,7 +9,7 @@ parent_module: KB
 related_us: [US-KB-001]
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional (1280px balcão) — só quando existir SOP escrito à mão
-charter_version: 2.1
+charter_version: 2.2
 charter_at: 2026-07-17
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central # proposta
@@ -27,7 +27,7 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "tri-pane sidebar+lista+leitor (port direto JSX→TSX)"
 ---
 
-# Charter — `kb/Index.v2.tsx` · v2.1 **DRAFT (aguarda [W])**
+# Charter — `kb/Index.v2.tsx` · v2.2 **DRAFT (aguarda [W])**
 
 > **O que mudou da v1.0 (2026-05-16):** a v1.0 descrevia uma tela de **SOPs de gráfica com dados
 > inventados** ("fallback MOCK_NODES" era Goal 7). [W] 2026-07-17: *"eu quero os dados, mas com o
@@ -91,38 +91,62 @@ módulo, especificações.
 ficção e **sai** — a persona "operadora de gráfica" não existe no cliente real (o piloto biz=4 é loja
 de **vestuário**).
 
-## 3. As categorias (painel esquerdo) — **medidas NO BANCO** (v2.1)
+## 3. As categorias (painel esquerdo) — **o charter NÃO guarda número** (v2.2)
 
-> ### 🔴 ERRATA v2.1 (2026-07-17) — a v2.0 mediu o lugar errado
+> ### ⚖️ Lei aplicada aqui: *fato derivado não se restateia — aponta pro dono, ou carrega recibo*
 >
-> A v2.0 contou `git ls-files memory/**/*.md` (**o disco**) e chamou de "medido". **A tela lê
-> `kb_nodes`** — três linhas abaixo, o próprio charter dizia "categoria = `kb_nodes.type`". Ele se
-> autodenunciava e eu não vi. **Todos os números estavam errados.** Medido no banco (CT 100,
-> `oimpresso-mcp`, 2026-07-17):
+> **O charter não repete número que outro sistema sabe melhor.** A população da tela é `kb_nodes`,
+> filtrada por `business_id`. **O dono do número é o banco** — não este arquivo.
+>
+> **Por que a regra existe (o caso que a pariu, 2026-07-17):** a v2.0 escreveu "3.016 documentos"
+> à mão, contando `git ls-files` (**o disco**), pra descrever uma tela que **lê o banco** (1.408).
+> Não foi alucinação: o agente rodou uma tool de verdade e reportou fielmente — **o oráculo é que
+> era o errado**. O número entrou com o selo mais alto de confiança ("saída direta de tool") sendo
+> saída direta de **outro sistema**. Os 3 documentos do trio ficaram **coerentes entre si** e
+> divorciados do mundo; a v2.1 corrigiu os números — mas **manteve o lugar onde mentir**. A v2.2
+> **remove o lugar**.
 
-| | v2.0 dizia (disco) | **Banco (real)** | |
-|---|---:|---:|---|
-| **Total** | 3.016 | **1.408** | metade do acervo nunca chegou |
-| Decisões (ADR) | 447 | **497** | |
-| Sessões | 453 | **451** | |
-| Referências | 125 | **365** | |
-| Especificações (spec) | 59 | **62** | |
-| Comparativos | 11 | **19** | |
-| Receitas (runbook) | 152 | **11** | o coletor descarta `RUNBOOK-*.md` pelo nome |
-| **Contratos de tela** | 237 | **0** | charters vivem fora de `memory/` — o coletor não os vê |
-| **Resumos (briefing)** | 80 | **0** | não chegam |
-| **Handoffs** | 258 | **0** | `bridgeableTypes()` não aceita |
-| **"Diversos: 639"** | 639 | **não existe** | era artefato da contagem no disco |
+### Onde perguntar (o dono)
 
-**A tela mostraria 1.405 documentos (biz=1)** — `adr` 497 · `session` 451 · `reference` 365 ·
-`spec` 62 · `comparativo` 19 · `runbook` 11. Os outros ~1.600 do disco **não estão no banco**:
-isso é **gap de ingestão** (coletor + `bridgeableTypes()`), PR próprio, e some da lateral.
+```sql
+-- população da tela (o que a lateral conta), por business:
+SELECT type, COUNT(*) FROM kb_nodes WHERE business_id = ? GROUP BY type;
+-- o bloqueador (ver abaixo):
+SELECT COUNT(*) FROM kb_nodes WHERE category_id IS NULL;
+-- a árvore da lateral:
+SELECT slug, label FROM kb_categories WHERE business_id = ?;
+SELECT s.slug, s.label, s.auto_match FROM kb_subcategories s;
+```
 
-### 🧊 O bloqueador real: **1.405 de 1.408 nós têm `category_id` NULL**
+Onde roda: **CT 100** (`docker exec oimpresso-mcp php artisan tinker`). **Nunca no CI** — o CI não
+tem o banco de governança; um "gate" que fingisse medir isso lá seria teatro.
+
+### 🧾 Recibo (não é afirmação — é medição datada, com o sistema declarado)
+
+| campo | valor |
+|---|---|
+| **sistema medido** | `kb_nodes` @ CT 100 `oimpresso-mcp` (banco de governança, biz=1) |
+| **quando** | 2026-07-17 |
+| **quem** | [CC], via `php artisan tinker` |
+| **total** | 1.408 (biz=1: 1.405 · biz=4: 3) |
+| **por tipo** | `adr` 497 · `session` 451 · `reference` 365 · `spec` 62 · `comparativo` 19 · `runbook` 11 · `article` 3 |
+| **`category_id` NULL** | **1.405 de 1.408** |
+| **árvore** | 16 categorias · 36 subcategorias |
+
+> **O recibo envelhece — e tem que envelhecer à vista.** Ele diz *"em 17/07 o banco respondia
+> isso"*, não *"a tela tem 1.408 documentos"*. A segunda forma é a que apodrece calada. Se a data
+> incomodar quem lê, **re-rode a query** — não edite o número.
+>
+> **Gap de ingestão medido no mesmo recibo** (some da lateral, PR próprio): o disco tem ~3.016 `.md`
+> e o banco 1.408. `charter` e `briefing` chegam **0** (o coletor não varre fora de `memory/`);
+> `runbook` chega 11 (descarta `RUNBOOK-*.md` pelo basename); `handoff` 0 (`bridgeableTypes()` não
+> aceita). **Não invente esses números em outro doc — aponte pra cá ou re-meça.**
+
+### 🧊 O bloqueador real: **`category_id` NULL na quase totalidade** (ver recibo)
 
 `Index.v2.tsx:147` filtra `n.category_id === cat.id`. Com o campo nulo, **toda categoria renderiza
 zero linhas** — a tela nasceria **vazia**, e o CI passaria **100% verde** (os testes olham a *prop*,
-que vem cheia; o pixel não olha a tela; o único teste que descreve o estado de dado era revogado no
+que vem cheia; o pixel não olha a tela; o único teste que descrevia o estado de dado era revogado no
 mesmo commit). Não é detalhe de implementação: é **o** item.
 
 ### A taxonomia REAL — dois eixos, 1 KB com filtro ([W] 2026-07-17)
@@ -287,5 +311,6 @@ it('abre em 1280px sem scroll horizontal')                        // visual/manu
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | Wave J | Charter draft v1.0 — port Cowork, tela **mock-first** (Goal 7 = "fallback MOCK_NODES"). Nunca saiu de draft; gate visual nunca fechou. |
+| 2026-07-17 | [CC] | **v2.2 (subtração)** — a v2.1 corrigiu os números **mantendo o lugar onde mentir**. A v2.2 **remove o lugar**: o charter deixa de guardar contagem e passa a **apontar o dono** (a query em `kb_nodes`) + **recibo datado** (query + resultado + data + sistema declarado). Aplica a lei *"fato derivado não se restateia"* — generalização da lápide 2026-07-16 (*"aponta pro dono, não restateia"*, escrita 24h antes do erro, mas só pra enforcement) e da regra Tier 0 "claim sem evidência" (que exige recibo, mas só cobria prod). Diagnóstico do erro por pesquisa de estado-da-arte ([session](../../../memory/sessions/2026-07-17-arte-artefatos-por-tela.md)): **não foi alucinação — foi ORÁCULO ERRADO** (mediu o disco pra descrever tela que lê o banco); o mercado inteiro (Spec Kit · Kiro · Tessl · Drift) ancora doc↔código e **ninguém ancora doc↔dado**. É **subtração** (ADR 0271/0314): o doc escreve MENOS. |
 | 2026-07-17 | [CC] | **v2.1 (errata)** — a v2.0 mediu o **disco**; a tela lê o **banco**. §3 refeita com `SELECT` no CT 100: 1.408 nós (não 3.016), `runbook` 11 (não 152), `charter`/`briefing`/`handoff` **0** (gap de ingestão). Invariante "categoria = type" **derrubado** — [W] decidiu **1 KB com filtro / 2 eixos**: `Governança` (tipos como subcategorias, `auto_match` já seeded) + conteúdo do cliente. Exposto o bloqueador real: **1.405 sem `category_id`** ⇒ tela vazia, e o `auto_match` com **zero leitores**. §8-bis reordenada (dado antes do render; 1 F1.5 no fim, não 3) + §8 ganha teste de **linhas renderizadas** e **R1**. D5 sem objeto; **D6 nova** (template por vertical). Origem: adversário 3×"emenda antes do código". |
 | 2026-07-17 | [CC] | **v2.0** — [W]: *"quero os dados, mas com o design do KB"*. Reescrito pro acervo **real** (o bridge já popula `kb_nodes` em prod). Categorias = os 8 `type` do dado (mata o classificador-por-equipamento da v1.0). Persona "operadora de gráfica" removida (não existe no cliente). Anti-hook novo: ação não afirma o que não fez. §7 lista as 4 decisões [W] que bloqueiam `live`. **Aguarda [W]** — nenhum código escrito até D1 ser respondida. |
