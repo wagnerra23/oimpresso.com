@@ -1622,19 +1622,32 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 **Refs:** ADR 0318 · `Modules/Jana/Services/LangfuseClient.php`
 
 ### US-COPI-138 · Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
+**Implementado em:** `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · verificado@e7f6090 (2026-07-17) — check DURO registrado em handle(), lendo meta.totalItems da API pública do Langfuse (fonte real, não flag); 9 testes verdes no CT 100 incl. 2 de fiação (200-e-mudo → vermelho)
+**Testado em:** `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` (contrato do heartbeat: Langfuse 200-e-**mudo** → check VERMELHO via `Http::fake`, recebendo trace → VERDE; + prova de que o check está registrado no jana:health-check e é hard; `// @covers-us US-COPI-138`)
 
-> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 1h · status: done · done_at: 2026-07-17 · commit: e7f6090 · type: story
 
 **Origem:** grade de réguas 2026-07-17 — item #2 do "roubar" + chip C4; `observabilidade-agente` 6,5/10.
 
 **Sinal (ADR 0105 — métrica detecta drift):** o Langfuse está LIVE desde 2026-07-02 e **não tem heartbeat**. Se parar de receber trace, ninguém descobre — foi assim que um buraco de 7 semanas passou. O `HealthCheckCommand` já tem 10 checks, incluindo o `brief_uptime_24h` que é exatamente o mesmo formato.
 
 **Escopo:**
-- [ ] 1 check `langfuse_trace_uptime_24h` espelhando `brief_uptime_24h` — **mesmo arquivo**, nada novo
-- [ ] Ler a **fonte real** (API/log do Langfuse), NUNCA flag ou artefato (o chip C4 traz essa ressalva: heartbeat que lê flag mede a si mesmo)
-- [ ] ALERT em `storage/logs/laravel.log` no padrão dos outros 5 checks
+- [x] 1 check `langfuse_trace_uptime_24h` espelhando `brief_uptime_24h` — **mesmo arquivo**, nada novo
+- [x] Ler a **fonte real** (API/log do Langfuse), NUNCA flag ou artefato (o chip C4 traz essa ressalva: heartbeat que lê flag mede a si mesmo)
+- [x] ALERT em `storage/logs/laravel.log` no padrão dos outros 5 checks
 
-**Refs:** `app/Console/Kernel.php` (schedule daily 06:00 BRT) · `Modules/Jana/Console/HealthCheckCommand.php`
+**DoD:**
+- Check `langfuse_trace_uptime_24h` registrado em `HealthCheckCommand::handle()`, DURO (não-advisory) — 0 trace derruba o exit code e dispara o ALERT do cron 06:00 BRT (schedule JÁ existente em `app/Console/Kernel.php:200`; nada novo a agendar).
+- Fonte = `GET {langfuse.host}/api/public/traces?fromTimestamp=<now-24h>` com Basic Auth, lendo `meta.totalItems`. Quem responde é o DESTINO — nunca a flag `langfuse.enabled` nem o log de emissão local.
+- Veredito puro, testável sem HTTP/relógio, em `HealthCheckCommand::evaluateTraceUptime()`: sem credencial → pula (dev/CI) · API não respondeu → ALERTA · respondeu sem contagem → ALERTA `ilegivel` (nunca fingir "0") · `< 1` trace em 24h → ALERTA `mudo` · `>= 1` → verde.
+- Prova de MORDIDA (controle-negativo, não só presença): com `Http::fake`, Langfuse respondendo **200 e mudo** deixa o check VERMELHO; recebendo trace deixa VERDE.
+- Teste ancorado numa lane que roda em PR (`.github/ci-sqlite-pest.list`) — guard que nenhum workflow executa é defesa de mentira.
+
+**Por que o monitor que já existia não pegou:** o `observability_pipeline` do `jana:system-audit` (ADR 0133 check 1) mede a **VIA** (`/api/public/health` == 200). Langfuse de pé recebendo ZERO trace responde 200 e pinta verde — daí as 7 semanas. Este check mede o **FLUXO**, fechando o mesmo par que o Whatsapp já tem entre `whatsapp_inbound_canary` (via) e `whatsapp_inbound_flow` (resultado). Lição do #2726, idêntica: todo monitor media degradação DENTRO de um fluxo vivo, nunca a AUSÊNCIA do fluxo.
+
+**Residual honesto:** com `LANGFUSE_ENABLED=false` em prod o check PULA em vez de acender (mesmo padrão de skip de `memoria_recall_backend`/`mcp_webhook_5xx_2h`). Quem cobre esse flanco é o `observability_pipeline` (exige env setado). Fechar de vez exigiria distinguir "dev sem credencial" de "prod com flag derrubada" — NÃO resolvido aqui.
+
+**Refs:** `app/Console/Kernel.php:200` (schedule daily 06:00 BRT — já existente) · `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · `Modules/Jana/Services/Telemetry/LangfuseClient.php` (emissão) · ADR 0132 · ADR 0133
 
 ### US-COPI-139 · Badalo do ratio negócio÷governança no brief-fetch (o alarme existe e nunca dispara)
 
