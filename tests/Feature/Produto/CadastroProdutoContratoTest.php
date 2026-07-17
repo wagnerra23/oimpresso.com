@@ -213,10 +213,12 @@ it('UC-PCAD-05 · category_id de outro business não vincula', function () {
 
     $bizId = (int) $this->business->id;
 
+    // `categories.created_by` é NOT NULL com FK pra users — tem que ser um user DO outro business.
     $categoriaAlheia = (int) DB::table('categories')->insertGetId([
         'name' => 'Categoria alheia UC-PCAD-05',
         'business_id' => $outroBizId,
         'category_type' => 'product',
+        'created_by' => EstoqueFixture::userId($outroBizId),
         'created_at' => now(),
         'updated_at' => now(),
     ]);
