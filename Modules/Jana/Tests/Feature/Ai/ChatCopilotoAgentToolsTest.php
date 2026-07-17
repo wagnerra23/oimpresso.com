@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+// @covers-us US-COPI-140 — tool use READ-ONLY no chat: contrato de que o
+// ChatCopilotoAgent declara as 5 tools do BriefDiarioAgent com o business_id
+// vindo da conversa (Tier 0 mecânico), que a flag OFF mantém o pipeline
+// byte-idêntico ao legado, e que o prompt nunca promete ferramenta que o SDK
+// não mandou.
+
 use Laravel\Ai\Contracts\HasTools;
 use Modules\Jana\Ai\Agents\ChatCopilotoAgent;
 use Modules\Jana\Ai\Tools\BriefDiario\VendasPeriodoTool;
