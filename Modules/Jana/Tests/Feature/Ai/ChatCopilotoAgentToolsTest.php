@@ -7,6 +7,9 @@ declare(strict_types=1);
 // vindo da conversa (Tier 0 mecânico), que a flag OFF mantém o pipeline
 // byte-idêntico ao legado, e que o prompt nunca promete ferramenta que o SDK
 // não mandou.
+// @covers-us US-COPI-142 — o flip da flag: o caso "flag ON → 5 tools" é
+// exatamente o comportamento que o flip ativa em prod (a flag OFF↔ON é o único
+// grau de liberdade do flip). O smoke real prod/homolog fecha o resto do DoD.
 
 use Laravel\Ai\Contracts\HasTools;
 use Modules\Jana\Ai\Agents\ChatCopilotoAgent;
