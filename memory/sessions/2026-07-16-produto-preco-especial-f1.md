@@ -26,7 +26,7 @@ Critério declarado: **"a melhor usabilidade ganha; o legado Delphi não entra a
 
 ## O que saiu
 
-- **Protótipo F1 navegável** — [`prototipo-ui/prototipos/produto-preco-especial/`](../../prototipo-ui/prototipos/produto-preco-especial/)
+- **Protótipo F1 navegável** — [`prototipo-ui/cowork/produto-preco-especial/`](../../prototipo-ui/cowork/produto-preco-especial/)
   (verificado no browser a cada rodada; DOM medido, não screenshot de intenção)
 - **Charter v2 → v3.8** — [`SellingPrices.charter.md`](../../resources/js/Pages/Produto/SellingPrices.charter.md)
 - **2 pesquisas de mercado** (24 plataformas somadas, schemas primários — GraphQL/OpenAPI/source)
@@ -109,7 +109,7 @@ Ambas em [`proibicoes.md` §5](../proibicoes.md) (2026-07-16).
 ## Refs
 
 - Charter: [`SellingPrices.charter.md`](../../resources/js/Pages/Produto/SellingPrices.charter.md) v3.8
-- Protótipo: [`produto-preco-especial/`](../../prototipo-ui/prototipos/produto-preco-especial/) + `NOTES.md`
+- Protótipo: [`produto-preco-especial/`](../../prototipo-ui/cowork/produto-preco-especial/) + `NOTES.md`
 - Lições: [`proibicoes.md` §5](../proibicoes.md) — 2 entradas 2026-07-16
 - Evidência custo/margem: PR [#4321](https://github.com/wagnerra23/oimpresso.com/pull/4321) (`docs/produto-custo-margem-evidencia`)
 - `US-PROD-027` / `UC-PTAB-05`: PR [#4328](https://github.com/wagnerra23/oimpresso.com/pull/4328) **fechado** — a US não é executável como escrita (aceite aponta pro PDV, fora do cadastro; o caso que cabe no cadastro ela exclui)

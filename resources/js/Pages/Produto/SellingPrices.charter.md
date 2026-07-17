@@ -2,7 +2,7 @@
 page: /products/add-selling-prices/{id}
 component: resources/js/Pages/Produto/SellingPrices.tsx
 page_id: produto-tabela-preco
-related_prototype: prototipo-ui/prototipos/produto-preco-especial/Produto - Preco Especial.html
+related_prototype: prototipo-ui/cowork/produto-preco-especial/produto-preco-especial.html
 owner: wagner
 status: draft
 last_validated: "2026-07-16"
@@ -56,7 +56,7 @@ criada fora daqui; esta tela só a seleciona e precifica. Um produto tem **N tab
 > **exceção**. **(2) Preço definido por produto** — **sem %**; o cliente digita o valor do produto
 > **naquela tabela**; a célula digitada **é o preço**, não um desvio; célula não digitada usa o
 > **preço base**. Decidido por [F] 2026-07-16 sob o critério *"a melhor usabilidade ganha — o legado
-> Delphi não entra"*. Protótipo navegável: [`prototipo-ui/prototipos/produto-preco-especial/`](../../../../prototipo-ui/prototipos/produto-preco-especial/Produto%20-%20Preco%20Especial.html).
+> Delphi não entra"*. Protótipo navegável: [`prototipo-ui/cowork/produto-preco-especial/`](../../../../prototipo-ui/cowork/produto-preco-especial/produto-preco-especial.html).
 >
 > ⚠️ **A v3 dizia só "a lista É uma regra" — meia-verdade, corrigida na v3.4** (4º corte de [F]:
 > *"nem sempre o cliente define o valor do produto na tabela por porcentagem, muitas vezes ele

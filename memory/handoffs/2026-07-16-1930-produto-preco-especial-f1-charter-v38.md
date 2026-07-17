@@ -32,7 +32,7 @@ browser a cada rodada (DOM medido, zero erro no console).
 
 | Artefato | Estado |
 |---|---|
-| [`prototipo-ui/prototipos/produto-preco-especial/`](../../prototipo-ui/prototipos/produto-preco-especial/) | F1 **navegável** — HTML + CSS + `NOTES.md` |
+| [`prototipo-ui/cowork/produto-preco-especial/`](../../prototipo-ui/cowork/produto-preco-especial/) | F1 **navegável** — HTML + CSS + `NOTES.md` |
 | [`SellingPrices.charter.md`](../../resources/js/Pages/Produto/SellingPrices.charter.md) | **v2 → v3.8** |
 | [`proibicoes.md` §5](../proibicoes.md) | **+2 entradas** (as lições que se repetiram) |
 | [session log](../sessions/2026-07-16-produto-preco-especial-f1.md) | narrativa completa |
