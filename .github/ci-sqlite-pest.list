@@ -66,6 +66,10 @@ Modules/Whatsapp/Tests/Feature/CaixaUnificadaControllerTest.php
 # Fase 1 perda-zero — canário do webhook WhatsApp (US-WA-311, incidente #2726)
 Modules/Whatsapp/Tests/Feature/WebhookCanaryCommandTest.php
 Modules/Jana/Tests/Feature/Smoke/WhatsappInboundCanaryCheckTest.php
+# Heartbeat da telemetria LLM (US-COPI-138) — lógica pura estática + prova de que o
+# check está registrado no jana:health-check. Sem credencial Langfuse ele pula, então
+# não faz HTTP real: sqlite-safe e determinístico.
+Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php
 # ── Whatsapp sqlite-safe (auditoria cobertura-CI 2026-06-19) ──────────────────
 # Modules/Whatsapp tem 120 testes Feature mas só 2 rodavam em CI (CaixaUnificada +
 # WebhookCanary acima): os outros ~118 nunca eram exercidos em lane nenhuma
