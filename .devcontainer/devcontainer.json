@@ -1,0 +1,23 @@
+{
+  "name": "oimpresso — agente com egress default-deny (chip C7)",
+  "build": { "dockerfile": "Dockerfile" },
+
+  // NET_ADMIN/NET_RAW: sem eles o init-firewall.sh nao consegue escrever iptables e o
+  // container roda com a rede ABERTA — o pior estado (parece protegido, nao esta).
+  // O postCreate FALHA ALTO nesse caso (set -e + verify) em vez de degradar em silencio.
+  "runArgs": ["--cap-add=NET_ADMIN", "--cap-add=NET_RAW"],
+
+  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh",
+
+  "remoteUser": "node",
+
+  // O ~/.claude do host NAO e montado de proposito: credencial do agente fora do
+  // container que processa conteudo nao-confiavel. Login acontece dentro.
+  "mounts": [],
+
+  "customizations": {
+    "vscode": {
+      "extensions": ["anthropic.claude-code"]
+    }
+  }
+}
