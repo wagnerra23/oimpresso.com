@@ -25,7 +25,7 @@
 | C08 | Import Excel + bulk-edit/update + mass-deactivate/delete + download | P1 | ✅ APROVADO | `Import*Controller` + `ProductController@bulkEdit/massDestroy` + `BulkEdit.tsx` | — |
 | C12 | UX cadastro rápido (quick-add, densidade 1280px, dedup) | P1 | ✅ APROVADO | `quick_add`/`save_quick_product` + Create(80)/Edit(79) | — |
 | C16 | Catálogo público / QR (venda-social) | P2 | ✅ APROVADO | `Modules/ProductCatalogue` + `CatalogueQrService` (domínio separado) | — (diferencial vertical) |
-| C02 | Preço por tabela + **multiplicador/markup por tabela** | P0 | 🟡 PARCIAL | `group_prices` por variação existe, mas `SellingPriceGroup.mult` **hardcoded 1.00** ([ADR ARQ-0001](adr/arq/0001-selling-price-multiplier.md)) | **G-02** |
+| C02 | Preço por tabela + **regra de tabela inteira** | P0 | 🟡 PARCIAL | preço por (variação × grupo) **funciona** (`group_prices`, `fixed`+`percentage`); falta o **default de grupo**. ⚠️ v1 dizia "`mult` hardcoded 1.00" como se não funcionasse — falso (Errata [ADR ARQ-0001](adr/arq/0001-selling-price-multiplier.md), 2026-07-17) | **G-02** |
 | C04 | **Kardex / histórico de movimento (timeline real)** | P0 | 🟡 PARCIAL | backend `getVariationStockHistory` (Blade); tela React `StockHistory` **NÃO recebe `movements`** (grade 47) | **G-01** |
 | C05 | Custo médio + valor/custo em estoque (agregação) | P0 | 🟡 PARCIAL | `default_purchase_price` por variação; agregação/CMC **ausente** (`margem_media=0` TODO) | **G-03** |
 | C07 | Combo/kit + BOM (estrutura de componentes) | P1 | 🟡 PARCIAL | combo `type=='combo'` + `ProductBom` CRUD API real; **UI drag-drop pendente (US-INV-002)** | **G-06** |
@@ -46,7 +46,7 @@
 |---|:-:|---|---|---|---|
 | 1 | **P0** | **Criar `SPEC.md` do Produto** (US-PROD-001..) — contrato de capacidade do core-dos-cores | G-04 | S ~4-6h | Sem SPEC, teste vira tautológico (proibicoes §5); é o pré-req barato que destrava os testes de valor. **Começa aqui.** |
 | 2 | **P0** | **Kardex real na tela React `StockHistory`** — passar `movements` no render Inertia + timeline JSON `defer` (deixa de linkar Blade) | G-01 / C04 | M ~8-12h | `StockHistory.tsx` prop `movements` fica `undefined`; grade 47 "fachada"; Larissa não audita estoque hoje |
-| 3 | **P1** | ⚠️ **Multiplicador/markup por tabela de preço** — resolver `SellingPriceGroup.mult` (ADR ARQ-0001) | G-02 / C02 | M ~10-16h | `mult=1.00` hardcoded; preço-por-tabela aparenta funcionar mas é 1:1; desbloqueia F3 `/unificado`. **Tier 0 valor** |
+| 3 | **P1** | ⚠️ **Regra de tabela inteira** — default por `selling_price_group` (ARQ-0001 + Errata) | G-02 / C02 | M ~10-16h | ⚠️ **reavaliar [W]**: o preço por célula **funciona** (não é "1:1"); o gap é granularidade de grupo. Sem sinal de cliente = feature-wish (ADR 0105). **Tier 0 valor** |
 | 4 | **P1** | **`can:product.view` em `/products/unificado` + promover 8 charters draft→live** (smoke browser biz=1) | G-05 / C17+C15 | S ~3-6h | TODO no código (rota sem gate); 8 telas `awaiting-smoke-browser`, 0 `live` |
 | 5 | **P2** | ⚠️ **Agregação valor/custo em estoque + custo médio** no `/unificado` (KPIs margem/sem_giro/stockQty hoje zerados) | G-03 / C05+C13 | L ~20-30h | totalizadores de inventário do mockup Cowork (produtos-gap.md); **Tier 0 estoque/valor** — medir + dupla-confirmação |
 | 6 | **P2** | **UI de BOM drag-drop** (US-INV-002) + baixa-de-componente do kit no PDV comprovada | G-06 / C07 | M ~12-16h | `ProductBom` API existe, UI não; kit sem baixa-de-componente comprovada |

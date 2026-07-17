@@ -12,7 +12,7 @@ Produto é o domínio **core** de cadastro de produto/variações do ERP (Ultima
 **Capacidades PLANEJADAS (não construídas):**
 - Charters virarem `status: live` + smoke browser — pendente aprovação Wagner de Non-Goals + Anti-hooks.
 - Decisão de **unificar ou manter** `/products` (grid lite) vs `/products/unificado` (denso) — em aberto.
-- Multiplicador de preço por tabela (`SellingPriceGroup.mult`) — **proposed** (ADR ARQ-0001 Produto, `mult` hardcoded 1.00 com TODO), bloqueia F3 do `/produto/unificado`.
+- Regra de tabela inteira ("−15% em tudo" como default por grupo) — **proposed** (ADR ARQ-0001 + Errata 2026-07-17). ⚠️ Não confundir com "multiplicador oco": o preço por (variação × tabela) **funciona** (`fixed`/`percentage`); o `mult=1.00` era prop cosmético do protótipo `/unificado`. O gap é granularidade (célula a célula → default de tabela).
 - Middleware `can:product.view` na rota `/products/unificado` — TODO no código.
 
 **Distinção vs `Modules/ProductCatalogue` (NÃO é o mesmo domínio):** ProductCatalogue é módulo nWidart **separado** — catálogo **público** (`/catalogue/{business_id}/{location_id}`, Blade) com **QR code** (`CatalogueQrService`). Não compartilha controller nem Pages com o domínio core Produto.
