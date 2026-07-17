@@ -1553,3 +1553,95 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 **Fix:** instalar runner canônico (host cron chamando `docker exec oimpresso-staging php artisan schedule:run` por minuto, OU cron semanal direto dos 2 comandos, seguindo o pattern do `ct100-ragas-publish.sh`) + REGISTRAR no git (mexeu-registra) + investigar por que o trend rejeitou a semana de 04/jul ("1 semana(s), última 2026-06-28"). Sem isso, `ragas_real_uptime` do scorecard SDD mede uma régua morta.
 
 **Refs:** ADR 0318 · `scripts/tests/ct100-ragas-publish.sh` · `app/Console/Kernel.php` (schedules dom 06:30/07:00 staging).
+
+### US-COPI-135 · Desbloquear modelo frontier + fallback na Jana (gpt-4o-mini é o mais fraco do mercado)
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> blocked_by: —
+
+**Origem:** grade de réguas 2026-07-17 — item #1 do "roubar" (maior impacto÷esforço da grade); dimensão `erp-ia-produto` nota 4,5/10.
+
+**Sinal (ADR 0105 — métrica detecta drift):** a Jana responde ao cliente com `gpt-4o-mini`, o modelo mais fraco entre os comparados. Régua: SAP usa Claude como raciocínio primário; Olist roteia 4 LLMs. Pareia com `qualidade-drift-ia-producao` nota 4,0 (`context_recall 0,3839`).
+
+**O ponto:** NÃO é engenharia — é conta de fornecedor. A config **já prevê** o contrário (`Modules/Jana/Config/config.php:531`). Hoje não há fallback: se o provider cai, a Jana cai.
+
+**Escopo:**
+- [ ] Liberar `gpt-4o` OU `provider=anthropic` no config (decisão [W] — envolve custo)
+- [ ] Cadeia de fallback (provider primário → secundário) — hoje inexistente
+- [ ] Medir antes/depois no gold-set (`jana:recall-eval`) pra provar que a resposta melhorou, não só o preço subiu
+- [ ] Registrar o custo/1k tokens antes→depois (pareia com `agent-cost-per-pr`)
+
+**Ressalva do adversário:** trocar o modelo NÃO conserta o `context_recall 0,3839` — recall é retrieval, não geração. Se subir só o modelo, a Jana responde melhor sobre o contexto errado. Fazer junto do piso de recall.
+
+**Bloqueio real:** decisão [W] sobre custo. Sem isso o ticket não anda.
+
+### US-COPI-136 · Piso de context_recall no baseline (recall 0,3839 pode cair sem alarme)
+
+> owner: — · priority: p1 · estimate: 3h · status: todo · type: story
+
+**Origem:** grade de réguas 2026-07-17 — chip C6; dimensão `qualidade-drift-ia-producao` nota 4,0/10.
+
+**Sinal (ADR 0105 — métrica detecta drift):** `context_recall = 0,3839` medido. A Jana responde ao cliente com contexto reconhecidamente incompleto e **não há piso** — o número pode cair pra 0,20 sem nada avermelhar.
+
+**Escopo:**
+- [ ] **Estender** o baseline existente em `governance/` — NUNCA régua paralela (lápide §5 2026-07-09 "duplica régua consolidada")
+- [ ] Piso = **medido menos margem**, não o 0.80 aspiracional (piso que nasce vermelho é ignorado no dia seguinte)
+- [ ] Advisory primeiro; required só via emenda ADR + flip [W] (lápide §5 2026-07-01)
+
+**Ressalva do adversário:** o piso trava a QUEDA, não conserta o recall. É anti-regressão, não melhoria — não confundir "piso armado" com "busca funciona".
+
+**Pareia com:** US-COPI-135 — subir o modelo sem piso de recall = responder melhor sobre o contexto errado.
+
+**Refs:** ADR 0318 · `governance/jana-ragas-real-baseline.json`
+
+### US-COPI-137 · Eval online em 5% dos traces reais (hoje: zero avaliação no tráfego do cliente)
+
+> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+
+**Origem:** grade de réguas 2026-07-17 — item #7 do "roubar"; `qualidade-drift-ia-producao` 4,0/10.
+
+**Sinal (ADR 0105):** a única medição de qualidade da Jana é offline (gold-set). **Zero eval no tráfego real** — se a Jana degradar pro cliente, ninguém sabe até ele reclamar. Langfuse está LIVE desde 2026-07-02 e `LangfuseClient::score()` **já existe** com o docblock certo.
+
+**Escopo:**
+- [ ] Amostrar ~5% dos traces reais → `RagasJudgeService` (SoC: o julgamento não mora no client)
+- [ ] Score por business via `LangfuseClient::score()` (feature nativa do que já rodamos)
+- [ ] **Tier 0:** trace de cliente é biz≠1 → `PiiRedactor` ANTES de mandar pro juiz (ADR 0093 + LGPD)
+- [ ] Advisory: publica número, não bloqueia nada
+
+**Ressalva do adversário:** trocar RAGAS tautológico por RAGAS não-calibrado pode ser trocar teatro por teatro com casas decimais — a literatura 2026 mediu falha de validade discriminante do `faithfulness` (19,3pp retrieval vs 15,9pp geração). Começar medindo, sem gate.
+
+**Refs:** ADR 0318 · `Modules/Jana/Services/LangfuseClient.php`
+
+### US-COPI-138 · Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+
+**Origem:** grade de réguas 2026-07-17 — item #2 do "roubar" + chip C4; `observabilidade-agente` 6,5/10.
+
+**Sinal (ADR 0105 — métrica detecta drift):** o Langfuse está LIVE desde 2026-07-02 e **não tem heartbeat**. Se parar de receber trace, ninguém descobre — foi assim que um buraco de 7 semanas passou. O `HealthCheckCommand` já tem 10 checks, incluindo o `brief_uptime_24h` que é exatamente o mesmo formato.
+
+**Escopo:**
+- [ ] 1 check `langfuse_trace_uptime_24h` espelhando `brief_uptime_24h` — **mesmo arquivo**, nada novo
+- [ ] Ler a **fonte real** (API/log do Langfuse), NUNCA flag ou artefato (o chip C4 traz essa ressalva: heartbeat que lê flag mede a si mesmo)
+- [ ] ALERT em `storage/logs/laravel.log` no padrão dos outros 5 checks
+
+**Refs:** `app/Console/Kernel.php` (schedule daily 06:00 BRT) · `Modules/Jana/Console/HealthCheckCommand.php`
+
+### US-COPI-139 · Badalo do ratio negócio÷governança no brief-fetch (o alarme existe e nunca dispara)
+
+> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+
+**Origem:** grade de réguas 2026-07-17 — item #3 do "roubar" + fraqueza `inteligencia-de-negocio` **3,0/10** (a pior nota do sistema).
+
+**Sinal (ADR 0105 — métrica detecta drift, medido 2026-07-17):** 4 semanas · 1311 merges · **negócio 233 × governança 776 · ratio 3,33× · `alarme: true`** (77% do fluxo). Tendência: mai 38% → jun 64% → jul **78%**.
+
+**O ponto:** o alarme **já existe** (`scripts/governance/negocio-vs-governanca-ratio.mjs`, ADR 0334) e **nunca dispara** — fora de `memory/` ele só é invocado pelo próprio unit test. Zero cron. Os 3,33× só existem porque um verificador rodou na mão.
+
+**Escopo:**
+- [ ] Imprimir `negócio÷governança (4sem): 233/776 = 77% ⚠️` no `brief-fetch` (Tier A, lido ~6×/dia por agente e [W])
+- [ ] **Relato, NÃO gate** — sem catraca, sem bloqueio (ADR 0334 pede sentinela, não portão)
+- [ ] Caminho vivo provado: o brief já é lido; não inventar superfície nova
+
+**Ressalva do adversário:** pendurar no brief é relato. Se o número subir e ninguém agir, o badalo vira ruído — a decisão de agir é [W], o ticket só torna o número impossível de não ver.
+
+**Refs:** ADR 0334 · ADR 0105 · `scripts/governance/negocio-vs-governanca-ratio.mjs`
