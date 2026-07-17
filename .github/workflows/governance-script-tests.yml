@@ -50,6 +50,8 @@ jobs:
         run: node scripts/governance/sdd-distiller-freshness.test.mjs
       - name: CT100 sdd-scorecard-snapshot wrapper (sintaxe + fatal-sem-artefato + docker mock + staleness WARNING)
         run: bash scripts/tests/ct100-sdd-scorecard-snapshot.test.sh
+      - name: CT100 jana-evals invocador (US-COPI-140 · docker mock + nao-mascara-falha + drift-sentinel fora)
+        run: bash scripts/tests/ct100-jana-evals.test.sh
       - name: Block-test-fora-ct100 PORTE .mjs (logica + E2E · roda em Linux · card #2 cross-platform)
         run: node .claude/hooks/block-test-fora-ct100.test.mjs
       - name: Block-test-fora-ct100 REGISTRADO como node (correcao != invocacao)
