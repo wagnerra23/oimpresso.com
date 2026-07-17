@@ -1,6 +1,8 @@
 import { Head, useForm, usePage } from '@inertiajs/react'
 import { useEffect, useState } from 'react'
 
+import { Inline } from '@/Components/layout'
+
 /**
  * Canal público de sinal do cliente — US-INFRA-002 · ADR 0105 · ADR 0334.
  *
@@ -71,7 +73,7 @@ export default function FeedbackPublico({ business_nome, submit_url, severidades
     return (
       <>
         <Head title="Recebido — oimpresso" />
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+        <Inline align="center" justify="center" className="min-h-screen bg-slate-50 p-4">
           <div className="w-full max-w-lg bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
             <div className="text-4xl mb-4" aria-hidden="true">
               ✓
@@ -88,7 +90,7 @@ export default function FeedbackPublico({ business_nome, submit_url, severidades
               Contar outra coisa
             </button>
           </div>
-        </div>
+        </Inline>
       </>
     )
   }
@@ -97,7 +99,7 @@ export default function FeedbackPublico({ business_nome, submit_url, severidades
     <>
       <Head title="Falar com a gente — oimpresso" />
 
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+      <Inline align="center" justify="center" className="min-h-screen bg-slate-50 p-4">
         <div className="w-full max-w-lg bg-white rounded-xl shadow-sm border border-slate-200 p-6 sm:p-8">
           <header className="mb-6">
             <h1 className="text-xl font-semibold text-slate-900">O que não está bom?</h1>
@@ -136,19 +138,22 @@ export default function FeedbackPublico({ business_nome, submit_url, severidades
               </legend>
               <div className="space-y-1.5">
                 {severidades.map((s) => (
-                  <label
-                    key={s.valor}
-                    className="flex items-start gap-2.5 rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50 has-[:checked]:bg-violet-50 has-[:checked]:ring-1 has-[:checked]:ring-violet-200"
-                  >
-                    <input
-                      type="radio"
-                      name="severity_self_reported"
-                      value={s.valor}
-                      checked={data.severity_self_reported === s.valor}
-                      onChange={() => setData('severity_self_reported', s.valor)}
-                      className="mt-0.5 text-violet-600 focus:ring-violet-500"
-                    />
-                    <span className="text-sm text-slate-700">{s.label}</span>
+                  <label key={s.valor} className="block">
+                    <Inline
+                      gap={2}
+                      align="start"
+                      className="rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50 has-[:checked]:bg-violet-50 has-[:checked]:ring-1 has-[:checked]:ring-violet-200"
+                    >
+                      <input
+                        type="radio"
+                        name="severity_self_reported"
+                        value={s.valor}
+                        checked={data.severity_self_reported === s.valor}
+                        onChange={() => setData('severity_self_reported', s.valor)}
+                        className="mt-0.5 text-violet-600 focus:ring-violet-500"
+                      />
+                      <span className="text-sm text-slate-700">{s.label}</span>
+                    </Inline>
                   </label>
                 ))}
               </div>
@@ -187,7 +192,7 @@ export default function FeedbackPublico({ business_nome, submit_url, severidades
             </button>
           </form>
         </div>
-      </div>
+      </Inline>
     </>
   )
 }

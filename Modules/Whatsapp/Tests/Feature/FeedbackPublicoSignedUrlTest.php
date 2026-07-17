@@ -21,14 +21,16 @@ uses(Tests\TestCase::class);
  *
  * biz=1 e biz=99 conforme ADR 0101 (nunca biz=4 — cliente real ROTA LIVRE).
  *
- * Cobre:
- *   001. URL assinada válida NÃO dá 403 (a assinatura é aceita — release)
- *   002. sem assinatura → 403 (bite)
- *   003. ?biz adulterado 1→99 → 403 — o teste-âncora do isolamento (bite)
- *   004. assinatura expirada → 403 (bite)
- *   005. POST sem assinatura → 403 (bite — o canal de escrita também é coberto)
- *   006. POST com ?biz adulterado → 403 (bite)
+ * Cobre UC-FBP-01, UC-FBP-02, UC-FBP-03, UC-FBP-04, UC-FBP-05 (FeedbackPublico.casos.md)
+ * — G-2 rastreabilidade caso↔teste (ADR 0264):
+ *   001 → UC-FBP-05  URL assinada válida NÃO dá 403 (a assinatura é aceita — release)
+ *   002 → UC-FBP-03  sem assinatura → 403 (bite)
+ *   003 → UC-FBP-01  ?biz adulterado 1→99 → 403 — o teste-âncora do isolamento (bite)
+ *   004 → UC-FBP-04  assinatura expirada → 403 (bite)
+ *   005 → UC-FBP-03  POST sem assinatura → 403 (bite — a escrita também é coberta)
+ *   006 → UC-FBP-02  POST com ?biz adulterado → 403 (bite)
  *
+ * @see resources/js/Pages/Whatsapp/FeedbackPublico.casos.md
  * @see memory/requisitos/Whatsapp/RUNBOOK-feedback-publico.md §3
  */
 
