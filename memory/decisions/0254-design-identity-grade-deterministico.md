@@ -15,11 +15,9 @@ supersedes: []
 amends: []
 superseded_by: []
 related:
-  - "0230-metodo-governance-scorecard"
-  - "0209-eslint-baseline-ratchet"
-  - "0155-rubrica-module-grade-v3"
-  - "0253-primitivos-layout"
-  - "0235-ds-v4-accent-roxo-universal"
+  - 0230-metodo-governance-scorecard
+  - 0253-primitivos-layout
+  - 0235-ds-v4-accent-roxo-universal
 pii: false
 ---
 

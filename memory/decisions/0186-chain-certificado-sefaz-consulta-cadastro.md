@@ -16,7 +16,6 @@ supersedes_partially: []
 superseded_by: []
 related:
   - 0093-multi-tenant-isolation-tier-0
-  - 0090-cert-legacy-nfe-brasil-coexistence
   - 0179-cliente-drawer-760px-substitui-show-fullpage
   - 0178-restauracao-campos-fiscais-br-canon
   - 0105-cliente-como-sinal-guiar-sem-mandar

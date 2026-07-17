@@ -17,7 +17,7 @@ tags: [components, design-system, arquitetura, enforcement, catraca, dedup, ui-0
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: ["0240-derivado-enforcado-sobrevive", "0253-primitivos-layout", "0271-revisao-gates-ci-estado-real-required-e-subtracao-segura"]
+related: [0253-primitivos-layout, 0271-revisao-gates-ci-estado-real-required-e-subtracao-segura]
 ---
 
 # ADR 0272 — Árvore canônica de componentes: camadas UI-0013 viram pastas enforçadas

@@ -14,7 +14,7 @@ tags: [integracao, delphi, ads, connector, multi-system]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0021-officeimpresso-contrato-api-delphi, 0015-connector-api-gateway, 0096-arq-0001-ads]
+related: [0021-officeimpresso-contrato-api-delphi, 0015-connector-api-gateway]
 pii: false
 review_triggers:
   - cliente Delphi for recompilado e redistribuído

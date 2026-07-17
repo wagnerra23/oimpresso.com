@@ -18,11 +18,10 @@ amends:
   - "0235-ds-v4-accent-roxo-universal"
 superseded_by: []
 related:
-  - "0013-constituicao-ui-v2-camadas"
-  - "0235-ds-v4-accent-roxo-universal"
-  - "0244-ds-v5-canon-oficina-padrao"
-  - "0246-sessao-2026-05-30-ds-harmonizacao"
-  - "0247-ratificacao-constituicao-design"
+  - 0235-ds-v4-accent-roxo-universal
+  - 0244-ds-v5-canon-oficina-padrao
+  - 0246-sessao-2026-05-30-ds-harmonizacao
+  - 0247-ratificacao-constituicao-design
 pii: false
 ---
 

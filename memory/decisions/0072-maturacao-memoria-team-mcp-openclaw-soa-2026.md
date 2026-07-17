@@ -15,7 +15,6 @@ supersedes: []
 supersedes_partially: []
 superseded_by: []
 related:
-  - 0035-stack-canonica-ia-laravel-ai-memoria-contrato
   - 0036-replanejamento-meilisearch-first
   - 0037-roadmap-evolucao-tier-7-plus
   - 0049-camadas-memoria-agente-fase-por-fase
