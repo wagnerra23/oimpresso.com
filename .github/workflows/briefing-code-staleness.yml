@@ -42,6 +42,10 @@ on:
       - 'scripts/governance/adr-proposto-parado.mjs'
       - 'memory/decisions/**'
       - '.github/workflows/briefing-code-staleness.yml'
+      # … e no PR que toca a porta/sentinela do eixo 5 (AGENTS.md × CLAUDE.md ∪ @imports).
+      # CLAUDE.md e memory/*.md (a superfície do eixo 5) já entram pelo bloco do eixo 4.
+      - 'AGENTS.md'
+      - 'scripts/governance/agents-md-staleness.mjs'
       # … e no PR que toca docs do corpus do eixo 4 (radar de frescor por doc).
       - 'CLAUDE.md'
       - 'README.md'
@@ -104,3 +108,13 @@ jobs:
         run: node scripts/governance/doc-freshness-score.mjs --selftest
       - name: reporter radar de frescor por doc (advisory — top-5 piores em ::warning)
         run: node scripts/governance/doc-freshness-score.mjs
+      # Eixo 5 — AGENTS.md × CLAUDE.md ∪ @imports. Fecha o último órfão do CORPUS DE
+      # ENTRADA: Codex/Cursor NAO expandem `@CLAUDE.md`, entao pra eles o resumo do
+      # AGENTS.md E o corpus inteiro — e ninguem vigiava se ele ficou pra tras.
+      # Incidente-ancora medido em git: stack REJEITADA (Vizra, ADR 0048) serviu 71
+      # dias (2026-04-29 -> 2026-07-09), pega so por auditoria humana. Nucleo reusado
+      # (classifyCodeStaleness), mesmo padrao do eixo 2 — nao e motor novo (§5).
+      - name: self-test agents-md-staleness (bite/release + âncora Vizra · determinístico)
+        run: node scripts/governance/agents-md-staleness.mjs --selftest
+      - name: reporter AGENTS.md × CLAUDE.md (advisory)
+        run: node scripts/governance/agents-md-staleness.mjs
