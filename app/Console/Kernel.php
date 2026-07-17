@@ -541,14 +541,23 @@ class Kernel extends ConsoleKernel
         // answer_relevancy 0.75 · context_recall 0.36 (medido menos margem; "start lower,
         // tighten iteratively"), todos alertando em REGRESSÃO real, não no 0.80 aspiracional.
         //
-        // ⚠️ MEDIDO 2026-07-17: este schedule NUNCA disparou sozinho — nada invoca
-        // `schedule:run` no CT 100 (0 ocorrências em todo cron do host; container sem
-        // cron/supervisord). O gate environments(['staging']) casa, mas o scheduler não
-        // roda: os números do baseline vieram de runs MANUAIS. Mesmo caso dos irmãos
-        // staging acima (drift-sentinel, recall-eval). Ver gaps_conhecidos.eval_nao_roda_sozinho
-        // no baseline. Ligar `schedule:run` genérico NÃO é o fix: 7 schedules sem
-        // environments() viriam junto (pos:generateSubscriptionInvoices, pos:autoSendPaymentReminder)
-        // contra o clone da produção.
+        // ⚠️ MEDIDO 2026-07-17 (US-COPI-140): este schedule NUNCA disparou sozinho —
+        // nada invoca `schedule:run` no CT 100 (0 ocorrências em todo cron do host;
+        // container sem cron/supervisord; /etc/periodic/* vazios). O gate
+        // environments(['staging']) casa — APP_ENV do container É staging — mas o
+        // scheduler não roda: os números do baseline vieram de runs MANUAIS. Vale
+        // igual pro recall-eval acima — são os 2 ÚNICOS schedules de staging do arquivo.
+        //
+        // CONTRASTE que prova que o defeito é só o invocador do CT 100 (não o Kernel,
+        // não o comando, não o gate): o irmão jana:drift-sentinel é ->environments(['live'])
+        // e RODA semanal em prod, no horário (log copiloto-ai: 2026-07-05 06:01:29 e
+        // 2026-07-12 06:01:27, mock_mode:false). Prod tem scheduler (cron do hPanel);
+        // o CT 100 não.
+        //
+        // Ver gaps_conhecidos.eval_nao_roda_sozinho no baseline + US-COPI-140 (inclui
+        // a errata dos números da 1ª redação: eram 2 evals, não 3; e o raio real de
+        // `schedule:run` em staging é 1 colateral benigno, não 7 perigosos — os
+        // pos:* de cobrança/fatura estão dentro de `if ($env === 'live')` na L28).
         $schedule->command('jana:ragas-real-eval --json')
             ->weeklyOn(0, '07:00')
             ->timezone('America/Sao_Paulo')

@@ -1597,7 +1597,7 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 **Ressalva do adversário:** o piso trava a QUEDA, não conserta o recall. É anti-regressão, não melhoria — não confundir "piso armado" com "busca funciona".
 
-**⚠️ Achado durante a implementação (2026-07-17) — o piso está armado mas ainda NÃO é alarme:** o schedule semanal que produziria o número **nunca disparou sozinho**. `schedule:run` = **0 ocorrências** em todo cron do CT 100 (4 entradas no crontab do host, nenhuma é scheduler; container sem cron/supervisord; `/etc/periodic/*` vazios). O gate `environments(['staging'])` casa — o `APP_ENV` do container **é** staging — mas nada invoca o scheduler: os 3 pontos medidos vieram de runs **manuais**. Vale igual pros irmãos staging `jana:drift-sentinel` e `jana:recall-eval --mode=real`. O transporte (`ct100-ragas-publish.sh`, dom 08:30) está **vivo** e relê o mesmo report velho toda semana — por isso a órfã `governance/ragas-real-trend` tem 1 semana só. Ver `gaps_conhecidos.eval_nao_roda_sozinho` no baseline. **Ligar `schedule:run` genérico não é o fix** — 7 schedules sem `environments()` viriam junto, incl. `pos:generateSubscriptionInvoices` e `pos:autoSendPaymentReminder` contra o clone da produção. Endereçado por **US-COPI-140**.
+**⚠️ Achado durante a implementação (2026-07-17) — o piso está armado mas ainda NÃO é alarme:** o schedule semanal que produziria o número **nunca disparou sozinho**. `schedule:run` = **0 ocorrências** em todo cron do CT 100 (4 entradas no crontab do host, nenhuma é scheduler; container sem cron/supervisord; `/etc/periodic/*` vazios). O gate `environments(['staging'])` casa — o `APP_ENV` do container **é** staging — mas nada invoca o scheduler: os 3 pontos medidos vieram de runs **manuais**. Vale igual pro outro schedule de staging, `jana:recall-eval --mode=real`. O transporte (`ct100-ragas-publish.sh`, dom 08:30) está **vivo** e relê o mesmo report velho toda semana — por isso a órfã `governance/ragas-real-trend` tem 1 semana só. Ver `gaps_conhecidos.eval_nao_roda_sozinho` no baseline. Endereçado por **US-COPI-140** (que carrega a errata: são **2** evals de staging, não 3 — o `drift-sentinel` é `['live']` e **roda** em prod).
 
 **Pareia com:** US-COPI-135 — subir o modelo sem piso de recall = responder melhor sobre o contexto errado.
 
@@ -1655,14 +1655,23 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 **Refs:** ADR 0334 · ADR 0105 · `scripts/governance/negocio-vs-governanca-ratio.mjs`
 
-### US-COPI-140 · Os 3 evals de qualidade da Jana nunca rodam sozinhos (schedule fantasma no CT 100)
+### US-COPI-140 · Os 2 evals de staging da Jana nunca rodam sozinhos (schedule fantasma no CT 100)
 
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
+> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
 > blocked_by: — (precisa de decisão [W] sobre o caminho — ver Escopo)
 
 **Origem:** achado durante a implementação da US-COPI-136 (2026-07-17). A US-136 pedia um piso pro `context_recall`; ao verificar **quem consome** o número, a série provou-se parada.
 
-**Sinal (ADR 0105 — métrica detecta drift · MEDIDO, não estimado):** os três schedules de qualidade da Jana — `jana:drift-sentinel` (dom 06:00), `jana:recall-eval --mode=real` (dom 06:30) e `jana:ragas-real-eval` (dom 07:00), todos `environments(['staging'])` no `app/Console/Kernel.php` — **nunca dispararam sozinhos**. Não é o gate de ambiente: o `APP_ENV` do container `oimpresso-staging` **é** `staging` e casa. É que **nada invoca o scheduler**:
+> ⚠️ **ERRATA (2026-07-17, mesma sessão — antes de qualquer merge desta US).** A 1ª redação deste ticket dizia **"os 3 evals"** e listava **"7 schedules perigosos"** no raio de explosão. **As duas afirmações estavam ERRADAS**, por defeito do meu parser (não do repo). Corrigido abaixo; a errata fica registrada porque o número errado embasou uma decisão de caminho.
+>
+> | Eu afirmei | Verdade medida | Por que errei |
+> |---|---|---|
+> | 3 evals fantasma (incl. `jana:drift-sentinel`) | **2** — o `drift-sentinel` é `->environments(['live'])` e **RODA** semanalmente em prod (log `copiloto-ai`: 05/07 06:01 e 12/07 06:01, `mock_mode:false`) | fatiei os schedules com `split` **antes** de `$schedule->`, então o bloco de comentário que *precede* o `recall-eval` — e cita `environments(['staging'])` **em prosa** (Kernel L480) — caiu na fatia do `drift-sentinel`. Contei comentário como código. |
+> | 7 schedules sem gate rodariam em staging, incl. `pos:generateSubscriptionInvoices` (gera faturas) e `pos:autoSendPaymentReminder` (lembrete de cobrança) | **1** — e é benigno (`errors:archive-stale-groups`) | os "perigosos" estão dentro de **`if ($env === 'live')`** (Kernel L28) e o `pos:dummyBusiness` dentro de `if ($env === 'demo')` (L1476). São gated por **`if` de PHP**, não por `->environments()` — meu parser só procurava `->environments(`. Com `APP_ENV=staging` eles **nem são registrados**. |
+>
+> Lição (ecoa a lápide §5 2026-07-15): varredura por regex **não é varredura**. Gate de ambiente em PHP tem ≥2 formas (`->environments()` **e** `if ($env === …)`); contar só uma delas e chamar de "medido" é o mesmo defeito de apresentar achado sem varrer.
+
+**Sinal (ADR 0105 — métrica detecta drift · MEDIDO, não estimado):** os **dois** schedules `environments(['staging'])` do `app/Console/Kernel.php` — `jana:recall-eval --mode=real` (dom 06:30) e `jana:ragas-real-eval` (dom 07:00) — **nunca dispararam sozinhos**. Não é o gate de ambiente: o `APP_ENV` do container `oimpresso-staging` **é** `staging` e casa. É que **nada invoca o scheduler**:
 
 | Verificação (CT 100, 2026-07-17) | Resultado |
 |---|---|
@@ -1672,6 +1681,8 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 | cron/supervisord **dentro** do container | nenhum processo; `/etc/periodic/{15min,hourly,daily}` **vazios** |
 
 **Consequência medida:** todo número do `governance/jana-ragas-real-baseline.json` veio de run **manual** (2026-07-01, 07-04, 07-12 21:48 — este último fora de qualquer janela agendada). A órfã `governance/ragas-real-trend` tem **1 semana** (`2026-06-28`) desde 2026-07-04, com `first_scheduled: 2026-07-05`. O transporte **não é o culpado** — `ct100-ragas-publish.sh` roda religiosamente (publish.log de 12/07 08:30) e faz o certo: relê o report do container e republica. Como o report nunca muda, ele republica a mesma semana pra sempre. Transporte impecável carregando sinal parado.
+
+**Contraste que prova o diagnóstico:** o `jana:drift-sentinel` é o **irmão de controle**. Mesmo módulo, mesma família, mesma cadência dominical — só que `->environments(['live'])`. Ele **roda** (prod tem scheduler + `APP_ENV="live"`), toda semana, no horário: `[2026-07-05 06:01:29]` e `[2026-07-12 06:01:27]`, `mock_mode:false`. Ou seja, o defeito **não** é o Kernel, nem o comando, nem o gate — é **só o invocador do CT 100**.
 
 **Classe do defeito:** "correção-do-mecanismo ≠ invocação" — irmão direto da US-COPI-139 (*"o alarme já existe e nunca dispara — fora de memory/ só é invocado pelo próprio unit test. Zero cron."*) e da lápide §5 2026-07-09 *"Chokepoint de guard em comando fantasma que o fluxo real não atravessa"*. Aqui o guard é real, o baseline é honesto, o transporte é vivo — **falta o invocador**.
 
@@ -1686,19 +1697,20 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 Ou seja: o container de staging foi construído pra **servir HTTP** (entrypoint Octane) e ninguém cabeou scheduler nele. Os schedules `environments(['staging'])` nasceram assumindo um scheduler que **nunca existiu**.
 
-**⛔ O fix ÓBVIO é o errado.** Instalar `* * * * * docker exec oimpresso-staging php artisan schedule:run` acorda **os 87 schedules** do Kernel, e **7 não têm `environments()`** — rodariam em staging, que é clone da produção:
+**Raio de explosão REAL de `schedule:run` em staging (recontado — ver errata):** dos **65** statements de schedule do Kernel, com `APP_ENV=staging` disparariam **3**:
 
-| Schedule sem `environments()` | Risco |
+| Dispararia | Veredito |
 |---|---|
-| `pos:generateSubscriptionInvoices` (23:30) | **gera faturas** |
-| `pos:autoSendPaymentReminder` (08:00) | **dispara lembrete de cobrança** |
-| `backup:run` / `backup:clean` (01:30 / 01:00) | escrita de backup |
-| `pos:updateRewardPoints`, `pos:dummyBusiness`, `errors:archive-stale-groups` | menor |
+| `jana:recall-eval --mode=real` | ✅ **é o que queremos** |
+| `jana:ragas-real-eval --json` | ✅ **é o que queremos** |
+| `errors:archive-stale-groups` (diário 04:00) | ⚠️ colateral **único** — sem gate nenhum (Kernel L24). Arquiva grupo de erro sem ocorrência há N dias, no DB **do staging**. Benigno. |
 
-**Escopo (decisão [W] entre dois caminhos):**
-- [ ] **Caminho A — cron direto por job** (segue o padrão vivo do CT 100: as 4 entradas do host são invocações diretas, nenhuma usa scheduler). Barato, blast-radius zero, mas duplica a declaração (Kernel diz uma coisa, cron diz outra → drift de agenda).
-- [ ] **Caminho B — `schedule:run` + fechar os 7 buracos** com `->environments(['live'])` explícito nos schedules que não devem rodar em staging. Honra o Kernel como dono único da agenda; exige auditar os 7 (e `pos:autoSendPaymentReminder` toca cliente — Tier 0).
-- [ ] Qualquer que seja: **provar a invocação com controle-negativo** (o schedule tem que rodar sozinho ao menos 1× e aparecer no trend com semana nova) — senão trocamos um fantasma por outro.
+Os demais **não** disparam: 54 são `->environments(['live'])`, 3 são `['local','live']`, e **6 estão dentro de `if ($env === 'live')`/`if ($env === 'demo')`** — estes nem chegam a ser registrados quando `APP_ENV=staging`. **Os "perigosos" (`pos:generateSubscriptionInvoices`, `pos:autoSendPaymentReminder`, `backup:*`) estão TODOS no bloco `if ($env === 'live')` (L28) — jamais rodariam em staging.**
+
+**Escopo (decisão [W] entre dois caminhos — reabrir com os números corrigidos):**
+- [ ] **Caminho A — cron direto por job.** Segue o padrão vivo do CT 100 (as 4 entradas do host invocam scripts direto; nenhuma usa scheduler). Blast-radius **zero**. Custo: duplica a declaração — o Kernel diz uma coisa e o cron diz outra (drift de agenda), e o `->environments(['staging'])` do Kernel vira letra morta permanente.
+- [ ] **Caminho B — `schedule:run` no staging.** Honra o Kernel como **dono único** da agenda (sem duplicação) e faz os 2 evals rodarem *como declarados*. Custo REAL: **1** colateral benigno (`errors:archive-stale-groups`) — opcionalmente fechável com `->environments(['live'])` numa linha. Com os números corrigidos, este caminho é **bem mais barato do que a 1ª redação fez parecer**.
+- [ ] Qualquer que seja: **provar a invocação com controle-negativo** (o eval tem que rodar sozinho ao menos 1× e aparecer no trend com semana nova) — senão trocamos um fantasma por outro.
 - [ ] Só depois disso o piso da US-COPI-136 vira alarme de verdade.
 
 **Ressalva do adversário:** não confundir "cron instalado" com "sinal fluindo". O DoD é **uma semana nova na órfã `governance/ragas-real-trend` que ninguém rodou à mão** — não é o `crontab -l` mostrando a linha (isso seria presence-gate, lápide §5 2026-07-16).
