@@ -187,7 +187,12 @@ function ServiceOrderKanbanCardImpl({ card, stageKey, topBorderClass, density = 
       {...(canDrag ? listeners : {})}
       className={
         'relative rounded border border-t-2 border-border ' + topBorderClass + ' '
-        + 'bg-white p-2.5 transition-colors '
+        // `bg-card`, NÃO `bg-white`: o texto do card usa tokens semânticos
+        // (text-foreground/text-muted-foreground), que viram CLAROS no dark — sobre branco fixo
+        // ficava claro-sobre-claro, ilegível. Mesmo defeito do #4367 (Board) e do #4373 (tons de
+        // KPI); o card escapou dos dois porque a baseline do quadro estava VAZIA e nenhum card
+        // renderizava no gate. O drag overlay do mesmo card (Board.tsx:462) já usava `bg-card`.
+        + 'bg-card p-2.5 transition-colors '
         + (isDragging
           ? 'opacity-50 cursor-grabbing ring-2 ring-primary/60 ring-offset-1'
           : canDrag
