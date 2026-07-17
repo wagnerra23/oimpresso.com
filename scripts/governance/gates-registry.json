@@ -281,6 +281,10 @@
       "nome": "Jana · Pest (MySQL)",
       "classe": "gate"
     },
+    "ponto-pest.yml": {
+      "nome": "Ponto · Pest (MySQL)",
+      "classe": "gate"
+    },
     "jana-ragas-canary.yml": {
       "nome": "Jana RAGAS Canary (daily 06:00 UTC)",
       "classe": "automacao"
