@@ -1,13 +1,11 @@
 ---
-titulo: "Produto — aba geral: fecha o [?] do cabeçalho custo/margem/valor + corrige o mapa de paridade"
-tipo: handoff
-data: "2026-07-17"
-hora: "09:50"
-owner: wagner
-autor: "[CC]"
-module: Produto
+date: "2026-07-17"
+time: "0950"
+slug: produto-aba-geral-custo-margem-valor
+tldr: O [?] do cabeçalho (Custo·Margem·Valor) fechou por 5 caminhos — Custo é a âncora, Valor↔Margem são bidirecionais, e o binding do oimpresso é IDÊNTICO ao do Delphi. O mapa de paridade mentia em 2 falso-créditos. A aba geral NÃO está contratada — nenhum pedido ao Claude Design foi feito, de propósito.
+owners: [W]
 prs: [4321, 4370, 4405]
-related_us: [US-PROD-020, US-PROD-023, US-PROD-024]
+us: [US-PROD-020, US-PROD-023, US-PROD-024]
 ---
 
 # Handoff — Produto / aba geral (cabeçalho custo·margem·valor)
