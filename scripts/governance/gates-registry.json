@@ -281,6 +281,13 @@
       "nome": "Jana · Pest (MySQL)",
       "classe": "gate"
     },
+    "ponto-pest.yml": {
+      "nome": "Ponto · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-31",
+      "anchor": "sinal de custo: Ponto não tinha lane MySQL de PR nenhuma — o guard Tier 0 cross-tenant do Ponto (ADR 0093 · Wave27CrossTenantEscalaTest) só rodava na nightly não-required (invisível a todo merge). A triagem #4454→#4474 provou que testes Tier-0 mascarados por FK-1452 ficavam vermelhos invisíveis por ~2 meses (inclusive o vazamento real ScopeByBusinessViaParent). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); promote_by força a decisão de promoção a required em 14d em vez de advisory eterno."
+    },
     "jana-ragas-canary.yml": {
       "nome": "Jana RAGAS Canary (daily 06:00 UTC)",
       "classe": "automacao"
