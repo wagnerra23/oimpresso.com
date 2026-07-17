@@ -187,11 +187,8 @@ export default function NodeReader({
         <div className="flex flex-wrap items-center gap-1.5 mb-2">
           {cat && (
             <span
-              className="inline-flex items-center rounded-sm px-1.5 py-px text-[9.5px] font-semibold lowercase"
-              style={{
-                background: `oklch(0.94 0.05 ${hue})`,
-                color: `oklch(0.36 0.10 ${hue})`,
-              }}
+              className="kb-hue-chip inline-flex items-center rounded-sm px-1.5 py-px text-[9.5px] font-semibold lowercase"
+              style={{ '--kb-hue': hue } as React.CSSProperties}
             >
               {cat.label}
             </span>

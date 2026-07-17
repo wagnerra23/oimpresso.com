@@ -99,8 +99,8 @@ export default function PathsDialog({
                     >
                       {p.audience && (
                         <small
-                          className="block text-[10.5px] font-medium"
-                          style={{ color: `oklch(0.42 0.13 ${p.hue})` }}
+                          className="kb-hue-label block text-[10.5px] font-medium"
+                          style={{ '--kb-hue': p.hue } as React.CSSProperties}
                         >
                           {p.audience}
                         </small>
@@ -169,8 +169,8 @@ function PathDetail({
           <ChevronLeft size={12} /> Trilhas
         </button>
         <SheetTitle
-          className="text-[16px]"
-          style={{ color: `oklch(0.36 0.13 ${path.hue})` }}
+          className="kb-hue-title text-[16px]"
+          style={{ '--kb-hue': path.hue } as React.CSSProperties}
         >
           {path.title}
         </SheetTitle>
