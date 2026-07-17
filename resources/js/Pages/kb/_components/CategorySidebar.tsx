@@ -111,7 +111,7 @@ export default function CategorySidebar({
           className={cn(
             'kb-side-btn w-full flex items-center gap-2 px-2 py-1.5 text-left text-[12.5px] rounded-r-md border-l-2 transition-colors',
             active
-              ? 'bg-surface text-foreground font-semibold'
+              ? 'bg-muted text-foreground font-semibold'
               : 'border-l-transparent text-muted-foreground hover:bg-muted hover:text-foreground',
           )}
           style={

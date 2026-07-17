@@ -166,8 +166,8 @@ function ListView({
             >
               {t.equip && (
                 <small
-                  className="block text-[10.5px] font-medium"
-                  style={{ color: `oklch(0.42 0.13 ${t.hue})` }}
+                  className="kb-hue-label block text-[10.5px] font-medium"
+                  style={{ '--kb-hue': t.hue } as React.CSSProperties}
                 >
                   {t.equip !== '—' ? t.equip : 'fiscal'}
                 </small>
@@ -276,11 +276,8 @@ function WizardView({
           <>
             <div className="flex items-start gap-3">
               <span
-                className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12px] font-bold font-mono"
-                style={{
-                  background: `oklch(0.94 0.06 ${tree.hue})`,
-                  color: `oklch(0.36 0.13 ${tree.hue})`,
-                }}
+                className="kb-hue-chip inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[12px] font-bold font-mono"
+                style={{ '--kb-hue': tree.hue } as React.CSSProperties}
               >
                 {path.length + 1}
               </span>
@@ -316,7 +313,7 @@ function WizardView({
                     background:
                       i <= position
                         ? `oklch(0.55 0.13 ${tree.hue})`
-                        : 'var(--border)',
+                        : 'var(--color-border)',
                   }}
                   aria-hidden
                 />
@@ -325,16 +322,10 @@ function WizardView({
           </>
         ) : (
           <div
-            className="rounded-md border px-3 py-2.5"
-            style={{
-              background: `oklch(0.97 0.025 ${tree.hue})`,
-              borderColor: `oklch(0.86 0.06 ${tree.hue})`,
-            }}
+            className="kb-fix-box rounded-md border px-3 py-2.5"
+            style={{ '--kb-hue': tree.hue } as React.CSSProperties}
           >
-            <small
-              className="block text-[10px] font-bold uppercase tracking-wider mb-1"
-              style={{ color: `oklch(0.42 0.13 ${tree.hue})` }}
-            >
+            <small className="kb-hue-label block text-[10px] font-bold uppercase tracking-wider mb-1">
               Solução sugerida
             </small>
             <p className="m-0 text-[13.5px] leading-relaxed text-foreground">

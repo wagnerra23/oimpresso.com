@@ -56,6 +56,11 @@ Modules/Governance/Tests/Feature/AdrPendenteBriefLineServiceTest.php
 # Seção OUTCOME DO AGENTE (7d) no brief (US-GOV-052 · DORA agent-pr-outcomes) — Process::fake, sem DB.
 Modules/Governance/Tests/Feature/AgentOutcomeBriefSectionServiceTest.php
 tests/Feature/Modules/Copiloto/Mcp/WhatsActiveToolTest.php
+# Emissão OTel GenAI (MEM-OTEL-1 · ADR 0051) — Log::shouldReceive + reflexão, sem DB.
+# Nenhum workflow rodava este arquivo: a asserção biz=4 (cliente ROTA LIVRE, viola
+# ADR 0101) ficou vermelha na nightly diagnóstica e foi absorvida no floor (1 dos 358)
+# em vez de derrubar PR. Corrigida pra biz=1 e ancorada aqui pra passar a morder.
+tests/Feature/Modules/Copiloto/OtelGenAiEmissionTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/ClaimlessMutationWarningTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TasksScopeSplitTest.php
 # Whatsapp — Caixa Unificada V4: schema sintético em beforeEach + markTestSkipped

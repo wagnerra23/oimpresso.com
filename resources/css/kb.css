@@ -26,7 +26,7 @@
   gap: 0;
   min-height: 0;
   flex: 1 1 auto;
-  background: var(--background, hsl(0 0% 100%));
+  background: var(--color-background, hsl(0 0% 100%));
   overflow: hidden;
 }
 
@@ -84,9 +84,9 @@
   );
   font-size: 9.5px;
   font-weight: 600;
-  background: hsl(var(--muted, 0 0% 96%));
-  color: hsl(var(--muted-foreground, 0 0% 40%));
-  border: 1px solid hsl(var(--border, 0 0% 90%));
+  background: var(--color-muted, hsl(0 0% 96%));
+  color: var(--color-muted-foreground, hsl(0 0% 40%));
+  border: 1px solid var(--color-border, hsl(0 0% 90%));
   border-radius: 3px;
   letter-spacing: 0.02em;
 }
@@ -129,6 +129,68 @@
   border-radius: 2px;
 }
 
+.dark .kb-link,
+[data-theme='dark'] .kb-link {
+  color: oklch(0.74 0.1 240);
+}
+
+.dark .kb-link:hover,
+[data-theme='dark'] .kb-link:hover {
+  color: oklch(0.82 0.11 240);
+}
+
+/* ── Pares claro/escuro com hue dinâmico (--kb-hue) ───
+ * O hue vem por categoria via inline style; inline não tem variante dark,
+ * então o par de cores vive aqui. Light = valores originais do port Cowork. */
+.kb-hue-chip {
+  background: oklch(0.94 0.05 var(--kb-hue, 240));
+  color: oklch(0.36 0.1 var(--kb-hue, 240));
+}
+
+.kb-hue-label {
+  color: oklch(0.42 0.13 var(--kb-hue, 240));
+}
+
+.kb-hue-title {
+  color: oklch(0.36 0.13 var(--kb-hue, 240));
+}
+
+.kb-row-active {
+  background: oklch(0.985 0.012 var(--kb-hue, 240));
+}
+
+.kb-fix-box {
+  background: oklch(0.97 0.025 var(--kb-hue, 240));
+  border-color: oklch(0.86 0.06 var(--kb-hue, 240));
+}
+
+.dark .kb-hue-chip,
+[data-theme='dark'] .kb-hue-chip {
+  background: oklch(0.32 0.06 var(--kb-hue, 240));
+  color: oklch(0.84 0.07 var(--kb-hue, 240));
+}
+
+.dark .kb-hue-label,
+[data-theme='dark'] .kb-hue-label {
+  color: oklch(0.75 0.1 var(--kb-hue, 240));
+}
+
+.dark .kb-hue-title,
+[data-theme='dark'] .kb-hue-title {
+  color: oklch(0.85 0.08 var(--kb-hue, 240));
+}
+
+.dark .kb-row-active,
+[data-theme='dark'] .kb-row-active {
+  background: oklch(0.31 0.02 var(--kb-hue, 240));
+}
+
+.dark .kb-fix-box,
+[data-theme='dark'] .kb-fix-box {
+  background: oklch(0.3 0.045 var(--kb-hue, 240));
+  border-color: oklch(0.46 0.08 var(--kb-hue, 240));
+}
+
 /* ── Body do artigo prose-like ─── */
 .kb-art-body {
   font-family: 'IBM Plex Sans', system-ui, sans-serif;
@@ -144,7 +206,7 @@
   background: transparent;
 }
 .kb-reader-scroll::-webkit-scrollbar-thumb {
-  background: hsl(var(--border));
+  background: var(--color-border, hsl(0 0% 90%));
   border-radius: 5px;
 }
 .kb-reader-scroll::-webkit-scrollbar-thumb:hover {
