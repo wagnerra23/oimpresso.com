@@ -1,5 +1,5 @@
 ---
-date: 2026-07-17
+date: "2026-07-17"
 hour: "17:49 BRT"
 topic: "Custo por PR — unidade=SESSÃO, cobertura de ALOCAÇÃO (3,2%→81%), calibração derivada, revisão adversarial 2 agentes; landing rebaseado no main fresco (PR #4488)"
 authors: [C]

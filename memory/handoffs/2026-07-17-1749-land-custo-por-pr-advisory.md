@@ -1,5 +1,5 @@
 ---
-date: 2026-07-17
+date: "2026-07-17"
 time: "17:49 BRT"
 slug: land-custo-por-pr-advisory
 tldr: "Landing dos 5 commits de custo-por-PR (agent-cost-per-pr, advisory) rebaseados no main fresco (base estava 60 atrás) + 1 commit de snapshot ao vivo. PR #4488 aberto, NÃO mergeado (R10). Re-verificado na base fresca: 90 checks, invariantes exatos."
