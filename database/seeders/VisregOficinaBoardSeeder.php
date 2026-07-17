@@ -82,7 +82,14 @@ class VisregOficinaBoardSeeder extends Seeder
      * 1 OS por coluna do quadro — cobre as 6 colunas e as 6 contagens de KPI.
      * `overdue` só na primeira: KPI "Urgentes" = 1, determinístico (data no passado).
      *
-     * @var list<array{stage:string,plate:string,tipo:string,cliente:string,box:?string,km:int,overdue:bool}>
+     * SEM `cliente`: todas as OS apontam pro contato Walk-In que o VisregTenantSeeder já cria.
+     * A 1ª versão deste seeder inseria 2 contatos próprios e isso VAZOU pra baseline de OUTRAS
+     * telas (medido no dispatch 29535091137: `clientes · default` foi de "Todos 1" → "Todos 3",
+     * + `clientes · dark`, PixelBaseline Clientes/Sells_Create e um fluxo do Financeiro). Pior:
+     * um dos nomes ("Cliente de prova visual") colidia com o do VisregFinanceiroFlowSeeder.
+     * Fixture de gate NÃO inventa dado que outra tela lista — reusa o que já existe.
+     *
+     * @var list<array{stage:string,plate:string,tipo:string,box:?string,km:int,overdue:bool}>
      */
     private const ORDENS = [
         // `tipo` ∈ enum vehicle_type da migration create_vehicles_table (caminhao · cavalo ·
@@ -90,12 +97,12 @@ class VisregOficinaBoardSeeder extends Seeder
         // pesada do piloto (Martinho, biz=164) é caminhão/cavalo/semi-reboque — o fixture usa
         // esses. `cacamba_estacionaria` existe no enum como resíduo de schema do legado e NÃO
         // entra aqui: Oficina é reparo, não locação (ADR 0265 + RUNBOOK-erradicacao-locacao).
-        ['stage' => 'recepcao',             'plate' => 'VRGB101', 'tipo' => 'caminhao',     'cliente' => 'Transportes Prova Visual', 'box' => null,         'km' => 184320, 'overdue' => true],
-        ['stage' => 'em_diagnostico',       'plate' => 'VRGB202', 'tipo' => 'caminhao',     'cliente' => 'Transportes Prova Visual', 'box' => 'Elevador 1', 'km' => 96540,  'overdue' => false],
-        ['stage' => 'aguardando_aprovacao', 'plate' => 'VRGB303', 'tipo' => 'cavalo',       'cliente' => 'Cliente de prova visual',  'box' => 'Elevador 2', 'km' => 43210,  'overdue' => false],
-        ['stage' => 'aguardando_pecas',     'plate' => 'VRGB404', 'tipo' => 'semi_reboque', 'cliente' => 'Cliente de prova visual',  'box' => null,         'km' => 271800, 'overdue' => false],
-        ['stage' => 'em_execucao',          'plate' => 'VRGB505', 'tipo' => 'caminhao',     'cliente' => 'Transportes Prova Visual', 'box' => 'Box 3',      'km' => 15075,  'overdue' => false],
-        ['stage' => 'pronto_retirada',      'plate' => 'VRGB606', 'tipo' => 'cavalo',       'cliente' => 'Cliente de prova visual',  'box' => 'Box 3',      'km' => 62190,  'overdue' => false],
+        ['stage' => 'recepcao',             'plate' => 'VRGB101', 'tipo' => 'caminhao',     'box' => null,         'km' => 184320, 'overdue' => true],
+        ['stage' => 'em_diagnostico',       'plate' => 'VRGB202', 'tipo' => 'caminhao',     'box' => 'Elevador 1', 'km' => 96540,  'overdue' => false],
+        ['stage' => 'aguardando_aprovacao', 'plate' => 'VRGB303', 'tipo' => 'cavalo',       'box' => 'Elevador 2', 'km' => 43210,  'overdue' => false],
+        ['stage' => 'aguardando_pecas',     'plate' => 'VRGB404', 'tipo' => 'semi_reboque', 'box' => null,         'km' => 271800, 'overdue' => false],
+        ['stage' => 'em_execucao',          'plate' => 'VRGB505', 'tipo' => 'caminhao',     'box' => 'Box 3',      'km' => 15075,  'overdue' => false],
+        ['stage' => 'pronto_retirada',      'plate' => 'VRGB606', 'tipo' => 'cavalo',       'box' => 'Box 3',      'km' => 62190,  'overdue' => false],
     ];
 
     public function run(): void
@@ -129,6 +136,20 @@ class VisregOficinaBoardSeeder extends Seeder
 
         $adminId = DB::table('users')->where('business_id', self::BIZ_SELF)->orderBy('id')->value('id');
 
+        // Reusa o contato que JÁ existe (Walk-In do VisregTenantSeeder) — este seeder não
+        // insere contato pra não vazar pra baseline da tela de Clientes (ver §ORDENS).
+        $contactId = DB::table('contacts')
+            ->where('business_id', self::BIZ_SELF)
+            ->orderBy('id')
+            ->value('id');
+
+        if ($contactId === null) {
+            throw new RuntimeException(
+                static::class . ': nenhum contato no business ' . self::BIZ_SELF
+                . ' — rode VisregTenantSeeder antes (ele cria o Walk-In).'
+            );
+        }
+
         foreach (self::ORDENS as $spec) {
             $stageId = $stageIdByKey[$spec['stage']] ?? null;
             if ($stageId === null) {
@@ -137,8 +158,6 @@ class VisregOficinaBoardSeeder extends Seeder
                     . ' — o dicionário de etapas mudou? (ver OficinaAutoFsmSeeder)'
                 );
             }
-
-            $contactId = $this->ensureContact($spec['cliente']);
 
             // SUPERADMIN: fixture de gate visual — o global scope de business não vale no seeder.
             $vehicle = Vehicle::withoutGlobalScopes()->firstOrCreate(
@@ -172,34 +191,4 @@ class VisregOficinaBoardSeeder extends Seeder
         }
     }
 
-    /**
-     * Contato do fixture (idempotente). Nome fixo — ele aparece no card ("cliente_nome"), então
-     * entra na baseline e não pode variar entre runs.
-     *
-     * `contact_id` (código de negócio) e `mobile` vêm do idioma do VisregTenantSeeder, que insere
-     * o Walk-In com esses campos preenchidos — colunas do core UltimatePOS. Código derivado da
-     * posição no fixture pra ser estável e não colidir com o `CO0001` do Walk-In.
-     */
-    private function ensureContact(string $nome): int
-    {
-        $existing = DB::table('contacts')
-            ->where('business_id', self::BIZ_SELF)
-            ->where('name', $nome)
-            ->value('id');
-
-        if ($existing !== null) {
-            return (int) $existing;
-        }
-
-        return (int) DB::table('contacts')->insertGetId([
-            'business_id' => self::BIZ_SELF,
-            'type'        => 'customer',
-            'name'        => $nome,
-            'contact_id'  => 'VRGB' . substr(md5($nome), 0, 4),
-            'mobile'      => '',
-            'created_by'  => 1,
-            'created_at'  => now(),
-            'updated_at'  => now(),
-        ]);
-    }
 }
