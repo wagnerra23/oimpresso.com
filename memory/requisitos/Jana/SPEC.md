@@ -1657,8 +1657,15 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 ### US-COPI-140 · Os 2 evals de staging da Jana nunca rodam sozinhos (schedule fantasma no CT 100)
 
-> owner: — · priority: p0 · estimate: 2h · status: todo · type: story
-> blocked_by: — (precisa de decisão [W] sobre o caminho — ver Escopo)
+> owner: — · priority: p0 · estimate: 2h · status: doing · type: story
+
+**Implementado em:** _parcial_ · `scripts/tests/ct100-jana-evals.sh` · `docker/oimpresso-mcp/scripts/self-update.sh` · verificado@6e21484 (2026-07-17) — invocador (caminho A) + sync anti-drift; cron `0 6 * * 0` instalado no host CT 100 e **provado disparando sozinho** (11:27:01 → report escrito pelo cron, `ran_at 2026-07-17T11:27:20`). _parcial_ porque o DoD desta US não é código: é **uma semana nova na órfã que ninguém rodou à mão**, e isso só pode existir em **domingo 2026-07-19 06:00** — relógio do mundo real, não trabalho faltando.
+
+**Testado em:** `scripts/tests/ct100-jana-evals.test.sh` — selftest hermético (docker mock, zero rede/LLM/custo). Trava: não-mascara-falha, falha de um eval não aborta o outro, e o `drift-sentinel` **fora** do script. Mordida provada por mutação: reintroduzir o drift-sentinel reprova; trocar o exit por `exit 0` reprova.
+
+O selftest está registrado como step do workflow `governance-script-tests.yml` — sem isso seria a proibição "Tests sem phpunit.xml = falsa cobertura" reencarnada em `.sh` (o mesmo buraco que o irmão `ct100-sdd-scorecard-snapshot.test.sh` fechou). Ele fica **fora de lane de JUnit** por construção (é shell, não Pest): o `anchor-lint` marca isso como advisory 🚦 "verde impossível", que aqui é honesto e esperado.
+
+**DoD:** (1) os 2 evals de staging disparam **sem intervenção humana**; (2) a prova é **semana nova na órfã `governance/ragas-real-trend`** — nunca `crontab -l` mostrando a linha (presence-gate, lápide §5 2026-07-16); (3) falha de eval fica **visível**, nunca mascarada; (4) o invocador não duplica o `drift-sentinel`, que já roda em prod; (5) o script é defendido por selftest que roda no CI.
 
 **Origem:** achado durante a implementação da US-COPI-136 (2026-07-17). A US-136 pedia um piso pro `context_recall`; ao verificar **quem consome** o número, a série provou-se parada.
 

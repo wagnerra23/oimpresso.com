@@ -69,7 +69,10 @@
 # @see memory/decisions/0318-ragas-eval-real-mata-tautologia-ct100-staging.md
 # @see scripts/tests/ct100-ragas-publish.sh (o transporte que lê o report que isto gera)
 set -uo pipefail
-export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# JANA_EVALS_TEST_BIN: seam do selftest — prependa um dir com `docker` mock. Vazio em
+# produção (o PATH é hardcoded por higiene de cron). Mesmo padrão do irmão
+# ct100-sdd-scorecard-snapshot.sh.
+export PATH="${JANA_EVALS_TEST_BIN:+$JANA_EVALS_TEST_BIN:}/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
 CONTAINER="${JANA_EVALS_CONTAINER:-oimpresso-staging}"
 # Pisos NÃO vêm por flag (US-COPI-136): o dono único é thresholds_regressao em
