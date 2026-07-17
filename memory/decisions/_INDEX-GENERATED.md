@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **348** arquivos · **332** números únicos · máx **0342**
-- **ADRs ATIVOS (lifecycle ativo): 314** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 314 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 314 · arquivado 18 · substituido 12 · (vazio) 4
+- **349** arquivos · **333** números únicos · máx **0343**
+- **ADRs ATIVOS (lifecycle ativo): 315** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 315 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 315 · arquivado 18 · substituido 12 · (vazio) 4
 - Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
 
 ## Colisões de número (14) — auto-detectadas
@@ -37,7 +37,7 @@ _(íntegra)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (348)
+## Todas as ADRs (349)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -388,3 +388,4 @@ _(íntegra)_
 | 0340 | aceito | ativo | decision | O tema colapsa em direções OPOSTAS no mesmo request — `auto`→dark no Blade × `au |
 | 0341 | aceito | ativo | decision | Emenda à 0314 — memory-schema REQUIRED só nas 2 famílias limpas (charter · spec) |
 | 0342 | aceito | ativo | meta | Schema de ADR: slug/refs aceitam ponto e maiúscula pra casar 3 filenames legacy  |
+| 0343 | aceito | ativo | meta | Promove o gate ADR (memory/decisions/*.md) a required — emenda à 0341 (o adr é c |

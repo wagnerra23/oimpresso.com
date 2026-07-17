@@ -1861,7 +1861,7 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 
 **Refs:** ADR 0318 · US-COPI-136 · US-COPI-140 · `Modules/Jana/Console/Commands/JanaDriftSentinelCommand.php` · proibicoes.md §5 2026-07-17
 
-### US-COPI-144 · Modelo forte no chat (JANA_CHAT_MODEL cirúrgico)
+### US-COPI-144 · Modelo forte no chat (JANA_CHAT_MODEL cirúrgico) — mecanismo done · gpt-4o bloqueado por acesso OpenAI
 
 > owner: wagner · priority: p1 · estimate: 2h · status: done · type: story
 
@@ -1869,7 +1869,7 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 
 **Testado em:** `Modules/Jana/Tests/Feature/Ai/ChatCopilotoAgentModelTest.php` · verificado@daca7b3 (2026-07-17) — R-COPI-135 (3 casos, sem LLM): sem config → null; vazio → null; `gpt-4o` → `gpt-4o`
 
-**Origem:** cindida da US-COPI-135. [W] liberou o acesso gpt-4o no projeto OpenAI (2026-07-17, resolvendo o 403 que bloqueava a 135) e autorizou ligar ("pode ligar").
+**Origem:** cindida da US-COPI-135. [W] autorizou ligar ("pode ligar", 2026-07-17). **O flip prod foi TENTADO e REVERTIDO no mesmo dia** — o projeto OpenAI de prod **não** tem acesso ao gpt-4o (ver DoD). O **mecanismo** está pronto e mergeado; só falta o acesso ao modelo.
 
 **Por que cirúrgico (não `AI_OPENAI_TEXT_DEFAULT=gpt-4o`):** o env global é o default de ~8 agents sem `#[Model]`, incluindo batch internos (Briefing, WeeklyDigest, SinteseSemanal) que rodariam a 16× o custo **sem ganho pro cliente**. O knob `JANA_CHAT_MODEL` sobe só a superfície que a Larissa usa.
 
@@ -1883,7 +1883,16 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 
 Ganho de qualidade **marginal** nesta amostra; custo absoluto **trivial** (meio centavo/msg, só nas que pedem análise). gpt-4o foi até mais rápido aqui.
 
-**DoD:** o mecanismo liga o modelo só no chat, com kill-switch por env (`JANA_CHAT_MODEL` apagada + `config:cache` → volta ao mini). Provado por R-COPI-135 + o gpt-4o confirmado respondendo com a chave de prod (smoke 1,5s, zero 403). **Flip prod:** `JANA_CHAT_MODEL=gpt-4o` no `.env` do Hostinger após o deploy deste PR — evidência de smoke prod no fecho.
+**DoD:** mecanismo done, flip revertido. O mecanismo liga o modelo só no chat com kill-switch por env — **provado de verdade** (não em teoria): liguei `JANA_CHAT_MODEL=gpt-4o` em prod, o R1 pegou a quebra, apaguei a env + `config:cache` e o chat voltou ao mini (conversa real biz=1, 8 TextDeltas). R-COPI-144 (3 casos) verde no CT 100.
+
+**Flip prod REVERTIDO (2026-07-17) — `model_not_found`:** liguei `JANA_CHAT_MODEL=gpt-4o` e o chat quebrou. O R1 (smoke real, `responderChat` + eventos do stream) capturou:
+> `Project proj_zMcVcGyURfEVtsgTRxP4RiTs does not have access to model gpt-4o` (`type: model_not_found`)
+
+O projeto OpenAI **de prod** (e o de staging — duas chaves, **mesmo** projeto) **não** tem acesso ao gpt-4o. O comentário em [`config.php`](../../../Modules/Jana/Config/config.php) (`model_suggestions`) já registrava isso: *"gpt-4o → 403 does not have access"*. Revertido em minutos; chat segue no mini, funcionando.
+
+**Erro meu registrado (pra não repetir):** o smoke inicial de gpt-4o deu resposta **vazia** e eu declarei *"FUNCIONA, zero 403"*. O `Error` do gpt-4o vem como **evento do stream** (`StreamStart`+`Error`, `text_len=0`), **não** como exceção — meu try/catch não pegou, e eu medi "não lançou exceção" em vez de "tem texto". Lápides 2026-07-15 (achado sem prova) e 2026-07-16 (medir a propriedade errada). O smoke que vale é `responderChat`/eventos, não "não estourou".
+
+**Pra religar (quando o acesso valer):** [W] confirma no painel OpenAI que o gpt-4o está liberado **pro projeto `proj_zMcVcGyURfEVtsgTRxP4RiTs`** (o id está no erro) → `JANA_CHAT_MODEL=gpt-4o` no `.env` do Hostinger + `config:cache` → smoke `responderChat` real. 1 linha.
 
 **Ressalvas (não desta US):** (1) o ganho na **média** do tráfego real é a **US-COPI-137** (eval online) — o comparativo é 1 amostra, não distribuição; (2) subir o modelo **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passa a raciocinar melhor sobre o contexto errado; (3) **fallback** primário→secundário segue aberto na **US-COPI-135**.
 
