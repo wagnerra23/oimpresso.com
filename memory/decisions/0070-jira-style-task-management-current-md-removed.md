@@ -7,12 +7,12 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 quarter: Q2-2026
-decided_at: 2026-05-04
+decided_at: "2026-05-04"
 decided_by: [W]
 module: governance
-supersedes: [0069]
+supersedes: [0069-taskregistry-mcp-tools-canonico-tasks-md-deprecated]
 superseded_by: []
-related: [0027, 0053, 0055, 0064, 0069]
+related: [0027-gestao-memoria-roles-claros, 0053-mcp-server-governanca-como-produto, 0055-self-host-team-plan-equivalente-anthropic, 0064-modularizacao-split-teammcp-kb-superadmin360, 0069-taskregistry-mcp-tools-canonico-tasks-md-deprecated]
 tags: [governance, tasks, mcp, taskregistry, jira, linear, kanban, policy]
 ---
 

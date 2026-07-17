@@ -1,13 +1,13 @@
 ---
 slug: 0084-triggers-mysql-imutabilidade-mcp-audit-log
-number: 0084
+number: 84
 title: "Triggers MySQL append-only em mcp_audit_log + correção audit P0.1"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: governance
 quarter: 2026-Q2
 tags: [governance, audit, immutability, mysql-trigger, p0]

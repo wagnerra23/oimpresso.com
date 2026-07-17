@@ -1,7 +1,7 @@
 ---
 slug: 0046-chat-agent-gap-contexto-rico
 number: 46
-title: !!binary gJQgYENoYXRDb3BpbG90b0FnZW50YCBwcmVjaXNhIGRlIGNvbnRleHRvIHJpY28gKyB0b29scyAoZ2FwIGRlc2NvYmVydG8p
+title: "`ChatCopilotoAgent` precisa de contexto rico + tools (gap descoberto)"
 type: adr
 status: aceito
 authority: canonical
@@ -13,13 +13,10 @@ module: copiloto
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0026'
-  - '0034'
-  - '0035'
+  - 0026-posicionamento-erp-grafico-com-ia
+  - 0034-laravel-ai-sdk-oficial-boost-mcp
   - 0035-stack-ai-canonica-wagner-2026-04-26
-  - '0037'
   - 0037-roadmap-evolucao-tier-7-plus
-  - '0042'
   - 0042-reverb-substitui-pusher-cloud
 pii: false
 ---

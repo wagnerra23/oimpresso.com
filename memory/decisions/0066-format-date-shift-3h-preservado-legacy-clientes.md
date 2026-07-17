@@ -1,20 +1,20 @@
 ---
 slug: 0066-format-date-shift-3h-preservado-legacy-clientes
-number: 0066
+number: 66
 title: "format_date com shift +3h preservado intencionalmente — quirk legacy ROTA LIVRE"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-04-24
+decided_at: "2026-04-24"
 module: null
 quarter: 2026-Q2
 tags: [timezone, carbon, legacy, ux, rota-livre, format_date, dados-históricos]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0027, 0061]
+related: [0027-gestao-memoria-roles-claros, 0061-conhecimento-canonico-git-mcp-zero-automem]
 pii: false
 review_triggers:
   - "Quando alguém propor 'corrigir' format_date sem migration de dados históricos → bloquear até cumprir checklist"

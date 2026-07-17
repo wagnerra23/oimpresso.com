@@ -1,7 +1,7 @@
 ---
 slug: 0047-wagner-solo-sprint-memoria-agente
 number: 47
-title: !!binary gJQgV2FnbmVyIHNvbG86IHNwcmludCBtZW3Ds3JpYSBkbyBhZ2VudGUgKHRva2VuIGVjb25vbXkgKyBhc3NlcnRpdmlkYWRlKQ==
+title: "Wagner solo: sprint memória do agente (token economy + assertividade)"
 type: adr
 status: aceito
 authority: canonical
@@ -15,9 +15,7 @@ tags: {  }
 related:
   - 0035-stack-ai-canonica-wagner-2026-04-26
   - 0036-replanejamento-meilisearch-first
-  - '0037'
   - 0037-roadmap-evolucao-tier-7-plus
-  - '0046'
   - 0046-chat-agent-gap-contexto-rico
 pii: false
 ---

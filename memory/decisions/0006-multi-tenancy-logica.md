@@ -1,7 +1,7 @@
 ---
 slug: 0006-multi-tenancy-logica
 number: 6
-title: !!binary gJQgTXVsdGktdGVuYW5jeSBsw7NnaWNhIHZpYSBgYnVzaW5lc3NfaWRg
+title: "Multi-tenancy lógica via `business_id`"
 type: adr
 status: aceito
 authority: canonical
@@ -11,7 +11,7 @@ decided_by:
 decided_at: '2026-04-18'
 quarter: 2026-Q2
 tags: {  }
-related: {  }
+related: []
 pii: false
 ---
 # ADR 0006 — Multi-tenancy lógica via `business_id`

@@ -1,7 +1,7 @@
 ---
 slug: 0005-uuid-vs-bigint
 number: 5
-title: !!binary gJQgVVVJRCBwYXJhIGVudGlkYWRlcyBhdWRpdMOhdmVpcywgQmlnSW50IHBhcmEgbG9va3Vwcw==
+title: "UUID para entidades auditáveis, BigInt para lookups"
 type: adr
 status: aceito
 authority: canonical
@@ -12,7 +12,7 @@ decided_by:
 decided_at: '2026-04-18'
 quarter: 2026-Q2
 tags: {  }
-related: {  }
+related: []
 pii: false
 ---
 # ADR 0005 — UUID para entidades auditáveis, BigInt para lookups

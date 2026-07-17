@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-15
+decided_at: "2026-05-15"
 quarter: 2026-Q2
 module: jana
 tags: [governance, memoria, retrieval, anthropic, contextual-retrieval, cascade-review, constitution-art-7-9, onda-6]

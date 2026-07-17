@@ -10,7 +10,7 @@ proposed_by: audit-senior-expert (opus-4.7)
 prompted_by: wagner
 created: 2026-05-27
 decided_by: [W]
-decided_at: 2026-05-27
+decided_at: "2026-05-27"
 accepted_at: 2026-05-27
 accepted_by: wagner
 audit_pre_flight:
@@ -24,9 +24,9 @@ quarter: 2026-Q2
 tier: CANON
 tags: [whatsapp, integracao, meta-cloud, zapi, baileys-out, daemon-removido, profissionalizacao, embedded-signup-v4, multi-tenant]
 parent_adr: 0094
-supersedes_partially: [0096]
+supersedes_partially: [0096-modulo-whatsapp-meta-cloud-api-direto]
 supersedes: []
-related: [0035, 0058, 0062, 0093, 0094, 0096, 0105, 0106, 0117, 0140]
+related: [0035-stack-ai-canonica-wagner-2026-04-26, 0058-reverb-substituido-por-centrifugo-frankenphp, 0062-separacao-runtime-hostinger-ct100, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0096-modulo-whatsapp-meta-cloud-api-direto, 0105-cliente-como-sinal-guiar-sem-mandar, 0106-recalibracao-velocidade-fator-10x-ia-pair, 0117-multiplos-numeros-whatsapp-por-business, 0140-jana-pro-produto-comercial-saas]
 authors: [audit-senior-expert, wagner]
 pii: false
 companion_dossier: ../../sessions/2026-05-27-dossier-whatsapp-profissionalizacao.md

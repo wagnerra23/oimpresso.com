@@ -1,6 +1,6 @@
 ---
 slug: 0074-temporal-validity-bi-temporal-time-travel
-number: 0074
+number: 74
 title: "P1 — Temporal validity bi-temporal: event-time vs system-time + time-travel queries"
 type: adr
 status: deprecated

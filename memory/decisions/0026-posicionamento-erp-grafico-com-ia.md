@@ -1,7 +1,7 @@
 ---
 slug: 0026-posicionamento-erp-grafico-com-ia
 number: 26
-title: !!binary gJQgUG9zaWNpb25hbWVudG8gZXN0cmF0w6lnaWNvOiBFUlAgZGUgQ29tdW5pY2HDp8OjbyBWaXN1YWwgY29tIElB
+title: "Posicionamento estratégico: ERP de Comunicação Visual com IA"
 type: adr
 status: aceito
 authority: canonical
@@ -13,9 +13,9 @@ module: cms
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0022'
-  - '0023'
-  - '0025'
+  - 0022-meta-5mi-ano-financeira
+  - 0023-inertia-v3-upgrade
+  - 0025-cms-redesign-inertia-react
 pii: false
 ---
 # ADR 0026 — Posicionamento estratégico: ERP de Comunicação Visual com IA

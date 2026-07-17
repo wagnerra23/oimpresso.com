@@ -1,13 +1,13 @@
 ---
 slug: 0087-drift-resolution-sem-mover-url
-number: 0087
+number: 87
 title: "Drift resolution sem mover URL — pattern de migration safe"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-06
+decided_at: "2026-05-06"
 module: null
 quarter: 2026-Q2
 tags: [governance, refactor, drift-resolution, module-charter, migration-pattern]

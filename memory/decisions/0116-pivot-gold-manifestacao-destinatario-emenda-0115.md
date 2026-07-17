@@ -11,9 +11,9 @@ decided_by:
 decided_at: '2026-05-09'
 quarter: 2026-Q2
 related:
-  - '0103'
-  - '0105'
-  - '0115'
+  - 0103-eventos-fiscais-separados-por-modelo
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0115-recuperacao-cliente-gold-via-bundle-oimpresso
 amends:
   - '0115'
 pii: false

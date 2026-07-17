@@ -11,8 +11,8 @@ decided_by:
 decided_at: '2026-05-09'
 quarter: 2026-Q2
 related:
-  - '0096'
-  - '0104'
+  - 0096-modulo-whatsapp-meta-cloud-api-direto
+  - 0104-processo-mwart-canonico-unico-caminho
 emends: []
 pii: false
 ---

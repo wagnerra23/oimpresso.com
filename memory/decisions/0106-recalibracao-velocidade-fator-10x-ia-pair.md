@@ -11,9 +11,9 @@ decided_by:
 decided_at: '2026-05-08'
 quarter: 2026-Q2
 related:
-  - '0094'
-  - '0095'
-  - '0104'
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0095-skills-tiers-convencao-interna
+  - 0104-processo-mwart-canonico-unico-caminho
 pii: false
 ---
 
