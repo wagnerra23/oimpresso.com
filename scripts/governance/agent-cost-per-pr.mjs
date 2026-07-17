@@ -207,6 +207,7 @@ const GAPS = [
   'G6 sinal-citação (/pull/N no transcript): citar ≠ ser autor (sessão que só LÊ PRs também cita) — só vale como fallback quando não há sinal de branch; custo diluído por N PRs citados.',
   'G7 janela COERENTE: sessões e PRs usam a MESMA janela de tempo. Sessão iniciada antes da janela entra pelo mtime e pode ter produzido PR fora dela → cai no resíduo, não no numerador. (Antes de 2026-07-17 o scan cobria ~8.8d contra ~1.8d de PRs — ~28 pontos do "órfão" eram esse artefato de bookkeeping.)',
   'G8 o RESÍDUO não é buraco de join: a maior parte é sessão que não produziu PR nenhum (exploração, análise, sub-agente cujo pai commita, PR ainda aberto). Medido 2026-07-17: 5 das 6 branches de maior resíduo não têm PR algum no GitHub — não há aresta pra achar, nem por SHA nem por API.',
+  'G9 detector de truncagem tem ponto cego de EIXO: `gh pr list --limit` corta/ordena por createdAt, mas a janela filtra por mergedAt. Um PR de vida longa (criado antes do corte do cap, mergeado dentro da janela) some do fetch e é INDETECTÁVEL — o detector só vê o conjunto já truncado. Com PR_FETCH_LIMIT=1000 (~10-30d) vs janela 14d o risco é baixo, mas real; fechar de vez exige paginar por mergedAt (fora do escopo advisory).',
 ];
 
 /** categoria do resíduo de uma sessão sem PR na janela (honestidade do denominador). */
@@ -247,12 +248,20 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
     .filter((p) => isAgentPR(p, marker) && p.mergedAt && Date.parse(p.mergedAt) >= since)
     .sort((a, b) => Date.parse(b.mergedAt) - Date.parse(a.mergedAt));
   const exibidos = universo.slice(0, prWindow);
-  const branchesDosPRs = new Map(universo.map((p) => [p.headRefName, p.number]));
+  // headRef → nº do PR. Universo está DESC (mais novo primeiro); mantemos o PRIMEIRO visto
+  // = o MAIS NOVO. Se 2 PRs reusaram a mesma branch (raro — a branch some pós-merge), a
+  // sessão nessa branch paga o PR mais recente, não o antigo sobrescrito (H6, agente 07-17).
+  const branchesDosPRs = new Map();
+  for (const p of universo) if (!branchesDosPRs.has(p.headRefName)) branchesDosPRs.set(p.headRefName, p.number);
   const numerosDosPRs = new Set(universo.map((p) => p.number));
 
   const modelosDesconhecidos = new Set();
   let semBranchMsgs = 0;
   let usdEscaneado = 0;
+  // acumulador CRU do atribuído: some o custo INTEIRO de cada sessão que casou um PR. É o
+  // numerador honesto da cobertura — somar os round2 POR-PR fazia atribuído > escaneado e
+  // a manchete imprimir >100% (H1/H3, agente 07-17). Arredonda só na borda de exibição.
+  let usdAtribuidoRaw = 0;
   /** categoria → usd (o resíduo é DECOMPOSTO, não só declarado) */
   const residuo = new Map();
   /** por PR: { usd, tokens, incompleto, sinais:Set } */
@@ -297,6 +306,7 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
     }
     // a SESSÃO é a unidade: o custo INTEIRO (inclusive o da branch da worktree, onde o
     // trabalho de fato aconteceu) vai pros PRs que ela produziu, dividido igualmente.
+    usdAtribuidoRaw += total.usd;
     for (const n of alvos) {
       const a = acum.get(n);
       a.usd += total.usd / alvos.size;
@@ -324,13 +334,29 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
   const semMatch = todosPR.length - matched.length;
   const custos = matched.filter((p) => p.usd != null && !p.usd_incompleto).map((p) => p.usd);
   const top = [...matched].filter((p) => p.usd != null).sort((a, b) => b.usd - a.usd).slice(0, 3);
-  const usdAtribuido = matched.reduce((a, p) => a + (p.usd || 0), 0);
-  const usdResiduo = [...residuo.values()].reduce((a, v) => a + v, 0);
+
+  // ── CONTABILIDADE (tudo derivado do CRU, arredonda só na borda) ──────────────────
+  // Invariantes garantidos na EXIBIÇÃO (não só no cru): cobertura ≤ 100 SEMPRE (atribuído
+  // ⊆ escaneado é estrutural); atribuído + resíduo == escaneado; Σ categorias == resíduo.
+  // O bug HIGH era somar round2 por-PR no numerador → manchete imprimia 101% (impossível).
+  const escaneadoDisp = round2(usdEscaneado);
+  const atribuidoDisp = round2(usdAtribuidoRaw);
+  const residuoDisp = round2(escaneadoDisp - atribuidoDisp);            // conservação exata na borda
+  const coberturaPct = usdEscaneado ? round2((usdAtribuidoRaw / usdEscaneado) * 100) : null; // ≤100
+  // categorias: arredonda cada uma e joga a sobra de arredondamento na MAIOR (largest-
+  // remainder), pra Σ categorias bater `residuoDisp` ao centavo — decomposição que fecha.
+  const catsRaw = [...residuo.entries()].sort((a, b) => b[1] - a[1]);
+  const catsArr = catsRaw.map(([k, v]) => [k, round2(v)]);
+  if (catsArr.length) {
+    const somaCats = round2(catsArr.reduce((s, [, v]) => s + v, 0));
+    const sobra = round2(residuoDisp - somaCats);
+    if (sobra !== 0) catsArr[0][1] = round2(catsArr[0][1] + sobra); // maior categoria absorve
+  }
 
   // CALIBRAÇÃO DERIVADA (não cravada): a velocidade sai do dado em mãos, e o limite de
   // idade sai da velocidade × tolerância. Assim o "quando o retrato apodrece" acompanha
   // o ritmo real do repo em vez de um "3 dias" que quebra quando o ritmo muda.
-  const velocidadePrsDia = Math.round((universo.length / days) * 10) / 10;
+  const velocidadePrsDia = days > 0 ? Math.round((universo.length / days) * 10) / 10 : null; // guarda div/0 (H4)
   const limiarIdadeDias = derivaLimiarIdade(days);
 
   return {
@@ -344,18 +370,16 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
       fonte_truncada: fonteTruncada || undefined,
     },
     custo: {
-      total_usd_escaneado: round2(usdEscaneado),
-      total_usd_atribuido: round2(usdAtribuido),
-      cobertura_alocacao_pct: usdEscaneado ? round2((usdAtribuido / usdEscaneado) * 100) : null,
+      total_usd_escaneado: escaneadoDisp,
+      total_usd_atribuido: atribuidoDisp,
+      cobertura_alocacao_pct: coberturaPct,
       mediana_usd_por_pr: round2(median(custos)),
       top_prs: top.map((p) => ({ pr: p.pr, usd: p.usd, title: p.title })),
     },
     residuo: {
-      usd: round2(usdResiduo),
-      pct: usdEscaneado ? round2((usdResiduo / usdEscaneado) * 100) : null,
-      por_categoria: Object.fromEntries(
-        [...residuo.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, round2(v)])
-      ),
+      usd: residuoDisp,
+      pct: coberturaPct == null ? null : round2(100 - coberturaPct), // Σ com cobertura == 100
+      por_categoria: Object.fromEntries(catsArr),
     },
     join: {
       sem_match: semMatch,
@@ -397,6 +421,19 @@ export function fetchMergedPRsViaGh({ repo, limit = PR_FETCH_LIMIT } = {}) {
   const arr = JSON.parse(out);
   if (!Array.isArray(arr)) throw new Error('gh pr list não devolveu array');
   return arr;
+}
+
+/**
+ * fonte truncada = o fetch bateu no cap E NÃO alcançou o início da janela. Puro/testável
+ * (a lógica vivia inline no CLI, sem teste — agente 07-17). Bater no cap sozinho NÃO é
+ * defeito (o excedente é só mais velho que a janela — seria falso-positivo). Não fecha o
+ * ponto cego de eixo createdAt×mergedAt (G9), que é estrutural do `gh pr list`.
+ */
+export function isFonteTruncada(prs, sinceMs, limit = PR_FETCH_LIMIT) {
+  if (!Array.isArray(prs) || prs.length < limit) return false;
+  const merges = prs.map((p) => Date.parse(p.mergedAt)).filter(Number.isFinite);
+  if (!merges.length) return true; // bateu no cap e nem dá pra saber se alcançou → conservador
+  return Math.min(...merges) > sinceMs; // não alcançou o início da janela
 }
 
 /**
@@ -592,6 +629,13 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   const renderSnapshot = argVal(argv, '--render-snapshot', null);
   if (renderSnapshot) {
     const r = JSON.parse(readFileSync(renderSnapshot, 'utf8'));
+    // GUARDA de forma antiga: um snapshot commitado ANTES de 2026-07-17 não tem `residuo`
+    // (nem `custo.cobertura_alocacao_pct`); renderBriefMd faz hard-deref e crasharia o job
+    // semanal (agente 07-17). Em vez de degradar quebrado, avisa claro e sai 0 (advisory).
+    if (!r || !r.residuo || !r.custo || r.custo.cobertura_alocacao_pct === undefined || !r.janela) {
+      process.stdout.write('### Custo por PR — agente (advisory)\n\n> ⚠️ **Snapshot de forma ANTIGA** (pré-2026-07-17, sem `residuo`/`cobertura_alocacao_pct`). Regenere: `node scripts/governance/agent-cost-per-pr.mjs --snapshot` (LOCAL — G5) e commite.\n');
+      process.exit(0);
+    }
     // idade é calculada no RENDER, nunca gravada: guardada no arquivo, ela mentiria
     // "há 0 dias" pra sempre. É o único jeito de envelhecer junto com o dado.
     const idadeDias = Math.floor((Date.now() - Date.parse(r.generated)) / 86400000);
@@ -606,7 +650,10 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
 
   const marker = argVal(argv, '--marker', DEFAULT_MARKER);
   const prWindow = Number(argVal(argv, '--prs', String(DEFAULT_PR_WINDOW))) || DEFAULT_PR_WINDOW;
-  const days = Number(argVal(argv, '--days', String(DEFAULT_DAYS))) || DEFAULT_DAYS;
+  // --days: só aceita FINITO e POSITIVO. `Number('-5')||14` deixava -5 passar (truthy) →
+  // `desde` no futuro + universo vazio, SEM avisar (H5, contra a própria doutrina no-silent).
+  const daysRaw = Number(argVal(argv, '--days', String(DEFAULT_DAYS)));
+  const days = Number.isFinite(daysRaw) && daysRaw > 0 ? daysRaw : DEFAULT_DAYS;
   const fixture = argVal(argv, '--fixture', null);
 
   let prs, sessions, fonteTruncada = false;
@@ -620,11 +667,7 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
       // Antes, o scan ia até `minCreated - 7d` (margem "sessão precede PR"), cobrindo
       // ~8.8d de gasto contra ~1.8d de PRs — ~28 pontos do "órfão" eram esse artefato.
       const sinceMs = Date.now() - days * 86400000;
-      // truncada = bateu no cap E NÃO alcançou o início da janela. Bater no cap sozinho
-      // não é defeito (o excedente é só mais velho que a janela) — seria falso-positivo.
-      const maisAntigoPuxado = Math.min(...prs.map((p) => Date.parse(p.mergedAt)).filter(Number.isFinite));
-      const alcancouJanela = Number.isFinite(maisAntigoPuxado) && maisAntigoPuxado <= sinceMs;
-      fonteTruncada = prs.length >= PR_FETCH_LIMIT && !alcancouJanela;
+      fonteTruncada = isFonteTruncada(prs, sinceMs, PR_FETCH_LIMIT); // pura/testável (agente 07-17)
       if (fonteTruncada) console.error(`[agent-cost-per-pr] ⚠️ fetch bateu no cap de ${PR_FETCH_LIMIT} PRs SEM alcançar ${days}d — universo incompleto`);
       const scan = scanSessionsLocal({
         projectsDir: argVal(argv, '--projects-dir', null),

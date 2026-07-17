@@ -14,11 +14,15 @@ import {
   aggregatePorModelo, extractPrMentions, PRECOS_USD_MTOK, CACHE_MULT,
   PR_FETCH_LIMIT, DEFAULT_DAYS, renderHuman, renderBriefMd, renderPrBlockMd,
   linhaIdade, avisoSnapshot, IDADE_SUSPEITA_DIAS,
-  derivaLimiarIdade, TOLERANCIA_STALENESS,
+  derivaLimiarIdade, TOLERANCIA_STALENESS, isFonteTruncada,
 } from './agent-cost-per-pr.mjs';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+
+const CLI = fileURLToPath(new URL('./agent-cost-per-pr.mjs', import.meta.url));
 
 let fails = 0;
 const check = (name, cond) => { console.log(`${cond ? '[OK]  ' : '[FAIL]'} ${name}`); if (!cond) fails++; };
@@ -249,5 +253,105 @@ const agg = aggregatePorBranch([ent('b1', 'm', 1, 2), ent('b1', 'm', 10)]);
 check('aggregatePorBranch soma por (branch, modelo)', agg.porBranch.get('b1').get('m').input === 11);
 check('aggregatePorModelo ignora branch', aggregatePorModelo([ent('b1', 'm', 1), ent('b2', 'm', 2)]).get('m').input === 3);
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — join 2-sinais morde (branch com $ certo de cache; citação diluída) e libera (sem match declarado, sem dupla contagem, modelo sem preço não inventa USD).');
+// ════════════════════════════════════════════════════════════════════════════════
+// CONTRATOS ADICIONAIS — achados da revisão adversarial 2026-07-17 (2 agentes)
+// ════════════════════════════════════════════════════════════════════════════════
+const PR3 = [1, 2, 3].map((n) => ({ number: n, title: `t${n} [CC]`, author: { login: 'x' }, headRefName: `c/${n}`, createdAt: '2026-07-01T00:00:00Z', mergedAt: '2026-07-10T00:00:00Z' }));
+
+// ── [HIGH H1/H3] cobertura NUNCA imprime >100% (era ~43% dos casos: soma de round2 por-PR
+//    no numerador vs cru no denominador → manchete "101% do dinheiro tem dono", impossível).
+//    Varre 800 fixtures na fronteira .xx5 (onde o arredondamento mais morde).
+let over = 0, exato100 = 0, conservFalha = 0;
+for (let b = 100000; b < 100800; b++) {
+  const S = [1, 2, 3].map((n) => ({ id: `s${n}`, entries: [ent(`c/${n}`, 'claude-haiku-4-5', b + n * 137)], pr_mentions: [] }));
+  const rr = buildReport({ prs: PR3, sessions: S, generated: '2026-07-12' });
+  if (rr.custo.cobertura_alocacao_pct > 100) over++;
+  if (rr.custo.cobertura_alocacao_pct === 100) exato100++;
+  if (Math.abs((rr.custo.total_usd_atribuido + rr.residuo.usd) - rr.custo.total_usd_escaneado) > 0.001) conservFalha++;
+}
+check('H1: cobertura NUNCA >100% em 800 fixtures de fronteira (era impossível vazar >100)', over === 0);
+check('H1: 100%-atribuído dá 100.00% EXATO sempre (não 99.9/100.1 por arredondamento)', exato100 === 800);
+check('H3: conservação atribuído + resíduo == escaneado em toda fixture', conservFalha === 0);
+
+// ── [MEDIUM H2] Σ das categorias do resíduo == residuo.usd (decomposição que FECHA) ──
+// 2 categorias de $0.005 (o caso que o agente usou: round2 dobrava pra $0.02 vs total $0.01).
+const h2 = buildReport({ prs: PR3, generated: '2026-07-12', sessions: [
+  { id: 'a', entries: [ent('main', 'claude-haiku-4-5', 5000)], pr_mentions: [] },
+  { id: 'b', entries: [ent('c/orfa', 'claude-haiku-4-5', 5000)], pr_mentions: [] },
+] });
+const somaCats = Object.values(h2.residuo.por_categoria).reduce((a, v) => a + v, 0);
+check('H2: Σ categorias do resíduo == residuo.usd (não soma o dobro da manchete)', Math.round(somaCats * 100) / 100 === h2.residuo.usd);
+check('H2: cobertura + resíduo.pct == 100 (as duas metades fecham)', h2.custo.cobertura_alocacao_pct + h2.residuo.pct === 100);
+
+// ── [LOW H4] days<=0 via buildReport direto → velocidade null, não Infinity/NaN ──
+const h4 = buildReport({ prs: PR3, sessions: [], days: 0, generated: '2026-07-12' });
+check('H4: days=0 → velocidade null (não Infinity que JSON serializa como null silencioso)', h4.calibracao.velocidade_prs_dia === null);
+
+// ── [LOW H6] headRefName duplicado em 2 PRs → custo vai pro MAIS NOVO (não o velho) ──
+const dupPRs = [
+  { number: 100, title: 'novo [CC]', author: { login: 'x' }, headRefName: 'dup', createdAt: '2026-07-11T00:00:00Z', mergedAt: '2026-07-11T00:00:00Z' },
+  { number: 50, title: 'velho [CC]', author: { login: 'x' }, headRefName: 'dup', createdAt: '2026-07-06T00:00:00Z', mergedAt: '2026-07-06T00:00:00Z' },
+];
+const h6 = buildReport({ prs: dupPRs, sessions: [{ id: 'd', entries: [ent('dup', 'claude-haiku-4-5', 1_000_000)], pr_mentions: [] }], generated: '2026-07-12' });
+check('H6: branch reusada paga o PR MAIS NOVO (#100), não o velho sobrescrito (#50)',
+  h6.por_pr.find((p) => p.pr === 100).usd === 1 && h6.por_pr.find((p) => p.pr === 50).usd === null);
+
+// ── isFonteTruncada: função PURA testável (antes a lógica vivia inline sem teste) ──
+const prsCurtos = Array.from({ length: 5 }, (_, i) => ({ mergedAt: '2026-07-15T00:00:00Z', number: i }));
+check('truncada: não bateu no cap → false', isFonteTruncada(prsCurtos, Date.parse('2026-07-01'), 1000) === false);
+const prsCap = Array.from({ length: 10 }, () => ({ mergedAt: '2026-07-15T00:00:00Z' }));
+check('truncada: bateu no cap E não alcançou a janela (todos novos) → true', isFonteTruncada(prsCap, Date.parse('2026-07-01'), 10) === true);
+const prsCapVelho = [{ mergedAt: '2026-06-01T00:00:00Z' }, ...Array.from({ length: 9 }, () => ({ mergedAt: '2026-07-15T00:00:00Z' }))];
+check('truncada: bateu no cap MAS alcançou a janela (tem PR mais velho que since) → false', isFonteTruncada(prsCapVelho, Date.parse('2026-07-01'), 10) === false);
+check('truncada: cap batido sem nenhum mergedAt válido → conservador true', isFonteTruncada([{}, {}], Date.parse('2026-07-01'), 2) === true);
+
+// ── determinismo: buildReport na mesma entrada → JSON idêntico (base da oscilação viva) ──
+const detA = JSON.stringify(buildReport({ prs: PR3, sessions: SESSIONS, generated: '2026-07-12' }));
+const detB = JSON.stringify(buildReport({ prs: PR3, sessions: SESSIONS, generated: '2026-07-12' }));
+check('DETERMINÍSTICO: 2 runs na mesma entrada → JSON byte-a-byte igual', detA === detB);
+
+// ── universo vazio COM gasto → cobertura 0% (honesto), não null nem NaN ──────────
+const vazio = buildReport({ prs: PR3, sessions: SESSIONS, days: 1, nowIso: '2026-07-25T00:00:00Z', generated: '2026-07-12' });
+check('universo vazio COM gasto: cobertura 0% (nada tem dono), não NaN/null', vazio.custo.cobertura_alocacao_pct === 0 && vazio.custo.total_usd_escaneado > 0);
+
+// ════════════════════════════════════════════════════════════════════════════════
+// ENTRY-POINT REAL (antes 100% não-testado — a tautologia central que o agente expôs)
+// ════════════════════════════════════════════════════════════════════════════════
+const cliDir = mkdtempSync(join(tmpdir(), 'costcli-'));
+try {
+  // fixture {prs, sessions} hermética pro --fixture (não chama gh nem escaneia ~/.claude)
+  const fx = join(cliDir, 'fx.json');
+  writeFileSync(fx, JSON.stringify({
+    prs: PR3,
+    sessions: [{ id: 's', entries: [{ branch: 'c/1', model: 'claude-haiku-4-5', input: 1_000_000, output: 0, cache_read: 0, cache_5m: 0, cache_1h: 0 }], pr_mentions: [] }],
+  }));
+
+  // [AGENTE-A · mata a TAUTOLOGIA] a escrita REAL do --snapshot põe _LEIA_PRIMEIRO como
+  // 1ª chave EM DISCO. O teste antigo reconstruía o literal no próprio teste (truísmo da
+  // linguagem) e não pegava a produção gravando a chave por último. Agora invoca o CLI.
+  const snapOut = join(cliDir, 'snap.json');
+  const w = spawnSync(process.execPath, [CLI, '--fixture', fx, '--snapshot', snapOut], { encoding: 'utf8' });
+  check('CLI --snapshot: sai 0', w.status === 0);
+  const escrito = JSON.parse(readFileSync(snapOut, 'utf8'));
+  check('CLI --snapshot: _LEIA_PRIMEIRO é a PRIMEIRA chave EM DISCO (não um truísmo do teste)', Object.keys(escrito)[0] === '_LEIA_PRIMEIRO');
+  check('CLI --snapshot: o aviso gravado manda rodar ao vivo', String(escrito._LEIA_PRIMEIRO).includes('--json') && String(escrito._LEIA_PRIMEIRO).includes('NÃO cite'));
+  const rawDisco = readFileSync(snapOut);
+  check('CLI --snapshot: arquivo sem BOM UTF-8', !(rawDisco[0] === 0xEF && rawDisco[1] === 0xBB && rawDisco[2] === 0xBF));
+
+  // [AGENTE-B · crash latente] --render-snapshot num snapshot de FORMA ANTIGA (sem residuo)
+  // NÃO pode crashar o job semanal — deve avisar e sair 0.
+  const velho = join(cliDir, 'velho.json');
+  writeFileSync(velho, JSON.stringify({ ok: true, generated: '2026-07-10', janela: { dias: 14 }, custo: { total_usd_escaneado: 1 }, join: {}, por_pr: [] }));
+  const rs = spawnSync(process.execPath, [CLI, '--render-snapshot', velho], { encoding: 'utf8' });
+  check('AGENTE-B: --render-snapshot em forma ANTIGA (sem residuo) NÃO crasha (exit 0)', rs.status === 0);
+  check('AGENTE-B: e AVISA que é forma antiga (não degrada quebrado)', /forma ANTIGA/i.test(rs.stdout));
+
+  // --render-snapshot na forma NOVA renderiza + o footer de staleness dispara em snapshot velho
+  const novo = join(cliDir, 'novo.json');
+  writeFileSync(novo, JSON.stringify(buildReport({ prs: PR3, sessions: SESSIONS, generated: '2026-07-01' }))); // 16d velho
+  const rn = spawnSync(process.execPath, [CLI, '--render-snapshot', novo], { encoding: 'utf8' });
+  check('--render-snapshot forma NOVA velha: renderiza + manda regenerar (staleness)', rn.status === 0 && rn.stdout.includes('--snapshot'));
+} finally { rmSync(cliDir, { recursive: true, force: true }); }
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — join 2-sinais morde (branch com $ certo de cache; citação diluída) e libera (sem match declarado, sem dupla contagem, modelo sem preço não inventa USD). Contabilidade fecha (cobertura ≤100, conservação, decomposição) e o entry-point real é exercitado (snapshot escrito, forma antiga não crasha).');
 process.exit(fails ? 1 : 0);

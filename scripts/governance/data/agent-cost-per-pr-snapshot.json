@@ -5,14 +5,14 @@
   "janela": {
     "dias": 14,
     "desde": "2026-07-03",
-    "prs_no_universo": 421,
+    "prs_no_universo": 423,
     "prs_exibidos": 20,
     "marker": "[CC]"
   },
   "custo": {
-    "total_usd_escaneado": 20695.2,
-    "total_usd_atribuido": 16312.89,
-    "cobertura_alocacao_pct": 78.82,
+    "total_usd_escaneado": 20541.42,
+    "total_usd_atribuido": 16278.42,
+    "cobertura_alocacao_pct": 79.25,
     "mediana_usd_por_pr": 21.01,
     "top_prs": [
       {
@@ -27,35 +27,121 @@
       },
       {
         "pr": 3833,
-        "usd": 194.66,
+        "usd": 225.55,
         "title": "fix(governance): grader D8.a detecta throttle em array + D4.d detecta OtelHelper/Activitylog [CC]"
       }
     ]
   },
   "residuo": {
-    "usd": 4382.38,
-    "pct": 21.18,
+    "usd": 4263,
+    "pct": 20.75,
     "por_categoria": {
-      "sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)": 4382.38
+      "sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)": 4263
     }
   },
   "join": {
-    "sem_match": 15,
-    "sem_match_pct": 3.56,
-    "matched_por_branch": 29,
-    "matched_por_citacao": 382,
+    "sem_match": 16,
+    "sem_match_pct": 3.78,
+    "matched_por_branch": 36,
+    "matched_por_citacao": 375,
     "msgs_sem_branch": 0,
     "modelos_desconhecidos": [
       "<synthetic>"
     ]
   },
   "calibracao": {
-    "velocidade_prs_dia": 30.1,
+    "velocidade_prs_dia": 30.2,
     "limiar_idade_dias": 3,
     "tolerancia_staleness": 0.2,
     "precos_atualizados_em": "2026-07-12"
   },
   "por_pr": [
+    {
+      "pr": 4462,
+      "title": "feat(staging): sentinela de frescor do checkout — heartbeat não-destrutivo [CC]",
+      "branch": "claude/staging-freshness-check",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 47902598,
+      "usd": 45.25
+    },
+    {
+      "pr": 4446,
+      "title": "docs(produto): SDD §4.2 — tri-campo custo/margem/valor + pesquisa de mercado da aba geral [CC]",
+      "branch": "docs/produto-sdd-tri-campo",
+      "matched": false,
+      "sinais": [],
+      "tokens": 0,
+      "usd": null
+    },
+    {
+      "pr": 4456,
+      "title": "docs(governance): normaliza frontmatter de 140 ADRs (139→0) + relaxa slug pattern p/ 3 legacy (ADR 0342) [CC]",
+      "branch": "claude/adr-frontmatter-normalize-fase1",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 115101131,
+      "usd": 97.96
+    },
+    {
+      "pr": 4445,
+      "title": "feat(governance): validador-modulo-prototipo — passe adversarial de módulo × protótipo [CC]",
+      "branch": "claude/validador-modulo",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 33050306,
+      "usd": 26.29
+    },
+    {
+      "pr": 4447,
+      "title": "docs(memoria): redistila OficinaAuto + Sells — 2 portas na beira [CC]",
+      "branch": "claude/redistila-oficina-sells",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 63877983,
+      "usd": 54.55
+    },
+    {
+      "pr": 4448,
+      "title": "docs(whatsapp): FeedbackPublico charter draft→live — smoke de prod passou [CC]",
+      "branch": "claude/feedback-publico-charter-live",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 53677669,
+      "usd": 36.54
+    },
+    {
+      "pr": 4454,
+      "title": "test(fiscal): cockpit MT guards autenticam biz=1 (artefato, não vazamento) + ancora lane MySQL [CC]",
+      "branch": "claude/competent-hamilton-77260d",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 41574643,
+      "usd": 42.49
+    },
+    {
+      "pr": 4455,
+      "title": "docs(spec): US-COM-011 âncora real + estreita 4º critério (não deletar hardening wholesale) [CC]",
+      "branch": "claude/us-com-011-anchor-drift-fix",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 26486446,
+      "usd": 29.91
+    },
     {
       "pr": 4444,
       "title": "feat(jana): fecha residual do heartbeat — desligado-prod advisory (empilhado no #4425) [CC]",
@@ -64,8 +150,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 47609615,
-      "usd": 36.59
+      "tokens": 49728694,
+      "usd": 37.9
     },
     {
       "pr": 4441,
@@ -75,8 +161,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 38707553,
-      "usd": 30.95
+      "tokens": 33050306,
+      "usd": 26.29
     },
     {
       "pr": 4425,
@@ -86,8 +172,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 47609615,
-      "usd": 36.59
+      "tokens": 49728694,
+      "usd": 37.9
     },
     {
       "pr": 4430,
@@ -97,8 +183,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 68516374,
-      "usd": 47.03
+      "tokens": 53677669,
+      "usd": 36.54
     },
     {
       "pr": 4428,
@@ -108,8 +194,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 38707553,
-      "usd": 30.95
+      "tokens": 33050306,
+      "usd": 26.29
     },
     {
       "pr": 4423,
@@ -119,8 +205,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 38707553,
-      "usd": 30.95
+      "tokens": 33050306,
+      "usd": 26.29
     },
     {
       "pr": 4424,
@@ -130,8 +216,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 38707553,
-      "usd": 30.95
+      "tokens": 33050306,
+      "usd": 26.29
     },
     {
       "pr": 4422,
@@ -141,8 +227,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 38707553,
-      "usd": 30.95
+      "tokens": 33050306,
+      "usd": 26.29
     },
     {
       "pr": 4427,
@@ -152,8 +238,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 47609615,
-      "usd": 36.59
+      "tokens": 49728694,
+      "usd": 37.9
     },
     {
       "pr": 4413,
@@ -163,8 +249,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 68516374,
-      "usd": 47.03
+      "tokens": 53677669,
+      "usd": 36.54
     },
     {
       "pr": 4405,
@@ -183,100 +269,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 112460917,
-      "usd": 99.62
-    },
-    {
-      "pr": 4410,
-      "title": "feat(governance): liga o alarme da 0334 — a sentinela existia e nunca disparava [CC]",
-      "branch": "claude/sensor-ratio-negocio-governanca",
-      "matched": true,
-      "sinais": [
-        "branch",
-        "citacao"
-      ],
-      "tokens": 125479425,
-      "usd": 99.55
-    },
-    {
-      "pr": 4406,
-      "title": "chore(claude): versiona permissions do R12 — time fecha sessão sem autorizar [CC]",
-      "branch": "claude/r12-auto-authorization-0e04c2",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 20597318,
-      "usd": 19.54
-    },
-    {
-      "pr": 4386,
-      "title": "fix(shell): D-2 da ADR 0340 — o modo `auto` deixa de colapsar em direções opostas [CC]",
-      "branch": "claude/fix-tema-auto-hibrido",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 47075096,
-      "usd": 37.64,
-      "usd_incompleto": true
-    },
-    {
-      "pr": 4392,
-      "title": "docs(handoff): sessão 2026-07-16 — plano Codex 64%→91%, US/UC refutado, labels que mentiam [CC]",
-      "branch": "claude/handoff-2026-07-16-visreg",
-      "matched": true,
-      "sinais": [
-        "citacao"
-      ],
-      "tokens": 44545886,
-      "usd": 35.29,
-      "usd_incompleto": true
-    },
-    {
-      "pr": 4395,
-      "title": "docs(handoff): sessao 2026-07-17 — o gate fotografava o VAZIO; a sidebar é preta [CC]",
-      "branch": "claude/handoff-2026-07-17-gate-vazio-sidebar",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 63019414,
-      "usd": 54.63
-    },
-    {
-      "pr": 4391,
-      "title": "fix(visreg): cobrança de contrato é de `targeted` — em `global` o pixel roda o núcleo-6 [CC]",
-      "branch": "claude/fix-canario-scope-global",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 47075096,
-      "usd": 37.64,
-      "usd_incompleto": true
-    },
-    {
-      "pr": 4387,
-      "title": "test(visreg): desmascara o <select> nativo — o gate volta a ver 1 controle real [CC]",
-      "branch": "claude/visreg-unmask-select",
-      "matched": true,
-      "sinais": [
-        "citacao"
-      ],
-      "tokens": 14539427,
-      "usd": 11.97
-    },
-    {
-      "pr": 4385,
-      "title": "docs(visreg): erradica 2 justificativas FALSAS nos comentarios do gate visual [CC]",
-      "branch": "claude/visreg-comment-rot",
-      "matched": true,
-      "sinais": [
-        "citacao"
-      ],
-      "tokens": 14539427,
-      "usd": 11.97
+      "tokens": 63877983,
+      "usd": 54.55
     }
   ],
   "confianca": "proxy (JSONL local → SESSÃO → PR por branch OU citação /pull/N; ver gaps)",
@@ -288,6 +282,7 @@
     "G5 CI só roda selftest + snapshot commitado (staleness declarada); medição viva é local.",
     "G6 sinal-citação (/pull/N no transcript): citar ≠ ser autor (sessão que só LÊ PRs também cita) — só vale como fallback quando não há sinal de branch; custo diluído por N PRs citados.",
     "G7 janela COERENTE: sessões e PRs usam a MESMA janela de tempo. Sessão iniciada antes da janela entra pelo mtime e pode ter produzido PR fora dela → cai no resíduo, não no numerador. (Antes de 2026-07-17 o scan cobria ~8.8d contra ~1.8d de PRs — ~28 pontos do \"órfão\" eram esse artefato de bookkeeping.)",
-    "G8 o RESÍDUO não é buraco de join: a maior parte é sessão que não produziu PR nenhum (exploração, análise, sub-agente cujo pai commita, PR ainda aberto). Medido 2026-07-17: 5 das 6 branches de maior resíduo não têm PR algum no GitHub — não há aresta pra achar, nem por SHA nem por API."
+    "G8 o RESÍDUO não é buraco de join: a maior parte é sessão que não produziu PR nenhum (exploração, análise, sub-agente cujo pai commita, PR ainda aberto). Medido 2026-07-17: 5 das 6 branches de maior resíduo não têm PR algum no GitHub — não há aresta pra achar, nem por SHA nem por API.",
+    "G9 detector de truncagem tem ponto cego de EIXO: `gh pr list --limit` corta/ordena por createdAt, mas a janela filtra por mergedAt. Um PR de vida longa (criado antes do corte do cap, mergeado dentro da janela) some do fetch e é INDETECTÁVEL — o detector só vê o conjunto já truncado. Com PR_FETCH_LIMIT=1000 (~10-30d) vs janela 14d o risco é baixo, mas real; fechar de vez exige paginar por mergedAt (fora do escopo advisory)."
   ]
 }
