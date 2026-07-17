@@ -118,11 +118,11 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-merge-markers.ps1"
+            "command": "node .claude/hooks/block-merge-markers.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-routes-string-legacy.ps1"
+            "command": "node .claude/hooks/block-routes-string-legacy.mjs"
           },
           {
             "type": "command",
