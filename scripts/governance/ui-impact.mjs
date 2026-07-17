@@ -269,12 +269,18 @@ export function validateExecution({
   mode,
   pixelOutcome,
   uncoveredScreens = [],
+  scope,
   expected,
   executed,
   compared,
 }) {
   if (!['true', 'false'].includes(visualRequired)) return ['classificador de impacto não produziu decisão booleana'];
-  if (uncoveredScreens.length > 0) return [`telas afetadas sem contrato visreg: ${uncoveredScreens.join(', ')}`];
+  // Ver o comentário no fail-closed do run(): em `global` o pixel roda o núcleo-6 e ignora
+  // `screens`, então cobrar contrato do raio informativo é inalcançável (o shell resolve
+  // ~190 consumidores). Em `targeted` a lista É a comparação — segue mordendo aqui E no
+  // PixelBaselineTest. `scope` ausente ⇒ trata como targeted (conservador: sem informação,
+  // mantém o fail-closed de sempre).
+  if (scope !== 'global' && uncoveredScreens.length > 0) return [`telas afetadas sem contrato visreg: ${uncoveredScreens.join(', ')}`];
   if (visualRequired !== mode) return [`impacto=${visualRequired}, mas modo pesado=${mode}`];
   if (visualRequired === 'true' && !['success', 'failure'].includes(pixelOutcome)) {
     return ['impacto visual detectado, mas nenhum pixel-diff executou (verde vazio)'];
@@ -384,7 +390,16 @@ function run(argv) {
     appendFileSync(githubOutput, `uncovered_screens=${JSON.stringify(result.uncovered_screens)}\n`);
     appendFileSync(githubOutput, `impacted_count=${result.impacted.length}\n`);
   }
-  if (result.uncovered_screens.length) {
+  // Cobrança de contrato só faz sentido em `targeted` — é lá que `screens` VIRA a lista
+  // de comparação (PixelBaselineTest.php:97 filtra por VISREG_SCREENS e ele mesmo lança
+  // "Telas sem contrato visreg" pra tela pedida sem contrato: a mordida vive lá, não aqui).
+  // Em `global` o teste IGNORA VISREG_SCREENS e roda o manifesto inteiro (núcleo-6) — a
+  // doutrina no topo deste arquivo: "mudanças compartilhadas/fundacionais exigem o núcleo
+  // global". Exigir contrato do raio informativo travava o shell: `AppShellV2.tsx` resolve
+  // ~190 consumidores × 6 com contrato → fail-closed inalcançável, com o pixel nunca
+  // rodando (PIXEL_OUTCOME=skipped). Nenhuma mudança de shell atravessou o canário desde
+  // que ele endureceu (2026-07-16, #4342/#4349); o último toque no AppShellV2 é de 06-17.
+  if (result.scope === 'targeted' && result.uncovered_screens.length) {
     throw new Error(`telas afetadas sem contrato em ${SCREEN_MANIFEST}: ${result.uncovered_screens.join(', ')}`);
   }
   return result;
@@ -494,6 +509,34 @@ function selfTest() {
   assert.ok(validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'skipped', expected: 1, executed: 1, compared: 1 }).length > 0);
   assert.ok(validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', expected: 2, executed: 2, compared: 1 }).length > 0);
   assert.deepEqual(validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', expected: 2, executed: 2, compared: 2 }), []);
+
+  // ── uncovered × scope (2026-07-16) — o par que prova que a catraca MORDE e LIBERA certo.
+  // Em `targeted` a lista de telas É a comparação → sem contrato, reprova (aqui e no PHP).
+  // Em `global` o pixel ignora `screens` e roda o núcleo-6 → cobrar contrato do raio
+  // informativo é inalcançável (o shell resolve ~190 consumidores) e matava o job ANTES
+  // do pixel (PIXEL_OUTCOME=skipped) — verde-vazio às avessas: vermelho-vazio.
+  assert.ok(
+    validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', scope: 'targeted', uncoveredScreens: ['Cliente'], expected: 1, executed: 1, compared: 1 }).length > 0,
+    'targeted com tela sem contrato TEM que reprovar (a mordida não pode sumir)',
+  );
+  assert.deepEqual(
+    validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', scope: 'global', uncoveredScreens: ['Admin', 'Home'], expected: 6, executed: 6, compared: 6 }),
+    [],
+    'global roda o núcleo-6 e ignora screens — raio informativo não pode travar o shell',
+  );
+  assert.ok(
+    validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', uncoveredScreens: ['Cliente'], expected: 1, executed: 1, compared: 1 }).length > 0,
+    'scope ausente = conservador: mantém o fail-closed de sempre',
+  );
+  // O resto do canário continua mordendo em global (não virou passe-livre):
+  assert.ok(
+    validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'skipped', scope: 'global', uncoveredScreens: ['Admin'], expected: 6, executed: 6, compared: 6 }).length > 0,
+    'global com pixel skipped segue reprovando (verde vazio)',
+  );
+  assert.ok(
+    validateExecution({ visualRequired: 'true', mode: 'true', pixelOutcome: 'success', scope: 'global', uncoveredScreens: ['Admin'], expected: 6, executed: 6, compared: 3 }).length > 0,
+    'global com pixel incompleto segue reprovando',
+  );
   console.log('ui-impact selftest: sensibilidade, especificidade e fail-closed passaram');
 }
 
@@ -507,6 +550,7 @@ if (isEntry) {
       mode: argValue(argv, 'mode'),
       pixelOutcome: argValue(argv, 'pixel-outcome'),
       uncoveredScreens: jsonArray(argValue(argv, 'uncovered-screens', '[]')),
+      scope: argValue(argv, 'scope'),
       expected: argValue(argv, 'expected'),
       executed: argValue(argv, 'executed'),
       compared: argValue(argv, 'compared'),

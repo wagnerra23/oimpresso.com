@@ -134,7 +134,7 @@ foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
               s.textContent = `
                 * { transition: none !important; animation: none !important; font-family: Arial, sans-serif !important; }
                 body { -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; }
-                select, input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
+                input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
               `;
               document.head.appendChild(s);
               return true;
@@ -142,8 +142,16 @@ foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
         JS);
         $page->wait(1.5);
 
-        // fullPage:false — viewport e o contrato visual estável (full page em lista longa
-        // varia com o seed). A baseline é por (tela,estado); só diferenças claras falham.
+        // fullPage:false — as baselines commitadas foram capturadas assim, e o
+        // VisregThreshold:175-183 trata dimensão divergente como regressão estrutural.
+        // NÃO é "varia com o seed": medido 2026-07-16, os 6 seeders Visreg têm 0 ocorrência
+        // de faker|Faker|rand(|random|uniqid|Str::random. A baseline é por (tela,estado).
+        //
+        // Esta suíte NÃO passa `baselineFile` → em --update-snapshots a baseline nasce via
+        // assertScreenshotMatches do plugin (VisregThreshold:132), que injeta o próprio
+        // Arial (MakesScreenshotAssertions.php:19-27); na comparação usa o pixelmatch-GD
+        // (:159-171). Por isso a injeção de Arial acima (:131-142) é load-bearing aqui —
+        // diferente das 6 do PixelBaselineTest, que são auto-consistentes.
         \Tests\Browser\Support\VisregThreshold::assertBandedScreenshot(
             page: $page,
             screenName: "{$slug} · estado={$estado}",
