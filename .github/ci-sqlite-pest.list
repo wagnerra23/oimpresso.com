@@ -173,3 +173,7 @@ tests/Feature/RouteHits/RouteHitsCommandsTest.php
 # Markup mestre a 2 casas nao reconstitui 7.000,00 (da 6.999,97) — piso e 4 casas, que e o que
 # variations.profit_percent (DECIMAL 22,4) ja guarda. DB-less: so aritmetica no App\Utils\Util. Sqlite-safe.
 tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php
+# Tier 0 do canal público de feedback (US-INFRA-002 · ADR 0334): numa rota SEM auth o global
+# scope é no-op, quem isola o tenant é o HMAC da URL assinada. Trava que adulterar ?biz dá 403.
+# DB-less (o middleware `signed` decide antes do controller). Sqlite-safe.
+Modules/Whatsapp/Tests/Feature/FeedbackPublicoSignedUrlTest.php

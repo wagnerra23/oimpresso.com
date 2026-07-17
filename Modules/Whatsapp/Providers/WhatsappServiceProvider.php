@@ -15,6 +15,7 @@ use Modules\Whatsapp\Console\Commands\CustomerMemoryBackfillCommand;
 use Modules\Whatsapp\Console\Commands\CustomerMemoryEnrichFirebirdCommand;
 use Modules\Whatsapp\Console\Commands\CustomerMemoryRefreshDailyCommand;
 use Modules\Whatsapp\Console\Commands\EmployeePerformanceBackfillCommand;
+use Modules\Whatsapp\Console\Commands\FeedbackLinkCommand;
 use Modules\Whatsapp\Console\Commands\EmployeePerformanceRefreshDailyCommand;
 use Modules\Whatsapp\Console\Commands\BackfillMediaDownloadCommand;
 use Modules\Whatsapp\Console\Commands\ChannelHealthSnapshotCommand;
@@ -100,6 +101,9 @@ class WhatsappServiceProvider extends ServiceProvider
                 BackfillChannelAccessCommand::class,
                 AuditChannelAccessCommand::class,       // Wagner 2026-06-13 — auditor flip-flop revoke/reativação ACL canal
                 RegisterWhatsappPermissionsCommand::class,
+                // US-INFRA-002 — gera o link assinado do canal público de feedback
+                // (o órgão sensor da ADR 0334; sem ele o [W] não tem o que mandar ao cliente).
+                FeedbackLinkCommand::class,
                 // Guardião 6 camadas anti-mídia-perdida
                 ScanMediaDriftCommand::class,           // Camada 5 — scan drift daily
                 BackfillMediaDownloadCommand::class,    // Bonus — backfill one-shot
