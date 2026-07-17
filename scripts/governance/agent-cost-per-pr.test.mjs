@@ -12,6 +12,7 @@
 import {
   buildReport, parseUsageLine, custoUSD, resolvePreco, aggregatePorBranch,
   aggregatePorModelo, extractPrMentions, PRECOS_USD_MTOK, CACHE_MULT,
+  PR_FETCH_LIMIT, DEFAULT_DAYS, renderHuman, renderBriefMd, renderPrBlockMd,
 } from './agent-cost-per-pr.mjs';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -85,7 +86,7 @@ const SESSIONS = [
 
 const r = buildReport({ prs: PRS, usage: undefined, sessions: SESSIONS, generated: '2026-07-12' });
 
-check('janela = 4 PRs do agente (humano #13 e aberto #14 excluídos)', r.janela.prs === 4 && !r.por_pr.some((p) => p.pr === 13 || p.pr === 14));
+check('janela = 4 PRs do agente (humano #13 e aberto #14 excluídos)', r.janela.prs_no_universo === 4 && !r.por_pr.some((p) => p.pr === 13 || p.pr === 14));
 const pr10 = r.por_pr.find((p) => p.pr === 10);
 check('MORDE branch: #10 agrega 2 sessões = $14.00', pr10 && pr10.matched && pr10.usd === 14 && pr10.sinais.includes('branch'));
 const pr12 = r.por_pr.find((p) => p.pr === 12);
@@ -97,9 +98,70 @@ check('DECLARA: #11 sem sinal → sem match (não inventa custo)', pr11 && pr11.
 check('sem_match_pct = 25% publicado', r.join.sem_match === 1 && r.join.sem_match_pct === 25);
 check('join separa sinais: 1 por branch, 2 por citação', r.join.matched_por_branch === 1 && r.join.matched_por_citacao === 2);
 check('modelo desconhecido listado', r.join.modelos_desconhecidos.includes('claude-foo-9'));
-check('LIBERA: sessão sem sinal vira fora da janela ($1.00)', r.custo.usd_fora_da_janela === 1);
+check('LIBERA: sessão sem sinal vira resíduo ($1.00)', r.residuo.usd === 1);
 check('msgs sem branch contadas, não atribuídas', r.join.msgs_sem_branch === 1);
-check('total matched = 14+2+2 = $18.00', r.custo.total_usd_matched === 18);
+check('total atribuído = 14+2+2 = $18.00', r.custo.total_usd_atribuido === 18);
+
+// ── CONTRATO: a SESSÃO é a unidade de custo, não a branch-por-mensagem ──────────
+// Regressão medida em 2026-07-17 (live): o padrão real é gastar na branch da WORKTREE e
+// só criar a branch de tópico no fim — o branch do PR marcava apenas a CAUDA. O desenho
+// antigo atribuía só a cauda ao PR e DESCARTAVA o corpo em `usd_fora_da_janela`, fazendo
+// PRs de sessão inteira aparecerem com $4,22 ao lado de $444 casados por citação.
+// Fixture: $10 no corpo (worktree) + $1 na cauda (branch do #11). Antes: #11 = $1.
+const SESSAO_CAUDA = [{
+  id: 'cauda',
+  entries: [
+    ent('claude/worktree-onde-o-trabalho-aconteceu', 'claude-haiku-4-5', 10_000_000), // corpo $10
+    ent('claude/b', 'claude-haiku-4-5', 1_000_000),                                    // cauda $1 (#11)
+  ],
+  pr_mentions: [],
+}];
+const rc = buildReport({ prs: PRS, sessions: SESSAO_CAUDA, generated: '2026-07-12' });
+const pr11c = rc.por_pr.find((p) => p.pr === 11);
+check('SESSÃO é a unidade: #11 leva a sessão INTEIRA ($11), não só a cauda ($1)', pr11c && pr11c.usd === 11);
+check('corpo da sessão NÃO vira resíduo quando ela produziu PR', rc.residuo.usd === 0);
+check('cobertura de alocação = 100% (todo o dinheiro tem dono)', rc.custo.cobertura_alocacao_pct === 100);
+
+// ── CONTRATO: cobertura é do lado do DINHEIRO, não do lado do PR ────────────────
+// O `sem_match_pct` antigo dizia 0% (todo PR recebia custo) enquanto ~88% do dinheiro
+// não tinha dono. Fixture: sessão de $9 sem PR + sessão de $1 no #11 → 4 PRs, 0% "sem
+// match" seria mentira; a verdade é 10% de cobertura.
+const SESSAO_RESIDUO = [
+  { id: 'paga', entries: [ent('claude/b', 'claude-haiku-4-5', 1_000_000)], pr_mentions: [] },      // $1 → #11
+  { id: 'orfa', entries: [ent('claude/explorei-e-nao-virou-pr', 'claude-haiku-4-5', 9_000_000)], pr_mentions: [] }, // $9
+];
+const rr = buildReport({ prs: PRS, sessions: SESSAO_RESIDUO, generated: '2026-07-12' });
+check('cobertura do DINHEIRO = 10% ($1 de $10) — não confunde com cobertura do PR', rr.custo.cobertura_alocacao_pct === 10 && rr.custo.total_usd_escaneado === 10);
+check('resíduo DECOMPOSTO por categoria (não só declarado)', rr.residuo.usd === 9 && rr.residuo.por_categoria['sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)'] === 9);
+
+// ── CONTRATO: janela COERENTE — PR fora da janela de tempo não entra no universo ──
+const rj = buildReport({ prs: PRS, sessions: SESSIONS, days: 3, generated: '2026-07-12' });
+check('janela 3d: PRs mergeados antes de 2026-07-09 saem do universo', rj.janela.prs_no_universo === 0 && rj.janela.desde === '2026-07-09');
+check('resíduo main/HEAD é categoria própria', buildReport({
+  prs: PRS, generated: '2026-07-12',
+  sessions: [{ id: 'm', entries: [ent('main', 'claude-haiku-4-5', 1_000_000)], pr_mentions: [] }],
+}).residuo.por_categoria['main/HEAD (trabalho fora de branch de PR)'] === 1);
+
+// ── CONTRATO: cap do fetch é DECLARADO, nunca silencioso ────────────────────────
+// Medido 2026-07-17: com ~30 PRs/dia, o `limit:200` alcançava só ~4 dias — com janela de
+// 14d o universo vinha 4× menor (104 vs 435 PRs [CC]) e todo PR ausente virava resíduo
+// FALSO. O cap continua existindo; o relatório é que não pode calar sobre ele.
+check('PR_FETCH_LIMIT cobre a janela default (>=30 PRs/dia × DEFAULT_DAYS)', PR_FETCH_LIMIT >= 30 * DEFAULT_DAYS);
+check('fonte_truncada AUSENTE quando o fetch não bateu no cap', buildReport({ prs: PRS, sessions: [], generated: '2026-07-12' }).janela.fonte_truncada === undefined);
+check('fonte_truncada DECLARADA no json quando o fetch bateu no cap',
+  buildReport({ prs: PRS, sessions: [], generated: '2026-07-12', fonteTruncada: true }).janela.fonte_truncada === true);
+check('fonte truncada GRITA no texto humano (não some no rodapé)',
+  renderHuman(buildReport({ prs: PRS, sessions: [], generated: '2026-07-12', fonteTruncada: true })).includes('FONTE TRUNCADA'));
+check('fonte truncada GRITA no brief markdown',
+  renderBriefMd(buildReport({ prs: PRS, sessions: [], generated: '2026-07-12', fonteTruncada: true })).includes('FONTE TRUNCADA'));
+
+// ── CONTRATO: bloco `--pr N` leva o número pro PR — relato, nunca gate ──────────
+const blocoPago = renderPrBlockMd(r, r.por_pr.find((p) => p.pr === 10));
+check('--pr: bloco traz o custo REAL do PR (#10 = $14.00)', blocoPago.includes('$14.00') && blocoPago.includes('advisory'));
+check('--pr: bloco publica cobertura de alocação junto (contexto do número)', blocoPago.includes('cobertura de alocação'));
+check('--pr: PR sem sessão casada DECLARA "não medido" (não inventa $0)', renderPrBlockMd(r, r.por_pr.find((p) => p.pr === 11)).includes('não medido'));
+check('--pr: bloco é RELATO — não fala em bloquear/gate/falhar', !/\b(bloqueia merge|reprova|falha o PR)\b/i.test(blocoPago) && blocoPago.includes('não bloqueia'));
+check('--pr: bloco NÃO traz valores R$ (Tier 0 — só USD)', !/R\$/.test(blocoPago));
 
 // ── encoding PT-BR sobrevive report → snapshot em disco (mesma escrita do --snapshot) ──
 const MOJIBAKE = /Ã[£©¡§µ­ª‚ƒ†]|â€|Ãƒ|�/; // Ã£/Ã©/â€œ/â€”/U+FFFD etc
@@ -119,11 +181,13 @@ try {
 
 // ── LIBERA: sem sessões → tudo sem match (100%), nada inventado ──────────────────
 const r2 = buildReport({ prs: PRS, sessions: [], generated: '2026-07-12' });
-check('sem sessões: 100% sem match, total $0', r2.join.sem_match_pct === 100 && r2.custo.total_usd_matched === 0);
+check('sem sessões: 100% sem match, total $0', r2.join.sem_match_pct === 100 && r2.custo.total_usd_atribuido === 0);
 
-// ── janela corta em N (mais recente primeiro) ───────────────────────────────────
+// ── prWindow corta a EXIBIÇÃO, não a atribuição (G7: universo ≠ tabela) ─────────
 const r3 = buildReport({ prs: PRS, sessions: SESSIONS, prWindow: 1, generated: '2026-07-12' });
-check('prWindow=1 pega só o merge mais recente (#15)', r3.janela.prs === 1 && r3.por_pr[0].pr === 15);
+check('prWindow=1 exibe só o merge mais recente (#15)', r3.janela.prs_exibidos === 1 && r3.por_pr[0].pr === 15);
+check('prWindow=1 NÃO encolhe o universo de atribuição (4 PRs, $18 atribuídos)',
+  r3.janela.prs_no_universo === 4 && r3.custo.total_usd_atribuido === 18);
 
 // ── agregadores diretos (redundância de defesa) ─────────────────────────────────
 const agg = aggregatePorBranch([ent('b1', 'm', 1, 2), ent('b1', 'm', 10)]);

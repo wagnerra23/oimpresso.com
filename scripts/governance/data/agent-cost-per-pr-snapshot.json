@@ -1,38 +1,48 @@
 {
   "ok": true,
-  "generated": "2026-07-13",
+  "generated": "2026-07-17",
   "janela": {
-    "prs": 20,
-    "pedidos": 20,
+    "dias": 14,
+    "desde": "2026-07-03",
+    "prs_no_universo": 435,
+    "prs_exibidos": 20,
     "marker": "[CC]"
   },
   "custo": {
-    "total_usd_matched": 387.79,
-    "mediana_usd_por_pr": 14.9,
+    "total_usd_escaneado": 19549.97,
+    "total_usd_atribuido": 15878.26,
+    "cobertura_alocacao_pct": 81.22,
+    "mediana_usd_por_pr": 18.98,
     "top_prs": [
       {
-        "pr": 4191,
-        "usd": 36.46,
-        "title": "docs(reguas): adversário formal 2026-07-12 — session log da grade + regras 8-15 na skill [CC]"
+        "pr": 4201,
+        "usd": 242.29,
+        "title": "fix(sdd): distiller_freshness não fabrica stale em checkout shallow (o 6 era artefato de medição, não dívida) [CC]"
       },
       {
-        "pr": 4171,
-        "usd": 27.49,
-        "title": "feat(governance): agenda snapshot diário do scorecard SDD no CT 100 (P06/GT-G7) [CC]"
+        "pr": 3915,
+        "usd": 161.49,
+        "title": "fix(shell): main-body position:relative — elimina o branco infinito no fim das telas do cockpit [CC]"
       },
       {
-        "pr": 4164,
-        "usd": 26.86,
-        "title": "ci(memory-schema): fia briefing+reference à matriz em GRACE (warn-only) [CC]"
+        "pr": 3833,
+        "usd": 150.08,
+        "title": "fix(governance): grader D8.a detecta throttle em array + D4.d detecta OtelHelper/Activitylog [CC]"
       }
-    ],
-    "usd_fora_da_janela": 11857.07
+    ]
+  },
+  "residuo": {
+    "usd": 3671.77,
+    "pct": 18.78,
+    "por_categoria": {
+      "sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)": 3671.77
+    }
   },
   "join": {
-    "sem_match": 0,
-    "sem_match_pct": 0,
-    "matched_por_branch": 0,
-    "matched_por_citacao": 20,
+    "sem_match": 14,
+    "sem_match_pct": 3.22,
+    "matched_por_branch": 18,
+    "matched_por_citacao": 405,
     "msgs_sem_branch": 0,
     "modelos_desconhecidos": [
       "<synthetic>"
@@ -40,233 +50,247 @@
   },
   "por_pr": [
     {
-      "pr": 4192,
-      "title": "docs(jana): evidence pack dry-run jana:retention-purge + pedido formal flip JANA_RETENTION_ENABLED [CC]",
-      "branch": "claude/lgpd-retention-flip-evidence",
+      "pr": 4410,
+      "title": "feat(governance): liga o alarme da 0334 — a sentinela existia e nunca disparava [CC]",
+      "branch": "claude/sensor-ratio-negocio-governanca",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 8310361,
-      "usd": 25.94
+      "tokens": 34449017,
+      "usd": 29.88
     },
     {
-      "pr": 4191,
-      "title": "docs(reguas): adversário formal 2026-07-12 — session log da grade + regras 8-15 na skill [CC]",
-      "branch": "claude/reguas-adversario-grade",
+      "pr": 4406,
+      "title": "chore(claude): versiona permissions do R12 — time fecha sessão sem autorizar [CC]",
+      "branch": "claude/r12-auto-authorization-0e04c2",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 11576582,
-      "usd": 36.46
+      "tokens": 20597318,
+      "usd": 19.54
     },
     {
-      "pr": 4185,
-      "title": "feat(governance): ativa o gate verde advisory da nightly — transporte (elo 2) + job anchor-drift (elo 4) (V6-B) [CC]",
-      "branch": "claude/v6b-activate-verde-advisory",
+      "pr": 4386,
+      "title": "fix(shell): D-2 da ADR 0340 — o modo `auto` deixa de colapsar em direções opostas [CC]",
+      "branch": "claude/fix-tema-auto-hibrido",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 30655360,
-      "usd": 22.73
+      "tokens": 47075096,
+      "usd": 37.64,
+      "usd_incompleto": true
     },
     {
-      "pr": 4184,
-      "title": "feat(governance): anchor-lint consome nightly full-suite sharded + noite parcial → unknown (V6-B link 3) [CC]",
-      "branch": "claude/v6b-consume-sharded-summary",
+      "pr": 4392,
+      "title": "docs(handoff): sessão 2026-07-16 — plano Codex 64%→91%, US/UC refutado, labels que mentiam [CC]",
+      "branch": "claude/handoff-2026-07-16-visreg",
       "matched": true,
       "sinais": [
         "citacao"
       ],
-      "tokens": 30655360,
-      "usd": 22.73
+      "tokens": 44545886,
+      "usd": 35.29,
+      "usd_incompleto": true
     },
     {
-      "pr": 4182,
-      "title": "fix(governance): anchor-lint verde só julga teste in-lane — US nightly-only → behavior_unknown, não false-red (V6-C) [CC]",
-      "branch": "claude/v6c-nightly-lane-unknown",
+      "pr": 4395,
+      "title": "docs(handoff): sessao 2026-07-17 — o gate fotografava o VAZIO; a sidebar é preta [CC]",
+      "branch": "claude/handoff-2026-07-17-gate-vazio-sidebar",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 30655360,
-      "usd": 22.73
+      "tokens": 63019414,
+      "usd": 54.63
     },
     {
-      "pr": 4171,
-      "title": "feat(governance): agenda snapshot diário do scorecard SDD no CT 100 (P06/GT-G7) [CC]",
-      "branch": "claude/sdd-p06-cron-ct100",
+      "pr": 4391,
+      "title": "fix(visreg): cobrança de contrato é de `targeted` — em `global` o pixel roda o núcleo-6 [CC]",
+      "branch": "claude/fix-canario-scope-global",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 31858306,
-      "usd": 27.49
+      "tokens": 47075096,
+      "usd": 37.64,
+      "usd_incompleto": true
     },
     {
-      "pr": 4164,
-      "title": "ci(memory-schema): fia briefing+reference à matriz em GRACE (warn-only) [CC]",
-      "branch": "claude/canon-memoria-grace-briefing-reference",
+      "pr": 4387,
+      "title": "test(visreg): desmascara o <select> nativo — o gate volta a ver 1 controle real [CC]",
+      "branch": "claude/visreg-unmask-select",
       "matched": true,
       "sinais": [
         "citacao"
       ],
-      "tokens": 38123868,
-      "usd": 26.86
+      "tokens": 14539427,
+      "usd": 11.97
     },
     {
-      "pr": 4165,
-      "title": "feat(infra): get-secret.sh — leitura canônica de segredos via Vaultwarden service account (Opção B) [CC]",
-      "branch": "claude/vaultwarden-get-secret",
+      "pr": 4385,
+      "title": "docs(visreg): erradica 2 justificativas FALSAS nos comentarios do gate visual [CC]",
+      "branch": "claude/visreg-comment-rot",
       "matched": true,
       "sinais": [
         "citacao"
       ],
-      "tokens": 18630226,
-      "usd": 16.22
+      "tokens": 14539427,
+      "usd": 11.97
     },
     {
-      "pr": 4161,
-      "title": "fix(governance): anchor-lint loadJunit resiliente — junit inválido → behavior_unknown, não crash/false-red (V6-A) [CC]",
-      "branch": "claude/v6a-anchor-junit-resilient",
+      "pr": 4388,
+      "title": "test(visreg): o `default` da Oficina fotografa quadro COM dado + card dark legível [CC]",
+      "branch": "claude/visreg-oficina-default-com-dado",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 30655360,
-      "usd": 22.73
+      "tokens": 63019414,
+      "usd": 54.63
     },
     {
-      "pr": 4155,
-      "title": "feat(governance): passe repetível charter-promote-signal + 1ª run (Produto/Index) [CC]",
-      "branch": "claude/charter-promote-signal-pass",
+      "pr": 4382,
+      "title": "docs(sessions): smoke do `auto` EXECUTADO — 95% da base no híbrido; fecha o §Verificação da 0340 [CC]",
+      "branch": "claude/session-smoke-auto-hibrido",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 47075096,
+      "usd": 37.64,
+      "usd_incompleto": true
     },
     {
-      "pr": 4153,
-      "title": "docs(site): promove charter /login draft→live (sinal de prod real) [CC]",
-      "branch": "claude/promote-site-login-live",
+      "pr": 4378,
+      "title": "docs(ui): sidebar é PRETA (dark-fixo) — UI-0023 supersede UI-0019 e erradica o conflito [CC]",
+      "branch": "claude/blissful-cori-9e0703",
       "matched": true,
       "sinais": [
+        "branch",
         "citacao"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 140637167,
+      "usd": 117.16
     },
     {
-      "pr": 4152,
-      "title": "docs(handoff): session log + handoff cobertura de charters 100% [CC]",
-      "branch": "claude/session-log-charters",
+      "pr": 4380,
+      "title": "docs(adr): 0340 — o tema colapsa em direções opostas; o resíduo dark da Oficina não é do Board [CC]",
+      "branch": "claude/adr-0340-tema-colapso-oposto",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 47075096,
+      "usd": 37.64,
+      "usd_incompleto": true
     },
     {
-      "pr": 4148,
-      "title": "fix(memcofre): corrige chamadas /docs → /memcofre (404) [CC]",
-      "branch": "claude/fix-memcofre-docs-routes",
+      "pr": 4379,
+      "title": "docs(handoff): sessão grade de qualidade DS — flip 3 gates + self-test + plumbing [CC]",
+      "branch": "claude/handoff-grade-ds-2026-07-16",
       "matched": true,
       "sinais": [
         "citacao"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 36757088,
+      "usd": 29.24
     },
     {
-      "pr": 4142,
-      "title": "docs(nfebrasil): charters draft das 2 telas sem contrato [CC]",
-      "branch": "claude/charters-nfebrasil",
+      "pr": 4377,
+      "title": "feat(governance): plumbing do manifesto por-UC — JUnit das lanes → G-7 (10%→17%) [CC]",
+      "branch": "claude/casos-results-plumbing",
       "matched": true,
       "sinais": [
         "citacao"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 36757088,
+      "usd": 29.24
     },
     {
-      "pr": 4141,
-      "title": "docs(purchase): charters draft das 2 telas sem contrato [CC]",
-      "branch": "claude/charters-purchase",
+      "pr": 4376,
+      "title": "docs(handoff): sessao 2026-07-16 — smoke Financeiro, 15 dimensoes, verde-vazio e Ziggy [CC]",
+      "branch": "claude/handoff-2026-07-16-smoke-15dims-ziggy",
       "matched": true,
       "sinais": [
         "citacao"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 58802560,
+      "usd": 55.57,
+      "usd_incompleto": true
     },
     {
-      "pr": 4136,
-      "title": "docs(ads): charters draft das 19 telas sem contrato [CC]",
-      "branch": "claude/charters-ads",
+      "pr": 4373,
+      "title": "fix(oficina): par dark: nos 6 tons de KPI do Board (sub 1.92:1 → 6.3:1) [CC]",
+      "branch": "claude/oficina-kpi-dark-tons",
       "matched": true,
       "sinais": [
+        "branch",
         "citacao"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 131004533,
+      "usd": 102.25,
+      "usd_incompleto": true
     },
     {
-      "pr": 4140,
-      "title": "docs(financeiro): charters draft das 5 telas sem contrato [CC]",
-      "branch": "claude/charters-financeiro",
+      "pr": 4068,
+      "title": "docs(sessions): fecha protocolo 2026-07-09/10 — método reguas-do-sistema + reanálise ponto cego [CC]",
+      "branch": "docs/fechamento-2026-07-10",
       "matched": true,
       "sinais": [
         "citacao"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 120681346,
+      "usd": 136.29,
+      "usd_incompleto": true
     },
     {
-      "pr": 4139,
-      "title": "docs(memcofre): charters draft das 6 telas sem contrato [CC]",
-      "branch": "claude/charters-memcofre",
+      "pr": 4367,
+      "title": "fix(oficina): Board usa tokens semânticos do DS — dark deixa de renderizar branco [CC]",
+      "branch": "claude/oficina-board-dark-tokens",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 86458647,
+      "usd": 66.96,
+      "usd_incompleto": true
     },
     {
-      "pr": 4137,
-      "title": "docs(essentials): charters draft das 10 telas sem contrato [CC]",
-      "branch": "claude/charters-essentials",
+      "pr": 4371,
+      "title": "test(browser): remover 2 testes que nunca executaram (falsa cobertura) [CC]",
+      "branch": "claude/remover-falsa-cobertura-browser",
       "matched": true,
       "sinais": [
-        "citacao"
+        "branch"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 32825885,
+      "usd": 24.06
     },
     {
-      "pr": 4138,
-      "title": "docs(site): charters draft das 7 telas sem contrato [CC]",
-      "branch": "claude/charters-site",
+      "pr": 4370,
+      "title": "docs(produto): corrige o mapa da aba geral — 2 falso-créditos + Preço Especial mudou de topologia [CC]",
+      "branch": "docs/produto-paridade-correcao",
       "matched": true,
       "sinais": [
         "citacao"
       ],
-      "tokens": 15691951,
-      "usd": 14.9
+      "tokens": 44545886,
+      "usd": 35.29,
+      "usd_incompleto": true
     }
   ],
-  "confianca": "proxy (JSONL local → branch OU citação /pull/N → PR; ver gaps)",
+  "confianca": "proxy (JSONL local → SESSÃO → PR por branch OU citação /pull/N; ver gaps)",
   "gaps": [
-    "G1 sinal-branch (gitBranch==headRefName): consolidação parent / rename / sessão sem branch escapam — % de PRs sem match publicado é o tamanho do buraco.",
-    "G2 custo é da SESSÃO/BRANCH inteira: superconta exploração descartada e funde PRs que reusaram branch.",
+    "G1 sinal-branch (gitBranch==headRefName): o gitBranch é gravado POR MENSAGEM, e o padrão real do projeto é gastar na branch da worktree e criar a branch de tópico só no fim — o branch do PR marca apenas a CAUDA da sessão. Por isso a unidade de custo é a SESSÃO, não a mensagem (G2).",
+    "G2 a SESSÃO é a unidade: o custo inteiro dela vai pros PRs que ela produziu (dividido igualmente). Superconta exploração descartada dentro de sessão que também entregou PR.",
     "G3 fonte = JSONL desta máquina: cloud/CI/outros devs não aparecem → subconta.",
     "G4 preços hardcoded (2026-07-12); modelo desconhecido → USD null declarado; sem breakdown de cache → tudo vira write 5m; não modela server tools/fast-mode.",
     "G5 CI só roda selftest + snapshot commitado (staleness declarada); medição viva é local.",
-    "G6 sinal-citação (/pull/N no transcript): citar ≠ ser autor — custo diluído por N PRs citados; matched_por_citacao é reportado separado do matched_por_branch."
+    "G6 sinal-citação (/pull/N no transcript): citar ≠ ser autor (sessão que só LÊ PRs também cita) — só vale como fallback quando não há sinal de branch; custo diluído por N PRs citados.",
+    "G7 janela COERENTE: sessões e PRs usam a MESMA janela de tempo. Sessão iniciada antes da janela entra pelo mtime e pode ter produzido PR fora dela → cai no resíduo, não no numerador. (Antes de 2026-07-17 o scan cobria ~8.8d contra ~1.8d de PRs — ~28 pontos do \"órfão\" eram esse artefato de bookkeeping.)",
+    "G8 o RESÍDUO não é buraco de join: a maior parte é sessão que não produziu PR nenhum (exploração, análise, sub-agente cujo pai commita, PR ainda aberto). Medido 2026-07-17: 5 das 6 branches de maior resíduo não têm PR algum no GitHub — não há aresta pra achar, nem por SHA nem por API."
   ]
 }

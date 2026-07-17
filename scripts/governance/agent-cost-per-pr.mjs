@@ -16,22 +16,30 @@
  *   cache_read/cache_creation com breakdown 5m/1h). É a mesma fonte que o
  *   cc-watcher (skill oimpresso-cc-watcher-setup) ingere pro MCP server.
  *
- * ── JOIN HEURÍSTICO EM 2 SINAIS (o buraco é DECLARADO, não escondido) ────────────
- *   Sinal 1 (forte)  : gitBranch da mensagem == headRefName do PR.
- *   Sinal 2 (fallback): a SESSÃO cita a URL `/pull/N` do PR no transcript (o
- *     `gh pr create` imprime a URL) — necessário porque o padrão real do projeto é
- *     gastar tokens na branch da WORKTREE (claude/<nome-sessao>) e criar a branch
- *     de tópico só no fim (verificado 2026-07-12: join só-por-branch dava 100%
- *     sem-match = métrica morta). Custo da sessão é DILUÍDO igualmente entre os
- *     PRs da janela que ela cita; sessão já casada por branch não re-atribui.
- *   Mesma classe de gaps que agent-pr-outcomes.mjs declara no output. PR sem
- *   nenhum dos 2 sinais = SEM MATCH, e o % sai no relatório.
+ * ── A UNIDADE DE CUSTO É A SESSÃO (revisão 2026-07-17, tudo medido) ──────────────
+ *   Sinal 1 (autoria): alguma branch da SESSÃO == headRefName de um PR da janela.
+ *   Sinal 2 (fallback): a SESSÃO cita `/pull/N` no transcript (o `gh pr create`
+ *     imprime a URL). Só vale sem sinal de branch — citar ≠ ser autor (G6).
+ *   Casado o alvo, o custo INTEIRO da sessão (inclusive o da branch da worktree,
+ *   onde o trabalho de fato aconteceu) vai pros PRs que ela produziu, dividido.
+ *
+ *   Por que NÃO é branch-por-mensagem: o `gitBranch` é gravado por mensagem, e o
+ *   padrão real é gastar na worktree e criar a branch de tópico só no fim — o
+ *   branch do PR marcava só a CAUDA. O desenho antigo atribuía a cauda e DESCARTAVA
+ *   o corpo: PRs de sessão inteira saíam a $4,22 ao lado de $444 casados por
+ *   citação (medido 2026-07-17 → hoje $37,64 e $55,57; a mediana virou sinal).
+ *
+ * ── COBERTURA É DO LADO DO DINHEIRO (FinOps allocation coverage) ─────────────────
+ *   O `sem_match_pct` mede o lado do PR e dizia ~0% ("join perfeito") enquanto ~88%
+ *   do dinheiro não tinha dono. A manchete agora é `cobertura_alocacao_pct` =
+ *   atribuído ÷ ESCANEADO, e o resíduo vem DECOMPOSTO por categoria.
+ *   Histórico honesto: 3,2% (snapshot 07-13) → 81% (07-17), pela soma de janela
+ *   coerente (G7) + sessão-como-unidade (G2) + cap do fetch declarado.
  *
  * ── GAPS (impressos + em --json.gaps) ────────────────────────────────────────────
- *   G1 sinal-branch: consolidação do parent noutra branch, rename/squash, sessão
- *      sem branch → escapa. O % de PRs sem match publicado é o tamanho do buraco.
- *   G2 custo é da SESSÃO/BRANCH inteira: superconta exploração descartada e pode
- *      fundir PRs que reusaram a branch.
+ *   G1 branch marca só a cauda da sessão → unidade é a sessão (G2).
+ *   G2 custo da SESSÃO inteira: superconta exploração descartada dentro de sessão
+ *      que também entregou PR.
  *   G3 fonte = JSONL DESTA máquina: sessões cloud (claude.ai/code), CI e outros
  *      devs NÃO aparecem → SUBconta. Rodar na máquina de cada dev soma visão.
  *   G4 preços hardcoded (snapshot 2026-07-12, tabela oficial Anthropic): modelo
@@ -39,16 +47,20 @@
  *      tools nem fast-mode premium.
  *   G5 CI não enxerga o JSONL local: o workflow semanal roda o selftest hermético
  *      e renderiza o ÚLTIMO snapshot commitado (--snapshot local), com staleness
- *      declarada. Próximo degrau: agregação server-side no ingest do cc-watcher.
- *   G6 sinal-citação: citar /pull/N ≠ ser autor (sessão babysitter que LÊ PRs
- *      também cita) — por isso o custo é diluído por N PRs citados e o relatório
- *      separa matched_por_branch de matched_por_citacao.
+ *      declarada. Por isso `--pr N` roda LOCAL (o número nasce onde o dado mora).
+ *   G6 citar /pull/N ≠ ser autor (sessão que só LÊ PRs também cita) → fallback.
+ *   G7 janela COERENTE: sessões e PRs na MESMA janela de tempo (`--days`).
+ *   G8 o resíduo NÃO é buraco de join: é sessão que não produziu PR (5 das 6
+ *      branches de maior resíduo não têm PR algum no GitHub — medido 07-17).
  *
  * Modos:
  *   (default)          texto humano
  *   --json             relatório completo (com gaps)
  *   --brief            seção markdown pro brief semanal
- *   --prs <N>          janela: últimos N PRs mergeados do agente (default 20)
+ *   --pr <N>           bloco markdown do custo DESTE PR, pro corpo do próprio PR
+ *   --days <N>         janela de tempo, os DOIS lados (default 14) — G7
+ *   --prs <N>          quantos PRs aparecem na TABELA (default 20; não afeta a
+ *                      atribuição, que usa todos os PRs da janela)
  *   --marker <s>       marcador de PR-de-agente (default "[CC]")
  *   --repo <o/r>       override do repo pro gh
  *   --projects-dir <d> override de ~/.claude/projects
@@ -86,6 +98,8 @@ export const PRECOS_USD_MTOK = {
 /** multiplicadores sobre o preço de INPUT: cache read 0.1× · write 5m 1.25× · write 1h 2×. */
 export const CACHE_MULT = { read: 0.1, write_5m: 1.25, write_1h: 2.0 };
 export const DEFAULT_PR_WINDOW = 20;
+/** janela de tempo (dias) — a MESMA pros dois lados: sessões escaneadas e PRs do universo (G7). */
+export const DEFAULT_DAYS = 14;
 
 const round2 = (v) => (v == null ? null : Math.round(v * 100) / 100);
 
@@ -180,32 +194,64 @@ export function extractPrMentions(text) {
 }
 
 const GAPS = [
-  'G1 sinal-branch (gitBranch==headRefName): consolidação parent / rename / sessão sem branch escapam — % de PRs sem match publicado é o tamanho do buraco.',
-  'G2 custo é da SESSÃO/BRANCH inteira: superconta exploração descartada e funde PRs que reusaram branch.',
+  'G1 sinal-branch (gitBranch==headRefName): o gitBranch é gravado POR MENSAGEM, e o padrão real do projeto é gastar na branch da worktree e criar a branch de tópico só no fim — o branch do PR marca apenas a CAUDA da sessão. Por isso a unidade de custo é a SESSÃO, não a mensagem (G2).',
+  'G2 a SESSÃO é a unidade: o custo inteiro dela vai pros PRs que ela produziu (dividido igualmente). Superconta exploração descartada dentro de sessão que também entregou PR.',
   'G3 fonte = JSONL desta máquina: cloud/CI/outros devs não aparecem → subconta.',
   'G4 preços hardcoded (2026-07-12); modelo desconhecido → USD null declarado; sem breakdown de cache → tudo vira write 5m; não modela server tools/fast-mode.',
   'G5 CI só roda selftest + snapshot commitado (staleness declarada); medição viva é local.',
-  'G6 sinal-citação (/pull/N no transcript): citar ≠ ser autor — custo diluído por N PRs citados; matched_por_citacao é reportado separado do matched_por_branch.',
+  'G6 sinal-citação (/pull/N no transcript): citar ≠ ser autor (sessão que só LÊ PRs também cita) — só vale como fallback quando não há sinal de branch; custo diluído por N PRs citados.',
+  'G7 janela COERENTE: sessões e PRs usam a MESMA janela de tempo. Sessão iniciada antes da janela entra pelo mtime e pode ter produzido PR fora dela → cai no resíduo, não no numerador. (Antes de 2026-07-17 o scan cobria ~8.8d contra ~1.8d de PRs — ~28 pontos do "órfão" eram esse artefato de bookkeeping.)',
+  'G8 o RESÍDUO não é buraco de join: a maior parte é sessão que não produziu PR nenhum (exploração, análise, sub-agente cujo pai commita, PR ainda aberto). Medido 2026-07-17: 5 das 6 branches de maior resíduo não têm PR algum no GitHub — não há aresta pra achar, nem por SHA nem por API.',
 ];
+
+/** categoria do resíduo de uma sessão sem PR na janela (honestidade do denominador). */
+export function categoriaResiduo(porBranch) {
+  const nomes = [...porBranch.keys()];
+  if (nomes.length && nomes.every((b) => b === 'main' || b === 'HEAD')) {
+    return 'main/HEAD (trabalho fora de branch de PR)';
+  }
+  return 'sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)';
+}
 
 /**
  * monta o relatório (puro — sem I/O).
+ *
+ * A unidade de custo é a SESSÃO (1 sessão = 1 unidade de trabalho que produz N PRs),
+ * NÃO a branch-por-mensagem: o gasto acontece na branch da worktree e só a cauda
+ * pós-`checkout -B` carrega o branch do PR (G1). Atribuir por mensagem fazia um PR de
+ * sessão inteira aparecer com $4,22 enquanto o irmão casado por citação aparecia com
+ * $444 — a mediana virava ruído (medido 2026-07-17).
+ *
+ * Janela COERENTE (G7): o universo de ATRIBUIÇÃO são TODOS os PRs do agente mergeados
+ * na janela de `days`; `prWindow` só decide quantos aparecem na tabela. Antes, o scan
+ * de sessões cobria ~8.8d contra uma janela de ~1.8d de PRs — ~28 pontos do "órfão"
+ * eram esse artefato.
+ *
+ * Cobertura é do lado do DINHEIRO (FinOps allocation coverage), não do lado do PR: o
+ * `sem_match_pct` antigo dizia 0% (todo PR recebia algum custo) enquanto ~88% do
+ * dinheiro não tinha dono. Denominador = custo ESCANEADO.
+ *
  * @param {{prs:any[], sessions:Array<{id?:string, entries:any[], pr_mentions?:number[]}>,
- *          marker?:string, prWindow?:number, generated?:string}} o
+ *          marker?:string, prWindow?:number, days?:number, nowIso?:string, generated?:string}} o
  */
-export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow = DEFAULT_PR_WINDOW, generated }) {
-  const agentMerged = prs
-    .filter((p) => isAgentPR(p, marker) && p.mergedAt)
-    .sort((a, b) => Date.parse(b.mergedAt) - Date.parse(a.mergedAt))
-    .slice(0, prWindow);
-  const prPorNumero = new Map(agentMerged.map((p) => [p.number, p]));
-  const branchesDosPRs = new Map(agentMerged.map((p) => [p.headRefName, p.number]));
+export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow = DEFAULT_PR_WINDOW, days = DEFAULT_DAYS, nowIso, generated, fonteTruncada = false }) {
+  const now = nowIso ? Date.parse(nowIso) : (generated ? Date.parse(generated) : Date.now());
+  const since = now - days * 86400000;
+
+  const universo = prs
+    .filter((p) => isAgentPR(p, marker) && p.mergedAt && Date.parse(p.mergedAt) >= since)
+    .sort((a, b) => Date.parse(b.mergedAt) - Date.parse(a.mergedAt));
+  const exibidos = universo.slice(0, prWindow);
+  const branchesDosPRs = new Map(universo.map((p) => [p.headRefName, p.number]));
+  const numerosDosPRs = new Set(universo.map((p) => p.number));
 
   const modelosDesconhecidos = new Set();
   let semBranchMsgs = 0;
+  let usdEscaneado = 0;
+  /** categoria → usd (o resíduo é DECOMPOSTO, não só declarado) */
+  const residuo = new Map();
   /** por PR: { usd, tokens, incompleto, sinais:Set } */
-  const acum = new Map(agentMerged.map((p) => [p.number, { usd: 0, tokens: 0, incompleto: false, sinais: new Set() }]));
-  let usdForaDaJanela = 0;
+  const acum = new Map(universo.map((p) => [p.number, { usd: 0, tokens: 0, incompleto: false, sinais: new Set() }]));
 
   const custoDoAgregado = (porModelo) => {
     let usd = 0, tokens = 0, incompleto = false;
@@ -224,45 +270,38 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
     const { porBranch, sem_branch_msgs } = aggregatePorBranch(entries);
     semBranchMsgs += sem_branch_msgs;
 
-    // Sinal 1 — branch da mensagem casa com headRef de PR da janela
-    let casouPorBranch = false;
-    let usdNaoCasadoDaSessao = 0;
-    for (const [branch, porModelo] of porBranch) {
-      const prNum = branchesDosPRs.get(branch);
-      const parcial = custoDoAgregado(porModelo);
-      if (prNum != null) {
-        casouPorBranch = true;
-        const a = acum.get(prNum);
-        a.usd += parcial.usd; a.tokens += parcial.tokens; a.incompleto ||= parcial.incompleto;
-        a.sinais.add('branch');
-      } else {
-        usdNaoCasadoDaSessao += parcial.usd;
-      }
+    const total = custoDoAgregado(aggregatePorModelo(entries));
+    usdEscaneado += total.usd;
+
+    // Sinal 1 (AUTORIA, forte): alguma branch desta sessão é o headRef de um PR da janela.
+    const alvosPorBranch = new Set();
+    for (const b of porBranch.keys()) {
+      const n = branchesDosPRs.get(b);
+      if (n != null) alvosPorBranch.add(n);
     }
-    if (casouPorBranch) {
-      // não re-atribui por citação (evita dupla contagem); resto da sessão é declarado
-      usdForaDaJanela += usdNaoCasadoDaSessao;
+    // Sinal 2 (fallback, fraco): a sessão citou /pull/N. Só vale sem sinal de branch (G6).
+    const alvos = alvosPorBranch.size
+      ? alvosPorBranch
+      : new Set((sess.pr_mentions || []).filter((n) => numerosDosPRs.has(n)));
+    const sinal = alvosPorBranch.size ? 'branch' : 'citacao';
+
+    if (!alvos.size) {
+      const cat = categoriaResiduo(porBranch);
+      residuo.set(cat, (residuo.get(cat) || 0) + total.usd);
       continue;
     }
-
-    // Sinal 2 — sessão cita /pull/N de PR(s) da janela → custo diluído
-    const citados = (sess.pr_mentions || []).filter((n) => prPorNumero.has(n));
-    if (citados.length) {
-      const totalSessao = custoDoAgregado(aggregatePorModelo(entries));
-      for (const n of citados) {
-        const a = acum.get(n);
-        a.usd += totalSessao.usd / citados.length;
-        a.tokens += Math.round(totalSessao.tokens / citados.length);
-        a.incompleto ||= totalSessao.incompleto;
-        a.sinais.add('citacao');
-      }
-    } else {
-      // nem branch nem citação — custo fica fora da janela (declarado)
-      usdForaDaJanela += custoDoAgregado(aggregatePorModelo(entries)).usd;
+    // a SESSÃO é a unidade: o custo INTEIRO (inclusive o da branch da worktree, onde o
+    // trabalho de fato aconteceu) vai pros PRs que ela produziu, dividido igualmente.
+    for (const n of alvos) {
+      const a = acum.get(n);
+      a.usd += total.usd / alvos.size;
+      a.tokens += Math.round(total.tokens / alvos.size);
+      a.incompleto ||= total.incompleto;
+      a.sinais.add(sinal);
     }
   }
 
-  const porPR = agentMerged.map((pr) => {
+  const linhaPR = (pr) => {
     const a = acum.get(pr.number);
     const matched = a.sinais.size > 0;
     return {
@@ -272,40 +311,66 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
       usd: matched ? round2(a.usd) : null,
       usd_incompleto: (matched && a.incompleto) || undefined,
     };
-  });
+  };
+  const porPR = exibidos.map(linhaPR);
+  const todosPR = universo.map(linhaPR);
 
-  const matched = porPR.filter((p) => p.matched);
-  const semMatch = porPR.length - matched.length;
+  const matched = todosPR.filter((p) => p.matched);
+  const semMatch = todosPR.length - matched.length;
   const custos = matched.filter((p) => p.usd != null && !p.usd_incompleto).map((p) => p.usd);
   const top = [...matched].filter((p) => p.usd != null).sort((a, b) => b.usd - a.usd).slice(0, 3);
+  const usdAtribuido = matched.reduce((a, p) => a + (p.usd || 0), 0);
+  const usdResiduo = [...residuo.values()].reduce((a, v) => a + v, 0);
 
   return {
     ok: true,
-    generated: generated || new Date().toISOString().slice(0, 10),
-    janela: { prs: porPR.length, pedidos: prWindow, marker },
+    generated: generated || new Date(now).toISOString().slice(0, 10),
+    janela: {
+      dias: days, desde: new Date(since).toISOString().slice(0, 10),
+      prs_no_universo: universo.length, prs_exibidos: porPR.length, marker,
+      // se o fetch bateu no cap, o universo está incompleto e o RESÍDUO vem inflado
+      // por artefato (PR ausente = sessão sem dono). Declarado, nunca silencioso.
+      fonte_truncada: fonteTruncada || undefined,
+    },
     custo: {
-      total_usd_matched: round2(matched.reduce((a, p) => a + (p.usd || 0), 0)),
+      total_usd_escaneado: round2(usdEscaneado),
+      total_usd_atribuido: round2(usdAtribuido),
+      cobertura_alocacao_pct: usdEscaneado ? round2((usdAtribuido / usdEscaneado) * 100) : null,
       mediana_usd_por_pr: round2(median(custos)),
       top_prs: top.map((p) => ({ pr: p.pr, usd: p.usd, title: p.title })),
-      usd_fora_da_janela: round2(usdForaDaJanela),
+    },
+    residuo: {
+      usd: round2(usdResiduo),
+      pct: usdEscaneado ? round2((usdResiduo / usdEscaneado) * 100) : null,
+      por_categoria: Object.fromEntries(
+        [...residuo.entries()].sort((a, b) => b[1] - a[1]).map(([k, v]) => [k, round2(v)])
+      ),
     },
     join: {
       sem_match: semMatch,
-      sem_match_pct: porPR.length ? round2((semMatch / porPR.length) * 100) : null,
-      matched_por_branch: porPR.filter((p) => p.sinais.includes('branch')).length,
-      matched_por_citacao: porPR.filter((p) => p.sinais.includes('citacao') && !p.sinais.includes('branch')).length,
+      sem_match_pct: todosPR.length ? round2((semMatch / todosPR.length) * 100) : null,
+      matched_por_branch: todosPR.filter((p) => p.sinais.includes('branch')).length,
+      matched_por_citacao: todosPR.filter((p) => p.sinais.includes('citacao')).length,
       msgs_sem_branch: semBranchMsgs,
       modelos_desconhecidos: [...modelosDesconhecidos],
     },
     por_pr: porPR,
-    confianca: 'proxy (JSONL local → branch OU citação /pull/N → PR; ver gaps)',
+    confianca: 'proxy (JSONL local → SESSÃO → PR por branch OU citação /pull/N; ver gaps)',
     gaps: GAPS,
   };
 }
 
 // ── camada de I/O (só quando invocado direto sem --fixture) ──────────────────────
 
-export function fetchMergedPRsViaGh({ repo, limit = 200 } = {}) {
+/**
+ * cap do fetch de PRs. Medido 2026-07-17: o repo mergeia ~30 PRs/dia, então `limit:200`
+ * alcançava só ~4 dias — com janela de 14d o universo vinha 4× menor (104 vs 435 PRs
+ * [CC]) e TODO PR ausente virava resíduo falso. O cap continua existindo; o que não pode
+ * é ser SILENCIOSO — `fonte_truncada` é publicado no relatório (doutrina: no silent caps).
+ */
+export const PR_FETCH_LIMIT = 1000;
+
+export function fetchMergedPRsViaGh({ repo, limit = PR_FETCH_LIMIT } = {}) {
   const args = ['pr', 'list', '--state', 'merged', '--limit', String(limit),
     '--json', 'number,title,author,headRefName,createdAt,mergedAt'];
   if (repo) args.push('--repo', repo);
@@ -357,19 +422,29 @@ export function renderHuman(r) {
   const L = [];
   L.push('═══════════════════════════════════════════════════════════════');
   L.push(' CUSTO POR PR — agente (USD estimado · advisory) · ' + r.generated);
-  L.push(` janela: últimos ${r.janela.prs} PRs mergeados ${r.janela.marker}`);
+  L.push(` janela ${r.janela.dias}d desde ${r.janela.desde} · ${r.janela.prs_no_universo} PRs ${r.janela.marker} mergeados`);
   L.push('═══════════════════════════════════════════════════════════════');
   L.push('');
-  L.push(`  MEDIANA por PR : ${usd(r.custo.mediana_usd_por_pr)}   TOTAL (matched): ${usd(r.custo.total_usd_matched)}`);
-  L.push(`  JOIN ..........: ${r.join.matched_por_branch} por branch · ${r.join.matched_por_citacao} por citação /pull/N`);
-  L.push(`  SEM MATCH .....: ${r.join.sem_match}/${r.janela.prs} (${r.join.sem_match_pct ?? 'n/d'}%) — buraco do join, declarado`);
-  if (r.custo.usd_fora_da_janela) L.push(`  fora da janela : ${usd(r.custo.usd_fora_da_janela)} em branches sem PR nesta janela`);
-  if (r.join.modelos_desconhecidos.length) L.push(`  modelos sem preço: ${r.join.modelos_desconhecidos.join(', ')}`);
+  if (r.janela.fonte_truncada) {
+    L.push('  ⚠️  FONTE TRUNCADA: o fetch bateu no cap de PRs — o universo NÃO cobre a');
+    L.push('      janela inteira. PR ausente = sessão sem dono, então o resíduo abaixo');
+    L.push(`      está INFLADO por artefato. Reduza --days ou suba PR_FETCH_LIMIT.`);
+    L.push('');
+  }
+  L.push(`  COBERTURA DE ALOCAÇÃO : ${r.custo.cobertura_alocacao_pct ?? 'n/d'}%  — quanto do dinheiro tem dono`);
+  L.push(`     ${usd(r.custo.total_usd_atribuido)} atribuído  de  ${usd(r.custo.total_usd_escaneado)} escaneado`);
+  L.push(`  MEDIANA por PR ......: ${usd(r.custo.mediana_usd_por_pr)}   (${r.join.matched_por_branch} por branch · ${r.join.matched_por_citacao} por citação)`);
+  L.push(`  PRs sem custo .......: ${r.join.sem_match}/${r.janela.prs_no_universo} (${r.join.sem_match_pct ?? 'n/d'}%)`);
+  if (r.join.modelos_desconhecidos.length) L.push(`  modelos sem preço ...: ${r.join.modelos_desconhecidos.join(', ')}`);
   L.push('');
+  L.push(`▸ RESÍDUO — ${usd(r.residuo.usd)} (${r.residuo.pct ?? 'n/d'}%) sem PR pra receber. NÃO é buraco de join (G8):`);
+  for (const [cat, v] of Object.entries(r.residuo.por_categoria)) L.push(`  • ${usd(v).padStart(9)}  ${cat}`);
+  L.push('');
+  L.push(`▸ TOP ${r.por_pr.length} PRs mais recentes da janela`);
   for (const p of r.por_pr) {
     L.push(p.matched
       ? `  #${p.pr}  ${usd(p.usd)}${p.usd_incompleto ? ' (parcial)' : ''}  ${kTok(p.tokens)} tok  [${p.sinais.join('+')}]  ${String(p.title).slice(0, 55)}`
-      : `  #${p.pr}  — sem match —              ${String(p.title).slice(0, 55)}`);
+      : `  #${p.pr}  — sem custo —             ${String(p.title).slice(0, 55)}`);
   }
   L.push('');
   L.push('▸ HONESTIDADE (o número é PROXY — o que ele não vê)');
@@ -382,20 +457,48 @@ export function renderBriefMd(r) {
   const L = [];
   L.push('### Custo por PR — agente (USD estimado · advisory)');
   L.push('');
-  L.push(`_Janela: últimos ${r.janela.prs} PRs mergeados \`${r.janela.marker}\` · gerado ${r.generated} · fonte JSONL local (G3)._`);
+  L.push(`_Janela ${r.janela.dias}d desde ${r.janela.desde} · ${r.janela.prs_no_universo} PRs \`${r.janela.marker}\` mergeados · gerado ${r.generated} · fonte JSONL local (G3)._`);
   L.push('');
+  if (r.janela.fonte_truncada) {
+    L.push('> ⚠️ **FONTE TRUNCADA** — o fetch bateu no cap de PRs; o universo não cobre a janela inteira, então o resíduo abaixo está inflado por artefato (PR ausente = sessão sem dono).');
+    L.push('');
+  }
   L.push('| Métrica | Valor | Leitura |');
   L.push('|---|---|---|');
-  L.push(`| Mediana por PR | **${usd(r.custo.mediana_usd_por_pr)}** | tendência por cycle é o sinal |`);
-  L.push(`| Total (matched) | **${usd(r.custo.total_usd_matched)}** | só PRs com sessão local na branch |`);
-  L.push(`| PRs sem match | **${r.join.sem_match}/${r.janela.prs}** (${r.join.sem_match_pct ?? 'n/d'}%) | buraco do join, declarado (não escondido) |`);
-  L.push(`| Join por sinal | ${r.join.matched_por_branch} branch · ${r.join.matched_por_citacao} citação | citação = /pull/N no transcript (G6, diluído) |`);
+  L.push(`| **Cobertura de alocação** | **${r.custo.cobertura_alocacao_pct ?? 'n/d'}%** | ${usd(r.custo.total_usd_atribuido)} de ${usd(r.custo.total_usd_escaneado)} tem dono (FinOps: crawl=50%) |`);
+  L.push(`| Mediana por PR | **${usd(r.custo.mediana_usd_por_pr)}** | tendência por cycle é o sinal, não o absoluto |`);
+  L.push(`| Resíduo sem PR | **${usd(r.residuo.usd)}** (${r.residuo.pct ?? 'n/d'}%) | sessão que não produziu PR — **não é buraco de join** (G8) |`);
+  L.push(`| Join por sinal | ${r.join.matched_por_branch} branch · ${r.join.matched_por_citacao} citação | branch = autoria; citação = fallback diluído (G6) |`);
+  if (Object.keys(r.residuo.por_categoria).length) {
+    L.push('');
+    L.push('Resíduo por categoria: ' + Object.entries(r.residuo.por_categoria).map(([c, v]) => `${usd(v)} ${c}`).join(' · '));
+  }
   if (r.custo.top_prs.length) {
     L.push('');
     L.push('Top custo: ' + r.custo.top_prs.map((t) => `#${t.pr} ${usd(t.usd)}`).join(' · '));
   }
   L.push('');
-  L.push('> Proxy (gaps no `--json`): custo é da branch, fonte é local, preços snapshot 2026-07-12. NÃO é gate.');
+  L.push('> Proxy (gaps no `--json`): unidade = sessão, fonte é local, preços snapshot 2026-07-12. NÃO é gate.');
+  return L.join('\n');
+}
+
+/**
+ * bloco markdown do custo de UM PR, pro corpo/comentário do próprio PR (`--pr N`).
+ *
+ * Por que aqui e não no CI: o CI NÃO enxerga o JSONL local (G3/G5) — o número só existe
+ * na máquina que abriu o PR. Colar um agregado do cron no PR seria teatro (não é o custo
+ * DESTE PR). Este bloco é o número real do PR, medido onde o dado mora.
+ * RELATO, não gate (ADR 0271/0314): nada aqui bloqueia merge.
+ */
+export function renderPrBlockMd(r, p) {
+  const L = [];
+  L.push('<!-- agent-cost-per-pr -->');
+  L.push('**Custo estimado deste PR** (advisory · não bloqueia): ' + (p && p.matched
+    ? `**${usd(p.usd)}**${p.usd_incompleto ? ' (parcial — modelo sem preço)' : ''} · ${kTok(p.tokens)} tok · sinal \`${p.sinais.join('+')}\``
+    : '_sem sessão local casada — não medido (G1/G3)_'));
+  L.push('');
+  L.push(`_Mediana da janela ${r.janela.dias}d: **${usd(r.custo.mediana_usd_por_pr)}**/PR · cobertura de alocação **${r.custo.cobertura_alocacao_pct ?? 'n/d'}%** (${usd(r.custo.total_usd_atribuido)} de ${usd(r.custo.total_usd_escaneado)}). Proxy do JSONL local; unidade = sessão (G2). Sem valores em reais — custo em USD._`);
+  if (r.janela.fonte_truncada) L.push('\n> ⚠️ fonte truncada — universo incompleto, mediana/cobertura subestimadas.');
   return L.join('\n');
 }
 
@@ -421,26 +524,33 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
 
   const marker = argVal(argv, '--marker', DEFAULT_MARKER);
   const prWindow = Number(argVal(argv, '--prs', String(DEFAULT_PR_WINDOW))) || DEFAULT_PR_WINDOW;
+  const days = Number(argVal(argv, '--days', String(DEFAULT_DAYS))) || DEFAULT_DAYS;
   const fixture = argVal(argv, '--fixture', null);
 
-  let prs, sessions;
+  let prs, sessions, fonteTruncada = false;
   try {
     if (fixture) {
       const f = JSON.parse(readFileSync(fixture, 'utf8'));
       prs = f.prs; sessions = f.sessions;
     } else {
       prs = fetchMergedPRsViaGh({ repo: argVal(argv, '--repo', null) });
-      const agentMerged = prs.filter((p) => isAgentPR(p, marker) && p.mergedAt)
-        .sort((a, b) => Date.parse(b.mergedAt) - Date.parse(a.mergedAt)).slice(0, prWindow);
-      const minCreated = Math.min(...agentMerged.map((p) => Date.parse(p.createdAt)).filter(Number.isFinite));
-      const sinceMs = Number.isFinite(minCreated) ? minCreated - 7 * 86400000 : 0; // margem 7d (sessão precede PR)
+      // JANELA COERENTE (G7): o scan de sessões usa a MESMA janela do universo de PRs.
+      // Antes, o scan ia até `minCreated - 7d` (margem "sessão precede PR"), cobrindo
+      // ~8.8d de gasto contra ~1.8d de PRs — ~28 pontos do "órfão" eram esse artefato.
+      const sinceMs = Date.now() - days * 86400000;
+      // truncada = bateu no cap E NÃO alcançou o início da janela. Bater no cap sozinho
+      // não é defeito (o excedente é só mais velho que a janela) — seria falso-positivo.
+      const maisAntigoPuxado = Math.min(...prs.map((p) => Date.parse(p.mergedAt)).filter(Number.isFinite));
+      const alcancouJanela = Number.isFinite(maisAntigoPuxado) && maisAntigoPuxado <= sinceMs;
+      fonteTruncada = prs.length >= PR_FETCH_LIMIT && !alcancouJanela;
+      if (fonteTruncada) console.error(`[agent-cost-per-pr] ⚠️ fetch bateu no cap de ${PR_FETCH_LIMIT} PRs SEM alcançar ${days}d — universo incompleto`);
       const scan = scanSessionsLocal({
         projectsDir: argVal(argv, '--projects-dir', null),
         projectFilter: argVal(argv, '--project-filter', 'oimpresso'),
         sinceMs,
       });
       sessions = scan.sessions;
-      console.error(`[agent-cost-per-pr] ${scan.files} sessão(ões) JSONL com usage escaneadas`);
+      console.error(`[agent-cost-per-pr] ${scan.files} sessão(ões) JSONL com usage escaneadas (janela ${days}d)`);
     }
   } catch (e) {
     console.error(`[agent-cost-per-pr] falha ao carregar fontes: ${e.message}`);
@@ -449,7 +559,15 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   }
   if (!Array.isArray(prs) || !Array.isArray(sessions)) { console.error('[agent-cost-per-pr] fontes não são arrays'); process.exit(1); }
 
-  const r = buildReport({ prs, sessions, marker, prWindow });
+  // `--pr N`: bloco do custo DESTE PR, pro corpo do próprio PR (o número onde se decide).
+  const prAlvo = Number(argVal(argv, '--pr', ''));
+  if (prAlvo) {
+    const rp = buildReport({ prs, sessions, marker, prWindow: Number.MAX_SAFE_INTEGER, days, fonteTruncada });
+    process.stdout.write(renderPrBlockMd(rp, rp.por_pr.find((x) => x.pr === prAlvo)) + '\n');
+    process.exit(0);
+  }
+
+  const r = buildReport({ prs, sessions, marker, prWindow, days, fonteTruncada });
 
   if (argv.includes('--snapshot')) {
     const out = argVal(argv, '--snapshot', null) || join(dirname(fileURLToPath(import.meta.url)), 'data', 'agent-cost-per-pr-snapshot.json');
