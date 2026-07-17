@@ -10,7 +10,7 @@ updated_at: "2026-07-17"
 
 ## Estado atual
 
-**Sells é feature CORE do UltimatePOS, não um `Modules/Sells`** — as telas vivem em `resources/js/Pages/Sells/*.tsx` (servidas por `SellController` + `SellPosController`), a Model é `app/Models/Transaction.php` (`type='sell'`), e o pipeline FSM em `app/Domain/Fsm/` ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)). A migração MWART (Blade→Inertia/React) da tela de venda está **em produção para ROTA LIVRE (biz=4, 99% do volume)**.
+**Sells é feature CORE do UltimatePOS, não um módulo nWidart próprio** — não há dir físico dela em `Modules/`; as telas vivem em `resources/js/Pages/Sells/*.tsx` (servidas por `SellController` + `SellPosController`), a Model é `app/Models/Transaction.php` (`type='sell'`), e o pipeline FSM em `app/Domain/Fsm/` ([ADR 0143](../../decisions/0143-fsm-pipeline-live-prod-marco-2026-05-12.md)). A migração MWART (Blade→Inertia/React) da tela de venda está **em produção para ROTA LIVRE (biz=4, 99% do volume)**.
 
 > **Sells não tem module-grade canônico** — sem dir físico em `Modules/`, o grader não varre. No baseline está em `deprecated_pending_decision` (score_v3:58 congelado, *"decisão Wagner pende: criar wrapper OU deprecar entry"*). As notas vivas de Sells são de **eixos diferentes, não somáveis**: **capacidade 60/100** ([CAPTERRA-FICHA.md](CAPTERRA-FICHA.md), mede cálculo/fiscal/offline) e **design 88-90** (screen-grade, *cega a cálculo/fiscal* — não confundir com "o módulo está 90%").
 
