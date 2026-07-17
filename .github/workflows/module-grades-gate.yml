@@ -214,16 +214,44 @@ jobs:
               $summary .= "_Módulos com seed pending: baseline ainda placeholder 0. Wagner roda `php artisan module:grade --all --json` localmente pra atualizar. Não bloqueia gate, mas sinal de débito._\n\n";
             }
 
+            // Ganho NÃO TRAVADO (v3.6.1): o gate só marca `regressed` quando delta < 0, então
+            // ganho não travado virava piso baixo E era reportado como "✅ all clear" — o veredito
+            // mentia sobre o estado. Caso concreto #4378: "all clear" com 28 up / 123 pts de folga;
+            // `Compras` podia cair 73→58 sem o gate piscar. Ninguém agiu por 50 dias porque o
+            // título dizia que estava tudo bem (a tabela já tinha o dado desde sempre).
+            // CORTE DE MATERIALIDADE (>= 3): o drift natural da rubrica entre runs CI/local é
+            // ±1-2pp (catalogado à exaustão no last_update_pr do baseline) — abaixo de 3 o aviso
+            // viraria ruído crônico em PR que não tocou nada, e ruído crônico é ignorado, o que
+            // devolve o problema original. Ganho de +1/+2 segue coberto pelo reativo (quem toca o
+            // módulo trava a nota dele — precedente #4194). Acima de 3 mora o que o reativo NÃO vê:
+            // mudança de GRADER, que reclassifica N módulos de uma vez sem tocar em módulo nenhum
+            // (#3833 deu +2..+6 em 23 módulos e ninguém tinha motivo pra rebaselinar).
+            // NÃO altera enforcement: sem exit != 0, sem required. Só o veredito para de mentir.
+            $unlockedThreshold = 3;
+            $unlockedModules = array_values(array_filter($rows, fn ($r) => $r["status"] === "up" && $r["delta"] >= $unlockedThreshold));
+            $unlockedCount = count($unlockedModules);
+            $unlockedPts = array_sum(array_map(fn ($r) => $r["delta"], array_filter($rows, fn ($r) => $r["status"] === "up")));
+            $unlockedTop = implode(", ", array_map(fn ($r) => sprintf("`%s` +%d", $r["module"], $r["delta"]), array_slice($unlockedModules, 0, 5)));
+
             file_put_contents("/tmp/grades/report.md", $summary . $md);
             file_put_contents("/tmp/grades/regressed_count.txt", (string) $regressed);
             file_put_contents("/tmp/grades/new_count.txt", (string) $new);
+            file_put_contents("/tmp/grades/unlocked_count.txt", (string) $unlockedCount);
+            file_put_contents("/tmp/grades/unlocked_pts.txt", (string) $unlockedPts);
+            file_put_contents("/tmp/grades/unlocked_top.txt", $unlockedTop);
             file_put_contents("/tmp/grades/seed_pending_count.txt", (string) $seedPending);
           '
 
           regressed=$(cat /tmp/grades/regressed_count.txt 2>/dev/null || echo "0")
           new_count=$(cat /tmp/grades/new_count.txt 2>/dev/null || echo "0")
+          unlocked_count=$(cat /tmp/grades/unlocked_count.txt 2>/dev/null || echo "0")
+          unlocked_pts=$(cat /tmp/grades/unlocked_pts.txt 2>/dev/null || echo "0")
+          unlocked_top=$(cat /tmp/grades/unlocked_top.txt 2>/dev/null || echo "")
           echo "regressed=$regressed" >> "$GITHUB_OUTPUT"
           echo "new_count=$new_count" >> "$GITHUB_OUTPUT"
+          echo "unlocked_count=$unlocked_count" >> "$GITHUB_OUTPUT"
+          echo "unlocked_pts=$unlocked_pts" >> "$GITHUB_OUTPUT"
+          echo "unlocked_top=$unlocked_top" >> "$GITHUB_OUTPUT"
 
           # Bloqueio por regressão (módulo existente baixou nota)
           if [ "$regressed" -gt 0 ]; then
@@ -259,6 +287,9 @@ jobs:
           NEW_COUNT: ${{ steps.compare.outputs.new_count }}
           NEW_BLOCKED: ${{ steps.compare.outputs.new_blocked }}
           NEW_ALLOWED: ${{ steps.override.outputs.new_allowed }}
+          UNLOCKED_COUNT: ${{ steps.compare.outputs.unlocked_count }}
+          UNLOCKED_PTS: ${{ steps.compare.outputs.unlocked_pts }}
+          UNLOCKED_TOP: ${{ steps.compare.outputs.unlocked_top }}
         with:
           script: |
             const fail = process.env.FAIL === '1';
@@ -270,6 +301,20 @@ jobs:
             const newAllowed = process.env.NEW_ALLOWED === 'true';
             const newWillBlock = newBlocked && !newAllowed;
             const report = process.env.REPORT || '_(sem relatório)_';
+            // Ganho não travado >= 3pts (v3.6.1) — ver comentário no step "Comparar com baseline".
+            const unlockedCount = parseInt(process.env.UNLOCKED_COUNT || '0', 10);
+            const unlockedPts = parseInt(process.env.UNLOCKED_PTS || '0', 10);
+            const unlockedTop = process.env.UNLOCKED_TOP || '';
+            const hasUnlocked = unlockedCount > 0;
+            const unlockedBlock = hasUnlocked ? [
+              ``,
+              `### 🔓 ${unlockedCount} módulo(s) com ganho NÃO travado (≥3pts)`,
+              `${unlockedTop}${unlockedCount > 5 ? ' …' : ''}`,
+              ``,
+              `O gate só marca regressão quando \`atual < baseline\`. Enquanto o ganho não for travado, ele vira **piso baixo**: esses módulos podem **regredir até o baseline sem o gate piscar** (${unlockedPts}pts de folga no total).`,
+              `Travar = atualizar \`governance/module-grades-baseline.json\` com a medição **do CI deste run** (não do CT 100 — ele mede ~+1 acima; ver \`last_update_pr\` no baseline). Precedentes: [#4384](https://github.com/wagnerra23/oimpresso.com/pull/4384) (leva), [#4194](https://github.com/wagnerra23/oimpresso.com/pull/4194) (1 módulo).`,
+              `_Ganho de +1/+2 não entra aqui de propósito: é a faixa do drift natural da rubrica entre runs (±1-2pp) — reconciliado por quem tocar o módulo._`,
+            ].join('\n') : '';
 
             let title, intro;
             if (firstRun) {
@@ -327,12 +372,16 @@ jobs:
             } else if (newAllowed && newCount !== '0') {
               title = '📊 Module Grades Gate — ✨ módulo(s) novo(s) aprovado(s)';
               intro = `> Label \`module-grades-new-module-allowed\` aplicada — ${newCount} módulo(s) novo(s) entram na rubrica. Lembrar de atualizar \`governance/module-grades-baseline.json\` pós-merge pra fixar baseline.`;
+            } else if (hasUnlocked) {
+              // NÃO é "all clear": zero regressão + ganho não travado = piso baixo, não "tudo certo".
+              title = `📊 Module Grades Gate — 🔓 ${unlockedCount} ganho(s) não travado(s)`;
+              intro = `> Nenhum módulo regrediu — mas **${unlockedPts}pts de ganho seguem sem travar** no baseline. Não bloqueia merge; é dívida de catraca.`;
             } else {
               title = '📊 Module Grades Gate — ✅ all clear';
-              intro = '> Nenhum módulo regrediu vs baseline e nenhum módulo novo sem aprovação. (ADR 0155 v3)';
+              intro = '> Nenhum módulo regrediu vs baseline, nenhum ganho ≥3pts destravado e nenhum módulo novo sem aprovação. (ADR 0155 v3)';
             }
 
-            const body = `## ${title}\n\n${intro}\n\n${report}\n\n---\n_Ver [ADR 0155 — rubrica module-grade v3](/memory/decisions/0155-rubrica-module-grade-v3.md)._`;
+            const body = `## ${title}\n\n${intro}\n${unlockedBlock}\n\n${report}\n\n---\n_Ver [ADR 0155 — rubrica module-grade v3](/memory/decisions/0155-rubrica-module-grade-v3.md)._`;
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
