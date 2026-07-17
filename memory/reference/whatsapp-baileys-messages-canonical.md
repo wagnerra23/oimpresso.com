@@ -354,7 +354,7 @@ tailscale ssh root@ct100-mcp 'curl -s http://127.0.0.1:16686/api/services'
 
 - **`whatsapp-doctor`** — incidente operacional Baileys daemon (zombie, ban, QR fest, reconnect loop). SRE specialist
 - **`whatsapp-arch-arte`** — auditoria de arquitetura técnica 15 dimensões + nota 0-100 + gap analysis vs estado-da-arte 2026
-- **`whatsapp-baileys-expert`** (`.claude/agents/whatsapp-baileys-expert.md`) — 300+ linhas, invoque pra estabilidade operacional Baileys
+- **`whatsapp-baileys-expert`** — **nunca versionado em git** (descrito em session log, arquivo nunca commitado); para estabilidade operacional Baileys use `whatsapp-doctor` acima
 - **`capterra-senior`** — comparativo features (não infra)
 
 ---
