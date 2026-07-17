@@ -7,7 +7,6 @@ authority: informativo
 lifecycle: ativo
 date: "2026-07-17"
 prs: [4409, 4416, 4420, 4433]
-related_adrs: [0224, 0298, 0314, 0271, 0290]
 pii: false
 ---
 

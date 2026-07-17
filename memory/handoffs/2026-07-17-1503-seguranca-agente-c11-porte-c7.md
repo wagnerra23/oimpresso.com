@@ -8,7 +8,6 @@ type: handoff
 authority: informativo
 lifecycle: ativo
 date: "2026-07-17"
-related_adrs: [0298, 0314, 0290, 0271]
 pii: false
 ---
 
