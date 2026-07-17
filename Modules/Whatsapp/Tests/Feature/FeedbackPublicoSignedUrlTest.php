@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Support\Facades\URL;
 
 uses(Tests\TestCase::class);
@@ -30,6 +31,23 @@ uses(Tests\TestCase::class);
  *
  * @see memory/requisitos/Whatsapp/RUNBOOK-feedback-publico.md §3
  */
+
+/**
+ * Desliga SÓ o throttle — o `signed` (o que estamos medindo) continua ativo.
+ *
+ * Sem isto o arquivo é FLAKY e mente: o rate limiter guarda estado em cache entre
+ * execuções, então o `throttle:10,1` das rotas de POST estoura depois de algumas rodadas e
+ * devolve **429**, não 403 — os testes 005/006 falham por motivo ERRADO (rate limit), dando
+ * a impressão de que a assinatura quebrou. Pego rodando o arquivo em série no CT 100:
+ * 6/6 verde → 5 falhas → sozinho passa. Um teste que falha pelo motivo errado é tão ruim
+ * quanto um que passa pelo motivo errado.
+ *
+ * O throttle das rotas públicas é real e continua lá (Routes/web.php) — só não é o alvo
+ * DESTE arquivo, e misturá-lo aqui acopla o veredito Tier 0 a uma variável que não é a dele.
+ */
+beforeEach(function () {
+    $this->withoutMiddleware(ThrottleRequests::class);
+});
 
 it('001 · URL assinada válida é aceita pelo middleware signed', function () {
     $url = URL::temporarySignedRoute('feedback.form', now()->addDays(30), ['biz' => 1]);
