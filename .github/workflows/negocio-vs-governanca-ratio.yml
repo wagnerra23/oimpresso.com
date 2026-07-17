@@ -1,0 +1,141 @@
+name: Ratio negócio × governança (sentinela anti-atrofia)
+
+# O ALARME da ADR 0334 — invariante anti-atrofia da inteligência de negócio.
+#
+# POR QUE (sinal de custo, medido): a ADR 0334 nasceu com a sentinela
+# scripts/governance/negocio-vs-governanca-ratio.mjs e a promessa de "wiring do alarme
+# como workflow advisory semanal". O wiring nunca aconteceu: até este PR, o ÚNICO
+# invocador do script fora de memory/ era o próprio .test.mjs (governance-script-tests.yml
+# roda o TESTE, nunca o script). O crossover de junho/2026 (governança 8× negócio) passou
+# silencioso porque o alarme não existia; depois da 0334 ele existia mas ninguém o tocava —
+# o 3,33× de 2026-07-17 só apareceu porque um verificador humano rodou na mão.
+# É o meta-padrão "correção-do-mecanismo ≠ invocação" (proibicoes §5 2026-07-09:
+# guard acoplado a chokepoint que o fluxo real não atravessa = zero cobertura com cara
+# de defesa). Este workflow é a invocação que faltava.
+#
+# CLASSE: automacao / terminal cron (ADR 0298 Check M — "gate nasce required-ou-cron,
+# nunca advisory eterno"; cron não precisa promote_by). NÃO roda em pull_request e NÃO
+# entra em branch protection: a ADR 0334 §5 REJEITOU explicitamente o teto rígido ≤35%
+# ("criminalizaria o CAPEX legítimo"). Isto é trend-alarm, não catraca — aponta ONDE
+# trabalhar, nunca bloqueia merge. Coerente com o próprio invariante que ele defende:
+# não empilhar governança-meta bloqueante.
+
+on:
+  schedule:
+    # Segunda 09h50 UTC (06h50 BRT) — semanal, logo após briefing-code-staleness (09h40).
+    # Semanal e não diário: o ratio é uma tendência de janela de 4 semanas; medir todo dia
+    # produziria ruído sem decisão nova (a ADR 0334 pede "ratio semanal").
+    - cron: '50 9 * * 1'
+  # Dispara também quando a própria sentinela muda — se alguém mexer na classificação,
+  # o efeito no número real aparece na hora, não só na segunda seguinte.
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/governance/negocio-vs-governanca-ratio.mjs'
+      - '.github/workflows/negocio-vs-governanca-ratio.yml'
+  workflow_dispatch:
+    inputs:
+      weeks:
+        description: 'Janela em semanas (default 4 — curta é responsiva; 8+ dilui o pico)'
+        required: false
+        default: '4'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: negocio-vs-governanca-ratio-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sensor:
+    name: A governança está passando por cima do sinal do cliente?
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # OBRIGATÓRIO. O sensor faz `git log origin/main --since="28 days ago"`; o default
+          # do checkout é shallow (fetch-depth: 1) e devolveria ~1 commit. Como o script tem
+          # try/catch → process.exit(0) (advisory por design), um clone truncado NÃO falha:
+          # ele imprime um ratio fabricado de ~0 merges e sai VERDE. O sensor da truncagem
+          # silenciosa nasceria truncado silenciosamente. O guard abaixo prova que não.
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # Meta-teste do núcleo (bite/release hermético, sem git/rede). Se a classificação
+      # parar de morder no crossover, ESTE step fica vermelho — sinal honesto.
+      - name: self-test do núcleo (morde no crossover, libera no equilíbrio)
+        run: node scripts/governance/negocio-vs-governanca-ratio.test.mjs
+
+      # Controle-negativo do próprio sensor: prova que a janela é REAL antes de acreditar
+      # no número. Hard-fail proposital dentro de job que não bloqueia merge — job vermelho
+      # é sinal visível, e "advisory = não bloqueia o merge", nunca "não pode ficar vermelho"
+      # (proibicoes §5 2026-07-09). Vermelho aqui = o sensor está cego, não que o ratio piorou.
+      - name: guard — a janela é real (anti-truncagem silenciosa)
+        run: |
+          set -euo pipefail
+          git rev-parse --verify origin/main >/dev/null 2>&1 || {
+            echo "::error::origin/main não resolve — o sensor mediria vazio e sairia verde."
+            exit 1
+          }
+          N=$(git log origin/main --first-parent --since="28 days ago" --oneline | wc -l)
+          echo "merges first-parent na janela de 28d: $N"
+          # Piso deliberadamente frouxo: a janela real de 2026-07 tem 1311 merges (~47/dia).
+          # <20 em 28 dias não é desaceleração plausível — é clone truncado ou remote errado.
+          if [ "$N" -lt 20 ]; then
+            echo "::error::só $N merges em 28d — clone truncado/remote errado. O ratio seria fabricado; recuso medir."
+            exit 1
+          fi
+
+      - name: sensor — ratio negócio × governança (advisory, exit 0)
+        run: |
+          W='${{ github.event.inputs.weeks || 4 }}'
+          node scripts/governance/negocio-vs-governanca-ratio.mjs --weeks "$W"
+          node scripts/governance/negocio-vs-governanca-ratio.mjs --weeks "$W" --json > ratio.json
+
+      # Onde o alarme vira visível pra gente: ::warning no check + resumo na aba Summary.
+      # O script já diz tudo no stdout; sem isto o sinal morre num log que ninguém abre —
+      # que é exatamente como o crossover de junho passou.
+      - name: alarme visível (::warning + summary)
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const r = JSON.parse(fs.readFileSync("ratio.json", "utf8"));
+            const pct = (x) => `${(x * 100).toFixed(0)}%`;
+            const b = r.baldes;
+            const linhas = [
+              `# Ratio negócio × governança — ${r.weeks} semanas (${r.total} merges)`,
+              "",
+              "| balde | merges | share |",
+              "|---|--:|--:|",
+              `| NEGÓCIO (A+B) | ${b.NEGOCIO} | ${pct(b.NEGOCIO / (r.total || 1))} |`,
+              `| GOVERNANÇA (C) | ${b.GOVERNANCA} | ${pct(r.share_governanca)} |`,
+              `| INFRA | ${b.INFRA} | ${pct(b.INFRA / (r.total || 1))} |`,
+              `| OUTRO | ${b.OUTRO} | — |`,
+              "",
+              `**ratio gov÷neg:** ${r.ratio_gov_neg.toFixed(1)}× · **gov/(gov+neg):** ${pct(r.share_governanca_relevante)} (limiar ${pct(r.warn)})`,
+              "",
+            ];
+            if (r.alarme) {
+              linhas.push(
+                "## ⚠️ ALARME — governança domina o fluxo",
+                "",
+                "A régua pode estar passando por cima do sinal do cliente ([ADR 0334](../blob/main/memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md)).",
+                "",
+                "- Há cycle ativo com goal de **NEGÓCIO**?",
+                "- Os PRs de governança citam o **sinal-de-cliente** que os justifica ([ADR 0105](../blob/main/memory/decisions/0105-cliente-como-sinal-guiar-sem-mandar.md))?",
+                "",
+                "Não é catraca: a 0334 §5 rejeitou o teto rígido. É onde olhar.",
+              );
+              console.log(
+                `::warning title=Governança domina o fluxo (${pct(r.share_governanca_relevante)} > ${pct(r.warn)})::` +
+                `${b.GOVERNANCA} PRs de governança × ${b.NEGOCIO} de negócio (${r.ratio_gov_neg.toFixed(1)}×) nas últimas ${r.weeks} semanas. ` +
+                `ADR 0334: a régua pode estar passando por sinal de cliente.`,
+              );
+            } else {
+              linhas.push("## ✓ Equilíbrio dentro do limiar", "", "Nada a fazer.");
+            }
+            fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, linhas.join("\n") + "\n");
+          '
