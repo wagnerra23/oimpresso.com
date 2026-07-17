@@ -50,8 +50,18 @@ re-pontuei a dimensão `observabilidade-agente` (baseline 6,5 na grade v2 de 202
 2. **Spans `execute_tool` + waterfall aninhado** nos 4 Agents. Alto.
 3. **Loop trace→dataset** — só com biz=1 dogfooding (biz=4 proibido, ADR 0101). Alto, gated.
 4. **Push dos sinais já detectados** pra Slack/PagerDuty — só o transporte, NÃO detector novo (§5). Médio.
-5. **Religar o heartbeat em prod** (#4444 advisory/off). Médio, barato.
+5. ~~**Religar o heartbeat em prod** (#4444 advisory/off)~~ — **REFUTADO em prod (ver §Verificação abaixo): o Langfuse já está ON, o heartbeat mede 456 traces/24h.** Chip morto.
 6. **Destalear OBSERVABILITY.md** — FEITO nesta sessão (ver abaixo).
+
+## Verificação em prod (2026-07-17, autorização [W] "pode ligar")
+
+O [W] autorizou "ligar" (o wire do juiz inline + religar o heartbeat que a grade dizia off). Antes de tocar config de prod, verifiquei o oráculo real (o `.env` do Hostinger + o próprio health-check em prod) — **e a grade estava errada, pela 2ª vez pelo mesmo vício**:
+
+- `.env` de prod: **`LANGFUSE_ENABLED=true`** + HOST/PUBLIC_KEY/SECRET_KEY setados (DISPATCH=`sync`). O Langfuse **NÃO está desligado**.
+- `jana:health-check` em prod: `langfuse_trace_uptime_24h` = **ok=true, value=456, advisory=false** — *"456 traces recebidos pelo Langfuse em 24h"*. O heartbeat (shipado hoje, #4425) **está vivo e verde em prod**, medindo a fonte real.
+- `custo_brain_b_24h` = zero (0 tokens Brain B/24h — consistente com o brief "Brain B 0/50"; os 456 traces vêm de brief/kb/retrieval, não do chat).
+
+**Por que a grade errou:** os agentes inferiram "desligado" do *default* do `config/langfuse.php` (`env('LANGFUSE_ENABLED', false)`) sem checar o `.env` real de prod — a **lápide §5 de hoje** ("deduzir o que roda parseando código quando o runtime sabe") reincidindo dentro da própria grade. E eu repeti o erro ao sintetizar. Corrigido: o chip #5 morre; a "prova de fluxo" da dimensão está **ligada e funcionando**. **Consequência real:** o único "ligar" que sobra (o eval de qualidade ONLINE, chip #1) é **código**, não flag — e carrega decisões de produto ([W]): taxa de amostragem, custo do juiz LLM, threshold de alerta.
 
 ## Rejeitados → §5
 
