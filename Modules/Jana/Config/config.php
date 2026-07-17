@@ -704,6 +704,31 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Online eval (US-COPI-137) — RAGAS no tráfego REAL do cliente
+    |--------------------------------------------------------------------------
+    | Amostra ~5% dos traces reais da Jana e pontua qualidade (faithfulness) no
+    | tráfego do cliente — a única medição hoje é offline (gold-set), então se a
+    | Jana degradar pro cliente ninguém sabe até ele reclamar.
+    |
+    | ⛔ DOIS gates OFF por LGPD (trace de cliente é biz≠1 — ADR 0093 + LGPD):
+    |   - enabled: liga a amostragem. Default false.
+    |   - judge:   'local' (default — zero egress; hoje NÃO-implementado, então o job
+    |              SKIPa sem mandar nada) vs 'openai' (manda a amostra PII-REDACTED pro
+    |              juiz externo — exige aceite LGPD explícito do [W]).
+    | O PiiRedactor roda ANTES do juiz SEMPRE. Rodar de verdade = enabled=true E
+    | judge=openai (ambas decisões [W]). Estado default (OFF + local) = nada sai, nada roda.
+    |
+    | @see Modules/Jana/Jobs/Telemetry/JudgeTraceOnlineJob.php
+    | @see memory/requisitos/Jana/SPEC.md#US-COPI-137
+    */
+    'online_eval' => [
+        'enabled'     => (bool) env('JANA_ONLINE_EVAL_ENABLED', false),
+        'sample_rate' => (float) env('JANA_ONLINE_EVAL_SAMPLE_RATE', 0.05),
+        'judge'       => (string) env('JANA_ONLINE_EVAL_JUDGE', 'local'),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Peso Real — Modelo de classificação por meta (ADR 0232)
     |--------------------------------------------------------------------------
     | Mapas da heurística de `relevancia_meta` (0-100) — quanto um item
