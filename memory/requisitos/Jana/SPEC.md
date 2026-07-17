@@ -1565,6 +1565,18 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 **O ponto:** NÃO é engenharia — é conta de fornecedor. A config **já prevê** o contrário (`Modules/Jana/Config/config.php:531`). Hoje não há fallback: se o provider cai, a Jana cai.
 
+**Precisão medida (2026-07-17 — o "travado no gpt-4o-mini" tem 3 mecanismos, não 1):** o `config.php:531` que a grade citou é o bloco do **`clarify`**, não o do chat. Varredura contada nos 14 agents:
+
+| Onde | Mecanismo | Destrava como |
+|---|---|---|
+| Chat (`ChatCopilotoAgent`) + 8 agents sem `#[Model]` | `AI_OPENAI_TEXT_DEFAULT` (`config/ai.php`, default `gpt-4o-mini`) | **só `.env`** — o config **já tem** `'smartest' => env('AI_OPENAI_TEXT_SMARTEST', 'gpt-4o')` |
+| `BriefDiarioAgent` · `KbAnswerAgent` · `PrUiJudgeAgent` · `SaleInsightAgent` | `#[Model('gpt-4o-mini')]` **hardcoded no atributo** | **exige PR** — `.env` não move |
+| `ClarificadorAgent` | `JANA_CLARIFY_MODEL` | `.env` |
+
+Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero código), mas deixa 4 agents pinados no mini. Decidir se sobem juntos (custo ×4 superfícies) ou se ficam no mini de propósito (o `PrUiJudge`/`SaleInsight` rodam em volume).
+
+**Fallback ≠ modelo (bloqueios diferentes):** subir o modelo custa em **toda** request → decisão [W]. O **fallback** só custa quando o primário cai, e já é Princípio duro #8 da Constituição ("Confiabilidade com fallback", ADR 0094). Medido: `config/ai.php` tem `'default' => 'openai'` único e o `ChatController` só tem `catch` devolvendo *"Estou com dificuldades técnicas"* — o provider `anthropic` já está declarado em `config/ai.php` e o `ChatCopilotoAgent` **já tem prompt-caching Anthropic** (`providerOptions()`), então a metade fallback é mais curta do que parece.
+
 **Escopo:**
 - [ ] Liberar `gpt-4o` OU `provider=anthropic` no config (decisão [W] — envolve custo)
 - [ ] Cadeia de fallback (provider primário → secundário) — hoje inexistente
@@ -1737,3 +1749,58 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 **Pareia com:** US-COPI-136 (o piso que este ticket faz valer) · US-COPI-139 (mesma classe: alarme sem invocador) · US-COPI-138 (heartbeat — o que detectaria isto automaticamente).
 
 **Refs:** ADR 0318 · ADR 0062 (Hostinger ≠ CT 100) · `app/Console/Kernel.php` · `scripts/tests/ct100-ragas-publish.sh` · `governance/jana-ragas-real-baseline.json` (`gaps_conhecidos.eval_nao_roda_sozinho`)
+
+### US-COPI-141 · Chat declara tools READ-ONLY (a capacidade — atrás de flag)
+
+> owner: claude · priority: p1 · estimate: 2h · status: done · type: story
+
+**Implementado em:** `Modules/Jana/Ai/Agents/ChatCopilotoAgent.php` · `Modules/Jana/Config/config.php` · verificado@447fbf3 (2026-07-17) — declara `HasTools` + `#[MaxSteps(5)]` e reusa as 5 tools READ-ONLY do `BriefDiarioAgent`; `business_id` vem de `conversa->business_id` (constructor)
+
+**Testado em:** `Modules/Jana/Tests/Feature/Ai/ChatCopilotoAgentToolsTest.php` · verificado@447fbf3 (2026-07-17) — 7 casos (R-COPI-141) verdes no CT 100; canário aplicado (Tier 0 trocado por business fixo) derruba 4 deles, provando que o teste morde
+
+> **Escopo desta US = a CAPACIDADE, não o comportamento em prod.** Ligar a flag e
+> medir é a [US-COPI-142](#us-copi-142--flip-da-flag-chat_tools--medição-antesdepois-decisão-w),
+> porque o flip é decisão [W] (custo/latência por mensagem). Separadas de propósito:
+> empacotar as duas daria `status` mentiroso — `done` afirmaria comportamento que
+> ninguém provou, e `todo` negaria código que existe e tem teste.
+
+**Origem:** grade de réguas 2026-07-17 — dimensão `erp-ia-produto` **4,5/10**; escolha [W] "ler no chat primeiro" (sessão 2026-07-17).
+
+**Sinal (medido 2026-07-17):** o diagnóstico da grade era "5/5 tools read-only — a Jana conversa mas não age". A medição achou mais fundo: das **14 agents, 1 declara tools** (`BriefDiarioAgent`, que **não conversa** — é o brief por cron). O `ChatCopilotoAgent`, única superfície onde a Larissa conversa, tinha **zero** tools: não agia **nem lia** via tool. Recebia `ContextoNegocio` pré-cozido no system prompt e formatava.
+
+**O ponto:** este é o degrau que faltava **antes** de qualquer write-action — não adianta discutir approval gate se o chat não tem loop de tool. Reusa as 5 tools já provadas em prod pelo `BriefDiarioAgent` (ADR 0141), não reescreve.
+
+**Escopo (fechado):**
+- [x] `ChatCopilotoAgent implements HasTools` + `#[MaxSteps(5)]` — reusa as 5 tools READ-ONLY
+- [x] Tier 0 mecânico: `business_id` vem de `conversa->business_id` (constructor), nunca do LLM (ADR 0093 + 0141)
+- [x] Fail-safe: conversa sem `business_id` → zero tools (tenant chutado é vazamento)
+- [x] Flag `copiloto.chat_tools.enabled` default-OFF (ADR 0245) — com OFF o SDK omite `tools` do request (`BuildsTextRequests: if (filled($tools))`), pipeline byte-idêntico ao legado
+- [x] Persona do system prompt extraída pra fonte única (`personaBase()`) — estava duplicada em `instructions()` e no caminho de prompt-cache Anthropic; divergiriam
+
+**DoD:** flag OFF → o request é byte-idêntico ao legado (SDK omite `tools`); flag ON → o agent declara as 5 tools com `business_id` vindo da conversa e zero delas escreve. Provado pelos 7 casos R-COPI-141 + canário (quebrar o Tier 0 derruba 4).
+
+**Ressalva do adversário:** ler ≠ agir, e **declarar tool ≠ o LLM usar bem**. Esta US entrega a capacidade; que a Jana **de fato** responda melhor só se sabe na US-COPI-142 (flip + medição) — sem ela, isto é código provado que não move nenhum número do cliente. Também **não** fecha `erp-ia-produto`: write-action segue sendo a [ADR 0145](../../decisions/0145-ia-administradora-pivot-ads-fsm-piloto-cobradora.md) (gate no **ADS** + `FsmActionBridge`, **não** no FSM — o FSM tem RBAC, que é autorização e não aprovação: ele não distingue "a Larissa clicou" de "o LLM decidiu"). A 0145 foi aceita em 2026-05-15 e tem **0 commits de implementação**; `FsmActionBridge`, `CobradoraAgent`, `cobrar_fatura` e Audit Card não existem.
+
+**Refs:** ADR 0141 · ADR 0093 · ADR 0245 · ADR 0101 · ADR 0145 (write-action, fora do escopo) · US-COPI-142 (flip)
+
+### US-COPI-142 · Flip da flag chat_tools + medição antes/depois (decisão [W])
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+
+**Implementado em:** _pendente_ — a capacidade está pronta e testada (US-COPI-141); isto aqui é o flip, que é decisão [W] sobre custo/latência
+
+**Origem:** US-COPI-141 landou a capacidade atrás de flag default-OFF (ADR 0245 — "homolog liga, prod espera"). Enquanto a flag não vira, **prod segue exatamente como antes**: a Jana continua sem consultar nada.
+
+**O ponto:** ligar tools **muda custo e latência por mensagem** — cada tool call é round-trip extra de LLM. Por isso o flip não é automático: é decisão [W], como o `clarify` (mesma ADR).
+
+**Escopo:**
+- [ ] Ligar `JANA_CHAT_TOOLS_ENABLED=true` em **homolog** (CT 100) primeiro — nunca prod direto
+- [ ] Medir **antes/depois**: tokens/mensagem · latência p50/p95 · nº de tool calls por conversa
+- [ ] Medir no gold-set (`jana:recall-eval`) se a resposta melhorou **de fato** — não só ficou mais cara
+- [ ] Só então flip em prod, com kill-switch documentado (`JANA_CHAT_TOOLS_ENABLED=false`)
+
+**DoD:** existe número antes→depois (custo + latência + qualidade) que justifica manter a flag ON; se o custo subir sem a resposta melhorar, a flag volta pra OFF e a US vira lição.
+
+**Ressalva do adversário:** medir só custo é meia medida — o gold-set pode não capturar "a Jana buscou número vivo em vez de repetir snapshot", que é o ganho real. Pareia com **US-COPI-137** (eval online em 5% do tráfego): sem ela, o efeito no cliente real segue invisível. E ligar tools **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passaria a buscar melhor o contexto errado.
+
+**Refs:** ADR 0245 · ADR 0141 · US-COPI-141 · US-COPI-136 (piso de recall) · US-COPI-137 (eval online) · US-COPI-135 (modelo frontier)
