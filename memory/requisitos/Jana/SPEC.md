@@ -1675,6 +1675,17 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 **Classe do defeito:** "correção-do-mecanismo ≠ invocação" — irmão direto da US-COPI-139 (*"o alarme já existe e nunca dispara — fora de memory/ só é invocado pelo próprio unit test. Zero cron."*) e da lápide §5 2026-07-09 *"Chokepoint de guard em comando fantasma que o fluxo real não atravessa"*. Aqui o guard é real, o baseline é honesto, o transporte é vivo — **falta o invocador**.
 
+**O defeito é LOCAL do CT 100 staging — produção não tem isto** (contraste medido 2026-07-17, o que prova que o fix é conhecido e já funciona em outro runtime):
+
+| | Hostinger (prod · tráfego do cliente) | CT 100 staging |
+|---|---|---|
+| Scheduler Laravel | **roda** — cron gerenciado pelo hPanel (invisível por SSH: `crontab` nem existe como binário lá). Prova: brief #369 gerado há ~3h; os 73 schedules `environments(['live'])` disparam | **não roda** — `schedule:run` = 0 em todo cron |
+| Worker de fila | **roda** — `QUEUE_CONNECTION=database` com `jobs` pendentes = **0** (prova empírica: sem worker o backlog acumularia) | nenhum worker em nenhum container |
+
+⚠️ **Pegadinha de diagnóstico registrada** (custou um quase-falso-achado nesta sessão): na Hostinger `crontab -l` devolve **`command not found`**, então um `crontab -l || echo "(sem cron)"` imprime "sem cron" e parece prova de ausência. Não é. Verificar cron em prod pela **consequência** (brief gerado / fila vazia), nunca pelo `crontab`.
+
+Ou seja: o container de staging foi construído pra **servir HTTP** (entrypoint Octane) e ninguém cabeou scheduler nele. Os schedules `environments(['staging'])` nasceram assumindo um scheduler que **nunca existiu**.
+
 **⛔ O fix ÓBVIO é o errado.** Instalar `* * * * * docker exec oimpresso-staging php artisan schedule:run` acorda **os 87 schedules** do Kernel, e **7 não têm `environments()`** — rodariam em staging, que é clone da produção:
 
 | Schedule sem `environments()` | Risco |
