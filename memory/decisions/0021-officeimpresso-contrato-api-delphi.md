@@ -1,7 +1,7 @@
 ---
 slug: 0021-officeimpresso-contrato-api-delphi
 number: 21
-title: !!binary gJQgQ29udHJhdG8gcmVhbCBkYSBBUEkgY29uc3VtaWRhIHBlbG8gRGVscGhp
+title: "Contrato real da API consumida pelo Delphi"
 type: adr
 status: aceito
 authority: canonical
@@ -13,10 +13,10 @@ module: officeimpresso
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0017'
-  - '0018'
-  - '0019'
-  - '0020'
+  - 0017-officeimpresso-restaurado-superadmin-exclusivo
+  - 0018-officeimpresso-log-acesso-passivo
+  - 0019-officeimpresso-delphi-nao-autentica
+  - 0020-officeimpresso-grupo-economico
 pii: false
 ---
 # ADR 0021 — Contrato real da API consumida pelo Delphi

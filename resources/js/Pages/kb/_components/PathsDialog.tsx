@@ -92,10 +92,8 @@ export default function PathsDialog({
                       key={p.id}
                       type="button"
                       onClick={() => setActivePathId(p.id)}
-                      className="w-full text-left rounded-md border border-border border-l-[3px] bg-card px-3 py-2.5 hover:shadow-sm transition-all"
-                      style={{
-                        borderLeftColor: `oklch(0.52 0.13 ${p.hue})`,
-                      }}
+                      className="kb-hue-border-l w-full text-left rounded-md border border-border border-l-[3px] bg-card px-3 py-2.5 hover:shadow-sm transition-all"
+                      style={{ '--kb-hue': p.hue } as React.CSSProperties}
                     >
                       {p.audience && (
                         <small
@@ -116,11 +114,8 @@ export default function PathsDialog({
                       <div className="mt-2 flex items-center gap-2">
                         <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
                           <div
-                            className="h-full transition-all"
-                            style={{
-                              width: `${stats.pct}%`,
-                              background: `oklch(0.52 0.13 ${p.hue})`,
-                            }}
+                            className="kb-hue-bar h-full transition-all"
+                            style={{ width: `${stats.pct}%` }}
                           />
                         </div>
                         <span className="font-mono text-[10.5px] text-muted-foreground tabular-nums">
@@ -182,11 +177,8 @@ function PathDetail({
         <div className="mt-2 flex items-center gap-2">
           <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
             <div
-              className="h-full transition-all"
-              style={{
-                width: `${pct}%`,
-                background: `oklch(0.52 0.13 ${path.hue})`,
-              }}
+              className="kb-hue-bar h-full transition-all"
+              style={{ width: `${pct}%`, '--kb-hue': path.hue } as React.CSSProperties}
             />
           </div>
           <span className="font-mono text-[10.5px] text-muted-foreground tabular-nums">
@@ -208,7 +200,7 @@ function PathDetail({
                 className={cn(
                   'mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 text-[10.5px] font-mono font-bold transition-colors',
                   done
-                    ? 'border-transparent bg-emerald-500 text-white'
+                    ? 'border-transparent bg-success-fg text-white dark:bg-success/30 dark:text-success-foreground'
                     : 'border-border bg-card text-muted-foreground hover:border-primary',
                 )}
                 title={done ? 'Marcar como não feito' : 'Marcar como feito'}

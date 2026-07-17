@@ -1,7 +1,7 @@
 ---
 slug: 0038-promocao-6-7-bootstrap-para-main
 number: 38
-title: !!binary gJQgUHJvbW/Dp8OjbyBkZSBgNi43LWJvb3RzdHJhcGAgcGFyYSBgbWFpbmAgY29tbyBicmFuY2ggcHJpbmNpcGFs
+title: "Promoção de `6.7-bootstrap` para `main` como branch principal"
 type: adr
 status: aceito
 authority: canonical
@@ -12,7 +12,7 @@ decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0010'
+  - 0010-sistema-memoria-projeto
 pii: false
 ---
 # ADR 0038 — Promoção de `6.7-bootstrap` para `main` como branch principal

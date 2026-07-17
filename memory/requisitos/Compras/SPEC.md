@@ -318,16 +318,19 @@ Cada uma das 16 tasks propostas no CAPTERRA-INVENTARIO cruzada contra este SPEC 
 
 ### US-COM-011 · Teste E2E de cálculo custo/total/estoque da compra (Tier 0 valor/estoque)
 
-> owner: — · priority: p0 · estimate: 4h · status: todo · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
+> owner: — · priority: p0 · estimate: 4h · status: done · type: story · parent_plan: programa-ondas · tags: [capterra-gap, onda-2.1] · cycle: —
 > blocked_by: —
 
 Como time, quero um teste E2E que submete uma compra (com grade + frete + desconto + imposto) e assere `final_total`, `purchase_lines` e a movimentação de estoque (`variation_location_details.qty_available`) **persistidos**, pra blindar o Tier 0 valor/estoque (1 célula de grade = 1 SKU × custo × qty = write de estoque).
 
-**Acceptance:**
-- [ ] Pest E2E que faz `POST /purchases` com payload realista (grade expandida) biz=1
-- [ ] Assere `final_total` correto por 2 caminhos (recompute à mão + soma das lines) — regra-mestre cálculo de valor
-- [ ] Assere `purchase_lines` (qty × unit_cost) + `variation_location_details.qty_available` por variação/local
-- [ ] Substitui os hardening tautológicos (`GapsHardeningTest`/`GapsP1HardeningTest` são `file_get_contents`+`str_contains`)
+**Aceite:**
+- [x] Pest E2E que faz `POST /purchases` com payload realista (grade expandida) biz=1
+- [x] Assere `final_total` correto por 2 caminhos (recompute à mão + soma das lines) — regra-mestre cálculo de valor
+- [x] Assere `purchase_lines` (qty × unit_cost) + `variation_location_details.qty_available` por variação/local
+- [x] **NÃO deletar `GapsHardeningTest`/`GapsP1HardeningTest` wholesale** (o critério original dizia "substituir os hardening tautológicos" — PERIGOSO). O E2E prova valor/estoque; ele **não cobre** a superfície dos hardening (business_id, throttle, whitelist do `ListarComprasRequest`, JOIN scope, OTel). O **bloco Gap #4 (`ListarComprasRequest`, L53–142 de `GapsHardeningTest`) é comportamental** — instancia o FormRequest e assere as whitelists `stage`/`sort`/`per_page` (anti-SQLi/DOS) + `authorize()` (anti-IDOR) — e **PERMANECE**. Só os source-greps tautológicos `file_get_contents`+`str_contains` (Gap #2/#3 em L18–51 + L144–154; `GapsP1HardeningTest` inteiro) são de baixo valor e podem ser podados **à parte** quando houver comportamental equivalente (o JOIN scope já tem `MultiTenantSqlGuardTest`, US-COM-009).
+
+**Implementado em:** `Modules/Compras/Tests/Feature/PurchaseCalculoValorEstoqueE2ETest.php` · verificado@83aca49 (2026-07-17) — E2E real POST /purchases (grade 2×2 + frete + desconto% + imposto) biz=1 provando final_total, total_before_tax, tax, shipping e discount por 2 caminhos + purchase_lines (qty×custo por variation_id) + variation_location_details.qty_available (delta de estoque por variação/local), com blindagem anti-num_uf ×100 (PR #3722; registrado em phpunit.xml linha 57). O DELIVERABLE desta US é o próprio teste E2E.
+**Testado em:** `Modules/Compras/Tests/Feature/PurchaseCalculoValorEstoqueE2ETest.php` (@covers-us US-COM-011)
 
 **Refs:** CAPTERRA C04 🟡, proibicoes.md "CÁLCULO DE VALOR ou ESTOQUE" (Tier 0), ADR 0101 (biz=1 nunca cliente).
 

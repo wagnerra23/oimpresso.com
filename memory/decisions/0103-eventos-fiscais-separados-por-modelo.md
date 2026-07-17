@@ -7,14 +7,14 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-07
+decided_at: "2026-05-07"
 module: nfebrasil
 quarter: 2026-Q2
 tags: [nfe, events, listeners, broadcasting, modelo-55, modelo-65, sped-nfe]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0093]
+related: [0093-multi-tenant-isolation-tier-0]
 pii: false
 review_triggers: ["Quando CT-e (modelo 67) for adicionado, decidir se cria CTeAutorizada ou se generaliza pra DocumentoFiscalAutorizado", "Se webhook outbound externos surgirem, validar que filter por event class é mais simples que filter por payload"]
 ---

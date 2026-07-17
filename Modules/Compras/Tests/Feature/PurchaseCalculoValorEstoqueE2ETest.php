@@ -64,7 +64,9 @@ use Tests\Support\EstoqueFixture;
  * @see app/Http/Controllers/PurchaseController.php::store (fluxo REAL)
  * @see app/Utils/ProductUtil.php::createOrUpdatePurchaseLines + updateProductQuantity
  * @see memory/requisitos/Compras/CAPTERRA-FICHA.md (G-03 / C04)
- * @see memory/requisitos/Compras/SPEC.md (US-COM-005)
+ * @see memory/requisitos/Compras/SPEC.md (US-COM-005, US-COM-011)
+ *
+ * @covers-us US-COM-011
  */
 
 uses(Tests\TestCase::class, DatabaseTransactions::class);

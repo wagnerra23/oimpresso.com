@@ -1,7 +1,7 @@
 ---
 slug: 0024-instalacao-1-clique-modulos
 number: 24
-title: !!binary gJQgSW5zdGFsYcOnw6NvIDEtY2xpcXVlIHBhZHJvbml6YWRhIHBhcmEgdG9kb3Mgb3MgbcOzZHVsb3M=
+title: "Instalação 1-clique padronizada para todos os módulos"
 type: adr
 status: aceito
 authority: canonical
@@ -12,7 +12,7 @@ decided_at: '2026-04-25'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0001'
+  - 0001-estender-ultimatepos-opcao-c
 pii: false
 ---
 # ADR 0024 — Instalação 1-clique padronizada para todos os módulos

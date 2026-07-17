@@ -1,13 +1,13 @@
 ---
 slug: 0081-identity-mesh-mcp-actors
-number: 0081
+number: 81
 title: "Identity Mesh — schema mcp_actors + manifest pattern + seed inicial 6 actors"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: governance
 quarter: 2026-Q2
 tags: [governance, identity, identity-mesh, mcp-actors, p0]
