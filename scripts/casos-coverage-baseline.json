@@ -1,22 +1,22 @@
 {
   "_meta": {
-    "generated_at": "2026-07-17T14:14:40.062Z",
+    "generated_at": "2026-07-16T14:24:10.512Z",
     "gate": "casos:check (ADR 0264 G-1 trio + G-2 rastreabilidade + G-5 metadata + G-6 frescor + G-7 status derivado)",
     "stats": {
       "pages": 279,
-      "casos_files": 38,
-      "ucs_declared": 149,
+      "casos_files": 37,
+      "ucs_declared": 143,
       "missing_charter": 45,
-      "missing_casos": 242,
+      "missing_casos": 243,
       "orphan_ucs": 28,
       "metadata_issues": 0,
       "stale_cases": 0,
       "status_lies": 0,
       "status_unverified": 0,
       "status_stale": 0,
-      "exec_backed_ucs": 25,
-      "exec_backed_declared": 149,
-      "exec_backed_pct": 17
+      "exec_backed_ucs": 14,
+      "exec_backed_declared": 143,
+      "exec_backed_pct": 10
     },
     "nota": "Violações ATUAIS fotografadas (débito legado). Gate falha só em violação NOVA vs este baseline (ratchet). Encolher é sempre OK. Regravar conscientemente: npm run casos:baseline:write",
     "refs": [
@@ -202,6 +202,7 @@
     "trio:missing-casos:resources/js/Pages/Ponto/Relatorios/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Ponto/Welcome.tsx",
     "trio:missing-casos:resources/js/Pages/Produto/BulkEdit.tsx",
+    "trio:missing-casos:resources/js/Pages/Produto/Create.tsx",
     "trio:missing-casos:resources/js/Pages/Produto/Edit.tsx",
     "trio:missing-casos:resources/js/Pages/Produto/Index.tsx",
     "trio:missing-casos:resources/js/Pages/Produto/Show.tsx",
