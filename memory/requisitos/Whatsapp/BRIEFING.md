@@ -1,9 +1,9 @@
 ---
-distilled_at: "2026-07-01"
+distilled_at: "2026-07-17"
 distilled_by: jana:distill-module-truth
 module: Whatsapp
 status: producao
-updated_at: "2026-07-01"
+updated_at: "2026-07-17"
 ---
 
 # BRIEFING — Whatsapp (verdade destilada)
@@ -17,6 +17,9 @@ O módulo "Whatsapp" permite a interação multicanal via WhatsApp, utilizando a
 - IA conversacional integrada (Jana) no inbox.
 - Persistência de mensagens e lembretes agendados (LembreteHandler).
 - Testes abrangentes de saturação (Wave 26 — `Wave26WhatsappSaturationTest`), idempotência e Tier 0.
+- **Voice of Customer em 2 canais** (`clients_feedbacks`, com dedup por signature + relevance scoring + workflow de status compartilhados):
+  - `canal=whatsapp` — o atendente captura o feedback a partir de uma bolha do inbox (rota admin `can:whatsapp.access`).
+  - `canal=web_form` — **o cliente reporta direto**, sem intermediário, via link assinado público `/feedback` (US-INFRA-002 · ADR 0334 "órgão sensor"). Link gerado por `php artisan feedback:link {biz}`, validade 30d, business amarrado por HMAC.
 
 ## Gaps  
 - Refinamento e monitoramento contínuo da confiabilidade da integração com o WhatsApp.
@@ -24,6 +27,8 @@ O módulo "Whatsapp" permite a interação multicanal via WhatsApp, utilizando a
 - Ampliação da cobertura formal do SPEC e documentação de governança.
 
 ## Última mudança  
+**2026-07-17 — canal público de feedback (`canal=web_form`).** Até aqui o Voice of Customer só produzia sinal quando o [W] ouvia o cliente no WhatsApp e clicava "Capturar" no inbox — o [W] **era** o nervo, manualmente, e sinal não ouvido morria. A [ADR 0334](../../decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md) classificou isso como atrofia do órgão sensor. Agora o cliente reporta direto por link assinado (`/feedback`), e o sinal cai na mesma `clients_feedbacks` reusando dedup/relevance/status/dashboard. Decisão [W]: **estender**, não criar `mcp_client_signals` (evita duplicar régua consolidada). Tier 0: a rota não tem auth, então o `business_id` vem do HMAC da URL — nunca do input (o global scope é no-op sem auth).
+
 Em 27 de maio de 2026, o BaileysDriver foi descontinuado (classe e tabelas/colunas removidas; referências legadas de compatibilidade permanecem no código, ex. `Channel::TYPE_WHATSAPP_BAILEYS`). Driver default é Meta Cloud e `baileys` está nos `forbidden_drivers` da config.
 
 ## Proveniência (destilado de)

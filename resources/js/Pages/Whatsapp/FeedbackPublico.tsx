@@ -1,7 +1,13 @@
 import { Head, useForm, usePage } from '@inertiajs/react'
+import { CheckCircle2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { Inline } from '@/Components/layout'
+import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
+import { Label } from '@/Components/ui/label'
+import { RadioGroup, RadioGroupItem } from '@/Components/ui/radio-group'
+import { Textarea } from '@/Components/ui/textarea'
 
 /**
  * Canal público de sinal do cliente — US-INFRA-002 · ADR 0105 · ADR 0334.
@@ -14,8 +20,13 @@ import { Inline } from '@/Components/layout'
  * um link e quer resolver em 30 segundos: 1 pergunta, 1 escala, 1 botão.
  *
  * Write-only por design: NÃO adicione leitura de dado do business aqui — a rota é pública
- * e o global scope multi-tenant é no-op sem auth (ver RUNBOOK §3).
+ * e o global scope multi-tenant é no-op sem auth (ver RUNBOOK §3 / charter §Invariantes).
  *
+ * Ser pública não a isenta do DS: composta de Button/Input/Textarea/RadioGroup/Label + o
+ * primitivo Inline, e só com tokens semânticos (`primary` já é o roxo canônico da ADR
+ * 0190 — não hardcodar hue). Radius máximo rounded-lg (charter DS).
+ *
+ * @see resources/js/Pages/Whatsapp/FeedbackPublico.charter.md
  * @see memory/requisitos/Whatsapp/RUNBOOK-feedback-publico.md
  */
 
@@ -39,7 +50,7 @@ export default function FeedbackPublico({ business_nome, submit_url, severidades
   const { data, setData, post, processing, errors, reset } = useForm({
     literal: '',
     reporter_name: '',
-    severity_self_reported: 2,
+    severity_self_reported: '2',
     url_seen: '',
     browser_console_dump: '',
   })
@@ -73,22 +84,16 @@ export default function FeedbackPublico({ business_nome, submit_url, severidades
     return (
       <>
         <Head title="Recebido — oimpresso" />
-        <Inline align="center" justify="center" className="min-h-screen bg-slate-50 p-4">
-          <div className="w-full max-w-lg bg-white rounded-xl shadow-sm border border-slate-200 p-8 text-center">
-            <div className="text-4xl mb-4" aria-hidden="true">
-              ✓
-            </div>
-            <h1 className="text-xl font-semibold text-slate-900 mb-2">Recebido, obrigado!</h1>
-            <p className="text-slate-600 mb-6">
+        <Inline align="center" justify="center" className="min-h-screen bg-muted p-4">
+          <div className="w-full max-w-lg rounded-lg border border-border bg-card p-8 text-center shadow-sm">
+            <CheckCircle2 className="mx-auto mb-4 size-10 text-primary" aria-hidden="true" />
+            <h1 className="mb-2 text-xl font-semibold text-foreground">Recebido, obrigado!</h1>
+            <p className="mb-6 text-muted-foreground">
               Sua mensagem chegou pra gente. Se for algo que trave seu dia, entramos em contato.
             </p>
-            <button
-              type="button"
-              onClick={() => setEnviado(false)}
-              className="text-sm font-medium text-violet-700 hover:text-violet-800 underline underline-offset-4"
-            >
+            <Button variant="ghost" onClick={() => setEnviado(false)}>
               Contar outra coisa
-            </button>
+            </Button>
           </div>
         </Inline>
       </>
@@ -99,21 +104,21 @@ export default function FeedbackPublico({ business_nome, submit_url, severidades
     <>
       <Head title="Falar com a gente — oimpresso" />
 
-      <Inline align="center" justify="center" className="min-h-screen bg-slate-50 p-4">
-        <div className="w-full max-w-lg bg-white rounded-xl shadow-sm border border-slate-200 p-6 sm:p-8">
+      <Inline align="center" justify="center" className="min-h-screen bg-muted p-4">
+        <div className="w-full max-w-lg rounded-lg border border-border bg-card p-6 shadow-sm sm:p-8">
           <header className="mb-6">
-            <h1 className="text-xl font-semibold text-slate-900">O que não está bom?</h1>
-            <p className="text-sm text-slate-600 mt-1">
+            <h1 className="text-xl font-semibold text-foreground">O que não está bom?</h1>
+            <p className="mt-1 text-sm text-muted-foreground">
               {business_nome} — conte do seu jeito. Quem lê é quem faz o sistema.
             </p>
           </header>
 
           <form onSubmit={enviar} className="space-y-6">
             <div>
-              <label htmlFor="literal" className="block text-sm font-medium text-slate-900 mb-1.5">
+              <Label htmlFor="literal" className="mb-1.5 block">
                 O que aconteceu?
-              </label>
-              <textarea
+              </Label>
+              <Textarea
                 id="literal"
                 value={data.literal}
                 onChange={(e) => setData('literal', e.target.value)}
@@ -121,75 +126,65 @@ export default function FeedbackPublico({ business_nome, submit_url, severidades
                 autoFocus
                 required
                 placeholder="Ex: quando eu tento fechar a venda com desconto, o total fica errado."
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 placeholder:text-slate-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-none"
                 aria-describedby={errors.literal ? 'erro-literal' : undefined}
                 aria-invalid={errors.literal ? true : undefined}
               />
               {errors.literal && (
-                <p id="erro-literal" role="alert" className="text-sm text-red-600 mt-1.5">
+                <p id="erro-literal" role="alert" className="mt-1.5 text-sm text-destructive">
                   {errors.literal}
                 </p>
               )}
             </div>
 
             <fieldset>
-              <legend className="block text-sm font-medium text-slate-900 mb-1.5">
+              <legend className="mb-1.5 text-sm font-medium text-foreground">
                 O quanto isso te atrapalha?
               </legend>
-              <div className="space-y-1.5">
+              <RadioGroup
+                value={data.severity_self_reported}
+                onValueChange={(v) => setData('severity_self_reported', v)}
+              >
                 {severidades.map((s) => (
-                  <label key={s.valor} className="block">
-                    <Inline
-                      gap={2}
-                      align="start"
-                      className="rounded-lg px-3 py-2 cursor-pointer hover:bg-slate-50 has-[:checked]:bg-violet-50 has-[:checked]:ring-1 has-[:checked]:ring-violet-200"
-                    >
-                      <input
-                        type="radio"
-                        name="severity_self_reported"
-                        value={s.valor}
-                        checked={data.severity_self_reported === s.valor}
-                        onChange={() => setData('severity_self_reported', s.valor)}
-                        className="mt-0.5 text-violet-600 focus:ring-violet-500"
-                      />
-                      <span className="text-sm text-slate-700">{s.label}</span>
+                  <Label
+                    key={s.valor}
+                    htmlFor={`sev-${s.valor}`}
+                    className="cursor-pointer rounded-lg px-3 py-2 font-normal hover:bg-accent has-[:checked]:bg-accent has-[:checked]:ring-1 has-[:checked]:ring-ring"
+                  >
+                    <Inline gap={2} align="start">
+                      <RadioGroupItem id={`sev-${s.valor}`} value={String(s.valor)} className="mt-0.5" />
+                      <span className="text-sm text-foreground">{s.label}</span>
                     </Inline>
-                  </label>
+                  </Label>
                 ))}
-              </div>
+              </RadioGroup>
               {errors.severity_self_reported && (
-                <p role="alert" className="text-sm text-red-600 mt-1.5">
+                <p role="alert" className="mt-1.5 text-sm text-destructive">
                   {errors.severity_self_reported}
                 </p>
               )}
             </fieldset>
 
             <div>
-              <label htmlFor="reporter_name" className="block text-sm font-medium text-slate-900 mb-1.5">
-                Seu nome <span className="font-normal text-slate-500">(opcional)</span>
-              </label>
-              <input
+              <Label htmlFor="reporter_name" className="mb-1.5 block">
+                Seu nome <span className="font-normal text-muted-foreground">(opcional)</span>
+              </Label>
+              <Input
                 id="reporter_name"
                 type="text"
                 value={data.reporter_name}
                 onChange={(e) => setData('reporter_name', e.target.value)}
                 maxLength={120}
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-slate-900 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:outline-none"
               />
               {errors.reporter_name && (
-                <p role="alert" className="text-sm text-red-600 mt-1.5">
+                <p role="alert" className="mt-1.5 text-sm text-destructive">
                   {errors.reporter_name}
                 </p>
               )}
             </div>
 
-            <button
-              type="submit"
-              disabled={processing}
-              className="w-full rounded-lg bg-violet-700 px-4 py-2.5 font-medium text-white hover:bg-violet-800 focus:ring-2 focus:ring-violet-500/40 focus:outline-none disabled:opacity-60 disabled:cursor-not-allowed"
-            >
+            <Button type="submit" disabled={processing} className="w-full">
               {processing ? 'Enviando…' : 'Enviar'}
-            </button>
+            </Button>
           </form>
         </div>
       </Inline>

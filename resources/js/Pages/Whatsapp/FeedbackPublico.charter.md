@@ -2,10 +2,15 @@
 page: /feedback
 component: resources/js/Pages/Whatsapp/FeedbackPublico.tsx
 owner: wagner
-status: live
+# draft, não live: a tela não foi a prod ainda (este PR a cria). O gate charter-live-signal
+# exige sinal de prod real (prod-flags/smoke datado/ledger de hits) pra `live` — e ele está
+# certo: declarar live aqui seria a "claim sem evidência" que proibicoes.md §6ª-camada barra.
+# Vira `live` no PR do smoke pós-deploy (R1).
+status: draft
 last_validated: "2026-07-17"
 parent_module: Whatsapp
 parent_adr: memory/decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md
+related_us: [US-INFRA-002]
 related_adrs: [93, 101, 104, 105, 334]
 related_adrs_ui: [UI-0013]
 tier: A

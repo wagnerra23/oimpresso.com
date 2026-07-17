@@ -99,6 +99,9 @@ class FeedbackFormController extends Controller
         $data['business_id'] = $businessId;
         $data['canal'] = ClientFeedback::CANAL_WEB_FORM;
         $data['status'] = ClientFeedback::STATUS_NOVO;
+        // O <RadioGroup> do DS manda string ("3"); a regra `integer` aceita numérica, mas
+        // castamos aqui pra não depender de coerção implícita no meio do caminho.
+        $data['severity_self_reported'] = (int) $data['severity_self_reported'];
         // O que o cliente disse semeia o julgado; a triagem pode ajustar `severity_nng`
         // sem nunca sobrescrever `severity_self_reported` (dado bruto do cliente).
         $data['severity_nng'] = $data['severity_self_reported'];
