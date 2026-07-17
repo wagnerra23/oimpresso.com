@@ -258,12 +258,28 @@ jobs:
           # que já rodava de carona. Só biz=1 — o biz=98 fica sem FSM de propósito (estado
           # `empty`). GATE REAL — se quebrar, o job falha. Vide VisregOficinaFsmSeeder.php.
           php artisan db:seed --class=Database\\Seeders\\VisregOficinaFsmSeeder --force
+          # DADO do Quadro (estado `default` do oficina-os). O seeder ACIMA dá a pré-condição (as
+          # 6 etapas); este dá as OS. Sem ele o `default` fotografava o kanban com 0 OS e KPIs
+          # zerados — medido 2026-07-16 decodificando as .snap commitadas —, enquanto o docblock
+          # do IsolatedStatesBaselineTest promete que `default` é "o estado SEEDADO de cada tela".
+          # Quadro vazio => `default` ≡ `empty` a menos da flag process_seeded, e a única coisa
+          # que podia se mover entre 2 renders era ela (kanban vazio ⇄ "não configurado") — a
+          # faixa de ~10% que vinha sendo lida como flakiness. O DADO É A SONDA: com 6 cards,
+          # perder a pré-condição vira diff >> τ_alto e o gate GRITA, em vez de trocar um vazio
+          # por outro. Só biz=1 (ADR 0101); biz=98 segue sem OS (estado `empty`).
+          php artisan db:seed --class=Database\\Seeders\\VisregOficinaBoardSeeder --force
           echo "=== seed check ==="
           php artisan tinker --execute="echo 'business='.\App\Business::count().' users='.\App\User::count().' roles='.\Spatie\Permission\Models\Role::count().' fin_titulos='.DB::table('fin_titulos')->where('business_id', 1)->count();"
           # PROVA da pré-condição do oficina-os (a sonda que o defeito 2 não tinha): conta os
           # stages do processo da Oficina no biz=1. Espera-se > 0 nos DOIS modos — se um dispatch
           # voltar a imprimir 0, a baseline de `dark`/`default` nasceria errada OUTRA VEZ.
           php artisan tinker --execute="echo 'oficina_stages_biz1='.DB::table('sale_process_stages')->join('sale_processes','sale_processes.id','=','sale_process_stages.process_id')->where('sale_processes.business_id',1)->where('sale_processes.key','oficina_mecanica_os')->count();"
+          # Contagem das OS do fixture do Quadro. Espera-se 6 (1 por coluna) nos DOIS modos. Se
+          # voltar 0, o `default` regrediu pro quadro vazio — e aí a baseline não deve ser
+          # regravada, tem que se achar quem comeu o dado. ⚠️ Esta sonda mede o SEED, não o
+          # RENDER: quem prova o render é a própria baseline (6 cards). A lição do defeito 2 foi
+          # essa — sonda no momento errado não flagra tela degradada.
+          php artisan tinker --execute="echo 'oficina_os_fixture_biz1='.DB::table('service_orders')->where('business_id',1)->where('notes','like','VISREG-BOARD%')->count();"
 
       - name: Build Inertia bundles
         if: steps.mode.outputs.ui == 'true'
