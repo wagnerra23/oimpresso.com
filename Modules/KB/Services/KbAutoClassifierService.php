@@ -51,13 +51,16 @@ class KbAutoClassifierService
     public function classify(int $businessId, bool $apply = false): array
     {
         // Regras do MESMO business (Tier 0: nunca cruza tenant). Só as que têm auto_match.
+        // SUPERADMIN: rodado em CLI/job (session vazia → global scope não resolve o tenant);
+        // o tenant é reimposto explicitamente pelo ->where('business_id', $businessId) abaixo (ADR 0093).
         $rules = KbSubcategory::query()
             ->withoutGlobalScopes()
             ->where('business_id', $businessId)
             ->whereNotNull('auto_match')
             ->get();
 
-        // Nós SEM categoria do MESMO business. withoutGlobalScopes: em CLI a sessão é vazia.
+        // Nós SEM categoria do MESMO business.
+        // SUPERADMIN: idem — CLI sem session; o business_id explícito abaixo é o único filtro de tenant (ADR 0093).
         $nodes = KbNode::query()
             ->withoutGlobalScopes()
             ->where('business_id', $businessId)
@@ -78,7 +81,9 @@ class KbAutoClassifierService
             }
 
             if ($apply) {
-                // Grava explícito (sem depender do global scope). subcategory_id + a category pai.
+                // Grava explícito. subcategory_id + a category pai.
+                // SUPERADMIN: CLI sem session; o UPDATE é duplo-scopado por business_id + chave do nó,
+                // então nunca toca nó de outro tenant mesmo sem o global scope (ADR 0093).
                 KbNode::query()
                     ->withoutGlobalScopes()
                     ->where('business_id', $businessId)
