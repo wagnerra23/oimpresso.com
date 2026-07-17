@@ -503,6 +503,12 @@
       "classe": "automacao",
       "terminal": "cron",
       "anchor": "ADR 0264 (G-7: Status do UC vem do veredito REAL do teste) · custo medido 2026-07-16: manifesto alimentado À MÃO fazia exec_backed_pct medir CADÊNCIA DE BOOKKEEPING, não qualidade — UC-F04/UC-F05 com Pest verde na lane required financeiro-pest valiam 0, e UC-S02 (vetor da venda inflada ×100k, fix #2279) idem; colheita real dos 7 JUnits: 15 → 25 UCs (10% → 17%)"
+    },
+    "negocio-vs-governanca-ratio.yml": {
+      "nome": "Ratio negócio × governança (sentinela anti-atrofia) — mede o FLUXO de merges (first-parent, janela 4 semanas) classificado em NEGÓCIO (A+B) × GOVERNANÇA-META (C) × INFRA, e emite ::warning + summary quando governança domina. Cron semanal (seg 09h50 UTC). NÃO bloqueia: a ADR 0334 §5 rejeitou o teto rígido ≤35% (criminalizaria CAPEX legítimo) — é trend-alarm, aponta onde olhar.",
+      "classe": "automacao",
+      "terminal": "cron",
+      "anchor": "ADR 0334 (invariante anti-atrofia da inteligência de negócio) §Consequências — a ADR entregou a sentinela + prometeu o \"wiring do alarme como workflow advisory semanal\" e deixou como decisão de custo do [W]; [W] autorizou 2026-07-17. Sinal de custo MEDIDO: até este PR o único invocador do script fora de memory/ era o próprio .test.mjs (correção-do-mecanismo ≠ invocação, proibicoes §5 2026-07-09) — o crossover de junho (governança 8× negócio) passou silencioso e o 3,4× de 2026-07-17 (1311 merges: 228 negócio × 778 governança, 77% > limiar 65%) só apareceu porque um verificador rodou na mão."
     }
   }
 }
