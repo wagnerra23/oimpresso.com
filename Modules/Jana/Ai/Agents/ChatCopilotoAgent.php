@@ -66,6 +66,24 @@ class ChatCopilotoAgent implements Agent, HasProviderOptions, HasTools
     ) {
     }
 
+    /**
+     * Modelo do chat — US-COPI-135. Lê `copiloto.chat_model` (env `JANA_CHAT_MODEL`).
+     *
+     * null/vazio → devolve null e o SDK cai no default do provider
+     * (`AI_OPENAI_TEXT_DEFAULT`, hoje gpt-4o-mini) = comportamento legado. Setar
+     * `JANA_CHAT_MODEL=gpt-4o` liga o modelo forte SÓ neste agent — não arrasta os
+     * ~8 agents batch internos (que herdam o default global) pro modelo caro.
+     *
+     * Mesmo padrão env-driven do ClarificadorAgent::model() (ADR 0245): knob de
+     * config, kill-switch por env, zero code change pra ligar/desligar.
+     */
+    public function model(): ?string
+    {
+        $m = config('copiloto.chat_model');
+
+        return is_string($m) && $m !== '' ? $m : null;
+    }
+
     public function instructions(): Stringable|string
     {
         $partes = [$this->personaBase()];

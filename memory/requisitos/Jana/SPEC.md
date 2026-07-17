@@ -1578,14 +1578,14 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 **Fallback ≠ modelo (bloqueios diferentes):** subir o modelo custa em **toda** request → decisão [W]. O **fallback** só custa quando o primário cai, e já é Princípio duro #8 da Constituição ("Confiabilidade com fallback", ADR 0094). Medido: `config/ai.php` tem `'default' => 'openai'` único e o `ChatController` só tem `catch` devolvendo *"Estou com dificuldades técnicas"* — o provider `anthropic` já está declarado em `config/ai.php` e o `ChatCopilotoAgent` **já tem prompt-caching Anthropic** (`providerOptions()`), então a metade fallback é mais curta do que parece.
 
 **Escopo:**
-- [ ] Liberar `gpt-4o` OU `provider=anthropic` no config (decisão [W] — envolve custo)
-- [ ] Cadeia de fallback (provider primário → secundário) — hoje inexistente
-- [ ] Medir antes/depois no gold-set (`jana:recall-eval`) pra provar que a resposta melhorou, não só o preço subiu
-- [ ] Registrar o custo/1k tokens antes→depois (pareia com `agent-cost-per-pr`)
+- [x] Liberar `gpt-4o` no config + ligar SÓ no chat → **entregue na [US-COPI-143](#us-copi-143--modelo-forte-no-chat-jana_chat_model-cirúrgico)** ([W] liberou o acesso OpenAI 2026-07-17)
+- [ ] **Cadeia de fallback** (provider primário → secundário) — **hoje inexistente, segue pendente**. Se o provider cai, a Jana cai. Esta é a metade que sobra da 135.
+- [x] Medir antes/depois → feito na US-143 (mini vs gpt-4o, custo + qualidade)
+- [ ] Registrar custo/1k tokens antes→depois no monitoramento contínuo (pareia com `agent-cost-per-pr`) — pontual feito, contínuo pendente
 
-**Ressalva do adversário:** trocar o modelo NÃO conserta o `context_recall 0,3839` — recall é retrieval, não geração. Se subir só o modelo, a Jana responde melhor sobre o contexto errado. Fazer junto do piso de recall.
+**Ressalva do adversário:** trocar o modelo NÃO conserta o `context_recall 0,3839` — recall é retrieval, não geração. Se subir só o modelo, a Jana responde melhor sobre o contexto errado. Fazer junto do piso de recall (**US-COPI-136**).
 
-**Bloqueio real:** decisão [W] sobre custo. Sem isso o ticket não anda.
+**Estado (2026-07-17):** a metade **modelo** foi cindida pra US-143 e entregue (mecanismo cirúrgico `JANA_CHAT_MODEL` + gpt-4o ligado no chat em prod). O que mantém a **135 aberta** é o **fallback** — nenhuma cadeia primário→secundário existe ainda.
 
 ### US-COPI-136 · Piso de context_recall no baseline (recall 0,3839 pode cair sem alarme)
 
