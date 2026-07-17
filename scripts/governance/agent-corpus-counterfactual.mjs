@@ -24,9 +24,14 @@
  *       do sinal.
  *     · ADR 0334 (77% governança / 23% negócio, `alarme: true`): a régua era a própria
  *       frase do session log — *"se virar mais uma régua que só soma, falhou."* Somava.
- *   O código não se perdeu: vive no git. Se [W] autorizar o experimento (caminho dos
- *   ~297 runs), recuperar é `git log --diff-filter=D` — barato. Reconstruir cedo demais
- *   é que era caro.
+ *   ⚠️ ERRATA (2026-07-17): a 1ª versão deste comentário afirmava "o código vive no git,
+ *   recuperar é git log --diff-filter=D". FALSO — `git log -S "export function armStats"`
+ *   volta VAZIO: o harness NUNCA foi commitado (só existiu no working tree, sobrescrito
+ *   pelo Write da poda). Quando [W] escolheu "gastar" (2026-07-17), o harness foi
+ *   RECONSTRUÍDO (do histórico da conversa, não recuperado do git) em
+ *   `.claude/governance-eval/corpus-counterfactual/harness.mjs` — que agora IMPORTA as
+ *   primitivas daqui, dando a elas um invocador real. Ver o README de lá + o smoke que
+ *   reproduziu o achado do paper (+22% de custo / ~0 benefício em skill redundante).
  *
  * ── A RÉGUA PUBLICADA (verificada 2026-07-17 na fonte, não herdada de briefing) ────
  *   arXiv 2602.11988 (fev/2026) — "Evaluating AGENTS.md: Are Repository-Level Context
