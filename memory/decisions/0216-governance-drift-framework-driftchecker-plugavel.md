@@ -14,8 +14,6 @@ related:
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0106-recalibracao-velocidade-fator-10x-ia-pair
-  - 0133-jana-health-check-sql-puro
-  - 0162-observability-spans-aggregation
   - 0215-secrets-governance-5-camadas-automaticas
 pii: false
 ---

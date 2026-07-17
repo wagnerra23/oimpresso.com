@@ -16,9 +16,7 @@ related:
   - 0035-stack-ai-canonica-wagner-2026-04-26
   - 0036-replanejamento-meilisearch-first
   - 0048-framework-agentes-laravel-ai-vizra-rejeitada
-  - 0051-jana-schema-proprio-adapter-otel-genai
   - 0053-mcp-server-governanca-como-produto
-  - 0055-mcp-tabelas-jobs-meta
   - 0067-sprint8-mcp-memory-document-searchable-retrieval
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios

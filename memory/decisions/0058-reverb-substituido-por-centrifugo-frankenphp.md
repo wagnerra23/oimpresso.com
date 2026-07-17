@@ -14,7 +14,6 @@ quarter: 2026-Q2
 tags: {  }
 related:
   - 0042-reverb-substitui-pusher-cloud
-  - 0042-infra-empresa-padrao
 pii: false
 ---
 # ADR 0058 — Reverb substituído por Centrifugo + FrankenPHP

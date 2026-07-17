@@ -15,8 +15,6 @@ supersedes: []
 supersedes_partially: []
 superseded_by: []
 related:
-  - 0070-jira-style-task-management
-  - 0089-comparativo-do-modulo
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0105-cliente-como-sinal-guiar-sem-mandar
 pii: false

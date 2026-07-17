@@ -17,9 +17,8 @@ supersedes: []
 amends: []
 superseded_by: []
 related:
-  - "0013-constituicao-ui-v2-camadas"
-  - "0235-ds-v4-accent-roxo-universal"
-  - "0249-ds-v6-naming-amends-0235"
+  - 0235-ds-v4-accent-roxo-universal
+  - 0249-ds-v6-naming-amends-0235
 pii: false
 ---
 

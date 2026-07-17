@@ -17,7 +17,6 @@ supersedes:
 related:
   - 0030-credenciais-jamais-em-git
   - 0042-reverb-substitui-pusher-cloud
-  - 0042-infra-empresa-padrao
   - 0044-vaultwarden-self-hosted-cofre
   - 0053-mcp-server-governanca-como-produto
   - 0058-reverb-substituido-por-centrifugo-frankenphp

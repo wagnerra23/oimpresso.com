@@ -11,7 +11,6 @@ decided_at: "2026-05-09"
 module: null
 supersedes: []
 related:
-  - 0042-proxmox-docker-host-canonico
   - 0053-mcp-server-governanca-como-produto
   - 0061-conhecimento-canonico-git-mcp-zero-automem
   - 0062-separacao-runtime-hostinger-ct100
