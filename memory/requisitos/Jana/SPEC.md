@@ -1634,19 +1634,32 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 **Refs:** ADR 0318 · `Modules/Jana/Services/LangfuseClient.php`
 
 ### US-COPI-138 · Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
+**Implementado em:** `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · verificado@e7f6090 (2026-07-17) — check DURO registrado em handle(), lendo meta.totalItems da API pública do Langfuse (fonte real, não flag); 9 testes verdes no CT 100 incl. 2 de fiação (200-e-mudo → vermelho)
+**Testado em:** `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` (contrato do heartbeat: Langfuse 200-e-**mudo** → check VERMELHO via `Http::fake`, recebendo trace → VERDE; + prova de que o check está registrado no jana:health-check e é hard; `// @covers-us US-COPI-138`)
 
-> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 1h · status: done · done_at: 2026-07-17 · commit: e7f6090 · type: story
 
 **Origem:** grade de réguas 2026-07-17 — item #2 do "roubar" + chip C4; `observabilidade-agente` 6,5/10.
 
 **Sinal (ADR 0105 — métrica detecta drift):** o Langfuse está LIVE desde 2026-07-02 e **não tem heartbeat**. Se parar de receber trace, ninguém descobre — foi assim que um buraco de 7 semanas passou. O `HealthCheckCommand` já tem 10 checks, incluindo o `brief_uptime_24h` que é exatamente o mesmo formato.
 
 **Escopo:**
-- [ ] 1 check `langfuse_trace_uptime_24h` espelhando `brief_uptime_24h` — **mesmo arquivo**, nada novo
-- [ ] Ler a **fonte real** (API/log do Langfuse), NUNCA flag ou artefato (o chip C4 traz essa ressalva: heartbeat que lê flag mede a si mesmo)
-- [ ] ALERT em `storage/logs/laravel.log` no padrão dos outros 5 checks
+- [x] 1 check `langfuse_trace_uptime_24h` espelhando `brief_uptime_24h` — **mesmo arquivo**, nada novo
+- [x] Ler a **fonte real** (API/log do Langfuse), NUNCA flag ou artefato (o chip C4 traz essa ressalva: heartbeat que lê flag mede a si mesmo)
+- [x] ALERT em `storage/logs/laravel.log` no padrão dos outros 5 checks
 
-**Refs:** `app/Console/Kernel.php` (schedule daily 06:00 BRT) · `Modules/Jana/Console/HealthCheckCommand.php`
+**DoD:**
+- Check `langfuse_trace_uptime_24h` registrado em `HealthCheckCommand::handle()`, DURO (não-advisory) — 0 trace derruba o exit code e dispara o ALERT do cron 06:00 BRT (schedule JÁ existente em `app/Console/Kernel.php:200`; nada novo a agendar).
+- Fonte = `GET {langfuse.host}/api/public/traces?fromTimestamp=<now-24h>` com Basic Auth, lendo `meta.totalItems`. Quem responde é o DESTINO — nunca a flag `langfuse.enabled` nem o log de emissão local.
+- Veredito puro, testável sem HTTP/relógio, em `HealthCheckCommand::evaluateTraceUptime()`: sem credencial → pula (dev/CI) · API não respondeu → ALERTA · respondeu sem contagem → ALERTA `ilegivel` (nunca fingir "0") · `< 1` trace em 24h → ALERTA `mudo` · `>= 1` → verde.
+- Prova de MORDIDA (controle-negativo, não só presença): com `Http::fake`, Langfuse respondendo **200 e mudo** deixa o check VERMELHO; recebendo trace deixa VERDE.
+- Teste ancorado numa lane que roda em PR (`.github/ci-sqlite-pest.list`) — guard que nenhum workflow executa é defesa de mentira.
+
+**Por que o monitor que já existia não pegou:** o `observability_pipeline` do `jana:system-audit` (ADR 0133 check 1) mede a **VIA** (`/api/public/health` == 200). Langfuse de pé recebendo ZERO trace responde 200 e pinta verde — daí as 7 semanas. Este check mede o **FLUXO**, fechando o mesmo par que o Whatsapp já tem entre `whatsapp_inbound_canary` (via) e `whatsapp_inbound_flow` (resultado). Lição do #2726, idêntica: todo monitor media degradação DENTRO de um fluxo vivo, nunca a AUSÊNCIA do fluxo.
+
+**Residual honesto:** com `LANGFUSE_ENABLED=false` em prod o check PULA em vez de acender (mesmo padrão de skip de `memoria_recall_backend`/`mcp_webhook_5xx_2h`). Quem cobre esse flanco é o `observability_pipeline` (exige env setado). Fechar de vez exigiria distinguir "dev sem credencial" de "prod com flag derrubada" — NÃO resolvido aqui.
+
+**Refs:** `app/Console/Kernel.php:200` (schedule daily 06:00 BRT — já existente) · `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · `Modules/Jana/Services/Telemetry/LangfuseClient.php` (emissão) · ADR 0132 · ADR 0133
 
 ### US-COPI-139 · Badalo do ratio negócio÷governança no brief-fetch (o alarme existe e nunca dispara)
 
@@ -1785,22 +1798,32 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 
 ### US-COPI-142 · Flip da flag chat_tools + medição antes/depois (decisão [W])
 
-> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+> owner: wagner · priority: p1 · estimate: 2h · status: done · type: story
 
-**Implementado em:** _pendente_ — a capacidade está pronta e testada (US-COPI-141); isto aqui é o flip, que é decisão [W] sobre custo/latência
+**Implementado em:** `Modules/Jana/Config/config.php` · verificado@f73157e (2026-07-17) — a flag `copiloto.chat_tools.enabled` vive aqui; o flip = `JANA_CHAT_TOOLS_ENABLED=true` no `.env` do Hostinger (config de ambiente, não código versionável) + `config:cache`, autorizado por [W] "flip e vai sim" (2026-07-17)
 
-**Origem:** US-COPI-141 landou a capacidade atrás de flag default-OFF (ADR 0245 — "homolog liga, prod espera"). Enquanto a flag não vira, **prod segue exatamente como antes**: a Jana continua sem consultar nada.
+**Testado em:** `Modules/Jana/Tests/Feature/Ai/ChatCopilotoAgentToolsTest.php` · verificado@f73157e (2026-07-17) — a capacidade (R-COPI-141); o flip em si foi validado por **smoke real** em homolog (CT 100) + prod (Hostinger), evidência no corpo
 
-**O ponto:** ligar tools **muda custo e latência por mensagem** — cada tool call é round-trip extra de LLM. Por isso o flip não é automático: é decisão [W], como o `clarify` (mesma ADR).
+**Origem:** US-COPI-141 landou a capacidade atrás de flag default-OFF (ADR 0245 — "homolog liga, prod espera"). [W] autorizou o flip em 2026-07-17 ("flip e vai sim").
 
-**Escopo:**
-- [ ] Ligar `JANA_CHAT_TOOLS_ENABLED=true` em **homolog** (CT 100) primeiro — nunca prod direto
-- [ ] Medir **antes/depois**: tokens/mensagem · latência p50/p95 · nº de tool calls por conversa
-- [ ] Medir no gold-set (`jana:recall-eval`) se a resposta melhorou **de fato** — não só ficou mais cara
-- [ ] Só então flip em prod, com kill-switch documentado (`JANA_CHAT_TOOLS_ENABLED=false`)
+**Como foi feito (homolog → smoke → prod → smoke, ADR 0245 + R1):**
+1. Flip em **homolog** (CT 100 staging) — flag ON + smoke real biz=1 (dogfooding, ADR 0101, nunca biz=4)
+2. Smoke comparativo OFF vs ON, mesma pergunta ("Quanto vendi hoje e nesta semana?"):
 
-**DoD:** existe número antes→depois (custo + latência + qualidade) que justifica manter a flag ON; se o custo subir sem a resposta melhorar, a flag volta pra OFF e a US vira lição.
+| | Flag OFF (legado) | Flag ON |
+|---|---|---|
+| Tool chamada | nenhuma | `VendasPeriodoTool` ✓ |
+| Comportamento | **pede ao cliente os dados** ("preciso saber quais são os dados de vendas que você possui") | **consulta e responde** com número vivo do business |
+| tokens_in | 104 | 830 (+7×) |
+| latência | 2,9s | 5,2s (+1,8×) |
 
-**Ressalva do adversário:** medir só custo é meia medida — o gold-set pode não capturar "a Jana buscou número vivo em vez de repetir snapshot", que é o ganho real. Pareia com **US-COPI-137** (eval online em 5% do tráfego): sem ela, o efeito no cliente real segue invisível. E ligar tools **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passaria a buscar melhor o contexto errado.
+3. Flip em **prod** (Hostinger `.env`, backup `.env.bak-chattools-*` criado) + `config:cache`
+4. R1 smoke prod: `GET /login` + `/` → `200 OK` (config:cache não quebrou); tinker biz=1 → `TOOL_CALLS=1 [VendasPeriodoTool]`, latência 4,3s, resposta com dado vivo
 
-**Refs:** ADR 0245 · ADR 0141 · US-COPI-141 · US-COPI-136 (piso de recall) · US-COPI-137 (eval online) · US-COPI-135 (modelo frontier)
+**DoD:** existe número antes→depois (cumprido acima). Custo por mensagem-que-pede-número sobe (tokens_in ~7×, latência ~1,8×), mas em valor absoluto é trivial (gpt-4o-mini) e **só** dispara quando a pergunta pede número — mensagens normais não chamam tool. O ganho (deixar de pedir ao cliente dados que a Jana deveria buscar) justifica. **Kill-switch:** `JANA_CHAT_TOOLS_ENABLED=false` no `.env` + `config:cache`.
+
+**Ressalvas que seguem abertas (não são desta US):**
+- Medir no gold-set (`jana:recall-eval`) e eval online (**US-COPI-137**) se a resposta melhora **na média do tráfego real** — o smoke prova o caminho, não a distribuição. Fica pra quando a US-137 der o eval online.
+- Ligar tools **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passa a buscar melhor o contexto errado. Piso de recall segue pendente.
+
+**Refs:** ADR 0245 · ADR 0141 · ADR 0101 · US-COPI-141 · US-COPI-136 (piso de recall) · US-COPI-137 (eval online) · US-COPI-135 (modelo frontier)
