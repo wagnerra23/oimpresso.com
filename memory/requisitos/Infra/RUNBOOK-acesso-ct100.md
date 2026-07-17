@@ -196,6 +196,47 @@ docker exec oimpresso-mcp php artisan mcp:list-tools | grep <nome-tool>
 
 ---
 
+## Rodar Pest de uma BRANCH sem tocar a árvore do `oimpresso-staging`
+
+O container `oimpresso-staging` pode ter trabalho não-commitado de **outra sessão** —
+`git checkout <branch>` lá dentro é destrutivo. Pra rodar teste de uma branch isolado,
+use um worktree em `/tmp` (whitelist do hook block-destructive). **3 pegadinhas:**
+
+```bash
+tailscale ssh root@ct100-mcp 'docker exec oimpresso-staging sh -c "
+  cd /var/www/html
+  git fetch origin <branch> -q
+  git worktree add --detach /tmp/wt-X origin/<branch>
+  cp -a /var/www/html/vendor /tmp/wt-X/vendor          # 1. COPIAR, não symlink (ver abaixo)
+  cp /var/www/html/.env /tmp/wt-X/.env                 # 3. env do staging
+  mkdir -p /tmp/wt-X/storage/framework/{views,cache/data,sessions} \
+           /tmp/wt-X/storage/logs /tmp/wt-X/bootstrap/cache   # 2. storage não vem no checkout
+  chmod -R 777 /tmp/wt-X/storage /tmp/wt-X/bootstrap/cache
+  cd /tmp/wt-X && php artisan test <path> "
+'
+# limpeza: rm -rf /tmp/wt-X ; git -C /var/www/html worktree prune
+```
+
+1. **`vendor` COPIADO (`cp -a`), NUNCA symlink pro `/var/www/html/vendor`.** O
+   `autoload_psr4.php` calcula `$baseDir` em runtime via `__DIR__` — com symlink, `__DIR__`
+   resolve pro path REAL do staging, então as classes/rotas carregam o código do **staging**,
+   não o da branch. Sintoma traiçoeiro: classe/rota nova "não existe"
+   (`RouteNotFoundException`), as velhas do staging aparecem, e o teste passa/falha **medindo
+   o repo errado**. `composer` nem existe no container — a cópia dispensa `dump-autoload`.
+2. **`storage/` + `bootstrap/cache` não vêm no checkout** → boot morre com
+   `InvalidArgumentException: Please provide a valid cache path`. Criar + `chmod 777`.
+3. **Copiar o `.env`** do staging.
+
+⚠️ Outra sessão rodando `git worktree prune`/`add` no mesmo container pode **despejar o
+registro do seu worktree** (o `.git` do worktree vira "not a git repository"). Pra
+re-sincronizar 1 arquivo sem depender do git do worktree, mexendo só em refs (não na árvore
+alheia): `git -C /var/www/html show origin/<branch>:<path> > /tmp/wt-X/<path>`.
+
+Provado 2026-07-17 (US-INFRA-002): o controle-negativo do teste Tier 0 só ficou honesto
+depois de trocar o symlink pela cópia — com symlink, 6/6 "passava" contra o staging.
+
+---
+
 ## Refs
 
 - **CLAUDE.md §1** — Stack-alvo IA (mcp.oimpresso.com canônico)
@@ -208,4 +249,6 @@ docker exec oimpresso-mcp php artisan mcp:list-tools | grep <nome-tool>
 
 ---
 
-**Última atualização:** 2026-05-06 — incluído fluxo Tailscale SSH auth check via URL após Sprint 1 ativação real (descoberta: user é `root`, não `dev`; hostname é `ct100-mcp` magic DNS).
+**Última atualização:** 2026-07-17 — adicionada seção "Rodar Pest de uma BRANCH sem tocar a árvore do staging" (worktree em /tmp + vendor copiado, não symlink). Descoberto ao rodar o Tier 0 da US-INFRA-002.
+
+**2026-05-06** — incluído fluxo Tailscale SSH auth check via URL após Sprint 1 ativação real (descoberta: user é `root`, não `dev`; hostname é `ct100-mcp` magic DNS).

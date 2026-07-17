@@ -146,7 +146,7 @@ Maratona WhatsApp 14-15/mai catalogou múltiplos incidentes onde DRIFT entre pro
 - [`memory/proibicoes.md`](../proibicoes.md) §"Ambiente" — proibição "Nunca editar arquivo direto via SSH" já formalizada — **regra emergente aqui é o complemento positivo: SE mexeu, REGISTRA**
 - [`memory/handoffs/2026-05-15-0700-whatsapp-maratona-fechamento-...md`](../handoffs/2026-05-15-0700-whatsapp-maratona-fechamento-8prs-baileys7x-deploy-hostinger.md) — cronologia das 5 instâncias de drift custosas
 - [`memory/reference/feedback-baileys-7x-decisao-irreversivel.md`](feedback-baileys-7x-decisao-irreversivel.md) — feedback irmão, mesma família (Wagner pediu rigor)
-- [`.claude/skills/baileys-update-procedure/SKILL.md`](../../.claude/skills/baileys-update-procedure/SKILL.md) §Fase 1.5 — PURGA pre-major-bump catalogada
+- `baileys-update-procedure` §Fase 1.5 — PURGA pre-major-bump catalogada (skill **removida na [ADR 0202](../decisions/0202-whatsapp-profissionalizacao-baileys-out.md)**, BaileysDriver/daemon OUT)
 - [ADR 0094](../decisions/0094-constituicao-v2-7-camadas-8-principios.md) §5 "SoC brutal" — princípio constitucional irmão
 - [ADR 0093](../decisions/0093-multi-tenant-isolation-tier-0.md) — Tier 0 multi-tenant é um exemplo onde a regra "registra" é OBRIGAÇÃO LEGAL (LGPD)
 

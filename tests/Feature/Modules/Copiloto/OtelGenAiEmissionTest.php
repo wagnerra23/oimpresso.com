@@ -108,8 +108,12 @@ it('atributos OTel obrigatórios estão presentes em sucesso', function () {
     expect($captured['gen_ai.usage.input_tokens'])->toBe(150);
     expect($captured['gen_ai.usage.output_tokens'])->toBe(80);
     expect($captured['gen_ai.response.finish_reason'])->toBe('stop');
-    // Multi-tenant + LGPD audit (custom)
-    expect($captured['gen_ai.business_id'])->toBe(4);
+    // Multi-tenant + LGPD audit (custom). fakeConv() usa business_id=1 (biz de teste
+    // canônico — ADR 0101); o driver emite o business_id da conversa, então a asserção
+    // acompanha. Era `->toBe(4)` (ROTA LIVRE, cliente real): mentira que ficou vermelha
+    // na nightly diagnóstica e foi absorvida no floor em vez de derrubar PR — nenhum
+    // workflow rodava este arquivo até ancorá-lo na lane sqlite (mesmo PR).
+    expect($captured['gen_ai.business_id'])->toBe(1);
     expect($captured['gen_ai.user.id'])->toBe(9);
     expect($captured['gen_ai.conversation.id'])->toBe(42);
 });

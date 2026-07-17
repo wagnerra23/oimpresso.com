@@ -49,6 +49,7 @@
 // Idioma: clone de knowledge-drift.mjs.
 
 import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { execSync } from 'node:child_process'; // SÓ pro eixo --stale (C8) — ver bloco "eixo TEMPORAL"
 import { join, dirname, resolve, relative } from 'node:path';
 
 const ROOT = process.cwd();
@@ -84,6 +85,26 @@ const CHECK_VERDE = process.argv.includes('--check-verde');
 // IMPOSSÍVEL (cobertura de fachada). ADVISORY: anchor-drift roda --check normal; opt-in pro
 // gate-selftest + arming futuro (ADR 0275). NÃO grandfatherado (gate à parte, igual o verde).
 const CHECK_LANE = process.argv.includes('--check-lane');
+// C8 (grade de réguas 2026-07-17): --stale liga o eixo TEMPORAL da âncora — o
+// `verificado@<sha7>` que a gramática §1 já EXIGE é uma base de comparação que
+// ninguém consumia. Varredura contada (2026-07-17): o SHA é capturado em 2 arquivos
+// / 5 sites (SpecAnchorClassifier::GRAMMAR_OK_RE + TaskParserService::deveFecharPorAncora)
+// e o único uso é PRESENÇA (`is_string($sha) && $sha !== ''`) — zero comparação com o HEAD.
+// Com a flag: `git log <sha>..HEAD -- <paths da âncora>` → se o código andou desde a
+// verificação, a âncora é `anchor_stale` (o path existe e está vivo, mas "verificado"
+// virou passado).
+//
+// OPT-IN DE PROPÓSITO (não é preguiça): este arquivo é fs-puro por invariante (ADR 0303)
+// e roda em DOIS jobs required (`anchor-lint ADR 0273` + `anchor entry/covers gate`).
+// Sem a flag NADA aqui executa git → o caminho required segue byte-idêntico e fs-puro.
+// O invocador real é um job ADVISORY à parte no anchor-drift.yml (mesmo padrão do
+// `verde-gate-advisory`) — flag sem invocador seria a lápide do chokepoint fantasma
+// (proibicoes §5 2026-07-09), então a flag nasce com o job que a chama.
+//
+// NÃO entra em anchor_coverage, NÃO muda flag 🟢/🟡/🔴 e NÃO participa de nenhum
+// --check* (exit code intocado). É sinal, não veredito.
+const STALE = process.argv.includes('--stale');
+const STALE_SELFTEST = process.argv.includes('--stale-selftest');
 const _rawArgv = process.argv.slice(2);
 const _junitIdx = _rawArgv.indexOf('--junit');
 const JUNIT_PATH = _junitIdx !== -1 ? _rawArgv[_junitIdx + 1] : null;
@@ -162,6 +183,11 @@ const keyCovers = (us, testSeg) => `covers:${us}:${String(testSeg).split('/').po
 
 // ── regexes canônicas (ADR 0273 §1 — referência única; NÃO afrouxar sem novo ADR) ──
 const GRAMMAR_RE = /^\*\*Implementado em:\*\* (?:_pendente_(?: — .+)?|(?:_parcial_ · )?(?:`[^`]+`)(?: · `[^`]+`)* · verificado@[0-9a-f]{7} \(\d{4}-\d{2}-\d{2}\)(?: — .+)?)$/;
+// C8: captura do `verificado@<sha7>` no `rest` (a MESMA sub-forma que a GRAMMAR_RE acima
+// já exige e que o SpecAnchorClassifier.php::GRAMMAR_OK_RE captura no lado PHP — uma
+// gramática, dois leitores). Só o sha interessa aqui: a data declarada não é usada como
+// medida (seria a metade auto-declarável do `verificado_em` rejeitado em proibicoes §5).
+const VERIFICADO_SHA_RE = /· verificado@([0-9a-f]{7}) \(\d{4}-\d{2}-\d{2}\)/;
 // detecção LENIENTE de campo (legados usam `> ` blockquote — Vestuario — e espaçamento vário)
 const FIELD_RE = /^(?:>\s*)?\*\*Implementado em:\*\*\s*(.*)$/;
 const TESTADO_RE = /^(?:>\s*)?\*\*Testado em:\*\*\s*(.*)$/;
@@ -265,6 +291,117 @@ function pageHitKey(seg) {
   const s = String(seg).replace(/\\/g, '/');
   const m = s.match(/^resources\/js\/Pages\/(.+)\.tsx$/);
   return m && !/\/_?components\//.test(s) ? m[1] : null;
+}
+
+// ── C8: eixo TEMPORAL da âncora — `verificado@sha` vs HEAD (só com --stale) ──
+// A âncora responde "o path existe?" (dead) e "está no roteador?" (zombie) — ambos
+// ESTÁTICOS e ambos no PRESENTE. Faltava: "o código MUDOU desde que alguém verificou?".
+// O `verificado@<sha7>` (gramática ADR 0273 §1) é exatamente essa base, e estava morto.
+//
+// O QUE ISTO NÃO É (proibicoes §5 — não re-propor padrão morto):
+//  · NÃO é motor novo de staleness (a lápide 2026-07-09 "frescor por verificado_em vs
+//    git-mtime" manda ESTENDER o dono do tema, não abrir um 3º motor). O dono da
+//    gramática `**Implementado em:**` é ESTE script — o eixo nasce aqui dentro.
+//    Os motores existentes medem outra coisa, em outra granularidade:
+//      briefing-code-staleness → PORTA(BRIEFING) × código do MÓDULO
+//      doc-freshness-score     → score composto POR DOC (agregador/radar)
+//      distiller_freshness     → distilled_at × doc mais novo do módulo
+//    Nenhum mede US-ÂNCORA × os paths CONCRETOS que aquela US declara. É esse buraco.
+//  · NÃO é catraca sobre campo auto-declarado (a lápide do `last_validated`). O sha É
+//    declarado — mas o que se MEDE são os commits reais entre ele e o HEAD; declarar não
+//    dá ponto, e re-carimbar exige um commit auditável no diff do PR (mesmo argumento do
+//    churn no doc-freshness-score). RESÍDUO HONESTO: quem re-carimbar o sha sem re-verificar
+//    zera o sinal — isto detecta divergência, não desonestidade.
+//  · NÃO usa AST/tree-sitter (over-engineering pro ganho): reusa o idioma `git log
+//    --name-only` do doc-freshness-score.
+//
+// CUSTO: 1 chamada git por SHA DISTINTO (medido 2026-07-17: 20 distintos pra 427 âncoras —
+// um SPEC inteiro é carimbado com o sha de um commit só), não 1 por âncora.
+const _staleCache = new Map(); // sha → { ok:true, files:Set } | { ok:false, reason }
+let _shallowCache = null;
+
+function gitTry(cmd) {
+  // stdio ignore no stderr: NADA de `2>/dev/null` — execSync no Windows cai em cmd.exe,
+  // onde isso não é redirecionamento (pegadinha já catalogada em proibicoes; me pegou
+  // ao medir a viabilidade deste próprio chip em 2026-07-17).
+  try { return execSync(cmd, { cwd: ROOT, stdio: ['ignore', 'pipe', 'ignore'], maxBuffer: 256 * 1024 * 1024 }).toString(); }
+  catch { return null; }
+}
+function gitOk(cmd) {
+  try { execSync(cmd, { cwd: ROOT, stdio: 'ignore' }); return true; } catch { return false; }
+}
+// Guard anti-fabricação: em checkout shallow o histórico é truncado → `git log <sha>..HEAD`
+// mede calendário, não eventos. Tudo vira unknown, NUNCA "fresco".
+//
+// ESPELHA sdd-scorecard.mjs::isShallowHistory (o DONO desta regra — não dá pra importar:
+// o sdd-scorecard invoca ESTE script por execSync, então o import seria circular). A regra
+// fina importa: `--is-shallow-repository` é GROSSO DEMAIS — materializar uma órfã
+// (`git fetch origin governance/nightly-floor --depth 1`, que o próprio ratchet manda rodar,
+// ou a governance/ragas-real-trend) marca o repo shallow SEM truncar a history do HEAD.
+// Shallow só invalida a medição se algum boundary do `.git/shallow` for ANCESTRAL do HEAD.
+// Sem esta finura o eixo reportaria unknown pra TUDO em qualquer clone que buscou órfã —
+// me pegou ao medir este próprio chip (5334 commits e "shallow=true"). Erro de git → true.
+function isShallowHistory() {
+  if (_shallowCache !== null) return _shallowCache;
+  _shallowCache = (() => {
+    const marcado = gitTry('git rev-parse --is-shallow-repository');
+    if (marcado === null) return true; // git indisponível/erro → não-confiável
+    if (marcado.trim() === 'false') return false;
+    const p = gitTry('git rev-parse --git-path shallow');
+    if (p === null) return true;
+    const shallowFile = resolve(ROOT, p.trim());
+    if (!existsSync(shallowFile)) return true; // marcado shallow sem boundary legível — não confia
+    for (const sha of readFileSync(shallowFile, 'utf8').split('\n').map((s) => s.trim()).filter(Boolean)) {
+      if (gitOk(`git merge-base --is-ancestor ${sha} HEAD`)) return true; // boundary corta a ancestry do HEAD
+      /* boundary fora da ancestry (órfã nightly-floor / ragas-real-trend) — não trunca */
+    }
+    return false;
+  })();
+  return _shallowCache;
+}
+
+/**
+ * DECISÃO PURA (sem git, sem fs) — o --stale-selftest exercita ISTO.
+ * Uma âncora é stale se ALGUM path que ela declara foi tocado entre o sha e o HEAD.
+ * Match por prefixo de diretório: path `Modules/X` casa o arquivo `Modules/X/Y.php`.
+ * @param {string[]} paths  segmentos-path da âncora
+ * @param {Set<string>} tocados  arquivos tocados entre sha..HEAD (forward-slash)
+ * @returns {string[]} os paths da âncora que andaram (vazio = não-stale)
+ */
+export function pathsQueAndaram(paths, tocados) {
+  const out = [];
+  for (const p of paths) {
+    const norm = String(p).replace(/\\/g, '/').replace(/\/+$/, '');
+    for (const f of tocados) {
+      if (f === norm || f.startsWith(norm + '/')) { out.push(norm); break; }
+    }
+  }
+  return out;
+}
+
+// Arquivos tocados entre <sha> e HEAD. Devolve {ok:false, reason} em TODO caso ambíguo —
+// "não sei" nunca vira "não-stale" (é a lição do JUnit parcial: ausente ≠ verde).
+function tocadosDesde(sha) {
+  if (_staleCache.has(sha)) return _staleCache.get(sha);
+  let r;
+  if (isShallowHistory()) {
+    r = { ok: false, reason: 'checkout_shallow' };
+  } else if (gitTry(`git cat-file -t ${sha}`)?.trim() !== 'commit') {
+    // sha não existe neste clone (típico de sha de branch de PR num clone limpo).
+    r = { ok: false, reason: 'sha_ausente' };
+  } else if (!gitOk(`git merge-base --is-ancestor ${sha} HEAD`)) {
+    // sha existe mas NÃO é ancestral do HEAD — o squash-merge comeu o commit da branch.
+    // `git log <sha>..HEAD` aqui NÃO erra: ele MENTE (mede desde o merge-base, inflando).
+    // Medido 2026-07-17: 12 dos 20 SHAs distintos do repo estão neste caso (60%).
+    r = { ok: false, reason: 'sha_fora_da_ancestralidade' };
+  } else {
+    const out = gitTry(`git log ${sha}..HEAD --name-only --format= --`);
+    r = out === null
+      ? { ok: false, reason: 'git_log_falhou' }
+      : { ok: true, files: new Set(out.split('\n').map((s) => s.trim()).filter(Boolean)) };
+  }
+  _staleCache.set(sha, r);
+  return r;
 }
 
 let _testBasenames = null;
@@ -435,18 +572,24 @@ function extractPaths(rest, specDir) {
 }
 
 function classify(rest, specDir) {
-  if (rest.startsWith('_pendente_')) return { state: 'pendente', dead: [], zombie: [], pages: [] };
+  const nada = { dead: [], zombie: [], pages: [], sha: null, segs: [] };
+  if (rest.startsWith('_pendente_')) return { state: 'pendente', ...nada };
   const parcial = rest.startsWith('_parcial_');
-  if (!parcial && PLACEHOLDER_RE.test(rest)) return { state: 'placeholder', dead: [], zombie: [], pages: [] };
+  if (!parcial && PLACEHOLDER_RE.test(rest)) return { state: 'placeholder', ...nada };
   const paths = extractPaths(rest, specDir);
   const dead = paths.filter((p) => !existsSync(p.abs)).map((p) => p.seg);
-  if (!paths.length) return { state: 'anchored_dead', dead: ['(nenhum segmento-path — preenchido/parcial exige ≥1 path, ADR 0273 §1)'], zombie: [], pages: [] };
-  if (dead.length) return { state: 'anchored_dead', dead, zombie: [], pages: [] };
+  if (!paths.length) return { state: 'anchored_dead', ...nada, dead: ['(nenhum segmento-path — preenchido/parcial exige ≥1 path, ADR 0273 §1)'] };
+  if (dead.length) return { state: 'anchored_dead', ...nada, dead };
   const zombie = paths.filter((p) => pageZombie(p.seg)).map((p) => p.seg);
-  if (zombie.length) return { state: 'anchored_zombie', dead: [], zombie, pages: [] };
+  if (zombie.length) return { state: 'anchored_zombie', ...nada, zombie };
   // pages de 1ª classe da âncora — insumo do veredito advisory `servido`
   const pages = paths.map((p) => pageHitKey(p.seg)).filter(Boolean);
-  return { state: parcial ? 'parcial' : 'anchored_ok', dead: [], zombie: [], pages };
+  // C8: o `verificado@<sha7>` da gramática §1 — base do eixo temporal (só usado com --stale).
+  const mSha = rest.match(VERIFICADO_SHA_RE);
+  return {
+    state: parcial ? 'parcial' : 'anchored_ok', dead: [], zombie: [], pages,
+    sha: mSha ? mSha[1] : null, segs: paths.map((p) => p.seg),
+  };
 }
 
 function lintSpec(file) {
@@ -485,15 +628,33 @@ function lintSpec(file) {
     const c = classify(f.rest, specDir);
     if (c.state === 'placeholder') fieldsPlaceholder++;
     f.state = c.state; f.dead = c.dead; f.zombie = c.zombie; f.pages = c.pages;
+    f.sha = c.sha; f.segs = c.segs; // C8 — sem isto o eixo temporal lê undefined e vira unknown pra tudo
   }
   const naoServido = []; // advisory `servido` — só quando HITS carregado
   let servidoCount = 0;
+  const staleList = [], staleUnknown = []; // C8 — só com --stale
+  let staleFresco = 0;
   for (const u of usList) {
     if (!u.fields.length) { counts.sem_campo++; continue; }
     const c = u.fields[0]; // 1 linha por US (gramática); extras contam em fields_total
     counts[c.state]++;
     if (c.state === 'anchored_dead') deadList.push({ us: u.id, line: c.line, missing: c.dead });
     if (c.state === 'anchored_zombie') zombieList.push({ us: u.id, line: c.line, dead_screens: c.zombie });
+    // C8 — eixo temporal: o código andou desde o `verificado@sha`?
+    if (STALE && (c.state === 'anchored_ok' || c.state === 'parcial')) {
+      if (!c.sha) {
+        // âncora fora da forma verificada (legado sem `verificado@`) → não dá pra medir.
+        staleUnknown.push({ us: u.id, line: c.line, reason: 'sem_sha_verificado' });
+      } else {
+        const t = tocadosDesde(c.sha);
+        if (!t.ok) staleUnknown.push({ us: u.id, line: c.line, sha: c.sha, reason: t.reason });
+        else {
+          const andaram = pathsQueAndaram(c.segs, t.files);
+          if (andaram.length) staleList.push({ us: u.id, line: c.line, sha: c.sha, paths: andaram });
+          else staleFresco++;
+        }
+      }
+    }
     // 4º veredito ADVISORY `servido`: US wired (ok/parcial) ancorada em Page —
     // teve hit real na janela do ledger? 0 hits = wired-porém-não-servido
     // ("existe + roteado mas 0 hits em Nd" — o que zombie/dead não veem).
@@ -547,7 +708,60 @@ function lintSpec(file) {
     dead_tests: deadTests, testado_sem_covers: testadoSemCovers, testado_lines: testadoLines.length, v1_violations: v1Violations,
     req_sem_aceite: reqSemAceite, req_sem_covering_test: reqSemTeste, req_teste_vermelho: reqTesteVermelho,
     req_sem_lane: reqSemLane, servido: servidoCount, nao_servido: naoServido,
+    anchor_stale: staleList, anchor_stale_unknown: staleUnknown, anchor_stale_fresco: staleFresco,
   };
+}
+
+// ── C8 selftest: o eixo temporal MORDE e SOLTA? (núcleo puro — sem git/fs) ───
+// Fixtures boa/ruim por regra são o padrão da casa (gate-selftest GT-G6): sem
+// controle-negativo, um matcher quebrado passa verde "por não medir nada" — foi
+// exatamente assim que o harness deste chip mentiu 2× em 2026-07-17 (split que não
+// dividia + `2>/dev/null` no cmd.exe). O gate que não erra quando deveria é teatro.
+if (STALE_SELFTEST) {
+  let fails = 0;
+  const ok = (nome, cond) => { console.log(`  ${cond ? '[OK]' : '[FAIL]'} ${nome}`); if (!cond) fails++; };
+
+  const tocados = new Set(['Modules/Jana/Services/Foo.php', 'resources/js/Pages/Sells/Index.tsx']);
+
+  // MORDE — path da âncora foi tocado depois do sha.
+  ok('BITE: path exato tocado → stale',
+    pathsQueAndaram(['Modules/Jana/Services/Foo.php'], tocados).length === 1);
+  ok('BITE: âncora em DIRETÓRIO casa arquivo dentro dele (prefixo)',
+    pathsQueAndaram(['Modules/Jana/Services'], tocados).length === 1);
+  ok('BITE: 1 de N paths andou → stale (basta um)',
+    pathsQueAndaram(['Modules/Intocado/X.php', 'resources/js/Pages/Sells/Index.tsx'], tocados).length === 1);
+
+  // SOLTA — nada tocado desde o sha.
+  ok('RELEASE: path não tocado → NÃO stale',
+    pathsQueAndaram(['Modules/Intocado/X.php'], tocados).length === 0);
+  ok('RELEASE: conjunto vazio de tocados → NÃO stale (repo parado desde o sha)',
+    pathsQueAndaram(['Modules/Jana/Services/Foo.php'], new Set()).length === 0);
+  ok('RELEASE: sem paths na âncora → nada a medir',
+    pathsQueAndaram([], tocados).length === 0);
+
+  // ANTI-FALSO-POSITIVO — prefixo tem que respeitar fronteira de diretório.
+  ok('ANTI-FP: `Modules/Jana/Serv` NÃO casa `Modules/Jana/Services/Foo.php` (prefixo de string ≠ de path)',
+    pathsQueAndaram(['Modules/Jana/Serv'], tocados).length === 0);
+  ok('ANTI-FP: `Modules/JanaX` NÃO casa `Modules/Jana/...`',
+    pathsQueAndaram(['Modules/JanaX'], tocados).length === 0);
+
+  // NORMALIZAÇÃO — a âncora pode vir com barra final ou separador Windows.
+  ok('NORM: barra final não quebra o match',
+    pathsQueAndaram(['Modules/Jana/Services/'], tocados).length === 1);
+  ok('NORM: separador Windows é normalizado',
+    pathsQueAndaram(['Modules\\Jana\\Services\\Foo.php'], tocados).length === 1);
+
+  // GRAMÁTICA — o sha é extraído da mesma forma que a §1 exige.
+  const rest = '`Modules/Jana/Services/Foo.php` · `resources/js/Pages/Sells/Index.tsx` · verificado@8af585a (2026-07-02) — nota livre';
+  ok('GRAMÁTICA: extrai o sha da forma canônica',
+    (rest.match(VERIFICADO_SHA_RE) || [])[1] === '8af585a');
+  ok('GRAMÁTICA: âncora sem `verificado@` não entrega sha (vira unknown, nunca "fresco")',
+    VERIFICADO_SHA_RE.test('`Modules/Jana/Services/Foo.php`') === false);
+
+  console.log(fails
+    ? `\n  ${fails} FALHA(S) — o eixo temporal da âncora não está honesto.\n`
+    : `\n  SELFTEST OK — morde (código andou), solta (código parado) e não inventa prefixo.\n`);
+  process.exit(fails ? 1 : 0);
 }
 
 // ── seleção de SPECs: full-tree ou diff-aware (args posicionais) ─────────────
@@ -636,6 +850,14 @@ const reqSemLaneTotal = modules.reduce((a, m) => a + m.req_sem_lane.length, 0);
 // servido (4º veredito · advisory runtime): só computado com ledger carregado.
 const servidoTotal = modules.reduce((a, m) => a + m.servido, 0);
 const naoServidoTotal = modules.reduce((a, m) => a + m.nao_servido.length, 0);
+// C8 (5º eixo · temporal): só computado com --stale. `unknown` NÃO é "fresco" — é "não sei",
+// e o motivo de cada unknown é reportado (sha_fora_da_ancestralidade é o mais comum e é,
+// ele próprio, um achado: a âncora foi carimbada com sha de branch que o squash-merge comeu).
+const staleTotal = modules.reduce((a, m) => a + m.anchor_stale.length, 0);
+const staleUnknownTotal = modules.reduce((a, m) => a + m.anchor_stale_unknown.length, 0);
+const staleFrescoTotal = modules.reduce((a, m) => a + m.anchor_stale_fresco, 0);
+const staleMotivos = {};
+for (const m of modules) for (const u of m.anchor_stale_unknown) staleMotivos[u.reason] = (staleMotivos[u.reason] || 0) + 1;
 
 for (const m of modules) m.flag = m.us_total === 0 ? '🟡' : (m.counts.anchored_dead > 0 || m.counts.anchored_zombie > 0 || m.dead_tests.length || m.v1_violations.length || m.coverage_pct === 0) ? '🔴' : m.coverage_pct === 100 ? '🟢' : '🟡';
 
@@ -651,6 +873,9 @@ const report = {
     verde_regra: 'GATE VERDE (G1b-verde · Phase B): com --junit <summary.json> (junit-summary/v1), US implementada+coberta cujo arquivo-de-teste NÃO está verde no JUnit → req_teste_vermelho. verde POR ARQUIVO = passed>0 E failed=0 E errors=0; vermelho/skipped/ausente NÃO contam (skipped != passed, defesa markTestSkipped). V6-C: só julga covering tests DENTRO de uma lane de JUnit — US inteiramente fora de lane (nightly-only) = req_sem_lane → behavior_unknown, nunca req_teste_vermelho (senão o teste que não pode aparecer no junit do PR viraria false-red). fs-puro: lê o JSON que o CI já produz, NUNCA roda teste/PHP/DB. Sem --junit → behavior_unknown (nunca avermelha). exit 1 só com --check-verde OU --check-entry.',
     servido_regra: 'SERVIDO (4º veredito · ADVISORY runtime): US wired (anchored_ok/parcial) ancorada em Page com hits>0 na janela do ledger governance/route-hits.json (export do middleware ContadorHitsRota em prod). nao_servido = "existe + roteado mas 0 hits em Nd" — prova de USO, não de correção. NUNCA entra em coverage/--check/flag. Sem ledger (ou pages vazio) = sem_ledger, nada é marcado.',
     servido_ledger: HITS ? `${relative(ROOT, HITS_PATH).replace(/\\/g, '/')} (janela ${HITS.janela ?? '?'}d)` : 'sem_ledger',
+    stale_regra: STALE
+      ? 'ANCHOR STALE (5º eixo · TEMPORAL · C8): consome o `verificado@<sha7>` que a gramática §1 exige e ninguém lia. anchor_stale = US anchored_ok/parcial cujo(s) path(s) foram tocados por ≥1 commit entre o sha e o HEAD (`git log <sha>..HEAD --name-only`, 1 chamada por sha DISTINTO). dead=path sumiu · zombie=tela desligada · stale=path vivo mas "verificado" virou passado. NÃO entra em anchor_coverage, NÃO muda flag e NÃO participa de --check* (exit intocado). GUARD ANTI-FABRICAÇÃO: checkout shallow, sha que não resolve, ou sha NÃO-ancestral do HEAD (squash-merge comeu o commit da branch) → anchor_stale_unknown, NUNCA "fresco" — `git log` sobre sha não-ancestral não erra, MENTE (mede desde o merge-base). RESÍDUO: o sha é declarado; re-carimbar sem re-verificar zera o sinal (o custo é um commit auditável no diff — mesmo argumento do churn no doc-freshness-score).'
+      : 'stale_off — sem --stale este script não executa git (invariante fs-puro do ADR 0303 preservada nos jobs required `anchor-lint ADR 0273` e `anchor entry/covers gate`).',
     behavior: JUNIT ? `junit:${JUNIT.schema}${JUNIT_PARTIAL ? ' (noite PARCIAL — ausente=unknown)' : ''} · fonte ${JUNIT.source}` : `behavior_unknown (${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'})`,
     determinismo: 'sem timestamps/sha no output — re-run sem mudança no repo = diff vazio',
     fase: 'F2 VIGENTE (ADR 0273 §4) — modos default/--json seguem exit 0 (report); --check/--check-entry/--check-covers mordem nos jobs required do anchor-drift (diff-aware · desde 2026-06-24/30). --check-verde/--check-lane seguem advisory.',
@@ -667,6 +892,11 @@ const report = {
     req_sem_aceite_total: reqSemAceiteTotal, req_sem_covering_test_total: reqSemTesteTotal,
     req_teste_vermelho_total: reqTesteVermelhoTotal, req_sem_lane_total: reqSemLaneTotal, behavior_known: JUNIT ? true : false,
     servido_total: servidoTotal, nao_servido_total: naoServidoTotal, servido_ledger: HITS ? true : false,
+    anchor_stale_on: STALE,
+    anchor_stale_total: STALE ? staleTotal : null,
+    anchor_stale_fresco_total: STALE ? staleFrescoTotal : null,
+    anchor_stale_unknown_total: STALE ? staleUnknownTotal : null,
+    anchor_stale_unknown_motivos: STALE ? staleMotivos : null,
     baseline_applied: BASELINE ? BASELINE_PATH : null,
     grandfathered: { aceite: grandfatheredAceite, covering_test: grandfatheredTeste, covers: grandfatheredCovers },
     v1_files: modules.filter((m) => m.anchor_format_v1).length, v1_violations: sum('v1_violations'),
@@ -691,6 +921,7 @@ for (const m of modules) {
   for (const r of m.req_teste_vermelho) console.log(`       🟥 ${r.us} (L${r.line}): diz IMPLEMENTADA + tem teste-que-cobre, mas NENHUM arquivo-de-teste está verde no JUnit → ${r.tests.map((t) => `${t.file} [${t.status}]`).join(' · ')}`);
   for (const r of m.req_sem_lane) console.log(`       🚦 ${r.us} (L${r.line}): tem teste-que-cobre mas NENHUM numa lane de JUnit (verde impossível) → ${r.tests.join(' · ')}`);
   for (const r of m.nao_servido) console.log(`       🔕 ${r.us} (L${r.line}): wired porém NÃO-SERVIDO — 0 hits na janela do ledger (existe + roteado, ninguém usou) → ${r.pages.join(' · ')}`);
+  for (const r of m.anchor_stale) console.log(`       ⏳ ${r.us} (L${r.line}): ÂNCORA STALE — código andou desde verificado@${r.sha} → ${r.paths.join(' · ')}`);
   for (const v of m.v1_violations) console.log(`       ✗ v1 L${v.line}: não casa gramática ADR 0273 §1 → ${v.raw}`);
 }
 console.log('  ' + '─'.repeat(82));
@@ -708,7 +939,14 @@ console.log(`  Gate de entrada: ${reqSemAceiteTotal} US implementada SEM aceite/
 if (BASELINE) console.log(`  Grandfather (${BASELINE_PATH}): ${grandfatheredAceite} aceite + ${grandfatheredTeste} teste + ${grandfatheredCovers} covers isentos (no-new-lie · ratchet só-desce · ADR 0275)`);
 console.log(`  Gate verde (advisory): ${JUNIT ? `${reqTesteVermelhoTotal} US implementada com teste-que-cobre NÃO-verde no JUnit (verde=passed>0 & fail=0; skipped/ausente não contam · skipped != passed)` : `behavior_unknown — ${JUNIT_UNKNOWN_REASON ? `--junit ${JUNIT_UNKNOWN_REASON}` : 'sem --junit'} (nunca avermelha)`}`);
 console.log(`  Servido (advisory runtime): ${HITS ? `${servidoTotal} US com hit real na janela · ${naoServidoTotal} wired porém 0 hits (ledger ${report._meta.servido_ledger})` : 'sem_ledger — governance/route-hits.json ausente/vazio (coleta ROUTE_HITS_ENABLED ainda OFF?); nada marcado'}`);
-console.log(`\n  💀 dead = path inexistente · 🧟 zombie = path existe mas tela desligada · 🧪 = teste citado inexistente. Corrigir via reconciliação — nunca inventar path.\n`);
+// C8 — eixo temporal. SEM adjetivo de enforcement (higiene 2026-07-16): reporta o NÚMERO;
+// quem manda em required é governance/required-checks-baseline.json.
+if (STALE) {
+  const motivos = Object.entries(staleMotivos).map(([k, v]) => `${k}=${v}`).join(' · ') || '—';
+  console.log(`  Âncora stale (verificado@sha × HEAD): ${staleTotal} com código movido desde a verificação · ${staleFrescoTotal} sem movimento · ${staleUnknownTotal} não-medível (${motivos})`);
+  console.log(`     └ não-medível NÃO é "fresco": sha ausente/não-ancestral (squash-merge) ou checkout shallow = "não sei". Carimbe o sha de um commit JÁ na main (\`git rev-parse --short=7 origin/main\`), não o HEAD da branch.`);
+}
+console.log(`\n  💀 dead = path inexistente · 🧟 zombie = path existe mas tela desligada · 🧪 = teste citado inexistente${STALE ? ' · ⏳ stale = path vivo, mas o código andou desde o verificado@sha' : ''}. Corrigir via reconciliação — nunca inventar path.\n`);
 
 if (CHECK && (byState.anchored_dead > 0 || byState.anchored_zombie > 0 || deadTestsTotal > 0 || report.summary.v1_violations > 0)) process.exit(1);
 if (CHECK_COVERS && testadoSemCoversTotal > 0) process.exit(1);

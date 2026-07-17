@@ -198,6 +198,7 @@ Tipo ADR 0234: `routine`. Automações orquestradas de mais alto nível que não
 ## Como manter
 
 - Ao **criar ou alterar hook** em `.claude/hooks/`: atualizar a seção correspondente neste doc (SessionStart / PreToolUse / PostToolUse / Stop / UserPromptSubmit) e registrar no `settings.json`.
+- A coluna **Arquivo** é conferida mecanicamente pelo **Check P** do `scripts/governance/memory-health.mjs`: todo path `.claude/**` citado aqui tem que existir em disco, e a acusação vem com arquivo + linha. Porte (`.ps1`→`.mjs`), rename ou deleção **atualiza a linha no MESMO PR**. Quem decide se isso bloqueia o merge é o ruleset — fonte única: `governance/required-checks-baseline.json` (não restatear aqui). _Origem: os portes dos PRs #4028/#4035 deixaram 4 refs apontando pra arquivo morto neste doc; corrigidas à mão no #4416 — o conserto não impedia a reincidência, o check impede._
 - Ao **criar ou alterar cron** em `app/Console/Kernel.php`: adicionar linha na tabela "Crons".
 - Ao **criar rotina** nova: adicionar linha na tabela "Rotinas" com gatilho e arquivos.
 - Futuramente: quando ADR 0234 (`automation-registry-mcp`) for implementada, rodar `AutomationRegistrySync` após cada mudança — este markdown passa a ser espelho humano da tabela `mcp_automations`.

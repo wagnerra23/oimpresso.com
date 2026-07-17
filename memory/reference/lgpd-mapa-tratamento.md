@@ -236,7 +236,7 @@ Padrões redigidos ([PiiRedactor.php](../../Modules/Jana/Services/Privacy/PiiRed
 | Chat Jana → persistência DB | ✅ raw **por design** (correto) | content raw no banco = dado operacional legítimo do tenant (Art. 7º, V), igual a `contacts` — redaction aqui quebraria o produto; o perímetro vigiado é a SAÍDA (LLM/log/git), + health-check anti-vazamento em resposta |
 | Logs Laravel | 🟡 PARCIAL | sem processor Monolog global; cobertura opt-in por call-site (concerns Repair/Superadmin + sites Jana/Whatsapp) — `Log::` novo vaza |
 | Sync memory→MCP | 🟡 PARCIAL | só mensagens de erro redactadas ([SyncMemoryWebhookController:111](../../Modules/TeamMcp/Http/Controllers/Mcp/SyncMemoryWebhookController.php)); conteúdo de doc entra raw (git canon já é visível ao time) |
-| Commits/PR | ✅ (escopo commit-only) | hook `.claude/hooks/pii-redactor.ps1` (opção B 2026-06-13) |
+| Commits/PR | ✅ (escopo commit-only) | hook `.claude/hooks/pii-redactor.mjs` (opção B 2026-06-13) |
 | Audit log | 🟡 PARCIAL | schema metadata-only, mas `ip`/`user_agent`/`error_message` sem redact no write-path |
 | Telemetria Langfuse | ✅ | `LangfuseClient:468,486` |
 | Health-check | 🟡 existe, subnotifica | `pii_leak_in_assistant_responses` só pega CPF/CNPJ **formatados** ([HealthCheckCommand:381](../../Modules/Jana/Console/Commands/HealthCheckCommand.php)) |

@@ -91,6 +91,23 @@ if [ -f "$RAGASPUB_SRC" ]; then
   fi
 fi
 
+# Mesmo sync anti-drift pra cópia do INVOCADOR dos 2 evals de staging da Jana
+# (US-COPI-140): o cron dom 06:00 BRT roda /opt/oimpresso-ragas/ct100-jana-evals.sh.
+# Existe porque os 2 evals declarados no Kernel com ->environments(['staging']) NUNCA
+# dispararam — `schedule:run` = 0 em todo cron do CT 100 (medido 2026-07-17); o host
+# invoca scripts direto, nunca o scheduler. mkdir -p deliberado (mesma home do
+# ragas-publish; só a linha de crontab é manual 1×, ver header do .sh).
+JANAEVAL_SRC="$REPO_DIR/scripts/tests/ct100-jana-evals.sh"
+JANAEVAL_DST="${JANA_EVALS_SCRIPT:-/opt/oimpresso-ragas/ct100-jana-evals.sh}"
+if [ -f "$JANAEVAL_SRC" ]; then
+  mkdir -p "$(dirname "$JANAEVAL_DST")"
+  if ! cmp -s "$JANAEVAL_SRC" "$JANAEVAL_DST"; then
+    install -m 0755 "$JANAEVAL_SRC" "$JANAEVAL_DST.tmp" && mv -f "$JANAEVAL_DST.tmp" "$JANAEVAL_DST" \
+      && log "jana-evals: cópia do invocador semanal sincronizada com o canônico" \
+      || log "WARN: sync da cópia do jana-evals falhou (não-fatal)"
+  fi
+fi
+
 # Mesmo sync anti-drift pra cópia do snapshot DIÁRIO do scorecard SDD (SDD P06 / GT-G7,
 # ADR 0275 §1 — decisão Wagner 2026-07-01: agendar no CT 100, não Hostinger, ADR 0062).
 # O cron 07:10 BRT roda /opt/oimpresso-governance/ct100-sdd-scorecard-snapshot.sh. mkdir -p

@@ -19,7 +19,7 @@ related_adrs:
   - 0114-prototipo-ui-cowork-loop-formalizado
 related_briefing: ../../../memory/requisitos/KB/BRIEFING.md
 related_schema: ../../../memory/requisitos/KB/SCHEMA-DB-V1.md
-related_prototype: ../../../prototipo-ui/cowork/kb-page.jsx
+related_prototype: prototipo-ui/cowork/kb-page.jsx
 mwart_pattern_reuse:
   blueprint_cowork: prototipo-ui/cowork/kb-page.jsx
   blueprint_screenshot_approval: pendente (gate F1.5)

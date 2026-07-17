@@ -1565,6 +1565,18 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 **O ponto:** NÃO é engenharia — é conta de fornecedor. A config **já prevê** o contrário (`Modules/Jana/Config/config.php:531`). Hoje não há fallback: se o provider cai, a Jana cai.
 
+**Precisão medida (2026-07-17 — o "travado no gpt-4o-mini" tem 3 mecanismos, não 1):** o `config.php:531` que a grade citou é o bloco do **`clarify`**, não o do chat. Varredura contada nos 14 agents:
+
+| Onde | Mecanismo | Destrava como |
+|---|---|---|
+| Chat (`ChatCopilotoAgent`) + 8 agents sem `#[Model]` | `AI_OPENAI_TEXT_DEFAULT` (`config/ai.php`, default `gpt-4o-mini`) | **só `.env`** — o config **já tem** `'smartest' => env('AI_OPENAI_TEXT_SMARTEST', 'gpt-4o')` |
+| `BriefDiarioAgent` · `KbAnswerAgent` · `PrUiJudgeAgent` · `SaleInsightAgent` | `#[Model('gpt-4o-mini')]` **hardcoded no atributo** | **exige PR** — `.env` não move |
+| `ClarificadorAgent` | `JANA_CLARIFY_MODEL` | `.env` |
+
+Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero código), mas deixa 4 agents pinados no mini. Decidir se sobem juntos (custo ×4 superfícies) ou se ficam no mini de propósito (o `PrUiJudge`/`SaleInsight` rodam em volume).
+
+**Fallback ≠ modelo (bloqueios diferentes):** subir o modelo custa em **toda** request → decisão [W]. O **fallback** só custa quando o primário cai, e já é Princípio duro #8 da Constituição ("Confiabilidade com fallback", ADR 0094). Medido: `config/ai.php` tem `'default' => 'openai'` único e o `ChatController` só tem `catch` devolvendo *"Estou com dificuldades técnicas"* — o provider `anthropic` já está declarado em `config/ai.php` e o `ChatCopilotoAgent` **já tem prompt-caching Anthropic** (`providerOptions()`), então a metade fallback é mais curta do que parece.
+
 **Escopo:**
 - [ ] Liberar `gpt-4o` OU `provider=anthropic` no config (decisão [W] — envolve custo)
 - [ ] Cadeia de fallback (provider primário → secundário) — hoje inexistente
@@ -1597,7 +1609,7 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 **Ressalva do adversário:** o piso trava a QUEDA, não conserta o recall. É anti-regressão, não melhoria — não confundir "piso armado" com "busca funciona".
 
-**⚠️ Achado durante a implementação (2026-07-17) — o piso está armado mas ainda NÃO é alarme:** o schedule semanal que produziria o número **nunca disparou sozinho**. `schedule:run` = **0 ocorrências** em todo cron do CT 100 (4 entradas no crontab do host, nenhuma é scheduler; container sem cron/supervisord; `/etc/periodic/*` vazios). O gate `environments(['staging'])` casa — o `APP_ENV` do container **é** staging — mas nada invoca o scheduler: os 3 pontos medidos vieram de runs **manuais**. Vale igual pros irmãos staging `jana:drift-sentinel` e `jana:recall-eval --mode=real`. O transporte (`ct100-ragas-publish.sh`, dom 08:30) está **vivo** e relê o mesmo report velho toda semana — por isso a órfã `governance/ragas-real-trend` tem 1 semana só. Ver `gaps_conhecidos.eval_nao_roda_sozinho` no baseline. **Ligar `schedule:run` genérico não é o fix** — 7 schedules sem `environments()` viriam junto, incl. `pos:generateSubscriptionInvoices` e `pos:autoSendPaymentReminder` contra o clone da produção. Endereçado por **US-COPI-140**.
+**⚠️ Achado durante a implementação (2026-07-17) — o piso está armado mas ainda NÃO é alarme:** o schedule semanal que produziria o número **nunca disparou sozinho**. `schedule:run` = **0 ocorrências** em todo cron do CT 100 (4 entradas no crontab do host, nenhuma é scheduler; container sem cron/supervisord; `/etc/periodic/*` vazios). O gate `environments(['staging'])` casa — o `APP_ENV` do container **é** staging — mas nada invoca o scheduler: os 3 pontos medidos vieram de runs **manuais**. Vale igual pro outro schedule de staging, `jana:recall-eval --mode=real`. O transporte (`ct100-ragas-publish.sh`, dom 08:30) está **vivo** e relê o mesmo report velho toda semana — por isso a órfã `governance/ragas-real-trend` tem 1 semana só. Ver `gaps_conhecidos.eval_nao_roda_sozinho` no baseline. Endereçado por **US-COPI-140** (que carrega a errata: são **2** evals de staging, não 3 — o `drift-sentinel` é `['live']` e **roda** em prod).
 
 **Pareia com:** US-COPI-135 — subir o modelo sem piso de recall = responder melhor sobre o contexto errado.
 
@@ -1622,19 +1634,32 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 **Refs:** ADR 0318 · `Modules/Jana/Services/LangfuseClient.php`
 
 ### US-COPI-138 · Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
+**Implementado em:** `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · verificado@e7f6090 (2026-07-17) — check DURO registrado em handle(), lendo meta.totalItems da API pública do Langfuse (fonte real, não flag); 9 testes verdes no CT 100 incl. 2 de fiação (200-e-mudo → vermelho)
+**Testado em:** `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` (contrato do heartbeat: Langfuse 200-e-**mudo** → check VERMELHO via `Http::fake`, recebendo trace → VERDE; + prova de que o check está registrado no jana:health-check e é hard; `// @covers-us US-COPI-138`)
 
-> owner: — · priority: p1 · estimate: 1h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 1h · status: done · done_at: 2026-07-17 · commit: e7f6090 · type: story
 
 **Origem:** grade de réguas 2026-07-17 — item #2 do "roubar" + chip C4; `observabilidade-agente` 6,5/10.
 
 **Sinal (ADR 0105 — métrica detecta drift):** o Langfuse está LIVE desde 2026-07-02 e **não tem heartbeat**. Se parar de receber trace, ninguém descobre — foi assim que um buraco de 7 semanas passou. O `HealthCheckCommand` já tem 10 checks, incluindo o `brief_uptime_24h` que é exatamente o mesmo formato.
 
 **Escopo:**
-- [ ] 1 check `langfuse_trace_uptime_24h` espelhando `brief_uptime_24h` — **mesmo arquivo**, nada novo
-- [ ] Ler a **fonte real** (API/log do Langfuse), NUNCA flag ou artefato (o chip C4 traz essa ressalva: heartbeat que lê flag mede a si mesmo)
-- [ ] ALERT em `storage/logs/laravel.log` no padrão dos outros 5 checks
+- [x] 1 check `langfuse_trace_uptime_24h` espelhando `brief_uptime_24h` — **mesmo arquivo**, nada novo
+- [x] Ler a **fonte real** (API/log do Langfuse), NUNCA flag ou artefato (o chip C4 traz essa ressalva: heartbeat que lê flag mede a si mesmo)
+- [x] ALERT em `storage/logs/laravel.log` no padrão dos outros 5 checks
 
-**Refs:** `app/Console/Kernel.php` (schedule daily 06:00 BRT) · `Modules/Jana/Console/HealthCheckCommand.php`
+**DoD:**
+- Check `langfuse_trace_uptime_24h` registrado em `HealthCheckCommand::handle()`, DURO (não-advisory) — 0 trace derruba o exit code e dispara o ALERT do cron 06:00 BRT (schedule JÁ existente em `app/Console/Kernel.php:200`; nada novo a agendar).
+- Fonte = `GET {langfuse.host}/api/public/traces?fromTimestamp=<now-24h>` com Basic Auth, lendo `meta.totalItems`. Quem responde é o DESTINO — nunca a flag `langfuse.enabled` nem o log de emissão local.
+- Veredito puro, testável sem HTTP/relógio, em `HealthCheckCommand::evaluateTraceUptime()`: sem credencial → pula (dev/CI) · API não respondeu → ALERTA · respondeu sem contagem → ALERTA `ilegivel` (nunca fingir "0") · `< 1` trace em 24h → ALERTA `mudo` · `>= 1` → verde.
+- Prova de MORDIDA (controle-negativo, não só presença): com `Http::fake`, Langfuse respondendo **200 e mudo** deixa o check VERMELHO; recebendo trace deixa VERDE.
+- Teste ancorado numa lane que roda em PR (`.github/ci-sqlite-pest.list`) — guard que nenhum workflow executa é defesa de mentira.
+
+**Por que o monitor que já existia não pegou:** o `observability_pipeline` do `jana:system-audit` (ADR 0133 check 1) mede a **VIA** (`/api/public/health` == 200). Langfuse de pé recebendo ZERO trace responde 200 e pinta verde — daí as 7 semanas. Este check mede o **FLUXO**, fechando o mesmo par que o Whatsapp já tem entre `whatsapp_inbound_canary` (via) e `whatsapp_inbound_flow` (resultado). Lição do #2726, idêntica: todo monitor media degradação DENTRO de um fluxo vivo, nunca a AUSÊNCIA do fluxo.
+
+**Residual honesto:** com `LANGFUSE_ENABLED=false` em prod o check PULA em vez de acender (mesmo padrão de skip de `memoria_recall_backend`/`mcp_webhook_5xx_2h`). Quem cobre esse flanco é o `observability_pipeline` (exige env setado). Fechar de vez exigiria distinguir "dev sem credencial" de "prod com flag derrubada" — NÃO resolvido aqui.
+
+**Refs:** `app/Console/Kernel.php:200` (schedule daily 06:00 BRT — já existente) · `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · `Modules/Jana/Services/Telemetry/LangfuseClient.php` (emissão) · ADR 0132 · ADR 0133
 
 ### US-COPI-139 · Badalo do ratio negócio÷governança no brief-fetch (o alarme existe e nunca dispara)
 
@@ -1655,14 +1680,33 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 **Refs:** ADR 0334 · ADR 0105 · `scripts/governance/negocio-vs-governanca-ratio.mjs`
 
-### US-COPI-140 · Os 3 evals de qualidade da Jana nunca rodam sozinhos (schedule fantasma no CT 100)
+### US-COPI-140 · Os 2 evals de staging da Jana nunca rodam sozinhos (schedule fantasma no CT 100)
 
-> owner: — · priority: p0 · estimate: 3h · status: todo · type: story
-> blocked_by: — (precisa de decisão [W] sobre o caminho — ver Escopo)
+> owner: — · priority: p0 · estimate: 2h · status: doing · type: story
+
+**Implementado em:** _pendente_ — o CÓDIGO está feito e commitado (`scripts/tests/ct100-jana-evals.sh` + sync anti-drift no `self-update.sh`; cron `0 6 * * 0` instalado no host CT 100 e **provado disparando sozinho** em 11:27:01, report escrito pelo cron `ran_at 2026-07-17T11:27:20`), mas a US fica `_pendente_` de propósito: o DoD dela **não é código** — é **uma semana nova na órfã `governance/ragas-real-trend` que ninguém rodou à mão**, e isso só existe em **domingo 2026-07-19 06:00** (relógio do mundo real). Marcar `_parcial_` com path real aqui daria `conflito_aberto_com_ancora` no doneness-lint (ADR 0302): âncora viva ⇒ status done, e a US **não está done**. `_pendente_` até o gate fechar é a forma canônica (lição "âncora `_pendente_` vs path real").
+
+**Testado em:** `scripts/tests/ct100-jana-evals.test.sh` — selftest hermético (docker mock, zero rede/LLM/custo). Trava: não-mascara-falha, falha de um eval não aborta o outro, e o `drift-sentinel` **fora** do script. Mordida provada por mutação: reintroduzir o drift-sentinel reprova; trocar o exit por `exit 0` reprova.
+
+O selftest está registrado como step do workflow `governance-script-tests.yml` — sem isso seria a proibição "Tests sem phpunit.xml = falsa cobertura" reencarnada em `.sh` (o mesmo buraco que o irmão `ct100-sdd-scorecard-snapshot.test.sh` fechou). Ele fica **fora de lane de JUnit** por construção (é shell, não Pest): o `anchor-lint` marca isso como advisory 🚦 "verde impossível", que aqui é honesto e esperado.
+
+**DoD:** (1) os 2 evals de staging disparam **sem intervenção humana**; (2) a prova é **semana nova na órfã `governance/ragas-real-trend`** — nunca `crontab -l` mostrando a linha (presence-gate, lápide §5 2026-07-16); (3) falha de eval fica **visível**, nunca mascarada; (4) o invocador não duplica o `drift-sentinel`, que já roda em prod; (5) o script é defendido por selftest que roda no CI.
 
 **Origem:** achado durante a implementação da US-COPI-136 (2026-07-17). A US-136 pedia um piso pro `context_recall`; ao verificar **quem consome** o número, a série provou-se parada.
 
-**Sinal (ADR 0105 — métrica detecta drift · MEDIDO, não estimado):** os três schedules de qualidade da Jana — `jana:drift-sentinel` (dom 06:00), `jana:recall-eval --mode=real` (dom 06:30) e `jana:ragas-real-eval` (dom 07:00), todos `environments(['staging'])` no `app/Console/Kernel.php` — **nunca dispararam sozinhos**. Não é o gate de ambiente: o `APP_ENV` do container `oimpresso-staging` **é** `staging` e casa. É que **nada invoca o scheduler**:
+> ⚠️ **ERRATA (2026-07-17, mesma sessão — antes de qualquer merge desta US).** A 1ª redação deste ticket dizia **"os 3 evals"** e **"7 schedules perigosos"**; a 2ª correção disse **"1 colateral"**. **As três afirmações estavam ERRADAS** — todas por parsear texto em vez de perguntar ao runtime. Números finais abaixo vêm do **próprio Laravel** (`Event::runsInEnvironment()`, a mesma função que o `schedule:run` usa pra filtrar). A errata fica registrada porque estes números embasaram uma decisão de caminho.
+>
+> | Eu afirmei | Verdade (autoridade) | Por que errei |
+> |---|---|---|
+> | 3 evals fantasma (incl. `jana:drift-sentinel`) | **2** — o `drift-sentinel` é `->environments(['live'])` e **RODA** semanal em prod (log `copiloto-ai`: 05/07 06:01:29 e 12/07 06:01:27, `mock_mode:false`) | fatiei os schedules com `split` **antes** de `$schedule->`: o comentário que *precede* o `recall-eval` cita `environments(['staging'])` **em prosa** (Kernel L480) e caiu na fatia do vizinho. Contei comentário como código. |
+> | 7 sem gate rodariam em staging, incl. `pos:generateSubscriptionInvoices` / `pos:autoSendPaymentReminder` | **falso** — estão dentro de `if ($env === 'live')` (L28) e `if ($env === 'demo')` (L1476); com `APP_ENV=staging` **nem são registrados** (confirmado: somem do `schedule:list`) | gate de ambiente em PHP tem ≥2 formas (`->environments()` **e** `if ($env === …)`); meu parser só via a primeira. |
+> | "raio real = **1** colateral benigno" | **3** colaterais — `errors:archive-stale-groups`, `kb:drift-detector --business-id=1` e **`connector:health --notify`** (este **notifica**) | analisei **1 arquivo** (`app/Console/Kernel.php` = 65 statements) quando o app registra **82 eventos**: **módulos registram schedules próprios**. Varredura file-scoped num sistema multi-fonte. |
+>
+> **Veredito autoritativo** (`APP_ENV=staging`): 82 eventos registrados · 77 filtrados por ambiente · **5 rodariam** sob `schedule:run` — os 2 evals desejados + os 3 colaterais acima.
+>
+> Lição (ecoa a lápide §5 2026-07-15 "achado sem varredura"): **varredura por regex não é varredura**, e "varri o arquivo" não é "varri o sistema". Quando o runtime sabe responder (`schedule:list` · `runsInEnvironment()`), perguntar ao runtime **não é opcional** — parsear é adivinhar com passos extras. Errei 3× seguidas parseando; acertei na 1ª que perguntei.
+
+**Sinal (ADR 0105 — métrica detecta drift · MEDIDO, não estimado):** os **dois** schedules `environments(['staging'])` do `app/Console/Kernel.php` — `jana:recall-eval --mode=real` (dom 06:30) e `jana:ragas-real-eval` (dom 07:00) — **nunca dispararam sozinhos**. Não é o gate de ambiente: o `APP_ENV` do container `oimpresso-staging` **é** `staging` e casa. É que **nada invoca o scheduler**:
 
 | Verificação (CT 100, 2026-07-17) | Resultado |
 |---|---|
@@ -1672,6 +1716,8 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 | cron/supervisord **dentro** do container | nenhum processo; `/etc/periodic/{15min,hourly,daily}` **vazios** |
 
 **Consequência medida:** todo número do `governance/jana-ragas-real-baseline.json` veio de run **manual** (2026-07-01, 07-04, 07-12 21:48 — este último fora de qualquer janela agendada). A órfã `governance/ragas-real-trend` tem **1 semana** (`2026-06-28`) desde 2026-07-04, com `first_scheduled: 2026-07-05`. O transporte **não é o culpado** — `ct100-ragas-publish.sh` roda religiosamente (publish.log de 12/07 08:30) e faz o certo: relê o report do container e republica. Como o report nunca muda, ele republica a mesma semana pra sempre. Transporte impecável carregando sinal parado.
+
+**Contraste que prova o diagnóstico:** o `jana:drift-sentinel` é o **irmão de controle**. Mesmo módulo, mesma família, mesma cadência dominical — só que `->environments(['live'])`. Ele **roda** (prod tem scheduler + `APP_ENV="live"`), toda semana, no horário: `[2026-07-05 06:01:29]` e `[2026-07-12 06:01:27]`, `mock_mode:false`. Ou seja, o defeito **não** é o Kernel, nem o comando, nem o gate — é **só o invocador do CT 100**.
 
 **Classe do defeito:** "correção-do-mecanismo ≠ invocação" — irmão direto da US-COPI-139 (*"o alarme já existe e nunca dispara — fora de memory/ só é invocado pelo próprio unit test. Zero cron."*) e da lápide §5 2026-07-09 *"Chokepoint de guard em comando fantasma que o fluxo real não atravessa"*. Aqui o guard é real, o baseline é honesto, o transporte é vivo — **falta o invocador**.
 
@@ -1686,19 +1732,29 @@ A régua semanal do ADR 0318 (`jana:ragas-real-eval`, Kernel dom 07:00 staging) 
 
 Ou seja: o container de staging foi construído pra **servir HTTP** (entrypoint Octane) e ninguém cabeou scheduler nele. Os schedules `environments(['staging'])` nasceram assumindo um scheduler que **nunca existiu**.
 
-**⛔ O fix ÓBVIO é o errado.** Instalar `* * * * * docker exec oimpresso-staging php artisan schedule:run` acorda **os 87 schedules** do Kernel, e **7 não têm `environments()`** — rodariam em staging, que é clone da produção:
+**Raio de explosão de `schedule:run` em staging — medido pelo runtime, não por regex:**
 
-| Schedule sem `environments()` | Risco |
-|---|---|
-| `pos:generateSubscriptionInvoices` (23:30) | **gera faturas** |
-| `pos:autoSendPaymentReminder` (08:00) | **dispara lembrete de cobrança** |
-| `backup:run` / `backup:clean` (01:30 / 01:00) | escrita de backup |
-| `pos:updateRewardPoints`, `pos:dummyBusiness`, `errors:archive-stale-groups` | menor |
+```
+APP_ENV efetivo: staging
+TOTAL de eventos registrados: 82 · FILTRADOS por ambiente: 77 · RODARIAM: 5
+  -> jana:recall-eval --mode=real       [30 6 * * 0]   ✅ queremos
+  -> jana:ragas-real-eval --json ...    [0 7 * * 0]    ✅ queremos
+  -> errors:archive-stale-groups        [0 4 * * *]    ⚠️ colateral (benigno)
+  -> kb:drift-detector --business-id=1  [0 3 * * 0]    ⚠️ colateral (toca biz=1)
+  -> connector:health --notify          [15 6 * * *]   ⚠️ colateral (NOTIFICA)
+```
 
-**Escopo (decisão [W] entre dois caminhos):**
-- [ ] **Caminho A — cron direto por job** (segue o padrão vivo do CT 100: as 4 entradas do host são invocações diretas, nenhuma usa scheduler). Barato, blast-radius zero, mas duplica a declaração (Kernel diz uma coisa, cron diz outra → drift de agenda).
-- [ ] **Caminho B — `schedule:run` + fechar os 7 buracos** com `->environments(['live'])` explícito nos schedules que não devem rodar em staging. Honra o Kernel como dono único da agenda; exige auditar os 7 (e `pos:autoSendPaymentReminder` toca cliente — Tier 0).
-- [ ] Qualquer que seja: **provar a invocação com controle-negativo** (o schedule tem que rodar sozinho ao menos 1× e aparecer no trend com semana nova) — senão trocamos um fantasma por outro.
+Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnvironment(app()->environment())` no container `oimpresso-staging`.
+
+**Decisão [W] 2026-07-17 — Caminho A (cron direto por job).** Confirmada DEPOIS da errata: com o número autoritativo (3 colaterais, um deles `--notify`), o A segue ganhando.
+
+- **A (escolhido):** um cron por job invocando os comandos direto — o padrão vivo do CT 100 (as 4 entradas do host invocam scripts direto; **nenhuma** usa scheduler). Invoca **só** os 2 evals: blast-radius genuinamente zero. Custo aceito: a agenda passa a viver em dois lugares (o Kernel declara, o cron invoca) e o `->environments(['staging'])` do Kernel vira documentação da intenção, não invocador.
+- **B (recusado):** `schedule:run` no staging honraria o Kernel como dono único, mas traz 3 colaterais — e `connector:health --notify` notifica. Fecharia-se com `->environments(['live'])` em 3 lugares, mas isso é mexer em 3 schedules alheios pra ganhar elegância de declaração. Reabrir só se a duplicação de agenda do A doer.
+
+**Escopo:**
+- [ ] Script versionado `scripts/tests/ct100-jana-evals.sh` + sync anti-drift no `self-update.sh` (padrão idêntico ao `ct100-ragas-publish.sh`)
+- [ ] Linha de cron no host (passo manual 1×, idempotente — documentada no header do script)
+- [ ] **Provar a invocação com controle-negativo**: o eval tem que rodar sozinho ao menos 1× e aparecer no trend com semana nova — senão trocamos um fantasma por outro. ⚠️ DoD **não** é `crontab -l` mostrando a linha (isso seria presence-gate, lápide §5 2026-07-16).
 - [ ] Só depois disso o piso da US-COPI-136 vira alarme de verdade.
 
 **Ressalva do adversário:** não confundir "cron instalado" com "sinal fluindo". O DoD é **uma semana nova na órfã `governance/ragas-real-trend` que ninguém rodou à mão** — não é o `crontab -l` mostrando a linha (isso seria presence-gate, lápide §5 2026-07-16).
@@ -1706,3 +1762,58 @@ Ou seja: o container de staging foi construído pra **servir HTTP** (entrypoint 
 **Pareia com:** US-COPI-136 (o piso que este ticket faz valer) · US-COPI-139 (mesma classe: alarme sem invocador) · US-COPI-138 (heartbeat — o que detectaria isto automaticamente).
 
 **Refs:** ADR 0318 · ADR 0062 (Hostinger ≠ CT 100) · `app/Console/Kernel.php` · `scripts/tests/ct100-ragas-publish.sh` · `governance/jana-ragas-real-baseline.json` (`gaps_conhecidos.eval_nao_roda_sozinho`)
+
+### US-COPI-141 · Chat declara tools READ-ONLY (a capacidade — atrás de flag)
+
+> owner: claude · priority: p1 · estimate: 2h · status: done · type: story
+
+**Implementado em:** `Modules/Jana/Ai/Agents/ChatCopilotoAgent.php` · `Modules/Jana/Config/config.php` · verificado@447fbf3 (2026-07-17) — declara `HasTools` + `#[MaxSteps(5)]` e reusa as 5 tools READ-ONLY do `BriefDiarioAgent`; `business_id` vem de `conversa->business_id` (constructor)
+
+**Testado em:** `Modules/Jana/Tests/Feature/Ai/ChatCopilotoAgentToolsTest.php` · verificado@447fbf3 (2026-07-17) — 7 casos (R-COPI-141) verdes no CT 100; canário aplicado (Tier 0 trocado por business fixo) derruba 4 deles, provando que o teste morde
+
+> **Escopo desta US = a CAPACIDADE, não o comportamento em prod.** Ligar a flag e
+> medir é a [US-COPI-142](#us-copi-142--flip-da-flag-chat_tools--medição-antesdepois-decisão-w),
+> porque o flip é decisão [W] (custo/latência por mensagem). Separadas de propósito:
+> empacotar as duas daria `status` mentiroso — `done` afirmaria comportamento que
+> ninguém provou, e `todo` negaria código que existe e tem teste.
+
+**Origem:** grade de réguas 2026-07-17 — dimensão `erp-ia-produto` **4,5/10**; escolha [W] "ler no chat primeiro" (sessão 2026-07-17).
+
+**Sinal (medido 2026-07-17):** o diagnóstico da grade era "5/5 tools read-only — a Jana conversa mas não age". A medição achou mais fundo: das **14 agents, 1 declara tools** (`BriefDiarioAgent`, que **não conversa** — é o brief por cron). O `ChatCopilotoAgent`, única superfície onde a Larissa conversa, tinha **zero** tools: não agia **nem lia** via tool. Recebia `ContextoNegocio` pré-cozido no system prompt e formatava.
+
+**O ponto:** este é o degrau que faltava **antes** de qualquer write-action — não adianta discutir approval gate se o chat não tem loop de tool. Reusa as 5 tools já provadas em prod pelo `BriefDiarioAgent` (ADR 0141), não reescreve.
+
+**Escopo (fechado):**
+- [x] `ChatCopilotoAgent implements HasTools` + `#[MaxSteps(5)]` — reusa as 5 tools READ-ONLY
+- [x] Tier 0 mecânico: `business_id` vem de `conversa->business_id` (constructor), nunca do LLM (ADR 0093 + 0141)
+- [x] Fail-safe: conversa sem `business_id` → zero tools (tenant chutado é vazamento)
+- [x] Flag `copiloto.chat_tools.enabled` default-OFF (ADR 0245) — com OFF o SDK omite `tools` do request (`BuildsTextRequests: if (filled($tools))`), pipeline byte-idêntico ao legado
+- [x] Persona do system prompt extraída pra fonte única (`personaBase()`) — estava duplicada em `instructions()` e no caminho de prompt-cache Anthropic; divergiriam
+
+**DoD:** flag OFF → o request é byte-idêntico ao legado (SDK omite `tools`); flag ON → o agent declara as 5 tools com `business_id` vindo da conversa e zero delas escreve. Provado pelos 7 casos R-COPI-141 + canário (quebrar o Tier 0 derruba 4).
+
+**Ressalva do adversário:** ler ≠ agir, e **declarar tool ≠ o LLM usar bem**. Esta US entrega a capacidade; que a Jana **de fato** responda melhor só se sabe na US-COPI-142 (flip + medição) — sem ela, isto é código provado que não move nenhum número do cliente. Também **não** fecha `erp-ia-produto`: write-action segue sendo a [ADR 0145](../../decisions/0145-ia-administradora-pivot-ads-fsm-piloto-cobradora.md) (gate no **ADS** + `FsmActionBridge`, **não** no FSM — o FSM tem RBAC, que é autorização e não aprovação: ele não distingue "a Larissa clicou" de "o LLM decidiu"). A 0145 foi aceita em 2026-05-15 e tem **0 commits de implementação**; `FsmActionBridge`, `CobradoraAgent`, `cobrar_fatura` e Audit Card não existem.
+
+**Refs:** ADR 0141 · ADR 0093 · ADR 0245 · ADR 0101 · ADR 0145 (write-action, fora do escopo) · US-COPI-142 (flip)
+
+### US-COPI-142 · Flip da flag chat_tools + medição antes/depois (decisão [W])
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+
+**Implementado em:** _pendente_ — a capacidade está pronta e testada (US-COPI-141); isto aqui é o flip, que é decisão [W] sobre custo/latência
+
+**Origem:** US-COPI-141 landou a capacidade atrás de flag default-OFF (ADR 0245 — "homolog liga, prod espera"). Enquanto a flag não vira, **prod segue exatamente como antes**: a Jana continua sem consultar nada.
+
+**O ponto:** ligar tools **muda custo e latência por mensagem** — cada tool call é round-trip extra de LLM. Por isso o flip não é automático: é decisão [W], como o `clarify` (mesma ADR).
+
+**Escopo:**
+- [ ] Ligar `JANA_CHAT_TOOLS_ENABLED=true` em **homolog** (CT 100) primeiro — nunca prod direto
+- [ ] Medir **antes/depois**: tokens/mensagem · latência p50/p95 · nº de tool calls por conversa
+- [ ] Medir no gold-set (`jana:recall-eval`) se a resposta melhorou **de fato** — não só ficou mais cara
+- [ ] Só então flip em prod, com kill-switch documentado (`JANA_CHAT_TOOLS_ENABLED=false`)
+
+**DoD:** existe número antes→depois (custo + latência + qualidade) que justifica manter a flag ON; se o custo subir sem a resposta melhorar, a flag volta pra OFF e a US vira lição.
+
+**Ressalva do adversário:** medir só custo é meia medida — o gold-set pode não capturar "a Jana buscou número vivo em vez de repetir snapshot", que é o ganho real. Pareia com **US-COPI-137** (eval online em 5% do tráfego): sem ela, o efeito no cliente real segue invisível. E ligar tools **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passaria a buscar melhor o contexto errado.
+
+**Refs:** ADR 0245 · ADR 0141 · US-COPI-141 · US-COPI-136 (piso de recall) · US-COPI-137 (eval online) · US-COPI-135 (modelo frontier)

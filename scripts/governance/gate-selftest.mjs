@@ -165,6 +165,23 @@ function runMemoryHealthUs(kind) {
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
 
+// memory-health Check P (ref de automação morta): mesmo sandbox por cwd. A fixture traz
+// memory/governance/AUTOMATIONS.md + o hook JÁ PORTADO (.claude/hooks/selftest-demo.mjs).
+// good = registry cita o .mjs vivo → exit 0 ("saudável"); bad = o porte aconteceu mas o
+// registry ficou no .ps1 inexistente → exit 1, acusação 🔴 [P]. As DUAS fixtures carregam
+// os casos de prosa (glob/placeholder/diretório/template) — o good verde prova que os
+// filtros não avermelham o legítimo, e o bad prova que morde pelo motivo CERTO.
+// Sem git no sandbox, o filtro de gitignored fail-open (não mascara o defeito).
+function runMemoryHealthRegistryRef(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-memory-health-registry-ref-${kind}-`));
+  try {
+    cpSync(join(FIX, 'memory-health-registry-ref', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
 // baseline-tamper-guard depende de HISTÓRIA git (diff/show/log BASE..HEAD), não só
 // de cwd como os outros. Por isso o runner monta um sandbox git de verdade:
 //   commit base  = baseline APERTADO (ghost_count armado) + o script REAL copiado;
@@ -451,6 +468,15 @@ const CATRACAS = [
     id: 'memory-health-us',
     run: runMemoryHealthUs,
     expect: { good: /base de conhecimento saudável/, bad: /\[N\][^\n]*duplicado/ },
+  },
+  {
+    // Check P (ref de automação morta) — o registry AUTOMATIONS.md apontando pra hook que
+    // não existe mais. Drift medido em 2026-07-17: 4 refs mortas em main (portes .ps1→.mjs
+    // #4028/#4035 esqueceram o registry), consertadas no #4416 — o conserto não impedia a
+    // reincidência. Sibling do Check V (mesmo defeito, extrator de code-span).
+    id: 'memory-health-registry-ref',
+    run: runMemoryHealthRegistryRef,
+    expect: { good: /base de conhecimento saudável/, bad: /\[P\][^\n]*NÃO existe/ },
   },
   {
     id: 'baseline-tamper-guard',
