@@ -94,6 +94,10 @@ de preço, valor em estoque, multiplicador de tabela. O padrão inegociável do 
 
 ## Erros meus, catalogados (para o próximo não repetir)
 
+> **7 no total** — os 6 abaixo + o **7º** (o PAT que já não existia, §Infra no fim). **Padrão único
+> nos 7: afirmar sem re-medir.** Os que o dado pegou custaram nada; os que eu não medi teriam custado
+> US errada. O CI pegou o do frontmatter em 40s, de graça.
+
 1. **Li o default do código (`'S'`) e concluí a população** — é **84% `'N'`**. Sem a query, teria aberto
    US pra corrigir um perigo que não existe e **perdido a real** (não perder a flag).
 2. **Confiei na taxa da base demo** (91,2% na condicional custo-zero→preço-zero) — real é **53,4%**.
@@ -137,12 +141,21 @@ fecha o trio dela"*: **mexer no `Create.tsx` obriga a criar o `Create.casos.md`*
 **Formação de Preço** (`AR-PROD-090..103`, item nº 1 do roadmap de charters, sem charter). É decisão de
 produto — [W]. **Sem ela não há o que desenhar.**
 
-## Dívida de infra (não desta sessão, mas atrapalha)
+## Infra — resolvido no fim da sessão (e 1 erro meu a mais)
 
-- **PAT inválido embutido no remote** (`https://ghp_…@github.com/...`) — quebra `git push` direto e
-  **vaza em toda mensagem de erro do git**. Contornei via `gh auth git-credential`. Conserto:
-  `git remote set-url origin https://github.com/wagnerra23/oimpresso.com.git` + `gh auth setup-git`,
-  e **revogar o token** em `github.com/settings/tokens`.
-- **3 worktrees** em `.claude/worktrees/` (`produto-custo-margem`, `produto-paridade`, `produto-mapa`).
-  Remover **a junction ANTES** do `git worktree remove` — senão esvazia o `vendor`/`node_modules` real
-  ([proibicoes](../proibicoes.md), 2 incidentes: 05-11 e 07-14).
+- **Worktrees limpos** — `produto-custo-margem` + `produto-paridade` removidos (PRs #4321/#4370 já
+  MERGED; commit órfão do §1.1 confirmado preservado no `produto-mapa` como `10e86fd5a` **antes** de
+  remover). `produto-mapa` **mantido** até o #4405 mergear. **Nenhum dos 3 tinha junction** — o vetor
+  dos 2 incidentes ([proibicoes](../proibicoes.md), 05-11 e 07-14) não se aplicava; verifiquei antes,
+  usei a sequência segura mesmo assim (sem `--force`), e o `node_modules` do principal ficou intacto
+  (527 antes → 527 depois). *(Falso alarme no meio: `vendor/` tem 0 entradas porque **nunca existiu**
+  neste checkout — está no `.gitignore`, jamais rodou `composer install`. Não é dano.)*
+- ⚠️ **7º erro meu — o PAT já não existia.** Vi um token embutido na URL do remote no 1º `git push` da
+  sessão e **repeti como dívida pendente em ~4 turnos sem re-medir**. Ao ir consertar: o remote está
+  **limpo** (`https://github.com/wagnerra23/oimpresso.com.git`), autentica via `manager` + `gh`
+  (SupportWR, keyring), e **zero token em qualquer escopo do config**. Alguém corrigiu no intervalo —
+  outra sessão ou [W]. Não havia o que consertar. **Mesma classe dos outros 6: afirmar sem re-medir.**
+- **Worktrees de terceiros — não toquei:** `produto-create-trio` · `produto-formacao-preco` · `adr-fix` ·
+  `secrets-ct100` · `tabela-regra` + `D:\oimpresso-wt-onda4/5`. ⚠️ **`produto-create-trio` chama atenção**
+  — é exatamente o próximo passo que esta sessão apontou (fechar o trio do `Create`). **Checar antes de
+  duplicar trabalho.**
