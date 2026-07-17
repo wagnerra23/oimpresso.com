@@ -12,6 +12,7 @@ use Laravel\Ai\Events\AgentStreamed;
 use Laravel\Ai\Events\PromptingAgent;
 use Laravel\Ai\Events\StreamingAgent;
 use Modules\Jana\Ai\Agents\ChatCopilotoAgent;
+use Modules\Jana\Jobs\Telemetry\JudgeTraceOnlineJob;
 use Modules\Jana\Services\Telemetry\LangfuseClient;
 
 /**
@@ -95,7 +96,7 @@ class LangfuseAgentTelemetryListener
                 ? (int) round((microtime(true) - $startedAt) * 1000)
                 : null;
 
-            $this->client->traceComGeneration(
+            $traceId = $this->client->traceComGeneration(
                 trace: [
                     'name' => $nome,
                     'business_id' => $contexto['business_id'],
@@ -127,6 +128,22 @@ class LangfuseAgentTelemetryListener
                     ], fn ($v) => $v !== null && $v !== 0),
                 ],
             );
+
+            // US-COPI-137: amostra ~5% dos traces reais pra eval online (RAGAS no
+            // tráfego do cliente). Gate 1 (enabled) OFF por default; a redação PII e o
+            // gate 2 (judge) vivem no Job (async — não atrasa a resposta ao cliente).
+            // shouldSample é determinístico por traceId. Fail-open no catch abaixo.
+            if ($traceId !== ''
+                && (bool) config('jana.online_eval.enabled', false)
+                && JudgeTraceOnlineJob::shouldSample($traceId, (float) config('jana.online_eval.sample_rate', 0.05))
+            ) {
+                JudgeTraceOnlineJob::dispatch(
+                    $traceId,
+                    $contexto['business_id'],
+                    (string) $event->prompt->prompt,
+                    (string) $event->response,
+                );
+            }
         } catch (\Throwable $e) {
             // Fail-open: telemetria NUNCA quebra a chamada LLM.
             Log::channel('copiloto-ai')->debug(

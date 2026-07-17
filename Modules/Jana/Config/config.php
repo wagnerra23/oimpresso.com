@@ -728,6 +728,36 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Online eval (US-COPI-137) — RAGAS no tráfego REAL do cliente
+    |--------------------------------------------------------------------------
+    | Amostra ~5% dos traces reais da Jana e pontua qualidade (faithfulness) no
+    | tráfego do cliente — a única medição hoje é offline (gold-set), então se a
+    | Jana degradar pro cliente ninguém sabe até ele reclamar.
+    |
+    | ⛔ DOIS gates OFF por LGPD (trace de cliente é biz≠1 — ADR 0093 + LGPD):
+    |   - enabled: liga a amostragem. Default false.
+    |   - judge:   'local' (default — zero egress; hoje NÃO-implementado, então o job
+    |              SKIPa sem mandar nada) vs 'openai' (manda a amostra PII-REDACTED pro
+    |              juiz externo — exige aceite LGPD explícito do [W]).
+    | O PiiRedactor roda ANTES do juiz SEMPRE. Rodar de verdade = enabled=true E
+    | judge=openai (ambas decisões [W]). Estado default (OFF + local) = nada sai, nada roda.
+    |
+    | Hardcoded (NÃO env): a regra larastan noEnvCallsOutsideOfConfig conta env() deste
+    | arquivo num baseline fixo (mesmo motivo do ui_judge acima) — flag nova não fura o
+    | teto. Ligar = editar AQUI + `php artisan config:clear` (decisão [W]). Pra flag LGPD
+    | isso é bom: o enable vira commit auditável no git, não um toggle silencioso de .env.
+    |
+    | @see Modules/Jana/Jobs/Telemetry/JudgeTraceOnlineJob.php
+    | @see memory/requisitos/Jana/SPEC.md#US-COPI-137
+    */
+    'online_eval' => [
+        'enabled'     => false,   // [W] liga aqui (gate 1)
+        'sample_rate' => 0.05,    // ~5% dos traces
+        'judge'       => 'local', // 'local' (zero egress, a implementar) | 'openai' (aceite LGPD [W]) — gate 2
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Peso Real — Modelo de classificação por meta (ADR 0232)
     |--------------------------------------------------------------------------
     | Mapas da heurística de `relevancia_meta` (0-100) — quanto um item
