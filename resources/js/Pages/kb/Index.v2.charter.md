@@ -41,7 +41,7 @@ mwart_pattern_reuse:
 **O leitor dos documentos da empresa, num layout de três colunas** — categorias à esquerda, lista de
 documentos no meio, documento aberto à direita — com busca instantânea e `⌘K`.
 
-> **A US que esta tela atende — [US-KB-001](../../../memory/requisitos/KB/SPEC.md):** *"Como Wagner
+> **A US que esta tela atende — [US-KB-001](../../../../memory/requisitos/KB/SPEC.md):** *"Como Wagner
 > governance, **quero ver** os ADRs do projeto como nós navegáveis, **para** consultar dependências
 > sem grep cego no filesystem."* O **backend dela já está ✅ LIVE** (o `KbBridgeFromMcpJob` popula
 > `kb_nodes` em prod há meses) — **o que falta é o "ver"**. Esta tela É o ver. Sem ela, a US está
