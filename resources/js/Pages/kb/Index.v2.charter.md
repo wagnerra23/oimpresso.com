@@ -9,7 +9,7 @@ parent_module: KB
 related_us: [US-KB-001]
 persona_principal: Wagner / governança (1440px desktop)
 persona_secundaria: Larissa / operacional (1280px balcão) — só quando existir SOP escrito à mão
-charter_version: 2.2
+charter_version: 3
 charter_at: 2026-07-17
 related_adrs:
   - 0150-kb-unificado-grafo-conhecimento-modulo-ia-central # proposta
@@ -27,14 +27,14 @@ mwart_pattern_reuse:
   divergence_from_blueprint: "tri-pane sidebar+lista+leitor (port direto JSX→TSX)"
 ---
 
-# Charter — `kb/Index.v2.tsx` · v2.2 **DRAFT (aguarda [W])**
+# Charter — `kb/Index.v2.tsx` · v3 **DRAFT (aguarda [W])**
 
 > **O que mudou da v1.0 (2026-05-16):** a v1.0 descrevia uma tela de **SOPs de gráfica com dados
 > inventados** ("fallback MOCK_NODES" era Goal 7). [W] 2026-07-17: *"eu quero os dados, mas com o
 > design do KB"*. A v2.0 passou a descrever a MESMA tela servindo os **documentos canônicos reais**.
 > O desenho não muda; a fonte de dados muda — e é isso que a torna verdadeira.
 >
-> ### 🔴 O que a v2.1 corrige da v2.0 (mergeada com erro em #4393/#4396)
+> ### 🔴 O que as revisões v2/v3 corrigem da v2.0 (mergeada com erro em #4393/#4396)
 >
 > A v2.0 foi escrita **medindo o disco** (`git ls-files`) pra descrever uma tela que **lê o banco**.
 > Todos os números da §3 estavam errados (3.016 → **1.408** real; "237 contratos de tela" → **0**;
@@ -91,7 +91,7 @@ módulo, especificações.
 ficção e **sai** — a persona "operadora de gráfica" não existe no cliente real (o piloto biz=4 é loja
 de **vestuário**).
 
-## 3. As categorias (painel esquerdo) — **o charter NÃO guarda número** (v2.2)
+## 3. As categorias (painel esquerdo) — **o charter NÃO guarda número** (v3)
 
 > ### ⚖️ Lei aplicada aqui: *fato derivado não se restateia — aponta pro dono, ou carrega recibo*
 >
@@ -103,7 +103,7 @@ de **vestuário**).
 > Não foi alucinação: o agente rodou uma tool de verdade e reportou fielmente — **o oráculo é que
 > era o errado**. O número entrou com o selo mais alto de confiança ("saída direta de tool") sendo
 > saída direta de **outro sistema**. Os 3 documentos do trio ficaram **coerentes entre si** e
-> divorciados do mundo; a v2.1 corrigiu os números — mas **manteve o lugar onde mentir**. A v2.2
+> divorciados do mundo; a v2 corrigiu os números — mas **manteve o lugar onde mentir**. A v3
 > **remove o lugar**.
 
 ### Onde perguntar (o dono)
@@ -311,6 +311,6 @@ it('abre em 1280px sem scroll horizontal')                        // visual/manu
 | Data | Autor | Mudança |
 |---|---|---|
 | 2026-05-16 | Wave J | Charter draft v1.0 — port Cowork, tela **mock-first** (Goal 7 = "fallback MOCK_NODES"). Nunca saiu de draft; gate visual nunca fechou. |
-| 2026-07-17 | [CC] | **v2.2 (subtração)** — a v2.1 corrigiu os números **mantendo o lugar onde mentir**. A v2.2 **remove o lugar**: o charter deixa de guardar contagem e passa a **apontar o dono** (a query em `kb_nodes`) + **recibo datado** (query + resultado + data + sistema declarado). Aplica a lei *"fato derivado não se restateia"* — generalização da lápide 2026-07-16 (*"aponta pro dono, não restateia"*, escrita 24h antes do erro, mas só pra enforcement) e da regra Tier 0 "claim sem evidência" (que exige recibo, mas só cobria prod). Diagnóstico do erro por pesquisa de estado-da-arte ([session](../../../../memory/sessions/2026-07-17-arte-artefatos-por-tela.md)): **não foi alucinação — foi ORÁCULO ERRADO** (mediu o disco pra descrever tela que lê o banco); o mercado inteiro (Spec Kit · Kiro · Tessl · Drift) ancora doc↔código e **ninguém ancora doc↔dado**. É **subtração** (ADR 0271/0314): o doc escreve MENOS. |
-| 2026-07-17 | [CC] | **v2.1 (errata)** — a v2.0 mediu o **disco**; a tela lê o **banco**. §3 refeita com `SELECT` no CT 100: 1.408 nós (não 3.016), `runbook` 11 (não 152), `charter`/`briefing`/`handoff` **0** (gap de ingestão). Invariante "categoria = type" **derrubado** — [W] decidiu **1 KB com filtro / 2 eixos**: `Governança` (tipos como subcategorias, `auto_match` já seeded) + conteúdo do cliente. Exposto o bloqueador real: **1.405 sem `category_id`** ⇒ tela vazia, e o `auto_match` com **zero leitores**. §8-bis reordenada (dado antes do render; 1 F1.5 no fim, não 3) + §8 ganha teste de **linhas renderizadas** e **R1**. D5 sem objeto; **D6 nova** (template por vertical). Origem: adversário 3×"emenda antes do código". |
+| 2026-07-17 | [CC] | **v3 (subtração)** — a v2.1 corrigiu os números **mantendo o lugar onde mentir**. A v2.2 **remove o lugar**: o charter deixa de guardar contagem e passa a **apontar o dono** (a query em `kb_nodes`) + **recibo datado** (query + resultado + data + sistema declarado). Aplica a lei *"fato derivado não se restateia"* — generalização da lápide 2026-07-16 (*"aponta pro dono, não restateia"*, escrita 24h antes do erro, mas só pra enforcement) e da regra Tier 0 "claim sem evidência" (que exige recibo, mas só cobria prod). Diagnóstico do erro por pesquisa de estado-da-arte ([session](../../../../memory/sessions/2026-07-17-arte-artefatos-por-tela.md)): **não foi alucinação — foi ORÁCULO ERRADO** (mediu o disco pra descrever tela que lê o banco); o mercado inteiro (Spec Kit · Kiro · Tessl · Drift) ancora doc↔código e **ninguém ancora doc↔dado**. É **subtração** (ADR 0271/0314): o doc escreve MENOS. |
+| 2026-07-17 | [CC] | **v2 (errata)** — a v2.0 mediu o **disco**; a tela lê o **banco**. §3 refeita com `SELECT` no CT 100: 1.408 nós (não 3.016), `runbook` 11 (não 152), `charter`/`briefing`/`handoff` **0** (gap de ingestão). Invariante "categoria = type" **derrubado** — [W] decidiu **1 KB com filtro / 2 eixos**: `Governança` (tipos como subcategorias, `auto_match` já seeded) + conteúdo do cliente. Exposto o bloqueador real: **1.405 sem `category_id`** ⇒ tela vazia, e o `auto_match` com **zero leitores**. §8-bis reordenada (dado antes do render; 1 F1.5 no fim, não 3) + §8 ganha teste de **linhas renderizadas** e **R1**. D5 sem objeto; **D6 nova** (template por vertical). Origem: adversário 3×"emenda antes do código". |
 | 2026-07-17 | [CC] | **v2.0** — [W]: *"quero os dados, mas com o design do KB"*. Reescrito pro acervo **real** (o bridge já popula `kb_nodes` em prod). Categorias = os 8 `type` do dado (mata o classificador-por-equipamento da v1.0). Persona "operadora de gráfica" removida (não existe no cliente). Anti-hook novo: ação não afirma o que não fez. §7 lista as 4 decisões [W] que bloqueiam `live`. **Aguarda [W]** — nenhum código escrito até D1 ser respondida. |
