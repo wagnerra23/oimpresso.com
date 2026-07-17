@@ -60,6 +60,12 @@ jobs:
         run: node .claude/hooks/block-mwart-violation.test.mjs
       - name: Block-automem + block-mwart REGISTRADOS como node (correcao != invocacao)
         run: node scripts/governance/settings-automem-mwart-registration.test.mjs
+      - name: Block-merge-markers PORTE .mjs (post-mortem v4 anti-pattern A · #1000/#1001 · roda em Linux)
+        run: node .claude/hooks/block-merge-markers.test.mjs
+      - name: Block-routes-string-legacy PORTE .mjs (rules/routes.md FQCN · incidente #843 · roda em Linux)
+        run: node .claude/hooks/block-routes-string-legacy.test.mjs
+      - name: Lote B REGISTRADO como node (correcao != invocacao)
+        run: node scripts/governance/settings-merge-routes-registration.test.mjs
       - name: Registro Figma-não-é-fonte em settings.json (camada L4)
         run: node scripts/governance/settings-figma-registration.test.mjs
       - name: Registro âncora-no-olho em settings.json (incidente #7)
