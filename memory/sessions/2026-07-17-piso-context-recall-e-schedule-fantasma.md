@@ -1,11 +1,11 @@
 ---
-module: Jana
-tipo: session
-data: "2026-07-17"
-titulo: "Piso de context_recall (US-COPI-136) + os evals da Jana eram schedule fantasma (US-COPI-140)"
-related_us: ["US-COPI-136", "US-COPI-140", "US-COPI-137"]
-related_adrs: ["0318-ragas-eval-real-mata-tautologia-ct100-staging", "0302-doneness-lint", "0273-anchor-spec-codigo-formato-canonico-fluxo-novo", "0062-separacao-runtime-hostinger-ct100"]
-prs: ["#4412", "#4426"]
+date: "2026-07-17"
+hour: "1330"
+topic: "Piso de context_recall (US-COPI-136) + os evals da Jana eram schedule fantasma (US-COPI-140)"
+authors: [CC]
+us: [US-COPI-136, US-COPI-140, US-COPI-137]
+prs: [4412, 4426]
+related_adrs: [0318-ragas-eval-real-mata-tautologia-ct100-staging, 0302-doneness-lint, 0273-anchor-spec-codigo-formato-canonico-fluxo-novo, 0062-separacao-runtime-hostinger-ct100]
 ---
 
 # Piso de context_recall + schedule fantasma dos evals da Jana

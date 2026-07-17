@@ -1,17 +1,19 @@
 ---
-data: "2026-07-17"
-hora: "13:30"
-tipo: handoff
-titulo: "Piso de context_recall entregue + os evals da Jana eram schedule fantasma no CT 100"
-related_us: ["US-COPI-136", "US-COPI-140", "US-COPI-137"]
-prs: ["#4412", "#4426"]
+date: "2026-07-17"
+time: "1330"
+slug: piso-recall-schedule-fantasma
+tldr: O piso de context_recall (US-COPI-136) foi entregue — o comando media o recall e jogava fora; agora ele morde e o baseline é dono único dos pisos. Achado que a US não previa (US-COPI-140) — os 2 evals de qualidade da Jana nunca dispararam sozinhos no CT 100 (nada invoca schedule:run); instalei o invocador e provei disparando sozinho, mas o DoD só fecha domingo. Errei a contagem de schedules 3× parseando código em vez de perguntar ao runtime.
+owners: [W]
+prs: [4412, 4426]
+us: [US-COPI-136, US-COPI-140, US-COPI-137]
+related_adrs: [0318-ragas-eval-real-mata-tautologia-ct100-staging, 0302-doneness-lint, 0062-separacao-runtime-hostinger-ct100]
 ---
 
 # Handoff — piso de context_recall + schedule fantasma
 
 ## O que fechou (2 PRs MERGED, CI verde nos dois)
 
-- **[#4412](https://github.com/wagnerra23/oimpresso.com/pull/4412) — US-COPI-136 (piso de context_recall).** O `jana:ragas-real-eval` media `context_recall` e **jogava fora** (impresso `(info)`, fora do `gatePass`); podia cair de 0,3839 → 0,20 sem alarme, comando com **zero testes**. Piso **0.36** (= `min(3 runs reais) × (1−6%)`, mesma margem dos irmãos, folga 2,1× o spread). Baseline virou **dono único** dos pisos (`resolveThresholds()` lê em runtime — fecha follow-up da ADR 0318; antes decorativo + duplicado no signature `0.80` que fabricava `fail`). Bite-test `RagasRealEvalGateTest` (`gateVerdict()` pura): **7 passed** no Pest real do CT 100, mordida provada.
+- **[#4412](https://github.com/wagnerra23/oimpresso.com/pull/4412) — US-COPI-136 (piso de context_recall).** O `jana:ragas-real-eval` media `context_recall` e **jogava fora** (impresso `(info)`, fora do `gatePass`); podia cair de 0,3839 → 0,20 sem alarme, comando com **zero testes**. Piso **0.36** (= `min(3 runs reais) × (1−6%)`, mesma margem dos irmãos, folga 2,1× o spread). Baseline virou **dono único** dos pisos (`resolveThresholds()` lê `thresholds_regressao` em runtime — fecha follow-up da ADR 0318; antes decorativo + duplicado no signature `0.80` que fabricava `fail`). Bite-test `RagasRealEvalGateTest` (`gateVerdict()` pura): **7 passed** no Pest real do CT 100, mordida provada.
 - **[#4426](https://github.com/wagnerra23/oimpresso.com/pull/4426) — US-COPI-140 (invocador) + errata + 2 lições.** Ver abaixo.
 
 ## O achado que a US não previa (US-COPI-140)
