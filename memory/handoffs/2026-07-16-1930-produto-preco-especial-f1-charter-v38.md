@@ -13,6 +13,7 @@ next_steps:
   - "[W] mergear o PR #4321 — 79 checks verdes, MERGEABLE, aberto desde 15/jul. É a evidência que derrubou o 'markup é mestre' do charter"
   - "[W] emendar a ADR ARQ-0001 (multiplicador) — premissa central falsa: price_type='percentage' JÁ é multiplicador desde 2023, e a ADR nunca o cita"
   - "[W] decidir AR-PROD-101 (piso que BLOQUEIA) — diferente do aviso de custo (que AVISA); existe só no browser hoje"
+  - "[W] US-PROD-027 está em `review` no MCP mas o PR #4328 foi FECHADO — status subiu por link de commit, não por prontidão. Comentei na task; sugestão review→todo/blocked + reescrever o aceite (aponta pro PDV, fora do cadastro)"
   - "[F] resolver a colisão de nome — o charter declara 'Preço Especial' (AR-PROD-111..116) Non-Goal, e a aba se chama Preço especial"
 ---
 
@@ -88,24 +89,37 @@ em "característica do produto", só no PDV. Faixa real só em TOTVS/Sankhya. **
 
 ## Estado MCP no momento do fechamento
 
-⚠️ **NÃO consegui rodar o checklist MCP-first ([ADR 0130](../decisions/0130-handoff-append-only-mcp-first.md)
-exige `cycles-active` + `my-work` + `sessions-recent` + `decisions-search`).**
+⚠️ **O MCP esteve FORA a sessão inteira e VOLTOU só no fechamento** — então esta seção tem 2 partes,
+e a distinção importa pra quem auditar.
 
-**Prova:** o hook `SessionStart` reportou `brief-fetch FALLBACK ATIVADO — curl falhou (exit 28)`, e
-no fechamento `curl --max-time 8 https://mcp.oimpresso.com/` → **HTTP 000** (sem resposta). O
-servidor MCP (CT 100) esteve **inacessível a sessão inteira** — o Tailscale também não subiu
-(`NoState`, precisa de re-auth manual do [W]).
+**Durante a sessão (sem MCP).** O hook `SessionStart` reportou `brief-fetch FALLBACK ATIVADO — curl
+falhou (exit 28)`; `curl --max-time 8 https://mcp.oimpresso.com/` → **HTTP 000**; Tailscale em
+`NoState` (precisa de re-auth manual do [W]). **Todo o trabalho foi feito sem brief** — usei git como
+substituto: `git show origin/main:<path>` pros SPEC/charters/ADRs (o checkout local está −5.300),
+`git ls-tree` pros session logs/handoffs, `gh pr list` pro estado dos PRs.
 
-**O que usei no lugar (tudo verificável em git):**
-- `git ls-tree origin/main memory/sessions/` → 1 session log hoje (`adversario-ponto-entrada-us-uc`,
-  assunto diferente — sem duplicação)
-- `git ls-tree origin/main memory/handoffs/` → nenhum handoff hoje; o último é
-  `2026-07-15-1930-produto-tabela-preco-trio-tier0`
-- `gh pr list` → #4321 OPEN (verde) · #4324 CLOSED · #4328 CLOSED (fechei nesta sessão)
-- SPEC/charters/ADRs lidos via `git show origin/main:<path>` (checkout local está −5.200)
+**No fechamento (MCP de volta) — snapshot real:**
 
-**Consequência honesta:** não sei o estado do cycle ativo nem se há sessão paralela tocando
-`Pages/Produto/`. Quem retomar **deve** rodar `brief-fetch` + `whats-active` antes de tocar código.
+```
+cycles-active          → "Nenhum cycle ATIVO em COPI"   ← off-cycle, confirmado
+brief #369             → HITL pending [W]: 2 · Brain B hoje 0% · flags todas 🟢
+tasks-detail US-PROD-027 → status: review · owner: wagner · p1 · ~3.0h
+```
+
+🔴 **DRIFT ACHADO E REGISTRADO:** a **`US-PROD-027` está em `review`** — mas o PR
+[#4328](https://github.com/wagnerra23/oimpresso.com/pull/4328) foi **FECHADO** nesta sessão. O status
+subiu porque os 3 commits ficaram linkados por sha, **não** porque está pronta. Quem olhasse o MCP
+veria "prestes a entrar". **Comentei na task** com o veredito (não é executável como escrita — o
+aceite aponta pro PDV, fora do cadastro; o caso que cabe no cadastro ela exclui) + os 4 achados que
+sobrevivem pra quem reescrever. **Sugestão registrada lá: `review` → `todo`/`blocked`, owner [W].**
+Não mudei o status — a task é do [W].
+
+⚠️ **O que NÃO consegui, mesmo com o MCP de volta:** não rodei `whats-active` (detecta sessão
+paralela tocando o mesmo path — [ADR 0119](../decisions/0119-paralelismo-sessoes-whats-active-tier-1.md)).
+Quem retomar **deve** rodar antes de tocar `Pages/Produto/`.
+
+O brief também mostra a `US-PROD-027` como **2ª em voo** ("40h") — número que não bate com o
+`estimate: 3h` do SPEC. Não investiguei; registro como observação.
 
 ## Como retomar
 
