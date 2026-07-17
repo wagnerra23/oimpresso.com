@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-16**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-17**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -97,7 +97,7 @@ lifecycle: ativo
 - visual-regression
 - Governance Gate (índice + memory-health + meta-teste)
 
-### Censo — 102 workflows por classe
+### Censo — 103 workflows por classe
 
 > Lista completa + propósito de cada um: [`gates-registry.json`](../../scripts/governance/gates-registry.json) (o dono). Aqui: contagem + exemplos.
 
@@ -105,18 +105,18 @@ lifecycle: ativo
 |---|---|---|
 | gate (bloqueia/valida PR) | 76 | a11y-axe-gate, a11y-gate, adr-index-gate, adr-lint, … |
 | meta (testa os gates) | 5 | block-brl-values-selftest, gate-selftest, guards-meta-gate, protection-drift, … |
-| automacao (cron/dispatch) | 19 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, composer-lock-sync, … |
+| automacao (cron/dispatch) | 20 | agent-cost-per-pr, agent-pr-outcomes, briefing-code-staleness, casos-results-publish, … |
 | deploy (entrega) | 2 | deploy, quick-sync |
 
 ## Decisões (ADRs)
 
-- **345** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 311 · superseded: 12 · deprecated: 12 · proposto: 4 · sem-status: 4 · rascunho: 1 · recusado: 1.
+- **346** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 312 · superseded: 12 · deprecated: 12 · proposto: 4 · sem-status: 4 · rascunho: 1 · recusado: 1.
 - **3** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 20 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 22 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -138,6 +138,8 @@ lifecycle: ativo
 - ~~2026-07-12 — Normalização MECÂNICA em massa de arquivos LEGADOS de `memory/` (backfill de frontmatter)~~
 - ~~2026-07-15 — Apresentar ACHADO / causa-raiz / correção a partir de LEITURA de código, sem prova e sem varredura~~
 - ~~2026-07-15 — Force-migrar os 2 comboboxes async de `Sells` pro canon `Command` (onda combobox)~~
+- ~~2026-07-16 — Gate/label/comentário AFIRMAR o próprio enforcement em tempo presente ("segue advisory", "não bloqueia")~~
+- ~~2026-07-16 — Eleger US (SPEC) ou UC (casos.md) como CANAL DE PEDIDO do dono (ponto de entrada pré-código)~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -145,14 +147,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **254** handoffs · **442** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **260** handoffs · **449** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-16-smoke-auto-hibrido-shell-95pct`
+  - `2026-07-16-sdd-avaliacao-screen-coverage`
+  - `2026-07-16-oficina-dark-e-precondicao-gate-visual`
+  - `2026-07-16-grade-qualidade-ds-adversarios-em-serie`
+  - `2026-07-16-adversario-ponto-entrada-us-uc`
   - `2026-07-15-tabnav-detector-superseded`
-  - `2026-07-15-protocolo-design-v2-hook-ativacao`
-  - `2026-07-15-pageheadertabs-accent-token-dark-aware`
-  - `2026-07-13-financeiro-visreg-enforcing`
-  - `2026-07-13-arte-oss-comparavel-ia-os`
-  - `2026-07-12-spike-hybrid-jana-bi-us-copi-133`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-16 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-17 · deriva das fontes canônicas, não as substitui._
