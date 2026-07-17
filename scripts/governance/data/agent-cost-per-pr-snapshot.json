@@ -5,57 +5,140 @@
   "janela": {
     "dias": 14,
     "desde": "2026-07-03",
-    "prs_no_universo": 423,
+    "prs_no_universo": 425,
     "prs_exibidos": 20,
     "marker": "[CC]"
   },
   "custo": {
-    "total_usd_escaneado": 20541.42,
-    "total_usd_atribuido": 16278.42,
-    "cobertura_alocacao_pct": 79.25,
-    "mediana_usd_por_pr": 21.01,
+    "total_usd_escaneado": 20651.79,
+    "total_usd_atribuido": 16660.57,
+    "cobertura_alocacao_pct": 80.67,
+    "mediana_usd_por_pr": 19.26,
     "top_prs": [
+      {
+        "pr": 4425,
+        "usd": 294.96,
+        "title": "feat(jana): heartbeat langfuse_trace_uptime_24h — US-COPI-138 [CC]"
+      },
+      {
+        "pr": 3833,
+        "usd": 257.49,
+        "title": "fix(governance): grader D8.a detecta throttle em array + D4.d detecta OtelHelper/Activitylog [CC]"
+      },
       {
         "pr": 3780,
         "usd": 244.59,
         "title": "docs(handoff): mãe consolidado — programa de ondas, cálculo Tier-0 blindado [CC]"
-      },
-      {
-        "pr": 4201,
-        "usd": 242.29,
-        "title": "fix(sdd): distiller_freshness não fabrica stale em checkout shallow (o 6 era artefato de medição, não dívida) [CC]"
-      },
-      {
-        "pr": 3833,
-        "usd": 225.55,
-        "title": "fix(governance): grader D8.a detecta throttle em array + D4.d detecta OtelHelper/Activitylog [CC]"
       }
     ]
   },
   "residuo": {
-    "usd": 4263,
-    "pct": 20.75,
+    "usd": 3991.22,
+    "pct": 19.33,
     "por_categoria": {
-      "sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)": 4263
+      "sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)": 3991.22
     }
   },
   "join": {
     "sem_match": 16,
-    "sem_match_pct": 3.78,
-    "matched_por_branch": 36,
-    "matched_por_citacao": 375,
+    "sem_match_pct": 3.76,
+    "matched_por_branch": 43,
+    "matched_por_citacao": 374,
     "msgs_sem_branch": 0,
     "modelos_desconhecidos": [
       "<synthetic>"
     ]
   },
   "calibracao": {
-    "velocidade_prs_dia": 30.2,
+    "velocidade_prs_dia": 30.4,
     "limiar_idade_dias": 3,
     "tolerancia_staleness": 0.2,
     "precos_atualizados_em": "2026-07-12"
   },
   "por_pr": [
+    {
+      "pr": 4476,
+      "title": "test(financeiro): D9 needle OTel stale — fluxo.projetar to fluxo.render [CC]",
+      "branch": "claude/financeiro-d9-otel-needle",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 56268230,
+      "usd": 59.37,
+      "usd_incompleto": true
+    },
+    {
+      "pr": 4474,
+      "title": "fix(jana): ScopeByBusinessViaParent não filtrava — vazamento cross-tenant Tier 0 (ADR 0093) [CC]",
+      "branch": "claude/fix-scope-viaparent-tier0",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 56268230,
+      "usd": 59.37,
+      "usd_incompleto": true
+    },
+    {
+      "pr": 4477,
+      "title": "fix(reguas): script tolera dimensoes como string — parcial não mede a dimensão errada em silêncio [CC]",
+      "branch": "claude/fix-reguas-dimensoes-string",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 51598116,
+      "usd": 44.77,
+      "usd_incompleto": true
+    },
+    {
+      "pr": 4473,
+      "title": "feat(governance): sink da sentinela de staging → mcp_alertas (brief/inbox) [CC]",
+      "branch": "claude/staging-freshness-sink",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 44781709,
+      "usd": 40.4,
+      "usd_incompleto": true
+    },
+    {
+      "pr": 4468,
+      "title": "test(fiscal): guards MT Eventos+Nfse deixam de passar vácuo — actingAs + linha cross-tenant real [CC]",
+      "branch": "claude/fiscal-eventos-nfse-mt-non-vacuous",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 50500002,
+      "usd": 48.27
+    },
+    {
+      "pr": 4467,
+      "title": "docs(governance): remove 54 refs mortos + corrige 1 superseded_by (Fase 1b) [CC]",
+      "branch": "claude/adr-dead-refs-cleanup",
+      "matched": true,
+      "sinais": [
+        "branch",
+        "citacao"
+      ],
+      "tokens": 92072175,
+      "usd": 90.78,
+      "usd_incompleto": true
+    },
+    {
+      "pr": 4466,
+      "title": "feat(jana): distiller para de restatear número derivado — fecha a lei #4411 na raiz do bug \"85%\" [CC]",
+      "branch": "claude/distiller-prompt-lei-4411",
+      "matched": true,
+      "sinais": [
+        "branch"
+      ],
+      "tokens": 43833195,
+      "usd": 37.05
+    },
     {
       "pr": 4462,
       "title": "feat(staging): sentinela de frescor do checkout — heartbeat não-destrutivo [CC]",
@@ -64,8 +147,9 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 47902598,
-      "usd": 45.25
+      "tokens": 44781709,
+      "usd": 40.4,
+      "usd_incompleto": true
     },
     {
       "pr": 4446,
@@ -84,8 +168,9 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 115101131,
-      "usd": 97.96
+      "tokens": 74893802,
+      "usd": 63.38,
+      "usd_incompleto": true
     },
     {
       "pr": 4445,
@@ -95,8 +180,9 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 33050306,
-      "usd": 26.29
+      "tokens": 37720190,
+      "usd": 39.6,
+      "usd_incompleto": true
     },
     {
       "pr": 4447,
@@ -106,8 +192,8 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 63877983,
-      "usd": 54.55
+      "tokens": 43833195,
+      "usd": 37.05
     },
     {
       "pr": 4448,
@@ -150,8 +236,9 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 49728694,
-      "usd": 37.9
+      "tokens": 51598116,
+      "usd": 44.77,
+      "usd_incompleto": true
     },
     {
       "pr": 4441,
@@ -161,8 +248,9 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 33050306,
-      "usd": 26.29
+      "tokens": 37720190,
+      "usd": 39.6,
+      "usd_incompleto": true
     },
     {
       "pr": 4425,
@@ -172,8 +260,9 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 49728694,
-      "usd": 37.9
+      "tokens": 378393456,
+      "usd": 294.96,
+      "usd_incompleto": true
     },
     {
       "pr": 4430,
@@ -194,83 +283,9 @@
       "sinais": [
         "branch"
       ],
-      "tokens": 33050306,
-      "usd": 26.29
-    },
-    {
-      "pr": 4423,
-      "title": "fix(kb): âncora repo-relativa nos charters — o ../../../ desligava o guarda de frescor [CC]",
-      "branch": "claude/kb-ancora-repo-relativa",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 33050306,
-      "usd": 26.29
-    },
-    {
-      "pr": 4424,
-      "title": "feat(proto-baseline): cobertura 3→10 telas ancoráveis [CC]",
-      "branch": "claude/proto-baseline-cobertura-7telas",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 33050306,
-      "usd": 26.29
-    },
-    {
-      "pr": 4422,
-      "title": "fix(proto-baseline): --gerar recusa rota fantasma + nudge para de morrer por case [CC]",
-      "branch": "claude/proto-baseline-trava-rota",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 33050306,
-      "usd": 26.29
-    },
-    {
-      "pr": 4427,
-      "title": "fix(jana): OtelGenAiEmissionTest asseria biz=4 (cliente) — chip C5 [CC]",
-      "branch": "claude/otel-genai-biz1-fix",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 49728694,
-      "usd": 37.9
-    },
-    {
-      "pr": 4413,
-      "title": "feat(whatsapp): canal público de feedback — o cliente reporta sem o [W] no meio [CC]",
-      "branch": "claude/feedback-publico-orgao-sensor",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 53677669,
-      "usd": 36.54
-    },
-    {
-      "pr": 4405,
-      "title": "docs(produto): §1.1 — como o oimpresso trata os 14 campos da aba geral (+ corrige imprecisão do #4370) [CC]",
-      "branch": "docs/produto-oimpresso-mapa",
-      "matched": false,
-      "sinais": [],
-      "tokens": 0,
-      "usd": null
-    },
-    {
-      "pr": 4418,
-      "title": "docs(memoria): redistila Governance + Jana — 2 portas voltam a dizer a verdade [CC]",
-      "branch": "claude/zen-mccarthy-de45e4",
-      "matched": true,
-      "sinais": [
-        "branch"
-      ],
-      "tokens": 63877983,
-      "usd": 54.55
+      "tokens": 37720190,
+      "usd": 39.6,
+      "usd_incompleto": true
     }
   ],
   "confianca": "proxy (JSONL local → SESSÃO → PR por branch OU citação /pull/N; ver gaps)",
