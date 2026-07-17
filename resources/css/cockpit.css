@@ -3,7 +3,7 @@
    As 61 vars light + 45 dark deste escopo agora são SAÍDA do Style Dictionary a
    partir de resources/css/tokens/*.tokens.json. Editar token = editar o JSON
    portável; o CSS é saída. Equivalência byte-a-byte provada:
-   scripts/governance/dtcg-equivalence.mjs (208 fiéis). Os @import ficam no TOPO
+   scripts/governance/dtcg-equivalence.mjs. Os @import ficam no TOPO
    do arquivo (regra CSS: @import precede regras de estilo) — a cascata é
    preservada (sem redefinição intra-arquivo dos mesmos tokens; --row-h é
    sobreposto por .cockpit[data-density] via especificidade, não ordem).

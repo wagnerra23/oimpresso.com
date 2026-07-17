@@ -21,7 +21,7 @@
 //
 // FIDELIDADE: o `--name` emitido vem de $extensions...source (1:1 com o canon).
 // O $value é verbatim (color-as-string; não reprocessamos OKLCH/hsl/hex/calc).
-// Prova: scripts/governance/dtcg-equivalence.mjs (208 fiéis) + diff de tokens.
+// Prova: scripts/governance/dtcg-equivalence.mjs + diff de tokens.
 //
 // Node puro / ESM. UTF-8 sem BOM, LF.
 // ─────────────────────────────────────────────────────────────────────────────
