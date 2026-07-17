@@ -1617,21 +1617,29 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 
 ### US-COPI-137 · Eval online em 5% dos traces reais (hoje: zero avaliação no tráfego do cliente)
 
-> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 6h · status: doing · type: story
+
+**Implementado em:** _pendente_ — o MECANISMO está construído e testado (`Modules/Jana/Jobs/Telemetry/JudgeTraceOnlineJob.php` + hook na `LangfuseAgentTelemetryListener::onEnd` + bloco `online_eval` na config; 6 testes verdes no CT 100 incl. a prova LGPD "PiiRedactor antes do juiz"), mas fica `_pendente_` de propósito: o DoD é **eval fluindo no tráfego real**, e isso só acontece quando [W] ligar os 2 gates OFF (`enabled=true` **E** `judge=openai` — decisão LGPD) OU quando o juiz local for implementado. Código pronto atrás de flag = padrão PaymentGateway.
 
 **Origem:** grade de réguas 2026-07-17 — item #7 do "roubar"; `qualidade-drift-ia-producao` 4,0/10.
 
-**Sinal (ADR 0105):** a única medição de qualidade da Jana é offline (gold-set). **Zero eval no tráfego real** — se a Jana degradar pro cliente, ninguém sabe até ele reclamar. Langfuse está LIVE desde 2026-07-02 e `LangfuseClient::score()` **já existe** com o docblock certo.
+**Sinal (ADR 0105):** a única medição de qualidade da Jana é offline (gold-set). **Zero eval no tráfego real** — se a Jana degradar pro cliente, ninguém sabe até ele reclamar. Langfuse está LIVE desde 2026-07-02 e `LangfuseClient::recordScore()` grava score de volta no trace.
 
 **Escopo:**
-- [ ] Amostrar ~5% dos traces reais → `RagasJudgeService` (SoC: o julgamento não mora no client)
-- [ ] Score por business via `LangfuseClient::score()` (feature nativa do que já rodamos)
-- [ ] **Tier 0:** trace de cliente é biz≠1 → `PiiRedactor` ANTES de mandar pro juiz (ADR 0093 + LGPD)
-- [ ] Advisory: publica número, não bloqueia nada
+- [x] Amostrar ~5% dos traces reais → `RagasJudgeService` (SoC: o julgamento mora no Job, não no client). `shouldSample` determinístico por traceId (idempotente).
+- [x] Score por business via `LangfuseClient::recordScore()` (`ragas_faithfulness_online`) — a US original chamou de `score()`; o método real é `recordScore`, e o arquivo é `Services/Telemetry/LangfuseClient.php` (não `Services/`).
+- [x] **Tier 0:** `PiiRedactor` roda ANTES do juiz (provado por teste: CPF/email não chegam crus). `$businessId` explícito no Job (session() não existe na fila).
+- [x] Advisory: publica número no trace, não bloqueia nada (sem gate).
+- [ ] **DoD ([W]):** ligar `enabled=true` + escolher `judge` (LGPD: `local` zero-egress a implementar, ou `openai` com aceite) → eval flui no tráfego real.
+- [ ] Só faithfulness no v1 (sem gt no tráfego real → recall/relevancy ficam offline/follow-up).
 
-**Ressalva do adversário:** trocar RAGAS tautológico por RAGAS não-calibrado pode ser trocar teatro por teatro com casas decimais — a literatura 2026 mediu falha de validade discriminante do `faithfulness` (19,3pp retrieval vs 15,9pp geração). Começar medindo, sem gate.
+**Ressalva do adversário:** trocar RAGAS tautológico por RAGAS não-calibrado pode ser trocar teatro por teatro com casas decimais — a literatura 2026 mediu falha de validade discriminante do `faithfulness` (19,3pp retrieval vs 15,9pp geração). Por isso o mecanismo **nasce sem gate** — só publica número no trace. Calibrar antes de confiar na média.
 
-**Refs:** ADR 0318 · `Modules/Jana/Services/LangfuseClient.php`
+**DoD:** existe score `ragas_faithfulness_online` em ao menos 1 trace real (biz≠1) com PII redigida — só possível após [W] ligar os gates.
+
+**Testado em:** `Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php` — shouldSample (0/1/determinismo/~5% sobre 10k) · judge=local SKIPa (zero egress) · judge=openai roda PiiRedactor ANTES do juiz (CPF/email não vazam) · juiz-em-mock não pontua.
+
+**Refs:** ADR 0318 · ADR 0093 · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `Modules/Jana/Services/Privacy/PiiRedactor.php`
 
 ### US-COPI-138 · Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
 **Implementado em:** `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · verificado@e7f6090 (2026-07-17) — check DURO registrado em handle(), lendo meta.totalItems da API pública do Langfuse (fonte real, não flag); 9 testes verdes no CT 100 incl. 2 de fiação (200-e-mudo → vermelho)
