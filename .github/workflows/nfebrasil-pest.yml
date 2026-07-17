@@ -136,6 +136,16 @@ jobs:
         #   - Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php
         #   - Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php
         #
+        # RATCHET UP (2026-07-17, PR-2 irmã): + os 2 isolation-guards RESTANTES do cockpit Fiscal
+        #   (Eventos + Nfse). Mesma causa (session sem actingAs → ScopeByBusiness no-opava → contagem
+        #   cross-tenant 0 por AUSÊNCIA de dado, não por filtro). Fix MAIS forte que só a linha de auth:
+        #   actingAs(biz=1) + CRIA linha cross-tenant real (Eventos=biz=99, nfe_emissoes s/ FK a business;
+        #   Nfse=biz=2 pois nfse_emissoes→business FK e biz=99 não é semeado — mesma resolução do
+        #   CertificadoServiceTest) + controle positivo biz=1 (anti over-scoping). Provado no CT100: 5/5
+        #   verde; controle-negativo (remove actingAs) derruba os 2 guards (vaza biz=99/biz=2). ADR 0093 + 0101.
+        #   - Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php
+        #   - Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php
+        #
         # NÃO incluir arquivos com RefreshDatabase/migrate:fresh — dropam o schema baseline e
         # limpam o seed biz=1/biz=2, envenenando os demais.
         env:
@@ -160,7 +170,9 @@ jobs:
             Modules/NfeBrasil/Tests/Feature/SerializacaoIbsCbsTest.php \
             tests/Feature/Calculo/CalculoTributarioTest.php \
             Modules/Fiscal/Tests/Feature/CockpitMultiTenantTest.php \
-            Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php
+            Modules/Fiscal/Tests/Feature/NfeCockpitMultiTenantTest.php \
+            Modules/Fiscal/Tests/Feature/EventosCockpitMultiTenantTest.php \
+            Modules/Fiscal/Tests/Feature/NfseCockpitMultiTenantTest.php
 
       - name: Upload JUnit (verdade fiscal MySQL — alimenta o verde@ do gate de entrada)
         if: ${{ !cancelled() && steps.changes.outputs.nfe == 'true' }}
