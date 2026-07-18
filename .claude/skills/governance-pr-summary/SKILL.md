@@ -1,6 +1,6 @@
 ---
 name: governance-pr-summary
-description: Use ANTES de `gh pr create` em qualquer branch que toque Modules/<X>/. Lê módulos afetados via `git diff --name-only origin/main...HEAD`, infere bucket de cada módulo, executa `php artisan module:grade-v4 --bucket=<inferido> --json` (Wave 27, scoped scorecards) com fallback automático pra v3 se v4_enabled=false ou ScopedScorecardEvaluator ausente, computa Module Grade v4 (core + bucket dimensions + paired cap 50%) e INJETA seção `## Module Grade v4 (Scoped Scorecards)` na descrição do PR. Reduz adoption time de "Wagner precisa abrir 3 dashboards" pra "PR já vem com módulo + nota + bucket + meta + status". Tier B auto-trigger.
+description: Use ANTES de `gh pr create` em qualquer branch que toque Modules/<X>/. Lê módulos afetados via `git diff --name-only origin/main...HEAD`, infere bucket de cada módulo, executa `php artisan module:grade-v4 --bucket=<inferido> --json` (Wave 27, scoped scorecards) com fallback automático pra v3 se v4_enabled=false ou ScopedScorecardEvaluator ausente, computa Module Grade v4 (core + bucket dimensions + paired cap 50%) e INJETA seção `## Module Grade v4 (Scoped Scorecards)` na descrição do PR. Reduz adoption time de "Wagner precisa abrir 3 dashboards" pra "PR já vem com módulo + nota + bucket + meta + status". APÓS o merge do PR (o tool só atribui custo a PR mergeado), injeta também — LOCAL, porque o CI não enxerga o JSONL — um bloco idempotente `<!-- agent-cost-per-pr -->` com o custo USD estimado DESTE PR via `node scripts/governance/agent-cost-per-pr.mjs --pr <N>` (advisory · RELATO, nunca gate · sem valores em R$). Tier B auto-trigger.
 trust_level: L1
 owner: wagner
 parent_mission: meta-skill-roi-erp-autonomo
@@ -28,7 +28,13 @@ description com módulo + nota"). Detecta:
 > + BRIEFING.md) pra entender o estado do módulo. **PR description é a fonte
 > primária de signal.**
 
-## Como aplicar (6 passos — Wave 27 v2)
+## Como aplicar (7 passos — Wave 27 v2 + custo por PR)
+
+> Passos **1-6** são **PRÉ**-`gh pr create` — compõem o corpo (Module Grade).
+> Passo **7** é **PÓS-merge**: o tool só atribui custo a PR **mergeado**
+> (`gh pr list --state merged` + match da sessão local por branch/citação), então
+> o número só materializa **depois do `gh pr merge`**, na mesma máquina. Ordem:
+> merge → `--pr <N>` local → `gh pr edit --body-file`.
 
 ### 1. Detectar módulos afetados
 
@@ -114,6 +120,62 @@ EOF
 )"
 ```
 
+### 7. Injetar bloco de **Custo estimado do PR** (LOCAL · advisory · PÓS-merge)
+
+O custo é diferente da nota em duas coisas:
+
+1. **Só na máquina que abriu o PR** — o CI não enxerga o JSONL local
+   (`~/.claude/projects`, gap G5). Colar um agregado do cron seria teatro (não é o
+   custo *deste* PR). Por isso roda LOCAL.
+2. **Só para PR mergeado** — o tool lê `gh pr list --state merged` e casa a sessão
+   local ao PR por branch/citação; um PR ainda **aberto** não está na lista, então
+   `--pr <N>` sai honesto como `não medido`. O número materializa **depois do
+   merge**. Rode este passo **logo após `gh pr merge`** (mesma sessão — o JSONL
+   ainda está na máquina): é aí que o número chega no PR. O marcador torna a
+   re-execução idempotente, então injetar cedo (placeholder) e refrescar pós-merge
+   não duplica.
+
+> **RELATO, não gate** (ADR 0271/0314): nunca bloqueia merge. Sem valores em R$ —
+> o bloco é USD/tokens por construção (Tier 0).
+
+```bash
+PR=<numero do PR recém-mergeado>
+
+# 1) gera o bloco DESTE PR (local). O tool degrada sozinho se não casar sessão.
+BLOCO="$(node scripts/governance/agent-cost-per-pr.mjs --pr "$PR" 2>/dev/null)"
+
+# 2) GUARD do marcador: só injeta se a 1ª linha for o marcador canônico.
+#    Protege contra tool sem --pr (versão antiga cospe o RELATÓRIO HUMANO inteiro,
+#    começa com "═══") ou erro/checkout sem a ferramenta → aí NÃO injeta nada.
+case "$BLOCO" in
+  "<!-- agent-cost-per-pr -->"*)
+    TMP="$(mktemp)"
+    # corpo atual SEM bloco antigo: awk corta no marcador E segura linhas em branco
+    # (só imprime blank se vier conteúdo depois) → prefixo sem trailing-blank, então
+    # re-rodar é byte-idempotente (nada de creep de linha em branco a cada push).
+    gh pr view "$PR" --json body --jq .body | awk '
+      /^<!-- agent-cost-per-pr -->[[:space:]]*$/{done=1} done{next}
+      /^[[:space:]]*$/{blanks++; next}
+      { while(blanks-->0) print ""; blanks=0; print }
+    ' > "$TMP"
+    printf '\n%s\n' "$BLOCO" >> "$TMP"   # bloco fresco, sempre no FIM do corpo
+    gh pr edit "$PR" --body-file "$TMP"
+    ;;
+  *) : ;;  # sem bloco canônico → degrade limpo (nunca cola o relatório humano)
+esac
+```
+
+O que o bloco diz:
+- **PR mergeado + sessão local casada** → `**$X.XX** · NNNk tok · sinal branch|citacao`;
+- **PR ainda aberto, ou sem sessão casada** → `_sem sessão local casada — não medido
+  (G1/G3)_` (honesto, não inventa número — rode de novo após o merge);
+- é **idempotente**: o marcador `<!-- agent-cost-per-pr -->` abre o bloco e ele fica
+  sempre no fim do corpo; re-rodar (ex.: refresh pós-merge) substitui, não duplica.
+
+**Pré-requisito**: o modo `--pr`/`renderPrBlockMd` mora em
+`scripts/governance/agent-cost-per-pr.mjs`. Se o checkout ainda não tem, o guard do
+marcador cai no `*)` e o passo vira no-op — o resto da skill segue normal.
+
 ## Detection de bucket per file changed (Wave 27)
 
 Mapping rápido quando 1 PR toca múltiplos módulos:
@@ -143,6 +205,14 @@ Wagner ("falta `governance.bucket` em `Modules/<X>/module.json`").
   silencioso (`|| php artisan module:grade`)
 - ⛔ NÃO declarar `Status: ✓` se total < meta_bucket — calcular contra meta
   real lida do bucket YAML, não chutar
+- ⛔ NÃO injetar o bloco de custo em CI nem a partir do snapshot do cron — o
+  número tem que ser o DESTE PR, medido LOCAL (G5); agregado = teatro
+- ⛔ NÃO injetar saída que não comece com `<!-- agent-cost-per-pr -->` — versão
+  antiga do tool cospe o relatório humano (`═══`); o guard do marcador existe
+  pra isso, respeitar o `*)` (no-op)
+- ⛔ NÃO tratar o custo como gate — é RELATO (ADR 0271/0314); nunca bloquear
+  merge por custo alto, nunca "consertar" travando o PR
+- ⛔ NUNCA converter o custo pra R$ — Tier 0; o bloco é USD/tokens por construção
 
 ## Trigger phrases
 
@@ -152,6 +222,8 @@ Wagner ("falta `governance.bucket` em `Modules/<X>/module.json`").
 - "cria pull request"
 - diff contém `Modules/<X>/` E branch != main
 - branch nome contém `wave-N` (Waves Governance canônicas)
+- logo após `gh pr merge` de PR de agente (`[CC]`/`[CL]`) → refrescar o bloco de
+  custo (passo 7), que só materializa o número depois do merge
 
 ## Charter
 
@@ -163,4 +235,9 @@ Não aplica (skill orchestration, não Page Inertia).
 - ADR 0155 — Module Grade v3
 - ADR 0156 — Scorecards YAML canon
 - ADR 0160 — Skill governance-pr-summary Tier B
+- ADR 0271 / 0314 — required = só Tier-0; custo por PR é advisory (RELATO)
+- `scripts/governance/agent-cost-per-pr.mjs` — custo USD por PR (`--pr <N>`,
+  bloco `<!-- agent-cost-per-pr -->`, advisory · fonte JSONL local)
 - Wave 27 (2026-05-17) — expansão v2: detection bucket + v4-first com fallback v3
+- 2026-07-17 — passo 7: bloco de custo estimado do PR (item 2 do mandato
+  custo-por-PR — "fazer o número chegar no PR")
