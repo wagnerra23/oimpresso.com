@@ -24,9 +24,11 @@ use Modules\Jana\Services\Telemetry\LangfuseClient;
  *
  * ⛔ LGPD Tier 0 (trace de cliente é biz≠1 — ADR 0093 + LGPD): DOIS gates OFF.
  *   1. config('jana.online_eval.enabled') — a listener nem dispatcha se false.
- *   2. config('jana.online_eval.judge') — default 'local' (NÃO-implementado → SKIP,
- *      zero egress). Só 'openai' manda a amostra pro juiz externo, e SÓ depois do
- *      PiiRedactor. Ligar de verdade = enabled=true E judge=openai (decisões [W]).
+ *   2. config('jana.online_eval.judge') — 'local' roteia pro juiz self-hosted (CT 100,
+ *      backend Ollama, ZERO egress pra terceiro · US-COPI-137 rota B); 'openai' manda
+ *      a amostra pro juiz externo. Ambos SÓ depois do PiiRedactor. Qualquer outro valor
+ *      SKIPa (fail-safe). Ligar de verdade = enabled=true E judge escolhido (decisões [W]);
+ *      'local' exige ainda os pré-reqs de infra do config/ragas.php (modelo chat + expor Ollama).
  *
  * Por que async (fila): o juiz LLM é lento (~1-2s/chamada) e não pode atrasar a
  * resposta ao cliente. Prod tem worker (QUEUE_CONNECTION=database, verificado). O
@@ -81,17 +83,24 @@ class JudgeTraceOnlineJob implements ShouldQueue
 
     public function handle(PiiRedactor $redactor, RagasJudgeService $judge, LangfuseClient $client): void
     {
-        // Gate 2 (LGPD): só o juiz 'openai' manda dado pra fora. O default 'local'
-        // (juiz self-hosted) ainda NÃO existe — em vez de cair pro OpenAI por reflexo
-        // (surpresa LGPD), SKIPa honesto. Zero egress até [W] escolher 'openai'.
+        // Gate 2 (LGPD): dois destinos válidos, o resto SKIPa (fail-safe — nunca cair
+        // pro OpenAI por reflexo).
+        //   'local'  → juiz self-hosted no CT 100 (rota B, US-COPI-137) — ZERO egress
+        //              pra terceiro; o dado (PII-redigido) fica na nossa infra.
+        //   'openai' → juiz externo (api.openai.com); a amostra PII-redigida SAI.
         $judgeTarget = (string) config('jana.online_eval.judge', 'local');
-        if ($judgeTarget !== 'openai') {
+        if (! in_array($judgeTarget, ['local', 'openai'], true)) {
             Log::channel('copiloto-ai')->info(
-                '[online-eval] SKIP: judge != openai — dado do cliente NÃO sai (LGPD default local não-implementado)',
+                '[online-eval] SKIP: judge desconhecido — dado do cliente NÃO sai',
                 ['judge' => $judgeTarget, 'business_id' => $this->businessId, 'trace' => $this->traceId]
             );
 
             return;
+        }
+
+        // 'local' força o backend Ollama (CT 100); 'openai' usa o default de config.
+        if ($judgeTarget === 'local') {
+            $judge->useBackend('ollama');
         }
 
         // Proteção dura: juiz em mock tornaria o score teatro. Não pontua em mock.

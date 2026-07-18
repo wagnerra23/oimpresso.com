@@ -66,6 +66,29 @@ class RagasJudgeService
     }
 
     /**
+     * Backend do juiz — 'openai' (egress) | 'ollama' (local zero-egress, US-COPI-137 rota B).
+     * Default vem de config; o JudgeTraceOnlineJob força 'ollama' quando o eval online
+     * roda com `jana.online_eval.judge = 'local'`. NULL = ainda não resolvido (usa config).
+     */
+    protected ?string $backend = null;
+
+    /**
+     * Sobrescreve o backend por chamada (o Job online seta 'ollama' pro judge local).
+     */
+    public function useBackend(string $backend): void
+    {
+        $this->backend = $backend;
+    }
+
+    /**
+     * Backend efetivo: o setado explicitamente OU o de config (default 'openai').
+     */
+    protected function resolveBackend(): string
+    {
+        return $this->backend ?? (string) config('ragas.judge_backend', 'openai');
+    }
+
+    /**
      * Faithfulness — claims da `answer` suportados pelo `context`?
      *
      * Prompt RAGAS-style: decompõe answer em claims; pra cada claim, contexto suporta?
@@ -230,85 +253,146 @@ PROMPT;
     }
 
     /**
-     * Chama gpt-4o-mini (ou modelo configurado) com prompt judge.
+     * Chama o juiz (OpenAI OU Ollama local) com prompt judge.
      *
-     * Retorna score 0..1; em erro/timeout retorna 0.0 e loga warning
-     * (gate falha → CI gera alerta, não bloqueia merge default).
+     * Roteia por backend (`resolveBackend()`); o TRANSPORTE vive em httpOpenAi/httpOllama,
+     * o PARSE do score + a instrumentação Langfuse são comuns. Retorna score 0..1; em
+     * erro/timeout/backend-indisponível retorna 0.0 e loga warning (gate falha → alerta,
+     * não bloqueia — advisory por design).
      */
     protected function callJudge(string $prompt, string $metric): float
     {
-        $apiKey = config('openai.api_key') ?: env('OPENAI_API_KEY');
-
-        if (empty($apiKey)) {
-            Log::warning("[RAGAS] OPENAI_API_KEY ausente — pulando metric={$metric}");
-
-            return 0.0;
-        }
-
-        $model   = config('ragas.judge_model', 'gpt-4o-mini');
-        $timeout = (int) config('ragas.judge_timeout', 60);
+        $backend = $this->resolveBackend();
 
         try {
             $t0 = microtime(true);
 
-            $response = Http::withHeaders([
-                'Authorization' => "Bearer {$apiKey}",
-                'Content-Type'  => 'application/json',
-            ])
-                ->timeout($timeout)
-                ->post('https://api.openai.com/v1/chat/completions', [
-                    'model'           => $model,
-                    'temperature'     => 0.0,
-                    'response_format' => ['type' => 'json_object'],
-                    'messages'        => [
-                        ['role' => 'system', 'content' => 'Você é avaliador RAGAS imparcial. Retorna sempre JSON válido.'],
-                        ['role' => 'user', 'content' => $prompt],
-                    ],
-                ]);
+            $res = $backend === 'ollama'
+                ? $this->httpOllama($prompt, $metric)
+                : $this->httpOpenAi($prompt, $metric);
 
-            if (! $response->successful()) {
-                Log::warning("[RAGAS] Judge HTTP {$response->status()} metric={$metric}");
-
+            if ($res === null) {
                 return 0.0;
             }
 
-            $raw  = $response->json('choices.0.message.content') ?? '{}';
-            $data = json_decode($raw, true);
-
-            $score = (float) ($data['score'] ?? 0.0);
-
-            // Sanitiza pra range 0..1
-            $score = max(0.0, min(1.0, $score));
+            $data  = json_decode($res['raw'], true);
+            $score = max(0.0, min(1.0, (float) ($data['score'] ?? 0.0)));
 
             // US-COPI-108 (reconciliação 2026-07-12): este call-site usa Http::
-            // direto — fora do listener global Langfuse (que só cobre events do
-            // laravel/ai). Instrumentação inline: 1 trace + 1 generation + 1 score
-            // por métrica. LangfuseClient é fail-open + no-op se langfuse.enabled=false
-            // (caso do CI GH Actions, que nem alcança o host CT 100).
+            // direto — fora do listener global Langfuse. Instrumentação inline:
+            // 1 trace + 1 generation + 1 score por métrica. LangfuseClient é fail-open
+            // + no-op se langfuse.enabled=false (CI GH Actions não alcança CT 100).
             $langfuse = app(LangfuseClient::class);
             $traceId  = $langfuse->traceComGeneration([
                 'name'        => 'ragas-judge',
                 'business_id' => null, // eval de governança repo-wide, sem tenant
                 'tool'        => 'ragas-gate',
-                'metadata'    => ['metric' => $metric],
+                'metadata'    => ['metric' => $metric, 'backend' => $backend],
             ], [
                 'name'        => "ragas-{$metric}",
-                'model'       => $model,
+                'model'       => $res['model'],
                 'input'       => $prompt,
-                'output'      => $raw,
-                'usage'       => [
-                    'input'  => $response->json('usage.prompt_tokens'),
-                    'output' => $response->json('usage.completion_tokens'),
-                ],
+                'output'      => $res['raw'],
+                'usage'       => ['input' => $res['in'], 'output' => $res['out']],
                 'duration_ms' => (int) round((microtime(true) - $t0) * 1000),
             ]);
             $langfuse->recordScore($traceId, "ragas_{$metric}", $score);
 
             return $score;
         } catch (\Throwable $e) {
-            Log::warning("[RAGAS] Exception metric={$metric}: " . $e->getMessage());
+            Log::warning("[RAGAS] Exception backend={$backend} metric={$metric}: " . $e->getMessage());
 
             return 0.0;
         }
+    }
+
+    /**
+     * Transporte OpenAI — POST api.openai.com. Retorna {raw, model, in, out} ou null.
+     *
+     * @return array{raw:string, model:string, in:?int, out:?int}|null
+     */
+    protected function httpOpenAi(string $prompt, string $metric): ?array
+    {
+        $apiKey = config('openai.api_key') ?: env('OPENAI_API_KEY');
+        if (empty($apiKey)) {
+            Log::warning("[RAGAS] OPENAI_API_KEY ausente — pulando metric={$metric}");
+
+            return null;
+        }
+
+        $model = (string) config('ragas.judge_model', 'gpt-4o-mini');
+
+        $response = Http::withHeaders([
+            'Authorization' => "Bearer {$apiKey}",
+            'Content-Type'  => 'application/json',
+        ])
+            ->timeout((int) config('ragas.judge_timeout', 60))
+            ->post('https://api.openai.com/v1/chat/completions', [
+                'model'           => $model,
+                'temperature'     => 0.0,
+                'response_format' => ['type' => 'json_object'],
+                'messages'        => [
+                    ['role' => 'system', 'content' => 'Você é avaliador RAGAS imparcial. Retorna sempre JSON válido.'],
+                    ['role' => 'user', 'content' => $prompt],
+                ],
+            ]);
+
+        if (! $response->successful()) {
+            Log::warning("[RAGAS] Judge OpenAI HTTP {$response->status()} metric={$metric}");
+
+            return null;
+        }
+
+        return [
+            'raw'   => (string) ($response->json('choices.0.message.content') ?? '{}'),
+            'model' => $model,
+            'in'    => $response->json('usage.prompt_tokens'),
+            'out'   => $response->json('usage.completion_tokens'),
+        ];
+    }
+
+    /**
+     * Transporte Ollama local (US-COPI-137 rota B, zero-egress pra terceiro) — POST
+     * {ollama_url}/api/chat num LLM self-hosted (CT 100). Retorna {raw, model, in, out}
+     * ou null. `format:'json'` força JSON (contrato Ollama); `stream:false` = 1 resposta.
+     *
+     * @return array{raw:string, model:string, in:?int, out:?int}|null
+     */
+    protected function httpOllama(string $prompt, string $metric): ?array
+    {
+        $base = rtrim((string) config('ragas.ollama_url', ''), '/');
+        if ($base === '') {
+            Log::warning("[RAGAS] ollama_url vazio — judge local não configurado (pré-req infra [W]) metric={$metric}");
+
+            return null;
+        }
+
+        $model = (string) config('ragas.ollama_model', 'qwen2.5:3b');
+
+        $response = Http::acceptJson()
+            ->timeout((int) config('ragas.judge_timeout', 60))
+            ->post("{$base}/api/chat", [
+                'model'    => $model,
+                'stream'   => false,
+                'format'   => 'json',
+                'options'  => ['temperature' => 0.0],
+                'messages' => [
+                    ['role' => 'system', 'content' => 'Você é avaliador RAGAS imparcial. Retorna sempre JSON válido.'],
+                    ['role' => 'user', 'content' => $prompt],
+                ],
+            ]);
+
+        if (! $response->successful()) {
+            Log::warning("[RAGAS] Judge Ollama HTTP {$response->status()} metric={$metric}");
+
+            return null;
+        }
+
+        return [
+            'raw'   => (string) ($response->json('message.content') ?? '{}'),
+            'model' => $model,
+            'in'    => $response->json('prompt_eval_count'),
+            'out'   => $response->json('eval_count'),
+        ];
     }
 }

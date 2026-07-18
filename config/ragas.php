@@ -40,6 +40,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Backend do juiz — 'openai' (egress) | 'ollama' (local zero-egress · US-COPI-137 rota B)
+    |--------------------------------------------------------------------------
+    | 'openai' (default): manda o prompt pra api.openai.com (o batch RAGAS histórico).
+    | 'ollama': manda pra um LLM self-hosted (CT 100), ZERO egress pra terceiro —
+    |   é o judge do eval ONLINE quando `jana.online_eval.judge = 'local'` (rota B, [W]).
+    |
+    | PRÉ-REQS DE INFRA (decisão/execução [W] — o código já roteia atrás desta flag):
+    |   1. Instalar um modelo de CHAT no Ollama do CT 100 (`ollama-embedder` só tem
+    |      embeddings hoje): `docker exec ollama-embedder ollama pull qwen2.5:3b`
+    |      (ou llama3.2:3b — 3B roda em CPU, ~5-30s/judge; escolha do [W] por recurso).
+    |   2. Expor esse Ollama ao worker do app (ADR 0062: Hostinger ≠ CT 100). Padrão do
+    |      projeto = subdomínio Traefik com IP-whitelist (como langfuse.oimpresso.com):
+    |      apontar RAGAS_OLLAMA_URL pra ele. NUNCA expor Ollama sem auth.
+    | Só então `RAGAS_JUDGE_BACKEND=ollama` + `jana.online_eval` gates ligam de verdade.
+    */
+    'judge_backend' => env('RAGAS_JUDGE_BACKEND', 'openai'),
+    'ollama_url'    => env('RAGAS_OLLAMA_URL', ''),      // ex: https://ollama.oimpresso.com (CT 100, IP-whitelist)
+    'ollama_model'  => env('RAGAS_OLLAMA_MODEL', 'qwen2.5:3b'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Sample size por suite
     |--------------------------------------------------------------------------
     | Quantas perguntas avaliar por run (Brief + KbAnswer cada).

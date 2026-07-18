@@ -46,6 +46,12 @@ Modules/Jana/Tests/Feature/Mcp/AuthorizesMcpMutationTest.php
 # PR-7c — guard do fix de auth-manager resolver no McpAuthMiddleware (ADR 0283/0081).
 # Source-ratchet (sem DB) → sqlite-safe.
 Modules/Jana/Tests/Feature/Mcp/McpAuthUserResolverTest.php
+# Eval online RAGAS (US-COPI-137) — o wire (job + service) NÃO rodava em lane
+# nenhuma (Jana fora do modules-pest matrix): teste-fantasma até 2026-07-17.
+# Mockery + Http::fake, sem DB → sqlite-safe. Cobre judge local (Ollama, rota B) +
+# openai + fail-safe + PII-redacted-antes-do-juiz.
+Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php
+tests/Feature/Ragas/RagasJudgeServiceTest.php
 Modules/Brief/Tests/Feature/LeaseBriefSectionServiceTest.php
 # Linha de saúde dos planos no brief (ADR 0294 Onda 1) — Process::fake, sem DB.
 Modules/Governance/Tests/Feature/PlanHealthBriefLineServiceTest.php

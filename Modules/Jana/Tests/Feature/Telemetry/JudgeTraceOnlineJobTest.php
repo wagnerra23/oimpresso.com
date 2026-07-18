@@ -18,7 +18,8 @@ uses(TestCase::class);
  *
  * Prova os 3 contratos que importam:
  *   1. shouldSample: matemática determinística ~5% (sem DB/fila).
- *   2. LGPD default: judge=local → SKIP, juiz NUNCA chamado, ZERO egress.
+ *   2. judge=local (rota B): roteia pro backend Ollama (CT 100, zero egress pra
+ *      terceiro), com PII redigida antes; judge desconhecido → SKIP (fail-safe).
  *   3. LGPD Tier 0: com judge=openai, o PiiRedactor roda ANTES do juiz — o texto
  *      que sai pro juiz externo NÃO carrega PII crua.
  */
@@ -48,20 +49,60 @@ it('shouldSample: ~5% sobre 10k traces (não 0%, não 100%)', function () {
     expect($hits)->toBeGreaterThan(350)->toBeLessThan(650);
 });
 
-// ── 2. LGPD default (judge=local) → SKIP, zero egress ────────────────────────
+// ── 2. judge=local (rota B) → backend Ollama + PII redigida · desconhecido → SKIP ──
 
-it('judge=local (default): SKIPa — juiz NÃO chamado, recordScore NÃO chamado (zero egress)', function () {
+it('judge=local: roteia pro backend Ollama (zero egress pra terceiro), PII redigida antes', function () {
     config(['jana.online_eval.judge' => 'local']);
 
-    $judge = Mockery::mock(RagasJudgeService::class);
-    $judge->shouldNotReceive('scoreFaithfulness'); // nada sai pro juiz
+    $cpfCru = '111.444.777-35'; // pii-allowlist (CPF sintético de teste)
+
+    $cap = new stdClass();
+    $judge = new class($cap) extends RagasJudgeService
+    {
+        public function __construct(public stdClass $cap) {}
+
+        public function isMockMode(): bool
+        {
+            return false;
+        }
+
+        public function useBackend(string $backend): void
+        {
+            $this->cap->backend = $backend; // prova que roteou pro local, não OpenAI
+        }
+
+        public function scoreFaithfulness(string $question, string $answer, string $context): float
+        {
+            $this->cap->context = $context;
+
+            return 0.8;
+        }
+    };
+
+    /** @var LangfuseClient&MockInterface $client */
     $client = Mockery::mock(LangfuseClient::class);
-    $client->shouldNotReceive('recordScore');       // nada gravado
+    $client->shouldReceive('recordScore')
+        ->once()
+        ->with('trace-L', 'ragas_faithfulness_online', 0.8, Mockery::type('string'));
+
+    $job = new JudgeTraceOnlineJob('trace-L', 4, "Cliente {$cpfCru} pergunta", 'resposta');
+    $job->handle(app(PiiRedactor::class), $judge, $client);
+
+    expect($cap->backend)->toBe('ollama');           // roteou pro juiz self-hosted
+    expect($cap->context)->not->toContain($cpfCru);  // PII redigida mesmo indo pro CT 100
+});
+
+it('judge desconhecido → SKIP (fail-safe: nunca cai pro OpenAI por reflexo)', function () {
+    config(['jana.online_eval.judge' => 'xyz']);
+
+    $judge = Mockery::mock(RagasJudgeService::class);
+    $judge->shouldNotReceive('scoreFaithfulness');
+    $client = Mockery::mock(LangfuseClient::class);
+    $client->shouldNotReceive('recordScore');
 
     $job = new JudgeTraceOnlineJob('trace-1', 4, 'input do cliente', 'resposta');
     $job->handle(app(PiiRedactor::class), $judge, $client);
 
-    // Mockery verifica os shouldNotReceive no teardown.
     expect(true)->toBeTrue();
 });
 
