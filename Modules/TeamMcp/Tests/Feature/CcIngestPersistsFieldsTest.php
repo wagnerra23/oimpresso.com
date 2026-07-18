@@ -54,7 +54,12 @@ function ensureCcIngestTables(): void
         $t->unsignedInteger('total_messages')->default(0);
         $t->unsignedBigInteger('total_tokens')->default(0);
         $t->decimal('total_cost_usd', 12, 6)->default(0);
+        $t->decimal('total_cost_brl', 12, 6)->default(0);
+        $t->string('status', 30)->nullable();
+        $t->json('metadata')->nullable();
+        $t->text('summary_auto')->nullable();
         $t->timestamps();
+        $t->softDeletes(); // McpCcSession use SoftDeletes → precisa de deleted_at (senão updateOrCreate 500a)
     });
 
     Schema::create('mcp_cc_messages', function ($t) {
