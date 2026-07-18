@@ -72,6 +72,7 @@ function ensureCcIngestTables(): void
         $t->string('msg_type', 20);
         $t->string('role', 20)->nullable();
         $t->string('tool_name', 100)->nullable();
+        $t->string('model', 60)->nullable();
         $t->mediumText('content_text')->nullable();
         $t->json('content_json')->nullable();
         $t->unsignedBigInteger('blob_id')->nullable();
@@ -154,6 +155,7 @@ function fullFieldPayload(): array
                 'uuid' => 'msg-asst-1',
                 'type' => 'assistant',
                 'role' => 'assistant',
+                'model' => 'claude-opus-4-8',
                 'content_text' => 'Aumente o timeout do worker e cheque o memory_limit.',
                 'content_json' => ['message' => ['model' => 'claude-opus-4-8']],
                 'tokens_in' => 100,
@@ -183,6 +185,7 @@ it('persiste content_text + tokens (NÃO stripa) — regressão do validate-stri
     expect((int) $asst->tokens_in)->toBe(100);
     expect((int) $asst->cache_read)->toBe(32000);
     expect($asst->content_json)->not->toBeNull();
+    expect($asst->model)->toBe('claude-opus-4-8');
     expect($asst->role)->toBe('assistant');
 
     $usr = DB::table('mcp_cc_messages')->where('msg_uuid', 'msg-user-1')->first();

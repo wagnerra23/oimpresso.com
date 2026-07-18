@@ -148,6 +148,7 @@ function parseMessage(row) {
     parent_uuid: row.parentUuid || null,
     type: row.type,
     role: row.message?.role || null,
+    model: row.message?.model || null,
     tool_name: null,
     content_text: null,
     content_json: null,

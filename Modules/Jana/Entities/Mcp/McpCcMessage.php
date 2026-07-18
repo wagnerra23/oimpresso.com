@@ -22,7 +22,7 @@ class McpCcMessage extends Model
     protected $fillable = [
         'session_id', 'msg_uuid', 'parent_uuid',
         'user_id', 'business_id',
-        'msg_type', 'role', 'tool_name',
+        'msg_type', 'role', 'tool_name', 'model',
         'content_text', 'content_json', 'blob_id',
         'tokens_in', 'tokens_out', 'cache_read', 'cache_write', 'cost_usd',
         'ts',
