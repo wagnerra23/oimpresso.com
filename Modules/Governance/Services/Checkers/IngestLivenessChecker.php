@@ -95,7 +95,7 @@ final class IngestLivenessChecker implements DriftChecker
         }
 
         // Algum host fresco → pipe vivo.
-        if (($summary['fresh'] ?? 0) > 0) {
+        if ($summary['fresh'] > 0) {
             return DriftCheckResult::clean($this->name(), $duration, $meta);
         }
 
@@ -111,7 +111,7 @@ final class IngestLivenessChecker implements DriftChecker
             target_type: 'ingest',
             severity: 'high',
             message: 'Pipe de ingestão Claude Code SEM heartbeat fresco (fresh=0 · stale='
-                .((int) ($summary['stale'] ?? 0)).' · dead='.((int) ($summary['dead'] ?? 0)).'). '
+                .$summary['stale'].' · dead='.$summary['dead'].'). '
                 .'Watcher(es) caído(s) — cc-search/whats-active servem dado stale, G5 sem input. '
                 .'Hosts: '.implode(' · ', $piores).'. '
                 .'Reativar via skill oimpresso-cc-watcher-setup (seed fresh-only + daemon).',
