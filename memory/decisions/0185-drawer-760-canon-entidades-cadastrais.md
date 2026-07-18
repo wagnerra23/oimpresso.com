@@ -14,7 +14,8 @@ module: core
 quarter: 2026-Q2
 tags: [paradigma, drawer-760, cadastral, mwart, cowork-blueprint, persona-larissa, multi-tenant, autosave, ADR-0179-cliente-drawer, ADR-0182-pageheader, ADR-0093-tier0]
 supersedes: []
-supersedes_partially: []
+supersedes_partially:
+  - "0179-cliente-drawer-760px-substitui-show-fullpage"
 amends:
   - "0179-cliente-drawer-760px-substitui-show-fullpage"
 superseded_by: []

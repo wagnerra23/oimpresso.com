@@ -15,6 +15,8 @@ related_adrs: [0091, 0036, 0094]
 parent_charter: mission.constituicao-v2
 parent_adr: 0091
 supersedes: []
+supersedes_partially:
+  - "0091-daily-brief"
 referenced_by: []
 authors: [wagner, opus]
 accepted_at: 2026-05-07
