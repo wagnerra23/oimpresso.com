@@ -21,15 +21,24 @@
 
     <title data-inertia>{{ config('app.name', 'OI Impresso') }}</title>
 
-    {{-- IBM Plex Sans/Mono — referenciada por sells-cowork.css (e demais
-         cowork bundles). Carregar via <link> aqui porque @import dentro de CSS
-         bundleado é descartado pelo Vite no build de produção, e o fallback
-         system-ui faz a tela parecer "errada" (issue: prod sem fonte
-         enquanto localhost renderiza por IBM Plex estar instalado no SO do
-         dev). --}}
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    {{-- IBM Plex Sans/Mono — SELF-HOSTED desde 2026-07-16 (ITEM 7 · 3c). O <link> do
+         Google Fonts (`display=swap`) saiu daqui: os @font-face agora vêm de
+         `@fontsource/ibm-plex-sans|mono`, importados em resources/js/app.tsx e
+         servidos pelo nosso domínio via manifest do `build-inertia`.
+
+         Por que mudou: o `display=swap` + CDN tornavam a fonte não-determinística no
+         runner do gate visual, que compensava injetando `* { font-family: Arial
+         !important }` — e esse force cegava o gate pra regressão de font-family. Com
+         @font-face local + `document.fonts.ready`, a fonte real carrega determinística
+         e o force pôde sair. Instalar a fonte no ubuntu-24.04 não resolveria: o
+         @font-face do CDN vence o SO.
+
+         O import é JS (não `@import` no CSS) pelo motivo que este comentário já
+         registrava: `@import` dentro de CSS bundleado era descartado pelo Vite no build
+         de produção. Nada de preconnect: não há mais origem externa a aquecer.
+
+         NOTA: `layouts/home.blade.php` (bundle público, fora do Inertia) ainda carrega
+         o CDN — fora do escopo do gate visual, que só exercita telas Inertia. --}}
 
     {{-- Anti-flash dark mode. Rodamos ANTES do <body> pintar: se modo=auto, decide
          pela preferência do sistema; senão já veio correto do servidor.

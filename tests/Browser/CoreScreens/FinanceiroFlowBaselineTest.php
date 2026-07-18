@@ -56,10 +56,13 @@ function estabilizarVisual($page): void
     $page->script(<<<'JS'
 (() => {
   const s = document.createElement('style');
-  s.textContent = '* { transition:none !important; animation:none !important; font-family:Arial,sans-serif !important; } body { -webkit-font-smoothing:antialiased !important; } input[type=date],input[type=datetime-local],input[type=time] { visibility:hidden !important; }';
+  s.textContent = '* { transition:none !important; animation:none !important; } body { -webkit-font-smoothing:antialiased !important; } input[type=date],input[type=datetime-local],input[type=time] { visibility:hidden !important; }';
   document.head.appendChild(s); return true;
 })()
 JS);
+    // Sem force de Arial (ITEM 7 · 3c): a fonte REAL self-hosted precisa estar carregada
+    // antes da captura, senão a baseline assa o fallback.
+    \Tests\Browser\Support\VisregThreshold::aguardarFontesReais($page);
     $page->wait(0.5);
 }
 

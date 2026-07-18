@@ -82,6 +82,44 @@ final class VisregThreshold
     }
 
     /**
+     * Fonte real CARREGADA antes do screenshot (ITEM 7 · 3c — 2026-07-16).
+     *
+     * Substitui o `* { font-family: Arial !important }` que as suítes injetavam. Aquele
+     * force dava determinismo, mas ao custo de CEGAR o gate pra regressão de font-family
+     * (318 declarações em resources/css, 0 com `!important` → o universal
+     * author-`!important` vencia todas). Sem o force, a fonte precisa estar carregada
+     * ANTES da captura, senão o screenshot pega o fallback e a baseline vira ruído.
+     *
+     * Duas garantias, nesta ordem:
+     *   1. `await document.fonts.ready` — resolve quando o carregamento termina;
+     *   2. `document.fonts.check('16px "IBM Plex Sans"')` — prova que a família pedida
+     *      está REALMENTE disponível. É o que mata o modo de falha silencioso: se o
+     *      self-host (@fontsource, importado em resources/js/app.tsx) quebrar, o
+     *      `fonts.ready` ainda resolveria (não há pendência) e a tela renderizaria no
+     *      fallback system-ui — assando fallback na baseline com cara de sucesso.
+     *      O check falha ALTO nesse caso, em vez de baselinar o errado.
+     *
+     * `evaluate` do Playwright aguarda a promise retornada, então o await é honrado.
+     *
+     * @param  object  $page  AwaitableWebpage do pest-plugin-browser
+     */
+    public static function aguardarFontesReais(object $page): void
+    {
+        $ok = $page->script(<<<'JS'
+            document.fonts.ready.then(() => document.fonts.check('16px "IBM Plex Sans"'))
+        JS);
+
+        if ($ok !== true) {
+            test()->fail(
+                'VisregThreshold: "IBM Plex Sans" NÃO está carregada no browser do gate '
+                . '(document.fonts.check = ' . var_export($ok, true) . '). A baseline assaria o '
+                . 'fallback system-ui. Verifique o self-host @fontsource em resources/js/app.tsx '
+                . 'e o build-inertia — NÃO regenere baseline com este erro em pé.'
+            );
+        }
+    }
+
+    /**
      * Captura o screenshot atual, compara com a baseline e roteia nas 3 bandas.
      *
      * @param  object  $page  AwaitableWebpage do pest-plugin-browser (tem ->screenshot())
@@ -102,35 +140,44 @@ final class VisregThreshold
         $tauHigh = self::tauHigh();
 
         if (self::isUpdatingSnapshots()) {
-            if ($baselineFile !== null) {
-                $actualFilename = self::actualFilename($screenName);
-                $actualPath = self::screenshotPath($actualFilename);
-                $baselinePath = self::baselinePath($baselineSuite, $baselineFile);
-                $page->screenshot(false, $actualFilename);
-                $actualBlob = @file_get_contents($actualPath);
+            // GERAÇÃO SEM O PLUGIN, SEMPRE (ITEM 7 · 3c — 2026-07-16).
+            //
+            // Antes, quando $baselineFile era null (as 4 suítes de estados/fluxos = 53 dos
+            // 59 .snap), este ramo caía em `$page->assertScreenshotMatches()`. Isso acoplava
+            // a GERAÇÃO ao plugin, que injeta a PRÓPRIA normalização — inclusive
+            // `font-family: Arial !important` (vendor pest-plugin-browser/src/Api/Concerns/
+            // MakesScreenshotAssertions.php:19-27). Consequência: a baseline nascia em Arial
+            // mesmo que a suíte não injetasse Arial nenhum, e a COMPARAÇÃO (que usa
+            // $page->screenshot() + pixelmatch-GD, abaixo) tinha de injetar Arial só pra
+            // casar com a baseline. Era o que travava a remoção do force.
+            //
+            // Agora as duas pontas usam o MESMO motor ($page->screenshot()), com ou sem
+            // $baselineFile: o caminho da baseline é derivado por baselinePath(), que já
+            // resolve o nome do .snap pelo nome do teste (snapshotDescription(), espelhando
+            // o SnapshotRepository do Pest) — é exatamente o mesmo caminho que readBaseline()
+            // usa na comparação, então o arquivo escrito aqui é o mesmo que é lido lá.
+            $actualFilename = self::actualFilename($screenName);
+            $actualPath = self::screenshotPath($actualFilename);
+            $baselinePath = self::baselinePath($baselineSuite, $baselineFile);
+            $page->screenshot(false, $actualFilename);
+            $actualBlob = @file_get_contents($actualPath);
 
-                if ($baselinePath === null || $actualBlob === false) {
-                    test()->fail("VisregThreshold [{$screenName}]: não foi possível materializar a baseline explícita.");
-
-                    return;
-                }
-
-                if (! is_dir(dirname($baselinePath))) {
-                    @mkdir(dirname($baselinePath), 0755, true);
-                }
-                if (@file_put_contents($baselinePath, base64_encode($actualBlob)) === false) {
-                    test()->fail("VisregThreshold [{$screenName}]: falha ao gravar {$baselinePath}.");
-
-                    return;
-                }
-
-                test()->expect(is_file($baselinePath))->toBeTrue('update-snapshots: baseline explícita regenerada');
+            if ($baselinePath === null || $actualBlob === false) {
+                test()->fail("VisregThreshold [{$screenName}]: não foi possível materializar a baseline.");
 
                 return;
             }
 
-            $page->assertScreenshotMatches(fullPage: false);
-            test()->expect(true)->toBeTrue('update-snapshots: baseline regenerada sem comparar contra a anterior');
+            if (! is_dir(dirname($baselinePath))) {
+                @mkdir(dirname($baselinePath), 0755, true);
+            }
+            if (@file_put_contents($baselinePath, base64_encode($actualBlob)) === false) {
+                test()->fail("VisregThreshold [{$screenName}]: falha ao gravar {$baselinePath}.");
+
+                return;
+            }
+
+            test()->expect(is_file($baselinePath))->toBeTrue('update-snapshots: baseline regenerada pelo motor próprio');
 
             return;
         }
@@ -148,10 +195,25 @@ final class VisregThreshold
                 return;
             }
 
-            // Suítes legadas sem manifesto mantêm o contrato nativo do Pest: a primeira
-            // execução materializa o snapshot e o publica no artifact para versionamento.
-            $page->assertScreenshotMatches(fullPage: false);
-            test()->expect(true)->toBeTrue();
+            // Suítes sem manifesto: a primeira execução materializa o snapshot e o publica
+            // no artifact para versionamento. Feito pelo motor próprio (ITEM 7 · 3c) — antes
+            // era `$page->assertScreenshotMatches()`, que fazia a baseline nascer com o Arial
+            // do plugin (MakesScreenshotAssertions.php:19-27) e forçava a comparação a
+            // injetar Arial só pra casar. Agora NENHUMA baseline nasce pelo plugin.
+            $bootstrapFilename = self::actualFilename($screenName);
+            $page->screenshot(false, $bootstrapFilename);
+            $bootstrapBlob = @file_get_contents(self::screenshotPath($bootstrapFilename));
+
+            if ($baselinePath = self::baselinePath($baselineSuite, $baselineFile)) {
+                if (! is_dir(dirname($baselinePath))) {
+                    @mkdir(dirname($baselinePath), 0755, true);
+                }
+                if ($bootstrapBlob !== false) {
+                    @file_put_contents($baselinePath, base64_encode($bootstrapBlob));
+                }
+            }
+
+            test()->expect($bootstrapBlob)->not->toBeFalse('baseline ausente: snapshot materializado pelo motor próprio');
 
             return;
         }
