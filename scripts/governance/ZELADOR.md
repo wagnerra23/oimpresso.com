@@ -41,6 +41,7 @@ Toda manhã, fazer o estado declarado convergir pra verdade, decidir o decidíve
 2. **Sondas (insumo, não notificação):** rodar `node scripts/governance/knowledge-drift.mjs --json`
    no checkout do main. Pior módulo NOVO (que não estava no topo ontem) entra no relatório.
    NÃO abrir task nem doc por causa de sonda — só registrar tendência.
+   - **Bite-log dos gates de design (DR-2a · [ADR 0336](../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)):** rodar `node scripts/governance/design-gate-bites.mjs --scan --sha <sha-do-main> [--pr <n>]`. Registra em `memory/governance/design-gate-bites.jsonl` cada violação de design que MERGEOU (gate advisory que não segurou; dedup por `sig` — persistente não infla). Se houver mordida NOVA, **incluí-la no PR diário** (o ZELADOR é o único coletor — não há workflow que commita no main sob `enforce_admins`). Depois `--tally`: gate com **≥2 PRs distintos** vira candidato a required (DR-3) → escalar como **resíduo** (passo 3 do trilho) com draft de emenda à 0314, **NUNCA promover sozinho**.
 3. **Caça ao ruído (subtração):** identificar fonte de notificação/bot/check cujo output não mudou
    NENHUMA decisão nos últimos 30d (ex.: tabela "all clear" de 36 módulos do module-grades).
    Propor demote/mute como item do relatório (1 por dia no máximo). Execução do demote = PR
