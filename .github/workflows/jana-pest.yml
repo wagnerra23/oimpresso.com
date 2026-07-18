@@ -119,7 +119,8 @@ jobs:
             Modules/Jana/Tests/Feature/Memoria/BuscarHistoricoTest.php \
             Modules/Jana/Tests/Feature/Memoria/SupersedeConsolidacaoTest.php \
             Modules/Jana/Tests/Feature/RetentionPurgeCommandTest.php \
-            Modules/Jana/Tests/Feature/EntitiesFilhasMultiTenantViaParentTest.php
+            Modules/Jana/Tests/Feature/EntitiesFilhasMultiTenantViaParentTest.php \
+            Modules/Jana/Tests/Feature/PeriodosControllerCrossTenantTest.php
 
       - name: Upload JUnit (Jana · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.jana == 'true' }}
