@@ -11,11 +11,11 @@ decided_by:
 decided_at: '2026-05-09'
 quarter: 2026-Q2
 related:
-  - '0094'
-  - '0104'
-  - '0107'
-  - '0109'
-  - '0110'
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0107-emendation-0104-visual-comparison-gate-f3
+  - 0109-claude-design-plugin-integrado-processo-mwart
+  - 0110-cockpit-pattern-v2-canon-list-detail
 emends:
   - '0109'
 pii: false

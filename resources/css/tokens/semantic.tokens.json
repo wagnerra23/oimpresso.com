@@ -1,12 +1,12 @@
 {
-  "$description": "DTCG semantic tokens — extraídos verbatim da fonte canônica do build (ADR 0300). $value = valor LIGHT (default). Quando a fonte define variante dark ([data-theme=dark] / .dark / .cockpit[data-theme=dark]), ela vai em $extensions.com.oimpresso.dark. NADA inventado: cada valor cita sua origem. Camada semantic herda da base (foundations) e nunca contradiz (Constituição UI v2 · UI-0013).",
+  "$description": "DTCG semantic tokens — FONTE de edição do token (onda DTCG ATIVADA, PR #3230); o build consome via _generated-*.css emitidos pelo Style Dictionary (git = SSOT, ADR 0239/0328). $value = valor LIGHT (default). Quando a fonte define variante dark ([data-theme=dark] / .dark / .cockpit[data-theme=dark]), ela vai em $extensions.com.oimpresso.dark. NADA inventado: cada valor cita sua origem. Camada semantic herda da base (foundations) e nunca contradiz (Constituição UI v2 · UI-0013).",
   "$extensions": {
     "com.oimpresso.dtcg": {
       "spec": "W3C Design Tokens Community Group (application/design-tokens+json)",
       "layer": "semantic",
-      "anchors": ["ADR 0300 (errata 0239)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)", "ADR 0190 (primary roxo 295)", "ADR 0281 (dark dual-seletor)", "ADR 0310 (tokens semânticos domínio kind/kpi-feature/vip/sla/canal)", "ADR 0311 (frescor consolidado em sla — escala temporal única)"],
-      "build_consumes_this": false,
-      "color_notes": "Cores OKLCH armazenadas como string CSS literal (ex 'oklch(0.55 0.15 295)'). DTCG color-as-string para fidelidade 1:1 com o CSS — o build NÃO consome este JSON, então não há reparse de cor. brand-meta usa hsl() (cor de identidade Meta cross-theme)."
+      "anchors": ["ADR 0300 (errata 0239)", "ADR 0239 (DS git SSOT)", "ADR 0249 (DS v6 naming)", "ADR 0190 (primary roxo 295)", "ADR 0281 (dark dual-seletor)", "ADR 0310 (tokens semânticos domínio kind/kpi-feature/vip/sla/canal)", "ADR 0311 (frescor consolidado em sla — escala temporal única)", "ADR 0328 (ativação — JSON é fonte, CSS é saída)"],
+      "build_consumes_this": true,
+      "color_notes": "Cores OKLCH armazenadas como string CSS literal (ex 'oklch(0.55 0.15 295)'). DTCG color-as-string para fidelidade 1:1 com o CSS — o Style Dictionary emite o $value VERBATIM (sem reparse de OKLCH/hsl/hex/calc), então a cor em _generated-*.css é byte-idêntica à fonte. brand-meta usa hsl() (cor de identidade Meta cross-theme)."
     }
   },
   "color": {

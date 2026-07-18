@@ -1,13 +1,13 @@
 ---
 slug: 0150-kb-unificado-grafo-conhecimento-modulo-ia-central
-number: 0150
+number: 150
 title: "KB Unificado como Grafo de Conhecimento — módulo IA central do oimpresso"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-16
+decided_at: "2026-05-16"
 proposed_at: 2026-05-15
 accepted_at: 2026-05-16
 implemented_in_pr: 934
@@ -28,7 +28,6 @@ related:
   - 0053-mcp-server-governanca-como-produto
   - 0061-conhecimento-canonico-git-mcp-zero-automem
   - 0080-trust-tiers-operacional-audit-findings
-  - 0089-capterra-ficha-formato-canonico
   - 0093-multi-tenant-isolation-tier-0
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0104-processo-mwart-canonico-unico-caminho

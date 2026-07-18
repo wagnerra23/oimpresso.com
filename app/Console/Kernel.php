@@ -534,12 +534,37 @@ class Kernel extends ConsoleKernel
         // BRT, scripts/tests/ct100-ragas-publish.sh) faz merge no trend e publica na órfã
         // governance/ragas-real-trend — o scorecard SDD mede ragas_real_uptime de lá.
         //
-        // Thresholds = baseline honesto MENOS margem pequena (estado-da-arte: "start lower,
-        // establish baseline, tighten iteratively"). Baseline real 2026-07-01 (N=51, CT 100
-        // staging): faithfulness 0.6916 · relevancy 0.8039 (governance/jana-ragas-real-baseline.json).
-        // Floors 0.65/0.75 alertam em REGRESSÃO real, não no 0.80 aspiracional (que falharia
-        // toda semana = ruído). O gap de retrieval (context_recall 0.38) é follow-up separado.
-        $schedule->command('jana:ragas-real-eval --json --threshold-faithfulness=0.65 --threshold-relevancy=0.75')
+        // Pisos NÃO vêm mais por flag aqui (US-COPI-136): o dono único é
+        // `thresholds_regressao` em governance/jana-ragas-real-baseline.json, lido pelo
+        // comando em runtime. Manter as flags aqui seria régua paralela — duas fontes
+        // dizendo o mesmo número até o dia em que divergem. Hoje: faithfulness 0.65 ·
+        // answer_relevancy 0.75 · context_recall 0.36 (medido menos margem; "start lower,
+        // tighten iteratively"), todos alertando em REGRESSÃO real, não no 0.80 aspiracional.
+        //
+        // ⚠️ MEDIDO 2026-07-17 (US-COPI-140): este schedule NUNCA disparou sozinho —
+        // nada invoca `schedule:run` no CT 100 (0 ocorrências em todo cron do host;
+        // container sem cron/supervisord; /etc/periodic/* vazios). O gate
+        // environments(['staging']) casa — APP_ENV do container É staging — mas o
+        // scheduler não roda: os números do baseline vieram de runs MANUAIS. Vale
+        // igual pro recall-eval acima — são os 2 ÚNICOS schedules de staging do arquivo.
+        //
+        // CONTRASTE que prova que o defeito é só o invocador do CT 100 (não o Kernel,
+        // não o comando, não o gate): o irmão jana:drift-sentinel é ->environments(['live'])
+        // e RODA semanal em prod, no horário (log copiloto-ai: 2026-07-05 06:01:29 e
+        // 2026-07-12 06:01:27, mock_mode:false). Prod tem scheduler (cron do hPanel);
+        // o CT 100 não.
+        //
+        // INVOCADOR REAL (decisão [W] 2026-07-17, caminho A): scripts/tests/ct100-jana-evals.sh,
+        // cron dom 06:00 no host do CT 100. Esta declaração aqui é a INTENÇÃO (cadência,
+        // ambiente, racional) — quem dispara é o cron. Custo aceito do caminho A: agenda
+        // em 2 lugares. Se um dia o CT 100 ganhar `schedule:run`, este entry volta a ser
+        // o invocador e o cron sai.
+        //
+        // Ver gaps_conhecidos.eval_nao_roda_sozinho + _errata_2026_07_17 no baseline, e
+        // US-COPI-140 (que carrega a errata dos números: NÃO tente deduzir o raio de
+        // `schedule:run` lendo este arquivo — o app registra 82 eventos e MÓDULOS
+        // registram os seus; a autoridade é Event::runsInEnvironment() no runtime).
+        $schedule->command('jana:ragas-real-eval --json')
             ->weeklyOn(0, '07:00')
             ->timezone('America/Sao_Paulo')
             ->withoutOverlapping()

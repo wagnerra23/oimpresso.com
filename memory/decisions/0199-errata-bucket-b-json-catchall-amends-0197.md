@@ -16,7 +16,6 @@ amends: [0197-extend-contacts-absorcao-pessoas-legacy]
 related:
   - 0093-multi-tenant-isolation-tier-0
   - 0105-cliente-como-sinal-guiar-sem-mandar
-  - 0188-multi-type-flags-aditivas
   - 0197-extend-contacts-absorcao-pessoas-legacy
   - 0198-hot-cold-tiering-migracao-transacional-legacy
 ---

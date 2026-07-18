@@ -95,3 +95,38 @@ it('drift-sentinel falha graceful se gold-set ausente', function () {
         File::move($tempPath, $goldPath);
     }
 });
+
+// ── US-COPI-143: a tautologia provada 2026-07-17 vira contrato mecânico ──────────
+//
+// O sentinel chama scoreFaithfulness(q, gt, gt) → gt-vs-gt≈1.0 (medido: 51/51 = 1.0
+// no CT 100). Regravar o baseline "real" (o antigo chip C3) setaria baseline=1.0 pra
+// tudo → alarme cego pra sempre. Estes testes travam: (1) o guard barra o regravar
+// tautológico fora de --mock; (2) o caveat viaja no report pra ninguém ler o "ok"
+// como "Jana OK". Sinal de drift REAL = jana:ragas-real-eval (US-COPI-136/140).
+
+it('drift-sentinel --update-baseline SEM --mock é BLOQUEADO (fecha a armadilha do chip C3)', function () {
+    $baselinePath = base_path('Modules/Jana/Tests/Feature/Ai/fixtures/baseline-responses.json');
+    $original = File::get($baselinePath);
+
+    // Chave fake só pra sair do DORMANT (isDormant=false) e ALCANÇAR o guard. O guard
+    // barra ANTES de qualquer chamada OpenAI (return no topo de updateBaseline), então
+    // nenhuma requisição real acontece — o teste é hermético.
+    config(['openai.api_key' => 'sk-fake-para-alcancar-o-guard']);
+
+    try {
+        $this->artisan('jana:drift-sentinel', ['--update-baseline' => true])
+            ->expectsOutputToContain('BLOQUEADO')
+            ->assertExitCode(1);
+
+        // baseline NÃO foi tocado pelo caminho bloqueado
+        expect(File::get($baselinePath))->toBe($original);
+    } finally {
+        File::put($baselinePath, $original);
+    }
+});
+
+it('drift-sentinel report carrega o caveat da tautologia (não deixa ler "ok" como "Jana OK")', function () {
+    $this->artisan('jana:drift-sentinel', ['--mock' => true, '--json' => true])
+        ->expectsOutputToContain('tautologico')
+        ->assertExitCode(0);
+});

@@ -1,7 +1,7 @@
 ---
 slug: 0008-sidebar-unica-tabs-horizontais
 number: 8
-title: !!binary gJQgU2lkZWJhciBjb20gMSBpdGVtICsgbWVudSBob3Jpem9udGFsIGVtIGFiYXMgZGVudHJvIGRvIG3Ds2R1bG8=
+title: "Sidebar com 1 item + menu horizontal em abas dentro do módulo"
 type: adr
 status: superseded
 authority: canonical
@@ -13,11 +13,10 @@ quarter: 2026-Q2
 tags: {  }
 supersedes: []
 superseded_by:
-  - '0039'
   - 0039-ui-chat-cockpit-padrao
 triage_2026_05_06_note: Frontmatter corrigido — campo supersedes estava errado (continha 0039, mas 0039 é quem supersede 0008). Triagem cruzada com _INDEX-LIFECYCLE.md.
 related:
-  - '0039'
+  - 0039-ui-chat-cockpit-padrao
 pii: false
 ---
 # ADR 0008 — Sidebar com 1 item + menu horizontal em abas dentro do módulo

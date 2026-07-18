@@ -1,20 +1,20 @@
 ---
 slug: 0169-errata-0168-runbook-onda-cowork-canon
-number: 0169
+number: 169
 title: "Errata ADR 0168 — RUNBOOK-onda-cowork.md como artefato 4º da triade governance"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-17
+decided_at: "2026-05-17"
 module: null
 quarter: 2026-Q2
 tags: [governance, errata, ondas-cowork, design-system, playbook]
 supersedes: []
 supersedes_partially: []
 superseded_by: []
-related: [0094, 0104, 0107, 0114, 0141, 0143, 0168]
+related: [0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho, 0107-emendation-0104-visual-comparison-gate-f3, 0114-prototipo-ui-cowork-loop-formalizado, 0141-agents-tool-use-pattern-claude-code, 0143-fsm-pipeline-live-prod-marco-2026-05-12, 0168-protocolo-wagner-sempre-tier-A-irrevogavel]
 pii: false
 review_triggers:
   - "Time MCP (Felipe/Maiara/Eliana/Luiz) reporta dúvida sobre como aplicar Ondas"

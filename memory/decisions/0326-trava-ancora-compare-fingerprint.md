@@ -16,7 +16,6 @@ superseded_by: []
 related:
   - 0327-anchor-content-required-emenda-0314
   - 0264-governanca-executavel-trio-dominio-e2e
-  - 0256-knowledge-survival-catraca-sentinela-gate-cadencia
 ---
 
 # ADR 0326 — trava de âncora no `--compare` do `style-fingerprint`

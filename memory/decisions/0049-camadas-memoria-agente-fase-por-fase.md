@@ -1,7 +1,7 @@
 ---
 slug: 0049-camadas-memoria-agente-fase-por-fase
 number: 49
-title: !!binary gJQgQ2FtYWRhcyBkZSBtZW3Ds3JpYSBkbyBhZ2VudGU6IGxpZ2FyIGZhc2UgcG9yIGZhc2UsIG1lZGlyIGFudGVzIGRlIGV2b2x1aXI=
+title: "Camadas de memória do agente: ligar fase por fase, medir antes de evoluir"
 type: adr
 status: aceito
 authority: canonical
@@ -12,12 +12,10 @@ decided_at: '2026-04-29'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0036'
   - 0036-replanejamento-meilisearch-first
-  - '0037'
   - 0037-roadmap-evolucao-tier-7-plus
-  - '0047'
-  - '0051'
+  - 0047-wagner-solo-sprint-memoria-agente
+  - 0051-schema-proprio-adapter-otel-genai
 pii: false
 ---
 # ADR 0049 — Camadas de memória do agente: ligar fase por fase, medir antes de evoluir

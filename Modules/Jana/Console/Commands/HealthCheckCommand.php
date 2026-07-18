@@ -40,6 +40,11 @@ use Modules\Jana\Services\CharterHealthChecker;
  *  10. Memoria recall backend (resiliência Meilisearch) — MCP/Meilisearch
  *      reachable; alerta ANTES da degradação silenciosa (chat responde sem
  *      recall, NÃO estoura 500). McpMemoriaDriver já degrada gracioso.
+ *  10e. Langfuse trace uptime 24h (US-COPI-138) — chegou trace no Langfuse nas
+ *      últimas 24h? Espelha brief_uptime_24h (2). Onde o observability_pipeline
+ *      do jana:system-audit mede a VIA (servidor responde /health 200?), este
+ *      mede o FLUXO — Langfuse de pé recebendo ZERO trace devolve 200 e pinta
+ *      verde. Mesmo par de 8c (canário=VIA) vs 8b (inbound_flow=RESULTADO).
  *  10d. MCP index sync gap (handoff 2026-07-05 next_step #3) — doc canônico
  *      no git AUSENTE de mcp_memory_documents OU vivo sem heartbeat de sync
  *      (indexed_at >7d). Classe do incidente BRIEFINGs: -11pp recall@5
@@ -115,6 +120,7 @@ class HealthCheckCommand extends Command
             $this->checkWhatsappInboundCanary(),
             $this->checkMcpWebhookHealth2h(),
             $this->checkMemoriaRecallBackend(),
+            $this->checkLangfuseTraceUptime24h(),
             $this->checkDbWriteCanary(),
             $this->checkDbStorageQuota(),
             $this->checkMcpIndexSyncGap(),
@@ -1134,6 +1140,156 @@ class HealthCheckCommand extends Command
                     . ') — chat degrada SEM memória. Checar Meilisearch/MCP CT 100.',
             ];
         }
+    }
+
+    /**
+     * Check 10e — Langfuse TRACE UPTIME 24h (US-COPI-138 · dead man's switch da telemetria LLM).
+     *
+     * O Langfuse está LIVE desde 2026-07-02 e NÃO tinha heartbeat: se parasse de receber
+     * trace, ninguém descobria. Foi assim que um buraco de 7 semanas passou (grade de
+     * réguas 2026-07-17, dimensão observabilidade-agente).
+     *
+     * Por que o monitor que já existia não pegou: o `observability_pipeline` do
+     * `jana:system-audit` (ADR 0133 check 1) mede a VIA — `GET /api/public/health` == 200.
+     * Um Langfuse de pé recebendo ZERO trace responde 200 e pinta verde. Este check mede o
+     * FLUXO (chegou trace?), fechando o mesmo par que o módulo Whatsapp já tem entre 8c
+     * (canário = a via responde) e 8b (inbound_flow = a mensagem chegou). A lição do #2726
+     * vale idêntica aqui: todo monitor media degradação DENTRO de um fluxo vivo, nunca a
+     * AUSÊNCIA do fluxo.
+     *
+     * FONTE REAL, nunca flag/artefato: pergunta pra API pública do PRÓPRIO Langfuse quantos
+     * traces ele recebeu (`GET /api/public/traces?fromTimestamp=...`). Quem responde é o
+     * DESTINO. Heartbeat que lê a nossa flag (`langfuse.enabled`) ou o nosso log de emissão
+     * mede a si mesmo — o emissor jurando que emitiu não prova que o destino recebeu.
+     *
+     * Espelha `brief_uptime_24h` (check 2): ≥1 nas últimas 24h. DURO (não-advisory) —
+     * telemetria muda derruba o exit code e dispara o ALERT do cron 06:00.
+     *
+     * Skip gracioso sem host/keys (dev/CI não têm credencial — mesmo padrão de
+     * `memoria_recall_backend` e `mcp_webhook_5xx_2h`).
+     *
+     * Desligado EM PRODUÇÃO (`LANGFUSE_ENABLED=false` ou config pela metade quando o env é
+     * live) não pula silencioso: vira ADVISORY `desligado-prod` — visível na tabela do
+     * health-check, mas NÃO pagina (não derruba o exit/cron). Um deploy que reseta o `.env`
+     * derruba a flag sem ninguém ver — a mesma classe dos incidentes ext-sodium/classmap
+     * stale. Advisory (não-duro) porque o desligamento PODE ser intencional (custo/
+     * manutenção): a decisão de religar é humana. Trade-off honesto: se o Langfuse ficar
+     * intencionalmente desligado em prod por um período, esta linha fica amarela até religar.
+     * Em dev/CI (env não-prod) segue pulando silencioso — sem ruído local.
+     *
+     * @see Modules/Jana/Services/Telemetry/LangfuseClient.php (lado da emissão)
+     * @see memory/sessions/2026-07-17-reguas-grade-truncagem-silenciosa.md
+     */
+    protected function checkLangfuseTraceUptime24h(): array
+    {
+        $name = 'langfuse_trace_uptime_24h';
+        $threshold = 1; // mínimo 1 trace nas últimas 24h (espelha brief_uptime_24h)
+
+        $host = rtrim((string) config('langfuse.host', ''), '/');
+        $publicKey = (string) config('langfuse.public_key', '');
+        $secretKey = (string) config('langfuse.secret_key', '');
+        $configured = (bool) config('langfuse.enabled', false)
+            && $host !== '' && $publicKey !== '' && $secretKey !== '';
+        // Alinhado com o schedule (`->environments(['live'])`): em prod, telemetria
+        // desligada merece olho; em dev/CI é normal. app()->environment cobre os dois
+        // rótulos de prod que o projeto usa (Hostinger = 'live'; fallback 'production').
+        $isProd = app()->environment(['production', 'live']);
+
+        $reachable = false;
+        $count = null;
+        $detalhe = '';
+
+        try {
+            if ($configured) {
+                $response = \Illuminate\Support\Facades\Http::withBasicAuth($publicKey, $secretKey)
+                    ->acceptJson()
+                    ->timeout((int) config('langfuse.timeout', 5))
+                    ->get("{$host}/api/public/traces", [
+                        'fromTimestamp' => now()->subHours(24)->toIso8601ZuluString(),
+                        'limit' => 1,
+                    ]);
+
+                $reachable = $response->successful();
+                if (! $reachable) {
+                    $detalhe = "HTTP {$response->status()}";
+                } else {
+                    // Contrato da API pública v2: {data: [...], meta: {totalItems: N}}.
+                    // `meta.totalItems` ausente = shape mudou → NÃO fingir que é 0 (o
+                    // check acende, mas dizendo "ilegível", nunca "mudo" — mentir a
+                    // causa é pior que não medir).
+                    $count = $response->json('meta.totalItems');
+                    $count = is_numeric($count) ? (int) $count : null;
+                }
+            }
+        } catch (\Throwable $e) {
+            $reachable = false;
+            $detalhe = mb_substr($e->getMessage(), 0, 80);
+        }
+
+        $r = self::evaluateTraceUptime($configured, $reachable, $count, $threshold, $isProd);
+
+        $messages = [
+            'nao-configurado' => 'Skipped (Langfuse não configurado — dev/CI sem host/keys)',
+            'desligado-prod' => 'ATENÇÃO (advisory): Langfuse DESLIGADO em produção (LANGFUSE_ENABLED=false ou host/keys ausentes) — telemetria LLM não emite. Se não foi intencional, um deploy pode ter resetado o .env; religue no .env de prod. Não pagina (pode ser desligamento deliberado).',
+            'inacessivel' => "ALERTA: API do Langfuse inacessível ({$detalhe}) — não dá pra provar que trace está chegando. Checar CT 100: tailscale ssh root@ct100-mcp 'cd /opt/langfuse/code/docker/langfuse && docker compose ps'",
+            'ilegivel' => 'ALERTA: Langfuse respondeu mas sem meta.totalItems — contrato da API mudou, o heartbeat parou de medir (conserte o check, não ignore)',
+            'mudo' => 'ALERTA: ZERO traces no Langfuse em 24h — telemetria LLM parou de chegar (checar LANGFUSE_ENABLED, keys, fila LangfuseTraceJob e workers). Servidor pode estar 200 e mesmo assim mudo.',
+            'vivo' => "{$r['count']} trace(s) recebidos pelo Langfuse em 24h",
+        ];
+
+        return [
+            'name' => $name,
+            'ok' => $r['ok'],
+            // Advisory só no caso desligado-prod: aparece na tabela, não derruba o exit/cron.
+            'advisory' => $r['advisory'] ?? false,
+            'value' => $r['count'] ?? $r['state'],
+            'threshold' => ">= {$threshold}",
+            'message' => $messages[$r['state']] ?? $r['state'],
+        ];
+    }
+
+    /**
+     * Lógica pura do heartbeat de traces — pública e estática pra ser testável sem HTTP
+     * nem relógio real (mesmo padrão de evaluateCanaryFreshness / evaluateInboundFlow).
+     *
+     * Contrato (US-COPI-138), NÃO derivado da implementação:
+     *   - sem credencial + dev/CI   → pula (dev/CI não medem)
+     *   - sem credencial + prod      → ADVISORY "desligado-prod" (visível, NÃO pagina)
+     *   - API não respondeu         → ALERTA (sem resposta não há prova de fluxo)
+     *   - respondeu sem contagem    → ALERTA "ilegível" (o monitor apodreceu; não é 0)
+     *   - contagem < threshold      → ALERTA (fluxo morto = o buraco de 7 semanas)
+     *   - contagem >= threshold     → verde
+     *
+     * @return array{ok: bool, state: string, count: ?int, advisory?: bool}
+     */
+    public static function evaluateTraceUptime(
+        bool $configured,
+        bool $reachable,
+        ?int $traceCount,
+        int $threshold = 1,
+        bool $isProd = false,
+    ): array {
+        if (! $configured) {
+            // Em prod, telemetria desligada não some silenciosa: advisory (visível, não
+            // pagina — pode ser desligamento intencional). Em dev/CI, pula limpo.
+            return $isProd
+                ? ['ok' => false, 'state' => 'desligado-prod', 'count' => null, 'advisory' => true]
+                : ['ok' => true, 'state' => 'nao-configurado', 'count' => null];
+        }
+
+        if (! $reachable) {
+            return ['ok' => false, 'state' => 'inacessivel', 'count' => null];
+        }
+
+        if ($traceCount === null) {
+            return ['ok' => false, 'state' => 'ilegivel', 'count' => null];
+        }
+
+        $count = max(0, $traceCount);
+
+        return $count >= $threshold
+            ? ['ok' => true, 'state' => 'vivo', 'count' => $count]
+            : ['ok' => false, 'state' => 'mudo', 'count' => $count];
     }
 
     /** Tabela-alvo do write-canary (check 10b). @see migration create_jana_health_write_canary_table. */

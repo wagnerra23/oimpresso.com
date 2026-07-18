@@ -7,7 +7,7 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-23
+decided_at: "2026-05-23"
 module: NfeBrasil
 quarter: 2026-Q2
 tags: [multi-tenant, fiscal, cert-a1, sefaz, lookup-cnpj, tier-zero, irrevogavel, no-regression]
@@ -16,7 +16,6 @@ supersedes_partially: []
 superseded_by: []
 related:
   - 0093-multi-tenant-isolation-tier-0
-  - 0090-cert-legacy-nfe-brasil-coexistence
   - 0179-cliente-drawer-760px-substitui-show-fullpage
   - 0178-restauracao-campos-fiscais-br-canon
   - 0105-cliente-como-sinal-guiar-sem-mandar

@@ -19,13 +19,12 @@ superseded_by:
   - "0189-pageheader-canon-v3-1-cadastro-roxo"   # superseded parcial 2026-05-24 — layout v3.1 (3 blocos fechados)
   - "0190-primary-button-roxo-universal-295"     # superseded parcial 2026-05-25 — primary universal roxo 295 (não mais hue per grupo)
 related:
-  - "0093-multi-tenant-isolation-tier-0"
-  - "0094-constituicao-v2-7-camadas-8-principios"
-  - "0104-processo-mwart-canonico-unico-caminho"
-  - "0107-emendation-0104-visual-comparison-gate-f3"
-  - "0110-tipografia-canon-h1-subtitle"
-  - "0178-sells-unified-tabs-visao-supersede-0136"
-  - "0180-sidebar-v3-5-grupos-ghosts-header"
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0107-emendation-0104-visual-comparison-gate-f3
+  - 0178-sells-unified-tabs-visao-supersede-0136
+  - 0180-sidebar-v3-5-grupos-ghosts-header
 pii: false
 review_triggers:
   - "Larissa @ ROTA LIVRE biz=4 reportar inconsistência entre tela X e tela Y do mesmo grupo (ex Financeiro/Vendas/OS) → checar se pattern foi aplicado em ambas"

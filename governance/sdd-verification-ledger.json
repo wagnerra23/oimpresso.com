@@ -1,7 +1,11 @@
 {
   "_meta": {
     "doc": "memory/requisitos/Governance/PROTOCOLO-REFUTADOR-BACKFILL.md",
-    "regra": "Todo PR-de-lote de backfill IA (>10 arquivos em memory/requisitos/**) exige 1 entry AQUI antes do merge (plano-mae SDD 2026-06-12, frente GT-G5). Append-only: corrigir = nova entry, nunca editar a antiga. Validado por scripts/governance/ledger-check.mjs (advisory; fase 2 pluga no workflow do scorecard).",
+    "regra": "Todo PR-de-lote de backfill IA (>10 arquivos em memory/requisitos/**) exige 1 entry AQUI antes do merge (plano-mae SDD 2026-06-12, frente GT-G5). Append-only: corrigir = nova entry, nunca editar a antiga. Validado por scripts/governance/ledger-check.mjs. Fato datado: o step foi promovido a --enforce dentro do job umbrella em 2026-07-04. Dono unico de 'o que e required' = governance/required-checks-baseline.json — esta linha NAO afirma enforcement no presente (lapide §5 2026-07-16: afirmacao em presente apodrece no primeiro flip).",
+    "tipos": {
+      "anchors|prosa": "refutacao adversarial de lote-IA — e o que o ledger-check exige pra liberar merge de PR-de-lote (schema_entry).",
+      "juiz": "rodada de CALIBRACAO do juiz (chip C10, grade de reguas 2026-07-17): [W] rotula N vereditos AS CEGAS, compara-se com o veredito da maquina, publica-se a taxa. NAO e refutacao de lote e NAO libera merge nenhum — o ledger-check exclui tipo=juiz do casamento do PR. E MEDICAO, nao portao: `node scripts/governance/ledger-check.mjs --juiz-report` sai 0 sempre. Zero rodadas = NAO CALIBRADO (o placar nunca finge um numero). Schema em schema_entry_juiz."
+    },
     "schema_entry": {
       "pr": "integer — numero do PR do lote",
       "lote_id": "string — ex: SA-A5-financeiro-01, KL-E3-briefings-02",
@@ -18,6 +22,26 @@
       "pii_hits": "integer — obrigatorio 0",
       "evidencia": "string — path do artefato de refutacao (session log ou comment do PR)",
       "veredito": "aprovado | reprovado"
+    },
+    "schema_entry_juiz": {
+      "_porque": "O juiz (refutador/veredito da maquina) nunca foi conferido contra humano. Sem denominador humano, 'Wagner-tinha-razao 33/33' e prosa, nao medicao (grade de reguas 2026-07-17, dimensao orquestracao-adversarial 6,0/10). Esta entry e o denominador.",
+      "_custo_real": "Exige tempo do [W] rotulando. NAO existe substituto sintetico: um modelo rotulando o veredito de outro modelo e o mesmo vies duas vezes — por isso `rotulador` contendo haiku|sonnet|opus|fable|mythos e REJEITADO pelo validador.",
+      "tipo": "juiz (fixo)",
+      "lote_id": "string — id da rodada, ex: JUIZ-CAL-2026-07-r1",
+      "data": "string YYYY-MM-DD da rodada",
+      "pr": "integer — PR onde a rodada foi registrada",
+      "juiz": "string — O QUE esta sendo calibrado, ex: 'ledger-refutador (fable-5)', 'pr-critic', 'workflow adversarial reguas'",
+      "rotulador": "string — QUEM rotulou; tem que conter sigla de HUMANO DO TIME por ALLOWLIST ([W]/[M]/[F]/[L]/[E], regras-time.md), NAO denylist de modelo. Denylist de nome de modelo vaza por construcao (gpt-4o-mini/gemini/grok escapam — lapide §5 2026-06-30); a allowlist do time e fechada e completa. Reforco: sigla + copilot-modelo ('[W] + sonnet') tb e rejeitado (assistencia contamina). Achado adversarial skeptic 2 2026-07-17.",
+      "cego": "boolean — obrigatorio true: rotulou SEM ver o veredito da maquina. Rotular vendo = ancoragem, nao calibracao.",
+      "itens_rotulados": "integer >= 1 — N vereditos rotulados (o denominador)",
+      "concordancias": "integer 0..N — quantos rotulos humanos bateram com a maquina",
+      "concordancia_pct": "number — tem que FECHAR com concordancias/itens_rotulados (tolerancia 0.1), senao rejeitada. Trava contra numero redondo que os rotulos nao sustentam.",
+      "_campos_proibidos": "juiz entry NAO carrega `veredito` nem `error_rate_pct` — esses sao de refutacao de lote (anchors|prosa). O measureBackfillErrorRate do sdd-scorecard (metrica do ratchet required) filtra por veredito='aprovado' + error_rate_pct numerico; uma entry juiz com esses campos poluiria a metrica. Defesa: o filtro exclui tipo!='juiz' na BORDA (sdd-scorecard.mjs) — mas nao ponha os campos, e o schema aqui declara que sao proibidos. Achado adversarial skeptic 1 2026-07-17.",
+      "_residual_k": "HONESTO: `concordancias` (k) so tem checagem de consistencia aritmetica (fecha com o pct) — NAO ha backstop mecanico provando que k concordancias humanas de fato aconteceram. A integridade do numero repousa no `evidencia` (path dos rotulos) + na allowlist do rotulador. E report, nao gate; auditavel, nao provado. Achado skeptic 2 2026-07-17.",
+      "evidencia": "string — path do artefato com os rotulos do humano (session log / comment do PR)",
+      "_sem_veredito": "De proposito: calibracao NAO aprova nem reprova nada. O output e um numero com denominador, nao um adjetivo. Nao promover a required sem emenda ADR + flip [W].",
+      "_quem_monta_nao_exibe": "ERRO COMETIDO NA 1a MONTAGEM (2026-07-17, registrado pra nao repetir): o agente que montou a folha imprimiu o gabarito NO CHAT do proprio [W] (comment do PR com o veredito por item + tabela de status) enquanto pesquisava — contaminando o rotulador antes de perguntar. `cego` NAO e so 'nao abrir o arquivo do gabarito': e o CANAL INTEIRO onde o rotulador le. Regra: quem monta pesquisa SEM exibir veredito/gabarito no canal do rotulador — extrai pra arquivo e reporta so o volume ('folha gerada, N itens'), nunca o conteudo. Mesma familia do `sessao_fresca` do refutador: contexto compartilhado = verificacao invalida. Se vazou, a rodada e `cego: false` (invalida) — monte outra com lote que nao passou pelo canal.",
+      "_como_rodar": "VARREDURA MEDIDA nos 31 PRs do ledger (2026-07-17, nao estimado): (a) o ledger guarda AGREGADO — 100% das entries tem o campo `veredito` e 33% narram o veredito na 1a palavra da `evidencia` ('APROVADO 1/74...'), entao as entries NAO sao cegaveis: esconder a evidencia obrigaria [W] a refazer a verificacao de 40-70 itens por lote = inviavel; (b) 18 dos 31 PRs NAO tem comment de refutacao (viveu em task ad-hoc/session log) e os 13 restantes sao resumos que narram SO os refutados — ou seja, veredito por item quase nao existe como dado. O UNICO lote com veredito item-a-item e o PR #4274 (11 status de modulo, 1 linha cada), usado na rodada 1 (memory/reguas/2026-07-17-calibracao-juiz-r1/). LICAO PRA PROXIMA RODADA: nao procure o dado retroativo — ele nao existe; faca o refutador EMITIR veredito por item ja no formato cegavel (item | claim | CONFIRMADO|REFUTADO em linhas separadas), ai a calibracao vira barata e prospectiva. Prefira lotes cujo item [W] julga de cabeca (status/dominio/negocio) — em lote de `anchors` o custo humano e proibitivo, e o numero de uma rodada de prosa NAO generaliza pra anchors."
     }
   },
   "entries": [

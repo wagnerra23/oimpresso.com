@@ -12,7 +12,6 @@ module: governance
 tags: [governance, charter, freshness]
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
-  - 0101-page-charter-contract-vivo
   - 0216-governance-drift-framework-driftchecker-plugavel
 pii: false
 ---

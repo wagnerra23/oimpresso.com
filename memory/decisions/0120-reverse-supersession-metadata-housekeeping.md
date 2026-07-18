@@ -1,13 +1,13 @@
 ---
 slug: 0120-reverse-supersession-metadata-housekeeping
-number: 0120
+number: 120
 title: "Supersession metadata housekeeping — fix 0079 + documenta drift de direção forward"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-09
+decided_at: "2026-05-09"
 quarter: 2026-Q2
 tags: [governance, adr, metadata, housekeeping, audit-constituicao]
 related_adrs: [0028, 0094, 0095]

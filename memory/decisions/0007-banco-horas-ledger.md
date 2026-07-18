@@ -1,7 +1,7 @@
 ---
 slug: 0007-banco-horas-ledger
 number: 7
-title: !!binary gJQgQmFuY28gZGUgaG9yYXMgY29tbyBsZWRnZXIgYXBwZW5kLW9ubHk=
+title: "Banco de horas como ledger append-only"
 type: adr
 status: aceito
 authority: canonical
@@ -12,7 +12,7 @@ decided_at: '2026-04-18'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0003'
+  - 0003-marcacoes-append-only
 pii: false
 ---
 # ADR 0007 — Banco de horas como ledger append-only

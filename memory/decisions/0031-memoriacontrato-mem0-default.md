@@ -1,7 +1,7 @@
 ---
 slug: 0031-memoriacontrato-mem0-default
 number: 31
-title: !!binary gJQgYE1lbW9yaWFDb250cmF0b2AgaW50ZXJmYWNlIFBIUCArIGRyaXZlciBkZWZhdWx0IGBNZW0wUmVzdERyaXZlcmA=
+title: "`MemoriaContrato` interface PHP + driver default `Mem0RestDriver`"
 type: adr
 status: aceito
 authority: canonical
@@ -15,14 +15,11 @@ supersedes: []
 superseded_by: []
 triage_2026_05_06_note: MemoriaContrato + Mem0 default substituído por Meilisearch first (driver canônico atual).
 related:
-  - '0026'
   - 0026-posicionamento-erp-grafico-com-ia
-  - '0027'
   - 0027-gestao-memoria-roles-claros
-  - '0032'
   - 0032-vizra-adk-prism-php-orquestracao
-  - '0035'
-  - '0036'
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+  - 0036-replanejamento-meilisearch-first
 pii: false
 ---
 # ADR 0031 — `MemoriaContrato` interface PHP + driver default `Mem0RestDriver`

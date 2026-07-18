@@ -49,8 +49,13 @@
 //      TEXTO; sombra de card que não casa (N≠M cards) sumia no SO (dogfood Financeiro: 6 cards
 //      elevados no proto × 1 no prod, 0 CARD DIVERGE em boxShadow). Agora a elevação é inventariada
 //      como as divisórias (tier|cor|span), cega a texto: superfície que ACHATOU vira SO_PROTO nomeado.
-// Ainda FORA (precisa driver/dep): estados hover/focus/active e responsivo multi-viewport (harness
-//      Playwright — matched-1280 + hover + vazio/erro), backstop perceptual sem âncora (dep SSIM → ADR).
+// Onda 3a (2026-07-08, fingerprint-harness.mjs) destravou RESPONSIVO (matriz de N viewports, incl.
+//      MOBILE 375) dirigindo Playwright. Onda 3a.2 (2026-07-17, chip C-F2) fechou os ESTADOS
+//      hover/focus/active: o harness força a pseudo-classe por elemento interativo e anexa, por
+//      elemento, o CONJUNTO de propriedades que REAGEM (a afordância) — comparado aqui por
+//      compararEstados (paridade de afordância, NÃO escore — ADR 0290 / lápide "razão de fidelidade").
+// Ainda FORA (precisa dep de imagem): backstop perceptual sem âncora (SSIM → ADR). Estados de DADOS
+//      (vazio/loading/erro/drawer) seguem no loop manual — exigem manipular o estado do app, não CSS.
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL, fileURLToPath } from 'node:url';
@@ -279,6 +284,8 @@ export function comparar(fpA, fpB) {
   rows.push(...compararSombras(fpA.sombras, fpB.sombras));
   // v2 (2026-07-10) — ícones por elemento rotulado (fecha o ponto cego "vetor só vê texto").
   rows.push(...compararIcones(fpA.icones, fpB.icones));
+  // Onda 3a.2 (2026-07-17, chip C-F2) — estados hover/focus/active (anexados pelo harness Playwright).
+  rows.push(...compararEstados(fpA.estados, fpB.estados));
   rows.sort((x, y) => x.veredito.localeCompare(y.veredito) || x.chave.localeCompare(y.chave));
   const tally = {};
   for (const r of rows) tally[r.veredito] = (tally[r.veredito] || 0) + 1;
@@ -300,6 +307,42 @@ export function compararIcones(iconesA = [], iconesB = []) {
     if ((a.svgs > 0) !== (b.svgs > 0)) {
       rows.push({ veredito: 'DIVERGE', chave: 'ICONE ' + chave(a), campos: ['svgs: ' + a.svgs + ' → ' + b.svgs + (b.svgs === 0 ? '  (ícone SUMIU na captura B)' : '  (ícone só na captura B)')] });
     }
+  }
+  return rows;
+}
+
+// ── Onda 3a.2 (2026-07-17, chip C-F2) — ESTADOS hover/focus/active ──────────────
+// O SNIPPET mede o estado DEFAULT (uma foto). O harness Playwright força a pseudo-classe por
+// elemento interativo e anexa, por elemento, o CONJUNTO de propriedades que MUDAM em cada estado
+// (a "afordância": bg escurece no hover, anel de foco aparece, botão pressiona). Aqui comparamos a
+// PARIDADE DE AFORDÂNCIA: proto e prod reagem nas MESMAS propriedades? Botão que no proto escurece+
+// eleva no hover e na prod não faz NADA ⇒ DIVERGE "hover: proto muda {bg,boxShadow} · prod muda {}".
+// Cego ao VALOR base da cor (o default pass já é dono do valor absoluto): compara o CONJUNTO de
+// eixos que reagem, não o valor — pega o gap REAL (estado ausente / anel de foco faltando) sem
+// falso-positivo por cor-base diferente. NÃO é escore (ADR 0290 / lápide "razão de fidelidade"
+// 2026-07-17): é veredito por elemento×estado, mesmo vocabulário DIVERGE/IDENTICO. Só compara
+// quando os DOIS lados têm `estados` (captura sem harness ⇒ passada pulada, como ícones).
+const ESTADOS = ['hover', 'focus', 'active'];
+export function diffEstadosPar(a, b) {
+  const campos = [];
+  for (const st of ESTADOS) {
+    const sa = [...(a?.[st] || [])].sort();
+    const sb = [...(b?.[st] || [])].sort();
+    if (sa.join(',') !== sb.join(',')) {
+      campos.push(`${st}: proto muda {${sa.join(',') || '—'}} · prod muda {${sb.join(',') || '—'}}`);
+    }
+  }
+  return campos;
+}
+export function compararEstados(estA = [], estB = []) {
+  const rows = [];
+  if (!estA.length || !estB.length) return rows; // captura sem harness de um dos lados — sem base
+  const mapB = new Map(estB.map((e) => [chave(e), e]));
+  for (const a of estA) {
+    const b = mapB.get(chave(a));
+    if (!b) continue; // elemento só de um lado já é SO_* da 1ª passada (não duplica aqui)
+    const campos = diffEstadosPar(a, b);
+    if (campos.length) rows.push({ veredito: 'DIVERGE', chave: 'ESTADO ' + chave(a), campos });
   }
   return rows;
 }
@@ -380,6 +423,7 @@ const FAMILIA_CAMPO = {
   padding: 'espaçamento', w: 'tamanho', h: 'tamanho', filhos: 'estrutura',
   xnorm: 'posição', ynorm: 'posição', linhas: 'quebra', overflowX: 'overflow',
   opacity: 'opacidade', transform: 'transform', display: 'display',
+  hover: 'estado', focus: 'estado', active: 'estado',
 };
 export function veredictoNL(rows) {
   const rc = resumoCampos(rows);
@@ -1018,6 +1062,34 @@ function selftest() {
     ['v2 claro-no-dark: dark com bg branco → flagra', clarosNoTema(fpDark).length === 1, true],
     ['v2 claro-no-dark: dark sem claro → vazio', clarosNoTema(fpDarkOk).length === 0, true],
     ['v2 claro-no-dark: tema light → NUNCA flagra (branco é normal)', clarosNoTema(fpLight).length === 0, true],
+  ]) {
+    const ok = got === exp;
+    if (!ok) fails++;
+    console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${exp}, obtido ${got}`);
+  }
+  // ── Onda 3a.2 (2026-07-17, chip C-F2): ESTADOS hover/focus/active — paridade de afordância.
+  // proto: botão reage no hover (bg+sombra); input ganha anel de foco (outline); link sublinha.
+  // prod: botão NÃO reage no hover (afordância sumiu → DIVERGE); input perdeu o outline no foco
+  //       (anel de foco faltando → DIVERGE); link igual (→ sem row, IDENTICO). Prova pelos 2 lados.
+  const estProto = [
+    { tag: 'button', texto: 'Salvar', hover: ['bg', 'boxShadow'], focus: ['outline'], active: ['bg', 'boxShadow'] },
+    { tag: 'input', texto: 'Email', hover: [], focus: ['outline', 'borderColor'], active: [] },
+    { tag: 'a', texto: 'Ajuda', hover: ['textDecoration'], focus: ['outline'], active: [] },
+  ];
+  const estProd = [
+    { tag: 'button', texto: 'Salvar', hover: [], focus: ['outline'], active: [] },              // hover sumiu
+    { tag: 'input', texto: 'Email', hover: [], focus: ['borderColor'], active: [] },            // outline (anel) sumiu
+    { tag: 'a', texto: 'Ajuda', hover: ['textDecoration'], focus: ['outline'], active: [] },    // igual
+  ];
+  const estRows = compararEstados(estProto, estProd);
+  const estBtn = estRows.find((r) => r.chave.includes('Salvar'));
+  const estInp = estRows.find((r) => r.chave.includes('Email'));
+  for (const [label, got, exp] of [
+    ['estados: botão sem hover na prod → DIVERGE (afordância sumiu)', estBtn?.veredito === 'DIVERGE' && estBtn.campos.some((c) => c.startsWith('hover:')), true],
+    ['estados: input perdeu anel de foco (outline) → DIVERGE', estInp?.veredito === 'DIVERGE' && estInp.campos.some((c) => c.startsWith('focus:')), true],
+    ['estados: link com hover idêntico → NÃO gera row (IDENTICO)', !estRows.some((r) => r.chave.includes('Ajuda')), true],
+    ['estados: captura sem harness de um lado → passada pulada (retrocompat)', compararEstados(undefined, estProd).length === 0, true],
+    ["estados: veredictoNL agrupa hover/focus na família 'estado'", /estado/.test(veredictoNL(estRows)), true],
   ]) {
     const ok = got === exp;
     if (!ok) fails++;

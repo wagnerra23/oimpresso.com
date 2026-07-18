@@ -11,11 +11,11 @@ decided_by:
 decided_at: '2026-05-09'
 quarter: 2026-Q2
 related:
-  - '0026'
-  - '0094'
-  - '0103'
-  - '0105'
-  - '0106'
+  - 0026-posicionamento-erp-grafico-com-ia
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0103-eventos-fiscais-separados-por-modelo
+  - 0105-cliente-como-sinal-guiar-sem-mandar
+  - 0106-recalibracao-velocidade-fator-10x-ia-pair
 pii: false
 ---
 

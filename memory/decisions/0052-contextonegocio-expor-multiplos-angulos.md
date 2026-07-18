@@ -1,7 +1,7 @@
 ---
 slug: 0052-contextonegocio-expor-multiplos-angulos
 number: 52
-title: !!binary gJQgYENvbnRleHRvTmVnb2Npb2AgZGV2ZSBleHBvciBtw7psdGlwbG9zIMOibmd1bG9zIHBvciBtw6l0cmljYSAobsOjbyAxIG7Dum1lcm8p
+title: "`ContextoNegocio` deve expor múltiplos ângulos por métrica (não 1 número)"
 type: adr
 status: aceito
 authority: canonical
@@ -13,11 +13,11 @@ module: copiloto
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0046'
-  - '0047'
-  - '0049'
-  - '0050'
-  - '0051'
+  - 0046-chat-agent-gap-contexto-rico
+  - 0047-wagner-solo-sprint-memoria-agente
+  - 0049-camadas-memoria-agente-fase-por-fase
+  - 0050-metricas-obrigatorias-memoria-table
+  - 0051-schema-proprio-adapter-otel-genai
 pii: false
 ---
 # ADR 0052 — `ContextoNegocio` deve expor múltiplos ângulos por métrica (não 1 número)

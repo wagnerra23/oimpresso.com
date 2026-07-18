@@ -12,7 +12,6 @@ module: core
 related:
   - 0093-multi-tenant-isolation-tier-0
   - 0104-processo-mwart-canonico-unico-caminho
-  - 0127-fsm-canonico
 ---
 
 # ADR 0178 — Restauração dos campos fiscais BR em `contacts` (regressão UPOS 6.7)

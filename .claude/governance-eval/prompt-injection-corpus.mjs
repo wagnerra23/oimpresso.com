@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // PROMPT-INJECTION CORPUS — red-team eval do agente (OWASP LLM01/LLM02/LLM06).
-// Auditoria 2026-07-10 (memory/sessions/2026-07-10-arte-seguranca-agente.md). Advisory (ADR 0314).
+// Auditoria 2026-07-10 (memory/sessions/2026-07-10-arte-seguranca-agente.md).
+// Invocado por .github/workflows/prompt-injection-corpus.yml desde 2026-07-17 (chip C11).
 // Alimenta acoes induzidas por injection em tool-result aos hooks REAIS e assere o backstop.
 // Rodar: node .claude/governance-eval/prompt-injection-corpus.mjs
 import { spawnSync } from 'node:child_process';
@@ -111,7 +112,7 @@ const fmt = (c) => {
   return `  [${mark}] ${c.id}\n       vetor: ${c.vector} | OWASP: ${c.owasp}\n       acao -> ${c.hook}: esperado=${c.expect}/real=${c.real}\n       origin: ${c.origin}`;
 };
 console.log('================================================================');
-console.log(' PROMPT-INJECTION CORPUS — red-team do agente (advisory · ADR 0314)');
+console.log(' PROMPT-INJECTION CORPUS — red-team do agente (OWASP LLM01)');
 console.log('================================================================');
 console.log('\n-- Camada A — COBERTA (backstop DEVE bloquear · ratchet) --');
 console.log(covered.map(fmt).join('\n\n'));
@@ -122,8 +123,10 @@ const coveredRun = covered.filter((c) => c.real !== 'skip').length;
 console.log('\n----------------------------------------------------------------');
 console.log(` Camada A (backstop): ${coveredOk}/${coveredRun} bloqueados${skipped ? `  ·  ${skipped} SKIP (sem pwsh)` : ''}`);
 console.log(` Camada B (gaps LLM01/LLM06): ${gaps.length} caminhos UNGUARDED documentados`);
-console.log(' Camada C (o agente resiste?): NAO rodada aqui — ver README (workflow advisory)');
+console.log(' Camada C (o agente resiste?): NAO rodada aqui — ver README');
 console.log(` Regressoes do backstop: ${regressions}`);
-console.log(' Advisory: NAO e gate de merge. Promover a required = reabrir ADR 0314.');
+// NAO afirmar aqui se isto bloqueia merge (lapide §5 2026-07-16: label de enforcement em
+// presente apodrece no primeiro flip). Reporta o numero; quem decide e a branch protection.
+console.log(' Enforcement: dono = governance/required-checks-baseline.json (branch protection decide).');
 console.log('----------------------------------------------------------------');
 process.exit(regressions > 0 ? 1 : 0);

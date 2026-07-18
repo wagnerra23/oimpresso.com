@@ -1,7 +1,7 @@
 ---
 slug: 0027-gestao-memoria-roles-claros
 number: 27
-title: !!binary gJQgR2VzdMOjbyBkZSBtZW3Ds3JpYSBkbyBwcm9qZXRvOiBwYXDDqWlzIGNsYXJvcyBwb3IgZnVuw6fDo28=
+title: "Gestão de memória do projeto: papéis claros por função"
 type: adr
 status: aceito
 authority: canonical
@@ -12,11 +12,10 @@ decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0010'
-  - '0012'
-  - '0024'
-  - '0028'
-  - '0030'
+  - 0010-sistema-memoria-projeto
+  - 0024-instalacao-1-clique-modulos
+  - 0028-adrs-numeracao-monotonica
+  - 0030-credenciais-jamais-em-git
 pii: false
 ---
 # ADR 0027 — Gestão de memória do projeto: papéis claros por função

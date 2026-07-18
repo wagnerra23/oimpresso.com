@@ -15,39 +15,44 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 84.2,
+      "value": 84.3,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 84.2,
+        "coverage_pct": 84.3,
         "specs_total": 59,
-        "us_total": 967,
-        "anchor_coverage_pct": 84.2,
+        "us_total": 978,
+        "anchor_coverage_pct": 84.3,
         "by_state": {
-          "sem_campo": 152,
+          "sem_campo": 153,
           "placeholder": 0,
-          "pendente": 372,
+          "pendente": 375,
           "parcial": 115,
-          "anchored_ok": 327,
+          "anchored_ok": 334,
           "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 820,
+        "fields_total": 830,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 774,
+        "fields_grammar_ok": 784,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 264,
         "req_sem_covering_test_total": 392,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 42,
+        "req_sem_lane_total": 44,
         "behavior_known": false,
         "servido_total": 3,
         "nao_servido_total": 114,
         "servido_ledger": true,
+        "anchor_stale_on": false,
+        "anchor_stale_total": null,
+        "anchor_stale_fresco_total": null,
+        "anchor_stale_unknown_total": null,
+        "anchor_stale_unknown_motivos": null,
         "baseline_applied": null,
         "grandfathered": {
           "aceite": 0,
@@ -61,22 +66,14 @@
     },
     "full_suite_pass_rate": {
       "status": "measured",
-      "value": 360,
+      "value": 358,
       "unit": "arquivos-que-falham (interseção ≥2 runs · ADR 0279)",
       "direction": "down",
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "2c86a013f90c762d",
+        "floor_files_hash": "cb13d830b5928f1b",
         "runs": [
-          {
-            "sha": "3acabd2f",
-            "ts": "20260713-020001",
-            "failed": 608,
-            "errors": 617,
-            "skipped": 2254,
-            "all_shards_measured": true
-          },
           {
             "sha": "52da896a",
             "ts": "20260714-020001",
@@ -86,15 +83,23 @@
             "all_shards_measured": true
           },
           {
-            "sha": null,
+            "sha": "d4a88d08",
             "ts": "20260715-020001",
             "failed": 597,
             "errors": 587,
             "skipped": 2266,
             "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260717-020001",
+            "failed": 608,
+            "errors": 642,
+            "skipped": 2277,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260715-020001",
+        "computed_at": "20260717-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -113,22 +118,15 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 17.1,
+      "value": 16.9,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 40955,
-        "total": 239719,
+        "covered": 40436,
+        "total": 239815,
         "runs": [
-          {
-            "sha": "3acabd2f",
-            "ts": "20260713-020001",
-            "coverage_pct": 16.8,
-            "covered": 40231,
-            "total": 239512
-          },
           {
             "sha": "52da896a",
             "ts": "20260714-020001",
@@ -137,14 +135,21 @@
             "total": 239618
           },
           {
-            "sha": null,
+            "sha": "d4a88d08",
             "ts": "20260715-020001",
             "coverage_pct": 17.1,
             "covered": 40955,
             "total": 239719
+          },
+          {
+            "sha": null,
+            "ts": "20260717-020001",
+            "coverage_pct": 16.9,
+            "covered": 40436,
+            "total": 239815
           }
         ],
-        "computed_at": "20260715-020001",
+        "computed_at": "20260717-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -236,7 +241,7 @@
         "carimbadas": 11,
         "sem_carimbo": 66,
         "stale": 0,
-        "oldest_distilled_at": "2026-07-01"
+        "oldest_distilled_at": "2026-07-02"
       },
       "stream": "MEM"
     },
@@ -249,7 +254,7 @@
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
         "modules": 74,
-        "hops_worst": 8
+        "hops_worst": 13
       },
       "stream": "MEM"
     },

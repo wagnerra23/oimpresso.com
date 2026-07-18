@@ -7,15 +7,15 @@ status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-21
+decided_at: "2026-05-21"
 module: sells
 quarter: 2026-Q2
 tags: [ux, unification, tabs, persona, refactor, ADR-0105-cliente-sinal, ADR-0136-superseded, multi-tenant-tier-0]
-supersedes: [0136]
+supersedes: [0136-sells-grade-avancada-modo-toggle]
 supersedes_partially: []
 amends: []
 superseded_by: []
-related: [0093, 0094, 0104, 0105, 0107, 0136]
+related: [0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0104-processo-mwart-canonico-unico-caminho, 0105-cliente-como-sinal-guiar-sem-mandar, 0107-emendation-0104-visual-comparison-gate-f3, 0136-sells-grade-avancada-modo-toggle]
 pii: false
 review_triggers:
   - "Larissa @ ROTA LIVRE biz=4 reclamar que tab default 'Operacional' perdeu coluna que ela usava → ajustar visibleColumns Operacional"

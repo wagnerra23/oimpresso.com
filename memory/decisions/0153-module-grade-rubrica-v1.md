@@ -1,6 +1,6 @@
 ---
 slug: 0153-module-grade-rubrica-v1
-number: 0153
+number: 153
 title: "Rubrica oficial `module-grade-v1` — nota 0-100 ponderada pra cada Module"
 type: adr
 status: deprecated

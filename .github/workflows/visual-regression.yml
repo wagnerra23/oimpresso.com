@@ -32,7 +32,19 @@ permissions:
 
 concurrency:
   group: visual-regression-${{ github.ref }}
-  cancel-in-progress: true
+  # cancel-in-progress SÓ em `synchronize` (novo commit → o run anterior está num SHA velho
+  # e vira lixo: cancelar é a economia real). NUNCA em `opened`/`labeled`/`unlabeled`/`reopened`:
+  # esses disparam no MESMO head SHA, e com `cancel-in-progress: true` um cancelava o outro,
+  # deixando um check-run `visual-regression` = `cancelled` no head SHA. A branch protection
+  # (enforce_admins) lê o `cancelled` como bloqueio — mesmo com o sibling `success` — e trava o
+  # merge com "Required status check "visual-regression" is cancelled" (gh pr checks mostra "pass").
+  # VETOR REAL (medido 2026-07-17): o fluxo de governança rotula PRs de ADR/docs ~1-4s após abrir
+  # (#4456/#4467, label `adr-legacy-schema-migration`) → `opened`+`labeled` no mesmo SHA → deadlock.
+  # Workaround manual era `gh run rerun` do run cancelado. `synchronize` traz SHA novo, então o run
+  # cancelado fica no SHA velho (não-head) e não bloqueia — a economia de custo do push-sobre-push
+  # segue idêntica. Este é o ÚNICO workflow com `labeled`/`unlabeled` + concurrency (e2e/ci/casos/
+  # dominio usam os types default sem `labeled`, imunes ao race). Não desligar o cancel cegamente.
+  cancel-in-progress: ${{ github.event.action == 'synchronize' }}
 
 jobs:
   visual-regression:

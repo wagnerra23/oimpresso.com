@@ -19,9 +19,6 @@ related:
   - 0131-tiering-memoria-canonico-local-segredo
   - 0137-modules-oficinaauto-qualificada
   - 0171-oficinaauto-ativacao-piloto-martinho-faseada
-  - 0178-canon-br-fiscal-restaurado-v3-7
-  - 0179-drawer-cliente-wave-b-c-cowork
-  - 0188-multi-type-flags-aditivas
   - 0194-correcao-dominio-oficinaauto-martinho-mecanica-pesada
 ---
 

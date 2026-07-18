@@ -1,20 +1,20 @@
 ---
 slug: 0064-modularizacao-split-teammcp-kb-superadmin360
-number: 0064
+number: 64
 title: "Modularização — split TeamMcp + KB + Superadmin 360°"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-04
+decided_at: "2026-05-04"
 module: null
 quarter: 2026-Q2
 tags: [modularização, copiloto, teammcp, kb, superadmin, governance, iam]
 supersedes: []
-supersedes_partially: [0055, 0057, 0059, 0061]
+supersedes_partially: [0055-self-host-team-plan-equivalente-anthropic, 0057-tela-team-admin-regras-governanca-tokens-mcp, 0059-governanca-memoria-estilo-anthropic-team, 0061-conhecimento-canonico-git-mcp-zero-automem]
 superseded_by: []
-related: [0027, 0053, 0040, 0065]
+related: [0027-gestao-memoria-roles-claros, 0053-mcp-server-governanca-como-produto, 0040-policy-publicacao-claude-supervisiona, 0065-permission-registry-contract]
 pii: false
 review_triggers:
   - "Quando 3+ engines de governança disputarem a mesma tabela de regras → reconsiderar módulo Governance separado"
