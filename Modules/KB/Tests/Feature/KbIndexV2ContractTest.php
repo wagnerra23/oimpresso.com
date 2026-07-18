@@ -12,14 +12,12 @@ use Inertia\Testing\AssertableInertia;
  * `uses(Tests\TestCase::class)` já aplicado globalmente em tests/Pest.php
  * (uses(TestCase::class)->in(Modules/KB/Tests/Feature)). NÃO redeclarar aqui.
  *
- * Contexto de maturidade (honesto): a rota `kb.v2` e o alias `sops.index` são
- * CLOSURES INLINE que fazem `Inertia::render('kb/Index.v2')` SEM props — o
- * Controller `KbController@indexV2` do charter NUNCA foi implementado. Logo a
- * tela roda 100% em modo mock (`usingMock = !props.nodes` → true). Este teste
- * blinda o CONTRATO DA ROTA VIVA (auth · render · read-only · sem side-effects
- * · Tier 0), derivado do charter `Index.v2.charter.md` §"Automation Anti-hooks"
- * + §"Métricas vivas (Pest GUARD)" — NÃO o contrato de dados backend (pendente
- * ONDA 1). Quando o `indexV2` real chegar, V5 vira o `has('nodes')` scopado.
+ * Estado (2026-07-17): `kb.v2` e o alias `sops.index` agora roteiam pra
+ * `KbController@indexV2`, que serve DADO REAL de kb_nodes (charter §8-bis passo 2).
+ * A tela saiu do mock (`usingMock = !props.nodes` → false). Este teste blinda o
+ * contrato da rota: auth + permissão (`copiloto.mcp.memory.manage`, do constructor),
+ * render, read-only, sem side-effects, e Tier 0 FORTE (V5: o payload serve nodes e
+ * o global scope isola biz=99). UC-06 (fallback mock) foi REVOGADO com o Controller.
  *
  * Multi-tenant Tier 0 IRREVOGÁVEL (ADR 0093): NUNCA biz=4 (ROTA LIVRE prod).
  * biz=1 canônico (ADR 0101); biz=99 = cliente fictício cross-tenant.
@@ -71,8 +69,13 @@ it('V2: rotas kb.v2 e sops.index estao registradas nomeadas', function () {
     expect(\Route::has('sops.index'))->toBeTrue();
 });
 
-it('V2b: GET /kb/v2 autenticado renderiza Inertia kb/Index.v2', function () {
-    kbActAsUser(bizId: 1);
+// NOTA: o Controller `KbController@indexV2` exige `can:copiloto.mcp.memory.manage`
+// (constructor do KbController — MESMA permissão da V3 /kb, consistente). Por isso os
+// testes autenticados concedem a permissão ao user biz=1.
+$permKb = ['copiloto.mcp.memory.manage'];
+
+it('V2b: GET /kb/v2 autenticado renderiza Inertia kb/Index.v2', function () use ($permKb) {
+    kbActAsUser(bizId: 1, permissions: $permKb);
 
     $response = $this->get('/kb/v2');
 
@@ -80,8 +83,8 @@ it('V2b: GET /kb/v2 autenticado renderiza Inertia kb/Index.v2', function () {
     $response->assertInertia(fn (AssertableInertia $p) => $p->component('kb/Index.v2'));
 });
 
-it('V2c: alias /sops renderiza o MESMO componente kb/Index.v2', function () {
-    kbActAsUser(bizId: 1);
+it('V2c: alias /sops renderiza o MESMO componente kb/Index.v2', function () use ($permKb) {
+    kbActAsUser(bizId: 1, permissions: $permKb);
 
     $response = $this->get('/sops');
 
@@ -90,8 +93,8 @@ it('V2c: alias /sops renderiza o MESMO componente kb/Index.v2', function () {
 });
 
 // ── UC-KBV2-03 — GET é read-only (não muta estado) ─────────────────────────
-it('V3: GET /kb/v2 nao escreve em kb_nodes nem kb_node_versions (read-only)', function () {
-    kbActAsUser(bizId: 1);
+it('V3: GET /kb/v2 nao escreve em kb_nodes nem kb_node_versions (read-only)', function () use ($permKb) {
+    kbActAsUser(bizId: 1, permissions: $permKb);
 
     $nodesAntes    = DB::table('kb_nodes')->count();
     $versionsAntes = DB::table('kb_node_versions')->count();
@@ -103,8 +106,8 @@ it('V3: GET /kb/v2 nao escreve em kb_nodes nem kb_node_versions (read-only)', fu
 });
 
 // ── UC-KBV2-04 — abrir a tela não dispara Jobs nem IA ──────────────────────
-it('V4: GET /kb/v2 nao enfileira nenhum Job (sem IA/email/whatsapp no render)', function () {
-    kbActAsUser(bizId: 1);
+it('V4: GET /kb/v2 nao enfileira nenhum Job (sem IA/email/whatsapp no render)', function () use ($permKb) {
+    kbActAsUser(bizId: 1, permissions: $permKb);
     Queue::fake();
 
     $this->get('/kb/v2')->assertOk();
@@ -112,10 +115,10 @@ it('V4: GET /kb/v2 nao enfileira nenhum Job (sem IA/email/whatsapp no render)', 
     Queue::assertNothingPushed();
 });
 
-// ── UC-KBV2-05 — Tier 0: rota não vaza nós de outro business_id ─────────────
-it('V5: payload servido a biz=1 nao contem no de biz=99 (ADR 0093)', function () {
+// ── UC-KBV2-05 — Tier 0: rota não vaza nós de outro business_id (PROVA FORTE) ─
+it('V5: payload servido a biz=1 nao contem no de biz=99 (ADR 0093)', function () use ($permKb) {
     // Nó seedado no tenant CLIENTE fictício (biz=99), NUNCA biz=4 (ROTA LIVRE prod).
-    kbActAsUser(bizId: 99);
+    kbActAsUser(bizId: 99, permissions: $permKb);
     DB::table('kb_nodes')->insert([
         'business_id' => 99,
         'type'        => 'article',
@@ -127,33 +130,55 @@ it('V5: payload servido a biz=1 nao contem no de biz=99 (ADR 0093)', function ()
         'created_at'  => now(),
         'updated_at'  => now(),
     ]);
+    // Um nó do PRÓPRIO business (biz=1) — pra provar que o payload NÃO é vazio.
+    kbActAsUser(bizId: 1, permissions: $permKb);
+    DB::table('kb_nodes')->insert([
+        'business_id' => 1,
+        'type'        => 'article',
+        'slug'        => 'doc-biz1-visivel',
+        'title'       => 'DOC BIZ1 VISIVEL',
+        'is_editable' => false,
+        'status'      => 'ok',
+        'created_at'  => now(),
+        'updated_at'  => now(),
+    ]);
 
-    // Agora o operador biz=1 abre a tela.
-    kbActAsUser(bizId: 1);
     $response = $this->get('/kb/v2');
 
     $response->assertOk();
-    // Hoje: render mock-only → prop `nodes` ausente, então o slug/título de biz=99
-    // nunca aparece no payload por construção. Quando indexV2 real chegar, esta
-    // asserção continua válida (scope business_id) e vira a prova forte.
+    // PROVA FORTE (o Controller agora SERVE nodes, então isto morde de verdade):
+    // o payload TEM nodes.data (não é mais mock), e o nó de biz=99 NÃO está lá —
+    // é o global scope do KbNode isolando o tenant (ADR 0093), não "por construção".
     $response->assertInertia(fn (AssertableInertia $p) =>
-        $p->component('kb/Index.v2')->missing('nodes.data')
+        $p->component('kb/Index.v2')->has('nodes.data')
     );
     expect($response->getContent())->not->toContain('SEGREDO BIZ99 NAO PODE VAZAR');
     expect($response->getContent())->not->toContain('segredo-biz99-nao-vaza');
+    // e o do próprio business aparece:
+    expect($response->getContent())->toContain('doc-biz1-visivel');
 });
 
-// ── UC-KBV2-06 — fallback mock declarado enquanto backend ausente ───────────
-it('V6: GET /kb/v2 responde 200 sem nenhuma prop (fallback MOCK_NODES)', function () {
-    kbActAsUser(bizId: 1);
+// ── UC-KBV2-06 — ⚰️ REVOGADO: o Controller entrega props, a tela sai do mock ──
+// A V6 antiga assertava `missing('nodes')` — o contrato da era-mock. O Controller
+// `indexV2` agora PASSA `nodes`/`categories`/`business`, então `missing('nodes')`
+// seria FALSO. Revogado no MESMO commit do Controller (charter §8-bis passo 2).
+// Substituído pela prova de que a tela recebe DADO REAL:
+it('V6: GET /kb/v2 serve DADO REAL — nodes + categories + business (não mock)', function () use ($permKb) {
+    kbActAsUser(bizId: 1, permissions: $permKb);
+    DB::table('kb_nodes')->insert([
+        'business_id' => 1, 'type' => 'adr', 'slug' => 'adr-real-0001',
+        'title' => 'ADR real', 'is_editable' => false, 'status' => 'ok',
+        'created_at' => now(), 'updated_at' => now(),
+    ]);
 
-    // A closure inline (kb.v2) NÃO passa props → a page precisa sobreviver via
-    // MOCK_NODES sem lançar "prop undefined". Prova: 200 + componente certo,
-    // sem exigir prop `nodes` (que hoje é ausente por design).
     $response = $this->get('/kb/v2');
 
     $response->assertOk();
     $response->assertInertia(fn (AssertableInertia $p) =>
-        $p->component('kb/Index.v2')->missing('nodes')
+        $p->component('kb/Index.v2')
+            ->has('nodes.data')          // serve nós reais (usingMock = !props.nodes → false)
+            ->has('categories')          // lateral real
+            ->has('subcategories')
+            ->has('business.name')       // NOVO-A: rótulo da empresa ativa
     );
 });

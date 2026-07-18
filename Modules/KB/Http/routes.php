@@ -35,13 +35,11 @@ Route::group(
 
         Route::get('/',                  'KbController@index')->name('kb.index');
 
-        // ---- Index V2 tri-pane (ONDA 2, Agent B) — gate visual pré-cutover ----
-        // Page Inertia tri-pane portada do Cowork. Tem fallback mock interno —
-        // Wagner abre /kb/v2 e vê 18 nós seed pra aprovar screenshot ADR 0114
-        // ANTES de cutover Index.tsx V3 → Index.v2.tsx (Wagner decide).
-        Route::get('/v2', function () {
-            return \Inertia\Inertia::render('kb/Index.v2');
-        })->name('kb.v2');
+        // ---- Index V2 tri-pane — DADO REAL (charter §8-bis passo 2, [W] 2026-07-17) ----
+        // Antes: closure `Inertia::render('kb/Index.v2')` sem props → tela em MOCK.
+        // Agora: KbController@indexV2 serve kb_nodes reais (categorias/subcategorias/
+        // business), a tela sai do mock. Tier 0 scopado pelo global scope (web request).
+        Route::get('/v2', [\Modules\KB\Http\Controllers\KbController::class, 'indexV2'])->name('kb.v2');
 
         // ---- Grafo (ONDA 5, Agent E) — vis-grafo Reactflow ----
         // Page Inertia com mock 50 nodes / 64 edges quando /kb/graph/data não
@@ -169,9 +167,9 @@ Route::group(
         'prefix'     => 'sops',
     ],
     function () {
-        Route::get('/', function () {
-            return \Inertia\Inertia::render('kb/Index.v2');
-        })->name('sops.index');
+        // DADO REAL (charter §8-bis, [W] 2026-07-17): mesmo Controller que /kb/v2 — o alias
+        // /sops serve o tri-pane com kb_nodes reais, não mais o mock.
+        Route::get('/', [\Modules\KB\Http\Controllers\KbController::class, 'indexV2'])->name('sops.index');
     }
 );
 

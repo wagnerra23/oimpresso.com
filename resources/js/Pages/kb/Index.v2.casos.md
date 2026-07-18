@@ -3,7 +3,7 @@ casos: KB Unificado V2 (tri-pane) — DADO REAL · /kb/v2 + /sops
 irmaos: Index.v2.charter.md (lei · v4) · Index.charter.md (V3 atual, coexiste)
 tecnica: Caso de uso = narrativa + critério de aceite verificável
 owner: wagner
-status_tela: viva-mock (roteada /kb/v2 + /sops com auth real; render mock-only — Controller indexV2 + classificador auto_match pendentes; D6 aberta)
+status_tela: viva-dado-real (roteada /kb/v2 + /sops via KbController@indexV2; serve kb_nodes reais classificados; leitor de corpo = follow-up)
 last_run: "2026-07-17"
 ---
 
@@ -15,7 +15,7 @@ last_run: "2026-07-17"
 >
 > **Onde os números vivem (lei "fato derivado não se restateia" — proibicoes.md §5, 2026-07-17):** este contrato **NÃO guarda contagem de acervo**. O dono do número é `kb_nodes` (a query), e o recibo datado mora no **charter §3** (medição 2026-07-17). Quando um critério precisa de um fato medido, ele aponta pra lá ou carrega recibo próprio (query + resultado + data + sistema). Não invente aqui um total que o banco sabe melhor.
 
-> **Contexto de maturidade (âncora honesta, medido 2026-07-17):** a rota `/kb/v2` (`kb.v2`) e o alias `/sops` (`sops.index`) são **closures inline** (`Modules/KB/Http/routes.php:42-44`) que fazem `Inertia::render('kb/Index.v2')` **sem props**. O Controller `KbController@indexV2` do charter **nunca foi implementado** → em prod a tela roda 100% em **modo mock** (`Index.v2.tsx:71` → `usingMock = !props.nodes` → sempre `true`). Os UC-01..06 blindam o **contrato da rota viva** (auth · render · read-only · sem side-effects · Tier 0). Os UC-07/08 travam **comportamento client-side** (localStorage · atalhos). Os UC-09/10/11/12 registram **dívida e comportamento de dado real** que vira teste forte quando o Controller + classificador `auto_match` chegarem (charter §8-bis).
+> **Contexto de maturidade (âncora honesta, 2026-07-17):** `/kb/v2` (`kb.v2`) e o alias `/sops` (`sops.index`) roteiam pra `KbController@indexV2` (`Modules/KB/Http/routes.php`), que serve **kb_nodes reais** classificados (`usingMock = !props.nodes` → **false**). UC-01..05 blindam o contrato da rota (auth+permissão · render · read-only · sem side-effects · **Tier 0 forte** — V5 serve nodes e isola biz=99). UC-06 (fallback mock) **revogado** com o Controller. UC-07/08 travam client-side (localStorage · atalhos). UC-09/10/11/12 = dívida/backlog (cor crua · toasts · indicador de empresa · categoria vazia). **Follow-up honesto:** o leitor mostra título+excerpt mas não o corpo completo (o bridge copia metadata, não `body_blocks`).
 
 ---
 
@@ -40,24 +40,24 @@ Renderizar `/kb/v2` não enfileira nenhum Job e não chama Brain B/Sonnet — a 
 **Pronto quando:** com `Queue::fake()`, GET `/kb/v2` resulta em `Queue::assertNothingPushed()`.
 
 ## UC-KBV2-05 — Tier 0: governança de um business NUNCA vaza pra outro
-Status: 🧪 (prova FORTE no MODELO — `Modules/KB/Tests/Feature/CrossTenantIsolationTest.php` R5, existe/verde; falta a asserção direcional de governança + o payload do Controller)
+Status: 🧪 (prova FORTE — `KbIndexV2ContractTest.php` V5: com o Controller `indexV2`, o payload TEM `nodes.data` e o nó de biz=99 NÃO aparece; global scope isola, não "por construção". + `CrossTenantIsolationTest.php` R5 no modelo. Aguarda run verde CT100)
 
 > **Reforço 2026-07-17 (era ⬜ "passa por construção"):** a V5 do `KbIndexV2ContractTest` (`:139-141`) confessa que passa *"por construção"* — render mock não serve dado, então biz=99 não aparece **porque nada aparece**. Isso não prova isolamento; prova tela vazia. A prova FORTE não depende do render: mora no **global scope de `KbNode`** (`BelongsToBusinessTrait::bootBelongsToBusinessTrait` → `addGlobalScope('business_id', ...)`, ADR 0093 Tier 0), e é medível **hoje** independente do Controller.
 
 O KB é multi-tenant real. Duas direções, ancoradas em **fato medido** (recibo 2026-07-17, `kb_nodes` @ CT 100 `oimpresso-mcp`, biz=1; ver charter §3):
 - **(a) Piso já provado no modelo:** nó de outro tenant não é lido. `CrossTenantIsolationTest.php` "blocks kb_node read across businesses (R5)" seeda nó em **biz=99** e prova `KbNode::all()->toHaveCount(0)` atuando como biz=1 (+ 404 no HTTP). **NUNCA biz=4** (ROTA LIVRE prod) — só biz=99 fictício.
 - **(b) Direcional de governança (a criar):** o eixo `Governança` (`type = adr`) é 100% de biz=1. Fato de prod: **adr em biz=1 = 498 · adr em biz=4 = 0** (recibo 2026-07-17). O teste seeda `type=adr` em biz=1, atua como **biz=99** e prova `KbNode::where('type','adr')->count() === 0` — Larissa nunca enxerga um ADR do projeto. (A medição real usa biz=4; o teste usa biz=99 pra respeitar ADR 0101.)
-- **(c) Payload (pendente Controller):** quando `indexV2` chegar, a V5 do `KbIndexV2ContractTest` vira a prova de que o payload servido a biz=1 **não contém** o slug/título de biz=99 — a asserção `missing('nodes.data')` de hoje passa a morder um payload scopado de verdade.
+- **(c) Payload (CUMPRIDO 2026-07-17):** o Controller `indexV2` chegou. A V5 agora asserta `has('nodes.data')` (o payload serve nós reais) **e** que o slug/título de biz=99 NÃO está lá — a prova forte que antes passava "por construção" agora morde um payload scopado de verdade.
 
-**Pronto quando:** (a) `KbNode::all()` atuando como biz=1 não inclui nó seedado em biz=99 (verde); (b) atuando como biz=99, `KbNode::where('type','adr')->count()` é 0 com ADR seedado só em biz=1; (c) com Controller vivo, o payload de biz=1 não contém slug/título de biz=99.
+**Pronto quando:** (a) `KbNode::all()` atuando como biz=1 não inclui nó seedado em biz=99 (verde); (b) atuando como biz=99, `KbNode::where('type','adr')->count()` é 0 com ADR seedado só em biz=1; (c) ✅ com Controller vivo (V5), o payload de biz=1 TEM `nodes.data` e NÃO contém slug/título de biz=99.
 
-## UC-KBV2-06 — Fallback mock declarado — ⚰️ **MORRE junto com o Controller**
-Status: 🧪 (`KbIndexV2ContractTest.php` — V6, render OK sem props) · **marcado pra revogação**
-
-> ⚰️ **Este UC é dívida da era-mock e SAI no mesmo commit que entrega o Controller `indexV2` (charter §8-bis passo 2). NÃO apagar antes.** A V6 asserta `missing('nodes')` — enquanto a closure não passa props, isso protege contra "prop undefined". Mas no instante em que o Controller injetar `nodes`, **este mesmo teste deixa o CI vermelho por ter funcionado**. Revogá-lo cedo (antes do Controller) reabre o buraco; revogá-lo tarde (depois) trava a promoção. A regra é: **um PR, um commit** — Controller entra, UC-06 sai.
-
-Enquanto `KbController@indexV2` não existir, a tela renderiza com `MOCK_NODES`/`MOCK_CATEGORIES` (`Index.v2.tsx:45-50, 76`) sem 500. Âncora: charter §8-bis + `usingMock = !props.nodes`.
-**Pronto quando (só até o Controller chegar):** GET `/kb/v2` autenticado responde 200 mesmo sem nenhuma prop passada pela closure (sem exceção de "prop undefined").
+## ⚰️ UC-KBV2-06 (Fallback mock) — REVOGADO 2026-07-17
+O Controller `indexV2` landou (charter §8-bis passo 2), então a tela NÃO cai mais em mock:
+`usingMock = !props.nodes` é `false`. A V6 antiga assertava `missing('nodes')` — que agora seria
+**falso**. Revogado no MESMO commit do Controller (a regra prevista). O teste `KbIndexV2ContractTest`
+V6 foi reescrito pra provar o OPOSTO: a tela serve `nodes`+`categories`+`business` reais. **Não é
+mais um UC ativo** — fica esta lápide (o heading acima NÃO começa com `## UC-` pra não contar no
+casos-gate G-2; a numeração 06 fica aposentada, não reusada).
 
 ## UC-KBV2-07 — Persistência client-side é localStorage prefixado
 Status: 🧪 (`tests/kbIndexV2Client.spec.tsx` — prefixo `oimpresso.kb.` + sobrevive remount + zero sessionStorage; aguarda run verde CT100)
