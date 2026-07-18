@@ -12,7 +12,7 @@
   Override emergencial: `<!-- schema-allowlist: <razão> -->`.
 -->
 ---
-date: {{YYYY-MM-DD}}
+date: "{{YYYY-MM-DD}}"   # STRING quoted — YAML crua (2026-07-17) vira objeto Date e o schema exige string
 hour: "{{HH:MM BRT}}"
 duration: "{{2.5h}}"
 topic: "{{Resumo 1 linha do que aconteceu nesta sessão}}"
