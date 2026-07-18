@@ -11,6 +11,8 @@ related_adrs: [0094, 0095, 0273]
 
 > **Quando ativar:** ANTES de qualquer Write/Edit em `memory/requisitos/**/SPEC.md`, `memory/requisitos/**/RUNBOOK*.md`, `memory/requisitos/**/BRIEFING.md`, `memory/decisions/*.md`, `memory/sessions/*.md`, `memory/handoffs/*.md`, `memory/reference/*.md`, `resources/js/Pages/**/*.charter.md`. Também antes de `git commit` que tocar esses paths.
 
+> ⛔ **Legado: forward-only, NUNCA mass-fix.** Arquivo NOVO nasce válido copiando o template/skill canônico (a fonte forward-only por família está em [scripts/memory-schemas/README.md §Normalização de legado](../../../scripts/memory-schemas/README.md)). Arquivo LEGADO divergente: `session`/`handoff` ficam grandfathered pra sempre (append-only, zero fix retroativo); `reference`/`briefing`/`runbook` só se normalizam **oportunisticamente** (quando já vão ser tocados por trabalho real que paga a dívida). Codemod em lote só pra padronizar frontmatter = proibido ([proibicoes §5, 2026-07-12](../../../memory/proibicoes.md) · [ADR 0341](../../../memory/decisions/0341-memory-schema-charter-spec-required-emenda-0314.md)).
+
 ## Origem (custo capturado)
 
 Sessão **2026-05-25** — 4 PRs criados (#1568/#1569/#1570/#1579) bloquearam em `memory-schema-gate` CI por erros previsíveis e repetitivos:
@@ -122,13 +124,19 @@ Filename: `^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+\.md$`
 
 ```yaml
 ---
-date: "YYYY-MM-DD"
-type: session
-tldr: "Resumo em 1 sentença"
+date: "YYYY-MM-DD"                    # STRING quoted (data crua vira objeto Date → falha type:string)
+topic: "Resumo 1 linha (5-250 chars)"  # OBRIGATÓRIO (session.schema.json exige date + topic)
+hour: "HH:MM BRT"                    # opcional
+duration: "2.5h"                     # opcional (pattern ^N(.N)?h$)
+authors: [W, C]                      # opcional, enum W/F/M/L/E/C
+prs: []                              # opcional, LIST de inteiros
+related_adrs: []                     # opcional, LIST de slugs
 ---
 ```
 
-Seção obrigatória: `## TL;DR`
+> ⚠️ Required = `date` + **`topic`** (NÃO `type`/`tldr` — o campo é `topic`). Template: [`memory/sessions/_TEMPLATE.md`](../../../memory/sessions/_TEMPLATE.md).
+
+Seção obrigatória do corpo: `## TL;DR` (ou `## Resumo executivo` ou `## Contexto`).
 
 ### Handoff — `memory/handoffs/YYYY-MM-DD-HHMM-slug.md`
 
@@ -136,14 +144,19 @@ Filename: `^[0-9]{4}-[0-9]{2}-[0-9]{2}-[0-9]{4}-[a-z0-9-]+\.md$`
 
 ```yaml
 ---
-date: "YYYY-MM-DD"
-time: "HH:MM"
-type: handoff
-estado_mcp: cycles-active
+date: "YYYY-MM-DD"                    # STRING quoted (data crua vira objeto Date → falha type:string)
+time: "HHMM BRT"                      # opcional (HHMM ou HH:MM)
+slug: "slug-kebab"                    # OBRIGATÓRIO — ^[a-z0-9-]+$ (3-80 chars)
+tldr: "1-2 frases do estado (10-500 chars)"  # OBRIGATÓRIO
+decided_by: [W]                      # opcional, enum W/F/M/L/E
+prs: []                              # opcional, LIST de inteiros
+related_adrs: []                     # opcional, LIST de slugs
 ---
 ```
 
-Seção obrigatória: `## Estado MCP`
+> ⚠️ Required = `date` + **`slug`** + **`tldr`** (NÃO `type`/`estado_mcp`). Bate com a tabela "Pegadinhas validadas em CI real" no fim deste skill. Template: [`memory/handoffs/_TEMPLATE.md`](../../../memory/handoffs/_TEMPLATE.md).
+
+Seção obrigatória do corpo: `## Estado MCP no momento do fechamento` (ADR 0130 §6).
 
 ### Charter — `resources/js/Pages/<Mod>/<Tela>.charter.md`
 

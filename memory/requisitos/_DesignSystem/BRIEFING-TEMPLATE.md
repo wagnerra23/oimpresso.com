@@ -1,3 +1,15 @@
+---
+# Frontmatter OBRIGATÓRIO (briefing.schema.json: module + status + updated_at). Copie junto
+# com o corpo e preencha os <placeholders>. Sem ele o BRIEFING nasce "grandfathered" (só passa
+# como legacy warning) e o system-map.mjs não lê status confiável.
+module: <NomeModulo>          # basename do diretório em PascalCase (ex Financeiro, Jana; _prefix ok pra cross-cutting)
+status: em-construcao         # ENUM fechado: producao|piloto|em-construcao|parcial|backlog|shared-infra|meta|deprecated
+status_nota: "<prosa opcional que qualifica o status; ex 'live via ROTA LIVRE biz=4'>"
+updated_at: "<YYYY-MM-DD>"    # STRING quoted — data crua vira objeto Date e o schema exige string
+owner: W                      # opcional — enum W/F/M/L/E
+related_adrs: []              # opcional — LIST de slugs "NNNN-kebab" (NUNCA integers)
+---
+
 # BRIEFING — `<NomeModulo>` (template canônico)
 
 > **Tipo:** BRIEFING canônico do módulo — 1 página executiva atualizada por PR mergeado relevante
@@ -9,7 +21,7 @@
 
 ## Como usar este template
 
-Copie pra `memory/requisitos/<Modulo>/BRIEFING.md` e preencha. Cada seção tem 1-3 frases ou 1 tabela compacta. **Total: 1 página de scroll** (~150 linhas max).
+Copie pra `memory/requisitos/<Modulo>/BRIEFING.md` — **incluindo o frontmatter YAML do topo** (obrigatório: `module` + `status` enum + `updated_at`; ver [briefing.schema.json](../../../scripts/memory-schemas/briefing.schema.json)) — e preencha. Cada seção tem 1-3 frases ou 1 tabela compacta. **Total: 1 página de scroll** (~150 linhas max).
 
 Atualização: depois de PR mergeado relevante, skill `brief-update` (ou manual) revisita cada seção e atualiza datas/scores/gaps. Append-only nas tabelas de histórico, sobrescreve seções de estado-atual.
 

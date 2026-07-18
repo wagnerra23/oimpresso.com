@@ -8,8 +8,9 @@ slug: <mod-lower>-runbook-<tela-kebab>
 title: "<Mod> — Runbook da tela <Nome legível>"
 type: runbook
 module: <Mod>
-status: active
-date: <YYYY-MM-DD>
+owner: W                        # obrigatório — enum W/F/M/L/E (runbook.schema.json)
+status: ativo                   # enum: rascunho|ativo|arquivado|historical (NUNCA "active")
+last_validated: "<YYYY-MM-DD>"  # obrigatório, STRING quoted — data crua vira Date; alerta se >30d
 ---
 
 # RUNBOOK — <Nome legível da tela>
