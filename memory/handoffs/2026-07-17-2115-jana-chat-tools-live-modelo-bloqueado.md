@@ -2,7 +2,7 @@
 date: "2026-07-17"
 time: "2115 BRT"
 slug: jana-chat-tools-live-modelo-bloqueado
-tldr: "Dimensão erp-ia-produto (grade 4,5): tools READ-ONLY no chat da Jana LIVE em prod (US-141/142, JANA_CHAT_TOOLS_ENABLED=true) — a Jana deixou de PEDIR os dados ao cliente e passou a consultá-los. Modelo forte no chat (US-144, mecanismo cirúrgico JANA_CHAT_MODEL): mecanismo done+mergeado, mas o flip do gpt-4o foi TENTADO e REVERTIDO no mesmo dia — o projeto OpenAI de prod não tem acesso (model_not_found), apesar da autorização [W]. Apurei todos os caminhos do modelo frontier: todos bloqueados por credencial/decisão [W]. Alavanca única = ANTHROPIC_API_KEY em prod (destrava claude-sonnet no chat + fallback US-135 + 2º juiz eval)."
+tldr: "Dimensão erp-ia-produto (grade 4,5): tools READ-ONLY no chat da Jana LIVE em prod (US-141/142) — a Jana deixou de pedir os dados ao cliente e passou a consultá-los. Modelo forte (US-144, knob cirúrgico JANA_CHAT_MODEL): mecanismo done, mas o flip do gpt-4o foi REVERTIDO no mesmo dia (projeto OpenAI sem acesso, model_not_found). Todos os caminhos do modelo frontier bloqueados por credencial/decisão [W]. Alavanca = ANTHROPIC_API_KEY em prod (destrava claude-sonnet + fallback + eval)."
 decided_by: [W]
 prs: [4421, 4443, 4459]
 next_steps:
@@ -44,7 +44,7 @@ gpt-4o (sem acesso projeto) · claude-sonnet (sem chave) · US-137 judge=openai 
 
 ## Estado MCP no momento do fechamento
 
-MCP **indisponível** (brief-fetch do SessionStart falhou: "age not found"). Checklist de fechamento por fallback filesystem (como as sessões irmãs de hoje). US pendentes vivem no SPEC (US-135/137/144); tarefas futuras nos `next_steps` acima. Não consegui `tasks-create` — se o MCP voltar, materializar os next_steps como tasks.
+MCP **parcialmente disponível**: `brief-fetch` do SessionStart falhou ("age not found"), mas `my-work`/`tasks-create` funcionaram — a **US-COPI-145** (desbloqueio do modelo frontier: chave Anthropic OU acesso gpt-4o) foi criada via `tasks-create`. US pendentes no SPEC (US-135/137/144/145); tarefas futuras nos `next_steps` acima.
 
 ## Notas de disciplina
 
