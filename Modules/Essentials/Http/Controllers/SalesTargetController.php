@@ -101,6 +101,13 @@ class SalesTargetController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Gate Tier 0 (ADR 0093): user_id vem cru do body do POST. Valida que é
+        // do tenant ANTES de escrever metas/comissão — o create() abaixo não é
+        // coberto pelo backstop ScopeByBusinessViaParent (que só filtra SELECT,
+        // não INSERT) → sem isto, cria linha de meta no user de OUTRO business.
+        // Fecha IDOR cross-tenant (follow-up #4474).
+        User::where('business_id', $business_id)->findOrFail($request->input('user_id'));
+
         try {
             $target_ids = [];
             if (! empty($request->input('edit_target'))) {

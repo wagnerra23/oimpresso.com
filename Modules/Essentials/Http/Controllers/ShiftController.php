@@ -290,6 +290,17 @@ class ShiftController extends Controller
             abort(403, 'Unauthorized action.');
         }
 
+        // Gate Tier 0 (ADR 0093): shift_id + user_ids vêm crus do body. Valida
+        // AMBOS contra o tenant ANTES do try — senão o abort viraria "success:
+        // false" no catch(\Exception) abaixo. O updateOrCreate/create não é
+        // coberto pelo backstop ScopeByBusinessViaParent (só SELECT). Fecha IDOR
+        // cross-tenant (follow-up #4474).
+        Shift::where('business_id', $business_id)->findOrFail($request->input('shift_id'));
+        $businessUserIds = User::where('business_id', $business_id)->pluck('id')->all();
+        foreach (array_keys((array) $request->input('user_shift', [])) as $uid) {
+            abort_unless(in_array((int) $uid, $businessUserIds, true), 403, 'Cross-tenant user.');
+        }
+
         try {
             $shift_id = $request->input('shift_id');
             $shift = Shift::where('business_id', $business_id)
