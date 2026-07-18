@@ -142,6 +142,17 @@ it('SalesTarget positivo: save-sales-target no próprio user biz=1 → NÃO é 4
         'commission' => [],
     ]);
 
+    if ($resp->status() === 404) {
+        $routeExists = collect(app('router')->getRoutes()->getRoutes())
+            ->contains(fn ($r) => $r->uri() === 'essentials/save-sales-target' && in_array('POST', $r->methods(), true));
+        test()->fail(
+            '404 DEBUG | wUser->business_id='.var_export($this->wUser->business_id, true)
+            .' | session.user.business_id='.var_export($resp->getSession()->get('user.business_id'), true)
+            .' | routePOSTexists='.var_export($routeExists, true)
+            .' | body='.substr(strip_tags((string) $resp->getContent()), 0, 200)
+        );
+    }
+
     // Passa o gate de tenant (não 404). DatabaseTransactions desfaz qualquer escrita.
     expect($resp->status())->not->toBe(404);
     $resp->assertRedirect();
