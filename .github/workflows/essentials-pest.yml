@@ -1,0 +1,115 @@
+name: Essentials · Pest (MySQL)
+
+# Lane dedicada pra rodar teste Pest MySQL-only do Modules/Essentials contra
+# MySQL REAL. Existe porque ci.yml roda SQLite :memory: (testes que dependem de
+# schema UltimatePOS + seed biz=1/biz=2 dão markTestSkipped lá — falsa cobertura)
+# e o modules-pest.yml matrix NÃO inclui Essentials. Sem esta lane, os testes
+# cross-tenant de Essentials só rodavam no CT100 nightly full-suite, nunca por-PR.
+#
+# Nasce com o teste cross-tenant de SalesTarget/Shift (follow-up #4474 —
+# ScopeByBusinessViaParent fail-open fix): gates de tenant nos writes com id cru
+# do body. É o HOME do ratchet pra TODO teste MySQL-only do Essentials — cada
+# novo é adicionado na allowlist abaixo (mesma disciplina do jana-pest.yml).
+#
+# Reusa .github/actions/pest-mysql-setup: PHP 8.4 + deps + .env MySQL + migrate
+# (schema baseline) + seed biz=1 (fixture completa) E biz=2 (Tier 0 cross-tenant,
+# a origem do "foreign user" que o teste de SalesTarget usa).
+# Refs: ADR 0093 (multi-tenant Tier 0) · ADR 0101 (biz=1 vs biz=99).
+
+on:
+  workflow_dispatch: {}
+  # pull_request SEM paths (always-run) + skip-as-pass interno (dorny/paths-filter):
+  # se nada do Essentials mudou, pula o pesado e conclui verde (mesmo padrão do
+  # jana-pest.yml, ADR 0271 onda 2 — required-ready sem deadlock).
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - 'Modules/Essentials/**'
+      - 'database/schema/mysql-schema.sql'
+      - '.github/workflows/essentials-pest.yml'
+      - '.github/actions/pest-mysql-setup/**'
+
+concurrency:
+  group: essentials-pest-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pest:
+    name: PHP / Pest (Essentials · MySQL)
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: oimpresso_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=20
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Detectar mudanças do Essentials (skip-as-pass)
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            essentials:
+              - 'Modules/Essentials/**'
+              - 'database/schema/mysql-schema.sql'
+              - '.github/workflows/essentials-pest.yml'
+              - '.github/actions/pest-mysql-setup/**'
+
+      - name: Skip-as-pass (nada do Essentials mudou)
+        if: steps.changes.outputs.essentials == 'false'
+        run: echo "✅ Sem mudanças no Modules/Essentials — skip-as-pass (required-ready)."
+
+      - name: Setup Pest MySQL (PHP + deps + .env + migrate + seed biz=1/biz=2)
+        if: steps.changes.outputs.essentials == 'true'
+        uses: ./.github/actions/pest-mysql-setup
+
+      - name: Stub Vite manifest (root view sem build do front)
+        if: steps.changes.outputs.essentials == 'true'
+        run: |
+          mkdir -p public/build-inertia
+          cat > public/build-inertia/manifest.json <<'EOF'
+          {
+            "resources/css/inertia.css": { "file": "assets/inertia.css", "src": "resources/css/inertia.css", "isEntry": true },
+            "resources/js/app.tsx": { "file": "assets/app.js", "src": "resources/js/app.tsx", "isEntry": true }
+          }
+          EOF
+
+      - name: Run Pest (Essentials · MySQL) — ALLOWLIST VERDE (catraca)
+        if: steps.changes.outputs.essentials == 'true'
+        # phpunit.xml força DB_CONNECTION=sqlite :memory: — sobrescreve aqui pra
+        # rodar no MySQL real semeado (biz=1 + biz=2). Allowlist: só arquivos
+        # comprovadamente verdes MySQL-only. NÃO incluir RefreshDatabase/
+        # migrate:fresh (dropam schema + limpam o seed). Este usa DatabaseTransactions.
+        env:
+          DB_CONNECTION: mysql
+          DB_HOST: 127.0.0.1
+          DB_PORT: "3306"
+          DB_DATABASE: oimpresso_test
+          DB_USERNAME: root
+          DB_PASSWORD: root
+        run: |
+          mkdir -p test-results
+          vendor/bin/pest --no-coverage --colors=always \
+            --log-junit test-results/pest-essentials-junit.xml \
+            Modules/Essentials/Tests/Feature/SalesTargetShiftCrossTenantTest.php
+
+      - name: Upload JUnit (Essentials · MySQL)
+        if: ${{ !cancelled() && steps.changes.outputs.essentials == 'true' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pest-essentials-junit
+          path: test-results/pest-essentials-junit.xml
+          retention-days: 14
