@@ -57,8 +57,11 @@ jobs:
           # ADRs renamed (R = rename) — também trata como edit, ADR mantém número
           grep -E '^R[0-9]*\s+memory/decisions/[0-9]{4}-' /tmp/diff.txt > /tmp/adr_renamed.txt || true
 
-          # Handoffs modificados (proibido — ADR 0130)
-          grep -E '^M\s+memory/handoffs/.+\.md$' /tmp/diff.txt > /tmp/handoff_mod.txt || true
+          # Handoffs modificados (proibido — ADR 0130). Exclui _TEMPLATE/_INDEX/README:
+          # não são snapshots temporais append-only, são infraestrutura editável
+          # (espelha o ignore '**/_*.md'+README do memory-schema-gate irmão).
+          grep -E '^M\s+memory/handoffs/.+\.md$' /tmp/diff.txt \
+            | grep -vE 'memory/handoffs/(_[^/]*|README\.md)$' > /tmp/handoff_mod.txt || true
 
           # Constituição modificada (exige label + audit)
           grep -E '^M\s+memory/governance/CONSTITUTION\.md$' /tmp/diff.txt > /tmp/const_mod.txt || true
