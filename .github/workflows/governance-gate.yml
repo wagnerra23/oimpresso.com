@@ -58,7 +58,10 @@ jobs:
           grep -E '^R[0-9]*\s+memory/decisions/[0-9]{4}-' /tmp/diff.txt > /tmp/adr_renamed.txt || true
 
           # Handoffs modificados (proibido — ADR 0130)
-          grep -E '^M\s+memory/handoffs/.+\.md$' /tmp/diff.txt > /tmp/handoff_mod.txt || true
+          # [0-9]{4}- casa só handoff real (YYYY-MM-DD-HHMM-slug); exclui _TEMPLATE.md
+          # e futuros _*.md (templates/índice não são registro append-only) — espelha o
+          # filtro do check de ADR acima ([0-9]{4}-). Sem isso, editar o template forward-only trava.
+          grep -E '^M\s+memory/handoffs/[0-9]{4}-.+\.md$' /tmp/diff.txt > /tmp/handoff_mod.txt || true
 
           # Constituição modificada (exige label + audit)
           grep -E '^M\s+memory/governance/CONSTITUTION\.md$' /tmp/diff.txt > /tmp/const_mod.txt || true
