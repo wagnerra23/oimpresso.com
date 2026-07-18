@@ -4,18 +4,28 @@
 // SNIPPET no console, salvar 2 JSON, --compare), o harness AUTOMATIZA a matriz: dirige o
 // Playwright (já é dep — @playwright/test) por proto×prod em N viewports × M temas, injeta o
 // SNIPPET em cada célula, e roda o comparador por célula. Destrava RESPONSIVO (o eixo que era
-// "1 viewport por run") e prepara ESTADOS (hover/focus — TODO Onda 3a.2 abaixo).
+// "1 viewport por run", incl. MOBILE 375 — altura vira de telefone) e, na Onda 3a.2 (2026-07-17,
+// chip C-F2), os ESTADOS hover/focus/active: força a pseudo-classe por elemento interativo
+// (Playwright hover/focus/mouse-down) e anexa, por elemento, o CONJUNTO de propriedades que
+// REAGEM (a afordância) — o comparador (compararEstados) diffa esses conjuntos entre proto×prod.
+//
+// ⚠ FRONTEIRA (ADR 0290): isto é LOCAL/dispatch — captura proto×prod NA MÁQUINA, NUNCA render
+// pareado em CI (render pareado passa verde quando os dois lados quebram). É o loop de FIDELIDADE
+// proto×prod (design-to-code), distinto do pixel-VRT required (visual-regression.yml, prod×própria).
 //
 // Reusa a infra do smoke visual (#3956, scripts/screen-smoke/smoke.mjs): mesmo chromium, mesmo
 // padrão de login por form, mesmo page.evaluate. ZERO dependência nova (Onda 3b — backstop
 // perceptual SSIM pra ícones/sparklines sem âncora — fica FORA: puxa dep de imagem → exige ADR).
 //
 // MODOS:
-//   node prototipo-ui/fingerprint-harness.mjs --proto <url> --prod <url> [--viewports 1280,1440]
+//   node prototipo-ui/fingerprint-harness.mjs --proto <url> --prod <url> [--viewports 375,1280,1440]
 //        [--themes light,dark] [--out dir] [--user U --pass P] [--sel-proto CSS] [--sel-prod CSS]
+//        [--estados] [--root CSS]
 //     → captura a matriz nos 2 lados, compara célula-a-célula, imprime relatório + verdito por
 //       célula + agregado (qual célula tem regressão que as outras não têm). Exit 1 se houver
 //       DIVERGE/triagem em qualquer célula. NÃO substitui o olho do Wagner — acha as diferenças.
+//       `--estados` (opt-in, mais lento) captura hover/focus/active por elemento interativo;
+//       `--root <CSS>` escopa a captura à REGIÃO da tela (mata o ruído de shell/sidebar — RUNBOOK).
 //   node prototipo-ui/fingerprint-harness.mjs --selftest
 //     → prova a ORQUESTRAÇÃO (matriz + pareamento por célula + agregação + regressão viewport/
 //       tema-específica) com capturas fixas injetadas, SEM browser (a cola Playwright espelha o
@@ -65,7 +75,7 @@ export function agregar(celulas) {
 
 // ── selftest da orquestração (sem browser) ─────────────────────────────────────
 function selftest() {
-  const mkFp = (tema, over = {}) => ({
+  const mkFp = (tema, over = {}, fpOver = {}) => ({
     tema,
     elementos: [
       { tag: 'button', texto: 'Salvar', w: 100, h: 32, xnorm: 0.1, ynorm: 0.1, linhas: 1, overflowX: false,
@@ -75,17 +85,23 @@ function selftest() {
         padding: '6px 10px 6px 10px', opacity: '1', transform: 'none', display: 'inline-flex', ...over },
     ],
     divisorias: [], containers: [], compostos: [],
+    ...fpOver,
   });
-  // matriz 2 viewports × 2 temas. TODAS as células idênticas, MENOS 1280|dark: lá o botão
-  // "Salvar" quebrou em 2 linhas na prod (regressão que só aparece no 1280 escuro).
-  const proto = {
-    '1440|light': mkFp('light'), '1440|dark': mkFp('dark'),
-    '1280|light': mkFp('light'), '1280|dark': mkFp('dark'),
-  };
-  const prod = {
-    '1440|light': mkFp('light'), '1440|dark': mkFp('dark'),
-    '1280|light': mkFp('light'), '1280|dark': mkFp('dark', { linhas: 2, w: 60, h: 44 }),
-  };
+  // Onda 3a.2 — afordância de estado do botão: reage no hover (bg+sombra) e no active. `estOk` = o
+  // proto (e a prod íntegra); `estFlat` = a prod que PERDEU a reação de hover (afordância sumiu).
+  const estOk = [{ tag: 'button', texto: 'Salvar', hover: ['bg', 'boxShadow'], focus: ['outline'], active: ['bg', 'boxShadow'] }];
+  const estFlat = [{ tag: 'button', texto: 'Salvar', hover: [], focus: ['outline'], active: [] }];
+  // matriz 3 viewports (incl. MOBILE 375) × 2 temas. TODAS idênticas, MENOS:
+  //  · 1280|dark — botão "Salvar" quebrou em 2 linhas na prod (regressão de recorte, viewport/tema).
+  //  · 375|light — a afordância de HOVER do botão SUMIU na prod (regressão de ESTADO, só no mobile).
+  const proto = {}, prod = {};
+  for (const vp of [1440, 1280, 375]) for (const tema of ['light', 'dark']) {
+    const k = `${vp}|${tema}`;
+    proto[k] = mkFp(tema, {}, { estados: estOk });
+    prod[k] = mkFp(tema, {}, { estados: estOk });
+  }
+  prod['1280|dark'] = mkFp('dark', { linhas: 2, w: 60, h: 44 }, { estados: estOk });
+  prod['375|light'] = mkFp('light', {}, { estados: estFlat }); // hover sumiu SÓ no mobile
   const celulas = orquestrar(proto, prod);
   const ag = agregar(celulas);
   const cell = (k) => celulas.find((c) => c.cell === k);
@@ -95,12 +111,16 @@ function selftest() {
     if (!ok) fails++;
     console.log(`  [${ok ? 'PASS' : 'FAIL'}] ${label} → esperado ${JSON.stringify(exp)}, obtido ${JSON.stringify(got)}`);
   };
-  check('4 células comparadas (2 viewports × 2 temas)', celulas.length, 4);
-  check('células limpas não acusam', (cell('1440|light').tally.DIVERGE || 0), 0);
+  check('6 células comparadas (3 viewports incl. mobile 375 × 2 temas)', celulas.length, 6);
+  check('células limpas não acusam (estados idênticos NÃO falso-positivam)', (cell('1440|light').tally.DIVERGE || 0), 0);
   check('1280|dark acusa a quebra (regra 7 linhas)', (cell('1280|dark').tally.DIVERGE || 0), 1);
-  check('só 1280|dark tem problema (regressão específica de recorte)', ag.celulasComProblema, ['1280|dark']);
-  check('agrega detecta regressão viewport/tema-específica', ag.regressaoEspecifica, true);
+  check('375|light acusa afordância de hover sumida (estado, só no mobile)', (cell('375|light').tally.DIVERGE || 0), 1);
+  check('só 1280|dark e 375|light têm problema (regressão de recorte)', ag.celulasComProblema, ['1280|dark', '375|light']);
+  check('agrega detecta regressão viewport/tema-específica (mobile-only + tema-only)', ag.regressaoEspecifica, true);
   check('agregado NÃO ok (tem regressão)', ag.ok, false);
+  // a linha ESTADO nomeia o estado que sumiu (hover) — prova que os estados FLUEM pro comparador.
+  const rEst = cell('375|light').rows.find((r) => String(r.chave).startsWith('ESTADO '));
+  check('375|light: linha ESTADO presente nomeando o hover', !!(rEst && rEst.campos.some((c) => c.startsWith('hover:'))), true);
   // célula faltando de um lado (captura falhou) = SO_*_CELL, não silêncio.
   const proto2 = { '1280|light': mkFp('light') };
   const prod2 = {};
@@ -125,20 +145,96 @@ function parseArgs(argv) {
   return a;
 }
 
-async function capturarLado(context, url, viewports, temas, selVisao) {
+// ── Onda 3a.2 (2026-07-17, chip C-F2) — captura de ESTADOS hover/focus/active ───
+// O SNIPPET (in-page) mede o estado DEFAULT: dentro de page.evaluate JS NÃO consegue forçar
+// :hover (pseudo-classe só existe sob interação real). Por isso os estados vivem AQUI, no driver:
+// o Playwright HOVERA/FOCA/PRESSIONA cada elemento interativo de verdade (o que o usuário vê) e
+// relê o computed style. Anexa, por elemento, o CONJUNTO de propriedades que MUDARAM vs o default
+// (a "afordância"). O comparador (compararEstados, style-fingerprint) casa por texto+tag e diffa
+// os conjuntos: proto reage nas MESMAS propriedades que a prod? Botão que escurece+eleva no proto
+// e não faz NADA na prod ⇒ DIVERGE. Cego ao VALOR base da cor (o default pass já é dono disso).
+const ESTADO_SEL = 'button, a[href], [role=tab], [role=button], input:not([type=hidden]), select, textarea, summary';
+const PROPS_ESTADO = ['bg', 'color', 'borderColor', 'boxShadow', 'outline', 'opacity', 'transform', 'textDecoration'];
+// lê o sub-vetor de estado do elemento (as props que uma afordância costuma mexer + o anel de foco).
+function subvetorEstado(handle) {
+  return handle.evaluate((el) => {
+    const c = getComputedStyle(el);
+    return {
+      bg: c.backgroundColor, color: c.color, borderColor: c.borderTopColor, boxShadow: c.boxShadow,
+      outline: `${c.outlineStyle} ${c.outlineWidth} ${c.outlineColor}`, // anel de foco (comum via outline)
+      opacity: c.opacity, transform: c.transform, textDecoration: c.textDecorationLine,
+    };
+  });
+}
+function propsMudaram(base, estado) {
+  const out = [];
+  for (const p of PROPS_ESTADO) if (String(base[p]) !== String(estado[p])) out.push(p);
+  return out;
+}
+// captura, por elemento interativo visível, o conjunto de props que reagem em hover/focus/active.
+// Cap 60 elementos (dedup por tag|texto) pra limitar o custo — é dispatch local, não CI.
+async function capturarEstados(page, rootSel) {
+  const raiz = rootSel ? page.locator(rootSel).first().locator(ESTADO_SEL) : page.locator(ESTADO_SEL);
+  let handles = [];
+  try { handles = await raiz.elementHandles(); } catch { return []; }
+  const estados = [];
+  const vistos = new Set();
+  for (const h of handles) {
+    if (estados.length >= 60) { await h.dispose().catch(() => {}); continue; }
+    try {
+      if (!(await h.isVisible())) continue;
+      const info = await h.evaluate((el) => ({ tag: el.tagName.toLowerCase(), texto: (el.textContent || '').trim().slice(0, 80) }));
+      if (info.texto.length < 2 && !['input', 'select', 'textarea'].includes(info.tag)) continue;
+      const k = info.tag + '|' + info.texto;
+      if (vistos.has(k)) continue;
+      vistos.add(k);
+      const base = await subvetorEstado(h);
+      let hover = [], focus = [], active = [];
+      // hover real (move o mouse pro elemento); depois limpa (move pra 0,0).
+      try { await h.hover({ timeout: 1500 }); hover = propsMudaram(base, await subvetorEstado(h)); } catch {}
+      try { await page.mouse.move(0, 0); } catch {}
+      // focus real (programático — ElementHandle.focus() não recebe opções); depois blur.
+      try { await h.focus(); focus = propsMudaram(base, await subvetorEstado(h)); } catch {}
+      try { await h.evaluate((el) => el.blur && el.blur()); } catch {}
+      // active = pressionado (mouse-down segurado). Inclui o hover (elemento pressionado também está
+      // sob o cursor) — é o estado visual real do "pressed"; documentado como delta-vs-default.
+      try {
+        const box = await h.boundingBox();
+        if (box) {
+          await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+          await page.mouse.down();
+          active = propsMudaram(base, await subvetorEstado(h));
+          await page.mouse.up();
+        }
+      } catch { try { await page.mouse.up(); } catch {} }
+      try { await page.mouse.move(0, 0); } catch {}
+      estados.push({ tag: info.tag, texto: info.texto, hover, focus, active });
+    } catch { /* elemento sumiu/destacou entre passos — pula */ }
+    finally { await h.dispose().catch(() => {}); }
+  }
+  return estados;
+}
+
+async function capturarLado(context, url, viewports, temas, selVisao, comEstados, rootSel) {
   const map = {};
   const page = await context.newPage();
   try {
     for (const vp of viewports) {
-      await page.setViewportSize({ width: vp, height: 900 });
+      // altura viewport-aware: MOBILE (<600) usa altura de telefone (812), desktop 900. Media
+      // queries disparam por LARGURA — 375 exercita o layout mobile sem precisar de device emul.
+      await page.setViewportSize({ width: vp, height: vp < 600 ? 812 : 900 });
       for (const tema of temas) {
         await page.goto(url, { waitUntil: 'networkidle', timeout: 45000 });
         // força o tema (best-effort: data-theme no <html> + localStorage — o SNIPPET lê data-theme).
         await page.evaluate((t) => { try { localStorage.setItem('theme', t); } catch {} document.documentElement.setAttribute('data-theme', t); }, tema);
+        // --root escopa a captura à região da tela (o SNIPPET lê window.__ROOT__; RUNBOOK "região≠página").
+        if (rootSel) { try { await page.evaluate((r) => { window.__ROOT__ = r; }, rootSel); } catch {} }
         if (selVisao) { try { await page.locator(selVisao).first().click({ timeout: 5000 }); } catch {} }
         await page.waitForTimeout(400); // deixa o restyle reativo assentar
-        const json = await page.evaluate(SNIPPET.trim());
-        map[chaveCelula(vp, tema)] = JSON.parse(json);
+        const fp = JSON.parse(await page.evaluate(SNIPPET.trim()));
+        // estados (opt-in via --estados): força hover/focus/active por elemento e anexa a afordância.
+        if (comEstados) fp.estados = await capturarEstados(page, rootSel);
+        map[chaveCelula(vp, tema)] = fp;
       }
     }
   } finally { await page.close(); }
@@ -162,13 +258,15 @@ async function live(args) {
   const viewports = String(args.viewports || '1280,1440').split(',').map((s) => parseInt(s.trim(), 10)).filter(Boolean);
   const temas = String(args.themes || 'light,dark').split(',').map((s) => s.trim()).filter(Boolean);
   if (!args.proto || !args.prod) { console.error('uso: --proto <url> --prod <url> [--viewports 1280,1440] [--themes light,dark]'); process.exit(2); }
+  const comEstados = !!args.estados; // opt-in: hover/focus/active por elemento (mais lento)
+  const rootSel = (typeof args.root === 'string' && args.root) || null; // escopo de região (RUNBOOK)
   const browser = await chromium.launch({ headless: true });
   const context = await browser.newContext();
   try {
     if (args.user && args.pass) { const origin = new URL(args.prod).origin; await login(context, origin, args.user, args.pass); }
-    console.log(`[harness] capturando proto (${args.proto}) e prod (${args.prod}) em ${viewports.join('/')} × ${temas.join('/')} …`);
-    const protoMap = await capturarLado(context, args.proto, viewports, temas, args['sel-proto']);
-    const prodMap = await capturarLado(context, args.prod, viewports, temas, args['sel-prod']);
+    console.log(`[harness] capturando proto (${args.proto}) e prod (${args.prod}) em ${viewports.join('/')} × ${temas.join('/')}${comEstados ? ' × estados(hover/focus/active)' : ''}${rootSel ? ` · root=${rootSel}` : ''} …`);
+    const protoMap = await capturarLado(context, args.proto, viewports, temas, args['sel-proto'], comEstados, rootSel);
+    const prodMap = await capturarLado(context, args.prod, viewports, temas, args['sel-prod'], comEstados, rootSel);
     const celulas = orquestrar(protoMap, prodMap);
     const ag = agregar(celulas);
     for (const c of celulas) {

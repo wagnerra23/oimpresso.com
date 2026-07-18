@@ -281,6 +281,13 @@
       "nome": "Jana · Pest (MySQL)",
       "classe": "gate"
     },
+    "ponto-pest.yml": {
+      "nome": "Ponto · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-31",
+      "anchor": "sinal de custo: Ponto não tinha lane MySQL de PR nenhuma — o guard Tier 0 cross-tenant do Ponto (ADR 0093 · Wave27CrossTenantEscalaTest) só rodava na nightly não-required (invisível a todo merge). A triagem #4454→#4474 provou que testes Tier-0 mascarados por FK-1452 ficavam vermelhos invisíveis por ~2 meses (inclusive o vazamento real ScopeByBusinessViaParent). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); promote_by força a decisão de promoção a required em 14d em vez de advisory eterno."
+    },
     "jana-ragas-canary.yml": {
       "nome": "Jana RAGAS Canary (daily 06:00 UTC)",
       "classe": "automacao"
@@ -465,10 +472,10 @@
       "promote_by": "2026-09-30"
     },
     "agent-cost-per-pr.yml": {
-      "nome": "Agent cost per PR (advisory · custo USD estimado por PR do agente · join 2-sinais JSONL local: gitBranch==headRefName + citação /pull/N diluída · % sem-match publicado · weekly schedule + dispatch · item #7 ranking adversarial grade-das-réguas 2026-07-12)",
+      "nome": "Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de ALOCAÇÃO do dinheiro + resíduo decomposto · calibração derivada do dado · weekly schedule + dispatch · item #7 ranking adversarial grade-das-réguas 2026-07-12; revisado 2026-07-17)",
       "classe": "automacao",
       "terminal": "advisory",
-      "anchor": "Ranking adversarial 2026-07-12 item #7: fecha a última régua 'só verbal' — custo-eficiência nota 3 porque 'economize crédito' não tinha NÚMERO. Fonte Langfuse DERRUBADA pelo adversário (traceia Jana por conversa, sem dimensão PR/branch); fonte viável = JSONL local do Claude Code (mesma do cc-watcher). DECONFLITO com agent-pr-outcomes (DORA: aceitação/CFR/velocidade) — este mede o CUSTO do mesmo transporte. Honestidade: CI só roda selftest + renderiza snapshot commitado com staleness (G5, anti-teatro ADR 0271); buraco do join publicado como % sem-match; USD/tokens apenas, sem R$ (Tier 0). Self-test hermético na suíte governance-script-tests.",
+      "anchor": "Ranking adversarial 2026-07-12 item #7: fecha a última régua 'só verbal' — custo-eficiência nota 3 porque 'economize crédito' não tinha NÚMERO. Fonte Langfuse DERRUBADA pelo adversário; fonte viável = JSONL local do Claude Code (mesma do cc-watcher). DECONFLITO com agent-pr-outcomes (DORA) — este mede o CUSTO do mesmo transporte. Revisão 2026-07-17 (grade evals-outcome): a unidade de custo é a SESSÃO (o gasto vive na branch da worktree; o branch do PR só marca a cauda — atribuir por mensagem descartava o corpo); cobertura passou a ser do lado do DINHEIRO (atribuído/escaneado, FinOps) e não do lado do PR (que dizia 0% enquanto 88% do dinheiro não tinha dono); janela coerente pros dois lados; cap do fetch declarado; resíduo (sessão sem PR) decomposto — NÃO é buraco de join (medido: 5/6 branches de maior resíduo sem PR algum → casar por SHA não recupera, lápide §5). Calibração (limiar de idade, velocidade) DERIVADA do dado, não cravada. Honestidade: CI só roda selftest + renderiza snapshot commitado com staleness DECLARADA e limiar derivado da janela (G5, anti-teatro ADR 0271); USD/tokens apenas, sem R$ (Tier 0). Self-test hermético na suíte governance-script-tests.",
       "promote_by": "2026-09-30"
     },
     "pr-critic-precisao.yml": {
