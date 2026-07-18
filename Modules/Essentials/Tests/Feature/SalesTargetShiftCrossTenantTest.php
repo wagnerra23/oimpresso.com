@@ -143,9 +143,11 @@ it('SalesTarget positivo: save-sales-target no próprio user biz=1 → NÃO é 4
     ]);
 
     if ($resp->status() === 404) {
-        // APP_DEBUG=true no CI: o body do 404 nomeia a exceção
-        // (ModelNotFound[App\User] = gate/business_id · NotFoundHttp = rota).
-        test()->fail('404 BODY: '.substr(preg_replace('/\s+/', ' ', strip_tags((string) $resp->getContent())), 0, 300));
+        $ess = collect(app('router')->getRoutes()->getRoutes())
+            ->filter(fn ($r) => str_starts_with($r->uri(), 'essentials/'))->map(fn ($r) => $r->uri());
+        test()->fail('ROUTE DBG | essRoutesCount='.$ess->count()
+            .' | hasSaveSalesTarget='.var_export($ess->contains('essentials/save-sales-target'), true)
+            .' | sample='.$ess->take(5)->implode(','));
     }
 
     // Passa o gate de tenant (não 404). DatabaseTransactions desfaz qualquer escrita.
