@@ -241,6 +241,13 @@
       "promote_by": "2026-07-17",
       "anchor": "Proibição Tier 0 'Modules/X/Tests sem CI = falsa cobertura' — Modules/Compras/Tests registrado em phpunit.xml sem lane que o execute (MultiTenant/PII skip no sqlite = verde mente). Lane MySQL real reusa .github/actions/pest-mysql-setup; required-ready (ADR 0271 onda 2), promoção a required é passo Wagner. Refs ADR 0093 (multi-tenant Tier 0), ADR 0062 (testes CT100), PR #3723"
     },
+    "essentials-pest.yml": {
+      "nome": "Essentials · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-31",
+      "anchor": "Essentials (folha/RH) não tinha lane MySQL de PR (modules-pest.yml matrix não inclui, sem *-pest.yml próprio) — testes cross-tenant Tier 0 só rodavam no CT100 nightly, invisíveis a todo merge. Nasce com SalesTargetShiftCrossTenantTest (follow-up #4474 ScopeByBusinessViaParent): fecha IDOR de write com id cru do body em SalesTarget::saveSalesTarget/Shift::postAssignUsers (o backstop de scope não cobre INSERT). Advisory (skip-as-pass, mesmo padrão jana-pest/ponto-pest)."
+    },
     "financeiro-pest.yml": {
       "nome": "Financeiro · Pest (MySQL)",
       "classe": "gate"

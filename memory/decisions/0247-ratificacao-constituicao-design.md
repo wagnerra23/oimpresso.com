@@ -1,3 +1,16 @@
+---
+slug: 0247-ratificacao-constituicao-design
+number: 247
+title: "Carta de Design [CC] subordinada ao protocolo do git"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: arquivado
+decided_by: [W]
+decided_at: "2026-05-30"
+related: []
+pii: false
+---
 # ADR 0247 — Carta de Design [CC] subordinada ao protocolo do git
 
 - **Data:** 2026-05-30

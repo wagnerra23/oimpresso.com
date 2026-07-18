@@ -120,6 +120,7 @@ jobs:
             Modules/Jana/Tests/Feature/Memoria/SupersedeConsolidacaoTest.php \
             Modules/Jana/Tests/Feature/RetentionPurgeCommandTest.php \
             Modules/Jana/Tests/Feature/EntitiesFilhasMultiTenantViaParentTest.php \
+            Modules/Jana/Tests/Feature/PeriodosControllerCrossTenantTest.php \
             Modules/Jana/Tests/Feature/FontesControllerCrossTenantTest.php
 
       - name: Upload JUnit (Jana · MySQL)
