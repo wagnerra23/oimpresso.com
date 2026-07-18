@@ -77,16 +77,17 @@ const CAMPOS_OBRIGATORIOS = [
  *
  * Cada entrada aqui é débito documentado de frontmatter — backlog na próxima limpeza:
  * - 0122/0123/0124/0126-mcp-jira/0127 — header tabular legacy (campo `adr:`/`deciders:`/`references:`)
- * - 0126-vault/0128 — sem frontmatter (header markdown plain)
+ *
+ * 0126-vault/0128/0246/0247 SAÍRAM daqui (PR #4515 deu frontmatter canônico + ADR 0297/0343):
+ * agora validam de fato no linter — não reintroduzir sem antes remover o frontmatter (o que
+ * append-only Tier 0 proíbe), i.e. nunca.
  */
 const ADRS_LEGACY_SKIP = [
     '0122-admin-center-ct100',
     '0123-modules-arquivos-backbone',
     '0124-curador-conhecimento-pipeline',
     '0126-mcp-jira-projects-modulos-verticais',
-    '0126-vault-chunked-encryption-sprint-2',
     '0127-modules-auditoria-undo-activity-log',
-    '0128-smoke-testing-e2e-pos-cycle',
     // Pre-existentes em main 2026-05-21 (Wagner Financeiro/Accounting deprec sprint):
     // ambos sem frontmatter YAML canon. Append-only Tier 0 — não editar.
     // Backlog migração: Wave 30+ junto com 0122-0128.
@@ -102,11 +103,6 @@ const ADRS_LEGACY_SKIP = [
     // com 0122-0128 + 0172-0173 em Wave 30+.
     '0170-onda5-simplificada',
     '0170-bancos-nativos-top5-drivers-separados',
-    // Pre-existentes em main (PR #1990, 2026-05-30) · estilo prosa antigo, sem bloco
-    // YAML `---` (campos em markdown bold: **Data:**/**Status:**). Append-only Tier 0 —
-    // não editar. Backlog migração de frontmatter junto com 0122-0128 + 0172-0173 em Wave 30+.
-    '0246-sessao-2026-05-30-ds-harmonizacao',
-    '0247-ratificacao-constituicao-design',
 ];
 
 /**
