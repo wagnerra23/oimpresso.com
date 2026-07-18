@@ -1897,3 +1897,18 @@ O projeto OpenAI **de prod** (e o de staging — duas chaves, **mesmo** projeto)
 **Ressalvas (não desta US):** (1) o ganho na **média** do tráfego real é a **US-COPI-137** (eval online) — o comparativo é 1 amostra, não distribuição; (2) subir o modelo **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passa a raciocinar melhor sobre o contexto errado; (3) **fallback** primário→secundário segue aberto na **US-COPI-135**.
 
 **Refs:** ADR 0245 · ADR 0141 · US-COPI-135 (fallback) · US-COPI-136 (recall) · US-COPI-137 (eval online)
+
+### US-COPI-145 · Desbloquear modelo frontier no chat da Jana: ANTHROPIC_API_KEY em prod OU acesso gpt-4o no projeto OpenAI
+
+> owner: wagner · priority: p1 · status: todo · type: story
+> blocked_by: Decisão/credencial [W]: fornecer ANTHROPIC_API_KEY OU liberar gpt-4o no projeto OpenAI
+
+Ação de credencial/infra que destrava a dimensão erp-ia-produto (o mecanismo já está pronto — US-COPI-144). O flip do gpt-4o foi TENTADO e REVERTIDO em 2026-07-17: o projeto OpenAI de prod (`proj_zMcVcGyURfEVtsgTRxP4RiTs`) retorna `model_not_found` pro gpt-4o apesar da autorização — as 2 chaves (prod+staging) são do MESMO projeto sem acesso.
+
+**Dois caminhos, ambos dependem de [W]:**
+- **(A)** liberar gpt-4o DE VERDADE no projeto OpenAI.
+- **(B — RECOMENDADO, maior alavanca)** pôr `ANTHROPIC_API_KEY` no `.env` do Hostinger — destrava `claude-sonnet` no chat (o `ChatCopilotoAgent` já tem prompt-caching Anthropic implementado), o fallback provider-secundário (**US-COPI-135**, hoje sem destino) E um 2º juiz pro eval online (**US-COPI-137**).
+
+`[C]` NÃO manuseia a chave (credencial paga [W]). Feito o desbloqueio, `[C]` liga via `JANA_CHAT_MODEL` (+ provider se anthropic), roda smoke real do `responderChat` (o incidente ensinou: testar o caminho blocking + eventos do stream; resposta vazia = sinal de erro) e mede antes/depois no gold-set (`jana:ragas-real-eval`) pra provar ganho na média — o comparativo atual é 1 amostra (ganho marginal, custo ~15×).
+
+**Refs:** US-COPI-144 (mecanismo, DoD com o incidente) · US-COPI-135 (fallback) · US-COPI-137 (eval) · handoff 2026-07-17-2115
