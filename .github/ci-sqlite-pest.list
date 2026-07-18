@@ -29,6 +29,9 @@ Modules/Jana/Tests/Feature/TaskRegistry/AcceptanceRefTest.php
 Modules/Jana/Tests/Feature/TaskRegistry/TaskUpdateAtomicTest.php
 Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
 Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
+# Alarme anti-SPOF do ingest (IngestLivenessChecker no governance:audit, 2026-07-18):
+# dispara quando hosts existem mas fresh=0. Sintética em beforeEach → sqlite-safe.
+Modules/Governance/Tests/Feature/IngestLivenessCheckerTest.php
 # Regressão do validate-strip no /api/cc/ingest (MEM-CC-1, fix 2026-07-17): prova
 # content_text/tokens persistindo (pré-fix gravava skeletons NULL). Sintética em
 # beforeEach → sqlite-safe.
