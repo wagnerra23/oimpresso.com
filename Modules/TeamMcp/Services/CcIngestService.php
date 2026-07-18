@@ -132,6 +132,7 @@ class CcIngestService
             'msg_type'     => $msg['type'],
             'role'         => $msg['role'] ?? null,
             'tool_name'    => $msg['tool_name'] ?? null,
+            'model'        => $msg['model'] ?? null,
             'content_text' => $contentText,
             'content_json' => $msg['content_json'] ?? null,
             'blob_id'      => $blobId,

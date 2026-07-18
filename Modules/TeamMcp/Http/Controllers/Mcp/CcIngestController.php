@@ -227,6 +227,7 @@ class CcIngestController extends Controller
             'msg_type' => $m['type'],
             'role' => $m['role'] ?? null,
             'tool_name' => $m['tool_name'] ?? null,
+            'model' => $m['model'] ?? null,
             'content_text' => $contentText,
             'content_json' => $m['content_json'] ?? null,
             'blob_id' => $blobId,
