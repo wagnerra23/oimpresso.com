@@ -20,6 +20,19 @@
 
 UI humana: `/copiloto/admin/memoria` lista os docs sincronizados (contagem viva lá) com filtros + preview markdown render + git_sha→GitHub.
 
+## Mapa de arquivos por tela — é COMANDO, não arquivo (derivado, não apodrece)
+
+> "Onde está o mapa de quais arquivos cada tela tem (charter? casos? teste? scorecard?)" — **não é um `.md`**. Um mapa escrito à mão apodrece no dia (lei-mãe [ADR 0256](decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md): *derivado+enforçado sobrevive; escrito+lembrado apodrece*). O mapa é **derivado, recalculado da árvore** por estas portas vivas:
+
+| Camada (por tela) | Porta viva | Gate |
+|---|---|---|
+| charter · e2e · scorecard · a11y | `npm run screen-coverage:report` (`scripts/qa/screen-coverage-map.mjs`) | `screen-coverage-gate` **required** |
+| casos / trio | `npm run casos:report` (`scripts/casos-coverage-guard.mjs`) | `casos-gate` **required** |
+| prontuário por módulo (não por tela) | `memory/governance/vital-signs.json` (nightly `mv-metabolismo.yml`) | advisory |
+| UI humana por tela | `/admin/screen-review` (charter/ux_targets/status/grade) | — |
+
+Session logs `*-mapa-telas-projeto.md` (e os números embutidos em qualquer session log) são **fósseis datados** — snapshot honesto do dia, **history**, nunca "o mapa atual". Se um número datado incomodar, **re-rode o comando** — não edite o número ([lápide §5 2026-07-17](proibicoes.md)).
+
 ## Fallback: filesystem (se sem MCP conectado)
 
 1. **Brief diário fica em** `mcp_briefs` table (consulta SQL como fallback)

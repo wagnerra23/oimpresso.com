@@ -54,6 +54,8 @@ on:
       - 'memory/requisitos/**/*-gap.md'
       - 'prototipo-ui/render-proto-baseline.mjs'
       - '.github/workflows/design-memory-gate.yml'
+      - 'scripts/governance/design-gate-bites.mjs'
+      - 'memory/governance/design-gate-bites.jsonl'
   workflow_dispatch:
 
 concurrency:
@@ -342,3 +344,27 @@ jobs:
             cat /tmp/dtcg.txt 2>/dev/null || echo '(sem saida — ver passo anterior)'
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # ── bite-log dos gates de design (DR-2a da ADR 0336) ─────────────────────────
+  # O artefato que a 0336 mandou construir e nunca foi: memory/governance/
+  # design-gate-bites.jsonl registra, append-only, cada MORDIDA (gate de design cujo
+  # --check daria fail num sha que MERGEOU). A DR-2 promove a required quem tiver >=2
+  # PRs distintos mordidos; sem este ledger, o advisory emite ::warning:: + exit 0 e
+  # a mordida some -> promocao vira chute. COLETA: o ZELADOR roda '--scan' e inclui as
+  # mordidas novas no PR diario (reuso do dono existente, nao workflow novo com secret).
+  # Aqui: self-test HARD (a maquina que conta nao pode mentir) + tally advisory (placar).
+  bite-log:
+    name: design bite-log DR-2a (self-test + tally · advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # HARD: prova que o recorder morde/libera/dedupa/conta certo (sem mascara).
+      - name: design-gate-bites self-test (morde · libera · dedup · tally)
+        run: node scripts/governance/design-gate-bites.mjs --selftest
+      # advisory: placar de mordidas por gate (criterio DR-2 >=2 PRs distintos).
+      - name: design-gate-bites tally (advisory · placar DR-2 no summary)
+        continue-on-error: true
+        run: node scripts/governance/design-gate-bites.mjs --tally | tee -a "$GITHUB_STEP_SUMMARY"
