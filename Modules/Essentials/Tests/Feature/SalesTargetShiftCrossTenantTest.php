@@ -87,11 +87,14 @@ beforeEach(function () {
         ]);
     }
 
+    // NÃO setar session manualmente: as rotas /essentials rodam SetSessionData
+    // DEPOIS do auth, então o middleware reconstrói user.business_id a partir do
+    // usuário autenticado (padrão comprovado do EssentialsTestCase/TodoTest).
+    // Setar user.business_id à mão aqui deixava o bloco não-stale → SetSessionData
+    // pulava a reconstrução e o business_id chegava nulo no controller → 404
+    // (gate não achava nem o próprio user/shift biz=1). flush + actingAs limpa.
+    session()->flush();
     $this->actingAs($this->wUser);
-    session([
-        'user.business_id' => STS_BIZ_WAGNER,
-        'business' => ['id' => STS_BIZ_WAGNER, 'name' => $business->name],
-    ]);
 });
 
 function stsForeignUser(): ?User
