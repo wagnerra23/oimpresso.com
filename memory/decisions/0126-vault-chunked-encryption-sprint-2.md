@@ -1,3 +1,16 @@
+---
+slug: 0126-vault-chunked-encryption-sprint-2
+number: 126
+title: "Vault chunked encryption Sprint 2 (proposed)"
+type: adr
+status: proposto
+authority: reference
+lifecycle: arquivado
+decided_by: [W]
+decided_at: "2026-05-10"
+related: []
+pii: false
+---
 # ADR 0126 — Vault chunked encryption Sprint 2 (proposed)
 
 | Campo       | Valor                                      |

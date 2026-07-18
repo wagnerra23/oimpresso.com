@@ -1,3 +1,16 @@
+---
+slug: 0128-smoke-testing-e2e-pos-cycle
+number: 128
+title: "Smoke testing E2E pós-cycle"
+type: adr
+status: proposto
+authority: reference
+lifecycle: arquivado
+decided_by: [W]
+decided_at: "2026-05-10"
+related: []
+pii: false
+---
 # ADR 0128 — Smoke testing E2E pós-cycle
 
 | Campo       | Valor                                                                 |
