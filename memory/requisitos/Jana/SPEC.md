@@ -1619,7 +1619,9 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 
 > owner: — · priority: p1 · estimate: 6h · status: doing · type: story
 
-**Implementado em:** _pendente_ — o MECANISMO está construído e testado (`Modules/Jana/Jobs/Telemetry/JudgeTraceOnlineJob.php` + hook na `LangfuseAgentTelemetryListener::onEnd` + bloco `online_eval` na config; 6 testes verdes no CT 100 incl. a prova LGPD "PiiRedactor antes do juiz"), mas fica `_pendente_` de propósito: o DoD é **eval fluindo no tráfego real**, e isso só acontece quando [W] ligar os 2 gates OFF (`enabled=true` **E** `judge=openai` — decisão LGPD) OU quando o juiz local for implementado. Código pronto atrás de flag = padrão PaymentGateway.
+**Implementado em:** _pendente_ — o MECANISMO está construído e testado (`Modules/Jana/Jobs/Telemetry/JudgeTraceOnlineJob.php` + hook na `LangfuseAgentTelemetryListener::onEnd` + `Modules/Jana/Services/Ragas/OllamaRagasJudge.php` (juiz local) + bloco `online_eval` na config), mas fica `_pendente_` de propósito: o DoD é **eval fluindo no tráfego real**, e isso só acontece quando [W] ligar o gate `enabled=true` (decisão LGPD). Código pronto atrás de flag = padrão PaymentGateway.
+
+**Atualização 2026-07-18 (chip grade de réguas — "ligar a medição"):** (1) **juiz local implementado** — `OllamaRagasJudge` (extends `RagasJudgeService`, override do transporte pra Ollama self-host CT 100, `/api/chat`, ZERO egress). Reusa os prompts RAGAS do pai; em falha lança `JudgeUnavailableException` → o Job PULA sem gravar `0.0` fabricado (honestidade, não teatro). Agora `judge=local` (default) mede de verdade em vez de SKIPar. (2) **BUG de wiring corrigido** — o Job/Listener liam `config('jana.online_eval.*')`, mas o bloco vive em `config.php` → merged como `copiloto.*` (o `jana.*` só tem retention/memoria). Ou seja, `enabled=true` no `config.php` **não ligava nada**. Agora leem `copiloto.online_eval.*` — editar o `config.php` é a fonte real. (3) **`jana:ragas-real-eval --judge=local`** roteia o julgamento pro juiz local (síntese segue no OpenAI) — verificável sobre o pipeline real sem esperar o tráfego 5%. **Pré-req de infra (não-código):** o Ollama do CT 100 (`ollama-embedder`) precisa de um modelo de CHAT puxado (`ollama pull <model>`, ex.: `qwen2.5:3b`) — hoje só tem embedders; sem ele o juiz lança (honesto) e o Job pula.
 
 **Origem:** grade de réguas 2026-07-17 — item #7 do "roubar"; `qualidade-drift-ia-producao` 4,0/10.
 
@@ -1630,14 +1632,16 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 - [x] Score por business via `LangfuseClient::recordScore()` (`ragas_faithfulness_online`) — a US original chamou de `score()`; o método real é `recordScore`, e o arquivo é `Services/Telemetry/LangfuseClient.php` (não `Services/`).
 - [x] **Tier 0:** `PiiRedactor` roda ANTES do juiz (provado por teste: CPF/email não chegam crus). `$businessId` explícito no Job (session() não existe na fila).
 - [x] Advisory: publica número no trace, não bloqueia nada (sem gate).
-- [ ] **DoD ([W]):** ligar `enabled=true` + escolher `judge` (LGPD: `local` zero-egress a implementar, ou `openai` com aceite) → eval flui no tráfego real.
+- [x] **Juiz local implementado** (`OllamaRagasJudge`, zero egress — 2026-07-18). `judge=local` (default) mede de verdade; em falha PULA sem fabricar score.
+- [x] **Wiring corrigido** — leitura em `copiloto.online_eval.*` (o namespace onde o bloco de fato mora); antes lia `jana.*` (vazio) e `enabled=true` não ligava nada.
+- [ ] **DoD ([W]):** ligar `enabled=true` (LGPD) → eval flui no tráfego real. Pré-req infra: `ollama pull <model-chat>` no CT 100 (`judge=local`).
 - [ ] Só faithfulness no v1 (sem gt no tráfego real → recall/relevancy ficam offline/follow-up).
 
 **Ressalva do adversário:** trocar RAGAS tautológico por RAGAS não-calibrado pode ser trocar teatro por teatro com casas decimais — a literatura 2026 mediu falha de validade discriminante do `faithfulness` (19,3pp retrieval vs 15,9pp geração). Por isso o mecanismo **nasce sem gate** — só publica número no trace. Calibrar antes de confiar na média.
 
 **DoD:** existe score `ragas_faithfulness_online` em ao menos 1 trace real (biz≠1) com PII redigida — só possível após [W] ligar os gates.
 
-**Testado em:** `Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php` — shouldSample (0/1/determinismo/~5% sobre 10k) · judge=local SKIPa (zero egress) · judge=openai roda PiiRedactor ANTES do juiz (CPF/email não vazam) · juiz-em-mock não pontua.
+**Testado em:** `Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php` — shouldSample (0/1/determinismo/~5% sobre 10k) · **wiring** (config resolve em `copiloto.*`, o `jana.*` é vazio = a mordida do bug) · **judge=local** pontua via Ollama com PII redigida ANTES do juiz (CPF/email não vão no request) · judge=local com Ollama down NÃO grava score (sem 0.0 fabricado) · judge=openai PII-redigido · juiz-em-mock não pontua. `Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php` — transporte Ollama (parse score 0..1, url+model, sanitize, `JudgeUnavailableException` em HTTP 500/JSON-sem-score/transporte, mock curto-circuita).
 
 **Refs:** ADR 0318 · ADR 0093 · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `Modules/Jana/Services/Privacy/PiiRedactor.php`
 
