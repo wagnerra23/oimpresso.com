@@ -4,7 +4,7 @@
    Edite o token no .tokens.json — o CSS é SAÍDA. Equivalência: scripts/governance/dtcg-equivalence.mjs. */
 
 @theme {
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: Georgia, "Times New Roman", serif;
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);

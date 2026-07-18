@@ -11,12 +11,12 @@
   "font": {
     "$type": "fontFamily",
     "sans": {
-      "$value": "ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", Roboto, \"Helvetica Neue\", Arial, sans-serif",
+      "$value": "Georgia, \"Times New Roman\", serif",
       "$description": "--font-sans (Tailwind @theme). Cockpit redefine localmente como IBM Plex Sans (ver semantic.cockpit.font).",
       "$extensions": { "com.oimpresso.source": "resources/css/inertia.css @theme --font-sans" }
     },
     "cockpit-sans": {
-      "$value": "\"IBM Plex Sans\", ui-sans-serif, system-ui, -apple-system, \"Segoe UI\", sans-serif",
+      "$value": "Georgia, \"Times New Roman\", serif",
       "$description": "--font-sans do shell .cockpit (override local IBM Plex).",
       "$extensions": { "com.oimpresso.source": "resources/css/cockpit.css .cockpit --font-sans" }
     },

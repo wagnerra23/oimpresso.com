@@ -4,7 +4,7 @@
    Edite o token no .tokens.json — o CSS é SAÍDA. Equivalência: scripts/governance/dtcg-equivalence.mjs. */
 
 .cockpit {
-  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: Georgia, "Times New Roman", serif;
   --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --sb-bg: oklch(0.18 0.006 240);
   --sb-bg-2: oklch(0.16 0.006 240);
