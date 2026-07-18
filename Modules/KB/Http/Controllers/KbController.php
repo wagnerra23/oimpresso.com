@@ -8,6 +8,9 @@ use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 use Modules\Jana\Entities\Mcp\McpMemoryDocument;
+use Modules\KB\Entities\KbCategory;
+use Modules\KB\Entities\KbSubcategory;
+use Modules\KB\Services\KbArticleService;
 
 /**
  * KbController — Knowledge Base browser dos documentos servidos via MCP server.
@@ -61,6 +64,68 @@ class KbController extends Controller
                 $request->user(), $type, $module, $search, $withPii, $page
             ),
             'kpis'    => $this->buildKpisPayload(),
+        ]);
+    }
+
+    /**
+     * indexV2 — a tela tri-pane /kb/v2 (+ alias /sops) servindo DADO REAL de kb_nodes.
+     *
+     * Substitui as closures `Inertia::render('kb/Index.v2')` sem props (que deixavam
+     * a tela em MOCK — charter §8-bis passo 2). Agora passa `nodes` + `categories` +
+     * `subcategories` + `business`, e a tela sai do mock (`usingMock = !props.nodes`).
+     *
+     * Tier 0 (ADR 0093): web request → o global scope de KbNode/KbCategory/KbSubcategory
+     * resolve o business_id da SESSÃO. Nenhuma query cruza tenant; sem withoutGlobalScopes.
+     *
+     * NOVO-A (charter §2-bis, [W] 2026-07-17): `business.name` alimenta o rótulo
+     * "Buscando em: «empresa ativa»" ao lado da busca — leitura, não seletor.
+     *
+     * LIMITES HONESTOS (follow-ups, não bloqueiam a lista):
+     *  - Carrega TODOS os nós do business em 1 payload (a tela filtra client-side, como o
+     *    mock fazia). Leve hoje (biz=1: 543 nós, ~251 KB — corpo vive na fonte, não em
+     *    kb_nodes). NÃO escala pra 10k+ nós: aí precisa paginação+filtro server-side (exige
+     *    mudar o .tsx → gate visreg). Cap explícito de 2000 abaixo — se exceder, o
+     *    paginator.total mostra o número real e a lista fica curta (visível, não silencioso).
+     *  - O LEITOR (pane direito) mostra título+excerpt mas não o corpo completo dos docs
+     *    bridgeados (o `KbBridgeFromMcpJob` copia metadata, não `body_blocks`). Bridge do
+     *    corpo OU fetch-on-click = próximo passo.
+     */
+    public function indexV2(Request $request, KbArticleService $articles): Response
+    {
+        $user = $request->user();
+
+        // buildListQuery já é scopado pelo global scope + aplica os filtros da query.
+        // paginate(2000): 1 página com todos os nós do business (a tela filtra no cliente).
+        $nodes = $articles->buildListQuery($request)
+            ->orderByDesc('pinned')
+            ->orderByDesc('updated_at')
+            ->paginate(2000)
+            ->withQueryString();
+
+        return Inertia::render('kb/Index.v2', [
+            'filters' => [
+                'q'           => $request->string('q')->toString() ?: null,
+                'category'    => $request->string('category')->toString() ?: null,
+                'subcategory' => $request->string('subcategory')->toString() ?: null,
+                'type'        => $request->string('type')->toString() ?: null,
+            ],
+            // NOVO-A: rótulo da empresa ativa (a troca de empresa vive na Sidebar; aqui é leitura).
+            'business' => [
+                'id'   => (int) (session('user.business_id') ?? $user?->business_id ?? 0),
+                'name' => (string) (session('business.name') ?? ''),
+            ],
+            'categories'    => KbCategory::query()->orderBy('sort')->orderBy('label')->get(),
+            'subcategories' => KbSubcategory::query()->get(),
+            'nodes'         => $nodes,
+            'can' => [
+                'write'                => (bool) ($user?->can('kb.write') ?? false),
+                'favorite'             => true,
+                'comment'              => (bool) ($user?->can('kb.comment') ?? false),
+                'ai_ask'               => (bool) ($user?->can('kb.ai') ?? false),
+                'graph_view'           => true,
+                'publish_path'         => (bool) ($user?->can('kb.write') ?? false),
+                'publish_troubleshoot' => (bool) ($user?->can('kb.write') ?? false),
+            ],
         ]);
     }
 
