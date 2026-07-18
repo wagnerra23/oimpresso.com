@@ -142,14 +142,6 @@ it('SalesTarget positivo: save-sales-target no próprio user biz=1 → NÃO é 4
         'commission' => [],
     ]);
 
-    if ($resp->status() === 404) {
-        $m = collect(app('router')->getRoutes()->getRoutes())
-            ->map(fn ($r) => implode('|', $r->methods()).' '.$r->uri())
-            ->filter(fn ($u) => str_contains($u, 'sales-target') || str_contains($u, 'assign-users'))
-            ->values()->all();
-        test()->fail('404 ainda. Rotas sales-target/assign-users reais: '.json_encode($m));
-    }
-
     // Passa o gate de tenant (não 404). DatabaseTransactions desfaz qualquer escrita.
     expect($resp->status())->not->toBe(404);
     $resp->assertRedirect();
