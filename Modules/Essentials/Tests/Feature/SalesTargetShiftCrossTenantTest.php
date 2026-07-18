@@ -122,7 +122,7 @@ it('SalesTarget cross-tenant: save-sales-target com user_id de outro biz → 404
 
     $antes = EssentialsUserSalesTarget::withoutGlobalScopes()->where('user_id', $foreign->id)->count();
 
-    $resp = $this->post('/essentials/save-sales-target', [
+    $resp = $this->post('/essentials/hrm/save-sales-target', [
         'user_id' => $foreign->id,
         'sales_amount_start' => ['0' => '100'],
         'sales_amount_end' => ['0' => '200'],
@@ -135,20 +135,12 @@ it('SalesTarget cross-tenant: save-sales-target com user_id de outro biz → 404
 });
 
 it('SalesTarget positivo: save-sales-target no próprio user biz=1 → NÃO é 404 (gate passa)', function () {
-    $resp = $this->post('/essentials/save-sales-target', [
+    $resp = $this->post('/essentials/hrm/save-sales-target', [
         'user_id' => $this->wUser->id,
         'sales_amount_start' => [],
         'sales_amount_end' => [],
         'commission' => [],
     ]);
-
-    if ($resp->status() === 404) {
-        $ess = collect(app('router')->getRoutes()->getRoutes())
-            ->filter(fn ($r) => str_starts_with($r->uri(), 'essentials/'))->map(fn ($r) => $r->uri());
-        test()->fail('ROUTE DBG | essRoutesCount='.$ess->count()
-            .' | hasSaveSalesTarget='.var_export($ess->contains('essentials/save-sales-target'), true)
-            .' | sample='.$ess->take(5)->implode(','));
-    }
 
     // Passa o gate de tenant (não 404). DatabaseTransactions desfaz qualquer escrita.
     expect($resp->status())->not->toBe(404);
@@ -158,7 +150,7 @@ it('SalesTarget positivo: save-sales-target no próprio user biz=1 → NÃO é 4
 it('Shift cross-tenant (shift): assign-users em shift de outro biz → 404', function () {
     $shiftFicticio = stsMakeShift(STS_BIZ_FICTICIO);
 
-    $resp = $this->post('/essentials/shift/assign-users', [
+    $resp = $this->post('/essentials/hrm/shift/assign-users', [
         'shift_id' => $shiftFicticio->id,
         'user_shift' => [],
     ]);
@@ -175,7 +167,7 @@ it('Shift cross-tenant (user): assign-users com user_id de outro biz num shift p
     }
     $shiftProprio = stsMakeShift(STS_BIZ_WAGNER);
 
-    $resp = $this->post('/essentials/shift/assign-users', [
+    $resp = $this->post('/essentials/hrm/shift/assign-users', [
         'shift_id' => $shiftProprio->id,
         'user_shift' => [
             (string) $foreign->id => ['is_added' => 1, 'start_date' => null, 'end_date' => null],
