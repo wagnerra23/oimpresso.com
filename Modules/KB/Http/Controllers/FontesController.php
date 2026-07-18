@@ -22,11 +22,13 @@ class FontesController extends Controller
     public function update(Request $request, $metaId)
     {
         // Gate Tier 0 (ADR 0093): valida que a meta é do tenant ANTES de gravar
-        // a fonte. Sem isto, `MetaFonte::updateOrCreate(['meta_id' => $metaId])`
-        // grava driver+config_json na meta de OUTRO business (o backstop
-        // ScopeByBusinessViaParent não cobre o INSERT do updateOrCreate) →
-        // injeção de `driver:sql` cross-tenant que roda na apuração. Espelha o
-        // gate que o próprio show() já faz. Fecha IDOR (follow-up #4474).
+        // a fonte. Meta usa HasBusinessScope (business_id global scope), então
+        // findOrFail de meta_id cross-tenant 404. Sem isto,
+        // `MetaFonte::updateOrCreate(['meta_id' => $metaId])` grava
+        // driver+config_json na meta de OUTRO business (o backstop via parent
+        // não cobre o INSERT do updateOrCreate) → injeção de `driver:sql`
+        // cross-tenant que roda na apuração. Espelha o gate que o próprio show()
+        // já faz. Fecha IDOR (follow-up #4474).
         Meta::findOrFail($metaId);
 
         $data = $request->validate([
