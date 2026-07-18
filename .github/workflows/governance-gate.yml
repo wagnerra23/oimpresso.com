@@ -136,7 +136,15 @@ jobs:
           fi
           base_sha="${{ github.event.pull_request.base.sha }}"
           # Corpo = tudo após o 2º fence '---' do frontmatter (preserva '---' do corpo).
-          body_of() { awk 'BEGIN{c=0} /^---$/ && c<2 {c++; next} c>=2 {print}' "$1"; }
+          # Se a base NÃO tem frontmatter (1ª linha ≠ '---' — ADR legacy sem bloco YAML
+          # algum), o corpo é o ARQUIVO INTEIRO. Sem este ramo o awk contava os '---' do
+          # CORPO (HR markdown) como fences e truncava, ou (0 HR) devolvia vazio — quebrando
+          # a migração das ADRs zero-frontmatter (a exceção 0297 foi desenhada p/ legacy que
+          # já tinha frontmatter adr:/deciders:; zero-frontmatter é o caso mais legacy e caía
+          # fora). A migração prepend o frontmatter SEM linha em branco → head_body (pós-fence)
+          # == base_body (arquivo inteiro), byte-idêntico. ADR que já tem frontmatter: 1ª
+          # linha == '---' → whole fica 0 → comportamento inalterado.
+          body_of() { awk 'NR==1 && $0!="---"{whole=1} whole{print;next} /^---$/ && c<2 {c++; next} c>=2 {print}' "$1"; }
           ok=1
           while IFS= read -r line; do
             file=$(echo "$line" | sed -E 's/^M[[:space:]]+//')

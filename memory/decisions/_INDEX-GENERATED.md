@@ -7,9 +7,9 @@
 ## Resumo
 - **349** arquivos · **333** números únicos · máx **0343**
 - **ADRs ATIVOS (lifecycle ativo): 315** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 315 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 315 · arquivado 18 · substituido 12 · (vazio) 4
-- Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
+- Por status: aceito 317 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 315 · arquivado 22 · substituido 12
+- Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
 - **0101** ×2: 0101-sistema-charter-capterra-governanca-escopo · 0101-tests-business-id-1-nunca-cliente
@@ -166,9 +166,9 @@ _(íntegra)_
 | 0124 | aceito | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
 | 0125 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
 | 0126 | aceito | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
-| 0126 | proposto | (vazio) | decision | ADR 0126 — Vault chunked encryption Sprint 2 (proposed) |
+| 0126 | proposto | arquivado | decision | Vault chunked encryption Sprint 2 (proposed) |
 | 0127 | aceito | ativo | decision | Modules/Auditoria — UI rica + undo sobre activity_log existente |
-| 0128 | proposto | (vazio) | decision | ADR 0128 — Smoke testing E2E pós-cycle |
+| 0128 | proposto | arquivado | decision | Smoke testing E2E pós-cycle |
 | 0129 | aceito | ativo | decision | State Machine canônica — FSM tabular custom + Spatie Permission por transição |
 | 0130 | aceito | ativo | decision | Handoff append-only + MCP-first antes de escrever — fim do overwrite cego de 08- |
 | 0131 | aceito | ativo | decision | Tiering de memória — canônico (git/MCP) / máquina-local / segredo (Vaultwarden) |
@@ -289,9 +289,9 @@ _(íntegra)_
 | 0243 | aceito | ativo | decision | Processo de memória/evolução de design do Cowork — loop medido e auto-corretivo  |
 | 0244 | aceito | ativo | decision | DS v5 = Design System único ativo (v4 lápide) · Oficina = tela-padrão/semente do |
 | 0245 | aceito | ativo | decision | Jana Modo Consultor (Advisor) — clarify reativo (cascata Decidir→Clarificar→Resp |
-| 0246 | (vazio) | (vazio) | decision | ADR 0246 — Harmonização DS sem perder qualidade + caminho v4.2 |
+| 0246 | aceito | arquivado | decision | Harmonização DS sem perder qualidade + caminho v4.2 |
 | 0246 | aceito | ativo | decision | Tipo "Outros" como categoria default pra cadastros legacy em migrações |
-| 0247 | (vazio) | (vazio) | decision | ADR 0247 — Carta de Design [CC] subordinada ao protocolo do git |
+| 0247 | aceito | arquivado | decision | Carta de Design [CC] subordinada ao protocolo do git |
 | 0248 | aceito | ativo | decision | Gate de exclusão do Sells/Show espelha a autorização do servidor (sell.delete // |
 | 0249 | aceito | ativo | decision | DS v6 — nome canônico único da camada de tokens semânticos (resolve divergência  |
 | 0250 | aceito | ativo | decision | QA-de-tela sustentável: enforcement determinístico do screen-grade (seed + catra |

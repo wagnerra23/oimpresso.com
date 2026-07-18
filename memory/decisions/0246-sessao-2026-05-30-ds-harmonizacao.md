@@ -1,3 +1,16 @@
+---
+slug: 0246-sessao-2026-05-30-ds-harmonizacao
+number: 246
+title: "Harmonização DS sem perder qualidade + caminho v4.2"
+type: adr
+status: aceito
+authority: canonical
+lifecycle: arquivado
+decided_by: [W]
+decided_at: "2026-05-30"
+related: []
+pii: false
+---
 # ADR 0246 — Harmonização DS sem perder qualidade + caminho v4.2
 
 - **Data:** 2026-05-30
