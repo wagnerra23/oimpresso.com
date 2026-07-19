@@ -209,22 +209,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 100,
+      "value": 66.7,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 1,
-        "weeks_valid": 1,
+        "weeks_expected": 3,
+        "weeks_valid": 2,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-06-28",
+        "last_week": "2026-07-19",
         "latest": {
           "gate_status": "pass",
           "n_evaluated": 51,
-          "faithfulness_avg": 0.7145,
-          "relevancy_avg": 0.8745,
-          "context_recall_avg": 0.3951
+          "faithfulness_avg": 0.7127,
+          "relevancy_avg": 0.8255,
+          "context_recall_avg": 0.4016
         }
       },
       "stream": "MEM"
