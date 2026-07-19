@@ -14,7 +14,7 @@
  * Determinístico (Date.parse UTC) → mesma resposta em qualquer máquina/CI.
  * Uso: node scripts/governance/briefing-code-staleness.test.mjs
  */
-import { classifyCodeStaleness, declaredDoorDate } from './briefing-code-staleness.mjs';
+import { classifyCodeStaleness, declaredDoorDate, isBriefingCoverageGap } from './briefing-code-staleness.mjs';
 
 let fails = 0;
 const ok = (cond, msg) => { if (cond) console.log(`  ✓ ${msg}`); else { console.error(`  ✗ ${msg}`); fails++; } };
@@ -113,6 +113,27 @@ console.log('\n  briefing-code-staleness — self-test do núcleo puro\n');
   const viaDeclarado = classifyCodeStaleness(D({ doorDate: '2026-05-21', codeDate: '2026-07-01' })); // data declarada
   ok(!viaGit.stale && viaDeclarado.stale,
     `FIX: data-git 06-08 (23d) passaria batido; data declarada 05-21 (41d) MORDE (obtido: git=${viaGit.stale}, declarado=${viaDeclarado.stale})`);
+}
+
+// ── M) COBERTURA: módulo BACKEND com BRIEFING → NÃO é gap (libera) ──────────
+{
+  ok(isBriefingCoverageGap({ hasBackend: true, hasDoor: true }) === false,
+    `COBERTURA: backend + tem porta → NÃO é gap (obtido: ${isBriefingCoverageGap({ hasBackend: true, hasDoor: true })})`);
+}
+
+// ── N) COBERTURA MORDE: módulo BACKEND sem BRIEFING → gap (controle-negativo) ─
+// A fixture-ruim que prova que --strict-coverage MORDE: sem esta, o gate seria teatro.
+{
+  ok(isBriefingCoverageGap({ hasBackend: true, hasDoor: false }) === true,
+    `COBERTURA: backend + SEM porta → GAP, morde (obtido: ${isBriefingCoverageGap({ hasBackend: true, hasDoor: false })})`);
+}
+
+// ── O) COBERTURA sem FALSO-POSITIVO: área só-frontend (User/Perfil) → NÃO é gap ─
+// hasBackend=false (sem Modules/<X>): tela coberta pelo trio charter/casos; exigir
+// BRIEFING de módulo dela seria falso-positivo (a razão de escopar a backend).
+{
+  ok(isBriefingCoverageGap({ hasBackend: false, hasDoor: false }) === false,
+    `COBERTURA: só-frontend sem porta (ex User/Perfil) → NÃO é gap (obtido: ${isBriefingCoverageGap({ hasBackend: false, hasDoor: false })})`);
 }
 
 console.log(`\n  ${fails === 0 ? '✅ TODOS os casos passaram' : `❌ ${fails} caso(s) falharam`}\n`);
