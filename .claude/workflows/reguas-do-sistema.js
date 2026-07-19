@@ -87,6 +87,56 @@ const EXISTE = { type: 'object', additionalProperties: false, required: ['veredi
 const INTEG = { type: 'object', additionalProperties: false, required: ['veredito', 'razao'], properties: {
   veredito: { type: 'string', enum: ['DIFERENCIAL_SISTEMA', 'REFUTADO_TB'] }, razao: { type: 'string' }, quem_monta_o_todo: { type: 'string' } } }
 
+// ── Cap de agentes das fases adversariais (Refutar · Integração · Verificar) ──
+// TRUNCAGEM SILENCIOSA, ROUND 2 (achados #21/#24 do passe adversarial 2026-07-18):
+// a Fase Verificar fazia `fraquezas.slice(0, 24)` SEM log — na rodada completa de
+// 2026-07-18 cortou 52 de 76 fraquezas e, pela ordem do DIMS_DEFAULT, as 24 verificadas
+// foram 100% do eixo CONSTRUIR-E-GOVERNAR; RODAR-E-OBSERVAR e SERVIR-O-NEGÓCIO (os
+// eixos que as ADRs 0333/0334 existem pra cobrir) ficaram sem verificação-por-fraqueza.
+// MESMA classe corrigida na Fase Grade em #4477 (2026-07-17). Varredura contada
+// (lápide 2026-07-15): 3 caps de dados silenciosos no arquivo — Refutar, Integração e
+// Verificar — TODOS migrados pra este helper; os demais `slice(` são cosméticos de
+// label/quote (48/300 chars) ou o `fit()` da Fase Grade, que já loga. `head_limit`: 0.
+// Estratégia: round-robin por rank de dimensão — cada dimensão mantém suas top-N na
+// ordem em que a pesquisa as listou (N o mais igual possível entre dimensões); nenhuma
+// zera enquanto cap ≥ nº de dimensões. Proporcional-ao-tamanho foi descartado de
+// propósito: premiaria a dimensão cujo pesquisador listou MAIS itens (viés de
+// verbosidade), e o defeito é justamente eixo inteiro sem cobertura. Cortou → log()
+// de quantas e quais dimensões perderam ("No silent caps — log() what was dropped").
+// Rodada parcial (args.dimensoes com 1-2 dims) fica abaixo do cap → passa intacta.
+// Custo avaliado (por que NÃO subir o cap pra 76): Verificar roda effort high; 76
+// agentes ≈ 3× o custo da fase. Estratificar mantém 24 e devolve a cobertura por eixo.
+// Função PURA (logFn injetado, sem globals) entre marcadores CAP-ESTRAT-INI/FIM pro
+// harness dry extrair e testar o código REAL do arquivo, não uma cópia.
+const CAP_AGENTES_POR_FASE = 24
+/* CAP-ESTRAT-INI */
+const capEstratificado = (nome, items, cap, logFn) => {
+  if (items.length <= cap) return items
+  const ordem = []
+  const porDim = new Map()
+  for (const it of items) {
+    const d = it.dimensao || '(sem-dimensao)'
+    if (!porDim.has(d)) { porDim.set(d, []); ordem.push(d) }
+    porDim.get(d).push(it)
+  }
+  const mantidosPorDim = new Map(ordem.map((d) => [d, 0]))
+  const mantidos = []
+  for (let rank = 0; mantidos.length < cap; rank++) {
+    let pegou = false
+    for (const d of ordem) {
+      if (mantidos.length >= cap) break
+      if (rank < porDim.get(d).length) { mantidos.push(porDim.get(d)[rank]); mantidosPorDim.set(d, rank + 1); pegou = true }
+    }
+    if (!pegou) break
+  }
+  const perdas = ordem.filter((d) => mantidosPorDim.get(d) < porDim.get(d).length)
+    .map((d) => `${d} ${mantidosPorDim.get(d)}/${porDim.get(d).length}`)
+  const zeradas = ordem.filter((d) => mantidosPorDim.get(d) === 0)
+  logFn(`⚠️ CORTE ${nome}: ${items.length} → ${mantidos.length} (cap ${cap}) — ${items.length - mantidos.length} descartadas; dimensões que perderam (mantidas/total): ${perdas.join(' · ')}${zeradas.length ? ' — ZERADAS (nenhuma verificada): ' + zeradas.join(', ') : ''}`)
+  return mantidos
+}
+/* CAP-ESTRAT-FIM */
+
 // ── Fase 0 — Dossiê (do mapa VIVO, nunca de memória) ─────────────────────────
 phase('Dossiê')
 const dossie = await agent(
@@ -107,7 +157,7 @@ log(`${pesquisas.length}/${DIMS.length} dimensões pesquisadas`)
 // ── Fase 2 — Refutar toda claim "acima" (default: derrubar) ──────────────────
 phase('Refutar')
 const claims = pesquisas.flatMap((p) => p.oimpresso_acima.map((c) => ({ ...c, dimensao: p.dimensao })))
-const refutados = (await parallel(claims.slice(0, 24).map((c) => () => agent(
+const refutados = (await parallel(capEstratificado('Refutar', claims, CAP_AGENTES_POR_FASE, log).map((c) => () => agent(
   `REFUTADOR (contexto zero — você não herda a pesquisa). Claim: oimpresso está ACIMA do mercado em "${c.ideia}" (${c.porque_acima}; dimensão ${c.dimensao}). Busque na web (2-4 buscas) quem JÁ faz igual/melhor em produção. Achou → REFUTADO (diga quem). Parecido → EMPATADO. Só ACIMA_CONFIRMADO sem par publicado. Default cético.`,
   { label: `r:${c.ideia}`.slice(0, 48), phase: 'Refutar', schema: VERDICT, agentType: 'general-purpose', effort: 'medium' },
 ).then((v) => ({ ...c, verdict: v }))))).filter(Boolean)
@@ -118,7 +168,7 @@ log(`refutação: ${refutados.filter((r) => r.verdict.veredito === 'ACIMA_CONFIR
 // fabrica um "0 acima" falso (falácia de composição). Wagner 2026-07-10 — proibições §5.
 phase('Integração')
 const derrubadas = refutados.filter((r) => r.verdict.veredito !== 'ACIMA_CONFIRMADO')
-const integrados = (await parallel(derrubadas.slice(0, 24).map((r) => () => agent(
+const integrados = (await parallel(capEstratificado('Integração', derrubadas, CAP_AGENTES_POR_FASE, log).map((r) => () => agent(
   `TESTE DE INTEGRAÇÃO (o refutador já achou peer pra ESTA peça isolada — não repita a busca da peça). Claim: "${r.ideia}" (dimensão ${r.dimensao}); refutador deu ${r.verdict.veredito} citando "${(r.verdict.quem_ja_faz || r.verdict.razao || '').slice(0, 300)}". PERGUNTA ÚNICA: algum produto/prática publicado monta o TODO INTEGRADO no MESMO contexto do oimpresso — a pilha inteira DENTRO de um ERP vertical multi-tenant BR em produção, aplicada A SI MESMA (governança recursiva: o agente-codador cita o próprio §5 pra se auto-barrar) + o loop medir→corrigir→travar que de fato fecha? Busque 2-3× o CONJUNTO, não a peça. Se um peer monta o todo no mesmo contexto → REFUTADO_TB (a integração também tem par; diga quem). Se os peers só cobrem PEÇAS e ninguém monta o conjunto → DIFERENCIAL_SISTEMA (o diferencial é de instanciação/integração/recursão, NÃO da categoria — proibido re-inflar a peça isolada como "acima"). Default: exija o peer do TODO.`,
   { label: `i:${r.ideia}`.slice(0, 48), phase: 'Integração', schema: INTEG, agentType: 'general-purpose', effort: 'medium' },
 ).then((v) => ({ ...r, integ: v }))))).filter(Boolean)
@@ -127,11 +177,17 @@ log(`integração: ${integrados.filter((i) => i.integ.veredito === 'DIFERENCIAL_
 // ── Fase 3 — Verificar FRAQUEZAS no repo vivo (a lição 7/9) ──────────────────
 phase('Verificar')
 const fraquezas = pesquisas.flatMap((p) => p.oimpresso_atras.map((f) => ({ fraqueza: f, dimensao: p.dimensao })))
-const verificadas = (await parallel(fraquezas.slice(0, 24).map((f) => () => agent(
+const verificadas = (await parallel(capEstratificado('Verificar', fraquezas, CAP_AGENTES_POR_FASE, log).map((f) => () => agent(
   `A pesquisa marcou o oimpresso como FRACO em: "${f.fraqueza}" (dimensão ${f.dimensao}). ANTES de aceitar: cace no repo VIVO (paths ABSOLUTOS a partir de ${BASE}) mecanismos que JÁ cobrem isso total/parcialmente — .github/workflows (nomes dos checks!), scripts/governance, .claude/{skills,hooks}, prototipo-ui/*.mjs, gates-registry/required-checks-baseline. Precedente: numa rodada anterior 7 de 9 "fraquezas" JÁ existiam, invisíveis por desorganização. Dê a nota 0-10 SÓ com evidência (file:line ou prova de ausência) e diga onde indexar o achado (mapa 0330-corrente) se existia-mas-invisível.`,
   { label: `v:${f.fraqueza}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high' },
 ).then((v) => ({ ...f, check: v }))))).filter(Boolean)
-log(`${verificadas.length} fraquezas verificadas no repo · ${verificadas.filter((v) => v.check.veredito !== 'NAO_EXISTE').length} tinham algo existente`)
+// Counter por veredito (achado #24) — denominador honesto pra grade: distingue
+// "já existe inteiro" de "parcial" de "buraco real". `total` = fraquezas VERIFICADAS
+// (pós-cap), não as ${fraquezas.length} levantadas; o corte já foi logado por capEstratificado.
+const vTot = verificadas.filter((v) => v.check.veredito === 'JA_EXISTE_TOTAL').length
+const vPar = verificadas.filter((v) => v.check.veredito === 'PARCIAL').length
+const vNao = verificadas.filter((v) => v.check.veredito === 'NAO_EXISTE').length
+log(`verificação: ${verificadas.length}/${fraquezas.length} fraquezas verificadas (resto cortado pelo cap, ver log acima) · JA_EXISTE_TOTAL=${vTot} · PARCIAL=${vPar} · NAO_EXISTE=${vNao} (buracos reais)`)
 
 // ── Fase 4 — Grade final ──────────────────────────────────────────────────────
 phase('Grade')
