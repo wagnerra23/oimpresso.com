@@ -1,0 +1,35 @@
+[
+  {
+    "data": "2026-07-18",
+    "modo": "full + passe-adversarial (25 achados: 13S/12P/0D) + rodada parcial (2 dims re-medidas)",
+    "base_sha": ["811da8e759", "0c80c51936"],
+    "regra_nota": "composta-pelo-sintetizador (histórico — a regra da média determinística vale a partir do próximo retrato; ver ADR proposta reguas-loop)",
+    "notas": {
+      "spec-governanca": 6.5,
+      "design-to-code": 7.5,
+      "memoria-conhecimento": 7.5,
+      "orquestracao-adversarial": 6.5,
+      "evals-outcome": 5.4,
+      "observabilidade-agente": 6.5,
+      "qualidade-drift-ia-producao": 4.0,
+      "seguranca-do-agente": 5.0,
+      "custo-eficiencia": 5.0,
+      "erp-ia-produto": 5.2,
+      "inteligencia-de-negocio": 5.0
+    },
+    "proveniencia_notas": {
+      "medidas_por_fraqueza_full": ["spec-governanca", "design-to-code", "memoria-conhecimento", "orquestracao-adversarial"],
+      "re_medidas_parcial_media": ["erp-ia-produto", "evals-outcome"],
+      "herdadas_baseline_0717_com_spot_check": ["observabilidade-agente", "qualidade-drift-ia-producao", "seguranca-do-agente", "custo-eficiencia", "inteligencia-de-negocio"],
+      "_nota": "disclosure 24/76 da fase Verificar (slice sem log, corrigido #4542) — as herdadas NÃO tiveram verificação-por-fraqueza no full de 07-18"
+    },
+    "placar": { "claims": 27, "acima_com_limite": 2, "empatadas": 20, "refutadas_na_peca": 5, "refutadas_inteiras": 0, "diferencial_sistema": 25 },
+    "integ_hist": { "vereditos_acumulados": 81, "refutado_tb_acumulado": 0, "runs": 8, "recontagem": "ledger 2026-07-18 (58 anteriores + 23 desta; '~63' do juiz registrado com proveniência)" },
+    "custo_tokens_ciclo": 22000000,
+    "links": [
+      "memory/sessions/2026-07-18-reguas-grade-completa.md",
+      "memory/sessions/2026-07-18-reguas-adversario-grade.md",
+      "memory/sessions/2026-07-18-reguas-grade-ledger.md"
+    ]
+  }
+]

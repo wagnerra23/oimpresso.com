@@ -1,0 +1,19 @@
+{
+  "_doc": "Config da máquina de réguas em looping — memory/decisions/proposals/reguas-loop-maquina-evolucao.md. Consumido pelo modo delta de .claude/workflows/reguas-do-sistema.js e por scripts/governance/reguas-indexar.mjs.",
+  "ttl_mercado_dias": 90,
+  "ttl_acima_dias": 30,
+  "delta_min_commits": 3,
+  "paths_por_dimensao": {
+    "spec-governanca": ["scripts/governance/", ".github/workflows/", "governance/", ".claude/hooks/", ".claude/rules/"],
+    "design-to-code": ["prototipo-ui/", "resources/css/", "resources/js/Components/", "memory/requisitos/_DesignSystem/"],
+    "memoria-conhecimento": ["memory/decisions/", "memory/reference/", "Modules/Jana/Services/Memoria/", "scripts/memory-schemas/", "scripts/governance/memory-health.mjs", "scripts/governance/doc-freshness-score.mjs"],
+    "orquestracao-adversarial": [".claude/workflows/", ".claude/agents/", ".claude/skills/"],
+    "evals-outcome": ["scripts/governance/sdd-scorecard.mjs", "scripts/governance/outcome-metrics.mjs", "scripts/governance/agent-pr-outcomes.mjs", "scripts/governance/ledger-check.mjs", ".claude/governance-eval/"],
+    "observabilidade-agente": ["Modules/Jana/Listeners/", "Modules/Jana/Ai/", "app/Console/Commands/", "docker/"],
+    "qualidade-drift-ia-producao": ["Modules/Jana/Console/", "Modules/Jana/Ai/", "Modules/Jana/Services/", "config/jana.php"],
+    "seguranca-do-agente": [".claude/hooks/", ".claude/settings.json", "scripts/governance/prompt-injection-corpus.mjs", "tests/js/"],
+    "custo-eficiencia": ["scripts/governance/agent-cost-per-pr.mjs", "scripts/governance/outcome-metrics.mjs", "Modules/TeamMcp/"],
+    "erp-ia-produto": ["Modules/Financeiro/", "Modules/NfeBrasil/", "Modules/Jana/", "Modules/Whatsapp/", "Modules/ADS/"],
+    "inteligencia-de-negocio": ["Modules/Jana/Ai/", "scripts/governance/negocio-vs-governanca-ratio.mjs", "Modules/Jana/Services/Brief"]
+  }
+}
