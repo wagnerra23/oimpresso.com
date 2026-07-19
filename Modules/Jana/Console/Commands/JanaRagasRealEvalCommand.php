@@ -7,6 +7,8 @@ namespace Modules\Jana\Console\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
 use Modules\Jana\Services\Kb\KbAnswerService;
+use Modules\Jana\Services\Ragas\JudgeUnavailableException;
+use Modules\Jana\Services\Ragas\OllamaRagasJudge;
 use Modules\Jana\Services\Ragas\RagasJudgeService;
 
 /**
@@ -33,9 +35,15 @@ use Modules\Jana\Services\Ragas\RagasJudgeService;
  * (status "skipped"/"no_context"), jamais um score inventado.
  *
  * Uso (no CT 100 staging):
- *   php artisan jana:ragas-real-eval                         # tabela humana
- *   php artisan jana:ragas-real-eval --json                  # JSON p/ runner/baseline
- *   php artisan jana:ragas-real-eval --sample-size=5 --json  # smoke barato (~$0.01)
+ *   php artisan jana:ragas-real-eval                            # tabela humana (juiz openai)
+ *   php artisan jana:ragas-real-eval --json                     # JSON p/ runner/baseline
+ *   php artisan jana:ragas-real-eval --sample-size=5 --json     # smoke barato (~$0.01)
+ *   php artisan jana:ragas-real-eval --judge=local --sample-size=3  # juiz Ollama CT 100 (zero egress, US-COPI-137)
+ *
+ * O --judge=local (US-COPI-137) roteia SÓ o julgamento pro Ollama self-host do
+ * CT 100 (OllamaRagasJudge, zero egress) — a síntese segue no OpenAI. É o mesmo
+ * juiz local do eval online (JudgeTraceOnlineJob), aqui exercitado sobre o
+ * pipeline real do gold-set (verificável sem esperar tráfego 5%).
  *
  * PISOS (US-COPI-136): o dono único é `thresholds_regressao` em
  * governance/jana-ragas-real-baseline.json — o comando LÊ de lá (fecha o follow-up
@@ -84,6 +92,7 @@ class JanaRagasRealEvalCommand extends Command
     protected $signature = 'jana:ragas-real-eval
                             {--json : Output só JSON estruturado (sem tabela humana)}
                             {--sample-size=0 : Limita N perguntas (0 = gold-set completo)}
+                            {--judge=openai : Juiz das métricas — openai (gpt-4o-mini) | local (Ollama CT 100, zero egress · US-COPI-137)}
                             {--threshold-faithfulness= : Piso faithfulness (default: thresholds_regressao do baseline)}
                             {--threshold-relevancy= : Piso answer_relevancy (default: thresholds_regressao do baseline)}
                             {--threshold-context-recall= : Piso context_recall (default: thresholds_regressao do baseline)}
@@ -186,17 +195,26 @@ class JanaRagasRealEvalCommand extends Command
         $topK = max(1, (int) $this->option('topk'));
         $maxCitacoes = max(1, (int) $this->option('max-citacoes'));
 
-        // ANTITAUTOLOGIA: sem chave de LLM, um "eval real" não existe. NÃO caímos
-        // em mock — devolvemos SKIP neutro (exit 0, não bloqueia, não mente).
+        // Juiz das métricas (US-COPI-137): openai (gpt-4o-mini) ou local (Ollama CT 100,
+        // zero egress). A SÍNTESE (KbAnswerService) segue no OpenAI nos dois casos — o
+        // --judge só troca QUEM avalia, não quem responde.
+        $judgeTarget = (string) $this->option('judge');
+        if (! in_array($judgeTarget, ['openai', 'local'], true)) {
+            return $this->failHard("--judge inválido: {$judgeTarget} (use openai|local)");
+        }
+        $activeJudge = $judgeTarget === 'local' ? app(OllamaRagasJudge::class) : $judge;
+
+        // ANTITAUTOLOGIA: sem chave de LLM, um "eval real" não existe (a SÍNTESE precisa
+        // dela mesmo com --judge=local). NÃO caímos em mock — SKIP neutro (não mente).
         $apiKey = config('openai.api_key') ?: env('OPENAI_API_KEY');
         if (empty($apiKey)) {
             return $this->emitSkip(
-                'OPENAI_API_KEY ausente — eval real exige LLM. Rode no CT 100 staging (infra real). NÃO caímos em mock (seria tautologia).',
+                'OPENAI_API_KEY ausente — a síntese do eval real exige LLM. Rode no CT 100 staging (infra real). NÃO caímos em mock (seria tautologia).',
                 $thresholds,
             );
         }
 
-        if ($judge->isMockMode()) {
+        if ($activeJudge->isMockMode()) {
             // Proteção dura: mock injetado externamente tornaria o eval teatro.
             return $this->emitSkip(
                 'RagasJudgeService está em mock — abortado (eval real não pode usar scores fixos).',
@@ -225,6 +243,7 @@ class JanaRagasRealEvalCommand extends Command
         $failures = [];
         $noContext = 0;
         $synthFailed = 0;
+        $judgeFailed = 0;
         $judgeCalls = 0;
         $synthCalls = 0;
 
@@ -267,10 +286,23 @@ class JanaRagasRealEvalCommand extends Command
             }
 
             // FASE 3 — julgamento LLM-as-judge sobre a saída REAL.
-            $faith = $judge->scoreFaithfulness($question, $answer, $context);
-            $rel = $judge->scoreAnswerRelevancy($question, $answer);
-            $recall = $judge->scoreContextRecall($question, $context, $groundTruth);
-            $judgeCalls += 3;
+            // Juiz local (Ollama) pode estar indisponível (sem modelo de chat / infra
+            // down): PULA a pergunta (honesto) em vez de gravar 0.0 fabricado.
+            try {
+                $faith = $activeJudge->scoreFaithfulness($question, $answer, $context);
+                $rel = $activeJudge->scoreAnswerRelevancy($question, $answer);
+                $recall = $activeJudge->scoreContextRecall($question, $context, $groundTruth);
+                $judgeCalls += 3;
+            } catch (JudgeUnavailableException $e) {
+                $judgeFailed++;
+                $failures[] = [
+                    'idx' => $i,
+                    'q' => mb_substr($question, 0, 120),
+                    'reason' => 'judge_failed — '.mb_substr($e->getMessage(), 0, 100),
+                ];
+
+                continue;
+            }
 
             $faithScores[] = $faith;
             $relScores[] = $rel;
@@ -296,9 +328,14 @@ class JanaRagasRealEvalCommand extends Command
         // (tudo caiu em no_context/synth_failed), não há eval — SKIP, não pass.
         if ($nEval === 0) {
             return $this->emitSkip(
-                "Nenhuma pergunta avaliável (no_context={$noContext}, synth_failed={$synthFailed}) — corpus/infra insuficiente. Não inventamos score.",
+                "Nenhuma pergunta avaliável (no_context={$noContext}, synth_failed={$synthFailed}, judge_failed={$judgeFailed}) — corpus/infra/juiz insuficiente. Não inventamos score.",
                 $thresholds,
-                extra: ['n_no_context' => $noContext, 'n_synth_failed' => $synthFailed],
+                extra: [
+                    'judge' => $judgeTarget,
+                    'n_no_context' => $noContext,
+                    'n_synth_failed' => $synthFailed,
+                    'n_judge_failed' => $judgeFailed,
+                ],
             );
         }
 
@@ -314,11 +351,15 @@ class JanaRagasRealEvalCommand extends Command
             'answer_relevancy' => $relAvg,
             'context_recall' => $recallAvg,
         ], $thresholds);
-        $costUsd = round($judgeCalls * self::COST_PER_JUDGE_CALL_USD + $synthCalls * self::COST_PER_SYNTH_CALL_USD, 4);
+        // Juiz local (Ollama self-host) = custo ~0; só o openai cobra por judge call.
+        // A síntese cobra nos dois casos (OpenAI).
+        $judgeCostUsd = $judgeTarget === 'openai' ? $judgeCalls * self::COST_PER_JUDGE_CALL_USD : 0.0;
+        $costUsd = round($judgeCostUsd + $synthCalls * self::COST_PER_SYNTH_CALL_USD, 4);
 
         $report = [
             'eval_kind' => 'real_pipeline',
             'gate_status' => $gatePass ? 'pass' : 'fail',
+            'judge' => $judgeTarget,
             'score_avg' => round($scoreAvg, 4),
             'faithfulness_avg' => round($faithAvg, 4),
             'relevancy_avg' => round($relAvg, 4),
@@ -327,6 +368,7 @@ class JanaRagasRealEvalCommand extends Command
             'n_evaluated' => $nEval,
             'n_no_context' => $noContext,
             'n_synth_failed' => $synthFailed,
+            'n_judge_failed' => $judgeFailed,
             'n_passed' => $nEval - count(array_filter($failures, fn ($f) => isset($f['faithfulness']))),
             'n_failed' => count($failures),
             'failures' => array_slice($failures, 0, 10),

@@ -9,7 +9,7 @@ use Modules\KB\Entities\KbCategory;
 use Modules\KB\Entities\KbSubcategory;
 
 /**
- * KbSubcategoriesSeeder — 16 subcats (port do KB_SUBCATS Cowork + governance).
+ * KbSubcategoriesSeeder — 18 subcats (port do KB_SUBCATS Cowork + governance; +reference/comparativo 2026-07-17).
  *
  * Contrato: SCHEMA-DB-V1.md §13
  *
@@ -67,6 +67,13 @@ class KbSubcategoriesSeeder extends Seeder
          'auto_match' => ['field' => 'type', 'op' => '=', 'value' => 'briefing']],
         ['cat' => 'governance', 'slug' => 'spec',     'label' => 'Spec / US-XXX-NNN',
          'auto_match' => ['field' => 'type', 'op' => '=', 'value' => 'spec']],
+        // + reference/comparativo ([W] 2026-07-17: "todos são da empresa 1, reclassifique").
+        // São corpus interno de governança (biz=1); antes ficavam sem casa (110+10 nós) porque
+        // não tinham subcat. Agora entram sob Governança como as demais, via type-match.
+        ['cat' => 'governance', 'slug' => 'reference',   'label' => 'Referência',
+         'auto_match' => ['field' => 'type', 'op' => '=', 'value' => 'reference']],
+        ['cat' => 'governance', 'slug' => 'comparativo', 'label' => 'Comparativo (nós vs mercado)',
+         'auto_match' => ['field' => 'type', 'op' => '=', 'value' => 'comparativo']],
     ];
 
     public function run(int $businessId): void

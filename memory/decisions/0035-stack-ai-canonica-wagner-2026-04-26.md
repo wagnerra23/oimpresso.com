@@ -1,7 +1,7 @@
 ---
 slug: 0035-stack-ai-canonica-wagner-2026-04-26
 number: 35
-title: !!binary gJQgU3RhY2stYWx2byBkZSBJQSBkbyBDb3BpbG90bzogZGVjbGFyYcOnw6NvIGNhbsO0bmljYQ==
+title: "Stack-alvo de IA do Copiloto: declaração canônica"
 type: adr
 status: aceito
 authority: canonical
@@ -15,14 +15,11 @@ module: copiloto
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0022'
-  - '0026'
+  - 0022-meta-5mi-ano-financeira
   - 0026-posicionamento-erp-grafico-com-ia
-  - '0027'
   - 0027-gestao-memoria-roles-claros
-  - '0031'
   - 0031-memoriacontrato-mem0-default
-  - '0032'
+  - 0032-vizra-adk-prism-php-orquestracao
 pii: false
 ---
 # ADR 0035 — Stack-alvo de IA do Copiloto: declaração canônica

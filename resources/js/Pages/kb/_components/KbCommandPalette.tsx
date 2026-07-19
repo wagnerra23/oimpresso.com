@@ -117,8 +117,8 @@ export default function KbCommandPalette({
                   className="flex items-start gap-2.5 py-2"
                 >
                   <span
-                    className="inline-block h-2 w-2 shrink-0 rounded-full mt-1.5"
-                    style={{ background: `oklch(0.62 0.13 ${hue})` }}
+                    className="kb-hue-dot inline-block h-2 w-2 shrink-0 rounded-full mt-1.5"
+                    style={{ '--kb-hue': hue } as React.CSSProperties}
                     aria-hidden
                   />
                   <div className="flex-1 min-w-0">

@@ -1,7 +1,7 @@
 ---
 slug: 0004-bridge-colaborador-config
 number: 4
-title: !!binary gJQgVGFiZWxhIGJyaWRnZSBgcG9udG9fY29sYWJvcmFkb3JfY29uZmlnYA==
+title: "Tabela bridge `ponto_colaborador_config`"
 type: adr
 status: aceito
 authority: canonical
@@ -12,7 +12,7 @@ decided_at: '2026-04-18'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0001'
+  - 0001-estender-ultimatepos-opcao-c
 pii: false
 ---
 # ADR 0004 — Tabela bridge `ponto_colaborador_config`

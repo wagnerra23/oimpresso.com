@@ -72,10 +72,10 @@
       "anchor": "sinal de custo: decisão Wagner 2026-07-05 ('o software deve amadurecer e se tornar vivo por módulo') — hoje Wagner é o único agregador/despachante manual da frota (234 telas, 25 casos.md); arte memory/sessions/2026-07-05-arte-maquina-governanca-telas.md §3.3-§3.6 + roadmap SDD stream MV (MV2). Determinístico zero-LLM; NUNCA cria task/merge (publication-policy); nunca entra em required (lei ADR 0314)."
     },
     "briefing-code-staleness.yml": {
-      "nome": "Staleness reporters (advisory · 4 eixos: BRIEFING×código briefing-code-staleness.mjs · visual-comparison×tela visual-comparison-staleness.mjs · ADR pendente adr-proposto-parado.mjs · RADAR de frescor por doc doc-freshness-score.mjs score 0-100 Dosu, agregador/Roubo #5 · todos com self-test bite/release)",
+      "nome": "Staleness reporters (advisory · 5 eixos: BRIEFING×código briefing-code-staleness.mjs · visual-comparison×tela visual-comparison-staleness.mjs · ADR pendente adr-proposto-parado.mjs · RADAR de frescor por doc doc-freshness-score.mjs score 0-100 Dosu, agregador/Roubo #5 · AGENTS.md×CLAUDE.md∪@imports agents-md-staleness.mjs · todos com self-test bite/release)",
       "classe": "automacao",
       "terminal": "automacao",
-      "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required."
+      "anchor": "sinal de custo: incidente 2026-07-03 (#3714) — BRIEFING do Compras ficou 41d / 18 commits atrás do código (scaffold 05-21 → grade 59 + cockpit live) apesar da regra 'BRIEFING atualizado por PR' + skill brief-update (soft, não disparou). Os sentinelas de staleness existentes (knowledge-drift.mjs + sdd-scorecard measureDistillerFreshness) só medem porta-vs-docs-irmãos, não porta-vs-código — este mede o eixo ausente. Reporter (exit 0 sempre); ADR 0314 mantém higiene fora do required. | EIXO 5 (2026-07-17, chip F2 da grade 2026-07-17): sinal de custo próprio — AGENTS.md serviu stack REJEITADA (Vizra ADK, rejeitada pela ADR 0048 em 2026-04-29) até auditoria humana pegar (#4017, 2026-07-09); Codex/Cursor não expandem `@CLAUDE.md`, então pra eles o resumo do AGENTS.md É o corpus. Núcleo classifyCodeStaleness reusado (não é motor novo — proibicoes §5 2026-07-09); data DECLARADA obrigatória porque os toques mecânicos de 06-08 (restore de squash + MapaTelas) faziam a data-git medir 30d em vez dos 73d reais (o fallback escapa por 1 dia exato)."
     },
     "block-brl-values-selftest.yml": {
       "nome": "block-brl-values selftest (meta-teste do hook Tier-0 dinheiro block-brl-values-in-memory.mjs — bite/release do detector via --selftest + registration test do settings.json; advisory, não bloqueia merge)",
@@ -241,6 +241,13 @@
       "promote_by": "2026-07-17",
       "anchor": "Proibição Tier 0 'Modules/X/Tests sem CI = falsa cobertura' — Modules/Compras/Tests registrado em phpunit.xml sem lane que o execute (MultiTenant/PII skip no sqlite = verde mente). Lane MySQL real reusa .github/actions/pest-mysql-setup; required-ready (ADR 0271 onda 2), promoção a required é passo Wagner. Refs ADR 0093 (multi-tenant Tier 0), ADR 0062 (testes CT100), PR #3723"
     },
+    "essentials-pest.yml": {
+      "nome": "Essentials · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-31",
+      "anchor": "Essentials (folha/RH) não tinha lane MySQL de PR (modules-pest.yml matrix não inclui, sem *-pest.yml próprio) — testes cross-tenant Tier 0 só rodavam no CT100 nightly, invisíveis a todo merge. Nasce com SalesTargetShiftCrossTenantTest (follow-up #4474 ScopeByBusinessViaParent): fecha IDOR de write com id cru do body em SalesTarget::saveSalesTarget/Shift::postAssignUsers (o backstop de scope não cobre INSERT). Advisory (skip-as-pass, mesmo padrão jana-pest/ponto-pest)."
+    },
     "financeiro-pest.yml": {
       "nome": "Financeiro · Pest (MySQL)",
       "classe": "gate"
@@ -270,7 +277,7 @@
       "classe": "gate"
     },
     "governance-script-tests.yml": {
-      "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1)",
+      "nome": "Governance script tests (advisory · scripts/governance/*.test.mjs — Onda 1; inclui agent-corpus-counterfactual.test.mjs, chip C1 da grade 2026-07-17: prova por Monte Carlo determinístico que a aritmética de viabilidade CUMPRE o poder que promete e não grita vencedor sob H0 — o harness de 3 arms que ela servia foi podado em 2026-07-17, autorizado [W])",
       "classe": "gate"
     },
     "infra-contract-required.yml": {
@@ -280,6 +287,13 @@
     "jana-pest.yml": {
       "nome": "Jana · Pest (MySQL)",
       "classe": "gate"
+    },
+    "ponto-pest.yml": {
+      "nome": "Ponto · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-07-31",
+      "anchor": "sinal de custo: Ponto não tinha lane MySQL de PR nenhuma — o guard Tier 0 cross-tenant do Ponto (ADR 0093 · Wave27CrossTenantEscalaTest) só rodava na nightly não-required (invisível a todo merge). A triagem #4454→#4474 provou que testes Tier-0 mascarados por FK-1452 ficavam vermelhos invisíveis por ~2 meses (inclusive o vazamento real ScopeByBusinessViaParent). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); promote_by força a decisão de promoção a required em 14d em vez de advisory eterno."
     },
     "jana-ragas-canary.yml": {
       "nome": "Jana RAGAS Canary (daily 06:00 UTC)",
@@ -465,10 +479,10 @@
       "promote_by": "2026-09-30"
     },
     "agent-cost-per-pr.yml": {
-      "nome": "Agent cost per PR (advisory · custo USD estimado por PR do agente · join 2-sinais JSONL local: gitBranch==headRefName + citação /pull/N diluída · % sem-match publicado · weekly schedule + dispatch · item #7 ranking adversarial grade-das-réguas 2026-07-12)",
+      "nome": "Agent cost per PR (advisory · custo USD estimado por PR do agente · unidade = SESSÃO do JSONL local atribuída por branch==headRefName ou citação /pull/N · cobertura de ALOCAÇÃO do dinheiro + resíduo decomposto · calibração derivada do dado · weekly schedule + dispatch · item #7 ranking adversarial grade-das-réguas 2026-07-12; revisado 2026-07-17)",
       "classe": "automacao",
       "terminal": "advisory",
-      "anchor": "Ranking adversarial 2026-07-12 item #7: fecha a última régua 'só verbal' — custo-eficiência nota 3 porque 'economize crédito' não tinha NÚMERO. Fonte Langfuse DERRUBADA pelo adversário (traceia Jana por conversa, sem dimensão PR/branch); fonte viável = JSONL local do Claude Code (mesma do cc-watcher). DECONFLITO com agent-pr-outcomes (DORA: aceitação/CFR/velocidade) — este mede o CUSTO do mesmo transporte. Honestidade: CI só roda selftest + renderiza snapshot commitado com staleness (G5, anti-teatro ADR 0271); buraco do join publicado como % sem-match; USD/tokens apenas, sem R$ (Tier 0). Self-test hermético na suíte governance-script-tests.",
+      "anchor": "Ranking adversarial 2026-07-12 item #7: fecha a última régua 'só verbal' — custo-eficiência nota 3 porque 'economize crédito' não tinha NÚMERO. Fonte Langfuse DERRUBADA pelo adversário; fonte viável = JSONL local do Claude Code (mesma do cc-watcher). DECONFLITO com agent-pr-outcomes (DORA) — este mede o CUSTO do mesmo transporte. Revisão 2026-07-17 (grade evals-outcome): a unidade de custo é a SESSÃO (o gasto vive na branch da worktree; o branch do PR só marca a cauda — atribuir por mensagem descartava o corpo); cobertura passou a ser do lado do DINHEIRO (atribuído/escaneado, FinOps) e não do lado do PR (que dizia 0% enquanto 88% do dinheiro não tinha dono); janela coerente pros dois lados; cap do fetch declarado; resíduo (sessão sem PR) decomposto — NÃO é buraco de join (medido: 5/6 branches de maior resíduo sem PR algum → casar por SHA não recupera, lápide §5). Calibração (limiar de idade, velocidade) DERIVADA do dado, não cravada. Honestidade: CI só roda selftest + renderiza snapshot commitado com staleness DECLARADA e limiar derivado da janela (G5, anti-teatro ADR 0271); USD/tokens apenas, sem R$ (Tier 0). Self-test hermético na suíte governance-script-tests.",
       "promote_by": "2026-09-30"
     },
     "pr-critic-precisao.yml": {

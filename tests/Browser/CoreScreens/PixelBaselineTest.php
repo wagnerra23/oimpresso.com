@@ -196,7 +196,7 @@ foreach ($screens as $screen) {
             (() => {
               const s = document.createElement('style');
               s.textContent = `
-                * { transition: none !important; animation: none !important; font-family: Arial, sans-serif !important; }
+                * { transition: none !important; animation: none !important; }
                 body { -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; }
                 input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
               `;
@@ -204,6 +204,7 @@ foreach ($screens as $screen) {
               return true;
             })()
         JS);
+        \Tests\Browser\Support\VisregThreshold::aguardarFontesReais($page);
         $page->wait(1.5);
 
         // CLASSIFICAÇÃO 3-BANDAS — substitui o assertScreenshotMatches() binário.

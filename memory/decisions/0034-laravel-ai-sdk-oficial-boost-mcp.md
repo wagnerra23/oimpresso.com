@@ -1,7 +1,7 @@
 ---
 slug: 0034-laravel-ai-sdk-oficial-boost-mcp
 number: 34
-title: !!binary gJQgTGFyYXZlbCBBSSBlY29zeXN0ZW0gMjAyNjogU0RLIG9maWNpYWwgKyBCb29zdCArIE1DUCArIFZpenJhIEFESyArIGFsdGVybmF0aXZhcw==
+title: "Laravel AI ecosystem 2026: SDK oficial + Boost + MCP + Vizra ADK + alternativas"
 type: adr
 status: aceito
 authority: canonical
@@ -12,13 +12,9 @@ decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0026'
   - 0026-posicionamento-erp-grafico-com-ia
-  - '0031'
   - 0031-memoriacontrato-mem0-default
-  - '0032'
   - 0032-vizra-adk-prism-php-orquestracao
-  - '0033'
   - 0033-vector-store-meilisearch-pgvector-mem0
 pii: false
 ---

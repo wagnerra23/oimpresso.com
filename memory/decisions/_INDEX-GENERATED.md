@@ -5,11 +5,11 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **347** arquivos · **331** números únicos · máx **0341**
-- **ADRs ATIVOS (lifecycle ativo): 313** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 313 · superseded 12 · deprecated 12 · proposto 6 · (vazio) 2 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 313 · arquivado 18 · substituido 12 · (vazio) 4
-- Sem frontmatter (formato-tabela legado): 4 — 0126, 0128, 0246, 0247
+- **349** arquivos · **333** números únicos · máx **0343**
+- **ADRs ATIVOS (lifecycle ativo): 315** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 317 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 315 · arquivado 22 · substituido 12
+- Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
 - **0101** ×2: 0101-sistema-charter-capterra-governanca-escopo · 0101-tests-business-id-1-nunca-cliente
@@ -30,14 +30,13 @@
 ## Integridade de supersessão (0 alertas)
 _(íntegra)_
 
-## Supersessão declarada em prosa sem o campo (2) — 🟡 EVENTO-prosa (ADR 0317, warn não-bloqueia)
-- 🟡 0097 declara supersede/substitui em prosa de 0091 — mas SEM o número no campo supersedes/supersedes_partially (furo 0097)
-- 🟡 0185 declara supersede/substitui em prosa de 0179 — mas SEM o número no campo supersedes/supersedes_partially (furo 0097)
+## Supersessão declarada em prosa sem o campo (0) — 🟡 EVENTO-prosa (ADR 0317, warn não-bloqueia)
+_(nenhuma)_
 
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (347)
+## Todas as ADRs (349)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -60,7 +59,7 @@ _(íntegra)_
 | 0019 | aceito | ativo | decision | Delphi legado não autentica após upgrade 3.7→6.7 (investigação) |
 | 0020 | deprecated | arquivado | decision | Grupo econômico (matriz + filiais) no Officeimpresso |
 | 0021 | aceito | ativo | decision | Contrato real da API consumida pelo Delphi |
-| 0022 | aceito | ativo | decision | Meta financeira oimpresso: R$ 5 milhões/ano |
+| 0022 | aceito | ativo | decision | Meta financeira oimpresso: R$ [redacted Tier 0] milhões/ano |
 | 0023 | aceito | ativo | decision | Upgrade para Inertia.js v3 |
 | 0024 | aceito | ativo | decision | Instalação 1-clique padronizada para todos os módulos |
 | 0025 | aceito | ativo | decision | Redesign da landing pública (`Modules/Cms`) em Inertia/React |
@@ -77,7 +76,7 @@ _(íntegra)_
 | 0036 | aceito | ativo | decision | Replanejamento canônico: Meilisearch primeiro, Mem0 por último |
 | 0037 | aceito | ativo | decision | Roadmap de evolução pós-Sprint 5: Tier 5-6 → Tier 7-9 LongMemEval |
 | 0038 | aceito | ativo | decision | Promoção de `6.7-bootstrap` para `main` como branch principal |
-| 0039 | aceito | ativo | decision | Padrão de UI "Chat Cockpit" (3 colunas) para o ERP |
+| 0039 | aceito | ativo | decision | Padrão de UI \"Chat Cockpit\" (3 colunas) para o ERP |
 | 0040 | aceito | ativo | decision | Policy de publicação: Claude supervisiona, Wagner escala |
 | 0041 | aceito | ativo | decision | Stack de QA de IA: Vizra ADK eval + Langfuse self-host + DeepEval CLI (Caminho B |
 | 0042 | superseded | substituido | decision | Reverb (self-hosted) substitui Pusher Cloud como broadcaster |
@@ -166,9 +165,9 @@ _(íntegra)_
 | 0124 | aceito | ativo | decision | Curador — pipeline canônico de ingestão de conhecimento (computador → empresa →  |
 | 0125 | proposto | ativo | feature-wish # era lifecycle feature_wish (fora do enum); kind e o eixo certo (adr 0257/0105) | Modules/Autopecas como feature-wish — Vargas é sinal qualificado |
 | 0126 | aceito | ativo | decision | Habilitar ComunicacaoVisual + Vestuario + OficinaAuto como projects canônicos no |
-| 0126 | proposto | (vazio) | decision | ADR 0126 — Vault chunked encryption Sprint 2 (proposed) |
+| 0126 | proposto | arquivado | decision | Vault chunked encryption Sprint 2 (proposed) |
 | 0127 | aceito | ativo | decision | Modules/Auditoria — UI rica + undo sobre activity_log existente |
-| 0128 | proposto | (vazio) | decision | ADR 0128 — Smoke testing E2E pós-cycle |
+| 0128 | proposto | arquivado | decision | Smoke testing E2E pós-cycle |
 | 0129 | aceito | ativo | decision | State Machine canônica — FSM tabular custom + Spatie Permission por transição |
 | 0130 | aceito | ativo | decision | Handoff append-only + MCP-first antes de escrever — fim do overwrite cego de 08- |
 | 0131 | aceito | ativo | decision | Tiering de memória — canônico (git/MCP) / máquina-local / segredo (Vaultwarden) |
@@ -289,9 +288,9 @@ _(íntegra)_
 | 0243 | aceito | ativo | decision | Processo de memória/evolução de design do Cowork — loop medido e auto-corretivo  |
 | 0244 | aceito | ativo | decision | DS v5 = Design System único ativo (v4 lápide) · Oficina = tela-padrão/semente do |
 | 0245 | aceito | ativo | decision | Jana Modo Consultor (Advisor) — clarify reativo (cascata Decidir→Clarificar→Resp |
-| 0246 | (vazio) | (vazio) | decision | ADR 0246 — Harmonização DS sem perder qualidade + caminho v4.2 |
+| 0246 | aceito | arquivado | decision | Harmonização DS sem perder qualidade + caminho v4.2 |
 | 0246 | aceito | ativo | decision | Tipo "Outros" como categoria default pra cadastros legacy em migrações |
-| 0247 | (vazio) | (vazio) | decision | ADR 0247 — Carta de Design [CC] subordinada ao protocolo do git |
+| 0247 | aceito | arquivado | decision | Carta de Design [CC] subordinada ao protocolo do git |
 | 0248 | aceito | ativo | decision | Gate de exclusão do Sells/Show espelha a autorização do servidor (sell.delete // |
 | 0249 | aceito | ativo | decision | DS v6 — nome canônico único da camada de tokens semânticos (resolve divergência  |
 | 0250 | aceito | ativo | decision | QA-de-tela sustentável: enforcement determinístico do screen-grade (seed + catra |
@@ -387,3 +386,5 @@ _(íntegra)_
 | 0339 | aceito | ativo | decision | Emenda à 0336/0314 — promoção SOBERANA [W] de 3 gates ratchet DS (layout/styleli |
 | 0340 | aceito | ativo | decision | O tema colapsa em direções OPOSTAS no mesmo request — `auto`→dark no Blade × `au |
 | 0341 | aceito | ativo | decision | Emenda à 0314 — memory-schema REQUIRED só nas 2 famílias limpas (charter · spec) |
+| 0342 | aceito | ativo | meta | Schema de ADR: slug/refs aceitam ponto e maiúscula pra casar 3 filenames legacy  |
+| 0343 | aceito | ativo | meta | Promove o gate ADR (memory/decisions/*.md) a required — emenda à 0341 (o adr é c |

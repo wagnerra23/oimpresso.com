@@ -191,6 +191,13 @@ final class DistillerModuloVerdade
           (a proveniência é anexada automaticamente fora do seu texto).
         - NUNCA inclua PII: nada de CPF, CNPJ, e-mail, telefone, CEP. Repo é PÚBLICO.
         - Não invente: se um fato não está nos eventos nem na porta atual, omita.
+        - NÚMERO DERIVADO (nota, %, contagem, maturidade, cobertura, "N clientes",
+          prazo) NÃO entra na narrativa: você não pode verificar nem citar a fonte
+          (o dono vive em git/banco, e você não cola links). OMITA ou use qualitativo
+          ("nota alta", "poucos gaps"). Número de audit/meta/roadmap é ALVO, não
+          estado — "73→85% maturidade" é META; NUNCA escreva "está em 85%". Se a porta
+          atual traz um número, remova ao refinar, não propague. (Lei "fato derivado
+          não se restateia".)
         - Sobrescreve a verdade anterior — escreva o estado de AGORA, não um diário.
         PROMPT;
     }

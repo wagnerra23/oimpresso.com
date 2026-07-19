@@ -91,6 +91,52 @@ function w27EnsureColab(int $businessId): ?int
 }
 
 // ============================================================================
+// Fixture biz=99 + user pra actingAs — SEM DatabaseTransactions.
+//
+// (1) O clone-de-prod do CT100 (e o seed biz=1/biz=2 do pest-mysql-setup) NÃO
+//     tem biz=99 → o FK ponto_escalas.business_id → business(id) rejeita os
+//     INSERTs de escala fictícia (QueryException 1452, D2.A4/A5). Criamos o stub.
+// (2) NÃO usamos DatabaseTransactions porque D2.B1 faz `DROP TRIGGER` (DDL) — no
+//     MySQL o DDL faz commit implícito e quebraria o rollback. Limpamos no
+//     afterEach: escalas por marcador de nome + o stub biz=99 (cascade acha 0
+//     escalas, já limpas). Convenção biz=99 = ADR 0101 (nunca biz=4 cliente).
+// ============================================================================
+
+beforeEach(function () {
+    if (w27NeedsMysql() || ! w27EscalasTable()) {
+        return; // cada teste já skipa individualmente
+    }
+    if (! \App\Business::find(W27_BIZ_FICTICIO)) {
+        \App\Business::forceCreate([
+            'id' => W27_BIZ_FICTICIO,
+            'name' => 'W27 Test Biz Adversario#99',
+            'currency_id' => 1,
+            'start_date' => now()->toDateString(),
+            'default_profit_percent' => 0,
+            'owner_id' => 1,
+            'stop_selling_before' => 0,
+            'weighing_scale_setting' => '',
+            'certificado' => '',
+            'officeimpresso_numerodemaquinas' => 0,
+        ]);
+    }
+    // User autenticável qualquer (biz=1) pra ativar o global scope nos testes que
+    // exercitam ScopeByBusiness de verdade (D2.A1 — o scope no-opa sem auth).
+    $this->w27User = \App\User::where('business_id', W27_BIZ_WAGNER)->first();
+});
+
+afterEach(function () {
+    if (w27NeedsMysql() || ! w27EscalasTable()) {
+        return;
+    }
+    w27CleanupEscalas();
+    // Remove só o stub que criamos (as escalas já foram limpas → cascade é no-op).
+    \App\Business::where('id', W27_BIZ_FICTICIO)
+        ->where('name', 'W27 Test Biz Adversario#99')
+        ->delete();
+});
+
+// ============================================================================
 // D2.A — Escala cross-tenant via Eloquent (HasBusinessScope global scope efetivo)
 // ============================================================================
 
@@ -103,6 +149,9 @@ it('D2.A1 Escala biz=1 NAO retorna em scope biz=99 (Eloquent global scope)', fun
     if (w27NeedsMysql() || ! w27EscalasTable()) {
         $this->markTestSkipped('Schema ponto_escalas ausente — rode module:migrate Ponto.');
     }
+    if (! $this->w27User) {
+        $this->markTestSkipped('Sem user em business_id=1 pra actingAs — semear DB.');
+    }
 
     $nome = W27_MARCADOR_NOME.'-A1-'.uniqid();
     $created = Escala::withoutGlobalScopes()->create([
@@ -114,13 +163,25 @@ it('D2.A1 Escala biz=1 NAO retorna em scope biz=99 (Eloquent global scope)', fun
         'ativo' => true,
     ]);
 
-    // Simula request scoped pra biz=99 — global scope filtra
-    auth()->logout();
-    config(['multi_tenant.business_id_override' => W27_BIZ_FICTICIO]);
-    $vaza = Escala::where('id', $created->id)->count();
+    // O global scope ScopeByBusiness SÓ filtra com auth()->check()=true +
+    // session('user.business_id') (ScopeByBusiness.php:26 — sem auth = no-op
+    // DOCUMENTADO; CLI/jobs escopam manualmente). O antigo
+    // `config('multi_tenant.business_id_override')` NÃO era lido por scope
+    // nenhum → a versão anterior fazia auth()->logout() + set desse config, o
+    // scope no-opava e count=1 (falso-vermelho). Autentica + business ativa=99 →
+    // o scope filtra a escala de biz=1.
+    $this->actingAs($this->w27User);
+    session(['user.business_id' => W27_BIZ_FICTICIO]);
+    $vazaComoBiz99 = Escala::where('id', $created->id)->count();
+
+    // Controle positivo (a outra direção): como biz=1 a MESMA escala aparece —
+    // o scope isola, não é cego.
+    session(['user.business_id' => W27_BIZ_WAGNER]);
+    $encontraComoBiz1 = Escala::where('id', $created->id)->count();
 
     w27CleanupEscalas();
-    expect($vaza)->toBe(0);
+    expect($vazaComoBiz99)->toBe(0);
+    expect($encontraComoBiz1)->toBe(1);
 })->skip(fn () => w27NeedsMysql() || ! w27EscalasTable(), 'MySQL + schema requeridos');
 
 it('D2.A3 count() agregado biz=99 NAO soma 5 escalas biz=1 (mass-aggregate)', function () {

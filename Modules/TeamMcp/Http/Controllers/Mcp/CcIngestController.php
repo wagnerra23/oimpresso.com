@@ -68,7 +68,7 @@ class CcIngestController extends Controller
             ], 403);
         }
 
-        $payload = $request->validate([
+        $request->validate([
             'session' => 'required|array',
             'session.uuid' => 'required|string|max:36',
             'session.project_path' => 'nullable|string|max:500',
@@ -77,17 +77,26 @@ class CcIngestController extends Controller
             'session.entrypoint' => 'nullable|string|max:50',
             'session.started_at' => 'nullable|string',
             'session.ended_at' => 'nullable|string',
-            'messages' => 'required|array',
+            'messages' => 'required|array|max:5000',
             'messages.*.uuid' => 'required|string|max:36',
             'messages.*.type' => 'required|string|max:20',
         ]);
 
-        try {
-            $session = $this->upsertSession($payload['session'], (int) $user->id, $user->business_id ?? null);
+        // ⚠️ NÃO usar o retorno de $request->validate(): com excludeUnvalidatedArrayKeys=true
+        // (default Laravel 9+), o validated()['messages'] volta STRIPADO só com {uuid,type} —
+        // as regras acima só cobrem esses 2 campos. Isso descartava content_text/content_json/
+        // tokens_* silenciosamente em TODA ingestão (bug catalogado: 17.686 rows skeleton em
+        // prod, cc-search FULLTEXT sem conteúdo pra buscar). Lemos input() cru; o whitelist real
+        // é o McpCcMessage::create([...]) explícito em upsertMessage(). Regressão: CcIngestPersistsFieldsTest.
+        $sessionInput = $request->input('session');
+        $messagesInput = $request->input('messages', []);
 
-            [$inserted, $duplicated] = DB::transaction(function () use ($payload, $session, $user) {
+        try {
+            $session = $this->upsertSession($sessionInput, (int) $user->id, $user->business_id ?? null);
+
+            [$inserted, $duplicated] = DB::transaction(function () use ($messagesInput, $session, $user) {
                 $ins = 0; $dup = 0;
-                foreach ($payload['messages'] as $msg) {
+                foreach ($messagesInput as $msg) {
                     if ($this->upsertMessage($msg, $session, (int) $user->id)) {
                         $ins++;
                     } else {
@@ -128,7 +137,7 @@ class CcIngestController extends Controller
             Log::channel('copiloto-ai')->error('CcIngest erro', [
                 'user_id' => $user->id,
                 'error' => $redactor->redact($e->getMessage()),
-                'session_uuid' => $payload['session']['uuid'] ?? '?',
+                'session_uuid' => $request->input('session.uuid', '?'),
             ]);
             return response()->json([
                 'error' => 'Internal',
@@ -218,6 +227,7 @@ class CcIngestController extends Controller
             'msg_type' => $m['type'],
             'role' => $m['role'] ?? null,
             'tool_name' => $m['tool_name'] ?? null,
+            'model' => $m['model'] ?? null,
             'content_text' => $contentText,
             'content_json' => $m['content_json'] ?? null,
             'blob_id' => $blobId,

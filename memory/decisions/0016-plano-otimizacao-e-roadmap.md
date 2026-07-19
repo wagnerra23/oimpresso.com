@@ -6,7 +6,7 @@ type: adr
 status: aceito
 authority: reference
 lifecycle: arquivado
-decided_at: 2026-04-21
+decided_at: "2026-04-21"
 decided_by: [E]
 module: pontowr2
 quarter: 2026-Q2

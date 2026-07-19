@@ -159,10 +159,8 @@ function ListView({
               key={t.id}
               type="button"
               onClick={() => onPick(t.id)}
-              className="w-full text-left rounded-md border border-border border-l-[3px] bg-card px-3 py-2.5 hover:shadow-sm transition-all"
-              style={{
-                borderLeftColor: `oklch(0.55 0.13 ${t.hue})`,
-              }}
+              className="kb-hue-border-l w-full text-left rounded-md border border-border border-l-[3px] bg-card px-3 py-2.5 hover:shadow-sm transition-all"
+              style={{ '--kb-hue': t.hue } as React.CSSProperties}
             >
               {t.equip && (
                 <small
@@ -289,14 +287,14 @@ function WizardView({
               <button
                 type="button"
                 onClick={() => onAnswer(true)}
-                className="flex-1 rounded-md bg-emerald-600 hover:bg-emerald-700 px-3 py-2 text-sm font-semibold text-white"
+                className="flex-1 rounded-md bg-success-fg hover:bg-success-fg/90 dark:bg-success/30 dark:hover:bg-success/40 px-3 py-2 text-sm font-semibold text-white dark:text-success-foreground"
               >
                 Sim
               </button>
               <button
                 type="button"
                 onClick={() => onAnswer(false)}
-                className="flex-1 rounded-md bg-amber-600 hover:bg-amber-700 px-3 py-2 text-sm font-semibold text-white"
+                className="flex-1 rounded-md bg-warning-fg hover:bg-warning-fg/90 dark:bg-warning/30 dark:hover:bg-warning/40 px-3 py-2 text-sm font-semibold text-white dark:text-warning-foreground"
               >
                 Não
               </button>
@@ -307,14 +305,11 @@ function WizardView({
                   key={i}
                   className={cn(
                     'h-1.5 w-1.5 rounded-full transition-colors',
-                    i <= position ? 'opacity-100' : 'opacity-30',
+                    i <= position
+                      ? 'kb-hue-step-on opacity-100'
+                      : 'bg-border opacity-30',
                   )}
-                  style={{
-                    background:
-                      i <= position
-                        ? `oklch(0.55 0.13 ${tree.hue})`
-                        : 'var(--color-border)',
-                  }}
+                  style={{ '--kb-hue': tree.hue } as React.CSSProperties}
                   aria-hidden
                 />
               ))}

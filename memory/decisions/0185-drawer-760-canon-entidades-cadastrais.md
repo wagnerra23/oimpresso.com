@@ -14,21 +14,20 @@ module: core
 quarter: 2026-Q2
 tags: [paradigma, drawer-760, cadastral, mwart, cowork-blueprint, persona-larissa, multi-tenant, autosave, ADR-0179-cliente-drawer, ADR-0182-pageheader, ADR-0093-tier0]
 supersedes: []
-supersedes_partially: []
+supersedes_partially:
+  - "0179-cliente-drawer-760px-substitui-show-fullpage"
 amends:
   - "0179-cliente-drawer-760px-substitui-show-fullpage"
 superseded_by: []
 related:
-  - "0093-multi-tenant-isolation-tier-0"
-  - "0094-constituicao-v2-7-camadas-8-principios"
-  - "0104-processo-mwart-canonico-unico-caminho"
-  - "0110-tipografia-canon-h1-subtitle"
-  - "0114-prototipo-ui-cowork-loop-formalizado"
-  - "0127-spatie-activitylog-lgpd-art-18"
-  - "0149-mwart-screen-pattern-reuse-cowork"
-  - "0177-mwart-excecao-cliente-show-wave-paralela"
-  - "0180-sidebar-v3-5-grupos-ghosts-header"
-  - "0182-pageheadertabs-canon-pattern-telas"
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0104-processo-mwart-canonico-unico-caminho
+  - 0114-prototipo-ui-cowork-loop-formalizado
+  - 0149-mwart-screen-pattern-reuse-cowork
+  - 0177-mwart-excecao-cliente-show-wave-paralela
+  - 0180-sidebar-v3-5-grupos-ghosts-header
+  - 0182-pageheadertabs-canon-pattern-telas
 charter_impact:
   - "Pages/<Modulo>/Index.charter.md de todas as 7 entidades cadastrais elegíveis (OficinaAuto/ServiceOrders, OficinaAuto/Vehicles, Produto, RecurringBilling/Planos, Repair/DeviceModels, TransactionPayment, Essentials/Knowledge?) — bump pra `drawer_pattern: 760px-lateral`"
   - "Pages/<Modulo>/Edit.charter.md + Create.charter.md → status: superseded por Index.charter.md drawer"

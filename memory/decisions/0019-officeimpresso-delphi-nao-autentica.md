@@ -1,7 +1,7 @@
 ---
 slug: 0019-officeimpresso-delphi-nao-autentica
 number: 19
-title: !!binary gJQgRGVscGhpIGxlZ2FkbyBuw6NvIGF1dGVudGljYSBhcMOzcyB1cGdyYWRlIDMuN+KGkjYuNyAoaW52ZXN0aWdhw6fDo28p
+title: "Delphi legado não autentica após upgrade 3.7→6.7 (investigação)"
 type: adr
 status: aceito
 authority: canonical
@@ -13,8 +13,8 @@ module: officeimpresso
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0017'
-  - '0018'
+  - 0017-officeimpresso-restaurado-superadmin-exclusivo
+  - 0018-officeimpresso-log-acesso-passivo
 pii: false
 ---
 # ADR 0019 — Delphi legado não autentica após upgrade 3.7→6.7 (investigação)

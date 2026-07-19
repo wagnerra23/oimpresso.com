@@ -1,7 +1,7 @@
 ---
 slug: 0050-metricas-obrigatorias-memoria-table
 number: 50
-title: !!binary gJQgOCBtw6l0cmljYXMgb2JyaWdhdMOzcmlhcyBkZSBtZW3Ds3JpYSArIHRhYmVsYSBgbWVtb3J5X21ldHJpY3Ng
+title: "8 métricas obrigatórias de memória + tabela `memory_metrics`"
 type: adr
 status: aceito
 authority: canonical
@@ -12,13 +12,11 @@ decided_at: '2026-04-29'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0041'
   - 0041-stack-qa-ia-vizra-langfuse-deepeval
-  - '0046'
-  - '0047'
-  - '0049'
+  - 0046-chat-agent-gap-contexto-rico
+  - 0047-wagner-solo-sprint-memoria-agente
   - 0049-camadas-memoria-agente-fase-por-fase
-  - '0051'
+  - 0051-schema-proprio-adapter-otel-genai
 pii: false
 ---
 # ADR 0050 — 8 métricas obrigatórias de memória + tabela `memory_metrics`

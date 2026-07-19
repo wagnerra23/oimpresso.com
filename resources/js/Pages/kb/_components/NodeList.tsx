@@ -161,16 +161,10 @@ export default function NodeList({
                   'group rounded-md border border-border border-l-[3px] bg-card px-3 py-2.5 cursor-pointer transition-all',
                   'hover:shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   isActive && 'shadow-sm kb-row-active',
-                  outdated && 'bg-amber-50/40 dark:bg-amber-900/10',
+                  (isActive || n.pinned) && 'kb-hue-border-l',
+                  outdated && 'bg-warning-soft/40 dark:bg-warning-soft/30',
                 )}
-                style={{
-                  '--kb-hue': hue,
-                  borderLeftColor: isActive
-                    ? `oklch(0.55 0.13 ${hue})`
-                    : n.pinned
-                      ? `oklch(0.55 0.13 ${hue})`
-                      : undefined,
-                } as React.CSSProperties}
+                style={{ '--kb-hue': hue } as React.CSSProperties}
               >
                 <div className="flex flex-wrap items-center gap-1.5 mb-1">
                   {cat && (
@@ -238,7 +232,7 @@ export default function NodeList({
                       <span className="text-border" aria-hidden>
                         ·
                       </span>
-                      <span className="text-blue-600 dark:text-blue-400 font-medium">
+                      <span className="text-info-fg font-medium">
                         {n.os_linked_count} OS vinculadas
                       </span>
                     </>

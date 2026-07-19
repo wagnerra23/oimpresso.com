@@ -132,7 +132,7 @@ foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
             (() => {
               const s = document.createElement('style');
               s.textContent = `
-                * { transition: none !important; animation: none !important; font-family: Arial, sans-serif !important; }
+                * { transition: none !important; animation: none !important; }
                 body { -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; }
                 input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
               `;
@@ -140,6 +140,7 @@ foreach (isolatedStatesCases() as $label => [$slug, $rota, $ancora, $estado]) {
               return true;
             })()
         JS);
+        \Tests\Browser\Support\VisregThreshold::aguardarFontesReais($page);
         $page->wait(1.5);
 
         // fullPage:false — as baselines commitadas foram capturadas assim, e o

@@ -11,7 +11,6 @@ decided_at: "2026-05-28"
 module: governance
 tags: [governance, routes, tech-debt, observability]
 related:
-  - 0162-observability-spans-aggregation
   - 0216-governance-drift-framework-driftchecker-plugavel
 pii: false
 ---

@@ -1,7 +1,7 @@
 ---
 slug: 0036-replanejamento-meilisearch-first
 number: 36
-title: !!binary gJQgUmVwbGFuZWphbWVudG8gY2Fuw7RuaWNvOiBNZWlsaXNlYXJjaCBwcmltZWlybywgTWVtMCBwb3Igw7psdGltbw==
+title: "Replanejamento canônico: Meilisearch primeiro, Mem0 por último"
 type: adr
 status: aceito
 authority: canonical
@@ -17,14 +17,12 @@ decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
 related:
-  - '0022'
-  - '0026'
-  - '0031'
+  - 0022-meta-5mi-ano-financeira
+  - 0026-posicionamento-erp-grafico-com-ia
   - 0031-memoriacontrato-mem0-default
-  - '0033'
   - 0033-vector-store-meilisearch-pgvector-mem0
-  - '0034'
-  - '0035'
+  - 0034-laravel-ai-sdk-oficial-boost-mcp
+  - 0035-stack-ai-canonica-wagner-2026-04-26
 pii: false
 ---
 # ADR 0036 — Replanejamento canônico: Meilisearch primeiro, Mem0 por último

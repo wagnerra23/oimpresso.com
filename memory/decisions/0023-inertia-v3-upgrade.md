@@ -1,7 +1,7 @@
 ---
 slug: 0023-inertia-v3-upgrade
 number: 23
-title: !!binary gJQgVXBncmFkZSBwYXJhIEluZXJ0aWEuanMgdjM=
+title: "Upgrade para Inertia.js v3"
 type: adr
 status: aceito
 authority: canonical
@@ -11,7 +11,7 @@ decided_by:
 decided_at: '2026-04-26'
 quarter: 2026-Q2
 tags: {  }
-related: {  }
+related: []
 pii: false
 ---
 # ADR 0023 — Upgrade para Inertia.js v3

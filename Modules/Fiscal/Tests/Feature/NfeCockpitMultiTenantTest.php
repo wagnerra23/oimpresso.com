@@ -42,6 +42,15 @@ beforeEach(function () {
     if (! Schema::hasTable('nfe_emissoes')) {
         $this->markTestSkipped('nfe_emissoes table missing — rode Modules/NfeBrasil migrate primeiro');
     }
+
+    // O global scope ScopeByBusiness só filtra com usuário AUTENTICADO — faz early-return
+    // em `! auth()->check()` (Modules/Jana/Scopes/ScopeByBusiness.php:26) e lê a business
+    // ativa de session('user.business_id'). Sem actingAs o scope no-opa e este guard de
+    // isolamento contava biz=1 + biz=99 (3 em vez de 1) — falha de TESTE, não vazamento de
+    // produto: a rota /fiscal/nfe roda atrás do middleware `auth`, onde auth()->check() é
+    // sempre true. Autenticamos um usuário biz=1 (semeado pelo pest-mysql-setup; sem role →
+    // não é superadmin) espelhando NfeBrasilMultiTenantIsolationTest. ADR 0093 + ADR 0101.
+    $this->actingAs(\App\User::where('business_id', FISCAL_BIZ_WAGNER)->firstOrFail());
 });
 
 afterEach(function () {

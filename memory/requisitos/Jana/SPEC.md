@@ -1578,14 +1578,14 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 **Fallback ≠ modelo (bloqueios diferentes):** subir o modelo custa em **toda** request → decisão [W]. O **fallback** só custa quando o primário cai, e já é Princípio duro #8 da Constituição ("Confiabilidade com fallback", ADR 0094). Medido: `config/ai.php` tem `'default' => 'openai'` único e o `ChatController` só tem `catch` devolvendo *"Estou com dificuldades técnicas"* — o provider `anthropic` já está declarado em `config/ai.php` e o `ChatCopilotoAgent` **já tem prompt-caching Anthropic** (`providerOptions()`), então a metade fallback é mais curta do que parece.
 
 **Escopo:**
-- [ ] Liberar `gpt-4o` OU `provider=anthropic` no config (decisão [W] — envolve custo)
-- [ ] Cadeia de fallback (provider primário → secundário) — hoje inexistente
-- [ ] Medir antes/depois no gold-set (`jana:recall-eval`) pra provar que a resposta melhorou, não só o preço subiu
-- [ ] Registrar o custo/1k tokens antes→depois (pareia com `agent-cost-per-pr`)
+- [x] Liberar `gpt-4o` no config + ligar SÓ no chat → **entregue na [US-COPI-144](#us-copi-144--modelo-forte-no-chat-jana_chat_model-cirúrgico)** ([W] liberou o acesso OpenAI 2026-07-17)
+- [ ] **Cadeia de fallback** (provider primário → secundário) — **hoje inexistente, segue pendente**. Se o provider cai, a Jana cai. Esta é a metade que sobra da 135.
+- [x] Medir antes/depois → feito na US-143 (mini vs gpt-4o, custo + qualidade)
+- [ ] Registrar custo/1k tokens antes→depois no monitoramento contínuo (pareia com `agent-cost-per-pr`) — pontual feito, contínuo pendente
 
-**Ressalva do adversário:** trocar o modelo NÃO conserta o `context_recall 0,3839` — recall é retrieval, não geração. Se subir só o modelo, a Jana responde melhor sobre o contexto errado. Fazer junto do piso de recall.
+**Ressalva do adversário:** trocar o modelo NÃO conserta o `context_recall 0,3839` — recall é retrieval, não geração. Se subir só o modelo, a Jana responde melhor sobre o contexto errado. Fazer junto do piso de recall (**US-COPI-136**).
 
-**Bloqueio real:** decisão [W] sobre custo. Sem isso o ticket não anda.
+**Estado (2026-07-17):** a metade **modelo** foi cindida pra US-143 e entregue (mecanismo cirúrgico `JANA_CHAT_MODEL` + gpt-4o ligado no chat em prod). O que mantém a **135 aberta** é o **fallback** — nenhuma cadeia primário→secundário existe ainda.
 
 ### US-COPI-136 · Piso de context_recall no baseline (recall 0,3839 pode cair sem alarme)
 
@@ -1617,21 +1617,33 @@ Ou seja: liberar `gpt-4o` no projeto OpenAI sobe o **chat** por `.env` (zero có
 
 ### US-COPI-137 · Eval online em 5% dos traces reais (hoje: zero avaliação no tráfego do cliente)
 
-> owner: — · priority: p1 · estimate: 6h · status: todo · type: story
+> owner: — · priority: p1 · estimate: 6h · status: doing · type: story
+
+**Implementado em:** _pendente_ — o MECANISMO está construído e testado (`Modules/Jana/Jobs/Telemetry/JudgeTraceOnlineJob.php` + hook na `LangfuseAgentTelemetryListener::onEnd` + `Modules/Jana/Services/Ragas/OllamaRagasJudge.php` (juiz local) + bloco `online_eval` na config), mas fica `_pendente_` de propósito: o DoD é **eval fluindo no tráfego real**, e isso só acontece quando [W] ligar o gate `enabled=true` (decisão LGPD). Código pronto atrás de flag = padrão PaymentGateway.
+
+**Atualização 2026-07-18 (chip grade de réguas — "ligar a medição"):** (1) **juiz local implementado** — `OllamaRagasJudge` (extends `RagasJudgeService`, override do transporte pra Ollama self-host CT 100, `/api/chat`, ZERO egress). Reusa os prompts RAGAS do pai; em falha lança `JudgeUnavailableException` → o Job PULA sem gravar `0.0` fabricado (honestidade, não teatro). Agora `judge=local` (default) mede de verdade em vez de SKIPar. (2) **BUG de wiring corrigido** — o Job/Listener liam `config('jana.online_eval.*')`, mas o bloco vive em `config.php` → merged como `copiloto.*` (o `jana.*` só tem retention/memoria). Ou seja, `enabled=true` no `config.php` **não ligava nada**. Agora leem `copiloto.online_eval.*` — editar o `config.php` é a fonte real. (3) **`jana:ragas-real-eval --judge=local`** roteia o julgamento pro juiz local (síntese segue no OpenAI) — verificável sobre o pipeline real sem esperar o tráfego 5%. **Pré-req de infra (não-código):** o Ollama do CT 100 (`ollama-embedder`) precisa de um modelo de CHAT puxado (`ollama pull <model>`, ex.: `qwen2.5:3b`) — hoje só tem embedders; sem ele o juiz lança (honesto) e o Job pula.
 
 **Origem:** grade de réguas 2026-07-17 — item #7 do "roubar"; `qualidade-drift-ia-producao` 4,0/10.
 
-**Sinal (ADR 0105):** a única medição de qualidade da Jana é offline (gold-set). **Zero eval no tráfego real** — se a Jana degradar pro cliente, ninguém sabe até ele reclamar. Langfuse está LIVE desde 2026-07-02 e `LangfuseClient::score()` **já existe** com o docblock certo.
+**Sinal (ADR 0105):** a única medição de qualidade da Jana é offline (gold-set). **Zero eval no tráfego real** — se a Jana degradar pro cliente, ninguém sabe até ele reclamar. Langfuse está LIVE desde 2026-07-02 e `LangfuseClient::recordScore()` grava score de volta no trace.
 
 **Escopo:**
-- [ ] Amostrar ~5% dos traces reais → `RagasJudgeService` (SoC: o julgamento não mora no client)
-- [ ] Score por business via `LangfuseClient::score()` (feature nativa do que já rodamos)
-- [ ] **Tier 0:** trace de cliente é biz≠1 → `PiiRedactor` ANTES de mandar pro juiz (ADR 0093 + LGPD)
-- [ ] Advisory: publica número, não bloqueia nada
+- [x] Amostrar ~5% dos traces reais → `RagasJudgeService` (SoC: o julgamento mora no Job, não no client). `shouldSample` determinístico por traceId (idempotente).
+- [x] Score por business via `LangfuseClient::recordScore()` (`ragas_faithfulness_online`) — a US original chamou de `score()`; o método real é `recordScore`, e o arquivo é `Services/Telemetry/LangfuseClient.php` (não `Services/`).
+- [x] **Tier 0:** `PiiRedactor` roda ANTES do juiz (provado por teste: CPF/email não chegam crus). `$businessId` explícito no Job (session() não existe na fila).
+- [x] Advisory: publica número no trace, não bloqueia nada (sem gate).
+- [x] **Juiz local implementado** (`OllamaRagasJudge`, zero egress — 2026-07-18). `judge=local` (default) mede de verdade; em falha PULA sem fabricar score.
+- [x] **Wiring corrigido** — leitura em `copiloto.online_eval.*` (o namespace onde o bloco de fato mora); antes lia `jana.*` (vazio) e `enabled=true` não ligava nada.
+- [ ] **DoD ([W]):** ligar `enabled=true` (LGPD) → eval flui no tráfego real. Pré-req infra: `ollama pull <model-chat>` no CT 100 (`judge=local`).
+- [ ] Só faithfulness no v1 (sem gt no tráfego real → recall/relevancy ficam offline/follow-up).
 
-**Ressalva do adversário:** trocar RAGAS tautológico por RAGAS não-calibrado pode ser trocar teatro por teatro com casas decimais — a literatura 2026 mediu falha de validade discriminante do `faithfulness` (19,3pp retrieval vs 15,9pp geração). Começar medindo, sem gate.
+**Ressalva do adversário:** trocar RAGAS tautológico por RAGAS não-calibrado pode ser trocar teatro por teatro com casas decimais — a literatura 2026 mediu falha de validade discriminante do `faithfulness` (19,3pp retrieval vs 15,9pp geração). Por isso o mecanismo **nasce sem gate** — só publica número no trace. Calibrar antes de confiar na média.
 
-**Refs:** ADR 0318 · `Modules/Jana/Services/LangfuseClient.php`
+**DoD:** existe score `ragas_faithfulness_online` em ao menos 1 trace real (biz≠1) com PII redigida — só possível após [W] ligar os gates.
+
+**Testado em:** `Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php` — shouldSample (0/1/determinismo/~5% sobre 10k) · **wiring** (config resolve em `copiloto.*`, o `jana.*` é vazio = a mordida do bug) · **judge=local** pontua via Ollama com PII redigida ANTES do juiz (CPF/email não vão no request) · judge=local com Ollama down NÃO grava score (sem 0.0 fabricado) · judge=openai PII-redigido · juiz-em-mock não pontua. `Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php` — transporte Ollama (parse score 0..1, url+model, sanitize, `JudgeUnavailableException` em HTTP 500/JSON-sem-score/transporte, mock curto-circuita).
+
+**Refs:** ADR 0318 · ADR 0093 · `Modules/Jana/Services/Telemetry/LangfuseClient.php` · `Modules/Jana/Services/Privacy/PiiRedactor.php`
 
 ### US-COPI-138 · Heartbeat langfuse_trace_uptime_24h no HealthCheckCommand
 **Implementado em:** `Modules/Jana/Console/Commands/HealthCheckCommand.php` · `Modules/Jana/Tests/Feature/Smoke/LangfuseTraceUptimeCheckTest.php` · verificado@e7f6090 (2026-07-17) — check DURO registrado em handle(), lendo meta.totalItems da API pública do Langfuse (fonte real, não flag); 9 testes verdes no CT 100 incl. 2 de fiação (200-e-mudo → vermelho)
@@ -1827,3 +1839,80 @@ Reproduzir: iterar `app(Schedule::class)->events()` e filtrar por `$e->runsInEnv
 - Ligar tools **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passa a buscar melhor o contexto errado. Piso de recall segue pendente.
 
 **Refs:** ADR 0245 · ADR 0141 · ADR 0101 · US-COPI-141 · US-COPI-136 (piso de recall) · US-COPI-137 (eval online) · US-COPI-135 (modelo frontier)
+
+### US-COPI-143 · Deprecar o `jana:drift-sentinel` tautológico (o "alarme de drift" mede gt-vs-gt, não a Jana)
+
+> owner: — · priority: p1 · estimate: 2h · status: todo · type: story
+
+**Implementado em:** _pendente_ — o código de honestidade já está (docblock + `caveat` no report + guard no `--update-baseline` + bite-test), mas a **deprecação formal** (tirar a alegação de "alarme de drift da Jana" do dashboard de governança + decidir aposentar vs manter como sonda) é decisão [W] — por isso `_pendente_`.
+
+**Origem:** re-grade da dimensão `qualidade-drift-ia-producao` (2026-07-17). O chip C3 pedia "regravar o baseline real do drift-sentinel". Ao verificar, o sentinel provou-se **tautológico**.
+
+**Sinal (PROVADO no CT 100):** `jana:drift-sentinel --detail` real → as **51 perguntas dão `Current = 1.0`**. O código chama `scoreFaithfulness(question, ground_truth, ground_truth)` — answer = context = ground_truth. É a **mesma tautologia que a ADR 0318 matou no `ci-eval`**, sobrevivente porque a 0318 só tocou aquele comando. O sentinel **nunca roda o pipeline real** (`KbAnswerService`) — mede a auto-consistência do juiz em gt-vs-gt, não a Jana. Regravar o baseline (o chip C3) tornaria o alarme **estritamente pior** (baseline=1.0 → Δ=0 pra sempre → nunca dispara). Lápide §5 2026-07-17.
+
+**O que já foi feito (PR de honestidade, esta sessão):**
+- [x] Docblock do comando marca a tautologia + aponta pro sinal real (`ragas-real-eval`).
+- [x] `caveat` no report semanal — o "ok" não pode ser lido como "Jana OK".
+- [x] Guard no `--update-baseline` fora de `--mock` (fecha a armadilha do chip C3; exige `DRIFT_BASELINE_TAUTOLOGIA_OK=1` consciente).
+- [x] Bite-test: o guard bloqueia + o caveat viaja no report.
+
+**Escopo (decisão [W]):**
+- [ ] **A (recomendado) — aposentar:** o sinal de drift real da Jana já existe (`jana:ragas-real-eval`, ADR 0318, roda via US-COPI-140 + piso US-COPI-136). Remover o sentinel do schedule + do `governance-audit.mjs` como "alarme de drift", registrando via ADR de deprecação. Não duplicar régua (§5).
+- [ ] **B — reconectar ao pipeline real** (rodar `KbAnswerService`): mata a tautologia mas **duplica** o `ragas-real-eval` — a §5 alerta contra régua paralela. Menos preferível.
+- [ ] **C — manter só como sonda relabelada** ("auto-consistência do juiz", não drift da Jana): o mínimo já entregue por este PR; formalizar se [W] quiser manter o probe.
+
+**DoD:** a alegação "alarme de drift da Jana" some do dashboard de governança (ou o sentinel some), e o único sinal de drift da Jana que o dashboard mostra é o `ragas-real-eval`.
+
+**Refs:** ADR 0318 · US-COPI-136 · US-COPI-140 · `Modules/Jana/Console/Commands/JanaDriftSentinelCommand.php` · proibicoes.md §5 2026-07-17
+
+### US-COPI-144 · Modelo forte no chat (JANA_CHAT_MODEL cirúrgico) — mecanismo done · gpt-4o bloqueado por acesso OpenAI
+
+> owner: wagner · priority: p1 · estimate: 2h · status: done · type: story
+
+**Implementado em:** `Modules/Jana/Ai/Agents/ChatCopilotoAgent.php` · `Modules/Jana/Config/config.php` · verificado@daca7b3 (2026-07-17) — `ChatCopilotoAgent::model()` lê `copiloto.chat_model` (env `JANA_CHAT_MODEL`); null → default do provider (gpt-4o-mini, legado), string → liga o modelo SÓ neste agent
+
+**Testado em:** `Modules/Jana/Tests/Feature/Ai/ChatCopilotoAgentModelTest.php` · verificado@daca7b3 (2026-07-17) — R-COPI-135 (3 casos, sem LLM): sem config → null; vazio → null; `gpt-4o` → `gpt-4o`
+
+**Origem:** cindida da US-COPI-135. [W] autorizou ligar ("pode ligar", 2026-07-17). **O flip prod foi TENTADO e REVERTIDO no mesmo dia** — o projeto OpenAI de prod **não** tem acesso ao gpt-4o (ver DoD). O **mecanismo** está pronto e mergeado; só falta o acesso ao modelo.
+
+**Por que cirúrgico (não `AI_OPENAI_TEXT_DEFAULT=gpt-4o`):** o env global é o default de ~8 agents sem `#[Model]`, incluindo batch internos (Briefing, WeeklyDigest, SinteseSemanal) que rodariam a 16× o custo **sem ganho pro cliente**. O knob `JANA_CHAT_MODEL` sobe só a superfície que a Larissa usa.
+
+**Medição real (staging, mesma pergunta analítica, tools ON):**
+
+| | gpt-4o-mini | gpt-4o |
+|---|---|---|
+| custo/msg | $0,00031 | $0,00470 (~15×) |
+| latência | 14,0s | 5,4s |
+| qualidade | 5 recomendações genéricas | mais conciso, integrou "tickets em aberto" |
+
+Ganho de qualidade **marginal** nesta amostra; custo absoluto **trivial** (meio centavo/msg, só nas que pedem análise). gpt-4o foi até mais rápido aqui.
+
+**DoD:** mecanismo done, flip revertido. O mecanismo liga o modelo só no chat com kill-switch por env — **provado de verdade** (não em teoria): liguei `JANA_CHAT_MODEL=gpt-4o` em prod, o R1 pegou a quebra, apaguei a env + `config:cache` e o chat voltou ao mini (conversa real biz=1, 8 TextDeltas). R-COPI-144 (3 casos) verde no CT 100.
+
+**Flip prod REVERTIDO (2026-07-17) — `model_not_found`:** liguei `JANA_CHAT_MODEL=gpt-4o` e o chat quebrou. O R1 (smoke real, `responderChat` + eventos do stream) capturou:
+> `Project proj_zMcVcGyURfEVtsgTRxP4RiTs does not have access to model gpt-4o` (`type: model_not_found`)
+
+O projeto OpenAI **de prod** (e o de staging — duas chaves, **mesmo** projeto) **não** tem acesso ao gpt-4o. O comentário em [`config.php`](../../../Modules/Jana/Config/config.php) (`model_suggestions`) já registrava isso: *"gpt-4o → 403 does not have access"*. Revertido em minutos; chat segue no mini, funcionando.
+
+**Erro meu registrado (pra não repetir):** o smoke inicial de gpt-4o deu resposta **vazia** e eu declarei *"FUNCIONA, zero 403"*. O `Error` do gpt-4o vem como **evento do stream** (`StreamStart`+`Error`, `text_len=0`), **não** como exceção — meu try/catch não pegou, e eu medi "não lançou exceção" em vez de "tem texto". Lápides 2026-07-15 (achado sem prova) e 2026-07-16 (medir a propriedade errada). O smoke que vale é `responderChat`/eventos, não "não estourou".
+
+**Pra religar (quando o acesso valer):** [W] confirma no painel OpenAI que o gpt-4o está liberado **pro projeto `proj_zMcVcGyURfEVtsgTRxP4RiTs`** (o id está no erro) → `JANA_CHAT_MODEL=gpt-4o` no `.env` do Hostinger + `config:cache` → smoke `responderChat` real. 1 linha.
+
+**Ressalvas (não desta US):** (1) o ganho na **média** do tráfego real é a **US-COPI-137** (eval online) — o comparativo é 1 amostra, não distribuição; (2) subir o modelo **não** conserta `context_recall 0,3839` (**US-COPI-136**) — a Jana passa a raciocinar melhor sobre o contexto errado; (3) **fallback** primário→secundário segue aberto na **US-COPI-135**.
+
+**Refs:** ADR 0245 · ADR 0141 · US-COPI-135 (fallback) · US-COPI-136 (recall) · US-COPI-137 (eval online)
+
+### US-COPI-145 · Desbloquear modelo frontier no chat da Jana: ANTHROPIC_API_KEY em prod OU acesso gpt-4o no projeto OpenAI
+
+> owner: wagner · priority: p1 · status: todo · type: story
+> blocked_by: Decisão/credencial [W]: fornecer ANTHROPIC_API_KEY OU liberar gpt-4o no projeto OpenAI
+
+Ação de credencial/infra que destrava a dimensão erp-ia-produto (o mecanismo já está pronto — US-COPI-144). O flip do gpt-4o foi TENTADO e REVERTIDO em 2026-07-17: o projeto OpenAI de prod (`proj_zMcVcGyURfEVtsgTRxP4RiTs`) retorna `model_not_found` pro gpt-4o apesar da autorização — as 2 chaves (prod+staging) são do MESMO projeto sem acesso.
+
+**Dois caminhos, ambos dependem de [W]:**
+- **(A)** liberar gpt-4o DE VERDADE no projeto OpenAI.
+- **(B — RECOMENDADO, maior alavanca)** pôr `ANTHROPIC_API_KEY` no `.env` do Hostinger — destrava `claude-sonnet` no chat (o `ChatCopilotoAgent` já tem prompt-caching Anthropic implementado), o fallback provider-secundário (**US-COPI-135**, hoje sem destino) E um 2º juiz pro eval online (**US-COPI-137**).
+
+`[C]` NÃO manuseia a chave (credencial paga [W]). Feito o desbloqueio, `[C]` liga via `JANA_CHAT_MODEL` (+ provider se anthropic), roda smoke real do `responderChat` (o incidente ensinou: testar o caminho blocking + eventos do stream; resposta vazia = sinal de erro) e mede antes/depois no gold-set (`jana:ragas-real-eval`) pra provar ganho na média — o comparativo atual é 1 amostra (ganho marginal, custo ~15×).
+
+**Refs:** US-COPI-144 (mecanismo, DoD com o incidente) · US-COPI-135 (fallback) · US-COPI-137 (eval) · handoff 2026-07-17-2115

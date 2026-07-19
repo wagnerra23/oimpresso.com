@@ -1,7 +1,7 @@
 ---
 slug: 0018-officeimpresso-log-acesso-passivo
 number: 18
-title: !!binary gJQgTG9nIGRlIGFjZXNzbyBkbyBkZXNrdG9wIHZpYSB0cmlnZ2VycyBNeVNRTCAocGFzc2l2byk=
+title: "Log de acesso do desktop via triggers MySQL (passivo)"
 type: adr
 status: aceito
 authority: canonical
@@ -20,7 +20,7 @@ tags: {  }
 # lifecycle 'historical' (convencao do projeto) em vez de 'superseded'.
 # Detectado pelo AdrLinksChecker (ADR 0219) smoke 2026-05-28.
 related:
-  - '0017'
+  - 0017-officeimpresso-restaurado-superadmin-exclusivo
 pii: false
 ---
 # ADR 0018 — Log de acesso do desktop via triggers MySQL (passivo)

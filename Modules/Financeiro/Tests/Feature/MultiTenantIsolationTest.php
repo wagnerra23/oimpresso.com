@@ -243,7 +243,10 @@ class MultiTenantIsolationTest extends FinanceiroTestCase
             'DashboardController.php' => "OtelHelper::spanBiz('financeiro.dashboard",
             'BoletoController.php'    => "OtelHelper::spanBiz('financeiro.boleto.cancelar'",
             'ContaReceberController.php' => "OtelHelper::spanBiz('financeiro.boleto.emitir'",
-            'FluxoController.php'     => "OtelHelper::spanBiz('financeiro.fluxo.projetar'",
+            // Wave 17 D9 renomeou o span 'financeiro.fluxo.projetar' → '.render'
+            // (FluxoController::index agrega projetado+realizado num só span de
+            // render). A observability continua presente; só o nome mudou.
+            'FluxoController.php'     => "OtelHelper::spanBiz('financeiro.fluxo.render'",
             'ExtratoController.php'   => "OtelHelper::spanBiz('financeiro.extrato.lancamentos'",
         ];
 

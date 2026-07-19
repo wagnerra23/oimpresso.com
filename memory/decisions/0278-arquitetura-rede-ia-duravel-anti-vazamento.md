@@ -14,12 +14,7 @@ tags: [governanca, automacao, multi-ia, anti-vazamento, lease, durabilidade, sdd
 supersedes: []
 superseded_by: []
 related:
-  - 0053-mcp-server-canonico
   - 0061-conhecimento-canonico-git-mcp-zero-automem
-  - 0070-jira-style-task-management
-  - 0091-daily-brief-fetch
-  - 0119-whats-active-tier-1-alerta-passivo
-  - 0256-knowledge-survival-catraca-sentinela
   - 0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes
   - 0276-decisao-pelo-fluxo-classes-pares-adversariais
 ---

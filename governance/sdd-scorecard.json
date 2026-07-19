@@ -15,35 +15,35 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 83.9,
+      "value": 84.2,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 83.9,
+        "coverage_pct": 84.2,
         "specs_total": 59,
-        "us_total": 976,
-        "anchor_coverage_pct": 83.9,
+        "us_total": 979,
+        "anchor_coverage_pct": 84.2,
         "by_state": {
-          "sem_campo": 156,
+          "sem_campo": 154,
           "placeholder": 0,
-          "pendente": 374,
+          "pendente": 375,
           "parcial": 115,
-          "anchored_ok": 330,
+          "anchored_ok": 334,
           "anchored_dead": 1,
           "anchored_zombie": 0
         },
-        "fields_total": 825,
+        "fields_total": 830,
         "fields_placeholder": 0,
-        "fields_grammar_ok": 779,
+        "fields_grammar_ok": 784,
         "orphan_fields": 5,
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 264,
         "req_sem_covering_test_total": 392,
         "req_teste_vermelho_total": 0,
-        "req_sem_lane_total": 43,
+        "req_sem_lane_total": 44,
         "behavior_known": false,
         "servido_total": 3,
         "nao_servido_total": 114,
@@ -72,34 +72,34 @@
       "target": 0,
       "source": "governance/nightly-floor.json (transporte CT100→scorecard · ADR 0279 Opção A · US-GOV-023)",
       "detail": {
-        "floor_files_hash": "cb13d830b5928f1b",
+        "floor_files_hash": "8ad1342fbd4db651",
         "runs": [
           {
-            "sha": "52da896a",
-            "ts": "20260714-020001",
-            "failed": 621,
-            "errors": 593,
-            "skipped": 2255,
-            "all_shards_measured": true
-          },
-          {
-            "sha": "d4a88d08",
-            "ts": "20260715-020001",
-            "failed": 597,
-            "errors": 587,
-            "skipped": 2266,
-            "all_shards_measured": true
-          },
-          {
-            "sha": null,
+            "sha": "9855260a",
             "ts": "20260717-020001",
             "failed": 608,
             "errors": 642,
             "skipped": 2277,
             "all_shards_measured": true
+          },
+          {
+            "sha": "fc5e94d4",
+            "ts": "20260718-020001",
+            "failed": 613,
+            "errors": 573,
+            "skipped": 2268,
+            "all_shards_measured": true
+          },
+          {
+            "sha": null,
+            "ts": "20260719-020001",
+            "failed": 587,
+            "errors": 682,
+            "skipped": 2262,
+            "all_shards_measured": true
           }
         ],
-        "computed_at": "20260717-020001",
+        "computed_at": "20260719-020001",
         "intersection_of": 3
       },
       "stream": "FV"
@@ -118,38 +118,38 @@
     },
     "coverage_pct": {
       "status": "measured",
-      "value": 16.9,
+      "value": 17.1,
       "unit": "%",
       "direction": "up",
       "target": "só sobe (catraca C2)",
       "source": "governance/nightly-coverage.json (line-rate da suíte inteira CT100 · pcov · transporte branch órfã · SDD P07 · ADR 0275 §2)",
       "detail": {
-        "covered": 40436,
-        "total": 239815,
+        "covered": 41203,
+        "total": 240381,
         "runs": [
           {
-            "sha": "52da896a",
-            "ts": "20260714-020001",
-            "coverage_pct": 17.1,
-            "covered": 40873,
-            "total": 239618
-          },
-          {
-            "sha": "d4a88d08",
-            "ts": "20260715-020001",
-            "coverage_pct": 17.1,
-            "covered": 40955,
-            "total": 239719
-          },
-          {
-            "sha": null,
+            "sha": "9855260a",
             "ts": "20260717-020001",
             "coverage_pct": 16.9,
             "covered": 40436,
             "total": 239815
+          },
+          {
+            "sha": "fc5e94d4",
+            "ts": "20260718-020001",
+            "coverage_pct": 16.9,
+            "covered": 40536,
+            "total": 240317
+          },
+          {
+            "sha": null,
+            "ts": "20260719-020001",
+            "coverage_pct": 17.1,
+            "covered": 41203,
+            "total": 240381
           }
         ],
-        "computed_at": "20260717-020001",
+        "computed_at": "20260719-020001",
         "measured_of": 3
       },
       "stream": "FV"
@@ -168,8 +168,8 @@
           "B": 0,
           "C": 0
         },
-        "with_manual_ddl": 269,
-        "effectively_guarded": 269
+        "with_manual_ddl": 271,
+        "effectively_guarded": 271
       },
       "stream": "FV"
     },
@@ -209,22 +209,22 @@
     },
     "ragas_real_uptime": {
       "status": "measured",
-      "value": 100,
+      "value": 66.7,
       "unit": "%",
       "direction": "up",
       "target": 95,
       "source": "governance/ragas-real-trend.json (transporte CT100→scorecard · órfã governance/ragas-real-trend · ADR 0318 + pattern ADR 0279)",
       "detail": {
-        "weeks_expected": 1,
-        "weeks_valid": 1,
+        "weeks_expected": 3,
+        "weeks_valid": 2,
         "first_scheduled": "2026-07-05",
-        "last_week": "2026-06-28",
+        "last_week": "2026-07-19",
         "latest": {
           "gate_status": "pass",
           "n_evaluated": 51,
-          "faithfulness_avg": 0.7145,
-          "relevancy_avg": 0.8745,
-          "context_recall_avg": 0.3951
+          "faithfulness_avg": 0.7127,
+          "relevancy_avg": 0.8255,
+          "context_recall_avg": 0.4016
         }
       },
       "stream": "MEM"
@@ -267,8 +267,8 @@
       "source": "scripts/governance/protection-drift.mjs --json .reds.length (drift de branch protection + watchdog staleness · GT-G4 · P08)",
       "detail": {
         "reds": [],
-        "warns": 1,
-        "verdict": "yellow"
+        "warns": 0,
+        "verdict": "green"
       },
       "stream": "GT"
     },

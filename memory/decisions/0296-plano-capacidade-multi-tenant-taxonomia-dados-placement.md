@@ -19,9 +19,7 @@ related:
   - 0061-conhecimento-canonico-git-mcp-zero-automem
   - 0280-postura-multi-tenant-tabelas-mcp-governanca
   - 0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento
-  - 0084-mcp-audit-log-append-only-triggers
   - 0294-mcp-audit-log-hash-chain-tamper-evident
-  - 0053-conhecimento-canonico-git-fonte-verdade
   - 0058-reverb-substituido-por-centrifugo-frankenphp
 ---
 

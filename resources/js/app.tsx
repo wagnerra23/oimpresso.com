@@ -1,3 +1,26 @@
+// FONTES SELF-HOSTED (ITEM 7 · 3c) — @font-face local, servido pelo nosso domínio.
+// Substitui o <link> do Google Fonts que estava em layouts/inertia.blade.php:30-32.
+// Os pesos abaixo são EXATAMENTE os que a URL do CDN pedia (sans 400;500;600;700 +
+// mono 400;500) — nem um a mais, pra não inflar o bundle.
+//
+// POR QUE self-host: o gate visual injetava `* { font-family: Arial !important }` pra
+// ter fonte determinística, e isso o cegava pra regressão de font-family (318
+// declarações em resources/css, 0 com !important → o universal author-!important vence
+// todas). Com @font-face local + `document.fonts.ready`, a fonte real carrega
+// determinística no runner e o force sai (VisregThreshold + suítes de baseline).
+// Instalar a fonte no ubuntu-24.04 NÃO resolveria: o @font-face do CDN vence o SO.
+//
+// Importado aqui (pipeline JS do Vite) e não via `@import` no CSS: o comentário do
+// inertia.blade.php registra que `@import` dentro de CSS bundleado era descartado no
+// build de produção. O import JS é o caminho recomendado pelo @fontsource e emite os
+// .woff2 com hash pelo manifest do `build-inertia`.
+import '@fontsource/ibm-plex-sans/400.css';
+import '@fontsource/ibm-plex-sans/500.css';
+import '@fontsource/ibm-plex-sans/600.css';
+import '@fontsource/ibm-plex-sans/700.css';
+import '@fontsource/ibm-plex-mono/400.css';
+import '@fontsource/ibm-plex-mono/500.css';
+
 import '../css/inertia.css';
 
 import { createInertiaApp, router } from '@inertiajs/react';

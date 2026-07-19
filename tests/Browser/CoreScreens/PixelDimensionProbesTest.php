@@ -48,7 +48,7 @@ const NORMALIZE_JS = <<<'JS'
       const s = document.createElement('style');
       s.id = '__pixdim_normalize';
       s.textContent = `
-        * { transition: none !important; animation: none !important; font-family: Arial, sans-serif !important; }
+        * { transition: none !important; animation: none !important; }
         body { -webkit-font-smoothing: antialiased !important; -moz-osx-font-smoothing: grayscale !important; }
         input[type=date], input[type=datetime-local], input[type=time] { visibility: hidden !important; }
       `;
@@ -102,6 +102,11 @@ it('Financeiro/Unificado — PIXEL morde dims 1/2/3/4/9/10/11/12 e LIBERA no lim
     $page = visit('/_visreg-login/' . $admin->id . '?to=' . urlencode('/financeiro/unificado'));
     $page->assertSee('Financeiro');
     $page->script(NORMALIZE_JS);
+    // Sem o force de Arial (ITEM 7 · 3c), a fonte real precisa estar carregada ANTES do
+    // primeiro screenshot: se ela terminasse de carregar ENTRE o `clean` e o
+    // `cleanAgain`, o LIBERA (clean-vs-clean < τ_baixo) falharia por flake de fonte, não
+    // por defeito da máquina de pixel.
+    VisregThreshold::aguardarFontesReais($page);
     $page->wait(1.5);
 
     $tauLow = VisregThreshold::tauLow();

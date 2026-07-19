@@ -1,13 +1,13 @@
 ---
 slug: 0080-trust-tiers-operacional-audit-findings
-number: 0080
+number: 80
 title: "Trust Tiers operacional + Architecture & Scope + audit findings v1.1.0"
 type: adr
 status: aceito
 authority: canonical
 lifecycle: ativo
 decided_by: [W]
-decided_at: 2026-05-05
+decided_at: "2026-05-05"
 module: governance
 quarter: 2026-Q2
 tags: [governance, trust-tiers, architecture, audit, p0]
