@@ -7,6 +7,8 @@ Construído sobre UltimatePOS v6 com módulos próprios em `Modules/` (Jana IA, 
 ## Origem
 Originalmente nasceu como módulo Ponto WR2 (controle eletrônico Portaria MTP 671/2021) e evoluiu pra plataforma multi-vertical com 26 anos de experiência majoritariamente no setor gráfico (WR Sistemas / OfficeImpresso legacy Delphi).
 
+> 📜 **Linhagem completa** (timeline Delphi WR → OfficeImpresso → fork UltimatePOS [ADR 0001](decisions/0001-estender-ultimatepos-opcao-c.md) → oimpresso modular): [`HISTORIA-LINHAGEM.md`](HISTORIA-LINHAGEM.md).
+
 ## Cliente piloto (Modules/Vestuario)
 **ROTA LIVRE** (`business_id=4`, Larissa) — `LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME`, **vestuário em Termas do Gravatal/SC** (não gráfica em SP). 99% do volume de vendas do oimpresso novo (Laravel). Monitor 1280px. Customizações ativas: `format_date` shift +3h ([ADR 0066](decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md) — preservado intencionalmente).
 
