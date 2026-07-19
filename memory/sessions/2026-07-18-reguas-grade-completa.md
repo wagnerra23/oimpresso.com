@@ -1,6 +1,6 @@
 ---
 date: "2026-07-18"
-topic: "Grade de réguas COMPLETA (11 dimensões, 3 eixos) vs acima-do-mercado — placar 0 acima-de-categoria / 23 à-frente-por-integração; buraco real = eixos RODAR-E-OBSERVAR + SERVIR-O-NEGÓCIO. CORRIGIDA pelo passe adversarial same-day (25 achados; 2 notas re-medidas por rodada parcial)"
+topic: "Grade de réguas COMPLETA (11 dimensões, 3 eixos) vs acima-do-mercado — placar 0 acima-de-categoria / 23 à-frente-por-integração; buraco real = RODAR-E-OBSERVAR + SERVIR-O-NEGÓCIO; corrigida pós-adversário (25 achados; 2 notas re-medidas)"
 authors: [C]
 prs: []
 outcomes:
