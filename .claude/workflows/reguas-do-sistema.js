@@ -178,7 +178,7 @@ if (MODO === 'delta') {
     `4. claims_vencidas = claims onde data_veredito + ttl_dias <= hoje (compare datas ISO; inclua correcao_obrigatoria quando houver).\n` +
     `5. fraquezas = o array INTEIRO de fraquezas.json (campos id/dimensao/titulo/veredito/nota/evidencia/degrau — condense evidencia a ≤200 chars).\n` +
     `6. delta_min_commits = config.delta_min_commits.\nRetorne SÓ o JSON.`,
-    { label: 'delta-scan', phase: 'Delta-scan', schema: SCAN, effort: 'low', model: MODELO_MECANICO },
+    { label: 'delta-scan', phase: 'Delta-scan', schema: SCAN, effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' },
   )
   if (!scan || scan.erro) {
     log(`⚠️ delta abortado: ${(scan && scan.erro) || 'scan falhou'} — rode o modo full pra semear o ledger`)
@@ -233,7 +233,7 @@ if (MODO === 'delta') {
     `2. fraquezas.json: pra cada re-medida em ${JSON.stringify(verificadas.map((v) => ({ id: v.id, nota: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 250), onde_indexar: v.check.onde_indexar || null })))}: atualize nota/veredito/evidencia/data(hoje); se onde_indexar veio preenchido e o mecanismo existia-mas-invisível, sete existia_invisivel:true, indexado:false e grave onde_indexar.\n` +
     `3. claims.json: pra cada re-vereditada em ${JSON.stringify(reRefutadas.map((r) => ({ id: r.id, veredito: r.verdict.veredito, peer: r.verdict.quem_ja_faz || r.verdict.razao || '' })))}: atualize refutador/peer/data_veredito(hoje); ttl_dias = 30 se o veredito novo for ACIMA_CONFIRMADO, senão 90.\n` +
     `4. Valide os 3 JSONs com node (JSON.parse) antes de terminar. Retorne resumo: o que gravou, contagens, e a fila de indexação pendente (rode node ${BASE}/scripts/governance/reguas-indexar.mjs se existir).`,
-    { label: 'persistir', phase: 'Persistir', effort: 'low', model: MODELO_MECANICO },
+    { label: 'persistir', phase: 'Persistir', effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' },
   )
   return {
     modo: 'delta',
@@ -361,7 +361,7 @@ const persistencia = await agent(
   `- fraquezas (id derive de dimensao+slug do título): ${fit('rows', rowsPorDim, 120_000)}\n` +
   `- claims (refutador + integração): ${fit('claims', refutados.map((r) => ({ titulo: r.ideia, dimensao: r.dimensao, refutador: r.verdict.veredito, peer: r.verdict.quem_ja_faz || '' })), 80_000)}\n` +
   `Passos: (1) retratos.json — insira NO TOPO {data: hoje ISO, modo:"full", regra_nota:"media-deterministica-v1", notas, placar, integ_hist:{...copie do retrato anterior se existir, senão {vereditos_acumulados: ${placarJS.diferencial_sistema + placarJS.refutado_tb}, refutado_tb_acumulado: ${placarJS.refutado_tb}}}, links:[]}; NUNCA edite retrato antigo (append-only). (2) fraquezas.json — upsert por id (nota/veredito/evidencia/degrau/data hoje; existia_invisivel+onde_indexar quando a verificação indicou). (3) claims.json — upsert por id (data_veredito hoje; ttl 30 se ACIMA_CONFIRMADO senão 90; preserve correcao_obrigatoria existente). (4) valide os 3 com JSON.parse. Retorne resumo + rode node ${BASE}/scripts/governance/reguas-indexar.mjs pra listar a fila de indexação.`,
-  { label: 'persistir-full', phase: 'Persistir', effort: 'low', model: MODELO_MECANICO },
+  { label: 'persistir-full', phase: 'Persistir', effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' },
 )
 
 return {
