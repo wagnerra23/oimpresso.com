@@ -25,6 +25,15 @@ const BASE = (A && A.base) || 'AJUSTE: passe args.base = worktree FRESCO do orig
 // 'delta' = rodada incremental barata dirigida pelo ledger memory/reguas/ (alvo ≤2,5M tokens).
 const MODO = (A && A.modo) === 'delta' ? 'delta' : 'full'
 const LEDGER_DIR = (A && A.ledger) || 'memory/reguas'
+// ── ESTRATÉGIA DE MODELO (Wagner 2026-07-19: "estratégia de funcionar com opus 4.8") ──
+// Os agentes de JULGAMENTO (pesquisa/refutação/verificação/integração/prosa/grade) INHERIT o
+// modelo da sessão — quando a sessão é Opus 4.8 (ou o Zelador roda nele), o raciocínio pesado
+// roda em Opus, que é onde a qualidade importa. Os agentes MECÂNICOS (delta-scan = git log +
+// aritmética de data + ler JSON; persistir = escrever JSON validado) são FIXADOS num tier mais
+// barato — são estruturados/determinísticos, Opus ali é desperdício. Assim o delta fica barato
+// MESMO sob sessão Opus 4.8. Override: args.modelo_mecanico. A grade-final caiu de 'max'→'high'
+// porque a composição agora é DETERMINÍSTICA (regra 16): o agente só escreve prosa, não decide nota.
+const MODELO_MECANICO = (A && A.modelo_mecanico) || 'sonnet'
 const DIMS_DEFAULT = [
   { key: 'spec-governanca', escopo: 'spec-driven development + governança de agentes (Spec Kit, Kiro, Codex, Cursor, Tessl; gates/required; ratchets)' },
   { key: 'design-to-code', escopo: 'design→code fidelity (Figma Code Connect/Dev Mode, v0, Builder.io; VRT: Chromatic/Applitools/Percy; tokens DTCG/Style Dictionary)' },
@@ -169,7 +178,7 @@ if (MODO === 'delta') {
     `4. claims_vencidas = claims onde data_veredito + ttl_dias <= hoje (compare datas ISO; inclua correcao_obrigatoria quando houver).\n` +
     `5. fraquezas = o array INTEIRO de fraquezas.json (campos id/dimensao/titulo/veredito/nota/evidencia/degrau — condense evidencia a ≤200 chars).\n` +
     `6. delta_min_commits = config.delta_min_commits.\nRetorne SÓ o JSON.`,
-    { label: 'delta-scan', phase: 'Delta-scan', schema: SCAN, effort: 'low' },
+    { label: 'delta-scan', phase: 'Delta-scan', schema: SCAN, effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' },
   )
   if (!scan || scan.erro) {
     log(`⚠️ delta abortado: ${(scan && scan.erro) || 'scan falhou'} — rode o modo full pra semear o ledger`)
@@ -224,7 +233,7 @@ if (MODO === 'delta') {
     `2. fraquezas.json: pra cada re-medida em ${JSON.stringify(verificadas.map((v) => ({ id: v.id, nota: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 250), onde_indexar: v.check.onde_indexar || null })))}: atualize nota/veredito/evidencia/data(hoje); se onde_indexar veio preenchido e o mecanismo existia-mas-invisível, sete existia_invisivel:true, indexado:false e grave onde_indexar.\n` +
     `3. claims.json: pra cada re-vereditada em ${JSON.stringify(reRefutadas.map((r) => ({ id: r.id, veredito: r.verdict.veredito, peer: r.verdict.quem_ja_faz || r.verdict.razao || '' })))}: atualize refutador/peer/data_veredito(hoje); ttl_dias = 30 se o veredito novo for ACIMA_CONFIRMADO, senão 90.\n` +
     `4. Valide os 3 JSONs com node (JSON.parse) antes de terminar. Retorne resumo: o que gravou, contagens, e a fila de indexação pendente (rode node ${BASE}/scripts/governance/reguas-indexar.mjs se existir).`,
-    { label: 'persistir', phase: 'Persistir', effort: 'low' },
+    { label: 'persistir', phase: 'Persistir', effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' },
   )
   return {
     modo: 'delta',
@@ -339,7 +348,7 @@ const grade = await agent(
   `Escreva a GRADE DE RÉGUAS para Wagner (PT-BR, direto, sem ego inflado nem falsa modéstia). Datada de HOJE.\n\n` +
   `⚠️ NÚMEROS JÁ FECHADOS PELA COMPOSIÇÃO DETERMINÍSTICA (regra 16 — adversário 2026-07-18). NOTA POR DIMENSÃO = ${JSON.stringify(notasPorDim)} (média das fraquezas verificadas; null = sem fraqueza-com-nota nesta rodada — declare "sem nota" honestamente, NÃO invente). PLACAR = ${JSON.stringify(placarJS)}. Você é PROIBIDO de alterar, arredondar, fundir ou re-atribuir qualquer número: use EXATAMENTE estes. Seu trabalho é a PROSA (evidência, diferenciais, degraus, leitura fria) em volta dos números fechados.\n\n` +
   `PESQUISAS: ${pesquisasStr}\nREFUTAÇÃO slice-a-slice: ${refutadosStr}\nTESTE DE INTEGRAÇÃO (DIFERENCIAL_SISTEMA = à-frente-por-integração, o peer só cobre a peça; REFUTADO_TB = o todo também tem par): ${integradosStr}\nVERIFICAÇÃO NO REPO (nota só com evidência): ${verificadasStr}\n\nCOBERTURA OBRIGATÓRIA: as ${pesquisas.length} dimensões acima cobrem TRÊS eixos — (1) CONSTRUIR-E-GOVERNAR, (2) RODAR-E-OBSERVAR (observabilidade-agente · qualidade-drift-ia-producao · seguranca-do-agente · custo-eficiencia — eixo add pela ADR 0333 porque era ponto cego), (3) SERVIR-O-NEGÓCIO (inteligencia-de-negocio — ponto cego da ADR 0334). A grade DEVE emitir nota pras dimensões dos TRÊS eixos; se um eixo sair sem fraqueza/nota, o ponto cego que as 0333/0334 fecharam volta pela síntese. Declare no cabeçalho as ${pesquisas.length} dimensões — não só as que renderam mais texto.\n\nDUAS REGRAS ANTES DE ESCREVER: (a) NÃO reporte "0 acima" a partir de refutação de slices — o placar de superioridade tem DUAS colunas distintas: "acima-de-categoria" (ACIMA_CONFIRMADO) E "à-frente-por-integração" (DIFERENCIAL_SISTEMA — o diferencial real quando ninguém monta o TODO no mesmo contexto; NÃO re-inflar a peça isolada). (b) CREDITE O QUE JÁ SHIPOU: antes de listar um gap/roubar como aberto, cheque em ${BASE} (git log recente + arquivos novos) se já foi fechado desde o último retrato; se sim, marque FEITO e não re-liste.\n\nEstrutura: 1) placar honesto (acima-de-categoria · à-frente-por-integração · empatadas · refutadas); 2) DIFERENCIAIS REAIS (os DIFERENCIAL_SISTEMA, na altitude do sistema, com o limite honesto de cada um); 3) GRADE das fraquezas — técnica · régua (quem+prática+fonte) · critério objetivo · nota COM evidência · próximo degrau; 4) JÁ FEITO desde o último retrato; 5) onde a régua é você (empates a defender); 6) O QUE ROUBAR top-8 (impacto÷esforço, onde plugar) — só o que NÃO shipou; 7) CHIPS SUGERIDOS (1 por fraqueza real, ressalva do adversário embutida); 8) REJEITADOS → proibições §5; 9) leitura fria (3 frases). Regra: nenhuma nota sem evidência citada.`,
-  { label: 'grade-final', phase: 'Grade', effort: 'max' },
+  { label: 'grade-final', phase: 'Grade', effort: 'high' }, // era 'max' — composição determinística (regra 16) deixou o agente só com a prosa
 )
 
 // ── Fase Persistir (Órgão 1) — grava o retrato no ledger memory/reguas/ ────────
@@ -352,7 +361,7 @@ const persistencia = await agent(
   `- fraquezas (id derive de dimensao+slug do título): ${fit('rows', rowsPorDim, 120_000)}\n` +
   `- claims (refutador + integração): ${fit('claims', refutados.map((r) => ({ titulo: r.ideia, dimensao: r.dimensao, refutador: r.verdict.veredito, peer: r.verdict.quem_ja_faz || '' })), 80_000)}\n` +
   `Passos: (1) retratos.json — insira NO TOPO {data: hoje ISO, modo:"full", regra_nota:"media-deterministica-v1", notas, placar, integ_hist:{...copie do retrato anterior se existir, senão {vereditos_acumulados: ${placarJS.diferencial_sistema + placarJS.refutado_tb}, refutado_tb_acumulado: ${placarJS.refutado_tb}}}, links:[]}; NUNCA edite retrato antigo (append-only). (2) fraquezas.json — upsert por id (nota/veredito/evidencia/degrau/data hoje; existia_invisivel+onde_indexar quando a verificação indicou). (3) claims.json — upsert por id (data_veredito hoje; ttl 30 se ACIMA_CONFIRMADO senão 90; preserve correcao_obrigatoria existente). (4) valide os 3 com JSON.parse. Retorne resumo + rode node ${BASE}/scripts/governance/reguas-indexar.mjs pra listar a fila de indexação.`,
-  { label: 'persistir-full', phase: 'Persistir', effort: 'low' },
+  { label: 'persistir-full', phase: 'Persistir', effort: 'low', model: MODELO_MECANICO, agentType: 'general-purpose' },
 )
 
 return {
