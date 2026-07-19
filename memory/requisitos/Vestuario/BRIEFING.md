@@ -1,15 +1,17 @@
 ---
 module: Vestuario
-status: piloto (live em produção via ROTA LIVRE biz=4 desde 2024-Q1)
+status: piloto
+status_nota: "live em produção via ROTA LIVRE biz=4 desde 2024-Q1"
 piloto: ROTA LIVRE — LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME
 piloto_inicio: 2024-Q1
 cnae_principal: "4781-4/00"
 last_review: 2026-05-16
-owner: wagner
+updated_at: "2026-07-18"
+owner: W
 parent_adr: 0121
-related_adrs: [0011, 0066, 0093, 0094, 0101, 0105, 0121]
-nota_atual: 90/100 (W25 — D7 forense fix + saturação bucket vertical_client_facing)
-gaps_top: [G1(US-VEST-020 etiqueta 12h), G2(US-VEST-021 devolução 16h), G3(US-VEST-022 comissão 16h), G4(US-VEST-023 liquidação 10h), G5(US-VEST-029 estação 6h)]
+related_adrs: [0011-alinhamento-padrao-jana, 0066-format-date-shift-3h-preservado-legacy-clientes, 0093-multi-tenant-isolation-tier-0, 0094-constituicao-v2-7-camadas-8-principios, 0101-tests-business-id-1-nunca-cliente, 0105-cliente-como-sinal-guiar-sem-mandar, 0121-oimpresso-modular-especializado-por-vertical]
+nota_atual: 90/100 (W25 scoped vertical_client_facing — stale, não re-medido 2026-07-18)
+gaps_top: [G3(US-VEST-022 comissão 16h), G4(US-VEST-023 liquidação 10h), G5(US-VEST-029 estação 6h)]
 ---
 
 # BRIEFING — Modules/Vestuario
@@ -19,7 +21,7 @@ gaps_top: [G1(US-VEST-020 etiqueta 12h), G2(US-VEST-021 devolução 16h), G3(US-
 
 ## TL;DR
 
-Vertical **em produção há 2+ anos** via cliente piloto ROTA LIVRE (biz=4, Larissa, Termas do Gravatal/SC) que concentra **~99% do volume de vendas** do oimpresso novo (Laravel). Customizações ROTA LIVRE preservadas como first-class (ADR 0066 `format_date` shift +3h). Sprint 1 entregou scaffold formal (módulo + settings JSON per-business + Resolver + Pest). Sprint 2+ migra capacidades vestuário-específicas progressivamente conforme sinal qualificado (ADR 0105).
+Vertical **em produção há 2+ anos** via cliente piloto ROTA LIVRE (biz=4, Larissa, Termas do Gravatal/SC) que concentra **~99% do volume de vendas** do oimpresso novo (Laravel). Customizações ROTA LIVRE preservadas como first-class (ADR 0066 `format_date` shift +3h). Sprint 1 entregou scaffold formal (módulo + settings JSON per-business + Resolver + Pest). **Q2/Q3-2026** os 2 gaps P0 ganharam código: **US-VEST-020** (etiqueta térmica ZPL/PDF + EAN-13/QR) e **US-VEST-021** (devolução CDC + crédito-ficha que reintegra estoque, #3691) — implementados com Pest, cutover/validação em ROTA LIVRE pendente. Sprint 2+ migra o resto conforme sinal qualificado (ADR 0105).
 
 ## Cliente piloto — ROTA LIVRE biz=4 (PRODUÇÃO)
 
@@ -52,19 +54,18 @@ Vertical **em produção há 2+ anos** via cliente piloto ROTA LIVRE (biz=4, Lar
 | US-VEST-006 | Compra fornecedor + recebimento | núcleo `PurchaseController` |
 | US-VEST-007 | AR/AP + boleto Asaas | `Modules/Financeiro` + `Modules/RecurringBilling` |
 | US-VEST-008 | Múltiplos invoice_schemes em paralelo (`2026/NNNN` + `17NNN`) | núcleo `InvoiceLayoutController` |
-| US-VEST-009 | Locale pt-BR DataTables + monitor 1280px responsivo | DataController (a criar — hoje genérico) |
+| US-VEST-009 | Locale pt-BR DataTables + monitor 1280px responsivo | `DataController` (existe — sidebar etiquetas #2673) |
+
+## Capacidades implementadas (código landed — cutover/validação pendente)
+
+Os 2 gaps P0 saíram do backlog (código + Pest; ROTA LIVRE ainda não cortou):
+- **US-VEST-020** Etiqueta térmica TAM-COR-COLEÇÃO — `EtiquetaTagController` (ZPL Argox/Zebra + PDF A4 grid 4×8, EAN-13 + QR) + `EtiquetaTagService` + Page `Vestuario/Etiquetas/Index.tsx` (DS/AppShellV2) + `DataController` sidebar (#2673) + `RUNBOOK-etiqueta-tag.md`. Charter **draft** — Wagner aprova Non-Goals/Anti-hooks antes de `live` (#4125).
+- **US-VEST-021** Devolução/troca CDC + crédito-ficha — `DevolucaoService` append-only + tabelas `vestuario_devolucoes`/`vestuario_creditos_cliente`; reintegra estoque via `ProductUtil` auditável, guard cross-tenant fail-secure (UC-EST-04, Tier 0 valor/estoque, #3691). Sem UI dedicada ainda.
 
 ## Capacidades faltantes (backlog priorizado)
 
-P0 (paridade Linx Microvix imediata):
-- **US-VEST-020** Etiqueta térmica TAM-COR-COLEÇÃO (12h)
-- **US-VEST-021** Devolução/troca CDC + crédito em conta-cliente (16h)
-
 P1 (Q3/Q4 2026):
-- **US-VEST-022** Comissão vendedor escalonada (16h)
-- **US-VEST-023** Liquidação categoria/marca/estação em massa (10h)
-- **US-VEST-024** Fidelidade R$ [redacted Tier 0] = 1 ponto com resgate (18h)
-- **US-VEST-029** Atributo "estação" first-class (6h — pré-req de 022/023)
+- **US-VEST-022** Comissão escalonada (16h) · **US-VEST-023** Liquidação massa (10h) · **US-VEST-024** Fidelidade pontos+resgate (18h) · **US-VEST-029** Atributo "estação" (6h — pré-req 022/023)
 
 P2/P3 (2027+ ou sob sinal qualificado):
 - US-VEST-025 Gift card · US-VEST-026 Crediário · US-VEST-027 Provador · US-VEST-028 Sacoleira · US-VEST-030 Ecommerce (ADR feature-wish)
@@ -99,18 +100,9 @@ P2/P3 (2027+ ou sob sinal qualificado):
 - ⛔ Subir feature de fidelidade sem opt-in LGPD (Art. 7º)
 - ⛔ Implementar US-VEST-030 (ecommerce) sem 3+ sinais qualificados
 
-## Nota atual e gaps (rubrica module-grade-v1 — ADR 0153)
+## Nota atual (rubrica scoped vertical_client_facing — ADR 0160)
 
-**71/100** (Bom) — piloto live em prod mas sem governança completa.
-
-| Dimensão | Nota | Top gap |
-|----------|------|---------|
-| D1 Capacidades em prod | 16/20 | NFC-e regular pendente discovery regime tributário ROTA LIVRE |
-| D2 Capacidades vs mercado | **12/20** | US-VEST-020 (etiqueta) + US-VEST-021 (devolução) P0 abertas |
-| D3 Governança canônica | **5/15** | sem BRIEFING (preenchido neste PR) + Charter de página ainda não escrito |
-| D4 Cobertura testes | **9/20** | sem Pest cross-tenant Grade Avançada (preenchido neste PR) + sem smoke routes |
-| D5 UX/Tier-0 conformity | 12/15 | OK — monitor 1280px + multi-tenant + format_date preservado |
-| D6 Sinal qualificado | 17/10 | bônus — ROTA LIVRE valida há 2+ anos, 99% volume |
+**≥90/100 (Excelente) — Wave 25** (D7 LGPD forense fix + saturação). ⚠️ **Stale — não re-medido em 2026-07-18**: a landing de US-VEST-020/021 (código + Pest) tende a subir V1/V6 mas não houve re-score. Gaps abertos: G3 comissão · G4 liquidação · G5 estação. Detalhe V1-V6 em [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md).
 
 ## Status lifecycle (ADR 0121)
 
@@ -121,8 +113,8 @@ P2/P3 (2027+ ou sob sinal qualificado):
 
 | Quarter | US prioridade | Marco |
 |---------|---------------|-------|
-| 2026-Q2 (atual) | US-VEST-029 estação + US-VEST-020 etiqueta | fundação liquidação/comissão |
-| 2026-Q3 | US-VEST-021 devolução + US-VEST-023 liquidação + US-VEST-022 comissão | paridade Linx Microvix ROTA LIVRE |
+| 2026-Q2 | ✅ US-VEST-020 etiqueta + ✅ US-VEST-021 devolução (código landed) | fundação liquidação/comissão |
+| 2026-Q3 (atual) | US-VEST-029 estação + US-VEST-023 liquidação + US-VEST-022 comissão + cutover 020/021 | paridade Linx Microvix ROTA LIVRE |
 | 2026-Q4 | US-VEST-024 fidelidade + US-VEST-025 gift card | sazonalidade Black Friday + Natal |
 | 2027-Q1 | US-VEST-026 crediário + US-VEST-027 provador | revenda 2º cliente Vestuario |
 | 2027-Q2 | US-VEST-028 sacoleira + revisão US-VEST-030 ecommerce (com sinal) | network effect |
@@ -148,6 +140,6 @@ P2/P3 (2027+ ou sob sinal qualificado):
 
 ---
 
-**Última atualização:** 2026-05-16 — **Wave 25 SATURATION** (77 → ≥90 vertical_client_facing). D7 forense fix: criou `memory/governance/scorecards/vestuario.yaml` que faltava (causa raiz da regressão D7=3 catalogada após W17→W18→W23 — artifacts existiam mas ScopedScorecardEvaluator retornava `[]` por ausência do YAML). Wave 25 declarou D7_lgpd=10/10 + 17 asserts novos em Wave25VestuarioSaturationTest + CAPTERRA-FICHA W25 entry com G1-G5 catalogados.
+**Atualizado:** 2026-07-18 — refresh de frescor briefing↔código [CC]. Reconciliado com o código: **US-VEST-021 devolução reintegra estoque** (`DevolucaoService` via `ProductUtil` auditável, UC-EST-04 Tier 0, #3691) + **US-VEST-020 etiquetas térmicas** (ZPL/PDF + EAN-13/QR, charter draft #4125, `DataController`+sidebar #2673) saíram do backlog P0. Nota W25 mantida (stale — não re-medida hoje). DS/AppShellV2 na Page de etiquetas.
 
-Wave Massive (anterior) criou BRIEFING inicial + 3 Pest tests (Grade Avançada cross-tenant, Smoke routes Install, Scaffold) fechando gaps D3/D4 da nota module-grade-v1.
+**Histórico:** 2026-05-16 Wave 25 SATURATION — D7 LGPD forense fix (criou `vestuario.yaml` scorecard; causa raiz da regressão D7=3 W17→W18→W23, o `ScopedScorecardEvaluator` retornava `[]` sem o YAML). Wave Massive criou BRIEFING inicial + 3 Pest (Grade cross-tenant, Smoke routes, Scaffold).
