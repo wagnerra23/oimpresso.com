@@ -75,7 +75,7 @@ it('judge=local: juiz Ollama pontua, PII redigida ANTES do juiz (zero PII crua n
         'copiloto.online_eval.local.model' => 'qwen2.5:3b',
     ]);
 
-    $cpfCru = '123.456.789-09'; // CPF fake da whitelist do pii-redactor (prova de redação, não é PII real)
+    $cpfCru = '123.456.789-09'; // pii-allowlist (CPF fake sintético — prova de redação, não é PII real)
     $emailCru = 'larissa@rotalivre.com.br';
 
     // Ollama local (self-host) devolve o score. Http::fake = zero egress real.
@@ -153,7 +153,7 @@ it('judge desconhecido: SKIP total (nada roda, nada sai)', function () {
 it('judge=openai: PiiRedactor roda ANTES do juiz — texto pro juiz externo NÃO tem PII crua', function () {
     config(['copiloto.online_eval.judge' => 'openai']);
 
-    $cpfCru = '123.456.789-09'; // CPF fake da whitelist do pii-redactor (prova de redação, não é PII real)
+    $cpfCru = '123.456.789-09'; // pii-allowlist (CPF fake sintético — prova de redação, não é PII real)
     $emailCru = 'larissa@rotalivre.com.br';
 
     // Fake judge: NÃO é mock-mode (pra passar do guard de mock), captura o que recebe.
