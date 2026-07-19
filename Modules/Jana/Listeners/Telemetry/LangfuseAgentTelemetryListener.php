@@ -133,9 +133,11 @@ class LangfuseAgentTelemetryListener
             // tráfego do cliente). Gate 1 (enabled) OFF por default; a redação PII e o
             // gate 2 (judge) vivem no Job (async — não atrasa a resposta ao cliente).
             // shouldSample é determinístico por traceId. Fail-open no catch abaixo.
+            // NAMESPACE (fix 2026-07-18): o bloco online_eval mora em config.php →
+            // merged como `copiloto.*` (não `jana.*`, que só tem retention/memoria).
             if ($traceId !== ''
-                && (bool) config('jana.online_eval.enabled', false)
-                && JudgeTraceOnlineJob::shouldSample($traceId, (float) config('jana.online_eval.sample_rate', 0.05))
+                && (bool) config('copiloto.online_eval.enabled', false)
+                && JudgeTraceOnlineJob::shouldSample($traceId, (float) config('copiloto.online_eval.sample_rate', 0.05))
             ) {
                 JudgeTraceOnlineJob::dispatch(
                     $traceId,

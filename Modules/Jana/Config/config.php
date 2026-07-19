@@ -736,11 +736,23 @@ return [
     |
     | ⛔ DOIS gates OFF por LGPD (trace de cliente é biz≠1 — ADR 0093 + LGPD):
     |   - enabled: liga a amostragem. Default false.
-    |   - judge:   'local' (default — zero egress; hoje NÃO-implementado, então o job
-    |              SKIPa sem mandar nada) vs 'openai' (manda a amostra PII-REDACTED pro
-    |              juiz externo — exige aceite LGPD explícito do [W]).
-    | O PiiRedactor roda ANTES do juiz SEMPRE. Rodar de verdade = enabled=true E
-    | judge=openai (ambas decisões [W]). Estado default (OFF + local) = nada sai, nada roda.
+    |   - judge:   'local' (default — juiz Ollama self-host CT 100, ZERO egress:
+    |              o dado do cliente NÃO sai da infra) | 'openai' (manda a amostra
+    |              PII-REDACTED pro juiz externo — exige aceite LGPD explícito do [W]).
+    | O PiiRedactor roda ANTES do juiz SEMPRE (mesmo local — defesa em profundidade).
+    | Rodar de verdade = enabled=true (gate 1). Estado default (OFF) = nada roda.
+    |
+    | ⚠️ judge=local (US-COPI-137, implementado 2026-07-18): usa OllamaRagasJudge →
+    | `local.url`/`local.model` abaixo. PRÉ-REQ de infra: o Ollama do CT 100
+    | (`ollama-embedder`) precisa de um modelo de CHAT puxado (`ollama pull <model>`) —
+    | hoje só tem embedders. Sem o modelo, o juiz lança JudgeUnavailableException
+    | (honesto) e o Job PULA sem gravar score fabricado.
+    |
+    | ⚠️ NAMESPACE (fix 2026-07-18): este bloco vive em config.php → merged como
+    | `copiloto.*` (JanaServiceProvider::registerConfig). O Job/Listener leem
+    | `config('copiloto.online_eval.*')` — ANTES liam `jana.online_eval.*` (namespace
+    | que só tem retention/memoria), então enabled=true AQUI não ligava NADA. Agora
+    | editar AQUI é a fonte real.
     |
     | Hardcoded (NÃO env): a regra larastan noEnvCallsOutsideOfConfig conta env() deste
     | arquivo num baseline fixo (mesmo motivo do ui_judge acima) — flag nova não fura o
@@ -748,12 +760,19 @@ return [
     | isso é bom: o enable vira commit auditável no git, não um toggle silencioso de .env.
     |
     | @see Modules/Jana/Jobs/Telemetry/JudgeTraceOnlineJob.php
+    | @see Modules/Jana/Services/Ragas/OllamaRagasJudge.php
     | @see memory/requisitos/Jana/SPEC.md#US-COPI-137
     */
     'online_eval' => [
         'enabled'     => false,   // [W] liga aqui (gate 1)
         'sample_rate' => 0.05,    // ~5% dos traces
-        'judge'       => 'local', // 'local' (zero egress, a implementar) | 'openai' (aceite LGPD [W]) — gate 2
+        'judge'       => 'local', // 'local' (Ollama CT 100, zero egress) | 'openai' (aceite LGPD [W])
+        // Juiz local (OllamaRagasJudge) — config-as-code, SEM env() (baseline Larastan).
+        'local' => [
+            'url'     => 'http://ollama-embedder:11434', // Ollama self-host CT 100 (rede docker interna)
+            'model'   => 'qwen2.5:3b',                   // modelo de chat p/ o juiz (pull no CT 100); leve + JSON confiável em CPU
+            'timeout' => 120,                            // s — CPU-only é lento; Job é async, ok
+        ],
     ],
 
     /*
