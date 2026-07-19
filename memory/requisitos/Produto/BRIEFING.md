@@ -19,6 +19,12 @@ Produto é o domínio **core** de cadastro de produto/variações do ERP (Ultima
 - **Trio da tabela de preço FECHADO** (#4300): `SellingPrices.casos.md` com 4 UCs (UC-PTAB-01..04) **rodando e passando** na lane `Estoque · MySQL` (biz=1+biz=2 semeados) + `tests/Feature/Produto/TabelaPrecoContratoTest.php`. Dois nasceram **vermelhos** e viraram correção Tier 0 no mesmo PR: `saveSellingPrices` agora valida `price_group_id` contra o business (o "reusa guard" do CU-PROD-10 era **falso** — `VariationGroupPrice` não tem global scope; `price_group` alheio gravava linha cross-tenant).
 - Multi-tenant Tier 0 (`business_id` explícito; `firstOrFail` cross-tenant → 404 no GET). ⚠️ No POST `saveSellingPrices` o cross-tenant volta **302** (exceção engolida por `catch` genérico) — não vaza, mas o proxy 404 do charter é falso; decisão [W] pendente.
 
+**Capacidades PLANEJADAS (não construídas):**
+- Charters virarem `status: live` + smoke browser — pendente aprovação Wagner de Non-Goals + Anti-hooks.
+- Decisão de **unificar ou manter** `/products` (grid lite) vs `/products/unificado` (denso) — em aberto.
+- Regra de tabela inteira ("−15% em tudo" como default por grupo) — **proposed** (ADR ARQ-0001 + Errata 2026-07-17). ⚠️ Não confundir com "multiplicador oco": o preço por (variação × tabela) **funciona** (`fixed`/`percentage`); o `mult=1.00` era prop cosmético do protótipo `/unificado`. O gap é granularidade (célula a célula → default de tabela).
+- Middleware `can:product.view` na rota `/products/unificado` — TODO no código.
+
 **Aba "Preço especial" — DESENHADA, ainda NÃO em código (#4403):**
 - É **protótipo F1 navegável** (`prototipo-ui/cowork/produto-preco-especial/`, `status: F1-commit-only`) + `SellingPrices.charter.md` promovido a **v3** (draft), após **8 cortes de [F]** (2026-07-16). Modelo novo: **a lista de preço é REGRA (%), a grade é CALCULADA, a célula é EXCEÇÃO** — 60 células (20 variações × 3 listas) viram 1 regra + poucas exceções conscientes. Cobre 2 modos (regra % vs preço manual), preço **base por variação**, faixa de quantidade (linha esparsa dentro da tabela) e 0/1/2/3+ eixos de grade. Âncora empírica: pesquisa de mercado 2026-07-16 (13 sistemas — Shopify B2B/Tiny/Bling/Odoo convergentes).
 - ⚠️ **Ainda NÃO implementado:** `SellingPrices.tsx` hoje é o modelo **v2 célula-a-célula** (pré-preenche `price: 0` no 0-row, `price_type` por célula — sem regra/faixa/base/modos). O v3 vive em charter + pino, **não** em `.tsx`.

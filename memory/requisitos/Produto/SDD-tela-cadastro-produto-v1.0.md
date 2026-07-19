@@ -5,8 +5,8 @@ type: sdd
 module: Produto
 status: ativo
 owner: wagner
-version: 1.0.1
-last_updated: 2026-07-15
+version: 1.0.2
+last_updated: 2026-07-17
 related_docs:
   - SPEC.md
   - BRIEFING.md
@@ -39,6 +39,9 @@ related_adrs:
 >
 > **Documento-modelo:** [SDD — Tela de Vendas (família Sells)](../Sells/SDD-tela-vendas-FINAL-v1.2.md) — mesmo formato canônico.
 
+> ### 🔖 Changelog v1.0.2 (2026-07-17) — corrige a premissa falsa do multiplicador
+> A v1.0.0/v1.0.1 herdaram da ADR ARQ-0001 a leitura *"multiplicador oco / preço por tabela é 1:1 / não funciona"*. **É falsa** (Errata ARQ-0001, confirmada por 2 adversários + golden DB-backed): o preço por (variação × tabela) **funciona** (`fixed`+`percentage`, chega na venda em `ProductUtil.php:1064`/`SellPosController.php:1790`); o `mult=1.00` é prop cosmético do protótipo `/unificado`. Corrigidos: §0.2 (buraco "multiplicador oco"), §5.2 (modelo de dados), §5.3 F2. O gap G-02 vira **"falta a regra de tabela inteira"** (default por grupo), não "criar multiplicador". Re-enquadrar a nota C02/61 da FICHA e a US-PROD-022 = decisão [W].
+>
 > ### 🔖 Changelog v1.0.1 (2026-07-15) — correção de claim, não de escopo
 > **`CU-PROD-10` deixa de ser `✅ (reusa guard)` e vira 🟡 parcial.** O ✅ da v1.0.0 nunca foi medido —
 > era leitura de código. Quando o `UC-PTAB-04` rodou pela 1ª vez em CI ([#4300](https://github.com/wagnerra23/oimpresso.com/pull/4300)),
@@ -78,7 +81,7 @@ A `module-grade 71` (UX/DS das 8 telas) **esconde** três buracos de valor/estoq
 | Buraco | Sintoma | CU/Gap |
 |---|---|---|
 | **Kardex é fachada** | `StockHistory.tsx` não recebe `movements` no render Inertia (prop `undefined`); timeline real só no Blade legacy (grade 47) | CU-PROD-11 · G-01 |
-| **Multiplicador de preço oco** | `SellingPriceGroup.mult` hardcoded `1.00` — preço por tabela **aparenta** funcionar mas é 1:1 | CU-PROD-03 · G-02 |
+| **~~Multiplicador de preço oco~~ Regra de tabela inteira ausente** | ⚠️ **corrigido 2026-07-17** (Errata [ADR ARQ-0001](adr/arq/0001-selling-price-multiplier.md)): preço por (variação × tabela) **funciona** (`fixed` + `percentage`, chega na venda em `ProductUtil.php:1064`/`SellPosController.php:1790`). O `mult=1.00` é prop **cosmético** do protótipo `/unificado`, não multiplicador neutralizado — a coluna `mult` nem existe. Gap real: falta a **regra de tabela inteira** ("Atacado −15% em tudo") como default; hoje é célula a célula | CU-PROD-03 · G-02 |
 | **Valor-em-estoque ausente** | KPIs `margem_media`/`sem_giro`/`stockQty` zerados no `/unificado`; sem custo médio nem valor de inventário | CU-PROD-12 · G-03 |
 
 > ⚠️ A rede de segurança de valor **termina onde o Produto começa**: Produto **define** preço/custo/margem que Sells **consome** — o mesmo parser `num_uf` que inflou 16 vendas ×100k em Sells (incidente 2026-06-05) roda em `alert_quantity`/preços do produto, **sem teste E2E de que a conta fecha** (§3.1).
@@ -297,7 +300,7 @@ Em 17/07, **nenhum produto** preenchia a decomposição de custo nessas bases. *
 
 - **`products`** (UltimatePOS legacy) — `type ENUM('single','variable','combo')`, `unit_id`, `category_id`/`sub_category_id`, `brand_id`, `tax`, `barcode_type`, `alert_quantity`, `enable_stock`, `expiry_period`/`enable_sr_no`, `weight`, `product_custom_field1..20`, `woocommerce_disable_sync`.
 - **`variations`** — 1 produto variável → N variações (grade tam×cor), cada uma com `sub_sku` (SKU auto + validação de duplicado batch), `default_purchase_price`/`dpp_inc_tax` (**custo**), `default_sell_price`.
-- **`selling_price_groups`** + **`variation_group_prices`** — matriz tabela × variação. **⚠️ `SellingPriceGroup.mult` hardcoded `1.00`** — multiplicador/markup por tabela **não funciona** ([ADR ARQ-0001 produto](adr/arq/0001-selling-price-multiplier.md) proposed — CU-PROD-03).
+- **`selling_price_groups`** + **`variation_group_prices`** — matriz tabela × variação. Preço por (variação × tabela) **funciona** — `price_type ∈ {fixed, percentage}`, lido em `ProductUtil::getVariationGroupPrice` e aplicado na venda. **O que falta** é a **regra de tabela inteira** (default por `selling_price_group`, ex. "−15% em tudo") — hoje o percentual é declarado célula a célula ([ADR ARQ-0001 produto](adr/arq/0001-selling-price-multiplier.md) proposed + Errata 2026-07-17 — CU-PROD-03). ⚠️ A v1 dizia *"`mult` hardcoded 1.00 — não funciona"*; era leitura falsa de um prop cosmético do protótipo.
 - **`variation_location_details`** — estoque `qty_available` por variação × localização (base de qualquer valor-em-estoque).
 - **`product_bom`** (`App\Domain\Inventory\Models\ProductBom`) — estrutura de componentes; CRUD API multi-tenant pronto, **UI drag-drop pendente** (CU-PROD-05).
 - **Fronteira comvis:** **`comvis_materiais`** — `preco_custo_m2`, `preco_venda_m2`, `gramatura_g_m2`, `estoque_minimo_m2` (catálogo de material **separado**, não é `App\Product` — CV-01).
@@ -307,7 +310,7 @@ Em 17/07, **nenhum produto** preenchia a decomposição de custo nessas bases. *
 
 **F1 · Cadastrar produto (`store`):** Create.tsx → `useForm` (defaults conservadores) → `POST /products` (`ProductController@store`, DB transaction) → grava `products` + gera **SKU server-side** + cria `variations` (se `variable`) ou `combo_variations` (se `combo`) + `variation_location_details` (opening stock) + `Media`. **SKU nunca é gerado client-side** (charter Non-Goal). Duplicate via `?d=N` pré-preenche com `(copy)`.
 
-**F2 · Preço por tabela (`saveSellingPrices`):** SellingPrices.tsx → matriz grupo × variação → `POST save-selling-prices`. **Hoje 1:1** — o multiplicador de tabela é oco (G-02); resolver exige coluna `multiplier` OU cálculo via `VariationGroupPrice`, sob a REGRA MESTRE (dupla-confirmação).
+**F2 · Preço por tabela (`saveSellingPrices`):** SellingPrices.tsx → matriz grupo × variação → `POST save-selling-prices`. Grava `variation_group_prices` (`fixed`/`percentage`) e o preço **chega na venda** (`SellPosController.php:1790`). O gap G-02 **não** é "1:1 / oco" (leitura corrigida 2026-07-17) — é a ausência da **regra de tabela inteira** (default por grupo). Implementá-la toca cálculo de preço → **REGRA MESTRE** (dupla-confirmação).
 
 **F3 · Kardex (`productStockHistory`):** StockHistory.tsx → **hoje a prop `movements` fica `undefined`**; a timeline real só existe no path `request()->ajax()` (Blade `product.stock_history_details`). A tela React **linka o legacy** em vez de renderizar (grade 47). Fix = passar `movements` via `Inertia::defer` (CU-PROD-11 / G-01).
 

@@ -174,4 +174,42 @@ Mas é **decisão de produto**, não técnica. Wagner decide considerando:
 
 ---
 
+## Errata (2026-07-17) — a premissa "modelos conceituais diferentes" está FALSA
+
+> Append-only: não reescrevo o §Contexto acima (é o registro do que foi proposto em maio). Esta
+> errata corrige a **premissa**, achada por [F] (sessão 2026-07-16) e confirmada por dois
+> adversários independentes (2026-07-17). Fonte: **código executável em `origin/main`**, não leitura.
+
+O §Contexto conclui *"UPOS é explícito … enquanto Cowork sugere multiplicador … modelos conceituais
+diferentes"*. **Não são diferentes — o "multiplicador" já existe no UPOS desde 2023, um ano antes
+desta ADR, e o §Contexto não o cita:** a coluna `variation_group_prices.price_type` aceita
+`'percentage'`, e um preço percentual **É** um multiplicador sobre o preço base da variação.
+
+**Evidência (medida em 2026-07-17, contra `origin/main`, medindo o código):**
+- `app/Utils/ProductUtil.php:1064-1069` — `if ($price_group->price_type == 'percentage') { … calc_percentage(variation->sell_price_inc_tax, price_inc_tax) }` — o ramo percentual, aplicado na venda.
+- `app/VariationGroupPrice.php` — accessor `getCalculatedPriceAttribute()`, mesma lógica.
+- `app/Utils/ProductUtil.php:1729` — `IF(VGP.price_type="fixed", …, VGP.price_inc_tax * variations.sell_price_inc_tax / 100)` em SQL.
+- `tests/Feature/Calculo/CalculoValorProdutoTest.php:232` — golden DB-backed do caso percentual.
+
+**Consequência pras 3 alternativas:** a decisão que o Wagner precisa tomar **muda de forma**. Não é
+mais *"criar um conceito de multiplicador que não existe"* (Alternativa a/b) vs *"dropar"* (c). O
+multiplicador **por célula** já existe e funciona. O gap real é **granularidade**: hoje o percentual
+é declarado célula a célula (produto × tabela), e o que falta é a **regra de tabela inteira**
+("Atacado = −15% em tudo") — um DEFAULT no nível `selling_price_groups` que a célula sobrescreve.
+Isso é uma **generalização** do que já existe, não um conceito novo.
+
+**O `mult => 1.00` nunca foi um multiplicador neutralizado.** É prop **cosmético** fabricado só pro
+protótipo `/unificado` (`ProdutoUnificadoController::tabelas()`), como o próprio autor comentou no
+código (*"Multiplicador NÃO existe nativamente — o protótipo Cowork usa como simplificação visual"*).
+A coluna `mult`/`multiplier` **não existe** em `selling_price_groups` (schema: `name`, `description`,
+`business_id`, `is_active`, timestamps). Logo **"preço por tabela é 1:1 / aparenta funcionar mas não
+funciona"** — a leitura que se propagou pra SDD/FICHA/INVENTARIO/BRIEFING — é **falsa**: o preço por
+(variação × tabela) funciona, `fixed` e `percentage`, e chega na venda (`SellPosController.php:1790`).
+
+**Status:** segue `proposed`. Esta errata **não decide** — só corrige a premissa pra que a decisão do
+Wagner (a/b/c, e a nova granularidade) parta do estado real. Re-enquadrar a US-PROD-022 / o gap G-02 /
+a nota C02 da FICHA é **decisão [W]** (a nota foi calculada sobre a premissa falsa).
+
+---
+
 **Decisão pendente desde:** 2026-05-09. Bloqueador de F3 `/produto/unificado` até resolução.
