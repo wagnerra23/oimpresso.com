@@ -1,0 +1,34 @@
+{
+  "schema": "ragas-real-trend/v1 (ADR 0318 · transporte pattern nightly-floor ADR 0279)",
+  "first_scheduled": "2026-07-05",
+  "cadence": "weekly-sunday 07:00 BRT (app/Console/Kernel.php · jana:ragas-real-eval)",
+  "weeks": [
+    {
+      "week": "2026-06-28",
+      "ran_at": "2026-07-04T16:45:51-03:00",
+      "gate_status": "pass",
+      "n_evaluated": 51,
+      "n_no_context": 0,
+      "n_synth_failed": 0,
+      "faithfulness_avg": 0.7145,
+      "relevancy_avg": 0.8745,
+      "context_recall_avg": 0.3951,
+      "reason": null,
+      "valid": true
+    },
+    {
+      "week": "2026-07-19",
+      "ran_at": "2026-07-19T06:07:54-03:00",
+      "gate_status": "pass",
+      "n_evaluated": 51,
+      "n_no_context": 0,
+      "n_synth_failed": 0,
+      "faithfulness_avg": 0.7127,
+      "relevancy_avg": 0.8255,
+      "context_recall_avg": 0.4016,
+      "reason": null,
+      "valid": true
+    }
+  ],
+  "note": "run válido = gate pass/fail com n_evaluated>0; skipped (sem OPENAI/contexto) = inválido — conta contra o uptime. Semana ausente = transporte/cron down = inválida (read-side conta pelo gap)."
+}
