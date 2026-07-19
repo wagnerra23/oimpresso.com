@@ -261,7 +261,7 @@ const claims = pesquisas.flatMap((p) => p.oimpresso_acima.map((c) => ({ ...c, di
 const refutados = (await parallel(capEstratificado('Refutar', claims, CAP_AGENTES_POR_FASE, log).map((c) => () => agent(
   `REFUTADOR (contexto zero — você não herda a pesquisa). Claim: oimpresso está ACIMA do mercado em "${c.ideia}" (${c.porque_acima}; dimensão ${c.dimensao}). Busque na web (2-4 buscas) quem JÁ faz igual/melhor em produção. Achou → REFUTADO (diga quem). Parecido → EMPATADO. Só ACIMA_CONFIRMADO sem par publicado. Default cético.`,
   { label: `r:${c.ideia}`.slice(0, 48), phase: 'Refutar', schema: VERDICT, agentType: 'general-purpose', effort: 'medium' },
-).then((v) => ({ ...c, verdict: v }))))).filter(Boolean)
+).then((v) => (v ? { ...c, verdict: v } : null))))).filter(Boolean)
 log(`refutação: ${refutados.filter((r) => r.verdict.veredito === 'ACIMA_CONFIRMADO').length} acima · ${refutados.filter((r) => r.verdict.veredito === 'REFUTADO').length} derrubadas`)
 
 // ── Fase 2.5 — Teste de INTEGRAÇÃO (o TODO tem peer, ou só as partes?) ────────
@@ -272,7 +272,7 @@ const derrubadas = refutados.filter((r) => r.verdict.veredito !== 'ACIMA_CONFIRM
 const integrados = (await parallel(capEstratificado('Integração', derrubadas, CAP_AGENTES_POR_FASE, log).map((r) => () => agent(
   `TESTE DE INTEGRAÇÃO (o refutador já achou peer pra ESTA peça isolada — não repita a busca da peça). Claim: "${r.ideia}" (dimensão ${r.dimensao}); refutador deu ${r.verdict.veredito} citando "${(r.verdict.quem_ja_faz || r.verdict.razao || '').slice(0, 300)}". PERGUNTA ÚNICA: algum produto/prática publicado monta o TODO INTEGRADO no MESMO contexto do oimpresso — a pilha inteira DENTRO de um ERP vertical multi-tenant BR em produção, aplicada A SI MESMA (governança recursiva: o agente-codador cita o próprio §5 pra se auto-barrar) + o loop medir→corrigir→travar que de fato fecha? Busque 2-3× o CONJUNTO, não a peça. Se um peer monta o todo no mesmo contexto → REFUTADO_TB (a integração também tem par; diga quem). Se os peers só cobrem PEÇAS e ninguém monta o conjunto → DIFERENCIAL_SISTEMA (o diferencial é de instanciação/integração/recursão, NÃO da categoria — proibido re-inflar a peça isolada como "acima"). Default: exija o peer do TODO.`,
   { label: `i:${r.ideia}`.slice(0, 48), phase: 'Integração', schema: INTEG, agentType: 'general-purpose', effort: 'medium' },
-).then((v) => ({ ...r, integ: v }))))).filter(Boolean)
+).then((v) => (v ? { ...r, integ: v } : null))))).filter(Boolean)
 log(`integração: ${integrados.filter((i) => i.integ.veredito === 'DIFERENCIAL_SISTEMA').length} diferenciais de sistema · ${integrados.filter((i) => i.integ.veredito === 'REFUTADO_TB').length} o todo também tem par`)
 
 // ── Fase 3 — Verificar FRAQUEZAS no repo vivo (a lição 7/9) ──────────────────
@@ -281,7 +281,7 @@ const fraquezas = pesquisas.flatMap((p) => p.oimpresso_atras.map((f) => ({ fraqu
 const verificadas = (await parallel(capEstratificado('Verificar', fraquezas, CAP_AGENTES_POR_FASE, log).map((f) => () => agent(
   `A pesquisa marcou o oimpresso como FRACO em: "${f.fraqueza}" (dimensão ${f.dimensao}). ANTES de aceitar: cace no repo VIVO (paths ABSOLUTOS a partir de ${BASE}) mecanismos que JÁ cobrem isso total/parcialmente — .github/workflows (nomes dos checks!), scripts/governance, .claude/{skills,hooks}, prototipo-ui/*.mjs, gates-registry/required-checks-baseline. Precedente: numa rodada anterior 7 de 9 "fraquezas" JÁ existiam, invisíveis por desorganização. Dê a nota 0-10 SÓ com evidência (file:line ou prova de ausência) e diga onde indexar o achado (mapa 0330-corrente) se existia-mas-invisível.`,
   { label: `v:${f.fraqueza}`.slice(0, 48), phase: 'Verificar', schema: EXISTE, effort: 'high' },
-).then((v) => ({ ...f, check: v }))))).filter(Boolean)
+).then((v) => (v ? { ...f, check: v } : null))))).filter(Boolean)
 // Counter por veredito (achado #24) — denominador honesto pra grade: distingue
 // "já existe inteiro" de "parcial" de "buraco real". `total` = fraquezas VERIFICADAS
 // (pós-cap), não as ${fraquezas.length} levantadas; o corte já foi logado por capEstratificado.
