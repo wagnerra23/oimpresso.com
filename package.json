@@ -71,6 +71,7 @@
     "screen-grade:report": "node scripts/qa/screen-grade-report.mjs",
     "screen-grade:report:selftest": "node scripts/qa/screen-grade-report.test.mjs",
     "screen-coverage:report": "node scripts/qa/screen-coverage-map.mjs",
+    "screen:files": "node scripts/qa/screen-coverage-map.mjs --screen",
     "exposicao:report": "node scripts/qa/exposicao-tier0.mjs",
     "exposicao:trend": "node scripts/qa/exposicao-tier0.mjs --trend",
     "exposicao:check": "node scripts/qa/exposicao-tier0.mjs --check",
