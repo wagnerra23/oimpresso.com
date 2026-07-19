@@ -36,6 +36,17 @@
  *   Histórico honesto: 3,2% (snapshot 07-13) → 81% (07-17), pela soma de janela
  *   coerente (G7) + sessão-como-unidade (G2) + cap do fetch declarado.
  *
+ * ── CUSTO-POR-PR-SOBREVIVENTE (join com agent-pr-outcomes · grade 2026-07-18) ─────
+ *   A régua dizia "denominador é ATIVIDADE, não OUTCOME": custo ÷ PR MERGEADO conta
+ *   qualquer PR que entrou, mesmo o que voltou atrás. Cruzamos o custo por PR com o
+ *   change-failure de agent-pr-outcomes (PR mergeado seguido de hotfix/revert ≤48h
+ *   citando #N) e trocamos o denominador por OUTCOME: custo ÷ PR que FICOU DE PÉ. O
+ *   gasto dos que reverteram NÃO some — fica diluído nos sobreviventes, e o delta
+ *   entre os dois números É a sobretaxa de falha. O algoritmo de "falhou" mora no
+ *   oráculo de outcome (changeFailure/failedPRNumbers), alimentado com a MESMA fetch
+ *   de PRs mergeados daqui (agente + humano = candidatos a hotfix). Comensurável e
+ *   objetivo (USD × revert por #N); ADVISORY / RELATO — nunca gate. Ver G10.
+ *
  * ── GAPS (impressos + em --json.gaps) ────────────────────────────────────────────
  *   G1 branch marca só a cauda da sessão → unidade é a sessão (G2).
  *   G2 custo da SESSÃO inteira: superconta exploração descartada dentro de sessão
@@ -81,7 +92,7 @@ import { readFileSync, readdirSync, statSync, existsSync, mkdirSync, writeFileSy
 import { join, dirname } from 'node:path';
 import { homedir } from 'node:os';
 import { pathToFileURL, fileURLToPath } from 'node:url';
-import { isAgentPR, DEFAULT_MARKER, median } from './agent-pr-outcomes.mjs';
+import { isAgentPR, DEFAULT_MARKER, median, changeFailure, failedPRNumbers, CFR_WINDOW_HOURS } from './agent-pr-outcomes.mjs';
 
 // ── preços (USD por MTok · da tabela oficial Anthropic — G4) ────────────────────
 // Preços são FATO EXTERNO (não dá pra derivar do dado em mãos). O honesto não é
@@ -208,6 +219,7 @@ const GAPS = [
   'G7 janela COERENTE: sessões e PRs usam a MESMA janela de tempo. Sessão iniciada antes da janela entra pelo mtime e pode ter produzido PR fora dela → cai no resíduo, não no numerador. (Antes de 2026-07-17 o scan cobria ~8.8d contra ~1.8d de PRs — ~28 pontos do "órfão" eram esse artefato de bookkeeping.)',
   'G8 o RESÍDUO não é buraco de join: a maior parte é sessão que não produziu PR nenhum (exploração, análise, sub-agente cujo pai commita, PR ainda aberto). Medido 2026-07-17: 5 das 6 branches de maior resíduo não têm PR algum no GitHub — não há aresta pra achar, nem por SHA nem por API.',
   'G9 detector de truncagem tem ponto cego de EIXO: `gh pr list --limit` corta/ordena por createdAt, mas a janela filtra por mergedAt. Um PR de vida longa (criado antes do corte do cap, mergeado dentro da janela) some do fetch e é INDETECTÁVEL — o detector só vê o conjunto já truncado. Com PR_FETCH_LIMIT=1000 (~10-30d) vs janela 14d o risco é baixo, mas real; fechar de vez exige paginar por mergedAt (fora do escopo advisory).',
+  'G10 custo-por-PR-sobrevivente herda o PISO do CFR (agent-pr-outcomes G1): "sobreviveu" = SEM revert explícito ≤48h citando #N — hotfix que não cita #N, ou tipado fora de fix/hotfix/revert, ou que chega >48h escapa → SUBconta falha (superconta sobreviventes). PR mergeado há <48h ainda está na janela de risco: marcado `em_risco`, não creditado como sobrevivente de vez. E só entra PR com custo casado (matched): PR sem sessão local (G3) não pesa em nenhum dos lados.',
 ];
 
 /** categoria do resíduo de uma sessão sem PR na janela (honestidade do denominador). */
@@ -217,6 +229,43 @@ export function categoriaResiduo(porBranch) {
     return 'main/HEAD (trabalho fora de branch de PR)';
   }
   return 'sessão sem PR na janela (exploração/análise/sub-agente/PR aberto)';
+}
+
+/**
+ * CUSTO-POR-PR-SOBREVIVENTE (pura) — cruza o custo por PR com quem NÃO sobreviveu.
+ *
+ * "Sobreviveu" = mergeado E fora de `falhados` (o conjunto de change-failure vindo do
+ * oráculo de outcome, agent-pr-outcomes.failedPRNumbers). O ponto da régua (grade
+ * 2026-07-18, "denominador é ATIVIDADE não OUTCOME"): dividimos o MESMO gasto por dois
+ * denominadores — PR mergeado (atividade) vs PR que ficou de pé (outcome). O custo dos
+ * que reverteram fica no numerador dos dois, diluído nos sobreviventes; a diferença é a
+ * sobretaxa de falha. Só entra PR com custo casado (matched) — PR sem sessão local (G3)
+ * não tem USD e não pesa em lado nenhum. ADVISORY (ADR 0271/0314); sem valores em R$.
+ *
+ * @param {Array<{pr:number, matched:boolean, usd:number|null}>} todosPR linhas por-PR
+ * @param {Set<number>} falhados nºs que não sobreviveram (agent-pr-outcomes.failedPRNumbers)
+ */
+export function costPerSurvivingPR(todosPR, falhados) {
+  const comCusto = todosPR.filter((p) => p.matched && p.usd != null);
+  const sobreviventes = comCusto.filter((p) => !falhados.has(p.pr));
+  const falhos = comCusto.filter((p) => falhados.has(p.pr));
+  const custoTotal = comCusto.reduce((s, p) => s + p.usd, 0);          // sobreviventes + falhos
+  const custoDesperdicado = falhos.reduce((s, p) => s + p.usd, 0);     // gasto que voltou atrás
+  // MÉDIA nos dois (não mediana): o contraste é um swap de DENOMINADOR sobre o MESMO
+  // numerador — mediana não compõe com isso. A mediana robusta segue no custo.mediana_usd.
+  const porMergeado = comCusto.length ? custoTotal / comCusto.length : null;         // ATIVIDADE
+  const porSobrevivente = sobreviventes.length ? custoTotal / sobreviventes.length : null; // OUTCOME
+  return {
+    prs_com_custo: comCusto.length,
+    sobreviventes: sobreviventes.length,
+    falhados: falhos.length,
+    usd_por_pr_mergeado: round2(porMergeado),
+    usd_por_pr_sobrevivente: round2(porSobrevivente),
+    // quanto o outcome encarece cada PR que fica de pé (0/null quando ninguém falhou)
+    sobretaxa_falha_usd: (porMergeado != null && porSobrevivente != null) ? round2(porSobrevivente - porMergeado) : null,
+    usd_desperdicado: round2(custoDesperdicado),
+    falhados_prs: falhos.map((p) => p.pr).sort((a, b) => a - b),
+  };
 }
 
 /**
@@ -254,6 +303,14 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
   const branchesDosPRs = new Map();
   for (const p of universo) if (!branchesDosPRs.has(p.headRefName)) branchesDosPRs.set(p.headRefName, p.number);
   const numerosDosPRs = new Set(universo.map((p) => p.number));
+
+  // SOBREVIVÊNCIA (join com agent-pr-outcomes): quais PRs do universo NÃO sobreviveram —
+  // mergeados E seguidos de hotfix/revert ≤48h citando #N. O algoritmo de "falhou" vem do
+  // oráculo de outcome (changeFailure), alimentado com a MESMA fetch daqui: `universo` = os
+  // [CC] mergeados na janela (originais), `prs` = todos os mergeados (candidatos a hotfix,
+  // agente OU humano — o conserto pode vir de humano).
+  const cfr = changeFailure(universo, prs);
+  const falhados = failedPRNumbers(cfr);
 
   const modelosDesconhecidos = new Set();
   let semBranchMsgs = 0;
@@ -319,16 +376,22 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
   const linhaPR = (pr) => {
     const a = acum.get(pr.number);
     const matched = a.sinais.size > 0;
+    const falhou = falhados.has(pr.number);
+    // <48h desde o merge: ainda não deu tempo do hotfix aparecer → "sobreviveu" é prematuro.
+    const emRisco = !falhou && (now - Date.parse(pr.mergedAt)) < CFR_WINDOW_HOURS * 3600000;
     return {
       pr: pr.number, title: pr.title, branch: pr.headRefName, matched,
       sinais: [...a.sinais],
       tokens: matched ? a.tokens : 0,
       usd: matched ? round2(a.usd) : null,
       usd_incompleto: (matched && a.incompleto) || undefined,
+      falhou: falhou || undefined,
+      em_risco: emRisco || undefined,
     };
   };
   const porPR = exibidos.map(linhaPR);
   const todosPR = universo.map(linhaPR);
+  const sobrevivencia = costPerSurvivingPR(todosPR, falhados);
 
   const matched = todosPR.filter((p) => p.matched);
   const semMatch = todosPR.length - matched.length;
@@ -389,6 +452,15 @@ export function buildReport({ prs, sessions, marker = DEFAULT_MARKER, prWindow =
       msgs_sem_branch: semBranchMsgs,
       modelos_desconhecidos: [...modelosDesconhecidos],
     },
+    // OUTCOME vs ATIVIDADE: custo ÷ PR que ficou de pé, cruzando com o change-failure de
+    // agent-pr-outcomes (G10). RELATO — nunca gate.
+    sobrevivencia: {
+      ...sobrevivencia,
+      cfr_pct: cfr.cfr,
+      janela_cfr_horas: CFR_WINDOW_HOURS,
+      hits: cfr.hits, // {pr, hotfix, horas} — o bloco --pr N usa pra dizer "revertido por #H"
+      fonte_revert: 'agent-pr-outcomes.changeFailure (CFR PISO — só revert explícito ≤48h citando #N)',
+    },
     calibracao: {
       // TUDO derivado/datado, nada de magic number escondido — a próxima coisa a
       // apodrecer é a calibração, então ela fica à vista pra ser questionada.
@@ -415,7 +487,9 @@ export const PR_FETCH_LIMIT = 1000;
 
 export function fetchMergedPRsViaGh({ repo, limit = PR_FETCH_LIMIT } = {}) {
   const args = ['pr', 'list', '--state', 'merged', '--limit', String(limit),
-    '--json', 'number,title,author,headRefName,createdAt,mergedAt'];
+    // `body` alimenta o CFR (o hotfix costuma citar #N no CORPO, não só no título) — sem ele
+    // o "sobreviveu" viraria PISO ainda mais raso. maxBuffer 64MB cobre o corpo × cap.
+    '--json', 'number,title,body,author,headRefName,createdAt,mergedAt'];
   if (repo) args.push('--repo', repo);
   const out = execFileSync('gh', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 });
   const arr = JSON.parse(out);
@@ -545,13 +619,21 @@ export function renderHuman(r, idadeDias) {
   L.push(`  PRs sem custo .......: ${r.join.sem_match}/${r.janela.prs_no_universo} (${r.join.sem_match_pct ?? 'n/d'}%)`);
   if (r.join.modelos_desconhecidos.length) L.push(`  modelos sem preço ...: ${r.join.modelos_desconhecidos.join(', ')}`);
   L.push('');
+  const sob = r.sobrevivencia;
+  if (sob) {
+    L.push(`  CUSTO/PR SOBREVIVENTE : ${usd(sob.usd_por_pr_sobrevivente)}  (OUTCOME)  vs  ${usd(sob.usd_por_pr_mergeado)}/PR mergeado (ATIVIDADE)`);
+    L.push(`     ${sob.sobreviventes}/${sob.prs_com_custo} PRs com custo de pé · ${sob.falhados} reverteram (CFR ${sob.cfr_pct ?? 'n/d'}% ≤${sob.janela_cfr_horas}h) · sobretaxa de falha ${usd(sob.sobretaxa_falha_usd)}`);
+    if (sob.usd_desperdicado) L.push(`     ${usd(sob.usd_desperdicado)} gastos em PRs que voltaram atrás${sob.falhados_prs.length ? ' (#' + sob.falhados_prs.join(' #') + ')' : ''}`);
+    L.push('');
+  }
   L.push(`▸ RESÍDUO — ${usd(r.residuo.usd)} (${r.residuo.pct ?? 'n/d'}%) sem PR pra receber. NÃO é buraco de join (G8):`);
   for (const [cat, v] of Object.entries(r.residuo.por_categoria)) L.push(`  • ${usd(v).padStart(9)}  ${cat}`);
   L.push('');
   L.push(`▸ TOP ${r.por_pr.length} PRs mais recentes da janela`);
   for (const p of r.por_pr) {
+    const flag = p.falhou ? ' ⚠revert' : (p.em_risco ? ' ⏳<48h' : '');
     L.push(p.matched
-      ? `  #${p.pr}  ${usd(p.usd)}${p.usd_incompleto ? ' (parcial)' : ''}  ${kTok(p.tokens)} tok  [${p.sinais.join('+')}]  ${String(p.title).slice(0, 55)}`
+      ? `  #${p.pr}  ${usd(p.usd)}${p.usd_incompleto ? ' (parcial)' : ''}  ${kTok(p.tokens)} tok  [${p.sinais.join('+')}]${flag}  ${String(p.title).slice(0, 50)}`
       : `  #${p.pr}  — sem custo —             ${String(p.title).slice(0, 55)}`);
   }
   L.push('');
@@ -578,6 +660,15 @@ export function renderBriefMd(r, idadeDias) {
   L.push('|---|---|---|');
   L.push(`| **Cobertura de alocação** | **${r.custo.cobertura_alocacao_pct ?? 'n/d'}%** | ${usd(r.custo.total_usd_atribuido)} de ${usd(r.custo.total_usd_escaneado)} tem dono (FinOps: crawl=50%) |`);
   L.push(`| Mediana por PR | **${usd(r.custo.mediana_usd_por_pr)}** | tendência por cycle é o sinal, não o absoluto |`);
+  // sobrevivencia é ADITIVA (join com agent-pr-outcomes): snapshot pré-este-PR não a tem.
+  // Diferente do residuo (structural, cai no guard "forma ANTIGA"), aqui degradamos GRACIOSO
+  // — o resto do brief renderiza e a linha vira n/d, sem crashar o job semanal (--render-snapshot).
+  if (r.sobrevivencia) {
+    L.push(`| **Custo/PR sobrevivente** | **${usd(r.sobrevivencia.usd_por_pr_sobrevivente)}** | OUTCOME (não atividade): mesmo gasto ÷ PRs de pé (${r.sobrevivencia.sobreviventes}/${r.sobrevivencia.prs_com_custo}); vs ${usd(r.sobrevivencia.usd_por_pr_mergeado)}/mergeado |`);
+    L.push(`| Sobretaxa de falha | **${usd(r.sobrevivencia.sobretaxa_falha_usd)}** | CFR ${r.sobrevivencia.cfr_pct ?? 'n/d'}% (≤${r.sobrevivencia.janela_cfr_horas}h) · fonte agent-pr-outcomes (G10) |`);
+  } else {
+    L.push('| Custo/PR sobrevivente | _n/d_ | snapshot pré-sobrevivência — regenere: `node scripts/governance/agent-cost-per-pr.mjs --snapshot` (LOCAL, G5) |');
+  }
   L.push(`| Resíduo sem PR | **${usd(r.residuo.usd)}** (${r.residuo.pct ?? 'n/d'}%) | sessão que não produziu PR — **não é buraco de join** (G8) |`);
   L.push(`| Join por sinal | ${r.join.matched_por_branch} branch · ${r.join.matched_por_citacao} citação | branch = autoria; citação = fallback diluído (G6) |`);
   if (Object.keys(r.residuo.por_categoria).length) {
@@ -607,6 +698,22 @@ export function renderPrBlockMd(r, p, idadeDias) {
   L.push('**Custo estimado deste PR** (advisory · não bloqueia): ' + (p && p.matched
     ? `**${usd(p.usd)}**${p.usd_incompleto ? ' (parcial — modelo sem preço)' : ''} · ${kTok(p.tokens)} tok · sinal \`${p.sinais.join('+')}\``
     : '_sem sessão local casada — não medido (G1/G3)_'));
+  // Sobrevivência DESTE PR (join com agent-pr-outcomes): mergeou e ficou de pé, ou voltou atrás?
+  if (p && p.matched && r.sobrevivencia) {
+    const sob = r.sobrevivencia;
+    let status;
+    if (p.falhou) {
+      const h = (sob.hits || []).find((x) => x.pr === p.pr);
+      status = `⚠️ **revertido** — hotfix ${h ? '#' + h.hotfix + ' em ' + h.horas + 'h' : '≤48h'} citou #${p.pr} (entrou no CFR da janela)`;
+    } else if (p.em_risco) {
+      status = `⏳ ainda na janela de risco de ${CFR_WINDOW_HOURS}h — "sobreviveu" seria prematuro (CFR é PISO, G10)`;
+    } else {
+      status = `✅ de pé — sem hotfix/revert ≤${CFR_WINDOW_HOURS}h citando #${p.pr}`;
+    }
+    L.push('');
+    L.push(`Sobrevivência: ${status}`);
+    L.push(`_Custo/PR da janela ${r.janela.dias}d: **${usd(sob.usd_por_pr_sobrevivente)}/sobrevivente** (outcome) vs ${usd(sob.usd_por_pr_mergeado)}/mergeado (atividade) · ${sob.sobreviventes}/${sob.prs_com_custo} de pé · CFR ${sob.cfr_pct ?? 'n/d'}%. Fonte revert: agent-pr-outcomes (PISO ≤${sob.janela_cfr_horas}h)._`);
+  }
   L.push('');
   L.push(`${linhaIdade(idadeDias, r.calibracao?.limiar_idade_dias)}`);
   L.push('');

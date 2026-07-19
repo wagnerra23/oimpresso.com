@@ -61,7 +61,7 @@
  */
 import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import { pathToFileURL, fileURLToPath } from 'node:url';
 
 // ── constantes (exportadas pra teste) ─────────────────────────────────────────
 export const DEFAULT_MARKER = '[CC]';
@@ -164,6 +164,21 @@ export function changeFailure(mergedAgentPRs, allMergedPRs) {
   }
   const merged_count = mergedAgentPRs.length;
   return { merged_count, failures: hits.length, cfr: merged_count ? round1((hits.length / merged_count) * 100) : null, hits };
+}
+
+/**
+ * Conjunto dos nºs de PR que NÃO sobreviveram (change-failure): mergeado E seguido, em
+ * ≤48h, por um PR fix/hotfix/revert citando #N. É a DEFINIÇÃO canônica de "não sobreviveu"
+ * — mora AQUI, no oráculo de outcome (1 fato = 1 lugar), pra quem cruza custo com revert
+ * (agent-cost-per-pr.mjs → custo-por-PR-sobrevivente) consumir sem redefinir. Aceita o
+ * retorno de changeFailure() OU o array `.hits`. É PISO pela mesma razão do CFR (G1): só
+ * enxerga o revert explícito (#N + tipo fix/hotfix/revert ≤48h) — nunca superconta.
+ * @param {{hits:Array<{pr:number}>}|Array<{pr:number}>} cfr
+ * @returns {Set<number>}
+ */
+export function failedPRNumbers(cfr) {
+  const hits = Array.isArray(cfr) ? cfr : (cfr && cfr.hits) || [];
+  return new Set(hits.map((h) => h.pr));
 }
 
 const GAPS = [
@@ -279,8 +294,11 @@ if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
     // spawnSync (não import) pra evitar import circular: o test importa ESTE módulo, que
     // ainda está em execução no entry-point → módulo parcialmente avaliado. Spawn isola,
     // e propaga o exit do test (spawnSync não lança em status≠0, ao contrário de execFileSync).
-    const test = new URL('./agent-pr-outcomes.test.mjs', import.meta.url);
-    const r = spawnSync(process.execPath, [test.pathname], { stdio: 'inherit' });
+    // fileURLToPath (não `.pathname`): no Windows `URL.pathname` vira `/D:/...` e o node
+    // resolvia pra `D:\D:\...` (MODULE_NOT_FOUND) — o --selftest morria só nesta máquina, o
+    // CI (Linux) nunca via. Mesmo padrão cross-plataforma do agent-cost-per-pr.mjs.
+    const test = fileURLToPath(new URL('./agent-pr-outcomes.test.mjs', import.meta.url));
+    const r = spawnSync(process.execPath, [test], { stdio: 'inherit' });
     process.exit(r.status ?? 1);
   }
 

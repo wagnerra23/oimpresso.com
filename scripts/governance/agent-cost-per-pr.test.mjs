@@ -14,7 +14,7 @@ import {
   aggregatePorModelo, extractPrMentions, PRECOS_USD_MTOK, CACHE_MULT,
   PR_FETCH_LIMIT, DEFAULT_DAYS, renderHuman, renderBriefMd, renderPrBlockMd,
   linhaIdade, avisoSnapshot, IDADE_SUSPEITA_DIAS,
-  derivaLimiarIdade, TOLERANCIA_STALENESS, isFonteTruncada,
+  derivaLimiarIdade, TOLERANCIA_STALENESS, isFonteTruncada, costPerSurvivingPR,
 } from './agent-cost-per-pr.mjs';
 import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -351,7 +351,75 @@ try {
   writeFileSync(novo, JSON.stringify(buildReport({ prs: PR3, sessions: SESSIONS, generated: '2026-07-01' }))); // 16d velho
   const rn = spawnSync(process.execPath, [CLI, '--render-snapshot', novo], { encoding: 'utf8' });
   check('--render-snapshot forma NOVA velha: renderiza + manda regenerar (staleness)', rn.status === 0 && rn.stdout.includes('--snapshot'));
+
+  // [SOBREVIV · crash latente] snapshot PRÉ-sobrevivência (tem residuo/custo/janela — passa o
+  // guard "forma ANTIGA" — mas SEM sobrevivencia): renderBriefMd NÃO pode hard-deref e crashar
+  // o job semanal. Degrada gracioso (n/d), exit 0. É o snapshot commitado real de antes deste PR.
+  const semSob = buildReport({ prs: PR3, sessions: SESSIONS, generated: '2026-07-01' });
+  delete semSob.sobrevivencia;
+  const preSob = join(cliDir, 'presob.json');
+  writeFileSync(preSob, JSON.stringify(semSob));
+  const rps = spawnSync(process.execPath, [CLI, '--render-snapshot', preSob], { encoding: 'utf8' });
+  check('SOBREVIV: snapshot pré-sobrevivência NÃO crasha o --render-snapshot (exit 0)', rps.status === 0);
+  check('SOBREVIV: e degrada gracioso — linha n/d + mando de regenerar (não some o brief)', /Custo\/PR sobrevivente \| _n\/d_/.test(rps.stdout));
 } finally { rmSync(cliDir, { recursive: true, force: true }); }
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — join 2-sinais morde (branch com $ certo de cache; citação diluída) e libera (sem match declarado, sem dupla contagem, modelo sem preço não inventa USD). Contabilidade fecha (cobertura ≤100, conservação, decomposição) e o entry-point real é exercitado (snapshot escrito, forma antiga não crasha).');
+// ════════════════════════════════════════════════════════════════════════════════
+// CUSTO-POR-PR-SOBREVIVENTE — join com agent-pr-outcomes (grade 2026-07-18)
+// ════════════════════════════════════════════════════════════════════════════════
+// #200 mergeado e CONSERTADO por um hotfix humano #203 (fix: … #200) 2h depois → NÃO
+// sobreviveu. #201/#202 ficaram de pé. O gasto de #200 ($4) NÃO some: dilui nos
+// sobreviventes, e a diferença dos dois números é a sobretaxa de falha. Denominador
+// vira OUTCOME (de pé), não ATIVIDADE (mergeado) — o ponto da régua.
+const PRS_SOBREVIV = [
+  { number: 200, title: 'feat: a [CC]', author: { login: 'x' }, headRefName: 'c/200', createdAt: '2026-07-04T00:00:00Z', mergedAt: '2026-07-05T00:00:00Z' },
+  { number: 201, title: 'feat: b [CC]', author: { login: 'x' }, headRefName: 'c/201', createdAt: '2026-07-05T00:00:00Z', mergedAt: '2026-07-06T00:00:00Z' },
+  { number: 202, title: 'feat: c [CC]', author: { login: 'x' }, headRefName: 'c/202', createdAt: '2026-07-05T06:00:00Z', mergedAt: '2026-07-06T06:00:00Z' },
+  // hotfix HUMANO (sem [CC] → fora do universo do agente) que cita #200 dentro de 48h
+  { number: 203, title: 'fix: conserta regressão do #200', author: { login: 'wagnerra23' }, headRefName: 'hotfix/200', createdAt: '2026-07-05T01:00:00Z', mergedAt: '2026-07-05T02:00:00Z' },
+];
+const SESS_SOBREVIV = [
+  { id: 'a', entries: [ent('c/200', 'claude-haiku-4-5', 4_000_000)], pr_mentions: [] }, // $4 → #200 (falha)
+  { id: 'b', entries: [ent('c/201', 'claude-haiku-4-5', 2_000_000)], pr_mentions: [] }, // $2 → #201
+  { id: 'c', entries: [ent('c/202', 'claude-haiku-4-5', 2_000_000)], pr_mentions: [] }, // $2 → #202
+];
+const rs2 = buildReport({ prs: PRS_SOBREVIV, sessions: SESS_SOBREVIV, generated: '2026-07-12' });
+const S = rs2.sobrevivencia;
+check('SOBREVIV: universo do agente = 3 (#203 é hotfix humano, fora)', rs2.janela.prs_no_universo === 3);
+check('SOBREVIV: #200 marcado falhou (revert ≤48h citou #200)', rs2.por_pr.find((p) => p.pr === 200).falhou === true);
+check('SOBREVIV: #201/#202 NÃO falharam', !rs2.por_pr.find((p) => p.pr === 201).falhou && !rs2.por_pr.find((p) => p.pr === 202).falhou);
+check('SOBREVIV: 2 de pé · 1 revertido · 3 com custo', S.sobreviventes === 2 && S.falhados === 1 && S.prs_com_custo === 3);
+check('SOBREVIV: custo/PR MERGEADO = $8/3 = $2.67 (ATIVIDADE)', S.usd_por_pr_mergeado === 2.67);
+check('SOBREVIV: custo/PR SOBREVIVENTE = $8/2 = $4.00 (OUTCOME — mesmo numerador, denominador menor)', S.usd_por_pr_sobrevivente === 4);
+check('SOBREVIV: sobretaxa de falha = $4.00 − $2.67 = $1.33', S.sobretaxa_falha_usd === 1.33);
+check('SOBREVIV: $4 desperdiçado no PR que voltou atrás (só #200)', S.usd_desperdicado === 4 && S.falhados_prs.join() === '200');
+check('SOBREVIV: cfr vem do oráculo agent-pr-outcomes = 1/3 = 33.3% (não recalcula)', S.cfr_pct === 33.3);
+
+// função PURA direta (unidade) — sem depender do buildReport
+const cps = costPerSurvivingPR(
+  [{ pr: 1, matched: true, usd: 10 }, { pr: 2, matched: true, usd: 6 }, { pr: 3, matched: false, usd: null }],
+  new Set([1]));
+check('costPerSurvivingPR puro: matched sem custo (G3) fica fora dos dois lados', cps.prs_com_custo === 2);
+check('costPerSurvivingPR puro: $16/1 de pé = $16 vs $16/2 mergeado = $8', cps.usd_por_pr_sobrevivente === 16 && cps.usd_por_pr_mergeado === 8);
+check('costPerSurvivingPR puro: ninguém falhou → sobretaxa 0, desperdício 0', (() => { const c = costPerSurvivingPR([{ pr: 9, matched: true, usd: 5 }], new Set()); return c.sobretaxa_falha_usd === 0 && c.usd_desperdicado === 0; })());
+check('costPerSurvivingPR puro: TODOS falharam → sobrevivente null (não divide por 0)', costPerSurvivingPR([{ pr: 9, matched: true, usd: 5 }], new Set([9])).usd_por_pr_sobrevivente === null);
+
+// em_risco: PR mergeado há <48h ainda não pode ser dado como sobrevivente de vez
+const rRisco = buildReport({
+  prs: [{ number: 300, title: 'x [CC]', author: { login: 'x' }, headRefName: 'c/300', createdAt: '2026-07-11T23:00:00Z', mergedAt: '2026-07-12T00:00:00Z' }],
+  sessions: [{ id: 'r', entries: [ent('c/300', 'claude-haiku-4-5', 1_000_000)], pr_mentions: [] }],
+  nowIso: '2026-07-12T10:00:00Z', generated: '2026-07-12',
+});
+check('SOBREVIV: PR mergeado há <48h → em_risco (não creditado como sobrevivente de vez)', rRisco.por_pr.find((p) => p.pr === 300).em_risco === true);
+
+// bloco --pr N carrega a sobrevivência DESTE PR (RELATO no corpo, mesmo marcador idempotente)
+const blocoFalhou = renderPrBlockMd(rs2, rs2.por_pr.find((p) => p.pr === 200));
+check('--pr do PR revertido: diz "revertido" + aponta o hotfix #203', /revertido/.test(blocoFalhou) && blocoFalhou.includes('#203'));
+check('--pr do PR revertido: publica custo/PR sobrevivente vs mergeado', blocoFalhou.includes('/sobrevivente') && blocoFalhou.includes('/mergeado'));
+const blocoDePe = renderPrBlockMd(rs2, rs2.por_pr.find((p) => p.pr === 201));
+check('--pr do PR de pé: diz "de pé", não "revertido"', /de p[ée]/.test(blocoDePe) && !/revertido/.test(blocoDePe));
+check('--pr sobrevivência é RELATO — não fala em bloquear/gate/falhar', !/\b(bloqueia merge|reprova|falha o PR)\b/i.test(blocoFalhou) && !/R\$/.test(blocoFalhou));
+check('SOBREVIV: aparece no brief E no texto humano (não só no --json)', renderBriefMd(rs2, 0).includes('sobrevivente') && renderHuman(rs2, 0).includes('SOBREVIVENTE'));
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — join 2-sinais morde (branch com $ certo de cache; citação diluída) e libera (sem match declarado, sem dupla contagem, modelo sem preço não inventa USD). Contabilidade fecha (cobertura ≤100, conservação, decomposição), o custo-por-PR-SOBREVIVENTE cruza com o change-failure do irmão (denominador vira outcome, sobretaxa de falha explícita) e o entry-point real é exercitado (snapshot escrito, forma antiga não crasha).');
 process.exit(fails ? 1 : 0);
