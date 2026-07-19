@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-07-18T11:29:14.214Z",
+    "generated_at": "2026-07-19T11:35:51.895Z",
     "gate": "casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste)",
     "sources": [
       "test-results/junit.xml",
