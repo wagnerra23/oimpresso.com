@@ -193,3 +193,8 @@ tests/Feature/Produto/FormacaoPrecoParidadeLegadoTest.php
 # scope é no-op, quem isola o tenant é o HMAC da URL assinada. Trava que adulterar ?biz dá 403.
 # DB-less (o middleware `signed` decide antes do controller). Sqlite-safe.
 Modules/Whatsapp/Tests/Feature/FeedbackPublicoSignedUrlTest.php
+# US-COPI-137 eval online — juiz LOCAL Ollama. Http::fake + config + Mockery, ZERO
+# acesso a DB (sem RefreshDatabase) → sqlite-safe. Antes deste PR o JudgeTraceOnlineJobTest
+# não rodava em NENHUMA lane per-PR (US-COPI-138: guard que nenhum workflow executa = mentira).
+Modules/Jana/Tests/Feature/Telemetry/JudgeTraceOnlineJobTest.php
+Modules/Jana/Tests/Feature/Ragas/OllamaRagasJudgeTest.php
