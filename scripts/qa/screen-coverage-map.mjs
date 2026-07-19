@@ -144,6 +144,25 @@ export function classifyArtifact(candidates) {
   return { status, candidates };
 }
 
+/**
+ * resolveArtifact — proveniência EXPLÍCITA vence adivinhação por nome (lápide §5
+ * 2026-06-30: a fonte de um artefato é o que o charter DECLARA, nunca a string do
+ * filename). Se o charter declara o caminho → autoritativo (`declared`), e se o
+ * caminho declarado NÃO existe → `declared-missing` (defeito REAL: linkagem quebrada,
+ * que o name-match jamais pega). Sem declaração → cai pro name-match + fica marcado
+ * `source:'name'` (o resolver diz "declare no charter pra travar"). PURO/testável.
+ * @param {string|null} declaredPath
+ * @param {boolean} declaredExists  o caminho declarado existe no disco?
+ * @param {string[]} nameCandidates candidatos achados por nome (fallback)
+ * @returns {{ source:'declared'|'name', status:string, candidates:string[] }}
+ */
+export function resolveArtifact(declaredPath, declaredExists, nameCandidates) {
+  if (declaredPath) {
+    return { source: 'declared', status: declaredExists ? 'declared' : 'declared-missing', candidates: [declaredPath] };
+  }
+  return { source: 'name', ...classifyArtifact(nameCandidates) };
+}
+
 /** UCs declarados num casos.md (heading "## UC-XX ..."; ~~UC~~ tachado = retirado, não conta). PURO. */
 export function ucsFromCasos(content) {
   const out = [];
@@ -209,19 +228,22 @@ export function resolveScreenFiles(relTsx) {
     ucLink = ucs.map((uc) => ({ uc, tested: corpus.includes(uc) }));
   }
 
-  // Artefatos de nome-DRIFTADO — reporta CANDIDATOS por nome + FLAG ambiguidade.
+  // O charter DECLARA seus artefatos? (proveniência explícita > adivinhação por nome).
+  let relatedPrototype = null, declared = { runbook: null, visual_comparison: null, proto_baseline: null };
+  if (trio.charter) {
+    const ch = readFileSync(charterPath, 'utf8');
+    const field = (k) => { const m = ch.match(new RegExp(`^${k}:\\s*(.+)$`, 'm')); return m ? m[1].trim() : null; };
+    relatedPrototype = field('related_prototype') || '(ausente)';
+    declared = { runbook: field('related_runbook'), visual_comparison: field('related_visual_comparison'), proto_baseline: field('related_proto_baseline') };
+  }
+
+  // Resolução: DECLARAÇÃO primeiro (autoritativa; pega declaração QUEBRADA); fallback name-match + FLAG.
   const modFiles = existsSync(join(REQ_DIR, mod)) ? walk(join(REQ_DIR, mod), () => true).map(norm) : [];
   const nameHas = (f) => nameKeys.some((k) => basename(f).toLowerCase().includes(k));
-  const runbook = classifyArtifact(modFiles.filter((f) => /RUNBOOK/i.test(basename(f)) && nameHas(f)));
-  const visualcomp = classifyArtifact(modFiles.filter((f) => /visual-comparison\.md$/.test(f) && nameHas(f)));
-  const protobaseline = classifyArtifact(modFiles.filter((f) => /\.proto-baseline\.json$/.test(f) && nameHas(f)));
-
-  // Linkagem: charter → related_prototype declarado?
-  let relatedPrototype = null;
-  if (trio.charter) {
-    const m = readFileSync(charterPath, 'utf8').match(/related_prototype:\s*(.+)/);
-    relatedPrototype = m ? m[1].trim() : '(ausente)';
-  }
+  const declExists = (p) => !!p && existsSync(join(ROOT, p));
+  const runbook = resolveArtifact(declared.runbook, declExists(declared.runbook), modFiles.filter((f) => /RUNBOOK/i.test(basename(f)) && nameHas(f)));
+  const visualcomp = resolveArtifact(declared.visual_comparison, declExists(declared.visual_comparison), modFiles.filter((f) => /visual-comparison\.md$/.test(f) && nameHas(f)));
+  const protobaseline = resolveArtifact(declared.proto_baseline, declExists(declared.proto_baseline), modFiles.filter((f) => /\.proto-baseline\.json$/.test(f) && nameHas(f)));
 
   return { screen: relTsx, mod, trio, scorecard, e2eBrowser, ucLink, runbook, visualcomp, protobaseline, relatedPrototype };
 }
@@ -233,8 +255,15 @@ if (flags.has('--screen')) {
   if (!target) { console.error('uso: --screen <Mod/Tela>  (ex: Produto/Create)'); process.exit(2); }
   const r = resolveScreenFiles(target);
   const mark = (b) => (b ? '✓' : '✗');
-  const artLine = (name, a) =>
-    `  ${name.padEnd(18)} ${a.status === 'unique' ? '✓ ' + a.candidates[0] : a.status === 'missing' ? '✗ ausente' : '⚠ AMBÍGUO (' + a.candidates.length + '): ' + a.candidates.join(' · ')}`;
+  const artLine = (name, a) => {
+    const body =
+      a.status === 'declared' ? '✓ ' + a.candidates[0] + '  [declarado no charter — autoritativo]'
+      : a.status === 'declared-missing' ? '✗ DECLARAÇÃO QUEBRADA: charter aponta pra ' + a.candidates[0] + ' (não existe)'
+      : a.status === 'unique' ? '✓ ' + a.candidates[0] + '  [por nome — declare no charter pra travar]'
+      : a.status === 'missing' ? '✗ ausente'
+      : '⚠ AMBÍGUO (' + a.candidates.length + '): ' + a.candidates.join(' · ') + '  [por nome — declare no charter pra resolver]';
+    return `  ${name.padEnd(18)} ${body}`;
+  };
   console.log(`\n=== Arquivos da tela · ${r.screen} ===\n`);
   console.log('  TRIO (siblings, resolução confiável):');
   console.log(`    ${mark(r.trio.tsx)} .tsx   ${mark(r.trio.charter)} .charter.md   ${mark(r.trio.casos)} .casos.md`);
@@ -251,14 +280,16 @@ if (flags.has('--screen')) {
   console.log('');
   console.log(`  LINKAGEM charter → related_prototype: ${r.relatedPrototype ?? '(sem charter)'}`);
   // Veredito honesto de COMPLETUDE + o que a máquina NÃO resolve sozinha.
-  const ambiguos = [['RUNBOOK', r.runbook], ['visual-comparison', r.visualcomp], ['proto-baseline', r.protobaseline]]
-    .filter(([, a]) => a.status === 'ambiguous').map(([n]) => n);
+  const artefatos = [['RUNBOOK', r.runbook], ['visual-comparison', r.visualcomp], ['proto-baseline', r.protobaseline]];
+  const ambiguos = artefatos.filter(([, a]) => a.status === 'ambiguous').map(([n]) => n);
+  const quebrados = artefatos.filter(([, a]) => a.status === 'declared-missing').map(([n]) => n);
   const orfaos = r.ucLink.filter((u) => !u.tested).map((u) => u.uc);
   console.log('\n  VEREDITO:');
   console.log(`    trio completo: ${r.trio.tsx && r.trio.charter && r.trio.casos ? '✓' : '✗ INCOMPLETO'}`);
+  if (quebrados.length) console.log(`    ✗ DECLARAÇÃO QUEBRADA (charter aponta pra arquivo inexistente): ${quebrados.join(', ')}`);
   if (ambiguos.length) console.log(`    ⚠ nome ambíguo (resolva por declaração no charter, não por nome): ${ambiguos.join(', ')}`);
   if (orfaos.length) console.log(`    ⚠ UC órfão (sem teste): ${orfaos.join(', ')}`);
-  if (!ambiguos.length && !orfaos.length) console.log('    ✓ sem ambiguidade de nome nem UC órfão');
+  if (!ambiguos.length && !orfaos.length && !quebrados.length) console.log('    ✓ sem declaração quebrada, ambiguidade de nome, nem UC órfão');
   process.exit(0);
 }
 
@@ -293,6 +324,11 @@ if (flags.has('--selftest')) {
   // CONTROLE-NEGATIVO (o defeito REAL Financeiro/RUNBOOK: 2 candidatos p/ 1 tela).
   // Sem esta asserção a detecção de ambiguidade poderia quebrar calada = teatro.
   assert.equal(classifyArtifact(['RUNBOOK-index.md', 'RUNBOOK-unificado.md']).status, 'ambiguous');
+  // resolveArtifact: DECLARAÇÃO vence nome; declaração QUEBRADA é defeito real (só ela pega).
+  assert.equal(resolveArtifact('memory/requisitos/X/RUNBOOK-x.md', true, ['a', 'b']).status, 'declared'); // declarado + existe → autoritativo (ignora os 2 candidatos por nome)
+  assert.equal(resolveArtifact('memory/requisitos/X/RUNBOOK-x.md', false, []).status, 'declared-missing'); // CONTROLE-NEGATIVO: charter aponta pra arquivo inexistente = linkagem quebrada
+  assert.equal(resolveArtifact(null, false, ['a', 'b']).status, 'ambiguous'); // sem declaração → cai pro name-match (2 = ambíguo)
+  assert.equal(resolveArtifact(null, false, ['a', 'b']).source, 'name');
   assert.equal(screenSlug('Financeiro/Unificado/Index.tsx'), 'financeiro-unificado-index');
   assert.equal(screenSlug('Produto/Create.tsx'), 'produto-create');
   // UC: heading conta; tachado ~~UC~~ (retirado, padrão da Maiara em Create.casos.md) NÃO conta.

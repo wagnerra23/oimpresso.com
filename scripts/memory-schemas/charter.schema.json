@@ -61,6 +61,18 @@
       "uniqueItems": true,
       "default": []
     },
+    "related_runbook": {
+      "type": "string",
+      "description": "Caminho DECLARADO do RUNBOOK desta tela — proveniência explícita > adivinhação por nome (lápide §5 2026-06-30: a fonte de um artefato é o que o charter declara, nunca a string do filename). Ex: memory/requisitos/Financeiro/RUNBOOK-unificado.md. OPCIONAL/forward-only: sem ele o resolver por-tela (`screen-coverage-map.mjs --screen`) cai pro name-match e FLAG de ambiguidade quando >1 candidato; declarar TRAVA a resolução (e uma declaração pra arquivo inexistente vira defeito `declared-missing`)."
+    },
+    "related_visual_comparison": {
+      "type": "string",
+      "description": "Caminho DECLARADO do `<tela>-visual-comparison.md` desta tela (idem related_runbook — proveniência explícita). OPCIONAL/forward-only."
+    },
+    "related_proto_baseline": {
+      "type": "string",
+      "description": "Caminho DECLARADO do `<tela>.proto-baseline.json` desta tela (idem — proveniência explícita). OPCIONAL/forward-only."
+    },
     "tier": {
       "type": "string",
       "enum": ["A", "B", "C"]

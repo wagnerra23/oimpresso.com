@@ -8,6 +8,8 @@ last_validated: "2026-07-17"
 parent_module: Produto
 related_adrs: [104, 149, 93, 107, 101, 264]
 related_us: [US-PROD-020, US-PROD-023]
+related_runbook: memory/requisitos/Produto/_telas/RUNBOOK-produto-create.md
+related_visual_comparison: memory/requisitos/Produto/_telas/produto-create-visual-comparison.md
 tier: A
 charter_version: 3
 mwart_pattern_reuse:
