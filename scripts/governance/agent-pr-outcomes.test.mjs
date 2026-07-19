@@ -7,7 +7,7 @@
 
 import {
   buildReport, isAgentPR, terminalState, referencesPR, median, percentile,
-  timeToMerge, acceptReject, changeFailure, DEFAULT_MARKER,
+  timeToMerge, acceptReject, changeFailure, failedPRNumbers, DEFAULT_MARKER,
 } from './agent-pr-outcomes.mjs';
 
 let fails = 0;
@@ -81,5 +81,10 @@ check('timeToMerge ignora mergedAt<createdAt (dado torto)',
   timeToMerge([{ createdAt: '2026-01-02T00:00:00Z', mergedAt: '2026-01-01T00:00:00Z' }]).count === 0);
 check('changeFailure vazio → cfr null', changeFailure([], []).cfr === null);
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — CFR morde (hotfix ≤48h + tipo + #N) e libera (tardio/feat/sem-#N); accept-rate + time-to-merge conferem.');
+// ── failedPRNumbers: a definição de "não sobreviveu" que o custo (agent-cost-per-pr) consome ──
+check('failedPRNumbers extrai os #N dos hits do CFR real (#100)', (() => { const s = failedPRNumbers(cf); return s.has(100) && !s.has(102) && s.size === 1; })());
+check('failedPRNumbers aceita o array .hits direto', failedPRNumbers([{ pr: 7 }, { pr: 9 }]).has(9) === true);
+check('failedPRNumbers de vazio/null → Set vazio (não quebra)', failedPRNumbers(null).size === 0 && failedPRNumbers({ hits: [] }).size === 0);
+
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — CFR morde (hotfix ≤48h + tipo + #N) e libera (tardio/feat/sem-#N); accept-rate + time-to-merge conferem; failedPRNumbers dá o conjunto "não sobreviveu" pro custo.');
 process.exit(fails ? 1 : 0);
