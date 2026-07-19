@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-18**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-19**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -23,20 +23,20 @@ lifecycle: ativo
 | Arquivos | [BRIEFING](../requisitos/Arquivos/BRIEFING.md) | 2026-06-08 |
 | AssetManagement | [BRIEFING](../requisitos/AssetManagement/BRIEFING.md) | 2026-06-08 |
 | Auditoria | [BRIEFING](../requisitos/Auditoria/BRIEFING.md) | 2026-07-15 |
-| Brief | [BRIEFING](../requisitos/Brief/BRIEFING.md) | 2026-06-08 |
+| Brief | [BRIEFING](../requisitos/Brief/BRIEFING.md) | 2026-07-19 |
 | Cms | [BRIEFING](../requisitos/Cms/BRIEFING.md) | 2026-07-17 |
 | Compras | [BRIEFING](../requisitos/Compras/BRIEFING.md) | 2026-07-03 |
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-06-15 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-06-08 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-06-15 |
 | Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-14 |
-| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-06-13 |
+| Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-19 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-14 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-03 |
 | Governance | [BRIEFING](../requisitos/Governance/BRIEFING.md) | 2026-07-17 |
 | Jana | [BRIEFING](../requisitos/Jana/BRIEFING.md) | 2026-07-17 |
 | KB | [BRIEFING](../requisitos/KB/BRIEFING.md) | 2026-07-17 |
-| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-06-08 |
+| Manufacturing | [BRIEFING](../requisitos/Manufacturing/BRIEFING.md) | 2026-07-19 |
 | NfeBrasil | [BRIEFING](../requisitos/NfeBrasil/BRIEFING.md) | 2026-07-14 |
 | NFSe | [BRIEFING](../requisitos/NFSe/BRIEFING.md) | 2026-06-08 |
 | Officeimpresso | [BRIEFING](../requisitos/Officeimpresso/BRIEFING.md) | 2026-06-15 |
@@ -48,16 +48,16 @@ lifecycle: ativo
 | RecurringBilling | [BRIEFING](../requisitos/RecurringBilling/BRIEFING.md) | 2026-07-14 |
 | Repair | [BRIEFING](../requisitos/Repair/BRIEFING.md) | 2026-07-14 |
 | Spreadsheet | [BRIEFING](../requisitos/Spreadsheet/BRIEFING.md) | 2026-06-08 |
-| SRS | [BRIEFING](../requisitos/SRS/BRIEFING.md) | 2026-06-21 |
+| SRS | [BRIEFING](../requisitos/SRS/BRIEFING.md) | 2026-07-19 |
 | Superadmin | [BRIEFING](../requisitos/Superadmin/BRIEFING.md) | 2026-06-08 |
 | TeamMcp | [BRIEFING](../requisitos/TeamMcp/BRIEFING.md) | 2026-07-17 |
-| Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-06-08 |
+| Vestuario | [BRIEFING](../requisitos/Vestuario/BRIEFING.md) | 2026-07-19 |
 | Whatsapp | [BRIEFING](../requisitos/Whatsapp/BRIEFING.md) | 2026-07-17 |
 | Woocommerce | [BRIEFING](../requisitos/Woocommerce/BRIEFING.md) | 2026-06-08 |
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **353**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **358**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -161,14 +161,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **280** handoffs · **465** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **285** handoffs · **469** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-18-cf3-lapide-dr2a-bite-log`
+  - `2026-07-18-cc-ingest-strip-reativacao`
   - `2026-07-18-audit-idor-viaparent-consumers-3prs`
+  - `2026-07-18-adr-normalize-gate-required`
+  - `2026-07-18-adr-frontmatter-zero-e-prose-supersede`
   - `2026-07-17-triagem-floor-mt-vazamento-scope-viaparent`
-  - `2026-07-17-skill-injeta-custo-por-pr-passo7`
-  - `2026-07-17-seguranca-agente-c11-porte-c7`
-  - `2026-07-17-reguas-obs-agente-grade`
-  - `2026-07-17-reguas-memoria-conhecimento-pos-c8-c12`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-18 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-19 · deriva das fontes canônicas, não as substitui._
