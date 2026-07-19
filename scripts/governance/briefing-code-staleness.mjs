@@ -58,6 +58,7 @@
  *   node scripts/governance/briefing-code-staleness.mjs           (tabela; exit 0 — reporter)
  *   node scripts/governance/briefing-code-staleness.mjs --json    (JSON pro Daily Brief)
  *   node scripts/governance/briefing-code-staleness.mjs --strict  (exit 1 se stale — opt-in local, NUNCA required)
+ *   node scripts/governance/briefing-code-staleness.mjs --strict-coverage  (exit 1 se MÓDULO BACKEND sem BRIEFING — cobertura de existência, advisory-first)
  *   OIMPRESSO_BRIEFING_CODE_STALE_DAYS=21 node …                  (limiar tunável)
  *
  * Refs: ADR 0256 (Knowledge Survival) · ADR 0314 (required = só Tier 0) ·
@@ -99,6 +100,28 @@ export function classifyCodeStaleness({ hasDoor, moduleCodeExists, doorDate, cod
   // stale ⇔ código estritamente MAIS de `staleDays` à frente da porta.
   // Porta ≥ código (gap ≤ 0, porta refrescada depois do último commit de código) → fresco.
   return { evaluated: true, stale: gapDays > staleDays, gapDays };
+}
+
+/**
+ * isBriefingCoverageGap — sinal de COBERTURA DE EXISTÊNCIA (não frescor): um
+ * MÓDULO DE BACKEND real (`Modules/<X>/` no disco) que NÃO tem `BRIEFING.md` = gap.
+ *
+ * Por que só BACKEND (hasBackend), não `Pages/<X>` só-frontend: uma área só-tela
+ * (ex: `User/Perfil`, sem `Modules/User`) NÃO é módulo de negócio e é coberta pelo
+ * trio charter/casos da tela — exigir BRIEFING dela seria falso-positivo. `scan()`
+ * já escopa a área a quem tem código no disco; aqui refinamos pra o backend.
+ *
+ * Por que isto é ENFORÇÁVEL (diferente do frescor): o sinal é a EXISTÊNCIA de um
+ * dir de módulo + um arquivo — NÃO-gameável por uma data auto-escrita (o furo que
+ * bane o frescor de virar gate required, proibicoes §5 charter-sync-gate). É a
+ * mesma classe aceita do casos-gate G-1 (tela nova sem trio). Nasce ADVISORY
+ * (ADR 0314 — required = só Tier-0; promover = emenda + flip [W], nunca no calado).
+ *
+ * @param {{ hasBackend:boolean, hasDoor:boolean }} p
+ * @returns {boolean} true se é gap de cobertura de briefing.
+ */
+export function isBriefingCoverageGap({ hasBackend, hasDoor }) {
+  return !!hasBackend && !hasDoor;
 }
 
 /**
@@ -182,7 +205,7 @@ export function scan(staleDays = DEFAULT_STALE_DAYS) {
 
     const { evaluated, stale, gapDays } = classifyCodeStaleness({ hasDoor, moduleCodeExists, doorDate, codeDate, staleDays });
     rows.push({
-      mod, hasDoor, doorDate, doorSource, codeDate, evaluated, stale, gapDays,
+      mod, hasDoor, hasBackend, doorDate, doorSource, codeDate, evaluated, stale, gapDays,
       commitsAhead: stale ? commitsSince(doorDate, surface) : 0,
       surface,
     });
@@ -194,10 +217,16 @@ export function scan(staleDays = DEFAULT_STALE_DAYS) {
 function run() {
   const JSON_OUT = process.argv.includes('--json');
   const STRICT = process.argv.includes('--strict');
+  // --strict-coverage é independente de --strict (argv.includes é match exato:
+  // ['--strict-coverage'] NÃO casa '--strict'). Morde só a cobertura, não o frescor.
+  const STRICT_COVERAGE = process.argv.includes('--strict-coverage');
   const staleDays = DEFAULT_STALE_DAYS;
   const rows = scan(staleDays);
   const stale = rows.filter((r) => r.stale).sort((a, b) => (b.gapDays ?? 0) - (a.gapDays ?? 0));
   const noDoor = rows.filter((r) => !r.hasDoor).map((r) => r.mod);
+  // Gap de COBERTURA = módulo BACKEND sem BRIEFING (subconjunto de noDoor que exclui
+  // áreas só-frontend tipo User/Perfil). É o que --strict-coverage morde; hoje = 0 (36/36).
+  const coverageGaps = rows.filter((r) => isBriefingCoverageGap(r)).map((r) => r.mod);
 
   if (JSON_OUT) {
     console.log(JSON.stringify({
@@ -207,8 +236,9 @@ function run() {
       evaluated: rows.length,
       stale: stale.map((r) => ({ mod: r.mod, gapDays: r.gapDays, commitsAhead: r.commitsAhead, doorDate: r.doorDate, doorSource: r.doorSource, codeDate: r.codeDate })),
       noDoor,
+      coverageGaps,
     }, null, 2));
-    return stale.length && STRICT ? 1 : 0;
+    return ((stale.length && STRICT) || (coverageGaps.length && STRICT_COVERAGE)) ? 1 : 0;
   }
 
   console.log(`\n  BRIEFING × CÓDIGO — porta atrás da superfície do módulo (limiar ${staleDays}d)`);
@@ -224,18 +254,22 @@ function run() {
   }
   console.log('  ' + '─'.repeat(74));
   console.log(`  ${stale.length} porta(s) stale · ${rows.length} módulos avaliados · ${noDoor.length} sem porta (${noDoor.join(', ') || '—'})`);
+  console.log(`  COBERTURA: ${coverageGaps.length} módulo(s) BACKEND sem BRIEFING (${coverageGaps.join(', ') || '— 0, cobertura completa 36/36'}) · --strict-coverage morde isto`);
   console.log('  ADVISORY (ADR 0314 — higiene, nunca required). Ação: skill brief-update no módulo.');
-  console.log('  NÃO é presence-gate: mede a derivada porta×código, não exige BRIEFING no diff (proibicoes §5 + L-24).\n');
+  console.log('  NÃO é presence-gate: mede a derivada porta×código (frescor) e existência de módulo-backend (cobertura); nunca "BRIEFING no diff" (proibicoes §5 + L-24).\n');
 
   // Anotações GitHub — visíveis no PR (amarelo, non-blocking). Só em CI.
   if (process.env.GITHUB_ACTIONS === 'true') {
     for (const r of stale) {
       console.log(`::warning title=BRIEFING atrás do código (${r.mod})::${r.mod}: BRIEFING.md ${r.gapDays} dias atrás do código (porta ${r.doorDate} vs código ${r.codeDate}, ${r.commitsAhead} commits na superfície). Rode a skill brief-update pra reconciliar memory/requisitos/${r.mod}/BRIEFING.md.`);
     }
+    for (const mod of coverageGaps) {
+      console.log(`::warning title=Módulo BACKEND sem BRIEFING (${mod})::${mod}: Modules/${mod}/ existe mas memory/requisitos/${mod}/BRIEFING.md não. Crie o BRIEFING (skill brief-update / template).`);
+    }
   }
 
-  // Reporter: exit 0 SEMPRE (advisory). --strict (opt-in local) sai 1 pra scripts.
-  return stale.length && STRICT ? 1 : 0;
+  // Reporter: exit 0 SEMPRE (advisory). --strict / --strict-coverage (opt-in) saem 1 pra scripts.
+  return ((stale.length && STRICT) || (coverageGaps.length && STRICT_COVERAGE)) ? 1 : 0;
 }
 
 // ── main (só quando executado direto; importável p/ self-test sem rodar) ──────
