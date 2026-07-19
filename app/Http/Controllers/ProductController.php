@@ -536,7 +536,9 @@ class ProductController extends Controller
 
         $sub_categories = [];
         if (! empty(request()->input('d'))) {
-            $duplicate_product = Product::where('business_id', $business_id)->find(request()->input('d'));
+            // Tier 0 (ADR 0093): duplicar produto de outro business → 404, não 500.
+            // `find()` devolvia null pro id alheio e a linha seguinte acessava ->name (500).
+            $duplicate_product = Product::where('business_id', $business_id)->findOrFail(request()->input('d'));
             $duplicate_product->name .= ' (copy)';
 
             if (! empty($duplicate_product->category_id)) {

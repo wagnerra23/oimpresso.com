@@ -24,6 +24,11 @@ name: Estoque · Pest (MySQL)
 # cria products+variations, e esta lane já disparava em `app/Utils/ProductUtil.php`). Somar arquivo
 # aqui custa 0 contexto de CI novo, numa fase em que as ADRs 0271/0314 estão PODANDO gates.
 # Se o Produto crescer a ponto de merecer lane própria, vira `produto-pest.yml` — é um rename.
+#
+# 2026-07-17 — +`CadastroProdutoContratoTest` (CU-PROD-01/07 — US-PROD-020, 2ª tela do trio).
+# Mesmo motivo do anterior: o UC-PCAD-05/06 provam isolamento cross-tenant (precisa de biz=1 E
+# biz=2 via `EstoqueFixture::secondBusinessId()`) e o UC-PCAD-04 assere `default_purchase_price`
+# na `variations` (precisa do schema real). Em sqlite dariam SKIP — "skipa e mente" de novo.
 
 on:
   workflow_dispatch: {}
@@ -134,7 +139,8 @@ jobs:
             tests/Feature/Estoque/EstoqueInvarianteTransacaoTest.php \
             tests/Feature/Estoque/EstoqueInvarianteEnableStockTest.php \
             tests/Feature/Estoque/EstoqueInvarianteTenantTest.php \
-            tests/Feature/Produto/TabelaPrecoContratoTest.php
+            tests/Feature/Produto/TabelaPrecoContratoTest.php \
+            tests/Feature/Produto/CadastroProdutoContratoTest.php
 
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}
