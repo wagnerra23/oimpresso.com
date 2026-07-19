@@ -64,10 +64,15 @@ it('as 4 métricas herdadas passam pelo transporte Ollama (não OpenAI)', functi
     Http::assertNotSent(fn ($req) => str_contains($req->url(), 'openai.com'));
 });
 
-it('sanitiza score fora de 0..1 (>1 → 1.0, <0 → 0.0)', function () {
+// 2 testes separados de propósito: Http::fake() APPENDA stubs (o 1º match ganha),
+// então re-fakear a mesma URL no mesmo teste não troca a resposta. O estado do fake
+// reseta entre testes (app recriada no setUp) — cada caso ganha um fake limpo.
+it('sanitiza score > 1 → 1.0', function () {
     fakeOllamaChat(['score' => 1.7]);
     expect(app(OllamaRagasJudge::class)->scoreFaithfulness('q', 'a', 'c'))->toBe(1.0);
+});
 
+it('sanitiza score < 0 → 0.0', function () {
     fakeOllamaChat(['score' => -0.5]);
     expect(app(OllamaRagasJudge::class)->scoreFaithfulness('q', 'a', 'c'))->toBe(0.0);
 });
