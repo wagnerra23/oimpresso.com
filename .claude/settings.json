@@ -114,7 +114,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-bom-encoding.ps1"
+            "command": "node .claude/hooks/block-bom-encoding.mjs"
           },
           {
             "type": "command",
@@ -130,11 +130,11 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/warn-red-first.ps1"
+            "command": "node .claude/hooks/warn-red-first.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-test-without-red.ps1"
+            "command": "node .claude/hooks/block-test-without-red.mjs"
           }
         ]
       },
@@ -151,7 +151,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/commit-discipline-check.ps1"
+            "command": "node .claude/hooks/commit-discipline-check.mjs"
           },
           {
             "type": "command",
@@ -163,7 +163,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/block-serving-branch-switch.ps1"
+            "command": "node .claude/hooks/block-serving-branch-switch.mjs"
           }
         ]
       },

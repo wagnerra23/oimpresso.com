@@ -80,6 +80,18 @@ jobs:
         run: node .claude/hooks/block-mwart-violation.test.mjs
       - name: Block-automem + block-mwart REGISTRADOS como node (correcao != invocacao)
         run: node scripts/governance/settings-automem-mwart-registration.test.mjs
+      - name: Block-bom-encoding PORTE .mjs (proibicoes Ambiente BOM · #984 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/block-bom-encoding.test.mjs
+      - name: Block-serving-branch-switch PORTE .mjs (R8 · ADR 0233 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/block-serving-branch-switch.test.mjs
+      - name: Block-test-without-red PORTE .mjs (SDD FV-T0 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/block-test-without-red.test.mjs
+      - name: Warn-red-first PORTE .mjs (SDD FV-T0 advisory · logica + E2E · roda em Linux)
+        run: node .claude/hooks/warn-red-first.test.mjs
+      - name: Commit-discipline-check PORTE .mjs (skill Tier A · ADR 0094 §5 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/commit-discipline-check.test.mjs
+      - name: Lote porte .ps1->.mjs REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        run: node scripts/governance/settings-portlote-ps1-mjs-registration.test.mjs
       - name: Block-merge-markers PORTE .mjs (post-mortem v4 anti-pattern A · #1000/#1001 · roda em Linux)
         run: node .claude/hooks/block-merge-markers.test.mjs
       - name: Block-routes-string-legacy PORTE .mjs (rules/routes.md FQCN · incidente #843 · roda em Linux)
