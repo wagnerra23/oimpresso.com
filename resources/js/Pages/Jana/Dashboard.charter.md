@@ -1,6 +1,7 @@
 ---
 page: /copiloto/dashboard
 component: resources/js/Pages/Jana/Dashboard.tsx
+related_prototype: prototipo-ui/cowork/chat-jana.jsx
 owner: wagner
 status: live
 last_validated: "2026-05-18"

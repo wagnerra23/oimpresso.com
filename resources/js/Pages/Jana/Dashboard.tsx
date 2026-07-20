@@ -16,7 +16,7 @@ import { Badge } from '@/Components/ui/badge'
 import { MessageSquare, TrendingUp, TrendingDown, Minus, ExternalLink, Sparkles, Brain, Clock, Zap } from 'lucide-react'
 import FabJana from './components/FabJana'
 import { JanaAreaHeader } from './components/JanaAreaHeader'
-import JanaCockpitV2, { type JanaCockpitV2Props } from './components/JanaCockpitV2'
+import JanaCockpit, { type JanaCockpitProps } from './_components/JanaCockpit'
 
 interface Apuracao {
   data_ref: string
@@ -44,9 +44,9 @@ interface Meta {
 interface Props {
   metas: Meta[]
   /** Jana V2 cockpit payload (movido de /sells Onda 2026-05-26). */
-  sellKpis: JanaCockpitV2Props['sellKpis']
-  insightsAggregates: JanaCockpitV2Props['insightsAggregates']
-  coworkAggregates?: JanaCockpitV2Props['coworkAggregates']
+  sellKpis: JanaCockpitProps['sellKpis']
+  insightsAggregates: JanaCockpitProps['insightsAggregates']
+  coworkAggregates?: JanaCockpitProps['coworkAggregates']
   janaContext: {
     businessId: number | null
     businessName: string
@@ -270,16 +270,14 @@ export default function Dashboard({ metas, sellKpis, insightsAggregates, coworkA
           memory/requisitos/Jana/Chat-header-tabs-visual-comparison.md */}
       <JanaAreaHeader active="dashboard" />
 
-      {/* JanaCockpitV2 — conteúdo primário (movido de /sells Onda 2026-05-26).
-          Wrapper .sells-cowork porque os tokens .vd-insights-* estão escopados
-          nesse seletor em resources/css/sells-cowork-insights.css.
-          shrink-0: .main-body é flex-column + overflow-y:auto (cockpit.css) e
-          .sells-cowork carrega min-height:100% (sells-cowork.css). Sem shrink-0,
-          o flex encolhia este wrapper até o piso min-height (= altura do viewport)
-          e o conteúdo .vd-insights (mais alto) vazava por cima do bloco Metas
-          irmão — encavalamento reportado 2026-06-15. */}
-      <div className="sells-cowork px-6 pt-6 shrink-0">
-        <JanaCockpitV2
+      {/* JanaCockpit — conteúdo primário PT-04 (bifurcação do JanaCockpitV2, US-COPI-146).
+          Sem wrapper .sells-cowork: o cockpit agora usa shared KpiGrid/KpiCard + Card +
+          tokens Tailwind (dark herda nativo), zero ilha CSS. A tab Insights de /sells
+          segue no JanaCockpitV2 (.vd-insights-*, tela-dona legítima do bundle).
+          shrink-0: .main-body é flex-column + overflow-y:auto (cockpit.css); sem ele o
+          flex encolhia o wrapper e o conteúdo (mais alto) vazava sobre o bloco Metas. */}
+      <div className="px-6 pt-6 shrink-0">
+        <JanaCockpit
           sellKpis={sellKpis}
           insightsAggregates={insightsAggregates}
           coworkAggregates={coworkAggregates}
