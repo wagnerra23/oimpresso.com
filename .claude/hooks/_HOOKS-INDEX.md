@@ -10,8 +10,8 @@
 
 ## Resumo
 - **46** wirings em `settings.json` (5 eventos) · **41** arquivos de hook distintos wired
-- **43** arquivos de hook no disco (+28 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **2** · Fantasmas (wiring sem arquivo): **0**
+- **47** arquivos de hook no disco (+32 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **6** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
@@ -19,10 +19,10 @@
 |---|---|---|---|---|---|
 | SessionStart | `*` | brief-fetch-curl.ps1 | powershell | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | (inline no settings.json) | powershell | sessão (início — injeção de contexto) | — |
-| SessionStart | `*` | check-skills-fresh.ps1 | powershell | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | check-skills-fresh.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | tier-a-banner.ps1 | powershell | sessão (início — injeção de contexto) | — |
-| SessionStart | `*` | loop-fechar-check.ps1 | powershell | sessão (início — injeção de contexto) | — |
-| SessionStart | `*` | licoes-code-two-strikes.ps1 | powershell | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | loop-fechar-check.mjs | node | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | licoes-code-two-strikes.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | git-base-freshness-guard.mjs | node | sessão (início — injeção de contexto) | — |
 | PreToolUse | `Skill/DesignSync/design-login` | diag-pretooluse-trace.mjs | node | ferramenta (pré-uso do matcher) | — |
 | PreToolUse | `AskUserQuestion` | block-askq-execution-menu.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
@@ -33,7 +33,7 @@
 | PreToolUse | `Write/Edit/MultiEdit` | block-memory-drift.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-mwart-violation.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | charter-validate.ps1 | powershell | geração (pré-Write/Edit) | deny |
-| PreToolUse | `Write/Edit/MultiEdit` | modulo-preflight-warning.ps1 | powershell | geração (pré-Write/Edit) | — |
+| PreToolUse | `Write/Edit/MultiEdit` | modulo-preflight-warning.mjs | node | geração (pré-Write/Edit) | — |
 | PreToolUse | `Write/Edit/MultiEdit` | preflight-new-capability.ps1 | powershell | geração (pré-Write/Edit) | — |
 | PreToolUse | `Write/Edit/MultiEdit` | block-bom-encoding.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-merge-markers.mjs | node | geração (pré-Write/Edit) | exit-2 |
@@ -69,6 +69,10 @@ Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
 - ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.ps1 (wired)
+- ⚠️ `check-skills-fresh.ps1` — gêmeo cross-platform de check-skills-fresh.mjs (wired)
+- ⚠️ `licoes-code-two-strikes.ps1` — gêmeo cross-platform de licoes-code-two-strikes.mjs (wired)
+- ⚠️ `loop-fechar-check.ps1` — gêmeo cross-platform de loop-fechar-check.mjs (wired)
+- ⚠️ `modulo-preflight-warning.ps1` — gêmeo cross-platform de modulo-preflight-warning.mjs (wired)
 - ⚠️ `test-all-hooks-smoke.ps1` — sem wiring em settings.json
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)

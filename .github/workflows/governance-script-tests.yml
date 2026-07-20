@@ -104,6 +104,16 @@ jobs:
         run: node .claude/hooks/nudge-test-contract-anchor.test.mjs
       - name: Lote 2 nudges REGISTRADO como node (correcao != invocacao · US-GOV-052)
         run: node scripts/governance/settings-portlote2-nudges-registration.test.mjs
+      - name: Licoes-code-two-strikes PORTE .mjs (loop aprendizado · logica + E2E · roda em Linux)
+        run: node .claude/hooks/licoes-code-two-strikes.test.mjs
+      - name: Loop-fechar-check PORTE .mjs (rotina IA-OS idempotente · logica + E2E · roda em Linux)
+        run: node .claude/hooks/loop-fechar-check.test.mjs
+      - name: Check-skills-fresh PORTE .mjs (skill nova entre sessoes · logica + E2E · roda em Linux)
+        run: node .claude/hooks/check-skills-fresh.test.mjs
+      - name: Modulo-preflight-warning PORTE .mjs (FASE 1 pre-flight Tier 0 · logica + E2E · roda em Linux)
+        run: node .claude/hooks/modulo-preflight-warning.test.mjs
+      - name: Lote 3 SessionStart+preflight REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        run: node scripts/governance/settings-portlote3-sessionstart-registration.test.mjs
       - name: Block-merge-markers PORTE .mjs (post-mortem v4 anti-pattern A · #1000/#1001 · roda em Linux)
         run: node .claude/hooks/block-merge-markers.test.mjs
       - name: Block-routes-string-legacy PORTE .mjs (rules/routes.md FQCN · incidente #843 · roda em Linux)
