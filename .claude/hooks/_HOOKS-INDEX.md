@@ -10,8 +10,8 @@
 
 ## Resumo
 - **44** wirings em `settings.json` (5 eventos) · **40** arquivos de hook distintos wired
-- **50** arquivos de hook no disco (+35 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **10** · Fantasmas (wiring sem arquivo): **0**
+- **42** arquivos de hook no disco (+33 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **2** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
@@ -66,16 +66,8 @@
 Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
-- ⚠️ `brief-fetch-curl.ps1` — gêmeo cross-platform de brief-fetch-curl.mjs (wired)
-- ⚠️ `charter-validate.ps1` — gêmeo cross-platform de charter-validate.mjs (wired)
 - ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.mjs (wired)
-- ⚠️ `check-skills-fresh.ps1` — gêmeo cross-platform de check-skills-fresh.mjs (wired)
-- ⚠️ `licoes-code-two-strikes.ps1` — gêmeo cross-platform de licoes-code-two-strikes.mjs (wired)
-- ⚠️ `loop-fechar-check.ps1` — gêmeo cross-platform de loop-fechar-check.mjs (wired)
-- ⚠️ `modulo-preflight-warning.ps1` — gêmeo cross-platform de modulo-preflight-warning.mjs (wired)
-- ⚠️ `preflight-new-capability.ps1` — gêmeo cross-platform de preflight-new-capability.mjs (wired)
 - ⚠️ `test-all-hooks-smoke.ps1` — sem wiring em settings.json
-- ⚠️ `tier-a-banner.ps1` — gêmeo cross-platform de tier-a-banner.mjs (wired)
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
 Contexts `classic_protection` (31):
