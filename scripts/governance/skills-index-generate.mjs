@@ -87,8 +87,10 @@ for (const s of [...nucleo, ...dormentes, ...autoTrigger]) {
 }
 
 // 4ª fonte (P31): banner SessionStart precisa ao menos MENCIONAR cada skill do núcleo —
-// não gera o .ps1 (texto livre), mas acusa o drift mais grave (núcleo ausente do banner).
-const BANNER = '.claude/hooks/tier-a-banner.ps1';
+// não gera o banner (texto livre), mas acusa o drift mais grave (núcleo ausente do banner).
+// US-GOV-052: aponta pro .mjs (o .ps1 foi portado cross-platform; se apontasse pro .ps1 e
+// ele fosse deletado, o existsSync abaixo faria o check sumir EM SILÊNCIO — adversário 2026-07-20).
+const BANNER = '.claude/hooks/tier-a-banner.mjs';
 if (existsSync(join(ROOT, BANNER))) {
   const banner = readFileSync(join(ROOT, BANNER), 'utf8');
   for (const s of nucleo) {
