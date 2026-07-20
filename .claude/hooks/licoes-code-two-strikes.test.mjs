@@ -42,6 +42,7 @@ check('formatBanner vazio quando nada', formatBanner([], [], 2) === '');
 // ── extensão: cobertura só-advisory = "sem defesa mecânica" (proposal two-strikes-cobre-processo) ──
 check('semGate: advisory/parcial/insuficiente = sem defesa mecanica', semGate('advisory — nudge-x') && semGate('parcial: cobre so X') && semGate('insuficiente'));
 check('semGate: nome de gate real com "(advisory,...)" NAO casa (so o prefixo declarado)', !semGate('mutation-gate (advisory, escopo v1)') && !semGate('block-foo.mjs'));
+check('semGate: advisory-terminal/by-design/0224 NAO alarma (decisao final ADR 0224)', !semGate('advisory-terminal (0224) — nudge-x') && !semGate('advisory by-design: nudge-y') && !semGate('parcial (0224 terminal)'));
 const MD2 = `# Licoes
 ## LC-90 - Classe de processo com gate advisory que vaza
 **Ocorrências:** 5

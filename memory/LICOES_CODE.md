@@ -3,7 +3,7 @@
 > Escopo: **código backend/infra** (PHP, Eloquent, jobs, migrations, controllers, services, CI)
 > **+ processo/comportamento de agente** (medição, derivação, oráculo, varredura) — o tema é
 > *reincidência → defesa mecânica*, e erro de processo é instância disso igual erro de código
-> (proposal [two-strikes-cobre-processo](decisions/proposals/2026-07-20-two-strikes-cobre-processo.md), raio-X 2026-07-20).
+> (proposal [two-strikes-cobre-processo](decisions/0344-two-strikes-cobre-processo.md), raio-X 2026-07-20).
 > Equivalente de `LICOES_CC.md` (que cobre design/[CC]) pro lado de engenharia.
 > Subordinado a `memory/proibicoes.md` (canônico; o §5 de lá é a PROSA-evidência, este é o CONTADOR). **Append-only.**
 > Lido no início de toda sessão pelo hook `licoes-code-two-strikes.mjs`.
@@ -35,6 +35,13 @@
 > Ao consertar um erro de código: ache a `Classe` aqui. Existe? Incrementa `Ocorrências`.
 > Não existe? Cria `LC-NN` novo com `Ocorrências: 1`. Quando virar gate, troca `Gate: none`
 > pelo nome do gate e o alarme some sozinho (catraca — só sobe).
+>
+> **Convenção do campo `Gate` (ADR 0344):** cobertura só-**advisory** (nudge/warn que não bloqueia)
+> conta como *sem defesa mecânica* — declare `Gate: advisory — <hooks>` e a classe **segue
+> alarmando** até virar sonda que morde. Se o advisory é a decisão **FINAL by-design** (ADR 0224),
+> declare `Gate: advisory-terminal (0224) — <hook>`: o marcador `terminal`/`by-design`/`0224` sai
+> do alarme. Um gate REAL que só menciona "advisory" entre parênteses (`mutation-gate (advisory,…)`)
+> não é advisory pra o contador — só o prefixo declarado.
 
 ---
 
@@ -120,5 +127,5 @@
 - **Regra:** achado/número/veredito só vira CONCLUSÃO depois de (a) varredura CONTADA (sem `head_limit`, dizendo "N de N"), (b) âncora de contrato citada (UC/SPEC/ADR), (c) oráculo certo (banco/runtime/teste vermelho) — nunca leitura/parse/olho. Recibo DATADO (`query+resultado+data`), não afirmação atemporal. Em dúvida → PERGUNTAR, não inventar.
 - **Classe:** afirmar-sem-medir-fonte-certa
 - **Ocorrências:** 5   (proibicoes §5: 07-15 achado-sem-varredura · 07-16 medir-propriedade-errada · 07-17 oráculo-errado-restatear-número · 07-17 deduzir-quem-roda-parseando · 07-17 crontab-l-falso-negativo. Adjacente: 07-16 importar-solução-sem-checar-premissa.)
-- **Gate:** advisory — `nudge-diagnosis-without-evidence` + `warn-red-first` + `block-ancora-no-olho` (nenhum BLOQUEIA a medição/derivação errada; a classe reincidiu 5× em 3 dias → advisory insuficiente, precisa de sonda que morda)
-- **Ref:** `memory/proibicoes.md` §5 (2026-07-15..17) · raio-X 2026-07-20 · proposal [two-strikes-cobre-processo](decisions/proposals/2026-07-20-two-strikes-cobre-processo.md)
+- **Gate:** advisory — `nudge-diagnosis-without-evidence` + `warn-red-first` (nudges que NÃO bloqueiam ESTA classe; ela reincidiu 5× em 3 dias → advisory insuficiente, precisa de sonda que morda). Crédito honesto: `block-ancora-no-olho` já BLOQUEIA (exit 2), mas comportamento **adjacente** (ler PNG semântico como fonte de design), não a medição/derivação desta classe — por isso "nenhum bloqueia ESTA classe" segue verdadeiro. Desescala quando cada sub-comportamento ganhar sonda própria (ex: medir-propriedade-errada → CSS `[hidden]{display:none!important}`; oráculo-número → Check T `fact-anchor`).
+- **Ref:** `memory/proibicoes.md` §5 (2026-07-15..17) · raio-X 2026-07-20 · proposal [two-strikes-cobre-processo](decisions/0344-two-strikes-cobre-processo.md)
