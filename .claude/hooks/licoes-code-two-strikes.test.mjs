@@ -39,6 +39,17 @@ check('LC-02 (tem gate) fica de fora', !alarme.concat(watch).some((l) => l.id ==
 check('formatBanner cita PROMOVER + LC-01', /PROMOVER A DEFESA MECANICA/.test(formatBanner(alarme, watch, 2)) && /LC-01/.test(formatBanner(alarme, watch, 2)));
 check('formatBanner vazio quando nada', formatBanner([], [], 2) === '');
 
+// ── extensão: cobertura só-advisory = "sem defesa mecânica" (proposal two-strikes-cobre-processo) ──
+check('semGate: advisory/parcial/insuficiente = sem defesa mecanica', semGate('advisory — nudge-x') && semGate('parcial: cobre so X') && semGate('insuficiente'));
+check('semGate: nome de gate real com "(advisory,...)" NAO casa (so o prefixo declarado)', !semGate('mutation-gate (advisory, escopo v1)') && !semGate('block-foo.mjs'));
+const MD2 = `# Licoes
+## LC-90 - Classe de processo com gate advisory que vaza
+**Ocorrências:** 5
+**Gate:** advisory — nudge-diagnosis-without-evidence + warn-red-first
+`;
+const c2 = classificar(parseLicoes(MD2), 2);
+check('classe so-advisory reincidente (5x) vira ALARME', c2.alarme.length === 1 && c2.alarme[0].id === 'LC-90');
+
 // ── E2E: advisory SEMPRE exit 0 ──────────────────────────────────────────────────
 const tmp = mkdtempSync(join(tmpdir(), 'licoes-'));
 const p = join(tmp, 'LICOES_CODE.md');
