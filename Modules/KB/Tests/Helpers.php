@@ -198,11 +198,59 @@ function kbTeardownSchema(): void
 }
 
 /**
- * Cria row business com id especificado (ou padrão biz=1).
+ * Cria row business com id especificado (ou padrão biz=1). Idempotente.
+ *
+ * MySQL-real fix (2026-07-20): a tabela `business` REAL do UltimatePOS (staging
+ * oimpresso-staging, clone anonimizado de prod) tem colunas NOT NULL + FK sem
+ * default — `currency_id`→currencies, `owner_id`→users, `stop_selling_before`,
+ * `weighing_scale_setting` (text), `certificado` (blob), `officeimpresso_numerodemaquinas`.
+ * O SQL mode do staging é NÃO-estrito (NO_ENGINE_SUBSTITUTION), então as NOT NULL
+ * viram default implícito (0/''), mas os FK `currency_id=0`/`owner_id=0` NÃO existem
+ * nas tabelas-pai → o INSERT estoura FK. Com `insertOrIgnore` esse erro era ENGOLIDO
+ * silenciosamente → o business fictício (ex: biz=99) NUNCA era criado → FK 1452
+ * (`fk_kb_nodes_business`) nos `kb_*` downstream de TODO teste cross-tenant.
+ *
+ * Solução robusta a drift de schema: CLONAR uma row-modelo já válida (biz=1 do
+ * clone de prod) trocando só `id`/`name`/`uuid` — satisfaz TODA NOT NULL e TODO FK
+ * sem enumerar colunas (imune a colunas NOT NULL futuras). Única unique além do PK
+ * é `uuid` (nullable) → nulamos pra não colidir com a row-modelo. Trocamos o
+ * `insertOrIgnore` por checagem `exists()` + `insert()` puro: idempotente igual,
+ * mas SEM engolir erro — qualquer problema futuro FALHA alto, não silencioso.
+ *
+ * SQLite (CI/local, tabela `business` mínima de kbBootstrapSchema): quando não há
+ * row-modelo (banco fresco), cai no insert mínimo de 4 colunas — comportamento
+ * idêntico ao anterior. Ver ADR 0093 (multi-tenant) + ADR 0101 (biz=1) + ADR 0062.
  */
 function kbCreateBusinessRow(int $bizId = 1): void
 {
-    \DB::table('business')->insertOrIgnore([
+    if ($bizId === 4) {
+        throw new \LogicException('ADR 0101: biz=4 (ROTA LIVRE prod) NUNCA em tests. Use biz=1 OR biz=99.');
+    }
+
+    // Idempotente: biz=1 já vem do clone de prod no staging MySQL; recall é no-op.
+    if (\DB::table('business')->where('id', $bizId)->exists()) {
+        return;
+    }
+
+    // Row-modelo válida (biz=1 no staging; qualquer row no sqlite). null = banco fresco.
+    $template = \DB::table('business')->orderBy('id')->first();
+
+    if ($template !== null) {
+        $row = (array) $template;
+        $row['id']         = $bizId;
+        $row['name']       = "Test Business {$bizId}";
+        $row['created_at'] = now();
+        $row['updated_at'] = now();
+        if (array_key_exists('uuid', $row)) {
+            $row['uuid'] = null; // unique index — evita colisão com a row-modelo
+        }
+        \DB::table('business')->insert($row);
+
+        return;
+    }
+
+    // Fallback banco fresco (sqlite :memory: — tabela mínima id/name/timestamps).
+    \DB::table('business')->insert([
         'id'         => $bizId,
         'name'       => "Test Business {$bizId}",
         'created_at' => now(),
