@@ -64,7 +64,7 @@ export function buildWarnings(cmd, { insertions = null, pii = false } = {}) {
     }
     if (pii) {
       out.push('[commit-discipline] AVISO: POSSIVEL PII no diff (CPF/CNPJ formatado).\n' +
-        '  LGPD: dados reais NUNCA em commit. Use [REDACTED] ou data fake (123.456.789-09).\n' +
+        '  LGPD: dados reais NUNCA em commit. Use [REDACTED] ou data fake (123.456.789-09).\n' + // pii-allowlist (CPF fake didatico na mensagem de aviso)
         '  Se for fake (CPF invalido pra teste), seguir e OK.');
     }
   }

@@ -20,8 +20,8 @@ check('isUnsafeForcePush: --force sem lease', isUnsafeForcePush('git push --forc
 check('isUnsafeForcePush: --force-with-lease é seguro', isUnsafeForcePush('git push --force-with-lease') === false);
 check('isUnsafeForcePush: push normal', isUnsafeForcePush('git push') === false);
 check('isCommit', isCommit('git commit -m x') === true && isCommit('git add .') === false);
-check('hasPiiPattern: CPF formatado', hasPiiPattern('cliente 123.456.789-09 aqui') === true);
-check('hasPiiPattern: CNPJ formatado', hasPiiPattern('12.345.678/0001-99') === true);
+check('hasPiiPattern: CPF formatado', hasPiiPattern('cliente 123.456.789-09 aqui') === true); // pii-allowlist (CPF sintetico fixture)
+check('hasPiiPattern: CNPJ formatado', hasPiiPattern('12.345.678/0001-99') === true); // pii-allowlist (CNPJ sintetico fixture)
 check('hasPiiPattern: sem PII', hasPiiPattern('id 12345 sem formato') === false);
 
 // ── buildWarnings: injeta medições (sem tocar git) ───────────────────────────────
