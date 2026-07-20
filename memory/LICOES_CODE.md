@@ -42,6 +42,17 @@
 > declare `Gate: advisory-terminal (0224) — <hook>`: o marcador `terminal`/`by-design`/`0224` sai
 > do alarme. Um gate REAL que só menciona "advisory" entre parênteses (`mutation-gate (advisory,…)`)
 > não é advisory pra o contador — só o prefixo declarado.
+>
+> ## Reconciliação §5↔ledger (auto-feed · proposal [auto-feed-ledger-aprendizado](decisions/proposals/2026-07-20-auto-feed-ledger-aprendizado.md))
+> No SessionStart o hook, além de alarmar two-strikes, **reconcilia** este ledger com o §5 de
+> `memory/proibicoes.md`: lê as **datas do §5 que a linha `Ocorrências` cita** (o prefixo `§5:` —
+> o recibo datado; convenção do "Caminho único" da ADR 0344), calcula `frontier = max(essas datas)`
+> e **surfaça** as lápides do §5 que carregam marcador de recorrência do autor (*"reincidência /
+> mesma família / EMENDA da lápide / …"*) **além do frontier e fora do ledger** — pra VOCÊ decidir:
+> vira LC nova, +1 numa LC, ou é ruído? A **DETECÇÃO** da recorrência-DECLARADA vira mecânica; o
+> **julgamento** e o passo erro→lápide seguem HUMANOS (não "lê o erro real"; reconcilia dois docs
+> curados à mão). Também flagra **recibo pendurado** (data citada sem lápide no §5 — typo).
+> Dry-run contado: `node .claude/hooks/licoes-code-two-strikes.mjs --reconcile`.
 
 ---
 
