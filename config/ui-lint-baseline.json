@@ -3,14 +3,15 @@
         "generated_at": "2026-05-27T17:12:28-03:00",
         "tool": "ui:lint",
         "files_scanned": 1433,
-        "total_violations": 7594,
+        "total_violations": 7595,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
             "R3": "emoji em UI de produto (use lucide icon)",
             "R4": "PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable shared",
             "R5": "origens canon · CSS define apenas 5 origins (OS\/CRM\/FIN\/PNT\/MFG)",
-            "R6": "Blade directives adjacent sem whitespace (@endif@if, etc) · quebra compiler"
+            "R6": "Blade directives adjacent sem whitespace (@endif@if, etc) · quebra compiler",
+            "R7": "PT-04 · bundle CSS de módulo alheio (cross-module borrow · ilha paralela)"
         }
     },
     "files": {
@@ -584,7 +585,8 @@
             "R3": 10
         },
         "resources\/js\/Pages\/Jana\/Dashboard.tsx": {
-            "R1": 19
+            "R1": 19,
+            "R7": 1
         },
         "resources\/js\/Pages\/Jana\/Memoria.tsx": {
             "R1": 14

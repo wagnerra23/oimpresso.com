@@ -61,6 +61,21 @@ class UiLintCommand extends Command
         'R4' => 'PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable shared',
         'R5' => 'origens canon · CSS define apenas 5 origins (OS/CRM/FIN/PNT/MFG)',
         'R6' => 'Blade directives adjacent sem whitespace (@endif@if, etc) · quebra compiler',
+        'R7' => 'PT-04 · bundle CSS de módulo alheio (cross-module borrow · ilha paralela)',
+    ];
+
+    /**
+     * Catálogo de bundles CSS escopados por módulo — o wrapper (className) e o
+     * módulo DONO. Uma Page que aplica o wrapper de um módulo que NÃO é o seu
+     * está "pegando emprestada" a ilha CSS alheia (cross-module bundle borrow),
+     * o pecado catalogado no PT-04-Dashboard §"Bundle CSS paralelo" (L80).
+     *
+     * @var array<string, string>  wrapper-className => módulo-dono (pasta Pages/<Dono>/)
+     */
+    private const BUNDLE_WRAPPERS = [
+        'sells-cowork'  => 'Sells',
+        'fin-cowork'    => 'Financeiro',
+        'fin-curadoria' => 'Financeiro',
     ];
 
     /**
@@ -153,6 +168,9 @@ class UiLintCommand extends Command
             }
             if ($this->ruleEnabled('R4', $ruleFilter)) {
                 $violations = [...$violations, ...$this->checkR4($relPath, $content)];
+            }
+            if ($this->ruleEnabled('R7', $ruleFilter)) {
+                $violations = [...$violations, ...$this->checkR7($relPath, $content)];
             }
         }
 
@@ -467,6 +485,59 @@ class UiLintCommand extends Command
                 'match' => 'no <DataTable>',
                 'detail' => 'PT-01 Slot 5 ausente · Index.tsx tem que importar DataTable (Components/shared) OU justificar via .charter.md',
             ];
+        }
+
+        return $out;
+    }
+
+    /**
+     * R7 · PT-04 Dashboard / SoC · página aplica no `className` o wrapper de um
+     * bundle CSS de módulo ALHEIO (cross-module borrow · ilha paralela).
+     *
+     * Ancora: PT-04-Dashboard.md L80 (❌ "Bundle CSS paralelo escopado
+     * `.sells-cowork`/`.vd-insights-*` pra estilizar dashboard … contamina o
+     * Jana :276") + ADR UI-0013 (camadas: módulo herda das Fundações/Shell,
+     * não veste a ilha CSS de outro módulo).
+     *
+     * Cross-module de propósito (menor falso-positivo): a tela DONA usar o
+     * próprio bundle é legítimo; só a página de OUTRO módulo aplicando o
+     * wrapper dispara. Medido 2026-07-20: 1 hit (Pages/Jana/Dashboard.tsx →
+     * `.sells-cowork`), 0 nas 27 telas-donas. Ratchet vs baseline trava a
+     * reincidência sem forçar a migração imediata (a dívida entra no baseline).
+     *
+     * @return array<int, array{rule:string, file:string, line:int, match:string, detail:string}>
+     */
+    private function checkR7(string $relPath, string $content): array
+    {
+        $out = [];
+        $normalized = $this->normalizePath($relPath);
+
+        // Só telas (Pages/<Modulo>/…); captura o módulo da tela.
+        if (! preg_match('#^resources/js/Pages/([^/]+)/#', $normalized, $m)) {
+            return $out;
+        }
+        $screenModule = $m[1];
+
+        $lines = explode("\n", $content);
+        foreach (self::BUNDLE_WRAPPERS as $wrapper => $ownerModule) {
+            // Página do próprio módulo dono → legítimo, não é borrow.
+            if ($screenModule === $ownerModule) {
+                continue;
+            }
+            // className="… <wrapper> …" — aplica o wrapper da ilha alheia.
+            $re = '/className=["\'`][^"\'`]*\b'.preg_quote($wrapper, '/').'\b/';
+            foreach ($lines as $i => $lineText) {
+                if (preg_match($re, $lineText)) {
+                    $out[] = [
+                        'rule' => 'R7',
+                        'file' => $relPath,
+                        'line' => $i + 1,
+                        'match' => $wrapper,
+                        'detail' => "PT-04 · bundle CSS de módulo alheio · Pages/{$screenModule} aplica '.{$wrapper}' (dono: {$ownerModule}) — ilha paralela proibida (PT-04-Dashboard L80). Migrar pra shared @/Components (KpiGrid/KpiCard/PageHeader) + tokens do DS.",
+                    ];
+                    break; // 1 hit por wrapper por arquivo (mesma violação estrutural)
+                }
+            }
         }
 
         return $out;
