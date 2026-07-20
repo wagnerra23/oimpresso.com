@@ -87,6 +87,13 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
    tinham que se auto-curar lendo origin/main na mão). O script **já tolera as duas formas** (parse
    defensivo `typeof args === 'string' ? JSON.parse : args`), então passar objeto OU string funciona.
    Ainda assim confira o dossiê: se o prompt dele contém "AJUSTE: passe args.base", o `base` não chegou.
+   **Emenda 2026-07-19 (proibições §5):** a PERGUNTA de integração foi reformulada — o bar "no MESMO
+   contexto do oimpresso" era tautológico (ninguém É o oimpresso → dava `DIFERENCIAL_SISTEMA` sempre;
+   81/81 em 8 runs, ledger 2026-07-18). Agora o veredito tem braço discriminativo: `REFUTADO_TB` dispara
+   se (a) não há incremento nomeável além da IDENTIDADE **ou** (b) UM peer único monta o todo equivalente
+   nos eixos que sustentam o incremento (mesmo em outro vertical). O GUARD anti-composição segue
+   INVIOLÁVEL: peers DIFERENTES cobrindo cada um um eixo NÃO é `REFUTADO_TB`. Honestidade: reformular
+   HABILITA o negativo — não PROVA que dispara; o placar do próximo full é a evidência (§5 2026-07-17).
 
 ## Regras 8-15 — lições do adversário formal de 2026-07-12 (mesma força das 7 acima)
 
