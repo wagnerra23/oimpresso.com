@@ -6,7 +6,6 @@ prs: [4599]
 related_adrs:
   - 0344-two-strikes-cobre-processo
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
-  - 0224-hooks-block-vs-advisory-claude-4.8-aware
   - 0094-constituicao-v2-7-camadas-8-principios
 ---
 
