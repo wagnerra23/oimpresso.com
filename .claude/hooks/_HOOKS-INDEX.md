@@ -10,8 +10,8 @@
 
 ## Resumo
 - **46** wirings em `settings.json` (5 eventos) · **41** arquivos de hook distintos wired
-- **48** arquivos de hook no disco (+26 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **7** · Fantasmas (wiring sem arquivo): **0**
+- **53** arquivos de hook no disco (+31 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **12** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
@@ -26,7 +26,7 @@
 | SessionStart | `*` | git-base-freshness-guard.mjs | node | sessão (início — injeção de contexto) | — |
 | PreToolUse | `Skill/DesignSync/design-login` | diag-pretooluse-trace.mjs | node | ferramenta (pré-uso do matcher) | — |
 | PreToolUse | `AskUserQuestion` | block-askq-execution-menu.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
-| PreToolUse | `Read/Glob/Grep` | mcp-first-warning.ps1 | powershell | leitura (pré-Read/Glob/Grep) | — |
+| PreToolUse | `Read/Glob/Grep` | mcp-first-warning.mjs | node | leitura (pré-Read/Glob/Grep) | — |
 | PreToolUse | `Read/Glob/Grep` | block-ancora-no-olho.mjs | node | leitura (pré-Read/Glob/Grep) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-automem.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-brl-values-in-memory.mjs | node | geração (pré-Write/Edit) | exit-2 |
@@ -38,7 +38,7 @@
 | PreToolUse | `Write/Edit/MultiEdit` | block-bom-encoding.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-merge-markers.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-routes-string-legacy.mjs | node | geração (pré-Write/Edit) | exit-2 |
-| PreToolUse | `Write/Edit/MultiEdit` | nudge-test-contract-anchor.ps1 | powershell | geração (pré-Write/Edit) | — |
+| PreToolUse | `Write/Edit/MultiEdit` | nudge-test-contract-anchor.mjs | node | geração (pré-Write/Edit) | — |
 | PreToolUse | `Write/Edit/MultiEdit` | warn-red-first.mjs | node | geração (pré-Write/Edit) | — |
 | PreToolUse | `Write/Edit/MultiEdit` | block-test-without-red.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Bash` | block-destructive.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
@@ -54,9 +54,9 @@
 | PreToolUse | `Bash/PowerShell` | block-test-fora-ct100.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PostToolUse | `Bash` | post-merge-ui-smoke-required.mjs | node | pós-ação (observa, não corta) | exit-2 |
 | PostToolUse | `Write/Edit` | audit-creates-tasks.mjs | node | pós-ação (observa, não corta) | — |
-| Stop | `*` | memory-pending.ps1 | powershell | fim de turno | — |
-| Stop | `*` | nudge-recommend-not-menu.ps1 | powershell | fim de turno | — |
-| Stop | `*` | nudge-diagnosis-without-evidence.ps1 | powershell | fim de turno | — |
+| Stop | `*` | memory-pending.mjs | node | fim de turno | — |
+| Stop | `*` | nudge-recommend-not-menu.mjs | node | fim de turno | — |
+| Stop | `*` | nudge-diagnosis-without-evidence.mjs | node | fim de turno | — |
 | UserPromptSubmit | `*` | force-r12-closing-signal.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | design-handoff-reprocess.mjs | node | prompt (pré-turno) | — |
 | UserPromptSubmit | `*` | block-figma-without-optin.mjs | node | prompt (pré-turno) | exit-2 |
@@ -73,6 +73,11 @@ Nenhum.
 - ⚠️ `block-test-without-red.ps1` — gêmeo cross-platform de block-test-without-red.mjs (wired)
 - ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.ps1 (wired)
 - ⚠️ `commit-discipline-check.ps1` — gêmeo cross-platform de commit-discipline-check.mjs (wired)
+- ⚠️ `mcp-first-warning.ps1` — gêmeo cross-platform de mcp-first-warning.mjs (wired)
+- ⚠️ `memory-pending.ps1` — gêmeo cross-platform de memory-pending.mjs (wired)
+- ⚠️ `nudge-diagnosis-without-evidence.ps1` — gêmeo cross-platform de nudge-diagnosis-without-evidence.mjs (wired)
+- ⚠️ `nudge-recommend-not-menu.ps1` — gêmeo cross-platform de nudge-recommend-not-menu.mjs (wired)
+- ⚠️ `nudge-test-contract-anchor.ps1` — gêmeo cross-platform de nudge-test-contract-anchor.mjs (wired)
 - ⚠️ `test-all-hooks-smoke.ps1` — sem wiring em settings.json
 - ⚠️ `warn-red-first.ps1` — gêmeo cross-platform de warn-red-first.mjs (wired)
 

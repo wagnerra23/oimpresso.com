@@ -73,7 +73,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/mcp-first-warning.ps1"
+            "command": "node .claude/hooks/mcp-first-warning.mjs"
           },
           {
             "type": "command",
@@ -126,7 +126,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/nudge-test-contract-anchor.ps1"
+            "command": "node .claude/hooks/nudge-test-contract-anchor.mjs"
           },
           {
             "type": "command",
@@ -239,15 +239,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/memory-pending.ps1"
+            "command": "node .claude/hooks/memory-pending.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/nudge-recommend-not-menu.ps1"
+            "command": "node .claude/hooks/nudge-recommend-not-menu.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/nudge-diagnosis-without-evidence.ps1"
+            "command": "node .claude/hooks/nudge-diagnosis-without-evidence.mjs"
           }
         ]
       }

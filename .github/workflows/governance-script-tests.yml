@@ -92,6 +92,18 @@ jobs:
         run: node .claude/hooks/commit-discipline-check.test.mjs
       - name: Lote porte .ps1->.mjs REGISTRADO como node (correcao != invocacao · US-GOV-052)
         run: node scripts/governance/settings-portlote-ps1-mjs-registration.test.mjs
+      - name: Memory-pending PORTE .mjs (Stop · skill memory-sync · ADR 0070 · roda em Linux)
+        run: node .claude/hooks/memory-pending.test.mjs
+      - name: Nudge-recommend-not-menu PORTE .mjs (R13 · advisory · roda em Linux)
+        run: node .claude/hooks/nudge-recommend-not-menu.test.mjs
+      - name: Nudge-diagnosis-without-evidence PORTE .mjs (R1 · advisory · roda em Linux)
+        run: node .claude/hooks/nudge-diagnosis-without-evidence.test.mjs
+      - name: Mcp-first-warning PORTE .mjs (skill mcp-first · hookSpecificOutput allow · roda em Linux)
+        run: node .claude/hooks/mcp-first-warning.test.mjs
+      - name: Nudge-test-contract-anchor PORTE .mjs (proibicoes §descartadas Check 9 · roda em Linux)
+        run: node .claude/hooks/nudge-test-contract-anchor.test.mjs
+      - name: Lote 2 nudges REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        run: node scripts/governance/settings-portlote2-nudges-registration.test.mjs
       - name: Block-merge-markers PORTE .mjs (post-mortem v4 anti-pattern A · #1000/#1001 · roda em Linux)
         run: node .claude/hooks/block-merge-markers.test.mjs
       - name: Block-routes-string-legacy PORTE .mjs (rules/routes.md FQCN · incidente #843 · roda em Linux)
