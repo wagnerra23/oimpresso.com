@@ -10,8 +10,8 @@
 
 ## Resumo
 - **46** wirings em `settings.json` (5 eventos) · **41** arquivos de hook distintos wired
-- **47** arquivos de hook no disco (+32 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **6** · Fantasmas (wiring sem arquivo): **0**
+- **49** arquivos de hook no disco (+34 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **8** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
@@ -32,9 +32,9 @@
 | PreToolUse | `Write/Edit/MultiEdit` | block-brl-values-in-memory.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-memory-drift.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-mwart-violation.mjs | node | geração (pré-Write/Edit) | exit-2 |
-| PreToolUse | `Write/Edit/MultiEdit` | charter-validate.ps1 | powershell | geração (pré-Write/Edit) | deny |
+| PreToolUse | `Write/Edit/MultiEdit` | charter-validate.mjs | node | geração (pré-Write/Edit) | deny |
 | PreToolUse | `Write/Edit/MultiEdit` | modulo-preflight-warning.mjs | node | geração (pré-Write/Edit) | — |
-| PreToolUse | `Write/Edit/MultiEdit` | preflight-new-capability.ps1 | powershell | geração (pré-Write/Edit) | — |
+| PreToolUse | `Write/Edit/MultiEdit` | preflight-new-capability.mjs | node | geração (pré-Write/Edit) | — |
 | PreToolUse | `Write/Edit/MultiEdit` | block-bom-encoding.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-merge-markers.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-routes-string-legacy.mjs | node | geração (pré-Write/Edit) | exit-2 |
@@ -68,11 +68,13 @@
 Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
-- ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.ps1 (wired)
+- ⚠️ `charter-validate.ps1` — gêmeo cross-platform de charter-validate.mjs (wired)
+- ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.mjs (wired)
 - ⚠️ `check-skills-fresh.ps1` — gêmeo cross-platform de check-skills-fresh.mjs (wired)
 - ⚠️ `licoes-code-two-strikes.ps1` — gêmeo cross-platform de licoes-code-two-strikes.mjs (wired)
 - ⚠️ `loop-fechar-check.ps1` — gêmeo cross-platform de loop-fechar-check.mjs (wired)
 - ⚠️ `modulo-preflight-warning.ps1` — gêmeo cross-platform de modulo-preflight-warning.mjs (wired)
+- ⚠️ `preflight-new-capability.ps1` — gêmeo cross-platform de preflight-new-capability.mjs (wired)
 - ⚠️ `test-all-hooks-smoke.ps1` — sem wiring em settings.json
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
