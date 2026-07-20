@@ -629,6 +629,30 @@ class ProductController extends Controller
         if (! auth()->user()->can('product.create')) {
             abort(403, 'Unauthorized action.');
         }
+
+        // UC-PCAD-05 (Tier 0 multi-tenant · ADR 0093) — os FKs de insumo (categoria/marca/
+        // unidade/garantia) só podem ser do business atual. Sem isto o `$request->only()`
+        // abaixo gravava id ALHEIO (achado [M]/[F] no #4417, casos UC-PCAD-05; mesma família
+        // do UC-PTAB-04/#4300). Validação ANTES do `try` — o `catch (\Exception)` engoliria a
+        // ValidationException num redirect genérico. `! empty()` trata ''/null como AUSENTE
+        // (produto sem categoria/marca é legítimo — não quebra o fluxo antigo).
+        $uc_pcad_05_bid = $request->session()->get('user.business_id');
+        $fk_scoped = [
+            'category_id' => 'categories', 'sub_category_id' => 'categories',
+            'brand_id' => 'brands', 'unit_id' => 'units', 'secondary_unit_id' => 'units',
+            'warranty_id' => 'warranties',
+        ];
+        $fk_alheio = [];
+        foreach ($fk_scoped as $field => $table) {
+            $val = $request->input($field);
+            if (! empty($val) && ! DB::table($table)->where('id', $val)->where('business_id', $uc_pcad_05_bid)->exists()) {
+                $fk_alheio[$field] = "O {$field} selecionado não pertence a este negócio.";
+            }
+        }
+        if (! empty($fk_alheio)) {
+            throw \Illuminate\Validation\ValidationException::withMessages($fk_alheio);
+        }
+
         try {
             $business_id = $request->session()->get('user.business_id');
             $form_fields = ['name', 'brand_id', 'unit_id', 'category_id', 'tax', 'type', 'barcode_type', 'sku', 'alert_quantity', 'tax_type', 'weight', 'product_description', 'sub_unit_ids', 'preparation_time_in_minutes', 'product_custom_field1', 'product_custom_field2', 'product_custom_field3', 'product_custom_field4', 'product_custom_field5', 'product_custom_field6', 'product_custom_field7', 'product_custom_field8', 'product_custom_field9', 'product_custom_field10', 'product_custom_field11', 'product_custom_field12', 'product_custom_field13', 'product_custom_field14', 'product_custom_field15', 'product_custom_field16', 'product_custom_field17', 'product_custom_field18', 'product_custom_field19', 'product_custom_field20',];

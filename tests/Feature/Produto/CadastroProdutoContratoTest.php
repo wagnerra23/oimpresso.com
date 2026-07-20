@@ -177,16 +177,39 @@ it('UC-PCAD-04 · custo fracionário com ponto NÃO infla ×100k', function () {
 });
 
 // =============================================================================
-// UC-PCAD-05 — MOVIDO PRO BACKLOG (2026-07-17, correção [F]).
-//   É um ACHADO Tier 0 REAL (rodou vermelho: `store()` grava category_id de outro
-//   business — `$request->only()` sem `exists:` escopado; mesma família do UC-PTAB-04
-//   do #4300), MAS corrigi-lo mexe no `store()` legado do UltimatePOS (~6.4k chamadas
-//   Blade + quick-add + import). Fazer isso sem rodar os caminhos legados no CT 100
-//   (indisponível nesta sessão) arrisca regressão num método ultra-crítico.
-//   → Vira US própria com Pest cobrindo os fluxos antigos (task MCP criada 2026-07-17).
-//   Registrado no §Backlog de contrato do Create.casos.md pra não se perder.
-//   Removido daqui pra não bloquear o merge do trio com um fix que precisa de mais prova.
+// UC-PCAD-05 — CU-PROD-01.5 `[T0]`: cadastro NÃO aceita insumo de outro business.
+//   ACHADO Tier 0 REAL da [M]/[F] (#4417): `store()` gravava category_id alheio
+//   (`$request->only()` sem `exists:` escopado; família do UC-PTAB-04/#4300). FIX no
+//   `store()` (guard business-scoped nos FKs, ANTES do try). ⚠️ Toca o `store()` legado
+//   (~6.4k chamadas) — precisa da lane `Estoque · MySQL` (CT 100, biz1+biz2) pra provar
+//   que não regride os fluxos antigos. Failing-first, padrão #4300/#4417.
 // =============================================================================
+
+it('UC-PCAD-05 · category_id de outro business não vincula', function () {
+    $outroBizId = EstoqueFixture::secondBusinessId();
+    if ($outroBizId === null) {
+        $this->markTestSkipped('DB só tem 1 business — sem par cross-tenant pra provar isolamento.');
+    }
+
+    // Categoria que pertence ao OUTRO business (insumo alheio).
+    $catAlheiaId = DB::table('categories')->insertGetId([
+        'name' => 'Cat alheia UC-PCAD-05 ' . uniqid(),
+        'business_id' => $outroBizId,
+        'category_type' => 'product',
+        'created_by' => (int) $this->user->id,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $bizId = (int) $this->business->id;
+    $payload = postProdutoMinimo($bizId, ['category_id' => $catAlheiaId]);
+
+    $this->post('/products', $payload);
+
+    // O produto NÃO pode nascer carimbado com a categoria alheia — o guard recusa o FK.
+    $vazou = DB::table('products')->where('category_id', $catAlheiaId)->count();
+    expect($vazou)->toBe(0, 'store() gravou category_id de outro business (vazamento Tier 0).');
+});
 
 // =============================================================================
 // UC-PCAD-06 — CU-PROD-07.2 `[T0]`: duplicar produto alheio → 404
