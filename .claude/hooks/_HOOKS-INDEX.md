@@ -10,8 +10,8 @@
 
 ## Resumo
 - **46** wirings em `settings.json` (5 eventos) · **41** arquivos de hook distintos wired
-- **53** arquivos de hook no disco (+31 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **12** · Fantasmas (wiring sem arquivo): **0**
+- **43** arquivos de hook no disco (+28 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **2** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
@@ -68,18 +68,8 @@
 Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
-- ⚠️ `block-bom-encoding.ps1` — gêmeo cross-platform de block-bom-encoding.mjs (wired)
-- ⚠️ `block-serving-branch-switch.ps1` — gêmeo cross-platform de block-serving-branch-switch.mjs (wired)
-- ⚠️ `block-test-without-red.ps1` — gêmeo cross-platform de block-test-without-red.mjs (wired)
 - ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.ps1 (wired)
-- ⚠️ `commit-discipline-check.ps1` — gêmeo cross-platform de commit-discipline-check.mjs (wired)
-- ⚠️ `mcp-first-warning.ps1` — gêmeo cross-platform de mcp-first-warning.mjs (wired)
-- ⚠️ `memory-pending.ps1` — gêmeo cross-platform de memory-pending.mjs (wired)
-- ⚠️ `nudge-diagnosis-without-evidence.ps1` — gêmeo cross-platform de nudge-diagnosis-without-evidence.mjs (wired)
-- ⚠️ `nudge-recommend-not-menu.ps1` — gêmeo cross-platform de nudge-recommend-not-menu.mjs (wired)
-- ⚠️ `nudge-test-contract-anchor.ps1` — gêmeo cross-platform de nudge-test-contract-anchor.mjs (wired)
 - ⚠️ `test-all-hooks-smoke.ps1` — sem wiring em settings.json
-- ⚠️ `warn-red-first.ps1` — gêmeo cross-platform de warn-red-first.mjs (wired)
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
 Contexts `classic_protection` (31):

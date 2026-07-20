@@ -25,7 +25,7 @@ description: Commita+pushea arquivos pendentes em memory/ e governança (MEMORY/
 **Quando rodar:**
 - Após criar SPEC/ADR/session log
 - Após salvar comparativo competitivo, runbook, audit
-- Quando hook `memory-pending.ps1` avisar no fim de turno
+- Quando hook `memory-pending.mjs` avisar no fim de turno
 - Antes de chamar a outra Claude/agente que vai ler via MCP (Eliana/Felipe)
 
 **Comportamento:**
