@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Teste de regressão: os 5 hooks do lote de porte .ps1→.mjs (US-GOV-052) continuam
+// Teste de regressão: os 4 hooks do lote de porte .ps1→.mjs (US-GOV-052) continuam
+// (block-serving-branch-switch APOSENTADO 2026-07-20 — Herd local nao serve mais o oimpresso.test)
 // REGISTRADOS em .claude/settings.json — e registrados como `node` (não `powershell -File`),
 // cada um no matcher correto.
 //
@@ -17,7 +18,6 @@
 //
 // Contrato-âncora (nenhuma asserção deriva do código dos hooks):
 //   · block-bom-encoding        → proibicoes.md §Ambiente (BOM PS 5.1 · post-mortem v4 · #984)
-//   · block-serving-branch-switch → R8 (PROTOCOLO-WAGNER) + ADR 0233 (checkout serving)
 //   · block-test-without-red / warn-red-first → SDD FV-T0 (plano 2026-06-12) + proibicoes §"Ideias descartadas"
 //   · commit-discipline-check   → skill commit-discipline + ADR 0094 §5 + regras-time (PII)
 //
@@ -36,7 +36,6 @@ const PORTADOS = [
   { nome: 'block-bom-encoding', cmd: 'node .claude/hooks/block-bom-encoding.mjs', tools: ['Write', 'Edit', 'MultiEdit'] },
   { nome: 'block-test-without-red', cmd: 'node .claude/hooks/block-test-without-red.mjs', tools: ['Write', 'Edit', 'MultiEdit'] },
   { nome: 'warn-red-first', cmd: 'node .claude/hooks/warn-red-first.mjs', tools: ['Write', 'Edit', 'MultiEdit'] },
-  { nome: 'block-serving-branch-switch', cmd: 'node .claude/hooks/block-serving-branch-switch.mjs', tools: ['Bash'] },
   { nome: 'commit-discipline-check', cmd: 'node .claude/hooks/commit-discipline-check.mjs', tools: ['Bash'] },
 ];
 
@@ -70,7 +69,7 @@ for (const h of PORTADOS) {
 
 console.log('');
 if (fails === 0) {
-  console.log('[PASS] lote porte .ps1->.mjs: os 5 hooks ativados como node no matcher certo (porte invocado, nao so escrito).');
+  console.log('[PASS] lote porte .ps1->.mjs: os 4 hooks ativados como node no matcher certo (porte invocado, nao so escrito).');
   process.exit(0);
 }
 console.log(`[FAIL] ${fails} caso(s) -- porte escrito mas NAO ativado (ou wiring ainda apontando pro .ps1).`);

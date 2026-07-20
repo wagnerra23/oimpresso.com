@@ -160,10 +160,6 @@
           {
             "type": "command",
             "command": "node .claude/hooks/post-merge-ui-smoke-required.mjs"
-          },
-          {
-            "type": "command",
-            "command": "node .claude/hooks/block-serving-branch-switch.mjs"
           }
         ]
       },
