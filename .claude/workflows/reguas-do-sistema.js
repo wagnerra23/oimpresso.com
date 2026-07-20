@@ -99,8 +99,13 @@ const EXISTE = { type: 'object', additionalProperties: false, required: ['veredi
   evidencia: { type: 'string', description: 'arquivo:linha / workflow / required-vs-advisory — ou prova de ausência' },
   nota_sugerida: { type: 'number' }, onde_indexar: { type: 'string' } } }
 // Teste de integração: o peer refutado monta o TODO integrado, ou só a peça isolada? (anti-falácia-de-composição — Wagner 2026-07-10, proibições §5)
-const INTEG = { type: 'object', additionalProperties: false, required: ['veredito', 'razao'], properties: {
-  veredito: { type: 'string', enum: ['DIFERENCIAL_SISTEMA', 'REFUTADO_TB'] }, razao: { type: 'string' }, quem_monta_o_todo: { type: 'string' } } }
+// EMENDA 2026-07-19 (proibições §5): braço discriminativo real. O campo `incremento` é OBRIGATÓRIO — força
+// nomear o que a integração acrescenta ALÉM da soma das peças; "nenhum além da identidade" é resposta válida e
+// dispara REFUTADO_TB. Motivo: 81/81 DIFERENCIAL_SISTEMA em 8 runs (ledger 2026-07-18) = carimbo, não medição.
+const INTEG = { type: 'object', additionalProperties: false, required: ['veredito', 'incremento', 'razao'], properties: {
+  veredito: { type: 'string', enum: ['DIFERENCIAL_SISTEMA', 'REFUTADO_TB'] },
+  incremento: { type: 'string', description: 'o que a INTEGRAÇÃO acrescenta ALÉM da soma das peças (a "cola") — 1 frase concreta; "nenhum além da identidade/contexto" é resposta válida e força REFUTADO_TB' },
+  razao: { type: 'string' }, quem_monta_o_todo: { type: 'string' } } }
 
 // ── Cap de agentes das fases adversariais (Refutar · Integração · Verificar) ──
 // TRUNCAGEM SILENCIOSA, ROUND 2 (achados #21/#24 do passe adversarial 2026-07-18):
@@ -156,8 +161,10 @@ const capEstratificado = (nome, items, cap, logFn) => {
 // Rodada INCREMENTAL dirigida pelo ledger memory/reguas/ (alvo ≤2,5M tokens vs ~11,4M full):
 // re-verifica SÓ dimensões com Δ material de commits nos paths mapeados (config.paths_por_dimensao)
 // e re-refuta SÓ claims com TTL vencido. NÃO pesquisa mercado (regra 5 da skill: lado-mercado
-// reusado), NÃO roda Integração (claim nova só nasce no full — e o braço negativo nunca disparou:
-// 0 REFUTADO_TB em 81 vereditos, ledger 2026-07-18). Composição DETERMINÍSTICA (regra 16 do
+// reusado), NÃO roda Integração (claim nova só nasce no full). Contexto histórico: até 2026-07-19 o
+// braço negativo NUNCA disparou (0 REFUTADO_TB em 81 vereditos, ledger 2026-07-18) — por isso a pergunta
+// de Integração foi REFORMULADA nessa data pra ganhar braço discriminativo (emenda §5 2026-07-19; só o
+// full pós-emenda dirá se passou a discriminar). Composição DETERMINÍSTICA (regra 16 do
 // adversário 2026-07-18 mecanizada): nota = média 1-decimal das fraquezas re-verificadas; sem Δ
 // herda com flag. Disclosure do placar sai do ledger (regra 17 mecanizada).
 if (MODO === 'delta') {
@@ -222,7 +229,7 @@ if (MODO === 'delta') {
   }
   const integHist = (scan.ultimo_retrato && scan.ultimo_retrato.integ_hist) || {}
   const prosa = await agent(
-    `PROSA da rodada DELTA da grade de réguas (PT-BR, ≤450 palavras, datada de hoje). Os NÚMEROS estão FECHADOS pela composição determinística (regra 16 — PROIBIDO alterar, fundir ou re-atribuir nota): ${JSON.stringify({ notasNovas, notasAntigas, proveniencia, dims_ativas: ativas, dims_delta: scan.dims_delta })}.\nFraquezas re-medidas (evidência nova): ${JSON.stringify(verificadas.map((v) => ({ id: v.id, dimensao: v.dimensao, titulo: v.titulo, de: v.nota, para: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 200) })))}.\nClaims re-vereditadas: ${JSON.stringify(reRefutadas.map((r) => ({ id: r.id, de: r.refutador, para: r.verdict.veredito, peer: r.verdict.quem_ja_faz || '' })))}.\nEscreva: (1) o que mudou e por quê (Δ por dimensão re-medida, com a evidência); (2) o que segue herdado; (3) DISCLOSURE OBRIGATÓRIO do placar (regra 17): REFUTADO_TB acumulado ${JSON.stringify(integHist)} — nunca disparou; o valor está nas razões, não no binário; (4) próximo degrau mais barato. NADA de nota nova inventada.`,
+    `PROSA da rodada DELTA da grade de réguas (PT-BR, ≤450 palavras, datada de hoje). Os NÚMEROS estão FECHADOS pela composição determinística (regra 16 — PROIBIDO alterar, fundir ou re-atribuir nota): ${JSON.stringify({ notasNovas, notasAntigas, proveniencia, dims_ativas: ativas, dims_delta: scan.dims_delta })}.\nFraquezas re-medidas (evidência nova): ${JSON.stringify(verificadas.map((v) => ({ id: v.id, dimensao: v.dimensao, titulo: v.titulo, de: v.nota, para: v.check.nota_sugerida, veredito: v.check.veredito, evidencia: (v.check.evidencia || '').slice(0, 200) })))}.\nClaims re-vereditadas: ${JSON.stringify(reRefutadas.map((r) => ({ id: r.id, de: r.refutador, para: r.verdict.veredito, peer: r.verdict.quem_ja_faz || '' })))}.\nEscreva: (1) o que mudou e por quê (Δ por dimensão re-medida, com a evidência); (2) o que segue herdado; (3) DISCLOSURE OBRIGATÓRIO do placar (regra 17): REFUTADO_TB acumulado ${JSON.stringify(integHist)}. Até 2026-07-19 o braço negativo nunca disparou (0/81) e o valor esteve nas RAZÕES, não no binário; a pergunta de Integração foi reformulada nessa data (emenda §5) pra ganhar braço discriminativo — mas delta NÃO roda Integração, então este número é HERDADO do último full; NÃO afirme que "agora discrimina" antes do placar de um full pós-emenda; (4) próximo degrau mais barato. NADA de nota nova inventada.`,
     { label: 'prosa-delta', phase: 'Grade', effort: 'medium' },
   )
 
@@ -279,7 +286,11 @@ log(`refutação: ${refutados.filter((r) => r.verdict.veredito === 'ACIMA_CONFIR
 phase('Integração')
 const derrubadas = refutados.filter((r) => r.verdict.veredito !== 'ACIMA_CONFIRMADO')
 const integrados = (await parallel(capEstratificado('Integração', derrubadas, CAP_AGENTES_POR_FASE, log).map((r) => () => agent(
-  `TESTE DE INTEGRAÇÃO (o refutador já achou peer pra ESTA peça isolada — não repita a busca da peça). Claim: "${r.ideia}" (dimensão ${r.dimensao}); refutador deu ${r.verdict.veredito} citando "${(r.verdict.quem_ja_faz || r.verdict.razao || '').slice(0, 300)}". PERGUNTA ÚNICA: algum produto/prática publicado monta o TODO INTEGRADO no MESMO contexto do oimpresso — a pilha inteira DENTRO de um ERP vertical multi-tenant BR em produção, aplicada A SI MESMA (governança recursiva: o agente-codador cita o próprio §5 pra se auto-barrar) + o loop medir→corrigir→travar que de fato fecha? Busque 2-3× o CONJUNTO, não a peça. Se um peer monta o todo no mesmo contexto → REFUTADO_TB (a integração também tem par; diga quem). Se os peers só cobrem PEÇAS e ninguém monta o conjunto → DIFERENCIAL_SISTEMA (o diferencial é de instanciação/integração/recursão, NÃO da categoria — proibido re-inflar a peça isolada como "acima"). Default: exija o peer do TODO.`,
+  `TESTE DE INTEGRAÇÃO — BRAÇO DISCRIMINATIVO (emenda §5 2026-07-19: o veredito deu 81/81 DIFERENCIAL_SISTEMA em 8 runs = virou CARIMBO; ele PRECISA poder dar negativo). O refutador já achou peer pra ESTA peça isolada — não repita a busca da peça. Claim: "${r.ideia}" (dimensão ${r.dimensao}); refutador deu ${r.verdict.veredito} citando "${(r.verdict.quem_ja_faz || r.verdict.razao || '').slice(0, 300)}".\n` +
+  `PASSO 1 — NOMEIE O INCREMENTO (campo \`incremento\`, OBRIGATÓRIO): em 1 frase concreta, o que a INTEGRAÇÃO acrescenta ALÉM da soma das peças que o refutador já pareou — a "cola", uma capacidade que um concorrente teria que CONSTRUIR e hoje não tem. ⚠️ Se você NÃO consegue nomear incremento algum além de "é dentro do oimpresso / é o nosso produto / é o nosso contexto" (isso é IDENTIDADE, não capacidade), então incremento="nenhum além da identidade" e o veredito É **REFUTADO_TB** (razão: sem incremento defensável).\n` +
+  `PASSO 2 — CACE O PEER DO TODO (2-3 buscas no CONJUNTO, não na peça): REFUTADO_TB também dispara se UM ÚNICO produto/prática publicado monta um TODO EQUIVALENTE nos eixos que SUSTENTAM o incremento (ERP vertical + multi-tenant + auto-governança recursiva + loop medir→corrigir→travar que fecha) — MESMO em outro vertical/mercado. Diga quem em \`quem_monta_o_todo\`. [O antigo bar "no MESMO contexto do oimpresso" foi REMOVIDO: era tautológico — ninguém É o oimpresso, então dava DIFERENCIAL_SISTEMA sempre.]\n` +
+  `GUARD ANTI-FALÁCIA-DE-COMPOSIÇÃO (§5 2026-07-10, INVIOLÁVEL): peers DIFERENTES cobrindo cada um UM eixo NÃO dispara REFUTADO_TB — somar slices-com-peer é exatamente o erro que esta fase existe pra barrar. REFUTADO_TB exige UM peer montando o todo equivalente, jamais a soma de vários.\n` +
+  `DIFERENCIAL_SISTEMA (só quando os DOIS valem): (a) incremento nomeado e defensável E (b) nenhum peer ÚNICO monta o equivalente. É diferencial de instanciação/integração/recursão — proibido re-inflar a peça isolada como "acima". Default entre os dois: exija ou o incremento defensável (→DS) ou o peer-único-do-todo (→RTB); identidade sem incremento cai em RTB.`,
   { label: `i:${r.ideia}`.slice(0, 48), phase: 'Integração', schema: INTEG, agentType: 'general-purpose', effort: 'medium' },
 ).then((v) => (v ? { ...r, integ: v } : null))))).filter(Boolean)
 log(`integração: ${integrados.filter((i) => i.integ.veredito === 'DIFERENCIAL_SISTEMA').length} diferenciais de sistema · ${integrados.filter((i) => i.integ.veredito === 'REFUTADO_TB').length} o todo também tem par`)
