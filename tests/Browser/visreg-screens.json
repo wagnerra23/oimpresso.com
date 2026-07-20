@@ -46,5 +46,13 @@
     "route": "/sells/create",
     "anchor": "Adicionar venda",
     "baseline": "it_Sells_Create_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
+  },
+  {
+    "screen": "Financeiro/ContasBancarias",
+    "source": "Financeiro/ContasBancarias",
+    "component": "Financeiro/ContasBancarias/Index",
+    "route": "/financeiro/contas-bancarias",
+    "anchor": "Contas Bancárias",
+    "baseline": "it_Financeiro_ContasBancarias_bate_com_a_baseline_de_pixel__núcleo_6_.snap"
   }
 ]
