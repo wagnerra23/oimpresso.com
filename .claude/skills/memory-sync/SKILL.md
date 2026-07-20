@@ -62,7 +62,7 @@ O handoff novo **deve** ter uma seção `## Estado MCP no momento do fechamento`
 
 ## Hook complementar
 
-`.claude/hooks/memory-pending.ps1` (Stop hook) detecta pendências no fim de cada turno e mostra warning. Não bloqueia; só avisa. Se ver o warning, rode `/sync-mem`.
+`.claude/hooks/memory-pending.mjs` (Stop hook) detecta pendências no fim de cada turno e mostra warning. Não bloqueia; só avisa. Se ver o warning, rode `/sync-mem`.
 
 ## Exemplos de bom uso
 

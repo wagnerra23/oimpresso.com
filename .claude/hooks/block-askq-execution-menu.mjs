@@ -8,7 +8,7 @@
 // passo?", "a task X está feita?". Wagner: "se eu responder qualquer coisa está
 // me induzindo ao erro... resolva. anote para não fazer perguntas idiotas."
 //
-// POR QUE O HOOK ANTERIOR NÃO PEGOU: `nudge-recommend-not-menu.ps1` é Stop +
+// POR QUE O HOOK ANTERIOR NÃO PEGOU: `nudge-recommend-not-menu.mjs` é Stop +
 // advisory + lê só o TEXTO da resposta. A tool AskUserQuestion não vira texto,
 // então passava batido. Este aqui é PreToolUse NA tool — intercepta antes de a
 // pergunta chegar no Wagner.

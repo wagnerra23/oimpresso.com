@@ -58,7 +58,7 @@ Scope típico oimpresso: `jana`, `repair`, `nfe-brasil`, `recurring-billing`, `g
 
 ## Como o hook PreToolUse enforça
 
-`.claude/hooks/commit-discipline-check.ps1` (configurado em `.claude/settings.json`):
+`.claude/hooks/commit-discipline-check.mjs` (configurado em `.claude/settings.json`):
 1. Em `git commit` ou `git add`: roda `git diff --cached --stat` e alerta se >300 linhas
 2. Procura PII com regex CPF/CNPJ/email no diff staged
 3. Procura secrets (sk-*, api_key, password=)
