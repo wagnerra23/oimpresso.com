@@ -147,6 +147,13 @@ jobs:
         run: node scripts/governance/hue-canon-check.test.mjs
       - name: Hue primário íntegro (P32 · declarações expected_hue/hue_correct vs governance/hue-canon.json)
         run: node scripts/governance/hue-canon-check.mjs
+      # Fonte única de HOOKS (grade de réguas 2026-07-19 · fraquezas spec-hooks-desarmados 8,0
+      # + spec-enforcement-geracao 6,5). Extensão do padrão skills-index (fonte-única gerada,
+      # nunca à mão). Report-only (ADR 0314): --check morde só em drift/fantasma; órfão = warn.
+      - name: Hooks manifest gerador morde/solta (bite/release hermético · fantasma/drift)
+        run: node scripts/governance/hooks-manifest-generate.test.mjs
+      - name: Hooks manifest em dia (_HOOKS-INDEX vs settings/hooks/baseline)
+        run: node scripts/governance/hooks-manifest-generate.mjs --check
       - name: pr-critic — roteamento diff→contratos (fixtures-armadilha · ataque ① grade-das-réguas)
         run: node scripts/pr-critic/coleta.test.mjs
       - name: pr-critic — trava de citação + AGREGAÇÃO DE VOTOS das lentes + comentário honesto (determinístico)
