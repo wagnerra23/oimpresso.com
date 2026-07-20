@@ -10,8 +10,8 @@
 
 ## Resumo
 - **46** wirings em `settings.json` (5 eventos) · **41** arquivos de hook distintos wired
-- **43** arquivos de hook no disco (+21 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **2** · Fantasmas (wiring sem arquivo): **0**
+- **48** arquivos de hook no disco (+26 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **7** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
@@ -35,18 +35,18 @@
 | PreToolUse | `Write/Edit/MultiEdit` | charter-validate.ps1 | powershell | geração (pré-Write/Edit) | deny |
 | PreToolUse | `Write/Edit/MultiEdit` | modulo-preflight-warning.ps1 | powershell | geração (pré-Write/Edit) | — |
 | PreToolUse | `Write/Edit/MultiEdit` | preflight-new-capability.ps1 | powershell | geração (pré-Write/Edit) | — |
-| PreToolUse | `Write/Edit/MultiEdit` | block-bom-encoding.ps1 | powershell | geração (pré-Write/Edit) | deny |
+| PreToolUse | `Write/Edit/MultiEdit` | block-bom-encoding.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-merge-markers.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-routes-string-legacy.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | nudge-test-contract-anchor.ps1 | powershell | geração (pré-Write/Edit) | — |
-| PreToolUse | `Write/Edit/MultiEdit` | warn-red-first.ps1 | powershell | geração (pré-Write/Edit) | — |
-| PreToolUse | `Write/Edit/MultiEdit` | block-test-without-red.ps1 | powershell | geração (pré-Write/Edit) | exit-2 |
+| PreToolUse | `Write/Edit/MultiEdit` | warn-red-first.mjs | node | geração (pré-Write/Edit) | — |
+| PreToolUse | `Write/Edit/MultiEdit` | block-test-without-red.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Bash` | block-destructive.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `Bash` | pii-redactor.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
-| PreToolUse | `Bash` | commit-discipline-check.ps1 | powershell | comando (pré-shell — git commit/push trafegam aqui) | — |
+| PreToolUse | `Bash` | commit-discipline-check.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
 | PreToolUse | `Bash` | block-claim-without-evidence.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
 | PreToolUse | `Bash` | post-merge-ui-smoke-required.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
-| PreToolUse | `Bash` | block-serving-branch-switch.ps1 | powershell | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
+| PreToolUse | `Bash` | block-serving-branch-switch.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `mcp__computer-use__screenshot/mcp__[Cc]laude[-_][Ii]n[-_][C…` | post-merge-ui-smoke-required.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `mcp__.*figma.*/mcp__.*__(use_figma/get_design_context/get_f…` | block-figma-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `DesignSync` | block-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
@@ -68,8 +68,13 @@
 Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
+- ⚠️ `block-bom-encoding.ps1` — gêmeo cross-platform de block-bom-encoding.mjs (wired)
+- ⚠️ `block-serving-branch-switch.ps1` — gêmeo cross-platform de block-serving-branch-switch.mjs (wired)
+- ⚠️ `block-test-without-red.ps1` — gêmeo cross-platform de block-test-without-red.mjs (wired)
 - ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.ps1 (wired)
+- ⚠️ `commit-discipline-check.ps1` — gêmeo cross-platform de commit-discipline-check.mjs (wired)
 - ⚠️ `test-all-hooks-smoke.ps1` — sem wiring em settings.json
+- ⚠️ `warn-red-first.ps1` — gêmeo cross-platform de warn-red-first.mjs (wired)
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
 Contexts `classic_protection` (31):

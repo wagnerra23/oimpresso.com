@@ -38,7 +38,10 @@ mkdirSync(join(tmp, '.claude', 'run'), { recursive: true });
 check('hasFreshEvidence: dir sem evidência → false', hasFreshEvidence(tmp, 60) === false);
 writeFileSync(join(tmp, '.claude', 'run', 'red-evidence-abc.txt'), 'FAIL: expected 200 got 500');
 check('hasFreshEvidence: evidência fresca → true', hasFreshEvidence(tmp, 60) === true);
-check('hasFreshEvidence: janela 0min → false (não é recente)', hasFreshEvidence(tmp, 0) === false);
+// staleness DETERMINÍSTICO: avalia "now" no ano 2100 com janela 60min → arquivo (2026) fora da janela.
+// (o antigo `janela 0min` era racy: cutoff = now colava no mtime escrito μs antes → coin-flip.)
+const NOW_2100 = 4102444800000; // 2100-01-01 em ms — fixo, sem Date.now()
+check('hasFreshEvidence: evidência fora da janela → false (now no futuro, determinístico)', hasFreshEvidence(tmp, 60, NOW_2100) === false);
 
 // ── E2E: repo git temporário — prova MORDIDA (block) + destravas + fail-open ──────
 const repo = mkdtempSync(join(tmpdir(), 'redfirst-repo-'));
