@@ -28,7 +28,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/check-skills-fresh.ps1"
+            "command": "node .claude/hooks/check-skills-fresh.mjs"
           },
           {
             "type": "command",
@@ -36,11 +36,11 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/loop-fechar-check.ps1"
+            "command": "node .claude/hooks/loop-fechar-check.mjs"
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/licoes-code-two-strikes.ps1"
+            "command": "node .claude/hooks/licoes-code-two-strikes.mjs"
           },
           {
             "type": "command",
@@ -106,7 +106,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/modulo-preflight-warning.ps1"
+            "command": "node .claude/hooks/modulo-preflight-warning.mjs"
           },
           {
             "type": "command",
