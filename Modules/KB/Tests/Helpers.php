@@ -59,18 +59,31 @@ use Illuminate\Support\Facades\Schema;
 function kbBootstrapSchema(): void
 {
     // kb_* (módulo-prefixadas, NÃO compartilhadas): drop+create idempotente OK.
-    Schema::dropIfExists('kb_bridge_state');
-    Schema::dropIfExists('kb_comments');
-    Schema::dropIfExists('kb_favorites');
-    Schema::dropIfExists('kb_node_versions');
-    Schema::dropIfExists('kb_decision_tree_steps');
-    Schema::dropIfExists('kb_decision_trees');
-    Schema::dropIfExists('kb_path_steps');
-    Schema::dropIfExists('kb_paths');
-    Schema::dropIfExists('kb_edges');
-    Schema::dropIfExists('kb_nodes');
-    Schema::dropIfExists('kb_subcategories');
-    Schema::dropIfExists('kb_categories');
+    //
+    // FK-cycle fix (2026-07-20): os drops rodam com FK checks DESLIGADOS porque
+    // kb_decision_tree_steps participa de dois laços que NENHUMA ordem de drop
+    // resolve — (1) FK AUTO-referencial (yes_next_step_id/no_next_step_id →
+    // kb_decision_tree_steps.id) e (2) ciclo com kb_decision_trees
+    // (steps.tree_id → trees.id  ×  trees.root_step_id → steps.id via
+    // fk_kb_dt_root_step, ALTER delayed na migration 100008). No MySQL real
+    // (CT 100 oimpresso-staging) dropar o "pai" estoura 1451/3730 "Cannot delete
+    // parent row"; em sqlite o FK enforcement é frouxo, então passava
+    // despercebido no CI. withoutForeignKeyConstraints restaura o check no fim
+    // (try/finally) mesmo em erro. Só afeta os drops kb_* — CORE nunca é dropada.
+    Schema::withoutForeignKeyConstraints(function () {
+        Schema::dropIfExists('kb_bridge_state');
+        Schema::dropIfExists('kb_comments');
+        Schema::dropIfExists('kb_favorites');
+        Schema::dropIfExists('kb_node_versions');
+        Schema::dropIfExists('kb_decision_tree_steps');
+        Schema::dropIfExists('kb_decision_trees');
+        Schema::dropIfExists('kb_path_steps');
+        Schema::dropIfExists('kb_paths');
+        Schema::dropIfExists('kb_edges');
+        Schema::dropIfExists('kb_nodes');
+        Schema::dropIfExists('kb_subcategories');
+        Schema::dropIfExists('kb_categories');
+    });
 
     // Externals CORE COMPARTILHADAS — NUNCA dropar. Create só condicional:
     // sqlite fresco cria; MySQL persistente (já migrado) vira no-op.
@@ -170,13 +183,18 @@ function kbBootstrapSchema(): void
  */
 function kbTeardownSchema(): void
 {
-    foreach (['kb_bridge_state', 'kb_comments', 'kb_favorites', 'kb_node_versions',
-              'kb_decision_tree_steps', 'kb_decision_trees',
-              'kb_path_steps', 'kb_paths',
-              'kb_edges', 'kb_nodes',
-              'kb_subcategories', 'kb_categories'] as $tbl) {
-        Schema::dropIfExists($tbl);
-    }
+    // FK-cycle fix (2026-07-20): drops com FK checks desligados — mesmo motivo
+    // de kbBootstrapSchema (ciclo kb_decision_trees ↔ kb_decision_tree_steps +
+    // self-FK). Ver comentário lá. Restaura o check no fim (try/finally).
+    Schema::withoutForeignKeyConstraints(function () {
+        foreach (['kb_bridge_state', 'kb_comments', 'kb_favorites', 'kb_node_versions',
+                  'kb_decision_tree_steps', 'kb_decision_trees',
+                  'kb_path_steps', 'kb_paths',
+                  'kb_edges', 'kb_nodes',
+                  'kb_subcategories', 'kb_categories'] as $tbl) {
+            Schema::dropIfExists($tbl);
+        }
+    });
 }
 
 /**
