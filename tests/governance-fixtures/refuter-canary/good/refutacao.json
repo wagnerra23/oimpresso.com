@@ -1,0 +1,6 @@
+{
+  "_meta": "fixture BOA do gate-selftest (catraca refuter-canary) — o refuter DERRUBOU o artefato plantado (REFUTADO). Detecção NÃO deve morder: exit 0, 'sem Goodhart'.",
+  "refutacoes": [
+    { "id": "__canary__git-versionamento", "veredito": "REFUTADO", "razao": "git é padrão universal — GitHub/GitLab/Bitbucket; todo software versiona. Superioridade absurda, derrubada." }
+  ]
+}

@@ -65,6 +65,12 @@ Pré-requisito: `git worktree add --detach <path> origin/main` (nunca medir em c
    gate on/off). "Qualidade" não é régua; *change-failure-rate* e *% cross-platform* são.
 3. **Toda claim "estou acima" passa pelo REFUTADOR** (contexto zero, default derrubar).
    Rodada de referência: 26 claims → 0 acima-puras. Sem refutação, a grade é ego.
+   **Anti-Goodhart do próprio refuter** (chip `orq-anti-goodhart`): a fase Refutar injeta
+   artefatos PLANTADOS — claims absurdamente falsas — que o refuter TEM que derrubar; se ele
+   APROVA um plantado (ACIMA_CONFIRMADO), carimbou (One Token to Fool) e o disclosure avisa.
+   É o análogo do gate-selftest no LAYER DE AGENTE (o gate-selftest prova que os SCRIPTS mordem;
+   isto prova que o REFUTER discrimina). Contrato + selftest determinístico:
+   `scripts/governance/refuter-canary-check.mjs` (catraca `refuter-canary` do gate-selftest).
 4. **Nenhuma nota sem VERIFICAÇÃO no repo vivo** — toda fraqueza apontada pela pesquisa é
    caçada no repo (workflows/scripts/skills/hooks/registries) ANTES da nota. Lição 7/9:
    os mecanismos existiam, invisíveis. Achado existia-mas-invisível → **indexar no mapa**

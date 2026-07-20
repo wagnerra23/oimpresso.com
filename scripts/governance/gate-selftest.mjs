@@ -425,6 +425,19 @@ const CATRACAS = [
     expect: { good: /entry valida no ledger/, bad: /FAIL ledger-check/ },
   },
   {
+    // refuter-canary (chip orq-anti-goodhart · grade 5,0 "sem anti-Goodhart no layer de
+    // agente"): a versão do gate-selftest pro LAYER DE AGENTE. O gate-selftest prova que os
+    // SCRIPTS mordem; esta catraca prova que a DETECÇÃO de Goodhart do refuter morde. good =
+    // refuter DERRUBOU o artefato plantado (REFUTADO) → exit 0 "sem Goodhart"; bad = refuter
+    // APROVOU o plantado absurdo (ACIMA_CONFIRMADO) → exit 1 "GOODHART" (carimbou, não avaliou).
+    // O refuter LLM real roda o canário VIVO em .claude/workflows/reguas-do-sistema.js (Refutar);
+    // aqui é o negative control determinístico da detecção (fixture-que-morde, não presence-gate).
+    id: 'refuter-canary',
+    run: (kind) => runNode(script('refuter-canary-check', 'scripts/governance/refuter-canary-check.mjs'),
+      ['--check', join(FIX, 'refuter-canary', kind, 'refutacao.json')], ROOT),
+    expect: { good: /sem Goodhart/, bad: /GOODHART|APROVOU/ },
+  },
+  {
     id: 'sdd-scorecard',
     run: runScorecard,
     expect: { good: /nenhuma regressão/, bad: /RATCHET \(ARMADA\): ghost_count/ },

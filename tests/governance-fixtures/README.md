@@ -25,6 +25,8 @@ morder — e o selftest avermelha. Salda a dívida de evidência do PR #2588
 
 | `protection-drift.mjs --fixture` (V5 · watchdog órfã) | `protection-drift-stale-floor/{good,bad}/live.json` + `required-checks-baseline.json` + `sdd-scorecard-baseline.json` (sandbox via cwd, script REAL copiado, `PROTECTION_DRIFT_NOW` fixa o relógio) — frescor do floor vem do `computed_at` do CONTEÚDO (`orfa_contents`), não do tip; good = computed_at 24h atrás → 🟢 (exit 0); bad = **tip fresco** mas computed_at 6d atrás → 🔴 (exit 1) = prova que ignora o tip (avaliação 2026-07-12 risco nº1) |
 
+| `refuter-canary-check --check` (anti-Goodhart do LAYER DE AGENTE · chip orq-anti-goodhart · grade 5,0) | `refuter-canary/{good,bad}/refutacao.json` (script REAL no lugar — não usa cwd) — negative control do REFUTER LLM: um artefato PLANTADO (claim de superioridade absurdamente falsa) que o refuter TEM que derrubar. good = `REFUTADO` (derrubou) → exit 0 "sem Goodhart"; bad = `ACIMA_CONFIRMADO` (carimbou o plantado) → exit 1 "GOODHART". É o análogo do gate-selftest aplicado ao refuter (o LLM real roda o canário vivo em `.claude/workflows/reguas-do-sistema.js` fase Refutar) |
+
 REGRA DURA: NENHUM `.php` aqui — o foundation-ratchet real varre `tests/`
 recursivamente e contaria fixture como teste do repo (poluiria os contadores).
 Conteúdo 100% fictício (DemoMod/RealDemo/Ghost*) — zero PII, repo é público.
