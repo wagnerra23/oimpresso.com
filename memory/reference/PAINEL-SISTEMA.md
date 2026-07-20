@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-19**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-20**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -120,7 +120,7 @@ lifecycle: ativo
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 32 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 33 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -154,6 +154,7 @@ lifecycle: ativo
 - ~~2026-07-17 — Alegar que "recusar agregar fidelidade é só nosso" é superioridade (REFUTADO — Chromatic já faz)~~
 - ~~2026-07-17 — Casar custo→PR por SHA (ou Anthropic Analytics API) pra fechar o "órfão" do `agent-cost-per-pr`~~
 - ~~2026-07-17 — Promover `component-registry-check` a required (ou re-emendar a 0314 per-gate) sem mordida provada~~
+- ~~2026-07-19 — EMENDA da lápide 2026-07-10 (falácia de composição): a PERGUNTA de integração virou CARIMBO — braço discriminativo obrigatório~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -161,14 +162,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **285** handoffs · **469** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **288** handoffs · **474** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-19-mapa-vivo-resolver-tela-uc-pcad-05`
+  - `2026-07-18-reguas-grade-ledger`
+  - `2026-07-18-reguas-grade-completa`
+  - `2026-07-18-reguas-adversario-grade`
+  - `2026-07-18-forward-only-schema-templates`
   - `2026-07-18-cf3-lapide-dr2a-bite-log`
-  - `2026-07-18-cc-ingest-strip-reativacao`
-  - `2026-07-18-audit-idor-viaparent-consumers-3prs`
-  - `2026-07-18-adr-normalize-gate-required`
-  - `2026-07-18-adr-frontmatter-zero-e-prose-supersede`
-  - `2026-07-17-triagem-floor-mt-vazamento-scope-viaparent`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-19 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-20 · deriva das fontes canônicas, não as substitui._
