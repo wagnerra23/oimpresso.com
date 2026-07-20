@@ -9,18 +9,18 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **44** wirings em `settings.json` (5 eventos) · **39** arquivos de hook distintos wired
-- **47** arquivos de hook no disco (+32 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **8** · Fantasmas (wiring sem arquivo): **0**
+- **44** wirings em `settings.json` (5 eventos) · **40** arquivos de hook distintos wired
+- **50** arquivos de hook no disco (+35 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **10** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
 |---|---|---|---|---|---|
-| SessionStart | `*` | brief-fetch-curl.ps1 | powershell | sessão (início — injeção de contexto) | — |
-| SessionStart | `*` | (inline no settings.json) | powershell | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | brief-fetch-curl.mjs | node | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | handoff-inline.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | check-skills-fresh.mjs | node | sessão (início — injeção de contexto) | — |
-| SessionStart | `*` | tier-a-banner.ps1 | powershell | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | tier-a-banner.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | loop-fechar-check.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | licoes-code-two-strikes.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | git-base-freshness-guard.mjs | node | sessão (início — injeção de contexto) | — |
@@ -66,6 +66,7 @@
 Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
+- ⚠️ `brief-fetch-curl.ps1` — gêmeo cross-platform de brief-fetch-curl.mjs (wired)
 - ⚠️ `charter-validate.ps1` — gêmeo cross-platform de charter-validate.mjs (wired)
 - ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.mjs (wired)
 - ⚠️ `check-skills-fresh.ps1` — gêmeo cross-platform de check-skills-fresh.mjs (wired)
@@ -74,6 +75,7 @@ Nenhum.
 - ⚠️ `modulo-preflight-warning.ps1` — gêmeo cross-platform de modulo-preflight-warning.mjs (wired)
 - ⚠️ `preflight-new-capability.ps1` — gêmeo cross-platform de preflight-new-capability.mjs (wired)
 - ⚠️ `test-all-hooks-smoke.ps1` — sem wiring em settings.json
+- ⚠️ `tier-a-banner.ps1` — gêmeo cross-platform de tier-a-banner.mjs (wired)
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
 Contexts `classic_protection` (31):

@@ -22,10 +22,10 @@ Disparados a cada início de sessão Claude Code. Tipo ADR 0234: `hook_sessionst
 
 | Ordem | Hook | O que faz | Arquivo |
 |-------|------|-----------|---------|
-| 1 | `brief-fetch-curl` | Força chamada ao MCP `brief-fetch` via curl HTTP (JSON-RPC autenticado). Garante estado consolidado (~3k tokens) no contexto mesmo em worktrees filhos onde o MCP não conecta diretamente. Fallback gracioso para handoff index em 3 cenários de falha. | `.claude/hooks/brief-fetch-curl.ps1` |
-| 2 | handoff inline | Imprime últimas 40 linhas de `memory/08-handoff.md` (se existir) + lembrete sobre tools MCP para estado de tasks/cycles (CURRENT.md/TASKS.md removidos — ADR 0070). | inline em `settings.json` (comando PowerShell direto) |
+| 1 | `brief-fetch-curl` | Força chamada ao MCP `brief-fetch` via HTTP JSON-RPC autenticado (fetch nativo do node — nome `curl` é histórico; timeout 10s + redação de token). Garante estado consolidado (~3k tokens) no contexto mesmo em worktrees filhos onde o MCP não conecta diretamente. Fallback gracioso para handoff index em 3 cenários de falha. Portado .ps1→.mjs cross-platform (US-GOV-052). | `.claude/hooks/brief-fetch-curl.mjs` |
+| 2 | `handoff-inline` | Imprime últimas 40 linhas de `memory/08-handoff.md` (se existir) + lembrete sobre tools MCP para estado de tasks/cycles (CURRENT.md/TASKS.md removidos — ADR 0070). Portado de comando PowerShell inline→.mjs cross-platform (US-GOV-052). | `.claude/hooks/handoff-inline.mjs` |
 | 3 | `check-skills-fresh` | Detecta skills novas ou modificadas em `.claude/skills/` desde o último start deste dev. Avisa para rodar `/sync-skills` se houver drift. Estado salvo em `.claude/.last-skills-sync` (gitignored). | `.claude/hooks/check-skills-fresh.ps1` |
-| 4 | `tier-a-banner` | Exibe banner lembrando as 5 Skills Tier A (nucleo) + 6 auto-trigger (ADR 0225). Recalibrado 2026-05-28: Claude 4.8 torna always-on de auto-trigger redundante; redução de 8 para 5 Tier A. | `.claude/hooks/tier-a-banner.ps1` |
+| 4 | `tier-a-banner` | Exibe banner lembrando as Skills Tier A (nucleo) + auto-trigger (ADR 0225) — de-numerado no porte (o contador vive no frontmatter/CLAUDE.md, §5 2026-07-17). O gerador `skills-index-generate.mjs` asserta a presença de cada slug de núcleo neste arquivo. Portado .ps1→.mjs cross-platform (US-GOV-052). | `.claude/hooks/tier-a-banner.mjs` |
 
 ---
 
