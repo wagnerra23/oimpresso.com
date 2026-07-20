@@ -1916,3 +1916,22 @@ Ação de credencial/infra que destrava a dimensão erp-ia-produto (o mecanismo 
 `[C]` NÃO manuseia a chave (credencial paga [W]). Feito o desbloqueio, `[C]` liga via `JANA_CHAT_MODEL` (+ provider se anthropic), roda smoke real do `responderChat` (o incidente ensinou: testar o caminho blocking + eventos do stream; resposta vazia = sinal de erro) e mede antes/depois no gold-set (`jana:ragas-real-eval`) pra provar ganho na média — o comparativo atual é 1 amostra (ganho marginal, custo ~15×).
 
 **Refs:** US-COPI-144 (mecanismo, DoD com o incidente) · US-COPI-135 (fallback) · US-COPI-137 (eval) · handoff 2026-07-17-2115
+
+### US-COPI-146 · Migrar Jana/Dashboard pro padrão PT-04 (sair do bundle CSS paralelo .sells-cowork)
+
+> owner: — · priority: p2 · status: todo · type: story
+> blocked_by: —
+
+O `/ia/dashboard` (Pages/Jana/Dashboard.tsx + JanaCockpitV2) viola PT-04-Dashboard L80: aplica o wrapper `.sells-cowork` (bundle do módulo Sells) e consome tokens `.vd-insights-*` do `sells-cowork-insights.css` — ilha CSS paralela, não usa os shared canônicos. Consequência: dark mode quebrado (cores light hardcoded no bundle) + acoplamento cross-module.
+
+A catraca já existe (ui:lint R7 · PR #4582 · `UiLintCommand::checkR7`): a dívida está travada no baseline (`Jana/Dashboard` R7:1), ninguém pode piorar, mas a migração é manual.
+
+Escopo:
+- `JanaCockpitV2.tsx`: trocar as 52 classes `.vd-insights-*` pelos shared `@/Components/shared` (KpiGrid, KpiCard, PageHeader, EmptyState) + tokens do DS. Golden = `resources/js/Pages/governance/Dashboard.tsx`.
+- Remover o wrapper `.sells-cowork` de `Dashboard.tsx:281`.
+- Ancorar no protótipo canônico `prototipo-ui/cowork/chat-jana.jsx` (`.jc-*`, `related_prototype` do charter — re-adicionar a linha ao charter, descartada na sessão 2026-07-20).
+- Preservar o dark herdando via token (princípio já validado no harness `cockpit-dark-harness` da sessão 2026-07-20).
+- Ao final: remover a entrada R7 do `config/ui-lint-baseline.json` (ratchet aperta pra 0) + smoke real dark em `/ia/dashboard` E `/sells` (tab Insights).
+- ATENÇÃO: o mesmo `sells-cowork-insights.css` alimenta a tab Insights do Sells (tela-DONA, legítima) — não quebrar essa; a migração é só do lado Jana.
+
+**Refs:** PT-04-Dashboard L80 (enforçado) · ADR UI-0013 · ADR 0256 · `Jana/Dashboard.charter.md` · PR #4582
