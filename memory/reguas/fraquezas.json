@@ -199,7 +199,7 @@
     "titulo": "Detecta staleness, não auto-repara",
     "veredito": "PARCIAL",
     "nota": 6.5,
-    "evidencia": "7+ workflows peter-evans auto-PR p/ derivados; auto-editar prosa é gap deliberado (§5)",
+    "evidencia": "7+ workflows peter-evans auto-PR p/ derivados; auto-editar prosa é gap deliberado (git-first ADR 0061 + R10; contrato gateado = ADR 0291)",
     "degrau": "—",
     "data": "2026-07-18",
     "existia_invisivel": false
@@ -210,7 +210,7 @@
     "titulo": "Sem sleep-time/consolidação autônoma",
     "veredito": "PARCIAL",
     "nota": 6.5,
-    "evidencia": "jana:profile-distill dailyAt 04:50 live; estilo-Letta é non-goal (ADR 0323)",
+    "evidencia": "jana:profile-distill dailyAt 04:50 live; sleep-time de prosa gateado: ADR 0072 arquivada #4071, contrato vivo = ADR 0291 + kill-switch Kernel:261",
     "degrau": "—",
     "data": "2026-07-18",
     "existia_invisivel": false
