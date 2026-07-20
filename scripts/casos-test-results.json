@@ -1,6 +1,6 @@
 {
   "_meta": {
-    "generated_at": "2026-07-19T11:35:51.895Z",
+    "generated_at": "2026-07-20T12:31:07.241Z",
     "gate": "casos status derivado (ADR 0264 G-7 — Status por UC vem do veredito real do teste)",
     "sources": [
       "test-results/junit.xml",
@@ -11,8 +11,8 @@
       "test-results/pest-nfebrasil-junit.xml"
     ],
     "stats": {
-      "ucs": 25,
-      "pass": 25,
+      "ucs": 28,
+      "pass": 28,
       "fail": 0,
       "skip": 0
     },
@@ -24,12 +24,17 @@
     ]
   },
   "ucs": {
-    "UC-PTAB-03": {
+    "UC-PTAB-01": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PTAB-02": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2
     },
-    "UC-PTAB-02": {
+    "UC-PTAB-03": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 2
@@ -39,7 +44,17 @@
       "ran_at": null,
       "tests": 1
     },
-    "UC-PTAB-01": {
+    "UC-PCAD-06": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 1
+    },
+    "UC-PCAD-04": {
+      "verdict": "pass",
+      "ran_at": null,
+      "tests": 2
+    },
+    "UC-PCAD-01": {
       "verdict": "pass",
       "ran_at": null,
       "tests": 1
