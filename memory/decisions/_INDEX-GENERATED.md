@@ -5,10 +5,10 @@
 > Status/lifecycle normalizados no leitor (ADR 0257) — não altera os arquivos (append-only).
 
 ## Resumo
-- **349** arquivos · **333** números únicos · máx **0343**
-- **ADRs ATIVOS (lifecycle ativo): 315** ← resposta única a "quantos ADRs ativos"
-- Por status: aceito 317 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
-- Por lifecycle: ativo 315 · arquivado 22 · substituido 12
+- **350** arquivos · **334** números únicos · máx **0344**
+- **ADRs ATIVOS (lifecycle ativo): 316** ← resposta única a "quantos ADRs ativos"
+- Por status: aceito 318 · superseded 12 · deprecated 12 · proposto 6 · rascunho 1 · recusado 1
+- Por lifecycle: ativo 316 · arquivado 22 · substituido 12
 - Sem frontmatter (formato-tabela legado): 0
 
 ## Colisões de número (14) — auto-detectadas
@@ -36,7 +36,7 @@ _(nenhuma)_
 ## Recusadas (1) — o NÃO consultável
 - **0290** v0 'Fidelity Lock' (screenshot pareado em CI) — RECUSADO: fidelidade visual não  · recusada 2026-06-18 — Inviável + tautológico + backdoor de prosa (3 motivos na Decisão). REABRE só se surgir um check de fidelidade HERMÉTICO 
 
-## Todas as ADRs (349)
+## Todas as ADRs (350)
 | Nº | Status | Lifecycle | Kind | Título |
 |---|---|---|---|---|
 | 0001 | aceito | ativo | decision | Estender UltimatePOS em vez de build próprio ou fork |
@@ -388,3 +388,4 @@ _(nenhuma)_
 | 0341 | aceito | ativo | decision | Emenda à 0314 — memory-schema REQUIRED só nas 2 famílias limpas (charter · spec) |
 | 0342 | aceito | ativo | meta | Schema de ADR: slug/refs aceitam ponto e maiúscula pra casar 3 filenames legacy  |
 | 0343 | aceito | ativo | meta | Promove o gate ADR (memory/decisions/*.md) a required — emenda à 0341 (o adr é c |
+| 0344 | aceito | ativo | meta | Loop two-strikes cobre erro de PROCESSO (não só de código); cobertura só-advisor |

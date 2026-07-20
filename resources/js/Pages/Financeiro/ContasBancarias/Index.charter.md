@@ -102,3 +102,4 @@ Listar contas bancárias do business + permitir configurar dados pra emissão de
 |---|---|---|
 | 2026-05-07 | Opus + Wagner | Stub criado em S6 F1. Detalhamento Pest GUARD pendente F1.5. |
 | 2026-05-19 | Opus + Wagner | v2 — removidos campos gateway_* (credencial API). PaymentGateway extraído (ADR 0170). FK canon agora é `payment_gateway_credentials.conta_bancaria_id` (PR #1154). Tela passa a ser CNAB-only + beneficiário. |
+| 2026-07-20 | Claude + Wagner | Piloto migração PT (US-COPI-146): saiu da ilha `.fin-cowork`/`.fin-curadoria`/`.vendas-aplus` → layout via tokens do tema global (`.cockpit`); botão "Nova conta" `oklch` inline → `<Button variant="default">` (roxo canon 295 por token, dark-aware). Config-only, zero mudança de comportamento. Conteúdo já usava tokens shadcn. |

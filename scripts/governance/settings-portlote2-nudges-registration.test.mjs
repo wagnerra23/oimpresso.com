@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Teste de regressão: os 5 nudges advisory do lote 2 de porte .ps1→.mjs (US-GOV-052)
+// Teste de regressão: os 4 nudges advisory ainda ativos do lote 2 de porte .ps1→.mjs (US-GOV-052)
 // continuam REGISTRADOS em .claude/settings.json — e registrados como `node` (não
 // `powershell -File`), cada um no matcher correto.
 //
@@ -17,8 +17,8 @@
 //   · memory-pending                    → skill memory-sync + how-trabalhar §fechamento (ADR 0070)
 //   · nudge-recommend-not-menu          → R13 memory/reference/feedback-recomendar-nao-menu.md
 //   · nudge-diagnosis-without-evidence  → R1 proibicoes §"Claim sem evidência" (sessão 2026-05-29)
-//   · mcp-first-warning                 → skill mcp-first + how-trabalhar §tools MCP primeiro
 //   · nudge-test-contract-anchor        → proibicoes §"Ideias descartadas" 2026-06-05 (Check 9)
+// (mcp-first-warning saiu do lote em 2026-07-20 — aposentado, proibicoes §5 · era o 5º)
 //
 // Mesmo padrão de settings-portlote-ps1-mjs-registration.test.mjs (lote 1).
 // Rodar: node scripts/governance/settings-portlote2-nudges-registration.test.mjs   (exit 0 = passa)
@@ -35,7 +35,6 @@ const PORTADOS = [
   { nome: 'memory-pending', cmd: 'node .claude/hooks/memory-pending.mjs', evento: 'Stop', tools: ['*'] },
   { nome: 'nudge-recommend-not-menu', cmd: 'node .claude/hooks/nudge-recommend-not-menu.mjs', evento: 'Stop', tools: ['*'] },
   { nome: 'nudge-diagnosis-without-evidence', cmd: 'node .claude/hooks/nudge-diagnosis-without-evidence.mjs', evento: 'Stop', tools: ['*'] },
-  { nome: 'mcp-first-warning', cmd: 'node .claude/hooks/mcp-first-warning.mjs', evento: 'PreToolUse', tools: ['Read', 'Glob', 'Grep'] },
   { nome: 'nudge-test-contract-anchor', cmd: 'node .claude/hooks/nudge-test-contract-anchor.mjs', evento: 'PreToolUse', tools: ['Write', 'Edit', 'MultiEdit'] },
 ];
 
@@ -70,7 +69,7 @@ for (const h of PORTADOS) {
 
 console.log('');
 if (fails === 0) {
-  console.log('[PASS] lote 2 nudges: os 5 advisory ativados como node no evento/matcher certo (porte invocado, nao so escrito).');
+  console.log('[PASS] lote 2 nudges: os 4 advisory ainda ativos como node no evento/matcher certo (mcp-first-warning aposentado 2026-07-20 -- proibicoes §5).');
   process.exit(0);
 }
 console.log(`[FAIL] ${fails} caso(s) -- porte escrito mas NAO ativado (ou wiring ainda apontando pro .ps1).`);

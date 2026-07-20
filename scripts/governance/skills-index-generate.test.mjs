@@ -3,7 +3,7 @@
 // caso bom TEM que passar, caso ruim TEM que morder; exit 1 por crash != morder).
 //
 // Hermetico: monta um repo temporario com .claude/skills/ + CLAUDE.md (marcadores AUTO)
-// + tier-a-banner.ps1 e roda o gerador como subprocesso (cwd=tmp).
+// + tier-a-banner.mjs e roda o gerador como subprocesso (cwd=tmp).
 //
 // Rodar: node scripts/governance/skills-index-generate.test.mjs   (exit 0 = passa)
 
@@ -38,7 +38,7 @@ function makeRepo() {
   skill('slash-c', 'tier: C');
   skill('dormente-a', 'tier: A\nenabled: false\nresumo: dormente ate S5');
   mkdirSync(join(tmp, '.claude', 'hooks'), { recursive: true });
-  writeFileSync(join(tmp, '.claude', 'hooks', 'tier-a-banner.ps1'), 'Write-Host "TIER A: nucleo-a"\n', 'utf8');
+  writeFileSync(join(tmp, '.claude', 'hooks', 'tier-a-banner.mjs'), 'export const banner = "TIER A nucleo: nucleo-a";\n', 'utf8');
   writeFileSync(join(tmp, 'CLAUDE.md'), `# CLAUDE.md fixture\n\n## Skills\n\n${MARK_BEGIN}\n${MARK_END}\n\nresto manual intocavel\n`, 'utf8');
   return tmp;
 }
@@ -88,10 +88,10 @@ check('--check MORDE tier A com auto_trigger (contradicao)', b5.status === 1 && 
 writeFileSync(join(tmp, '.claude', 'skills', 'nucleo-a', 'SKILL.md'), '---\nname: nucleo-a\ntier: A\nresumo: skill de seguranca sempre-on\n---\n\ncorpo\n', 'utf8');
 
 // ── bite 6: nucleo ausente do banner (4a fonte) ──
-writeFileSync(join(tmp, '.claude', 'hooks', 'tier-a-banner.ps1'), 'Write-Host "TIER A: outra-coisa"\n', 'utf8');
+writeFileSync(join(tmp, '.claude', 'hooks', 'tier-a-banner.mjs'), 'export const banner = "TIER A nucleo: outra-coisa";\n', 'utf8');
 const b6 = run(tmp, '--check');
 check('--check MORDE nucleo A ausente do banner SessionStart', b6.status === 1 && /ausente do banner/.test(b6.stderr));
-writeFileSync(join(tmp, '.claude', 'hooks', 'tier-a-banner.ps1'), 'Write-Host "TIER A: nucleo-a"\n', 'utf8');
+writeFileSync(join(tmp, '.claude', 'hooks', 'tier-a-banner.mjs'), 'export const banner = "TIER A nucleo: nucleo-a";\n', 'utf8');
 
 // ── release final: consertado tudo, volta a passar ──
 run(tmp, '--write');

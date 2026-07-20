@@ -21,6 +21,7 @@
     "resources/js/Pages/ConsultaOs/_components/OsPipeline.tsx": 2,
     "resources/js/Pages/ConsultaOs/_components/OsResultCard.tsx": 3,
     "resources/js/Pages/Jana/_components/AssistantUiChat.tsx": 9,
+    "resources/js/Pages/Jana/_components/JanaCockpit.tsx": 29,
     "resources/js/Components/MentionInput.tsx": 1,
     "resources/js/Components/PageHeader/PageHeader.tsx": 2,
     "resources/js/Components/shared/BulkActionBar.tsx": 1,

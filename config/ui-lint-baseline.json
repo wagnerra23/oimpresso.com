@@ -10,7 +10,8 @@
             "R3": "emoji em UI de produto (use lucide icon)",
             "R4": "PT-01 Lista · Index.tsx sem PageHeader OU sem DataTable shared",
             "R5": "origens canon · CSS define apenas 5 origins (OS\/CRM\/FIN\/PNT\/MFG)",
-            "R6": "Blade directives adjacent sem whitespace (@endif@if, etc) · quebra compiler"
+            "R6": "Blade directives adjacent sem whitespace (@endif@if, etc) · quebra compiler",
+            "R7": "PT-04 · bundle CSS de módulo alheio (cross-module borrow · ilha paralela)"
         }
     },
     "files": {

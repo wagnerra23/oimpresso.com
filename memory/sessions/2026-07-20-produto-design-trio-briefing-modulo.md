@@ -28,7 +28,7 @@ correções sucessivas da **Maiara [M]** (e uma do Wagner), até o BRIEFING do m
 - **#4417 (mergeado)** — trio do Create (`Create.casos.md` + `CadastroProdutoContratoTest`) + fix `create()` 500→404 (`findOrFail`).
 - **#4464 (mergeado)** — premissa falsa do multiplicador corrigida em SDD/FICHA/INVENTARIO/BRIEFING + Errata na ADR ARQ-0001.
 - **#4449 (mergeado)** — regra de processo "pedido explícito de contrato de tela" + ordem de fonte (doc→código→Delphi→concorrentes→perguntar).
-- **#4579 (aberto)** — BRIEFING do Produto reescrito pra módulo inteiro (18 áreas), podado, links validados; gates verdes.
+- **BRIEFING do Produto** — reescrevi pra módulo inteiro (18 áreas, podado, links validados) no #4579, MAS uma **sessão paralela [M+CC] mergeou o #4601** ("transforma briefing em porta de entrada") no main **antes** — versão mais completa (âncoras muito mais amplas: Compras/Vendas/Manufacturing/WooCommerce/Repair/ComVis/FSM; já tem UC-PCAD-05/#4554; linhagem; ProductCatalogue). **Descartei minha reescrita** (duplicata inferior, convergência) e aceitei a do main. Quase sobrescrevi um briefing melhor com o meu pior — a lição da sessão em pessoa. O #4579 fica só com este session log + o handoff (registro da conversa).
 - **Estoque + Restaurant = âncoras relacionadas** (decisão Wagner — dependem do produto, não saem do briefing).
 - **Poda anti-apodrecimento** — números derivados (grades/%/status/nota) saem do corpo, apontam pros geradores (UI-CATALOG, casos-coverage, module:grade); todo arquivo-fonte vira link validado.
 - **Não criar mapa paralelo** — consolidar no `PARIDADE-charter-vs-legado` (pendente, próxima sessão).

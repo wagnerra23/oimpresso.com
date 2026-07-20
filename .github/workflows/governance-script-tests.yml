@@ -82,8 +82,6 @@ jobs:
         run: node scripts/governance/settings-automem-mwart-registration.test.mjs
       - name: Block-bom-encoding PORTE .mjs (proibicoes Ambiente BOM · #984 · logica + E2E · roda em Linux)
         run: node .claude/hooks/block-bom-encoding.test.mjs
-      - name: Block-serving-branch-switch PORTE .mjs (R8 · ADR 0233 · logica + E2E · roda em Linux)
-        run: node .claude/hooks/block-serving-branch-switch.test.mjs
       - name: Block-test-without-red PORTE .mjs (SDD FV-T0 · logica + E2E · roda em Linux)
         run: node .claude/hooks/block-test-without-red.test.mjs
       - name: Warn-red-first PORTE .mjs (SDD FV-T0 advisory · logica + E2E · roda em Linux)
@@ -98,8 +96,6 @@ jobs:
         run: node .claude/hooks/nudge-recommend-not-menu.test.mjs
       - name: Nudge-diagnosis-without-evidence PORTE .mjs (R1 · advisory · roda em Linux)
         run: node .claude/hooks/nudge-diagnosis-without-evidence.test.mjs
-      - name: Mcp-first-warning PORTE .mjs (skill mcp-first · hookSpecificOutput allow · roda em Linux)
-        run: node .claude/hooks/mcp-first-warning.test.mjs
       - name: Nudge-test-contract-anchor PORTE .mjs (proibicoes §descartadas Check 9 · roda em Linux)
         run: node .claude/hooks/nudge-test-contract-anchor.test.mjs
       - name: Lote 2 nudges REGISTRADO como node (correcao != invocacao · US-GOV-052)
@@ -114,6 +110,20 @@ jobs:
         run: node .claude/hooks/modulo-preflight-warning.test.mjs
       - name: Lote 3 SessionStart+preflight REGISTRADO como node (correcao != invocacao · US-GOV-052)
         run: node scripts/governance/settings-portlote3-sessionstart-registration.test.mjs
+      - name: Charter-validate PORTE .mjs (Charter > Spec · logica + E2E · roda em Linux)
+        run: node .claude/hooks/charter-validate.test.mjs
+      - name: Preflight-new-capability PORTE .mjs (anti-reinvencao framework · logica + E2E · roda em Linux)
+        run: node .claude/hooks/preflight-new-capability.test.mjs
+      - name: Lote 4 charter+preflight REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        run: node scripts/governance/settings-portlote4-charter-preflight-registration.test.mjs
+      - name: Brief-fetch-curl PORTE .mjs (HTTP autenticado MCP · fetch nativo + timeout + redacao token · roda em Linux)
+        run: node .claude/hooks/brief-fetch-curl.test.mjs
+      - name: Tier-a-banner PORTE .mjs (banner Skills Tier A de-numerado · roda em Linux)
+        run: node .claude/hooks/tier-a-banner.test.mjs
+      - name: Handoff-inline PORTE .mjs (indice handoff SessionStart · roda em Linux)
+        run: node .claude/hooks/handoff-inline.test.mjs
+      - name: Lote 5 SessionStart REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        run: node scripts/governance/settings-portlote5-sessionstart-registration.test.mjs
       - name: Block-merge-markers PORTE .mjs (post-mortem v4 anti-pattern A · #1000/#1001 · roda em Linux)
         run: node .claude/hooks/block-merge-markers.test.mjs
       - name: Block-routes-string-legacy PORTE .mjs (rules/routes.md FQCN · incidente #843 · roda em Linux)

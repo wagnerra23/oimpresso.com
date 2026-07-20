@@ -22,10 +22,10 @@ Disparados a cada início de sessão Claude Code. Tipo ADR 0234: `hook_sessionst
 
 | Ordem | Hook | O que faz | Arquivo |
 |-------|------|-----------|---------|
-| 1 | `brief-fetch-curl` | Força chamada ao MCP `brief-fetch` via curl HTTP (JSON-RPC autenticado). Garante estado consolidado (~3k tokens) no contexto mesmo em worktrees filhos onde o MCP não conecta diretamente. Fallback gracioso para handoff index em 3 cenários de falha. | `.claude/hooks/brief-fetch-curl.ps1` |
-| 2 | handoff inline | Imprime últimas 40 linhas de `memory/08-handoff.md` (se existir) + lembrete sobre tools MCP para estado de tasks/cycles (CURRENT.md/TASKS.md removidos — ADR 0070). | inline em `settings.json` (comando PowerShell direto) |
-| 3 | `check-skills-fresh` | Detecta skills novas ou modificadas em `.claude/skills/` desde o último start deste dev. Avisa para rodar `/sync-skills` se houver drift. Estado salvo em `.claude/.last-skills-sync` (gitignored). | `.claude/hooks/check-skills-fresh.ps1` |
-| 4 | `tier-a-banner` | Exibe banner lembrando as 5 Skills Tier A (nucleo) + 6 auto-trigger (ADR 0225). Recalibrado 2026-05-28: Claude 4.8 torna always-on de auto-trigger redundante; redução de 8 para 5 Tier A. | `.claude/hooks/tier-a-banner.ps1` |
+| 1 | `brief-fetch-curl` | Força chamada ao MCP `brief-fetch` via HTTP JSON-RPC autenticado (fetch nativo do node — nome `curl` é histórico; timeout 10s + redação de token). Garante estado consolidado (~3k tokens) no contexto mesmo em worktrees filhos onde o MCP não conecta diretamente. Fallback gracioso para handoff index em 3 cenários de falha. Portado .ps1→.mjs cross-platform (US-GOV-052). | `.claude/hooks/brief-fetch-curl.mjs` |
+| 2 | `handoff-inline` | Imprime últimas 40 linhas de `memory/08-handoff.md` (se existir) + lembrete sobre tools MCP para estado de tasks/cycles (CURRENT.md/TASKS.md removidos — ADR 0070). Portado de comando PowerShell inline→.mjs cross-platform (US-GOV-052). | `.claude/hooks/handoff-inline.mjs` |
+| 3 | `check-skills-fresh` | Detecta skills novas ou modificadas em `.claude/skills/` desde o último start deste dev. Avisa para rodar `/sync-skills` se houver drift. Estado salvo em `.claude/.last-skills-sync` (gitignored). | `.claude/hooks/check-skills-fresh.mjs` |
+| 4 | `tier-a-banner` | Exibe banner lembrando as Skills Tier A (nucleo) + auto-trigger (ADR 0225) — de-numerado no porte (o contador vive no frontmatter/CLAUDE.md, §5 2026-07-17). O gerador `skills-index-generate.mjs` asserta a presença de cada slug de núcleo neste arquivo. Portado .ps1→.mjs cross-platform (US-GOV-052). | `.claude/hooks/tier-a-banner.mjs` |
 
 ---
 
@@ -37,7 +37,7 @@ Disparados antes de cada uso de ferramenta. Tipo ADR 0234: `hook_pretooluse`.
 
 | Matcher | Hook | O que faz | Arquivo |
 |---------|------|-----------|---------|
-| `Read\|Glob\|Grep` | `mcp-first-warning` | Avisa quando Claude tenta usar Read/Glob/Grep em `memory/*`, incentivando uso de tools MCP antes de ler filesystem. Enforcement cultural do reflexo MCP-first (ADR 0070 — CURRENT.md/TASKS.md removidos). | `.claude/hooks/mcp-first-warning.mjs` |
+| `Read\|Glob\|Grep` | `block-ancora-no-olho` | Bloqueia (exit 2) Read de print-semântico (audit/critique/scrap/tribunal/-old/reavalia) que NÃO seja âncora de design declarada por charter — em qualquer lugar. Lê o charter de verdade; imagem de design legítima passa. Incidente #7 (2026-06-30). | `.claude/hooks/block-ancora-no-olho.mjs` |
 
 ### Matcher: `Write|Edit|MultiEdit`
 
@@ -46,8 +46,8 @@ Disparados antes de cada uso de ferramenta. Tipo ADR 0234: `hook_pretooluse`.
 | `Write\|Edit\|MultiEdit` | `block-automem` | Bloqueia Write/Edit em auto-mem privada legada (`~/.claude/projects/*/memory/*.md`). Permite `~/.claude/oimpresso-local/` (escape valve). 3 tiers: Canônico (git), Local (~/.claude/oimpresso-local/), Segredo (Vaultwarden). ADR 0061 + ADR 0131. | `.claude/hooks/block-automem.mjs` |
 | `Write\|Edit\|MultiEdit` | `block-memory-drift` | Bloqueia edits em paths canônicos (`memory/decisions/`, `memory/08-handoff.md`, etc.) sem branch `claude/*` + workflow PR. ADRs accepted são append-only irrevogáveis. ADR 0094 Art. 3 + ADR 0061 + ADR 0130. | `.claude/hooks/block-memory-drift.mjs` |
 | `Write\|Edit\|MultiEdit` | `block-mwart-violation` | Bloqueia Edit/Write em `resources/js/Pages/<Mod>/<Tela>.tsx` sem RUNBOOK existir em `memory/requisitos/<Mod>/RUNBOOK-<tela-kebab>.md`. Garante que F1 PLAN acontece antes de F3 FRONTEND. Override via comentário `/mwart-override <razão>` no PR. ADR 0104. | `.claude/hooks/block-mwart-violation.mjs` |
-| `Write\|Edit\|MultiEdit` | `charter-validate` | Avisa (modo warning, não bloqueia ainda) quando Claude tenta editar Page `.tsx` que tem `.charter.md` irmão sem ter chamado `charter-fetch` previamente. Vira bloqueante quando ROI provado (≥5 sessões). ADR 0094 + ADR 0101. | `.claude/hooks/charter-validate.ps1` |
-| `Write\|Edit\|MultiEdit` | `modulo-preflight-warning` | Aviso (não bloqueia) quando Claude tenta Edit/Write em `Modules/<X>/` sem ter lido SPEC.md/RUNBOOK/charter do módulo X na sessão atual. Implementa FASE 1 PRÉ-FLIGHT da Regra Primária Tier 0. | `.claude/hooks/modulo-preflight-warning.ps1` |
+| `Write\|Edit\|MultiEdit` | `charter-validate` | Avisa (modo warning, não bloqueia ainda) quando Claude tenta editar Page `.tsx` que tem `.charter.md` irmão sem ter chamado `charter-fetch` previamente. Vira bloqueante quando ROI provado (≥5 sessões). ADR 0094 + ADR 0101. | `.claude/hooks/charter-validate.mjs` |
+| `Write\|Edit\|MultiEdit` | `modulo-preflight-warning` | Aviso (não bloqueia) quando Claude tenta Edit/Write em `Modules/<X>/` sem ter lido SPEC.md/RUNBOOK/charter do módulo X na sessão atual. Implementa FASE 1 PRÉ-FLIGHT da Regra Primária Tier 0. | `.claude/hooks/modulo-preflight-warning.mjs` |
 | `Write\|Edit\|MultiEdit` | `block-bom-encoding` | Bloqueia Write/Edit que reintroduza UTF-8 BOM (EF BB BF) em arquivos de código. Origem: post-mortem v4 go-live (PR #984) — PowerShell 5.1 `Set-Content -Encoding utf8` gravava BOM que quebrava PHP (`Namespace declaration statement has to be the very first statement`). | `.claude/hooks/block-bom-encoding.mjs` |
 | `Write\|Edit\|MultiEdit` | `block-merge-markers` | Bloqueia Write/Edit que contenha git merge conflict markers não-resolvidos (`<<<<<<<`, `=======`, `>>>>>>>`). Origem: post-mortem v4 go-live (PRs #1000/#1001) — markers chegaram em prod causando PHP parse error. Irmão em CI: `.github/scripts/merge-marker-scan.sh`. | `.claude/hooks/block-merge-markers.mjs` |
 | `Write\|Edit\|MultiEdit` | `block-routes-string-legacy` | Bloqueia Write/Edit em `routes/*.php` e `Modules/*/Routes/*.php` que use sintaxe string legacy `'Controller@method'`. FQCN obrigatório: `[Class::class, 'method']`. Origem: post-mortem v4 go-live (PR #843) — strings quebravam `php artisan route:cache`. | `.claude/hooks/block-routes-string-legacy.mjs` |
@@ -61,7 +61,6 @@ Disparados antes de cada uso de ferramenta. Tipo ADR 0234: `hook_pretooluse`.
 | `Bash` | `commit-discipline-check` | Enforcement Skill Tier A commit-discipline via PreToolUse Bash (git commit/add). ADR 0094 §5. | `.claude/hooks/commit-discipline-check.mjs` |
 | `Bash` | `block-claim-without-evidence` | Bloqueia `gh pr create`/`gh pr merge --admin`/`git push` para branches que tocam infra crítica se o body do PR não contém evidência curl/HTTP literal. Camada B pareada com CI gate `.github/workflows/infra-contract-required.yml`. Escape: `# evidence-override: <razão>`. | `.claude/hooks/block-claim-without-evidence.mjs` |
 | `Bash` | `post-merge-ui-smoke-required` | Após `gh pr merge --admin` de PR com arquivos UI (.tsx/.css/.blade.php), marca flag pendente e bloqueia Claude de declarar "pronto"/"deployed" sem screenshot real. Enforcement Tier 0 smoke visual pós-merge. Também ativo em PreToolUse `mcp__computer-use__screenshot\|mcp__Claude_in_Chrome__.*`. | `.claude/hooks/post-merge-ui-smoke-required.mjs` |
-| `Bash` | `block-serving-branch-switch` | Bloqueia troca de branch no checkout MAIN (`D:\oimpresso.com`) que serve `oimpresso.test` via Herd. Trabalho de feature vai em worktree isolado. Worktrees linkados (`.claude/worktrees/*`) são liberados. ADR 0233. Fail-open. | `.claude/hooks/block-serving-branch-switch.mjs` |
 
 ### Matcher: `mcp__computer-use__screenshot|mcp__Claude_in_Chrome__.*`
 
@@ -191,7 +190,7 @@ Tipo ADR 0234: `routine`. Automações orquestradas de mais alto nível que não
 
 | Nome | Gatilho | O que faz | Arquivo(s) |
 |------|---------|-----------|------------|
-| **Fechar o Loop** _(primeira rotina tipo routine registrada — audit 2026-05-29)_ | SessionStart, após brief-fetch | Verifica idempotentemente os 4 gaps P0 da auditoria IA-OS (RAGAS CI, drift sentinel, observability, LGPD purge) e aponta o próximo pendente; NUNCA toca Brain B/autonomia. | `.claude/hooks/loop-fechar-check.ps1` + `.claude/loop-fechar-o-loop.json` _(criados e validados 2026-05-29; já registrados no `SessionStart` do `settings.json`)_ |
+| **Fechar o Loop** _(primeira rotina tipo routine registrada — audit 2026-05-29)_ | SessionStart, após brief-fetch | Verifica idempotentemente os 4 gaps P0 da auditoria IA-OS (RAGAS CI, drift sentinel, observability, LGPD purge) e aponta o próximo pendente; NUNCA toca Brain B/autonomia. | `.claude/hooks/loop-fechar-check.mjs` + `.claude/loop-fechar-o-loop.json` _(criados e validados 2026-05-29; já registrados no `SessionStart` do `settings.json`)_ |
 
 ---
 

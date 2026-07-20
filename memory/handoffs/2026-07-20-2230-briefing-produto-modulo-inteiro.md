@@ -11,6 +11,9 @@ related_adrs: [0104-processo-mwart-canonico-unico-caminho, 0093-multi-tenant-iso
 
 # Handoff — BRIEFING do Produto (módulo inteiro) + trio do cadastro
 
+> ⚠️ **CONVERGÊNCIA (adendo no fechamento):** enquanto eu reescrevia o BRIEFING, a sessão paralela [M+CC] mergeou o **#4601** ("briefing porta de entrada") no main — versão MAIS completa (âncoras mais amplas, UC-PCAD-05 já lá, linhagem, ProductCatalogue). **Minha reescrita foi descartada** (duplicata inferior); o BRIEFING canônico é o do #4601. Este PR (#4579) fica só com o session log + este handoff (registro da conversa).
+
+
 ## ⚠️ Correção de identidade (importante pra próxima sessão)
 A usuária é a **Maiara [M]**, NÃO o Felipe. O e-mail do sistema é `felipe@wr2.com.br`, mas a memória canônica (MEMORY.md) diz "Usuária é Maiara". Vários commits desta sessão foram assinados **[F+CC] por engano** (já mergeados, não dá pra reescrever); do handoff em diante é **[M+CC]**. Wagner é a autoridade de aprovação (owner).
 

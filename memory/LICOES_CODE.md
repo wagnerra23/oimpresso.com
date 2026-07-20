@@ -1,9 +1,12 @@
 # LIÇÕES [CODE] — erros de código a não repetir
 
-> Escopo: **código backend/infra** (PHP, Eloquent, jobs, migrations, controllers, services, CI).
+> Escopo: **código backend/infra** (PHP, Eloquent, jobs, migrations, controllers, services, CI)
+> **+ processo/comportamento de agente** (medição, derivação, oráculo, varredura) — o tema é
+> *reincidência → defesa mecânica*, e erro de processo é instância disso igual erro de código
+> (proposal [two-strikes-cobre-processo](decisions/0344-two-strikes-cobre-processo.md), raio-X 2026-07-20).
 > Equivalente de `LICOES_CC.md` (que cobre design/[CC]) pro lado de engenharia.
-> Subordinado a `memory/proibicoes.md` (canônico). **Append-only.**
-> Lido no início de toda sessão pelo hook `licoes-code-two-strikes.ps1`.
+> Subordinado a `memory/proibicoes.md` (canônico; o §5 de lá é a PROSA-evidência, este é o CONTADOR). **Append-only.**
+> Lido no início de toda sessão pelo hook `licoes-code-two-strikes.mjs`.
 >
 > **Por que existe:** fechar o elo manual do loop de aprendizado — quando uma classe de
 > erro de IA-code repete, ela precisa virar **defesa mecânica** (gate/hook/baseline), não
@@ -32,6 +35,24 @@
 > Ao consertar um erro de código: ache a `Classe` aqui. Existe? Incrementa `Ocorrências`.
 > Não existe? Cria `LC-NN` novo com `Ocorrências: 1`. Quando virar gate, troca `Gate: none`
 > pelo nome do gate e o alarme some sozinho (catraca — só sobe).
+>
+> **Convenção do campo `Gate` (ADR 0344):** cobertura só-**advisory** (nudge/warn que não bloqueia)
+> conta como *sem defesa mecânica* — declare `Gate: advisory — <hooks>` e a classe **segue
+> alarmando** até virar sonda que morde. Se o advisory é a decisão **FINAL by-design** (ADR 0224),
+> declare `Gate: advisory-terminal (0224) — <hook>`: o marcador `terminal`/`by-design`/`0224` sai
+> do alarme. Um gate REAL que só menciona "advisory" entre parênteses (`mutation-gate (advisory,…)`)
+> não é advisory pra o contador — só o prefixo declarado.
+>
+> ## Reconciliação §5↔ledger (auto-feed · proposal [auto-feed-ledger-aprendizado](decisions/proposals/2026-07-20-auto-feed-ledger-aprendizado.md))
+> No SessionStart o hook, além de alarmar two-strikes, **reconcilia** este ledger com o §5 de
+> `memory/proibicoes.md`: lê as **datas do §5 que a linha `Ocorrências` cita** (o prefixo `§5:` —
+> o recibo datado; convenção do "Caminho único" da ADR 0344), calcula `frontier = max(essas datas)`
+> e **surfaça** as lápides do §5 que carregam marcador de recorrência do autor (*"reincidência /
+> mesma família / EMENDA da lápide / …"*) **além do frontier e fora do ledger** — pra VOCÊ decidir:
+> vira LC nova, +1 numa LC, ou é ruído? A **DETECÇÃO** da recorrência-DECLARADA vira mecânica; o
+> **julgamento** e o passo erro→lápide seguem HUMANOS (não "lê o erro real"; reconcilia dois docs
+> curados à mão). Também flagra **recibo pendurado** (data citada sem lápide no §5 — typo).
+> Dry-run contado: `node .claude/hooks/licoes-code-two-strikes.mjs --reconcile`.
 
 ---
 
@@ -103,3 +124,19 @@
 - **Ocorrências:** 1
 - **Gate:** `cowork-mirror-freshness.mjs` manifest v3 (kind ancora|dep) + testes §6b no `.test.mjs` (CI design-memory-gate) — o caso `app.jsx` do drift real está travado por assert nomeado.
 - **Ref:** sessão 2026-07-07 · PROTOCOLO-COMPARACAO-RUNTIME passo 0 · LC-06 (família: cobertura de medição)
+
+---
+
+> Abaixo: 1ª classe de **PROCESSO/comportamento de agente** promovida ao contador (raio-X 2026-07-20).
+> O §5 do `proibicoes.md` já tinha a prosa-evidência; faltava o CONTADOR que torna a reincidência
+> visível pro hook. Backfill **forward-only + oportunístico** (a lápide 2026-07-12 do §5 proíbe big-bang):
+> só a classe que estava GRITANDO entra agora; as demais viram LC-NN quando reincidirem.
+
+## LC-08 — Afirmar/derivar/medir a partir da FONTE ou MEDIDA errada (sem provar)
+- **Erro:** apresentar achado, causa-raiz, número ou veredito derivado da fonte errada — ler código em vez de rodar; medir o atributo (`.hidden`/`offsetTop`) em vez do computado; restatear número que outro sistema (banco/runtime) sabe melhor; parsear o `Kernel.php` em vez de perguntar ao scheduler; `crontab -l` num host que não tem o binário — e chamar de "verificado/medido".
+- **Sintoma:** o agente afirma "medido / a raiz é X / verificado"; [W] ou o CI acha que a medida veio do disco/leitura/olho, não do sistema-que-sabe (SELECT no banco, `runsInEnvironment()` no runtime, varredura contada, teste vermelho).
+- **Regra:** achado/número/veredito só vira CONCLUSÃO depois de (a) varredura CONTADA (sem `head_limit`, dizendo "N de N"), (b) âncora de contrato citada (UC/SPEC/ADR), (c) oráculo certo (banco/runtime/teste vermelho) — nunca leitura/parse/olho. Recibo DATADO (`query+resultado+data`), não afirmação atemporal. Em dúvida → PERGUNTAR, não inventar.
+- **Classe:** afirmar-sem-medir-fonte-certa
+- **Ocorrências:** 5   (proibicoes §5: 07-15 achado-sem-varredura · 07-16 medir-propriedade-errada · 07-17 oráculo-errado-restatear-número · 07-17 deduzir-quem-roda-parseando · 07-17 crontab-l-falso-negativo. Adjacente: 07-16 importar-solução-sem-checar-premissa.)
+- **Gate:** advisory — `nudge-diagnosis-without-evidence` + `warn-red-first` (nudges que NÃO bloqueiam ESTA classe; ela reincidiu 5× em 3 dias → advisory insuficiente, precisa de sonda que morda). Crédito honesto: `block-ancora-no-olho` já BLOQUEIA (exit 2), mas comportamento **adjacente** (ler PNG semântico como fonte de design), não a medição/derivação desta classe — por isso "nenhum bloqueia ESTA classe" segue verdadeiro. Desescala quando cada sub-comportamento ganhar sonda própria (ex: medir-propriedade-errada → CSS `[hidden]{display:none!important}`; oráculo-número → Check T `fact-anchor`).
+- **Ref:** `memory/proibicoes.md` §5 (2026-07-15..17) · raio-X 2026-07-20 · proposal [two-strikes-cobre-processo](decisions/0344-two-strikes-cobre-processo.md)

@@ -9,32 +9,31 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **46** wirings em `settings.json` (5 eventos) · **41** arquivos de hook distintos wired
-- **47** arquivos de hook no disco (+32 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **6** · Fantasmas (wiring sem arquivo): **0**
+- **44** wirings em `settings.json` (5 eventos) · **40** arquivos de hook distintos wired
+- **41** arquivos de hook no disco (+33 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **1** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
 |---|---|---|---|---|---|
-| SessionStart | `*` | brief-fetch-curl.ps1 | powershell | sessão (início — injeção de contexto) | — |
-| SessionStart | `*` | (inline no settings.json) | powershell | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | brief-fetch-curl.mjs | node | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | handoff-inline.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | check-skills-fresh.mjs | node | sessão (início — injeção de contexto) | — |
-| SessionStart | `*` | tier-a-banner.ps1 | powershell | sessão (início — injeção de contexto) | — |
+| SessionStart | `*` | tier-a-banner.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | loop-fechar-check.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | licoes-code-two-strikes.mjs | node | sessão (início — injeção de contexto) | — |
 | SessionStart | `*` | git-base-freshness-guard.mjs | node | sessão (início — injeção de contexto) | — |
 | PreToolUse | `Skill/DesignSync/design-login` | diag-pretooluse-trace.mjs | node | ferramenta (pré-uso do matcher) | — |
 | PreToolUse | `AskUserQuestion` | block-askq-execution-menu.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
-| PreToolUse | `Read/Glob/Grep` | mcp-first-warning.mjs | node | leitura (pré-Read/Glob/Grep) | — |
 | PreToolUse | `Read/Glob/Grep` | block-ancora-no-olho.mjs | node | leitura (pré-Read/Glob/Grep) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-automem.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-brl-values-in-memory.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-memory-drift.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-mwart-violation.mjs | node | geração (pré-Write/Edit) | exit-2 |
-| PreToolUse | `Write/Edit/MultiEdit` | charter-validate.ps1 | powershell | geração (pré-Write/Edit) | deny |
+| PreToolUse | `Write/Edit/MultiEdit` | charter-validate.mjs | node | geração (pré-Write/Edit) | deny |
 | PreToolUse | `Write/Edit/MultiEdit` | modulo-preflight-warning.mjs | node | geração (pré-Write/Edit) | — |
-| PreToolUse | `Write/Edit/MultiEdit` | preflight-new-capability.ps1 | powershell | geração (pré-Write/Edit) | — |
+| PreToolUse | `Write/Edit/MultiEdit` | preflight-new-capability.mjs | node | geração (pré-Write/Edit) | — |
 | PreToolUse | `Write/Edit/MultiEdit` | block-bom-encoding.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-merge-markers.mjs | node | geração (pré-Write/Edit) | exit-2 |
 | PreToolUse | `Write/Edit/MultiEdit` | block-routes-string-legacy.mjs | node | geração (pré-Write/Edit) | exit-2 |
@@ -46,7 +45,6 @@
 | PreToolUse | `Bash` | commit-discipline-check.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
 | PreToolUse | `Bash` | block-claim-without-evidence.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
 | PreToolUse | `Bash` | post-merge-ui-smoke-required.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
-| PreToolUse | `Bash` | block-serving-branch-switch.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `mcp__computer-use__screenshot/mcp__[Cc]laude[-_][Ii]n[-_][C…` | post-merge-ui-smoke-required.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `mcp__.*figma.*/mcp__.*__(use_figma/get_design_context/get_f…` | block-figma-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `DesignSync` | block-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
@@ -68,12 +66,7 @@
 Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
-- ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.ps1 (wired)
-- ⚠️ `check-skills-fresh.ps1` — gêmeo cross-platform de check-skills-fresh.mjs (wired)
-- ⚠️ `licoes-code-two-strikes.ps1` — gêmeo cross-platform de licoes-code-two-strikes.mjs (wired)
-- ⚠️ `loop-fechar-check.ps1` — gêmeo cross-platform de loop-fechar-check.mjs (wired)
-- ⚠️ `modulo-preflight-warning.ps1` — gêmeo cross-platform de modulo-preflight-warning.mjs (wired)
-- ⚠️ `test-all-hooks-smoke.ps1` — sem wiring em settings.json
+- ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.mjs (wired)
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
 Contexts `classic_protection` (31):
