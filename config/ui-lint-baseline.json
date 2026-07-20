@@ -3,7 +3,7 @@
         "generated_at": "2026-05-27T17:12:28-03:00",
         "tool": "ui:lint",
         "files_scanned": 1433,
-        "total_violations": 7595,
+        "total_violations": 7594,
         "rules": {
             "R1": "cor crua (hex literal ou bg-COR-NNN em Page)",
             "R2": "FontAwesome (lucide-only · ADR UI-0003)",
@@ -585,8 +585,7 @@
             "R3": 10
         },
         "resources\/js\/Pages\/Jana\/Dashboard.tsx": {
-            "R1": 19,
-            "R7": 1
+            "R1": 19
         },
         "resources\/js\/Pages\/Jana\/Memoria.tsx": {
             "R1": 14
