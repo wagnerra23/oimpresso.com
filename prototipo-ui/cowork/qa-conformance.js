@@ -10,10 +10,15 @@
  *   G5 cor crua aplicada — hex/oklch/white/black cru em regra que CASA com o DOM atual (era UC-V10,
  *                          agora DOM-matched = só o que está NO AR; ratchet por baseline only-down)
  *   G6 dark legível      — superfície grande quase-branca no tema dark = 🔴 (era UC-V12)
+ *   G7 escopo por módulo — regra CSS aplicando prefixo dominante de OUTRO módulo = 🔴 ([W] 06-10)
+ *   G8 type ramp         — font-size computado fora do ramp --fs-1..9 = 🔴 ([W] "vai" 06-10, ratchet)
+ *   G9 tempero           — body sem atmosfera --atmo / flutuante sem sombra = 🔴 ([W] norte visual 06-10)
  *   G10 vida (chip fosco) — chip/pill/badge com texto semântico sobre fundo acromático = 🔴 ([W] 06-11 "cor fosca é sistêmico")
  *   G11 select fantasma  — select custom dimensionado pela LISTA, chevron longe do valor = 🔴 ([W] 06-11, drawer)
  *   G12 grid órfão       — linha com 1 célula em grid de 2 colunas = 🔴 ([W] 06-11 "Detalhes mal formatado")
  *   G13 texto cortado    — nowrap estourando sem ellipsis = 🔴 ([W] 06-11, footer do drawer)
+ *   G14 contraste AA     — razão de contraste texto/fundo COMPUTADA < WCAG AA (4.5 / 3 grande) = 🔴 (a11y, 2026-07-20 · ratchet, ⬜ sem baseline)
+ *   G15 foco visível     — regra :focus/:focus-visible remove outline SEM repor indicador = 🔴 (a11y, 2026-07-20 · rule-scan determinístico)
  *
  * LOOP ERRO→ASSERÇÃO (P4): todo erro novo de craft DEVE virar um G# aqui (ou declarar não-mecanizável
  * na sessão). Este header lista a origem de cada G — é o índice do loop.
@@ -424,9 +429,144 @@
       detail: bad.length ? bad.slice(0, 3).join(" · ") : "nada cortado" };
   }
 
+  // ── helpers de cor (WCAG · sRGB) para G14 ────────────────────────
+  function _rgba(str) {
+    if (!str) return null;
+    if (str === "transparent") return { r: 0, g: 0, b: 0, a: 0 };
+    var m = str.match(/rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:[,\s/]+([\d.]+))?/i);
+    if (!m) return null;
+    return { r: +m[1], g: +m[2], b: +m[3], a: m[4] === undefined ? 1 : +m[4] };
+  }
+  function _lin(c) { c = c / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+  function _lum(rgb) { return 0.2126 * _lin(rgb.r) + 0.7152 * _lin(rgb.g) + 0.0722 * _lin(rgb.b); }
+  function _over(fg, bg) {
+    var a = fg.a;
+    return { r: fg.r * a + bg.r * (1 - a), g: fg.g * a + bg.g * (1 - a), b: fg.b * a + bg.b * (1 - a), a: 1 };
+  }
+  function _contrast(l1, l2) { var hi = Math.max(l1, l2), lo = Math.min(l1, l2); return (hi + 0.05) / (lo + 0.05); }
+  // fundo efetivo RESOLVIDO: sobe ancestrais compondo camadas semi-transparentes até a 1ª opaca.
+  // Retorna null (INDETERMINÁVEL, honesto) se topar com background-image/gradiente — não dá pra medir cor sólida.
+  function effectiveBg(el) {
+    var layers = [], e = el;
+    while (e && e !== document.documentElement) {
+      var cs = getComputedStyle(e);
+      if (cs.backgroundImage && cs.backgroundImage !== "none") return null;
+      var bg = _rgba(cs.backgroundColor);
+      if (bg && bg.a > 0) { layers.push(bg); if (bg.a >= 0.999) break; }
+      e = e.parentElement;
+    }
+    var base = (layers.length && layers[layers.length - 1].a >= 0.999) ? layers.pop() : { r: 255, g: 255, b: 255, a: 1 };
+    for (var i = layers.length - 1; i >= 0; i--) base = _over(layers[i], base);
+    return base;
+  }
+
+  // ── G14 · contraste AA (WCAG 2.1 · RESOLVIDO no DOM · ratchet only-down) [a11y · mecaniza a falha ALTA] ──
+  // Mede a razão texto/fundo COMPUTADA (não a intenção). Limiar: texto grande (≥24px, ou ≥18.66px && weight≥700)
+  // = 3.0; senão 4.5. ⬜ sem baseline (NUNCA verde falso — igual G5/G8); skip honesto onde o fundo é indeterminável.
+  var G14_BASELINE = {}; // nenhuma tela calibrada — calibrar rodando o probe e MEDINDO (nunca chutar o número)
+  function g14(root) {
+    var count = 0, ex = [], measured = 0, skipped = 0;
+    var els = root.querySelectorAll("*");
+    for (var i = 0; i < els.length && i < 6000; i++) {
+      var el = els[i];
+      if (el.closest("#qa-panel") || el.tagName === "svg" || el.tagName === "path") continue;
+      var hasText = false;
+      for (var c = 0; c < el.childNodes.length; c++) {
+        var nd = el.childNodes[c];
+        if (nd.nodeType === 3 && nd.textContent.trim().length >= 2) { hasText = true; break; }
+      }
+      if (!hasText || !visible(el)) continue;
+      var cs = getComputedStyle(el);
+      var fg = _rgba(cs.color);
+      if (!fg || fg.a === 0) continue;
+      var bg = effectiveBg(el);
+      if (!bg) { skipped++; continue; }
+      var fgC = fg.a < 1 ? _over(fg, bg) : fg;
+      var ratio = _contrast(_lum(fgC), _lum(bg));
+      var fs = parseFloat(cs.fontSize), wt = parseInt(cs.fontWeight, 10) || 400;
+      var thr = (fs >= 24 || (fs >= 18.66 && wt >= 700)) ? 3.0 : 4.5;
+      measured++;
+      if (ratio < thr - 0.05) {
+        count++;
+        if (ex.length < 3) ex.push(pathOf(el) + " → " + (Math.round(ratio * 100) / 100) + ":1 (<" + thr + ")");
+      }
+    }
+    var key = rootKey(root);
+    var suffix = " · " + measured + " medidos" + (skipped ? " · " + skipped + " skip (fundo indeterminável)" : "");
+    if (!(key in G14_BASELINE)) {
+      return { id: "G14", label: "Contraste AA (sem baseline p/ " + key + ")", status: "na", _count: count,
+        detail: count + " abaixo de AA" + suffix + " — calibrar (medir, registrar no G14_BASELINE, only-down)" + (ex.length ? " · ex: " + ex.join(" · ") : "") };
+    }
+    var base = G14_BASELINE[key];
+    return { id: "G14", label: "Contraste AA ≤ baseline (" + key + ": " + base + ")", status: count <= base ? "pass" : "fail", _count: count,
+      detail: count + " abaixo de AA" + suffix + (count > base ? " — REGRESSÃO (+" + (count - base) + ")" : "") + (ex.length ? " · ex: " + ex.join(" · ") : "") };
+  }
+
+  // ── G15 · foco visível (WCAG 2.4.7 · varredura de regras determinística) [a11y] ──
+  // Detecta o anti-padrão real: regra :focus/:focus-visible que REMOVE o indicador (outline:none/0)
+  // aplicando a um controle interativo SEM regra que o REPONHA (outline visível / box-shadow).
+  // Determinístico e consistente com G3/G7 (rule-scan) — NÃO usa foco programático, que não dispara
+  // :focus-visible de forma confiável (comprovado no smoke 2026-07-20: até input dava indet → gate cego).
+  // ⬜ sem baseline. Limite honesto: não resolve cascade/specificity nem prova o render; pega o outline-removido-sem-reposição.
+  var G15_BASELINE = {};
+  function _focusRules() {
+    var out = [];
+    for (var i = 0; i < document.styleSheets.length; i++) {
+      var rules; try { rules = document.styleSheets[i].cssRules; } catch (e) { continue; }
+      if (!rules) continue;
+      for (var j = 0; j < rules.length; j++) {
+        var r = rules[j];
+        if (r.selectorText && r.style && /:focus(-visible)?/.test(r.selectorText)) out.push(r);
+      }
+    }
+    return out;
+  }
+  function _classifyFocus(st) {
+    var os = st.outlineStyle, ow = st.outlineWidth, o = st.outline || "", bs = st.boxShadow;
+    var removes = /(^|\s)none(\s|$)/.test(o) || os === "none" || ow === "0px" || ow === "0";
+    var adds = (!!bs && bs !== "none") ||
+      (!!os && os !== "none" && ow !== "0px" && ow !== "0") ||
+      (/\b(solid|dashed|dotted|double|groove|ridge|inset|outset|auto)\b/.test(o) && !/(^|\s)none(\s|$)/.test(o));
+    return { removes: removes, adds: adds };
+  }
+  function g15(root) {
+    var sel = 'a[href], button, input:not([type="hidden"]), select, textarea, [tabindex], [role="button"], [role="link"], [role="tab"], [role="menuitem"]';
+    var els = [].slice.call(root.querySelectorAll(sel)).filter(visible)
+      .filter(function (el) { return !el.closest("#qa-panel"); })
+      .filter(function (el) { return !el.disabled && el.getAttribute("tabindex") !== "-1"; });
+    if (!els.length) return { id: "G15", label: "Foco visível", status: "na", _count: 0, detail: "sem controle interativo visível" };
+    var rules = _focusRules();
+    var count = 0, ex = [];
+    for (var i = 0; i < els.length && i < 400; i++) {
+      var el = els[i], removes = false, adds = false;
+      for (var j = 0; j < rules.length; j++) {
+        var parts = rules[j].selectorText.split(","), applies = false;
+        for (var p = 0; p < parts.length; p++) {
+          if (!/:focus(-visible)?/.test(parts[p])) continue;
+          var b = parts[p].replace(/:focus-visible/g, "").replace(/:focus/g, "").trim() || "*";
+          try { if (el.matches(b)) { applies = true; break; } } catch (e) {}
+        }
+        if (!applies) continue;
+        var eff = _classifyFocus(rules[j].style);
+        if (eff.removes) removes = true;
+        if (eff.adds) adds = true;
+      }
+      if (removes && !adds) { count++; if (ex.length < 3) ex.push(pathOf(el) + " → :focus remove outline sem repor indicador"); }
+    }
+    var key = rootKey(root);
+    var suffix = " · " + els.length + " controle(s)";
+    if (!(key in G15_BASELINE)) {
+      return { id: "G15", label: "Foco visível (sem baseline p/ " + key + ")", status: "na", _count: count,
+        detail: count + " sem indicador de foco" + suffix + " — calibrar (medir, registrar no G15_BASELINE, only-down)" + (ex.length ? " · ex: " + ex.join(" · ") : "") };
+    }
+    var base = G15_BASELINE[key];
+    return { id: "G15", label: "Foco visível ≤ baseline (" + key + ": " + base + ")", status: count <= base ? "pass" : "fail", _count: count,
+      detail: count + " sem indicador de foco" + suffix + (count > base ? " — REGRESSÃO (+" + (count - base) + ")" : "") + (ex.length ? " · ex: " + ex.join(" · ") : "") };
+  }
+
   function run() {
     var root = activeRoot();
-    var res = [g1(), g2(), g3(), g4(), g5(root), g6(root), g7(), g8(root), g9(), g10(), g11(), g12(), g13()];
+    var res = [g1(), g2(), g3(), g4(), g5(root), g6(root), g7(), g8(root), g9(), g10(), g11(), g12(), g13(), g14(root), g15(root)];
     res.unshift({ id: "tela", label: "escopo ativo", status: "info", detail: rootKey(root) + " · " + (location.hash || "/") });
     res.forEach(function (r) {
       var icon = r.status === "pass" ? "🟢" : r.status === "fail" ? "🔴" : r.status === "na" ? "⬜" : "·";
@@ -550,6 +690,35 @@
       document.body.appendChild(b);
       return function () { b.remove(); };
     }, null, g13);
+    // N14 → G14: texto cinza-claro sobre branco (~1.9:1) tem que subir o contador · baseline=atual (padrão N8)
+    (function () {
+      var root = activeRoot(); var key = rootKey(root);
+      var had = key in G14_BASELINE; var prev = G14_BASELINE[key];
+      G14_BASELINE[key] = g14(root)._count;
+      probe("G14", function () {
+        var el = document.createElement("span"); el.id = "__qa_neg14"; el.textContent = "baixo contraste";
+        el.style.cssText = "position:fixed;bottom:8px;right:8px;z-index:99999;background:#ffffff;color:#bfbfbf;font-size:13px;padding:2px";
+        root.appendChild(el);
+        return function () { el.remove(); };
+      }, null, function () { return g14(root); });
+      if (had) G14_BASELINE[key] = prev; else delete G14_BASELINE[key];
+    })();
+    // N15 → G15: input de texto que zera o outline no foco sem indicador tem que subir o contador
+    (function () {
+      var root = activeRoot(); var key = rootKey(root);
+      var had = key in G15_BASELINE; var prev = G15_BASELINE[key];
+      G15_BASELINE[key] = g15(root)._count;
+      probe("G15", function () {
+        var st = document.createElement("style"); st.id = "__qa_neg15s";
+        st.textContent = "#__qa_neg15:focus, #__qa_neg15:focus-visible { outline: none !important; box-shadow: none !important; }";
+        document.head.appendChild(st);
+        var el = document.createElement("input"); el.id = "__qa_neg15"; el.type = "text";
+        el.style.cssText = "position:fixed;bottom:8px;left:8px;z-index:99999;width:80px";
+        root.appendChild(el);
+        return function () { st.remove(); el.remove(); };
+      }, null, function () { return g15(root); });
+      if (had) G15_BASELINE[key] = prev; else delete G15_BASELINE[key];
+    })();
     var all = Object.keys(out).every(function (k) { return out[k].discrimina || out[k].skipped; });
     console.log("[QA] controle-negativo: " + Object.keys(out).map(function (k) {
       return k + "=" + (out[k].skipped ? "skip" : out[k].dirty ? "SUJO ⚠" : out[k].discrimina ? "discrimina ✅" : "FALHOU 🔴");
@@ -613,5 +782,5 @@
   }
 
   // API sempre disponível (ritual pré-done [CC] + verificador); UI removida ([W] 2026-06-29 "não faz mais sentido").
-  window.QAConformance = { run: run, negative: negative, version: 2.4 };
+  window.QAConformance = { run: run, negative: negative, version: 2.5 };
 })();
