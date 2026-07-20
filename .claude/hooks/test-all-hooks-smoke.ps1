@@ -33,7 +33,6 @@ $payloads = @{
     'charter-validate'          = '{"tool_name":"Edit","tool_input":{"file_path":"resources/js/Pages/Whatsapp/Inbox.tsx"}}'
     'check-skills-fresh'        = '{"hook_event_name":"SessionStart"}'
     'commit-discipline-check'   = '{"tool_name":"Bash","tool_input":{"command":"git commit -m test"}}'
-    'mcp-first-warning'         = '{"tool_name":"Read","tool_input":{"file_path":"memory/decisions/0094-foo.md"}}'
     'memory-pending'            = '{"hook_event_name":"Stop"}'
     'modulo-preflight-warning'  = '{"tool_name":"Edit","tool_input":{"file_path":"Modules/Whatsapp/Services/Foo.php"}}'
     'tier-a-banner'             = ''

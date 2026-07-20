@@ -37,7 +37,7 @@ Disparados antes de cada uso de ferramenta. Tipo ADR 0234: `hook_pretooluse`.
 
 | Matcher | Hook | O que faz | Arquivo |
 |---------|------|-----------|---------|
-| `Read\|Glob\|Grep` | `mcp-first-warning` | Avisa quando Claude tenta usar Read/Glob/Grep em `memory/*`, incentivando uso de tools MCP antes de ler filesystem. Enforcement cultural do reflexo MCP-first (ADR 0070 — CURRENT.md/TASKS.md removidos). | `.claude/hooks/mcp-first-warning.mjs` |
+| `Read\|Glob\|Grep` | `block-ancora-no-olho` | Bloqueia (exit 2) Read de print-semântico (audit/critique/scrap/tribunal/-old/reavalia) que NÃO seja âncora de design declarada por charter — em qualquer lugar. Lê o charter de verdade; imagem de design legítima passa. Incidente #7 (2026-06-30). | `.claude/hooks/block-ancora-no-olho.mjs` |
 
 ### Matcher: `Write|Edit|MultiEdit`
 
