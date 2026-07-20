@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Modules\KB\Services;
 
+use App\Util\OtelHelper;
 use Illuminate\Support\Collection;
 use Modules\KB\Entities\KbNode;
 use Modules\KB\Entities\KbSubcategory;
@@ -49,6 +50,24 @@ class KbAutoClassifierService
      * @return array{business_id:int, classified:int, homeless:int, by_subcategory:array<string,int>, homeless_by_type:array<string,int>, applied:bool}
      */
     public function classify(int $businessId, bool $apply = false): array
+    {
+        // OTel span (ADR 0155 D9.a). Zero-cost se config('otel.enabled')=false.
+        // CLI/job (session vazia) → span() com business_id EXPLÍCITO nos attrs, NÃO spanBiz
+        // (que depende de session — Tier 0). Correlaciona a latency da varredura de nós + o modo
+        // (dry-run vs apply) com o tenant. Impl real extraída (mesmo padrão de KbRagService::ask
+        // e KbBridgeStateService::markRun — este módulo instrumenta seus batch services).
+        return OtelHelper::span('kb.autoclassify.classify', [
+            'module'      => 'KB',
+            'business_id' => $businessId,
+            'apply'       => $apply,
+        ], fn (): array => $this->runClassification($businessId, $apply));
+    }
+
+    /**
+     * Impl real de classify() — extraída pra envolver em OtelHelper::span (D9.a, ADR 0155).
+     * Contrato idêntico a classify(): dry-run (default) conta sem gravar; apply=true grava.
+     */
+    private function runClassification(int $businessId, bool $apply): array
     {
         // Regras do MESMO business (Tier 0: nunca cruza tenant). Só as que têm auto_match.
         // SUPERADMIN: rodado em CLI/job (session vazia → global scope não resolve o tenant);
