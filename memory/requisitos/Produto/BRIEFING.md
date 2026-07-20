@@ -1,50 +1,137 @@
 ---
 module: Produto
 status: parcial
-status_nota: "core UPOS ativo em prod (Blade legacy, ROTA LIVRE diário); UI React 8 telas draft, 0 live"
-updated_at: "2026-07-18"
+updated_at: "2026-07-20"
 owner: W
-related_adrs: ["0093-multi-tenant-isolation-tier-0", "0104-processo-mwart-canonico-unico-caminho", "0190-primary-button-roxo-universal-295"]
+related_adrs: ["0093-multi-tenant-isolation-tier-0", "0104-processo-mwart-canonico-unico-caminho", "0121-oimpresso-modular-especializado-por-vertical"]
 ---
 
 # BRIEFING — Produto
 
-Produto é o domínio **core** de cadastro de produto/variações do ERP (UltimatePOS herdado), **não** um módulo nWidart próprio (não existe pasta `Modules/` com esse nome). O modelo é `App\Product` (em `app/`, global scope `business_id`) e o backend é `app/Http/Controllers/ProductController.php` (~2.729 linhas, UPOS canon) + `app/Http/Controllers/ProdutoUnificadoController.php` (222 LOC, cheio de TODOs). As telas React vivem em `resources/js/Pages/Produto/`. Controlado por Wagner (owner dos charters). A camada Inertia/React **coexiste** com o Blade legacy via branch dual no header `X-Inertia` (ADR 0104 MWART) — quando ausente, cai no Blade antigo.
+Produto é a porta de entrada do cadastro interno que alimenta preço, custo, variação, disponibilidade e composição no ERP. O domínio reúne o registro do produto e seus cadastros auxiliares, mantém a convivência entre o Blade herdado e as Pages Inertia/React e oferece seus dados aos fluxos de venda, compra, estoque, produção, integrações e verticais; estes consumidores são âncoras relacionadas, não partes absorvidas pelo módulo.
 
-**Estado:** ativo (core, em prod via Blade), UI em **migração parcial** — as 8 telas React existem mas nenhuma é `live` (charters `status: draft`, todas `awaiting-smoke-browser`). Backend Blade segue funcional como fallback. Benchmark de capacidade **61/100** (CAPTERRA-FICHA); `module-grade 71` mede só UX/DS das 8 telas.
+## Origem e linhagem
 
-**Capacidades REAIS (existem no código):**
-- **8 Pages Inertia** com 100% de charter: `Index` (grade 83), `Create` (80), `Edit` (79), `Show` (70), `SellingPrices` (68 — matriz preço × tabela × variação), `BulkEdit` (81), `StockHistory` (**47 — fachada**: `movements` fica `undefined` no render, timeline real só no Blade), `Unificado/Index` (56, cockpit denso 5 sub-views).
-- Backend (`routes/web.php`): CRUD `Route::resource('products')` (single/variable/combo + duplicar), variações + SKU auto/validação batch, quick-add, opening stock, bulk/mass-ops + import Excel, selling-prices save, toggle WooCommerce, download Excel, BOM CRUD API (`Inventory/ProductBomController`, sem UI).
-- **Trio da tabela de preço FECHADO** (#4300): `SellingPrices.casos.md` com 4 UCs (UC-PTAB-01..04) **rodando e passando** na lane `Estoque · MySQL` (biz=1+biz=2 semeados) + `tests/Feature/Produto/TabelaPrecoContratoTest.php`. Dois nasceram **vermelhos** e viraram correção Tier 0 no mesmo PR: `saveSellingPrices` agora valida `price_group_id` contra o business (o "reusa guard" do CU-PROD-10 era **falso** — `VariationGroupPrice` não tem global scope; `price_group` alheio gravava linha cross-tenant).
-- Multi-tenant Tier 0 (`business_id` explícito; `firstOrFail` cross-tenant → 404 no GET). ⚠️ No POST `saveSellingPrices` o cross-tenant volta **302** (exceção engolida por `catch` genérico) — não vaza, mas o proxy 404 do charter é falso; decisão [W] pendente.
+O domínio nasceu no núcleo herdado do UltimatePOS e recebeu requisitos de paridade do WR Comercial/OfficeImpresso em Delphi. A estratégia do oimpresso foi estender o núcleo Laravel e conectá-lo às verticais, sem reescrever o legado como um único módulo novo. A história convergida está em [História & Linhagem](../../HISTORIA-LINHAGEM.md); a paridade específica do cadastro está em [PARIDADE-charter-vs-legado.md](PARIDADE-charter-vs-legado.md), [ANTI-REGRESSAO-cadastro-produto-legacy.md](ANTI-REGRESSAO-cadastro-produto-legacy.md) e [ANTI-REGRESSAO-cadastro-produto-variacao-legacy.md](ANTI-REGRESSAO-cadastro-produto-variacao-legacy.md).
 
-**Capacidades PLANEJADAS (não construídas):**
-- Charters virarem `status: live` + smoke browser — pendente aprovação Wagner de Non-Goals + Anti-hooks.
-- Decisão de **unificar ou manter** `/products` (grid lite) vs `/products/unificado` (denso) — em aberto.
-- Regra de tabela inteira ("−15% em tudo" como default por grupo) — **proposed** (ADR ARQ-0001 + Errata 2026-07-17). ⚠️ Não confundir com "multiplicador oco": o preço por (variação × tabela) **funciona** (`fixed`/`percentage`); o `mult=1.00` era prop cosmético do protótipo `/unificado`. O gap é granularidade (célula a célula → default de tabela).
-- Middleware `can:product.view` na rota `/products/unificado` — TODO no código.
+## Mapa do módulo
 
-**Aba "Preço especial" — DESENHADA, ainda NÃO em código (#4403):**
-- É **protótipo F1 navegável** (`prototipo-ui/cowork/produto-preco-especial/`, `status: F1-commit-only`) + `SellingPrices.charter.md` promovido a **v3** (draft), após **8 cortes de [F]** (2026-07-16). Modelo novo: **a lista de preço é REGRA (%), a grade é CALCULADA, a célula é EXCEÇÃO** — 60 células (20 variações × 3 listas) viram 1 regra + poucas exceções conscientes. Cobre 2 modos (regra % vs preço manual), preço **base por variação**, faixa de quantidade (linha esparsa dentro da tabela) e 0/1/2/3+ eixos de grade. Âncora empírica: pesquisa de mercado 2026-07-16 (13 sistemas — Shopify B2B/Tiny/Bling/Odoo convergentes).
-- ⚠️ **Ainda NÃO implementado:** `SellingPrices.tsx` hoje é o modelo **v2 célula-a-célula** (pré-preenche `price: 0` no 0-row, `price_type` por célula — sem regra/faixa/base/modos). O v3 vive em charter + pino, **não** em `.tsx`.
+> O mapa interpreta a estrutura encontrada; estado por tela, cobertura, notas e contagens pertencem aos geradores indicados em [Estado vivo e anti-apodrecimento](#estado-vivo-e-anti-apodrecimento).
 
-**Capacidades PLANEJADAS (não construídas) — batch US-PROD-020..027 (SPEC 2026-07-03, "ok pode fazer"):**
-- **US-PROD-023** — finalizar + promover as 8 telas `draft`→`live` + `can:product.view` no `/products/unificado` (ainda TODO no código). 0 telas em prod oficialmente.
-- **US-PROD-022** ⚠️Tier0 — multiplicador/markup por tabela (`SellingPriceGroup.mult` **hardcoded 1.00**, `ProdutoUnificadoController:186` TODO; ADR ARQ-0001 `proposed`). Sem ele "preço por tabela" é 1:1 — e a aba Preço especial cai de volta na digitação célula a célula (a regra-mãe não tem coluna onde morar: `selling_price_groups` só tem name/description/business_id/is_active).
-- **US-PROD-021** — Kardex real na StockHistory (sai de fachada; sobe grade 47).
-- **US-PROD-024** ⚠️Tier0 — custo médio + valor em estoque (SPIKE de descoberta primeiro; máquina de custo já roda parcial).
-- **US-PROD-025/026** — UI BOM drag-drop; fornecedor/cotação no drawer (`insumos()` retorna `fornecedor => null`).
-- **US-PROD-027** [V0] — TEST-ONLY: cravar que preço 0 em tabela é inerte só por sorte do `!empty()` do PHP (vira UC-PTAB-05). Não muda comportamento.
+| Área | Controller | Blade | React | Achado |
+|---|---|---|---|---|
+| Catálogo e consulta | `ProductController@index/show` | `product/index`, `product/show`, modais | `Produto/Index`, `Produto/Show` | 🟡 Coexistência Blade↔Inertia; a fonte de rollout é o charter, não este resumo |
+| Cadastro e manutenção | `ProductController@create/store/edit/update` | `product/create`, `product/edit` + partials | `Produto/Create`, `Produto/Edit` | 🔴 A casca React ainda não cobre toda a função de produto simples, variável e combo já disponível no Blade |
+| Variações e formação de preço | `ProductController`, `VariationTemplateController`, `SellingPriceGroupController` | `product/partials/*`, `variation/*`, `selling_price_group/*` | `Produto/SellingPrices` | 🟡 A persistência por variação e tabela existe; o contrato regra+exceção do protótipo ainda não é a implementação React |
+| Operações em massa e importação | `ProductController`, `ImportProductsController` | `product/bulk-edit`, `import_products/index` | `Produto/BulkEdit` | 🟡 Fluxo dual; importação permanece Blade |
+| Estoque inicial e histórico | `OpeningStockController`, `ImportOpeningStockController`, `ProductController@productStockHistory` | `opening_stock/*`, `import_opening_stock/index`, `product/stock_history*` | `Produto/StockHistory` | 🔴 A Page espera movimentos que o render não fornece; o caminho AJAX legado também reconcilia saldo durante um GET |
+| Cadastros auxiliares | `BrandController`, `TaxonomyController`, `UnitController`, `WarrantyController` | `brand/*`, `taxonomy/*`, `unit/*`, `warranties/*` | — | 🟡 São parte da entrada de Produto, mas continuam em Blade |
+| Cockpit unificado | `ProdutoUnificadoController` | — | `Produto/Unificado/Index` | 🔴 Possui dados placeholder, dependência de relação ausente em `Category` e rota com permissão ainda marcada como TODO |
+| Composição/BOM | `Inventory/ProductBomController` | combo legado nos partials de produto | consumido pelo cockpit/protótipos | 🟡 API normalizada e fallback de combo existem; a experiência de edição é backlog |
+| API e integrações | controllers e transformers do `Modules/Connector` | — | consumers externos | 🟡 Leitura REST existe; há contrato de request para criação sem rota de criação correspondente |
+| Isolamento multi-tenant | filtros distribuídos pelos controllers e `HasBusinessScope` no BOM | — | — | 🔴 `App\Product` e models legacy relacionados não aplicam o global scope exigido pela ADR 0093; a proteção atual depende de filtros explícitos e contratos pontuais |
 
-**Distinção vs `Modules/ProductCatalogue` (NÃO é o mesmo domínio):** ProductCatalogue é módulo nWidart **separado** — catálogo **público** (`/catalogue/{business_id}/{location_id}`, Blade) com **QR** (`CatalogueQrService`). Não compartilha controller nem Pages com o core Produto.
+## Fronteiras
 
-**Duas verticais no cadastro (SDD §1.0):** balcão/varejo ✅ maduro; **comunicação visual** (preço por m² via `OrcamentoCalculator` em `Modules/ComunicacaoVisual`, hoje **desconectado** do `App\Product`) e **oficina** (peça com aplicação por veículo/OEM/fornecedor) ainda 🟡 **não expressas** no core — maior retorno do roadmap, medido por sinal (ADR 0105).
+**Core Produto:** cadastro e consulta; produto simples, variável e combo; marcas, categorias, unidades, modelos de variação e garantias; custo e preço por variação; tabelas de preço; importação; estoque inicial; histórico por produto; BOM diretamente ligado ao produto; superfícies Blade, React, JS e Connector correspondentes.
 
-**Corpus (mudou desde 2026-06-15 — SPEC/SDD/casos agora EXISTEM):**
-- [SPEC.md](SPEC.md) (v1.0.0, 2026-07-03 — US-PROD-020..027) · [SDD-tela-cadastro-produto-v1.0.md](SDD-tela-cadastro-produto-v1.0.md) (v1.0.1, 2026-07-15 — mapa de cima, 2 verticais, CU-PROD-01..12; #4319 fez o CU-PROD-10 parar de afirmar o que não mede) · [SellingPrices.casos.md](../../../resources/js/Pages/Produto/SellingPrices.casos.md) (4 UCs verdes) · [PROTOTIPO-preco-especial.md](PROTOTIPO-preco-especial.md).
-- [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (61/100) · [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (✅6/🟡11/❌1) · [UI-CATALOG.md](UI-CATALOG.md) (auto, stale 2026-05-17) · [adr/arq/0001](adr/arq/0001-selling-price-multiplier.md) (proposed) · RUNBOOKs por tela em [`_telas/`](_telas/) (já migrados — a nota antiga "recebe de Inventory" está resolvida).
+**Âncoras relacionadas:** Compras, Vendas/PDV, relatórios, ajuste e transferência de estoque, Manufacturing, WooCommerce, Repair/OficinaAuto, ComunicacaoVisual, Officeimpresso e FSM de reserva/consumo. O BRIEFING aponta para a integração, mas não incorpora os controllers e as telas internas desses domínios.
+
+**Outro módulo:** [ProductCatalogue](../ProductCatalogue/BRIEFING.md) é o catálogo público com QR e rotas próprias. Ele consome Produto, mas não é o cadastro interno.
+
+## Superfície de código
+
+### Controllers e rotas
+
+- Núcleo: [ProductController.php](../../../app/Http/Controllers/ProductController.php) · [ProdutoUnificadoController.php](../../../app/Http/Controllers/ProdutoUnificadoController.php) · [ProductBomController.php](../../../app/Http/Controllers/Inventory/ProductBomController.php).
+- Cadastros auxiliares: [BrandController.php](../../../app/Http/Controllers/BrandController.php) · [TaxonomyController.php](../../../app/Http/Controllers/TaxonomyController.php) · [UnitController.php](../../../app/Http/Controllers/UnitController.php) · [VariationTemplateController.php](../../../app/Http/Controllers/VariationTemplateController.php) · [WarrantyController.php](../../../app/Http/Controllers/WarrantyController.php) · [SellingPriceGroupController.php](../../../app/Http/Controllers/SellingPriceGroupController.php).
+- Importação e estoque inicial: [ImportProductsController.php](../../../app/Http/Controllers/ImportProductsController.php) · [OpeningStockController.php](../../../app/Http/Controllers/OpeningStockController.php) · [ImportOpeningStockController.php](../../../app/Http/Controllers/ImportOpeningStockController.php).
+- WEB: [routes/web.php](../../../routes/web.php). O menu correspondente é montado em [AdminSidebarMenu.php](../../../app/Http/Middleware/AdminSidebarMenu.php).
+- API Connector: [Routes/api.php](../../../Modules/Connector/Routes/api.php) · [Api/ProductController.php](../../../Modules/Connector/Http/Controllers/Api/ProductController.php) · [Api/BrandController.php](../../../Modules/Connector/Http/Controllers/Api/BrandController.php) · [Api/CategoryController.php](../../../Modules/Connector/Http/Controllers/Api/CategoryController.php) · [Api/UnitController.php](../../../Modules/Connector/Http/Controllers/Api/UnitController.php) · [Api/CommonResourceController.php](../../../Modules/Connector/Http/Controllers/Api/CommonResourceController.php) · [Api/ProductSellController.php](../../../Modules/Connector/Http/Controllers/Api/ProductSellController.php).
+
+### Motor e domínio
+
+- Motor principal: [ProductUtil.php](../../../app/Utils/ProductUtil.php).
+- BOM: [ProductBom.php](../../../app/Domain/Inventory/Models/ProductBom.php) · [BomResolver.php](../../../app/Domain/Inventory/Services/BomResolver.php).
+- Integração com reserva e baixa: [ReservarEstoque.php](../../../app/Domain/Fsm/SideEffects/ReservarEstoque.php) · [ConsumirEstoque.php](../../../app/Domain/Fsm/SideEffects/ConsumirEstoque.php).
+- Evento e exportação: [ProductsCreatedOrModified.php](../../../app/Events/ProductsCreatedOrModified.php) · [ProductsExport.php](../../../app/Exports/ProductsExport.php).
+
+### Models e persistência
+
+- Registro e variações: [Product.php](../../../app/Product.php) · [ProductVariation.php](../../../app/ProductVariation.php) · [Variation.php](../../../app/Variation.php) · [VariationLocationDetails.php](../../../app/VariationLocationDetails.php) · [VariationGroupPrice.php](../../../app/VariationGroupPrice.php) · [ProductRack.php](../../../app/ProductRack.php).
+- Cadastros auxiliares: [Brands.php](../../../app/Brands.php) · [Category.php](../../../app/Category.php) · [Unit.php](../../../app/Unit.php) · [SellingPriceGroup.php](../../../app/SellingPriceGroup.php) · [VariationTemplate.php](../../../app/VariationTemplate.php) · [VariationValueTemplate.php](../../../app/VariationValueTemplate.php) · [Warranty.php](../../../app/Warranty.php) · [ProdutoGrupo.php](../../../app/ProdutoGrupo.php).
+- Evolução do schema: [database/migrations](../../../database/migrations/). O histórico inclui as tabelas do catálogo, variações, estoque por localização, grupos de preço, garantias, campos Officeimpresso e BOM.
+
+### Views e client
+
+- Blade central e partials: [resources/views/product](../../../resources/views/product/).
+- Blade auxiliar: [brand](../../../resources/views/brand/) · [taxonomy](../../../resources/views/taxonomy/) · [unit](../../../resources/views/unit/) · [variation](../../../resources/views/variation/) · [warranties](../../../resources/views/warranties/) · [selling_price_group](../../../resources/views/selling_price_group/) · [opening_stock](../../../resources/views/opening_stock/) · [import_products](../../../resources/views/import_products/) · [import_opening_stock](../../../resources/views/import_opening_stock/).
+- Pages, charters e casos: [resources/js/Pages/Produto](../../../resources/js/Pages/Produto/).
+- Client legado: [public/js/product.js](../../../public/js/product.js) · [public/js/opening_stock.js](../../../public/js/opening_stock.js).
+- Contrato TS reutilizável: [resources/js/Types/api-schemas/products.ts](../../../resources/js/Types/api-schemas/products.ts).
+- Traduções-base PT: [product.php](../../../lang/pt/product.php) · [brand.php](../../../lang/pt/brand.php) · [category.php](../../../lang/pt/category.php) · [unit.php](../../../lang/pt/unit.php).
+
+## Estado vivo e anti-apodrecimento
+
+- Telas, charters e rollout: consulte [UI-CATALOG.md](UI-CATALOG.md) e confirme cada tela com `npm run screen:files -- Produto/<Tela>`, implementado por [screen-coverage-map.mjs](../../../scripts/qa/screen-coverage-map.mjs). O catálogo é artefato gerado; divergência com o código deve ser corrigida no gerador ou regenerada, não copiada para cá.
+- Casos e cobertura: os contratos ficam ao lado das Pages em [resources/js/Pages/Produto](../../../resources/js/Pages/Produto/) e os testes em [tests/Feature/Produto](../../../tests/Feature/Produto/). A catraca/CI é a fonte do que está efetivamente coberto.
+- Nota e comparativos: execute `php artisan module:grade Produto` ou `php artisan module:grade-v4 Produto`; [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) e [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) guardam a análise, não o estado operacional deste BRIEFING.
+- Backlog vivo: [SPEC.md](SPEC.md) é o contrato de US; estado de execução pertence ao board/MCP. Não inferir `todo`, `review`, `done`, `draft` ou `live` a partir deste arquivo.
+
+**Recibo:** superfície revarrida em 2026-07-20 sobre `origin/main@58447832` via `git`, `rg`, `npm run screen:files`, histórico de PRs e handoffs recentes. O recibo prova a varredura desta edição; não congela contagens.
+
+## Estado: entregue e por fazer
+
+### Entregas históricas fechadas
+
+- Migração dual Blade→Inertia do núcleo de telas: [PR #928](https://github.com/wagnerra23/oimpresso.com/pull/928).
+- Sinal repetível de promoção do catálogo: [PR #4155](https://github.com/wagnerra23/oimpresso.com/pull/4155).
+- Anti-regressão, SDD e paridade com o legado: [PR #4260](https://github.com/wagnerra23/oimpresso.com/pull/4260).
+- Contrato e proteção multi-tenant da tabela de preço: [PR #4300](https://github.com/wagnerra23/oimpresso.com/pull/4300).
+- Protótipo e charter do modelo regra+exceção: [PR #4403](https://github.com/wagnerra23/oimpresso.com/pull/4403).
+- Casos e contrato do cadastro: [PR #4417](https://github.com/wagnerra23/oimpresso.com/pull/4417).
+- Correção da premissa do multiplicador: [PR #4464](https://github.com/wagnerra23/oimpresso.com/pull/4464).
+- Decisão dos campos de custo, margem e valor: [PR #4471](https://github.com/wagnerra23/oimpresso.com/pull/4471).
+- Proteção de FK cross-tenant no cadastro: [PR #4554](https://github.com/wagnerra23/oimpresso.com/pull/4554).
+
+### Backlog contratual
+
+O backlog completo e seus critérios estão em [SPEC.md](SPEC.md). As frentes registradas incluem completar os trios de domínio, tornar o histórico React funcional, fechar a paridade do cadastro, evoluir regra de preço, descobrir a fonte de custo/valor em estoque antes de alterar cálculo, entregar edição de BOM e conectar fornecedor/cotação. Mudança em preço, custo, margem ou estoque segue a REGRA MESTRE de [proibicoes.md](../../proibicoes.md): dupla confirmação, impacto antes→depois e aprovação humana.
+
+## Índice A–H
+
+### A · Entrada e contrato
+
+- [BRIEFING.md](BRIEFING.md) · [SPEC.md](SPEC.md) · [SDD-tela-cadastro-produto-v1.0.md](SDD-tela-cadastro-produto-v1.0.md) · [UI-CATALOG.md](UI-CATALOG.md).
+
+### B · Paridade e regras de negócio
+
+- [PARIDADE-charter-vs-legado.md](PARIDADE-charter-vs-legado.md) · [ANTI-REGRESSAO-cadastro-produto-legacy.md](ANTI-REGRESSAO-cadastro-produto-legacy.md) · [ANTI-REGRESSAO-cadastro-produto-variacao-legacy.md](ANTI-REGRESSAO-cadastro-produto-variacao-legacy.md).
+
+### C · Código de interface
+
+- [Pages/Produto](../../../resources/js/Pages/Produto/) · [views/product](../../../resources/views/product/) · [product.js](../../../public/js/product.js) · [opening_stock.js](../../../public/js/opening_stock.js).
+
+### D · Backend, motor e API
+
+- [ProductController.php](../../../app/Http/Controllers/ProductController.php) · [ProductUtil.php](../../../app/Utils/ProductUtil.php) · [routes/web.php](../../../routes/web.php) · [Connector/Routes/api.php](../../../Modules/Connector/Routes/api.php).
+
+### E · Dados, estoque e composição
+
+- [Product.php](../../../app/Product.php) · [Variation.php](../../../app/Variation.php) · [VariationLocationDetails.php](../../../app/VariationLocationDetails.php) · [VariationGroupPrice.php](../../../app/VariationGroupPrice.php) · [ProductBom.php](../../../app/Domain/Inventory/Models/ProductBom.php) · [BomResolver.php](../../../app/Domain/Inventory/Services/BomResolver.php).
+
+### F · Qualidade e operação
+
+- [tests/Feature/Produto](../../../tests/Feature/Produto/) · [Modules/Connector/Tests](../../../Modules/Connector/Tests/) · [_telas](_telas/) · [screen-coverage-map.mjs](../../../scripts/qa/screen-coverage-map.mjs).
+
+### G · Design e protótipos
+
+- [PROTOTIPO-preco-especial.md](PROTOTIPO-preco-especial.md) · [produto-preco-especial](../../../prototipo-ui/cowork/produto-preco-especial/) · [produtos-page.jsx](../../../prototipo-ui/cowork/produtos-page.jsx) · [protótipo Produto Unificado](../../../prototipo-ui/cowork/prototipo-ui-patch/prototipos/produto/) · [produtos-gap.md](produtos-gap.md).
+
+### H · Decisões e histórico
+
+- [ADR local de estratégia de tabela](adr/arq/0001-selling-price-multiplier.md) · [História & Linhagem](../../HISTORIA-LINHAGEM.md) · [handoff do mapa vivo e UC-PCAD-05](../../handoffs/2026-07-19-2130-mapa-vivo-resolver-uc-pcad-05.md) · [handoff da tabela de preço](../../handoffs/2026-07-15-1930-produto-tabela-preco-trio-tier0.md) · [handoff do protótipo de preço especial](../../handoffs/2026-07-16-1930-produto-preco-especial-f1-charter-v3.md).
 
 ---
-**Tipo:** BRIEFING destilado (KL-E3). **Estado:** parcial — core ativo (Blade, em prod) · UI React 8 telas draft, 0 live. **Fonte:** `ProductController.php` (~2.729 LOC) + `ProdutoUnificadoController.php` + `SellingPrices.tsx`/`.charter.md` v3 + `routes/web.php` + SPEC/SDD/casos.
-**Atualizado:** 2026-07-18 — refresh de frescor briefing↔código [CC]. Destaque: aba **Preço especial** (protótipo F1 + charter v3 regra+exceção — ainda NÃO em `.tsx`, o `SellingPrices.tsx` segue v2 célula-a-célula) + **trio da tabela de preço fechado** (#4300, UC-PTAB-01..04 verdes na lane Estoque·MySQL) + SPEC/SDD/casos agora existem (o BRIEFING de 2026-06-15 dizia "SPEC não existe"). Verificado por Grep@código 2026-07-18.
+
+**Assinatura:** [M+CC]
