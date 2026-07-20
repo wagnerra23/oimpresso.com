@@ -1,9 +1,12 @@
 # LIÇÕES [CODE] — erros de código a não repetir
 
-> Escopo: **código backend/infra** (PHP, Eloquent, jobs, migrations, controllers, services, CI).
+> Escopo: **código backend/infra** (PHP, Eloquent, jobs, migrations, controllers, services, CI)
+> **+ processo/comportamento de agente** (medição, derivação, oráculo, varredura) — o tema é
+> *reincidência → defesa mecânica*, e erro de processo é instância disso igual erro de código
+> (proposal [two-strikes-cobre-processo](decisions/proposals/2026-07-20-two-strikes-cobre-processo.md), raio-X 2026-07-20).
 > Equivalente de `LICOES_CC.md` (que cobre design/[CC]) pro lado de engenharia.
-> Subordinado a `memory/proibicoes.md` (canônico). **Append-only.**
-> Lido no início de toda sessão pelo hook `licoes-code-two-strikes.ps1`.
+> Subordinado a `memory/proibicoes.md` (canônico; o §5 de lá é a PROSA-evidência, este é o CONTADOR). **Append-only.**
+> Lido no início de toda sessão pelo hook `licoes-code-two-strikes.mjs`.
 >
 > **Por que existe:** fechar o elo manual do loop de aprendizado — quando uma classe de
 > erro de IA-code repete, ela precisa virar **defesa mecânica** (gate/hook/baseline), não
@@ -103,3 +106,19 @@
 - **Ocorrências:** 1
 - **Gate:** `cowork-mirror-freshness.mjs` manifest v3 (kind ancora|dep) + testes §6b no `.test.mjs` (CI design-memory-gate) — o caso `app.jsx` do drift real está travado por assert nomeado.
 - **Ref:** sessão 2026-07-07 · PROTOCOLO-COMPARACAO-RUNTIME passo 0 · LC-06 (família: cobertura de medição)
+
+---
+
+> Abaixo: 1ª classe de **PROCESSO/comportamento de agente** promovida ao contador (raio-X 2026-07-20).
+> O §5 do `proibicoes.md` já tinha a prosa-evidência; faltava o CONTADOR que torna a reincidência
+> visível pro hook. Backfill **forward-only + oportunístico** (a lápide 2026-07-12 do §5 proíbe big-bang):
+> só a classe que estava GRITANDO entra agora; as demais viram LC-NN quando reincidirem.
+
+## LC-08 — Afirmar/derivar/medir a partir da FONTE ou MEDIDA errada (sem provar)
+- **Erro:** apresentar achado, causa-raiz, número ou veredito derivado da fonte errada — ler código em vez de rodar; medir o atributo (`.hidden`/`offsetTop`) em vez do computado; restatear número que outro sistema (banco/runtime) sabe melhor; parsear o `Kernel.php` em vez de perguntar ao scheduler; `crontab -l` num host que não tem o binário — e chamar de "verificado/medido".
+- **Sintoma:** o agente afirma "medido / a raiz é X / verificado"; [W] ou o CI acha que a medida veio do disco/leitura/olho, não do sistema-que-sabe (SELECT no banco, `runsInEnvironment()` no runtime, varredura contada, teste vermelho).
+- **Regra:** achado/número/veredito só vira CONCLUSÃO depois de (a) varredura CONTADA (sem `head_limit`, dizendo "N de N"), (b) âncora de contrato citada (UC/SPEC/ADR), (c) oráculo certo (banco/runtime/teste vermelho) — nunca leitura/parse/olho. Recibo DATADO (`query+resultado+data`), não afirmação atemporal. Em dúvida → PERGUNTAR, não inventar.
+- **Classe:** afirmar-sem-medir-fonte-certa
+- **Ocorrências:** 5   (proibicoes §5: 07-15 achado-sem-varredura · 07-16 medir-propriedade-errada · 07-17 oráculo-errado-restatear-número · 07-17 deduzir-quem-roda-parseando · 07-17 crontab-l-falso-negativo. Adjacente: 07-16 importar-solução-sem-checar-premissa.)
+- **Gate:** advisory — `nudge-diagnosis-without-evidence` + `warn-red-first` + `block-ancora-no-olho` (nenhum BLOQUEIA a medição/derivação errada; a classe reincidiu 5× em 3 dias → advisory insuficiente, precisa de sonda que morda)
+- **Ref:** `memory/proibicoes.md` §5 (2026-07-15..17) · raio-X 2026-07-20 · proposal [two-strikes-cobre-processo](decisions/proposals/2026-07-20-two-strikes-cobre-processo.md)

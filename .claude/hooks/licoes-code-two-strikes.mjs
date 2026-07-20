@@ -8,6 +8,13 @@
 // erro que reincide sem gate = candidato a virar defesa mecânica. Origem: sessão
 // 2026-06-06 (Wagner: "quando deve ser acionado o aprendizado?").
 //
+// O ledger cobre erro de CÓDIGO **e de PROCESSO/comportamento de agente** (medição,
+// derivação, oráculo errado) — o tema é "reincidência→defesa mecânica", processo é
+// instância disso igual código (proposal two-strikes-cobre-processo, raio-X 2026-07-20).
+// Cobertura só-ADVISORY (nudge/warn que NÃO bloqueia) conta como "sem defesa mecânica":
+// a doutrina two-strikes exige defesa MECÂNICA (bloqueia/morde), não nudge que vaza.
+// Declare `Gate: advisory — <hooks>` e a classe segue alarmando até virar sonda que morde.
+//
 // ── POR QUE .mjs (US-GOV-052 — port cross-plataforma dos hooks .ps1) ─────────
 // O .ps1 legado SÓ roda no Windows do Wagner; no Mac/Linux do time MCP o alarme
 // evapora em silêncio. Supersede licoes-code-two-strikes.ps1 (triagem #13, lote A).
@@ -33,10 +40,18 @@ export function threshold(env = process.env) {
   return /^\d+$/.test(v) ? parseInt(v, 10) : 2;
 }
 
-/** "sem gate" = vazio, none, nenhum, -, n/a. */
+/**
+ * "sem defesa MECÂNICA" = vazio, none, nenhum, -, n/a
+ * OU a entrada declara EXPLICITAMENTE que a cobertura é só advisory/parcial/insuficiente
+ * (nudge/warn não bloqueiam → doutrina two-strikes ainda não satisfeita → segue alarmando).
+ * Um nome-de-gate real ("mutation-gate (advisory, ...)") NÃO casa — só o prefixo declarado.
+ */
 export function semGate(g) {
   if (!g) return true;
-  return /^(none|nenhum|nenhuma|-|n\/a|na)$/i.test(String(g).trim());
+  const s = String(g).trim();
+  if (/^(none|nenhum|nenhuma|-|n\/a|na)$/i.test(s)) return true;
+  if (/^(advisory|parcial|insuficiente)\b/i.test(s)) return true;
+  return false;
 }
 
 /** parser PURO do markdown → lista de {id, titulo, ocorr, gate}. */
