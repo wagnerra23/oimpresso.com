@@ -14,6 +14,9 @@
 // Cobertura só-ADVISORY (nudge/warn que NÃO bloqueia) conta como "sem defesa mecânica":
 // a doutrina two-strikes exige defesa MECÂNICA (bloqueia/morde), não nudge que vaza.
 // Declare `Gate: advisory — <hooks>` e a classe segue alarmando até virar sonda que morde.
+// EXCEÇÃO (ADR 0224): advisory que é a decisão FINAL by-design → declare
+// `Gate: advisory-terminal (0224) — <hook>`; o marcador terminal/by-design/0224 sai do alarme.
+// Fonte: ADR 0344 (two-strikes cobre processo), raio-X 2026-07-20.
 //
 // ── POR QUE .mjs (US-GOV-052 — port cross-plataforma dos hooks .ps1) ─────────
 // O .ps1 legado SÓ roda no Windows do Wagner; no Mac/Linux do time MCP o alarme
@@ -44,13 +47,15 @@ export function threshold(env = process.env) {
  * "sem defesa MECÂNICA" = vazio, none, nenhum, -, n/a
  * OU a entrada declara EXPLICITAMENTE que a cobertura é só advisory/parcial/insuficiente
  * (nudge/warn não bloqueiam → doutrina two-strikes ainda não satisfeita → segue alarmando).
+ * EXCEÇÃO (ADR 0224 · ADR 0344): advisory declarado terminal/by-design é a decisão FINAL
+ * válida pra a classe (não é furo) → NÃO alarma. Marca-se com `terminal`/`by-design`/`0224`.
  * Um nome-de-gate real ("mutation-gate (advisory, ...)") NÃO casa — só o prefixo declarado.
  */
 export function semGate(g) {
   if (!g) return true;
   const s = String(g).trim();
   if (/^(none|nenhum|nenhuma|-|n\/a|na)$/i.test(s)) return true;
-  if (/^(advisory|parcial|insuficiente)\b/i.test(s)) return true;
+  if (/^(advisory|parcial|insuficiente)\b/i.test(s)) return !/\b(terminal|by-design|0224)\b/i.test(s);
   return false;
 }
 
