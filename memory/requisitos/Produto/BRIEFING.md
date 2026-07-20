@@ -2,7 +2,7 @@
 module: Produto
 status: parcial
 status_nota: "core UPOS ativo em prod (Blade legacy, ROTA LIVRE diário); UI React 8 telas draft, 0 live"
-updated_at: "2026-07-18"
+updated_at: "2026-07-20"
 owner: W
 related_adrs: ["0093-multi-tenant-isolation-tier-0", "0104-processo-mwart-canonico-unico-caminho", "0190-primary-button-roxo-universal-295"]
 ---
@@ -43,8 +43,10 @@ Produto é o domínio **core** de cadastro de produto/variações do ERP (Ultima
 
 **Corpus (mudou desde 2026-06-15 — SPEC/SDD/casos agora EXISTEM):**
 - [SPEC.md](SPEC.md) (v1.0.0, 2026-07-03 — US-PROD-020..027) · [SDD-tela-cadastro-produto-v1.0.md](SDD-tela-cadastro-produto-v1.0.md) (v1.0.1, 2026-07-15 — mapa de cima, 2 verticais, CU-PROD-01..12; #4319 fez o CU-PROD-10 parar de afirmar o que não mede) · [SellingPrices.casos.md](../../../resources/js/Pages/Produto/SellingPrices.casos.md) (4 UCs verdes) · [PROTOTIPO-preco-especial.md](PROTOTIPO-preco-especial.md).
-- [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (61/100) · [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (✅6/🟡11/❌1) · [UI-CATALOG.md](UI-CATALOG.md) (auto, stale 2026-05-17) · [adr/arq/0001](adr/arq/0001-selling-price-multiplier.md) (proposed) · RUNBOOKs por tela em [`_telas/`](_telas/) (já migrados — a nota antiga "recebe de Inventory" está resolvida).
+- [CAPTERRA-FICHA.md](CAPTERRA-FICHA.md) (61/100) · [CAPTERRA-INVENTARIO.md](CAPTERRA-INVENTARIO.md) (✅6/🟡11/❌1) · [UI-CATALOG.md](UI-CATALOG.md) (auto, stale 2026-05-17) · [adr/arq/0001](adr/arq/0001-selling-price-multiplier.md) (proposed) · RUNBOOKs por tela **+ `*-visual-comparison.md` + `produto-index-setor-matrix.md`** em [`_telas/`](_telas/) (já migrados — a nota antiga "recebe de Inventory" está resolvida).
+- **Paridade legado + anti-regressão (contrato Delphi WR Comercial):** [ANTI-REGRESSAO-cadastro-produto-legacy.md](ANTI-REGRESSAO-cadastro-produto-legacy.md) · [ANTI-REGRESSAO-cadastro-produto-variacao-legacy.md](ANTI-REGRESSAO-cadastro-produto-variacao-legacy.md) · [PARIDADE-charter-vs-legado.md](PARIDADE-charter-vs-legado.md) · [produtos-gap.md](produtos-gap.md).
 
 ---
 **Tipo:** BRIEFING destilado (KL-E3). **Estado:** parcial — core ativo (Blade, em prod) · UI React 8 telas draft, 0 live. **Fonte:** `ProductController.php` (~2.729 LOC) + `ProdutoUnificadoController.php` + `SellingPrices.tsx`/`.charter.md` v3 + `routes/web.php` + SPEC/SDD/casos.
 **Atualizado:** 2026-07-18 — refresh de frescor briefing↔código [CC]. Destaque: aba **Preço especial** (protótipo F1 + charter v3 regra+exceção — ainda NÃO em `.tsx`, o `SellingPrices.tsx` segue v2 célula-a-célula) + **trio da tabela de preço fechado** (#4300, UC-PTAB-01..04 verdes na lane Estoque·MySQL) + SPEC/SDD/casos agora existem (o BRIEFING de 2026-06-15 dizia "SPEC não existe"). Verificado por Grep@código 2026-07-18.
+**2026-07-20** — anti-apodrecimento de links [CC]: linkados os 4 arquivos do corpus que ficavam órfãos (2× `ANTI-REGRESSAO-*`, `PARIDADE-charter-vs-legado.md`, `produtos-gap.md`) + explicitado que `_telas/` cobre RUNBOOKs **+** visual-comparisons + setor-matrix. Regra: nenhum arquivo do corpus do módulo pode ficar solto — sempre linkado (as duas direções). Verificado: 8/8 links markdown resolvem + 9/9 refs de código existem (`git ls-tree origin/main`).
