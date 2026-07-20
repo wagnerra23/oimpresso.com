@@ -1,8 +1,10 @@
 ---
-data: 2026-07-20
-hora: "22:30"
+date: 2026-07-20
+time: "22:30"
 slug: briefing-produto-modulo-inteiro
+decided_by: [M]
 autores: [M, CC]
+tldr: "BRIEFING do Produto: minha reescrita foi DESCARTADA (o #4601 mergeou versão melhor no main). Este PR #4579 fica só com session log + este handoff. Próximo: consolidar paridade no PARIDADE-charter-vs-legado e fechar trio das 6 telas sem casos.md (US-PROD-020)."
 tema: "BRIEFING do módulo Produto reescrito de '8 telas' pra módulo inteiro (18 áreas), podado anti-apodrecimento, links validados"
 prs: [4417, 4449, 4464]
 status: aberto
