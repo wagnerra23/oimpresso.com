@@ -187,6 +187,13 @@ jobs:
       # "calibração vira atalho pra liberar lote" e "número sem rótulo humano".
       - name: Ledger tipo juiz — calibração não libera lote + rótulo humano às cegas (C10)
         run: node scripts/governance/ledger-check-juiz.test.mjs
+      # Chip orq-anti-goodhart (grade 2026-07-18 · orquestração-adversarial 5,0 "sem
+      # anti-Goodhart no layer de agente"): negative control do REFUTER. Prova que a
+      # detecção de Goodhart morde (bad = refuter aprovou o plantado → exit 1). O selftest
+      # da catraca `refuter-canary` do gate-selftest cobre o par good/bad; este .test.mjs
+      # cobre os vetores finos (classificação, corpus, ilegível, sanidade cego).
+      - name: Refuter-canary — anti-Goodhart do layer de agente (aprovar plantado morde)
+        run: node scripts/governance/refuter-canary-check.test.mjs
       - name: Prototipo-readiness (contrato de prontidão · casos/UC/scorecard/âncora)
         run: node scripts/qa/prototipo-readiness.test.mjs
       - name: Screen-grade-report (contrato de derivação · cobertura/D1/drift)

@@ -107,6 +107,35 @@ const INTEG = { type: 'object', additionalProperties: false, required: ['veredit
   incremento: { type: 'string', description: 'o que a INTEGRAÇÃO acrescenta ALÉM da soma das peças (a "cola") — 1 frase concreta; "nenhum além da identidade/contexto" é resposta válida e força REFUTADO_TB' },
   razao: { type: 'string' }, quem_monta_o_todo: { type: 'string' } } }
 
+// ── Refuter compartilhado + negative control anti-Goodhart (chip orq-anti-goodhart) ──
+// promptRefuterFull: a MESMA string pro claim real E pro artefato plantado — garante que o
+// canário exercita o refuter IDÊNTICO (contexto-zero); se este texto mudar, muda pros dois.
+const promptRefuterFull = (c) =>
+  `REFUTADOR (contexto zero — você não herda a pesquisa). Claim: oimpresso está ACIMA do mercado em "${c.ideia}" (${c.porque_acima}; dimensão ${c.dimensao}). Busque na web (2-4 buscas) quem JÁ faz igual/melhor em produção. Achou → REFUTADO (diga quem). Parecido → EMPATADO. Só ACIMA_CONFIRMADO sem par publicado. Default cético.`
+// Artefatos PLANTADOS: claims de superioridade ABSURDAMENTE falsas que o refuter TEM que
+// derrubar (REFUTADO). Se ele APROVA (ACIMA_CONFIRMADO), carimbou → Goodhart (One Token to
+// Fool). É o análogo do gate-selftest aplicado ao LAYER DE AGENTE: nada provava que o refuter
+// refuta de verdade e não só carimba. O gate-selftest prova que as CATRACAS mordem; este canário
+// prova que o REFUTER discrimina. id/dimensao `__canary__` → NUNCA entram no placar/ledger/grade.
+// Espelha "REFUTADO_TB=0 em 81": prova controlada de que o braço negativo do adversário PODE
+// disparar. Corpus/selftest determinístico: scripts/governance/refuter-canary-check.mjs (catraca
+// `refuter-canary` do gate-selftest). MANTER o corpus em sincronia com o `--list` daquele script.
+const CANARIOS_REFUTER = [
+  { id: '__canary__git-versionamento', dimensao: '__canary__', ideia: 'usar git para versionar o código-fonte', porque_acima: 'nenhum ERP concorrente no mundo usa controle de versão — só o oimpresso' },
+  { id: '__canary__json-config', dimensao: '__canary__', ideia: 'guardar configuração em arquivos JSON', porque_acima: 'é uma técnica inédita que nenhum outro software adota' },
+]
+const rodarCanarios = async () => {
+  const vs = (await parallel(CANARIOS_REFUTER.map((c) => () => agent(
+    promptRefuterFull(c),
+    { label: `canary:${c.id}`.slice(0, 48), phase: 'Refutar', schema: VERDICT, agentType: 'general-purpose', effort: 'medium' },
+  ).then((v) => (v ? { id: c.id, veredito: v.veredito } : null))))).filter(Boolean)
+  const goodhart = vs.filter((v) => v.veredito === 'ACIMA_CONFIRMADO')
+  const derrubados = vs.filter((v) => v.veredito === 'REFUTADO')
+  if (goodhart.length) log(`🔴 ANTI-GOODHART: refuter APROVOU ${goodhart.length}/${CANARIOS_REFUTER.length} artefato(s) PLANTADO(s) absurdo(s) (${goodhart.map((g) => g.id).join(', ')}) — está CARIMBANDO, não avaliando (One Token to Fool). Vereditos desta rodada são suspeitos.`)
+  else log(`✓ anti-Goodhart: refuter derrubou ${derrubados.length}/${vs.length} plantado(s) medido(s) — o braço negativo dispara (cf. REFUTADO_TB=0/81)`)
+  return { total: CANARIOS_REFUTER.length, medidos: vs.length, derrubados: derrubados.length, goodhart: goodhart.length, goodhart_ids: goodhart.map((g) => g.id), goodhart_ok: goodhart.length === 0 }
+}
+
 // ── Cap de agentes das fases adversariais (Refutar · Integração · Verificar) ──
 // TRUNCAGEM SILENCIOSA, ROUND 2 (achados #21/#24 do passe adversarial 2026-07-18):
 // a Fase Verificar fazia `fraquezas.slice(0, 24)` SEM log — na rodada completa de
@@ -284,10 +313,15 @@ log(`${pesquisas.length}/${DIMS.length} dimensões pesquisadas`)
 phase('Refutar')
 const claims = pesquisas.flatMap((p) => p.oimpresso_acima.map((c) => ({ ...c, dimensao: p.dimensao })))
 const refutados = (await parallel(capEstratificado('Refutar', claims, CAP_AGENTES_POR_FASE, log).map((c) => () => agent(
-  `REFUTADOR (contexto zero — você não herda a pesquisa). Claim: oimpresso está ACIMA do mercado em "${c.ideia}" (${c.porque_acima}; dimensão ${c.dimensao}). Busque na web (2-4 buscas) quem JÁ faz igual/melhor em produção. Achou → REFUTADO (diga quem). Parecido → EMPATADO. Só ACIMA_CONFIRMADO sem par publicado. Default cético.`,
+  promptRefuterFull(c),
   { label: `r:${c.ideia}`.slice(0, 48), phase: 'Refutar', schema: VERDICT, agentType: 'general-purpose', effort: 'medium' },
 ).then((v) => (v ? { ...c, verdict: v } : null))))).filter(Boolean)
 log(`refutação: ${refutados.filter((r) => r.verdict.veredito === 'ACIMA_CONFIRMADO').length} acima · ${refutados.filter((r) => r.verdict.veredito === 'REFUTADO').length} derrubadas`)
+
+// Negative control anti-Goodhart: injeta os plantados no MESMO refuter (fora do cap e do
+// placar/ledger). Só a fase FULL refuta claims frescas — o canário nunca entra no ledger,
+// logo nunca vira "vencida", logo o modo delta não precisa (nem deve) re-refutá-lo.
+const canarioRefuter = await rodarCanarios()
 
 // ── Fase 2.5 — Teste de INTEGRAÇÃO (o TODO tem peer, ou só as partes?) ────────
 // O refutador julga slice-a-slice por construção; sem este passo a soma de peças-com-peer
@@ -367,6 +401,7 @@ log(`notas determinísticas (média por dimensão): ${JSON.stringify(notasPorDim
 const grade = await agent(
   `Escreva a GRADE DE RÉGUAS para Wagner (PT-BR, direto, sem ego inflado nem falsa modéstia). Datada de HOJE.\n\n` +
   `⚠️ NÚMEROS JÁ FECHADOS PELA COMPOSIÇÃO DETERMINÍSTICA (regra 16 — adversário 2026-07-18). NOTA POR DIMENSÃO = ${JSON.stringify(notasPorDim)} (média das fraquezas verificadas; null = sem fraqueza-com-nota nesta rodada — declare "sem nota" honestamente, NÃO invente). PLACAR = ${JSON.stringify(placarJS)}. Você é PROIBIDO de alterar, arredondar, fundir ou re-atribuir qualquer número: use EXATAMENTE estes. Seu trabalho é a PROSA (evidência, diferenciais, degraus, leitura fria) em volta dos números fechados.\n\n` +
+  `ANTI-GOODHART (negative control do refuter · regra 17 — DISCLOSAR no placar): ${JSON.stringify(canarioRefuter)}. São artefatos PLANTADOS (claims absurdamente falsas) que o refuter TINHA que derrubar; goodhart>0 = o refuter CARIMBOU e os vereditos da rodada ficam suspeitos. É o análogo do gate-selftest aplicado ao layer de agente e a prova controlada de que o braço negativo dispara (cf. REFUTADO_TB).\n\n` +
   `PESQUISAS: ${pesquisasStr}\nREFUTAÇÃO slice-a-slice: ${refutadosStr}\nTESTE DE INTEGRAÇÃO (DIFERENCIAL_SISTEMA = à-frente-por-integração, o peer só cobre a peça; REFUTADO_TB = o todo também tem par): ${integradosStr}\nVERIFICAÇÃO NO REPO (nota só com evidência): ${verificadasStr}\n\nCOBERTURA OBRIGATÓRIA: as ${pesquisas.length} dimensões acima cobrem TRÊS eixos — (1) CONSTRUIR-E-GOVERNAR, (2) RODAR-E-OBSERVAR (observabilidade-agente · qualidade-drift-ia-producao · seguranca-do-agente · custo-eficiencia — eixo add pela ADR 0333 porque era ponto cego), (3) SERVIR-O-NEGÓCIO (inteligencia-de-negocio — ponto cego da ADR 0334). A grade DEVE emitir nota pras dimensões dos TRÊS eixos; se um eixo sair sem fraqueza/nota, o ponto cego que as 0333/0334 fecharam volta pela síntese. Declare no cabeçalho as ${pesquisas.length} dimensões — não só as que renderam mais texto.\n\nDUAS REGRAS ANTES DE ESCREVER: (a) NÃO reporte "0 acima" a partir de refutação de slices — o placar de superioridade tem DUAS colunas distintas: "acima-de-categoria" (ACIMA_CONFIRMADO) E "à-frente-por-integração" (DIFERENCIAL_SISTEMA — o diferencial real quando ninguém monta o TODO no mesmo contexto; NÃO re-inflar a peça isolada). (b) CREDITE O QUE JÁ SHIPOU: antes de listar um gap/roubar como aberto, cheque em ${BASE} (git log recente + arquivos novos) se já foi fechado desde o último retrato; se sim, marque FEITO e não re-liste.\n\nEstrutura: 1) placar honesto (acima-de-categoria · à-frente-por-integração · empatadas · refutadas); 2) DIFERENCIAIS REAIS (os DIFERENCIAL_SISTEMA, na altitude do sistema, com o limite honesto de cada um); 3) GRADE das fraquezas — técnica · régua (quem+prática+fonte) · critério objetivo · nota COM evidência · próximo degrau; 4) JÁ FEITO desde o último retrato; 5) onde a régua é você (empates a defender); 6) O QUE ROUBAR top-8 (impacto÷esforço, onde plugar) — só o que NÃO shipou; 7) CHIPS SUGERIDOS (1 por fraqueza real, ressalva do adversário embutida); 8) REJEITADOS → proibições §5; 9) leitura fria (3 frases). Regra: nenhuma nota sem evidência citada.`,
   { label: 'grade-final', phase: 'Grade', effort: 'high' }, // era 'max' — composição determinística (regra 16) deixou o agente só com a prosa
 )
@@ -392,6 +427,7 @@ return {
   acima_confirmadas: placarJS.acima_confirmadas,
   diferenciais_de_sistema: placarJS.diferencial_sistema,
   refutadas: placarJS.refutadas,
+  canario_refuter: canarioRefuter, // negative control anti-Goodhart (chip orq-anti-goodhart)
   fraquezas_com_algo_existente: verificadas.filter((v) => v.check.veredito !== 'NAO_EXISTE').length,
   grade,
   persistencia,

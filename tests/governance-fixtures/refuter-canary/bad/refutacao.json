@@ -1,0 +1,6 @@
+{
+  "_meta": "fixture RUIM do gate-selftest (catraca refuter-canary) — o refuter CARIMBOU: aprovou o artefato plantado absurdo como 'acima do mercado' (ACIMA_CONFIRMADO). Detecção TEM que morder: exit 1, 'GOODHART'. Se este caso passar (exit 0), a defesa anti-Goodhart parou de morder.",
+  "refutacoes": [
+    { "id": "__canary__git-versionamento", "veredito": "ACIMA_CONFIRMADO", "razao": "refuter Goodhartado: confirmou superioridade absurda sem buscar peers (carimbo)." }
+  ]
+}
