@@ -66,8 +66,8 @@ function Index({ accounts, bancos_suportados }: Props) {
 
   return (
     <>
-      {/* Onda 12.8 (2026-05-19) — header canon paridade Unificado */}
-      <div className="fin-curadoria vendas-aplus p-6 max-w-6xl mx-auto space-y-6">
+      {/* PT-04/US-COPI-146: fora da ilha .fin-cowork — layout via tokens do tema global (.cockpit) */}
+      <div className="p-6 max-w-6xl mx-auto space-y-6">
         {/* Wave 4 (2026-05-25): migrado pra <PageHeader> canon v3.8 */}
         <PageHeader
           title="Contas Bancárias"
@@ -87,14 +87,11 @@ function Index({ accounts, bancos_suportados }: Props) {
                 { key: 'gateways', label: 'Gateways', icon: <Settings size={13} />, onClick: () => { window.location.href = '/settings/payment-gateways'; }, title: 'Credenciais API gateways de pagamento' },
               ]}
             />
-            {/* TODO Wave 5: migrar pra <PageHeaderPrimary> (este inline ainda é verde 145 legacy) */}
-            <a
-              href="/account/account/create"
-              className="os-btn primary"
-              style={{ backgroundColor: 'oklch(0.55 0.15 295)', borderColor: 'oklch(0.45 0.15 295)', color: 'oklch(0.99 0 0)' }}
-            >
-              <Plus size={13} /> Nova conta
-            </a>
+            <Button asChild variant="default" size="sm">
+              <a href="/account/account/create">
+                <Plus size={13} /> Nova conta
+              </a>
+            </Button>
           </div>
         </PageHeader>
 
@@ -175,7 +172,7 @@ function Index({ accounts, bancos_suportados }: Props) {
 
 Index.layout = (page: React.ReactNode) => (
   <AppShellV2 title="Contas Bancárias · Boleto" breadcrumbItems={[{ label: 'Financeiro' }, { label: 'Contas Bancárias' }]}>
-    <div className="fin-cowork">{page}</div>
+    {page}
   </AppShellV2>
 );
 export default Index;
