@@ -10,8 +10,8 @@
 
 ## Resumo
 - **44** wirings em `settings.json` (5 eventos) · **40** arquivos de hook distintos wired
-- **42** arquivos de hook no disco (+33 `*.test.*` — testes, fora da conta de órfãos)
-- Órfãos (arquivo sem wiring): **2** · Fantasmas (wiring sem arquivo): **0**
+- **41** arquivos de hook no disco (+33 `*.test.*` — testes, fora da conta de órfãos)
+- Órfãos (arquivo sem wiring): **1** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
@@ -67,7 +67,6 @@ Nenhum.
 
 ## Órfãos (arquivo de hook sem wiring em settings.json)
 - ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.mjs (wired)
-- ⚠️ `test-all-hooks-smoke.ps1` — sem wiring em settings.json
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
 Contexts `classic_protection` (31):

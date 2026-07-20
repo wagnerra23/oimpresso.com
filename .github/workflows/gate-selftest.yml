@@ -42,32 +42,22 @@ jobs:
         run: node scripts/governance/gate-selftest.mjs
 
   # GT-G6 (cont.) — os ~50 hooks Claude Code (camada que bloqueia o agente em
-  # tempo real) só rodavam LOCAL (test-all-hooks-smoke.ps1). Em mai/2026 isso
-  # deixou 4 hooks quebrarem em prod sem CI pegar. Roda em windows-latest porque
-  # o smoke valida compat PS 5.1 (encoding/BOM/$input reservada) — Windows-coupled.
+  # tempo real) só rodavam LOCAL. Em mai/2026 isso deixou 4 hooks quebrarem em
+  # prod sem CI pegar. US-GOV-052 portou TODOS os .ps1 -> .mjs cross-platform e
+  # APOSENTOU a camada PS-smoke (test-all-hooks-smoke.ps1 + o parse-check PS 5.1):
+  # não há mais hook .ps1, então o smoke virou obsoleto (0 .ps1 pra testar) e a
+  # compat PS 5.1 (encoding/BOM/$input) não é mais um vetor. A cobertura real agora
+  # é o .test.mjs hermético de cada hook (não é mais Windows-coupled → roda em ubuntu).
   hooks-selftest:
-    name: hooks selftest (advisory · PS 5.1 smoke + node hook tests)
-    runs-on: windows-latest
+    name: hooks selftest (advisory · node hook tests)
+    runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Parse-check de TODO hook .ps1 (PS 5.1, deterministico, sem depender de payload)
-        shell: powershell
-        run: |
-          $fail = Get-ChildItem .claude/hooks -Filter *.ps1 |
-            Where-Object { $_.Name -notmatch '\.test\.ps1$' -and $_.Name -notmatch '^test-' } |
-            Where-Object {
-              $e = $null
-              [void][System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$e)
-              if ($e -and $e.Count -gt 0) { Write-Host ("PARSE FAIL: " + $_.Name); $e | ForEach-Object { Write-Host ("  " + $_.Message) }; $true } else { Write-Host ("ok " + $_.Name); $false }
-            }
-          if (@($fail).Count -gt 0) { Write-Error ([string]@($fail).Count + " hook(s) .ps1 com erro de parse PS 5.1"); exit 1 }
-          Write-Host "OK: todos os .ps1 parseiam limpo (PS 5.1; cobre TODOS os hooks, nao so os 12 com payload no smoke)."
-      - name: PowerShell hooks smoke (compat PS 5.1 — encoding/reserved-var)
-        shell: powershell
-        run: .\.claude\hooks\test-all-hooks-smoke.ps1
       - name: Node hook tests (*.test.mjs)
-        run: node --test .claude/hooks/
+        # glob explícito (não o diretório) — o runner é bash/ubuntu e a forma-diretório
+        # `node --test .claude/hooks/` regride em node >=21 (trata o dir como módulo).
+        run: node --test .claude/hooks/*.test.mjs
