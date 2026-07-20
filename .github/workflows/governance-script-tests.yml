@@ -112,6 +112,12 @@ jobs:
         run: node .claude/hooks/modulo-preflight-warning.test.mjs
       - name: Lote 3 SessionStart+preflight REGISTRADO como node (correcao != invocacao · US-GOV-052)
         run: node scripts/governance/settings-portlote3-sessionstart-registration.test.mjs
+      - name: Charter-validate PORTE .mjs (Charter > Spec · logica + E2E · roda em Linux)
+        run: node .claude/hooks/charter-validate.test.mjs
+      - name: Preflight-new-capability PORTE .mjs (anti-reinvencao framework · logica + E2E · roda em Linux)
+        run: node .claude/hooks/preflight-new-capability.test.mjs
+      - name: Lote 4 charter+preflight REGISTRADO como node (correcao != invocacao · US-GOV-052)
+        run: node scripts/governance/settings-portlote4-charter-preflight-registration.test.mjs
       - name: Block-merge-markers PORTE .mjs (post-mortem v4 anti-pattern A · #1000/#1001 · roda em Linux)
         run: node .claude/hooks/block-merge-markers.test.mjs
       - name: Block-routes-string-legacy PORTE .mjs (rules/routes.md FQCN · incidente #843 · roda em Linux)

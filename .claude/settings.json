@@ -102,7 +102,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/charter-validate.ps1"
+            "command": "node .claude/hooks/charter-validate.mjs"
           },
           {
             "type": "command",
@@ -110,7 +110,7 @@
           },
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/preflight-new-capability.ps1"
+            "command": "node .claude/hooks/preflight-new-capability.mjs"
           },
           {
             "type": "command",
