@@ -4,9 +4,9 @@ title: "Enforcement — 8 mecanismos NIST/Cedar/OPA aplicados às 7 camadas"
 type: governance-spec
 authority: canonical
 lifecycle: ativo
-version: 1.0.0
+version: 1.1.0
 maintained_by: wagner
-last_updated: 2026-05-05
+last_updated: 2026-07-19
 charter_adr: 0080
 related:
   - 0079-constituicao-oimpresso-7-camadas-governanca
@@ -16,7 +16,7 @@ pii: false
 
 # Enforcement — Como as 7 camadas são protegidas em runtime
 
-> **Versão 1.0.0 — 2026-05-05**
+> **Versão 1.1.0 — 2026-07-19** (crosswalk regulatório §7 sobre a base v1.0.0 2026-05-05)
 > **Hierarquia:** subordinada à [Constituição](CONSTITUTION.md) v1.1.0
 
 A Constituição (L1) e camadas L2-L7 são **regras**. Sem mecanismos de enforcement, regra é teatro. Este documento mapeia os **8 mecanismos** que tornam o framework operável — convergência canônica de **NIST Zero Trust SP 800-207**, **AWS Cedar**, **OPA (Open Policy Agent)**, **Anthropic Constitutional AI**.
@@ -325,6 +325,62 @@ Mudança neste documento requer cascade review §10.4:
 
 ---
 
+## §7. Crosswalk regulatório — artefato/gate ↔ EU AI Act · ISO 42001 · NIST AI RMF
+
+> **Adicionado v1.1.0 (2026-07-19).** Mapa de **rastreabilidade**, NÃO certificado de conformidade. Responde à pergunta que uma auditoria externa (cliente pagante, due-diligence B2B) faz — *"onde está a evidência do controle X?"* — apontando pro artefato oimpresso que **já existe**. Não classifica o sistema como high-risk nem afirma conformidade; mapeia **onde o substrato de governança já evidencia um controle** e, com igual peso, **onde não cobre** (§7.3). Auto-flagrado ausente em [session 2026-06-20](../sessions/2026-06-20-ia-os-onda1-batch.md) ("crosswalk formal NIST AI RMF / ISO 42001 — destrava auditoria externa"); este é o preenchimento.
+
+### §7.1 Os três referenciais (e por que estender o ENFORCEMENT em vez de doc paralelo)
+
+| Referencial | O que é | Por que importa aqui |
+|---|---|---|
+| **EU AI Act** (Reg. UE 2024/1689) | Regulação horizontal de IA; obrigações de sistema high-risk (Cap. III Seção 2, Art. 9-15 + 17) | Anexo III (high-risk) **aplicável 02-ago-2026**; cliente/parceiro EU exige evidência de risco/log/oversight |
+| **ISO/IEC 42001:2023** | AIMS — sistema de gestão de IA (PDCA, Cl. 4-10 + Anexo A) | Certificável; base de due-diligence B2B; espelha ISO 27001, que já orientou a Constituição (§2 #7) |
+| **NIST AI RMF 1.0** | Framework voluntário — 4 funções GOVERN/MAP/MEASURE/MANAGE | Vocabulário comum de auditoria US; já é fonte parcial do ENFORCEMENT via NIST 800-207 |
+
+O ENFORCEMENT (§1-§6) ancora em **NIST 800-207 (Zero Trust)** — segurança de *acesso*. Este §7 é o eixo complementar de governança do *sistema de IA* (AI Act/42001/AI RMF). Mora aqui, e não em doc novo, porque o dono do tema "como as camadas são protegidas + a qual controle externo isso responde" é este documento — abrir paralelo fragmentaria o juiz único (regra §5 proibições "roadmap paralelo").
+
+### §7.2 Matriz artefato ↔ controle
+
+Cada linha: um artefato/gate oimpresso **verificado existente** (jul/2026) → o controle que ele **evidencia** em cada referencial → maturidade honesta (✅ opera · 🟡 parcial · ⏸️ declarado-não-operacional). Subcategorias NIST são **indicativas** (função + representante), não exaustivas.
+
+| # | Artefato/gate oimpresso (real) | EU AI Act | ISO 42001 | NIST AI RMF | Maturidade |
+|---|---|---|---|---|---|
+| A | **CONSTITUTION.md** v1.1.0 (semver + `amendments[]`) + [ADRs append-only](../decisions/) | Art. 17 (QMS) | Cl. 5 (liderança) · A.2 (política de IA) | GOVERN 1.1 | ✅ |
+| B | **ENFORCEMENT.md** — 8 mecanismos (§1-§6, este doc) | Art. 17 (QMS) | Cl. 8 (operação) · A.6.1 | GOVERN 1.4 · MANAGE 1.1 | 🟡 (1/8 pleno) |
+| C | **charters** (238 `.charter.md`) — intenção / non-goals / anti-hooks por tela | Art. 11 (doc. técnica) | A.6.2.7 (doc técnica) | MAP 1.1 · MAP 2.3 | ✅ |
+| D | **casos.md** (39) + **casos-gate G-2** (CI *required*) — UC ↔ teste | Art. 9 (gestão de risco) · Art. 15 (exatidão) | Cl. 9.1 · A.6.2.4 (verif. & valid.) | MEASURE 2.3 | ✅ |
+| E | **mcp_audit_log** — append-only (triggers imutabilidade) + hash-chain (`2026_06_20`) | **Art. 12 · Art. 19 (logs automáticos)** | Cl. 7.5 · A.6.2.8 (event logs) | MEASURE 3.1 · MANAGE 4.1 | ✅ |
+| F | **ActionGate** (PEP/PDP) + **DecisionRouter/PolicyEngine** (ADS) + **HITL 4 níveis** (R10) | **Art. 14 (supervisão humana)** | A.9 (uso responsável) | GOVERN 3.2 · MANAGE 2.2 | 🟡 |
+| G | **required-checks-baseline.json** + CI gates (governance-gate, anchor-lint, casos-gate…) | Art. 17 (QMS) | Cl. 8 · Cl. 9 (aval. de desempenho) | MEASURE 1.1 · MANAGE 1.x | ✅ |
+| H | **jana:health-check** (5 SQL) + **drift-sentinel** + **ragas-real-eval** + Langfuse/OTel | Art. 15 (robustez) · **Art. 72 (pós-mercado)** | Cl. 9.1 (monitoramento) · A.6.2.6 (operação) | MEASURE 2.x · MANAGE 4.1 | 🟡 (online-eval flag OFF) |
+| I | **RetentionPurgeCommand** + **LgpdEsquecerTitularTool** (DSR) + **PiiRedactor** | Art. 10 (governança de dados) | A.7 (dados de IA) | MEASURE 2.10 (privacidade) | ✅ (via LGPD Art. 7/18) |
+| J | **business_id global scope** (Tier 0, ADR 0093) + Pest cross-tenant (biz=1 vs biz=99) | Art. 15 (cibersegurança) | A.7 · Cl. 8 (segregação) | MEASURE 2.7 (segurança/resiliência) | ✅ |
+| K | **Quarterly constitutional review** (§2 #7) + **module-grade scorecards** (ADR 0230) | Art. 17 (melhoria do QMS) | Cl. 9.3 (análise crítica) · Cl. 10 (melhoria) | GOVERN 1.4 · MANAGE 4.2 | 🟡 (1ª ocorrência 2026-08-05) |
+
+**Leitura.** As linhas **E** e **F** são as mais fortes — log tamper-evident (Art. 12/19) e supervisão humana estruturada (Art. 14) são exatamente onde a auditoria high-risk aperta, e o substrato já opera. As mais fracas (**B, F, H, K**) casam com as fraquezas *medidas* na grade (`spec-governanca` 4,5; drift-eval / online-eval flag OFF) — o mapa não infla: onde a peça é parcial, a coluna diz 🟡.
+
+### §7.3 O que os referenciais exigem e NÃO temos (gaps honestos)
+
+Rastreabilidade só vale com a coluna do que falta. Nenhum destes é implicado por "temos governança" — cada um exige trabalho ou decisão explícita:
+
+- **Classificação high-risk indefinida.** Jana é assistente de negócio; provavelmente **fora** do Anexo III (não é biometria / infra crítica / emprego / serviços essenciais). Este mapa é **prontidão**, não declaração de aplicabilidade. Classificar formalmente = decisão [W] + eventual counsel.
+- **Conformity assessment / marcação CE (Art. 43) · registro no banco UE (Art. 49) · FRIA (Art. 27):** não feitos — só exigíveis se classificado high-risk. N/A hoje.
+- **Post-market monitoring formal (Art. 72 / ISO Cl. 9.1):** parcial — `drift-sentinel` é tautológico (§5 proibições 2026-07-17) e a eval sobre tráfego real está com flag OFF (decisão [W]/LGPD). Monitoramento existe; o **loop de qualidade em prod** não está fechado.
+- **Eval independente / cross-model (NIST MEASURE):** verificação é same-model (Opus×Opus) por design; cross-model só ad-hoc (fraqueza `orq-same-model` 5,0).
+- **Governança de dado de treino (Art. 10 / A.7.x):** oimpresso **não treina modelo** (usa Claude hospedado) — a maior parte de Art. 10 é upstream (Anthropic / GPAI). Cobrimos dado de **RAG/memória** (corpus governado), não treino.
+- **Certificação ISO 42001:** este é **auto-mapa**, não auditoria de terceira parte. Vale como evidência pré-auditoria, nunca como certificado.
+
+### §7.4 Manter fresco (sem apodrecer) — e por que NÃO é gate
+
+Este mapa aponta pra artefatos vivos e pra um alvo regulatório em vigência escalonada (GPAI ago/2025 · high-risk Anexo III **ago/2026** · Anexo I ago/2027). Regras:
+
+- **Não restatear estado que outro sistema sabe melhor** (§5 proibições 2026-07-17): quais gates são *required* mora em [`governance/required-checks-baseline.json`](../../governance/required-checks-baseline.json) (vigiado por `protection-drift.mjs`); a maturidade de cada peça mora na grade de fraquezas ([`memory/reguas/fraquezas.json`](../reguas/fraquezas.json)). Aqui só o **mapeamento** artefato↔controle.
+- **Isto NÃO é presence-gate nem catraca** (§5 proibições) — é documentação de rastreabilidade. Não existe check de CI exigindo "linha preenchida" (seria presence-gate, proibido). A defesa de correção de cada linha é o gate/teste do **próprio artefato** citado, não este doc.
+- Re-verificar contra a fonte quando: (a) o Anexo III mudar a classificação de assistentes de ERP; (b) um artefato citado for renomeado/removido; (c) ISO 42001 receber revisão. **Data deste retrato: 2026-07-19.**
+
+---
+
 ## Histórico
 
+- **v1.1.0** (2026-07-19) — §7 Crosswalk regulatório: matriz de rastreabilidade artefato/gate ↔ EU AI Act · ISO 42001 · NIST AI RMF (11 linhas de artefatos verificados existentes + gaps honestos + caveats de frescor). Preenche o crosswalk AI-específico auto-flagrado ausente na session 2026-06-20. Documentação sobre mecanismo existente — sem código, sem gate novo.
 - **v1.0.0** (2026-05-05) — Mapeamento inicial dos 8 mecanismos NIST/Cedar/OPA às 7 camadas + plano de implementação Fases 3.5/3.6/5.
