@@ -61,7 +61,6 @@ Disparados antes de cada uso de ferramenta. Tipo ADR 0234: `hook_pretooluse`.
 | `Bash` | `commit-discipline-check` | Enforcement Skill Tier A commit-discipline via PreToolUse Bash (git commit/add). ADR 0094 §5. | `.claude/hooks/commit-discipline-check.mjs` |
 | `Bash` | `block-claim-without-evidence` | Bloqueia `gh pr create`/`gh pr merge --admin`/`git push` para branches que tocam infra crítica se o body do PR não contém evidência curl/HTTP literal. Camada B pareada com CI gate `.github/workflows/infra-contract-required.yml`. Escape: `# evidence-override: <razão>`. | `.claude/hooks/block-claim-without-evidence.mjs` |
 | `Bash` | `post-merge-ui-smoke-required` | Após `gh pr merge --admin` de PR com arquivos UI (.tsx/.css/.blade.php), marca flag pendente e bloqueia Claude de declarar "pronto"/"deployed" sem screenshot real. Enforcement Tier 0 smoke visual pós-merge. Também ativo em PreToolUse `mcp__computer-use__screenshot\|mcp__Claude_in_Chrome__.*`. | `.claude/hooks/post-merge-ui-smoke-required.mjs` |
-| `Bash` | `block-serving-branch-switch` | Bloqueia troca de branch no checkout MAIN (`D:\oimpresso.com`) que serve `oimpresso.test` via Herd. Trabalho de feature vai em worktree isolado. Worktrees linkados (`.claude/worktrees/*`) são liberados. ADR 0233. Fail-open. | `.claude/hooks/block-serving-branch-switch.mjs` |
 
 ### Matcher: `mcp__computer-use__screenshot|mcp__Claude_in_Chrome__.*`
 

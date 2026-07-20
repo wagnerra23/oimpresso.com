@@ -82,8 +82,6 @@ jobs:
         run: node scripts/governance/settings-automem-mwart-registration.test.mjs
       - name: Block-bom-encoding PORTE .mjs (proibicoes Ambiente BOM · #984 · logica + E2E · roda em Linux)
         run: node .claude/hooks/block-bom-encoding.test.mjs
-      - name: Block-serving-branch-switch PORTE .mjs (R8 · ADR 0233 · logica + E2E · roda em Linux)
-        run: node .claude/hooks/block-serving-branch-switch.test.mjs
       - name: Block-test-without-red PORTE .mjs (SDD FV-T0 · logica + E2E · roda em Linux)
         run: node .claude/hooks/block-test-without-red.test.mjs
       - name: Warn-red-first PORTE .mjs (SDD FV-T0 advisory · logica + E2E · roda em Linux)

@@ -9,8 +9,8 @@
 > - O dono de "o que é required no merge" é `governance/required-checks-baseline.json` (vigiado por `protection-drift.mjs`) — a seção de gates abaixo é CÓPIA GERADA dele, re-derivada a cada `--write` e conferida pelo `--check`.
 
 ## Resumo
-- **46** wirings em `settings.json` (5 eventos) · **41** arquivos de hook distintos wired
-- **49** arquivos de hook no disco (+34 `*.test.*` — testes, fora da conta de órfãos)
+- **45** wirings em `settings.json` (5 eventos) · **40** arquivos de hook distintos wired
+- **48** arquivos de hook no disco (+33 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **8** · Fantasmas (wiring sem arquivo): **0**
 - Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
 
@@ -46,7 +46,6 @@
 | PreToolUse | `Bash` | commit-discipline-check.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
 | PreToolUse | `Bash` | block-claim-without-evidence.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | — |
 | PreToolUse | `Bash` | post-merge-ui-smoke-required.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
-| PreToolUse | `Bash` | block-serving-branch-switch.mjs | node | comando (pré-shell — git commit/push trafegam aqui) | exit-2 |
 | PreToolUse | `mcp__computer-use__screenshot/mcp__[Cc]laude[-_][Ii]n[-_][C…` | post-merge-ui-smoke-required.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `mcp__.*figma.*/mcp__.*__(use_figma/get_design_context/get_f…` | block-figma-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
 | PreToolUse | `DesignSync` | block-design-sync-without-optin.mjs | node | ferramenta (pré-uso do matcher) | exit-2 |
