@@ -1,10 +1,12 @@
 name: Staleness reporters (BRIEFING + visual-comparison × código)
 
-# Reporters de STALENESS (não presence-gate). QUATRO eixos irmãos:
+# Reporters de STALENESS (não presence-gate). SEIS eixos irmãos:
 #   · BRIEFING.md            × Modules/<X> ∪ Pages/<X>   (briefing-code-staleness.mjs)
 #   · <tela>-visual-comparison.md × inertia_target .tsx  (visual-comparison-staleness.mjs)
 #   · ADR pendente de ratificação                        (adr-proposto-parado.mjs)
 #   · RADAR de frescor por doc — score 0-100 Dosu        (doc-freshness-score.mjs · agregador)
+#   · AGENTS.md              × CLAUDE.md ∪ @imports       (agents-md-staleness.mjs)
+#   · DOC de lib             × versão no composer.lock    (spec-lib-staleness.mjs · régua Tessl)
 # O 2º fecha o ÚLTIMO órfão de frescor do loop de design (Wagner 2026-07-09 "acho que
 # já está velho, quem atualiza?"): o comparativo visual só atualizava quando alguém
 # rodava a skill mwart-comparative; a Fase 5 do RUNBOOK esquecia dele. Mesmo núcleo
@@ -46,6 +48,10 @@ on:
       # CLAUDE.md e memory/*.md (a superfície do eixo 5) já entram pelo bloco do eixo 4.
       - 'AGENTS.md'
       - 'scripts/governance/agents-md-staleness.mjs'
+      # … e no PR que muda a versão travada de lib (eixo 6) ou a porta/sentinela dele.
+      # AGENTS.md e memory/*.md (docs mapeados) já entram pelos blocos dos eixos 4/5.
+      - 'composer.lock'
+      - 'scripts/governance/spec-lib-staleness.mjs'
       # … e no PR que toca docs do corpus do eixo 4 (radar de frescor por doc).
       - 'CLAUDE.md'
       - 'README.md'
@@ -118,3 +124,13 @@ jobs:
         run: node scripts/governance/agents-md-staleness.mjs --selftest
       - name: reporter AGENTS.md × CLAUDE.md (advisory)
         run: node scripts/governance/agents-md-staleness.mjs
+      # Eixo 6 — DOC de lib × versão travada no composer.lock (régua Tessl Spec Registry;
+      # fraqueza spec-registry-libs da grade 2026-07-18, nota 5,0). Fecha o único eixo que
+      # olha pra FORA (contratos com libs de terceiros): quando uma lib sobe de versão,
+      # NADA acusava que o doc/RUNBOOK que descreve a superfície dela ficou stale. Núcleo
+      # classifyCodeStaleness reusado (não é motor novo — proibicoes §5 2026-07-09), mesmo
+      # padrão do eixo 5. Reporter advisory (::warning por doc atrás do pin) — ADR 0314.
+      - name: self-test spec-lib-staleness (bite/release · núcleo puro · determinístico)
+        run: node scripts/governance/spec-lib-staleness.test.mjs
+      - name: reporter DOC de lib × composer.lock (advisory)
+        run: node scripts/governance/spec-lib-staleness.mjs
