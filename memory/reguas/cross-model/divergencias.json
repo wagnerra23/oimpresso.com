@@ -1,0 +1,104 @@
+{
+  "gerado": "2026-07-19",
+  "modelo_cross": "claude-sonnet-5 (web search, blind, via Agent tool)",
+  "web_search": "depende da fonte do --verdicts (declare em --modelo-cross)",
+  "ledger": "D:\\oimpresso.com\\.claude\\worktrees\\practical-dewdney-eb027e\\memory\\reguas",
+  "limite_metodologico": "GPT sem busca web (prior de treino) vs Opus com busca web — CONCORDA é confirmação fraca; DIVERGE_DERRUBA é o sinal forte",
+  "resumo": {
+    "n": 8,
+    "concorda": 3,
+    "diverge_derruba": 5,
+    "diverge_eleva": 0,
+    "taxa_concordancia": 0.38
+  },
+  "rows": [
+    {
+      "id": "tier0-teste-arquitetura",
+      "titulo": "Isolamento multi-tenant Tier 0 por teste de arquitetura no CI",
+      "dimensao": "erp-ia-produto",
+      "opus": "EMPATADO",
+      "cross": "REFUTADO",
+      "divergencia": "DIVERGE_DERRUBA",
+      "razao": "Teste de arquitetura no CI que falha o merge por vazamento de escopo de tenant é prática estabelecida — ArchUnit para regras arquiteturais em CI, e guias de multi-tenancy (AWS SaaS Lens REL_3, testgrid.io) recomendam explicitamente testes automatizados de cross-tenant denial rodando em todo merge.",
+      "quem_ja_faz": "ArchUnit (testes de arquitetura em CI) + testes automatizados de isolamento de tenant (AWS SaaS Lens REL_3)",
+      "peer_opus": "policy-as-code tenant-isolation (OPA/Semgrep; SAP/Salesforce)"
+    },
+    {
+      "id": "redteam-3-camadas",
+      "titulo": "Red-team de injection 3 camadas com honestidade por camada",
+      "dimensao": "seguranca-do-agente",
+      "opus": "EMPATADO",
+      "cross": "EMPATADO",
+      "divergencia": "CONCORDA",
+      "razao": "Defesa em camadas contra prompt injection (least-privilege, input sanitization, validação de output, human-in-the-loop) e reconhecimento explícito de 'coverage gaps' são práticas padrão 2026, mas não achei um caso publicado com exatamente 3 camadas e documentação de honestidade por camada como artefato nomeado.",
+      "quem_ja_faz": "Guias de red-team de LLM (OWASP LLM Top 10 / práticas de defesa em camadas) — parcial",
+      "peer_opus": "garak + promptfoo ratchet + PyRIT"
+    },
+    {
+      "id": "anti-tautologia-armada",
+      "titulo": "Anti-tautologia armada no próprio instrumento (ADR 0318 + guard)",
+      "dimensao": "qualidade-drift-ia-producao",
+      "opus": "EMPATADO",
+      "cross": "EMPATADO",
+      "divergencia": "CONCORDA",
+      "razao": "Mitigar auto-preferência de juiz (modelo julgador diferente do avaliado), calibração contra ground truth humano e split dev/held-out são práticas 2026 documentadas, mas não achei um guard nomeado especificamente pra BLOQUEAR a regravação de baseline de um instrumento provado tautológico — é composição adjacente, não o mecanismo exato.",
+      "quem_ja_faz": "Práticas gerais de mitigação de self-preference bias em LLM-judge — parcial",
+      "peer_opus": "pitfall publicado (arXiv 2501.00269) + doutrina Goodhart 2026"
+    },
+    {
+      "id": "alarme-reflexivo-ratio",
+      "titulo": "Alarme reflexivo negócio-vs-governança no fluxo de merges",
+      "dimensao": "inteligencia-de-negocio",
+      "opus": "EMPATADO",
+      "cross": "REFUTADO",
+      "divergencia": "DIVERGE_DERRUBA",
+      "razao": "Ferramentas de flow metrics (LinearB/Flow Framework) já rastreiam 'Work Breakdown' — percentual de feature vs manutenção/débito — por PR/merge e alertam quando a fatia não-produto sobe; Atlassian Teamwork Lab 2026 nomeia o mesmo fenômeno como 'AI efficiency paradox'.",
+      "quem_ja_faz": "LinearB / Flow Framework (Work Type Allocation com alerta) + Atlassian Teamwork Lab",
+      "peer_opus": "Swarmia Investment Balance + LinearB + Jellyfish"
+    },
+    {
+      "id": "custo-no-corpo-do-pr",
+      "titulo": "Custo estimado carimbado dentro do corpo do PR",
+      "dimensao": "custo-eficiencia",
+      "opus": "EMPATADO",
+      "cross": "EMPATADO",
+      "divergencia": "CONCORDA",
+      "razao": "Bots como Cursor Bugbot divulgam custo médio por execução e ferramentas de code review expõem custo em créditos, mas isso aparece como comentário/billing do bot, não como carimbo automático de custo USD do trabalho do agente dentro do corpo da descrição do PR.",
+      "quem_ja_faz": "Cursor Bugbot / Greptile (custo via comentário de PR, não estampado no corpo pelo próprio agente autor)",
+      "peer_opus": "Mavvrik + Finout FinOps-for-AI + Anthropic Analytics API"
+    },
+    {
+      "id": "governanca-ia-embarcada-pme",
+      "titulo": "Governança de IA embarcada em ERP PME BR (AiUsageLog+PiiRedactor+health-check+online-eval)",
+      "dimensao": "erp-ia-produto",
+      "opus": "ACIMA_CONFIRMADO",
+      "cross": "EMPATADO",
+      "divergencia": "DIVERGE_DERRUBA",
+      "razao": "As peças existem separadamente no mercado (pipelines de redação de PII com control-plane e audit log tipo Presidio/Praesidia; CI eval-gates diários tipo LangSmith/Braintrust que bloqueiam merge por drift de fidelidade), mas não achei um ERP de PME que empacote log-de-uso-de-IA + redação-PII + health-check diário + online-eval como capacidade NATIVA do produto — o que existe é stack de observabilidade de IA genérica plugada por fora.",
+      "quem_ja_faz": "LangSmith/Braintrust (CI eval gates) + Presidio/Praesidia-style redaction control planes — mas como ferramentas de dev, não como módulo nativo de ERP PME",
+      "peer_opus": "—"
+    },
+    {
+      "id": "medidor-outcome-gaps-json",
+      "titulo": "Medidor de outcome com gaps machine-readable (--json.gaps G1-G5 + confianca + selftest-armadilha)",
+      "dimensao": "evals-outcome",
+      "opus": "ACIMA_CONFIRMADO",
+      "cross": "REFUTADO",
+      "divergencia": "DIVERGE_DERRUBA",
+      "razao": "Confident AI/DeepEval já fazem scoring span-level machine-readable com múltiplas métricas e nível de confiança, integrados a pytest/CI, e a prática de golden-set com 'bucket-armadilha' que prova que o gate morde é doutrina documentada 2026.",
+      "quem_ja_faz": "DeepEval / Confident AI (eval harness com golden set + trap fixtures + CI gate JSON)",
+      "peer_opus": "—"
+    },
+    {
+      "id": "jana-memoria-per-tenant",
+      "titulo": "Jana com memória per-tenant dentro do sistema recursivo",
+      "dimensao": "erp-ia-produto",
+      "opus": "EMPATADO",
+      "cross": "REFUTADO",
+      "divergencia": "DIVERGE_DERRUBA",
+      "razao": "Isolamento de memória por tenant em agente de IA embarcado é prática publicada e corrente — Amazon Bedrock AgentCore explicitamente oferece memória isolada por tenant/sessão em modelo pool multi-tenant, e Salesforce isola por org; o qualificador de 'sistema que se autogoverna' não muda o achado sobre a fatia de memória per-tenant, que já tem par direto.",
+      "quem_ja_faz": "Amazon Bedrock AgentCore (per-tenant isolated memory) + isolamento por org da Salesforce",
+      "peer_opus": "Omie GA ~1.000 pagantes + Olist Lis (silêncio-público ≠ ausência)"
+    }
+  ]
+}

@@ -315,8 +315,13 @@ async function chamarOpenAI(modelo, { system, schema, userContent, vazioSeRecusa
   return JSON.parse(escolha.message.content);
 }
 
-/** Chamada genérica de agente (finder ou lente) — o `system`+`schema` vêm de fora. */
-function chamarAgente(cfg, opts) {
+/**
+ * Chamada genérica de agente (finder ou lente) — o `system`+`schema` vêm de fora.
+ * Exportada pra single-sourcing da fronteira LLM: `reguas-cross-model.mjs` reusa
+ * este mesmo primitivo HTTP (cross-vendor) em vez de duplicar o fetch (lápide §5
+ * "duplica régua consolidada" — a fronteira é UMA só). Não muda o comportamento do critic.
+ */
+export function chamarAgente(cfg, opts) {
   return cfg.provider === 'anthropic' ? chamarAnthropic(cfg.modelo, opts) : chamarOpenAI(cfg.modelo, opts);
 }
 

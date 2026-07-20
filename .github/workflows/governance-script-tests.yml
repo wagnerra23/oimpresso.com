@@ -56,6 +56,12 @@ jobs:
       # Deterministico de proposito: nao flaka. Advisory por desenho.
       - name: Agent corpus counterfactual (aritmética de viabilidade · poder por Monte Carlo determinístico · chip C1 grade 2026-07-17)
         run: node scripts/governance/agent-corpus-counterfactual.test.mjs
+      # Braço CROSS-MODEL da grade de réguas (fraqueza "verificação same-model" 5,0 · orquestracao-adversarial).
+      # Testa SÓ a lógica pura (classificarDivergencia/resumoControleNegativo/seleção/prompt-blind) — a
+      # direção da divergência é o que o arm existe pra pegar; fixtures boa/ruim mordem (DERRUBA) e liberam
+      # (CONCORDA). NUNCA chama modelo/rede aqui — a chamada cross-vendor é técnica de PROCESSO, fora do CI.
+      - name: Reguas cross-model (direção do controle-negativo · blind sem vazar peer · same-vendor barrado)
+        run: node scripts/governance/reguas-cross-model.test.mjs
       # ex-órfãos de CI (adversário 2026-07-13): existiam no repo mas nenhum workflow os
       # rodava — reencarnação da proibição "Tests sem phpunit.xml = falsa cobertura".
       - name: SDD distiller_freshness read-side (anti-stale + shallow honesto · ADR 0291 D-D)

@@ -11,6 +11,25 @@
 | `retratos.json` | série temporal de notas por dimensão, com proveniência e regra de composição DECLARADAS por retrato | fase Persistir do workflow (via PR) |
 | `claims.json` | claims de superioridade com **ID persistente**, veredito, peer, TTL, correção obrigatória | fase Persistir (via PR) |
 | `fraquezas.json` | fraquezas com nota/evidência/degrau + flag `existia_invisivel` + `onde_indexar` | fase Persistir (via PR) |
+| `cross-model/` | verdicts de um 2º modelo (não-Opus) + relatório do controle-negativo (ver §Cross-model) | passe cross-model (sob demanda) |
+
+## Cross-model — oráculo institucional contra agreement-bias (fraqueza "same-model" 5,0)
+
+O refutador da grade (`.claude/workflows/reguas-do-sistema.js` fase Refutar), o adversário e o
+ultrareview rodam **Opus×Opus by-design** — um modelo tende a **concordar consigo mesmo**. A régua
+de mercado é o **Amp Oracle** (2º modelo, cross-vendor, ataca o que o 1º deixaria passar). Antes,
+o cross-model só acontecia ad-hoc (Codex #4009). O oráculo institucional é
+[`scripts/governance/reguas-cross-model.mjs`](../../scripts/governance/reguas-cross-model.mjs):
+re-ataca **BLIND** (contexto-zero, sem ver o veredito/peer do Opus) as claims que o Opus **manteve**
+(ACIMA/EMPATADO) e **diffa contra este ledger** — o **controle negativo** (mesmo lote Opus-only vs
++2º-modelo). Três fontes do 2º modelo, MESMO classificador: (A) HTTP cross-vendor (`OPENAI_API_KEY`);
+(B) `--verdicts <f.json>` (Codex/GPT/um Claude não-Opus via Agent); (C) `--dry`.
+
+- **É técnica de PROCESSO, NÃO gate de CI** — nunca avermelha PR (só a lógica pura tem selftest advisory).
+- `DIVERGE_DERRUBA` = o 2º modelo derrubou o que o Opus manteve → **vai pro humano, nunca auto-aplica**.
+- 1ª rodada (2026-07-19, `claude-sonnet-5` web-blind): **5/8 claims mantidas foram derrubadas** (as 2
+  `ACIMA_CONFIRMADO` incluídas) — evidência em `cross-model/relatorio.md`. NÃO reverte o ledger sozinho;
+  cada `DIVERGE_DERRUBA` é insumo pra [W] decidir re-refutar/rebaixar na próxima rodada.
 
 **Regras duras:**
 - Nota histórica NUNCA é editada — retrato novo entra no TOPO de `retratos.json` (append-only na prática).

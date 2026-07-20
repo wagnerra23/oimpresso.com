@@ -265,6 +265,15 @@ const pesquisas = (await parallel(DIMS.map((d) => () => agent(
 log(`${pesquisas.length}/${DIMS.length} dimensões pesquisadas`)
 
 // ── Fase 2 — Refutar toda claim "acima" (default: derrubar) ──────────────────
+// ⚠️ VERIFICAÇÃO SAME-MODEL (fraqueza 5,0 · orquestracao-adversarial): este refutador roda
+// Opus×Opus by-design → agreement-bias (o modelo tende a concordar consigo). O ORÁCULO
+// cross-model (cross-vendor, régua Amp Oracle) é um passe SEPARADO, de PROCESSO — não cabe
+// aqui dentro porque agent() é Claude-only. Depois que a fase Persistir grava o ledger, rode:
+//   node scripts/governance/reguas-cross-model.mjs            (cross-vendor OpenAI, se OPENAI_API_KEY)
+//   node scripts/governance/reguas-cross-model.mjs --verdicts <f.json> --modelo-cross <label>
+// Ele re-ataca BLIND as claims que o Opus MANTEVE e diffa contra o ledger (controle negativo).
+// DIVERGE_DERRUBA = um 2º modelo derruba o que o Opus manteve → vai pro humano (nunca auto-aplica).
+// NÃO é gate de CI (não avermelha PR). Ver memory/reguas/cross-model/ + README §Cross-model.
 phase('Refutar')
 const claims = pesquisas.flatMap((p) => p.oimpresso_acima.map((c) => ({ ...c, dimensao: p.dimensao })))
 const refutados = (await parallel(capEstratificado('Refutar', claims, CAP_AGENTES_POR_FASE, log).map((c) => () => agent(
