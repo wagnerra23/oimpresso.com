@@ -5,7 +5,7 @@
   "generated_from": {
     "catalog": {
       "path": "memory/governance/catalog.json",
-      "stats": 36
+      "stats": 38
     },
     "grades": {
       "path": "governance/module-grades-baseline.json",
@@ -18,7 +18,7 @@
     }
   },
   "stats": {
-    "services": 36,
+    "services": 41,
     "with_grade": 36,
     "unmatched_screen_dirs": [],
     "orphan_screen_ns": [
@@ -27,9 +27,7 @@
       "Home",
       "MemCofre",
       "Modules",
-      "Produto",
       "Purchase",
-      "Sells",
       "Settings",
       "Site",
       "StockAdjustment",
@@ -40,12 +38,108 @@
       "User"
     ],
     "maturity_levels": {
-      "ouro": 20,
+      "ouro": 22,
       "prata": 15,
-      "bronze": 1
+      "bronze": 4
     }
   },
   "services": [
+    {
+      "id": "Accounting",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": null,
+      "purpose": "",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": false,
+          "ns": "Accounting",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 1,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": false,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 3,
+        "applicable": 6,
+        "ratio": 0.5,
+        "level": "bronze"
+      }
+    },
     {
       "id": "Admin",
       "trust": "L1",
@@ -188,7 +282,7 @@
           "consumes_tables": 0,
           "governed_by_adr": 9,
           "components": 25,
-          "dangling_edges": 2,
+          "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
@@ -230,7 +324,7 @@
         },
         {
           "key": "no_dangling_edges",
-          "ok": false,
+          "ok": true,
           "rot": "sem aresta pendurada"
         },
         {
@@ -250,9 +344,9 @@
         }
       ],
       "maturity": {
-        "passed": 7,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 0.78,
+        "ratio": 0.89,
         "level": "prata"
       }
     },
@@ -585,9 +679,9 @@
           "depends_on": 6,
           "dependents": 0,
           "provides_api": 1,
-          "owns_tables": 2,
+          "owns_tables": 3,
           "owns_legacy_views": 0,
-          "consumes_tables": 5,
+          "consumes_tables": 4,
           "governed_by_adr": 4,
           "components": 6,
           "dangling_edges": 0,
@@ -595,7 +689,7 @@
         },
         "briefing": {
           "present": true,
-          "last_commit": "2026-07-19",
+          "last_commit": "2026-07-21",
           "verdict_owner": "briefing-code-staleness.mjs"
         },
         "cost": {
@@ -798,7 +892,7 @@
           "consumes_tables": 0,
           "governed_by_adr": 3,
           "components": 3,
-          "dangling_edges": 1,
+          "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
@@ -840,7 +934,7 @@
         },
         {
           "key": "no_dangling_edges",
-          "ok": false,
+          "ok": true,
           "rot": "sem aresta pendurada"
         },
         {
@@ -860,10 +954,10 @@
         }
       ],
       "maturity": {
-        "passed": 8,
+        "passed": 9,
         "applicable": 9,
-        "ratio": 0.89,
-        "level": "prata"
+        "ratio": 1,
+        "level": "ouro"
       }
     },
     {
@@ -1313,7 +1407,7 @@
           "consumes_tables": 0,
           "governed_by_adr": 3,
           "components": 19,
-          "dangling_edges": 1,
+          "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
@@ -1355,7 +1449,7 @@
         },
         {
           "key": "no_dangling_edges",
-          "ok": false,
+          "ok": true,
           "rot": "sem aresta pendurada"
         },
         {
@@ -1375,9 +1469,9 @@
         }
       ],
       "maturity": {
-        "passed": 7,
+        "passed": 8,
         "applicable": 9,
-        "ratio": 0.78,
+        "ratio": 0.89,
         "level": "prata"
       }
     },
@@ -2222,6 +2316,102 @@
       }
     },
     {
+      "id": "Notas",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": null,
+      "purpose": "",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": false,
+          "ns": "Notas",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 1,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": false,
+          "last_commit": null,
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": false,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": false,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 2,
+        "applicable": 6,
+        "ratio": 0.33,
+        "level": "bronze"
+      }
+    },
+    {
       "id": "Officeimpresso",
       "trust": "L3",
       "owner": "wagner",
@@ -2455,7 +2645,7 @@
           "consumes_tables": 0,
           "governed_by_adr": 6,
           "components": 25,
-          "dangling_edges": 1,
+          "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
@@ -2497,7 +2687,7 @@
         },
         {
           "key": "no_dangling_edges",
-          "ok": false,
+          "ok": true,
           "rot": "sem aresta pendurada"
         },
         {
@@ -2520,10 +2710,10 @@
         }
       ],
       "maturity": {
-        "passed": 5,
+        "passed": 6,
         "applicable": 6,
-        "ratio": 0.83,
-        "level": "prata"
+        "ratio": 1,
+        "level": "ouro"
       }
     },
     {
@@ -2732,6 +2922,203 @@
       }
     },
     {
+      "id": "Produto",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": "memory/requisitos/Produto/SUPERFICIE.md",
+      "purpose": "Domínio core UltimatePOS (Classe B)",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": true,
+          "ns": "Produto",
+          "via": "direto",
+          "telas": 8,
+          "com_scorecard": 8,
+          "nota_media": 79,
+          "nota_min": 70,
+          "pior_tela": "Produto/Show",
+          "charter_pct": 100,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 0,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": false
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-20",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": false,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 9,
+        "ratio": 0.67,
+        "level": "bronze"
+      }
+    },
+    {
+      "id": "Project",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": null,
+      "purpose": "",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": false,
+          "ns": "Project",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 3,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": false,
+          "last_commit": null,
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": false,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": false,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 2,
+        "applicable": 6,
+        "ratio": 0.33,
+        "level": "bronze"
+      }
+    },
+    {
       "id": "ProjectMgmt",
       "trust": "L2",
       "owner": "wagner",
@@ -2768,7 +3155,7 @@
           "consumes_tables": 0,
           "governed_by_adr": 4,
           "components": 11,
-          "dangling_edges": 1,
+          "dangling_edges": 0,
           "connected": true
         },
         "briefing": {
@@ -2810,7 +3197,7 @@
         },
         {
           "key": "no_dangling_edges",
-          "ok": false,
+          "ok": true,
           "rot": "sem aresta pendurada"
         },
         {
@@ -2830,10 +3217,10 @@
         }
       ],
       "maturity": {
-        "passed": 6,
+        "passed": 7,
         "applicable": 9,
-        "ratio": 0.67,
-        "level": "bronze"
+        "ratio": 0.78,
+        "level": "prata"
       }
     },
     {
@@ -3043,6 +3430,107 @@
         "passed": 8,
         "applicable": 9,
         "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Sells",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": "memory/requisitos/Sells/SUPERFICIE.md",
+      "purpose": "Domínio core UltimatePOS (Classe B)",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": true,
+          "ns": "Sells",
+          "via": "direto",
+          "telas": 8,
+          "com_scorecard": 8,
+          "nota_media": 81,
+          "nota_min": 72,
+          "pior_tela": "Sells/Subscriptions",
+          "charter_pct": 100,
+          "casos_pct": 25,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 1,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-17",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 7,
+        "applicable": 9,
+        "ratio": 0.78,
         "level": "prata"
       }
     },
