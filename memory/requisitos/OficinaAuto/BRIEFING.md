@@ -13,8 +13,6 @@ related_adrs:
 
 # BRIEFING — OficinaAuto (verdade destilada)
 
-> 🗺️ **Quais arquivos são deste contexto?** → [SUPERFICIE.md](SUPERFICIE.md) — índice **gerado** (`module-surface.mjs`), agrupado por papel, não apodrece (`--check` no CI).
-
 ## Estado atual
 
 Módulo vertical de **oficina de reparo de veículos pesados** (CNAE 4520-0/01) — **piloto LIVE em produção** para Martinho (biz=164) **desde 2026-05-13** (ativação faseada formal [ADR 0171](../../decisions/0171-oficinaauto-ativacao-piloto-martinho-faseada.md)). O domínio é **reparo, nunca locação** ([ADR 0265](../../decisions/0265-oficina-reparo-erradica-locacao.md)).

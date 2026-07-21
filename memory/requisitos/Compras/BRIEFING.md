@@ -11,8 +11,6 @@ owner: wagner
 
 # BRIEFING — Modules/Compras
 
-> 🗺️ **Quais arquivos são deste contexto?** → [SUPERFICIE.md](SUPERFICIE.md) — índice **gerado** (`module-surface.mjs`), agrupado por papel, não apodrece (`--check` no CI).
-
 ## TL;DR (5 linhas)
 
 - **O que é:** cockpit de compras (`/compras`) — lista paginada + 4 KPIs + drawer denso 5 tabs. Complementa (não substitui) o CRUD `/purchases/*` Inertia (convergência C1). Domínio: nota de entrada / pedido de compra sobre `transactions` polimórfica.

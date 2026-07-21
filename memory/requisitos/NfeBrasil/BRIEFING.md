@@ -8,8 +8,6 @@ updated_at: "2026-07-02"
 
 # BRIEFING — NfeBrasil (verdade destilada)
 
-> 🗺️ **Quais arquivos são deste contexto?** → [SUPERFICIE.md](SUPERFICIE.md) — índice **gerado** (`module-surface.mjs`), agrupado por papel, não apodrece (`--check` no CI).
-
 # BRIEFING — `NfeBrasil`
 
 ## Estado atual
