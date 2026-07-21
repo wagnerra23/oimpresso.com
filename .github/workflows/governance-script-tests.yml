@@ -44,6 +44,12 @@ jobs:
         run: node scripts/governance/agent-pr-outcomes.test.mjs
       - name: Agent cost per PR (custo USD por PR · join 2-sinais morde/libera · item #7 grade-das-reguas)
         run: node scripts/governance/agent-cost-per-pr.test.mjs
+      # Blinda a MATEMÁTICA (pearson/spearman) do outcome-probe do funcao-scorecard — o "número
+      # real" (r=0.26) da proposta 2026-07-21-funcao-scorecard-validacao-por-outcome sustenta-se
+      # nessas funções; um pearson bugado seria LC-08 (medir errado). Prova contra valores conhecidos
+      # + point-biserial conferido à mão. Advisory por desenho (ADR 0314/0275: required = só Tier-0).
+      - name: funcao-scorecard outcome-probe (estatística da correlação nota↔outcome · barra CodeScene)
+        run: node scripts/governance/funcao-scorecard-outcome-probe.test.mjs
       # Aritmetica de viabilidade do contrafactual de corpus (chip C1 da grade 2026-07-17 ·
       # fraqueza F1 "corpus nunca medido" 3/10). O harness de 3 arms foi PODADO em
       # 2026-07-17 (autorizado [W]: zero invocador + experimento nao autorizado, ADR
