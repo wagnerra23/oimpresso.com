@@ -41,10 +41,71 @@ interface Kpis {
   by_bucket: Record<string, number>
 }
 
+// ── Aba "Catálogo & Sinais-vivos" (grade Catálogo/IDP 2026-07-21) ──
+interface ScreenSignal {
+  matched: boolean
+  ns: string
+  via?: string
+  telas?: number
+  charter_pct?: number
+  casos_pct?: number
+  stale?: boolean
+  nota_media?: number | null
+  backend_only?: boolean
+}
+interface GraphSignal {
+  depends_on: number
+  dependents: number
+  provides_api: number
+  owns_tables: number
+  governed_by_adr: number
+  components: number
+  dangling_edges: number
+  connected: boolean
+}
+interface Maturity {
+  passed: number
+  applicable: number
+  ratio: number
+  level: 'ouro' | 'prata' | 'bronze'
+}
+interface ServiceRow {
+  id: string
+  grade: number | null
+  trust: string | null
+  owner: string | null
+  scope: string | null
+  purpose: string | null
+  screens: ScreenSignal | null
+  graph: GraphSignal | null
+  briefing: { present: boolean; last_commit: string | null } | null
+  maturity: Maturity | null
+  depends_on: string[]
+  dependents: string[]
+}
+interface CatalogPayload {
+  available: boolean
+  generated_from?: {
+    grades?: { baseline?: string; rubric?: string }
+    vital_signs?: { generated_at?: string }
+  }
+  stats?: {
+    services: number
+    with_grade: number
+    unmatched_screen_dirs: string[]
+    orphan_screen_ns: string[]
+    maturity_levels: { ouro: number; prata: number; bronze: number }
+  }
+  services: ServiceRow[]
+}
+
 interface Props {
   grades?: GradeRow[]
   kpis?: Kpis
+  catalog?: CatalogPayload
 }
+
+type View = 'notas' | 'catalogo'
 
 const BUCKETS = ['Excelente', 'Bom', 'Médio', 'Crítico', 'Embrião'] as const
 type Bucket = (typeof BUCKETS)[number]
@@ -69,7 +130,8 @@ function scoreColorClass(score: number): string {
   return 'text-red-700'
 }
 
-function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
+function ModuleGradesIndex({ grades, kpis, catalog }: Props): React.ReactElement {
+  const [view, setView] = useState<View>('notas')
   const [filterBucket, setFilterBucket] = useState<Bucket | 'Todos'>('Todos')
   const [search, setSearch] = useState('')
 
@@ -94,6 +156,18 @@ function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
         ]}
       />
 
+      {/* Toggle de visão — Notas (default) | Catálogo & Sinais (grade Catálogo/IDP 2026-07-21) */}
+      <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-0.5" role="group" aria-label="Visão">
+        <ViewTab label="Notas" active={view === 'notas'} onClick={() => setView('notas')} />
+        <ViewTab label="Catálogo & Sinais" active={view === 'catalogo'} onClick={() => setView('catalogo')} />
+      </div>
+
+      {view === 'catalogo' ? (
+        <Deferred data="catalog" fallback={<TableSkeleton />}>
+          <CatalogSignalsView catalog={catalog} />
+        </Deferred>
+      ) : (
+      <>
       {/* KPIs agregados */}
       <Deferred data="kpis" fallback={<KpiSkeletonBar />}>
         {kpis ? <KpiBar kpis={kpis} /> : null}
@@ -228,6 +302,8 @@ function ModuleGradesIndex({ grades, kpis }: Props): React.ReactElement {
         <Link href="/copiloto/admin/memoria?slug=0155-module-grade-rubrica-v3-9-dimensoes" className="underline">ADR 0155 v3</Link>{' '}
         · 9 dimensões × pesos canônicos (D1 25, D2 17, D3 12, D4 17, D5 12, D6 10, D7 10, D8 8, D9 7) = 118 raw → /100 normalizado
       </p>
+      </>
+      )}
     </>
   )
 }
@@ -298,6 +374,137 @@ function TableSkeleton(): React.ReactElement {
         <div key={i} className="h-8 rounded bg-zinc-100 animate-pulse" />
       ))}
     </div>
+  )
+}
+
+// ── Aba "Catálogo & Sinais-vivos" ──────────────────────────────────────────────
+
+function ViewTab({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }): React.ReactElement {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`px-3 py-1.5 rounded-md text-sm font-medium transition ${
+        active ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:text-foreground'
+      }`}
+    >
+      {label}
+    </button>
+  )
+}
+
+const MATURITY_EMOJI: Record<Maturity['level'], string> = { ouro: '🥇', prata: '🥈', bronze: '🥉' }
+
+function CatalogSignalsView({ catalog }: { catalog?: CatalogPayload }): React.ReactElement {
+  if (!catalog || !catalog.available) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center text-sm text-muted-foreground">
+          Catálogo indisponível — o artefato <code>memory/governance/service-scorecard.json</code> ainda não foi gerado.
+          Rode <code>node scripts/governance/service-scorecard.mjs --write</code> (ou aguarde o nightly MV).
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const { stats, services, generated_from: gen } = catalog
+
+  return (
+    <>
+      {/* Stats header + proveniência (AGREGADOR advisory) */}
+      {stats && (
+        <Card className="mb-4 border-border bg-muted/50">
+          <CardContent className="py-3 text-xs text-muted-foreground space-y-1.5">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 items-center">
+              <span><strong className="text-foreground">{stats.services}</strong> serviços</span>
+              <span><strong className="text-foreground">{stats.with_grade}</strong> com nota</span>
+              <span>Maturidade: {MATURITY_EMOJI.ouro} {stats.maturity_levels.ouro} · {MATURITY_EMOJI.prata} {stats.maturity_levels.prata} · {MATURITY_EMOJI.bronze} {stats.maturity_levels.bronze}</span>
+            </div>
+            {stats.unmatched_screen_dirs.length > 0 && (
+              <p className="text-destructive">⚠️ Telas sem linha em vital-signs (gap): {stats.unmatched_screen_dirs.join(', ')}</p>
+            )}
+            {stats.orphan_screen_ns.length > 0 && (
+              <p>ℹ️ Namespaces de tela órfãos (core-app, sem serviço no catálogo): {stats.orphan_screen_ns.join(', ')}</p>
+            )}
+            <p>
+              AGREGADOR advisory (não recalcula nota — module-grade é o dono). Fontes: catalog.json + module-grades-baseline
+              {gen?.grades?.baseline ? ` (${gen.grades.baseline})` : ''} + vital-signs
+              {gen?.vital_signs?.generated_at ? ` (${gen.vital_signs.generated_at})` : ''}.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[1000px]">
+              <thead className="bg-muted border-b border-border">
+                <tr className="text-left">
+                  <th className="px-4 py-3 font-semibold">Serviço</th>
+                  <th className="px-3 py-3 font-semibold text-right">Nota</th>
+                  <th className="px-3 py-3 font-semibold">Telas</th>
+                  <th className="px-3 py-3 font-semibold text-center" title="depende de → / ← dependentes · API providas · tabelas próprias">Grafo</th>
+                  <th className="px-3 py-3 font-semibold">Depende de</th>
+                  <th className="px-3 py-3 font-semibold">BRIEFING</th>
+                  <th className="px-3 py-3 font-semibold text-center">Maturidade</th>
+                </tr>
+              </thead>
+              <tbody>
+                {services.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">Nenhum serviço no catálogo.</td>
+                  </tr>
+                ) : (
+                  services.map((s) => <CatalogRow key={s.id} s={s} />)
+                )}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+    </>
+  )
+}
+
+function CatalogRow({ s }: { s: ServiceRow }): React.ReactElement {
+  const sc = s.screens
+  const telas = sc?.matched
+    ? `${sc.telas ?? '—'}${sc.charter_pct != null ? ` · ${sc.charter_pct}% chrt` : ''}`
+    : sc?.backend_only
+      ? 'backend'
+      : '—'
+  const g = s.graph
+  return (
+    <tr className="border-b border-border hover:bg-accent">
+      <td className="px-4 py-2">
+        <Link href={`/governance/module-grades/${s.id}`} className="font-medium text-foreground hover:text-primary">{s.id}</Link>
+        {s.trust ? <span className="ml-2 text-[10px] text-muted-foreground">{s.trust}</span> : null}
+      </td>
+      <td className={`px-3 py-2 text-right font-bold ${s.grade != null ? scoreColorClass(s.grade) : 'text-muted-foreground'}`}>
+        {s.grade != null ? s.grade : '—'}
+      </td>
+      <td className="px-3 py-2">
+        <span className={sc?.matched && sc.stale ? 'text-destructive font-medium' : 'text-foreground'}>
+          {telas}{sc?.matched && sc.stale ? ' ⚠️stale' : ''}
+        </span>
+      </td>
+      <td className="px-3 py-2 text-center font-mono text-xs text-muted-foreground" title={`depende de ${g?.depends_on ?? 0} · dependentes ${g?.dependents ?? 0} · API ${g?.provides_api ?? 0} · tabelas ${g?.owns_tables ?? 0}`}>
+        →{g?.depends_on ?? 0} ←{g?.dependents ?? 0} · {g?.provides_api ?? 0}api · {g?.owns_tables ?? 0}t
+      </td>
+      <td className="px-3 py-2 text-xs text-muted-foreground max-w-[220px] truncate" title={s.depends_on.join(', ') || '—'}>
+        {s.depends_on.length ? s.depends_on.join(', ') : '—'}
+      </td>
+      <td className="px-3 py-2 text-xs text-muted-foreground">{s.briefing?.present ? (s.briefing.last_commit ?? 'sim') : '—'}</td>
+      <td className="px-3 py-2 text-center">
+        {s.maturity ? (
+          <Badge className="bg-muted text-muted-foreground border-border" title={`${s.maturity.passed}/${s.maturity.applicable} checks de catálogo (presença/conexão)`}>
+            {MATURITY_EMOJI[s.maturity.level]} {s.maturity.passed}/{s.maturity.applicable}
+          </Badge>
+        ) : '—'}
+      </td>
+    </tr>
   )
 }
 
