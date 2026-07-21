@@ -94,6 +94,12 @@ O método **não vale para expansão/catraca** até o juiz provar que DISCRIMINA
 - Os pareceres C1/C3/C7 de `getVariationGroupPrice`, C6 de `getProductDiscount` e C1/C3/C7 de `calculateInvoiceTotal` permaneceram hipóteses úteis ancoradas; a invalidação recaiu sobre o claim “bite-test passou”, não sobre cada linha do scorecard.
 - Próxima prova válida: fixture imutável com mutações sintéticas + controle limpo + gabarito fora da sessão. Até lá, `validation_status: invalidado` no scorecard e nenhuma catraca/expansão automática.
 
+**2026-07-21 (rodada 2) — a fixture não-circular · o INSTRUMENTO passou.**
+- Fixture: [`tests/governance-fixtures/funcao-scorecard/`](../../../tests/governance-fixtures/funcao-scorecard/) — twins **sintéticos** (código fabricado, `Widget`/`Gadget`/... não existem no repo → o juiz não pode saber a resposta do contexto), rótulo = a **mutação** (objetivo, `label_source: mutation`, estilo CodeJudgeBench/SWE-bench), gabarito SELADO, juiz **cego** (roda `--pack` manifest-free; nunca abre o selado).
+- **3 juízes frescos, todos CALIBRADO:** T2 discriminante = 4/4 famílias (C1/C2/C3/C6) com o critério certo · **0 discordo no controle limpo** (t07) · **incerto no sem-âncora** (t08) · 0 falso-discordo nos bons. **T1 = 100% de concordância** (0 flips/20) — e aqui o 100% mede correção+repetibilidade (o rótulo é objetivo+externo), não só repetibilidade como a rodada 1 circular.
+- Runner: `scripts/governance/funcao-scorecard-calibracao.mjs` (`--pack`/`--score`/`--selftest`) + self-test 5/5 (juiz-carimbo FALHA, juiz-perfeito PASSA).
+- **Fronteira honesta:** isto calibra o **INSTRUMENTO** (o juiz discrimina defeito mecânico não-circularmente). NÃO re-valida os vereditos da função REAL (`ProductUtil`) — esses seguem o review central do 4617 + a âncora de intenção por-função do tópico. Fixture é **complementar**, NÃO estende, o ledger `tipo:"juiz"` (humano-só de propósito). Grade 2026-07-21 dimensão validação-não-circular 4/10 → o gargalo agora tem prova.
+
 ## §6 O que um `discordo` NÃO autoriza
 
 - ❌ NÃO edita código. ❌ NÃO cria task automática. ❌ NÃO é "achado" (é parecer).

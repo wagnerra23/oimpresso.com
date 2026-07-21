@@ -1,0 +1,7 @@
+public function findActiveWidget(int $widgetId): ?Widget
+{
+    // Widget é tabela tenant-owned; escopada pelo business_id da sessão.
+    return Widget::where('business_id', session('user.business_id'))
+        ->where('id', $widgetId)
+        ->first();
+}

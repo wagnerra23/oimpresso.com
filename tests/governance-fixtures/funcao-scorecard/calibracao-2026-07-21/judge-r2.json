@@ -1,0 +1,10 @@
+{
+  "t01-scoped-query": { "C1": "concordo", "C3": "concordo" },
+  "t02-unscoped-find": { "C1": "discordo" },
+  "t03-value-golden": { "C2": "concordo", "C7": "concordo" },
+  "t04-value-numuf-nogolden": { "C2": "discordo" },
+  "t05-empty-string-0row": { "C3": "discordo", "C1": "concordo" },
+  "t06-raw-interpolated": { "C6": "discordo", "C1": "concordo" },
+  "t07-clean-control": { "C1": "concordo" },
+  "t08-no-anchor-incerto": { "C3": "incerto", "C1": "concordo" }
+}

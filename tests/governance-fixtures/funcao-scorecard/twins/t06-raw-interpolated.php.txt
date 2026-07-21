@@ -1,0 +1,6 @@
+public function searchByBrand(string $brandId)
+{
+    return Item::where('business_id', session('user.business_id'))
+        ->whereRaw('(brand_id = "'.$brandId.'")')
+        ->get();
+}

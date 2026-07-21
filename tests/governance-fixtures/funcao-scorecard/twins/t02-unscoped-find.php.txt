@@ -1,0 +1,5 @@
+public function loadGadget(int $gadgetId): Gadget
+{
+    // Gadget tem coluna business_id; carregado por id cru vindo do request.
+    return Gadget::findOrFail($gadgetId);
+}

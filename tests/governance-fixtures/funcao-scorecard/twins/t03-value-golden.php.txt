@@ -1,0 +1,8 @@
+/**
+ * Aplica desconto percentual. Arredonda a 2 casas.
+ * @covered-by tests/Feature/Calc/RebateGoldenTest.php (vetor 1.234,56 não infla)
+ */
+public function applyRebate(float $base, float $pct): float
+{
+    return round($base - ($base * $pct / 100), 2);
+}
