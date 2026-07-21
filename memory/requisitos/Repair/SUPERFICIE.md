@@ -1,6 +1,6 @@
 ---
 name: "SUPERFÍCIE — Repair"
-description: "Índice GERADO dos arquivos que moram no módulo Repair, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."
+description: "Índice GERADO dos artefatos do módulo Repair reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
 type: reference
 authority: generated
 lifecycle: ativo
@@ -12,7 +12,7 @@ module: Repair
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Repair --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o código que MORA em `Modules/Repair/**` + `resources/js/Pages/Repair/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Repair/**` + `resources/js/Pages/Repair/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
 **Total mapeado:** 148 arquivos em 15 papéis.
 

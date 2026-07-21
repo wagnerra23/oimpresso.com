@@ -1,6 +1,6 @@
 ---
 name: "SUPERFÍCIE — OficinaAuto"
-description: "Índice GERADO dos arquivos que moram no módulo OficinaAuto, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."
+description: "Índice GERADO dos artefatos do módulo OficinaAuto reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
 type: reference
 authority: generated
 lifecycle: ativo
@@ -12,9 +12,9 @@ module: OficinaAuto
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs OficinaAuto --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o código que MORA em `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 140 arquivos em 16 papéis.
+**Total mapeado:** 161 arquivos em 17 papéis.
 
 ## Controllers — 9
 
@@ -137,6 +137,30 @@ module: OficinaAuto
 - [Edit.tsx](../../../resources/js/Pages/OficinaAuto/Vehicles/Edit.tsx)
 - [Index.tsx](../../../resources/js/Pages/OficinaAuto/Vehicles/Index.tsx)
 - [Show.tsx](../../../resources/js/Pages/OficinaAuto/Vehicles/Show.tsx)
+
+## Componentes / apoio de tela — 21
+
+- [DragConfirmDialog.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/DragConfirmDialog.tsx)
+- [DviInlineEditor.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/DviInlineEditor.tsx)
+- [DviPhotoGrid.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/DviPhotoGrid.tsx)
+- [KanbanDndProvider.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/KanbanDndProvider.tsx)
+- [LaudoPhotoSection.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/LaudoPhotoSection.tsx)
+- [ServiceOrderRichSheet.tsx](../../../resources/js/Pages/OficinaAuto/ProducaoOficina/_components/ServiceOrderRichSheet.tsx)
+- [ApprovalGateCard.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/ApprovalGateCard.tsx)
+- [DviBudgetSection.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/DviBudgetSection.tsx)
+- [EntryCheckinFields.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/EntryCheckinFields.tsx)
+- [FiscalSplitCard.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/FiscalSplitCard.tsx)
+- [ServiceOrderFsmActionPanel.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderFsmActionPanel.tsx)
+- [ServiceOrderItemFormSheet.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderItemFormSheet.tsx)
+- [ServiceOrderItemRow.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderItemRow.tsx)
+- [ServiceOrderStageGate.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderStageGate.tsx)
+- [ServiceOrderStagePipeline.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderStagePipeline.tsx)
+- [ServiceOrderStatusBadge.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderStatusBadge.tsx)
+- [ServiceOrderTimeline.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/ServiceOrderTimeline.tsx)
+- [BoardKpiCard.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/BoardKpiCard.tsx)
+- [ServiceOrderKanbanCard.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/ServiceOrderKanbanCard.tsx)
+- [ServiceOrderKanbanColumn.tsx](../../../resources/js/Pages/OficinaAuto/ServiceOrders/_components/board/ServiceOrderKanbanColumn.tsx)
+- [VehicleStatusBadge.tsx](../../../resources/js/Pages/OficinaAuto/Vehicles/_components/VehicleStatusBadge.tsx)
 
 ## Charters (lei da tela) — 9
 

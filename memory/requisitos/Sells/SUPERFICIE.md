@@ -1,6 +1,6 @@
 ---
 name: "SUPERFÍCIE — Sells"
-description: "Índice GERADO dos arquivos que moram no módulo Sells, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."
+description: "Índice GERADO dos artefatos do módulo Sells reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
 type: reference
 authority: generated
 lifecycle: ativo
@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 129 arquivos em 7 papéis.
+**Total mapeado:** 164 arquivos em 8 papéis.
 
 ## Controllers — 6
 
@@ -81,6 +81,44 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Quotations.tsx](../../../resources/js/Pages/Sells/Quotations.tsx)
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
+
+## Componentes / apoio de tela — 35
+
+- [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
+- [CobrancaDrawer.tsx](../../../resources/js/Pages/Sells/_components/CobrancaDrawer.tsx)
+- [CommissionSplitEditor.tsx](../../../resources/js/Pages/Sells/_components/CommissionSplitEditor.tsx)
+- [CriarOsButton.tsx](../../../resources/js/Pages/Sells/_components/CriarOsButton.tsx)
+- [CustomerSearchAutocomplete.tsx](../../../resources/js/Pages/Sells/_components/CustomerSearchAutocomplete.tsx)
+- [FiscalSection.tsx](../../../resources/js/Pages/Sells/_components/FiscalSection.tsx)
+- [FsmActionPanel.tsx](../../../resources/js/Pages/Sells/_components/FsmActionPanel.tsx)
+- [PaymentRow.tsx](../../../resources/js/Pages/Sells/_components/PaymentRow.tsx)
+- [ProductLineCard.tsx](../../../resources/js/Pages/Sells/_components/ProductLineCard.tsx)
+- [ProductSearchAutocomplete.tsx](../../../resources/js/Pages/Sells/_components/ProductSearchAutocomplete.tsx)
+- [QuickAddCustomerSheet.tsx](../../../resources/js/Pages/Sells/_components/QuickAddCustomerSheet.tsx)
+- [QuickAddVehicleSheet.tsx](../../../resources/js/Pages/Sells/_components/QuickAddVehicleSheet.tsx)
+- [QuickPaymentDialog.tsx](../../../resources/js/Pages/Sells/_components/QuickPaymentDialog.tsx)
+- [QuickPaymentPopover.tsx](../../../resources/js/Pages/Sells/_components/QuickPaymentPopover.tsx)
+- [SaleAiPanel.tsx](../../../resources/js/Pages/Sells/_components/SaleAiPanel.tsx)
+- [SaleAuditTrail.tsx](../../../resources/js/Pages/Sells/_components/SaleAuditTrail.tsx)
+- [SaleItemComments.tsx](../../../resources/js/Pages/Sells/_components/SaleItemComments.tsx)
+- [SaleJourneyStepper.tsx](../../../resources/js/Pages/Sells/_components/SaleJourneyStepper.tsx)
+- [SaleLinkifier.tsx](../../../resources/js/Pages/Sells/_components/SaleLinkifier.tsx)
+- [SaleMessagePreview.tsx](../../../resources/js/Pages/Sells/_components/SaleMessagePreview.tsx)
+- [SaleOrcamentoA4.tsx](../../../resources/js/Pages/Sells/_components/SaleOrcamentoA4.tsx)
+- [SalePresentationMode.tsx](../../../resources/js/Pages/Sells/_components/SalePresentationMode.tsx)
+- [SaleReciboPrint80mm.tsx](../../../resources/js/Pages/Sells/_components/SaleReciboPrint80mm.tsx)
+- [SaleSheet.tsx](../../../resources/js/Pages/Sells/_components/SaleSheet.tsx)
+- [SaleTimeline.tsx](../../../resources/js/Pages/Sells/_components/SaleTimeline.tsx)
+- [SaleTranscriptPDF.tsx](../../../resources/js/Pages/Sells/_components/SaleTranscriptPDF.tsx)
+- [SellsCheatSheet.tsx](../../../resources/js/Pages/Sells/_components/SellsCheatSheet.tsx)
+- [SellsDateFilter.tsx](../../../resources/js/Pages/Sells/_components/SellsDateFilter.tsx)
+- [SellsTabelaUnificada.tsx](../../../resources/js/Pages/Sells/_components/SellsTabelaUnificada.tsx)
+- [SellsTabsVisao.tsx](../../../resources/js/Pages/Sells/_components/SellsTabsVisao.tsx)
+- [VdBulkEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdBulkEmitModal.tsx)
+- [VdNextActionPanel.tsx](../../../resources/js/Pages/Sells/_components/VdNextActionPanel.tsx)
+- [VdNfeEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdNfeEmitModal.tsx)
+- [VdNfseEmitModal.tsx](../../../resources/js/Pages/Sells/_components/VdNfseEmitModal.tsx)
+- [VdSource.tsx](../../../resources/js/Pages/Sells/_components/VdSource.tsx)
 
 ## Charters (lei da tela) — 8
 

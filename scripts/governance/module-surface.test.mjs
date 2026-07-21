@@ -34,10 +34,10 @@ test('charter/casos .md NÃO caem em Telas (ordem das regras protege)', () => {
   assert.notEqual(classify('resources/js/Pages/Financeiro/Index.charter.md'), 'Telas (Inertia/React)');
 });
 
-test('componentes co-localizados em Pages NÃO são classificados como telas', () => {
-  assert.equal(classify('resources/js/Pages/Financeiro/components/Filtro.tsx'), null);
-  assert.equal(classify('resources/js/Pages/Financeiro/Unificado/_components/Card.tsx'), null);
-  assert.equal(classify('resources/js/Pages/Financeiro/hooks/useSaldo.tsx'), null);
+test('componentes co-localizados ficam no índice, mas NÃO são classificados como telas', () => {
+  assert.equal(classify('resources/js/Pages/Financeiro/components/Filtro.tsx'), 'Componentes / apoio de tela');
+  assert.equal(classify('resources/js/Pages/Financeiro/Unificado/_components/Card.tsx'), 'Componentes / apoio de tela');
+  assert.equal(classify('resources/js/Pages/Financeiro/hooks/useSaldo.tsx'), 'Componentes / apoio de tela');
   assert.equal(classify('resources/js/Pages/Financeiro/Unificado/Index.tsx'), 'Telas (Inertia/React)');
 });
 

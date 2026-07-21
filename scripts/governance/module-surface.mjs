@@ -10,9 +10,10 @@
  * co-locado (`memory/requisitos/<Mod>/SUPERFICIE.md`) que a próxima geração recalcula.
  * "Derivado sobrevive; escrito+lembrado apodrece" (ADR 0256).
  *
- * ONDE ele mede: `Modules/<Mod>/**` (o código que MORA no módulo) + `resources/js/Pages/<Mod>/**`
- * (telas/charters/casos). Âncoras cross-cutting (bridge em app/, FSM) NÃO são deriváveis
- * por path — ficam narradas no BRIEFING (curado/destilado), não aqui. Honesto por construção.
+ * ONDE ele mede: artefatos reconhecidos por papel em `Modules/<Mod>/**` +
+ * `resources/js/Pages/<Mod>/**` (telas, componentes, charters e casos). NÃO é um manifesto
+ * byte-a-byte da pasta. Âncoras cross-cutting (bridge em app/, FSM) NÃO são deriváveis por
+ * path — ficam narradas no BRIEFING (curado/destilado), não aqui. Honesto por construção.
  *
  * O que ele NÃO faz (delega): contagem de cobertura, nota, status por tela — donos são
  * `screen-coverage-map.mjs` + `casos-gate`. Aqui é só ONDE o código mora (ponteiro, não cópia).
@@ -96,6 +97,7 @@ const PAPEIS = [
   { rot: 'Config', re: /^Modules\/[^/]+\/Config\/.*\.php$/, listar: true },
   { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: false },
   { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
+  { rot: 'Componentes / apoio de tela', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
   { rot: 'Charters (lei da tela)', re: /^resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
   { rot: 'Casos (contrato UC)', re: /^resources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
   { rot: 'Testes (Pest)', re: /^Modules\/[^/]+\/Tests\/.*\.php$/, listar: false },
@@ -168,7 +170,7 @@ function montar(mod, grupos, outros) {
   const L = [];
   L.push('---');
   L.push(`name: "SUPERFÍCIE — ${mod}"`);
-  L.push(`description: "Índice GERADO dos arquivos que moram no módulo ${mod}, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."`);
+  L.push(`description: "Índice GERADO dos artefatos do módulo ${mod} reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."`);
   L.push('type: reference');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
@@ -184,7 +186,7 @@ function montar(mod, grupos, outros) {
   if (core) {
     L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
-    L.push('> **O que isto é:** o código que MORA em `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
+    L.push('> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
   }
   L.push('');
   L.push(`**Total mapeado:** ${total} arquivos em ${grupos.filter((g) => g.files.length).length} papéis.`);

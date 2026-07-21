@@ -1,6 +1,6 @@
 ---
 name: "SUPERFÍCIE — Jana"
-description: "Índice GERADO dos arquivos que moram no módulo Jana, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."
+description: "Índice GERADO dos artefatos do módulo Jana reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
 type: reference
 authority: generated
 lifecycle: ativo
@@ -12,9 +12,9 @@ module: Jana
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Jana --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o código que MORA em `Modules/Jana/**` + `resources/js/Pages/Jana/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 471 arquivos em 17 papéis.
+**Total mapeado:** 478 arquivos em 18 papéis.
 
 ## Controllers — 16
 
@@ -362,6 +362,16 @@ module: Jana
 - [Painel.tsx](../../../resources/js/Pages/Jana/Painel.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 - [Index.tsx](../../../resources/js/Pages/Jana/Regras/Index.tsx)
+
+## Componentes / apoio de tela — 7
+
+- [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
+- [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
+- [JanaPrimaryButton.tsx](../../../resources/js/Pages/Jana/_shared/JanaPrimaryButton.tsx)
+- [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
+- [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
+- [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
+- [JanaCockpitV2.tsx](../../../resources/js/Pages/Jana/components/JanaCockpitV2.tsx)
 
 ## Charters (lei da tela) — 11
 

@@ -42,7 +42,7 @@ claims:
     text: "A função retorna false quando a lista de produtos está vazia e array nos demais caminhos."
     evidence:
       - type: codigo
-        ref: "app/Utils/ProductUtil.php:640"
+        ref: "app/Utils/ProductUtil.php:642-690"
   - id: C02
     status: observado
     text: "Existe teste golden que protege o total e o desconto percentual contra inflação de parsing numérico."
@@ -97,7 +97,7 @@ O teste golden `calculate_invoice_total_desconto_percentual_nao_infla` cobriu o 
 
 ## Evidências e contradições
 
-- `app/Utils/ProductUtil.php:640` — implementação observada.
+- `app/Utils/ProductUtil.php:642-690` — retornos `false|array` observados.
 - `tests/Feature/Calculo/CalculoValorSellsTest.php:137` — golden específico do total/desconto.
 - `app/Utils/ProductUtil.php:680` + `app/TaxRate.php:8` — consulta por ID e ausência de global scope no model.
 - Lacuna: falta mapa dos callers e prova do vínculo `tax_rates.business_id` no ponto de entrada.

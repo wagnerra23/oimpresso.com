@@ -877,6 +877,23 @@
       "error_rate_pct": 0,
       "veredito": "aprovado",
       "evidencia": "PR #4274 comment-4971852530 (refutacao Fable 5): 11/11 status verificados contra codigo real em origin/main, todos CONFIRMADO com evidencia por modulo (OficinaAuto piloto=Config/config.php:15 biz=164; PaymentGateway parcial=flags OFF #3371/#3364; Repair shared-infra=consumido por 3 verticais; demais producao). Backfill so insere status/updated_at no frontmatter, corpo intacto (+2/-0 por arquivo). PII 0. Achado lateral: why-oimpresso.md/what-oimpresso.md stale sobre OficinaAuto/PaymentGateway (docs, nao este PR)."
+    },
+    {
+      "pr": 4617,
+      "lote_id": "topicos-vivos-superficies-r1",
+      "data": "2026-07-21",
+      "tipo": "prosa",
+      "gerador": "codex-gpt-5 (classe maxima fable/mythos do protocolo G5)",
+      "refutador": "gpt-5.6-sol (classe maxima fable/mythos; sessao fresca sem contexto do gerador)",
+      "sessao_fresca": true,
+      "amostra_pct": 36.36,
+      "itens_verificados": 139,
+      "erros_confirmados": 8,
+      "error_rate_pct": 5.76,
+      "pii_scan": true,
+      "pii_hits": 0,
+      "evidencia": "memory/sessions/2026-07-21-pr4617-refutacao-r1.md",
+      "veredito": "reprovado"
     }
   ]
 }
