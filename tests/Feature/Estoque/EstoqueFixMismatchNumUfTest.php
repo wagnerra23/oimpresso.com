@@ -2,6 +2,8 @@
 
 declare(strict_types=1);
 
+// @covers-us US-PROD-028
+
 use App\Utils\ProductUtil;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Tests\Support\EstoqueFixture;
@@ -33,9 +35,11 @@ uses(DatabaseTransactions::class);
  * query param `?stock=1.500` (qualquer user com report.stock_details) e (b) ausência da
  * defesa num_uf que a REGRA MESTRE exige de TODA escrita de estoque.
  *
- * NÃO corrige nada (§0.3 do método) — PARECER provado. Correção = decisão [W] sob REGRA
- * MESTRE (dupla confirmação + impacto antes→depois). O `it` RED fica ->skip() com o recibo
- * do run CT 100 pra não travar a lane required; o PR do fix (quando [W] aprovar) o desskipa.
+ * FIX APLICADO (US-PROD-028, [W] aprovou sob REGRA MESTRE — antes→depois apresentado):
+ * ProductUtil::fixVariationStockMisMatch agora aplica num_uf($stock) (ProductUtil.php ~2306).
+ * Este teste era RED (skip com recibo); virou GUARDA DE REGRESSÃO verde. num_uf é idempotente
+ * nos valores do fluxo sancionado (total_stock_calculated é float limpo) → zero mudança no
+ * caminho real; só o input locale/tamper "1.500" deixa de corromper (1,5 → 1500).
  *
  * @see memory/governance/scorecards/funcoes/app-utils-productutil.yaml (fixVariationStockMisMatch C2)
  * @see app/Utils/ProductUtil.php:2287-2318
@@ -60,18 +64,15 @@ it('CONTRAPROVA: o irmão updateProductQuantity trata "1.500" como 1500 (num_uf)
     expect(EstoqueFixture::currentStock($p, 0, $loc))->toBe(1500.0);
 });
 
-it('RED: fixVariationStockMisMatch grava "1.500" CRU (sem num_uf) e corrompe o saldo pra 1.5', function () {
+it('REGRESSÃO US-PROD-028: fixVariationStockMisMatch aplica num_uf — "1.500" grava 1500 (não 1,5)', function () {
     $loc = EstoqueFixture::locationId($this->biz);
     $p = EstoqueFixture::singleProduct($this->biz);
     EstoqueFixture::setStock($p, 0, $loc, 10.0);
 
-    // MESMO input locale "1.500" (=1500) que updateProductQuantity trata certo:
+    // MESMO input locale "1.500" (=1500) que o irmão updateProductQuantity trata certo.
     (new ProductUtil)->fixVariationStockMisMatch($this->biz, $p->variations[0]['variation_id'], $loc, '1.500');
 
-    // Contrato (REGRA MESTRE + irmão): deveria gravar 1500. Atual: grava 1.5 (ponto vira
-    // decimal cru no cast do MySQL, sem num_uf). Este expect FALHA = defeito provado.
+    // Pós-fix (num_uf): grava 1500. Foi RED antes do fix (gravava 1,5 no cast cru do MySQL).
+    // Recibo do RED: CT 100 oimpresso-staging HEAD 34fe49730 ("1.5 is not identical to 1500.0").
     expect(EstoqueFixture::currentStock($p, 0, $loc))->toBe(1500.0);
-})->skip('RED-characterization C2 (funcao-scorecard 2026-07-21): defeito PROVADO no CT 100 '
-    .'(container oimpresso-staging HEAD 34fe49730, MySQL real → "Failed asserting that 1.5 is '
-    .'identical to 1500.0"). Correção = US-PROD-028, decisão [W] sob REGRA MESTRE (dupla '
-    .'confirmação + impacto antes→depois). O PR do fix DESSKIPA este teste.');
+});
