@@ -15,18 +15,18 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 84,
+      "value": 83.9,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 84,
+        "coverage_pct": 83.9,
         "specs_total": 59,
-        "us_total": 980,
-        "anchor_coverage_pct": 84,
+        "us_total": 981,
+        "anchor_coverage_pct": 83.9,
         "by_state": {
-          "sem_campo": 155,
+          "sem_campo": 156,
           "placeholder": 0,
           "pendente": 375,
           "parcial": 115,
@@ -193,8 +193,8 @@
       "target": 100,
       "source": "scripts/governance/knowledge-drift.mjs --json (BRIEFING.md presente por módulo)",
       "detail": {
-        "with_door": 74,
-        "modules": 74
+        "with_door": 75,
+        "modules": 75
       },
       "stream": "MEM"
     },
@@ -237,9 +237,9 @@
       "target": 0,
       "source": "memory/requisitos/*/BRIEFING.md frontmatter distilled_at vs data-git do doc mais novo do módulo (determinístico — ADR 0291 D-D)",
       "detail": {
-        "portas": 77,
+        "portas": 78,
         "carimbadas": 11,
-        "sem_carimbo": 66,
+        "sem_carimbo": 67,
         "stale": 0,
         "oldest_distilled_at": "2026-07-02"
       },
@@ -253,7 +253,7 @@
       "target": 1,
       "source": "scripts/governance/knowledge-drift.mjs --json .[].hops → mediana (mesma fórmula do relatório humano · ADR 0270 D-5)",
       "detail": {
-        "modules": 74,
+        "modules": 75,
         "hops_worst": 13
       },
       "stream": "MEM"
@@ -280,10 +280,10 @@
       "target": "<2%",
       "source": "governance/sdd-verification-ledger.json .entries[veredito=aprovado] → max(error_rate_pct) (GT-G5 · P08)",
       "detail": {
-        "entries_aprovadas": 34,
+        "entries_aprovadas": 36,
         "max_error_rate_pct": 1.82,
-        "last_pr": 4274,
-        "last_lote": "backfill-briefings-status-updated-at"
+        "last_pr": 4617,
+        "last_lote": "topicos-vivos-superficies-r4"
       },
       "stream": "GT"
     }
