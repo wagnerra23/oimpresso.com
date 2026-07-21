@@ -6,7 +6,7 @@ contains:
   - "DownloadController"
   - "InstallController"
 not_contains:
-  - "MemCofre senhas/segredos → Modules/MemCofre"
+  - "MemCofre senhas/segredos → Modules/SRS"
   - "Memoria RAG semântico Jana → Modules/Jana"
   - "OCR/transcrição/antivirus → fora de MVP"
 trust_required: L2

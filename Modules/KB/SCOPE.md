@@ -16,10 +16,10 @@ contains:
   - "KbVersionController — histórico de versões com diff (kb_node_versions append-only) — ONDA 1 ADR 0149"
   - "KbAiController — IA RAG endpoints /kb/ai/{ask,summarize,suggest-meta} (delega Modules/Jana/Ai/Agents/KbAnswerAgent) — ONDA 4 ADR 0149"
 not_contains:
-  - "Chat IA (Jana) → Modules/Copiloto"
+  - "Chat IA (Jana) → Modules/Jana"
   - "MCP server admin (tokens, webhooks) → Modules/TeamMcp"
   - "Skills governance → Modules/ADS"
-  - "System Rules Spec (regras pra IA programar) → Modules/MemCofre (futuro SRS)"
+  - "System Rules Spec (regras pra IA programar) → Modules/SRS"
   - "Tasks Jira-style → Modules/ProjectMgmt"
   - "Audit log → Modules/TeamMcp + Modules/Governance"
 trust_required: L2
