@@ -32,6 +32,18 @@ use Tests\Support\EstoqueFixture;
  */
 uses(DatabaseTransactions::class);
 
+/**
+ * Version que o servidor usa pro check Inertia: HandleInertiaRequests::version() devolve
+ * md5_file do manifest stub quando ele existe (lane Estoque stuba um), senão null. Mandar a
+ * MESMA version no header evita o 409 (version mismatch) antes do controller rodar.
+ */
+function stockHistoryInertiaVersion(): string
+{
+    $manifest = public_path('build-inertia/manifest.json');
+
+    return file_exists($manifest) ? md5_file($manifest) : '1';
+}
+
 beforeEach(function () {
     if (! EstoqueFixture::schemaReady()) {
         $this->markTestSkipped('Schema UltimatePOS/seed ausente (sqlite :memory: ou DB vazio) — roda na lane MySQL / CT 100.');
@@ -58,11 +70,6 @@ beforeEach(function () {
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     Permission::findOrCreate('product.view', 'web');
     $this->user->givePermissionTo(['product.view']);
-
-    // A lane Estoque stuba um Vite manifest → Inertia::version() vira o hash do stub, e todo
-    // request Inertia com `X-Inertia-Version: '1'` tomaria 409 (version mismatch) ANTES do
-    // controller rodar. Fixa a version pra bater com o header dos testes de partial reload.
-    \Inertia\Inertia::version('1');
 });
 
 // =============================================================================
@@ -81,7 +88,7 @@ it('UC-PSTK-01 · partial reload retorna a timeline real (venda → saída)', fu
 
     $response = $this->withHeaders([
         'X-Inertia' => 'true',
-        'X-Inertia-Version' => '1',
+        'X-Inertia-Version' => stockHistoryInertiaVersion(),
         'X-Inertia-Partial-Component' => 'Produto/StockHistory',
         'X-Inertia-Partial-Data' => 'movements',
     ])->get("/products/stock-history/{$produto->productId}?variation_id={$variationId}&location_id={$locationId}");
@@ -115,7 +122,7 @@ it('UC-PSTK-02 · produto de outro business retorna 404 (multi-tenant Tier 0)', 
     // Produto vive no OUTRO business; a sessão é do business seeded.
     $produtoAlheio = EstoqueFixture::singleProduct($outroBizId);
 
-    $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => stockHistoryInertiaVersion()])
         ->get("/products/stock-history/{$produtoAlheio->productId}")
         ->assertStatus(404);
 });
@@ -129,7 +136,7 @@ it('UC-PSTK-03 · movements é deferido — ausente no render Inertia inicial', 
     $bizId = (int) $this->business->id;
     $produto = EstoqueFixture::singleProduct($bizId);
 
-    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => '1'])
+    $response = $this->withHeaders(['X-Inertia' => 'true', 'X-Inertia-Version' => stockHistoryInertiaVersion()])
         ->get("/products/stock-history/{$produto->productId}");
 
     $response->assertStatus(200);
