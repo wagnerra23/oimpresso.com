@@ -32,28 +32,11 @@ it('Governance BRIEFING.md existe (C3 Reflexividade)', function () {
     expect(file_exists($path))->toBeTrue();
 });
 
-it('BRIEFING.md referencia ADRs canon (0094, 0155, 0156-0160)', function () {
-    $path = base_path('Modules/Governance/BRIEFING.md');
-    $content = file_get_contents($path);
-
-    expect($content)->toContain('0094-constituicao-v2');
-    expect($content)->toContain('0155-module-grade-v3');
-    foreach (['0156', '0157', '0158', '0159', '0160'] as $adr) {
-        expect($content)->toContain($adr);
-    }
-});
-
-it('BRIEFING.md declara dimensions C1-C6 com Δ alvo Wave 23', function () {
-    $path = base_path('Modules/Governance/BRIEFING.md');
-    $content = file_get_contents($path);
-
-    foreach (['C1', 'C2', 'C3', 'C4', 'C5', 'C6'] as $dim) {
-        expect($content)->toContain($dim);
-    }
-    expect($content)->toContain('Reflexividade');
-    expect($content)->toContain('Cobertura');
-    expect($content)->toContain('Adoption time');
-});
+// ADR 0345 (aceito [W] 2026-07-21): Modules/Governance/BRIEFING.md virou lápide-ponteiro —
+// a casa única do BRIEFING é memory/requisitos/Governance/BRIEFING.md. As asserções de conteúdo
+// Wave 23 (ADRs 0094/0155/0156-0160 + dimensões C1-C6) eram sobre o conteúdo agora deprecado;
+// esses marcadores de saturação nunca migraram pro canônico (verificado 2026-07-21). Removidas
+// por obsolescência. A existência do arquivo (lápide) segue coberta pelo teste acima.
 
 it('module.json declara governance.bucket fsm_n_a (C3 contract)', function () {
     $path = base_path('Modules/Governance/module.json');
