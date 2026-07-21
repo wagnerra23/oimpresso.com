@@ -62,8 +62,12 @@ function twins(set) {
  * cego julgar a ESTRUTURA + o CONTRATO, nunca um comentário que nomeia o veredito. Blindagem contra
  * a inflação de κ apontada pela revisão adversarial 2026-07-21 (o pack antigo emitia os comentários
  * verbatim → κ media "transcrever comentário", não "discriminar defeito").
- * SANITIZA docblocks: preserva só tags estruturadas mínimas (`@return`, `@param`, `@transactional`),
- * removendo também a narrativa que poderia entregar o veredito.
+ * SANITIZA docblocks: preserva só tags estruturadas de CONTRATO (`@return`, `@param`, `@transactional`,
+ * `@covered-by`), removendo a narrativa que poderia entregar o veredito.
+ * ⚠️ `@covered-by` é EVIDÊNCIA de golden, NÃO um tell: o critério C2 pergunta "tem prova?" — o juiz
+ * PRECISA ver a cobertura pra distinguir t03 (golden → concordo) de t04 (sem golden → discordo).
+ * Removê-lo faz um juiz FUTURO carimbar t03 (bom) como discordo (regressão #4644 corrigida 2026-07-21).
+ * O nome do teste deve nomear a OPERAÇÃO (`RebateGoldenTest`), nunca o veredito.
  * Nota: heurística simples (não trata `//` dentro de string literal — os twins não têm nenhum).
  */
 export function stripTells(code) {
@@ -71,8 +75,8 @@ export function stripTells(code) {
     const tags = block
       .split('\n')
       .map((line) => line.replace(/^\s*\/\*\*?\s?/, '').replace(/^\s*\*\s?/, '').replace(/\s*\*\/$/, '').trim())
-      .filter((line) => /^@(param|return|throws|var|template|implements|extends|method|property|transactional|table)\b/.test(line))
-      .map((line) => line.replace(/^(@(?:param|return|throws|var|template|implements|extends|method|property|transactional|table)\b\s+\S+).*/, '$1'));
+      .filter((line) => /^@(param|return|throws|var|template|implements|extends|method|property|transactional|table|covered-by)\b/.test(line))
+      .map((line) => line.replace(/^(@(?:param|return|throws|var|template|implements|extends|method|property|transactional|table|covered-by)\b\s+\S+).*/, '$1'));
     return tags.length ? `/**\n${tags.map((line) => ` * ${line}`).join('\n')}\n */` : '';
   });
   return semProsaEmDocblock

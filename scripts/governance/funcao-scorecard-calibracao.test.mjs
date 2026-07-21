@@ -70,12 +70,15 @@ test('pack cego usa IDs opacos e não vaza nomes dos arquivos/vereditos', () => 
   assert.doesNotMatch(out, /atomicidade-bad|eagerload-ok|docblock-mente|null-silencioso|incident-/i);
 });
 
-test('stripTells remove prosa narrativa de docblock e preserva contrato mínimo', () => {
-  const code = `/**\n * Incidente conhecido: isto entrega a resposta.\n * @return int|null Quantidade ou null.\n * @transactional CallerService envolve em transaction.\n * @covered-by GoldenQueEntregaRespostaTest\n */\nfunction x(): ?int { return null; }`;
+test('stripTells dropa prosa narrativa de docblock mas PRESERVA tags de contrato incl. @covered-by (evidência C2)', () => {
+  // @covered-by com nome de teste NEUTRO (nomeia a operação, não o veredito) É evidência de golden
+  // que o C2 precisa — removê-lo faria um juiz futuro carimbar t03 (bom) como discordo (regressão #4644).
+  const code = `/**\n * Aplica desconto. Esta frase narrativa NÃO deve vazar pro juiz.\n * @return int|null Quantidade ou null.\n * @transactional CallerService envolve em transaction.\n * @covered-by tests/Feature/Calc/RebateGoldenTest.php\n */\nfunction x(): ?int { return null; }`;
   const clean = stripTells(code);
-  assert.doesNotMatch(clean, /Incidente|entrega a resposta|GoldenQueEntrega/);
+  assert.doesNotMatch(clean, /narrativa NÃO deve vazar/); // prosa some
   assert.match(clean, /@return int\|null/);
   assert.match(clean, /@transactional CallerService/);
+  assert.match(clean, /@covered-by tests\/Feature\/Calc\/RebateGoldenTest/); // golden preservado (C2)
 });
 
 test('pontuar aceita IDs cegos sem expor o mapa ao juiz', () => {
