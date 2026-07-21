@@ -1,5 +1,5 @@
 ---
-date: 2026-07-21
+date: "2026-07-21"
 hour: "23:40 BRT"
 topic: "Fixture não-circular do juiz funcao-scorecard — o gargalo da grade (4/10) fechado; 3 juízes cegos CALIBRADO"
 authors: ["C"]
