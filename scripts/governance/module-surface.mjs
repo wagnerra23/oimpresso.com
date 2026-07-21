@@ -81,6 +81,25 @@ const CORE_APP_MODULES = {
 };
 
 /**
+ * Namespace Inertia ≠ nome do diretório do módulo (declaração curada, revisável no diff).
+ * Alguns módulos rendem as telas sob um NAMESPACE (`Inertia::render('ads/Admin/…')`) cujo
+ * casing/nome não bate com `Modules/<Mod>/` — ex.: Modules/ADS ↔ resources/js/Pages/ads.
+ * NÃO é bug: o namespace é o que o Vite resolve; renomear o dir quebraria o render.
+ * Sem este mapa, `walk('resources/js/Pages/ADS')` daria [] no Linux (case-sensitive) e
+ * varreria o dir minúsculo no Windows (case-insensitive) → DRIFT cross-plataforma + telas
+ * órfãs do índice. O mapa dá o dir REAL → determinístico nos dois SO + telas incluídas.
+ * Verificado 2026-07-21 nos `Inertia::render(...)` de cada módulo. Só entra aqui quando o
+ * namespace REALMENTE difere do nome do módulo (não repetir o óbvio Financeiro→Financeiro).
+ */
+const PAGES_NS = {
+  ADS: 'ads',
+  Governance: 'governance',
+  KB: 'kb',
+  NFSe: 'Nfse',
+  Superadmin: 'superadmin',
+};
+
+/**
  * Papéis, na ordem de exibição. `listar:false` = role volumoso → mostra contagem + link do dir
  * (Tests não precisa listar 77 arquivos; o dono da cobertura é screen-coverage/casos-gate).
  * Cada regra casa por prefixo relativo à raiz do repo. 1ª regra que casa vence (ordem importa).
@@ -154,9 +173,10 @@ function listarModulos() {
 /** Coleta os arquivos do módulo (código + telas) e agrupa por papel. */
 function coletar(mod) {
   const core = CORE_APP_MODULES[mod];
+  const pagesNs = PAGES_NS[mod] || mod; // namespace Inertia real (≠ nome do módulo em alguns)
   const files = [...new Set([
     ...(mod === CONTEXTO_GERAL ? RAIZES_GERAIS.flatMap((p) => walk(p)) : walk(`Modules/${mod}`)),
-    ...(mod === CONTEXTO_GERAL ? [] : walk(`resources/js/Pages/${mod}`)),
+    ...(mod === CONTEXTO_GERAL ? [] : walk(`resources/js/Pages/${pagesNs}`)),
     ...(core ? expandirPrefixos(core.prefixos) : []),
   ])].sort();
   const grupos = PAPEIS.map((p) => ({ ...p, files: /** @type {string[]} */ ([]) }));
@@ -179,6 +199,7 @@ function linkDe(f) {
 /** Monta o markdown determinístico da SUPERFICIE.md. */
 function montar(mod, grupos, outros) {
   const core = CORE_APP_MODULES[mod];
+  const pagesNs = PAGES_NS[mod] || mod; // namespace Inertia real (pode diferir do nome do módulo)
   const total = grupos.reduce((n, g) => n + g.files.length, 0) + outros.length;
   const totalPapeis = grupos.filter((g) => g.files.length).length + (outros.length ? 1 : 0);
   const L = [];
@@ -202,7 +223,7 @@ function montar(mod, grupos, outros) {
   } else if (core) {
     L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
-    L.push('> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
+    L.push('> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/' + mod + '/**` + `resources/js/Pages/' + pagesNs + '/**`' + (pagesNs !== mod ? ' (namespace Inertia `' + pagesNs + '`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `' + mod + '`)' : '') + ', separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
   }
   L.push('');
   L.push(`**Total mapeado:** ${total} arquivos em ${totalPapeis} papéis.`);
@@ -288,4 +309,4 @@ function main() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
 
-export { PAPEIS, coletar, montar, CORE_APP_MODULES, RAIZES_GERAIS, CONTEXTO_GERAL };
+export { PAPEIS, coletar, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, CONTEXTO_GERAL };
