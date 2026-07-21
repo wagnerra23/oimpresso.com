@@ -77,10 +77,11 @@ jobs:
             schema: scripts/memory-schemas/charter.schema.json
             glob: "resources/js/Pages/**/*.charter.md"
           # 2026-07-12 (proposal estrutura-canon-memoria · Fase 0): as famílias
-          # BRIEFING + reference entram em GRACE (warn-only, diff-aware) — o
+          # BRIEFING + tópico + reference entram em GRACE (warn-only, diff-aware) — o
           # campo `grace: true` força STRICT=false SÓ pra elas (ver step
           # "Compute strict mode flag"), independente da var global. Motivo:
-          # ~143 reference + ~55 BRIEFING legados divergentes; required só
+          # ~143 reference + ~55 BRIEFING legados divergentes; tópico nasce
+          # forward-only. Required só
           # após backfill zerar o FP por família (ADR 0314 — gate novo nasce
           # grace, nunca required de nascença). Reference escopado a
           # memory/reference/*.md (os 5 @imports do CLAUDE.md em memory/*.md
@@ -88,6 +89,10 @@ jobs:
           - label: BRIEFING (memory/requisitos/*/BRIEFING.md) [grace]
             schema: scripts/memory-schemas/briefing.schema.json
             glob: "memory/requisitos/*/BRIEFING.md"
+            grace: true
+          - label: Tópico (memory/requisitos/*/topicos/*.md) [grace]
+            schema: scripts/memory-schemas/topico.schema.json
+            glob: "memory/requisitos/*/topicos/*.md"
             grace: true
           - label: Reference (memory/reference/*.md) [grace]
             schema: scripts/memory-schemas/reference.schema.json

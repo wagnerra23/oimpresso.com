@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** o código que MORA em `Modules/Jana/**` + `resources/js/Pages/Jana/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 478 arquivos em 17 papéis.
+**Total mapeado:** 471 arquivos em 17 papéis.
 
 ## Controllers — 16
 
@@ -349,7 +349,7 @@ module: Jana
 
 - 9 arquivos em [Modules/Jana/Resources/views/alertas/](../../../Modules/Jana/Resources/views/alertas) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 18
+## Telas (Inertia/React) — 11
 
 - [Index.tsx](../../../resources/js/Pages/Jana/Admin/Custos/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Jana/Admin/Governanca/Index.tsx)
@@ -362,13 +362,6 @@ module: Jana
 - [Painel.tsx](../../../resources/js/Pages/Jana/Painel.tsx)
 - [Pro.tsx](../../../resources/js/Pages/Jana/Pro.tsx)
 - [Index.tsx](../../../resources/js/Pages/Jana/Regras/Index.tsx)
-- [AssistantUiChat.tsx](../../../resources/js/Pages/Jana/_components/AssistantUiChat.tsx)
-- [JanaCockpit.tsx](../../../resources/js/Pages/Jana/_components/JanaCockpit.tsx)
-- [JanaPrimaryButton.tsx](../../../resources/js/Pages/Jana/_shared/JanaPrimaryButton.tsx)
-- [JanaSubNav.tsx](../../../resources/js/Pages/Jana/_shared/JanaSubNav.tsx)
-- [FabJana.tsx](../../../resources/js/Pages/Jana/components/FabJana.tsx)
-- [JanaAreaHeader.tsx](../../../resources/js/Pages/Jana/components/JanaAreaHeader.tsx)
-- [JanaCockpitV2.tsx](../../../resources/js/Pages/Jana/components/JanaCockpitV2.tsx)
 
 ## Charters (lei da tela) — 11
 

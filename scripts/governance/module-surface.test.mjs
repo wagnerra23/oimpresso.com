@@ -11,7 +11,7 @@ import { PAPEIS, montar, CORE_APP_MODULES } from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
 function classify(path) {
-  const g = PAPEIS.find((p) => p.re.test(path));
+  const g = PAPEIS.find((p) => p.re.test(path) && (!p.aceita || p.aceita(path)));
   return g ? g.rot : null;
 }
 
@@ -32,6 +32,13 @@ test('classifica cada arquivo no papel certo (1ª regra que casa vence)', () => 
 test('charter/casos .md NÃO caem em Telas (ordem das regras protege)', () => {
   // .charter.md e .casos.md são .md, não .tsx — a regra de Telas é /\.tsx$/, então não colidem.
   assert.notEqual(classify('resources/js/Pages/Financeiro/Index.charter.md'), 'Telas (Inertia/React)');
+});
+
+test('componentes co-localizados em Pages NÃO são classificados como telas', () => {
+  assert.equal(classify('resources/js/Pages/Financeiro/components/Filtro.tsx'), null);
+  assert.equal(classify('resources/js/Pages/Financeiro/Unificado/_components/Card.tsx'), null);
+  assert.equal(classify('resources/js/Pages/Financeiro/hooks/useSaldo.tsx'), null);
+  assert.equal(classify('resources/js/Pages/Financeiro/Unificado/Index.tsx'), 'Telas (Inertia/React)');
 });
 
 test('CLASSE B: paths do core app/ classificam no papel certo', () => {

@@ -14,7 +14,7 @@ module: Compras
 >
 > **O que isto é:** o código que MORA em `Modules/Compras/**` + `resources/js/Pages/Compras/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 23 arquivos em 9 papéis.
+**Total mapeado:** 20 arquivos em 9 papéis.
 
 ## Controllers — 3
 
@@ -43,12 +43,9 @@ module: Compras
 
 - [config.php](../../../Modules/Compras/Config/config.php)
 
-## Telas (Inertia/React) — 4
+## Telas (Inertia/React) — 1
 
 - [Index.tsx](../../../resources/js/Pages/Compras/Index.tsx)
-- [AcoesDropdown.tsx](../../../resources/js/Pages/Compras/components/AcoesDropdown.tsx)
-- [Drawer.tsx](../../../resources/js/Pages/Compras/components/Drawer.tsx)
-- [VisibilidadeColunas.tsx](../../../resources/js/Pages/Compras/components/VisibilidadeColunas.tsx)
 
 ## Charters (lei da tela) — 1
 

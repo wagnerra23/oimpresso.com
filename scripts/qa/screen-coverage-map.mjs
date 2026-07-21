@@ -30,6 +30,7 @@
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync } from 'node:fs';
 import { join, relative, sep, basename } from 'node:path';
 import assert from 'node:assert/strict';
+import { isAuxiliaryPagePath, isPageScreenPath } from './page-path.mjs';
 
 const ROOT = process.cwd();
 const PAGES_DIR = join(ROOT, 'resources', 'js', 'Pages');
@@ -40,7 +41,6 @@ const REQ_DIR = join(ROOT, 'memory', 'requisitos'); // onde vivem RUNBOOK/visual
 const BASELINE = join(ROOT, 'memory', 'governance', 'screen-coverage-baseline.json');
 
 const flags = new Set(process.argv.slice(2));
-const PAGE_AUX_DIR = /^(?:_.*|components?|partials?|hooks?|utils?|lib|types?|constants?|schemas?|stores?|contexts?)$/i;
 
 /** Lista recursiva de arquivos sob `dir` cujo nome casa `match`. */
 function walk(dir, match, acc = []) {
@@ -55,15 +55,11 @@ function walk(dir, match, acc = []) {
 }
 
 export function isAuxiliaryScreenPath(relTsx) {
-  return relTsx.split(/[\\/]/).slice(0, -1).some((part) => PAGE_AUX_DIR.test(part));
+  return isAuxiliaryPagePath(relTsx);
 }
 
 // 1. Universo de telas: Pages/**/*.tsx, exceto diretórios auxiliares e testes.
-const isScreen = (f) =>
-  f.endsWith('.tsx') &&
-  !isAuxiliaryScreenPath(relative(PAGES_DIR, f)) &&
-  !f.endsWith('.charter.tsx') &&
-  !f.includes('.test.');
+const isScreen = (f) => isPageScreenPath(relative(PAGES_DIR, f));
 const screens = walk(PAGES_DIR, isScreen);
 
 // 2. Corpus de E2E (conteúdo concatenado pra busca de referência).

@@ -14,7 +14,7 @@ module: Whatsapp
 >
 > **O que isto é:** o código que MORA em `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 369 arquivos em 18 papéis.
+**Total mapeado:** 357 arquivos em 18 papéis.
 
 ## Controllers — 23
 
@@ -287,23 +287,11 @@ module: Whatsapp
 
 - 1 arquivos em [Modules/Whatsapp/Resources/views/](../../../Modules/Whatsapp/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 15
+## Telas (Inertia/React) — 3
 
 - [FeedbackPublico.tsx](../../../resources/js/Pages/Whatsapp/FeedbackPublico.tsx)
 - [Settings.tsx](../../../resources/js/Pages/Whatsapp/Settings.tsx)
 - [Index.tsx](../../../resources/js/Pages/Whatsapp/Templates/Index.tsx)
-- [Avatar.tsx](../../../resources/js/Pages/Whatsapp/_components/Avatar.tsx)
-- [CaptureFeedbackSheet.tsx](../../../resources/js/Pages/Whatsapp/_components/CaptureFeedbackSheet.tsx)
-- [ContactPickerModal.tsx](../../../resources/js/Pages/Whatsapp/_components/ContactPickerModal.tsx)
-- [ConversationList.tsx](../../../resources/js/Pages/Whatsapp/_components/ConversationList.tsx)
-- [ConversationSidebar.tsx](../../../resources/js/Pages/Whatsapp/_components/ConversationSidebar.tsx)
-- [ConversationThread.tsx](../../../resources/js/Pages/Whatsapp/_components/ConversationThread.tsx)
-- [CustomerMemoryBlock.tsx](../../../resources/js/Pages/Whatsapp/_components/CustomerMemoryBlock.tsx)
-- [InteractiveMessageDialog.tsx](../../../resources/js/Pages/Whatsapp/_components/InteractiveMessageDialog.tsx)
-- [MediaFullscreenModal.tsx](../../../resources/js/Pages/Whatsapp/_components/MediaFullscreenModal.tsx)
-- [MediaPreviewCard.tsx](../../../resources/js/Pages/Whatsapp/_components/MediaPreviewCard.tsx)
-- [MicRecorder.tsx](../../../resources/js/Pages/Whatsapp/_components/MicRecorder.tsx)
-- [TemplatePicker.tsx](../../../resources/js/Pages/Whatsapp/_components/TemplatePicker.tsx)
 
 ## Charters (lei da tela) — 3
 

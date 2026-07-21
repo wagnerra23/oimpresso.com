@@ -1,7 +1,7 @@
 ---
 name: funcao-scorecard
 mission: "Substituir opinião solta da IA sobre código por um PARECER por-critério ancorado numa rubrica externa + citação extrativa — o screen-grade aplicado por função (concordo/não com evidência, nunca carimbo)."
-description: ATIVAR quando [W] pedir "o que você acha dessas funções", "concorda com essa função?", "avalie as funções do <arquivo>", "parecer do ProductUtil", "/funcao-scorecard app/Utils/X.php", "scorecard de função", OU antes de opinar se uma função está boa/ruim. Carrega o método FUNCAO-SCORECARD (8 critérios ancorados em ADR 0093/proibicoes/§5, veredito concordo|discordo|n/a por critério com citação extrativa, SEM nota agregada) — a defesa contra sicofância (a IA carimba o que lê). NÃO edita código, NÃO cria task, NÃO propõe fix — só emite parecer. Um discordo é candidato a US via aprovação humana, nunca conserto automático.
+description: ATIVAR quando [W] pedir "o que você acha dessas funções", "concorda com essa função?", "avalie as funções do <arquivo>", "parecer do ProductUtil", "/funcao-scorecard app/Utils/X.php" ou "scorecard de função". Aplica 8 critérios a funções relevantes por risco, com veredito concordo|discordo|incerto|n/a, evidência extrativa e intenção externa. NÃO edita código, NÃO cria task e NÃO força conclusão quando falta contexto.
 type: process-skill
 tier: B
 status: active
@@ -33,14 +33,16 @@ triggers_on:
 1. **Lê a rubrica primeiro** (`FUNCAO-SCORECARD-METODO.md`). Nunca julga de cabeça.
 2. Lê a função-alvo + contexto no arquivo.
 3. **Varreduras contadas** — `git grep -n "<fn>" -- '*.php'` **sem head_limit**; declara "N consumidores" e "N testes" como NÚMERO (C8).
-4. Por critério emite `concordo | discordo | n/a` + **citação extrativa obrigatória (trecho literal + linhas)**. Sem citação ⇒ inválido. `n/a` honesto é esperado.
-5. Materializa/atualiza `memory/governance/scorecards/funcoes/<path-slug>.yaml` (**sem nota agregada**, `totals` só conta).
+4. Antes de persistir, filtra o escopo: valor/estoque, tenant, escrita DB, API pública, segurança/compliance ou alto fan-in. Função trivial fica fora salvo incidente concreto.
+5. Por critério emite `concordo | discordo | incerto | n/a` + **citação extrativa** e **âncora de intenção externa**. Sem intenção suficiente ⇒ `incerto`; `n/a` honesto é esperado.
+6. Materializa/atualiza `memory/governance/scorecards/funcoes/<path-slug>.yaml` (**sem nota agregada**, `totals` só conta).
 
 ## Proibições duras (§0/§6 do método)
 
 - ⛔ **NÃO** é opinião livre — todo veredito é contra a rubrica + evidência. Opinião "eu acho boa" = carimbo (sicofância).
 - ⛔ **NÃO** funde os 8 num número (PLUGAR NÃO FUNDIR).
 - ⛔ Um `discordo` **NÃO** autoriza fix, **NÃO** cria task — é PARECER, candidato a US via [W]. Fix segue §5 2026-07-15 (varredura contada + âncora + teste vermelho) + REGRA MESTRE se valor/estoque.
+- ⛔ Código sozinho não prova intenção. Se SPEC/charter/ADR/dono/golden/runtime não resolverem a dúvida, o único veredito válido é `incerto`.
 - ⛔ **NUNCA** colar valor R$ de comentário/fixture na citação (regra BRL).
 
 ## Vocabulário

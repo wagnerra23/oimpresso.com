@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** o código que MORA em `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 288 arquivos em 20 papéis.
+**Total mapeado:** 249 arquivos em 20 papéis.
 
 ## Controllers — 25
 
@@ -184,32 +184,21 @@ module: Financeiro
 
 - 3 arquivos em [Modules/Financeiro/Resources/views/](../../../Modules/Financeiro/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 60
+## Telas (Inertia/React) — 21
 
 - [Dashboard.tsx](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.tsx)
 - [Login.tsx](../../../resources/js/Pages/Financeiro/Advisor/Login.tsx)
 - [AssinaturaAtualizar.tsx](../../../resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Caixa/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Categorias/Index.tsx)
-- [CategoriaSheet.tsx](../../../resources/js/Pages/Financeiro/Categorias/components/CategoriaSheet.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Cobranca/Index.tsx)
-- [AiResumoMes.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/AiResumoMes.tsx)
-- [CheatSheet.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/CheatSheet.tsx)
-- [DrawerCobranca.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/DrawerCobranca.tsx)
-- [FunnelStrip.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/FunnelStrip.tsx)
-- [SheetNovaCobranca.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/SheetNovaCobranca.tsx)
-- [SheetRemessaRetorno.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx)
-- [atoms.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/atoms.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Conciliacao/Index.tsx)
 - [Contador.tsx](../../../resources/js/Pages/Financeiro/Configuracoes/Contador.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasBancarias/Index.tsx)
-- [ConfigurarBoletoSheet.tsx](../../../resources/js/Pages/Financeiro/ContasBancarias/components/ConfigurarBoletoSheet.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasPagar/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasReceber/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Dashboard/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Dre/Index.tsx)
-- [BalanceteView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalanceteView.tsx)
-- [BalancoView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalancoView.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Extrato/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Fluxo/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Impostos/Index.tsx)
@@ -218,34 +207,6 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Relatorios/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Unificado/Index.tsx)
 - [Novo.tsx](../../../resources/js/Pages/Financeiro/Unificado/Novo.tsx)
-- [ClienteCombobox.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/ClienteCombobox.tsx)
-- [FinAgeing.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinAgeing.tsx)
-- [FinAnexosPanel.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinAnexosPanel.tsx)
-- [FinAnomalyDetector.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinAnomalyDetector.tsx)
-- [FinAuditTrail.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinAuditTrail.tsx)
-- [FinBaixaSheet.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinBaixaSheet.tsx)
-- [FinChecklistFechamento.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinChecklistFechamento.tsx)
-- [FinCommentsThread.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinCommentsThread.tsx)
-- [FinConferidoToggle.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinConferidoToggle.tsx)
-- [FinCrossLinkify.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinCrossLinkify.tsx)
-- [FinEditPanel.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinEditPanel.tsx)
-- [FinMonthDigest.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinMonthDigest.tsx)
-- [FinMonthResume.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinMonthResume.tsx)
-- [FinOcrBoletoSheet.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinOcrBoletoSheet.tsx)
-- [FinPartyHistory.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinPartyHistory.tsx)
-- [FinPeriodBar.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinPeriodBar.tsx)
-- [FinPillContaIndefinida.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinPillContaIndefinida.tsx)
-- [FinPillFrescor.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinPillFrescor.tsx)
-- [FinPresentationMode.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinPresentationMode.tsx)
-- [FinTranscriptPDF.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinTranscriptPDF.tsx)
-- [FinTroubleshooter.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinTroubleshooter.tsx)
-- [PlanoContaCombobox.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/PlanoContaCombobox.tsx)
-- [TituloCreateSheet.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/TituloCreateSheet.tsx)
-- [TituloEditSheet.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/TituloEditSheet.tsx)
-- [useFinFavs.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/useFinFavs.tsx)
-- [FinStatStrip.tsx](../../../resources/js/Pages/Financeiro/_shared/FinStatStrip.tsx)
-- [FinanceiroPrimaryButton.tsx](../../../resources/js/Pages/Financeiro/_shared/FinanceiroPrimaryButton.tsx)
-- [FinanceiroSubNav.tsx](../../../resources/js/Pages/Financeiro/_shared/FinanceiroSubNav.tsx)
 
 ## Charters (lei da tela) — 21
 

@@ -14,7 +14,7 @@ module: NfeBrasil
 >
 > **O que isto é:** o código que MORA em `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 152 arquivos em 16 papéis.
+**Total mapeado:** 149 arquivos em 16 papéis.
 
 ## Controllers — 11
 
@@ -142,12 +142,9 @@ module: NfeBrasil
 
 - 4 arquivos em [Modules/NfeBrasil/Resources/views/](../../../Modules/NfeBrasil/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 9
+## Telas (Inertia/React) — 6
 
 - [Index.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx)
-- [LinkedFornecedor.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedFornecedor.tsx)
-- [LinkedHistorico.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedHistorico.tsx)
-- [LinkedItens.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedItens.tsx)
 - [NfceStatus.tsx](../../../resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx)
 - [ConfigDefault.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx)
 - [ImportCsv.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.tsx)

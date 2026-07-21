@@ -38,7 +38,7 @@ class JanaValidateMemoryCommand extends Command
 {
     protected $signature = 'jana:validate-memory
                             {--path= : Pasta/arquivo específico (default: memory/ + resources/js/Pages/**/*.charter.md)}
-                            {--schema= : Schema único (adr|spec|runbook|session|handoff|charter); default detecta por path}
+                            {--schema= : Schema único (adr|spec|runbook|session|handoff|charter|topico); default detecta por path}
                             {--strict : Força exit 1 se violação (ignora ENV grace period)}
                             {--json : Output JSON em vez de tabela}';
 
@@ -72,6 +72,10 @@ class JanaValidateMemoryCommand extends Command
         'charter' => [
             'file' => 'scripts/memory-schemas/charter.schema.json',
             'glob' => 'resources/js/Pages/**/*.charter.md',
+        ],
+        'topico' => [
+            'file' => 'scripts/memory-schemas/topico.schema.json',
+            'glob' => 'memory/requisitos/*/topicos/*.md',
         ],
     ];
 

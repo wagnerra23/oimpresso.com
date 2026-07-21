@@ -31,6 +31,7 @@
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { isPageScreenPath } from '../qa/page-path.mjs';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
@@ -94,7 +95,7 @@ const PAPEIS = [
   { rot: 'Seeders', re: /^Modules\/[^/]+\/Database\/Seeders\/.*\.php$/, listar: true },
   { rot: 'Config', re: /^Modules\/[^/]+\/Config\/.*\.php$/, listar: true },
   { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: false },
-  { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, listar: true },
+  { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
   { rot: 'Charters (lei da tela)', re: /^resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
   { rot: 'Casos (contrato UC)', re: /^resources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
   { rot: 'Testes (Pest)', re: /^Modules\/[^/]+\/Tests\/.*\.php$/, listar: false },
@@ -146,7 +147,7 @@ function coletar(mod) {
   const grupos = PAPEIS.map((p) => ({ ...p, files: /** @type {string[]} */ ([]) }));
   const outros = [];
   for (const f of files) {
-    const g = grupos.find((p) => p.re.test(f));
+    const g = grupos.find((p) => p.re.test(f) && (!p.aceita || p.aceita(f)));
     if (g) g.files.push(f);
     // "Outros" = código .php membro de dir não-reconhecido (drop lang/menus/assets/views —
     // `/Resources/` cobre Modules, `/resources/` cobre o core CLASSE B).

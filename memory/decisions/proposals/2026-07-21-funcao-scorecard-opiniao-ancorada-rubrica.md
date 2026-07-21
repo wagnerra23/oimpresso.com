@@ -1,6 +1,7 @@
 ---
 proposal_id: funcao-scorecard-opiniao-ancorada-rubrica
-status: proposed
+status: accepted
+promoted_to: 0345-topicos-vivos-aprendizado-por-critica-revisada
 created: 2026-07-21
 proposed_by: claude-code
 decided_by: wagner
@@ -11,7 +12,7 @@ type: mecanismo-de-processo
 
 # FUNCAO-scorecard — parecer "concordo/não" por função, ancorado em rubrica
 
-- **Status:** proposto (decisão [W] = merge). **PILOTO** — só vale após o bite-test passar.
+- **Status:** aceito por [W] em 2026-07-21 e promovido à [ADR 0345](../0345-topicos-vivos-aprendizado-por-critica-revisada.md). **PILOTO** — só vale após o bite-test corrigido passar.
 - **Data:** 2026-07-21 · **Autor:** [CC].
 - **Origem:** pedido [W] 2026-07-21 — *"derive do código e escreva se concorda ou não com a função... lado positivo e negativo do que fazer e não fazer."* Pesquisa que ancora: [session 2026-07-21 arte-catálogo (PR #4611)](https://github.com/wagnerra23/oimpresso.com/pull/4611). É a **Fase C** do plano cuja Fase B é a `proposals/2026-07-21-taxonomia-arquivos-modulo.md`.
 
@@ -28,7 +29,7 @@ O modelo defensável (CodeScene Code Health, fitness functions, Backstage Soundc
 3. **Veredito é PARECER, não achado** — um `discordo` NÃO autoriza fix nem cria task; é candidato a US via [W]. Correção segue §5 2026-07-15 (varredura contada + âncora + teste vermelho) + REGRA MESTRE se valor/estoque.
 4. **Evidência obrigatória** — todo veredito exige citação extrativa (trecho + linhas); sem citação = inválido.
 5. **Juiz = skill** (`.claude/skills/funcao-scorecard`), não agente novo (é read-only + 1 YAML). Score-as-code: 1 YAML por arquivo em `memory/governance/scorecards/funcoes/`.
-6. **Bite-test antes de confiar** (§5 do método) — o juiz tem que achar ≥2 das 3 famílias de defeito plantadas em `ProductUtil.php` (gabarito do handoff 2026-07-15) com linha exata E zero over-flag num controle limpo, + test-retest ≥90% em 3 rodadas. **Se falhar, o piloto falha e a gente diz.** Nenhum YAML shippa antes.
+6. **Bite-test antes de confiar** (§5 do método) — o juiz precisa discriminar mutações sintéticas em fixture imutável, preservar um controle limpo e usar `incerto` quando falta intenção. Código de produção não é chamado de “defeito plantado”. **Se falhar, o piloto falha e a gente diz.** Nenhum YAML shippa antes.
 
 ## Prova de proveniência (anti-tautologia, mecânica)
 
