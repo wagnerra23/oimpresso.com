@@ -96,6 +96,12 @@ it('UC-PSTK-01 · partial reload retorna a timeline real (venda → saída)', fu
     $response->assertStatus(200);
     $page = json_decode($response->getContent(), true);
 
+    // [DIAG temporário] — revelar o que o partial reload realmente devolveu.
+    fwrite(STDERR, "\n[DIAG UC-PSTK-01] status=".$response->status()
+        ." ctype=".$response->headers->get('content-type')
+        ." keys=".json_encode(array_keys($page['props'] ?? []))
+        ." head=".substr($response->getContent(), 0, 120)."\n");
+
     // O CONTRATO: a prop existe (não é mais `undefined`) e traz a movimentação real.
     expect($page['props'])->toHaveKey('movements', 'O controller não expôs `movements` no partial reload — fachada (CU-PROD-11.1).');
     $movements = $page['props']['movements'];
