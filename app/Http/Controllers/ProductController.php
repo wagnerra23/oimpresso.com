@@ -2701,8 +2701,12 @@ class ProductController extends Controller
             // local quando nada vem na query; o controller espelha esse default pra o defer bater.
             $selectedVariationId = (int) (request()->input('variation_id')
                 ?: ($product->variations->first()->id ?? 0));
+            // forDropdown() devolve Collection (keyed por id); normaliza pra array antes do array_key_first.
+            $locationOptions = $business_locations instanceof \Illuminate\Support\Collection
+                ? $business_locations->toArray()
+                : (array) $business_locations;
             $selectedLocationId = request()->input('location_id')
-                ?: array_key_first($business_locations);
+                ?: array_key_first($locationOptions);
 
             return Inertia::render('Produto/StockHistory', [
                 'product' => [
