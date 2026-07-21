@@ -1,8 +1,5 @@
 /**
- * @transactional O CALLER (ExecuteStageActionService) envolve em DB::transaction.
- * Esta função NÃO abre transaction própria DE PROPÓSITO — ela compõe com outras
- * baixas de componente na MESMA unidade atômica do caller. Abrir transaction aqui
- * quebraria a atomicidade do conjunto.
+ * @transactional O caller (ExecuteStageActionService) envolve esta chamada em DB::transaction.
  */
 public function baixarComponente(int $componenteId, int $qtd): void
 {

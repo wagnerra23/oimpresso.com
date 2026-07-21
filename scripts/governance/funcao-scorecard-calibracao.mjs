@@ -13,31 +13,46 @@
  * INTEGRA (não reinventa): padrão corruptor .php.txt (tests/governance-fixtures/), contrato
  * bom/ruim do gate-selftest (--selftest morde/libera), regra _quem_monta_nao_exibe do ledger.
  *
+ * BLIND-POR-LABEL (rodada 6, 2026-07-21): o ID do twin (`t15-atomicidade-bad`, `t02-unscoped-find`)
+ * NOMEAVA o veredito no cabeçalho do pack — leak de circularidade presente em TODAS as rodadas 2-5.
+ * `--blind` emite rótulos OPACOS `L01..LNN` em ordem de HASH (sha256 do id) — some o tell do id E
+ * a adjacência dos pares bom/ruim. O runner recomputa a mesma ordem determinística pra pontuar
+ * (nenhum arquivo de mapa é gravado ao lado dos twins — a "resposta" não fica perto).
+ *
  * Uso:
- *   node scripts/governance/funcao-scorecard-calibracao.mjs --pack       (emite o PACK CEGO p/ o juiz — SEM rótulos)
- *   node scripts/governance/funcao-scorecard-calibracao.mjs --score <verdicts.json>  (pontua o juiz vs o selado)
- *   node scripts/governance/funcao-scorecard-calibracao.mjs --selftest   (o runner morde: juiz-perfeito PASSA, juiz-carimbo FALHA)
+ *   node scripts/governance/funcao-scorecard-calibracao.mjs --pack [--blind] [--set frontier]
+ *   node scripts/governance/funcao-scorecard-calibracao.mjs --score <verdicts.json> [--set frontier]
+ *   node scripts/governance/funcao-scorecard-calibracao.mjs --kappa-inter <a.json> <b.json> [--set frontier]
+ *   node scripts/governance/funcao-scorecard-calibracao.mjs --selftest
+ *
+ *   --score auto-detecta rótulo OPACO (`L\d+`) e traduz pro id real antes de pontuar.
  *
  * Refs: FUNCAO-SCORECARD-METODO §5 · grade 2026-07-21 · gate-selftest.mjs · sdd-verification-ledger.
  */
 import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const ROOT = process.cwd();
 const FIX = 'tests/governance-fixtures/funcao-scorecard';
-const TWINS_DIR = join(ROOT, FIX, 'twins');
-const MANIFEST = join(ROOT, FIX, 'manifesto-SELADO.json');
 
-/** Lê o selado. */
-function selado() {
-  return JSON.parse(readFileSync(MANIFEST, 'utf8')).twins;
+/** Resolve as paths do "set" de fixture (default = raiz; `frontier` = subdir próprio). */
+function paths(set) {
+  const base = set && set !== 'twins' ? join(ROOT, FIX, set) : join(ROOT, FIX);
+  return { twinsDir: join(base, 'twins'), manifest: join(base, 'manifesto-SELADO.json') };
 }
-/** Lê os twins (id → código), sem os rótulos. */
-function twins() {
+
+/** Lê o selado do set. */
+function selado(set) {
+  return JSON.parse(readFileSync(paths(set).manifest, 'utf8')).twins;
+}
+/** Lê os twins (id → código) do set, sem os rótulos. */
+function twins(set) {
   const out = {};
-  for (const f of readdirSync(TWINS_DIR).sort()) {
-    if (f.endsWith('.php.txt')) out[f.replace('.php.txt', '')] = readFileSync(join(TWINS_DIR, f), 'utf8');
+  const dir = paths(set).twinsDir;
+  for (const f of readdirSync(dir).sort()) {
+    if (f.endsWith('.php.txt')) out[f.replace('.php.txt', '')] = readFileSync(join(dir, f), 'utf8');
   }
   return out;
 }
@@ -62,19 +77,44 @@ export function stripTells(code) {
     .trimEnd();
 }
 
-/** Emite o PACK CEGO: código SEM tells em prosa + instrução, SEM nenhum rótulo (o juiz nunca vê o selado). */
-function pack() {
-  const t = twins();
+/**
+ * Ordem CEGA determinística: os ids em ordem de sha256(id) → rótulos opacos L01..LNN.
+ * A ordem por hash NÃO carrega informação de veredito (some o tell do id) E embaralha os pares
+ * bom/ruim (some a adjacência t15/t16). Determinística ⇒ o `--score` recomputa igual, sem
+ * precisar de arquivo de mapa gravado perto dos twins.
+ * @returns {{label:string, id:string}[]}
+ */
+export function blindOrder(ids) {
+  const h = (s) => createHash('sha256').update(s).digest('hex');
+  const ordered = [...ids].sort((a, b) => (h(a) < h(b) ? -1 : h(a) > h(b) ? 1 : 0));
+  return ordered.map((id, i) => ({ label: `L${String(i + 1).padStart(2, '0')}`, id }));
+}
+
+/** Se os verdicts vierem com rótulo opaco (`L\d+`), traduz pros ids reais do set. Idempotente. */
+export function translateBlind(verdicts, ids) {
+  const keys = Object.keys(verdicts);
+  if (!keys.some((k) => /^L\d+$/.test(k))) return verdicts; // já são ids reais
+  const map = Object.fromEntries(blindOrder(ids).map(({ label, id }) => [label, id]));
+  const out = {};
+  for (const [k, v] of Object.entries(verdicts)) out[map[k] ?? k] = v;
+  return out;
+}
+
+/** Emite o PACK: código SEM tells em prosa + instrução, SEM rótulo de veredito. `blind` ⇒ labels opacos. */
+function pack(set, blind) {
+  const t = twins(set);
+  const order = blind ? blindOrder(Object.keys(t)) : Object.keys(t).map((id) => ({ label: id, id }));
   const L = [];
   L.push('# PACK CEGO — calibração do juiz funcao-scorecard');
+  if (blind) L.push('> Rótulos OPACOS (`L01..`): o id do caso NÃO nomeia o defeito (blind-por-label, rodada 6). Julgue só pelo código.');
   L.push('> Comentários em prosa (`//`) foram REMOVIDOS de propósito (stripTells): o juiz discrimina pela ESTRUTURA + docblocks de contrato (`/** @return, @covered-by */`), não por comentário que nomeie a resposta.');
   L.push('Julgue CADA função abaixo pelos critérios (FUNCAO-SCORECARD-METODO §1): C1 multi-tenant · C2 valor/estoque · C3 dado-ausente (o CONSUMIDOR distingue ausente de presente? pega sentinela ""/false/0) · C4 atomicidade · C5 N+1 · C6 SQL cru · C7a docblock/tipo declarado bate com o retorno REAL não-null · C7b retorno polimórfico ambíguo (false|array|string em caminhos diferentes) · C7c nullabilidade TIPADA (null só sob ?T / @return T|null declarado; ?T tipado é OK — NÃO carimbe) · C7d falha observável (sem catch vazio / erro engolido) · C8 cobertura. Veredito por critério ∈ {concordo, discordo, incerto, n/a} + citação. `incerto` OBRIGATÓRIO quando falta intenção externa. NÃO invente que algo é "defeito plantado".');
-  L.push('Devolva JSON: { "<id>": { "C1": "<v>", "C2": "<v>", ... }, ... } — só os critérios que se aplicam + o saliente.');
+  L.push(`Devolva JSON: { "<label>": { "C1": "<v>", "C2": "<v>", ... }, ... } — labels EXATOS abaixo (${blind ? 'L01..' : 'id'}), só os critérios que se aplicam + o saliente.`);
   L.push('');
-  for (const [id, code] of Object.entries(t)) {
-    L.push(`## ${id}`);
+  for (const { label, id } of order) {
+    L.push(`## ${label}`);
     L.push('```php');
-    L.push(stripTells(code));
+    L.push(stripTells(t[id]));
     L.push('```');
     L.push('');
   }
@@ -104,10 +144,12 @@ export function cohenKappa(pares) {
 export function pontuar(verdicts, sel = selado()) {
   const linhas = [];
   let familiasAchadas = 0, familiasTotal = 0;
-  let overflagControle = 0, incertoOk = null, falsoDiscordoBom = 0;
+  let overflagControle = 0, falsoDiscordoBom = 0;
+  let incertoTotal = 0, incertoAchado = 0; // suporta N twins incerto (frontier), não só 1
   const paresK = []; // (esperado, observado) do critério saliente, p/ κ — só vereditos definidos
   for (const [id, lab] of Object.entries(sel)) {
     if (String(id).startsWith('_')) continue; // ignora chaves de meta/comentário
+    if (lab.retired) continue; // twin aposentado (mislabel/circular exposto pela rodada 6) — fora das MÉTRICAS, mantido na ORDEM cega (labels estáveis)
     // coleta par p/ κ quando o esperado é um veredito definido (não o controle "sem-discordo")
     if (['concordo', 'discordo', 'incerto'].includes(lab.veredito)) {
       paresK.push([lab.veredito, (verdicts[id] || {})[lab.criterio_salient]]);
@@ -125,23 +167,61 @@ export function pontuar(verdicts, sel = selado()) {
       overflagControle = discs.length;
       linhas.push(`${discs.length === 0 ? 'OK ' : '✗  '} ${id} [controle] discordos=${discs.length ? discs.join(',') : '0'} (esperado 0)`);
     } else if (lab.veredito === 'incerto') {
-      incertoOk = dado === 'incerto';
-      linhas.push(`${incertoOk ? 'OK ' : '✗  '} ${id} [incerto] ${lab.criterio_salient}: esperado incerto, juiz=${dado ?? '(ausente)'}`);
+      incertoTotal++;
+      const ok = dado === 'incerto';
+      if (ok) incertoAchado++;
+      linhas.push(`${ok ? 'OK ' : '✗  '} ${id} [incerto] ${lab.criterio_salient}: esperado incerto, juiz=${dado ?? '(ausente)'}`);
     } else if (lab.veredito === 'concordo') {
       const ok = dado === 'concordo';
       if (!ok && dado === 'discordo') falsoDiscordoBom++;
       linhas.push(`${ok ? 'OK ' : '✗  '} ${id} [bom] ${lab.criterio_salient}: esperado concordo, juiz=${dado ?? '(ausente)'}`);
+    } else if (lab.veredito === 'n/a') {
+      // isca de FALSO-POSITIVO: o critério NÃO se aplica (n/a) — o defeito é o juiz CARIMBAR discordo.
+      // n/a OU concordo = não-violação aceitável; só discordo é erro.
+      const err = dado === 'discordo';
+      if (err) falsoDiscordoBom++;
+      linhas.push(`${err ? '✗  ' : 'OK '} ${id} [na-bait] ${lab.criterio_salient}: esperado n/a (ou concordo), juiz=${dado ?? '(ausente)'}`);
     }
   }
   const kappa = cohenKappa(paresK);
+  const incertoOk = incertoTotal === 0 ? null : incertoAchado === incertoTotal;
   const minFamilias = Math.ceil(familiasTotal * 0.8); // ≥80% das famílias (com os twins difíceis)
-  const pass = familiasAchadas >= minFamilias && overflagControle === 0 && incertoOk === true
+  // incertoOk !== false: null (nenhum twin incerto no set — ex.: main pós-aposentadoria do t08) conta como satisfeito;
+  // só FALSO (algum incerto errado) reprova. O incerto-de-INTENÇÃO migrou pro braço gold humano (#4626).
+  const pass = familiasAchadas >= minFamilias && overflagControle === 0 && incertoOk !== false
     && falsoDiscordoBom === 0 && (kappa ?? 0) >= 0.6;
   return {
     pass,
-    familiasAchadas, familiasTotal, minFamilias, overflagControle, incertoOk, falsoDiscordoBom, kappa,
+    familiasAchadas, familiasTotal, minFamilias, overflagControle, incertoOk, incertoTotal, incertoAchado, falsoDiscordoBom, kappa,
     detalhe: linhas.join('\n'),
   };
+}
+
+/**
+ * κ INTER-FAMÍLIA (gap #2 da grade): concordância entre DOIS juízes (famílias de modelo diferentes)
+ * no critério SALIENTE de cada twin. Corrige o acaso. É diferente do κ-vs-selado do `pontuar`
+ * (aquele mede o juiz vs o rótulo objetivo; este mede juiz-A vs juiz-B — "eles concordam ENTRE SI,
+ * não só com o gabarito?"). κ alto entre famílias distintas refuta "concordou porque é o mesmo modelo".
+ */
+export function kappaInter(vA, vB, set) {
+  const sel = selado(set);
+  const ids = Object.keys(twins(set));
+  const a = translateBlind(vA, ids), b = translateBlind(vB, ids);
+  const pares = [], linhas = [];
+  for (const [id, lab] of Object.entries(sel)) {
+    if (String(id).startsWith('_')) continue;
+    if (lab.retired) continue; // fora do κ inter-família também
+    const c = lab.criterio_salient;
+    if (c === 'controle') continue; // controle não tem veredito saliente único
+    const va = (a[id] || {})[c], vb = (b[id] || {})[c];
+    if (['concordo', 'discordo', 'incerto'].includes(va) && ['concordo', 'discordo', 'incerto'].includes(vb)) {
+      pares.push([va, vb]);
+      if (va !== vb) linhas.push(`  ≠ ${id} ${c}: A=${va} B=${vb}`);
+    }
+  }
+  const k = cohenKappa(pares);
+  const acordo = pares.filter(([x, y]) => x === y).length;
+  return { kappa: k, n: pares.length, acordo, pctAcordo: pares.length ? Math.round((acordo / pares.length) * 1000) / 10 : null, divergencias: linhas };
 }
 
 /** --selftest: prova que o RUNNER morde. Juiz-perfeito PASSA; juiz-carimbo (discorda de tudo) FALHA. */
@@ -149,6 +229,7 @@ function selftest() {
   const sel = selado();
   const perfeito = {}, carimbo = {};
   for (const [id, lab] of Object.entries(sel)) {
+    if (String(id).startsWith('_')) continue;
     const c = lab.criterio_salient;
     perfeito[id] = { [c]: lab.veredito === 'sem-discordo' ? 'concordo' : lab.veredito };
     if (lab.veredito === 'sem-discordo') perfeito[id] = { C1: 'concordo', C7a: 'concordo' };
@@ -156,29 +237,47 @@ function selftest() {
   }
   const p = pontuar(perfeito, sel);
   const k = pontuar(carimbo, sel);
-  const ok = p.pass === true && k.pass === false;
-  console.log(`[selftest] juiz-perfeito → pass=${p.pass} (esperado true)`);
-  console.log(`[selftest] juiz-carimbo  → pass=${k.pass} (esperado false; overflag=${k.overflagControle}, incertoOk=${k.incertoOk})`);
+  // prova extra (rodada 6): o juiz-perfeito CEGO (verdicts em rótulo opaco L\d+) traduz e PASSA igual.
+  const ids = Object.keys(twins());
+  const cego = {};
+  for (const { label, id } of blindOrder(ids)) cego[label] = perfeito[id];
+  const pc = pontuar(translateBlind(cego, ids), sel);
+  const ok = p.pass === true && k.pass === false && pc.pass === true;
+  console.log(`[selftest] juiz-perfeito         → pass=${p.pass} (esperado true)`);
+  console.log(`[selftest] juiz-carimbo          → pass=${k.pass} (esperado false; overflag=${k.overflagControle}, incertoOk=${k.incertoOk})`);
+  console.log(`[selftest] juiz-perfeito CEGO(L) → pass=${pc.pass} (esperado true — translateBlind fecha)`);
   console.log(ok ? '[selftest] OK — o runner morde e libera certo.' : '[selftest] ✗ FALHOU — o runner não discrimina.');
   return ok;
 }
 
 // ── main ──
 const args = process.argv.slice(2);
+function flagVal(name) { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : null; }
 function main() {
-  if (args.includes('--pack')) { console.log(pack()); return; }
+  const set = flagVal('--set') || 'twins';
+  if (args.includes('--pack')) { console.log(pack(set, args.includes('--blind'))); return; }
   if (args.includes('--selftest')) { process.exit(selftest() ? 0 : 1); }
+  const ki = args.indexOf('--kappa-inter');
+  if (ki >= 0 && args[ki + 1] && args[ki + 2]) {
+    const [fa, fb] = [args[ki + 1], args[ki + 2]];
+    for (const f of [fa, fb]) if (!existsSync(f)) { console.error(`arquivo não encontrado: ${f}`); process.exit(2); }
+    const r = kappaInter(JSON.parse(readFileSync(fa, 'utf8')), JSON.parse(readFileSync(fb, 'utf8')), set);
+    if (r.divergencias.length) console.log(r.divergencias.join('\n'));
+    console.log(`\n=> κ inter-família ${r.kappa} · acordo ${r.acordo}/${r.n} (${r.pctAcordo}%)`);
+    process.exit(0);
+  }
   const si = args.indexOf('--score');
   if (si >= 0 && args[si + 1]) {
     const vf = args[si + 1];
     if (!existsSync(vf)) { console.error(`arquivo de vereditos não encontrado: ${vf}`); process.exit(2); }
-    const r = pontuar(JSON.parse(readFileSync(vf, 'utf8')));
+    const raw = JSON.parse(readFileSync(vf, 'utf8'));
+    const r = pontuar(translateBlind(raw, Object.keys(twins(set))), selado(set));
     console.log(r.detalhe);
     console.log(`\n=> famílias ${r.familiasAchadas}/${r.familiasTotal} (min ${r.minFamilias}) · κ ${r.kappa} (min 0.6) · overflag-controle ${r.overflagControle} · incerto ${r.incertoOk} · falso-discordo-bom ${r.falsoDiscordoBom}`);
     console.log(r.pass ? '\n✅ JUIZ CALIBRADO (cego, não-circular).' : '\n❌ JUIZ NÃO calibrado — ver linhas acima.');
     process.exit(r.pass ? 0 : 1);
   }
-  console.error('Uso: --pack | --score <verdicts.json> | --selftest');
+  console.error('Uso: --pack [--blind] [--set frontier] | --score <verdicts.json> [--set] | --kappa-inter <a> <b> [--set] | --selftest');
   process.exit(2);
 }
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
