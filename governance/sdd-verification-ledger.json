@@ -945,6 +945,19 @@
       "pii_hits": 0,
       "evidencia": "memory/sessions/2026-07-21-pr4617-refutacao-r4.md",
       "veredito": "aprovado"
+    },
+    {
+      "tipo": "juiz",
+      "lote_id": "JUIZ-CAL-2026-07-funcao-scorecard-humano",
+      "data": "2026-07-21",
+      "pr": 4659,
+      "juiz": "funcao-scorecard (funções reais de risco — C1/C2/C3/C6/C7)",
+      "rotulador": "[W]",
+      "cego": true,
+      "itens_rotulados": 9,
+      "concordancias": 7,
+      "concordancia_pct": 77.8,
+      "evidencia": "memory/reguas/2026-07-21-calibracao-funcao-scorecard-humano/"
     }
   ]
 }

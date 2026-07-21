@@ -1,0 +1,16 @@
+{
+  "lote_id": "JUIZ-CAL-2026-07-funcao-scorecard-humano",
+  "rotulador": "[W]",
+  "cego": true,
+  "items": {
+    "1": { "veredito": "concordo", "fonte": "canon", "nota": "há golden cobrindo 80.00, 25.000 e o incidente de inflação" },
+    "2": { "veredito": "discordo", "fonte": "canon", "nota": "shift intencional (ADR 0066) mas o contrato da função não o revela; retorno real string|null enquanto o docblock diz 'strin'. Não autoriza remover o shift" },
+    "3": { "veredito": "discordo", "fonte": "canon", "nota": "'' é sentinela ambíguo; canon estabelece herança do preço-base quando não há preço específico, e há consumidores que propagam o vazio" },
+    "4": { "veredito": "discordo", "fonte": "canon", "nota": "VariationGroupPrice e Variation não têm global scope, e as consultas não filtram o tenant" },
+    "5": { "veredito": "discordo", "fonte": "canon", "nota": "false|array mantém contrato polimórfico para entrada vazia; o tópico canônico já registra esse desenho como problemático" },
+    "6": { "veredito": "discordo", "fonte": "canon", "nota": "C6 proíbe interpolação de variável em SQL cru, independentemente de a origem parecer confiável" },
+    "7": { "veredito": "concordo", "fonte": "canon", "nota": "padrão ADR 0093 para CLI/job: businessId explícito, withoutGlobalScopes() justificado e filtro reaplicado" },
+    "8": { "veredito": "concordo", "fonte": "canon", "nota": "bool honesto; false sem mark é negação fail-secure protegida por testes. RESSALVA: a afirmação de reset automático no Octane merece verificação separada de lifecycle, mas não muda este C7" },
+    "9": { "veredito": "concordo", "fonte": "canon", "nota": "consumidores HTTP: sessão é fonte canônica do tenant e a consulta resolve o Business. Não reutilizar em job/CLI sem receber businessId" }
+  }
+}
