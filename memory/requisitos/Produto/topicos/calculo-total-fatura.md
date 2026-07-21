@@ -5,6 +5,7 @@ title: "Cálculo do total da fatura"
 kind: regra-negocio
 status: contestado
 updated_at: "2026-07-21"
+valid_from: "2026-06-05"
 anchors:
   screens: []
   routes: []
@@ -77,6 +78,11 @@ O teste golden `calculate_invoice_total_desconto_percentual_nao_infla` cobriu o 
 - O cálculo de valor deve permanecer protegido por dupla confirmação e impacto antes→depois conforme `memory/proibicoes.md`.
 - Dados de negócio tenant-owned não podem ser lidos por ID cru sem isolamento, conforme ADR 0093.
 - O contrato de entrada vazia precisa ser confirmado nos consumidores antes de mudar `false` para outro tipo.
+
+## Validade (bi-temporal)
+
+- **`valid_from: 2026-06-05`** — o caminho de parsing atual (`num_uf()`) está em vigor e protegido por golden desde a correção do incidente de valor inflado (ROTA LIVRE biz=4, fix #2279, coberto por `tests/Unit/Utils/IncidentValorInfladoNumUfTest.php` + `tests/Feature/Calculo/CalculoValorSellsTest.php`). É a data do evento de domínio verificável — não a data de escrita deste tópico (`updated_at`).
+- **`valid_until`: ausente** — o fato **não** foi superado. `status: contestado` significa que o *parecer* é disputado (leitura de `TaxRate` por ID sem escopo tenant, ADR 0093), **não** que o comportamento expirou. Contestado ≠ superado: só se atribui `valid_until` quando um ADR supersessor ou tópico sucessor invalidar o fato, e a data espelha o `decided_at` dessa âncora.
 
 ## Parecer crítico
 
