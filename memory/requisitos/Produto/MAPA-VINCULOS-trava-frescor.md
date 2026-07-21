@@ -20,6 +20,44 @@
 
 ---
 
+## 0. Atualização 2026-07-21 — decisões [F]/[W] (reenquadra este mapa)
+
+> As pendências que estavam em aberto (§3, §5) foram decididas. O mapa deixa de ser "matéria-prima de uma
+> **trava**" e passa a ser **mapeamento puro** (arquivo → doc) + roteiro de **arquivos** a existir. O enforcement
+> (gate/hook/CI) **não é mais deste trabalho** — o Wagner está construindo outro mecanismo. Onde o texto abaixo
+> ainda diz "trava"/"[trava]"/"escape", leia como **vínculo declarado**; o *como forçar* é do mecanismo do [W].
+
+| # | Pendência (era) | Decisão | Efeito no mapa |
+|---|---|---|---|
+| 1 | Palavra de escape (texto exato) | **Não haverá escape** ([W]) | Cai o `escape_word` do YAML (§4) e toda menção a escape. |
+| 2 | Q3 — Blade legacy entra na v1? | **Sim, entra na v1** ([F]) | Classe E deixa de ser `[candidato]` → vínculo firme. Zero-apodrecimento vence "não inflar escopo". |
+| 3 | Q-noise — BRIEFING super-dispara | **Não é problema deste mapa** | O "super-disparo" era risco do *gate* (toque cerimonial). Enforcement é do [W]; aqui só se declara o vínculo tela ↔ BRIEFING. |
+| 4 | Onde a trava mora / codar o gate | **Segurar. [W] faz outro mecanismo** | Entrego só **mapeamento + arquivos**. Sem gate/hook/CI neste escopo. |
+| 5 | Q2 — `casos.md` `update-if-exists` | **Criar quando faltar** ([F]) | Reverte a recomendação Q2 — ver reprecificação abaixo. |
+
+**Reprecificação do item 5 (criar `casos.md` faltantes) — o custo real.** Um `casos.md` neste projeto **não é texto
+livre**: é governado por [`casos-coverage-guard.mjs`](../../../scripts/casos-coverage-guard.mjs) (ADR 0264). **G-2**
+exige que **todo UC declarado tenha teste Pest citando o id** (UC órfão = quebra o CI); os UCs ancoram num contrato
+`CU-PROD-NN` do [SDD §6.1](SDD-tela-cadastro-produto-v1.0.md) (nunca na tela — `proibicoes §5`); a prova roda no
+**CT 100 (biz=1)**. Logo "criar `casos.md`" = **contrato + teste + prova-verde**, não um arquivo de texto. Mapeando as
+6 telas do Produto sem `casos.md` contra o SDD:
+
+| Tela sem `casos.md` | Contrato no SDD | Fechável já? |
+|---|---|:-:|
+| [BulkEdit](../../../resources/js/Pages/Produto/BulkEdit.tsx) | CU-PROD-06 ✅ | Sim |
+| [StockHistory](../../../resources/js/Pages/Produto/StockHistory.tsx) | CU-PROD-11 🟡 fachada (G-01) | Sim — bug real p/ o teste defender |
+| [Unificado/Index](../../../resources/js/Pages/Produto/Unificado/Index.tsx) | CU-PROD-12 🟡 valor ausente (G-03) | Sim |
+| [Index](../../../resources/js/Pages/Produto/Index.tsx) | — sem CU dedicado | Não — CU novo no SDD (decisão [W]) |
+| [Edit](../../../resources/js/Pages/Produto/Edit.tsx) | deriva do CU-PROD-01 | Não — contrato próprio a definir |
+| [Show](../../../resources/js/Pages/Produto/Show.tsx) | — sem CU | Não — CU novo no SDD (decisão [W]) |
+
+**Consequência:** só **3 de 6** têm contrato pronto; os outros **3 exigem estender o SDD antes** (decisão de contrato,
+tipicamente [W]). Ordem recomendada dos `casos.md`: **StockHistory** primeiro (a US-PROD-020 já o pediu, tem
+CU-PROD-11 e um bug conhecido que o teste defende) como trio-padrão validável → BulkEdit → Unificado → depois os 3 que
+precisam de CU novo. Cada um é **código + teste no CT 100**, não documentação.
+
+---
+
 ## 1. Inventário do piloto (fonte: `origin/main`, não o checkout stale)
 
 **8 telas** em `resources/js/Pages/Produto/` — cada ✅ é âncora pro arquivo:
