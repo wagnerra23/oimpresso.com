@@ -42,18 +42,39 @@ function twins() {
   return out;
 }
 
-/** Emite o PACK CEGO: código + instrução, SEM nenhum rótulo (o juiz nunca vê o selado). */
+/**
+ * Remove os "tells" em PROSA — comentários `//` e `/* ... *​/` (bloco NÃO-docblock) — para o juiz
+ * cego julgar a ESTRUTURA + o CONTRATO, nunca um comentário que nomeia o veredito. Blindagem contra
+ * a inflação de κ apontada pela revisão adversarial 2026-07-21 (o pack antigo emitia os comentários
+ * verbatim → κ media "transcrever comentário", não "discriminar defeito").
+ * PRESERVA docblocks `/** ... *​/` DE PROPÓSITO: eles são contrato/schema-fact que um juiz real teria
+ * do código/migração/SPEC (`@return`, `@covered-by`, "X é tabela tenant-owned"), não um tell do veredito.
+ * Nota: heurística simples (não trata `//` dentro de string literal — os twins não têm nenhum).
+ */
+export function stripTells(code) {
+  return code
+    .replace(/\/\*(?!\*)[\s\S]*?\*\//g, '') // /* ... */ inline, MAS não /** docblock */
+    .replace(/\/\/[^\n]*/g, '')             // // até o fim da linha
+    .split('\n')
+    .map((l) => l.replace(/[ \t]+$/, ''))
+    .filter((l, i, a) => !(l.trim() === '' && (i === 0 || (a[i - 1] || '').trim() === '')))
+    .join('\n')
+    .trimEnd();
+}
+
+/** Emite o PACK CEGO: código SEM tells em prosa + instrução, SEM nenhum rótulo (o juiz nunca vê o selado). */
 function pack() {
   const t = twins();
   const L = [];
   L.push('# PACK CEGO — calibração do juiz funcao-scorecard');
-  L.push('Julgue CADA função abaixo pelos 8 critérios (FUNCAO-SCORECARD-METODO §1): C1 multi-tenant · C2 valor/estoque · C3 dado-ausente · C4 atomicidade · C5 N+1 · C6 SQL cru · C7 tipos/falha · C8 cobertura. Veredito por critério ∈ {concordo, discordo, incerto, n/a} + citação. `incerto` OBRIGATÓRIO quando falta intenção externa. NÃO invente que algo é "defeito plantado".');
+  L.push('> Comentários em prosa (`//`) foram REMOVIDOS de propósito (stripTells): o juiz discrimina pela ESTRUTURA + docblocks de contrato (`/** @return, @covered-by */`), não por comentário que nomeie a resposta.');
+  L.push('Julgue CADA função abaixo pelos critérios (FUNCAO-SCORECARD-METODO §1): C1 multi-tenant · C2 valor/estoque · C3 dado-ausente (o CONSUMIDOR distingue ausente de presente? pega sentinela ""/false/0) · C4 atomicidade · C5 N+1 · C6 SQL cru · C7a docblock/tipo declarado bate com o retorno REAL não-null · C7b retorno polimórfico ambíguo (false|array|string em caminhos diferentes) · C7c nullabilidade TIPADA (null só sob ?T / @return T|null declarado; ?T tipado é OK — NÃO carimbe) · C7d falha observável (sem catch vazio / erro engolido) · C8 cobertura. Veredito por critério ∈ {concordo, discordo, incerto, n/a} + citação. `incerto` OBRIGATÓRIO quando falta intenção externa. NÃO invente que algo é "defeito plantado".');
   L.push('Devolva JSON: { "<id>": { "C1": "<v>", "C2": "<v>", ... }, ... } — só os critérios que se aplicam + o saliente.');
   L.push('');
   for (const [id, code] of Object.entries(t)) {
     L.push(`## ${id}`);
     L.push('```php');
-    L.push(code.trimEnd());
+    L.push(stripTells(code));
     L.push('```');
     L.push('');
   }
@@ -130,7 +151,7 @@ function selftest() {
   for (const [id, lab] of Object.entries(sel)) {
     const c = lab.criterio_salient;
     perfeito[id] = { [c]: lab.veredito === 'sem-discordo' ? 'concordo' : lab.veredito };
-    if (lab.veredito === 'sem-discordo') perfeito[id] = { C1: 'concordo', C7: 'concordo' };
+    if (lab.veredito === 'sem-discordo') perfeito[id] = { C1: 'concordo', C7a: 'concordo' };
     carimbo[id] = { [c]: 'discordo' }; // carimba discordo em tudo (o modo de falha)
   }
   const p = pontuar(perfeito, sel);

@@ -1,0 +1,19 @@
+{
+  "t01-scoped-query": {"C1": "concordo", "C7c": "concordo", "C3": "n/a"},
+  "t02-unscoped-find": {"C1": "discordo", "C7c": "n/a"},
+  "t03-value-golden": {"C2": "concordo"},
+  "t04-value-numuf-nogolden": {"C2": "discordo"},
+  "t05-empty-string-0row": {"C3": "discordo", "C1": "concordo"},
+  "t06-raw-interpolated": {"C6": "discordo", "C1": "concordo"},
+  "t07-clean-control": {"C1": "concordo", "C7a": "concordo", "C2": "n/a"},
+  "t08-no-anchor-incerto": {"C3": "incerto", "C1": "concordo"},
+  "t09-partial-scope-nao-tenant": {"C1": "discordo", "C5": "n/a"},
+  "t10-golden-vetor-errado": {"C2": "discordo"},
+  "t11-nullable-tipado-ok": {"C7c": "concordo", "C1": "concordo", "C3": "n/a"},
+  "t12-docblock-mente": {"C7a": "discordo"},
+  "t13-retorno-polimorfico": {"C7b": "discordo", "C3": "discordo", "C1": "concordo"},
+  "t14-null-silencioso": {"C7c": "discordo", "C1": "concordo"},
+  "t15-erro-engolido": {"C7d": "discordo", "C1": "concordo", "C4": "n/a"},
+  "t16-c3-colecao-tipada": {"C3": "concordo", "C1": "concordo", "C7c": "n/a"},
+  "t17-union-declarado-ok": {"C7b": "concordo", "C1": "n/a", "C2": "n/a"}
+}

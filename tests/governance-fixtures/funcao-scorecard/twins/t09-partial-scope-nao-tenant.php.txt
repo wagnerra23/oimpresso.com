@@ -1,5 +1,6 @@
+/** Order é tabela tenant-owned (coluna business_id). */
 public function ordersInLocation(int $locationId)
 {
-    // Escopa por location_id, mas NÃO por business_id — uma location de outro tenant vaza.
+    // tell (removido no pack): filtra location_id, mas NÃO business_id.
     return Order::where('location_id', $locationId)->get();
 }

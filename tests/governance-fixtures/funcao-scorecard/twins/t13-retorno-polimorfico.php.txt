@@ -1,0 +1,12 @@
+public function resolvePrice(int $itemId)
+{
+    $row = PriceRow::where('business_id', session('user.business_id'))
+        ->where('item_id', $itemId)->first();
+    if (! $row) {
+        return false;
+    }
+    if ($row->is_promo) {
+        return ['price' => $row->price, 'promo' => true];
+    }
+    return (string) $row->price;
+}

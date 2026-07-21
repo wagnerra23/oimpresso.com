@@ -1,5 +1,6 @@
+/** Gadget é tabela tenant-owned (coluna business_id). */
 public function loadGadget(int $gadgetId): Gadget
 {
-    // Gadget tem coluna business_id; carregado por id cru vindo do request.
+    // tell (removido no pack): id cru do request, sem filtro business_id.
     return Gadget::findOrFail($gadgetId);
 }
