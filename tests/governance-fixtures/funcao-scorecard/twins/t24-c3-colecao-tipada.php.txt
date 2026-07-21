@@ -1,0 +1,12 @@
+/**
+ * @return \Illuminate\Support\Collection<int, Gadget>
+ */
+public function gadgetsForBin(int $binId): Collection
+{
+    $bin = GadgetBin::where('business_id', session('user.business_id'))
+        ->where('id', $binId)->first();
+    if (! $bin) {
+        return collect(); // ausência → Collection VAZIA tipada, não null/false silencioso
+    }
+    return $bin->gadgets;
+}
