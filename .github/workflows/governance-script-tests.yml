@@ -72,7 +72,7 @@ jobs:
       # está duplicando estrutura?"). Consome o catalog.json + tópicos; mede sobreposição de
       # ENTIDADE declarada (não nome de arquivo). O selftest é a MORDIDA: prova que casa por
       # entidade e NÃO por nome, self-exclui, passa limpo em tema novo (§5 ancora-guard 2026-06-30).
-      - name: Tema-owner núcleo (mordida: mede entidade não nome · self-exclude · passa-limpo · prova real)
+      - name: Tema-owner núcleo (mordida · mede entidade não nome · self-exclude · passa-limpo · prova real)
         run: node scripts/governance/tema-owner.test.mjs
       - name: Tema-owner hook advisory (controle-negativo de acoplamento · dispara no path · fail-open)
         run: node .claude/hooks/tema-owner-advisory.test.mjs
