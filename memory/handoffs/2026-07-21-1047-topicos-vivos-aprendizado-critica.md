@@ -31,6 +31,7 @@ A arquitetura aprovada por Wagner foi implementada sem backfill em massa. O PR s
 - A primeira rodada do CI pegou índice ADR stale e ghost literal de Sells; ambos foram corrigidos na fonte/regenerados, sem baseline novo.
 - O gate de lote provocou três refutações integrais: R1 8/139 reprovada, R2 6/140 reprovada e R3 0/140 aprovada. As críticas corrigiram perda de 120 componentes, âncora de linha inexata e soma de `Outros` que o próprio `--check` não detectava.
 - Pedido adicional [W]: `_Geral` virou a porta única de componentes/layouts/templates herdáveis, com BRIEFING índice, dois tópicos e SUPERFÍCIE gerada; o template de módulo aponta para ela em vez de copiar o catálogo.
+- A ampliação recebeu R4 independente: 1.437 itens, 0 erros, 127/127 artefatos gerais e PII 0. O ledger mais recente cobre o HEAD ampliado, não reaproveita indevidamente a R3 anterior.
 
 ## Decisões tomadas
 

@@ -46,6 +46,7 @@ A auditoria anterior encontrou que `module-surface.mjs` classificava todo `.tsx`
 - `git diff --check` — sem erro.
 - Primeira rodada do CI: `adr-index --check` e anti-ghost morderam; regenerado `_INDEX-GENERATED.md` e removida da fonte gerada a citação literal ao diretório modular inexistente de Sells. Reexecução local: ambos verdes.
 - O `ledger-check` exigiu refutação adversarial por haver mais de 10 requisitos tocados. R1 reprovou 8/139 (5,76%): componentes tinham sumido do índice e C01 apontava a assinatura, não os retornos. R2 reprovou 6/140 (4,29%): `Outros` era exibido, mas não entrava nos totais. R3 revalidou o lote inteiro e aprovou 0/140, PII 0; as três rodadas ficaram append-only no ledger.
+- O pedido posterior de `_Geral` ampliou o lote e invalidou a suficiência da R3 para o novo HEAD. R4 revalidou 1.437 itens e aprovou 0 erros, 127/127 links gerais e PII 0; entrada append-only própria.
 - Pest/PHPStan não rodaram localmente; regra CT 100 preservada.
 
 ## Decisões cinzentas resolvidas
