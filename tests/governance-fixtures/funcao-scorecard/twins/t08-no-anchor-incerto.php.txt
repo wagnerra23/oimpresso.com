@@ -1,0 +1,7 @@
+public function shippingFee(int $zoneId): int
+{
+    // Retorna 0 quando a zona não tem regra. Frete grátis intencional ou dado-ausente silencioso?
+    // Não há SPEC/charter/ADR aqui que decida a intenção.
+    return ShippingRule::where('business_id', session('user.business_id'))
+        ->where('zone_id', $zoneId)->value('fee') ?? 0;
+}

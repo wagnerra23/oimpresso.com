@@ -1,0 +1,5 @@
+public function makeSku(string $seq): string
+{
+    $prefix = Business::where('id', session('user.business_id'))->value('sku_prefix');
+    return $prefix.str_pad($seq, 4, '0', STR_PAD_LEFT);
+}

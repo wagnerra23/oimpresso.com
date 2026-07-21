@@ -1,0 +1,5 @@
+public function totalFromRequest(array $input): float
+{
+    // num_uf sobre float cru do request; nenhuma prova golden cobre este caminho.
+    return $this->num_uf($input['unit_price']) * $this->num_uf($input['qty']);
+}

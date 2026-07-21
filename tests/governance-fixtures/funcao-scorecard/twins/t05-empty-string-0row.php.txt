@@ -1,0 +1,9 @@
+public function priceFor(int $variationId): array
+{
+    $row = PriceRow::where('business_id', session('user.business_id'))
+        ->where('variation_id', $variationId)->first();
+    if (! $row) {
+        return ['price' => '', 'tax' => '']; // 0-row → string vazia silenciosa
+    }
+    return ['price' => (float) $row->price, 'tax' => (float) $row->tax];
+}
