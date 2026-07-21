@@ -8,7 +8,7 @@ lifecycle: ativo
 
 # 🗺️ PAINEL-SISTEMA — estado do oimpresso
 
-> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-20**. NÃO edite à mão — a próxima geração sobrescreve.
+> ⚙️ **Gerado por máquina** (`system-map.mjs`) em **2026-07-21**. NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/system-map.mjs`. Este é um **índice que aponta pros donos canônicos**, não uma cópia deles.
 > Views humanas (mapa 🗺️ / guia 🧭 em claude.ai) derivam DESTES dados.
 
@@ -57,7 +57,7 @@ lifecycle: ativo
 
 ## Programa SDD (governança)
 
-- Scorecard: **12/13** métricas medidas · floor full-suite = **358**.
+- Scorecard: **12/13** métricas medidas · floor full-suite = **363**.
 - Fonte viva: `governance/sdd-scorecard.json` (gerado por `sdd-scorecard.mjs`). Avaliação adversarial: `/sdd-avaliar`.
 - Roadmap dono: [`memory/requisitos/_Governanca/roadmap/_ROADMAP.md`](../requisitos/_Governanca/roadmap/_ROADMAP.md).
 
@@ -114,13 +114,13 @@ lifecycle: ativo
 
 ## Decisões (ADRs)
 
-- **349** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
-- Por status: aceito: 317 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
+- **350** ADRs no total. Índice gerado: [`_INDEX-GENERATED.md`](../decisions/_INDEX-GENERATED.md) · lifecycle: [`_INDEX-LIFECYCLE.md`](../decisions/_INDEX-LIFECYCLE.md).
+- Por status: aceito: 318 · superseded: 12 · deprecated: 12 · proposto: 6 · rascunho: 1 · recusado: 1.
 - **3** reversões de rota (ADR com `supersedes:`).
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 33 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 36 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -155,6 +155,9 @@ lifecycle: ativo
 - ~~2026-07-17 — Casar custo→PR por SHA (ou Anthropic Analytics API) pra fechar o "órfão" do `agent-cost-per-pr`~~
 - ~~2026-07-17 — Promover `component-registry-check` a required (ou re-emendar a 0314 per-gate) sem mordida provada~~
 - ~~2026-07-19 — EMENDA da lápide 2026-07-10 (falácia de composição): a PERGUNTA de integração virou CARIMBO — braço discriminativo obrigatório~~
+- ~~2026-07-20 — Aposentar mcp-first-warning / charter-validate / modulo-preflight-warning alegando que a skill homônima (Tier B) "já cobre" o hook~~
+- ~~2026-07-20 — Auto-feed do ledger de aprendizado: as 6 formas rejeitadas de "ler os últimos erros" (S1-estrita · cadeia/família · watermark · Check-em-memory-health · fontes CI-red/reverts/degradação · big-bang)~~
+- ~~2026-07-21 — Re-importar o modelo oficial Anthropic (Claude Design canvas no CENTRO do fluxo, alimentado por "briefing compilado") como o fluxo de design do oimpresso~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -162,14 +165,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **288** handoffs · **474** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **293** handoffs · **480** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
-  - `2026-07-19-mapa-vivo-resolver-tela-uc-pcad-05`
-  - `2026-07-18-reguas-grade-ledger`
-  - `2026-07-18-reguas-grade-completa`
-  - `2026-07-18-reguas-adversario-grade`
-  - `2026-07-18-forward-only-schema-templates`
-  - `2026-07-18-cf3-lapide-dr2a-bite-log`
+  - `2026-07-20-two-strikes-cobre-processo-0344`
+  - `2026-07-20-trava-frescor-docs-produto`
+  - `2026-07-20-produto-design-trio-briefing-modulo`
+  - `2026-07-20-conversa-hooks-enforcement-protocolo`
+  - `2026-07-20-briefing-porta-anti-orfao-e-processo-sempre-seguido`
+  - `2026-07-20-auto-feed-ledger-aprendizado`
 
 ---
-_Gerado por `scripts/governance/system-map.mjs` · 2026-07-20 · deriva das fontes canônicas, não as substitui._
+_Gerado por `scripts/governance/system-map.mjs` · 2026-07-21 · deriva das fontes canônicas, não as substitui._
