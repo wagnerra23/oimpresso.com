@@ -1,0 +1,57 @@
+name: Module surface (drift do índice de arquivos — advisory na adoção)
+
+# Guarda o SUPERFICIE.md gerado (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore.
+# Fecha a raiz do apodrecimento da "Superfície de código" (dor estado-da-arte 2026-07-21,
+# Gap 2): a lista de arquivos por contexto é DERIVADA, não escrita — se o módulo ganha um
+# Controller e ninguém regenera, o --check morde.
+#
+# REGRA ANTI-TEATRO (igual charter-refs-gate.yml): SEM continue-on-error, SEM skip-as-pass.
+# "Advisory" = NÃO está nos required checks (branch protection — decisão [W]), NÃO é vermelho
+# escondido. `--all --check` só guarda módulos que JÁ optaram (têm SUPERFICIE.md commitado);
+# módulo sem o arquivo é pulado (não-opt-in), então não avermelha os ~76 sem surface.
+# Promoção a required = quando N módulos adotarem + FP medido = 0 por 1-2 semanas (ADR 0275).
+
+on:
+  pull_request:
+    paths:
+      - 'Modules/**'
+      - 'resources/js/Pages/**'
+      - 'memory/requisitos/*/SUPERFICIE.md'
+      - 'scripts/governance/module-surface.mjs'
+      - 'scripts/governance/module-surface.test.mjs'
+      - '.github/workflows/module-surface.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  # Integridade do próprio gerador — HARD (se a lógica de classificação/montagem quebra, nada vale).
+  selftest:
+    name: Self-test — classificação por papel + montagem determinística
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node --test scripts/governance/module-surface.test.mjs
+
+  # Drift: o SUPERFICIE.md commitado bate com a árvore do PR? Exit code real.
+  drift:
+    name: SUPERFICIE.md == árvore (módulos opt-in)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: node scripts/governance/module-surface.mjs --all --check
+        run: node scripts/governance/module-surface.mjs --all --check
+      - name: Diagnóstico em caso de drift
+        if: failure()
+        run: |
+          echo "::error::Um SUPERFICIE.md ficou atrás da árvore. Regenere o módulo afetado:"
+          echo "  node scripts/governance/module-surface.mjs <Mod> --write"
+          echo "e commite o SUPERFICIE.md atualizado."

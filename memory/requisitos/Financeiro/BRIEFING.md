@@ -12,6 +12,8 @@ updated_at: "2026-07-14"
 
 O módulo "Financeiro" fornece uma visão unificada de Contas a Receber (AR), Contas a Pagar (AP), Fluxo de Caixa, Boletos, Conciliação OFX e um workflow de aprovação. Atualmente, está em operação com 87% de cobertura funcional e paridade visual de 9.5/10 em relação ao canon (medição de 2026-05-20).
 
+> 🗺️ **Quais arquivos são deste contexto?** → [SUPERFICIE.md](SUPERFICIE.md) — índice **gerado** (`module-surface.mjs`), agrupado por papel, não apodrece. _(Este BRIEFING é destilado; se uma re-destilação comer esta linha, o SUPERFICIE.md segue co-locado — o distiller emitir o ponteiro é follow-up.)_
+
 ## Capacidades
 - Emissão de boletos real via Banco Inter com integração completa (mTLS, Webhook).
 - Conciliação automatizada de pagamentos através de eventos de cobrança.
