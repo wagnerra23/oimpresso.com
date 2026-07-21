@@ -6,7 +6,6 @@ tags: [governanca, anti-duplicacao, catalogo, idp, topicos, adr-0345, hook-advis
 related_adrs:
   - 0345-topicos-vivos-aprendizado-por-critica-revisada
   - 0256-knowledge-survival-meia-vida-catraca-sentinela
-  - 0224-hooks-block-vs-advisory-claude-4.8-aware
   - 0314-poda-gates-onda-2-lei-fusoes
 prs: []
 ---
