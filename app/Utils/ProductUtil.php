@@ -2299,7 +2299,11 @@ class ProductUtil extends Util
                     ->first();
 
         if (! empty($vld)) {
-            $vld->qty_available = $stock;
+            // US-PROD-028: parse locale-safe (num_uf) como TODO mutador de saldo do
+            // ecossistema (DOC-RAIZ-ESTOQUE §10 + REGRA MESTRE). Antes gravava $stock cru
+            // do request → "1.500" virava 1,5 no cast do MySQL. num_uf é idempotente nos
+            // valores do fluxo sancionado (total_stock_calculated é float limpo).
+            $vld->qty_available = $this->num_uf($stock);
             $vld->save();
         }
 
