@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PAPEIS, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, isSurfaceRequired } from './module-surface.mjs';
+import { PAPEIS, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, isSurfaceRequired, manifestExigeSuperficie } from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
 function classify(path) {
@@ -196,4 +196,25 @@ test('cobertura: módulos vivos, Classe B e _Geral são obrigatórios', () => {
   assert.equal(isSurfaceRequired('Produto'), true);
   assert.equal(isSurfaceRequired('Sells'), true);
   assert.equal(isSurfaceRequired('_Geral'), true);
+});
+
+test('manifestExigeSuperficie: registrado exige; desativado (active:0) não — cobre o ramo false', () => {
+  // ativo clássico
+  assert.equal(manifestExigeSuperficie({ active: 1 }), true);
+  assert.equal(manifestExigeSuperficie({ active: true }), true);
+  // vivo em prod com active AUSENTE + priority/providers (o caso dos 11 — Financeiro, NfeBrasil, Whatsapp...).
+  // A ativação em oimpresso é per-business (ADR 0093), então module.json.active fica ausente/0 em módulos vivos.
+  assert.equal(manifestExigeSuperficie({ priority: 0, providers: ['X'] }), true);
+  assert.equal(manifestExigeSuperficie({ providers: ['X'] }), true);
+  // explicitamente desativado = pula (o ramo false que não era coberto antes)
+  assert.equal(manifestExigeSuperficie({ active: 0, providers: ['X'] }), false);
+  assert.equal(manifestExigeSuperficie({ active: false }), false);
+  // manifesto sem sinal de registro = não exige
+  assert.equal(manifestExigeSuperficie({}), false);
+});
+
+test('regressão silent-cap: módulo vivo em prod com active ausente (Financeiro) é obrigatório', () => {
+  // Antes do fix, SÓ active===1 exigia → Financeiro/NfeBrasil/Whatsapp/Fiscal/PaymentGateway (active
+  // ausente, ativação per-business ADR 0093) eram pulados no --all --check em silêncio (§5 no-silent-caps).
+  assert.equal(isSurfaceRequired('Financeiro'), true);
 });
