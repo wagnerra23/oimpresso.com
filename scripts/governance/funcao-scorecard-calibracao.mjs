@@ -62,12 +62,20 @@ function twins(set) {
  * cego julgar a ESTRUTURA + o CONTRATO, nunca um comentário que nomeia o veredito. Blindagem contra
  * a inflação de κ apontada pela revisão adversarial 2026-07-21 (o pack antigo emitia os comentários
  * verbatim → κ media "transcrever comentário", não "discriminar defeito").
- * PRESERVA docblocks `/** ... *​/` DE PROPÓSITO: eles são contrato/schema-fact que um juiz real teria
- * do código/migração/SPEC (`@return`, `@covered-by`, "X é tabela tenant-owned"), não um tell do veredito.
+ * SANITIZA docblocks: preserva só tags estruturadas mínimas (`@return`, `@param`, `@transactional`),
+ * removendo também a narrativa que poderia entregar o veredito.
  * Nota: heurística simples (não trata `//` dentro de string literal — os twins não têm nenhum).
  */
 export function stripTells(code) {
-  return code
+  const semProsaEmDocblock = code.replace(/\/\*\*[\s\S]*?\*\//g, (block) => {
+    const tags = block
+      .split('\n')
+      .map((line) => line.replace(/^\s*\/\*\*?\s?/, '').replace(/^\s*\*\s?/, '').replace(/\s*\*\/$/, '').trim())
+      .filter((line) => /^@(param|return|throws|var|template|implements|extends|method|property|transactional|table)\b/.test(line))
+      .map((line) => line.replace(/^(@(?:param|return|throws|var|template|implements|extends|method|property|transactional|table)\b\s+\S+).*/, '$1'));
+    return tags.length ? `/**\n${tags.map((line) => ` * ${line}`).join('\n')}\n */` : '';
+  });
+  return semProsaEmDocblock
     .replace(/\/\*(?!\*)[\s\S]*?\*\//g, '') // /* ... */ inline, MAS não /** docblock */
     .replace(/\/\/[^\n]*/g, '')             // // até o fim da linha
     .split('\n')
@@ -101,13 +109,13 @@ export function translateBlind(verdicts, ids) {
 }
 
 /** Emite o PACK: código SEM tells em prosa + instrução, SEM rótulo de veredito. `blind` ⇒ labels opacos. */
-function pack(set, blind) {
+export function pack(set = 'twins', blind = false) {
   const t = twins(set);
   const order = blind ? blindOrder(Object.keys(t)) : Object.keys(t).map((id) => ({ label: id, id }));
   const L = [];
   L.push('# PACK CEGO — calibração do juiz funcao-scorecard');
   if (blind) L.push('> Rótulos OPACOS (`L01..`): o id do caso NÃO nomeia o defeito (blind-por-label, rodada 6). Julgue só pelo código.');
-  L.push('> Comentários em prosa (`//`) foram REMOVIDOS de propósito (stripTells): o juiz discrimina pela ESTRUTURA + docblocks de contrato (`/** @return, @covered-by */`), não por comentário que nomeie a resposta.');
+  L.push('> Comentários e narrativa dos docblocks foram REMOVIDOS de propósito (stripTells): o juiz discrimina pela ESTRUTURA + tags contratuais mínimas (`@return`, `@param`, `@transactional`), não por texto que nomeie a resposta.');
   L.push('Julgue CADA função abaixo pelos critérios (FUNCAO-SCORECARD-METODO §1): C1 multi-tenant · C2 valor/estoque · C3 dado-ausente (o CONSUMIDOR distingue ausente de presente? pega sentinela ""/false/0) · C4 atomicidade · C5 N+1 · C6 SQL cru · C7a docblock/tipo declarado bate com o retorno REAL não-null · C7b retorno polimórfico ambíguo (false|array|string em caminhos diferentes) · C7c nullabilidade TIPADA (null só sob ?T / @return T|null declarado; ?T tipado é OK — NÃO carimbe) · C7d falha observável (sem catch vazio / erro engolido) · C8 cobertura. Veredito por critério ∈ {concordo, discordo, incerto, n/a} + citação. `incerto` OBRIGATÓRIO quando falta intenção externa. NÃO invente que algo é "defeito plantado".');
   L.push(`Devolva JSON: { "<label>": { "C1": "<v>", "C2": "<v>", ... }, ... } — labels EXATOS abaixo (${blind ? 'L01..' : 'id'}), só os critérios que se aplicam + o saliente.`);
   L.push('');
@@ -123,7 +131,7 @@ function pack(set, blind) {
 
 /** Cohen's κ entre esperado e observado (categorias concordo/discordo/incerto). Corrige o acaso. */
 export function cohenKappa(pares) {
-  const cats = ['concordo', 'discordo', 'incerto'];
+  const cats = ['concordo', 'discordo', 'incerto', 'n/a'];
   const n = pares.length;
   if (n === 0) return null;
   let acordo = 0;

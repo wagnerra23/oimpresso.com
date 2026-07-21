@@ -26,9 +26,9 @@ url_prefixes:
   - /api/mcp/tools/brief-fetch
 db_tables_owned:
   - mcp_briefs (snapshot do brief gerado — 1 linha por execução, valid 0|1)
+  - mcp_skill_telemetry (criada pelo schema do Daily Brief; escrita por BriefFetchTool/Controller)
 db_tables_consumed:
   - mcp_audit_log (cada fetch grava entry)
-  - mcp_skill_telemetry (telemetria de uso da skill brief-first)
   - mcp_cycles, mcp_tasks, mcp_decisions (lidos via procedure refresh_brief_inputs_cache)
 drift_alerts: []
 ---

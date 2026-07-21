@@ -6,7 +6,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { pontuar } from './funcao-scorecard-calibracao.mjs';
+import { blindOrder, pack, pontuar, stripTells, translateBlind } from './funcao-scorecard-calibracao.mjs';
 
 // selado mínimo sintético (não lê o disco — teste puro).
 const SEL = {
@@ -62,4 +62,27 @@ test('falso-discordo num twin BOM → NÃO calibrado', () => {
   const r = pontuar(v, SEL);
   assert.equal(r.pass, false);
   assert.equal(r.falsoDiscordoBom, 1);
+});
+
+test('pack cego usa IDs opacos e não vaza nomes dos arquivos/vereditos', () => {
+  const out = pack('twins', true);
+  assert.match(out, /## L01/);
+  assert.doesNotMatch(out, /atomicidade-bad|eagerload-ok|docblock-mente|null-silencioso|incident-/i);
+});
+
+test('stripTells remove prosa narrativa de docblock e preserva contrato mínimo', () => {
+  const code = `/**\n * Incidente conhecido: isto entrega a resposta.\n * @return int|null Quantidade ou null.\n * @transactional CallerService envolve em transaction.\n * @covered-by GoldenQueEntregaRespostaTest\n */\nfunction x(): ?int { return null; }`;
+  const clean = stripTells(code);
+  assert.doesNotMatch(clean, /Incidente|entrega a resposta|GoldenQueEntrega/);
+  assert.match(clean, /@return int\|null/);
+  assert.match(clean, /@transactional CallerService/);
+});
+
+test('pontuar aceita IDs cegos sem expor o mapa ao juiz', () => {
+  const byReal = {
+    't-c1': { C1: 'discordo' }, 't-c2': { C2: 'discordo' }, 't-c3': { C3: 'discordo' },
+    't-bom': { C1: 'concordo' }, 't-ctrl': { C1: 'concordo' }, 't-inc': { C3: 'incerto' },
+  };
+  const blind = Object.fromEntries(blindOrder(Object.keys(SEL)).map(({ label, id }) => [label, byReal[id]]));
+  assert.equal(pontuar(translateBlind(blind, Object.keys(SEL)), SEL).pass, true);
 });

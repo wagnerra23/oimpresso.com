@@ -204,6 +204,19 @@ function listarModulos() {
   return [...new Set([...classeA, ...Object.keys(CORE_APP_MODULES), CONTEXTO_GERAL])].sort();
 }
 
+/** Um módulo vivo (module.json active=1), Classe B ou _Geral deve ter SUPERFICIE. */
+function isSurfaceRequired(mod) {
+  if (mod === CONTEXTO_GERAL || CORE_APP_MODULES[mod]) return true;
+  const manifest = join(ROOT, 'Modules', mod, 'module.json');
+  if (!existsSync(manifest)) return false;
+  try {
+    const data = JSON.parse(readFileSync(manifest, 'utf8'));
+    return data.active === 1 || data.active === true;
+  } catch {
+    return true;
+  }
+}
+
 /** Coleta os arquivos do módulo (código + telas) e agrupa por papel. */
 function coletar(mod) {
   const core = CORE_APP_MODULES[mod];
@@ -308,7 +321,7 @@ function processar(mod) {
     const atual = existsSync(outAbs) ? readFileSync(outAbs, 'utf8') : null;
     // --all --check: só guarda módulos que JÁ optaram (têm SUPERFICIE.md commitado). Módulo
     // sem o arquivo = não-opt-in → pula (não é drift). Check de módulo explícito sem arquivo = drift.
-    if (atual === null && ALL) {
+    if (atual === null && ALL && !isSurfaceRequired(mod)) {
       return { mod, total, drift: false, skipped: true };
     }
     const drift = atual !== content;
@@ -343,4 +356,4 @@ function main() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
 
-export { PAPEIS, coletar, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, CONTEXTO_GERAL };
+export { PAPEIS, coletar, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, CONTEXTO_GERAL, isSurfaceRequired };
