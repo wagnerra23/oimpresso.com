@@ -12,6 +12,12 @@ outcomes:
 
 # Grade — catálogo + aprendizado + parecer-de-função vs os melhores (2026)
 
+## TL;DR
+
+A **forma do conhecimento** (schema de tópico + loop de rejeição) está no topo/levemente acima da barra; **todo componente tem peer** (diferencial = instanciação+recursão, não invenção); o **gargalo é a validação NÃO-circular do juiz (4/10)**, e o refinamento nº1 **integra** o mecanismo `tipo:"juiz"` + folha-cega/gabarito-SELADO já canon (#4472).
+
+## Contexto
+
 **Pedido [W] (2026-07-21):** olhar o [PR 4617](https://github.com/wagnerra23/oimpresso.com/pull/4617), refinar, **pontuar vs os melhores e comparar com o que temos**, e entender/explicar o mecanismo de aprendizado.
 **Método:** 2 pesquisas web focadas (~11 buscas) + verificação no repo vivo. Refutou toda claim de "acima" com peer publicado.
 
