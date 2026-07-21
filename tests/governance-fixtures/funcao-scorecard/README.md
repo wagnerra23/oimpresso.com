@@ -21,14 +21,22 @@ Isto calibra o **INSTRUMENTO** (o juiz discrimina defeito mecânico?), **não** 
 # 1) o runner morde? (juiz-perfeito PASSA, juiz-carimbo FALHA)
 node scripts/governance/funcao-scorecard-calibracao.mjs --selftest
 
-# 2) emitir o PACK CEGO (o que o juiz vê — comentários // de prosa REMOVIDOS pelo stripTells)
-node scripts/governance/funcao-scorecard-calibracao.mjs --pack
+# 2) emitir o PACK CEGO (o que o juiz vê — comentários // REMOVIDOS pelo stripTells).
+#    --blind (rodada 6): rótulos OPACOS L01.. em vez do id (o id `t15-atomicidade-bad` nomeava o veredito!)
+node scripts/governance/funcao-scorecard-calibracao.mjs --pack --blind
 
 # 3) rodar N juízes FRESCOS (sessões isoladas), cada um julga o pack e grava vereditos.json;
 #    NUNCA dê o manifesto ao juiz.
 
-# 4) pontuar cada juiz vs o selado
+# 4) pontuar cada juiz vs o selado (--score auto-traduz L→id real)
 node scripts/governance/funcao-scorecard-calibracao.mjs --score <vereditos.json>
+
+# 5) κ INTER-FAMÍLIA (rodada 6, gap #2): juiz-A vs juiz-B de famílias de modelo DIFERENTES
+node scripts/governance/funcao-scorecard-calibracao.mjs --kappa-inter <a.json> <b.json>
+
+# 6) SET-FRONTEIRA (rodada 6, gap #3): twins deliberadamente difíceis que procuram o erro do juiz
+node scripts/governance/funcao-scorecard-calibracao.mjs --pack --blind --set frontier
+node scripts/governance/funcao-scorecard-calibracao.mjs --score <vereditos.json> --set frontier
 ```
 
 **Passa se:** ≥80% das famílias de defeito achadas com o critério certo · **κ (chance-corrected) ≥ 0,6** vs o rótulo objetivo · **zero discordo** no controle limpo (t07) · **incerto** no sem-âncora (t08) · nenhum falso-discordo nos bons. Repetibilidade (T1): ≥90% por-critério em 3 rodadas.
@@ -61,6 +69,14 @@ node scripts/governance/funcao-scorecard-calibracao.mjs --score <vereditos.json>
 
 > **⚠️ De-comment (stripTells) — correção de método 2026-07-21 (revisão adversarial).** Uma sessão-juiz cética apontou que o `--pack` antigo emitia os comentários `//` dos twins **verbatim**, e vários **nomeavam o mecanismo/veredito** (ex.: `// location de outro tenant vaza`, `// nenhuma prova golden`). Isso inflava o κ — media "transcrever o comentário", não "discriminar o defeito pela estrutura". Fix: `pack()` agora roda `stripTells()` (remove `//` e `/* */` de prosa, **preserva** `/** */` docblocks de contrato). Fatos de schema que um juiz real teria (ex.: "Gadget é tabela tenant-owned") ficam em docblock `/** */` (sobrevivem). **Consequência honesta:** o κ das rodadas 2–4 (com os `//` vazando) está parcialmente **inflado** por prosa; a medição válida do desdobramento C7 é a **rodada 5** (v1.1, pack de-commentado, 25 twins). Rodadas anteriores ficam como fóssil datado (não reescritas), com esta ressalva. **Residual honesto:** os docblocks `/** */` de narração do braço-incidente/extra ainda descrevem o defeito (o `stripTells` só tira `//`); de-narrar docblocks é trabalho futuro.
 
+> **⚠️ Rodada 6 (2026-07-21) — os 2 leaks residuais + cross-família + fronteira.** A rodada 6 achou **dois** leaks de circularidade que TODAS as rodadas 2-5 deixaram passar (é a própria dimensão que se mede):
+> 1. **O ID do twin no cabeçalho do pack NOMEAVA o veredito** (`## t15-atomicidade-bad`, `## t02-unscoped-find`, `## t16-...-ok`) — o juiz sabia a resposta antes de ler o código. Fix: `--blind` emite rótulos OPACOS `L01..` em ordem de **hash sha256(id)** (some o tell do id + a adjacência dos pares bom/ruim); o runner recomputa a ordem determinística pra pontuar (`translateBlind`).
+> 2. **Docblock `/** */` narrando o defeito** (t12/t13/t14/t16/t20) — a "residual honesta" da rodada 5, agora fechada: de-narrados, mantido só o contrato genuíno (`@return` de tipo, `@covered-by`, `@transactional`, schema nullable).
+>
+> **κ honesto pós-leaks:** 0,83 sobre os 25 (a queda foi INTEIRAMENTE t08/t14) → **1,0 sobre os 23 válidos**, em **4 famílias de modelo cegas** (Opus 4.8 · Sonnet 5 · Fable 5 · Haiku 4.5). **κ INTER-FAMÍLIA = 1,0 nos 6 pares (22/22)** no mecânico — refuta "concordou porque é o mesmo modelo". **Fronteira** (`frontier/`, 10 twins difíceis): achou 1 modo de erro real (fr05 golden-lull, Opus+Haiku miss), 0/20 falso-positivo, e o achado estrutural — `incerto`-de-INTENÇÃO (t08/fr10) não é encodável não-circularmente (→ braço gold humano #4626); `incerto`-ESTRUTURAL (fr08 eager-load desconhecido) é (4/4). Detalhe: FUNCAO-SCORECARD-METODO §5 rodada 6 + `memory/sessions/2026-07-21-funcao-scorecard-rodada6-crossfamilia-fronteira.md`. Vereditos: `calibracao-2026-07-21/judge-r6-*-{main,frontier}.json`.
+
 ## Estender
 
-Mais twins = mais 1 par bom/ruim em `twins/` + a entrada no `manifesto-SELADO.json`. Braços já implementados: sintético-mutação (t01–t11), incidente (t12–t14), critérios-extra C4/C5/C7 (t15–t20), desdobramento-C7 v1.1 (t21–t25). Mais incidentes reais têm índice em `memory/LICOES_CODE.md`.
+Mais twins = mais 1 par bom/ruim em `twins/` + a entrada no `manifesto-SELADO.json`. Braços já implementados: sintético-mutação (t01–t11), incidente (t12–t14), critérios-extra C4/C5/C7 (t15–t20), desdobramento-C7 v1.1 (t21–t25), **fronteira (`frontier/` fr01–fr10, rodada 6)**. Mais incidentes reais têm índice em `memory/LICOES_CODE.md`.
+
+**Aposentados** (`retired:true` no manifesto — na ORDEM cega mas fora das métricas): **t08** (incerto-de-intenção → braço humano) e **t14** (rótulo C3 errado, é C7a). Rodar sempre `--blind`; o `--pack` sem `--blind` fica só como fóssil comparativo das rodadas 2-5.

@@ -1,7 +1,5 @@
 /**
- * @return int|null Quantidade em estoque, ou null quando o produto não existe —
- *                  contrato EXPLÍCITO e tipado. O consumidor trata o null, não
- *                  adivinha o tipo (não é retorno polimórfico mixed).
+ * @return int|null Quantidade em estoque; null quando o produto não existe.
  */
 public function estoqueDe(int $productId): ?int
 {
@@ -10,7 +8,7 @@ public function estoqueDe(int $productId): ?int
         ->first();
 
     if ($product === null) {
-        return null; // documentado no docblock: null = não existe
+        return null;
     }
     return (int) $product->on_hand;
 }

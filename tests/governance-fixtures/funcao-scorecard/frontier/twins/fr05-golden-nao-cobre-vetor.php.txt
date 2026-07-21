@@ -1,0 +1,8 @@
+/**
+ * Total do pedido a partir do valor digitado (string do request).
+ * @covered-by tests/Feature/Calc/TotalInteiroTest.php (entrada "1500" resulta 1500)
+ */
+public function totalDigitado(string $valorRequest): float
+{
+    return (float) $this->num_uf($valorRequest);
+}

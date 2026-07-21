@@ -1,0 +1,7 @@
+public function marcarPago(int $invoiceId): void
+{
+    $invoice = Invoice::where('business_id', session('user.business_id'))
+        ->where('id', $invoiceId)->firstOrFail();
+
+    $invoice->update(['status' => 'paid', 'paid_at' => now()]);
+}

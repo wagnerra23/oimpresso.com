@@ -1,0 +1,5 @@
+public function fatorDesconto(int $tierId): float
+{
+    return DiscountTier::where('business_id', session('user.business_id'))
+        ->where('id', $tierId)->value('factor') ?? 1.0;
+}

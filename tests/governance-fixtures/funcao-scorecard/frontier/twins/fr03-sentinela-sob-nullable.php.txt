@@ -1,0 +1,10 @@
+/**
+ * @return string|null SKU do produto.
+ */
+public function skuFor(int $productId): ?string
+{
+    $p = Product::where('business_id', session('user.business_id'))
+        ->where('id', $productId)->first();
+
+    return $p ? $p->sku : '';
+}
