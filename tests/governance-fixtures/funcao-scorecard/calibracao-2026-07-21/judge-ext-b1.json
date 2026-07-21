@@ -1,0 +1,22 @@
+{
+  "t01-scoped-query": { "C1": "concordo", "C3": "concordo", "C7": "concordo" },
+  "t02-unscoped-find": { "C1": "discordo" },
+  "t03-value-golden": { "C2": "concordo" },
+  "t04-value-numuf-nogolden": { "C2": "discordo" },
+  "t05-empty-string-0row": { "C1": "concordo", "C3": "discordo" },
+  "t06-raw-interpolated": { "C1": "concordo", "C6": "discordo" },
+  "t07-clean-control": { "C1": "concordo" },
+  "t08-no-anchor-incerto": { "C1": "concordo", "C3": "incerto" },
+  "t09-partial-scope-nao-tenant": { "C1": "discordo" },
+  "t10-golden-vetor-errado": { "C2": "discordo" },
+  "t11-nullable-tipado-ok": { "C1": "concordo", "C3": "concordo", "C7": "concordo" },
+  "t12-incident-numuf-inflacao": { "C2": "discordo" },
+  "t13-incident-idor-cross-tenant": { "C1": "discordo", "C2": "discordo" },
+  "t14-incident-empty-value-list": { "C1": "concordo", "C3": "discordo" },
+  "t15-atomicidade-bad": { "C1": "concordo", "C4": "discordo" },
+  "t16-atomicidade-caller-declara-ok": { "C1": "concordo", "C4": "concordo" },
+  "t17-nplus1-bad": { "C1": "concordo", "C5": "discordo" },
+  "t18-nplus1-eagerload-ok": { "C1": "concordo", "C5": "concordo" },
+  "t19-mixed-return-bad": { "C3": "discordo", "C7": "discordo" },
+  "t20-nullable-int-documentado-ok": { "C1": "concordo", "C3": "concordo", "C7": "concordo" }
+}

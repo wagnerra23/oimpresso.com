@@ -1,0 +1,13 @@
+/**
+ * Incidente Radix tela-branca modelado (SINTÉTICO): os valores de opção vêm de um
+ * distinct do banco; um membro VAZIO/null entra silencioso na lista e o consumidor
+ * (que exige value não-vazio) quebra. Nada filtra o vazio antes de entregar — o
+ * consumidor precisa adivinhar. Rótulo ancorado no fix real:
+ * resources/js/Components/ui/SafeSelectItem.tsx (+ proibicoes §5 2026-06-29).
+ */
+public function optionValues(): array
+{
+    // O distinct pode conter '' / null (dado sujo a montante); NADA filtra o vazio.
+    return Tag::where('business_id', session('user.business_id'))
+        ->distinct()->pluck('slug')->all();
+}

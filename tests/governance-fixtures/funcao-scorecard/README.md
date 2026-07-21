@@ -33,11 +33,25 @@ node scripts/governance/funcao-scorecard-calibracao.mjs --score <vereditos.json>
 
 **Passa se:** ≥80% das famílias de defeito achadas com o critério certo · **κ (chance-corrected) ≥ 0,6** vs o rótulo objetivo · **zero discordo** no controle limpo (t07) · **incerto** no sem-âncora (t08) · nenhum falso-discordo nos bons. Repetibilidade (T1): ≥90% por-critério em 3 rodadas.
 
-**Twins fáceis (t01–t08)** cobrem os defeitos óbvios. **Twins DIFÍCEIS (t09–t11)** são armadilhas onde um juiz preguiçoso erra — e são o que dá valor à calibração (100% em caso óbvio prova pouco):
-- `t09-partial-scope-nao-tenant` — escopa por `location_id`, parece escopado mas **não é** business_id (C1 discordo).
-- `t10-golden-vetor-errado` — cita um golden que cobre **outra** operação; "existe golden" não basta, tem que cobrir **o vetor** (C2 discordo, refinamento do 4617).
-- `t11-nullable-tipado-ok` — retorno `?Coupon` tipado é contrato explícito, **não** é o empty-string do t05 (C3 concordo — quem carimba todo null erra aqui).
+**20 twins em 3 braços:**
+
+**Braço sintético-mutação (t01–t11)** — código fabricado, rótulo = a mutação determinística.
+- **Fáceis (t01–t08)** cobrem os defeitos óbvios (C1/C2/C3/C6 + controle + incerto).
+- **DIFÍCEIS (t09–t11)** são armadilhas onde um juiz preguiçoso erra (100% em caso óbvio prova pouco):
+  - `t09-partial-scope-nao-tenant` — escopa por `location_id`, parece escopado mas **não é** business_id (C1 discordo).
+  - `t10-golden-vetor-errado` — cita um golden que cobre **outra** operação; "existe golden" não basta, tem que cobrir **o vetor** (C2 discordo, refinamento do 4617).
+  - `t11-nullable-tipado-ok` — retorno `?Coupon` tipado é contrato explícito, **não** é o empty-string do t05 (C3 concordo — quem carimba todo null erra aqui).
+
+**Braço-incidente (t12–t14)** — MODELAM defeitos REAIS já catalogados; o rótulo é ancorado no **teste de regressão real** (não na mutação, não em opinião), mas o CÓDIGO segue **sintético** (não colado do repo → não-circular por construção):
+- `t12-incident-numuf-inflacao` — desconto % gera float de 5 casas que o parser pt-BR lê como milhar → infla ~×100k. Âncora: [`IncidentValorInfladoNumUfTest`](../../../tests/Unit/Utils/IncidentValorInfladoNumUfTest.php) (C2 discordo).
+- `t13-incident-idor-cross-tenant` — `findOrFail(id-do-request)` em Model sem global scope + `update()` sem `business_id` → escrita cross-tenant em dinheiro. Âncora: [`UpdateCrossTenantIdorTest`](../../../tests/Feature/Purchase/UpdateCrossTenantIdorTest.php) (C1 discordo).
+- `t14-incident-empty-value-list` — lista de valores do distinct inclui membro vazio silencioso que derruba o consumidor. Âncora: [`SafeSelectItem.tsx`](../../../resources/js/Components/ui/SafeSelectItem.tsx) + proibicoes §5 2026-06-29 (C3 discordo).
+
+**Braço critérios-extra (t15–t20)** — pares bom/ruim pra os critérios que faltavam, cada bad com a armadilha "parece-ruim-mas-é-ok":
+- `t15/t16` **C4 atomicidade** — 2 escritas fora de transaction (discordo) × 2 escritas que **declaram** caller-wraps (concordo — rubrica C4 "OU declara que o caller envolve").
+- `t17/t18` **C5 N+1** — query dentro do `foreach` (discordo) × `foreach` sobre relação **eager-loaded** (concordo — parece N+1, não é).
+- `t19/t20` **C7 tipos** — retorno polimórfico `false|string|array` com docblock mentindo (discordo) × `?int` tipado+documentado (concordo — quem carimba todo nullable erra).
 
 ## Estender
 
-Mais twins = mais 1 par bom/ruim em `twins/` + a entrada no `manifesto-SELADO.json`. Braço-incidente (defeitos REAIS já rotulados por teste de regressão): `IncidentValorInfladoNumUfTest`, `UpdateCrossTenantIdorTest`, `SafeSelectItem` — índice em `memory/LICOES_CODE.md`.
+Mais twins = mais 1 par bom/ruim em `twins/` + a entrada no `manifesto-SELADO.json`. Braço-incidente já implementado (t12–t14); mais incidentes reais têm índice em `memory/LICOES_CODE.md`.

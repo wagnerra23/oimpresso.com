@@ -1,0 +1,11 @@
+public function totalPorPedido(array $pedidoIds): array
+{
+    $out = [];
+    foreach ($pedidoIds as $id) {
+        // Uma query POR iteração — evitável com um único whereIn + groupBy set-based.
+        $out[$id] = OrderLine::where('business_id', session('user.business_id'))
+            ->where('order_id', $id)
+            ->sum('subtotal');
+    }
+    return $out;
+}

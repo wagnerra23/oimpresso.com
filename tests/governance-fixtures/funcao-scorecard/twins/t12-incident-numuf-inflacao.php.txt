@@ -1,0 +1,13 @@
+/**
+ * Incidente 2026-06-05 modelado (SINTÉTICO): desconto % gera float de 5 casas que
+ * o parser pt-BR lê como separador de MILHAR e infla o total ~×100.000. Nenhum
+ * golden cobre este vetor (desconto percentual). Rótulo ancorado no teste de
+ * regressão real: tests/Unit/Utils/IncidentValorInfladoNumUfTest.php.
+ */
+public function totalComDescontoPct(float $beforeTax, float $pct): float
+{
+    // Ex.: 227,90 com 10,05% → "204.99605" (5 casas). num_uf trata o "." como milhar
+    // (heurística pt-BR ≤2 casas) e devolve valor inflado. Sem arredondar a 2 casas.
+    $totalGeral = $beforeTax * (1 - $pct / 100);
+    return $this->num_uf((string) $totalGeral);
+}
