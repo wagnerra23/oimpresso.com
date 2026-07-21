@@ -100,6 +100,12 @@ O método **não vale para expansão/catraca** até o juiz provar que DISCRIMINA
 - Runner: `scripts/governance/funcao-scorecard-calibracao.mjs` (`--pack`/`--score`/`--selftest`) + self-test 5/5 (juiz-carimbo FALHA, juiz-perfeito PASSA).
 - **Fronteira honesta:** isto calibra o **INSTRUMENTO** (o juiz discrimina defeito mecânico não-circularmente). NÃO re-valida os vereditos da função REAL (`ProductUtil`) — esses seguem o review central do 4617 + a âncora de intenção por-função do tópico. Fixture é **complementar**, NÃO estende, o ledger `tipo:"juiz"` (humano-só de propósito). Grade 2026-07-21 dimensão validação-não-circular 4/10 → o gargalo agora tem prova.
 
+**2026-07-21 (rodada 3 — "arrume", twins DIFÍCEIS + κ) — os 3 juízes cegos passaram nas armadilhas.**
+- Adicionados 3 twins DIFÍCEIS (onde um juiz preguiçoso erra): `t09` escopa por `location_id` (parece escopado, não é business_id) → C1 discordo · `t10` cita golden que cobre outra operação → C2 discordo (o golden tem que cobrir O VETOR) · `t11` retorno `?Coupon` tipado → C3 **concordo** (nullable tipado é contrato, não o empty-string do t05). 100% em caso óbvio prova pouco; o valor está nas armadilhas.
+- **3 juízes frescos, todos CALIBRADO:** **6/6 famílias** (incl. as 2 difíceis) com o critério certo · **κ (Cohen, chance-corrected) = 1,0** ≥ 0,6 · 0 over-flag no controle · incerto certo · **0 falso-discordo no `t11`** (não carimbaram o nullable tipado). **T1 = 100%** (0 flips/10) no set difícil.
+- Runner ganhou **κ** + bar ≥80% famílias; self-test 5/5. Evidência reprodutível: `calibracao-2026-07-21/judge-hard-a{1,2,3}.json`.
+- Grade re-pontuada: validação-não-circular **6,5 → 7,5** (armadilhas + κ passaram). Falta pra 8-9: braço-incidente com função REAL (não sintética), κ vs gold HUMANO (hoje é κ vs rótulo objetivo), N maior, braço-vazado rodado (baixo valor em fixture sintética — a cegueira é por construção).
+
 ## §6 O que um `discordo` NÃO autoriza
 
 - ❌ NÃO edita código. ❌ NÃO cria task automática. ❌ NÃO é "achado" (é parecer).

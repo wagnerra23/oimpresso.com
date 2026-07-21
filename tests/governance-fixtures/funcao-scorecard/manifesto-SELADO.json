@@ -14,6 +14,9 @@
     "t05-empty-string-0row":    { "criterio_salient": "C3", "veredito": "discordo", "mecanismo": "0-row retorna string vazia silenciosa; o consumidor precisa adivinhar", "familia": "dado-ausente" },
     "t06-raw-interpolated":     { "criterio_salient": "C6", "veredito": "discordo", "mecanismo": "whereRaw com variável interpolada, sem bindings", "familia": "sql-cru" },
     "t07-clean-control":        { "criterio_salient": "controle", "veredito": "sem-discordo", "mecanismo": "makeSku: business próprio por sessão + retorno string tipado — NENHUM discordo é correto aqui", "familia": null },
-    "t08-no-anchor-incerto":    { "criterio_salient": "C3", "veredito": "incerto", "mecanismo": "0-em-zona-sem-regra pode ser frete-grátis intencional OU dado-ausente silencioso; sem SPEC/charter/ADR pra decidir a intenção → incerto obrigatório", "familia": null }
+    "t08-no-anchor-incerto":    { "criterio_salient": "C3", "veredito": "incerto", "mecanismo": "0-em-zona-sem-regra pode ser frete-grátis intencional OU dado-ausente silencioso; sem SPEC/charter/ADR pra decidir a intenção → incerto obrigatório", "familia": null },
+    "t09-partial-scope-nao-tenant": { "criterio_salient": "C1", "veredito": "discordo", "mecanismo": "escopa por location_id mas NÃO por business_id — armadilha: parece escopado mas location de outro tenant vaza", "familia": "multi-tenant-sutil" },
+    "t10-golden-vetor-errado":      { "criterio_salient": "C2", "veredito": "discordo", "mecanismo": "cita golden que cobre SOMA; a função faz DIVISÃO — armadilha: 'existe golden' não basta, tem que cobrir O VETOR (refinamento C2 do 4617)", "familia": "valor-vetor-sutil" },
+    "t11-nullable-tipado-ok":       { "criterio_salient": "C3", "veredito": "concordo", "mecanismo": "retorno ?Coupon TIPADO — null é contrato explícito, NÃO string vazia silenciosa (t05); armadilha: juiz que carimba todo null-on-missing como C3 erra aqui", "familia": null }
   }
 }

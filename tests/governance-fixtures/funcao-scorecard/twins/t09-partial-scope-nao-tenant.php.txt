@@ -1,0 +1,5 @@
+public function ordersInLocation(int $locationId)
+{
+    // Escopa por location_id, mas NÃO por business_id — uma location de outro tenant vaza.
+    return Order::where('location_id', $locationId)->get();
+}

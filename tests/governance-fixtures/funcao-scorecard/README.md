@@ -31,7 +31,12 @@ node scripts/governance/funcao-scorecard-calibracao.mjs --pack
 node scripts/governance/funcao-scorecard-calibracao.mjs --score <vereditos.json>
 ```
 
-**Passa se:** ≥2/3 famílias de defeito achadas com o critério certo (t02 C1 · t04 C2 · t05 C3 · t06 C6) · **zero discordo** no controle limpo (t07) · **incerto** no sem-âncora (t08) · nenhum falso-discordo nos bons (t01/t03). Repetibilidade (T1): ≥90% por-critério em 3 rodadas.
+**Passa se:** ≥80% das famílias de defeito achadas com o critério certo · **κ (chance-corrected) ≥ 0,6** vs o rótulo objetivo · **zero discordo** no controle limpo (t07) · **incerto** no sem-âncora (t08) · nenhum falso-discordo nos bons. Repetibilidade (T1): ≥90% por-critério em 3 rodadas.
+
+**Twins fáceis (t01–t08)** cobrem os defeitos óbvios. **Twins DIFÍCEIS (t09–t11)** são armadilhas onde um juiz preguiçoso erra — e são o que dá valor à calibração (100% em caso óbvio prova pouco):
+- `t09-partial-scope-nao-tenant` — escopa por `location_id`, parece escopado mas **não é** business_id (C1 discordo).
+- `t10-golden-vetor-errado` — cita um golden que cobre **outra** operação; "existe golden" não basta, tem que cobrir **o vetor** (C2 discordo, refinamento do 4617).
+- `t11-nullable-tipado-ok` — retorno `?Coupon` tipado é contrato explícito, **não** é o empty-string do t05 (C3 concordo — quem carimba todo null erra aqui).
 
 ## Estender
 

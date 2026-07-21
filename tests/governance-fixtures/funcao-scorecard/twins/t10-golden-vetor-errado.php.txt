@@ -1,0 +1,8 @@
+/**
+ * @covered-by tests/Feature/Calc/SumGoldenTest.php (cobre SOMA de itens)
+ */
+public function splitInstallment(float $total, int $n): float
+{
+    // Divisão com resto — o golden citado cobre SOMA, não ESTA divisão. O vetor não está provado.
+    return $total / $n;
+}

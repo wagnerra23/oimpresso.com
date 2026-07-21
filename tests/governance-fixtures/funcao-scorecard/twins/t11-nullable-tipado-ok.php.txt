@@ -1,0 +1,6 @@
+public function findCoupon(string $code): ?Coupon
+{
+    // Retorno ?Coupon TIPADO — null é contrato explícito de "não achou", não string vazia silenciosa.
+    return Coupon::where('business_id', session('user.business_id'))
+        ->where('code', $code)->first();
+}
