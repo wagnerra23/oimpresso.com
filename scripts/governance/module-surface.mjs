@@ -39,17 +39,51 @@ const ALL = args.includes('--all');
 const POS = args.filter((a) => !a.startsWith('--'));
 
 /**
+ * Módulos CLASSE B — o código NÃO mora em `Modules/<Mod>/`, mora no núcleo UltimatePOS (`app/`).
+ * Ex.: Venda (Sells) = fork do UltimatePOS, sem `Modules/Sells`. A MEMBERSHIP (quais arquivos
+ * são do módulo) vem de uma SEMENTE CURADA e revisável no diff (não de "quem toca a tabela" —
+ * medido 2026-07-21: `Transaction::` em 168 arquivos over-inclui Financeiro/Jana; decisão [W]).
+ * `tabelas` = metadado-ÂNCORA declarado (estilo SCOPE.db_tables_owned), NÃO um derivador.
+ * Cada prefixo é um arquivo exato OU um dir (walk recursivo). O PAPEL de cada membro é
+ * classificado pelas mesmas regras de PAPEIS (que já aceitam o alternante `app/…`); como a
+ * membership é a lista explícita, as regras largas `^app/…` só veem os membros declarados.
+ */
+const CORE_APP_MODULES = {
+  Sells: {
+    prefixos: [
+      'app/Http/Controllers/SellController.php',
+      'app/Http/Controllers/SellPosController.php',
+      'app/Http/Controllers/SellReturnController.php',
+      'app/Http/Controllers/SellAuditController.php',
+      'app/Http/Controllers/SellCommissionSplitController.php',
+      'app/Http/Controllers/SellTranscriptPdfController.php',
+      // SellingPriceGroupController NÃO — é domínio Produto (tabela de preço), não Venda.
+      'app/Utils/TransactionUtil.php', // o motor da venda
+      'app/Domain/Fsm',                // pipeline FSM (compartilhado com Repair — pode duplicar, honesto)
+      'app/Transaction.php',
+      'app/TransactionSellLine.php',
+      'app/TransactionPayment.php',
+      'resources/views/sale_pos',      // POS legado (Blade)
+      'resources/views/sell',
+    ],
+    tabelas: ['transactions', 'transaction_sell_lines', 'transaction_payments'],
+  },
+};
+
+/**
  * Papéis, na ordem de exibição. `listar:false` = role volumoso → mostra contagem + link do dir
  * (Tests não precisa listar 77 arquivos; o dono da cobertura é screen-coverage/casos-gate).
  * Cada regra casa por prefixo relativo à raiz do repo. 1ª regra que casa vence (ordem importa).
+ * O alternante `app/…` cobre os módulos CLASSE B (só vê os membros da semente curada).
  */
 const PAPEIS = [
-  { rot: 'Controllers', re: /^Modules\/[^/]+\/Http\/Controllers\/.*\.php$/, listar: true },
-  { rot: 'Requests (validação)', re: /^Modules\/[^/]+\/Http\/Requests\/.*\.php$/, listar: true },
-  { rot: 'Middleware', re: /^Modules\/[^/]+\/Http\/Middleware\/.*\.php$/, listar: true },
+  { rot: 'Controllers', re: /^(?:Modules\/[^/]+|app)\/Http\/Controllers\/.*\.php$/, listar: true },
+  { rot: 'Requests (validação)', re: /^(?:Modules\/[^/]+|app)\/Http\/Requests\/.*\.php$/, listar: true },
+  { rot: 'Middleware', re: /^(?:Modules\/[^/]+|app)\/Http\/Middleware\/.*\.php$/, listar: true },
   { rot: 'Services', re: /^Modules\/[^/]+\/Services\/.*\.php$/, listar: true },
+  { rot: 'Motor (Utils/Domínio)', re: /^app\/(?:Utils|Domain)\/.*\.php$/, listar: true },
   { rot: 'Strategies', re: /^Modules\/[^/]+\/Strategies\/.*\.php$/, listar: true },
-  { rot: 'Models / Entities', re: /^Modules\/[^/]+\/(Models|Entities)\/.*\.php$/, listar: true },
+  { rot: 'Models / Entities', re: /^(?:Modules\/[^/]+\/(?:Models|Entities)\/.*|app\/[A-Z][A-Za-z0-9]*)\.php$/, listar: true },
   { rot: 'Observers', re: /^Modules\/[^/]+\/Observers\/.*\.php$/, listar: true },
   { rot: 'Jobs', re: /^Modules\/[^/]+\/Jobs\/.*\.php$/, listar: true },
   { rot: 'Events / Listeners', re: /^Modules\/[^/]+\/(Events|Listeners)\/.*\.php$/, listar: true },
@@ -59,7 +93,7 @@ const PAPEIS = [
   { rot: 'Migrations (schema)', re: /^Modules\/[^/]+\/Database\/Migrations\/.*\.php$/, listar: true },
   { rot: 'Seeders', re: /^Modules\/[^/]+\/Database\/Seeders\/.*\.php$/, listar: true },
   { rot: 'Config', re: /^Modules\/[^/]+\/Config\/.*\.php$/, listar: true },
-  { rot: 'Views (Blade)', re: /^Modules\/[^/]+\/Resources\/views\/.*\.blade\.php$/, listar: false },
+  { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: false },
   { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, listar: true },
   { rot: 'Charters (lei da tela)', re: /^resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
   { rot: 'Casos (contrato UC)', re: /^resources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
@@ -80,26 +114,43 @@ function walk(rel) {
   return out;
 }
 
-/** Lista os módulos (dirs em Modules/) que têm module.json — a definição de "é um módulo". */
+/** Expande a semente CLASSE B: cada prefixo é arquivo exato OU dir (walk). Ignora inexistente. */
+function expandirPrefixos(prefixos) {
+  const out = [];
+  for (const p of prefixos) {
+    const abs = join(ROOT, p);
+    if (!existsSync(abs)) continue;
+    out.push(...(statSync(abs).isDirectory() ? walk(p) : [p]));
+  }
+  return out;
+}
+
+/**
+ * Lista os módulos pro `--all`: dirs em Modules/ com module.json (CLASSE A) + as chaves de
+ * CORE_APP_MODULES (CLASSE B, ex. Sells — não tem Modules/Sells mas tem semente no core).
+ */
 function listarModulos() {
   const dir = join(ROOT, 'Modules');
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir).sort().filter((m) => existsSync(join(dir, m, 'module.json')));
+  const classeA = existsSync(dir) ? readdirSync(dir).sort().filter((m) => existsSync(join(dir, m, 'module.json'))) : [];
+  return [...new Set([...classeA, ...Object.keys(CORE_APP_MODULES)])].sort();
 }
 
 /** Coleta os arquivos do módulo (código + telas) e agrupa por papel. */
 function coletar(mod) {
-  const files = [
+  const core = CORE_APP_MODULES[mod];
+  const files = [...new Set([
     ...walk(`Modules/${mod}`),
     ...walk(`resources/js/Pages/${mod}`),
-  ];
+    ...(core ? expandirPrefixos(core.prefixos) : []),
+  ])].sort();
   const grupos = PAPEIS.map((p) => ({ ...p, files: /** @type {string[]} */ ([]) }));
   const outros = [];
   for (const f of files) {
     const g = grupos.find((p) => p.re.test(f));
     if (g) g.files.push(f);
-    // "Outros" = só código .php de dir não-reconhecido (drop manifests json/js, assets, lang, views não-blade).
-    else if (f.startsWith(`Modules/${mod}/`) && f.endsWith('.php') && !f.includes(`Modules/${mod}/Resources/`)) outros.push(f);
+    // "Outros" = código .php membro de dir não-reconhecido (drop lang/menus/assets/views —
+    // `/Resources/` cobre Modules, `/resources/` cobre o core CLASSE B).
+    else if (f.endsWith('.php') && !f.includes('/Resources/') && !f.includes('/resources/')) outros.push(f);
   }
   return { grupos, outros };
 }
@@ -111,6 +162,7 @@ function linkDe(f) {
 
 /** Monta o markdown determinístico da SUPERFICIE.md. */
 function montar(mod, grupos, outros) {
+  const core = CORE_APP_MODULES[mod];
   const total = grupos.reduce((n, g) => n + g.files.length, 0);
   const L = [];
   L.push('---');
@@ -120,6 +172,7 @@ function montar(mod, grupos, outros) {
   L.push('authority: generated');
   L.push('lifecycle: ativo');
   L.push(`module: ${mod}`);
+  if (core?.tabelas?.length) L.push(`tabelas_dominio: [${core.tabelas.map((t) => `"${t}"`).join(', ')}]`);
   L.push('---');
   L.push('');
   L.push(`# 🗺️ Superfície de código — ${mod}`);
@@ -127,7 +180,11 @@ function montar(mod, grupos, outros) {
   L.push(`> ⚙️ **Gerado por máquina** (\`scripts/governance/module-surface.mjs\`). NÃO edite à mão — a próxima geração sobrescreve.`);
   L.push(`> Regenerar: \`node scripts/governance/module-surface.mjs ${mod} --write\`. Validar frescor: \`--check\` (exit 1 se a árvore mudou e isto não foi regenerado).`);
   L.push('>');
-  L.push('> **O que isto é:** o código que MORA em `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
+  if (core) {
+    L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), não em `Modules/' + mod + '/`. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
+  } else {
+    L.push('> **O que isto é:** o código que MORA em `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
+  }
   L.push('');
   L.push(`**Total mapeado:** ${total} arquivos em ${grupos.filter((g) => g.files.length).length} papéis.`);
   L.push('');
@@ -212,4 +269,4 @@ function main() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
 
-export { PAPEIS, coletar, montar };
+export { PAPEIS, coletar, montar, CORE_APP_MODULES };
