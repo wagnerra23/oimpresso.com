@@ -5,7 +5,7 @@ slug: topicos-vivos-aprendizado-critica
 tldr: "Branch codex/aprendizado-topicos-vivos pronta para PR: tópico schema'd, ADR 0345, piloto Produto e SUPERFICIE corrigida para não contar componentes como telas."
 decided_by: [W]
 cycle: null
-prs: []
+prs: [4617]
 us: []
 next_steps:
   - "Acompanhar CI do PR e corrigir somente falha introduzida por esta branch."
@@ -53,6 +53,7 @@ As tools MCP operacionais (`cycles-active`, `my-work`, `sessions-recent`, `decis
 
 ## Referências
 
+- PR: [#4617](https://github.com/wagnerra23/oimpresso.com/pull/4617)
 - Session log: [2026-07-21-topicos-vivos-aprendizado-critica-revisada.md](../sessions/2026-07-21-topicos-vivos-aprendizado-critica-revisada.md)
 - ADR 0345: [Tópicos vivos e aprendizado por crítica revisada](../decisions/0345-topicos-vivos-aprendizado-por-critica-revisada.md)
 - ADR 0130: [Handoff append-only + MCP-first](../decisions/0130-handoff-append-only-mcp-first.md)

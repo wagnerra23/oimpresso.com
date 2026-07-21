@@ -7,7 +7,7 @@ outcomes:
   - "ADR 0345 aceitou BRIEFING como índice, tópico como unidade estável e crítica IA com síntese central mais aprovação humana."
   - "Schema/template de tópico e piloto Produto/calculo-total-fatura foram implementados em grace forward-only."
   - "SUPERFICIE deixou de contar componentes co-localizados como telas; Financeiro passou de 60 para 21 telas reais."
-prs: []
+prs: [4617]
 us: []
 related_adrs:
   - 0345-topicos-vivos-aprendizado-por-critica-revisada
@@ -67,5 +67,6 @@ A auditoria anterior encontrou que `module-surface.mjs` classificava todo `.tsx`
 
 ## Referências
 
+- PR: [#4617](https://github.com/wagnerra23/oimpresso.com/pull/4617)
 - ADR 0345: `memory/decisions/0345-topicos-vivos-aprendizado-por-critica-revisada.md`
 - Handoff: `memory/handoffs/2026-07-21-1047-topicos-vivos-aprendizado-critica.md`
