@@ -88,6 +88,32 @@ test('CORE_APP_MODULES.Sells declara semente + tabelas-âncora (não vazio)', ()
   assert.ok(!CORE_APP_MODULES.Sells.prefixos.some((p) => p.includes('SellingPriceGroup')));
 });
 
+test('CORE_APP_MODULES.Produto declara semente curada + tabelas-âncora (Classe B)', () => {
+  const p = CORE_APP_MODULES.Produto;
+  assert.ok(p, 'Produto deve existir em CORE_APP_MODULES');
+  assert.ok(p.prefixos.length >= 5);
+  // núcleo: o motor + o model + o controller (o trio que a task cita)
+  assert.ok(p.prefixos.includes('app/Utils/ProductUtil.php'));
+  assert.ok(p.prefixos.includes('app/Product.php'));
+  assert.ok(p.prefixos.includes('app/Http/Controllers/ProductController.php'));
+  // tabela de preço vive no Produto (o seed de Sells defere SellingPriceGroup pra cá)
+  assert.ok(p.prefixos.includes('app/Http/Controllers/SellingPriceGroupController.php'));
+  // tabelas-âncora reais (products confirmado por migration)
+  assert.ok(p.tabelas.includes('products'));
+  assert.ok(p.tabelas.includes('variations'));
+  // NÃO invade Venda (Transaction* é domínio Sells) nem o compartilhado Despesa (Taxonomy/Category)
+  assert.ok(!p.prefixos.some((x) => x.includes('Transaction')));
+  assert.ok(!p.prefixos.some((x) => x.includes('Taxonomy') || x.endsWith('app/Category.php')));
+});
+
+test('CLASSE B Produto: paths do core classificam no papel certo', () => {
+  assert.equal(classify('app/Http/Controllers/ProductController.php'), 'Controllers');
+  assert.equal(classify('app/Utils/ProductUtil.php'), 'Motor (Utils/Domínio)');
+  assert.equal(classify('app/Product.php'), 'Models / Entities');
+  assert.equal(classify('app/VariationGroupPrice.php'), 'Models / Entities');
+  assert.equal(classify('resources/views/product/index.blade.php'), 'Views (Blade)');
+});
+
 test('montar() CLASSE B emite tabelas_dominio no frontmatter + nota de metadado-âncora', () => {
   const grupos = [{ rot: 'Controllers', listar: true, files: ['app/Http/Controllers/SellController.php'] }];
   const md = montar('Sells', grupos, []);
