@@ -1,61 +1,26 @@
-# Auditoria — BRIEFING (estado consolidado)
+---
+status: deprecated
+canonical: "../../memory/requisitos/Auditoria/BRIEFING.md"
+deprecated_at: "2026-07-21"
+deprecated_by: "0345-topicos-vivos-aprendizado-por-critica-revisada"
+---
 
-> **Última atualização:** 2026-05-16 (Wave 18 RETRY)
-> **Wave 18 RETRY score (target 97):** D1=30/30 · D2=20/20 · D6=10/10 · D8=8/8 (saturado)
+# BRIEFING — Modules/Auditoria — DESCONTINUADO (lápide-ponteiro)
 
-## O que é
+> ⛔ **Não edite nem consulte aqui.** O BRIEFING canônico de **Auditoria** vive em
+> **[`memory/requisitos/Auditoria/BRIEFING.md`](../../memory/requisitos/Auditoria/BRIEFING.md)** —
+> a **única casa** do BRIEFING, fixada pela [ADR 0345](../../memory/decisions/0345-topicos-vivos-aprendizado-por-critica-revisada.md) (§Decisão) e pela [proposta de taxonomia §5](../../memory/decisions/proposals/2026-07-21-taxonomia-arquivos-modulo.md).
 
-Camada de governança transversal — UI rica `/auditoria` + undo sobre `activity_log` existente (Spatie Activitylog). Distingue `User` vs `IA` (causer_kind) e mantém **whitelist UNREVERTIBLE de 5 categorias** (LGPD-sensitive ops). Per ADR 0127.
+## Por quê esta lápide existe
 
-## Capacidades atuais (Wave 18 RETRY)
+"BRIEFING" morava em **dois lugares** (`Modules/Auditoria/` e `memory/requisitos/Auditoria/`) e a IA não sabia qual era o verdadeiro — os dois divergiam no tempo (o de Jana chegou a afirmar `96/100` contra os `73` do baseline canônico). A [ADR 0345](../../memory/decisions/0345-topicos-vivos-aprendizado-por-critica-revisada.md) fixou uma casa só: `memory/requisitos/<X>/BRIEFING.md` é o resumo/índice que **aponta** (não recopia) SCOPE/SUPERFICIE/SPEC.
 
-- **Listing/Filter activity_log** — `AuditEntryService::list/find/normalizeFilters` com whitelist
-- **Revert single entry** — `RevertService` (US-AUDIT-008..010, intocado Wave M)
-- **Revert bulk** — `BulkRevertActivityRequest` valida até 50 ids + reason (Wave 18 RETRY)
-- **Audit notes** — `AuditNote` entity (auditoria_audit_notes) com `scopeForBusiness`
-- **Inertia::defer DEFAULT** — `activities` + `activity` (Wave 18 D6.a) — 1st paint shell rápido
-- **OTel spans** — `auditoria.entries.*` + `auditoria.revert.*` via `App\Util\OtelHelper`
+Este arquivo virou **ponteiro** — não foi deletado (append-only). O conteúdo histórico segue no git: `git log --follow -- Modules/Auditoria/BRIEFING.md`.
 
-## FormRequests (D8 Wave 18 RETRY = 5 saturado)
+## Onde entrar, por módulo
 
-| FormRequest | Endpoint | Uso |
-|---|---|---|
-| RevertActivityRequest | POST /auditoria/{id}/revert | Undo single (reason min:10) |
-| FilterAuditEntriesRequest | GET /auditoria | Filtros (causer_kind / event whitelist) |
-| StoreAuditNoteRequest | POST /auditoria/{id}/notes | Cria nota interna (min:3 max:5000) |
-| **UpdateAuditNoteRequest** (W18 RETRY) | PUT /auditoria/notes/{id} | Edita nota recente |
-| **BulkRevertActivityRequest** (W18 RETRY) | POST /auditoria/revert-bulk | Undo lote (≤50 ids + reason) |
-
-## Whitelist UNREVERTIBLE (ADR 0127 §3)
-
-5 categorias **NUNCA** podem ser revertidas:
-1. NFe emitida e autorizada (CONFAZ SINIEF 07/2005)
-2. Marcação de ponto (Portaria MTP 671/2021 — append-only)
-3. Mudança de business owner (security boundary)
-4. Cancelamento financeiro com refund Asaas/Inter processado
-5. Backup ou restore de DB (DDL impacta cross-tenant)
-
-## Anti-patterns proibidos (Tier 0)
-
-- ⛔ `RevertService` **intocado** desde US-AUDIT-008 (compliance crítica — Wave M reforça)
-- ⛔ Bulk revert >50 ids (rate limit hard pra evitar undo massivo)
-- ⛔ Revert sem `revert_reason` (audit trail dura)
-- ⛔ Bypass whitelist UNREVERTIBLE — Service valida por entry
-
-## Tests (Pest Feature)
-
-- `MultiTenantIsolationTest` — biz=1 vs biz=99 real
-- `Wave18SaturationTest` — saturação D1 + D2 + D6 + D8 (AuditNote + AuditEntryService + Inertia::defer + 5 FormRequests)
-- `AuditNoteLogsActivityTest` — meta-audit (LogsActivity em audit_notes)
-- `AuditoriaModuleTest` — module boot
-- `RevertServiceOtelSpanTest` — OTel instrumentation
-- `RevertServicePiiRedactionTest` — PII redaction no revert
-- `SmokeRoutesTest` — rotas registradas
-
-## Referências
-
-- ADR 0093 — Multi-tenant Tier 0 IRREVOGÁVEL
-- ADR 0094 — Constituição v2
-- ADR 0101 — Tests business_id=1
-- ADR 0127 — Modules/Auditoria UI + undo (mãe)
-- `memory/requisitos/Auditoria/SPEC.md` — US-AUDIT-007..010
+| Pergunta | Arquivo |
+|---|---|
+| Estado / resumo / índice? | [`memory/requisitos/Auditoria/BRIEFING.md`](../../memory/requisitos/Auditoria/BRIEFING.md) |
+| O que é / não é meu? (fronteira) | [`SCOPE.md`](SCOPE.md) |
+| Requisitos (US)? | [`memory/requisitos/Auditoria/SPEC.md`](../../memory/requisitos/Auditoria/SPEC.md) |
