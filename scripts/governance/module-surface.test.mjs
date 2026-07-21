@@ -94,6 +94,14 @@ test('montar() carimba frontmatter gerado + título + papéis', () => {
   assert.match(md, /\[AController\.php\]\(\.\.\/\.\.\/\.\.\/Modules\/X\/Http\/Controllers\/AController\.php\)/);
 });
 
+test('Total mapeado inclui Outros tanto nos arquivos quanto nos papéis', () => {
+  const grupos = [{ rot: 'Controllers', listar: true, files: ['Modules/X/Http/Controllers/AController.php'] }];
+  const outros = ['Modules/X/Support/Helper.php', 'Modules/X/Legacy/Foo.php'];
+  const md = montar('X', grupos, outros);
+  assert.match(md, /\*\*Total mapeado:\*\* 3 arquivos em 2 papéis\./);
+  assert.match(md, /## Outros \(raiz\/misc\) — 2/);
+});
+
 test('papel volumoso (listar:false) mostra contagem + dir, NÃO lista arquivos', () => {
   const grupos = [{ rot: 'Testes (Pest)', listar: false, files: ['Modules/X/Tests/Feature/AT.php', 'Modules/X/Tests/Feature/BT.php'] }];
   const md = montar('X', grupos, []);

@@ -166,7 +166,8 @@ function linkDe(f) {
 /** Monta o markdown determinístico da SUPERFICIE.md. */
 function montar(mod, grupos, outros) {
   const core = CORE_APP_MODULES[mod];
-  const total = grupos.reduce((n, g) => n + g.files.length, 0);
+  const total = grupos.reduce((n, g) => n + g.files.length, 0) + outros.length;
+  const totalPapeis = grupos.filter((g) => g.files.length).length + (outros.length ? 1 : 0);
   const L = [];
   L.push('---');
   L.push(`name: "SUPERFÍCIE — ${mod}"`);
@@ -189,7 +190,7 @@ function montar(mod, grupos, outros) {
     L.push('> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
   }
   L.push('');
-  L.push(`**Total mapeado:** ${total} arquivos em ${grupos.filter((g) => g.files.length).length} papéis.`);
+  L.push(`**Total mapeado:** ${total} arquivos em ${totalPapeis} papéis.`);
   L.push('');
   for (const g of grupos) {
     if (!g.files.length) continue;
@@ -219,7 +220,7 @@ function montar(mod, grupos, outros) {
 /** Processa 1 módulo. Retorna {mod, total, drift}. */
 function processar(mod) {
   const { grupos, outros } = coletar(mod);
-  const total = grupos.reduce((n, g) => n + g.files.length, 0);
+  const total = grupos.reduce((n, g) => n + g.files.length, 0) + outros.length;
   if (total === 0 && outros.length === 0) {
     console.error(`[module-surface] módulo "${mod}" não encontrado ou vazio (Modules/${mod} inexistente?).`);
     return { mod, total, drift: false, missing: true };

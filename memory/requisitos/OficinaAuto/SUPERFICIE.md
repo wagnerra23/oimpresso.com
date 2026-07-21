@@ -14,7 +14,7 @@ module: OficinaAuto
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/OficinaAuto/**` + `resources/js/Pages/OficinaAuto/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 161 arquivos em 17 papéis.
+**Total mapeado:** 163 arquivos em 18 papéis.
 
 ## Controllers — 9
 

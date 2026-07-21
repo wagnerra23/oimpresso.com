@@ -14,7 +14,7 @@ module: Financeiro
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 288 arquivos em 21 papéis.
+**Total mapeado:** 292 arquivos em 22 papéis.
 
 ## Controllers — 25
 

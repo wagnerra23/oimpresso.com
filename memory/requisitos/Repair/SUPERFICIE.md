@@ -14,7 +14,7 @@ module: Repair
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Repair/**` + `resources/js/Pages/Repair/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 148 arquivos em 15 papéis.
+**Total mapeado:** 151 arquivos em 16 papéis.
 
 ## Controllers — 11
 
