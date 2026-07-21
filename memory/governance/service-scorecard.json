@@ -1,0 +1,4258 @@
+{
+  "$generator": "scripts/governance/service-scorecard.mjs",
+  "$doc": "Scorecard de sinais-vivos por serviço, AGREGADO das fontes derivadas (catalog.json + module-grades-baseline.json + vital-signs.json + BRIEFING git-mtime). NÃO editar à mão — a próxima geração sobrescreve. Regenerar: node scripts/governance/service-scorecard.mjs --write",
+  "$advisory": "Advisory de nascença (ADR 0314/0275) — NÃO é gate required. AGREGADOR, não régua: a nota é do module-grade (ADR 0155); os checks de maturidade medem presença/conexão de catálogo (Backstage/Cortex), não correção.",
+  "generated_from": {
+    "catalog": {
+      "path": "memory/governance/catalog.json",
+      "stats": 38
+    },
+    "grades": {
+      "path": "governance/module-grades-baseline.json",
+      "baseline": "v3.6.0",
+      "rubric": "0155"
+    },
+    "vital_signs": {
+      "path": "memory/governance/vital-signs.json",
+      "generated_at": "2026-07-06"
+    }
+  },
+  "stats": {
+    "services": 41,
+    "with_grade": 36,
+    "unmatched_screen_dirs": [],
+    "orphan_screen_ns": [
+      "Atendimento",
+      "Cliente",
+      "Home",
+      "MemCofre",
+      "Modules",
+      "Purchase",
+      "Settings",
+      "Site",
+      "StockAdjustment",
+      "StockTransfer",
+      "Suporte",
+      "Tarefas",
+      "TransactionPayment",
+      "User"
+    ],
+    "maturity_levels": {
+      "ouro": 22,
+      "prata": 15,
+      "bronze": 4
+    }
+  },
+  "services": [
+    {
+      "id": "Accounting",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": null,
+      "purpose": "",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": false,
+          "ns": "Accounting",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 1,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": false,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 3,
+        "applicable": 6,
+        "ratio": 0.5,
+        "level": "bronze"
+      }
+    },
+    {
+      "id": "Admin",
+      "trust": "L1",
+      "owner": "wagner",
+      "permission_prefix": "admin.*",
+      "charter_adr": "0122",
+      "scope": "Modules/Admin/SCOPE.md",
+      "purpose": "Centro de Operações Wagner-only (admin.oimpresso.com em CT 100/Tailscale-only). Dashboard executivo: brief + health + cycles + ADR Tier 0 alerts. Bloqueio duro is-wagner + TailscaleOnly middleware.",
+      "signals": {
+        "grade": {
+          "value": 81,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Admin",
+          "via": "direto",
+          "telas": 8,
+          "com_scorecard": 8,
+          "nota_media": 78,
+          "nota_min": 72,
+          "pior_tela": "Admin/GovernanceV4Dashboard",
+          "charter_pct": 100,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 1,
+          "dependents": 1,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 8,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-02",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "ADS",
+      "trust": "L1",
+      "owner": "wagner",
+      "permission_prefix": "ads.*",
+      "charter_adr": "0080",
+      "scope": "Modules/ADS/SCOPE.md",
+      "purpose": "Adaptive Decision System — meta-orquestrador de decisões automatizadas (Risk → Confidence → Policy → Router → Brain A/B → HITL) + governança de Skills",
+      "signals": {
+        "grade": {
+          "value": 88,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "ads",
+          "via": "direto",
+          "telas": 19,
+          "com_scorecard": 19,
+          "nota_media": 74,
+          "nota_min": 68,
+          "pior_tela": "ads/Admin/Graph",
+          "charter_pct": 0,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 5,
+          "dependents": 9,
+          "provides_api": 2,
+          "owns_tables": 5,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 9,
+          "components": 25,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Arquivos",
+      "trust": "L2",
+      "owner": "wagner",
+      "permission_prefix": "arquivos.*",
+      "charter_adr": "0123",
+      "scope": "Modules/Arquivos/SCOPE.md",
+      "purpose": "DMS backbone — todo arquivo anexado do oimpresso deve cair aqui. Tabelas arquivos + arquivos_audit_log + arquivos_dedupe. Trait HasArquivos morphMany pra opt-in por entidade. Curador engine PHP + parity com JS scripts/curador. Signed URLs + soft-delete + dedupe sha256.",
+      "signals": {
+        "grade": {
+          "value": 79,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "Arquivos",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 2,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 3,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "AssetManagement",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "assetmanagement.*",
+      "charter_adr": "0080",
+      "scope": "Modules/AssetManagement/SCOPE.md",
+      "purpose": "UltimatePOS herdado.",
+      "signals": {
+        "grade": {
+          "value": 82,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "AssetManagement",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 1,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 7,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Auditoria",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "auditoria.*",
+      "charter_adr": "0094",
+      "scope": "Modules/Auditoria/SCOPE.md",
+      "purpose": "Trilha de auditoria + governance review do oimpresso. Cataloga eventos críticos cross-módulo (LGPD Art. 37 accountability).",
+      "signals": {
+        "grade": {
+          "value": 81,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Auditoria",
+          "via": "direto",
+          "telas": 2,
+          "com_scorecard": 2,
+          "nota_media": 73,
+          "nota_min": 72,
+          "pior_tela": "Auditoria/Detail",
+          "charter_pct": 50,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 3,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-15",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Brief",
+      "trust": "L1",
+      "owner": "wagner",
+      "permission_prefix": "n/a",
+      "charter_adr": "0091",
+      "scope": "Modules/Brief/SCOPE.md",
+      "purpose": "Daily Brief (camada L7 / contexto) — gera estado consolidado ≤3.5k tokens 6x/dia + tool MCP brief-fetch + endpoint HTTP. Reduz onboarding de sessão Claude de ~30k para ~3k tokens. Sprint 1 da Constituição V2 (ADR 0091).",
+      "signals": {
+        "grade": {
+          "value": 85,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "Brief",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 6,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 3,
+          "owns_legacy_views": 0,
+          "consumes_tables": 4,
+          "governed_by_adr": 4,
+          "components": 6,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-21",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Cms",
+      "trust": "L4",
+      "owner": "wagner",
+      "permission_prefix": "cms.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Cms/SCOPE.md",
+      "purpose": "Mini CMS — landing page, blog, contact-us. Routes /, /c/page/{x}, /c/blogs.",
+      "signals": {
+        "grade": {
+          "value": 76,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "Cms",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 5,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-17",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Compras",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "compras.*",
+      "charter_adr": "0079",
+      "scope": "Modules/Compras/SCOPE.md",
+      "purpose": "Gestão de compras (entrada de mercadoria) — substitui UltimatePOS Purchase legacy.",
+      "signals": {
+        "grade": {
+          "value": 73,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Compras",
+          "via": "direto",
+          "telas": 1,
+          "com_scorecard": 1,
+          "nota_media": 73,
+          "nota_min": 73,
+          "pior_tela": "Compras/Index",
+          "charter_pct": 100,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 4,
+          "dependents": 0,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 3,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-03",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "ComunicacaoVisual",
+      "trust": "L2",
+      "owner": "wagner",
+      "permission_prefix": "com_visual.*",
+      "charter_adr": "0121",
+      "scope": "Modules/ComunicacaoVisual/SCOPE.md",
+      "purpose": "Vertical gráfica rápida BR (CNAE 1813-0/01). Diferencial: cálculo m² + PCP gráfico + apontamento + NFe-de-boleto-pago + IA conversacional. Greenfield aguardando piloto Q3/2026 entre OfficeImpresso clients.",
+      "signals": {
+        "grade": {
+          "value": 80,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "ComunicacaoVisual",
+          "via": "direto",
+          "telas": 1,
+          "com_scorecard": 1,
+          "nota_media": 72,
+          "nota_min": 72,
+          "pior_tela": "ComunicacaoVisual/Index",
+          "charter_pct": 100,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 2,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 4,
+          "components": 10,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-15",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Connector",
+      "trust": "L0",
+      "owner": "wagner",
+      "permission_prefix": "connector.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Connector/SCOPE.md",
+      "purpose": "POS APIs UltimatePOS — coração dos POS clientes. Só Wagner toca.",
+      "signals": {
+        "grade": {
+          "value": 86,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "Connector",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 30,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "ConsultaOs",
+      "trust": "L4",
+      "owner": "wagner",
+      "permission_prefix": "consultaos.*",
+      "charter_adr": "0080",
+      "scope": "Modules/ConsultaOs/SCOPE.md",
+      "purpose": "Portal público de consulta de Ordem de Serviço. Cliente acompanha pipeline produção.",
+      "signals": {
+        "grade": {
+          "value": 79,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "ConsultaOs",
+          "via": "direto",
+          "telas": 1,
+          "com_scorecard": 1,
+          "nota_media": 74,
+          "nota_min": 74,
+          "pior_tela": "ConsultaOs/Index",
+          "charter_pct": 0,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 3,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-15",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Crm",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "crm.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Crm/SCOPE.md",
+      "purpose": "Módulo de CLIENTE / contatos do cliente (UPOS herdou o nome 'Crm'; NÃO existe Modules/Cliente): cadastro, drawer 760px com aba Endereço, múltiplos endereços (US-CRM-078).",
+      "signals": {
+        "grade": {
+          "value": 87,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "Crm",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 28,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-14",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Essentials",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "essentials.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Essentials/SCOPE.md",
+      "purpose": "UltimatePOS HRM herdado. Notas (NEW) extrai gradual em Fase 3.10.",
+      "signals": {
+        "grade": {
+          "value": 86,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Essentials",
+          "via": "direto",
+          "telas": 13,
+          "com_scorecard": 13,
+          "nota_media": 78,
+          "nota_min": 73,
+          "pior_tela": "Essentials/Settings/Index",
+          "charter_pct": 23,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 1,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 19,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-19",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Financeiro",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "financeiro.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Financeiro/SCOPE.md",
+      "purpose": "Contas a pagar/receber, fluxo de caixa, DRE BR.",
+      "signals": {
+        "grade": {
+          "value": 82,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Financeiro",
+          "via": "direto",
+          "telas": 21,
+          "com_scorecard": 21,
+          "nota_media": 75,
+          "nota_min": 64,
+          "pior_tela": "Financeiro/AssinaturaAtualizar",
+          "charter_pct": 76,
+          "casos_pct": 24,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 1,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 25,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-21",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Fiscal",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "fiscal.*",
+      "charter_adr": "0094",
+      "scope": "Modules/Fiscal/SCOPE.md",
+      "purpose": "Cockpit fiscal unificado — agregador thin sobre NfeBrasil + NFSe (sem duplicação). 7 sub-páginas (Cockpit, NF-e, NFS-e, DF-e, Eventos, Config, SPED) conforme design Cowork KB-9.75 todas entregues. Ações cancelar/CC-e/inutilização/retransmitir + ⌘K palette cross-fiscal + gerador SPED EFD-ICMS/IPI v3.1.1 perfil A em produção pós-Waves 1-9 (PRs #1183, #1185, #1189, #1190, #1249, #1253, #1257, #1259, #1261).",
+      "signals": {
+        "grade": {
+          "value": 74,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Fiscal",
+          "via": "direto",
+          "telas": 7,
+          "com_scorecard": 7,
+          "nota_media": 80,
+          "nota_min": 76,
+          "pior_tela": "Fiscal/Nfse",
+          "charter_pct": 100,
+          "casos_pct": 100,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 4,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 7,
+          "components": 12,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-03",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Governance",
+      "trust": "L1",
+      "owner": "wagner",
+      "permission_prefix": "governance.*",
+      "charter_adr": "0086",
+      "scope": "Modules/Governance/SCOPE.md",
+      "purpose": "Governança consolidada — ActionGate runtime, audit dashboard, ADRs pending approvals, policies CRUD, drift alerts. Constituição Art. 8 + Art. 9 operacional.",
+      "signals": {
+        "grade": {
+          "value": 88,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "governance",
+          "via": "direto",
+          "telas": 7,
+          "com_scorecard": 7,
+          "nota_media": 77,
+          "nota_min": 73,
+          "pior_tela": "governance/Audit",
+          "charter_pct": 100,
+          "casos_pct": 14,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 7,
+          "dependents": 5,
+          "provides_api": 1,
+          "owns_tables": 1,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 5,
+          "components": 9,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-17",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Jana",
+      "trust": "L2",
+      "owner": "wagner",
+      "permission_prefix": "jana.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Jana/SCOPE.md",
+      "purpose": "Chat IA do business — conversa, sugere metas, monitora execução. Tenancy híbrida (business_id nullable). Inclui custos LLM, qualidade RAG, alertas, períodos. Renomeado de Copiloto em Fase 3.7 PR-2 (2026-05-06). URLs/permissions/config keys mantêm prefixo legacy `copiloto.*` por compatibilidade.",
+      "signals": {
+        "grade": {
+          "value": 73,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Jana",
+          "via": "direto",
+          "telas": 11,
+          "com_scorecard": 11,
+          "nota_media": 76,
+          "nota_min": 68,
+          "pior_tela": "Jana/Regras/Index",
+          "charter_pct": 73,
+          "casos_pct": 9,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 8,
+          "dependents": 7,
+          "provides_api": 1,
+          "owns_tables": 13,
+          "owns_legacy_views": 13,
+          "consumes_tables": 0,
+          "governed_by_adr": 6,
+          "components": 20,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-17",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "KB",
+      "trust": "L2",
+      "owner": "wagner",
+      "permission_prefix": "kb.*",
+      "charter_adr": "0080",
+      "scope": "Modules/KB/SCOPE.md",
+      "purpose": "Knowledge Base — biblioteca compartilhada de ADRs, sessions, runbooks, specs, comparativos. Browse/search/graph sobre `mcp_memory_documents`. Split do Copiloto pra desacoplar chat IA de browsing canônico.",
+      "signals": {
+        "grade": {
+          "value": 77,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "kb",
+          "via": "direto",
+          "telas": 3,
+          "com_scorecard": 3,
+          "nota_media": 76,
+          "nota_min": 74,
+          "pior_tela": "kb/Graph",
+          "charter_pct": 100,
+          "casos_pct": 33,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 7,
+          "dependents": 29,
+          "provides_api": 2,
+          "owns_tables": 14,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 13,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-17",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Manufacturing",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "manufacturing.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Manufacturing/SCOPE.md",
+      "purpose": "UltimatePOS manufacturing.",
+      "signals": {
+        "grade": {
+          "value": 80,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Manufacturing",
+          "via": "direto",
+          "telas": 1,
+          "com_scorecard": 1,
+          "nota_media": 72,
+          "nota_min": 72,
+          "pior_tela": "Manufacturing/Index",
+          "charter_pct": 100,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 6,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-19",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "NfeBrasil",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "nfebrasil.*",
+      "charter_adr": "0080",
+      "scope": "Modules/NfeBrasil/SCOPE.md",
+      "purpose": "NFC-e + NF-e + SPED brasileiro. Spec-ready.",
+      "signals": {
+        "grade": {
+          "value": 79,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "NfeBrasil",
+          "via": "direto",
+          "telas": 6,
+          "com_scorecard": 6,
+          "nota_media": 79,
+          "nota_min": 74,
+          "pior_tela": "NfeBrasil/Transactions/NfceStatus",
+          "charter_pct": 67,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 5,
+          "provides_api": 1,
+          "owns_tables": 7,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 11,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-14",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "NFSe",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "nfse.*",
+      "charter_adr": "0080",
+      "scope": "Modules/NFSe/SCOPE.md",
+      "purpose": "Emissão NFSe via Sistema Nacional (LC 214/2025). Spec-ready, ativar com NfeBrasil.",
+      "signals": {
+        "grade": {
+          "value": 82,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Nfse",
+          "via": "direto",
+          "telas": 3,
+          "com_scorecard": 3,
+          "nota_media": 81,
+          "nota_min": 77,
+          "pior_tela": "Nfse/Emitir",
+          "charter_pct": 0,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 2,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 3,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Notas",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": null,
+      "purpose": "",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": false,
+          "ns": "Notas",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 1,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": false,
+          "last_commit": null,
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": false,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": false,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 2,
+        "applicable": 6,
+        "ratio": 0.33,
+        "level": "bronze"
+      }
+    },
+    {
+      "id": "Officeimpresso",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "officeimpresso.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Officeimpresso/SCOPE.md",
+      "purpose": "Sistema Office Impresso desktop licenciamento (Superadmin-only).",
+      "signals": {
+        "grade": {
+          "value": 82,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "Officeimpresso",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 7,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-15",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "OficinaAuto",
+      "trust": "L2",
+      "owner": "wagner",
+      "permission_prefix": "oficina_auto.*",
+      "charter_adr": "0137",
+      "scope": "Modules/OficinaAuto/SCOPE.md",
+      "purpose": "Vertical oficinas automotivas BR (mecânica geral, recapagem, locação caçamba). Schema próprio veículo+placa (≠ Repair que usa serial_no+device neutro).",
+      "signals": {
+        "grade": {
+          "value": 80,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "OficinaAuto",
+          "via": "direto",
+          "telas": 9,
+          "com_scorecard": 9,
+          "nota_media": 78,
+          "nota_min": 72,
+          "pior_tela": "OficinaAuto/Vehicles/Edit",
+          "charter_pct": 100,
+          "casos_pct": 44,
+          "stale": false,
+          "idade_max_dias": 3
+        },
+        "graph": {
+          "depends_on": 2,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 5,
+          "components": 10,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-17",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "PaymentGateway",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "paymentgateway.*",
+      "charter_adr": "0170",
+      "scope": "Modules/PaymentGateway/SCOPE.md",
+      "purpose": "Camada técnica de cobrança BR — drivers Inter/C6/Asaas/Pix Automático BCB, webhooks, CNAB, credenciais. Consumida por Sell, RecurringBilling, NFSe, Superadmin license.",
+      "signals": {
+        "grade": {
+          "value": 63,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "PaymentGateway",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 4,
+          "dependents": 0,
+          "provides_api": 7,
+          "owns_tables": 3,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 6,
+          "components": 25,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-14",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Ponto",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "pontowr2.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Ponto/SCOPE.md",
+      "purpose": "Ponto eletrônico Portaria 671/2021. Renomeado de PontoWr2 em Fase 3.7 PR-2 (2026-05-06). URLs/permissions/config keys mantêm prefixo legacy `pontowr2.*` por compatibilidade.",
+      "signals": {
+        "grade": {
+          "value": 76,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Ponto",
+          "via": "direto",
+          "telas": 20,
+          "com_scorecard": 20,
+          "nota_media": 80,
+          "nota_min": 71,
+          "pior_tela": "Ponto/Espelho/Index",
+          "charter_pct": 0,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 13,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-02",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "ProductCatalogue",
+      "trust": "L4",
+      "owner": "wagner",
+      "permission_prefix": "productcatalogue.*",
+      "charter_adr": "0080",
+      "scope": "Modules/ProductCatalogue/SCOPE.md",
+      "purpose": "Catálogo & menu público.",
+      "signals": {
+        "grade": {
+          "value": 78,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "ProductCatalogue",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 3,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Produto",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": "memory/requisitos/Produto/SUPERFICIE.md",
+      "purpose": "Domínio core UltimatePOS (Classe B)",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": true,
+          "ns": "Produto",
+          "via": "direto",
+          "telas": 8,
+          "com_scorecard": 8,
+          "nota_media": 79,
+          "nota_min": 70,
+          "pior_tela": "Produto/Show",
+          "charter_pct": 100,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 0,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": false
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-20",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": false,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 9,
+        "ratio": 0.67,
+        "level": "bronze"
+      }
+    },
+    {
+      "id": "Project",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": null,
+      "purpose": "",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": false,
+          "ns": "Project",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 3,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": false,
+          "last_commit": null,
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": false,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": false,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 2,
+        "applicable": 6,
+        "ratio": 0.33,
+        "level": "bronze"
+      }
+    },
+    {
+      "id": "ProjectMgmt",
+      "trust": "L2",
+      "owner": "wagner",
+      "permission_prefix": "projectmgmt.*",
+      "charter_adr": "0080",
+      "scope": "Modules/ProjectMgmt/SCOPE.md",
+      "purpose": "Gerenciamento Jira-style do time interno: Kanban, Backlog, Roadmap, My Work, Inbox, Triage, Burndown sobre `mcp_jira_projects/epics/cycles/tasks`.",
+      "signals": {
+        "grade": {
+          "value": 85,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "ProjectMgmt",
+          "via": "direto",
+          "telas": 9,
+          "com_scorecard": 8,
+          "nota_media": 84,
+          "nota_min": 76,
+          "pior_tela": "ProjectMgmt/Roadmap/Index",
+          "charter_pct": 33,
+          "casos_pct": 0,
+          "stale": true,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 5,
+          "dependents": 20,
+          "provides_api": 1,
+          "owns_tables": 15,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 4,
+          "components": 11,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-13",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 7,
+        "applicable": 9,
+        "ratio": 0.78,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "RecurringBilling",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "recurringbilling.*",
+      "charter_adr": "0080",
+      "scope": "Modules/RecurringBilling/SCOPE.md",
+      "purpose": "Cobrança recorrente BR — Pix Automático, smart retries, NFSe automática. Spec-ready.",
+      "signals": {
+        "grade": {
+          "value": 82,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "RecurringBilling",
+          "via": "direto",
+          "telas": 6,
+          "com_scorecard": 6,
+          "nota_media": 87,
+          "nota_min": 86,
+          "pior_tela": "RecurringBilling/Configuracoes/Index",
+          "charter_pct": 100,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 1,
+          "provides_api": 2,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 11,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-14",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Repair",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "repair.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Repair/SCOPE.md",
+      "purpose": "UltimatePOS repair shops.",
+      "signals": {
+        "grade": {
+          "value": 83,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Repair",
+          "via": "direto",
+          "telas": 13,
+          "com_scorecard": 13,
+          "nota_media": 77,
+          "nota_min": 71,
+          "pior_tela": "Repair/JobSheet/Edit",
+          "charter_pct": 92,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 3,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 11,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-14",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Sells",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": "memory/requisitos/Sells/SUPERFICIE.md",
+      "purpose": "Domínio core UltimatePOS (Classe B)",
+      "signals": {
+        "grade": null,
+        "screens": {
+          "matched": true,
+          "ns": "Sells",
+          "via": "direto",
+          "telas": 8,
+          "com_scorecard": 8,
+          "nota_media": 81,
+          "nota_min": 72,
+          "pior_tela": "Sells/Subscriptions",
+          "charter_pct": 100,
+          "casos_pct": 25,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 1,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 0,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-17",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": false,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 7,
+        "applicable": 9,
+        "ratio": 0.78,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Spreadsheet",
+      "trust": "L4",
+      "owner": "wagner",
+      "permission_prefix": "spreadsheet.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Spreadsheet/SCOPE.md",
+      "purpose": "Planilhas internas — uso interno do time.",
+      "signals": {
+        "grade": {
+          "value": 80,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "Spreadsheet",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 3,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "SRS",
+      "trust": "L1",
+      "owner": "wagner",
+      "permission_prefix": "memcofre.*",
+      "charter_adr": "0080",
+      "scope": "Modules/SRS/SCOPE.md",
+      "purpose": "System Rules Spec — regras imutáveis pra IA programar. Append-only por trigger MySQL. Toda IA L2+ lê SRS antes de qualquer ação no código. Renomeado de MemCofre em Fase 3.7 PR-2 (2026-05-06) — rename PHP-only; URLs/permissions/config keys mantêm prefixo legacy `memcofre.*`. Repurpose funcional (cofre→SRS) ainda em transição via tabelas srs_entries futuras.",
+      "signals": {
+        "grade": {
+          "value": 76,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "SRS",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 4,
+          "dependents": 3,
+          "provides_api": 1,
+          "owns_tables": 4,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 10,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-19",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "Superadmin",
+      "trust": "L0",
+      "owner": "wagner",
+      "permission_prefix": "superadmin.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Superadmin/SCOPE.md",
+      "purpose": "Pacotes + subscription multi-tenant. Só Wagner toca.",
+      "signals": {
+        "grade": {
+          "value": 75,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "superadmin",
+          "via": "direto",
+          "telas": 2,
+          "com_scorecard": 2,
+          "nota_media": 73,
+          "nota_min": 70,
+          "pior_tela": "superadmin/Usuario360/Index",
+          "charter_pct": 100,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 1,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 14,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 9,
+        "applicable": 9,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    },
+    {
+      "id": "TeamMcp",
+      "trust": "L1",
+      "owner": "wagner",
+      "permission_prefix": "teammcp.*",
+      "charter_adr": "0080",
+      "scope": "Modules/TeamMcp/SCOPE.md",
+      "purpose": "Painel administrativo do MCP server canônico (mcp.oimpresso.com): tokens, scopes, audit, webhooks, ingest, tools registry, identity (mcp_actors), e tasks/cycles Jira-style do time.",
+      "signals": {
+        "grade": {
+          "value": 79,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "team-mcp",
+          "via": "normalizado",
+          "telas": 5,
+          "com_scorecard": 0,
+          "nota_media": null,
+          "nota_min": null,
+          "pior_tela": null,
+          "charter_pct": 100,
+          "casos_pct": 40,
+          "stale": true,
+          "idade_max_dias": null
+        },
+        "graph": {
+          "depends_on": 6,
+          "dependents": 31,
+          "provides_api": 1,
+          "owns_tables": 14,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 8,
+          "components": 12,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-17",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": true,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Vestuario",
+      "trust": "L2",
+      "owner": "wagner",
+      "permission_prefix": "vestuario.*",
+      "charter_adr": "0121",
+      "scope": "Modules/Vestuario/SCOPE.md",
+      "purpose": "Vertical lojas de vestuário/moda BR (CNAE 4781-4/00). Encapsula customizações ROTA LIVRE (cliente piloto biz=4) e habilita revenda do módulo. Consome Modules/Repair shared infra opcional (kanban costureira→revisão→finalização) via vocabulário shared.",
+      "signals": {
+        "grade": {
+          "value": 83,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Vestuario",
+          "via": "direto",
+          "telas": 1,
+          "com_scorecard": 1,
+          "nota_media": 75,
+          "nota_min": 75,
+          "pior_tela": "Vestuario/Etiquetas/Index",
+          "charter_pct": 0,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 5,
+          "components": 5,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-19",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 8,
+        "applicable": 9,
+        "ratio": 0.89,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Whatsapp",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "scope": "Modules/Whatsapp/SCOPE.md",
+      "purpose": "Whatsapp transacional unificado (Z-API default + Meta Cloud fallback obrigatório; BaileysDriver custom autorizado Sprint 3; Evolution PROIBIDO permanente) — status OS Repair, boleto/NFe RecurringBilling, lembrete Financeiro, ConsultaOs acompanhamento, bot Jana HITL",
+      "signals": {
+        "grade": {
+          "value": 80,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": true,
+          "ns": "Whatsapp",
+          "via": "direto",
+          "telas": 2,
+          "com_scorecard": 2,
+          "nota_media": 80,
+          "nota_min": 74,
+          "pior_tela": "Whatsapp/Templates/Index",
+          "charter_pct": 50,
+          "casos_pct": 0,
+          "stale": false,
+          "idade_max_dias": 1
+        },
+        "graph": {
+          "depends_on": 0,
+          "dependents": 0,
+          "provides_api": 0,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 0,
+          "components": 31,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-07-17",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": false,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": true,
+          "rot": "telas rastreadas em vital-signs"
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas"
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": true,
+          "rot": "nenhuma tela stale"
+        }
+      ],
+      "maturity": {
+        "passed": 7,
+        "applicable": 9,
+        "ratio": 0.78,
+        "level": "prata"
+      }
+    },
+    {
+      "id": "Woocommerce",
+      "trust": "L3",
+      "owner": "wagner",
+      "permission_prefix": "woocommerce.*",
+      "charter_adr": "0080",
+      "scope": "Modules/Woocommerce/SCOPE.md",
+      "purpose": "Integração POS ↔ WooCommerce.",
+      "signals": {
+        "grade": {
+          "value": 87,
+          "ruler": "0155",
+          "baseline": "v3.6.0"
+        },
+        "screens": {
+          "matched": false,
+          "ns": "Woocommerce",
+          "backend_only": true,
+          "note": "sem superfície de tela (backend-only) — n/a, não é falha"
+        },
+        "graph": {
+          "depends_on": 3,
+          "dependents": 0,
+          "provides_api": 1,
+          "owns_tables": 0,
+          "owns_legacy_views": 0,
+          "consumes_tables": 0,
+          "governed_by_adr": 3,
+          "components": 4,
+          "dangling_edges": 0,
+          "connected": true
+        },
+        "briefing": {
+          "present": true,
+          "last_commit": "2026-06-08",
+          "verdict_owner": "briefing-code-staleness.mjs"
+        },
+        "cost": {
+          "module_attributable": false,
+          "owner": "agent-cost-per-pr.mjs",
+          "note": "custo é por-PR; atribuição por módulo é gap honesto (§5 2026-07-17)"
+        }
+      },
+      "checks": [
+        {
+          "key": "has_scope",
+          "ok": true,
+          "rot": "SCOPE.md presente"
+        },
+        {
+          "key": "has_charter_adr",
+          "ok": true,
+          "rot": "charter/ADR declarado"
+        },
+        {
+          "key": "graded",
+          "ok": true,
+          "rot": "nota module-grade presente"
+        },
+        {
+          "key": "briefing_present",
+          "ok": true,
+          "rot": "BRIEFING.md presente"
+        },
+        {
+          "key": "graph_connected",
+          "ok": true,
+          "rot": "conectado no grafo (≥1 aresta)"
+        },
+        {
+          "key": "no_dangling_edges",
+          "ok": true,
+          "rot": "sem aresta pendurada"
+        },
+        {
+          "key": "screens_matched",
+          "ok": false,
+          "rot": "telas rastreadas em vital-signs",
+          "na": true
+        },
+        {
+          "key": "charter_full",
+          "ok": false,
+          "rot": "charter 100% nas telas",
+          "na": true
+        },
+        {
+          "key": "no_stale_screens",
+          "ok": false,
+          "rot": "nenhuma tela stale",
+          "na": true
+        }
+      ],
+      "maturity": {
+        "passed": 6,
+        "applicable": 6,
+        "ratio": 1,
+        "level": "ouro"
+      }
+    }
+  ]
+}

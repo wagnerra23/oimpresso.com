@@ -74,6 +74,13 @@ jobs:
       # Advisory por desenho (ADR 0314/0275: required = só Tier-0).
       - name: Catalog graph (arestas tipadas do SCOPE · aresta pendurada morde · determinismo)
         run: node scripts/governance/catalog-graph.test.mjs
+      # Scorecard de sinais-vivos por serviço (grade Catálogo/IDP 7,5 · "scorecard de sinais-vivos"
+      # + UI consultável, 2026-07-21). AGREGADOR advisory que junta grade+telas+grafo+briefing por
+      # serviço — testa a LÓGICA PURA (buildDoc/graphSignals) com fixtures sintéticas: join grade
+      # exato, join tela PAGES_NS + normalização EXATA (sem casar por similaridade), backend-only ≠
+      # falha, aresta pendurada, maturidade só sobre checks aplicáveis, determinismo.
+      - name: Service scorecard (join grade/tela/grafo · normalização exata · determinismo)
+        run: node --test scripts/governance/service-scorecard.test.mjs
       - name: Função-scorecard blind pack (IDs opacos + docblocks sem tells + scorer compatível)
         run: node --test scripts/governance/funcao-scorecard-calibracao.test.mjs
       - name: Função-scorecard gold humano (9/9 obrigatório + K/9 + Cohen kappa)
