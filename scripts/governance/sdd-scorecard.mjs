@@ -288,7 +288,11 @@ function gitNewestModuleDocDate(modDir) {
     for (const e of readdirSync(d, { withFileTypes: true })) {
       const p = join(d, e.name);
       if (e.isDirectory()) { walk(p); continue; }
-      if (!e.name.endsWith('.md') || p === briefing) continue;
+      // SUPERFICIE.md é índice GERADO (authority: generated, module-surface.mjs) — NÃO é
+      // conhecimento novo que a porta destilada deveria refletir. Contá-lo marcaria a BRIEFING
+      // como stale falsamente toda vez que um módulo ganha superfície (§5 2026-07-12: conserta
+      // o medidor, não o baseline — 2026-07-17). Fica FORA do "doc mais novo do módulo".
+      if (!e.name.endsWith('.md') || p === briefing || e.name === 'SUPERFICIE.md') continue;
       const dt = gitDateOf(p);
       if (dt && (!newest || dt > newest)) newest = dt;
     }
