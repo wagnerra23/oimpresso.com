@@ -250,6 +250,23 @@ jobs:
       # "calibração vira atalho pra liberar lote" e "número sem rótulo humano".
       - name: Ledger tipo juiz — calibração não libera lote + rótulo humano às cegas (C10)
         run: node scripts/governance/ledger-check-juiz.test.mjs
+      # Transparency-log (Rekor-style) do sdd-verification-ledger — grade de réguas
+      # 2026-07-21 (sub-dim "Humano-no-loop + ledger de rejeição" 8,0, gap a): hash-chain
+      # torna adulteração RETROATIVA de entry selada detectável + pina proveniência
+      # imutável (crítico/prompt/hash-da-rubrica) por lote. O selftest prova que a corrente
+      # MORDE (tamper → --verify --check exit 1); o --verify roda advisory (exit 0) todo PR.
+      - name: Ledger hash-chain — selftest (tamper retroativo morde, append legítimo solta)
+        run: node scripts/governance/ledger-hash-chain.test.mjs
+      - name: Ledger hash-chain — verificação advisory da integridade (exit 0 · nunca bloqueia)
+        run: node scripts/governance/ledger-hash-chain.mjs --verify
+      # Re-check de frescor das lápides §5 (grade 2026-07-21, gap b): o registro de rejeição
+      # também apodrece. Surfaça lápides cujas ÂNCORAS citadas driftaram (script/gate/arquivo
+      # sumido) pra revisão HUMANA — NUNCA apaga (§5 append-only), NUNCA é presence-gate nem
+      # catraca de campo auto-declarado. Report-only (exit 0 sempre).
+      - name: Lápide-recheck — selftest (drift de âncora morde, FP de shorthand/ADR-slug morto)
+        run: node scripts/governance/lapide-recheck.test.mjs
+      - name: Lápide-recheck — relatório advisory de frescor do §5 (exit 0 · surfaça pra humano)
+        run: node scripts/governance/lapide-recheck.mjs
       # Chip orq-anti-goodhart (grade 2026-07-18 · orquestração-adversarial 5,0 "sem
       # anti-Goodhart no layer de agente"): negative control do REFUTER. Prova que a
       # detecção de Goodhart morde (bad = refuter aprovou o plantado → exit 1). O selftest
