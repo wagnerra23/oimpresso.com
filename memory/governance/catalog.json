@@ -42,7 +42,7 @@
       "delegatesTo": 125,
       "migratesTo": 1
     },
-    "dangling": 12
+    "dangling": 6
   },
   "nodes": [
     {
@@ -5239,7 +5239,7 @@
     },
     {
       "from": "module:Arquivos",
-      "to": "module:MemCofre",
+      "to": "module:SRS",
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "MemCofre senhas/segredos"
@@ -7352,13 +7352,6 @@
     },
     {
       "from": "module:KB",
-      "to": "module:Copiloto",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Chat IA (Jana)"
-    },
-    {
-      "from": "module:KB",
       "to": "module:Governance",
       "type": "delegatesTo",
       "source": "not_contains",
@@ -7366,10 +7359,10 @@
     },
     {
       "from": "module:KB",
-      "to": "module:MemCofre",
+      "to": "module:Jana",
       "type": "delegatesTo",
       "source": "not_contains",
-      "note": "System Rules Spec (regras pra IA programar)"
+      "note": "Chat IA (Jana)"
     },
     {
       "from": "module:KB",
@@ -7377,6 +7370,13 @@
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:SRS",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "System Rules Spec (regras pra IA programar)"
     },
     {
       "from": "module:KB",
@@ -8547,7 +8547,7 @@
     },
     {
       "from": "module:ProjectMgmt",
-      "to": "module:Copiloto",
+      "to": "module:Jana",
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Chat IA"
@@ -9331,17 +9331,17 @@
     },
     {
       "from": "module:TeamMcp",
-      "to": "module:Copiloto",
-      "type": "delegatesTo",
-      "source": "not_contains",
-      "note": "Chat IA conversacional"
-    },
-    {
-      "from": "module:TeamMcp",
       "to": "module:Governance",
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "Policies executáveis runtime"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Jana",
+      "type": "delegatesTo",
+      "source": "not_contains",
+      "note": "Chat IA conversacional"
     },
     {
       "from": "module:TeamMcp",
@@ -9352,7 +9352,7 @@
     },
     {
       "from": "module:TeamMcp",
-      "to": "module:MemCofre",
+      "to": "module:SRS",
       "type": "delegatesTo",
       "source": "not_contains",
       "note": "System Rules Spec"
@@ -9921,13 +9921,6 @@
         "note": "Tasks/Cycles/Projects Jira-style"
       },
       {
-        "from": "module:Arquivos",
-        "to": "module:MemCofre",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "MemCofre senhas/segredos"
-      },
-      {
         "from": "module:Compras",
         "to": "module:Sells",
         "type": "delegatesTo",
@@ -9942,20 +9935,6 @@
         "note": "Modules/Notas (NEW) — KB pessoal + tarefas + arquivo cliente"
       },
       {
-        "from": "module:KB",
-        "to": "module:Copiloto",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "Chat IA (Jana)"
-      },
-      {
-        "from": "module:KB",
-        "to": "module:MemCofre",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "System Rules Spec (regras pra IA programar)"
-      },
-      {
         "from": "module:PaymentGateway",
         "to": "module:Accounting",
         "type": "delegatesTo",
@@ -9964,31 +9943,10 @@
       },
       {
         "from": "module:ProjectMgmt",
-        "to": "module:Copiloto",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "Chat IA"
-      },
-      {
-        "from": "module:ProjectMgmt",
         "to": "module:Project",
         "type": "delegatesTo",
         "source": "not_contains",
         "note": "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects)"
-      },
-      {
-        "from": "module:TeamMcp",
-        "to": "module:Copiloto",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "Chat IA conversacional"
-      },
-      {
-        "from": "module:TeamMcp",
-        "to": "module:MemCofre",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "System Rules Spec"
       }
     ],
     "dangling_adr_refs": [],
