@@ -81,7 +81,13 @@ O método **não vale** até o juiz provar que DISCRIMINA. Antes de shippar qual
 - **Se FALHAR:** o piloto **FALHA e a gente diz isso** — registra no session log + a proposta vira `parked/rejected` (cultura lápide). YAML não shippa.
 
 ### Ledger do bite-test
-_(preenchido após a corrida — mirror de `screen-grades-pilot.md`)_
+
+**2026-07-21 · `app/Utils/ProductUtil.php` · 3 juízes frescos · PASSOU.**
+- **T2 (discriminante): PASSOU.** As 3 famílias de defeito plantadas foram achadas pelos 3 juízes com linha exata: `getVariationGroupPrice` C1 (queries sem business_id 1052/1066) + C3 (0-row→`''` 1058-61) + C7 (`@return decimal` vs array 1048); `getProductDiscount` C6 (`whereRaw` interpolado 1559); `calculateInvoiceTotal` C2 (`num_uf` em float 650). Discriminante: `getProductDiscount` C1 = **concordo** nos 3 (é escopado — não over-flagaram). Controle limpo `generateProductSku`: **zero `discordo`** nos 3.
+- **T1 (test-retest): PASSOU.** 31/32 critérios idênticos entre as 3 rodadas = **96,9% ≥ 90%**.
+- **Achado do T1 (a endurecer):** único flip = `getProductDiscount` C7 (2 discordo / 1 concordo). O `como-medir` do C7 mistura "docblock-verdade" + "nullabilidade" + "polimorfismo" — 3 coisas. **Ação:** próxima versão do método deve **quebrar C7** em critérios binários separados (ou declarar explicitamente que retorno-nullable-não-documentado = discordo). Registrado no scorecard (`funcoes/app-utils-productutil.yaml`).
+- **Contaminação:** os juízes têm `proibicoes.md` always-on, mas a discriminação é real — acertaram linha+mecanismo E não over-flagaram o controle nem o critério escopado (um juiz "carimba-tudo" contaminado teria feito o oposto).
+- 1º scorecard materializado: [`funcoes/app-utils-productutil.yaml`](../../governance/scorecards/funcoes/app-utils-productutil.yaml) (4 funções bite-testadas; extensão às 38 = follow-up).
 
 ## §6 O que um `discordo` NÃO autoriza
 
