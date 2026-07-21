@@ -12,7 +12,7 @@ import { Button } from '@/Components/ui/button'
 import PageHeader from '@/Components/shared/PageHeader'
 import KpiGrid from '@/Components/shared/KpiGrid'
 import KpiCard from '@/Components/shared/KpiCard'
-import { Shield } from 'lucide-react'
+import { Shield, TriangleAlert, Info } from 'lucide-react'
 
 interface GradeRow {
   module: string
@@ -157,7 +157,7 @@ function ModuleGradesIndex({ grades, kpis, catalog }: Props): React.ReactElement
       />
 
       {/* Toggle de visão — Notas (default) | Catálogo & Sinais (grade Catálogo/IDP 2026-07-21) */}
-      <div className="mb-4 inline-flex rounded-lg border border-border bg-card p-0.5" role="group" aria-label="Visão">
+      <div className="mb-4 inline-block rounded-lg border border-border bg-card p-0.5" role="group" aria-label="Visão">
         <ViewTab label="Notas" active={view === 'notas'} onClick={() => setView('notas')} />
         <ViewTab label="Catálogo & Sinais" active={view === 'catalogo'} onClick={() => setView('catalogo')} />
       </div>
@@ -394,7 +394,7 @@ function ViewTab({ label, active, onClick }: { label: string; active: boolean; o
   )
 }
 
-const MATURITY_EMOJI: Record<Maturity['level'], string> = { ouro: '🥇', prata: '🥈', bronze: '🥉' }
+const MATURITY_LABEL: Record<Maturity['level'], string> = { ouro: 'Ouro', prata: 'Prata', bronze: 'Bronze' }
 
 function CatalogSignalsView({ catalog }: { catalog?: CatalogPayload }): React.ReactElement {
   if (!catalog || !catalog.available) {
@@ -416,16 +416,16 @@ function CatalogSignalsView({ catalog }: { catalog?: CatalogPayload }): React.Re
       {stats && (
         <Card className="mb-4 border-border bg-muted/50">
           <CardContent className="py-3 text-xs text-muted-foreground space-y-1.5">
-            <div className="flex flex-wrap gap-x-4 gap-y-1 items-center">
+            <div className="space-x-3">
               <span><strong className="text-foreground">{stats.services}</strong> serviços</span>
               <span><strong className="text-foreground">{stats.with_grade}</strong> com nota</span>
-              <span>Maturidade: {MATURITY_EMOJI.ouro} {stats.maturity_levels.ouro} · {MATURITY_EMOJI.prata} {stats.maturity_levels.prata} · {MATURITY_EMOJI.bronze} {stats.maturity_levels.bronze}</span>
+              <span>Maturidade: {MATURITY_LABEL.ouro} {stats.maturity_levels.ouro} · {MATURITY_LABEL.prata} {stats.maturity_levels.prata} · {MATURITY_LABEL.bronze} {stats.maturity_levels.bronze}</span>
             </div>
             {stats.unmatched_screen_dirs.length > 0 && (
-              <p className="text-destructive">⚠️ Telas sem linha em vital-signs (gap): {stats.unmatched_screen_dirs.join(', ')}</p>
+              <p className="text-destructive"><TriangleAlert className="inline h-3.5 w-3.5 mr-1 -mt-0.5" />Telas sem linha em vital-signs (gap): {stats.unmatched_screen_dirs.join(', ')}</p>
             )}
             {stats.orphan_screen_ns.length > 0 && (
-              <p>ℹ️ Namespaces de tela órfãos (core-app, sem serviço no catálogo): {stats.orphan_screen_ns.join(', ')}</p>
+              <p><Info className="inline h-3.5 w-3.5 mr-1 -mt-0.5" />Namespaces de tela órfãos (core-app, sem serviço no catálogo): {stats.orphan_screen_ns.join(', ')}</p>
             )}
             <p>
               AGREGADOR advisory (não recalcula nota — module-grade é o dono). Fontes: catalog.json + module-grades-baseline
@@ -445,7 +445,7 @@ function CatalogSignalsView({ catalog }: { catalog?: CatalogPayload }): React.Re
                   <th className="px-4 py-3 font-semibold">Serviço</th>
                   <th className="px-3 py-3 font-semibold text-right">Nota</th>
                   <th className="px-3 py-3 font-semibold">Telas</th>
-                  <th className="px-3 py-3 font-semibold text-center" title="depende de → / ← dependentes · API providas · tabelas próprias">Grafo</th>
+                  <th className="px-3 py-3 font-semibold text-center" title="depende-de / usado-por · API providas · tabelas próprias">Grafo</th>
                   <th className="px-3 py-3 font-semibold">Depende de</th>
                   <th className="px-3 py-3 font-semibold">BRIEFING</th>
                   <th className="px-3 py-3 font-semibold text-center">Maturidade</th>
@@ -487,11 +487,11 @@ function CatalogRow({ s }: { s: ServiceRow }): React.ReactElement {
       </td>
       <td className="px-3 py-2">
         <span className={sc?.matched && sc.stale ? 'text-destructive font-medium' : 'text-foreground'}>
-          {telas}{sc?.matched && sc.stale ? ' ⚠️stale' : ''}
+          {telas}{sc?.matched && sc.stale ? ' · stale' : ''}
         </span>
       </td>
       <td className="px-3 py-2 text-center font-mono text-xs text-muted-foreground" title={`depende de ${g?.depends_on ?? 0} · dependentes ${g?.dependents ?? 0} · API ${g?.provides_api ?? 0} · tabelas ${g?.owns_tables ?? 0}`}>
-        →{g?.depends_on ?? 0} ←{g?.dependents ?? 0} · {g?.provides_api ?? 0}api · {g?.owns_tables ?? 0}t
+        dep {g?.depends_on ?? 0} · usado {g?.dependents ?? 0} · {g?.provides_api ?? 0}api · {g?.owns_tables ?? 0}t
       </td>
       <td className="px-3 py-2 text-xs text-muted-foreground max-w-[220px] truncate" title={s.depends_on.join(', ') || '—'}>
         {s.depends_on.length ? s.depends_on.join(', ') : '—'}
@@ -500,7 +500,7 @@ function CatalogRow({ s }: { s: ServiceRow }): React.ReactElement {
       <td className="px-3 py-2 text-center">
         {s.maturity ? (
           <Badge className="bg-muted text-muted-foreground border-border" title={`${s.maturity.passed}/${s.maturity.applicable} checks de catálogo (presença/conexão)`}>
-            {MATURITY_EMOJI[s.maturity.level]} {s.maturity.passed}/{s.maturity.applicable}
+            {MATURITY_LABEL[s.maturity.level]} {s.maturity.passed}/{s.maturity.applicable}
           </Badge>
         ) : '—'}
       </td>
