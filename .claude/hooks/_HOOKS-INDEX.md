@@ -12,7 +12,7 @@
 - **44** wirings em `settings.json` (5 eventos) · **40** arquivos de hook distintos wired
 - **41** arquivos de hook no disco (+33 `*.test.*` — testes, fora da conta de órfãos)
 - Órfãos (arquivo sem wiring): **1** · Fantasmas (wiring sem arquivo): **0**
-- Gates CI no baseline: **31** classic + **1** ruleset → ponto-de-corte merge
+- Gates CI no baseline: **32** classic + **1** ruleset → ponto-de-corte merge
 
 ## Hooks wired (evento × matcher × arquivo)
 | Evento | Matcher | Hook | Runtime | Ponto-de-corte | Sinal de bloqueio (heurística) |
@@ -69,7 +69,7 @@ Nenhum.
 - ⚠️ `charter-validate.sh` — gêmeo cross-platform de charter-validate.mjs (wired)
 
 ## Gates CI (`required-checks-baseline.json` → ponto-de-corte merge)
-Contexts `classic_protection` (31):
+Contexts `classic_protection` (32):
 - ADR (memory/decisions/*.md)
 - ADR 0216 PR scan (governance:audit --diff-only)
 - ADR frontmatter
@@ -94,6 +94,7 @@ Contexts `classic_protection` (31):
 - Secret scan (gitleaks · só linhas novas do PR)
 - Stylelint · ratchet vs baseline
 - Tier-0 guards (WithoutGlobalScopes + BusinessId)
+- Tópico (memory/requisitos/*/topicos/*.md)
 - anchor entry/covers gate
 - anchor-lint ADR 0273
 - charter status:live precisa de sinal de prod
