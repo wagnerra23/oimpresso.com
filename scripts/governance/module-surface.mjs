@@ -41,7 +41,7 @@ const POS = args.filter((a) => !a.startsWith('--'));
 
 /**
  * Módulos CLASSE B — o código NÃO mora em `Modules/<Mod>/`, mora no núcleo UltimatePOS (`app/`).
- * Ex.: Venda (Sells) = fork do UltimatePOS, sem `Modules/Sells`. A MEMBERSHIP (quais arquivos
+ * Ex.: Venda (Sells) = fork do UltimatePOS, sem diretório modular homônimo. A MEMBERSHIP (quais arquivos
  * são do módulo) vem de uma SEMENTE CURADA e revisável no diff (não de "quem toca a tabela" —
  * medido 2026-07-21: `Transaction::` em 168 arquivos over-inclui Financeiro/Jana; decisão [W]).
  * `tabelas` = metadado-ÂNCORA declarado (estilo SCOPE.db_tables_owned), NÃO um derivador.
@@ -128,7 +128,7 @@ function expandirPrefixos(prefixos) {
 
 /**
  * Lista os módulos pro `--all`: dirs em Modules/ com module.json (CLASSE A) + as chaves de
- * CORE_APP_MODULES (CLASSE B, ex. Sells — não tem Modules/Sells mas tem semente no core).
+ * CORE_APP_MODULES (CLASSE B, ex. Sells — não tem diretório modular homônimo, mas tem semente no core).
  */
 function listarModulos() {
   const dir = join(ROOT, 'Modules');
@@ -182,7 +182,7 @@ function montar(mod, grupos, outros) {
   L.push(`> Regenerar: \`node scripts/governance/module-surface.mjs ${mod} --write\`. Validar frescor: \`--check\` (exit 1 se a árvore mudou e isto não foi regenerado).`);
   L.push('>');
   if (core) {
-    L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), não em `Modules/' + mod + '/`. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
+    L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
     L.push('> **O que isto é:** o código que MORA em `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
   }

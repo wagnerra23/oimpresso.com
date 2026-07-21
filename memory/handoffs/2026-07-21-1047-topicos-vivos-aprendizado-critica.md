@@ -28,6 +28,7 @@ A arquitetura aprovada por Wagner foi implementada sem backfill em massa. O PR s
 - O scorecard ProductUtil recém-mergeado no #4616 foi centralmente revisado e invalidado como bite-test: C2 contradizia o golden e C8 inflava 1 teste direto para 5.
 - Financeiro passou de 60 `.tsx` classificados como tela para 21 Pages executáveis, alinhadas aos 21 charters.
 - Self-tests 12/12; mapa 235/235 charters; oito superfícies sem drift; AJV do piloto verde.
+- A primeira rodada do CI pegou índice ADR stale e ghost literal de Sells; ambos foram corrigidos na fonte/regenerados, sem baseline novo.
 
 ## Decisões tomadas
 

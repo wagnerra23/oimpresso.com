@@ -41,6 +41,7 @@ A auditoria anterior encontrou que `module-surface.mjs` classificava todo `.tsx`
 - `node scripts/governance/module-surface.mjs --all --check` — oito módulos opt-in sem drift.
 - AJV 2020 + `ajv-formats` + `gray-matter` — tópico piloto válido.
 - `git diff --check` — sem erro.
+- Primeira rodada do CI: `adr-index --check` e anti-ghost morderam; regenerado `_INDEX-GENERATED.md` e removida da fonte gerada a citação literal ao diretório modular inexistente de Sells. Reexecução local: ambos verdes.
 - Pest/PHPStan não rodaram localmente; regra CT 100 preservada.
 
 ## Decisões cinzentas resolvidas
@@ -59,6 +60,7 @@ A auditoria anterior encontrou que `module-surface.mjs` classificava todo `.tsx`
 - “Defeito plantado” não pode ser declarado sobre código de produção usado para provar o próprio juiz. O bite-test precisa de fixture sintética e controle limpo.
 - Concordância entre três juízes que compartilham rubrica/gabarito mede repetibilidade, não independência nem verdade.
 - Um índice gerado só é útil se compartilha a mesma definição de tela com a ferramenta de cobertura.
+- Texto que diz “este path não existe” ainda é uma citação de path para um detector sintático; a fonte gerada deve expressar a ausência sem fabricar ghost literal.
 
 ## Próximos passos
 
