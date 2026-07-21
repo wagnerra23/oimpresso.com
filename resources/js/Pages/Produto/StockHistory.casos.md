@@ -31,13 +31,13 @@ last_run: "2026-07-21"
 
 | UC | Caso de uso | Prio | CU-PROD-11 | Teste | Status |
 |----|-------------|------|-----------|-------|--------|
-| UC-PSTK-01 | Partial reload retorna a timeline real (venda → saída) | must `[reg]` | item 1/2 | `StockHistoryContratoTest` | ⬜ aguarda CI |
-| UC-PSTK-02 | Produto de outro business → 404 (Tier 0) | must `[T0]` | item 4 | `StockHistoryContratoTest` | ⬜ aguarda CI |
-| UC-PSTK-03 | `movements` é deferido — ausente no render inicial (`[perf]`) | must `[perf]` | item 1/4 | `StockHistoryContratoTest` | ⬜ aguarda CI |
+| UC-PSTK-01 | Partial reload retorna a timeline real (venda → saída) | must `[reg]` | item 1/2 | `StockHistoryContratoTest` | 🧪 |
+| UC-PSTK-02 | Produto de outro business → 404 (Tier 0) | must `[T0]` | item 4 | `StockHistoryContratoTest` | 🧪 |
+| UC-PSTK-03 | `movements` é deferido — ausente no render inicial (`[perf]`) | must `[perf]` | item 1/4 | `StockHistoryContratoTest` | 🧪 |
 
-> **Por que ⬜ e não 🧪:** o teste foi escrito nesta PR mas ainda **não** rodou verde — afirmar
-> passagem sem a lane `PHP / Pest (Estoque · MySQL)` provar seria claim sem evidência
-> (`proibicoes.md` §"Claim sem evidência"). Vira 🧪 quando o CI da PR fechar verde.
+> **Recibo (2026-07-21):** os 3 UCs rodaram e passaram na lane `PHP / Pest (Estoque · MySQL)` — run
+> `29869075490` (MySQL real, biz=1+biz=2 semeados; execução, não string-match). 🧪 e não ✅ porque o
+> manifesto do G-7 (`scripts/casos-test-results.json`) ainda não foi regravado.
 
 ---
 
@@ -53,7 +53,7 @@ last_run: "2026-07-21"
   Hoje nada prova que o servidor **entrega** a timeline — o `Inertia::render` só passava
   `product/variations/businessLocations/permissions`. Se o defer sair de novo, a tela volta a ser
   fachada e nada avisa.
-- **Status: ⬜** — aguarda a lane `PHP / Pest (Estoque · MySQL)` da PR.
+- **Status: 🧪** — passou na lane `PHP / Pest (Estoque · MySQL)` (run 29869075490).
 
 ---
 
@@ -66,7 +66,7 @@ last_run: "2026-07-21"
 - **Regressão que defende:** é o `it('Controller cross-tenant retorna 404')` que o charter promete no
   §Pest GUARD e **nunca existiu**. O `Product::where('business_id',…)->findOrFail($id)` já escopa —
   este teste ancora esse invariante pra ele não regredir num refator do método.
-- **Status: ⬜** — aguarda CI.
+- **Status: 🧪** — passou na lane `PHP / Pest (Estoque · MySQL)` (run 29869075490).
 
 ---
 
@@ -81,7 +81,7 @@ last_run: "2026-07-21"
 - **Regressão que defende:** se alguém trocar `Inertia::defer(fn () => …)` por avaliação eager, a query
   de 6 joins passa a rodar em todo primeiro paint (o incidente D-14 que motivou `inertia-defer-default`).
   Este UC trava a prop como deferida.
-- **Status: ⬜** — aguarda CI.
+- **Status: 🧪** — passou na lane `PHP / Pest (Estoque · MySQL)` (run 29869075490).
 
 ---
 
