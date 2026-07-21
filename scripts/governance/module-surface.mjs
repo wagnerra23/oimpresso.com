@@ -50,7 +50,7 @@ const RAIZES_GERAIS = [
 
 /**
  * Módulos CLASSE B — o código NÃO mora em `Modules/<Mod>/`, mora no núcleo UltimatePOS (`app/`).
- * Ex.: Venda (Sells) = fork do UltimatePOS, sem diretório modular homônimo. A MEMBERSHIP (quais arquivos
+ * Ex.: Venda (Sells) e Produto — forks do UltimatePOS, sem diretório modular homônimo. A MEMBERSHIP (quais arquivos
  * são do módulo) vem de uma SEMENTE CURADA e revisável no diff (não de "quem toca a tabela" —
  * medido 2026-07-21: `Transaction::` em 168 arquivos over-inclui Financeiro/Jana; decisão [W]).
  * `tabelas` = metadado-ÂNCORA declarado (estilo SCOPE.db_tables_owned), NÃO um derivador.
@@ -77,6 +77,40 @@ const CORE_APP_MODULES = {
       'resources/views/sell',
     ],
     tabelas: ['transactions', 'transaction_sell_lines', 'transaction_payments'],
+  },
+  Produto: {
+    prefixos: [
+      // Controllers do domínio Produto no core (sem Modules/Produto homônimo).
+      'app/Http/Controllers/ProductController.php',
+      'app/Http/Controllers/VariationTemplateController.php',
+      'app/Http/Controllers/BrandController.php',
+      'app/Http/Controllers/UnitController.php',
+      'app/Http/Controllers/BarcodeController.php',
+      'app/Http/Controllers/LabelsController.php',
+      'app/Http/Controllers/ImportProductsController.php',
+      'app/Http/Controllers/SellingPriceGroupController.php', // tabela de preço = Produto (o seed de Sells defere isto pra cá)
+      // TaxonomyController + Category.php NÃO — compartilhados com Despesa (category_type product|expense); fora do seed.
+      'app/Utils/ProductUtil.php',        // o motor do produto (espelha TransactionUtil pra Sells)
+      'app/Product.php',
+      'app/ProductVariation.php',
+      'app/Variation.php',
+      'app/VariationTemplate.php',
+      'app/VariationValueTemplate.php',
+      'app/VariationGroupPrice.php',      // tabela de preço por grupo (§5 proibicoes 2026-07-16)
+      'app/VariationLocationDetails.php', // estoque por variação/local
+      'app/SellingPriceGroup.php',
+      'app/Barcode.php',
+      'app/Brands.php',
+      'app/Unit.php',
+      'app/ProductRack.php',
+      'resources/views/product',          // telas legadas (Blade)
+      'resources/views/brand',
+      'resources/views/import_products',
+      'resources/views/labels',
+      'resources/views/selling_price_group',
+      // Telas Inertia (resources/js/Pages/Produto) já entram pelo walk automático de coletar().
+    ],
+    tabelas: ['products', 'variations', 'product_variations', 'variation_location_details'],
   },
 };
 
