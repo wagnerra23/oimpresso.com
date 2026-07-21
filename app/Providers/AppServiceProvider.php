@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Domain\Fsm\Support\FsmAuthorizationFlag;
 use App\Observers\ActivityCauserKindObserver;
 use App\System;
+use Illuminate\Support\Facades\Queue;
 use App\Utils\ModuleUtil;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Auth;
@@ -264,6 +266,13 @@ class AppServiceProvider extends ServiceProvider
         // automaticamente baseado no contexto (web user / agent IA / system / api).
         // Ref: ADR 0127 §princípio 3 (causer dual)
         Activity::observe(ActivityCauserKindObserver::class);
+
+        // FSM (parecer juiz 2026-07-21): zera o singleton FsmAuthorizationFlag
+        // ANTES de cada job — impede que uma flag não-consumida (exceção antes
+        // do save, self-transition não-dirty, Titulo sem guard) vaze autorização
+        // de transição FSM pro job SEGUINTE do mesmo worker longevo (Horizon/
+        // queue:work persistente). Par do listener Octane em config/octane.php.
+        Queue::before(fn () => FsmAuthorizationFlag::reset());
     }
 
     /**

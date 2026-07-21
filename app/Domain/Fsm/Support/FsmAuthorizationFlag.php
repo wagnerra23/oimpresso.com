@@ -19,14 +19,23 @@ namespace App\Domain\Fsm\Support;
  *
  * Vantagens:
  *   - Sem coluna fantasma no Eloquent
- *   - Per-request scope (static reset entre requests PHP-FPM/Octane)
  *   - Consume-once: cada transição precisa flag fresh do Service
  *
- * Limitação:
- *   - Não persiste entre requests (não deveria — flag autorizativa
- *     transitória)
- *   - Em jobs em fila, ExecuteStageActionService roda dentro do Job
- *     worker, mesmo PHP process — funciona
+ * Ciclo de vida do estado estático (IMPORTANTE — parecer juiz 2026-07-21):
+ *   `$authorized` é `static` — vive enquanto o PROCESSO PHP viver, NÃO
+ *   "entre requests" por mágica. O reset depende do runtime:
+ *   - PHP-FPM / artisan one-shot: o processo morre a cada request/comando,
+ *     então o estado some por conta do runtime (é o caso do ERP web hoje).
+ *   - Octane worker / Horizon / `queue:work` PERSISTENTE: o processo NÃO
+ *     morre entre requests/jobs → o estado NÃO some sozinho. Um mark() não
+ *     consumido (exceção antes do save, self-transition não-dirty, ou Titulo
+ *     sem guard) vazaria autorização pro request/job SEGUINTE do worker.
+ *   Por isso o reset é LIGADO EXPLICITAMENTE ao início de cada unidade de
+ *   trabalho — tornando o per-request scope verdadeiro em QUALQUER runtime:
+ *     - Octane: listener ResetFsmAuthorizationFlag em RequestReceived/
+ *       TaskReceived/TickReceived (config/octane.php)
+ *     - Fila:   Queue::before(...) em AppServiceProvider (antes de cada job)
+ *   Catraca: tests/Feature/Domain/Fsm/FsmFlagResetLifecycleTest.php
  */
 final class FsmAuthorizationFlag
 {

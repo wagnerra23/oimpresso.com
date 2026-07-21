@@ -22,6 +22,7 @@ use Laravel\Octane\Listeners\FlushUploadedFiles;
 use Laravel\Octane\Listeners\ReportException;
 use Laravel\Octane\Listeners\StopWorkerIfNecessary;
 use Laravel\Octane\Octane;
+use App\Domain\Fsm\Listeners\ResetFsmAuthorizationFlag;
 
 return [
 
@@ -73,7 +74,8 @@ return [
         RequestReceived::class => [
             ...Octane::prepareApplicationForNextOperation(),
             ...Octane::prepareApplicationForNextRequest(),
-            //
+            // FSM: zera flag autorizativa no início de cada request (worker longevo)
+            ResetFsmAuthorizationFlag::class,
         ],
 
         RequestHandled::class => [
@@ -86,7 +88,7 @@ return [
 
         TaskReceived::class => [
             ...Octane::prepareApplicationForNextOperation(),
-            //
+            ResetFsmAuthorizationFlag::class,
         ],
 
         TaskTerminated::class => [
@@ -95,7 +97,7 @@ return [
 
         TickReceived::class => [
             ...Octane::prepareApplicationForNextOperation(),
-            //
+            ResetFsmAuthorizationFlag::class,
         ],
 
         TickTerminated::class => [
