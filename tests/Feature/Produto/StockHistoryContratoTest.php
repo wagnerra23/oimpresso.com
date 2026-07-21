@@ -58,6 +58,11 @@ beforeEach(function () {
     app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
     Permission::findOrCreate('product.view', 'web');
     $this->user->givePermissionTo(['product.view']);
+
+    // A lane Estoque stuba um Vite manifest → Inertia::version() vira o hash do stub, e todo
+    // request Inertia com `X-Inertia-Version: '1'` tomaria 409 (version mismatch) ANTES do
+    // controller rodar. Fixa a version pra bater com o header dos testes de partial reload.
+    \Inertia\Inertia::version('1');
 });
 
 // =============================================================================
