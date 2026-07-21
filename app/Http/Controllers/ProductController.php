@@ -2697,6 +2697,13 @@ class ProductController extends Controller
 
         // Wave 2 B4 Produto (Agent W2-C 2026-05-15) — branch dual Inertia MWART (ADR 0104)
         if (request()->header('X-Inertia')) {
+            // CU-PROD-11.1 — resolve variação/local selecionados. O front usa a 1ª variação e o 1º
+            // local quando nada vem na query; o controller espelha esse default pra o defer bater.
+            $selectedVariationId = (int) (request()->input('variation_id')
+                ?: ($product->variations->first()->id ?? 0));
+            $selectedLocationId = request()->input('location_id')
+                ?: array_key_first($business_locations);
+
             return Inertia::render('Produto/StockHistory', [
                 'product' => [
                     'id' => (int) $product->id,
@@ -2711,9 +2718,52 @@ class ProductController extends Controller
                     'subSku' => (string) ($v->sub_sku ?? ''),
                 ])->all(),
                 'businessLocations' => $business_locations,
+                'filters' => [
+                    'variationId' => (string) ($selectedVariationId ?: ''),
+                    'locationId' => (string) ($selectedLocationId ?? ''),
+                ],
                 'permissions' => [
                     'view' => true,
                 ],
+                // CU-PROD-11.1 `[must][reg]` — timeline real do Kardex via Inertia::defer (`[perf]` <600ms;
+                // não vem no render inicial). Read-only: ao contrário do branch ajax() legado, NÃO faz
+                // UPDATE em VariationLocationDetails — GET é append-only (CU-PROD-11.2 + charter anti-pattern).
+                'movements' => Inertia::defer(function () use ($business_id, $selectedVariationId, $selectedLocationId) {
+                    if (! $selectedVariationId || ! $selectedLocationId) {
+                        return [];
+                    }
+
+                    // Isolamento Tier 0: o Product já passou pelo findOrFail escopado por business_id;
+                    // getVariationStockHistory recebe o mesmo $business_id (só transações do tenant).
+                    $history = $this->productUtil->getVariationStockHistory(
+                        $business_id,
+                        $selectedVariationId,
+                        $selectedLocationId
+                    );
+
+                    return collect($history)->values()->map(function ($row, $i) {
+                        $qty = (float) ($row['quantity_change'] ?? 0);
+                        $type = (string) ($row['type'] ?? '');
+                        $kind = $type === 'stock_adjustment'
+                            ? 'ajuste'
+                            : ($qty < 0 ? 'saida' : 'entrada');
+
+                        $sign = $qty > 0 ? '+' : ($qty < 0 ? '-' : '');
+
+                        return [
+                            'id' => (string) ($row['transaction_id'] ?? $i).'-'.$i,
+                            'kind' => $kind,
+                            'dateLabel' => ! empty($row['date'])
+                                ? \Illuminate\Support\Carbon::parse($row['date'])->format('d/m/Y H:i')
+                                : '',
+                            'quantity' => $qty,
+                            'quantityLabel' => $sign.number_format(abs($qty), 2, ',', '.'),
+                            'balanceLabel' => number_format((float) ($row['stock'] ?? 0), 2, ',', '.'),
+                            'origin' => (string) ($row['type_label'] ?? $type),
+                            'refNo' => (string) ($row['ref_no'] ?? ''),
+                        ];
+                    })->all();
+                }),
             ]);
         }
 
