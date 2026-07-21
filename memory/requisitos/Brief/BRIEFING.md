@@ -1,7 +1,7 @@
 ---
 module: Brief
 status: producao
-updated_at: "2026-07-18"
+updated_at: "2026-07-21"
 na_justified:
   D3.b: "Brief não tem capacidades múltiplas pra um BRIEFING.md narrativo justificar. ADR 0091 já cumpre o papel de documento canônico do módulo."
 related_adrs: ["0091-daily-brief", "0153-module-grade-rubrica-v1", "0154-module-grade-v2-na-justificado", "0275-scorecard-sdd-canonico-10-metricas-calendario-promocoes", "0278-arquitetura-rede-ia-duravel-anti-vazamento", "0294-metodo-dual-track-shapeup-catraca", "0317-maquina-revisao-adr-quando-rever-gatilhos"]
@@ -47,6 +47,10 @@ Não tem concorrente — é infra interna. ADR 0091 cataloga decisão de design 
 ## Estado
 
 LIVE em produção (CT 100 MCP server `mcp.oimpresso.com`). Corpo LLM (gpt-4o-mini) + 7 linhas de sinal determinísticas pós-LLM. Cobertura Pest no módulo: `BriefValidatorTest`, `BriefFallbackTest`, `BriefMultiTenantTest`, `BriefLgpdComplianceTest`, `LeaseBriefSectionServiceTest`, `CycleDriftAlertTest`, `Wave28PolishTest`, `SmokeRoutesTest` (os testes das injeções de Governance vivem em `Modules/Governance/Tests/`).
+
+## Ownership de dados
+
+`mcp_skill_telemetry` pertence ao Brief: foi criada no schema do Daily Brief e é escrita por `BriefFetchTool`/`BriefFetchController`. O catálogo deixou de tratá-la como consumo sem dono em 2026-07-21.
 
 ## Documento canônico
 

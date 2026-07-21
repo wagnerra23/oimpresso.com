@@ -1,0 +1,12 @@
+/**
+ * @return array Configuração do gateway, ou [] em falha.
+ */
+public function configGateway(int $gatewayId): array
+{
+    try {
+        return $this->fetchRemote($gatewayId);
+    } catch (\Throwable $e) {
+        \Log::error('gateway config falhou', ['id' => $gatewayId, 'erro' => $e->getMessage()]);
+        return [];
+    }
+}

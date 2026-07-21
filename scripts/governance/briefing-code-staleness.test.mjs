@@ -14,7 +14,7 @@
  * Determinístico (Date.parse UTC) → mesma resposta em qualquer máquina/CI.
  * Uso: node scripts/governance/briefing-code-staleness.test.mjs
  */
-import { classifyCodeStaleness, declaredDoorDate, isBriefingCoverageGap } from './briefing-code-staleness.mjs';
+import { classifyCodeStaleness, declaredDoorDate, isBriefingCoverageGap, isValidLegacyBriefingTombstone, classifyScorecardFreshness } from './briefing-code-staleness.mjs';
 
 let fails = 0;
 const ok = (cond, msg) => { if (cond) console.log(`  ✓ ${msg}`); else { console.error(`  ✗ ${msg}`); fails++; } };
@@ -134,6 +134,21 @@ console.log('\n  briefing-code-staleness — self-test do núcleo puro\n');
 {
   ok(isBriefingCoverageGap({ hasBackend: false, hasDoor: false }) === false,
     `COBERTURA: só-frontend sem porta (ex User/Perfil) → NÃO é gap (obtido: ${isBriefingCoverageGap({ hasBackend: false, hasDoor: false })})`);
+}
+
+{
+  const good = '---\nstatus: deprecated\ncanonical: ../../memory/requisitos/Jana/BRIEFING.md\n---\nNÃO edite nem consulte este arquivo.\n';
+  const bad = '# BRIEFING Jana\nCapacidades concorrentes escritas aqui.\n';
+  ok(isValidLegacyBriefingTombstone(good) && !isValidLegacyBriefingTombstone(bad),
+    'LÁPIDE: tombstone canônico libera; briefing concorrente MORDE');
+}
+
+{
+  const fresh = classifyScorecardFreshness({ declaredHash: 'abc', currentHash: 'abc', declaredRubric: '1.1', currentRubric: '1.1' });
+  const codeDrift = classifyScorecardFreshness({ declaredHash: 'abc', currentHash: 'def', declaredRubric: '1.1', currentRubric: '1.1' });
+  const rubricDrift = classifyScorecardFreshness({ declaredHash: 'abc', currentHash: 'abc', declaredRubric: '1.0', currentRubric: '1.1' });
+  ok(!fresh.stale && codeDrift.sourceStale && rubricDrift.rubricStale,
+    'SCORECARD: fingerprint+rubrica iguais liberam; drift de código OU rubrica MORDE');
 }
 
 console.log(`\n  ${fails === 0 ? '✅ TODOS os casos passaram' : `❌ ${fails} caso(s) falharam`}\n`);

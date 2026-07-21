@@ -35,6 +35,10 @@ on:
       # dispara no PR que MOVE o código (o momento exato do drift) …
       - 'Modules/**'
       - 'resources/js/Pages/**'
+      - 'app/**/*.php'
+      - 'memory/governance/scorecards/funcoes/**'
+      - 'memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md'
+      - 'Modules/*/BRIEFING.md'
       # … e quando a porta ou o próprio sentinela mudam.
       - 'memory/requisitos/**/BRIEFING.md'
       - 'memory/requisitos/**/*-visual-comparison.md'
@@ -91,6 +95,8 @@ jobs:
       # Reporter: exit 0 SEMPRE. Emite ::warning:: por porta stale (visível no PR).
       - name: reporter BRIEFING × código (advisory)
         run: node scripts/governance/briefing-code-staleness.mjs
+      - name: scorecards de função + lápides legadas (mordida real, workflow advisory)
+        run: node scripts/governance/briefing-code-staleness.mjs --strict-scorecards --strict-legacy-briefings
       # Eixo 2 — visual-comparison × tela. Selftest hermético (bite/release do núcleo
       # reusado) + reporter advisory (::warning:: por comparativo atrás da sua tela).
       - name: self-test visual-comparison-staleness (bite/release · determinístico)

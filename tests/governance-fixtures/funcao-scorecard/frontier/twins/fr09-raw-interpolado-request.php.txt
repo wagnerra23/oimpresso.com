@@ -1,0 +1,6 @@
+public function buscar(string $term): Collection
+{
+    return Product::where('business_id', session('user.business_id'))
+        ->whereRaw("name LIKE '%" . $term . "%'")
+        ->get();
+}

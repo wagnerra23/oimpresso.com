@@ -1,0 +1,31 @@
+name: Catalog graph (live check advisory)
+
+on:
+  pull_request:
+    paths:
+      - 'Modules/*/SCOPE.md'
+      - 'memory/requisitos/*/SUPERFICIE.md'
+      - 'memory/governance/catalog.json'
+      - 'scripts/governance/catalog-graph.mjs'
+      - 'scripts/governance/catalog-graph.test.mjs'
+      - '.github/workflows/catalog-graph.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Não está na branch protection (ADR 0314). Advisory significa que pode ficar
+# vermelho de verdade; não há continue-on-error nem `|| true` escondendo a mordida.
+jobs:
+  live:
+    name: catalog.json == SCOPEs + Classes B (advisory)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: node --test scripts/governance/catalog-graph.test.mjs
+      - run: node scripts/governance/catalog-graph.mjs --check
+      - run: node scripts/governance/catalog-graph.mjs --query module:Compras
