@@ -143,6 +143,14 @@ E há zeros gravados: a UI (React **e** Blade) pré-preenche célula sem preço 
 
 **Implementado em:** PR #4636 · [`ProductUtil::fixVariationStockMisMatch`](../../../app/Utils/ProductUtil.php) · [`EstoqueFixMismatchNumUfTest`](../../../tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php)
 
+**Critérios de aceite:**
+
+- `fixVariationStockMisMatch('1.500')` grava `1500.0`, aplicando o parser locale-safe canônico.
+- O caminho irmão `updateProductQuantity('1.500')` preserva o mesmo contrato numérico.
+- O teste roda na lane Estoque/MySQL e declara `@covers-us US-PROD-028`.
+
+**Testado em:** `tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php`
+
 **Resolvido em 2026-07-21.** `ProductUtil::fixVariationStockMisMatch($biz,$var,$loc,$stock)` passou a normalizar `$stock` com `num_uf()` antes de gravar `qty_available` ([ProductUtil.php](../../../app/Utils/ProductUtil.php)). Varredura contada: **1/1 consumidor** = `ReportController::adjustProductStock`.
 
 **Âncora (externa, não inventada):** REGRA MESTRE ([proibicoes.md](../../proibicoes.md) Tier 0 — toda escrita de valor/estoque deve ser locale-safe, origem incidente 2026-06-05) + [DOC-RAIZ-ESTOQUE §10](../Estoque/DOC-RAIZ-ESTOQUE.md) ("usar SEMPRE ProductUtil pra mexer `qty_available`").

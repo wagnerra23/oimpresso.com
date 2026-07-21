@@ -139,6 +139,7 @@ jobs:
             tests/Feature/Estoque/EstoqueInvarianteTransacaoTest.php \
             tests/Feature/Estoque/EstoqueInvarianteEnableStockTest.php \
             tests/Feature/Estoque/EstoqueInvarianteTenantTest.php \
+            tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php \
             tests/Feature/Produto/TabelaPrecoContratoTest.php \
             tests/Feature/Produto/CadastroProdutoContratoTest.php
 
