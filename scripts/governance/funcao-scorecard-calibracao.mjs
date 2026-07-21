@@ -60,12 +60,37 @@ function pack() {
   return L.join('\n');
 }
 
+/** Cohen's κ entre esperado e observado (categorias concordo/discordo/incerto). Corrige o acaso. */
+export function cohenKappa(pares) {
+  const cats = ['concordo', 'discordo', 'incerto'];
+  const n = pares.length;
+  if (n === 0) return null;
+  let acordo = 0;
+  const eE = {}, eO = {};
+  for (const c of cats) { eE[c] = 0; eO[c] = 0; }
+  for (const [esp, obs] of pares) {
+    if (esp === obs) acordo++;
+    if (cats.includes(esp)) eE[esp]++;
+    if (cats.includes(obs)) eO[obs]++;
+  }
+  const po = acordo / n;
+  let pe = 0;
+  for (const c of cats) pe += (eE[c] / n) * (eO[c] / n);
+  return pe === 1 ? 1 : Math.round(((po - pe) / (1 - pe)) * 1000) / 1000;
+}
+
 /** Pontua os vereditos do juiz cego vs o selado. Retorna {pass, detalhe}. */
 export function pontuar(verdicts, sel = selado()) {
   const linhas = [];
   let familiasAchadas = 0, familiasTotal = 0;
   let overflagControle = 0, incertoOk = null, falsoDiscordoBom = 0;
+  const paresK = []; // (esperado, observado) do critério saliente, p/ κ — só vereditos definidos
   for (const [id, lab] of Object.entries(sel)) {
+    if (String(id).startsWith('_')) continue; // ignora chaves de meta/comentário
+    // coleta par p/ κ quando o esperado é um veredito definido (não o controle "sem-discordo")
+    if (['concordo', 'discordo', 'incerto'].includes(lab.veredito)) {
+      paresK.push([lab.veredito, (verdicts[id] || {})[lab.criterio_salient]]);
+    }
     const v = (verdicts[id] || {});
     const dado = v[lab.criterio_salient];
     if (lab.familia) {
@@ -87,10 +112,13 @@ export function pontuar(verdicts, sel = selado()) {
       linhas.push(`${ok ? 'OK ' : '✗  '} ${id} [bom] ${lab.criterio_salient}: esperado concordo, juiz=${dado ?? '(ausente)'}`);
     }
   }
-  const pass = familiasAchadas >= 2 && overflagControle === 0 && incertoOk === true && falsoDiscordoBom === 0;
+  const kappa = cohenKappa(paresK);
+  const minFamilias = Math.ceil(familiasTotal * 0.8); // ≥80% das famílias (com os twins difíceis)
+  const pass = familiasAchadas >= minFamilias && overflagControle === 0 && incertoOk === true
+    && falsoDiscordoBom === 0 && (kappa ?? 0) >= 0.6;
   return {
     pass,
-    familiasAchadas, familiasTotal, overflagControle, incertoOk, falsoDiscordoBom,
+    familiasAchadas, familiasTotal, minFamilias, overflagControle, incertoOk, falsoDiscordoBom, kappa,
     detalhe: linhas.join('\n'),
   };
 }
@@ -125,7 +153,7 @@ function main() {
     if (!existsSync(vf)) { console.error(`arquivo de vereditos não encontrado: ${vf}`); process.exit(2); }
     const r = pontuar(JSON.parse(readFileSync(vf, 'utf8')));
     console.log(r.detalhe);
-    console.log(`\n=> famílias achadas ${r.familiasAchadas}/${r.familiasTotal} · overflag-controle ${r.overflagControle} · incerto ${r.incertoOk} · falso-discordo-bom ${r.falsoDiscordoBom}`);
+    console.log(`\n=> famílias ${r.familiasAchadas}/${r.familiasTotal} (min ${r.minFamilias}) · κ ${r.kappa} (min 0.6) · overflag-controle ${r.overflagControle} · incerto ${r.incertoOk} · falso-discordo-bom ${r.falsoDiscordoBom}`);
     console.log(r.pass ? '\n✅ JUIZ CALIBRADO (cego, não-circular).' : '\n❌ JUIZ NÃO calibrado — ver linhas acima.');
     process.exit(r.pass ? 0 : 1);
   }
