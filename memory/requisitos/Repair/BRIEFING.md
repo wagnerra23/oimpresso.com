@@ -8,6 +8,8 @@ updated_at: "2026-07-02"
 
 # BRIEFING — Repair (verdade destilada)
 
+> 🗺️ **Quais arquivos são deste contexto?** → [SUPERFICIE.md](SUPERFICIE.md) — índice **gerado** (`module-surface.mjs`), agrupado por papel, não apodrece (`--check` no CI).
+
 # Repair — BRIEFING (estado consolidado)
 
 > Última atualização: 2026-06-13

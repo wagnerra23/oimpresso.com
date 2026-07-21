@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PAPEIS, montar } from './module-surface.mjs';
+import { PAPEIS, montar, CORE_APP_MODULES } from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
 function classify(path) {
@@ -32,6 +32,38 @@ test('classifica cada arquivo no papel certo (1ª regra que casa vence)', () => 
 test('charter/casos .md NÃO caem em Telas (ordem das regras protege)', () => {
   // .charter.md e .casos.md são .md, não .tsx — a regra de Telas é /\.tsx$/, então não colidem.
   assert.notEqual(classify('resources/js/Pages/Financeiro/Index.charter.md'), 'Telas (Inertia/React)');
+});
+
+test('CLASSE B: paths do core app/ classificam no papel certo', () => {
+  assert.equal(classify('app/Http/Controllers/SellController.php'), 'Controllers');
+  assert.equal(classify('app/Http/Requests/StoreSell.php'), 'Requests (validação)');
+  assert.equal(classify('app/Utils/TransactionUtil.php'), 'Motor (Utils/Domínio)');
+  assert.equal(classify('app/Domain/Fsm/Support/FsmAuthorizationFlag.php'), 'Motor (Utils/Domínio)');
+  assert.equal(classify('app/Transaction.php'), 'Models / Entities');
+  assert.equal(classify('resources/views/sale_pos/create.blade.php'), 'Views (Blade)');
+});
+
+test('CLASSE B: regra larga app/ NÃO rouba um controller de módulo (Modules vence quando aplicável)', () => {
+  // membership é a semente curada; mas a classificação por papel não deve confundir os dois mundos.
+  assert.equal(classify('Modules/Financeiro/Http/Controllers/CaixaController.php'), 'Controllers');
+  // um .php de raiz do app que não é model-like (tem subpasta) não cai em Models/Entities
+  assert.equal(classify('app/Http/Middleware/Auth.php'), 'Middleware');
+});
+
+test('CORE_APP_MODULES.Sells declara semente + tabelas-âncora (não vazio)', () => {
+  assert.ok(CORE_APP_MODULES.Sells);
+  assert.ok(CORE_APP_MODULES.Sells.prefixos.length >= 5);
+  assert.ok(CORE_APP_MODULES.Sells.tabelas.includes('transactions'));
+  // a semente NÃO inclui SellingPriceGroupController (é domínio Produto)
+  assert.ok(!CORE_APP_MODULES.Sells.prefixos.some((p) => p.includes('SellingPriceGroup')));
+});
+
+test('montar() CLASSE B emite tabelas_dominio no frontmatter + nota de metadado-âncora', () => {
+  const grupos = [{ rot: 'Controllers', listar: true, files: ['app/Http/Controllers/SellController.php'] }];
+  const md = montar('Sells', grupos, []);
+  assert.match(md, /tabelas_dominio: \["transactions"/);
+  assert.match(md, /metadado-ÂNCORA declarado/);
+  assert.match(md, /CLASSE B/);
 });
 
 test('montar() é determinístico (mesmo input → bytes idênticos)', () => {

@@ -8,6 +8,8 @@ updated_at: "2026-07-17"
 
 # BRIEFING — Jana (verdade destilada)
 
+> 🗺️ **Quais arquivos são deste contexto?** → [SUPERFICIE.md](SUPERFICIE.md) — índice **gerado** (`module-surface.mjs`), agrupado por papel, não apodrece (`--check` no CI).
+
 ## Estado atual
 
 Camada de IA do oimpresso: chat com memória persistente, brief diário, sugestões de metas e evals, sobre a stack canônica `laravel/ai` + Agents próprios ([ADR 0035](../../decisions/0035-stack-ai-canonica-wagner-2026-04-26.md)). Em produção.

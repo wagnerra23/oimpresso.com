@@ -8,6 +8,8 @@ updated_at: "2026-07-17"
 
 # BRIEFING — Whatsapp (verdade destilada)
 
+> 🗺️ **Quais arquivos são deste contexto?** → [SUPERFICIE.md](SUPERFICIE.md) — índice **gerado** (`module-surface.mjs`), agrupado por papel, não apodrece (`--check` no CI).
+
 ## Estado atual  
 O módulo "Whatsapp" permite a interação multicanal via WhatsApp, utilizando a infraestrutura Meta Cloud, após a descontinuação do BaileysDriver (2026-05-27, ADR 0202). A operação está estável; o wizard de Embedded Signup (US-WA-310 Fase 2) está em main desde 2026-05-27 (PR #1768).
 
