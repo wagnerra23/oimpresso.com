@@ -326,4 +326,3 @@ module: Whatsapp
 
 - [InboxAssistAgent.php](../../../Modules/Whatsapp/Ai/Agents/InboxAssistAgent.php)
 - [CancelamentoVendaTemplate.php](../../../Modules/Whatsapp/Templates/CancelamentoVendaTemplate.php)
-

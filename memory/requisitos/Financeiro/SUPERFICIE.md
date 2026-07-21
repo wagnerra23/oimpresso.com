@@ -292,4 +292,3 @@ module: Financeiro
 - [DreExport.php](../../../Modules/Financeiro/Exports/DreExport.php)
 - [BaixaRepository.php](../../../Modules/Financeiro/Repositories/BaixaRepository.php)
 - [TituloRepository.php](../../../Modules/Financeiro/Repositories/TituloRepository.php)
-

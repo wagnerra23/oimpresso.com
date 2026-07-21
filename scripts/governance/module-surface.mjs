@@ -229,7 +229,7 @@ function montar(mod, grupos, outros) {
     for (const f of outros) L.push(`- [${f.split('/').pop()}](${linkDe(f)})`);
     L.push('');
   }
-  return L.join('\n') + '\n';
+  return L.join('\n').trimEnd() + '\n';
 }
 
 /** Processa 1 módulo. Retorna {mod, total, drift}. */

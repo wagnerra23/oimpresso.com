@@ -60,4 +60,3 @@ module: Compras
 ## Testes (Pest) — 9
 
 - 9 arquivos em [Modules/Compras/Tests/Feature/](../../../Modules/Compras/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
-

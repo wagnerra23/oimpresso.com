@@ -135,4 +135,3 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 
 - [Create.casos.md](../../../resources/js/Pages/Sells/Create.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Sells/Index.casos.md)
-

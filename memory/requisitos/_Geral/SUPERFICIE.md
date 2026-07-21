@@ -157,4 +157,3 @@ module: _Geral
 
 - [PageHeader-LEARNINGS.md](../../../memory/requisitos/_DesignSystem/templates/PageHeader-LEARNINGS.md)
 - [PageHeader-canon-v3-1.md](../../../memory/requisitos/_DesignSystem/templates/PageHeader-canon-v3-1.md)
-
