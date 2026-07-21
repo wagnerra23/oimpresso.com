@@ -15,23 +15,23 @@
   "metrics": {
     "anchor_coverage": {
       "status": "measured",
-      "value": 84.1,
+      "value": 84,
       "unit": "%",
       "direction": "up",
       "target": 100,
       "source": "scripts/governance/anchor-lint.mjs --json .summary.anchor_coverage_pct (fonte única — ADR 0273 §2)",
       "detail": {
-        "coverage_pct": 84.1,
+        "coverage_pct": 84,
         "specs_total": 59,
         "us_total": 980,
-        "anchor_coverage_pct": 84.1,
+        "anchor_coverage_pct": 84,
         "by_state": {
           "sem_campo": 155,
           "placeholder": 0,
           "pendente": 375,
           "parcial": 115,
-          "anchored_ok": 334,
-          "anchored_dead": 1,
+          "anchored_ok": 333,
+          "anchored_dead": 2,
           "anchored_zombie": 0
         },
         "fields_total": 830,
@@ -41,7 +41,7 @@
         "dead_tests_total": 0,
         "testado_sem_covers_total": 0,
         "req_sem_aceite_total": 264,
-        "req_sem_covering_test_total": 392,
+        "req_sem_covering_test_total": 391,
         "req_teste_vermelho_total": 0,
         "req_sem_lane_total": 44,
         "behavior_known": false,
