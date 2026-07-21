@@ -96,14 +96,9 @@ it('UC-PSTK-01 · partial reload retorna a timeline real (venda → saída)', fu
     $response->assertStatus(200);
     $page = json_decode($response->getContent(), true);
 
-    // [DIAG temporário] — revelar o que o partial reload realmente devolveu.
-    fwrite(STDERR, "\n[DIAG UC-PSTK-01] status=".$response->status()
-        ." ctype=".$response->headers->get('content-type')
-        ." keys=".json_encode(array_keys($page['props'] ?? []))
-        ." head=".substr($response->getContent(), 0, 120)."\n");
-
     // O CONTRATO: a prop existe (não é mais `undefined`) e traz a movimentação real.
-    expect($page['props'])->toHaveKey('movements', 'O controller não expôs `movements` no partial reload — fachada (CU-PROD-11.1).');
+    // (toHaveKey só recebe a chave — o 2º arg no Pest é VALOR esperado, não mensagem.)
+    expect($page['props'])->toHaveKey('movements');
     $movements = $page['props']['movements'];
     expect($movements)->toBeArray();
     expect(count($movements))->toBeGreaterThanOrEqual(1);
@@ -149,7 +144,7 @@ it('UC-PSTK-03 · movements é deferido — ausente no render Inertia inicial', 
     $page = json_decode($response->getContent(), true);
 
     // Deferido: a prop cara NÃO viaja no primeiro response (só sob partial reload — UC-PSTK-01).
-    expect($page['props'])->not->toHaveKey('movements', '`movements` veio eager no render inicial — perdeu o defer (CU-PROD-11.4 `[perf]`).');
+    expect($page['props'])->not->toHaveKey('movements');
     // Mas os filtros (baratos) vêm eager, senão o front crasha ao ler filters.variationId.
     expect($page['props'])->toHaveKey('filters');
     expect($page['props']['filters'])->toHaveKey('variationId');
