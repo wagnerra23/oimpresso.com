@@ -81,6 +81,10 @@ jobs:
       # falha, aresta pendurada, maturidade só sobre checks aplicáveis, determinismo.
       - name: Service scorecard (join grade/tela/grafo · normalização exata · determinismo)
         run: node --test scripts/governance/service-scorecard.test.mjs
+      - name: Função-scorecard blind pack (IDs opacos + docblocks sem tells + scorer compatível)
+        run: node --test scripts/governance/funcao-scorecard-calibracao.test.mjs
+      - name: Função-scorecard gold humano (9/9 obrigatório + K/9 + Cohen kappa)
+        run: node --test scripts/governance/funcao-scorecard-humano.test.mjs
       # ex-órfãos de CI (adversário 2026-07-13): existiam no repo mas nenhum workflow os
       # rodava — reencarnação da proibição "Tests sem phpunit.xml = falsa cobertura".
       - name: SDD distiller_freshness read-side (anti-stale + shallow honesto · ADR 0291 D-D)

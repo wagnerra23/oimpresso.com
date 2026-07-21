@@ -11,7 +11,7 @@
  * `catalog.json` consultável (nós + arestas tipadas).
  *
  * DOUTRINA (ADR 0256): derivado sobrevive; escrito+lembrado apodrece. O grafo é 100% recalculado
- * dos SCOPE.md — nada à mão. NÃO INVENTA relação que o SCOPE não declara: as arestas saem SÓ dos
+ * dos SCOPE.md e SUPERFICIE.md Classe B — nada à mão. NÃO INVENTA relação que as fontes não declaram:
  * campos estruturados do frontmatter (`db_tables_owned`/`db_tables_consumed`/`db_tables_legacy_views`,
  * `related_adrs`/`charter_adr`, `url_prefixes`, `contains`, e os cross-refs `→ Modules/X` que vivem
  * DENTRO de `not_contains` + `drift_alerts.pertence_a`). Prosa do corpo markdown é ignorada de
@@ -56,6 +56,7 @@ const EDGE_TYPES = [
   'charteredByAdr',  // module → adr          (charter_adr)
   'governedByAdr',   // module → adr          (related_adrs)
   'hasComponent',    // module → component    (contains)
+  'dependsOn',       // module → module       (fronteira declarada OU tabela consumida→dono)
   'delegatesTo',     // module → module       (not_contains "→ Modules/X" — fronteira declarada)
   'migratesTo',      // module → module       (drift_alerts.pertence_a "Modules/X")
 ];
@@ -212,6 +213,21 @@ function listScopeModules() {
     .sort();
 }
 
+/** Classes B derivadas dos SUPERFICIE.md gerados (Produto/Sells, sem SCOPE em Modules/). */
+function listCoreClassBRecords() {
+  const dir = join(ROOT, 'memory', 'requisitos');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir).sort().flatMap((module) => {
+    const rel = `memory/requisitos/${module}/SUPERFICIE.md`;
+    if (!existsSync(join(ROOT, rel))) return [];
+    const txt = readFileSync(join(ROOT, rel), 'utf8');
+    if (!/CLASSE B/.test(txt)) return [];
+    return [{ module, path: rel, purpose: 'Domínio core UltimatePOS (Classe B)', trust: '', owner: '', permission_prefix: '',
+      charter_adr: '', related_adrs: [], url_prefixes: [], contains: [], not_contains: [],
+      db_tables_owned: [], db_tables_consumed: [], db_tables_legacy_views: [], migrate_targets: [], catalog_kind: 'core-class-b' }];
+  });
+}
+
 /** Números de ADR que EXISTEM em memory/decisions/ (pra checar aresta ADR pendurada). */
 function knownAdrNumbers() {
   const dir = join(ROOT, 'memory/decisions');
@@ -268,11 +284,13 @@ function buildGraph(records, opts = {}) {
 
   for (const r of records) {
     const mid = `module:${r.module}`;
-    ensure(mid, () => ({
+    const moduleData = {
       id: mid, type: 'module', module: r.module, purpose: r.purpose,
       trust: r.trust, owner: r.owner, permission_prefix: r.permission_prefix,
       charter_adr: adrNumFrom(r.charter_adr), path: r.path,
-    }));
+      catalog_kind: r.catalog_kind || 'scope', catalog_status: 'catalogued',
+    };
+    Object.assign(ensure(mid, () => moduleData), moduleData);
 
     // tabelas próprias / views legadas / consumidas (1 item pode listar N tabelas)
     for (const t of r.db_tables_owned.flatMap(tableNamesFrom)) {
@@ -334,21 +352,47 @@ function buildGraph(records, opts = {}) {
       const note = delegationNote(nc);
       for (const target of moduleRefsIn(nc)) {
         if (target === r.module) continue; // self-ref não é aresta
+        ensure(`module:${target}`, () => ({ id: `module:${target}`, type: 'module', module: target,
+          purpose: '', trust: '', owner: '', permission_prefix: '', charter_adr: '', path: null,
+          catalog_kind: 'referenced-only', catalog_status: 'referenced-only' }));
         addEdge(mid, `module:${target}`, 'delegatesTo', 'not_contains', note);
       }
     }
     // migrações planejadas (drift_alerts.pertence_a)
     for (const target of r.migrate_targets) {
       if (target === r.module) continue;
+      ensure(`module:${target}`, () => ({ id: `module:${target}`, type: 'module', module: target,
+        purpose: '', trust: '', owner: '', permission_prefix: '', charter_adr: '', path: null,
+        catalog_kind: 'referenced-only', catalog_status: 'referenced-only' }));
       addEdge(mid, `module:${target}`, 'migratesTo', 'drift_alerts.pertence_a');
     }
   }
 
+  // Relação estilo Backstage/Cortex: fronteira declarada e consumo de tabela viram
+  // dependsOn explícito, preservando também a aresta-fonte auditável.
+  for (const e of [...edges]) {
+    if ((e.type === 'delegatesTo' || e.type === 'migratesTo') && e.from !== e.to) {
+      addEdge(e.from, e.to, 'dependsOn', e.type, e.note || undefined);
+    }
+    if (e.type === 'consumesTable') {
+      const table = nodes.get(e.to);
+      for (const owner of table?.owners || []) {
+        const target = `module:${owner}`;
+        if (target !== e.from) addEdge(e.from, target, 'dependsOn', 'db_tables_consumed→db_tables_owned', table.name);
+      }
+    }
+  }
+
   // ── diagnósticos (arestas penduradas + smells de tabela) ──────────────────
+  for (const n of nodes.values()) {
+    if (n.type === 'table') n.ownership_mode = n.owners.length > 1 ? 'shared-declared' : n.owners.length === 1 ? 'single' : 'unowned';
+  }
+
   const diagnostics = {
-    dangling_module_refs: edges
-      .filter((e) => (e.type === 'delegatesTo' || e.type === 'migratesTo') && !moduleSet.has(e.to.replace(/^module:/, '')))
-      .map((e) => ({ from: e.from, to: e.to, type: e.type, source: e.source, note: e.note || '' })),
+    referenced_only_modules: [...nodes.values()]
+      .filter((n) => n.type === 'module' && n.catalog_status === 'referenced-only')
+      .map((n) => ({ module: n.module, reason: 'referenciado por SCOPE, sem descritor próprio' })),
+    dangling_module_refs: [],
     dangling_adr_refs: knownAdrs
       ? [...nodes.values()]
           .filter((n) => n.type === 'adr' && n.exists === false)
@@ -422,6 +466,19 @@ function serialize(graph) {
   return JSON.stringify(catalog, null, 2) + '\n';
 }
 
+/** Consulta pequena e estável para IA/CLI: nó + relações de entrada/saída. */
+function queryGraph(graph, term) {
+  const q = String(term || '').toLowerCase();
+  const node = graph.nodes.find((n) => n.id.toLowerCase() === q)
+    || graph.nodes.find((n) => [n.module, n.name, n.prefix, n.num].filter(Boolean).some((v) => String(v).toLowerCase() === q));
+  if (!node) return null;
+  return {
+    node,
+    outgoing: graph.edges.filter((e) => e.from === node.id),
+    incoming: graph.edges.filter((e) => e.to === node.id),
+  };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Relatório de diagnósticos no console (dry/write/check).
 // ─────────────────────────────────────────────────────────────────────────────
@@ -430,6 +487,7 @@ function reportDiagnostics(graph) {
   const d = graph.diagnostics;
   const dm = d.dangling_module_refs, da = d.dangling_adr_refs;
   const co = d.consumed_tables_without_catalog_owner, tm = d.tables_owned_by_multiple;
+  const ro = d.referenced_only_modules || [];
   if (dm.length) {
     console.error(`🔴 ${dm.length} aresta(s) → módulo SEM SCOPE.md no catálogo (rename não-propagado, módulo CLASSE B do core, ou módulo futuro — ver a nota):`);
     for (const e of dm) console.error(`   ${e.from} --${e.type}--> ${e.to}  (${e.source}${e.note ? `: "${e.note}"` : ''})`);
@@ -439,12 +497,13 @@ function reportDiagnostics(graph) {
     for (const e of da) console.error(`   ${e.from} --${e.type}--> ${e.to}  (${e.source})`);
   }
   if (tm.length) {
-    console.error(`🟡 ${tm.length} tabela(s) declarada(s) como OWNED por 2+ módulos (conflito de ownership):`);
+    console.error(`🟡 ${tm.length} tabela(s) com co-ownership declarado por 2+ módulos (claims preservados para revisão):`);
     for (const t of tm) console.error(`   ${t.table} → ${t.owners.join(', ')}`);
   }
   if (co.length) {
     console.log(`ℹ️  ${co.length} tabela(s) consumida(s) sem dono no catálogo (pode ser core UltimatePOS): ${co.map((t) => t.table).join(', ')}`);
   }
+  if (ro.length) console.log(`ℹ️  ${ro.length} módulo(s) referenced-only (fronteira futura/legada sem SCOPE próprio): ${ro.map((x) => x.module).join(', ')}`);
   if (!dm.length && !da.length && !tm.length) console.log('✅ integridade: nenhuma aresta pendurada nem conflito de ownership.');
   return dm.length + da.length; // "fatais" pro exit do --check
 }
@@ -459,12 +518,19 @@ function main() {
     console.error('[catalog-graph] nenhum Modules/*/SCOPE.md encontrado — rode da raiz do repo.');
     process.exit(2);
   }
-  const records = mods.map(readScope);
+  const records = [...mods.map(readScope), ...listCoreClassBRecords()];
   const graph = buildGraph(records, { knownAdrs: knownAdrNumbers() });
   const content = serialize(graph);
   const outAbs = join(ROOT, OUT_REL);
 
   if (PRINT_JSON) { process.stdout.write(content); return; }
+  const qi = args.indexOf('--query');
+  if (qi >= 0) {
+    const result = queryGraph(graph, args[qi + 1]);
+    if (!result) { console.error(`[catalog-graph] nó não encontrado: ${args[qi + 1] || '(vazio)'}`); process.exit(1); }
+    console.log(JSON.stringify(result, null, 2));
+    return;
+  }
 
   const s = graph.diagnostics;
   console.log(
@@ -509,6 +575,8 @@ export {
   buildGraph,
   serialize,
   sortGraph,
+  queryGraph,
+  listCoreClassBRecords,
   NODE_TYPES,
   EDGE_TYPES,
 };

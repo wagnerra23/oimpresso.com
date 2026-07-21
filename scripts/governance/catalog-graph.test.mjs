@@ -20,6 +20,7 @@ import {
   migrateTargetsFromRaw,
   buildGraph,
   serialize,
+  queryGraph,
   EDGE_TYPES,
 } from './catalog-graph.mjs';
 
@@ -183,11 +184,27 @@ test('buildGraph: não cria self-ref delegatesTo', () => {
 });
 
 // ── diagnósticos: arestas penduradas ─────────────────────────────────────────
-test('diagnostics: aresta → módulo sem SCOPE é pendurada (Fantasma), Beta não', () => {
+test('diagnostics: módulo sem SCOPE vira nó referenced-only, não aresta estruturalmente pendurada', () => {
   const g = buildGraph(recordsFromSynthetic());
-  const dm = g.diagnostics.dangling_module_refs;
-  assert.ok(dm.some((e) => e.to === 'module:Fantasma'));
-  assert.ok(!dm.some((e) => e.to === 'module:Beta')); // Beta existe → não pendura
+  assert.equal(g.diagnostics.dangling_module_refs.length, 0);
+  assert.ok(g.diagnostics.referenced_only_modules.some((e) => e.module === 'Fantasma'));
+  assert.equal(g.nodes.find((n) => n.id === 'module:Fantasma').catalog_status, 'referenced-only');
+});
+
+test('dependsOn é derivado da fronteira declarada e do consumo de tabela com dono', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const deps = g.edges.filter((e) => e.type === 'dependsOn' && e.from === 'module:Alpha');
+  assert.ok(deps.some((e) => e.to === 'module:Beta' && e.source === 'delegatesTo'));
+  assert.ok(deps.some((e) => e.to === 'module:Beta' && e.source === 'db_tables_consumed→db_tables_owned'));
+});
+
+test('queryGraph devolve nó + relações incoming/outgoing', () => {
+  const g = buildGraph(recordsFromSynthetic());
+  const result = queryGraph(g, 'Alpha');
+  assert.equal(result.node.id, 'module:Alpha');
+  assert.ok(result.outgoing.some((e) => e.type === 'dependsOn'));
+  assert.ok(Array.isArray(result.incoming));
+  assert.equal(queryGraph(g, 'nao-existe'), null);
 });
 
 test('diagnostics: aresta → ADR inexistente pendura só quando knownAdrs é passado', () => {
@@ -207,6 +224,7 @@ test('diagnostics: tabela owned por 2+ módulos vira smell', () => {
   const g = buildGraph(recs);
   const tm = g.diagnostics.tables_owned_by_multiple;
   assert.ok(tm.some((t) => t.table === 'alpha_things' && t.owners.length === 2));
+  assert.equal(g.nodes.find((n) => n.id === 'table:alpha_things').ownership_mode, 'shared-declared');
 });
 
 // ── serialização determinística ──────────────────────────────────────────────

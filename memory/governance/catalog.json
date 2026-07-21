@@ -17,32 +17,34 @@
     "charteredByAdr",
     "governedByAdr",
     "hasComponent",
+    "dependsOn",
     "delegatesTo",
     "migratesTo"
   ],
   "stats": {
-    "modules": 36,
-    "nodes": 622,
-    "edges": 819,
+    "modules": 38,
+    "nodes": 627,
+    "edges": 950,
     "by_node_type": {
-      "module": 36,
+      "module": 41,
       "table": 88,
       "adr": 36,
       "component": 419,
       "api": 43
     },
     "by_edge_type": {
-      "ownsTable": 78,
+      "ownsTable": 79,
       "ownsLegacyView": 13,
-      "consumesTable": 5,
+      "consumesTable": 4,
       "providesApi": 43,
       "charteredByAdr": 35,
       "governedByAdr": 100,
       "hasComponent": 419,
+      "dependsOn": 131,
       "delegatesTo": 125,
       "migratesTo": 1
     },
-    "dangling": 6
+    "dangling": 0
   },
   "nodes": [
     {
@@ -3575,6 +3577,19 @@
       "desc": ""
     },
     {
+      "id": "module:Accounting",
+      "type": "module",
+      "module": "Accounting",
+      "purpose": "",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": null,
+      "catalog_kind": "referenced-only",
+      "catalog_status": "referenced-only"
+    },
+    {
       "id": "module:Admin",
       "type": "module",
       "module": "Admin",
@@ -3583,7 +3598,9 @@
       "owner": "wagner",
       "permission_prefix": "admin.*",
       "charter_adr": "0122",
-      "path": "Modules/Admin/SCOPE.md"
+      "path": "Modules/Admin/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:ADS",
@@ -3594,7 +3611,9 @@
       "owner": "wagner",
       "permission_prefix": "ads.*",
       "charter_adr": "0080",
-      "path": "Modules/ADS/SCOPE.md"
+      "path": "Modules/ADS/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Arquivos",
@@ -3605,7 +3624,9 @@
       "owner": "wagner",
       "permission_prefix": "arquivos.*",
       "charter_adr": "0123",
-      "path": "Modules/Arquivos/SCOPE.md"
+      "path": "Modules/Arquivos/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:AssetManagement",
@@ -3616,7 +3637,9 @@
       "owner": "wagner",
       "permission_prefix": "assetmanagement.*",
       "charter_adr": "0080",
-      "path": "Modules/AssetManagement/SCOPE.md"
+      "path": "Modules/AssetManagement/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Auditoria",
@@ -3627,7 +3650,9 @@
       "owner": "wagner",
       "permission_prefix": "auditoria.*",
       "charter_adr": "0094",
-      "path": "Modules/Auditoria/SCOPE.md"
+      "path": "Modules/Auditoria/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Brief",
@@ -3638,7 +3663,9 @@
       "owner": "wagner",
       "permission_prefix": "n/a",
       "charter_adr": "0091",
-      "path": "Modules/Brief/SCOPE.md"
+      "path": "Modules/Brief/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Cms",
@@ -3649,7 +3676,9 @@
       "owner": "wagner",
       "permission_prefix": "cms.*",
       "charter_adr": "0080",
-      "path": "Modules/Cms/SCOPE.md"
+      "path": "Modules/Cms/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Compras",
@@ -3660,7 +3689,9 @@
       "owner": "wagner",
       "permission_prefix": "compras.*",
       "charter_adr": "0079",
-      "path": "Modules/Compras/SCOPE.md"
+      "path": "Modules/Compras/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:ComunicacaoVisual",
@@ -3671,7 +3702,9 @@
       "owner": "wagner",
       "permission_prefix": "com_visual.*",
       "charter_adr": "0121",
-      "path": "Modules/ComunicacaoVisual/SCOPE.md"
+      "path": "Modules/ComunicacaoVisual/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Connector",
@@ -3682,7 +3715,9 @@
       "owner": "wagner",
       "permission_prefix": "connector.*",
       "charter_adr": "0080",
-      "path": "Modules/Connector/SCOPE.md"
+      "path": "Modules/Connector/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:ConsultaOs",
@@ -3693,7 +3728,9 @@
       "owner": "wagner",
       "permission_prefix": "consultaos.*",
       "charter_adr": "0080",
-      "path": "Modules/ConsultaOs/SCOPE.md"
+      "path": "Modules/ConsultaOs/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Crm",
@@ -3704,7 +3741,9 @@
       "owner": "wagner",
       "permission_prefix": "crm.*",
       "charter_adr": "0080",
-      "path": "Modules/Crm/SCOPE.md"
+      "path": "Modules/Crm/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Essentials",
@@ -3715,7 +3754,9 @@
       "owner": "wagner",
       "permission_prefix": "essentials.*",
       "charter_adr": "0080",
-      "path": "Modules/Essentials/SCOPE.md"
+      "path": "Modules/Essentials/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Financeiro",
@@ -3726,7 +3767,9 @@
       "owner": "wagner",
       "permission_prefix": "financeiro.*",
       "charter_adr": "0080",
-      "path": "Modules/Financeiro/SCOPE.md"
+      "path": "Modules/Financeiro/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Fiscal",
@@ -3737,7 +3780,9 @@
       "owner": "wagner",
       "permission_prefix": "fiscal.*",
       "charter_adr": "0094",
-      "path": "Modules/Fiscal/SCOPE.md"
+      "path": "Modules/Fiscal/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Governance",
@@ -3748,7 +3793,9 @@
       "owner": "wagner",
       "permission_prefix": "governance.*",
       "charter_adr": "0086",
-      "path": "Modules/Governance/SCOPE.md"
+      "path": "Modules/Governance/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Jana",
@@ -3759,7 +3806,9 @@
       "owner": "wagner",
       "permission_prefix": "jana.*",
       "charter_adr": "0080",
-      "path": "Modules/Jana/SCOPE.md"
+      "path": "Modules/Jana/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:KB",
@@ -3770,7 +3819,9 @@
       "owner": "wagner",
       "permission_prefix": "kb.*",
       "charter_adr": "0080",
-      "path": "Modules/KB/SCOPE.md"
+      "path": "Modules/KB/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Manufacturing",
@@ -3781,7 +3832,9 @@
       "owner": "wagner",
       "permission_prefix": "manufacturing.*",
       "charter_adr": "0080",
-      "path": "Modules/Manufacturing/SCOPE.md"
+      "path": "Modules/Manufacturing/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:NfeBrasil",
@@ -3792,7 +3845,9 @@
       "owner": "wagner",
       "permission_prefix": "nfebrasil.*",
       "charter_adr": "0080",
-      "path": "Modules/NfeBrasil/SCOPE.md"
+      "path": "Modules/NfeBrasil/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:NFSe",
@@ -3803,7 +3858,22 @@
       "owner": "wagner",
       "permission_prefix": "nfse.*",
       "charter_adr": "0080",
-      "path": "Modules/NFSe/SCOPE.md"
+      "path": "Modules/NFSe/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Notas",
+      "type": "module",
+      "module": "Notas",
+      "purpose": "",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": null,
+      "catalog_kind": "referenced-only",
+      "catalog_status": "referenced-only"
     },
     {
       "id": "module:Officeimpresso",
@@ -3814,7 +3884,9 @@
       "owner": "wagner",
       "permission_prefix": "officeimpresso.*",
       "charter_adr": "0080",
-      "path": "Modules/Officeimpresso/SCOPE.md"
+      "path": "Modules/Officeimpresso/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:OficinaAuto",
@@ -3825,7 +3897,9 @@
       "owner": "wagner",
       "permission_prefix": "oficina_auto.*",
       "charter_adr": "0137",
-      "path": "Modules/OficinaAuto/SCOPE.md"
+      "path": "Modules/OficinaAuto/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:PaymentGateway",
@@ -3836,7 +3910,9 @@
       "owner": "wagner",
       "permission_prefix": "paymentgateway.*",
       "charter_adr": "0170",
-      "path": "Modules/PaymentGateway/SCOPE.md"
+      "path": "Modules/PaymentGateway/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Ponto",
@@ -3847,7 +3923,9 @@
       "owner": "wagner",
       "permission_prefix": "pontowr2.*",
       "charter_adr": "0080",
-      "path": "Modules/Ponto/SCOPE.md"
+      "path": "Modules/Ponto/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:ProductCatalogue",
@@ -3858,7 +3936,35 @@
       "owner": "wagner",
       "permission_prefix": "productcatalogue.*",
       "charter_adr": "0080",
-      "path": "Modules/ProductCatalogue/SCOPE.md"
+      "path": "Modules/ProductCatalogue/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Produto",
+      "type": "module",
+      "module": "Produto",
+      "purpose": "Domínio core UltimatePOS (Classe B)",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Produto/SUPERFICIE.md",
+      "catalog_kind": "core-class-b",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Project",
+      "type": "module",
+      "module": "Project",
+      "purpose": "",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": null,
+      "catalog_kind": "referenced-only",
+      "catalog_status": "referenced-only"
     },
     {
       "id": "module:ProjectMgmt",
@@ -3869,7 +3975,9 @@
       "owner": "wagner",
       "permission_prefix": "projectmgmt.*",
       "charter_adr": "0080",
-      "path": "Modules/ProjectMgmt/SCOPE.md"
+      "path": "Modules/ProjectMgmt/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:RecurringBilling",
@@ -3880,7 +3988,9 @@
       "owner": "wagner",
       "permission_prefix": "recurringbilling.*",
       "charter_adr": "0080",
-      "path": "Modules/RecurringBilling/SCOPE.md"
+      "path": "Modules/RecurringBilling/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Repair",
@@ -3891,7 +4001,22 @@
       "owner": "wagner",
       "permission_prefix": "repair.*",
       "charter_adr": "0080",
-      "path": "Modules/Repair/SCOPE.md"
+      "path": "Modules/Repair/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
+    },
+    {
+      "id": "module:Sells",
+      "type": "module",
+      "module": "Sells",
+      "purpose": "Domínio core UltimatePOS (Classe B)",
+      "trust": "",
+      "owner": "",
+      "permission_prefix": "",
+      "charter_adr": "",
+      "path": "memory/requisitos/Sells/SUPERFICIE.md",
+      "catalog_kind": "core-class-b",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Spreadsheet",
@@ -3902,7 +4027,9 @@
       "owner": "wagner",
       "permission_prefix": "spreadsheet.*",
       "charter_adr": "0080",
-      "path": "Modules/Spreadsheet/SCOPE.md"
+      "path": "Modules/Spreadsheet/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:SRS",
@@ -3913,7 +4040,9 @@
       "owner": "wagner",
       "permission_prefix": "memcofre.*",
       "charter_adr": "0080",
-      "path": "Modules/SRS/SCOPE.md"
+      "path": "Modules/SRS/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Superadmin",
@@ -3924,7 +4053,9 @@
       "owner": "wagner",
       "permission_prefix": "superadmin.*",
       "charter_adr": "0080",
-      "path": "Modules/Superadmin/SCOPE.md"
+      "path": "Modules/Superadmin/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:TeamMcp",
@@ -3935,7 +4066,9 @@
       "owner": "wagner",
       "permission_prefix": "teammcp.*",
       "charter_adr": "0080",
-      "path": "Modules/TeamMcp/SCOPE.md"
+      "path": "Modules/TeamMcp/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Vestuario",
@@ -3946,7 +4079,9 @@
       "owner": "wagner",
       "permission_prefix": "vestuario.*",
       "charter_adr": "0121",
-      "path": "Modules/Vestuario/SCOPE.md"
+      "path": "Modules/Vestuario/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Whatsapp",
@@ -3957,7 +4092,9 @@
       "owner": "",
       "permission_prefix": "",
       "charter_adr": "",
-      "path": "Modules/Whatsapp/SCOPE.md"
+      "path": "Modules/Whatsapp/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "module:Woocommerce",
@@ -3968,7 +4105,9 @@
       "owner": "wagner",
       "permission_prefix": "woocommerce.*",
       "charter_adr": "0080",
-      "path": "Modules/Woocommerce/SCOPE.md"
+      "path": "Modules/Woocommerce/SCOPE.md",
+      "catalog_kind": "scope",
+      "catalog_status": "catalogued"
     },
     {
       "id": "table:append",
@@ -3978,7 +4117,8 @@
         "SRS"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:cobrancas",
@@ -3988,7 +4128,8 @@
         "PaymentGateway"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:copiloto_business_profile",
@@ -3998,7 +4139,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_cache_semantico",
@@ -4008,7 +4150,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_conversas",
@@ -4018,7 +4161,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_memoria_facts",
@@ -4028,7 +4172,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_memoria_gabarito",
@@ -4038,7 +4183,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_memoria_metricas",
@@ -4048,7 +4194,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_mensagens",
@@ -4058,7 +4205,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_meta_apuracoes",
@@ -4068,7 +4216,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_meta_fontes",
@@ -4078,7 +4227,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_meta_periodos",
@@ -4088,7 +4238,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_metas",
@@ -4098,7 +4249,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_negative_cache",
@@ -4108,7 +4260,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:copiloto_sugestoes",
@@ -4118,7 +4271,8 @@
       "consumers": [],
       "legacy_views": [
         "Jana"
-      ]
+      ],
+      "ownership_mode": "unowned"
     },
     {
       "id": "table:cowork_handoffs",
@@ -4128,7 +4282,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:cross",
@@ -4138,7 +4293,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:docs_evidences",
@@ -4148,7 +4304,8 @@
         "SRS"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:gateway_webhook_events",
@@ -4158,7 +4315,8 @@
         "PaymentGateway"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_business_profile",
@@ -4168,7 +4326,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_cache_semantico",
@@ -4178,7 +4337,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_conversas",
@@ -4188,7 +4348,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_memoria_facts",
@@ -4198,7 +4359,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_memoria_gabarito",
@@ -4208,7 +4370,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_memoria_metricas",
@@ -4218,7 +4381,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_mensagens",
@@ -4228,7 +4392,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_meta_apuracoes",
@@ -4238,7 +4403,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_meta_fontes",
@@ -4248,7 +4414,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_meta_periodos",
@@ -4258,7 +4425,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_metas",
@@ -4268,7 +4436,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_negative_cache",
@@ -4278,7 +4447,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:jana_sugestoes",
@@ -4288,7 +4458,8 @@
         "Jana"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_bridge_state",
@@ -4298,7 +4469,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_categories",
@@ -4308,7 +4480,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_comments",
@@ -4318,7 +4491,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_decision_tree_steps",
@@ -4328,7 +4502,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_decision_trees",
@@ -4338,7 +4513,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_edges",
@@ -4348,7 +4524,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_favorites",
@@ -4358,7 +4535,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_node_versions",
@@ -4368,7 +4546,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_nodes",
@@ -4378,7 +4557,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_path_steps",
@@ -4388,7 +4568,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_paths",
@@ -4398,7 +4579,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:kb_subcategories",
@@ -4408,7 +4590,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_actors",
@@ -4418,7 +4601,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_audit_log",
@@ -4430,7 +4614,8 @@
       "consumers": [
         "Brief"
       ],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_briefs",
@@ -4440,7 +4625,8 @@
         "Brief"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_cc_sessions",
@@ -4450,7 +4636,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_components",
@@ -4461,7 +4648,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "shared-declared"
     },
     {
       "id": "table:mcp_confidence_scores",
@@ -4471,7 +4659,8 @@
         "ADS"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_cycle_goals",
@@ -4481,7 +4670,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_cycles",
@@ -4493,7 +4683,8 @@
       "consumers": [
         "Brief"
       ],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_decisions",
@@ -4505,7 +4696,8 @@
       "consumers": [
         "Brief"
       ],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_dual_brain_decisions",
@@ -4515,7 +4707,8 @@
         "ADS"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_epics",
@@ -4525,7 +4718,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_governance_rules",
@@ -4536,7 +4730,8 @@
         "Governance"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "shared-declared"
     },
     {
       "id": "table:mcp_inbox_notifications",
@@ -4547,7 +4742,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "shared-declared"
     },
     {
       "id": "table:mcp_issue_templates",
@@ -4557,7 +4753,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_jira_projects",
@@ -4567,7 +4764,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_memory_documents",
@@ -4577,7 +4775,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_memory_documents_history",
@@ -4587,7 +4786,8 @@
         "KB"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_quotas",
@@ -4597,7 +4797,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_scopes",
@@ -4607,17 +4808,19 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_skill_telemetry",
       "type": "table",
       "name": "mcp_skill_telemetry",
-      "owners": [],
-      "consumers": [
+      "owners": [
         "Brief"
       ],
-      "legacy_views": []
+      "consumers": [],
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_skills",
@@ -4627,7 +4830,8 @@
         "ADS"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_task_attachments",
@@ -4637,7 +4841,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_task_comments",
@@ -4647,7 +4852,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_task_dependencies",
@@ -4657,7 +4863,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_task_events",
@@ -4667,7 +4874,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_task_memory_links",
@@ -4677,7 +4885,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_task_watchers",
@@ -4687,7 +4896,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_tasks",
@@ -4700,7 +4910,8 @@
       "consumers": [
         "Brief"
       ],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "shared-declared"
     },
     {
       "id": "table:mcp_tokens",
@@ -4710,7 +4921,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_user_module_access",
@@ -4720,7 +4932,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_user_scopes",
@@ -4730,7 +4943,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_views",
@@ -4740,7 +4954,8 @@
         "ProjectMgmt"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:mcp_workflows",
@@ -4750,7 +4965,8 @@
         "TeamMcp"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:nfe_business_configs",
@@ -4760,7 +4976,8 @@
         "NfeBrasil"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:nfe_certificados",
@@ -4770,7 +4987,8 @@
         "NfeBrasil"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:nfe_emissoes",
@@ -4780,7 +4998,8 @@
         "NfeBrasil"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:nfe_eventos",
@@ -4790,7 +5009,8 @@
         "NfeBrasil"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:nfe_fiscal_rule_tax_rate_links",
@@ -4800,7 +5020,8 @@
         "NfeBrasil"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:nfe_fiscal_rules",
@@ -4810,7 +5031,8 @@
         "NfeBrasil"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:nfe_inutilizacoes",
@@ -4820,7 +5042,8 @@
         "NfeBrasil"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:payment_gateway_credentials",
@@ -4830,7 +5053,8 @@
         "PaymentGateway"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:srs_entries",
@@ -4840,7 +5064,8 @@
         "SRS"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:srs_entries_history",
@@ -4850,7 +5075,8 @@
         "SRS"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     },
     {
       "id": "table:valid",
@@ -4860,7 +5086,8 @@
         "Brief"
       ],
       "consumers": [],
-      "legacy_views": []
+      "legacy_views": [],
+      "ownership_mode": "single"
     }
   ],
   "edges": [
@@ -4875,6 +5102,13 @@
       "to": "module:Superadmin",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Superadmin cliente-side"
+    },
+    {
+      "from": "module:Admin",
+      "to": "module:Superadmin",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Superadmin cliente-side"
     },
     {
@@ -4982,6 +5216,41 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "TeamScopes (RBAC actor capabilities)"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Knowledge graph / ADRs browsing"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:Project",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "ProjectsController (Jira-style)"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:Project",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks/Cycles/Projects Jira-style"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP tools registry (canônico)"
+    },
+    {
+      "from": "module:ADS",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "TeamScopes (RBAC actor capabilities)"
     },
     {
@@ -5246,6 +5515,20 @@
     },
     {
       "from": "module:Arquivos",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Memoria RAG semântico Jana"
+    },
+    {
+      "from": "module:Arquivos",
+      "to": "module:SRS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MemCofre senhas/segredos"
+    },
+    {
+      "from": "module:Arquivos",
       "to": "adr:0093",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -5305,6 +5588,27 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:AssetManagement",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -5396,6 +5700,27 @@
     },
     {
       "from": "module:Auditoria",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Auditoria",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Auditoria",
       "to": "adr:0093",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -5456,12 +5781,6 @@
     },
     {
       "from": "module:Brief",
-      "to": "table:mcp_skill_telemetry",
-      "type": "consumesTable",
-      "source": "db_tables_consumed"
-    },
-    {
-      "from": "module:Brief",
       "to": "table:mcp_tasks",
       "type": "consumesTable",
       "source": "db_tables_consumed"
@@ -5506,6 +5825,83 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Tools MCP genéricas (memoria-search, decisions-fetch, etc.)"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_decisions"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:Governance",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Audit dashboard UI"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Geração de chat/conversa em tempo real"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tools MCP genéricas (memoria-search, decisions-fetch, etc.)"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_cycles"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_tasks"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_audit_log"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "db_tables_consumed→db_tables_owned",
+      "note": "mcp_tasks"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tokens MCP CRUD"
+    },
+    {
+      "from": "module:Brief",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Tools MCP genéricas (memoria-search, decisions-fetch, etc.)"
     },
     {
@@ -5570,6 +5966,12 @@
     },
     {
       "from": "module:Brief",
+      "to": "table:mcp_skill_telemetry",
+      "type": "ownsTable",
+      "source": "db_tables_owned"
+    },
+    {
+      "from": "module:Brief",
       "to": "table:valid",
       "type": "ownsTable",
       "source": "db_tables_owned"
@@ -5605,6 +6007,27 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Cms",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Cms",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Cms",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -5691,6 +6114,34 @@
     },
     {
       "from": "module:Compras",
+      "to": "module:AssetManagement",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Estoque/inventário operacional"
+    },
+    {
+      "from": "module:Compras",
+      "to": "module:Financeiro",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Financeiro de Contas a Pagar"
+    },
+    {
+      "from": "module:Compras",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "NF-e de entrada"
+    },
+    {
+      "from": "module:Compras",
+      "to": "module:Sells",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Vendas/saídas"
+    },
+    {
+      "from": "module:Compras",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -5737,6 +6188,20 @@
       "to": "module:Repair",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Kanban shared infra"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "NFe backbone"
+    },
+    {
+      "from": "module:ComunicacaoVisual",
+      "to": "module:Repair",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Kanban shared infra"
     },
     {
@@ -5848,6 +6313,27 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Connector",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Connector",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Connector",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -6077,6 +6563,27 @@
     },
     {
       "from": "module:ConsultaOs",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:ConsultaOs",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:ConsultaOs",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -6136,6 +6643,27 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Crm",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Crm",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Crm",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -6339,6 +6867,13 @@
     },
     {
       "from": "module:Essentials",
+      "to": "module:Notas",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Modules/Notas (NEW) — KB pessoal + tarefas + arquivo cliente"
+    },
+    {
+      "from": "module:Essentials",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -6494,6 +7029,27 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Financeiro",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -6700,6 +7256,34 @@
     },
     {
       "from": "module:Fiscal",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Emissão fiscal (XML + SEFAZ)"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "NFSe federal LC 214/2025"
+    },
+    {
+      "from": "module:Fiscal",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Fiscal",
       "to": "adr:0093",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -6869,6 +7453,55 @@
     },
     {
       "from": "module:Governance",
+      "to": "module:Admin",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Module Grade v4 Tri-pane Wagner-only Tailscale (/admin/governance/v4 + /admin/governance-v4)"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Decision flow (Risk/Confidence/Policy Engine)"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills governance"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP usage cross-team dashboard (/jana/admin/governanca)"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Knowledge browsing (ADRs read-only)"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Identity Mesh (mcp_actors) UI"
+    },
+    {
+      "from": "module:Governance",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tokens MCP CRUD"
+    },
+    {
+      "from": "module:Governance",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -7017,6 +7650,68 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Mcp/SyncMemoryWebhookController"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Decision flow"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills governance"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:Governance",
+      "type": "dependsOn",
+      "source": "migratesTo"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:Governance",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Admin/GovernancaController"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "FontesController (knowledge sources)"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MemoriaController (browser KB)"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mcp/CcIngestController"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Mcp/HealthController"
+    },
+    {
+      "from": "module:Jana",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Mcp/SyncMemoryWebhookController"
     },
     {
@@ -7394,6 +8089,55 @@
     },
     {
       "from": "module:KB",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills governance"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Governance",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Audit log"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Chat IA (Jana)"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:SRS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "System Rules Spec (regras pra IA programar)"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Audit log"
+    },
+    {
+      "from": "module:KB",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin (tokens, webhooks)"
+    },
+    {
+      "from": "module:KB",
       "to": "adr:0053",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -7607,6 +8351,27 @@
     },
     {
       "from": "module:Manufacturing",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Manufacturing",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Manufacturing",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -7684,6 +8449,27 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:NfeBrasil",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -7841,6 +8627,27 @@
     },
     {
       "from": "module:NFSe",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:NFSe",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:NFSe",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -7900,6 +8707,27 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Officeimpresso",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Officeimpresso",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Officeimpresso",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -7980,6 +8808,20 @@
       "to": "module:Repair",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Kanban shared infra"
+    },
+    {
+      "from": "module:OficinaAuto",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:OficinaAuto",
+      "to": "module:Repair",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Kanban shared infra"
     },
     {
@@ -8104,6 +8946,34 @@
       "to": "module:RecurringBilling",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Plan / Assinatura / Invoice recorrente"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "module:Accounting",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Plano de contas contábil"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "NFSe / NFe emissão"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "module:NFSe",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "NFSe / NFe emissão"
+    },
+    {
+      "from": "module:PaymentGateway",
+      "to": "module:RecurringBilling",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Plan / Assinatura / Invoice recorrente"
     },
     {
@@ -8375,6 +9245,27 @@
     },
     {
       "from": "module:Ponto",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Ponto",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Ponto",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -8498,6 +9389,27 @@
     },
     {
       "from": "module:ProductCatalogue",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:ProductCatalogue",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:ProductCatalogue",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -8571,6 +9483,41 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:ProjectMgmt",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills governance"
+    },
+    {
+      "from": "module:ProjectMgmt",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Chat IA"
+    },
+    {
+      "from": "module:ProjectMgmt",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Knowledge browsing"
+    },
+    {
+      "from": "module:ProjectMgmt",
+      "to": "module:Project",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects)"
+    },
+    {
+      "from": "module:ProjectMgmt",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -8782,6 +9729,27 @@
     },
     {
       "from": "module:RecurringBilling",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:RecurringBilling",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:RecurringBilling",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -8899,6 +9867,27 @@
     },
     {
       "from": "module:Repair",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Repair",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Repair",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Repair",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -9010,6 +9999,27 @@
     },
     {
       "from": "module:Spreadsheet",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Spreadsheet",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Spreadsheet",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Spreadsheet",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -9076,6 +10086,34 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Tokens MCP"
+    },
+    {
+      "from": "module:SRS",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills (.claude/skills/*)"
+    },
+    {
+      "from": "module:SRS",
+      "to": "module:Governance",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Regras de policy runtime"
+    },
+    {
+      "from": "module:SRS",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Knowledge browsing (ADRs/sessions/specs canônicos)"
+    },
+    {
+      "from": "module:SRS",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Tokens MCP"
     },
     {
@@ -9205,6 +10243,27 @@
       "to": "module:TeamMcp",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Superadmin",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "MCP server admin"
     },
     {
@@ -9355,6 +10414,48 @@
       "to": "module:SRS",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "System Rules Spec"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Decision flow"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:ADS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Skills governance"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Governance",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Policies executáveis runtime"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:Jana",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Chat IA conversacional"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Knowledge browsing"
+    },
+    {
+      "from": "module:TeamMcp",
+      "to": "module:SRS",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "System Rules Spec"
     },
     {
@@ -9586,6 +10687,27 @@
       "to": "module:Repair",
       "type": "delegatesTo",
       "source": "not_contains",
+      "note": "Kanban shared infra"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "module:NfeBrasil",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "NFe/NFC-e"
+    },
+    {
+      "from": "module:Vestuario",
+      "to": "module:Repair",
+      "type": "dependsOn",
+      "source": "delegatesTo",
       "note": "Kanban shared infra"
     },
     {
@@ -9863,6 +10985,27 @@
     },
     {
       "from": "module:Woocommerce",
+      "to": "module:KB",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Conhecimento canônico (ADRs, sessions)"
+    },
+    {
+      "from": "module:Woocommerce",
+      "to": "module:ProjectMgmt",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "Tasks Jira-style"
+    },
+    {
+      "from": "module:Woocommerce",
+      "to": "module:TeamMcp",
+      "type": "dependsOn",
+      "source": "delegatesTo",
+      "note": "MCP server admin"
+    },
+    {
+      "from": "module:Woocommerce",
       "to": "adr:0079",
       "type": "governedByAdr",
       "source": "related_adrs"
@@ -9905,59 +11048,23 @@
     }
   ],
   "diagnostics": {
-    "dangling_module_refs": [
+    "referenced_only_modules": [
       {
-        "from": "module:ADS",
-        "to": "module:Project",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "ProjectsController (Jira-style)"
+        "module": "Accounting",
+        "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {
-        "from": "module:ADS",
-        "to": "module:Project",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "Tasks/Cycles/Projects Jira-style"
+        "module": "Notas",
+        "reason": "referenciado por SCOPE, sem descritor próprio"
       },
       {
-        "from": "module:Compras",
-        "to": "module:Sells",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "Vendas/saídas"
-      },
-      {
-        "from": "module:Essentials",
-        "to": "module:Notas",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "Modules/Notas (NEW) — KB pessoal + tarefas + arquivo cliente"
-      },
-      {
-        "from": "module:PaymentGateway",
-        "to": "module:Accounting",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "Plano de contas contábil"
-      },
-      {
-        "from": "module:ProjectMgmt",
-        "to": "module:Project",
-        "type": "delegatesTo",
-        "source": "not_contains",
-        "note": "UltimatePOS Project legado (TimeLog, Invoice, ClientProjects)"
+        "module": "Project",
+        "reason": "referenciado por SCOPE, sem descritor próprio"
       }
     ],
+    "dangling_module_refs": [],
     "dangling_adr_refs": [],
-    "consumed_tables_without_catalog_owner": [
-      {
-        "table": "mcp_skill_telemetry",
-        "consumers": [
-          "Brief"
-        ]
-      }
-    ],
+    "consumed_tables_without_catalog_owner": [],
     "tables_owned_by_multiple": [
       {
         "table": "mcp_components",

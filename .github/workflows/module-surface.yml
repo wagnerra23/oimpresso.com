@@ -7,8 +7,8 @@ name: Module surface (drift do índice de arquivos — advisory na adoção)
 #
 # REGRA ANTI-TEATRO (igual charter-refs-gate.yml): SEM continue-on-error, SEM skip-as-pass.
 # "Advisory" = NÃO está nos required checks (branch protection — decisão [W]), NÃO é vermelho
-# escondido. `--all --check` só guarda módulos que JÁ optaram (têm SUPERFICIE.md commitado);
-# módulo sem o arquivo é pulado (não-opt-in), então não avermelha os ~76 sem surface.
+# escondido. `--all --check` exige SUPERFICIE de todo módulo VIVO (`module.json active=1`),
+# das Classes B e de `_Geral`; apenas módulo inativo nunca adotado fica grandfathered.
 # Promoção a required = quando N módulos adotarem + FP medido = 0 por 1-2 semanas (ADR 0275).
 
 on:
@@ -46,7 +46,7 @@ jobs:
 
   # Drift: o SUPERFICIE.md commitado bate com a árvore do PR? Exit code real.
   drift:
-    name: SUPERFICIE.md == árvore (módulos opt-in)
+    name: SUPERFICIE.md == árvore (módulos vivos + adotados)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

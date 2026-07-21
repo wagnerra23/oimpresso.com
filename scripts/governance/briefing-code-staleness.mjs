@@ -66,7 +66,7 @@
  *       measureDistillerFreshness · proibicoes.md §5 (charter-sync-gate rejeitado).
  */
 import { readdirSync, existsSync, realpathSync, readFileSync } from 'node:fs';
-import { execSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -122,6 +122,19 @@ export function classifyCodeStaleness({ hasDoor, moduleCodeExists, doorDate, cod
  */
 export function isBriefingCoverageGap({ hasBackend, hasDoor }) {
   return !!hasBackend && !hasDoor;
+}
+
+export function isValidLegacyBriefingTombstone(content) {
+  const normalized = content.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  return /^status:\s*deprecated\s*$/m.test(content)
+    && /^canonical:\s*["']?\.\.\/\.\.\/memory\/requisitos\/[^/]+\/BRIEFING\.md["']?\s*$/m.test(content)
+    && /NAO edite nem consulte/i.test(normalized);
+}
+
+export function classifyScorecardFreshness({ declaredHash, currentHash, declaredRubric, currentRubric }) {
+  const sourceStale = !declaredHash || !currentHash || declaredHash !== currentHash;
+  const rubricStale = !declaredRubric || !currentRubric || declaredRubric !== currentRubric;
+  return { stale: sourceStale || rubricStale, sourceStale, rubricStale };
 }
 
 /**
@@ -213,6 +226,43 @@ export function scan(staleDays = DEFAULT_STALE_DAYS) {
   return rows;
 }
 
+function scanLegacyBriefings() {
+  const dir = join(ROOT, 'Modules');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .map((mod) => ({ mod, rel: `Modules/${mod}/BRIEFING.md` }))
+    .filter((x) => existsSync(join(ROOT, x.rel)))
+    .filter((x) => !isValidLegacyBriefingTombstone(readFileSync(join(ROOT, x.rel), 'utf8')));
+}
+
+function currentRubricVersion(rel) {
+  if (!rel || !existsSync(join(ROOT, rel))) return null;
+  return (readFileSync(join(ROOT, rel), 'utf8').match(/rubric v(\d+\.\d+)/i) || [])[1] || null;
+}
+
+function scanFunctionScorecards() {
+  const dir = join(ROOT, 'memory', 'governance', 'scorecards', 'funcoes');
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir).filter((f) => /\.ya?ml$/i.test(f)).sort().map((name) => {
+    const rel = `memory/governance/scorecards/funcoes/${name}`;
+    const txt = readFileSync(join(ROOT, rel), 'utf8');
+    const source = (txt.match(/^file:\s*(.+)$/m) || [])[1]?.trim() || '';
+    const rubric = (txt.match(/^rubric:\s*(.+)$/m) || [])[1]?.trim() || '';
+    const declaredHash = (txt.match(/^source_blob_sha:\s*["']?([a-f0-9]{40})/m) || [])[1] || null;
+    const declaredRubric = (txt.match(/^rubric_version:\s*["']?([^"'\s]+)/m) || [])[1] || null;
+    let currentHash = null;
+    if (source && existsSync(join(ROOT, source))) {
+      currentHash = execFileSync('git', ['hash-object', '--', source], {
+        cwd: ROOT,
+        stdio: ['ignore', 'pipe', 'ignore'],
+      }).toString().trim();
+    }
+    const currentRubric = currentRubricVersion(rubric);
+    return { rel, source, rubric, declaredHash, currentHash, declaredRubric, currentRubric,
+      ...classifyScorecardFreshness({ declaredHash, currentHash, declaredRubric, currentRubric }) };
+  });
+}
+
 // ── run (CLI) ────────────────────────────────────────────────────────────────
 function run() {
   const JSON_OUT = process.argv.includes('--json');
@@ -220,6 +270,8 @@ function run() {
   // --strict-coverage é independente de --strict (argv.includes é match exato:
   // ['--strict-coverage'] NÃO casa '--strict'). Morde só a cobertura, não o frescor.
   const STRICT_COVERAGE = process.argv.includes('--strict-coverage');
+  const STRICT_SCORECARDS = process.argv.includes('--strict-scorecards');
+  const STRICT_LEGACY = process.argv.includes('--strict-legacy-briefings');
   const staleDays = DEFAULT_STALE_DAYS;
   const rows = scan(staleDays);
   const stale = rows.filter((r) => r.stale).sort((a, b) => (b.gapDays ?? 0) - (a.gapDays ?? 0));
@@ -227,6 +279,9 @@ function run() {
   // Gap de COBERTURA = módulo BACKEND sem BRIEFING (subconjunto de noDoor que exclui
   // áreas só-frontend tipo User/Perfil). É o que --strict-coverage morde; hoje = 0 (36/36).
   const coverageGaps = rows.filter((r) => isBriefingCoverageGap(r)).map((r) => r.mod);
+  const invalidLegacyBriefings = scanLegacyBriefings();
+  const scorecards = scanFunctionScorecards();
+  const staleScorecards = scorecards.filter((x) => x.stale);
 
   if (JSON_OUT) {
     console.log(JSON.stringify({
@@ -237,8 +292,11 @@ function run() {
       stale: stale.map((r) => ({ mod: r.mod, gapDays: r.gapDays, commitsAhead: r.commitsAhead, doorDate: r.doorDate, doorSource: r.doorSource, codeDate: r.codeDate })),
       noDoor,
       coverageGaps,
+      invalidLegacyBriefings,
+      staleScorecards,
     }, null, 2));
-    return ((stale.length && STRICT) || (coverageGaps.length && STRICT_COVERAGE)) ? 1 : 0;
+    return ((stale.length && STRICT) || (coverageGaps.length && STRICT_COVERAGE)
+      || (staleScorecards.length && STRICT_SCORECARDS) || (invalidLegacyBriefings.length && STRICT_LEGACY)) ? 1 : 0;
   }
 
   console.log(`\n  BRIEFING × CÓDIGO — porta atrás da superfície do módulo (limiar ${staleDays}d)`);
@@ -258,6 +316,9 @@ function run() {
   console.log('  ADVISORY (ADR 0314 — higiene, nunca required). Ação: skill brief-update no módulo.');
   console.log('  NÃO é presence-gate: mede a derivada porta×código (frescor) e existência de módulo-backend (cobertura); nunca "BRIEFING no diff" (proibicoes §5 + L-24).\n');
 
+  console.log(`  LAPIDES: ${invalidLegacyBriefings.length} BRIEFING legado concorrente/invalido · --strict-legacy-briefings morde isto`);
+  console.log(`  SCORECARDS: ${staleScorecards.length}/${scorecards.length} stale por source_blob_sha/rubrica · --strict-scorecards morde isto`);
+
   // Anotações GitHub — visíveis no PR (amarelo, non-blocking). Só em CI.
   if (process.env.GITHUB_ACTIONS === 'true') {
     for (const r of stale) {
@@ -266,10 +327,13 @@ function run() {
     for (const mod of coverageGaps) {
       console.log(`::warning title=Módulo BACKEND sem BRIEFING (${mod})::${mod}: Modules/${mod}/ existe mas memory/requisitos/${mod}/BRIEFING.md não. Crie o BRIEFING (skill brief-update / template).`);
     }
+    for (const x of invalidLegacyBriefings) console.log(`::warning title=BRIEFING legado concorrente (${x.mod})::${x.rel} nao e uma lapide valida apontando ao canonico.`);
+    for (const x of staleScorecards) console.log(`::warning title=Scorecard de funcao stale::${x.rel}: fonte ${x.sourceStale ? 'mudou' : 'OK'}, rubrica ${x.rubricStale ? `${x.declaredRubric}->${x.currentRubric}` : 'OK'}. Rejulgue/regere antes de confiar.`);
   }
 
   // Reporter: exit 0 SEMPRE (advisory). --strict / --strict-coverage (opt-in) saem 1 pra scripts.
-  return ((stale.length && STRICT) || (coverageGaps.length && STRICT_COVERAGE)) ? 1 : 0;
+  return ((stale.length && STRICT) || (coverageGaps.length && STRICT_COVERAGE)
+    || (staleScorecards.length && STRICT_SCORECARDS) || (invalidLegacyBriefings.length && STRICT_LEGACY)) ? 1 : 0;
 }
 
 // ── main (só quando executado direto; importável p/ self-test sem rodar) ──────

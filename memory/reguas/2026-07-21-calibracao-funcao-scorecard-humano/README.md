@@ -1,4 +1,4 @@
-# Calibração do `funcao-scorecard` vs gold HUMANO · ESTADO: PAUSADA (esperando [W] rotular)
+# Calibração do `funcao-scorecard` vs gold HUMANO · ESTADO: MECANISMO PRONTO, esperando [W] rotular
 
 Braço **"κ vs gold HUMANO" + "incidente com função REAL"** que o método `funcao-scorecard` nomeou
 como o gap restante (§5 rodada 3, [FUNCAO-SCORECARD-METODO.md](../../requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md):
@@ -33,12 +33,17 @@ da 1ª montagem da rodada 1 de status — imprimir o gabarito no chat — não s
 
 ## Como retomar (numa sessão futura, depois que [W] rotular)
 
+O cálculo deixou de ser manual: `node scripts/governance/funcao-scorecard-humano.mjs --template`
+gera o JSON cego; depois dos 9 rótulos preenchidos, `--score <rotulos-W.json>` abre o selado e devolve
+item-a-item, `K/9`, `concordancia_pct`, **Cohen κ** e o draft da entry `tipo:"juiz"`. Arquivo incompleto,
+`cego:false`, rotulador diferente ou fonte fora de `canon|cabeca|nenhuma` falham antes da conclusão.
+
 1. **[W]** preenche `folha-cega.md` — responde os 9 vereditos no chat (`concordo`/`discordo`/`incerto`/
    `n/a` + marca `(canon)`/`(cabeça)` quando resolve). Não abre o gabarito antes.
 2. O agente **só então** lê `gabarito-SELADO.md`, compara com os rótulos de [W], mostra a tabela
    item-a-item (incluindo onde o juiz divergiu) e separa os 4 modos de discordância (deferência-certa /
    miss-de-lookup / super-afirmação / miss-de-direção — ver `folha-cega.md`).
-3. Registra 1 entry `tipo:"juiz"` no ledger:
+3. Registra 1 entry `tipo:"juiz"` no ledger (o scorer já devolve o draft):
    ```json
    { "tipo":"juiz", "lote_id":"JUIZ-CAL-2026-07-funcao-scorecard-humano", "data":"<data>", "pr":<PR>,
      "juiz":"funcao-scorecard (Fable, funções reais de risco — C1/C2/C3/C6/C7)", "rotulador":"[W]",
