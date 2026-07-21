@@ -1,5 +1,5 @@
 ---
-date: 2026-07-21
+date: "2026-07-21"
 hour: "22:30 BRT"
 topic: "Grade: a nova estrutura (catálogo por módulo + parecer-de-função + loop de aprendizado) pontuada vs os melhores 2026 + plano de refinamento"
 authors: ["C"]
