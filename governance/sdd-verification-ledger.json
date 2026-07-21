@@ -950,7 +950,7 @@
       "tipo": "juiz",
       "lote_id": "JUIZ-CAL-2026-07-funcao-scorecard-humano",
       "data": "2026-07-21",
-      "pr": 0,
+      "pr": 4659,
       "juiz": "funcao-scorecard (funções reais de risco — C1/C2/C3/C6/C7)",
       "rotulador": "[W]",
       "cego": true,
