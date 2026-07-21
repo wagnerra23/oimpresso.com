@@ -1,7 +1,8 @@
 # FUNCAO-SCORECARD — parecer por função, ancorado em rubrica.
 # Método: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
 # NÃO é achado (§0.3): nenhum `discordo` autoriza fix — é candidato a US via [W].
-# Fonte: 3 juízes frescos (bite-test 2026-07-21), consenso. Sem nota agregada (PLUGAR NÃO FUNDIR).
+# Fonte inicial: 3 juízes frescos (bite-test 2026-07-21), consenso.
+# Revisão central posterior INVALIDOU o bite-test como prova: consenso compartilhou gabarito circular.
 schema_version: 1
 file: app/Utils/ProductUtil.php
 module: Produto
@@ -10,7 +11,16 @@ rubric_version: "1.0"
 judged_at: "2026-07-21"
 judge: "claude-opus-4-8 (3 juízes frescos, consenso)"
 source: bite-test-2026-07
-totals: { concordo: 5, discordo: 10, na: 13 }
+validation_status: invalidado
+central_review:
+  reviewed_at: "2026-07-21"
+  reviewer: codex
+  verdict: discordo
+  reasons:
+    - "T2 chamou código de produção de defeito plantado e pré-declarou calculateInvoiceTotal C2 antes do julgamento."
+    - "calculateInvoiceTotal possui golden direto contra inflação e num_uf possui suíte específica; usar o helper não prova ambiguidade."
+    - "C8 declarou 5 testes, mas a varredura de invocações encontrou 1 teste direto."
+totals: { concordo: 6, discordo: 9, incerto: 0, na: 13 }
 functions:
   - function: getVariationGroupPrice
     line: 1050
@@ -38,13 +48,13 @@ functions:
     line: 640
     vereditos:
       C1: { status: discordo, evidencia: { quote: "$tax_details = TaxRate::find($tax_id)", linhas: "680" }, ancora: "0093", nota: "find unscoped em TaxRate; tax_id vem do request (tax_rate_id)" }
-      C2: { status: discordo, evidencia: { quote: "$unit_price_inc_tax = $uf_number ? $this->num_uf($product['unit_price_inc_tax']) : ...", linhas: "650" }, ancora: "REGRA MESTRE + num_uf 2026-06-05", nota: "num_uf em float de request (default uf_number=true); + num_uf($discount['discount_amount']) (669). Golden existe (CalculoValorSellsTest:144) mas o parse locale-ambíguo está presente — a conjunção do C2 falha" }
+      C2: { status: concordo, evidencia: { quote: "$unit_price_inc_tax = $uf_number ? $this->num_uf($product['unit_price_inc_tax']) : ...", linhas: "650" }, ancora: "REGRA MESTRE + CalculoValorSellsTest:137", nota: "há golden direto do totalizador contra inflação (invocação na linha 144) e suítes específicas de num_uf; o helper sozinho não prova ambiguidade" }
       C3: { status: discordo, evidencia: { quote: "if (empty($products)) { return false; }", linhas: "642-644" }, ancora: "§5 2026-07-15", nota: "entrada vazia → false silencioso; sucesso → array" }
       C4: { status: n/a, motivo: "computa array, sem DB writes" }
       C5: { status: concordo, evidencia: { quote: "$output['total_before_tax'] += $quantity * $unit_price_inc_tax", linhas: "653" }, ancora: "Eloquent N+1", nota: "loop é aritmética pura; a única query (TaxRate::find) está FORA do loop" }
       C6: { status: n/a, motivo: "sem SQL cru" }
       C7: { status: discordo, evidencia: { quote: "@return mixed (false, array)", linhas: "638" }, ancora: "§5 2026-07-15", nota: "retorno polimórfico ambíguo false|array explícito no docblock" }
-      C8: { consumidores: 6, testes: 5, nota: "Connector SellController:925/1275, Crm OrderRequestController:216, SellPosController:434/1308, TransactionUtil:6094; invocação golden CalculoValorSellsTest:144" }
+      C8: { consumidores: 6, testes_diretos: 1, nota: "Connector SellController:925/1275, Crm OrderRequestController:216, SellPosController:434/1308, TransactionUtil:6094; única invocação direta em teste: CalculoValorSellsTest:144" }
   - function: generateProductSku
     line: 699
     vereditos:
@@ -61,4 +71,4 @@ functions:
 pendencias:
   - "getVariationGroupPrice: C1 (3 queries sem business_id) · C3 (0-row empty-string) · C7 (docblock decimal vs array)"
   - "getProductDiscount: C3 (null silencioso) · C6 (whereRaw interpolado)"
-  - "calculateInvoiceTotal: C1 (TaxRate::find unscoped) · C2 (num_uf em float request) · C3 (return false) · C7 (mixed false|array)"
+  - "calculateInvoiceTotal: C1 (TaxRate::find unscoped) · C3 (return false) · C7 (mixed false|array); C2 removido pela revisão central (golden direto)"

@@ -1,6 +1,6 @@
 ---
 name: "SUPERFÍCIE — NfeBrasil"
-description: "Índice GERADO dos arquivos que moram no módulo NfeBrasil, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."
+description: "Índice GERADO dos artefatos do módulo NfeBrasil reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
 type: reference
 authority: generated
 lifecycle: ativo
@@ -12,9 +12,9 @@ module: NfeBrasil
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs NfeBrasil --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o código que MORA em `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/NfeBrasil/**` + `resources/js/Pages/NfeBrasil/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 152 arquivos em 16 papéis.
+**Total mapeado:** 156 arquivos em 18 papéis.
 
 ## Controllers — 11
 
@@ -142,17 +142,20 @@ module: NfeBrasil
 
 - 4 arquivos em [Modules/NfeBrasil/Resources/views/](../../../Modules/NfeBrasil/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 9
+## Telas (Inertia/React) — 6
 
 - [Index.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/Index.tsx)
-- [LinkedFornecedor.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedFornecedor.tsx)
-- [LinkedHistorico.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedHistorico.tsx)
-- [LinkedItens.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedItens.tsx)
 - [NfceStatus.tsx](../../../resources/js/Pages/NfeBrasil/Transactions/NfceStatus.tsx)
 - [ConfigDefault.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/ConfigDefault.tsx)
 - [ImportCsv.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/ImportCsv.tsx)
 - [Index.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/Index.tsx)
 - [RegraForm.tsx](../../../resources/js/Pages/NfeBrasil/Tributacao/RegraForm.tsx)
+
+## Componentes / apoio de tela — 3
+
+- [LinkedFornecedor.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedFornecedor.tsx)
+- [LinkedHistorico.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedHistorico.tsx)
+- [LinkedItens.tsx](../../../resources/js/Pages/NfeBrasil/Manifestacao/_components/LinkedItens.tsx)
 
 ## Charters (lei da tela) — 6
 
@@ -173,4 +176,3 @@ module: NfeBrasil
 - [NcmObrigatorioException.php](../../../Modules/NfeBrasil/Exceptions/NcmObrigatorioException.php)
 - [TributacaoNaoConfiguradaException.php](../../../Modules/NfeBrasil/Exceptions/TributacaoNaoConfiguradaException.php)
 - [DanfeNotaFiscalMail.php](../../../Modules/NfeBrasil/Mail/DanfeNotaFiscalMail.php)
-

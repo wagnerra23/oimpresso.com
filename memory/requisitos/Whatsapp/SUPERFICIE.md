@@ -1,6 +1,6 @@
 ---
 name: "SUPERFÍCIE — Whatsapp"
-description: "Índice GERADO dos arquivos que moram no módulo Whatsapp, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."
+description: "Índice GERADO dos artefatos do módulo Whatsapp reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
 type: reference
 authority: generated
 lifecycle: ativo
@@ -12,9 +12,9 @@ module: Whatsapp
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Whatsapp --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o código que MORA em `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Whatsapp/**` + `resources/js/Pages/Whatsapp/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 369 arquivos em 18 papéis.
+**Total mapeado:** 371 arquivos em 20 papéis.
 
 ## Controllers — 23
 
@@ -287,11 +287,14 @@ module: Whatsapp
 
 - 1 arquivos em [Modules/Whatsapp/Resources/views/](../../../Modules/Whatsapp/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 15
+## Telas (Inertia/React) — 3
 
 - [FeedbackPublico.tsx](../../../resources/js/Pages/Whatsapp/FeedbackPublico.tsx)
 - [Settings.tsx](../../../resources/js/Pages/Whatsapp/Settings.tsx)
 - [Index.tsx](../../../resources/js/Pages/Whatsapp/Templates/Index.tsx)
+
+## Componentes / apoio de tela — 12
+
 - [Avatar.tsx](../../../resources/js/Pages/Whatsapp/_components/Avatar.tsx)
 - [CaptureFeedbackSheet.tsx](../../../resources/js/Pages/Whatsapp/_components/CaptureFeedbackSheet.tsx)
 - [ContactPickerModal.tsx](../../../resources/js/Pages/Whatsapp/_components/ContactPickerModal.tsx)
@@ -323,4 +326,3 @@ module: Whatsapp
 
 - [InboxAssistAgent.php](../../../Modules/Whatsapp/Ai/Agents/InboxAssistAgent.php)
 - [CancelamentoVendaTemplate.php](../../../Modules/Whatsapp/Templates/CancelamentoVendaTemplate.php)
-

@@ -7,11 +7,11 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PAPEIS, montar, CORE_APP_MODULES } from './module-surface.mjs';
+import { PAPEIS, montar, CORE_APP_MODULES, RAIZES_GERAIS } from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
 function classify(path) {
-  const g = PAPEIS.find((p) => p.re.test(path));
+  const g = PAPEIS.find((p) => p.re.test(path) && (!p.aceita || p.aceita(path)));
   return g ? g.rot : null;
 }
 
@@ -34,6 +34,13 @@ test('charter/casos .md NÃO caem em Telas (ordem das regras protege)', () => {
   assert.notEqual(classify('resources/js/Pages/Financeiro/Index.charter.md'), 'Telas (Inertia/React)');
 });
 
+test('componentes co-localizados ficam no índice, mas NÃO são classificados como telas', () => {
+  assert.equal(classify('resources/js/Pages/Financeiro/components/Filtro.tsx'), 'Componentes / apoio de tela');
+  assert.equal(classify('resources/js/Pages/Financeiro/Unificado/_components/Card.tsx'), 'Componentes / apoio de tela');
+  assert.equal(classify('resources/js/Pages/Financeiro/hooks/useSaldo.tsx'), 'Componentes / apoio de tela');
+  assert.equal(classify('resources/js/Pages/Financeiro/Unificado/Index.tsx'), 'Telas (Inertia/React)');
+});
+
 test('CLASSE B: paths do core app/ classificam no papel certo', () => {
   assert.equal(classify('app/Http/Controllers/SellController.php'), 'Controllers');
   assert.equal(classify('app/Http/Requests/StoreSell.php'), 'Requests (validação)');
@@ -41,6 +48,29 @@ test('CLASSE B: paths do core app/ classificam no papel certo', () => {
   assert.equal(classify('app/Domain/Fsm/Support/FsmAuthorizationFlag.php'), 'Motor (Utils/Domínio)');
   assert.equal(classify('app/Transaction.php'), 'Models / Entities');
   assert.equal(classify('resources/views/sale_pos/create.blade.php'), 'Views (Blade)');
+});
+
+test('contexto _Geral classifica componentes, layouts e templates herdáveis', () => {
+  assert.equal(classify('resources/js/Components/shared/PageHeader.tsx'), 'Componentes compartilhados (React)');
+  assert.equal(classify('resources/js/Layouts/AppShellV2.tsx'), 'Layouts herdados (React)');
+  assert.equal(classify('resources/views/components/flash.blade.php'), 'Componentes compartilhados (Blade)');
+  assert.equal(classify('resources/views/layouts/app.blade.php'), 'Layouts herdados (Blade)');
+  assert.equal(classify('memory/requisitos/_DesignSystem/templates/PageHeader-canon-v3-1.md'), 'Templates de construção (Design System)');
+  assert.deepEqual(RAIZES_GERAIS, [
+    'resources/js/Components',
+    'resources/js/Layouts',
+    'resources/views/components',
+    'resources/views/layouts',
+    'memory/requisitos/_DesignSystem/templates',
+  ]);
+});
+
+test('montar() _Geral declara herança compartilhada sem autorizar reuso cego', () => {
+  const grupos = [{ rot: 'Layouts herdados (React)', listar: true, files: ['resources/js/Layouts/AppShellV2.tsx'] }];
+  const md = montar('_Geral', grupos, []);
+  assert.match(md, /porta geral para componentes, layouts e templates herdáveis/);
+  assert.match(md, /O que NÃO é.*autorização para importar/);
+  assert.match(md, /reuse-index\.mjs/);
 });
 
 test('CLASSE B: regra larga app/ NÃO rouba um controller de módulo (Modules vence quando aplicável)', () => {
@@ -85,6 +115,14 @@ test('montar() carimba frontmatter gerado + título + papéis', () => {
   assert.match(md, /# 🗺️ Superfície de código — X/);
   assert.match(md, /## Controllers — 1/);
   assert.match(md, /\[AController\.php\]\(\.\.\/\.\.\/\.\.\/Modules\/X\/Http\/Controllers\/AController\.php\)/);
+});
+
+test('Total mapeado inclui Outros tanto nos arquivos quanto nos papéis', () => {
+  const grupos = [{ rot: 'Controllers', listar: true, files: ['Modules/X/Http/Controllers/AController.php'] }];
+  const outros = ['Modules/X/Support/Helper.php', 'Modules/X/Legacy/Foo.php'];
+  const md = montar('X', grupos, outros);
+  assert.match(md, /\*\*Total mapeado:\*\* 3 arquivos em 2 papéis\./);
+  assert.match(md, /## Outros \(raiz\/misc\) — 2/);
 });
 
 test('papel volumoso (listar:false) mostra contagem + dir, NÃO lista arquivos', () => {

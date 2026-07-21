@@ -1,6 +1,6 @@
 ---
 name: "SUPERFÍCIE — Sells"
-description: "Índice GERADO dos arquivos que moram no módulo Sells, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."
+description: "Índice GERADO dos artefatos do módulo Sells reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
 type: reference
 authority: generated
 lifecycle: ativo
@@ -13,9 +13,9 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Sells --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), não em `Modules/Sells/`. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
+> **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 164 arquivos em 7 papéis.
+**Total mapeado:** 164 arquivos em 8 papéis.
 
 ## Controllers — 6
 
@@ -71,7 +71,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 
 - 70 arquivos em [resources/views/sale_pos/](../../../resources/views/sale_pos) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 43
+## Telas (Inertia/React) — 8
 
 - [Index.tsx](../../../resources/js/Pages/Sells/Caixa/Index.tsx)
 - [Create.tsx](../../../resources/js/Pages/Sells/Create.tsx)
@@ -81,6 +81,9 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [Quotations.tsx](../../../resources/js/Pages/Sells/Quotations.tsx)
 - [Show.tsx](../../../resources/js/Pages/Sells/Show.tsx)
 - [Subscriptions.tsx](../../../resources/js/Pages/Sells/Subscriptions.tsx)
+
+## Componentes / apoio de tela — 35
+
 - [CobrancaChip.tsx](../../../resources/js/Pages/Sells/_components/CobrancaChip.tsx)
 - [CobrancaDrawer.tsx](../../../resources/js/Pages/Sells/_components/CobrancaDrawer.tsx)
 - [CommissionSplitEditor.tsx](../../../resources/js/Pages/Sells/_components/CommissionSplitEditor.tsx)
@@ -132,4 +135,3 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 
 - [Create.casos.md](../../../resources/js/Pages/Sells/Create.casos.md)
 - [Index.casos.md](../../../resources/js/Pages/Sells/Index.casos.md)
-

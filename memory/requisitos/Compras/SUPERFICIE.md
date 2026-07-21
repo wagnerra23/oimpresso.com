@@ -1,6 +1,6 @@
 ---
 name: "SUPERFÍCIE — Compras"
-description: "Índice GERADO dos arquivos que moram no módulo Compras, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."
+description: "Índice GERADO dos artefatos do módulo Compras reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
 type: reference
 authority: generated
 lifecycle: ativo
@@ -12,9 +12,9 @@ module: Compras
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Compras --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o código que MORA em `Modules/Compras/**` + `resources/js/Pages/Compras/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Compras/**` + `resources/js/Pages/Compras/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 23 arquivos em 9 papéis.
+**Total mapeado:** 23 arquivos em 10 papéis.
 
 ## Controllers — 3
 
@@ -43,9 +43,12 @@ module: Compras
 
 - [config.php](../../../Modules/Compras/Config/config.php)
 
-## Telas (Inertia/React) — 4
+## Telas (Inertia/React) — 1
 
 - [Index.tsx](../../../resources/js/Pages/Compras/Index.tsx)
+
+## Componentes / apoio de tela — 3
+
 - [AcoesDropdown.tsx](../../../resources/js/Pages/Compras/components/AcoesDropdown.tsx)
 - [Drawer.tsx](../../../resources/js/Pages/Compras/components/Drawer.tsx)
 - [VisibilidadeColunas.tsx](../../../resources/js/Pages/Compras/components/VisibilidadeColunas.tsx)
@@ -57,4 +60,3 @@ module: Compras
 ## Testes (Pest) — 9
 
 - 9 arquivos em [Modules/Compras/Tests/Feature/](../../../Modules/Compras/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
-

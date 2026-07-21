@@ -10,9 +10,10 @@
  * co-locado (`memory/requisitos/<Mod>/SUPERFICIE.md`) que a próxima geração recalcula.
  * "Derivado sobrevive; escrito+lembrado apodrece" (ADR 0256).
  *
- * ONDE ele mede: `Modules/<Mod>/**` (o código que MORA no módulo) + `resources/js/Pages/<Mod>/**`
- * (telas/charters/casos). Âncoras cross-cutting (bridge em app/, FSM) NÃO são deriváveis
- * por path — ficam narradas no BRIEFING (curado/destilado), não aqui. Honesto por construção.
+ * ONDE ele mede: artefatos reconhecidos por papel em `Modules/<Mod>/**` +
+ * `resources/js/Pages/<Mod>/**` (telas, componentes, charters e casos). NÃO é um manifesto
+ * byte-a-byte da pasta. Âncoras cross-cutting (bridge em app/, FSM) NÃO são deriváveis por
+ * path — ficam narradas no BRIEFING (curado/destilado), não aqui. Honesto por construção.
  *
  * O que ele NÃO faz (delega): contagem de cobertura, nota, status por tela — donos são
  * `screen-coverage-map.mjs` + `casos-gate`. Aqui é só ONDE o código mora (ponteiro, não cópia).
@@ -31,16 +32,25 @@
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync, statSync } from 'node:fs';
 import { join } from 'node:path';
+import { isPageScreenPath } from '../qa/page-path.mjs';
 
 const ROOT = process.cwd();
 const args = process.argv.slice(2);
 const MODE = args.includes('--write') ? 'write' : args.includes('--check') ? 'check' : 'dry';
 const ALL = args.includes('--all');
 const POS = args.filter((a) => !a.startsWith('--'));
+const CONTEXTO_GERAL = '_Geral';
+const RAIZES_GERAIS = [
+  'resources/js/Components',
+  'resources/js/Layouts',
+  'resources/views/components',
+  'resources/views/layouts',
+  'memory/requisitos/_DesignSystem/templates',
+];
 
 /**
  * Módulos CLASSE B — o código NÃO mora em `Modules/<Mod>/`, mora no núcleo UltimatePOS (`app/`).
- * Ex.: Venda (Sells) = fork do UltimatePOS, sem `Modules/Sells`. A MEMBERSHIP (quais arquivos
+ * Ex.: Venda (Sells) = fork do UltimatePOS, sem diretório modular homônimo. A MEMBERSHIP (quais arquivos
  * são do módulo) vem de uma SEMENTE CURADA e revisável no diff (não de "quem toca a tabela" —
  * medido 2026-07-21: `Transaction::` em 168 arquivos over-inclui Financeiro/Jana; decisão [W]).
  * `tabelas` = metadado-ÂNCORA declarado (estilo SCOPE.db_tables_owned), NÃO um derivador.
@@ -77,6 +87,11 @@ const CORE_APP_MODULES = {
  * O alternante `app/…` cobre os módulos CLASSE B (só vê os membros da semente curada).
  */
 const PAPEIS = [
+  { rot: 'Componentes compartilhados (React)', re: /^resources\/js\/Components\/.*\.(?:jsx?|tsx?)$/, listar: true },
+  { rot: 'Layouts herdados (React)', re: /^resources\/js\/Layouts\/.*\.(?:jsx?|tsx?)$/, listar: true },
+  { rot: 'Componentes compartilhados (Blade)', re: /^resources\/views\/components\/.*\.blade\.php$/, listar: true },
+  { rot: 'Layouts herdados (Blade)', re: /^resources\/views\/layouts\/.*\.blade\.php$/, listar: true },
+  { rot: 'Templates de construção (Design System)', re: /^memory\/requisitos\/_DesignSystem\/templates\/.*\.md$/, listar: true },
   { rot: 'Controllers', re: /^(?:Modules\/[^/]+|app)\/Http\/Controllers\/.*\.php$/, listar: true },
   { rot: 'Requests (validação)', re: /^(?:Modules\/[^/]+|app)\/Http\/Requests\/.*\.php$/, listar: true },
   { rot: 'Middleware', re: /^(?:Modules\/[^/]+|app)\/Http\/Middleware\/.*\.php$/, listar: true },
@@ -94,7 +109,8 @@ const PAPEIS = [
   { rot: 'Seeders', re: /^Modules\/[^/]+\/Database\/Seeders\/.*\.php$/, listar: true },
   { rot: 'Config', re: /^Modules\/[^/]+\/Config\/.*\.php$/, listar: true },
   { rot: 'Views (Blade)', re: /^(?:Modules\/[^/]+\/Resources\/views|resources\/views)\/.*\.blade\.php$/, listar: false },
-  { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, listar: true },
+  { rot: 'Telas (Inertia/React)', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: isPageScreenPath, listar: true },
+  { rot: 'Componentes / apoio de tela', re: /^resources\/js\/Pages\/[^/]+\/.*\.tsx$/, aceita: (f) => !isPageScreenPath(f), listar: true },
   { rot: 'Charters (lei da tela)', re: /^resources\/js\/Pages\/[^/]+\/.*\.charter\.md$/, listar: true },
   { rot: 'Casos (contrato UC)', re: /^resources\/js\/Pages\/[^/]+\/.*\.casos\.md$/, listar: true },
   { rot: 'Testes (Pest)', re: /^Modules\/[^/]+\/Tests\/.*\.php$/, listar: false },
@@ -127,26 +143,26 @@ function expandirPrefixos(prefixos) {
 
 /**
  * Lista os módulos pro `--all`: dirs em Modules/ com module.json (CLASSE A) + as chaves de
- * CORE_APP_MODULES (CLASSE B, ex. Sells — não tem Modules/Sells mas tem semente no core).
+ * CORE_APP_MODULES (CLASSE B, ex. Sells — não tem diretório modular homônimo, mas tem semente no core).
  */
 function listarModulos() {
   const dir = join(ROOT, 'Modules');
   const classeA = existsSync(dir) ? readdirSync(dir).sort().filter((m) => existsSync(join(dir, m, 'module.json'))) : [];
-  return [...new Set([...classeA, ...Object.keys(CORE_APP_MODULES)])].sort();
+  return [...new Set([...classeA, ...Object.keys(CORE_APP_MODULES), CONTEXTO_GERAL])].sort();
 }
 
 /** Coleta os arquivos do módulo (código + telas) e agrupa por papel. */
 function coletar(mod) {
   const core = CORE_APP_MODULES[mod];
   const files = [...new Set([
-    ...walk(`Modules/${mod}`),
-    ...walk(`resources/js/Pages/${mod}`),
+    ...(mod === CONTEXTO_GERAL ? RAIZES_GERAIS.flatMap((p) => walk(p)) : walk(`Modules/${mod}`)),
+    ...(mod === CONTEXTO_GERAL ? [] : walk(`resources/js/Pages/${mod}`)),
     ...(core ? expandirPrefixos(core.prefixos) : []),
   ])].sort();
   const grupos = PAPEIS.map((p) => ({ ...p, files: /** @type {string[]} */ ([]) }));
   const outros = [];
   for (const f of files) {
-    const g = grupos.find((p) => p.re.test(f));
+    const g = grupos.find((p) => p.re.test(f) && (!p.aceita || p.aceita(f)));
     if (g) g.files.push(f);
     // "Outros" = código .php membro de dir não-reconhecido (drop lang/menus/assets/views —
     // `/Resources/` cobre Modules, `/resources/` cobre o core CLASSE B).
@@ -163,11 +179,12 @@ function linkDe(f) {
 /** Monta o markdown determinístico da SUPERFICIE.md. */
 function montar(mod, grupos, outros) {
   const core = CORE_APP_MODULES[mod];
-  const total = grupos.reduce((n, g) => n + g.files.length, 0);
+  const total = grupos.reduce((n, g) => n + g.files.length, 0) + outros.length;
+  const totalPapeis = grupos.filter((g) => g.files.length).length + (outros.length ? 1 : 0);
   const L = [];
   L.push('---');
   L.push(`name: "SUPERFÍCIE — ${mod}"`);
-  L.push(`description: "Índice GERADO dos arquivos que moram no módulo ${mod}, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."`);
+  L.push(`description: "Índice GERADO dos artefatos do módulo ${mod} reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."`);
   L.push('type: reference');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
@@ -180,13 +197,15 @@ function montar(mod, grupos, outros) {
   L.push(`> ⚙️ **Gerado por máquina** (\`scripts/governance/module-surface.mjs\`). NÃO edite à mão — a próxima geração sobrescreve.`);
   L.push(`> Regenerar: \`node scripts/governance/module-surface.mjs ${mod} --write\`. Validar frescor: \`--check\` (exit 1 se a árvore mudou e isto não foi regenerado).`);
   L.push('>');
-  if (core) {
-    L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), não em `Modules/' + mod + '/`. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
+  if (mod === CONTEXTO_GERAL) {
+    L.push('> **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.');
+  } else if (core) {
+    L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
-    L.push('> **O que isto é:** o código que MORA em `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
+    L.push('> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
   }
   L.push('');
-  L.push(`**Total mapeado:** ${total} arquivos em ${grupos.filter((g) => g.files.length).length} papéis.`);
+  L.push(`**Total mapeado:** ${total} arquivos em ${totalPapeis} papéis.`);
   L.push('');
   for (const g of grupos) {
     if (!g.files.length) continue;
@@ -210,13 +229,13 @@ function montar(mod, grupos, outros) {
     for (const f of outros) L.push(`- [${f.split('/').pop()}](${linkDe(f)})`);
     L.push('');
   }
-  return L.join('\n') + '\n';
+  return L.join('\n').trimEnd() + '\n';
 }
 
 /** Processa 1 módulo. Retorna {mod, total, drift}. */
 function processar(mod) {
   const { grupos, outros } = coletar(mod);
-  const total = grupos.reduce((n, g) => n + g.files.length, 0);
+  const total = grupos.reduce((n, g) => n + g.files.length, 0) + outros.length;
   if (total === 0 && outros.length === 0) {
     console.error(`[module-surface] módulo "${mod}" não encontrado ou vazio (Modules/${mod} inexistente?).`);
     return { mod, total, drift: false, missing: true };
@@ -269,4 +288,4 @@ function main() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
 
-export { PAPEIS, coletar, montar, CORE_APP_MODULES };
+export { PAPEIS, coletar, montar, CORE_APP_MODULES, RAIZES_GERAIS, CONTEXTO_GERAL };

@@ -1,6 +1,6 @@
 ---
 name: "SUPERFÍCIE — Financeiro"
-description: "Índice GERADO dos arquivos que moram no módulo Financeiro, agrupado por papel. Responde 'quais arquivos são deste contexto'. NÃO editar à mão."
+description: "Índice GERADO dos artefatos do módulo Financeiro reconhecidos pelo classificador, agrupados por papel. NÃO editar à mão."
 type: reference
 authority: generated
 lifecycle: ativo
@@ -12,9 +12,9 @@ module: Financeiro
 > ⚙️ **Gerado por máquina** (`scripts/governance/module-surface.mjs`). NÃO edite à mão — a próxima geração sobrescreve.
 > Regenerar: `node scripts/governance/module-surface.mjs Financeiro --write`. Validar frescor: `--check` (exit 1 se a árvore mudou e isto não foi regenerado).
 >
-> **O que isto é:** o código que MORA em `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**` — a porta pra "quais arquivos". **O que NÃO é:** cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
+> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Financeiro/**` + `resources/js/Pages/Financeiro/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 288 arquivos em 20 papéis.
+**Total mapeado:** 292 arquivos em 22 papéis.
 
 ## Controllers — 25
 
@@ -184,32 +184,21 @@ module: Financeiro
 
 - 3 arquivos em [Modules/Financeiro/Resources/views/](../../../Modules/Financeiro/Resources/views) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
-## Telas (Inertia/React) — 60
+## Telas (Inertia/React) — 21
 
 - [Dashboard.tsx](../../../resources/js/Pages/Financeiro/Advisor/Dashboard.tsx)
 - [Login.tsx](../../../resources/js/Pages/Financeiro/Advisor/Login.tsx)
 - [AssinaturaAtualizar.tsx](../../../resources/js/Pages/Financeiro/AssinaturaAtualizar.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Caixa/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Categorias/Index.tsx)
-- [CategoriaSheet.tsx](../../../resources/js/Pages/Financeiro/Categorias/components/CategoriaSheet.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Cobranca/Index.tsx)
-- [AiResumoMes.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/AiResumoMes.tsx)
-- [CheatSheet.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/CheatSheet.tsx)
-- [DrawerCobranca.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/DrawerCobranca.tsx)
-- [FunnelStrip.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/FunnelStrip.tsx)
-- [SheetNovaCobranca.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/SheetNovaCobranca.tsx)
-- [SheetRemessaRetorno.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx)
-- [atoms.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/atoms.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Conciliacao/Index.tsx)
 - [Contador.tsx](../../../resources/js/Pages/Financeiro/Configuracoes/Contador.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasBancarias/Index.tsx)
-- [ConfigurarBoletoSheet.tsx](../../../resources/js/Pages/Financeiro/ContasBancarias/components/ConfigurarBoletoSheet.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasPagar/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/ContasReceber/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Dashboard/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Dre/Index.tsx)
-- [BalanceteView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalanceteView.tsx)
-- [BalancoView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalancoView.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Extrato/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Fluxo/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Impostos/Index.tsx)
@@ -218,6 +207,20 @@ module: Financeiro
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Relatorios/Index.tsx)
 - [Index.tsx](../../../resources/js/Pages/Financeiro/Unificado/Index.tsx)
 - [Novo.tsx](../../../resources/js/Pages/Financeiro/Unificado/Novo.tsx)
+
+## Componentes / apoio de tela — 39
+
+- [CategoriaSheet.tsx](../../../resources/js/Pages/Financeiro/Categorias/components/CategoriaSheet.tsx)
+- [AiResumoMes.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/AiResumoMes.tsx)
+- [CheatSheet.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/CheatSheet.tsx)
+- [DrawerCobranca.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/DrawerCobranca.tsx)
+- [FunnelStrip.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/FunnelStrip.tsx)
+- [SheetNovaCobranca.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/SheetNovaCobranca.tsx)
+- [SheetRemessaRetorno.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/SheetRemessaRetorno.tsx)
+- [atoms.tsx](../../../resources/js/Pages/Financeiro/Cobranca/_components/atoms.tsx)
+- [ConfigurarBoletoSheet.tsx](../../../resources/js/Pages/Financeiro/ContasBancarias/components/ConfigurarBoletoSheet.tsx)
+- [BalanceteView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalanceteView.tsx)
+- [BalancoView.tsx](../../../resources/js/Pages/Financeiro/Dre/_components/BalancoView.tsx)
 - [ClienteCombobox.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/ClienteCombobox.tsx)
 - [FinAgeing.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinAgeing.tsx)
 - [FinAnexosPanel.tsx](../../../resources/js/Pages/Financeiro/Unificado/_components/FinAnexosPanel.tsx)
@@ -289,4 +292,3 @@ module: Financeiro
 - [DreExport.php](../../../Modules/Financeiro/Exports/DreExport.php)
 - [BaixaRepository.php](../../../Modules/Financeiro/Repositories/BaixaRepository.php)
 - [TituloRepository.php](../../../Modules/Financeiro/Repositories/TituloRepository.php)
-

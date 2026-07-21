@@ -16,9 +16,10 @@
 | `memory/handoffs/*.md` (exceto `_*.md`) | `handoff.schema.json` | Handoff append-only |
 | `resources/js/Pages/**/*.charter.md` | `charter.schema.json` | Page Charter (Tier A) |
 | `memory/requisitos/*/BRIEFING.md` | `briefing.schema.json` | 1-pager por módulo (🟡 fiado em GRACE — warn-only, diff-aware) |
+| `memory/requisitos/*/topicos/*.md` | `topico.schema.json` | Unidade temática por módulo (🟡 forward-only em GRACE) |
 | `memory/reference/*.md` | `reference.schema.json` | Doc canônico/gerado (🟡 fiado em GRACE — warn-only, diff-aware) |
 
-> 🟡 **`briefing` e `reference` (proposal estrutura-canon-memoria · Fase 0, fiadas 2026-07-12):** já estão na matriz do [memory-schema-gate.yml](../../.github/workflows/memory-schema-gate.yml) com `grace: true` (força `STRICT=false` só pra elas → `continue-on-error` + comentário de PR "grace"). **NÃO bloqueiam merge** — tocar um BRIEFING/reference divergente gera WARNING, não red (a skill `brief-update` toca BRIEFING direto e não pode travar o time). Promoção grace→required só **depois** do backfill zerar o falso-positivo por família (disciplina ADR 0314 — gate novo nunca nasce bloqueante). Servem também pra: (a) validação local dos codemods de normalização, (b) `system-map.mjs` ler status confiável do BRIEFING, (c) `memory-schema-preflight`.
+> 🟡 **`briefing`, `topico` e `reference`:** ficam na matriz do [memory-schema-gate.yml](../../.github/workflows/memory-schema-gate.yml) com `grace: true`. **NÃO bloqueiam merge** nesta fase. `topico` nasceu forward-only em 2026-07-21: só arquivos novos/tocados entram no contrato; não existe backfill em massa. Promoção grace→required só depois de piloto sem falso positivo e decisão humana (ADR 0314/0345).
 >
 > **Escopo do glob `reference`:** só `memory/reference/*.md` (os ~143 divergentes vivem aí). Os docs de topo `memory/*.md` — incluindo os **5 @imports do CLAUDE.md** (`why-`/`what-`/`how-trabalhar`/`proibicoes`/`regras-time`) — ficam **FORA** da matriz (instrução Tier 0 do `reference.schema.json`); ampliar o glob pra `memory/*.md` exige excluir esses 5 primeiro.
 
@@ -42,6 +43,7 @@
    | session | [`memory/sessions/_TEMPLATE.md`](../../memory/sessions/_TEMPLATE.md) (via skill `encerrar-sessao`) |
    | handoff | [`memory/handoffs/_TEMPLATE.md`](../../memory/handoffs/_TEMPLATE.md) (ADR 0130 · skill `encerrar-sessao`) |
    | briefing | [`memory/requisitos/_DesignSystem/BRIEFING-TEMPLATE.md`](../../memory/requisitos/_DesignSystem/BRIEFING-TEMPLATE.md) (via skill `brief-update`) |
+   | topico | [`memory/requisitos/_Governanca/TOPICO-TEMPLATE.md`](../../memory/requisitos/_Governanca/TOPICO-TEMPLATE.md) |
    | runbook | [`.claude/skills/cockpit-runbook/TEMPLATE.md`](../../.claude/skills/cockpit-runbook/TEMPLATE.md) (via skill `cockpit-runbook`) |
    | reference | skill [`memory-schema-preflight`](../../.claude/skills/memory-schema-preflight/SKILL.md) (sem template — doc à mão seguindo o skill) |
 
@@ -59,7 +61,7 @@
 ## Como manter
 
 1. **Adicionar campo novo:** edite o `*.schema.json`, rode `php artisan jana:validate-memory` local; se passar, PR.
-2. **Adicionar tipo novo:** crie `<tipo>.schema.json` + adicione glob no [.remarkrc.json](../../.remarkrc.json) + matrix de [.github/workflows/memory-schema-gate.yml](../../.github/workflows/memory-schema-gate.yml) + case no `JanaValidateMemoryCommand::detectSchemaForPath()`.
+2. **Adicionar tipo novo:** crie `<tipo>.schema.json` + adicione o glob à matriz de [.github/workflows/memory-schema-gate.yml](../../.github/workflows/memory-schema-gate.yml) + entrada em `JanaValidateMemoryCommand::$schemaMap`. Não há `.remarkrc.json` neste repositório.
 3. **Mudar required:** lembrar grace period — campo novo deve ser opcional por default até backfill rodar.
 
 ## Decisão arquitetural
@@ -74,3 +76,4 @@ Rejeitados: B (`frontmatter-json-schema-action` magro), D (pre-commit não enfor
 - **2026-05-13** — Schemas criados em ONDA 5 S1 (agent schema-validator-expert).
 - **2026-07-12** — `briefing` + `reference` (proposal estrutura-canon-memoria Fase 0) fiadas à matriz em GRACE (`grace: true` → warn-only, diff-aware). Forward-only: LEGADO em massa segue bloqueado pelos gates diff-aware (proibicoes.md §5). Promoção a required só após backfill FP=0 (ADR 0314).
 - **2026-07-17** — Auditoria forward-only das 5 famílias advisory (session/handoff/briefing/runbook/reference) com harness AJV espelhando o CI. **3 furos de template fechados** (não legado): `date:` sem aspas em `sessions/_TEMPLATE.md` + `handoffs/_TEMPLATE.md` (YAML parseava data crua como objeto `Date` → falha `type:string`); `BRIEFING-TEMPLATE.md` sem frontmatter (nascia grandfathered); skill `cockpit-runbook` (TEMPLATE.md + SKILL.md) emitindo `status: active` (fora do enum) + faltando `owner`/`last_validated`. Skill `memory-schema-preflight` também corrigida (exemplos session/handoff citavam `type`/`tldr`/`estado_mcp` em vez dos required `topic` / `slug`+`tldr`). Nenhum arquivo de conteúdo legado tocado (seção "Normalização de legado" acima). Refs ADR 0341.
+- **2026-07-21** — `topico.schema.json` entrou em grace/forward-only (ADR 0345), com âncoras código↔tela↔teste, afirmações atômicas, críticas independentes preservadas e síntese central separada da aprovação humana. `BRIEFING-TEMPLATE.md` passou a ser índice, sem migração em massa do legado.

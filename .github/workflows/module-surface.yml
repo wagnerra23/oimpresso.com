@@ -16,9 +16,16 @@ on:
     paths:
       - 'Modules/**'
       - 'resources/js/Pages/**'
+      - 'resources/js/Components/**'
+      - 'resources/js/Layouts/**'
+      - 'resources/views/components/**'
+      - 'resources/views/layouts/**'
+      - 'memory/requisitos/_DesignSystem/templates/**'
       - 'memory/requisitos/*/SUPERFICIE.md'
       - 'scripts/governance/module-surface.mjs'
       - 'scripts/governance/module-surface.test.mjs'
+      - 'scripts/qa/page-path.mjs'
+      - 'scripts/qa/page-path.test.mjs'
       - '.github/workflows/module-surface.yml'
 
 permissions:
@@ -35,7 +42,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: node --test scripts/governance/module-surface.test.mjs
+      - run: node --test scripts/governance/module-surface.test.mjs scripts/qa/page-path.test.mjs
 
   # Drift: o SUPERFICIE.md commitado bate com a árvore do PR? Exit code real.
   drift:
