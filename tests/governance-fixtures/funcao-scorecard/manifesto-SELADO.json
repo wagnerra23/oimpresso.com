@@ -2,8 +2,13 @@
   "_meta": {
     "o_que_e": "Gabarito SELADO da calibração do juiz funcao-scorecard. Rótulo = a mutação sintética que apliquei (label_source: mutation), OBJETIVO e determinístico — não humano, não modelo. Cada twin em twins/ é código FABRICADO (não o ProductUtil real) → não-circular por construção: o juiz não pode saber a resposta do contexto do repo.",
     "regra_de_uso": "O juiz roda CEGO — vê só o código do twin + a rubrica dos 8 critérios, NUNCA este manifesto. Quem monta o pack não exibe os vereditos (regra _quem_monta_nao_exibe do sdd-verification-ledger). O runner (funcao-scorecard-calibracao.mjs) compara os vereditos do juiz cego vs este selado.",
-    "criterio_de_aprovacao": "discriminante: acerta o critério+veredito saliente em >=2 das 3 famílias de defeito (C1/C2/C3/C6) com o mecanismo certo; ZERO discordo no controle limpo (t07); INCERTO no sem-âncora (t08). Repetibilidade (T1): >=90% por-critério em 3 rodadas.",
+    "criterio_de_aprovacao": "discriminante: acerta o critério+veredito saliente em >=80% das famílias de defeito (C1/C2/C3/C4/C5/C6/C7) com o mecanismo certo; ZERO discordo no controle limpo (t07); INCERTO no sem-âncora (t08); ZERO falso-discordo nos twins bons/armadilhas (t01/t03/t11/t16/t18/t20). κ (chance-corrected) >= 0.6. Repetibilidade (T1): >=90% por-critério em 3 rodadas.",
     "label_source": "mutation",
+    "bracos": {
+      "sintetico-mutacao": "t01..t11 — twins fabricados; rótulo = a mutação determinística (o gabarito).",
+      "incidente-real": "t12/t13/t14 — MODELAM defeitos REAIS já catalogados; rótulo ancorado no TESTE DE REGRESSÃO real (não opinião), mas o CÓDIGO segue sintético (não colado do repo → não-circular por construção).",
+      "criterios-extra": "t15..t20 — pares bom/ruim pra C4 (atomicidade), C5 (N+1), C7 (tipos/falha), cada bad acompanhado de uma armadilha 'parece-ruim-mas-é-ok' (t16/t18/t20)."
+    },
     "spec": "memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md §5"
   },
   "twins": {
@@ -17,6 +22,17 @@
     "t08-no-anchor-incerto":    { "criterio_salient": "C3", "veredito": "incerto", "mecanismo": "0-em-zona-sem-regra pode ser frete-grátis intencional OU dado-ausente silencioso; sem SPEC/charter/ADR pra decidir a intenção → incerto obrigatório", "familia": null },
     "t09-partial-scope-nao-tenant": { "criterio_salient": "C1", "veredito": "discordo", "mecanismo": "escopa por location_id mas NÃO por business_id — armadilha: parece escopado mas location de outro tenant vaza", "familia": "multi-tenant-sutil" },
     "t10-golden-vetor-errado":      { "criterio_salient": "C2", "veredito": "discordo", "mecanismo": "cita golden que cobre SOMA; a função faz DIVISÃO — armadilha: 'existe golden' não basta, tem que cobrir O VETOR (refinamento C2 do 4617)", "familia": "valor-vetor-sutil" },
-    "t11-nullable-tipado-ok":       { "criterio_salient": "C3", "veredito": "concordo", "mecanismo": "retorno ?Coupon TIPADO — null é contrato explícito, NÃO string vazia silenciosa (t05); armadilha: juiz que carimba todo null-on-missing como C3 erra aqui", "familia": null }
+    "t11-nullable-tipado-ok":       { "criterio_salient": "C3", "veredito": "concordo", "mecanismo": "retorno ?Coupon TIPADO — null é contrato explícito, NÃO string vazia silenciosa (t05); armadilha: juiz que carimba todo null-on-missing como C3 erra aqui", "familia": null },
+
+    "t12-incident-numuf-inflacao":  { "criterio_salient": "C2", "veredito": "discordo", "mecanismo": "BRAÇO-INCIDENTE (2026-06-05): desconto % gera float de 5 casas que num_uf pt-BR lê como milhar → infla ~×100k, sem golden que cubra o vetor. Rótulo ancorado no teste de regressão real IncidentValorInfladoNumUfTest (não opinião); código sintético", "familia": "incidente-valor-numuf" },
+    "t13-incident-idor-cross-tenant": { "criterio_salient": "C1", "veredito": "discordo", "mecanismo": "BRAÇO-INCIDENTE (IDOR): findOrFail(id-do-request) em Model sem global scope (guarded=['id']) e update() sem where business_id → escrita cross-tenant em dinheiro. Rótulo ancorado em UpdateCrossTenantIdorTest; código sintético", "familia": "incidente-idor" },
+    "t14-incident-empty-value-list": { "criterio_salient": "C3", "veredito": "discordo", "mecanismo": "BRAÇO-INCIDENTE (Radix tela-branca): lista de valores de opção do distinct inclui membro vazio/null silencioso — o consumidor que exige value não-vazio quebra; nada filtra o vazio. Rótulo ancorado no fix SafeSelectItem.tsx + proibicoes §5 2026-06-29; código sintético", "familia": "incidente-empty-value" },
+
+    "t15-atomicidade-bad":          { "criterio_salient": "C4", "veredito": "discordo", "mecanismo": "duas escritas que deveriam ser atômicas (StockMovement::create + decrement) fora de DB::transaction e sem declarar que o caller envolve", "familia": "atomicidade" },
+    "t16-atomicidade-caller-declara-ok": { "criterio_salient": "C4", "veredito": "concordo", "mecanismo": "duas escritas MAS o docblock DECLARA que o caller envolve em DB::transaction (rubrica C4: 'OU declara que o caller envolve'); armadilha: juiz que carimba todo multi-write erra aqui", "familia": null },
+    "t17-nplus1-bad":               { "criterio_salient": "C5", "veredito": "discordo", "mecanismo": "query (sum) POR iteração dentro do foreach, evitável com whereIn + groupBy set-based", "familia": "n-mais-1" },
+    "t18-nplus1-eagerload-ok":      { "criterio_salient": "C5", "veredito": "concordo", "mecanismo": "foreach sobre relação EAGER-LOADED (with('lines.product')) — zero query no loop; armadilha: 'foreach + ->product' parece N+1 mas está pré-carregado", "familia": null },
+    "t19-mixed-return-bad":         { "criterio_salient": "C7", "veredito": "discordo", "mecanismo": "docblock @return array mas retorno é polimórfico (false|string|array) e o caminho de falha (false) é silencioso, sem Log/exception", "familia": "tipos-falha" },
+    "t20-nullable-int-documentado-ok": { "criterio_salient": "C7", "veredito": "concordo", "mecanismo": "retorno ?int TIPADO com docblock @return int|null honesto e null documentado como 'não existe' — não é mixed; armadilha: juiz que carimba todo nullable como tipo-ambíguo erra aqui", "familia": null }
   }
 }

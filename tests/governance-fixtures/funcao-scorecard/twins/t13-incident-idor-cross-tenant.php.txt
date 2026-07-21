@@ -1,0 +1,12 @@
+/**
+ * Incidente IDOR de escrita cross-tenant em DINHEIRO modelado (SINTÉTICO): o Model
+ * Ledger NÃO tem global scope (guarded=['id']); o id vem cru do request; a busca
+ * não filtra business_id → usuário do business A muta o lançamento do business B.
+ * Rótulo ancorado no teste de regressão real: tests/Feature/Purchase/UpdateCrossTenantIdorTest.php.
+ */
+public function updateLedgerTotal(int $id, float $novoTotal): void
+{
+    // findOrFail(id-do-request) sem where('business_id', ...) numa tabela tenant-owned.
+    $ledger = Ledger::findOrFail($id);
+    $ledger->update(['final_total' => $novoTotal]);
+}

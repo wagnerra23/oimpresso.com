@@ -1,0 +1,16 @@
+/**
+ * @return int|null Quantidade em estoque, ou null quando o produto não existe —
+ *                  contrato EXPLÍCITO e tipado. O consumidor trata o null, não
+ *                  adivinha o tipo (não é retorno polimórfico mixed).
+ */
+public function estoqueDe(int $productId): ?int
+{
+    $product = Product::where('business_id', session('user.business_id'))
+        ->where('id', $productId)
+        ->first();
+
+    if ($product === null) {
+        return null; // documentado no docblock: null = não existe
+    }
+    return (int) $product->on_hand;
+}

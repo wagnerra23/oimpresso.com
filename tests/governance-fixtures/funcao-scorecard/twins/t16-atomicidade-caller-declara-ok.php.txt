@@ -1,0 +1,17 @@
+/**
+ * @transactional O CALLER (ExecuteStageActionService) envolve em DB::transaction.
+ * Esta função NÃO abre transaction própria DE PROPÓSITO — ela compõe com outras
+ * baixas de componente na MESMA unidade atômica do caller. Abrir transaction aqui
+ * quebraria a atomicidade do conjunto.
+ */
+public function baixarComponente(int $componenteId, int $qtd): void
+{
+    StockMovement::create([
+        'componente_id' => $componenteId,
+        'delta' => -$qtd,
+        'business_id' => session('user.business_id'),
+    ]);
+    Componente::where('business_id', session('user.business_id'))
+        ->where('id', $componenteId)
+        ->decrement('on_hand', $qtd);
+}
