@@ -1,0 +1,8 @@
+public function nomesDosItens(Order $order): array
+{
+    $out = [];
+    foreach ($order->items as $item) {
+        $out[] = $item->product->name;
+    }
+    return $out;
+}

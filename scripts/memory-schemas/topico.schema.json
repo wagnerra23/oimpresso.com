@@ -34,6 +34,28 @@
       "format": "date",
       "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
     },
+    "valid_from": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Bi-temporal (modelo Zep) — tempo-de-DOMÍNIO: desde quando o fato deste tópico é verdadeiro no mundo (≠ updated_at, que é tempo-de-transação, quando o doc foi escrito). Data histórica: não apodrece (append-only). Ancore num evento verificável (incidente/fix/ADR); para comportamento legado de origem desconhecida, omita ou use a data de observação com nota."
+    },
+    "valid_until": {
+      "type": "string",
+      "format": "date",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$",
+      "description": "Bi-temporal (modelo Zep) — tempo-de-DOMÍNIO: quando o fato deste tópico DEIXOU de ser verdadeiro. Presença = comportamento superado; o leitor (recall/brief) trata valid_until no passado como superado, mas SÓ quando a âncora resolve (advisory, não presence-gate). NÃO pode ser data solta escrita à mão — dependentSchemas exige superseded_by_adr OU superseded_by_topic (fato verificável, proibicoes.md §5). Idealmente = decided_at do ADR supersessor."
+    },
+    "superseded_by_adr": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[A-Za-z0-9.-]+$",
+      "description": "Âncora verificável do valid_until: slug do ADR supersessor que invalidou o fato (o arquivo memory/decisions/<slug>.md deve existir). A data de valid_until deve espelhar o decided_at desse ADR — nunca uma data inventada."
+    },
+    "superseded_by_topic": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$",
+      "description": "Âncora verificável do valid_until: id do tópico sucessor que substituiu este (o arquivo memory/requisitos/<Modulo>/topicos/<id>.md deve existir)."
+    },
     "anchors": {
       "type": "object",
       "additionalProperties": false,
@@ -119,6 +141,19 @@
         }
       }
     }
+  },
+  "dependentSchemas": {
+    "valid_until": {
+      "description": "§5 proibicoes.md: expiração ancora num fato verificável, nunca data solta que apodrece. Se valid_until existe, o tópico DEVE nomear o que o superou (ADR supersessor ou tópico sucessor). A existência real da âncora é verificada pelo leitor/fact-anchor — o schema só garante que a expiração carrega seu motivo.",
+      "anyOf": [
+        { "required": ["superseded_by_adr"] },
+        { "required": ["superseded_by_topic"] }
+      ]
+    }
+  },
+  "dependentRequired": {
+    "superseded_by_adr": ["valid_until"],
+    "superseded_by_topic": ["valid_until"]
   },
   "definitions": {
     "evidenceList": {

@@ -1,0 +1,7 @@
+public function pendentes(): Collection
+{
+    $bizId = auth()->user()->business_id;
+
+    return Invoice::where('business_id', $bizId)
+        ->where('status', 'pending')->get();
+}

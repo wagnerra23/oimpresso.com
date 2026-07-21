@@ -8,6 +8,7 @@ related_adrs:
   - 0345-topicos-vivos-aprendizado-por-critica-revisada
 outcomes:
   - "Blind pack deixou de vazar nomes e narrativa de docblocks; rodadas antigas foram reclassificadas como parcialmente contaminadas."
+  - "Integração com o PR #4645 preservou a ordem cega por hash e incorporou a rodada fresca com quatro famílias de modelo e set-fronteira."
   - "Scorecard ProductUtil migrou para dez critérios com C7a..C7d e ganhou fingerprint de código/rubrica."
   - "Catálogo passou a 38 módulos com dependsOn consultável; superfícies vivas ficaram completas e enforçadas."
 ---
@@ -20,7 +21,7 @@ Wagner autorizou implementar e fazer merge dos sete chips de refinamento do PR 4
 
 ## Alterações
 
-1. O pack de calibração passou a emitir IDs opacos e a sanitizar narrativa de comentários/docblocks.
+1. O pack de calibração passou a emitir labels opacos em ordem de hash e a sanitizar narrativa de comentários/docblocks; a integração com o PR #4645 acrescentou quatro famílias de modelo e o set-fronteira.
 2. Foi criado o runner de rotulagem humana, com nove itens obrigatórios, K/9 e Cohen kappa.
 3. C7 foi decomposto em quatro binários e aplicado às 37 funções do `ProductUtil`.
 4. O sentinela `briefing-code-staleness` ganhou frescor de scorecard e validação das lápides legadas.
@@ -31,7 +32,7 @@ Wagner autorizou implementar e fazer merge dos sete chips de refinamento do PR 4
 
 ## Validação
 
-- Node: 48/48 testes.
+- Node: 52/52 testes relevantes após a integração com a `main`.
 - Memory-health: 0 falhas.
 - Meta-testes: 13/13 ADR governance e 38/38 memory-health.
 - Catálogo: 38 módulos, 627 nós, 950 arestas, 0 módulos/ADRs pendurados.
@@ -40,4 +41,4 @@ Wagner autorizou implementar e fazer merge dos sete chips de refinamento do PR 4
 
 ## Decisão e pendências
 
-A calibração humana não foi preenchida em nome de [W] e a independência de três juízes não foi simulada. Esses são os únicos passos de evidência humana ainda abertos; o mecanismo para coletá-los ficou pronto. Ver o [handoff](../handoffs/2026-07-21-1541-fechamento-scorecard-catalogo.md).
+A calibração humana não foi preenchida em nome de [W]. A rodada mecânica fresca foi coberta por quatro famílias no PR #4645; o passo de evidência ainda aberto é o braço humano de nove rótulos, cujo mecanismo ficou pronto. Ver o [handoff](../handoffs/2026-07-21-1541-fechamento-scorecard-catalogo.md).

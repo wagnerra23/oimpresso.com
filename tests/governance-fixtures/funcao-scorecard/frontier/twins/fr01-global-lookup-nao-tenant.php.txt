@@ -1,0 +1,7 @@
+/**
+ * @return string|null Símbolo da moeda pelo código ISO.
+ */
+public function symbolFor(string $iso): ?string
+{
+    return Currency::where('iso_code', $iso)->value('symbol');
+}

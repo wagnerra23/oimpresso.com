@@ -5,11 +5,10 @@ slug: fechamento-scorecard-catalogo
 tldr: "Sete follow-ups do PR 4617 fechados: blindagem real do juiz, calibração humana pronta, C7 binário, superfícies completas, lápides, ProductUtil fresco e catálogo consultável."
 decided_by: [W]
 cycle: null
-prs: []
+prs: [4644, 4645]
 us: []
 next_steps:
   - "Coletar os nove rótulos cegos de [W] e calcular Cohen kappa contra o gold selado."
-  - "Repetir a rodada cega com três juízes frescos usando somente IDs opacos."
 related_adrs:
   - 0345-topicos-vivos-aprendizado-por-critica-revisada
 ---
@@ -18,7 +17,7 @@ related_adrs:
 
 ## TL;DR
 
-Os sete itens pedidos foram implementados e verificados. A principal correção metodológica foi admitir que as rodadas antigas deixavam pistas nos nomes e docblocks: o pack novo usa IDs `T001...` e remove narrativa. A nota humana não foi fabricada; o mecanismo está pronto para receber nove rótulos de [W].
+Os sete itens pedidos foram implementados e verificados. A principal correção metodológica foi admitir que as rodadas antigas deixavam pistas nos nomes e docblocks: o pack integrado ao PR #4645 usa labels `L01...` em ordem de hash, remove narrativa e já foi reexecutado por quatro famílias de modelo. A nota humana não foi fabricada; o mecanismo está pronto para receber nove rótulos de [W].
 
 ## Entregue
 
@@ -34,7 +33,7 @@ Os sete itens pedidos foram implementados e verificados. A principal correção 
 
 ## Provas locais
 
-- 48/48 testes Node dos quatro mecanismos novos/refinados.
+- 52/52 testes Node relevantes após integrar a `main` e resolver a sobreposição com o PR #4645.
 - `briefing-code-staleness.test.mjs`: todos os bite/release passaram.
 - `module-surface --all --check`: 39 superfícies sem drift.
 - `catalog-graph --check`: sem drift e sem aresta estrutural pendurada.
@@ -44,7 +43,7 @@ Os sete itens pedidos foram implementados e verificados. A principal correção 
 ## Fronteira honesta
 
 - A calibração humana real continua pendente dos nove rótulos de [W].
-- As três rodadas cegas frescas devem ser repetidas porque as rodadas antigas foram contaminadas por pistas; não foi simulada independência de juízes.
+- Quatro famílias de modelo já julgaram o pack sem os vazamentos residuais; a evidência e a fronteira de erro vieram do PR #4645.
 - Quatro tabelas mantêm co-ownership explicitamente declarado e aparecem como revisão, não como erro estrutural.
 - O índice de planos já estava stale e seu step é advisory no umbrella; não foi regenerado fora do escopo.
 

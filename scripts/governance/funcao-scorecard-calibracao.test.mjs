@@ -6,7 +6,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { blindIdMap, pack, pontuar, stripTells } from './funcao-scorecard-calibracao.mjs';
+import { blindOrder, pack, pontuar, stripTells, translateBlind } from './funcao-scorecard-calibracao.mjs';
 
 // selado mínimo sintético (não lê o disco — teste puro).
 const SEL = {
@@ -65,8 +65,8 @@ test('falso-discordo num twin BOM → NÃO calibrado', () => {
 });
 
 test('pack cego usa IDs opacos e não vaza nomes dos arquivos/vereditos', () => {
-  const out = pack();
-  assert.match(out, /## Caso T001/);
+  const out = pack('twins', true);
+  assert.match(out, /## L01/);
   assert.doesNotMatch(out, /atomicidade-bad|eagerload-ok|docblock-mente|null-silencioso|incident-/i);
 });
 
@@ -79,11 +79,10 @@ test('stripTells remove prosa narrativa de docblock e preserva contrato mínimo'
 });
 
 test('pontuar aceita IDs cegos sem expor o mapa ao juiz', () => {
-  const map = blindIdMap(Object.keys(SEL));
   const byReal = {
     't-c1': { C1: 'discordo' }, 't-c2': { C2: 'discordo' }, 't-c3': { C3: 'discordo' },
     't-bom': { C1: 'concordo' }, 't-ctrl': { C1: 'concordo' }, 't-inc': { C3: 'incerto' },
   };
-  const blind = Object.fromEntries(Object.entries(map).map(([blindId, realId]) => [blindId, byReal[realId]]));
-  assert.equal(pontuar(blind, SEL).pass, true);
+  const blind = Object.fromEntries(blindOrder(Object.keys(SEL)).map(({ label, id }) => [label, byReal[id]]));
+  assert.equal(pontuar(translateBlind(blind, Object.keys(SEL)), SEL).pass, true);
 });

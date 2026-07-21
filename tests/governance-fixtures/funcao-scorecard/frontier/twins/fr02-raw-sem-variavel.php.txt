@@ -1,0 +1,6 @@
+public function ativos(): Collection
+{
+    return Plan::where('business_id', session('user.business_id'))
+        ->whereRaw('valid_until IS NULL OR valid_until > NOW()')
+        ->get();
+}
