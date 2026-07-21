@@ -1,0 +1,8 @@
+/**
+ * @return string the formatted gadget label
+ */
+public function labelFor(int $gadgetId): int
+{
+    // tell (removido no pack): retorno real é int (sem DB, sem null); docblock diz string.
+    return 1000 + $gadgetId;
+}

@@ -1,0 +1,5 @@
+public function idOrCode(int $x): int|string
+{
+    // tell (removido no pack): union DECLARADO int|string — polimorfismo honesto, o caller sabe pelo tipo.
+    return $x > 0 ? $x : 'AUTO-'.$x;
+}

@@ -1,0 +1,10 @@
+public function syncGadget(int $gadgetId): void
+{
+    try {
+        $gadget = Gadget::where('business_id', session('user.business_id'))
+            ->where('id', $gadgetId)->firstOrFail();
+        $this->pushToRemote($gadget);
+    } catch (\Throwable $e) {
+        // sem Log, sem rethrow
+    }
+}

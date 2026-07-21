@@ -21,7 +21,7 @@ Isto calibra o **INSTRUMENTO** (o juiz discrimina defeito mecânico?), **não** 
 # 1) o runner morde? (juiz-perfeito PASSA, juiz-carimbo FALHA)
 node scripts/governance/funcao-scorecard-calibracao.mjs --selftest
 
-# 2) emitir o PACK CEGO (o que o juiz vê — sem rótulos)
+# 2) emitir o PACK CEGO (o que o juiz vê — comentários // de prosa REMOVIDOS pelo stripTells)
 node scripts/governance/funcao-scorecard-calibracao.mjs --pack
 
 # 3) rodar N juízes FRESCOS (sessões isoladas), cada um julga o pack e grava vereditos.json;
@@ -33,25 +33,34 @@ node scripts/governance/funcao-scorecard-calibracao.mjs --score <vereditos.json>
 
 **Passa se:** ≥80% das famílias de defeito achadas com o critério certo · **κ (chance-corrected) ≥ 0,6** vs o rótulo objetivo · **zero discordo** no controle limpo (t07) · **incerto** no sem-âncora (t08) · nenhum falso-discordo nos bons. Repetibilidade (T1): ≥90% por-critério em 3 rodadas.
 
-**20 twins em 3 braços:**
+**25 twins em 4 braços:**
 
 **Braço sintético-mutação (t01–t11)** — código fabricado, rótulo = a mutação determinística.
 - **Fáceis (t01–t08)** cobrem os defeitos óbvios (C1/C2/C3/C6 + controle + incerto).
 - **DIFÍCEIS (t09–t11)** são armadilhas onde um juiz preguiçoso erra (100% em caso óbvio prova pouco):
   - `t09-partial-scope-nao-tenant` — escopa por `location_id`, parece escopado mas **não é** business_id (C1 discordo).
   - `t10-golden-vetor-errado` — cita um golden que cobre **outra** operação; "existe golden" não basta, tem que cobrir **o vetor** (C2 discordo, refinamento do 4617).
-  - `t11-nullable-tipado-ok` — retorno `?Coupon` tipado é contrato explícito, **não** é o empty-string do t05 (C3 concordo — quem carimba todo null erra aqui).
+  - `t11-nullable-tipado-ok` — retorno `?Coupon` tipado é contrato explícito (**C7c concordo** — rubric v1.1; era C3, migrou pro dono preciso da nullabilidade). Quem carimba todo `?T` como violação erra aqui.
 
 **Braço-incidente (t12–t14)** — MODELAM defeitos REAIS já catalogados; o rótulo é ancorado no **teste de regressão real** (não na mutação, não em opinião), mas o CÓDIGO segue **sintético** (não colado do repo → não-circular por construção):
 - `t12-incident-numuf-inflacao` — desconto % gera float de 5 casas que o parser pt-BR lê como milhar → infla ~×100k. Âncora: [`IncidentValorInfladoNumUfTest`](../../../tests/Unit/Utils/IncidentValorInfladoNumUfTest.php) (C2 discordo).
 - `t13-incident-idor-cross-tenant` — `findOrFail(id-do-request)` em Model sem global scope + `update()` sem `business_id` → escrita cross-tenant em dinheiro. Âncora: [`UpdateCrossTenantIdorTest`](../../../tests/Feature/Purchase/UpdateCrossTenantIdorTest.php) (C1 discordo).
 - `t14-incident-empty-value-list` — lista de valores do distinct inclui membro vazio silencioso que derruba o consumidor. Âncora: [`SafeSelectItem.tsx`](../../../resources/js/Components/ui/SafeSelectItem.tsx) + proibicoes §5 2026-06-29 (C3 discordo).
 
-**Braço critérios-extra (t15–t20)** — pares bom/ruim pra os critérios que faltavam, cada bad com a armadilha "parece-ruim-mas-é-ok":
+**Braço critérios-extra (t15–t20)** — pares bom/ruim, cada bad com a armadilha "parece-ruim-mas-é-ok":
 - `t15/t16` **C4 atomicidade** — 2 escritas fora de transaction (discordo) × 2 escritas que **declaram** caller-wraps (concordo — rubrica C4 "OU declara que o caller envolve").
 - `t17/t18` **C5 N+1** — query dentro do `foreach` (discordo) × `foreach` sobre relação **eager-loaded** (concordo — parece N+1, não é).
-- `t19/t20` **C7 tipos** — retorno polimórfico `false|string|array` com docblock mentindo (discordo) × `?int` tipado+documentado (concordo — quem carimba todo nullable erra).
+- `t19/t20` **C7 (re-rotulados na v1.1)** — `t19-mixed-return-bad` retorno polimórfico `false|string|array` NÃO-declarado → **C7b discordo** (era "C7"); `t20-nullable-int-documentado-ok` `?int` tipado+documentado → **C7c concordo** (era "C7").
+
+**Braço desdobramento-C7 v1.1 (t21–t25)** — calibram o C7 desdobrado em C7a/C7b/C7c/C7d ([FUNCAO-SCORECARD-METODO §1](../../../memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md)). O C7 monolítico flipou (`getProductDiscount`: 2×1) por misturar 3 perguntas; cada twin isola UM sub-critério:
+- `t21-docblock-mente` — `@return string` sob assinatura/retorno `int`, **sem null, sem DB, sem polimorfismo** (C7a puro discordo). Isola o C7a que o t19 mistura com C7b.
+- `t22-null-silencioso` — `: Gadget` (não-nullable) mas `first()` devolve null → null silencioso (C7c discordo). Contraste direto do t11/t20 (`?T` tipado = concordo).
+- `t23-erro-engolido` — `catch (\Throwable)` **vazio**, sem Log nem rethrow (C7d discordo — supressão mecânica).
+- `t24-c3-colecao-tipada` — ausência → `Collection` vazia tipada (C3 concordo). Exemplar positivo de C3 NÃO-nullable (após t11 migrar pra C7c); C7c `n/a` (partição).
+- `t25-union-declarado-ok` — retorno `int|string` **DECLARADO** na assinatura (C7b concordo). Armadilha simétrica ao t11/t20: quem carimba todo multi-tipo como C7b erra — só polimorfismo NÃO-declarado é discordo.
+
+> **⚠️ De-comment (stripTells) — correção de método 2026-07-21 (revisão adversarial).** Uma sessão-juiz cética apontou que o `--pack` antigo emitia os comentários `//` dos twins **verbatim**, e vários **nomeavam o mecanismo/veredito** (ex.: `// location de outro tenant vaza`, `// nenhuma prova golden`). Isso inflava o κ — media "transcrever o comentário", não "discriminar o defeito pela estrutura". Fix: `pack()` agora roda `stripTells()` (remove `//` e `/* */` de prosa, **preserva** `/** */` docblocks de contrato). Fatos de schema que um juiz real teria (ex.: "Gadget é tabela tenant-owned") ficam em docblock `/** */` (sobrevivem). **Consequência honesta:** o κ das rodadas 2–4 (com os `//` vazando) está parcialmente **inflado** por prosa; a medição válida do desdobramento C7 é a **rodada 5** (v1.1, pack de-commentado, 25 twins). Rodadas anteriores ficam como fóssil datado (não reescritas), com esta ressalva. **Residual honesto:** os docblocks `/** */` de narração do braço-incidente/extra ainda descrevem o defeito (o `stripTells` só tira `//`); de-narrar docblocks é trabalho futuro.
 
 ## Estender
 
-Mais twins = mais 1 par bom/ruim em `twins/` + a entrada no `manifesto-SELADO.json`. Braço-incidente já implementado (t12–t14); mais incidentes reais têm índice em `memory/LICOES_CODE.md`.
+Mais twins = mais 1 par bom/ruim em `twins/` + a entrada no `manifesto-SELADO.json`. Braços já implementados: sintético-mutação (t01–t11), incidente (t12–t14), critérios-extra C4/C5/C7 (t15–t20), desdobramento-C7 v1.1 (t21–t25). Mais incidentes reais têm índice em `memory/LICOES_CODE.md`.
