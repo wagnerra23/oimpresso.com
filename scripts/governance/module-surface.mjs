@@ -204,14 +204,30 @@ function listarModulos() {
   return [...new Set([...classeA, ...Object.keys(CORE_APP_MODULES), CONTEXTO_GERAL])].sort();
 }
 
-/** Um módulo vivo (module.json active=1), Classe B ou _Geral deve ter SUPERFICIE. */
+/**
+ * Decide, a partir do manifesto (module.json parseado), se o módulo é VIVO e exige SUPERFICIE.
+ * Em oimpresso a ativação é per-business (superadmin, ADR 0093) — `module.json.active` fica AUSENTE/0
+ * em muitos módulos vivos em prod (Financeiro, NfeBrasil, Whatsapp, Fiscal, PaymentGateway, ADS...).
+ * Usar SÓ `active===1` pulava 11 módulos ativos em SILÊNCIO no `--all --check` (§5 "no silent caps").
+ * Critério: registrado (tem `providers`/`priority` declarados) e NÃO explicitamente desativado (`active===0`).
+ */
+function manifestExigeSuperficie(data) {
+  if (data.active === 0 || data.active === false) return false;
+  return (
+    data.active === 1 ||
+    data.active === true ||
+    (Array.isArray(data.providers) && data.providers.length > 0) ||
+    data.priority !== undefined
+  );
+}
+
+/** Um módulo vivo (registrado e não desativado), Classe B ou _Geral deve ter SUPERFICIE. */
 function isSurfaceRequired(mod) {
   if (mod === CONTEXTO_GERAL || CORE_APP_MODULES[mod]) return true;
   const manifest = join(ROOT, 'Modules', mod, 'module.json');
   if (!existsSync(manifest)) return false;
   try {
-    const data = JSON.parse(readFileSync(manifest, 'utf8'));
-    return data.active === 1 || data.active === true;
+    return manifestExigeSuperficie(JSON.parse(readFileSync(manifest, 'utf8')));
   } catch {
     return true;
   }
@@ -347,13 +363,19 @@ function main() {
     process.exit(2);
   }
   let driftCount = 0;
+  const skipped = [];
   for (const mod of alvos) {
     const r = processar(mod);
     if (r.drift) driftCount++;
+    if (r.skipped) skipped.push(mod);
+  }
+  // §5 "no silent caps": o --all pode pular módulo não-required sem SUPERFICIE — mas NUNCA em silêncio.
+  if (MODE === 'check' && skipped.length) {
+    console.error(`[module-surface] ⚠️ ${skipped.length} módulo(s) pulado(s) no --all (não-required, sem SUPERFICIE): ${skipped.join(', ')}`);
   }
   if (MODE === 'check' && driftCount > 0) process.exit(1);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
 
-export { PAPEIS, coletar, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, CONTEXTO_GERAL, isSurfaceRequired };
+export { PAPEIS, coletar, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, CONTEXTO_GERAL, isSurfaceRequired, manifestExigeSuperficie };
