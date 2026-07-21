@@ -13,7 +13,7 @@ type: arquitetura-de-conhecimento
 
 - **Status:** proposto (decisão [W]). Merge = ratificação (R10), mesma mecânica das promoções recentes.
 - **Data:** 2026-07-21 · **Autor:** [CC].
-- **Origem:** pedido [W] 2026-07-21 — *"cada tópico do briefing vem de um arquivo único, tema único; o briefing seria o resumo; a IA sabe onde entrar por módulo, sempre atualizado."* Pesquisa que ancora: [session 2026-07-21 arte-catálogo](../../sessions/2026-07-21-arte-catalogo-modulo-opiniao-rubrica.md) (a proposta [W] = modelo IDP; o repo já tem ~80% em fragmentos).
+- **Origem:** pedido [W] 2026-07-21 — *"cada tópico do briefing vem de um arquivo único, tema único; o briefing seria o resumo; a IA sabe onde entrar por módulo, sempre atualizado."* Pesquisa que ancora: [session 2026-07-21 arte-catálogo (PR #4611)](https://github.com/wagnerra23/oimpresso.com/pull/4611) (a proposta [W] = modelo IDP; o repo já tem ~80% em fragmentos).
 - **NÃO é paralelo** (§5 proibicoes 2026-06-05): estende [`estrutura-canon-memoria`](estrutura-canon-memoria.md) (o programa-mãe da estrutura de `memory/`) + a lei [ADR 0256](../0256-knowledge-survival-meia-vida-catraca-sentinela.md). Esta proposta é a **fatia "descritor + superfície por módulo"** dele, não um segundo programa.
 
 ## Contexto — o problema real (medido)
