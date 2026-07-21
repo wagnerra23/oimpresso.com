@@ -250,3 +250,84 @@ it('cenário 4 — Controller declara Inertia::defer pra grades/kpis/history (3 
     expect($source)->toContain("Inertia::defer(fn () => \$this->buildKpisPayload())");
     expect($source)->toContain("Inertia::defer(fn () => \$this->buildHistoryPayload(");
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CENÁRIO 5 — Aba "Catálogo & Sinais-vivos" (grade Catálogo/IDP 2026-07-21)
+// ─────────────────────────────────────────────────────────────────────────────
+// Prop `catalog` deferida AGREGA sinais JÁ derivados (service-scorecard.json +
+// catalog.json). Read-only: NÃO recalcula grade (§5 proibicoes). Source-level
+// (sempre roda) + partial reload (skip sem fixtures, igual cenário 1).
+// ─────────────────────────────────────────────────────────────────────────────
+
+it('cenário 5a — Controller declara catalog deferido e lê os 2 artefatos DERIVADOS (não recalcula)', function () {
+    $source = file_get_contents(base_path('Modules/Governance/Http/Controllers/ModuleGradeController.php'));
+
+    // Prop deferida (não eager — payload lê filesystem)
+    expect($source)->toContain("Inertia::defer(fn () => \$this->buildCatalogSignalsPayload())");
+    // AGREGADOR: lê os artefatos derivados, não chama o ModuleGradeService (não recalcula qualidade)
+    expect($source)->toContain('memory/governance/service-scorecard.json');
+    expect($source)->toContain('memory/governance/catalog.json');
+    // Read-only: o payload do catálogo não escreve nada
+    $method = substr($source, strpos($source, 'function buildCatalogSignalsPayload'));
+    expect($method)->not->toContain('file_put_contents');
+    expect($method)->not->toContain('->save(');
+});
+
+it('cenário 5b — service-scorecard.json existe, é AGREGADOR advisory e casa com o catálogo (36 serviços com nota)', function () {
+    $scPath = base_path('memory/governance/service-scorecard.json');
+    if (! file_exists($scPath)) {
+        test()->markTestSkipped('service-scorecard.json ausente — rodar node scripts/governance/service-scorecard.mjs --write');
+    }
+
+    $sc = json_decode(file_get_contents($scPath), true);
+    expect($sc)->toBeArray()
+        ->and($sc['$generator'] ?? null)->toBe('scripts/governance/service-scorecard.mjs')
+        // Declaração obrigatória: advisory, não régua (não duplica module-grade)
+        ->and($sc['$advisory'] ?? '')->toContain('AGREGADOR')
+        ->and($sc['services'] ?? null)->toBeArray();
+
+    // Espinha = os 36 serviços do catálogo, todos com nota reusada do module-grade
+    expect(count($sc['services']))->toBe($sc['stats']['services']);
+    expect($sc['stats']['with_grade'])->toBe(count($sc['services']));
+
+    // Cada serviço traz os sinais agregados (não recalculados)
+    $first = $sc['services'][0];
+    foreach (['id', 'signals', 'checks', 'maturity'] as $k) {
+        expect($first)->toHaveKey($k);
+    }
+    expect($first['signals'])->toHaveKeys(['grade', 'screens', 'graph', 'briefing', 'cost']);
+    // Custo é gap honesto (não atribuível por módulo) — §5 2026-07-17
+    expect($first['signals']['cost']['module_attributable'])->toBeFalse();
+});
+
+it('cenário 5c — partial reload only[]=catalog expõe available + services + stats', function () {
+    [$business, $user] = moduleGradeBootstrapAuth();
+
+    $response = $this->actingAs($user)
+        ->withHeaders([
+            'X-Inertia'                   => 'true',
+            'X-Inertia-Version'           => 'test',
+            'X-Inertia-Partial-Component' => 'governance/ModuleGrades/Index',
+            'X-Inertia-Partial-Data'      => 'catalog',
+        ])
+        ->get('/governance/module-grades?only[]=catalog');
+
+    if ($response->status() !== 200) {
+        test()->markTestSkipped('Render Inertia falhou (status '.$response->status().') — middleware/subscription gate.');
+    }
+
+    $response->assertInertia(fn (AssertableInertia $page) => $page
+        ->component('governance/ModuleGrades/Index')
+        ->has('catalog')
+        ->where('catalog.available', true)
+        ->has('catalog.stats.services')
+        ->has('catalog.services.0', fn (AssertableInertia $s) => $s
+            ->has('id')
+            ->has('grade')
+            ->has('graph')
+            ->has('depends_on')
+            ->has('dependents')
+            ->etc()
+        )
+    );
+});

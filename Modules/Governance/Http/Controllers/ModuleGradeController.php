@@ -41,9 +41,17 @@ class ModuleGradeController extends Controller
 
         $kpis = Inertia::defer(fn () => $this->buildKpisPayload());
 
+        // Aba "Catálogo & Sinais-vivos" (grade Catálogo/IDP 2026-07-21): agrega os sinais
+        // JÁ derivados por serviço (service-scorecard.json) + as relações do grafo
+        // (catalog.json). Só lê JSON de governança commitado — sem business_id/dado de
+        // negócio (Tier 0 não morde). Deferido (RUNBOOK-inertia-defer: só carrega quando
+        // a aba é pedida por partial reload).
+        $catalog = Inertia::defer(fn () => $this->buildCatalogSignalsPayload());
+
         return Inertia::render('governance/ModuleGrades/Index', [
-            'grades' => $grades,
-            'kpis'   => $kpis,
+            'grades'  => $grades,
+            'kpis'    => $kpis,
+            'catalog' => $catalog,
         ]);
     }
 
@@ -238,6 +246,77 @@ class ModuleGradeController extends Controller
             'average'   => count($scores) > 0 ? round(array_sum($scores) / count($scores), 1) : 0,
             'total'     => count($all),
             'by_bucket' => $byBucket,
+        ];
+    }
+
+    /**
+     * Payload da aba "Catálogo & Sinais-vivos" — AGREGADOR advisory (não recalcula nada).
+     *
+     * Lê 2 artefatos DERIVADOS e commitados (ADR 0256):
+     *   - memory/governance/service-scorecard.json → sinais por serviço (grade+telas+grafo+briefing+maturidade),
+     *     gerado por scripts/governance/service-scorecard.mjs (nightly mv-metabolismo).
+     *   - memory/governance/catalog.json → relações do grafo (delegatesTo) pra listar nomes de
+     *     depends_on/dependents (o scorecard só traz as CONTAGENS; aqui damos os NOMES navegáveis).
+     *
+     * SEM business_id / dado de negócio — é meta de governança, Tier 0 não se aplica ao dado.
+     * Degrada gracioso (available:false) se algum artefato faltar (checkout fresh / prod sem deploy).
+     *
+     * @return array{available: bool, generated_from?: mixed, stats?: mixed, services: array<int, array>}
+     */
+    private function buildCatalogSignalsPayload(): array
+    {
+        $scPath = base_path('memory/governance/service-scorecard.json');
+        $catPath = base_path('memory/governance/catalog.json');
+        if (! is_file($scPath) || ! is_file($catPath)) {
+            return ['available' => false, 'services' => []];
+        }
+
+        $sc = json_decode((string) @file_get_contents($scPath), true);
+        $cat = json_decode((string) @file_get_contents($catPath), true);
+        if (! is_array($sc) || ! is_array($cat)) {
+            return ['available' => false, 'services' => []];
+        }
+
+        // Adjacência por NOME das arestas delegatesTo do catálogo — quem depende de quem.
+        $dependsOn = [];
+        $dependents = [];
+        foreach (($cat['edges'] ?? []) as $e) {
+            if (($e['type'] ?? '') !== 'delegatesTo') {
+                continue;
+            }
+            $from = str_replace('module:', '', (string) ($e['from'] ?? ''));
+            $to = str_replace('module:', '', (string) ($e['to'] ?? ''));
+            if ($from === '' || $to === '') {
+                continue;
+            }
+            $dependsOn[$from][] = $to;
+            $dependents[$to][] = $from;
+        }
+
+        $services = array_map(static function ($s) use ($dependsOn, $dependents) {
+            $id = (string) ($s['id'] ?? '');
+
+            return [
+                'id'         => $id,
+                'grade'      => $s['signals']['grade']['value'] ?? null,
+                'trust'      => $s['trust'] ?? null,
+                'owner'      => $s['owner'] ?? null,
+                'scope'      => $s['scope'] ?? null,
+                'purpose'    => $s['purpose'] ?? null,
+                'screens'    => $s['signals']['screens'] ?? null,
+                'graph'      => $s['signals']['graph'] ?? null,
+                'briefing'   => $s['signals']['briefing'] ?? null,
+                'maturity'   => $s['maturity'] ?? null,
+                'depends_on' => array_values(array_unique($dependsOn[$id] ?? [])),
+                'dependents' => array_values(array_unique($dependents[$id] ?? [])),
+            ];
+        }, $sc['services'] ?? []);
+
+        return [
+            'available'      => true,
+            'generated_from' => $sc['generated_from'] ?? null,
+            'stats'          => $sc['stats'] ?? null,
+            'services'       => $services,
         ];
     }
 }

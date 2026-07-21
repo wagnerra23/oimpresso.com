@@ -66,6 +66,16 @@ jobs:
           node scripts/qa/vital-signs.mjs --json --history | tee /tmp/vital.txt
           { echo '## Sinais vitais desta noite'; echo '```'; tail -30 /tmp/vital.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Service scorecard — agrega sinais-vivos por serviço (depois do vital-signs fresco)
+        if: steps.pendente.outputs.aberto == '0'
+        run: |
+          # Advisory (ADR 0314): agrega grade+telas+grafo+briefing por serviço a partir das fontes
+          # JÁ derivadas (catalog.json + module-grades-baseline.json + vital-signs.json recém-gerado).
+          # Regenera após o vital-signs pra refletir os sinais de tela desta noite. Segue a mesma
+          # cadência de commit (só entra no auto-PR do batch = merge do Wagner).
+          node scripts/governance/service-scorecard.mjs --write
+          { echo '## Service scorecard (sinais-vivos por serviço)'; echo '```'; node scripts/governance/service-scorecard.mjs | tail -42; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Prontidão do protótipo — readiness (alimenta o boost do metabolismo)
         if: steps.pendente.outputs.aberto == '0'
         run: |
@@ -100,6 +110,7 @@ jobs:
             memory/governance/vital-signs.json
             memory/governance/vital-signs-history.jsonl
             memory/governance/prototipo-readiness.json
+            memory/governance/service-scorecard.json
             memory/governance/mv-batches/*.md
           commit-message: |
             chore(governance): batch MV do metabolismo nightly + snapshot dos sinais vitais [CC]
