@@ -17,6 +17,15 @@
 //   - Pages/<Mod>/_components/** e qualquer subpasta _* (privado do módulo)
 //   - Telas iniciando com _ ou chamadas App/Layout (infra do shell, não tela)
 //
+// Fallback CHARTER-FIRST (2026-07-21): o hook deriva o nome do RUNBOOK pela TELA
+// (RUNBOOK-<tela>.md). Página ANINHADA (Mod/Feature/Index.tsx) costuma ter o RUNBOOK
+// nomeado pela ROTA (RUNBOOK-feature.md) e declarado no `runbook:` do charter irmão —
+// F1 legitimamente FEITA, mas invisível ao lookup por-tela (falso-positivo; ex.
+// governance/ModuleGrades/Index.tsx ↔ RUNBOOK-module-grades.md). O charter é a fonte
+// AUTORITATIVA do RUNBOOK da tela (charter-first, ADR 0104). Então: se o RUNBOOK
+// por-tela falta MAS o `<Tela>.charter.md` declara um `runbook:` cujo arquivo EXISTE,
+// libera. Verifica a existência do arquivo → charter com runbook inventado NÃO fura o gate.
+//
 // ── POR QUE .mjs (porte da leva Tier-0, SPEC US-GOV-052 / P24) ───────────────
 // O .ps1 legado SÓ roda no Windows do Wagner; no Mac/Linux do time MCP o enforcement
 // evaporava em silêncio — e este é o ÚNICO gate de RUNBOOK desde a ADR 0271. Node é
@@ -29,8 +38,8 @@
 //
 // Exit: 0 = continua | 2 = bloqueia (stderr vira a razão pro Claude).
 
-import { readdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { readdirSync, readFileSync, existsSync } from 'node:fs';
+import { join, isAbsolute } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
@@ -73,6 +82,33 @@ export function runbookStatus(modulo, telaKebab, root = process.cwd()) {
   }
 }
 
+/**
+ * Fallback CHARTER-FIRST: página aninhada cujo RUNBOOK tem nome pela ROTA
+ * (RUNBOOK-module-grades.md) e não pela TELA (RUNBOOK-index.md). O charter irmão
+ * `<Tela>.charter.md` é a fonte autoritativa do RUNBOOK da tela (ADR 0104 charter-first).
+ * Lê o campo `runbook:` do frontmatter e CONFIRMA que o arquivo referenciado existe —
+ * charter com runbook inventado/inexistente NÃO fura o gate. fs-fail/sem-charter/sem-campo → false.
+ * @returns {boolean}
+ */
+export function charterRunbookExists(filePath, root = process.cwd()) {
+  try {
+    const fwd = String(filePath || '').replace(/\\/g, '/');
+    if (!fwd.endsWith('.tsx')) return false;
+    const charterRel = fwd.replace(/\.tsx$/, '.charter.md');
+    const charterAbs = isAbsolute(charterRel) ? charterRel : join(root, charterRel);
+    const txt = readFileSync(charterAbs, 'utf8');
+    const fm = txt.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    if (!fm) return false;
+    const rb = fm[1].match(/^\s*runbook:\s*(.+?)\s*$/m);
+    if (!rb) return false;
+    const ref = rb[1].trim().replace(/^["']|["']$/g, '');
+    if (!ref) return false;
+    return existsSync(isAbsolute(ref) ? ref : join(root, ref));
+  } catch {
+    return false; // fail-safe: sem confirmação do charter, cai no bloqueio (não fura o gate)
+  }
+}
+
 /** veredito único: null (continua) ou a mensagem de bloqueio. */
 export function decide(toolName, filePath, root = process.cwd()) {
   if (!WRITE_TOOLS.has(toolName)) return null;
@@ -81,6 +117,8 @@ export function decide(toolName, filePath, root = process.cwd()) {
   const kebab = toKebab(page.tela);
   const status = runbookStatus(page.modulo, kebab, root);
   if (status === 'ok') return null;
+  // Fallback charter-first: RUNBOOK nomeado pela ROTA e declarado no charter irmão (existente).
+  if (charterRunbookExists(filePath, root)) return null;
   const runbook = `memory/requisitos/${page.modulo}/RUNBOOK-${kebab}.md`;
   const causa = status === 'sem-pasta'
     ? `A pasta 'memory/requisitos/${page.modulo}/' nem existe — F1 (PLAN) nunca rolou.`

@@ -12,7 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { decide, parsePagePath, toKebab, runbookStatus } from './block-mwart-violation.mjs';
+import { decide, parsePagePath, toKebab, runbookStatus, charterRunbookExists } from './block-mwart-violation.mjs';
 
 const HOOK = join(dirname(fileURLToPath(import.meta.url)), 'block-mwart-violation.mjs');
 let fails = 0;
@@ -24,6 +24,19 @@ mkdirSync(join(root, 'memory', 'requisitos', 'Sells'), { recursive: true });
 writeFileSync(join(root, 'memory', 'requisitos', 'Sells', 'RUNBOOK-index.md'), '# F1 ok');
 mkdirSync(join(root, 'memory', 'requisitos', 'nfebrasil'), { recursive: true }); // pasta lowercase de propósito
 writeFileSync(join(root, 'memory', 'requisitos', 'nfebrasil', 'RUNBOOK-NFCE-STATUS.md'), '# F1 ok'); // case diverso de propósito
+
+// ── fixture CHARTER-FIRST (2026-07-21): página ANINHADA com RUNBOOK nome-pela-rota ──
+// governance/ModuleGrades/Index.tsx → hook deriva RUNBOOK-index.md (ausente), mas o charter
+// declara RUNBOOK-module-grades.md (existe) → deve LIBERAR (F1 legitimamente feita).
+mkdirSync(join(root, 'memory', 'requisitos', 'Governance'), { recursive: true });
+writeFileSync(join(root, 'memory', 'requisitos', 'Governance', 'RUNBOOK-module-grades.md'), '# F1 ok (rota)');
+mkdirSync(join(root, 'resources', 'js', 'Pages', 'governance', 'ModuleGrades'), { recursive: true });
+writeFileSync(join(root, 'resources', 'js', 'Pages', 'governance', 'ModuleGrades', 'Index.charter.md'),
+  '---\npage: /governance/module-grades\nrunbook: memory/requisitos/Governance/RUNBOOK-module-grades.md\n---\n# charter');
+// caso ATAQUE: charter aponta pra RUNBOOK inexistente → NÃO pode furar o gate.
+mkdirSync(join(root, 'resources', 'js', 'Pages', 'governance', 'Fantasma'), { recursive: true });
+writeFileSync(join(root, 'resources', 'js', 'Pages', 'governance', 'Fantasma', 'Index.charter.md'),
+  '---\nrunbook: memory/requisitos/Governance/RUNBOOK-nao-existe.md\n---\n# charter mentiroso');
 
 // ── BLOCK: F1 ausente (ADR 0104 — não há 2º caminho) ────────────────────────────
 check('BLOCK: tela sem RUNBOOK (pasta existe)', decide('Edit', 'resources/js/Pages/Sells/Create.tsx', root) !== null);
@@ -43,6 +56,16 @@ check('ALLOW: App/Layout são shell, não tela', decide('Edit', 'resources/js/Pa
 check('ALLOW: fora de Pages/ (Component)', decide('Edit', 'resources/js/Components/Button.tsx', root) === null);
 check('ALLOW: Read não bloqueia', decide('Read', 'resources/js/Pages/Sells/Create.tsx', root) === null);
 check('ALLOW: path vazio (fail-open)', decide('Edit', '', root) === null);
+
+// ── CHARTER-FIRST fallback (página aninhada, RUNBOOK nome-pela-rota) ──────────────
+check('ALLOW: aninhada c/ RUNBOOK nome-pela-rota declarado no charter (charter-first)',
+  decide('Edit', 'resources/js/Pages/governance/ModuleGrades/Index.tsx', root) === null);
+check('BLOCK: charter aponta pra RUNBOOK inexistente (não fura o gate)',
+  decide('Edit', 'resources/js/Pages/governance/Fantasma/Index.tsx', root) !== null);
+check('charterRunbookExists: existe→true / inexistente→false / sem-charter→false',
+  charterRunbookExists('resources/js/Pages/governance/ModuleGrades/Index.tsx', root) === true &&
+  charterRunbookExists('resources/js/Pages/governance/Fantasma/Index.tsx', root) === false &&
+  charterRunbookExists('resources/js/Pages/Sells/Create.tsx', root) === false);
 
 // ── unidades: kebab + parse + status (redundância de defesa) ─────────────────────
 check('toKebab: NfceStatus → nfce-status', toKebab('NfceStatus') === 'nfce-status');
