@@ -15,12 +15,15 @@
  *
  * BLIND-POR-LABEL (rodada 6, 2026-07-21): o ID do twin (`t15-atomicidade-bad`, `t02-unscoped-find`)
  * NOMEAVA o veredito no cabeçalho do pack — leak de circularidade presente em TODAS as rodadas 2-5.
- * `--blind` emite rótulos OPACOS `L01..LNN` em ordem de HASH (sha256 do id) — some o tell do id E
+ * O pack cego emite rótulos OPACOS `L01..LNN` em ordem de HASH (sha256 do id) — some o tell do id E
  * a adjacência dos pares bom/ruim. O runner recomputa a mesma ordem determinística pra pontuar
  * (nenhum arquivo de mapa é gravado ao lado dos twins — a "resposta" não fica perto).
+ * DEFAULT (2026-07-21): `--pack` é CEGO por default — o caminho vazador (fóssil das rodadas 2-5) só
+ * sai com `--fossil` EXPLÍCITO, pra o default nunca regenerar um pack que vaza (§5 "não-circular").
+ * `--blind` segue aceito como no-op (retrocompat dos comandos das rodadas).
  *
  * Uso:
- *   node scripts/governance/funcao-scorecard-calibracao.mjs --pack [--blind] [--set frontier]
+ *   node scripts/governance/funcao-scorecard-calibracao.mjs --pack [--set frontier]   (CEGO por default; --fossil = pack cru vazador)
  *   node scripts/governance/funcao-scorecard-calibracao.mjs --score <verdicts.json> [--set frontier]
  *   node scripts/governance/funcao-scorecard-calibracao.mjs --kappa-inter <a.json> <b.json> [--set frontier]
  *   node scripts/governance/funcao-scorecard-calibracao.mjs --selftest
@@ -267,7 +270,7 @@ const args = process.argv.slice(2);
 function flagVal(name) { const i = args.indexOf(name); return i >= 0 ? args[i + 1] : null; }
 function main() {
   const set = flagVal('--set') || 'twins';
-  if (args.includes('--pack')) { console.log(pack(set, args.includes('--blind'))); return; }
+  if (args.includes('--pack')) { console.log(pack(set, !args.includes('--fossil'))); return; }
   if (args.includes('--selftest')) { process.exit(selftest() ? 0 : 1); }
   const ki = args.indexOf('--kappa-inter');
   if (ki >= 0 && args[ki + 1] && args[ki + 2]) {
@@ -289,7 +292,7 @@ function main() {
     console.log(r.pass ? '\n✅ JUIZ CALIBRADO (cego, não-circular).' : '\n❌ JUIZ NÃO calibrado — ver linhas acima.');
     process.exit(r.pass ? 0 : 1);
   }
-  console.error('Uso: --pack [--blind] [--set frontier] | --score <verdicts.json> [--set] | --kappa-inter <a> <b> [--set] | --selftest');
+  console.error('Uso: --pack [--fossil] [--set frontier] | --score <verdicts.json> [--set] | --kappa-inter <a> <b> [--set] | --selftest');
   process.exit(2);
 }
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
