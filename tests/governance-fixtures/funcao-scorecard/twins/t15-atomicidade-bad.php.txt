@@ -1,0 +1,13 @@
+public function baixarKit(int $kitId, int $qtd): void
+{
+    // DUAS escritas que deveriam ser atômicas (movimento + saldo) — sem DB::transaction
+    // e sem declarar que o caller envolve. Se a 2ª falhar, o movimento fica órfão.
+    StockMovement::create([
+        'kit_id' => $kitId,
+        'delta' => -$qtd,
+        'business_id' => session('user.business_id'),
+    ]);
+    Kit::where('business_id', session('user.business_id'))
+        ->where('id', $kitId)
+        ->decrement('on_hand', $qtd);
+}

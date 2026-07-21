@@ -1,0 +1,14 @@
+public function nomesDosProdutos(int $orderId): array
+{
+    // Eager-load ANTES do loop (with('lines.product')); o foreach só LÊ a relação já
+    // carregada em memória — zero query dentro do loop. Não é N+1.
+    $order = Order::with('lines.product')
+        ->where('business_id', session('user.business_id'))
+        ->findOrFail($orderId);
+
+    $nomes = [];
+    foreach ($order->lines as $line) {
+        $nomes[] = $line->product->name; // relação já em memória, sem novo hit no banco
+    }
+    return $nomes;
+}

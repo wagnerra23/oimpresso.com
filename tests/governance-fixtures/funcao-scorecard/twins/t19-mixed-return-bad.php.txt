@@ -1,0 +1,14 @@
+/**
+ * @return array Lista de erros de validação.
+ */
+public function validar(array $input)
+{
+    if (empty($input)) {
+        return false; // docblock promete array, devolve bool
+    }
+    if (! isset($input['cnpj'])) {
+        return 'cnpj ausente'; // ...e às vezes string
+    }
+    return []; // ...e às vezes array. Retorno polimórfico: o consumidor adivinha o tipo,
+               // e o caminho de falha (false) é silencioso — nenhum Log/exception.
+}

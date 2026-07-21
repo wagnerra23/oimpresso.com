@@ -154,21 +154,11 @@ it('ModuleGradeController show aplica Inertia::defer em history (sparkline 7d)',
 // C3 Reflexividade — BRIEFING W27 + ADRs 0160+0161
 // ---------------------------------------------------------------------------
 
-it('BRIEFING.md referencia ADRs W24+ canônicas (0160 + 0161)', function () {
-    $path = base_path('Modules/Governance/BRIEFING.md');
-    $content = file_get_contents($path);
-
-    foreach (['0160', '0161'] as $adr) {
-        expect($content)->toContain($adr);
-    }
-});
-
-it('BRIEFING.md declara entry Wave 27 (saturate ≥95)', function () {
-    $path = base_path('Modules/Governance/BRIEFING.md');
-    $content = file_get_contents($path);
-
-    expect($content)->toContain('Wave 27');
-});
+// ADR 0345 (aceito [W] 2026-07-21): Modules/Governance/BRIEFING.md virou lápide-ponteiro —
+// a casa única do BRIEFING é memory/requisitos/Governance/BRIEFING.md. As asserções de conteúdo
+// Wave 27 (ADRs 0160/0161 + entry "Wave 27") eram sobre o conteúdo agora deprecado; esses
+// marcadores de saturação nunca migraram pro canônico (verificado 2026-07-21). Removidas por
+// obsolescência.
 
 // ---------------------------------------------------------------------------
 // C5 Cobertura — buckets/_INDEX.md atualizado W27

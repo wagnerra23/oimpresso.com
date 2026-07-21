@@ -22,7 +22,7 @@ not_contains:
   - "Skills governance → Modules/ADS"
   - "MCP server admin → Modules/TeamMcp"
   - "Knowledge browsing → Modules/KB"
-  - "Chat IA → Modules/Copiloto"
+  - "Chat IA → Modules/Jana"
 trust_required: L2
 owner: wagner
 permission_prefix: projectmgmt.*

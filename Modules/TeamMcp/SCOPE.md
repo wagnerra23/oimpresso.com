@@ -17,11 +17,11 @@ contains:
   - "ScorecardController — G1 FICHA Wave 22 esqueleto tela /team-mcp/scorecard (governance maturity per-actor)"
   - "ForjaController — cockpit do cowork loop /forja (absorção, não módulo novo): 6 abas projetando mcp_tasks project=FORJA + git/ADR/sessão + gates; aba Triagem real + dossiê"
 not_contains:
-  - "Chat IA conversacional → Modules/Copiloto"
+  - "Chat IA conversacional → Modules/Jana"
   - "Knowledge browsing → Modules/KB"
   - "Skills governance → Modules/ADS"
   - "Decision flow → Modules/ADS"
-  - "System Rules Spec → Modules/MemCofre (futuro SRS)"
+  - "System Rules Spec → Modules/SRS"
   - "Policies executáveis runtime → Modules/Governance (Fase 5)"
 trust_required: L1
 owner: wagner

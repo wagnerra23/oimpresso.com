@@ -120,10 +120,10 @@ describe('Wave 26 ComVis — D8 security FormRequests + D3 docs canon', function
         expect(class_exists(\Modules\ComunicacaoVisual\Http\Requests\RecusarOrcamentoRequest::class))->toBeTrue();
     });
 
-    it('BRIEFING.md contém entry Wave 26', function () {
-        $brief = (string) file_get_contents(comvisW26Path('Modules/ComunicacaoVisual/BRIEFING.md'));
-        expect($brief)->toContain('Wave 26');
-    });
+    // ADR 0345 (aceito [W] 2026-07-21): Modules/ComunicacaoVisual/BRIEFING.md virou lápide-ponteiro
+    // — a casa única do BRIEFING é memory/requisitos/ComunicacaoVisual/BRIEFING.md, que não carrega
+    // marcador de wave (usa frontmatter updated_at). Assert de conteúdo Wave 26 removida por
+    // obsolescência. O CHANGELOG (abaixo) segue cobrindo a trilha de wave.
 
     it('CHANGELOG.md módulo contém entry Wave 26', function () {
         $log = (string) file_get_contents(comvisW26Path('Modules/ComunicacaoVisual/CHANGELOG.md'));
