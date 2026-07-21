@@ -1,0 +1,64 @@
+# FUNCAO-SCORECARD — parecer por função, ancorado em rubrica.
+# Método: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
+# NÃO é achado (§0.3): nenhum `discordo` autoriza fix — é candidato a US via [W].
+# Fonte: 3 juízes frescos (bite-test 2026-07-21), consenso. Sem nota agregada (PLUGAR NÃO FUNDIR).
+schema_version: 1
+file: app/Utils/ProductUtil.php
+module: Produto
+rubric: memory/requisitos/_Governanca/FUNCAO-SCORECARD-METODO.md
+rubric_version: "1.0"
+judged_at: "2026-07-21"
+judge: "claude-opus-4-8 (3 juízes frescos, consenso)"
+source: bite-test-2026-07
+totals: { concordo: 5, discordo: 10, na: 13 }
+functions:
+  - function: getVariationGroupPrice
+    line: 1050
+    vereditos:
+      C1: { status: discordo, evidencia: { quote: "VariationGroupPrice::where('variation_id', $variation_id)", linhas: "1052-1053" }, ancora: "0093", nota: "+ Variation::find($variation_id) (1066) + TaxRate::where('id',$tax_id) (1074) — 3 queries sem business_id/global scope" }
+      C2: { status: concordo, evidencia: { quote: "$price_inc_tax = $this->calc_percentage($variation->sell_price_inc_tax, $price_group->price_inc_tax)", linhas: "1067" }, ancora: "REGRA MESTRE", nota: "computa de valores do DB, sem num_uf; golden CalculoValorProdutoTest:271" }
+      C3: { status: discordo, evidencia: { quote: "return ['price_inc_tax' => '', 'price_exc_tax' => '']", linhas: "1058-1061" }, ancora: "§5 2026-07-15", nota: "0-row → empty strings silenciosas (o consumidor adivinha)" }
+      C4: { status: n/a, motivo: "read-only, sem writes" }
+      C5: { status: n/a, motivo: "sem loop" }
+      C6: { status: n/a, motivo: "sem SQL cru" }
+      C7: { status: discordo, evidencia: { quote: "@return decimal", linhas: "1048" }, ancora: "§5 2026-07-15", nota: "docblock diz decimal; retorno real é array (1078-1081)" }
+      C8: { consumidores: 5, testes: 1, nota: "OrderRequestController:323, WoocommerceUtil:341/731, LabelsController:143, SellPosController:1790; teste CalculoValorProdutoTest:271" }
+  - function: getProductDiscount
+    line: 1539
+    vereditos:
+      C1: { status: concordo, evidencia: { quote: "Discount::where('business_id', $business_id)", linhas: "1544" }, ancora: "0093", nota: "escopado por business_id (discriminante — NÃO é o padrão do getVariationGroupPrice)" }
+      C2: { status: n/a, motivo: "seleciona row de Discount; não computa/muta valor nem qty" }
+      C3: { status: discordo, evidencia: { quote: "$discount = $query->first(); ... return $discount", linhas: "1583-1590" }, ancora: "§5 2026-07-15", nota: "null silencioso em 0-row; docblock declara obj" }
+      C4: { status: n/a, motivo: "sem writes" }
+      C5: { status: n/a, motivo: "closures são query-builder, não loop com query" }
+      C6: { status: discordo, evidencia: { quote: "whereRaw('(brand_id=\"'.$product->brand_id.'\" AND category_id IS NULL)')", linhas: "1559-1560" }, ancora: "Laravel security", nota: "variável interpolada em SQL cru, sem bindings" }
+      C7: { status: discordo, evidencia: { quote: "@return obj", linhas: "1537" }, ancora: "§5 2026-07-15", nota: "retorno é Discount|null; docblock não declara nullable. ⚠ critério a ENDURECER (§5 do método): 1 juiz de 3 votou concordo (null como falha observável) — como-medir do C7 mistura docblock-verdade + nullabilidade" }
+      C8: { consumidores: 7, testes: 0, nota: "NewProductResource:65, ProductResource:66, VariationResource:37, OrderRequestController:338, OfficeimpressoController:97, CatalogueService:128, SellPosController:1821; ZERO teste" }
+  - function: calculateInvoiceTotal
+    line: 640
+    vereditos:
+      C1: { status: discordo, evidencia: { quote: "$tax_details = TaxRate::find($tax_id)", linhas: "680" }, ancora: "0093", nota: "find unscoped em TaxRate; tax_id vem do request (tax_rate_id)" }
+      C2: { status: discordo, evidencia: { quote: "$unit_price_inc_tax = $uf_number ? $this->num_uf($product['unit_price_inc_tax']) : ...", linhas: "650" }, ancora: "REGRA MESTRE + num_uf 2026-06-05", nota: "num_uf em float de request (default uf_number=true); + num_uf($discount['discount_amount']) (669). Golden existe (CalculoValorSellsTest:144) mas o parse locale-ambíguo está presente — a conjunção do C2 falha" }
+      C3: { status: discordo, evidencia: { quote: "if (empty($products)) { return false; }", linhas: "642-644" }, ancora: "§5 2026-07-15", nota: "entrada vazia → false silencioso; sucesso → array" }
+      C4: { status: n/a, motivo: "computa array, sem DB writes" }
+      C5: { status: concordo, evidencia: { quote: "$output['total_before_tax'] += $quantity * $unit_price_inc_tax", linhas: "653" }, ancora: "Eloquent N+1", nota: "loop é aritmética pura; a única query (TaxRate::find) está FORA do loop" }
+      C6: { status: n/a, motivo: "sem SQL cru" }
+      C7: { status: discordo, evidencia: { quote: "@return mixed (false, array)", linhas: "638" }, ancora: "§5 2026-07-15", nota: "retorno polimórfico ambíguo false|array explícito no docblock" }
+      C8: { consumidores: 6, testes: 5, nota: "Connector SellController:925/1275, Crm OrderRequestController:216, SellPosController:434/1308, TransactionUtil:6094; invocação golden CalculoValorSellsTest:144" }
+  - function: generateProductSku
+    line: 699
+    vereditos:
+      C1: { status: concordo, evidencia: { quote: "Business::where('id', $business_id)->value('sku_prefix')", linhas: "701-702" }, ancora: "0093", nota: "business_id vem da sessão (user.business_id) — busca o próprio business, padrão correto" }
+      C2: { status: n/a, motivo: "monta string de SKU (str_pad); sem valor/estoque" }
+      C3: { status: n/a, motivo: "sempre retorna string presente" }
+      C4: { status: n/a, motivo: "sem writes" }
+      C5: { status: n/a, motivo: "sem loop" }
+      C6: { status: n/a, motivo: "sem SQL cru" }
+      C7: { status: concordo, evidencia: { quote: "return $sku_prefix.str_pad($string, 4, '0', STR_PAD_LEFT)", linhas: "704" }, ancora: "docblock", nota: "docblock '@return ... (string)' bate com o retorno string" }
+      C8: { consumidores: 4, testes: 0, nota: "ImportProductsController:628, ProductController:711/1803, ModifierSetsController:127; controle limpo do bite-test" }
+# Candidatos a US (pareceres 'discordo' — decisão [W], NÃO fix automático; correção segue
+# §5 2026-07-15: varredura contada + âncora + teste vermelho + REGRA MESTRE se valor/estoque):
+pendencias:
+  - "getVariationGroupPrice: C1 (3 queries sem business_id) · C3 (0-row empty-string) · C7 (docblock decimal vs array)"
+  - "getProductDiscount: C3 (null silencioso) · C6 (whereRaw interpolado)"
+  - "calculateInvoiceTotal: C1 (TaxRate::find unscoped) · C2 (num_uf em float request) · C3 (return false) · C7 (mixed false|array)"
