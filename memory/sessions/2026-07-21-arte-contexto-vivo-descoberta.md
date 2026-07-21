@@ -5,8 +5,9 @@ topic: "Estado-da-arte 2026 — manter BRIEFING/charter/casos VIVOS (não apodre
 authors: ["C"]
 tags: [estado-da-arte, contexto-vivo, anti-apodrecimento, descoberta-ia, meilisearch, laravel-boost, pest-arch, adr-0256]
 outcomes:
-  - "Veredito: a dor não é falta de tecnologia — é ESPALHAR o padrão que já foi provado (#4601) + fechar 1 last-mile de descoberta. Você já tem o topo."
-  - "5 gaps reais rankeados (4 CONSOLIDAR, 1 ADOTAR-situacional) — nenhum implementado, aguardam OK do [W]"
+  - "Veredito: a dor não é falta de tecnologia — é ESPALHAR o padrão que já foi provado (#4601). Você já tem o topo."
+  - "Revisão adversarial (mesma sessão) MATOU 3 dos 5 gaps propostos (busca já filtra via KbAnswerTool; Pennant duplica FeatureFlagService; arch() não expressa os 9 testes de conteúdo). Só o Gap 2 (espalhar #4601) sobrevive limpo — ver §Revisão adversarial."
+  - "Erro próprio catalogado: LC-08 (derivei de 1 tool só) 2x + §5 2026-07-16 (importei Pennant sem checar). Trail append-only preservado."
 ---
 
 # Estado da arte — manter contexto VIVO e DESCOBRÍVEL pela IA (2026)
@@ -21,6 +22,8 @@ outcomes:
 ## TL;DR / Resumo executivo — veredito em 1 parágrafo (leia só isto se for ler uma coisa)
 
 **Você NÃO está sem os melhores recursos. Você já possui as duas coisas que mais importam** — busca híbrida (keyword + embedding) via Meilisearch, e uma **porta-de-entrada gerada + doutrina anti-apodrecimento (ADR 0256)** que o mercado inteiro convergiu em 2026 e ninguém superou. A dor real tem 3 causas, e **nenhuma é "adotar tecnologia nova"**: (1) o padrão anti-apodrecimento que **funcionou** (BRIEFING-porta-de-entrada, PR #4601) existe **em 1 módulo só** — falta **espalhar**; (2) a busca da IA já tem o motor certo, mas o **último metro está desligado** — o backend sabe filtrar por `module`/`type`, mas a **ferramenta MCP que o agente usa não expõe esses filtros** (só `query`/`business_id`/`limit`); (3) "melhores recursos Laravel" = você já tem os certos (Boost dev-only, Scout, AGENTS.md fino) — o que falta é **consolidar** 9 guardas de arquitetura caseiras em `arch()` nativo e usar `casts()`+enums pra segurança de VALOR Tier-0. **Resumo honesto: 80% da cura é disciplina de ESPALHAR + 1 fio de descoberta a ligar, não compra de ferramenta.**
+
+> ⚔️ **LEIA A [§Revisão adversarial](#️-revisão-adversarial-mesma-sessão-2026-07-21--o-que-morreu-e-o-que-sobrevive) ANTES de agir na tabela de gaps.** Uma 2ª passada (pedida por [W]: "adversario") **matou 3 dos 5 gaps** — inclusive o "#1 maior ROI" (a busca de DOC **já filtra** por `module`/`categoria` via `KbAnswerTool`; o item "(2) ... não expõe filtros" deste parágrafo checou a tool ERRADA — `MemoriaSearchTool`, corpus de fatos, não de docs) e o Pennant (o `FeatureFlagService` já existe). **Só o Gap 2 (espalhar #4601) sobrevive limpo.** O veredito-título continua válido — **reforçado**; a lista específica de gaps, NÃO.
 
 ---
 
@@ -116,6 +119,26 @@ Nenhuma proposta importa solução cega. Cada gap está ancorado num **fato veri
 1. **[W] escolhe a ordem.** Recomendação: **Gap 1** (1 sessão, ROI imediato na busca da IA) → **Gap 2a** (gerador de superfície, mata a raiz do apodrecimento) → **Gap 2b/3** (espalhar + arch, oportunístico).
 2. Cada gap vira **US/task** própria (chat → materialização, per how-trabalhar §Pedido de tela/feature). Gaps 2/3 tocam `Modules/` → pré-flight obrigatório.
 3. Gap 1 e 2a merecem **ADR proposta** curta (mudança de contrato de tool + gerador novo).
+
+## ⚔️ Revisão adversarial (mesma sessão, 2026-07-21) — o que MORREU e o que SOBREVIVE
+
+> [W] pediu "adversario". A revisão bateu forte no PRÓPRIO trabalho acima. Verdade: **eu cometi LC-08 duas vezes** (derivar de fonte parcial sem varrer todos os consumidores — a classe que o hook do SessionStart marcou reincidente) **e fiz o exato pecado do §5 2026-07-16** (importar solução — Pennant — sem checar se o problema existe aqui). Correção append-only: **não apago os gaps errados acima** (fica a trilha do erro), **marco cada um corrigido** com evidência do repo pra a próxima sessão não agir num gap morto.
+
+**Meta-ironia útil:** demolir meus próprios gaps **REFORÇA o veredito-título** — a maioria deles era *"adotar/construir o que já existe"*, o que prova ainda mais forte que *"você já tem o topo; a cura é ESPALHAR, não adotar"*.
+
+| Gap (acima) | Veredito adversarial | Evidência no repo (verificada) |
+|---|---|---|
+| **1 — expor filtros na busca MCP** *(era meu #1 "maior ROI")* | ❌ **MORRE (quase todo).** A busca de DOC/contexto **já filtra**. Eu inspecionei a tool ERRADA (`MemoriaSearchTool` = `memoria-search` = **fatos do business**, outro corpus) e generalizei. **LC-08.** | `KbAnswerTool::schema()` expõe **`categoria`** (enum adr/spec/session/handoff/all) **+ `module`**; `DecisionsSearchTool` filtra status (`porStatusAtivo`/`include_archived`); `buscarHybrid($q,$lim,$user,$tipo,$module,$biz)` filtra type+module; `filterableAttributes` já codificados. **Resíduo mínimo e NÃO-provado:** um docs-search cru/barato (sem custo LLM do KbAnswer) que devolva `path §seção` — mas o agente já tem grep grátis + `decisions-search`. Não é "maior ROI". |
+| **2 — espalhar #4601 + §Superfície** | ✅ **SOBREVIVE (o único que sobrevive limpo).** E ficou MAIS forte: o auto-distiller **recusa** listar arquivos. | `DistillerModuloVerdade`: *"É VERDADE DESTILADA, não índice de links: NÃO cole links/paths no corpo"* → BRIEFINGs destilados (Financeiro/Jana) têm `## Capacidades/Gaps/Última mudança`, **sem `## Superfície de código`**. Logo a resposta a *"não sei os arquivos de cada contexto"* (a §Superfície do #4601) **só existe em Produto**. Espalhar (oportunístico) é real. **Ajuste 2a:** NÃO "derivar via gerador burro" (perde a curadoria semântica); o anti-apodrecimento da §Superfície **já existe grosso** em `briefing-code-staleness.mjs` (BRIEFING vs código). Um drift-check mais fino é MAYBE, e beira presence-gate (§5) — não é must. |
+| **3 — dobrar 9 arch tests em Pest `arch()`** | ❌ **MORRE (quase todo).** Os 9 são **content/glob/reflection**, não namespace/dependência — `arch()->expect()` não expressa. (O agente-C já avisou; eu ignorei.) | `NoHardcodeBusinessIdInModulesTest` = `glob()` + scan de **conteúdo**; `AppShellUsageGateTest` = `preg_match` em `.tsx`; `ModuleRouteProviderNoGlobalNamespaceTest` = runtime UrlGenerator. Resíduo: `arch()` como complemento NOVO pra regras estruturais que ele *expressa* — mas **sem dor provada**. Baixíssimo valor. |
+| **4 — rotear staleness ao autor** | ❌ **MORRE.** Já estava frágil (eu hedgei); pra 5 pessoas o Daily Brief basta, e beira gate-teatro (§5). | Detecção já existe (5 sentinelas + brief "CHARTERS APODRECENDO"). |
+| **5 — Pennant / casts / Pint / Rector** | ❌ **Pennant MORRE** (sistema de flags PRÓPRIO já existe — mais rico). `casts()` **fraco** (0 uso do método, mas sem dor provada; link com `num_uf` era stretch). Pint/Rector = higiene genérica, não "gap". | `app/Services/FeatureFlagService.php` + `FeatureFlagAudit` + migration `2026_05_13_..._create_feature_flag_audits_table` + `Modules/Admin/FeatureFlagsController` + 5 comandos `app/Console/Commands/FeatureFlag/*` + 5 tools MCP (`flag-get/set/list/env-toggle/cache-clear`) com **regras de targeting por-environment/por-business + audit**. Propor Pennant = duplicar (§5). `casts()` método: **0 usos** (git grep). |
+
+**Placar honesto:** de 5 gaps, **1 sobrevive limpo** (2b — espalhar #4601, oportunístico), 1 vira maybe-fraco (2a como drift-check + resíduo micro do docs-search cru), **3 morrem**. O que sobrevive é **exatamente "consolidar/espalhar"** — o veredito-título. O que morreu era **"adotar/construir o que já existe"** — e eu só descobri porque varri o repo de verdade na 2ª passada.
+
+**Lição pra mim (registrar):** antes de chamar algo de "gap", **varrer TODOS os consumidores** (LC-08: não parar em `MemoriaSearchTool` quando o corpus certo é `mcp_memory_documents` via `KbAnswerTool`) e **procurar o mecanismo existente** (`FeatureFlagService` antes de propor Pennant). "Ausente no composer" ≠ "ausente no projeto".
+
+---
 
 ## Fontes (estado-da-arte 2026)
 
