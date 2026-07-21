@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PAPEIS, montar, CORE_APP_MODULES, RAIZES_GERAIS } from './module-surface.mjs';
+import { PAPEIS, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS } from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
 function classify(path) {
@@ -157,4 +157,36 @@ test('papel volumoso (listar:false) mostra contagem + dir, NÃO lista arquivos',
   assert.match(md, /## Testes \(Pest\) — 2/);
   assert.match(md, /2 arquivos em \[Modules\/X\/Tests\/Feature\/\]/);
   assert.doesNotMatch(md, /\[AT\.php\]/); // não lista os arquivos individuais
+});
+
+test('PAGES_NS mapeia módulos cujo namespace Inertia difere do nome do módulo (só divergências)', () => {
+  // Os 5 verificados 2026-07-21 nos Inertia::render(...): módulo PascalCase, namespace minúsculo.
+  assert.equal(PAGES_NS.ADS, 'ads');
+  assert.equal(PAGES_NS.Governance, 'governance');
+  assert.equal(PAGES_NS.KB, 'kb');
+  assert.equal(PAGES_NS.NFSe, 'Nfse');
+  assert.equal(PAGES_NS.Superadmin, 'superadmin');
+  // Só entra quem REALMENTE diverge — nunca a identidade óbvia (Financeiro→Financeiro).
+  for (const [mod, ns] of Object.entries(PAGES_NS)) assert.notEqual(mod, ns);
+  // Não invade módulos de casing igual (Sells/Financeiro/Produto NÃO estão no mapa).
+  assert.equal(PAGES_NS.Financeiro, undefined);
+  assert.equal(PAGES_NS.Sells, undefined);
+});
+
+test('montar() Classe A com namespace divergente declara o namespace real no corpo', () => {
+  // ADS: telas vivem em resources/js/Pages/ads (namespace), não .../ADS (nome do módulo).
+  const grupos = [{ rot: 'Telas (Inertia/React)', listar: true, files: ['resources/js/Pages/ads/Admin/Confidence.tsx'] }];
+  const md = montar('ADS', grupos, []);
+  assert.match(md, /resources\/js\/Pages\/ads\/\*\*/);
+  assert.match(md, /namespace Inertia `ads`/);
+  assert.match(md, /PAGES_NS/);
+  // link da tela usa o path REAL (minúsculo), não o nome do módulo
+  assert.match(md, /\[Confidence\.tsx\]\(\.\.\/\.\.\/\.\.\/resources\/js\/Pages\/ads\/Admin\/Confidence\.tsx\)/);
+});
+
+test('montar() Classe A com namespace IGUAL não injeta a nota de divergência', () => {
+  const grupos = [{ rot: 'Telas (Inertia/React)', listar: true, files: ['resources/js/Pages/Financeiro/Unificado/Index.tsx'] }];
+  const md = montar('Financeiro', grupos, []);
+  assert.match(md, /resources\/js\/Pages\/Financeiro\/\*\*/);
+  assert.doesNotMatch(md, /namespace Inertia/);
 });
