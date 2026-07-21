@@ -26,9 +26,11 @@ A arquitetura aprovada por Wagner foi implementada sem backfill em massa. O PR s
 - `topico.schema.json` entrou no memory-schema gate em grace e no validador Jana.
 - Tópico piloto `Produto/calculo-total-fatura` registrou positivo, negativo e incerteza com evidência.
 - O scorecard ProductUtil recém-mergeado no #4616 foi centralmente revisado e invalidado como bite-test: C2 contradizia o golden e C8 inflava 1 teste direto para 5.
-- Financeiro passou de 60 `.tsx` classificados como tela para 21 Pages executáveis, alinhadas aos 21 charters.
-- Self-tests 12/12; mapa 235/235 charters; oito superfícies sem drift; AJV do piloto verde.
+- Financeiro passou de 60 `.tsx` classificados como tela para 21 Pages executáveis + 39 componentes, alinhadas aos 21 charters e sem perder auxiliares do índice.
+- Self-tests 13/13; mapa 235/235 charters; oito superfícies sem drift e com totais fechados; AJV do piloto verde.
 - A primeira rodada do CI pegou índice ADR stale e ghost literal de Sells; ambos foram corrigidos na fonte/regenerados, sem baseline novo.
+- O gate de lote provocou três refutações integrais: R1 8/139 reprovada, R2 6/140 reprovada e R3 0/140 aprovada. As críticas corrigiram perda de 120 componentes, âncora de linha inexata e soma de `Outros` que o próprio `--check` não detectava.
+- Pedido adicional [W]: `_Geral` virou a porta única de componentes/layouts/templates herdáveis, com BRIEFING índice, dois tópicos e SUPERFÍCIE gerada; o template de módulo aponta para ela em vez de copiar o catálogo.
 
 ## Decisões tomadas
 
@@ -36,10 +38,11 @@ A arquitetura aprovada por Wagner foi implementada sem backfill em massa. O PR s
 |---|---|---|---|
 | Seguir em PR? | Sim | Pedido textual em 2026-07-21 | ADR 0345 |
 | Crítica distribuída evolui o sistema? | Sim, sem escrita canônica autônoma | Evidência + síntese + aprovação preservam novidade e controle | ADR 0345 |
+| Herança compartilhada fica onde? | `_Geral` | Ownership transversal não pertence a um módulo e não deve ser repetido em todos | ADR 0345 |
 
 ## Bloqueios / pendências
 
-- Nenhum bloqueio de implementação conhecido.
+- Nenhum bloqueio de implementação conhecido; PR aguarda CI final e merge humano [W].
 - Promoção do schema a required ficou deliberadamente pendente de piloto e nova aprovação humana.
 
 ## Próximos passos

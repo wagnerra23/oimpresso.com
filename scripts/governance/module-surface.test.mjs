@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PAPEIS, montar, CORE_APP_MODULES } from './module-surface.mjs';
+import { PAPEIS, montar, CORE_APP_MODULES, RAIZES_GERAIS } from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
 function classify(path) {
@@ -48,6 +48,29 @@ test('CLASSE B: paths do core app/ classificam no papel certo', () => {
   assert.equal(classify('app/Domain/Fsm/Support/FsmAuthorizationFlag.php'), 'Motor (Utils/Domínio)');
   assert.equal(classify('app/Transaction.php'), 'Models / Entities');
   assert.equal(classify('resources/views/sale_pos/create.blade.php'), 'Views (Blade)');
+});
+
+test('contexto _Geral classifica componentes, layouts e templates herdáveis', () => {
+  assert.equal(classify('resources/js/Components/shared/PageHeader.tsx'), 'Componentes compartilhados (React)');
+  assert.equal(classify('resources/js/Layouts/AppShellV2.tsx'), 'Layouts herdados (React)');
+  assert.equal(classify('resources/views/components/flash.blade.php'), 'Componentes compartilhados (Blade)');
+  assert.equal(classify('resources/views/layouts/app.blade.php'), 'Layouts herdados (Blade)');
+  assert.equal(classify('memory/requisitos/_DesignSystem/templates/PageHeader-canon-v3-1.md'), 'Templates de construção (Design System)');
+  assert.deepEqual(RAIZES_GERAIS, [
+    'resources/js/Components',
+    'resources/js/Layouts',
+    'resources/views/components',
+    'resources/views/layouts',
+    'memory/requisitos/_DesignSystem/templates',
+  ]);
+});
+
+test('montar() _Geral declara herança compartilhada sem autorizar reuso cego', () => {
+  const grupos = [{ rot: 'Layouts herdados (React)', listar: true, files: ['resources/js/Layouts/AppShellV2.tsx'] }];
+  const md = montar('_Geral', grupos, []);
+  assert.match(md, /porta geral para componentes, layouts e templates herdáveis/);
+  assert.match(md, /O que NÃO é.*autorização para importar/);
+  assert.match(md, /reuse-index\.mjs/);
 });
 
 test('CLASSE B: regra larga app/ NÃO rouba um controller de módulo (Modules vence quando aplicável)', () => {

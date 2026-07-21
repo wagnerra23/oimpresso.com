@@ -29,16 +29,17 @@ O BRIEFING acumulava resumo, lista de arquivos, requisito, opinião e histórico
 ## Decisão
 
 1. `memory/requisitos/<Modulo>/BRIEFING.md` ficou definido como **resumo e índice**. Ele aponta para `SCOPE.md`, `SUPERFICIE.md`, `SPEC.md`, charters/casos e tópicos; não recopia esses conteúdos.
-2. Um tema estável passou a ter uma unidade própria em `memory/requisitos/<Modulo>/topicos/<id>.md`, criada pelo template e validada por `topico.schema.json` em modo grace/forward-only.
-3. Cada tópico separa comportamento observado, intenção externa, parecer, benefícios/custos de fazer e de não fazer, evidências, contradições e histórico de revisão.
-4. O aprendizado durável do sistema passou a ser o ciclo:
+2. O contexto transversal passou a viver em `memory/requisitos/_Geral/`: seu BRIEFING indexa componentes, layouts e templates herdáveis, e sua SUPERFÍCIE deriva as raízes compartilhadas. Cada módulo aponta para essa porta; não copia o inventário geral.
+3. Um tema estável passou a ter uma unidade própria em `memory/requisitos/<Modulo>/topicos/<id>.md`, criada pelo template e validada por `topico.schema.json` em modo grace/forward-only.
+4. Cada tópico separa comportamento observado, intenção externa, parecer, benefícios/custos de fazer e de não fazer, evidências, contradições e histórico de revisão.
+5. O aprendizado durável do sistema passou a ser o ciclo:
    - críticos de IA propõem afirmações e objeções independentes;
    - a IA central reconcilia evidências, duplicações e conflitos;
    - o humano aprova ou rejeita decisões arquiteturais/produto;
    - o resultado aprovado entra em Git como tópico, ADR, SPEC, charter/caso ou teste;
    - hooks e gates detectam drift e regeneram somente fatos determinísticos.
-5. A IA central é **sintetizadora**, não oráculo. Ela não apaga parecer minoritário e deve usar `incerto` quando falta contrato/intenção.
-6. Parecer persistente por função ficou limitado a risco relevante: valor/estoque, tenant, escrita em banco, API pública, segurança/compliance ou alto fan-in.
+6. A IA central é **sintetizadora**, não oráculo. Ela não apaga parecer minoritário e deve usar `incerto` quando falta contrato/intenção.
+7. Parecer persistente por função ficou limitado a risco relevante: valor/estoque, tenant, escrita em banco, API pública, segurança/compliance ou alto fan-in.
 
 ## O que “treinamento” significa neste repositório
 

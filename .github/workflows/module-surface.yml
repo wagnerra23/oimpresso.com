@@ -16,6 +16,11 @@ on:
     paths:
       - 'Modules/**'
       - 'resources/js/Pages/**'
+      - 'resources/js/Components/**'
+      - 'resources/js/Layouts/**'
+      - 'resources/views/components/**'
+      - 'resources/views/layouts/**'
+      - 'memory/requisitos/_DesignSystem/templates/**'
       - 'memory/requisitos/*/SUPERFICIE.md'
       - 'scripts/governance/module-surface.mjs'
       - 'scripts/governance/module-surface.test.mjs'

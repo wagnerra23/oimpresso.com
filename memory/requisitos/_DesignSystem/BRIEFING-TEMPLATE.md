@@ -22,6 +22,7 @@ related_adrs: []
 
 ## Portas canônicas
 
+- **Herança geral (componentes/layouts/templates compartilhados):** [`../_Geral/BRIEFING.md`](../_Geral/BRIEFING.md)
 - **Fronteira/ownership:** [`SCOPE.md`](../../../Modules/<NomeModulo>/SCOPE.md)
 - **Superfície derivada de código:** [`SUPERFICIE.md`](SUPERFICIE.md)
 - **Requisitos:** [`SPEC.md`](SPEC.md)
@@ -50,3 +51,4 @@ Cada linha aponta para um arquivo de tema único. O resumo abaixo serve para des
 2. Mudou requisito: altere `SPEC.md`/charter/casos.
 3. Mudou um tema: altere um único `topicos/<slug>.md` e ajuste só a linha-resumo deste índice.
 4. Crítica de IA entra como proposta; IA central reconcilia; canon arquitetural ou mudança de produto exige aprovação humana.
+5. Componente/layout/template compartilhado não é copiado para o módulo: consulte `_Geral`, valide o contrato e aponte para o dono único.

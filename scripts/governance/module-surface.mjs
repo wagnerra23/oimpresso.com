@@ -39,6 +39,14 @@ const args = process.argv.slice(2);
 const MODE = args.includes('--write') ? 'write' : args.includes('--check') ? 'check' : 'dry';
 const ALL = args.includes('--all');
 const POS = args.filter((a) => !a.startsWith('--'));
+const CONTEXTO_GERAL = '_Geral';
+const RAIZES_GERAIS = [
+  'resources/js/Components',
+  'resources/js/Layouts',
+  'resources/views/components',
+  'resources/views/layouts',
+  'memory/requisitos/_DesignSystem/templates',
+];
 
 /**
  * Módulos CLASSE B — o código NÃO mora em `Modules/<Mod>/`, mora no núcleo UltimatePOS (`app/`).
@@ -79,6 +87,11 @@ const CORE_APP_MODULES = {
  * O alternante `app/…` cobre os módulos CLASSE B (só vê os membros da semente curada).
  */
 const PAPEIS = [
+  { rot: 'Componentes compartilhados (React)', re: /^resources\/js\/Components\/.*\.(?:jsx?|tsx?)$/, listar: true },
+  { rot: 'Layouts herdados (React)', re: /^resources\/js\/Layouts\/.*\.(?:jsx?|tsx?)$/, listar: true },
+  { rot: 'Componentes compartilhados (Blade)', re: /^resources\/views\/components\/.*\.blade\.php$/, listar: true },
+  { rot: 'Layouts herdados (Blade)', re: /^resources\/views\/layouts\/.*\.blade\.php$/, listar: true },
+  { rot: 'Templates de construção (Design System)', re: /^memory\/requisitos\/_DesignSystem\/templates\/.*\.md$/, listar: true },
   { rot: 'Controllers', re: /^(?:Modules\/[^/]+|app)\/Http\/Controllers\/.*\.php$/, listar: true },
   { rot: 'Requests (validação)', re: /^(?:Modules\/[^/]+|app)\/Http\/Requests\/.*\.php$/, listar: true },
   { rot: 'Middleware', re: /^(?:Modules\/[^/]+|app)\/Http\/Middleware\/.*\.php$/, listar: true },
@@ -135,15 +148,15 @@ function expandirPrefixos(prefixos) {
 function listarModulos() {
   const dir = join(ROOT, 'Modules');
   const classeA = existsSync(dir) ? readdirSync(dir).sort().filter((m) => existsSync(join(dir, m, 'module.json'))) : [];
-  return [...new Set([...classeA, ...Object.keys(CORE_APP_MODULES)])].sort();
+  return [...new Set([...classeA, ...Object.keys(CORE_APP_MODULES), CONTEXTO_GERAL])].sort();
 }
 
 /** Coleta os arquivos do módulo (código + telas) e agrupa por papel. */
 function coletar(mod) {
   const core = CORE_APP_MODULES[mod];
   const files = [...new Set([
-    ...walk(`Modules/${mod}`),
-    ...walk(`resources/js/Pages/${mod}`),
+    ...(mod === CONTEXTO_GERAL ? RAIZES_GERAIS.flatMap((p) => walk(p)) : walk(`Modules/${mod}`)),
+    ...(mod === CONTEXTO_GERAL ? [] : walk(`resources/js/Pages/${mod}`)),
     ...(core ? expandirPrefixos(core.prefixos) : []),
   ])].sort();
   const grupos = PAPEIS.map((p) => ({ ...p, files: /** @type {string[]} */ ([]) }));
@@ -184,7 +197,9 @@ function montar(mod, grupos, outros) {
   L.push(`> ⚙️ **Gerado por máquina** (\`scripts/governance/module-surface.mjs\`). NÃO edite à mão — a próxima geração sobrescreve.`);
   L.push(`> Regenerar: \`node scripts/governance/module-surface.mjs ${mod} --write\`. Validar frescor: \`--check\` (exit 1 se a árvore mudou e isto não foi regenerado).`);
   L.push('>');
-  if (core) {
+  if (mod === CONTEXTO_GERAL) {
+    L.push('> **O que isto é:** a porta geral para componentes, layouts e templates herdáveis por mais de um módulo. A lista é derivada das raízes compartilhadas declaradas em `module-surface.mjs::RAIZES_GERAIS`. **O que NÃO é:** autorização para importar qualquer item sem verificar contrato, status e consumidores; para decidir reuso, consulte também `node scripts/reuse-index.mjs "<símbolo ou intenção>"` e o registry do Design System.');
+  } else if (core) {
     L.push('> **O que isto é:** o módulo `' + mod + '` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/' + mod + '/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`' + core.tabelas.join('`, `') + '`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).');
   } else {
     L.push('> **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/' + mod + '/**` + `resources/js/Pages/' + mod + '/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.');
@@ -273,4 +288,4 @@ function main() {
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) main();
 
-export { PAPEIS, coletar, montar, CORE_APP_MODULES };
+export { PAPEIS, coletar, montar, CORE_APP_MODULES, RAIZES_GERAIS, CONTEXTO_GERAL };
