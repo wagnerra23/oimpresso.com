@@ -2669,7 +2669,11 @@ class ProductController extends Controller
 
         $business_id = request()->session()->get('user.business_id');
 
-        if (request()->ajax()) {
+        // XHR LEGACY (Blade stock_history_details, aberto pelo legacyHref target="_blank")
+        // — EXCLUI o Inertia partial reload, que TAMBÉM seta X-Requested-With: XMLHttpRequest
+        // (axios). Sem o `! X-Inertia`, o defer de `movements` cairia aqui e devolveria Blade cru
+        // em vez de resolver a prop → Kardex fica fachada em prod. Fix canônico PR #1299 (2026-05-21).
+        if (request()->ajax() && ! request()->header('X-Inertia')) {
 
             //for ajax call $id is variation id else it is product id
             $stock_details = $this->productUtil->getVariationStockDetails($business_id, $id, request()->input('location_id'));
