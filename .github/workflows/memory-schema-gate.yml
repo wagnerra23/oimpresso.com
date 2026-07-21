@@ -77,23 +77,35 @@ jobs:
             schema: scripts/memory-schemas/charter.schema.json
             glob: "resources/js/Pages/**/*.charter.md"
           # 2026-07-12 (proposal estrutura-canon-memoria · Fase 0): as famílias
-          # BRIEFING + tópico + reference entram em GRACE (warn-only, diff-aware) — o
+          # BRIEFING + reference ficam em GRACE (warn-only, diff-aware) — o
           # campo `grace: true` força STRICT=false SÓ pra elas (ver step
           # "Compute strict mode flag"), independente da var global. Motivo:
-          # ~143 reference + ~55 BRIEFING legados divergentes; tópico nasce
-          # forward-only. Required só
+          # ~143 reference + ~55 BRIEFING legados divergentes. Required só
           # após backfill zerar o FP por família (ADR 0314 — gate novo nasce
           # grace, nunca required de nascença). Reference escopado a
           # memory/reference/*.md (os 5 @imports do CLAUDE.md em memory/*.md
           # ficam FORA — instrução Tier 0 do reference.schema.json).
+          # tópico NASCEU grace (2026-07-21, ADR 0345) e foi promovido a
+          # advisory-que-morde no mesmo dia ([W] "promova") — ver o bloco da
+          # matriz `Tópico` abaixo; NÃO está mais em grace (sem `grace: true`).
           - label: BRIEFING (memory/requisitos/*/BRIEFING.md) [grace]
             schema: scripts/memory-schemas/briefing.schema.json
             glob: "memory/requisitos/*/BRIEFING.md"
             grace: true
-          - label: Tópico (memory/requisitos/*/topicos/*.md) [grace]
+          # 2026-07-21 ([W] "promova", pós-medição do piloto ADR 0345): tópico
+          # SAIU do grace → advisory-que-morde. Sem `grace: true`, STRICT segue a
+          # var global (= 'true') → tópico malformado faz o job ficar VERMELHO.
+          # Continua FORA do branch protection (não é required) → red visível,
+          # NÃO bloqueia merge. Diff-aware + forward-only: só valida tópico
+          # NOVO/tocado; os 3 seed são schema-válidos (0 FP no corpus atual).
+          # grace→REQUIRED segue ADIADO: hoje 0 dias de soak + 0 mordidas = o
+          # anti-padrão foundation-ratchet (§5 proibicoes). Required exigiria
+          # janela advisory + FP=0 sobre autoria independente + emenda estilo
+          # ADR 0327 (0314: required = só Tier-0). Medição em
+          # memory/sessions/2026-07-21-medicao-piloto-topico-flip-grace-required.md.
+          - label: Tópico (memory/requisitos/*/topicos/*.md) [advisory]
             schema: scripts/memory-schemas/topico.schema.json
             glob: "memory/requisitos/*/topicos/*.md"
-            grace: true
           - label: Reference (memory/reference/*.md) [grace]
             schema: scripts/memory-schemas/reference.schema.json
             glob: "memory/reference/*.md"
