@@ -143,6 +143,12 @@ O método **não vale para expansão/catraca** até o juiz provar que DISCRIMINA
 - **Resultado (pack de-commentado · 25 twins · 15 famílias · rubric v1.1):** **3/3 juízes cegos CALIBRADO** — famílias **15/15** (min 12) · **κ = 1,0** (≥0,6) · 0 over-flag no controle (t07) · **incerto certo** no t08 (SEM o comentário) · **0 falso-discordo nos bons** (t11/t16/t18/t20/t24/t25). **T1 = 100%** (0 flips/25 salientes). Os 3 rotularam `t19` como **C7b + C7a** (mixed-return conflaciona os dois — por isso o `t21` isola C7a puro). **κ=1,0 SOBREVIVE ao de-comment** ⇒ a discriminação vem da ESTRUTURA + contrato, não de prosa — refuta o blocker na raiz. `--selftest` 5/5 · unit test 5/5.
 - **Fronteira honesta (mantida):** calibra o **INSTRUMENTO** (juiz discrimina defeito mecânico não-circularmente), NÃO re-valida vereditos de função REAL. C7b/C7d são **completude proativa** (`n/a` no flip real), não flip-provados. Evidência reprodutível: `calibracao-2026-07-21/judge-v12-merged-{a,b,c}.json`. É mudança de **canon** → merge [W] = ratificação.
 
+**2026-07-21 (rodada 6 — blind pack v1.2, correção do vazamento residual; aguardando re-run).**
+- A revisão central encontrou dois tells que sobreviveram à rodada 5: o cabeçalho expunha nomes como `atomicidade-bad`/`eagerload-ok`, e docblocks narrativos descreviam incidente/veredito. Portanto, o κ=1 da rodada 5 **não é aceito como prova plenamente cega**.
+- O runner passou a emitir somente `T001…T025`; o mapa fica interno ao scorer. `stripTells()` preserva apenas tags estruturadas mínimas e elimina prosa narrativa. Controles negativos automatizados falham se nomes/vereditos reaparecerem.
+- **Estado honesto:** mecanismo corrigido e self-test verde; resultado estatístico ainda não renovado. Três juízes frescos devem julgar o pack v1.2 antes de publicar novo κ. Fósseis antigos continuam pontuáveis por compatibilidade, não são reescritos.
+- O braço humano ganhou scorer próprio (`funcao-scorecard-humano.mjs`) que exige 9/9 rótulos de `[W]`, calcula **K/9 + Cohen κ** e só então abre o selado. Percentual sozinho não fecha a calibração.
+
 ## §6 O que um `discordo` NÃO autoriza
 
 - ❌ NÃO edita código. ❌ NÃO cria task automática. ❌ NÃO é "achado" (é parecer).

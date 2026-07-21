@@ -47,12 +47,20 @@ function twins() {
  * cego julgar a ESTRUTURA + o CONTRATO, nunca um comentário que nomeia o veredito. Blindagem contra
  * a inflação de κ apontada pela revisão adversarial 2026-07-21 (o pack antigo emitia os comentários
  * verbatim → κ media "transcrever comentário", não "discriminar defeito").
- * PRESERVA docblocks `/** ... *​/` DE PROPÓSITO: eles são contrato/schema-fact que um juiz real teria
- * do código/migração/SPEC (`@return`, `@covered-by`, "X é tabela tenant-owned"), não um tell do veredito.
+ * SANITIZA docblocks: preserva só tags estruturadas mínimas (`@return`, `@param`, `@transactional`),
+ * removendo também a narrativa que poderia entregar o veredito.
  * Nota: heurística simples (não trata `//` dentro de string literal — os twins não têm nenhum).
  */
 export function stripTells(code) {
-  return code
+  const semProsaEmDocblock = code.replace(/\/\*\*[\s\S]*?\*\//g, (block) => {
+    const tags = block
+      .split('\n')
+      .map((line) => line.replace(/^\s*\/\*\*?\s?/, '').replace(/^\s*\*\s?/, '').replace(/\s*\*\/$/, '').trim())
+      .filter((line) => /^@(param|return|throws|var|template|implements|extends|method|property|transactional|table)\b/.test(line))
+      .map((line) => line.replace(/^(@(?:param|return|throws|var|template|implements|extends|method|property|transactional|table)\b\s+\S+).*/, '$1'));
+    return tags.length ? `/**\n${tags.map((line) => ` * ${line}`).join('\n')}\n */` : '';
+  });
+  return semProsaEmDocblock
     .replace(/\/\*(?!\*)[\s\S]*?\*\//g, '') // /* ... */ inline, MAS não /** docblock */
     .replace(/\/\/[^\n]*/g, '')             // // até o fim da linha
     .split('\n')
@@ -62,19 +70,25 @@ export function stripTells(code) {
     .trimEnd();
 }
 
+/** IDs cegos estáveis: o nome do arquivo nunca entrega classe, critério ou veredito. */
+export function blindIdMap(ids = Object.keys(twins()).sort()) {
+  return Object.fromEntries(ids.map((id, index) => [`T${String(index + 1).padStart(3, '0')}`, id]));
+}
+
 /** Emite o PACK CEGO: código SEM tells em prosa + instrução, SEM nenhum rótulo (o juiz nunca vê o selado). */
-function pack() {
+export function pack() {
   const t = twins();
+  const blind = blindIdMap(Object.keys(t));
   const L = [];
   L.push('# PACK CEGO — calibração do juiz funcao-scorecard');
-  L.push('> Comentários em prosa (`//`) foram REMOVIDOS de propósito (stripTells): o juiz discrimina pela ESTRUTURA + docblocks de contrato (`/** @return, @covered-by */`), não por comentário que nomeie a resposta.');
+  L.push('> Comentários e narrativa dos docblocks foram REMOVIDOS de propósito (stripTells): o juiz discrimina pela ESTRUTURA + tags contratuais mínimas (`@return`, `@param`, `@transactional`), não por texto que nomeie a resposta.');
   L.push('Julgue CADA função abaixo pelos critérios (FUNCAO-SCORECARD-METODO §1): C1 multi-tenant · C2 valor/estoque · C3 dado-ausente (o CONSUMIDOR distingue ausente de presente? pega sentinela ""/false/0) · C4 atomicidade · C5 N+1 · C6 SQL cru · C7a docblock/tipo declarado bate com o retorno REAL não-null · C7b retorno polimórfico ambíguo (false|array|string em caminhos diferentes) · C7c nullabilidade TIPADA (null só sob ?T / @return T|null declarado; ?T tipado é OK — NÃO carimbe) · C7d falha observável (sem catch vazio / erro engolido) · C8 cobertura. Veredito por critério ∈ {concordo, discordo, incerto, n/a} + citação. `incerto` OBRIGATÓRIO quando falta intenção externa. NÃO invente que algo é "defeito plantado".');
   L.push('Devolva JSON: { "<id>": { "C1": "<v>", "C2": "<v>", ... }, ... } — só os critérios que se aplicam + o saliente.');
   L.push('');
-  for (const [id, code] of Object.entries(t)) {
-    L.push(`## ${id}`);
+  for (const [blindId, realId] of Object.entries(blind)) {
+    L.push(`## Caso ${blindId}`);
     L.push('```php');
-    L.push(stripTells(code));
+    L.push(stripTells(t[realId]));
     L.push('```');
     L.push('');
   }
@@ -83,7 +97,7 @@ function pack() {
 
 /** Cohen's κ entre esperado e observado (categorias concordo/discordo/incerto). Corrige o acaso. */
 export function cohenKappa(pares) {
-  const cats = ['concordo', 'discordo', 'incerto'];
+  const cats = ['concordo', 'discordo', 'incerto', 'n/a'];
   const n = pares.length;
   if (n === 0) return null;
   let acordo = 0;
@@ -102,6 +116,11 @@ export function cohenKappa(pares) {
 
 /** Pontua os vereditos do juiz cego vs o selado. Retorna {pass, detalhe}. */
 export function pontuar(verdicts, sel = selado()) {
+  const blind = blindIdMap(Object.keys(sel).filter((id) => !String(id).startsWith('_')));
+  const normalized = { ...verdicts };
+  for (const [blindId, realId] of Object.entries(blind)) {
+    if (verdicts[blindId] && !normalized[realId]) normalized[realId] = verdicts[blindId];
+  }
   const linhas = [];
   let familiasAchadas = 0, familiasTotal = 0;
   let overflagControle = 0, incertoOk = null, falsoDiscordoBom = 0;
@@ -110,9 +129,9 @@ export function pontuar(verdicts, sel = selado()) {
     if (String(id).startsWith('_')) continue; // ignora chaves de meta/comentário
     // coleta par p/ κ quando o esperado é um veredito definido (não o controle "sem-discordo")
     if (['concordo', 'discordo', 'incerto'].includes(lab.veredito)) {
-      paresK.push([lab.veredito, (verdicts[id] || {})[lab.criterio_salient]]);
+      paresK.push([lab.veredito, (normalized[id] || {})[lab.criterio_salient]]);
     }
-    const v = (verdicts[id] || {});
+    const v = (normalized[id] || {});
     const dado = v[lab.criterio_salient];
     if (lab.familia) {
       familiasTotal++;

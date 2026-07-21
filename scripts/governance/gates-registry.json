@@ -342,11 +342,18 @@
       "classe": "gate"
     },
     "module-surface.yml": {
-      "nome": "Module surface (advisory) — guarda o índice GERADO de arquivos por módulo (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore: self-test HARD + `--all --check` (drift real, só módulos opt-in com SUPERFICIE.md commitado). Fecha a raiz do apodrecimento da Superfície de código (dor estado-da-arte 2026-07-21, Gap 2): a lista de arquivos por contexto é DERIVADA, não escrita.",
+      "nome": "Module surface (advisory) — guarda o índice GERADO de arquivos por módulo (memory/requisitos/<Mod>/SUPERFICIE.md) contra a árvore: self-test HARD + `--all --check` (drift real; obrigatório para módulos vivos, Classes B e _Geral). Fecha a raiz do apodrecimento da Superfície de código (dor estado-da-arte 2026-07-21, Gap 2): a lista de arquivos por contexto é DERIVADA, não escrita.",
       "classe": "gate",
       "terminal": "advisory",
       "promote_by": "2026-08-04",
       "anchor": "sinal de custo: dor [W] 2026-07-21 'não sei os arquivos de cada contexto, dificulta a busca da IA' (memory/sessions/2026-07-21-arte-contexto-vivo-descoberta.md, Gap 2 — único sobrevivente do adversário) + PR #4607. Advisory por ADR 0314 (índice de arquivos é qualidade/descoberta, não Tier-0) na adoção; promote_by força a decisão required/enforce em 14d (quando N módulos adotarem + FP medido = 0), não advisory eterno."
+    },
+    "catalog-graph.yml": {
+      "nome": "Catalog graph (advisory) — prova que memory/governance/catalog.json é a derivada determinística dos SCOPE.md + SUPERFICIE.md Classe B, sem referências estruturais penduradas; exercita consulta real por módulo e arestas dependsOn/providesApi.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-08-04",
+      "anchor": "sinal de custo: grade do catálogo 2026-07-21 identificou descritores isolados sem grafo consultável; uma IA não conseguia responder mecanicamente que módulos dependem de uma fronteira alterada. Deriva 38 módulos/627 nós/950 arestas dos donos existentes, sem criar segunda fonte. Advisory por ADR 0314; promote_by força revisão após janela de falsos positivos, sem promoção silenciosa."
     },
     "modules-pest.yml": {
       "nome": "Modules Pest",

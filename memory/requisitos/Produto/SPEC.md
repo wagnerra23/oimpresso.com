@@ -6,7 +6,7 @@ module: Produto
 status: ativo
 owner: wagner
 version: "1.0.0"
-last_updated: "2026-07-03"
+last_updated: "2026-07-21"
 ---
 
 # Especificação funcional — Produto (cadastro core / catálogo do ERP)
@@ -137,19 +137,19 @@ E há zeros gravados: a UI (React **e** Blade) pré-preenche célula sem preço 
 
 **Origem:** passe adversarial 2026-07-15 sobre o ecossistema da tabela de preço (PRs #4299/#4300/#4308/#4319).
 
-### US-PROD-028 · Blindar `fixVariationStockMisMatch` — grava `qty_available` cru do request sem `num_uf`/validação (parecer C2)
+### US-PROD-028 · Blindar `fixVariationStockMisMatch` com parsing locale-safe
 
-> owner: wagner · priority: p1 · status: todo · type: story · estimate: 2h · origin: funcao-scorecard-productutil-2026-07-21
+> owner: wagner · priority: p1 · status: done · type: story · estimate: 2h · origin: funcao-scorecard-productutil-2026-07-21 · completed_by: PR #4636
 
-**Por quê.** `ProductUtil::fixVariationStockMisMatch($biz,$var,$loc,$stock)` grava `$stock` **cru** do request em `qty_available` sem `num_uf`/validação ([ProductUtil.php:2302-2303](../../../app/Utils/ProductUtil.php)). É o **único** mutador de saldo do ecossistema sem `num_uf` — os 4 irmãos (`updateProductQuantity` · `addSingleProductOpeningStock` · `adjustProductStockForInvoice` · `createOrUpdatePurchaseLines`) aplicam. Varredura contada (`git grep` sem head_limit, 2026-07-21): **1/1 consumidor** = `ReportController::adjustProductStock` (rota **GET** `/reports/adjust-product-stock`; a view manda `stock={{$row->total_stock_calculated}}` na query string).
+**Resolvido em 2026-07-21.** `ProductUtil::fixVariationStockMisMatch($biz,$var,$loc,$stock)` passou a normalizar `$stock` com `num_uf()` antes de gravar `qty_available` ([ProductUtil.php](../../../app/Utils/ProductUtil.php)). Varredura contada: **1/1 consumidor** = `ReportController::adjustProductStock`.
 
 **Âncora (externa, não inventada):** REGRA MESTRE ([proibicoes.md](../../proibicoes.md) Tier 0 — toda escrita de valor/estoque deve ser locale-safe, origem incidente 2026-06-05) + [DOC-RAIZ-ESTOQUE §10](../Estoque/DOC-RAIZ-ESTOQUE.md) ("usar SEMPRE ProductUtil pra mexer `qty_available`").
 
-**Teste vermelho RODADO (recibo):** [`tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php`](../../../tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php) — CT 100 `oimpresso-staging` HEAD `34fe49730`, MySQL real: CONTRAPROVA verde `updateProductQuantity('1.500')`→1500; RED `fixVariationStockMisMatch('1.500')` → *"Failed asserting that 1.5 is identical to 1500.0"* (grava 1,5). Landado `->skip()` com o recibo; o PR do fix o desskipa.
+**Teste de regressão:** [`tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php`](../../../tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php) preserva o RED anterior no recibo e prova, após o fix, `fixVariationStockMisMatch('1.500')` → 1500. A contrap prova o mesmo contrato no irmão `updateProductQuantity`.
 
 **Escopo honesto (por que p1, não p0):** o fluxo sancionado manda `total_stock_calculated` (float cru, sem agrupamento de milhar) → **não corrompe hoje**. A falha é (a) endpoint **GET** com `stock` arbitrário na query → tampering grava qualquer valor sem `num_uf`/validação/CSRF (qualquer user com `report.stock_details`); (b) ausência da defesa `num_uf` que a REGRA MESTRE exige. Escalar a p0 se auditoria mostrar exploração.
 
-**Correção (decisão [W], sob REGRA MESTRE — dupla confirmação + impacto antes→depois):** opções a apresentar — (1) `num_uf($stock)` + validar numérico; (2) rota GET→POST + CSRF + confirmação; (3) re-verificar server-side `stock == total_stock_calculated` atual (anti-stale/tamper). **Nenhuma aplicada sem OK [W].**
+**Correção aplicada:** opção 1 (`num_uf($stock)`) foi aprovada sob a REGRA MESTRE e mergeada no PR #4636. As opções GET→POST/CSRF e recomputação server-side continuam fora do escopo desta US; só viram nova US com sinal próprio.
 
 **Origem:** full-sweep funcao-scorecard de `ProductUtil` ([app-utils-productutil.yaml](../../governance/scorecards/funcoes/app-utils-productutil.yaml), fixVariationStockMisMatch C2), PR #4628.
 

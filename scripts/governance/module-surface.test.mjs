@@ -7,7 +7,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { PAPEIS, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS } from './module-surface.mjs';
+import { PAPEIS, montar, CORE_APP_MODULES, PAGES_NS, RAIZES_GERAIS, isSurfaceRequired } from './module-surface.mjs';
 
 /** Primeira regra de PAPEIS que casa (mesma ordem do gerador). */
 function classify(path) {
@@ -189,4 +189,11 @@ test('montar() Classe A com namespace IGUAL não injeta a nota de divergência',
   const md = montar('Financeiro', grupos, []);
   assert.match(md, /resources\/js\/Pages\/Financeiro\/\*\*/);
   assert.doesNotMatch(md, /namespace Inertia/);
+});
+
+test('cobertura: módulos vivos, Classe B e _Geral são obrigatórios', () => {
+  assert.equal(isSurfaceRequired('SRS'), true, 'SRS está active=1 e não pode ser pulado');
+  assert.equal(isSurfaceRequired('Produto'), true);
+  assert.equal(isSurfaceRequired('Sells'), true);
+  assert.equal(isSurfaceRequired('_Geral'), true);
 });
