@@ -107,10 +107,14 @@ jobs:
         run: node scripts/governance/settings-test-fora-ct100-registration.test.mjs
       - name: Block-automem PORTE .mjs (ADR 0061/0131 · logica + E2E · roda em Linux)
         run: node .claude/hooks/block-automem.test.mjs
+      - name: Block-edit-authority-generated (ADR 0256 · bloqueia editar gerado a mao · logica + E2E)
+        run: node .claude/hooks/block-edit-authority-generated.test.mjs
       - name: Block-mwart-violation PORTE .mjs (ADR 0104 F1 · logica + E2E · roda em Linux)
         run: node .claude/hooks/block-mwart-violation.test.mjs
       - name: Block-automem + block-mwart REGISTRADOS como node (correcao != invocacao)
         run: node scripts/governance/settings-automem-mwart-registration.test.mjs
+      - name: Block-edit-authority-generated REGISTRADO no settings (correcao != invocacao)
+        run: node scripts/governance/settings-block-generated-registration.test.mjs
       - name: Block-bom-encoding PORTE .mjs (proibicoes Ambiente BOM · #984 · logica + E2E · roda em Linux)
         run: node .claude/hooks/block-bom-encoding.test.mjs
       - name: Block-test-without-red PORTE .mjs (SDD FV-T0 · logica + E2E · roda em Linux)
