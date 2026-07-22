@@ -231,7 +231,7 @@
 
 ## Notas finais
 
-- **Janela competitiva real:** Mubisys e Zênite NÃO publicam parcerias declaradas com fabricantes (verificado em pesquisa concorrentes 2026-04-25 — `memory/comparativos/site_marketing_concorrentes_comunicacao_visual_2026_04_25.md`). Janela de 12-24m antes de eles acordarem.
+- **Janela competitiva real:** Mubisys e Zênite NÃO publicam parcerias declaradas com fabricantes (verificado em pesquisa concorrentes 2026-04-25 — `memory/research/site-marketing-concorrentes-comunicacao-visual-2026-04-25.md`). Janela de 12-24m antes de eles acordarem.
 - **Pré-requisito antes de Mês 1:** confirmar **distribuidor master Roland (ICC)** ainda é o player dominante — pesquisar Capterra + ExpoPrint 2025 expositor list + LinkedIn searches por "Roland DG Brazil sales".
 - **Métrica chave pra ajustar:** se mês 3 nenhum dos 3 top retornar discovery call, pivot pra Epson Partner Program (mais transacional e self-service).
 - **Próxima revisão deste plano:** out/2026 (90d depois) com aprendizados das 3 calls discovery.

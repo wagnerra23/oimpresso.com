@@ -171,13 +171,17 @@ seria a atrofia automatizada. Portas: `domain` → `memory/dominios/_overview.md
 
 ## II.5b Implementado (2026-07-22, mesma branch — recibo, não promessa)
 
-Passos 2–8 da ordem acima **codados e provados** (o passo 1 é este merge). O passo **9**
-(convergência dos 11 comparativos) ficou **bloqueado por um limite pré-existente do relink**,
+Passos 2–9 da ordem acima **codados e provados** (o passo 1 é este merge). O passo **9**
+(convergência dos 11 comparativos) exigiu antes destravar um limite pré-existente do relink,
 não do tombstone: os docs se cruzam densamente usando o mesmo literal de caminho em dois contextos
-(`[x](arq.md)` markdown-link → `./rel` **e** `` `arq.md` `` code-span → `root/path`). O executor
-aplica por replace textual global e não distingue contexto → o adversário agora reprova antes do
-`git mv` (`CONFLICTING_REWRITE`, dente novo — antes dava falso APPROVE). Falharia igual num move
-normal (independe do tombstone). Destrava com relink **contexto-consciente** — feature à parte:
+(`[x](arq.md)` markdown-link → `./rel` **e** `` `arq.md` `` code-span → `root/path`). O replace
+textual global não distinguia contexto → colisão (`CONFLICTING_REWRITE`, primeiro exposto como
+falso APPROVE, depois barrado honestamente). O **relink contexto-consciente** (`searchReplaceFor`,
+fonte única: executor aplica, classificador conta, adversário detecta — busca/substituição carrega
+o delimitador do contexto) resolveu: markdown-link e code-span do mesmo literal recebem destinos
+diferentes sem se pisar. `CONFLICTING_REWRITE` foi **estreitado** ao residual insanável (um
+`literal-path` cru junto de estruturada). Com isso o lote `--tombstone` dos 11 comparativos passou
+a **APROVAR** no adversário (0 erros) — aplicado no commit de convergência desta branch:
 
 | Fix | Prova (vetor de selftest que morde) |
 |---|---|

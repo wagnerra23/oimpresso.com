@@ -121,7 +121,7 @@ lifecycle: ativo
 
 ## Ideias avaliadas e ABANDONADAS (§5 — não re-propor)
 
-> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 37 entradas.
+> Dono canônico: [`memory/proibicoes.md §5`](../proibicoes.md). 39 entradas.
 
 - ~~2026-06-05 — Roadmap/plano de evolução PARALELO a canon existente~~
 - ~~2026-06-05 — Teste que deriva do CÓDIGO (tautológico) em vez do contrato~~
@@ -160,6 +160,8 @@ lifecycle: ativo
 - ~~2026-07-20 — Auto-feed do ledger de aprendizado: as 6 formas rejeitadas de "ler os últimos erros" (S1-estrita · cadeia/família · watermark · Check-em-memory-health · fontes CI-red/reverts/degradação · big-bang)~~
 - ~~2026-07-21 — Re-importar o modelo oficial Anthropic (Claude Design canvas no CENTRO do fluxo, alimentado por "briefing compilado") como o fluxo de design do oimpresso~~
 - ~~2026-07-22 — Responder "quais arquivos/artefatos tem a tela" por Glob/leitura em vez da porta viva derivada~~
+- ~~2026-07-22 — Mover os 6 dicionários de `memory/dominio/` (SINGULAR) para `memory/dominios/` (plural) — DOIS DONOS, não pasta duplicada~~
+- ~~2026-07-22 — Blindar candidatos de realocação "por julgamento" sem rodar a máquina + afirmar comportamento de extrator por leitura~~
 
 ## Tier 0 gaps (esperam decisão/desbloqueio)
 
@@ -167,14 +169,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **299** handoffs · **506** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **299** handoffs · **508** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-22-realocacao-modulos-veredito-nao-migrar`
   - `2026-07-22-porta-documental-unica-guardiao-duplicatas`
+  - `2026-07-22-incidente-mcp-link-flap-ct100`
   - `2026-07-22-ciclo-realocacao-documental-profissional`
   - `2026-07-22-ciclo-documental-guardiao-fechado`
   - `2026-07-22-arquitetura-ia-jana-retrato`
-  - `2026-07-22-adversario-realocacao-documental`
-  - `2026-07-21-topicos-vivos-aprendizado-critica-revisada`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-07-22 · deriva das fontes canônicas, não as substitui._

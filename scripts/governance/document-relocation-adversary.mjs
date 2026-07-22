@@ -35,6 +35,19 @@ const ALLOWED_LIFECYCLES = new Set(['active', 'historical', 'archived']);
 // do negocio que serve ERP e Jana — nao e produto nem processo. Ratificacao [W] no merge.
 const ALLOWED_LAYERS = new Set(['product-erp', 'product-ai', 'ia-os', 'business-knowledge']);
 const ALLOWED_REF_KINDS = new Set(['markdown-link', 'code-span', 'literal-path']);
+
+// Relink CONTEXTO-CONSCIENTE (proposal estrutura-canon-memoria §II.5 passo 9): o mesmo literal
+// de caminho pode aparecer em dois contextos que exigem destinos diferentes — `[x](arq.md)`
+// (markdown-link, destino RELATIVO) e `` `arq.md` `` (code-span, destino RAIZ). Reescrever o
+// literal CRU aplicaria o mesmo `to` aos dois (colisao — CONFLICTING_REWRITE antes barrava tudo).
+// A busca/substituicao carrega o DELIMITADOR do contexto, entao markdown e code-span do mesmo
+// literal nunca se pisam. literal-path (path bare) segue no cru. Fonte unica: executor aplica,
+// classificador conta e adversario detecta sobreposicao com esta MESMA funcao (sem drift).
+export function searchReplaceFor(kind, from, to) {
+  if (kind === 'markdown-link') return [`](${from})`, `](${to})`];
+  if (kind === 'code-span') return [`\`${from}\``, `\`${to}\``];
+  return [from, to];
+}
 const SKIP_DIRS = new Set(['.git', '.worktrees', 'node_modules', 'vendor']);
 const TEXT_EXTENSIONS = /\.(?:cjs|css|html|js|json|jsx|md|mjs|php|ps1|py|sh|toml|ts|tsx|txt|xml|ya?ml)$/i;
 
@@ -315,24 +328,24 @@ function validateRewrites(op, index, refs, finalPaths, issues) {
     issues.push(issue('error', 'REWRITES_REQUIRED', 'rewrites deve ser um array, inclusive quando vazio', index));
     return;
   }
-  // O executor aplica cada rewrite por split/join GLOBAL do literal `from`. Logo dois rewrites
-  // com o MESMO (file, from) nao podem coexistir: o primeiro consome todas as ocorrencias e o
-  // segundo acha 0 (transacao aborta no apply). Acontece quando o MESMO literal aparece em dois
-  // contextos que exigem destinos diferentes — ex.: `[x](arq.md)` (markdown-link -> ./rel) e
-  // `` `arq.md` `` (code-span -> root/path). E insanavel por replace textual; reprova ANTES do
-  // apply em vez de APROVAR e falhar (o adversario nunca pode liberar o que o executor nao aplica).
+  // Relink e CONTEXTO-CONSCIENTE (searchReplaceFor, fonte unica): markdown-link busca `](from)`,
+  // code-span busca `` `from` ``, literal-path busca o path CRU. Markdown e code-span do MESMO
+  // literal tem delimitadores distintos -> coexistem sem se pisar. O residual insanavel: um
+  // literal-path (replace cru) junto de um kind estruturado do MESMO `from` — o cru sobrepoe as
+  // ocorrencias `](from)`/`` `from` `` do estruturado. O classificador nunca gera esse par
+  // (extractLiteral pula o que ja e estruturado), mas o adversario e backstop pra plano buggy.
   const byFileFrom = new Map();
   for (const rw of op.rewrites) {
     if (!rw || typeof rw !== 'object') continue;
-    const k = `${rw.file} ${rw.from}`;
+    const k = `${rw.file}\u0000${rw.from}`;
     if (!byFileFrom.has(k)) byFileFrom.set(k, []);
     byFileFrom.get(k).push(rw);
   }
   for (const group of byFileFrom.values()) {
-    const distinct = new Set(group.map((r) => `${r.kind} ${r.to}`));
-    if (group.length > 1 && distinct.size > 1) {
-      const tos = [...new Set(group.map((r) => r.to))];
-      issues.push(issue('error', 'CONFLICTING_REWRITE', `o literal "${group[0].from}" em ${group[0].file} exige reescritas diferentes (${tos.join(' | ')}); o realocador aplica por replace textual e nao distingue contexto — separe manualmente ou preserve o path`, index, { file: group[0].file, from: group[0].from, tos }));
+    const kinds = new Set(group.map((r) => r.kind));
+    const overlaps = kinds.has('literal-path') && [...kinds].some((k) => k === 'markdown-link' || k === 'code-span');
+    if (group.length > 1 && overlaps) {
+      issues.push(issue('error', 'CONFLICTING_REWRITE', `o literal "${group[0].from}" em ${group[0].file} tem reescrita literal-path (replace cru) junto de estruturada; o cru sobrepoe o link/code-span do mesmo literal — separe manualmente ou preserve o path`, index, { file: group[0].file, from: group[0].from, kinds: [...kinds] }));
     }
   }
   const actual = new Map(refs.map((r) => [`${r.file}\u0000${r.kind}\u0000${r.raw}`, r]));
@@ -786,16 +799,23 @@ function runSelftest() {
     { file: 'memory/requisitos/Financeiro/SPEC.md', kind: 'markdown-link', from: '../../../docs/legado-tomb.md', to: '../../reference/legado-tomb.md' },
   ] }), [tombRefReadme, tombRefSpec]);
   check('MORDE: relink de referrer sob gate diff-aware e barrado (GATE_GUARDED_REFERRER)', tombEditsGate.issues.some((i) => i.code === 'GATE_GUARDED_REFERRER'), tombEditsGate);
-  // O executor faz replace textual GLOBAL: o mesmo literal em dois contextos (markdown-link ->
-  // ./rel e code-span -> root/path) gera dois rewrites com o mesmo `from` e destinos diferentes
-  // que colidem no apply. O adversario reprova ANTES (nunca APROVA o que o executor nao aplica).
-  const conflict = clone(base);
-  conflict.operations[0].rewrites = [
+  // Relink CONTEXTO-CONSCIENTE (§II.5 passo 9): o MESMO literal como markdown-link (`](x)`) e
+  // code-span (`` `x` ``) tem delimitadores distintos — coexistem, NAO e mais CONFLICTING (antes
+  // barrava tudo). Cada um recebe seu destino (relativo vs raiz) sem se pisar no apply.
+  const coexist = clone(base);
+  coexist.operations[0].rewrites = [
     { file: 'docs/ops.md', kind: 'markdown-link', from: 'legacy.md#uso', to: './guia-legado.md#uso' },
     { file: 'docs/ops.md', kind: 'code-span', from: 'legacy.md#uso', to: 'memory/reference/guia-legado.md#uso' },
   ];
-  const conflictResult = evaluate(conflict);
-  check('MORDE: mesmo literal com destinos diferentes no mesmo arquivo (CONFLICTING_REWRITE)', conflictResult.issues.some((i) => i.code === 'CONFLICTING_REWRITE'), conflictResult);
+  check('SOLTA: markdown-link e code-span do mesmo literal coexistem (contexto-consciente)', !evaluate(coexist).issues.some((i) => i.code === 'CONFLICTING_REWRITE'), evaluate(coexist));
+  // Residual insanavel: literal-path (replace CRU) junto de estruturada do mesmo `from` — o cru
+  // sobrepoe as ocorrencias `](from)`/`` `from` `` do estruturado. Backstop pra plano hand-crafted.
+  const rawOverlap = clone(base);
+  rawOverlap.operations[0].rewrites = [
+    { file: 'docs/ops.md', kind: 'markdown-link', from: 'legacy.md', to: './guia-legado.md' },
+    { file: 'docs/ops.md', kind: 'literal-path', from: 'legacy.md', to: 'memory/reference/guia-legado.md' },
+  ];
+  check('MORDE: literal-path (replace cru) junto de estruturada do mesmo literal (CONFLICTING_REWRITE)', evaluate(rawOverlap).issues.some((i) => i.code === 'CONFLICTING_REWRITE'), evaluate(rawOverlap));
 
   for (const row of cases) console.log(`${row.ok ? '[OK]  ' : '[FAIL]'} ${row.name}`);
   const failed = cases.filter((row) => !row.ok);
