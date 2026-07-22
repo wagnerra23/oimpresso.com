@@ -1,0 +1,33 @@
+{
+  "schema": 1,
+  "purpose": "Registro DECLARADO de placement por area de memory/. O classificador consulta este registro em vez de adivinhar por regex (proposal estrutura-canon-memoria Parte II; ADR 0256 derivado+enforcado > heuristica). Regra: area declarada 'canonical' = fica (nao move, mesmo que o heuristico ache outra familia); 'protected' = nunca move (contrato/append-only); 'never' = veredito humano de nao-migrar; 'move' = realoca pro to_prefix; 'review' = decisao por arquivo, o classificador NAO adivinha (forca REVIEW).",
+  "ratified": false,
+  "ratify_note": "Merge por [W] ratifica. Trocar a linha 'rule'/'recommend' de qualquer area que discordar ANTES de mergear. Resolucao = prefixo mais longo vence (memory/dominios/ antes de memory/).",
+  "areas": [
+    { "prefix": "memory/requisitos/", "rule": "canonical", "note": "docs de modulo/produto (SPEC/RUNBOOK/BRIEFING/topicos) — ficam com o modulo" },
+    { "prefix": "memory/dominios/", "rule": "canonical", "note": "corpus de conhecimento de negocio (ADR 0334 corpus a)" },
+    { "prefix": "memory/dominio/", "rule": "protected", "note": "dicionarios de enum lidos por domain-dict-guard em path fixo (ADR 0264 G-4)" },
+    { "prefix": "memory/clientes/", "rule": "canonical", "note": "fatos por cliente (ADR 0334 corpus a)" },
+    { "prefix": "memory/reference/", "rule": "canonical", "note": "referencia tecnica — familia valida; NAO puxar pra governance" },
+    { "prefix": "memory/governance/", "rule": "canonical", "note": "IA-OS / processo" },
+    { "prefix": "memory/research/", "rule": "canonical", "note": "pesquisa/proveniencia" },
+    { "prefix": "memory/audits/", "rule": "canonical", "note": "auditorias datadas" },
+    { "prefix": "memory/templates/", "rule": "canonical", "note": "modelos" },
+    { "prefix": "memory/decisions/", "rule": "protected", "note": "ADRs append-only" },
+    { "prefix": "memory/sessions/", "rule": "protected", "note": "diario append-only" },
+    { "prefix": "memory/handoffs/", "rule": "protected", "note": "handoffs append-only" },
+    { "prefix": "memory/comparativos/", "rule": "move", "to_prefix": "memory/research/", "decided_by": "W", "ref": "#4682", "note": "Capterra/mercado = research (decidido [W] 2026-07-22)" },
+    { "prefix": "memory/clientes-legacy/", "rule": "move", "to_prefix": "memory/clientes/", "note": "consolidar no corpus canonico de cliente (parte ja feita #4684)" },
+    { "prefix": "memory/modulos/", "rule": "never", "ref": "#4690", "note": "veredito NAO-migrar: path-contracts/entrelacado com append-only" },
+
+    { "prefix": "memory/sales/", "rule": "review", "recommend": "canonical", "note": "material de vendas (cold-emails/scripts/campanhas) — RECOMENDO declarar familia propria 'sales/' e deixar. Mover pra reference = churn sem ganho. [W] decide." },
+    { "prefix": "memory/sprints/", "rule": "review", "recommend": "canonical", "note": "logs historicos de sprint — RECOMENDO deixar (registro historico referenciado). Alternativa: tratar como archive/historical. [W] decide." },
+    { "prefix": "memory/reguas/", "rule": "review", "recommend": "canonical", "note": "experimentos de calibracao de regua (inclui gabarito-SELADO que NAO pode mover). RECOMENDO deixar. [W] decide." },
+    { "prefix": "memory/legacy-delphi/", "rule": "review", "recommend": "canonical", "note": "indice Delphi legado (criado por #4684). RECOMENDO deixar OU archive/legacy/. [W] decide." },
+    { "prefix": "memory/onboarding/", "rule": "review", "recommend": "canonical", "note": "material de onboarding. RECOMENDO deixar como familia. [W] decide." },
+    { "prefix": "memory/mwart-inventory/", "rule": "review", "recommend": "canonical", "note": "inventario MWART. RECOMENDO deixar. [W] decide." },
+    { "prefix": "memory/cycles/", "rule": "review", "recommend": "canonical", "note": "ciclos. RECOMENDO deixar. [W] decide." },
+
+    { "prefix": "memory/", "rule": "review", "recommend": "por-arquivo", "note": "RAIZ de memory/: numerados 00-11 sao estruturais/referenciados-em-tudo = NAO mover; docs soltos (GUIA-DO-SISTEMA, NORTE-ROI, etc) = decisao por arquivo, NAO adivinhar familia. [W] decide caso a caso." }
+  ]
+}
