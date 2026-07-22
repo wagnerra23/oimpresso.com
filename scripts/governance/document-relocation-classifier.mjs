@@ -305,7 +305,6 @@ function selftest() {
     // Review 2026-07-22: historical voltava como active — agora o enum normaliza e preserva.
     ['lifecycle-historical-preservado', classifyDocument({ source: 'x/velho.md', text: '---\ntype: guide\nlifecycle: historical\n---\n# Guia antigo', modules }).classification.lifecycle === 'historical'],
     ['lifecycle-desconhecido-derruba-confianca', classifyDocument({ source: 'x/g.md', text: '---\ntype: guide\nlifecycle: vigente\n---\n# Guia', modules }).confidence < 0.9],
-<<<<<<< HEAD
     // Consolidacao de pasta duplicada: move mecanico certo (owner por path) — NAO e baixa
     // confianca. clientes-legacy/ (nao-canonico) -> clientes/ deve ser >=0.9. NB: paths aqui
     // sao SINTETICOS (fixtures nunca usam path de doc real — o relink os reescreveria).
@@ -316,14 +315,14 @@ function selftest() {
     ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/clientes-legacy/y.md', text: '# Y\nbranch 6.7-react', modules }).confidence < 0.9],
     // Owner [W] 2026-07-22: comparativos/ (Capterra/mercado) e research, nunca governance/reference.
     ['comparativo-vira-research', comparativo.classification.kind === 'research' && comparativo.classification.owner === 'research' && comparativo.target.startsWith('memory/research/')],
-=======
     // Review adversarial 2026-07-22: 03-architecture auto-declarava "⚠️ STALE / PontoWr2-era"
     // no header e saia APPROVE 0.93 — a auto-declaracao agora derruba pra <0.9 (REVIEW) mesmo
     // com frontmatter valido que daria boost 0.97.
     ['banner-stale-autodeclarado-nunca-approve', classifyDocument({ source: 'memory/03-arch.md', text: '---\ntype: reference\n---\n# 03 — Arquitetura\n\n> ⚠️ **STALE / PontoWr2-era (legado — "Laravel 10").** Mantido por compatibilidade histórica.', modules }).confidence < 0.9],
     // Controle negativo: mencao a "stale" em prosa (sem banner no header) nao dispara.
     ['mencao-stale-em-prosa-nao-dispara', classifyDocument({ source: 'x/feedback.md', text: '---\ntype: reference\n---\n# Feedback — prompt pode vir stale\n\nO cache STALE do sync e discutido aqui.', modules }).confidence >= 0.9],
->>>>>>> cf4b44e4ef (fix(docs): banner STALE auto-declarado derruba confianca do realocador [CC])
+    // Consolidacao + banner auto-declarado: o cap 0.6 morde acima do 0.95 da consolidacao.
+    ['consolidacao-banner-stale-tambem-cai', classifyDocument({ source: 'memory/clientes-legacy/z.md', text: '# Z\n\n> ⚠️ **STALE (histórico).**', modules }).confidence < 0.9],
   ];
   for (const [name, ok] of cases) console.log(`${ok ? '[OK]' : '[FALHA]'} ${name}`);
   if (cases.some(([, ok]) => !ok)) process.exit(1);
