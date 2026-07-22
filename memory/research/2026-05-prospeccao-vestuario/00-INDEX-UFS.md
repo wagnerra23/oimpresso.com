@@ -88,13 +88,13 @@ ROTA LIVRE = **LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA** · biz=4 · Terma
 - **Multi-loja regional 2-5 lojas com ERP em planilha:** Pó de Canella (GO), Mais Fashion (SC), All Side Store (SP), Ronald's (SP), Atitude Feminina (RJ)
 - **WhatsApp/IG-first sem ERP integrado:** universalmente todas (oportunidade pitch "primeira camada digital de verdade")
 
-Case study ROTA LIVRE em [memory/clientes-legacy/rota-livre.md](../../clientes-legacy/rota-livre.md) é a prova social mais relevante pra outbound nesses 30.
+Case study ROTA LIVRE em [memory/clientes/rota-livre/operacao.md](../../clientes/rota-livre/operacao.md) é a prova social mais relevante pra outbound nesses 30.
 
 ## Refs
 
 - [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) — vertical especializado
 - [ADR 0126](../../decisions/0126-mcp-jira-projects-modulos-verticais.md) — habilita VEST no canon MCP
-- [memory/clientes-legacy/rota-livre.md](../../clientes-legacy/rota-livre.md) — case piloto
+- [memory/clientes/rota-livre/operacao.md](../../clientes/rota-livre/operacao.md) — case piloto
 
 ## Próximos passos sugeridos
 

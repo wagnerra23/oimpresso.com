@@ -9,7 +9,7 @@ Cross-cutting por cliente. Cada `<alias>.md` consolida quirks que afetam múltip
 | Alias (registry) | Versão Delphi | business_id oimpresso | Status migração | Notas |
 |---|---|---|---|---|
 | **ServidorWR2** | 1466 | 1 (Wagner) | 🚧 piloto | banco do Wagner; smoke test fase 6 |
-| **rota-livre** ⭐ | ? | 4 | ⏳ não iniciada | 99% volume; ver [rota-livre.md](rota-livre.md) |
+| **rota-livre** ⭐ | ? | 4 | ⏳ não iniciada | 99% volume; ver [../clientes/rota-livre/operacao.md](../clientes/rota-livre/operacao.md) |
 | TechPressLocal | 1468 | — | ⏳ | banco "TechPress" local (não tem certeza se é cliente real ou ambiente teste Wagner) |
 | Display Parana | ? | ? | ⏳ | |
 | Destak | ? | ? | ⏳ | |
