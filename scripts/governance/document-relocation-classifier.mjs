@@ -51,7 +51,9 @@ function inferKind(source, text, meta) {
   if (/briefing/.test(explicit) || name === 'BRIEFING.MD') return 'briefing';
   if (/runbook/.test(explicit) || name.startsWith('RUNBOOK')) return 'runbook';
   if (/audit/.test(explicit) || /AUDIT|AUDITORIA/.test(name)) return 'audit';
-  if (/research/.test(explicit) || source.includes('/research/')) return 'research';
+  // comparativos/ (Capterra/mercado/estado-da-arte) = research (owner decidido por [W] 2026-07-22:
+  // arvore-alvo §II.3 dobra comparativo dentro de research; nao ha owner 'comparison' wired).
+  if (/research|comparativ/.test(explicit) || source.includes('/research/') || source.includes('/comparativos/')) return 'research';
   if (/reference/.test(explicit)) return 'reference';
   if (/guide|how-to|manual/.test(explicit) || /\b(?:como|guia|manual)\b/i.test(title)) return 'how-to';
   if (/arquitetura|por que|explica/i.test(title)) return 'explanation';
@@ -198,7 +200,19 @@ function rewritesFor(source, target, files, finalPaths = new Map([[source.toLowe
     }));
 }
 
-export function buildPlan(source, { targetOverride } = {}) {
+const isAppendOnlyPath = (p) => /^memory\/(?:decisions|sessions|handoffs)\//.test(p);
+
+// move-with-tombstone (proposal estrutura-canon-memoria §II.5 passo 7): separa os relinks que
+// tocariam historico append-only (vao pro STUB no path antigo) dos mutaveis (relinkados pro
+// canonico). So sob --tombstone; sem ele o comportamento e EXCLUIR o source (buildBatchPlan).
+function partitionForTombstone(rewrites) {
+  return {
+    immutable: rewrites.filter((r) => isAppendOnlyPath(r.file)),
+    mutable: rewrites.filter((r) => !isAppendOnlyPath(r.file)),
+  };
+}
+
+export function buildPlan(source, { targetOverride, tombstone = false } = {}) {
   const normalized = source.replaceAll('\\', '/').replace(/^\.\//, '');
   const files = tracked();
   if (!files.includes(normalized)) throw new Error(`source nao versionado: ${normalized}`);
@@ -221,22 +235,27 @@ export function buildPlan(source, { targetOverride } = {}) {
       review: inferred.warnings,
     };
   }
+  const rewrites = rewritesFor(normalized, inferred.target, files);
+  const { immutable, mutable } = partitionForTombstone(rewrites);
+  const useTombstone = tombstone && immutable.length > 0;
   return {
     schema_version: SCHEMA_VERSION,
     base_sha: git(['rev-parse', 'HEAD']),
     generated_at: new Date().toISOString(),
     operations: [{ source: normalized, target: inferred.target, classification: inferred.classification,
-      confidence: inferred.confidence, reason: inferred.reason, rewrites: rewritesFor(normalized, inferred.target, files) }],
+      confidence: inferred.confidence, reason: inferred.reason,
+      ...(useTombstone ? { tombstone: true } : {}),
+      rewrites: useTombstone ? mutable : rewrites }],
     review: inferred.warnings,
   };
 }
 
-const isAppendOnlyPath = (p) => /^memory\/(?:decisions|sessions|handoffs)\//.test(p);
-
 // Plano COESO de lote: classifica N sources juntos, resolve os relinks internos com
-// finalPaths compartilhado (arquivos que se referenciam movem juntos sem conflito) e
-// EXCLUI automaticamente quem so poderia mover reescrevendo historico append-only.
-export function buildBatchPlan(sources) {
+// finalPaths compartilhado (arquivos que se referenciam movem juntos sem conflito).
+// Quem so poderia mover reescrevendo historico append-only e, por default, EXCLUIDO;
+// sob { tombstone: true } (§II.5 passo 7) esses migram deixando stub no path antigo —
+// os referrers imutaveis resolvem pelo stub, os mutaveis sao relinkados pro canonico.
+export function buildBatchPlan(sources, { tombstone = false } = {}) {
   const files = tracked();
   const modules = files.map((p) => p.match(/^Modules\/([^/]+)\/module\.json$/)?.[1]).filter(Boolean);
   const normalized = sources.map((s) => s.replaceAll('\\', '/').replace(/^\.\//, ''));
@@ -250,20 +269,29 @@ export function buildBatchPlan(sources) {
   const alreadyCanonical = classified.filter((c) => c.inferred.already_canonical).map((c) => c.source);
   let active = classified.filter((c) => !c.inferred.already_canonical);
   const excluded = [];
-  // Exclui em cadeia quem geraria relink em append-only (recomputa finalPaths a cada remocao).
-  for (let guard = active.length; guard >= 0; guard -= 1) {
-    const finalPaths = new Map(active.map((c) => [c.source.toLowerCase(), c.inferred.target]));
-    const offender = active.find((c) => rewritesFor(c.source, c.inferred.target, files, finalPaths).some((r) => isAppendOnlyPath(r.file)));
-    if (!offender) break;
-    excluded.push({ source: offender.source, reason: 'referrer append-only (relink exigiria editar ADR/session/handoff); preserve o path' });
-    active = active.filter((c) => c !== offender);
+  // Sem tombstone: exclui em cadeia quem geraria relink em append-only (recomputa finalPaths
+  // a cada remocao). Com tombstone: NAO exclui — todos migram (o stub cobre os imutaveis).
+  if (!tombstone) {
+    for (let guard = active.length; guard >= 0; guard -= 1) {
+      const finalPaths = new Map(active.map((c) => [c.source.toLowerCase(), c.inferred.target]));
+      const offender = active.find((c) => rewritesFor(c.source, c.inferred.target, files, finalPaths).some((r) => isAppendOnlyPath(r.file)));
+      if (!offender) break;
+      excluded.push({ source: offender.source, reason: 'referrer append-only (relink exigiria editar ADR/session/handoff); preserve o path ou use --tombstone' });
+      active = active.filter((c) => c !== offender);
+    }
   }
   const finalPaths = new Map(active.map((c) => [c.source.toLowerCase(), c.inferred.target]));
-  const operations = active.map((c) => ({
-    source: c.source, target: c.inferred.target, classification: c.inferred.classification,
-    confidence: c.inferred.confidence, reason: c.inferred.reason,
-    rewrites: rewritesFor(c.source, c.inferred.target, files, finalPaths),
-  }));
+  const operations = active.map((c) => {
+    const rewrites = rewritesFor(c.source, c.inferred.target, files, finalPaths);
+    const { immutable, mutable } = partitionForTombstone(rewrites);
+    const useTombstone = tombstone && immutable.length > 0;
+    return {
+      source: c.source, target: c.inferred.target, classification: c.inferred.classification,
+      confidence: c.inferred.confidence, reason: c.inferred.reason,
+      ...(useTombstone ? { tombstone: true } : {}),
+      rewrites: useTombstone ? mutable : rewrites,
+    };
+  });
   return {
     schema_version: SCHEMA_VERSION,
     base_sha: git(['rev-parse', 'HEAD']),
@@ -301,6 +329,16 @@ function selftest() {
       && classifyDocument({ source: 'memory/clientes-legacy/fixture-x.md', text: '# Exemplo', modules }).target === 'memory/clientes/fixture-x.md'],
     // Consolidacao stale AINDA cai (o rebaixamento morde acima da inflacao de consolidacao).
     ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/clientes-legacy/y.md', text: '# Y\nbranch 6.7-react', modules }).confidence < 0.9],
+    // Owner [W] 2026-07-22: comparativos/ (Capterra/mercado) e research, nunca governance/reference.
+    ['comparativo-vira-research', (() => { const c = classifyDocument({ source: 'memory/comparativos/oimpresso_vs_concorrentes_capterra_2026_04_25.md', text: '# oimpresso vs concorrentes', modules }); return c.classification.kind === 'research' && c.classification.owner === 'research' && c.target.startsWith('memory/research/'); })()],
+    // move-with-tombstone (§II.5 passo 7): a particao separa o relink que tocaria append-only
+    // (vai pro stub) do mutavel (relinkado). E o dente do modo tombstone no lado do classificador.
+    ['tombstone-particao-separa-append-only', (() => {
+      const { immutable, mutable } = partitionForTombstone([
+        { file: 'memory/decisions/0001-x.md' }, { file: 'README.md' }, { file: 'memory/sessions/2026-01-01-y.md' }, { file: 'memory/reference/z.md' },
+      ]);
+      return immutable.length === 2 && mutable.length === 2 && mutable.every((r) => r.file === 'README.md' || r.file === 'memory/reference/z.md');
+    })()],
   ];
   for (const [name, ok] of cases) console.log(`${ok ? '[OK]' : '[FALHA]'} ${name}`);
   if (cases.some(([, ok]) => !ok)) process.exit(1);
@@ -314,19 +352,20 @@ function main() {
   // Lote coeso: --dir <prefixo> pega os .md versionados sob o prefixo; --batch a,b,c lista explicita.
   const dir = option('--dir');
   const batch = option('--batch');
+  const tombstone = args.includes('--tombstone');
   if (dir || batch) {
     const sources = dir
       ? tracked().filter((p) => p.startsWith(dir.replace(/\/?$/, '/')) && p.endsWith('.md'))
       : batch.split(',').map((s) => s.trim()).filter(Boolean);
     if (!sources.length) throw new Error(`nenhum .md versionado em ${dir || batch}`);
-    const plan = buildBatchPlan(sources);
+    const plan = buildBatchPlan(sources, { tombstone });
     console.log(JSON.stringify(args.includes('--validate') ? { plan, adversary: validatePlanAtRoot(plan, ROOT) } : plan, null, 2));
     return;
   }
   const source = args[args.indexOf('--source') + 1];
-  if (!source || args.indexOf('--source') < 0) throw new Error('uso: --source <arquivo.md> [--target <destino.md>] | --dir <prefixo> | --batch a,b,c [--validate]');
+  if (!source || args.indexOf('--source') < 0) throw new Error('uso: --source <arquivo.md> [--target <destino.md>] [--tombstone] | --dir <prefixo> | --batch a,b,c [--tombstone] [--validate]');
   const targetIndex = args.indexOf('--target');
-  const plan = buildPlan(source, { targetOverride: targetIndex >= 0 ? args[targetIndex + 1] : undefined });
+  const plan = buildPlan(source, { targetOverride: targetIndex >= 0 ? args[targetIndex + 1] : undefined, tombstone });
   if (plan.already_canonical) { console.log(JSON.stringify(plan, null, 2)); return; }
   console.log(JSON.stringify(args.includes('--validate') ? { plan, adversary: validatePlanAtRoot(plan, ROOT) } : plan, null, 2));
 }

@@ -16,6 +16,46 @@ O classificador propõe. O adversário pode impedir. Só o executor movimenta. O
 exige worktree limpa, usa `git mv`, limita os paths alteráveis ao plano e restaura o
 estado anterior se qualquer verificação falhar.
 
+## Legado com referrer append-only — `move-with-tombstone`
+
+Um documento legado pode ter **referrers append-only** (ADR, session, handoff) que citam o
+path antigo. Reescrever esses links é proibido (Tier 0 — histórico imutável), então um move
+normal é **rejeitado** pelo adversário (`IMMUTABLE_REFERRER` / `MISSING_REWRITE`), corretamente.
+
+O modo **`move-with-tombstone`** (proposal `estrutura-canon-memoria` §II.5 passo 7) destrava
+esse caso: move o conteúdo para o destino canônico **e deixa um _stub_ de redirecionamento no
+path antigo**. Como o path antigo continua existindo, os links dentro de ADR/session/handoff
+**seguem resolvendo sem qualquer edição no histórico**. Referrers **mutáveis** são relinkados
+para o canônico normalmente — o stub serve apenas os que não podem ser reescritos.
+
+Regras que o adversário aplica (todas com selftest que morde):
+
+- o stub só é aceito quando existe **de fato** um referrer append-only (`TOMBSTONE_UNJUSTIFIED`
+  caso contrário — não é escape-hatch para pular relink de referrer mutável);
+- a isenção de relink é **escopada aos imutáveis**: referrer mutável não declarado ainda quebra
+  o plano (`MISSING_REWRITE`);
+- isenção de relink **não** é permissão de editar: declarar rewrite sobre append-only continua
+  `IMMUTABLE_REFERRER`.
+
+Gerar o plano (opt-in explícito via `--tombstone`; sem a flag o lote **exclui** esses sources):
+
+```powershell
+# lote coeso de uma pasta legada inteira:
+npm run --silent docs:relocation:classify -- --dir memory/comparativos --tombstone > $docPlan
+# ou um source só:
+npm run --silent docs:relocation:classify -- --source memory/ARQUIVO.md --tombstone > $docPlan
+```
+
+O executor grava o stub após o `git mv` e valida no pós-check que o path antigo permanece com o
+marcador `tombstone: true`. O commit ganha um trailer `Document-Tombstone: <antigo> -> <novo>`
+além do `Document-Move`, e o `docs:relocation:history` continua listando o deslocamento.
+
+> Regressão evitada (lápide 2026-07-12): o stub mora sob a pasta legada (ex.: `memory/comparativos/`),
+> que **não** casa nenhum glob de gate diff-aware (`anchor-lint` = só `memory/requisitos/*/SPEC.md`;
+> `memory-schema-gate` = decisions/SPEC/RUNBOOK/session/handoff/charter/BRIEFING/tópico/reference;
+> scorecard/distiller = BRIEFING por módulo). Provar antes de cada convergência que o diff não
+> acorda esses gates faz parte do passo 9.
+
 ## As três camadas
 
 | Camada | Conteúdo | Porta-mãe |

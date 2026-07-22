@@ -164,8 +164,8 @@ seria a atrofia automatizada. Portas: `domain` → `memory/dominios/_overview.md
 
 ## II.5b Implementado (2026-07-22, mesma branch — recibo, não promessa)
 
-Passos 2–6 e 8 da ordem acima **codados e provados** (o passo 1 é este merge; 7 tombstone e
-9 convergência seguem pendentes):
+Passos 2–8 da ordem acima **codados e provados** (o passo 1 é este merge; 9 convergência dos
+11 comparativos segue como lote `--tombstone` — aplicada no commit de convergência desta branch):
 
 | Fix | Prova (vetor de selftest que morde) |
 |---|---|
@@ -176,6 +176,7 @@ Passos 2–6 e 8 da ordem acima **codados e provados** (o passo 1 é este merge;
 | Aprovação humana amarrada ao hash (`approvals[]` + `approvalDigest`, reviewer enum W/F/M/L/E; CLI `--digest`) | `SOLTA: baixa confianca COM aprovacao assinada` · `MORDE: hash que nao corresponde` |
 | `count` por rewrite no plano; executor aborta+rollback se divergir (P2 replaceExact) | `contagem divergente aborta e reverte` |
 | `already_canonical`: doc já no prefixo do owner não gera move achatado | `dominio-e-business-knowledge` |
+| **`move-with-tombstone` (passo 7)**: legado com referrer append-only migra deixando stub no path antigo; imutável resolve pelo stub, mutável é relinkado; injustificado sem imutável | adversário `SOLTA: move-with-tombstone isenta referrer append-only e relinka o mutavel` · `MORDE: tombstone sem referrer append-only e injustificado` · `MORDE: tombstone NAO isenta referrer mutavel` · `MORDE: tombstone NAO autoriza editar append-only` · classificador `tombstone-particao-separa-append-only` · executor `tombstone: stub no path antigo + alvo movido + ADR intacto + mutavel relinkado` |
 
 Selftests: adversário **22/22** · classificador **9/9** · executor **10/10**. **Re-medição
 pós-fix (mesmo script da §II.1): 434/434 docs de negócio → owner `domain`(431)/`client`(3),

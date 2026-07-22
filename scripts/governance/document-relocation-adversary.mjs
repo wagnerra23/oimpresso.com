@@ -307,13 +307,18 @@ function validateRewrites(op, index, refs, finalPaths, issues) {
     if (!ALLOWED_REF_KINDS.has(rewrite.kind)) issues.push(issue('error', 'REWRITE_KIND_INVALID', `kind invalido no rewrite ${rewriteIndex}`, index));
     if (declared.has(key)) issues.push(issue('error', 'DUPLICATE_REWRITE', `rewrite duplicado: ${rewrite.file} -> ${rewrite.from}`, index));
     declared.set(key, rewrite);
+    // Editar historico append-only e PROIBIDO SEMPRE — inclusive num plano move-with-tombstone,
+    // onde o stub no path antigo ja serve esses referrers. Checado ANTES de `found` para que a
+    // bite seja IMMUTABLE_REFERRER (nao REWRITE_NOT_FOUND) mesmo quando o ref esta isento do
+    // required por causa do stub: isencao de relink != permissao de editar.
+    if (isImmutableHistory(rewrite.file)) {
+      issues.push(issue('error', 'IMMUTABLE_REFERRER', 'relink exigiria editar ADR/session/handoff append-only; preserve o path (tombstone) ou retire a operacao', index, rewrite.file));
+      continue;
+    }
     const found = actual.get(key);
     if (!found) {
       issues.push(issue('error', 'REWRITE_NOT_FOUND', 'rewrite declarado nao corresponde a referencia real', index, rewrite));
       continue;
-    }
-    if (isImmutableHistory(rewrite.file)) {
-      issues.push(issue('error', 'IMMUTABLE_REFERRER', 'relink exigiria editar ADR/session/handoff append-only; preserve o path ou retire a operacao', index, rewrite.file));
     }
     const expectedFrom = found.expectedFrom ?? op.source;
     const expectedTo = found.expectedTo ?? op.target;
@@ -406,6 +411,9 @@ export function validatePlan(plan, context) {
       issues.push(issue('error', 'MARKDOWN_ONLY', 'source e target devem ser .md', index));
     }
     if (sourceLower === targetLower) issues.push(issue('error', 'NOOP_OR_CASE_ONLY', 'movimento vazio ou apenas troca de caixa nao e seguro', index));
+    if (op.tombstone !== undefined && typeof op.tombstone !== 'boolean') {
+      issues.push(issue('error', 'TOMBSTONE_INVALID', 'tombstone deve ser booleano (true = deixa stub de redirecionamento no path antigo)', index));
+    }
     if (seenSources.has(sourceLower)) issues.push(issue('error', 'DUPLICATE_SOURCE', `source repetido: ${op.source}`, index));
     if (seenTargets.has(targetLower)) issues.push(issue('error', 'DUPLICATE_TARGET', `target repetido: ${op.target}`, index));
     seenSources.add(sourceLower);
@@ -447,10 +455,20 @@ export function validatePlan(plan, context) {
   );
   for (const [index, op] of normalized.entries()) {
     if (!op.source || !op.target) continue;
+    const allInbound = incoming.get(op.source.toLowerCase()) ?? [];
+    // move-with-tombstone (proposal estrutura-canon-memoria §II.5 passo 7): o path antigo e
+    // PRESERVADO como stub de redirecionamento. Referrers append-only (ADR/session/handoff),
+    // que nao podem ser reescritos, seguem resolvendo pelo stub — logo NAO exigem relink. A
+    // isencao e ESCOPADA aos imutaveis: referrer mutavel segue obrigatorio (relink canonico).
+    // Sem referrer append-only o stub e injustificado (seria escape-hatch pra pular relink).
+    if (op.tombstone === true && !allInbound.some((ref) => isImmutableHistory(ref.file))) {
+      issues.push(issue('error', 'TOMBSTONE_UNJUSTIFIED', 'tombstone so se justifica com referrer append-only; sem ele, faca um move normal com relink', index));
+    }
     // Simetrico ao outbound: se o referrer TAMBEM move (lote coeso) e o link ja resolve pro
     // novo local do source, nao exige rewrite — o link continua valido. Se o referrer NAO move,
     // finalRefFile === ref.file e o link antigo nao resolve mais -> rewrite segue obrigatorio.
-    const inbound = (incoming.get(op.source.toLowerCase()) ?? [])
+    const inbound = allInbound
+      .filter((ref) => !(op.tombstone === true && isImmutableHistory(ref.file)))
       .filter((ref) => {
         const finalRefFile = finalPaths.get(ref.file.toLowerCase()) ?? ref.file;
         return !referenceCandidates(finalRefFile, ref.raw, ref.kind)
@@ -672,6 +690,45 @@ function runSelftest() {
   dictMove.operations[0].rewrites = [];
   const dictMoveResult = evaluate(dictMove, { incomingReferences: new Map([['memory/dominio/financeiro.md', []]]) });
   check('MORDE: dicionario de dominio (singular) e contrato de path', dictMoveResult.issues.some((i) => i.code === 'PROTECTED_SOURCE'), dictMoveResult);
+
+  // move-with-tombstone (proposal §II.5 passo 7): source com referrer append-only migra deixando
+  // stub no path antigo. O imutavel (ADR) resolve pelo stub e NAO exige relink; o mutavel (README)
+  // segue relinkado pro canonico. Fixture dedicada: docs/legado-tomb.md citado por README (mutavel)
+  // e por memory/decisions/0001 (imutavel).
+  const tombFiles = new Map([
+    ['docs/legado-tomb.md', '# Legado\n'],
+    ['README.md', '[Guia](docs/legado-tomb.md)\n'],
+    ['memory/decisions/0001-regra.md', '[Guia](../../docs/legado-tomb.md)\n'],
+    ['memory/reference/existing.md', '# x\n'],
+    ['memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md', '# Constituicao\n'],
+  ]);
+  const tombCtxBase = {
+    currentSha: sha,
+    existingFiles: [...tombFiles.keys()],
+    trackedFiles: [...tombFiles.keys()],
+    readSource: (p) => { if (!tombFiles.has(p)) throw new Error('ausente'); return tombFiles.get(p); },
+  };
+  const tombRefReadme = { file: 'README.md', kind: 'markdown-link', raw: 'docs/legado-tomb.md', target: 'docs/legado-tomb.md', fragment: '' };
+  const tombRefAdr = { file: 'memory/decisions/0001-regra.md', kind: 'markdown-link', raw: '../../docs/legado-tomb.md', target: 'docs/legado-tomb.md', fragment: '' };
+  const tombOp = (over = {}) => ({
+    source: 'docs/legado-tomb.md', target: 'memory/reference/legado-tomb.md', tombstone: true,
+    classification: { kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'legado-tomb', layer: 'ia-os', door: 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md' },
+    confidence: 0.95, reason: 'realocacao de legado com referrer append-only preservado por stub',
+    rewrites: [{ file: 'README.md', kind: 'markdown-link', from: 'docs/legado-tomb.md', to: 'memory/reference/legado-tomb.md' }],
+    ...over,
+  });
+  const tombPlan = (op, incoming) => validatePlan({ schema_version: 2, base_sha: sha, operations: [op] }, { ...tombCtxBase, incomingReferences: new Map([['docs/legado-tomb.md', incoming]]) });
+  const tombGood = tombPlan(tombOp(), [tombRefReadme, tombRefAdr]);
+  check('SOLTA: move-with-tombstone isenta referrer append-only e relinka o mutavel', tombGood.verdict === 'APPROVE', tombGood);
+  const tombUnjust = tombPlan(tombOp(), [tombRefReadme]);
+  check('MORDE: tombstone sem referrer append-only e injustificado', tombUnjust.issues.some((i) => i.code === 'TOMBSTONE_UNJUSTIFIED'), tombUnjust);
+  const tombMutable = tombPlan(tombOp({ rewrites: [] }), [tombRefReadme, tombRefAdr]);
+  check('MORDE: tombstone NAO isenta referrer mutavel (relink segue obrigatorio)', tombMutable.issues.some((i) => i.code === 'MISSING_REWRITE'), tombMutable);
+  const tombEditsImmutable = tombPlan(tombOp({ rewrites: [
+    { file: 'README.md', kind: 'markdown-link', from: 'docs/legado-tomb.md', to: 'memory/reference/legado-tomb.md' },
+    { file: 'memory/decisions/0001-regra.md', kind: 'markdown-link', from: '../../docs/legado-tomb.md', to: '../reference/legado-tomb.md' },
+  ] }), [tombRefReadme, tombRefAdr]);
+  check('MORDE: tombstone NAO autoriza editar append-only', tombEditsImmutable.issues.some((i) => i.code === 'IMMUTABLE_REFERRER'), tombEditsImmutable);
 
   for (const row of cases) console.log(`${row.ok ? '[OK]  ' : '[FAIL]'} ${row.name}`);
   const failed = cases.filter((row) => !row.ok);
