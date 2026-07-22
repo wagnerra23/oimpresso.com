@@ -191,6 +191,7 @@ Tipo ADR 0234: `routine`. Automações orquestradas de mais alto nível que não
 | Nome | Gatilho | O que faz | Arquivo(s) |
 |------|---------|-----------|------------|
 | **Fechar o Loop** _(primeira rotina tipo routine registrada — audit 2026-05-29)_ | SessionStart, após brief-fetch | Verifica idempotentemente os 4 gaps P0 da auditoria IA-OS (RAGAS CI, drift sentinel, observability, LGPD purge) e aponta o próximo pendente; NUNCA toca Brain B/autonomia. | `.claude/hooks/loop-fechar-check.mjs` + `.claude/loop-fechar-o-loop.json` _(criados e validados 2026-05-29; já registrados no `SessionStart` do `settings.json`)_ |
+| **ZELADOR · ciclo documental** | Segundas 07:10 BRT, via automação Codex local `zelador-ciclo-documental` (ativada em 2026-07-22) | Compõe os detectores existentes, seleciona no máximo 1 drift, corrige no dono, exige recibo `Documentation-Receipt: <id>` antes→depois e, na primeira execução posterior ao merge, confirma o ID ausente no `main`. A run sempre emite resultado: silêncio não prova liveness. Nunca mergeia. | `scripts/governance/ZELADOR.md` + `scripts/governance/documentation-loop.mjs` + `.claude/workflows/documentacao-tecnica.js` |
 
 ---
 
