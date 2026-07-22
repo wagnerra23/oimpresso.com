@@ -35,7 +35,7 @@ memory/
         └── MAPPING.md                      ← ACL bilíngue, único arquivo
 ```
 
-`memory/clientes-legacy/<alias>.md` cross-cutting captura quirks por cliente.
+`memory/clientes/<alias>/PERFIL.md` cross-cutting captura quirks por cliente.
 
 ## Exemplo concreto
 

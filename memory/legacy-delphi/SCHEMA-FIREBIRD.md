@@ -187,6 +187,6 @@ Cada um tem `_index.md` próprio em `memory/dominios/wr-comercial/modulos/<dom>/
 SELECT VALOR FROM CONFIGURACOES WHERE CONFIG = 'VERSAO_BANCO';
 ```
 
-Banco zerado começa em `1308`. Versão MAIS NOVA observada no registry: **1474** (cliente Zoom). MAIS ANTIGA: **571** (GoldenPrint — gap de ~900 updates). Maioria entre 1408-1472 — ver matriz em [`memory/clientes-legacy/_index.md`](../clientes-legacy/_index.md).
+Banco zerado começa em `1308`. Versão MAIS NOVA observada no registry: **1474** (cliente Zoom). MAIS ANTIGA: **571** (GoldenPrint — gap de ~900 updates). Maioria entre 1408-1472 — ver matriz em [`legacy-delphi/CLIENTES-DELPHI-MATRIZ.md`](CLIENTES-DELPHI-MATRIZ.md).
 
 Detalhes do formato `UpdateSQL.txt` (parser, blocos v6→v1999) em [`memory/dominios/wr-comercial/UPDATESQL.md`](../dominios/wr-comercial/UPDATESQL.md).

@@ -596,7 +596,7 @@ Se taxa total < 8% em 30 dias → recalibrar mensagem ou ICP. Se nenhum lead em 
 ## Após cada conversa
 
 1. **Atualizar coluna Status** desta tabela: `backlog` → `doing` (15min agendado) → `done` (lead qualificado)
-2. Se virar piloto pagante: criar entrada em `memory/clientes-legacy/<slug>.md` (formato similar rota-livre.md) + ADR de promoção Modules/OficinaAuto `feature-wish` → `em_construcao`
+2. Se virar piloto pagante: criar entrada em `memory/clientes/<slug>/PERFIL.md` (formato similar clientes/rota-livre/PERFIL.md) + ADR de promoção Modules/OficinaAuto `feature-wish` → `em_construcao`
 3. Apender US-AUTO-001..N ao SPEC.md OficinaAuto baseado em dor reportada pelo piloto
 
 ## Refs

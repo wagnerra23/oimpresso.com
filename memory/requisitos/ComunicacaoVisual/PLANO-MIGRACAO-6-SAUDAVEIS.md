@@ -394,7 +394,7 @@ Receita atual WR Sistemas é **estimativa**, não dado confirmado. Pra fechar es
 Por cada cliente migrado, executar checklist baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/):
 
 ### Pré-migração (D-30 contractual)
-- [ ] Snapshot financeiro skill `officeimpresso-financial-snapshot` rodada → arquivo em `memory/clientes-legacy/<alias>.md`
+- [ ] Snapshot financeiro skill `officeimpresso-financial-snapshot` rodada → arquivo em `memory/clientes/<alias>/PERFIL.md`
 - [ ] Banco Firebird identificado em `HKCU\Software\Rocha\Office Comercial\Banco\Caminhos` (Wagner valida path)
 - [ ] Versão Delphi confirmada via `SELECT VALOR FROM CONFIGURACOES WHERE CONFIG='VERSAO_BANCO'`
 - [ ] `business_id` novo provisionado em produção oimpresso (Wagner via `superadmin/businesses/create`)
@@ -418,7 +418,7 @@ Por cada cliente migrado, executar checklist baseado em [`memory/dominios/_patte
 - [ ] Survey NPS D+30 + D+60 + D+90 (Maiara conduz)
 - [ ] Case interno escrito em `memory/sales/2026-05/cases/` D+90
 - [ ] Decisão D+90: cliente autoriza case público sim/não → se sim, vídeo 90s + landing `oimpresso.com/cases/<cliente>`
-- [ ] Aposentar Delphi WR Sistemas pro cliente (status `🔒 retired` em [`_index.md`](../../clientes-legacy/_index.md))
+- [ ] Aposentar Delphi WR Sistemas pro cliente (status `🔒 retired` em [`_index.md`](../../legacy-delphi/CLIENTES-DELPHI-MATRIZ.md))
 
 ---
 
@@ -441,7 +441,7 @@ Por cada cliente migrado, executar checklist baseado em [`memory/dominios/_patte
 - [ADR 0118](../../decisions/0118-segregacao-dominios-externos-clientes-legacy.md) — Segregação domínios externos
 - [ADR 0119](../../decisions/0119-migration-factory-capacidade-institucional.md) — Migration Factory (mãe deste plano)
 - [ADR 0121](../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) — Modular especializado por vertical
-- [memory/clientes-legacy/_index.md](../../clientes-legacy/_index.md) — matriz 49 clientes Delphi
+- [memory/legacy-delphi/CLIENTES-DELPHI-MATRIZ.md](../../legacy-delphi/CLIENTES-DELPHI-MATRIZ.md) — matriz 49 clientes Delphi
 - [memory/research/2026-05-prospeccao/07-post-mortem-gold-comunicacao-mubisys.md](../../research/2026-05-prospeccao/07-post-mortem-gold-comunicacao-mubisys.md) — post-mortem Gold (referência Mubisys + battle card)
 - [memory/sales/2026-05/06-pricing-tiers.md](../../sales/2026-05/06-pricing-tiers.md) — tiers oficiais (Starter R$ [redacted Tier 0] Pro R$ [redacted Tier 0] Enterprise R$ [redacted Tier 0])
 - [memory/dominios/_patterns/](../../dominios/_patterns/) — 7 patterns reusáveis Migration Factory

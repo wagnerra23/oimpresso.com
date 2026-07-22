@@ -20,7 +20,7 @@ pii: false
 
 ## Contexto
 
-WR Sistemas opera há 26 anos no setor gráfico, majoritariamente Delphi (Object Pascal, RAD Studio versão pré-v13) com banco **Firebird 3.0.12** (1 `.FDB` por cliente, port 3050, charset WIN1252). ~50 clientes ativos legacy (lista em [`memory/clientes-legacy/_index.md`](../clientes-legacy/_index.md)). oimpresso (Laravel 13.6 + PHP 8.4) é a próxima geração — migração gradual, **sem impacto físico no Delphi rodando** ([ADR 0113](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md): qualquer integração nova é aditiva; Delphi não é recompilado por padrão).
+WR Sistemas opera há 26 anos no setor gráfico, majoritariamente Delphi (Object Pascal, RAD Studio versão pré-v13) com banco **Firebird 3.0.12** (1 `.FDB` por cliente, port 3050, charset WIN1252). ~50 clientes ativos legacy (lista em [`legacy-delphi/CLIENTES-DELPHI-MATRIZ.md`](CLIENTES-DELPHI-MATRIZ.md)). oimpresso (Laravel 13.6 + PHP 8.4) é a próxima geração — migração gradual, **sem impacto físico no Delphi rodando** ([ADR 0113](../decisions/0113-integracao-delphi-laravel-ads-3-caminhos.md): qualquer integração nova é aditiva; Delphi não é recompilado por padrão).
 
 ROTA LIVRE (biz=4 Larissa Termas do Gravatal/SC) é cliente piloto **já no oimpresso novo** — vestuário, não gráfica. 99% volume vendas oimpresso. Diferente dos clientes OfficeImpresso legacy gráfica que ainda rodam Delphi.
 
@@ -57,7 +57,7 @@ Modules verticais especializados ([ADR 0121](../decisions/0121-oimpresso-modular
 | Schema reconstruído por módulo | [memory/dominios/wr-comercial/modulos/](../dominios/wr-comercial/modulos/_summary.md) | 15 módulos Delphi × 393 tabelas vivas v1468 |
 | `Modules/Officeimpresso/` | [Modules/Officeimpresso](../../Modules/Officeimpresso/) | módulo Laravel **bridge** (recebe sync Delphi via Connector API) + telas de gestão de licenças |
 | `officeimpresso-spec.md` | [memory/](../officeimpresso-spec.md) | spec do módulo Laravel bridge (gestão Licenca_Computador + LicencaLog append-only) |
-| Clientes legacy individuais | [memory/clientes-legacy/](../clientes-legacy/_index.md) | 50 entradas no registry × versão Delphi × biz_id × quirks |
+| Clientes legacy individuais | [legacy-delphi/CLIENTES-DELPHI-MATRIZ.md](CLIENTES-DELPHI-MATRIZ.md) | 50 entradas no registry × versão Delphi × biz_id × quirks |
 
 ## Como descobrir e registrar (workflow Felipe)
 

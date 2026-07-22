@@ -42,7 +42,7 @@ Inferidos das subpastas `D:/Programas/WR Comercial/app/` + tabelas observadas + 
 - **Schema Firebird** ao vivo: `python scripts/legacy-migration/poc2-firebird-connect.py --alias <X>`
 - **Histórico de schema:** [`UPDATESQL.md`](UPDATESQL.md) + `scripts/legacy-migration/output/updatesql-parsed.json` (gerado por POC 1)
 - **Código Delphi:** `D:/Programas/WR Comercial/` (SVN; `wc.db` SQLite indexa metadados)
-- **Estado por cliente:** [`memory/clientes-legacy/<alias>.md`](../../clientes-legacy/) (versão, biz_id, quirks)
+- **Estado por cliente:** [`legacy-delphi/CLIENTES-DELPHI-MATRIZ.md`](../../legacy-delphi/CLIENTES-DELPHI-MATRIZ.md) (versão, biz_id, quirks) + perfil canônico em [`clientes/<alias>/PERFIL.md`](../../clientes/)
 
 ## Onde isso encaixa
 
