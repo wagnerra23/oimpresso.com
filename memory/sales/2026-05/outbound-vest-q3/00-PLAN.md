@@ -88,7 +88,7 @@
 ### Fase 1 — Vizinhos ROTA LIVRE
 
 #### 1. LE ROSE (Tubarão) {#le-rose}
-**Sinal:** loja feminina contemporânea + extensão linha aromas Amaris (mix vestuário+perfumaria), CNPJ 52.591.694/0001-82, ecommerce ativo. **Vizinho 30min de Gravatal**.
+**Sinal:** loja feminina contemporânea + extensão linha aromas Amaris (mix vestuário+perfumaria), CNPJ `[REDACTED]` *(PII — proibicoes.md)*, ecommerce ativo. **Vizinho 30min de Gravatal**.
 
 **Cold #1 (DM IG ou WhatsApp):**
 > Oi pessoal d'A LE ROSE, tudo bem? Aqui é Wagner do Office Impresso. Sou amigo da Larissa, dona da ROTA LIVRE em Termas do Gravatal — vocês devem conhecer ou já viram pelo menos no IG @rotalivre.
@@ -613,14 +613,14 @@ Se P1 < 30% → recalibrar mensagem (Larissa não autoriza? Tom errado? Timing f
 ## Após cada conversa
 
 1. **Atualizar coluna Status** desta tabela: `backlog` → `doing` quando agendar 15min/visita → `done` quando virar lead qualificado
-2. Se virar cliente: criar entrada em [memory/clientes-legacy/](../../../clientes-legacy/) (formato igual rota-livre.md)
+2. Se virar cliente: criar perfil em [memory/clientes/](../../../clientes/) (formato igual clientes/rota-livre/PERFIL.md)
 3. Se for sinal qualificado novo: apender US ao SPEC.md de Modules/Vestuario seguindo [skill comparativo](../../../../.claude/skills/comparativo-do-modulo/SKILL.md)
 4. Se Larissa receber visita de prospect via referência: agradecer + small gift gourmet (custo R$ [redacted Tier 0]-100 razoável pra alavanca outbound)
 
 ## Refs
 
 - [00-INDEX-UFS.md](../../../research/2026-05-prospeccao-vestuario/00-INDEX-UFS.md) — fonte (274 lojas)
-- [memory/clientes-legacy/rota-livre.md](../../../clientes-legacy/rota-livre.md) — case piloto canônico
+- [memory/clientes/rota-livre/operacao.md](../../../clientes/rota-livre/operacao.md) — case piloto canônico
 - [outbound-comvis-q2/00-PLAN.md](../outbound-comvis-q2/00-PLAN.md) — playbook irmão (ComunicacaoVisual)
 - [ADR 0121](../../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) — vertical especializado
 - [memory/sales/2026-05/14-case-study-rotalivre-anonimizado.md](../14-case-study-rotalivre-anonimizado.md) — case escrito pra Wagner usar em pitch

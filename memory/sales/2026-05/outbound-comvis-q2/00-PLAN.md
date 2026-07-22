@@ -17,7 +17,7 @@
   1. **Multi-tenant nativo** (1 ERP cobre N lojas/empresas com isolamento real)
   2. **NFe-de-boleto-pago automática** (greenfield no mercado — zero player encontrado)
   3. **IA conversacional Jana** com memória persistente da operação (workflow multi-departamento)
-  4. **Sem deck:** mostro o que [ROTA LIVRE](../../../clientes-legacy/rota-livre.md) (cliente piloto, vestuário SC) já roda em produção há 2+ anos
+  4. **Sem deck:** mostro o que [ROTA LIVRE](../../../clientes/rota-livre/operacao.md) (cliente piloto, vestuário SC) já roda em produção há 2+ anos
 - **Não citar concorrentes nominalmente** na 1ª abordagem (Mubisys/Zênite/Calcgraf) — fica pra follow-up se ele puxar
 - **Assinatura padrão:** `Wagner Rocha — Office Impresso · wagnerra@gmail.com · oimpresso.com`
 - **WhatsApp:** completar com número de outbound antes do envio (não está no doc por privacidade)
@@ -496,7 +496,7 @@
 ## Após cada conversa
 
 1. **Atualizar status no MCP:** `tasks-update <ID> status:doing` quando agendar 15min, `status:done` quando virar lead qualificado (com link pro novo registro CRM)
-2. **Se virar cliente:** criar entrada em [memory/clientes-legacy/](../../../clientes-legacy/) (formato igual rota-livre.md)
+2. **Se virar cliente:** criar perfil em [memory/clientes/](../../../clientes/) (formato igual clientes/rota-livre/PERFIL.md)
 3. **Se for sinal qualificado novo (US-FEATURE-X):** apender ao `memory/requisitos/ComunicacaoVisual/SPEC.md` seguindo skill `comparativo` se for backlog módulo
 
 ## Métricas de validação Q2
