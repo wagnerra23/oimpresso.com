@@ -2,6 +2,7 @@
 
 **Data:** 2026-07-22 13:40 BRT
 **Branch:** `codex/document-relocation-adversary`
+**PR:** [#4675](https://github.com/wagnerra23/oimpresso.com/pull/4675)
 **Escopo:** governança de documentação; zero arquivo documental movido
 
 ## Resultado
