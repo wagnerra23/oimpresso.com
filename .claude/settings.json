@@ -86,6 +86,10 @@
           },
           {
             "type": "command",
+            "command": "node .claude/hooks/block-edit-authority-generated.mjs"
+          },
+          {
+            "type": "command",
             "command": "node .claude/hooks/block-brl-values-in-memory.mjs"
           },
           {
