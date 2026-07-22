@@ -215,7 +215,9 @@ export function buildPlan(source, { targetOverride } = {}) {
 function selftest() {
   const modules = ['Financeiro', 'Jana', 'Governance'];
   const dominio = classifyDocument({ source: 'memory/dominios/wr-comercial/tabelas/AGENDA.md', text: '# Tabela AGENDA', modules });
-  const clienteLegacy = classifyDocument({ source: 'memory/clientes-legacy/rota-livre.md', text: '# ROTA LIVRE', modules });
+  // Fixture hipotetico (nao le arquivo — text inline): alias neutro pra o teste nao
+  // apontar pra um doc real que a propria maquina relocaria (senao o relink quebra este selftest).
+  const clienteLegacy = classifyDocument({ source: 'memory/clientes-legacy/exemplo-cliente.md', text: '# EXEMPLO', modules });
   const cases = [
     ['ERP', classifyDocument({ source: 'x/guia.md', text: '---\nmodule: Financeiro\ntype: guide\n---\n# Guia', modules }).classification.layer === 'product-erp'],
     ['Jana', classifyDocument({ source: 'x/guia.md', text: '---\nmodule: Jana\ntype: guide\n---\n# Guia', modules }).classification.layer === 'product-ai'],
@@ -226,7 +228,7 @@ function selftest() {
     // Corpus de negocio (0334): dominios/ e owner domain + business-knowledge, e ja-canonico nao gera move.
     ['dominio-e-business-knowledge', dominio.classification.owner === 'domain' && dominio.classification.layer === 'business-knowledge' && dominio.already_canonical === true],
     // clientes-legacy migra pra clientes/ preservando nome (owner client), nunca pra reference/.
-    ['cliente-legacy-vira-client', clienteLegacy.classification.owner === 'client' && clienteLegacy.target === 'memory/clientes/rota-livre.md'],
+    ['cliente-legacy-vira-client', clienteLegacy.classification.owner === 'client' && clienteLegacy.target === 'memory/clientes/exemplo-cliente.md'],
     // Review 2026-07-22: historical voltava como active — agora o enum normaliza e preserva.
     ['lifecycle-historical-preservado', classifyDocument({ source: 'x/velho.md', text: '---\ntype: guide\nlifecycle: historical\n---\n# Guia antigo', modules }).classification.lifecycle === 'historical'],
     ['lifecycle-desconhecido-derruba-confianca', classifyDocument({ source: 'x/g.md', text: '---\ntype: guide\nlifecycle: vigente\n---\n# Guia', modules }).confidence < 0.9],
