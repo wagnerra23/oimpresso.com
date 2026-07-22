@@ -199,6 +199,8 @@ jobs:
         run: node scripts/governance/knowledge-drift.mjs --selftest
       - name: Ciclo documental — recibo antes→depois morde/solta (ADR 0270 · ZELADOR)
         run: node scripts/governance/documentation-loop.test.mjs
+      - name: Adversario de realocacao documental (plano seguro solta; historia/relink/path ruim mordem)
+        run: node scripts/governance/document-relocation-adversary.mjs --selftest
       # P10 — integridade referencial rota↔código (T-AP-3/14/15 · M-AP-1 do F3 rejeitado).
       # A catraca é hermética (fixtures bite/release, ancorada no contrato LICOES_F3); se ela
       # parar de morder, ESTE passo falha. O relatório é ADVISORY (ADR 0314 — não-Tier-0): roda
