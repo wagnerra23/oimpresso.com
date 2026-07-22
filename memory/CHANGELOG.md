@@ -88,7 +88,7 @@ Datas no formato `YYYY-MM-DD`. Categorias:
 - **Comparativos Capterra:** `sistemas_memoria_oimpresso` (camada A — dev memory),
   `copiloto_runtime_memory_vs_mem0_langgraph_letta_zep` (camada C apenas),
   `stack_agente_php_vizra_prism_mem0` (stack completa A+B+C)
-- **`memory/comparativos/_INDEX.md`** com convenções de naming
+- **`memory/research/index.md`** com convenções de naming
 - **CLAUDE.md** ganhou seção 7 "Cofre de comparativos & gestão de memória" + seção 8
   "Acesso à produção (Hostinger)" com SSH credentials (sem chave privada)
 - **AGENTS.md** desestaleado (Laravel 10 → 13.6, Inertia v3, lista de módulos)

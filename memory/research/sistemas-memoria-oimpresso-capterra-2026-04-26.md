@@ -5,8 +5,8 @@
 > **Autor:** Claude (sessão `dazzling-lichterman-e59b61`) sob direção do Wagner
 > **Concorrentes incluídos:** CLAUDE.md, AGENTS.md, memory/00-09, memory/decisions/, memory/sessions/, memory/requisitos/, auto-memória Claude, Modules/MemCofre/, Git history+PRs (9)
 > **Decisão que vai sair daqui:** Formalizar papel canônico de cada sistema, parar de duplicar info e prevenir conflitos como os 10 detectados em 2026-04-26 (Inertia v2/v3, stack IA, status Jana, etc).
-> **Companion docs:** [oimpresso_vs_concorrentes_capterra_2026_04_25.md](oimpresso_vs_concorrentes_capterra_2026_04_25.md), [memory/decisions/0027-gestao-memoria-roles-claros.md](../decisions/0027-gestao-memoria-roles-claros.md)
-> **Template usado:** [_TEMPLATE_capterra_oimpresso.md](_TEMPLATE_capterra_oimpresso.md) v1.0
+> **Companion docs:** [oimpresso_vs_concorrentes_capterra_2026_04_25.md](./oimpresso-vs-concorrentes-capterra-2026-04-25.md), [memory/decisions/0027-gestao-memoria-roles-claros.md](../decisions/0027-gestao-memoria-roles-claros.md)
+> **Template usado:** [_TEMPLATE_capterra_oimpresso.md](./template-capterra-oimpresso.md) v1.0
 > **Referência externa:** [Capterra Software Comparison Template](https://www.capterra.com/resources/software-comparison-chart/) — 4 critérios de rating: Ease of Use, Customer Service, Features, Value for Money
 
 ---
@@ -126,8 +126,8 @@ Mesmos 4 critérios que Capterra usa: **Ease of Use, Customer Service (adaptado 
 
 ### GAP 1 — CLAUDE.md não menciona o cofre de comparativos nem o trigger "guarde no cofre"
 
-**O que falta:** Wagner detectou em 2026-04-26 que `grep -i 'cofre\|MemCofre\|comparativ\|Capterra' CLAUDE.md` retorna **zero matches**. Trigger "guarde no cofre" depende exclusivamente da auto-memória do Claude (`trigger_guarde_no_cofre.md`). **Cursor não saberia onde salvar este comparativo.** O template `_TEMPLATE_capterra_oimpresso.md` v1.0 e a pasta `memory/comparativos/` existem desde 2026-04-25 mas são invisíveis pra agente novo.
-**Esforço estimado:** Baixo (<1 dia) — adicionar 1 parágrafo no CLAUDE.md apontando pra `memory/comparativos/_TEMPLATE_capterra_oimpresso.md` e explicar trigger "guarde no cofre".
+**O que falta:** Wagner detectou em 2026-04-26 que `grep -i 'cofre\|MemCofre\|comparativ\|Capterra' CLAUDE.md` retorna **zero matches**. Trigger "guarde no cofre" depende exclusivamente da auto-memória do Claude (`trigger_guarde_no_cofre.md`). **Cursor não saberia onde salvar este comparativo.** O template `memory/research/template-capterra-oimpresso.md` v1.0 e a pasta `memory/comparativos/` existem desde 2026-04-25 mas são invisíveis pra agente novo.
+**Esforço estimado:** Baixo (<1 dia) — adicionar 1 parágrafo no CLAUDE.md apontando pra `memory/research/template-capterra-oimpresso.md` e explicar trigger "guarde no cofre".
 **Impacto se não fechar:** Cursor (ou Claude novo) escreve comparativo em local errado, ou pior, escreve dentro de outro arquivo poluindo. Cofre vira "morto" na prática.
 
 ### GAP 2 — ADRs com numeração inconsistente (duplicata 0024, ausência 0012)
@@ -160,7 +160,7 @@ Mesmos 4 critérios que Capterra usa: **Ease of Use, Customer Service (adaptado 
 
 ### V3 — MemCofre como pipeline de evidência (DocChatMessage → DocRequirement)
 
-**Por que é vantagem:** **nenhum concorrente vertical do oimpresso (Mubisys, Zênite, Calcgraf, Calcme, Visua, Bling, Omie) tem isso.** É feature exclusiva — verificado em [oimpresso_vs_concorrentes_capterra_2026_04_25.md](oimpresso_vs_concorrentes_capterra_2026_04_25.md) seção "Cofre de memórias / KB" onde só oimpresso tem ✅.
+**Por que é vantagem:** **nenhum concorrente vertical do oimpresso (Mubisys, Zênite, Calcgraf, Calcme, Visua, Bling, Omie) tem isso.** É feature exclusiva — verificado em [oimpresso_vs_concorrentes_capterra_2026_04_25.md](./oimpresso-vs-concorrentes-capterra-2026-04-25.md) seção "Cofre de memórias / KB" onde só oimpresso tem ✅.
 **Como capitalizar:** virar **hero feature da landing** ("Suba um print de erro do seu cliente; nosso ERP transforma em ticket"). Fechar GAP 3 antes (UI de upload).
 **Risco de erodir:** baixo — concorrentes verticais não têm equipe pra construir isso (são 5-30 pessoas focadas em FPV/PCP).
 
@@ -214,7 +214,7 @@ Pressupostos:
 
 ### 3 ações prioritárias pra próximos 30 dias (em ordem)
 
-1. **Adicionar bloco "Cofre de comparativos & gestão de memória" no CLAUDE.md** apontando pra `memory/comparativos/_TEMPLATE_capterra_oimpresso.md` + explicando trigger "guarde no cofre" + ponteiro pro ADR 0027 — **0.5 sprint**. Fecha GAP 1.
+1. **Adicionar bloco "Cofre de comparativos & gestão de memória" no CLAUDE.md** apontando pra `memory/research/template-capterra-oimpresso.md` + explicando trigger "guarde no cofre" + ponteiro pro ADR 0027 — **0.5 sprint**. Fecha GAP 1.
 2. **Renomear ADR 0024 duplicado pra 0029 + atualizar referências** — **<1 sprint** (provável: 1h). Fecha GAP 2 e materializa ADR 0028.
 3. **Migrar AGENTS.md pra tombstone redirecionando ao CLAUDE.md** — **<0.5 sprint** (1h). Tira o lanterna (3.0) que confunde sem agregar.
 
@@ -243,8 +243,8 @@ Gatilho de pivot mensurável: rodar mesmo `grep` que rodei hoje (`grep -i 'cofre
 - [Capterra: 15-minute Software Comparison Template](https://blog.capterra.com/software-comparison-template/)
 - [G2: Capterra Reviews 2026](https://www.g2.com/products/capterra/reviews)
 - Internas:
-  - [_TEMPLATE_capterra_oimpresso.md v1.0](_TEMPLATE_capterra_oimpresso.md) (template oficial do projeto, 2026-04-25)
-  - [oimpresso_vs_concorrentes_capterra_2026_04_25.md](oimpresso_vs_concorrentes_capterra_2026_04_25.md) (comparativo de produto)
+  - [_TEMPLATE_capterra_oimpresso.md v1.0](./template-capterra-oimpresso.md) (template oficial do projeto, 2026-04-25)
+  - [oimpresso_vs_concorrentes_capterra_2026_04_25.md](./oimpresso-vs-concorrentes-capterra-2026-04-25.md) (comparativo de produto)
   - [memory/decisions/0027-gestao-memoria-roles-claros.md](../decisions/0027-gestao-memoria-roles-claros.md)
   - [memory/decisions/0028-adrs-numeracao-monotonica.md](../decisions/0028-adrs-numeracao-monotonica.md)
   - [memory/decisions/0030-credenciais-jamais-em-git.md](../decisions/0030-credenciais-jamais-em-git.md)

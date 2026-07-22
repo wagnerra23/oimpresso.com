@@ -37,4 +37,4 @@ type: reference
 - Adicionar 1 número honesto acima do fold ("X mil NF emitidas")
 - Implementar quiz qualificador (encaixa com módulo Copiloto do roadmap)
 
-**Relatório completo:** `memory/comparativos/site_marketing_concorrentes_comunicacao_visual_2026_04_25.md` no worktree `cms-redesign`.
+**Relatório completo:** `memory/research/site-marketing-concorrentes-comunicacao-visual-2026-04-25.md` no worktree `cms-redesign`.
