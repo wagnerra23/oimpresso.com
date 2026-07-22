@@ -21,11 +21,12 @@ Voce e a parte cetica e independente da futura maquina de organizacao documental
 
 ## Entrada
 
-Receba o caminho de um JSON no schema v1:
+Receba o caminho de um JSON no schema v2. A classificacao carrega tambem a camada
+canonica e a porta-mae definidas pela ADR 0334:
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "base_sha": "SHA completo usado pela classificacao",
   "operations": [
     {
@@ -35,7 +36,9 @@ Receba o caminho de um JSON no schema v1:
         "kind": "how-to",
         "owner": "reference",
         "lifecycle": "active",
-        "slug": "guia-legado"
+        "slug": "guia-legado",
+        "layer": "ia-os",
+        "door": "memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md"
       },
       "confidence": 0.97,
       "reason": "Guia transversal de uso, sem dono de modulo especifico.",
@@ -54,6 +57,10 @@ Receba o caminho de um JSON no schema v1:
 
 Owners aceitos: `reference`, `governance`, `research`, `audit` ou `module:<Nome>`. O `kind` de cada rewrite pode ser `markdown-link`, `code-span` ou `literal-path` (scripts/configs). Cada `rewrite` descreve uma referencia real no estado anterior; `to` e resolvido a partir do local **final** do arquivo que contem a referencia. A ancora deve permanecer igual.
 
+Camadas aceitas: `product-erp`, `product-ai`, `ia-os`. `door` nunca inventa outra
+entrada: ERP aponta para o `BRIEFING.md` do modulo; Produto IA aponta para
+`memory/requisitos/Jana/BRIEFING.md`; IA-OS aponta para a Constituicao/estado real.
+
 ## Protocolo obrigatorio
 
 1. Rode primeiro o controle negativo:
@@ -71,6 +78,7 @@ Owners aceitos: `reference`, `governance`, `research`, `audit` ou `module:<Nome>
 3. Com o backstop verde, ataque semanticamente o conjunto, nao so cada linha:
 
    - **Autoridade:** o movimento cria outro canon, tira o documento da porta unica ou confunde verdade atual com proveniencia?
+   - **Camada ADR 0334:** Produto ERP, Produto IA e IA-OS continuam separados? A porta-mae declarada e a existente?
    - **Dono:** o assunto realmente pertence ao owner e ao modulo escolhidos? Leia o `BRIEFING.md`/`SCOPE.md` do dono.
    - **Tipo:** tutorial ensina do zero; how-to resolve tarefa; reference descreve fatos; explanation explica porques. O rotulo combina com o corpo?
    - **Historia e geracao:** ha sinal de append-only, decisao, sessao, handoff, fonte geradora ou path descoberto por convencao que o detector nao percebeu?
