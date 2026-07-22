@@ -147,6 +147,12 @@ export function executePlan(plan, { root = DEFAULT_ROOT, apply = false, commit =
       const path = finalFile(plan, rewrite.file);
       const absolute = join(repo, path);
       const result = replaceExact(readFileSync(absolute, 'utf8'), rewrite.from, rewrite.to);
+      // Contagem declarada no plano (classifier) vs encontrada no apply: divergiu = o
+      // arquivo mudou entre plano e execucao OU a string casa em prosa alem da referencia
+      // (review 2026-07-22 P2: split/join e global) — aborta e faz rollback.
+      if (typeof rewrite.count === 'number' && result.count !== rewrite.count) {
+        throw new Error(`relink de ${path}: plano declarou ${rewrite.count} ocorrencia(s) de "${rewrite.from}", encontrado ${result.count}`);
+      }
       writeFileSync(absolute, result.text, 'utf8');
       git(repo, ['add', '--', path]);
       relinkCounts.push({ file: path, from: rewrite.from, to: rewrite.to, replacements: result.count });
@@ -191,13 +197,15 @@ function selftest() {
   try {
     git(fixture, ['init', '-q']); git(fixture, ['config', 'user.email', 'selftest@example.test']); git(fixture, ['config', 'user.name', 'Selftest']);
     mkdirSync(join(fixture, 'docs')); mkdirSync(join(fixture, 'memory/reference'), { recursive: true });
+    mkdirSync(join(fixture, 'memory/decisions'), { recursive: true });
     writeFileSync(join(fixture, 'README.md'), '[Guia](docs/source.md#uso)\n');
     writeFileSync(join(fixture, 'docs/source.md'), '# Guia\n\n## Uso\n\n[Porta](../memory/reference/door.md)\n');
     writeFileSync(join(fixture, 'memory/reference/door.md'), '# Porta\n');
+    writeFileSync(join(fixture, 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md'), '# Constituicao\n');
     git(fixture, ['add', '.']); git(fixture, ['commit', '-q', '-m', 'fixture']);
     const plan = { schema_version: 2, base_sha: git(fixture, ['rev-parse', 'HEAD']), operations: [{
       source: 'docs/source.md', target: 'memory/reference/source.md',
-      classification: { kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'source', layer: 'ia-os', door: 'memory/reference/door.md' },
+      classification: { kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'source', layer: 'ia-os', door: 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md' },
       confidence: 0.99, reason: 'Guia transversal realocado para a pasta de referencia canonica.',
       rewrites: [
         { file: 'README.md', kind: 'markdown-link', from: 'docs/source.md#uso', to: 'memory/reference/source.md#uso' },
@@ -213,6 +221,23 @@ function selftest() {
     git(fixture, ['commit', '--allow-empty', '-q', '-m', 'movimento lateral', '-m', 'Document-Move: docs/ghost.md => memory/reference/ghost.md']);
     git(fixture, ['switch', '-q', canonicalBranch]);
     check('historico ignora branch nao fundida', !movementHistory(fixture).some((row) => row.source === 'docs/ghost.md'));
+    // Contagem declarada diverge do encontrado (review 2026-07-22 P2 replaceExact global):
+    // NOTES.md tem a string 2x, plano declara 1 -> aborta e faz rollback integral.
+    writeFileSync(join(fixture, 'docs/extra.md'), '# Extra\n');
+    const notesBefore = '[a](docs/extra.md) e [b](docs/extra.md)\n';
+    writeFileSync(join(fixture, 'NOTES.md'), notesBefore);
+    git(fixture, ['add', '.']); git(fixture, ['commit', '-q', '-m', 'fixture contagem']);
+    const planCount = { schema_version: 2, base_sha: git(fixture, ['rev-parse', 'HEAD']), operations: [{
+      source: 'docs/extra.md', target: 'memory/reference/extra.md',
+      classification: { kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'extra', layer: 'ia-os', door: 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md' },
+      confidence: 0.99, reason: 'Guia extra realocado para a pasta de referencia canonica.',
+      rewrites: [{ file: 'NOTES.md', kind: 'markdown-link', from: 'docs/extra.md', to: 'memory/reference/extra.md', count: 1 }],
+    }] };
+    let countMismatchAborted = false;
+    try { executePlan(planCount, { root: fixture, apply: true }); } catch (error) { countMismatchAborted = /ocorrencia/.test(error.message); }
+    check('contagem divergente aborta e reverte', countMismatchAborted
+      && existsSync(join(fixture, 'docs/extra.md'))
+      && readFileSync(join(fixture, 'NOTES.md'), 'utf8') === notesBefore);
   } finally {
     if (fixture.startsWith(tmpdir())) rmSync(fixture, { recursive: true, force: true });
   }

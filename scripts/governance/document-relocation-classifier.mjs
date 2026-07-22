@@ -11,6 +11,7 @@ import {
   collectIncomingReferences,
   extractDocumentReferences,
   extractLiteralReferences,
+  ownerRules,
   resolveReference,
   validatePlanAtRoot,
 } from './document-relocation-adversary.mjs';
@@ -21,7 +22,12 @@ const PROTECTED = new Set([
   'CODE_NOTES.md', 'MEMORY_TEAM_ONBOARDING.md', 'memory/proibicoes.md',
   'memory/08-handoff.md', 'memory/INDEX.md', 'memory/what-oimpresso.md',
 ]);
-const IA_OS_MODULES = new Set(['ADS', 'Brief', 'Governance', 'KB', 'MemCofre', 'TeamMcp']);
+// Enum canonico de lifecycle (ADR 0270): dialetos PT/EN normalizam; desconhecido nao vira 'active'.
+const LIFECYCLE_MAP = new Map([
+  ['active', 'active'], ['ativo', 'active'], ['ativa', 'active'],
+  ['historical', 'historical'], ['historico', 'historical'], ['histórico', 'historical'],
+  ['archived', 'archived'], ['arquivado', 'archived'], ['arquivada', 'archived'],
+]);
 
 const git = (args) => execFileSync('git', ['-C', ROOT, ...args], { encoding: 'utf8' }).trim();
 const tracked = () => git(['ls-files', '-z']).split('\0').filter(Boolean).map((p) => p.replaceAll('\\', '/'));
@@ -58,36 +64,73 @@ function inferModule(source, meta, modules) {
   return modules.find((m) => m.toLowerCase() === String(candidate || '').toLowerCase()) || null;
 }
 
+// Corpus de NEGOCIO (ADR 0334 corpus a): dominios/ e clientes/ — decide por path,
+// ANTES de qualquer heuristica de processo. Sem isso 94% do negocio virava 'reference'
+// (medicao 2026-07-22: 410/434 docs de dominios/clientes classificados como processo).
+function businessOwner(source) {
+  if (/^memory\/dominios?\//.test(source)) return 'domain';
+  if (/^memory\/clientes(?:-legacy)?\//.test(source)) return 'client';
+  return null;
+}
+
 export function classifyDocument({ source, text, modules, targetOverride }) {
   const meta = frontmatter(text);
+  const warnings = [];
   const kind = inferKind(source, text, meta);
   const moduleName = inferModule(source, meta, modules);
-  let owner = moduleName ? `module:${moduleName}` : 'reference';
-  if (kind === 'audit') owner = 'audit';
-  else if (kind === 'research') owner = 'research';
-  else if (!moduleName && /governan|claude|agente|hook|gate|workflow|ci\b/i.test(`${source}\n${text.slice(0, 2500)}`)) owner = 'governance';
+  // Metadado declarado so vale se resolve contra o mundo real (review 2026-07-22:
+  // `module: Financeirro` inexistente dava 0.97). Invalido = alerta + confianca no chao.
+  const moduleDeclaredInvalid = Boolean(meta.module) && !modules.some((m) => m.toLowerCase() === String(meta.module).toLowerCase());
+  if (moduleDeclaredInvalid) warnings.push(`frontmatter module: ${meta.module} nao corresponde a nenhum modulo real`);
+  const typeDeclaredValid = Boolean(meta.type) && kind !== 'other';
+  if (meta.type && kind === 'other') warnings.push(`frontmatter type: ${meta.type} nao reconhecido pelos kinds canonicos`);
 
-  const layer = moduleName === 'Jana' ? 'product-ai'
-    : (moduleName && !IA_OS_MODULES.has(moduleName) ? 'product-erp' : 'ia-os');
-  const door = layer === 'product-ai' ? 'memory/requisitos/Jana/BRIEFING.md'
-    : layer === 'product-erp' ? `memory/requisitos/${moduleName}/BRIEFING.md`
-      : 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md';
+  const corpus = businessOwner(source);
+  let owner = corpus ?? (moduleName ? `module:${moduleName}` : 'reference');
+  if (!corpus) {
+    if (kind === 'audit') owner = 'audit';
+    else if (kind === 'research') owner = 'research';
+    else if (!moduleName && /governan|claude|agente|hook|gate|workflow|ci\b/i.test(`${source}\n${text.slice(0, 2500)}`)) owner = 'governance';
+  }
+
   const slug = slugify(meta.slug || posix.basename(source));
   const prefix = owner.startsWith('module:') ? `memory/requisitos/${moduleName}/`
     : owner === 'audit' ? 'memory/audits/'
       : owner === 'research' ? 'memory/research/'
-        : owner === 'governance' ? 'memory/governance/' : 'memory/reference/';
-  const target = targetOverride || `${prefix}${kind === 'briefing' ? 'BRIEFING' : kind === 'runbook' ? `RUNBOOK-${slug}` : slug}.md`;
+        : owner === 'governance' ? 'memory/governance/'
+          : owner === 'domain' ? 'memory/dominios/'
+            : owner === 'client' ? 'memory/clientes/' : 'memory/reference/';
+  // Corpus de negocio preserva a subarvore (nunca achatar wr-comercial/modulos/...).
+  let target;
+  if (targetOverride) target = targetOverride;
+  else if (owner === 'domain') target = `memory/dominios/${source.replace(/^memory\/dominios?\//, '')}`;
+  else if (owner === 'client') target = `memory/clientes/${source.replace(/^memory\/clientes(?:-legacy)?\//, '')}`;
+  else target = `${prefix}${kind === 'briefing' ? 'BRIEFING' : kind === 'runbook' ? `RUNBOOK-${slug}` : slug}.md`;
+
+  // layer e door saem da MESMA matriz que o adversario valida (fonte unica, sem drift).
+  const rules = ownerRules(owner, target);
+  const layer = rules?.layer ?? 'ia-os';
+  const door = rules?.door ?? '';
+  if (!door) warnings.push('porta-mae indeterminada (ex.: cliente sem PERFIL.md); exige decisao humana');
+
+  const rawLifecycle = String(meta.lifecycle ?? '').trim().toLowerCase();
+  const lifecycle = rawLifecycle ? LIFECYCLE_MAP.get(rawLifecycle) : 'active';
+  if (rawLifecycle && !lifecycle) warnings.push(`lifecycle desconhecido no frontmatter: ${meta.lifecycle}`);
+
   const staleSignals = [/branch 6\.7-react/i, /session\('business\.id'\)/, /memory\/07-roadmap\.md/i]
     .filter((pattern) => pattern.test(text)).length;
-  let confidence = meta.type || meta.module ? 0.97 : kind === 'other' ? 0.72 : 0.93;
+  if (staleSignals) warnings.push(`${staleSignals} sinal(is) de receita possivelmente stale; exige revisao humana`);
+  let confidence = (typeDeclaredValid || (meta.module && !moduleDeclaredInvalid)) ? 0.97 : kind === 'other' ? 0.72 : 0.93;
+  if (moduleDeclaredInvalid) confidence = Math.min(confidence, 0.6);
+  if (rawLifecycle && !lifecycle) confidence = Math.min(confidence, 0.85);
   if (staleSignals) confidence = Math.min(confidence, 0.82);
   if (targetOverride) confidence = Math.min(confidence, 0.89);
   return {
-    classification: { kind, owner, lifecycle: meta.lifecycle === 'arquivado' ? 'archived' : 'active', slug, layer, door },
+    classification: { kind, owner, lifecycle: lifecycle ?? 'active', slug, layer, door },
     target, confidence,
+    already_canonical: target === source,
     reason: `Classificacao por tipo, dono e camada ADR 0334; ${source} esta fora do prefixo canonico ${prefix}`,
-    warnings: staleSignals ? [`${staleSignals} sinal(is) de receita possivelmente stale; exige revisao humana`] : [],
+    warnings,
   };
 }
 
@@ -116,12 +159,23 @@ function rewritesFor(source, target, files) {
     .map((ref) => ({ ...ref, expectedTo: ref.target }));
   const all = [...incoming.map((ref) => ({ ...ref, expectedTo: target })), ...outbound];
   const seen = new Set();
+  // count = ocorrencias exatas do `from` no arquivo NO MOMENTO do plano; o executor
+  // confere na hora do apply (drift entre plano e apply aborta a transacao).
+  const contentCache = new Map();
+  const countIn = (file, from) => {
+    if (!contentCache.has(file)) {
+      try { contentCache.set(file, readFileSync(join(ROOT, file), 'utf8')); } catch { contentCache.set(file, ''); }
+    }
+    const content = contentCache.get(file);
+    return content ? content.split(from).length - 1 : 0;
+  };
   return all.filter((ref) => !seen.has(`${ref.file}\0${ref.kind}\0${ref.raw}`) && seen.add(`${ref.file}\0${ref.kind}\0${ref.raw}`))
     .map((ref) => ({
       file: ref.file,
       kind: ref.kind,
       from: ref.raw,
       to: destination(ref.file.toLowerCase() === source.toLowerCase() ? target : ref.file, ref.expectedTo, ref.kind, ref.fragment),
+      count: countIn(ref.file, ref.raw),
     }));
 }
 
@@ -135,6 +189,19 @@ export function buildPlan(source, { targetOverride } = {}) {
   const text = readFileSync(join(ROOT, normalized), 'utf8');
   const modules = files.map((p) => p.match(/^Modules\/([^/]+)\/module\.json$/)?.[1]).filter(Boolean);
   const inferred = classifyDocument({ source: normalized, text, modules, targetOverride });
+  // Documento ja no prefixo canonico do owner: nada a mover — sinal, nao plano.
+  // (Sem isso, um doc de dominios/ viraria um move achatado sem sentido.)
+  if (inferred.already_canonical && !targetOverride) {
+    return {
+      schema_version: SCHEMA_VERSION,
+      base_sha: git(['rev-parse', 'HEAD']),
+      already_canonical: true,
+      source: normalized,
+      classification: inferred.classification,
+      note: 'documento ja mora no prefixo canonico do owner; nenhum movimento necessario',
+      review: inferred.warnings,
+    };
+  }
   return {
     schema_version: SCHEMA_VERSION,
     base_sha: git(['rev-parse', 'HEAD']),
@@ -147,11 +214,22 @@ export function buildPlan(source, { targetOverride } = {}) {
 
 function selftest() {
   const modules = ['Financeiro', 'Jana', 'Governance'];
+  const dominio = classifyDocument({ source: 'memory/dominios/wr-comercial/tabelas/AGENDA.md', text: '# Tabela AGENDA', modules });
+  const clienteLegacy = classifyDocument({ source: 'memory/clientes-legacy/rota-livre.md', text: '# ROTA LIVRE', modules });
   const cases = [
     ['ERP', classifyDocument({ source: 'x/guia.md', text: '---\nmodule: Financeiro\ntype: guide\n---\n# Guia', modules }).classification.layer === 'product-erp'],
     ['Jana', classifyDocument({ source: 'x/guia.md', text: '---\nmodule: Jana\ntype: guide\n---\n# Guia', modules }).classification.layer === 'product-ai'],
     ['IA-OS', classifyDocument({ source: 'docs/hooks.md', text: '# Guia de hooks', modules }).classification.layer === 'ia-os'],
     ['stale-review', classifyDocument({ source: 'x.md', text: '# Como usar\nbranch 6.7-react', modules }).confidence < 0.9],
+    // Review 2026-07-22: module inexistente dava 0.97 — agora metadado invalido derruba pra REVIEW.
+    ['modulo-inexistente-nao-boost', classifyDocument({ source: 'x/guia.md', text: '---\nmodule: Financeirro\ntype: guide\n---\n# Guia', modules }).confidence < 0.9],
+    // Corpus de negocio (0334): dominios/ e owner domain + business-knowledge, e ja-canonico nao gera move.
+    ['dominio-e-business-knowledge', dominio.classification.owner === 'domain' && dominio.classification.layer === 'business-knowledge' && dominio.already_canonical === true],
+    // clientes-legacy migra pra clientes/ preservando nome (owner client), nunca pra reference/.
+    ['cliente-legacy-vira-client', clienteLegacy.classification.owner === 'client' && clienteLegacy.target === 'memory/clientes/rota-livre.md'],
+    // Review 2026-07-22: historical voltava como active — agora o enum normaliza e preserva.
+    ['lifecycle-historical-preservado', classifyDocument({ source: 'x/velho.md', text: '---\ntype: guide\nlifecycle: historical\n---\n# Guia antigo', modules }).classification.lifecycle === 'historical'],
+    ['lifecycle-desconhecido-derruba-confianca', classifyDocument({ source: 'x/g.md', text: '---\ntype: guide\nlifecycle: vigente\n---\n# Guia', modules }).confidence < 0.9],
   ];
   for (const [name, ok] of cases) console.log(`${ok ? '[OK]' : '[FALHA]'} ${name}`);
   if (cases.some(([, ok]) => !ok)) process.exit(1);
@@ -165,6 +243,7 @@ function main() {
   if (!source || args.indexOf('--source') < 0) throw new Error('uso: --source <arquivo.md> [--target <destino.md>]');
   const targetIndex = args.indexOf('--target');
   const plan = buildPlan(source, { targetOverride: targetIndex >= 0 ? args[targetIndex + 1] : undefined });
+  if (plan.already_canonical) { console.log(JSON.stringify(plan, null, 2)); return; }
   console.log(JSON.stringify(args.includes('--validate') ? { plan, adversary: validatePlanAtRoot(plan, ROOT) } : plan, null, 2));
 }
 

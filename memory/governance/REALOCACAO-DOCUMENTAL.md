@@ -51,8 +51,19 @@ npm run docs:relocation:adversary -- --plan $docPlan
 npm run docs:relocation:execute -- --plan $docPlan
 ```
 
-O primeiro comando precisa retornar `APPROVE`; o segundo, `DRY_RUN_OK`. `REVIEW` pede
-julgamento e registro de revisores no plano. `REJECT` não pode ser sobreposto pelo agente.
+O primeiro comando precisa retornar `APPROVE`; o segundo, `DRY_RUN_OK`. `REJECT` não pode
+ser sobreposto pelo agente.
+
+`REVIEW` (confiança < 0,90) só destrava com **aprovação humana assinada no plano** — o
+adversário valida de verdade (reviewer autorizado `W/F/M/L/E` + sha256 do plano canônico;
+hash errado é `APPROVAL_INVALID` e vira `REJECT`). Editar `confidence` na mão não libera nada:
+
+```powershell
+# 1) obter o hash que o revisor assina (muda se o plano mudar):
+npm run --silent docs:relocation:adversary -- --plan $docPlan --digest
+# 2) o REVISOR adiciona ao JSON do plano:
+#    "approvals": [{ "reviewer": "W", "date": "2026-07-22", "plan_sha256": "<hash do passo 1>" }]
+```
 
 ### 3. Aplique e inspecione
 
