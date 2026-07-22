@@ -1,9 +1,9 @@
 ---
-distilled_at: "2026-07-02"
+distilled_at: "2026-07-22"
 distilled_by: jana:distill-module-truth
 module: Crm
 status: producao
-updated_at: "2026-07-02"
+updated_at: "2026-07-22"
 ---
 
 # BRIEFING — Crm (verdade destilada)
@@ -29,6 +29,8 @@ O módulo "Crm" atua na gestão de clientes, permitindo o cadastro e a consulta 
 
 ## Última mudança  
 Nos eventos recentes, registrou-se um silenciamento do módulo, reafirmando que não deve haver evolução sem autorização, além de contínuas auditorias e análise de design em andamento.
+
+Revisão documental em 2026-07-22: o changelog legado foi desambiguado para CRM durante a limpeza de autoridades duplicadas; nenhuma verdade funcional do módulo mudou.
 
 ## Proveniência (destilado de)
 
