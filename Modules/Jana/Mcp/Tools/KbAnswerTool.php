@@ -56,7 +56,7 @@ class KbAnswerTool extends Tool
     protected string $description = 'Q&A natural sobre KB do oimpresso (ADRs, SPECs, sessions, handoffs, requisitos). Sintetiza resposta com 3-5 citações inline. Usa memoria-search + decisions-search internamente (FULLTEXT em mcp_memory_documents) + síntese gpt-4o-mini. Idiomático: "qual ADR fala sobre X", "como decidimos Y", "estado de Z módulo". Custo ~R$ [redacted Tier 0]/call.';
 
     /** Tipos canônicos persistidos em `mcp_memory_documents.type`. */
-    protected const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'all'];
+    protected const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'briefing', 'surface', 'all'];
 
     public function schema(JsonSchema $schema): array
     {
@@ -65,9 +65,9 @@ class KbAnswerTool extends Tool
                 ->required()
                 ->description('Pergunta em linguagem natural PT-BR (ex: "qual ADR fala sobre MCP server", "como decidimos multi-tenant", "estado do módulo Repair")'),
             'categoria' => $schema->string()
-                ->enum(['adr', 'spec', 'session', 'handoff', 'all'])
+                ->enum(['adr', 'spec', 'session', 'handoff', 'briefing', 'surface', 'all'])
                 ->default('all')
-                ->description('Filtra fontes por tipo de doc. Default "all" cobre tudo.'),
+                ->description('Filtra fontes por tipo de doc: adr, spec, session, handoff, briefing (estado consolidado do módulo), surface (quais arquivos são do módulo). Default "all" cobre tudo.'),
             'module' => $schema->string()
                 ->description('Filtra por módulo (ex: "Whatsapp", "Sells", "Jana"). Omitido = todos os módulos.'),
             'max_citacoes' => $schema->integer()

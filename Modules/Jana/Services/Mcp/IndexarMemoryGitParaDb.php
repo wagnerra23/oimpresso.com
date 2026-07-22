@@ -299,6 +299,11 @@ class IndexarMemoryGitParaDb
             'CHANGELOG'    => 'changelog',
             'README'       => 'reference',
             'COMPARATIVO_CONCORRENCIA' => 'comparativo',
+            // SUPERFICIE.md — "quais arquivos são deste contexto", DERIVADO da árvore
+            // por scripts/governance/module-surface.mjs (ADR 0256, derivado>escrito;
+            // dor [W] estado-da-arte 2026-07-21). type='surface' pra ser filtrável na
+            // busca da IA ("me dê a superfície do módulo X"). Slug: superficie-<module>.
+            'SUPERFICIE'   => 'surface',
         ];
         foreach (glob("$base/memory/requisitos/*/*.md") as $file) {
             $name = basename($file, '.md');
@@ -548,8 +553,13 @@ class IndexarMemoryGitParaDb
             json_encode($doc->superseded_by ?? null) !== json_encode($tipadas['superseded_by'] ?? null)
         );
 
+        // `type` na detecção de mudança: quando o type gravado diverge do coletado
+        // (ex: BRIEFING gravado como '' antes do enum ganhar 'briefing' — retro-fix
+        // 2026-07-22), o próximo sync re-grava mesmo com body idêntico. Sem isto o
+        // UPSERT só tocaria indexed_at e o type corrompido persistiria pra sempre.
         $contentMudou = $doc->content_md !== $contentRedacted
             || $doc->git_sha !== $gitSha
+            || $doc->type !== $info['type']
             || $metadataMudou;
 
         $atributos = array_merge([
