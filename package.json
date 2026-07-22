@@ -33,6 +33,8 @@
     "handoff:selftest": "node scripts/handoff-integrity-guard.test.mjs",
     "briefing-staleness:report": "node scripts/governance/briefing-code-staleness.mjs",
     "briefing-staleness:selftest": "node scripts/governance/briefing-code-staleness.test.mjs",
+    "docs:loop": "node scripts/governance/documentation-loop.mjs --snapshot",
+    "docs:loop:selftest": "node scripts/governance/documentation-loop.mjs --selftest",
     "ds:report": "node scripts/ds-report.mjs",
     "ds:report:write": "node scripts/ds-report.mjs --write",
     "ds:ledger": "node scripts/ds-ledger.mjs",
