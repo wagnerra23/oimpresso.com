@@ -117,7 +117,7 @@
 - [research/](research/) — prospecção (auto, vestuário, OfficeImpresso receitas, sells heatmap, clientes-legacy)
 - [sales/](sales/) — outbound tracking ([2026-05/](sales/2026-05/))
 - [dominios/](dominios/) — glossários verticais ([wr-comercial/](dominios/wr-comercial/), [_patterns/](dominios/_patterns/), [_template/](dominios/_template/))
-- [clientes-legacy/](clientes-legacy/) — perfis clientes legacy ([rota-livre.md](./clientes/rota-livre/operacao.md))
+- [clientes/](clientes/) — perfis canônicos de clientes ([rota-livre/PERFIL.md](clientes/rota-livre/PERFIL.md)); matriz Delphi legacy em [legacy-delphi/CLIENTES-DELPHI-MATRIZ.md](legacy-delphi/CLIENTES-DELPHI-MATRIZ.md)
 - [mwart-inventory/](mwart-inventory/) — inventário migração Blade→React
 
 ## 📝 Sessions & Handoffs
