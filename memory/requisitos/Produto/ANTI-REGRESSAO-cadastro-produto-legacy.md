@@ -242,7 +242,7 @@ observacao: "Contrato de paridade — a tela nova (Inertia/React) NÃO pode perd
 
 > 🎯 **Nota de migração:** os locais nomeados (`PRINCIPAL/QUEBRA/CLIENTE/ASSISTENCIA`) mapeiam
 > pra `business_location` no oimpresso; o ajuste manual (O.1) é `transactions.type=stock_adjustment`
-> (`adjustment_type ∈ {normal, abnormal}` — ver `memory/dominios/estoque.md`), gerando linha no kardex.
+> (`adjustment_type ∈ {normal, abnormal}` — ver `memory/dominio/estoque.md`), gerando linha no kardex.
 
 ---
 
@@ -374,7 +374,7 @@ Não há guarda: o `ValidaNumero` só trata NaN/Inf **depois** da divisão, e a 
 ## Pendências / dúvidas — resolvidas pelo manual legado
 
 > Fonte: `memory/dominios/wr-comercial/modulos/estoque/tabelas/` (dicionário auto-gerado do
-> Firebird do WR Comercial via `UpdateSQL.txt`) + `memory/dominios/estoque.md`/`compras.md`.
+> Firebird do WR Comercial via `UpdateSQL.txt`) + `memory/dominio/estoque.md`/`compras.md`.
 
 - ✅ **Fórmula da Margem %** — `Margem% = (Valor − Custo)/Custo` · `Lucro = Valor − Custo` (AR-PROD-093/094).
 - ✅ **Markup ↔ Margem ↔ Valor** — o **Markup é o mestre** e é *composto* por um perfil (`PRODUTO_MARKUP`): `PERC_CUSTO_FIXO + PERC_CUSTO_FINANCEIRO + PERC_CUSTO_VARIAVEL + PERC_LUCRO_DESEJADO` → fator `MARKUP`. `Valor Venda = f(Custo, Markup)`; **Margem% e Lucro são derivados**. O operador pode sobrescrever o Valor (flag `PODE_ATUALIZAR_VALORES_VENDA`). Os `CALC_PVENDA_*` guardam a decomposição (custo fixo/variável/financeiro, lucro desejado, comissões rep/fun/agência/produção, frete, impostos, perda de produção) — é o **"desmonta peça por peça pra garantir a margem"** (AR-PROD-095).
@@ -425,7 +425,7 @@ Não há guarda: o `ValidaNumero` só trata NaN/Inf **depois** da divisão, e a 
 | PAF-ECF (IAT/IPPT) · Pesos | `TEM_IAT` · `TEM_IPPT` · `CALC_QPESO_BRUTO`/`_LIQUIDO` | — |
 | **Ponte de migração** | `OIMPRESSO_CODIGO` · `OIMPRESSO_ATIVO` · `OIMPRESSO_DT_ALTERACAO` · `OIMPRESSO_UPDATED_AT` | — |
 
-> ⚠️ **Divergência de vocabulário a resolver:** o novo oimpresso (`memory/dominios/estoque.md`)
+> ⚠️ **Divergência de vocabulário a resolver:** o novo oimpresso (`memory/dominio/estoque.md`)
 > tem `products.type ∈ {single, variable, modifier}` — **`combo`/kit NÃO existe no enum** ("não
 > inventar"). O legado usa `TEM_COMPOSICAO`/`PRODUTO_COMPOSICAO` pra kit/BOM. Mapear com cuidado
 > (composição legada → BOM `ProductBom`, não `type=combo`).

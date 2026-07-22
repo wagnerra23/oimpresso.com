@@ -47,7 +47,7 @@ espalha isso em 8 páginas — e a maioria das funções de valor/fiscal/produç
 
 > ⚠️ **Corrigido 2026-07-16.** A tabela original creditava **~15** e continha **2 falso-créditos** +
 > **3 contagens duplas**. Reverificado campo a campo contra o `Create.charter.md` (Goals), o
-> `Create.tsx` (461 linhas, enumerado) e o dicionário `memory/dominios/estoque.md`.
+> `Create.tsx` (461 linhas, enumerado) e o dicionário `memory/dominio/estoque.md`.
 
 **Cobertura real do cabeçalho legado (`AR-PROD-001..014`) — a "aba geral":**
 
@@ -120,7 +120,7 @@ preço e entrega imposto.
 | Onde o preço mora | `PRODUTO.CUSTO` / `.VALOR` / `.MARGEM` — **no produto** | `variations.default_purchase_price` / `.default_sell_price` / `.profit_percent` — **na variação** |
 
 Até um produto `single` tem uma **variação DUMMY interna** que carrega o preço (idioma UltimatePOS —
-`memory/dominios/estoque.md`). É a **mesma classe de diferença** do Preço Especial (§2): a capacidade
+`memory/dominio/estoque.md`). É a **mesma classe de diferença** do Preço Especial (§2): a capacidade
 existe, a topologia é outra.
 
 ### O Blade tem os 5 campos — todos `required`
@@ -168,7 +168,7 @@ item 1.
 |---|---|---|
 | **Campo** | `Tipo` (dropdown, ex: `PRODUTO`) | `type` (default `single`) |
 | **O que é** | `PRODUTO_TIPO` — **tabela configurável** de natureza do item (PRODUTO/SERVIÇO/matéria-prima/uso-e-consumo) + flags `TEM_*` | `products.type` do UltimatePOS — **estrutura de variação** |
-| **Valores** | configuráveis por business | `{single, variable, modifier}` (`memory/dominios/estoque.md`) |
+| **Valores** | configuráveis por business | `{single, variable, modifier}` (`memory/dominio/estoque.md`) |
 
 São conceitos distintos. O charter **não** cobre a natureza do item — e o `Edit.charter` reforça o
 engano ao declarar Non-Goal *"Mudar `type` (Single/Variable/Combo)"*, que fala da estrutura, não do Tipo.
@@ -265,7 +265,7 @@ verticais comunicação visual/oficina — que o legado já tem por completo:
 > oficina) — o núcleo do diferencial vertical do oimpresso (SDD §1.0). O único charter existente as
 > empurra pra "Wave 3" sem contrato. Também colide com o dicionário de domínio, que diz
 > `products.type ∈ {single, variable, modifier}` — **`combo`/kit não existe** ("não inventar",
-> `memory/dominios/estoque.md`): a composição legada tem que virar `ProductBom` + motor de fórmula,
+> `memory/dominio/estoque.md`): a composição legada tem que virar `ProductBom` + motor de fórmula,
 > **não** `type=combo`.
 
 ---

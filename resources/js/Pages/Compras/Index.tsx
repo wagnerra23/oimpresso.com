@@ -14,7 +14,7 @@ import VisibilidadeColunas, { type ColumnDef, useColumnVisibility } from './comp
 type Stage = 'rascunho' | 'pedido' | 'transito' | 'recebido' | 'conferido' | 'pago' | 'cancelada';
 
 // Status CORE do UltimatePOS (transactions.status) — o que o backend REALMENTE manda (inglês).
-// Fonte canônica: memory/dominios/compras.md → ordered=pedido · pending=aguardando · received=recebida.
+// Fonte canônica: memory/dominio/compras.md → ordered=pedido · pending=aguardando · received=recebida.
 type CoreStatus = 'draft' | 'ordered' | 'pending' | 'received' | 'cancelled';
 
 interface Kpis {
@@ -115,7 +115,7 @@ const STAGES: { id: Stage; l: string; ic: string }[] = [
 
 // Normaliza o status CORE (transactions.status, inglês) → id PT do FSM acima.
 // Sem isso o pill caía no fallback e mostrava "RECEIVED" cru, e os filtros de aba
-// (que comparavam em PT) nunca batiam com o dado (inglês). memory/dominios/compras.md.
+// (que comparavam em PT) nunca batiam com o dado (inglês). memory/dominio/compras.md.
 const CORE_TO_STAGE: Record<string, Stage> = {
   draft: 'rascunho',
   ordered: 'pedido',
