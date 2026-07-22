@@ -26,6 +26,8 @@ name: Estoque · Pest (MySQL)
 # Se o Produto crescer a ponto de merecer lane própria, vira `produto-pest.yml` — é um rename.
 #
 # 2026-07-17 — +`CadastroProdutoContratoTest` (CU-PROD-01/07 — US-PROD-020, 2ª tela do trio).
+# 2026-07-21 — +`StockHistoryContratoTest` (CU-PROD-11 — Kardex real, trio StockHistory). Usa
+#   DatabaseTransactions (não RefreshDatabase — não dropa o schema/seed) + saleWithLine da fixture.
 # Mesmo motivo do anterior: o UC-PCAD-05/06 provam isolamento cross-tenant (precisa de biz=1 E
 # biz=2 via `EstoqueFixture::secondBusinessId()`) e o UC-PCAD-04 assere `default_purchase_price`
 # na `variations` (precisa do schema real). Em sqlite dariam SKIP — "skipa e mente" de novo.
@@ -141,7 +143,8 @@ jobs:
             tests/Feature/Estoque/EstoqueInvarianteTenantTest.php \
             tests/Feature/Estoque/EstoqueFixMismatchNumUfTest.php \
             tests/Feature/Produto/TabelaPrecoContratoTest.php \
-            tests/Feature/Produto/CadastroProdutoContratoTest.php
+            tests/Feature/Produto/CadastroProdutoContratoTest.php \
+            tests/Feature/Produto/StockHistoryContratoTest.php
 
       - name: Upload JUnit (veredito por-UC — casos:results)
         if: ${{ !cancelled() && steps.changes.outputs.est == 'true' }}
