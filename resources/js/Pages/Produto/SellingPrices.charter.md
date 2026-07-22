@@ -9,6 +9,8 @@ last_validated: "2026-07-16"
 parent_module: Produto
 related_adrs: [93, 104, 107, 149, 182]
 related_us: [US-PROD-022, US-PROD-023]
+related_runbook: memory/requisitos/Produto/_telas/RUNBOOK-produto-selling-prices.md
+related_visual_comparison: memory/requisitos/Produto/_telas/produto-selling-prices-visual-comparison.md
 tier: A
 charter_version: 3
 mwart_pattern_reuse:
