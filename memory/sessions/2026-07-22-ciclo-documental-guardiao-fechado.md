@@ -1,7 +1,7 @@
 ---
 date: "2026-07-22"
 hour: "10:08 BRT"
-duration: "~2h"
+duration: "2h"
 topic: "Fechamento do ciclo documental com máquina de processo, recibo do mesmo detector e ZELADOR semanal"
 authors: [W, C]
 outcomes:
