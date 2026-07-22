@@ -8,6 +8,8 @@ status: live
 last_validated: "2026-07-12"
 parent_module: Produto
 related_adrs: [110, 107, 93, 104, 149]
+related_runbook: memory/requisitos/Produto/_telas/RUNBOOK-produto-index.md
+related_visual_comparison: memory/requisitos/Produto/_telas/produto-index-visual-comparison.md
 tier: A
 charter_version: 2
 mwart_pattern_reuse:
