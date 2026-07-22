@@ -137,6 +137,15 @@
 - **Sintoma:** o agente afirma "medido / a raiz é X / verificado"; [W] ou o CI acha que a medida veio do disco/leitura/olho, não do sistema-que-sabe (SELECT no banco, `runsInEnvironment()` no runtime, varredura contada, teste vermelho).
 - **Regra:** achado/número/veredito só vira CONCLUSÃO depois de (a) varredura CONTADA (sem `head_limit`, dizendo "N de N"), (b) âncora de contrato citada (UC/SPEC/ADR), (c) oráculo certo (banco/runtime/teste vermelho) — nunca leitura/parse/olho. Recibo DATADO (`query+resultado+data`), não afirmação atemporal. Em dúvida → PERGUNTAR, não inventar.
 - **Classe:** afirmar-sem-medir-fonte-certa
-- **Ocorrências:** 5   (proibicoes §5: 07-15 achado-sem-varredura · 07-16 medir-propriedade-errada · 07-17 oráculo-errado-restatear-número · 07-17 deduzir-quem-roda-parseando · 07-17 crontab-l-falso-negativo. Adjacente: 07-16 importar-solução-sem-checar-premissa.)
+- **Ocorrências:** 6   (proibicoes §5: 07-15 achado-sem-varredura · 07-16 medir-propriedade-errada · 07-17 oráculo-errado-restatear-número · 07-17 deduzir-quem-roda-parseando · 07-17 crontab-l-falso-negativo · 07-22 mapa-de-artefatos-de-tela-por-Glob-em-vez-da-porta-viva. Classe adjacente `importar-solução-sem-checar-premissa` migrou pra LC-09.)
 - **Gate:** advisory — `nudge-diagnosis-without-evidence` + `warn-red-first` (nudges que NÃO bloqueiam ESTA classe; ela reincidiu 5× em 3 dias → advisory insuficiente, precisa de sonda que morda). Crédito honesto: `block-ancora-no-olho` já BLOQUEIA (exit 2), mas comportamento **adjacente** (ler PNG semântico como fonte de design), não a medição/derivação desta classe — por isso "nenhum bloqueia ESTA classe" segue verdadeiro. Desescala quando cada sub-comportamento ganhar sonda própria (ex: medir-propriedade-errada → CSS `[hidden]{display:none!important}`; oráculo-número → Check T `fact-anchor`).
-- **Ref:** `memory/proibicoes.md` §5 (2026-07-15..17) · raio-X 2026-07-20 · proposal [two-strikes-cobre-processo](decisions/0344-two-strikes-cobre-processo.md)
+- **Ref:** `memory/proibicoes.md` §5 (2026-07-15..17, 07-22) · raio-X 2026-07-20 · proposal [two-strikes-cobre-processo](decisions/0344-two-strikes-cobre-processo.md)
+
+## LC-09 — Importar solução de sistema externo sem checar se a premissa vale no nosso
+- **Erro:** transplantar decisão de arquitetura/UI/fluxo de um sistema pesquisado (Odoo, Shopify, Akeneo, doc oficial Anthropic, concorrente) direto pro modelo do oimpresso sem verificar se o PROBLEMA que aquela solução resolve existe aqui — copiar a *solução* sem traduzir a *premissa*.
+- **Sintoma:** o agente escreve como canon (charter/fluxo) uma decisão que só faz sentido no modelo do sistema-fonte; [W] corta apontando que a premissa não vale ("pra quê a função X?", "isso colide com o canon v2"). Anti-padrão inventado é pior que ausente — parece canon.
+- **Regra:** pesquisa de mercado INFORMA a decisão, não a substitui. Antes de transplantar, escrever na mesma frase POR QUE o problema do sistema-fonte é o nosso ("que premissa do modelo DELES sustenta isso, e vale AQUI?"). Quando a fonte é a doc oficial (a mais tentadora), cruzar com o canon existente ANTES — pode já ter sido rejeitado deliberadamente.
+- **Classe:** importar-solucao-externa-sem-checar-premissa
+- **Ocorrências:** 2   (proibicoes §5: 07-16 importar-solução-sem-checar-premissa (Odoo/Shopify/Akeneo na aba Preço especial) · 07-21 re-importar-Claude-Design-centro (doc oficial Anthropic vs canon v2))
+- **Gate:** none
+- **Ref:** `memory/proibicoes.md` §5 (2026-07-16, 2026-07-21) · reconciliação auto-feed 2026-07-22
