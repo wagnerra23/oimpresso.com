@@ -147,6 +147,7 @@ function runMemoryHealth(kind) {
     cpSync(join(FIX, 'memory-health', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
+    cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
@@ -161,6 +162,20 @@ function runMemoryHealthUs(kind) {
     cpSync(join(FIX, 'memory-health-us', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
+    cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
+    return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
+  } finally { rmSync(sb, { recursive: true, force: true }); }
+}
+
+// memory-health Check Q (autoridade documental): good = porta global única + docs
+// distintos; bad = cópia literal + heading global paralelo. Sem baseline: zero dívida.
+function runMemoryHealthAuthority(kind) {
+  const sb = mkdtempSync(join(tmpdir(), `gate-selftest-memory-health-authority-${kind}-`));
+  try {
+    cpSync(join(FIX, 'memory-health-authority', kind), sb, { recursive: true });
+    mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
+    cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
+    cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
@@ -178,6 +193,7 @@ function runMemoryHealthRegistryRef(kind) {
     cpSync(join(FIX, 'memory-health-registry-ref', kind), sb, { recursive: true });
     mkdirSync(join(sb, 'scripts', 'governance'), { recursive: true });
     cpSync(script('memory-health', 'scripts/governance/memory-health.mjs'), join(sb, 'scripts', 'governance', 'memory-health.mjs'));
+    cpSync(script('document-authority', 'scripts/governance/document-authority.mjs'), join(sb, 'scripts', 'governance', 'document-authority.mjs'));
     return runNode(join(sb, 'scripts', 'governance', 'memory-health.mjs'), [], sb);
   } finally { rmSync(sb, { recursive: true, force: true }); }
 }
@@ -481,6 +497,12 @@ const CATRACAS = [
     id: 'memory-health-us',
     run: runMemoryHealthUs,
     expect: { good: /base de conhecimento saudável/, bad: /\[N\][^\n]*duplicado/ },
+  },
+  {
+    // Check Q — bite: cópia + porta paralela avermelham; release: autoridade única passa.
+    id: 'memory-health-authority',
+    run: runMemoryHealthAuthority,
+    expect: { good: /base de conhecimento saudável/, bad: /\[Q\][\s\S]*conteúdo documental vivo[\s\S]*\[Q\][\s\S]*heading "Comece aqui"/ },
   },
   {
     // Check P (ref de automação morta) — o registry AUTOMATIONS.md apontando pra hook que

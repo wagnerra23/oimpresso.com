@@ -1,8 +1,24 @@
 # oimpresso.com — ERP gráfico com IA
 
+<!-- documentation-entrypoint: canonical -->
+
 ERP multi-tenant pra indústria gráfica brasileira, com módulos integrados de financeiro, NFe/NFSe, ponto, CRM e copiloto IA (Jana).
 
-> 🗺️ **Novo por aqui?** Comece pelo **[Guia do Sistema](memory/GUIA-DO-SISTEMA.md)** — mapa do produto + como operar com Claude Code, numa página.
+## COMECE AQUI — escolha sua rota
+
+Este `README.md` é a **única porta global da documentação**. Não leia tudo em sequência: escolha o que você quer fazer e siga a fonte indicada.
+
+| Quero... | Primeiro arquivo | Próximo passo |
+|---|---|---|
+| Entender o produto e operá-lo | [Guia do Sistema](memory/GUIA-DO-SISTEMA.md) | Use os links do guia para aprofundar só o assunto necessário |
+| Entender a arquitetura | [Arquitetura](memory/governance/ARCHITECTURE.md) | Consulte a ADR ligada à decisão que estiver investigando |
+| Trabalhar com um agente de IA | [AGENTS.md](AGENTS.md) | O agente lê `CLAUDE.md` e busca o estado vivo com `brief-fetch` |
+| Alterar um módulo | `memory/requisitos/<Modulo>/BRIEFING.md` | Depois leia `SPEC.md` e o `RUNBOOK` apontados pelo briefing |
+| Preparar o ambiente ou executar o projeto | [Como executar](#como-executar) | Testes e PHPStan continuam exclusivos do CT 100 |
+| Acessar infraestrutura ou fazer deploy | [Infra e acesso canônicos](memory/reference/INFRA-ACESSO-CANON.md) | Siga o runbook específico apontado ali |
+| Procurar um documento conhecido | [Catálogo de documentos](memory/INDEX.md) | O índice cataloga; ele não redefine a porta de entrada |
+
+> Regra de estrutura: **uma autoridade por assunto**. Outros `README.md` podem existir como portas **locais** de módulos e pastas, mas não podem se declarar outra porta global nem copiar uma autoridade existente.
 
 ## Stack canônica
 
@@ -35,7 +51,7 @@ Fork do **UltimatePOS** (Codecanyon) na linha 6.7, evoluído de 2026-04 em diant
 - Modular split em 30+ módulos
 - Constituição V2 — 7 camadas + 8 princípios duros ([ADR 0094](memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md))
 
-## Como começar
+## Como executar
 
 **Dev local (Wagner setup):**
 ```bash

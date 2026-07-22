@@ -1,4 +1,8 @@
-# memory/ — Índice navegável (~2.300 docs)
+# memory/ — catálogo navegável (~2.300 docs)
+
+<!-- documentation-entrypoint: catalog -->
+
+> Este arquivo **cataloga** a memória; não é uma segunda porta de entrada. Para começar ou escolher uma rota, volte ao [`README.md` da raiz](../README.md).
 
 > ℹ️ Contagens aqui são aproximadas (navegação). A lista canônica de ADRs é **GERADA**: [`decisions/_INDEX-GENERATED.md`](decisions/_INDEX-GENERATED.md) (ADR 0258).
 
@@ -18,13 +22,13 @@
 
 ## 🗺️ COMO O SISTEMA FUNCIONA (arquitetura · escopo · responsabilidades)
 
-> 👋 **Entrada humana (comece por aqui):** **[GUIA-DO-SISTEMA.md](GUIA-DO-SISTEMA.md)** — mapa do produto + como operar com Claude Code numa página. O `ARCHITECTURE.md` abaixo é o detalhe técnico arc42.
+> **Rota produto/operação:** [GUIA-DO-SISTEMA.md](GUIA-DO-SISTEMA.md). O `ARCHITECTURE.md` abaixo é o detalhe técnico da rota arquitetura.
 
 > "Como funciona, qual escopo, para que serve, como reconstruir responsabilidades." Estilo **arc42** (vista geral → building blocks → deployment → crosscutting → decisões). As peças vivem em git e **delegam o detalhe à fonte viva** (não duplicar = não apodrece).
 
 | Camada (arc42) | Doc canônico |
 |---|---|
-| **Vista geral + escopo + responsabilidade/módulo** | **[governance/ARCHITECTURE.md](governance/ARCHITECTURE.md)** — vista 1-slide · módulos estado/destino · **trust level por módulo** · princípios modulares · fases. **COMECE AQUI pra entender o sistema.** |
+| **Vista geral + escopo + responsabilidade/módulo** | **[governance/ARCHITECTURE.md](governance/ARCHITECTURE.md)** — vista 1-slide · módulos estado/destino · **trust level por módulo** · princípios modulares · fases. |
 | **Building blocks (detalhe por módulo)** | `Modules/<X>/SCOPE.md` (36 — missão/responsabilidade de cada um) + [modulos/INDEX.md](modulos/INDEX.md) (catálogo auto-gerado por `php artisan module:specs`) |
 | **Deployment / onde roda / como acessar** | **[reference/INFRA-ACESSO-CANON.md](reference/INFRA-ACESSO-CANON.md)** (Hostinger · CT100 · MCP · Meilisearch · deploy) |
 | **Crosscutting** | [governance/](governance/) (Constituição · Trust-Tiers · Enforcement · Drift Framework → `governance:audit`) |
@@ -44,11 +48,11 @@
 | **Skills Tier A (always-on)** | `brief-first` · `mcp-first` · `memory-first-secret-search` · `multi-tenant-patterns` · `commit-discipline` · `mwart-process` · `wagner-protocol-enforce` — convenção [ADR 0095](decisions/0095-skills-tiers-convencao-interna.md) · audit [s3-skills-audit](sprints/s3-constituicao/03-skills-audit.md) |
 | **[proibicoes.md](proibicoes.md)** | Proibições Tier 0 + **Multi-tenant Tier 0** ([ADR 0093](decisions/0093-multi-tenant-isolation-tier-0.md), "pior bug possível") |
 
-## Comece aqui (onboarding 7 docs)
+## Referências de onboarding (depois da rota escolhida no README)
 
 | # | Documento | Quando ler |
 |---|---|---|
-| 0 | [`../CLAUDE.md`](../CLAUDE.md) | **Primeiro sempre** — primer agentes IA |
+| 0 | [`../CLAUDE.md`](../CLAUDE.md) | Primer de agentes IA, carregado depois de [`AGENTS.md`](../AGENTS.md) |
 | 1 | [`why-oimpresso.md`](why-oimpresso.md) | Visão produto (ERP modular vertical, R$ [redacted Tier 0]M meta) |
 | 2 | [`what-oimpresso.md`](what-oimpresso.md) | Stack (L13.6 + PHP 8.4 + Inertia v3 + React 19) |
 | 3 | [`how-trabalhar.md`](how-trabalhar.md) | Protocolo sessão (brief-fetch → my-work → work) |

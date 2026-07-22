@@ -1,14 +1,16 @@
 ---
-name: COMECE-AQUI — porta de entrada do oimpresso (onboarding gerado)
-description: Front door pra uma IA nova (ou pro Wagner) entender o sistema. GERADO por system-map.mjs — só prompt estável + ponteiros pras fontes vivas, zero fato volátil à mão. NÃO apodrece.
-type: guide
+name: Onboarding de agente — prompt gerado
+description: Artefato auxiliar da rota de agentes declarada no README.md. GERADO por system-map.mjs — prompt estável + ponteiros pras fontes vivas.
+type: generated-prompt
 authority: generated
 lifecycle: ativo
 ---
 
-# 📖 COMECE AQUI — oimpresso
+# Prompt gerado de onboarding para agente
 
-> ⚙️ **Gerado por `system-map.mjs`.** NÃO editar à mão (regenera). Contém ZERO fato volátil hardcoded — só o prompt estável + ponteiros pras fontes que se atualizam sozinhas. **Por isso não apodrece** (ao contrário de um doc escrito à mão).
+<!-- documentation-entrypoint: tool:agent-onboarding -->
+
+> ⚙️ **Gerado por `system-map.mjs`.** NÃO editar à mão. Este arquivo não é outra porta global: a entrada única continua no [`README.md`](../../README.md), rota “Trabalhar com um agente de IA”.
 
 ## Pra uma IA nova entender tudo — cole numa sessão nova
 

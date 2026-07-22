@@ -5,8 +5,8 @@ type: governance-index
 authority: canonical
 lifecycle: ativo
 maintained_by: wagner
-last_updated: 2026-05-05
-version: 1.0
+last_updated: 2026-07-22
+version: 1.1
 related:
   - 0079-constituicao-oimpresso-7-camadas-governanca
 pii: false
@@ -14,7 +14,9 @@ pii: false
 
 # Governança do Oimpresso — mapa das 7 camadas
 
-> **Você está aqui** se quer entender como decisões, regras, identidades e ações são governadas no oimpresso. Comece por este arquivo, leia os artefatos referenciados conforme precisar.
+<!-- documentation-entrypoint: route:governanca -->
+
+> **Você chegou aqui pela rota governança** do [`README.md` da raiz](../../README.md). Este arquivo é uma porta local da pasta: leia os artefatos referenciados conforme precisar.
 
 ---
 
@@ -27,7 +29,7 @@ Esta governança existe pra suportar 4 restrições reais que o oimpresso já ca
 1. **Multi-tenancy** — `business_id` invariante; vazamento entre tenants destrói o negócio
 2. **LGPD + Portaria 671/2021 + NF-e/NFSe** — restrições legais brasileiras inegociáveis
 3. **Time pequeno + IAs conectando** — humanos e agentes IA convivem; cada um com capability declarada
-4. **30 módulos já existindo** — drift real entre módulos; precisa fronteira documentada
+4. **Arquitetura modular já existente** — drift entre módulos exige fronteira documentada
 
 ---
 

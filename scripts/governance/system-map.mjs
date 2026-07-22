@@ -279,23 +279,25 @@ function render(data) {
 }
 
 // ── main ──────────────────────────────────────────────────────────────────────
-// ── COMECE-AQUI.md — a porta de entrada GERADA (não apodrece: zero fato volátil
-// hardcoded; só o prompt estável + ponteiros pras fontes VIVAS + contagens derivadas). ──
-const OUT_COMECE = join(ROOT, 'memory', 'reference', 'COMECE-AQUI.md');
-function renderComeceAqui(data) {
+// ── ONBOARDING-AGENTE-GERADO.md — artefato da rota de agentes. A porta global é
+// README.md; este arquivo só oferece um prompt estável + ponteiros vivos. ──
+const OUT_ONBOARDING = join(ROOT, 'memory', 'reference', 'ONBOARDING-AGENTE-GERADO.md');
+function renderOnboardingAgent(data) {
   const { adr, mods } = data;
   const L = [];
   L.push('---');
-  L.push('name: COMECE-AQUI — porta de entrada do oimpresso (onboarding gerado)');
-  L.push('description: Front door pra uma IA nova (ou pro Wagner) entender o sistema. GERADO por system-map.mjs — só prompt estável + ponteiros pras fontes vivas, zero fato volátil à mão. NÃO apodrece.');
-  L.push('type: guide');
+  L.push('name: Onboarding de agente — prompt gerado');
+  L.push('description: Artefato auxiliar da rota de agentes declarada no README.md. GERADO por system-map.mjs — prompt estável + ponteiros pras fontes vivas.');
+  L.push('type: generated-prompt');
   L.push('authority: generated');
   L.push('lifecycle: ativo');
   L.push('---');
   L.push('');
-  L.push('# 📖 COMECE AQUI — oimpresso');
+  L.push('# Prompt gerado de onboarding para agente');
   L.push('');
-  L.push('> ⚙️ **Gerado por `system-map.mjs`.** NÃO editar à mão (regenera). Contém ZERO fato volátil hardcoded — só o prompt estável + ponteiros pras fontes que se atualizam sozinhas. **Por isso não apodrece** (ao contrário de um doc escrito à mão).');
+  L.push('<!-- documentation-entrypoint: tool:agent-onboarding -->');
+  L.push('');
+  L.push('> ⚙️ **Gerado por `system-map.mjs`.** NÃO editar à mão. Este arquivo não é outra porta global: a entrada única continua no [`README.md`](../../README.md), rota “Trabalhar com um agente de IA”.');
   L.push('');
   L.push('## Pra uma IA nova entender tudo — cole numa sessão nova');
   L.push('');
@@ -386,22 +388,22 @@ if (IS_DIRECT_RUN) {
     sc: measureScorecard(), cnt: measureCounts(), gates: measureGates(),
   };
   const outPainel = render(data);
-  const outComece = renderComeceAqui(data);
+  const outOnboarding = renderOnboardingAgent(data);
   // REGRA: prova que TODO path emitido resolve, antes de qualquer coisa (fail-closed)
-  assertLinksLive([[outPainel, OUT], [outComece, OUT_COMECE]]);
+  assertLinksLive([[outPainel, OUT], [outOnboarding, OUT_ONBOARDING]]);
   // ignora a linha de data (volátil) do PAINEL na comparação de conteúdo
   const strip = (s) => s.replace(/em \*\*\d{4}-\d{2}-\d{2}\*\*/g, 'em **DATE**').replace(/· \d{4}-\d{2}-\d{2} ·/g, '· DATE ·');
   if (MODE_STDOUT) {
-    process.stdout.write(outPainel + '\n\n' + outComece);
+    process.stdout.write(outPainel + '\n\n' + outOnboarding);
   } else if (MODE_CHECK) {
     let stale = false;
     if (strip(read(OUT)) !== strip(outPainel)) { console.error('[system-map] PAINEL-SISTEMA.md desatualizado'); stale = true; }
-    if (strip(read(OUT_COMECE)) !== strip(outComece)) { console.error('[system-map] COMECE-AQUI.md desatualizado'); stale = true; }
+    if (strip(read(OUT_ONBOARDING)) !== strip(outOnboarding)) { console.error('[system-map] ONBOARDING-AGENTE-GERADO.md desatualizado'); stale = true; }
     if (stale) { console.error('  → rode: node scripts/governance/system-map.mjs'); process.exit(1); }
-    console.log('[system-map] PAINEL + COMECE-AQUI em dia.');
+    console.log('[system-map] PAINEL + ONBOARDING-AGENTE-GERADO em dia.');
   } else {
     writeFileSync(OUT, outPainel);
-    writeFileSync(OUT_COMECE, outComece);
-    console.log(`[system-map] escrito: ${OUT} + ${OUT_COMECE}`);
+    writeFileSync(OUT_ONBOARDING, outOnboarding);
+    console.log(`[system-map] escrito: ${OUT} + ${OUT_ONBOARDING}`);
   }
 }

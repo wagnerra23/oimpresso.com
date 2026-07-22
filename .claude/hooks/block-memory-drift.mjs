@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // block-memory-drift.mjs — PreToolUse:Write|Edit|MultiEdit (PORTE cross-plataforma do .ps1).
-// BLOQUEIA edits em canon paths sem branch claude/* + workflow PR.
+// BLOQUEIA edits em canon paths sem branch de agente + workflow PR.
 //
 // ── CONTRATO (a âncora — não a implementação) ────────────────────────────────
 // Constituição v2 (ADR 0094) Art. 3 + ADR 0061/0130 + proibições Tier 0
@@ -8,12 +8,14 @@
 //   G) CONSTITUTION.md em qualquer branch → BLOCK (supremo, só Wagner via ADR + bump)
 //   B) Edit em ADR EXISTENTE (NNNN já usado) → BLOCK sempre (append-only IRREVOGÁVEL;
 //      crie nova com supersedes: [NNNN])
-//   D) Write criando ADR NOVA → ALLOW só em branch claude/*
+//   D) Write criando ADR NOVA → ALLOW só em branch claude/* ou codex/*
 //   C) Edit em handoff EXISTENTE → BLOCK sempre (ADR 0130 append-only)
 //   E) Write criando handoff NOVO → ALLOW (qualquer branch — documenta a sessão)
 //   F/A) Outros canon (governance/*, proibicoes, regras-time, what/why/how) →
-//      BLOCK em main/master e em qualquer branch != claude/*
-// Editáveis fora de escopo: decisions/proposals/**, sessions/**, reference/**, requisitos/**.
+//      BLOCK em main/master e fora de claude/* ou codex/*
+//   Q) Write que duplica conteúdo vivo ou type+slug em memory/** → BLOCK.
+// Edit em proposals/sessions/reference/requisitos fica fora das regras A–G;
+// Write documental novo nessas áreas ainda passa pela Regra Q.
 // Override emergencial Wagner Tier 0: OIMPRESSO_MEMORY_OVERRIDE=1 (warning loud +
 // PR follow-up obrigatório).
 //
@@ -32,6 +34,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { findDocumentAuthorityConflicts } from '../../scripts/governance/document-authority.mjs';
 
 const WRITE_TOOLS = new Set(['Write', 'Edit', 'MultiEdit']);
 
@@ -60,6 +63,8 @@ export function classifyPath(filePath) {
 
 const OVERRIDE_HINT = `Override emergencial Wagner Tier 0:
   OIMPRESSO_MEMORY_OVERRIDE=1 no ambiente antes do Edit. PR follow-up obrigatorio.`;
+
+const isReviewBranch = (branch) => /^(?:claude|codex)\//.test(branch || '');
 
 /**
  * veredito PURO (branch e existência injetados — testável sem git/fs).
@@ -95,14 +100,14 @@ Caminho correto: nova ADR memory/decisions/<proxNNNN>-<slug>.md com 'supersedes:
 
 ${OVERRIDE_HINT}` };
     }
-    if (!/^claude\//.test(branch || '')) {
+    if (!isReviewBranch(branch)) {
       return { rule: 'D', message: `[block-memory-drift] ${toolName} em '${c.relOriginal}' BLOQUEADO.
 
 Voce esta criando uma ADR nova na branch '${branch}'. Convencao: toda mudanca canonica
-vai por PR a partir de branch claude/<slug>.
-Caminho correto: git checkout -b claude/<slug-descritivo> → criar ADR → PR + Wagner aprova.` };
+vai por PR a partir de branch claude/<slug> ou codex/<slug>.
+Caminho correto: crie uma branch de agente → criar ADR → PR + Wagner aprova.` };
     }
-    return null; // branch claude/* + ADR nova OK
+    return null; // branch de agente + ADR nova OK
   }
 
   // Regras C/E — handoff
@@ -119,26 +124,26 @@ ${OVERRIDE_HINT}` };
     return null; // handoff novo OK em qualquer branch (documenta a sessão)
   }
 
-  // Regras F + A — outros canon exigem branch claude/*
+  // Regras F + A — outros canon exigem branch de agente + PR
   if (branch === 'main' || branch === 'master') {
     return { rule: 'A', message: `[block-memory-drift] ${toolName} em '${c.relOriginal}' BLOQUEADO.
 
 REGRA: Canon paths nao se editam direto em '${branch}'. Toda mudanca canon vai por PR
 (time MCP entra — sem PR review, drift de canon servido pelo MCP fica indetectavel).
-Caminho correto: git checkout -b claude/<slug> → editar → PR + Wagner aprova.
+Caminho correto: git checkout -b codex/<slug> → editar → PR + Wagner aprova.
 
 ${OVERRIDE_HINT}` };
   }
-  if (!/^claude\//.test(branch || '')) {
+  if (!isReviewBranch(branch)) {
     return { rule: 'F', message: `[block-memory-drift] ${toolName} em '${c.relOriginal}' BLOQUEADO.
 
-Branch ativa: '${branch}'. Canon paths editaveis SO em branch 'claude/<slug>'.
-Caminho correto: git stash (ou commit) → git checkout -b claude/<slug> origin/main →
+Branch ativa: '${branch}'. Canon paths editaveis SO em branch 'claude/<slug>' ou 'codex/<slug>'.
+Caminho correto: git stash (ou commit) → git checkout -b codex/<slug> origin/main →
 reaplicar → PR + Wagner aprova.
 
 ${OVERRIDE_HINT}` };
   }
-  return null; // branch claude/* + canon → ALLOW (vai pra PR)
+  return null; // branch de agente + canon → ALLOW (vai pra PR)
 }
 
 // ── adaptadores de ambiente (git branch + raiz do repo + existência) ─────────────
@@ -177,10 +182,12 @@ async function main() {
   let tool = '';
   let path = '';
   let cwd = '';
+  let content = '';
   try {
     const payload = JSON.parse(raw);
     tool = String((payload && payload.tool_name) || '');
     path = String((payload && payload.tool_input && payload.tool_input.file_path) || '');
+    content = String((payload && payload.tool_input && payload.tool_input.content) || '');
     cwd = String((payload && payload.cwd) || '') || process.cwd();
   } catch { process.exit(0); }        // parse-fail → fail-open
 
@@ -197,6 +204,14 @@ async function main() {
   const exists = root ? existsSync(join(root, c.relPath)) : false;
   const verdict = decide({ toolName: tool, filePath: path, branch: currentBranch(cwd), exists });
   if (verdict) { process.stderr.write(verdict.message + '\n'); process.exit(2); }
+  if (root && tool === 'Write' && content) {
+    const conflicts = findDocumentAuthorityConflicts({ rootDir: root, targetRel: c.relOriginal, content });
+    if (conflicts.length) {
+      const list = conflicts.map((x) => `  - ${x.kind}: ${x.file}${x.authorityKey ? ` (${x.authorityKey})` : ''}`).join('\n');
+      process.stderr.write(`[block-memory-drift] Write em '${c.relOriginal}' BLOQUEADO.\n\nREGRA Q: um assunto tem uma autoridade documental. Atualize o arquivo existente; nao crie copia ou type+slug paralelo.\n${list}\n\n${OVERRIDE_HINT}\n`);
+      process.exit(2);
+    }
+  }
   process.exit(0);
 }
 

@@ -235,7 +235,7 @@ jobs:
         run: node .claude/hooks/post-merge-ui-smoke-required.test.mjs
       - name: Evidence + ui-smoke REGISTRADOS como node nos 4 pontos (correcao != invocacao)
         run: node scripts/governance/settings-evidence-smoke-registration.test.mjs
-      - name: Block-memory-drift PORTE .mjs (Tier-0 append-only ADR/handoff · 7 regras · roda em Linux)
+      - name: Block-memory-drift PORTE .mjs (Tier-0 append-only + autoridade documental Q · roda em Linux)
         run: node .claude/hooks/block-memory-drift.test.mjs
       - name: Block-destructive PORTE .mjs (Tier-0 US-COPI-085 · 8 categorias + whitelist rm · roda em Linux)
         run: node .claude/hooks/block-destructive.test.mjs
