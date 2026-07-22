@@ -124,6 +124,14 @@ export function classifyDocument({ source, text, modules, targetOverride }) {
   const staleSignals = [/branch 6\.7-react/i, /session\('business\.id'\)/, /memory\/07-roadmap\.md/i]
     .filter((pattern) => pattern.test(text)).length;
   if (staleSignals) warnings.push(`${staleSignals} sinal(is) de receita possivelmente stale; exige revisao humana`);
+  // Podridao AUTO-DECLARADA no cabecalho: banner `⚠️ **STALE ...**` ou "mantido por
+  // compatibilidade historica". A declaracao do proprio doc vale mais que a heuristica —
+  // review adversarial 2026-07-22: 03-architecture dizia "STALE / PontoWr2-era" no header
+  // e mesmo assim saia APPROVE 0.93. Marcador medido no corpus: 3/3221 hits, todos reais.
+  const header = text.slice(0, 600);
+  const selfDeclaredStale = /⚠️?[^\n]{0,40}\bSTALE\b/.test(header)
+    || /mantido por compatibilidade hist[oó]rica/i.test(header);
+  if (selfDeclaredStale) warnings.push('documento se auto-declara STALE/legado no cabecalho; candidato a tombstone, nunca move automatico');
   // Consolidacao de pasta duplicada (dominio/->dominios/, clientes-legacy/->clientes/):
   // owner e destino determinados por PATH; o move e mecanico e certo, a incerteza de
   // KIND e irrelevante. Nao inflar alem disso — os rebaixamentos abaixo ainda mordem.
@@ -131,6 +139,7 @@ export function classifyDocument({ source, text, modules, targetOverride }) {
   let confidence = canonicalConsolidation ? 0.95
     : (typeDeclaredValid || (meta.module && !moduleDeclaredInvalid)) ? 0.97 : kind === 'other' ? 0.72 : 0.93;
   if (moduleDeclaredInvalid) confidence = Math.min(confidence, 0.6);
+  if (selfDeclaredStale) confidence = Math.min(confidence, 0.6);
   if (rawLifecycle && !lifecycle) confidence = Math.min(confidence, 0.85);
   if (staleSignals) confidence = Math.min(confidence, 0.82);
   if (targetOverride) confidence = Math.min(confidence, 0.89);
@@ -306,6 +315,14 @@ function selftest() {
     ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/clientes-legacy/y.md', text: '# Y\nbranch 6.7-react', modules }).confidence < 0.9],
     // Owner [W] 2026-07-22: comparativos/ (Capterra/mercado) e research, nunca governance/reference.
     ['comparativo-vira-research', comparativo.classification.kind === 'research' && comparativo.classification.owner === 'research' && comparativo.target.startsWith('memory/research/')],
+    // Review adversarial 2026-07-22: 03-architecture auto-declarava "⚠️ STALE / PontoWr2-era"
+    // no header e saia APPROVE 0.93 — a auto-declaracao agora derruba pra <0.9 (REVIEW) mesmo
+    // com frontmatter valido que daria boost 0.97.
+    ['banner-stale-autodeclarado-nunca-approve', classifyDocument({ source: 'memory/03-arch.md', text: '---\ntype: reference\n---\n# 03 — Arquitetura\n\n> ⚠️ **STALE / PontoWr2-era (legado — "Laravel 10").** Mantido por compatibilidade histórica.', modules }).confidence < 0.9],
+    // Controle negativo: mencao a "stale" em prosa (sem banner no header) nao dispara.
+    ['mencao-stale-em-prosa-nao-dispara', classifyDocument({ source: 'x/feedback.md', text: '---\ntype: reference\n---\n# Feedback — prompt pode vir stale\n\nO cache STALE do sync e discutido aqui.', modules }).confidence >= 0.9],
+    // Consolidacao + banner auto-declarado: o cap 0.6 morde acima do 0.95 da consolidacao.
+    ['consolidacao-banner-stale-tambem-cai', classifyDocument({ source: 'memory/clientes-legacy/z.md', text: '# Z\n\n> ⚠️ **STALE (histórico).**', modules }).confidence < 0.9],
   ];
   for (const [name, ok] of cases) console.log(`${ok ? '[OK]' : '[FALHA]'} ${name}`);
   if (cases.some(([, ok]) => !ok)) process.exit(1);
