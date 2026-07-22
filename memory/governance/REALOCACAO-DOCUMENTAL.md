@@ -29,14 +29,16 @@ estado anterior se qualquer verificação falhar.
 ### 1. Gere e leia o plano
 
 ```powershell
-npm run docs:relocation:classify -- --source memory/ARQUIVO.md > plano-realocacao.json
+$docPlan = Join-Path ([System.IO.Path]::GetTempPath()) 'oimpresso-plano-realocacao.json'
+npm run --silent docs:relocation:classify -- --source memory/ARQUIVO.md > $docPlan
 ```
 
 Confira no JSON: `target`, `classification.layer`, `classification.door`, `confidence`
-e todos os `rewrites`. Para indicar um destino já existente na estrutura:
+e todos os `rewrites`. O plano fica fora do repositório porque o executor exige worktree
+limpa. Para indicar uma pasta de destino já existente — o arquivo alvo ainda não pode existir:
 
 ```powershell
-npm run docs:relocation:classify -- --source memory/ARQUIVO.md --target memory/governance/arquivo.md > plano-realocacao.json
+npm run --silent docs:relocation:classify -- --source memory/ARQUIVO.md --target memory/governance/arquivo.md > $docPlan
 ```
 
 Não aprove plano com receita possivelmente antiga sem revisão humana. Não mova ADR,
@@ -45,8 +47,8 @@ session, handoff, porta canônica nem arquivo gerado: o adversário deve rejeit�
 ### 2. Rode a contraprova e o ensaio
 
 ```powershell
-npm run docs:relocation:adversary -- --plan plano-realocacao.json
-npm run docs:relocation:execute -- --plan plano-realocacao.json
+npm run docs:relocation:adversary -- --plan $docPlan
+npm run docs:relocation:execute -- --plan $docPlan
 ```
 
 O primeiro comando precisa retornar `APPROVE`; o segundo, `DRY_RUN_OK`. `REVIEW` pede
@@ -55,15 +57,19 @@ julgamento e registro de revisores no plano. `REJECT` não pode ser sobreposto p
 ### 3. Aplique e inspecione
 
 ```powershell
-npm run docs:relocation:execute -- --plan plano-realocacao.json --apply
+npm run docs:relocation:execute -- --plan $docPlan --apply
 git diff --cached --stat
 git diff --cached --check
 ```
 
 Nesse ponto a mudança está apenas staged. Confira se o arquivo antigo sumiu, o destino
 existe, os links vivos apontam para a autoridade correta e documentos históricos estão
-marcados como históricos. Para uma operação que não exige curadoria posterior, `--commit`
-pode ser combinado com `--apply` e grava o recibo automaticamente.
+marcados como históricos. Para uma operação que não exige curadoria posterior, prefira
+combinar `--commit` com `--apply`: o recibo é gravado automaticamente.
+
+Se houver curadoria manual entre apply e commit, copie do dry-run os três trailers
+`Document-Plan-SHA256`, `Document-Base-SHA` e `Document-Move` para o commit. Sem eles o
+movimento não aparecerá em `docs:relocation:history`.
 
 ### 4. Valide e consulte o rastro
 
