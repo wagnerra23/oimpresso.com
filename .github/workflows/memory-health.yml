@@ -12,6 +12,7 @@ on:
     paths:
       - 'memory/**'
       - 'scripts/governance/memory-health.mjs'
+      - 'scripts/governance/document-authority.mjs'
       - 'scripts/governance/.memory-health-baseline.json'
       # Onda Q5 — Check G (registry canônico de gates): workflow novo/alterado
       # tem que passar pelo censo; o umbrella (always-run) também cobre.

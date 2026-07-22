@@ -167,14 +167,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **295** handoffs · **501** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **296** handoffs · **502** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-22-ciclo-documental-guardiao-fechado`
   - `2026-07-21-topicos-vivos-aprendizado-critica-revisada`
   - `2026-07-21-topico-fato-bi-temporal-valid-from-until`
   - `2026-07-21-tema-owner-detector-anti-duplicacao-estrutura`
   - `2026-07-21-service-scorecard-catalogo-idp-ui`
   - `2026-07-21-resolvedor-reclamacao-cadeia`
-  - `2026-07-21-regrade-ledger-rejeicao-hashchain-recheck`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-07-22 · deriva das fontes canônicas, não as substitui._

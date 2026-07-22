@@ -4,9 +4,9 @@ title: "Guia do Sistema — mapa do oimpresso + como usar (Claude Code)"
 type: guide
 authority: canonical
 lifecycle: ativo
-version: "1.0.0"
+version: "1.1.0"
 maintained_by: wagner
-last_updated: "2026-07-04"
+last_updated: "2026-07-22"
 related:
   - 0094-constituicao-v2-7-camadas-8-principios
   - 0121-oimpresso-modular-especializado-por-vertical
@@ -16,7 +16,9 @@ pii: false
 
 # Guia do Sistema — oimpresso
 
-> **Pra quem:** Wagner (e time). Ponto de entrada humano: entenda o sistema numa página e saiba como operá-lo com o Claude Code.
+<!-- documentation-entrypoint: route:produto-operacao -->
+
+> **Pra quem:** Wagner e time, depois de escolher a rota **produto/operação** no [`README.md` da raiz](../README.md). Este guia explica o sistema numa página e aponta como operá-lo com agentes de IA.
 >
 > **Regra de ouro deste doc:** ele é um **mapa que aponta pras fontes vivas** — não copia o detalhe (detalhe copiado apodrece). Se um número/estado aqui divergir da fonte linkada, **a fonte manda**.
 >
@@ -170,7 +172,8 @@ git memory/ (FONTE DE VERDADE)
 | Quero... | Vá pra |
 |---|---|
 | Mapa técnico do produto (arc42) | [governance/ARCHITECTURE.md](governance/ARCHITECTURE.md) |
-| Navegar toda a memória | [INDEX.md](INDEX.md) · [INDEX_TEMATICO.md](INDEX_TEMATICO.md) |
+| Voltar à porta global / escolher outra rota | [README.md da raiz](../README.md) |
+| Procurar um documento conhecido | [INDEX.md](INDEX.md) · [INDEX_TEMATICO.md](INDEX_TEMATICO.md) |
 | Regras de sessão / como trabalhar | [how-trabalhar.md](how-trabalhar.md) · [CLAUDE.md](../CLAUDE.md) |
 | Linhas vermelhas | [proibicoes.md](proibicoes.md) |
 | Time e papéis | [regras-time.md](regras-time.md) · [TEAM.md](../TEAM.md) |
@@ -179,4 +182,4 @@ git memory/ (FONTE DE VERDADE)
 
 ---
 
-_Guia navegacional — delega o detalhe às fontes vivas. Criado 2026-07-04. Atualizar quando surgir uma nova porta de entrada (não quando um número mudar — isso é responsabilidade da fonte)._
+_Guia da rota produto/operação — delega o detalhe às fontes vivas. Criado em 2026-07-04; alinhado à porta global única em 2026-07-22. Rotas novas são adicionadas ao `README.md` da raiz, não aqui._

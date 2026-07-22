@@ -60,7 +60,7 @@ jobs:
         with: { fetch-depth: 0 }
       - uses: actions/setup-node@v4
         with: { node-version: '20' }
-      - name: Regenera o painel + porta de entrada
+      - name: Regenera o painel + onboarding de agente
         run: node scripts/governance/system-map.mjs
       # Auto-PR (NÃO push direto): main exige PR + required checks — o push direto do bot
       # é rejeitado (GH013 "Changes must be made through a pull request"), então o
@@ -77,20 +77,20 @@ jobs:
           branch: chore/system-map-refresh
           add-paths: |
             memory/reference/PAINEL-SISTEMA.md
-            memory/reference/COMECE-AQUI.md
+            memory/reference/ONBOARDING-AGENTE-GERADO.md
           commit-message: |
-            chore(matriz): regenera PAINEL-SISTEMA + COMECE-AQUI das fontes canônicas
+            chore(matriz): regenera PAINEL-SISTEMA + ONBOARDING-AGENTE das fontes canônicas
 
             Índice derivado ficou stale vs as fontes (módulos/ADRs/gates/scorecard). Regen
             automático pela máquina matriz (system-map.mjs). Substitui o git push direto em
             main (rejeitado por branch protection — GH013) pelo padrão auto-PR canônico.
 
             Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>
-          title: 'chore(matriz): regenera PAINEL-SISTEMA + COMECE-AQUI (máquina matriz)'
+          title: 'chore(matriz): regenera PAINEL-SISTEMA + ONBOARDING-AGENTE (máquina matriz)'
           body: |
             **Regeneração automática dos índices do sistema** (`system-map.mjs`).
 
-            O `PAINEL-SISTEMA.md` / `COMECE-AQUI.md` derivados ficaram desatualizados vs as
+            O `PAINEL-SISTEMA.md` / `ONBOARDING-AGENTE-GERADO.md` derivados ficaram desatualizados vs as
             fontes canônicas (módulos, ADRs, gates, scorecard). Esta é a "máquina que mantém"
             fechando o loop.
 

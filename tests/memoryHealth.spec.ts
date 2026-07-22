@@ -187,7 +187,7 @@ describe('memory-health — Check M: teto de governança (ADR 0298, físico)', (
 describe('memory-health — Check T: fact-anchor determinístico (fato vs fonte-de-verdade, físico)', () => {
   it('SENSIBILIDADE: doc current-state afirma versão != package.json → 🟡 fato-ancora-drift', () => {
     write('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }));
-    write('README.md', '# proj\n\nUsa Inertia v3 + React 18 aqui.\n');
+    write('README.md', '# proj\n\n<!-- documentation-entrypoint: canonical -->\n\nUsa Inertia v3 + React 18 aqui.\n');
     const out = run();
     expect(out).toMatch(/fato-ancora-drift/);
     expect(out).toMatch(/React 18/);
@@ -195,20 +195,20 @@ describe('memory-health — Check T: fact-anchor determinístico (fato vs fonte-
 
   it('ESPECIFICIDADE: versão correta → sem warn T', () => {
     write('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }));
-    write('README.md', '# proj\n\nReact 19 aqui.\n');
+    write('README.md', '# proj\n\n<!-- documentation-entrypoint: canonical -->\n\nReact 19 aqui.\n');
     const out = run();
     expect(out).not.toMatch(/fato-ancora-drift/);
   });
 
   it('ESPECIFICIDADE: migração "React 18 → 19" NÃO é FP (X é história)', () => {
     write('package.json', JSON.stringify({ dependencies: { react: '^19.0.0' } }));
-    write('README.md', '# proj\n\nMigração React 18 → 19 concluída.\n');
+    write('README.md', '# proj\n\n<!-- documentation-entrypoint: canonical -->\n\nMigração React 18 → 19 concluída.\n');
     const out = run();
     expect(out).not.toMatch(/fato-ancora-drift/);
   });
 
   it('SENSIBILIDADE: Modules/<X> com dir inexistente em doc current-state → 🟡', () => {
-    write('README.md', '# proj\n\nImite Modules/Fantasma/ antes de criar.\n');
+    write('README.md', '# proj\n\n<!-- documentation-entrypoint: canonical -->\n\nImite Modules/Fantasma/ antes de criar.\n');
     const out = run();
     expect(out).toMatch(/fato-ancora-drift/);
     expect(out).toMatch(/Modules\/Fantasma/);
@@ -216,7 +216,7 @@ describe('memory-health — Check T: fact-anchor determinístico (fato vs fonte-
 
   it('ESPECIFICIDADE: Modules/<X> existente → sem warn', () => {
     mkdirSync(join(tmp, 'Modules/Repair'), { recursive: true });
-    write('README.md', '# proj\n\nImite Modules/Repair/ antes de criar.\n');
+    write('README.md', '# proj\n\n<!-- documentation-entrypoint: canonical -->\n\nImite Modules/Repair/ antes de criar.\n');
     const out = run();
     expect(out).not.toMatch(/fato-ancora-drift/);
   });

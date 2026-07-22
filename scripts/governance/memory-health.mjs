@@ -31,6 +31,8 @@
  *       No registry AUTOMATIONS.md = 🔴 fail (é o que o time consome via MCP); no resto
  *       da canon front-facing = 🟡 warn. Sibling do Check V (mesmo defeito, extrator de
  *       code-span em vez de link markdown). Pega o porte .ps1→.mjs que esquece o registry.
+ *   Q · AUTORIDADE DOCUMENTAL — uma porta global (`README.md`), sem conteúdo vivo
+ *       idêntico e sem colisão de type+slug. (🔴 fail; prevenção local no hook.)
  *
  * Uso:
  *   node scripts/governance/memory-health.mjs            (CI: exit 1 se algum 🔴)
@@ -43,6 +45,7 @@
 import { readdirSync, readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { execSync } from 'node:child_process';
 import { join } from 'node:path';
+import { auditDocumentAuthority, CANONICAL_ENTRYPOINT } from './document-authority.mjs';
 
 const ROOT = process.cwd();
 const JSON_OUT = process.argv.includes('--json');
@@ -356,6 +359,29 @@ function checkLimbo() {
   if (homon.length) {
     warns.push({ check: 'U', kind: 'dir-homonimo', count: homon.length, sample: homon,
       msg: `dir(s) homônimo(s) sob memory/ (confunde navegação/recall): ${homon.join(' · ')} — desambiguar (renomear um). 🟡 sentinela.` });
+  }
+}
+
+// ── Check Q: autoridade documental única + porta global única ───────────────
+// Extensão fail-class do sentinela existente: não cria workflow nem baseline.
+// O hook previne Write novo; este check cobre Edit/MultiEdit e o merge.
+function checkDocumentAuthority() {
+  const audit = auditDocumentAuthority(ROOT);
+  for (const files of audit.duplicates) {
+    fails.push({ check: 'Q', kind: 'doc-conteudo-duplicado', count: files.length, files,
+      msg: `conteúdo documental vivo idêntico em ${files.length} arquivos. Atualize a autoridade existente ou transforme o outro arquivo em ponteiro local.` });
+  }
+  for (const collision of audit.authorityCollisions) {
+    fails.push({ check: 'Q', kind: 'doc-autoridade-duplicada', count: collision.files.length, files: collision.files,
+      msg: `type+slug documental '${collision.authorityKey}' aparece em mais de um arquivo. Um assunto deve ter uma autoridade única.` });
+  }
+  if (exists(CANONICAL_ENTRYPOINT) && (audit.canonicalMarkers.length !== 1 || audit.canonicalMarkers[0] !== CANONICAL_ENTRYPOINT)) {
+    fails.push({ check: 'Q', kind: 'porta-documental-canonica', count: audit.canonicalMarkers.length, files: audit.canonicalMarkers,
+      msg: `a porta global deve ser única e declarada somente em ${CANONICAL_ENTRYPOINT}; encontradas: ${audit.canonicalMarkers.length}.` });
+  }
+  if (audit.parallelHeadings.length) {
+    fails.push({ check: 'Q', kind: 'porta-documental-paralela', count: audit.parallelHeadings.length, files: audit.parallelHeadings,
+      msg: `heading "Comece aqui" fora de ${CANONICAL_ENTRYPOINT} cria navegação paralela. Converta-o em rota local ou referência de catálogo.` });
   }
 }
 
@@ -991,6 +1017,7 @@ checkStaleCanon();
 try { checkStaleEntryLayer(); } catch (e) { warns.push({ check: 'S', kind: 'entrada-stale-error', msg: 'entrada-stale falhou (não bloqueia): ' + e.message }); } // Check S (sentinela frescor camada de entrada)
 try { checkFactAnchor(); } catch (e) { warns.push({ check: 'T', kind: 'fato-ancora-error', msg: 'fact-anchor falhou (não bloqueia): ' + e.message }); } // Check T (fact-anchor determinístico)
 try { checkLimbo(); } catch (e) { warns.push({ check: 'U', kind: 'limbo-error', msg: 'limbo falhou (não bloqueia): ' + e.message }); } // Check U (limbo: drafts parados + homônimos)
+try { checkDocumentAuthority(); } catch (e) { fails.push({ check: 'Q', kind: 'autoridade-documental-error', msg: 'autoridade documental falhou em modo fail-safe: ' + e.message }); } // Check Q (porta/autoridade únicas)
 try { checkBrokenLinks(); } catch (e) { warns.push({ check: 'V', kind: 'link-quebrado-error', msg: 'link-quebrado falhou (não bloqueia): ' + e.message }); } // Check V (links internos quebrados)
 try { checkBacklogIndexStale(); } catch (e) { warns.push({ check: 'W', kind: 'backlog-index-error', msg: 'backlog-index falhou (não bloqueia): ' + e.message }); } // Check W (backlog gerado stale vs SPEC)
 checkAdrEnumDrift();

@@ -12,7 +12,7 @@
   },
   "workflows": {
     "system-map.yml": {
-      "nome": "system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md das fontes canônicas (módulos+frescor git, ADRs+lifecycle, ideias mortas §5, Tier 0 gaps, scorecard). Índice DERIVADO que aponta pros donos, não recopia. --check advisory no PR (nunca bloqueia) + regen diário commit-back.",
+      "nome": "system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md e ONBOARDING-AGENTE-GERADO.md das fontes canônicas. Painel derivado + prompt auxiliar da rota de agentes; nenhum deles redefine a porta global README.md. --check advisory no PR + regen diário commit-back.",
       "classe": "automacao",
       "terminal": "automacao",
       "anchor": "Wagner 2026-07-12: 'deveria ser a máquina matriz que não quebra e sempre mantém atualizado'. Reusa o padrão brief/scorecard/índice-ADR (ADR 0091/0275/0258). proposal painel-sistema-matriz-gerada.md."

@@ -7,6 +7,7 @@
 // Rodar: node .claude/hooks/block-memory-drift.test.mjs   (exit 0 = passa)
 
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { decide, classifyPath, findRepoRoot } from './block-memory-drift.mjs';
@@ -39,6 +40,7 @@ check('A: proibicoes.md em main bloqueia', d({ filePath: 'memory/proibicoes.md',
 check('F: regras-time.md em feature/x bloqueia', d({ filePath: 'memory/regras-time.md', branch: 'feature/x' })?.rule === 'F');
 check('F/A: proibicoes.md em claude/* passa (vai pra PR)', d({ filePath: 'memory/proibicoes.md' }) === null);
 check('F/A: governance/ENFORCEMENT.md em claude/* passa', d({ filePath: 'memory/governance/ENFORCEMENT.md' }) === null);
+check('F/A: governance/ENFORCEMENT.md em codex/* passa', d({ filePath: 'memory/governance/ENFORCEMENT.md', branch: 'codex/x' }) === null);
 check('A: governance/srs/ em main bloqueia', d({ filePath: 'memory/governance/srs/doc.md', branch: 'main' })?.rule === 'A');
 
 // ── Fora de escopo (editáveis por design) ───────────────────────────────────────
@@ -60,9 +62,25 @@ function runHook(stdin, env = {}) {
   return spawnSync(process.execPath, [HOOK], { input: stdin, encoding: 'utf8', env: { ...process.env, ...env } });
 }
 const j = (tool, path) => JSON.stringify({ tool_name: tool, tool_input: { file_path: path } });
+const jw = (path, content) => JSON.stringify({ tool_name: 'Write', tool_input: { file_path: path, content } });
 check('E2E: Edit em ADR real existente (0093) → exit 2 em qualquer branch', runHook(j('Edit', 'memory/decisions/0093-multi-tenant-isolation-tier-0.md')).status === 2);
 check('E2E: Edit em CONSTITUTION.md → exit 2', runHook(j('Edit', 'memory/governance/CONSTITUTION.md')).status === 2);
 check('E2E: Edit em sessions/ → exit 0', runHook(j('Edit', 'memory/sessions/2026-07-09-x.md')).status === 0);
+check('E2E Q bite: Write com conteúdo documental já existente → exit 2', (() => {
+  const root = findRepoRoot(dirname(fileURLToPath(import.meta.url)));
+  const copied = readFileSync(join(root, 'memory', 'requisitos', 'Crm', 'CHANGELOG.md'), 'utf8');
+  const r = runHook(jw('memory/requisitos/ModuloNovo/CHANGELOG.md', copied));
+  return r.status === 2 && /REGRA Q/.test(r.stderr || '') && /Crm\/CHANGELOG\.md/.test(r.stderr || '');
+})());
+check('E2E Q bite: Write com mesmo type+slug e texto diferente → exit 2', (() => {
+  const content = '---\nslug: guia-do-sistema\ntype: guide\n---\n# Outra autoridade\n';
+  const r = runHook(jw('memory/requisitos/ModuloNovo/GUIA.md', content));
+  return r.status === 2 && /autoridade-repetida/.test(r.stderr || '');
+})());
+check('E2E Q release: Write documental novo e único → exit 0', (() => {
+  const content = '---\nslug: contrato-unico-selftest\ntype: runbook\n---\n# Contrato único do selftest\n';
+  return runHook(jw('memory/requisitos/ModuloNovo/RUNBOOK.md', content)).status === 0;
+})());
 check('E2E: override Wagner Tier 0 libera com warning loud', (() => {
   const r = runHook(j('Edit', 'memory/decisions/0093-multi-tenant-isolation-tier-0.md'), { OIMPRESSO_MEMORY_OVERRIDE: '1' });
   return r.status === 0 && /OVERRIDE ATIVO/.test(r.stderr || '');
@@ -70,5 +88,5 @@ check('E2E: override Wagner Tier 0 libera com warning loud', (() => {
 check('E2E: stdin vazio → exit 0 (fail-open)', runHook('').status === 0);
 check('E2E: JSON inválido → exit 0 (fail-open, NUNCA trava sessão)', runHook('{lixo').status === 0);
 
-console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs aplica as 7 regras append-only/PR-only em Win/Mac/Linux, escapes (proposals/sessions/handoff-novo/override) preservados; fail-open provado (E2E).');
+console.log(fails ? `\nSELFTEST FALHOU (${fails})` : '\nSELFTEST OK — porte .mjs aplica as 7 regras append-only/PR-only + Regra Q de autoridade documental em Win/Mac/Linux; escapes e fail-open provados (E2E).');
 process.exit(fails ? 1 : 0);
