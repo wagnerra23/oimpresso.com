@@ -29,7 +29,7 @@ lifecycle: ativo
 | ComunicacaoVisual | [BRIEFING](../requisitos/ComunicacaoVisual/BRIEFING.md) | 2026-06-15 |
 | Connector | [BRIEFING](../requisitos/Connector/BRIEFING.md) | 2026-06-08 |
 | ConsultaOs | [BRIEFING](../requisitos/ConsultaOs/BRIEFING.md) | 2026-06-15 |
-| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-14 |
+| Crm | [BRIEFING](../requisitos/Crm/BRIEFING.md) | 2026-07-22 |
 | Essentials | [BRIEFING](../requisitos/Essentials/BRIEFING.md) | 2026-07-19 |
 | Financeiro | [BRIEFING](../requisitos/Financeiro/BRIEFING.md) | 2026-07-21 |
 | Fiscal | [BRIEFING](../requisitos/Fiscal/BRIEFING.md) | 2026-07-03 |
@@ -167,14 +167,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **296** handoffs · **502** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **299** handoffs · **506** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
+  - `2026-07-22-porta-documental-unica-guardiao-duplicatas`
+  - `2026-07-22-ciclo-realocacao-documental-profissional`
   - `2026-07-22-ciclo-documental-guardiao-fechado`
+  - `2026-07-22-arquitetura-ia-jana-retrato`
+  - `2026-07-22-adversario-realocacao-documental`
   - `2026-07-21-topicos-vivos-aprendizado-critica-revisada`
-  - `2026-07-21-topico-fato-bi-temporal-valid-from-until`
-  - `2026-07-21-tema-owner-detector-anti-duplicacao-estrutura`
-  - `2026-07-21-service-scorecard-catalogo-idp-ui`
-  - `2026-07-21-resolvedor-reclamacao-cadeia`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-07-22 · deriva das fontes canônicas, não as substitui._

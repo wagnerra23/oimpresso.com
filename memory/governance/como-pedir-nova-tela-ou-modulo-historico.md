@@ -1,5 +1,11 @@
 # Como pedir nova tela ou módulo — guia do Wagner
 
+> [!CAUTION]
+> **DOCUMENTO HISTÓRICO — não use como receita atual.** Este guia foi arquivado em
+> 2026-07-22 porque contém instruções superadas. Comece pelo
+> [guia atual de pedidos para agentes](../../HOW_TO_ASK_CLAUDE.md). O arquivo foi
+> movido pelo Git de `memory/COMO_PEDIR_NOVA_TELA_OU_MODULO.md` para preservar seu histórico.
+
 > Template prático para garantir que a IA (Claude) entregue **tudo certinho**
 > seguindo o padrão do projeto, sem retrabalho e sem esquecer nada.
 
@@ -23,7 +29,7 @@ Isso sozinho já faz a IA puxar contexto e não começar do zero:
 
 ```
 Leia `memory/08-handoff.md`, `memory/07-roadmap.md` e
-`memory/COMO_PEDIR_NOVA_TELA_OU_MODULO.md` antes de responder. Quero [o que você quer].
+`memory/governance/como-pedir-nova-tela-ou-modulo-historico.md` antes de responder. Quero [o que você quer].
 ```
 
 A IA vai:
@@ -279,7 +285,7 @@ Sempre que quiser reler decisões/padrões:
 Quando não souber o que colocar, use este:
 
 ```
-Leia `memory/08-handoff.md` e `memory/COMO_PEDIR_NOVA_TELA_OU_MODULO.md`.
+Leia `memory/08-handoff.md` e `memory/governance/como-pedir-nova-tela-ou-modulo-historico.md`.
 
 QUERO: [descreva em 1-2 linhas]
 

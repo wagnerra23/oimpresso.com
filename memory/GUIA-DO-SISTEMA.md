@@ -116,7 +116,7 @@ Tasks são entidades vivas no MCP (Jira-style), **não** arquivos markdown ([ADR
 ### B3. Como me pedir as coisas (o que funciona melhor)
 
 - **Pedido vago = eu pergunto antes** de implementar (é regra, não preguiça). Quanto mais concreto o critério de "pronto", menos idas e voltas.
-- **Tela nova / mudar tela** → veja [COMO_PEDIR_NOVA_TELA_OU_MODULO.md](COMO_PEDIR_NOVA_TELA_OU_MODULO.md). Design vem do **protótipo Cowork** (`prototipo-ui/`), não de Figma ([ADR 0299](decisions/0299-figma-nao-e-fonte-de-design.md)).
+- **Tela nova / mudar tela** → comece pelo [guia atual de pedidos para agentes](../HOW_TO_ASK_CLAUDE.md). Design vem do **protótipo Cowork** (`prototipo-ui/`), não de Figma ([ADR 0299](decisions/0299-figma-nao-e-fonte-de-design.md)).
 - **Auditar/comparar módulo com o mercado** → `/comparativo <Modulo>` ou agente `capterra-senior`.
 - **"Como os melhores fazem X?"** → agente `estado-da-arte`.
 - **Fazer em paralelo (N frentes isoladas)** → agente `coordenador-paralelo`.
