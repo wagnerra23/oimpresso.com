@@ -8,6 +8,8 @@ relates_to:
   - 0271-revisao-gates-ci-estado-real-required-e-subtracao-segura
   - 0314-poda-gates-onda-2-lei-fusoes
   - 0094-constituicao-v2-7-camadas-8-principios
+  - 0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio
+  - 0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento
 ---
 
 # PROPOSAL — Conceito único de estrutura de `memory/`
@@ -77,3 +79,113 @@ MECÂNICO e CURADORIA (status/nomes) são **PRs distintos** por família.
 - **Links/anchors**: renomear filename quebra inbound links (handoff não-editável p/ consertar) →
   preferir **não** renomear; renumeração de ADR duplicado = ADR-errata, não frontmatter.
 - **Windows**: CRLF/BOM inflam diff/quebram parse — usar Edit tool / newline correto.
+
+---
+
+# PARTE II — Dimensão espacial: árvore-alvo, owners de realocação e o gap do classificador (2026-07-22)
+
+> A Parte I trata do **frontmatter** (schema por família). Falta a dimensão **espacial**:
+> em qual pasta cada família mora e se a máquina de realocação (#4675–#4678 +
+> [runbook](../../governance/REALOCACAO-DOCUMENTAL.md)) roteia certo. Origem: proposta de
+> árvore-alvo do Wagner + review adversarial do pipeline + **medição** desta sessão. Nada aqui
+> é canon ainda — é o que a promoção desta proposta a ADR precisa cravar.
+
+## II.1 O que a máquina faz hoje (MEDIDO, não afirmado)
+
+Reproduzível: `classifyDocument` (a função real do classificador) aplicada a cada `.md` de
+`memory/{dominios,dominio,clientes}/` — **434 docs de negócio**:
+
+| owner atribuído | nº | layer |
+|---|---|---|
+| `reference` | 374 | `ia-os` |
+| `governance` | 12 | `ia-os` |
+| `audit` | 1 | `ia-os` |
+| `module:Financeiro` | 47 | `product-erp` |
+
+**410 de 434 (94%) do corpus de NEGÓCIO são classificados como PROCESSO** (`reference`/
+`governance`/`audit`) com confiança **≥0,90**. Escopo honesto: isto é a *classificação*
+(pré-adversário); o adversário barra os que têm backlink de ADR/session/handoff, mas essa
+proteção é **acidental** (depende do backlink existir), não semântica. **Consequência:** rodar
+a convergência com o classificador de hoje **automatiza a atrofia diagnosticada pela
+[ADR 0334](../0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md)** — puxa a
+inteligência de negócio pra dentro da governança em escala.
+
+## II.2 Gap classificador ↔ alvo (P1/P2 — cada um com como foi verificado)
+
+| # | Achado | Verificação |
+|---|---|---|
+| P1 | **Sem owner `domain`/`client`** — negócio cai em `reference`/`governance` | leitura de `expectedPrefix` (adversário) + `classifyDocument` (classificador): prefixos param em reference/governance/research/audit/module |
+| P1 | **`confidence` olha metadado CRU** — qualquer `type:`/`module:` (mesmo módulo inexistente) eleva a 0,97 | leitura: `classifier` linha 85 `meta.type \|\| meta.module ? 0.97 : …`; owner cai em `reference` porque `inferModule` não resolve |
+| P1 | **Adversário não cruza `owner×layer×door×target`** — valida cada um isolado | leitura: `adversary` valida `LAYER_INVALID` (enum) e `CANONICAL_DOOR_MISSING` (existe) separadamente; nenhuma linha cruza a combinação |
+| P1 | **Revisão humana é declarativa** — `reviewed_by` não é lido por script; só `confidence` manual libera o executor | leitura: `reviewed_by` ausente do código; executor só aceita `safe_to_apply` (APPROVE) |
+| P2 | **Lifecycle só reconhece `arquivado`** — `historical`/`archived` viram `active` | leitura: `classifier` linha 87 `meta.lifecycle === 'arquivado' ? 'archived' : 'active'` |
+| P2 | **`replaceExact` troca a string globalmente** (`split/join`) — pode tocar prosa | leitura: `executor` `replaceExact`; baixa probabilidade (o `from` carrega o path inteiro) mas real |
+
+## II.3 Árvore-alvo (PROPOSTA — não canon até promoção)
+
+As 3 camadas da 0334 no espaço. **Não** é "3 pastas gigantes" — é classificação arquitetural
+das famílias já existentes, mais os owners de negócio que faltam:
+
+- **(A) Produto ERP** → `memory/requisitos/<Modulo>/` (porta `BRIEFING.md`)
+- **(B) Produto IA** → `memory/requisitos/Jana/` (porta `BRIEFING.md`)
+- **Conhecimento de negócio** (serve A+B, é o corpus (a) da 0334) → `memory/dominios/<dominio>/`
+  e `memory/clientes/<cliente>/` (porta do cliente = `PERFIL.md`)
+- **(C) IA-OS/governança** → `memory/governance/` (porta ADR 0094), `memory/reference/`,
+  `memory/research/`, `memory/audits/`
+- **Append-only** → `memory/decisions/`, `sessions/`, `handoffs/` (intocáveis)
+- **Ciclo de vida** → `memory/archive/{legacy,superseded,historical}` (decaimento — **não** é owner)
+
+## II.4 Owners canônicos de realocação (REGISTRO a criar — pré-requisito dos gates)
+
+O passo que destrava todo o resto: um registro único (owner → prefixo → layer → porta) que o
+classificador consulta e o adversário valida como **matriz**, não campo a campo.
+
+**Decisão tomada (delegada por [W] 2026-07-22 "escolha as melhores opções"; merge = ratificação):**
+layer nova **`business-knowledge`** para `domain`/`client` — é o corpus (a) da 0334, que serve
+A **e** B; mapear pra `product-ai` mentiria (fiscal/comercial servem o ERP também) e pra `ia-os`
+seria a atrofia automatizada. Portas: `domain` → `memory/dominios/_overview.md`; `client` →
+`memory/clientes/<cliente>/PERFIL.md` (sem PERFIL o plano não aprova — porta antes do move).
+
+## II.5 Ordem de correção (endossada — pré-requisitos primeiro)
+
+1. Ratificar esta proposta (árvore + owners).
+2. Criar o registro canônico de owners + combinações permitidas (`module`/`domain`/`client`/
+   `governance`/`reference`/`research`+`comparison`/`audit`).
+3. `archive` = lifecycle/política de armazenamento (0270), separado da classificação por dono.
+4. Adversário valida a matriz `owner×layer×door×target`.
+5. Classificador valida metadado contra o registro **antes** de elevar confiança (mata o "meta cru").
+6. Aprovação humana **ligada ao `planDigest`** (assinatura + identidade + data), **não** um
+   `reviewed_by:` auto-escrito (seria a família `last_validated`/`verificado_em` já rejeitada em
+   [proibicoes §5](../../proibicoes.md)).
+7. `move-with-tombstone` para reorganizar legado sem editar histórico append-only — **provando
+   antes** que não acorda gate diff-aware (lápide 2026-07-12: tocar legado acorda anchor-lint/scorecard).
+8. Testes: domínio, cliente, lifecycle, metadado inválido, matriz incoerente.
+9. **Só então** convergência do corpus em lotes pequenos e coesos.
+
+## II.5b Implementado (2026-07-22, mesma branch — recibo, não promessa)
+
+Passos 2–6 e 8 da ordem acima **codados e provados** (o passo 1 é este merge; 7 tombstone e
+9 convergência seguem pendentes):
+
+| Fix | Prova (vetor de selftest que morde) |
+|---|---|
+| Owners `domain`/`client` + layer `business-knowledge` + portas | `SOLTA: owner domain coerente` · `MORDE: negocio desviado pra processo` |
+| Matriz `owner×layer×door×target` no adversário (`ownerRules`, fonte única — classificador importa) | `MORDE: matriz owner x layer x door incoerente` (o plano sintético do review que APROVAVA agora REJEITA) |
+| Metadado validado antes do boost (`module: Financeirro` não dá mais 0.97) | `modulo-inexistente-nao-boost` |
+| Lifecycle normalizado (`historical` não volta como `active`; desconhecido derruba confiança) | `lifecycle-historical-preservado` · `lifecycle-desconhecido-derruba-confianca` |
+| Aprovação humana amarrada ao hash (`approvals[]` + `approvalDigest`, reviewer enum W/F/M/L/E; CLI `--digest`) | `SOLTA: baixa confianca COM aprovacao assinada` · `MORDE: hash que nao corresponde` |
+| `count` por rewrite no plano; executor aborta+rollback se divergir (P2 replaceExact) | `contagem divergente aborta e reverte` |
+| `already_canonical`: doc já no prefixo do owner não gera move achatado | `dominio-e-business-knowledge` |
+
+Selftests: adversário **22/22** · classificador **9/9** · executor **10/10**. **Re-medição
+pós-fix (mesmo script da §II.1): 434/434 docs de negócio → owner `domain`(431)/`client`(3),
+layer `business-knowledge`; docs de negócio classificados como processo: 410 → 0.**
+
+## II.6 Fronteira honesta
+
+- Passos 4–6 **não nascem required nem auto-apply** — só depois de morderem
+  ([ADR 0336](../0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)).
+- **Owners de negócio antes da convergência** (passo 2 antes do 9): rodar a máquina sem eles
+  automatiza a atrofia da 0334 (§II.1 — 94% do negócio vira processo).
+- Isto **estende** esta proposta (mesma família "estrutura de `memory/`"); não abre paralelo
+  ([proibicoes §5](../../proibicoes.md) anti-duplicação).

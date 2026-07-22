@@ -12,19 +12,28 @@
 //   node scripts/governance/document-relocation-adversary.mjs --selftest
 
 import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const SCHEMA_VERSION = 2;
 export const MIN_AUTO_CONFIDENCE = 0.9;
+// Revisores humanos autorizados (memory/regras-time.md). A aprovacao so vale
+// amarrada ao hash do plano (approvalDigest) — nunca campo solto auto-declarado.
+export const REVIEWERS = new Set(['W', 'F', 'M', 'L', 'E']);
+// Modulos cujo conteudo e IA-OS (processo), nao produto — fonte unica, o classificador importa.
+export const IA_OS_MODULES = new Set(['ADS', 'Brief', 'Governance', 'KB', 'MemCofre', 'TeamMcp']);
+const DOOR_CONSTITUICAO = 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md';
 
 const ALLOWED_KINDS = new Set([
   'tutorial', 'how-to', 'reference', 'explanation', 'briefing', 'runbook',
   'audit', 'research', 'other', 'decision', 'session', 'handoff',
 ]);
 const ALLOWED_LIFECYCLES = new Set(['active', 'historical', 'archived']);
-const ALLOWED_LAYERS = new Set(['product-erp', 'product-ai', 'ia-os']);
+// 'business-knowledge' = corpus (a) da ADR 0334 (dominios/ + clientes/): conhecimento
+// do negocio que serve ERP e Jana — nao e produto nem processo. Ratificacao [W] no merge.
+const ALLOWED_LAYERS = new Set(['product-erp', 'product-ai', 'ia-os', 'business-knowledge']);
 const ALLOWED_REF_KINDS = new Set(['markdown-link', 'code-span', 'literal-path']);
 const SKIP_DIRS = new Set(['.git', '.worktrees', 'node_modules', 'vendor']);
 const TEXT_EXTENSIONS = /\.(?:cjs|css|html|js|json|jsx|md|mjs|php|ps1|py|sh|toml|ts|tsx|txt|xml|ya?ml)$/i;
@@ -199,9 +208,32 @@ function expectedPrefix(owner) {
   if (owner === 'governance') return 'memory/governance/';
   if (owner === 'research') return 'memory/research/';
   if (owner === 'audit') return 'memory/audits/';
+  if (owner === 'domain') return 'memory/dominios/';
+  if (owner === 'client') return 'memory/clientes/';
   if (typeof owner === 'string' && owner.startsWith('module:')) {
     const moduleName = owner.slice('module:'.length);
     if (/^[A-Za-z][A-Za-z0-9_-]*$/.test(moduleName)) return `memory/requisitos/${moduleName}/`;
+  }
+  return null;
+}
+
+// Registro canonico owner -> {layer, door}. Fonte unica da matriz owner x layer x door;
+// o classificador importa daqui e o adversario valida a COMBINACAO, nao campos isolados.
+export function ownerRules(owner, target) {
+  if (['reference', 'governance', 'research', 'audit'].includes(owner)) {
+    return { layer: 'ia-os', door: DOOR_CONSTITUICAO };
+  }
+  if (owner === 'domain') return { layer: 'business-knowledge', door: 'memory/dominios/_overview.md' };
+  if (owner === 'client') {
+    const m = typeof target === 'string' ? target.match(/^memory\/clientes\/([^/]+)\//) : null;
+    // Porta do cliente = PERFIL.md dele; sem PERFIL o plano nao aprova (porta antes do move).
+    return { layer: 'business-knowledge', door: m ? `memory/clientes/${m[1]}/PERFIL.md` : null };
+  }
+  if (typeof owner === 'string' && owner.startsWith('module:')) {
+    const name = owner.slice('module:'.length);
+    if (name === 'Jana') return { layer: 'product-ai', door: 'memory/requisitos/Jana/BRIEFING.md' };
+    if (IA_OS_MODULES.has(name)) return { layer: 'ia-os', door: DOOR_CONSTITUICAO };
+    return { layer: 'product-erp', door: `memory/requisitos/${name}/BRIEFING.md` };
   }
   return null;
 }
@@ -227,6 +259,15 @@ function validateClassification(op, index, existingLower, issues) {
   if (!prefix) issues.push(issue('error', 'OWNER_INVALID', `owner invalido: ${c.owner ?? '(ausente)'}`, index));
   else if (op.target && !op.target.startsWith(prefix)) {
     issues.push(issue('error', 'OWNER_TARGET_MISMATCH', `owner ${c.owner} exige destino sob ${prefix}`, index, op.target));
+  }
+  // Matriz owner x layer x door: cada campo isolado pode ser valido e a COMBINACAO errada
+  // (review 2026-07-22: owner=governance + layer=product-erp + door=Financeiro passava).
+  const rules = ownerRules(c.owner, op.target);
+  if (rules && ALLOWED_LAYERS.has(c.layer) && c.layer !== rules.layer) {
+    issues.push(issue('error', 'LAYER_OWNER_MISMATCH', `owner ${c.owner} pertence a camada ${rules.layer}, nao ${c.layer}`, index));
+  }
+  if (rules && rules.door && typeof c.door === 'string' && c.door.toLowerCase() !== rules.door.toLowerCase()) {
+    issues.push(issue('error', 'DOOR_OWNER_MISMATCH', `owner ${c.owner} exige porta-mae ${rules.door}`, index, c.door));
   }
   if (typeof c.owner === 'string' && c.owner.startsWith('module:') && prefix) {
     const moduleDir = prefix.slice(0, -1).toLowerCase();
@@ -288,6 +329,20 @@ function validateRewrites(op, index, refs, finalPaths, issues) {
   }
 }
 
+// Hash canonico do plano SEM approvals/generated_at: e o que o revisor humano assina.
+// Editar qualquer operacao invalida a assinatura — o dente e o hash, nao o campo.
+export function approvalDigest(plan) {
+  const strip = (value) => {
+    if (Array.isArray(value)) return value.map(strip);
+    if (!value || typeof value !== 'object') return value;
+    return Object.fromEntries(Object.entries(value)
+      .filter(([key]) => key !== 'approvals' && key !== 'generated_at')
+      .sort(([left], [right]) => left.localeCompare(right))
+      .map(([key, nested]) => [key, strip(nested)]));
+  };
+  return createHash('sha256').update(JSON.stringify(strip(plan))).digest('hex');
+}
+
 export function validatePlan(plan, context) {
   const issues = [];
   const existingFiles = (context.existingFiles ?? []).map(posixPath);
@@ -306,6 +361,22 @@ export function validatePlan(plan, context) {
   }
   if (!Array.isArray(plan.operations) || plan.operations.length === 0) {
     issues.push(issue('error', 'OPERATIONS_REQUIRED', 'operations deve conter ao menos uma operacao'));
+  }
+
+  // Aprovacao humana verificavel: reviewer autorizado + sha256 do plano canonico.
+  // Aprovacao presente mas invalida e ERRO ruidoso (nunca silenciosamente ignorada).
+  let approvedByHuman = false;
+  const approvals = plan.approvals ?? [];
+  if (!Array.isArray(approvals)) {
+    issues.push(issue('error', 'APPROVAL_INVALID', 'approvals deve ser um array de {reviewer, plan_sha256, date}'));
+  } else {
+    const digest = approvalDigest(plan);
+    for (const entry of approvals) {
+      const okReviewer = REVIEWERS.has(entry?.reviewer);
+      const okDigest = typeof entry?.plan_sha256 === 'string' && entry.plan_sha256.toLowerCase() === digest;
+      if (okReviewer && okDigest) approvedByHuman = true;
+      else issues.push(issue('error', 'APPROVAL_INVALID', `aprovacao invalida: reviewer ${entry?.reviewer ?? '(ausente)'} nao autorizado ou hash nao corresponde ao plano (esperado ${digest})`, null, entry));
+    }
   }
 
   const operations = Array.isArray(plan.operations) ? plan.operations : [];
@@ -358,8 +429,8 @@ export function validatePlan(plan, context) {
     }
     if (typeof op.confidence !== 'number' || op.confidence < 0 || op.confidence > 1) {
       issues.push(issue('error', 'CONFIDENCE_INVALID', 'confidence deve estar entre 0 e 1', index));
-    } else if (op.confidence < MIN_AUTO_CONFIDENCE) {
-      issues.push(issue('review', 'LOW_CONFIDENCE', `confidence ${op.confidence} < ${MIN_AUTO_CONFIDENCE}; exige decisao humana, nunca auto-apply`, index));
+    } else if (op.confidence < MIN_AUTO_CONFIDENCE && !approvedByHuman) {
+      issues.push(issue('review', 'LOW_CONFIDENCE', `confidence ${op.confidence} < ${MIN_AUTO_CONFIDENCE}; exige aprovacao humana assinada (approvals + approvalDigest), nunca auto-apply`, index));
     }
     validateClassification(op, index, existingLower, issues);
   }
@@ -443,8 +514,12 @@ function runSelftest() {
     ['docs/ops.md', 'Consulte `legacy.md#uso`.\n'],
     ['docs/generated.md', '<!-- GERADO por scripts/x.mjs. NAO EDITAR A MAO. -->\n'],
     ['memory/decisions/0001-regra.md', '# ADR\n'],
+    ['memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md', '# Constituicao\n'],
     ['memory/reference/existing.md', '# Existe\n'],
     ['memory/requisitos/Financeiro/BRIEFING.md', '# Porta\n'],
+    ['memory/governance/ENFORCEMENT.md', '# Governanca\n'],
+    ['memory/dominios/_overview.md', '# Dominios\n'],
+    ['docs/fiscal-notas.md', '# Regras fiscais do dominio\n'],
   ]);
   const context = {
     currentSha: sha,
@@ -467,7 +542,7 @@ function runSelftest() {
       target: 'memory/reference/guia-legado.md',
       classification: {
         kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'guia-legado',
-        layer: 'ia-os', door: 'README.md',
+        layer: 'ia-os', door: 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md',
       },
       confidence: 0.98,
       reason: 'Guia transversal deve viver junto das referencias tecnicas.',
@@ -520,6 +595,34 @@ function runSelftest() {
   check('MORDE: plano sem camada ADR 0334', evaluate(noLayer).issues.some((i) => i.code === 'LAYER_INVALID'), evaluate(noLayer));
   const noDoor = clone(base); delete noDoor.operations[0].classification.door;
   check('MORDE: plano sem porta-mae', evaluate(noDoor).issues.some((i) => i.code === 'CANONICAL_DOOR_REQUIRED'), evaluate(noDoor));
+  // Caso exato do review 2026-07-22 que APROVAVA: owner=governance + layer=product-erp + door=Financeiro.
+  const matrix = clone(base);
+  matrix.operations[0].target = 'memory/governance/guia-legado.md';
+  matrix.operations[0].classification.owner = 'governance';
+  matrix.operations[0].classification.layer = 'product-erp';
+  matrix.operations[0].classification.door = 'memory/requisitos/Financeiro/BRIEFING.md';
+  matrix.operations[0].rewrites = matrix.operations[0].rewrites.map((r) => ({ ...r, to: r.to.replace('memory/reference/', 'memory/governance/') }));
+  const matrixResult = evaluate(matrix);
+  check('MORDE: matriz owner x layer x door incoerente', matrixResult.issues.some((i) => i.code === 'LAYER_OWNER_MISMATCH') && matrixResult.issues.some((i) => i.code === 'DOOR_OWNER_MISMATCH'), matrixResult);
+  const domainGood = clone(base);
+  domainGood.operations[0].source = 'docs/fiscal-notas.md';
+  domainGood.operations[0].target = 'memory/dominios/fiscal-notas.md';
+  domainGood.operations[0].classification = { kind: 'reference', owner: 'domain', lifecycle: 'active', slug: 'fiscal-notas', layer: 'business-knowledge', door: 'memory/dominios/_overview.md' };
+  domainGood.operations[0].rewrites = [];
+  const domainGoodResult = evaluate(domainGood, { incomingReferences: new Map([['docs/fiscal-notas.md', []]]) });
+  check('SOLTA: owner domain coerente (corpus de negocio ADR 0334)', domainGoodResult.verdict === 'APPROVE', domainGoodResult);
+  const domainWrong = clone(domainGood);
+  domainWrong.operations[0].target = 'memory/reference/fiscal-notas.md';
+  const domainWrongResult = evaluate(domainWrong, { incomingReferences: new Map([['docs/fiscal-notas.md', []]]) });
+  check('MORDE: negocio (domain) desviado pra processo (reference)', domainWrongResult.issues.some((i) => i.code === 'OWNER_TARGET_MISMATCH'), domainWrongResult);
+  const lowApproved = clone(base); lowApproved.operations[0].confidence = 0.7;
+  lowApproved.approvals = [{ reviewer: 'W', date: '2026-07-22', plan_sha256: approvalDigest(lowApproved) }];
+  const lowApprovedResult = evaluate(lowApproved);
+  check('SOLTA: baixa confianca COM aprovacao humana assinada (hash do plano)', lowApprovedResult.verdict === 'APPROVE', lowApprovedResult);
+  const badApproval = clone(base); badApproval.operations[0].confidence = 0.7;
+  badApproval.approvals = [{ reviewer: 'W', date: '2026-07-22', plan_sha256: 'f'.repeat(64) }];
+  const badApprovalResult = evaluate(badApproval);
+  check('MORDE: aprovacao com hash que nao corresponde ao plano', badApprovalResult.issues.some((i) => i.code === 'APPROVAL_INVALID') && badApprovalResult.verdict === 'REJECT', badApprovalResult);
 
   for (const row of cases) console.log(`${row.ok ? '[OK]  ' : '[FAIL]'} ${row.name}`);
   const failed = cases.filter((row) => !row.ok);
@@ -557,6 +660,7 @@ if (isMain) {
   let plan;
   try { plan = JSON.parse(readFileSync(resolve(planPath), 'utf8')); }
   catch (error) { console.error(`plano ilegivel: ${error.message}`); process.exit(2); }
+  if (args.includes('--digest')) { console.log(approvalDigest(plan)); process.exit(0); }
   let result;
   try {
     result = validatePlanAtRoot(plan, root);
