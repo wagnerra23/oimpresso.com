@@ -1,8 +1,8 @@
 {
   "schema": 1,
-  "purpose": "Registro DECLARADO de placement por area de memory/. O classificador consulta este registro em vez de adivinhar por regex (proposal estrutura-canon-memoria Parte II; ADR 0256 derivado+enforcado > heuristica). Regra: area declarada 'canonical' = fica (nao move, mesmo que o heuristico ache outra familia); 'protected' = nunca move (contrato/append-only); 'never' = veredito humano de nao-migrar; 'move' = realoca pro to_prefix; 'review' = decisao por arquivo, o classificador NAO adivinha (forca REVIEW).",
-  "ratified": false,
-  "ratify_note": "Merge por [W] ratifica. Trocar a linha 'rule'/'recommend' de qualquer area que discordar ANTES de mergear. Resolucao = prefixo mais longo vence (memory/dominios/ antes de memory/).",
+  "purpose": "Registro DECLARADO de placement por area de memory/. O classificador consulta este registro em vez de adivinhar por regex (proposal estrutura-canon-memoria Parte II; ADR 0256 derivado+enforcado > heuristica). Regra: area declarada 'canonical' = fica (nao move, mesmo que o heuristico ache outra familia); 'protected' = nunca move (contrato/append-only); 'never' = veredito humano de nao-migrar; 'move' = realoca pro to_prefix; 'heuristic' = por-arquivo, classificador infere e adversario valida; 'review' = decisao por arquivo, o classificador NAO adivinha (forca REVIEW).",
+  "ratified": true,
+  "ratify_note": "Decisoes das 8 areas tomadas por [W] 2026-07-22 ('todas serao movidas e organizadas sem excecao') — merge do PR e o ato de ratificacao. Resolucao = prefixo mais longo vence (memory/dominios/ antes de memory/).",
   "areas": [
     { "prefix": "memory/requisitos/", "rule": "canonical", "note": "docs de modulo/produto (SPEC/RUNBOOK/BRIEFING/topicos) — ficam com o modulo" },
     { "prefix": "memory/dominios/", "rule": "canonical", "note": "corpus de conhecimento de negocio (ADR 0334 corpus a)" },
@@ -16,18 +16,18 @@
     { "prefix": "memory/decisions/", "rule": "protected", "note": "ADRs append-only" },
     { "prefix": "memory/sessions/", "rule": "protected", "note": "diario append-only" },
     { "prefix": "memory/handoffs/", "rule": "protected", "note": "handoffs append-only" },
-    { "prefix": "memory/comparativos/", "rule": "move", "to_prefix": "memory/research/", "decided_by": "W", "ref": "#4682", "note": "Capterra/mercado = research (decidido [W] 2026-07-22)" },
+    { "prefix": "memory/comparativos/", "rule": "never", "decided_by": "W", "ref": "#4693", "note": "TOMBSTONE-PARK: lote movido pra memory/research/comparativos/ em 2026-07-22; os stubs ficam servindo referrers append-only. Nada mais nasce nem move aqui." },
     { "prefix": "memory/clientes-legacy/", "rule": "move", "to_prefix": "memory/clientes/", "note": "consolidar no corpus canonico de cliente (parte ja feita #4684)" },
     { "prefix": "memory/modulos/", "rule": "never", "ref": "#4690", "note": "veredito NAO-migrar: path-contracts/entrelacado com append-only" },
 
-    { "prefix": "memory/sales/", "rule": "review", "recommend": "canonical", "note": "material de vendas (cold-emails/scripts/campanhas) — RECOMENDO declarar familia propria 'sales/' e deixar. Mover pra reference = churn sem ganho. [W] decide." },
-    { "prefix": "memory/sprints/", "rule": "review", "recommend": "canonical", "note": "logs historicos de sprint — RECOMENDO deixar (registro historico referenciado). Alternativa: tratar como archive/historical. [W] decide." },
-    { "prefix": "memory/reguas/", "rule": "review", "recommend": "canonical", "note": "experimentos de calibracao de regua (inclui gabarito-SELADO que NAO pode mover). RECOMENDO deixar. [W] decide." },
-    { "prefix": "memory/legacy-delphi/", "rule": "review", "recommend": "canonical", "note": "indice Delphi legado (criado por #4684). RECOMENDO deixar OU archive/legacy/. [W] decide." },
-    { "prefix": "memory/onboarding/", "rule": "review", "recommend": "canonical", "note": "material de onboarding. RECOMENDO deixar como familia. [W] decide." },
-    { "prefix": "memory/mwart-inventory/", "rule": "review", "recommend": "canonical", "note": "inventario MWART. RECOMENDO deixar. [W] decide." },
-    { "prefix": "memory/cycles/", "rule": "review", "recommend": "canonical", "note": "ciclos. RECOMENDO deixar. [W] decide." },
+    { "prefix": "memory/sales/", "rule": "canonical", "decided_by": "W", "note": "familia propria de material de vendas (campanhas datadas, subarvore coerente)." },
+    { "prefix": "memory/sprints/", "rule": "canonical", "decided_by": "W", "note": "registro historico de sprints, muito referenciado por append-only — mover = tempestade de tombstones sem ganho." },
+    { "prefix": "memory/reguas/", "rule": "canonical", "decided_by": "W", "note": "experimentos de calibracao (contem gabarito-SELADO que NAO pode mover por construcao)." },
+    { "prefix": "memory/legacy-delphi/", "rule": "canonical", "decided_by": "W", "note": "indice Delphi legado, criado por [W] em #4684 — recem-organizado, fica." },
+    { "prefix": "memory/onboarding/", "rule": "canonical", "decided_by": "W", "note": "familia de onboarding do time." },
+    { "prefix": "memory/mwart-inventory/", "rule": "canonical", "decided_by": "W", "note": "inventario MWART." },
+    { "prefix": "memory/cycles/", "rule": "canonical", "decided_by": "W", "note": "ciclos." },
 
-    { "prefix": "memory/", "rule": "review", "recommend": "por-arquivo", "note": "RAIZ de memory/: numerados 00-11 sao estruturais/referenciados-em-tudo = NAO mover; docs soltos (GUIA-DO-SISTEMA, NORTE-ROI, etc) = decisao por arquivo, NAO adivinhar familia. [W] decide caso a caso." }
+    { "prefix": "memory/", "rule": "heuristic", "decided_by": "W", "note": "RAIZ de memory/: docs soltos MOVEM pra familia que o classificador inferir, validado pelo adversario ([W] 2026-07-22 'todas serao movidas e organizadas sem excecao'). Portas (INDEX, 08-handoff, what-oimpresso, proibicoes) seguem protegidas por PROTECTED_EXACT; referenciados por append-only movem com tombstone." }
   ]
 }

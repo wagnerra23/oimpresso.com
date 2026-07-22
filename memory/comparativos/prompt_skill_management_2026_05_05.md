@@ -1,11 +1,11 @@
 ---
 tombstone: true
-moved_to: memory/research/prompt-skill-management-2026-05-05.md
+moved_to: memory/research/comparativos/prompt-skill-management-2026-05-05.md
 ---
 
 # Documento realocado
 
-Conteudo movido para o local canonico: [memory/research/prompt-skill-management-2026-05-05.md](../research/prompt-skill-management-2026-05-05.md).
+Conteudo movido para o local canonico: [memory/research/comparativos/prompt-skill-management-2026-05-05.md](../research/comparativos/prompt-skill-management-2026-05-05.md).
 
 > Lapide de realocacao documental (move-with-tombstone). O path antigo permanece
 > porque referencias que nao podem ser reescritas apontam para ca — append-only

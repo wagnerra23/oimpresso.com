@@ -15,7 +15,7 @@ use Symfony\Component\Yaml\Yaml;
  * mcp_memory_documents (DB cache governado).
  *
  * F1 KB expansion (2026-04-30): cobre agora além de decisions/sessions/SPEC:
- *   - memory/comparativos/X.md           → type=comparativo
+ *   - memory/research/comparativos/X.md  → type=comparativo
  *   - memory/requisitos/M/adr/CAT/X.md   → type=adr (module=M, cat=arq|tech|ui)
  *   - memory/requisitos/M/RUNBOOK.md, ARCHITECTURE.md, GLOSSARY.md, etc
  *   - memory/requisitos/M/audits/X.md    → type=audit
@@ -263,14 +263,16 @@ class IndexarMemoryGitParaDb
         // ─── F1 KB expansion ──────────────────────────────────────────────
 
         // Comparativos Capterra-style
-        foreach (glob("$base/memory/comparativos/*.md") as $file) {
+        foreach (glob("$base/memory/research/comparativos/*.md") as $file) {
             $name = basename($file, '.md');
             if (str_starts_with($name, '_')) continue; // skip _INDEX, _TEMPLATE
+            if ($name === 'README') continue;          // porta da subpasta, nao comparativo
+            if ($name === 'index' || $name === 'template-capterra-oimpresso') continue; // indice/template, nao comparativo
             $arquivos[] = [
                 'slug'   => "comparativo-$name",
                 'type'   => 'comparativo',
                 'module' => $this->detectarModulo($name),
-                'path'   => "memory/comparativos/$name.md",
+                'path'   => "memory/research/comparativos/$name.md",
                 'full'   => $file,
             ];
         }

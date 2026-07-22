@@ -362,7 +362,7 @@ Sequencial, mensurável, com gatilho de pivot por sprint. Detalhado em ADR 0037.
 | 0036 | Replanejamento Meilisearch first | ✅ Aceita |
 | 0037 | Roadmap evolução Tier 7-9 | ✅ Aceita |
 
-### Comparativos Capterra (memory/comparativos/)
+### Comparativos Capterra (memory/research/comparativos/)
 
 | Arquivo | Foco |
 |---|---|

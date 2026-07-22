@@ -55,7 +55,7 @@ export function suggestCanonTarget(pathLower) {
   if (/feedback[_-]/.test(pathLower)) return 'memory/decisions/NNNN-slug.md (ADR pq decisão) OU memory/requisitos/{Modulo}/feedback.md';
   if (/project[_-]/.test(pathLower)) return 'memory/requisitos/{Modulo}/SPEC.md OU CHANGELOG.md';
   if (/session[_-]/.test(pathLower)) return 'memory/sessions/YYYY-MM-DD-slug.md';
-  if (/comparativ/.test(pathLower)) return 'memory/comparativos/slug_capterra.md';
+  if (/comparativ/.test(pathLower)) return 'memory/research/comparativos/slug_capterra.md';
   if (/cliente[_-]|client[_-]/.test(pathLower)) return 'memory/requisitos/{Modulo}/quirks.md OU ADR';
   return 'memory/decisions/NNNN-slug.md (ADR Nygard)';
 }

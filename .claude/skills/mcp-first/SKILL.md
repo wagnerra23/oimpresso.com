@@ -66,7 +66,7 @@ Quando pensar "vou guardar pra próxima sessão lembrar", **PARA** e:
 | Receita/runbook reproduzível | `memory/requisitos/{Mod}/RUNBOOK-tema.md` |
 | Quirk de cliente / preferência coletiva | `memory/reference/` (fato/feedback canônico) · `~/.claude/oimpresso-local/` (só seu, ADR 0131) |
 | Estado/incidente histórico | `memory/sessions/YYYY-MM-DD-slug.md` |
-| Comparativo competitivo | `memory/comparativos/slug_capterra.md` |
+| Comparativo competitivo | `memory/research/comparativos/slug_capterra.md` |
 | Endpoint / SSH / credencial | `INFRA.md` (apenda) + Vaultwarden secrets |
 | Convenção projeto | `memory/04-conventions.md` (apenda) |
 
