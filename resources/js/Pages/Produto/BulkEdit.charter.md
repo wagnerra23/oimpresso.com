@@ -7,6 +7,8 @@ status: draft
 last_validated: "2026-05-15"
 parent_module: Produto
 related_adrs: [104, 149, 93, 107]
+related_runbook: memory/requisitos/Produto/_telas/RUNBOOK-produto-bulk-edit.md
+related_visual_comparison: memory/requisitos/Produto/_telas/produto-bulk-edit-visual-comparison.md
 tier: A
 charter_version: 1
 mwart_pattern_reuse:
