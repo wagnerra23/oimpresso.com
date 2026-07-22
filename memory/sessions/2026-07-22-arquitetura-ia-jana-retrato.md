@@ -1,18 +1,26 @@
 ---
-title: "Retrato — arquitetura de IA da Jana (profissionalização)"
+date: 2026-07-22
+topic: "Retrato da arquitetura de IA da Jana (profissionalização): 3 notas medidas + veredito CONSOLIDAR"
 type: session
 status: done
-authority: tecnico
-lifecycle: ativo
-decided_at: 2026-07-22
-decided_by: [CC]
+authors: [C]
 module: Jana
+prs: [4674]
 pergunta_origem: "estrutura profissional de IA — arquitetura (auditar e propor profissionalização da arquitetura de IA existente)"
-related_adrs: [0035, 0048, 0052, 0053, 0061, 0062, 0093, 0094, 0234]
+related_adrs:
+  - 0035-stack-ai-canonica-wagner-2026-04-26
+  - 0048-framework-agentes-laravel-ai-vizra-rejeitada
+  - 0052-memoria-jana-3-angulos-faturamento
+  - 0053-mcp-server-governanca-como-produto
+  - 0061-conhecimento-canonico-git-mcp-zero-automem
+  - 0062-separacao-runtime-hostinger-ct100
+  - 0093-multi-tenant-isolation-tier-0
+  - 0094-constituicao-v2-7-camadas-8-principios
+  - 0234-automation-registry-mcp
 fontes_medidas:
-  - memory/requisitos/Jana/IA-MATURITY-FICHA.md  # AI maturity 88/100 (2026-05-16, STALE)
-  - memory/requisitos/Jana/AUDITORIA-IA-OS-2026-06-06.md  # IA-OS sistêmica 79/100 (code-verified)
-  - memory/governance/vital-signs.json  # screen grade Jana média 76 (2026-07-06)
+  - memory/requisitos/Jana/IA-MATURITY-FICHA.md
+  - memory/requisitos/Jana/AUDITORIA-IA-OS-2026-06-06.md
+  - memory/governance/vital-signs.json
 ---
 
 # Retrato — arquitetura de IA da Jana (2026-07-22)
