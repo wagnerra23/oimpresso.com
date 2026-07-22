@@ -203,6 +203,8 @@ jobs:
         run: node scripts/governance/document-relocation-adversary.mjs --selftest
       - name: Classificador documental (camadas ADR 0334 + receita stale vira revisao)
         run: node scripts/governance/document-relocation-classifier.mjs --selftest
+      - name: Executor documental (dry-run + git mv + relink + recibo Git)
+        run: node scripts/governance/document-relocation-executor.mjs --selftest
       # P10 — integridade referencial rota↔código (T-AP-3/14/15 · M-AP-1 do F3 rejeitado).
       # A catraca é hermética (fixtures bite/release, ancorada no contrato LICOES_F3); se ela
       # parar de morder, ESTE passo falha. O relatório é ADVISORY (ADR 0314 — não-Tier-0): roda
