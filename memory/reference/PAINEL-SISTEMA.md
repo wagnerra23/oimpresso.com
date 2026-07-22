@@ -167,14 +167,14 @@ lifecycle: ativo
 
 ## Rastro
 
-- **298** handoffs · **505** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
+- **299** handoffs · **506** session logs. Índice: [`memory/08-handoff.md`](../08-handoff.md).
 - Sessions recentes:
   - `2026-07-22-porta-documental-unica-guardiao-duplicatas`
+  - `2026-07-22-ciclo-realocacao-documental-profissional`
   - `2026-07-22-ciclo-documental-guardiao-fechado`
   - `2026-07-22-arquitetura-ia-jana-retrato`
   - `2026-07-22-adversario-realocacao-documental`
   - `2026-07-21-topicos-vivos-aprendizado-critica-revisada`
-  - `2026-07-21-topico-fato-bi-temporal-valid-from-until`
 
 ---
 _Gerado por `scripts/governance/system-map.mjs` · 2026-07-22 · deriva das fontes canônicas, não as substitui._

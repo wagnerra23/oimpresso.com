@@ -17,6 +17,7 @@ Este `README.md` é a **única porta global da documentação**. Não leia tudo 
 | Preparar o ambiente ou executar o projeto | [Como executar](#como-executar) | Testes e PHPStan continuam exclusivos do CT 100 |
 | Acessar infraestrutura ou fazer deploy | [Infra e acesso canônicos](memory/reference/INFRA-ACESSO-CANON.md) | Siga o runbook específico apontado ali |
 | Procurar um documento conhecido | [Catálogo de documentos](memory/INDEX.md) | O índice cataloga; ele não redefine a porta de entrada |
+| Classificar ou realocar documentação | [Realocação documental](memory/governance/REALOCACAO-DOCUMENTAL.md) | Gere o plano; adversário e dry-run vêm antes do `git mv` |
 
 > Regra de estrutura: **uma autoridade por assunto**. Outros `README.md` podem existir como portas **locais** de módulos e pastas, mas não podem se declarar outra porta global nem copiar uma autoridade existente.
 
