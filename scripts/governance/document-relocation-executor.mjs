@@ -173,13 +173,35 @@ export function executePlan(plan, { root = DEFAULT_ROOT, apply = false, commit =
   }
 }
 
+// Existe no HEAD? (git cat-file -e sai 0 se o blob existe, !=0 senao)
+function existsAtHead(root, relPath) {
+  try {
+    git(resolve(root), ['cat-file', '-e', `HEAD:${posix(relPath)}`], { stdio: ['ignore', 'pipe', 'ignore'] });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Historico durável de movimentos. NUNCA confia so no trailer: verifica a
+// REALIDADE no HEAD. Um move so aconteceu de fato se o destino existe e a
+// origem sumiu. Recibo cujo destino NAO existe = fantasma (move gravado e
+// depois revertido dentro do mesmo PR — o trailer sobrevive ao squash, o
+// arquivo nao). Sem `landed`, `--history` mente reportando move que nao landou
+// (incidente 2026-07-22: #4681 gravou 5 Document-Move dominio/->dominios/ que
+// foram revertidos; dominio/ e contrato de path de gate, nao pasta duplicada).
 export function movementHistory(root = DEFAULT_ROOT) {
   const raw = git(resolve(root), ['log', '--grep=^Document-Move:', '--date=iso-strict', '--format=%H%x1f%ad%x1f%B%x1e']);
   return raw.split('\x1e').filter(Boolean).flatMap((record) => {
     const [commit, date, ...bodyParts] = record.replace(/^\s+|\s+$/g, '').split('\x1f');
     const body = bodyParts.join('\x1f');
     return [...body.matchAll(/^Document-Move:\s*(.+?)\s*=>\s*(.+)$/gm)]
-      .map((match) => ({ commit, date, source: match[1], target: match[2] }));
+      .map((match) => {
+        const source = match[1];
+        const target = match[2];
+        const landed = existsAtHead(root, target) && !existsAtHead(root, source);
+        return { commit, date, source, target, landed };
+      });
   });
 }
 
@@ -221,6 +243,14 @@ function selftest() {
     git(fixture, ['commit', '--allow-empty', '-q', '-m', 'movimento lateral', '-m', 'Document-Move: docs/ghost.md => memory/reference/ghost.md']);
     git(fixture, ['switch', '-q', canonicalBranch]);
     check('historico ignora branch nao fundida', !movementHistory(fixture).some((row) => row.source === 'docs/ghost.md'));
+    // Move real landou -> landed:true (destino existe, origem sumiu no HEAD).
+    check('move real marcado landed:true', movementHistory(fixture).some((row) => row.source === 'docs/source.md' && row.landed === true));
+    // Recibo FANTASMA fundido: trailer gravado mas destino nunca existiu no HEAD
+    // (move revertido dentro do mesmo PR; o trailer sobrevive ao squash). O
+    // historico NAO pode reporta-lo como move realizado (incidente 2026-07-22 #4681).
+    git(fixture, ['commit', '--allow-empty', '-q', '-m', 'recibo revertido', '-m', 'Document-Move: memory/reference/door.md => memory/reference/inexistente.md']);
+    check('recibo fantasma fundido marcado landed:false', movementHistory(fixture)
+      .some((row) => row.target === 'memory/reference/inexistente.md' && row.landed === false));
     // Contagem declarada diverge do encontrado (review 2026-07-22 P2 replaceExact global):
     // NOTES.md tem a string 2x, plano declara 1 -> aborta e faz rollback integral.
     writeFileSync(join(fixture, 'docs/extra.md'), '# Extra\n');
@@ -251,7 +281,14 @@ function main() {
   const option = (name) => { const at = args.indexOf(name); return at >= 0 ? args[at + 1] : null; };
   const root = resolve(option('--root') || process.cwd());
   if (args.includes('--selftest')) return selftest();
-  if (args.includes('--history')) return console.log(JSON.stringify(movementHistory(root), null, 2));
+  if (args.includes('--history')) {
+    const rows = movementHistory(root);
+    const phantom = rows.filter((r) => !r.landed);
+    console.log(JSON.stringify(rows, null, 2));
+    console.error(`\nmovimentos: ${rows.length} · landados: ${rows.length - phantom.length} · FANTASMA (recibo sem destino no HEAD): ${phantom.length}`);
+    for (const p of phantom) console.error(`  ⚠️ ${p.source} => ${p.target}  (${p.commit.slice(0, 9)}) — destino NAO existe no HEAD`);
+    return;
+  }
   const planPath = option('--plan');
   if (!planPath) throw new Error('uso: --plan <arquivo.json|-> [--apply] [--commit] | --history | --selftest');
   const plan = JSON.parse(readFileSync(planPath === '-' ? 0 : resolve(planPath), 'utf8'));
