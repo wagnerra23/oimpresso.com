@@ -24,18 +24,25 @@ normal é **rejeitado** pelo adversário (`IMMUTABLE_REFERRER` / `MISSING_REWRIT
 
 O modo **`move-with-tombstone`** (proposal `estrutura-canon-memoria` §II.5 passo 7) destrava
 esse caso: move o conteúdo para o destino canônico **e deixa um _stub_ de redirecionamento no
-path antigo**. Como o path antigo continua existindo, os links dentro de ADR/session/handoff
-**seguem resolvendo sem qualquer edição no histórico**. Referrers **mutáveis** são relinkados
-para o canônico normalmente — o stub serve apenas os que não podem ser reescritos.
+path antigo**. Como o path antigo continua existindo, os links que apontam para ele **seguem
+resolvendo sem qualquer edição**. Referrers **livres** são relinkados para o canônico; o stub
+serve os **não-relinkáveis**, que são de duas classes:
+
+- **append-only** (`memory/decisions|sessions|handoffs/`) — editar viola Tier 0 (`IMMUTABLE_REFERRER`);
+- **sob gate diff-aware** (`memory/requisitos/**`, `resources/js/Pages/**/*.charter.md`) — relinkar
+  põe o arquivo no diff e/ou muda a data-git do doc mais novo do módulo, acordando anchor-lint /
+  schema / `distiller_freshness` sobre dívida pré-existente (lápide 2026-07-12); barrado por
+  `GATE_GUARDED_REFERRER`. `memory/reference/*.md` **não** entra (schema em grace/warn-only, fora
+  do ratchet) — é relinkado normalmente.
 
 Regras que o adversário aplica (todas com selftest que morde):
 
-- o stub só é aceito quando existe **de fato** um referrer append-only (`TOMBSTONE_UNJUSTIFIED`
-  caso contrário — não é escape-hatch para pular relink de referrer mutável);
-- a isenção de relink é **escopada aos imutáveis**: referrer mutável não declarado ainda quebra
-  o plano (`MISSING_REWRITE`);
+- o stub só é aceito quando existe **de fato** um referrer não-relinkável (`TOMBSTONE_UNJUSTIFIED`
+  caso contrário — não é escape-hatch para pular relink de referrer livre);
+- a isenção de relink é **escopada aos não-relinkáveis**: referrer livre não declarado ainda
+  quebra o plano (`MISSING_REWRITE`);
 - isenção de relink **não** é permissão de editar: declarar rewrite sobre append-only continua
-  `IMMUTABLE_REFERRER`.
+  `IMMUTABLE_REFERRER`; sobre arquivo gate-guarded, `GATE_GUARDED_REFERRER`.
 
 Gerar o plano (opt-in explícito via `--tombstone`; sem a flag o lote **exclui** esses sources):
 
@@ -50,11 +57,13 @@ O executor grava o stub após o `git mv` e valida no pós-check que o path antig
 marcador `tombstone: true`. O commit ganha um trailer `Document-Tombstone: <antigo> -> <novo>`
 além do `Document-Move`, e o `docs:relocation:history` continua listando o deslocamento.
 
-> Regressão evitada (lápide 2026-07-12): o stub mora sob a pasta legada (ex.: `memory/comparativos/`),
-> que **não** casa nenhum glob de gate diff-aware (`anchor-lint` = só `memory/requisitos/*/SPEC.md`;
-> `memory-schema-gate` = decisions/SPEC/RUNBOOK/session/handoff/charter/BRIEFING/tópico/reference;
-> scorecard/distiller = BRIEFING por módulo). Provar antes de cada convergência que o diff não
-> acorda esses gates faz parte do passo 9.
+> Regressão evitada (lápide 2026-07-12): o stub mora sob a pasta legada (ex.: `memory/comparativos/`)
+> e o alvo sob `memory/research/` — nenhum dos dois casa glob de gate diff-aware. E, por deixar os
+> referrers gate-guarded apontando para o stub, o diff **não inclui** nenhum arquivo sob
+> `memory/requisitos/**` — logo não acorda `anchor-lint`, `memory-schema-gate` (SPEC/RUNBOOK/BRIEFING/
+> tópico/charter) nem `distiller_freshness` (que keia na data-git de qualquer `.md` do módulo, via
+> `git log -1 --format=%cs`). **Provar antes** de cada convergência — listar os arquivos relinkados e
+> confirmar 0 sob glob de gate — faz parte do passo 9.
 
 ## As três camadas
 

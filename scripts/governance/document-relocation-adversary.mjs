@@ -197,6 +197,25 @@ function isImmutableHistory(path) {
   return /^memory\/(?:decisions|sessions|handoffs)\//.test(path);
 }
 
+// Referrer sob gate diff-aware que MORDE ao ser tocado (lapide 2026-07-12: "tocar legado
+// acorda anchor-lint/scorecard"). Reescrever o link o poe no diff do PR e/ou muda a data-git
+// do doc mais novo do modulo — o que reprova gate/ratchet REQUIRED sobre divida pre-existente:
+//   - memory/requisitos/**  : anchor-lint + schema (SPEC/RUNBOOK/BRIEFING/topico) + distiller_freshness
+//                             (sdd-scorecard keia na data-git de QUALQUER .md do modulo).
+//   - Pages/**/*.charter.md  : schema charter (required).
+// Reference (grace/warn-only, fora do ratchet) NAO entra — e seguro relinkar. Estes referrers
+// sao servidos pelo STUB do tombstone, exatamente como os append-only: nem relink nem edicao.
+export function isGateGuarded(path) {
+  return /^memory\/requisitos\//.test(path)
+    || /^resources\/js\/Pages\/.*\.charter\.md$/.test(path);
+}
+
+// "Nao-relinkavel": referrer que o realocador NAO pode reescrever — por ser historico
+// append-only (Tier 0) OU por acordar gate diff-aware. O stub do tombstone serve os dois.
+function isUnrelinkableReferrer(path) {
+  return isImmutableHistory(path) || isGateGuarded(path);
+}
+
 function looksGenerated(path, content) {
   const name = posix.basename(path).toUpperCase();
   if (name === 'SUPERFICIE.MD' || name.includes('-GENERATED')) return true;
@@ -313,6 +332,12 @@ function validateRewrites(op, index, refs, finalPaths, issues) {
     // required por causa do stub: isencao de relink != permissao de editar.
     if (isImmutableHistory(rewrite.file)) {
       issues.push(issue('error', 'IMMUTABLE_REFERRER', 'relink exigiria editar ADR/session/handoff append-only; preserve o path (tombstone) ou retire a operacao', index, rewrite.file));
+      continue;
+    }
+    // Relinkar referrer sob gate diff-aware o poe no diff e acorda o gate sobre divida
+    // pre-existente (lapide 2026-07-12). Nunca via este realocador — o stub do tombstone o serve.
+    if (isGateGuarded(rewrite.file)) {
+      issues.push(issue('error', 'GATE_GUARDED_REFERRER', 'relink tocaria arquivo sob gate diff-aware (memory/requisitos/** ou charter); acordaria o gate — use tombstone (o stub serve o referrer)', index, rewrite.file));
       continue;
     }
     const found = actual.get(key);
@@ -457,18 +482,19 @@ export function validatePlan(plan, context) {
     if (!op.source || !op.target) continue;
     const allInbound = incoming.get(op.source.toLowerCase()) ?? [];
     // move-with-tombstone (proposal estrutura-canon-memoria §II.5 passo 7): o path antigo e
-    // PRESERVADO como stub de redirecionamento. Referrers append-only (ADR/session/handoff),
-    // que nao podem ser reescritos, seguem resolvendo pelo stub — logo NAO exigem relink. A
-    // isencao e ESCOPADA aos imutaveis: referrer mutavel segue obrigatorio (relink canonico).
-    // Sem referrer append-only o stub e injustificado (seria escape-hatch pra pular relink).
-    if (op.tombstone === true && !allInbound.some((ref) => isImmutableHistory(ref.file))) {
-      issues.push(issue('error', 'TOMBSTONE_UNJUSTIFIED', 'tombstone so se justifica com referrer append-only; sem ele, faca um move normal com relink', index));
+    // PRESERVADO como stub de redirecionamento. Referrers NAO-RELINKAVEIS — append-only
+    // (ADR/session/handoff, Tier 0) e sob gate diff-aware (memory/requisitos/**, charter) —
+    // seguem resolvendo pelo stub, logo NAO exigem relink. A isencao e ESCOPADA a esses: referrer
+    // LIVRE segue obrigatorio (relink canonico). Sem referrer nao-relinkavel o stub e injustificado
+    // (seria escape-hatch pra pular relink de arquivo livre).
+    if (op.tombstone === true && !allInbound.some((ref) => isUnrelinkableReferrer(ref.file))) {
+      issues.push(issue('error', 'TOMBSTONE_UNJUSTIFIED', 'tombstone so se justifica com referrer nao-relinkavel (append-only ou sob gate diff-aware); sem ele, faca um move normal com relink', index));
     }
     // Simetrico ao outbound: se o referrer TAMBEM move (lote coeso) e o link ja resolve pro
     // novo local do source, nao exige rewrite — o link continua valido. Se o referrer NAO move,
     // finalRefFile === ref.file e o link antigo nao resolve mais -> rewrite segue obrigatorio.
     const inbound = allInbound
-      .filter((ref) => !(op.tombstone === true && isImmutableHistory(ref.file)))
+      .filter((ref) => !(op.tombstone === true && isUnrelinkableReferrer(ref.file)))
       .filter((ref) => {
         const finalRefFile = finalPaths.get(ref.file.toLowerCase()) ?? ref.file;
         return !referenceCandidates(finalRefFile, ref.raw, ref.kind)
@@ -699,6 +725,7 @@ function runSelftest() {
     ['docs/legado-tomb.md', '# Legado\n'],
     ['README.md', '[Guia](docs/legado-tomb.md)\n'],
     ['memory/decisions/0001-regra.md', '[Guia](../../docs/legado-tomb.md)\n'],
+    ['memory/requisitos/Financeiro/SPEC.md', '[Guia](../../../docs/legado-tomb.md)\n'],
     ['memory/reference/existing.md', '# x\n'],
     ['memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md', '# Constituicao\n'],
   ]);
@@ -710,6 +737,7 @@ function runSelftest() {
   };
   const tombRefReadme = { file: 'README.md', kind: 'markdown-link', raw: 'docs/legado-tomb.md', target: 'docs/legado-tomb.md', fragment: '' };
   const tombRefAdr = { file: 'memory/decisions/0001-regra.md', kind: 'markdown-link', raw: '../../docs/legado-tomb.md', target: 'docs/legado-tomb.md', fragment: '' };
+  const tombRefSpec = { file: 'memory/requisitos/Financeiro/SPEC.md', kind: 'markdown-link', raw: '../../../docs/legado-tomb.md', target: 'docs/legado-tomb.md', fragment: '' };
   const tombOp = (over = {}) => ({
     source: 'docs/legado-tomb.md', target: 'memory/reference/legado-tomb.md', tombstone: true,
     classification: { kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'legado-tomb', layer: 'ia-os', door: 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md' },
@@ -729,6 +757,15 @@ function runSelftest() {
     { file: 'memory/decisions/0001-regra.md', kind: 'markdown-link', from: '../../docs/legado-tomb.md', to: '../reference/legado-tomb.md' },
   ] }), [tombRefReadme, tombRefAdr]);
   check('MORDE: tombstone NAO autoriza editar append-only', tombEditsImmutable.issues.some((i) => i.code === 'IMMUTABLE_REFERRER'), tombEditsImmutable);
+  // Gate-guarded (lapide 2026-07-12): referrer sob memory/requisitos/** acorda anchor-lint/schema/
+  // distiller ao ser tocado. O stub o serve como um append-only; relinka-lo e barrado.
+  const tombGateOnly = tombPlan(tombOp(), [tombRefReadme, tombRefSpec]);
+  check('SOLTA: tombstone justificado so por referrer sob gate diff-aware (sem append-only)', tombGateOnly.verdict === 'APPROVE', tombGateOnly);
+  const tombEditsGate = tombPlan(tombOp({ rewrites: [
+    { file: 'README.md', kind: 'markdown-link', from: 'docs/legado-tomb.md', to: 'memory/reference/legado-tomb.md' },
+    { file: 'memory/requisitos/Financeiro/SPEC.md', kind: 'markdown-link', from: '../../../docs/legado-tomb.md', to: '../../reference/legado-tomb.md' },
+  ] }), [tombRefReadme, tombRefSpec]);
+  check('MORDE: relink de referrer sob gate diff-aware e barrado (GATE_GUARDED_REFERRER)', tombEditsGate.issues.some((i) => i.code === 'GATE_GUARDED_REFERRER'), tombEditsGate);
 
   for (const row of cases) console.log(`${row.ok ? '[OK]  ' : '[FAIL]'} ${row.name}`);
   const failed = cases.filter((row) => !row.ok);

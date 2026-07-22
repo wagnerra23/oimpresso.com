@@ -78,8 +78,9 @@ export function renderTombstone(op) {
     `Conteudo movido para o local canonico: [${op.target}](${link}).`,
     '',
     '> Lapide de realocacao documental (move-with-tombstone). O path antigo permanece',
-    '> porque referencias append-only (ADR/session/handoff) apontam para ca e nao podem',
-    '> ser reescritas. Links novos devem usar o destino canonico acima.',
+    '> porque referencias que nao podem ser reescritas apontam para ca — append-only',
+    '> (ADR/session/handoff) ou sob gate diff-aware (SPEC/RUNBOOK/charter). Links novos',
+    '> devem usar o destino canonico acima.',
     '',
   ].join('\n');
 }

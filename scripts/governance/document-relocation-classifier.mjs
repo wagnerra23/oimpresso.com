@@ -11,6 +11,7 @@ import {
   collectIncomingReferences,
   extractDocumentReferences,
   extractLiteralReferences,
+  isGateGuarded,
   ownerRules,
   resolveReference,
   validatePlanAtRoot,
@@ -200,15 +201,18 @@ function rewritesFor(source, target, files, finalPaths = new Map([[source.toLowe
     }));
 }
 
-const isAppendOnlyPath = (p) => /^memory\/(?:decisions|sessions|handoffs)\//.test(p);
+// Referrer NAO-RELINKAVEL = append-only (Tier 0) OU sob gate diff-aware (memory/requisitos/**,
+// charter — lapide 2026-07-12: relinkar acorda anchor-lint/schema/distiller). Fonte da regra
+// gate-guarded = adversario (importada), sem drift. O stub do tombstone serve os dois.
+const isUnrelinkablePath = (p) => /^memory\/(?:decisions|sessions|handoffs)\//.test(p) || isGateGuarded(p);
 
 // move-with-tombstone (proposal estrutura-canon-memoria §II.5 passo 7): separa os relinks que
-// tocariam historico append-only (vao pro STUB no path antigo) dos mutaveis (relinkados pro
-// canonico). So sob --tombstone; sem ele o comportamento e EXCLUIR o source (buildBatchPlan).
+// NAO podem ser feitos (vao pro STUB no path antigo) dos livres (relinkados pro canonico).
+// So sob --tombstone; sem ele o comportamento e EXCLUIR o source (buildBatchPlan).
 function partitionForTombstone(rewrites) {
   return {
-    immutable: rewrites.filter((r) => isAppendOnlyPath(r.file)),
-    mutable: rewrites.filter((r) => !isAppendOnlyPath(r.file)),
+    immutable: rewrites.filter((r) => isUnrelinkablePath(r.file)),
+    mutable: rewrites.filter((r) => !isUnrelinkablePath(r.file)),
   };
 }
 
@@ -269,14 +273,15 @@ export function buildBatchPlan(sources, { tombstone = false } = {}) {
   const alreadyCanonical = classified.filter((c) => c.inferred.already_canonical).map((c) => c.source);
   let active = classified.filter((c) => !c.inferred.already_canonical);
   const excluded = [];
-  // Sem tombstone: exclui em cadeia quem geraria relink em append-only (recomputa finalPaths
-  // a cada remocao). Com tombstone: NAO exclui — todos migram (o stub cobre os imutaveis).
+  // Sem tombstone: exclui em cadeia quem geraria relink NAO-RELINKAVEL (append-only OU sob gate
+  // diff-aware; recomputa finalPaths a cada remocao). Com tombstone: NAO exclui — todos migram
+  // (o stub cobre os nao-relinkaveis).
   if (!tombstone) {
     for (let guard = active.length; guard >= 0; guard -= 1) {
       const finalPaths = new Map(active.map((c) => [c.source.toLowerCase(), c.inferred.target]));
-      const offender = active.find((c) => rewritesFor(c.source, c.inferred.target, files, finalPaths).some((r) => isAppendOnlyPath(r.file)));
+      const offender = active.find((c) => rewritesFor(c.source, c.inferred.target, files, finalPaths).some((r) => isUnrelinkablePath(r.file)));
       if (!offender) break;
-      excluded.push({ source: offender.source, reason: 'referrer append-only (relink exigiria editar ADR/session/handoff); preserve o path ou use --tombstone' });
+      excluded.push({ source: offender.source, reason: 'referrer nao-relinkavel (append-only ou sob gate diff-aware); preserve o path ou use --tombstone' });
       active = active.filter((c) => c !== offender);
     }
   }
@@ -330,14 +335,17 @@ function selftest() {
     // Consolidacao stale AINDA cai (o rebaixamento morde acima da inflacao de consolidacao).
     ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/clientes-legacy/y.md', text: '# Y\nbranch 6.7-react', modules }).confidence < 0.9],
     // Owner [W] 2026-07-22: comparativos/ (Capterra/mercado) e research, nunca governance/reference.
-    ['comparativo-vira-research', (() => { const c = classifyDocument({ source: 'memory/comparativos/oimpresso_vs_concorrentes_capterra_2026_04_25.md', text: '# oimpresso vs concorrentes', modules }); return c.classification.kind === 'research' && c.classification.owner === 'research' && c.target.startsWith('memory/research/'); })()],
-    // move-with-tombstone (§II.5 passo 7): a particao separa o relink que tocaria append-only
-    // (vai pro stub) do mutavel (relinkado). E o dente do modo tombstone no lado do classificador.
-    ['tombstone-particao-separa-append-only', (() => {
+    // Path SINTETICO (fixture nunca usa doc real — o relink o reescreveria, incl. este script).
+    ['comparativo-vira-research', (() => { const c = classifyDocument({ source: 'memory/comparativos/fixture-capterra.md', text: '# comparativo fixture', modules }); return c.classification.kind === 'research' && c.classification.owner === 'research' && c.target.startsWith('memory/research/'); })()],
+    // move-with-tombstone (§II.5 passo 7): a particao separa o relink NAO-RELINKAVEL (append-only
+    // OU sob gate diff-aware — vai pro stub) do livre (relinkado). Dente do modo tombstone no lado
+    // do classificador. memory/requisitos/**/SPEC.md e gate-guarded (acorda anchor-lint/distiller).
+    ['tombstone-particao-separa-nao-relinkavel', (() => {
       const { immutable, mutable } = partitionForTombstone([
-        { file: 'memory/decisions/0001-x.md' }, { file: 'README.md' }, { file: 'memory/sessions/2026-01-01-y.md' }, { file: 'memory/reference/z.md' },
+        { file: 'memory/decisions/0001-x.md' }, { file: 'README.md' }, { file: 'memory/sessions/2026-01-01-y.md' },
+        { file: 'memory/requisitos/Financeiro/SPEC.md' }, { file: 'memory/reference/z.md' },
       ]);
-      return immutable.length === 2 && mutable.length === 2 && mutable.every((r) => r.file === 'README.md' || r.file === 'memory/reference/z.md');
+      return immutable.length === 3 && mutable.length === 2 && mutable.every((r) => r.file === 'README.md' || r.file === 'memory/reference/z.md');
     })()],
   ];
   for (const [name, ok] of cases) console.log(`${ok ? '[OK]' : '[FALHA]'} ${name}`);
