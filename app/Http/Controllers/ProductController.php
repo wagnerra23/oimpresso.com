@@ -2703,12 +2703,16 @@ class ProductController extends Controller
         if (request()->header('X-Inertia')) {
             // CU-PROD-11.1 — resolve variação/local selecionados. O front usa a 1ª variação e o 1º
             // local quando nada vem na query; o controller espelha esse default pra o defer bater.
+            // Mapeia as variações UMA vez e reusa (payload + default) — evita 2º acesso a ->variations.
+            $variationsPayload = $product->variations->map(fn ($v) => [
+                'id' => (int) $v->id,
+                'name' => (string) $v->name,
+                'subSku' => (string) ($v->sub_sku ?? ''),
+            ])->all();
             $selectedVariationId = (int) (request()->input('variation_id')
-                ?: ($product->variations->first()->id ?? 0));
-            // forDropdown() devolve Collection (keyed por id); normaliza pra array antes do array_key_first.
-            $locationOptions = $business_locations instanceof \Illuminate\Support\Collection
-                ? $business_locations->toArray()
-                : (array) $business_locations;
+                ?: ($variationsPayload[0]['id'] ?? 0));
+            // forDropdown() pode devolver array OU Collection (keyed por id); collect()->toArray() normaliza.
+            $locationOptions = collect($business_locations)->toArray();
             $selectedLocationId = request()->input('location_id')
                 ?: array_key_first($locationOptions);
 
@@ -2720,11 +2724,7 @@ class ProductController extends Controller
                     'type' => (string) $product->type,
                     'unit' => $product->unit?->actual_name,
                 ],
-                'variations' => $product->variations->map(fn ($v) => [
-                    'id' => (int) $v->id,
-                    'name' => (string) $v->name,
-                    'subSku' => (string) ($v->sub_sku ?? ''),
-                ])->all(),
+                'variations' => $variationsPayload,
                 'businessLocations' => $business_locations,
                 'filters' => [
                     'variationId' => (string) ($selectedVariationId ?: ''),
