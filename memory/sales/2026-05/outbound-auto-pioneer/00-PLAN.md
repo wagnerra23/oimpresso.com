@@ -605,6 +605,6 @@ Se taxa total < 8% em 30 dias → recalibrar mensagem ou ICP. Se nenhum lead em 
 - [SPEC OficinaAuto](../../../requisitos/OficinaAuto/SPEC.md) — contrato funcional do módulo
 - [outbound-comvis-q2/00-PLAN.md](../outbound-comvis-q2/00-PLAN.md) — playbook irmão (ComunicacaoVisual)
 - [outbound-vest-q3/00-PLAN.md](../outbound-vest-q3/00-PLAN.md) — playbook irmão (Vestuario)
-- [memory/clientes-legacy/rota-livre.md](../../../clientes-legacy/rota-livre.md) — case piloto técnico de capacidade
+- [memory/clientes/rota-livre/operacao.md](../../../clientes/rota-livre/operacao.md) — case piloto técnico de capacidade
 - [ADR 0105](../../../decisions/0105-cliente-como-sinal-guiar-sem-mandar.md) — cliente como sinal qualificado
 - [ADR 0121](../../../decisions/0121-oimpresso-modular-especializado-por-vertical.md) — vertical especializado
