@@ -135,6 +135,14 @@ das famílias já existentes, mais os owners de negócio que faltam:
 - **Append-only** → `memory/decisions/`, `sessions/`, `handoffs/` (intocáveis)
 - **Ciclo de vida** → `memory/archive/{legacy,superseded,historical}` (decaimento — **não** é owner)
 
+> ⚠️ **`memory/dominio/` (SINGULAR) NÃO é conhecimento de negócio a realocar — é contrato de path.**
+> Correção medida (adversário 2026-07-22, [proibicoes §5](../../proibicoes.md)): os 6 arquivos de
+> `memory/dominio/` (singular) são os **dicionários de enum G-4** ([ADR 0264](../0264-governanca-executavel-trio-dominio-e2e.md)),
+> fonte-única do gate REQUIRED `dominio-gate` lida por **path FIXO** (`domain-dict-guard.mjs:74`).
+> São dono **distinto** do plural `memory/dominios/` (Migration Factory legacy, [ADR 0118](../0118-segregacao-dominios-externos-clientes-legacy.md)/[0119](../0119-migration-factory-capacidade-institucional.md)) — **não** duplicata a consolidar.
+> A regex de owner `/^memory\/dominios?\//` (o `s?`) fundia os dois; corrigido com `isProtectedPath()`
+> tratando o singular como PROTECTED (nunca gera move). **Convergência (passo 9) exclui `memory/dominio/`.**
+
 ## II.4 Owners canônicos de realocação (REGISTRO a criar — pré-requisito dos gates)
 
 O passo que destrava todo o resto: um registro único (owner → prefixo → layer → porta) que o

@@ -22,6 +22,16 @@ const PROTECTED = new Set([
   'CODE_NOTES.md', 'MEMORY_TEAM_ONBOARDING.md', 'memory/proibicoes.md',
   'memory/08-handoff.md', 'memory/INDEX.md', 'memory/what-oimpresso.md',
 ]);
+// Paths que a maquina NUNCA relocaliza. singular vs plural (adversario 2026-07-22):
+// `memory/dominio/` (SINGULAR) = dicionarios de enum G-4 (ADR 0264), fonte-unica do
+// dominio-gate por path FIXO (domain-dict-guard.mjs:74) + backlinks em docs append-only
+// (ADR 0265 + 2 handoffs) => contrato de path IMOVEL. `memory/dominios/` (PLURAL) = corpus
+// Migration Factory (ADR 0118/0119), destino canonico legitimo de conhecimento de negocio.
+// O `dominio` (sem `s`) so casa o singular; o plural segue movivel. Nao fundir os dois donos.
+export function isProtectedPath(normalized) {
+  return PROTECTED.has(normalized)
+    || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs|dominio))\//.test(normalized);
+}
 // Enum canonico de lifecycle (ADR 0270): dialetos PT/EN normalizam; desconhecido nao vira 'active'.
 const LIFECYCLE_MAP = new Map([
   ['active', 'active'], ['ativo', 'active'], ['ativa', 'active'],
@@ -183,7 +193,7 @@ export function buildPlan(source, { targetOverride } = {}) {
   const normalized = source.replaceAll('\\', '/').replace(/^\.\//, '');
   const files = tracked();
   if (!files.includes(normalized)) throw new Error(`source nao versionado: ${normalized}`);
-  if (PROTECTED.has(normalized) || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs))\//.test(normalized)) {
+  if (isProtectedPath(normalized)) {
     throw new Error(`source protegido por caminho: ${normalized}`);
   }
   const text = readFileSync(join(ROOT, normalized), 'utf8');
@@ -230,6 +240,11 @@ function selftest() {
     // Review 2026-07-22: historical voltava como active — agora o enum normaliza e preserva.
     ['lifecycle-historical-preservado', classifyDocument({ source: 'x/velho.md', text: '---\ntype: guide\nlifecycle: historical\n---\n# Guia antigo', modules }).classification.lifecycle === 'historical'],
     ['lifecycle-desconhecido-derruba-confianca', classifyDocument({ source: 'x/g.md', text: '---\ntype: guide\nlifecycle: vigente\n---\n# Guia', modules }).confidence < 0.9],
+    // Review 2026-07-22 (adversario): singular memory/dominio/ (dicts G-4 ADR 0264, contrato de
+    // path do dominio-gate) e' IMOVEL; plural memory/dominios/ (Migration Factory ADR 0118/0119)
+    // segue movivel. O `s?` da regex de owner fundia os dois donos — isProtectedPath separa.
+    ['dominio-singular-protegido', isProtectedPath('memory/dominio/oficina-auto.md') === true],
+    ['dominios-plural-movivel', isProtectedPath('memory/dominios/wr-comercial/tabelas/AGENDA.md') === false],
   ];
   for (const [name, ok] of cases) console.log(`${ok ? '[OK]' : '[FALHA]'} ${name}`);
   if (cases.some(([, ok]) => !ok)) process.exit(1);
