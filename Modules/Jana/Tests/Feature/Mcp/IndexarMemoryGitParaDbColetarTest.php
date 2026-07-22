@@ -73,6 +73,9 @@ function coletarFixtureRepo(): string
         // _DesignSystem recursivo
         'memory/requisitos/_DesignSystem/padroes-tela/PT-01-Lista.md' => "# PT-01\ndoc",
 
+        // SUPERFICIE.md por módulo — "quais arquivos são deste contexto" (gerado)
+        'memory/requisitos/Financeiro/SUPERFICIE.md'  => "# Superfície de código — Financeiro\n## Controllers\n- app/Http/Controllers/X.php",
+
         // PII — devem ser IGNORADOS (não há branch que os colete)
         'memory/clientes/martinho-cacambas.md'        => "# Martinho\nemail joao@x.com tel (11) 99999-9999",
         'memory/feedback/algum-feedback.md'           => "# Feedback\nemail maria@y.com",
@@ -249,6 +252,25 @@ it('não duplica memory/08-handoff.md — slug handoff aparece exatamente 1×', 
 
         // nenhum slug duplicado em todo o coletor
         expect(count($slugs))->toBe(count(array_unique($slugs)));
+    } finally {
+        coletarLimpar($base);
+    }
+});
+
+// ── (j) SUPERFICIE.md coletado com type=surface (descoberta por metadado) ────
+
+it('coleta SUPERFICIE.md por módulo com type=surface', function () {
+    $base = coletarFixtureRepo();
+    try {
+        $map = coletarSlugMap(coletarInvoke($base));
+
+        // A "Superfície de código" (gerada por module-surface.mjs) entra no corpus
+        // pra a busca da IA achar "quais arquivos são deste contexto" — dor [W] 2026-07-21.
+        expect($map)->toHaveKey('superficie-financeiro');
+        expect($map['superficie-financeiro']['type'])->toBe('surface');
+        expect($map['superficie-financeiro']['module'])->toBe('financeiro');
+        expect($map['superficie-financeiro']['path'])
+            ->toBe('memory/requisitos/Financeiro/SUPERFICIE.md');
     } finally {
         coletarLimpar($base);
     }

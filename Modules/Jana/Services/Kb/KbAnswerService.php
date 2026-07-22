@@ -34,7 +34,7 @@ use Modules\Jana\Entities\Mcp\McpMemoryDocument;
 class KbAnswerService
 {
     /** Tipos canônicos persistidos em `mcp_memory_documents.type`. */
-    public const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'all'];
+    public const TIPOS_VALIDOS = ['adr', 'spec', 'session', 'handoff', 'briefing', 'surface', 'all'];
 
     /**
      * FASE 1 — Retrieval híbrido determinístico (Princípio 2 Constituição v2:
