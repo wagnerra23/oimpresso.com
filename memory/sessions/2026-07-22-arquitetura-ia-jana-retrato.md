@@ -1,5 +1,5 @@
 ---
-date: 2026-07-22
+date: "2026-07-22"
 topic: "Retrato da arquitetura de IA da Jana (profissionalização): 3 notas medidas + veredito CONSOLIDAR"
 type: session
 status: done
