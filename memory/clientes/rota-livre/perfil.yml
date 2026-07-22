@@ -1,6 +1,6 @@
 slug: rota-livre
 nome_fantasia: ROTA LIVRE
-razao_social: ROTA LIVRE COMERCIO DE VESTUARIO LTDA
+razao_social: LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME  # corrigido 2026-07-22 (why-oimpresso.md); ver PERFIL.md
 business_id: 4
 status: piloto                          # cliente piloto Wagner desde Q1 2026
 plano: starter
@@ -16,10 +16,10 @@ tamanho:
   pontos_venda: 1
 porte: me
 
-localizacao:
-  estado: SP
-  cidade: "São Paulo"
-  bairro: "loja de bairro 8m²"
+localizacao:                            # corrigido 2026-07-22 (era SP/São Paulo, errado — why-oimpresso.md)
+  estado: SC
+  cidade: "Gravatal"
+  bairro: "Termas do Gravatal (loja BL0001)"
 
 tech:
   sistema_anterior: "planilha Excel + caderno fiado"
