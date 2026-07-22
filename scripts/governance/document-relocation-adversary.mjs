@@ -186,6 +186,11 @@ function protectedReason(path) {
   if (/(?:^|\/)AGENTS\.md$/.test(path)) return 'instrucao de agente descoberta por caminho';
   if (/^memory\/requisitos\/[^/]+\/BRIEFING\.md$/.test(path)) return 'porta unica do modulo (ADR 0270)';
   if (/^Modules\/[^/]+\/SCOPE\.md$/.test(path)) return 'contrato de catalogo do modulo';
+  // memory/dominio/ SINGULAR (sem `s`) = dicionarios de enum G-4 (ADR 0264), fonte-unica do
+  // gate REQUIRED dominio-gate lida por path FIXO (domain-dict-guard.mjs) — leitura dinamica de
+  // diretorio que o scanner de referencias literais nao ve. Contrato de path, imovel. O plural
+  // memory/dominios/ (Migration Factory, ADR 0118/0119) segue movivel (o `\/` apos dominio barra).
+  if (/^memory\/dominio\//.test(path)) return 'dicionario de enum G-4 (ADR 0264) — fonte-unica do dominio-gate por path fixo (domain-dict-guard.mjs)';
   return null;
 }
 
@@ -418,6 +423,9 @@ export function validatePlan(plan, context) {
     if (/^memory\/(?:decisions|sessions|handoffs)\//.test(op.target)) {
       issues.push(issue('error', 'PROTECTED_TARGET', 'a maquina nao promove/move documentos para historico imutavel', index, op.target));
     }
+    if (/^memory\/dominio\//.test(op.target)) {
+      issues.push(issue('error', 'PROTECTED_TARGET', 'a maquina nao move documentos para o dicionario de enum G-4 (ADR 0264/dominio-gate)', index, op.target));
+    }
     let content = '';
     try { content = readSource(op.source); } catch (error) {
       issues.push(issue('error', 'SOURCE_UNREADABLE', `nao foi possivel ler source: ${error.message}`, index));
@@ -581,6 +589,10 @@ function runSelftest() {
   const decision = clone(base); decision.operations[0].source = 'memory/decisions/0001-regra.md'; decision.operations[0].rewrites = [];
   const decisionResult = evaluate(decision, { incomingReferences: new Map([['memory/decisions/0001-regra.md', []]]) });
   check('MORDE: historico imutavel', decisionResult.issues.some((i) => i.code === 'PROTECTED_SOURCE'), decisionResult);
+  const dictG4 = clone(base); dictG4.operations[0].source = 'memory/dominio/oficina-auto.md'; dictG4.operations[0].target = 'memory/dominios/oficina-auto.md'; dictG4.operations[0].rewrites = [];
+  const dictG4Result = evaluate(dictG4, { incomingReferences: new Map([['memory/dominio/oficina-auto.md', []]]) });
+  check('MORDE: dict G-4 singular (memory/dominio) protegido por contrato de path', dictG4Result.issues.some((i) => i.code === 'PROTECTED_SOURCE'), dictG4Result);
+  check('SOLTA: plural memory/dominios nao e protegido por path (corpus movivel)', protectedReason('memory/dominios/wr-comercial/x.md') === null, { plural: 'memory/dominios/wr-comercial/x.md' });
   const generated = clone(base); generated.operations[0].source = 'docs/generated.md'; generated.operations[0].rewrites = [];
   const generatedResult = evaluate(generated, { incomingReferences: new Map([['docs/generated.md', []]]) });
   check('MORDE: artefato gerado', generatedResult.issues.some((i) => i.code === 'GENERATED_ARTIFACT'), generatedResult);
