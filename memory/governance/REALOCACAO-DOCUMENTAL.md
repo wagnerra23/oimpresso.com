@@ -156,12 +156,14 @@ Pare sem mover se ocorrer qualquer um destes casos:
 - seria necessário editar histórico append-only;
 - o plano foi gerado em outro SHA;
 - a worktree contém mudanças não relacionadas;
-- `CONFLICTING_REWRITE`: um mesmo literal de caminho aparece no arquivo em dois contextos que
-  exigem destinos diferentes (ex.: `[x](arq.md)` como markdown-link → `./rel` **e** `` `arq.md` ``
-  como code-span → `root/path`). O relink é textual (split/join global) e não distingue contexto,
-  então não aplica os dois — o adversário reprova antes do `git mv`. Resolva manualmente o arquivo
-  (ou preserve o path) e reclassifique. Documentos densamente cruzados com estilos de link mistos
-  caem aqui (ex.: o lote `memory/comparativos/` 2026-07-22 — pendente de relink contexto-consciente).
+- `CONFLICTING_REWRITE` (residual): um `literal-path` (replace do caminho **cru**) coexiste com
+  uma reescrita **estruturada** (`markdown-link`/`code-span`) do mesmo literal no mesmo arquivo —
+  o replace cru sobrepõe as ocorrências `](from)`/`` `from` ``. O classificador nunca gera esse par
+  (o extrator pula o que já é estruturado); é backstop para plano hand-crafted. Resolva à mão.
+  > O relink é **contexto-consciente** (`searchReplaceFor`): o mesmo literal como `[x](arq.md)`
+  > (markdown-link → `./rel`) **e** `` `arq.md` `` (code-span → `root/path`) recebe destinos
+  > diferentes sem colidir. Foi assim que o lote `memory/comparativos/` (2026-07-22), densamente
+  > cruzado com estilos de link mistos, deixou de cair em `CONFLICTING_REWRITE` e convergiu.
 
 O rollback automático cobre falhas durante a execução. Se a operação já foi commitada,
 a correção é um novo commit explícito; não apague nem reescreva o histórico publicado.

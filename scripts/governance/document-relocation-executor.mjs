@@ -8,7 +8,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { dirname, join, posix as ppath, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { validatePlanAtRoot } from './document-relocation-adversary.mjs';
+import { searchReplaceFor, validatePlanAtRoot } from './document-relocation-adversary.mjs';
 
 const DEFAULT_ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
 const git = (root, args, options = {}) => execFileSync('git', ['-C', root, ...args], {
@@ -188,12 +188,14 @@ export function executePlan(plan, { root = DEFAULT_ROOT, apply = false, commit =
     for (const op of plan.operations) for (const rewrite of op.rewrites) {
       const path = finalFile(plan, rewrite.file);
       const absolute = join(repo, path);
-      const result = replaceExact(readFileSync(absolute, 'utf8'), rewrite.from, rewrite.to);
+      // Busca/substituicao contextual por kind (relink contexto-consciente §II.5 passo 9).
+      const [search, replace] = searchReplaceFor(rewrite.kind, rewrite.from, rewrite.to);
+      const result = replaceExact(readFileSync(absolute, 'utf8'), search, replace);
       // Contagem declarada no plano (classifier) vs encontrada no apply: divergiu = o
       // arquivo mudou entre plano e execucao OU a string casa em prosa alem da referencia
       // (review 2026-07-22 P2: split/join e global) — aborta e faz rollback.
       if (typeof rewrite.count === 'number' && result.count !== rewrite.count) {
-        throw new Error(`relink de ${path}: plano declarou ${rewrite.count} ocorrencia(s) de "${rewrite.from}", encontrado ${result.count}`);
+        throw new Error(`relink de ${path}: plano declarou ${rewrite.count} ocorrencia(s) de "${search}", encontrado ${result.count}`);
       }
       writeFileSync(absolute, result.text, 'utf8');
       git(repo, ['add', '--', path]);

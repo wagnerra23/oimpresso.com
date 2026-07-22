@@ -14,6 +14,7 @@ import {
   isGateGuarded,
   ownerRules,
   resolveReference,
+  searchReplaceFor,
   validatePlanAtRoot,
 } from './document-relocation-adversary.mjs';
 
@@ -190,15 +191,18 @@ function rewritesFor(source, target, files, finalPaths = new Map([[source.toLowe
     .filter((ref) => !stillResolves(finalOf(ref.file), ref.raw, ref.kind, target));
   const all = [...inbound, ...outbound];
   const seen = new Set();
-  // count = ocorrencias exatas do `from` no arquivo NO MOMENTO do plano; o executor
-  // confere na hora do apply (drift entre plano e apply aborta a transacao).
+  // count = ocorrencias da string CONTEXTUAL (mesma que o executor busca por kind — relink
+  // contexto-consciente §II.5 passo 9) no arquivo NO MOMENTO do plano; o executor confere na
+  // hora do apply (drift entre plano e apply aborta a transacao). Contar o literal cru daria
+  // count errado quando o mesmo literal aparece em `](from)` e `` `from` `` (contextos distintos).
   const contentCache = new Map();
-  const countIn = (file, from) => {
+  const countIn = (file, kind, from) => {
     if (!contentCache.has(file)) {
       try { contentCache.set(file, readFileSync(join(ROOT, file), 'utf8')); } catch { contentCache.set(file, ''); }
     }
     const content = contentCache.get(file);
-    return content ? content.split(from).length - 1 : 0;
+    const [search] = searchReplaceFor(kind, from, from);
+    return content ? content.split(search).length - 1 : 0;
   };
   return all.filter((ref) => !seen.has(`${ref.file}\0${ref.kind}\0${ref.raw}`) && seen.add(`${ref.file}\0${ref.kind}\0${ref.raw}`))
     .map((ref) => ({
@@ -206,7 +210,7 @@ function rewritesFor(source, target, files, finalPaths = new Map([[source.toLowe
       kind: ref.kind,
       from: ref.raw,
       to: destination(ref.file.toLowerCase() === source.toLowerCase() ? target : finalOf(ref.file), ref.expectedTo, ref.kind, ref.fragment),
-      count: countIn(ref.file, ref.raw),
+      count: countIn(ref.file, ref.kind, ref.raw),
     }));
 }
 
