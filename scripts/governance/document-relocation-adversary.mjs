@@ -443,12 +443,21 @@ export function validatePlan(plan, context) {
   );
   for (const [index, op] of normalized.entries()) {
     if (!op.source || !op.target) continue;
-    const inbound = (incoming.get(op.source.toLowerCase()) ?? []).map((ref) => ({
-      ...ref,
-      role: 'inbound',
-      expectedFrom: op.source,
-      expectedTo: op.target,
-    }));
+    // Simetrico ao outbound: se o referrer TAMBEM move (lote coeso) e o link ja resolve pro
+    // novo local do source, nao exige rewrite — o link continua valido. Se o referrer NAO move,
+    // finalRefFile === ref.file e o link antigo nao resolve mais -> rewrite segue obrigatorio.
+    const inbound = (incoming.get(op.source.toLowerCase()) ?? [])
+      .filter((ref) => {
+        const finalRefFile = finalPaths.get(ref.file.toLowerCase()) ?? ref.file;
+        return !referenceCandidates(finalRefFile, ref.raw, ref.kind)
+          .some((candidate) => candidate.toLowerCase() === op.target.toLowerCase());
+      })
+      .map((ref) => ({
+        ...ref,
+        role: 'inbound',
+        expectedFrom: op.source,
+        expectedTo: op.target,
+      }));
     const content = sourceContents.get(op.source.toLowerCase()) ?? '';
     const structured = extractDocumentReferences(content, op.source);
     const outboundCandidates = [
@@ -623,6 +632,33 @@ function runSelftest() {
   badApproval.approvals = [{ reviewer: 'W', date: '2026-07-22', plan_sha256: 'f'.repeat(64) }];
   const badApprovalResult = evaluate(badApproval);
   check('MORDE: aprovacao com hash que nao corresponde ao plano', badApprovalResult.issues.some((i) => i.code === 'APPROVAL_INVALID') && badApprovalResult.verdict === 'REJECT', badApprovalResult);
+
+  // Lote coeso (piloto dominio/): A e B do corpus de negocio movem juntos; o link interno
+  // A->B preserva a distancia relativa e NAO exige rewrite (simetria inbound/outbound).
+  const cohesiveFiles = new Map([
+    ['memory/dominio/a.md', '# A\n\n[ver B](b.md)\n'],
+    ['memory/dominio/b.md', '# B\n'],
+    ['memory/dominios/_overview.md', '# Overview\n'],
+  ]);
+  const cohesiveCtx = {
+    currentSha: sha,
+    existingFiles: [...cohesiveFiles.keys()],
+    trackedFiles: [...cohesiveFiles.keys()],
+    readSource: (p) => { if (!cohesiveFiles.has(p)) throw new Error('ausente'); return cohesiveFiles.get(p); },
+    incomingReferences: new Map([
+      ['memory/dominio/a.md', []],
+      ['memory/dominio/b.md', extractDocumentReferences(cohesiveFiles.get('memory/dominio/a.md'), 'memory/dominio/a.md').filter((r) => r.target === 'memory/dominio/b.md')],
+    ]),
+  };
+  const domClass = (slug) => ({ kind: 'reference', owner: 'domain', lifecycle: 'active', slug, layer: 'business-knowledge', door: 'memory/dominios/_overview.md' });
+  const cohesiveOps = [
+    { source: 'memory/dominio/a.md', target: 'memory/dominios/a.md', classification: domClass('a'), confidence: 0.95, reason: 'consolidacao de pasta duplicada do corpus de negocio 0334', rewrites: [] },
+    { source: 'memory/dominio/b.md', target: 'memory/dominios/b.md', classification: domClass('b'), confidence: 0.95, reason: 'consolidacao de pasta duplicada do corpus de negocio 0334', rewrites: [] },
+  ];
+  const cohesiveResult = validatePlan({ schema_version: 2, base_sha: sha, operations: cohesiveOps }, cohesiveCtx);
+  check('SOLTA: lote coeso, link interno preserva distancia sem rewrite', cohesiveResult.verdict === 'APPROVE', cohesiveResult);
+  const soloBResult = validatePlan({ schema_version: 2, base_sha: sha, operations: [cohesiveOps[1]] }, cohesiveCtx);
+  check('MORDE: B move sozinho, backlink de A (que ficou) nao declarado', soloBResult.issues.some((i) => i.code === 'MISSING_REWRITE'), soloBResult);
 
   for (const row of cases) console.log(`${row.ok ? '[OK]  ' : '[FAIL]'} ${row.name}`);
   const failed = cases.filter((row) => !row.ok);
