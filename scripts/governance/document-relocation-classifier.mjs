@@ -107,23 +107,37 @@ export function classifyDocument({ source, text, modules, targetOverride }) {
   if (meta.type && kind === 'other') warnings.push(`frontmatter type: ${meta.type} nao reconhecido pelos kinds canonicos`);
 
   const corpus = businessOwner(source);
-  let owner = corpus ?? (moduleName ? `module:${moduleName}` : 'reference');
-  if (!corpus) {
+  // Qualquer doc sob memory/requisitos/<area>/ pertence AQUELA area — mesmo que <area> nao
+  // seja modulo nWidart (Sells/Produto/Estoque/Infra/_DesignSystem sao core UltimatePOS ou
+  // pseudo-pastas, sem Modules/<X>/module.json). Sem isso o classificador misroteava ~200
+  // docs de modulo pra governance (incidente scan 2026-07-22). owner=module:<area> => prefixo
+  // memory/requisitos/<area>/ => alreadyInFamily => NAO move.
+  const requisitosArea = source.match(/^memory\/requisitos\/([^/]+)\//)?.[1];
+  let owner = corpus ?? (requisitosArea ? `module:${requisitosArea}` : moduleName ? `module:${moduleName}` : 'reference');
+  if (!corpus && !requisitosArea) {
     if (kind === 'audit') owner = 'audit';
     else if (kind === 'research') owner = 'research';
     else if (!moduleName && /governan|claude|agente|hook|gate|workflow|ci\b/i.test(`${source}\n${text.slice(0, 2500)}`)) owner = 'governance';
   }
 
   const slug = slugify(meta.slug || posix.basename(source));
-  const prefix = owner.startsWith('module:') ? `memory/requisitos/${moduleName}/`
+  // Modulo do owner (parseado do proprio owner) — pode nao ser nWidart (requisitosArea).
+  const ownerModule = owner.startsWith('module:') ? owner.slice('module:'.length) : null;
+  const prefix = ownerModule ? `memory/requisitos/${ownerModule}/`
     : owner === 'audit' ? 'memory/audits/'
       : owner === 'research' ? 'memory/research/'
         : owner === 'governance' ? 'memory/governance/'
           : owner === 'domain' ? 'memory/dominios/'
             : owner === 'client' ? 'memory/clientes/' : 'memory/reference/';
+  // Doc JA sob o prefixo do owner (mesmo em subpasta) esta na familia certa: NAO move.
+  // Sem isso, memory/research/<sub>/X.md seria achatado pra memory/research/x.md, destruindo
+  // a subarvore e colidindo (incidente teste 2026-07-22: 98 docs em subpastas em risco).
+  // Renomear-pra-slug dentro da familia e curadoria, nao realocacao — nao e trabalho da maquina.
+  const alreadyInFamily = !targetOverride && source.startsWith(prefix);
   // Corpus de negocio preserva a subarvore (nunca achatar wr-comercial/modulos/...).
   let target;
   if (targetOverride) target = targetOverride;
+  else if (alreadyInFamily) target = source;
   else if (owner === 'domain') target = `memory/dominios/${source.replace(/^memory\/dominios\//, '')}`;
   else if (owner === 'client') target = `memory/clientes/${source.replace(/^memory\/clientes(?:-legacy)?\//, '')}`;
   else target = `${prefix}${kind === 'briefing' ? 'BRIEFING' : kind === 'runbook' ? `RUNBOOK-${slug}` : slug}.md`;
@@ -391,6 +405,9 @@ function selftest() {
     ['placement-prefixo-mais-longo-vence', (() => { const A = [{ prefix: 'memory/', rule: 'review' }, { prefix: 'memory/reference/', rule: 'canonical' }]; return resolvePlacement('memory/reference/x.md', A).rule === 'canonical'; })()],
     ['placement-never-respeitado', resolvePlacement('memory/modulos/x.md', [{ prefix: 'memory/modulos/', rule: 'never' }]).rule === 'never'],
     ['placement-nao-declarado-e-review', resolvePlacement('qualquer/coisa/x.md', []).rule === 'review'],
+    // Incidente teste 2026-07-22 (#4691): doc JA sob memory/research/<sub>/ era ACHATADO —
+    // fallback geral do already-in-family (complementa o registro declarado).
+    ['ja-na-familia-nao-achata', (() => { const c = classifyDocument({ source: 'memory/research/2026-05-x/00-INDEX.md', text: '# Index', modules }); return c.already_canonical === true && c.target === 'memory/research/2026-05-x/00-INDEX.md'; })()],
     // Owner [W] 2026-07-22: comparativos/ (Capterra/mercado) e research, nunca governance/reference.
     // Path SINTETICO (fixture nunca usa doc real — o relink o reescreveria, incl. este script).
     ['comparativo-vira-research', (() => { const c = classifyDocument({ source: 'memory/comparativos/fixture-capterra.md', text: '# comparativo fixture', modules }); return c.classification.kind === 'research' && c.classification.owner === 'research' && c.target.startsWith('memory/research/'); })()],
