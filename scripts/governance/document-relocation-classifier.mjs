@@ -18,6 +18,22 @@ import {
 } from './document-relocation-adversary.mjs';
 
 const ROOT = resolve(fileURLToPath(new URL('../..', import.meta.url)));
+
+// Registro DECLARADO de placement por area (scripts/governance/document-placement.json).
+// O classificador CONSULTA este registro em vez de adivinhar por regex qual familia dona a
+// area. Area nao declarada = 'review' (nunca adivinha). Ratificado por [W] no merge.
+const PLACEMENT = (() => {
+  try { return JSON.parse(readFileSync(join(ROOT, 'scripts/governance/document-placement.json'), 'utf8')).areas || []; }
+  catch { return []; }
+})();
+export function resolvePlacement(source, areas = PLACEMENT) {
+  let best = null;
+  for (const a of areas) {
+    if (source.startsWith(a.prefix) && (!best || a.prefix.length > best.prefix.length)) best = a;
+  }
+  return best || { prefix: '', rule: 'review', note: 'area nao declarada no registro de placement' };
+}
+
 const PROTECTED = new Set([
   'README.md', 'AGENTS.md', 'CLAUDE.md', 'DESIGN.md', 'INFRA.md', 'TEAM.md',
   'CODE_NOTES.md', 'MEMORY_TEAM_ONBOARDING.md', 'memory/proibicoes.md',
@@ -232,9 +248,28 @@ export function buildPlan(source, { targetOverride, tombstone = false } = {}) {
   if (PROTECTED.has(normalized) || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs)|memory\/dominio)\//.test(normalized)) {
     throw new Error(`source protegido por caminho: ${normalized}`);
   }
+  // Registro de placement (declarado, [W]-ratificado) vence o heuristico.
+  const placement = resolvePlacement(normalized);
+  if (placement.rule === 'protected') throw new Error(`source protegido (registro placement): ${normalized}`);
+  if (placement.rule === 'never') {
+    return {
+      schema_version: SCHEMA_VERSION, base_sha: git(['rev-parse', 'HEAD']),
+      skipped: true, rule: 'never', source: normalized,
+      note: placement.note || 'area marcada como nao-migrar no registro de placement', review: [],
+    };
+  }
   const text = readFileSync(join(ROOT, normalized), 'utf8');
   const modules = files.map((p) => p.match(/^Modules\/([^/]+)\/module\.json$/)?.[1]).filter(Boolean);
   const inferred = classifyDocument({ source: normalized, text, modules, targetOverride });
+  // Area declarada 'canonical': fica onde esta, mesmo que o heuristico ache outra familia.
+  if (placement.rule === 'canonical' && !targetOverride) {
+    return {
+      schema_version: SCHEMA_VERSION, base_sha: git(['rev-parse', 'HEAD']),
+      already_canonical: true, source: normalized, classification: inferred.classification,
+      note: `area declarada canonical no registro de placement (${placement.prefix}); nao move`,
+      review: inferred.warnings,
+    };
+  }
   // Documento ja no prefixo canonico do owner: nada a mover — sinal, nao plano.
   // (Sem isso, um doc de dominios/ viraria um move achatado sem sentido.)
   if (inferred.already_canonical && !targetOverride) {
@@ -251,15 +286,22 @@ export function buildPlan(source, { targetOverride, tombstone = false } = {}) {
   const rewrites = rewritesFor(normalized, inferred.target, files);
   const { immutable, mutable } = partitionForTombstone(rewrites);
   const useTombstone = tombstone && immutable.length > 0;
+  // Area 'review' (ou nao declarada): o registro NAO decide a familia — o heuristico nao pode
+  // auto-mover. Cap a confianca => adversario forca REVIEW (decisao humana por arquivo).
+  const needsHumanPlacement = placement.rule === 'review';
+  const confidence = needsHumanPlacement ? Math.min(inferred.confidence, 0.5) : inferred.confidence;
+  const review = needsHumanPlacement
+    ? [...inferred.warnings, `placement da area '${placement.prefix || '(raiz)'}' nao declarado/em review — destino do heuristico e palpite; exige decisao humana`]
+    : inferred.warnings;
   return {
     schema_version: SCHEMA_VERSION,
     base_sha: git(['rev-parse', 'HEAD']),
     generated_at: new Date().toISOString(),
     operations: [{ source: normalized, target: inferred.target, classification: inferred.classification,
-      confidence: inferred.confidence, reason: inferred.reason,
+      confidence, reason: inferred.reason,
       ...(useTombstone ? { tombstone: true } : {}),
       rewrites: useTombstone ? mutable : rewrites }],
-    review: inferred.warnings,
+    review,
   };
 }
 
@@ -345,6 +387,10 @@ function selftest() {
       && classifyDocument({ source: 'memory/clientes-legacy/fixture-x.md', text: '# Exemplo', modules }).target === 'memory/clientes/fixture-x.md'],
     // Consolidacao stale AINDA cai (o rebaixamento morde acima da inflacao de consolidacao).
     ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/clientes-legacy/y.md', text: '# Y\nbranch 6.7-react', modules }).confidence < 0.9],
+    // Registro de placement (Fase 1): resolve por prefixo mais longo; area nao declarada = review.
+    ['placement-prefixo-mais-longo-vence', (() => { const A = [{ prefix: 'memory/', rule: 'review' }, { prefix: 'memory/reference/', rule: 'canonical' }]; return resolvePlacement('memory/reference/x.md', A).rule === 'canonical'; })()],
+    ['placement-never-respeitado', resolvePlacement('memory/modulos/x.md', [{ prefix: 'memory/modulos/', rule: 'never' }]).rule === 'never'],
+    ['placement-nao-declarado-e-review', resolvePlacement('qualquer/coisa/x.md', []).rule === 'review'],
     // Owner [W] 2026-07-22: comparativos/ (Capterra/mercado) e research, nunca governance/reference.
     // Path SINTETICO (fixture nunca usa doc real — o relink o reescreveria, incl. este script).
     ['comparativo-vira-research', (() => { const c = classifyDocument({ source: 'memory/comparativos/fixture-capterra.md', text: '# comparativo fixture', modules }); return c.classification.kind === 'research' && c.classification.owner === 'research' && c.target.startsWith('memory/research/'); })()],
