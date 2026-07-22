@@ -1,7 +1,28 @@
+---
+date: "2026-07-22"
+hour: "13:40 BRT"
+duration: "1h"
+topic: "Construção do adversário read-only para planos de classificação, movimento e relink documental"
+authors: [W, C]
+outcomes:
+  - "Validador determinístico e agente semântico read-only implementados."
+  - "Quinze contraprovas bite/release e smoke real executados sem mover documentos."
+  - "PR #4675 aberta sem merge automático."
+prs: [4675]
+us: []
+related_adrs:
+  - "0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento"
+  - "0314-poda-gates-onda-2-lei-fusoes"
+---
+
 # Sessão — adversário da realocação documental
 
 **Data:** 2026-07-22
 **Objetivo:** construir um adversário que valide planos de classificação, movimento e relink antes de qualquer alteração física na documentação.
+
+## TL;DR
+
+Foi construído e publicado na PR #4675 o adversário read-only anterior ao executor documental. Ele passou 15/15 contraprovas e um smoke real sem mover arquivos; classificação e execução permanecem entregas futuras separadas.
 
 ## O que foi feito
 

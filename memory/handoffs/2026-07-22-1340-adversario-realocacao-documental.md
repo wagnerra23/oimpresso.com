@@ -1,9 +1,29 @@
+---
+date: "2026-07-22"
+time: "1340 BRT"
+slug: "adversario-realocacao-documental"
+tldr: "Adversário read-only da realocação documental pronto na PR #4675: 15/15 contraprovas, smoke real sem mover arquivos e job específico verde. A máquina classificadora e o executor ainda são etapas futuras separadas."
+decided_by: [W]
+cycle: null
+prs: [4675]
+us: []
+next_steps:
+  - "W revisar a PR #4675; não fazer merge automático."
+related_adrs:
+  - "0270-ciclo-de-vida-da-informacao-porta-unica-destilacao-decaimento"
+  - "0314-poda-gates-onda-2-lei-fusoes"
+---
+
 # Handoff — adversário da realocação documental
 
 **Data:** 2026-07-22 13:40 BRT
 **Branch:** `codex/document-relocation-adversary`
 **PR:** [#4675](https://github.com/wagnerra23/oimpresso.com/pull/4675)
 **Escopo:** governança de documentação; zero arquivo documental movido
+
+## TL;DR
+
+O adversário anterior ao `git mv` está pronto e publicado na PR #4675. Ele valida o plano e o relink, mas não classifica, move nem altera documentos; o executor futuro continua separado.
 
 ## Resultado
 
