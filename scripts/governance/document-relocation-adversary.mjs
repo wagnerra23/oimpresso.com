@@ -315,6 +315,26 @@ function validateRewrites(op, index, refs, finalPaths, issues) {
     issues.push(issue('error', 'REWRITES_REQUIRED', 'rewrites deve ser um array, inclusive quando vazio', index));
     return;
   }
+  // O executor aplica cada rewrite por split/join GLOBAL do literal `from`. Logo dois rewrites
+  // com o MESMO (file, from) nao podem coexistir: o primeiro consome todas as ocorrencias e o
+  // segundo acha 0 (transacao aborta no apply). Acontece quando o MESMO literal aparece em dois
+  // contextos que exigem destinos diferentes — ex.: `[x](arq.md)` (markdown-link -> ./rel) e
+  // `` `arq.md` `` (code-span -> root/path). E insanavel por replace textual; reprova ANTES do
+  // apply em vez de APROVAR e falhar (o adversario nunca pode liberar o que o executor nao aplica).
+  const byFileFrom = new Map();
+  for (const rw of op.rewrites) {
+    if (!rw || typeof rw !== 'object') continue;
+    const k = `${rw.file} ${rw.from}`;
+    if (!byFileFrom.has(k)) byFileFrom.set(k, []);
+    byFileFrom.get(k).push(rw);
+  }
+  for (const group of byFileFrom.values()) {
+    const distinct = new Set(group.map((r) => `${r.kind} ${r.to}`));
+    if (group.length > 1 && distinct.size > 1) {
+      const tos = [...new Set(group.map((r) => r.to))];
+      issues.push(issue('error', 'CONFLICTING_REWRITE', `o literal "${group[0].from}" em ${group[0].file} exige reescritas diferentes (${tos.join(' | ')}); o realocador aplica por replace textual e nao distingue contexto — separe manualmente ou preserve o path`, index, { file: group[0].file, from: group[0].from, tos }));
+    }
+  }
   const actual = new Map(refs.map((r) => [`${r.file}\u0000${r.kind}\u0000${r.raw}`, r]));
   const declared = new Map();
   for (const [rewriteIndex, rewrite] of op.rewrites.entries()) {
@@ -766,6 +786,16 @@ function runSelftest() {
     { file: 'memory/requisitos/Financeiro/SPEC.md', kind: 'markdown-link', from: '../../../docs/legado-tomb.md', to: '../../reference/legado-tomb.md' },
   ] }), [tombRefReadme, tombRefSpec]);
   check('MORDE: relink de referrer sob gate diff-aware e barrado (GATE_GUARDED_REFERRER)', tombEditsGate.issues.some((i) => i.code === 'GATE_GUARDED_REFERRER'), tombEditsGate);
+  // O executor faz replace textual GLOBAL: o mesmo literal em dois contextos (markdown-link ->
+  // ./rel e code-span -> root/path) gera dois rewrites com o mesmo `from` e destinos diferentes
+  // que colidem no apply. O adversario reprova ANTES (nunca APROVA o que o executor nao aplica).
+  const conflict = clone(base);
+  conflict.operations[0].rewrites = [
+    { file: 'docs/ops.md', kind: 'markdown-link', from: 'legacy.md#uso', to: './guia-legado.md#uso' },
+    { file: 'docs/ops.md', kind: 'code-span', from: 'legacy.md#uso', to: 'memory/reference/guia-legado.md#uso' },
+  ];
+  const conflictResult = evaluate(conflict);
+  check('MORDE: mesmo literal com destinos diferentes no mesmo arquivo (CONFLICTING_REWRITE)', conflictResult.issues.some((i) => i.code === 'CONFLICTING_REWRITE'), conflictResult);
 
   for (const row of cases) console.log(`${row.ok ? '[OK]  ' : '[FAIL]'} ${row.name}`);
   const failed = cases.filter((row) => !row.ok);

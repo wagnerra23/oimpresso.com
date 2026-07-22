@@ -155,7 +155,13 @@ Pare sem mover se ocorrer qualquer um destes casos:
 - destino colide, não existe ou discorda da camada/porta;
 - seria necessário editar histórico append-only;
 - o plano foi gerado em outro SHA;
-- a worktree contém mudanças não relacionadas.
+- a worktree contém mudanças não relacionadas;
+- `CONFLICTING_REWRITE`: um mesmo literal de caminho aparece no arquivo em dois contextos que
+  exigem destinos diferentes (ex.: `[x](arq.md)` como markdown-link → `./rel` **e** `` `arq.md` ``
+  como code-span → `root/path`). O relink é textual (split/join global) e não distingue contexto,
+  então não aplica os dois — o adversário reprova antes do `git mv`. Resolva manualmente o arquivo
+  (ou preserve o path) e reclassifique. Documentos densamente cruzados com estilos de link mistos
+  caem aqui (ex.: o lote `memory/comparativos/` 2026-07-22 — pendente de relink contexto-consciente).
 
 O rollback automático cobre falhas durante a execução. Se a operação já foi commitada,
 a correção é um novo commit explícito; não apague nem reescreva o histórico publicado.
