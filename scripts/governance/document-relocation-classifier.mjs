@@ -51,7 +51,9 @@ function inferKind(source, text, meta) {
   if (/briefing/.test(explicit) || name === 'BRIEFING.MD') return 'briefing';
   if (/runbook/.test(explicit) || name.startsWith('RUNBOOK')) return 'runbook';
   if (/audit/.test(explicit) || /AUDIT|AUDITORIA/.test(name)) return 'audit';
-  if (/research/.test(explicit) || source.includes('/research/')) return 'research';
+  // comparativos/ (Capterra/mercado/estado-da-arte) = research (owner decidido por [W] 2026-07-22:
+  // arvore-alvo §II.3 dobra comparativo dentro de research; nao ha owner 'comparison' wired).
+  if (/research|comparativ/.test(explicit) || source.includes('/research/') || source.includes('/comparativos/')) return 'research';
   if (/reference/.test(explicit)) return 'reference';
   if (/guide|how-to|manual/.test(explicit) || /\b(?:como|guia|manual)\b/i.test(title)) return 'how-to';
   if (/arquitetura|por que|explica/i.test(title)) return 'explanation';
@@ -68,7 +70,9 @@ function inferModule(source, meta, modules) {
 // ANTES de qualquer heuristica de processo. Sem isso 94% do negocio virava 'reference'
 // (medicao 2026-07-22: 410/434 docs de dominios/clientes classificados como processo).
 function businessOwner(source) {
-  if (/^memory\/dominios?\//.test(source)) return 'domain';
+  // dominioS/ (PLURAL) = conhecimento de negocio. dominio/ (SINGULAR) = dicionario de
+  // enum (domain-dict-guard, ADR 0264 G-4) — NAO e corpus, e protegido (nao move).
+  if (/^memory\/dominios\//.test(source)) return 'domain';
   if (/^memory\/clientes(?:-legacy)?\//.test(source)) return 'client';
   return null;
 }
@@ -103,7 +107,7 @@ export function classifyDocument({ source, text, modules, targetOverride }) {
   // Corpus de negocio preserva a subarvore (nunca achatar wr-comercial/modulos/...).
   let target;
   if (targetOverride) target = targetOverride;
-  else if (owner === 'domain') target = `memory/dominios/${source.replace(/^memory\/dominios?\//, '')}`;
+  else if (owner === 'domain') target = `memory/dominios/${source.replace(/^memory\/dominios\//, '')}`;
   else if (owner === 'client') target = `memory/clientes/${source.replace(/^memory\/clientes(?:-legacy)?\//, '')}`;
   else target = `${prefix}${kind === 'briefing' ? 'BRIEFING' : kind === 'runbook' ? `RUNBOOK-${slug}` : slug}.md`;
 
@@ -128,17 +132,25 @@ export function classifyDocument({ source, text, modules, targetOverride }) {
   const selfDeclaredStale = /⚠️?[^\n]{0,40}\bSTALE\b/.test(header)
     || /mantido por compatibilidade hist[oó]rica/i.test(header);
   if (selfDeclaredStale) warnings.push('documento se auto-declara STALE/legado no cabecalho; candidato a tombstone, nunca move automatico');
-  let confidence = (typeDeclaredValid || (meta.module && !moduleDeclaredInvalid)) ? 0.97 : kind === 'other' ? 0.72 : 0.93;
+  // Consolidacao de pasta duplicada (dominio/->dominios/, clientes-legacy/->clientes/):
+  // owner e destino determinados por PATH; o move e mecanico e certo, a incerteza de
+  // KIND e irrelevante. Nao inflar alem disso — os rebaixamentos abaixo ainda mordem.
+  const canonicalConsolidation = Boolean(corpus) && !targetOverride && !source.startsWith(prefix) && target.startsWith(prefix);
+  let confidence = canonicalConsolidation ? 0.95
+    : (typeDeclaredValid || (meta.module && !moduleDeclaredInvalid)) ? 0.97 : kind === 'other' ? 0.72 : 0.93;
   if (moduleDeclaredInvalid) confidence = Math.min(confidence, 0.6);
   if (selfDeclaredStale) confidence = Math.min(confidence, 0.6);
   if (rawLifecycle && !lifecycle) confidence = Math.min(confidence, 0.85);
   if (staleSignals) confidence = Math.min(confidence, 0.82);
   if (targetOverride) confidence = Math.min(confidence, 0.89);
+  const reason = canonicalConsolidation
+    ? `Consolidacao de pasta: ${source} -> prefixo canonico ${prefix} (mesmo owner ${owner}, subarvore preservada)`
+    : `Classificacao por tipo, dono e camada ADR 0334; ${source} esta fora do prefixo canonico ${prefix}`;
   return {
     classification: { kind, owner, lifecycle: lifecycle ?? 'active', slug, layer, door },
     target, confidence,
     already_canonical: target === source,
-    reason: `Classificacao por tipo, dono e camada ADR 0334; ${source} esta fora do prefixo canonico ${prefix}`,
+    reason,
     warnings,
   };
 }
@@ -157,16 +169,25 @@ function stillResolves(file, raw, kind, expected) {
   return kind !== 'markdown-link' && raw.replace(/^\//, '').split('#')[0].toLowerCase() === expected.toLowerCase();
 }
 
-function rewritesFor(source, target, files) {
+// finalPaths: mapa lower(source)->target de TODOS os moves do lote. Sem ele, o comportamento
+// e per-source (default). Com ele, um relink so e gerado quando de fato quebraria: se o
+// referrer e o alvo movem juntos preservando a distancia relativa, o link continua valido.
+function rewritesFor(source, target, files, finalPaths = new Map([[source.toLowerCase(), target]])) {
   const markdown = files.filter((p) => p.endsWith('.md'));
   const incoming = collectIncomingReferences(ROOT, markdown, [source], files).get(source.toLowerCase()) || [];
   const text = readFileSync(join(ROOT, source), 'utf8');
   const structured = extractDocumentReferences(text, source);
+  const finalOf = (p) => finalPaths.get(p.toLowerCase()) ?? p;
+  // outbound: source aponta pra alvo; alvo pode mover (expectedTo = final do alvo).
   const outbound = [...structured, ...extractLiteralReferences(text, source, files, structured)]
     .filter((ref) => files.some((p) => p.toLowerCase() === ref.target.toLowerCase()))
-    .filter((ref) => !stillResolves(target, ref.raw, ref.kind, ref.target))
-    .map((ref) => ({ ...ref, expectedTo: ref.target }));
-  const all = [...incoming.map((ref) => ({ ...ref, expectedTo: target })), ...outbound];
+    .map((ref) => ({ ...ref, expectedTo: finalOf(ref.target) }))
+    .filter((ref) => !stillResolves(target, ref.raw, ref.kind, ref.expectedTo));
+  // inbound: alguem aponta pra source; se o referrer move junto e o link segue resolvendo, pula.
+  const inbound = incoming
+    .map((ref) => ({ ...ref, expectedTo: target }))
+    .filter((ref) => !stillResolves(finalOf(ref.file), ref.raw, ref.kind, target));
+  const all = [...inbound, ...outbound];
   const seen = new Set();
   // count = ocorrencias exatas do `from` no arquivo NO MOMENTO do plano; o executor
   // confere na hora do apply (drift entre plano e apply aborta a transacao).
@@ -183,7 +204,7 @@ function rewritesFor(source, target, files) {
       file: ref.file,
       kind: ref.kind,
       from: ref.raw,
-      to: destination(ref.file.toLowerCase() === source.toLowerCase() ? target : ref.file, ref.expectedTo, ref.kind, ref.fragment),
+      to: destination(ref.file.toLowerCase() === source.toLowerCase() ? target : finalOf(ref.file), ref.expectedTo, ref.kind, ref.fragment),
       count: countIn(ref.file, ref.raw),
     }));
 }
@@ -192,7 +213,7 @@ export function buildPlan(source, { targetOverride } = {}) {
   const normalized = source.replaceAll('\\', '/').replace(/^\.\//, '');
   const files = tracked();
   if (!files.includes(normalized)) throw new Error(`source nao versionado: ${normalized}`);
-  if (PROTECTED.has(normalized) || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs))\//.test(normalized)) {
+  if (PROTECTED.has(normalized) || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs)|memory\/dominio)\//.test(normalized)) {
     throw new Error(`source protegido por caminho: ${normalized}`);
   }
   const text = readFileSync(join(ROOT, normalized), 'utf8');
@@ -221,10 +242,55 @@ export function buildPlan(source, { targetOverride } = {}) {
   };
 }
 
+const isAppendOnlyPath = (p) => /^memory\/(?:decisions|sessions|handoffs)\//.test(p);
+
+// Plano COESO de lote: classifica N sources juntos, resolve os relinks internos com
+// finalPaths compartilhado (arquivos que se referenciam movem juntos sem conflito) e
+// EXCLUI automaticamente quem so poderia mover reescrevendo historico append-only.
+export function buildBatchPlan(sources) {
+  const files = tracked();
+  const modules = files.map((p) => p.match(/^Modules\/([^/]+)\/module\.json$/)?.[1]).filter(Boolean);
+  const normalized = sources.map((s) => s.replaceAll('\\', '/').replace(/^\.\//, ''));
+  for (const s of normalized) {
+    if (!files.includes(s)) throw new Error(`source nao versionado: ${s}`);
+    if (PROTECTED.has(s) || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs)|memory\/dominio)\//.test(s)) {
+      throw new Error(`source protegido por caminho: ${s}`);
+    }
+  }
+  const classified = normalized.map((s) => ({ source: s, inferred: classifyDocument({ source: s, text: readFileSync(join(ROOT, s), 'utf8'), modules }) }));
+  const alreadyCanonical = classified.filter((c) => c.inferred.already_canonical).map((c) => c.source);
+  let active = classified.filter((c) => !c.inferred.already_canonical);
+  const excluded = [];
+  // Exclui em cadeia quem geraria relink em append-only (recomputa finalPaths a cada remocao).
+  for (let guard = active.length; guard >= 0; guard -= 1) {
+    const finalPaths = new Map(active.map((c) => [c.source.toLowerCase(), c.inferred.target]));
+    const offender = active.find((c) => rewritesFor(c.source, c.inferred.target, files, finalPaths).some((r) => isAppendOnlyPath(r.file)));
+    if (!offender) break;
+    excluded.push({ source: offender.source, reason: 'referrer append-only (relink exigiria editar ADR/session/handoff); preserve o path' });
+    active = active.filter((c) => c !== offender);
+  }
+  const finalPaths = new Map(active.map((c) => [c.source.toLowerCase(), c.inferred.target]));
+  const operations = active.map((c) => ({
+    source: c.source, target: c.inferred.target, classification: c.inferred.classification,
+    confidence: c.inferred.confidence, reason: c.inferred.reason,
+    rewrites: rewritesFor(c.source, c.inferred.target, files, finalPaths),
+  }));
+  return {
+    schema_version: SCHEMA_VERSION,
+    base_sha: git(['rev-parse', 'HEAD']),
+    generated_at: new Date().toISOString(),
+    operations,
+    review: active.flatMap((c) => c.inferred.warnings),
+    excluded,
+    already_canonical: alreadyCanonical,
+  };
+}
+
 function selftest() {
   const modules = ['Financeiro', 'Jana', 'Governance'];
   const dominio = classifyDocument({ source: 'memory/dominios/wr-comercial/tabelas/AGENDA.md', text: '# Tabela AGENDA', modules });
   const clienteLegacy = classifyDocument({ source: 'memory/clientes-legacy/rota-livre.md', text: '# ROTA LIVRE', modules });
+  const comparativo = classifyDocument({ source: 'memory/comparativos/oimpresso_vs_concorrentes_capterra_2026_04_25.md', text: '# oimpresso vs concorrentes', modules });
   const cases = [
     ['ERP', classifyDocument({ source: 'x/guia.md', text: '---\nmodule: Financeiro\ntype: guide\n---\n# Guia', modules }).classification.layer === 'product-erp'],
     ['Jana', classifyDocument({ source: 'x/guia.md', text: '---\nmodule: Jana\ntype: guide\n---\n# Guia', modules }).classification.layer === 'product-ai'],
@@ -239,12 +305,25 @@ function selftest() {
     // Review 2026-07-22: historical voltava como active — agora o enum normaliza e preserva.
     ['lifecycle-historical-preservado', classifyDocument({ source: 'x/velho.md', text: '---\ntype: guide\nlifecycle: historical\n---\n# Guia antigo', modules }).classification.lifecycle === 'historical'],
     ['lifecycle-desconhecido-derruba-confianca', classifyDocument({ source: 'x/g.md', text: '---\ntype: guide\nlifecycle: vigente\n---\n# Guia', modules }).confidence < 0.9],
+<<<<<<< HEAD
+    // Consolidacao de pasta duplicada: move mecanico certo (owner por path) — NAO e baixa
+    // confianca. clientes-legacy/ (nao-canonico) -> clientes/ deve ser >=0.9. NB: paths aqui
+    // sao SINTETICOS (fixtures nunca usam path de doc real — o relink os reescreveria).
+    // Atencao: dominio/ SINGULAR NAO entra aqui (e dicionario protegido, nao corpus).
+    ['consolidacao-cliente-legacy-alta-confianca', classifyDocument({ source: 'memory/clientes-legacy/fixture-x.md', text: '# Exemplo', modules }).confidence >= 0.9
+      && classifyDocument({ source: 'memory/clientes-legacy/fixture-x.md', text: '# Exemplo', modules }).target === 'memory/clientes/fixture-x.md'],
+    // Consolidacao stale AINDA cai (o rebaixamento morde acima da inflacao de consolidacao).
+    ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/clientes-legacy/y.md', text: '# Y\nbranch 6.7-react', modules }).confidence < 0.9],
+    // Owner [W] 2026-07-22: comparativos/ (Capterra/mercado) e research, nunca governance/reference.
+    ['comparativo-vira-research', comparativo.classification.kind === 'research' && comparativo.classification.owner === 'research' && comparativo.target.startsWith('memory/research/')],
+=======
     // Review adversarial 2026-07-22: 03-architecture auto-declarava "⚠️ STALE / PontoWr2-era"
     // no header e saia APPROVE 0.93 — a auto-declaracao agora derruba pra <0.9 (REVIEW) mesmo
     // com frontmatter valido que daria boost 0.97.
     ['banner-stale-autodeclarado-nunca-approve', classifyDocument({ source: 'memory/03-arch.md', text: '---\ntype: reference\n---\n# 03 — Arquitetura\n\n> ⚠️ **STALE / PontoWr2-era (legado — "Laravel 10").** Mantido por compatibilidade histórica.', modules }).confidence < 0.9],
     // Controle negativo: mencao a "stale" em prosa (sem banner no header) nao dispara.
     ['mencao-stale-em-prosa-nao-dispara', classifyDocument({ source: 'x/feedback.md', text: '---\ntype: reference\n---\n# Feedback — prompt pode vir stale\n\nO cache STALE do sync e discutido aqui.', modules }).confidence >= 0.9],
+>>>>>>> cf4b44e4ef (fix(docs): banner STALE auto-declarado derruba confianca do realocador [CC])
   ];
   for (const [name, ok] of cases) console.log(`${ok ? '[OK]' : '[FALHA]'} ${name}`);
   if (cases.some(([, ok]) => !ok)) process.exit(1);
@@ -254,8 +333,21 @@ function selftest() {
 function main() {
   const args = process.argv.slice(2);
   if (args.includes('--selftest')) return selftest();
+  const option = (name) => { const at = args.indexOf(name); return at >= 0 ? args[at + 1] : null; };
+  // Lote coeso: --dir <prefixo> pega os .md versionados sob o prefixo; --batch a,b,c lista explicita.
+  const dir = option('--dir');
+  const batch = option('--batch');
+  if (dir || batch) {
+    const sources = dir
+      ? tracked().filter((p) => p.startsWith(dir.replace(/\/?$/, '/')) && p.endsWith('.md'))
+      : batch.split(',').map((s) => s.trim()).filter(Boolean);
+    if (!sources.length) throw new Error(`nenhum .md versionado em ${dir || batch}`);
+    const plan = buildBatchPlan(sources);
+    console.log(JSON.stringify(args.includes('--validate') ? { plan, adversary: validatePlanAtRoot(plan, ROOT) } : plan, null, 2));
+    return;
+  }
   const source = args[args.indexOf('--source') + 1];
-  if (!source || args.indexOf('--source') < 0) throw new Error('uso: --source <arquivo.md> [--target <destino.md>]');
+  if (!source || args.indexOf('--source') < 0) throw new Error('uso: --source <arquivo.md> [--target <destino.md>] | --dir <prefixo> | --batch a,b,c [--validate]');
   const targetIndex = args.indexOf('--target');
   const plan = buildPlan(source, { targetOverride: targetIndex >= 0 ? args[targetIndex + 1] : undefined });
   if (plan.already_canonical) { console.log(JSON.stringify(plan, null, 2)); return; }
