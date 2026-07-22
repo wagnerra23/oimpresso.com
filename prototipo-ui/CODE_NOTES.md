@@ -938,8 +938,8 @@ Continuação da entrada Q1 acima (mesma sessão). Validação §10.4 contra mai
 
 ### Pendências [W] (decisões, não trabalho)
 1. **1 clique required Q1**: `gh api -X POST "repos/wagnerra23/oimpresso.com/branches/main/protection/required_status_checks/contexts" -f "contexts[]=E2E Playwright · UCs críticos"`
-2. Drift `origem` do StoreTransactionRequest (alinhar request ↔ enum fin_titulos) — catalogado em memory/dominio/financeiro.md
-3. Consolidação NfeBrasil×NFSe (2 vocabulários da mesma tabela) — catalogado em memory/dominio/fiscal-faturamento.md
+2. Drift `origem` do StoreTransactionRequest (alinhar request ↔ enum fin_titulos) — catalogado em memory/dominios/financeiro.md
+3. Consolidação NfeBrasil×NFSe (2 vocabulários da mesma tabela) — catalogado em memory/dominios/fiscal-faturamento.md
 4. Pixel-diff: após 2 verdes pós-merge, remover `continue-on-error` (advisory → enforcing, sem clique)
 
 ### new_design_memories

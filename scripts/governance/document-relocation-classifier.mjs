@@ -293,8 +293,8 @@ function selftest() {
     ['lifecycle-desconhecido-derruba-confianca', classifyDocument({ source: 'x/g.md', text: '---\ntype: guide\nlifecycle: vigente\n---\n# Guia', modules }).confidence < 0.9],
     // Consolidacao de pasta duplicada: move mecanico certo (owner por path) — NAO e baixa
     // confianca. Sem frontmatter, dominio/ (singular) -> dominios/ deve ser >=0.9 e APPROVAVEL.
-    ['consolidacao-dominio-alta-confianca', classifyDocument({ source: 'memory/dominio/vendas.md', text: '# Vendas', modules }).confidence >= 0.9
-      && classifyDocument({ source: 'memory/dominio/vendas.md', text: '# Vendas', modules }).target === 'memory/dominios/vendas.md'],
+    ['consolidacao-dominio-alta-confianca', classifyDocument({ source: 'memory/dominios/vendas.md', text: '# Vendas', modules }).confidence >= 0.9
+      && classifyDocument({ source: 'memory/dominios/vendas.md', text: '# Vendas', modules }).target === 'memory/dominios/vendas.md'],
     // Consolidacao stale AINDA cai (o rebaixamento morde acima da inflacao de consolidacao).
     ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/dominio/x.md', text: '# X\nbranch 6.7-react', modules }).confidence < 0.9],
   ];
