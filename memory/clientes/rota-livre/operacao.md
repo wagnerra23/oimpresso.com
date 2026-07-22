@@ -1,11 +1,11 @@
 # Cliente — ROTA LIVRE (`business_id = 4`)
 
-Único cliente ativo com volume real (17k+ vendas, 99% do volume do sistema). Migrado da auto-mem `cliente_rotalivre.md` (snapshot 2026-04-24) — agora canônico no git/MCP ([ADR 0061](../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md), [ADR 0118](../decisions/0118-segregacao-dominios-externos-clientes-legacy.md)). PII redactada conforme [`proibicoes.md`](../proibicoes.md).
+Único cliente ativo com volume real (17k+ vendas, 99% do volume do sistema). Migrado da auto-mem `cliente_rotalivre.md` (snapshot 2026-04-24) — agora canônico no git/MCP ([ADR 0061](../../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md), [ADR 0118](../../decisions/0118-segregacao-dominios-externos-clientes-legacy.md)). PII redactada conforme [`proibicoes.md`](../../proibicoes.md).
 
 ## Identidade
 
 - **Razão social:** LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME
-- **CNPJ:** `73.306.573/0001-XX` *(últimos dígitos redactados)*
+- **CNPJ:** `[REDACTED]` *(PII — proibicoes.md; consultar via `business_id=4` no banco)*
 - **Localização única:** BL0001 "ROTA LIVRE" — Termas do Gravatal, Gravatal/SC, CEP 88735-XXX
 - **Telefone:** `(48) 3626-XXXX` *(redactado)*
 - **Timezone cadastrado:** `America/Sao_Paulo` (confirmado operacionalmente em 2026-04-24)
@@ -34,7 +34,7 @@ Todos ativos, todos `permitted_locations='all'` ou `location.4` explícita (conf
 
 ### 1. Horários das vendas — Larissa decorou +3h
 
-Larissa **decorou** horários com o shift +3h do bug histórico de `format_date`. Qualquer correção visual de datetime = regressão percebida. Ver auto-mem `feedback_carbon_timezone_bug` + [ADR 0066](../decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md). **Não reaplicar `Carbon::parse` no `format_date` sem comunicar antes.**
+Larissa **decorou** horários com o shift +3h do bug histórico de `format_date`. Qualquer correção visual de datetime = regressão percebida. Ver auto-mem `feedback_carbon_timezone_bug` + [ADR 0066](../../decisions/0066-format-date-shift-3h-preservado-legacy-clientes.md). **Não reaplicar `Carbon::parse` no `format_date` sem comunicar antes.**
 
 ### 2. `transaction_date` retroativo é normal
 

@@ -1,6 +1,6 @@
-# Clientes legacy — índice
+# Matriz de clientes Delphi (WR Comercial legacy)
 
-Cross-cutting por cliente. Cada `<alias>.md` consolida quirks que afetam múltiplos módulos do mesmo cliente. Pasta criada por [ADR 0118](../decisions/0118-segregacao-dominios-externos-clientes-legacy.md).
+Matriz cross-cutting cliente × versão Delphi × `business_id`, conhecimento do domínio legado WR Comercial. Originalmente em `memory/clientes-legacy/_index.md` (pasta criada por [ADR 0118](../decisions/0118-segregacao-dominios-externos-clientes-legacy.md)); **realocada pra `memory/legacy-delphi/` em 2026-07-22** quando a pasta `clientes-legacy/` foi desmontada — o único perfil de cliente ali (ROTA LIVRE) foi promovido pro corpus canônico [`../clientes/rota-livre/`](../clientes/rota-livre/PERFIL.md) ([ADR 0334](../decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md)).
 
 ## Matriz cliente × versão Delphi × business_id
 
@@ -9,7 +9,7 @@ Cross-cutting por cliente. Cada `<alias>.md` consolida quirks que afetam múltip
 | Alias (registry) | Versão Delphi | business_id oimpresso | Status migração | Notas |
 |---|---|---|---|---|
 | **ServidorWR2** | 1466 | 1 (Wagner) | 🚧 piloto | banco do Wagner; smoke test fase 6 |
-| **rota-livre** ⭐ | ? | 4 | ⏳ não iniciada | 99% volume; ver [rota-livre.md](rota-livre.md) |
+| **rota-livre** ⭐ | ? | 4 | ⏳ não iniciada | 99% volume; ver [../clientes/rota-livre/operacao.md](../clientes/rota-livre/operacao.md) |
 | TechPressLocal | 1468 | — | ⏳ | banco "TechPress" local (não tem certeza se é cliente real ou ambiente teste Wagner) |
 | Display Parana | ? | ? | ⏳ | |
 | Destak | ? | ? | ⏳ | |
@@ -73,7 +73,7 @@ Cross-cutting por cliente. Cada `<alias>.md` consolida quirks que afetam múltip
 
 ## Como adicionar cliente novo
 
-1. Criar `clientes-legacy/<alias-kebab>.md` com perfil: razão social, biz_id, versão Delphi atual, quirks
-2. Atualizar este `_index.md` com a linha
-3. Cruzar com auto-mem do dev (Wagner ROTA LIVRE legacy) — migrar conhecimento que ainda esteja em auto-mem privada
+1. Criar o perfil canônico do cliente em `../clientes/<alias-kebab>/PERFIL.md` (+ `perfil.yml` estruturado) — porta-mãe do corpus de cliente ([ADR 0334](../decisions/0334-modelo-3-camadas-invariante-anti-atrofia-inteligencia-negocio.md))
+2. Atualizar esta matriz com a linha (versão Delphi × biz_id × status)
+3. Migrar conhecimento que ainda esteja em auto-mem privada pro git canônico ([ADR 0061](../decisions/0061-conhecimento-canonico-git-mcp-zero-automem.md))
 4. PII reais (CPF/CNPJ cliente, telefones) marcar como `[REDACTED]` ou usar últimos 2 dígitos só pra rastreabilidade ([proibicoes.md](../proibicoes.md))

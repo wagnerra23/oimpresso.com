@@ -28,7 +28,7 @@ Não é dívida real ainda. Filtrar `PROVISORIO='N'` em queries de receita real.
 62 de 313 contratos no ServidorWR2 estão com `VALOR=NULL`. Antes de importar pra `Modules/RecurringBilling`, decidir: backfill via histórico de pagamentos? Ignora?
 
 ### Versão do schema varia muito entre clientes (571 → 1474)
-Ver matriz em [`memory/clientes-legacy/_index.md`](../clientes-legacy/_index.md). Cliente `GoldenPrint` está em v571 (gap de ~900 updates pra v1474 mais recente). Migração precisa lidar com schemas heterogêneos — não assumir schema homogêneo.
+Ver matriz em [`legacy-delphi/CLIENTES-DELPHI-MATRIZ.md`](CLIENTES-DELPHI-MATRIZ.md). Cliente `GoldenPrint` está em v571 (gap de ~900 updates pra v1474 mais recente). Migração precisa lidar com schemas heterogêneos — não assumir schema homogêneo.
 
 ### Confirme versão real lendo `CONFIGURACOES`, não o registry Delphi
 Versão do registry (editor de bancos Wagner) **pode estar desatualizada** se cliente subiu schema sem o editor saber. Query canônica:
