@@ -51,7 +51,9 @@ function inferKind(source, text, meta) {
   if (/briefing/.test(explicit) || name === 'BRIEFING.MD') return 'briefing';
   if (/runbook/.test(explicit) || name.startsWith('RUNBOOK')) return 'runbook';
   if (/audit/.test(explicit) || /AUDIT|AUDITORIA/.test(name)) return 'audit';
-  if (/research/.test(explicit) || source.includes('/research/')) return 'research';
+  // comparativos/ (Capterra/mercado/estado-da-arte) = research (owner decidido por [W] 2026-07-22:
+  // arvore-alvo §II.3 dobra comparativo dentro de research; nao ha owner 'comparison' wired).
+  if (/research|comparativ/.test(explicit) || source.includes('/research/') || source.includes('/comparativos/')) return 'research';
   if (/reference/.test(explicit)) return 'reference';
   if (/guide|how-to|manual/.test(explicit) || /\b(?:como|guia|manual)\b/i.test(title)) return 'how-to';
   if (/arquitetura|por que|explica/i.test(title)) return 'explanation';
@@ -279,6 +281,7 @@ function selftest() {
   const modules = ['Financeiro', 'Jana', 'Governance'];
   const dominio = classifyDocument({ source: 'memory/dominios/wr-comercial/tabelas/AGENDA.md', text: '# Tabela AGENDA', modules });
   const clienteLegacy = classifyDocument({ source: 'memory/clientes-legacy/rota-livre.md', text: '# ROTA LIVRE', modules });
+  const comparativo = classifyDocument({ source: 'memory/comparativos/oimpresso_vs_concorrentes_capterra_2026_04_25.md', text: '# oimpresso vs concorrentes', modules });
   const cases = [
     ['ERP', classifyDocument({ source: 'x/guia.md', text: '---\nmodule: Financeiro\ntype: guide\n---\n# Guia', modules }).classification.layer === 'product-erp'],
     ['Jana', classifyDocument({ source: 'x/guia.md', text: '---\nmodule: Jana\ntype: guide\n---\n# Guia', modules }).classification.layer === 'product-ai'],
@@ -301,6 +304,8 @@ function selftest() {
       && classifyDocument({ source: 'memory/clientes-legacy/fixture-x.md', text: '# Exemplo', modules }).target === 'memory/clientes/fixture-x.md'],
     // Consolidacao stale AINDA cai (o rebaixamento morde acima da inflacao de consolidacao).
     ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/clientes-legacy/y.md', text: '# Y\nbranch 6.7-react', modules }).confidence < 0.9],
+    // Owner [W] 2026-07-22: comparativos/ (Capterra/mercado) e research, nunca governance/reference.
+    ['comparativo-vira-research', comparativo.classification.kind === 'research' && comparativo.classification.owner === 'research' && comparativo.target.startsWith('memory/research/')],
   ];
   for (const [name, ok] of cases) console.log(`${ok ? '[OK]' : '[FALHA]'} ${name}`);
   if (cases.some(([, ok]) => !ok)) process.exit(1);
