@@ -197,6 +197,25 @@ function isImmutableHistory(path) {
   return /^memory\/(?:decisions|sessions|handoffs)\//.test(path);
 }
 
+// Referrer sob gate diff-aware que MORDE ao ser tocado (lapide 2026-07-12: "tocar legado
+// acorda anchor-lint/scorecard"). Reescrever o link o poe no diff do PR e/ou muda a data-git
+// do doc mais novo do modulo — o que reprova gate/ratchet REQUIRED sobre divida pre-existente:
+//   - memory/requisitos/**  : anchor-lint + schema (SPEC/RUNBOOK/BRIEFING/topico) + distiller_freshness
+//                             (sdd-scorecard keia na data-git de QUALQUER .md do modulo).
+//   - Pages/**/*.charter.md  : schema charter (required).
+// Reference (grace/warn-only, fora do ratchet) NAO entra — e seguro relinkar. Estes referrers
+// sao servidos pelo STUB do tombstone, exatamente como os append-only: nem relink nem edicao.
+export function isGateGuarded(path) {
+  return /^memory\/requisitos\//.test(path)
+    || /^resources\/js\/Pages\/.*\.charter\.md$/.test(path);
+}
+
+// "Nao-relinkavel": referrer que o realocador NAO pode reescrever — por ser historico
+// append-only (Tier 0) OU por acordar gate diff-aware. O stub do tombstone serve os dois.
+function isUnrelinkableReferrer(path) {
+  return isImmutableHistory(path) || isGateGuarded(path);
+}
+
 function looksGenerated(path, content) {
   const name = posix.basename(path).toUpperCase();
   if (name === 'SUPERFICIE.MD' || name.includes('-GENERATED')) return true;
@@ -296,6 +315,26 @@ function validateRewrites(op, index, refs, finalPaths, issues) {
     issues.push(issue('error', 'REWRITES_REQUIRED', 'rewrites deve ser um array, inclusive quando vazio', index));
     return;
   }
+  // O executor aplica cada rewrite por split/join GLOBAL do literal `from`. Logo dois rewrites
+  // com o MESMO (file, from) nao podem coexistir: o primeiro consome todas as ocorrencias e o
+  // segundo acha 0 (transacao aborta no apply). Acontece quando o MESMO literal aparece em dois
+  // contextos que exigem destinos diferentes — ex.: `[x](arq.md)` (markdown-link -> ./rel) e
+  // `` `arq.md` `` (code-span -> root/path). E insanavel por replace textual; reprova ANTES do
+  // apply em vez de APROVAR e falhar (o adversario nunca pode liberar o que o executor nao aplica).
+  const byFileFrom = new Map();
+  for (const rw of op.rewrites) {
+    if (!rw || typeof rw !== 'object') continue;
+    const k = `${rw.file} ${rw.from}`;
+    if (!byFileFrom.has(k)) byFileFrom.set(k, []);
+    byFileFrom.get(k).push(rw);
+  }
+  for (const group of byFileFrom.values()) {
+    const distinct = new Set(group.map((r) => `${r.kind} ${r.to}`));
+    if (group.length > 1 && distinct.size > 1) {
+      const tos = [...new Set(group.map((r) => r.to))];
+      issues.push(issue('error', 'CONFLICTING_REWRITE', `o literal "${group[0].from}" em ${group[0].file} exige reescritas diferentes (${tos.join(' | ')}); o realocador aplica por replace textual e nao distingue contexto — separe manualmente ou preserve o path`, index, { file: group[0].file, from: group[0].from, tos }));
+    }
+  }
   const actual = new Map(refs.map((r) => [`${r.file}\u0000${r.kind}\u0000${r.raw}`, r]));
   const declared = new Map();
   for (const [rewriteIndex, rewrite] of op.rewrites.entries()) {
@@ -307,13 +346,24 @@ function validateRewrites(op, index, refs, finalPaths, issues) {
     if (!ALLOWED_REF_KINDS.has(rewrite.kind)) issues.push(issue('error', 'REWRITE_KIND_INVALID', `kind invalido no rewrite ${rewriteIndex}`, index));
     if (declared.has(key)) issues.push(issue('error', 'DUPLICATE_REWRITE', `rewrite duplicado: ${rewrite.file} -> ${rewrite.from}`, index));
     declared.set(key, rewrite);
+    // Editar historico append-only e PROIBIDO SEMPRE — inclusive num plano move-with-tombstone,
+    // onde o stub no path antigo ja serve esses referrers. Checado ANTES de `found` para que a
+    // bite seja IMMUTABLE_REFERRER (nao REWRITE_NOT_FOUND) mesmo quando o ref esta isento do
+    // required por causa do stub: isencao de relink != permissao de editar.
+    if (isImmutableHistory(rewrite.file)) {
+      issues.push(issue('error', 'IMMUTABLE_REFERRER', 'relink exigiria editar ADR/session/handoff append-only; preserve o path (tombstone) ou retire a operacao', index, rewrite.file));
+      continue;
+    }
+    // Relinkar referrer sob gate diff-aware o poe no diff e acorda o gate sobre divida
+    // pre-existente (lapide 2026-07-12). Nunca via este realocador — o stub do tombstone o serve.
+    if (isGateGuarded(rewrite.file)) {
+      issues.push(issue('error', 'GATE_GUARDED_REFERRER', 'relink tocaria arquivo sob gate diff-aware (memory/requisitos/** ou charter); acordaria o gate — use tombstone (o stub serve o referrer)', index, rewrite.file));
+      continue;
+    }
     const found = actual.get(key);
     if (!found) {
       issues.push(issue('error', 'REWRITE_NOT_FOUND', 'rewrite declarado nao corresponde a referencia real', index, rewrite));
       continue;
-    }
-    if (isImmutableHistory(rewrite.file)) {
-      issues.push(issue('error', 'IMMUTABLE_REFERRER', 'relink exigiria editar ADR/session/handoff append-only; preserve o path ou retire a operacao', index, rewrite.file));
     }
     const expectedFrom = found.expectedFrom ?? op.source;
     const expectedTo = found.expectedTo ?? op.target;
@@ -406,6 +456,9 @@ export function validatePlan(plan, context) {
       issues.push(issue('error', 'MARKDOWN_ONLY', 'source e target devem ser .md', index));
     }
     if (sourceLower === targetLower) issues.push(issue('error', 'NOOP_OR_CASE_ONLY', 'movimento vazio ou apenas troca de caixa nao e seguro', index));
+    if (op.tombstone !== undefined && typeof op.tombstone !== 'boolean') {
+      issues.push(issue('error', 'TOMBSTONE_INVALID', 'tombstone deve ser booleano (true = deixa stub de redirecionamento no path antigo)', index));
+    }
     if (seenSources.has(sourceLower)) issues.push(issue('error', 'DUPLICATE_SOURCE', `source repetido: ${op.source}`, index));
     if (seenTargets.has(targetLower)) issues.push(issue('error', 'DUPLICATE_TARGET', `target repetido: ${op.target}`, index));
     seenSources.add(sourceLower);
@@ -447,10 +500,21 @@ export function validatePlan(plan, context) {
   );
   for (const [index, op] of normalized.entries()) {
     if (!op.source || !op.target) continue;
+    const allInbound = incoming.get(op.source.toLowerCase()) ?? [];
+    // move-with-tombstone (proposal estrutura-canon-memoria §II.5 passo 7): o path antigo e
+    // PRESERVADO como stub de redirecionamento. Referrers NAO-RELINKAVEIS — append-only
+    // (ADR/session/handoff, Tier 0) e sob gate diff-aware (memory/requisitos/**, charter) —
+    // seguem resolvendo pelo stub, logo NAO exigem relink. A isencao e ESCOPADA a esses: referrer
+    // LIVRE segue obrigatorio (relink canonico). Sem referrer nao-relinkavel o stub e injustificado
+    // (seria escape-hatch pra pular relink de arquivo livre).
+    if (op.tombstone === true && !allInbound.some((ref) => isUnrelinkableReferrer(ref.file))) {
+      issues.push(issue('error', 'TOMBSTONE_UNJUSTIFIED', 'tombstone so se justifica com referrer nao-relinkavel (append-only ou sob gate diff-aware); sem ele, faca um move normal com relink', index));
+    }
     // Simetrico ao outbound: se o referrer TAMBEM move (lote coeso) e o link ja resolve pro
     // novo local do source, nao exige rewrite — o link continua valido. Se o referrer NAO move,
     // finalRefFile === ref.file e o link antigo nao resolve mais -> rewrite segue obrigatorio.
-    const inbound = (incoming.get(op.source.toLowerCase()) ?? [])
+    const inbound = allInbound
+      .filter((ref) => !(op.tombstone === true && isUnrelinkableReferrer(ref.file)))
       .filter((ref) => {
         const finalRefFile = finalPaths.get(ref.file.toLowerCase()) ?? ref.file;
         return !referenceCandidates(finalRefFile, ref.raw, ref.kind)
@@ -672,6 +736,66 @@ function runSelftest() {
   dictMove.operations[0].rewrites = [];
   const dictMoveResult = evaluate(dictMove, { incomingReferences: new Map([['memory/dominio/financeiro.md', []]]) });
   check('MORDE: dicionario de dominio (singular) e contrato de path', dictMoveResult.issues.some((i) => i.code === 'PROTECTED_SOURCE'), dictMoveResult);
+
+  // move-with-tombstone (proposal §II.5 passo 7): source com referrer append-only migra deixando
+  // stub no path antigo. O imutavel (ADR) resolve pelo stub e NAO exige relink; o mutavel (README)
+  // segue relinkado pro canonico. Fixture dedicada: docs/legado-tomb.md citado por README (mutavel)
+  // e por memory/decisions/0001 (imutavel).
+  const tombFiles = new Map([
+    ['docs/legado-tomb.md', '# Legado\n'],
+    ['README.md', '[Guia](docs/legado-tomb.md)\n'],
+    ['memory/decisions/0001-regra.md', '[Guia](../../docs/legado-tomb.md)\n'],
+    ['memory/requisitos/Financeiro/SPEC.md', '[Guia](../../../docs/legado-tomb.md)\n'],
+    ['memory/reference/existing.md', '# x\n'],
+    ['memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md', '# Constituicao\n'],
+  ]);
+  const tombCtxBase = {
+    currentSha: sha,
+    existingFiles: [...tombFiles.keys()],
+    trackedFiles: [...tombFiles.keys()],
+    readSource: (p) => { if (!tombFiles.has(p)) throw new Error('ausente'); return tombFiles.get(p); },
+  };
+  const tombRefReadme = { file: 'README.md', kind: 'markdown-link', raw: 'docs/legado-tomb.md', target: 'docs/legado-tomb.md', fragment: '' };
+  const tombRefAdr = { file: 'memory/decisions/0001-regra.md', kind: 'markdown-link', raw: '../../docs/legado-tomb.md', target: 'docs/legado-tomb.md', fragment: '' };
+  const tombRefSpec = { file: 'memory/requisitos/Financeiro/SPEC.md', kind: 'markdown-link', raw: '../../../docs/legado-tomb.md', target: 'docs/legado-tomb.md', fragment: '' };
+  const tombOp = (over = {}) => ({
+    source: 'docs/legado-tomb.md', target: 'memory/reference/legado-tomb.md', tombstone: true,
+    classification: { kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'legado-tomb', layer: 'ia-os', door: 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md' },
+    confidence: 0.95, reason: 'realocacao de legado com referrer append-only preservado por stub',
+    rewrites: [{ file: 'README.md', kind: 'markdown-link', from: 'docs/legado-tomb.md', to: 'memory/reference/legado-tomb.md' }],
+    ...over,
+  });
+  const tombPlan = (op, incoming) => validatePlan({ schema_version: 2, base_sha: sha, operations: [op] }, { ...tombCtxBase, incomingReferences: new Map([['docs/legado-tomb.md', incoming]]) });
+  const tombGood = tombPlan(tombOp(), [tombRefReadme, tombRefAdr]);
+  check('SOLTA: move-with-tombstone isenta referrer append-only e relinka o mutavel', tombGood.verdict === 'APPROVE', tombGood);
+  const tombUnjust = tombPlan(tombOp(), [tombRefReadme]);
+  check('MORDE: tombstone sem referrer append-only e injustificado', tombUnjust.issues.some((i) => i.code === 'TOMBSTONE_UNJUSTIFIED'), tombUnjust);
+  const tombMutable = tombPlan(tombOp({ rewrites: [] }), [tombRefReadme, tombRefAdr]);
+  check('MORDE: tombstone NAO isenta referrer mutavel (relink segue obrigatorio)', tombMutable.issues.some((i) => i.code === 'MISSING_REWRITE'), tombMutable);
+  const tombEditsImmutable = tombPlan(tombOp({ rewrites: [
+    { file: 'README.md', kind: 'markdown-link', from: 'docs/legado-tomb.md', to: 'memory/reference/legado-tomb.md' },
+    { file: 'memory/decisions/0001-regra.md', kind: 'markdown-link', from: '../../docs/legado-tomb.md', to: '../reference/legado-tomb.md' },
+  ] }), [tombRefReadme, tombRefAdr]);
+  check('MORDE: tombstone NAO autoriza editar append-only', tombEditsImmutable.issues.some((i) => i.code === 'IMMUTABLE_REFERRER'), tombEditsImmutable);
+  // Gate-guarded (lapide 2026-07-12): referrer sob memory/requisitos/** acorda anchor-lint/schema/
+  // distiller ao ser tocado. O stub o serve como um append-only; relinka-lo e barrado.
+  const tombGateOnly = tombPlan(tombOp(), [tombRefReadme, tombRefSpec]);
+  check('SOLTA: tombstone justificado so por referrer sob gate diff-aware (sem append-only)', tombGateOnly.verdict === 'APPROVE', tombGateOnly);
+  const tombEditsGate = tombPlan(tombOp({ rewrites: [
+    { file: 'README.md', kind: 'markdown-link', from: 'docs/legado-tomb.md', to: 'memory/reference/legado-tomb.md' },
+    { file: 'memory/requisitos/Financeiro/SPEC.md', kind: 'markdown-link', from: '../../../docs/legado-tomb.md', to: '../../reference/legado-tomb.md' },
+  ] }), [tombRefReadme, tombRefSpec]);
+  check('MORDE: relink de referrer sob gate diff-aware e barrado (GATE_GUARDED_REFERRER)', tombEditsGate.issues.some((i) => i.code === 'GATE_GUARDED_REFERRER'), tombEditsGate);
+  // O executor faz replace textual GLOBAL: o mesmo literal em dois contextos (markdown-link ->
+  // ./rel e code-span -> root/path) gera dois rewrites com o mesmo `from` e destinos diferentes
+  // que colidem no apply. O adversario reprova ANTES (nunca APROVA o que o executor nao aplica).
+  const conflict = clone(base);
+  conflict.operations[0].rewrites = [
+    { file: 'docs/ops.md', kind: 'markdown-link', from: 'legacy.md#uso', to: './guia-legado.md#uso' },
+    { file: 'docs/ops.md', kind: 'code-span', from: 'legacy.md#uso', to: 'memory/reference/guia-legado.md#uso' },
+  ];
+  const conflictResult = evaluate(conflict);
+  check('MORDE: mesmo literal com destinos diferentes no mesmo arquivo (CONFLICTING_REWRITE)', conflictResult.issues.some((i) => i.code === 'CONFLICTING_REWRITE'), conflictResult);
 
   for (const row of cases) console.log(`${row.ok ? '[OK]  ' : '[FAIL]'} ${row.name}`);
   const failed = cases.filter((row) => !row.ok);

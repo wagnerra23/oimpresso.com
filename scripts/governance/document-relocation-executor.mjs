@@ -5,7 +5,7 @@
 import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, posix as ppath, resolve } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { validatePlanAtRoot } from './document-relocation-adversary.mjs';
@@ -55,7 +55,34 @@ export function commitTrailers(plan) {
     `Document-Plan-SHA256: ${planDigest(plan)}`,
     `Document-Base-SHA: ${plan.base_sha}`,
     ...plan.operations.map((op) => `Document-Move: ${op.source} => ${op.target}`),
+    // Transparencia: registra quais moves deixaram stub no path antigo (move-with-tombstone).
+    ...plan.operations.filter((op) => op.tombstone === true).map((op) => `Document-Tombstone: ${op.source} -> ${op.target}`),
   ];
+}
+
+// move-with-tombstone (proposal estrutura-canon-memoria §II.5 passo 7): stub deterministico
+// gravado no path ANTIGO apos o git mv. Preserva o path para que referrers append-only
+// (ADR/session/handoff) sigam resolvendo SEM editar o historico. So ASCII + LF (evita BOM);
+// nada volatil (sem data) — o conteudo e derivado do plano, nao entra no digest.
+export function renderTombstone(op) {
+  const rel = ppath.relative(ppath.dirname(op.source), op.target) || ppath.basename(op.target);
+  const link = rel.startsWith('.') ? rel : `./${rel}`;
+  return [
+    '---',
+    'tombstone: true',
+    `moved_to: ${op.target}`,
+    '---',
+    '',
+    '# Documento realocado',
+    '',
+    `Conteudo movido para o local canonico: [${op.target}](${link}).`,
+    '',
+    '> Lapide de realocacao documental (move-with-tombstone). O path antigo permanece',
+    '> porque referencias que nao podem ser reescritas apontam para ca — append-only',
+    '> (ADR/session/handoff) ou sob gate diff-aware (SPEC/RUNBOOK/charter). Links novos',
+    '> devem usar o destino canonico acima.',
+    '',
+  ].join('\n');
 }
 
 export function replaceExact(text, from, to) {
@@ -104,7 +131,15 @@ function rollback(root, plan, before) {
 
 function runPostChecks(root, plan) {
   for (const op of plan.operations) {
-    if (existsSync(join(root, op.source))) throw new Error(`source ainda existe apos git mv: ${op.source}`);
+    if (op.tombstone === true) {
+      // move-with-tombstone: o path antigo DEVE permanecer como stub de redirecionamento.
+      if (!existsSync(join(root, op.source))) throw new Error(`tombstone ausente no path preservado: ${op.source}`);
+      if (!/^tombstone:\s*true$/m.test(readFileSync(join(root, op.source), 'utf8'))) {
+        throw new Error(`stub sem marcador tombstone: ${op.source}`);
+      }
+    } else if (existsSync(join(root, op.source))) {
+      throw new Error(`source ainda existe apos git mv: ${op.source}`);
+    }
     if (!existsSync(join(root, op.target))) throw new Error(`target ausente apos git mv: ${op.target}`);
   }
   git(root, ['diff', '--cached', '--check']);
@@ -141,7 +176,14 @@ export function executePlan(plan, { root = DEFAULT_ROOT, apply = false, commit =
   assertClean(repo);
   const before = snapshot(repo, plan);
   try {
-    for (const op of plan.operations) git(repo, ['mv', '--', op.source, op.target]);
+    for (const op of plan.operations) {
+      git(repo, ['mv', '--', op.source, op.target]);
+      // move-with-tombstone: apos mover o conteudo, deixa o stub no path antigo (preservado).
+      if (op.tombstone === true) {
+        writeFileSync(join(repo, op.source), renderTombstone(op), 'utf8');
+        git(repo, ['add', '--', op.source]);
+      }
+    }
     const relinkCounts = [];
     for (const op of plan.operations) for (const rewrite of op.rewrites) {
       const path = finalFile(plan, rewrite.file);
@@ -268,6 +310,30 @@ function selftest() {
     check('contagem divergente aborta e reverte', countMismatchAborted
       && existsSync(join(fixture, 'docs/extra.md'))
       && readFileSync(join(fixture, 'NOTES.md'), 'utf8') === notesBefore);
+    // move-with-tombstone (§II.5 passo 7) fim-a-fim: docs/tomb.md citado por um ADR (imutavel,
+    // via ../../docs/tomb.md) e por GUIDE.md (mutavel). O move deixa stub no path antigo: o ADR
+    // NAO e tocado (link resolve pelo stub) e o GUIDE e relinkado pro canonico.
+    writeFileSync(join(fixture, 'docs/tomb.md'), '# Doc legado\n');
+    writeFileSync(join(fixture, 'GUIDE.md'), '[legado](docs/tomb.md)\n');
+    writeFileSync(join(fixture, 'memory/decisions/0002-cita-legado.md'), '# ADR\n\n[legado](../../docs/tomb.md)\n');
+    git(fixture, ['add', '.']); git(fixture, ['commit', '-q', '-m', 'fixture tombstone']);
+    const adrBefore = readFileSync(join(fixture, 'memory/decisions/0002-cita-legado.md'), 'utf8');
+    const tombPlan = { schema_version: 2, base_sha: git(fixture, ['rev-parse', 'HEAD']), operations: [{
+      source: 'docs/tomb.md', target: 'memory/reference/tomb.md', tombstone: true,
+      classification: { kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'tomb', layer: 'ia-os', door: 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md' },
+      confidence: 0.95, reason: 'realocacao de legado preservando referrer append-only via stub',
+      rewrites: [{ file: 'GUIDE.md', kind: 'markdown-link', from: 'docs/tomb.md', to: 'memory/reference/tomb.md' }],
+    }] };
+    const tombResult = executePlan(tombPlan, { root: fixture, apply: true, commit: true });
+    const stub = existsSync(join(fixture, 'docs/tomb.md')) ? readFileSync(join(fixture, 'docs/tomb.md'), 'utf8') : '';
+    check('tombstone: stub no path antigo + alvo movido + ADR intacto + mutavel relinkado',
+      tombResult.status === 'COMMITTED'
+      && /^tombstone:\s*true$/m.test(stub) && stub.includes('memory/reference/tomb.md')
+      && existsSync(join(fixture, 'memory/reference/tomb.md'))
+      && readFileSync(join(fixture, 'memory/reference/tomb.md'), 'utf8') === '# Doc legado\n'
+      && readFileSync(join(fixture, 'memory/decisions/0002-cita-legado.md'), 'utf8') === adrBefore
+      && readFileSync(join(fixture, 'GUIDE.md'), 'utf8').includes('memory/reference/tomb.md'));
+    check('tombstone: movimento aparece no historico duravel', movementHistory(fixture).some((r) => r.source === 'docs/tomb.md' && r.target === 'memory/reference/tomb.md'));
   } finally {
     if (fixture.startsWith(tmpdir())) rmSync(fixture, { recursive: true, force: true });
   }

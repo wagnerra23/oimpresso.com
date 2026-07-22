@@ -171,8 +171,13 @@ seria a atrofia automatizada. Portas: `domain` → `memory/dominios/_overview.md
 
 ## II.5b Implementado (2026-07-22, mesma branch — recibo, não promessa)
 
-Passos 2–6 e 8 da ordem acima **codados e provados** (o passo 1 é este merge; 7 tombstone e
-9 convergência seguem pendentes):
+Passos 2–8 da ordem acima **codados e provados** (o passo 1 é este merge). O passo **9**
+(convergência dos 11 comparativos) ficou **bloqueado por um limite pré-existente do relink**,
+não do tombstone: os docs se cruzam densamente usando o mesmo literal de caminho em dois contextos
+(`[x](arq.md)` markdown-link → `./rel` **e** `` `arq.md` `` code-span → `root/path`). O executor
+aplica por replace textual global e não distingue contexto → o adversário agora reprova antes do
+`git mv` (`CONFLICTING_REWRITE`, dente novo — antes dava falso APPROVE). Falharia igual num move
+normal (independe do tombstone). Destrava com relink **contexto-consciente** — feature à parte:
 
 | Fix | Prova (vetor de selftest que morde) |
 |---|---|
@@ -183,6 +188,7 @@ Passos 2–6 e 8 da ordem acima **codados e provados** (o passo 1 é este merge;
 | Aprovação humana amarrada ao hash (`approvals[]` + `approvalDigest`, reviewer enum W/F/M/L/E; CLI `--digest`) | `SOLTA: baixa confianca COM aprovacao assinada` · `MORDE: hash que nao corresponde` |
 | `count` por rewrite no plano; executor aborta+rollback se divergir (P2 replaceExact) | `contagem divergente aborta e reverte` |
 | `already_canonical`: doc já no prefixo do owner não gera move achatado | `dominio-e-business-knowledge` |
+| **`move-with-tombstone` (passo 7)**: legado com referrer não-relinkável (append-only **ou** sob gate diff-aware — `memory/requisitos/**`/charter, lápide 2026-07-12) migra deixando stub no path antigo; o não-relinkável resolve pelo stub, o livre é relinkado; injustificado sem não-relinkável | adversário `SOLTA: move-with-tombstone isenta referrer append-only e relinka o mutavel` · `SOLTA: tombstone justificado so por referrer sob gate diff-aware` · `MORDE: tombstone sem referrer append-only e injustificado` · `MORDE: tombstone NAO isenta referrer mutavel` · `MORDE: tombstone NAO autoriza editar append-only` · `MORDE: relink de referrer sob gate diff-aware e barrado (GATE_GUARDED_REFERRER)` · classificador `tombstone-particao-separa-nao-relinkavel` · executor `tombstone: stub no path antigo + alvo movido + ADR intacto + mutavel relinkado` |
 
 Selftests: adversário **22/22** · classificador **9/9** · executor **10/10**. **Re-medição
 pós-fix (mesmo script da §II.1): 434/434 docs de negócio → owner `domain`(431)/`client`(3),

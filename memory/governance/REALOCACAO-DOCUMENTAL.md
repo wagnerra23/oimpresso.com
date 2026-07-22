@@ -16,6 +16,55 @@ O classificador propõe. O adversário pode impedir. Só o executor movimenta. O
 exige worktree limpa, usa `git mv`, limita os paths alteráveis ao plano e restaura o
 estado anterior se qualquer verificação falhar.
 
+## Legado com referrer append-only — `move-with-tombstone`
+
+Um documento legado pode ter **referrers append-only** (ADR, session, handoff) que citam o
+path antigo. Reescrever esses links é proibido (Tier 0 — histórico imutável), então um move
+normal é **rejeitado** pelo adversário (`IMMUTABLE_REFERRER` / `MISSING_REWRITE`), corretamente.
+
+O modo **`move-with-tombstone`** (proposal `estrutura-canon-memoria` §II.5 passo 7) destrava
+esse caso: move o conteúdo para o destino canônico **e deixa um _stub_ de redirecionamento no
+path antigo**. Como o path antigo continua existindo, os links que apontam para ele **seguem
+resolvendo sem qualquer edição**. Referrers **livres** são relinkados para o canônico; o stub
+serve os **não-relinkáveis**, que são de duas classes:
+
+- **append-only** (`memory/decisions|sessions|handoffs/`) — editar viola Tier 0 (`IMMUTABLE_REFERRER`);
+- **sob gate diff-aware** (`memory/requisitos/**`, `resources/js/Pages/**/*.charter.md`) — relinkar
+  põe o arquivo no diff e/ou muda a data-git do doc mais novo do módulo, acordando anchor-lint /
+  schema / `distiller_freshness` sobre dívida pré-existente (lápide 2026-07-12); barrado por
+  `GATE_GUARDED_REFERRER`. `memory/reference/*.md` **não** entra (schema em grace/warn-only, fora
+  do ratchet) — é relinkado normalmente.
+
+Regras que o adversário aplica (todas com selftest que morde):
+
+- o stub só é aceito quando existe **de fato** um referrer não-relinkável (`TOMBSTONE_UNJUSTIFIED`
+  caso contrário — não é escape-hatch para pular relink de referrer livre);
+- a isenção de relink é **escopada aos não-relinkáveis**: referrer livre não declarado ainda
+  quebra o plano (`MISSING_REWRITE`);
+- isenção de relink **não** é permissão de editar: declarar rewrite sobre append-only continua
+  `IMMUTABLE_REFERRER`; sobre arquivo gate-guarded, `GATE_GUARDED_REFERRER`.
+
+Gerar o plano (opt-in explícito via `--tombstone`; sem a flag o lote **exclui** esses sources):
+
+```powershell
+# lote coeso de uma pasta legada inteira:
+npm run --silent docs:relocation:classify -- --dir memory/comparativos --tombstone > $docPlan
+# ou um source só:
+npm run --silent docs:relocation:classify -- --source memory/ARQUIVO.md --tombstone > $docPlan
+```
+
+O executor grava o stub após o `git mv` e valida no pós-check que o path antigo permanece com o
+marcador `tombstone: true`. O commit ganha um trailer `Document-Tombstone: <antigo> -> <novo>`
+além do `Document-Move`, e o `docs:relocation:history` continua listando o deslocamento.
+
+> Regressão evitada (lápide 2026-07-12): o stub mora sob a pasta legada (ex.: `memory/comparativos/`)
+> e o alvo sob `memory/research/` — nenhum dos dois casa glob de gate diff-aware. E, por deixar os
+> referrers gate-guarded apontando para o stub, o diff **não inclui** nenhum arquivo sob
+> `memory/requisitos/**` — logo não acorda `anchor-lint`, `memory-schema-gate` (SPEC/RUNBOOK/BRIEFING/
+> tópico/charter) nem `distiller_freshness` (que keia na data-git de qualquer `.md` do módulo, via
+> `git log -1 --format=%cs`). **Provar antes** de cada convergência — listar os arquivos relinkados e
+> confirmar 0 sob glob de gate — faz parte do passo 9.
+
 ## As três camadas
 
 | Camada | Conteúdo | Porta-mãe |
@@ -106,7 +155,13 @@ Pare sem mover se ocorrer qualquer um destes casos:
 - destino colide, não existe ou discorda da camada/porta;
 - seria necessário editar histórico append-only;
 - o plano foi gerado em outro SHA;
-- a worktree contém mudanças não relacionadas.
+- a worktree contém mudanças não relacionadas;
+- `CONFLICTING_REWRITE`: um mesmo literal de caminho aparece no arquivo em dois contextos que
+  exigem destinos diferentes (ex.: `[x](arq.md)` como markdown-link → `./rel` **e** `` `arq.md` ``
+  como code-span → `root/path`). O relink é textual (split/join global) e não distingue contexto,
+  então não aplica os dois — o adversário reprova antes do `git mv`. Resolva manualmente o arquivo
+  (ou preserve o path) e reclassifique. Documentos densamente cruzados com estilos de link mistos
+  caem aqui (ex.: o lote `memory/comparativos/` 2026-07-22 — pendente de relink contexto-consciente).
 
 O rollback automático cobre falhas durante a execução. Se a operação já foi commitada,
 a correção é um novo commit explícito; não apague nem reescreva o histórico publicado.
