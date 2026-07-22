@@ -91,15 +91,23 @@ export function classifyDocument({ source, text, modules, targetOverride }) {
   if (meta.type && kind === 'other') warnings.push(`frontmatter type: ${meta.type} nao reconhecido pelos kinds canonicos`);
 
   const corpus = businessOwner(source);
-  let owner = corpus ?? (moduleName ? `module:${moduleName}` : 'reference');
-  if (!corpus) {
+  // Qualquer doc sob memory/requisitos/<area>/ pertence AQUELA area — mesmo que <area> nao
+  // seja modulo nWidart (Sells/Produto/Estoque/Infra/_DesignSystem sao core UltimatePOS ou
+  // pseudo-pastas, sem Modules/<X>/module.json). Sem isso o classificador misroteava ~200
+  // docs de modulo pra governance (incidente scan 2026-07-22). owner=module:<area> => prefixo
+  // memory/requisitos/<area>/ => alreadyInFamily => NAO move.
+  const requisitosArea = source.match(/^memory\/requisitos\/([^/]+)\//)?.[1];
+  let owner = corpus ?? (requisitosArea ? `module:${requisitosArea}` : moduleName ? `module:${moduleName}` : 'reference');
+  if (!corpus && !requisitosArea) {
     if (kind === 'audit') owner = 'audit';
     else if (kind === 'research') owner = 'research';
     else if (!moduleName && /governan|claude|agente|hook|gate|workflow|ci\b/i.test(`${source}\n${text.slice(0, 2500)}`)) owner = 'governance';
   }
 
   const slug = slugify(meta.slug || posix.basename(source));
-  const prefix = owner.startsWith('module:') ? `memory/requisitos/${moduleName}/`
+  // Modulo do owner (parseado do proprio owner) — pode nao ser nWidart (requisitosArea).
+  const ownerModule = owner.startsWith('module:') ? owner.slice('module:'.length) : null;
+  const prefix = ownerModule ? `memory/requisitos/${ownerModule}/`
     : owner === 'audit' ? 'memory/audits/'
       : owner === 'research' ? 'memory/research/'
         : owner === 'governance' ? 'memory/governance/'
