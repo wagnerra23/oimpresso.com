@@ -496,7 +496,7 @@
 ## Após cada conversa
 
 1. **Atualizar status no MCP:** `tasks-update <ID> status:doing` quando agendar 15min, `status:done` quando virar lead qualificado (com link pro novo registro CRM)
-2. **Se virar cliente:** criar entrada em [memory/clientes-legacy/](../../../clientes-legacy/) (formato igual rota-livre.md)
+2. **Se virar cliente:** criar perfil em [memory/clientes/](../../../clientes/) (formato igual clientes/rota-livre/PERFIL.md)
 3. **Se for sinal qualificado novo (US-FEATURE-X):** apender ao `memory/requisitos/ComunicacaoVisual/SPEC.md` seguindo skill `comparativo` se for backlog módulo
 
 ## Métricas de validação Q2

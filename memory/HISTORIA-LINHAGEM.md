@@ -21,7 +21,7 @@ pii: false
 > **Pra que serve:** o ÚNICO doc que conta a linhagem **convergida** do sistema numa timeline: os 26 anos de Delphi (WR Sistemas / OfficeImpresso) → a decisão de **estender UltimatePOS** ([ADR 0001](decisions/0001-estender-ultimatepos-opcao-c.md)) → o oimpresso modular Laravel de hoje. Antes disto a linhagem estava **órfã, espalhada em 10+ nós** (ADRs, `09-modulos-ultimatepos`, `why-oimpresso`, o hub Delphi) — nenhum contava a história inteira.
 >
 > **O que este doc É:** timeline **datada + ponteiros**. História não muda → não apodrece (lei-mãe [ADR 0256](decisions/0256-knowledge-survival-meia-vida-catraca-sentinela.md): o estático-verdadeiro sobrevive).
-> **O que este doc NÃO é:** um mapa vivo. **Zero número vivo** (contagem de clientes, receita, módulos instalados) — esses vivem nos sistemas/docs vivos e são **apontados, nunca restateados** (lápide §5 2026-07-17). Estado ATUAL dos módulos = `npm run screen-coverage:report` + os BRIEFINGs; contagem de clientes legacy = [`clientes-legacy/_index.md`](clientes-legacy/_index.md).
+> **O que este doc NÃO é:** um mapa vivo. **Zero número vivo** (contagem de clientes, receita, módulos instalados) — esses vivem nos sistemas/docs vivos e são **apontados, nunca restateados** (lápide §5 2026-07-17). Estado ATUAL dos módulos = `npm run screen-coverage:report` + os BRIEFINGs; contagem de clientes legacy = [`legacy-delphi/CLIENTES-DELPHI-MATRIZ.md`](legacy-delphi/CLIENTES-DELPHI-MATRIZ.md).
 
 ## As três eras (visão de 1 olhada)
 

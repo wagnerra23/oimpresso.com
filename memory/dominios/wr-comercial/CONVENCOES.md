@@ -53,7 +53,7 @@ Implementado em [`scripts/legacy-migration/lib/fk_resolver.py`](../../../scripts
 Equivalente Delphi do `business_id` Laravel ([ADR 0093](../../decisions/0093-multi-tenant-isolation-tier-0.md)).
 
 - Cada cliente Delphi tem 1+ `EMPRESA(CODIGO)` no banco
-- Importer mapeia `CODEMPRESA Delphi → business_id Laravel` via configuração per-cliente em `clientes-legacy/<alias>.md`
+- Importer mapeia `CODEMPRESA Delphi → business_id Laravel` via configuração per-cliente em `clientes/<alias>/PERFIL.md`
 - Cliente "ROTA LIVRE" (alias seria `rota-livre` no registry — embora ela não esteja no registry do Wagner; está nativa no oimpresso) tem `business_id=4`
 - Wagner ServidorWR2 — `CODEMPRESA Delphi=1 → business_id Laravel=1`
 

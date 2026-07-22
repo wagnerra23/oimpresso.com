@@ -104,7 +104,7 @@ FINANCEIRO_CHEQUE                ──────►  (escopo separado — che
 | Delphi (CONTAS) | Laravel (accounts) | Notas |
 |---|---|---|
 | `CODIGO` (PK) | `legacy_id` (custom) | + `legacy_source='wr-comercial'`. ID Laravel auto. |
-| `CODEMPRESA` | `business_id` | resolve via `clientes-legacy/<alias>.md` mapping |
+| `CODEMPRESA` | `business_id` | resolve via `clientes/<alias>/PERFIL.md` mapping |
 | `NOME` ou `NOME_CONTA` | `name` | Nome amigável da conta |
 | `CODIGO_CEDENTE` ou `CONTA` | `account_number` | Número de conta visível |
 | (sempre) | `account_type` = `'saving_current'` | Default — Delphi não distingue |
@@ -304,7 +304,7 @@ Detalhes campo-a-campo dependem de inspecionar `BOLETOS.md` completo (não fizem
 | 3 | Decisão sobre `fin_titulo_eventos` | Wagner escolhe opção 1/2/3 antes de Fase 5 |
 | 4 | Decisão sobre `fin_regras_conciliacao` | Wagner escolhe opção 1/2 antes de Fase 5 |
 | 5 | Segredos bancários (CLIENTSECRET, KEYFILE) | Importer integra com Vaultwarden em prod, JSON em dev |
-| 6 | `business_id` resolution per-cliente | Cada cliente Delphi mapeia 1 ou +N business_id no oimpresso. Documentar em `clientes-legacy/<alias>.md` |
+| 6 | `business_id` resolution per-cliente | Cada cliente Delphi mapeia 1 ou +N business_id no oimpresso. Documentar em `clientes/<alias>/PERFIL.md` |
 | 7 | Validar duplicidade `CODIGO_CEDENTE` × `account_number` | Pode ser mesma info em 2 colunas — desambiguar com Wagner |
 | 8 | `FINANCEIRO_CHEQUE` (escopo cheques) | Fora desta Fase 4. Wagner decide se entra na próxima ou em fase separada |
 

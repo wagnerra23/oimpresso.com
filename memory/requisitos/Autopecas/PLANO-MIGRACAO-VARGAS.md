@@ -185,7 +185,7 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
 
 ### Pré-migração (D-30 contractual)
 
-- [ ] **Snapshot financeiro Vargas** skill `officeimpresso-financial-snapshot` rodada → arquivo em `memory/clientes-legacy/vargas.md`
+- [ ] **Snapshot financeiro Vargas** skill `officeimpresso-financial-snapshot` rodada → arquivo em `memory/clientes/vargas/PERFIL.md`
 - [ ] Banco Firebird Vargas identificado em `HKCU\Software\Rocha\Office Comercial\Banco\Caminhos` (Wagner valida path)
 - [ ] Versão Delphi confirmada via `SELECT VALOR FROM CONFIGURACOES WHERE CONFIG='VERSAO_BANCO'` — esperado: 1468
 - [ ] **Localização Vargas confirmada** (SC/SP/MG/RJ?) via consulta `CLIENTES.UF` no banco — define se suporte presencial é viável
@@ -228,7 +228,7 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
   - vídeo 90s (Wagner + designer externo gravam na loja Vargas)
   - landing `oimpresso.com/cases/vargas` ([Modules/Cms](../Cms/) cms_pages)
   - autoriza menção em battle card oimpresso vs Auto Manager/Lokoz/Linx Microvix
-- [ ] **Aposentar Delphi WR Sistemas pro Vargas** (status `🔒 retired` em [`_index.md`](../../clientes-legacy/_index.md))
+- [ ] **Aposentar Delphi WR Sistemas pro Vargas** (status `🔒 retired` em [`_index.md`](../../legacy-delphi/CLIENTES-DELPHI-MATRIZ.md))
 - [ ] **Autopecas (planejado — não existe) promovido `em_construcao` → `piloto`** (ADR 0125 lifecycle)
 
 ---
@@ -315,7 +315,7 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
 4. **Confirmar localização Vargas** (SC/SP/MG/RJ) via banco — define geografia presencial
 5. **Confirmar vertical autopeças** via sample 100 produtos no banco Firebird Vargas
 6. **Definir gate-check Modules/ComunicacaoVisual Sprint 1** — Felipe + Wagner alinham 4 features mínimas comvisual pra abrir outreach Vargas Q4/26
-7. **Registrar Vargas como candidato piloto Autopecas (planejado — não existe)** em `memory/clientes-legacy/_index.md` (status `🟡 candidato Autopecas (planejado — não existe)`)
+7. **Registrar Vargas como candidato piloto Autopecas (planejado — não existe)** em `memory/legacy-delphi/CLIENTES-DELPHI-MATRIZ.md` (status `🟡 candidato Autopecas (planejado — não existe)`)
 8. **NÃO criar tasks MCP Autopecas (planejado — não existe) ainda** — gatilho Vargas assinatura (ADR 0125) é pré-requisito; criar tasks viola ADR 0105
 
 ---
@@ -332,7 +332,7 @@ Por baseado em [`memory/dominios/_patterns/`](../../dominios/_patterns/), execut
 - [SPEC Autopecas (planejado — não existe)](SPEC.md) — contrato funcional do módulo
 - [Charter Autopecas (planejado — não existe)](Autopecas.charter.md) — charter v1 antecipatório
 - [PLANO-MIGRACAO-6-SAUDAVEIS.md](../ComunicacaoVisual/PLANO-MIGRACAO-6-SAUDAVEIS.md) — Vargas removido pro autopeças, plano comvisual atualizado
-- [memory/clientes-legacy/_index.md](../../clientes-legacy/_index.md) — matriz 49 clientes Delphi
+- [memory/legacy-delphi/CLIENTES-DELPHI-MATRIZ.md](../../legacy-delphi/CLIENTES-DELPHI-MATRIZ.md) — matriz 49 clientes Delphi
 - [memory/sales/2026-05/06-pricing-tiers.md](../../sales/2026-05/06-pricing-tiers.md) — tiers oficiais (Starter/Pro/Enterprise)
 - [memory/dominios/_patterns/](../../dominios/_patterns/) — 7 patterns reusáveis Migration Factory
 - [memory/requisitos/Officeimpresso/RUNBOOK-financial-snapshot-cliente.md](../Officeimpresso/RUNBOOK-financial-snapshot-cliente.md) — receita extração receita por cliente Firebird

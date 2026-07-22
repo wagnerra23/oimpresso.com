@@ -613,7 +613,7 @@ Se P1 < 30% → recalibrar mensagem (Larissa não autoriza? Tom errado? Timing f
 ## Após cada conversa
 
 1. **Atualizar coluna Status** desta tabela: `backlog` → `doing` quando agendar 15min/visita → `done` quando virar lead qualificado
-2. Se virar cliente: criar entrada em [memory/clientes-legacy/](../../../clientes-legacy/) (formato igual rota-livre.md)
+2. Se virar cliente: criar perfil em [memory/clientes/](../../../clientes/) (formato igual clientes/rota-livre/PERFIL.md)
 3. Se for sinal qualificado novo: apender US ao SPEC.md de Modules/Vestuario seguindo [skill comparativo](../../../../.claude/skills/comparativo-do-modulo/SKILL.md)
 4. Se Larissa receber visita de prospect via referência: agradecer + small gift gourmet (custo R$ [redacted Tier 0]-100 razoável pra alavanca outbound)
 
