@@ -7,6 +7,7 @@ status: draft
 last_validated: "2026-05-15"
 parent_module: Produto
 related_adrs: [104, 149, 93, 107]
+related_us: [US-PROD-023]
 related_runbook: memory/requisitos/Produto/_telas/RUNBOOK-produto-show.md
 related_visual_comparison: memory/requisitos/Produto/_telas/produto-show-visual-comparison.md
 tier: A
