@@ -184,22 +184,38 @@ export function executePlan(plan, { root = DEFAULT_ROOT, apply = false, commit =
         git(repo, ['add', '--', op.source]);
       }
     }
-    const relinkCounts = [];
+    // Colapsa os relinks por (arquivo-final, string-de-busca) ANTES de aplicar. Num lote coeso
+    // o mesmo relink A->B e declarado por DOIS ops (inbound de B e outbound de A) — mesma
+    // (file, kind, from, to). Aplicar por op faria o 2o achar 0 ocorrencia (split/join global
+    // consome tudo no 1o). O adversario valida por-op e nao ve o cruzamento; o executor e o
+    // ponto onde a aplicacao e GLOBAL, entao a deduplicacao mora aqui. Se a MESMA busca mapeia
+    // para replaces diferentes = conflito real (contexto-consciente ja separa markdown/code-span;
+    // isso aqui pega colisao genuina) -> aborta.
+    const relinkPlan = new Map();
     for (const op of plan.operations) for (const rewrite of op.rewrites) {
       const path = finalFile(plan, rewrite.file);
-      const absolute = join(repo, path);
-      // Busca/substituicao contextual por kind (relink contexto-consciente §II.5 passo 9).
       const [search, replace] = searchReplaceFor(rewrite.kind, rewrite.from, rewrite.to);
+      const key = `${path}\u0000${search}`;
+      const prev = relinkPlan.get(key);
+      if (prev && prev.replace !== replace) {
+        throw new Error(`conflito de relink em ${path}: a busca "${search}" mapeia para "${prev.replace}" e "${replace}"`);
+      }
+      if (!prev) relinkPlan.set(key, { path, search, replace, count: rewrite.count });
+      else if (typeof rewrite.count === 'number') prev.count = rewrite.count; // conta declarada mais especifica
+    }
+    const relinkCounts = [];
+    for (const { path, search, replace, count } of relinkPlan.values()) {
+      const absolute = join(repo, path);
       const result = replaceExact(readFileSync(absolute, 'utf8'), search, replace);
       // Contagem declarada no plano (classifier) vs encontrada no apply: divergiu = o
       // arquivo mudou entre plano e execucao OU a string casa em prosa alem da referencia
       // (review 2026-07-22 P2: split/join e global) — aborta e faz rollback.
-      if (typeof rewrite.count === 'number' && result.count !== rewrite.count) {
-        throw new Error(`relink de ${path}: plano declarou ${rewrite.count} ocorrencia(s) de "${search}", encontrado ${result.count}`);
+      if (typeof count === 'number' && result.count !== count) {
+        throw new Error(`relink de ${path}: plano declarou ${count} ocorrencia(s) de "${search}", encontrado ${result.count}`);
       }
       writeFileSync(absolute, result.text, 'utf8');
       git(repo, ['add', '--', path]);
-      relinkCounts.push({ file: path, from: rewrite.from, to: rewrite.to, replacements: result.count });
+      relinkCounts.push({ file: path, search, to: replace, replacements: result.count });
     }
     runRefreshers(repo, plan);
     const changed = runPostChecks(repo, plan);
@@ -336,6 +352,23 @@ function selftest() {
       && readFileSync(join(fixture, 'memory/decisions/0002-cita-legado.md'), 'utf8') === adrBefore
       && readFileSync(join(fixture, 'GUIDE.md'), 'utf8').includes('memory/reference/tomb.md'));
     check('tombstone: movimento aparece no historico duravel', movementHistory(fixture).some((r) => r.source === 'docs/tomb.md' && r.target === 'memory/reference/tomb.md'));
+    // Lote coeso com relink DUPLICADO cross-op (§II.5 passo 9): A->B renomeado ao mover e
+    // declarado como inbound de B E outbound de A -> mesma (file, kind, from, to) em 2 ops. O
+    // executor colapsa por (arquivo-final, busca) e aplica UMA vez (antes o 2o achava 0 -> abortava).
+    writeFileSync(join(fixture, 'docs/a.md'), '# A\n\n[ver B](b.md)\n');
+    writeFileSync(join(fixture, 'docs/b.md'), '# B\n');
+    git(fixture, ['add', '.']); git(fixture, ['commit', '-q', '-m', 'fixture coeso dup']);
+    const dupCls = (slug) => ({ kind: 'how-to', owner: 'reference', lifecycle: 'active', slug, layer: 'ia-os', door: 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md' });
+    const dupRw = { file: 'docs/a.md', kind: 'markdown-link', from: 'b.md', to: './y.md' };
+    const dupPlan = { schema_version: 2, base_sha: git(fixture, ['rev-parse', 'HEAD']), operations: [
+      { source: 'docs/a.md', target: 'memory/reference/x.md', classification: dupCls('x'), confidence: 0.95, reason: 'guia A coeso movido para a referencia canonica', rewrites: [{ ...dupRw }] },
+      { source: 'docs/b.md', target: 'memory/reference/y.md', classification: dupCls('y'), confidence: 0.95, reason: 'guia B coeso movido para a referencia canonica', rewrites: [{ ...dupRw }] },
+    ] };
+    const dupResult = executePlan(dupPlan, { root: fixture, apply: true, commit: true });
+    check('lote coeso: relink duplicado cross-op aplica uma vez (sem abortar)',
+      dupResult.status === 'COMMITTED'
+      && !existsSync(join(fixture, 'docs/a.md')) && !existsSync(join(fixture, 'docs/b.md'))
+      && readFileSync(join(fixture, 'memory/reference/x.md'), 'utf8').includes('](./y.md)'));
   } finally {
     if (fixture.startsWith(tmpdir())) rmSync(fixture, { recursive: true, force: true });
   }
