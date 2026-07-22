@@ -259,6 +259,9 @@ export function buildPlan(source, { targetOverride, tombstone = false } = {}) {
     schema_version: SCHEMA_VERSION,
     base_sha: git(['rev-parse', 'HEAD']),
     generated_at: new Date().toISOString(),
+    // Todo move altera a arvore que o system-map indexa -> regenera o PAINEL/ONBOARDING dentro
+    // da transacao (senao o post-check `system-map --check` do executor reprova o painel stale).
+    refresh: ['system-map'],
     operations: [{ source: normalized, target: inferred.target, classification: inferred.classification,
       confidence: inferred.confidence, reason: inferred.reason,
       ...(useTombstone ? { tombstone: true } : {}),
@@ -314,6 +317,8 @@ export function buildBatchPlan(sources, { tombstone = false } = {}) {
     schema_version: SCHEMA_VERSION,
     base_sha: git(['rev-parse', 'HEAD']),
     generated_at: new Date().toISOString(),
+    // Regenera PAINEL/ONBOARDING dentro da transacao (todo move altera a arvore do system-map).
+    refresh: operations.length ? ['system-map'] : [],
     operations,
     review: active.flatMap((c) => c.inferred.warnings),
     excluded,
