@@ -15,7 +15,7 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 >
 > **O que isto é:** o módulo `Sells` é CLASSE B — o código mora no núcleo UltimatePOS (`app/`), sem diretório modular homônimo. A membership vem de uma **semente curada** de paths do core declarada em `module-surface.mjs::CORE_APP_MODULES` (revisável no diff) + `resources/js/Pages/Sells/**`. **O que NÃO é:** cobertura/nota/status (donos: `screen-coverage-map.mjs` + `casos-gate`). As **tabelas do domínio** (`transactions`, `transaction_sell_lines`, `transaction_payments`) são metadado-ÂNCORA declarado, **não** o derivador (derivar por tabela over-inclui — medido 2026-07-21).
 
-**Total mapeado:** 164 arquivos em 8 papéis.
+**Total mapeado:** 165 arquivos em 8 papéis.
 
 ## Controllers — 6
 
@@ -26,13 +26,14 @@ tabelas_dominio: ["transactions", "transaction_sell_lines", "transaction_payment
 - [SellReturnController.php](../../../app/Http/Controllers/SellReturnController.php)
 - [SellTranscriptPdfController.php](../../../app/Http/Controllers/SellTranscriptPdfController.php)
 
-## Motor (Utils/Domínio) — 32
+## Motor (Utils/Domínio) — 33
 
 - [GuardsFsmTransitions.php](../../../app/Domain/Fsm/Concerns/GuardsFsmTransitions.php)
 - [SideEffectInterface.php](../../../app/Domain/Fsm/Contracts/SideEffectInterface.php)
 - [InvalidActionForCurrentStageException.php](../../../app/Domain/Fsm/Exceptions/InvalidActionForCurrentStageException.php)
 - [UnauthorizedActionException.php](../../../app/Domain/Fsm/Exceptions/UnauthorizedActionException.php)
 - [ExpireStaleReservationsJob.php](../../../app/Domain/Fsm/Jobs/ExpireStaleReservationsJob.php)
+- [ResetFsmAuthorizationFlag.php](../../../app/Domain/Fsm/Listeners/ResetFsmAuthorizationFlag.php)
 - [SaleProcess.php](../../../app/Domain/Fsm/Models/SaleProcess.php)
 - [SaleProcessStage.php](../../../app/Domain/Fsm/Models/SaleProcessStage.php)
 - [SaleStageAction.php](../../../app/Domain/Fsm/Models/SaleStageAction.php)
