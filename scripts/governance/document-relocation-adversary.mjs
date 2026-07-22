@@ -16,7 +16,7 @@ import { readFileSync, readdirSync, realpathSync } from 'node:fs';
 import { join, posix, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 export const MIN_AUTO_CONFIDENCE = 0.9;
 
 const ALLOWED_KINDS = new Set([
@@ -24,6 +24,7 @@ const ALLOWED_KINDS = new Set([
   'audit', 'research', 'other', 'decision', 'session', 'handoff',
 ]);
 const ALLOWED_LIFECYCLES = new Set(['active', 'historical', 'archived']);
+const ALLOWED_LAYERS = new Set(['product-erp', 'product-ai', 'ia-os']);
 const ALLOWED_REF_KINDS = new Set(['markdown-link', 'code-span', 'literal-path']);
 const SKIP_DIRS = new Set(['.git', '.worktrees', 'node_modules', 'vendor']);
 const TEXT_EXTENSIONS = /\.(?:cjs|css|html|js|json|jsx|md|mjs|php|ps1|py|sh|toml|ts|tsx|txt|xml|ya?ml)$/i;
@@ -213,6 +214,12 @@ function validateClassification(op, index, existingLower, issues) {
   }
   if (!ALLOWED_KINDS.has(c.kind)) issues.push(issue('error', 'KIND_INVALID', `kind invalido: ${c.kind ?? '(ausente)'}`, index));
   if (!ALLOWED_LIFECYCLES.has(c.lifecycle)) issues.push(issue('error', 'LIFECYCLE_INVALID', `lifecycle invalido: ${c.lifecycle ?? '(ausente)'}`, index));
+  if (!ALLOWED_LAYERS.has(c.layer)) issues.push(issue('error', 'LAYER_INVALID', `layer invalida: ${c.layer ?? '(ausente)'}; use o canon da ADR 0334`, index));
+  if (typeof c.door !== 'string' || !c.door.endsWith('.md')) {
+    issues.push(issue('error', 'CANONICAL_DOOR_REQUIRED', 'door deve apontar para a porta-mae .md da camada', index));
+  } else if (!existingLower.has(c.door.toLowerCase())) {
+    issues.push(issue('error', 'CANONICAL_DOOR_MISSING', `porta-mae nao existe: ${c.door}`, index));
+  }
   if (typeof c.slug !== 'string' || !/^[a-z0-9][a-z0-9-]*$/.test(c.slug)) {
     issues.push(issue('error', 'SLUG_INVALID', 'slug deve estar em kebab-case', index));
   }
@@ -417,6 +424,17 @@ function git(root, args) {
   return execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trim();
 }
 
+export function validatePlanAtRoot(plan, root = process.cwd()) {
+  const repo = resolve(root);
+  const currentSha = git(repo, ['rev-parse', 'HEAD']);
+  const trackedFiles = git(repo, ['ls-files', '-z']).split('\0').filter(Boolean).map(posixPath);
+  const markdownFiles = collectMarkdownFiles(repo);
+  return validatePlan(plan, {
+    root: repo, currentSha, trackedFiles, existingFiles: markdownFiles,
+    markdownFiles, textFiles: trackedFiles,
+  });
+}
+
 function runSelftest() {
   const sha = 'a'.repeat(40);
   const files = new Map([
@@ -442,12 +460,15 @@ function runSelftest() {
     ...extractDocumentReferences(files.get('docs/ops.md'), 'docs/ops.md'),
   ].filter((r) => r.target === 'docs/legacy.md')]]);
   const base = {
-    schema_version: 1,
+    schema_version: 2,
     base_sha: sha,
     operations: [{
       source: 'docs/legacy.md',
       target: 'memory/reference/guia-legado.md',
-      classification: { kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'guia-legado' },
+      classification: {
+        kind: 'how-to', owner: 'reference', lifecycle: 'active', slug: 'guia-legado',
+        layer: 'ia-os', door: 'README.md',
+      },
       confidence: 0.98,
       reason: 'Guia transversal deve viver junto das referencias tecnicas.',
       rewrites: [
@@ -495,6 +516,10 @@ function runSelftest() {
   check('MORDE: relink tentaria reescrever historico append-only', immutableRefResult.issues.some((i) => i.code === 'IMMUTABLE_REFERRER'), immutableRefResult);
   const placement = clone(base); placement.operations[0].classification.owner = 'governance';
   check('MORDE: owner e destino discordam', evaluate(placement).issues.some((i) => i.code === 'OWNER_TARGET_MISMATCH'), evaluate(placement));
+  const noLayer = clone(base); delete noLayer.operations[0].classification.layer;
+  check('MORDE: plano sem camada ADR 0334', evaluate(noLayer).issues.some((i) => i.code === 'LAYER_INVALID'), evaluate(noLayer));
+  const noDoor = clone(base); delete noDoor.operations[0].classification.door;
+  check('MORDE: plano sem porta-mae', evaluate(noDoor).issues.some((i) => i.code === 'CANONICAL_DOOR_REQUIRED'), evaluate(noDoor));
 
   for (const row of cases) console.log(`${row.ok ? '[OK]  ' : '[FAIL]'} ${row.name}`);
   const failed = cases.filter((row) => !row.ok);
@@ -532,17 +557,13 @@ if (isMain) {
   let plan;
   try { plan = JSON.parse(readFileSync(resolve(planPath), 'utf8')); }
   catch (error) { console.error(`plano ilegivel: ${error.message}`); process.exit(2); }
-  let currentSha;
-  let trackedFiles;
+  let result;
   try {
-    currentSha = git(root, ['rev-parse', 'HEAD']);
-    trackedFiles = git(root, ['ls-files', '-z']).split('\0').filter(Boolean).map(posixPath);
+    result = validatePlanAtRoot(plan, root);
   } catch (error) {
     console.error(`root nao e um repositorio Git legivel: ${error.message}`);
     process.exit(2);
   }
-  const markdownFiles = collectMarkdownFiles(root);
-  const result = validatePlan(plan, { root, currentSha, trackedFiles, existingFiles: markdownFiles, markdownFiles, textFiles: trackedFiles });
   if (args.includes('--json')) console.log(JSON.stringify(result, null, 2));
   else printHuman(result);
   process.exit(result.safe_to_apply ? 0 : 1);
