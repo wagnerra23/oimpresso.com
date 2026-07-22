@@ -186,6 +186,10 @@ function protectedReason(path) {
   if (/(?:^|\/)AGENTS\.md$/.test(path)) return 'instrucao de agente descoberta por caminho';
   if (/^memory\/requisitos\/[^/]+\/BRIEFING\.md$/.test(path)) return 'porta unica do modulo (ADR 0270)';
   if (/^Modules\/[^/]+\/SCOPE\.md$/.test(path)) return 'contrato de catalogo do modulo';
+  // memory/dominio/<mod>.md (SINGULAR) = dicionario de dominio lido por domain-dict-guard.mjs
+  // em path hard-coded (ADR 0264 G-4). NAO confundir com memory/dominioS/ (plural, conhecimento).
+  // Mover quebra o gate dominio:check (incidente piloto 2026-07-22).
+  if (/^memory\/dominio\/[^/]+\.md$/.test(path)) return 'dicionario de dominio, contrato de path do domain-dict-guard (ADR 0264 G-4)';
   return null;
 }
 
@@ -633,12 +637,13 @@ function runSelftest() {
   const badApprovalResult = evaluate(badApproval);
   check('MORDE: aprovacao com hash que nao corresponde ao plano', badApprovalResult.issues.some((i) => i.code === 'APPROVAL_INVALID') && badApprovalResult.verdict === 'REJECT', badApprovalResult);
 
-  // Lote coeso (piloto dominio/): A e B do corpus de negocio movem juntos; o link interno
-  // A->B preserva a distancia relativa e NAO exige rewrite (simetria inbound/outbound).
+  // Lote coeso: A e B movem juntos; o link interno A->B preserva a distancia relativa e NAO
+  // exige rewrite (simetria inbound/outbound). Par generico (docs/->reference/), NAO dominio/.
   const cohesiveFiles = new Map([
-    ['memory/dominio/a.md', '# A\n\n[ver B](b.md)\n'],
-    ['memory/dominio/b.md', '# B\n'],
-    ['memory/dominios/_overview.md', '# Overview\n'],
+    ['docs/guias/a.md', '# A\n\n[ver B](b.md)\n'],
+    ['docs/guias/b.md', '# B\n'],
+    ['memory/reference/existing.md', '# Ja existe (pasta de destino existe)\n'],
+    ['memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md', '# Constituicao\n'],
   ]);
   const cohesiveCtx = {
     currentSha: sha,
@@ -646,19 +651,27 @@ function runSelftest() {
     trackedFiles: [...cohesiveFiles.keys()],
     readSource: (p) => { if (!cohesiveFiles.has(p)) throw new Error('ausente'); return cohesiveFiles.get(p); },
     incomingReferences: new Map([
-      ['memory/dominio/a.md', []],
-      ['memory/dominio/b.md', extractDocumentReferences(cohesiveFiles.get('memory/dominio/a.md'), 'memory/dominio/a.md').filter((r) => r.target === 'memory/dominio/b.md')],
+      ['docs/guias/a.md', []],
+      ['docs/guias/b.md', extractDocumentReferences(cohesiveFiles.get('docs/guias/a.md'), 'docs/guias/a.md').filter((r) => r.target === 'docs/guias/b.md')],
     ]),
   };
-  const domClass = (slug) => ({ kind: 'reference', owner: 'domain', lifecycle: 'active', slug, layer: 'business-knowledge', door: 'memory/dominios/_overview.md' });
+  const refClass = (slug) => ({ kind: 'how-to', owner: 'reference', lifecycle: 'active', slug, layer: 'ia-os', door: 'memory/decisions/0094-constituicao-v2-7-camadas-8-principios.md' });
   const cohesiveOps = [
-    { source: 'memory/dominio/a.md', target: 'memory/dominios/a.md', classification: domClass('a'), confidence: 0.95, reason: 'consolidacao de pasta duplicada do corpus de negocio 0334', rewrites: [] },
-    { source: 'memory/dominio/b.md', target: 'memory/dominios/b.md', classification: domClass('b'), confidence: 0.95, reason: 'consolidacao de pasta duplicada do corpus de negocio 0334', rewrites: [] },
+    { source: 'docs/guias/a.md', target: 'memory/reference/a.md', classification: refClass('a'), confidence: 0.95, reason: 'guia transversal para a pasta de referencia canonica', rewrites: [] },
+    { source: 'docs/guias/b.md', target: 'memory/reference/b.md', classification: refClass('b'), confidence: 0.95, reason: 'guia transversal para a pasta de referencia canonica', rewrites: [] },
   ];
   const cohesiveResult = validatePlan({ schema_version: 2, base_sha: sha, operations: cohesiveOps }, cohesiveCtx);
   check('SOLTA: lote coeso, link interno preserva distancia sem rewrite', cohesiveResult.verdict === 'APPROVE', cohesiveResult);
   const soloBResult = validatePlan({ schema_version: 2, base_sha: sha, operations: [cohesiveOps[1]] }, cohesiveCtx);
   check('MORDE: B move sozinho, backlink de A (que ficou) nao declarado', soloBResult.issues.some((i) => i.code === 'MISSING_REWRITE'), soloBResult);
+  // Incidente 2026-07-22: mover memory/dominio/<mod>.md (dicionario, SINGULAR) quebrou o
+  // domain-dict-guard. O adversario agora barra como contrato de path.
+  const dictMove = clone(base);
+  dictMove.operations[0].source = 'memory/dominio/financeiro.md';
+  dictMove.operations[0].target = 'memory/dominios/financeiro.md';
+  dictMove.operations[0].rewrites = [];
+  const dictMoveResult = evaluate(dictMove, { incomingReferences: new Map([['memory/dominio/financeiro.md', []]]) });
+  check('MORDE: dicionario de dominio (singular) e contrato de path', dictMoveResult.issues.some((i) => i.code === 'PROTECTED_SOURCE'), dictMoveResult);
 
   for (const row of cases) console.log(`${row.ok ? '[OK]  ' : '[FAIL]'} ${row.name}`);
   const failed = cases.filter((row) => !row.ok);

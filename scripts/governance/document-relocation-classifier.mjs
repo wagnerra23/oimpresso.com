@@ -68,7 +68,9 @@ function inferModule(source, meta, modules) {
 // ANTES de qualquer heuristica de processo. Sem isso 94% do negocio virava 'reference'
 // (medicao 2026-07-22: 410/434 docs de dominios/clientes classificados como processo).
 function businessOwner(source) {
-  if (/^memory\/dominios?\//.test(source)) return 'domain';
+  // dominioS/ (PLURAL) = conhecimento de negocio. dominio/ (SINGULAR) = dicionario de
+  // enum (domain-dict-guard, ADR 0264 G-4) — NAO e corpus, e protegido (nao move).
+  if (/^memory\/dominios\//.test(source)) return 'domain';
   if (/^memory\/clientes(?:-legacy)?\//.test(source)) return 'client';
   return null;
 }
@@ -103,7 +105,7 @@ export function classifyDocument({ source, text, modules, targetOverride }) {
   // Corpus de negocio preserva a subarvore (nunca achatar wr-comercial/modulos/...).
   let target;
   if (targetOverride) target = targetOverride;
-  else if (owner === 'domain') target = `memory/dominios/${source.replace(/^memory\/dominios?\//, '')}`;
+  else if (owner === 'domain') target = `memory/dominios/${source.replace(/^memory\/dominios\//, '')}`;
   else if (owner === 'client') target = `memory/clientes/${source.replace(/^memory\/clientes(?:-legacy)?\//, '')}`;
   else target = `${prefix}${kind === 'briefing' ? 'BRIEFING' : kind === 'runbook' ? `RUNBOOK-${slug}` : slug}.md`;
 
@@ -200,7 +202,7 @@ export function buildPlan(source, { targetOverride } = {}) {
   const normalized = source.replaceAll('\\', '/').replace(/^\.\//, '');
   const files = tracked();
   if (!files.includes(normalized)) throw new Error(`source nao versionado: ${normalized}`);
-  if (PROTECTED.has(normalized) || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs))\//.test(normalized)) {
+  if (PROTECTED.has(normalized) || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs)|memory\/dominio)\//.test(normalized)) {
     throw new Error(`source protegido por caminho: ${normalized}`);
   }
   const text = readFileSync(join(ROOT, normalized), 'utf8');
@@ -240,7 +242,7 @@ export function buildBatchPlan(sources) {
   const normalized = sources.map((s) => s.replaceAll('\\', '/').replace(/^\.\//, ''));
   for (const s of normalized) {
     if (!files.includes(s)) throw new Error(`source nao versionado: ${s}`);
-    if (PROTECTED.has(s) || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs))\//.test(s)) {
+    if (PROTECTED.has(s) || /^(?:\.claude|\.github|memory\/(?:decisions|sessions|handoffs)|memory\/dominio)\//.test(s)) {
       throw new Error(`source protegido por caminho: ${s}`);
     }
   }
@@ -292,14 +294,13 @@ function selftest() {
     ['lifecycle-historical-preservado', classifyDocument({ source: 'x/velho.md', text: '---\ntype: guide\nlifecycle: historical\n---\n# Guia antigo', modules }).classification.lifecycle === 'historical'],
     ['lifecycle-desconhecido-derruba-confianca', classifyDocument({ source: 'x/g.md', text: '---\ntype: guide\nlifecycle: vigente\n---\n# Guia', modules }).confidence < 0.9],
     // Consolidacao de pasta duplicada: move mecanico certo (owner por path) — NAO e baixa
-    // confianca. Sem frontmatter, dominio/ (singular) -> dominios/ deve ser >=0.9 e APPROVAVEL.
-    // NB: o source aqui e um path SINTETICO que nao existe como arquivo real — fixtures NUNCA
-    // devem usar path de doc real, senao o relink do executor os reescreve (piloto 2026-07-22:
-    // um fixture usava o path real de um doc de dominio e foi alterado quando esse doc moveu).
-    ['consolidacao-dominio-alta-confianca', classifyDocument({ source: 'memory/dominio/fixture-consolidacao-teste.md', text: '# Exemplo', modules }).confidence >= 0.9
-      && classifyDocument({ source: 'memory/dominio/fixture-consolidacao-teste.md', text: '# Exemplo', modules }).target === 'memory/dominios/fixture-consolidacao-teste.md'],
+    // confianca. clientes-legacy/ (nao-canonico) -> clientes/ deve ser >=0.9. NB: paths aqui
+    // sao SINTETICOS (fixtures nunca usam path de doc real — o relink os reescreveria).
+    // Atencao: dominio/ SINGULAR NAO entra aqui (e dicionario protegido, nao corpus).
+    ['consolidacao-cliente-legacy-alta-confianca', classifyDocument({ source: 'memory/clientes-legacy/fixture-x.md', text: '# Exemplo', modules }).confidence >= 0.9
+      && classifyDocument({ source: 'memory/clientes-legacy/fixture-x.md', text: '# Exemplo', modules }).target === 'memory/clientes/fixture-x.md'],
     // Consolidacao stale AINDA cai (o rebaixamento morde acima da inflacao de consolidacao).
-    ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/dominio/x.md', text: '# X\nbranch 6.7-react', modules }).confidence < 0.9],
+    ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/clientes-legacy/y.md', text: '# Y\nbranch 6.7-react', modules }).confidence < 0.9],
   ];
   for (const [name, ok] of cases) console.log(`${ok ? '[OK]' : '[FALHA]'} ${name}`);
   if (cases.some(([, ok]) => !ok)) process.exit(1);
