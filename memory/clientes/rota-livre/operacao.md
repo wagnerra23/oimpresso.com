@@ -5,7 +5,7 @@
 ## Identidade
 
 - **Razão social:** LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME
-- **CNPJ:** `73.306.573/0001-XX` *(últimos dígitos redactados)*
+- **CNPJ:** `[REDACTED]` *(PII — proibicoes.md; consultar via `business_id=4` no banco)*
 - **Localização única:** BL0001 "ROTA LIVRE" — Termas do Gravatal, Gravatal/SC, CEP 88735-XXX
 - **Telefone:** `(48) 3626-XXXX` *(redactado)*
 - **Timezone cadastrado:** `America/Sao_Paulo` (confirmado operacionalmente em 2026-04-24)

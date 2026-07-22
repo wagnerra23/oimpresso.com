@@ -88,7 +88,7 @@
 ### Fase 1 — Vizinhos ROTA LIVRE
 
 #### 1. LE ROSE (Tubarão) {#le-rose}
-**Sinal:** loja feminina contemporânea + extensão linha aromas Amaris (mix vestuário+perfumaria), CNPJ 52.591.694/0001-82, ecommerce ativo. **Vizinho 30min de Gravatal**.
+**Sinal:** loja feminina contemporânea + extensão linha aromas Amaris (mix vestuário+perfumaria), CNPJ `[REDACTED]` *(PII — proibicoes.md)*, ecommerce ativo. **Vizinho 30min de Gravatal**.
 
 **Cold #1 (DM IG ou WhatsApp):**
 > Oi pessoal d'A LE ROSE, tudo bem? Aqui é Wagner do Office Impresso. Sou amigo da Larissa, dona da ROTA LIVRE em Termas do Gravatal — vocês devem conhecer ou já viram pelo menos no IG @rotalivre.

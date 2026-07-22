@@ -7,7 +7,7 @@
 
 - **Razão social:** LARISSA COMERCIO DE ARTIGOS DO VESTUARIO LTDA - ME
 - **Nome fantasia:** ROTA LIVRE (loja BL0001)
-- **CNPJ:** `73.306.573/0001-XX` *(últimos dígitos redactados — [`proibicoes.md`](../../proibicoes.md))*
+- **CNPJ:** `[REDACTED]` *(PII redactada — [`proibicoes.md`](../../proibicoes.md); consultar via `business_id=4` no banco)*
 - **Ramo:** vestuário (CNAE `4781-4/00`) — cliente piloto do `Modules/Vestuario`
 - **Localização:** Termas do Gravatal, **Gravatal/SC**, CEP `88735-XXX` *(redactado)*
 - **Timezone:** `America/Sao_Paulo` (confirmado operacionalmente 2026-04-24)
