@@ -14,7 +14,7 @@ module: Jana
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/Jana/**` + `resources/js/Pages/Jana/**`, separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 556 arquivos em 19 papéis.
+**Total mapeado:** 557 arquivos em 19 papéis.
 
 ## Controllers — 16
 
@@ -253,7 +253,7 @@ module: Jana
 
 - [JanaServiceProvider.php](../../../Modules/Jana/Providers/JanaServiceProvider.php)
 
-## Migrations (schema) — 76
+## Migrations (schema) — 77
 
 - [2026_04_24_000001_create_copiloto_metas_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000001_create_copiloto_metas_table.php)
 - [2026_04_24_000002_create_copiloto_meta_periodos_table.php](../../../Modules/Jana/Database/Migrations/2026_04_24_000002_create_copiloto_meta_periodos_table.php)
@@ -331,6 +331,7 @@ module: Jana
 - [2026_06_21_000001_create_jana_health_write_canary_table.php](../../../Modules/Jana/Database/Migrations/2026_06_21_000001_create_jana_health_write_canary_table.php)
 - [2026_06_23_120000_add_confidence_to_jana_ui_judge_runs.php](../../../Modules/Jana/Database/Migrations/2026_06_23_120000_add_confidence_to_jana_ui_judge_runs.php)
 - [2026_07_18_120000_add_model_to_mcp_cc_messages.php](../../../Modules/Jana/Database/Migrations/2026_07_18_120000_add_model_to_mcp_cc_messages.php)
+- [2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php](../../../Modules/Jana/Database/Migrations/2026_07_22_100000_add_briefing_surface_to_mcp_type_enum.php)
 
 ## Seeders — 4
 
