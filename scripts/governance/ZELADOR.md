@@ -41,6 +41,17 @@ Toda manhã, fazer o estado declarado convergir pra verdade, decidir o decidíve
 2. **Sondas (insumo, não notificação):** rodar `node scripts/governance/knowledge-drift.mjs --json`
    no checkout do main. Pior módulo NOVO (que não estava no topo ontem) entra no relatório.
    NÃO abrir task nem doc por causa de sonda — só registrar tendência.
+   - **Ciclo documental fechado (trilha semanal ou quando houver drift novo):** rodar
+     `node scripts/governance/documentation-loop.mjs --snapshot --json`. O script **não é
+     régua nova**: compõe `memory-health` + `briefing-code-staleness` +
+     `doc-freshness-score` e dá ID estável ao achado. Selecionar no máximo **1** alvo
+     acionável por run e executar a máquina `.claude/workflows/documentacao-tecnica.js`.
+     A correção só fecha com
+     `documentation-loop.mjs --compare-ref origin/main --expect <id> --json`: o mesmo ID
+     precisa existir ANTES e desaparecer DEPOIS. Métrica melhor mas ID ainda presente =
+     **não resolvido**. PR leva trailer `Documentation-Receipt: <id>`. Na run seguinte ao
+     merge, medir o `main`; se o ID reapareceu/permaneceu, reabrir como resíduo em vez de
+     declarar sucesso. Isto é recibo do detector dono, não presence-gate de "doc no diff".
    - **Bite-log dos gates de design (DR-2a · [ADR 0336](../../memory/decisions/0336-gates-design-promocao-por-mordida-provada-emenda-0314.md)):** rodar `node scripts/governance/design-gate-bites.mjs --scan --sha <sha-do-main> [--pr <n>]`. Registra em `memory/governance/design-gate-bites.jsonl` cada violação de design que MERGEOU (gate advisory que não segurou; dedup por `sig` — persistente não infla). Se houver mordida NOVA, **incluí-la no PR diário** (o ZELADOR é o único coletor — não há workflow que commita no main sob `enforce_admins`). Depois `--tally`: gate com **≥2 PRs distintos** vira candidato a required (DR-3) → escalar como **resíduo** (passo 3 do trilho) com draft de emenda à 0314, **NUNCA promover sozinho**.
    - **Frescor das réguas (o batimento do looping · [proposta reguas-loop](../../memory/decisions/proposals/reguas-loop-maquina-evolucao.md)):** rodar `node scripts/governance/reguas-indexar.mjs` (report-only) + ler a `data` do topo de `memory/reguas/retratos.json`. Isto é SONDA (insumo, não notificação — o ZELADOR **não roda a grade** nem persiste; medir+persistir custa tokens e é o Órgão 2, fora da missão de subtração). Se **(a)** o retrato do topo tem >30 dias **OU (b)** a fila de indexação tem itens: 1 linha no relatório (`reguas: retrato Nd · fila M`). Se acionável (retrato stale E há Δ de commits em paths mapeados), **escalar como resíduo** (passo 3) com draft de 1 OK *"rodar `Workflow reguas-do-sistema {modo:'delta'}`?"* — a execução (delta) é do [W]/sessão dedicada, **NUNCA do ZELADOR**. A fila de indexação em si NÃO abre doc (mesma regra do knowledge-drift acima).
 3. **Caça ao ruído (subtração):** identificar fonte de notificação/bot/check cujo output não mudou
@@ -54,6 +65,7 @@ Toda manhã, fazer o estado declarado convergir pra verdade, decidir o decidíve
    - `idade_media_doing: Nh` (era 520h+ no baseline 2026-06-11)
    - `ruido_proposto: <fonte ou —>`
    - `drift_destaque: <módulo ou —>`
+   - `docs_loop: <id resolvido|id pendente|—>` (somente na trilha semanal ou pós-merge)
    - `reguas: retrato Nd · fila M` (só quando N>30 OU M>0 — senão omitir a linha)
    O run #1 estabelece o **baseline** das métricas. Nada além deste comment é escrito — zero doc novo.
 
@@ -65,6 +77,18 @@ PODE sozinho: `tasks-update`/`tasks-comment`/fechar/rebaixar tasks · commit/pus
 NÃO PODE (sempre Wagner): mergear PR pra main · tocar prod/`.env`/migrations prod · criar/alterar
 ADR · deletar branch não-mergeada · dropar stash · mudar branch protection · criar task nova no
 backlog (exceto comentar nas existentes) · criar arquivo novo em `memory/` (anti-elefante).
+
+### Recibo e liveness da trilha documental
+
+- **Liveness:** a automação agendada deve emitir resultado em toda execução, mesmo quando
+  `docs_loop: —`. Falha de execução notifica [W]; ausência de histórico de run significa
+  guardião **não comprovado**, nunca "saudável por silêncio".
+- **Antes→depois:** o output JSON do `--compare-ref` é o recibo. Não criar ledger paralelo;
+  o trailer do PR + histórico da automação/GitHub são a prova.
+- **Pós-merge:** a primeira run após o merge consulta PRs recentes com trailer
+  `Documentation-Receipt:` e confirma no snapshot do `main` que o ID segue ausente.
+- **Escalada:** ID que não fecha em 2 tentativas não gera terceiro mecanismo; vira draft de
+  1 OK pro Wagner com causa, fonte viva e alternativa subtrativa.
 
 ## Métricas e kill-switch (piloto 14 dias: 2026-06-12 → 2026-06-26)
 
