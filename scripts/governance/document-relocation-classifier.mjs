@@ -105,9 +105,15 @@ export function classifyDocument({ source, text, modules, targetOverride }) {
         : owner === 'governance' ? 'memory/governance/'
           : owner === 'domain' ? 'memory/dominios/'
             : owner === 'client' ? 'memory/clientes/' : 'memory/reference/';
+  // Doc JA sob o prefixo do owner (mesmo em subpasta) esta na familia certa: NAO move.
+  // Sem isso, memory/research/<sub>/X.md seria achatado pra memory/research/x.md, destruindo
+  // a subarvore e colidindo (incidente teste 2026-07-22: 98 docs em subpastas em risco).
+  // Renomear-pra-slug dentro da familia e curadoria, nao realocacao — nao e trabalho da maquina.
+  const alreadyInFamily = !targetOverride && source.startsWith(prefix);
   // Corpus de negocio preserva a subarvore (nunca achatar wr-comercial/modulos/...).
   let target;
   if (targetOverride) target = targetOverride;
+  else if (alreadyInFamily) target = source;
   else if (owner === 'domain') target = `memory/dominios/${source.replace(/^memory\/dominios\//, '')}`;
   else if (owner === 'client') target = `memory/clientes/${source.replace(/^memory\/clientes(?:-legacy)?\//, '')}`;
   else target = `${prefix}${kind === 'briefing' ? 'BRIEFING' : kind === 'runbook' ? `RUNBOOK-${slug}` : slug}.md`;
@@ -345,6 +351,9 @@ function selftest() {
       && classifyDocument({ source: 'memory/clientes-legacy/fixture-x.md', text: '# Exemplo', modules }).target === 'memory/clientes/fixture-x.md'],
     // Consolidacao stale AINDA cai (o rebaixamento morde acima da inflacao de consolidacao).
     ['consolidacao-stale-ainda-cai', classifyDocument({ source: 'memory/clientes-legacy/y.md', text: '# Y\nbranch 6.7-react', modules }).confidence < 0.9],
+    // Incidente teste 2026-07-22: doc JA sob memory/research/<sub>/ era ACHATADO pra
+    // memory/research/x.md (destroi subarvore, colide). Agora: ja na familia = nao move.
+    ['ja-na-familia-nao-achata', (() => { const c = classifyDocument({ source: 'memory/research/2026-05-x/00-INDEX.md', text: '# Index', modules }); return c.already_canonical === true && c.target === 'memory/research/2026-05-x/00-INDEX.md'; })()],
     // Owner [W] 2026-07-22: comparativos/ (Capterra/mercado) e research, nunca governance/reference.
     // Path SINTETICO (fixture nunca usa doc real — o relink o reescreveria, incl. este script).
     ['comparativo-vira-research', (() => { const c = classifyDocument({ source: 'memory/comparativos/fixture-capterra.md', text: '# comparativo fixture', modules }); return c.classification.kind === 'research' && c.classification.owner === 'research' && c.target.startsWith('memory/research/'); })()],
