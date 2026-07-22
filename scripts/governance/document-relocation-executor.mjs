@@ -168,7 +168,7 @@ export function executePlan(plan, { root = DEFAULT_ROOT, apply = false, commit =
 }
 
 export function movementHistory(root = DEFAULT_ROOT) {
-  const raw = git(resolve(root), ['log', '--all', '--grep=^Document-Move:', '--date=iso-strict', '--format=%H%x1f%ad%x1f%B%x1e']);
+  const raw = git(resolve(root), ['log', '--grep=^Document-Move:', '--date=iso-strict', '--format=%H%x1f%ad%x1f%B%x1e']);
   return raw.split('\x1e').filter(Boolean).flatMap((record) => {
     const [commit, date, ...bodyParts] = record.replace(/^\s+|\s+$/g, '').split('\x1f');
     const body = bodyParts.join('\x1f');
@@ -208,6 +208,11 @@ function selftest() {
     const result = executePlan(plan, { root: fixture, apply: true, commit: true });
     check('git mv + relink + commit', result.status === 'COMMITTED' && !existsSync(join(fixture, 'docs/source.md')) && readFileSync(join(fixture, 'README.md'), 'utf8').includes('memory/reference/source.md#uso'));
     check('historico duravel consultavel', movementHistory(fixture).some((row) => row.source === 'docs/source.md' && row.target === 'memory/reference/source.md'));
+    const canonicalBranch = git(fixture, ['branch', '--show-current']);
+    git(fixture, ['switch', '-q', '-c', 'nao-fundida']);
+    git(fixture, ['commit', '--allow-empty', '-q', '-m', 'movimento lateral', '-m', 'Document-Move: docs/ghost.md => memory/reference/ghost.md']);
+    git(fixture, ['switch', '-q', canonicalBranch]);
+    check('historico ignora branch nao fundida', !movementHistory(fixture).some((row) => row.source === 'docs/ghost.md'));
   } finally {
     if (fixture.startsWith(tmpdir())) rmSync(fixture, { recursive: true, force: true });
   }
