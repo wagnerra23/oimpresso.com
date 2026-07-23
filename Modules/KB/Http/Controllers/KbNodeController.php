@@ -96,6 +96,28 @@ class KbNodeController extends Controller
         ]));
         $node->save();
 
+        // Versão inicial (o histórico começa em 1). O KbNodeObserver::updating() só versiona
+        // em UPDATE — o create registra a versão 1 aqui (contrato SCHEMA-DB-V1 §11). Nó novo é
+        // is_editable=true, então o gate de bridge do KbNodeVersionObserver permite.
+        KbNodeVersion::create([
+            'business_id'    => $node->business_id,
+            'node_id'        => $node->id,
+            'version_at'     => now(),
+            'author_user_id' => Auth::id(),
+            'snapshot'       => [
+                'title'          => $node->title,
+                'excerpt'        => $node->excerpt,
+                'body_blocks'    => $node->body_blocks,
+                'tags'           => $node->tags,
+                'status'         => $node->status,
+                'category_id'    => $node->category_id,
+                'subcategory_id' => $node->subcategory_id,
+                'nivel'          => $node->nivel,
+                'equip'          => $node->equip,
+            ],
+            'change_reason'  => 'Criação inicial',
+        ]);
+
         return response()->json(['node' => $node], 201);
     }
 

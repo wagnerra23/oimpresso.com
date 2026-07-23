@@ -69,6 +69,16 @@ class KbArticleService
             $q->bridge();
         }
 
+        if ($request->boolean('favorites')) {
+            // Só os nós favoritados pelo user atual (SCHEMA-DB-V1 §11 GET /kb?favorites=1).
+            // Subquery em kb_favorites por user_id (chave global do user); o global scope do
+            // KbNode já garante o isolamento de tenant no resultado.
+            $userId = (int) (auth()->id() ?? 0);
+            $q->whereIn('id', function (\Illuminate\Database\Query\Builder $sub) use ($userId) {
+                $sub->select('node_id')->from('kb_favorites')->where('user_id', $userId);
+            });
+        }
+
         return $q;
     }
 

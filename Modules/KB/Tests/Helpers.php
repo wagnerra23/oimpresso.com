@@ -290,6 +290,18 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         $user->save();
     }
 
+    // BLOQUEADOR 1 (acúmulo): model_has_* são CORE e NÃO resetadas por kbTeardownSchema →
+    // o MESMO user (42/99) acumula perms entre testes no MySQL persistente-no-run. Um caso
+    // de 403-POR-FALTA-DE-PERM (ex: "POST sem kb.write → 403") herdaria a coarse concedida
+    // por um caso de SUCESSO anterior → 200 falso. Limpa SÓ as perms diretas DESTE user (não
+    // toca outros tenants/seed users, nem usa syncPermissions — cujo detach Eloquent regride
+    // o KbIndexV2) pra cada teste começar do zero determinístico. Filtro por model_id basta:
+    // na DB de teste do KB só existem perms de User (users 42/99).
+    \DB::table('model_has_permissions')
+        ->where('model_id', $user->getAuthIdentifier())
+        ->delete();
+    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
+
     foreach ($permissions as $perm) {
         \Spatie\Permission\Models\Permission::firstOrCreate([
             'name' => $perm,
