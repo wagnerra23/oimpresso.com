@@ -1,4 +1,6 @@
-# Requisitos Funcionais — Módulo PontoWR2
+# Requisitos Funcionais — Módulo PontoWR2 ⚰️ histórico
+
+> ⚠️ **FÓSSIL PontoWr2-era (abr/2026) — histórico, NÃO usar como estado atual.** Requisitos do módulo Ponto original; preservado como registro. Classificado "seguro pra arquivar" em [`governance/AUDITORIA-CONFLITOS-MEMORIA-2026-06-07.md`](governance/AUDITORIA-CONFLITOS-MEMORIA-2026-06-07.md).
 
 > Review consolidado do que foi prometido vs. o que está implementado.
 > Atualizar sempre que uma pendência for resolvida ou um requisito novo entrar.
