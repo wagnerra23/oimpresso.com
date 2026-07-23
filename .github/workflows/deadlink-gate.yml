@@ -1,4 +1,4 @@
-name: Deadlink gate (advisory)
+name: Deadlink gate (integridade referencial)
 
 # Catraca de integridade referencial doc↔doc (links markdown mortos) — ADR 0256.
 # Origem: medição 2026-07-23 achou ~1.1k links internos mortos no corpus vivo de
@@ -13,15 +13,12 @@ name: Deadlink gate (advisory)
 # + flip [W]). Job vermelho é sinal honesto, não bloqueia merge (proibicoes §5:
 # hard-fail em job advisory é desenho intencional).
 
+# SEM paths-filter — require-safe (ADR 0275 §5 / precedente #3444): um required com
+# paths-filter trava todo PR que não toca os paths ("expected — waiting" eterno). O
+# --check é ratchet contra baseline (exit 0 quando nada piora), então rodar em todo PR
+# é barato (~16s) e correto.
 on:
   pull_request:
-    paths:
-      - 'memory/**'
-      - '*.md'
-      - 'scripts/governance/deadlink-gate.mjs'
-      - 'scripts/governance/deadlink-gate.test.mjs'
-      - 'governance/deadlink-baseline.json'
-      - '.github/workflows/deadlink-gate.yml'
 
 concurrency:
   group: deadlink-gate-${{ github.ref }}
@@ -32,7 +29,7 @@ permissions:
 
 jobs:
   deadlink:
-    name: deadlink-gate (ratchet advisory)
+    name: deadlink-gate (ratchet · integridade referencial)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
