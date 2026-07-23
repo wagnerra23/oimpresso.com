@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-producao-oficina-cacamba-visual-comparison
 slug: oficinaauto-producao-oficina-cacamba-visual-comparison
 title: "OficinaAuto — Comparativo visual Produção Oficina Caçamba"
 type: visual-comparison

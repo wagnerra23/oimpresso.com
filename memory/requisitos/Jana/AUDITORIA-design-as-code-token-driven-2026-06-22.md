@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-auditoria-design-as-code-token-driven-2026-06-22
+---
+
 # AUDITORIA — Design-as-code / Token-driven como melhor transporte design→code
 
 > **Tema:** Estrutura da fronteira design↔code (ÂNGULO SOTA 2: tokens + componente codado = fonte; "design" é view).

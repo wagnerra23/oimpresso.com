@@ -1,4 +1,5 @@
 ---
+id: requisitos-crm-legado-fullpage-edit-visual-comparison
 slug: cliente-edit-visual-comparison
 title: "Cliente — Comparativo visual /contacts/{id}/edit (Blade legacy → Inertia React + bloco BR)"
 type: visual-comparison

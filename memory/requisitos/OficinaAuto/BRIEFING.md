@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-briefing
 distilled_at: "2026-07-17"
 distilled_by: "manual [CC] — redistilação por releitura (rotas + comandos + seeder FSM + charter + baseline). Substitui o carimbo de 2026-07-09, que herdou gaps já entregues do CAPTERRA-FICHA e um 'meta 2026-Q3' 2 meses errado"
 module: OficinaAuto

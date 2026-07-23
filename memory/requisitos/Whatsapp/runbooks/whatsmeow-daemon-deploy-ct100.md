@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-runbooks-whatsmeow-daemon-deploy-ct100
+---
+
 # Runbook · Deploy daemon Whatsmeow Go (WuzAPI) no CT 100
 
 > **Status:** canon · **Última atualização:** 2026-05-27

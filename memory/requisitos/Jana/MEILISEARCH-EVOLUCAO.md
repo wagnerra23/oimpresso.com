@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-meilisearch-evolucao
+---
+
 # Evolução Meilisearch no Projeto oimpresso
 
 > Histórico canônico da jornada Meilisearch — do zero até hybrid search com Ollama.

@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-inventario-cutover-caixa-unificada-v4
+---
+
 # INVENTÁRIO + PLANO DE CUTOVER — Caixa Unificada V4
 
 > **Tela legacy:** `/atendimento/inbox` (status `live` desde 2026-05-11 · 99% volume ROTA LIVRE)

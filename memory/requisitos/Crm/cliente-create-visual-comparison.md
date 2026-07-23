@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-cliente-create-visual-comparison
+---
+
 # Visual Comparison — Cliente/Create (W1-B3)
 
 ## Pattern reuse (ADR 0149)

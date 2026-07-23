@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-runbooks-migrar-1-para-n-numeros
+---
+
 # Runbook — Migração Whatsapp 1→N números por business
 
 > **Decisão mãe:** [ADR 0117](../../../decisions/0117-multiplos-numeros-whatsapp-por-business.md)

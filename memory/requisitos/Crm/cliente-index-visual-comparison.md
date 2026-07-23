@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-cliente-index-visual-comparison
+---
+
 # Visual Comparison — Cliente/Index (W1-B3)
 
 ## Blueprint Cowork

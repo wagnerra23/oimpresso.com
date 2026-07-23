@@ -1,4 +1,5 @@
 ---
+id: requisitos-whatsapp-briefing
 distilled_at: "2026-07-17"
 distilled_by: jana:distill-module-truth
 module: Whatsapp

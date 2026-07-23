@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-adr-arq-0001-tenancy-hibrida
+---
+
 # ADR ARQ-0001 — Tenancy híbrida por `business_id` nullable
 
 **Data:** 2026-04-24

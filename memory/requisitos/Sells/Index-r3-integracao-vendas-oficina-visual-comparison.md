@@ -1,4 +1,5 @@
 ---
+id: requisitos-sells-index-r3-integracao-vendas-oficina-visual-comparison
 session: 2026-05-25 Ondas 3+4 — coluna Origem + saved tree + KPI breakdown + listener
 page: /sells
 component: resources/js/Pages/Sells/Index.tsx

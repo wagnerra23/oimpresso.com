@@ -1,3 +1,7 @@
+---
+id: requisitos-sells-observability
+---
+
 # OBSERVABILITY — Sells (núcleo UltimatePOS, não é módulo)
 
 > Declaração canônica de pontos de hook OTel (D9.a Observability v3 — 2026-05-16).

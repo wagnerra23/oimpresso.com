@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-demo-martinho-2026-05-13-charter-1pager
+---
+
 
 
 # oimpresso · Modules/OficinaAuto

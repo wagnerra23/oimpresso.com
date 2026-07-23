@@ -1,4 +1,5 @@
 ---
+id: requisitos-jana-auditoria-ia-os-2026-06-06
 title: "Auditoria Sênior IA OS — sistema operacional agêntico do oimpresso"
 type: auditoria
 status: draft

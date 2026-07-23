@@ -1,3 +1,7 @@
+---
+id: requisitos-whatsapp-audit-log
+---
+
 # WhatsApp Module — Audit Log
 
 > Histórico append-only de auditorias do módulo via skill `module-completeness-audit` Tier B (criada 2026-05-10).

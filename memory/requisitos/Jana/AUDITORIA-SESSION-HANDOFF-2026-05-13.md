@@ -1,3 +1,7 @@
+---
+id: requisitos-jana-auditoria-session-handoff-2026-05-13
+---
+
 # Auditoria de Session Handoff / Continuidade IA-pair — oimpresso vs Estado-da-Arte 2025-2026
 
 > **Data:** 2026-05-13

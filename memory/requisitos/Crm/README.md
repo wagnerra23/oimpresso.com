@@ -1,4 +1,5 @@
 ---
+id: requisitos-crm-readme
 module: Crm
 alias: crm
 status: ativo

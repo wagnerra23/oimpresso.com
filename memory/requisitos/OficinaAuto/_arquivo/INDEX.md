@@ -1,3 +1,7 @@
+---
+id: requisitos-oficina-auto-arquivo-index
+---
+
 # _arquivo — OficinaAuto (lápides L-22)
 
 > Artefatos aposentados do módulo. Nada some sem rastro: cada linha registra **origem → destino + o que substituiu** (LICOES_CC L-22 / L-07).

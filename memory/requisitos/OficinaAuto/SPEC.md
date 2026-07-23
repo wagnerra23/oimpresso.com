@@ -1,4 +1,5 @@
 ---
+id: requisitos-oficina-auto-spec
 module: OficinaAuto
 version: "0.2.0"
 last_updated: "2026-06-09"

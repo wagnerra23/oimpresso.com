@@ -1,3 +1,7 @@
+---
+id: requisitos-crm-adr-arq-0001-crm-estende-contacts-do-ultimatepos
+---
+
 # ADR ARQ-0001 (Crm) · CRM estende `contacts` do UltimatePOS sem duplicar
 
 - **Status**: accepted
