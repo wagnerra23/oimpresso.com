@@ -315,3 +315,8 @@ jobs:
         run: node scripts/adversario-intencao-fluxo.test.mjs
       - name: Auditar-intenção-fluxo (contrato + evidência + rota proibida + prosa não mascara)
         run: node scripts/auditar-intencao-fluxo.test.mjs
+      # Integridade referencial doc↔doc (ADR 0256) — ratchet de links markdown mortos.
+      # Fixtures provam MORDE (link morto novo/pior) + controles-negativos (história
+      # append-only nunca enforça; dívida grandfathered passa). Sessão 2026-07-23.
+      - name: Deadlink-gate (ratchet de links mortos · morde/grandfather/história)
+        run: node scripts/governance/deadlink-gate.test.mjs

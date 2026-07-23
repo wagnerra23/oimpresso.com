@@ -11,6 +11,13 @@
     }
   },
   "workflows": {
+    "deadlink-gate.yml": {
+      "nome": "deadlink-gate (advisory) — catraca de integridade referencial doc↔doc: links markdown internos mortos no corpo VIVO (memory/** menos história append-only + *.md da raiz). Ratchet POR ARQUIVO vs governance/deadlink-baseline.json (dívida grandfathered; reprova só quem PIORA). Case-sensitive sempre (paridade Linux). GENERALIZA o Check V do memory-health (warn num subconjunto front-facing) pro corpus vivo inteiro com mordida — Check V segue como sentinela do subconjunto; este é a catraca do todo.",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-08-06",
+      "anchor": "sinal de custo: medição 2026-07-23 achou ~1.105 links internos mortos em 571 arquivos vivos (7,5% de ~17,9k) — ex.: ADR 0022→requisitos/Copiloto/ (renomeado ADR 0088 sem relink), ADR 0029→auto-mem purgada 2026-06-07. Grade estado-da-arte anti-apodrecimento (sessão 2026-07-23): D1 integridade referencial era a única dimensão vermelha (35/100; padrão lychee/Docusaurus/Antora = link morto falha o build). ADR 0256. Advisory por ADR 0314 (link doc↔doc é quality, não Tier-0); promote_by força a decisão [W] em 14d — promoção pela doutrina de mordidas ADR 0336. PR #4700."
+    },
     "system-map.yml": {
       "nome": "system-map (automação) — regenera memory/reference/PAINEL-SISTEMA.md e ONBOARDING-AGENTE-GERADO.md das fontes canônicas. Painel derivado + prompt auxiliar da rota de agentes; nenhum deles redefine a porta global README.md. --check advisory no PR + regen diário commit-back.",
       "classe": "automacao",

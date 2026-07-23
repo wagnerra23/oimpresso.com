@@ -1,0 +1,47 @@
+name: Deadlink gate (advisory)
+
+# Catraca de integridade referencial doc↔doc (links markdown mortos) — ADR 0256.
+# Origem: medição 2026-07-23 achou ~1.1k links internos mortos no corpus vivo de
+# memory/ e ZERO checker no CI (grade estado-da-arte: D1 era a única dimensão 🔴).
+# Desenho: baseline RATCHET por arquivo (governance/deadlink-baseline.json) —
+# dívida existente grandfathered (boa parte vive em ADR/handoff append-only, que é
+# PROIBIDO editar); reprova só quem PIORA (arquivo novo com link morto, ou arquivo
+# que ganha mais mortos que o baseline registra). História (handoffs/sessions/
+# sprints/audits/research/reguas) nunca enforça.
+#
+# ADVISORY por lei (ADR 0314/0275: required = só Tier-0; promoção = mordidas reais
+# + flip [W]). Job vermelho é sinal honesto, não bloqueia merge (proibicoes §5:
+# hard-fail em job advisory é desenho intencional).
+
+on:
+  pull_request:
+    paths:
+      - 'memory/**'
+      - '*.md'
+      - 'scripts/governance/deadlink-gate.mjs'
+      - 'scripts/governance/deadlink-gate.test.mjs'
+      - 'governance/deadlink-baseline.json'
+      - '.github/workflows/deadlink-gate.yml'
+
+concurrency:
+  group: deadlink-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deadlink:
+    name: deadlink-gate (ratchet advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      # 1) bite-test: prova que o gate MORDE (fixtures herméticas) antes de confiar no verde
+      - name: Bite-test do gate (fixtures)
+        run: node scripts/governance/deadlink-gate.test.mjs
+      # 2) ratchet: reprova arquivo vivo que PIOROU vs baseline
+      - name: Ratchet vs baseline
+        run: node scripts/governance/deadlink-gate.mjs --check
