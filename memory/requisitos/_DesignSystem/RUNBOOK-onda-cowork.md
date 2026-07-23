@@ -12,7 +12,7 @@ related_adrs:
   - 0107-emendation-0104-visual-comparison-gate-f3
   - 0109-claude-design-plugin-integrado-processo-mwart
   - 0114-prototipo-ui-cowork-loop-formalizado
-  - 0141-agents-tool-use-pattern-claude-code
+  - 0141-skill-migracao-blade-react
   - 0143-fsm-pipeline-live-prod-marco-2026-05-12
 related_skills: [mwart-process, mwart-comparative, cowork-prototype-replication, charter-first, preflight-modulo, wagner-protocol-enforce, smoke-prod-evidence, brief-update, migracao-blade-react]
 related_runbooks:
