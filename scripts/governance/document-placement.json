@@ -28,6 +28,6 @@
     { "prefix": "memory/mwart-inventory/", "rule": "canonical", "decided_by": "W", "note": "inventario MWART." },
     { "prefix": "memory/cycles/", "rule": "canonical", "decided_by": "W", "note": "ciclos." },
 
-    { "prefix": "memory/", "rule": "heuristic", "decided_by": "W", "note": "RAIZ de memory/: docs soltos MOVEM pra familia que o classificador inferir, validado pelo adversario ([W] 2026-07-22 'todas serao movidas e organizadas sem excecao'). Portas (INDEX, 08-handoff, what-oimpresso, proibicoes) seguem protegidas por PROTECTED_EXACT; referenciados por append-only movem com tombstone." }
+    { "prefix": "memory/", "rule": "canonical", "decided_by": "W", "note": "RAIZ = camada-primer. Verificado 2026-07-23: 17/30 sao load-bearing (5 @imports do CLAUDE.md — how-trabalhar/proibicoes/regras-time/what-oimpresso/why-oimpresso; 8+ contratos de codigo hook/script; portas INDEX/08-handoff/_INDEX-SECRETS). @import NAO aceita stub de tombstone (importaria o redirect, quebra o primer). Tombstone tb nao limpa a raiz (stub fica no path). Mover = fragmenta serie 00-11 + quebra primer. A organizacao correta e a raiz ESTAR estavel: cada doc e referenciado por estar ali." }
   ]
 }
