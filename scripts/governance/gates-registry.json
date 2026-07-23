@@ -300,6 +300,13 @@
       "nome": "Jana · Pest (MySQL)",
       "classe": "gate"
     },
+    "kb-pest.yml": {
+      "nome": "KB · Pest (MySQL)",
+      "classe": "gate",
+      "terminal": "advisory",
+      "promote_by": "2026-08-06",
+      "anchor": "sinal de custo: NENHUM teste do Modules/KB rodava no CI por-PR (não está no modules-pest.yml matrix, sem lane própria, só KbDriftPersistenceTest na allowlist sqlite) — regressão do KB só aparecia no CT100 nightly (dia seguinte); o #4715 (Fase A1 doc↔código) mergeou com 91 checks verdes sem exercitar teste nenhum do KB. Nasce com 11 arquivos comprovadamente verdes no MySQL efêmero (probe CT100 @ main 2026-07-23). Advisory por ADR 0271 onda 2 (required-ready via skip-as-pass); a própria lane já pegou 2 gaps reais que o staging poluído mascarava (kb_categories.sort ausente + grants Spatie 403 no MySQL fresco) → 8 arquivos ratchet-pendentes documentados no workflow. promote_by força a decisão de promoção a required."
+    },
     "ponto-pest.yml": {
       "nome": "Ponto · Pest (MySQL)",
       "classe": "gate",
