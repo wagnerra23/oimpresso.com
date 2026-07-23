@@ -109,8 +109,10 @@ jobs:
         # Cada novo verde entra AQUI (ratchet up). NÃO incluir RefreshDatabase/
         # migrate:fresh — dropam schema+seed.
         #
-        # Os 18: provados verdes na DB EFÊMERA do CI. Os 7 do GAP 2 entraram após alinhar
-        # os testes ao gate coarse + tornar o helper de permissão determinístico (ver GAP 2).
+        # Os 13: provados verdes na DB EFÊMERA do CI. KbPath + KbDecisionTree entraram após
+        # alinhar os testes ao gate coarse + tornar o helper de permissão determinístico
+        # (ver GAP 2). Os outros 5 do GAP 2 ficam pendentes por bugs REAIS de comportamento
+        # (não-authz) que o alinhamento DESMASCAROU — ver GAP 2.
         #
         # DIAGNÓSTICO CORRIGIDO (2026-07-23 — a hipótese do #4725 estava errada nos DOIS
         # gaps; investigação com oráculos de schema + config Spatie + run real da lane):
@@ -137,26 +139,47 @@ jobs:
         #       AMBIENTE DE LANE, tratado à parte. NÃO ratchetear enquanto (a) não fechar.
         #
         #   GAP 2 — os 7 (Http/*ControllerTest + GovernanceInvariantsTest +
-        #   CrossTenantIsolationTest): RESOLVIDO via Opção B (2026-07-23, decisão [W]) —
-        #   ✅ RATCHETEADOS abaixo. Eram DUAS causas empilhadas:
-        #     1. NAME MISMATCH: todo controller/request KB gateia na permissão COARSE
-        #        `copiloto.mcp.memory.manage` (SCHEMA-DB-V1 §12 declara essa perm CANÔNICA
-        #        até o "PR de rename Spatie"; os kb.* são DECLARATIVOS, não gateiam), mas os
-        #        testes concediam só `kb.*` → middleware 403 em todo caso de sucesso. Fix:
-        #        testes alinhados à realidade V1 — sucesso concede a coarse (kb.* ficam ao
-        #        lado, forward-compat pro rename); 403 concede só kb.view (bloqueio vem do
-        #        gate); cross-tenant/governança/autoria concedem a coarse DE PROPÓSITO pra o
-        #        bloqueio vir do global scope / invariante / guarda de autoria — não do
-        #        middleware (senão seriam falso-verde Tier 0).
-        #     2. FLAKINESS de cache/acúmulo Spatie (item b do GAP 1): permissions/
-        #        model_has_* são CORE e NÃO resetadas por kbTeardownSchema → o user
-        #        acumulava perms entre testes (um 403 herdava a coarse de um sucesso
-        #        anterior → 200 falso) + cache stale (403 order-dependent). Fix no helper
-        #        kbActAsUser: syncPermissions (exatamente as perms pedidas, zera acúmulo) +
-        #        forgetCachedPermissions (releitura do DB).
-        #     NÃO muda autorização em prod (test-only + 1 fix não-authz: KbNodeController::
-        #     reverify passou a zerar outdated_votes — gap revelado pelo alinhamento). O
-        #     authz granular kb.* segue adiado pro "PR de rename Spatie" (Tier 0, backfill).
+        #   CrossTenantIsolationTest). A CAMADA DE TOPO era authz, resolvida via Opção B
+        #   (2026-07-23, decisão [W]) — mas o run REAL da lane (PR #4736) PROVOU que authz
+        #   era só a superfície: destravado o 403, 5 dos 7 revelaram BUGS REAIS de
+        #   comportamento que o middleware-403 vinha MASCARANDO. RATCHETEADOS só os 2 que
+        #   ficaram 100% verdes (KbPath + KbDecisionTree).
+        #
+        #   Fix da camada authz (aplicado aos 7, correto e necessário):
+        #     1. NAME MISMATCH: todo controller/request KB gateia na COARSE
+        #        `copiloto.mcp.memory.manage` (SCHEMA-DB-V1 §12 declara CANÔNICA até o "PR de
+        #        rename Spatie"; os kb.* são DECLARATIVOS, não gateiam). Testes alinhados:
+        #        sucesso concede a coarse (kb.* ao lado, forward-compat); 403 concede só
+        #        kb.view; cross-tenant/governança/autoria concedem a coarse DE PROPÓSITO pra
+        #        o bloqueio vir do global scope / invariante / autoria — não do middleware.
+        #     2. FLAKINESS Spatie: permissions/model_has_* são CORE, não resetadas por
+        #        kbTeardownSchema → user acumulava perms (403 herdava coarse → 200 falso) +
+        #        cache stale. Fix no helper kbActAsUser: syncPermissions + forgetCached.
+        #     + fix não-authz: KbNodeController::reverify passou a zerar outdated_votes.
+        #     NÃO muda autorização em prod. authz granular kb.* segue adiado pro rename.
+        #
+        #   Os 5 pendentes por BUG REAL (não-authz) — precisam de PR de correção do módulo
+        #   KB, NÃO de ratchet. Achados do run PR #4736 (8 asserts falharam sob authz OK):
+        #     - KbNodeControllerTest: (a) POST /kb/nodes NÃO cria snapshot inicial em
+        #       kb_node_versions (store não versiona no create; observer só no update);
+        #       (b) DELETE /kb/nodes exige `confirm=CONFIRMO` (safety guard do destroy) que
+        #       o teste não manda → 422 (bug de TESTE — falta o payload).
+        #     - KbCommentControllerTest: DELETE comment do próprio autor → 403 (guarda de
+        #       autoria: `author_user_id !== Auth::id()` com `!==` estrito — provável
+        #       string-vs-int; investigar).
+        #     - KbFavoriteControllerTest: GET /kb/nodes?favorites=1 não exclui o não-
+        #       favoritado (filtro de favorito por user).
+        #     - GovernanceInvariantsTest: save de KbNodeVersion pra nó bridge NÃO lança
+        #       (gate de governança de versão de bridge não está no nível de Model).
+        #     - CrossTenantIsolationTest: (a) POST /kb/edges cross-tenant → 201: o
+        #       StoreKbEdgeRequest valida `to_node_id` com `exists:kb_nodes,id` SEM escopo
+        #       de business_id → biz=1 cria aresta referenciando nó de biz=99. POTENCIAL
+        #       TIER 0 — decisão [W] (fix: escopar o exists por business_id + provar que o
+        #       read-path da aresta não vaza conteúdo); (b) DELETE cross-tenant → 422 (mesmo
+        #       confirm faltando; a isolação se mantém, mas o status esperado difere);
+        #       (c) bridge job: teste chama handle() sem os args de DI → ArgumentCountError
+        #       (bug de TESTE).
+        #     Enquanto não fecharem, NÃO ratchetear esses 5.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1
@@ -179,13 +202,8 @@ jobs:
             Modules/KB/Tests/Feature/KbDriftPersistenceTest.php \
             Modules/KB/Tests/Feature/KbRagasEvalTest.php \
             Modules/KB/Tests/Feature/LgpdComplianceTest.php \
-            Modules/KB/Tests/Feature/Http/KbNodeControllerTest.php \
-            Modules/KB/Tests/Feature/Http/KbCommentControllerTest.php \
-            Modules/KB/Tests/Feature/Http/KbFavoriteControllerTest.php \
             Modules/KB/Tests/Feature/Http/KbPathControllerTest.php \
-            Modules/KB/Tests/Feature/Http/KbDecisionTreeControllerTest.php \
-            Modules/KB/Tests/Feature/GovernanceInvariantsTest.php \
-            Modules/KB/Tests/Feature/CrossTenantIsolationTest.php
+            Modules/KB/Tests/Feature/Http/KbDecisionTreeControllerTest.php
 
       - name: Upload JUnit (KB · MySQL)
         if: ${{ !cancelled() && steps.changes.outputs.kb == 'true' }}
