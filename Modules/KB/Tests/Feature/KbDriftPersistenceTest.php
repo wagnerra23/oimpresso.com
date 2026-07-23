@@ -99,3 +99,57 @@ it('multi-tenant Tier 0: rodar biz=1 não escreve o nó de biz=99', function () 
     $this->artisan('kb:drift-detector', ['--business-id' => 99, '--mock' => true])->assertExitCode(1);
     expect(DB::table('kb_nodes')->where('id', $idBiz99)->value('code_drift_state'))->not->toBeNull();
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+// Fase A2 — nós BRIDGE (ADR/session/…): o texto vive em
+// mcp_memory_documents.content_md, não em body_blocks. É o que faz o
+// doc↔código cobrir o corpus canônico de governança.
+// ─────────────────────────────────────────────────────────────────────────
+
+/** Insere um nó bridge canônico (is_editable=false, body_blocks NULL) ligado a um mcp doc. */
+function kbInsertBridgeNode(int $bizId, string $slug, string $contentMd, string $type = 'adr'): int
+{
+    $docId = kbCreateMcpDoc($bizId, $type, ['content_md' => $contentMd]);
+
+    return (int) DB::table('kb_nodes')->insertGetId([
+        'business_id' => $bizId,
+        'type' => $type,
+        'slug' => $slug,
+        'title' => "Bridge {$slug}",
+        'is_editable' => false,
+        'body_blocks' => null,
+        'source_doc_id' => $docId,
+        'status' => 'ok',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+}
+
+it('grava code_drift_state para nó BRIDGE cujo content_md cita path deletado', function () {
+    $id = kbInsertBridgeNode(1, 'adr-com-drift', "# ADR\n\nDecisão sobre memory/decisions/0000-deleted-test.md aqui.");
+
+    $this->artisan('kb:drift-detector', ['--business-id' => 1, '--mock' => true])
+        ->assertExitCode(1);
+
+    $state = json_decode((string) DB::table('kb_nodes')->where('id', $id)->value('code_drift_state'), true);
+    expect($state['refs'][0]['path'])->toBe('memory/decisions/0000-deleted-test.md');
+});
+
+it('bridge sem referência quebrada permanece NULL', function () {
+    $id = kbInsertBridgeNode(1, 'adr-limpo', "# ADR\n\nDecisão sem citar arquivo nenhum.");
+
+    $this->artisan('kb:drift-detector', ['--business-id' => 1, '--mock' => true])
+        ->assertExitCode(0);
+
+    expect(DB::table('kb_nodes')->where('id', $id)->value('code_drift_state'))->toBeNull();
+});
+
+it('multi-tenant Tier 0: bridge de biz=99 não é escrito ao rodar biz=1', function () {
+    $idBiz99 = kbInsertBridgeNode(99, 'adr-drift-biz99', "cita Modules/Removed/Service.php no corpo");
+
+    $this->artisan('kb:drift-detector', ['--business-id' => 1, '--mock' => true])->assertExitCode(0);
+    expect(DB::table('kb_nodes')->where('id', $idBiz99)->value('code_drift_state'))->toBeNull();
+
+    $this->artisan('kb:drift-detector', ['--business-id' => 99, '--mock' => true])->assertExitCode(1);
+    expect(DB::table('kb_nodes')->where('id', $idBiz99)->value('code_drift_state'))->not->toBeNull();
+});
