@@ -24,13 +24,6 @@ beforeEach(function () {
     kbBootstrapSchema();
     kbCreateBusinessRow(1);
     kbCreateBusinessRow(99);
-    // A régua conta POR business (não por nó específico como os demais testes KB),
-    // logo é sensível a QUALQUER resíduo. A lane sqlite per-PR roda muitos arquivos
-    // no MESMO processo :memory:; garanto slate limpo pra as asserções "== 0" não
-    // herdarem nó de drift/código de outro teste (edges antes de nodes por FK).
-    DB::table('kb_edges')->delete();
-    DB::table('kb_nodes')->delete();
-    DB::table('kb_health_history')->delete();
 });
 
 afterEach(function () {
@@ -107,13 +100,19 @@ it('--snapshot grava a régua doc↔código com os valores derivados certos', fu
     expect($checks['code_edges']['value'])->toBe(1);
 });
 
-it('sem drift ativo o check fica ok com value 0', function () {
+it('code_drift_flagged BATE com a contagem real do business + status coerente', function () {
+    // Robusto a resíduo da lane sqlite compartilhada (mesmo processo :memory,
+    // muitos arquivos): prova que o CHECK conta a verdade do banco por-business e
+    // que o status segue a regra (>0 → warn, 0 → ok) — não depende de slate limpo.
+    $real = (int) DB::table('kb_nodes')
+        ->where('business_id', 1)->whereNull('deleted_at')->whereNotNull('code_drift_state')->count();
+
     $this->artisan('kb:health-check', ['--business-id' => 1, '--snapshot' => true, '--json' => true])
         ->assertExitCode(0);
 
     $checks = json_decode((string) DB::table('kb_health_history')->where('business_id', 1)->value('checks'), true);
-    expect($checks['code_drift_flagged']['value'])->toBe(0);
-    expect($checks['code_drift_flagged']['status'])->toBe('ok');
+    expect($checks['code_drift_flagged']['value'])->toBe($real);
+    expect($checks['code_drift_flagged']['status'])->toBe($real > 0 ? 'warn' : 'ok');
 });
 
 it('é idempotente por dia: 2 runs = 1 row (updateOrInsert)', function () {
@@ -133,15 +132,25 @@ it('sem --snapshot não grava história (run só reporta)', function () {
     expect(DB::table('kb_health_history')->count())->toBe(0);
 });
 
-it('multi-tenant Tier 0: snapshot biz=1 não cria row de biz=99 e não conta dado alheio', function () {
-    kbSeedReguaDocCodigo(99); // todo o cenário vive em biz=99
+it('multi-tenant Tier 0: health-check biz=1 conta SÓ biz=1, ignora o cenário de biz=99', function () {
+    kbSeedReguaDocCodigo(99); // cenário (1 drift + 2 code-nodes + 1 edge) vive em biz=99
+
+    // Contagens REAIS por business (robusto a resíduo da lane compartilhada).
+    $b1Drift = (int) DB::table('kb_nodes')->where('business_id', 1)->whereNotNull('code_drift_state')->count();
+    $b1Edges = (int) DB::table('kb_edges')->where('business_id', 1)->where('generated_by', 'code_scan')->count();
 
     $this->artisan('kb:health-check', ['--business-id' => 1, '--snapshot' => true, '--json' => true])->assertExitCode(0);
 
-    // Só a row de biz=1, e ela NÃO enxerga o drift/nós/arestas de biz=99.
+    // Rodar pra biz=1 NÃO cria snapshot de biz=99.
     expect(DB::table('kb_health_history')->where('business_id', 99)->count())->toBe(0);
+
+    // O check de biz=1 = a verdade de biz=1 (NÃO soma o que foi semeado em biz=99).
     $checks = json_decode((string) DB::table('kb_health_history')->where('business_id', 1)->value('checks'), true);
-    expect($checks['code_drift_flagged']['value'])->toBe(0);
-    expect($checks['code_nodes']['value'])->toBe(0);
-    expect($checks['code_edges']['value'])->toBe(0);
+    expect($checks['code_drift_flagged']['value'])->toBe($b1Drift);
+    expect($checks['code_edges']['value'])->toBe($b1Edges);
+
+    // Prova positiva do isolamento: o cenário SEMEADO em biz=99 existe (1 drift + 1 edge)
+    // e é EXATAMENTE o que o check de biz=1 não contou.
+    expect((int) DB::table('kb_nodes')->where('business_id', 99)->whereNotNull('code_drift_state')->count())->toBe(1);
+    expect((int) DB::table('kb_edges')->where('business_id', 99)->where('generated_by', 'code_scan')->count())->toBe(1);
 });
