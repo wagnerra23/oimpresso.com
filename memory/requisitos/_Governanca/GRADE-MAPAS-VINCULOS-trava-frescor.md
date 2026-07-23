@@ -28,6 +28,7 @@ esta grade herda e **não reabre**:
 | 3 | Q-noise — BRIEFING super-dispara | **Resolvido pela porta** | O BRIEFING **não** dispara em todo `.tsx`; frescor dele é medido **doc↔código** por `briefing-code-staleness` (não em CSS puro). |
 | 4 | Onde a trava mora / codar o gate | **É do [W]** (outro mecanismo) | Aqui só se **declara qual porta viva** cobre cada vínculo. |
 | 5 | Formato dos 35 mapas | **Opção B — portas vivas, não 35 `.md`** ([F] 2026-07-22) | Esta grade vira índice→porta + gaps. |
+| 6 | Backend → SDD só existe no Produto (1/41) — quando os outros módulos ganham SDD? | **[W] aprovou SDD pra TODOS os módulos** (relato direto Felipe↔Wagner, 2026-07-23) | Deixa de ser "sem decisão"; vira "aprovado, aguardando ordem de rollout". Ver §3. |
 
 ---
 
@@ -71,8 +72,8 @@ o resto já está coberto:
 
 | Gatilho | Doc alvo | Por que é gap | Nota |
 |---|---|---|---|
-| Decisão de design por tela | **`<tela>.decisoes.md`** | [ADR 0293](../../decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md) cravou o Decision Register, mas **0 arquivos existem** e nada força o preenchimento | Ativar o `.decisoes.md` é o maior ganho isolado |
-| Backend → **SDD** | `SDD-*.md` | SDD só existe no **Produto** (1 de 41 módulos) → gatilho→SDD nasce **dormente** nos demais | Liga quando o módulo ganhar SDD |
+| Decisão de design por tela | **`<tela>.decisoes.md`** | [ADR 0293](../../decisions/0293-governanca-decisao-design-responsavel-registro-veredito.md) cravou o Decision Register, mas **0 arquivos existem** e nada força o preenchimento | Ativar o `.decisoes.md` é o maior ganho isolado — task **US-GOV-056** aberta 2026-07-23 |
+| Backend → **SDD** | `SDD-*.md` | SDD só existe no **Produto** (1 de 41 módulos) → gatilho→SDD nasce **dormente** nos demais até o módulo ganhar o doc | **Atualização 2026-07-23:** [W] aprovou SDD pra **todos** os módulos (§0 item 6) — deixou de ser "sem decisão" e virou "aprovado, falta rollout". Task de priorização **US-GOV-057** aberta 2026-07-23. O gatilho segue dormente módulo a módulo até cada um ganhar seu SDD — não é mais uma questão de "se", só de "quando" |
 
 ---
 
@@ -101,3 +102,4 @@ _Append-only. Autor: Claude (Opus 4.8) + Felipe [F]. Opção B (portas vivas, n�
 |---|---|---|
 | 2026-07-21 | [F]/[CC] | Grade criada como roteiro de 35 mapas à mão (4 ondas P0-P3). |
 | 2026-07-22 | [F]/[CC] | **Reescrita — Opção B:** vínculos apontam pras portas vivas (ADR 0256); tabelas de contagem à mão removidas (deriváveis por `screen-coverage:report`); §3 isola os 2 gaps reais (`.decisoes.md` vazio + SDD dormente) pro mecanismo do [W]. |
+| 2026-07-23 | Felipe/[CC] | §0 item 6 + §3: Wagner aprovou SDD pra **todos** os módulos (relato direto Felipe↔Wagner) — o gap "SDD dormente" deixa de ser "sem decisão" e vira "aprovado, aguardando rollout". Abertas US-GOV-056 (`.decisoes.md`) e US-GOV-057 (priorização do rollout de SDD). |
