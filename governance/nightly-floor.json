@@ -1,0 +1,36 @@
+{
+  "schema": "nightly-floor/v1 (ADR 0279)",
+  "floor_count": 346,
+  "floor_files_hash": "81abe9b62a8c9b37",
+  "all_shards_measured": true,
+  "partial_runs": [],
+  "runs": [
+    {
+      "sha": "d2c5abd7",
+      "ts": "20260720-020001",
+      "failed": 604,
+      "errors": 624,
+      "skipped": 2223,
+      "all_shards_measured": true
+    },
+    {
+      "sha": "26c52cd0",
+      "ts": "20260722-020001",
+      "failed": 654,
+      "errors": 431,
+      "skipped": 2262,
+      "all_shards_measured": true
+    },
+    {
+      "sha": null,
+      "ts": "20260723-020001",
+      "failed": 654,
+      "errors": 465,
+      "skipped": 2245,
+      "all_shards_measured": true
+    }
+  ],
+  "computed_at": "20260723-020001",
+  "intersection_of": 3,
+  "note": "floor = intersecao de 3 runs validos (arquivos com failed>0||errors>0 em TODOS)"
+}
