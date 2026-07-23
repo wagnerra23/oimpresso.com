@@ -159,7 +159,7 @@ function runSelftest() {
     writeFileSync(join(fx, 'memory/reference/sem-fm.md'), '# Sem frontmatter\n');          // reference sem fm → DEFERE
     writeFileSync(join(fx, 'memory/governance/notes.md'), '# Governance sem fm\n');         // família não-mapeada → carimba
     writeFileSync(join(fx, 'memory/governance/CONSTITUTION.md'), '# Constituição\n');       // PROTECTED → não toca
-    writeFileSync(join(fx, 'memory/governance/cliente-x.md'), '# Cliente\n\nCNPJ 12.345.678/0001-99\n'); // PII → pula
+    writeFileSync(join(fx, 'memory/governance/cliente-x.md'), '# Cliente\n\nCNPJ 12.345.678/0001-99\n'); // pii-allowlist (CNPJ sintético de teste) — PII → pula
     writeFileSync(join(fx, 'memory/reference/b.md'), '---\nid: reference-b\n---\n# B\n'); // já tem id
     writeFileSync(join(fx, 'memory/reference/gen.md'), '---\nauthority: generated\n---\n# Gerado\n');
     writeFileSync(join(fx, 'memory/requisitos/Jana/SPEC.md'), '# SPEC gate-toxic\n');
