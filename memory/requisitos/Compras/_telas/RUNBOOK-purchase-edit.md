@@ -1,4 +1,5 @@
 ---
+id: requisitos-compras-telas-runbook-purchase-edit
 title: "RUNBOOK — /purchases/{id}/edit (Compras · edição Inertia)"
 module: Purchase
 tela: Purchase/Edit

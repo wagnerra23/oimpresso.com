@@ -1,3 +1,7 @@
+---
+id: requisitos-compras-auditoria-compras-2026-05-21
+---
+
 # AUDITORIA · Módulo Compras (Purchase Order) — oimpresso
 
 > **Tema:** Compras / Purchase Order Management

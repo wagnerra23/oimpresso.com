@@ -1,4 +1,5 @@
 ---
+id: resources-js-pages-compras-index-charter
 page: /compras
 component: resources/js/Pages/Compras/Index.tsx
 owner: wagner
