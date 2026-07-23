@@ -18,7 +18,7 @@
 ## IA canônica ([ADR 0035](decisions/0035-stack-ai-canonica-wagner-2026-04-26.md))
 
 - **Camada A** (LLM wrapper): `laravel/ai` ^0.6.3 oficial fev/2026
-- **Camada B** (agents): `LaravelAiSdkDriver` + 4 Agents próprios em `Modules/Jana/Ai/Agents/` — **Vizra ADK REJEITADA** ([ADR 0048](decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md))
+- **Camada B** (agents): `LaravelAiSdkDriver` + Agents próprios em `Modules/Jana/Ai/Agents/` — **Vizra ADK REJEITADA** ([ADR 0048](decisions/0048-framework-agentes-laravel-ai-vizra-rejeitada.md))
 - **Camada C** (memória): `MemoriaContrato` + `MeilisearchDriver` default + `NullDriver` dev
 
 ## MCP server canônico ([ADR 0053](decisions/0053-mcp-server-governanca-como-produto.md))
