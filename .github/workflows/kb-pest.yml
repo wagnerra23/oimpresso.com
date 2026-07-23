@@ -144,9 +144,7 @@ jobs:
         #   gateiam), mas os testes concediam só `kb.*` → middleware 403 em todo sucesso.
         #   O PR #4736 (decisão [W], Opção B) ALINHOU os 7 à realidade V1 (sucesso concede a
         #   coarse; 403 concede só kb.view; cross-tenant/governança/autoria concedem a coarse
-        #   DE PROPÓSITO pra o bloqueio vir do global scope/invariante/autoria) + endureceu o
-        #   helper kbActAsUser (givePermissionTo→syncPermissions, mata o ACÚMULO cross-test
-        #   além do forgetCached que já existia).
+        #   DE PROPÓSITO pra o bloqueio vir do global scope/invariante/autoria).
         #   MAS 2 runs REAIS da lane provaram que authz era SÓ a superfície — NENHUM dos 7 é
         #   ratcheteado ainda, por DOIS motivos:
         #     (i)  5 dos 7 têm BUGS REAIS de comportamento que o 403 mascarava:
@@ -163,11 +161,16 @@ jobs:
         #            referencia nó biz=99. POTENCIAL TIER 0, decisão [W] (fix: escopar o exists
         #            + provar que o read-path da aresta não vaza). + DELETE cross-tenant 422
         #            (confirm faltando) + bridge job handle() sem args de DI (bug de TESTE).
-        #     (ii) resíduo de flakiness Spatie order-dependent: KbDecisionTree passou num run
-        #          e falhou noutro com 403 (executionOrder=random). syncPermissions reduziu
-        #          MUITO mas não zerou. Ratchetear flaky quebra a lane → pior que não.
-        #   Fechar GAP 2 = PR dedicado: fix dos 5 bugs + isolamento Spatie robusto. Os 7
-        #   testes já ficam authz-prontos (este PR). NÃO force ratchet aqui.
+        #     (ii) resíduo de flakiness Spatie order-dependent (executionOrder=random):
+        #          permissions/model_has_* são CORE e não resetadas por kbTeardownSchema, o
+        #          user ACUMULA perms entre testes → 403 intermitente. O `forgetCached` que já
+        #          existe no helper não basta pros 7 (têm casos de 403 que herdariam a coarse
+        #          de um sucesso anterior). Fica pro PR de GAP 2: trocar givePermissionTo por
+        #          syncPermissions (perms exatas, zera acúmulo) — testado neste PR mas revertido
+        #          porque, sozinho, regrediu o KbIndexV2 (já ratcheteado) num run → precisa vir
+        #          junto do isolamento robusto, não solto. Ratchetear flaky quebra a lane.
+        #   Fechar GAP 2 = PR dedicado: fix dos 5 bugs + isolamento Spatie robusto (bootstrap/
+        #   teardown + syncPermissions). Os 7 já ficam authz-prontos (este PR). NÃO ratchetear.
         env:
           DB_CONNECTION: mysql
           DB_HOST: 127.0.0.1

@@ -290,22 +290,13 @@ function kbActAsUser(int $bizId = 1, int $userId = 42, array $permissions = []):
         $user->save();
     }
 
-    // Determinismo cross-test na lane MySQL PERSISTENTE-no-run: as tabelas Spatie
-    // (permissions/model_has_*) são CORE e NÃO são resetadas por kbTeardownSchema. Sem
-    // isto o user ACUMULA perms entre testes (um caso de 403 herdaria a coarse de um
-    // caso de sucesso anterior → 200 falso) e o cache do PermissionRegistrar fica stale
-    // (403 intermitente, order-dependent). Fix: garante que as perms existam, reseta o
-    // cache, e usa syncPermissions pra deixar EXATAMENTE as perms pedidas (troca as
-    // diretas, zera acúmulo). Vazio → limpa todas (clean slate por teste).
     foreach ($permissions as $perm) {
         \Spatie\Permission\Models\Permission::firstOrCreate([
             'name' => $perm,
             'guard_name' => 'web',
         ]);
+        $user->givePermissionTo($perm);
     }
-    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
-    $user->syncPermissions($permissions);
-    app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
 
     // BLOQUEADOR 2 (lane, phpunit.xml executionOrder="random"): as tabelas Spatie
     // (permissions/model_has_*) são CORE COMPARTILHADAS e NÃO são resetadas por
