@@ -16,7 +16,16 @@ uses(TestCase::class)->in('Browser');
 // AQUI mesmo. `realpath` resolve worktrees / junctions.
 $kbFeatureDir = realpath(__DIR__ . '/../Modules/KB/Tests/Feature');
 $kbUnitDir    = realpath(__DIR__ . '/../Modules/KB/Tests/Unit');
-if ($kbFeatureDir !== false) { uses(TestCase::class)->in($kbFeatureDir); }
+// KB Feature usa DatabaseTransactions (padrão do repo — tests/Contract, Auditoria): cada
+// teste roda numa transação e dá ROLLBACK automático no fim, desfazendo TUDO que inseriu
+// (perms, mcp_docs, kb_nodes). Mata o acúmulo cross-test nas tabelas CORE (model_has_*,
+// mcp_memory_documents) que kbTeardownSchema não limpava → fim da flakiness + do bug "8 nós".
+// Pré-req: o schema kb_* vem do `migrate --force` do setup (mysql-schema.sql + migrations
+// novas), então kbBootstrapSchema NÃO dropa mais kb_* (DDL daria commit implícito e quebraria
+// a transação). Seguro no CT100 persistente: rollback nunca toca dado real.
+if ($kbFeatureDir !== false) {
+    uses(TestCase::class, \Illuminate\Foundation\Testing\DatabaseTransactions::class)->in($kbFeatureDir);
+}
 if ($kbUnitDir    !== false) { uses(TestCase::class)->in($kbUnitDir); }
 
 // RecurringBilling — Spatie LogsActivity está ATIVO em Plan/Subscription/Invoice, mas
