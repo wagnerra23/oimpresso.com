@@ -71,6 +71,7 @@ function kbBootstrapSchema(): void
     // despercebido no CI. withoutForeignKeyConstraints restaura o check no fim
     // (try/finally) mesmo em erro. Só afeta os drops kb_* — CORE nunca é dropada.
     Schema::withoutForeignKeyConstraints(function () {
+        Schema::dropIfExists('kb_health_history');
         Schema::dropIfExists('kb_bridge_state');
         Schema::dropIfExists('kb_comments');
         Schema::dropIfExists('kb_favorites');
@@ -190,7 +191,7 @@ function kbTeardownSchema(): void
     // de kbBootstrapSchema (ciclo kb_decision_trees ↔ kb_decision_tree_steps +
     // self-FK). Ver comentário lá. Restaura o check no fim (try/finally).
     Schema::withoutForeignKeyConstraints(function () {
-        foreach (['kb_bridge_state', 'kb_comments', 'kb_favorites', 'kb_node_versions',
+        foreach (['kb_health_history', 'kb_bridge_state', 'kb_comments', 'kb_favorites', 'kb_node_versions',
                   'kb_decision_tree_steps', 'kb_decision_trees',
                   'kb_path_steps', 'kb_paths',
                   'kb_edges', 'kb_nodes',
