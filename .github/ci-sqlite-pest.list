@@ -32,6 +32,8 @@ Modules/TeamMcp/Tests/Feature/IngestHeartbeatTest.php
 Modules/KB/Tests/Feature/KbDriftPersistenceTest.php
 # KB code-scan (Fase B, ADR 0350) — gera KbNode reference a partir de AST PHP. sqlite-safe (kbBootstrapSchema, DB::table; php-parser das dev deps).
 Modules/KB/Tests/Feature/KbCodeScanTest.php
+# KB code-graph (Fase D) — kb_edges de dependência (classe usa classe) via AST. sqlite-safe (kbBootstrapSchema cria kb_nodes+kb_edges; php-parser das dev deps).
+Modules/KB/Tests/Feature/KbCodeGraphTest.php
 Modules/TeamMcp/Tests/Feature/IngestLivenessTest.php
 # Alarme anti-SPOF do ingest (IngestLivenessChecker no governance:audit, 2026-07-18):
 # dispara quando hosts existem mas fresh=0. Sintética em beforeEach → sqlite-safe.

@@ -14,7 +14,7 @@ module: KB
 >
 > **O que isto é:** os artefatos reconhecidos pelo classificador dentro de `Modules/KB/**` + `resources/js/Pages/kb/**` (namespace Inertia `kb`, declarado em `module-surface.mjs::PAGES_NS` porque difere do nome do módulo `KB`), separados por papel — inclusive telas e seus componentes sem confundir um com o outro. **O que NÃO é:** manifesto de todo byte da pasta, cobertura/nota/status por tela (donos: `screen-coverage-map.mjs` + `casos-gate`) nem âncoras cross-cutting (bridge em `app/`, FSM) — essas vivem narradas no [BRIEFING](BRIEFING.md), não aqui.
 
-**Total mapeado:** 142 arquivos em 18 papéis.
+**Total mapeado:** 144 arquivos em 18 papéis.
 
 ## Controllers — 14
 
@@ -81,9 +81,10 @@ module: KB
 - [KbBridgeFromMcpJob.php](../../../Modules/KB/Jobs/KbBridgeFromMcpJob.php)
 - [KbEdgeAutoDeriverJob.php](../../../Modules/KB/Jobs/KbEdgeAutoDeriverJob.php)
 
-## Console / Commands — 5
+## Console / Commands — 6
 
 - [KbClassifyCommand.php](../../../Modules/KB/Console/Commands/KbClassifyCommand.php)
+- [KbCodeGraphCommand.php](../../../Modules/KB/Console/Commands/KbCodeGraphCommand.php)
 - [KbCodeScanCommand.php](../../../Modules/KB/Console/Commands/KbCodeScanCommand.php)
 - [KbDriftDetectorCommand.php](../../../Modules/KB/Console/Commands/KbDriftDetectorCommand.php)
 - [KbHealthCommand.php](../../../Modules/KB/Console/Commands/KbHealthCommand.php)
@@ -161,9 +162,9 @@ module: KB
 
 - [Index.v2.casos.md](../../../resources/js/Pages/kb/Index.v2.casos.md)
 
-## Testes (Pest) — 32
+## Testes (Pest) — 33
 
-- 32 arquivos em [Modules/KB/Tests/Feature/](../../../Modules/KB/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
+- 33 arquivos em [Modules/KB/Tests/Feature/](../../../Modules/KB/Tests/Feature) — cobertura é do `casos-gate`/`screen-coverage`, não deste índice.
 
 ## Outros (raiz/misc) — 13
 

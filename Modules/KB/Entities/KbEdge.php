@@ -61,6 +61,7 @@ class KbEdge extends Model
 
     public const GENERATED_BY = [
         'manual', 'bridge_job', 'ai_embed', 'tag_overlap', 'user_action',
+        'code_scan', // Fase D — arestas de dependência derivadas do código (kb:code-graph)
     ];
 
     public function fromNode(): BelongsTo
