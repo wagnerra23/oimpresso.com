@@ -24,6 +24,13 @@ beforeEach(function () {
     kbBootstrapSchema();
     kbCreateBusinessRow(1);
     kbCreateBusinessRow(99);
+    // A régua conta POR business (não por nó específico como os demais testes KB),
+    // logo é sensível a QUALQUER resíduo. A lane sqlite per-PR roda muitos arquivos
+    // no MESMO processo :memory:; garanto slate limpo pra as asserções "== 0" não
+    // herdarem nó de drift/código de outro teste (edges antes de nodes por FK).
+    DB::table('kb_edges')->delete();
+    DB::table('kb_nodes')->delete();
+    DB::table('kb_health_history')->delete();
 });
 
 afterEach(function () {
