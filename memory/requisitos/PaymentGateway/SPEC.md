@@ -1,4 +1,5 @@
 ---
+id: requisitos-payment-gateway-spec
 slug: paymentgateway
 title: "Especificação funcional — PaymentGateway"
 type: spec

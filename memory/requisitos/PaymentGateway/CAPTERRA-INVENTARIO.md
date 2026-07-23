@@ -1,4 +1,5 @@
 ---
+id: requisitos-payment-gateway-capterra-inventario
 slug: paymentgateway-capterra-inventario
 title: "CAPTERRA-INVENTARIO — PaymentGateway"
 type: capterra-inventario
